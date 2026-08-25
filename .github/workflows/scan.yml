@@ -81,6 +81,12 @@ jobs:
     permissions:
       contents: read
       security-events: write # publier les alertes dans l'onglet Security
+      # ⚠️ `actions: read` n'est pas décoratif : l'action `analyze` interroge
+      # `GET /repos/{o}/{r}/actions/runs/{id}` pour attacher le SARIF au bon run. Sans lui
+      # elle échoue en « Resource not accessible by integration » APRÈS avoir tout analysé
+      # — dix minutes de calcul jetées à la dernière étape, et un message qui ne nomme pas
+      # la permission manquante. Requis sur un dépôt PRIVÉ ; inoffensif une fois public.
+      actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
