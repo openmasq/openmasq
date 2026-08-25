@@ -26,25 +26,31 @@ const ALLOWED = new Set([
 ]);
 
 // Jamais écrit en clair : ce garde scanne aussi son propre fichier, et le motif en
-// littéral serait sa seule « occurrence » — il s'échouerait lui-même.
-const NEEDLE = ["proxy", "chat"].join("");
+// littéral serait sa seule « occurrence » — il s'échouerait lui-même. DEUX noms
+// retirés : celui d'avant la migration du 24/08/2026, et celui d'avant le passage
+// en OpenMasq (réécrit rétroactivement — il ne doit revenir nulle part).
+const NEEDLES = [["proxy", "chat"].join(""), ["kav", "iar"].join("")];
 
 let out = "";
-try {
-  // Fichiers suivis par git seulement : node_modules, dist et artefacts locaux sont hors jeu.
-  out = execFileSync(
-    "git",
-    ["grep", "-I", "-i", "-n", "--full-name", NEEDLE, "--", ".", ":!pnpm-lock.yaml"],
-    { encoding: "utf8" },
-  );
-} catch (err) {
-  // git grep sort en code 1 quand il ne trouve RIEN — c'est le succès ici.
-  if (err.status === 1 && !err.stdout?.length) {
-    console.log("check:brand — aucun résidu de l'ancien nom de code.");
-    process.exit(0);
+for (const needle of NEEDLES) {
+  try {
+    // Fichiers suivis par git seulement : node_modules, dist et artefacts locaux sont hors jeu.
+    // -a : trois fixtures à octets de contrôle passent pour binaires et échapperaient à -I.
+    out += execFileSync(
+      "git",
+      ["grep", "-a", "-i", "-n", "--full-name", needle, "--", ".", ":!pnpm-lock.yaml"],
+      { encoding: "utf8" },
+    );
+  } catch (err) {
+    // git grep sort en code 1 quand il ne trouve RIEN — c'est le succès ici.
+    if (err.status === 1 && !err.stdout?.length) continue;
+    if (err.stdout) out += err.stdout.toString();
+    else throw err;
   }
-  if (err.stdout) out = err.stdout.toString();
-  else throw err;
+}
+if (!out.length) {
+  console.log("check:brand — aucun résidu des anciens noms de code.");
+  process.exit(0);
 }
 
 const offenders = out
