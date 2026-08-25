@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useCallback, useState } from "react";
-import { PROVIDERS, isPlatformProvider, type LlmAttachment, type ProviderId } from "@openmasq/llm";
+import { PROVIDERS, type LlmAttachment, type ProviderId } from "@openmasq/llm";
 import { redact, pseudonymize, toneForKind, redactionCategory, vaultDisplayTokens } from "@openmasq/redact";
 import { AnimatePresence } from "framer-motion";
 import type { ReviewWire } from "../../send/redactionPreview";
@@ -9,7 +9,7 @@ import { ALL_MODELS, findModelAny } from "../../prompt/models";
 import { AUTO_MODEL_ID, isAutoModelId } from "../../send/autoRoute";
 import { SendModeDialog } from "./SendModeDialog";
 import { useHost, type CreditBalance, type ExtractedFile, type OrgProfileInfo, type PdfDocument } from "../../host";
-import { MissingApiKeyError, RateLimitError, isRateLimitError, sendErrorReason } from "../../state/errors";
+import { sendErrorReason } from "../../state/errors";
 import { httpStatus, requestIdOf, retriesOf } from "../../state/errors/fields";
 import { useRedaction } from "../../send/redaction";
 import { effectiveRedactCategories, disabledKindsOf } from "../../send/redactionOptions";

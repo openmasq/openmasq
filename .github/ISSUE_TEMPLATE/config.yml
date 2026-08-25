@@ -1,0 +1,7 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Vulnérabilité de sécurité
+    url: https://github.com/tgaudibert/openmasq/security/advisories/new
+    about: >-
+      Ne JAMAIS signaler une faille dans une issue publique. Utilisez le flow
+      d'advisory privé (Security → Report a vulnerability). Voir SECURITY.md.

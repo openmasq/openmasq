@@ -10,8 +10,9 @@ out
 !.env.development
 release
 
-# Local Claude Code settings
-.claude/settings.local.json
+# Outillage agent LOCAL (réglages, skills, design-system) — jamais publié, et hors du
+# champ des gates (knip/biome le scanneraient sinon).
+.claude/
 
 # Local SQLite databases (schema lives in db migrations)
 *.sqlite3

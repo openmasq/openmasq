@@ -234,7 +234,7 @@ describe("le Coffre est insensible à la casse", () => {
 
   it("les deux casses partagent UNE seule identité (un seul faux)", async () => {
     const vault: Vault = {};
-    const res = await pseudonymize("acme2024 puis ACME2024", {
+    const _res = await pseudonymize("acme2024 puis ACME2024", {
       forced: [{ value: "ACME2024", category: "ORG" }],
       vault,
     });

@@ -25,7 +25,7 @@ type KeyMap = Record<string, string>;
 
 // `undefined` = not resolved yet (startup, before the first set-user); `null` = signed out;
 // string = the signed-in account. Only a string uid persists to / reads from disk.
-let currentUid: string | null | undefined = undefined;
+let currentUid: string | null | undefined ;
 let cache: KeyMap | null = null;
 
 const legacyFile = () => join(app.getPath("userData"), "keys.enc"); // pre-isolation shared store

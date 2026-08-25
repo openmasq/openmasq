@@ -16,7 +16,6 @@
 // VIEWER-ONLY: input bytes are read once, never modified/persisted.
 import { reconstructLayout, type PdfTextItem } from "../documents/pdfLayout";
 import { layoutValueHits, ocrFallbackBoxes, type PdfReplacement, type RedactBox } from "./pdfMatch";
-import type { OcrWord } from "../ocr/layout";
 import {
   collectPageWords, ocrPageWords, type Matrix, type PageWord,
 } from "./pageWords";

@@ -5,7 +5,6 @@ import {
   mergeExtraction,
   parseExtraction,
   resolveExtraction,
-  wireSlice,
   worthExtracting,
 } from "./extract";
 import { runMemoryExtraction } from "../state/useMemoryExtraction";

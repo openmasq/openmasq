@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { McpTool } from "@openmasq/mcp";
-import { estToolTokens, fitToBudget } from "./toolCatalog";
+import { fitToBudget } from "./toolCatalog";
 import { DEFAULT_CATALOG_CONFIG, type CatalogConfig } from "./routingConfig";
 
 const tool = (name: string, serverId: string, description = "", schema: unknown = {}): McpTool =>

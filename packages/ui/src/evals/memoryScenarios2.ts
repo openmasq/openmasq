@@ -1,6 +1,6 @@
 import { calls, says, type MockRequest } from "./mockModel";
 import type { MemoryLifeScenario } from "./memoryLife";
-import { assertNotOnWire, card, hasBlock, mustCard } from "./memoryScenarios";
+import { assertNotOnWire, hasBlock, mustCard } from "./memoryScenarios";
 
 // MÉMOIRE IMBRIQUÉE — un réseau d'entités FORTEMENT liées et volontairement
 // confondantes : deux Claires, deux frères Grimonet, un projet ET une société
@@ -182,13 +182,13 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
           faits: [{ entite: `${fake("Atelier Torbel")} SARL`, alias: null, cat: "organisation", fait: "Contrat cadre signé en janvier, dossier interne AS-2026-118." }],
         }),
       expect: (ctx) => {
-        const torbel = ctx.memory.cards.filter((c) => c.entity.toLowerCase().includes("atelier torbel"));
-        if (torbel.length !== 1) {
-          const detail = torbel.map((c) => `« ${c.entity} » [${c.cat}${c.aliases?.length ? ` ; alias: ${c.aliases.join(", ")}` : ""}]`).join(" · ");
-          throw new Error(`« Atelier Torbel SARL » a créé un DOUBLON — ${torbel.length} cartes : ${detail}`);
+        const sud = ctx.memory.cards.filter((c) => c.entity.toLowerCase().includes("atelier torbel"));
+        if (sud.length !== 1) {
+          const detail = sud.map((c) => `« ${c.entity} » [${c.cat}${c.aliases?.length ? ` ; alias: ${c.aliases.join(", ")}` : ""}]`).join(" · ");
+          throw new Error(`« Atelier Torbel SARL » a créé un DOUBLON — ${sud.length} cartes : ${detail}`);
         }
-        if (!/contrat cadre/i.test(torbel[0].facts)) throw new Error("le fait n'a pas rejoint la carte existante");
-        if (!ctx.live && !(torbel[0].aliases ?? []).some((a) => /sarl/i.test(a))) {
+        if (!/contrat cadre/i.test(sud[0].facts)) throw new Error("le fait n'a pas rejoint la carte existante");
+        if (!ctx.live && !(sud[0].aliases ?? []).some((a) => /sarl/i.test(a))) {
           throw new Error("la forme juridique n'est pas devenue un alias de la carte");
         }
       },
@@ -234,8 +234,8 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
         if (!/contrat cadre|as-2026/i.test(ctx.wire)) throw new Error("le fait contractuel (phase 7) manque au rappel");
         if (!/retard/i.test(ctx.wire)) throw new Error("le fait historique (retard de paiement) manque au rappel");
         assertNotOnWire(ctx, "Atelier Torbel");
-        const torbel = ctx.memory.cards.filter((c) => c.entity.toLowerCase().includes("atelier torbel"));
-        if (torbel.length !== 1) throw new Error(`la mémoire finale porte ${torbel.length} cartes Atelier Torbel`);
+        const sud = ctx.memory.cards.filter((c) => c.entity.toLowerCase().includes("atelier torbel"));
+        if (sud.length !== 1) throw new Error(`la mémoire finale porte ${sud.length} cartes Atelier Torbel`);
       },
     },
   ],

@@ -5,11 +5,11 @@
 // l'incident a violé. Les écritures réelles sont assumées (workspace dev) et les
 // prompts d'écriture marquent leur contenu « [test e2e] » pour rester identifiables.
 
+import { BRAND } from "@openmasq/branding";
+
 export interface RealWorkflow {
   id: string;
   /** Le prompt d'origine (tofix), éventuellement borné pour rester inoffensif. */
-import { BRAND } from "@openmasq/branding";
-
   prompt: string;
   /** Préfixe d'outil attendu connecté avant l'envoi (point de synchro). */
   needsTool: string;

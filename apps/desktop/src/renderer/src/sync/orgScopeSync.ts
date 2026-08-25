@@ -27,7 +27,6 @@ import {
 import type {
   CoffreTerm,
   Competence,
-  OrgShareAudienceInput,
   OrgSharesHost,
   OrgShareView,
 } from "@openmasq/ui";

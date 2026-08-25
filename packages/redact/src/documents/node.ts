@@ -27,7 +27,7 @@ export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, Laye
 function ensureWithResolvers(): void {
   const P = Promise as unknown as { withResolvers?: unknown };
   if (typeof P.withResolvers === "function") return;
-  (P as any).withResolvers = function <T>() {
+  (P as any).withResolvers = <T>() => {
     let resolve!: (v: T | PromiseLike<T>) => void;
     let reject!: (e?: unknown) => void;
     const promise = new Promise<T>((res, rej) => {

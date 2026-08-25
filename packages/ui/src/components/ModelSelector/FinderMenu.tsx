@@ -131,8 +131,7 @@ export function FinderMenu({
           </button>
         )}
         {onOpenSettings && (
-          <>
-            <button
+          <button
               type="button"
               className="model-gear"
               title="Gérer les modèles et les clés (Réglages)"
@@ -141,7 +140,6 @@ export function FinderMenu({
             >
               <SettingsIcon size={14} />
             </button>
-          </>
         )}
       </div>
 

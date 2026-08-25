@@ -7,7 +7,7 @@ import {
   firstNamePool,
   type FakePlace,
 } from "./pools";
-import { hashString, pick, rehash, fitLen, fakeToken, fakeHandle, fakeDigits, luhnCheckDigit, mod97 } from "./primitives";
+import { hashString, pick, rehash, fitLen, fakeToken, fakeDigits, luhnCheckDigit, mod97 } from "./primitives";
 import { ribKey } from "./checksummed/index";
 
 /** A real city name, preferring one of the SAME length as the original (no padding).

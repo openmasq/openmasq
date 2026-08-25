@@ -19,7 +19,6 @@ import { useInView } from "../../../hooks/useInView";
 import { useLibraryFiles } from "../../../pages/Library";
 import type { LibFile } from "../../../pages/Library";
 import { useFileThumb } from "../../../pages/Library/useFileThumb";
-import { extOf } from "../../../pages/Library/libraryKinds";
 import { fileMetaLine, splitBySegment, type MobileLibSegment } from "./libraryScreenModel";
 
 const KIND_ICON = { document: BookIcon, sheet: GridIcon, audio: MicIcon } as const;

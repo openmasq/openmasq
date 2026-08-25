@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { McpTool } from "@openmasq/mcp";
 import {
   toolCatalog,
-  fitToBudget,
   resolveLoadTools,
   LOAD_TOOLS_DEF,
   describeToolParams,
@@ -11,7 +10,7 @@ import {
   unknownToolHint,
   canonicalToolName,
 } from "./toolCatalog";
-import { DEFAULT_CATALOG_CONFIG, type CatalogConfig } from "./routingConfig";
+import { DEFAULT_CATALOG_CONFIG, } from "./routingConfig";
 
 // A Webflow-style nested schema: args = { site_id, actions:[{ label, params }] }.
 const NESTED = {

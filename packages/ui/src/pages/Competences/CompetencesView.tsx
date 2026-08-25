@@ -4,7 +4,6 @@ import { PageHeader } from "../../containers/shell/PageHeader";
 import { sectionSubtitle } from "../../help";
 import {
   CreateCard,
-  DownloadIcon,
   EmptyState,
   SparklesIcon,
   PlusIcon,

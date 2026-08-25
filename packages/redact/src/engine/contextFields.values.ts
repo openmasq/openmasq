@@ -48,7 +48,7 @@ export function cleanValue(raw: string): string {
   // record) — vaulting them makes the fake replace the document's own punctuation, so
   // the substituted line is no longer valid YAML/JSON. Strip a MATCHED surrounding pair
   // only; an apostrophe inside the value (« l'Étang ») is untouched.
-  v = v.replace(/^(["'`])([^]*)\1$/u, "$2").trim();
+  v = v.replace(/^(["'`])([\s\S]*)\1$/u, "$2").trim();
   return v.length > 80 ? v.slice(0, 80).trim() : v;
 }
 

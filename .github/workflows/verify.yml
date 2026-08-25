@@ -114,7 +114,13 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-
+      # Lint (Biome), tout l'arbre : les classes d'erreurs que le typecheck ne voit pas —
+      # hook après un return conditionnel, import mort, chaînage optionnel casté. Le
+      # FORMAT n'est PAS vérifié ici : un reformatage rétroactif gonflerait des fichiers
+      # denses au-delà du cap dur de 300 lignes (règle 1). Le format se tient sur le
+      # STAGÉ, en pré-commit — le code neuf/touché s'y conforme, sans réécrire l'existant.
+      - name: Lint (Biome)
+        run: pnpm check:lint
 
       # Un fichier de test que nul `include` n'apparie n'est jamais exécuté, et la suite
       # reste verte — le seul mode d'échec qu'un avertissement ne peut pas rattraper. Ce

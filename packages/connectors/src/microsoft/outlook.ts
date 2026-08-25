@@ -1,6 +1,6 @@
 import type { Connector, ConnectorTool, ConnectorToolCtx } from "../types";
 import { GRAPH, addrs, clampLimit, str, stripHtml } from "./graph";
-import { readAttachments, type AttachmentData } from "../files";
+import { readAttachments, } from "../files";
 
 /**
  * Outlook connector (Microsoft Graph — mail). Search + list recent messages and send

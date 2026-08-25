@@ -143,7 +143,7 @@ describe("redact ↔ unredact round-trip", () => {
 
   it("restores a model reply that echoes the placeholders (keyless data-flow)", () => {
     const vault: Vault = {};
-    const { text } = redact("Draft a reply to marcus@acme.com.", { vault });
+    redact("Draft a reply to marcus@acme.com.", { vault });
     const ph = Object.keys(vault)[0];
     // Simulate the model answering with the scrubbed token in place.
     const modelReply = `Sure — I'll send it to ${ph} right away.`;

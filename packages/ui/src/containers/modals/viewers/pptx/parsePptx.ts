@@ -1,4 +1,4 @@
-import { A, P, R, attr, attrNS, child, children, num, path } from "../ooxml/xml";
+import { A, P, R, attr, attrNS, child, children, num, } from "../ooxml/xml";
 import { emuToPx, hundredthsToPt } from "../ooxml/units";
 import { resolveColorEl, solidFill, type ClrMap, type ClrScheme } from "../ooxml/color";
 import { mergeStyle, type RunStyle } from "../ooxml/textStyle";

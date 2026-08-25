@@ -3,9 +3,7 @@ import { handle, obj } from "../ipc/handle";
 import electronUpdater from "electron-updater";
 
 import {
-  APPLY_SPACE_FACTOR,
   fmtGB,
-  freeBytes,
   humanizeUpdateError,
   totalUpdateSize,
 } from "./disk";
@@ -16,7 +14,6 @@ import {
   getConfig,
   loadConfig,
   UPDATES_URL,
-  updateConfig,
 } from "./config";
 import { requestChannelChange, selfPinAllowed } from "./channel";
 import { logUpdate, logUpdateError, updaterLogger, updaterLogPath } from "./log";

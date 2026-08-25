@@ -13,7 +13,7 @@ const USERDATA = mkdtempSync(join(tmpdir(), "openmasq-ud-"));
 const RESOURCES = mkdtempSync(join(tmpdir(), "openmasq-res-"));
 const MPL = join(USERDATA, "python-cache");
 
-let packaged = true;
+const packaged = true;
 vi.mock("electron", () => ({
   app: {
     getPath: (k: string) => (k === "home" ? "/home/acme" : USERDATA),

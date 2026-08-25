@@ -20,7 +20,6 @@ import {
   verifyPassphrase,
   type PassphraseVerdict,
   type AuditSource,
-  type DeviceIdentity,
   type DeviceInfo,
   type HttpTransportOptions,
   type OrgProfile,

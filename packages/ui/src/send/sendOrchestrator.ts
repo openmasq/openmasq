@@ -1,63 +1,30 @@
-/**
- * L'ORCHESTRATEUR D'ENVOI — le corps de `sendMessage`, sorti de `state/store.ts`
- * EN UN BLOC (2 100 lignes), conformément au plan que `state/CLAUDE.md` fixait :
- * « what remains is orchestration, which must move as a WHOLE (a send/
- * orchestrator taking refs), not be sliced into more pure helpers ».
- *
- * DÉPLACEMENT, pas réécriture : le corps est octet-pour-octet celui du store —
- * seule la LISTE DES CAPTURES (l'état, les refs, les setters, les aides du
- * composant) devient explicite dans `SendMessageDeps`, destructurée en tête pour
- * que le corps reste inchangé. C'est la carte que la fermeture cachait : tout ce
- * dont un envoi dépend se lit désormais dans une interface.
- *
- * Le store construit le sac DANS son useCallback (mêmes dépendances qu'avant) :
- * les valeurs capturées sont celles du rendu qui a (re)créé le callback —
- * sémantique STRICTEMENT identique à l'ancienne fermeture.
- */
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+
 import { redactNumbersOn } from "../send/redactNumbers";
-import { contextWindow, isFreeModel, modelsVersion, onModelsChanged, supportsTools } from "@openmasq/llm";
-import type { TokenUsage, StreamDone, LlmAttachment, ChatMessage } from "@openmasq/llm";
-import { findConnector } from "@openmasq/catalog/mcp";
-import type { AskTarget, Conversation, Message, RedactCategoryKey, Settings, CoffreTerm } from "../types";
-import { makeCoffreTerm, coffreHasValue, combinedCoffre } from "../send/coffre";
-import { useCompetences } from "../state/useCompetences";
-import { useMemoryStore } from "../state/useMemory";
-import { useMemoryExtraction } from "../state/useMemoryExtraction";
-import { pinMemoryNote } from "../state/memoryExtractionRun";
+import { contextWindow, isFreeModel, supportsTools } from "@openmasq/llm";
+import type { StreamDone, LlmAttachment, ChatMessage } from "@openmasq/llm";
+import type { AskTarget, Conversation, Message, RedactCategoryKey, Settings, } from "../types";
+import { combinedCoffre } from "../send/coffre";
 import { featureUsage } from "../state/featureAccess";
-import { useContextCompaction } from "../state/useContextCompaction";
 import { selectMemory, memoryForcedForBlock, memoryForcedAll, filterNotoriousFromForced, searchMemoryHybrid } from "../memory";
 import { competenceLaunchText, activeCompetenceScope } from "../competences/launch";
-import { askTargetLaunchText } from "../send/askTarget";
-import { store as reduxStore, setMemoryFresh } from "../state/redux";
-import { billingFor, selectBillingCache } from "../state/settingsCache";
-import { loadBilling, pollBilling } from "../state/settingsPrefetch";
 import {
   unredact, unredactReply,
   unredactArgs,
   applyVault,
   pseudonymize,
   computeTokenFormulas,
-  redactionCategory,
   disabledVaultTokens,
   type Vault,
   type RedactionMatch,
 } from "@openmasq/redact";
-import { cleanVaultPollution } from "../state/vaultCleanup";
-import { makeRenameConversation } from "../state/renameConversation";
 import { webNavOfferableCategories, webNavRevealSet } from "../state/webNavReveal";
-import { resolveAuthEvent } from "../state/authEvent";
 import { bytesToBase64, base64ToBytes } from "../state/bytes";
-import { replaceDocumentInContent } from "../state/documentEdit";
-import { redactEditedText } from "../state/editRedaction";
 import { preflightError } from "../send/preflight";
 import { estimateTurnUsage } from "../send/estimateUsage";
 import { fetchPlatformToken } from "../send/tokenFetch";
 import { platformTokenFailure } from "../send/platformTokenMessage";
-import { modelUnavailableReason, type UnavailableReason } from "../send/modelAvailability";
 import { buildFoldedPayload } from "../send/foldPayload";
-import { completeRouting, resolveEffectivePlatform } from "../send/routing";
+import { resolveEffectivePlatform } from "../send/routing";
 import { buildModelLatencyEvent } from "../send/modelLatency";
 import { appendReusedDocsWire } from "../send/reusedDocsWire";
 import { loadPythonSeeds } from "../send/pythonSeeds";
@@ -74,7 +41,6 @@ import {
   sendForcedList,
   toolForcedList,
   shouldRedactSystemPrompt,
-  type SendEngineContext,
 } from "../send/redactionOptions";
 import { levelOf, notorietyForLevel } from "../privacy/privacyLevel";
 import { isAutoModelId, resolveAutoModel } from "../send/autoRoute";
@@ -90,19 +56,16 @@ import {
   cleanErrorText,
   sendErrorReason,
 } from "../state/errors";
-import { runMcpAgentLoop, isSearchTool, type WriteConfirmInfo, type McpAgentParams } from "../agent/mcpAgent";
+import { runMcpAgentLoop, type WriteConfirmInfo, type McpAgentParams } from "../agent/mcpAgent";
 import { isBrowserTool } from "../state/browserPolicy";
 import { toolActionLabel } from "../agent/toolActionLabel";
 import { rememberTranscript, resumeMessagesFor, type TurnCheckpoint } from "../agent/turnCheckpoint";
 import { reasoningRelay } from "../state/reasoningRelay";
 import { fitHistoryToContext } from "../send/historyWindow";
-import { pushDebug, updateDebug, attachDebugStore, adoptDraftDebug } from "../state/debug";
+import { pushDebug, updateDebug, adoptDraftDebug } from "../state/debug";
 import { logWireMessage } from "../state/wireTrace";
 import { captureEvent, captureError, bucket } from "../analytics";
 import {
-  useHost,
-  type AuthUser,
-  type CompletePayload,
   type ExtractedFile,
   type OrgProfileInfo,
   type CreditBalance,
@@ -110,12 +73,9 @@ import {
   type Host,
 } from "../host";
 import { describeRedactFailure } from "../send/redaction";
-import { loadReattachFile } from "../pages/Library/reattach";
-import { retryResendWire, retryTagPrompt } from "../send/retryResend";
 import { redactTimeoutMs } from "../send/redactTimeout";
 import { makeRedactFn, raceRedactionWork } from "../send/redactionEngine";
 import { attachmentDetectBlock } from "../send/attachmentLayers";
-import { createStagedFiles } from "../state/stagedFiles";
 import {
   ALL_MODELS,
   DEFAULT_MODEL_ID,
@@ -126,27 +86,12 @@ import {
 import {
   pickAttachmentMetas,
   redactEngineUnavailable,
-  shouldImportLegacyKeysOnce,
 } from "../send/sendGuards";
 import {
-  CONV_KEY,
-  SETTINGS_KEY,
-  settingsKeyFor,
-  ACTIVE_KEY,
-  convKeyFor,
-  activeKeyFor,
-  localConvSnapshot,
   DEFAULT_SETTINGS,
-  normalizeSettings,
   newConversation,
-  clearStuckPending,
   uid,
-  load,
 } from "../state/storePersistence";
-import { orgProfileKeyFor } from "../state/orgProfileCache";
-import { loadDeviceTheme } from "../state/theme";
-import { adoptSettings, reconcileDbSettings } from "../state/settingsReconcile";
-import { useLocalPersistence, usePlatformEffects } from "../state/effects";
 import { isNerWarmed, markNerWarmed } from "../state/nerWarm";
 import { BRAND } from "@openmasq/branding";
 
@@ -2168,7 +2113,7 @@ export function createSendMessage(d: SendMessageDeps) {
         }
       }
 
-      let streamError: string | null = null;
+      const streamError: string | null = null;
       await new Promise<void>((resolve) => {
         let acc = "";
         let settled = false;

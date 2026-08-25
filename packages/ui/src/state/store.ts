@@ -21,13 +21,11 @@ import { resolveAuthEvent } from "./authEvent";
 import { replaceDocumentInContent } from "./documentEdit";
 import { redactEditedText } from "./editRedaction";
 import { createSendMessage } from "../send/sendOrchestrator";
-import { preflightError } from "../send/preflight";
 import { modelUnavailableReason, type UnavailableReason } from "../send/modelAvailability";
 import { completeRouting, resolveEffectivePlatform } from "../send/routing";
 import { effectiveRedactCategories, disabledKindsOf } from "../send/redactionOptions";
 import { levelOf, notorietyForLevel } from "../privacy/privacyLevel";
 import { isModelAllowed } from "../privacy/orgAllowList";
-import { buildWireHistory } from "../send/buildWire";
 import { attachDebugStore } from "./debug";
 import { dbFailure, dbLoadFailure } from "./dbReport";
 import {
@@ -42,7 +40,7 @@ import {
 import { loadReattachFile } from "../pages/Library/reattach";
 import { retryResendWire, retryTagPrompt } from "../send/retryResend";
 import { createStagedFiles } from "./stagedFiles";
-import { ALL_MODELS, DEFAULT_MODEL_ID, findModelAny, selectableModels } from "../prompt/models";
+import { ALL_MODELS, DEFAULT_MODEL_ID, findModelAny, } from "../prompt/models";
 import { isAutoModelId } from "../send/autoRoute";
 import { shouldImportLegacyKeysOnce } from "../send/sendGuards";
 import { orgProfileKeyFor, readCachedOrgProfile } from "./orgProfileCache";

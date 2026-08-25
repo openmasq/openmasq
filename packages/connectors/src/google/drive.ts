@@ -1,5 +1,5 @@
 import { BRAND } from "@openmasq/branding";
-import type { Connector, ConnectorTool, ConnectorToolCtx } from "../types";
+import type { Connector, ConnectorTool, } from "../types";
 import {
   assertFileId,
   readAttachments,

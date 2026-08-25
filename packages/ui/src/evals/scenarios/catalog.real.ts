@@ -5,7 +5,7 @@
 // restent volontairement STRUCTURELS (le web vivant n'est pas déterministe) ; la
 // sécurité (fuite, navigation dérivée d'un fake) reste assertée à chaque run.
 
-import { calls, says, type MockRequest } from "../mockModel";
+import { calls, says, } from "../mockModel";
 import { assertRealFigure } from "./catalog.realData";
 import type { Scenario } from "./index";
 

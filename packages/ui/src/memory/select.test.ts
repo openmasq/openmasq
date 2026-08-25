@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeMemoryCard, normalizeMem } from "./memory";
-import { filterNotoriousFromForced, formatMemoryBlock, memoryForced, selectMemory } from "./select";
+import { filterNotoriousFromForced, memoryForced, selectMemory } from "./select";
 import type { MemoryData } from "../types";
 
 const card = (over: Partial<Parameters<typeof makeMemoryCard>[0]> & { entity: string; facts: string }) =>

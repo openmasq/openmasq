@@ -99,7 +99,7 @@ function IntegrationTilesCard({
             const isOn = connected.has(c.id);
             const logo = MCP_LOGOS[c.id];
             const img = MCP_LOGO_IMAGES[c.id];
-            const hue = `var(--hl-${c.tone ?? "violet"})`;
+            const _hue = `var(--hl-${c.tone ?? "violet"})`;
             return (
             <button
               key={c.id}
@@ -152,7 +152,7 @@ function IntegrationCard({
   // just switches it on, so the CTA says so.
   const builtin = c.transport === "builtin";
   const cta = builtin ? "Activer" : `Connecter ${c.name}`;
-  const hue = `var(--hl-${c.tone ?? "violet"})`;
+  const _hue = `var(--hl-${c.tone ?? "violet"})`;
   // REAL scopes from the catalog (`direct` connectors carry them per credential mode).
   // A remote/builtin connector has none declared — show no chips rather than invent any:
   // this card tells the user what access they are granting, so a plausible-looking but

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+
 import { readStylesheet } from "./readStylesheet";
 import { describe, it, expect } from "vitest";
 

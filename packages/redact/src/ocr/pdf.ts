@@ -43,7 +43,7 @@ async function loadCanvas(): Promise<any> {
 function ensureWithResolvers(): void {
   const P = Promise as unknown as { withResolvers?: unknown };
   if (typeof P.withResolvers === "function") return;
-  P.withResolvers = function <T>() {
+  P.withResolvers = <T>() => {
     let resolve!: (v: T | PromiseLike<T>) => void;
     let reject!: (e?: unknown) => void;
     const promise = new Promise<T>((res, rej) => {

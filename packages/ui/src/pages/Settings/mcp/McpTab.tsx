@@ -34,23 +34,13 @@ export function McpTab({
   const [addBusy, setAddBusy] = useState(false);
   const canAddCustom = !!host.mcp?.addCustom;
 
-  if (!host.mcp) {
-    return (
-      <section className="settings-section">
-        <div className="cv-eyebrow">SERVEURS MCP</div>
-        <p className="mcp-empty">
-          Les connecteurs MCP ne sont pas disponibles sur cette plateforme.
-        </p>
-      </section>
-    );
-  }
-
-  const connectedCount = items.filter((i) => i.connected).length;
-
   // The E2E-synced integrations DIRECTORY: connectors the account connected on
   // its OTHER devices (config only — no credential syncs; "Connecter" runs THIS
   // device's own OAuth/key flow via the existing connector modal). Hidden when
   // every remote entry is already connected here (matched by connector+label).
+  // ⚠️ AVANT le retour anticipé `!host.mcp` : un hook après un return conditionnel rend
+  // l'ordre des hooks dépendant du slot de plateforme — latent aujourd'hui (`host` est
+  // stable par plateforme), un crash le jour où il ne l'est plus (règles des hooks).
   const [remote, setRemote] = useState<
     { id: string; connectorId: string; name: string; label?: string }[]
   >([]);
@@ -66,6 +56,20 @@ export function McpTab({
       gone = true;
     };
   }, [host]);
+
+  if (!host.mcp) {
+    return (
+      <section className="settings-section">
+        <div className="cv-eyebrow">SERVEURS MCP</div>
+        <p className="mcp-empty">
+          Les connecteurs MCP ne sont pas disponibles sur cette plateforme.
+        </p>
+      </section>
+    );
+  }
+
+  const connectedCount = items.filter((i) => i.connected).length;
+
   const remoteToOffer = remote.filter(
     (r) =>
       items.some((i) => i.id === r.connectorId) && // a connector this device knows

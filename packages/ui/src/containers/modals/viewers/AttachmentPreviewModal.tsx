@@ -193,7 +193,7 @@ export function AttachmentPreviewModal({
   // WHAT this file can show, and which layer opens first — pure, in `previewViews.ts`.
   // ⚠️ `hasBytes` (path OR in-memory bytes), never `path`, is the gate; its header says why.
   const shape = previewShape(file);
-  const { isPdf, isSheet, isCsv, isDocx, isPptx, isMd, isImage, isRich, hasBytes, hasOcrLayer } = shape;
+  const { isPdf, isSheet, isCsv, isPptx, isImage, isRich, hasBytes, hasOcrLayer } = shape;
   const [view, setView] = useState<DocView>(initialView(shape, file));
   // The SECOND LAYER: OCR-recovered text that differs from the primary text layer (always-OCR).
   // Present ⇒ a « Texte de l'image » view lets the user compare the two before sending.

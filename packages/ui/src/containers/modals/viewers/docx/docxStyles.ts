@@ -1,4 +1,4 @@
-import { W, attr, attrNS, child, children, num, onOff, path } from "../ooxml/xml";
+import { W, attrNS, child, children, num, onOff, path } from "../ooxml/xml";
 import { halfPointsToPt, twipsToPt, twipsToPx } from "../ooxml/units";
 import { resolveDocxColor, type ClrScheme } from "../ooxml/color";
 import { mergeStyle, type RunStyle } from "../ooxml/textStyle";

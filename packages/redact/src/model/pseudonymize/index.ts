@@ -15,7 +15,7 @@ import { detectHostedUrlSpans, detectUrlSpans, detectEmailSpans, urlOccurrenceGu
 import { resolveGeoBlocks } from "../../engine/geo/geoBlocks";
 import { createGeoAnchors, seedGeoAnchors } from "../../engine/geo/cityAnchor";
 import { PLACES_BY_COUNTRY } from "../../engine/geo/index";
-import { NUMBER_RE, isBareNumber, isBareYear } from "../pseudonymizeNumbers";
+import { NUMBER_RE, isBareYear } from "../pseudonymizeNumbers";
 import { redactionCategory, URL_EXEMPT_KINDS } from "../../kinds";
 import { gatherCandidates } from "./gather";
 import { buildExistingFakeGuard, buildAvoidGuard, expandVariants } from "./guards";

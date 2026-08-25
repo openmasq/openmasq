@@ -1,0 +1,86 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": [
+      "**",
+      "!vendor/**",
+      "!**/dist/**",
+      "!**/build/**",
+      "!**/.next/**",
+      "!.claude/**",
+      "!pnpm-lock.yaml",
+      "!evals-reports/**",
+      "!**/*.md",
+      "!**/*.html",
+      "!**/*.css",
+      "!**/*.yml",
+      "!**/*.yaml"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  "assist": { "enabled": false },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": "off",
+      "nursery": "off",
+      "style": {
+        "noNonNullAssertion": "off",
+        "useTemplate": "off",
+        "useImportType": "off",
+        "useNodejsImportProtocol": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "off",
+        "noAssignInExpressions": "off",
+        "noControlCharactersInRegex": "off",
+        "noUndeclaredEnvVars": "off",
+        "useBiomeIgnoreFolder": "off",
+        "useIterableCallbackReturn": "off",
+        "noConfusingVoidType": "off",
+        "noPrototypeBuiltins": "off",
+        "noImplicitAnyLet": "off",
+        "noThenProperty": "off",
+        "noTsIgnore": "off",
+        "noTemplateCurlyInString": "off",
+        "noConfusingLabels": "off",
+        "noShadowRestrictedNames": "off",
+        "noApproximativeNumericConstant": "off"
+      },
+      "complexity": {
+        "useLiteralKeys": "off",
+        "useOptionalChain": "off",
+        "noCommaOperator": "off",
+        "noUselessStringRaw": "off",
+        "useSimpleNumberKeys": "off",
+        "noUselessEscapeInRegex": "off",
+        "noAdjacentSpacesInRegex": "off",
+        "noExtraBooleanCast": "off",
+        "useRegexLiterals": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off",
+        "noUnusedFunctionParameters": "off",
+        "noVoidTypeReturn": "off",
+        "noChildrenProp": "off"
+      }
+    }
+  }
+}

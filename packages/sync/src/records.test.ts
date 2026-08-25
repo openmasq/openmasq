@@ -83,7 +83,7 @@ describe("mergeRecords / liveView", () => {
     const older = rec({ recordId: "r1", kind: "convMeta", entityId: "meta", lamport: 3, deviceId: "B", payload: { title: "old" } });
     const newer = rec({ recordId: "r2", kind: "convMeta", entityId: "meta", lamport: 5, deviceId: "A", payload: { title: "new" } });
     const { meta } = liveView(mergeRecords([older], [newer]));
-    expect((meta?.payload as { title: string }).title).toBe("new");
+    expect((meta!.payload as { title: string }).title).toBe("new");
   });
 
   it("a convTombstone deletes the whole conversation", () => {
@@ -182,7 +182,7 @@ describe("createRecordSync — two devices", () => {
     expect(seq).toBe(2);
     const view = liveView(mergeRecords([], records));
     expect((view.messages[0].payload as { text: string }).text).toContain("FR14 2004 1010");
-    expect((view.meta?.payload as { title: string }).title).toBe("Achat maison");
+    expect((view.meta!.payload as { title: string }).title).toBe("Achat maison");
   });
 
   it("a device with the WRONG passphrase pulls NOTHING (degrades, never corrupts)", async () => {

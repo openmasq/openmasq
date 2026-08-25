@@ -33,10 +33,6 @@ export function resolvedEnvPayload(name: EnvName): ResolvedEnv {
   };
 }
 
-type SwitchVerdict =
-  | { ok: true; env: EnvName; relaunching: boolean }
-  | { ok: false; reason: "unknown_env" | "not_privileged" | "write_failed"; env: EnvName };
-
 /**
  * La décision PURE de la bascule, hors Electron et hors disque — c'est elle qu'on épingle.
  * `allowed` est la permission serveur, déjà résolue par l'appelant (et déjà fail-closed).

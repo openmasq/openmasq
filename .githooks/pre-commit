@@ -20,6 +20,16 @@ set -e
 
 node scripts/check-staged-loc.mjs
 
+# Lint (Biome) sur les SEULS fichiers stagés — comme le cap LOC ci-dessus, on ne regarde
+# que ce que CE commit apporte, jamais le WIP des autres sessions. On LINTE (pas de
+# format-check) : un format rétroactif gonflerait l'existant dense au-delà du cap 300
+# (règle 1). Le format reste disponible (`pnpm format`, config Biome pour l'éditeur) et
+# s'applique au code neuf ; il n'est pas gaté ici. Contourner un lint : --no-verify.
+STAGED_CODE=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx|mjs|cjs)$' || true)
+if [ -n "$STAGED_CODE" ]; then
+  echo "$STAGED_CODE" | xargs npx biome lint --no-errors-on-unmatched
+fi
+
 # Le gate docs seulement quand un CLAUDE.md / FEATURES.md est stagé — il lit tout le
 # repo mais ne dépend que des docs, stables entre sessions.
 if git diff --cached --name-only | grep -qE "(CLAUDE|FEATURES)\.md$"; then

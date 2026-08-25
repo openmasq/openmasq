@@ -10,7 +10,8 @@
         "scripts/**/*.{ts,mjs}"
       ],
       "ignoreBinaries": [
-        "sandbox-exec"
+        "sandbox-exec",
+        "biome"
       ]
     },
     "packages/ui": {

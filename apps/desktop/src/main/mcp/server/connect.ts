@@ -1,4 +1,4 @@
-import { app } from "electron";
+
 import { connectStdio } from "@openmasq/mcp/transport";
 import { nodeSpawnFor } from "../nodeSpawn";
 import { connectLocalFs } from "../../fs/connectLocalFs";

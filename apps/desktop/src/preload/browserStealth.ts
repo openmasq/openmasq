@@ -44,7 +44,7 @@ function applyStealthPatches(): void {
   // so the JS client hints disagree with the UA string (a classic mismatch tell).
   try {
     const ua: string = nav.userAgent || "";
-    const major = (/Chrome\/(\d+)/.exec(ua) || ([, "126"] as unknown as RegExpExecArray))[1];
+    const major = (/Chrome\/(\d+)/.exec(ua) || ([undefined, "126"] as unknown as RegExpExecArray))[1];
     const platform = /Windows/.test(ua) ? "Windows" : /Mac/.test(ua) ? "macOS" : "Linux";
     const brands = [
       { brand: "Chromium", version: major },

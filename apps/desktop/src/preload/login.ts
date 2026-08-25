@@ -22,8 +22,8 @@ try {
     });
   } else {
     const ua = navigator.userAgent;
-    const major = (/Chrome\/(\d+)/.exec(ua) || [, "126"])[1] as string;
-    const full = (/Chrome\/([\d.]+)/.exec(ua) || [, `${major}.0.0.0`])[1] as string;
+    const major = (/Chrome\/(\d+)/.exec(ua) || [undefined, "126"])[1] as string;
+    const full = (/Chrome\/([\d.]+)/.exec(ua) || [undefined, `${major}.0.0.0`])[1] as string;
     const brands = [
       { brand: "Chromium", version: major },
       { brand: "Google Chrome", version: major },

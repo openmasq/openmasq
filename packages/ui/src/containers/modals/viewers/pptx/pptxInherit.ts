@@ -1,4 +1,4 @@
-import { A, P, attr, child, children, num, path } from "../ooxml/xml";
+import { A, P, attr, child, num, path } from "../ooxml/xml";
 import { parseClrMap, parseClrScheme, type ClrMap, type ClrScheme } from "../ooxml/color";
 import type { OoxmlPackage } from "../ooxml/zip";
 

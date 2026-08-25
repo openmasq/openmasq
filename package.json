@@ -19,6 +19,8 @@
     "bench": "tsx scripts/bench-agentic.ts",
     "e2e:login": "pnpm --filter @openmasq/desktop run e2e:login",
     "audit:gate": "node scripts/audit-gate.mjs",
+    "format": "biome format --write .",
+    "check:lint": "biome lint .",
     "check:loc": "node scripts/check-file-size.mjs",
     "check:docs": "node scripts/check-docs.mjs",
     "check:tests": "node scripts/check-test-include.mjs",
@@ -32,7 +34,7 @@
     "check:actions": "node scripts/check-actions-pinned.mjs",
     "check:shipped": "node scripts/check-shipped-bundles.mjs",
     "check:shipped:all": "node scripts/check-shipped-bundles.mjs --require-all",
-    "verify": "pnpm -r --if-present typecheck && pnpm test && pnpm check:loc && pnpm check:docs && pnpm check:tests && pnpm check:alias && pnpm check:dup && pnpm check:features && pnpm check:pkgtree && pnpm check:actions && pnpm check:knip && pnpm check:effects && pnpm check:shipped && pnpm check:pii",
+    "verify": "pnpm -r --if-present typecheck && pnpm test && pnpm check:lint && pnpm check:loc && pnpm check:docs && pnpm check:tests && pnpm check:alias && pnpm check:dup && pnpm check:features && pnpm check:pkgtree && pnpm check:actions && pnpm check:knip && pnpm check:effects && pnpm check:shipped && pnpm check:pii",
     "prepare": "git config core.hooksPath .githooks || true",
     "check:knip": "node scripts/check-knip.mjs",
     "check:pii": "node scripts/check-pii.mjs",
@@ -40,6 +42,7 @@
     "claude:sandbox": "bash scripts/claude-sandbox.sh"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.10",
     "@electron/asar": "^3.4.1",
     "jsdom": "^25.0.1",
     "knip": "^6.29.0",

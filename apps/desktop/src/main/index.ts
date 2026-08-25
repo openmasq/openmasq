@@ -1,7 +1,7 @@
 // Electron MAIN process entry: window lifecycle, IPC handlers, and the agent-browser
 import { DEVTOOLS_PREF } from "./devtools";
 // / helper-process branch points. See apps/desktop/CLAUDE.md for the process map.
-import { app, shell, BrowserWindow, ipcMain, dialog, Menu, clipboard } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, Menu, clipboard } from "electron";
 import { appendFileSync, existsSync, writeFileSync } from "node:fs";
 import { release } from "node:os";
 import { join } from "path";
@@ -12,7 +12,6 @@ import {
   supportsStreamingTools,
   type CompleteToolsOptions,
   type StreamChatOptions,
-  type ProviderId,
 } from "@openmasq/llm";
 import type { McpToolCall } from "@openmasq/mcp";
 import { registerDataIpc } from "./ipc/registerDataIpc";

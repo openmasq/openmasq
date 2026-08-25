@@ -4,7 +4,7 @@
  * op is deterministic + unit-testable.
  */
 import type { LeafPane, SplitNode, WorkspaceLayout } from "./types";
-import { collapse, detach, findLeaf, fixFocus, leaves, mapLeaf, paneOfTab, renorm } from "./tree";
+import { collapse, detach, findLeaf, fixFocus, mapLeaf, paneOfTab, renorm } from "./tree";
 import { isChatRef, tabKind, tabRefId } from "./tabRef";
 
 export function focusPane(layout: WorkspaceLayout, paneId: string): WorkspaceLayout {

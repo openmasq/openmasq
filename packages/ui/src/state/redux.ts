@@ -2,7 +2,6 @@ import {
   configureStore,
   createSlice,
   current,
-  type Middleware,
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import {
@@ -10,13 +9,12 @@ import {
   useSelector,
   type TypedUseSelectorHook,
 } from "react-redux";
-import { captureEvent, type TrackEvent } from "../analytics";
+import { type TrackEvent } from "../analytics";
 import type { Section } from "../types";
 import { settingsCacheReducer } from "./settingsCache";
 import {
   allOpenConvIds,
   chatRef,
-  closeTab as layoutCloseTab,
   focusPane as layoutFocusPane,
   moveTab as layoutMoveTab,
   openTab as layoutOpenTab,

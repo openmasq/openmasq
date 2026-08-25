@@ -1,7 +1,7 @@
 import type { McpConnection, McpToolResult } from "@openmasq/mcp";
 import { sortRemote, type RemoteEntry } from "@openmasq/connectors";
-import { findFolderLister, isFolderListTool, listerFor, type FolderLister } from "./lister";
-import { asRecord, describeShape, parseToolList, readJson } from "./read";
+import { listerFor, } from "./lister";
+import { asRecord, describeShape, parseToolList, } from "./read";
 
 /**
  * Parcourir un stockage dont nous n'écrivons PAS l'appel — un serveur MCP distant

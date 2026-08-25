@@ -119,7 +119,7 @@ export function useGraphViewport(
       const p = toPointRef.current(e.clientX, e.clientY);
       if (!p) return;
       const cur = viewRef.current;
-      const w = Math.min(ZOOM_MAX_W, Math.max(ZOOM_MIN_W, cur.w * Math.pow(1.0015, e.deltaY)));
+      const w = Math.min(ZOOM_MAX_W, Math.max(ZOOM_MIN_W, cur.w * 1.0015 ** e.deltaY));
       const scale = w / cur.w;
       takeOverRef.current({
         x: p.x - (p.x - cur.x) * scale,

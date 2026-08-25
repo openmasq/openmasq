@@ -6,7 +6,6 @@
 // core (`matchValueToBoxes`) is PURE + unit-tested; `renderRedactedImage` needs a
 // canvas (browser-only, like pdfRedact). VIEWER-ONLY: input bytes read once.
 import { ocrWordsToLayout, type OcrWord } from "../ocr/layout";
-import type { LayoutRun } from "../documents/pdfLayout";
 // The pure mapping core (`matchValueToBoxes`) lives in `pdfMatch.ts` with the rest of
 // the correlation logic (ONE implementation - the PDF painter's scanned-page fallback
 // reuses it); re-exported here so this subpath's public API is unchanged.

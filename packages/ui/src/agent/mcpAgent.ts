@@ -1,5 +1,5 @@
 import { BRAND } from "@openmasq/branding";
-import { contextWindow, type ChatMessage, type ProviderId, type TokenUsage, type ToolCall, type ToolDef } from "@openmasq/llm";
+import { contextWindow, type ChatMessage, type ProviderId, type TokenUsage, type ToolDef } from "@openmasq/llm";
 import { routeTools, needsRouting, routerCooldownActive, noteRouterFailure, noteRouterSuccess, RouterUnreadableError } from "./toolRouter";
 import {
   toolDefOf,
@@ -20,7 +20,7 @@ import { rescueScopedConnectors, rescueNamedConnectors } from "./connectorRescue
 import { schemaBlindProblems } from "./schemaBlind";
 import { resolveOperation, normalizeAction } from "./operationResolver";
 import { toolStartNarration } from "./toolActionLabel";
-import { isBrowserWriteTool, isBrowserNavigate, isBrowserTool, isWebBrowseTool, domainAllowed, analyzeNavExfil, analyzeArgExfil, navCarriesRedactedData, navCarriesOfferableData, browserNavUrl, type NavExfilFlag } from "../state/browserPolicy";
+import { isBrowserWriteTool, isBrowserTool, isWebBrowseTool, domainAllowed, analyzeNavExfil, analyzeArgExfil, navCarriesRedactedData, navCarriesOfferableData, browserNavUrl, type NavExfilFlag } from "../state/browserPolicy";
 import { WEBNAV_OFFER_KEYS } from "../state/webNavReveal";
 import { fakeDerivedNavHost } from "../state/browserNavFake";
 import { connectorIdFromInstance, findConnector } from "@openmasq/catalog/mcp";
@@ -53,7 +53,6 @@ import {
   isSearchTool,
   isGovernedWebTool,
   skipsArgExfilScan,
-  looksWebIntent,
   maxSameToolCalls,
 } from "./mcpAgentClassify";
 import { missingRequired, attributeToolFault, classifyToolError, classifyErrorFamily } from "./toolFault";

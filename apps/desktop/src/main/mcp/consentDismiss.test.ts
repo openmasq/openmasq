@@ -15,9 +15,7 @@ const origRect = Element.prototype.getBoundingClientRect;
 beforeEach(() => {
   clicks.length = 0;
   // Everything is "visible" by default so `vis()` passes; a test can shrink one element.
-  Element.prototype.getBoundingClientRect = function () {
-    return { width: 10, height: 10, top: 0, left: 0, right: 10, bottom: 10, x: 0, y: 0, toJSON() {} } as DOMRect;
-  };
+  Element.prototype.getBoundingClientRect = () => ({ width: 10, height: 10, top: 0, left: 0, right: 10, bottom: 10, x: 0, y: 0, toJSON() {} } as DOMRect);
   HTMLElement.prototype.click = function (this: HTMLElement) {
     clicks.push(this.id || this.getAttribute("class") || this.textContent?.trim() || "el");
   };

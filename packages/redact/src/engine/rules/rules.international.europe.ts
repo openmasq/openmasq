@@ -40,7 +40,7 @@ const cid = (pattern: RegExp, validate?: (m: string) => boolean): RedactionRule 
   pattern,
   validate,
 });
-const bank = (pattern: RegExp, validate?: (m: string) => boolean): RedactionRule => ({
+const _bank = (pattern: RegExp, validate?: (m: string) => boolean): RedactionRule => ({
   type: "bank_route",
   pattern,
   validate,

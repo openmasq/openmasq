@@ -21,7 +21,7 @@ import { withAgentBrowserHidden } from "../mcp/browser";
 import { grantRead, assertReadAllowed } from "./readGate";
 import { registerExtractIpc } from "./filesExtractIpc";
 import { makeDocumentScrub } from "./documentScrub";
-import { handle, str, bool, obj, arr } from "./handle";
+import { handle, str, bool, obj, } from "./handle";
 import { BRAND } from "@openmasq/branding";
 
 // Minimal ext⇄mime maps for downloaded exports (a signed URL rarely has a real

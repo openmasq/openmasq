@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { PROVIDERS, isPlatformProvider, type ProviderId } from "@openmasq/llm";
-import { AnimatePresence } from "framer-motion";
+import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { CheckIcon, FamilyLogo, SettingsIcon } from "../../../components/brand";
 import { selectableModels } from "../../../prompt/models";
 import { visibleModels, type UnavailableReason } from "../../../send/modelAvailability";
@@ -9,7 +8,6 @@ import { favoriteSet } from "../../../components/ModelSelector/simpleList";
 import { providerGroupStatus } from "./providerGroupStatus";
 import { KEYED_PROVIDERS } from "../shared";
 import { ModelDetail } from "../ModelDetail";
-import { ApiKeyModal } from "../../../containers/modals";
 import { useAppSelector } from "../../../state/redux";
 import { selectBillingCache } from "../../../state/settingsCache";
 import { canPitchSubscription } from "../../../state/billing";

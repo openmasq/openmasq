@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { ProviderId } from "@openmasq/llm";
 import type { Message, RedactCategoryKey } from "../../types";
@@ -9,10 +9,6 @@ import { useHost } from "../../host";
 import {
   ModelLogo,
   ShieldIcon,
-  IconButton,
-  CopyIcon,
-  ForkIcon,
-  CheckIcon,
   RefreshIcon,
   ActivityIcon,
 } from "../brand";
@@ -38,8 +34,6 @@ import { MemoryNotedCaption, MemorySkippedCaption, MemoryUsedCaption } from "./M
 import { MessageAttachments } from "./MessageAttachments";
 import { MessageImages, loadStoredImageFull } from "../media/MessageImage";
 import { findStoredFile } from "../../state/storedFiles";
-import { copyText } from "../../hooks/clipboard";
-import { captureEvent } from "../../analytics";
 import { breakdown } from "./messageBreakdown";
 
 interface Props {
