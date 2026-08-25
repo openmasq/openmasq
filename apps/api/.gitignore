@@ -1,0 +1,8 @@
+node_modules
+dist
+.turbo
+.env
+*.log
+# Local encrypted token store + key (never commit, even if BROKER_DATA_DIR is in-repo)
+tokens.enc
+key

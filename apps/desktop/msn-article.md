@@ -1,0 +1,92 @@
+- generic [active] [ref=f62e1]:
+  - generic [ref=f62e5]:
+    - generic [ref=f62e8]:
+      - generic:
+        - banner [ref=f62e9]:
+          - link "MSN" [ref=f62e13] [cursor=pointer]:
+            - /url: https://www.msn.com/en-us/feed
+        - separator [ref=f62e15]
+    - generic [ref=f62e18]:
+      - generic [ref=f62e20]:
+        - generic [ref=f62e21]:
+          - generic [ref=f62e25]:
+            - iframe [ref=f62e28]:
+              - generic [active] [ref=f66e1]:
+                - generic [ref=f66e2]:
+                  - generic [ref=f66e4]:
+                    - generic:
+                      - generic:
+                        - link "Privacy Settings" [ref=f66e5] [cursor=pointer]:
+                          - /url: https://account.microsoft.com/privacy/ad-settings
+                          - img [ref=f66e6]
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: La Prime Energie
+                            - generic:
+                              - generic: Subventions Carports Solaires 2026
+                          - button "Learn more" [ref=f66e8] [cursor=pointer]:
+                            - img [ref=f66e9]
+                      - link "Subventions Carports Solaires 2026" [ref=f66e11] [cursor=pointer]:
+                        - /url: https://www.bing.com/aclick?ld=e8hdmcYJuJvG5tRp7M4_iN-zVUCUweOZ_x1C8dGks-ZVDiY00OAQxhYDW05AZFLwXJNC9PlLqnlbHZoMsoNZ218z-VO7Z_A7N6qMvyA_B4K2BuxNcthhKROlpsSQFsfElNUA7792X1S4DpIN9centQmH-0KyqIkmRS4W-yiPOmYjBoBCS9XuDuRwq2Zc2BNlmJ4xE1xk7QEhWf9v8UgOOcglFP44M&u=aHR0cHMlM2ElMmYlMmZsYS1wcmltZS1lbmVyZ2llLmZyJTJmbWEtcHJpbWUtY2FycG9ydC1zb2xhaXJlLWIlM2Ztc2Nsa2lkJTNkMzcxM2FhMjJlODUzMTFiMzlkZGJjMDc4ZDU0Y2E1ZTg&rlid=3713aa22e85311b39ddbc078d54ca5e8
+                  - img
+                - img
+            - generic: Sponsored
+          - generic [ref=f62e30]:
+            - banner "24/7 Wall St." [ref=f62e31]:
+              - generic [ref=f62e36]: 24/7 Wall St.
+            - generic [ref=f62e37]:
+              - heading "The best-performing ETF of 2026 is up 600%+, and it’s not an AI fund" [level=1] [ref=f62e39]
+              - generic [ref=f62e40]:
+                - generic "David Beren" [ref=f62e42]:
+                  - generic [ref=f62e43]: Story by David Beren
+                - generic [ref=f62e44]:
+                  - text: •
+                  - generic [ref=f62e45]: 7/14/2026 2d
+                  - text: •
+                  - generic [ref=f62e46]:
+                    - generic: 4 min read
+        - main [ref=f62e47]:
+          - article [ref=f62e53]:
+            - generic [ref=f62e55]:
+              - generic [ref=f62e59]:
+                - button "TierneyMJ / Shutterstock.com" [ref=f62e60]:
+                  - img "TierneyMJ / Shutterstock.com" [ref=f62e62]
+                - generic [ref=f62e63]:
+                  - generic [ref=f62e64]: TierneyMJ / Shutterstock.com
+                  - generic [ref=f62e65]: © TierneyMJ / Shutterstock.com
+              - generic [ref=f62e67]:
+                - heading "Quick Read" [level=3] [ref=f62e68]
+                - list [ref=f62e70]:
+                  - listitem [ref=f62e71]: BWET surged 1,003% in 2026 by tracking tanker freight futures, capturing the Hormuz supply shock that USO and XLE only partially reflected.
+                  - listitem [ref=f62e72]: USO climbed 70% on WTI's spike to $115, but crude has since dropped 26% while BWET's freight-rate gains remain intact.
+                  - listitem [ref=f62e73]: Rerouting tankers around Africa doubled voyage distances, and a 17-year-high shipbuilding backlog means new fleet capacity is years away from easing freight rates.
+                  - listitem [ref=f62e74]:
+                    - text: Many financial professionals are salespeople paid on what they push, not whether you end up wealthier. A fiduciary is the opposite. The SEC legally requires them to put your interests first. Advisor.com's free matching tool pairs you with vetted fiduciaries from major national firms, all in under three minutes.
+                    - link "See who you match with today." [ref=f62e75] [cursor=pointer]:
+                      - /url: https://247wallst.com/go/lp/advisor?i=ac054825-6e79-4155-987f-2fb653f4ceac&p=6850b931-cf05-42c1-86a8-58adba07d001&pos=keypoints&tpid=1624220&l=f2e5ba59-d4c1-43ca-92d3-fcc49178e457&c=536aa545-8acd-48d8-8e6d-84389e3b7d12&utm_source=msn&utm_medium=referral&utm_campaign=msn&utm_content=feed||1624220&site=247wallst
+                    - generic [ref=f62e79]:
+                      - img [ref=f62e80]
+                      - text: Continue reading
+      - heading "More for You" [level=2] [ref=f62e82]
+  - dialog "Microsoft Cares About Your Privacy" [ref=f62e84]:
+    - generic [ref=f62e87]:
+      - generic [ref=f62e88]:
+        - generic [ref=f62e89]:
+          - heading "Microsoft Cares About Your Privacy" [level=1] [ref=f62e90]
+          - generic [ref=f62e91]:
+            - text: Microsoft and our third-party vendors use cookies to store and access information such as unique IDs and personal data/personal information to deliver, maintain, and improve our services and ads. If you agree, MSN and Microsoft Bing will personalise the content and ads that you see. You can select 'I Accept' to consent to these uses or click on 'Manage preferences' to review your options and exercise your right to object to Legitimate Interest where used. You can change your selection or withdraw your consent under “Manage Preferences” at the bottom of this page.
+            - link "Privacy statement" [ref=f62e92] [cursor=pointer]:
+              - /url: https://privacy.microsoft.com/en/privacystatement
+            - text: "Number of Partners (vendors):"
+            - strong [ref=f62e93]: "960."
+        - generic [ref=f62e95]:
+          - heading "We and our partners process data to" [level=2] [ref=f62e96]
+          - paragraph [ref=f62e97]:
+            - text: Use precise geolocation data and actively scan device characteristics for identification. This is done to store and access information on a device and to provide personalised advertising and content, advertising and content measurement, audience research and services development.
+            - button "List of partners (vendors)" [ref=f62e98] [cursor=pointer]
+      - generic [ref=f62e99]:
+        - button "I Accept" [ref=f62e100] [cursor=pointer]
+        - button "Reject All" [ref=f62e101] [cursor=pointer]
+        - button "Manage Preferences" [ref=f62e102] [cursor=pointer]

@@ -1,0 +1,44 @@
+/* Side panel + non-chat tab kinds (part of the tabs family; see ../tabs.css). */
+
+.conv-tab--file .conv-tab-ico { color: var(--hl-amber); }
+.conv-tab--file.on { box-shadow: inset 0 -2px 0 currentColor; }
+
+/* ═══ THE side panel — the right half hosting everything non-chat ═══ */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  flex-shrink: 0;
+  width: var(--split-right, min(46%, 760px));
+  min-width: 380px;
+  min-height: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--border-default);
+  background: var(--surface-card);
+}
+.side-panel-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.side-panel-body > * { flex: 1; min-height: 0; }
+/* The panel's DOCUMENT tab strip (SidePanel → PanelTabs): the same tabs as the chat,
+   but a standalone header row inside the COLUMN side panel — so it must NOT inherit
+   `.conv-tabs`' `flex:1` (that would eat the panel height). Its own top padding +
+   hairline read it as chrome above the content. Scoped to `.side-panel` so it wins
+   over `.conv-tabs` regardless of stylesheet order. */
+.side-panel .panel-tabs {
+  flex: 0 0 auto;
+  padding: 7px 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* The bibliothèque renders inside the same `.chat-workspace` card as the chats —
+   drop its own floating-card chrome there (one container, not a card in a card). */
+.chat-workspace .library-page {
+  margin: 0;
+  border-radius: 0;
+}
+.conv-tab--browser .conv-tab-ico { color: var(--hl-sky); }
+.conv-tab--artifact .conv-tab-ico { color: var(--hl-violet); }

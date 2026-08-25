@@ -1,0 +1,251 @@
+/* Mobile — shell, bottom tab bar, home/chat list (part of the mobile family;
+   see ../mobile.css). */
+
+/* ── Mobile shell (AppShell variant="mobile") — the `chat-app-mobile` kit ─────
+   Reuses ALL of AppShell's orchestration; what differs is mobile-NATIVE chrome:
+   a fixed BottomNav instead of the icon Rail, the chats tab as a full-screen
+   LIST (`MobileChatList`) that "pushes" the chat, and the existing popovers
+   (`.model-menu`, `.header-menu`) re-presented as bottom SHEETS — CSS only.
+   Scoped under `.app-mobile`, so specificity beats the desktop base rules
+   regardless of import order. */
+
+.app-mobile {
+  flex-direction: column;
+  /* Bottom tab bar height — declared once, read by the bar AND by every scroll area
+     that must clear it (below). A `.app-mobile` var, not a global token: it describes
+     this shell's chrome and nothing else. */
+  --mobile-nav-h: 58px;
+  /* `viewport-fit=cover` (index.html) lets content extend UNDER the status bar / notch,
+     so the whole shell starts below it; the fixed BottomNav sits at the bottom and pads
+     its own home-indicator inset. Per-screen chrome (chat-topbar, page-header) then reads
+     as sitting just under the status bar, matching the kit's StatusBar spacing. */
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Keep scroll content clear of the fixed bottom nav (+ the home-indicator inset).
+   `--mobile-nav-h` is the ONE place the bar's height is stated: the bar sizes itself
+   from it and every scroll area pads by it, so the two can't drift apart. */
+.app-mobile .chat,
+.app-mobile .chat-workspace,
+/* …and the screens still on the desktop `.library-page` chassis (Coffre,
+   Compétences, Workflows). A PORTED screen pads its own scroller instead, so this
+   list shrinks as the migration advances. */
+.app-mobile .library-page {
+  padding-bottom: calc(var(--mobile-nav-h) + env(safe-area-inset-bottom));
+}
+/* A pushed chat hides the BottomNav (kit: no tab bar in the chat screen) — the
+   composer owns the bottom edge, only the home-indicator inset remains. */
+.app-mobile.app-chat-open .chat,
+.app-mobile.app-chat-open .chat-workspace {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Bottom tab bar ── */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  display: flex;
+  align-items: stretch;
+  /* The bar OWNS the height the scroll areas above pad by — same var, so a taller bar
+     can never start hiding the last row of a list. */
+  min-height: var(--mobile-nav-h);
+  border-top: 1px solid var(--border-subtle);
+  /* Frosted nav, per the kit — translucent card over a blur so content scrolls
+     under it. Falls back to the solid card colour where backdrop-filter is off. */
+  background: color-mix(in srgb, var(--surface-card) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottom-nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 0 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+.bottom-nav-btn.active {
+  color: var(--brand);
+}
+.bottom-nav-label {
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+/* ── Mobile home — the chat LIST screen (kit ChatList) ── */
+.mobile-home {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-page);
+}
+.mobile-home-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px 4px;
+}
+.mobile-home-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mobile-home-account {
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.mobile-home-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 20px 8px;
+  padding: 0 12px;
+  height: 40px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface-card);
+  color: var(--text-faint);
+}
+.mobile-home-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text-strong);
+}
+.mobile-home-search input::placeholder {
+  color: var(--text-faint);
+}
+.mobile-home-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 12px calc(96px + env(safe-area-inset-bottom));
+}
+.mobile-home-list .cv-eyebrow {
+  padding: 12px 10px 4px;
+}
+.mobile-home-list .empty-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 56px 16px;
+}
+.mobile-thread {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+.mobile-thread:active {
+  background: var(--surface-hover);
+}
+.mobile-thread-logo {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+}
+.mobile-thread-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mobile-thread-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.mobile-thread-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-strong);
+}
+.mobile-thread-time {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.mobile-thread-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mobile-thread-snippet {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.mobile-thread-shield {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--brand);
+}
+/* New-chat FAB (kit: bottom-right, above the tab bar). Same CTA language as
+   `.send-btn` — the app's brand button, not the kit's hard-coded forest/lime. */
+.mobile-fab {
+  position: absolute;
+  right: 20px;
+  bottom: calc(76px + env(safe-area-inset-bottom));
+  z-index: 20;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  border: none;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  /* ⚠️ JAMAIS `#fff` ici (règle 12) : le thème sombre re-pointe `--brand` sur le lime
+     très clair, et le glyphe blanc y disparaît. `--brand-contrast` est l'encre qui
+     s'inverse AVEC le fond — lime sur le vert clair, quasi-noir sur le lime, blanc sur
+     l'indigo des thèmes bleus. Les autres boutons de marque passent par la même encre. */
+  color: var(--brand-contrast);
+  cursor: pointer;
+  box-shadow: 0 12px 28px -8px rgb(var(--ink-neutral) / 45%);
+}
+.mobile-fab:active {
+  background: var(--brand-active);
+}
+

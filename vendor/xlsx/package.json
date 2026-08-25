@@ -1,0 +1,159 @@
+{
+  "name": "xlsx",
+  "version": "0.20.3",
+  "author": "sheetjs",
+  "description": "SheetJS Spreadsheet data parser and writer",
+  "keywords": [
+    "excel",
+    "xls",
+    "xlsx",
+    "xlsb",
+    "xlsm",
+    "ods",
+    "csv",
+    "dbf",
+    "dif",
+    "sylk",
+    "office",
+    "spreadsheet"
+  ],
+  "bin": {
+    "xlsx": "./bin/xlsx.njs"
+  },
+  "main": "xlsx.js",
+  "module": "xlsx.mjs",
+  "unpkg": "dist/xlsx.full.min.js",
+  "jsdelivr": "dist/xlsx.full.min.js",
+  "types": "types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./xlsx.mjs",
+      "require": "./xlsx.js",
+      "types": "./types/index.d.ts"
+    },
+    "./xlsx.mjs": {
+      "import": "./xlsx.mjs",
+      "types": "./types/index.d.ts"
+    },
+    "./xlsx.js": {
+      "require": "./xlsx.js",
+      "types": "./types/index.d.ts"
+    },
+    "./dist/xlsx.core.min": {
+      "import": "./dist/xlsx.core.min.js",
+      "require": "./dist/xlsx.core.min.js",
+      "types": "./types/index.d.ts"
+    },
+    "./dist/xlsx.core.min.js": {
+      "import": "./dist/xlsx.core.min.js",
+      "require": "./dist/xlsx.core.min.js",
+      "types": "./types/index.d.ts"
+    },
+    "./dist/xlsx.full.min": {
+      "import": "./dist/xlsx.full.min.js",
+      "require": "./dist/xlsx.full.min.js",
+      "types": "./types/index.d.ts"
+    },
+    "./dist/xlsx.full.min.js": {
+      "import": "./dist/xlsx.full.min.js",
+      "require": "./dist/xlsx.full.min.js",
+      "types": "./types/index.d.ts"
+    },
+    "./dist/xlsx.mini.min": {
+      "import": "./dist/xlsx.mini.min.js",
+      "require": "./dist/xlsx.mini.min.js",
+      "types": "./types/index.d.ts"
+    },
+    "./dist/xlsx.mini.min.js": {
+      "import": "./dist/xlsx.mini.min.js",
+      "require": "./dist/xlsx.mini.min.js",
+      "types": "./types/index.d.ts"
+    },
+    "./dist/xlsx.zahl": {
+      "import": "./dist/xlsx.zahl.mjs",
+      "require": "./dist/xlsx.zahl.js",
+      "types": "./dist/zahl.d.ts"
+    },
+    "./dist/xlsx.zahl.mjs": {
+      "import": "./dist/xlsx.zahl.mjs",
+      "types": "./dist/zahl.d.ts"
+    },
+    "./dist/xlsx.zahl.js": {
+      "require": "./dist/xlsx.zahl.js",
+      "types": "./dist/zahl.d.ts"
+    },
+    "./dist/cpexcel": {
+      "import": "./dist/cpexcel.full.mjs",
+      "require": "./dist/cpexcel.js",
+      "types": "./dist/cpexcel.d.ts"
+    },
+    "./dist/cpexcel.js": {
+      "require": "./dist/cpexcel.js",
+      "types": "./dist/cpexcel.d.ts"
+    },
+    "./dist/cpexcel.full": {
+      "import": "./dist/cpexcel.full.mjs",
+      "require": "./dist/cpexcel.js",
+      "types": "./dist/cpexcel.d.ts"
+    },
+    "./dist/cpexcel.full.mjs": {
+      "import": "./dist/cpexcel.full.mjs",
+      "types": "./dist/cpexcel.d.ts"
+    }
+  },
+  "browser": {
+    "buffer": false,
+    "crypto": false,
+    "stream": false,
+    "process": false,
+    "fs": false
+  },
+  "sideEffects": false,
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://git.sheetjs.com/SheetJS/sheetjs"
+  },
+  "config": {
+    "blanket": {
+      "pattern": "xlsx.js"
+    }
+  },
+  "alex": {
+    "allow": [
+      "chinese",
+      "special",
+      "simple",
+      "just",
+      "crash",
+      "wtf",
+      "holes"
+    ]
+  },
+  "homepage": "https://sheetjs.com/",
+  "files": [
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "bower.json",
+    "package.json",
+    "xlsx.js",
+    "xlsx.mjs",
+    "xlsxworker.js",
+    "bin/xlsx.njs",
+    "dist/LICENSE",
+    "dist/*.mjs",
+    "dist/*.js",
+    "dist/*.map",
+    "dist/*.d.ts",
+    "types/index.d.ts",
+    "types/tsconfig.json"
+  ],
+  "bugs": {
+    "url": "https://git.sheetjs.com/SheetJS/sheetjs/issues"
+  },
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=0.8"
+  }
+}

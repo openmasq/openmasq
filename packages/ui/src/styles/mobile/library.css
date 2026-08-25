@@ -1,0 +1,226 @@
+/* Mobile — Bibliothèque (kit `chat-app-mobile` Library). Part of the mobile family;
+   see ../mobile.css.
+
+   ⚠️ These selectors are UNPREFIXED on purpose. The rest of this family is scoped under
+   `.app-mobile` because it OVERRIDES desktop rules; the `.mlib-*` family is defined
+   nowhere else and belongs to a screen only the mobile shell mounts, so it owns its own
+   look outright. That is the target shape for every ported screen — a rule of the form
+   `.app-mobile .<desktop-class>` means the screen has not been ported yet. */
+
+.mlib {
+  overflow: hidden;
+}
+.mlib-head {
+  flex-shrink: 0;
+  padding: 4px 18px 10px;
+}
+.mlib-title {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.mlib-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* Clear the fixed bottom nav + the home-indicator inset — `--mobile-nav-h` is the
+     shell's single statement of that height (mobile/shell.css). */
+  padding: 4px 14px calc(var(--mobile-nav-h) + env(safe-area-inset-bottom) + 16px);
+}
+
+/* ── Empty / loading ── */
+.mlib-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 64px 18px;
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.mlib-empty-sub {
+  font-weight: 400;
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+
+/* ── Files: a scannable list ── */
+.mlib-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mlib-row {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface-card);
+}
+.mlib-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 16px 0 0 16px;
+}
+.mlib-row-main:active {
+  background: var(--surface-hover);
+}
+/* Neutre. Cette tuile n'avait aucun fond A ELLE : il arrivait par un style inline
+   (teinte hachée sur l'extension), retiré — voir `pages/Library/libraryKinds.ts`. Sans
+   ces trois lignes elle serait devenue transparente et le glyphe aurait flotté. */
+.mlib-row-tile {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+.mlib-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mlib-row-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.mlib-row-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.mlib-row-shield,
+.mlib-tile-shield {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--brand);
+}
+.mlib-row-shield-n {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-strong);
+}
+.mlib-row-menu {
+  flex-shrink: 0;
+  width: 44px;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  border-radius: 0 16px 16px 0;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+.mlib-row-menu:active {
+  background: var(--surface-hover);
+}
+
+/* ── Images: a 3-column grid of real previews ── */
+.mlib-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.mlib-tile {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface-sunken);
+  cursor: pointer;
+}
+.mlib-tile-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.mlib-tile-skeleton {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--surface-hover);
+}
+.mlib-tile-shield {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 3px;
+}
+
+/* ── Per-file action sheet ── */
+.mlib-actions {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 8px 8px;
+}
+.mlib-actions-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 12px 10px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.mlib-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 12px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.mlib-action svg {
+  color: var(--text-muted);
+}
+.mlib-action:active {
+  background: var(--surface-hover);
+}
+.mlib-action.danger,
+.mlib-action.danger svg {
+  color: var(--red-500);
+}

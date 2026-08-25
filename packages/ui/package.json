@@ -1,0 +1,68 @@
+{
+  "name": "@openmasq/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./src/styles.css"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"(no lint configured)\"",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@fontsource/newsreader": "^5.2.10",
+    "@fontsource/space-grotesk": "^5.2.10",
+    "@fontsource/space-mono": "^5.2.9",
+    "@openmasq/analytics": "workspace:*",
+    "@openmasq/branding": "workspace:*",
+    "@openmasq/catalog": "workspace:*",
+    "@openmasq/llm": "workspace:*",
+    "@openmasq/mcp": "workspace:*",
+    "@openmasq/redact": "workspace:*",
+    "@openmasq/schema": "workspace:*",
+    "@reduxjs/toolkit": "^2.2.7",
+    "d3-force": "^3.0.0",
+    "fflate": "^0.8.3",
+    "framer-motion": "^12.42.0",
+    "hast-util-to-jsx-runtime": "^2.3.6",
+    "katex": "^0.16.11",
+    "lowlight": "^3.3.0",
+    "mammoth": "^1.12.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
+    "react-markdown": "^9.0.1",
+    "react-redux": "^9.1.2",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.0",
+    "remark-math": "^6.0.0",
+    "rxjs": "^7.8.2",
+    "simple-icons": "^16.24.1",
+    "xlsx": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@openmasq/connectors": "workspace:*",
+    "@openmasq/credits": "workspace:*",
+    "@types/d3-force": "^3.0.10",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3"
+  }
+}

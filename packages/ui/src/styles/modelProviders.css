@@ -1,0 +1,212 @@
+/* « Vos accès » — the provider cards at the head of Réglages → Modèles
+   (`pages/Settings/models/ProviderAccess.tsx`). Small, uniform, each ONE button:
+   mark, name, state. A card is a STATE first and an invitation second, so the
+   unlocked ones are the quiet ones (sunken ground, no accent) and nothing on this
+   grid competes for the eye. */
+.provider-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.provider-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color 120ms var(--ease-out, ease),
+    background 120ms var(--ease-out, ease);
+}
+.provider-card:hover {
+  border-color: var(--text-muted);
+  background: var(--surface-hover);
+}
+.provider-card:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+/* Déjà ouvert : le fond creusé DIT « rien à faire ici » sans ajouter de couleur. */
+.provider-card.on {
+  background: var(--surface-sunken);
+}
+.provider-card-name {
+  font-weight: 650;
+  color: var(--text-strong);
+  line-height: 1.2;
+}
+.provider-card-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.provider-card.on .provider-card-state {
+  color: var(--text-body);
+}
+/* L'ACTION, identifiable comme telle : « Ajouter une clé » est une pastille bouton dans
+   la carte — l'état acquis reste un texte discret, l'état à faire montre son geste
+   (en gris 11px, la carte ne donnait pas l'impression d'être cliquable, 14/08). Elle
+   n'est pas un bouton DOM (la carte entière l'est déjà — un bouton dans un bouton est
+   invalide) : le survol de la CARTE la teinte, pour que le geste et sa cible ne fassent
+   qu'un. */
+.provider-card-state.add {
+  margin-top: 2px;
+  padding: 3px 9px 3px 7px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  font-weight: 600;
+  /* Une pastille est un mot d'un seul tenant — cassée sur deux lignes elle redevient
+     du texte (et c'est ce qui arrive à 148px de carte). */
+  white-space: nowrap;
+}
+.provider-card:hover .provider-card-state.add {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--brand-contrast);
+}
+/* L'offre d'abonnement, une seule fois sous la grille — une phrase, pas un bouton
+   de plus par carte. */
+.provider-grid-note {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+/* ⚠️ Encre de LIEN, pas `--text-strong` : sur un fond sombre cette dernière est un
+   quasi-blanc, et souligné + gras il se lisait comme un bouton blanc cassé — un dessin
+   qui n'existe nulle part ailleurs dans l'app (remonté le 11/08). `--text-link` est la
+   couleur que portent tous les autres liens, dans les quatre thèmes. */
+.provider-grid-note .lnk {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text-link);
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.provider-grid-note .lnk:hover {
+  color: var(--brand-hover);
+}
+
+/* Le modèle par DÉFAUT, énoncé sous la grille d'accès
+   (`pages/Settings/models/DefaultModelSummary.tsx`) : une ligne, pas une carte — c'est
+   le RÉSULTAT du réglage, il ne doit pas se confondre avec les ~400 cartes qui servent
+   à le changer. Fond creusé + filet de marque à gauche : présent sans réclamer l'œil. */
+.model-default-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 10px 14px;
+  text-align: left;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.model-default-summary:hover {
+  border-color: var(--text-muted);
+  border-left-color: var(--brand);
+}
+.model-default-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--brand);
+  /* L'encre qui bascule AVEC la marque (règle 12) — jamais `--text-strong`. */
+  color: var(--brand-contrast);
+}
+.model-default-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.model-default-label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.model-default-name {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-weight: 650;
+  color: var(--text-strong);
+}
+.model-default-provider {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Le raccourci OAuth DANS la modale de clé (`containers/modals/ApiKeyModal.tsx`) :
+   la route courte au-dessus du champ à coller, puis le séparateur qui dit que les
+   deux mènent au même endroit. */
+.akm-connect {
+  margin-bottom: 14px;
+}
+.akm-connect-btn {
+  width: 100%;
+  justify-content: center;
+}
+.akm-connect-error {
+  margin-top: 6px;
+  font-size: var(--text-xs);
+  color: var(--hl-coral);
+}
+.akm-or {
+  margin-top: 12px;
+  text-align: center;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Une clé est DÉJÀ enregistrée. L'app ne peut pas la relire (elle vit chiffrée dans le
+   processus privilégié) : elle peut seulement dire qu'il y en a une, et que coller la
+   suivante remplacera celle-là. Vert sémantique — un état acquis, pas une alerte. */
+.akm-has-key {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in oklch, var(--green-500) 30%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--green-soft);
+  color: var(--green-ink);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+.akm-has-key svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+/* Le retrait vit à GAUCHE du pied, séparé d'Annuler/Enregistrer par un ressort : une
+   action destructive collée à la validation se clique par erreur. */
+.akm-foot-spacer {
+  flex: 1;
+}
+.akm-clear:hover {
+  color: var(--red-500);
+}

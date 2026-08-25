@@ -1,0 +1,234 @@
+/* ═══ Fichiers (kit) : vignettes composer, cartes en message, bibliothèque scindée ═══ */
+
+/* ── ComposerFileThumb : la pièce jointe en vignette (tuile + corps 2 lignes) ── */
+.attach-chip {
+  display: inline-flex;
+  gap: 9px;
+  align-items: center;
+  width: 216px;
+  padding: 7px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  cursor: pointer;
+  text-align: left;
+}
+.attach-tile {
+  /* The document tile is brand CHROME (not a redaction-category mark), so its hue is a
+     variable the theme can re-point. Lime under the forest brand; the blue+dark rule at
+     the foot of this file swings it to periwinkle — same treatment as the empty-state
+     lime tone (see emptyState.css). Dark ink stays legible on both. */
+  --tile-hue: var(--hl-lime);
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  background: var(--tile-hue);
+  color: #1c2b10;
+}
+.attach-tile.image {
+  background: var(--hl-sky);
+}
+/* Redaction en cours : un voile d'encre PLEIN recouvre la tuile au fil du %
+   (plus de hachures — l'effet rayé est retiré du produit). */
+.attach-tile.redacting::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 43, 16, 0.3);
+  clip-path: inset(0 calc(100% - var(--attach-progress, 40%)) 0 0);
+  transition: clip-path 130ms linear;
+}
+/* Halo pulsé pendant le chargement (extraction) OU l'analyse (redaction) d'un
+   fichier : un glow doux, contenu dans le padding du chip (7px) donc jamais rogné
+   par son overflow. Teinte marque (`--tile-hue`), lisible sur le fond enfoncé du chip. */
+@keyframes attach-halo-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--tile-hue) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 5px 1px color-mix(in oklch, var(--tile-hue) 65%, transparent);
+  }
+}
+.attach-tile.loading {
+  animation: attach-halo-pulse 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .attach-tile.loading {
+    animation: none;
+  }
+}
+.attach-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+.attach-chip .attach-name {
+  overflow: hidden;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.attach-chip .attach-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.attach-chip.err .attach-tile {
+  background: var(--hl-pink);
+}
+.attach-chip.stale .attach-tile {
+  background: var(--hl-amber);
+}
+
+/* ── MessageFileCard : le document dans la conversation ─────────────────────── */
+.msg-filecard {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 160ms var(--ease-out, ease), box-shadow 160ms, border-color 160ms;
+}
+.msg-filecard:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-md);
+}
+/* Le FORMAT en mono, dans une tuile sourde — ce que la carte doit dire en premier.
+   À la place d'une miniature « document redacted » dessinée : elle ne rendait jamais le
+   vrai fichier (elle ne pouvait pas — 60 px), et elle portait une teinte `--hl-*`, donc
+   le langage du redaction, sur une carte qui ne masque rien. */
+.msg-filecard-ext {
+  align-self: center;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-left: 11px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+/* DOCX, XLSX, PPTX : quatre lettres ne tiennent qu'en plus petit. */
+.msg-filecard-ext.long {
+  font-size: 9px;
+}
+.msg-filecard-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  padding: 11px 13px;
+}
+.msg-filecard-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.msg-filecard-name {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.msg-filecard-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+/* Le compte de valeurs masquées : une pastille SOURDE. Elle portait le lime de marque
+   (et une encre figée) — un aplat de couleur pour une information de contexte, sur la
+   seule carte qui devait rester lisible d'un coup d'œil. */
+.msg-filecard-shield {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 1px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--surface-sunken);
+  color: var(--text-body);
+  font-weight: 700;
+}
+/* Kit: the open/download affordance on the card's right edge, lit on hover. */
+.msg-filecard-open {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-right: 11px;
+  border-radius: 8px;
+  color: var(--text-faint);
+  transition: color 160ms var(--ease-out), background 160ms var(--ease-out);
+}
+.msg-filecard:hover .msg-filecard-open {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+}
+
+/* Blue + dark themes: the composer's document tile is brand chrome, not a redaction
+   category, so it follows the #3939FA primary → a periwinkle (dark ink stays legible),
+   exactly as the empty-state lime tone does (emptyState.css). The per-category redaction
+   `--hl-*` marks are untouched; image/err/stale tiles keep their own status hues.
+   (The message card's shield no longer takes a hue at all — it is sunken + hairline.) */
+[data-theme="blue"] .attach-tile,
+[data-theme="blue-dark"] .attach-tile {
+  --tile-hue: #9a9aff;
+}
+
+/* The inline detail panel (ModalShell `panel` mode) fills the split column. */
+.modal-inline-panel {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface-card);
+}
+

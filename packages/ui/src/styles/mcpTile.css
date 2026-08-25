@@ -1,0 +1,77 @@
+/* The shared McpTile (components/media/McpTile) — the connector's square brand
+   glyph, worn by Settings → MCP, the chat's integration proposal and the
+   Workflows' server chips. Owns every `.mcp-ctile*` selector. */
+
+.mcp-ctile {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* The initial sits on a data-driven `--hl-*` fill (McpTile.tsx) — the generic
+     on-highlight ink, never a frozen forest hex (rule 12). */
+  color: var(--ink-on-hl);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 17px;
+}
+/* Brand-logo variant: neutral tile so the official glyph reads in both themes. */
+.mcp-ctile-logo {
+  background: #fff;
+  border: 1px solid var(--border-subtle);
+}
+.mcp-ctile-logo svg {
+  width: 20px;
+  height: 20px;
+}
+/* Raster brand favicon (data: URL) — contained so a wide or tall mark never crops. */
+.mcp-ctile-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: var(--radius-xs);
+}
+/* Starter-sized tile — matches `.om-starter-tile` (30px) exactly, so the empty-thread
+   grid doesn't jump between a universal card and an integration one. */
+.mcp-ctile.md {
+  width: 30px;
+  height: 30px;
+  font-size: 14px;
+}
+.mcp-ctile.md svg {
+  width: 16px;
+  height: 16px;
+}
+.mcp-ctile.md .mcp-ctile-img {
+  width: 17px;
+  height: 17px;
+}
+
+/* Chip-sized tile (the Workflows' server chips + card avatar stack). */
+.mcp-ctile.sm {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  font-size: 9px;
+}
+.mcp-ctile.sm svg {
+  width: 12px;
+  height: 12px;
+}
+.mcp-ctile.sm .mcp-ctile-img {
+  width: 13px;
+  height: 13px;
+}
+/* The larger head tile inside the detail modal. */
+.mcp-ctile.lg {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  font-size: 20px;
+}
+.mcp-ctile.lg svg {
+  width: 23px;
+  height: 23px;
+}

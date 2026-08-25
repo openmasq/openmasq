@@ -1,0 +1,223 @@
+/* ======================================================= Settings → Usage ==
+   The Usage tab (pages/Settings/billing/UsageTab.tsx), mirroring the design
+   system's `UsageSection`: a KPI card row, an activity panel, and a per-model
+   bar list.
+
+   ⚠️ The kit's numbers/models are FAKE. Every figure here is REAL — derived from
+   the user's conversations + the server-metered credit balance — so the visuals
+   are adapted rather than copied:
+     • a billing-path SELECTOR (Tous / Avec mes clés / Avec l'abonnement,
+       `.om-seg`) re-derives every figure from `usage.billed`.
+     • two activity panels sit side by side: the honest per-day `.usage-bars`
+       (conversations touched), and the kit's `.usage-stack` (messages/jour
+       stacked BY MODEL + `.usage-legend`), now that `message.at` gives a
+       per-message timestamp. Turns persisted before it fall back to the
+       conversation's `updatedAt`.
+     • the kit's "+18%" KPI delta has no real counterpart (no historical
+       baseline is stored), so the KPI sub-label states what the number IS.
+
+   Extracted from styles.css (rule 1: shrink the monolith when you touch it).
+   Imported from the TOP of styles.css — Lightning CSS silently DROPS an @import
+   placed below the @theme block, so partials must be imported up there.
+
+   Owns the `.usage-*` family EXCEPT `.usage-float` (the chat composer's token
+   counter — a different surface, still defined in styles.css). */
+
+/* ---------------------------------------------------------------- KPI row */
+.usage-kpis {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.usage-kpi {
+  flex: 1;
+  min-width: 150px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+}
+.usage-kpi-label {
+  margin-bottom: 8px;
+}
+.usage-kpi-val {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.usage-kpi-num {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+  color: var(--text-strong);
+  line-height: 1;
+}
+.usage-kpi-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------ Panel shell */
+.usage-panel {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+.usage-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.usage-panel-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-lg);
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+/* The per-model panel's title sits directly above its first row — the row's own
+   top border supplies the separation, so it only needs a hairline of breathing. */
+.usage-mtitle {
+  margin-bottom: 4px;
+}
+.usage-panel-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------- Activity spark */
+.usage-spark {
+  width: 100%;
+  height: 74px;
+  display: block;
+}
+/* The kit prints a J-13 → J scale under its bars; the sparkline carries the same
+   two anchors so the 14-day window is legible without a full axis. */
+.usage-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-faint);
+}
+
+/* ------------------------------------------------------ Per-model bar list */
+.usage-empty {
+  margin-top: 10px;
+}
+.usage-models {
+  display: flex;
+  flex-direction: column;
+}
+.usage-mrow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 0;
+}
+.usage-mrow + .usage-mrow {
+  border-top: 1px solid var(--border-subtle);
+}
+/* The per-model hue itself is data-driven → set inline on the element (the
+   sanctioned rule-6 exception); only the shape lives here. */
+.usage-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.usage-mname {
+  width: 168px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+.usage-mname-name {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.usage-mname-vendor {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.usage-mbar {
+  flex: 1;
+  min-width: 0;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+.usage-mbar-fill {
+  height: 100%;
+  border-radius: 999px;
+  /* width + hue are runtime values → inline on the element. */
+  transition: width var(--dur-slow, 0.4s) var(--ease-out);
+}
+.usage-mmsgs {
+  width: 78px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.usage-mcost {
+  width: 58px;
+  text-align: right;
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------- Credits */
+/* Real prepaid balances (server-metered) — not a kit visual, but a real feature
+   that keeps the tab honest about what was actually charged. */
+.usage-credits {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Kit chrome : l'activité en BARRES quotidiennes (une teinte — pas de split par
+   modèle sans horodatage par message). */
+.usage-bars {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  height: 150px;
+}
+.usage-bar-col {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  height: 100%;
+}
+.usage-bar {
+  width: 100%;
+  border-radius: 5px;
+  background: var(--brand);
+  opacity: 0.85;
+  transition: height 200ms var(--ease-out);
+}
+
+/* Le sélecteur segmenté (voie de facturation, fenêtre) n'est PAS ici : deux sections
+   s'en servent, il vit donc sous son propre nom dans `segmented.css` (`.om-seg`). */
+.usage-unknown {
+  margin-top: 10px;
+}
+
+/* ---------------------------------------------- Stacked messages/jour chart */

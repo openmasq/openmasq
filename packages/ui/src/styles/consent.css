@@ -1,0 +1,216 @@
+/* ========================================================= Consent notice ===
+   The first-launch privacy / RGPD notice for the opt-out usage analytics
+   (components/AnalyticsNotice.tsx), styled to the design-system chat-app kit's
+   `GdprBanner`: a card with a shield glyph, a mono pill, an expandable "Détails"
+   list and a Compris / Détails action row — anchored bottom-RIGHT, not the kit's
+   bottom-left (see the note on `.analytics-notice` below).
+
+   ⚠️ The kit's COPY is a mock and is FALSE for this product ("Analytics — Aucun.
+   Zéro pixel de suivi."). The app does ship analytics, behind this consent. The
+   card takes the kit's DESIGN only; the copy in AnalyticsNotice.tsx tells the
+   truth, and the Analytics row reflects the REAL current state. Never restore the
+   kit's wording here.
+
+   This partial owns `.analytics-notice` + `.ac-*`. Imported from the top of
+   styles.css — Lightning CSS silently DROPS an @import placed below the @theme
+   block, so partials must be imported up there. */
+
+/* Anchored bottom-RIGHT — a DELIBERATE deviation from the kit, which puts the card
+   bottom-left. The kit can: its rail is a mock. Here the left edge is the real icon
+   rail, and a card at `left: 20px` sat ON TOP of its bottom controls (Envoyer un
+   avis, rapport de confidentialité, compte) and intercepted their clicks — caught by
+   driving a build. The right edge has no chrome to cover, so the notice lives there
+   (which is also where it sat before the reskin). Don't "restore" it to the left.
+
+   z-index sits below the modal scrims (`.auth-scrim` is 120) — this is a non-modal
+   notice and must never contend with a dialog. It is deliberately NOT a dialog/scrim:
+   it must not trip hooks/modalGate.ts and hide the agent-browser window. */
+.analytics-notice {
+  position: fixed;
+  right: 20px;
+  /* Anchored in the true bottom-RIGHT corner, symmetric with `right: 20px`. It used to
+     sit at `bottom: 104px` to clear the composer's SEND button (a card flush to the
+     bottom covers + swallows its clicks) — but that read as floating "too high", so the
+     product call is the corner. It is a ONE-TIME, first-launch, dismissable card, so a
+     brief overlap of the composer send button on the chat view (until the user clicks
+     Compris / Détails / Désactiver) is accepted; `pointer-events` keeps only the card
+     itself interactive, never a surrounding box. */
+  bottom: 20px;
+  z-index: 55;
+  width: 340px;
+  max-width: calc(100% - 40px);
+  pointer-events: none;
+}
+.analytics-notice .ac-card {
+  pointer-events: auto;
+}
+
+.ac-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg, 0 24px 60px -22px rgba(11, 21, 5, 0.4));
+  padding: 16px 16px 14px;
+  overflow: hidden;
+  /* The kit's slide-up entrance. */
+  animation: ac-in 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes ac-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac-card {
+    animation: none;
+  }
+}
+
+.ac-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+.ac-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--brand);
+  flex-shrink: 0;
+}
+.ac-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold, 700);
+  color: var(--text-strong);
+}
+/* The head pill. The kit puts a "🇪🇺 UE" jurisdiction badge here; we do NOT —
+   a blanket EU claim is not verifiable from this codebase (and the models a
+   prompt reaches are third-party, often US). It carries "ANONYME" instead, which
+   the analytics sanitize allow-list actually guarantees. A pill is read as a
+   blanket promise, so only put a claim here you can point at the code for. */
+.ac-pill {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--brand);
+  background: var(--surface-sunken);
+  padding: 3px 7px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.ac-body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.ac-body strong {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+/* The expandable "Détails" list — one row per data family. */
+.ac-rows {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.ac-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+/* Filled = the family is currently ACTIVE. The analytics dot must follow the real
+   consent state, never a decorative constant. */
+.ac-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  flex-shrink: 0;
+}
+.ac-dot.on {
+  background: var(--brand);
+}
+.ac-row-txt {
+  min-width: 0;
+}
+.ac-row-lbl {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.ac-row-sub {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+/* The opt-out, in the row it applies to. */
+.ac-row-act {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-link);
+  white-space: nowrap;
+}
+.ac-row-act:hover {
+  text-decoration: underline;
+}
+
+.ac-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ac-btn {
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.ac-btn.primary {
+  flex: 1;
+  background: var(--brand);
+  color: var(--brand-contrast, var(--text-inverse));
+}
+.ac-btn.primary:hover {
+  background: var(--brand-hover);
+}
+.ac-btn.ghost {
+  background: transparent;
+  border-color: var(--border-default);
+  color: var(--text-body);
+}
+.ac-btn.ghost:hover {
+  background: var(--surface-hover);
+}

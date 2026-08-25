@@ -1,0 +1,657 @@
+name: Release
+
+# ARTEFACT UNIQUE : le trigger décide du STOCKAGE (sur quel canal ces octets sont publiés)
+# et du NUMÉRO — plus d'aucune URL. Les adresses vivent dans la table cuite du binaire
+# (`apps/desktop/src/environments/`), résolues à l'exécution : production par défaut,
+# staging par la bascule privilégiée. Un candidat est donc le VRAI logiciel en avance,
+# pointé sur la production — et la promotion beta→stable se fait sans rebuild, par le
+# Worker (`POST /admin/desktop/releases/promote`) : mêmes octets, même numéro.
+#
+# ⚠️ Le canal CUIT (VITE_UPDATES_CHANNEL) est `desktop-stable` pour TOUT build publié par
+# tag, et il ne dit pas où les octets sont publiés : il est le DÉFAUT du premier lancement
+# (`main/updates/config.ts`). La promotion copiant les octets, un littéral `desktop-beta`
+# voyageait avec eux : une install neuve du .dmg « stable » de la landing suivait la bêta
+# en silence (constaté le 14/08 — le parc entier candidat malgré lui). La bêta est un acte
+# EXPLICITE : privilège machine `allow_self_pin` + bascule in-app — jamais un défaut cuit.
+# Seul le lancement MANUEL (jamais promu, jetable) garde `desktop-beta` : une install d'un
+# essai interne DOIT suivre la bêta.
+#
+#   trigger                    STOCKAGE            CANAL CUIT      VERSION
+#   push -> tag staging-v*     desktop-staging     desktop-stable  <tag>  (staging-v0.5.1 -> 0.5.1)
+#   push -> tag v*             desktop-production  desktop-stable  <tag>  (v0.5.1 -> 0.5.1, depuis main)
+#
+# ⚠️ UN TAG, JAMAIS UNE BRANCHE. Aucun push de branche ne construit l'app — ni `dev`,
+# ni `main`. C'est la règle posée le 11/08 pour TOUS les déploiements d'app (desktop et
+# mobile) : une livraison est un ACTE daté et nommé, pas l'effet de bord d'un push.
+#
+# ⚠️ Le tag `v*` reste utile SANS être le chemin normal : la voie nominale vers stable est
+# la PROMOTION d'un candidat déjà éprouvé, pas un rebuild. Un tag `v*` direct = un build
+# neuf jamais passé par beta — à réserver au correctif d'urgence, en le disant.
+# A privileged device (allow_self_pin, ops console) sees both channels via the Worker's
+# /desktop/all-releases; l'ENVIRONNEMENT, lui, se bascule dans l'app (env:switch).
+#
+# 💸 CE WORKFLOW EST LE POSTE DE DÉPENSE DU DÉPÔT. `macos-latest` est facturé ×10 et le
+# job tourne 22–24 min, soit ~230 minutes-équivalent par build — sur un quota gratuit de
+# 2 000/mois (dépôt PRIVÉ, compte perso). Le déclencheur était `packages/**`, c'est-à-dire
+# presque chaque push : la matinée du 30/07 a brûlé ~730 min-eq en builds successifs, dont
+# trois annulés (un run annulé est facturé pour le temps déjà consommé). Un build desktop
+# se DEMANDE donc maintenant, il ne s'attrape plus par un chemin touché — et depuis le
+# 11/08 la demande EST le tag : le déclencheur `branches: [dev]` + le marqueur
+# `[desktop]` dans le message de commit ont sauté. Le marqueur coûtait presque rien en
+# minutes (le `gate` ubuntu ne partait qu'une fois le run inscrit) mais il inscrivait un
+# run par push sur `dev` — 34 sur les 300 derniers — et surtout il faisait décider
+# d'une LIVRAISON par un message de commit, là où un tag est explicite et relisible.
+on:
+  push:
+    tags:
+      # Production (tags coupés depuis `main`). ⚠️ `v*` ne peut pas attraper `staging-v…` :
+      # le glob est ancré au début du nom de tag. Les deux canaux ne peuvent donc pas se
+      # confondre, et c'est la propriété qui compte ici.
+      - "v*"
+      # Staging. Le nom de branche n'entre plus dans l'équation : on peut poser un
+      # `staging-v*` sur n'importe quel commit à essayer.
+      - "staging-v*"
+  # Lancement manuel — construit toujours, et TOUJOURS en `staging` (voir le job `meta` :
+  # seul un tag `v*` donne la production, tout le reste retombe sur staging, échec fermé).
+  # NOTE: GitHub n'expose un workflow_dispatch que depuis la branche par DÉFAUT, donc ceci
+  # devient utilisable une fois ce fichier sur `main` ; d'ici là, le tag est la voie.
+  workflow_dispatch: {}
+
+# Un build de STAGING en vol est remplacé par le suivant : sans cela, deux tags
+# `staging-v*` posés à dix minutes d'intervalle feraient tourner DEUX runners macOS (×10)
+# sur le même canal, et le second gagnerait de toute façon. D'où un groupe unique partagé
+# par tous les tags de staging — le prédécesseur est annulé, comme le faisait l'ancien push
+# sur la branche. Un tag `v*` (production), lui, a son PROPRE groupe et n'est JAMAIS annulé
+# en vol : on ne coupe pas une signature/notarisation/publication en deux.
+# ⚠️ Le prédicat `refs/tags/v` doit rester le MÊME que celui du job `meta` (l'env se décide
+# là-bas) : les faire diverger, c'est annuler une production ou empiler des stagings.
+# Moindre privilège pour le `GITHUB_TOKEN` : sans ce bloc, un workflow hérite du DÉFAUT du
+# dépôt — que rien ici ne fixe et qui peut être en écriture. Ce job installe puis exécute
+# ~2 000 paquets sur une machine qui tient les identifiants Apple et les clés R2 ; un
+# postinstall hostile n'a pas besoin d'un jeton capable de pousser sur le dépôt en plus.
+# `contents: read` suffit à `actions/checkout`, et la publication passe par ses PROPRES
+# secrets, jamais par ce jeton.
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ startsWith(github.ref, 'refs/tags/v') && github.ref || 'staging' }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+
+jobs:
+  # ⛔ Il n'y a plus de job `gate`. Il lisait le marqueur `[desktop]` du message de commit
+  # pour décider si un push sur `dev` méritait un runner macOS ; le déclencheur ne
+  # connaît plus que des tags, donc TOUT run qui arrive ici a été demandé explicitement et
+  # n'a rien à re-décider. Ne pas le réintroduire pour « filtrer » : un filtre de chemins
+  # est faux dans les deux sens (`packages/**` attrape presque tout, `apps/desktop/**` rate
+  # une régression de `packages/redact` qui change pourtant l'app), et c'est bien pour ça
+  # qu'on en était venu à l'intention écrite. Le tag EST cette intention.
+
+  # La barrière qui manquait : rien ne part se faire signer et notariser sans que la
+  # suite soit verte. Elle tourne sur ubuntu (~5 min) AVANT que le runner macOS (×10)
+  # ne démarre — un tag rouge ne touche donc jamais un runner facturé au décuple.
+  # Aucun secret transmis : `verify.yml` explique pourquoi.
+  verify:
+    uses: ./.github/workflows/verify.yml
+
+  # L'env, le canal, les URL bakées et la VERSION — calculés UNE fois, ici, et consommés
+  # par la matrice comme par les jobs de fin. Avant la matrice ce calcul vivait dans le job
+  # de release et une seule copie suffisait ; avec deux plateformes plus une purge plus un
+  # e-mail, le laisser là voudrait dire l'écrire quatre fois (règle 9). Et c'est LA valeur
+  # qui doit être identique partout : deux legs qui calculeraient leur propre version, ce
+  # serait exactement le désalignement que la matrice existe pour empêcher.
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      env: ${{ steps.m.outputs.env }}
+      channel: ${{ steps.m.outputs.channel }}
+      # ⚠️ DEUX noms par canal, et c'est un contrat avec le Worker (`lib/desktopChannels.ts`) :
+      # `channel` est le nom PUBLIC baké dans l'app (desktop-beta / desktop-stable),
+      # `storage_channel` l'identité HISTORIQUE de R2 et de la base (desktop-staging /
+      # desktop-production) — renommer le stockage aurait orphelin chaque install existante.
+      # La CI publie et élague sous le nom de stockage ; le Worker aliase les requêtes.
+      # Une divergence est BRUYANTE : le premier build candidat aurait un flux 404.
+      storage_channel: ${{ steps.m.outputs.storage_channel }}
+      version: ${{ steps.m.outputs.version }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # Decide env / channel / baked URLs / version from the trigger (see header).
+      # ⚠️ SEUL un tag `v*` donne la production — le `else` attrape TOUT le reste
+      # (`staging-v*`, un lancement manuel depuis n'importe quelle ref) et retombe sur
+      # staging. C'est l'échec FERMÉ : une ref inattendue livre au pire sur un canal de test,
+      # jamais aux utilisateurs. Ne jamais inverser ce test en « si staging alors staging ».
+      # ⚠️ LA VERSION VIENT DU TAG, plus du package.json — c'est le contrat de la promotion
+      # sans rebuild : un candidat `staging-v0.5.1` s'appelle `0.5.1`, et ce sont CES octets,
+      # sous CE numéro, qui seront promus sur le canal stable (le Worker `/promote`). Un
+      # numéro suffixé (`0.5.1-staging.42`) ne serait pas promouvable : electron-updater
+      # identifie une release par version + sha512, et les mêmes octets ne peuvent pas
+      # porter deux numéros. Conséquence assumée : un NOUVEAU candidat = un NOUVEAU numéro
+      # (staging-v0.5.2) — deux tags sur le même numéro, et le second ne se propage pas.
+      # Un lancement MANUEL (pas de tag) garde l'ancien schéma suffixé : essai jetable,
+      # jamais promouvable, et c'est très bien comme ça.
+      - name: Compute env / channel / version
+        id: m
+        run: |
+          set -euo pipefail
+          PKG=$(node -p "require('./apps/desktop/package.json').version")
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            {
+              echo "env=production"
+              echo "channel=desktop-stable"
+              echo "storage_channel=desktop-production"
+              echo "version=${GITHUB_REF#refs/tags/v}"
+            } >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_REF}" == refs/tags/staging-v* ]]; then
+            {
+              echo "env=staging"
+              # `desktop-stable` EXPRÈS (voir l'en-tête) : ces octets seront promus tels
+              # quels, et le canal cuit est le défaut d'une install NEUVE — pas le
+              # stockage où ils partent (`storage_channel` ci-dessous, lui, dit ça).
+              echo "channel=desktop-stable"
+              echo "storage_channel=desktop-staging"
+              echo "version=${GITHUB_REF#refs/tags/staging-v}"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "env=staging"
+              echo "channel=desktop-beta"
+              echo "storage_channel=desktop-staging"
+              echo "version=${PKG}-staging.${GITHUB_RUN_NUMBER}"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+  release:
+    # Plus de condition : le déclencheur a déjà décidé (un tag, ou une demande manuelle).
+    # Et toujours pas d'`always()`, à dessein — `verify` DOIT avoir réussi, donc un skip ou
+    # un échec de la vérification bloque la release, tag de production compris.
+    needs: [verify, meta]
+    # UNE release, DEUX plateformes — et la raison est la VERSION. Elle vaut
+    # `<pkg>-staging.<GITHUB_RUN_NUMBER>` : deux workflows séparés, ce sont deux numéros de
+    # run, donc deux versions différentes pour le MÊME code. Le Worker le supporterait
+    # (depuis la migration 0007 chaque plateforme a sa ligne et sa version), mais la page de
+    # téléchargement afficherait macOS en `.124` et Windows en `.127`, et un rollback devrait
+    # viser deux versions distinctes. Une matrice partage le run number : une version, deux
+    # lignes cohérentes.
+    #
+    # `fail-fast: false` : une plateforme qui casse ne doit pas annuler l'autre. Le résultat
+    # est alors une version publiée pour une seule plateforme — ce que le schéma par
+    # plateforme gère nativement, et qui vaut mieux que perdre les deux.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # ⚠️ AUCUNE liste d'arches ici, à dessein : le leg mac en construit DEUX (voir
+          # `mac.target` d'electron-builder.yml), mais c'est ce fichier-là qui le décide et
+          # lui seul. La liste se DEMANDE plus bas (`print-shipped-triples`) — recopiée ici,
+          # elle divergerait au premier ajout d'arche, et la divergence ne se verrait pas au
+          # build : elle se verrait sur la machine restée sans son interpréteur.
+          - os: macos-latest
+            platform: mac
+          # ⛔ WINDOWS EN PAUSE (14/08/2026) — tant que l'app Windows n'est pas prête, on ne
+          # paie pas son build. Un runner `windows-latest` est facturé ×2 et le leg tourne
+          # ~25 min, soit ~50 min-eq par release, pour un binaire que personne n'installe
+          # encore. Le CODE reste entier (electron-builder `win:`, le bac à sable, les
+          # triples de runtime) : seule la ligne de matrice tombe.
+          #
+          # POUR LE RALLUMER : décommenter les deux lignes ci-dessous, et rien d'autre.
+          #   - os: windows-latest
+          #     platform: win
+          #
+          # ⚠️ Ce qui l'attend au réveil, déjà corrigé pour ne pas le refaire tomber : le
+          # git-bash de Windows n'a PAS `shasum` (l'étape d'upload du runtime Python y est
+          # morte sur la 0.7.0) — l'empreinte se calcule maintenant avec celui des deux
+          # outils qui existe. Et le pré-vol `release-windows.yml` répond aux questions
+          # qu'aucun mac ne tranche (MAX_PATH, le bac à sable, le démarrage du binaire) :
+          # le relancer AVANT de remettre cette ligne.
+    runs-on: ${{ matrix.os }}
+    # Backstop: a hung build (a stuck notarization / frozen electron-builder) is KILLED at
+    # 120 min instead of burning to GitHub's 6 h default - so a wedged run always stops.
+    # ⚠️ 90 → 120 en passant le leg mac à DEUX arches : il notarise deux fois, et la file
+    # d'attente d'Apple n'est pas à nous. Le garde-fou doit couvrir un notaire lent sans
+    # couvrir un build bloqué — pas l'inverse, sinon il coupe des releases légitimes.
+    timeout-minutes: 120
+    # Toutes les étapes en bash : git-bash est présent sur les runners Windows, donc le
+    # MÊME script tourne des deux côtés plutôt qu'une traduction pwsh qui divergerait.
+    defaults:
+      run:
+        shell: bash
+    # ⚠️ `secrets` est INTERDIT dans un `if:` — ni de job, ni d'étape. GitHub ne le signale
+    # pas à l'exécution : il refuse de CHARGER le workflow, et le run apparaît en échec
+    # AVEC ZÉRO JOB (run 31484319877 — mac compris, alors que seule la condition Windows
+    # était en cause). Le secret transite donc par l'env du job, que `if:` sait lire ; et il
+    # n'est peuplé que sur le leg Windows, comme les identifiants Apple ne le sont que sur
+    # le leg mac.
+    env:
+      WIN_CSC_LINK: ${{ matrix.platform == 'win' && secrets.WIN_CSC_LINK || '' }}
+      # Même mécanique pour l'upload des sourcemaps : `if:` ne sait pas lire `secrets`
+      # (le workflow ne se CHARGE pas), l'env du job si. Vide ⇒ l'étape est sautée.
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # Les valeurs de MARQUE (bucket R2, org des modèles, domaine des updates) n'ont
+      # qu'UNE maison : packages/branding/branding.json (règle 9). Résolues ici pour tout
+      # le job — jamais recopiées en littéral dans une étape.
+      - name: Resolve branding (packages/branding/branding.json)
+        id: brand
+        run: |
+          set -euo pipefail
+          B=./packages/branding/branding.json
+          {
+            echo "slug=$(node -p "require('$B').slug")"
+            echo "domain=$(node -p "require('$B').domain")"
+            echo "hforg=$(node -p "require('$B').hfOrg")"
+          } >> "$GITHUB_OUTPUT"
+
+      # AVANT l'install : le plafond MAX_PATH (260 caractères) est LE piège d'empaquetage
+      # Windows — `asarUnpack: **/node_modules/**` plus le site-packages du runtime Python
+      # vont largement au-delà. On lève le verrou du noyau et celui de git.
+      - name: Enable long paths (Windows MAX_PATH)
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+            -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force | Out-Null
+          git config --system core.longpaths true
+
+      # pnpm version comes from the root package.json `packageManager` field -
+      # don't also set `version:` here (action-setup@v4 errors on a duplicate).
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # ⚠️ Electron n'a AUCUN script d'installation (`scripts` absent de son package.json) :
+      # son binaire n'est JAMAIS téléchargé à l'install, et le premier `require("electron")`
+      # — ici le `_electron.launch` d'e2e:boot — déclenche un download synchrone de 295 Mo
+      # EN PLEIN TEST : stdout hérité dans les pipes du worker Playwright, run suspendu sur
+      # « Downloading Electron binary... » (run 30538725006, tué à la main). Le 12/08 la
+      # suite UNITAIRE s'y est reprise autrement (`scripts/vitest.electron-stub.ts`).
+      # ⚠️ Aucune config pnpm ne couvre ce cas, contrairement à ce que disait ce bloc :
+      # `onlyBuiltDependencies` n'autorise qu'un script, et il n'y en a pas — un poste dev
+      # frais n'a pas le binaire non plus. CETTE étape est le seul filet, et elle est
+      # délibérément déterministe : le rebuild pnpm d'un arbre déjà matérialisé refuse de
+      # relancer le build, install.js direct est idempotent (no-op si le binaire est là).
+      - name: Ensure Electron binary
+        run: test -f node_modules/electron/path.txt || node node_modules/electron/install.js
+
+      # Build ONLY the desktop bundle + its workspace deps (turbo `--filter`), NOT the
+      # whole monorepo - a desktop release needs neither apps/web nor the other apps,
+      # and building them here both wasted minutes AND coupled the release to unrelated
+      # build failures (an apps/web type error used to fail the desktop release). `...`
+      # pulls in @openmasq/desktop's dependency graph (ui/llm/redact/...) -> their dist/.
+      # Seul le CANAL est baké dans le bundle : VITE_UPDATES_CHANNEL est le DÉFAUT d'une
+      # install neuve (`desktop-stable` pour tout build publié — voir l'en-tête ; une
+      # machine déjà en bêta garde son `updates.json`) — les origines, elles, viennent
+      # de la table du binaire, à l'exécution.
+      - run: pnpm exec turbo run build --filter=@openmasq/desktop...
+        env:
+          # ⚠️ PAS d'URL d'environnement ici, et c'est LE point de l'artefact unique : les
+          # adresses (backend, admin, gateway, Supabase) vivent dans la table cuite du
+          # binaire (`src/environments/`), résolues à l'EXÉCUTION — production par défaut,
+          # staging par la bascule privilégiée. Baker une URL referait un build qui
+          # appartient à son environnement, c'est-à-dire exactement ce qu'on a défait.
+          # Le CANAL, lui, reste baké : c'est le défaut du premier lancement (quels BUILDS
+          # une install NEUVE recevra), pas à quelle API on parle — et son absence veut
+          # dire « build local » pour les analytics, un signal qu'on ne veut pas perdre.
+          VITE_UPDATES_CHANNEL: ${{ needs.meta.outputs.channel }}
+          # ⚠️ LA MÊME version que `-c.extraMetadata.version` plus bas, et c'est tout
+          # l'enjeu : ce bundle-ci est construit AVANT qu'electron-builder ne timbre la
+          # version, donc sans cette ligne le renderer retombe sur le `package.json` du
+          # dépôt (`0.4.1`) pendant que l'app installée s'appelle `0.4.1-staging.123`.
+          # Deux conséquences mesurées le 11/08 : l'`app_version` de PostHog ne bougeait
+          # PAS d'une mise à jour à l'autre (tous les builds d'un même x.y.z confondus,
+          # adoption immesurable), et Sentry recevait DEUX releases pour une seule app —
+          # le main lit `app.getVersion()` (suffixé), le renderer ce define-ci. Épinglé
+          # par `apps/desktop/src/sentry/policy.test.ts`.
+          VITE_APP_VERSION: ${{ needs.meta.outputs.version }}
+          # Analytics + error tracking go through the FIRST-PARTY relay (apps/analytics-fn)
+          # which holds the PostHog key server-side - so NO key is ever baked into the
+          # shipped desktop app. Deliberately no VITE_POSTHOG_KEY here (main.tsx is
+          # relay-only). Env-independent single relay; empty => analytics stays a no-op.
+          VITE_ANALYTICS_RELAY_URL: ${{ vars.ANALYTICS_RELAY_URL }}
+          # App-attestation HMAC key: the client signs each relay POST with it so the
+          # relay can reject traffic that is not from an official build (anti-abuse,
+          # non-identity). Empty
+          # value => no attestation header (a relay with ANALYTICS_APP_KEYS set 401s).
+          VITE_ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
+          # (redact-fn : plus baké non plus — les origines gateway (prod / staging)
+          # sont dans la même table, résolues avec l'environnement. Et AUCUN bypass Vercel :
+          # l'artefact unique le livrerait à tout le monde — la garde `assertNoBakedBypass`
+          # d'electron.vite.config.ts fait échouer tout build de CI qui en porterait un.)
+
+      # SOURCEMAPS → Sentry. Les bundles sont minifiés et leurs maps produites en
+      # `hidden` (jamais référencées, exclues de l'app par electron-builder — la garde :
+      # scripts/check-shipped-bundles.mjs). Sans cet upload, chaque frame conservée par
+      # sentry/policy.ts résout vers `index.js:1:184232` et le groupement casse à chaque
+      # release (audit observabilité 13/08). Étape SAUTÉE sans le secret : une release
+      # ne doit jamais échouer sur la symbolication.
+      - name: Upload sourcemaps to Sentry
+        if: ${{ env.SENTRY_AUTH_TOKEN != '' }}
+        working-directory: apps/desktop
+        env:
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+        run: |
+          # `app:///` est le préfixe que normalizePathsIntegration donne aux frames.
+          pnpm dlx @sentry/cli@2 sourcemaps upload \
+            --release "${{ needs.meta.outputs.version }}" \
+            --url-prefix "app:///out" \
+            out
+
+      # BOOT SMOKE - launch the freshly built app once BEFORE spending sign/notarize
+      # minutes on it. The build alone cannot prove the app loads: a bundled optional
+      # peer becomes an unconditional throw (the linkedom/canvas class - statically
+      # gated by apps/desktop/scripts/check-bundle.mjs inside `build`), a native module
+      # missing from the packaged tree, an IPC handler throwing at registration - all
+      # of these PASS the build and kill the app at launch. One real launch (window +
+      # DOM, no model, no network) is the only test that sees the whole class.
+      - name: Boot smoke (launch the built app once)
+        working-directory: apps/desktop
+        run: pnpm run e2e:boot
+
+      # MODEL-SWITCH smoke: the most-used gesture after "send", and the one a platform
+      # shift broke silently (Chromium made scrollIntoView return a Promise; a concise
+      # effect returned it as React's cleanup -> "destroy is not a function" -> the
+      # whole app on the ErrorBoundary). Typecheck can't see it (lib.dom still says
+      # void) and the boot smoke doesn't navigate - only a real walk of the finder does.
+      # No model called, no network needed.
+      - name: Model-switch smoke
+        working-directory: apps/desktop
+        run: pnpm run e2e:models
+
+      # Bake the BUNDLED, pruned Python runtime (sha256-pinned CPython + wheels) and the
+      # local BERT NER models into apps/desktop/build/ - electron-builder ships them via
+      # extraResources so the app needs ZERO network fetch on first use. Cached on the
+      # runtime signature (CPython+wheels) + NER model set, so a re-run skips the download.
+      - name: Cache baked Python runtime + NER models
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            apps/desktop/build/python-runtime
+            apps/desktop/build/ner-models
+            apps/desktop/build/embed-models
+          # `electron-builder.yml` entre dans la clé : c'est lui qui décide COMBIEN d'arches
+          # sont bakées. Sans ça, un cache d'une seule arche resservirait sous un nom qui en
+          # promet deux — et le bake manquant ne se verrait qu'à l'empaquetage.
+          key: bake-${{ runner.os }}-${{ hashFiles('apps/desktop/electron-builder.yml', 'apps/desktop/src/main/python/wheels.ts', 'apps/desktop/src/main/python/runtimeSpec.ts', 'apps/desktop/scripts/bake-ner-models.ts', 'apps/desktop/src/main/ner/model.ts', 'apps/desktop/scripts/bake-embed-models.ts', 'apps/desktop/src/main/embed/model.ts') }}
+
+      # L'export e5 MAISON de la Mémoire (re-export premier-parti d'intfloat/
+      # multilingual-e5-small, épinglé sha256 — AUCUN amont public ne sert ces octets,
+      # voir bake-embed-models.ts). La CI le tire de NOTRE R2 ; le bake re-vérifie chaque
+      # octet contre EMBED_WEIGHTS_SHA256, donc l'intégrité vient du pin, pas de l'hôte.
+      # ÉCHEC = BUILD ROUGE, exprès : le skip fail-soft du bake a expédié TOUTES les
+      # versions depuis juillet sans la Mémoire sémantique, sans que personne le voie —
+      # en CI, distribuer sans l'embedder redevient une décision, plus un accident.
+      - name: Fetch the vendored e5 embedder export (our R2)
+        shell: bash
+        env:
+          R2_ACCOUNT_ID: 39336bdea04ecbc7b2a906744205245b
+          R2_BUCKET: ${{ steps.brand.outputs.slug }}-updates
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+        run: |
+          set -euo pipefail
+          DEST="$RUNNER_TEMP/e5-src"
+          aws s3 cp --recursive --no-progress \
+            "s3://$R2_BUCKET/bake/embed-models/${{ steps.brand.outputs.hforg }}/multilingual-e5-small" "$DEST" \
+            --endpoint-url "https://${R2_ACCOUNT_ID}.eu.r2.cloudflarestorage.com"
+          test -f "$DEST/onnx/model_quantized.onnx"
+          echo "OPENMASQ_E5_SRC=$DEST" >> "$GITHUB_ENV"
+      - name: Bake bundled runtime + NER models (+ the jail launcher on Windows)
+        working-directory: apps/desktop
+        # `pnpm bake` bake TOUTES les arches que cette plateforme expédie (`bake-runtimes.ts`
+        # lit `electron-builder.yml`), donc ce que fait la CI est exactement ce que fait
+        # `pnpm run release` sur une machine. Aucune boucle ici : elle recréerait la liste.
+        run: pnpm bake
+
+      # LA preuve du bac à sable Windows, et la seule qui vaille : compiler
+      # le lanceur du jail (`native/win-jail`) ne dit rien de ce qu'il confine. On lance donc le VRAI lanceur
+      # autour du VRAI interpréteur et on lui fait tenter deux lectures — celle de son
+      # scratch accordé, qui doit RÉUSSIR, et celle d'un témoin hors concessions, qui doit
+      # ÉCHOUER. Sans le contrôle positif, un lanceur qui plante au démarrage ferait
+      # « échouer » la lecture du témoin et se lirait comme un succès.
+      #
+      # C'est un GARDE DE RELEASE, pas un test de confort : sans lui, une régression du
+      # confinement partirait signée et notariée chez les utilisateurs.
+      - name: Prove the jail actually jails (AppContainer read-deny)
+        if: matrix.platform == 'win'
+        working-directory: apps/desktop
+        run: bash scripts/prove-jail.sh
+
+      # Decoupled Python engine - PHASE 1 (additive, non-breaking). Upload the freshly
+      # baked runtime as a CONTENT-ADDRESSED archive to R2 (`runtime/<name>`, served by
+      # the updates Worker's GET /runtime/:file) so a FUTURE app version can download it
+      # ONCE - keyed by its runtime signature - instead of re-shipping ~500 MB in every
+      # update. The app is STILL bundled here (the un-bundle flip is a follow-up), so
+      # this cannot break a running app. Idempotent: skips when this signature's archive
+      # already exists on R2 (the name changes only when the runtime spec changes).
+      - name: Upload baked Python runtime archive to R2 (decoupled engine)
+        working-directory: apps/desktop
+        env:
+          R2_ACCOUNT_ID: 39336bdea04ecbc7b2a906744205245b
+          R2_BUCKET: ${{ steps.brand.outputs.slug }}-updates
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          # aws-cli >= 2.23 adds a default integrity checksum (CRC64NVME) to every
+          # upload; Cloudflare R2 rejects it on multipart CreateMultipartUpload, which
+          # surfaces as "SignatureDoesNotMatch". GitHub runners auto-update the CLI, so
+          # a >5 MB upload that worked months ago now fails with no code change. Restore
+          # the old behaviour (checksum only when the operation requires one).
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+        # Une archive PAR TRIPLE — le leg mac en produit deux. ⚠️ `continue`, jamais `exit 0` :
+        # sortir sur le premier triple déjà présent sur R2 sauterait le SECOND, qui lui
+        # manque peut-être. C'est la boucle qui rend la reprise correcte, pas le head-object.
+        run: |
+          set -euo pipefail
+          ENDPOINT="https://${R2_ACCOUNT_ID}.eu.r2.cloudflarestorage.com"
+          for TRIPLE in $(pnpm exec tsx scripts/print-shipped-triples.ts ${{ matrix.platform }}); do
+            NAME=$(pnpm exec tsx scripts/print-runtime-archive.ts "$TRIPLE")
+            SRC=build/python-runtime/$TRIPLE
+            [ -d "$SRC/python" ] || { echo "no baked runtime at $SRC - skip"; continue; }
+            if aws s3api head-object --bucket "$R2_BUCKET" --key "runtime/$NAME" --endpoint-url "$ENDPOINT" >/dev/null 2>&1; then
+              echo "runtime/$NAME already on R2 - nothing to do"; continue
+            fi
+            echo "Packing $SRC -> $NAME"
+            tar -C "$SRC" -czf "/tmp/$NAME" .
+            # ⚠️ `shasum` (script Perl) est présent sur les images macOS et Linux, PAS
+            # dans le git-bash des runners Windows — d'où « shasum: command not found »
+            # et le leg win en échec APRÈS avoir packé l'archive (0.7.0, 14/08). L'inverse
+            # est vrai aussi : macOS n'a pas `sha256sum`. On prend celui qui existe.
+            if command -v sha256sum >/dev/null 2>&1; then
+              SHA=$(sha256sum "/tmp/$NAME" | awk '{print $1}')
+            else
+              SHA=$(shasum -a 256 "/tmp/$NAME" | awk '{print $1}')
+            fi
+            printf '%s' "$SHA" > "/tmp/$NAME.sha256"
+            echo "sha256=$SHA size=$(wc -c < /tmp/$NAME) bytes"
+            aws s3 cp "/tmp/$NAME" "s3://$R2_BUCKET/runtime/$NAME" --endpoint-url "$ENDPOINT"
+            aws s3 cp "/tmp/$NAME.sha256" "s3://$R2_BUCKET/runtime/$NAME.sha256" --endpoint-url "$ENDPOINT" --content-type "text/plain"
+            echo "uploaded runtime/$NAME (+ .sha256)"
+          done
+
+      # Package, sign and notarize the desktop app (no publish - we upload to R2).
+      # extraMetadata.version stamps the exact version (staging gets the unique
+      # -staging.<run> prerelease without mutating package.json in git); it flows
+      # into the .dmg/.zip filenames + each latest*.yml the publish step registers.
+      - name: Build desktop app
+        working-directory: apps/desktop
+        # electron-builder copies + signs the bundled python-runtime (tens of
+        # thousands of small plotly validator files) and blows past the macOS runner's
+        # low default open-file limit (256) -> "EMFILE: too many open files".
+        # - ï¸ A bare `ulimit -n` is NOT enough: on macOS `ulimit -Hn` is "unlimited"
+        # (which `ulimit -n` REJECTS), and a fallback ABOVE `kern.maxfilesperproc`
+        # silently no-ops (`|| true`) -> the limit stayed at 256 and EMFILE returned.
+        # So RAISE THE KERNEL PER-PROCESS CAP first (sudo sysctl), THEN the soft limit
+        # to a concrete value the kernel now permits, and LOG what actually took.
+        # `run eb` (not `exec electron-builder`): the Electron runtime version is COMPUTED
+        # from the resolved `electron` dependency inside that script. electron-builder.yml
+        # deliberately pins nothing - a literal there drifts silently, and shipped 31.7.7
+        # against an installed 39.x for who knows how long.
+        # Le préambule EMFILE est propre à macOS (`sudo sysctl` n'existe pas ailleurs), donc
+        # il est conditionné plutôt que retiré : le chemin mac reste ligne pour ligne ce
+        # qu'il était. Sur Windows le plafond équivalent est MAX_PATH, déjà levé plus haut.
+        run: |
+          if [ "${{ matrix.platform }}" = "mac" ]; then
+            sudo sysctl -w kern.maxfiles=1048576 kern.maxfilesperproc=1048576 >/dev/null 2>&1 || true
+            ulimit -n 262144 2>/dev/null || ulimit -n 65536 2>/dev/null || ulimit -n 10240 2>/dev/null || true
+            echo "effective open-file limit (ulimit -n): $(ulimit -n)"
+            # ⚠️ PAS `pnpm run eb` ici, et c'est une question de FACTURE. electron-builder
+            # traite les arches de bout en bout l'une après l'autre, donc il attendait Apple
+            # DEUX FOIS en série sur un runner facturé ×10 — alors que cette attente est du
+            # réseau pur. `mac-release.ts` ne déplace que ça : les deux soumissions attendent
+            # ENSEMBLE, la signature reste séquentielle. Il passe lui aussi par `pnpm run eb`
+            # pour chaque empaquetage, donc les gardes d'`eb.mjs` sont intactes, et il imprime
+            # le temps réellement passé chez Apple (c'est la mesure qui dira ce que ça vaut).
+            pnpm exec tsx scripts/mac-release.ts "${{ needs.meta.outputs.version }}"
+          else
+            pnpm run eb --publish never -c.extraMetadata.version=${{ needs.meta.outputs.version }}
+          fi
+        env:
+          # ⚠️ Les identifiants Apple ne sont passés QUE sur le leg mac. `CSC_LINK` n'est pas
+          # un nom propre à macOS : sur un runner Windows, electron-builder y lirait un
+          # certificat WINDOWS et tenterait de signer avec un .p12 Developer ID. D'où la
+          # condition sur chaque valeur plutôt qu'un bloc commun.
+          CSC_LINK: ${{ matrix.platform == 'mac' && secrets.MAC_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ matrix.platform == 'mac' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
+          APPLE_ID: ${{ matrix.platform == 'mac' && secrets.APPLE_ID || '' }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.platform == 'mac' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ matrix.platform == 'mac' && secrets.APPLE_TEAM_ID || '' }}
+          # Windows : rien ici pour l'instant. La signature Authenticode (Azure Artifact
+          # Signing) se branchera par `win.sign` dans electron-builder.yml + les trois
+          # variables AZURE_*, le jour où le profil de certificat existe. Tant qu'elles
+          # sont absentes, le .exe sort NON SIGNÉ — il s'installe, avec un écran SmartScreen.
+
+      # The LAST gate that can still see this class of bug, and the only one: the
+      # node_modules electron-builder just wrote is a FLATTENED copy of the workspace root
+      # (one version per package NAME), so a dep pinned to a non-hoisted version silently
+      # gets the wrong one. Nothing before packaging resolves that tree - 0.3.2 shipped with
+      # `entities@4.5.0` under `htmlparser2@10`, threw ERR_PACKAGE_PATH_NOT_EXPORTED at
+      # module load, and was DEAD ON LAUNCH with every other gate green. Runs BEFORE publish
+      # so such a build is never registered with the updates Worker.
+      # `--require-tree` : le garde SAUTE (en vert) quand il ne trouve pas d'app empaquetée,
+      # ce qui est juste hors chemin de build — mais ici on VIENT d'en construire une, donc
+      # « rien à vérifier » ne peut signifier qu'une chose : il ne reconnaît plus la
+      # disposition. C'est exactement ainsi qu'il ne voyait rien d'un build Windows.
+      - name: Verify packaged dependency tree
+        run: pnpm check:pkgtree --require-tree
+
+      # ⛔ LA BARRIÈRE DE SIGNATURE — un artefact NON SIGNÉ ne part pas sur un canal.
+      #
+      # Sur mac, la signature Developer ID + la notarisation sont l'ancre d'intégrité que
+      # Squirrel.Mac vérifie AVANT d'échanger l'app : une compromission de R2 ou du Worker
+      # ne suffit pas à faire installer un binaire. Sur Windows, tant qu'aucun certificat
+      # Authenticode n'existe, cette ancre est ABSENTE — `NsisUpdater.verifySignature()`
+      # retourne `null` faute de `publisherName` dans `app-update.yml`, donc la mise à jour
+      # ne vérifie RIEN et toute la confiance retombe sur TLS + les secrets de CI.
+      #
+      # Publier quand même reviendrait à expédier, à des utilisateurs, du code exécutable
+      # dont la seule garantie est « le bucket n'a pas été compromis ». Donc : le leg
+      # Windows ne publie QUE si le certificat est configuré. Le jour où `WIN_CSC_LINK`
+      # existe, la publication s'allume d'elle-même — sans ce garde, c'est l'inverse qui
+      # se serait produit en silence.
+      - name: Publish desktop release (R2 + register with updates Worker)
+        if: ${{ matrix.platform != 'win' || env.WIN_CSC_LINK != '' }}
+        run: bash apps/updates/scripts/publish-desktop.sh --release-dir apps/desktop/release --channel ${{ needs.meta.outputs.storage_channel }}
+        env:
+          UPDATES_URL: ${{ vars.UPDATES_URL || format('https://updates.{0}', steps.brand.outputs.domain) }}
+          UPDATES_ADMIN_TOKEN: ${{ secrets.UPDATES_ADMIN_TOKEN }}
+          R2_ACCOUNT_ID: 39336bdea04ecbc7b2a906744205245b
+          R2_BUCKET: ${{ steps.brand.outputs.slug }}-updates
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          # publish-desktop.sh uploads the .dmg/.zip via `aws s3 cp` (multipart on large
+          # artifacts) — same R2 checksum incompatibility as the runtime step above.
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+
+      # Le pendant du garde ci-dessus : l'installeur Windows non signé EXISTE (il a été
+      # construit, lancé, vérifié), il ne va simplement pas sur un canal. Il reste
+      # récupérable sur le run pour une installation manuelle — c'est ce que faisait
+      # `release-windows.yml`, et il ne faut pas perdre cette main en gagnant la matrice.
+      - name: Upload the UNSIGNED Windows installer to the run (not to a channel)
+        if: ${{ matrix.platform == 'win' && env.WIN_CSC_LINK == '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.brand.outputs.slug }}-windows-unsigned-${{ needs.meta.outputs.version }}
+          path: |
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.blockmap
+            apps/desktop/release/latest.yml
+          retention-days: 7
+          if-no-files-found: error
+
+  # LES DEUX PLATEFORMES SONT PUBLIÉES — ce qui suit se fait UNE fois, pas par leg.
+  #
+  # Dans la matrice, la purge tournerait deux fois en parallèle sur le même canal (deux
+  # suppressions R2 concurrentes visant les mêmes objets), et le brouillon d'e-mail serait
+  # créé en double chez Resend. Ni l'un ni l'autre n'est un simple gaspillage : ce sont
+  # deux effets de bord externes, non idempotents entre eux.
+  #
+  # `needs: release` attend TOUTE la matrice. Avec `fail-fast: false`, une plateforme en
+  # échec fait échouer ce job — donc pas de purge tant que la publication n'est pas
+  # complète : on ne supprime pas d'anciennes versions alors que la nouvelle est à moitié
+  # là. C'est la bonne direction pour de la rétention.
+  finalize:
+    needs: [meta, release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Même logique que dans le job de release : la marque (domaine) se lit dans
+      # packages/branding/branding.json, jamais en littéral.
+      - name: Resolve branding (packages/branding/branding.json)
+        id: brand
+        run: echo "domain=$(node -p "require('./packages/branding/branding.json').domain")" >> "$GITHUB_OUTPUT"
+
+      # STAGING only: prune old desktop builds. desktop-beta gets one build per
+      # CI run, so without this its R2 artifacts (~hundreds of MB each) accumulate
+      # forever. Keep the newest 4 releases (plus any build behind an active
+      # rollout rule) and delete the rest - the Worker removes BOTH the R2 objects
+      # and the DB rows in one authenticated call (it owns both bindings, so CI
+      # needs only the admin token, no R2 S3 creds). Production is never
+      # auto-pruned (its rare builds are rollback targets). Housekeeping only -
+      # a prune failure warns but never fails the release (publish already ran).
+      - name: Prune old desktop staging builds (keep newest 4)
+        if: ${{ needs.meta.outputs.env == 'staging' }}
+        env:
+          UPDATES_URL: ${{ vars.UPDATES_URL || format('https://updates.{0}', steps.brand.outputs.domain) }}
+          UPDATES_ADMIN_TOKEN: ${{ secrets.UPDATES_ADMIN_TOKEN }}
+          CHANNEL: ${{ needs.meta.outputs.storage_channel }}
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/desktop-prune.out -w '%{http_code}' \
+            -X POST "$UPDATES_URL/admin/desktop/releases/prune?channel=$CHANNEL&keep=4" \
+            -H "Authorization: Bearer $UPDATES_ADMIN_TOKEN" || true)
+          echo "prune HTTP $code"; cat /tmp/desktop-prune.out || true; echo
+          if [ "$code" != "200" ]; then echo "::warning::desktop prune failed (HTTP $code) - skipping"; fi
+
+      # PRODUCTION only: prepare the release-notes announcement. Reads the published
+      # version's section from RELEASE_NOTES.md, renders the ReleaseNotes email, and
+      # creates a Resend Marketing broadcast DRAFT (does NOT send) - a human reviews
+      # and sends it from the Resend dashboard. No-op when the version has no section
+      # or the Resend secrets are unset; never fails the release (the script exits 0).
+      - name: Prepare release-notes email (Resend broadcast draft)
+        if: ${{ needs.meta.outputs.env == 'production' }}
+        run: pnpm --filter @openmasq/emails release:broadcast -- --version ${{ needs.meta.outputs.version }}
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
+          # Unset ⇒ the shared default in packages/emails/lib/sender.ts applies (rule 9:
+          # the sender lives in ONE place, not re-typed per workflow).
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          LANDING_DOWNLOAD_URL: https://landing.${{ steps.brand.outputs.domain }}/download
+          LANDING_NOTES_URL: https://landing.${{ steps.brand.outputs.domain }}/releases

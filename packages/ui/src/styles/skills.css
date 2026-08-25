@@ -1,0 +1,23 @@
+/* ============================================================= Compétences ==
+   The Compétences page (pages/Competences/) + the pinned list in the sidebar.
+   Reusable prompts the user authors and inserts into a chat.
+
+   Owns the `.om-skill-*` family and nothing else — it consumes the shared
+   `.library-page` / `.library-body` skeleton (same as the Coffre), `.cv-eyebrow`,
+   `.btn-primary` / `.btn-ghost` and the `--hl-*` tone tokens.
+
+   A BARREL: the family came to ~370 lines, over the 300 cap (rule 1 covers .css),
+   so it is split by surface below. styles.css imports only this file; the nested
+   @imports resolve at bundle time.
+
+   Category tones/glyphs are data-driven and stay inline (rule 6's runtime-value
+   exception). */
+
+@import "./skills/page.css";
+@import "./skills/memory.css";
+@import "./skills/memoryStage.css";
+@import "./skills/card.css";
+@import "./skills/modal.css";
+@import "./skills/split.css";
+@import "./skills/pins.css";
+@import "./skills/composer.css";

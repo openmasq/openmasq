@@ -1,0 +1,49 @@
+import { describe, it, expect } from "vitest";
+import { frenchSpacing } from "./microTypography";
+
+const NBSP = " ";
+
+describe("frenchSpacing — des insécables, et RIEN d'autre", () => {
+  it("soude la ponctuation haute et les guillemets", () => {
+    expect(frenchSpacing("Vraiment ? Oui !")).toBe(`Vraiment${NBSP}? Oui${NBSP}!`);
+    expect(frenchSpacing("deux points : ceci ; cela")).toBe(`deux points${NBSP}: ceci${NBSP}; cela`);
+    expect(frenchSpacing("il dit « bonjour » fort")).toBe(`il dit «${NBSP}bonjour${NBSP}» fort`);
+  });
+
+  it("soude les milliers et les unités", () => {
+    expect(frenchSpacing("12 000 raisons")).toBe(`12${NBSP}000 raisons`);
+    expect(frenchSpacing("1 234 567 €")).toBe(`1${NBSP}234${NBSP}567${NBSP}€`);
+    expect(frenchSpacing("45 % de 500 $")).toBe(`45${NBSP}% de 500${NBSP}$`);
+  });
+
+  it("ne touche PAS à ce qui n'est pas une espace française à souder", () => {
+    // La règle d'or : on remplace une espace existante, on n'insère jamais — donc un
+    // texte sans espace avant sa ponctuation reste tel quel (URL, smiley, anglais).
+    for (const s of [
+      "https://acme.example/page?x=1",
+      "voir: le point collé reste collé",
+      "un smiley :) et un ;(",
+      "06 12 34 56 78", // téléphone : groupes de 2, jamais soudés en milliers
+      "les années 2026 2027", // deux nombres, pas un groupement
+      "What time is it?", // ponctuation anglaise collée : rien à faire
+    ]) {
+      expect(frenchSpacing(s)).toBe(s);
+    }
+  });
+
+  it("est idempotente — repasser ne change rien", () => {
+    const once = frenchSpacing("Prix : 12 000 € !");
+    expect(frenchSpacing(once)).toBe(once);
+  });
+
+  it("ne change JAMAIS la longueur ni les caractères non-espace", () => {
+    // La propriété qui rend le module sûr, énoncée comme telle : seule la NATURE
+    // d'espaces existantes change — pas le contenu, pas la longueur.
+    const samples = ["Vraiment ? 12 000 € : oui ; « non » !", "texte 100 % ordinaire"];
+    for (const s of samples) {
+      const out = frenchSpacing(s);
+      expect(out.length).toBe(s.length);
+      expect(out.replace(new RegExp(NBSP, "g"), " ")).toBe(s);
+    }
+  });
+});

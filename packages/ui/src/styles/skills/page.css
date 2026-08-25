@@ -1,0 +1,168 @@
+/* Part of the Compétences styles — see ../skills.css for the family's contract. */
+
+.om-skill-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4px 0 40px;
+}
+
+/* The page action button in the PageHeader. */
+.om-skill-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* ── Filters: category chips + a search box ─────────────────────────────────── */
+.om-skill-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.om-skill-spacer {
+  flex: 1;
+}
+.om-skill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+.om-skill-chip:hover {
+  background: var(--surface-hover);
+}
+.om-skill-chip.on {
+  background: var(--brand);
+  border-color: transparent;
+  color: var(--brand-contrast);
+  font-weight: 600;
+}
+.om-skill-chip-n {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  opacity: 0.85;
+}
+.om-skill-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+}
+.om-skill-search:focus-within {
+  border-color: var(--brand);
+}
+.om-skill-search input {
+  width: 240px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+
+/* ── The card grid (kit: minmax(248px), gap 12) ─────────────────────────────── */
+.om-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: 12px;
+}
+
+/* ── Compétences / Workflows on a NARROW VIEWPORT ─────────────────────────────
+   The card list is already the right shape for a thumb, so these two screens are
+   not forked — what a phone can't afford is the DESKTOP CHROME around them: a
+   toolbar laid out on one line, and a 140px-tall dashed "create" tile taking the
+   FIRST cell, i.e. a third of the screen before a single compétence is visible.
+   Keyed on the viewport, like the thread's type scale, so a desktop window
+   narrowed to a phone's width behaves the same. */
+@media (max-width: 560px) {
+  .om-skill-inner {
+    padding: 0 0 20px;
+  }
+  /* Chips on their own line, the search full-width under them — the spacer that
+     pushes them apart on a wide toolbar has nothing to push here. */
+  .om-skill-filters {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .om-skill-spacer {
+    display: none;
+  }
+  .om-skill-search {
+    flex-basis: 100%;
+  }
+}
+
+
+/* ── The delete-undo bar ───────────────────────────────────────────────────── */
+/* A deleted compétence is real user work: the way back stays on screen a few
+   seconds. Plain DOM, no dialog role (the agent-browser gate must not fire). */
+.om-skill-undo {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+.om-skill-undo-text {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+.om-skill-undo-btn {
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--brand);
+  color: var(--brand-contrast);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* « Importer depuis Claude » : une ICÔNE dans la rangée de filtres. Action secondaire —
+   elle ne dispute pas la place à la création (la tuile en pointillés de la grille) — et le
+   libellé vit dans l'infobulle, que `TooltipLayer` dessine à partir du `title`. */
+.om-skill-import {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.14s ease, border-color 0.14s ease, background 0.14s ease;
+}
+.om-skill-import:hover {
+  border-color: var(--brand);
+  color: var(--text-strong);
+}

@@ -1,0 +1,91 @@
+/* Coffre — the toolbar: type-filter chips (hue-squared), search, add button. */
+
+.om-vault-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.om-vault-spacer {
+  flex: 1;
+}
+.om-vault-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+.om-vault-chip.on {
+  border-color: transparent;
+  background: var(--brand);
+  color: var(--brand-contrast);
+  font-weight: 600;
+}
+/* A TONED chip (one per data type) wears its hue as a small square; selected, it
+   fills with the hue's tint and keeps an inset ring of the full hue (kit). */
+.om-vault-chip-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--chip-tone, var(--border-default));
+}
+.om-vault-chip.toned {
+  padding-left: 8px;
+}
+.om-vault-chip.toned.on {
+  background: color-mix(in oklch, var(--chip-tone) 26%, var(--surface-card));
+  color: var(--text-strong);
+  box-shadow: inset 0 0 0 1.5px var(--chip-tone);
+}
+.om-vault-chip-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  opacity: 0.85;
+}
+.om-vault-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+}
+.om-vault-search svg {
+  position: absolute;
+  left: 10px;
+  pointer-events: none;
+}
+.om-vault-search-input {
+  width: 220px;
+  height: 34px;
+  padding: 0 12px 0 32px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  outline: none;
+}
+.om-vault-search-input:focus {
+  border-color: var(--brand);
+}
+/* « Ajouter un terme » — `.btn-primary` supplies the brand fill; this only sizes
+   it into the toolbar row. */
+.om-vault-add-btn {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+

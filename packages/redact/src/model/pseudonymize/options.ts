@@ -1,0 +1,137 @@
+import type { CompleteFn, Detection, Vault } from "../../types";
+
+export interface PseudonymizeOptions {
+  /** Optional one-shot model; when present, free-form PII is detected too. */
+  complete?: CompleteFn;
+  /**
+   * Optional LLM-free local detector (GLiNER — see `../local`). When present,
+   * free-form PII (names/orgs/places) is detected 100% offline, no completion
+   * call. Composed by the caller as `(t) => detectLocalNer(t, predict, …)`;
+   * returns the same verbatim `Detection[]` as {@link complete}. Can run in
+   * addition to, or instead of, `complete`.
+   */
+  detectLocal?: (input: string) => Promise<Detection[]>;
+  /** Vault (token -> original), mutated in place. Pass the conversation vault. */
+  vault?: Vault;
+  /**
+   * QUE VOIT LE MODÈLE à la place d'une valeur sensible.
+   *
+   * - `"fake"` (défaut) — un faux vraisemblable de même nature (« Marc Charvet »,
+   *   un IBAN qui passe son propre mod-97). Le texte reste du texte : le modèle
+   *   accorde, décline, rédige, et raisonne sur des valeurs qui ont la forme des vraies.
+   * - `"token"` — un marqueur opaque (`[PERSON1]`, `[IBAN2]`). Rien de la valeur ne
+   *   subsiste, pas même sa vraisemblance : c'est le mode le plus sobre en fuite
+   *   RÉSIDUELLE (un faux nom reste un nom, un faux code postal reste une région),
+   *   au prix de la qualité de la réponse — voir `bench/tokensVsFakes.md`.
+   *
+   * Réversible dans les deux cas, par le MÊME coffre : seule la forme de la clé change.
+   * Le mode est une propriété de la CONVERSATION, pas du réglage courant — le basculer
+   * en cours de route laisserait un coffre moitié faux moitié jetons, donc un historique
+   * où le modèle voit les deux (réversible, mais incohérent).
+   */
+  mode?: "fake" | "token";
+  /** Exact strings to always replace (e.g. saved API keys). */
+  secrets?: string[];
+  /**
+   * User-FORCED redactions (composer "Redact" → chosen data type): each exact
+   * value is redacted AS `category` (a canonical token — NAME/EMAIL/ORG/…), even if
+   * that category is disabled or the value would normally be spared (bare number,
+   * URL). `keep` still overrides (the reveal/undo path). Reversible like any span.
+   */
+  forced?: { value: string; category: string }[];
+  /**
+   * Replace standalone numbers (quantities/amounts that match no entity) with
+   * `n1`, `n2`, … tokens. **OFF by default** — bare numbers are left untouched
+   * unless this is explicitly set true, so the AI engine never mangles figures
+   * that "mean nothing". Identifying numbers (phone/card/IBAN/postal/…) are still
+   * swapped same-kind regardless, because they DO correspond to something.
+   */
+  numbers?: boolean;
+  /** Highlight kinds the user disabled (e.g. ["email"]); those spans are left in clear. */
+  disabledKinds?: string[];
+  /**
+   * value -> kind for spans already in the vault, so disabled categories (and
+   * numbers) stop being substituted even when they were learned earlier in the
+   * conversation. Without it, fake-data tokens (which carry no category) can't
+   * be matched to a disabled kind.
+   */
+  kinds?: Record<string, string>;
+  /**
+   * Allow-list: exact values that must NEVER be pseudonymised (case-insensitive)
+   * — e.g. the names of the user's CONNECTED integrations ("Stripe", "Canva"),
+   * which the chat model needs verbatim to route its tool calls. Drops those
+   * spans from BOTH the regex rules and the model detector, and un-applies any
+   * matching entry already in the vault (so a value redacted before it was
+   * allow-listed is now left in clear).
+   */
+  keep?: string[];
+  /**
+   * ALLOW-list of hosts whose URLs are STRUCTURAL — see `RedactOptions.structuralUrlHosts`
+   * (same contract, same allow-list discipline). On this path it ALSO feeds the forward
+   * vault pass's URL guard, so an already-vaulted value stops rewriting the host and the
+   * ids of the links a connector returns.
+   */
+  structuralUrlHosts?: string[];
+  /**
+   * UI categories the ORG MANDATES (a member cannot disable OR reveal them). `keep` does
+   * NOT win over these (audit): a composer "garder en clair" chip or a reveal must never let
+   * an org-forced category egress in clear. Fine categories are mapped to the UI category via
+   * `redactionCategory`, so pass the same keys the app forces ON. Empty/absent ⇒ unchanged
+   * (`keep` wins over everything, the default).
+   */
+  unrevealableCategories?: string[];
+  /**
+   * CONVERSATION-aware collision avoidance. Text blobs (prior message contents…) whose
+   * WORDS a newly-minted fake must NOT reuse — so a fake place like "france" is never
+   * chosen when the real word "france" already appears elsewhere in the conversation
+   * (the "amiens → france, then the user types france" collision that made the real
+   * word be re-redacted / reverse-corrupted). The CURRENT `input` is already avoided
+   * intrinsically; every existing vault ORIGINAL (a value already seen as real) is
+   * added automatically. Best-effort: on total exhaustion the guaranteed-unique
+   * suffixed fallback still wins (no leak). Case-insensitive, words ≥3 chars.
+   */
+  avoid?: string[];
+  /**
+   * CONTEXT scope for the "never re-fake a fake" guard. When the input is the caller's
+   * OWN authored content (a user-typed message), a DETECTED value that equals an existing
+   * fake KEY is the user's REAL value — NOT our fake echoed back — so it must get its OWN
+   * distinct fake (else it is dropped, sent in CLEAR to the model = a LEAK, and its later
+   * reverse maps the user's real word onto the OTHER value = corruption). Set `true` for a
+   * user message. Leave FALSE (default) for a TOOL RESULT, where a value equal to a fake IS
+   * our fake echoed by the tool/browser and re-faking it would mint compounding identities
+   * (the guard this option gates). It bypasses the WHOLE `isExistingFake` guard for authored
+   * content — every clause (whole key, multi-word all-keys, fake-company fragment) causes the
+   * SAME leak when it fires on the user's genuinely-DETECTED real value, so none is safe to
+   * keep for a user message; the anti-compounding purpose only applies to echoed tool output.
+   */
+  reFakeExisting?: boolean;
+  /**
+   * Élargit la dispense de notoriété aux MARQUES commerciales (Google, LVMH, BNP
+   * Paribas, et TOUTES les intégrations MCP de l'app — `NOTORIOUS_COMMERCIAL_ORGS`).
+   * L'app le passe selon le NIVEAU de protection : tout niveau sauf Strict
+   * (`@openmasq/ui` `privacy/privacyLevel.ts` est la politique). Category-scoped
+   * comme toute la dispense (un particulier nommé Hermès/Leclerc reste protégé) et la
+   * porte « je travaille chez Google » (`isSelfBoundEntity`) continue de l'emporter.
+   * Absent/false = comportement du 27/07/2026 : marques redacted.
+   */
+  commercialNotoriety?: boolean;
+  /**
+   * OPT-OUT de la dispense des PERSONNALITÉS (`NOTORIOUS_PEOPLE`) — défaut TRUE
+   * (dispensées : le comportement historique de tout consommateur qui ne passe rien).
+   * Le niveau Strict passe `false` : les personnalités y sont redacted comme le
+   * reste. Pays et tickers restent dispensés quel que soit ce flag.
+   */
+  peopleNotoriety?: boolean;
+  /**
+   * PER-CONVERSATION secret shift for the value→fake mapping. Default 0 = the legacy
+   * DETERMINISTIC mapping (a public hash: « Augustin Vaudel » always → « Simon Cros », every
+   * conversation, every user — reversible by precomputing the fake pool over a name
+   * dictionary). A non-zero per-conversation salt makes the mapping secret-keyed, so the
+   * same value maps to a DIFFERENT fake in another conversation and a held fake can't be
+   * inverted by dictionary. Stability WITHIN a conversation is the VAULT's job, not this —
+   * pass the SAME salt for every send of one conversation. The app generates it with a CSPRNG
+   * and persists it on the conversation (`Conversation.redactionSalt`); the engine stays pure
+   * and just receives the number. Pinned by `src/model/salt.test.ts`.
+   */
+  salt?: number;
+}

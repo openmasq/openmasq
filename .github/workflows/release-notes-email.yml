@@ -1,0 +1,64 @@
+name: Release notes — email everyone (Resend)
+
+# ACTION 2: fetch the LATEST published release note from Contentful and email it to
+# everyone via Resend (the Marketing audience that holds all signed-up users).
+# Manual dispatch. Pairs with release-notes-generate.yml (ACTION 1).
+#
+# ⚠️ `mode: send` blasts the whole audience and is IRREVERSIBLE. The default is
+# `draft` (create the broadcast, a human reviews + sends it from the Resend
+# dashboard). Pick `send` deliberately to fire it.
+#
+# Secrets: RESEND_API_KEY, RESEND_AUDIENCE_ID (already used by release.yml),
+# CONTENTFUL_CDA_TOKEN. Vars: CONTENTFUL_SPACE (+ optional CONTENTFUL_ENVIRONMENT /
+# CONTENTFUL_CONTENT_TYPE). Missing any ⇒ no-op.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "draft = create broadcast for review · send = email everyone now (irreversible)"
+        required: true
+        type: choice
+        default: draft
+        options:
+          - draft
+          - send
+
+# Moindre privilège (cf. release.yml) : checkout seul ; Resend a sa clé.
+permissions:
+  contents: read
+
+concurrency:
+  group: release-notes-email
+  cancel-in-progress: false
+
+jobs:
+  email:
+    runs-on: ubuntu-latest
+    env:
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
+      # Unset ⇒ the shared default in packages/emails/lib/sender.ts applies (rule 9:
+      # the sender lives in ONE place, not re-typed per workflow).
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      CONTENTFUL_SPACE: ${{ vars.CONTENTFUL_SPACE }}
+      CONTENTFUL_ENVIRONMENT: ${{ vars.CONTENTFUL_ENVIRONMENT }}
+      CONTENTFUL_CONTENT_TYPE: ${{ vars.CONTENTFUL_CONTENT_TYPE }}
+      CONTENTFUL_CDA_TOKEN: ${{ secrets.CONTENTFUL_CDA_TOKEN }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Le domaine se lit dans packages/branding/branding.json (règle 9), pas en littéral.
+      - name: Resolve brand domain (packages/branding/branding.json)
+        id: brand
+        run: echo "domain=$(node -p "require('./packages/branding/branding.json').domain")" >> "$GITHUB_OUTPUT"
+      - name: Email latest release note
+        env:
+          LANDING_DOWNLOAD_URL: https://landing.${{ steps.brand.outputs.domain }}/download
+          LANDING_NOTES_URL: https://landing.${{ steps.brand.outputs.domain }}/releases
+        run: pnpm --filter @openmasq/emails release:email -- --mode "${{ github.event.inputs.mode }}"

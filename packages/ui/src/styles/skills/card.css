@@ -1,0 +1,252 @@
+/* Part of the Compétences styles — see ../skills.css for the family's contract. */
+
+/* The card OPENS THE EDITOR (kit `SkillCard`); « Utiliser » and the pin are real
+   <button>s nested inside: they stopPropagation on click, and the card's keydown
+   handler ignores any key that did not land on the card itself — so Enter on the
+   pin pins, it does not edit. */
+.om-skill-card {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  padding: 14px;
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out),
+    border-color 160ms var(--ease-out);
+}
+.om-skill-card:hover,
+.om-skill-card:focus-visible {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+/* The editor modal targets this card (kit: brand border + the SELECTED surface).
+   ⚠️ Not `--hl-lime-soft`: a highlight hue holds the same pale value in all four
+   themes (it is the redaction's language), so under the dark theme's near-white
+   `--text-strong` the card's own name went unreadable (root rule 12).
+   `--surface-selected` is re-pointed by each theme, so the pair inverts together. */
+.om-skill-card.selected {
+  border-color: var(--brand);
+  background: var(--surface-selected);
+}
+
+/* Named `-card-head`, NOT `-head`: `.om-skill-head` is the modal's tinted band
+   (skills/modal.css), imported after this file — sharing the name silently gave the
+   card the modal's padding + border-bottom. One class, one surface. */
+.om-skill-card-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+/* Category glyph + badge are NEUTRAL (monochrome): the `--hl-*` hues are the
+   redaction's colour language, not category decoration. */
+.om-skill-glyph {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+}
+.om-skill-cat {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.om-skill-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.om-skill-pin:hover {
+  color: var(--brand);
+}
+.om-skill-pin.on {
+  border-color: var(--brand);
+  background: var(--surface-sunken);
+  color: var(--brand);
+}
+
+/* flex:1 — the body takes the slack so name + description stay TOP-aligned across a
+   row of cards of unequal text (the footer's own `margin-top:auto` pins the floor). */
+.om-skill-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 52px;
+}
+.om-skill-name {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text-strong);
+}
+.om-skill-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.45;
+}
+/* Kit: the card grid stays even because a long description CLIPS. Three lines —
+   it is now the card's only prose, the mono prompt taste that used to sit under it
+   having gone: a card said the same thing twice, once described and once quoted,
+   and the quote was the half nobody wrote. */
+.om-skill-desc.clamp3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* `margin-top: auto` sits the footer on the card's floor — grid rows stretch every
+   card to the tallest, and it used to be the (now removed) prompt preview that
+   carried it. Without it a 1-line description leaves its footer floating mid-card. */
+.om-skill-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+/* A REAL button now (kit) — it inserts, while the card edits. Also worn by the
+   Mémoire panel's small text actions, so it must stand alone outside a card. */
+.om-skill-use {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+  transition: color 160ms var(--ease-out);
+}
+.om-skill-use:hover {
+  color: var(--brand);
+}
+.om-skill-use.danger {
+  color: var(--danger, #d64550);
+}
+.om-skill-uses {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .om-skill-card:hover,
+  .om-skill-card:focus-visible {
+    transform: none;
+  }
+}
+
+/* ── The dashed "create" tile, first cell of the grid (kit `CreateCard`) ──────── */
+.om-create-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  padding: 16px;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out);
+}
+/* ⚠️ Le fond de survol est `--brand-tint`, PAS une teinte `--hl-*` : cette palette est la
+   langue du REDACTION (une couleur y dit « cette valeur est un téléphone »), jamais du
+   décor — `components/CLAUDE.md`. Elle valait ici `--hl-lime-soft`, donc un citron collé
+   à une marque indigo, sous une carte qui ne redacted rien. */
+.om-create-card:hover {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+}
+.om-create-card-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  transition: all 160ms var(--ease-out);
+}
+.om-create-card:hover .om-create-card-plus {
+  border-color: var(--brand);
+  background: var(--brand);
+  /* Sur un fond de MARQUE, l'encre est celle qui bascule avec elle (règle 12) :
+     `--text-strong` vire quasi-noir sur le thème clair et blanc sur les sombres — elle
+     suit le FOND DE PAGE, pas la pastille. */
+  color: var(--brand-contrast);
+}
+.om-create-card-label {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+}
+.om-create-card-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* On a narrow viewport the create tile stops being a card-sized hole at the top of
+   the list — 140px of dashed nothing before a single compétence is visible. It keeps
+   its dashed identity and becomes a row. ⚠️ This block lives HERE, not beside the
+   other narrow-viewport rules in `page.css`: a media query adds no specificity, and
+   `card.css` is imported AFTER `page.css`, so the base `min-height` would win. */
+@media (max-width: 560px) {
+  .om-create-card {
+    min-height: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+  .om-create-card-hint {
+    display: none;
+  }
+}

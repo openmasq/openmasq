@@ -1,0 +1,93 @@
+/* The file viewer's "Conversations" tab (Library/FileUsagePanel) — the kit's row
+   cards: model mark · title over a one-line snippet · date · chevron. */
+
+.om-usage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  padding: 8px 4px;
+}
+
+.om-usage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.om-usage-none {
+  margin: 0;
+  padding: 40px 0;
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.om-usage-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s;
+}
+.om-usage-row:hover,
+.om-usage-row:focus-visible {
+  background: var(--surface-hover);
+  border-color: var(--border-default);
+}
+
+.om-usage-logo {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* `min-width:0` so the title/snippet ellipse instead of shoving the date out. */
+.om-usage-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.om-usage-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.om-usage-snippet {
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.om-usage-date {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+
+.om-usage-chev {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+.om-usage-row:hover .om-usage-chev {
+  color: var(--brand);
+}

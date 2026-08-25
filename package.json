@@ -1,0 +1,75 @@
+{
+  "name": "openmasq",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Desktop chat app for talking to multiple LLM models",
+  "packageManager": "pnpm@10.17.0",
+  "scripts": {
+    "dev": "node scripts/turbo.mjs run dev --filter=!@openmasq/updates",
+    "build": "node scripts/turbo.mjs run build",
+    "typecheck": "node scripts/turbo.mjs run typecheck",
+    "lint": "node scripts/turbo.mjs run lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:changed": "vitest run --changed",
+    "test:related": "vitest related --run",
+    "test:redact": "VITEST_NO_ISOLATE=1 vitest run packages/redact --no-isolate",
+    "test:e2e": "pnpm --filter @openmasq/desktop run e2e",
+    "eval": "vitest run --config vitest.evals.config.ts",
+    "bench": "tsx scripts/bench-agentic.ts",
+    "e2e:login": "pnpm --filter @openmasq/desktop run e2e:login",
+    "audit:gate": "node scripts/audit-gate.mjs",
+    "check:loc": "node scripts/check-file-size.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:tests": "node scripts/check-test-include.mjs",
+    "check:alias": "node scripts/check-alias-parity.mjs",
+    "check:dup": "node scripts/check-dup.mjs",
+    "check:features": "node scripts/check-features.mjs",
+    "check:features-drift": "node scripts/check-features-drift.mjs",
+    "check:pkgtree": "node scripts/check-packaged-tree.mjs",
+    "clean": "node scripts/turbo.mjs run clean && rm -rf node_modules",
+    "check:effects": "node scripts/check-effect-returns.mjs",
+    "check:actions": "node scripts/check-actions-pinned.mjs",
+    "check:shipped": "node scripts/check-shipped-bundles.mjs",
+    "check:shipped:all": "node scripts/check-shipped-bundles.mjs --require-all",
+    "verify": "pnpm -r --if-present typecheck && pnpm test && pnpm check:loc && pnpm check:docs && pnpm check:tests && pnpm check:alias && pnpm check:dup && pnpm check:features && pnpm check:pkgtree && pnpm check:actions && pnpm check:knip && pnpm check:effects && pnpm check:shipped && pnpm check:pii",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "check:knip": "node scripts/check-knip.mjs",
+    "check:pii": "node scripts/check-pii.mjs",
+    "check:brand": "node scripts/check-brand.mjs",
+    "claude:sandbox": "bash scripts/claude-sandbox.sh"
+  },
+  "devDependencies": {
+    "@electron/asar": "^3.4.1",
+    "jsdom": "^25.0.1",
+    "knip": "^6.29.0",
+    "onnxruntime-node": "link:packages/ort",
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.6"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "pnpm": {
+    "supportedArchitectures": {
+      "os": [
+        "darwin",
+        "win32",
+        "linux"
+      ],
+      "cpu": [
+        "arm64",
+        "x64"
+      ]
+    },
+    "overrides": {
+      "path-to-regexp@<1": "0.1.13",
+      "qs@<6.14.0": "^6.14.0",
+      "postcss@<8.5.10": "^8.5.10",
+      "undici@<6.28.0": "^6.28.0",
+      "undici@>=7.0.0 <7.29.0": "^7.29.0",
+      "onnxruntime-node": "link:packages/ort"
+    }
+  }
+}

@@ -1,0 +1,236 @@
+/* « Aide » — the in-app guide modal (`containers/modals/GuideModal.tsx`).
+   Two panes: a themed chapter MENU on the left, the active chapter on the right — with a
+   fixed head and footer so the way out is never below the fold. On a narrow viewport the
+   menu folds into a horizontal chip row above the content (media query at the bottom). */
+
+.guide-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 26px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.guide-head-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  flex-shrink: 0;
+}
+.guide-eyebrow {
+  margin-bottom: 3px;
+}
+/* L'appel vers le centre d'aide étendu : un `.btn-primary` (donc l'encre qui s'inverse
+   avec la marque et le balayage au survol viennent avec, règle 12) posé dans l'en-tête,
+   visible depuis n'importe quel chapitre. `<a>` : il faut donc redresser ce que la règle
+   du bouton suppose — pas de soulignement, et une boîte flex pour centrer le glyphe. */
+.guide-head-cta {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.guide-head-cta > * {
+  position: relative;
+  z-index: 1;
+}
+.guide-title {
+  font-size: var(--text-xl);
+  color: var(--text-strong);
+  line-height: 1.15;
+}
+
+/* ── The two panes ─────────────────────────────────────────────────────────────── */
+.guide-layout {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.guide-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 10px 16px 16px;
+  border-right: 1px solid var(--border-subtle);
+  flex: 0 0 220px;
+  overflow-y: auto;
+}
+.guide-nav-item {
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: 1.35;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.guide-nav-item:hover {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+}
+.guide-nav-item.on {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.guide-body {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  padding: 20px 26px 16px;
+}
+
+.guide-chapter-title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+.guide-lead {
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.guide-points {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  /* The app ships no preflight, so a bare <ul> still wears the browser's disc — which
+     doubled up with the brand dot below. */
+  list-style: none;
+  padding: 0;
+}
+.guide-points li {
+  position: relative;
+  padding-left: 18px;
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.guide-points li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+.guide-terms {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.guide-term dt {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 2px;
+}
+.guide-term dd {
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.guide-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 26px 20px;
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-card);
+  flex-shrink: 0;
+}
+
+/* L'onglet « Nouveautés » : l'historique publié, lu et rien d'autre (les boutons
+   d'installation vivent dans Réglages → Versions). Chaque note est une entrée de
+   chronologie — version + date en tête, titre, puis les puces, qui empruntent la mise en
+   forme des notes de version (`styles/versions/history.css`, `.ver-rel*`) : une note se
+   lit pareil dans les deux écrans, par construction. */
+.rn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 4px;
+}
+.rn-item {
+  padding-left: 14px;
+  border-left: 2px solid var(--border-default);
+}
+.rn-item:first-child {
+  border-left-color: var(--brand);
+}
+.rn-item-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.rn-version {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  color: var(--text-strong);
+}
+.rn-date {
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+.rn-title {
+  margin: 2px 0 6px;
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.rn-loading {
+  display: flex;
+  justify-content: center;
+  padding: 28px 0;
+}
+
+/* Narrow (the mobile Réglages entry): the menu becomes a horizontal, scrollable chip
+   row above the content — a 220px column would leave no room to read. */
+@media (max-width: 640px) {
+  .guide-layout {
+    flex-direction: column;
+  }
+  .guide-nav {
+    flex: 0 0 auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px 16px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .guide-nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  /* Le titre et l'appel ne tiennent pas côte à côte : l'appel passe à la ligne, pleine
+     largeur, plutôt que d'écraser « Prendre en main <marque> » en deux syllabes. */
+  .guide-head {
+    flex-wrap: wrap;
+  }
+  .guide-head-cta {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+}

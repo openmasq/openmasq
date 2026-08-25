@@ -1,0 +1,59 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    // ⚠️ TYPECHECK reads the workspace packages' SOURCE, never their `dist/`.
+    // The apps still BUILD from dist (electron-vite bundles the built output), but a
+    // typecheck against dist reports the state of the last `pnpm build`, not the code
+    // in front of you: a cross-package edit shows phantom errors until you rebuild by
+    // hand, and — worse — a signature you just changed still typechecks green. Mirrors
+    // `scripts/vitest.workspaceAlias.ts`, which does the same for the test runner, and
+    // for the same reason. A new subpath in a package's `exports` belongs in BOTH.
+    "paths": {
+      "@renderer/*": ["src/renderer/src/*"],
+      "@openmasq/redact": ["../../packages/redact/src/index.ts"],
+      "@openmasq/redact/remote": ["../../packages/redact/src/remote/remote.ts"],
+      "@openmasq/redact/ner": ["../../packages/redact/src/local/ner.ts"],
+      "@openmasq/redact/documents": ["../../packages/redact/src/documents/documents.ts"],
+      "@openmasq/redact/documents.browser": ["../../packages/redact/src/documents/browser.ts"],
+      "@openmasq/redact/inplace": ["../../packages/redact/src/documents/inplace.ts"],
+      "@openmasq/redact/pdf-redact": ["../../packages/redact/src/viewer/pdfRedact.ts"],
+      "@openmasq/redact/image-redact": ["../../packages/redact/src/viewer/imageRedact.ts"],
+      "@openmasq/llm": ["../../packages/llm/src/index.ts"],
+      "@openmasq/llm/wire": ["../../packages/llm/src/wire.ts"],
+      "@openmasq/llm/pricing": ["../../packages/llm/src/pricing.ts"],
+      "@openmasq/catalog": ["../../packages/catalog/src/index.ts"],
+      "@openmasq/catalog/mcp": ["../../packages/catalog/src/mcp/index.ts"],
+      "@openmasq/catalog/models": ["../../packages/catalog/src/models/index.ts"],
+      "@openmasq/catalog/redaction": ["../../packages/catalog/src/redaction/index.ts"],
+      "@openmasq/mcp": ["../../packages/mcp/src/index.ts"],
+      "@openmasq/mcp/transport": ["../../packages/mcp/src/transport/index.ts"],
+      "@openmasq/ui": ["../../packages/ui/src/index.ts"],
+      "@openmasq/sync": ["../../packages/sync/src/index.ts"],
+      "@openmasq/credits": ["../../packages/credits/src/index.ts"],
+      "@openmasq/analytics": ["../../packages/analytics/src/index.ts"],
+      "@openmasq/branding": ["../../packages/branding/src/index.ts"],
+      "@openmasq/schema": ["../../packages/schema/src/index.ts"],
+      "@openmasq/connectors": ["../../packages/connectors/src/index.ts"],
+      "@openmasq/emails": ["../../packages/emails/index.ts"]
+    }
+  },
+  "include": [
+    "src/main/**/*",
+    "src/preload/**/*",
+    "src/renderer/**/*",
+    "electron.vite.config.ts"
+  ]
+}

@@ -1,0 +1,115 @@
+/* ── Document viewer: .docx ───────────────────────────────────────────────────
+   The chrome around a FAITHFUL render. The document's own typography — font,
+   size, weight, colour, alignment, spacing — arrives as inline styles from
+   `docxLayout.ts`, read out of the file itself. So this file must supply a
+   readable FLOOR and nothing more: every property it sets is one the document
+   did not state.
+
+   That is why no `font-family`/`font-size`/`color` is set on the paragraphs here.
+   Dressing this surface in the app's design tokens (Space Grotesk, 68ch,
+   --text-strong) would repaint the document in the app's voice and quietly undo
+   the fidelity — parsing the styling out of the file is pointless if the
+   stylesheet then overrides it.
+
+   The `.fv-md` family (rendered markdown) has no typography of its own to
+   preserve, so it DOES want that app-token treatment and keeps its rules in
+   `styles.css`. Two surfaces, opposite needs — do not re-merge them. */
+
+.fv-docx {
+  margin: 0 auto;
+  padding: 32px 36px;
+  /* A PAGE, not an app surface: paper white with black ink, in BOTH themes — the
+     same call `.pdfv-page` makes one file over (`background: #fff`, hardcoded). A
+     document that states no colour is black on white in Word, so tokenising this to
+     --surface-card/--text-strong would print the app's forest ink onto the user's
+     contract and dark-mode a page that has no dark mode. The document decides; the
+     theme styles the chrome AROUND it. */
+  background: #fff;
+  color: #000;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  /* Floors only — an inline style from the document wins over each of these. A
+     GENERIC serif, not --font-serif: the app's Newsreader is as much the app's voice
+     as its ink would be. These apply only to a file that states no font at all. */
+  font-family: serif;
+  font-size: 11pt;
+  line-height: 1.5;
+  /* The page body width is set inline from the file's own sectPr; this caps it to
+     the panel on a narrow window so a wide page scrolls the container, not the app. */
+  max-width: 100%;
+}
+
+/* Tabs and line breaks are real characters in the parsed runs (`<w:tab/>`,
+   `<w:br/>`). Without pre-wrap the browser collapses them and the document loses
+   its columns and its deliberate blank lines. `break-word` keeps a long unbroken
+   value (an IBAN, a URL) from pushing the page wider than the panel. */
+.fv-docx-p,
+.fv-docx-h,
+.fv-docx-list li {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+/* Margins are a floor: a paragraph that states its own spacing overrides them
+   inline. Word's default is no margin at all, so these only pad a file that says
+   nothing. */
+.fv-docx-p {
+  margin: 0 0 0.35em;
+}
+
+.fv-docx-h {
+  /* No font-family/size/weight: a heading's are read from its style chain. Only
+     the rhythm around it is ours. */
+  margin: 1em 0 0.35em;
+  line-height: 1.25;
+}
+
+.fv-docx-list {
+  margin: 0.4em 0;
+  padding-left: 1.6em;
+}
+.fv-docx-list li {
+  margin: 0.15em 0;
+}
+/* The parser splits ordered from unordered per run of items, so the marker can be
+   stated here rather than guessed per item. */
+ul.fv-docx-list {
+  list-style: disc;
+}
+ol.fv-docx-list {
+  list-style: decimal;
+}
+
+.fv-docx-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+.fv-docx-table {
+  border-collapse: collapse;
+  margin: 0.7em 0;
+  /* Not width:100% — a docx table has its own width; stretching every table to the
+     panel is the app inventing a layout the document never asked for. */
+  max-width: 100%;
+}
+.fv-docx-td {
+  /* On the page, so a neutral rule rather than a theme token — a --border-subtle
+     tuned for a dark app surface is invisible on white. */
+  border: 1px solid #c8c8c8;
+  padding: 5px 9px;
+  vertical-align: top;
+}
+/* A cell's paragraphs sit flush: the table already provides the padding. */
+.fv-docx-td > .fv-docx-p:first-child {
+  margin-top: 0;
+}
+.fv-docx-td > .fv-docx-p:last-child {
+  margin-bottom: 0;
+}
+
+/* Selection must read as a redaction gesture, not as a text-editor selection:
+   this view is where the user picks a value to redact. */
+.fv-docx ::selection {
+  background: var(--hl-coral, rgba(255, 217, 204, 0.9));
+}

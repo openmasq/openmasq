@@ -1,0 +1,11 @@
+customer_id,full_name,email,phone,date_of_birth,street,city,postal_code,country,iban,credit_card,ssn,ip_address,api_key
+C-1001,Amélie Brivet,amelie.brivet@example.com,+33 6 12 34 56 78,1989-04-12,14 rue de Rivoli,Paris,75004,France,FR76 3000 6000 0112 3456 7890 189,4716 6337 1042 9833,,203.0.113.88,
+C-1002,Marcus Foy,marcus.foy@acme.io,+1 (415) 555-0142,1975-11-03,1200 Market Street,San Francisco,94103,USA,,5500 0055 5555 5559,123-45-6789,10.0.0.42,
+C-1003,Priya Naik,priya.naik@globex.co.uk,+44 20 7946 0958,1992-07-21,221B Baker Street,London,NW1 6XE,UK,GB29 NWBK 6016 1331 9268 19,,,192.168.1.27,
+C-1004,Hiroshi Nomura,h.nomura@nippon-mail.jp,+81 3-1234-5678,1968-01-30,2-7-1 Marunouchi,Tokyo,100-0005,Japan,,3782 822463 10005,,203.0.113.7,
+C-1005,Sofia Ferretti,sofia.romano@ferretti-srl.it,+39 06 6988 1234,1984-09-18,Via del Corso 12,Roma,00186,Italy,IT60 X054 2811 1010 0000 0123 456,4716 1234 5678 9012,,198.51.100.14,
+C-1006,Daniel Nwosu,daniel.nwosu@example.org,+234 803 123 4567,1990-12-05,15 Awolowo Road,Lagos,101233,Nigeria,,,,198.51.100.71,sk-live-DEADBEEF1234567890ABCD
+C-1007,Elena Sokolova,elena.sokolova@mail.ru,+7 495 123-45-67,1979-03-27,Tverskaya St 7,Moscow,125009,Russia,,6011 0009 9013 9424,,203.0.113.154,
+C-1008,Carlos Fuentes,carlos.fuentes@correo.mx,+52 55 1234 5678,1995-06-14,Av. Reforma 250,Ciudad de México,06600,Mexico,,4024 0071 5376 1234,,192.0.2.176,AKIA1234567890ABCD12
+C-1009,Anna Zielinski,anna.zielinski@poczta.pl,+48 22 123 45 67,1987-02-11,ul. Marszałkowska 1,Warszawa,00-624,Poland,PL61 1090 1014 0000 0712 1981 2874,,,192.0.2.91,
+C-1010,Liam O'Meara,liam.omeara@example.ie,+353 1 234 5678,1971-08-08,5 Grafton Street,Dublin,D02 XY00,Ireland,IE29 AIBK 9311 5212 3456 78,5105 1051 0510 5100,,198.51.100.204,ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789

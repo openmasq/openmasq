@@ -1,0 +1,12 @@
+/* ================================================== Partage d'organisation ==
+   The sharing families (design source: ui_kits/chat-app): scope badge + shared
+   sections + per-item « Partager », the promote dialog, the requests bell.
+   Barrel-of-partials (300-LOC split, same pattern as `vault.css`); @import
+   rules MUST lead the file — Lightning CSS silently DROPS one placed below any
+   other rule. Each partial owns a uniquely-prefixed family defined nowhere
+   else (`.om-scope*`/`.om-org-section*`/`.om-*-share` · `.om-promote-*` ·
+   `.om-shinbox-*`/`.om-org-status`). */
+
+@import "./orgShares/badge.css";
+@import "./orgShares/promote.css";
+@import "./orgShares/inbox.css";

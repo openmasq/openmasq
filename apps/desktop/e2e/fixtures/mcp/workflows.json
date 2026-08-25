@@ -1,0 +1,713 @@
+{
+  "//": "Fixture MCP servers for workflows-openrouter.e2e.ts. REALISM CONTRACT: tool names, arg schemas and result FORMATS mirror the real connectors — gmail/google-calendar/google-drive are transcribed from packages/connectors/src/google/ (gmailRead/gmailSend/calendar/drive .ts — exact names, required args, and the exact result line formats incl. empty-state strings); linear/stripe/attio/fireflies/asana mirror the vendors' hosted MCP servers as publicly documented (mcp.linear.app list_issues; mcp.stripe.com list_payment_intents; mcp.attio.com kebab-case search-records/create-note; Fireflies fireflies_get_transcripts/_details; Asana asana_-prefixed tools). Results carry DISTINCTIVE fake-people PII on purpose: the spec asserts these values are re-redacted before the model sees them yet restored in the answer. Tools WITHOUT readOnlyHint are writes — the main write-confirmation window must fire for them.",
+  "servers": [
+    {
+      "id": "gmail",
+      "tools": [
+        {
+          "name": "list_recent",
+          "description": "Lister les emails LES PLUS RÉCENTS de la boîte de réception (INBOX). C'est l'outil à appeler pour « quels sont mes derniers emails ? » — il ne prend AUCUN paramètre obligatoire (juste `limit`, optionnel). Renvoie, par message, l'expéditeur, l'objet et la date (pas le corps).",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Nombre d'emails (défaut 10, max 25)."
+              }
+            }
+          },
+          "result": "Camille Vernay <camille.vernay@exemple-corp.fr> — « Validation budget Q3 » (Wed, 22 Jul 2026 09:14:02 +0200)\nJean-Pierre Bertholet <jp.bertholet@bertholet-associes.fr> — « Contrat de prestation — clause de résiliation mise à jour » (Tue, 21 Jul 2026 17:41:20 +0200)\nno-reply@notif.exemple.fr — « Votre facture INV-2093 est disponible » (Tue, 21 Jul 2026 08:02:11 +0200)"
+        },
+        {
+          "name": "search_messages",
+          "description": "Rechercher dans la messagerie Gmail de l'utilisateur avec une requête au format recherche Gmail (ex. 'from:alice', 'is:unread', 'subject:facture'). Renvoie, par message, l'expéditeur, l'objet et la date. Ne lit PAS le corps des messages.",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Requête au format recherche Gmail."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Nombre de résultats (défaut 10, max 25)."
+              }
+            },
+            "required": [
+              "query"
+            ]
+          },
+          "result": "Camille Vernay <camille.vernay@exemple-corp.fr> — « Validation budget Q3 » (Wed, 22 Jul 2026 09:14:02 +0200)"
+        },
+        {
+          "name": "create_draft",
+          "description": "Préparer un BROUILLON d'email dans le compte Gmail de l'utilisateur, SANS l'envoyer. C'est l'outil à appeler quand l'utilisateur dit « prépare », « rédige un brouillon » ou « ne l'envoie pas tout de suite ».",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "to": {
+                "type": "string",
+                "description": "Destinataire(s), adresses séparées par des virgules."
+              },
+              "subject": {
+                "type": "string",
+                "description": "Objet de l'email."
+              },
+              "body": {
+                "type": "string",
+                "description": "Corps du brouillon (texte brut)."
+              }
+            },
+            "required": [
+              "to",
+              "subject",
+              "body"
+            ]
+          },
+          "result": "Brouillon enregistré dans Gmail (non envoyé)."
+        },
+        {
+          "name": "send_email",
+          "description": "Envoyer un email depuis le compte Gmail de l'utilisateur. `to` accepte une ou plusieurs adresses séparées par des virgules.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "to": {
+                "type": "string",
+                "description": "Destinataire(s), adresses séparées par des virgules."
+              },
+              "subject": {
+                "type": "string",
+                "description": "Objet de l'email."
+              },
+              "body": {
+                "type": "string",
+                "description": "Corps de l'email (texte brut)."
+              }
+            },
+            "required": [
+              "to",
+              "subject",
+              "body"
+            ]
+          },
+          "result": "Email envoyé."
+        }
+      ]
+    },
+    {
+      "id": "google-calendar",
+      "tools": [
+        {
+          "name": "list_events",
+          "description": "List upcoming events on the user's primary Google Calendar, soonest first.",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 25,
+                "description": "How many events (default 10)."
+              }
+            }
+          },
+          "result": "jeu. 24 juil. 10:30 — Comité produit Horizon (avec camille.vernay@exemple-corp.fr, salle B)\nven. 25 juil. 15:00 — Point mensuel Bertholet & Associés (visio)"
+        },
+        {
+          "name": "create_event",
+          "description": "Create an event on the user's primary Google Calendar. `start`/`end` are RFC3339 date-times (e.g. 2026-07-30T14:00:00+02:00).",
+          "inputSchema": {
+            "type": "object",
+            "required": [
+              "summary",
+              "start",
+              "end"
+            ],
+            "properties": {
+              "summary": {
+                "type": "string",
+                "description": "Event title."
+              },
+              "start": {
+                "type": "string",
+                "description": "Start date-time (RFC3339)."
+              },
+              "end": {
+                "type": "string",
+                "description": "End date-time (RFC3339)."
+              },
+              "description": {
+                "type": "string",
+                "description": "Optional details."
+              },
+              "attendees": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional attendee emails."
+              }
+            }
+          },
+          "result": "Événement créé : Suivi projet"
+        }
+      ]
+    },
+    {
+      "id": "google-drive",
+      "tools": [
+        {
+          "name": "search_files",
+          "description": "Rechercher des fichiers dans le Drive de l'utilisateur par nom ou contenu.",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Termes de recherche."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Nombre de résultats (défaut 15, max 40)."
+              }
+            },
+            "required": [
+              "query"
+            ]
+          },
+          "result": "Contrat Exemple-Corp 2026 — application/pdf (2026-07-21) · id:doc-77aa"
+        },
+        {
+          "name": "read_document",
+          "description": "Lire le contenu texte d'un document Drive (Docs/PDF/texte) par son id.",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "fileId": {
+                "type": "string",
+                "description": "Id du fichier (voir search_files)."
+              }
+            },
+            "required": [
+              "fileId"
+            ]
+          },
+          "result": "# Contrat Exemple-Corp 2026\n\nContrat de prestation entre Acme SAS et Exemple-Corp. Durée : 24 mois. Montant : 48 000 € HT. Clause de résiliation : préavis de 60 jours. Contact commercial : camille.vernay@exemple-corp.fr."
+        }
+      ]
+    },
+    {
+      "id": "fireflies",
+      "tools": [
+        {
+          "name": "fireflies_get_transcripts",
+          "description": "Lister les transcriptions de réunions récentes (titre, date, durée, id).",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "number",
+                "description": "Nombre de transcriptions (défaut 10)."
+              },
+              "from_date": {
+                "type": "string",
+                "description": "Date ISO de début (optionnel)."
+              },
+              "to_date": {
+                "type": "string",
+                "description": "Date ISO de fin (optionnel)."
+              }
+            }
+          },
+          "result": "1. « Comité produit Horizon » — 23/07/2026, 42 min (id: tr-981)\n2. « Point mensuel Bertholet & Associés » — 18/07/2026, 31 min (id: tr-955)"
+        },
+        {
+          "name": "fireflies_get_transcript_details",
+          "description": "Résumé, décisions et actions d'une transcription par son id.",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "transcript_id": {
+                "type": "string",
+                "description": "Id de la transcription."
+              }
+            },
+            "required": [
+              "transcript_id"
+            ]
+          },
+          "result": "« Comité produit Horizon » (23/07/2026, 42 min). Résumé : lancement du pilote validé pour septembre. Actions : 1) Jean-Pierre Bertholet envoie le devis révisé ; 2) préparer la démo client pour jeudi."
+        }
+      ]
+    },
+    {
+      "id": "attio",
+      "tools": [
+        {
+          "name": "search-records",
+          "description": "Rechercher des enregistrements (personnes, sociétés, deals) dans le workspace Attio.",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "Nom, email ou société recherchés."
+              },
+              "object": {
+                "type": "string",
+                "description": "Type d'objet (people, companies, deals…) — optionnel."
+              }
+            },
+            "required": [
+              "query"
+            ]
+          },
+          "result": "1 personne : Jean-Pierre Bertholet — société Bertholet & Associés — jp.bertholet@bertholet-associes.fr — +33 6 12 34 56 78 — deal « Prestation 2026 » au stade Proposition envoyée (dernier échange il y a 5 jours). record_id: rec_5f2a"
+        },
+        {
+          "name": "create-note",
+          "description": "Ajouter une note en texte libre sur un enregistrement Attio.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "parent_object": {
+                "type": "string",
+                "description": "Type de l'enregistrement (people, companies…)."
+              },
+              "parent_record_id": {
+                "type": "string",
+                "description": "Id de l'enregistrement (voir search-records)."
+              },
+              "title": {
+                "type": "string",
+                "description": "Titre de la note."
+              },
+              "content": {
+                "type": "string",
+                "description": "Contenu de la note."
+              }
+            },
+            "required": [
+              "parent_object",
+              "parent_record_id",
+              "content"
+            ]
+          },
+          "result": "Note créée sur l'enregistrement."
+        }
+      ]
+    },
+    {
+      "id": "stripe",
+      "tools": [
+        {
+          "name": "list_payment_intents",
+          "description": "Lister les paiements (PaymentIntents) du compte Stripe, les plus récents d'abord.",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "customer": {
+                "type": "string",
+                "description": "Id client pour filtrer (optionnel)."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Nombre de résultats (défaut 10)."
+              }
+            }
+          },
+          "result": "[\n  {\"id\": \"pi_3Rf8Kx\", \"amount\": 420000, \"currency\": \"eur\", \"status\": \"succeeded\", \"description\": \"Facture INV-2093 — Bertholet & Associés\", \"created\": \"2026-07-19\"},\n  {\"id\": \"pi_3Re2Ma\", \"amount\": 240000, \"currency\": \"eur\", \"status\": \"succeeded\", \"description\": \"Abonnement — Exemple-Corp\", \"created\": \"2026-07-12\"}\n]\nTotal du mois : 14 paiements réussis, 9 870,00 €."
+        },
+        {
+          "name": "list_charges",
+          "result": "Paiements récents : 412,00 € (Atelier Torbel, réussi), 1 200,00 € (Studio Velin, réussi), 89,00 € (Cabinet Vidalou, ÉCHOUÉ — carte expirée, contact: p.vidalou@cabinet-vidalou.fr)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "linear",
+      "tools": [
+        {
+          "name": "list_issues",
+          "description": "Lister les issues Linear (filtres équipe / assigné / état / cycle).",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "team": {
+                "type": "string",
+                "description": "Clé ou nom d'équipe (optionnel)."
+              },
+              "state": {
+                "type": "string",
+                "description": "Filtre d'état (optionnel)."
+              },
+              "limit": {
+                "type": "number",
+                "description": "Nombre de résultats (défaut 25)."
+              }
+            }
+          },
+          "result": "Cycle 14 — 8 issues :\n- KAV-228 Export CSV [Done]\n- KAV-230 Refonte onboarding [Done]\n- KAV-231 Export PDF [In Progress] @camille\n- KAV-235 Onboarding mobile [In Progress]\n- KAV-229 Intégration API partenaire [Blocked] — en attente du partenaire"
+        },
+        {
+          "name": "save_issue",
+          "result": "Ticket créé : KAV-318 — https://linear.app/atelier/issue/KAV-318",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "teamId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          }
+        },
+        {
+          "name": "list_teams",
+          "result": "Équipes : Produit (id team_prd), Ingénierie (id team_eng)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "asana",
+      "tools": [
+        {
+          "name": "asana_create_task",
+          "description": "Créer une tâche Asana. `name` est le titre ; `due_on` une date AAAA-MM-JJ.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Titre de la tâche."
+              },
+              "due_on": {
+                "type": "string",
+                "description": "Échéance (AAAA-MM-JJ), optionnel."
+              },
+              "notes": {
+                "type": "string",
+                "description": "Description, optionnel."
+              }
+            },
+            "required": [
+              "name"
+            ]
+          },
+          "result": "Tâche créée (gid: 120983447) dans « Mes tâches »."
+        }
+      ]
+    },
+    {
+      "id": "sentry",
+      "tools": [
+        {
+          "name": "find_organizations",
+          "result": "Organisations : atelier (slug: atelier)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "find_projects",
+          "result": "Projets : acme-desktop (id 4508), acme-backend (id 4509)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "search_issues",
+          "result": "3 problèmes ouverts :\n1. ACME-DESKTOP-7A « TypeError: cannot read property 'vault' of undefined » — 412 événements, 38 utilisateurs, premier vu il y a 3 j\n2. ACME-BACKEND-2C « TimeoutError: upstream gateway 504 » — 96 événements, 12 utilisateurs\n3. ACME-DESKTOP-9F « RangeError: invalid array length » — 14 événements, 3 utilisateurs",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "search_events",
+          "result": "Derniers événements de ACME-DESKTOP-7A : 412 occurrences, pic le 24/07 à 14h, navigateur Chrome 141, utilisateur camille.vernay@exemple-corp.fr",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "posthog",
+      "tools": [
+        {
+          "name": "exec",
+          "result": "Résultats (7 derniers jours) :\nutilisateurs actifs = 1 284 (+12 %)\nconversations créées = 5 921\nredactions = 18 402\nrétention J7 = 41 %",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "insights-get-all",
+          "result": "Insights : « Activation », « Rétention hebdo », « Usage connecteurs »",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "slack",
+      "tools": [
+        {
+          "name": "slack_search_channels",
+          "result": "Canaux : #general, #produit, #alertes, #dev",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "slack_send_message",
+          "result": "Message publié sur #produit (ts 1784980001.001)",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "channel": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel",
+              "text"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "tavily",
+      "tools": [
+        {
+          "name": "tavily_search",
+          "result": "3 résultats :\n1. « Le règlement européen sur l'IA entre en application » — commission.europa.eu — les obligations pour les systèmes à haut risque démarrent en août.\n2. « Ce que le AI Act change pour les éditeurs SaaS » — lemonde.fr\n3. « Guide de conformité AI Act » — cnil.fr",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "google-docs",
+      "tools": [
+        {
+          "name": "create_document",
+          "result": "Document créé : « {title} » — https://docs.google.com/document/d/1aBcTestE2e/edit",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "body": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          }
+        },
+        {
+          "name": "search_documents",
+          "result": "Documents : « CR réunion produit 18/07 », « Roadmap T3 »",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "google-sheets",
+      "tools": [
+        {
+          "name": "create_spreadsheet",
+          "result": "Feuille créée : https://docs.google.com/spreadsheets/d/1SheetTestE2e/edit",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          }
+        },
+        {
+          "name": "append_values",
+          "result": "12 lignes ajoutées à la feuille."
+        }
+      ]
+    },
+    {
+      "id": "neon",
+      "tools": [
+        {
+          "name": "list_projects",
+          "result": "Projets Neon : acme-prod (id np-1), acme-staging (id np-2)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "run_sql",
+          "result": "12 lignes :\nid | email | plan | créé\n1 | camille.vernay@exemple-corp.fr | solo | 2026-03-02\n2 | jp.bertholet@bertholet-associes.fr | team | 2026-04-11\n3 | l.morvan@exemple-corp.fr | free | 2026-05-20\n… (9 autres)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "github",
+      "tools": [
+        {
+          "name": "list_repos",
+          "result": "Dépôts : acme/app, acme/landing",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "list_pull_requests",
+          "result": "PR ouvertes : #412 « feat(evals): harnais agentique » (2 j), #409 « fix(sync): édition LWW » (5 j)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "notion",
+      "tools": [
+        {
+          "name": "search",
+          "result": "Pages : « Roadmap produit », « Notes clients »",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "create-page",
+          "result": "Page créée : https://notion.so/testE2ePage",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "content": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "supabase",
+      "tools": [
+        {
+          "name": "list_projects",
+          "result": "Projets Supabase : acme (ref: abcd1234)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "list_tables",
+          "result": "Tables : users, subscriptions, usage_events",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "execute_sql",
+          "result": "8 lignes :\nemail | plan | expire_le\ncamille.vernay@exemple-corp.fr | team | 2026-06-30 (expiré)\njp.bertholet@bertholet-associes.fr | solo | 2026-07-01 (expiré)\nl.morvan@exemple-corp.fr | solo | 2026-09-12\n… (5 autres)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "airtable",
+      "tools": [
+        {
+          "name": "list_bases",
+          "result": "Bases : CRM Prospects (app123)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "list_records",
+          "result": "Prospects : Atelier Torbel (relance prévue ven., contact camille.vernay@exemple-corp.fr) · Studio Velin (devis envoyé) · Cabinet Vidalou (sans réponse depuis 3 semaines)",
+          "annotations": {
+            "readOnlyHint": true
+          }
+        },
+        {
+          "name": "create_record",
+          "result": "Enregistrement créé (rec456)"
+        }
+      ]
+    }
+  ]
+}

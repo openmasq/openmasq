@@ -1,0 +1,5 @@
+# Vendored third-party packages are committed IN FULL — their built `dist/` IS the
+# delivered code (unlike our own workspaces, which build it). This re-includes it
+# against the repo-root `.gitignore`'s global `dist` rule.
+!dist/
+!dist/**

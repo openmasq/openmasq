@@ -1,0 +1,83 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "scripts/*.mjs",
+        "scripts/*.ts"
+      ],
+      "project": [
+        "scripts/**/*.{ts,mjs}"
+      ],
+      "ignoreBinaries": [
+        "sandbox-exec"
+      ]
+    },
+    "packages/ui": {
+      "entry": [
+        "src/index.ts",
+        "src/testKit.tsx",
+        "src/evals/**/*.ts"
+      ],
+      "ignoreUnresolved": [
+        "(/usr/bin/)?sandbox-exec"
+      ]
+    },
+    "apps/desktop": {
+      "entry": [
+        "e2e/**/*.ts",
+        "scripts/**/*.ts",
+        "scripts/*.cjs"
+      ],
+      "ignoreDependencies": [
+        "ort-native",
+        "ort-wasm",
+        "builder-util"
+      ],
+      "ignoreBinaries": [
+        "tsx"
+      ]
+    },
+    "apps/updates": {
+      "entry": [
+        "scripts/*.ts"
+      ],
+      "ignoreDependencies": [
+        "cloudflare"
+      ]
+    },
+    "apps/backend": {
+      "entry": [
+        "api/index.ts",
+        "src/server.ts",
+        "src/config/app/migrations/*.ts",
+        "src/config/app/seeds/*.ts",
+        "src/config/app/reset-db.ts",
+        "src/config/app/bootstrap-dev-user.ts",
+        "tests/e2e/**/*.ts",
+        "**/unitTest/**/*.ts"
+      ]
+    },
+    "packages/ort": {
+      "entry": [
+        "src/index.cjs",
+        "src/index.mjs"
+      ],
+      "project": [
+        "src/**"
+      ]
+    }
+  },
+  "ignore": [
+    "**/dist/**",
+    "vendor/**",
+    "packages/tesseract2/**"
+  ],
+  "ignoreDependencies": [
+    "@types/.*",
+    "onnxruntime-node"
+  ],
+  "ignoreUnresolved": [
+    "(/usr/bin/)?sandbox-exec"
+  ]
+}

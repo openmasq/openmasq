@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      img-src is scoped to the image/CDN hosts of the providers we relay or may
+      relay (so reply images render) rather than all of https: — a reply can't
+      then smuggle a tracking pixel from an arbitrary host.
+        OpenAI/ChatGPT : images.openai.com, *.oaiusercontent.com, *.oaistatic.com
+        Anthropic/Claude: claude.ai, *.anthropic.com
+        Google/Gemini  : *.googleusercontent.com, *.gstatic.com, *.google.com
+        Mistral        : *.mistral.ai
+        DeepSeek       : *.deepseek.com
+
+      connect-src allows the renderer's own fetch/XHR/WebSocket — and it is the
+      renderer-side EXFIL policy: under an XSS, every host here is a place the
+      conversation can be POSTed to. So hosts are pinned EXACTLY, never by tenant
+      wildcard: `*.supabase.co` / `*.posthog.com` would allow an attacker's OWN
+      Supabase project or PostHog org as a drop box. The pinned set: the ONE
+      Supabase project both environments share (auth: magic-link OTP + token
+      refresh, wss for realtime if ever used — `src/environments/index.ts` is the
+      source), PostHog's exact ingestion host (`packages/analytics` calls
+      eu.i.posthog.com and nothing else), and *.%BRAND_DOMAIN% for every first-party
+      origin (backend, gateway, updates, staging variants) — a wildcard we OWN
+      entirely, unlike a SaaS suffix. The old Scaleway function wildcards are gone:
+      nothing has pointed at *.scw.cloud since the gateway moved to the brand domain.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' %SUPABASE_CSP% https://eu.i.posthog.com https://*.%BRAND_DOMAIN%; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://images.openai.com https://*.oaiusercontent.com https://*.oaistatic.com https://claude.ai https://*.anthropic.com https://*.googleusercontent.com https://*.gstatic.com https://*.google.com https://*.mistral.ai https://*.deepseek.com; script-src 'self' 'sha256-igqYf/dVveStC2w8LNtoGyKkph3y1zS0YxplBM/qlqg='; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>%BRAND_NAME%</title>
+    <style>
+      /* Full-bleed app — no bezel/border; the panel fills the window edge-to-edge.
+         Window base = the SHELL tone (#F6F6F3, --surface-shell), matching the
+         design-system chat-app kit (`#root { background:#F6F6F3 }`). The rail +
+         sidebar are transparent over it; content panels are #FFF and pop. Using
+         --surface-page (#fbfbfa) here made the sidebar read as near-white. */
+      html, body { height: 100%; margin: 0; }
+      body { box-sizing: border-box; height: 100vh; background: var(--surface-shell, #f6f6f3); }
+      #root { height: 100%; background: var(--surface-shell, #f6f6f3); overflow: hidden; }
+
+      /* Instant boot splash — pure HTML/CSS so it paints on the FIRST frame (the
+         module script is deferred), letting Electron's `ready-to-show` fire before
+         the ~MB renderer bundle finishes parsing. Otherwise the window only appears
+         once React's first paint lands, and the user stares at nothing meanwhile.
+         The centred brand mark (font-independent SVG) hands off seamlessly to the
+         in-app AppIntro; main.tsx fades + removes it once the app has painted. */
+      /* Match the in-app AppIntro EXACTLY so the hand-off is seamless (no flash): its
+         ground is `--surface-page` and its mark is `--text-strong`. The fallbacks are the
+         LIGHT-theme values (the vars aren't defined until the bundle's CSS loads); once it
+         does, `data-theme` (set in main.tsx) themes this to match whatever AppIntro shows. */
+      #boot-splash {
+        position: fixed; inset: 0; z-index: 9;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--surface-page, #fbfbfa);
+        color: var(--text-strong, #18230d);
+        transition: opacity .32s ease;
+      }
+      /* Dark grounds at FIRST paint (before the bundle's theme tokens load): the inline
+         head script below has already set `data-theme`, so these hardcoded values theme
+         the boot splash to match AppIntro's dark surfaces + near-white mark. */
+      html[data-theme="dark"] #boot-splash { background: #10130b; color: #f2f5ea; }
+      html[data-theme="blue-dark"] #boot-splash { background: #0e0f13; color: #f1f2f7; }
+      #boot-splash.boot-hide { opacity: 0; pointer-events: none; }
+      #boot-splash svg { width: 72px; height: 72px; animation: boot-pulse 1.4s ease-in-out infinite; }
+      @keyframes boot-pulse { 0%, 100% { opacity: .32; } 50% { opacity: .85; } }
+      @media (prefers-reduced-motion: reduce) {
+        #boot-splash svg { animation: none; opacity: .55; }
+      }
+    </style>
+    <!-- Theme <html> from the persisted setting BEFORE the boot splash paints, so it (and
+         the AppIntro after it) render in the right theme from frame 0 — no light→dark /
+         green→blue flash. Runs synchronously in <head> (NOT deferred like the bundle).
+         ⚠️ CSP-gated by a sha256 hash in the script-src above: if you edit this script,
+         recompute the hash or it is BLOCKED and the flash returns. Mirrors
+         `applyPersistedTheme` (@openmasq/ui `state/theme.ts`) — mêmes clés, même ordre,
+         et la MÊME traduction : l'accent vert n'est plus une option, donc un thème
+         « light »/« dark » enregistré par une version antérieure devient son jumeau
+         indigo ICI AUSSI. Sans ça, la première image serait verte avant que React ne
+         coerce — le flash que ce script existe précisément pour éviter. La clé APPAREIL
+         gagne ; le blob de réglages est le repli d'avant `openmasq.theme`. Chaque clé se
+         tente AUSSI sous l'ancien préfixe (renommage du 24/08/2026) : ce script court
+         AVANT le bundle, donc avant `legacyStorage.ts` qui migre ces clés — sans le
+         repli, la première image d'un parc migré flasherait au mauvais thème. -->
+    <script>try{var t=localStorage.getItem("openmasq.theme")||localStorage.getItem("openmasq.theme")||JSON.parse(localStorage.getItem("openmasq.settings")||localStorage.getItem("openmasq.settings")||"{}").theme;document.documentElement.setAttribute("data-theme",t==="dark"||t==="blue-dark"?"blue-dark":"blue")}catch(e){}</script>
+  </head>
+  <body>
+    <!-- Brand mark inlined so it needs no font/asset and paints instantly — the ring +
+         redaction bar of `BrandMark` (packages/ui), whose geometry `bootSplashMark.test.ts`
+         re-reads from BOTH sources so this copy cannot drift. -->
+    <div id="boot-splash" aria-hidden="true">
+      <svg viewBox="0 0 100 100" fill="currentColor" role="img" aria-label="%BRAND_NAME%">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M50 6C25.7 6 6 25.7 6 50s19.7 44 44 44 44-19.7 44-44S74.3 6 50 6Zm0 17c14.9 0 27 12.1 27 27S64.9 77 50 77 23 64.9 23 50s12.1-27 27-27Z" />
+        <rect x="2" y="41" width="96" height="18" rx="5" />
+      </svg>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="./src/main.tsx"></script>
+  </body>
+</html>

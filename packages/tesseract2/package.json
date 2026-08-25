@@ -1,0 +1,39 @@
+{
+  "name": "tesseract2.js",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OCR multilingue ISOMORPHE (Node.js worker_threads + navigateur/MV3 Web Worker) — réécriture TypeScript sécurisée de tesseract.js avec le WASM tesseract.js-core. Vendored into the monorepo; the desktop uses the Node build, the extension the browser build.",
+  "main": "dist/node/index.js",
+  "types": "dist/node/index.d.ts",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "node": { "types": "./dist/node/index.d.ts", "default": "./dist/node/index.js" },
+      "browser": { "types": "./dist/node/index.d.ts", "default": "./dist/browser/index.js" },
+      "default": { "types": "./dist/node/index.d.ts", "default": "./dist/node/index.js" }
+    },
+    "./node": { "types": "./dist/node/index.d.ts", "default": "./dist/node/index.js" },
+    "./browser": { "types": "./dist/node/index.d.ts", "default": "./dist/browser/index.js" }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.browser.json && node scripts/build-browser.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.browser.json"
+  },
+  "dependencies": {
+    "tesseract.js-core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.5",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3"
+  },
+  "license": "Apache-2.0"
+}

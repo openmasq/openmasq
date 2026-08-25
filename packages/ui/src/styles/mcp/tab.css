@@ -1,0 +1,242 @@
+/* ── Settings → Serveurs MCP: the tab head + the connector card grid ───────
+   The kit's `McpSection`. See ../mcp.css for the family map and the .mcp-tile
+   note. The connector tile itself (`.mcp-ctile*`) lives in ../mcpTile.css —
+   it follows the SHARED McpTile component (components/media/McpTile). */
+
+.mcp-empty {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.mcp-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mcp-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+/* The kit's `McpSection` search is a full-width PILL, not the audit view's short
+   card rectangle: taller (42px), sunken fill, a subtle hairline, fully rounded.
+   Overrides the `.audit-search` box it borrows the flex/icon layout from. */
+.mcp-search {
+  flex: none;
+  width: 100%;
+  height: 42px;
+  gap: 10px;
+  padding: 0 18px;
+  margin-bottom: 18px;
+  background: var(--surface-sunken);
+  border-color: var(--border-subtle);
+  border-radius: var(--radius-pill);
+}
+/* Category section header (grouped by the shared catalog categories). */
+.mcp-cat-eyebrow {
+  margin: 22px 0 10px;
+}
+.mcp-cat-eyebrow:first-of-type {
+  margin-top: 6px;
+}
+.mcp-group {
+  margin-bottom: 6px;
+}
+.mcp-grid {
+  display: grid;
+  /* minmax(0,1fr) (not 1fr) so a card's content can't blow its column wider
+     than the other — both halves stay exactly equal whatever the name length. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* ── The connector CARD (kit: .om-mcp-card) ──────────────────────────────
+   A single clickable button — every action lives in the detail modal. Two
+   stacked rows over a marker bar that sweeps in on hover. */
+/* A ROW: tile · name+desc · meta column · CTA (the kit's connector card). */
+.mcp-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0; /* grid item: allow shrinking to the track → equal columns */
+  padding: 11px 14px;
+  text-align: left;
+  background: var(--surface-card);
+  /* A VISIBLE green-tinted hairline (brand guide) — `--border-subtle` vanishes on the
+     white panel, leaving the rows floating with no card edge. Matches the kit. */
+  border: 1px solid rgba(20, 32, 11, 0.3);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
+}
+/* A CONNECTED connector is lime-tinted — "what am I actually running" must read across
+   the whole grid at a glance, not hide in a badge. */
+.mcp-card.on {
+  background: color-mix(in oklch, var(--hl-lime) 16%, var(--surface-card));
+  border-color: rgba(20, 32, 11, 0.5);
+}
+.mcp-card:hover,
+.mcp-card:focus-visible {
+  border-color: var(--brand);
+  box-shadow: 0 10px 26px -14px rgba(20, 32, 11, 0.5);
+  transform: translateY(-2px);
+  outline: none;
+}
+.mcp-card-body {
+  display: flex; /* a <span> is INLINE — its children would ignore overflow/ellipsis */
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.mcp-card > .mcp-ctile {
+  position: relative;
+}
+.mcp-card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+/* `min-width:0` or a flex item refuses to shrink below its content — a long name would
+   push the tool count out of the card instead of ellipsing itself. */
+.mcp-card-name {
+  min-width: 0;
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mcp-card-desc {
+  display: block; /* ellipsis needs a block box */
+  margin-top: 2px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mcp-card-desc.error {
+  color: var(--coral-700);
+}
+/* Right ACTION column: the CTA, with the auth chip UNDER it — the chip qualifies the
+   click ("Connecter" → how?), so it travels with the action, not with the name. */
+.mcp-card-actions {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+/* Tool count + account count sit INLINE after the name — they qualify the integration.
+   Mono + small so the name still leads the row. */
+.mcp-card-tools,
+.mcp-card-accounts {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+.mcp-card-tools {
+  font-weight: var(--weight-semibold);
+  color: var(--text-body);
+}
+.mcp-card-accounts {
+  color: var(--text-faint);
+}
+.mcp-card-cta {
+  position: relative;
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--brand);
+  transition: color 0.16s;
+}
+.mcp-card-cta.on {
+  color: var(--text-muted);
+}
+.mcp-card:hover .mcp-card-cta,
+.mcp-card:focus-visible .mcp-card-cta {
+  color: var(--brand);
+}
+
+
+/* ── Status chips ────────────────────────────────────────────────────────── */
+.mcp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--forest-500);
+  background: var(--hl-lime-soft);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+/* Org-disallowed connector: locked, non-connectable (mirrors .rrm-tag.lock). */
+.mcp-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand);
+  background: color-mix(in oklch, var(--brand) 12%, var(--surface-card));
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+/* How a connector authenticates (single source: @openmasq/catalog `mcpAuthTag`).
+   The easy ones (intégré / 1-clic / local) stay muted; the ones needing a key or
+   a pre-registered app (apikey / broker) get an amber accent → "setup". */
+.mcp-auth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+.mcp-auth-badge.auth-apikey,
+.mcp-auth-badge.auth-broker {
+  color: var(--hl-amber);
+}
+/* The same tag as a bordered pill in the modal head. */
+.mcp-auth-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mcp-card {
+    transition: none;
+  }
+  .mcp-card:hover,
+  .mcp-card:focus-visible {
+    transform: none;
+  }
+}

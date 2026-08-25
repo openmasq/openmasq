@@ -1,0 +1,206 @@
+/* Part of the login styles — see ../auth.css for the family's contract. */
+
+.login-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+/* "ou" divider between the primary magic-link action and the Google button. */
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0;
+}
+.login-divider::before,
+.login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle, var(--border-default));
+}
+.login-divider-lbl {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+.login-input {
+  height: 48px;
+  padding: 0 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--text-strong);
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.login-input:focus {
+  border-color: var(--border-focus);
+}
+.login-input.code {
+  text-align: center;
+  letter-spacing: 0.5em;
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+}
+.login-btn {
+  height: 48px;
+  font-size: var(--text-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.08s var(--ease-out, ease-out), filter 0.15s ease;
+}
+.login-btn:active:not(:disabled) {
+  transform: scale(0.985);
+}
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+/* Spinner shown inside a button while its action is in flight. */
+.login-spin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  opacity: 0.9;
+  flex-shrink: 0;
+  animation: login-spin 0.6s linear infinite;
+}
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.login-sso {
+  height: 48px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background 0.15s ease, transform 0.08s var(--ease-out, ease-out);
+}
+.login-sso:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.login-sso:active:not(:disabled) {
+  transform: scale(0.985);
+}
+.login-sso:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.login-note {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 2px;
+  line-height: 1.5;
+}
+/* Le rappel des spams — un TON NEUTRE, pas une alerte : ce n'est pas une panne, c'est une
+   indication. D'où le gris de `--text-faint` et l'absence de panneau teinté, qui le
+   rangeraient à côté de `.login-err` / `.login-offline`. Depuis le 18/08 il tient la place
+   du sous-titre à l'étape « envoyé » (il REMPLACE l'accusé d'envoi), d'où la marge qui
+   reprend celle de `.login-sub`. */
+.login-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--text-faint);
+}
+.login-head .login-hint {
+  margin-top: 10px;
+}
+.login-hint-icon {
+  flex: 0 0 auto;
+  /* Aligné sur la PREMIÈRE ligne de texte, pas centré sur le bloc : la phrase passe sur
+     deux lignes dans une carte étroite. */
+  margin-top: 3px;
+}
+.login-code-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+}
+/* Link-first fallback disclosure ("saisir le code") — a discreet, left-aligned
+   secondary action so the emailed link stays the primary path. */
+.login-code-disclose {
+  align-self: flex-start;
+  text-align: left;
+  color: var(--text-faint);
+  font-weight: 500;
+}
+.login-link {
+  background: none;
+  border: none;
+  color: var(--text-link);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  padding: 0;
+}
+.login-err {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--red-600, var(--red-500));
+  background: color-mix(in oklch, var(--red-500) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--red-500) 26%, transparent);
+  border-radius: var(--radius-md, 10px);
+  padding: 9px 12px;
+}
+.login-err-icon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--red-500);
+}
+/* Offline notice on the login card — amber/warning tone (an informative state,
+   not an error): sign-in simply needs the network back. Mirrors `.login-err`. */
+.login-offline {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--amber-500);
+  background: color-mix(in oklch, var(--amber-500) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--amber-500) 26%, transparent);
+  border-radius: var(--radius-md, 10px);
+  padding: 9px 12px;
+}
+.login-offline-icon {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--amber-500);
+}
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.login-field-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-body);
+}

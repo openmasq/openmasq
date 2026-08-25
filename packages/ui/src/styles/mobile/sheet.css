@@ -1,0 +1,178 @@
+/* Mobile — the shared BottomSheet primitive + surfaces re-presented as sheets
+   (part of the mobile family; see ../mobile.css). All scoped under `.app-mobile`
+   (the BottomSheet portals INTO the shell root, so descendants qualify). */
+
+/* ── BottomSheet (components/brand/BottomSheet.tsx — kit `BottomSheet`) ── */
+.app-mobile .bsheet-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 96; /* above the CSS-only popover sheets (94/95) */
+}
+.app-mobile .bsheet-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--ink-neutral) / 42%);
+  opacity: 0;
+  transition: opacity 0.32s ease;
+  will-change: opacity;
+}
+.app-mobile .bsheet-layer.open .bsheet-scrim {
+  opacity: 1;
+}
+.app-mobile .bsheet-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px 24px 0 0;
+  background: var(--surface-card);
+  box-shadow: 0 -12px 40px -12px rgb(var(--ink-neutral) / 35%);
+  padding-bottom: env(safe-area-inset-bottom);
+  transform: translateY(101%);
+  transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+.app-mobile .bsheet-layer.open .bsheet-panel {
+  transform: translateY(0);
+}
+.app-mobile .bsheet-grip-row {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  padding: 10px 0 4px;
+}
+.app-mobile .bsheet-grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-active);
+}
+
+/* ── Modals re-presented as bottom sheets (kit editor sheets) — CSS only, the
+   JS (form state, save/delete, scrim/Escape) is the existing ModalShell logic.
+   The ⌘K palette (`.top`) keeps its top-anchored panel. ── */
+.app-mobile .modal-scrim:not(.top) {
+  align-items: flex-end;
+  padding: 0;
+  overflow: hidden;
+  /* Above the fixed BottomNav (z 80) — the desktop scrim's z 60 sits UNDER it,
+     which left the tab bar floating over every sheet's footer. */
+  z-index: 95;
+}
+.app-mobile .modal-scrim:not(.top) .modal-panel {
+  width: 100%;
+  min-width: 100%;
+  max-width: 100%;
+  max-height: 92dvh;
+  margin: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -12px 40px -12px rgb(var(--ink-neutral) / 35%);
+  animation: mobile-sheet-in 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* ── The redaction-mark menu as a sheet (kit `MobilePill`) — the SAME
+   `.rmark-pop` content, tap-driven, inside the BottomSheet. Specificity
+   (.app-mobile + 2 classes) beats the fixed-popover base rules regardless of
+   import order. ── */
+.app-mobile .rmark-pop.rmark-sheet {
+  position: static;
+  z-index: auto;
+  min-width: 0;
+  max-width: none;
+  padding: 0 12px 18px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  animation: none;
+}
+.app-mobile .rmark-sheet .rmark-pop-value {
+  margin: 2px 8px 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+.app-mobile .rmark-sheet .rmark-pop-eyebrow {
+  font-size: 10px;
+}
+.app-mobile .rmark-sheet .rmark-pop-val {
+  font-size: 16px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.app-mobile .rmark-sheet .rmark-pop-btn {
+  padding: 13px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  white-space: normal;
+}
+
+/* ── Panel documents/artifacts as a sheet (kit `DocViewerSheet`): the shared
+   side-panel CONTENT rendered inside the BottomSheet on mobile. ── */
+.app-mobile .mobile-doc-sheet {
+  display: flex;
+  flex: 1;
+  min-height: 46dvh;
+  flex-direction: column;
+  overflow: hidden;
+}
+.app-mobile .mobile-doc-sheet .modal-inline-panel {
+  flex: 1;
+  min-height: 0;
+  border-left: none;
+}
+
+/* ── THE mobile segmented switch (kit `chat-app-mobile`): a sunken tray whose active
+   segment lifts as a card. ONE family for every mobile use — the Compétences ⇄
+   Workflows nav switch (the bottom bar has one "Compét." slot for both sections, see
+   BottomNav.tsx) AND the Bibliothèque's Fichiers ⇄ Images filter. Don't mint a second
+   segment style: two visual languages for the same control is what makes a phone app
+   read as a ported desktop. ── */
+.app-mobile .mobile-seg {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--surface-sunken);
+}
+.app-mobile .mobile-seg-btn {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+}
+.app-mobile .mobile-seg-btn.on {
+  background: var(--surface-card);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-sm);
+}
+/* The tray carries no gutter of its own — a screen that puts it in its own header
+   (Bibliothèque) already has one. Only the bare nav use, dropped straight into a
+   screen, needs the page margin. */
+.app-mobile .mobile-screen > .mobile-seg {
+  margin: 10px 14px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-mobile .bsheet-scrim,
+  .app-mobile .bsheet-panel {
+    transition: none;
+  }
+  .app-mobile .modal-scrim:not(.top) .modal-panel {
+    animation: none;
+  }
+}

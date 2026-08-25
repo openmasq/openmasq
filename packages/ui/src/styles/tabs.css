@@ -1,0 +1,13 @@
+/* ═══ Onglets unifiés (kit) : right rail, side panel, non-chat tab kinds ═══
+   Barrel — the family outgrew the 300-line cap (rule 1), so it splits by
+   surface: `tabs/rail.css` (the rail's base chrome), `tabs/rail-list.css`
+   (the kit's collapsed/expanded width states, the expanded browser-tab list and
+   the drive indicator), `tabs/rail-tree.css` (the sources + granted-folder tree),
+   `tabs/panel.css` (the side panel + `.conv-tab--*` kinds).
+   Each partial owns its selectors alone. @import rules MUST lead the file —
+   Lightning CSS silently DROPS one placed below any other rule. */
+
+@import "./tabs/rail.css";
+@import "./tabs/rail-list.css";
+@import "./tabs/rail-tree.css";
+@import "./tabs/panel.css";

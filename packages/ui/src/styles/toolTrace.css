@@ -1,0 +1,183 @@
+/* ============================================ Agentic tool-call trace (chat) ==
+   The `ToolTrace` card family, peeled out of `styles.css` whole (rule 1: that file
+   may only shrink). Every selector below is declared ONLY here — nothing else in the
+   app styles a `.mcp-trace*`, `.om-step-in`, `.om-spin` or `.om-mcp-ring` — so the
+   partial's earlier position in the cascade is inert.
+
+   ⚠️ `@keyframes om-spin-kf` travels WITH it and is used by four unrelated spinners
+   still in `styles.css`. That is safe because it is defined exactly once: keyframes
+   are document-global and order-independent, and only a SECOND definition of the same
+   name would change which one wins. Don't add one.
+
+   ⚠️ Settings → Serveurs MCP is a different family (`./mcp.css`, `.mcp-card*` etc.).
+   Same prefix, unrelated surface. */
+
+/* Agentic MCP workflow trace — one card PER connector: a glyph tile + connector
+   name + "N outils · terminé" status, then the ORDERED tool calls each with its
+   result blurb. Reproduces the design-system `WorkflowTrace`; driven by the
+   PERSISTED `Message.toolCalls`, so the succession survives a reload. */
+.mcp-trace {
+  margin-top: 10px;
+  max-width: 92%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+}
+.mcp-trace + .mcp-trace { margin-top: 8px; }
+.mcp-trace-eyebrow { margin-bottom: 8px; }
+.mcp-trace-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 11px;
+}
+.mcp-trace-glyph {
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  /* Hue set inline as `--glyph-hue` (per-connector data) so a theme rule can override
+     the whole background — an inline `background` would always win. */
+  background: var(--glyph-hue);
+  color: #1c2b10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+/* The real brand logo rides alongside the letters but is hidden outside the blue themes. */
+.mcp-trace-glyph-logo { display: none; }
+.mcp-trace-glyph-logo,
+img.mcp-trace-glyph-logo { width: 18px; height: 18px; object-fit: contain; }
+/* Blue + blue-dark: a MONOCHROME connector logo on a NEUTRAL tile with a grey border
+   (the colored initials-on-hue look is kept for the green light/dark themes). */
+[data-theme="blue"] .mcp-trace-glyph,
+[data-theme="blue-dark"] .mcp-trace-glyph {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  color: var(--text-strong);
+}
+[data-theme="blue"] .mcp-trace-glyph.has-logo .mcp-trace-glyph-letters,
+[data-theme="blue-dark"] .mcp-trace-glyph.has-logo .mcp-trace-glyph-letters { display: none; }
+[data-theme="blue"] .mcp-trace-glyph.has-logo .mcp-trace-glyph-logo,
+[data-theme="blue-dark"] .mcp-trace-glyph.has-logo .mcp-trace-glyph-logo { display: inline-flex; }
+/* SVG logo → currentColor (already fill=currentColor); raster favicon → greyscale. */
+[data-theme="blue"] img.mcp-trace-glyph-logo,
+[data-theme="blue-dark"] img.mcp-trace-glyph-logo { filter: grayscale(1); }
+.mcp-trace-head-text { flex: 1; min-width: 0; }
+.mcp-trace-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.mcp-trace-mcp {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 9.5px;
+  color: var(--text-faint);
+  margin-left: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.mcp-trace-status {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.mcp-trace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.mcp-trace-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mcp-trace-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+}
+.mcp-trace-dot.done { background: var(--hl-lime-soft, #edf7cf); color: var(--forest-500, #3c6b1e); }
+.mcp-trace-dot.error { background: var(--hl-amber-soft, #ffeec6); color: var(--ink-on-hl-amber); }
+.mcp-trace-dot.pending { border: 2px solid var(--border-strong, var(--border-default)); }
+.mcp-trace-name {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-strong);
+  flex-shrink: 0;
+}
+.mcp-trace-spacer { flex: 1; }
+.mcp-trace-summary {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+.mcp-trace-summary.err { color: #8a5a06; }
+.mcp-trace-running { font-size: 11.5px; color: var(--text-faint); }
+/* Discreet retry count on a collapsed same-tool loop (e.g. "3 tentatives"). */
+.mcp-trace-retries {
+  margin-left: 8px;
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: var(--text-faint);
+  background: var(--surface-sunken);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+/* The step reveals with a small staggered rise (design-system `om-step-in`). */
+.om-step-in { animation: om-step-in 0.3s var(--ease-out) both; }
+@keyframes om-step-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+/* Running tool → a spinner in place of the status dot; the connector glyph pulses
+   a soft ring while any of its tools is still in flight. */
+.mcp-trace-dot.om-spin {
+  border: 2px solid var(--border-default);
+  border-top-color: var(--forest-500, #3c6b1e);
+}
+/* The step the turn currently STANDS on while nothing is in flight (the model is
+   deciding the next call, or writing its answer). The dot keeps its own outcome —
+   the lime check, the amber "!" — and the motion rides an ::after ring AROUND it, so
+   the row never claims a finished step is still running. Same ink as the in-flight
+   spinner above: the two read as one family. */
+.mcp-trace-dot.is-current { position: relative; }
+.mcp-trace-dot.is-current::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+  border-top-color: var(--forest-500, #3c6b1e);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .om-spin { animation: om-spin-kf 0.7s linear infinite; }
+  .om-mcp-ring { animation: om-ring-kf 1.4s ease-in-out infinite; }
+  /* Slower than the in-flight spinner on purpose: this one says "the turn is alive",
+     not "this call is running" — a matching speed would read as the same claim. */
+  .mcp-trace-dot.is-current::after { animation: om-spin-kf 1.4s linear infinite; }
+}
+@keyframes om-spin-kf { to { transform: rotate(360deg); } }
+@keyframes om-ring-kf {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(24, 40, 12, 0.28); }
+  50%      { box-shadow: 0 0 0 5px rgba(24, 40, 12, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .om-step-in { animation: none; }
+}

@@ -1,0 +1,254 @@
+/* ═══ La CARTE DOCUMENT du fil (```document) : l'en-tête, le corps rendu, l'éditeur
+   en place et le menu de téléchargement — sortie de `styles.css` (règle 1).
+
+   Le bloc `.md-document-edit` porte AUSSI `.md` côté composant : l'éditeur hérite de la
+   typographie du document rendu, donc cliquer dans le texte ne change rien de visible
+   sauf le caret. Ce qui vit ici n'est que ce que l'ÉDITION ajoute (marqueurs de listes
+   plates, caret, bloc vide) — dupliquer la typographie ici la ferait dériver.
+
+   ⚠️ Son `@import` doit rester parmi les @import DE TÊTE de `styles.css` : Lightning CSS
+   droppe silencieusement un @import placé sous le bloc `@theme`. Extraite après
+   vérification qu'aucun de ses 42 sélecteurs n'est redéclaré plus HAUT — c'est ce qui
+   rend sa position dans la cascade indifférente. ═══ */
+/* ── Generated-document card (a ```document fence rendered inline) ──────────────
+   A bordered, padded card in the thread with a download action — reads as a
+   deliverable, not loose prose. The body reuses `.md` (rendered Markdown), clipped
+   behind a fade + a "Voir tout" toggle when tall (driven by `data-clip`). */
+.md-document-card {
+  margin: 4px 0 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-card);
+  padding: 16px 20px 14px;
+}
+.md-document-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  row-gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.md-document-glyph {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--brand);
+}
+.md-document-title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.md-document-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.md-document-dl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm, 10px);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-body);
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+.md-document-dl:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+.md-document-dl:disabled {
+  cursor: default;
+}
+.md-document-dl.is-busy {
+  opacity: 0.6;
+}
+/* The « Télécharger » dropdown: one trigger for the four formats (`DocumentCard/DownloadMenu`).
+   PORTALED to <body> + position:fixed, so the coordinates come inline and this rule owns only
+   the box — the thread is an overflow scroller that clips an in-flow menu. */
+.md-document-dlmenu {
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.14));
+}
+.md-document-dlmenu-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+.md-document-dlmenu-item:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+.md-document-dlmenu-item:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.md-document-dlmenu-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+/* A label that IS a file extension (.md / .txt) wears the mono face, like every other file
+   affordance in the app — that was the only thing the four flat buttons said well. */
+.md-document-dlmenu-label.mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+.md-document-dlmenu-hint {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+.md-document-dl-alt {
+  /* Was left at the button reset's `display: block`, so « Modifier » stacked its pencil ABOVE
+     the word and the row grew to 45px. Same inline-flex pairing as `.md-document-dl`. */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm, 10px);
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.md-document-dl-alt:hover {
+  color: var(--text-body);
+  background: var(--surface-sunken);
+}
+.md-document-body[data-clip="1"] {
+  max-height: 420px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 3.2em), transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 3.2em), transparent 100%);
+}
+/* Click-to-edit affordance: an editable body invites the caret like a document, and a
+   hover paints the same recessed ground the editor opens on — the card whispers
+   « c'est modifiable » before any button is found. Interactive children (links, marks,
+   toggles) keep their own cursor and swallow the click in the handler. */
+.md-document-body[data-editable] {
+  cursor: text;
+  border-radius: var(--radius-sm, 10px);
+  transition: background var(--dur-fast);
+}
+.md-document-body[data-editable]:hover {
+  background: var(--surface-sunken);
+}
+/* The body's inner Markdown drops its own last-child margin so the card padding wins. */
+.md-document-body .md > :last-child {
+  margin-bottom: 0;
+}
+.md-document-toggle {
+  margin-top: 10px;
+  padding: 4px 0;
+  background: none;
+  border: none;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--brand);
+  cursor: pointer;
+}
+.md-document-toggle:hover {
+  text-decoration: underline;
+}
+/* The in-card document EDITOR. It carries `.md` too, so its typography IS the rendered
+   document's — that is the whole point: editing a letter must not turn it into source in
+   a mono box. Only the editor's own affordances live here. */
+.md-document-edit {
+  min-height: 120px;
+  padding: 2px;
+  border-radius: var(--radius-sm, 10px);
+  outline: none;
+  caret-color: var(--brand);
+}
+.md-document-edit:focus-visible {
+  outline: none;
+}
+/* The editor's blocks are FLAT (`<li data-b>` with no `<ul>` parent — one contentEditable
+   over the whole document is what keeps Enter/Backspace/selection native, see
+   `editor/blocks.ts`), so the list markers `.md ul li::before` provides are reproduced
+   here for the bare items. Same glyphs, same metrics, or the document would visibly
+   reflow the moment you click into it. */
+.md-document-edit li[data-b] {
+  position: relative;
+  padding-left: 24px;
+  margin-bottom: 8px;
+  list-style: none;
+}
+.md-document-edit li[data-b="ul"]::before {
+  content: "▸";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  color: var(--forest-700, var(--text-strong));
+  font-size: 13px;
+}
+.md-document-edit {
+  counter-reset: edli;
+}
+.md-document-edit li[data-b="ol"] {
+  padding-left: 40px;
+  counter-increment: edli;
+}
+.md-document-edit li[data-b="ol"]::before {
+  content: counter(edli) ".";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+/* An empty block still shows where the caret is — and the FIRST one says what to do,
+   because an editor with no button has to answer "and now?" somewhere. */
+.md-document-edit > :is(p, h1, h2, h3):empty::before,
+.md-document-edit > :is(p, h1, h2, h3):has(> br:only-child)::before {
+  content: attr(data-ph);
+  color: var(--text-faint);
+  pointer-events: none;
+}
+.md-document-edit > pre[data-b="code"] {
+  white-space: pre-wrap;
+}
+/* The hint that replaces the removed Enregistrer/Annuler pair. */
+.md-document-edit-hint {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs, 10px);
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.md-document-edit-err {
+  font-size: var(--text-xs);
+  color: var(--danger, #b3261e);
+  margin-right: 4px;
+}

@@ -1,0 +1,59 @@
+/* The row under a finished reply — Copier · Régénérer · Forker · Avis
+   (`components/message/MessageActions.tsx`).
+
+   Only the ROW's own family lives here; the buttons themselves are the shared
+   `.icon-btn` primitive, which stays in styles.css. This partial adds nothing but
+   `animation` on top of it, and `.icon-btn` never sets that property — so where
+   this file lands in the cascade cannot change anything (the trap the package's
+   CLAUDE.md warns about when peeling styles.css apart). `.msg-actions` moved here
+   with it — it was declared exactly once, so its new position is indifferent too. */
+
+.msg-actions {
+  display: flex;
+  gap: 2px;
+  margin-top: 10px;
+  color: var(--text-faint);
+}
+
+/* One-off nudge on the avis glyph the first time a reply's action row appears: the
+   affordance sits last in the row, so without it nobody finds it. ONE pass, then it
+   settles into the same grey as its neighbours — an icon that keeps pulsing stops
+   meaning anything and starts being noise.
+   Fired by MOUNTING with the class; `MessageActions` gates it to once per message,
+   because the list is virtualised and a bare mount animation would re-fire every
+   time the reply scrolls back into view. */
+@keyframes msg-action-pulse {
+  0% {
+    color: var(--text-muted);
+    transform: scale(1);
+  }
+  35% {
+    color: var(--brand);
+    transform: scale(1.18);
+  }
+  100% {
+    color: var(--text-muted);
+    transform: scale(1);
+  }
+}
+.msg-action-pulse {
+  animation: msg-action-pulse 1s var(--ease-out) 1;
+}
+
+/* Reduced motion: keep the ATTENTION, drop the MOVEMENT. The nudge is the point;
+   the scaling is only how it is usually drawn, so a tint-only pass still says the
+   button is there without moving anything on screen. */
+@keyframes msg-action-pulse-still {
+  0%,
+  100% {
+    color: var(--text-muted);
+  }
+  35% {
+    color: var(--brand);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .msg-action-pulse {
+    animation: msg-action-pulse-still 1s var(--ease-out) 1;
+  }
+}

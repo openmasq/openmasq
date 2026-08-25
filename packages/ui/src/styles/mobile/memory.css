@@ -1,0 +1,247 @@
+/* Mobile — Mémoire (kit `chat-app-mobile` MemoryScreen). Part of the mobile family; see
+   ../mobile.css. Own family, no `.app-mobile` prefix: this screen has its own markup and
+   overrides no desktop rule (the desktop Mémoire is a force graph, not a list). */
+
+.mmem {
+  overflow: hidden;
+}
+.mmem-head {
+  flex-shrink: 0;
+  padding: 4px 18px 8px;
+}
+.mmem-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.mmem-sub {
+  margin: 6px 0 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.mmem-sub strong {
+  color: var(--text-strong);
+}
+.mmem-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* Clear the fixed bottom nav + the home-indicator inset (`--mobile-nav-h`: shell.css). */
+  padding: 8px 14px calc(var(--mobile-nav-h) + env(safe-area-inset-bottom) + 16px);
+}
+
+/* ── Profil + the auto-extraction switch: features the kit's mock omits ── */
+.mmem-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--surface-card);
+  text-align: left;
+  cursor: pointer;
+}
+.mmem-profile:active {
+  background: var(--surface-hover);
+}
+.mmem-profile-label {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.mmem-profile-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-body);
+}
+.mmem-profile-text.empty {
+  color: var(--text-faint);
+}
+.mmem-auto {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0 4px;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* ── Groups of chips ── */
+.mmem-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+.mmem-group-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.mmem-group-n {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.mmem-group-spacer {
+  flex: 1;
+}
+.mmem-group-add {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.mmem-group-add:active {
+  background: var(--surface-hover);
+}
+.mmem-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mmem-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px 9px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  background: var(--surface-card);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.mmem-chip:active {
+  background: var(--surface-hover);
+}
+.mmem-dot {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+}
+.mmem-dot.sm {
+  width: 8px;
+  height: 8px;
+  border: none;
+}
+
+/* ── Empty ── */
+.mmem-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 40px 18px;
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.mmem-empty-sub {
+  font-weight: 400;
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+
+/* ── Sheets ── */
+.mmem-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 18px 28px;
+}
+.mmem-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mmem-sheet-cat {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.mmem-auto-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.mmem-sheet-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.mmem-input,
+.mmem-textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: var(--surface-sunken);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-strong);
+  outline: none;
+}
+.mmem-textarea {
+  resize: none;
+  line-height: 1.5;
+}
+.mmem-input:focus,
+.mmem-textarea:focus {
+  border-color: var(--border-strong, var(--border-default));
+}
+.mmem-cta {
+  justify-content: center;
+  width: 100%;
+  height: 48px;
+  border-radius: 16px;
+  font-size: 15px;
+}
+.mmem-danger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 4px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--red-500);
+  cursor: pointer;
+}
+.mmem-danger:active {
+  background: var(--surface-hover);
+}

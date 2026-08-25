@@ -1,0 +1,19 @@
+{
+  "comment": "Type-check ONLY (esbuild emits the JS) for the browser adapter + the shared core it pulls in. DOM/WebWorker globals, and `types: []` so @types/node globals don't collide with the DOM lib (fetch/Blob/URL/…). `src/browser/ambient.d.ts` declares importScripts + the typeof-guarded Buffer.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    "noEmit": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/core", "src/platform", "src/browser"],
+  "exclude": ["src/core/ambient-node.d.ts", "src/node", "src/**/*.test.ts"]
+}

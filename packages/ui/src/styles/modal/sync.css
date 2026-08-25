@@ -1,0 +1,249 @@
+/* ═══ « Appareils connectés » (SyncSection) — phrase secrète + liste ═══
+   Partagée entre l'onglet Sync et la modale : même badge d'état, mêmes actions. */
+/* ⚠️ Son `@import` (via le barrel `modal.css`) doit rester atteignable depuis les @import
+   DE TÊTE de `styles.css` : Lightning CSS DROPPE silencieusement un @import placé sous le
+   bloc `@theme` (le piège qui avait déjà tué les webfonts). Extrait après vérification que
+   AUCUN de ces sélecteurs n'est redéclaré plus HAUT dans `styles.css` — c'est ce qui rend
+   sa nouvelle position dans la cascade indifférente (le CSS bâti reste le même multiset
+   de règles, seul leur ordre change). */
+
+/* Status badge + actions + hint — reused by the SyncSection (passphrase state). */
+.keyless-badge {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+}
+.keyless-badge.on {
+  background: var(--green-soft);
+  color: var(--green-ink);
+}
+.keyless-badge.off {
+  background: var(--warm-150);
+  color: var(--text-muted);
+}
+.keyless-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.keyless-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Cross-device sync section (SyncSection): passphrase field + device list. */
+.sync-pass-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.sync-pass-input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+}
+.sync-pass-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+}
+.link-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: var(--text-xs);
+  color: var(--text-link);
+  cursor: pointer;
+}
+.link-btn:hover {
+  text-decoration: underline;
+}
+/* Sync tab spacing + passphrase card with the mockup's lime icon tile. */
+.sync-tab {
+  gap: 20px;
+}
+.sync-key-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sync-key-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sync-tile {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+.sync-tile--lime {
+  background: var(--hl-lime, color-mix(in oklch, var(--lime) 55%, white));
+  color: var(--forest-700, #18280c);
+}
+.sync-key-body {
+  flex: 1;
+  min-width: 0;
+}
+.sync-key-title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+.sync-key-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.sync-key-note {
+  margin: 0;
+}
+/* La divergence de phrase (verifyPassphrase → « mismatch ») : un avertissement qui doit
+   se VOIR — c'est une synchro morte annoncée, pas une note de bas de page. */
+.sync-pass-warn {
+  color: var(--danger, #b3261e);
+}
+
+/* Connected-devices header (eyebrow + count) + a single flush device card. */
+.sync-devices-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sync-devices-count {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.sync-devices-card {
+  display: flex;
+  flex-direction: column;
+}
+.sync-device-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+}
+.sync-device-row + .sync-device-row {
+  border-top: 1px solid var(--border-subtle);
+}
+.sync-device-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sync-device-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--text-strong);
+}
+.sync-device-cur {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--forest-500, #3c6b1e);
+}
+.sync-device-meta {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.sync-device-revoke {
+  flex-shrink: 0;
+}
+
+/* Hidden web-session bridge webview (ChatGPT / Claude) — kept off-screen but
+   still rendered so the page runs and streams while staying invisible. */
+.chatgpt-bridge,
+.web-session-bridge {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 1024px;
+  height: 768px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+.chatgpt-bridge webview,
+.web-session-bridge webview {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Visible-webview model: the bridge becomes the interactive chat surface (the
+   user drives ChatGPT directly; the injected fetch hook redacted in place).
+   Fills the content area to the right of the rail + sidebar. */
+.chatgpt-bridge.chatgpt-bridge-visible {
+  position: fixed;
+  left: calc(60px + var(--sidebar-w));
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: auto;
+  height: auto;
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 5;
+  background: var(--surface-page);
+}
+
+/* ── Le témoin d'état (SyncSection) : environnement + dernier échange ─────────
+   La raison d'être : la synchro est best-effort, donc une panne est silencieuse par
+   contrat — cette carte est la seule surface qui la rend visible. */
+.sync-status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.sync-status-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.sync-status-row .cv-eyebrow {
+  flex: 0 0 130px;
+}
+.sync-status-env {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.sync-status-host {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-faint);
+}
+.sync-status-line {
+  font-size: 13px;
+}
+.sync-status-line.is-ok { color: var(--brand); }
+.sync-status-line.is-muted { color: var(--text-muted); }
+.sync-status-line.is-err { color: var(--red-500); }

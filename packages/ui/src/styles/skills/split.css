@@ -1,0 +1,216 @@
+/* Part of the Compétences styles — see ../skills.css for the family's contract.
+
+   The TWO-COLUMN authoring modal: the ideas (and, for a workflow, the integrations
+   that produce them) on the LEFT, the form on the right. A workflow wears it
+   in BOTH modes — the connector catalog is the same ~50 entries whether you create
+   or edit; a compétence only when creating, since editing offers no templates. */
+
+.om-skill-modal-body.om-split {
+  display: grid;
+  /* Panel first, form second — the panel is where you START. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 0;
+  padding: 0;
+  /* The two columns scroll INDEPENDENTLY: a long instruction on the left must not
+     drag the idea list out of view, which is the whole point of facing them. */
+  overflow: hidden;
+  min-height: 0;
+}
+/* ⚠️ SCOPED to `.om-split` on purpose. `.om-split-main` is in the markup in BOTH modes,
+   so unscoped these made it a scroller nested inside `.om-skill-modal-body`, which is
+   already one — editing a compétence (single column, no templates) got two scrollbars
+   and doubled padding. A column only owns its own scroll when there IS a second column
+   to scroll independently of. */
+.om-split .om-split-main,
+.om-split .om-split-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 24px;
+  overflow-y: auto;
+  min-height: 0;
+  min-width: 0;
+}
+/* Single column: the wrapper is a pass-through — the BODY is the one scroll region and
+   owns the padding. Keeps the field spacing the split layout sets. */
+.om-skill-modal-body:not(.om-split) > .om-split-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+/* Same white surface as the form it faces — one hairline between them, no panel
+   tint: the ideas are part of the same sheet, not a drawer bolted onto it.
+   ⚠️ Scoped to `.om-split` like the rule above, and for the same reason twice over:
+   it must WIN over it. Unscoped it loses on specificity (one class vs two), the
+   column keeps the shared 22px padding, and the sticky band below is then inset —
+   so the catalog scrolls VISIBLY past it instead of under it. */
+.om-split .om-split-side {
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  /* The padding moves INTO the two blocks below, so the band spans the full width. */
+  padding: 0;
+  gap: 0;
+}
+/* The ideas: PINNED. The connector catalog is ~50 entries, so anything above it
+   scrolls away instantly — and ticking an integration would then rewrite something
+   off-screen. Pinned, the cause and its effect stay in the same glance. */
+.om-side-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 24px 12px;
+  /* Must match the column, or the catalog shows THROUGH the band as it scrolls. */
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-subtle);
+}
+/* Everything under the band scrolls naturally, with all the room that is left. */
+.om-side-scroll {
+  padding: 16px 24px 22px;
+}
+
+/* The column's section label — a sparkle + a quiet line, one notch under a field
+   label so the panel reads as an offer, not a form. */
+.om-sugg-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ── The idea TAGS (the pinned band) ────────────────────────────────────────── */
+.om-sugg-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.om-sugg-tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 10px;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-card);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+.om-sugg-tag:hover {
+  border-color: var(--brand);
+}
+/* Picked: the draft holds this template verbatim. Solid — the dash meant "empty". */
+.om-sugg-tag.on {
+  border-style: solid;
+  border-color: var(--brand);
+  background: color-mix(in oklch, var(--brand) 10%, var(--surface-card));
+}
+/* Asking: the click landed on a DIRTY draft, so the tag asks instead of replacing. */
+.om-sugg-tag.asking {
+  border-style: solid;
+  border-color: var(--danger, #d64550);
+  color: var(--danger, #d64550);
+}
+.om-sugg-tag-name,
+.om-sugg-tag-meta {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.om-sugg-tag-meta {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+/* ── The idea cards (the compétence column, which has room for them) ────────── */
+.om-sugg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.om-sugg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.om-sugg-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-card);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+.om-sugg-card:hover {
+  border-color: var(--brand);
+}
+/* Picked: the draft currently holds this template verbatim. Solid border — the dash
+   meant "empty slot". */
+.om-sugg-card.on {
+  border-style: solid;
+  border-color: var(--brand);
+  background: color-mix(in oklch, var(--brand) 10%, var(--surface-card));
+}
+/* Asking: a click landed on a DIRTY draft, so the card is asking to confirm rather
+   than silently replacing what the user wrote. */
+.om-sugg-card.asking {
+  border-style: solid;
+  border-color: var(--danger, #d64550);
+}
+.om-sugg-card.asking .om-sugg-card-desc {
+  color: var(--danger, #d64550);
+}
+.om-sugg-card-name {
+  font-weight: 600;
+}
+.om-sugg-card-desc {
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+.om-sugg-card-meta {
+  color: var(--text-faint);
+  font-size: 10.5px;
+}
+
+/* Narrow / short windows: stack — and the FORM goes first here, against the DOM
+   order. Side by side the panel leads because it is where you start; stacked, the
+   same panel would put a ~50-entry catalog between the user and the name field. */
+@media (max-width: 900px) {
+  .om-skill-modal-body.om-split {
+    grid-template-columns: minmax(0, 1fr);
+    overflow-y: auto;
+  }
+  .om-split-main,
+  .om-split-side {
+    overflow: visible;
+  }
+  .om-split .om-split-main {
+    order: -1;
+  }
+  /* Stacked, a "sticky" band would pin to the modal body's scroll and float over
+     the form. It is a band like any other here. */
+  .om-side-sticky {
+    position: static;
+  }
+  .om-split .om-split-side {
+    border-right: none;
+    border-top: 1px solid var(--border-subtle);
+  }
+}

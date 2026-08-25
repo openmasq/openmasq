@@ -1,0 +1,180 @@
+/* Coffre — the term list: one row per always-redacted value. */
+
+.om-vault-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.om-vault-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 260px) 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: border-color 0.16s var(--ease-out), box-shadow 0.16s var(--ease-out);
+}
+/* On a narrow viewport the four columns don't fit: the first alone asks for 150px,
+   and the type label ended up UNDER the occurrence pill — two texts on top of each
+   other. Give the masked value its own line and let the rest share the second. */
+@media (max-width: 560px) {
+  .om-vault-row {
+    grid-template-columns: 1fr auto auto;
+    gap: 10px 8px;
+  }
+  .om-vault-row > :first-child {
+    grid-column: 1 / -1;
+  }
+  .om-vault-occ {
+    white-space: nowrap;
+  }
+}
+.om-vault-row:hover {
+  border-color: var(--border-default);
+  box-shadow: var(--shadow-xs);
+}
+/* The term itself — MASKED by default: a solid redaction bar on the ink pill
+   (VaultTermPill), revealed on demand in its kind's highlight (the same colour
+   language as the mark it gets replaced by on the wire). */
+.om-vault-pill {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 3px 9px 3px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  background: var(--text-strong);
+  color: var(--surface-card);
+  transition: background 160ms var(--ease-out);
+}
+.om-vault-pill-val {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.om-vault-pill-bar {
+  display: inline-block;
+  height: 11px;
+  border-radius: 2px;
+  /* Barre PLEINE (plus de hachures — l'effet rayé est retiré du produit). */
+  background: rgba(255, 255, 255, 0.28);
+}
+.om-vault-pill-eye {
+  flex-shrink: 0;
+  display: inline-flex;
+  opacity: 0.8;
+}
+.om-vault-pill.revealed {
+  color: #1c2b10;
+}
+.om-vault-pill.revealed.hl-pink { background: var(--hl-pink); }
+.om-vault-pill.revealed.hl-sky { background: var(--hl-sky); }
+.om-vault-pill.revealed.hl-violet { background: var(--hl-violet); }
+.om-vault-pill.revealed.hl-mint { background: var(--hl-mint); }
+.om-vault-pill.revealed.hl-lime { background: var(--hl-lime); }
+.om-vault-pill.revealed.hl-amber { background: var(--hl-amber); }
+.om-vault-pill:focus-visible {
+  outline: 2px solid var(--text-strong);
+  outline-offset: 2px;
+}
+.om-vault-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.om-vault-meta-type {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.om-vault-meta-sub {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.om-vault-meta-note {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Overlapping model marks — which models have actually seen this term redacted. */
+.om-vault-models {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.om-vault-model {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--surface-card);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 1.5px var(--surface-card), 0 0 0 2.5px var(--border-subtle);
+}
+.om-vault-model + .om-vault-model {
+  margin-left: -5px;
+}
+.om-vault-occ {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.om-vault-occ:hover {
+  background: var(--surface-hover);
+}
+/* Never redacted anywhere yet — recede rather than claim a count. */
+.om-vault-occ.empty {
+  color: var(--text-faint);
+}
+.om-vault-occ svg {
+  color: var(--text-muted);
+}
+.om-vault-occ-conv {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+}
+.om-vault-del {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.om-vault-del:hover {
+  background: var(--surface-sunken);
+  color: var(--danger, #d64550);
+}

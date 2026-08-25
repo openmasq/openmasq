@@ -1,0 +1,244 @@
+name: Windows (essai à blanc)
+
+# ESSAI À BLANC de la cible Windows — construit, LANCE l'app, et s'arrête là.
+#
+# Ce workflow ne publie RIEN : pas de R2, pas d'enregistrement auprès du Worker d'updates,
+# aucun canal touché. Depuis que `release.yml` construit Windows dans sa matrice, il ne
+# reste donc qu'une raison de le garder, et elle est bonne : il se lance À LA DEMANDE sur
+# N'IMPORTE QUEL commit (tag `win-*`, voir `on:`), sans aucun secret, alors que la release
+# n'existe que sur `dev` et les tags `v*`. C'est le pré-vol qu'on tire AVANT de fusionner.
+#
+# Ce qu'il répond, et que rien d'autre ne peut répondre depuis un mac :
+#   • MAX_PATH (260) : electron-builder copie le runtime Python (des dizaines de milliers
+#     de fichiers plotly) et `asarUnpack: **/node_modules/**` — c'est l'équivalent Windows
+#     du EMFILE qu'on a dû corriger côté macOS ;
+#   • le lanceur du jail (`native/win-jail`) se compile-t-il, et CONFINE-t-il vraiment (`prove-jail.sh`) ;
+#   • le binaire DÉMARRE-t-il ? (`e2e:boot` + `e2e:models`, les deux fumées de release.yml) ;
+#   • combien pèse l'installeur.
+#
+# ⚠️ Une question qu'il ne pose PLUS : « les wheels existent-elles en `win_amd64` ? ». Le
+# bake sait désormais fabriquer un runtime pour une autre machine que la sienne, donc ce
+# risque-là se voit aussi depuis un runner mac ou linux (`crossInstall.ts`).
+#
+# 💸 Coût : `windows-latest` est facturé ×2 (contre ×10 pour `macos-latest`), donc un essai
+# coûte environ un dixième d'un build mac. Il se DEMANDE quand même — voir le gate.
+#
+# ⚠️ AUCUN SECRET n'est passé à ce workflow, et il ne doit jamais en recevoir : il se
+# déclenche depuis n'importe quel commit sur un simple tag poussé à la main. Les valeurs
+# bakées sont donc des littéraux publics, et le canal d'update pointe sur un nom qui
+# N'EXISTE PAS (`desktop-winci`) — même lancée, cette app ne peut pas voir un vrai canal.
+
+on:
+  # Utilisable une fois ce fichier sur `main` (GitHub n'expose un workflow_dispatch que
+  # depuis la branche par défaut).
+  workflow_dispatch: {}
+  # D'ici là — et depuis n'importe quel commit, sans passer par `staging` : un TAG `win-*`.
+  #
+  # ⚠️ C'était `branches: ["**"]` + le marqueur `[desktop-win]` dans le message du commit,
+  # lu par un `if:` de job. Le marqueur ne coûtait aucune minute quand il était absent,
+  # MAIS GitHub inscrit quand même un run (`skipped`) pour CHAQUE push de CHAQUE branche :
+  # 50 lignes vides sur les 300 derniers runs, de quoi noyer les vrais rouges. Un filtre de
+  # tags, lui, ne crée aucun run tant qu'on ne demande rien — même geste explicite, zéro
+  # bruit, et il marche depuis n'importe quel commit (une branche protégée n'est pas
+  # requise, contrairement au bouton `workflow_dispatch`) :
+  #
+  #     git tag -f win-essai && git push -f origin win-essai
+  #
+  # (Le `-f` re-déclenche : GitHub émet un push pour une MISE À JOUR de tag comme pour une
+  # création. `win-*` ne croise pas les tags `v*` de `release.yml`, qui eux publient.)
+  #
+  # ⛔ EN PAUSE (14/08/2026), en même temps que le leg Windows de `release.yml` : tant que
+  # l'app Windows n'est pas prête, aucun runner Windows ne se paie — ni pour publier, ni
+  # pour essayer. Le déclencheur par tag est donc RETIRÉ, pas le fichier : ce pré-vol reste
+  # la seule chose qui répond à MAX_PATH, à la compilation du bac à sable et au démarrage
+  # du binaire, et c'est lui qu'on relancera d'abord au réveil. Pour le rallumer,
+  # décommenter les deux lignes ci-dessous.
+  #
+  # push:
+  #   tags: ["win-*"]
+
+concurrency:
+  group: release-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    # Pas de job « gate » comme dans release.yml, et plus de `if:` non plus : le
+    # déclencheur EST le gate. Tout run qui arrive ici a été demandé — bouton, ou tag
+    # `win-*` poussé à la main.
+    runs-on: windows-latest
+    timeout-minutes: 90
+    # Toutes les étapes en bash (git-bash est présent sur les runners Windows) : le même
+    # script que côté macOS, plutôt qu'une traduction pwsh qui divergerait en silence.
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      # AVANT l'install : npm/pnpm écrivent déjà des chemins profonds. Le plafond MAX_PATH
+      # (260 caractères) est LE piège d'empaquetage Windows — `asarUnpack: **/node_modules/**`
+      # plus le site-packages du runtime Python vont largement au-delà. On lève les deux
+      # verrous : celui du noyau (registre) et celui de git.
+      - name: Enable long paths (Windows MAX_PATH)
+        shell: pwsh
+        run: |
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+            -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force | Out-Null
+          git config --system core.longpaths true
+          Write-Host "LongPathsEnabled=1, git core.longpaths=true"
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # La marque (domaine, slug) se lit dans packages/branding/branding.json (règle 9),
+      # jamais en littéral dans une étape.
+      - name: Resolve branding (packages/branding/branding.json)
+        id: brand
+        run: |
+          set -euo pipefail
+          B=./packages/branding/branding.json
+          {
+            echo "slug=$(node -p "require('$B').slug")"
+            echo "domain=$(node -p "require('$B').domain")"
+          } >> "$GITHUB_OUTPUT"
+
+      # Même ceinture que release.yml : pnpm 10 bloque les postinstall, donc le binaire
+      # d'Electron n'est pas téléchargé à l'install et le PREMIER `require("electron")`
+      # (le `_electron.launch` de e2e:boot) déclencherait un download EN PLEIN TEST.
+      - name: Ensure Electron binary
+        run: test -f node_modules/electron/path.txt || node node_modules/electron/install.js
+
+      # Le bundle, avec des valeurs PUBLIQUES uniquement (voir le bandeau : ce workflow ne
+      # reçoit aucun secret). Le canal baké n'existe pas côté Worker, exprès.
+      - run: pnpm exec turbo run build --filter=@openmasq/desktop...
+        env:
+          VITE_BACKEND_URL: https://staging.${{ steps.brand.outputs.domain }}
+          VITE_ADMIN_URL: https://staging.${{ steps.brand.outputs.domain }}/admin
+          VITE_UPDATES_CHANNEL: desktop-winci
+
+      # Les deux fumées de release.yml. Elles lancent le bundle `out/` (pas l'installeur),
+      # ce qui suffit à voir la classe de bugs qui tue l'app au lancement : un pair optionnel
+      # devenu throw, un module natif absent, un handler IPC qui jette à l'enregistrement.
+      # C'est la première fois que ce code démarre sur Windows.
+      - name: Boot smoke (launch the built app once)
+        working-directory: apps/desktop
+        run: pnpm run e2e:boot
+
+      - name: Model-switch smoke
+        working-directory: apps/desktop
+        run: pnpm run e2e:models
+
+      # `runner.os` est dans la clé, donc ce cache est distinct de celui du job macOS.
+      - name: Cache baked Python runtime + NER models
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            apps/desktop/build/python-runtime
+            apps/desktop/build/ner-models
+          key: bake-${{ runner.os }}-${{ hashFiles('apps/desktop/src/main/python/wheels.ts', 'apps/desktop/src/main/python/runtimeSpec.ts', 'apps/desktop/scripts/bake-ner-models.ts', 'apps/desktop/src/main/ner/model.ts') }}
+
+      # LA question n°1 de l'essai : le CPython win32-x64 est déjà épinglé
+      # (`runtimeSpec.ts`), mais `pip install --only-binary=:all:` exige une roue
+      # `win_amd64` pour CHAQUE entrée de `wheels.ts`. Une seule manquante échoue ici.
+      - name: Bake bundled runtime + NER models + the jail launcher
+        working-directory: apps/desktop
+        run: pnpm bake
+
+      # LA preuve du bac à sable, et la seule qui vaille : compiler le lanceur du jail ne dit
+      # rien de ce qu'il confine. On lance donc le VRAI lanceur autour du VRAI interpréteur
+      # et on lui fait tenter deux lectures.
+      #
+      # Les deux comptent. Sans le contrôle POSITIF, un lanceur qui plante au démarrage —
+      # ou un AppContainer qui ne voit même pas python.exe — ferait « échouer » la lecture
+      # du témoin et se lirait comme un succès. C'est le mode de panne le plus probable
+      # d'un premier jet, et c'est exactement celui qu'un test naïf récompense.
+      - name: Prove the jail actually jails (AppContainer read-deny)
+        working-directory: apps/desktop
+        run: bash scripts/prove-jail.sh
+
+      # Empaquetage COMPLET (installeur NSIS + blockmap + latest.yml), pas `--dir` : c'est
+      # la création de l'installeur qui exerce MAX_PATH et le nom d'artefact. `--publish
+      # never` par sécurité, en plus du fait qu'aucun identifiant n'est présent.
+      # La version porte `-winci.<run>` : jamais confondable avec un vrai build, et jamais
+      # en collision avec la numérotation `-staging.<run>` de release.yml.
+      - name: Package (unsigned — essai à blanc)
+        id: pack
+        working-directory: apps/desktop
+        run: |
+          set -euo pipefail
+          PKG=$(node -p "require('./package.json').version")
+          VERSION="${PKG}-winci.${GITHUB_RUN_NUMBER}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          pnpm run eb --publish never -c.extraMetadata.version="$VERSION"
+
+      # Le dernier garde qui voit un arbre node_modules APLATI par electron-builder (la
+      # panne 0.3.2, verte partout ailleurs). `--require-tree` parce qu'il ne connaissait
+      # que la disposition macOS : sans ça, une disposition non reconnue se lit « rien à
+      # vérifier » et passe au vert pour de mauvaises raisons.
+      - name: Verify packaged dependency tree
+        run: pnpm check:pkgtree --require-tree
+
+      # LA vérification qui manquait, et dont l'absence a coûté une installation morte chez
+      # un utilisateur : les DLL du runtime C++ doivent être À CÔTÉ de l'exe, pas seulement
+      # bakées. Sans elles, `@libsql` ne charge pas sur une machine sans « Visual C++
+      # Redistributable » et l'app meurt au lancement — c'est ce qui est arrivé.
+      #
+      # On les vérifie ici plutôt qu'à la bake parce que c'est l'EMPAQUETAGE qui peut les
+      # perdre : un `extraFiles` mal placé, un filtre trop large, un `to:` qui dérive. Un
+      # bake vert et une app vide, c'est exactement la panne qu'on veut rendre impossible.
+      - name: Verify the C++ runtime shipped NEXT TO the exe
+        working-directory: apps/desktop
+        run: |
+          set -euo pipefail
+          missing=0
+          for dll in vcruntime140.dll vcruntime140_1.dll msvcp140.dll; do
+            if [ -f "release/win-unpacked/$dll" ]; then
+              printf '  ✓ %-22s %s\n' "$dll" "$(du -h "release/win-unpacked/$dll" | cut -f1)"
+            else
+              echo "::error::$dll ABSENT de release/win-unpacked — l'app ne démarrera pas sur une machine sans le redistribuable"
+              missing=1
+            fi
+          done
+          [ "$missing" = "0" ]
+
+      # Le chiffre qui tranchera l'arbitrage « embarquer ou non le runtime Python » : il
+      # pèse ~500 Mo pour une fonctionnalité que `sandbox.ts` refuse d'exécuter ici.
+      - name: Report artifact sizes
+        working-directory: apps/desktop
+        run: |
+          set -euo pipefail
+          {
+            echo "### Essai Windows — ${{ steps.pack.outputs.version }}"
+            echo
+            echo '| artefact | taille |'
+            echo '|---|---|'
+            for f in release/*.exe release/*.blockmap release/*.yml; do
+              [ -f "$f" ] || continue
+              printf '| `%s` | %s |\n' "$(basename "$f")" "$(du -h "$f" | cut -f1)"
+            done
+            echo
+            echo "Runtime Python embarqué : $(du -sh build/python-runtime/win32-x64 2>/dev/null | cut -f1 || echo 'absent')"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          cat release/latest.yml || true
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.brand.outputs.slug }}-windows-${{ steps.pack.outputs.version }}
+          path: |
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.blockmap
+            apps/desktop/release/latest.yml
+          # Court : ces artefacts se comptent en centaines de Mo et ne servent qu'à
+          # installer l'essai à la main une fois.
+          retention-days: 3
+          if-no-files-found: error

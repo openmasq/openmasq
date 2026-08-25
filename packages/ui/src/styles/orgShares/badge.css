@@ -1,0 +1,88 @@
+/* Partage — le badge de portée, les sections partagées et les affordances
+   « Partager » par élément (design ui_kits/chat-app). */
+
+/* ---- ScopeBadge (`.om-scope`) — tone rides a per-item CSS var. */
+.om-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--scope-tone) 22%, var(--surface-card));
+  color: var(--text-strong);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.om-scope.is-md {
+  height: 22px;
+  padding: 0 9px;
+  font-size: 10.5px;
+}
+.om-scope-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--scope-tone);
+}
+.om-scope.is-md .om-scope-dot {
+  width: 6px;
+  height: 6px;
+}
+
+/* ---- Shared sections of the Compétences grid (Organisation / Équipe). */
+.om-org-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-bottom: 22px;
+}
+.om-org-section-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 11px;
+}
+.om-org-section-note {
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ---- Per-item « Partager » (vault row + skill card/row): quiet until hover. */
+.om-vault-share,
+.om-skill-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.om-vault-share:hover,
+.om-skill-share:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+/* On cards the affordance appears with the card's hover (kit). */
+.om-skill-card .om-skill-share {
+  opacity: 0;
+  transition: opacity 140ms var(--ease-out, ease-out);
+}
+.om-skill-card:hover .om-skill-share,
+.om-skill-card:focus-within .om-skill-share {
+  opacity: 1;
+}
+

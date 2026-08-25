@@ -1,0 +1,19 @@
+/* Mobile — the chat screen's SHELL chrome. Part of the mobile family; see ../mobile.css.
+
+   ⚠️ Read this before adding a rule here. The chat is the one surface that did NOT need a
+   forked screen: its DOM is already right on a phone (`ChatHeader` has the back chevron and
+   the centred title, the bubbles are the same, the composer is the same). What was wrong was
+   the TYPE SCALE and the gutters — and those belong to the shared component, so they live in
+   `styles.css` as a `@media (max-width: 560px)` block, where a narrow desktop split pane gets
+   them too. An `.app-mobile` copy of those would have fixed one column and left the other.
+
+   What legitimately belongs HERE is only what the phone SHELL does differently: the thread
+   fills the screen instead of floating as a card. */
+
+/* The desktop floats the conversation as a rounded panel inside the shell frame, so the
+   card edge reads against the page. On a phone there is nothing beside it — the margin and
+   the radius only shrink the thread and leave slivers of page showing at the corners. */
+.app-mobile .chat-workspace {
+  margin: 0;
+  border-radius: 0;
+}

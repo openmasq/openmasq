@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="currentColor" role="img" aria-label="OpenMasq">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M50 6C25.7 6 6 25.7 6 50s19.7 44 44 44 44-19.7 44-44S74.3 6 50 6Zm0 17c14.9 0 27 12.1 27 27S64.9 77 50 77 23 64.9 23 50s12.1-27 27-27Z"/>
+  <rect x="2" y="41" width="96" height="18" rx="5"/>
+</svg>

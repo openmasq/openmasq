@@ -1,0 +1,24 @@
+{
+  "name": "@openmasq/ort",
+  "version": "1.24.3",
+  "private": true,
+  "description": "onnxruntime avec repli WASM là où aucun binding natif n'existe (Mac Intel)",
+  "type": "commonjs",
+  "main": "./src/index.cjs",
+  "module": "./src/index.mjs",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.mjs",
+      "require": "./src/index.cjs",
+      "default": "./src/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["src/index.cjs", "src/index.mjs", "src/index.d.ts"],
+  "dependencies": {
+    "ort-native": "npm:onnxruntime-node@1.24.3",
+    "ort-wasm": "npm:onnxruntime-web@1.26.0-dev.20260416-b7804b056c"
+  }
+}

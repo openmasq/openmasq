@@ -1,0 +1,31 @@
+
+# @playwright/mcp agent-browser trace/snapshot dumps (may contain authenticated page content)
+.playwright-mcp/
+
+# e2e scratch: throwaway Chromium profiles (Code Cache/wasm/…), driver scripts,
+# and captured screenshots — created by a test run, never source.
+e2e/.profile-*/
+e2e/_*
+
+# Throwaway screenshot-verification scripts + their PNGs (shot-*.mjs / shot-*.png),
+# run locally to eyeball a UI change — never source.
+shot-*.mjs
+shot-*.png
+repro-*.mjs
+
+# Baked, BUNDLED Python runtime + local NER model weights (hundreds of MB) produced by
+# `pnpm bake` (scripts/bake-*.ts) and shipped via electron-builder extraResources. Built
+# artefacts, never source — regenerated deterministically from the pinned specs.
+build/python-runtime/
+build/ner-models/
+# Baked OCR traineddata (audit M8) — sha256-verified vs official tessdata_fast by
+# `scripts/bake-tesseract-langs.ts`, regenerated deterministically; never source.
+build/tesseract-langs/
+# Baked docTR OCR models — sha256-verified by `scripts/bake-doctr-models.ts`; never source.
+build/doctr-models/
+# Baked Mémoire embedding model — bundled via `scripts/bake-embed-models.ts`; never source.
+build/embed-models/
+
+# Le pilote de parcours : captures, journal, wire, appels d'outils, profil jetable.
+# Contient de la PII de test et des chemins de machine — jamais commité.
+e2e/.parcours/

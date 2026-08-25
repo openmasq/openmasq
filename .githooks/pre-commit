@@ -1,0 +1,27 @@
+#!/bin/sh
+# Pre-commit : les gates RAPIDES, portés sur ce que CE commit stage — jamais sur le
+# WIP des autres sessions de l'arbre (voir scripts/check-staged-loc.mjs). La CI garde
+# les gates complets. Contourner en connaissance de cause : `git commit --no-verify`.
+set -e
+
+# ⛔ PAS de garde d'identité ici, et c'est délibéré. Une allow-list d'adresses codées
+# en dur rejetait le commit de QUICONQUE n'était pas l'un des deux mainteneurs — sur un
+# dépôt public, ça veut dire tout contributeur, sur son premier commit, avec un message
+# qui l'invite à se faire passer pour l'équipe. Le déploiement, lui, ne dépend pas de
+# l'auteur : `.github/scripts/vercel-deploy.sh` normalise l'auteur du commit déployé dans
+# le checkout ÉPHÉMÈRE de la CI. Il n'y avait donc plus rien à garder — seulement deux
+# adresses personnelles publiées et une porte fermée aux contributions.
+# Chacun commite sous SON identité ; c'est ce que l'historique doit dire.
+
+# (Le blocage des commits directs sur staging/main a été retiré le 11/08 avec la
+# convention worktree : l'arbre partagé EST désormais le lieu de travail de toutes les
+# sessions, et staging reçoit leurs commits directs. La discipline restante est dans le
+# root CLAUDE.md : ne commiter que SES fichiers, gates vertes avant de pousser.)
+
+node scripts/check-staged-loc.mjs
+
+# Le gate docs seulement quand un CLAUDE.md / FEATURES.md est stagé — il lit tout le
+# repo mais ne dépend que des docs, stables entre sessions.
+if git diff --cached --name-only | grep -qE "(CLAUDE|FEATURES)\.md$"; then
+  pnpm -s check:docs
+fi

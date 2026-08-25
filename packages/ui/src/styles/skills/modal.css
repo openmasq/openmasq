@@ -1,0 +1,272 @@
+/* Part of the Compétences styles — see ../skills.css for the family's contract. */
+
+/* ── Create / edit modal ────────────────────────────────────────────────────── */
+.om-skill-modal {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+/* NEUTRAL head band (monochrome) — the category hues no longer tint the chrome; the
+   redaction keeps the colour language. Theme-adaptive surface + inks. */
+.om-skill-head {
+  position: relative;
+  background: var(--surface-sunken);
+  /* The panel is a bounded flex column: without this, a tall body COMPRESSES the
+     band (flex-shrink) and clips the title/subtitle — first seen at phone width,
+     but any short window reproduces it. The BODY is the scroll region, not us. */
+  flex-shrink: 0;
+  padding: 22px 24px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+.om-skill-head-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.om-skill-head-glyph {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Neutral tile — theme-adaptive surface + ink (no more bright category hue). */
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 19px;
+  box-shadow: 0 4px 12px -6px color-mix(in oklch, var(--forest-900, #0b1505) 40%, transparent);
+}
+.om-skill-head-text {
+  min-width: 0;
+}
+.om-skill-head-sub {
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  /* The band is now a theme-adaptive neutral surface — the normal muted ink works. */
+  color: var(--text-muted);
+}
+.om-skill-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px 24px;
+  overflow-y: auto;
+}
+
+/* ── The prompt, framed as a FILE ────────────────────────────────────────────
+   A compétence IS its prompt: a document authored once and replayed, so it gets a
+   filename bar rather than reading as one more form field. */
+.om-skill-promptlbl {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.om-skill-chars {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.om-skill-file {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-sunken);
+}
+.om-skill-file:focus-within {
+  border-color: var(--brand);
+}
+.om-skill-file-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+.om-skill-file-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+.om-skill-file-name {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+/* Source ⇄ rendered toggle, in the file bar. */
+.om-skill-preview-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill, 999px);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.om-skill-preview-btn:hover {
+  color: var(--text-strong);
+}
+.om-skill-preview-btn.on {
+  border-color: var(--brand);
+  background: color-mix(in oklch, var(--brand) 12%, var(--surface-card));
+  color: var(--brand);
+}
+/* Markdown toolbar. Buttons are square + mono so B/I/H read as marks, not prose. */
+.om-skill-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+.om-skill-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 5px;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.om-skill-tool:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.om-skill-tool.b {
+  font-weight: 800;
+}
+.om-skill-tool.i {
+  font-style: italic;
+}
+.om-skill-tool.code {
+  font-size: 10.5px;
+}
+/* The rendered preview stands in for the textarea, so it holds the same box. */
+.om-skill-file-preview {
+  padding: 12px 14px;
+  min-height: 150px;
+  max-height: 320px;
+  overflow-y: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-strong);
+}
+.om-skill-preview-empty {
+  color: var(--text-faint);
+  font-style: italic;
+  font-size: var(--text-sm);
+}
+.om-skill-file-area {
+  display: block;
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.6;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-strong);
+  box-sizing: border-box;
+}
+/* The reassurance line: the prompt rides the model payload, and the vault runs on it
+   like any other text. Root rule 8 applies to in-app copy too — keep it true. */
+.om-skill-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  line-height: 1.45;
+}
+/* ⚠️ The tick is LIME, not `--brand`. The kit reads `var(--brand)` here, but that token
+   is the forest INK in light mode and only becomes lime in dark — so a `--brand` tick on
+   this `--text-strong` chip is dark-on-dark and vanishes. `--hl-lime` is the accent the
+   chip actually wants, in both themes. */
+.om-skill-note-badge {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  background: var(--text-strong);
+  color: var(--hl-lime);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.om-skill-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.om-skill-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  outline: none;
+  box-sizing: border-box;
+}
+.om-skill-input:focus {
+  border-color: var(--brand);
+}
+
+/* Kit layout: name takes the room, category sits beside it in a fixed-ish column
+   (the branded picker is `.om-hue-select`, shared with the Coffre). */
+.om-skill-row {
+  display: flex;
+  gap: 14px;
+}
+.om-skill-col-grow {
+  flex: 2 1 auto;
+  min-width: 0;
+}
+.om-skill-col-cat {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+
+
+.om-skill-modal-foot {
+  display: flex;
+  flex-shrink: 0; /* same shrink trap as the head band — the body scrolls, not us */
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+.om-skill-del {
+  color: var(--danger, #d64550);
+}
+

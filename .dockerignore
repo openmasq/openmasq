@@ -1,0 +1,22 @@
+# Docker build context lives at the repo root (apps/redact-fn/Dockerfile needs the
+# pnpm workspace). Keep the context tiny — exclude everything the build doesn't
+# need. A context-ROOT .dockerignore is the reliable mechanism (BuildKit's
+# per-Dockerfile `<name>.dockerignore` is NOT honored across versions).
+**/node_modules
+.git
+**/.turbo
+**/dist
+**/out
+**/.next
+**/.terraform
+**/*.tfstate
+**/*.tfstate.*
+**/.env
+**/.env.*
+**/.build
+release
+*.log
+.DS_Store
+# heavy design/asset trees not needed to build the redaction server
+.claude
+**/public/tesseract

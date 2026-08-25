@@ -1,0 +1,286 @@
+/* ═══ Mémoire — the GRAPH stage (kit MemoryPage rendered as local SVG) + the
+   selection side panel. Split out of ./memory.css (300-LOC cap, rule 1);
+   skills.css imports both. ═══ */
+/* ── Mémoire : le graphe (kit MemoryPage, rendu SVG local) ─────────────────── */
+.om-mem-stage {
+  position: relative;
+  height: 62vh;
+  min-height: 420px;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(rgba(28, 43, 16, 0.05) 1px, transparent 1px) 0 0 / 22px 22px,
+    radial-gradient(120% 120% at 50% 0%, var(--surface-card), var(--surface-sunken));
+}
+.om-mem-stage-count {
+  position: absolute;
+  bottom: 12px;
+  left: 16px;
+  margin: 0;
+  color: var(--text-faint);
+}
+/* La légende des traits — en HAUT à gauche : le bas-gauche porte le compteur, la droite
+   le panneau. Les échantillons répètent les styles de .om-mem-edge{,.cross,.sem}. */
+.om-mem-edge-legend {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: var(--text-2xs, 10px);
+  color: var(--text-muted);
+}
+.om-mem-edge-key {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+.om-mem-edge-swatch {
+  width: 18px;
+  border-top: 2px solid var(--border-default);
+}
+.om-mem-edge-swatch.cross {
+  border-top-style: dashed;
+  border-top-color: var(--brand);
+}
+.om-mem-edge-swatch.sem {
+  border-top-style: dashed;
+  border-top-color: var(--lime-bright, #a9e15a);
+}
+.om-mem-graph {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Pointer gestures own the surface (drag/pan/zoom) — no browser touch scrolling. */
+  touch-action: none;
+}
+.om-mem-edge {
+  stroke: var(--border-default);
+  stroke-width: 0.12;
+  transition: stroke 0.12s;
+}
+.om-mem-edge.cross {
+  stroke: var(--brand);
+  stroke-dasharray: 0.3 0.22;
+  stroke-width: 0.14;
+}
+/* Duplicate-merge suggestion — a slim row card above the graph stage, one at a time. */
+.om-mem-merge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.om-mem-merge-text {
+  flex: 1;
+  min-width: 0;
+}
+.om-mem-merge-text strong {
+  color: var(--text-strong);
+}
+
+/* Semantic (embedding) edge — the clustered view's « ces deux fiches parlent de la
+   même chose ». Lime + long dashes, distinct from the brand-dashed mention cross-link. */
+.om-mem-edge.sem {
+  stroke: var(--lime-bright, #a9e15a);
+  stroke-dasharray: 0.5 0.3;
+  stroke-width: 0.13;
+}
+.om-mem-edge.active {
+  stroke: var(--text-strong);
+  stroke-width: 0.18;
+}
+.om-mem-edge.dim {
+  stroke: var(--border-subtle);
+}
+.om-mem-node {
+  cursor: pointer;
+}
+.om-mem-node.dim {
+  opacity: 0.32;
+}
+.om-mem-dot {
+  stroke: rgba(11, 21, 5, 0.2);
+  stroke-width: 0.08;
+}
+.om-mem-dot.tone-core {
+  fill: var(--text-strong);
+}
+.om-mem-node.on .om-mem-dot {
+  stroke: var(--text-strong);
+  stroke-width: 0.14;
+}
+.om-mem-label {
+  fill: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 0.72px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+.om-mem-label.kind-leaf {
+  font-size: 0.6px;
+  font-weight: 600;
+}
+.om-mem-node.dim .om-mem-label {
+  fill: var(--text-faint);
+}
+/* La légende est un FILTRE (bouton), pas une décoration : un clic restreint la liste
+   et estompe le graphe, comme la recherche. */
+.om-mem-legend {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  padding: 3px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: none;
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  cursor: pointer;
+}
+.om-mem-legend:hover {
+  background: var(--surface-hover);
+}
+.om-mem-legend.on {
+  background: var(--surface-selected);
+  border-color: var(--border-default);
+  color: var(--text-strong);
+}
+.om-mem-dot-chip {
+  width: 11px;
+  height: 11px;
+  border: 1px solid rgba(11, 21, 5, 0.15);
+  border-radius: 50%;
+  background: var(--text-strong);
+}
+.om-mem-dot-chip.sm {
+  width: 9px;
+  height: 9px;
+}
+/* The selection side panel (kit right card). */
+.om-mem-panel {
+  position: absolute;
+  z-index: 5;
+  top: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  width: 272px;
+  /* THE card is the scroller — one scrollbar for the whole fiche. It used to be
+     `hidden` here with `overflow-y:auto` on the connections list alone, so that list
+     scrolled inside the leftover height the form left it: on a fiche with a name, a
+     category row, a note, aliases and a badge, "Connexions · 3" got a ~40px window and
+     its own tiny scrollbar. A nested scroller that small reads as a glitch, not as a
+     way to see more. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-lg);
+}
+/* En vue LISTE (dans .om-mem-listwrap, flex), le panneau n'est plus absolu : hauteur
+   NATURELLE bornée à l'écran, collant pendant qu'on défile la liste — le pied
+   (Supprimer) reste toujours atteignable, quelle que soit la longueur de la liste. */
+.om-mem-listwrap .om-mem-panel {
+  position: sticky;
+  top: 12px;
+  right: auto;
+  bottom: auto;
+  flex: none;
+  max-height: calc(100vh - 220px);
+}
+@media (max-width: 760px) {
+  .om-mem-listwrap .om-mem-panel {
+    width: 100%;
+    max-height: 60vh;
+  }
+}
+.om-mem-panel-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  /* Pinned while the card scrolls under it — the close button and the kind of the
+     fiche must stay reachable, and it is the only chrome that would otherwise leave. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  flex-shrink: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+}
+.om-mem-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.om-mem-panel-name {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: 800;
+}
+.om-mem-panel-static {
+  color: var(--text-strong);
+}
+/* Sections flow at their natural height; the CARD scrolls. `flex-shrink: 0` is what
+   makes that true — without it the flex column squeezes the sections instead, and the
+   card never overflows enough to scroll. */
+.om-mem-panel-body,
+.om-mem-panel-links,
+.om-mem-panel-foot {
+  flex-shrink: 0;
+}
+.om-mem-panel-links {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+}
+.om-mem-link {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  text-align: left;
+  cursor: pointer;
+}
+.om-mem-link:hover {
+  background: var(--surface-hover);
+}
+.om-mem-link-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.om-mem-panel-foot {
+  display: flex;
+  gap: 8px;
+  /* Sits at the bottom on a short fiche, flows after the connections on a long one. */
+  margin-top: auto;
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+}
+.om-skill-use.danger {
+  color: var(--hl-pink);
+}

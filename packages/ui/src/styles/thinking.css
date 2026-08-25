@@ -1,0 +1,105 @@
+/* The WAIT, and what fills it.
+   `.om-think` is the assistant bubble's pending slot: the mini redaction grid
+   (`redaction.css`) — the app-open grid in miniature, still working. When the model
+   is a REASONING one, its live reflection streams beside the loader instead of the
+   silence: real progress the app can actually report, which is the whole difference
+   from the rotating phrases that used to sit here and invented it. */
+.om-think {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0 4px;
+}
+/* With a reflection the row becomes two-line-ish, so the loader rides at the top of
+   the text rather than floating in its middle. */
+.om-think.is-reflecting {
+  align-items: flex-start;
+}
+
+/* TRAILING: the same loader, but UNDER a reply that is still being written instead of
+   standing in for one. It answers the question the streaming text stopped answering the
+   moment the first word landed — « est-ce fini, ou est-ce que ça continue ? ». Tighter
+   above (it hangs off the last line of prose, it doesn't open a new block) and slightly
+   receded, because here it is a status and the answer is the content. */
+.om-think.is-trailing {
+  padding: 0 0 2px;
+  opacity: 0.75;
+}
+
+/* The reflection itself. Column-REVERSE is the trick: with one child, the text sticks
+   to the BOTTOM of the box and the overflow crops the top, so the newest sentence is
+   always the visible one — the tail follows itself with no scroll handler and no
+   measuring. The mask fades what is being cropped, so it reads as "still going" rather
+   than as a hard cut. Muted + small on purpose: the reflection is context, never the
+   answer, and must not compete with the reply that follows it. */
+.om-think-reflection {
+  display: flex;
+  flex-direction: column-reverse;
+  flex: 1;
+  min-width: 0;
+  max-height: 4.4em;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 2em);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 2em);
+}
+
+/* ── The reflection's second life (`components/message/ReasoningPanel.tsx`) ───────
+   Once the answer exists, the reflection is KEPT but stops competing with it: one
+   mono micro-label, the same vocabulary as the trace's « APPEL D'OUTILS » eyebrow,
+   and nothing else until the user asks. It sits in the bubble's flow, not in a card
+   — a bordered box around a collapsed line reads as a THING to deal with, and this
+   is a footnote. */
+.om-reflect { margin: 0 0 8px; }
+.om-reflect-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  transition: color 0.15s var(--ease-out, ease);
+}
+.om-reflect-toggle:hover { color: var(--text-muted); }
+/* The chevron POINTS at the state it will reach: right when closed, down when open. */
+.om-reflect-toggle svg {
+  transform: rotate(-90deg);
+  transition: transform 0.18s var(--ease-out, ease);
+}
+.om-reflect.is-open .om-reflect-toggle svg { transform: none; }
+/* Expanded: the full text, muted and small — context, never the answer. The hairline
+   on the LEADING edge is the only frame it gets; it marks the block as an aside
+   without boxing it. Capped + scrollable, because a thinking model's reflection can
+   run to thousands of words and an unbounded one buries the reply again. */
+.om-reflect-body {
+  margin-top: 6px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border-default);
+  max-height: 22em;
+  overflow-y: auto;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  animation: om-reflect-in 0.22s var(--ease-out, ease) both;
+}
+@keyframes om-reflect-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .om-reflect-toggle svg,
+  .om-reflect-body { animation: none; transition: none; }
+}

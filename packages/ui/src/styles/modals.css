@@ -1,0 +1,288 @@
+/* ============================================================ Modal chrome ==
+   The ONE shared modal shell (containers/modals/ModalShell.tsx) + the marker
+   title every modal head carries (ModalTitle).
+
+   ⚠️ `.modal-scrim` is LOAD-BEARING, not cosmetic: hooks/modalGate.ts matches it
+   to hide the always-on-top NATIVE agent-browser window, which has no DOM
+   z-order. Never rename it, and give any hand-rolled overlay `role="dialog"` or
+   `aria-modal` so it still trips the gate.
+
+   Extracted from styles.css (rule 1: shrink the monolith when you touch it).
+   Imported from the top of styles.css — Lightning CSS silently DROPS an @import
+   placed below the @theme block, so partials must be imported up there. These
+   selectors are defined ONLY here, so the earlier cascade position is inert. */
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  /* ⚠️ Frameless-window trap: Electron computes the drag region GEOMETRICALLY, from the
+     elements that declare `drag` — painting something over one does NOT punch a hole in
+     it. A modal scrims the whole window, `.page-header` (and the chat's `.chat-drag`)
+     are draggable, so without this the modal's own top ~44px stayed a drag handle: the
+     close button MOVED THE WINDOW instead of closing (a tall viewer's header lands right
+     in that strip, which is why the Bibliothèque felt impossible to exit). `app-region`
+     is inherited, so declaring it here covers every panel and control inside. */
+  -webkit-app-region: no-drag;
+  /* The kit's scrim: an ink radial rather than a flat wash, so the panel reads
+     as lit from above. */
+  background: radial-gradient(120% 90% at 50% 0%, rgba(11, 21, 5, 0.34), rgba(11, 21, 5, 0.5));
+  backdrop-filter: blur(2.5px);
+  -webkit-backdrop-filter: blur(2.5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal-scrim.top {
+  align-items: flex-start;
+}
+.modal-panel {
+  position: relative;
+  max-width: 92vw;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 44px 100px -34px rgba(11, 21, 5, 0.55);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.modal-panel.top {
+  margin-top: min(12vh, 110px);
+}
+
+/* One-shot brand sweep on open — the "unmask" reveal, and the ONLY brand flourish a
+   panel wears. Purely decorative, so it is aria-hidden and pointer-events:none. */
+.modal-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--brand) 20%, transparent), transparent);
+}
+
+/* The signature marker highlight on a modal title. `box-decoration-break: clone`
+   keeps the marker painted on EVERY line of a wrapped title instead of one long
+   smear across the line break. */
+.modal-title {
+  margin: 0;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.modal-title.no-marker > span {
+  /* Pas de surligneur : l'encre reprend celle du titre, et le span perd sa boîte —
+     sans quoi le padding décalerait le titre par rapport aux autres têtes de modale. */
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+.modal-title > span {
+  background: var(--hl-lime);
+  /* `--hl-lime` is a FIXED bright hue in BOTH themes, so the ink must be the
+     theme-stable dark forest ink — NOT `--text-strong`, which flips near-white in
+     dark mode and turns the marker title illegible on the lime. Same rule as the
+     redaction marks (`--ink-on-hl`). */
+  color: var(--ink-on-hl);
+  padding: 0 8px;
+  border-radius: 5px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-sweep {
+    display: none;
+  }
+}
+
+/* ── ⌘K palette: a SETTINGS destination row ─────────────────────────────────── */
+/* The palette searches conversations AND settings; a settings row carries its
+   one-line description so the two kinds are never confused at a glance. */
+.search-row-set .search-row-title {
+  flex: 0 0 auto;
+}
+.search-row-sub {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--text-faint);
+}
+
+/* ── ⌘K palette: a stored FILE row ──────────────────────────────────────────── */
+/* The file NAME fills + truncates (base .search-row-title); its owning conversation
+   rides along as a faint, right-aligned suffix that shrinks first, so the filename
+   always wins the row. */
+.search-row-file .search-row-sub {
+  flex: 0 1 auto;
+  max-width: 45%;
+  text-align: right;
+}
+
+/* ── « Importer mes compétences Claude » ──────────────────────────────────────────
+   La liste de ce que l'app a trouvé sur le disque, avant d'en créer quoi que ce soit :
+   une case (importer ou non), un bouton de RANGEMENT (compétence ⇄ workflow, le pari de
+   l'app restant modifiable), et l'avertissement des skills qui s'appuient sur des
+   fichiers annexes — dit AVANT l'import plutôt que découvert à l'usage. */
+.imp-body {
+  max-height: min(52vh, 440px);
+  overflow-y: auto;
+  padding: 4px 2px;
+  border-radius: var(--radius-md);
+  transition: background 0.14s ease, box-shadow 0.14s ease;
+}
+/* Survol d'un dépôt : le corps ENTIER est la cible, pas un rectangle dans le rectangle —
+   viser une zone plus petite que la fenêtre est le meilleur moyen de lâcher à côté. */
+.imp-body.over {
+  background: var(--surface-selected);
+  box-shadow: inset 0 0 0 2px var(--brand);
+}
+/* L'invite, quand rien n'a été trouvé automatiquement : c'est l'état par défaut de qui
+   n'utilise pas Claude Code sur cette machine, donc il propose au lieu de constater. */
+.imp-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 34px 20px;
+  text-align: center;
+  color: var(--text-faint);
+}
+.imp-drop-title {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.imp-drop-sub {
+  margin: 0;
+  max-width: 420px;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.imp-drop-sub code {
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.imp-drop-scan {
+  margin: 8px 0 0;
+  font-size: var(--text-2xs);
+  color: var(--text-faint);
+}
+.imp-drop-error {
+  margin: 10px 2px 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--red-soft);
+  color: var(--red-500);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+.imp-loading,
+.imp-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 4px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.imp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.imp-row {
+  position: relative;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+/* Décochée : présente, mais visiblement hors de l'import — pas retirée de la liste, ce
+   qui obligerait à rouvrir l'écran pour se raviser. */
+.imp-row.off {
+  opacity: 0.5;
+}
+.imp-pick {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+.imp-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.imp-desc {
+  margin: 4px 0 0 25px;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.imp-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 7px 0 0 25px;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--amber-soft);
+  color: var(--amber-500);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+.imp-warn svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+/* Le rangement, en haut à droite de la ligne : un état qu'on bascule, pas une action. */
+.imp-kind {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.imp-kind[aria-pressed="true"] {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--ink-on-brand);
+}
+.imp-note {
+  margin: 12px 2px 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-faint);
+}

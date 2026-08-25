@@ -1,0 +1,221 @@
+/* Empty-thread prompt STARTERS (EmptyPromptSuggestions) — a 2×2 grid of cards that
+   seed + send a first message. The category tiles are NEUTRAL (monochrome): the
+   highlight hues stay the redaction's colour language, not category decoration. */
+.om-starters {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 560px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .om-starters {
+    grid-template-columns: 1fr;
+  }
+}
+/* UNE ligne : tuile · étiquette · invite. La version empilée faisait 78 px par carte,
+   donc 538 px de bloc — l'accueil débordait. */
+.om-starter {
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  cursor: pointer;
+  /* Voir `.om-starter-prompt` : sans ce zéro, la carte impose sa phrase comme largeur. */
+  min-width: 0;
+  transition: transform 0.12s var(--ease-out), border-color 0.12s, box-shadow 0.12s;
+}
+.om-starter:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .om-starter {
+    transition: none;
+  }
+  .om-starter:hover {
+    transform: none;
+  }
+}
+/* Le glyphe porte la catégorie à lui seul (le LOGO pour un service) : écrite à côté de
+   l'invite, l'étiquette prenait la moitié d'une carte de ~270 px et il ne restait plus que
+   « Rédige un email de… ». Elle vit maintenant dans l'infobulle et le nom accessible. */
+.om-starter-tile {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+/* UNE ligne, coupée. L'invite entière reste lisible au survol — elle est sur `title`,
+   donc rendue par l'infobulle de marque.
+   ⚠️ Le plafond se met sur la HAUTEUR (une ligne de boîte), jamais sur `white-space:
+   nowrap` : une ligne insécable donne à la carte une largeur minimale égale à sa phrase,
+   la colonne `1fr` refuse alors de rétrécir, et c'est TOUT l'accueil qui défile
+   horizontalement (mesuré : 911 px de contenu dans 560). Le `min-width: 0` ci-dessous est
+   l'autre moitié de la même règle — sans lui, la taille minimale automatique d'un élément
+   de grille reste celle de son contenu. `starters.overflow.test.ts` épingle les deux. */
+.om-starter-prompt {
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  line-height: 1.4;
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+}
+
+/* ── Credits card meter (CreditsCard) ────────────────────────────────────────
+   Amber + informational: hitting a limit is not an error, and the card must never
+   read like one. Rendered ONLY with real figures (`store.personalCredits`); absent
+   data hides the meter rather than showing an invented amount. */
+.credits-meter {
+  margin-top: 13px;
+}
+.credits-meter-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.credits-meter-used {
+  color: var(--text-muted);
+}
+.credits-meter-left {
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+.credits-meter-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+.credits-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--hl-amber);
+}
+
+/* ── Deux rangées titrées ────────────────────────────────────────────────────
+   « Sans rien configurer » et « Avec vos services » : un débutant et quelqu'un qui a
+   branché cinq services ne cherchent pas la même chose, et aucun des deux ne devrait
+   avoir à deviner que l'autre moitié existe. D'où deux rangées visibles, pas un
+   basculeur. */
+/* ⚠️ La COLONNE est bornée à la largeur des cartes, et c'est ce qui tient le centrage.
+   `.welcome` centre ses enfants, donc la largeur de ce bloc est celle de son plus large
+   enfant : une rangée de puces plus longue que 560 px élargissait le bloc entier, la
+   grille (bornée, elle) se retrouvait collée à gauche et « Ne plus proposer » — aligné à
+   droite — partait au-delà des cartes. Une seule largeur pour tous les enfants, et la
+   rangée de puces passe à la ligne au lieu de déplacer le reste. */
+.om-starters-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 560px;
+}
+.om-starters-title {
+  margin-top: 4px;
+  color: var(--text-faint);
+}
+
+/* « Ne plus proposer » et son retour. Discrets tous les deux : ce sont des réglages de
+   confort, pas des actions de l'écran. Alignés à droite pour ne pas concurrencer la
+   première carte du regard. */
+.om-starters-off,
+.om-starters-back {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.om-starters-off:hover,
+.om-starters-back:hover {
+  background: var(--surface-hover);
+  color: var(--text-body);
+}
+/* Le retour est SEUL sur l'écran (les cartes sont masquées) : centré, il se lit comme
+   une invitation plutôt que comme un résidu collé dans un coin. */
+.om-starters-back {
+  align-self: center;
+}
+
+/* ── Les services NON connectés : une ligne de puces ─────────────────────────
+   Quatre cartes répétant « Connecter pour l'essayer sur vos données » disaient une seule
+   chose quatre fois et prenaient la moitié de l'accueil. Une puce porte le logo, le nom,
+   et rien d'autre — le reste est dans l'infobulle. */
+.om-starter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.om-starter-chips-lead {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-right: 2px;
+}
+.om-starter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px 4px 5px;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+/* Pointillés au repos — le vocabulaire « pas encore là » du produit. Ils deviennent
+   pleins au survol : la puce se propose, elle n'est pas désactivée. */
+.om-starter-chip:hover {
+  border-style: solid;
+  border-color: var(--brand);
+  color: var(--text-strong);
+}
+/* « Voir les autres » n'est PAS une cinquième puce : elle ne nomme aucun service, elle
+   ouvre le catalogue. Sans contour, elle se lit comme la porte au bout de la rangée —
+   et quand la rangée passe à la ligne, un lien discret vaut mieux qu'une puce orpheline
+   qui promettrait un service de plus. */
+.om-starter-chip.more {
+  padding-left: 9px;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--border-default);
+}
+.om-starter-chip.more:hover {
+  text-decoration-color: var(--brand);
+}

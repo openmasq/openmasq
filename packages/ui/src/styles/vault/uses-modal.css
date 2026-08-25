@@ -1,0 +1,90 @@
+/* Coffre — the uses modal (pages/Vault/VaultUsesModal.tsx): where a term has
+   ACTUALLY been redacted. The panel chrome (marker top bar + one-shot sweep) comes
+   from ModalShell and the head's marker title from ModalTitle — see
+   ../modals.css. Only the head's tags and the use list are ours. */
+
+.om-vault-uses-head {
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.om-vault-uses-head .modal-title {
+  margin-bottom: 12px;
+}
+.om-vault-uses-tags {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.om-vault-uses-type {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.om-vault-uses-summary {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}
+.om-vault-uses-summary strong {
+  color: var(--text-strong);
+}
+.om-vault-uses-body {
+  padding: 10px 14px 16px;
+  overflow-y: auto;
+}
+.om-vault-uses-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding: 30px 0;
+}
+.om-vault-use {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border: none;
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.om-vault-use:hover {
+  background: var(--surface-hover);
+}
+.om-vault-use:last-child {
+  border-bottom: none;
+}
+.om-vault-use-main {
+  flex: 1;
+  min-width: 0;
+}
+.om-vault-use-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.om-vault-use-when {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.om-vault-use-count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-strong);
+  background: var(--surface-sunken);
+  border-radius: 4px;
+  padding: 2px 7px;
+  flex-shrink: 0;
+}

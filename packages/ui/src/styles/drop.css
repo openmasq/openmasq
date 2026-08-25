@@ -1,0 +1,81 @@
+/* Glisser-déposer sur une conversation — l'overlay pendant le survol, et la carte qui
+   PROPOSE d'autoriser un dossier (`pages/ChatWorkspace/DropZone.tsx`).
+
+   La carte est une offre, jamais l'autorisation : le clic ouvre le sélecteur système.
+   Elle emprunte donc la mise en forme de la carte de confirmation d'écriture plutôt que
+   celle d'une modale — même statut visuel, même poids. Rien ici ne fige de couleur : tout
+   passe par les tokens, qui s'inversent avec les quatre thèmes (règle 12). */
+
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  /* Le fond du chat, très légèrement voilé : on doit continuer à voir OÙ on dépose. */
+  background: color-mix(in srgb, var(--surface-page) 82%, transparent);
+  backdrop-filter: blur(2px);
+  pointer-events: none; /* l'overlay ne doit pas manger l'événement `drop` */
+}
+
+.drop-overlay-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 420px;
+  padding: 16px 20px;
+  border: 2px dashed var(--border-strong);
+  border-radius: 14px;
+  background: var(--surface-card);
+  color: var(--text-strong);
+}
+
+.drop-overlay-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.drop-overlay-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.drop-offer {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 31;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 380px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background: var(--surface-card);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+.drop-offer-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+/* La phrase qui dit que la confirmation se joue dans la fenêtre système. Elle porte une
+   garantie, donc elle reste lisible : `--text-body`, pas `--text-faint`. */
+.drop-offer-note {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-body);
+}
+
+.drop-offer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

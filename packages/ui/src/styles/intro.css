@@ -1,0 +1,225 @@
+/* ===================================== App-open intro (BrandLogo/AppIntro) =
+   First-load splash: a skeleton scaffold of the app (rail + message rows) in
+   the highlight palette shimmers under the pulsing brand mark. One-shot —
+   AppShell unmounts it with an exit fade once the pulse has played. */
+.app-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  background: var(--surface-page, #fbfbfa);
+  -webkit-app-region: drag; /* the splash covers the title bar — keep it draggable */
+}
+
+/* skeleton scaffold of the app, shimmering in the highlight palette */
+.intro-skel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  padding: 18px;
+  gap: 18px;
+  opacity: 0.5;
+}
+.intro-skel-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 56px;
+  padding-top: 6px;
+  flex-shrink: 0;
+}
+.intro-skel-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--text-strong);
+  opacity: 0.12;
+  margin-bottom: 6px;
+}
+.intro-skel-ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  opacity: 0.5;
+  animation: intro-skel-pulse 1.5s var(--ease-out, ease) infinite;
+}
+.intro-skel-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  max-width: 720px;
+  margin: 26px auto 0;
+  padding: 0 12px;
+}
+.intro-skel-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  animation: intro-skel-pulse 1.6s var(--ease-out, ease) infinite;
+}
+.intro-skel-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+.intro-skel-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding-top: 3px;
+}
+.intro-skel-line {
+  height: 13px;
+  border-radius: 7px;
+  background: var(--text-strong);
+  opacity: 0.09;
+}
+/* colorful shimmer sweeping across the whole scaffold */
+.intro-skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in srgb, var(--hl-lime) 28%, transparent) 42%,
+    color-mix(in srgb, var(--hl-sky) 26%, transparent) 50%,
+    color-mix(in srgb, var(--hl-violet) 26%, transparent) 58%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  animation: intro-skel-shim 1.5s linear infinite;
+}
+@keyframes intro-skel-shim {
+  from { background-position: 160% 0; }
+  to { background-position: -60% 0; }
+}
+@keyframes intro-skel-pulse {
+  0%, 100% { opacity: 0.42; }
+  50% { opacity: 0.72; }
+}
+
+/* the mark only, pulsing over the scaffold */
+.intro-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-strong);
+  animation: intro-mark-pulse 1.8s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) infinite;
+}
+.intro-mark svg {
+  position: relative;
+  z-index: 1;
+}
+/* Blue + blue-dark themes: the scaffold shimmer is the #3939FA brand blue (single hue at
+   varying opacity — NOT the softer periwinkle) instead of the lime/sky/violet palette, so
+   the splash reads as the blue app rather than flashing green. The rainbow skeleton TILES
+   keep the redaction palette. (Both themes hide the scaffold outright below, so this rule
+   only matters if that ever changes.) */
+[data-theme="blue"] .intro-skel::after,
+[data-theme="blue-dark"] .intro-skel::after {
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    color-mix(in srgb, #3939fa 22%, transparent) 42%,
+    color-mix(in srgb, #3939fa 34%, transparent) 50%,
+    color-mix(in srgb, #3939fa 22%, transparent) 58%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+}
+
+/* Blue + blue-dark: no rainbow scaffold — the loader is the ground, the grid ABOVE the
+   mark, and the mark. */
+[data-theme="blue"] .intro-skel,
+[data-theme="blue-dark"] .intro-skel { display: none; }
+
+/* ── Blue / blue-dark splash: a FAINT GRID on which a random right-angled shape forms,
+   its cells filling BLACK to read as redaction — no rainbow scaffold, just the theme
+   ground (white in blue-light), the #3939FA halo, and `--text-strong` ink (black on
+   light, white on dark). CSS-gated so the green light/dark themes keep the coloured
+   scaffold; grid-template comes inline from GRID_COLS/GRID_ROWS. */
+.intro-grid {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  /* A WIDE rectangle (not a square block) — 18×11 cells of 26px: a FINER grid, so a
+     redacted cell reads as a small block rather than a slab next to the 68px mark. */
+  width: 468px;
+  height: 286px;
+  pointer-events: none;
+  --grid-line: color-mix(in srgb, var(--text-strong) 12%, transparent);
+}
+[data-theme="blue"] .intro-grid,
+[data-theme="blue-dark"] .intro-grid { display: grid; }
+/* Each cell draws its faint line (inset outline — no doubling between neighbours) and
+   FADES IN on a staggered delay, so the grid forms bit by bit as a diagonal sweep. */
+/* The cells the mark occupies: the grid is centred ON the logo, so these draw NOTHING —
+   no hairline, no fade — leaving a hole the mark sits in rather than a lattice running
+   under it. `isUnderLogo` (redactionShape.ts) is the single definition of that footprint,
+   shared with the path generator so the trace can't wander into the hole either. */
+.intro-cell.is-clear {
+  box-shadow: none;
+  animation: none;
+  opacity: 1;
+}
+.intro-cell {
+  position: relative;
+  box-shadow: inset 0 0 0 0.5px var(--grid-line);
+  opacity: 0;
+  animation: intro-grid-in 3s var(--ease-out, ease-out) infinite both;
+}
+/* A "redacted" cell: the theme ink filling in a beat AFTER its line arrived. */
+.intro-cell-fill {
+  position: absolute;
+  inset: 0;
+  /* The run's palette swatch, with its OWN ink as the hairline — same pairing as the
+     thinking loader's `.om-mini-fill` (`styles/redaction.css`), since both walk the same
+     palette: the lime block on the light blue ground is 1.25:1 and would otherwise read as
+     a hole in the grid rather than a redaction. */
+  background: var(--cav, var(--text-strong));
+  box-shadow: inset 0 0 0 0.5px var(--cav-on, transparent);
+  transform-origin: center;
+  animation: intro-cell-form 3s var(--ease-out, ease-out) infinite both;
+}
+
+@keyframes intro-grid-in {
+  0% { opacity: 0; }
+  7% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes intro-cell-form {
+  0% { opacity: 0; scale: 0.4; }
+  9% { opacity: 1; scale: 1; }
+  86% { opacity: 1; scale: 1; }
+  100% { opacity: 0; scale: 0.4; }
+}
+@keyframes intro-mark-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.94); }
+  50% { transform: translate(-50%, -50%) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro-skel::after,
+  .intro-skel-ico,
+  .intro-skel-row,
+  .intro-mark {
+    animation: none;
+  }
+  .intro-cell { animation: none; opacity: 1; }
+  .intro-cell-fill { animation: none; opacity: 1; scale: 1; }
+}

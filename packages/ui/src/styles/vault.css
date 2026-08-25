@@ -1,0 +1,25 @@
+/* ============================================================ Coffre (Vault) ==
+   The COFFRE page (pages/Vault/) — the user's dictionary of always-redacted terms
+   — and its uses modal. Reskin of the kit's `VaultPage` / `VaultUsesModal`
+   (.claude/skills/design-system/ui_kits/chat-app/ChatShell.jsx).
+
+   This barrel + its `vault/` folder OWN every `.om-vault-*` and `.om-hue-dot`
+   selector: they are defined HERE and nowhere else. Page chrome (`.library-page`
+   / `.library-body`) is shared with the Bibliothèque and stays in styles.css, as
+   do the shared treatments these rules lean on (`.cv-eyebrow`, the `--hl-*` tokens).
+
+   Split into a folder rather than one file to stay under the 300-LOC cap (rule 1);
+   same barrel-of-partials pattern as apps/extension/src/styles/popup.css. @import
+   rules MUST lead the file — Lightning CSS silently DROPS one placed below any
+   other rule. */
+
+@import "./vault/filters.css";
+@import "./vault/rows.css";
+@import "./vault/add-modal.css";
+@import "./vault/uses-modal.css";
+
+/* The one centred reading column, inside `.library-body`'s scroll panel. */
+.om-vault-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}

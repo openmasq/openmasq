@@ -1,0 +1,91 @@
+import { useEffect, useState } from "react";
+import { LayersIcon } from "../../../../components/brand";
+import { useHost } from "../../../../host";
+import { useUpdates } from "../useUpdates";
+import { envLabel } from "./updateStatus";
+import { envSwitchOffered, otherEnv, switchRefusalText } from "./envView";
+
+// La carte ENVIRONNEMENT du tab Versions : quel environnement cette instance a résolu
+// (production/staging), et — pour un compte testeur, un appareil privilégié, ou toute
+// app déjà sur staging — le bouton pour basculer. La build est la même des deux côtés ;
+// basculer réécrit le pointeur local et redémarre l'app.
+//
+// La visibilité est de l'UX (`envView.ts`) : la VRAIE porte revit dans le processus
+// privilégié à chaque demande (allow-list de noms + permission serveur, fail-closed), et
+// un refus est montré tel quel — jamais un silence.
+
+export function EnvCard() {
+  const host = useHost();
+  const { crossEnv } = useUpdates();
+  const [tester, setTester] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const env = host.env;
+
+  useEffect(() => {
+    if (!env) return;
+    let live = true;
+    // Affichage seulement, fail-closed : sans réponse, la proposition n'apparaît pas.
+    env
+      .stagingTester()
+      .then((v) => {
+        if (live) setTester(v);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [env]);
+
+  if (!env) return null;
+  if (!envSwitchOffered({ env: env.name, stagingTester: tester, crossEnv })) return null;
+
+  const target = otherEnv(env.name);
+
+  const onSwitch = async () => {
+    if (
+      !window.confirm(
+        `Basculer vers l'environnement ${envLabel(target)} ? L'app redémarre et rouvre côté ${envLabel(target)}, avec les données de cet environnement.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setErr(null);
+    const r = await env.switchTo(target).catch(() => null);
+    // ok:true ⇒ l'app redémarre : rien à rendre. Tout le reste se dit.
+    if (!r || !r.ok) {
+      setErr(switchRefusalText(r?.reason));
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="mb-6">
+      <div className="cv-eyebrow ver-eyebrow">ENVIRONNEMENT</div>
+      <div className="ver-now om-sweep-host">
+        <span className="ver-now-mark">
+          <LayersIcon size={22} />
+        </span>
+        <div className="flex-min">
+          <div className="ver-now-name">
+            <span className="om-sweep">{envLabel(env.name)}</span>
+          </div>
+          <div className="ver-now-chan">
+            {env.name === "staging"
+              ? "Environnement de test — données et services de préversion."
+              : "L'environnement normal de l'app."}
+          </div>
+        </div>
+        <button onClick={onSwitch} disabled={busy} className="ver-btn">
+          <span className="om-sweep">Basculer vers {envLabel(target)}</span>
+        </button>
+      </div>
+      {err && (
+        <div className="ver-note ver-note-after">
+          <span className="ver-note-icon">🔒</span>
+          <span>{err}</span>
+        </div>
+      )}
+    </section>
+  );
+}

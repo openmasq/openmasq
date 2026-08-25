@@ -1,0 +1,243 @@
+/* ═══ Champs de formulaire + listes d'étapes des modales ═══
+   Le NUMÉRO d'étape vit dans la case vide, pour qu'une liste non cochée se lise quand
+   même comme une progression. */
+/* ⚠️ Son `@import` (via le barrel `modal.css`) doit rester atteignable depuis les @import
+   DE TÊTE de `styles.css` : Lightning CSS DROPPE silencieusement un @import placé sous le
+   bloc `@theme` (le piège qui avait déjà tué les webfonts). Extrait après vérification que
+   AUCUN de ces sélecteurs n'est redéclaré plus HAUT dans `styles.css` — c'est ce qui rend
+   sa nouvelle position dans la cascade indifférente (le CSS bâti reste le même multiset
+   de règles, seul leur ordre change). */
+
+/* Form fields */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-strong);
+}
+.field-label a {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+}
+.field input[type="text"],
+.field input[type="password"],
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 9px 12px;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-focus);
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color: var(--text-faint);
+}
+
+/* "Mes clés" (BYO) connector setup modal. Horizontal padding matches `.rrm-head`
+   (26px) so the body aligns with the header instead of touching the panel edges. */
+.byo-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 26px 12px;
+  overflow-y: auto;
+}
+/* A tickable CHECKLIST, not a numbered list: the user leaves for the provider's
+   console at almost every step, and the tick is the bookmark they come back to. The
+   counter replaces the `::marker` because the tick box takes the marker's place. */
+.byo-steps {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  counter-reset: byo-step;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--text-body);
+}
+.byo-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  counter-increment: byo-step;
+}
+/* Done: dimmed, never struck through — the text stays readable because a step often
+   has to be re-checked when the connection fails. */
+.byo-steps li.done .byo-step-text {
+  color: var(--text-faint);
+}
+.byo-tick {
+  flex: none;
+  width: 19px;
+  height: 19px;
+  margin-top: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--surface-card);
+  color: var(--ink-on-brand);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+/* The step NUMBER lives in the empty box, so an unticked list still reads 1-2-3-4. */
+.byo-tick::before {
+  content: counter(byo-step);
+  color: var(--text-faint);
+}
+.byo-tick:hover {
+  border-color: var(--brand);
+}
+.byo-steps li.done .byo-tick {
+  border-color: var(--brand);
+  background: var(--brand);
+}
+.byo-steps li.done .byo-tick::before {
+  content: none;
+}
+.byo-step-text {
+  min-width: 0;
+}
+/* Inline deep-link inside a step — brand-coloured, wraps as one unit with its ↗. */
+.byo-link {
+  color: var(--brand);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.byo-link:hover {
+  text-decoration: underline;
+}
+.byo-hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+/* Paste-time verdict under a credential field. `error` blocks the submit (a shape the
+   value provably can't have); `warn` only explains, so it stays neutral ink. */
+.byo-issue {
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+.byo-issue.error {
+  color: var(--danger, #d64550);
+}
+.byo-issue.warn {
+  color: var(--text-muted);
+}
+/* "Des identifiants sont déjà enregistrés" banner — a soft lime confirmation with
+   a small filled dot, shown atop the BYO form when saved keys can be reused. */
+.byo-saved {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md, 10px);
+  background: color-mix(in oklch, var(--brand) 10%, transparent);
+  border: 1px solid color-mix(in oklch, var(--brand) 26%, transparent);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-body);
+}
+.byo-saved-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 999px;
+  background: var(--brand);
+}
+
+.field-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  line-height: 1.5;
+  cursor: pointer;
+}
+.field-check input[type="checkbox"] {
+  margin-top: 2px;
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.field-check code,
+.modal code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-sunken);
+  color: var(--coral-700);
+}
+
+/* Buttons */
+.primary,
+.ghost {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast);
+}
+.primary {
+  background: var(--brand);
+  /* The ink that inverts with `--brand` (rule 12) — the `.btn-primary` motif. */
+  color: var(--ink-on-brand);
+  border: 1px solid transparent;
+}
+.primary:hover {
+  background: var(--brand-hover);
+}
+.primary:disabled {
+  background: var(--warm-200);
+  cursor: default;
+}
+.ghost {
+  background: var(--surface-card);
+  color: var(--text-body);
+  border: 1px solid var(--border-default);
+}
+.ghost:hover {
+  background: var(--surface-hover);
+}
+.primary:active,
+.ghost:active {
+  transform: scale(0.98);
+}

@@ -1,0 +1,199 @@
+/* ============================================ Versions tab — tab chrome ==
+   The installed-build card, the update controls/status, and the privileged
+   Production/Staging segmented control. See ../versions.css for the family
+   contract; this file is imported from there, never directly. */
+
+.ver {
+  display: flex;
+  flex-direction: column;
+}
+
+.ver-eyebrow {
+  margin-bottom: 6px;
+}
+.ver-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------- Installed-build card */
+.ver-now {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+/* The signature ink tile with the lime check — the kit's "you are up to date". */
+.ver-now-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  /* Brand tile + the inverting check ink, matching the app chrome. */
+  background: var(--brand);
+  color: var(--ink-on-brand);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ver-now-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-lg);
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.ver-now-chan {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+/* The install-ID copy affordance: a quiet mono line that warms on hover. */
+.ver-now-id {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.ver-now-id:hover {
+  color: var(--text-muted);
+}
+
+/* ------------------------------------------------------------- Controls */
+.ver-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-body);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.ver-btn:hover {
+  background: var(--surface-hover);
+}
+/* The download is ready — promote the button to the brand fill. */
+.ver-btn.primary {
+  background: var(--brand);
+  border-color: transparent;
+  /* The ink that inverts with `--brand` (rule 12) — the `.btn-primary` motif. */
+  color: var(--ink-on-brand);
+}
+.ver-btn.primary:hover {
+  filter: brightness(1.08);
+}
+/* The per-row install / rollback / switch control: quieter than `.ver-btn`. */
+.ver-btn.row {
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: var(--text-xs);
+}
+.ver-btn.row:hover {
+  background: var(--surface-hover);
+}
+
+/* Live update status (checking / downloading / error). */
+.ver-status {
+  margin-bottom: 12px;
+}
+.ver-status-line {
+  font-size: var(--text-xs);
+}
+.ver-progress {
+  margin-top: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+.ver-progress-fill {
+  height: 100%;
+  background: var(--brand);
+  /* width is a runtime percentage → inline on the element. */
+  transition: width var(--dur-fast) var(--ease-out);
+}
+
+/* The locked-rollback / staging-warning footnotes. */
+.ver-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-bottom: 10px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.ver-note-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+/* A footnote that sits BELOW the list it qualifies rather than above it. */
+.ver-note.ver-note-after {
+  margin-bottom: 0;
+  margin-top: 10px;
+}
+
+/* --------------------------------------- Channel segmented control (kit) */
+/* A PRIVILEGED device sees both environments and can switch between them. The
+   kit's segmented control replaces a stacked list: one env at a time, so a long
+   staging feed can't bury production. */
+.ver-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-sunken);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.ver-seg-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  background: transparent;
+  color: var(--text-muted);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.ver-seg-btn.on {
+  background: var(--surface-card);
+  color: var(--text-strong);
+  box-shadow: var(--shadow-xs, 0 1px 2px rgba(24, 40, 12, 0.08));
+}
+/* The eyebrow + segmented control share one baseline row. */
+.ver-hist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.ver-hist-head .ver-eyebrow {
+  margin-bottom: 0;
+}
+

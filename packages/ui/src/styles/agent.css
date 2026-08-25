@@ -1,0 +1,240 @@
+/* The IN-CHAT agent surface: the `AgentCard` container family every card the agent
+   renders inside a conversation is built from (action confirmation / integration
+   proposal / credits / web-nav reveal), the brand's marker-pen highlight, and the
+   empty-thread prompt starters. Peeled out of styles.css (rule 1).
+
+   This is the ENTRY of the family; feature blocks live in ./agent/* so no file passes
+   the 300-LOC cap (rule 1). The @imports MUST stay at the TOP — Lightning CSS silently
+   DROPS one that follows a rule. Each partial owns a uniquely-prefixed family defined
+   nowhere else (`.webnav-offer*` / `.integration-tile*` / `.om-starter*`),
+   so the earlier cascade position is inert. The SHARED `.agent-card-*` shell stays HERE. */
+
+@import "./agent/webnavOffer.css";
+@import "./agent/integrationTiles.css";
+@import "./agent/starters.css";
+
+/* ===================================== In-chat AGENT CARDS (AgentCard) ===== */
+/* The shared shell for every container the agent renders INSIDE a conversation:
+   accent stripe · glyph tile · mono eyebrow · marker title · recessed footer.
+   One family (action confirmation / integration proposal / credits / web-nav
+   reveal), so they can't drift into four bespoke boxes. Per-state hues are inline
+   (runtime-computed — the one case rule 6 allows); everything else lives here. */
+.agent-card {
+  position: relative;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+  overflow: hidden;
+}
+.agent-card-stripe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+.agent-card-body {
+  display: flex;
+  gap: 13px;
+  padding: 15px 18px 16px 20px;
+}
+.agent-card-main {
+  flex: 1;
+  min-width: 0;
+}
+.agent-card-eyebrow {
+  margin-bottom: 7px;
+}
+/* Neutre par défaut : le fond vient de `GlyphTile` (sunken), le filet d'ici — une tuile
+   sans bord flottait sur la carte dès que son fond cessait d'être une teinte pleine. */
+.agent-card-tile {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border-subtle);
+  box-sizing: border-box;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+}
+.agent-card-tile.sm {
+  width: 34px;
+  height: 34px;
+}
+/* Raster brand favicon inside a suggestion tile — contained, never cropped. */
+.agent-card-tile .agent-tile-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: var(--radius-xs);
+}
+.agent-card-tile.sm .agent-tile-img {
+  width: 21px;
+  height: 21px;
+}
+.agent-card-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+  line-height: 1.4;
+}
+.agent-card-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+/* ⚠️ NO flex-wrap: the actions must stay on ONE row beside the note. Wrapping split
+   "Annuler" from "Naviguer" onto two lines and buried the primary action. The note
+   truncates instead — it is context, the buttons are the point. */
+.agent-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+}
+/* The footer's muted note (shield/lock/clock + one line), pushed left of the actions. */
+.agent-card-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  min-width: 0;
+  overflow: hidden;
+}
+.agent-card-note > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-card-note svg {
+  flex-shrink: 0;
+}
+/* The actions never shrink or wrap away. */
+.agent-card-footer > button {
+  flex-shrink: 0;
+}
+.agent-card-spacer {
+  flex: 1;
+}
+/* The resolved footer's status line (done = forest, else muted). */
+.agent-card-resolved {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+}
+.agent-card-resolved.done {
+  color: var(--forest-500);
+}
+/* A boxed preview / detail region inside a card (target row + content). */
+.agent-card-box {
+  margin-top: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.agent-card-box.is-muted {
+  opacity: 0.55;
+}
+.agent-card-box-target {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-body);
+}
+.agent-card-box-target-label {
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.agent-card-box-target-val {
+  color: var(--text-strong);
+  font-weight: var(--weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-card-box-preview {
+  padding: 11px 13px;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--text-body);
+  white-space: pre-wrap;
+  max-height: 148px;
+  overflow: auto;
+}
+.agent-card-box-preview.mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+/* Mono pill list (OAuth scopes, categories…). */
+.agent-card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+/* Kit refinement: OAuth scopes read as a tidy 2-column grid of square-ish chips
+   (radius-sm, not pill) with a long scope ellipsized instead of wrapping ragged. */
+.agent-card-chips.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+}
+.agent-card-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 0;
+}
+.grid2 .agent-card-chip {
+  border-radius: var(--radius-sm);
+}
+.agent-card-chip .chip-check {
+  color: var(--forest-500);
+  flex-shrink: 0;
+}
+.agent-card-chip .chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* The brand's marker-pen highlight (kit `KV_MARK`) — a lime swipe behind a title.
+   `box-decoration-break: clone` keeps the swipe on every wrapped line. */
+.om-mark {
+  background: var(--hl-lime);
+  /* Dark ink that holds in BOTH themes — the lime fill is theme-stable, so `--text-strong`
+     (near-white in dark mode) would make the label unreadable under the swipe. */
+  color: var(--ink-on-hl);
+  padding: 0 8px;
+  border-radius: 5px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}

@@ -1,0 +1,21 @@
+/* Réglages → Compte : la carte ORGANISATION sous le compte — un BOUTON
+   plein-carte (une cible, pas un panneau de commandes) qui ouvre l'onglet
+   Organisation. Famille `.account-org`, définie nulle part ailleurs. */
+.account-org {
+  margin-top: 10px;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+.account-org:hover {
+  background: var(--surface-hover);
+}
+.account-org:disabled {
+  cursor: default;
+}
+.account-org > svg {
+  color: var(--text-faint);
+  flex-shrink: 0;
+}

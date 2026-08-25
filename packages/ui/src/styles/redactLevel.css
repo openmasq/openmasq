@@ -1,0 +1,99 @@
+/* ================================ Niveau de redaction, depuis le composeur ==
+   Le popover derrière le bouton « niveau » de la rangée d'action
+   (pages/ChatWorkspace/ComposerRedactMenu.tsx). Famille `.crm-*` + son ancre,
+   définies NULLE PART ailleurs — c'est ce qui rend sa position dans la cascade
+   indifférente (cf. ../CLAUDE.md).
+
+   Les CARTES ne sont pas habillées ici : elles viennent de `PrivacyLevelPicker`
+   (`.privacy-level*`, la même feuille que Réglages → Confidentialité). Ce fichier
+   ne pose que le contenant et le pied de portée — redéfinir les cartes ferait
+   diverger deux surfaces qui décident la MÊME chose. */
+
+.composer-redact-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+/* ⚠️ PORTALÉ et `position: fixed` — la position ET la hauteur viennent de `usePopover`
+   (`anchor`, `clampHeight`), pas d'ici. En `absolute` sous le bouton, deux choses
+   cassaient : les ancêtres à `overflow` du composeur clippaient le menu, et sur l'écran
+   d'accueil les trois cartes dépassaient la place au-dessus du composeur — l'intitulé et
+   la première carte sortaient par le haut de la fenêtre. Ne pas y remettre `bottom`/`left`. */
+.crm-pop {
+  position: fixed;
+  z-index: 60;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  -webkit-app-region: no-drag;
+}
+
+.crm-eyebrow {
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+
+/* ── Les cartes ────────────────────────────────────────────────────────────────
+   Volontairement PLUS COMPACTES que celles des Réglages (`.privacy-level`) : ici la
+   décision se change en passant, là-bas elle se pèse. Deux états, jamais confondus —
+   la COCHE dit le niveau en vigueur, le FOND PLEIN celui qu'on vient de choisir et qui
+   n'est pas encore appliqué. */
+.crm-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.crm-level {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.crm-level:hover {
+  background: var(--surface-hover);
+}
+/* Le choix EN ATTENTE : fond plein, sans contour — il se distingue de la coche, qui
+   dit l'état en vigueur, et non ce qu'on s'apprête à poser. */
+.crm-level.armed {
+  background: var(--surface-sunken);
+  border-color: transparent;
+}
+.crm-level-ico {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--text-strong);
+}
+.crm-level-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.crm-level-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.crm-level-name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+.crm-level-check {
+  display: inline-flex;
+  color: var(--brand);
+}
+.crm-level-desc {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--text-muted);
+}

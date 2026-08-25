@@ -1,0 +1,176 @@
+/* Pastille d'état (StatusChip) + son dock — la famille `.kchip-*`, définie NULLE PART
+   ailleurs (cf. ../CLAUDE.md : c'est ce qui rend sa position dans la cascade indifférente).
+
+   Ce qu'elle remplace, et pourquoi : les avis PERMANENTS du shell (hors ligne, connecteur
+   tombé, accès limités) étaient des `.kb` pleine largeur en `position: fixed; bottom: 0`.
+   Une phrase confisquait donc toute la partie basse de l'app — composeur compris — pour
+   aussi longtemps que durait l'état. Ici la pastille ne montre que son TITRE, fait la
+   largeur de son texte, et se déplie au clic.
+
+   Le TON n'est pas redéfini ici : la pastille porte `.kb--<ton>`, qui pose `--ac`/`--bg`.
+   Une seule table ton→couleur dans le produit (règle 9), et les quatre thèmes la suivent
+   sans rien à retoucher ici. */
+
+.kchip-dock {
+  position: fixed;
+  bottom: 12px;
+  /* Au ras du bord GAUCHE de la zone de contenu : 60px = le rail d'icônes (`.nav-dock`
+     replié, l'état par défaut), + la même gouttière que le reste du châssis. Le bas de
+     ce rail porte les réglages et l'avatar — s'y superposer rendrait deux commandes
+     inatteignables. */
+  left: 72px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: min(380px, calc(100vw - 96px));
+  -webkit-app-region: no-drag;
+  /* Le dock lui-même n'intercepte jamais rien : seules ses pastilles prennent le clic,
+     le reste du bas de l'app reste cliquable à travers. */
+  pointer-events: none;
+}
+.kchip-dock > * {
+  pointer-events: auto;
+}
+/* Sidebar dépliée ⇒ la pastille suit le bord de la zone de contenu, sinon elle couvrirait
+   la ligne « Vous / Espace privé » qui en occupe le pied. Sans `:has()`, elle reste à 72px
+   (elle chevauche ce pied, elle ne le bloque pas — le dépli est un état voulu, réversible). */
+.app:has(.nav-dock.open) .kchip-dock {
+  left: calc(var(--sidebar-w) + 12px);
+}
+/* Mobile : le bas appartient à la barre d'onglets ET au composeur, tous deux fixés.
+   La pastille passe donc en haut à DROITE — le retour et le titre d'écran sont à gauche. */
+.app-mobile .kchip-dock {
+  top: calc(env(safe-area-inset-top) + 8px);
+  right: 10px;
+  bottom: auto;
+  left: auto;
+  align-items: flex-end;
+  max-width: calc(100vw - 20px);
+}
+
+.kchip {
+  --ac: var(--text-strong);
+  --bg: var(--surface-card);
+  width: max-content;
+  max-width: 100%;
+  background: var(--bg);
+  border: 1px solid color-mix(in oklch, var(--ac) 30%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+.kchip-row {
+  display: flex;
+  align-items: center;
+}
+.kchip-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 10px 5px 5px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: var(--font-sans);
+}
+button.kchip-head {
+  cursor: pointer;
+}
+.kchip-ic {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ac);
+  /* Même paire que `.kb-ic` : encre claire sur le ton plein, qui reste un ton MOYEN dans
+     les quatre thèmes. Le cas `redact` (fond forêt) prend son encre lime, plus bas. */
+  color: #fff;
+}
+.kchip-ic svg {
+  width: 15px;
+  height: 15px;
+}
+.kb--redact .kchip-ic {
+  color: var(--lime-bright);
+}
+.kchip-label {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kchip-caret {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  transition: transform 0.18s var(--ease-out);
+}
+.kchip-open .kchip-caret {
+  transform: rotate(180deg);
+}
+.kchip-x {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  margin-right: 4px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kchip-x:hover {
+  background: color-mix(in oklch, var(--text-strong) 8%, transparent);
+  color: var(--text-strong);
+}
+
+.kchip-detail {
+  padding: 9px 12px 11px;
+  border-top: 1px solid color-mix(in oklch, var(--ac) 22%, transparent);
+}
+.kchip-msg {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.kchip-act {
+  margin-top: 9px;
+  height: 28px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--ac);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kchip {
+    animation: kchip-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+@keyframes kchip-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

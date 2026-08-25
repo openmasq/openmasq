@@ -1,0 +1,96 @@
+import { useState } from "react";
+import { SparklesIcon, WorkflowIcon, EditIcon } from "../brand";
+import { RedactedText } from "./RedactedText";
+import { useOpenCompetence } from "../../competences/competenceOpen";
+import { competenceServerMeta } from "../../competences/launch";
+import type { Message } from "../../types";
+
+/**
+ * The compétence tag on a SENT user bubble. The prompt rode the model payload, not the
+ * message text (see `schema`'s `Message.competence`), so this is the only trace of it —
+ * a chip that expands to reveal what actually went out.
+ *
+ * ⚠️ **Un seul tag pour les deux anciennes listes.** Il y en avait deux, jumeaux, dont un
+ * pour les « workflows » ; ici c'est le CHAMP `servers` qui change le glyphe et fait
+ * paraître les connecteurs à côté du nom — pas un second composant. Il rend aussi bien
+ * `message.competence` que l'ancien `message.workflow`, sans quoi tous les tours déjà
+ * envoyés perdraient leur étiquette (`MessageBubble` fait le rapprochement).
+ *
+ * It shows the SNAPSHOT stored on the message, never today's version of the compétence:
+ * the point of opening it is "what did this turn send?", and the answer stops being true
+ * the moment someone edits the compétence. "Éditer" is offered separately, and labelled
+ * as the thing it is.
+ *
+ * The prompt renders through `RedactedText` like any bubble text, so a value the engine
+ * redacted in it is marked here too — the user sees which parts the model got as fakes.
+ */
+export function CompetenceTag({
+  competence,
+  vault,
+  kinds,
+}: {
+  competence: NonNullable<Message["competence"]>;
+  vault?: Record<string, string>;
+  kinds?: Record<string, string>;
+}) {
+  const [open, setOpen] = useState(false);
+  const openCompetence = useOpenCompetence();
+  const servers = (competence.servers ?? []).map(competenceServerMeta);
+
+  return (
+    <div className="msg-comp">
+      <button
+        type="button"
+        className="msg-tag msg-comp-btn"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        title={open ? "Masquer l'instruction envoyée" : "Voir l'instruction envoyée au modèle"}
+      >
+        {servers.length > 0 ? <WorkflowIcon size={12} /> : <SparklesIcon size={12} />}
+        <span>{competence.name}</span>
+        {servers.length > 0 && (
+          <span className="msg-wf-srvs">
+            {servers.map((s) => (
+              <span key={s.id} className={`msg-wf-srv tone-${s.tone}`}>
+                {s.name}
+              </span>
+            ))}
+          </span>
+        )}
+        <span className={`msg-comp-caret${open ? " open" : ""}`} aria-hidden="true">
+          ›
+        </span>
+      </button>
+
+      {open && (
+        <div className="msg-comp-body">
+          <div className="msg-comp-head">
+            <span className="cv-eyebrow">Instruction envoyée au modèle</span>
+            {/* Only offered when the shell wired the provider AND we can still resolve
+                the compétence — a deleted one leaves the snapshot readable, not a dead link. */}
+            {openCompetence && (
+              <button
+                type="button"
+                className="msg-comp-edit"
+                onClick={() => openCompetence(competence.id)}
+              >
+                <EditIcon size={12} />
+                Éditer
+              </button>
+            )}
+          </div>
+          {competence.prompt ? (
+            <div className="msg-comp-prompt">
+              <RedactedText text={competence.prompt} vault={vault} kinds={kinds} />
+            </div>
+          ) : (
+            // The prompt lives in the encrypted DB (it is real user text, stripped from
+            // the plaintext copy — `send/sendGuards.ts`). Absent = it hasn't loaded, or
+            // this message predates the field. Say so rather than imply it was empty.
+            <div className="msg-comp-empty">Instruction indisponible pour ce message.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

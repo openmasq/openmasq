@@ -1,0 +1,272 @@
+/* ═══ Mémoire — the page's own leaves: profile/editor forms + the card's compaction
+   history. The GRAPH stage and its selection side panel live in ./memoryStage.css
+   (the family passed the 300-LOC cap, rule 1 — skills.css imports both). ═══ */
+
+/* ── Mémoire (the page reuses the om-skill family; only its two form leaves are new) ── */
+.om-mem-profile,
+.om-mem-editor {
+  margin-bottom: 14px;
+}
+.om-mem-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.om-mem-input,
+.om-mem-textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+.om-mem-textarea {
+  resize: vertical;
+}
+.om-mem-auto {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 560px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.om-mem-auto-badge {
+  color: var(--brand);
+}
+/* La borne d'un champ borné, dite sous lui (fiche 600, profil 1200). */
+.om-mem-limit {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs, 10px);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* « À revoir » — la boîte de réception du mode silencieux : un accent d'attention
+   tant qu'il reste quelque chose à traiter (le chip disparaît à zéro, il ne
+   s'éteint pas — traiter est ce qui le vide). */
+.om-mem-fresh {
+  border-color: var(--brand);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+/* Où la fiche a servi — la ligne d'usage sous le nom, dans le panneau. */
+.om-mem-usage {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Le profil se modifie d'un clic sur son texte (même contrat que la carte document). */
+.om-mem-profile-text {
+  cursor: text;
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-fast);
+}
+.om-mem-profile-text:hover {
+  background: var(--surface-sunken);
+}
+
+/* Le filet de la suppression : un toast bas de page, quelques secondes, « Annuler »
+   réinsère la fiche telle quelle. */
+.om-mem-undo {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  box-shadow: 0 8px 28px rgba(11, 21, 5, 0.16);
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}
+.om-mem-undo strong {
+  color: var(--text-strong);
+}
+
+/* ── Recherche + vue LISTE (le graphe fait comprendre, la liste fait trouver) ── */
+.om-mem-toolbar {
+  margin-bottom: 10px;
+}
+.om-mem-search {
+  max-width: 340px;
+}
+/* Liste + panneau côte à côte. PAS d'absolu ici : le panneau absolu s'étirait sur toute
+   la hauteur de la LISTE (des milliers de px à 50+ fiches), et son pied — le bouton
+   Supprimer — partait hors écran. En flex, la liste garde sa hauteur, le panneau la
+   sienne (bornée + collante, voir memoryStage.css). */
+.om-mem-listwrap {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  min-height: 260px;
+}
+.om-mem-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  /* Colonne étroite : le panneau passe AU-DESSUS de la liste (l'ordre DOM le mettrait
+     dessous, loin de la ligne qu'on vient de cliquer). */
+  .om-mem-listwrap {
+    flex-direction: column-reverse;
+  }
+}
+/* Une ligne = un CONTENEUR (div) : le corps cliquable `.om-mem-row-main` ouvre le
+   panneau, et une ligne « à revoir » porte ses gestes de traitement à côté —
+   Confirmer / Supprimer — sans imbriquer de boutons. */
+.om-mem-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 6px 12px 6px 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+.om-mem-row:hover {
+  background: var(--surface-hover);
+}
+.om-mem-row.on {
+  border-color: var(--brand);
+}
+.om-mem-row.fresh {
+  border-color: color-mix(in srgb, var(--brand) 45%, var(--border-subtle));
+}
+.om-mem-row-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 0 4px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.om-mem-row-act {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.om-mem-row-act:hover {
+  background: var(--surface-sunken);
+}
+.om-mem-row-act.danger {
+  color: var(--danger, #b3261e);
+}
+/* Groupement par catégorie (bascule de la barre d'outils). */
+.om-mem-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.om-mem-group + .om-mem-group {
+  margin-top: 10px;
+}
+.om-mem-group-head {
+  padding: 2px 2px 0;
+}
+.om-mem-row-entity {
+  flex: none;
+  max-width: 32%;
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.om-mem-row-facts {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.om-mem-row-badge {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs, 10px);
+  color: var(--brand);
+}
+.om-mem-row-date {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs, 10px);
+  color: var(--text-muted);
+}
+.om-mem-list-empty {
+  padding: 18px 4px;
+}
+
+/* L'historique de compaction d'une fiche : ce qu'une mise à jour a remplacé. */
+.om-mem-history {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.om-mem-history-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+.om-mem-history-prev {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+}
+.om-mem-history-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs, 10px);
+  color: var(--text-muted);
+}
+.om-mem-history-restore {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--brand);
+  cursor: pointer;
+}
+.om-mem-history-restore:hover {
+  text-decoration: underline;
+}
+

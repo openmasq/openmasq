@@ -1,0 +1,65 @@
+/**
+ * Drives `@openmasq/sync` off the chat store. Two effects, both best-effort:
+ *  • pull+merge a thread's remote vault when it becomes active (so replies
+ *    un-redact with values another device produced),
+ *  • push the active thread's vault + report new-redaction counts to the user's
+ *    org(s), debounced, whenever the active conversation is touched.
+ *
+ * A hook keeps the wiring out of `App.tsx`. No-op end-to-end when sync is off
+ * (no passphrase / no VITE_BACKEND_URL / signed out) — see `client.ts`.
+ */
+import { useEffect } from "react";
+import { useChatStore } from "@openmasq/ui";
+import { authHost } from "../auth";
+import { pullConv, pushConv, registerDevice, reportAudit } from "./client";
+
+type Store = ReturnType<typeof useChatStore>;
+
+export function useVaultSync(store: Store): void {
+  const activeId = store.active?.id;
+  const touchedAt = store.active?.updatedAt;
+
+  // Heartbeat this device into the account's device list: on app open AND whenever the
+  // signed-in account (re)resolves. Le montage seul ne suffisait PAS : au tout premier
+  // lancement il court AVANT que la session existe (l'utilisateur se connecte APRÈS),
+  // le transport rend alors null sans erreur et plus rien ne réessayait avant le
+  // prochain redémarrage — le Mac fraîchement installé restait invisible dans
+  // « Appareils connectés », et sa synchro muette. On ré-inscrit au fil des évènements
+  // d'auth, dédupliqué par compte (TOKEN_REFRESHED ne re-poste pas).
+  useEffect(() => {
+    let registeredUid: string | null = null;
+    void registerDevice();
+    return authHost.onChange((user) => {
+      if (!user || user.id === registeredUid) return;
+      registeredUid = user.id;
+      void registerDevice();
+    });
+  }, []);
+
+  // Merge the remote vault for the freshly-activated thread.
+  useEffect(() => {
+    const active = store.active;
+    if (!active) return;
+    let cancelled = false;
+    void pullConv(active).then((merged) => {
+      if (!cancelled && merged) store.mergeVaultInto(active.id, merged.vault, merged.kinds);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Re-run only when the active thread's cross-device key changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
+
+  // Push + report after the active conversation settles (a send grew its vault).
+  useEffect(() => {
+    const active = store.active;
+    if (!active) return;
+    const t = setTimeout(() => {
+      void pushConv(active);
+      void reportAudit(store.conversations);
+    }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId, touchedAt]);
+}

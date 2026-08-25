@@ -1,0 +1,200 @@
+/* ======================================= Versions tab — release history ==
+   The card list of published builds (version + state pill + lead) and each row's
+   expandable Contentful release notes. See ../versions.css for the family
+   contract; this file is imported from there, never directly. */
+
+/* ------------------------------------------------------------ The list */
+.ver-table {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.ver-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 18px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+/* Bound the history so a channel with many builds (one staging build per CI run)
+   scrolls inside a fixed viewport instead of stacking endlessly. */
+.ver-rel-list {
+  max-height: 440px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+/* Infinite-scroll sentinel row: the loader shows while more releases remain. */
+.ver-rel-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
+}
+.ver-relrow:not(:last-child) {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ver-relrow.is-current {
+  background: color-mix(in oklch, var(--brand) 12%, transparent);
+}
+.ver-relrow-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 18px;
+}
+.ver-relrow-head.clickable {
+  cursor: pointer;
+}
+.ver-relrow-head.clickable:hover {
+  background: var(--surface-hover);
+}
+.ver-ver-line {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.ver-ver-num {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.ver-rellead {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.ver-relrow-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.ver-reldate {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+/* A real <button> now (keyboard accordion control) — neutralise the user-agent
+   chrome so it renders exactly as the former <span> did. */
+.ver-relchev {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  /* the rotation is toggled by the `.open` modifier (end of file). */
+  transition: transform 0.2s var(--ease-out);
+}
+/* The "Actuelle" tag on the running build's row. */
+.ver-curtag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
+/* Release lifecycle pill (mirrors the kit's states). The "available" blue uses
+   the sky highlight tokens so it stays theme-aware in dark mode. */
+.ver-state {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 3px;
+  padding: 2px 7px;
+}
+.ver-state.current {
+  color: var(--brand);
+  background: color-mix(in oklch, var(--brand) 14%, transparent);
+}
+.ver-state.available {
+  color: var(--hl-sky);
+  background: var(--hl-sky-soft);
+}
+.ver-state.past {
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+}
+
+/* -------------------------------------------------- Expanded release notes */
+.ver-relnotes {
+  padding: 2px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ver-relnotes-plain {
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  line-height: 1.5;
+}
+.ver-relgroup-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 9px;
+}
+.ver-reldot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  /* Default (Nouveautés) dot → brand blue (was lime). imp=violet, fix=pink stay. */
+  background: var(--brand);
+}
+/* Group tone modifiers (the kit's 3 colour-coded sections): the default dot is
+   lime (Nouveautés); Améliorations = violet, Corrections = pink. */
+.ver-reldot.imp {
+  background: var(--hl-violet);
+}
+.ver-reldot.fix {
+  background: var(--hl-pink);
+}
+.ver-rellist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ver-rellist li {
+  display: flex;
+  gap: 10px;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-body);
+}
+.ver-relbullet {
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border-strong, var(--text-faint));
+  margin-top: 8px;
+}
+.ver-relbody {
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  line-height: 1.55;
+}
+
+/* Open state of the accordion chevron (was an inline transform — rule 6). */
+.ver-relchev.open {
+  transform: rotate(180deg);
+}

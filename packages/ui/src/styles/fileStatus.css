@@ -1,0 +1,51 @@
+/* ═══ Aperçu de document — les ÉTATS du redaction (audit 2026-08-10) ═══
+   Famille propre à ce partial (sélecteurs définis nulle part ailleurs) : le bandeau
+   d'échec de la passe de dépôt, la note de coupe d'envoi, et le sous-titre-bouton
+   qui déplie le détail par catégorie. Les encres sont APPARIÉES à leur fond
+   (jamais un --text-* sur un pastel --hl-* : il s'inverse, le pastel non — balayé
+   par styles/frozenInk.test.ts). */
+
+/* Échec de la passe de dépôt : même gabarit que .fv-coverage-note, teinte alerte. */
+.fv-redact-fail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 7px 11px;
+  border-radius: var(--radius-md);
+  background: var(--hl-pink-soft);
+  border: 1px solid var(--hl-pink);
+  font-size: var(--text-xs);
+  color: var(--ink-on-hl);
+}
+
+/* La coupe d'envoi, matérialisée au caractère près sous la dernière page. */
+.fv-truncnote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px auto 4px;
+  padding: 7px 11px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px dashed var(--border-default);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  width: fit-content;
+}
+
+/* Le sous-titre-bouton (détail par catégorie au clic) garde la typo du sous-titre. */
+.fv-caption-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.fv-caption-btn:hover {
+  text-decoration: underline dotted;
+}
+.fv-caption-detail {
+  margin-top: 2px;
+}

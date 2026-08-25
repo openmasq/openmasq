@@ -1,0 +1,235 @@
+/* ── `.om-console` — la coque des consoles d'administration ───────────────────────────
+   Elles chargent la MÊME feuille que le chat, mais ne sont pas une surface de chat : le
+   kit admin (`.claude/skills/design-system/ui_kits/admin`) est fait de surfaces bordées,
+   là où le chat aplatit tout. La marque sert deux fois.
+
+   1. `styles.css` exclut cette coque de la peau sans bordure (`#root:not(:has(.om-console))`),
+      donc les hairlines et l'élévation du design system y restent — plutôt que de les
+      redéclarer ici, ce qui figerait le clair sous un thème sombre.
+   2. Ci-dessous : un `<a>` de console est de la CHROME (une entrée de nav, une entrée de
+      menu), pas de la prose. Or `a { color: var(--text-link) }` est HORS calque et bat
+      donc tout utilitaire Tailwind (calqué), quelle que soit la spécificité — la
+      navigation entière ressortait en indigo, `text-body` ou pas. `revert-layer` rend la
+      main aux calques inférieurs : l'utilitaire s'il existe, l'héritage sinon.
+
+   Épinglé par `styles/consoleSkin.test.ts`. */
+.om-console a {
+  color: revert-layer;
+}
+
+/* Le reset que Tailwind n'applique PAS ici : son preflight est désactivé à dessein (le
+   reset de l'app garde la main), et celui de `styles.css` ne donne au `button` que sa
+   police. Un `<button>` nu garde donc la chrome du navigateur — `2px outset`, fond
+   `ButtonFace`, encre noire —, ce qui transformait en pastilles encadrées les lignes de
+   membres d'une équipe, les six pastilles de couleur et deux boutons-icônes.
+   ⚠️ Dans le calque `theme`, DÉLIBÉRÉMENT : déclaré hors calque, il battrait les
+   utilitaires Tailwind (calqués) et effacerait le fond des boutons pleins. `theme` est
+   déclaré avant `utilities` (les deux @import de tête de `styles.css`), donc une classe
+   reprend toujours la main. */
+@layer theme {
+  .om-console button {
+    background: none;
+    border: none;
+    color: inherit;
+  }
+}
+
+/* Le titre d'une modale de console suit le gabarit admin — 17 px / 600 en `--font-sans` —
+   et non le display lourd (Archivo 900, 24 px) que `.modal-header h2` donne aux modales du
+   chat : ici une modale est un formulaire (inviter, créer une équipe), pas une annonce.
+   Impossible en utilitaire au point d'appel, pour la raison ci-dessus : `.modal-header h2`
+   est hors calque et bat toute classe Tailwind. */
+.om-console .modal-header h2 {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+/* ═══ LA COQUE À TROIS COLONNES ══════════════════════════════════════════════════════
+   Portée telle quelle de `.claude/skills/design-system/ui_kits/_shared/console.css` — la
+   source de design, jamais éditée depuis ici. Rail d'ICÔNES pour les groupes → PANNEAU qui
+   nomme le groupe courant et liste ses vues → CARTE de contenu.
+
+   ⚠️ Pourquoi trois colonnes et pas deux, puisque la précédente marchait : une barre plate
+   de dix entrées fait concourir tous les libellés au même niveau, donc rien ne se lit comme
+   une hiérarchie. Séparer le rail du panneau fait du groupe un endroit où l'on EST — le
+   panneau le nomme — et laisse la carte porter son propre titre, ses actions et ses onglets
+   sans un second entête empilé au-dessus.
+
+   Tout est scopé sous `.om-console` : ces noms de classe ne peuvent donc jamais atteindre le
+   chat, qui possède `.om-settings-rail` avec une autre géométrie. Les deux consoles (admin
+   et opérateur) lisent cette feuille — c'est ce qui les empêche de diverger.
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+
+.om-console {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  background: var(--surface-page);
+  font-family: var(--font-sans);
+  position: relative;
+}
+
+/* ---- column 1 — the group rail ------------------------------------------ */
+.om-console-rail {
+  flex: 0 0 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+.om-console-mark {
+  width: 40px; height: 40px; margin-bottom: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; cursor: pointer; border-radius: var(--radius-md);
+  transition: background .14s ease;
+}
+.om-console-mark:hover { background: var(--surface-hover); }
+.om-console-rbtn {
+  position: relative;
+  width: 44px; height: 44px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: var(--radius-md); cursor: pointer;
+  background: transparent; color: var(--text-muted);
+  transition: background .12s ease, color .12s ease;
+}
+.om-console-rbtn:hover { background: var(--surface-hover); color: var(--text-strong); }
+.om-console-rbtn[data-on="1"] {
+  background: color-mix(in oklch, var(--brand) 12%, transparent);
+  color: var(--brand);
+}
+/* The active marker sits on the rail's outer edge, so the eye can find the
+   current group without reading any label. */
+.om-console-rbtn[data-on="1"]::before {
+  content: ""; position: absolute; left: -8px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 22px; border-radius: 999px; background: var(--brand);
+}
+.om-console-rail-sep { width: 26px; height: 1px; background: var(--border-subtle); margin: 6px 0; }
+
+/* ---- column 2 — the group panel ----------------------------------------- */
+.om-console-panel {
+  flex: 0 0 246px;
+  display: flex; flex-direction: column;
+  min-height: 0;
+  margin: 10px 0 10px 0;
+  padding: 18px 14px 14px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  overflow-y: auto;
+}
+.om-console-ptitle {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--text-xl);
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  margin: 0 6px 14px;
+}
+.om-console-plist { display: flex; flex-direction: column; gap: 2px; }
+.om-console-pbtn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 10px;
+  border: none; border-radius: var(--radius-md); cursor: pointer;
+  background: transparent; color: var(--text-body);
+  text-align: left;
+  font-family: var(--font-sans); font-size: var(--text-sm); font-weight: 500;
+  transition: background .12s ease, color .12s ease;
+}
+.om-console-pbtn:hover { background: var(--surface-hover); color: var(--text-strong); }
+.om-console-pbtn[data-on="1"] {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  font-weight: 700;
+}
+.om-console-pico { display: inline-flex; flex-shrink: 0; color: var(--text-faint); }
+/* ⚠️ ADAPTATION au produit, pas au kit : nos entrées de panneau sont des `<a>` (la console
+   se cite par URL, donc lien profond, clic-milieu et bouton Retour), là où le kit a des
+   `<button>` d'état. Or `.om-console a { color: revert-layer }` ci-dessus vaut (0,1,1) et
+   bat la classe (0,1,0) : les entrées inactives ressortaient en couleur de LIEN, indigo,
+   toutes au même niveau que l'entrée active. On requalifie par le conteneur — jamais
+   `!important`, la même règle que le reste de ce fichier. */
+.om-console .om-console-pbtn { color: var(--text-body); }
+.om-console .om-console-pbtn:hover,
+.om-console .om-console-pbtn[data-on="1"] { color: var(--text-strong); }
+.om-console-pbtn[data-on="1"] .om-console-pico { color: var(--brand); }
+.om-console-pn {
+  margin-left: auto; flex-shrink: 0;
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint);
+}
+.om-console-peyebrow {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--text-faint);
+  margin: 16px 6px 7px;
+}
+
+/* ---- column 3 — the content card ---------------------------------------- */
+.om-console-main {
+  flex: 1; min-width: 0; min-height: 0;
+  display: flex; flex-direction: column;
+  margin: 10px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+.om-console-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 24px 0;
+  flex-shrink: 0;
+}
+.om-console-htitle {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display); font-weight: 800;
+  font-size: var(--text-2xl); letter-spacing: -0.03em;
+  color: var(--text-strong);
+  margin: 0;
+}
+.om-console-htitle svg { color: var(--text-faint); flex-shrink: 0; }
+.om-console-hsub {
+  font-size: var(--text-sm); color: var(--text-muted);
+  margin: 4px 0 0; padding: 0 24px;
+  flex-shrink: 0;
+}
+.om-console-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.om-console-body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  padding: 22px 24px 32px;
+}
+/* A flex/grid item defaults to min-width:auto — it will not shrink below its content, so
+   one wide row makes the whole card scroll sideways and clips its neighbours. The console
+   column is ~576px at 1280, far narrower than the full-width layout these views were
+   written against, so the default has to be neutralised here rather than per view. */
+.om-console-body > *,
+.om-console-body [class*="row"],
+.om-console-body table { min-width: 0; max-width: 100%; }
+/* A row of cards, written for a full-width page and now living in a ~576px column. As a
+   CLASS rather than an inline style: three rounds of regex patching missed rows whose
+   formatting differed by a single space, and a class name cannot be missed that way.
+   The basis lets two sit side by side while there is room, and stack once there is not. */
+.om-console-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: stretch; }
+.om-console-row > * { flex: 1 1 240px; min-width: 0; }
+
+/* Opt-in escape hatch: a genuinely wide table scrolls WITHIN itself, never dragging the
+   card's chrome sideways with it. */
+.om-console-wide { overflow-x: auto; max-width: 100%; }
+
+/* ---- responsive --------------------------------------------------------- */
+@media (max-width: 1080px) {
+  .om-console-panel { flex-basis: 206px; }
+}
+@media (max-width: 880px) {
+  /* The panel is the first thing to go: its list is reachable from the rail's
+     tooltips, and the content card is what the screen is for. */
+  .om-console-panel { display: none; }
+  .om-console-rail { flex-basis: 60px; }
+  .om-console-main { margin: 8px; }
+  .om-console-head { padding-left: 16px; padding-right: 16px; }
+  .om-console-hsub, .om-console-body { padding-left: 16px; padding-right: 16px; }
+}

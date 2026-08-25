@@ -1,0 +1,78 @@
+/* Tooltip — THE hover/focus label, drawn by `components/brand/TooltipLayer.tsx` for every
+   `title` in the app. Portaled to <body> and fixed-positioned, so it escapes the `overflow`
+   ancestors its triggers sit in; the layer measures and supplies top/left, this owns look. */
+.cv-tooltip {
+  position: fixed;
+  z-index: 1000;
+  /* Not two words: the labels this now draws range from « Envoyer » to a full sentence
+     (« Ce que la machine a écrit et que vous n'avez pas encore relu… »). A `nowrap`
+     bubble would run off the viewport, which the placement maths cannot fix — only
+     wrapping can. */
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  /* Inverted ground: a tooltip must read as an overlay ON the app, not as another
+     surface OF it — hence the strong ink as background, and the token that inverts
+     WITH it for the text (rule 12: no frozen hex over a themed ground). */
+  background: var(--text-strong);
+  color: var(--surface-card);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  /* A single long word (a URL, a file name) must break rather than widen the bubble
+     past its max and spill. */
+  overflow-wrap: anywhere;
+  /* `pre-line`, pas `normal` : deux appelants passent un `title` MULTILIGNE (une barre
+     empilée liste ses séries, un modèle ses connecteurs) et leurs `\n` étaient repliés
+     en espaces — la légende du jour sortait en une seule phrase illisible. `pre-line`
+     garde les sauts voulus ET continue de replier les lignes trop longues. */
+  white-space: pre-line;
+  box-shadow: var(--shadow-md);
+  /* It follows the pointer's target; it must never BE one, or moving onto the bubble
+     fires the trigger's pointerout and the pair flickers. */
+  pointer-events: none;
+  animation: cv-tooltip-in var(--dur-fast) var(--ease-out);
+}
+
+/* The measuring pass: in the DOM (so its wrapped height is real) but never seen.
+   `visibility` rather than `display:none`, which would measure as a zero box. */
+.cv-tooltip.measuring {
+  visibility: hidden;
+  top: 0;
+  left: 0;
+}
+
+/* Flipped above its trigger — the entry slide comes from the other side. */
+.cv-tooltip.above {
+  animation-name: cv-tooltip-in-above;
+}
+
+@keyframes cv-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cv-tooltip-in-above {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cv-tooltip {
+    animation: none;
+  }
+}

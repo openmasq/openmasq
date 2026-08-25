@@ -1,0 +1,25 @@
+/* ============================================================ Login card ====
+   The passwordless sign-in modal (pages/Login/LoginScreen.tsx), restyled to the
+   design-system chat-app kit's `LoginModal`.
+
+   ⚠️ SCOPE — owns `.auth-card` + `.login-*` ONLY. `.auth-scrim` / `.app-behind`
+   are deliberately NOT here: the scrim is SHARED with pages/Onboarding, and is
+   load-bearing besides (hooks/modalGate.ts matches `.auth-scrim` to hide the
+   always-on-top native agent-browser window). They stay in styles.css.
+
+   The sweep / marker title reuse the shared modal chrome from ./modals.css
+   (`.modal-sweep`, `.modal-title`) rather than re-declaring it — this card is not
+   a ModalShell, but speaks the same language.
+   Only the sweep's ANIMATION is added here (ModalShell drives its own with
+   framer-motion; this card animates in CSS).
+
+   A BARREL: the family sat exactly AT the 300-line cap, so the next edit crossed it
+   (rule 1 — split before you cross). Split by surface — `card` = the panel, its
+   chrome and the logo lockup; `form` = the fields, buttons and messages. styles.css
+   imports only this file; the nested @imports resolve at bundle time.
+
+   ⚠️ Imported from the top of styles.css — Lightning CSS silently DROPS an @import
+   placed below the @theme block, so partials must be imported up there. */
+
+@import "./auth/card.css";
+@import "./auth/form.css";

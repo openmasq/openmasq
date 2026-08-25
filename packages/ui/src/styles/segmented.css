@@ -1,0 +1,50 @@
+/* ── Le SÉLECTEUR segmenté — un contrôle, une famille ──────────────────────────────
+   Deux sections l'utilisent (la consommation : voie de facturation + fenêtre ; le
+   Journal : redaction ⇄ réseau), donc il ne porte le nom d'aucune des deux. Il vivait
+   dans `usage.css` sous `.usage-seg` : une troisième section qui l'aurait voulu aurait
+   soit importé le nom d'une page voisine, soit recopié la vingtaine de lignes — et c'est
+   la recopie qui gagne, à chaque fois. */
+.om-seg {
+  display: inline-flex;
+  /* Enfant direct d'une `.settings-section` (colonne flex), un `inline-flex` s'ÉTIRE :
+     la pastille prenait toute la largeur de la page. */
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+}
+.om-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+.om-seg-btn:hover {
+  color: var(--text-strong);
+}
+/* La paire MESURÉE : `--ink-on-brand` est le token fait pour l'encre sur un aplat
+   `--brand`, et il bascule avec le thème (`textContrast.test.ts` l'épingle dans les
+   quatre). Avant : `--forest-700` + `--lime` en dur — une pastille vert forêt au milieu
+   d'une app indigo, parce que le thème bleu ne re-pointe pas la rampe verte. */
+.om-seg-btn.on {
+  background: var(--brand);
+  color: var(--ink-on-brand);
+}
+/* Le compteur d'un segment : mono, discret — il dit COMBIEN, l'étiquette dit QUOI. */
+.om-seg-n {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  opacity: 0.75;
+}

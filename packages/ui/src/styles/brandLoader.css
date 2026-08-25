@@ -1,0 +1,46 @@
+/* ── BrandLoader — the brand mark, loading ───────────────────────────────────
+   The ring is what is ALREADY there, so it sits ghosted and still; only the
+   redaction bar moves, sweeping across it and back. That asymmetry is the whole
+   point: dim both and the mark reads as a fade, which says "waiting" instead of
+   saying what the wait is about — the product's own redaction, still working.
+
+   `mono` pins the mark to the strong ink (the black logo). `--text-strong`
+   inverts with the theme — near-black in light, light in dark — so the mark
+   never vanishes on a dark surface (root rule 12); without the token a frozen
+   hex would disappear in two of the four themes.
+
+   `transform-box: fill-box` is what makes the sweep size-independent: without
+   it the percentages resolve against the SVG viewport, and the bar drifts off
+   the ring at any size but the one it was tuned at. */
+.om-loader {
+  padding: 4px 0 2px;
+}
+.om-loader.mono {
+  color: var(--text-strong);
+}
+.om-loader-ring {
+  opacity: 0.28;
+}
+.om-loader-bar {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .om-loader-bar {
+    animation: om-loader-sweep 1.15s var(--ease-out, ease-out) infinite;
+  }
+}
+@keyframes om-loader-sweep {
+  0% {
+    transform: translateX(-6%) scaleX(0.34);
+    opacity: 0.45;
+  }
+  45% {
+    transform: translateX(0) scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(6%) scaleX(0.34);
+    opacity: 0.45;
+  }
+}

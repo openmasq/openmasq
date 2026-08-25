@@ -1,0 +1,83 @@
+/* ── Document viewer: .pptx ───────────────────────────────────────────────────
+   Same posture as `./docx.css`: the deck's own typography, colours and geometry
+   arrive as inline styles from `pptxLayout.ts`, read out of the file. This file
+   supplies the chrome around a slide and a readable floor — nothing that could
+   overwrite what the deck states.
+
+   The slide is a PAGE, not an app surface: white in both themes, like `.pdfv-page`
+   and `.fv-docx`. A deck has no dark mode. */
+
+.pptxv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.pptxv-slide-wrap {
+  position: relative;
+}
+
+.pptxv-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-bottom: 5px;
+}
+
+/* The outer box carries the SCALED footprint (set inline) so the flow reserves the
+   right height; the plane inside is the true-size, transformed one. `overflow:hidden`
+   is what makes this a slide edge: a shape positioned past the slide bounds is
+   CLIPPED by PowerPoint too, so letting it spill would show content the deck does
+   not display. */
+.pptxv-slide {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+}
+
+.pptxv-plane {
+  position: relative;
+  /* width/height/transform are set inline (runtime-computed from the deck). */
+}
+
+/* Every shape is absolutely placed in the plane's coordinate space. */
+.pptxv-text,
+.pptxv-img {
+  position: absolute;
+}
+
+.pptxv-text {
+  /* A floor, only for a deck that states nothing. Generic families, never the app's
+     branded ones — see docx.css. */
+  font-family: sans-serif;
+  font-size: 18pt;
+  line-height: 1.2;
+  color: #000;
+}
+
+.pptxv-img {
+  object-fit: contain;
+}
+
+.pptxv-p {
+  margin: 0;
+  /* Line breaks inside a run are real characters (`<a:br/>`); without pre-wrap the
+     browser collapses them and the slide loses its intended line structure. */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+/* The bullet is presentation, not content — it is rendered from `para.bullet`, never
+   from a run, so it stays out of a selection over the slide's text. */
+.pptxv-bullet {
+  user-select: none;
+}
+
+.pptxv-text ::selection {
+  background: var(--hl-coral, rgba(255, 217, 204, 0.9));
+}

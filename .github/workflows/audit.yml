@@ -1,0 +1,56 @@
+name: audit
+
+# Dependency-audit GATE. Runs `pnpm audit` and fails ONLY on high/critical
+# advisories that reach a SHIPPED or internet-facing surface (see
+# scripts/audit-gate.mjs — SERVED_WORKSPACES + the dev-tool denylist). Dev/build/
+# test tooling (electron-builder, vitest, wrangler, vite, react-email's Next, …)
+# is reported but never fails the build, so the signal isn't drowned by noise.
+#
+# ⚠️ NOT a required status check yet. Today it is RED on real existing debt
+# (Electron 31 · xlsx@0.18.5 · Hono 4.9 on apps/updates · path-to-regexp ReDoS).
+# It's informational until that debt is cleared; once it goes green, add `audit`
+# to the branch-protection required checks (Terraform-managed
+# required_status_checks, outside this repo) to make it blocking.
+on:
+  # NI sur push NI sur pull_request : ce gate ne déploie rien, n'est pas un check requis,
+  # et il est ROUGE sur de la dette connue (voir ci-dessus) — un run par PR ajoutait donc
+  # 25 échecs sur 300 runs qui n'apprenaient rien à personne et noyaient les vrais rouges.
+  # Les avis de sécurité sont de toute façon TEMPORELS (une CVE arrive sans changement de
+  # code) : le cron hebdomadaire suit la dette mieux qu'un run par commit, et le workflow
+  # reste lançable à la main avant un changement de dépendances.
+  # ⚠️ Le jour où il passe au vert et devient un check requis (branch protection,
+  # côté Terraform), lui REMETTRE `pull_request: branches: [main, dev]` — un
+  # check requis qui ne se déclenche jamais bloque toutes les PR.
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+# Lecture seule : le gate lit le lockfile et le registre npm, il n'écrit rien via
+# GITHUB_TOKEN.
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      # No `cache: pnpm` here on purpose: this job never runs `pnpm install`, so
+      # the pnpm store dir never exists and setup-node's post-run cache-save step
+      # fails the job with "Path Validation Error … do(es) not exist". The gate
+      # only reads the lockfile + registry, so there's nothing to cache anyway.
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+
+      # `pnpm audit` resolves from the lockfile + the registry; no install/build
+      # needed, so this stays fast and independent of the main `ci` job.
+      - name: Dependency audit gate
+        run: node scripts/audit-gate.mjs

@@ -1,0 +1,135 @@
+/* Part of the login styles — see ../auth.css for the family's contract. */
+
+/* Blue-green aurora veil — subtle, continuous drift behind the auth scrim's
+   card (login AND onboarding both mount it inside `.auth-scrim`). Decorative:
+   aria-hidden at the call sites, pointer-events none, stilled under
+   reduced-motion. The agent-browser DRIVE HALO is this same aurora, pinned by
+   copy in desktop main — `haloParity.test.ts` fails on any drift. */
+.om-aurora {
+  position: absolute;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.85;
+  filter: blur(46px);
+  background:
+    radial-gradient(38% 46% at 22% 30%, color-mix(in srgb, var(--hl-mint) 55%, transparent), transparent 70%),
+    radial-gradient(42% 50% at 78% 24%, color-mix(in srgb, var(--hl-sky) 50%, transparent), transparent 72%),
+    radial-gradient(46% 52% at 60% 82%, color-mix(in srgb, var(--hl-mint) 42%, transparent), transparent 74%),
+    radial-gradient(40% 48% at 30% 78%, color-mix(in srgb, var(--hl-sky) 40%, transparent), transparent 72%);
+  background-repeat: no-repeat;
+  animation: om-aurora-kf 16s ease-in-out infinite;
+}
+@keyframes om-aurora-kf {
+  0% { transform: translate3d(-3%, -2%, 0) scale(1.05) rotate(0deg); }
+  33% { transform: translate3d(3%, 2%, 0) scale(1.12) rotate(4deg); }
+  66% { transform: translate3d(-2%, 3%, 0) scale(1.08) rotate(-3deg); }
+  100% { transform: translate3d(-3%, -2%, 0) scale(1.05) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .om-aurora {
+    animation: none;
+  }
+}
+
+/* Compact centered card in the shared `.auth-scrim`. `margin:auto` (rather than
+   centering on the scrim) so a tall card scrolls fully instead of clipping at the
+   top. Padding lives on the head/body, so the bar + sweep run edge to edge. */
+.auth-card {
+  position: relative;
+  margin: auto;
+  width: 428px;
+  max-width: 94vw;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 44px 100px -34px rgba(11, 21, 5, 0.55);
+  overflow: hidden;
+}
+/* The kit's one-shot "unmask" reveal on open. `.modal-sweep` supplies the geometry
+   + gradient; this only drives it. Decorative — `.modal-sweep` is already
+   aria-hidden, pointer-events:none, and display:none under reduced-motion. */
+.login-sweep {
+  animation: login-sweep 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes login-sweep {
+  from {
+    transform: translateX(-70%);
+  }
+  to {
+    transform: translateX(190%);
+  }
+}
+
+/* Header: logo lockup + marker title + sub. Plain card, no tinted band. */
+.login-head {
+  position: relative;
+  padding: 26px 30px 4px;
+}
+.login-body {
+  position: relative;
+  padding: 22px 30px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+/* The kit's lockup: an INK mark on a BRAND tile. `BrandMark` paints with
+   `currentColor`, so the tile and the mark must come from tokens that move in
+   OPPOSITE directions across themes. `--text-strong` moves WITH `--brand` (both
+   dark in light theme, both light in dark theme), which painted the mark onto its
+   own background — 1.05:1. `--brand-contrast` is the token that inverts (it maps to
+   `--lime`, which flips per theme), so it stays ~12:1 either way. */
+.login-word-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--brand);
+  color: var(--brand-contrast);
+  box-shadow: 0 4px 12px -6px rgba(11, 21, 5, 0.5);
+  flex-shrink: 0;
+}
+.login-word-letters {
+  font-size: 27px;
+  line-height: 1;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+}
+/* The title reuses `.modal-title` via the shared `ModalTitle` primitive, so there
+   is deliberately no `.login-title` of our own. */
+.login-sub {
+  position: relative;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 10px 0 0;
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+/* The mono assurance strip. Do NOT reinstate the kit's "CHIFFRÉ DE BOUT EN BOUT":
+   this path is a link/code emailed by Supabase over TLS — there is no end-to-end
+   encryption to claim, and an unverifiable security claim on a privacy product is
+   a lie the user cannot check. See `AssureStrip` in pages/Login/parts.tsx. */
+.login-assure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+  text-align: center;
+}
+.login-assure-icon {
+  flex-shrink: 0;
+}

@@ -1,0 +1,48 @@
+{
+  "name": "@openmasq/catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./models": {
+      "types": "./dist/models/index.d.ts",
+      "import": "./dist/models/index.js",
+      "require": "./dist/models/index.cjs"
+    },
+    "./mcp": {
+      "types": "./dist/mcp/index.d.ts",
+      "import": "./dist/mcp/index.js",
+      "require": "./dist/mcp/index.cjs"
+    },
+    "./redaction": {
+      "types": "./dist/redaction/index.d.ts",
+      "import": "./dist/redaction/index.js",
+      "require": "./dist/redaction/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"(no lint configured)\"",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@openmasq/branding": "workspace:*",
+    "@openmasq/llm": "workspace:*",
+    "@openmasq/redact": "workspace:*"
+  },
+  "devDependencies": {
+    "@openmasq/connectors": "workspace:*",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3"
+  }
+}

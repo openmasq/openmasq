@@ -1,0 +1,274 @@
+name: CI
+
+# Le retour sur PR et sur push vers une branche protégée : la vérification partagée
+# (`verify.yml` — build, typecheck, gates, suite unitaire), les deux gardes propres à ce
+# contexte (dérive FEATURES.md, e2e backend) —
+# ET, depuis le 14/08, LES DÉPLOIEMENTS EUX-MÊMES, chaînés en `needs: [ci]`.
+#
+# ⚠️ C'est ce fichier qui décide QUI se déploie : les workflows de déploiement n'ont plus
+# de déclencheur `push` à eux, ils sont APPELÉS ici (bloc en fin de fichier), et leur
+# filtre de chemins vit dans le job `changes` ci-dessous. Pourquoi : chacun rejouait
+# `verify.yml` pour son compte sur le même commit — jusqu'à quatre vérifications
+# identiques par push, ~19 % de la facture Actions (mesuré sur 7 jours). La barrière ne
+# change pas — rien ne se déploie sans un `verify` vert — elle est juste tenue par une
+# dépendance de job plutôt que par un runner qui attend, ou qui recalcule.
+#
+# Garde son propre `verify` (aucun run de CI à attendre sur son déclencheur) :
+# `release.yml` (tag).
+#
+# Déploiements chaînés ici : deploy-vercel.yml (Vercel) · release-gateway.yml (conteneur
+# Scaleway) · release-functions.yml (fonctions, `main` seulement) · deploy-updates.yml
+# (Worker de mises à jour).
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+# ⚠️ `dorny/paths-filter` (job `changes`) lit la liste des fichiers modifiés PAR L'API
+# GitHub sur un événement `pull_request` — un `git diff` local ne lui suffit pas là. Sans
+# `pull-requests: read` il répond « Resource not accessible by integration » et le job
+# tombe en 20 s, entraînant tout ce qui en dépend. C'est resté invisible tant que ces
+# workflows n'ont tourné que sur des PUSH (où paths-filter diffe localement) : la
+# PREMIÈRE pull request les a tous fait échouer d'un coup.
+# Le reste est explicitement en lecture seule — moindre privilège, et le défaut du dépôt
+# ne décide plus à notre place.
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Gate the HEAVY backend-e2e job (spins up Postgres + migrate/seed/jest) on
+  # backend-relevant changes only - it isn't a required check and gates no deploy,
+  # so running the whole Postgres journey for a desktop-/ui-/docs-only push was pure
+  # waste. The `ci` job itself stays UNGATED (it IS the required status check -
+  # path-skipping a required check would leave a PR forever "waiting").
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.f.outputs.backend }}
+      vercel: ${{ steps.f.outputs.vercel }}
+      updates: ${{ steps.f.outputs.updates }}
+      gateway: ${{ steps.f.outputs.gateway }}
+      functions: ${{ steps.f.outputs.functions }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # PR : dorny lit la liste des fichiers PAR L'API (pull-requests: read), le
+          # clone ne sert à rien de plus — profondeur 1. Push : il diffe localement,
+          # historique complet requis.
+          fetch-depth: ${{ github.event_name == 'pull_request' && 1 || 0 }}
+          persist-credentials: false
+      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
+        id: f
+        with:
+          filters: |
+            backend:
+              - 'apps/backend/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - '.github/workflows/ci.yml'
+            vercel:
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'vercel.json'
+              - 'apps/web/**'
+              - 'apps/backend/**'
+              - '.github/workflows/deploy-vercel.yml'
+            updates:
+              - 'apps/updates/**'
+              - '.github/workflows/deploy-updates.yml'
+            gateway:
+              - 'apps/gateway/**'
+              - 'packages/redact/**'
+              - '.github/workflows/release-gateway.yml'
+            functions:
+              - 'apps/auth/**'
+              - 'apps/analytics-fn/**'
+              - 'supabase/functions/**'
+              - 'packages/emails/**'
+              - '.github/workflows/release-functions.yml'
+
+  # La vérification elle-même. Le job garde l'identifiant `ci` : c'est le contexte que
+  # Terraform nomme dans `github_required_status_checks` (le jour où un token admin
+  # permettra de poser la protection de branche, il apparaîtra en `ci / verify`).
+  # ⚠️ TOUS les déploiements en dépendent (`needs: [ci]`).
+  # Le check-run que la protection de `main` EXIGE — contexte littéral « ci ». Un job qui
+  # appelle un workflow réutilisable ne publie que ses ENFANTS (« ci / verify »), jamais
+  # son propre nom : la promotion staging → main (PR #21) est restée BLOCKED avec TOUS
+  # les checks verts, parce qu'aucun check ne s'appelait « ci ». Ce job-verdict porte ce
+  # nom et synthétise : rouge si un job requis a échoué ou a été annulé ; un job SAUTÉ
+  # (chemins non touchés) compte comme bon — c'est le filtre `changes` qui l'a décidé.
+  verdict:
+    name: ci
+    if: always()
+    needs: [changes, ci, features-drift, backend-e2e]
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Verdict
+        run: |
+          set -euo pipefail
+          results='${{ toJSON(needs.*.result) }}'
+          echo "résultats: $results"
+          if echo "$results" | grep -qE '"(failure|cancelled)"'; then
+            echo "::error::Un job requis a échoué ou a été annulé."
+            exit 1
+          fi
+          echo "ci ✓"
+
+  ci:
+    uses: ./.github/workflows/verify.yml
+    secrets:
+      POSTHOG_INGEST_KEY: ${{ secrets.POSTHOG_INGEST_KEY }}
+      ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
+
+  # NUDGE de dérive FEATURES.md (règle 13) — non bloquant à dessein, et propre à ce
+  # contexte : il diffe contre une base que seul l'événement PR/push fournit, ce qui est
+  # exactement pourquoi il ne rejoint pas `verify.yml` (un déploiement sur tag n'a pas de
+  # base à differ). Il attrape ce que le cliquet ne peut pas — un commit qui change une UI
+  # porteuse de fonctionnalité sans toucher FEATURES.md dans le même diff.
+  features-drift:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # PAS d'install ni de pnpm : le script n'importe que node:child_process et
+      # n'exécute que du git. `cache: pnpm` sans install ferait même échouer la
+      # sauvegarde du cache (le piège documenté dans audit.yml).
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+      - name: Master-file drift nudge
+        env:
+          FEATURES_DRIFT_BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: node scripts/check-features-drift.mjs
+
+  # Backend integration e2e: the supertest scenarios (tests/e2e/scenario_*.ts)
+  # run via jest against a REAL Postgres (docker service), migrated + seeded.
+  # Auth is the SAME real flow as prod - no bypass: the scenarios mint real ES256
+  # tokens (helpers/createToken) which the backend verifies via JWKS. The jest
+  # global setup (helpers/jwksServer) serves the dev public JWKS in-process and
+  # points SUPABASE_URL at it, so no GoTrue is needed here (Postgres only).
+  # Stripe is mocked in the scenarios (jest.mock of services/stripeService), so
+  # no real keys/network. NODE_ENV=ci -> src/config/env-files/ci.env.
+  backend-e2e:
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: openmasq_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: ci
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - name: Turbo cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/turbo/openmasq
+          key: turbo-${{ runner.os }}-${{ github.sha }}-e2e
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+
+      # The backend runs from src (tsx/jest) but consumes its workspace deps'
+      # dist/ - build the backend + its dependencies only (not the whole repo).
+      # Via turbo (le wrapper) et non `pnpm -r` : mêmes artefacts, mais restaurés du
+      # cache quand le paquet n'a pas changé. ⚠️ Par `pnpm build` et pas `node
+      # scripts/turbo.mjs` : le wrapper spawn `turbo` NU, que seul le PATH posé par pnpm
+      # (node_modules/.bin) sait résoudre — en direct, c'est `spawn turbo ENOENT`.
+      - name: Build backend deps
+        run: pnpm build --filter="@openmasq/backend..."
+
+
+      # Schema + product/price catalog against the Postgres service. The local-dev
+      # org seed is NODE_ENV=local-only, so it's a no-op here.
+      - name: Migrate + seed
+        run: |
+          pnpm --filter @openmasq/backend migrate
+          pnpm --filter @openmasq/backend seed
+
+      # supertest journeys (jest --runInBand) against the migrated DB.
+      - name: Backend e2e scenarios
+        run: pnpm --filter @openmasq/backend test:e2e
+
+  # ══════════════════════════════════════════════════════════════════════════════════
+  # LES DÉPLOIEMENTS — chaînés ICI, plus déclenchés chacun de leur côté (14/08).
+  #
+  # Avant : chaque workflow de déploiement se déclenchait sur le MÊME push et rejouait
+  # `verify.yml` pour son propre compte. Un seul commit payait la vérification quatre
+  # fois — et la « correction » du 13/08 côté Vercel n'avait fait que remplacer la
+  # deuxième vérification par une BOUCLE D'ATTENTE qui interroge le verdict toutes les
+  # 30 s : un runner est facturé au temps d'horloge, donc attendre douze minutes coûte
+  # exactement ce que coûte vérifier douze minutes. Mesuré : 733 min-eq gaspillées sur
+  # les 7 jours précédant ce changement, ~19 % de toute la facture Actions.
+  #
+  # Maintenant : `needs: [ci]`. La barrière est la MÊME — rien ne se déploie sans un
+  # `verify` vert — mais elle est tenue par GitHub, pas par un script qui sonde une API :
+  # elle ne peut ni viser le mauvais SHA, ni expirer au bout de 45 minutes, ni se tromper
+  # de run. Et elle couvre désormais les QUATRE apps Vercel, là où seule `web` était gatée.
+  #
+  # ⚠️ Le filtre de chemins de chaque déploiement a déménagé dans le job `changes`
+  # ci-dessus — c'est LA porte, et un dossier absent de son filtre ne déploiera jamais
+  # (le même piège que documente `deploy-vercel.yml` sur sa propre union). Le garder en
+  # phase avec ce que l'app embarque fait partie du changement qui l'embarque.
+  #
+  # ⚠️ `secrets: inherit` : ces workflows lisent leurs propres jetons (Vercel, Cloudflare,
+  # Scaleway, Supabase). Ils y avaient déjà accès en tant que workflows du dépôt — rien
+  # n'est ouvert ici qui ne l'était. `verify`, lui, continue de ne recevoir AUCUN secret.
+  # ══════════════════════════════════════════════════════════════════════════════════
+  deploy-vercel:
+    needs: [changes, ci]
+    if: ${{ github.event_name == 'push' && needs.changes.outputs.vercel == 'true' }}
+    uses: ./.github/workflows/deploy-vercel.yml
+    secrets: inherit
+
+  deploy-updates:
+    needs: [changes, ci]
+    if: ${{ github.event_name == 'push' && needs.changes.outputs.updates == 'true' }}
+    uses: ./.github/workflows/deploy-updates.yml
+    secrets: inherit
+
+  release-gateway:
+    needs: [changes, ci]
+    if: ${{ github.event_name == 'push' && needs.changes.outputs.gateway == 'true' }}
+    uses: ./.github/workflows/release-gateway.yml
+    secrets: inherit
+
+  # Les fonctions serverless ne partent que depuis `main` — c'était le `branches: [main]`
+  # de leur propre déclencheur.
+  release-functions:
+    needs: [changes, ci]
+    if: ${{ github.event_name == 'push' && github.ref_name == 'main' && needs.changes.outputs.functions == 'true' }}
+    uses: ./.github/workflows/release-functions.yml
+    secrets: inherit

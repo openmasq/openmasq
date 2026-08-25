@@ -1,0 +1,233 @@
+name: Verify
+
+# LA vérification, en un seul endroit — en DEUX familles depuis le 13/08 :
+#
+#   • `verify` (BLOQUANT) — le comportement : build, typecheck, tests, et les gardes qui
+#     protègent ce qui S'EXÉCUTE (harnais de tests honnête, chaîne d'approvisionnement,
+#     bundles expédiés, retours d'effet). Rouge ⇒ ni merge, ni déploiement.
+#   • `hygiene` (NON bloquant, mais VISIBLE) — les cliquets de dette : taille de
+#     fichiers, docs, duplication, fichier maître, code mort. Le job s'affiche ROUGE
+#     quand une dette grandit — mais il ne retient ni un merge ni un déploiement :
+#     la promotion du 13/08 a été bloquée QUATRE fois par de l'hygiène pendant que les
+#     vrais bugs étaient ailleurs. La dette se paie, elle ne prend pas d'otages.
+#
+# Deux familles d'appelants, et c'est tout l'objet de ce fichier :
+#   • `ci.yml` — le retour sur PR et sur push.
+#   • CHAQUE workflow de déploiement, qui la met en `needs:` — c'est CETTE dépendance qui
+#     empêche un déploiement de partir sans tests. La protection de branche de `main`
+#     existe AUSSI (PR obligatoire + check « ci » — le job-verdict de ci.yml porte ce
+#     nom, un appelant de workflow réutilisable ne publiant que ses enfants) ; le
+#     `needs:` reste ce qui tient les DÉPLOIEMENTS, protection ou pas.
+#
+# ⚠️ Les secrets sont OPTIONNELS et ne servent qu'aux valeurs bakées de `ci.yml`. Un
+# appelant qui n'en passe pas obtient un build aux valeurs vides — parfaitement suffisant
+# pour typechecker et tester, puisque ce build ne PUBLIE rien. Un gate qui ne reçoit aucun
+# secret ne peut en divulguer aucun : ne pas passer `secrets: inherit` depuis un
+# déploiement, ce serait rendre à un job de vérification tout le trousseau du dépôt.
+
+on:
+  workflow_call:
+    secrets:
+      POSTHOG_INGEST_KEY:
+        required: false
+      ANALYTICS_APP_KEY:
+        required: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    # Lecture seule, déclarée ICI parce que ce workflow est appelé : le job hérite sinon
+    # des permissions de l'appelant. Rien ici n'écrit via GITHUB_TOKEN.
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # Historique complet : plusieurs gates diffent contre une base (dérive
+          # FEATURES.md côté ci.yml), qu'un checkout superficiel ne sait pas résoudre.
+          fetch-depth: 0
+          # Le token ne reste pas dans .git/config : tout ce qui suit (installs, builds,
+          # gates) exécute du code du dépôt et n'a besoin d'AUCUN credential git.
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      # Cache turbo entre les runs. `pnpm build`/`typecheck` passent par
+      # scripts/turbo.mjs, dont le défaut est ce chemin ; les clés de turbo hachent le
+      # CONTENU (paquet + tâche + fichiers + deps), jamais le chemin ni la branche, donc
+      # n'importe quel cache récent restauré est valide — turbo rejoue seulement ce qui a
+      # changé. Mesuré à froid : Build 278 s + Typecheck 181 s ; un run qui ne touche
+      # qu'un paquet en repaie une fraction. Clé primaire unique (le SHA) pour que chaque
+      # run SAUVE son état ; restore-keys rattrape le plus récent.
+      - name: Turbo cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.cache/turbo/openmasq
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+
+      # Le domaine n'a qu'UNE maison (règle 9) : le JSON de branding. Résolu ici plutôt
+      # que recopié en littéral dans les env du build.
+      - name: Resolve deploy origins (packages/branding/branding.json)
+        id: origins
+        run: |
+          set -euo pipefail
+          D=$(node -p "require('./packages/branding/branding.json').domain")
+          HOST=$([ "${{ github.ref_name }}" = "main" ] && echo "app.$D" || echo "staging.$D")
+          echo "backend=https://$HOST" >> "$GITHUB_OUTPUT"
+          echo "admin=https://$HOST/admin" >> "$GITHUB_OUTPUT"
+
+      # turbo build d'abord : les packages de l'espace de travail doivent émettre leur
+      # dist/ (les apps le consomment, pas src). VITE_BACKEND_URL / VITE_ADMIN_URL fixent
+      # l'origine sync/org + admin dans les bundles construits : main →
+      # production, toute autre ref → staging. Config publique (comme l'URL Supabase),
+      # donc une var, pas un secret. Non renseignées, la source retombe sur production.
+      - name: Build
+        env:
+          VITE_BACKEND_URL: ${{ steps.origins.outputs.backend }}
+          VITE_ADMIN_URL: ${{ steps.origins.outputs.admin }}
+          # Moteur Cloud redact-fn → le conteneur PROPRE à la branche (un par env).
+          # Var absente ⇒ vide ⇒ le moteur distant reste éteint et l'app retombe sur le
+          # regex local.
+          VITE_REDACT_FN_URL: ${{ github.ref_name == 'main' && vars.SCW_REDACT_URL || vars.SCW_REDACT_URL_STAGING }}
+          # Analytique d'usage : clé d'ingestion PostHog bakée dans les bundles
+          # construits — transport DIRECT. Secret absent ⇒ vide ⇒ l'analytique ne fait rien
+          # (elle ne blanchit jamais quoi que ce soit). Pour passer au relais Scaleway
+          # conforme, poser la var ANALYTICS_RELAY_URL : elle gagne sur la clé, et le
+          # client n'en embarque plus aucune (aucun changement de code).
+          VITE_POSTHOG_KEY: ${{ secrets.POSTHOG_INGEST_KEY }}
+          VITE_POSTHOG_HOST: https://eu.i.posthog.com
+          VITE_ANALYTICS_RELAY_URL: ${{ vars.ANALYTICS_RELAY_URL }}
+          # Clé HMAC d'attestation d'app : le client signe chaque POST au relais pour qu'il
+          # puisse rejeter le trafic ne venant pas d'un build officiel (anti-abus, pas
+          # d'identité). Valeur vide ⇒
+          # pas d'en-tête d'attestation (un relais avec ANALYTICS_APP_KEYS renverra 401).
+          VITE_ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+
+
+      # Un fichier de test que nul `include` n'apparie n'est jamais exécuté, et la suite
+      # reste verte — le seul mode d'échec qu'un avertissement ne peut pas rattraper. Ce
+      # gate exige que chaque *.test.ts(x) suivi soit apparié, ou listé avec sa raison.
+      - name: Test-include guard
+        run: pnpm check:tests
+
+      # Parité règle 9 : la table de résolution package → source existe dans le module
+      # vitest/electron-vite ET dans apps/desktop/tsconfig.json (JSON ne peut pas importer
+      # du TS). Une dérive fait résoudre un package vers src ici, vers dist là.
+      - name: Workspace alias parity
+        run: pnpm check:alias
+
+
+
+      # Garde chaîne d'approvisionnement, couche CI : tout `uses:` doit nommer un SHA de
+      # commit, pas un tag. Un tag est un pointeur mutable que son propriétaire peut
+      # réorienter vers du nouveau code, lequel s'exécute ici avec les secrets du job
+      # (certificats de signature, identifiants de store, jetons Vercel/Neon). La couche
+      # lockfile, c'est minimumReleaseAge dans pnpm-workspace.yaml ; ceci est la même idée
+      # un cran au-dessus.
+      - name: Action-pin guard
+        run: pnpm check:actions
+
+
+      # Garde du retour d'effet : un useEffect en flèche concise retourne son expression
+      # comme fonction de nettoyage React. La plateforme change ce que renvoient les API
+      # DOM SOUS les types (Chromium a fait renvoyer une Promise à scrollIntoView →
+      # « destroy is not a function » → toute l'app sur l'ErrorBoundary à chaque
+      # changement de modèle), et le typecheck ne peut pas voir cette classe. Corps en
+      # bloc et returns explicites uniquement.
+      - name: Effect-return guard
+        run: pnpm check:effects
+
+      # Cliquet PII : les identités RÉELLES ne reviennent pas. Le produit se teste avec de
+      # la donnée qui RESSEMBLE à de la PII — c'est légitime, et `__fixtures__/` porte les
+      # personas inventées pour ça. Ce qui est interdit, c'est celle de quelqu'un. Le gate
+      # compare des EMPREINTES : ni le script ni ce log ne peuvent redire la valeur qu'ils
+      # protègent. BLOQUANT, et pas dans le job « hygiène » : les autres cliquets décrivent
+      # de la dette, celui-ci décrit une donnée personnelle publiée — un rouge qu'on
+      # regarde plus tard est déjà une fuite.
+      - name: PII ratchet
+        run: pnpm check:pii
+
+      # Ce qui part chez l'utilisateur ne doit pas expliquer le code qu'il contient : ni
+      # sourcemap (elle rend le TypeScript d'origine verbatim), ni bundle en clair. La
+      # porte relit les artefacts CONSTRUITS, donc elle vient après `pnpm build` — et
+      # la variante `:all` exige les trois ici, là où en local (`pnpm check:shipped`, dans
+      # `verify`) une cible non construite est simplement sautée. Deux scripts plutôt
+      # qu'un drapeau : pnpm avale les drapeaux qu'il croit siens.
+      - name: Shipped-bundle guard
+        run: pnpm check:shipped:all
+
+      # Tests unitaires (vitest). L'e2e desktop pilote la VRAIE API OpenAI (ça coûte de
+      # l'argent) et n'est volontairement PAS lancé en CI.
+      - name: Unit tests
+        run: pnpm test
+
+  # Les CLIQUETS DE DETTE — non bloquants, mais pas invisibles : chaque garde tourne
+  # même si la précédente a échoué, et le job entier passe au ROUGE dès qu'une dette
+  # grandit (continue-on-error au niveau du JOB : l'appelant reste vert, l'écran non).
+  # La règle de fond ne change pas — la dette gelée ne peut que rétrécir — seul change
+  # QUI attend : plus personne. Un rouge ici se corrige dans la foulée, pas sous la
+  # menace d'un déploiement retenu.
+  hygiene:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: File-size ratchet
+        id: loc
+        continue-on-error: true
+        run: pnpm check:loc
+      - name: Doc ratchet
+        id: docs
+        continue-on-error: true
+        run: pnpm check:docs
+      - name: Duplication ratchet
+        id: dup
+        continue-on-error: true
+        run: pnpm check:dup
+      - name: Master-file ratchet
+        id: features
+        continue-on-error: true
+        run: pnpm check:features
+      - name: Dead-code ratchet
+        id: knip
+        continue-on-error: true
+        run: pnpm check:knip
+      # Le verdict : un seul échec suffit à peindre le job en rouge (sans bloquer
+      # l'appelant). La liste dit LESQUELS, pour corriger sans relire cinq logs.
+      - name: Verdict hygiène
+        run: |
+          set -euo pipefail
+          failed=""
+          [ "${{ steps.loc.outcome }}" = "failure" ] && failed="$failed check:loc"
+          [ "${{ steps.docs.outcome }}" = "failure" ] && failed="$failed check:docs"
+          [ "${{ steps.dup.outcome }}" = "failure" ] && failed="$failed check:dup"
+          [ "${{ steps.features.outcome }}" = "failure" ] && failed="$failed check:features"
+          [ "${{ steps.knip.outcome }}" = "failure" ] && failed="$failed check:knip"
+          if [ -n "$failed" ]; then
+            echo "::warning::Dette d'hygiène en hausse (non bloquant) :$failed — à corriger dans la foulée."
+            exit 1
+          fi
+          echo "hygiène ✓"

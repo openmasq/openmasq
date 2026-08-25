@@ -1,0 +1,76 @@
+node_modules
+.turbo
+dist
+out
+*.log
+.DS_Store
+.env
+.env.*
+# …but the dev-mode overrides (localhost URLs, no secrets) are a shared convention.
+!.env.development
+release
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Local SQLite databases (schema lives in db migrations)
+*.sqlite3
+*.sqlite3-journal
+
+# Playwright e2e: pre-authenticated Electron profile (contains live session
+# cookies — never commit) and test artifacts.
+apps/desktop/e2e/.profile/
+# Debug journals dumped while chasing a redaction bug: they hold the WIRE content,
+# i.e. real values as they left the machine. Local-only — committing them would put
+# real data in the history permanently, where deleting the files no longer removes it.
+apps/desktop/e2e/tofix/
+apps/desktop/test-results/
+apps/desktop/playwright-report/
+apps/web/test-results/
+apps/web/playwright-report/
+
+
+*.p12*
+supabase/.temp/
+
+# Supabase edge-function local secrets (never commit)
+supabase/.hook-secret
+supabase/.temp/
+
+# TS incremental build info
+*.tsbuildinfo
+
+# Next.js build output
+.next/
+
+# Generated send-email edge-function bundles (not source)
+supabase/functions/send-email/_render.js
+supabase/functions/send-email/server.browser-*.js
+# Les RÉSULTATS d'éval sont des sorties de R&D locales — seul le README (la
+# convention) est versionné.
+evals-reports/*
+!evals-reports/README.md
+
+# Guides agent : seul le CLAUDE.md RACINE (la carte) est publié. Les guides
+# imbriqués sont des notes de travail internes — ils restent sur les postes de
+# l'équipe, hors du dépôt public. `check:docs` sait qu'un chemin gitignoré est
+# délibérément absent, pas cassé.
+**/CLAUDE.md
+!/CLAUDE.md
+
+password-agent.txt
+
+# Rust build output of the Windows jail launcher (the binary is baked into
+# apps/desktop/build/win-jail/ by bake:jail; Cargo.lock IS committed — it pins the build).
+apps/desktop/native/win-jail/target/
+
+
+users.csv
+users2.csv
+
+
+# Dossier de PRÉPARATION des licences + document juridique personnel.
+# Ignoré tant que le dépôt est privé : au moment de publier, les licences
+# publiques (LICENSE, NOTICE, TRADEMARK.md) devront être déplacées à leurs
+# emplacements canoniques — un dossier ignoré ne part pas.
+license/

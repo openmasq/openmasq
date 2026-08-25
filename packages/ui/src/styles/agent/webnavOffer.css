@@ -1,0 +1,43 @@
+/* Web-navigation redaction offer — the inline pre-search reveal gate under an
+   assistant bubble (WebNavRedactOffer). The card itself is an `.agent-card`
+   (shell + stripe + tile + footer); only its placement and the toggle pills are
+   local. Matches the design kit's `WebNavRedactionCard`. */
+.webnav-offer {
+  margin-top: 10px;
+}
+/* La rangée de pastilles colle à la phrase : la carte interrompt une recherche, elle doit
+   se lire d'un coup d'œil. C'est la seule compaction qui restait à faire côté style — le
+   reste s'est gagné en retirant la prose qui répétait les pastilles. */
+.webnav-offer .agent-card-chips {
+  margin-top: 8px;
+  gap: 6px;
+}
+/* One TOGGLE pill per offerable category (kit redesign): the EYE tells the state.
+   Redacted (default) = dashed border, sunken, eye-off; revealed = solid hue border,
+   hue-tinted fill, open eye. Hue is data-driven via `--chip-hue`. */
+.webnav-offer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 5px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--border-default);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+.webnav-offer-chip .webnav-offer-eye {
+  display: inline-flex;
+  color: var(--text-faint);
+}
+.webnav-offer-chip.revealed {
+  border: 1px solid var(--chip-hue, var(--hl-sky));
+  background: color-mix(in oklch, var(--chip-hue, var(--hl-sky)) 20%, var(--surface-card));
+}
+.webnav-offer-chip.revealed .webnav-offer-eye {
+  color: var(--text-body);
+}

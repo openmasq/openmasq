@@ -1,0 +1,93 @@
+/* ── User-added MCP servers ───────────────────────────────────────────────
+   The "Ajouter un serveur" affordance and the add form's danger block. See
+   ../mcp.css for the family map.
+
+   Colours: `--hl-amber-soft` is a tint mixed toward white in ALL FOUR themes, and
+   `--ink-on-hl-amber` resolves dark in all four — so the pair reads everywhere and
+   no frozen hex is needed (root rule 12). */
+
+/* The search row gains a trailing action, so it becomes a flex row. */
+.mcp-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mcp-search-row .mcp-search {
+  flex: 1;
+  min-width: 0;
+}
+.mcp-add-btn {
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+/* The danger block above the add form. Deliberately NOT `.mcp-hint` (that one is the
+   lime privacy reassurance) — the two must never be mistaken for each other. */
+.mcp-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--hl-amber-soft);
+  color: var(--ink-on-hl-amber);
+}
+.mcp-warn-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.mcp-warn-text {
+  min-width: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.mcp-warn-title {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+.mcp-warn-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mcp-warn-foot {
+  margin: 8px 0 0;
+  font-weight: 600;
+}
+
+/* Field labels in the add form (the other MCP forms label their inputs by placeholder). */
+.mcp-field-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.mcp-field-opt {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* The acknowledgement that GATES the submit — adding an unvetted server is a
+   deliberate act, so this is a real checkbox, never a pre-ticked one. */
+.mcp-custom-ack {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.mcp-custom-ack input {
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--brand);
+}
+.mcp-custom-error {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--coral-700);
+}

@@ -1,0 +1,12 @@
+{
+  "name": "OpenMasq",
+  "slug": "openmasq",
+  "domain": "openmasq.dev",
+  "altDomain": "openmasq.app",
+  "protocol": "openmasq",
+  "desktopBundleId": "com.openmasq.desktop",
+  "sentryHost": "openmasq.sentry.io",
+  "hfOrg": "openmasq",
+  "supportEmail": "support@openmasq.dev",
+  "mailDomain": "mail.openmasq.dev"
+}

@@ -1,0 +1,118 @@
+
+/* Modal server picker — one pill per catalog connector, checked when scoped,
+   GROUPED by the canonical MCP categories. NO inner scroll: the modal body is
+   the one scroll container (two nested scrollbars read as a bug). */
+.om-wf-picker-note {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.om-wf-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.om-wf-group-h {
+  margin-bottom: 7px;
+}
+.om-wf-group-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.om-wf-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px 6px 7px;
+  border-radius: var(--radius-pill, 999px);
+  cursor: pointer;
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  transition: border-color 0.14s, background 0.14s;
+}
+.om-wf-pick:hover {
+  background: var(--surface-hover);
+}
+.om-wf-pick.on {
+  border-color: var(--brand);
+  background: var(--hl-violet-soft);
+}
+.om-wf-pick-check {
+  display: inline-flex;
+  color: var(--brand);
+}
+
+/* "Toutes les intégrations" — the permissive default (no scope). Reads as a
+   distinct lead pill, full-width so it sits above the grouped grid. */
+.om-wf-pick-all {
+  align-self: flex-start;
+}
+
+/* Live "connecté" cue on a connector pill — a small lime dot. Purely for the
+   user's clarity; `servers` is model guidance, not a tool gate. */
+.om-wf-pick-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--brand);
+  box-shadow: 0 0 0 2px var(--surface-card);
+}
+
+/* The "/" palette's workflow rows — the shared action tile, tinted violet. */
+.composer-skill-wf-ico {
+  background: var(--hl-violet-soft);
+  color: var(--ink-on-hl-violet); /* l'encre appariée au pastel, jamais --text-* (frozenInk) */
+}
+
+/* Sidebar pinned workflows — same list chrome as the compétences' pins
+   (`.om-skill-pin-item`); the violet mini-tile is what says "workflow". */
+.om-wf-pin-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  background: var(--hl-violet);
+  /* Ink follows the violet's own token: a frozen dark green vanishes on a saturated
+     violet (the blue themes' #7A3FF2). Rule 12. */
+  color: var(--ink-on-hl-violet);
+}
+
+/* Le DÉPLIANT « Connecteurs » de la modale de compétence. Replié par défaut : écrire un
+   prompt de prose ne doit pas demander de savoir ce qu'est un connecteur — c'est ce qui
+   permet à une seule modale de servir les deux usages sans peser sur le plus courant.
+   Le résumé sur la ligne dit l'état sans qu'on ouvre. */
+.om-skill-disclose {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: left;
+}
+.om-skill-disclose:hover {
+  color: var(--text-strong);
+}
+.om-skill-disclose svg {
+  transition: transform 0.16s var(--ease-out, ease);
+  flex-shrink: 0;
+}
+.om-skill-disclose.on svg {
+  transform: rotate(180deg);
+}
+.om-skill-disclose-sum {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}

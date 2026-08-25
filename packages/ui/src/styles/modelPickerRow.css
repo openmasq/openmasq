@@ -1,0 +1,186 @@
+/* Le sélecteur de modèles — GESTES de ligne (étoile favori, maison par-défaut, leur
+   révélation au survol dans le menu) et CHIPS méta (prix / contexte / débit, icône +
+   valeur nue, le mot dans le tooltip). Famille au préfixe unique `.model-fav` /
+   `.model-default` / `.model-meta` / `.model-option-meta` — définie NULLE PART ailleurs,
+   ce qui rend sa position dans la cascade indifférente (la méthode de packages/ui). */
+
+/* L'étoile FAVORI d'une ligne/carte de modèle. Discrète au repos (le contour effacé),
+   pleine et à la teinte de marque une fois épinglée. Un espace de clic généreux, à droite. */
+.model-fav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  color: var(--text-faint);
+  opacity: 0.55;
+  transition: color 0.12s, opacity 0.12s, background 0.12s;
+}
+.model-fav:hover,
+.model-fav:focus-visible {
+  opacity: 1;
+  color: var(--brand);
+  background: var(--surface-hover);
+  outline: none;
+}
+.model-fav.on {
+  opacity: 1;
+  color: var(--brand);
+}
+
+/* Le marqueur MODÈLE PAR DÉFAUT (maison). Même gabarit que l'étoile, à sa gauche :
+   discret et cliquable sur une ligne ordinaire, plein et inerte sur le défaut actuel. */
+.model-default {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  color: var(--text-faint);
+  opacity: 0.55;
+  transition: color 0.12s, opacity 0.12s, background 0.12s;
+}
+.model-default:hover,
+.model-default:focus-visible {
+  opacity: 1;
+  color: var(--brand);
+  background: var(--surface-hover);
+  outline: none;
+}
+.model-default.on {
+  opacity: 1;
+  color: var(--brand);
+  cursor: default; /* c'est DÉJÀ le défaut : informatif, pas une action */
+}
+.model-default.on:hover {
+  background: transparent;
+}
+/* Dans le MENU (lignes .model-option), étoile et maison n'apparaissent qu'au survol ou au
+   clavier — deux gestes toujours visibles sur ~70 lignes étaient du bruit, pas une offre.
+   L'état ACTIF (favori épinglé, défaut courant), lui, reste toujours affiché : c'est une
+   information, pas une action. L'ordre des trois blocs fait la cascade — ne pas trier. */
+.model-option .model-fav:not(.on):not(:focus-visible),
+.model-option .model-default:not(.on):not(:focus-visible) {
+  opacity: 0;
+}
+.model-option:hover .model-fav:not(.on),
+.model-option:focus-within .model-fav:not(.on),
+.model-option:hover .model-default:not(.on),
+.model-option:focus-within .model-default:not(.on) {
+  opacity: 0.55;
+}
+.model-option .model-fav:hover:not(.on),
+.model-option .model-default:hover:not(.on) {
+  opacity: 1;
+}
+/* SORTIS DU FLUX dans le menu : cachés par opacité, les deux gestes réservaient quand
+   même leur largeur — le nom se repliait sur deux lignes à cause de boutons invisibles.
+   Trois fentes ABSOLUES sur le bord droit (étoile · maison · coche), zéro coût au repos ;
+   au survol, les gestes se posent PAR-DESSUS la ligne, sur le fond du survol pour rester
+   lisibles même quand la méta court dessous. */
+.model-option {
+  position: relative;
+}
+.model-option .model-fav,
+.model-option .model-default {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  margin: 0;
+}
+.model-option .model-fav {
+  right: 6px;
+}
+.model-option .model-default {
+  right: 28px;
+}
+.model-option:hover .model-fav,
+.model-option:focus-within .model-fav,
+.model-option:hover .model-default,
+.model-option:focus-within .model-default {
+  background: var(--surface-hover);
+}
+/* Pas de coche dans les lignes du MENU : l'anneau + le fond de la ligne active disent
+   déjà « sélectionné », et sa fente était ce qui repliait le nom de la ligne la plus
+   chargée (active + gratuit + défaut + favori). */
+.model-option span.check {
+  display: none;
+}
+
+.model-option-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+.model-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+/* L'icône dit le référent (pièces = prix, livre = contexte, jauge = débit) ; le mot vit
+   dans le tooltip du chip. Légèrement estompée pour que la VALEUR reste la lecture. */
+.model-meta svg {
+  flex: none;
+  opacity: 0.7;
+}
+.model-meta.warn {
+  color: var(--hl-amber);
+  border-color: var(--hl-amber);
+  background: transparent;
+  font-weight: 700;
+}
+
+/* Vue SIMPLIFIÉE (lignes .compact) : l'étoile se cache MÊME pleine — chaque ligne de la
+   liste courte est par définition dedans, l'étoile n'y est qu'un geste de retrait, pas
+   une information. La maison du défaut et la coche de sélection, elles, informent. */
+.model-option.compact .model-fav.on:not(:focus-visible) {
+  opacity: 0;
+}
+.model-option.compact:hover .model-fav.on,
+.model-option.compact:focus-within .model-fav.on {
+  opacity: 0.75;
+}
+.model-option.compact .model-fav.on:hover {
+  opacity: 1;
+}
+
+/* Seules les lignes qui portent un marqueur PERMANENT réservent la place de leurs
+   fentes — toutes les autres rendent la largeur au nom (c'était le but de la sortie
+   du flux). L'ordre fait le max : une ligne cumulant coche + maison + étoile prend
+   la réserve la plus large. */
+.model-option:has(.model-fav.on) {
+  padding-right: 32px;
+}
+.model-option:has(.model-default.on) {
+  padding-right: 54px;
+}
+
+/* Le PREMIER intitulé de bloc de la liste courte perd sa marge haute : collé au bord du
+   menu, un titre se lit comme l'en-tête du menu entier plutôt que comme une section — et
+   les trois blocs (« Par défaut », « Favoris », « Modèle en cours ») deviennent illisibles
+   comme découpage. La règle vit ICI et pas dans `styles.css` : ce fichier possède déjà la
+   famille du sélecteur, et le cliquet du gros fichier ne doit pas grossir pour deux lignes.
+   ⚠️ Sa SPÉCIFICITÉ (0,2,0) la fait gagner sur `.model-simple-sep` quel que soit l'ordre
+   d'import — c'est ce qui rend sa position dans la cascade indifférente. */
+.model-simple-sep:first-child {
+  padding-top: 4px;
+}

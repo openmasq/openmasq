@@ -1,0 +1,208 @@
+/* Right rail — the expanded (labelled-list) width state, the browser-tab list and
+   the drive indicator (part of the tabs family; see ../tabs.css). */
+
+/* ── Expanded width (kit): a labelled list instead of the slim icon column ── */
+.right-rail.expanded {
+  align-items: stretch;
+  width: 214px;
+  padding: 10px 10px 12px;
+  gap: 8px;
+}
+.rr-head {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.rr-head .rail-btn {
+  width: 30px;
+  height: 30px;
+}
+.rr-title {
+  flex: 1;
+  min-width: 0;
+}
+/* Expanded list: dashed "Nouvel onglet", labelled rows, hover-reveal ✕. */
+.rr-new {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-strong);
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.rr-new:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+/* Le CORPS défile, pas les sections : les onglets web et les sources de fichiers sont
+   empilés dans la même colonne, et deux ascenseurs dans 214 px sont deux fois trop. */
+.rr-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.rr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.rr-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 8px 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.rr-item:hover {
+  background: var(--surface-hover);
+}
+.rr-item.on {
+  border-color: var(--border-default);
+  background: var(--surface-card);
+}
+.rr-item.on::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--brand);
+  transform: translateY(-50%);
+}
+.rr-item-tile {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.rr-item-label {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rr-item-x {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.12s;
+  font-size: 13px;
+  line-height: 1;
+}
+.rr-item:hover .rr-item-x {
+  opacity: 1;
+}
+.rr-item-x:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.rr-empty {
+  font-size: 12px;
+  color: var(--text-faint);
+  padding: 8px 4px;
+  line-height: 1.5;
+}
+/* Drive indicator on a PILOTED browser tab — the kit's pink→sky gradient dot. */
+.rail-drive {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--hl-pink), var(--hl-sky));
+  border: 2px solid var(--surface-page);
+  animation: om-rail-drive-kf 1.6s ease-in-out infinite;
+}
+@keyframes om-rail-drive-kf {
+  0%, 100% { transform: scale(0.85); opacity: 0.85; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+/* A small breathing HALO around the piloted tab's tile (blue↔green, matching the native
+   drive-halo over the browser) — the sidebar echo of "the model is driving this tab". */
+.rr-item-tile.driving .rail-tile,
+.rail-btn.driving .rail-tile {
+  animation: om-rail-drive-halo 1.6s ease-in-out infinite;
+}
+@keyframes om-rail-drive-halo {
+  0%, 100% { box-shadow: 0 0 0 1.5px rgba(111, 194, 255, 0.55), 0 0 6px 1px rgba(95, 227, 192, 0.4); }
+  50% { box-shadow: 0 0 0 2px rgba(111, 194, 255, 0.9), 0 0 11px 3px rgba(95, 227, 192, 0.6); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-drive { animation: none; }
+  .rr-item-tile.driving .rail-tile,
+  .rail-btn.driving .rail-tile { animation: none; box-shadow: 0 0 0 2px rgba(111, 194, 255, 0.75); }
+}
+
+/* ── Le PIED de la vue large : des LIGNES, pas des icônes ──
+   Commandes du panneau (si un panneau est ouvert) puis « Aide » / « Envoyer un avis ».
+   Dans 214 px où le titre, le groupe « Web » et chaque onglet portent un nom, deux
+   carrés nus en bas à gauche lisaient comme un reste du rail étroit — c'est le même
+   gabarit que `.rr-item`, en plus discret. */
+.rr-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px solid var(--border-subtle);
+}
+.rr-foot-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 8px 7px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: left;
+}
+.rr-foot-row:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.rr-foot-ico {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.rr-foot-lbl {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,49 @@
+# Le PARCOURS D'ARGENT nocturne — scripts/money-path-probe.mjs contre STAGING.
+#
+# Ce que le canari (canary.yml) ne couvre pas : le canari sonde des surfaces SANS
+# auth ; celui-ci conduit le parcours authentifié complet — connexion Supabase
+# réelle, abonnement, crédits, et change-tier vers le palier COURANT (qui traverse
+# auth + base + LECTURE Stripe puis ressort `changed:false` sans rien modifier :
+# le chemin exact du 502 resté invisible deux jours le 07/08).
+#
+# Nuit plutôt que la cadence du canari : le parcours consomme une connexion réelle et touche
+# Stripe (en lecture) — une fois par nuit suffit à borner la fenêtre d'un
+# incident à ~24 h au lieu de « quand quelqu'un tombe dessus ».
+#
+# Prérequis d'OPÉRATEUR (les deux secrets, non dérivables par Terraform) :
+#   MONEY_PATH_EMAIL / MONEY_PATH_PASSWORD — un compte de sonde dédié sur le
+#   Supabase du projet, idéalement porteur d'un abonnement Stripe TEST (staging
+#   tourne en mode test) pour que l'étape change-tier soit réellement exercée.
+#   Sans abonnement, la sonde passe mais le CRIE en warning à chaque run.
+name: Money path (staging)
+
+on:
+  schedule:
+    - cron: "13 4 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: money-path
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with: { node-version: 26 }
+      - name: Conduire le parcours
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_PUBLIC_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          DOMAIN: ${{ vars.STAGING_WEB_DOMAIN }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+          EMAIL: ${{ secrets.MONEY_PATH_EMAIL }}
+          PASSWORD: ${{ secrets.MONEY_PATH_PASSWORD }}
+        run: node scripts/money-path-probe.mjs

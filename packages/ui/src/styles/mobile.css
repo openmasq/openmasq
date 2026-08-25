@@ -1,0 +1,35 @@
+/* ── Mobile shell (AppShell variant="mobile") — the `chat-app-mobile` kit ─────
+   Barrel — the family outgrew the 300-line cap (rule 1), so it splits by
+   surface: `mobile/shell.css` (shell, bottom tab bar, home/chat list),
+   `mobile/chrome.css` (chat top bar, screen transitions, bottom sheets),
+   `mobile/pages.css` (page headers, chat-screen fit, mobile settings),
+   `mobile/library.css` + `mobile/memory.css` (the ported screens). Each partial
+   owns its selectors alone. @import rules MUST lead the file — Lightning CSS
+   silently DROPS one placed below any other rule.
+
+   ⚠️ **700 est le poids le plus lourd que cette famille puisse demander.** Les titres
+   d'écran passent par `--font-display`, c'est-à-dire Space Grotesk, et le paquet n'embarque
+   que 400/500/600/700 (`@fontsource`, en tête de `../styles.css` — Archivo n'est PAS
+   installé). Demander 800 ne charge rien : le moteur SYNTHÉTISE le gras, et un titre
+   faux-bold bave au lieu d'appuyer. C'est aussi ce que le kit `chat-app-mobile` a corrigé
+   de son côté en retirant Archivo de ses fontes.
+
+   Deux natures d'encre, et la règle 12 tient aux deux : ce qui se pose SUR `--brand` prend
+   `--brand-contrast` (jamais un `#fff` — le thème sombre re-pointe la marque sur le lime
+   clair) ; ce qui a besoin d'un quasi-noir à soi (voile de feuille, ombre portée) prend
+   `rgb(var(--ink-neutral) / N%)`, la même encre neutre que les filets.
+
+   Two kinds of rule live here, and the difference is the migration itself:
+   `.app-mobile .<desktop-class>` OVERRIDES a desktop surface (a screen not yet
+   ported — the debt), while an own family like `.mlib-*` belongs to a real mobile
+   screen and needs no prefix. Porting a screen converts the first into the
+   second; never add more of the first. */
+
+@import "./mobile/shell.css";
+@import "./mobile/chrome.css";
+@import "./mobile/pages.css";
+@import "./mobile/sheet.css";
+@import "./mobile/library.css";
+@import "./mobile/memory.css";
+@import "./mobile/settings.css";
+@import "./mobile/chat.css";

@@ -1,0 +1,72 @@
+{
+  "name": "@openmasq/redact",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./documents": {
+      "types": "./dist/documents/documents.d.ts",
+      "import": "./dist/documents/documents.js",
+      "require": "./dist/documents/documents.cjs"
+    },
+    "./documents.browser": {
+      "types": "./dist/documents/browser.d.ts",
+      "import": "./dist/documents/browser.js",
+      "require": "./dist/documents/browser.cjs"
+    },
+    "./pdf-redact": {
+      "types": "./dist/viewer/pdfRedact.d.ts",
+      "import": "./dist/viewer/pdfRedact.js",
+      "require": "./dist/viewer/pdfRedact.cjs"
+    },
+    "./image-redact": {
+      "types": "./dist/viewer/imageRedact.d.ts",
+      "import": "./dist/viewer/imageRedact.js",
+      "require": "./dist/viewer/imageRedact.cjs"
+    },
+    "./inplace": {
+      "types": "./dist/documents/inplace.d.ts",
+      "import": "./dist/documents/inplace.js",
+      "require": "./dist/documents/inplace.cjs"
+    },
+    "./remote": {
+      "types": "./dist/remote/remote.d.ts",
+      "import": "./dist/remote/remote.js",
+      "require": "./dist/remote/remote.cjs"
+    },
+    "./ner": {
+      "types": "./dist/local/ner.d.ts",
+      "import": "./dist/local/ner.js",
+      "require": "./dist/local/ner.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"(no lint configured)\"",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.100",
+    "@openmasq/branding": "workspace:*",
+    "fflate": "^0.8.3",
+    "libphonenumber-js": "^1.13.8",
+    "mammoth": "^1.12.0",
+    "pdfjs-dist": "^4.10.38",
+    "tesseract2.js": "workspace:*",
+    "xlsx": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.3"
+  }
+}

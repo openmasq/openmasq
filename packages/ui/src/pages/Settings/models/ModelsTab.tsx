@@ -1,0 +1,300 @@
+import { useMemo, useState } from "react";
+import { PROVIDERS, isPlatformProvider, type ProviderId } from "@openmasq/llm";
+import { AnimatePresence } from "framer-motion";
+import { CheckIcon, FamilyLogo, SettingsIcon } from "../../../components/brand";
+import { selectableModels } from "../../../prompt/models";
+import { visibleModels, type UnavailableReason } from "../../../send/modelAvailability";
+import { PROVIDER_ORDER, providerGroupLabel } from "../../../components/ModelSelector/providers";
+import { favoriteSet } from "../../../components/ModelSelector/simpleList";
+import { providerGroupStatus } from "./providerGroupStatus";
+import { KEYED_PROVIDERS } from "../shared";
+import { ModelDetail } from "../ModelDetail";
+import { ApiKeyModal } from "../../../containers/modals";
+import { useAppSelector } from "../../../state/redux";
+import { selectBillingCache } from "../../../state/settingsCache";
+import { canPitchSubscription } from "../../../state/billing";
+import type { OrgProfileInfo } from "../../../host";
+import { ModelCard } from "./ModelCard";
+import { DefaultModelSummary } from "./DefaultModelSummary";
+import { ProviderAccess } from "./ProviderAccess";
+import { LocalModelSection } from "./LocalModelSection";
+import { ModelsTabModals } from "./ModelsTabModals";
+import { ModelFilterBar } from "./ModelFilterBar";
+import { filterModels, modelFamilies, subgroupByFamily, type PriceTier } from "../../../prompt/modelFilter";
+
+/** A vendor family earns a chip once it has this many models — below it the
+ *  chip row would fill with one-off vendors; the long tail stays searchable.
+ *  ⚠️ Le seuil était à 3 : sur les ~400 modèles du catalogue OpenRouter, cela faisait
+ *  VINGT pastilles sur quatre lignes avant même la liste — la barre censée dégonfler
+ *  l'écran l'encombrait plus que le reste (remonté le 11/08). À 10, il reste les
+ *  familles qu'on cherche vraiment ; les autres se trouvent par la recherche, qui scanne
+ *  aussi l'identifiant. */
+const FAMILY_CHIP_MIN = 10;
+
+/** Order the default-model picker groups. The chat picker's `PROVIDER_ORDER` is the
+ *  single source (rule 9 — the two lists had already drifted); this screen only
+ *  PREPENDS the keyless web-session providers, which the desktop chat picker has none
+ *  of. Same for the group LABEL: `providerGroupLabel`, never a second ternary. */
+const MODEL_PROVIDER_ORDER: ProviderId[] = [
+  "openai-session",
+  "anthropic-session",
+  ...PROVIDER_ORDER,
+];
+
+/**
+ * The "Modèle" section — a dedicated sidebar screen for the DEFAULT model used by
+ * every new conversation (moved out of Settings → Compte). Grouped model cards on the
+ * left, a sticky `ModelDetail` panel on the right. The API-key control is ONE gear PER
+ * PROVIDER (in each group header), beside a chip that states whether that provider's
+ * key is already stored — not a per-card gear. The page only renders + collects the
+ * choice; the store write arrives as `onPick` (it persists `Settings.defaultModelId`).
+ */
+export function ModelsTab({
+  defaultModelId,
+  onPick,
+  onSetApiKey,
+  onClearApiKey,
+  onConnectOpenRouter,
+  keyConfigured,
+  orgProfile,
+  unavailableModels,
+  onOpenBilling,
+  localModelUrl,
+  onLocalModelUrl,
+  favoriteModels,
+  onToggleFavorite,
+}: {
+  defaultModelId?: string;
+  /** Persist the chosen default model (store-backed). */
+  onPick: (id: string) => void;
+  /** Store-backed key setter (writes encrypted via host.keys + refreshes state). */
+  onSetApiKey: (id: string, value: string) => void | Promise<void>;
+  /** Retirer la clé d'un fournisseur (la modale l'offre quand il y en a une). */
+  onClearApiKey?: (id: string) => void | Promise<void>;
+  /** OAuth PKCE « Connecter mon compte OpenRouter » (`state/connectOpenRouter.ts`).
+   *  Absent sur une plateforme sans ce flux ⇒ le bouton n'est pas dessiné. */
+  onConnectOpenRouter?: () => Promise<boolean>;
+  /** Providers whose API key is already stored on this machine — drives the per-provider
+   *  "Clé enregistrée / Aucune clé" chip so the list says which are ready to use. */
+  keyConfigured?: ReadonlySet<string>;
+  /** The signed-in member's org authorization (null = solo user). */
+  orgProfile?: OrgProfileInfo | null;
+  /** Model id → why it can't send. Those cards render GREYED and can't be made default;
+   *  the group's key gear is how a `no_key` provider is unlocked. */
+  unavailableModels?: ReadonlyMap<string, UnavailableReason>;
+  /** Switch to Réglages → Paiement (the free-models explainer's subscribe path). */
+  onOpenBilling?: () => void;
+  /** Base URL of a model running on the user's OWN machine (Ollama, LM Studio… —
+   *  `Settings.openaiCompatBaseUrl`). Lives on THIS tab: a local model is a model
+   *  choice, not an account matter. */
+  localModelUrl: string;
+  onLocalModelUrl: (url: string) => void;
+  /** Modèles favoris (la liste courte du sélecteur de chat) + le toggle d'étoile.
+   *  Absents ⇒ pas d'étoile sur la grille (aperçu web, harnais de test). */
+  favoriteModels?: string[];
+  onToggleFavorite?: (id: string) => void;
+}) {
+  // Défaut catalogue affiché tout étoilé quand vide (cohérent avec le sélecteur du chat
+  // et avec la matérialisation au premier geste) — `favoriteSet`, pas un Set brut.
+  const favSet = favoriteSet(favoriteModels);
+  // Which provider's key modal is open (opened from a model's gear).
+  const [keyProvider, setKeyProvider] = useState<ProviderId | null>(null);
+  // The « Modèles gratuits » explainer, opened from a card's badge.
+  const [freeInfoOpen, setFreeInfoOpen] = useState(false);
+  // Only a KNOWN-free, non-org account gets the subscribe pitch — the prefetch has
+  // already filled this cache by the time Settings is on screen.
+  const { sub } = useAppSelector(selectBillingCache);
+  const pitchSubscription = canPitchSubscription({ sub, inOrg: !!orgProfile });
+  // Model whose detail panel is shown (hovered/focused card, else the selected one).
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  // Picker search + vendor-family + price-tier filters (drive the OpenRouter
+  // ~320-model group).
+  const [query, setQuery] = useState("");
+  const [family, setFamily] = useState<string | null>(null);
+  const [price, setPrice] = useState<PriceTier | null>(null);
+
+  // Ce que l'utilisateur peut RÉELLEMENT envoyer : abonnement, clés renseignées,
+  // gratuits — plus le modèle par défaut actuel, qui ne doit jamais disparaître de son
+  // propre réglage. Les modèles à clé/crédits manquants ne sont plus listés du tout.
+  const pickerModels = useMemo(
+    () => visibleModels(selectableModels(orgProfile?.allowedModelIds), unavailableModels, previewId ?? defaultModelId),
+    [orgProfile?.allowedModelIds, unavailableModels, previewId, defaultModelId],
+  );
+  const families = useMemo(
+    () => modelFamilies(pickerModels, FAMILY_CHIP_MIN),
+    [pickerModels],
+  );
+  const filtered = useMemo(
+    () => filterModels(pickerModels, query, family, price),
+    [pickerModels, query, family, price],
+  );
+  const shown = new Set(filtered.map((m) => m.id));
+  const previewModel =
+    pickerModels.find((mdl) => mdl.id === (previewId ?? defaultModelId)) ?? pickerModels[0];
+
+  return (
+    <>
+      {/* Les ACCÈS d'abord (ce qui allonge la liste), la liste ensuite — toujours
+          dépliée : c'est la barre de filtres qui la rend navigable, pas un repli. */}
+      <div className="cv-eyebrow mb-3">Vos accès</div>
+      <ProviderAccess
+        keyConfigured={keyConfigured}
+        hasSubscription={!pitchSubscription}
+        onOpenKey={setKeyProvider}
+        onOpenBilling={onOpenBilling}
+        byoKeysBlocked={orgProfile?.byoKeysAllowed === false}
+        organizationName={orgProfile?.organizationName}
+      />
+      {/* Le RÉSULTAT du réglage, énoncé — avant la liste qui sert à le changer. */}
+      <DefaultModelSummary
+        model={pickerModels.find((m) => m.id === defaultModelId)}
+        onPreview={setPreviewId}
+      />
+      <div className="cv-eyebrow mt-4 mb-3">Modèles disponibles ({pickerModels.length})</div>
+      <div className="model-picker-split">
+          <div className="model-picker-list" onMouseLeave={() => setPreviewId(null)}>
+            <ModelFilterBar
+              query={query}
+              onQuery={setQuery}
+              family={family}
+              onFamily={setFamily}
+              families={families}
+              price={price}
+              onPrice={setPrice}
+              matchCount={filtered.length}
+            />
+            {filtered.length === 0 && (
+              <p className="model-filter-empty">
+                Aucun modèle ne correspond{query.trim() ? ` à « ${query.trim()} »` : ""}.
+              </p>
+            )}
+            {MODEL_PROVIDER_ORDER.map((pid) => {
+              const group = pickerModels.filter((m) => m.provider === pid && shown.has(m.id));
+              if (group.length === 0) return null;
+              const keyed = KEYED_PROVIDERS.includes(pid);
+              const hasKey = !!keyConfigured?.has(pid);
+              // What this group's header says about availability + its key pill — the
+              // wording rules live in `providerGroupStatus.ts`.
+              const { groupReason, groupChip, keyStatus } = providerGroupStatus({
+                pid,
+                group,
+                keyed,
+                hasKey,
+                unavailableModels,
+              });
+              // Sub-group the provider's cards by vendor family — clarifies the dense
+              // aggregator/platform groups (OpenRouter, Scaleway — both multi-vendor).
+              // Single-family providers render flat (no redundant sub-header).
+              const subgroups = subgroupByFamily(group);
+              const showSubgroups = subgroups.length > 1;
+              return (
+                <div key={pid} className="model-platform-group">
+                  <div className="model-platform-header">
+                    <span className="cv-eyebrow">
+                      {providerGroupLabel(pid)}
+                    </span>
+                    {(groupChip || keyed) && (
+                      <div className="model-platform-right">
+                        {groupChip && (
+                          <span className="model-unavailable" title={groupChip.title}>
+                            {groupChip.chip}
+                          </span>
+                        )}
+                        {keyed && (
+                      <div className="model-platform-key">
+                        <span
+                          className={`model-key-status${keyStatus!.check ? " on" : ""}${keyStatus!.blocked ? " blocked" : ""}`}
+                          title={keyStatus!.title}
+                        >
+                          {keyStatus!.check && <CheckIcon size={11} />}
+                          {keyStatus!.text}
+                        </span>
+                        <button
+                          type="button"
+                          className="model-gear"
+                          title={`${hasKey ? "Modifier" : "Renseigner"} la clé ${PROVIDERS[pid].label}`}
+                          aria-label={`${hasKey ? "Modifier" : "Renseigner"} la clé ${PROVIDERS[pid].label}`}
+                          onClick={() => setKeyProvider(pid)}
+                        >
+                          <SettingsIcon size={14} />
+                        </button>
+                      </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {subgroups.map((sub) => (
+                    <div key={sub.key} className="model-subgroup">
+                      {/* A provider that mixes vendors (OpenRouter/Scaleway)
+                          gets a vendor-family sub-header; a single-family provider (native
+                          OpenAI/Anthropic/…) renders the grid flat, no redundant header. */}
+                      {showSubgroups && (
+                        <div className="model-subhead">
+                          <FamilyLogo familyKey={sub.key} label={sub.label} size={15} />
+                          <span className="model-subhead-label">{sub.label}</span>
+                          <span className="model-subhead-count">{sub.models.length}</span>
+                        </div>
+                      )}
+                      <div className="model-grid">
+                        {sub.models.map((m) => (
+                          <ModelCard
+                            key={m.id}
+                            model={m}
+                            active={m.id === defaultModelId}
+                            reason={unavailableModels?.get(m.id)}
+                            // Per-card chip only when the group is MIXED — a uniform group
+                            // states the reason once in its header (above) — AND the
+                            // provider is not keyed: a keyed provider's key pill already
+                            // says the unlock (« Clé ou abonnement »), so stamping
+                            // « Abonnement requis » on every paid card of a mixed group
+                            // (OpenRouter: free rows usable, ~300 paid rows blocked) is
+                            // pure repetition. The card stays greyed + titled either way.
+                            showChip={!groupReason && !keyed}
+                            onPreview={setPreviewId}
+                            onPick={onPick}
+                            onAccessInfo={() => setFreeInfoOpen(true)}
+                            favorite={favSet.has(m.id)}
+                            onToggleFavorite={onToggleFavorite}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+          {previewModel && (
+            <aside className="model-detail-panel">
+              <ModelDetail model={previewModel} />
+            </aside>
+          )}
+      </div>
+      <p className="modal-note">
+        Le ⚙ de chaque service ouvre sa clé (chiffrée sur cette machine, jamais lue en
+        clair). La pastille indique si une clé y est déjà enregistrée.
+      </p>
+
+      <LocalModelSection url={localModelUrl} onUrl={onLocalModelUrl} />
+
+      <ModelsTabModals
+        freeInfoOpen={freeInfoOpen}
+        onCloseFreeInfo={() => setFreeInfoOpen(false)}
+        onSubscribe={
+          pitchSubscription && onOpenBilling
+            ? () => {
+                setFreeInfoOpen(false);
+                onOpenBilling();
+              }
+            : undefined
+        }
+        keyProvider={keyProvider}
+        onCloseKey={() => setKeyProvider(null)}
+        onSetApiKey={onSetApiKey}
+        onClearApiKey={onClearApiKey}
+        keyConfigured={keyConfigured}
+        onConnectOpenRouter={onConnectOpenRouter}
+      />
+    </>
+  );
+}

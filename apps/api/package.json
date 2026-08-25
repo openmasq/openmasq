@@ -1,0 +1,31 @@
+{
+  "name": "@openmasq/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP broker: per-platform Streamable-HTTP MCP endpoints with OAuth federation (Gmail/Slack/GitHub + a credential-free demo).",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "smoke": "tsx scripts/smoke.ts",
+    "lint": "echo \"(no lint configured)\"",
+    "clean": "rm -rf dist .turbo"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "express": "^5.2.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

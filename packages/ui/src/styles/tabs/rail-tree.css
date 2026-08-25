@@ -1,0 +1,290 @@
+/* Right rail — la vue « Dossiers » : groupes de sources, racines accordées, arborescence
+   et actions (partie de la famille tabs ; voir ../tabs.css ; le sélecteur de vue est dans
+   `rail-views.css`).
+
+   Une seule règle de fond ici : l'indentation est la seule chose que la ligne calcule à
+   l'exécution (elle vient de la profondeur, une donnée), tout le reste — couleurs, états,
+   survol — vit dans cette feuille, sinon un fond inline gagnerait contre `:hover`. */
+
+/* ── Les GROUPES de sources ────────────────────────────────────────────────── */
+.rr-tree-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 2px 4px;
+}
+/* Le marqueur de groupe : une icône, UN mot, puis un filet qui prend le reste. Le mot
+   est court exprès (LOCAL / CLOUD) — « Sur cet appareil » et « Stockage connecté »
+   tenaient toute la largeur pour dire ce que le glyphe dit déjà, et le filet ne pouvait
+   plus séparer quoi que ce soit. Le titre entier reste dans `title`/`aria-label`. */
+.rr-group-ico {
+  flex: none;
+  display: inline-flex;
+  color: var(--text-faint);
+}
+.rr-group-lbl {
+  flex: none;
+}
+.rr-group-rule {
+  flex: 1;
+  min-width: 0;
+  height: 1px;
+  background: var(--border-subtle);
+}
+.rr-tree-group:first-child {
+  padding-top: 2px;
+}
+/* L'action du groupe est une icône : à cette largeur, un libellé pousse le titre dehors. */
+.rr-tree-gear {
+  flex: none;
+  display: inline-flex;
+  padding: 2px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+.rr-tree-gear:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+/* Une RACINE (dossier accordé) ou un stockage connecté : deux lignes — le nom, puis d'où
+   ça vient. Le seul nom ne suffit pas : « Documents », oui, mais lequel ? */
+.rr-src {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 6px 4px 2px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  text-align: start;
+}
+.rr-src:hover {
+  background: var(--surface-hover);
+}
+.rr-src.off {
+  opacity: 0.62;
+}
+/* Un nom, sur une ligne. L'état et le chemin vivent dans l'infobulle : le panneau sert à
+   ATTEINDRE un fichier, pas à lire des phrases sur ses sources. */
+.rr-src-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+/* Connecté : une pastille. Non connecté : la prise, qui EST l'action. Deux glyphes de
+   même largeur, donc les lignes s'alignent quel que soit leur état. */
+.rr-src-dot,
+.rr-src-cta {
+  flex: none;
+  width: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rr-src-dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--brand);
+}
+.rr-src-cta {
+  color: var(--brand);
+}
+
+/* ── L'arborescence ────────────────────────────────────────────────────────── */
+.rr-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rr-tree-list {
+  gap: 0;
+}
+.rr-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding-block: 4px;
+  padding-inline-end: 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+  text-align: start;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-strong);
+}
+.rr-tree-row:hover {
+  background: var(--surface-hover);
+}
+.rr-tree-row.is-dir {
+  font-weight: 600;
+}
+/* Le chevron garde sa place même sur un fichier : sans ça les noms de fichiers et de
+   dossiers ne s'alignent pas et la profondeur devient illisible. */
+.rr-tree-chev {
+  flex: none;
+  width: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-faint);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.rr-tree-chev.open {
+  transform: rotate(90deg);
+}
+.rr-tree-glyph {
+  flex: none;
+  display: inline-flex;
+  color: var(--text-muted);
+}
+/* La pastille d'extension : neutre, JAMAIS une teinte de redaction — celles-ci portent
+   l'identité d'une catégorie de données, et un PDF n'en est pas une. */
+.rr-tree-ext {
+  flex: none;
+  min-width: 24px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+.rr-tree-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rr-tree-loading {
+  flex: none;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+/* « Demander » se superpose à la fin de la ligne au survol : les deux vivent au même
+   endroit, et l'action est ce POUR QUOI on survole. Elle ne prend donc pas de place en
+   permanence — un arbre dense n'a pas de colonne à donner à un bouton. */
+.rr-tree-line {
+  position: relative;
+  display: block;
+}
+.rr-tree-ask {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 3px;
+  transform: translateY(-50%);
+  display: none;
+  align-items: center;
+  gap: 3px;
+  height: 15px;
+  padding: 0 5px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: var(--ink-on-brand);
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+.rr-tree-line:hover .rr-tree-ask,
+.rr-tree-ask:focus-visible {
+  display: inline-flex;
+}
+/* Icône seule : sur une barre en pointillés, la forme dit « ajouter ici » aussi bien
+   que le mot. Le libellé complet reste dans `title`/`aria-label`. */
+.rr-tree-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.rr-tree-add:hover {
+  background: var(--surface-hover);
+  border-color: var(--brand);
+  color: var(--text-strong);
+}
+/* La sélection native est modale : rien ne peut plus être cliqué ici, et le glyphe le
+   dit en respirant plutôt qu'en s'allongeant en « Sélection… ». */
+.rr-tree-add[aria-busy="true"] {
+  animation: rr-add-busy 1.1s var(--ease-out) infinite;
+}
+@keyframes rr-add-busy {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rr-tree-add[aria-busy="true"] {
+    animation: none;
+    border-color: var(--brand);
+  }
+}
+
+/* L'échec RÉEL (dossier retiré, disque débranché, autorisation révoquée) et le moyen de
+   réessayer. La paire est celle du reste de l'app — `--red-soft` sous `--red-500` — et
+   aucun des deux tokens n'est re-pointé par un thème, donc elle tient dans les quatre. */
+.rr-tree-error {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--red-soft);
+  color: var(--red-500);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+.rr-tree-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* Une lecture qui a ÉCHOUÉ. Distincte du « … » : celui-ci promet une arrivée, celle-là
+   dit qu'il n'y en aura pas — la cause s'affiche dans `.rr-tree-error`, en bas du panneau,
+   et replier/rouvrir relance la lecture. */
+.rr-tree-failed {
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+  color: var(--red-500);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+}

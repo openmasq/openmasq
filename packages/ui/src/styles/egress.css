@@ -1,0 +1,122 @@
+/* ── « Ce qui est sorti de la machine » — le journal RÉSEAU (Réglages → Journal) ──────
+   La moitié réseau de l'onglet Journal, sous le même sélecteur que la moitié redaction.
+   Elle se lit comme la table d'audit qui lui fait face — mêmes filets, mêmes métadonnées
+   en mono, même respiration — parce que les deux répondent à la même question sous deux
+   angles ; deux mises en page auraient suggéré deux registres différents.
+
+   La feuille existe pour ça : la carte était écrite en utilitaires Tailwind arbitraires
+   (`text-[11px]`, `py-0.5`, `border-b`), donc en valeurs figées à côté d'une voisine
+   entièrement tokenisée. Ici tout vient des tokens, et les quatre thèmes suivent. */
+
+.egress-head {
+  margin-bottom: 14px;
+}
+.egress-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+.egress-sub {
+  margin: 6px 0 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+/* Le résumé chiffré : les nombres sont de la métadonnée, donc en mono (design system). */
+.egress-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 12px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.egress-stat {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.egress-search {
+  margin-bottom: 12px;
+}
+
+/* Une ADRESSE contactée. Grille à colonnes fixes comme `.audit-grid` : la colonne de
+   droite ne doit pas danser d'une ligne à l'autre selon la longueur d'un nom d'hôte. */
+.egress-list {
+  display: flex;
+  flex-direction: column;
+}
+.egress-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+}
+.egress-row + .egress-row {
+  border-top: 1px solid var(--border-subtle);
+}
+.egress-host {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.egress-host > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* « non chiffré » : un fait technique, pas une alerte — mono, discret, jamais rouge.
+   Le refus, lui, a sa pastille. */
+.egress-plain {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.egress-sources {
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+.egress-meta {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.egress-count {
+  color: var(--text-muted);
+}
+/* Un refus est le seul état qui mérite une couleur : la teinte voyage avec sa propre
+   encre (`.hl-red` → `--mk` / `--mk-ink`), donc elle s'inverse avec les quatre thèmes
+   (règle 12). */
+.egress-refused {
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  background: var(--mk);
+  color: var(--mk-ink);
+  font-weight: 700;
+}
+.egress-empty {
+  padding: 10px 2px;
+  font-size: var(--text-sm);
+  color: var(--text-faint);
+}

@@ -1,0 +1,63 @@
+/* ── Halo des zones de texte détecté (PDF + image scannée) ─────────────────────────
+   La couche `.pdfv-texthalo` marque le texte qui — redacted — part vers le modèle
+   (`RenderedPage.wireWords`, jamais tous les mots) : une inscription prise dans l'image
+   (logo, tampon) est LUE mais ne part pas en texte — elle porte le CADRE `.pdfv-imgzone`
+   et jamais le halo, sinon les deux marques se contredisent sur le même pixel. Géométrie :
+   des bandes de ligne (`textHalo.ts`), aux bords NETS — pas de flou : la frontière
+   envoyé/non-envoyé est une INFORMATION, et un dégradé la rend indécidable exactement là
+   où elle compte (« cette marge part-elle ? »).
+
+   ⚠️ Le halo lit sur le fond BLANC FIGÉ du document (`.pdfv-page` / `.fv-imgwrap`,
+   identique dans les quatre thèmes — même argument que `.pdfv-imgzone`). La TEINTE,
+   elle, vient de `--brand` : le halo suit l'accent du thème (forêt sur les thèmes
+   verts, indigo sur les bleus) au lieu d'imposer un vert à tous. Un lavis très LÉGER
+   exprès — il dit « ceci a été lu », il ne surligne pas : à 26 % de lime flouté il se
+   lisait comme un redaction de plus, pas comme une lecture. */
+
+.pdfv-texthalo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Opacité de GROUPE, bandes OPAQUES dessous : deux bandes qui se recouvrent (lignes
+     voisines, mot présent dans la couche texte ET dans l'OCR) rendent l'UNION, jamais
+     un lavis doublé plus foncé — la superposition ne se voit pas. */
+  opacity: 0.07;
+}
+
+.pdfv-halo {
+  position: absolute;
+  border-radius: 4px;
+  background: var(--brand);
+}
+
+/* La bascule de la légende : le halo se masque, la légende reste (pour rallumer). */
+.pdfv-halo-off .pdfv-texthalo {
+  display: none;
+}
+.pdfv-halo-off .pdfv-halolegend {
+  opacity: 0.55;
+}
+
+/* La LÉGENDE — sans elle le halo est un mystère (« pourquoi c'est teinté ? »). Posée en
+   haut de la première page seulement (`pageLayers.ts` ne la crée qu'une fois) : une
+   étiquette par page serait du bruit. C'est un BOUTON : cliquer masque/réaffiche le halo. */
+.pdfv-halolegend {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
+  appearance: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.4;
+  /* Sur le document blanc figé, dans tous les thèmes : encre sombre sur lavis clair. */
+  color: color-mix(in oklch, var(--brand) 72%, black);
+  background: color-mix(in oklch, var(--brand) 10%, white);
+  border: 1px solid color-mix(in oklch, var(--brand) 22%, white);
+  cursor: pointer;
+}
+.pdfv-halolegend:hover {
+  background: color-mix(in oklch, var(--brand) 16%, white);
+}

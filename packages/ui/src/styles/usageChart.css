@@ -1,0 +1,101 @@
+/* ── Le GRAPHE des vues d'usage : barres empilées, filtres, légende ───────────────
+   Sorti de `usage.css` en le franchissant : ce fichier passait le cap de 300 lignes
+   (règle 1). La coupe est thématique et non arbitraire — les KPI, panneaux et segments
+   restent là-bas, tout ce qui DESSINE la série est ici. Aucun de ces sélecteurs n'est
+   déclaré ailleurs, donc sa nouvelle position dans la cascade est indifférente. */
+.usage-stack {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  height: 150px;
+}
+.usage-stack-col {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  height: 100%;
+}
+/* column-reverse: the first (highest-total) model stacks from the base up. Total
+   height is data-driven → inline; the per-segment hue + share are inline too. */
+.usage-stack-bar {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 100%;
+  border-radius: 5px;
+  overflow: hidden;
+}
+/* La rangée de filtres : voie de facturation + fenêtre, sur UNE ligne au-dessus des
+   graphes. Dispersés dans les en-têtes de panneaux, on ne sait plus lequel agit sur quoi. */
+.usage-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+/* Le chiffre d'une entrée de légende — encre discrète, jamais la couleur de la série :
+   le texte porte des jetons de texte, c'est la pastille qui porte l'identité. */
+.usage-legend-n {
+  margin-left: 6px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.usage-stack-seg {
+  /* ⚠️ 2 px de fond entre segments — pas un ornement. La séparation CVD la plus faible
+     de la rampe claire tombe à 7,2 (tritan), ce que la référence dataviz n'autorise
+     qu'avec un encodage SECONDAIRE : cet écart et la légende en sont un. Le retirer rend
+     deux séries voisines confondues pour une partie des lecteurs. `box-shadow` plutôt
+     qu'une marge : une marge décalerait les hauteurs, qui portent la donnée. */
+  box-shadow: 0 -2px 0 0 var(--surface-card);
+  width: 100%;
+  transition: height 200ms var(--ease-out);
+}
+/* ── La bande de SURVOL d'une colonne ──────────────────────────────────────────────
+   La cible n'est pas la barre : à un message par jour elle fait quelques pixels, et un
+   jour vide n'a rien à viser — d'où une colonne pleine hauteur qui porte l'infobulle
+   (référence dataviz : « la zone de survol est plus grande que la marque »). Elle doit
+   RÉPONDRE, sinon rien ne dit qu'il y a quelque chose à survoler : un lavis discret sur
+   la colonne, et la barre qui reprend son opacité pleine. */
+.usage-bar-col,
+.usage-stack-col {
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: default;
+  transition: background 140ms var(--ease-out);
+}
+.usage-bar-col:hover,
+.usage-stack-col:hover,
+.usage-bar-col:focus-visible,
+.usage-stack-col:focus-visible {
+  background: var(--surface-hover);
+}
+.usage-bar-col:focus-visible,
+.usage-stack-col:focus-visible {
+  box-shadow: var(--shadow-focus, 0 0 0 2px var(--border-focus));
+}
+.usage-bar-col:hover .usage-bar,
+.usage-bar-col:focus-visible .usage-bar {
+  opacity: 1;
+}
+
+.usage-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+.usage-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.usage-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}

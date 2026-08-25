@@ -1,0 +1,144 @@
+/* Right rail — base chrome: the column, its buttons, tiles and icon tabs (part of
+   the tabs family; see ../tabs.css). */
+
+/* The kit's browser sidebar — a slim 48px column that sits ON THE SHELL frame, a
+   mirror of the left `.nav-dock`: it is a child of `.app` (not the white workspace
+   card), so it is transparent over the shell tone rather than painting its own.
+   Buttons are centred in the column (`align-items: center`). */
+.right-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  width: 48px;
+  flex-shrink: 0;
+  padding: 12px 0;
+  background: transparent;
+}
+.right-rail .rail-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+.right-rail .rail-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.right-rail .rail-btn.active {
+  border-color: var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-strong);
+}
+/* Kit: the active rail tab wears a small brand bar on its left edge (kept inside
+   the slim column so it doesn't poke into the shell gap). */
+.right-rail .rail-btn.active::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -5px;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--brand);
+  transform: translateY(-50%);
+}
+/* The agent drives the browser while it is off-screen — pulse the globe. */
+.right-rail .rail-btn.busy::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+  animation: om-rail-pulse 1.2s ease-in-out infinite;
+}
+@keyframes om-rail-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+/* The 22px tone tile inside an open rail tab (kit). */
+.rail-tile {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  /* Was a frozen forest ink, which only worked on the light pastel this tile used to
+     carry (root rule 12). It now follows the theme, like the neutral tile below. */
+  color: var(--text-body);
+}
+/* A favicon-LESS web tab is MONOCHROME: the site's initial on a neutral chip, no hue. The
+   sky tint it used to wear read as a category colour and, being one hue for every site,
+   said nothing about which tab it was — the letter does that. A REAL favicon is untouched
+   (it keeps the site's own colours and covers this tile entirely, see `.rail-favicon`).
+   `--surface-active`, not `--surface-sunken`: the rail is transparent over
+   `--surface-shell`, which sunken is one shade away from — the chip would vanish. */
+.rail-tile--browser { background: var(--surface-active); }
+/* A web tab's REAL favicon (raster data: URL) overlays the letter tile: it covers the
+   initial once loaded, and on load-error it's removed so the letter shows through. On a
+   white backing so a transparent/light icon reads like a real browser-tab favicon. */
+.rail-tile .rail-favicon {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  border-radius: inherit;
+  object-fit: contain;
+  background: #fff;
+}
+/* A web tab's tile carries the site's INITIAL (favicon-esque), not a glyph. */
+.rail-tile--letter {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 10px;
+}
+.right-rail-sep {
+  width: 26px;
+  height: 1px;
+  margin: 6px 0;
+  background: var(--border-subtle);
+}
+.right-rail-tab {
+  position: relative;
+  display: inline-flex;
+}
+.right-rail-x {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+}
+.right-rail-tab:hover .right-rail-x { display: inline-flex; }
+/* The foot: the panel commands (when a panel is open) then « Aide » + « Envoyer un
+   avis », pinned to the column's bottom. The spacer is what pushes them down — the
+   column has no other flexible element. The expanded (labelled) form is in
+   `rail-list.css`, beside the rest of that width state. */
+.right-rail-spacer {
+  flex: 1 1 auto;
+}

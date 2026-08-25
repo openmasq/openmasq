@@ -1,0 +1,114 @@
+/* ==================================================== Settings → Versions ==
+   The Versions tab (pages/Settings/updates/): the installed build, the
+   auto-update toggle, and the version HISTORY — a card list of published builds,
+   each expandable to its Contentful release notes (fetched via analytics-fn and
+   matched by version). Mirrors the design system's `VersionsSection`.
+
+   ⚠️ The kit's releases/notes are FAKE. Every row here is a REAL published build
+   from the updates feed, and every note is real CMS copy — so the kit's
+   hardcoded "lead" sentences have no counterpart: a row's lead is the note's
+   title, or the build manifest's `notes`, or nothing.
+
+   Extracted from styles.css (rule 1: shrink the monolith when you touch it), then
+   split again into ./versions/* to keep every file under the 300-LOC cap. This
+   file is the BARREL — styles.css imports only this one; the parts are imported
+   here, never registered separately.
+
+   ⚠️ Both this @import and the one that pulls this file in from styles.css must
+   stay among the LEADING @import rules: Lightning CSS silently DROPS an @import
+   that follows other rules (the same trap the webfonts hit).
+
+   Owns the whole `.ver-*` family + the `.ver` tab wrapper — these selectors are
+   defined NOWHERE else, so the partial's earlier cascade position is inert. */
+
+@import "./versions/chrome.css";
+@import "./versions/history.css";
+
+/* « L'app est à jour » — la page Versions telle qu'un utilisateur la voit sur une build
+   de production : une phrase, pas un tableau de bord. Le détail technique (version,
+   canal, historique, bascule d'environnement) reste sur staging. */
+.ver-uptodate {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 12px;
+  font-size: var(--text-md);
+  color: var(--text-strong);
+}
+.ver-uptodate svg {
+  color: var(--green-ink, var(--brand));
+}
+
+/* Le bouton « une mise à jour attend », au pied du rail droit. Il n'existe que tant
+   qu'une version est téléchargée, donc il a le droit de se voir : c'est la seule entrée
+   de ce pied qui périme, et la manquer coûte un redémarrage remis à plus tard
+   indéfiniment. L'encre passe par le token qui s'inverse avec la marque (règle 12) —
+   le vert forêt de trois thèmes et le lime clair du quatrième sont le même jeton. */
+.rr-upd {
+  background: var(--brand);
+  color: var(--ink-on-brand);
+}
+.rr-upd:hover {
+  background: var(--brand-hover, var(--brand));
+  filter: brightness(1.05);
+}
+.rr-foot-row.rr-upd .rr-foot-lbl,
+.rr-foot-row.rr-upd .rr-foot-ico {
+  color: var(--ink-on-brand);
+}
+
+/* ─ « Une nouvelle version est prête » (containers/modals/UpdateReadyModal.tsx) ────────
+   Ce que le système annonçait dans une boîte nue. Le CORPS de la note est rendu par le
+   composant partagé (`.ver-rel*`), donc rien de sa mise en forme ne vit ici : seulement
+   l'en-tête, l'ascenseur et le pied. */
+.om-upd {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.om-upd-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px 26px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.om-upd-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--brand);
+  color: var(--ink-on-brand);
+  flex-shrink: 0;
+}
+.om-upd-sub {
+  margin-top: 3px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+/* Le seul ascenseur de la fenêtre : une note à vingt puces ne doit pas pousser le pied —
+   et donc « Redémarrer maintenant » — sous la ligne de flottaison. */
+.om-upd-body {
+  padding: 16px 26px 20px;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+.om-upd-empty {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.om-upd-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 26px 18px;
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-card);
+  flex-shrink: 0;
+}

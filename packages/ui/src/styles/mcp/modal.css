@@ -1,0 +1,151 @@
+/* ── The per-connector DETAIL modal (kit: `McpConnectModal`) ───────────────
+   Chrome only — the panel, its marker bar and the one-shot sweep come from the
+   shared ModalShell (../modals.css). See ../mcp.css for the family map. */
+
+.mcp-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 22px 22px 16px;
+}
+.mcp-modal-sub {
+  margin-top: 3px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mcp-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 22px 22px;
+  overflow-y: auto;
+}
+.mcp-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mcp-modal-error {
+  font-size: var(--text-sm);
+  color: var(--coral-700);
+}
+.mcp-modal-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* La note qui NOMME les connecteurs frères d'une même autorisation coule comme une
+   PHRASE : le `flex` ci-dessus ferait de chaque nom un élément flex, et la ponctuation
+   se détacherait des mots qu'elle sépare. */
+.mcp-modal-note.mcp-note-flow {
+  display: block;
+}
+
+.mcp-peer-link {
+  font: inherit;
+  color: var(--brand);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.mcp-peer-link:hover {
+  color: var(--text-strong);
+}
+
+/* The kit's lime privacy block: how this connector authenticates, plus the
+   standing promise that the redaction covers what it exchanges. */
+.mcp-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--hl-lime-soft);
+}
+.mcp-hint-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--forest-500);
+}
+.mcp-hint-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--forest-700);
+}
+
+/* Company "about" block (blurb + website link) — the only rule in the body that
+   keeps a divider, because it introduces the connector rather than acting on it. */
+.mcp-modal-about {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.mcp-modal-about-text {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.mcp-modal-about-link {
+  display: inline-block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-link, var(--brand));
+  text-decoration: none;
+}
+.mcp-modal-about-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Multi-account list ──────────────────────────────────────────────────── */
+.mcp-accounts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mcp-account-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+.mcp-account-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.mcp-account-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mcp-account-sub {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-faint);
+}
+.mcp-account-sub.error {
+  color: var(--coral-700);
+}
+.mcp-account-actions {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}

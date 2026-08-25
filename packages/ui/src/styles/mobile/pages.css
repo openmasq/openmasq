@@ -1,0 +1,57 @@
+/* Mobile — what's left of the desktop reshaping (part of the mobile family; see
+   ../mobile.css). Presque chaque règle ici plie une surface DESKTOP pas encore portée ;
+   c'est la dette du portage, et elle ne doit que rétrécir. La seule exception est le
+   bloc de poids ci-dessous, dont la sortie ne dépend pas d'un écran porté — il le dit.
+
+   The chat's welcome hero and composer row used to live here as `.app-mobile` overrides;
+   they are now width-keyed in `styles.css` (a narrow desktop pane needs them too). */
+
+/* ── Page headers — the kit's big display titles on non-ported screens ── */
+.app-mobile .page-header-title {
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+/* ── Le plafond de poids de la famille (voir ../mobile.css) appliqué aux titres
+   d'affichage PARTAGÉS avec le desktop.
+
+   La règle commune les déclare en « Archivo » 900. Archivo n'est pas installé — la
+   famille retombe sur Space Grotesk, qui s'arrête à 700 — donc ce 900 est un gras
+   SYNTHÉTISÉ : le moteur épaissit le 700 lui-même, et sur les gros corps d'un écran de
+   téléphone ça bave au lieu d'appuyer. Le kit `chat-app-mobile` a fermé la même chose
+   chez lui en sortant Archivo de ses fontes.
+
+   ⚠️ C'est une divergence mobile ASSUMÉE, pas un pas de plus dans le portage : le
+   desktop garde son 900 le temps que la question soit tranchée pour lui. Ce qui retire
+   ce bloc, c'est la règle partagée ramenée à 700 — pas un écran porté de plus. ── */
+.app-mobile .cv-display,
+.app-mobile .page-header-title,
+.app-mobile .modal-header h2,
+.app-mobile .welcome h1,
+.app-mobile .msg-answer {
+  font-weight: 700;
+}
+
+/* Full-bleed the screens still built on the desktop `.library-page` chassis — Coffre,
+   Compétences, Workflows. The desktop floats each as a rounded panel beside the sidebar;
+   on a phone there is no sidebar, so the margin and the radius only shrink the screen and
+   leave slivers of page showing at the corners. Goes away as each one is ported (the
+   Bibliothèque and the Mémoire no longer use this chassis). */
+.app-mobile .library-page {
+  margin: 0;
+  border-radius: 0;
+}
+
+/* The RightRail is the agent BROWSER's switcher — a desktop-only surface
+   (`host.browser` is absent on mobile), so its floating globe is dead weight. */
+.app-mobile .right-rail {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-screen,
+  .app-mobile .model-selector .model-menu,
+  .app-mobile .header-menu {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,30 @@
+/* ====================================================== MCP connectors ==
+   Settings → Serveurs MCP: the searchable 2-column connector GRID, the card,
+   and the per-connector DETAIL modal (head / bodies / accounts / key tutorial).
+   Matches the design kit's `McpSection` + `McpConnectModal`.
+
+   This is the ENTRY of the family; the rules live in ./mcp/* so no file passes
+   the 300-LOC cap (rule 1). The @imports MUST stay at the top of this file —
+   Lightning CSS silently DROPS an @import that follows a rule (the same trap as
+   the webfonts in styles.css).
+
+   Owned selector families (defined ONLY here — nothing else in the app styles
+   them, so the partial's earlier cascade position is inert):
+     ./mcp/tab.css    .mcp-empty .mcp-head .mcp-count .mcp-search .mcp-group
+                      .mcp-cat-eyebrow .mcp-grid .mcp-card* .mcp-ctile*
+                      .mcp-badge .mcp-lock .mcp-auth-badge* .mcp-auth-pill
+     ./mcp/modal.css  .mcp-modal-* .mcp-hint* .mcp-accounts .mcp-account-*
+     ./mcp/fields.css .mcp-url-input .mcp-apikey-* .mcp-local-fields .mcp-cmd*
+                      .mcp-rownote .mcp-param .mcp-btn*
+     ./mcp/custom.css .mcp-search-row .mcp-add-btn .mcp-warn* .mcp-field-*
+                      .mcp-custom-*
+
+   ⚠️ `.mcp-tile` / `.mcp-tile-logo` are deliberately NOT here — they are shared
+   with components/agent/CreditsCard.tsx and components/agent/IntegrationProposalCard.tsx
+   and stay in styles.css. The MCP tab uses its own `.mcp-ctile`, so a restyle
+   here can never move those surfaces. */
+
+@import "./mcp/tab.css";
+@import "./mcp/modal.css";
+@import "./mcp/fields.css";
+@import "./mcp/custom.css";

@@ -1,0 +1,31 @@
+/* La bascule Redacted ⇄ Original du viewer de fichiers (FileViewerModal) — famille au
+   préfixe unique `.fv-seg-toggle` / `.fv-seg-clear`, définie NULLE PART ailleurs (la
+   méthode de packages/ui : sa position dans la cascade est alors indifférente). */
+
+/* L'interrupteur, poussé à droite de la ligne de note. Libellé mono comme la note —
+   c'est un fait d'état, pas un bouton d'action. */
+.fv-seg-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* La note en vue ORIGINAL : l'ambre du « attention, données réelles » — pas le rouge
+   (rien n'est cassé), pas la marque (rien n'est protégé non plus). Le bouclier suit. */
+.fv-seg-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--hl-amber);
+}
+.fv-seg-clear svg {
+  color: var(--hl-amber);
+  flex-shrink: 0;
+}

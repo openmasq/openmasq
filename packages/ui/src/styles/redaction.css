@@ -1,0 +1,133 @@
+/* Le tiers « à vérifier » de l'audit avant envoi — même famille, part séparée. */
+@import "./doubt.css";
+
+/* ============================================ The REDACTION PALETTE, as a SEQUENCE ===
+   The same nine hues the marks use, named by SECTION and ordered, for the one surface that
+   walks the palette instead of picking the hue its data dictates: the thinking loader's
+   mini grid (`.om-mini-*` below) needs "the 3rd swatch", which `--hl-*` doesn't express.
+
+   These are ALIASES over `--hl-*` / `--ink-on-hl-*` (styles.css) — never colours of their
+   own, so a re-tone reaches the loader and a real conversation identically. The section
+   names mirror `SECTION_HUE` (`packages/redact/src/highlight/sections.ts`), the palette's
+   source; the ORDER is `BrandLogo/palette.ts`.
+
+   The black bar is the one swatch with no `--hl-*`: a redaction block, the classic
+   redacted-document look. `#0B0B0F` on a DARK ground is 1.03:1 — the swatch would not
+   exist — so both dark themes invert it to the paper tone, the way a printed block reads
+   light on a dark sheet (root rule 12: a literal is checked in all four themes, and says so). */
+:root {
+  --cav-identite: var(--hl-violet);
+  --cav-identite-on: var(--ink-on-hl-violet);
+  --cav-bar: #0b0b0f;
+  --cav-bar-on: #ffffff;
+  --cav-contact: var(--hl-sky);
+  --cav-contact-on: var(--ink-on-hl-sky);
+  --cav-localisation: var(--hl-mint);
+  --cav-localisation-on: var(--ink-on-hl-mint);
+  --cav-organisation: var(--hl-teal);
+  --cav-organisation-on: var(--ink-on-hl-teal);
+  --cav-financier: var(--hl-amber);
+  --cav-financier-on: var(--ink-on-hl-amber);
+  --cav-identifiants: var(--hl-gold);
+  --cav-identifiants-on: var(--ink-on-hl-gold);
+  --cav-reseau: var(--hl-pink);
+  --cav-reseau-on: var(--ink-on-hl-pink);
+  --cav-systeme: var(--hl-slate);
+  --cav-systeme-on: var(--ink-on-hl-slate);
+  --cav-secrets: var(--hl-red);
+  --cav-secrets-on: var(--ink-on-hl-red);
+}
+[data-theme="dark"],
+[data-theme="blue-dark"] {
+  --cav-bar: var(--text-strong);
+  --cav-bar-on: #0b0b0f;
+}
+
+/* ── The MINI redaction loader (`components/media/BrandLogo/MiniRedaction.tsx`) ──
+   The thinking loader: a small faint grid on which cells redact in the palette, a block
+   of cells reading as one masked value — only it never finishes. The head advances along the
+   grid and the trail clears behind it, so it redacted continuously instead of playing once.
+
+   Deliberately CSS-thin: the travelling comes from React state (one 380ms tick), so there
+   is no per-cell animation-delay to keep in sync with a JS sequence — two clocks over one
+   sequence drift. Each cell only fades its own fill. */
+.om-mini {
+  display: grid;
+  gap: 0;
+  flex: none;
+}
+.om-mini-cell {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--text-strong) 14%, transparent);
+}
+.om-mini-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--cav, var(--text-strong));
+  /* The hairline is the swatch's OWN ink: at 6px the lime block on a light ground
+     (1.25:1) is otherwise a hole in the grid rather than a redaction. */
+  box-shadow: inset 0 0 0 0.5px var(--cav-on, transparent);
+  animation: om-mini-in 0.22s var(--ease-out, ease-out) both;
+}
+@keyframes om-mini-in {
+  from { opacity: 0; scale: 0.5; }
+  to { opacity: 1; scale: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .om-mini-fill { animation: none; }
+}
+
+/* ── « Comprendre mon redaction » — le petit conteneur sous les premières réponses ──
+   (RedactionIntroCard ; quand il se montre : privacy/redactionIntro.ts). Une RANGÉE,
+   pas une carte : il revient à chaque conversation jusqu'au « Fermer pour toujours »,
+   donc il doit coûter moins d'attention qu'une réponse. */
+.redintro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 8px;
+}
+.redintro-open {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 7px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.redintro-open:hover { border-color: var(--brand); color: var(--text-strong); }
+.redintro-ic { display: flex; color: var(--brand); flex-shrink: 0; }
+.redintro-copy { display: flex; flex-direction: column; min-width: 0; }
+.redintro-title { font-size: 12.5px; font-weight: 600; color: var(--text-strong); }
+.redintro-sub {
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* La fermeture DIT sa portée (« pour toujours ») : une croix nue promettrait un simple
+   « pas maintenant », et l'utilisateur découvrirait la permanence après coup. */
+.redintro-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-faint);
+  font-size: 11px;
+  cursor: pointer;
+}
+.redintro-close:hover { color: var(--text-strong); background: var(--surface-sunken); }
+@media (max-width: 640px) { .redintro-sub { display: none; } }

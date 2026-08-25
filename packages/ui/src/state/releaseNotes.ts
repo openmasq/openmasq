@@ -1,0 +1,176 @@
+import { useEffect } from "react";
+import { useHost } from "../host";
+import { useAppDispatch, useAppSelector } from "./redux";
+import { selectReleaseNotesCache } from "./settingsCache";
+import { loadReleaseNotes } from "./settingsPrefetch";
+
+// Les NOTES DE VERSION publiées (Contentful, servies par analytics-fn `/release-notes`) :
+// le type, le lecteur du cache, et la mise en forme pure que les deux surfaces partagent.
+//
+// ⚠️ Vit ici, dans la couche DONNÉES, et non plus sous `pages/Settings/updates/` : le cache
+// Redux et le préchargement importaient déjà ce type depuis `pages/` (une couche basse qui
+// remonte), et la modale d'AIDE — un `containers/` — n'aurait pas pu l'importer du tout.
+// Deux lecteurs, une seule maison.
+
+/** The stable shape the analytics-fn `/release-notes` endpoint returns per note. */
+export interface ReleaseNote {
+  version: string;
+  releaseDate: string | null;
+  title: string;
+  body: string;
+  highlights: string[];
+}
+
+export interface UseReleaseNotes {
+  notes: ReleaseNote[];
+  loading: boolean;
+  /** True when the host exposes no release-notes URL (browser preview / relay off). */
+  unavailable: boolean;
+  error: string | null;
+}
+
+/** Lecteur PUR du cache : le chargement est fait une fois par `settingsPrefetch`
+ *  (`loadReleaseNotes`), donc revenir sur l'écran est instantané. */
+export function useReleaseNotes(): UseReleaseNotes {
+  const host = useHost();
+  const url = host.releaseNotesUrl;
+  const { notes, loaded } = useAppSelector(selectReleaseNotesCache);
+  return { notes, loading: !!url && !loaded, unavailable: !url, error: null };
+}
+
+/**
+ * Le même cache, mais qui SE CHARGE s'il ne l'est pas encore — pour une surface qu'on peut
+ * atteindre sans passer par les Réglages (l'aide s'ouvre depuis le rail).
+ *
+ * ⚠️ Une seule maison pour ce déclenchement : `loadReleaseNotes` est idempotent côté cache
+ * (il écrit `loaded`), donc un second lecteur ne re-télécharge rien — mais la CONDITION
+ * « charger si personne ne l'a fait » recopiée dans chaque écran est exactement ce qui
+ * laisse un onglet vide chez qui n'a pas emprunté le bon chemin.
+ */
+export function useReleaseNotesFeed(): UseReleaseNotes {
+  const host = useHost();
+  const dispatch = useAppDispatch();
+  const state = useReleaseNotes();
+  const { unavailable, loading } = state;
+  useEffect(() => {
+    if (!unavailable && loading) void loadReleaseNotes(host, dispatch);
+  }, [host, dispatch, unavailable, loading]);
+  return state;
+}
+
+/** Normalise a version for matching: drop a leading "v" and any pre-release suffix
+ *  ("4.9.0-staging.12" / "4.9.0-rc1" → "4.9.0"). */
+export const baseVersion = (v: string): string => v.replace(/^v/, "").split("-")[0];
+
+/**
+ * UNE note par version. Le point d'accès en renvoie PLUSIEURS pour une même version (une
+ * note d'accueil et la vraie, une correction republiée), classées de la plus récente à la
+ * plus ancienne : on garde donc la PREMIÈRE vue. Sans ça l'historique affichait « 0.4.1 »
+ * deux fois de suite — ce qui se lit comme un bug de l'app, pas comme deux notes.
+ * Même règle que le rapprochement build↔note des Réglages (`noteLookup`), une seule fois.
+ */
+export function latestPerVersion(notes: readonly ReleaseNote[]): ReleaseNote[] {
+  const seen = new Set<string>();
+  const out: ReleaseNote[] = [];
+  for (const n of notes) {
+    const key = baseVersion(n.version ?? "");
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(n);
+  }
+  return out;
+}
+
+/**
+ * LA note d'une version — la seule façon de passer d'un numéro de build à ce qu'il
+ * apporte. Tolère le suffixe préliminaire (`0.5.0-staging.12` → `0.5.0`), applique la
+ * règle « une note par version », et rend `undefined` plutôt que d'inventer.
+ *
+ * Une seule maison (règle 9) : le rapprochement build↔note des Réglages, l'annonce d'une
+ * mise à jour téléchargée et l'historique de l'aide posent tous la même question.
+ */
+export function noteForVersion(
+  notes: readonly ReleaseNote[],
+  version: string | undefined,
+): ReleaseNote | undefined {
+  if (!version) return undefined;
+  const key = baseVersion(version);
+  return latestPerVersion(notes).find((n) => baseVersion(n.version) === key);
+}
+
+// The six highlight-palette hues, cycled per highlight bullet (the brand's signature
+// redaction-marker colours). Maps to the `--hl-*` tokens via the `.rn-dot-<tone>` class.
+export const HL_TONES = ["pink", "amber", "sky", "lime", "mint", "violet"] as const;
+
+/** "2026-07-11T…" → "11 juillet 2026"; non-ISO / null returned as-is. */
+export function frenchDate(iso: string | null): string {
+  if (!iso) return "";
+  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return iso;
+  const months = [
+    "janvier", "février", "mars", "avril", "mai", "juin",
+    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+  ];
+  const month = months[Number(m[2]) - 1];
+  return month ? `${Number(m[3])} ${month} ${m[1]}` : iso;
+}
+
+/** "Titre — bénéfice" → { title, body }; a plain string → { title }. */
+export function splitHighlight(s: string): { title: string; body?: string } {
+  const m = s.match(/^(.+?)\s*[—–:-]\s*(.+)$/);
+  return m ? { title: m[1].trim(), body: m[2].trim() } : { title: s.trim() };
+}
+
+// ---- Highlight grouping (mirrors the design-system VersionsSection's 3 colour-
+// coded sections: Nouveautés / Améliorations / Corrections). Contentful stores a
+// FLAT `highlights` list, so a note opts a bullet into a group by PREFIXING it with
+// a category token (`feat:` / `imp:` / `fix:`, a few synonyms each). An un-prefixed
+// bullet — every existing note — falls into "Nouveautés", so flat notes render
+// exactly as before while an authored note gets the design's colour groups.
+
+export type HighlightGroupKey = "feat" | "imp" | "fix";
+
+export interface HighlightGroup {
+  key: HighlightGroupKey;
+  /** The section header ("Nouveautés" / "Améliorations" / "Corrections"). */
+  label: string;
+  /** The `.ver-reldot` tone modifier class (empty = the default lime dot). */
+  tone: string;
+  /** The bullets (with their leading category token stripped). */
+  items: string[];
+}
+
+// Ordered so groups always render Nouveautés → Améliorations → Corrections. `match`
+// tests ONLY a bullet's leading `token:` word — a bullet whose leading word isn't a
+// recognised category keeps its full text (never mis-stripped) under `feat`.
+const GROUP_META: { key: HighlightGroupKey; label: string; tone: string; match: RegExp }[] = [
+  { key: "feat", label: "Nouveautés", tone: "", match: /^(feat|feature|new|nouveaut[eé]s?|nouveau)$/i },
+  { key: "imp", label: "Améliorations", tone: "imp", match: /^(imp|improvement|perf|am[eé]lioration|enhance)$/i },
+  { key: "fix", label: "Corrections", tone: "fix", match: /^(fix|bug|correction|hotfix)$/i },
+];
+
+/** Classify a highlight by its optional leading `category:` token. Only strips the
+ *  token when it matches a known category — otherwise the full text is kept. */
+function classifyHighlight(h: string): { key: HighlightGroupKey; text: string } {
+  const m = h.match(/^\s*([A-Za-zÀ-ÿ]+)\s*[:：]\s*(.*)$/);
+  if (m) {
+    for (const g of GROUP_META) if (g.match.test(m[1])) return { key: g.key, text: m[2].trim() };
+  }
+  return { key: "feat", text: h.trim() };
+}
+
+/** Bucket a note's flat `highlights` into the (non-empty) design groups, in order. */
+export function groupHighlights(highlights: string[]): HighlightGroup[] {
+  const buckets: Record<HighlightGroupKey, string[]> = { feat: [], imp: [], fix: [] };
+  for (const h of highlights) {
+    if (!h || !h.trim()) continue;
+    const { key, text } = classifyHighlight(h);
+    if (text) buckets[key].push(text);
+  }
+  return GROUP_META.filter((g) => buckets[g.key].length > 0).map((g) => ({
+    key: g.key,
+    label: g.label,
+    tone: g.tone,
+    items: buckets[g.key],
+  }));
+}

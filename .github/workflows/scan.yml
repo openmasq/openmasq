@@ -1,0 +1,94 @@
+name: scan
+
+# Analyse STATIQUE du dépôt lui-même — ce que ni les tests ni le typecheck ne voient :
+# un secret commité, et une classe de vulnérabilité dans le code.
+#
+# Séparé de `verify.yml` À DESSEIN. `verify` répond « ce changement casse-t-il quelque
+# chose ? » et doit rester rapide, parce que chaque PR l'attend. Ces deux analyses-ci
+# répondent « le dépôt porte-t-il quelque chose qui ne devrait pas y être ? » — une
+# question largement TEMPORELLE (une règle de détection s'améliore sans que le code
+# bouge) et bien plus lente. D'où : la porte à secrets sur chaque PR et chaque push
+# (rapide, et un secret ne doit jamais franchir une PR), CodeQL en hebdomadaire.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "0 5 * * 1" # lundi 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Secrets ────────────────────────────────────────────────────────────────────
+  # `.gitleaks.toml` existait avec son allow-list soigneusement écrite et sa phrase « un
+  # hit HORS de ces chemins est un vrai finding » — mais RIEN ne lançait gitleaks. La
+  # configuration d'un scanner qu'on n'exécute pas donne l'impression d'un garde-fou qui
+  # n'existe pas ; ce job la rend vraie.
+  #
+  # ⚠️ L'allow-list n'est pas du laxisme : le produit EST un moteur de redaction, donc ses
+  # fixtures contiennent nécessairement des chaînes en FORME de secret (`sk-live-DEADBEEF…`,
+  # `AKIA…`, des JWT). Elles sont cantonnées aux chemins que `.gitleaks.toml` énumère.
+  #
+  # ⚠️ Binaire OFFICIEL épinglé par sha256, pas une action tierce — pour deux raisons.
+  # D'abord la règle 7 : rien ne s'exécute ici sans empreinte vérifiée, et l'origine est
+  # celle de l'auteur (`gitleaks/gitleaks` releases), jamais un ré-empaquetage. Ensuite
+  # `gitleaks/gitleaks-action` demande une licence aux ORGANISATIONS : un job qui répond
+  # 402 six mois plus tard est un garde-fou qui s'éteint tout seul.
+  secrets:
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: "8.30.1"
+      GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # Historique complet : sur un dépôt à commit unique c'est bon marché, et le jour
+          # où l'historique s'allonge le scan doit le couvrir en entier — un secret retiré
+          # de l'arbre reste lisible dans le commit qui l'a introduit.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install gitleaks (pinned, checksum-verified)
+        run: |
+          set -euo pipefail
+          f="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL -o "$f" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${f}"
+          echo "${GITLEAKS_SHA256}  ${f}" | sha256sum -c -
+          tar -xzf "$f" gitleaks
+          ./gitleaks version
+
+      # `detect` lit l'HISTORIQUE (chaque commit), `--redact` empêche la valeur trouvée
+      # d'atterrir dans un log public : on veut savoir OÙ, jamais QUOI.
+      - name: Scan history
+        run: ./gitleaks detect --source . --config .gitleaks.toml --redact --verbose
+
+  # ── Code ───────────────────────────────────────────────────────────────────────
+  # CodeQL sur le TypeScript. Ce qu'il attrape et que le typecheck ne voit pas : des flux
+  # source→sink (une entrée non fiable qui atteint un `exec`, un chemin, une requête).
+  # Le dépôt en a peu par construction — les frontières sont gardées à la main et
+  # documentées — mais « peu » se vérifie, il ne se déclare pas.
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # publier les alertes dans l'onglet Security
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      # Pas de build : l'extracteur JS/TS lit les sources telles quelles. Un `pnpm install`
+      # ici n'ajouterait que des minutes et du code tiers à analyser.
+      - uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8
