@@ -11,6 +11,9 @@ import { BRAND } from "@openmasq/branding";
  *  providers — the desktop has none. */
 export const PROVIDER_ORDER: ProviderId[] = [
   "scaleway",
+  // L'abonnement Claude de l'utilisateur (CLI Claude Code) — n'apparaît que si la CLI
+  // est détectée ET le réglage activé (`claudeCliReady`, sinon la ligne est masquée).
+  "claude-cli",
   "openai",
   "anthropic",
   "google",
@@ -24,5 +27,6 @@ export const PROVIDER_ORDER: ProviderId[] = [
  *  the brand name; everyone else uses the registry label. */
 export function providerGroupLabel(pid: ProviderId): string {
   if (pid === "scaleway") return `${BRAND.name} — inclus dans l'abonnement`;
+  if (pid === "claude-cli") return "Claude Code — votre abonnement Claude";
   return PROVIDERS[pid].label;
 }

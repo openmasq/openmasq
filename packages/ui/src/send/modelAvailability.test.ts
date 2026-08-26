@@ -210,6 +210,45 @@ describe("modelUnavailableReason", () => {
     ).toBeNull();
   });
 
+  describe("abonnement Claude via la CLI (`claude-cli`)", () => {
+    const CLI = { id: "claude-cli", provider: "claude-cli" as ProviderId };
+
+    it("n'est utilisable que sur un `claudeCliReady` POSITIF (réglage ON + CLI détectée)", () => {
+      expect(
+        modelUnavailableReason({ ...BASE, model: CLI, effectivePlatform: false, claudeCliReady: true }),
+      ).toBeNull();
+    });
+
+    it("fail-closed : inconnu, absent ou faux ⇒ indisponible — jamais fail-open", () => {
+      for (const ready of [false, null, undefined]) {
+        expect(
+          modelUnavailableReason({ ...BASE, model: CLI, effectivePlatform: false, claudeCliReady: ready }),
+        ).toBe("cli_unavailable");
+      }
+    });
+
+    it("est MASQUÉ du sélecteur (pas grisé) : la CLI absente est le cas de presque tous", () => {
+      expect(pickerHides("cli_unavailable")).toBe(true);
+      expect(pickerBlocks("cli_unavailable")).toBe(false);
+    });
+
+    it("grisé ⇔ refusé : la garde d'envoi refuse ce que le sélecteur cache", () => {
+      const fail = preflightError({
+        orgProfile: null,
+        personalCredits: null,
+        personalSub: null,
+        keyConfigured: new Set(),
+        hasBilling: false,
+        provider: "claude-cli",
+        model: { id: "claude-cli", label: "Claude Code" },
+        effectivePlatform: false,
+        openaiCompatBaseUrl: "",
+        claudeCliReady: false,
+      });
+      expect(fail?.text).toMatch(/Claude Code/);
+    });
+  });
+
   describe("self-hosted endpoint", () => {
     it("is available when an endpoint is configured", () => {
       expect(

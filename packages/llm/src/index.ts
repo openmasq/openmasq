@@ -77,6 +77,13 @@ export async function* streamChat(
       throw new Error(
         `The '${opts.provider}' provider is handled by the app's session bridge, not streamChat().`,
       );
+    case "claude-cli":
+      // Served by the desktop's subscription engine (the user's own Claude Code CLI,
+      // headless) — no HTTP client, no key, no endpoint. The desktop `chat:start`
+      // handler branches BEFORE reaching streamChat.
+      throw new Error(
+        `The 'claude-cli' provider is served by the desktop subscription engine, not streamChat().`,
+      );
     default:
       throw new Error(`Unknown provider: ${opts.provider}`);
   }

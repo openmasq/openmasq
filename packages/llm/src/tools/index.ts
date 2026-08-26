@@ -98,6 +98,9 @@ export async function completeWithTools(
       return completeGoogleTools(opts);
     case "openai-session":
     case "anthropic-session":
+    case "claude-cli":
+      // claude-cli included: the headless CLI turn strips its own tools and offers no
+      // tool-calling wire — its registry row is `noTools`, so the agent loop never lands here.
       throw new Error(
         `Keyless provider '${opts.provider}' cannot use tools — use an API-key model.`,
       );

@@ -67,6 +67,12 @@ export const chat = {
     return ipcRenderer.invoke("chat:probe-endpoint", baseUrl);
   },
 
+  /** La CLI Claude Code est-elle installée sur cette machine ? Un booléen seulement
+   *  (jamais un chemin) — c'est ce qui fait exister le modèle `claude-cli` au sélecteur. */
+  probeClaudeCli(): Promise<boolean> {
+    return ipcRenderer.invoke("subscription:cli-available");
+  },
+
   /** Non-streaming agentic completion with tool-calling (drives MCP). */
   completeTools(payload: CompleteToolsPayload): Promise<CompleteToolsResult> {
     return ipcRenderer.invoke("chat:complete-tools", payload);

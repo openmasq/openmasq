@@ -16,6 +16,7 @@ import type { ProviderId } from "@openmasq/llm";
 const PROVIDER_HUE: Partial<Record<ProviderId, string>> = {
   anthropic: "pink",
   "anthropic-session": "pink",
+  "claude-cli": "pink",
   openai: "mint",
   "openai-session": "mint",
   "openai-compat": "mint",

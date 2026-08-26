@@ -160,6 +160,7 @@ export const SETTINGS_ENTRIES: { tab: SettingsTabId; label: string; kw: string }
   { tab: "privacy", label: "Le modèle ne voit que des jetons", kw: "jetons marqueurs pseudonymes modèle anonymisation person1 envoi" },
   { tab: "models", label: "Modèle sur votre ordinateur", kw: "local ollama lm studio localhost adresse openai compatible" },
   { tab: "models", label: "Modèles favoris", kw: "favoris favori etoile liste courte selecteur personnaliser epingler raccourci" },
+  { tab: "models", label: "Votre abonnement Claude", kw: "claude code cli abonnement anthropic sans cle subscription" },
   { tab: "mcp", label: "Confirmation des actions", kw: "confirmation ecriture write gate renforce outils" },
   { tab: "sync", label: "Appareils connectés", kw: "appareils devices synchro revoquer passphrase" },
   { tab: "versions", label: "Environnement", kw: "environnement staging production basculer beta test acces" },

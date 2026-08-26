@@ -68,6 +68,7 @@ export interface AutoRouteAvailability {
   personalSub?: BillingSubscription | null;
   openaiCompatBaseUrl: string;
   localEndpointReachable?: boolean | null;
+  claudeCliReady?: boolean | null;
 }
 
 export interface AutoRouteResult {
@@ -161,6 +162,7 @@ export function resolveAutoModel(
         keyConfigured: avail.keyConfigured,
         openaiCompatBaseUrl: avail.openaiCompatBaseUrl,
         localEndpointReachable: avail.localEndpointReachable,
+        claudeCliReady: avail.claudeCliReady,
       }) !== null
     )
       return false;

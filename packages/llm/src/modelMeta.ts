@@ -133,6 +133,22 @@ export const MODEL_META: Record<string, ModelMeta> = {
     ["Solide en code", "Grand contexte"],
     ["Génération précédente"],
     "Code et tâches générales", false),
+  // L'abonnement Claude via la CLI Claude Code (`cost: 5` = déjà payé par l'abonnement).
+  // Le positionnement est celui de la FAMILLE que l'alias sert — le modèle exact est
+  // celui, courant, de l'abonnement (les trois variantes partagent forces/limites).
+  "claude-cli": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG],
+    ["Compris dans votre abonnement Claude", "Aucune clé API à gérer"],
+    ["Texte seul", "Nécessite la CLI Claude Code installée et connectée"],
+    "Utiliser votre abonnement Claude existant", false),
+  "claude-cli-sonnet": m([5, 5, 4, 5, 1], [RAIS, CODE, LONG],
+    ["Équilibre capacité/vitesse", "Compris dans votre abonnement Claude"],
+    ["Texte seul"], "Le choix par défaut de l'abonnement", false),
+  "claude-cli-opus": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG],
+    ["Le plus capable de l'abonnement", "Compris dans votre abonnement Claude"],
+    ["Texte seul", "Selon l'offre (absent du plan Pro)"], "Les tâches les plus dures", false),
+  "claude-cli-haiku": m([3, 3, 5, 5, 1], [CODE, LONG],
+    ["Très rapide", "Compris dans votre abonnement Claude"],
+    ["Texte seul", "Moins profond que Sonnet/Opus"], "Brouillons et questions rapides", false),
   "claude-haiku-4-5": m([3, 4, 5, 4, 5], [FAST, VISION],
     ["Très rapide", "Multimodal, bon marché"],
     ["Contexte 200K (vs 1M)", "Raisonnement moyen"],

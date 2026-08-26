@@ -173,6 +173,11 @@ export interface Settings {
    * safe context (SSRF guard) and the image is inlined as a `data:` URL.
    */
   linkPreviews?: boolean;
+  /** Opt-in : le modèle `claude-cli` (abonnement Claude via la CLI Claude Code de
+   *  l'utilisateur). OFF par défaut — on ne spawne pas son abonnement personnel sans
+   *  geste explicite ; offert seulement si le host confirme la CLI (`probeClaudeCli`,
+   *  voir `send/modelAvailability.ts`). */
+  claudeCliEnabled?: boolean;
   /**
    * Une NOTIFICATION système quand une réponse arrive alors qu'on regarde ailleurs
    * (autre fenêtre, ou un autre onglet de conversation). ON par défaut : elle ne se

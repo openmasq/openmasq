@@ -130,6 +130,8 @@ export interface SendMessageDeps {
   personalCreditsRef: React.MutableRefObject<CreditBalance | null>;
   keepListRef: React.MutableRefObject<string[]>;
   localEndpointReachableRef: React.MutableRefObject<boolean | null>;
+  /** `claude-cli` prêt (réglage ON + CLI détectée) — miroir ref, mêmes raisons. */
+  claudeCliReadyRef: React.MutableRefObject<boolean | null>;
 }
 
 export function createSendMessage(d: SendMessageDeps) {
@@ -152,6 +154,7 @@ export function createSendMessage(d: SendMessageDeps) {
     personalCreditsRef,
     keepListRef,
     localEndpointReachableRef,
+    claudeCliReadyRef,
   } = d;
   return (
     async (
@@ -329,6 +332,7 @@ export function createSendMessage(d: SendMessageDeps) {
               personalSub: personalSubRef.current,
               openaiCompatBaseUrl: settings.openaiCompatBaseUrl,
               localEndpointReachable: localEndpointReachableRef.current,
+              claudeCliReady: claudeCliReadyRef.current,
             },
           )
         : null;
@@ -500,6 +504,7 @@ export function createSendMessage(d: SendMessageDeps) {
         effectivePlatform,
         openaiCompatBaseUrl: settings.openaiCompatBaseUrl,
         localEndpointReachable: localEndpointReachableRef.current,
+        claudeCliReady: claudeCliReadyRef.current,
       });
       if (preflightFail) {
         failTurn(preflightFail.text, preflightFail.action);

@@ -2,7 +2,7 @@
 import { DEVTOOLS_PREF } from "./devtools";
 // / helper-process branch points. See apps/desktop/CLAUDE.md for the process map.
 import { app, BrowserWindow, ipcMain, dialog, Menu, clipboard } from "electron";
-import { appendFileSync, existsSync, writeFileSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { release } from "node:os";
 import { join } from "path";
 import {
@@ -32,6 +32,10 @@ import { flushEgressJournal } from "./net/egressJournal";
 import { initConfirmationMode } from "./mcp/confirmationMode";
 import { pickGrantDir } from "./mcp/pickGrantDir";
 import { registerPostureIpc } from "./ipc/registerPostureIpc";
+import { registerSubscriptionIpc } from "./ipc/registerSubscriptionIpc";
+import { e2eWireLog } from "./ipc/e2eWireLog";
+import { streamSubscriptionTurn } from "./subscription/turn";
+import { subscriptionTurnEnv } from "./subscription/desktop";
 import { loadWindowTone } from "./windowTone";
 import { registerWindowIpc } from "./ipc/registerWindowIpc";
 import { encryptionAvailable, markWindowShown, whenWindowShown } from "./store/safeStore";
@@ -430,39 +434,6 @@ function withKey<
 function registerChatHandlers(): () => boolean {
   const controllers = new Map<string, AbortController>();
 
-  // E2E hook: record the EXACT payload handed to the provider transport — the
-  // redacted messages streamChat()/completeWithTools() POST upstream — so a test can
-  // assert no personal data ever leaves the machine on ANY path (plain streaming AND
-  // the agentic tool turns). Tool schemas are reduced to their NAMES (the schemas are
-  // static noise; the privacy assertion is about messages). Inert without the env var.
-  const e2eWireLog = (options: {
-    provider?: string;
-    model?: string;
-    messages?: unknown;
-    tools?: unknown[];
-  }): void => {
-    if (!process.env.OPENMASQ_E2E_WIRE_LOG) return;
-    try {
-      const tools = Array.isArray(options.tools)
-        ? options.tools.map((t) => {
-            const o = t as { name?: string; function?: { name?: string } };
-            return o.function?.name ?? o.name ?? "?";
-          })
-        : undefined;
-      appendFileSync(
-        process.env.OPENMASQ_E2E_WIRE_LOG,
-        JSON.stringify({
-          provider: options.provider,
-          model: options.model,
-          messages: options.messages,
-          ...(tools ? { tools } : {}),
-        }) + "\n",
-      );
-    } catch {
-      /* best-effort: never break a send for the log */
-    }
-  };
-
   ipcMain.on("chat:start", async (event, payload: ChatStartPayload) => {
     const { requestId, ...options } = payload;
     const controller = new AbortController();
@@ -481,7 +452,17 @@ function registerChatHandlers(): () => boolean {
       // usage) — `for await` would discard it. The final next() carries usage.
       // The model's live reflection rides its OWN channel — never appended to `reply`.
       const onReasoning = (delta: string) => send("chat:reasoning", delta);
-      const it = streamChat({ ...withKey(options), signal: controller.signal, onReasoning });
+      // `claude-cli` : la CLI locale de l'utilisateur (subscription/) — ni clé ni
+      // endpoint, donc ni `withKey` ni décision d'egress ; CLI absente ⇒ `chat:error`.
+      const it =
+        options.provider === "claude-cli"
+          ? streamSubscriptionTurn(subscriptionTurnEnv(), {
+              messages: options.messages,
+              modelId: options.model,
+              signal: controller.signal,
+              onReasoning,
+            })
+          : streamChat({ ...withKey(options), signal: controller.signal, onReasoning });
       let r = await it.next();
       let reply = "";
       while (!r.done) {
@@ -516,7 +497,16 @@ function registerChatHandlers(): () => boolean {
     "chat:complete",
     async (_event, options: Omit<StreamChatOptions, "signal">) => {
       let out = "";
-      for await (const delta of streamChat(withKey(options, true))) out += delta;
+      // Même aiguillage que `chat:start` : l'abonnement sert aussi les complétions
+      // hors-bande (extraction mémoire, compaction).
+      const it =
+        options.provider === "claude-cli"
+          ? streamSubscriptionTurn(subscriptionTurnEnv(), {
+              messages: options.messages,
+              modelId: options.model,
+            })
+          : streamChat(withKey(options, true));
+      for await (const delta of it) out += delta;
       return out;
     },
   );
@@ -537,6 +527,9 @@ function registerChatHandlers(): () => boolean {
   // connectors) — one trust boundary, one module. Each handler's relationship to the
   // untrusted renderer is stated there.
   registerPostureIpc();
+  // « La CLI Claude Code est-elle installée ? » — ce qui fait exister (ou pas) le
+  // modèle `claude-cli` dans les sélecteurs. Un booléen, jamais un chemin.
+  registerSubscriptionIpc();
   // L'environnement de cette instance + sa bascule. `PROFILE` est nul en mode helper,
   // qui n'a ni fenêtre ni renderer à servir.
   if (PROFILE) registerEnvIpc(PROFILE);

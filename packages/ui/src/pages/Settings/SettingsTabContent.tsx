@@ -77,6 +77,8 @@ export function SettingsTabContent({
           onOpenBilling={() => onPickTab("billing")}
           localModelUrl={draft.openaiCompatBaseUrl}
           onLocalModelUrl={(url) => setDraft((d) => ({ ...d, openaiCompatBaseUrl: url }))}
+          claudeCliEnabled={draft.claudeCliEnabled}
+          onClaudeCliEnabled={(on) => setDraft((d) => ({ ...d, claudeCliEnabled: on }))}
           favoriteModels={draft.favoriteModels}
           onToggleFavorite={(id) =>
             setDraft((d) => ({ ...d, favoriteModels: toggleFavoriteModel(d.favoriteModels, id) }))

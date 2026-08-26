@@ -94,6 +94,14 @@ export interface Host {
    * with no way to probe (browser preview) → the picker simply doesn't show the status.
    */
   probeLocalEndpoint?(baseUrl: string): Promise<boolean>;
+  /**
+   * Optional presence probe of the user's Claude Code CLI (the `claude-cli` provider —
+   * their Claude SUBSCRIPTION, served by their own installed CLI in the desktop main).
+   * `true` = installed on this machine. Absent (browser preview, mobile) or `false` ⇒
+   * the `claude-cli` model is NOT offered — a platform that can't spawn the CLI must
+   * not advertise it (fail-closed availability, like `detectLocalPii`).
+   */
+  probeClaudeCli?(): Promise<boolean>;
   /** Non-streaming agentic completion with tools (drives MCP). */
   completeTools?(payload: CompleteToolsPayload): Promise<CompleteToolsResult>;
   /**

@@ -48,6 +48,7 @@ import { SETTINGS_KEY, settingsKeyFor, convKeyFor, activeKeyFor, localConvSnapsh
 import { loadDeviceTheme } from "./theme";
 import { adoptSettings, reconcileDbSettings } from "./settingsReconcile";
 import { useLocalPersistence, usePlatformEffects, useOrgProfile } from "./effects";
+import { useLocalEndpointProbe, useClaudeCliProbe } from "./effects/useAvailabilityProbes";
 
 /** One-time flag: the controllable browser was pre-connected at first run. Guards
  *  the pre-connect so disabling the browser later stays sticky (never re-enabled). */
@@ -682,38 +683,17 @@ export function useChatStore() {
   // and the send's inline container explains the escapes. `preflightError` still
   // re-checks every send. Org-blocked models are absent here on purpose: they're
   // HIDDEN by `selectableModels`, not greyed.
-  // Reachability of the self-hosted (openai-compat / Ollama) endpoint, so the picker can say
-  // "serveur injoignable" instead of only failing at send time. `null` = not probed / unknown
-  // and NEVER blocks a model (fail-open on the probe). Probed on mount + endpoint change +
-  // window focus (the user may have just started the server).
-  const [localEndpointReachable, setLocalEndpointReachable] = useState<boolean | null>(null);
-  // Mirror for `sendMessage` (a big useCallback that reads async state via refs, never a
-  // direct closure) so the send gate sees the SAME probe result the picker greys with.
-  const localEndpointReachableRef = useRef<boolean | null>(null);
-  useEffect(() => {
-    const base = settings.openaiCompatBaseUrl.trim();
-    const apply = (v: boolean | null) => {
-      localEndpointReachableRef.current = v;
-      setLocalEndpointReachable(v);
-    };
-    if (!base || !host.probeLocalEndpoint) {
-      apply(null);
-      return;
-    }
-    let cancelled = false;
-    const check = () =>
-      host
-        .probeLocalEndpoint!(base)
-        .then((ok) => !cancelled && apply(ok))
-        .catch(() => !cancelled && apply(false));
-    void check();
-    const onFocus = () => void check();
-    window.addEventListener("focus", onFocus);
-    return () => {
-      cancelled = true;
-      window.removeEventListener("focus", onFocus);
-    };
-  }, [settings.openaiCompatBaseUrl, host]);
+  // Les deux sondes de disponibilité (endpoint local, CLI Claude Code) + leurs
+  // miroirs ref pour `sendMessage` — extraites dans `effects/useAvailabilityProbes.ts`
+  // (le POURQUOI de chaque polarité fail-open/fail-closed y vit).
+  const { localEndpointReachable, localEndpointReachableRef } = useLocalEndpointProbe(
+    host,
+    settings.openaiCompatBaseUrl,
+  );
+  const { claudeCliDetected, claudeCliReady, claudeCliReadyRef } = useClaudeCliProbe(
+    host,
+    settings.claudeCliEnabled,
+  );
 
   // The OpenRouter live-catalogue merge mutates MODELS IN PLACE (`setDynamicModels`),
   // which no dep below can see — without this version the late-fetched models never
@@ -732,6 +712,7 @@ export function useChatStore() {
         keyConfigured,
         openaiCompatBaseUrl: settings.openaiCompatBaseUrl,
         localEndpointReachable,
+        claudeCliReady,
       });
       if (reason) map.set(m.id, reason);
     }
@@ -741,6 +722,7 @@ export function useChatStore() {
     settings.billingMode,
     settings.openaiCompatBaseUrl,
     localEndpointReachable,
+    claudeCliReady,
     orgProfile,
     personalCredits,
     personalSub,
@@ -1321,6 +1303,7 @@ export function useChatStore() {
         personalCreditsRef,
         keepListRef,
         localEndpointReachableRef,
+        claudeCliReadyRef,
       })(...args),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- la liste HISTORIQUE,
     // conservée à l'identique : elle gouverne QUAND l'envoi re-capture, pas ce
@@ -1477,6 +1460,9 @@ export function useChatStore() {
      *  endpoint). The pickers grey these out; the send gate refuses them for the SAME
      *  reason (`send/modelAvailability.ts`). */
     unavailableModels,
+    // Pour Réglages → Modèles : l'état de détection de la CLI Claude Code (le réglage
+    // opt-in `claudeCliEnabled` vit dans `settings` comme les autres).
+    claudeCliDetected,
     conversations,
     /** True once the initial per-account load has settled (see the `loaded` state). */
     loaded,

@@ -304,6 +304,8 @@ const host: Host = {
   probeLocalEndpoint: window.openmasq.probeLocalEndpoint
     ? (baseUrl) => window.openmasq.probeLocalEndpoint!(baseUrl)
     : undefined,
+  // Same un-restarted-preload guard: absent ⇒ `claude-cli` isn't offered (fail-closed).
+  probeClaudeCli: window.openmasq.probeClaudeCli ? () => window.openmasq.probeClaudeCli!() : undefined,
   completeTools: (payload) => window.openmasq.completeTools(payload) as any,
   // STREAMING tool turn (assistant text token-by-token). Optional-chained: an
   // un-restarted dev preload without it → the agentic loop falls back to the

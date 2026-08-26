@@ -83,4 +83,12 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
     keyless: true,
     hostCountry: { code: "US", label: "Hébergé aux États-Unis" },
   },
+  "claude-cli": {
+    id: "claude-cli",
+    // L'ABONNEMENT Claude de l'utilisateur, via sa CLI Claude Code installée et déjà
+    // connectée (headless). Keyless par nature : l'auth vit dans la CLI, jamais ici.
+    label: "Claude Code",
+    keyless: true,
+    hostCountry: { code: "US", label: "Hébergé aux États-Unis" },
+  },
 };

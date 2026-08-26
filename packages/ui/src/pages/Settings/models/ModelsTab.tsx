@@ -3,7 +3,7 @@ import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { CheckIcon, FamilyLogo, SettingsIcon } from "../../../components/brand";
 import { selectableModels } from "../../../prompt/models";
 import { visibleModels, type UnavailableReason } from "../../../send/modelAvailability";
-import { PROVIDER_ORDER, providerGroupLabel } from "../../../components/ModelSelector/providers";
+import { providerGroupLabel } from "../../../components/ModelSelector/providers";
 import { favoriteSet } from "../../../components/ModelSelector/simpleList";
 import { providerGroupStatus } from "./providerGroupStatus";
 import { KEYED_PROVIDERS } from "../shared";
@@ -16,28 +16,14 @@ import { ModelCard } from "./ModelCard";
 import { DefaultModelSummary } from "./DefaultModelSummary";
 import { ProviderAccess } from "./ProviderAccess";
 import { LocalModelSection } from "./LocalModelSection";
+import { ClaudeCliSection } from "./ClaudeCliSection";
 import { ModelsTabModals } from "./ModelsTabModals";
 import { ModelFilterBar } from "./ModelFilterBar";
 import { filterModels, modelFamilies, subgroupByFamily, type PriceTier } from "../../../prompt/modelFilter";
 
-/** A vendor family earns a chip once it has this many models — below it the
- *  chip row would fill with one-off vendors; the long tail stays searchable.
- *  ⚠️ Le seuil était à 3 : sur les ~400 modèles du catalogue OpenRouter, cela faisait
- *  VINGT pastilles sur quatre lignes avant même la liste — la barre censée dégonfler
- *  l'écran l'encombrait plus que le reste (remonté le 11/08). À 10, il reste les
- *  familles qu'on cherche vraiment ; les autres se trouvent par la recherche, qui scanne
- *  aussi l'identifiant. */
-const FAMILY_CHIP_MIN = 10;
-
-/** Order the default-model picker groups. The chat picker's `PROVIDER_ORDER` is the
- *  single source (rule 9 — the two lists had already drifted); this screen only
- *  PREPENDS the keyless web-session providers, which the desktop chat picker has none
- *  of. Same for the group LABEL: `providerGroupLabel`, never a second ternary. */
-const MODEL_PROVIDER_ORDER: ProviderId[] = [
-  "openai-session",
-  "anthropic-session",
-  ...PROVIDER_ORDER,
-];
+// Les réglages du sélecteur (seuil des pastilles familles, ordre des groupes) vivent à
+// côté — `pickerTuning.ts` — avec le POURQUOI de chaque valeur.
+import { FAMILY_CHIP_MIN, MODEL_PROVIDER_ORDER } from "./pickerTuning";
 
 /**
  * The "Modèle" section — a dedicated sidebar screen for the DEFAULT model used by
@@ -59,6 +45,8 @@ export function ModelsTab({
   onOpenBilling,
   localModelUrl,
   onLocalModelUrl,
+  claudeCliEnabled,
+  onClaudeCliEnabled,
   favoriteModels,
   onToggleFavorite,
 }: {
@@ -87,6 +75,9 @@ export function ModelsTab({
    *  choice, not an account matter. */
   localModelUrl: string;
   onLocalModelUrl: (url: string) => void;
+  /** Opt-in `Settings.claudeCliEnabled` — absents ⇒ section non dessinée (aperçu web). */
+  claudeCliEnabled?: boolean;
+  onClaudeCliEnabled?: (on: boolean) => void;
   /** Modèles favoris (la liste courte du sélecteur de chat) + le toggle d'étoile.
    *  Absents ⇒ pas d'étoile sur la grille (aperçu web, harnais de test). */
   favoriteModels?: string[];
@@ -274,6 +265,7 @@ export function ModelsTab({
       </p>
 
       <LocalModelSection url={localModelUrl} onUrl={onLocalModelUrl} />
+      {onClaudeCliEnabled && <ClaudeCliSection enabled={!!claudeCliEnabled} onEnabled={onClaudeCliEnabled} />}
 
       <ModelsTabModals
         freeInfoOpen={freeInfoOpen}

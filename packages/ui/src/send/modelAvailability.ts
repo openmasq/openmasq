@@ -29,6 +29,10 @@ export type UnavailableReason =
    *  « gratuit », est faux deux fois. Le cas se rencontre pour de vrai — une conversation
    *  épinglée à un `:free` retiré de la liste le 18/08. */
   | "free_mode_only"
+  /** Abonnement Claude via la CLI (`claude-cli`) : la CLI Claude Code n'est pas
+   *  installée/joignable sur cette machine, ou le réglage est désactivé — rien à
+   *  spawner, donc rien à proposer. */
+  | "cli_unavailable"
   /** Self-hosted (openai-compat): no endpoint URL configured, so there's nothing to call. */
   | "no_endpoint"
   /** Self-hosted (openai-compat): an endpoint IS configured, but the local server
@@ -58,6 +62,12 @@ export interface AvailabilityInput {
    *  Only `false` blocks — an UNKNOWN result never greys a model (fail-open on the probe,
    *  the send has its own "modèle injoignable" handling). */
   localEndpointReachable?: boolean | null;
+  /** Le fournisseur `claude-cli` (abonnement Claude via la CLI Claude Code) est-il
+   *  utilisable ICI : réglage activé ET CLI détectée par le host. À l'INVERSE du
+   *  probe local, seul `true` OUVRE — absent/`null`/`false` cache le modèle. La
+   *  plupart des machines n'ont pas la CLI : fail-open afficherait à tous un modèle
+   *  qui échoue au premier envoi. */
+  claudeCliReady?: boolean | null;
 }
 
 /**
@@ -87,7 +97,14 @@ export function pickerBlocks(reason: UnavailableReason): boolean {
  * set to (`visibleModels`'s `keepId`), or the setting reads as empty.
  */
 export function pickerHides(reason: UnavailableReason): boolean {
-  return reason === "no_key" || reason === "no_credits" || reason === "free_mode_only";
+  return (
+    reason === "no_key" ||
+    reason === "no_credits" ||
+    reason === "free_mode_only" ||
+    // Une CLI non installée (le cas de presque tout le monde) : la ligne serait une
+    // pub pour un outil de développeur — l'activation vit dans Réglages → Modèles.
+    reason === "cli_unavailable"
+  );
 }
 
 /**
@@ -114,6 +131,13 @@ export function visibleModels<T extends { id: string }>(
 
 export function modelUnavailableReason(p: AvailabilityInput): UnavailableReason | null {
   const { provider } = p.model;
+
+  // Abonnement Claude via la CLI Claude Code : utilisable UNIQUEMENT quand le host a
+  // positivement confirmé (réglage activé + CLI détectée). Inconnu = indisponible —
+  // fail-closed, contrairement au probe local (voir `claudeCliReady`).
+  if (provider === "claude-cli") {
+    return p.claudeCliReady === true ? null : "cli_unavailable";
+  }
 
   // Self-hosted / local (Ollama, LM Studio…): the ONLY thing that makes it reachable is
   // the endpoint the user configured. Blank ⇒ nothing to call, so fail closed rather
@@ -182,6 +206,13 @@ export function unavailableLabel(
         title:
           `L'accès gratuit de ${BRAND.name} sert Laguna et Nemotron. Pour ce modèle, prenez un ` +
           `abonnement ou renseignez votre propre clé ${providerLabel}.`,
+      };
+    case "cli_unavailable":
+      return {
+        chip: "CLI requise",
+        title:
+          "Votre abonnement Claude passe par la CLI Claude Code installée sur cette " +
+          "machine. Installez-la et connectez-la, puis activez-la dans Réglages → Modèles.",
       };
     case "no_endpoint":
       return {

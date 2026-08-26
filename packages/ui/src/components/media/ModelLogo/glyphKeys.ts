@@ -28,6 +28,7 @@ export function glyphForProvider(provider: ProviderId): GlyphKey {
   switch (provider) {
     case "anthropic":
     case "anthropic-session":
+    case "claude-cli":
       return "claude";
     case "openai":
     case "openai-session":

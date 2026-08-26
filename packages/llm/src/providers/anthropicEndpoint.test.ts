@@ -36,7 +36,8 @@ describe("isPlatformProvider — platform-eligible providers", () => {
     // Les cinq grands ne sont PLUS servis sur les clés de la plateforme : sans clé
     // personnelle, l'envoi est refusé, jamais facturé à l'abonnement.
     for (const p of ["openai", "anthropic", "google", "mistral", "deepseek",
-                     "openai-compat", "openai-session", "anthropic-session"] as const)
+                     "openai-compat", "openai-session", "anthropic-session",
+                     "claude-cli"] as const)
       expect(isPlatformProvider(p)).toBe(false);
   });
 });

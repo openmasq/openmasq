@@ -25,6 +25,12 @@ export const MODEL_CONTEXT: Record<string, number> = {
   "claude-haiku-4-5": 200_000,
   // Anthropic — previous generation.
   "claude-sonnet-4-6": 1_000_000,
+  // Abonnement via la CLI Claude Code : la fenêtre dépend du modèle que l'abonnement
+  // sert ; 200K est le plancher commun de la gamme, jamais une promesse au-delà.
+  "claude-cli": 200_000,
+  "claude-cli-sonnet": 200_000,
+  "claude-cli-opus": 200_000,
+  "claude-cli-haiku": 200_000,
   // Google Gemini — 3.1 Pro is a 2M-token model (official); the Flash/Flash-Lite
   // tiers are 1M.
   "gemini-3.1-pro-preview": 2_000_000,

@@ -276,6 +276,11 @@ réponse : relire une vieille conversation, c'est savoir qui a écrit quoi.
 - [x] Drapeau de **juridiction d'hébergement** par modèle
 - [x] Modèle par défaut des nouvelles conversations
 - [x] « **Modèle sur votre ordinateur** » (Ollama / LM Studio) — Réglages → Modèles
+- [x] « **Votre abonnement Claude** » (opt-in, OFF par défaut) — Réglages → Modèles : si la
+      CLI Claude Code est installée et connectée, un groupe « Claude Code » s'ajoute au
+      sélecteur, sans clé API — le défaut de l'abonnement plus les familles Sonnet /
+      Opus / Haiku (Opus selon l'offre), servis par la CLI en local, redaction
+      inchangé — `apps/desktop/src/main/subscription/`
 - [x] Catalogue OpenRouter récupéré en direct
 - [x] Le modèle qui a répondu reste inscrit sur la réponse
 - [ ] **Mode « Auto »** — RETIRÉ du sélecteur le 11/08 : plus aucune des deux vues ne le

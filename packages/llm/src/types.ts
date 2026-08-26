@@ -159,7 +159,11 @@ export type ProviderId =
   | "scaleway"
   | "openai-compat"
   | "openai-session"
-  | "anthropic-session";
+  | "anthropic-session"
+  /** L'abonnement Claude de l'utilisateur, servi par SA CLI Claude Code installée
+   *  (headless, moteur desktop `apps/desktop/src/main/subscription/`) — jamais par
+   *  ce client HTTP : ni clé, ni endpoint, l'auth reste dans la CLI. */
+  | "claude-cli";
 
 /**
  * Where a provider's inference is HOSTED — shown as a small flag next to each model

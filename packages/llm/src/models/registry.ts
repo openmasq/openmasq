@@ -27,6 +27,19 @@ export const MODELS: ModelInfo[] = [
   { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6", provider: "anthropic", vision: true },
   { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", provider: "anthropic", vision: true },
 
+  // L'abonnement Claude de l'utilisateur, via SA CLI Claude Code installée (headless).
+  // Ces ids ne sont jamais des ids de wire : ce chemin ne parle à aucune API — le
+  // suffixe devient l'alias `--model` de la CLI (`subscription/turn.ts` cliModelAlias),
+  // qui le résout vers le modèle COURANT de la famille. `claude-cli` nu = le défaut de
+  // l'abonnement, sans drapeau (l'entrée historique — des conversations y sont
+  // épinglées). `noTools` : le tour headless retire ses outils ; texte seul (les
+  // pièces jointes sont refusées tôt par le pont). Opus dépend de l'offre (absent du
+  // plan Pro) : la CLI refuse alors le tour, son message remonte tel quel.
+  { id: "claude-cli", label: "Claude Code", provider: "claude-cli", noTools: true },
+  { id: "claude-cli-sonnet", label: "Claude Sonnet", provider: "claude-cli", noTools: true },
+  { id: "claude-cli-opus", label: "Claude Opus", provider: "claude-cli", noTools: true },
+  { id: "claude-cli-haiku", label: "Claude Haiku", provider: "claude-cli", noTools: true },
+
   // Google Gemini
   // Gemini 1.5 was retired by Google (404 on generateContent) — dropped; old
   // conversations remap to 2.5 via LEGACY_MODEL_ALIASES in packages/ui/models.ts.

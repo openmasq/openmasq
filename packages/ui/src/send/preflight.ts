@@ -33,6 +33,9 @@ export interface PreflightInput {
    *  through so the gate and the picker agree (rule 9): both block a local model whose
    *  server is confirmed unreachable. Unknown (null/absent) never blocks. */
   localEndpointReachable?: boolean | null;
+  /** Le fournisseur `claude-cli` est-il prêt (réglage activé + CLI détectée) ? Passé
+   *  tel quel à `modelUnavailableReason` — seul `true` ouvre (fail-closed). */
+  claudeCliReady?: boolean | null;
 }
 
 /**
@@ -73,6 +76,7 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     keyConfigured: p.keyConfigured,
     openaiCompatBaseUrl: p.openaiCompatBaseUrl,
     localEndpointReachable: p.localEndpointReachable,
+    claudeCliReady: p.claudeCliReady,
   });
 
   // L'ACCÈS GRATUIT ne sert que deux modèles (`FREE_MODE_MODEL_IDS`) : celui-ci n'en est
@@ -130,6 +134,17 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     return {
       text: `Clé manquante pour ${PROVIDERS[p.provider].label}. Renseignez-la pour envoyer — ou choisissez un modèle inclus dans l'abonnement ${BRAND.name}.`,
       action: { kind: "missing_key", provider: p.provider, label: PROVIDERS[p.provider].label },
+    };
+  }
+
+  if (reason === "cli_unavailable") {
+    // Conversation épinglée sur `claude-cli` alors que la CLI a disparu ou que le
+    // réglage a été coupé : dire le chemin de réparation, comme pour le local.
+    return {
+      text:
+        "Votre abonnement Claude passe par la CLI Claude Code, introuvable ou désactivée " +
+        "sur cette machine. Installez-la et connectez-la, puis activez-la dans " +
+        "Réglages → Modèles — ou choisissez un autre modèle.",
     };
   }
 
