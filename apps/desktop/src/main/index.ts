@@ -36,6 +36,7 @@ import { registerSubscriptionIpc } from "./ipc/registerSubscriptionIpc";
 import { e2eWireLog } from "./ipc/e2eWireLog";
 import { streamSubscriptionTurn } from "./subscription/turn";
 import { subscriptionTurnEnv } from "./subscription/desktop";
+import { subscriptionToolsRoute } from "./subscription/toolsRoute";
 import { loadWindowTone } from "./windowTone";
 import { registerWindowIpc } from "./ipc/registerWindowIpc";
 import { encryptionAvailable, markWindowShown, whenWindowShown } from "./store/safeStore";
@@ -566,6 +567,9 @@ function registerChatHandlers(): () => boolean {
       if (requestId) toolControllers.set(requestId, controller);
       e2eWireLog(rest as Parameters<typeof e2eWireLog>[0]);
       try {
+        // Une CLI d'abonnement sert ce tour ⇒ ni clé ni egress (`subscription/toolsRoute`).
+        const sub = subscriptionToolsRoute(rest, { signal: controller.signal });
+        if (sub) return await sub;
         return await completeWithTools({ ...withKey(rest), signal: controller.signal });
       } finally {
         if (requestId) toolControllers.delete(requestId);
@@ -596,6 +600,13 @@ function registerChatHandlers(): () => boolean {
         }
       };
       try {
+        // Même aiguillage, en streamant le texte : deltas au fil de l'eau puis UN `done`.
+        const sub = subscriptionToolsRoute(rest, {
+          signal: controller.signal,
+          onDelta: (text) => send("chat:tools-chunk", text),
+          onReasoning: (delta) => send("chat:tools-reasoning", delta),
+        });
+        if (sub) return void send("chat:tools-done", await sub);
         const opts = {
           ...withKey(rest),
           signal: controller.signal,

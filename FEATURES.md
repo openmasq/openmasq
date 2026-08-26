@@ -280,7 +280,10 @@ réponse : relire une vieille conversation, c'est savoir qui a écrit quoi.
       CLI Claude Code est installée et connectée, un groupe « Claude Code » s'ajoute au
       sélecteur, sans clé API — le défaut de l'abonnement plus les familles Sonnet /
       Opus / Haiku (Opus selon l'offre), servis par la CLI en local, redaction
-      inchangé — `apps/desktop/src/main/subscription/`
+      inchangé. **Les connecteurs de l'app y fonctionnent comme sur un modèle à clé** :
+      c'est la boucle de l'app qui pilote, un pont MCP local capturant l'appel d'outil
+      pour qu'il passe par le coffre et la porte d'écriture (l'appel sort un-redacted,
+      le résultat rentre re-redacted) — `apps/desktop/src/main/subscription/`
 - [x] Catalogue OpenRouter récupéré en direct
 - [x] Le modèle qui a répondu reste inscrit sur la réponse
 - [ ] **Mode « Auto »** — RETIRÉ du sélecteur le 11/08 : plus aucune des deux vues ne le

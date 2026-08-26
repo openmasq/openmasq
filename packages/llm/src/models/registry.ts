@@ -32,13 +32,15 @@ export const MODELS: ModelInfo[] = [
   // suffixe devient l'alias `--model` de la CLI (`subscription/turn.ts` cliModelAlias),
   // qui le résout vers le modèle COURANT de la famille. `claude-cli` nu = le défaut de
   // l'abonnement, sans drapeau (l'entrée historique — des conversations y sont
-  // épinglées). `noTools` : le tour headless retire ses outils ; texte seul (les
-  // pièces jointes sont refusées tôt par le pont). Opus dépend de l'offre (absent du
-  // plan Pro) : la CLI refuse alors le tour, son message remonte tel quel.
-  { id: "claude-cli", label: "Claude Code", provider: "claude-cli", noTools: true },
-  { id: "claude-cli-sonnet", label: "Claude Sonnet", provider: "claude-cli", noTools: true },
-  { id: "claude-cli-opus", label: "Claude Opus", provider: "claude-cli", noTools: true },
-  { id: "claude-cli-haiku", label: "Claude Haiku", provider: "claude-cli", noTools: true },
+  // épinglées). OUTILLÉS : les connecteurs de l'app leur sont offerts comme à un modèle
+  // à clé — c'est NOTRE boucle qui pilote, le pont MCP du desktop capturant l'appel pour
+  // qu'il passe par le coffre et la porte d'écriture (`subscription/toolsTurn.ts`).
+  // Texte seul (les pièces jointes sont refusées tôt par le pont). Opus dépend de
+  // l'offre (absent du plan Pro) : la CLI refuse alors le tour, son message remonte tel quel.
+  { id: "claude-cli", label: "Claude Code", provider: "claude-cli" },
+  { id: "claude-cli-sonnet", label: "Claude Sonnet", provider: "claude-cli" },
+  { id: "claude-cli-opus", label: "Claude Opus", provider: "claude-cli" },
+  { id: "claude-cli-haiku", label: "Claude Haiku", provider: "claude-cli" },
 
   // Google Gemini
   // Gemini 1.5 was retired by Google (404 on generateContent) — dropped; old

@@ -99,8 +99,11 @@ export async function completeWithTools(
     case "openai-session":
     case "anthropic-session":
     case "claude-cli":
-      // claude-cli included: the headless CLI turn strips its own tools and offers no
-      // tool-calling wire — its registry row is `noTools`, so the agent loop never lands here.
+      // claude-cli included, and it is a GUARD, not the path: the desktop branches to its
+      // own subscription engine before this call (`main/index.ts`), because a CLI turn has
+      // no tool-calling wire — its tools ride an MCP bridge the desktop alone can run. Any
+      // OTHER host reaching here has no way to serve them, so it must fail rather than
+      // silently answer without the tools it was asked to use.
       throw new Error(
         `Keyless provider '${opts.provider}' cannot use tools — use an API-key model.`,
       );
