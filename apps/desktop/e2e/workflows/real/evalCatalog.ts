@@ -1,3 +1,4 @@
+import { BRAND } from "@openmasq/branding";
 import type { LabPrompt } from "./lab";
 
 /*
@@ -34,8 +35,9 @@ import type { LabPrompt } from "./lab";
  * voulu : la contrainte doit se lire sur le prompt, pas se déduire d'une absence.
  */
 
-/** L'unique destinataire autorisé pour un envoi de test. */
-export const TEST_RECIPIENT = "support@openmasq.com";
+/** L'unique destinataire autorisé pour un envoi de test — l'adresse de support de la
+ *  marque (`branding.json`), jamais un littéral qui survivrait à un changement de zone. */
+export const TEST_RECIPIENT = BRAND.supportEmail;
 
 export interface EvalGroup {
   id: string;

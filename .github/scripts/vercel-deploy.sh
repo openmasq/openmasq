@@ -57,17 +57,19 @@ fi
 # mécanique de CI. `|| warning` : sur un cas tordu (commit de fusion, arbre bizarre) on
 # NE bloque pas le déploiement — au pire Vercel réévaluera l'auteur, et la borne de temps
 # ci-dessous reste le filet.
+# L'identité d'équipe vient de l'ENVIRONNEMENT (`VERCEL_TEAM_EMAIL`, `VERCEL_TEAM_NAME`,
+# posées depuis les variables du dépôt) — aucun compte n'est écrit ici. Non renseignée ⇒
+# on ne ré-authore PAS : Vercel évalue l'auteur réel, ce qui est le bon défaut quand le
+# propriétaire du dépôt EST le siège de l'équipe.
+TEAM_EMAIL="${VERCEL_TEAM_EMAIL:-}"
+TEAM_NAME="${VERCEL_TEAM_NAME:-$TEAM_EMAIL}"
 AUTHOR_EMAIL="$(git log -1 --format=%ae 2>/dev/null || echo "")"
-case "$AUTHOR_EMAIL" in
-  support@openmasq.com | *tgaudibert@users.noreply.github.com)
-    : ;; # déjà l'équipe — rien à faire
-  *)
-    echo "vercel-deploy: commit authored par « ${AUTHOR_EMAIL:-vide} » — ré-authoré en équipe pour CE build éphémère (l'historique réel est inchangé)." >&2
-    git -c user.name="tgaudibert" -c user.email="support@openmasq.com" \
-      commit --amend --reset-author --no-edit --no-verify --allow-empty >/dev/null 2>&1 \
-      || echo "::warning::ré-authorage impossible (commit de fusion ? arbre détaché ?) — on continue ; Vercel pourra refuser l'auteur." >&2
-    ;;
-esac
+if [ -n "$TEAM_EMAIL" ] && [ "$AUTHOR_EMAIL" != "$TEAM_EMAIL" ]; then
+  echo "vercel-deploy: commit authored par « ${AUTHOR_EMAIL:-vide} » — ré-authoré en équipe pour CE build éphémère (l'historique réel est inchangé)." >&2
+  git -c user.name="$TEAM_NAME" -c user.email="$TEAM_EMAIL" \
+    commit --amend --reset-author --no-edit --no-verify --allow-empty >/dev/null 2>&1 \
+    || echo "::warning::ré-authorage impossible (commit de fusion ? arbre détaché ?) — on continue ; Vercel pourra refuser l'auteur." >&2
+fi
 
 # ⚠️ Le code de sortie se capture APRÈS l'appel, pas dans un `if ! …` : dans la branche
 # `then` d'une négation, `$?` vaut celui du TEST, pas celui de la commande — un « code 0 »

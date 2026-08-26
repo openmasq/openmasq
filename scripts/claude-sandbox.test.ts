@@ -43,7 +43,8 @@ describe.skipIf(!MAC)("claude-sandbox — le profil seatbelt", () => {
   const permis = (argv: string[]) => run(argv).status === 0;
 
   it("laisse Node résoudre un fichier DU DÉPÔT — le cas qui bloquait tout", () => {
-    // realpath lstat /Users, Desktop, info, ATELIER… avant d'arriver au fichier autorisé.
+    // realpath lstat CHAQUE ancêtre du chemin (/Users, puis chaque dossier) avant d'arriver
+    // au fichier autorisé.
     // Sans les métadonnées des ancêtres : EPERM, et avec lui le pilote, vitest, tsc,
     // les check:* et le hook pre-commit — tout ce qui entre par un CHEMIN plutôt que -e.
     const r = run([process.execPath, "-e", `require("fs").realpathSync(${JSON.stringify(join(PROJECT, "package.json"))})`]);
