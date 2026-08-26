@@ -13,6 +13,10 @@
  * ⚠️ Ce fichier est LA maison du préfixe retiré (exception nommée de `check:brand`,
  * avec le script de thème d'`index.html` et l'adoption du DB legacy) — ne l'écrire
  * nulle part ailleurs.
+ *
+ * ⚠️ Il n'y a QU'UN ancien préfixe, et c'est voulu : le nom porté entre celui-ci et
+ * `openmasq` n'a jamais été livré, donc aucune install ne détient de clés sous ce
+ * nom-là et il n'y a rien à y reprendre. Une rupture nette, pas un oubli.
  */
 
 /** Exporté pour les tests — jamais pour un lecteur : lisez la clé COURANTE. */

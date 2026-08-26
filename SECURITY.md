@@ -14,7 +14,7 @@ and not a promise that any of them will be closed.
 
 Report suspected vulnerabilities **privately**, through this repository's
 **Security → Report a vulnerability** flow. If that form is not available to you, write to
-**support@openmasq.dev** with `security` as the first word of the subject, and we will move
+**support@openmasq.com** with `security` as the first word of the subject, and we will move
 the thread to a private advisory. Either way, do not open a public issue, discussion or
 pull request containing exploit details — an unfixed report read in the open arms whoever
 is still running the affected version.
