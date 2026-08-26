@@ -15,7 +15,7 @@ import {
 } from "@openmasq/ui";
 import "@openmasq/ui/styles.css";
 import { App } from "./App";
-import { authHost } from "./auth";
+import { AUTH_CONFIGURED, authHost } from "./auth";
 import { backendFetch } from "./backendFetch";
 import { syncHost, getOrgProfile, setOrgCacheUser, SYNC_ENABLED, pullSyncedIntegrations, orgSharesHost } from "./sync";
 import { billingHost } from "./billing";
@@ -468,7 +468,10 @@ const host: Host = {
       ? { connectOpenRouter: () => window.openmasq.keys.connectOpenRouter() }
       : {}),
   },
-  auth: authHost,
+  // Absent quand aucun projet Supabase n'est fourni au build : la porte de connexion
+  // est sautée (`useAuth` enabled:false) et l'app tourne entièrement en local — jamais
+  // un client d'auth pointé sur un projet par défaut (voir `auth.ts` AUTH_CONFIGURED).
+  auth: AUTH_CONFIGURED ? authHost : undefined,
   sync: syncHost,
   // Organization authorization (membership/role + allow-lists), read from the
   // sync backend; absent = solo app. `openAdmin` opens the web admin console in
