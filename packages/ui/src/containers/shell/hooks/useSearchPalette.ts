@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useHost } from "../../../host";
 import type { ChatStore } from "../../../state/store";
-import { searchSettings } from "../../../pages/Settings/settingsIndex";
+import { searchSettings, tabAvailable } from "../../../pages/Settings/settingsIndex";
+import { useSettingsCapabilities } from "../../../pages/Settings/settingsTabs";
 import { searchSections } from "../../../help";
 import { isGated, useFeatureAccess } from "../../../state/featureAccess";
 import { useLibraryFiles, searchFiles } from "../../../pages/Library";
@@ -51,15 +52,10 @@ export function useSearchPalette({ chat, blocked }: { chat: ChatStore; blocked: 
   // The palette also searches SETTINGS. The shell resolves them because it owns which
   // tabs actually exist here — the same capability gates the settings rail applies — so
   // the palette can never offer a destination the rail doesn't have.
+  const caps = useSettingsCapabilities(chat.orgProfile);
   const settingsResults = useCallback(
-    (q: string) =>
-      searchSettings(q, (id) => {
-        if (id === "browser") return !!host.browser;
-        if (id === "sync") return !!host.sync;
-        if (id === "org") return !!chat.orgProfile;
-        return true;
-      }),
-    [host.browser, host.sync, chat.orgProfile],
+    (q: string) => searchSettings(q, (id) => tabAvailable(id, caps)),
+    [caps.org, caps.sync, caps.browser, caps.billing],
   );
   // …and the stored FILES. Aggregate them (host.db) ONLY while the palette is open — no
   // cost on every shell render (the Library grid and this share ONE listing).

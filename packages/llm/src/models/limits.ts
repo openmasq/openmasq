@@ -31,6 +31,9 @@ export const MODEL_CONTEXT: Record<string, number> = {
   "claude-cli-sonnet": 200_000,
   "claude-cli-opus": 200_000,
   "claude-cli-haiku": 200_000,
+  // Abonnement ChatGPT via la CLI Codex : la fenêtre est celle du modèle que le
+  // compte sert ; 400K est le plancher de la gamme GPT-5.x, jamais une promesse au-delà.
+  "codex-cli": 400_000,
   // Google Gemini — 3.1 Pro is a 2M-token model (official); the Flash/Flash-Lite
   // tiers are 1M.
   "gemini-3.1-pro-preview": 2_000_000,

@@ -102,6 +102,9 @@ export interface Host {
    * not advertise it (fail-closed availability, like `detectLocalPii`).
    */
   probeClaudeCli?(): Promise<boolean>;
+  /** Même sonde pour la CLI Codex (fournisseur `codex-cli` — l'abonnement ChatGPT
+   *  de l'utilisateur via sa propre CLI). Mêmes règles fail-closed. */
+  probeCodexCli?(): Promise<boolean>;
   /** Non-streaming agentic completion with tools (drives MCP). */
   completeTools?(payload: CompleteToolsPayload): Promise<CompleteToolsResult>;
   /**

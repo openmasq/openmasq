@@ -17,7 +17,9 @@ const PROVIDER_HUE: Partial<Record<ProviderId, string>> = {
   anthropic: "pink",
   "anthropic-session": "pink",
   "claude-cli": "pink",
+
   openai: "mint",
+  "codex-cli": "mint",
   "openai-session": "mint",
   "openai-compat": "mint",
   google: "sky",

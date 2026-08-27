@@ -11,8 +11,15 @@ import { randomUUID } from "node:crypto";
 import type { ChatMessage, StreamDone } from "@openmasq/llm";
 import { flattenForCli, hasUnsupportedAttachments } from "./bridge";
 import { streamClaudeSubscription } from "./engine";
+import { codexPrompt, streamCodexSubscription } from "./codexEngine";
 
 export interface SubscriptionTurnEnv {
+  /** Quelle CLI sert ce tour (aiguillé par `desktop.ts` depuis le fournisseur).
+   *  ABSENT = `claude`, l'entrée historique — le tour texte comme le tour OUTILLÉ
+   *  (`toolsTurn.ts`) retombent dessus. */
+  cli?: "claude" | "codex";
+  /** Le nom montré dans les refus (« Claude Code », « Codex »). Absent ⇒ Claude Code. */
+  label?: string;
   /** Chemin absolu du binaire, déjà résolu (`resolveCli`). */
   binPath: string;
   /** Répertoire de travail DÉDIÉ et neutre — jamais un dossier de l'utilisateur. */
@@ -59,12 +66,21 @@ export async function* streamSubscriptionTurn(
 ): AsyncGenerator<string, StreamDone> {
   if (hasUnsupportedAttachments(opts.messages)) {
     throw new Error(
-      "Le modèle « Claude Code » ne prend pas encore les pièces jointes — " +
+      `Le modèle « ${env.label ?? "Claude Code"} » ne prend pas encore les pièces jointes — ` +
         "envoyez du texte, ou choisissez un modèle avec vision.",
     );
   }
   const { system, prompt } = flattenForCli(opts.messages);
   if (!prompt) throw new Error("Rien à envoyer : la conversation ne contient aucun message.");
+
+  if (env.cli === "codex") {
+    return yield* streamCodexSubscription({
+      binPath: env.binPath,
+      prompt: codexPrompt(system, prompt),
+      cwd: env.cwd,
+      signal: opts.signal,
+    });
+  }
 
   return yield* streamClaudeSubscription({
     binPath: env.binPath,

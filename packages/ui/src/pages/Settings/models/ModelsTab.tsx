@@ -16,7 +16,7 @@ import { ModelCard } from "./ModelCard";
 import { DefaultModelSummary } from "./DefaultModelSummary";
 import { ProviderAccess } from "./ProviderAccess";
 import { LocalModelSection } from "./LocalModelSection";
-import { ClaudeCliSection } from "./ClaudeCliSection";
+import { ClaudeCliSection, CodexCliSection } from "./ClaudeCliSection";
 import { ModelsTabModals } from "./ModelsTabModals";
 import { ModelFilterBar } from "./ModelFilterBar";
 import { filterModels, modelFamilies, subgroupByFamily, type PriceTier } from "../../../prompt/modelFilter";
@@ -47,6 +47,8 @@ export function ModelsTab({
   onLocalModelUrl,
   claudeCliEnabled,
   onClaudeCliEnabled,
+  codexCliEnabled,
+  onGeminiCliEnabled,
   favoriteModels,
   onToggleFavorite,
 }: {
@@ -78,6 +80,8 @@ export function ModelsTab({
   /** Opt-in `Settings.claudeCliEnabled` — absents ⇒ section non dessinée (aperçu web). */
   claudeCliEnabled?: boolean;
   onClaudeCliEnabled?: (on: boolean) => void;
+  codexCliEnabled?: boolean;
+  onGeminiCliEnabled?: (on: boolean) => void;
   /** Modèles favoris (la liste courte du sélecteur de chat) + le toggle d'étoile.
    *  Absents ⇒ pas d'étoile sur la grille (aperçu web, harnais de test). */
   favoriteModels?: string[];
@@ -266,6 +270,7 @@ export function ModelsTab({
 
       <LocalModelSection url={localModelUrl} onUrl={onLocalModelUrl} />
       {onClaudeCliEnabled && <ClaudeCliSection enabled={!!claudeCliEnabled} onEnabled={onClaudeCliEnabled} />}
+      {onGeminiCliEnabled && <CodexCliSection enabled={!!codexCliEnabled} onEnabled={onGeminiCliEnabled} />}
 
       <ModelsTabModals
         freeInfoOpen={freeInfoOpen}

@@ -99,6 +99,7 @@ export async function completeWithTools(
     case "openai-session":
     case "anthropic-session":
     case "claude-cli":
+    case "codex-cli":
       // claude-cli included, and it is a GUARD, not the path: the desktop branches to its
       // own subscription engine before this call (`main/index.ts`), because a CLI turn has
       // no tool-calling wire — its tools ride an MCP bridge the desktop alone can run. Any

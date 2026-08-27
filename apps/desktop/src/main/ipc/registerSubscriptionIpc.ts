@@ -1,5 +1,5 @@
 import { handle } from "./handle";
-import { claudeCliPath } from "../subscription/desktop";
+import { claudeCliPath, subscriptionCliPath } from "../subscription/desktop";
 
 /**
  * La famille ABONNEMENT — aujourd'hui une seule question : « la CLI Claude Code
@@ -13,4 +13,5 @@ import { claudeCliPath } from "../subscription/desktop";
  */
 export function registerSubscriptionIpc(): void {
   handle("subscription:cli-available", [], () => claudeCliPath() !== null);
+  handle("subscription:codex-available", [], () => subscriptionCliPath("codex") !== null);
 }

@@ -1,4 +1,5 @@
 import { isPlatformProvider, isPlatformServableModel } from "@openmasq/llm";
+import { platformAccessServed } from "./platformAccess";
 
 /**
  * The send's ROUTING decision (pure, security-relevant, unit-tested): does this send
@@ -23,6 +24,11 @@ export function resolveEffectivePlatform(
   keyConfigured: ReadonlySet<string>,
 ): boolean {
   return (
+    // Pas de service hébergé dans ce build ⇒ AUCUN modèle n'est « de la plateforme » :
+    // il n'y a ni endpoint ni jeton à obtenir, donc la seule porte est la clé de
+    // l'utilisateur — ce que dit alors `modelAvailability` (`no_key`), au lieu d'offrir
+    // un modèle qui échouerait à l'envoi (`platformAccess.ts`).
+    platformAccessServed() &&
     isPlatformServableModel(provider, modelId) &&
     (billingMode === "subscription" || !keyConfigured.has(provider))
   );

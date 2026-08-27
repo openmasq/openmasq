@@ -91,12 +91,19 @@ pnpm install
 pnpm dev          # builds the packages, then launches the Electron app
 ```
 
-Then open **⚙ Settings** and either paste a provider key (OpenAI, Anthropic, Google,
-Mistral, DeepSeek, OpenRouter, or any OpenAI-compatible endpoint — Ollama, LM Studio,
-vLLM), or sign in to use the hosted gateway.
+Then open **⚙ Settings** and paste a provider key (OpenAI, Anthropic, Google, Mistral,
+DeepSeek, OpenRouter, or any OpenAI-compatible endpoint — Ollama, LM Studio, vLLM), or
+point the app at a local model. Your Claude Code / Codex CLI subscription works too.
 
-`pnpm dev` talks to **local** services only. Sign-in and the cloud redaction endpoint
-need the local stack up:
+**This build has no backend, and needs none.** No accounts, no billing, no sync, no
+telemetry, no auto-update: every first-party service is supplied at build time and
+absent by default, so the app runs entirely on your machine. Redaction is on-device
+either way. To run your own stack — accounts, API, gateway — see
+[`SELF_HOSTING.md`](SELF_HOSTING.md).
+
+`pnpm dev` talks to **local** services only. To work on the account/billing/sync side,
+bring the local stack up (the full protocol, including deployment, is in
+[`SELF_HOSTING.md`](SELF_HOSTING.md)):
 
 ```bash
 cd apps/backend && docker compose up -d       # Postgres + GoTrue + gateway + Mailpit

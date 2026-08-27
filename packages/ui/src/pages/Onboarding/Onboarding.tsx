@@ -8,6 +8,7 @@ import { RedactionRulesContent } from "../../containers/modals/redaction/Redacti
 import { SECTION_GUIDE, sectionOneLiner } from "../../help";
 import { RedactionDemo } from "../../components/RedactionDemo";
 import { KeyChoice } from "./KeyChoice";
+import { platformAccessServed } from "../../send/platformAccess";
 
 /* redact — first-run onboarding.
    FOUR steps: what the app does (shown, not configured), where things live, how you
@@ -46,6 +47,9 @@ interface Props {
 }
 
 export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpenRouter, keyConfigured }: Props) {
+  // Ce build a-t-il un service hébergé (passerelle + comptes) ? Il décide de ce que ce
+  // parcours peut PROMETTRE — `send/platformAccess.ts`.
+  const served = platformAccessServed();
   const [step, setStep] = useState(0);
   const [rules, setRules] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -167,10 +171,15 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
             ) : step === 2 ? (
               <>
                 <div className="cv-eyebrow ob-eyebrow">ACCÈS AUX MODÈLES</div>
-                <h1 className="cv-display ob-title">Abonnement, ou votre clé</h1>
+                {/* Sans service hébergé (`send/platformAccess.ts`), il n'y a pas d'abonnement
+                    à proposer : le titre ne pose plus un choix qui n'existe pas. */}
+                <h1 className="cv-display ob-title">
+                  {served ? "Abonnement, ou votre clé" : "Votre clé, ou un modèle local"}
+                </h1>
                 <p className="ob-sub">
-                  Vous changerez d&apos;avis quand vous voudrez. Dans les deux cas, le
-                  redaction s&apos;applique avant chaque envoi.
+                  {served
+                    ? "Vous changerez d'avis quand vous voudrez. Dans les deux cas, le redaction s'applique avant chaque envoi."
+                    : "Une clé, un modèle qui tourne sur votre machine, ou votre abonnement Claude Code / Codex — le redaction s'applique avant chaque envoi, quel que soit le chemin."}
                 </p>
                 <KeyChoice
                   // `?? null` : rien n'est coché tant que rien n'a été choisi.
@@ -191,9 +200,21 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                     sélectionné d'office (`prompt/models.ts` DEFAULT_MODEL_ID), donc une
                     installation neuve écrit sans clé et sans abonnement. */}
                 <p className="ob-sub">
-                  Elle ne dépend ni d&apos;un abonnement ni d&apos;une clé&nbsp;: dès votre
-                  premier message, le redaction s&apos;applique. Un modèle gratuit est déjà
-                  sélectionné et fonctionne avec votre compte {BRAND.name}.
+                  {served ? (
+                    <>
+                      Elle ne dépend ni d&apos;un abonnement ni d&apos;une clé&nbsp;: dès votre
+                      premier message, le redaction s&apos;applique. Un modèle gratuit est déjà
+                      sélectionné et fonctionne avec votre compte {BRAND.name}.
+                    </>
+                  ) : (
+                    // Sans service hébergé, aucun modèle n'est joignable tant qu'un accès
+                    // n'est pas branché : le dire, plutôt que promettre un modèle prêt.
+                    <>
+                      Elle ne dépend d&apos;aucun compte&nbsp;: dès votre premier message, le
+                      redaction s&apos;applique. Il ne manque qu&apos;un accès à un
+                      modèle&nbsp;— une clé, un serveur local, ou votre CLI.
+                    </>
+                  )}
                 </p>
                 <ul className="ob-ready">
                   <li>

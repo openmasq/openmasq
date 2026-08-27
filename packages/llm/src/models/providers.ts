@@ -91,4 +91,12 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
     keyless: true,
     hostCountry: { code: "US", label: "Hébergé aux États-Unis" },
   },
+  "codex-cli": {
+    id: "codex-cli",
+    // L'abonnement ChatGPT de l'utilisateur, via sa CLI Codex installée et connectée
+    // (« Sign in with ChatGPT »). Même patron que claude-cli.
+    label: "Codex",
+    keyless: true,
+    hostCountry: { code: "US", label: "Hébergé aux États-Unis" },
+  },
 };

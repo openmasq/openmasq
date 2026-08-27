@@ -26,8 +26,6 @@
  * la cause. Ne pas le renommer `env.ts`.
  */
 
-import { brandUrl } from "@openmasq/branding";
-
 import { DEFAULT_ENV, ENVIRONMENTS } from "../../environments";
 
 const env = import.meta.env as unknown as Record<string, string | undefined>;
@@ -55,8 +53,20 @@ const ENV_NAME = RESOLVED?.name ?? DEFAULT_ENV;
 
 const URLS = RESOLVED ?? ENVIRONMENTS[ENV_NAME];
 
-/** L'API distante de l'app (comptes, facturation, synchro, avis). */
+/** L'API distante de l'app (comptes, facturation, synchro, avis). VIDE = ce build n'a
+ *  pas de backend, et c'est un état NORMAL (`../../environments`). */
 export const BACKEND_URL: string = env.VITE_BACKEND_URL || URLS.backend;
+
+/**
+ * Ce build a-t-il un backend ? C'est LA question dont dépendent les créneaux d'hôte
+ * `sync` / `org` / `orgShares` / `billing` / `avis` (`main.tsx`). Absent ⇒ ces surfaces
+ * n'existent pas du tout, plutôt que d'exister et de ne répondre jamais : un onglet
+ * « Compte » qui tourne dans le vide est pire qu'un onglet absent.
+ *
+ * ⚠️ Le pendant exact d'`AUTH_CONFIGURED` (`auth.ts`), et il se lit ICI, jamais en
+ * recomposant un `!!URL` ailleurs (règle 9).
+ */
+export const BACKEND_CONFIGURED: boolean = !!BACKEND_URL;
 
 /** Le nom de l'environnement EFFECTIF de cette instance — ce que la bascule a résolu,
  *  pas ce que le canal suggère. Exposé pour être MONTRÉ (Réglages → Synchronisation) :
@@ -97,6 +107,15 @@ export const SUPABASE_ANON_KEY: string = env.VITE_SUPABASE_ANON_KEY || URLS.supa
 const UPDATES_CHANNEL: string = env.VITE_UPDATES_CHANNEL || "";
 
 /**
+ * Y a-t-il un FLUX de mises à jour dans ce build ? Même variable que le processus main
+ * (`main/updates/config.ts`), doublée ici par un `define` du renderer — sans elle, le
+ * créneau `host.updates` reste absent et la carte « Mise à jour » comme l'historique des
+ * versions ne s'affichent pas. Se mettre à jour depuis le flux de quelqu'un d'autre,
+ * c'est se faire remplacer son binaire : il n'y a donc pas de défaut (`SELF_HOSTING.md`).
+ */
+export const UPDATES_CONFIGURED: boolean = !!env.VITE_UPDATES_URL;
+
+/**
  * L'environnement estampillé sur chaque événement d'analytics et sur les rapports
  * d'erreur.
  *
@@ -114,8 +133,16 @@ export const BUILD_ENV: "development" | "local" | "staging" | "production" = IS_
 
 /** Le relais first-party d'analytics (`apps/analytics-fn`). Le bureau ne détient
  *  JAMAIS de clé PostHog : il POSTe l'enveloppe neutre, le relais la signe. */
-export const ANALYTICS_RELAY_URL: string =
-  env.VITE_ANALYTICS_RELAY_URL || brandUrl("analytics", "/e");
+/** ⚠️ Aucun défaut : VIDE ⇒ le puits d'analytics est un no-op (`@openmasq/analytics`
+ *  n'ouvre de transport ni sans relais ni sans clé) et la carte « Nouveautés » n'a pas
+ *  de source — ni l'un ni l'autre ne retombe sur l'hôte de la marque. */
+export const ANALYTICS_RELAY_URL: string = env.VITE_ANALYTICS_RELAY_URL || "";
+
+/** Les notes de version, servies par le même service que le relais (`/release-notes`).
+ *  `undefined` ⇒ Réglages → Versions montre les versions sans les notes. */
+export const RELEASE_NOTES_URL: string | undefined = ANALYTICS_RELAY_URL
+  ? `${ANALYTICS_RELAY_URL.replace(/\/e\/?$/, "")}/release-notes`
+  : undefined;
 
 /** La clé HMAC d'attestation du build (anti-abus, NON identifiante). Absente en dev. */
 export const ANALYTICS_APP_KEY: string | undefined = env.VITE_ANALYTICS_APP_KEY;
@@ -131,3 +158,9 @@ export const ANALYTICS_DEBUG: boolean = IS_DEV || env.VITE_POSTHOG_DEBUG === "1"
  *  inclus. Par environnement, donc résolu par la table (la CI ne le bake plus) ; une
  *  variable `VITE_*` l'emporte encore, c'est le chemin du dev local. */
 export const REDACT_FN_URL: string = env.VITE_REDACT_FN_URL || URLS.redactFn;
+
+/** La passerelle est-elle fournie ? Elle sert DEUX choses : le redaction cloud et
+ *  l'inférence des modèles « inclus ». Vide ⇒ ni l'un ni l'autre, et les modèles
+ *  servis par la plateforme deviennent indisponibles au lieu d'échouer à l'envoi
+ *  (`@openmasq/ui` `modelAvailability`). */
+export const GATEWAY_CONFIGURED: boolean = !!REDACT_FN_URL;

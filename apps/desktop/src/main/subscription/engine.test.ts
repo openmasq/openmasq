@@ -40,4 +40,14 @@ describe("buildClaudeArgs", () => {
       expect(args).toContain(flag);
     for (const tool of CHAT_DISALLOWED_TOOLS) expect(args).toContain(tool);
   });
+
+  // La garde du PÉRIMÈTRE. `--disallowed-tools` retire par NOM, donc il ne couvre que ce
+  // qu'on a pensé à écrire ; `--tools ""` est l'allow-list, et c'est elle qui décide ce
+  // qui existe pour le modèle (règle 7). Un tour de chat n'a besoin d'aucun outil intégré.
+  it("borne le périmètre par ALLOW-LIST : aucun outil intégré (--tools \"\")", () => {
+    const args = buildClaudeArgs(base);
+    const at = args.indexOf("--tools");
+    expect(at).toBeGreaterThan(-1);
+    expect(args[at + 1]).toBe("");
+  });
 });

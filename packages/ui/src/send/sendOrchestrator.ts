@@ -132,6 +132,8 @@ export interface SendMessageDeps {
   localEndpointReachableRef: React.MutableRefObject<boolean | null>;
   /** `claude-cli` prêt (réglage ON + CLI détectée) — miroir ref, mêmes raisons. */
   claudeCliReadyRef: React.MutableRefObject<boolean | null>;
+  /** Idem `codex-cli`. */
+  codexCliReadyRef: React.MutableRefObject<boolean | null>;
 }
 
 export function createSendMessage(d: SendMessageDeps) {
@@ -155,6 +157,7 @@ export function createSendMessage(d: SendMessageDeps) {
     keepListRef,
     localEndpointReachableRef,
     claudeCliReadyRef,
+    codexCliReadyRef,
   } = d;
   return (
     async (
@@ -333,6 +336,7 @@ export function createSendMessage(d: SendMessageDeps) {
               openaiCompatBaseUrl: settings.openaiCompatBaseUrl,
               localEndpointReachable: localEndpointReachableRef.current,
               claudeCliReady: claudeCliReadyRef.current,
+              codexCliReady: codexCliReadyRef.current,
             },
           )
         : null;
@@ -505,6 +509,7 @@ export function createSendMessage(d: SendMessageDeps) {
         openaiCompatBaseUrl: settings.openaiCompatBaseUrl,
         localEndpointReachable: localEndpointReachableRef.current,
         claudeCliReady: claudeCliReadyRef.current,
+        codexCliReady: codexCliReadyRef.current,
       });
       if (preflightFail) {
         failTurn(preflightFail.text, preflightFail.action);

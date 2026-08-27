@@ -37,7 +37,7 @@ describe("isPlatformProvider — platform-eligible providers", () => {
     // personnelle, l'envoi est refusé, jamais facturé à l'abonnement.
     for (const p of ["openai", "anthropic", "google", "mistral", "deepseek",
                      "openai-compat", "openai-session", "anthropic-session",
-                     "claude-cli"] as const)
+                     "claude-cli", "codex-cli"] as const)
       expect(isPlatformProvider(p)).toBe(false);
   });
 });

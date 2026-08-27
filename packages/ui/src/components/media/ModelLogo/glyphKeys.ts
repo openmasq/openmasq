@@ -32,6 +32,7 @@ export function glyphForProvider(provider: ProviderId): GlyphKey {
       return "claude";
     case "openai":
     case "openai-session":
+    case "codex-cli":
       return "chatgpt";
     case "google":
       return "gemini";

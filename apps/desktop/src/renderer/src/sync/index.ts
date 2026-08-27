@@ -1,5 +1,6 @@
 /** Desktop cross-device vault sync + org audit (barrel). See `client.ts`. */
-export { pushConv, pullConv, reportAudit, listDevices, revokeDevice, registerDevice, getOrgProfile, setOrgCacheUser, SYNC_ENABLED } from "./client";
+export { pushConv, pullConv, reportAudit, listDevices, revokeDevice, registerDevice, getOrgProfile, SYNC_ENABLED } from "./client";
+export { setOrgCacheUser } from "./orgCache";
 export { useVaultSync } from "./useVaultSync";
 export { useConvSync } from "./useConvSync";
 export { useIntegrationSync } from "./useIntegrationSync";

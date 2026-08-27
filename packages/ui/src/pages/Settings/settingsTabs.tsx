@@ -12,7 +12,7 @@ import {
   ZapIcon,
 } from "../../components/brand";
 import { useHost, type OrgProfileInfo } from "../../host";
-import type { SettingsTabId as TabId } from "./settingsIndex";
+import { tabAvailable, type SettingsCapabilities, type SettingsTabId as TabId } from "./settingsIndex";
 
 /**
  * The settings tab set — the ONE list both presentations walk: the desktop icon rail and
@@ -45,17 +45,26 @@ export const SETTINGS_NAV: { id: TabId; label: string; icon: ReactNode; group: S
 ];
 
 /**
- * Capability-gated tab set. Visibility is a CAPABILITY question, never a platform one —
- * "Navigateur" needs the integrated browser, "Synchro" the sync host slot, "Organisation"
- * an org membership. `AppShell` applies the same gates to the ⌘K palette, so the palette
- * can never offer a tab this list doesn't have.
+ * Les capacités de CETTE instance, lues sur l'hôte. Un créneau absent = le build n'a pas
+ * reçu l'adresse du service (ou la plateforme ne sait pas le faire) : `SELF_HOSTING.md`.
+ * Exposé pour que la palette ⌘K pose la même question que le rail, sans la recopier.
+ */
+export function useSettingsCapabilities(orgProfile?: OrgProfileInfo | null): SettingsCapabilities {
+  const host = useHost();
+  return {
+    org: !!orgProfile,
+    sync: !!host.sync,
+    browser: !!host.browser,
+    billing: !!host.billing,
+  };
+}
+
+/**
+ * L'ensemble d'onglets de CE build. La visibilité est une question de CAPACITÉ, jamais de
+ * plateforme — et la règle elle-même vit dans `settingsIndex.ts` (`tabAvailable`), pour
+ * que la palette ⌘K ne puisse pas offrir une destination que ce rail n'a pas.
  */
 export function useVisibleSettingsTabs(orgProfile?: OrgProfileInfo | null) {
-  const host = useHost();
-  return SETTINGS_NAV.filter(
-    (t) =>
-      (t.id !== "org" || !!orgProfile) &&
-      (t.id !== "sync" || !!host.sync) &&
-      (t.id !== "browser" || !!host.browser),
-  );
+  const caps = useSettingsCapabilities(orgProfile);
+  return SETTINGS_NAV.filter((t) => tabAvailable(t.id, caps));
 }

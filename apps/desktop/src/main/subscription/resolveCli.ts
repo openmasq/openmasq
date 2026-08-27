@@ -4,7 +4,7 @@
  * L'app lancée depuis le Finder (le cas de tous les utilisateurs, par opposition à
  * `pnpm dev`) n'hérite pas du `PATH` du shell : macOS lui donne `/usr/bin:/bin:
  * /usr/sbin:/sbin` et rien de plus. Or `claude` s'installe dans `~/.local/bin`,
- * `codex` et `gemini` via npm global ou Homebrew — aucun de ces dossiers n'est dans
+ * `codex` via npm global ou Homebrew — aucun de ces dossiers n'est dans
  * ce PATH minimal. C'est LE bug de cette famille : la détection marche en dev (lancé
  * d'un terminal, PATH complet) et échoue chez l'utilisateur, sans message utile.
  *
@@ -20,13 +20,12 @@
 import { accessSync, constants } from "node:fs";
 import { posix, win32 } from "node:path";
 
-export type SubscriptionCliId = "claude" | "codex" | "gemini";
+export type SubscriptionCliId = "claude" | "codex";
 
 /** Le nom du binaire par CLI. Windows résout via `WINDOWS_EXTS`. */
 const BIN_NAME: Record<SubscriptionCliId, string> = {
   claude: "claude",
   codex: "codex",
-  gemini: "gemini",
 };
 
 /** Sur Windows un binaire npm est un `.cmd`; `spawn` ne complète pas tout seul. */

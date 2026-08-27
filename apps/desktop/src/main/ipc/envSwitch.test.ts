@@ -68,7 +68,12 @@ describe("resolvedEnvPayload — ce que le renderer reçoit", () => {
     }
   });
 
-  it("les deux charges sont bien distinctes — sinon basculer ne changerait rien", () => {
-    expect(resolvedEnvPayload("production").backend).not.toBe(resolvedEnvPayload("staging").backend);
+  it("deux environnements CONFIGURÉS portent des adresses distinctes — sinon basculer ne changerait rien", () => {
+    // Un build sans backend (le défaut du dépôt : aucune adresse cuite, voir
+    // `src/environments/index.ts`) n'a rien à distinguer — et la bascule ne lui sert de
+    // toute façon à rien. La propriété ne porte donc que sur ce qui EST fourni.
+    const prod = resolvedEnvPayload("production").backend;
+    const staging = resolvedEnvPayload("staging").backend;
+    if (prod && staging) expect(prod).not.toBe(staging);
   });
 });

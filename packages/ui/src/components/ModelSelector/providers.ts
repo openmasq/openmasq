@@ -14,6 +14,9 @@ export const PROVIDER_ORDER: ProviderId[] = [
   // L'abonnement Claude de l'utilisateur (CLI Claude Code) — n'apparaît que si la CLI
   // est détectée ET le réglage activé (`claudeCliReady`, sinon la ligne est masquée).
   "claude-cli",
+  // L'abonnement ChatGPT de l'utilisateur (CLI Codex) — n'apparaît que si la CLI est
+  // détectée ET le réglage activé (`codexCliReady`, sinon la ligne est masquée).
+  "codex-cli",
   "openai",
   "anthropic",
   "google",
@@ -28,5 +31,6 @@ export const PROVIDER_ORDER: ProviderId[] = [
 export function providerGroupLabel(pid: ProviderId): string {
   if (pid === "scaleway") return `${BRAND.name} — inclus dans l'abonnement`;
   if (pid === "claude-cli") return "Claude Code — votre abonnement Claude";
+  if (pid === "codex-cli") return "Codex — votre abonnement ChatGPT";
   return PROVIDERS[pid].label;
 }

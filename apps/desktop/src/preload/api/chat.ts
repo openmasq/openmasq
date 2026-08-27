@@ -73,6 +73,11 @@ export const chat = {
     return ipcRenderer.invoke("subscription:cli-available");
   },
 
+  /** Même sonde pour la CLI Codex — un booléen, jamais un chemin. */
+  probeCodexCli(): Promise<boolean> {
+    return ipcRenderer.invoke("subscription:codex-available");
+  },
+
   /** Non-streaming agentic completion with tool-calling (drives MCP). */
   completeTools(payload: CompleteToolsPayload): Promise<CompleteToolsResult> {
     return ipcRenderer.invoke("chat:complete-tools", payload);

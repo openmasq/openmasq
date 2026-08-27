@@ -161,10 +161,41 @@ export const SETTINGS_ENTRIES: { tab: SettingsTabId; label: string; kw: string }
   { tab: "models", label: "Modèle sur votre ordinateur", kw: "local ollama lm studio localhost adresse openai compatible" },
   { tab: "models", label: "Modèles favoris", kw: "favoris favori etoile liste courte selecteur personnaliser epingler raccourci" },
   { tab: "models", label: "Votre abonnement Claude", kw: "claude code cli abonnement anthropic sans cle subscription" },
+  { tab: "models", label: "Votre abonnement ChatGPT", kw: "codex cli openai chatgpt abonnement sans cle subscription" },
   { tab: "mcp", label: "Confirmation des actions", kw: "confirmation ecriture write gate renforce outils" },
   { tab: "sync", label: "Appareils connectés", kw: "appareils devices synchro revoquer passphrase" },
   { tab: "versions", label: "Environnement", kw: "environnement staging production basculer beta test acces" },
 ];
+
+/**
+ * Les capacités DISTANTES ou plateforme dont dépend l'existence d'un onglet. Chacune est
+ * un créneau d'hôte absent quand le build n'a pas reçu son adresse (`SELF_HOSTING.md`) :
+ * une capacité manquante retire l'onglet, elle ne l'affiche pas vide. Un réglage qui
+ * promet un service que ce build ne peut pas joindre est un mensonge, pas une invite.
+ */
+export interface SettingsCapabilities {
+  /** `host.org` + une appartenance : l'onglet Organisation. */
+  org: boolean;
+  /** `host.sync` : Vos appareils (synchro chiffrée de bout en bout, via le backend). */
+  sync: boolean;
+  /** `host.browser` : le navigateur intégré (plateforme, pas réseau). */
+  browser: boolean;
+  /** `host.billing` : Paiement — abonnement, crédits, portail Stripe. */
+  billing: boolean;
+}
+
+/**
+ * L'onglet `id` existe-t-il ici ? LA question, posée une seule fois : le rail des
+ * réglages et la palette ⌘K la lisent tous les deux (règle 9) — sans quoi la palette
+ * finit par proposer une destination que le rail n'a pas.
+ */
+export function tabAvailable(id: SettingsTabId, caps: SettingsCapabilities): boolean {
+  if (id === "org") return caps.org;
+  if (id === "sync") return caps.sync;
+  if (id === "browser") return caps.browser;
+  if (id === "billing") return caps.billing;
+  return true;
+}
 
 export function searchSettings(
   query: string,

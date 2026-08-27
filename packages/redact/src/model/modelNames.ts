@@ -51,7 +51,7 @@ const O_SERIES = /^o\d+(-(mini|pro|preview))?$/;
 /** Mots de variante/édition qu'un nom de modèle porte après sa famille. */
 const VARIANT_WORDS = new Set([
   "pro", "flash", "lite", "flash-lite", "mini", "nano", "large", "medium", "small",
-  "super", "ultra", "coder", "code", "vl", "chat", "instruct", "turbo", "preview",
+  "super", "ultra", "coder", "code", "codex", "vl", "chat", "instruct", "turbo", "preview",
   "luna", "oss", "ai", "s", "m", "l", "xl",
   // les sous-familles qui suivent une marque ombrelle (« Claude Sonnet », « Mistral Nemo »)
   "sonnet", "opus", "haiku", "fable", "mythos", "nemo",

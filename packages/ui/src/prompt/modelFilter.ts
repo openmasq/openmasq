@@ -63,6 +63,7 @@ const PROVIDER_FAMILY: Partial<Record<string, string>> = {
   anthropic: "anthropic",
   "anthropic-session": "anthropic",
   "claude-cli": "anthropic",
+  "codex-cli": "openai",
   google: "google",
   mistral: "mistral",
   deepseek: "deepseek",

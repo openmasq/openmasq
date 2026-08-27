@@ -163,7 +163,10 @@ export type ProviderId =
   /** L'abonnement Claude de l'utilisateur, servi par SA CLI Claude Code installée
    *  (headless, moteur desktop `apps/desktop/src/main/subscription/`) — jamais par
    *  ce client HTTP : ni clé, ni endpoint, l'auth reste dans la CLI. */
-  | "claude-cli";
+  | "claude-cli"
+  /** L'abonnement ChatGPT de l'utilisateur, servi par SA CLI Codex installée
+   *  (headless, même moteur desktop `subscription/`) — ni clé, ni endpoint ici. */
+  | "codex-cli";
 
 /**
  * Where a provider's inference is HOSTED — shown as a small flag next to each model

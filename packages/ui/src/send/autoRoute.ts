@@ -69,6 +69,7 @@ export interface AutoRouteAvailability {
   openaiCompatBaseUrl: string;
   localEndpointReachable?: boolean | null;
   claudeCliReady?: boolean | null;
+  codexCliReady?: boolean | null;
 }
 
 export interface AutoRouteResult {
@@ -163,6 +164,7 @@ export function resolveAutoModel(
         openaiCompatBaseUrl: avail.openaiCompatBaseUrl,
         localEndpointReachable: avail.localEndpointReachable,
         claudeCliReady: avail.claudeCliReady,
+        codexCliReady: avail.codexCliReady,
       }) !== null
     )
       return false;

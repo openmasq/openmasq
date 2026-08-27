@@ -15,6 +15,10 @@ export * from "./prompt/models";
 export { hueForProvider } from "./prompt/providerHue";
 export * from "./state/usage";
 export { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, captureEvent, captureError, type TrackEvent, type ErrorReport } from "./analytics";
+// À appeler AVANT le premier rendu, comme `configureAnalytics` : ce build a-t-il un
+// service hébergé (passerelle + comptes) ? Non ⇒ les modèles « inclus » redeviennent
+// des modèles à clé et rien ne promet d'abonnement (`send/platformAccess.ts`).
+export { configurePlatformAccess } from "./send/platformAccess";
 
 export { useChatStore } from "./state/store";
 export type { ChatStore } from "./state/store";

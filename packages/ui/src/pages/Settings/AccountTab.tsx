@@ -155,23 +155,29 @@ export function AccountTab({
         </section>
       )}
 
-      <section className="settings-section">
-        <div className="cv-eyebrow">Facturation des messages</div>
-        <div className="settings-card">
-          <div className="toggle-row">
-            <div className="row-body">
-              <div className="row-title">Utiliser mon abonnement {BRAND.name}</div>
-              <div className="row-desc">
-                Désactivé, vos messages passent par vos propres comptes (OpenAI, Gemini…).
+      {/* Sans facturation (build sans backend — `SELF_HOSTING.md`), il n'y a PAS
+          d'abonnement à utiliser : l'interrupteur n'offrirait qu'un aiguillage vers un
+          service que ce build ne peut pas joindre. Absent, donc — et le seul chemin
+          restant, vos propres clés, est déjà celui par défaut. */}
+      {host.billing && (
+        <section className="settings-section">
+          <div className="cv-eyebrow">Facturation des messages</div>
+          <div className="settings-card">
+            <div className="toggle-row">
+              <div className="row-body">
+                <div className="row-title">Utiliser mon abonnement {BRAND.name}</div>
+                <div className="row-desc">
+                  Désactivé, vos messages passent par vos propres comptes (OpenAI, Gemini…).
+                </div>
               </div>
+              <Switch
+                checked={draft.billingMode === "subscription"}
+                onChange={(v) => setDraft((d) => ({ ...d, billingMode: v ? "subscription" : "byo" }))}
+              />
             </div>
-            <Switch
-              checked={draft.billingMode === "subscription"}
-              onChange={(v) => setDraft((d) => ({ ...d, billingMode: v ? "subscription" : "byo" }))}
-            />
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="settings-section">
         <div className="cv-eyebrow">Apparence</div>

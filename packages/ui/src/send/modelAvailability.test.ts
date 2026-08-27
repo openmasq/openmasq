@@ -227,6 +227,16 @@ describe("modelUnavailableReason", () => {
       }
     });
 
+    it("codex-cli suit la même règle fail-closed, sur SON drapeau", () => {
+      const G = { id: "codex-cli", provider: "codex-cli" as ProviderId };
+      expect(
+        modelUnavailableReason({ ...BASE, model: G, effectivePlatform: false, codexCliReady: true }),
+      ).toBeNull();
+      expect(
+        modelUnavailableReason({ ...BASE, model: G, effectivePlatform: false, claudeCliReady: true }),
+      ).toBe("cli_unavailable"); // le drapeau claude n'ouvre PAS gemini
+    });
+
     it("est MASQUÉ du sélecteur (pas grisé) : la CLI absente est le cas de presque tous", () => {
       expect(pickerHides("cli_unavailable")).toBe(true);
       expect(pickerBlocks("cli_unavailable")).toBe(false);

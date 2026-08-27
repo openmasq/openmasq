@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { PROVIDERS } from "@openmasq/llm";
 import { mount } from "../../testKit";
 import { PROVIDER_KEY_HELP } from "../../containers/modals/providerKeyHelp";
 import { KeyChoice } from "./KeyChoice";
+import { configurePlatformAccess } from "../../send/platformAccess";
 
 /**
  * L'écran « Abonnement, ou votre clé » du premier lancement.
@@ -23,6 +24,9 @@ import { KeyChoice } from "./KeyChoice";
  */
 
 const noop = () => {};
+
+// Le défaut du paquet (un build hébergé) — restauré pour que l'ordre des tests ne compte pas.
+afterEach(() => configurePlatformAccess({ served: true }));
 
 describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
   it("envoie la clé au fournisseur SÉLECTIONNÉ, débarrassée de ses espaces", async () => {
@@ -175,6 +179,22 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     expect(m.maybe(".ob-access-key")).toBeNull();
     // Le CHOIX reste offert : c'est le formulaire qui manque, pas l'étape.
     expect(m.findAll(".ob-access-opt")).toHaveLength(2);
+
+    await m.unmount();
+  });
+
+  it("sans service hébergé, la carte « Mon compte » n'existe pas et le formulaire s'ouvre seul", async () => {
+    // Un build sans backend (`SELF_HOSTING.md`) n'a AUCUN abonnement à proposer : offrir
+    // le choix serait offrir une porte qui ne mène nulle part. Il ne reste qu'un chemin,
+    // donc plus de question — le formulaire est l'étape.
+    configurePlatformAccess({ served: false });
+    const m = await mount(
+      <KeyChoice mode={null} onMode={noop} onSaveKey={async () => {}} keyConfigured={new Set()} />,
+    );
+
+    expect(m.findAll(".ob-access-opt")).toHaveLength(1);
+    expect(m.find(".ob-access-opt").textContent).toMatch(/clé/i);
+    expect(m.maybe(".ob-access-key")).not.toBeNull();
 
     await m.unmount();
   });

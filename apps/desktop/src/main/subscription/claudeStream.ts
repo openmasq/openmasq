@@ -16,6 +16,7 @@
  * le drapeau `sawDelta` porté par le lecteur.
  */
 import type { StreamFinish, TokenUsage } from "@openmasq/llm";
+import { cliToolGateMessage, unexpectedCliTools } from "./toolGate";
 
 /** Ce que le moteur fait remonter. Tout le reste du flux est ignoré volontairement. */
 export type ClaudeAction =
@@ -106,8 +107,15 @@ export function interpretClaudeEvent(event: unknown, sawDelta: boolean): ClaudeA
     };
   }
 
-  if (type === "system" && event.subtype === "init" && typeof event.session_id === "string") {
-    return { kind: "session", id: event.session_id };
+  // `system/init` ANNONCE le périmètre d'outils du tour, AVANT le premier appel — la
+  // seule fenêtre où un outil que l'app n'a pas offert peut être REFUSÉ plutôt que subi.
+  // Un intrus rend une ERREUR : `spawnStream` la remonte et tue la CLI, donc le tour
+  // échoue au lieu de courir avec une capacité de plus (règle 7, voir `toolGate.ts`).
+  if (type === "system" && event.subtype === "init") {
+    const unexpected = unexpectedCliTools(event.tools);
+    if (unexpected.length) return { kind: "error", message: cliToolGateMessage(unexpected) };
+    if (typeof event.session_id === "string") return { kind: "session", id: event.session_id };
+    return null;
   }
 
   if (type === "result") {

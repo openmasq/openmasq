@@ -3,6 +3,7 @@ import { useState } from "react";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { CheckIcon } from "../../components/brand";
 import { KeySteps } from "./KeySteps";
+import { platformAccessServed } from "../../send/platformAccess";
 
 /** The providers the onboarding offers a key slot for — OpenRouter first (one key,
  *  every model), then the majors. Labels/key URLs come from the single-source
@@ -49,6 +50,8 @@ export function KeyChoice({
   onConnectOpenRouter?: () => Promise<boolean>;
   keyConfigured: ReadonlySet<string>;
 }) {
+  // Ce build a-t-il un service hébergé ? Sans lui, « Mon compte » n'existe pas.
+  const served = platformAccessServed();
   const [provider, setProvider] = useState<ProviderId>("openrouter");
   const [busy, setBusy] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -134,12 +137,16 @@ export function KeyChoice({
       {/* ⚠️ Cette carte ne promet PLUS de modèle gratuit sur le compte de l'app : ce qu'elle
           décrit se paie en crédits d'abonnement, et un compte NEUF n'en a pas. Une carte qui
           promet la gratuité à qui n'a rien souscrit vend un produit qu'il n'a pas — c'est
-          l'autre carte qui porte le chemin sans abonnement. */}
-      {option(
-        "subscription",
-        `Mon compte ${BRAND.name}`,
-        "Aucune clé à gérer : les modèles puisent dans les crédits de votre abonnement.",
-      )}
+          l'autre carte qui porte le chemin sans abonnement.
+          Et elle DISPARAÎT dans un build sans service hébergé (`send/platformAccess.ts`) :
+          il n'y a alors pas de compte à proposer, donc pas de choix à poser — la clé est
+          le seul chemin, et la question devient une étape. */}
+      {served &&
+        option(
+          "subscription",
+          `Mon compte ${BRAND.name}`,
+          "Aucune clé à gérer : les modèles puisent dans les crédits de votre abonnement.",
+        )}
       {/* La voie RECOMMANDÉE, et la seule à ne rien coûter : une clé OpenRouter atteint tous
           les modèles — les gratuits compris, sur le quota du compte de l'utilisateur, jamais
           le nôtre. Le « conseillé » vit sur la carte parce que c'est ICI qu'on choisit ; la
@@ -153,7 +160,7 @@ export function KeyChoice({
         "conseillé",
       )}
 
-      {mode === "byo" && onSaveKey && (
+      {(mode === "byo" || !served) && onSaveKey && (
         <div className="ob-access-key">
           <div className="ob-access-providers">
             {KEY_PROVIDERS.map((p) => (

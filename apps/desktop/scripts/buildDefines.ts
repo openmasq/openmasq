@@ -1,22 +1,33 @@
-import { readFileSync } from "fs";
-import { resolve } from "path";
-
-// La marque, lue comme dans electron.vite.config.ts : par le JSON, pas le paquet —
-// ce module s'évalue au chargement de la config, avant tout build de `dist/`.
-const BRAND = JSON.parse(
-  readFileSync(resolve(__dirname, "../../../packages/branding/branding.json"), "utf8"),
-) as { name: string; domain: string };
-
 /**
  * Les `define` des bundles main et renderer — sortis d'`electron.vite.config.ts`
  * (cap 300 LOC, règle 1) : c'est du VOCABULAIRE d'identifiants, pas de la config de
- * build. ⚠️ AUCUN défaut committé pour un identifiant lié à un compte fournisseur
- * (projet Supabase, DSN Sentry, clients OAuth GitHub/Slack/Google/Microsoft) : un
+ * build. ⚠️ AUCUN défaut committé — ni pour un identifiant lié à un compte fournisseur
+ * (projet Supabase, DSN Sentry, clients OAuth GitHub/Slack/Google/Microsoft), NI pour
+ * l'adresse d'un service (backend, passerelle, relais auth, flux de mises à jour) : un
  * dépôt public qui les embarque fait transiter le trafic de chaque fork par CE
- * compte-là. Non fourni au build ⇒ "" ⇒ la capacité se désactive proprement
- * (pas de comptes, pas de télémétrie, connecteur « non configuré » — « Mes clés »
- * reste disponible). La liste des variables : `apps/desktop/.env.development`.
+ * compte-là, et propose à ses utilisateurs un SaaS qui n'est pas le leur. Non fourni au
+ * build ⇒ "" ⇒ la capacité se désactive proprement (pas de comptes, pas de facturation,
+ * pas de synchro, pas de modèles inclus, pas de télémétrie, connecteur « non
+ * configuré ») et l'app tourne sur la machine — clés perso, modèles locaux, CLI
+ * d'abonnement, redaction on-device. La liste complète et comment déployer les siens :
+ * `SELF_HOSTING.md` ; les valeurs de DEV : `apps/desktop/.env.development`.
  */
+/** Les adresses des services first-party (backend + passerelle, par environnement) —
+ *  UNE liste, injectée dans les deux bundles : `src/environments/index.ts` est partagé
+ *  main/renderer, et un define manquant d'un côté laisserait le littéral `process.env.…`
+ *  tel quel (il jette dans un renderer sandboxé). Vide = capacité absente, jamais un
+ *  repli sur les serveurs de la marque. */
+function SERVICE_DEFINES(): Record<string, string> {
+  return Object.fromEntries(
+    [
+      "OPENMASQ_BACKEND_URL",
+      "OPENMASQ_BACKEND_URL_STAGING",
+      "OPENMASQ_GATEWAY_URL",
+      "OPENMASQ_GATEWAY_URL_STAGING",
+    ].map((name) => [`process.env.${name}`, JSON.stringify(process.env[name] ?? "")]),
+  );
+}
+
 export function mainDefines(): Record<string, string> {
   return {
     "process.env.VITE_UPDATES_URL": JSON.stringify(process.env.VITE_UPDATES_URL ?? ""),
@@ -33,17 +44,13 @@ export function mainDefines(): Record<string, string> {
     "process.env.OPENMASQ_SLACK_CLIENT_ID": JSON.stringify(
       process.env.OPENMASQ_SLACK_CLIENT_ID ?? "",
     ),
-    // The single, environment-independent auth-only relay (apps/auth) serving
-    // /slack/*. This is a PUBLIC endpoint (the Slack secret lives server-side in
-    // the function, never in the client), so — like the GitHub client id — bake
-    // the deployed URL as a committed default so Slack works out of the box; an
-    // env override still wins.
-    // Default = the PROD auth relay on the brand custom domain. Provision it
-    // (Terraform, côté infra) before shipping a build that relies on
-    // this default; the legacy raw *.scw.cloud host stays live for shipped builds.
-    "process.env.OPENMASQ_AUTH_URL": JSON.stringify(
-      process.env.OPENMASQ_AUTH_URL ?? `https://auth.${BRAND.domain}`,
-    ),
+    // Le relais auth-only (apps/auth) qui sert /slack/* — l'échange code→jeton que
+    // Slack interdit de faire sur l'appareil (il exige un secret client). L'endpoint est
+    // PUBLIC (le secret vit dans la fonction, jamais dans le client), mais il reste le
+    // déploiement de QUELQU'UN : pas de défaut committé non plus, sinon l'OAuth Slack de
+    // chaque fork passerait par le relais de la marque. Vide ⇒ le connecteur Slack dit
+    // « non configuré » (`main/mcp/connectors/oauthSlack.ts`) et les autres marchent.
+    "process.env.OPENMASQ_AUTH_URL": JSON.stringify(process.env.OPENMASQ_AUTH_URL ?? ""),
     // Google "Desktop app" OAuth client — loopback 127.0.0.1 + PKCE. For an INSTALLED
     // app Google's own model treats the client_secret as NON-confidential (PKCE is the
     // real protection; `oauthGoogle.ts` says as much) — mais il reste l'identifiant
@@ -76,6 +83,12 @@ export function mainDefines(): Record<string, string> {
     "process.env.OPENMASQ_SENTRY_DSN": JSON.stringify(
       process.env.OPENMASQ_SENTRY_DSN ?? "",
     ),
+    // Les ADRESSES des services, même règle que les identifiants ci-dessus : aucun
+    // défaut committé. Vides ⇒ l'app n'a ni backend (comptes/facturation/synchro/avis/
+    // orga) ni passerelle (redaction cloud + modèles inclus) — elle tourne sur la
+    // machine. Lues par `src/environments/index.ts`, partagées main/renderer.
+    // Déployer les siennes : `SELF_HOSTING.md`.
+    ...SERVICE_DEFINES(),
   };
 }
 
@@ -90,6 +103,10 @@ export function rendererDefines(pkgVersion: string): Record<string, string> {
     // du même environnement. Sans ce doublon, le renderer serait « development » sur
     // une build de production — et on chercherait les bugs dans le mauvais bac.
     "import.meta.env.VITE_UPDATES_CHANNEL": JSON.stringify(process.env.VITE_UPDATES_CHANNEL ?? ""),
+    // Le renderer ne décide pas des mises à jour, mais il décide s'il en MONTRE l'écran :
+    // sans flux, `host.updates` reste absent (`appEnv.ts` UPDATES_CONFIGURED). Même
+    // variable que le bundle main, doublée pour la même raison que le canal.
+    "import.meta.env.VITE_UPDATES_URL": JSON.stringify(process.env.VITE_UPDATES_URL ?? ""),
     // Doublons des define du main pour les modules PARTAGÉS que le renderer bundle
     // aussi (`src/environments/index.ts` via appEnv, `src/sentry/policy.ts` via
     // sentry/renderer) : sans eux, le littéral `process.env.…` resterait tel quel et
@@ -103,5 +120,6 @@ export function rendererDefines(pkgVersion: string): Record<string, string> {
     "process.env.OPENMASQ_SENTRY_DSN": JSON.stringify(
       process.env.OPENMASQ_SENTRY_DSN ?? "",
     ),
+    ...SERVICE_DEFINES(),
   };
 }

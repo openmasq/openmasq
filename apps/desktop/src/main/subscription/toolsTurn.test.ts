@@ -3,7 +3,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ToolDef } from "@openmasq/llm";
-import { buildToolsArgs, completeSubscriptionTools, renderToolHistory } from "./toolsTurn";
+import { buildToolsArgs } from "./claudeToolsTurn";
+import { completeSubscriptionTools, renderToolHistory } from "./toolsTurn";
 
 const TOOLS: ToolDef[] = [
   { name: "recherche", description: "Cherche.", parameters: { type: "object" } },
@@ -128,5 +129,21 @@ describe("buildToolsArgs", () => {
       toolNames: ["a", "b__c"],
     });
     expect(args[args.indexOf("--allowedTools") + 1]).toBe("mcp__openmasq__a,mcp__openmasq__b__c");
+  });
+
+  // Le périmètre du tour outillé est le PONT et rien d'autre : `--tools ""` retire les
+  // outils intégrés de la CLI, et les outils MCP y survivent (mesuré). `--allowedTools`
+  // ne borne pas le périmètre — il ne peut donc pas tenir cette place (règle 7).
+  it("borne le périmètre par ALLOW-LIST : aucun outil intégré, le pont reste (--tools \"\")", () => {
+    const args = buildToolsArgs({
+      prompt: "p",
+      sessionId: "s",
+      mcpConfigPath: "/tmp/x.json",
+      toolNames: ["a"],
+    });
+    const at = args.indexOf("--tools");
+    expect(at).toBeGreaterThan(-1);
+    expect(args[at + 1]).toBe("");
+    expect(args).toContain("--mcp-config");
   });
 });

@@ -3,15 +3,22 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import electronUpdater from "electron-updater";
-import { brandUrl } from "@openmasq/branding";
 
 // electron-updater is CommonJS; destructure after a default import.
 const { autoUpdater } = electronUpdater;
 
-const DEFAULT_UPDATES_URL = brandUrl("updates");
-// The main bundle is CJS (uses __dirname), so no import.meta — read the optional
-// override from process.env (baked by electron-vite when set); else the default.
-export const UPDATES_URL = (process.env.VITE_UPDATES_URL || DEFAULT_UPDATES_URL).replace(/\/+$/, "");
+// Le main est CJS (il utilise `__dirname`), donc pas d'`import.meta` : l'adresse arrive
+// par un define d'electron-vite. ⚠️ **Aucun défaut committé** — même règle que les
+// autres services (`src/environments/index.ts`) : un dépôt public dont le build
+// retomberait sur le flux de la marque ferait se mettre à jour chaque fork AVEC LE
+// BINAIRE DE QUELQU'UN D'AUTRE, signé par quelqu'un d'autre. Vide ⇒ pas de mises à
+// jour automatiques du tout (`UPDATES_CONFIGURED`), et l'app le dit plutôt que de
+// sonder dans le vide.
+export const UPDATES_URL = (process.env.VITE_UPDATES_URL || "").replace(/\/+$/, "");
+
+/** Ce build a-t-il un flux de mises à jour ? Vide = non, et c'est un état NORMAL
+ *  (build local, fork auto-hébergé) — jamais une erreur à rapporter. */
+export const UPDATES_CONFIGURED = !!UPDATES_URL;
 
 // Le canal baké au build (define d'electron.vite.config.ts) : le DÉFAUT du premier
 // lancement, rien d'autre. La CI cuit `desktop-stable` dans TOUT build publié par tag —

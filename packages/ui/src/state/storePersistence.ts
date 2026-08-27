@@ -141,6 +141,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // Opt-in : l'app ne spawne JAMAIS la CLI Claude Code de l'utilisateur (son
   // abonnement personnel) sans un geste explicite dans Réglages → Modèles.
   claudeCliEnabled: false,
+  codexCliEnabled: false,
   browserSearchEngine: "brave", // integrated-browser URL-bar search engine (user-switchable)
   // The COFFRE: values the user always wants redacted (code names, accounts, ids).
   // Empty by default; holds REAL sensitive values, so it is stripped from the plaintext

@@ -42,6 +42,13 @@ export const MODELS: ModelInfo[] = [
   { id: "claude-cli-opus", label: "Claude Opus", provider: "claude-cli" },
   { id: "claude-cli-haiku", label: "Claude Haiku", provider: "claude-cli" },
 
+  // L'abonnement ChatGPT de l'utilisateur, via SA CLI Codex installée (même patron que
+  // claude-cli : l'id n'est jamais un id de wire, et les outils de l'app passent par le
+  // pont MCP du bureau — `subscription/codexToolsTurn.ts`). UNE entrée : avec un compte
+  // ChatGPT la CLI n'accepte QUE le modèle par défaut du compte — un `-m` explicite est
+  // refusé en 400 (mesuré, `subscription/codexEngine.ts`). Texte seul (pièces jointes).
+  { id: "codex-cli", label: "GPT Codex", provider: "codex-cli" },
+
   // Google Gemini
   // Gemini 1.5 was retired by Google (404 on generateContent) — dropped; old
   // conversations remap to 2.5 via LEGACY_MODEL_ALIASES in packages/ui/models.ts.

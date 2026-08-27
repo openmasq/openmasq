@@ -146,6 +146,12 @@ export const MODEL_META: Record<string, ModelMeta> = {
   "claude-cli-opus": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG],
     ["Le plus capable de l'abonnement", "Compris dans votre abonnement Claude"],
     ["Texte seul", "Selon l'offre (absent du plan Pro)"], "Les tâches les plus dures", false),
+  // L'abonnement ChatGPT via la CLI Codex — même logique que claude-cli (`cost: 5` =
+  // déjà payé par l'abonnement, pas « gratuit »).
+  "codex-cli": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG],
+    ["Compris dans votre abonnement ChatGPT", "Aucune clé API à gérer"],
+    ["Texte seul", "Nécessite la CLI Codex installée et connectée"],
+    "Utiliser votre abonnement ChatGPT existant", false),
   "claude-cli-haiku": m([3, 3, 5, 5, 1], [CODE, LONG],
     ["Très rapide", "Compris dans votre abonnement Claude"],
     ["Texte seul", "Moins profond que Sonnet/Opus"], "Brouillons et questions rapides", false),

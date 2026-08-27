@@ -14,29 +14,40 @@ describe("la table des environnements", () => {
     expect(DEFAULT_ENV).toBe("production");
   });
 
-  it("les deux environnements sont complets — une entrée trouée enverrait l'app sur `undefined`", () => {
+  it("aucune adresse n'a de défaut committé — un build sans variables n'a AUCUN service", () => {
+    // Le contrat open source (`index.ts`) : ce que la table porte, c'est ce que le BUILD
+    // a fourni, et rien d'autre. Un défaut de repli ferait parler chaque fork aux
+    // serveurs de la marque — et proposerait à ses utilisateurs un SaaS qui n'est pas
+    // le leur. Ce test compare donc à la variable, pas à une URL écrite ici.
+    expect(ENVIRONMENTS.production.backend).toBe(process.env.OPENMASQ_BACKEND_URL ?? "");
+    expect(ENVIRONMENTS.staging.backend).toBe(process.env.OPENMASQ_BACKEND_URL_STAGING ?? "");
+    expect(ENVIRONMENTS.production.redactFn).toBe(process.env.OPENMASQ_GATEWAY_URL ?? "");
+    expect(ENVIRONMENTS.staging.redactFn).toBe(process.env.OPENMASQ_GATEWAY_URL_STAGING ?? "");
+  });
+
+  it("chaque champ est une CHAÎNE, vide ou absolue — jamais `undefined`, jamais relative", () => {
     for (const [name, urls] of Object.entries(ENVIRONMENTS)) {
       for (const [field, value] of Object.entries(urls)) {
-        // Chaque champ est une CHAÎNE, jamais `undefined`. Le couple Supabase a le droit
-        // d'être VIDE — c'est l'état d'un build sans projet fourni (env), où l'app tourne
-        // sans comptes (`auth.ts` AUTH_CONFIGURED) — mais vide ENSEMBLE : une URL sans
-        // clé (ou l'inverse) est un vrai trou, l'auth échouerait à mi-chemin.
+        // Vide = la capacité n'existe pas dans ce build (état NORMAL). Non vide = une
+        // adresse absolue : une valeur relative se collerait à l'origine du renderer.
         expect(typeof value, `${name}.${field}`).toBe("string");
+        if (value && field !== "supabaseAnonKey") {
+          expect(value.startsWith("https://"), `${name}.${field}`).toBe(true);
+        }
       }
+      // Le couple Supabase est vide ENSEMBLE : une URL sans clé (ou l'inverse) est un
+      // trou — l'auth échouerait à mi-chemin au lieu de ne pas exister.
       expect(!!urls.supabaseUrl, `${name} : URL et clé Supabase vont ensemble`).toBe(
         !!urls.supabaseAnonKey,
       );
-      if (urls.supabaseUrl) {
-        expect(urls.supabaseUrl.startsWith("https://"), `${name}.supabaseUrl`).toBe(true);
-      }
-      expect(urls.backend.startsWith("https://"), `${name}.backend`).toBe(true);
-      expect(urls.admin.startsWith("https://"), `${name}.admin`).toBe(true);
-      expect(urls.redactFn.startsWith("https://"), `${name}.redactFn`).toBe(true);
+      // La console d'admin est SERVIE par le backend : elle en dérive, ou n'existe pas.
+      expect(urls.admin, `${name}.admin`).toBe(urls.backend ? `${urls.backend}/admin` : "");
     }
   });
 
-  it("les deux environnements ne partagent NI l'API ni la gateway — sinon la bascule ne bascule rien", () => {
-    expect(ENVIRONMENTS.production.backend).not.toBe(ENVIRONMENTS.staging.backend);
-    expect(ENVIRONMENTS.production.redactFn).not.toBe(ENVIRONMENTS.staging.redactFn);
+  it("deux environnements CONFIGURÉS ne partagent NI l'API ni la gateway — sinon la bascule ne bascule rien", () => {
+    const { production: p, staging: st } = ENVIRONMENTS;
+    if (p.backend && st.backend) expect(p.backend).not.toBe(st.backend);
+    if (p.redactFn && st.redactFn) expect(p.redactFn).not.toBe(st.redactFn);
   });
 });

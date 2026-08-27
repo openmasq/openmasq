@@ -5,6 +5,7 @@ import { fileSourceSlots } from "./host/fileSources";
 import {
   HostProvider,
   configureAnalytics,
+  configurePlatformAccess,
   captureError,
   captureEvent,
   setAnalyticsSuspended,
@@ -27,6 +28,10 @@ import {
   ANALYTICS_APP_KEY,
   ANALYTICS_DEBUG,
   ANALYTICS_RELAY_URL,
+  BACKEND_CONFIGURED,
+  GATEWAY_CONFIGURED,
+  RELEASE_NOTES_URL,
+  UPDATES_CONFIGURED,
   APP_VERSION,
   BACKEND_URL,
   BUILD_ENV,
@@ -45,6 +50,13 @@ initSentryRenderer();
 // referenced → jamais inliné dans le bundle expédié, quel que soit l'env de build.
 // Les URL et leurs défauts vivent dans `./appEnv`. L'envoi reste soumis au consentement
 // in-app (+ Do-Not-Track) : rien ici ne touche la porte de confidentialité.
+// Ce build a-t-il un service hébergé ? Il en faut les DEUX moitiés — une passerelle
+// (l'endpoint) et des comptes (le jeton) — sans quoi un modèle « inclus » n'a rien à
+// appeler. Non ⇒ ces modèles redeviennent des modèles à CLÉ et aucune surface ne promet
+// d'abonnement (`@openmasq/ui` `send/platformAccess.ts`). Un build sans backend est un
+// état NORMAL, c'est le défaut du dépôt (`SELF_HOSTING.md`).
+configurePlatformAccess({ served: GATEWAY_CONFIGURED && AUTH_CONFIGURED });
+
 configureAnalytics({
   relayUrl: ANALYTICS_RELAY_URL,
   source: "desktop",
@@ -173,9 +185,10 @@ const host: Host = {
     ? { listOpenRouter: () => window.openmasq.models.listOpenRouter() }
     : undefined,
   // Auto-update controls (electron-updater ↔ the apps/updates Worker feed).
-  // Guarded so an un-restarted dev preload (no `updates` namespace) degrades to
-  // no updates UI rather than throwing.
-  updates: window.openmasq.updates
+  // ⚠️ Deux conditions : un flux fourni au build (sinon il n'y a RIEN à interroger — pas
+  // de carte de mise à jour, pas d'historique de versions, pas de notes) et un preload à
+  // jour (un dev non redémarré dégrade au lieu de jeter).
+  updates: UPDATES_CONFIGURED && window.openmasq.updates
     ? {
         current: () => window.openmasq.updates.current(),
     revealLog: window.openmasq.updates.revealLog
@@ -207,7 +220,9 @@ const host: Host = {
   // pas `env.switchTo` → pas de carte, jamais un throw. La DÉCISION est en main
   // (`registerEnvIpc`, fail-closed) ; ici on demande, et on porte le jeton du compte
   // pour que le backend de production réponde pour CE compte (drapeau staging_tester).
-  env: window.openmasq.env?.switchTo
+  // …et seulement là où il Y A des environnements : basculer suppose deux backends
+  // configurés, et la permission elle-même se demande au backend de production.
+  env: BACKEND_CONFIGURED && window.openmasq.env?.switchTo
     ? {
         name: RUNTIME_ENV,
         switchTo: async (envName) => {
@@ -306,6 +321,7 @@ const host: Host = {
     : undefined,
   // Same un-restarted-preload guard: absent ⇒ `claude-cli` isn't offered (fail-closed).
   probeClaudeCli: window.openmasq.probeClaudeCli ? () => window.openmasq.probeClaudeCli!() : undefined,
+  probeCodexCli: window.openmasq.probeCodexCli ? () => window.openmasq.probeCodexCli!() : undefined,
   completeTools: (payload) => window.openmasq.completeTools(payload) as any,
   // STREAMING tool turn (assistant text token-by-token). Optional-chained: an
   // un-restarted dev preload without it → the agentic loop falls back to the
@@ -474,7 +490,10 @@ const host: Host = {
   // est sautée (`useAuth` enabled:false) et l'app tourne entièrement en local — jamais
   // un client d'auth pointé sur un projet par défaut (voir `auth.ts` AUTH_CONFIGURED).
   auth: AUTH_CONFIGURED ? authHost : undefined,
-  sync: syncHost,
+  // Toute la synchro est DISTANTE (appareils, enveloppes, journal d'orga) : sans backend
+  // le créneau n'existe pas, donc ni onglet « Vos appareils », ni entrée ⌘K, ni carte de
+  // phrase de passe — plutôt qu'un écran qui n'aurait personne à qui parler.
+  sync: BACKEND_CONFIGURED ? syncHost : undefined,
   // Organization authorization (membership/role + allow-lists), read from the
   // sync backend; absent = solo app. `openAdmin` opens the web admin console in
   // the system browser (window.open → shell.openExternal, main's handler).
@@ -498,28 +517,16 @@ const host: Host = {
   // there is nowhere to send it, so the rail action is not offered at all rather
   // than offered and dead.
   avis: SYNC_ENABLED ? avisHost : undefined,
-  // Optional build-time override of the remote redaction function URL
-  // (apps/gateway). Unset is normal — the store falls back to the baked-in
-  // DEFAULT_REDACT_FN_URL (the cloud engine is automatic, a paid-plan feature).
-  redactFnUrl: REDACT_FN_URL,
-  // OpenAI-compatible inference proxy for PLATFORM-provided models (Scaleway on
-  // the app's own key + prepaid credits). It's the SAME redact-fn CONTAINER (it serves
-  // redaction at `/` and inference at `/chat/completions`) — the held-open stream
-  // belongs on the scalable container, not the Vercel backend. The OpenAI client
-  // posts `${inferenceUrl}/chat/completions`; credits are metered by that CONTAINER
-  // itself (direct SQL to the shared DB) — so this URL MUST point at the same
-  // environment's gateway as VITE_BACKEND_URL, or the meter writes to a different
-  // DB than the one the org "usage" endpoint reads (→ credits appear stuck at 0).
-  inferenceUrl: REDACT_FN_URL,
-  // Release-notes endpoint for Settings → Versions ("Nouveautés"). Derived from the
-  // analytics-fn base: VITE_ANALYTICS_RELAY_URL is `<host>/e`; strip the `/e` and
-  // point at `/release-notes` on the same first-party function. FALLS BACK to the
-  // production analytics host when the build didn't bake the env var (a STAGING build
-  // whose `vars.ANALYTICS_RELAY_URL` was empty showed the version list but NO notes) —
-  // analytics-fn is deployed ONCE for all envs at this stable host (root CLAUDE.md), and
-  // /release-notes is a read-only Contentful proxy, so a default is safe (mirrors
-  // `updates.ts` `DEFAULT_UPDATES_URL`). Notes are env-agnostic Contentful content.
-  releaseNotesUrl: `${ANALYTICS_RELAY_URL.replace(/\/e\/?$/, "")}/release-notes`,
+  // La passerelle (apps/gateway) — redaction cloud ET inférence des modèles inclus.
+  // ABSENTE quand le build n'en fournit pas l'adresse : le moteur de redaction reste
+  // celui de la machine (déjà le défaut) et les modèles servis par la plateforme
+  // deviennent indisponibles au lieu d'échouer à l'envoi (`platformServed`).
+  ...(GATEWAY_CONFIGURED ? { redactFnUrl: REDACT_FN_URL, inferenceUrl: REDACT_FN_URL } : {}),
+  // Les notes de version (Réglages → Versions → « Nouveautés »), servies par le même
+  // service que le relais d'analytics (`/release-notes`, proxy Contentful en lecture).
+  // Adresse dérivée UNE fois dans `appEnv` ; absente ⇒ le panneau dit « indisponible »
+  // et la liste des versions, elle, reste là.
+  ...(RELEASE_NOTES_URL ? { releaseNotesUrl: RELEASE_NOTES_URL } : {}),
 };
 
 // macOS runs the window with `titleBarStyle: "hiddenInset"` (main/index.ts): the

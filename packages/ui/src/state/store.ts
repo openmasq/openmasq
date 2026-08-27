@@ -48,7 +48,7 @@ import { SETTINGS_KEY, settingsKeyFor, convKeyFor, activeKeyFor, localConvSnapsh
 import { loadDeviceTheme } from "./theme";
 import { adoptSettings, reconcileDbSettings } from "./settingsReconcile";
 import { useLocalPersistence, usePlatformEffects, useOrgProfile } from "./effects";
-import { useLocalEndpointProbe, useClaudeCliProbe } from "./effects/useAvailabilityProbes";
+import { useLocalEndpointProbe, useClaudeCliProbe, useCodexCliProbe } from "./effects/useAvailabilityProbes";
 
 /** One-time flag: the controllable browser was pre-connected at first run. Guards
  *  the pre-connect so disabling the browser later stays sticky (never re-enabled). */
@@ -694,6 +694,10 @@ export function useChatStore() {
     host,
     settings.claudeCliEnabled,
   );
+  const { codexCliDetected, codexCliReady, codexCliReadyRef } = useCodexCliProbe(
+    host,
+    settings.codexCliEnabled,
+  );
 
   // The OpenRouter live-catalogue merge mutates MODELS IN PLACE (`setDynamicModels`),
   // which no dep below can see — without this version the late-fetched models never
@@ -713,6 +717,7 @@ export function useChatStore() {
         openaiCompatBaseUrl: settings.openaiCompatBaseUrl,
         localEndpointReachable,
         claudeCliReady,
+        codexCliReady,
       });
       if (reason) map.set(m.id, reason);
     }
@@ -723,6 +728,7 @@ export function useChatStore() {
     settings.openaiCompatBaseUrl,
     localEndpointReachable,
     claudeCliReady,
+    codexCliReady,
     orgProfile,
     personalCredits,
     personalSub,
@@ -1304,6 +1310,7 @@ export function useChatStore() {
         keepListRef,
         localEndpointReachableRef,
         claudeCliReadyRef,
+        codexCliReadyRef,
       })(...args),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- la liste HISTORIQUE,
     // conservée à l'identique : elle gouverne QUAND l'envoi re-capture, pas ce
@@ -1463,6 +1470,7 @@ export function useChatStore() {
     // Pour Réglages → Modèles : l'état de détection de la CLI Claude Code (le réglage
     // opt-in `claudeCliEnabled` vit dans `settings` comme les autres).
     claudeCliDetected,
+    codexCliDetected,
     conversations,
     /** True once the initial per-account load has settled (see the `loaded` state). */
     loaded,

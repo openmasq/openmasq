@@ -11,7 +11,7 @@
  * its own. (The former keyless web-session thread id, the only id shared across
  * devices, was removed with the keyless mode — that path now lives in the extension.)
  */
-import Debug from "debug"; import { BRAND } from "@openmasq/branding";
+import Debug from "debug";
 import {
   createRecordSync,
   isCryptoFailure,
@@ -35,9 +35,10 @@ import { authHost } from "../auth";
 import { backendFetch } from "../backendFetch";
 import { deviceId, deviceIdentity, deviceSecret, storeDeviceName } from "./device";
 import { getSyncPassphrase } from "./passphrase";
+import { orgCache } from "./orgCache";
 import { openReported } from "./reported";
 import { recordCryptoFailure, withExchangeWitness } from "./status";
-import { BACKEND_URL } from "../appEnv";
+import { BACKEND_CONFIGURED, BACKEND_URL } from "../appEnv";
 
 // Enable with `localStorage.debug = "openmasq:*"`. Privacy: NEVER log vault
 // originals/placeholders, kinds, titles or ciphertext — only counts, booleans,
@@ -48,8 +49,10 @@ const debug = Debug("openmasq:sync");
 // L'origine et son défaut vivent dans `../appEnv` (LE seul lecteur d'import.meta.env).
 const BASE_URL = BACKEND_URL;
 
-/** Whether a sync backend origin is available (true given the default above). */
-export const SYNC_ENABLED = !!BASE_URL;
+/** Y a-t-il un backend dans ce build ? Réexporté depuis `appEnv` — un `!!BASE_URL`
+ *  recomposé ici serait une seconde maison pour la même question (règle 9), et c'est
+ *  précisément ce qui faisait passer un build SANS backend pour un build avec. */
+export const SYNC_ENABLED = BACKEND_CONFIGURED;
 
 /** Rename this device: persist the name locally (so future heartbeats keep it)
  *  and re-register immediately so the change shows at once. */
@@ -58,46 +61,6 @@ export async function setDeviceName(name: string): Promise<void> {
   storeDeviceName(name);
   await registerDevice();
 }
-
-// Last-known-good org profile in localStorage, so the Organisation tab +
-// enforcement survive a backend outage instead of collapsing to solo. @openmasq/
-// sync reads/writes it via the `orgCache` option: it returns the cached value when
-// the backend is UNREACHABLE, and CLEARS it on a reachable "no org" / sign-out.
-// ⚠️ SCOPÉ AU COMPTE. La clé était nue (`<slug>:org-profile`) : sur une machine
-// partagée, le compte B héritait de la politique du compte A dès que sa propre lecture
-// échouait — donc de contraintes qui ne le concernent pas, ou de l'absence des siennes
-// (audit 14/08). `setOrgCacheUser` est appelée aux mêmes moments que `keys.setUser` /
-// `db.setUser` : la portée d'un compte est une seule opération.
-const ORG_PROFILE_KEY = `${BRAND.slug}:org-profile`;
-let orgCacheUid: string | null = null;
-const orgKey = (): string | null => (orgCacheUid ? `${ORG_PROFILE_KEY}:${orgCacheUid}` : null);
-
-/** Re-scoper le cache de politique sur le compte connecté (`null` = déconnecté). */
-export function setOrgCacheUser(uid: string | null): void {
-  orgCacheUid = uid;
-}
-
-const orgCache = {
-  get(): OrgProfile | null {
-    try {
-      const k = orgKey();
-      const raw = k ? localStorage.getItem(k) : null;
-      return raw ? (JSON.parse(raw) as OrgProfile) : null;
-    } catch {
-      return null;
-    }
-  },
-  set(profile: OrgProfile | null) {
-    try {
-      const k = orgKey();
-      if (!k) return; // déconnecté : rien à mémoriser pour personne
-      if (profile) localStorage.setItem(k, JSON.stringify(profile));
-      else localStorage.removeItem(k);
-    } catch {
-      /* localStorage unavailable — the cache is best-effort. */
-    }
-  },
-};
 
 // Anonymised error-tracking shared by every channel (`orgScopeSync.ts` included).
 // `where` can carry an org uuid suffix — stripped so `code` stays bounded.

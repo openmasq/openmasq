@@ -13,6 +13,7 @@ import {
   feedBase,
   getConfig,
   loadConfig,
+  UPDATES_CONFIGURED,
   UPDATES_URL,
 } from "./config";
 import { requestChannelChange, selfPinAllowed } from "./channel";
@@ -159,6 +160,9 @@ function registerUpdateIpc(): void {
   // self-pin permission (else 403). Fail-safe to not-privileged on any error, so
   // the picker degrades to the device's own channel.
   handle("updates:list-all", [], async () => {
+    // Pas de flux configuré (build local, fork auto-hébergé) : aucune requête, une liste
+    // vide — le panneau Versions montre la version installée et rien d'autre.
+    if (!UPDATES_CONFIGURED) return { privileged: false, channels: [] };
     try {
       const res = await fetch(`${UPDATES_URL}/desktop/all-releases${deviceQuery()}`);
       if (!res.ok) return { privileged: false, channels: [] };
@@ -220,6 +224,10 @@ export function setupAutoUpdates(
   // Updates only apply to packaged, signed builds — skip the real feed/check in
   // dev, but the IPC above still serves current()/list() so the UI renders.
   if (!app.isPackaged) return;
+  // Idem sans flux : un build qui n'a pas reçu d'adresse ne sonde rien, n'installe rien
+  // et ne rapporte aucune erreur de mise à jour. Se mettre à jour depuis le flux d'un
+  // AUTRE (celui de la marque) serait remplacer ce binaire par le sien.
+  if (!UPDATES_CONFIGURED) return;
 
   // Bundle amputé d'`app-update.yml` (la régression 0.6.0) : reconstruire l'équivalent
   // dans userData pour que l'updater vive, ET le rapporter — une régression

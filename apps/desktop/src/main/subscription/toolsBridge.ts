@@ -29,6 +29,11 @@ import { randomBytes } from "node:crypto";
 import { createServer, type Server, type ServerResponse } from "node:http";
 import type { ToolDef } from "@openmasq/llm";
 
+/** Le nom du serveur dans la config MCP de la CLI — c'est CE serveur. La CLI en préfixe
+ *  chaque outil (`mcp__<nom>__…` chez claude), et la config codex le prend en clé de
+ *  `mcp_servers.<nom>` : une seule maison pour les deux recettes (règle 9). */
+export const TOOLS_SERVER_NAME = "openmasq";
+
 /** Un appel capturé — le nom RÉEL (sans le préfixe `mcp__<serveur>__` de la CLI) et des
  *  arguments encore redacted, déjà parsés. */
 export interface CapturedToolCall {

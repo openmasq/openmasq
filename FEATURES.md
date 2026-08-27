@@ -19,6 +19,16 @@ utilisateur, **Ce que ça vaut** l'arbitrage — y compris ce que ça coûte qua
 La checklist énumère les gestes ; une case décochée est une chose que l'app **ne fait pas
 encore**, pas un bug.
 
+**Un build SANS backend est le DÉFAUT du dépôt.** Aucune adresse de service n'a de valeur
+committée : ce que le build reçoit décide de ce qui EXISTE. Sans elles — comptes,
+facturation, synchro et appareils, organisations et partages (boîte de réception,
+« partager » sur le coffre et les compétences), « Votre avis », modèles inclus, notes de
+version, mises à jour automatiques et bascule d'environnement, analytics — **rien de tout
+cela n'apparaît** : ni onglet, ni entrée ⌘K, ni carte, ni interrupteur, et le parcours
+d'accueil ne propose plus d'abonnement. Tout le reste (clés perso, modèles locaux, CLI
+d'abonnement, redaction, documents, connecteurs, sandbox) fonctionne tel quel. Déployer sa
+propre pile : `SELF_HOSTING.md`.
+
 **Périmètre.** Le produit = l'app desktop (Electron). L'aperçu web monte la même UI avec
 moins de capacités — signalé par 🌐 (aperçu) quand ça diffère ; 📱 marque les écrans de la
 coquille mobile de `packages/ui` (déclinaison construite hors de ce dépôt).
@@ -284,6 +294,14 @@ réponse : relire une vieille conversation, c'est savoir qui a écrit quoi.
       c'est la boucle de l'app qui pilote, un pont MCP local capturant l'appel d'outil
       pour qu'il passe par le coffre et la porte d'écriture (l'appel sort un-redacted,
       le résultat rentre re-redacted) — `apps/desktop/src/main/subscription/`
+- [x] « **Votre abonnement ChatGPT** » (opt-in, OFF par défaut) — Réglages → Modèles :
+      même patron avec la CLI **Codex** installée et connectée : le modèle « Codex »
+      s'ajoute au sélecteur, sans clé API, servi par la CLI en local — session éphémère,
+      config utilisateur ignorée, exécution de commandes coupée, sandbox en lecture
+      seule — redaction inchangé. **Les connecteurs de l'app y fonctionnent aussi**, par
+      le même pont MCP que Claude Code (l'appel est capturé, puis passe par le coffre et
+      la porte d'écriture de l'app) — `apps/desktop/src/main/subscription/codexEngine.ts`,
+      `apps/desktop/src/main/subscription/codexToolsTurn.ts`
 - [x] Catalogue OpenRouter récupéré en direct
 - [x] Le modèle qui a répondu reste inscrit sur la réponse
 - [ ] **Mode « Auto »** — RETIRÉ du sélecteur le 11/08 : plus aucune des deux vues ne le

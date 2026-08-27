@@ -178,6 +178,8 @@ export interface Settings {
    *  geste explicite ; offert seulement si le host confirme la CLI (`probeClaudeCli`,
    *  voir `send/modelAvailability.ts`). */
   claudeCliEnabled?: boolean;
+  /** Même opt-in pour la CLI Codex (fournisseur `codex-cli`) — mêmes règles. */
+  codexCliEnabled?: boolean;
   /**
    * Une NOTIFICATION système quand une réponse arrive alors qu'on regarde ailleurs
    * (autre fenêtre, ou un autre onglet de conversation). ON par défaut : elle ne se

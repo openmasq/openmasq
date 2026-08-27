@@ -35,7 +35,7 @@ import { registerPostureIpc } from "./ipc/registerPostureIpc";
 import { registerSubscriptionIpc } from "./ipc/registerSubscriptionIpc";
 import { e2eWireLog } from "./ipc/e2eWireLog";
 import { streamSubscriptionTurn } from "./subscription/turn";
-import { subscriptionTurnEnv } from "./subscription/desktop";
+import { subscriptionCliFor, subscriptionTurnEnv } from "./subscription/desktop";
 import { subscriptionToolsRoute } from "./subscription/toolsRoute";
 import { loadWindowTone } from "./windowTone";
 import { registerWindowIpc } from "./ipc/registerWindowIpc";
@@ -453,17 +453,17 @@ function registerChatHandlers(): () => boolean {
       // usage) — `for await` would discard it. The final next() carries usage.
       // The model's live reflection rides its OWN channel — never appended to `reply`.
       const onReasoning = (delta: string) => send("chat:reasoning", delta);
-      // `claude-cli` : la CLI locale de l'utilisateur (subscription/) — ni clé ni
-      // endpoint, donc ni `withKey` ni décision d'egress ; CLI absente ⇒ `chat:error`.
-      const it =
-        options.provider === "claude-cli"
-          ? streamSubscriptionTurn(subscriptionTurnEnv(), {
-              messages: options.messages,
-              modelId: options.model,
-              signal: controller.signal,
-              onReasoning,
-            })
-          : streamChat({ ...withKey(options), signal: controller.signal, onReasoning });
+      // `claude-cli`/`codex-cli` : une CLI locale de l'utilisateur (subscription/) — ni
+      // clé ni endpoint, donc ni `withKey` ni décision d'egress ; CLI absente ⇒ `chat:error`.
+      const cli = subscriptionCliFor(options.provider);
+      const it = cli
+        ? streamSubscriptionTurn(subscriptionTurnEnv(cli), {
+            messages: options.messages,
+            modelId: options.model,
+            signal: controller.signal,
+            onReasoning,
+          })
+        : streamChat({ ...withKey(options), signal: controller.signal, onReasoning });
       let r = await it.next();
       let reply = "";
       while (!r.done) {
@@ -500,13 +500,13 @@ function registerChatHandlers(): () => boolean {
       let out = "";
       // Même aiguillage que `chat:start` : l'abonnement sert aussi les complétions
       // hors-bande (extraction mémoire, compaction).
-      const it =
-        options.provider === "claude-cli"
-          ? streamSubscriptionTurn(subscriptionTurnEnv(), {
-              messages: options.messages,
-              modelId: options.model,
-            })
-          : streamChat(withKey(options, true));
+      const cli = subscriptionCliFor(options.provider);
+      const it = cli
+        ? streamSubscriptionTurn(subscriptionTurnEnv(cli), {
+            messages: options.messages,
+            modelId: options.model,
+          })
+        : streamChat(withKey(options, true));
       for await (const delta of it) out += delta;
       return out;
     },

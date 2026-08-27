@@ -26,19 +26,39 @@
  * Il désactive donc l'abonnement, c'est-à-dire la raison d'être du module. `--safe-mode`,
  * lui, annonce « Auth … work normally » — et `apiKeySource: "none"` le confirme à l'exécution.
  *
- * ⚠️ `--output-format stream-json` EXIGE `--verbose` (erreur sèche sinon), et
- * `--allowedTools ""` est un no-op : seul `--disallowed-tools <noms…>` retire réellement
- * des outils. Pour du chat grand public on les énumère.
+ * ⚠️ `--output-format stream-json` EXIGE `--verbose` (erreur sèche sinon).
+ *
+ * ## Le périmètre d'outils est une ALLOW-LIST — `--tools ""`
+ *
+ * Un tour de chat n'a besoin d'AUCUN outil intégré de la CLI : ce que le modèle peut
+ * appeler, c'est le pont de l'app et rien d'autre (tour outillé), donc rien du tout ici.
+ * `--tools ""` dit exactement ça — mesuré sur la 2.1.247 : `system/init` annonce
+ * `tools: []`, et les outils du pont MCP survivent au drapeau quand il y en a
+ * (`claudeToolsTurn.ts`). C'est une allow-list au sens de la règle 7 : ce qui n'est pas
+ * nommé n'existe pas pour le modèle.
+ *
+ * ⚠️ Ni `--allowedTools` ni `--disallowed-tools` ne peuvent tenir ce rôle, mesuré :
+ * le premier ne filtre pas le périmètre (il gouverne la PERMISSION, pas l'existence),
+ * le second retire par NOM — donc il ne peut couvrir que ce qu'on a pensé à écrire, et
+ * un nom qui change le vide en silence. `CHAT_DISALLOWED_TOOLS` reste posé en
+ * ceinture-bretelles, jamais comme la garde ; la garde qui TIENT est `--tools ""`,
+ * doublée du filet d'exécution sur `system/init` (`toolGate.ts`).
  */
-import { spawn } from "node:child_process";
-import type { StreamDone, TokenUsage } from "@openmasq/llm";
-import { minimalChildEnv } from "../childEnv";
-import { NdjsonLineBuffer, interpretClaudeEvent } from "./claudeStream";
+import type { StreamDone } from "@openmasq/llm";
+import { interpretClaudeEvent } from "./claudeStream";
+import { streamCliProcess, SubscriptionCliError } from "./spawnStream";
+
+// La boucle spawn/NDJSON/annulation vit dans `spawnStream.ts` (générique, une seule) ;
+// ce fichier ne garde que le SPÉCIFIQUE claude : les drapeaux mesurés et l'aiguillage.
+export { SubscriptionCliError };
 
 /**
- * Les outils retirés pour un usage chat. La CLI en expose 26 par défaut, dont de quoi
- * écrire sur le disque et exécuter des commandes — hors sujet, et dangereux dans un
- * produit grand public où personne ne répond aux demandes de permission (mode headless).
+ * La CEINTURE-BRETELLES du périmètre, pas la garde : `--tools ""` (ci-dessus) est ce qui
+ * décide, ces noms ne font que redire « non » sur les capacités qu'un usage chat n'a
+ * jamais à toucher — écrire sur le disque, exécuter, aller chercher sur le réseau.
+ * ⚠️ Ne JAMAIS traiter cette liste comme la protection : elle retire par nom, donc elle
+ * ne couvre que ce qu'on a pensé à écrire (règle 7). Y ajouter une ligne ne remplace pas
+ * de vérifier que `--tools ""` tient toujours.
  */
 export const CHAT_DISALLOWED_TOOLS = [
   "Bash",
@@ -97,141 +117,30 @@ export function buildClaudeArgs(opts: ClaudeTurnOptions): string[] {
     "--setting-sources",
     "",
     "--strict-mcp-config",
+    // L'ALLOW-LIST du périmètre : aucun outil intégré pour un tour texte (cf. l'en-tête).
+    "--tools",
+    "",
     "--disallowed-tools",
     ...CHAT_DISALLOWED_TOOLS,
     ...(opts.resume ? ["--resume", opts.sessionId] : ["--session-id", opts.sessionId]),
   ];
 }
 
-/** Erreur portant la sortie d'erreur de la CLI, pour que l'appelant la traduise. */
-export class SubscriptionCliError extends Error {
-  constructor(
-    message: string,
-    readonly stderrTail: string,
-    readonly exitCode: number | null,
-  ) {
-    super(message);
-    this.name = "SubscriptionCliError";
-  }
-}
-
 /**
- * Un tour. Rend les deltas de texte au fil de l'eau et retourne l'usage + la cause de
- * fin, exactement comme `streamAnthropic` dans `@openmasq/llm` — pour que le branchement
- * dans la couche provider soit un simple aiguillage.
- *
- * FAIL-CLOSED : une CLI absente, non authentifiée ou qui meurt REJETTE. On ne rend
- * jamais un flux vide silencieux, qui se lirait comme « le modèle n'a rien répondu ».
+ * Un tour claude. Même contrat que `streamAnthropic` dans `@openmasq/llm` (deltas puis
+ * `StreamDone`) — la boucle générique est `spawnStream.ts`, ce wrapper n'apporte que
+ * les args mesurés et l'interpréteur claude.
  */
 export async function* streamClaudeSubscription(
   opts: ClaudeTurnOptions,
 ): AsyncGenerator<string, StreamDone> {
-  const child = spawn(opts.binPath, buildClaudeArgs(opts), {
+  return yield* streamCliProcess({
+    binPath: opts.binPath,
+    args: buildClaudeArgs(opts),
     cwd: opts.cwd,
-    env: minimalChildEnv(),
-    stdio: ["ignore", "pipe", "pipe"],
+    interpret: interpretClaudeEvent,
+    signal: opts.signal,
+    onReasoning: opts.onReasoning,
+    onRateLimit: opts.onRateLimit,
   });
-
-  const onAbort = () => child.kill("SIGTERM");
-  opts.signal?.addEventListener("abort", onAbort, { once: true });
-
-  const lines = new NdjsonLineBuffer();
-  const pending: string[] = [];
-  let sawDelta = false;
-  let done: StreamDone | null = null;
-  let failure: Error | null = null;
-  let stderrTail = "";
-  let resolveTick: (() => void) | null = null;
-
-  const wake = () => {
-    resolveTick?.();
-    resolveTick = null;
-  };
-
-  const consume = (raw: string) => {
-    let event: unknown;
-    try {
-      event = JSON.parse(raw);
-    } catch {
-      return; // une ligne non-JSON (bruit de démarrage) n'est pas une erreur
-    }
-    const action = interpretClaudeEvent(event, sawDelta);
-    if (!action) return;
-    switch (action.kind) {
-      case "text":
-        sawDelta = true;
-        pending.push(action.delta);
-        break;
-      case "reasoning":
-        opts.onReasoning?.(action.delta);
-        break;
-      case "rateLimit":
-        opts.onRateLimit?.(action);
-        break;
-      case "done":
-        done = { usage: action.usage as TokenUsage | undefined, finish: action.finish };
-        break;
-      case "error":
-        failure = new SubscriptionCliError(action.message, stderrTail, null);
-        break;
-      case "session":
-        break;
-    }
-  };
-
-  child.stdout.setEncoding("utf8");
-  child.stdout.on("data", (chunk: string) => {
-    for (const line of lines.push(chunk)) consume(line);
-    wake();
-  });
-  child.stderr.setEncoding("utf8");
-  child.stderr.on("data", (chunk: string) => {
-    stderrTail = (stderrTail + chunk).slice(-2000);
-  });
-
-  const exited = new Promise<number | null>((resolve) => {
-    child.on("error", (err) => {
-      failure = new SubscriptionCliError(err.message, stderrTail, null);
-      resolve(null);
-    });
-    child.on("close", (code) => {
-      for (const line of lines.flush()) consume(line);
-      resolve(code);
-    });
-  });
-  void exited.then(wake);
-
-  let finished = false;
-  void exited.then(() => {
-    finished = true;
-  });
-
-  try {
-    while (true) {
-      while (pending.length) yield pending.shift() as string;
-      if (failure) throw failure;
-      if (finished) break;
-      await new Promise<void>((r) => {
-        resolveTick = r;
-      });
-    }
-
-    const code = await exited;
-    while (pending.length) yield pending.shift() as string;
-    if (failure) throw failure;
-
-    if (opts.signal?.aborted) return { finish: "cut" };
-    if (code !== 0 && !done) {
-      throw new SubscriptionCliError(
-        `La CLI s'est arrêtée avec le code ${code ?? "inconnu"}.`,
-        stderrTail,
-        code,
-      );
-    }
-    // Sortie propre mais aucun `result` : le flux a été coupé, la réponse est tronquée.
-    return done ?? { finish: "cut" };
-  } finally {
-    opts.signal?.removeEventListener("abort", onAbort);
-    if (!child.killed && child.exitCode === null) child.kill("SIGTERM");
-  }
 }

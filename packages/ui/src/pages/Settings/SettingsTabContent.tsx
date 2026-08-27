@@ -79,6 +79,8 @@ export function SettingsTabContent({
           onLocalModelUrl={(url) => setDraft((d) => ({ ...d, openaiCompatBaseUrl: url }))}
           claudeCliEnabled={draft.claudeCliEnabled}
           onClaudeCliEnabled={(on) => setDraft((d) => ({ ...d, claudeCliEnabled: on }))}
+          codexCliEnabled={draft.codexCliEnabled}
+          onGeminiCliEnabled={(on) => setDraft((d) => ({ ...d, codexCliEnabled: on }))}
           favoriteModels={draft.favoriteModels}
           onToggleFavorite={(id) =>
             setDraft((d) => ({ ...d, favoriteModels: toggleFavoriteModel(d.favoriteModels, id) }))

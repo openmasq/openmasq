@@ -5,17 +5,13 @@
  *
  * Une seule question : ce fournisseur est-il servi par une CLI d'abonnement ? Si oui,
  * le tour outillé lui répond avec le contrat de `completeWithTools` ; sinon `null`, et
- * l'appelant reprend son chemin normal (clé + egress). Écrit comme un aiguillage
- * NOMMANT ce qu'il sert : un fournisseur inconnu retombe sur `null`, jamais sur une
- * tentative de spawn.
+ * l'appelant reprend son chemin normal (clé + egress). La question a UNE maison,
+ * `subscriptionCliFor` (règle 9) — la même que celle du tour texte : les deux CLI
+ * branchées portent le pont d'outils, il n'y a donc pas de seconde liste à tenir.
  */
 import type { ChatMessage, CompleteToolsResult, ToolDef } from "@openmasq/llm";
-import { subscriptionTurnEnv } from "./desktop";
+import { subscriptionCliFor, subscriptionTurnEnv } from "./desktop";
 import { completeSubscriptionTools } from "./toolsTurn";
-
-/** Les fournisseurs dont le tour OUTILLÉ passe par une CLI locale. `codex-cli` n'y est
- *  pas : son moteur ne porte pas encore de pont d'outils (texte seul, `noTools`). */
-const TOOLED_CLI_PROVIDERS = new Set(["claude-cli"]);
 
 export interface SubscriptionToolsRequest {
   provider: string;
@@ -41,8 +37,9 @@ export function subscriptionToolsRoute(
   req: SubscriptionToolsRequest,
   hooks: SubscriptionToolsHooks,
 ): Promise<CompleteToolsResult> | null {
-  if (!TOOLED_CLI_PROVIDERS.has(req.provider)) return null;
-  return completeSubscriptionTools(subscriptionTurnEnv("claude"), {
+  const cli = subscriptionCliFor(req.provider);
+  if (!cli) return null;
+  return completeSubscriptionTools(subscriptionTurnEnv(cli), {
     messages: req.messages,
     tools: req.tools ?? [],
     modelId: req.model,

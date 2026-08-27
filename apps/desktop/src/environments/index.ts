@@ -21,7 +21,17 @@
  * Supabase. Le bypass Vercel de staging n'est PAS ici et n'a pas à y être — un artefact
  * unique le livrerait à tout le monde (voir `apps/desktop/CLAUDE.md`).
  */
-import { brandUrl } from "@openmasq/branding";
+/**
+ * ⚠️ **AUCUNE adresse n'a de défaut committé, et c'est le contrat open source.** Un
+ * dépôt public dont le build retomberait sur les serveurs de la marque enverrait le
+ * trafic de chaque fork chez elle, et proposerait à ses utilisateurs de se connecter à
+ * un SaaS qui n'est pas le leur. Chaque service arrive donc au BUILD ; **vide ⇒ la
+ * capacité n'existe pas** (ni comptes, ni facturation, ni synchro, ni passerelle), et
+ * l'app tourne entièrement sur la machine : clés perso, modèles locaux, CLI
+ * d'abonnement, redaction on-device. Même règle que les identifiants OAuth et le DSN
+ * Sentry (`scripts/buildDefines.ts`), étendue aux adresses. Comment fournir sa propre
+ * pile : `SELF_HOSTING.md`.
+ */
 
 /**
  * Les identifiants du PROJET Supabase ne sont PLUS committés : ils arrivent au BUILD
@@ -34,6 +44,22 @@ import { brandUrl } from "@openmasq/branding";
  */
 const SUPABASE_URL = process.env.OPENMASQ_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY ?? "";
+
+/** L'API distante (comptes, facturation, synchro, avis, orga) et la passerelle
+ *  (redaction cloud + inférence des modèles inclus), par environnement. Vides ⇒ ces
+ *  créneaux d'hôte n'existent pas (`appEnv.ts` : `BACKEND_CONFIGURED` /
+ *  `GATEWAY_CONFIGURED`). La console d'admin n'a PAS sa variable : elle est servie par
+ *  le backend, donc dérivée de lui — deux adresses pour un seul déploiement seraient
+ *  deux occasions de diverger (règle 9). */
+const BACKEND = process.env.OPENMASQ_BACKEND_URL ?? "";
+const BACKEND_STAGING = process.env.OPENMASQ_BACKEND_URL_STAGING ?? "";
+const GATEWAY = process.env.OPENMASQ_GATEWAY_URL ?? "";
+const GATEWAY_STAGING = process.env.OPENMASQ_GATEWAY_URL_STAGING ?? "";
+
+/** La console d'admin vit SOUS le backend (`/admin`). Pas de backend, pas de console —
+ *  jamais un `/admin` orphelin qui ouvrirait une page blanche. */
+const adminOf = (backend: string): string =>
+  backend ? `${backend.replace(/\/+$/, "")}/admin` : "";
 
 export type EnvName = "production" | "staging";
 
@@ -52,21 +78,21 @@ export interface EnvUrls {
 
 export const ENVIRONMENTS: Record<EnvName, EnvUrls> = {
   production: {
-    backend: brandUrl("app"),
-    admin: brandUrl("app", "/admin"),
+    backend: BACKEND,
+    admin: adminOf(BACKEND),
     supabaseUrl: SUPABASE_URL,
     supabaseAnonKey: SUPABASE_PUBLISHABLE_KEY,
-    redactFn: brandUrl("gateway"),
+    redactFn: GATEWAY,
   },
   staging: {
-    backend: brandUrl("staging"),
-    admin: brandUrl("staging", "/admin"),
+    backend: BACKEND_STAGING,
+    admin: adminOf(BACKEND_STAGING),
     // Le MÊME projet Supabase que la production : les comptes sont partagés, seule
     // l'API de l'app diffère. Le jour où staging aura son propre projet, c'est une
     // seconde paire de variables à introduire ici, et nulle part ailleurs.
     supabaseUrl: SUPABASE_URL,
     supabaseAnonKey: SUPABASE_PUBLISHABLE_KEY,
-    redactFn: brandUrl("gateway-staging"),
+    redactFn: GATEWAY_STAGING,
   },
 };
 

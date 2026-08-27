@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   SETTINGS_DESTINATIONS,
+  tabAvailable,
   SETTINGS_ENTRIES,
   SETTINGS_META,
   searchSettings,
@@ -88,5 +89,31 @@ describe("searchSettings", () => {
   it("every indexed setting points at a tab that exists", () => {
     const ids = new Set(SETTINGS_DESTINATIONS.map((d) => d.id));
     for (const e of SETTINGS_ENTRIES) expect(ids.has(e.tab)).toBe(true);
+  });
+});
+
+describe("tabAvailable — un onglet n'existe que si sa capacité existe", () => {
+  // Un build sans backend n'a ni facturation, ni synchro, ni organisation
+  // (`SELF_HOSTING.md`) : ces onglets ne s'affichent pas VIDES, ils n'existent pas. La
+  // règle vit ici parce que le rail des réglages ET la palette ⌘K la lisent tous les deux.
+  const NONE = { org: false, sync: false, browser: false, billing: false };
+  const ALL = { org: true, sync: true, browser: true, billing: true };
+
+  it("retire chaque onglet dont la capacité manque", () => {
+    for (const id of ["org", "sync", "browser", "billing"] as const) {
+      expect(tabAvailable(id, NONE), id).toBe(false);
+      expect(tabAvailable(id, ALL), id).toBe(true);
+    }
+  });
+
+  it("laisse passer ce qui est LOCAL — sinon un build sans backend n'aurait plus de réglages", () => {
+    for (const id of ["account", "privacy", "models", "mcp", "usage", "audit", "versions"] as const) {
+      expect(tabAvailable(id, NONE), id).toBe(true);
+    }
+  });
+
+  it("la palette ⌘K ne peut pas offrir une destination que le rail n'a pas", () => {
+    const rows = searchSettings("paiement", (id) => tabAvailable(id, NONE));
+    expect(rows.every((r) => r.id !== "billing")).toBe(true);
   });
 });

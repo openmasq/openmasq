@@ -88,6 +88,41 @@ describe("interpretClaudeEvent", () => {
       interpretClaudeEvent({ type: "stream_event", event: { type: "message_start" } }, true),
     ).toBeNull();
   });
+
+  // La PORTE du périmètre (`toolGate.ts`). `system/init` est le seul moment où l'app
+  // apprend ce que la CLI s'autorise, et il tombe AVANT le premier appel d'outil : un
+  // intrus doit sortir une ERREUR, que `spawnStream` remonte en tuant la CLI.
+  describe("périmètre d'outils annoncé à l'init", () => {
+    const init = (tools?: unknown) => ({
+      type: "system",
+      subtype: "init",
+      session_id: "6f1a2b3c-0000-4000-8000-000000000000",
+      ...(tools === undefined ? {} : { tools }),
+    });
+
+    it("ouvre la session quand le périmètre est vide (tour texte)", () => {
+      expect(interpretClaudeEvent(init([]), false)).toEqual({
+        kind: "session",
+        id: "6f1a2b3c-0000-4000-8000-000000000000",
+      });
+    });
+
+    it("ouvre la session quand le périmètre est le pont (tour outillé)", () => {
+      expect(interpretClaudeEvent(init(["mcp__openmasq__recherche"]), false)).toMatchObject({
+        kind: "session",
+      });
+    });
+
+    it("REFUSE le tour dès qu'un outil hors périmètre est annoncé", () => {
+      const action = interpretClaudeEvent(init(["mcp__openmasq__recherche", "Monitor"]), false);
+      expect(action?.kind).toBe("error");
+      expect(action).toMatchObject({ message: expect.stringContaining("Monitor") });
+    });
+
+    it("le refus prime sur l'ouverture de session — rien ne continue derrière", () => {
+      expect(interpretClaudeEvent(init(["Bash"]), false)?.kind).not.toBe("session");
+    });
+  });
 });
 
 describe("normalizeUsage", () => {

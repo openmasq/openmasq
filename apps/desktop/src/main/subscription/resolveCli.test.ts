@@ -40,6 +40,6 @@ describe("resolveCli", () => {
   });
 
   it("rend null quand la CLI est absente — un état normal, pas une erreur", () => {
-    expect(resolveCli("gemini", mac, () => false)).toBeNull();
+    expect(resolveCli("codex", mac, () => false)).toBeNull();
   });
 });

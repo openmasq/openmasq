@@ -1,6 +1,7 @@
 import { isFreeModel, isFreeModeModel, type ProviderId } from "@openmasq/llm";
 import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host";
 import { BRAND } from "@openmasq/branding";
+import { platformAccessServed } from "./platformAccess";
 
 /**
  * Can this model actually SEND right now — and if not, why?
@@ -68,6 +69,8 @@ export interface AvailabilityInput {
    *  plupart des machines n'ont pas la CLI : fail-open afficherait à tous un modèle
    *  qui échoue au premier envoi. */
   claudeCliReady?: boolean | null;
+  /** Idem pour le fournisseur `codex-cli` (abonnement ChatGPT via la CLI Codex). */
+  codexCliReady?: boolean | null;
 }
 
 /**
@@ -138,6 +141,9 @@ export function modelUnavailableReason(p: AvailabilityInput): UnavailableReason 
   if (provider === "claude-cli") {
     return p.claudeCliReady === true ? null : "cli_unavailable";
   }
+  if (provider === "codex-cli") {
+    return p.codexCliReady === true ? null : "cli_unavailable";
+  }
 
   // Self-hosted / local (Ollama, LM Studio…): the ONLY thing that makes it reachable is
   // the endpoint the user configured. Blank ⇒ nothing to call, so fail closed rather
@@ -193,7 +199,12 @@ export function unavailableLabel(
     case "no_key":
       return {
         chip: "Clé requise",
-        title: `Aucune clé API ${providerLabel} n'est enregistrée sur cet appareil — ajoutez-la dans Réglages → Modèles pour utiliser ce modèle, ou choisissez un modèle inclus dans l'abonnement ${BRAND.name}.`,
+        // La seconde issue n'existe QUE si ce build a un service hébergé : la promettre
+        // dans un build qui n'en a pas (auto-hébergé, local) enverrait chercher un
+        // abonnement introuvable.
+        title:
+          `Aucune clé API ${providerLabel} n'est enregistrée sur cet appareil — ajoutez-la dans Réglages → Modèles pour utiliser ce modèle` +
+          (platformAccessServed() ? `, ou choisissez un modèle inclus dans l'abonnement ${BRAND.name}.` : "."),
       };
     case "no_credits":
       return {
@@ -208,11 +219,12 @@ export function unavailableLabel(
           `abonnement ou renseignez votre propre clé ${providerLabel}.`,
       };
     case "cli_unavailable":
+      // `providerLabel` = la CLI du fournisseur (« Claude Code », « Gemini CLI »).
       return {
         chip: "CLI requise",
         title:
-          "Votre abonnement Claude passe par la CLI Claude Code installée sur cette " +
-          "machine. Installez-la et connectez-la, puis activez-la dans Réglages → Modèles.",
+          `Ce modèle passe par la CLI ${providerLabel} installée sur cette machine. ` +
+          "Installez-la et connectez-la, puis activez-la dans Réglages → Modèles.",
       };
     case "no_endpoint":
       return {

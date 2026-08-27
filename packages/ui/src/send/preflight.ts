@@ -1,6 +1,7 @@
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { ModelBlockedByOrgError, CreditsExhaustedError } from "../state/errors";
 import { modelUnavailableReason } from "./modelAvailability";
+import { platformAccessServed } from "./platformAccess";
 import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host";
 import type { Message } from "../types";
 import { BRAND } from "@openmasq/branding";
@@ -36,6 +37,8 @@ export interface PreflightInput {
   /** Le fournisseur `claude-cli` est-il prêt (réglage activé + CLI détectée) ? Passé
    *  tel quel à `modelUnavailableReason` — seul `true` ouvre (fail-closed). */
   claudeCliReady?: boolean | null;
+  /** Idem pour `codex-cli`. */
+  codexCliReady?: boolean | null;
 }
 
 /**
@@ -77,6 +80,7 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     openaiCompatBaseUrl: p.openaiCompatBaseUrl,
     localEndpointReachable: p.localEndpointReachable,
     claudeCliReady: p.claudeCliReady,
+    codexCliReady: p.codexCliReady,
   });
 
   // L'ACCÈS GRATUIT ne sert que deux modèles (`FREE_MODE_MODEL_IDS`) : celui-ci n'en est
@@ -132,19 +136,23 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     // regenerates in place. (Platform providers need no user key — the platform's backend
     // holds it.)
     return {
-      text: `Clé manquante pour ${PROVIDERS[p.provider].label}. Renseignez-la pour envoyer — ou choisissez un modèle inclus dans l'abonnement ${BRAND.name}.`,
+      // Même règle que la pastille du sélecteur : la sortie « abonnement » n'est nommée
+      // que si ce build a un service hébergé (`platformAccess.ts`).
+      text:
+        `Clé manquante pour ${PROVIDERS[p.provider].label}. Renseignez-la pour envoyer` +
+        (platformAccessServed() ? ` — ou choisissez un modèle inclus dans l'abonnement ${BRAND.name}.` : "."),
       action: { kind: "missing_key", provider: p.provider, label: PROVIDERS[p.provider].label },
     };
   }
 
   if (reason === "cli_unavailable") {
-    // Conversation épinglée sur `claude-cli` alors que la CLI a disparu ou que le
-    // réglage a été coupé : dire le chemin de réparation, comme pour le local.
+    // Conversation épinglée sur un fournisseur CLI (`claude-cli`/`codex-cli`) alors que
+    // la CLI a disparu ou que le réglage a été coupé : le chemin de réparation, nommé.
     return {
       text:
-        "Votre abonnement Claude passe par la CLI Claude Code, introuvable ou désactivée " +
-        "sur cette machine. Installez-la et connectez-la, puis activez-la dans " +
-        "Réglages → Modèles — ou choisissez un autre modèle.",
+        `Ce modèle passe par la CLI ${PROVIDERS[p.provider].label}, introuvable ou ` +
+        "désactivée sur cette machine. Installez-la et connectez-la, puis activez-la " +
+        "dans Réglages → Modèles — ou choisissez un autre modèle.",
     };
   }
 
