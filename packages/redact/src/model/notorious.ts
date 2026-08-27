@@ -25,6 +25,7 @@ import { isCountry } from "../engine/geo/countries";
 import { norm, isStateInstitution } from "./notoriousState";
 import { stripOrgAffixes } from "./genericTerms";
 import { isAiModelName } from "./modelNames";
+import { isNotoriousDomain, isNotoriousServiceEmail } from "./notoriousDomains";
 import { PEOPLE, COMMERCIAL_ORGS, ORGS, TICKERS, ORG_PREFIXES } from "./notoriousData";
 
 // The curated LISTS live in `./notoriousData.ts` (data/logic split, 300-LOC rule); the
@@ -119,6 +120,16 @@ export function isNotoriousEntity(value: string, coarseCategory: string, opts?: 
   // hard: exact ALL-CAPS match against the curated list only — a lowercase "spy" in
   // prose, or any word that merely resembles a symbol, is not spared.
   if (/^[A-Z]{2,5}$/.test(v) && TICKER_SET.has(v)) return true;
+  // A notorious service/provider DOMAIN is the brand in its DNS spelling — a NER tags it
+  // company, location or name at whim, so the check is category-independent like the
+  // tickers. Commercial-gated like the brand lists (Strict keeps redacting it), and
+  // exact-shape only (`notoriousDomains.ts`) — never a fragment of a longer value.
+  if (opts?.commercial === true && isNotoriousDomain(v)) return true;
+  // A TRANSACTIONAL sender at a notorious domain (`security@updates.linear.app`) is the
+  // service's identity, never a person's address — double-gated (domain AND a service
+  // mailbox local-part), commercial-gated, see `notoriousDomains.ts`. A personal-looking
+  // address at the same domain falls through and stays redacted.
+  if (coarseCategory === "email") return isNotoriousServiceEmail(v, opts);
   if (coarseCategory === "location") return isCountry(v) || isStateInstitution(v);
   if (coarseCategory === "name") {
     // `people: false` = le niveau Strict — les personnalités redeviennent redacted.

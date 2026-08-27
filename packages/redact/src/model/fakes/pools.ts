@@ -122,11 +122,19 @@ export const FAKE_PLACES: FakePlace[] = [
   { city: "Ajaccio", cp: "20000", region: "Corse" }, { city: "Bastia", cp: "20200", region: "Corse" },
 ];
 
-// Real, common domains (varied lengths). The LOCAL part is fictitious so the fake
-// isn't a real address, but using a believable domain — and a natural-length local
-// part — stops weak models from "correcting" an obviously-broken fake (e.g. a
-// 2-char `xy@example.com`), which used to leave fragments after un-redaction.
+// ⚠️ INVENTED domains, on purpose — same rule as the ORG roots above, and it is a
+// correctness property, not style. The pool used to be the real big providers
+// (gmail.com, outlook.com, proton.me…), and a REAL domain as a fake poisons the vault
+// both ways: the alias `gmail.com → <someone's real domain>` rewrites every honest
+// later mention of Gmail into that value, and a model that legitimately types
+// "gmail.com" in its reply gets it "restored" into a stranger's domain. An invented,
+// mail-provider-shaped domain is never spontaneously typed, so neither corruption can
+// occur — `notoriousDomains.test.ts` pins the disjointness with the real-provider and
+// notoriety lists. Believability holds (plausible small-provider names, natural-length
+// local parts), which is what stops weak models from "correcting" the fake.
+// A NOTORIOUS real domain isn't even swapped under the commercial dispensation — it is
+// KEPT verbatim (`identity/email.ts`); this pool serves the identifying-domain case.
 export const FAKE_EMAIL_DOMAINS = [
-  "@gmail.com", "@outlook.com", "@yahoo.com", "@proton.me", "@orange.fr",
-  "@free.fr", "@mail.com", "@icloud.com", "@laposte.net", "@hotmail.fr",
+  "@melvio.com", "@ordimel.fr", "@postelio.com", "@courlys.fr", "@mailvane.com",
+  "@brevanet.fr", "@ecrimel.com", "@messadora.com", "@plumtel.net", "@telmiot.net",
 ];

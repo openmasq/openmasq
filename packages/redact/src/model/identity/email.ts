@@ -4,20 +4,35 @@
 // Pure + deterministic (no vault mutation here — the caller owns the vault).
 import { FAKE_LAST, FAKE_EMAIL_DOMAINS, fakeToken, hashString, firstNamePool } from "../fakes";
 import { capitalize, foldAccents } from "../../util";
-
-// Mailbox local-parts that are NOT personal names — never derive a name alias
-// from `contact@`, `info@`, `no-reply@`, … (there is no real person to restore to).
-const GENERIC_MAILBOX = new Set([
-  "contact", "contactus", "info", "hello", "bonjour", "support", "admin",
-  "administrator", "team", "sales", "noreply", "donotreply", "service",
-  "services", "help", "office", "mail", "email", "webmaster", "postmaster",
-  "billing", "accounts", "jobs", "career", "careers", "press", "marketing",
-  "hr", "rh", "compta", "commercial", "direction", "secretariat", "reply",
-  "noreply", "donotreply",
-]);
+// The shared "not a person" mailbox vocabulary + the notorious-domain predicate — one
+// home for both (`../notoriousDomains.ts`), shared with the notoriety filter.
+import { GENERIC_MAILBOX, isNotoriousDomain } from "../notoriousDomains";
+// The detection-grade first-name lexicon (curated + INSEE tail), pure data.
+import { FIRST_NAMES } from "../../engine/names/firstNames.data";
 
 const isNameToken = (t: string) =>
   /^[A-Za-zÀ-ÿ]{3,}$/.test(t) && !GENERIC_MAILBOX.has(t.toLowerCase());
+
+/**
+ * ⚠️ A local-part is treated as a PERSON only when its FIRST token is a KNOWN given
+ * name — the burden of proof is inverted on purpose. "Any ≥3-letter word outside a
+ * 30-word list" minted a NAME fake + alias for `notifications@`, `security@`,
+ * `estimation@`…, and a fake→"notifications" alias then re-redacted that ordinary
+ * word conversation-wide (the reverse pass corrupting prose and URLs). The asymmetry
+ * decides the gate: a missed alias costs a fake first name in a greeting; a wrong one
+ * corrupts a vocabulary word everywhere. Non-personal local-parts are shape-scrambled
+ * instead (still faked — never shipped in clear by THIS gate).
+ */
+const isGivenName = (t: string) =>
+  isNameToken(t) && FIRST_NAMES.has(foldAccents(t).toLowerCase());
+
+/** The person test on the SPLIT local-part: a known given name up front, or a lone
+ *  INITIAL (one letter) followed by a name-shaped token (`j.sabourdin@`). */
+const isPersonalLocal = (toks: string[]): boolean => {
+  const first = toks[0] ?? "";
+  if (isGivenName(first)) return true;
+  return /^[A-Za-zÀ-ÿ]$/.test(first) && toks.slice(1).some(isNameToken);
+};
 
 const emailLocalPart = (email: string) => {
   const at = email.lastIndexOf("@");
@@ -52,7 +67,11 @@ export function emailNameAliases(realEmail: string, fakeEmail: string): [string,
   // A generic mailbox written WITH a separator (`no-reply`, `do.not.reply`) splits
   // into fragments that individually dodge the per-token check — test the whole
   // separator-stripped local-part too, so it never yields a personal-name alias.
-  if (!GENERIC_MAILBOX.has(realToks.join("").toLowerCase())) {
+  // And NAME aliases only for a PERSON: the first token must be a known given name
+  // (see `isGivenName` — a common-word local-part aliased as a name corrupts that
+  // word conversation-wide). Mirrors `buildFakeEmail`'s gate, so alias derivation
+  // and fake construction agree on what is a person.
+  if (isPersonalLocal(realToks) && !GENERIC_MAILBOX.has(realToks.join("").toLowerCase())) {
     const n = Math.min(realToks.length, fakeToks.length);
     for (let i = 0; i < n; i++) {
       const real = realToks[i];
@@ -82,11 +101,16 @@ export function emailNameAliases(realEmail: string, fakeEmail: string): [string,
  * mapping holds — every "julien" and every "gmail.com" resolves to the SAME fake.
  * `resolveFake(real)` returns that canonical fake or undefined; a FIRST-seen name
  * gets a fresh pool pick and the domain a fresh pool domain, both avoiding
- * `isTaken` collisions and ALWAYS different from the real value (so the real domain
- * never leaks by a coincidental same pick). Non-name / generic-mailbox tokens
- * (`contact`, `no-reply`, digits) are shape-scrambled — never turned INTO a fake
- * name. The caller derives the reversible aliases (names + domain) from the result
- * via {@link emailNameAliases}. Deterministic given (realEmail, attempt).
+ * `isTaken` collisions and different from the real value (so an identifying domain
+ * never leaks by a coincidental same pick). Name fakes only for a PERSON — the first
+ * local token must be a known given name ({@link isGivenName}); every other
+ * local-part (`contact`, `notifications`, handles, digits) is shape-scrambled —
+ * never turned INTO a fake name. With `keepKnownDomain` (the commercial notoriety
+ * dispensation), a NOTORIOUS provider/service domain is kept VERBATIM instead of
+ * swapped: `gmail.com` identifies nobody, and swapping it is what used to poison the
+ * vault with a real-domain alias. The caller derives the reversible aliases
+ * (names + domain) from the result via {@link emailNameAliases}. Deterministic
+ * given (realEmail, attempt).
  */
 export function buildFakeEmail(
   realEmail: string,
@@ -94,16 +118,21 @@ export function buildFakeEmail(
   resolveFake: (real: string) => string | undefined,
   isTaken: (fake: string) => boolean,
   salt = 0,
+  keepKnownDomain = false,
 ): string {
   const h = hashString(realEmail) + salt + attempt * 101;
   const at = realEmail.lastIndexOf("@");
   const local = at > 0 ? realEmail.slice(0, at) : realEmail;
   const realDomain = at >= 0 ? realEmail.slice(at + 1) : ""; // bare, e.g. "gmail.com"
   const parts = local.split(/([._+-])/); // even index = token, odd = separator
+  // PERSON gate — see `isPersonalLocal`: no known given name (or initial + surname)
+  // up front ⇒ no name fakes at all, every token scrambles (and `emailNameAliases`
+  // derives no name alias).
+  const personal = isPersonalLocal(parts.filter((p, i) => i % 2 === 0 && !!p));
   let nameIdx = 0;
   const out = parts.map((part, i) => {
     if (i % 2 === 1 || !part) return part; // keep separators / empties verbatim
-    if (!isNameToken(part)) return fakeToken(part, h + i); // generic/short/numeric
+    if (!personal || !isNameToken(part)) return fakeToken(part, h + i); // generic/short/numeric
     let fakeCap = resolveFake(capitalize(part)); // reuse the person's canonical fake…
     if (!fakeCap) {
       // …else pick a fresh, un-taken pool name (first token → same-gender FIRST, rest → LAST).
@@ -132,9 +161,13 @@ export function buildFakeEmail(
     // fréquent, il ne l'était pas avec « Tom » ou « Hugo ».
     return foldAccents(fakeCap.toLowerCase());
   });
-  // Domain after the `@`: reuse this real domain's canonical fake, else pick a fresh
-  // pool domain that is DIFFERENT from the real one (never leak it by a same pick).
+  // Domain after the `@`: reuse this real domain's canonical fake; else, under the
+  // commercial dispensation, KEEP a notorious provider/service domain verbatim (it
+  // identifies nobody, and a swapped real domain poisons the vault — see the header);
+  // else pick a fresh pool domain DIFFERENT from the real one (never leak it by a
+  // same pick).
   let domain = realDomain ? resolveFake(realDomain) : undefined;
+  if (!domain && keepKnownDomain && isNotoriousDomain(realDomain)) domain = realDomain;
   if (!domain) {
     const pool = FAKE_EMAIL_DOMAINS.map((d) => d.replace(/^@/, "")); // bare domains
     domain = pool[(h + attempt) % pool.length];

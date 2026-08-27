@@ -136,6 +136,11 @@ export const COMMERCIAL_ORGS = [
   "Sentry", "Vercel", "Netlify", "Cloudflare", "Supabase", "Neon",
   "Prisma", "Prisma Postgres", "Semgrep", "Zapier", "Amplitude", "PostHog",
   "Hugging Face", "Cloudinary", "Wix", "Webflow", "WebsitePublisher.ai", "Synapse",
+  // Expéditeurs de courrier transactionnel relevés redacted dans les parcours réels
+  // (le modèle raisonnait sur des courtiers et services inventés). Mêmes règles :
+  // company-scoped, mots simples au même titre que « Close »/« Square »/« Vantage ».
+  "Interactive Brokers", "Consensus", "Alpaca", "Alpaca Markets", "Daz", "Daz 3D",
+  "Electro Dépôt",
 ];
 
 /** Les MARQUES commerciales de la dispense conditionnelle — exportées pour que l'app

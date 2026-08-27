@@ -33,6 +33,7 @@ export interface AllocateCtx {
   collidesAvoid: (c: string) => boolean;
   /** Per-conversation secret shift for the value→fake mapping (0 = legacy deterministic). */
   salt: number;
+  notorietyCommercial?: boolean; // commercial notoriety: email fakes KEEP a notorious domain
 }
 
 /**
@@ -175,7 +176,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
     if (preGeo && accept(preGeo)) fake = preGeo;
     for (let a = 0; !fake && a < 60; a++) {
       let candidate: string;
-      if (isEmail) candidate = buildFakeEmail(value, a, resolveFakeCI, mintTaken, salt);
+      if (isEmail) candidate = buildFakeEmail(value, a, resolveFakeCI, mintTaken, salt, ctx.notorietyCommercial === true);
       else if (isName) candidate = buildFakeName(value, a, resolveFakeCI, mintTaken, salt);
       else if (isPath) candidate = buildFakePath(value, a, salt).fake;
       else if (isRecase && a === 0) {
@@ -239,7 +240,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
         // guarded above cannot reappear; `clashes` is deliberately NOT consulted here
         // (each earlier «redacted-N» would flag the shared word forever — no free
         // candidate would exist and the loop would never terminate).
-        const base = "redacted";
+        const base = "redacted"; // then suffixed until free
         let n = 2;
         fake = base;
         while (taken.has(fake) || fake === value || input.includes(fake)) fake = `${base}-${n++}`;

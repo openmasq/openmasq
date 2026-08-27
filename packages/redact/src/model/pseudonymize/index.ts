@@ -176,6 +176,7 @@ export async function pseudonymize(
     allocateEntities(entityCandidates, {
       vault, reverse, taken, entityValues, entityCanon, record, input, geoFakes, geoAnchors,
       resolveFakeCI, resolveEntityFakeCI, collidesAvoid, salt: options.salt ?? 0,
+      notorietyCommercial: options.commercialNotoriety === true,
     });
   }
 
