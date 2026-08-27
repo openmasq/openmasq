@@ -11,7 +11,8 @@ import { remoteRedact, remoteContractDowngrade, DEFAULT_REDACT_FN_URL } from "@o
 import { redactNumbersOn } from "./redactNumbers";
 import { findConnector } from "@openmasq/catalog/mcp";
 import { isBrowserTool, isWebBrowseTool } from "../state/browserPolicy";
-import { toolClearKinds, pythonFrameworkKeep, toolDiscoveryKeep } from "../agent/toolRedactionPolicy";
+import { toolClearKinds } from "../agent/toolRedactionPolicy";
+import { toolResultKeep } from "./toolResultKeep";
 import { makeScreenInbound } from "./screenInbound";
 import { summarizeMatches, engineLabel, tracedRedact } from "./redactSummary";
 import type { Host } from "../host";
@@ -50,6 +51,9 @@ export interface RedactToolResultDeps {
    *  seul outil : un résultat de RECHERCHE WEB garde la politique SEARCH_CLEAR (le nom
    *  public en clair est la substance de la réponse). */
   memorySearchForced?: { value: string; category: string }[];
+  /** Les tours UTILISATEUR du wire de CET envoi (post-redaction) — la source de la
+   *  moisson « déjà en clair » (`toolResultKeep.ts` `wireClearKeep`). */
+  wireUserTexts?: string[];
   completeFn: CompleteFn | undefined;
   detectLocalFn: ((t: string) => Promise<Detection[]>) | undefined;
   /** value → fine category, MUTATED as tool-result values are redacted (drives the Debug
@@ -155,24 +159,14 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
     const dk = disabledForTool(tool);
     // `memory_search` : les entités des cartes rejoignent le forced — voir la doc du dep.
     const effForced = tool === "memory_search" ? [...forced, ...(deps.memorySearchForced ?? [])] : forced;
-    // A `run_python` stdout/traceback is full of PUBLIC library + module identifiers
-    // (numpy/scipy/matplotlib + submodules from site-packages paths) the detector
-    // mis-flags as org/secret/apikey — vaulting them corrupts the NEXT run's code (the
-    // model receives `<fake>` instead of `numpy`) AND, via `toWire`, every later tool
-    // call. Keep those specific framework tokens in clear (leak-safe — real PII the code
-    // prints is NOT in this list, so it's still redacted; see pythonFrameworkKeep).
-    // The VAULT's real values are passed so the harvest can never spare one: the code runs
-    // UN-REDACTED, so an injected `print("site-packages/<fake>")` puts the REAL value on
-    // stdout, and sparing it would hand the model a fake→real oracle.
-    // A run_python result keeps framework identifiers in clear; every OTHER tool
-    // result keeps tool-DISCOVERY metadata (API tool names / tech terms) in clear —
-    // only when the result IS discovery-shaped, only API-identifier shapes, never a
-    // vault-real value (see toolDiscoveryKeep). This is what stops the NER from
-    // vaulting `execute-sql → jade-tom` and derailing a meta-tool's discovery loop.
-    const keep =
-      tool === "run_python"
-        ? [...engine.keep, ...pythonFrameworkKeep(text, Object.values(v))]
-        : [...engine.keep, ...toolDiscoveryKeep(text, Object.values(v))];
+    // Per-tool SHAPE keep-lists (run_python frameworks / discovery ids) + the wire-clear
+    // coherence guard — each layer's rationale and fail-closed guards: `toolResultKeep.ts`.
+    const keep = toolResultKeep(tool, text, {
+      engineKeep: engine.keep,
+      vaultValues: Object.values(v),
+      wireUserTexts: deps.wireUserTexts ?? [],
+      protectedValues: [...effForced.map((f) => f.value), ...extraSecrets],
+    });
     if (useRemote) {
       const rurl = settings.redactFnUrl?.trim() || host.redactFnUrl || DEFAULT_REDACT_FN_URL;
       // Token per-call: a mid-conversation session refresh must not pin us to an expired one.

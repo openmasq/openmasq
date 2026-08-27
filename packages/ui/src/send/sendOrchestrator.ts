@@ -1400,6 +1400,9 @@ export function createSendMessage(d: SendMessageDeps) {
           // can stop the vault replaying its fake into a tool result. Pinned by
           // `evals/navigation.test.ts` ("applies to the CURRENT send's tool results").
           engine: { ...engineCtx, kinds: turnKinds },
+          // La moisson « déjà en clair » lit les tours UTILISATEUR de CE wire (donc
+          // post-redaction) — jamais un texte d'outil/assistant (`toolResultKeep.ts`).
+          wireUserTexts: history.filter((m) => m.role === "user").map((m) => m.content),
           completeFn,
           detectLocalFn,
           toolKinds,
