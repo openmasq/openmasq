@@ -1,6 +1,6 @@
 import Debug from "debug";
 import { createClient } from "@supabase/supabase-js";
-import { captureError } from "@openmasq/ui";
+import { captureError, initialLocale } from "@openmasq/ui";
 import type { AuthHost, AuthUser } from "@openmasq/ui";
 // Identifiants client Supabase — PUBLICS (clé publiable), résolus dans LE lecteur
 // d'environnement du renderer (`./appEnv`), qui porte aussi leurs défauts.
@@ -468,7 +468,7 @@ export const authHost: AuthHost = {
     debug("sendMagicLink (email length=%d)", email?.length ?? 0);
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true, emailRedirectTo: AUTH_REDIRECT_URL },
+      options: { shouldCreateUser: true, emailRedirectTo: AUTH_REDIRECT_URL, data: { language: initialLocale() } },
     });
     if (error) logAuthFailure("sendMagicLink", error);
     else debug("sendMagicLink → sent ok");

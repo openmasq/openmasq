@@ -27,6 +27,7 @@
     "@openmasq/analytics": "workspace:*",
     "@openmasq/branding": "workspace:*",
     "@openmasq/catalog": "workspace:*",
+    "@openmasq/i18n": "workspace:*",
     "@openmasq/llm": "workspace:*",
     "@openmasq/mcp": "workspace:*",
     "@openmasq/redact": "workspace:*",

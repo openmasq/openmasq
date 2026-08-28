@@ -625,6 +625,9 @@ importers:
       '@openmasq/branding':
         specifier: workspace:*
         version: link:../branding
+      '@openmasq/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       '@react-email/components':
         specifier: ^0.0.31
         version: 0.0.31(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -657,6 +660,18 @@ importers:
         specifier: ^5.6.3
         version: 5.6.3
 
+  packages/i18n:
+    devDependencies:
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@5.9.2)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.2
+      vitest:
+        specifier: ^3.2.6
+        version: 3.2.7(@types/debug@4.1.12)(@types/node@24.13.3)(jsdom@25.0.1)(lightningcss@1.32.0)
+
   packages/llm:
     dependencies:
       '@openmasq/branding':
@@ -672,15 +687,15 @@ importers:
 
   packages/mcp:
     dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.29.0
+        version: 1.29.0(zod@4.4.3)
       '@openmasq/branding':
         specifier: workspace:*
         version: link:../branding
       '@openmasq/redact':
         specifier: workspace:*
         version: link:../redact
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.29.0
-        version: 1.29.0(zod@4.4.3)
     devDependencies:
       tsup:
         specifier: ^8.3.0
@@ -700,12 +715,12 @@ importers:
 
   packages/redact:
     dependencies:
-      '@openmasq/branding':
-        specifier: workspace:*
-        version: link:../branding
       '@napi-rs/canvas':
         specifier: ^0.1.100
         version: 0.1.100
+      '@openmasq/branding':
+        specifier: workspace:*
+        version: link:../branding
       fflate:
         specifier: ^0.8.3
         version: 0.8.3
@@ -800,6 +815,9 @@ importers:
       '@openmasq/catalog':
         specifier: workspace:*
         version: link:../catalog
+      '@openmasq/i18n':
+        specifier: workspace:*
+        version: link:../i18n
       '@openmasq/llm':
         specifier: workspace:*
         version: link:../llm
@@ -7033,10 +7051,6 @@ packages:
     resolution: {integrity: sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA==}
     engines: {node: '>=8.6'}
 
-  picomatch@4.0.4:
-    resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
-    engines: {node: '>=12'}
-
   picomatch@4.0.5:
     resolution: {integrity: sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A==}
     engines: {node: '>=12'}
@@ -12570,10 +12584,6 @@ snapshots:
     dependencies:
       walk-up-path: 4.0.0
 
-  fdir@6.5.0(picomatch@4.0.4):
-    optionalDependencies:
-      picomatch: 4.0.4
-
   fdir@6.5.0(picomatch@4.0.5):
     optionalDependencies:
       picomatch: 4.0.5
@@ -13408,7 +13418,7 @@ snapshots:
       chalk: 4.1.2
       graceful-fs: 4.2.11
       jest-util: 30.4.1
-      picomatch: 4.0.4
+      picomatch: 4.0.5
       pretty-format: 30.4.1
       slash: 3.0.0
       stack-utils: 2.0.6
@@ -13538,7 +13548,7 @@ snapshots:
       chalk: 4.1.2
       ci-info: 4.4.0
       graceful-fs: 4.2.11
-      picomatch: 4.0.4
+      picomatch: 4.0.5
 
   jest-util@30.4.1:
     dependencies:
@@ -13547,7 +13557,7 @@ snapshots:
       chalk: 4.1.2
       ci-info: 4.4.0
       graceful-fs: 4.2.11
-      picomatch: 4.0.4
+      picomatch: 4.0.5
 
   jest-validate@30.2.0:
     dependencies:
@@ -14931,8 +14941,6 @@ snapshots:
 
   picomatch@2.3.2: {}
 
-  picomatch@4.0.4: {}
-
   picomatch@4.0.5: {}
 
   pirates@4.0.7: {}
@@ -15939,8 +15947,8 @@ snapshots:
 
   tinyglobby@0.2.17:
     dependencies:
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
+      fdir: 6.5.0(picomatch@4.0.5)
+      picomatch: 4.0.5
 
   tinypool@1.1.1: {}
 

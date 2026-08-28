@@ -143,10 +143,10 @@ apps/
   api/         MCP broker + OAuth AS (Google/Slack/GitHub) — a LOCAL sidecar the desktop spawns
   auth/        Env-INDEPENDENT OAuth-only fn: client secrets + the code→token exchange for
                flows that can't run on-device (Slack). DATA never transits; relay single-use
-  analytics-fn/ Edge relay → PostHog (server-side key) + Contentful proxy
-  updates/                       (no note needed — it does what it is called)
+  analytics-fn/ Edge relay → PostHog (server-side key) + Contentful proxy · updates/ (self-describing)
 packages/
   branding/    THE one home of the brand (branding.json: name, domains, scheme) — rule 9
+  i18n/        Typed message catalogue (fr source + en), React-free — `check:i18n` ratchet
   ui/          ALL React UI + store + design system (styles.css). Platform-agnostic
   llm/         Provider clients + model registry + SSE + tool-calling
   redact/      The redaction engine (pure, unit-tested): redact/unredact/pseudonymize/vault
@@ -158,7 +158,7 @@ packages/
   tesseract2/  Vendored hardened OCR (worker_threads+WASM) · ort/ ONNX+repli WASM · vendor/xlsx/
 ```
 
-**Dependency direction:** `ui` → `llm`/`redact`/`mcp`/`catalog`/`schema`/`analytics`; `mcp` → `redact`;
+**Dependency direction:** `ui` → `llm`/`redact`/`mcp`/`catalog`/`schema`/`analytics`/`i18n`; `mcp` → `redact`;
 `schema` → `redact` (types only); `sync` → `schema`; `analytics` dep-free;
 `desktop` composes all and supplies the `Host`. **Apps never import apps** (`pnpm check:dup`).
 

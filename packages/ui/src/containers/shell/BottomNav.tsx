@@ -1,5 +1,6 @@
 import { MessageIcon, BookIcon, LockIcon, SparklesIcon, MemoryIcon, SettingsIcon } from "../../components/brand";
 import { isGated, useFeatureAccess } from "../../state/featureAccess";
+import { useT } from "../../i18n";
 import type { Section } from "../../types";
 import { useSectionNav } from "./useSectionNav";
 
@@ -20,20 +21,21 @@ import { useSectionNav } from "./useSectionNav";
  */
 export function BottomNav() {
   const { section, go } = useSectionNav();
+  const t = useT();
   // Une porte fermée retire son onglet ; la barre se resserre (elle n'a jamais eu
   // de largeur fixe). `state/featureAccess.ts` pour ce que « fermée » veut dire.
   const access = useFeatureAccess();
   const all: { key: Section; label: string; Icon: typeof MessageIcon; on: boolean; act: () => void }[] = [
-    { key: "chats", label: "Chats", Icon: MessageIcon, on: section === "chats", act: () => go("chats") },
-    { key: "competences", label: "Compét.", Icon: SparklesIcon, on: section === "competences", act: () => go("competences") },
-    { key: "memory", label: "Mémoire", Icon: MemoryIcon, on: section === "memory", act: () => go("memory") },
-    { key: "vault", label: "Coffre", Icon: LockIcon, on: section === "vault", act: () => go("vault") },
-    { key: "library", label: "Biblio", Icon: BookIcon, on: section === "library", act: () => go("library") },
-    { key: "settings", label: "Réglages", Icon: SettingsIcon, on: section === "settings", act: () => go("settings") },
+    { key: "chats", label: t.nav.chats, Icon: MessageIcon, on: section === "chats", act: () => go("chats") },
+    { key: "competences", label: t.nav.competences, Icon: SparklesIcon, on: section === "competences", act: () => go("competences") },
+    { key: "memory", label: t.nav.memory, Icon: MemoryIcon, on: section === "memory", act: () => go("memory") },
+    { key: "vault", label: t.nav.vault, Icon: LockIcon, on: section === "vault", act: () => go("vault") },
+    { key: "library", label: t.nav.library, Icon: BookIcon, on: section === "library", act: () => go("library") },
+    { key: "settings", label: t.nav.settings, Icon: SettingsIcon, on: section === "settings", act: () => go("settings") },
   ];
   const items = all.filter((i) => !isGated(i.key) || access[i.key]);
   return (
-    <nav className="bottom-nav" aria-label="Navigation">
+    <nav className="bottom-nav" aria-label={t.nav.ariaLabel}>
       {items.map(({ key, label, Icon, on, act }) => (
         <button
           key={key}

@@ -39,6 +39,7 @@ export const workspaceSrcAlias = [
   { find: /^@openmasq\/credits$/, replacement: r("packages/credits/src/index.ts") },
   { find: /^@openmasq\/analytics$/, replacement: r("packages/analytics/src/index.ts") },
   { find: /^@openmasq\/branding$/, replacement: r("packages/branding/src/index.ts") },
+  { find: /^@openmasq\/i18n$/, replacement: r("packages/i18n/src/index.ts") },
   { find: /^@openmasq\/schema$/, replacement: r("packages/schema/src/index.ts") },
   { find: /^@openmasq\/connectors$/, replacement: r("packages/connectors/src/index.ts") },
   { find: /^@openmasq\/emails$/, replacement: r("packages/emails/index.ts") },

@@ -45,6 +45,7 @@
       "@openmasq/credits": ["../../packages/credits/src/index.ts"],
       "@openmasq/analytics": ["../../packages/analytics/src/index.ts"],
       "@openmasq/branding": ["../../packages/branding/src/index.ts"],
+      "@openmasq/i18n": ["../../packages/i18n/src/index.ts"],
       "@openmasq/schema": ["../../packages/schema/src/index.ts"],
       "@openmasq/connectors": ["../../packages/connectors/src/index.ts"],
       "@openmasq/emails": ["../../packages/emails/index.ts"]

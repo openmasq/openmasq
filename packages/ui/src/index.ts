@@ -25,6 +25,15 @@ export type { ChatStore } from "./state/store";
 // Call BEFORE the first React render to theme <html> pre-paint (avoids the splash
 // green→blue flash — the store's own theme effect runs only after mount).
 export { applyPersistedTheme } from "./state/theme";
+// L'i18n : la couche React (provider + hooks) et le catalogue typé re-exporté pour les
+// consommateurs (le desktop wrappe AppShell dans `I18nProvider`, /preview le pourra
+// aussi). Le pré-paint de la LANGUE vit DANS le provider (effet `<html lang>`), pas dans
+// le bootstrap — le splash statique n'a aucun texte traduisible.
+export { I18nProvider, useT, type I18nProviderProps } from "./i18n";
+// La langue d'appareil résolue (clé d'appareil → hôte → défaut), utilisable AVANT l'auth :
+// le renderer la joint à la connexion pour que l'email d'auth parte dans la bonne langue.
+export { initialLocale } from "./state/locale";
+export { type Locale, LOCALES, DEFAULT_LOCALE, resolveLocale, getMessages, type Messages } from "@openmasq/i18n";
 export { MissingApiKeyError, CreditsExhaustedError } from "./state/errors";
 
 export { useAuth } from "./state/useAuth";

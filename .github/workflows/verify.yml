@@ -221,6 +221,13 @@ jobs:
         id: knip
         continue-on-error: true
         run: pnpm check:knip
+      # Cliquet i18n : la copie française en dur ne fait que baisser. Ici (non bloquant,
+      # visible) parce que c'est de la DETTE de traduction, pas un rouge de correction —
+      # comme ses jumeaux ci-dessus.
+      - name: i18n ratchet
+        id: i18n
+        continue-on-error: true
+        run: pnpm check:i18n
       # Le verdict : un seul échec suffit à peindre le job en rouge (sans bloquer
       # l'appelant). La liste dit LESQUELS, pour corriger sans relire cinq logs.
       - name: Verdict hygiène
@@ -232,6 +239,7 @@ jobs:
           [ "${{ steps.dup.outcome }}" = "failure" ] && failed="$failed check:dup"
           [ "${{ steps.features.outcome }}" = "failure" ] && failed="$failed check:features"
           [ "${{ steps.knip.outcome }}" = "failure" ] && failed="$failed check:knip"
+          [ "${{ steps.i18n.outcome }}" = "failure" ] && failed="$failed check:i18n"
           if [ -n "$failed" ]; then
             echo "::warning::Dette d'hygiène en hausse (non bloquant) :$failed — à corriger dans la foulée."
             exit 1

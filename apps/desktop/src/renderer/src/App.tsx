@@ -1,4 +1,4 @@
-import { useChatStore, AppShell, ErrorBoundary } from "@openmasq/ui";
+import { useChatStore, AppShell, ErrorBoundary, I18nProvider, resolveLocale } from "@openmasq/ui";
 import { useCoffreSync, useConvSync, useIntegrationSync, useOrgScopeSync, useUserdataSync, useVaultSync } from "./sync";
 import { E2eBridge } from "./e2eBridge";
 
@@ -25,14 +25,26 @@ export function App() {
   // also push and drive the recipient set. No-op outside an organization.
   useOrgScopeSync(store);
 
+  // La LANGUE de l'interface. `Settings.language` est la source de vérité une fois le blob
+  // chargé (et se synchronise entre appareils comme les autres réglages) ; tant qu'il est
+  // absent, le provider retombe sur la langue de l'HÔTE (`initialLocale`), pour qu'un
+  // anglophone démarre en anglais sans rien régler. Un changement de langue se persiste
+  // dans les réglages via `onLocaleChange`.
+  const forcedLocale = resolveLocale(store.settings.language) ?? undefined;
+
   // A render-time throw anywhere in the tree used to blank the whole window (no
   // boundary) — now it shows a recoverable error card instead.
   return (
     <ErrorBoundary>
-      {/* Pilote programmatique de la boucle agentique, actif UNIQUEMENT sous un
-          lancement de test (drapeau de main) — voir `e2eBridge.tsx`. */}
-      <E2eBridge store={store} />
-      <AppShell store={store} />
+      <I18nProvider
+        locale={forcedLocale}
+        onLocaleChange={(locale) => store.setSettings((s) => ({ ...s, language: locale }))}
+      >
+        {/* Pilote programmatique de la boucle agentique, actif UNIQUEMENT sous un
+            lancement de test (drapeau de main) — voir `e2eBridge.tsx`. */}
+        <E2eBridge store={store} />
+        <AppShell store={store} />
+      </I18nProvider>
     </ErrorBoundary>
   );
 }

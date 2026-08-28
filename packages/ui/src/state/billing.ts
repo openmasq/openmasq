@@ -1,4 +1,5 @@
 import { BRAND } from "@openmasq/branding";
+import { DEFAULT_LOCALE, type Locale } from "@openmasq/i18n";
 // Canonical plan-tier catalog (Free / Solo / Team) — the single vocabulary the desktop
 // + extension read. The backend catalog (GET /subscriptions/prices) is the pricing
 // source of truth; these amounts mirror it for display when a live fetch isn't wired.
@@ -185,10 +186,13 @@ export function billingErrorMessage(status: number, code?: string): string {
   return "Impossible d'ouvrir la page de paiement. Réessayez.";
 }
 
-/** Format eurocents as a EUR amount (fr-FR). */
-export function formatCents(cents: number): string {
+/** Formate des centimes d'euro comme un montant EUR, dans la LOCALE donnée (« 1,00 € »
+ *  en français, « €1.00 » en anglais). La devise reste l'euro — le produit est facturé en
+ *  euros — seul le FORMAT suit la langue, via `Intl` (pas le catalogue : un nombre n'est
+ *  pas une phrase). Défaut = langue source, pour les appelants encore hors contexte React. */
+export function formatCents(cents: number, locale: Locale = DEFAULT_LOCALE): string {
   try {
-    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "eur" }).format(cents / 100);
+    return new Intl.NumberFormat(locale, { style: "currency", currency: "eur" }).format(cents / 100);
   } catch {
     return `${(cents / 100).toFixed(2)} €`;
   }

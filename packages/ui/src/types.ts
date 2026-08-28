@@ -154,6 +154,12 @@ export interface Settings {
   /** UI colour theme. Two grounds (light / dark) × two accents (green default / blue):
    *  `light` = light+green, `dark` = dark+green, `blue` = light+blue, `blue-dark` = dark+blue. */
   theme?: "light" | "dark" | "blue" | "blue-dark";
+  /** Langue de l'interface. Comme `theme`, c'est une préférence d'APPAREIL doublée d'une
+   *  clé localStorage non scopée (`state/locale.ts`), lue AVANT le premier paint. Absent ⇒
+   *  la langue de l'hôte, sinon le français (langue source). Le type reste une string
+   *  souple exprès : l'union vit dans `@openmasq/i18n` (`Locale`), et `resolveLocale` ramène
+   *  toute valeur — legacy, régionale, inconnue — à une langue livrée ou au défaut. */
+  language?: string;
   /** True once the first-run onboarding has been completed/skipped. */
   onboarded?: boolean;
   /** « Ne plus proposer » : l'écran d'accueil n'affiche plus les cartes d'exemples.

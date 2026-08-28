@@ -4,6 +4,7 @@
 // to shrink the hook file. Session-MUTABLE state (nerWarmed) stays in store.ts — this
 // module holds only pure functions + constants.
 import { PROVIDERS } from "@openmasq/llm";
+import { resolveLocale } from "@openmasq/i18n";
 import { CATEGORY_DEFAULTS } from "@openmasq/catalog/redaction";
 import { migrateRedactCategories } from "./settingsMigrations";
 import { migrateLegacyLocalStorage } from "./legacyStorage";
@@ -135,6 +136,10 @@ export const DEFAULT_SETTINGS: Settings = {
   // dériverait de la constante que tout le reste du code consulte (règle 9).
   defaultModelId: DEFAULT_MODEL_ID,
   theme: "blue",
+  // Langue : absente par défaut, ce qui laisse `state/locale.ts` choisir celle de l'HÔTE
+  // (un utilisateur anglophone démarre en anglais sans rien régler) avant le repli
+  // français. Poser « fr » ici imposerait le français à tout le monde — l'inverse du but.
+  language: undefined,
   onboarded: false,
   debugLog: false,
   linkPreviews: false, // opt-in: fetching a link leaks your IP + the link to that site
@@ -220,6 +225,12 @@ export function normalizeSettings(s: Settings): Settings {
   // traduit vers son jumeau indigo, sinon le compte qui l'avait resterait en vert sans
   // aucun interrupteur pour en sortir (le fond clair/sombre, lui, reste un choix).
   out.theme = blueAccent(out.theme);
+  // La langue est ramenée à une locale LIVRÉE, ou effacée (⇒ langue de l'hôte au boot).
+  // Une valeur legacy/régionale/inconnue (« en-US », « de », un vieux blob) ne doit pas
+  // rester telle quelle : `state/locale.ts` la relit et `resolveLocale` la normaliserait
+  // de toute façon, mais l'effacer ici garde le blob persisté propre (règle 7 : une seule
+  // forme atteint le disque). Une valeur déjà valide (« fr »/« en ») est conservée.
+  out.language = resolveLocale(out.language) ?? undefined;
   // The offline local NER model is no longer user-selectable (one BERT model per
   // platform), so a legacy `redactLocalModel` setting is simply dropped on load.
   delete (out as { redactLocalModel?: unknown }).redactLocalModel;
