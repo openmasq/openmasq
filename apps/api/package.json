@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/api",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "private": true,
   "type": "module",
   "description": "MCP broker: per-platform Streamable-HTTP MCP endpoints with OAuth federation (Gmail/Slack/GitHub + a credential-free demo).",

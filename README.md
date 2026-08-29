@@ -153,3 +153,20 @@ the Python jail is not equally strong on every platform. All of that is stated t
 **Report a vulnerability privately** through this repository's *Security → Report a
 vulnerability* flow. Please do not open a public issue, discussion or pull request
 containing exploit details.
+
+---
+
+## License
+
+[Apache License 2.0](LICENSE) — for the whole repository: the desktop app, the packages
+(including the redaction engine), the server components and the tooling. You may use,
+modify, redistribute and build on it, commercially included, provided you keep the notices
+([`NOTICE`](NOTICE)) and state your changes; the licence also carries an express patent
+grant from every contributor.
+
+Contributions are accepted under the same licence, by section 5 of the licence itself —
+there is no separate agreement to sign.
+
+Third-party code included here keeps its own licence: `packages/tesseract2` (derived from
+tesseract.js) and `vendor/xlsx` (SheetJS), both Apache-2.0. Assets fetched at build time
+and shipped inside the app are listed in [`NOTICE`](NOTICE).

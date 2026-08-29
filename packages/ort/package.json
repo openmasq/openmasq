@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/ort",
   "version": "1.24.3",
+  "license": "Apache-2.0",
   "private": true,
   "description": "onnxruntime avec repli WASM là où aucun binding natif n'existe (Mac Intel)",
   "type": "commonjs",

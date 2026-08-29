@@ -205,6 +205,14 @@ module.exports = {
   // bakés (`BAKE_TARGET=darwin-x64 pnpm bake:runtime` en plus du bake hôte) — `mac.extraResources`
   // ci-dessous prend celui de l'arche construite. Un runtime manquant se voit au build.
   extraResources: [
+    // ⚖️ La LICENCE et le NOTICE voyagent AVEC le binaire : l'app redistribue du code et des
+    // poids sous Apache-2.0 (SheetJS/xlsx et tesseract2 dans les bundles, tessdata_fast,
+    // docTR et les poids NER dans les ressources), et §4(a)/(d) de la licence demandent que
+    // le destinataire en reçoive copie. Ils sont HORS asar (l'allowlist de `packageContents`
+    // n'admet que out/ + node_modules + package.json), donc lisibles dans
+    // `Contents/Resources/`.
+    { from: "../../LICENSE", to: "LICENSE" },
+    { from: "../../NOTICE", to: "NOTICE" },
     { from: "build/ner-models", to: "ner-models" },
     { from: "build/embed-models", to: "embed-models" },
     // BUNDLED OCR traineddata (audit M8): baked + sha256-verified vs official tessdata_fast by

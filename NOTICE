@@ -1,0 +1,57 @@
+OpenMasq
+Copyright 2026 OpenMasq
+
+This product includes software developed by third parties, listed below with
+their own copyright and licence. Each item keeps its licence; nothing here
+relicenses it.
+
+--------------------------------------------------------------------------------
+Included in this repository
+--------------------------------------------------------------------------------
+
+packages/tesseract2
+  A TypeScript rewrite derived from tesseract.js
+  (https://github.com/naptha/tesseract.js), Copyright (c) the naptha/tesseract.js
+  project. Licensed under the Apache License, Version 2.0.
+  Full text: packages/tesseract2/LICENSE.md
+
+vendor/xlsx
+  SheetJS Community Edition (https://sheetjs.com),
+  Copyright (C) 2012-present SheetJS LLC. Licensed under the Apache License,
+  Version 2.0. Full text: vendor/xlsx/LICENSE
+
+--------------------------------------------------------------------------------
+Fetched at build time, shipped inside the packaged application
+--------------------------------------------------------------------------------
+
+These assets are not stored in this repository. They are downloaded from their
+vendor's canonical origin at build time, pinned by sha256 or commit, and bundled
+into the desktop application. Each carries its own licence, and the script that
+fetches it names the origin it must come from:
+
+  Tesseract language data (tesseract-ocr/tessdata_fast), Apache License 2.0
+      apps/desktop/scripts/bake-tesseract-langs.ts
+  docTR text-detection and recognition models (Mindee), Apache License 2.0
+      apps/desktop/scripts/bake-doctr-models.ts
+  Multilingual NER weights (a Hugging Face re-export of mBERT), Apache License 2.0
+      apps/desktop/scripts/bake-ner-models.ts
+  On-device embedding models
+      apps/desktop/scripts/bake-embed-models.ts
+  A CPython runtime and the wheels of the sandboxed interpreter
+      apps/desktop/scripts/bake-python-runtime.ts
+
+A copy of this file and of the Apache License 2.0 ships inside the packaged
+application, under its resources directory.
+
+--------------------------------------------------------------------------------
+Dependencies
+--------------------------------------------------------------------------------
+
+Dependencies installed from npm keep their own licences. Where a dependency is
+offered under a choice of licences, this project elects the permissive one — for
+`jszip`, the MIT term of its "MIT OR GPL-3.0-or-later" offer.
+
+The copyleft-licensed packages present in the development tree (libvips behind
+`sharp`, LGPL-3.0-or-later; `lightningcss` behind Tailwind, MPL-2.0) are build and
+tooling dependencies: they are not declared by any workspace, no source file
+imports them, and they are not redistributed in the packaged application.
