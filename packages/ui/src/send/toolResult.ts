@@ -13,6 +13,7 @@ import { findConnector } from "@openmasq/catalog/mcp";
 import { isBrowserTool, isWebBrowseTool } from "../state/browserPolicy";
 import { toolClearKinds } from "../agent/toolRedactionPolicy";
 import { toolResultKeep } from "./toolResultKeep";
+import { clipFileText } from "./foldPayload";
 import { makeScreenInbound } from "./screenInbound";
 import { summarizeMatches, engineLabel, tracedRedact } from "./redactSummary";
 import type { Host } from "../host";
@@ -74,8 +75,10 @@ const MAX_BROWSER_TOOL_RESULT_CHARS = 8000;
  *  the model either way. */
 export function capToolResultText(rawText: string, tool?: string): string {
   const cap = tool && isBrowserTool(tool) ? MAX_BROWSER_TOOL_RESULT_CHARS : MAX_TOOL_RESULT_CHARS;
+  // Line-boundary clip (`clipFileText`, rule 9): a raw slice halved the boundary line's
+  // value, the redactor then failed to recognise the fragment, and it shipped in clear.
   return rawText.length > cap
-    ? rawText.slice(0, cap) + "\n\n[… résultat tronqué pour la performance]"
+    ? clipFileText(rawText, cap) + "\n\n[… résultat tronqué pour la performance]"
     : rawText;
 }
 

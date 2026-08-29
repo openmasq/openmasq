@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ATTACHMENT_INLINE_NOTE, buildFoldedPayload } from "./foldPayload";
+import { ATTACHMENT_INLINE_NOTE, buildFoldedPayload, clipFileText } from "./foldPayload";
 
 describe("buildFoldedPayload", () => {
   it("no attachments: modelText = prefix+text, hasFolded false, nothing to reuse", () => {
@@ -225,5 +225,28 @@ describe("l'alias d'une pièce est une entrée de coffre — la restitution le r
   it("un nom sans extension ne sème qu'une paire (pas de radical dupliqué)", () => {
     const r = buildFoldedPayload("x", [{ name: "notes", text: "n" }], {}, "");
     expect(r.vaultPreload).toEqual({ "document-1": "notes" });
+  });
+});
+
+describe("clipFileText — la coupe ne tranche JAMAIS une ligne (donc jamais une valeur)", () => {
+  it("coupe à la dernière frontière de ligne dans la borne", () => {
+    const text = "ligne-a\nligne-b\nemail: jean.dupont@exemple.fr\nligne-d";
+    const clipped = clipFileText(text, 30); // 30 tombe AU MILIEU de l'adresse
+    expect(clipped).toBe("ligne-a\nligne-b");
+    expect(clipped).not.toContain("jean.dup"); // le fragment ne part pas à moitié
+  });
+
+  it("texte sous la borne : inchangé ; une seule ligne géante : coupe dure (rien de mieux)", () => {
+    expect(clipFileText("court", 100)).toBe("court");
+    expect(clipFileText("x".repeat(120), 50)).toBe("x".repeat(50));
+  });
+
+  it("le pli d'envoi utilise la MÊME coupe : le document plié se termine sur une ligne entière", () => {
+    const doc = Array.from({ length: 20 }, (_, i) => `client ${i}: valeur-${i}`).join("\n");
+    const r = buildFoldedPayload("t", [{ name: "list.txt", text: doc }], {}, "", 100);
+    const folded = r.modelText.slice(r.modelText.indexOf("client 0"));
+    const kept = folded.slice(0, folded.indexOf("\n…(truncated)"));
+    // Chaque ligne présente est ENTIÈRE (elle se termine par sa propre valeur).
+    for (const line of kept.split("\n")) expect(line).toMatch(/^client \d+: valeur-\d+$/);
   });
 });

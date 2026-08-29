@@ -20,6 +20,8 @@ import { MAX_PDF_PAGES } from "./guard";
 import { reconstructPageText } from "./pdfLayout";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines } from "./core";
+// Send-cut → grid-row mapping for the preview grid (same parser/serializer as extraction).
+export { delimitedGrid, annotatedCutRow } from "./core";
 export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry } from "./core";
 
 export interface BrowserExtractConfig {

@@ -113,3 +113,40 @@ describe("SpreadsheetViewer — un CSV redacted est SURLIGNÉ", () => {
     expect(m!.classList.contains("hl-sky")).toBe(true);
   });
 });
+
+/**
+ * La COUPE d'envoi, matérialisée dans la grille : sur un gros CSV, seules les lignes
+ * dans la borne sont détectées ET envoyées — les suivantes ne quittent jamais la
+ * machine. Sans ce rendu, elles s'affichaient en clair dans la lecture redacted et
+ * se lisaient comme « parties non redacted » (le bug rapporté du 27/08).
+ */
+describe("SpreadsheetViewer — la coupe d'envoi est visible, jamais mensongère", () => {
+  it("grise les lignes au-delà de `cutRow` et l'explique en toutes lettres", async () => {
+    // 10 : la frontière tombe DANS la première fenêtre virtualisée (le jsdom n'en
+    // monte qu'une trentaine), pour voir les deux côtés à la fois.
+    const el = await renderSheet({ cutRow: 10 });
+    // Lignes visibles (virtualisées) : celles dont le numéro dépasse la coupe sont grisées.
+    const rows = [...el.querySelectorAll("tbody tr:not(.fv-spacer)")];
+    const sent = rows.filter((r) => !r.classList.contains("fv-row-unsent"));
+    const unsent = rows.filter((r) => r.classList.contains("fv-row-unsent"));
+    expect(sent.length).toBeGreaterThan(0);
+    expect(unsent.length).toBeGreaterThan(0);
+    for (const r of sent) {
+      const num = Number(r.querySelector(".fv-grid-rowhead")?.textContent);
+      expect(num).toBeLessThanOrEqual(10);
+    }
+    for (const r of unsent) {
+      const num = Number(r.querySelector(".fv-grid-rowhead")?.textContent);
+      expect(num).toBeGreaterThan(10);
+    }
+    // La note dit ce que le grisé veut dire — ne part pas ≠ parti en clair.
+    expect(el.querySelector(".fv-cut-note")?.textContent).toContain("lignes 1 à 10");
+    expect(el.querySelector(".fv-cut-note")?.textContent).toContain("ne quittent jamais la machine");
+  });
+
+  it("sans coupe (`cutRow` absent) : aucune ligne grisée, aucune note", async () => {
+    const el = await renderSheet();
+    expect(el.querySelector(".fv-row-unsent")).toBeNull();
+    expect(el.querySelector(".fv-cut-note")).toBeNull();
+  });
+});

@@ -69,6 +69,7 @@
 @import "./styles/viewers/docx.css";
 @import "./styles/viewers/pptx.css";
 @import "./styles/viewers/textHalo.css";
+@import "./styles/viewers/sheetCut.css";
 @import "./styles/modal.css";
 @import "./styles/documentCard.css";
 @import "./styles/skillCard.css";
@@ -4328,9 +4329,7 @@ body.resizing-split {
 .fv-col-rowhead {
   width: 44px;
 }
-.fv-row-fixed {
-  height: 25px;
-}
+.fv-row-fixed { height: 25px; }
 .fv-spacer td {
   padding: 0;
   border: 0;

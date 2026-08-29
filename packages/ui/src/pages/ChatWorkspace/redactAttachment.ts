@@ -13,7 +13,7 @@ import { attachmentVault } from "./attachmentVault";
 // is wasted work, and a huge file (a multi-MB log) redacted synchronously on the
 // renderer thread froze the app. Detection is value-based, so values found in the first
 // slice are still faked everywhere they occur in the full text.
-import { MAX_FILE_CHARS } from "../../send/foldPayload";
+import { MAX_FILE_CHARS, clipFileText } from "../../send/foldPayload";
 export { MAX_FILE_CHARS as MAX_REDACT_CHARS } from "../../send/foldPayload";
 
 /** Component captures threaded into {@link redactAttachment} (extracted from ChatView). */
@@ -56,10 +56,11 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
   const ctrl = new AbortController();
   ctrls.set(a.cid, ctrl);
   updateAttachment(a.cid, { redacting: true, redactError: undefined, redactProgress: undefined });
-  // Bound the text the engine scans (a multi-MB log froze the app). The send truncates
-  // to the same size, and detection is value-based so the fakes still apply to the whole
-  // file. Chunking (`chunkText`) then stays small + responsive between chunks.
-  const scanText = a.text.length > MAX_FILE_CHARS ? a.text.slice(0, MAX_FILE_CHARS) : a.text;
+  // Bound the text the engine scans (a multi-MB log froze the app) — with the SAME
+  // line-boundary clip as the wire (`clipFileText`, rule 9), so the boundary line is
+  // scanned WHOLE or not sent at all: a mid-value slice shipped the fragment in clear.
+  // Detection is value-based, so the fakes still apply to the whole file.
+  const scanText = clipFileText(a.text, MAX_FILE_CHARS);
   pdfReplacements(scanText, redactAsync, {
     signal: ctrl.signal,
     // Multi-chunk (multi-page) doc → advance a progress bar on the chip.

@@ -6,7 +6,7 @@
 // so NOTHING is duplicated across platforms. Plain text (TextDecoder) and
 // spreadsheets (SheetJS is isomorphic) are handled here directly; CSV/TSV/XLSX go
 // through `./tabular` HEADER-ANNOTATED serialization (approach A) for detection.
-import { parseDelimited, gridToAnnotatedText, sniffDelimiter } from "./tabular";
+import { delimitedGrid, gridToAnnotatedText } from "./tabular";
 import { cleanErr, msg, OCR_FAILED, IMAGE_OCR_FAILED } from "./errors";
 import { guardUpload } from "./guard";
 import { isUnreadableLayer } from "./readable";
@@ -17,13 +17,13 @@ import {
   baseName, extOf, sheetText, pptxText,
 } from "./formats";
 
-// Split-out pieces re-exported so every existing import path keeps resolving:
-// format tables + name helpers (formats.ts), the OCR language/integrity pins
-// (ocrPins.ts), the two-layer scrub (reconcile.ts), the layer geometry (geometry.ts).
+// Split-out pieces re-exported so every existing import path keeps resolving.
 export { SUPPORTED_EXTENSIONS, MIME_EXT, baseName, extOf } from "./formats";
 export { OCR_LANGS, OCR_TRAINEDDATA_SHA256 } from "./ocrPins";
 export { redactExtracted, hybridLayerText, type RedactedDocument, type LayerGeometry } from "./reconcile";
 export { spatialFieldLines } from "./spatialFields";
+// Send-cut → grid-row mapping (tabular.ts) — re-exported so the UI can't grow a drifting copy.
+export { delimitedGrid, annotatedCutRow } from "./tabular";
 export type { TextLayerPage, OcrLayerPage, GlyphBox } from "./geometry";
 
 export interface ExtractedFile {
@@ -284,7 +284,7 @@ export async function extractFromBytes(
       // detector sees each value beside its column label; raw text if no usable header.
       // ⚠️ Le séparateur se DEVINE — `sniffDelimiter` dit ce que le supposer coûte.
       if (ext === ".csv" || ext === ".tsv") {
-        const grid = parseDelimited(raw, ext === ".tsv" ? "\t" : sniffDelimiter(raw));
+        const grid = delimitedGrid(raw, ext === ".tsv");
         const text = gridToAnnotatedText(grid) || raw;
         return { name, kind: "csv", text, chars: text.length, mime };
       }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { replaceStandalone, hueForTone } from "@openmasq/redact";
+import { hueForTone } from "@openmasq/redact";
 import { ModalShell } from "../ModalShell";
 import { RedactionInlineReveal } from "../../../components/message/RedactionInlineReveal";
 import { useAvisOpen } from "../../providers/avisOpen";
@@ -26,13 +26,14 @@ import { useTextSelection } from "../../../hooks/useTextSelection";
 import { SelectionMenu } from "../../../components/SelectionMenu";
 import { DocViewMenu, type DocView } from "./DocViewMenu";
 import { previewShape, initialView, previewViews, redactedGridReady } from "./previewViews";
-import { MAX_FILE_CHARS } from "../../../send/foldPayload";
+import { MAX_FILE_CHARS, clipFileText } from "../../../send/foldPayload";
+import { sheetSendCutRow } from "./doc/sheetCut";
+import { redactedFromReplacements } from "./doc/redactedPreview";
 import { realFromRedactedSelection } from "./doc/docForce";
 import { useDisplayReplacements } from "./doc/displayReplacements";
 import { previewStatus } from "./doc/docSummary";
 import { attachWordPicker, occursFlexibly } from "@openmasq/redact/pdf-redact";
 import type { PdfReplacement } from "./pdf/pdfReplacements";
-
 
 /**
  * Preview a not-yet-sent attachment (a composer file). PDFs render the real
@@ -225,11 +226,18 @@ export function AttachmentPreviewModal({
 
   // La grille REDACTED d'un tableur, quand elle est possible — `previewViews.ts` dit pourquoi.
   const redactedGrid = redactedGridReady(isSheet && !!bytes && bytes !== "error", !!displayReplacements);
+  // La COUPE d'envoi, mappée sur les LIGNES de la grille — le pourquoi (et la note
+  // générique du XLSX, faute de mapping sûr) : `doc/sheetCut.ts`.
+  const sheetCutRow = useMemo(
+    () => sheetSendCutRow(file.name, file.text.length, bytes, isCsv),
+    [file.name, file.text.length, bytes, isCsv],
+  );
   const sheet = (redacted: boolean) => (
     <AttachmentSheetView
       bytes={bytes as Uint8Array} csv={isCsv} redacted={redacted}
       replacements={displayReplacements} revealed={revealed}
       onReveal={onRevealChange ? toggleReveal : undefined}
+      cutRow={redacted ? sheetCutRow : null} wireCut={redacted && !isCsv && file.text.length > MAX_FILE_CHARS}
     />
   );
 
@@ -322,36 +330,25 @@ export function AttachmentPreviewModal({
     };
   }, [view, bytes, file.mime, file.words, displayReplacements, revealed, imageWords, onForceRedact]);
 
-  // La COUPE d'envoi, matérialisée : « Redacted » s'arrête AU caractère où l'envoi
-  // tronque (audit) ; Original / Texte de l'image restent entières (couches de référence).
-  const wireCutChars = file.text.length > MAX_FILE_CHARS ? file.text.length - MAX_FILE_CHARS : 0;
-  const wireText = wireCutChars ? file.text.slice(0, MAX_FILE_CHARS) : file.text;
+  // La COUPE d'envoi, matérialisée : « Redacted » s'arrête OÙ l'envoi tronque — la MÊME
+  // coupe (`clipFileText`, frontière de ligne, règle 9), donc la dernière ligne montrée
+  // est ENTIÈRE, jamais une valeur tranchée. Original / Texte de l'image restent entières.
+  const wireText = clipFileText(file.text, MAX_FILE_CHARS);
+  const wireCutChars = file.text.length - wireText.length;
 
-  // Redacted text WITHOUT re-running the model: `file.replacements` (real→fake)
-  // was already computed at drop time, so derive the preview deterministically by
-  // applying it to the extracted text. Longest real first so a value isn't split
-  // by a shorter substring. Only fall back to the async `redact()` below when no
-  // replacements exist (nothing was redacted, or they weren't threaded).
-  const redactedFromReplacements = useMemo(() => {
-    // `undefined` = redaction wasn't threaded → use the async fallback. An EMPTY
-    // array = redaction ran and found nothing → the redacted text IS the original
-    // (still no re-run).
-    if (!wireText || displayReplacements === undefined) return null;
-    let t = wireText;
-    for (const r of [...displayReplacements].sort((a, b) => b.real.length - a.real.length)) {
-      // Word-boundary-safe: a short fake ("IE") must not corrupt real words
-      // ("INGÉNIEURS") — mirrors the model-facing applyVault + the PDF paint.
-      if (r.real) t = replaceStandalone(t, r.real, r.fake);
-    }
-    return t;
-  }, [wireText, displayReplacements]);
+  // Le texte redacted SANS relancer le modèle — la règle (plus long d'abord, frontières
+  // de mots, null = repli asynchrone) vit dans `doc/redactedPreview.ts`.
+  const redactedPreview = useMemo(
+    () => redactedFromReplacements(wireText, displayReplacements),
+    [wireText, displayReplacements],
+  );
 
   // Compute the redacted text preview lazily the first time it's shown (ONLY when
   // there are no precomputed replacements). On a failure we record the error (NOT
   // the original text) so the tab can offer a retry; `redactedErr` also gates the
   // effect so it doesn't loop on the null.
   useEffect(() => {
-    if (redactedFromReplacements !== null) return; // deterministic path — no re-run
+    if (redactedPreview !== null) return; // deterministic path — no re-run
     if (view !== "redacted" || redacted !== null || redactedErr !== null || !file.text) return;
     // Passe de dépôt en cours → pas de 2e détection concurrente (audit) : ses
     // `replacements` arrivent et prennent le pas. Et borné à la coupe d'envoi
@@ -367,7 +364,7 @@ export function AttachmentPreviewModal({
     return () => {
       alive = false;
     };
-  }, [view, redacted, redactedErr, wireText, file.text, redact, engine, redactedFromReplacements, convCategories, redacting]);
+  }, [view, redacted, redactedErr, wireText, file.text, redact, engine, redactedPreview, convCategories, redacting]);
 
   // "Réessayer le redaction": clear both → the effect re-runs on the same text.
   const retryRedacted = () => {
@@ -388,11 +385,11 @@ export function AttachmentPreviewModal({
             replacements: displayReplacements,
             revealed,
             editable: !!onRevealChange,
-            redactedText: redactedFromReplacements ?? redacted,
+            redactedText: redactedPreview ?? redacted,
           })
         : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [textView, view, wireText, displayReplacements, revealed, onRevealChange, redactedFromReplacements, redacted],
+    [textView, view, wireText, displayReplacements, revealed, onRevealChange, redactedPreview, redacted],
   );
   const search = useDocSearch(chunks);
   // La ligne d'en-tête, à TROIS états de premier rang (en cours / échec / compte
@@ -565,7 +562,7 @@ export function AttachmentPreviewModal({
           </div>
         ) : redactedGrid ? (
           sheet(true)
-        ) : file.text && redactedFromReplacements === null && redacted === null ? (
+        ) : file.text && redactedPreview === null && redacted === null ? (
           // Pas encore calculable (passe/repli en vol) : squelette — jamais l'original en douce.
           <FileSkeleton variant="doc" />
         ) : file.text ? (

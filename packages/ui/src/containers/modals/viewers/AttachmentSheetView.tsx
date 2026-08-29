@@ -23,6 +23,8 @@ export function AttachmentSheetView({
   replacements,
   revealed,
   onReveal,
+  cutRow,
+  wireCut,
 }: {
   bytes: Uint8Array;
   csv: boolean;
@@ -31,16 +33,31 @@ export function AttachmentSheetView({
   replacements?: PdfReplacement[];
   revealed?: ReadonlySet<string>;
   onReveal?: (real: string) => void;
+  /** First grid row (0-based) the SEND CUT drops — rows from here on never leave the
+   *  machine and are shown dimmed with a note (CSV/TSV, exact mapping). Null ⇒ no cut. */
+  cutRow?: number | null;
+  /** XLSX fallback: the annotated text exceeds the send cap but the grid rows can't be
+   *  mapped exactly (multi-sheet, blank-row skips) — show the generic note only. */
+  wireCut?: boolean;
 }) {
   if (!redacted) return <SpreadsheetViewer bytes={bytes} csv={csv} />;
   return (
-    <SpreadsheetViewer
-      bytes={bytes}
-      csv={csv}
-      replacements={replacements}
-      revealed={revealed}
-      onReveal={onReveal}
-      renderFake
-    />
+    <>
+      <SpreadsheetViewer
+        bytes={bytes}
+        csv={csv}
+        replacements={replacements}
+        revealed={revealed}
+        onReveal={onReveal}
+        renderFake
+        cutRow={cutRow}
+      />
+      {wireCut && (
+        <div className="fv-sheet-note fv-cut-note">
+          Classeur volumineux : une partie ne part pas au modèle (l'envoi tronque chaque
+          document) — ce qui ne part pas ne quitte jamais la machine.
+        </div>
+      )}
+    </>
   );
 }

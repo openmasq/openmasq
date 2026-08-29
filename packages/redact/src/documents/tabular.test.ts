@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDelimited, gridToAnnotatedText, sniffDelimiter } from "./tabular";
+import { parseDelimited, gridToAnnotatedText, sniffDelimiter, annotatedCutRow, delimitedGrid } from "./tabular";
 import { redact, unredact } from "../index";
 
 describe("parseDelimited", () => {
@@ -207,5 +207,66 @@ describe("en-tête : un TITRE fusionné n'en est pas un (bilan réel, 15/08/2026
     const out = gridToAnnotatedText([["Libellé"], ["Loyer"], ["Assurance"]]);
     expect(out).toContain("Loyer");
     expect(out).toContain("Assurance");
+  });
+});
+
+describe("annotatedCutRow — la coupe d'envoi mappée sur les LIGNES de la grille", () => {
+  const grid = (n: number): string[][] => {
+    const rows: string[][] = [["nom", "email"]];
+    for (let i = 0; i < n; i++) rows.push([`Personne ${i}`, `personne${i}@exemple.fr`]);
+    return rows;
+  };
+
+  it("null quand tout tient dans la borne", () => {
+    expect(annotatedCutRow(grid(5), 10_000)).toBe(null);
+    expect(annotatedCutRow([], 10)).toBe(null);
+  });
+
+  it("parité avec la sérialisation : les lignes AVANT la coupe tiennent, la suivante déborde", () => {
+    const rows = grid(50);
+    const full = gridToAnnotatedText(rows);
+    const max = Math.floor(full.length / 3);
+    const cut = annotatedCutRow(rows, max)!;
+    expect(cut).toBeGreaterThan(1); // l'en-tête + au moins une ligne passent
+    // Sérialiser UNIQUEMENT les lignes envoyées (en-tête + données < cut) tient dans max…
+    expect(gridToAnnotatedText(rows.slice(0, cut)).length).toBeLessThanOrEqual(max);
+    // …et ajouter la ligne de coupe déborde.
+    expect(gridToAnnotatedText(rows.slice(0, cut + 1)).length).toBeGreaterThan(max);
+  });
+
+  it("la coupe est EXACTEMENT la frontière du clip par ligne (aucune valeur tranchée)", () => {
+    const rows = grid(50);
+    const full = gridToAnnotatedText(rows);
+    const max = Math.floor(full.length / 2);
+    // Le clip d'envoi : coupe à la dernière fin de ligne dans la borne.
+    const nl = full.lastIndexOf("\n", max);
+    const clipped = full.slice(0, nl);
+    const cut = annotatedCutRow(rows, max)!;
+    // Chaque ligne envoyée est présente ENTIÈRE dans le texte clippé ; la première
+    // ligne coupée n'y est pas du tout.
+    const lastSent = `nom: Personne ${cut - 2} | email: personne${cut - 2}@exemple.fr`;
+    const firstCutLine = `nom: Personne ${cut - 1} | email: personne${cut - 1}@exemple.fr`;
+    expect(clipped).toContain(lastSent);
+    expect(clipped).not.toContain(`Personne ${cut - 1}`);
+    expect(full).toContain(firstCutLine); // la ligne existe bien — elle est juste coupée
+  });
+
+  it("préambule + nom de feuille comptent dans la borne", () => {
+    const rows: string[][] = [["Grand livre — export", "", ""], ["compte", "libellé", "montant"]];
+    for (let i = 0; i < 20; i++) rows.push([`40${i}`, `Fournisseur ${i}`, `${i}00`]);
+    const full = gridToAnnotatedText(rows, "Feuil1");
+    const cut = annotatedCutRow(rows, Math.floor(full.length / 2), "Feuil1")!;
+    expect(cut).toBeGreaterThan(2);
+    expect(gridToAnnotatedText(rows.slice(0, cut), "Feuil1").length).toBeLessThanOrEqual(
+      Math.floor(full.length / 2),
+    );
+  });
+});
+
+describe("delimitedGrid — le parse d'extraction, une seule maison", () => {
+  it("TSV = tabulations ; sinon le séparateur se devine (`;` comptable)", () => {
+    expect(delimitedGrid("a\tb\n1\t2", true)).toEqual([["a", "b"], ["1", "2"]]);
+    const fr = "compte;libellé;montant\n401;ACME;14 812,37\n402;OVH;3,50\n403;EDF;9,99";
+    expect(delimitedGrid(fr, false)[1]).toEqual(["401", "ACME", "14 812,37"]);
   });
 });

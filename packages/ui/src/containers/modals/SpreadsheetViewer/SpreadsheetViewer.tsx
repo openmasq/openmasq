@@ -34,6 +34,7 @@ export function SpreadsheetViewer({
   revealed,
   onReveal,
   renderFake = false,
+  cutRow = null,
 }: {
   bytes: Uint8Array;
   csv?: boolean;
@@ -45,6 +46,10 @@ export function SpreadsheetViewer({
   /** Display the FAKE (not the real value) in a redacted cell — the before-send
    *  preview over ORIGINAL bytes. Off (default) shows the bytes verbatim. */
   renderFake?: boolean;
+  /** SEND CUT: first grid row (0-based) that does NOT leave the machine. Rows from
+   *  here on render dimmed (`fv-row-unsent`) with an explaining note — un-redacted
+   *  cells there used to read as « partis en clair » when they never left at all. */
+  cutRow?: number | null;
 }) {
   const [sheets, setSheets] = useState<Sheet[] | null | "error">(null);
   const [active, setActive] = useState(0);
@@ -192,7 +197,18 @@ export function SpreadsheetViewer({
               </tr>
             )}
             {visible.map((row) => (
-              <tr key={row.num} className={virtual ? "fv-row-fixed" : undefined}>
+              <tr
+                key={row.num}
+                className={
+                  [
+                    virtual ? "fv-row-fixed" : "",
+                    // `row.num` is 1-based sheet numbering; the cut is a 0-based grid row.
+                    cutRow != null && row.num - 1 >= cutRow ? "fv-row-unsent" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ") || undefined
+                }
+              >
                 <th className="fv-grid-rowhead">{row.num}</th>
                 {row.cells.map((cell, c) => {
                   if (cell === null) return null;
@@ -218,6 +234,13 @@ export function SpreadsheetViewer({
           </tbody>
         </table>
       </div>
+      {cutRow != null && (
+        <div className="fv-sheet-note fv-cut-note">
+          {cutRow > 0
+            ? `Envoi tronqué : seules les lignes 1 à ${cutRow} partent au modèle — les lignes grisées ne quittent jamais la machine (et n'ont donc pas besoin d'être redacted).`
+            : "Envoi tronqué : ce fichier dépasse la limite d'envoi, aucune ligne ne part au modèle."}
+        </div>
+      )}
       {sheet.truncated && (
         <div className="fv-sheet-note">Aperçu tronqué ({MAX_ROWS} lignes × {MAX_COLS} colonnes max).</div>
       )}

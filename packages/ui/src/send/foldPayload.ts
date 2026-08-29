@@ -45,6 +45,24 @@ export function typedPartOfWire(text: string): string {
  *  three surfaces cannot disagree on where the document stops leaving the machine. */
 export const MAX_FILE_CHARS = 50_000;
 
+/**
+ * Clip `text` to at most `max` chars, cutting at the last LINE boundary within the
+ * bound — never mid-line. A raw `slice(0, max)` routinely halved a value on the
+ * boundary row (`jean.dup` out of an email, half an IBAN): the detector, scanning the
+ * SAME clipped text, no longer recognises the fragment's shape, so the fragment
+ * shipped in clear — a partially-redacted send. Cutting at the newline means every
+ * line that leaves was scanned WHOLE. THE single clip (rule 9): the wire fold below,
+ * the drop-time scan (`pages/ChatWorkspace/redactAttachment.ts`), the preview's
+ * redacted bound (`AttachmentPreviewModal`), the detection layers and the tool-result
+ * cap all call this — a second slice is how the surfaces drift. A text with no
+ * newline inside the bound hard-cuts at `max` (nothing better exists for one line).
+ */
+export function clipFileText(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const nl = text.lastIndexOf("\n", max);
+  return text.slice(0, nl > 0 ? nl : max);
+}
+
 /** Only the fields the folding reads — decoupled from the full `ExtractedFile`. */
 export interface FoldAttachment {
   name: string;
@@ -97,7 +115,7 @@ export function buildFoldedPayload(
 ): FoldedPayload {
   const imageNames = new Set(opts.imageNames ?? []);
   const clip = (t: string) =>
-    t.length > maxFileChars ? t.slice(0, maxFileChars) + "\n…(truncated)" : t;
+    t.length > maxFileChars ? clipFileText(t, maxFileChars) + "\n…(truncated)" : t;
   // The real filename can itself leak (refs, dates, names PII detection won't catch,
   // e.g. "438-GAZ-20220208.pdf") — the model only ever sees a neutral name.
   const safeName = (name: string, i: number) => {

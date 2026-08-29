@@ -151,6 +151,19 @@ function isTrivial(rows: string[][]): boolean {
   return rows.length < 2 || rows.every((r) => r.every((c) => !c || !c.trim()));
 }
 
+/** Parse a delimited FILE exactly as extraction does — the ONE home of the
+ *  "TSV is tabs, anything else is sniffed" rule (rule 9), shared by `core.ts`
+ *  and the preview grid's send-cut mapping. */
+export function delimitedGrid(raw: string, tsv: boolean): string[][] {
+  return parseDelimited(raw, tsv ? "\t" : sniffDelimiter(raw));
+}
+
+/** One emitted line of the annotated serialization + the GRID row it came from. */
+interface AnnotatedLine {
+  line: string;
+  row: number;
+}
+
 /**
  * Re-emit a parsed grid as header-annotated records. Row 0 is the header; each
  * subsequent row becomes `header: value | header: value` (empty cells skipped).
@@ -158,10 +171,41 @@ function isTrivial(rows: string[][]): boolean {
  * `sheetName` prefixes the block when a workbook has several sheets.
  */
 export function gridToAnnotatedText(rows: string[][], sheetName?: string): string {
+  const { prefix, lines } = annotatedLines(rows, sheetName);
+  return lines.length ? prefix + lines.map((l) => l.line).join("\n") : "";
+}
+
+/**
+ * Which GRID row does the per-document send cut land on? Walks the SAME emission as
+ * {@link gridToAnnotatedText} (shared `annotatedLines` — parity by construction), keeping
+ * a line only when it fits WHOLE within `maxChars` — the line-boundary clip the send
+ * applies (`clipFileText`), so a row is never claimed « sent » on a half-shipped value.
+ * Returns the first grid row (0-based) whose line does NOT fit, or null when everything
+ * fits. Rows at or past the returned index never leave the machine.
+ */
+export function annotatedCutRow(rows: string[][], maxChars: number, sheetName?: string): number | null {
+  const { prefix, lines } = annotatedLines(rows, sheetName);
+  let cum = prefix.length;
+  for (let i = 0; i < lines.length; i++) {
+    const end = cum + lines[i].line.length; // offset of this line's trailing "\n" / EOS
+    if (end > maxChars) return lines[i].row;
+    cum = end + 1; // the join's "\n"
+  }
+  return null;
+}
+
+/** The shared emission behind the two functions above — every serialization decision
+ *  (header pick, preamble, empty-cell skip) lives HERE once, with each line carrying
+ *  its source grid row so the cut can be mapped back onto the grid. */
+function annotatedLines(rows: string[][], sheetName?: string): { prefix: string; lines: AnnotatedLine[] } {
   const prefix = sheetName ? `=== ${sheetName} ===\n` : "";
   if (isTrivial(rows)) {
-    const flat = rows.map((r) => r.map((c) => (c ?? "").trim()).filter(Boolean).join(" ")).filter(Boolean).join("\n");
-    return flat ? prefix + flat : "";
+    const flat: AnnotatedLine[] = [];
+    rows.forEach((r, i) => {
+      const t = r.map((c) => (c ?? "").trim()).filter(Boolean).join(" ");
+      if (t) flat.push({ line: t, row: i });
+    });
+    return { prefix, lines: flat };
   }
   const largeur = rows.reduce((m, r) => Math.max(m, r.length), 0);
   // ⚠️ L'en-tête n'est pas toujours la ligne 0. Un export comptable ouvre sur un TITRE
@@ -185,11 +229,11 @@ export function gridToAnnotatedText(rows: string[][], sheetName?: string): strin
   const enTete = rows.findIndex((r) => r.length === largeur && !titreFusionne(r));
   const debut = enTete < 0 ? Math.max(0, rows.findIndex((r) => r.length === largeur)) : enTete;
   const headers = normalizeHeaders(rows[debut], largeur);
-  const lines: string[] = [];
-  for (const r of rows.slice(0, debut)) {
+  const lines: AnnotatedLine[] = [];
+  rows.slice(0, debut).forEach((r, i) => {
     const t = r.map((c) => (c ?? "").trim()).filter(Boolean).join(" ");
-    if (t) lines.push(t);
-  }
+    if (t) lines.push({ line: t, row: i });
+  });
   for (let r = debut + 1; r < rows.length; r++) {
     const row = rows[r];
     const cells: string[] = [];
@@ -198,7 +242,7 @@ export function gridToAnnotatedText(rows: string[][], sheetName?: string): strin
       if (!v) continue; // skip empty cells — no label: <blank> noise
       cells.push(`${headers[i]}: ${v}`);
     }
-    if (cells.length) lines.push(cells.join(" | "));
+    if (cells.length) lines.push({ line: cells.join(" | "), row: r });
   }
-  return lines.length ? prefix + lines.join("\n") : "";
+  return { prefix, lines };
 }

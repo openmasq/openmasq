@@ -1,0 +1,17 @@
+/* La COUPE d'envoi dans la grille tableur (`SpreadsheetViewer`) — famille au préfixe
+   unique `.fv-row-unsent` / `.fv-cut-note`, définie nulle part ailleurs (la méthode de
+   packages/ui : sa position dans la cascade est alors indifférente).
+
+   Les lignes au-delà de la coupe ne quittent JAMAIS la machine : grisées, jamais
+   rendues « en clair comme si parties ». Opacité seule (aucun littéral de couleur),
+   les quatre thèmes tiennent. */
+.fv-row-unsent td,
+.fv-row-unsent th {
+  opacity: 0.4;
+}
+/* Double classe : la base `.fv-sheet-note` est déclarée plus tard dans styles.css,
+   la spécificité — pas l'ordre — doit décider. */
+.fv-sheet-note.fv-cut-note {
+  color: var(--text-body);
+  padding: 6px 2px 2px;
+}
