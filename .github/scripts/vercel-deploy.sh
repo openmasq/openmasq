@@ -17,8 +17,11 @@
 # stdout deviendrait silencieusement l'« URL » du déploiement — un piège qui se referme
 # au moment précis où l'on essaie de diagnostiquer.
 #
-# UNE maison pour les trois jobs (ops, docs, web) : la même panne les guette
-# tous, et trois copies d'un garde-fou dérivent à la première correction (règle 9).
+# Une seule maison ICI pour le job `web`. Les deux autres jobs qu'il servait ont suivi
+# leurs apps hors de ce dépôt (août 2026) — `landing` + `docs` dans `openmask-sites`,
+# `ops` dans `OpenMasq-infra` — chacun avec SA copie de ce script : trois dépôts ne
+# peuvent pas importer un fichier, et un `uses:` inter-dépôts serait une référence de
+# plus à épingler. Une correction ici se reporte dans les deux copies.
 set -euo pipefail
 
 TIMEOUT_S="${VERCEL_DEPLOY_TIMEOUT_S:-300}"

@@ -653,5 +653,8 @@ jobs:
           # Unset ⇒ the shared default in packages/emails/lib/sender.ts applies (rule 9:
           # the sender lives in ONE place, not re-typed per workflow).
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          LANDING_DOWNLOAD_URL: https://landing.${{ steps.brand.outputs.domain }}/download
-          LANDING_NOTES_URL: https://landing.${{ steps.brand.outputs.domain }}/releases
+          # The landing lives in its own repository (`openmask-sites`) and its routes are
+          # French; the old `/download` and `/releases` still redirect there, for the
+          # e-mails already sent. The defaults in packages/emails say the same thing.
+          LANDING_DOWNLOAD_URL: https://landing.${{ steps.brand.outputs.domain }}/telecharger
+          LANDING_NOTES_URL: https://landing.${{ steps.brand.outputs.domain }}/nouveautes

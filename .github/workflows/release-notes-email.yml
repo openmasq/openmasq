@@ -59,6 +59,8 @@ jobs:
         run: echo "domain=$(node -p "require('./packages/branding/branding.json').domain")" >> "$GITHUB_OUTPUT"
       - name: Email latest release note
         env:
-          LANDING_DOWNLOAD_URL: https://landing.${{ steps.brand.outputs.domain }}/download
-          LANDING_NOTES_URL: https://landing.${{ steps.brand.outputs.domain }}/releases
+          # French routes of the landing (repository `openmask-sites`); `/download` and
+          # `/releases` redirect there for the e-mails already sent.
+          LANDING_DOWNLOAD_URL: https://landing.${{ steps.brand.outputs.domain }}/telecharger
+          LANDING_NOTES_URL: https://landing.${{ steps.brand.outputs.domain }}/nouveautes
         run: pnpm --filter @openmasq/emails release:email -- --mode "${{ github.event.inputs.mode }}"
