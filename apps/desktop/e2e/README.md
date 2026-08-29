@@ -1,13 +1,13 @@
 # Real end-to-end tests (logged-in ChatGPT / Claude)
 
-> Deux autres suites vivent ici sur le MÊME harnais app-buildée : `workflows-openrouter.e2e.ts`
-> (workflows agentiques, fixtures MCP) et `documents.e2e.ts` (génération + ÉDITION des
-> documents ```document — la PII tapée dans l'éditeur entre au vault et ne part jamais en
-> clair). Toutes deux gated `OPENROUTER_API_KEY` (modèle gratuit par défaut → coût nul) ;
-> `pnpm e2e:workflows` / `pnpm e2e:documents`. Chaque spec documente ses invariants en tête.
-> ⚠️ Les scripts passent par `node ../../node_modules/@playwright/test/cli.js` — le
-> `.bin/playwright` hoisté est un `playwright` standalone d'une AUTRE version qui ne
-> collecte aucun test (« did not expect test.describe() »).
+> Two other suites live here on the SAME built-app harness: `workflows-openrouter.e2e.ts`
+> (agentic workflows, MCP fixtures) and `documents.e2e.ts` (generation + EDITING of
+> ```document documents — PII typed into the editor enters the vault and never leaves in the
+> clear). Both are gated on `OPENROUTER_API_KEY` (a free model by default → zero cost);
+> `pnpm e2e:workflows` / `pnpm e2e:documents`. Each spec documents its invariants at the top.
+> ⚠️ The scripts go through `node ../../node_modules/@playwright/test/cli.js` — the hoisted
+> `.bin/playwright` is a standalone `playwright` of ANOTHER version that collects no test at
+> all ("did not expect test.describe()").
 
 These launch the **built Electron app** with an **actual signed-in web session**
 and assert the core privacy guarantee by comparing two things:
@@ -78,69 +78,66 @@ Settings are seeded per-test through `localStorage`. Email and number cases work
 fully offline via the built-in regex rules; **names/companies** detection needs a
 reachable redaction model (Mistral/Ollama).
 
-## Documents multiples — redaction local, JUGÉ (`pnpm e2e:documents-multi`)
+## Multiple documents — local redaction, JUDGED (`pnpm e2e:documents-multi`)
 
-`documents-multi.e2e.ts` joint **quatre formats en un seul envoi** (CSV, XLSX, PDF, DOCX
-— quatre extracteurs distincts) et juge le redaction **sans aucun modèle de chat** : tout
-ce qui produit le résultat est déjà sur la machine (mBERT pour les noms, docTR/Tesseract
-pour les pixels, les règles déterministes pour le reste). Aucune clé d'API, aucun appel
-sortant, coût nul — le destinataire est un endpoint OpenAI-compatible bidon levé sur
-127.0.0.1, ce qui permet de juger le **wire réel** plutôt qu'un état intermédiaire.
+`documents-multi.e2e.ts` attaches **four formats in a single send** (CSV, XLSX, PDF, DOCX —
+four distinct extractors) and judges the redaction **with no chat model at all**: everything
+that produces the result is already on the machine (mBERT for names, docTR/Tesseract for
+pixels, the deterministic rules for the rest). No API key, no outgoing call, zero cost — the
+recipient is a dummy OpenAI-compatible endpoint raised on 127.0.0.1, which makes it possible
+to judge the **real wire** rather than an intermediate state.
 
-- L'oracle est la **fonction de décision de l'app** (`pseudonymize` sur le texte extrait),
-  pas une liste réécrite à côté : ce test ne mesure donc PAS le rappel du détecteur (c'est
-  le rôle des tests unitaires du moteur), il vérifie que cette
-  décision **arrive intacte** sur le wire à travers quatre extracteurs et le pliage
-  multi-documents. Une divergence ici est un défaut de PIPELINE.
-- Le jugement est fait **par section de document** : le moteur mint des faux crédibles, donc
-  un faux minté pour le NDA peut être égal à une VRAIE valeur du CSV — cherchée dans tout le
-  wire la chaîne est ambiguë, cherchée dans la section dont elle vient elle ne l'est plus.
-- Prérequis : `pnpm bake:ner` (hors app packagée les poids sont lus depuis
-  `apps/desktop/build/ner-models`) ; sans eux le spec se **skip** au lieu de passer à vide.
+- The oracle is the **app's own decision function** (`pseudonymize` on the extracted text),
+  not a list rewritten alongside: so this test does NOT measure the detector's recall (that
+  is the engine's unit tests' job), it checks that this decision **arrives intact** on the
+  wire, across four extractors and the multi-document folding. A divergence here is a
+  PIPELINE defect.
+- Judging is done **per document section**: the engine mints believable fakes, so a fake
+  minted for the NDA can equal a REAL value from the CSV — searched across the whole wire the
+  string is ambiguous, searched inside the section it came from it is not.
+- Prerequisite: `pnpm bake:ner` (outside a packaged app the weights are read from
+  `apps/desktop/build/ner-models`); without them the spec **skips** instead of passing empty.
 
-⚠️ **Ce spec est ROUGE aujourd'hui, et c'est son travail** : il signale une divergence
-réelle — `billing@example.com` (en-tête expéditeur de `invoice-2024-0042.pdf`) est remplacé
-par `pseudonymize` sur le texte extrait, mais atteint le wire en clair, alors que tout le
-reste de la même section (IBAN, carte, TVA, noms, autres e-mails) est bien redacted. Deux
-pistes à instruire : le texte extrait par l'app diffère de celui qu'obtient l'extracteur en
-Node, ou la carte de remplacements du drop est réutilisée telle quelle et ce qu'elle a raté
-part en clair (le piège documenté de `reusableDocReplacements`).
+⚠️ **This spec is RED today, and that is its job**: it reports a real divergence —
+`billing@example.com` (the sender header of `invoice-2024-0042.pdf`) is replaced by
+`pseudonymize` on the extracted text, but reaches the wire in the clear, while everything
+else in the same section (IBAN, card, VAT, names, other e-mails) is correctly redacted. Two
+leads to investigate: the text the app extracts differs from what the extractor obtains in
+Node, or the drop's replacement map is reused as-is and what it missed leaves in the clear
+(the documented `reusableDocReplacements` trap).
 
-## Workflows agentiques — OpenRouter réel (`pnpm e2e:workflows`)
+## Agentic workflows — real OpenRouter (`pnpm e2e:workflows`)
 
-`workflows-openrouter.e2e.ts` rejoue les **17 demandes utilisateur les plus
-probables** — le catalogue est `workflows/catalog.ts`, un prompt par cas, chacun
-commenté par ce qu'il vérifie et non par ce qu'il raconte. Trois familles :
-lectures (boîte, recherche, agenda, journée, réunion, Drive, CRM, paiements,
-sprint), écritures (envoi, évènement, brouillon, note CRM, tâche) et **prompts
-sans outil** (rédiger une relance, ranger un contact collé) — ces derniers
-vérifient qu'un modèle ne part PAS fouiller les connecteurs quand on lui demande
-seulement d'écrire, et que la PII **tapée par l'utilisateur** ne quitte pas la
-machine en clair. Le tout contre la **vraie API OpenRouter** (clé `OPENROUTER_API_KEY` dans le `.env`
-racine ; modèle **gratuit** par défaut → coût nul).
+`workflows-openrouter.e2e.ts` replays the **17 most likely user requests** — the catalogue is
+`workflows/catalog.ts`, one prompt per case, each commented with what it checks rather than
+what it narrates. Three families: reads (mailbox, search, calendar, day, meeting, Drive, CRM,
+payments, sprint), writes (send, event, draft, CRM note, task) and **tool-free prompts**
+(write a follow-up, file a pasted contact) — the last of which check that a model does NOT go
+rummaging through the connectors when it is only asked to write, and that PII **typed by the
+user** does not leave the machine in the clear. All of it against the **real OpenRouter API**
+(the `OPENROUTER_API_KEY` key in the root `.env`; a **free** model by default → zero cost).
 
-- `E2E_MODEL` — id du modèle (défaut `google/gemma-4-26b-a4b-it:free`).
-  ⚠️ Les Gemma OpenRouter sont `noTools` : le défaut vérifie le **repli sans
-  connecteurs** (la réalité sur ce modèle). Pour exercer les tool-calls :
+- `E2E_MODEL` — the model id (default `google/gemma-4-26b-a4b-it:free`).
+  ⚠️ The OpenRouter Gemmas are `noTools`: the default checks the **fallback without
+  connectors** (the reality on that model). To exercise tool calls:
   `E2E_MODEL="openai/gpt-oss-20b:free"`.
-- `E2E_TOOL_FIXTURES=0` — mode **sans** fixtures (aucun connecteur — la réalité
-  d'un compte qui n'a rien connecté). Par défaut, des connecteurs FIXTURES
-  (`fixtures/mcp/workflows.json`, hook main `OPENMASQ_E2E_MCP_FIXTURES`)
-  servent des résultats stables truffés de PII de test.
-- `E2E_PARALLEL=1` (+ `E2E_WORKERS=n`) — un app/profil isolé par test, en
-  parallèle. `E2E_STRICT=1` — assertions soft sur le CONTENU des réponses.
+- `E2E_TOOL_FIXTURES=0` — the mode **without** fixtures (no connector — the reality of an
+  account that has connected nothing). By default, FIXTURE connectors
+  (`fixtures/mcp/workflows.json`, main hook `OPENMASQ_E2E_MCP_FIXTURES`) serve stable results
+  stuffed with test PII.
+- `E2E_PARALLEL=1` (+ `E2E_WORKERS=n`) — one isolated app/profile per test, in parallel.
+  `E2E_STRICT=1` — soft assertions on the CONTENT of the replies.
 
-Toujours vérifié, quel que soit le mode : aucune PII (fixtures ou tapée) sur le
-wire (`OPENMASQ_E2E_WIRE_LOG` couvre aussi les tours d'outils) ; une écriture
-n'atteint le connecteur qu'après un clic de confirmation ; et l'argument sortant
-arrive **en clair** au connecteur (`OPENMASQ_E2E_TOOLCALL_LOG`).
+Always checked, whatever the mode: no PII (fixture or typed) on the wire
+(`OPENMASQ_E2E_WIRE_LOG` covers the tool turns too); a write reaches the connector only after
+a confirmation click; and the outgoing argument arrives **in the clear** at the connector
+(`OPENMASQ_E2E_TOOLCALL_LOG`).
 
-⚠️ **La SURFACE de confirmation est elle-même une assertion.** Le champ `write`
-du catalogue vaut `"system"` (fenêtre main non-spoofable — envoi, évènement) ou
-`"chat"` (carte dans la conversation — brouillon, note, tâche : local et
-réversible), et le harnais compte les deux séparément. L'assertion est
-**asymétrique, volontairement** : un écrit risqué DOIT avoir été confirmé sur la
-fenêtre main (sinon une XSS du renderer pourrait le cliquer), alors qu'un geste
-local qui ouvrirait une fenêtre système n'est qu'une nuisance — soft. Le
-classement vient de `@openmasq/catalog/mcp` `writeRisk` ; c'est ce test qui
-empêche un envoi de glisser vers la surface cliquable.
+⚠️ **The confirmation SURFACE is itself an assertion.** The catalogue's `write` field is
+`"system"` (the non-spoofable main window — send, event) or `"chat"` (a card in the
+conversation — draft, note, task: local and reversible), and the harness counts both
+separately. The assertion is **deliberately asymmetric**: a risky write MUST have been
+confirmed on the main window (otherwise a renderer XSS could click it), whereas a local
+gesture that would open a system window is merely a nuisance — soft. The classification comes
+from `@openmasq/catalog/mcp` `writeRisk`; this test is what stops a send from sliding onto
+the clickable surface.

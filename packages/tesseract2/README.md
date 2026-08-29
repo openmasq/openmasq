@@ -1,18 +1,18 @@
 # tesseract2.js
 
-Réécriture **TypeScript** de [tesseract.js](https://github.com/naptha/tesseract.js) pour Node.js, avec la même API publique côté Node mais un code typé, plus simple et nettement plus sûr. OCR multilingue via le build WASM officiel [`tesseract.js-core`](https://www.npmjs.com/package/tesseract.js-core), exécuté dans un `worker_threads`.
+A **TypeScript** rewrite of [tesseract.js](https://github.com/naptha/tesseract.js) for Node.js, with the same public API on the Node side but typed, simpler and markedly safer code. Multilingual OCR through the official WASM build [`tesseract.js-core`](https://www.npmjs.com/package/tesseract.js-core), run inside a `worker_threads` thread.
 
-**Node ≥ 18 uniquement** (utilise `fetch` natif, `worker_threads`, `zlib`). Pas de support navigateur.
+**Node ≥ 18 only** (uses native `fetch`, `worker_threads`, `zlib`). No browser support.
 
-## Installation & build
+## Install & build
 
 ```bash
-npm install    # tesseract.js-core (runtime) + typescript (dev) ; compile automatiquement via "prepare"
+npm install    # tesseract.js-core (runtime) + typescript (dev); compiles automatically through "prepare"
 npm run build  # recompile src/*.ts -> dist/ (CommonJS + .d.ts)
-npm test       # build + tests de fumée (OCR réel, hors-ligne)
+npm test       # build + smoke tests (real OCR, offline)
 ```
 
-Sources dans `src/` (TypeScript strict), sortie compilée dans `dist/` (CommonJS, donc utilisable en `require()` comme en `import`). Les déclarations `.d.ts` sont générées à la compilation.
+Sources in `src/` (strict TypeScript), compiled output in `dist/` (CommonJS, hence usable with `require()` as well as `import`). The `.d.ts` declarations are generated at compile time.
 
 ## Usage
 
@@ -23,7 +23,7 @@ const { createWorker, createScheduler, recognize, OEM, PSM } = require('tesserac
 const { data } = await recognize('facture.png', 'fra');
 console.log(data.text);
 
-// Worker réutilisable
+// Reusable worker
 const worker = await createWorker('eng+fra');
 const res = await worker.recognize('scan.jpg', { rotateAuto: true }, { text: true, hocr: true });
 await worker.terminate();
@@ -36,53 +36,53 @@ const results = await Promise.all(images.map((img) => scheduler.addJob('recogniz
 await scheduler.terminate();
 ```
 
-Les entrées image acceptées : chemin local, URL `http(s):`/`file:`/`data:`, `Buffer`, `Uint8Array`, `ArrayBuffer`.
+Accepted image inputs: local path, `http(s):`/`file:`/`data:` URL, `Buffer`, `Uint8Array`, `ArrayBuffer`.
 
-## Ce qui change par rapport à tesseract.js
+## What changes compared with tesseract.js
 
-### Sécurité
+### Security
 
-| Problème dans tesseract.js | Correctif dans tesseract2.js |
+| Problem in tesseract.js | Fix in tesseract2.js |
 | --- | --- |
-| `workerPath`/`corePath` permettent de charger et exécuter du code arbitraire | Script worker et core WASM toujours chargés depuis le package installé ; options ignorées avec avertissement |
-| Codes langue interpolés bruts dans chemins disque et URLs (`langs: '../../x'` = traversée de chemin) | Codes validés par regex stricte avant tout usage ; lecture locale confinée au dossier `langPath` |
-| Dispatch d'action par lookup non validé (`handlers[packet.action]`) | Allowlist figée (`Object.freeze` + `hasOwnProperty`), idem pour les méthodes `FS` et les actions du scheduler |
-| Aucune limite de taille (image, traineddata, gunzip → zip bomb) | `maxImageBytes` (128 Mio), `maxLangDataBytes` (512 Mio), décompression plafonnée via `zlib maxOutputLength` |
-| Téléchargements sans timeout | `fetchTimeout` (30 s par défaut) sur toutes les requêtes |
-| `langPath` distant en HTTP accepté | HTTPS obligatoire pour les données de langue |
-| N'importe quel octet transmis au décodeur C/WASM | Vérification des magic bytes (PNG, JPEG, BMP, GIF, WebP, TIFF, PNM, JP2) ; `allowUnknownFormats: true` pour désactiver |
-| Écriture du cache non atomique (traineddata tronqué possible) | Écriture temp + `rename` atomique ; cache par défaut dans `~/.cache/tesseract2.js` au lieu du CWD |
-| `throw` dans le handler de message → crash du process si pas d'`errorHandler` | Toute erreur est propagée en rejet de promesse typé (`ValidationError`, `NetworkError`, `WorkerError`, `TimeoutError`) |
-| Échec d'init silencieux (`.catch(() => {})`) : promesse pendante + thread zombie | Échec d'init ⇒ thread terminé + rejet de `createWorker` |
-| IDs de jobs via `Math.random` | `crypto.randomUUID()` |
-| 8 dépendances runtime (node-fetch, zlibjs, bmp-js, is-url, idb-keyval…) | 1 seule : `tesseract.js-core` |
+| `workerPath`/`corePath` allow arbitrary code to be loaded and run | Worker script and WASM core always loaded from the installed package; the options are ignored with a warning |
+| Language codes interpolated raw into disk paths and URLs (`langs: '../../x'` = path traversal) | Codes validated by a strict regex before any use; local reads confined to the `langPath` folder |
+| Action dispatch by unvalidated lookup (`handlers[packet.action]`) | A frozen allow-list (`Object.freeze` + `hasOwnProperty`), likewise for the `FS` methods and the scheduler's actions |
+| No size limit at all (image, traineddata, gunzip → zip bomb) | `maxImageBytes` (128 MiB), `maxLangDataBytes` (512 MiB), decompression capped through `zlib maxOutputLength` |
+| Downloads with no timeout | `fetchTimeout` (30 s by default) on every request |
+| A remote `langPath` over HTTP accepted | HTTPS mandatory for language data |
+| Any byte handed to the C/WASM decoder | Magic-byte verification (PNG, JPEG, BMP, GIF, WebP, TIFF, PNM, JP2); `allowUnknownFormats: true` to disable |
+| Non-atomic cache write (a truncated traineddata was possible) | Temp write + atomic `rename`; cache by default in `~/.cache/tesseract2.js` instead of the CWD |
+| A `throw` in the message handler → process crash without an `errorHandler` | Every error is propagated as a typed promise rejection (`ValidationError`, `NetworkError`, `WorkerError`, `TimeoutError`) |
+| Silent init failure (`.catch(() => {})`): a pending promise + a zombie thread | An init failure ⇒ the thread is terminated + `createWorker` rejects |
+| Job ids from `Math.random` | `crypto.randomUUID()` |
+| 8 runtime dependencies (node-fetch, zlibjs, bmp-js, is-url, idb-keyval…) | Just one: `tesseract.js-core` |
 
-### Robustesse / corrections
+### Robustness / fixes
 
-- Le worker qui meurt (crash, `exit`) rejette immédiatement tous les jobs en attente.
-- `scheduler.terminate()` attend réellement la fin des workers (le `forEach(async …)` d'origine ne le faisait pas).
-- Option `jobTimeout` pour borner la durée d'un `recognize`.
-- Option `resourceLimits` transmise à `worker_threads` (plafond mémoire du thread OCR).
-- `config` objet converti proprement en fichier de config (l'implémentation d'origine cassait les valeurs contenant `,` `:` `"`).
-- Correction du test PSM de `rotateAuto` (`PSM.OSD` n'existait pas → comparaison toujours fausse).
-- Les buffers d'image sont transférés (pas copiés) vers le thread worker.
-- Données de langue custom (`{ code, data }`) : la donnée explicite prime sur le cache.
-- Options inconnues rejetées (détection de typos) au lieu d'être ignorées.
+- A worker that dies (crash, `exit`) immediately rejects every pending job.
+- `scheduler.terminate()` really waits for the workers to finish (the original `forEach(async …)` did not).
+- A `jobTimeout` option to bound the duration of a `recognize`.
+- A `resourceLimits` option passed to `worker_threads` (memory ceiling of the OCR thread).
+- A `config` object converted properly into a config file (the original implementation broke values containing `,` `:` `"`).
+- Fixed `rotateAuto`'s PSM test (`PSM.OSD` did not exist → the comparison was always false).
+- Image buffers are transferred (not copied) to the worker thread.
+- Custom language data (`{ code, data }`): the explicit data wins over the cache.
+- Unknown options are rejected (typo detection) instead of being ignored.
 
-### Non repris (volontairement)
+### Deliberately not carried over
 
-- Support navigateur / CDN / blob workers.
-- Ré-encodage BMP via `bmp-js` (non maintenu) : les BMP courants passent tels quels à Leptonica ; convertissez les variantes exotiques en PNG.
-- `setLogging` global → option `logging` par worker.
-- `corePath` : le core vient toujours du package installé.
+- Browser / CDN / blob-worker support.
+- BMP re-encoding through `bmp-js` (unmaintained): ordinary BMPs go straight to Leptonica; convert exotic variants to PNG.
+- The global `setLogging` → a per-worker `logging` option.
+- `corePath`: the core always comes from the installed package.
 
-## Données de langue
+## Language data
 
-Par défaut, les `.traineddata` sont téléchargés depuis le CDN jsDelivr officiel (`@tesseract.js-data`) puis mis en cache dans `~/.cache/tesseract2.js`. Pour un usage hors-ligne, pointez `langPath` vers un dossier local :
+By default, the `.traineddata` files are downloaded from the official jsDelivr CDN (`@tesseract.js-data`) then cached in `~/.cache/tesseract2.js`. For offline use, point `langPath` at a local folder:
 
 ```js
 const worker = await createWorker('eng', OEM.LSTM_ONLY, {
-  langPath: '/opt/tessdata',   // contient eng.traineddata (ou .gz)
+  langPath: '/opt/tessdata',   // contains eng.traineddata (or .gz)
   gzip: false,
   cacheMethod: 'none',
 });
@@ -90,4 +90,4 @@ const worker = await createWorker('eng', OEM.LSTM_ONLY, {
 
 ## Licence
 
-Apache-2.0. Œuvre dérivée de tesseract.js (© projet naptha/tesseract.js) — voir `LICENSE.md`.
+Apache-2.0. A derivative work of tesseract.js (© the naptha/tesseract.js project) — see `LICENSE.md`.

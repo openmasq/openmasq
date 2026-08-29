@@ -1,22 +1,22 @@
 #!/usr/bin/env node
-// Ce qui part chez l'utilisateur ne doit pas EXPLIQUER le code qu'il contient.
+// What ships to a user must not EXPLAIN the code it contains.
 //
-// Rien de ce qui suit n'est de la protection : un `.crx` est un zip, un `.asar` est un tar,
-// un bundle Capacitor est posé en clair dans l'IPA/APK. Tout ça se lit, et se relira
-// toujours. Ce que cette porte interdit, c'est de LIVRER l'explication AVEC — la sourcemap
-// qui rend le TypeScript d'origine verbatim, et les commentaires qui, dans ce dépôt,
-// décrivent le modèle de menace et la garde qui le couvre. Les deux étaient expédiés :
-// 16 `.map` avec `sourcesContent` dans l'extension publiée, et 806 commentaires intacts
-// dans `apps/desktop/out/main/index.js`.
+// None of what follows is protection: a `.crx` is a zip, an `.asar` is a tar, a Capacitor
+// bundle sits in the clear inside the IPA/APK. All of that can be read, and always will be.
+// What this gate forbids is SHIPPING the explanation WITH it — the sourcemap that renders
+// the original TypeScript verbatim, and the comments which, in this repository, describe
+// the threat model and the guard that covers it. Both used to ship: 16 `.map` files with
+// `sourcesContent` in the published extension, and 806 intact comments in
+// `apps/desktop/out/main/index.js`.
 //
-// Deux propriétés, vérifiées sur les artefacts CONSTRUITS (un réglage vite est une
-// intention ; seul le fichier livrable est une preuve) :
+// Two properties, checked on the BUILT artefacts (a vite setting is an intention; only the
+// deliverable file is proof):
 //   1. aucune sourcemap, ni fichier `.map`, ni `sourceMappingURL` (y compris `data:`) ;
-//   2. densité de commentaires quasi nulle = le bundle est bien minifié.
+//   2. a near-zero comment density = the bundle really is minified.
 //
-// Une cible non construite est SAUTÉE, pas une erreur : `pnpm verify` doit rester utile
-// sans avoir tout empaqueté. C'est `.github/workflows/verify.yml` qui lance `pnpm build`
-// avant, donc la CI voit les trois. `--require-all` force la présence des trois.
+// A target that is not built is SKIPPED, not an error: `pnpm verify` must stay useful
+// without having packaged everything. It is `.github/workflows/verify.yml` that runs
+// `pnpm build` first, so CI sees all three. `--require-all` forces all three to be present.
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,36 +24,35 @@ import { createRequire } from "node:module";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
-// La MÊME table que celle qu'`afterPack.cjs` applique au build : une seconde liste ici
-// dériverait de la première sans que rien ne le dise (règle 9).
+// The SAME table `afterPack.cjs` applies at build time: a second list here would drift
+// from the first with nothing to say so (rule 9).
 const { findPackagingViolations, formatViolations } = require("../apps/desktop/scripts/packageContents.cjs");
 const { listPackage } = require("@electron/asar");
 const requireAll = process.argv.includes("--require-all");
 
 /**
- * `maps` : tout le dossier livré — RIEN de légitime n'y expédie une sourcemap, pas même
- * une dépendance vendorée. `code` : nos bundles à nous, les seuls dont la minification
- * nous regarde (les prebuilts vendorés — onnxruntime, tesseract — arrivent tels quels et
- * portent leurs propres en-têtes de licence, qu'on ne réécrit pas).
+ * `maps`: the whole shipped folder — NOTHING legitimate ships a sourcemap there, not even
+ * a vendored dependency. `code`: our own bundles, the only ones whose minification is our
+ * business (vendored prebuilts — onnxruntime, tesseract — arrive as-is and carry their own
+ * licence headers, which we do not rewrite).
  */
 const TARGETS = [
   {
     name: "desktop",
-    // ⚠️ Le desktop est l'EXCEPTION voulue : ses maps sont produites en `hidden`
-    // (electron.vite.config.ts) comme artefacts d'UPLOAD Sentry (release.yml) — dans
-    // `out/`, jamais dans l'app.
+    // ⚠️ Desktop is the intended EXCEPTION: its maps are produced as `hidden`
+    // (electron.vite.config.ts) as artefacts for the Sentry UPLOAD (release.yml) — in
+    // `out/`, never inside the app.
     //
-    // ⛔ CE QUI NE SUFFIT PAS, et l'a prouvé : cette porte a longtemps vérifié que la
-    // ligne `!out/**/*.map` FIGURAIT dans electron-builder.yml. Elle y figurait, la porte
-    // était verte — et l'app expédiait quand même les 26 maps, plus `src/`, `e2e/` et les
-    // `.env`, parce que l'allowlist entière avait cessé de s'appliquer (forme de
-    // `mac.files` ; voir le commentaire de ce bloc dans electron-builder.yml). Grep dans
-    // un fichier de config = vérifier une INTENTION, ce que ce fichier reproche par
-    // ailleurs aux réglages vite.
+    // ⛔ WHAT IS NOT ENOUGH, and proved it: this gate long checked that the line
+    // `!out/**/*.map` APPEARED in electron-builder.yml. It did appear, the gate was green —
+    // and the app shipped the 26 maps anyway, plus `src/`, `e2e/` and the `.env` files,
+    // because the whole allowlist had stopped applying (the shape of `mac.files`; see that
+    // block's comment in electron-builder.yml). Grepping a config file = checking an
+    // INTENTION, which is exactly what this file reproaches vite settings for.
     //
-    // La garantie vit donc là où l'artefact existe : `apps/desktop/scripts/afterPack.cjs`
-    // relit l'app.asar produit et casse l'empaquetage (mac ET Windows, tous les chemins,
-    // avant signature). Ici on ne re-vérifie que si un `.app` traîne déjà sur le disque.
+    // So the guarantee lives where the artefact exists: `apps/desktop/scripts/afterPack.cjs`
+    // reads back the produced app.asar and breaks packaging (mac AND Windows, every path,
+    // before signing). Here we only re-check if an `.app` already sits on the disk.
     maps: [],
     asarGuard: "apps/desktop/release",
     code: ["apps/desktop/out/main", "apps/desktop/out/preload", "apps/desktop/out/renderer/assets"],
@@ -62,19 +61,18 @@ const TARGETS = [
 ];
 
 /**
- * Le signal de minification est OCTETS PAR LIGNE, pas la densité de commentaires.
- * Compter les commentaires paraît plus direct et ne marche pas : esbuild PRÉSERVE les
- * en-têtes de licence en minifiant (`legalComments: "eof"` par défaut — 40 lignes de
- * `@license React` dans le gros chunk du renderer), et une feuille de style embarquée dans
- * un littéral gabarit ressemble ligne pour ligne à un commentaire. Les deux faisaient
- * échouer un bundle parfaitement minifié.
+ * The minification signal is BYTES PER LINE, not comment density. Counting comments looks
+ * more direct and does not work: esbuild PRESERVES licence headers while minifying
+ * (`legalComments: "eof"` by default — 40 lines of `@license React` in the renderer's big
+ * chunk), and a stylesheet embedded in a template literal looks line for line like a
+ * comment. Both used to fail a perfectly minified bundle.
  *
- * Mesuré sur les artefacts de ce dépôt : minifié = 732 à 8 342 octets/ligne ; en clair,
- * ~50. Le seuil est donc large des deux côtés — il ne discrimine pas finement, il sépare
- * deux régimes qui n'ont rien à voir.
+ * Measured on this repository's artefacts: minified = 732 to 8,342 bytes/line; in the
+ * clear, ~50. So the threshold is wide on both sides — it does not discriminate finely, it
+ * separates two regimes that have nothing to do with each other.
  */
 const MIN_BYTES_PER_LINE = 200;
-/** En dessous, la moyenne ne veut rien dire (un shim d'entrée fait 2 lignes). */
+/** Below that, the average means nothing (an entry shim is 2 lines). */
 const MIN_BYTES = 50 * 1024;
 
 function* jsFiles(dir) {
@@ -86,7 +84,7 @@ function* jsFiles(dir) {
   }
 }
 
-/** Les `app.asar` sous un dossier de release (mac-arm64/, mac/, win-unpacked/, …). */
+/** The `app.asar` files under a release folder (mac-arm64/, mac/, win-unpacked/, …). */
 function* asarFiles(dir) {
   if (!existsSync(dir)) return;
   for (const name of readdirSync(dir)) {
@@ -116,16 +114,16 @@ for (const t of TARGETS) {
   }
   checked.push(t.name);
 
-  // ── 0. L'exception desktop : relire l'APP, si elle a déjà été empaquetée ───
+  // ── 0. The desktop exception: read the APP back, if it has already been packaged ───
   if (t.asarGuard) {
     for (const asar of asarFiles(join(root, t.asarGuard))) {
       const violations = findPackagingViolations(listPackage(asar));
-      // UN problème par asar, groupé : une fuite se compte en centaines d'entrées, et les
-      // dérouler noierait le diagnostic dans son propre volume.
+      // ONE problem per asar, grouped: a leak counts in hundreds of entries, and unrolling
+      // them would drown the diagnosis in its own volume.
       if (violations.length > 0) {
         problems.push({
           target: t.name,
-          msg: `${relative(root, asar)} — ${violations.length} entrée(s) interdite(s) :\n${formatViolations(violations)}`,
+          msg: `${relative(root, asar)} — ${violations.length} forbidden entr(y/ies):\n${formatViolations(violations)}`,
         });
       }
     }
@@ -139,25 +137,25 @@ for (const t of TARGETS) {
       try {
         const m = JSON.parse(readFileSync(file, "utf8"));
         if (Array.isArray(m.sourcesContent) && m.sourcesContent.some(Boolean)) {
-          detail = ` — contient le SOURCE de ${m.sourcesContent.filter(Boolean).length} fichier(s)`;
+          detail = ` — contains the SOURCE of ${m.sourcesContent.filter(Boolean).length} file(s)`;
         }
       } catch {
-        /* une .map illisible reste une .map de trop */
+        /* an unreadable .map is still one .map too many */
       }
-      problems.push({ target: t.name, msg: `sourcemap expédiée : ${rel}${detail}` });
+      problems.push({ target: t.name, msg: `sourcemap shipped: ${rel}${detail}` });
     }
   }
 
-  // ── 2. Aucune référence de sourcemap, et un bundle bien minifié ────────────
+  // ── 2. No sourcemap reference, and a properly minified bundle ──────────────
   for (const dir of t.code) {
     for (const file of jsFiles(join(root, dir))) {
       const text = readFileSync(file, "utf8");
       const rel = relative(root, file);
 
       if (text.includes("sourceMappingURL=data:")) {
-        problems.push({ target: t.name, msg: `sourcemap INLINE (data:) dans ${rel}` });
+        problems.push({ target: t.name, msg: `INLINE sourcemap (data:) in ${rel}` });
       } else if (/[#@]\s*sourceMappingURL=/.test(text)) {
-        problems.push({ target: t.name, msg: `référence de sourcemap dans ${rel}` });
+        problems.push({ target: t.name, msg: `sourcemap reference in ${rel}` });
       }
 
       if (text.length < MIN_BYTES) continue;
@@ -166,7 +164,7 @@ for (const t of TARGETS) {
         problems.push({
           target: t.name,
           msg:
-            `${rel} n'est pas minifié — ${Math.round(perLine)} octets/ligne ` +
+            `${rel} is not minified — ${Math.round(perLine)} bytes/line ` +
             `(plancher ${MIN_BYTES_PER_LINE})`,
         });
       }
@@ -176,23 +174,23 @@ for (const t of TARGETS) {
 
 if (requireAll && skipped.length) {
   for (const t of skipped) {
-    problems.push({ target: t.name, msg: `pas construit (--require-all) — lancez : ${t.build}` });
+    problems.push({ target: t.name, msg: `not built (--require-all) — run: ${t.build}` });
   }
 }
 
 if (problems.length) {
-  console.error(`\n✗ ${problems.length} problème(s) dans les bundles expédiés :\n`);
+  console.error(`\n✗ ${problems.length} problem(s) in the shipped bundles:\n`);
   for (const p of problems) console.error(`    [${p.target}] ${p.msg}`);
   console.error(
-    "\n  Une sourcemap embarque `sourcesContent`, donc le TypeScript d'origine, commentaires\n" +
-      "  compris. Le desktop produit les siennes en `hidden`, et c'est l'allowlist `files`\n" +
-      "  d'electron-builder qui les tient hors de l'app — allowlist RELUE sur l'app.asar par\n" +
-      "  apps/desktop/scripts/afterPack.cjs, pas seulement écrite dans un YAML. L'extension et\n" +
-      "  le mobile n'en produisent aucune (leur livraison zippe le dossier entier).\n" +
-      "  Un app.asar déjà sur le disque et fautif date d'avant le correctif : reconstruisez-le.\n",
+    "\n  A sourcemap embeds `sourcesContent`, hence the original TypeScript, comments\n" +
+      "  included. Desktop produces its own as `hidden`, and it is electron-builder's `files`\n" +
+      "  allowlist that keeps them out of the app — an allowlist READ BACK on the app.asar by\n" +
+      "  apps/desktop/scripts/afterPack.cjs, not merely written in a YAML. The extension and\n" +
+      "  mobile produce none (their delivery zips the whole folder).\n" +
+      "  An app.asar already on disk and at fault predates the fix: rebuild it.\n",
   );
   process.exit(1);
 }
 
-const suffix = skipped.length ? ` (non construit, sauté : ${skipped.map((t) => t.name).join(", ")})` : "";
-console.log(`✓ bundles expédiés sans sourcemap ni source lisible : ${checked.join(", ") || "aucun"}${suffix}`);
+const suffix = skipped.length ? ` (not built, skipped: ${skipped.map((t) => t.name).join(", ")})` : "";
+console.log(`✓ shipped bundles carry no sourcemap and no readable source: ${checked.join(", ") || "none"}${suffix}`);

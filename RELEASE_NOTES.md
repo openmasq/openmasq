@@ -1,32 +1,38 @@
-# Notes de version
+# Release notes
 
-Ce fichier alimente l'**email d'annonce de release** (`packages/emails` →
-`ReleaseNotes`). À chaque release de **production** (tag `v*`), la CI lit la section
-de la version publiée, la rend en email, et crée un **broadcast Resend en brouillon**
-— relu puis envoyé à la main depuis le dashboard Resend (Resend gère l'audience + le
-désabonnement). Voir `packages/emails/scripts/release-broadcast.ts`.
+This file feeds the **release announcement e-mail** (`packages/emails` → `ReleaseNotes`). On
+every **production** release (a `v*` tag), CI reads the published version's section, renders
+it as an e-mail, and creates a **draft Resend broadcast** — re-read then sent by hand from
+the Resend dashboard (Resend handles the audience + unsubscribes). See
+`packages/emails/scripts/release-broadcast.ts`.
 
-**Format par version — le parseur (`scripts/parseReleaseNotes.ts`) en dépend :**
+⚠️ **The notes themselves are written in FRENCH, on purpose**: they are the copy users
+receive, and the product speaks French. Everything else in this repository is English (see
+`CONTRIBUTING.md`) — this file is the exception, because its content is not documentation but
+a message to customers.
 
-- un titre `## <version> — <AAAA-MM-JJ>` (la version DOIT correspondre à
-  `apps/desktop/package.json`) ;
-- une ligne d'accroche en citation `> …` (le teaser sous le titre) ;
-- une liste `### Nouveautés` de puces `- **Titre** — description` (les features mises en
-  avant, rendues avec une coche) — **3 au maximum, une ligne chacune** ;
-- une liste `### Améliorations & corrections` de puces `- …` (rendues avec une puce
-  violette) — **6 au maximum, une ligne chacune**.
+**Per-version format — the parser (`scripts/parseReleaseNotes.ts`) depends on it:**
 
-⚠️ Les deux sections se lisent EN PUCES. La prose y reste acceptée pour les notes déjà
-publiées — Contentful sert une note passée comme un seul bloc markdown — mais une section
-qui porte des puces rend ses puces et rien d'autre.
+- a `## <version> — <YYYY-MM-DD>` heading, carrying the version being released — that is
+  the string CI looks up (an absent section is the no-op stated below, never a broken
+  release);
+- a quoted lead line `> …` (the teaser under the title);
+- a `### Nouveautés` list of `- **Title** — description` bullets (the highlighted features,
+  rendered with a tick) — **3 at most, one line each**;
+- an `### Améliorations & corrections` list of `- …` bullets (rendered with a purple bullet)
+  — **6 at most, one line each**.
 
-Le budget n'est pas une préférence de style : une note se lit en trente secondes ou ne se
-lit pas. Il est tenu des deux côtés — le schéma du générateur le plafonne
-(`packages/emails/scripts/generateNote.ts`) et l'étape 3 du skill `release-version` le dit
-à l'identique, `generateNote.budget.test.ts` vérifiant que les deux s'accordent.
+⚠️ Both sections are read AS BULLETS. Prose stays accepted for already-published notes —
+Contentful serves a past note as a single markdown block — but a section that carries bullets
+renders its bullets and nothing else.
 
-Une version sans section ici ⇒ la CI n'envoie rien (no-op, la release n'est pas
-bloquée). Garder la section la plus récente **en haut**.
+The budget is not a style preference: a note is read in thirty seconds or it is not read. It
+is held on both sides — the generator's schema caps it
+(`packages/emails/scripts/generateNote.ts`) and step 3 of the `release-version` skill says the
+same thing, with `generateNote.budget.test.ts` checking that the two agree.
+
+A version with no section here ⇒ CI sends nothing (a no-op; the release is not blocked). Keep
+the most recent section **at the top**.
 
 ---
 

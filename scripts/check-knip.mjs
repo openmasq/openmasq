@@ -87,13 +87,13 @@ for (const c of CATEGORIES) {
 if (grown.length) {
   console.error(`\n✗ Dead code grew (${grown.length} categor${grown.length === 1 ? "y" : "ies"}):`);
   for (const g of grown) console.error(`    ${g}`);
-  // ⚠️ NOMMER les trouvailles, pas seulement les compter. « Run `pnpm exec knip` » est un
-  // conseil inutile là où ce gate tombe : sur un runner, personne ne peut relancer knip à
-  // la main, et le verdict peut dépendre de l'environnement (un fichier généré présent en
-  // local, absent d'un checkout propre) — auquel cas la commande locale ne reproduit même
-  // pas la panne. Un gate qui dit « +1 » sans dire QUOI envoie chercher à l'aveugle.
+  // ⚠️ NAME the findings, do not merely count them. "Run `pnpm exec knip`" is useless
+  // advice where this gate fails: on a runner nobody can re-run knip by hand, and the
+  // verdict can depend on the environment (a generated file present locally, absent from a
+  // clean checkout) — in which case the local command does not even reproduce the failure.
+  // A gate that says "+1" without saying WHAT sends people searching blind.
   const grownCats = new Set(grown.map((g) => g.split(":")[0]));
-  console.error(`\n  Les trouvailles de ${[...grownCats].join(", ")} (les nouvelles sont dedans) :`);
+  console.error(`\n  Findings for ${[...grownCats].join(", ")} (the new ones are in there):`);
   let shown = 0;
   for (const entry of report.issues ?? []) {
     for (const c of grownCats) {
@@ -106,9 +106,9 @@ if (grown.length) {
   }
   if (shown > 40) console.error(`    … et ${shown - 40} autre(s)`);
   console.error(
-    `\n  Soit c'est mort et ça se supprime, soit c'est atteignable et knip ne le voit pas\n` +
-      `  (import dynamique, point d'entrée de plateforme, fichier généré) — dans ce cas on\n` +
-      `  l'apprend à knip.json, on ne re-gèle pas le nombre.\n`,
+    `\n  Either it is dead and gets deleted, or it is reachable and knip cannot see it\n` +
+      `  (dynamic import, platform entry point, generated file) — in which case teach\n` +
+      `  knip.json about it; do not re-freeze the number.\n`,
   );
   process.exit(1);
 }

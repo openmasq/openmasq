@@ -1,34 +1,34 @@
 #!/usr/bin/env node
-// Les VALEURS de marque ont UNE maison : `packages/branding/branding.json`, consommé via
-// `@openmasq/branding` (`BRAND`, `brandHost`, `brandKey`…) — toute valeur runtime/fil/disque
-// (domaine, scheme de deep-link, clé de stockage, en-tête) en DÉRIVE, jamais un littéral.
-// Le NOM, lui, sert aussi de namespace technique (scope npm, env `OPENMASQ_*`,
-// `window.openmasq`) — il n'est plus interdit hors de ce paquet.
+// Brand VALUES have ONE home: `packages/branding/branding.json`, consumed through
+// `@openmasq/branding` (`BRAND`, `brandHost`, `brandKey`…) — every runtime/wire/disk value
+// (domain, deep-link scheme, storage key, header) DERIVES from it, never a literal. The
+// NAME also serves as the technical namespace (npm scope, `OPENMASQ_*` env,
+// `window.openmasq`) — it is no longer forbidden outside that package.
 //
-// Ce que ce garde interdit : le retour d'un nom RETIRÉ. Une occurrence est un résidu (un
-// copier-coller d'une vieille branche, un import d'un vieux scope, une env d'un ancien
-// nommage) qui casserait silencieusement — ni le scope npm, ni les variables
-// d'environnement, ni `window.*` ne portent plus ces noms.
+// What this guard forbids: the return of a RETIRED name. An occurrence is a residue (a
+// copy-paste from an old branch, an import from an old scope, an env from an older naming)
+// that would break silently — neither the npm scope, nor the environment variables, nor
+// `window.*` carry those names any more.
 import { execFileSync } from "node:child_process";
 
-// Les SEULES exceptions : la migration du parc. Une install d'avant le renommage porte
-// ses données sous l'ancien nom (clés localStorage, fichier DB partagé pré-isolation),
-// et le code qui les REPREND doit nommer ce qu'il cherche. Trois maisons, pas une de
-// plus — un nouveau lecteur de l'ancien nom passe par `legacyStorage.ts`.
+// The ONLY exceptions: migrating the installed base. An install from before the rename
+// carries its data under the old name (localStorage keys, the shared pre-isolation DB
+// file), and the code that ADOPTS them must name what it is looking for. Three homes, not
+// one more — a new reader of the old name goes through `legacyStorage.ts`.
 const ALLOWED = new Set([
-  // La passe de migration localStorage (copie ancien préfixe → courant).
+  // The localStorage migration pass (copies the old prefix → the current one).
   "packages/ui/src/state/legacyStorage.ts",
-  // Le script de thème pré-bundle : il court AVANT la migration, donc il replie seul.
+  // The pre-bundle theme script: it runs BEFORE the migration, so it falls back on its own.
   "apps/desktop/src/renderer/index.html",
-  // L'adoption du DB partagé pré-isolation : le fichier du parc porte l'ancien nom.
+  // Adopting the shared pre-isolation DB: the installed base's file carries the old name.
   "apps/desktop/src/main/db/connection.ts",
 ]);
 
-// Jamais écrits en clair : ce garde scanne aussi son propre fichier, et le motif en
-// littéral serait sa seule « occurrence » — il s'échouerait lui-même. TROIS noms retirés :
-// les deux noms de code du dépôt, et le nom de marque abandonné avant OpenMasq. Le dernier
-// n'a AUCUNE exception : il n'a jamais atteint un disque d'utilisateur, donc rien ne doit
-// le relire (à l'inverse des deux premiers, cf. `ALLOWED`).
+// Never written in the clear: this guard scans its own file too, and the literal pattern
+// would be its only "occurrence" — it would fail itself. THREE retired names: the
+// repository's two codenames, and the brand name abandoned before OpenMasq. The last one
+// has NO exception: it never reached a user's disk, so nothing must read it back (unlike
+// the first two, cf. `ALLOWED`).
 const NEEDLES = [
   ["proxy", "chat"].join(""),
   ["kav", "iar"].join(""),
@@ -38,22 +38,22 @@ const NEEDLES = [
 let out = "";
 for (const needle of NEEDLES) {
   try {
-    // Fichiers suivis par git seulement : node_modules, dist et artefacts locaux sont hors jeu.
-    // -a : trois fixtures à octets de contrôle passent pour binaires et échapperaient à -I.
+    // Git-tracked files only: node_modules, dist and local artefacts are out of play.
+    // -a: three fixtures with control bytes look binary and would escape -I.
     out += execFileSync(
       "git",
       ["grep", "-a", "-i", "-n", "--full-name", needle, "--", ".", ":!pnpm-lock.yaml"],
       { encoding: "utf8" },
     );
   } catch (err) {
-    // git grep sort en code 1 quand il ne trouve RIEN — c'est le succès ici.
+    // git grep exits with code 1 when it finds NOTHING — that is success here.
     if (err.status === 1 && !err.stdout?.length) continue;
     if (err.stdout) out += err.stdout.toString();
     else throw err;
   }
 }
 if (!out.length) {
-  console.log("check:brand — aucun résidu des noms retirés.");
+  console.log("check:brand — no residue of the retired names.");
   process.exit(0);
 }
 
@@ -63,9 +63,9 @@ const offenders = out
   .filter((line) => !ALLOWED.has(line.split(":", 1)[0]));
 
 if (offenders.length) {
-  console.error("Un nom retiré ne doit plus apparaître (voir NEEDLES) :");
+  console.error("A retired name must not appear any more (see NEEDLES):");
   for (const line of offenders.slice(0, 50)) console.error("  " + line);
-  if (offenders.length > 50) console.error(`  … et ${offenders.length - 50} autres lignes`);
+  if (offenders.length > 50) console.error(`  … and ${offenders.length - 50} more lines`);
   process.exit(1);
 }
-console.log("check:brand — aucun résidu des noms retirés (hors exceptions nommées).");
+console.log("check:brand — no residue of the retired names (outside the named exceptions).");

@@ -1,31 +1,31 @@
 /**
- * `electron`, vu par la SUITE UNITAIRE — un bouchon, jamais le vrai paquet.
+ * `electron`, as seen by the UNIT SUITE — a stub, never the real package.
  *
- * ⚠️ Le vrai `electron/index.js` ne rend pas une API : il rend le CHEMIN du binaire, et si
- * `path.txt` manque il TÉLÉCHARGE 295 Mo à l'import. En local le binaire est là, donc rien
- * ne se voit ; sur un runner il ne l'est pas, et le premier fichier de test qui touche
- * `electron` paie le téléchargement AU MILIEU de la suite. Vécu le 12/08 : `fetch failed`,
- * « Electron failed to install correctly », un fichier rouge sur 647 — et deux minutes plus
- * tard un AUTRE fichier qui importe le même module passait au vert. Ce n'était donc pas un
- * test cassé mais une COURSE, que seule la chance arbitrait, et qu'aucun `pnpm test` local
+ * ⚠️ The real `electron/index.js` does not return an API: it returns the binary's PATH, and
+ * if `path.txt` is missing it DOWNLOADS 295 MB on import. Locally the binary is there, so
+ * nothing shows; on a runner it is not, and the first test file touching `electron` pays for
+ * the download IN THE MIDDLE of the suite. Lived through once: `fetch failed`, "Electron
+ * failed to install correctly", one red file out of 647 — and two minutes later ANOTHER file
+ * importing the same module went green. So it was not a broken test but a RACE, arbitrated
+ * by luck alone, which no local `pnpm test`
  * ne pouvait montrer.
  *
- * L'alias (`vitest.config.ts`) supprime la course en supprimant sa cause : plus rien de la
- * suite ne résout le vrai paquet, donc plus de réseau, et le local et la CI voient
- * exactement la même chose.
+ * The alias (`vitest.config.ts`) removes the race by removing its cause: nothing in the
+ * suite resolves the real package any more, hence no network, and local and CI see exactly
+ * the same thing.
  *
- * Ce que le bouchon N'EST PAS : une API d'Electron. Chaque nom rend un objet qui JETTE au
- * premier accès, avec la marche à suivre. Un test qui a besoin d'un comportement le déclare,
- * comme les 21 fichiers qui le font déjà (`vi.mock("electron", …)`, qui gagne sur cet alias).
- * Un import qui n'était qu'incident — le cas de `webFetchMany` — ne coûte rien : personne ne
- * touche l'objet, donc rien ne jette.
+ * What the stub IS NOT: an Electron API. Every name returns an object that THROWS on first
+ * access, with the procedure to follow. A test that needs a behaviour declares it, like the
+ * 21 files that already do (`vi.mock("electron", …)`, which wins over this alias). An import
+ * that was merely incidental — the `webFetchMany` case — costs nothing: nobody touches the
+ * object, so nothing throws.
  */
 
 function absent(name: string): unknown {
   const boom = (prop: string): never => {
     throw new Error(
-      `electron.${name}.${prop} — la suite unitaire n'a PAS Electron (bouchon : ` +
-        `scripts/vitest.electron-stub.ts). Déclarez ce dont ce test a besoin :\n` +
+      `electron.${name}.${prop} — the unit suite has NO Electron (stub: ` +
+        `scripts/vitest.electron-stub.ts). Declare what this test needs:\n` +
         `  vi.mock("electron", () => ({ ${name}: { ${prop}: vi.fn() } }));`,
     );
   };
@@ -33,8 +33,8 @@ function absent(name: string): unknown {
     {},
     {
       get(_t, prop) {
-        // `then` est interrogé par tout `await` : jeter ici transformerait un simple
-        // `await import(...)` en échec illisible. Un module n'est pas une promesse.
+        // `then` is probed by every `await`: throwing here would turn a plain
+        // `await import(...)` into an unreadable failure. A module is not a promise.
         if (prop === "then" || typeof prop === "symbol") return undefined;
         return boom(String(prop));
       },
@@ -42,11 +42,11 @@ function absent(name: string): unknown {
   );
 }
 
-/** `app` fait EXCEPTION sur son cycle de vie : enregistrer un écouteur au chargement du
- *  module (`app.on("before-quit", …)` — `runtime/quitState.ts`) est un motif Electron
- *  normal, pas un comportement qu'un test affirme. Jeter là obligerait chaque test qui
- *  importe transitivement un fichier main à mocker electron pour rien. Les écouteurs
- *  sont avalés ; tout le RESTE d'`app` garde le contrat « jette en dictant le vi.mock ». */
+/** `app` is the EXCEPTION on its lifecycle: registering a listener at module load
+ *  (`app.on("before-quit", …)` — `runtime/quitState.ts`) is a normal Electron pattern, not a
+ *  behaviour a test asserts. Throwing there would force every test that transitively imports
+ *  a main file to mock electron for nothing. Listeners are swallowed; ALL THE REST of `app`
+ *  keeps the "throw while dictating the vi.mock" contract. */
 const APP_LIFECYCLE = new Set(["on", "once", "off", "removeListener", "addListener"]);
 const appBase = absent("app") as Record<PropertyKey, unknown>;
 export const app = new Proxy(

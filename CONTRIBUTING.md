@@ -1,21 +1,26 @@
-# Contribuer à OpenMasq
+# Contributing to OpenMasq
 
-Merci de vouloir contribuer. Ce document dit comment travailler ici sans friction : le
-dépôt s'auto-vérifie beaucoup (une vingtaine de gates), et une PR qui les passe se
-relit vite. Licence et conditions de contribution : voir `LICENSE`.
+Thanks for wanting to contribute. This document says how to work here without friction:
+the repository checks itself a great deal (about twenty gates), and a pull request that
+passes them is quick to review.
 
-## Démarrer
+The project is under the [Apache License 2.0](LICENSE). By opening a pull request you
+submit your contribution under that same licence — section 5 of the licence says so, and
+there is no separate agreement to sign.
 
-Prérequis : **Node ≥ 20** (la CI tourne en 26), **pnpm** (`corepack enable`), et Docker
-pour la stack backend locale.
+## Getting started
+
+Prerequisites: **Node ≥ 20** (CI runs 26), **pnpm** (`corepack enable`), and Docker for
+the local backend stack.
 
 ```bash
 pnpm install
-pnpm dev                     # construit les packages puis lance l'app Electron
+pnpm dev                     # builds the packages, then launches the Electron app
 ```
 
-Le dev ne parle qu'à des services **locaux** (convention committée dans
-`apps/desktop/.env.development`). Pour la connexion de compte et le redaction cloud :
+Dev talks to **local** services only (the convention is committed in
+`apps/desktop/.env.development`). The app runs with no backend at all; for account
+sign-in and server-side redaction, bring the local stack up:
 
 ```bash
 cd apps/backend && docker compose up -d     # Postgres + GoTrue + gateway + Mailpit
@@ -23,70 +28,72 @@ pnpm --filter @openmasq/backend migrate && pnpm --filter @openmasq/backend seed
 pnpm --filter @openmasq/backend dev           # → :3003
 ```
 
-## La boucle de travail
+Running your own deployment instead — the services, their variables, the order — is
+`SELF_HOSTING.md`.
+
+## The working loop
 
 ```bash
-pnpm test:changed      # après chaque salve d'édition — remonte le graphe depuis le diff
-pnpm test:related <f>  # cibler des fichiers (sans `--`, pnpm l'avale)
-pnpm test:redact       # le moteur de redaction seul (~4 s)
-pnpm check:lint        # Biome lint (gaté en CI et au pré-commit)
-pnpm format            # Biome format — applique-le à ton code NEUF
-pnpm verify            # la suite complète des gates, à passer avant la PR
+pnpm test:changed      # after each burst of edits — walks the graph from the diff
+pnpm test:related <f>  # target files (no `--`, pnpm swallows it)
+pnpm test:redact       # the redaction engine alone (~4 s)
+pnpm check:lint        # Biome lint (gated in CI and at pre-commit)
+pnpm format            # Biome format — apply it to the code you WRITE
+pnpm verify            # the full gate suite, to pass before opening a PR
 ```
 
-**Format vs lint.** Le **lint** est gaté partout (CI + pré-commit). Le **format** (Biome)
-est disponible et configuré pour ton éditeur, mais il n'est **pas** imposé rétroactivement
-sur tout l'arbre : le code existant est écrit dense pour tenir sous le cap de 300 lignes
-(règle 1), et un reformatage global le ferait déborder. Applique `pnpm format` à ce que tu
-écris ; ne reformate pas des fichiers que tu ne touches pas.
+**Format vs lint.** **Lint** is gated everywhere (CI + pre-commit). **Format** (Biome) is
+available and configured for your editor, but it is **not** enforced retroactively over
+the whole tree: existing code is written dense to stay under the 300-line cap (rule 1),
+and a global reformat would push it over. Run `pnpm format` on what you write; do not
+reformat files you are not touching.
 
-⚠️ **`pnpm test:e2e` frappe la vraie API OpenAI et coûte de l'argent réel.** Ne le
-lancez jamais par curiosité ; les tests unitaires (`pnpm test`, 7 000+) sont gratuits et
-couvrent l'essentiel. Les gates e2e sont derrière des variables d'env
-(`apps/desktop/e2e/helpers.ts`) précisément pour ça.
+⚠️ **`pnpm test:e2e` hits the real OpenAI API and costs real money.** Never run it out of
+curiosity; the unit tests (`pnpm test`, 7 000+) are free and cover the essentials. The e2e
+suites sit behind environment variables (`apps/desktop/e2e/helpers.ts`) for exactly that
+reason.
 
-## Les gates — pourquoi ça vous bloque, et comment lire le rouge
+## The gates — why they block you, and how to read the red
 
-Les conventions ne sont pas demandées, elles sont **exécutées**. Chaque gate imprime la
-raison de son existence quand elle échoue — lisez le message avant de contourner :
+Conventions here are not asked for, they are **enforced**. Each gate prints the reason it
+exists when it fails — read the message before working around it:
 
-| Gate | Ce qu'elle protège |
+| Gate | What it protects |
 |---|---|
-| `check:lint` | Les erreurs que le typecheck ne voit pas (hook mal placé, import mort, chaînage optionnel casté), via Biome. |
-| `check:loc` | Aucun fichier source > 300 lignes (dette gelée, ne peut que décroître). |
-| `check:dup` | Un fait/comportement n'a qu'UNE maison — pas de copie « à garder en phase ». |
-| `check:docs` | Le `CLAUDE.md` racine ne cite que des chemins qui existent. |
-| `check:features` | `FEATURES.md` décrit le produit réel (écrans, réglages, compteurs). |
-| `check:tests` | Tout fichier `*.test.ts` suivi est réellement exécuté par un `include`. |
-| `check:brand` | L'ancien nom de code du dépôt ne réapparaît pas. |
-| `check:pii` | Aucune identité réelle ne revient dans les fixtures (empreintes hachées). |
-| `check:actions` | Toute GitHub Action est épinglée sur un SHA de commit. |
-| `check:knip` | Le code mort ne croît pas (cliquet). |
+| `check:lint` | The errors typechecking cannot see (misplaced hook, dead import, cast optional chain), via Biome. |
+| `check:loc` | No source file over 300 lines (frozen debt, may only shrink). |
+| `check:dup` | A fact or a behaviour has ONE home — no copy "kept in sync". |
+| `check:docs` | The root `CLAUDE.md` only cites paths that exist. |
+| `check:features` | `FEATURES.md` describes the real product (screens, settings, counters). |
+| `check:tests` | Every tracked `*.test.ts` file is actually run by an `include`. |
+| `check:brand` | The repository's retired codename does not come back. |
+| `check:pii` | No real identity returns in the fixtures (hashed fingerprints). |
+| `check:actions` | Every GitHub Action is pinned to a commit SHA. |
+| `check:knip` | Dead code does not grow (ratchet). |
 
-Les invariants de fond (fail-closed, allow-list jamais deny-list, le renderer est
-untrusted, la frontière modèle/extérieur du redaction) sont dans **`CLAUDE.md`** à la
-racine — lisez-le avant une première modification, il est court et c'est la carte.
+The deeper invariants — fail closed, allow-list never deny-list, the renderer is
+untrusted, the model/outside boundary of redaction — are in **`CLAUDE.md`** at the root.
+Read it before a first change: it is short, and it is the map.
 
-## Commits et pull requests
+## Commits and pull requests
 
-- **Une PR = UNE intention** — un bug, une feature ou un refactor, jamais deux. Le
-  mécanique (renommage, déplacement, formatage) part dans sa PROPRE PR, avant le
-  comportemental. Cible ≤ 400 lignes de diff ; au-delà, PR empilées.
-- **Un commit = une étape cohérente, verte seule** (un `git bisect` doit pouvoir s'y
-  arrêter). Pas de « wip », « oops », « fixup » dans l'historique poussé — squashez
-  avant de pousser.
-- **Titres en ANGLAIS, conventional commits, effet observable** :
-  `type(scope): what the code does NOW`, type parmi `feat|fix|refactor|chore|docs|test`.
-  Jamais « update » ni « improvements ». Le corps peut être en français ou en anglais.
-- **Corps de PR : 3 blocs** (le template les porte) — *Quoi/pourquoi* (l'intention, pas
-  le diff paraphrasé), *Vérifié* (les gates réellement passées), *Résiduels* (ce qui
-  reste ouvert, ou « aucun »).
-- **Un correctif de sécurité ne se décrit jamais** : dites ce que le code garantit
-  DÉSORMAIS, jamais ce qui était exposé ni depuis quand (voir `SECURITY.md`).
-- Flux : **fork → branche → PR vers `main`**. Personne ne pousse directement. Merge en
-  rebase, jamais de merge-commit.
+- **One PR = ONE intent** — a bug, a feature or a refactor, never two. The mechanical part
+  (rename, move, format) goes in its OWN PR, before the behavioural one. Aim for ≤ 400
+  lines of diff; beyond that, stack PRs.
+- **One commit = one coherent step, green on its own** (a `git bisect` must be able to stop
+  there). No "wip", "oops" or "fixup" in pushed history — squash before you push.
+- **Titles in ENGLISH, conventional commits, observable effect**:
+  `type(scope): what the code does NOW`, with type among
+  `feat|fix|refactor|chore|docs|test`. Never "update" nor "improvements".
+- **PR body: 3 blocks** (the template carries them) — *What/why* (the intent, not the diff
+  paraphrased), *Verified* (the gates you actually ran), *Residuals* (what stays open, or
+  "none").
+- **A security fix is never described**: say what the code guarantees NOW, never what was
+  exposed nor since when (see `SECURITY.md`).
+- Flow: **fork → branch → PR against `main`**. Nobody pushes directly. Rebase merges, never
+  a merge commit.
 
-## Sécurité
+## Security
 
-Une vulnérabilité ne se signale **jamais** dans une issue publique — voir `SECURITY.md`
-(flow *Security → Report a vulnerability*).
+A vulnerability is **never** reported in a public issue — see `SECURITY.md` (the
+*Security → Report a vulnerability* flow).

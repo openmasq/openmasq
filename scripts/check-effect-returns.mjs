@@ -1,16 +1,16 @@
-// La porte ANTI-« destroy is not a function » — la classe de bug qu'elle interdit :
+// The ANTI-"destroy is not a function" gate — the class of bug it forbids:
 // un `useEffect(() => expr)` en ARROW CONCISE retourne `expr` comme fonction de
-// nettoyage. Si `expr` se met un jour à retourner autre chose qu'une fonction, React
-// l'appelle au démontage et TOUTE l'app tombe sur l'ErrorBoundary. Ce n'est pas
-// théorique : Chromium a changé `scrollIntoView` pour retourner une PROMISE, et
-// `useEffect(() => el.scrollIntoView(...))` — correct depuis des mois — a mis l'app à
-// terre à chaque changement de modèle. `lib.dom` déclarant encore `void`, le typecheck
-// ne PEUT PAS voir cette classe : la plateforme bouge sous les types.
+// cleanup. If `expr` one day starts returning something other than a function, React
+// calls it on unmount and the WHOLE app lands on the ErrorBoundary. This is not
+// theoretical: Chromium changed `scrollIntoView` to return a PROMISE, and
+// `useEffect(() => el.scrollIntoView(...))` — correct for months — took the app down on
+// every model change. Since `lib.dom` still declares `void`, typechecking CANNOT see this
+// class: the platform moves underneath the types.
 //
-// La règle : un effet s'écrit en CORPS DE BLOC, et ce qu'il retourne s'écrit `return …`
-// — un retour EXPLICITE est un choix relu, un retour d'arrow concise est un accident
-// qui attend son heure. Seule exception : `() => () => …` (cleanup pur, sans corps),
-// dont le retour est une fonction par construction.
+// The rule: an effect is written with a BLOCK BODY, and what it returns is written
+// `return …` — an EXPLICIT return is a reviewed choice, a concise-arrow return is an
+// accident waiting to happen. The only exception: `() => () => …` (a pure cleanup, with no
+// body), whose return is a function by construction.
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
@@ -19,9 +19,9 @@ const ROOTS = [
   "apps/desktop/src/renderer",
   "apps/web",
 ];
-// `useEffect(() => X` où X n'est ni un bloc `{`, ni un cleanup pur `() =>`, ni un
-// `void expr` (rejet explicite du retour — sûr par construction). Le `\S` final ancre
-// la position : sans lui, `\s*` recule d'un cran et les lookaheads testent une espace.
+// `useEffect(() => X` where X is neither a block `{`, nor a pure cleanup `() =>`, nor a
+// `void expr` (an explicit rejection of the return — safe by construction). The trailing `\S` anchors
+// the position: without it, `\s*` backs up one notch and the lookaheads test a space.
 const CONCISE = /use(?:Layout|Insertion)?Effect\(\s*\(\)\s*=>\s*(?!\{)(?!\(\)\s*=>)(?!void\b)\S/;
 
 function* walk(dir) {
@@ -50,14 +50,14 @@ for (const root of ROOTS) {
 }
 
 if (hits.length) {
-  console.error(`\n✗ ${hits.length} effet(s) en arrow concise — le retour implicite devient le cleanup de React :`);
+  console.error(`\n✗ ${hits.length} concise-arrow effect(s) — the implicit return becomes React's cleanup:`);
   for (const h of hits) console.error(`    ${h}`);
   console.error(
-    "\n  Écrivez un CORPS DE BLOC : `useEffect(() => { expr; }, deps)` — et si un retour est voulu" +
-      "\n  (unsubscribe, cleanup), écrivez `return …;` explicitement. La plateforme change ce que les" +
-      "\n  API DOM retournent sous les types (`scrollIntoView` → Promise) : l'implicite finit sur" +
-      "\n  l'ErrorBoundary. Ne supprimez jamais cette porte.\n",
+    "\n  Write a BLOCK BODY: `useEffect(() => { expr; }, deps)` — and if a return is intended" +
+      "\n  (unsubscribe, cleanup), write `return …;` explicitly. The platform changes what DOM" +
+      "\n  APIs return underneath the types (`scrollIntoView` → Promise): the implicit one ends" +
+      "\n  up on the ErrorBoundary. Never remove this gate.\n",
   );
   process.exit(1);
 }
-console.log("✓ aucun effet en arrow concise (le cleanup de React est toujours un retour explicite)");
+console.log("✓ no concise-arrow effect (React's cleanup is always an explicit return)");

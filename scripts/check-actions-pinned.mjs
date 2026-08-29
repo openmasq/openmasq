@@ -26,12 +26,12 @@ const SHA = /^[0-9a-f]{40}$/;
 const problems = [];
 let pinned = 0;
 
-/** ⚠️ Le contexte `secrets` est INTERDIT dans un `if:` — ni de job, ni d'étape. GitHub ne
- *  le signale pas à l'exécution : il refuse de CHARGER le workflow, et le run apparaît en
- *  échec AVEC ZÉRO JOB. Une release entière (mac comprise) est ainsi tombée pour une
- *  condition qui ne concernait que Windows, et rien en local ne l'avait vue — d'où cette
- *  règle, ajoutée au garde qui lit déjà tous les workflows. Le contournement tient en une
- *  ligne : passer le secret par l'`env:` du job, que `if:` sait lire. */
+/** ⚠️ The `secrets` context is FORBIDDEN inside an `if:` — neither on a job nor on a
+ *  step. GitHub does not report it at run time: it refuses to LOAD the workflow, and the
+ *  run appears failed WITH ZERO JOBS. A whole release (mac included) fell that way over a
+ *  condition that only concerned Windows, and nothing local had seen it — hence this rule,
+ *  added to the guard that already reads every workflow. The workaround is one line: pass
+ *  the secret through the job's `env:`, which `if:` can read. */
 const secretInIf = (line) => /^\s*if:\s*.*\bsecrets\./.test(line);
 
 for (const file of readdirSync(dir).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"))) {
@@ -39,7 +39,7 @@ for (const file of readdirSync(dir).filter((f) => f.endsWith(".yml") || f.endsWi
   lines.forEach((line, i) => {
     if (secretInIf(line)) {
       problems.push(
-        `${file}:${i + 1} \`secrets\` dans un \`if:\` — le workflow ne se CHARGE pas (0 job) : ${line.trim()}`,
+        `${file}:${i + 1} \`secrets\` inside an \`if:\` — the workflow does not LOAD (0 jobs): ${line.trim()}`,
       );
     }
     const m = /^\s*(?:-\s*)?uses:\s*(\S+)/.exec(line);
@@ -60,7 +60,7 @@ for (const file of readdirSync(dir).filter((f) => f.endsWith(".yml") || f.endsWi
 }
 
 if (problems.length) {
-  console.error(`\n✗ Workflows à corriger (${problems.length}):`);
+  console.error(`\n✗ Workflows to fix (${problems.length}):`);
   for (const p of problems) console.error(`    ${p}`);
   console.error(
     `\n  A tag is mutable: the action's owner can re-point it at code that runs in our CI\n` +

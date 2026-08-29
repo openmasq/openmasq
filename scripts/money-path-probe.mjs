@@ -1,29 +1,29 @@
-// Le PARCOURS D'ARGENT — la sonde de bout en bout que le 07/08 a rendue évidente :
-// un change-tier 502 a vécu deux jours sur staging sans qu'aucun test ne conduise
-// jamais login → abonnement → change-tier. Cette sonde le conduit chaque nuit,
-// contre le VRAI staging, en LECTURE DE FAIT :
+// The MONEY PATH — the end-to-end probe one incident made obvious: a 502 on change-tier
+// lived two days on staging without any test ever driving login → subscription →
+// change-tier. This probe drives it every night, against REAL staging, READ-ONLY IN
+// EFFECT:
 //
-//   1. connexion au vrai Supabase (grant password du compte de sonde) ;
-//   2. GET /subscriptions/me       — auth + résolution d'abonnement ;
-//   3. GET /subscriptions/credits  — le chemin crédits (base + période) ;
-//   4. POST /subscriptions/change-tier vers le palier COURANT — l'astuce qui rend
-//      la sonde inoffensive : le handler traverse auth + base + LECTURE STRIPE
-//      (résolution de l'abonnement et de son item facturable — précisément là où
-//      le 502 du 07/08 est né) puis ressort `changed:false` sans rien modifier.
+//   1. sign in to the real Supabase (password grant of the probe account);
+//   2. GET /subscriptions/me       — auth + subscription resolution;
+//   3. GET /subscriptions/credits  — the credits path (database + period);
+//   4. POST /subscriptions/change-tier to the CURRENT tier — the trick that makes the
+//      probe harmless: the handler crosses auth + database + a STRIPE READ (resolving the
+//      subscription and its billable item — precisely where that 502 was born) then comes
+//      back `changed:false` without modifying anything.
 //
-// Deux issues non-fatales, DITES plutôt qu'avalées : un compte de sonde sans
-// abonnement (409 NO_SUBSCRIPTION) ou membre d'une org (409 ORG_BILLING_REQUIRED)
-// laissent le chemin Stripe non exercé — la sonde le CRIE en warning, parce qu'une
-// sonde qui saute son étape principale en silence est une sonde qui ment.
+// Two non-fatal outcomes, SAID rather than swallowed: a probe account with no subscription
+// (409 NO_SUBSCRIPTION) or one that is an org member (409 ORG_BILLING_REQUIRED) leaves the
+// Stripe path unexercised — the probe SHOUTS it as a warning, because a probe that skips
+// its main step in silence is a probe that lies.
 //
-// Env : SUPABASE_URL, SUPABASE_ANON_KEY (variables Terraform), DOMAIN (le domaine
-// staging), BYPASS (protection Vercel), EMAIL, PASSWORD (secrets d'opérateur).
-// Aucune dépendance — node ≥ 18.
+// Env: SUPABASE_URL, SUPABASE_ANON_KEY (Terraform variables), DOMAIN (the staging
+// domain), BYPASS (Vercel protection), EMAIL, PASSWORD (operator secrets).
+// No dependencies — node ≥ 18.
 
 const need = (k) => {
   const v = process.env[k];
   if (!v) {
-    console.error(`::error::money-path — variable ${k} absente (Terraform apply ou secret d'opérateur manquant).`);
+    console.error(`::error::money-path — variable ${k} missing (Terraform apply or operator secret absent).`);
     process.exit(1);
   }
   return v;
@@ -59,7 +59,7 @@ async function api(path, { method = "GET", token, body } = {}) {
   return { status: res.status, body: await json(res) };
 }
 
-// ── 1. connexion — le vrai GoTrue, le vrai JWKS derrière ─────────────────────────
+// ── 1. sign-in — the real GoTrue, the real JWKS behind it ────────────────────────
 const auth = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
   method: "POST",
   headers: { "Content-Type": "application/json", apikey: ANON },
@@ -68,7 +68,7 @@ const auth = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
 const session = await json(auth);
 if (!auth.ok || !session?.access_token) {
   console.error(
-    `::error::money-path — connexion Supabase refusée (${auth.status}). Compte de sonde absent/désactivé, ou grant password désactivé.`,
+    `::error::money-path — Supabase sign-in refused (${auth.status}). Probe account missing/disabled, or the password grant is off.`,
   );
   process.exit(1);
 }
@@ -83,7 +83,7 @@ if (me.status !== 200) {
   console.log(`✓ subscriptions/me — tier=${me.body?.tier ?? me.body?.subscription?.tier ?? "?"}`);
 }
 
-// ── 3. les crédits ───────────────────────────────────────────────────────────────
+// ── 3. the credits ───────────────────────────────────────────────────────────────
 const credits = await api("/subscriptions/credits", { token });
 if (credits.status !== 200) {
   failures.push(`subscriptions/credits → ${credits.status} (attendu 200)`);
@@ -91,23 +91,23 @@ if (credits.status !== 200) {
   console.log("✓ subscriptions/credits");
 }
 
-// ── 4. change-tier vers le palier COURANT — le chemin du 502, sans effet ─────────
+// ── 4. change-tier to the CURRENT tier — the 502's path, with no effect ──────────
 const tier = me.body?.tier ?? me.body?.subscription?.tier;
 if (me.status === 200 && tier && tier !== "free") {
   const ct = await api("/subscriptions/change-tier", { method: "POST", token, body: { tier } });
   if (ct.status === 200 && ct.body?.changed === false) {
-    console.log(`✓ change-tier (même palier « ${tier} ») — auth + base + lecture Stripe traversés, changed:false`);
+    console.log(`✓ change-tier (same tier « ${tier} ») — auth + database + Stripe read crossed, changed:false`);
   } else if (ct.status === 200) {
-    // changed:true vers le MÊME palier serait un bug serveur — et une sonde qui mute.
-    failures.push(`change-tier même-palier a répondu changed:${ct.body?.changed} (attendu false)`);
+    // changed:true to the SAME tier would be a server bug — and a probe that mutates.
+    failures.push(`same-tier change-tier answered changed:${ct.body?.changed} (expected false)`);
   } else {
     failures.push(
-      `change-tier → ${ct.status} ${ct.body?.code ?? ct.body?.error ?? ""} — le chemin exact du 502 du 07/08`,
+      `change-tier → ${ct.status} ${ct.body?.code ?? ct.body?.error ?? ""} — the exact path of that 502`,
     );
   }
 } else if (me.status === 200) {
   warnings.push(
-    `compte de sonde sans abonnement payant (tier=${tier ?? "?"}) — le chemin Stripe de change-tier n'est PAS exercé. Donner un abonnement (test) au compte de sonde.`,
+    `probe account with no paying subscription (tier=${tier ?? "?"}) — change-tier's Stripe path is NOT exercised. Give the probe account a (test) subscription.`,
   );
 }
 
@@ -117,4 +117,4 @@ if (failures.length) {
   for (const f of failures) console.error(`::error::money-path — ${f}`);
   process.exit(1);
 }
-console.log("Parcours d'argent : tout répond.");
+console.log("Money path: everything answers.");

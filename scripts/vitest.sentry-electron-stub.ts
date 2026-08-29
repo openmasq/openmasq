@@ -1,20 +1,20 @@
 /**
- * `@sentry/electron/{main,renderer}` vus par la SUITE UNITAIRE — un bouchon, même
- * contrat que `vitest.electron-stub.ts` (lire son en-tête : la course au téléchargement).
+ * `@sentry/electron/{main,renderer}` as seen by the UNIT SUITE — a stub, same contract as
+ * `vitest.electron-stub.ts` (read its header: the download race).
  *
- * Le vrai paquet ne peut PAS vivre ici : externalisé, son import interne d'`electron`
- * contourne l'alias (résolveur Node) et touche le module-chaîne ; inliné, son init de
- * module lit `process.versions.electron` et jette hors Electron. Or il est importé par
- * des fichiers du MAIN que la suite teste (`runtime/errorReport.ts`, `sentry/main.ts`).
+ * The real package can NOT live here: externalized, its internal `electron` import bypasses
+ * the alias (Node resolver) and hits the string module; inlined, its module init reads
+ * `process.versions.electron` and throws outside Electron. Yet it is imported by MAIN files
+ * the suite tests (`runtime/errorReport.ts`, `sentry/main.ts`).
  *
- * Chaque fonction JETTE à l'appel en dictant le `vi.mock` à écrire : un test qui touche
- * réellement Sentry doit le déclarer — un no-op silencieux ferait passer pour vert un
- * chemin d'erreur qui ne rapporte rien.
+ * Every function THROWS when called, dictating the `vi.mock` to write: a test that really
+ * touches Sentry must declare it — a silent no-op would make an error path that reports
+ * nothing look green.
  */
 const boom = (name: string) => (): never => {
   throw new Error(
-    `@sentry/electron.${name} — la suite unitaire n'a PAS Sentry (bouchon : ` +
-      `scripts/vitest.sentry-electron-stub.ts). Déclarez ce dont ce test a besoin :\n` +
+    `@sentry/electron.${name} — the unit suite has NO Sentry (stub: ` +
+      `scripts/vitest.sentry-electron-stub.ts). Declare what this test needs:\n` +
       `  vi.mock("@sentry/electron/main", () => ({ ${name}: vi.fn() }));`,
   );
 };
@@ -28,8 +28,8 @@ export const addBreadcrumb = boom("addBreadcrumb");
 export const flush = boom("flush");
 export const close = boom("close");
 export const getClient = boom("getClient");
-// Les fabriques d'intégrations sont interrogées à l'ASSEMBLAGE de la config (avant tout
-// `init`) : elles rendent un marqueur inerte plutôt que de jeter — c'est `init` qui jette.
+// The integration factories are called while ASSEMBLING the config (before any `init`):
+// they return an inert marker rather than throwing — `init` is what throws.
 export const childProcessIntegration = () => ({ name: "stub:childProcess" });
 export const linkedErrorsIntegration = () => ({ name: "stub:linkedErrors" });
 export const normalizePathsIntegration = () => ({ name: "stub:normalizePaths" });

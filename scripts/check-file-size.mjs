@@ -30,8 +30,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 const allowlistPath = join(here, "file-size-allowlist.json");
 
-// Le glob ci-dessous ne fait que PRÉ-filtrer ; le périmètre qui fait foi est
-// `scripts/locScope.mjs`, partagé avec le gate pre-commit — c'est lui qu'on applique.
+// The glob below only PRE-filters; the authoritative scope is `scripts/locScope.mjs`,
+// shared with the pre-commit gate — that is the one applied.
 function trackedSourceFiles() {
   const out = execSync(
     "git ls-files 'apps/**/*.ts' 'apps/**/*.tsx' 'apps/**/*.css' " +

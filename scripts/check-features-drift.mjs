@@ -87,11 +87,11 @@ function main() {
   if (changed.includes("FEATURES.md")) return; // Already touched it — nothing to nudge.
 
   console.warn(
-    `\n⚠️  ${featureFiles.length} fichier(s) feature-shaped modifié(s) sans FEATURES.md dans le même diff :\n` +
+    `\n⚠️  ${featureFiles.length} feature-shaped file(s) changed without FEATURES.md in the same diff:\n` +
       featureFiles.map((f) => `    ${f}`).join("\n") +
-      `\n\n  Ce n'est PAS bloquant — juste un rappel (règle 13). Si ce changement ajoute ou\n` +
-      `  modifie une capacité visible par l'utilisateur, une ligne dans FEATURES.md lui\n` +
-      `  évite de disparaître. Si c'est du pur refactor interne, ignore ce message.\n`,
+      `\n\n  This is NOT blocking — just a reminder (rule 13). If this change adds or alters a\n` +
+      `  user-visible capability, one line in FEATURES.md keeps it from disappearing. If it\n` +
+      `  is pure internal refactoring, ignore this message.\n`,
   );
 }
 

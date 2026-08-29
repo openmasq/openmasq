@@ -3,20 +3,19 @@ import { fileURLToPath } from "node:url";
 const r = (p: string) => fileURLToPath(new URL(`../${p}`, import.meta.url));
 
 /**
- * Les tests résolvent les packages workspace depuis `src`, jamais depuis `dist`.
+ * Tests resolve the workspace packages from `src`, never from `dist`.
  *
- * Les apps consomment le BUILT output (règle du repo), mais un TEST qui lit `dist`
- * teste l'état du dernier `pnpm build`, pas le code présent : un changement
- * cross-package faisait échouer (ou pire, passer) la suite tant qu'on n'avait pas
- * rebuildé à la main — une classe entière de faux signaux. Un subpath ajouté à un
- * `package.json` `exports` doit être ajouté ICI aussi (le test qui l'importe échoue
- * en « Failed to resolve », jamais en silence).
+ * Apps consume the BUILT output (repo rule), but a TEST that reads `dist` tests the state
+ * of the last `pnpm build`, not the code present: a cross-package change made the suite fail
+ * (or worse, pass) until one rebuilt by hand — a whole class of false signals. A subpath
+ * added to a `package.json` `exports` must be added HERE too (the test importing it fails
+ * with "Failed to resolve", never silently).
  *
- * Consommé par `vitest.config.ts` — et par toute config vitest qui s'ajouterait :
- * une seule table, ou deux suites résoudraient différemment (règle 9).
+ * Consumed by `vitest.config.ts` — and by any vitest config that gets added: one table, or
+ * two suites would resolve differently (rule 9).
  */
 export const workspaceSrcAlias = [
-  // Subpaths d'abord (exact-match par regex, donc l'ordre ne porte que la lisibilité).
+  // Subpaths first (exact-match by regex, so the order only carries readability).
   { find: /^@openmasq\/redact\/remote$/, replacement: r("packages/redact/src/remote/remote.ts") },
   { find: /^@openmasq\/redact\/ner$/, replacement: r("packages/redact/src/local/ner.ts") },
   { find: /^@openmasq\/redact\/documents$/, replacement: r("packages/redact/src/documents/documents.ts") },
@@ -46,23 +45,21 @@ export const workspaceSrcAlias = [
 ];
 
 /**
- * Les BANCS corpus (rappel/précision sur documents réels) vivaient ici — ils ont
- * quitté ce dépôt (corpus et bancs restent privés). La liste
- * survit vide parce que `vitest.config.ts` l'étale dans son `exclude` : un banc qui
- * reviendrait un jour se déclare ICI, jamais dans la suite unitaire (son timeout sous
- * charge n'est pas celui d'un test).
+ * The corpus BENCHES (recall/precision on real documents) used to live here — they left
+ * this repository (corpus and benches stay private). The list survives empty because
+ * `vitest.config.ts` spreads it into its `exclude`: a bench that came back one day would be
+ * declared HERE, never in the unit suite (its timeout under load is not a test's).
  */
 export const CORPUS_TESTS: string[] = [];
 
 /**
- * Les fichiers INCOMPATIBLES avec `--no-isolate` (la voie rapide `pnpm test:redact`) :
- * ils bouchonnent un module par `vi.mock` que d'autres fichiers importent EN VRAI, et
- * sans isolation le registre de modules est partagé par worker — le premier import
- * gagne, l'ordre des fichiers décide qui voit quoi (mesuré : `documents.pdfbuf` rate
- * 1 run mélangé sur 6). La voie rapide les exclut (via `VITEST_NO_ISOLATE`) ; ils
- * tournent normalement, isolés, dans `pnpm test`. Un nouveau `vi.mock(` dans
- * `packages/redact` s'ajoute ICI, ou la voie rapide devient un générateur de faux
- * rouges dépendants de l'ordre.
+ * The files INCOMPATIBLE with `--no-isolate` (the fast lane `pnpm test:redact`): they stub
+ * a module with `vi.mock` that other files import FOR REAL, and without isolation the module
+ * registry is shared per worker — the first import wins, and file order decides who sees
+ * what (measured: `documents.pdfbuf` fails 1 shuffled run out of 6). The fast lane excludes
+ * them (via `VITEST_NO_ISOLATE`); they run normally, isolated, in `pnpm test`. A new
+ * `vi.mock(` in `packages/redact` gets added HERE, or the fast lane becomes a generator of
+ * order-dependent false reds.
  */
 export const NO_ISOLATE_UNSAFE_TESTS = [
   "packages/redact/src/documents.ocr.test.ts",

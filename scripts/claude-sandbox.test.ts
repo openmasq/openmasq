@@ -5,13 +5,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir, platform, tmpdir } from "node:os";
 
-// Le profil seatbelt de `pnpm claude:sandbox`. Le piège qu'il a coûté une session entière :
+// The seatbelt profile of `pnpm claude:sandbox`. The trap that cost a whole session:
 // un `deny file-read* (subpath "/Users")` rend inatteignable ce qu'il AUTORISE par ailleurs,
-// parce que realpath(3) — que Node applique à tout point d'entrée — lstat CHAQUE composant du
-// chemin. Le symptôme sort en `EPERM … lstat '/Users'` sur un fichier pourtant dans le dépôt,
-// et se lit comme une panne de l'outil. D'où ces tests : ils jugent le profil RÉELLEMENT
-// imprimé (`--print-profile` est ce que le lancement applique), pas une copie de ses règles.
-// macOS uniquement — c'est déjà le cas du script lui-même.
+// because realpath(3) — which Node applies to every entry point — lstats EACH component of
+// the path. The symptom comes out as `EPERM … lstat '/Users'` on a file that IS in the
+// repository, and reads like a broken tool. Hence these tests: they judge the profile that is
+// REALLY printed (`--print-profile` is what the launch applies), not a copy of its rules.
+// macOS only — which is already true of the script itself.
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(HERE, "claude-sandbox.sh");
@@ -21,7 +21,7 @@ const HOME = homedir();
 const printProfile = (env: NodeJS.ProcessEnv = {}) =>
   execFileSync("bash", [SCRIPT, "--print-profile"], { encoding: "utf8", env: { ...process.env, ...env } });
 
-/** Les dossiers ANCÊTRES d'un chemin, sous /Users seulement (au-dessus, rien n'est refusé). */
+/** The ANCESTOR folders of a path, under /Users only (above it, nothing is denied). */
 const ancestorsOf = (p: string): string[] => {
   const out: string[] = [];
   for (let d = dirname(p); d.startsWith("/Users"); d = dirname(d)) out.push(d);
@@ -32,45 +32,46 @@ const MAC = platform() === "darwin";
 
 describe.skipIf(!MAC)("claude-sandbox — le profil seatbelt", () => {
   const profile = join(mkdtempSync(join(tmpdir(), "openmasq-sb-")), "profil.sb");
-  // ⚠️ `describe.skipIf` ne saute que les TESTS : le corps du `describe` est évalué à la
+  // ⚠️ `describe.skipIf` only skips the TESTS: the `describe` body is evaluated at
   // COLLECTE, quoi qu'il arrive. Sans cette condition, `--print-profile` partait sur le
-  // runner Linux de la CI — où le script refuse de tourner (seatbelt, `sandbox-exec` et le
-  // binaire `claude` sont des faits macOS) — et la suite ÉCHOUAIT à la collecte au lieu
-  // d'être sautée : toute la CI rouge, pour un test censé ne pas s'appliquer là (15/08).
+  // CI's Linux runner — where the script refuses to run (seatbelt, `sandbox-exec` and the
+  // `claude` binary are macOS facts) — and the suite FAILED at collection instead of being
+  // skipped: the whole CI red, for a test that was not meant to apply there.
   if (MAC) writeFileSync(profile, printProfile());
 
   const run = (argv: string[]) => spawnSync("sandbox-exec", ["-f", profile, ...argv], { encoding: "utf8" });
   const permis = (argv: string[]) => run(argv).status === 0;
 
-  it("laisse Node résoudre un fichier DU DÉPÔT — le cas qui bloquait tout", () => {
-    // realpath lstat CHAQUE ancêtre du chemin (/Users, puis chaque dossier) avant d'arriver
-    // au fichier autorisé.
-    // Sans les métadonnées des ancêtres : EPERM, et avec lui le pilote, vitest, tsc,
-    // les check:* et le hook pre-commit — tout ce qui entre par un CHEMIN plutôt que -e.
+  it("lets Node resolve a file FROM THE REPOSITORY — the case that blocked everything", () => {
+    // realpath lstats EACH ancestor of the path (/Users, then each folder) before reaching
+    // the allowed file.
+    // Without the ancestors' metadata: EPERM, and with it the driver, vitest, tsc, the
+    // check:* gates and the pre-commit hook — everything that enters through a PATH
+    // rather than -e.
     const r = run([process.execPath, "-e", `require("fs").realpathSync(${JSON.stringify(join(PROJECT, "package.json"))})`]);
     expect(r.stderr).not.toMatch(/EPERM|not permitted/);
     expect(r.status).toBe(0);
   });
 
-  it("rend stat-able chaque ancêtre du dépôt", () => {
+  it("makes every ancestor of the repository stat-able", () => {
     for (const p of ancestorsOf(PROJECT)) expect([p, permis(["/usr/bin/stat", "-f", "%N", p])]).toEqual([p, true]);
   });
 
-  it("n'ouvre QUE les métadonnées : le contenu d'un ancêtre reste illisible", () => {
-    // La nuance qui rend le correctif acceptable : `stat` d'un chemin déjà connu passe,
-    // mais lister un ancêtre — donc découvrir le NOM d'un voisin — reste refusé.
+  it("opens ONLY the metadata: an ancestor's content stays unreadable", () => {
+    // The nuance that makes the fix acceptable: `stat` on an already-known path passes,
+    // but listing an ancestor — hence discovering a neighbour's NAME — stays denied.
     expect(permis(["/bin/ls", "/Users"])).toBe(false);
     expect(permis(["/bin/ls", join(HOME, "Desktop")])).toBe(false);
   });
 
-  it("laisse les secrets refusés, métadonnées comprises", () => {
+  it("leaves the secrets denied, metadata included", () => {
     for (const secret of [".ssh", ".aws", ".gnupg"]) {
       const p = join(HOME, secret);
       expect([p, permis(["/usr/bin/stat", "-f", "%N", p])]).toEqual([p, false]);
     }
   });
 
-  it("ouvre exactement les ancêtres des chemins autorisés, et aucune feuille", () => {
+  it("opens exactly the ancestors of the allowed paths, and no leaf", () => {
     const text = printProfile();
     const metadonnees = [...text.matchAll(/\(allow file-read-metadata \(literal "([^"]+)"\)\)/g)].map((m) => m[1]);
     const autorises = text
@@ -80,9 +81,9 @@ describe.skipIf(!MAC)("claude-sandbox — le profil seatbelt", () => {
     expect(new Set(metadonnees)).toEqual(new Set(autorises.flatMap(ancestorsOf)));
   });
 
-  it("dérive cette liste du profil, au lieu de la recopier", () => {
-    // La garantie anti-dérive : élargir une liste d'autorisation ouvre SES ancêtres tout
-    // seul. Sans ça, le prochain chemin ajouté rejouerait l'EPERM à l'identique.
+  it("derives that list from the profile, instead of copying it", () => {
+    // The anti-drift guarantee: widening an allow-list opens ITS ancestors on its own.
+    // Without that, the next path added would replay the same EPERM.
     const inedit = join(HOME, "Documents", "openmasq-dossier-inexistant");
     const text = printProfile({ CLAUDE_SANDBOX_READ: inedit });
     expect(text).toContain(`(allow file-read-metadata (literal "${join(HOME, "Documents")}"))`);

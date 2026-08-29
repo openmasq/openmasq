@@ -1,37 +1,37 @@
 #!/bin/sh
-# Pre-commit : les gates RAPIDES, portés sur ce que CE commit stage — jamais sur le
-# WIP des autres sessions de l'arbre (voir scripts/check-staged-loc.mjs). La CI garde
-# les gates complets. Contourner en connaissance de cause : `git commit --no-verify`.
+# Pre-commit: the FAST gates, scoped to what THIS commit stages — never the WIP of the
+# other sessions in the tree (see scripts/check-staged-loc.mjs). CI keeps the full gates.
+# Bypass knowingly: `git commit --no-verify`.
 set -e
 
-# ⛔ PAS de garde d'identité ici, et c'est délibéré. Une allow-list d'adresses codées
-# en dur rejetait le commit de QUICONQUE n'était pas l'un des deux mainteneurs — sur un
-# dépôt public, ça veut dire tout contributeur, sur son premier commit, avec un message
-# qui l'invite à se faire passer pour l'équipe. Le déploiement, lui, ne dépend pas de
-# l'auteur : `.github/scripts/vercel-deploy.sh` normalise l'auteur du commit déployé dans
-# le checkout ÉPHÉMÈRE de la CI. Il n'y avait donc plus rien à garder — seulement deux
-# adresses personnelles publiées et une porte fermée aux contributions.
-# Chacun commite sous SON identité ; c'est ce que l'historique doit dire.
+# ⛔ NO identity guard here, and that is deliberate. A hard-coded allow-list of addresses
+# rejected the commit of ANYONE who was not one of the two maintainers — on a public
+# repository that means every contributor, on their first commit, with a message inviting
+# them to pass themselves off as the team. Deployment does not depend on the author
+# either: `.github/scripts/vercel-deploy.sh` normalizes the deployed commit's author in
+# CI's EPHEMERAL checkout. So there was nothing left to guard — only two personal
+# addresses published and a door closed to contributions.
+# Everyone commits under THEIR identity; that is what history must state.
 
-# (Le blocage des commits directs sur staging/main a été retiré le 11/08 avec la
-# convention worktree : l'arbre partagé EST désormais le lieu de travail de toutes les
-# sessions, et staging reçoit leurs commits directs. La discipline restante est dans le
-# root CLAUDE.md : ne commiter que SES fichiers, gates vertes avant de pousser.)
+# (Blocking direct commits on staging/main was removed along with the worktree
+# convention: the shared tree IS now where every session works, and staging receives
+# their direct commits. The remaining discipline is in the root CLAUDE.md: commit only
+# YOUR files, gates green before pushing.)
 
 node scripts/check-staged-loc.mjs
 
-# Lint (Biome) sur les SEULS fichiers stagés — comme le cap LOC ci-dessus, on ne regarde
-# que ce que CE commit apporte, jamais le WIP des autres sessions. On LINTE (pas de
-# format-check) : un format rétroactif gonflerait l'existant dense au-delà du cap 300
-# (règle 1). Le format reste disponible (`pnpm format`, config Biome pour l'éditeur) et
-# s'applique au code neuf ; il n'est pas gaté ici. Contourner un lint : --no-verify.
+# Lint (Biome) on the STAGED files only — like the LOC cap above, we look at what THIS
+# commit brings, never at the other sessions' WIP. We LINT (no format check): a
+# retroactive format would inflate the dense existing code past the 300-line cap
+# (rule 1). Format stays available (`pnpm format`, Biome config for the editor) and
+# applies to new code; it is not gated here. Bypassing a lint: --no-verify.
 STAGED_CODE=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx|mjs|cjs)$' || true)
 if [ -n "$STAGED_CODE" ]; then
   echo "$STAGED_CODE" | xargs npx biome lint --no-errors-on-unmatched
 fi
 
-# Le gate docs seulement quand un CLAUDE.md / FEATURES.md est stagé — il lit tout le
-# repo mais ne dépend que des docs, stables entre sessions.
+# The docs gate only when a CLAUDE.md / FEATURES.md is staged — it reads the whole repo
+# but depends only on the docs, which are stable between sessions.
 if git diff --cached --name-only | grep -qE "(CLAUDE|FEATURES)\.md$"; then
   pnpm -s check:docs
 fi

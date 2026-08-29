@@ -1,20 +1,22 @@
 /**
- * L'orchestrateur de bench agentique — `pnpm bench` : relance toute la matrice
- * modèles × modes en UNE commande, agrège un rapport comparatif CROSS-MODÈLES et
- * DIFFE contre le bench précédent (les régressions de conformité/latence/tokens
- * deviennent visibles automatiquement).
+ * The agentic bench orchestrator — `pnpm bench`: replays the whole models × modes matrix in
+ * ONE command, aggregates a CROSS-MODEL comparison report and DIFFS it against the previous
+ * bench (compliance/latency/token regressions become visible automatically).
  *
- *   pnpm bench                                   # matrice par défaut (3 modèles, declared)
- *   pnpm bench --models a,b --modes declared,all # matrice explicite
- *   pnpm bench --real --runs 2 --only wf         # + scénarios monde réel
- *   pnpm bench --strategies current,lean         # + axe stratégie de réduction du prompt
+ *   pnpm bench                                   # default matrix (3 models, declared)
+ *   pnpm bench --models a,b --modes declared,all # explicit matrix
+ *   pnpm bench --real --runs 2 --only wf         # + real-world scenarios
+ *   pnpm bench --strategies current,lean         # + the prompt-reduction strategy axis
  *                                                 # (`packages/ui/src/evals/strategies.ts`)
  *
- * Pools : les modèles PAYANTS courent en PARALLÈLE (intra-suite shardée ×4) ; les
- * `:free` en SÉRIE avec intra ×2 (limite de compte OpenRouter par modèles gratuits).
- * Chaque suite écrit son rapport par modèle comme d'habitude ; l'orchestrateur
- * collecte les chemins émis (« 📊 rapport : … »), agrège `evals-reports/_bench/
- * <stamp>.md` (+ `.json` pour le diff machine) et compare au dernier `.json`.
+ * Pools: the PAID models run in PARALLEL (intra-suite sharded ×4); the `:free` ones run
+ * SERIALLY with intra ×2 (the OpenRouter account limit on free models). Each suite writes its
+ * per-model report as usual; the orchestrator collects the emitted paths ("📊 rapport : …"),
+ * aggregates `evals-reports/_bench/<stamp>.md` (+ `.json` for the machine diff) and compares
+ * against the last `.json`.
+ *
+ * ⚠️ The report FORMAT it parses is the French one produced by the evals suite
+ * (`Conformité** : …`): those regexes must keep matching it, so they stay as they are.
  */
 import { spawn } from "node:child_process";
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -28,7 +30,7 @@ const flag = (name: string): string | undefined => {
   const i = ARGV.indexOf(`--${name}`);
   return i >= 0 ? ARGV[i + 1] : undefined;
 };
-// laguna-xs-2.1 : 9/9 réel · 120 s · 55 % de cache au bench du 2026-07-24 — la référence.
+// laguna-xs-2.1: 9/9 real · 120 s · 55 % cache on the 2026-07-24 bench — the reference.
 const DEFAULT_MODELS = "poolside/laguna-xs-2.1,inclusionai/ling-2.6-flash,nex-agi/nex-n2-mini";
 const MODELS = (flag("models") ?? DEFAULT_MODELS).split(",").map((s) => s.trim()).filter(Boolean);
 const MODES = (flag("modes") ?? "declared").split(",").map((s) => s.trim()).filter(Boolean);
@@ -48,7 +50,7 @@ function apiKey(): string {
   return "";
 }
 
-/** Lance UNE suite (un modèle × un mode) et renvoie les chemins de rapports émis. */
+/** Runs ONE suite (one model × one mode) and returns the emitted report paths. */
 function runSuite(cell: Cell, key: string): Promise<{ cell: Cell; reports: string[]; code: number }> {
   const free = cell.model.endsWith(":free");
   const env: NodeJS.ProcessEnv = {
@@ -62,7 +64,7 @@ function runSuite(cell: Cell, key: string): Promise<{ cell: Cell; reports: strin
     OPENMASQ_EVAL_STRATEGY: cell.strategy,
     ...(cell.real ? { OPENMASQ_EVAL_REAL_WEB: "1", OPENMASQ_EVAL_REAL_PY: "1" } : { OPENMASQ_EVAL_PARALLEL: free ? "2" : "4" }),
   };
-  // real- : suite SÉRIELLE (un seul jsdom suffit, 5 scénarios) ; sinon les shards.
+  // real-: a SERIAL suite (one jsdom is enough, 5 scenarios); otherwise the shards.
   const target = cell.real
     ? "packages/ui/src/evals/scenarios/scenarios.eval.ts"
     : "packages/ui/src/evals/scenarios/par";
@@ -73,8 +75,8 @@ function runSuite(cell: Cell, key: string): Promise<{ cell: Cell; reports: strin
     p.stderr.on("data", (d) => (out += d));
     p.on("close", (code) => {
       const reports = [...out.matchAll(/📊 rapport : (.+\.md)/g)].map((m) => m[1].trim());
-      const label = `${cell.model}${cell.real ? " [réel]" : ` [${cell.mode}]`} · stratégie=${cell.strategy}`;
-      // Log brut par cellule — le matériau de debug d'un bench qui tourne mal.
+      const label = `${cell.model}${cell.real ? " [real]" : ` [${cell.mode}]`} · strategy=${cell.strategy}`;
+      // Raw per-cell log — the debugging material of a bench that goes wrong.
       const logDir = resolve(ROOT, "evals-reports/_bench/logs");
       mkdirSync(logDir, { recursive: true });
       const slug = `${cell.model.replace(/[^a-z0-9]+/gi, "-")}-${cell.real ? "reel" : cell.mode}-${cell.strategy}`;
@@ -85,10 +87,10 @@ function runSuite(cell: Cell, key: string): Promise<{ cell: Cell; reports: strin
   });
 }
 
-/** Agrège les métriques des rapports d'une cellule (somme des shards). p50/p95 du
+/** Aggregates the metrics of a cell's reports (sum of the shards). p50/p95 of the
  *  1er appel ne se SOMMENT pas — chaque shard n'a sa propre distribution que sur SA
  *  part du catalogue, donc on garde le PIRE shard (max) : conservateur, jamais
- *  optimiste sur la latence remontée. */
+ *  optimistic about the reported latency. */
 function aggregate(paths: string[]): Metrics {
   const t: Metrics = { ok: 0, runs: 0, calls: 0, turns: 0, up: 0, cached: 0, down: 0, secs: 0, p50: 0, p95: 0 };
   for (const p of paths) {
@@ -112,9 +114,9 @@ const delta = (now: number, prev: number | undefined, unit = "", invert = false)
   return ` (${d > 0 ? "+" : ""}${d}${unit} ${worse ? "🔴" : "🟢"})`;
 };
 
-/** `--discover` : classe les modèles à OUTILS peu chers par DÉBIT MESURÉ (stats
- *  OpenRouter authentifiées : percentiles tokens/s + latence des 30 dernières minutes,
- *  par fournisseur). Sert à choisir les candidats du bench sans les payer d'abord. */
+/** `--discover`: ranks the cheap TOOL-capable models by MEASURED THROUGHPUT (authenticated
+ *  OpenRouter stats: tokens/s percentiles + latency over the last 30 minutes, per provider).
+ *  Used to choose the bench's candidates without paying for them first. */
 async function discover(key: string): Promise<void> {
   const auth = { headers: { Authorization: `Bearer ${key}` } };
   const cat = (await (await fetch("https://openrouter.ai/api/v1/models", auth)).json()) as {
@@ -129,7 +131,7 @@ async function discover(key: string): Promise<void> {
       Number(m.pricing.completion) * 1e6 <= 1.2
     );
   });
-  console.log(`${cheap.length} modèles à outils ≤0,30 $/M — stats sur les ${Math.min(cheap.length, 40)} moins chers…`);
+  console.log(`${cheap.length} tool-capable models ≤$0.30/M — stats on the ${Math.min(cheap.length, 40)} cheapest…`);
   cheap.sort((a, b) => Number(a.pricing.prompt) - Number(b.pricing.prompt));
   const rows: { tp: number; lat: number; id: string; prov: string; price: string }[] = [];
   await Promise.all(
@@ -149,19 +151,19 @@ async function discover(key: string): Promise<void> {
           rows.push({ ...best, id: m.id, price: `${(Number(m.pricing.prompt) * 1e6).toFixed(2)}/${(Number(m.pricing.completion) * 1e6).toFixed(2)}` });
         }
       } catch {
-        /* un modèle sans stats est simplement absent du classement */
+        /* a model with no stats is simply absent from the ranking */
       }
     }),
   );
   rows.sort((a, b) => b.tp - a.tp);
-  console.log("tok/s p50 | lat p50 | prix $/M | modèle → meilleur fournisseur");
+  console.log("tok/s p50 | lat p50 | price $/M | model → best provider");
   for (const r of rows) console.log(`${String(r.tp).padStart(8)} | ${(r.lat / 1000).toFixed(2)} s | ${r.price.padStart(9)} | ${r.id} → ${r.prov}`);
 }
 
 async function main(): Promise<void> {
   const key = apiKey();
   if (ARGV.includes("--discover")) {
-    if (!key) throw new Error("OPENROUTER_API_KEY requis (les stats de débit sont authentifiées)");
+    if (!key) throw new Error("OPENROUTER_API_KEY required (the throughput stats are authenticated)");
     return discover(key);
   }
   if (!key) console.warn("⚠️  OPENROUTER_API_KEY introuvable (env ou apps/desktop/.env) — les suites vont se skip.");
@@ -174,15 +176,15 @@ async function main(): Promise<void> {
   const paid = cells.filter((c) => !c.model.endsWith(":free"));
   const free = cells.filter((c) => c.model.endsWith(":free"));
   console.log(
-    `Bench : ${MODELS.length} modèle(s) × [${MODES.join(", ")}${REAL ? " + réel" : ""}] × stratégies=[${STRATEGIES.join(", ")}] · runs=${RUNS} · only=${ONLY}`,
+    `Bench: ${MODELS.length} model(s) × [${MODES.join(", ")}${REAL ? " + real" : ""}] × strategies=[${STRATEGIES.join(", ")}] · runs=${RUNS} · only=${ONLY}`,
   );
 
   const results: { cell: Cell; reports: string[]; code: number }[] = [];
-  // Payants : tous en parallèle. Frees : en série (limite du pool :free du compte).
+  // Paid: all in parallel. Free: serially (the account's :free pool limit).
   results.push(...(await Promise.all(paid.map((c) => runSuite(c, key)))));
   for (const c of free) results.push(await runSuite(c, key));
 
-  // ── Agrégation + diff vs le bench précédent ────────────────────────────────
+  // ── Aggregation + diff against the previous bench ──────────────────────────
   const benchDir = resolve(ROOT, "evals-reports/_bench");
   mkdirSync(benchDir, { recursive: true });
   const prevFile = readdirSync(benchDir).filter((f) => f.endsWith(".json")).sort().pop();
@@ -192,7 +194,7 @@ async function main(): Promise<void> {
   const snapshot: Record<string, Metrics> = {};
   const rows: string[] = [];
   for (const r of results) {
-    const kind = r.cell.real ? "réel" : r.cell.mode;
+    const kind = r.cell.real ? "real" : r.cell.mode;
     const cellKey = `${r.cell.model}|${kind}|${r.cell.strategy}`;
     const m = aggregate(r.reports);
     snapshot[cellKey] = m;
@@ -207,14 +209,14 @@ async function main(): Promise<void> {
   const md = [
     `# Bench agentique — ${stamp}`,
     "",
-    `- Modèles : ${MODELS.join(", ")} · Modes : ${MODES.join(", ")}${REAL ? " + réel" : ""} · Stratégies : ${STRATEGIES.join(", ")} · Runs/scénario : ${RUNS} · Filtre : ${ONLY}`,
-    prevFile ? `- Diff vs : \`${prevFile}\` — 🔴 régression · 🟢 amélioration` : "- Premier bench (aucun précédent à comparer)",
+    `- Models: ${MODELS.join(", ")} · Modes: ${MODES.join(", ")}${REAL ? " + real" : ""} · Strategies: ${STRATEGIES.join(", ")} · Runs/scenario: ${RUNS} · Filtre : ${ONLY}`,
+    prevFile ? `- Diff against: \`${prevFile}\` — 🔴 regression · 🟢 improvement` : "- First bench (no previous one to compare)",
     "",
-    "| Modèle | Mode | Stratégie | Conformité | Durée | 1er appel p50 | 1er appel p95 | Tours | Calls | Tokens ↑ | Cachés | Tokens ↓ |",
+    "| Model | Mode | Strategy | Compliance | Duration | 1st call p50 | 1st call p95 | Turns | Calls | Tokens ↑ | Cached | Tokens ↓ |",
     "|---|---|---|---|---|---|---|---|---|---|---|---|",
     ...rows,
     "",
-    `Rapports détaillés par modèle : \`evals-reports/<modèle>/\`.`,
+    `Detailed per-model reports: \`evals-reports/<model>/\`.`,
   ].join("\n");
   writeFileSync(resolve(benchDir, `${stamp}.md`), md);
   writeFileSync(resolve(benchDir, `${stamp}.json`), JSON.stringify(snapshot, null, 2));

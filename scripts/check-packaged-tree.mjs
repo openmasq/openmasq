@@ -324,19 +324,19 @@ collect(TREE);
 
 const findings = []; // { key, reachable }
 
-// ── substitutions volontaires (pnpm.overrides → un paquet LOCAL) ────────────────────────
+// ── deliberate substitutions (pnpm.overrides → a LOCAL package) ─────────────────────────
 //
-// `packages/ort` PREND LA PLACE d'`onnxruntime-node` (override racine `link:packages/ort`) :
-// le paquet expédié sous ce nom porte donc la version du shim (0.0.0), et toute comparaison
-// à la plage déclarée — celle de l'app comme celle de `@huggingface/transformers` — sort un
-// écart qui n'en est pas un. Ce n'est pas une dette à geler dans l'allowlist (qui ne doit que
-// rétrécir) : c'est une information que ce garde n'avait pas.
+// `packages/ort` TAKES THE PLACE of `onnxruntime-node` (root override `link:packages/ort`):
+// the package shipped under that name therefore carries the shim's version (0.0.0), and any
+// comparison against the declared range — the app's as well as `@huggingface/transformers`'s
+// — reports a gap that is not one. This is not debt to freeze in the allowlist (which may
+// only shrink): it is information this guard did not have.
 //
-// ⚠️ Ce que ça N'excuse PAS, et c'est le point : seule la VERSION cesse d'être comparée. Que
-// le paquet soit présent, résolvable, et que ses propres dépendances le soient aussi, reste
-// vérifié — c'est d'ailleurs ce qui a rattrapé `ort-native`/`ort-wasm` absents de l'app.
-// Sont exemptées les seules cibles LOCALES (`link:`/`file:`/`workspace:`) : un override vers
-// une version npm, lui, doit continuer d'être confronté aux plages.
+// ⚠️ What this does NOT excuse, and that is the point: only the VERSION stops being
+// compared. That the package is present, resolvable, and that its own dependencies are too,
+// stays checked — which is precisely what caught `ort-native`/`ort-wasm` missing from the
+// app. Only LOCAL targets are exempted (`link:`/`file:`/`workspace:`): an override to an npm
+// version must keep being confronted with the ranges.
 const substituted = new Set(
   Object.entries(readJson(join(root, "package.json"))?.pnpm?.overrides ?? {})
     .filter(([, target]) => /^(?:link|file|workspace):/.test(String(target)))
@@ -354,7 +354,7 @@ for (const dir of pkgDirs) {
   // MISMATCH — declared range vs the version actually reachable from here.
   for (const [name, range] of Object.entries(deps)) {
     if (/^(?:workspace|file|link|npm):/.test(range)) continue;
-    if (substituted.has(name)) continue; // remplacé par un paquet local — voir `substituted`
+    if (substituted.has(name)) continue; // replaced by a local package — see `substituted`
     const target = resolveBare(dir, `${name}/package.json`);
     const got = target ? readJson(target)?.version : null;
     if (!got) continue; // absent or unexported → the UNRESOLVED pass owns it
@@ -408,7 +408,7 @@ function appManifestDrift() {
   const drift = [];
   for (const [name, range] of Object.entries(appPkg?.dependencies ?? {})) {
     if (/^(?:workspace|file|link|npm):/.test(range)) continue;
-    if (substituted.has(name)) continue; // remplacé par un paquet local — voir `substituted`
+    if (substituted.has(name)) continue; // replaced by a local package — see `substituted`
     const target = resolveBare(APP_ROOT, `${name}/package.json`);
     const got = target ? readJson(target)?.version : null;
     if (!got) continue; // absent → the ABSENT check owns it (via the bundle's requires)

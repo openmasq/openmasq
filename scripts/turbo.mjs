@@ -1,22 +1,21 @@
 #!/usr/bin/env node
-// Lance turbo avec un cache posé HORS de l'arbre.
+// Runs turbo with a cache placed OUTSIDE the tree.
 //
-// Par défaut turbo écrit dans `<dépôt>/.turbo/cache`, donc dans l'arbre : un re-clone (ou,
-// du temps de la convention worktree, chaque arbre neuf) repartait d'un cache froid et
-// rebuildait la totalité du graphe.
-// Les clés de cache de turbo sont un hachage du CONTENU (paquet + tâche + fichiers +
-// hachages des dépendances), jamais du chemin absolu : un artefact produit dans un
-// worktree est donc valide dans tous les autres, et deux branches divergentes ont
-// naturellement des clés différentes.
+// By default turbo writes to `<repo>/.turbo/cache`, hence inside the tree: a re-clone (or,
+// back when the worktree convention existed, every fresh tree) started from a cold cache
+// and rebuilt the entire graph.
+// Turbo's cache keys are a hash of the CONTENT (package + task + files + dependency
+// hashes), never of the absolute path: an artefact produced in one worktree is therefore
+// valid in every other, and two diverging branches naturally have different keys.
 //
-// `turbo.json` ne peut PAS porter ce réglage — il refuse un `cacheDir` absolu et renvoie
-// explicitement vers `--cache-dir` / `TURBO_CACHE_DIR` ; un chemin RELATIF, lui,
-// se résoudrait ailleurs selon l'endroit où le worktree a été créé. D'où ce wrapper :
-// un seul foyer pour le défaut, hérité par pnpm, la CI et chaque nouveau worktree sans
-// aucune installation. Un `TURBO_CACHE_DIR` déjà présent dans l'environnement gagne.
+// `turbo.json` can NOT carry this setting — it refuses an absolute `cacheDir` and points
+// explicitly at `--cache-dir` / `TURBO_CACHE_DIR`; a RELATIVE path would resolve elsewhere
+// depending on where the worktree was created. Hence this wrapper: one single home for the
+// default, inherited by pnpm, CI and every new checkout with no installation at all. A
+// `TURBO_CACHE_DIR` already present in the environment wins.
 //
-// ⚠️ Le répertoire n'est jamais purgé automatiquement (turbo n'a pas de GC) : il grossit
-// avec l'historique des hachages. Le vider est sans risque — au pire on rebuild.
+// ⚠️ The directory is never purged automatically (turbo has no GC): it grows with the
+// history of hashes. Emptying it is risk-free — at worst you rebuild.
 import { spawn } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
@@ -30,8 +29,8 @@ const child = spawn("turbo", process.argv.slice(2), {
   shell: process.platform === "win32",
 });
 
-// `pnpm dev` est une tâche PERSISTANTE : sans ces deux lignes, le Ctrl-C tue ce wrapper
-// avant que turbo ait rendu la main, et laisse les serveurs de dev orphelins. On relaie le
-// signal et on ne sort que quand l'enfant est vraiment parti.
+// `pnpm dev` is a PERSISTENT task: without these two lines, Ctrl-C kills this wrapper
+// before turbo has handed back control, leaving the dev servers orphaned. We relay the
+// signal and only exit once the child is really gone.
 for (const sig of ["SIGINT", "SIGTERM"]) process.on(sig, () => child.kill(sig));
 child.on("exit", (code, signal) => process.exit(signal ? 1 : (code ?? 1)));

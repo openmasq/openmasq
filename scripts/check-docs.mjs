@@ -120,30 +120,29 @@ for (const doc of all) {
 }
 
 /**
- * ⚠️ Un chemin GITIGNORÉ est DÉLIBÉRÉMENT absent, pas cassé.
+ * ⚠️ A GITIGNORED path is DELIBERATELY absent, not broken.
  *
- * Ce gate ne demandait qu'`existsSync`, donc son verdict dépendait de la MACHINE : un
- * `dist/` construit et un `.env` local le rendaient vert sur un poste de dev, et rouge
- * sur tout runner propre — les `.env.local`,
- * les `dist` d'app. C'est-à-dire rouge en CI, en permanence, depuis toujours (le 23/07 :
- * `CI failure` et `Release success` sur le même push). Un gate qu'on ne peut pas rendre
- * vert n'apprend plus rien : on apprend à passer outre, ce qui est exactement ce qui
- * était arrivé.
+ * This gate used to ask only `existsSync`, so its verdict depended on the MACHINE: a
+ * built `dist/` and a local `.env` made it green on a dev workstation, and red on any
+ * clean runner — the `.env.local` files, the apps' `dist`. That is: red in CI,
+ * permanently, forever (one day showing `CI failure` and `Release success` on the same
+ * push). A gate one cannot turn green teaches nothing any more: people learn to bypass
+ * it, which is exactly what had happened.
  *
- * La question juste n'est donc pas « ce fichier est-il là ? » mais « ce dépôt
- * prétend-il le contenir ? ». Un chemin que `.gitignore` couvre est une sortie de build
- * ou un fichier local : sa mention dans un doc est légitime, et son absence n'apprend
- * rien. Une référence à un fichier SUIVI qui a disparu reste, elle, une vraie erreur.
- * Un seul `git check-ignore` en lot, sur les seuls jetons non résolus.
+ * So the right question is not "is this file there?" but "does this repository claim to
+ * contain it?". A path covered by `.gitignore` is build output or a local file: naming it
+ * in a doc is legitimate, and its absence teaches nothing. A reference to a TRACKED file
+ * that has disappeared remains a real error. One single batched `git check-ignore`, on
+ * the unresolved tokens only.
  */
 if (broken.length) {
-  // Les MÊMES bases que `resolveToken` : le jeton peut se résoudre via un dossier
-  // ANCÊTRE (`public/ort/` depuis un doc profond = `apps/<app>/public/ort`), et
-  // n'interroger que la racine et le dossier du doc laisserait ce cas rouge.
-  // ⚠️ Chaque candidat est proposé AVEC et SANS barre finale. Un motif de `.gitignore`
-  // qui ne vise qu'un DOSSIER (`public/ort/`) ne matche un chemin ABSENT que si celui-ci
-  // porte la barre — git ne peut pas deviner qu'il s'agit d'un dossier — et `path.join`
-  // la mange. Sans les deux formes, tout dossier ignoré restait rouge.
+  // The SAME bases as `resolveToken`: a token can resolve through an ANCESTOR folder
+  // (`public/ort/` from a deep doc = `apps/<app>/public/ort`), and asking only about the
+  // root and the doc's folder would leave that case red.
+  // ⚠️ Every candidate is offered WITH and WITHOUT a trailing slash. A `.gitignore`
+  // pattern targeting only a FOLDER (`public/ort/`) matches an ABSENT path only if that
+  // path carries the slash — git cannot guess it is a folder — and `path.join` eats it.
+  // Without both forms, every ignored folder stayed red.
   const basesOf = ({ tok, docDir }) =>
     candidateBases(docDir)
       .map((dir) => relative(root, join(dir, tok)))
@@ -152,7 +151,7 @@ if (broken.length) {
   const candidates = broken.flatMap(basesOf);
   let ignored = new Set();
   try {
-    // `check-ignore` sort 1 quand RIEN n'est ignoré — un cas normal, pas une panne.
+    // `check-ignore` exits 1 when NOTHING is ignored — a normal case, not a failure.
     const res = spawnSync("git", ["check-ignore", "--stdin"], {
       cwd: root,
       input: candidates.join("\n"),
@@ -160,7 +159,7 @@ if (broken.length) {
     });
     ignored = new Set((res.stdout || "").split("\n").filter(Boolean));
   } catch {
-    ignored = new Set(); // git indisponible ⇒ on ne dispense rien (fail closed)
+    ignored = new Set(); // git unavailable ⇒ nothing is excused (fail closed)
   }
   const kept = broken.filter((b) => !basesOf(b).some((rel) => ignored.has(rel)));
   broken.length = 0;
