@@ -93,7 +93,7 @@ import { registerPdfIpc } from "./pdf";
 import { registerWebIpc } from "./net/webIpc";
 import { initSentryMain } from "../sentry/main";
 import { applyProfilePath } from "./profile";
-import { registerEnvIpc } from "./ipc/registerEnvIpc"; import { BRAND } from "@openmasq/branding"; import type { CredMode } from "./mcp/credMode";
+import { registerEnvIpc } from "./ipc/registerEnvIpc"; import { installCustomStackCspFor } from "./customStackCsp"; import { BRAND } from "@openmasq/branding"; import type { CredMode } from "./mcp/credMode";
 
 // ── Isolated agent-browser process ───────────────────────────────────────────
 // This SAME binary re-spawned with OPENMASQ_AGENT_BROWSER=1 runs ONLY the
@@ -531,9 +531,8 @@ function registerChatHandlers(): () => boolean {
   // « La CLI Claude Code est-elle installée ? » — ce qui fait exister (ou pas) le
   // modèle `claude-cli` dans les sélecteurs. Un booléen, jamais un chemin.
   registerSubscriptionIpc();
-  // L'environnement de cette instance + sa bascule. `PROFILE` est nul en mode helper,
-  // qui n'a ni fenêtre ni renderer à servir.
-  if (PROFILE) registerEnvIpc(PROFILE);
+  // L'environnement de cette instance + sa bascule (`PROFILE` nul en mode helper : rien à servir).
+  if (PROFILE) registerEnvIpc(PROFILE, () => winRef);
 
   registerWindowIpc(() => winRef);
 
@@ -807,6 +806,7 @@ app.whenReady().then(async () => {
   installMediaPermissions(); // micro (dictée) : Electron refuse getUserMedia sans handler
   registerNotifyIpc(() => winRef); // bannière + clic qui ramène la fenêtre (./notify.ts)
   registerClaudeSkillsIpc(); // énumère ~/.claude/skills (./claudeSkills.ts)
+  if (PROFILE) installCustomStackCspFor(PROFILE, join(__dirname, "../renderer/index.html")); // pile auto-hébergée : CSP élargie AVANT loadFile
   createWindow();
   warnIfNoAtRestEncryption(); // M-9: one-time notice if a packaged build has no keychain
   // Rallume le moteur NER quand l'utilisateur REVIENT sur l'app : le worker est évincé

@@ -62,10 +62,57 @@ describe("resolvedEnvPayload — ce que le renderer reçoit", () => {
       // La clé Supabase est PUBLIABLE (c'est son nom) ; rien d'autre ne doit apparaître —
       // en particulier aucun jeton de bypass, aucune clé fournisseur, aucun secret d'app.
       expect(Object.keys(p).sort()).toEqual(
-        ["admin", "backend", "name", "redactFn", "supabaseAnonKey", "supabaseUrl"].sort(),
+        ["admin", "backend", "name", "redactFn", "supabaseAnonKey", "supabaseUrl", "customStackAllowed", "customStack"].sort(),
       );
       expect(JSON.stringify(p)).not.toMatch(/bypass|secret|token|password/i);
     }
+  });
+
+  const STACK = { backend: "https://api.example.org", gateway: "", supabaseUrl: "https://x.supabase.co", supabaseAnonKey: "sb_publishable_x" };
+
+  it("⛔ un build qui n'honore pas la pile saisie ne la remet JAMAIS au renderer — ni les adresses, ni le drapeau", () => {
+    const p = resolvedEnvPayload("custom", STACK, false);
+    expect(p.customStackAllowed).toBe(false);
+    expect(p.customStack).toBeNull();
+    // Et `custom` sans pile honorée est VIDE : jamais un repli sur la production.
+    expect(p.backend).toBe("");
+    expect(p.supabaseUrl).toBe("");
+  });
+
+  it("un build qui l'honore sert les adresses saisies en `custom`, et la pile connue même ailleurs", () => {
+    const c = resolvedEnvPayload("custom", STACK, true);
+    expect(c.backend).toBe(STACK.backend);
+    expect(c.admin).toBe(`${STACK.backend}/admin`);
+    expect(c.supabaseUrl).toBe(STACK.supabaseUrl);
+    expect(c.customStack).toEqual(STACK);
+    const prod = resolvedEnvPayload("production", STACK, true);
+    expect(prod.backend).toBe(ENVIRONMENTS.production.backend);
+    expect(prod.customStack).toEqual(STACK); // pour pré-remplir l'écran et y revenir
+  });
+});
+
+describe("classifyEnvChange — la pile AUTO-HÉBERGÉE", () => {
+  it("⛔ vers `custom` : refusé dans un build qui ne l'honore pas, même avec une pile écrite", () => {
+    expect(
+      classifyEnvChange({ wanted: "custom", current: "production", allowed: true, customAllowed: false, customConfigured: true }),
+    ).toEqual({ kind: "refuse", reason: "custom_not_allowed" });
+  });
+
+  it("⛔ vers `custom` : refusé sans pile écrite — la porte d'écriture est `env:set-custom-stack`", () => {
+    expect(
+      classifyEnvChange({ wanted: "custom", current: "production", allowed: true, customAllowed: true, customConfigured: false }),
+    ).toEqual({ kind: "refuse", reason: "custom_not_configured" });
+  });
+
+  it("vers `custom` : permis sans permission serveur quand le build l'honore ET qu'une pile existe", () => {
+    expect(
+      classifyEnvChange({ wanted: "custom", current: "production", allowed: false, customAllowed: true, customConfigured: true }),
+    ).toEqual({ kind: "allow", env: "custom" });
+  });
+
+  it("depuis `custom`, le RETOUR en production est toujours permis ; staging demande la permission", () => {
+    expect(classifyEnvChange({ wanted: "production", current: "custom", allowed: false })).toEqual({ kind: "allow", env: "production" });
+    expect(classifyEnvChange({ wanted: "staging", current: "custom", allowed: false })).toEqual({ kind: "needs-permission", env: "staging" });
   });
 
   it("deux environnements CONFIGURÉS portent des adresses distinctes — sinon basculer ne changerait rien", () => {

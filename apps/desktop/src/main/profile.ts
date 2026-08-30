@@ -22,7 +22,7 @@
 import { DEFAULT_ENV, readEnvPointer, type EnvName } from "./environment";
 
 /** Ce que le profil peut valoir. `""` = le chemin par défaut d'Electron. */
-export type ProfileSuffix = "" | " (Dev)" | " (Staging)";
+export type ProfileSuffix = "" | " (Dev)" | " (Staging)" | " (Custom)";
 
 export interface ProfileInput {
   /** L'environnement RÉSOLU de cette instance — le pointeur écrit s'il y en a un, sinon
@@ -43,7 +43,9 @@ export interface ProfileInput {
  *    lancement se ferme) et une seule base SQLite ouverte deux fois. Le dev l'emporte
  *    sur l'environnement — un dev de build staging pointe déjà sur localhost
  *    (`.env.development`), il n'a rien à séparer de plus.
- * 2. **Environnement `staging` ⇒ `" (Staging)"`.** Le seul qui se sépare.
+ * 2. **Environnement `staging` ⇒ `" (Staging)"`, `custom` ⇒ `" (Custom)"`.** Les deux qui
+ *    se séparent — la pile auto-hébergée surtout : une adresse saisie ne doit JAMAIS
+ *    relire le coffre et les clés de la production (`environments/customStack.ts`).
  * 3. **Sinon ⇒ `""`.** La production — et AUSSI un build empaqueté sans canal (un
  *    `pnpm run release` local), qui se résout en production : il partage ce profil
  *    aujourd'hui, et lui en inventer un autre déplacerait les données de quelqu'un sans
@@ -51,7 +53,9 @@ export interface ProfileInput {
  */
 export function profileSuffix({ env, isPackaged }: ProfileInput): ProfileSuffix {
   if (!isPackaged) return " (Dev)";
-  return env === "staging" ? " (Staging)" : "";
+  if (env === "staging") return " (Staging)";
+  if (env === "custom") return " (Custom)";
+  return "";
 }
 
 /** La part d'`app` dont ceci a besoin — injectée plutôt qu'importée, pour que ce module

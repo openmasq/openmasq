@@ -45,6 +45,40 @@ export interface Messages {
   common: CommonMessages;
   nav: NavMessages;
   billing: BillingMessages;
+  /** La PILE AUTO-HÉBERGÉE (Réglages → Versions) — présente seulement dans un build qui
+   *  l'honore. La carte, ses quatre champs, ses refus (nommés par le processus privilégié,
+   *  jamais inventés ici). */
+  selfHost: {
+    /** Le nom de l'environnement `custom` là où production/staging ont le leur. */
+    envLabel: string;
+    envDescription: string;
+    eyebrow: string;
+    title: string;
+    body: string;
+    backend: string;
+    gateway: string;
+    gatewayOptional: string;
+    supabaseUrl: string;
+    supabaseAnonKey: string;
+    apply: string;
+    applying: string;
+    forget: string;
+    /** « Actuellement : api.example.org » — la pile déjà écrite, sous la carte. */
+    current: (host: string) => string;
+    refusal: {
+      backend_required: string;
+      not_absolute: string;
+      not_https: string;
+      userinfo: string;
+      query_or_hash: string;
+      supabase_pair: string;
+      custom_not_allowed: string;
+      custom_not_configured: string;
+      declined: string;
+      write_failed: string;
+      generic: string;
+    };
+  };
   chrome: ChromeMessages;
   sections: SectionsMessages;
   chat: ChatMessages;

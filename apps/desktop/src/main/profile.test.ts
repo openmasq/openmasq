@@ -78,3 +78,17 @@ describe("applyProfilePath — ce qui est réellement écrit dans `userData`", (
     expect(first).not.toContain("(Staging) (Staging)");
   });
 });
+
+describe("profileSuffix — la pile AUTO-HÉBERGÉE ouvre son PROPRE profil", () => {
+  it("custom ⇒ « (Custom) » : une adresse saisie ne relit jamais le coffre et les clés de la production", () => {
+    expect(profileSuffix({ env: "custom", isPackaged: true })).toBe(" (Custom)");
+    expect(profileSuffix({ env: "custom", isPackaged: false })).toBe(" (Dev)");
+  });
+
+  it("applyProfilePath suit le pointeur custom vers le dossier séparé", () => {
+    const { app, path } = fakeApp(true);
+    const { env } = applyProfilePath(app, {}, (): EnvName => "custom");
+    expect(env).toBe("custom");
+    expect(path()).toBe(`/Users/x/Library/Application Support/${BRAND.name} (Custom)`);
+  });
+});

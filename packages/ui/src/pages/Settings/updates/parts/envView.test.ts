@@ -27,3 +27,10 @@ describe("envView — à qui la bascule d'environnement est proposée", () => {
     expect(switchRefusalText(undefined)).toMatch(/échoué/);
   });
 });
+
+describe("envView — la pile AUTO-HÉBERGÉE", () => {
+  it("depuis custom, la bascule (le retour en production) est TOUJOURS proposée — jamais un cul-de-sac", () => {
+    expect(envSwitchOffered({ env: "custom", stagingTester: false, crossEnv: false })).toBe(true);
+    expect(otherEnv("custom")).toBe("production");
+  });
+});

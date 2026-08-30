@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { initSentryRenderer } from "../../sentry/renderer";
 import { fileSourceSlots } from "./host/fileSources";
+import { envSlot } from "./host/envSlot";
 import {
   HostProvider,
   configureAnalytics,
@@ -17,7 +18,6 @@ import {
 import "@openmasq/ui/styles.css";
 import { App } from "./App";
 import { AUTH_CONFIGURED, authHost } from "./auth";
-import { backendFetch } from "./backendFetch";
 import { syncHost, getOrgProfile, setOrgCacheUser, SYNC_ENABLED, pullSyncedIntegrations, orgSharesHost } from "./sync";
 import { billingHost } from "./billing";
 import { avisHost } from "./avis";
@@ -33,7 +33,6 @@ import {
   RELEASE_NOTES_URL,
   UPDATES_CONFIGURED,
   APP_VERSION,
-  BACKEND_URL,
   BUILD_ENV,
   REDACT_FN_URL,
   RUNTIME_ENV,
@@ -215,39 +214,7 @@ const host: Host = {
           : {}),
       }
     : undefined,
-  // L'environnement d'exécution (production/staging) + sa bascule — la carte
-  // « Environnement » de Réglages → Versions. Guarded : un preload non redémarré n'a
-  // pas `env.switchTo` → pas de carte, jamais un throw. La DÉCISION est en main
-  // (`registerEnvIpc`, fail-closed) ; ici on demande, et on porte le jeton du compte
-  // pour que le backend de production réponde pour CE compte (drapeau staging_tester).
-  // …et seulement là où il Y A des environnements : basculer suppose deux backends
-  // configurés, et la permission elle-même se demande au backend de production.
-  env: BACKEND_CONFIGURED && window.openmasq.env?.switchTo
-    ? {
-        name: RUNTIME_ENV,
-        switchTo: async (envName) => {
-          const token = (await authHost.getAccessToken?.().catch(() => null)) ?? undefined;
-          return window.openmasq.env.switchTo(envName, token);
-        },
-        // AFFICHAGE seulement (proposer ou non la bascule), fail-closed à false — la vraie
-        // garde revit en main au moment de basculer, et BACKEND_URL est bien la production.
-        stagingTester: async () => {
-          try {
-            const token = await authHost.getAccessToken?.();
-            if (!token) return false;
-            // `backendFetch`, jamais `fetch` : il porte l'identité du client — voir sa source.
-            const res = await backendFetch(`${BACKEND_URL}/api-features/users/me/flags`, {
-              headers: { authorization: `Bearer ${token}` },
-            });
-            if (!res.ok) return false;
-            const body = (await res.json()) as { flags?: { staging_tester?: boolean } };
-            return body?.flags?.staging_tester === true;
-          } catch {
-            return false;
-          }
-        },
-      }
-    : undefined,
+  env: envSlot(),
   db: {
     configured: () => window.openmasq.db.configured(),
     setUser: (userId) => window.openmasq.db.setUser(userId),

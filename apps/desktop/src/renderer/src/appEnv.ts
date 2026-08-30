@@ -51,7 +51,9 @@ const RESOLVED = window.openmasq?.env?.resolved?.() ?? null;
  *  parle à la production, c'est le contrat de l'artefact unique (`../../environments`). */
 const ENV_NAME = RESOLVED?.name ?? DEFAULT_ENV;
 
-const URLS = RESOLVED ?? ENVIRONMENTS[ENV_NAME];
+// Sans main (aperçu, preload non redémarré), `ENV_NAME` vaut la production : la table cuite
+// répond. Une pile saisie n'arrive JAMAIS par ici — seulement résolue par main.
+const URLS = RESOLVED ?? ENVIRONMENTS[DEFAULT_ENV];
 
 /** L'API distante de l'app (comptes, facturation, synchro, avis). VIDE = ce build n'a
  *  pas de backend, et c'est un état NORMAL (`../../environments`). */
@@ -75,7 +77,17 @@ export const ENV_DISPLAY_NAME: string = ENV_NAME;
 
 /** Le nom de l'environnement effectif, TYPÉ, pour le slot `host.env` (la carte
  *  Environnement de Réglages → Versions) — l'union discriminée que la bascule attend. */
-export const RUNTIME_ENV: "production" | "staging" = ENV_NAME;
+export const RUNTIME_ENV: "production" | "staging" | "custom" = ENV_NAME;
+
+/** Ce build honore-t-il une pile AUTO-HÉBERGÉE saisie dans l'app ? Cuit au build
+ *  (`OPENMASQ_ALLOW_CUSTOM_STACK=1`) et remis par main avec l'environnement résolu ; sans
+ *  main (aperçu), non. C'est ce qui fait EXISTER la carte « Pile auto-hébergée » — et le
+ *  slot `host.env` même dans un build sans aucun backend cuit, puisque c'est précisément
+ *  là qu'on en saisit un. */
+export const CUSTOM_STACK_ALLOWED: boolean = RESOLVED?.customStackAllowed === true;
+
+/** La pile saisie déjà connue (pour pré-remplir l'écran), `null` sans. */
+export const CUSTOM_STACK = RESOLVED?.customStack ?? null;
 
 /**
  * Le secret d'automatisation Vercel qui laisse passer la protection de déploiement
@@ -125,7 +137,7 @@ export const UPDATES_CONFIGURED: boolean = !!env.VITE_UPDATES_URL;
  * un `pnpm dev` et un build hors CI n'ont rien à voir avec un environnement déployé, et
  * les confondre est ce qui avait fait passer 277 lancements locaux pour des installs.
  */
-export const BUILD_ENV: "development" | "local" | "staging" | "production" = IS_DEV
+export const BUILD_ENV: "development" | "local" | "staging" | "production" | "custom" = IS_DEV
   ? "development"
   : !UPDATES_CHANNEL && !RESOLVED
     ? "local"

@@ -4,17 +4,19 @@ import { BRAND } from "@openmasq/branding";
 // logique-en-.ts) et testée — c'est une porte d'AFFICHAGE seulement, la vraie garde
 // revit dans le processus privilégié à chaque demande.
 
-export type RuntimeEnv = "production" | "staging";
+export type RuntimeEnv = "production" | "staging" | "custom";
 
+/** La cible du bouton : depuis la production, staging ; depuis TOUT le reste (staging, la
+ *  pile auto-hébergée), la production — le retour à l'environnement par défaut. */
 export const otherEnv = (env: RuntimeEnv): RuntimeEnv =>
   env === "production" ? "staging" : "production";
 
 /**
  * Proposer la bascule ?
  *
- * - Depuis STAGING : toujours — le RETOUR en production est permis à tous côté main
- *   (revenir à l'environnement par défaut n'est pas un privilège), et cacher le bouton
- *   ferait d'une app basculée un cul-de-sac.
+ * - Depuis STAGING ou la pile AUTO-HÉBERGÉE : toujours — le RETOUR en production est
+ *   permis à tous côté main (revenir à l'environnement par défaut n'est pas un privilège),
+ *   et cacher le bouton ferait d'une app basculée un cul-de-sac.
  * - Depuis production : au drapeau de compte `staging_tester` (lu fail-closed) ou au
  *   privilège machine (`crossEnv`, le même qui montre les deux flux de versions).
  */
@@ -23,7 +25,7 @@ export function envSwitchOffered(p: {
   stagingTester: boolean;
   crossEnv: boolean;
 }): boolean {
-  return p.env === "staging" || p.stagingTester || p.crossEnv;
+  return p.env !== "production" || p.stagingTester || p.crossEnv;
 }
 
 /** Le vocabulaire de refus du main → une phrase honnête pour l'utilisateur. */

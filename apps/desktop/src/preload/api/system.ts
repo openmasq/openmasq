@@ -208,18 +208,42 @@ export const updates = {
 /** Build/runtime flags surfaced to the renderer. */
 /** L'environnement résolu, tel que main le remet au renderer. Les types vivent ici (le
  *  preload est le contrat) plutôt qu'importés de main : il ne dépend que d'`electron`. */
+export type EnvName = "production" | "staging" | "custom";
+
+/** La pile AUTO-HÉBERGÉE saisie par l'utilisateur — des adresses publiques et une clé
+ *  PUBLIABLE, rien de secret. N'existe que dans un build qui l'honore. */
+export interface CustomStack {
+  backend: string;
+  gateway: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+}
+
 export interface ResolvedEnv {
-  name: "production" | "staging";
+  name: EnvName;
   backend: string;
   admin: string;
   supabaseUrl: string;
   supabaseAnonKey: string;
   redactFn: string;
+  /** Ce build honore-t-il une pile saisie (`OPENMASQ_ALLOW_CUSTOM_STACK=1`) ? */
+  customStackAllowed: boolean;
+  /** La pile déjà connue du pointeur, pour pré-remplir l'écran — `null` sans. */
+  customStack: CustomStack | null;
 }
 
 export type EnvSwitchResult =
-  | { ok: true; env: "production" | "staging"; relaunching: boolean }
-  | { ok: false; reason: "unknown_env" | "not_privileged" | "write_failed"; env: "production" | "staging" };
+  | { ok: true; env: EnvName; relaunching: boolean }
+  | {
+      ok: false;
+      reason: "unknown_env" | "not_privileged" | "write_failed" | "custom_not_allowed" | "custom_not_configured";
+      env: EnvName;
+    };
+
+/** Verdict de l'écriture d'une pile saisie — décidée en MAIN (validation + boîte native). */
+export type SetCustomStackResult =
+  | { ok: true; relaunching: true }
+  | { ok: false; reason: "custom_not_allowed" | "invalid" | "declined" | "write_failed"; field?: keyof CustomStack; detail?: string };
 
 export const env = {
   /** True only under a TEST launch (main's `OPENMASQ_E2E`). Async because a
@@ -254,4 +278,12 @@ export const env = {
    *  dépannage par machine (`allow_self_pin`) peut autoriser. */
   switchTo: (env: string, token?: string): Promise<EnvSwitchResult> =>
     ipcRenderer.invoke("env:switch", { env, token }),
+  /** Écrire une pile AUTO-HÉBERGÉE et basculer dessus. Tout se décide en main : la
+   *  validation (https, pas d'identifiants, couple Supabase), puis une boîte de dialogue
+   *  NATIVE que seul un humain peut cliquer. Le handler n'existe que dans un build qui
+   *  l'honore — ailleurs l'appel échoue, et c'est le bon comportement. */
+  setCustomStack: (stack: CustomStack): Promise<SetCustomStackResult> =>
+    ipcRenderer.invoke("env:set-custom-stack", stack),
+  /** Oublier la pile saisie et revenir à l'environnement par défaut (boîte native aussi). */
+  forgetCustomStack: (): Promise<SetCustomStackResult> => ipcRenderer.invoke("env:forget-custom-stack"),
 };

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { DEFAULT_ENV, readEnvPointer, writeEnvPointer, ENV_POINTER_FILE, type PointerIo } from "./environment";
+import { DEFAULT_ENV, readEnvPointer, readEnvPointerFull, writeEnvPointer, ENV_POINTER_FILE, type PointerIo } from "./environment";
 import { BRAND } from "@openmasq/branding";
 
 /** Un faux disque : ce que le pointeur lit et écrit, sans toucher au vrai. */
@@ -71,3 +71,40 @@ describe("writeEnvPointer", () => {
   });
 });
 
+
+describe("readEnvPointerFull — la pile AUTO-HÉBERGÉE dans le pointeur", () => {
+  const STACK = { backend: "https://api.example.org", gateway: "https://gw.example.org", supabaseUrl: "https://x.supabase.co", supabaseAnonKey: "sb_publishable_x" };
+
+  it("⛔ un binaire qui n'honore PAS la pile relit un pointeur `custom` comme la PRODUCTION, sans la pile", () => {
+    const { io } = fakeIo({ [AT]: JSON.stringify({ env: "custom", custom: STACK }) });
+    expect(readEnvPointerFull(BASE, DEFAULT_ENV, io, false)).toEqual({ env: "production", custom: null });
+  });
+
+  it("un binaire qui l'honore ouvre `custom` quand la pile REPASSE la validation", () => {
+    const { io } = fakeIo({ [AT]: JSON.stringify({ env: "custom", custom: STACK }) });
+    expect(readEnvPointerFull(BASE, DEFAULT_ENV, io, true)).toEqual({ env: "custom", custom: STACK });
+  });
+
+  it("⛔ une pile ALTÉRÉE sur le disque (http, identifiants, backend absent) ⇒ production, pile oubliée", () => {
+    for (const bad of [
+      { ...STACK, backend: "http://api.example.org" },
+      { ...STACK, backend: "https://u:p@api.example.org" },
+      { ...STACK, backend: "" },
+      { ...STACK, supabaseAnonKey: "" },
+      "https://api.example.org",
+    ]) {
+      const { io } = fakeIo({ [AT]: JSON.stringify({ env: "custom", custom: bad }) });
+      expect(readEnvPointerFull(BASE, DEFAULT_ENV, io, true)).toEqual({ env: "production", custom: null });
+    }
+  });
+
+  it("la pile SURVIT à une bascule vers un environnement cuit — on y revient d'un clic", () => {
+    const { io, files } = fakeIo();
+    expect(writeEnvPointer(BASE, "staging", io, STACK)).toBe(true);
+    expect(JSON.parse(files.get(AT)!)).toEqual({ env: "staging", custom: STACK });
+    expect(readEnvPointerFull(BASE, DEFAULT_ENV, io, true)).toEqual({ env: "staging", custom: STACK });
+    // …et l'oublier est explicite : sans pile, le fichier ne la porte plus.
+    expect(writeEnvPointer(BASE, "production", io, null)).toBe(true);
+    expect(JSON.parse(files.get(AT)!)).toEqual({ env: "production" });
+  });
+});

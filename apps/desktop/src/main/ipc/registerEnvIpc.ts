@@ -1,8 +1,10 @@
-import { app, ipcMain } from "electron";
-import { DEFAULT_ENV, ENVIRONMENTS, isEnvName, type EnvName } from "../../environments";
+import { app, ipcMain, type BrowserWindow } from "electron";
+import { DEFAULT_ENV, ENVIRONMENTS, type EnvName } from "../../environments";
+import { CUSTOM_STACK_ALLOWED } from "../../environments/customStack";
 import { CLIENT_HEADER, clientIdentityHeader } from "../../clientIdentity";
 import { classifyEnvChange, resolvedEnvPayload } from "./envSwitch";
-import { writeEnvPointer } from "../environment";
+import { readEnvPointerFull, writeEnvPointer } from "../environment";
+import { registerCustomStackIpc } from "./registerCustomStackIpc";
 import { selfPinAllowed } from "../updates/channel";
 import { relaunchSafely } from "../updates/install";
 import { handle, obj } from "./handle";
@@ -31,6 +33,10 @@ import { handle, obj } from "./handle";
  * unique, l'octet livré est le même partout : « quels builds je reçois » (le canal) et « à
  * quelle API je parle » (l'environnement) deviennent deux axes indépendants, accordés
  * séparément. Les faire bouger ensemble ici recréerait le couplage qu'on défait.
+ *
+ * La pile AUTO-HÉBERGÉE (`custom`) a sa propre porte d'ÉCRITURE — `registerCustomStackIpc`
+ * (validation en main + boîte native) — et n'existe que dans un build qui l'honore. Ici on
+ * ne fait qu'y REVENIR (`env:switch` vers `custom`), ce qui suppose une pile déjà écrite.
  */
 
 /** Brancher la famille. `current` est l'environnement résolu au démarrage, `baseUserData`
@@ -60,9 +66,16 @@ async function accountIsStagingTester(token: unknown): Promise<boolean> {
   }
 }
 
-export function registerEnvIpc(args: { env: EnvName; baseUserData: string }): void {
+export function registerEnvIpc(
+  args: { env: EnvName; baseUserData: string },
+  window: () => BrowserWindow | null = () => null,
+): void {
   const current = args.env;
-  const payload = resolvedEnvPayload(current);
+  // La pile saisie, relue (et REVALIDÉE) depuis le pointeur : c'est elle que le renderer
+  // reçoit en `custom`, et elle qu'on conserve quand on bascule vers un environnement cuit.
+  const { custom } = readEnvPointerFull(args.baseUserData);
+  const payload = resolvedEnvPayload(current, custom);
+  registerCustomStackIpc({ baseUserData: args.baseUserData, window });
 
   // SYNCHRONE, et c'est délibéré : `renderer/src/appEnv.ts` doit connaître les adresses au
   // chargement du module, avant que `auth.ts` ne construise le client Supabase. Un aller
@@ -76,12 +89,15 @@ export function registerEnvIpc(args: { env: EnvName; baseUserData: string }): vo
     const verdict = classifyEnvChange({
       wanted,
       current,
-      // La permission n'est demandée QUE si la cible diffère — pas d'appel réseau pour
-      // un no-op. Compte d'abord (le chemin durable), machine ensuite (le dépannage).
+      // La permission n'est demandée QUE si la cible est STAGING — pas d'appel réseau pour
+      // un no-op, ni pour un retour en production ou vers la pile de l'utilisateur.
+      // Compte d'abord (le chemin durable), machine ensuite (le dépannage).
       allowed:
-        isEnvName(wanted) && wanted !== current
+        wanted === "staging" && wanted !== current
           ? (await accountIsStagingTester(token)) || (await selfPinAllowed())
           : false,
+      customAllowed: CUSTOM_STACK_ALLOWED,
+      customConfigured: !!custom,
     });
 
     if (verdict.kind === "refuse") return { ok: false, reason: verdict.reason, env: current };
@@ -90,7 +106,8 @@ export function registerEnvIpc(args: { env: EnvName; baseUserData: string }): vo
     }
     if (verdict.env === current) return { ok: true, env: current, relaunching: false };
 
-    if (!writeEnvPointer(args.baseUserData, verdict.env)) {
+    // La pile saisie SURVIT à une bascule vers un environnement cuit : on y revient d'un clic.
+    if (!writeEnvPointer(args.baseUserData, verdict.env, undefined, custom)) {
       // Le pointeur n'a pas pu s'écrire : ne PAS redémarrer, ou l'app rouvrirait
       // l'ancien environnement sans que personne comprenne pourquoi.
       return { ok: false, reason: "write_failed", env: current };

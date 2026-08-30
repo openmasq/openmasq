@@ -61,7 +61,16 @@ const GATEWAY_STAGING = process.env.OPENMASQ_GATEWAY_URL_STAGING ?? "";
 const adminOf = (backend: string): string =>
   backend ? `${backend.replace(/\/+$/, "")}/admin` : "";
 
-export type EnvName = "production" | "staging";
+/** Les environnements CUITS — ceux dont la table ci-dessous porte les adresses. */
+export type BuiltEnvName = "production" | "staging";
+
+/**
+ * Tous les noms qu'un pointeur peut porter. `"custom"` est la pile AUTO-HÉBERGÉE
+ * (`customStack.ts`) : ses adresses ne sont pas ici, elles vivent dans le pointeur écrit
+ * par main — et le nom n'est HONORÉ que dans un build qui l'autorise
+ * (`OPENMASQ_ALLOW_CUSTOM_STACK=1`) ; ailleurs il se relit comme la production.
+ */
+export type EnvName = BuiltEnvName | "custom";
 
 export interface EnvUrls {
   /** L'API distante de l'app (comptes, facturation, synchro, avis). */
@@ -76,7 +85,7 @@ export interface EnvUrls {
   redactFn: string;
 }
 
-export const ENVIRONMENTS: Record<EnvName, EnvUrls> = {
+export const ENVIRONMENTS: Record<BuiltEnvName, EnvUrls> = {
   production: {
     backend: BACKEND,
     admin: adminOf(BACKEND),
@@ -97,9 +106,16 @@ export const ENVIRONMENTS: Record<EnvName, EnvUrls> = {
 };
 
 /** La valeur par défaut, et la réponse à toute entrée qu'on ne reconnaît pas. */
-export const DEFAULT_ENV: EnvName = "production";
+export const DEFAULT_ENV: BuiltEnvName = "production";
 
-/** `true` si `value` est un nom d'environnement connu — l'allow-list, en une fonction. */
+/** `true` si `value` est un nom d'environnement connu — l'allow-list, en une fonction.
+ *  `"custom"` en fait partie : c'est un NOM ; ce que le nom vaut (des adresses saisies)
+ *  se décide ailleurs, et seulement dans un build qui l'autorise. */
 export function isEnvName(value: unknown): value is EnvName {
+  return value === "production" || value === "staging" || value === "custom";
+}
+
+/** `true` pour un environnement dont les adresses sont CUITES (indexable dans la table). */
+export function isBuiltEnvName(value: unknown): value is BuiltEnvName {
   return value === "production" || value === "staging";
 }

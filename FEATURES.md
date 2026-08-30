@@ -940,6 +940,12 @@ stuck with a version that breaks your use.
       decision is re-checked outside the UI on every request, and a refusal is shown as-is —
       `packages/ui/src/pages/Settings/updates/parts/EnvCard.tsx`,
       `packages/ui/src/pages/Settings/updates/parts/envView.test.ts`
+- [x] « **Pile auto-hébergée** » — only in a build made with `OPENMASQ_ALLOW_CUSTOM_STACK=1`
+      (never the official one): four fields (API, gateway, Supabase URL + publishable key),
+      « Appliquer et redémarrer ». The addresses are validated outside the UI (https only),
+      confirmed by a native dialog, and the app restarts in its own `(Custom)` profile —
+      `packages/ui/src/pages/Settings/updates/parts/CustomStackCard.tsx`,
+      `apps/desktop/src/environments/customStack.test.ts`, `SELF_HOSTING.md`
 
 ---
 

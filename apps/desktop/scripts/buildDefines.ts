@@ -24,6 +24,11 @@ function SERVICE_DEFINES(): Record<string, string> {
       "OPENMASQ_BACKEND_URL_STAGING",
       "OPENMASQ_GATEWAY_URL",
       "OPENMASQ_GATEWAY_URL_STAGING",
+      // ⚠️ `"1"` autorise la pile AUTO-HÉBERGÉE saisie dans l'app (Réglages → Versions) —
+      // une exception assumée à « un nom, jamais une URL » (`src/environments/customStack.ts`).
+      // Un self-hosteur la pose pour SON build ; la CI de la marque ne la pose jamais, et le
+      // binaire officiel relit un pointeur `custom` comme la production.
+      "OPENMASQ_ALLOW_CUSTOM_STACK",
     ].map((name) => [`process.env.${name}`, JSON.stringify(process.env[name] ?? "")]),
   );
 }

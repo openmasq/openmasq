@@ -130,6 +130,10 @@ export const billingHost: BillingHost = {
       // backend qui refuserait — ici l'inconnu se lit comme éteint, à l'inverse de
       // `billingEnabled` : proposer un octroi qui n'existe pas est un bouton MORT.
       selfGrantEnabled: d.self_grant_enabled === true,
+      // Même famille : une capacité du déploiement, à la racine, et l'inconnu se lit
+      // ÉTEINT — promettre « tout inclus » à qui la passerelle répondra 402 est le pire
+      // des deux mensonges.
+      freeMode: d.free_mode === true,
     };
     debug("getSubscription → tier=%s status=%s cancelAtEnd=%s", sub.tier, sub.status, sub.cancelAtPeriodEnd);
     return sub;
@@ -153,6 +157,7 @@ export const billingHost: BillingHost = {
       allotmentCents: c.allotment_cents ?? 0,
       consumedCents: c.consumed_cents ?? 0,
       balanceCents: c.balance_cents ?? 0,
+      unlimited: c.unlimited === true,
     };
   },
 

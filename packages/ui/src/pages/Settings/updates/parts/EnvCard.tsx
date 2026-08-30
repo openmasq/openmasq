@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { LayersIcon } from "../../../../components/brand";
 import { useHost } from "../../../../host";
+import { useT } from "../../../../i18n/I18nProvider";
 import { useUpdates } from "../useUpdates";
 import { envLabel } from "./updateStatus";
 import { envSwitchOffered, otherEnv, switchRefusalText } from "./envView";
@@ -16,6 +17,7 @@ import { envSwitchOffered, otherEnv, switchRefusalText } from "./envView";
 
 export function EnvCard() {
   const host = useHost();
+  const t = useT();
   const { crossEnv } = useUpdates();
   const [tester, setTester] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -41,6 +43,14 @@ export function EnvCard() {
   if (!envSwitchOffered({ env: env.name, stagingTester: tester, crossEnv })) return null;
 
   const target = otherEnv(env.name);
+  // La pile auto-hébergée a son nom dans le catalogue ; les environnements cuits, le leur.
+  const currentLabel = env.name === "custom" ? t.selfHost.envLabel : envLabel(env.name);
+  const description =
+    env.name === "custom"
+      ? t.selfHost.envDescription
+      : env.name === "staging"
+        ? "Environnement de test — données et services de préversion."
+        : "L'environnement normal de l'app.";
 
   const onSwitch = async () => {
     if (
@@ -68,13 +78,9 @@ export function EnvCard() {
         </span>
         <div className="flex-min">
           <div className="ver-now-name">
-            <span className="om-sweep">{envLabel(env.name)}</span>
+            <span className="om-sweep">{currentLabel}</span>
           </div>
-          <div className="ver-now-chan">
-            {env.name === "staging"
-              ? "Environnement de test — données et services de préversion."
-              : "L'environnement normal de l'app."}
-          </div>
+          <div className="ver-now-chan">{description}</div>
         </div>
         <button onClick={onSwitch} disabled={busy} className="ver-btn">
           <span className="om-sweep">Basculer vers {envLabel(target)}</span>

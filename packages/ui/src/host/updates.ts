@@ -123,24 +123,56 @@ export interface UpdatesHost {
 /** Verdict d'une demande de bascule d'environnement — décidée et REVÉRIFIÉE dans le
  *  processus privilégié du desktop (allow-list de noms + permission serveur, fail-closed) ;
  *  l'UI ne fait que demander et montrer le refus tel quel. */
+/** Les environnements qu'une instance peut ouvrir. `custom` = la pile AUTO-HÉBERGÉE saisie
+ *  par l'utilisateur, qui n'existe que dans un build qui l'honore (`CustomStackHost`). */
+export type RuntimeEnvName = "production" | "staging" | "custom";
+
 export interface EnvSwitchResult {
   ok: boolean;
-  env: "production" | "staging";
+  env: RuntimeEnvName;
   relaunching?: boolean;
-  reason?: "unknown_env" | "not_privileged" | "write_failed";
+  reason?: "unknown_env" | "not_privileged" | "write_failed" | "custom_not_allowed" | "custom_not_configured";
+}
+
+/** Les quatre adresses d'une pile auto-hébergée — publiques, et une clé PUBLIABLE. */
+export interface CustomStack {
+  backend: string;
+  gateway: string;
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+}
+
+/** Verdict de l'écriture d'une pile — décidé HORS de l'UI (validation + boîte native). */
+export type SetCustomStackResult =
+  | { ok: true; relaunching: true }
+  | { ok: false; reason: "custom_not_allowed" | "invalid" | "declined" | "write_failed"; field?: keyof CustomStack; detail?: string };
+
+/**
+ * La pile AUTO-HÉBERGÉE : présente SEULEMENT dans un build qui l'honore
+ * (`OPENMASQ_ALLOW_CUSTOM_STACK=1` — jamais le binaire officiel). L'écran saisit et
+ * demande ; la validation et la confirmation (une boîte de dialogue NATIVE) vivent dans le
+ * processus privilégié, qui redémarre l'app dans un profil séparé.
+ */
+export interface CustomStackHost {
+  /** La pile déjà écrite, pour pré-remplir — `null` sans. */
+  current: CustomStack | null;
+  set(stack: CustomStack): Promise<SetCustomStackResult>;
+  forget(): Promise<SetCustomStackResult>;
 }
 
 /**
- * L'environnement d'exécution de cette instance (production/staging) et sa bascule.
+ * L'environnement d'exécution de cette instance (production/staging/custom) et sa bascule.
  * Desktop seulement — la build est UNIQUE, l'environnement est résolu au boot depuis un
  * pointeur local ; basculer réécrit ce pointeur et redémarre. Absent = pas de section.
  */
 export interface EnvHost {
   /** Le nom résolu au boot. Un nom, jamais une adresse (l'allow-list vit côté main). */
-  name: "production" | "staging";
-  switchTo(env: "production" | "staging"): Promise<EnvSwitchResult>;
+  name: RuntimeEnvName;
+  switchTo(env: RuntimeEnvName): Promise<EnvSwitchResult>;
   /** Le compte porte-t-il le drapeau testeur ? AFFICHAGE seulement (montrer ou non la
    *  proposition) — la vraie garde retourne au serveur au moment de la bascule.
    *  Fail-closed : erreur ⇒ false. */
   stagingTester(): Promise<boolean>;
+  /** Absent = ce build ne saisit pas de pile (le cas du binaire officiel). */
+  customStack?: CustomStackHost;
 }

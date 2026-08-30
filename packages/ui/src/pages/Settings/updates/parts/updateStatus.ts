@@ -36,4 +36,7 @@ export function statusLine(status: UpdateStatus): { text: string; tone: string }
   }
 }
 
-export const envLabel = (env: string): string => (env === "production" ? "Production" : "Staging");
+/** Le nom d'un environnement CUIT. La pile auto-hébergée a le sien dans le catalogue
+ *  (`t.selfHost.envLabel`) — ici un repli neutre, jamais « Staging » pour ce qui n'en est pas. */
+export const envLabel = (env: string): string =>
+  env === "production" ? "Production" : env === "staging" ? "Staging" : "Custom";
