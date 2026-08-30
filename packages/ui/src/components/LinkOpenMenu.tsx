@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import { useT } from "../i18n";
 import { createPortal } from "react-dom";
 import { BrowserIcon, ArrowRightIcon } from "./brand";
 import { useLinkOpen } from "../containers/providers/linkOpen";
@@ -20,6 +21,7 @@ const CLOSE_DELAY = 160; // ms grace so moving link→menu doesn't dismiss it
 const MENU_WIDTH = 220; // px — matches the CSS min-width plus its padding
 
 export function LinkOpenMenu({ href, children }: { href: string; children: ReactNode }) {
+  const t = useT();
   const { openInBrowser } = useLinkOpen();
   const menu = usePopover<HTMLSpanElement, HTMLDivElement>({
     anchor: { gap: 4, margin: 8, width: MENU_WIDTH, desiredHeight: 84, align: "left" },
@@ -109,7 +111,7 @@ export function LinkOpenMenu({ href, children }: { href: string; children: React
             ref={menu.menuRef}
             className="md-link-menu"
             role="menu"
-            aria-label="Ouvrir le lien"
+            aria-label={t.menus.link.ariaLabel}
             // Runtime-computed position (portal to body) — the allowed inline-style case.
             style={menu.style}
             onMouseEnter={cancelClose}
@@ -130,11 +132,11 @@ export function LinkOpenMenu({ href, children }: { href: string; children: React
           >
             {openInBrowser && (
               <button type="button" role="menuitem" className="md-link-menu-btn" onClick={openIntegrated}>
-                <BrowserIcon size={14} /> Navigateur intégré
+                <BrowserIcon size={14} /> {t.menus.link.integratedBrowser}
               </button>
             )}
             <button type="button" role="menuitem" className="md-link-menu-btn" onClick={openExternal}>
-              <ArrowRightIcon size={14} /> Navigateur externe
+              <ArrowRightIcon size={14} /> {t.menus.link.externalBrowser}
             </button>
           </div>,
           document.body,

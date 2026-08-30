@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useT } from "../../i18n";
 import type { Competence } from "../../types";
 import type { SlashAction } from "./slashPalette";
 import { MemoryIcon, WorkflowIcon } from "../../components/brand";
@@ -36,6 +37,7 @@ export function ComposerSkillMenu({
   actions?: SlashAction[];
   onPickAction?: (a: SlashAction) => void;
 }) {
+  const t = useT();
   const listRef = useRef<HTMLDivElement>(null);
   const actionCount = actions?.length ?? 0;
 
@@ -50,7 +52,7 @@ export function ComposerSkillMenu({
     <div className="composer-skill-menu" role="menu" ref={listRef}>
       {actions && actions.length > 0 && (
         <>
-          <div className="composer-skill-eyebrow">Actions</div>
+          <div className="composer-skill-eyebrow">{t.menus.skills.actions}</div>
           {actions.map((a, i) => (
             <button
               key={a.id}
@@ -72,13 +74,13 @@ export function ComposerSkillMenu({
           ))}
         </>
       )}
-      <div className="composer-skill-eyebrow">Compétences</div>
+      <div className="composer-skill-eyebrow">{t.menus.skills.competences}</div>
       {competences.length === 0 ? (
         <div className="composer-skill-empty">
-          <span>Aucune compétence — vos prompts réutilisables, insérés en un clic.</span>
+          <span>{t.menus.skills.empty}</span>
           {onCreate && (
             <button type="button" className="composer-skill-create" onClick={onCreate}>
-              Créer une compétence
+              {t.menus.skills.create}
             </button>
           )}
         </div>

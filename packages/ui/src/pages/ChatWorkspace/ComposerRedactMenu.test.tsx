@@ -2,7 +2,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "../../testKit";
 import { ComposerRedactMenu, type RedactLevelApi } from "./ComposerRedactMenu";
-import { PRIVACY_LEVEL_META } from "../../privacy/privacyLevel";
+import { getMessages } from "@openmasq/i18n";
+import { privacyLevelMeta } from "../../privacy/privacyLevel";
 
 /**
  * Le clic POSE le niveau, et il le pose sur LA CONVERSATION : le composeur agit sur ce
@@ -68,12 +69,14 @@ describe("ComposerRedactMenu", () => {
     await m.unmount();
   });
 
-  /* Le texte vient de `PRIVACY_LEVEL_META` (`short`), jamais du composant : une seconde
+  /* Le texte vient de `privacyLevelMeta` (`short`), jamais du composant : une seconde
      surface qui réécrirait les niveaux, c'est deux vocabulaires (règle 9). */
   it("les descriptions sortent du vocabulaire partagé, pas du composant", async () => {
     const m = await mount(<ComposerRedactMenu api={api()} onDone={() => {}} />);
     const texts = m.findAll(".crm-level-desc").map((el) => el.textContent);
-    expect(texts).toEqual(PRIVACY_LEVEL_META.map((meta) => meta.short));
+    // Hors provider, `useT()` rend le catalogue de la langue par défaut : c'est donc
+    // celui-là que le composant a affiché.
+    expect(texts).toEqual(privacyLevelMeta(getMessages("fr")).map((meta) => meta.short));
     await m.unmount();
   });
 });

@@ -2,6 +2,7 @@ import { NOTORIOUS_COMMERCIAL_ORGS, NOTORIOUS_PEOPLE } from "@openmasq/redact";
 import { CATEGORY_DEFAULTS, REDACT_CATEGORIES } from "./redactCategories";
 import type { RedactCategoryKey, Settings } from "../types";
 import { BRAND } from "@openmasq/branding";
+import type { Messages, PrivacyLevelCopy } from "@openmasq/i18n";
 
 /**
  * The redaction rules, as ONE choice instead of seventeen.
@@ -17,62 +18,36 @@ import { BRAND } from "@openmasq/branding";
  */
 export type PrivacyLevel = "standard" | "renforce" | "strict" | "custom";
 
-export const PRIVACY_LEVEL_META: {
+/**
+ * Les niveaux, dans l'ordre CROISSANT de protection — c'est ce qui fait lire la liste
+ * comme une échelle, et c'est la seule chose de ce bloc qui ne soit pas de la copie : une
+ * langue ne réordonne pas une échelle. Les quatre registres viennent du catalogue
+ * (`privacyLevels`), où ils s'écrivent en français et en anglais.
+ */
+export function privacyLevelMeta(t: Messages): {
   id: Exclude<PrivacyLevel, "custom">;
   label: string;
   desc: string;
-  /** Ce niveau protège MOINS que les défauts d'installation : il ne porte PAS le bouclier
-   *  (`PrivacyLevelPicker` lui met l'œil à la place) et ne peut pas être le défaut
-   *  d'installation — voir le bloc ⚠️ ci-dessous. */
   reduced?: true;
-  /**
-   * Ce que le niveau COUVRE, en une phrase concrète — le registre COURT, pour une surface
-   * où la décision se prend en passant (le menu du composeur). Il dit la même chose que
-   * `desc` + `tradeoff` réunis, par l'autre bout : ce qui EST masqué, plutôt que l'usage
-   * auquel le niveau convient et ce qu'il laisse lisible.
-   *
-   * ⚠️ Trois registres, UNE maison. Les Réglages gardent `desc` + `tradeoff` — c'est là que
-   * la décision se prend en connaissance de cause, et la règle 8 y impose de dire ce que le
-   * niveau coûte. Ce champ-ci ne les remplace pas : il évite qu'une seconde surface
-   * réécrive les niveaux dans son coin, ce qui est exactement comme deux vocabulaires
-   * naissent (règle 9).
-   */
   short: string;
-  /** La CONTREPARTIE du niveau, en une ligne — ce qu'il laisse lisible, ou ce que sa
-   *  protection peut fausser dans la réponse. L'autre moitié de la règle 8 : sur-vendre
-   *  la fiabilité serait le même bug que sur-vendre la protection. Chiffres :
-   *  `packages/redact/bench/RAPPORT-risques-utilite-2026-07.md`. */
   tradeoff: string;
-}[] = [
-  // La description dit à quoi le niveau SERT, pas ce qu'il coche : le détail exact est
-  // juste en dessous, dans la matrice — dépliée par défaut sur cette page, où les cinq
-  // cases BETA décochées SONT ce que « Standard » laisse lisible.
-  {
-    id: "standard",
-    label: "Standard",
-    desc: "Parfait pour l'utilisation agentique du web.",
-    short:
-      "Le strict minimum sur vos données personnelles : e-mails, téléphones, cartes bancaires, IBAN, données de santé.",
-    reduced: true,
-    tradeoff: "Noms, dates, adresses, lieux et entreprises restent lisibles par le modèle.",
-  },
-  {
-    id: "renforce",
-    label: "Renforcé",
-    desc: "Parfait pour l'utilisation agentique hors web.",
-    short:
-      "Va plus loin : ajoute les noms de personnes, d'entreprises et les identifiants que vous citez.",
-    tradeoff:
-      "Un âge ou une distance calculés sur une valeur masquée peuvent être décalés — le composeur le signale.",
-  },
-  {
-    id: "strict",
-    label: "Strict",
-    desc: "Parfait pour l'analyse de documents.",
-    short: `La totalité de ce que ${BRAND.name} sait détecter, sans exception.`,
-    tradeoff: "Le modèle raisonne sur des valeurs fictives : calculs et réponses sur le monde réel peuvent être faux.",
-  },
-];
+}[] {
+  const resolve = (id: Exclude<PrivacyLevel, "custom">, copy: PrivacyLevelCopy) => ({
+    id,
+    label: copy.label,
+    desc: copy.desc,
+    short: copy.short(BRAND.name),
+    tradeoff: copy.tradeoff,
+  });
+  return [
+    // ⚠️ `reduced` est un FAIT sur ce que le niveau protège, pas une étiquette : il retire
+    // le bouclier du sélecteur et interdit à ce niveau d'être le défaut d'installation
+    // (voir le bloc ci-dessous). Il reste donc en code, hors du catalogue.
+    { ...resolve("standard", t.privacyLevels.standard), reduced: true as const },
+    resolve("renforce", t.privacyLevels.renforce),
+    resolve("strict", t.privacyLevels.strict),
+  ];
+}
 
 /**
  * ⚠️ « Standard » PROTÈGE MOINS QUE LES DÉFAUTS — et c'est le seul niveau dans ce cas.

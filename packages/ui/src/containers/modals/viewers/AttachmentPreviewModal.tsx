@@ -23,6 +23,7 @@ import { DocText, buildDocChunks } from "./doc/DocText";
 import { PreviewHeader } from "./PreviewHeader";
 import { useDocSearch } from "./doc/useDocSearch";
 import { useTextSelection } from "../../../hooks/useTextSelection";
+import { useT } from "../../../i18n";
 import { SelectionMenu } from "../../../components/SelectionMenu";
 import { DocViewMenu, type DocView } from "./DocViewMenu";
 import { previewShape, initialView, previewViews, redactedGridReady } from "./previewViews";
@@ -145,6 +146,7 @@ export function AttachmentPreviewModal({
   // Manual "Redact" by selecting a zone of the ORIGINAL text (extracted / rendu
   // views) — the SAME data-type picker as the composer. Selecting inside the body
   // pops `SelectionMenu`; picking a type force-redacted the exact selection.
+  const t = useT();
   const { sel, onMouseUp, clear } = useTextSelection(bodyRef);
   // Click-a-word on a CANVAS view (PDF page or scanned image): the clicked word +
   // the viewport anchor for the «Redact “mot”» type picker. Dismissed by any
@@ -399,7 +401,7 @@ export function AttachmentPreviewModal({
     [redacting, redactProgress, redactError, file.replacements],
   );
 
-  const views = previewViews(shape, file);
+  const views = previewViews(shape, file, t);
 
   // Search + re-redact keep a slim row of their own, and ONLY when one of them has
   // something to say — an empty toolbar would give back the row the tabs just freed.

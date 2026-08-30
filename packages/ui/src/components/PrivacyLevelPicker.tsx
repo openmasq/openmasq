@@ -1,5 +1,6 @@
 import { CheckIcon, EyeIcon, ShieldIcon } from "./brand";
-import { PRIVACY_LEVEL_META, type PrivacyLevel } from "../privacy/privacyLevel";
+import { privacyLevelMeta, type PrivacyLevel } from "../privacy/privacyLevel";
+import { useT } from "../i18n";
 
 /**
  * The level control — the page's ONE decision.
@@ -24,9 +25,10 @@ export function PrivacyLevelPicker({
   level: PrivacyLevel;
   onPick: (level: Exclude<PrivacyLevel, "custom">) => void;
 }) {
+  const t = useT();
   return (
-    <div className="privacy-levels" role="radiogroup" aria-label="Niveau de protection">
-      {PRIVACY_LEVEL_META.map((m) => {
+    <div className="privacy-levels" role="radiogroup" aria-label={t.composer.protectionLevel}>
+      {privacyLevelMeta(t).map((m) => {
         const on = level === m.id;
         return (
           <button

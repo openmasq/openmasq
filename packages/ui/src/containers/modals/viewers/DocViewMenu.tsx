@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useT } from "../../../i18n";
 import { CheckIcon, DotsIcon, ShieldIcon } from "../../../components/brand";
 
 export type DocView = "pdf" | "rich" | "image" | "rendu" | "original" | "redacted" | "ocr";
@@ -30,6 +31,7 @@ export function DocViewMenu({
   view: DocView;
   onPick: (id: DocView) => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -66,14 +68,14 @@ export function DocViewMenu({
         className={`fv-viewmenu-btn${open ? " on" : ""}`}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label="Changer de vue"
-        title={`Vue : ${current.label}`}
+        aria-label={t.menus.docView.changeAria}
+        title={t.menus.docView.currentTip(current.label)}
         onClick={() => setOpen((o) => !o)}
       >
         <DotsIcon size={18} />
       </button>
       {open && (
-        <div className="fv-viewmenu-menu" role="listbox" aria-label="Vue du document">
+        <div className="fv-viewmenu-menu" role="listbox" aria-label={t.menus.docView.listAria}>
           {views.map((v) => {
             const on = v.id === current.id;
             return (

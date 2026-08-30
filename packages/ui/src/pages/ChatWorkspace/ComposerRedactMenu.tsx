@@ -1,5 +1,6 @@
 import { CheckIcon, LevelsIcon } from "../../components/brand";
-import { levelBars, PRIVACY_LEVEL_META, type PrivacyLevel } from "../../privacy/privacyLevel";
+import { levelBars, privacyLevelMeta, type PrivacyLevel } from "../../privacy/privacyLevel";
+import { useT } from "../../i18n";
 
 export type AppliedLevel = Exclude<PrivacyLevel, "custom">;
 
@@ -30,7 +31,7 @@ export interface RedactLevelApi {
  * SEULE exception, et elle est forcée : sans conversation (premier message), il n'y a rien à
  * surcharger, donc c'est le défaut qui reçoit — sinon le geste ne ferait rien du tout.
  *
- * ⚠️ **Le texte des cartes vient de `PRIVACY_LEVEL_META` (`short`), jamais d'ici.** C'est le
+ * ⚠️ **Le texte des cartes vient de `privacyLevelMeta` (`short`), jamais d'ici.** C'est le
  * registre COURT du même vocabulaire — ce que le niveau COUVRE. Les Réglages en gardent le
  * registre long (`desc` + la contrepartie qu'impose la règle 8), parce que c'est là que la
  * décision se prend en connaissance de cause ; ici elle se change en passant, et on revient
@@ -45,6 +46,7 @@ export function ComposerRedactMenu({
   /** Fermer le menu — appelé après une application. */
   onDone: () => void;
 }) {
+  const t = useT();
   const apply = (level: AppliedLevel) => {
     (api.onApplyConversation ?? api.onApplyAlways)(level);
     onDone();
@@ -52,9 +54,9 @@ export function ComposerRedactMenu({
 
   return (
     <>
-      <div className="cv-eyebrow crm-eyebrow">Niveau de redaction</div>
-      <div className="crm-levels" role="radiogroup" aria-label="Niveau de redaction">
-        {PRIVACY_LEVEL_META.map((m) => {
+      <div className="cv-eyebrow crm-eyebrow">{t.composer.redactLevel}</div>
+      <div className="crm-levels" role="radiogroup" aria-label={t.composer.redactLevel}>
+        {privacyLevelMeta(t).map((m) => {
           const current = api.level === m.id;
           return (
             <button
@@ -73,7 +75,7 @@ export function ComposerRedactMenu({
                 <span className="crm-level-head">
                   <span className="crm-level-name">{m.label}</span>
                   {current && (
-                    <span className="crm-level-check" aria-label="Niveau actuel">
+                    <span className="crm-level-check" aria-label={t.composer.currentLevel}>
                       <CheckIcon size={14} />
                     </span>
                   )}

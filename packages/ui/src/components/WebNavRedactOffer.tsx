@@ -1,12 +1,16 @@
 import { BrowserIcon, ShieldIcon, ArrowRightIcon } from "./brand";
 import { AgentCard, GlyphTile, AgentCardTitle, AgentCardDesc } from "./agent/AgentCard";
-import { PRIVACY_LEVEL_META } from "../privacy/privacyLevel";
+import { privacyLevelMeta } from "../privacy/privacyLevel";
+import { useT } from "../i18n";
+import type { Messages } from "@openmasq/i18n";
 import type { RedactCategoryKey } from "../types";
 
 /** Le niveau que la carte propose — son vocabulaire vit chez les niveaux, jamais ici
  *  (règle 9 : deux surfaces qui réécrivent « Standard » finissent par en dire deux
- *  choses). `tradeoff` est justement la phrase qui nomme ce qu'il laisse lisible. */
-const STANDARD = PRIVACY_LEVEL_META.find((l) => l.id === "standard")!;
+ *  choses). `tradeoff` est justement la phrase qui nomme ce qu'il laisse lisible.
+ *  Une FONCTION, plus une constante de module : le vocabulaire suit maintenant la langue,
+ *  donc il se résout au rendu et non au chargement du module. */
+const standardLevel = (t: Messages) => privacyLevelMeta(t).find((l) => l.id === "standard")!;
 
 /**
  * BLOCKING pre-search gate, rendered inline UNDER the pending assistant bubble while the
@@ -43,14 +47,16 @@ export function WebNavRedactOffer({
   /** Les catégories à révéler pour CET envoi — `[]` = aucune. */
   onDecide: (reveal: RedactCategoryKey[]) => void;
 }) {
+  const t = useT();
+  const standard = standardLevel(t);
   if (!categories.length) return null;
 
   return (
     <AgentCard
       className="webnav-offer"
       role="group"
-      ariaLabel="Navigation web — niveau de protection pour cette recherche"
-      eyebrow="Navigation web"
+      ariaLabel={t.webNav.ariaLabel}
+      eyebrow={t.webNav.eyebrow}
       tile={
         <GlyphTile>
           <BrowserIcon size={18} />
@@ -65,24 +71,23 @@ export function WebNavRedactOffer({
                 phrase qui rend un défaut généreux honnête — tronquée, elle ne vaut rien.
                 Le détail (« le suivant repart redacted ») vivait ici et se faisait
                 couper ; la portée seule tient. */}
-            <span>Ce message seulement.</span>
+            <span>{t.webNav.thisMessageOnly}</span>
           </span>
           <span className="agent-card-spacer" />
           <button className="btn-ghost btn-inline" onClick={() => onDecide([])}>
-            Garder le redaction
+            {t.webNav.keepMasking}
           </button>
           {/* « Tout l'offert » = le niveau : la carte ne compose pas un sous-ensemble, elle
               applique celui que « Standard » désigne (le store le re-filtre). */}
           <button className="btn-primary btn-inline" onClick={() => onDecide(categories)}>
-            Passer en {STANDARD.label} <ArrowRightIcon size={14} />
+            {t.webNav.switchTo(standard.label)} <ArrowRightIcon size={14} />
           </button>
         </>
       }
     >
-      <AgentCardTitle>Chercher sur le web en protection {STANDARD.label} ?</AgentCardTitle>
+      <AgentCardTitle>{t.webNav.title(standard.label)}</AgentCardTitle>
       <AgentCardDesc>
-        {STANDARD.tradeoff} Tout le reste demeure redacted, et votre requête part de toute
-        façon avec la vraie valeur.
+        {standard.tradeoff} {t.webNav.rest}
       </AgentCardDesc>
     </AgentCard>
   );

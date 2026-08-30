@@ -1,7 +1,8 @@
 import { createPortal } from "react-dom";
 import { ChevDownIcon, DownloadIcon } from "../../../brand";
 import { usePopover } from "../../../../hooks/usePopover";
-import { DOWNLOAD_FORMATS, type DownloadFormat, type RichFormat } from "./formats";
+import { downloadFormats, type DownloadFormat, type RichFormat } from "./formats";
+import { useT } from "../../../../i18n";
 
 /**
  * The document card's « Télécharger » dropdown — one trigger instead of the four side-by-side
@@ -27,6 +28,7 @@ export function DownloadMenu({
   busy: RichFormat | null;
   onPick: (format: DownloadFormat) => void;
 }) {
+  const t = useT();
   const {
     open,
     toggle,
@@ -61,11 +63,11 @@ export function DownloadMenu({
             ref={menuRef}
             className="md-document-dlmenu"
             role="menu"
-            aria-label="Formats de téléchargement"
+            aria-label={t.menus.download.ariaLabel}
             // Runtime-computed position on a portaled popover — the allowed inline-style case.
             style={style}
           >
-            {DOWNLOAD_FORMATS.map((f) => (
+            {downloadFormats(t).map((f) => (
               <button
                 key={f.id}
                 type="button"

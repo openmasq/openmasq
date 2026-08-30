@@ -4,6 +4,8 @@ import { captureEvent } from "../analytics";
 import { ShieldIcon, LockIcon, MessageIcon, MemoryIcon } from "./brand";
 import { REDACT_TYPES } from "@openmasq/redact";
 import { BRAND } from "@openmasq/branding";
+import { useT } from "../i18n";
+import { redactTypeLabel } from "../privacy/redactTypeLabel";
 
 /**
  * THE floating menu shown above a text selection — the SAME component for a selection in
@@ -68,6 +70,7 @@ export function SelectionMenu({
    *  `wordPick` du viewer de PJ). */
   onClose?: () => void;
 }) {
+  const t = useT();
   const [showTypes, setShowTypes] = useState(!!expanded);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -100,7 +103,7 @@ export function SelectionMenu({
       className={`sel-menu sel-redact${showTypes ? " on" : ""}${below ? " below" : ""}`}
       data-sel-menu=""
       role="menu"
-      aria-label="Actions sur la sélection"
+      aria-label={t.menus.selection.ariaLabel}
       // Runtime-computed anchor (viewport coords) — the allowed inline-style exception.
       style={{ left: x, top: y }}
       onMouseDown={(e) => e.preventDefault()}
@@ -110,7 +113,7 @@ export function SelectionMenu({
         // dans un menu est invalide) — les items gardent role="menuitem".
         <div className="sel-redact-types">
           {onCoffre && (
-            <div className="sel-redact-scope" role="radiogroup" aria-label="Portée du redaction">
+            <div className="sel-redact-scope" role="radiogroup" aria-label={t.menus.selection.scopeAria}>
               <button
                 type="button"
                 role="radio"
@@ -119,7 +122,7 @@ export function SelectionMenu({
                 onClick={() => setScope("conversation")}
               >
                 <ShieldIcon size={12} />
-                Cette conversation
+                {t.menus.selection.scopeConversation}
               </button>
               <button
                 type="button"
@@ -129,22 +132,23 @@ export function SelectionMenu({
                 onClick={() => setScope("coffre")}
               >
                 <LockIcon size={12} />
-                Coffre (toujours)
+                {t.menus.selection.scopeVault}
               </button>
             </div>
           )}
-          <span className="sel-redact-eyebrow">{label ?? "Type de donnée"}</span>
+          <span className="sel-redact-eyebrow">{label ?? t.menus.selection.typeEyebrow}</span>
           {note && <span className="sel-redact-note">{note}</span>}
           <div className="sel-redact-grid">
-            {REDACT_TYPES.map((t) => (
+            {/* `type`, pas `t` : `t` est le catalogue de traduction ici. */}
+            {REDACT_TYPES.map((type) => (
               <button
-                key={t.key}
+                key={type.key}
                 type="button"
                 role="menuitem"
-                className={`sel-redact-type hl-${hueForKind(t.token)}`}
-                onClick={() => pick(t.token)}
+                className={`sel-redact-type hl-${hueForKind(type.token)}`}
+                onClick={() => pick(type.token)}
               >
-                {t.label}
+                {redactTypeLabel(type, t)}
               </button>
             ))}
           </div>
@@ -155,24 +159,24 @@ export function SelectionMenu({
             type="button"
             role="menuitem"
             className="sel-menu-btn sel-redact-redact"
-            title="Redact la sélection"
-            aria-label="Redact la sélection"
+            title={t.menus.selection.redactTip}
+            aria-label={t.menus.selection.redactTip}
             onClick={() => setShowTypes(true)}
           >
             <ShieldIcon size={15} />
-            <span className="sel-redact-label">Redact</span>
+            <span className="sel-redact-label">{t.menus.selection.redact}</span>
           </button>
           {onPreciser && (
             <button
               type="button"
               role="menuitem"
               className="sel-menu-btn sel-redact-preciser"
-              title="Demander des précisions"
-              aria-label="Demander des précisions"
+              title={t.menus.selection.clarifyTip}
+              aria-label={t.menus.selection.clarifyTip}
               onClick={onPreciser}
             >
               <MessageIcon size={15} />
-              <span className="sel-redact-label">Préciser</span>
+              <span className="sel-redact-label">{t.menus.selection.clarify}</span>
             </button>
           )}
           {onRetenir && (
@@ -184,12 +188,12 @@ export function SelectionMenu({
                  « redacted avant chaque envoi » — the Coffre's promise — so users read
                  this as a second Coffre. The Mémoire is the reuse feature: it carries
                  what you tell it into your NEXT conversations. */
-              title={`Retenir dans la Mémoire — ${BRAND.name} s'en souviendra dans vos prochaines conversations`}
-              aria-label="Retenir dans la Mémoire"
+              title={t.menus.selection.rememberTip(BRAND.name)}
+              aria-label={t.menus.selection.rememberAria}
               onClick={onRetenir}
             >
               <MemoryIcon size={15} />
-              <span className="sel-redact-label">Retenir</span>
+              <span className="sel-redact-label">{t.menus.selection.remember}</span>
             </button>
           )}
         </>

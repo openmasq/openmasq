@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import {
   previewShape,
@@ -14,7 +15,11 @@ const file = (over: Partial<PreviewFile>): PreviewFile => ({
   ...over,
 });
 
-const ids = (f: PreviewFile) => previewViews(previewShape(f), f).map((v) => v.id);
+/* Les libellés attendus plus bas sont ceux du français ; ce fichier teste QUELLES couches
+   existent pour quelle forme de fichier, pas comment elles s'appellent. */
+const t = getMessages("fr");
+
+const ids = (f: PreviewFile) => previewViews(previewShape(f), f, t).map((v) => v.id);
 const opens = (f: PreviewFile) => initialView(previewShape(f), f);
 
 describe("un CSV s'ouvre sur ce qui PART, pas sur ce qu'on a déposé", () => {
@@ -29,7 +34,7 @@ describe("un CSV s'ouvre sur ce qui PART, pas sur ce qu'on a déposé", () => {
   });
 
   it("« Feuille » reste offerte, annoncée pour ce qu'elle est", () => {
-    const v = previewViews(previewShape(csv()), csv());
+    const v = previewViews(previewShape(csv()), csv(), t);
     expect(v.map((x) => x.id)).toContain("rich");
     expect(v.find((x) => x.id === "rich")?.hint).toMatch(/avant redaction/);
   });
@@ -64,7 +69,7 @@ describe("previewViews — la vue TABLEUR est offerte, quelle que soit la route 
     // doit rester atteignable : c'est là qu'on relit ce que le redaction a touché.
     const f = file({ data: "QUJD" });
     expect(ids(f)).toContain("rich");
-    expect(previewViews(previewShape(f), f).find((v) => v.id === "rich")?.label).toBe("Feuille");
+    expect(previewViews(previewShape(f), f, t).find((v) => v.id === "rich")?.label).toBe("Feuille");
   });
 
   it("chemin natif : la Feuille est offerte aussi", () => {
@@ -96,11 +101,11 @@ describe("previewViews — les vues offertes par format", () => {
 
   it("nomme la vue riche selon le format", () => {
     const pptx = file({ name: "a.pptx", data: "QUJD" });
-    expect(previewViews(previewShape(pptx), pptx).find((v) => v.id === "rich")?.label).toBe(
+    expect(previewViews(previewShape(pptx), pptx, t).find((v) => v.id === "rich")?.label).toBe(
       "Présentation",
     );
     const docx = file({ name: "a.docx", data: "QUJD" });
-    expect(previewViews(previewShape(docx), docx).find((v) => v.id === "rich")?.label).toBe(
+    expect(previewViews(previewShape(docx), docx, t).find((v) => v.id === "rich")?.label).toBe(
       "Document",
     );
   });
@@ -115,7 +120,7 @@ describe("previewViews — les couches de texte", () => {
     // « Feuille » a pris le rôle d'« Original » — le fichier tel quel — parce que la
     // couche redacted est une grille elle aussi, plus un mur de lignes.
     const f = file({ data: "QUJD" });
-    const [rich, cav] = previewViews(previewShape(f), f);
+    const [rich, cav] = previewViews(previewShape(f), f, t);
     expect(rich.hint).toBe("Le fichier tel quel, avant redaction");
     // Et le redacted ne se dit plus « texte » : pour un tableur, c'en est un tableau.
     expect(cav.hint).toBe("Ce qui quittera la machine");

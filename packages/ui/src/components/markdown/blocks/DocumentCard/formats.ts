@@ -1,7 +1,9 @@
+import type { Messages } from "@openmasq/i18n";
+
 /**
  * The document card's download formats — the vocabulary of the « Télécharger » menu, kept
  * out of the component so the list is data (one place to add a format) and the menu stays
- * presentational.
+ * presentational. La COPIE vient du catalogue ; ce fichier garde l'ORDRE et la forme.
  *
  * Order is deliberate: the two RICH formats first (they carry the layout the user just read),
  * then the two plain ones. `mono` marks a format whose label IS a file extension, worn in the
@@ -21,11 +23,13 @@ export interface FormatOption {
   mono?: boolean;
 }
 
-export const DOWNLOAD_FORMATS: FormatOption[] = [
-  { id: "pdf", label: "PDF", hint: "Mise en page conservée, prêt à imprimer" },
-  { id: "docx", label: "Word", hint: "Document .docx, modifiable" },
-  { id: "md", label: ".md", hint: "Markdown — la source du document", mono: true },
-  { id: "txt", label: ".txt", hint: "Texte brut, sans mise en forme", mono: true },
-];
+export function downloadFormats(t: Messages): FormatOption[] {
+  return [
+    { id: "pdf", ...t.downloads.pdf },
+    { id: "docx", ...t.downloads.docx },
+    { id: "md", ...t.downloads.md, mono: true },
+    { id: "txt", ...t.downloads.txt, mono: true },
+  ];
+}
 
 export const isRichFormat = (f: DownloadFormat): f is RichFormat => f === "pdf" || f === "docx";

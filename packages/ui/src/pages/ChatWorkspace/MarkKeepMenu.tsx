@@ -1,4 +1,5 @@
 import { BRAND } from "@openmasq/branding";
+import { useT } from "../../i18n";
 import { useEffect } from "react";
 import { ShieldIcon } from "../../components/brand";
 
@@ -31,6 +32,7 @@ export function MarkKeepMenu({
   onKeep: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       if (!(e.target as Element | null)?.closest?.("[data-sel-menu]")) onClose();
@@ -53,18 +55,18 @@ export function MarkKeepMenu({
     // inline-style case rule 6 allows.
     <div className="mark-keep-menu" data-sel-menu style={{ left: x, top: y }} role="menu">
       <span className={`mark-keep-value hl-${hue}${uncertain ? " mk-doubt" : ""}`}>{label}</span>
-      {uncertain && <span className="mark-keep-doubt">Détection à vérifier — {BRAND.name} n'est pas sûr</span>}
+      {uncertain && <span className="mark-keep-doubt">{t.menus.markKeep.uncertain(BRAND.name)}</span>}
       <button
         type="button"
         role="menuitem"
         className="mark-keep-btn"
-        title="Ne PAS redact cet élément pour cet envoi — il partira tel quel au modèle"
+        title={t.menus.markKeep.keepTip}
         onClick={() => {
           onKeep();
           onClose();
         }}
       >
-        <ShieldIcon size={12} /> Garder en clair
+        <ShieldIcon size={12} /> {t.menus.markKeep.keep}
       </button>
     </div>
   );

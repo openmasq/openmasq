@@ -1,5 +1,6 @@
 import { DotsIcon, DownloadIcon, IconButton } from "../../components/brand";
 import { usePopover } from "../../hooks/usePopover";
+import { useT } from "../../i18n";
 import type { MergeSuggestion } from "../../memory/dedupe";
 import type { MemoryCard } from "../../types";
 
@@ -9,10 +10,11 @@ import type { MemoryCard } from "../../types";
 /** The page's ⋯ menu — the diagnostic export lives here, not beside the primary
  *  action: it is a debug artifact (real data, local file), not a daily gesture. */
 export function MemoryPageMenu({ onExport }: { onExport: () => void }) {
+  const t = useT();
   const { open, toggle, close, triggerRef, menuRef } = usePopover<HTMLDivElement, HTMLDivElement>();
   return (
     <div className="menu-anchor" ref={triggerRef}>
-      <IconButton label="Plus d'actions" size="sm" active={open} onClick={toggle}>
+      <IconButton label={t.menus.page.moreActions} size="sm" active={open} onClick={toggle}>
         <DotsIcon size={17} />
       </IconButton>
       {open && (
@@ -23,9 +25,9 @@ export function MemoryPageMenu({ onExport }: { onExport: () => void }) {
               close();
               onExport();
             }}
-            title="Exporter la mémoire et ses liens en texte (fichier local, données réelles)"
+            title={t.menus.page.exportMemoryTip}
           >
-            <DownloadIcon size={15} /> Exporter (diagnostic)
+            <DownloadIcon size={15} /> {t.menus.page.exportMemory}
           </button>
         </div>
       )}

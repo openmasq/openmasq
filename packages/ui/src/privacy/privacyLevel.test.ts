@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import { CATEGORY_DEFAULTS, REDACT_CATEGORIES } from "./redactCategories";
 import {
@@ -8,7 +9,7 @@ import {
   NOTORIOUS_COMMERCIAL_ORGS,
   NOTORIOUS_PEOPLE,
   notorietyForLevel,
-  PRIVACY_LEVEL_META,
+  privacyLevelMeta,
   TOTAL_CATEGORIES,
 } from "./privacyLevel";
 import type { RedactCategoryKey, Settings } from "../types";
@@ -16,6 +17,12 @@ import type { RedactCategoryKey, Settings } from "../types";
 const KEYS = REDACT_CATEGORIES.map((c) => c.key as RedactCategoryKey);
 const cats = (over: Record<string, boolean> = {}): Settings["redactCategories"] =>
   ({ ...CATEGORY_DEFAULTS, ...over }) as Settings["redactCategories"];
+
+/* L'échelle telle qu'un écran la voit. Ce fichier teste ce que les niveaux FONT — quelles
+   catégories ils allument — donc la langue de leurs étiquettes lui est indifférente ; le
+   catalogue anglais est vérifié là où il compte, par `locale.test.ts` (complétude) et par
+   les tests d'écran. */
+const LEVELS = privacyLevelMeta(getMessages("fr"));
 
 describe("privacyLevel — one choice instead of seventeen", () => {
   it("round-trips: the map a level produces reads back as that level", () => {
@@ -58,13 +65,13 @@ describe("privacyLevel — one choice instead of seventeen", () => {
   // réduit, MARQUÉ, et jamais le défaut d'installation. C'est ce que ce test vérifie
   // maintenant — un second niveau réduit, ou un `reduced` oublié, le casse.
   it("un seul niveau protège MOINS que les défauts, et il est MARQUÉ", () => {
-    expect(PRIVACY_LEVEL_META.map((m) => m.id)).toEqual(["standard", "renforce", "strict"]);
-    for (const m of PRIVACY_LEVEL_META) {
+    expect(LEVELS.map((m) => m.id)).toEqual(["standard", "renforce", "strict"]);
+    for (const m of LEVELS) {
       const map = categoriesForLevel(m.id);
       const lowers = KEYS.some((k) => map[k] === false && CATEGORY_DEFAULTS[k] !== false);
       expect(lowers, `${m.id} : protège-t-il moins que les défauts ?`).toBe(!!m.reduced);
     }
-    expect(PRIVACY_LEVEL_META.filter((m) => m.reduced).map((m) => m.id)).toEqual(["standard"]);
+    expect(LEVELS.filter((m) => m.reduced).map((m) => m.id)).toEqual(["standard"]);
   });
 
   it("le défaut d'installation n'est PAS le niveau réduit", () => {
@@ -83,7 +90,7 @@ describe("privacyLevel — one choice instead of seventeen", () => {
   it("le PLANCHER tient dans les trois niveaux, y compris le réduit", () => {
     // Une chaîne en forme de clé laissée passer EST une clé en clair — aucun preset ne
     // l'éteint. L'utilisateur garde la main à la case près (ça devient « Sur mesure »).
-    for (const m of PRIVACY_LEVEL_META) {
+    for (const m of LEVELS) {
       const map = categoriesForLevel(m.id);
       for (const k of ALWAYS_ON) {
         expect(map[k], `${m.id} éteint le plancher ${k}`).toBe(true);

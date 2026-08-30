@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useT } from "../../i18n";
 import { IconButton, LevelsIcon } from "../../components/brand";
 import { usePopover } from "../../hooks/usePopover";
 import { ComposerRedactMenu, type RedactLevelApi } from "./ComposerRedactMenu";
@@ -18,6 +19,7 @@ import { ComposerRedactMenu, type RedactLevelApi } from "./ComposerRedactMenu";
  * borne à la place RÉELLE, et `usePopover` retourne le menu sous le bouton quand il le faut.
  */
 export function ComposerRedactButton({ api }: { api: RedactLevelApi }) {
+  const t = useT();
   const pop = usePopover<HTMLDivElement, HTMLDivElement>({
     anchor: { gap: 8, width: 386, desiredHeight: 280, clampHeight: true, minHeight: 180 },
   });
@@ -25,7 +27,7 @@ export function ComposerRedactButton({ api }: { api: RedactLevelApi }) {
     <div className="composer-redact-wrap" ref={pop.triggerRef}>
       <IconButton
         size="sm"
-        label="Niveau de redaction"
+        label={t.composer.redactLevel}
         active={pop.open}
         expanded={pop.open}
         haspopup="menu"
