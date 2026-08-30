@@ -1,5 +1,6 @@
 import { ShieldIcon, ActivityIcon, EyeIcon, TrashIcon } from "../../components/brand";
 import type { Settings } from "../../types";
+import { useT } from "../../i18n";
 
 /**
  * The chat top bar's ⋯ dropdown — extracted from `ChatHeader` (rule 1). Pure
@@ -23,6 +24,7 @@ export function HeaderMenu({
   onOpenDebug: () => void;
   onAskDelete?: () => void;
 }) {
+  const t = useT();
   return (
     <div className="header-menu">
       {/* The kit moved the toolbar's standalone shield pill in here: the count is a
@@ -31,11 +33,11 @@ export function HeaderMenu({
           now lead with the SAME three levels as Réglages → Confidentialité. */}
       <button className="header-menu-item" onClick={onOpenRules}>
         <ShieldIcon size={15} />
-        Redaction · {protectedCount} protégé{protectedCount === 1 ? "" : "s"}
+        {t.chat.redactionSummary(protectedCount)}
       </button>
       <button className="header-menu-item" onClick={onOpenTransparency}>
         <EyeIcon size={15} />
-        Voir ce que le modèle a vu
+        {t.chat.seeWhatTheModelSaw}
       </button>
       {/* Le TOGGLE est la porte (Réglages → Confidentialité → « Journal technique
           détaillé ») : l'activer est l'acte volontaire, et le journal ne contient que
@@ -46,13 +48,13 @@ export function HeaderMenu({
       {settings?.debugLog && (
         <button className="header-menu-item" onClick={onOpenDebug}>
           <ActivityIcon size={15} />
-          Journal de débogage
+          {t.chat.debugLog}
         </button>
       )}
       {onAskDelete && (
         <button className="header-menu-item danger" onClick={onAskDelete}>
           <TrashIcon size={15} />
-          Supprimer la conversation
+          {t.chrome.deleteConversationAction}
         </button>
       )}
     </div>

@@ -1,5 +1,6 @@
-import { SECTION_GUIDE, type SectionGuide } from "./sections";
+import type { Messages } from "@openmasq/i18n";
 import { BRAND } from "@openmasq/branding";
+import { sectionGuides, type SectionGuide } from "./sections";
 
 /**
  * ⌘K → the SECTIONS (and the guide itself).
@@ -13,16 +14,11 @@ import { BRAND } from "@openmasq/branding";
  * never describe a section differently from the nav that leads to it.
  */
 
-/** What a user is likely to TYPE for a section, beyond its label. Kept deliberately
- *  short: real alternatives (the English word, the thing it holds), not a thesaurus. */
-const SYNONYMS: Record<SectionGuide["id"], string> = {
-  chats: "chat conversation discussion message écrire nouvelle",
-  library: "fichiers documents images pièces jointes pdf téléchargements library",
-  competences:
-    "prompts instructions modèles de message raccourcis skills routines workflows automatisation connecteurs outils",
-  memory: "souvenirs fiches profil se souvenir retenir contexte",
-  vault: "masquer toujours termes mots secrets noms de code vault coffre-fort",
-};
+/* Les SYNONYMES — ce qu'un utilisateur tape en plus de l'étiquette — vivent avec le reste
+   du vocabulaire de section (`sections.keywords` du catalogue), et non dans une seconde
+   table ici : la liste anglaise et la liste française ne sont pas la traduction l'une de
+   l'autre (un francophone tape « coffre-fort », un anglophone « vault »), donc elles se
+   rédigent là où chaque langue s'écrit. */
 
 export interface SectionDestination {
   /** A real section, or the pseudo-destination `"guide"` (opens « Aide »). */
@@ -31,12 +27,12 @@ export interface SectionDestination {
   sub: string;
 }
 
-const GUIDE_ENTRY: SectionDestination & { kw: string } = {
+const guideEntry = (t: Messages): SectionDestination & { kw: string } => ({
   id: "guide",
-  title: `Aide — prendre en main ${BRAND.name}`,
-  sub: `Le masquage, les mots de ${BRAND.name}, et à quoi sert chaque section.`,
-  kw: "aide guide aidez-moi comment ça marche débuter démarrer tutoriel manuel documentation help",
-};
+  title: t.sections.helpEntry.title(BRAND.name),
+  sub: t.sections.helpEntry.sub(BRAND.name),
+  kw: t.sections.helpEntry.keywords,
+});
 
 /** Fold accents + lowercase, so « memoire » trouve « Mémoire ». Same rule as the
  *  settings search — a user types without accents far more often than with. */
@@ -58,15 +54,17 @@ const fold = (s: string): string =>
  */
 export function searchSections(
   query: string,
+  t: Messages,
   isOpen: (id: SectionGuide["id"]) => boolean = () => true,
 ): SectionDestination[] {
   const q = fold(query.trim());
   if (!q) return [];
-  const out: SectionDestination[] = SECTION_GUIDE.filter(
-    (s) => isOpen(s.id) && fold(`${s.label} ${s.tip} ${s.guide} ${SYNONYMS[s.id]}`).includes(q),
-  ).map((s) => ({ id: s.id, title: s.label, sub: s.tip.replace(`${s.label} — `, "") }));
-  if (fold(`${GUIDE_ENTRY.title} ${GUIDE_ENTRY.sub} ${GUIDE_ENTRY.kw}`).includes(q)) {
-    out.push({ id: GUIDE_ENTRY.id, title: GUIDE_ENTRY.title, sub: GUIDE_ENTRY.sub });
+  const out: SectionDestination[] = sectionGuides(t)
+    .filter((s) => isOpen(s.id) && fold(`${s.label} ${s.tip} ${s.guide} ${s.keywords}`).includes(q))
+    .map((s) => ({ id: s.id, title: s.label, sub: s.tip.replace(`${s.label} — `, "") }));
+  const guide = guideEntry(t);
+  if (fold(`${guide.title} ${guide.sub} ${guide.kw}`).includes(q)) {
+    out.push({ id: guide.id, title: guide.title, sub: guide.sub });
   }
   return out;
 }

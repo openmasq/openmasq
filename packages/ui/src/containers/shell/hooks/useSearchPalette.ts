@@ -4,6 +4,7 @@ import type { ChatStore } from "../../../state/store";
 import { searchSettings, tabAvailable } from "../../../pages/Settings/settingsIndex";
 import { useSettingsCapabilities } from "../../../pages/Settings/settingsTabs";
 import { searchSections } from "../../../help";
+import { useT } from "../../../i18n";
 import { isGated, useFeatureAccess } from "../../../state/featureAccess";
 import { useLibraryFiles, searchFiles } from "../../../pages/Library";
 
@@ -28,6 +29,7 @@ export function useSearchPalette({ chat, blocked }: { chat: ChatStore; blocked: 
   fileResults: (q: string) => ReturnType<typeof searchFiles>;
 } {
   const host = useHost();
+  const t = useT();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export function useSearchPalette({ chat, blocked }: { chat: ChatStore; blocked: 
   // the palette can never offer a destination the rail doesn't have.
   const caps = useSettingsCapabilities(chat.orgProfile);
   const settingsResults = useCallback(
-    (q: string) => searchSettings(q, (id) => tabAvailable(id, caps)),
+    (q: string) => searchSettings(q, t, (id) => tabAvailable(id, caps)),
     [caps.org, caps.sync, caps.browser, caps.billing],
   );
   // …and the stored FILES. Aggregate them (host.db) ONLY while the palette is open — no
@@ -66,7 +68,7 @@ export function useSearchPalette({ chat, blocked }: { chat: ChatStore; blocked: 
   // retirée : la proposer ouvrirait un écran non monté (`state/featureAccess.ts`).
   const access = useFeatureAccess();
   const sectionResults = useCallback(
-    (q: string) => searchSections(q, (id) => !isGated(id) || access[id]),
+    (q: string) => searchSections(q, t, (id) => !isGated(id) || access[id]),
     [access],
   );
 

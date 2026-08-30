@@ -10,6 +10,8 @@
 // The ONE section vocabulary (rule 9). Type-only, so this catalogue stays
 // dependency-free at runtime; adding a screen can't leave `section_change` behind.
 import type { Section } from "../types";
+// Idem : la langue est un enum du catalogue, pas une chaîne libre.
+import type { Locale } from "@openmasq/i18n";
 
 /** Why a chat send failed — a BOUNDED code (never the raw error text). */
 export type SendErrorReason =
@@ -53,6 +55,9 @@ export type TrackEvent =
   | { name: "app_open" }
   | { name: "section_change"; section: Section }
   | { name: "theme_toggle"; theme: "light" | "dark" | "blue" | "blue-dark" }
+  // La langue CHOISIE dans les réglages — une locale livrée, donc un enum, jamais un
+  // `navigator.language` brut (qui porte la région : « fr-CA » est un signal de lieu).
+  | { name: "language_change"; locale: Locale }
   // ── conversations ──────────────────────────────────────────────────────
   | { name: "new_chat" }
   | { name: "select_conversation"; id: string } // local uid, not sensitive

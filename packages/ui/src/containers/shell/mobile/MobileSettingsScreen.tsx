@@ -6,7 +6,8 @@ import type { OrgProfileInfo } from "../../../host";
 import type { UnavailableReason } from "../../../send/modelAvailability";
 import { useAuth } from "../../../state/useAuth";
 import { useSettingsPrefetch } from "../../../state/settingsPrefetch";
-import { SETTINGS_META, type SettingsTabId as TabId } from "../../../pages/Settings/settingsIndex";
+import { settingsMeta, type SettingsTabId as TabId } from "../../../pages/Settings/settingsIndex";
+import { useT } from "../../../i18n";
 import { useVisibleSettingsTabs } from "../../../pages/Settings/settingsTabs";
 import { useSettingsDraft } from "../../../pages/Settings/useSettingsDraft";
 import { SettingsTabContent } from "../../../pages/Settings/SettingsTabContent";
@@ -72,8 +73,10 @@ export function MobileSettingsScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requestedTab?.n]);
 
-  const activeTab: TabId = SETTINGS_META[tab] ? tab : "account";
-  const groups = groupSettingsTabs(useVisibleSettingsTabs(orgProfile));
+  const t = useT();
+  const meta = settingsMeta(t);
+  const activeTab: TabId = meta[tab] ? tab : "account";
+  const groups = groupSettingsTabs(useVisibleSettingsTabs(orgProfile), t);
   const email = auth.user?.email;
   const org = orgProfile?.organizationName;
 
@@ -89,7 +92,7 @@ export function MobileSettingsScreen({
           >
             <ChevLeftIcon size={20} />
           </button>
-          <h1 className="mset-detail-title">{SETTINGS_META[activeTab].title}</h1>
+          <h1 className="mset-detail-title">{meta[activeTab].title}</h1>
         </header>
         <div className="mset-detail-body">
           <SettingsTabContent
@@ -154,18 +157,19 @@ export function MobileSettingsScreen({
           <section key={g.title} className="mset-group">
             <div className="cv-eyebrow mset-group-title">{g.title}</div>
             <div className="mset-list">
-              {g.items.map((t, i) => (
+              {/* `entry`, pas `t` : `t` est le catalogue de traduction dans ce composant. */}
+              {g.items.map((entry, i) => (
                 <button
-                  key={t.id}
+                  key={entry.id}
                   type="button"
                   className={`mset-row${i ? " sep" : ""}`}
                   onClick={() => {
-                    setTab(t.id);
+                    setTab(entry.id);
                     setOpen(true);
                   }}
                 >
-                  <span className="mset-row-ico">{t.icon}</span>
-                  <span className="mset-row-lab">{SETTINGS_META[t.id].title}</span>
+                  <span className="mset-row-ico">{entry.icon}</span>
+                  <span className="mset-row-lab">{meta[entry.id].title}</span>
                   <ChevRightIcon size={17} />
                 </button>
               ))}

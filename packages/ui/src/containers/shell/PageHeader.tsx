@@ -1,9 +1,20 @@
 import type { ReactNode } from "react";
 import { IconButton, SidebarIcon } from "../../components/brand";
+import { sectionGuide, type SectionGuide } from "../../help";
+import { useT } from "../../i18n";
 
 interface Props {
-  title: string;
-  subtitle: string;
+  /**
+   * Un en-tête de SECTION : son nom et sa phrase viennent du vocabulaire
+   * (`help/sections.ts`), pas de l'appelant. Les quatre pages recopiaient le nom que le
+   * rail, la barre latérale et le guide affichaient déjà — « Mémoire » vivait à quatre
+   * endroits, dont un seul se traduisait.
+   */
+  section?: SectionGuide["id"];
+  /** Un en-tête qui n'est PAS une section : les Réglages, dont le titre suit l'onglet.
+   *  Fournir `title`/`subtitle` OU `section`, jamais les deux. */
+  title?: string;
+  subtitle?: string;
   /**
    * Expand/collapse the primary sidebar. Every full-page surface gets it (the
    * toggle used to live ONLY in the chat's `.chat-topbar`, so Bibliothèque /
@@ -25,17 +36,19 @@ interface Props {
  * pushed every title a full bar lower than the kit. `.page-header` carries the
  * frameless-window drag region (children opt back out).
  */
-export function PageHeader({ title, subtitle, onToggleSidebar, action }: Props) {
+export function PageHeader({ section, title, subtitle, onToggleSidebar, action }: Props) {
+  const t = useT();
+  const guide = section ? sectionGuide(section, t) : undefined;
   return (
     <header className="page-header">
       {onToggleSidebar && (
-        <IconButton size="sm" label="Basculer la barre latérale" onClick={onToggleSidebar}>
+        <IconButton size="sm" label={t.chat.toggleSidebar} onClick={onToggleSidebar}>
           <SidebarIcon size={18} />
         </IconButton>
       )}
       <div className="page-header-text">
-        <h1 className="cv-display page-header-title">{title}</h1>
-        <div className="page-header-sub">{subtitle}</div>
+        <h1 className="cv-display page-header-title">{guide?.label ?? title}</h1>
+        <div className="page-header-sub">{guide?.subtitle ?? subtitle}</div>
       </div>
       {action && <div className="page-header-action">{action}</div>}
     </header>

@@ -48,3 +48,13 @@
   font-size: 10.5px;
   opacity: 0.75;
 }
+
+/* Le segmenté COMME contrôle d'une ligne de réglage (`.toggle-row`, la langue dans
+   « Apparence »). L'`align-self: flex-start` ci-dessus vise le cas COLONNE — enfant direct
+   d'une `.settings-section`, où un `inline-flex` s'étirerait sur toute la largeur. Dans une
+   RANGÉE à items centrés, cette même règle le collait en haut, désaligné du libellé qu'il
+   commande : la correction vit ici, avec le contrôle, et non chez l'appelant. */
+.toggle-row > .om-seg {
+  align-self: center;
+  flex-shrink: 0;
+}

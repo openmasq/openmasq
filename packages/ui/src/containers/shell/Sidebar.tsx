@@ -17,7 +17,8 @@ import { ConfirmDialog } from "../../components/feedback/ConfirmDialog";
 import { BrandMark } from "../../components/media/BrandLogo";
 import { groupConversationsByDate } from "../../hooks/conversationGroups";
 import { ConvRow } from "./ConvRow";
-import { SECTION_GUIDE, type SectionGuide } from "../../help";
+import { sectionGuides, type SectionGuide } from "../../help";
+import { useT } from "../../i18n";
 import { featureUsage, isGated, useFeatureAccess } from "../../state/featureAccess";
 import { useSectionNav } from "./useSectionNav";
 
@@ -45,8 +46,9 @@ interface Props {
   /** Insert a compétence's prompt into the composer. Absent ⇒ the pinned list is
    *  inert, so callers that can't insert simply don't pass pins. */
   onUseCompetence?: (c: Competence) => void;
-  /** Signed-in user's display name — drives the account avatar's initials. Defaults
-   *  to "Vous" (avatar "V") when signed out / no email. */
+  /** Signed-in user's display name — drives the account avatar's initials. Absent
+   *  (signed out / no email) ⇒ the catalogue's « Vous » / « You », so the fallback name
+   *  follows the interface language instead of being frozen in French. */
   userName?: string;
   /** Rename a conversation from its row. Absent ⇒ the row offers no rename. */
   onRename?: (id: string, title: string) => void;
@@ -64,11 +66,12 @@ export function Sidebar({
   onOpenSearch,
   pinnedCompetences = [],
   onUseCompetence,
-  userName = "Vous",
+  userName,
   onRename,
   onDelete,
 }: Props) {
   const { section, go } = useSectionNav();
+  const t = useT();
   // Les portes gouvernables : une section fermée sort de la nav (`state/featureAccess.ts`).
   const access = useFeatureAccess();
   const [pendingDelete, setPendingDelete] = useState<Conversation | null>(null);
@@ -92,7 +95,7 @@ export function Sidebar({
 
       <button className="btn-new" onClick={onNew}>
         <PlusIcon size={18} />
-        Nouvelle conversation
+        {t.chrome.newChat}
       </button>
 
       {/* Search sits right under "new conversation" now (grouped at the top, per the
@@ -100,11 +103,11 @@ export function Sidebar({
       <button
         className="sidebar-search"
         onClick={onOpenSearch}
-        title="Rechercher (⌘K)"
-        aria-label="Rechercher"
+        title={t.chrome.searchShortcut}
+        aria-label={t.chrome.search}
       >
         <SearchIcon size={17} />
-        <span className="search-lbl"><span className="om-sweep">Rechercher</span></span>
+        <span className="search-lbl"><span className="om-sweep">{t.chrome.search}</span></span>
         <span className="search-kbd">⌘K</span>
       </button>
 
@@ -112,7 +115,7 @@ export function Sidebar({
           (`help/sections.ts`) — the same sentences the rail tips and the guide use, so
           the nav can never name a section the guide describes differently. */}
       <nav className="side-nav">
-        {SECTION_GUIDE.filter((s) => !isGated(s.id) || access[s.id]).map((s) => {
+        {sectionGuides(t).filter((s) => !isGated(s.id) || access[s.id]).map((s) => {
           const Glyph = SECTION_ICON[s.id];
           return (
             <button
@@ -145,7 +148,7 @@ export function Sidebar({
               type="button"
               className="om-skill-pin-item"
               onClick={() => onUseCompetence?.(c)}
-              title={c.servers?.length ? `Lancer : ${c.desc || c.name}` : c.desc || c.name}
+              title={c.servers?.length ? t.chrome.launchPinned(c.desc || c.name) : c.desc || c.name}
             >
               {c.servers?.length ? (
                 <span className="om-wf-pin-ico">
@@ -163,9 +166,9 @@ export function Sidebar({
       {/* `role="listbox"` pairs with each `ConvRow`'s `role="option"` — the rows are
           focusable and keyboard-selectable (Entrée/Espace), see ConvRow. The visible
           eyebrow is aria-hidden because the group already announces the same label. */}
-      <nav className="conv-list" role="listbox" aria-label="Conversations">
+      <nav className="conv-list" role="listbox" aria-label={t.chrome.conversations}>
         {conversations.length === 0 && (
-          <p className="empty-hint">Aucune conversation pour le moment.</p>
+          <p className="empty-hint">{t.chrome.noConversations}</p>
         )}
         {groups.map((group) => (
           <div key={group.key} role="group" aria-label={group.label}>
@@ -187,14 +190,14 @@ export function Sidebar({
       <button
         className="sidebar-user"
         onClick={() => onOpenSettings()}
-        title="Compte et paramètres"
+        title={t.chrome.account}
       >
-        <Avatar name={userName} size={30} muted />
+        <Avatar name={userName ?? t.chrome.you} size={30} muted />
         <div className="flex-min">
-          <div className="u-name">Vous</div>
-          <div className="u-sub">Espace privé</div>
+          <div className="u-name">{userName ?? t.chrome.you}</div>
+          <div className="u-sub">{t.chrome.privateSpace}</div>
         </div>
-        <Badge tone="neutral">Privé</Badge>
+        <Badge tone="neutral">{t.chrome.private}</Badge>
       </button>
 
       {/* Deleting a conversation destroys its messages AND its vault — the mapping that
@@ -202,8 +205,8 @@ export function Sidebar({
           that asks first. */}
       {pendingDelete && (
         <ConfirmDialog
-          title="Supprimer cette conversation ?"
-          message={`« ${pendingDelete.title || "Nouvelle conversation"} » et tous ses messages seront supprimés de cet appareil. Cette action est définitive.`}
+          title={t.chrome.deleteConversation}
+          message={t.chrome.deleteConversationBody(pendingDelete.title || t.chrome.untitledConversation)}
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => {
             onDelete?.(pendingDelete.id);

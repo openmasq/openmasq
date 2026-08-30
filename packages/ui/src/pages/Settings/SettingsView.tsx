@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ChevDownIcon, ChevLeftIcon } from "../../components/brand";
 import type { Conversation, Settings } from "../../types";
-import { SETTINGS_META, type SettingsTabId as TabId } from "./settingsIndex";
+import { settingsMeta, type SettingsTabId as TabId } from "./settingsIndex";
+import { useT } from "../../i18n";
 import type { OrgProfileInfo } from "../../host";
 import type { UnavailableReason } from "../../send/modelAvailability";
 import { useSettingsPrefetch } from "../../state/settingsPrefetch";
@@ -79,7 +80,8 @@ export function SettingsView({
   // Resilient active tab: a caller can hand us an unexpected value (e.g. a click handler
   // that leaks its event through `openSettings`), so fall back to "account" rather than
   // index `META` with an unknown key.
-  const activeTab: TabId = SETTINGS_META[tab] ? tab : "account";
+  const meta = settingsMeta(useT());
+  const activeTab: TabId = meta[tab] ? tab : "account";
   const navItems = useVisibleSettingsTabs(orgProfile);
   const mainItems = navItems.filter((t) => t.group === "main");
   const advItems = navItems.filter((t) => t.group !== "main");
@@ -143,8 +145,8 @@ export function SettingsView({
 
       <div className="settings-main">
         <PageHeader
-          title={SETTINGS_META[activeTab].title}
-          subtitle={SETTINGS_META[activeTab].sub}
+          title={meta[activeTab].title}
+          subtitle={meta[activeTab].sub}
           onToggleSidebar={onToggleSidebar}
         />
         <div className="settings-page-body">

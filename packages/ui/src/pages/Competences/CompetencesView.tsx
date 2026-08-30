@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
 import { PageHeader } from "../../containers/shell/PageHeader";
-import { sectionSubtitle } from "../../help";
 import {
   CreateCard,
   EmptyState,
@@ -148,8 +147,7 @@ export function CompetencesView({
       {/* Kit `SkillsPage`: NO header action — creation lives in the grid's dashed
           CreateCard (and the empty state's CTA). */}
       <PageHeader
-        title="Compétences"
-        subtitle={sectionSubtitle("competences")}
+        section="competences"
         onToggleSidebar={onToggleSidebar}
       />
 

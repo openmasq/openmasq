@@ -82,7 +82,24 @@ export function useT(): Messages {
   return useContext(I18nContext)?.t ?? getMessages(DEFAULT_LOCALE);
 }
 
-// NOTE : `useLocale()` (lire/changer la langue courante) viendra AVEC le sélecteur de
-// langue des Réglages — son unique consommateur. Le contexte porte déjà `locale` et
-// `setLocale` ; l'exposer sans appelant ferait échouer le cliquet knip (export inutilisé).
-// Le changement de langue passe entre-temps par `onLocaleChange` (câblé sur les réglages).
+/** Le repli HORS provider — une constante, pas un objet neuf à chaque rendu : `useLocale`
+ *  peut ainsi servir de dépendance d'effet sans boucler. */
+const NO_PROVIDER: Pick<I18nContextValue, "locale" | "setLocale"> = {
+  locale: DEFAULT_LOCALE,
+  setLocale: saveDeviceLocale,
+};
+
+/**
+ * La langue courante + de quoi en changer. Son unique appelant est le sélecteur des
+ * Réglages (« Compte » → Apparence) : c'est pour lui que le contexte portait déjà
+ * `setLocale`.
+ *
+ * Même dégradation VOULUE que `useT()` — hors provider, rien ne jette. Il n'y a alors
+ * aucun catalogue à basculer à chaud, donc `locale` est la langue par défaut et
+ * `setLocale` se borne à écrire la clé d'APPAREIL : le choix n'est pas perdu, il
+ * s'applique au démarrage suivant (`initialLocale`). Un bouton qui fait moins, jamais un
+ * bouton qui ment.
+ */
+export function useLocale(): Pick<I18nContextValue, "locale" | "setLocale"> {
+  return useContext(I18nContext) ?? NO_PROVIDER;
+}

@@ -1,24 +1,42 @@
 import { describe, it, expect } from "vitest";
+import { getMessages, LOCALES } from "@openmasq/i18n";
 import {
-  SETTINGS_DESTINATIONS,
+  settingsDestinations,
   tabAvailable,
-  SETTINGS_ENTRIES,
-  SETTINGS_META,
+  settingsEntries,
+  settingsMeta,
   searchSettings,
   type SettingsTabId,
 } from "./settingsIndex";
 
-describe("SETTINGS_META", () => {
-  it("covers every destination (the header can't drift from the palette)", () => {
-    for (const d of SETTINGS_DESTINATIONS) {
-      expect(SETTINGS_META[d.id]).toEqual({ title: d.title, sub: d.sub });
+/** Les requêtes ci-dessous sont écrites en FRANÇAIS : ce sont des cas de recherche, pas de
+ *  la copie. Ce qui doit tenir dans les deux langues — la couverture des onglets, l'unicité
+ *  des ids, le fait que chaque réglage indexé vise un onglet réel — boucle sur `LOCALES`. */
+const fr = getMessages("fr");
+
+describe("settingsMeta", () => {
+  it.each(LOCALES)("[%s] covers every destination (the header can't drift from the palette)", (locale) => {
+    const t = getMessages(locale);
+    const meta = settingsMeta(t);
+    for (const d of settingsDestinations(t)) {
+      expect(meta[d.id]).toEqual({ title: d.title, sub: d.sub });
     }
-    expect(Object.keys(SETTINGS_META)).toHaveLength(SETTINGS_DESTINATIONS.length);
+    expect(Object.keys(meta)).toHaveLength(settingsDestinations(t).length);
   });
 
-  it("has no duplicate ids", () => {
-    const ids = SETTINGS_DESTINATIONS.map((d) => d.id);
+  it.each(LOCALES)("[%s] has no duplicate ids", (locale) => {
+    const ids = settingsDestinations(getMessages(locale)).map((d) => d.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it.each(LOCALES)("[%s] aucun onglet ne sort sans étiquette ni phrase", (locale) => {
+    // Une traduction manquante ne casse pas la compilation si la clé existe et vaut « » :
+    // c'est ici qu'on l'attrape, sur la surface la plus visible des réglages.
+    for (const d of settingsDestinations(getMessages(locale))) {
+      expect(d.label.trim(), d.id).not.toBe("");
+      expect(d.title.trim(), d.id).not.toBe("");
+      expect(d.sub.trim().length, d.id).toBeGreaterThan(10);
+    }
   });
 });
 
@@ -26,42 +44,42 @@ describe("searchSettings", () => {
   // The palette is conversation-first: nine tabs under an empty box would bury
   // the recent chats.
   it("returns nothing for an empty query", () => {
-    expect(searchSettings("")).toEqual([]);
-    expect(searchSettings("   ")).toEqual([]);
+    expect(searchSettings("", fr)).toEqual([]);
+    expect(searchSettings("   ", fr)).toEqual([]);
   });
 
   it("matches a label", () => {
-    expect(searchSettings("Versions").map((d) => d.id)).toContain("versions");
+    expect(searchSettings("Versions", fr).map((d) => d.id)).toContain("versions");
   });
 
   it("matches a keyword that appears in NO label or sub", () => {
-    expect(searchSettings("facture").map((d) => d.id)).toContain("billing");
-    expect(searchSettings("changelog").map((d) => d.id)).toContain("versions");
-    expect(searchSettings("sso").map((d) => d.id)).toContain("org");
+    expect(searchSettings("facture", fr).map((d) => d.id)).toContain("billing");
+    expect(searchSettings("changelog", fr).map((d) => d.id)).toContain("versions");
+    expect(searchSettings("sso", fr).map((d) => d.id)).toContain("org");
   });
 
   it("is accent- and case-insensitive both ways", () => {
-    expect(searchSettings("CRÉDITS").map((d) => d.id)).toContain("usage");
+    expect(searchSettings("CRÉDITS", fr).map((d) => d.id)).toContain("usage");
     // typed without the accent — the common case on a hurried keyboard
-    expect(searchSettings("credits").map((d) => d.id)).toContain("usage");
-    expect(searchSettings("thème").map((d) => d.id)).toContain("account");
-    expect(searchSettings("theme").map((d) => d.id)).toContain("account");
+    expect(searchSettings("credits", fr).map((d) => d.id)).toContain("usage");
+    expect(searchSettings("thème", fr).map((d) => d.id)).toContain("account");
+    expect(searchSettings("theme", fr).map((d) => d.id)).toContain("account");
   });
 
   it("returns [] rather than everything for an unmatched query", () => {
-    expect(searchSettings("zzzzz")).toEqual([]);
+    expect(searchSettings("zzzzz", fr)).toEqual([]);
   });
 
   // The palette must never offer a destination the rail doesn't have.
   it("honours the availability filter", () => {
     const noBrowser = (id: SettingsTabId) => id !== "browser";
-    expect(searchSettings("navigateur", noBrowser).map((d) => d.id)).not.toContain("browser");
-    expect(searchSettings("navigateur").map((d) => d.id)).toContain("browser");
+    expect(searchSettings("navigateur", fr, noBrowser).map((d) => d.id)).not.toContain("browser");
+    expect(searchSettings("navigateur", fr).map((d) => d.id)).toContain("browser");
   });
 
   it("keeps catalogue order for the TAB rows, which come first", () => {
-    const rows = searchSettings("e"); // matches many
-    const tabIds = SETTINGS_DESTINATIONS.map((d) => d.id);
+    const rows = searchSettings("e", fr); // matches many
+    const tabIds = settingsDestinations(fr).map((d) => d.id);
     // The prefix of the result is the tab rows, in catalogue order; the individual
     // settings follow (they are answers to the same query, not a re-ordering of it).
     const head = rows.slice(0, rows.findIndex((r) => r.sub.startsWith("Dans «")) + 1 || rows.length);
@@ -74,7 +92,7 @@ describe("searchSettings", () => {
     // this is what makes folding the rail's advanced half harmless.
     // The tab may legitimately match too (« Compte » lists « thème sombre » among its
     // keywords); what matters is that the SETTING itself is now a row of its own.
-    const hit = searchSettings("sombre").find((r) => r.label === "Mode sombre");
+    const hit = searchSettings("sombre", fr).find((r) => r.label === "Mode sombre");
     expect(hit).toBeTruthy();
     expect(hit?.id).toBe("account");
     expect(hit?.sub).toContain("Compte");
@@ -82,13 +100,17 @@ describe("searchSettings", () => {
 
   it("a setting of an UNAVAILABLE tab is not offered either", () => {
     // The gate is the tab's: no host.sync ⇒ neither « Vos appareils » nor its settings.
-    const rows = searchSettings("appareils", (id) => id !== "sync");
+    const rows = searchSettings("appareils", fr, (id) => id !== "sync");
     expect(rows.every((r) => r.id !== "sync")).toBe(true);
   });
 
-  it("every indexed setting points at a tab that exists", () => {
-    const ids = new Set(SETTINGS_DESTINATIONS.map((d) => d.id));
-    for (const e of SETTINGS_ENTRIES) expect(ids.has(e.tab)).toBe(true);
+  it.each(LOCALES)("[%s] every indexed setting points at a tab that exists", (locale) => {
+    const t = getMessages(locale);
+    const ids = new Set(settingsDestinations(t).map((d) => d.id));
+    for (const e of settingsEntries(t)) {
+      expect(ids.has(e.tab), e.label).toBe(true);
+      expect(e.label.trim(), e.tab).not.toBe("");
+    }
   });
 });
 
@@ -113,7 +135,7 @@ describe("tabAvailable — un onglet n'existe que si sa capacité existe", () =>
   });
 
   it("la palette ⌘K ne peut pas offrir une destination que le rail n'a pas", () => {
-    const rows = searchSettings("paiement", (id) => tabAvailable(id, NONE));
+    const rows = searchSettings("paiement", fr, (id) => tabAvailable(id, NONE));
     expect(rows.every((r) => r.id !== "billing")).toBe(true);
   });
 });

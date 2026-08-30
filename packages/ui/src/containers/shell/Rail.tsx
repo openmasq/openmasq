@@ -11,17 +11,13 @@ import {
   Avatar,
 } from "../../components/brand";
 import { BrandMark } from "../../components/media/BrandLogo";
-import type { Conversation } from "../../types";
+import type { Conversation, Section } from "../../types";
 import { useAppSelector } from "../../state/redux";
 import { useFeatureAccess } from "../../state/featureAccess";
 import { protectedCount } from "../../state/protectedCount";
 import { sectionGuide } from "../../help";
+import { useT } from "../../i18n";
 import { useSectionNav } from "./useSectionNav";
-
-/** The tooltip for a section: its label AND what it is for, from the one vocabulary
- *  (`help/sections.ts`). A tip that only repeats the label taught nothing — and four of
- *  these six names are the app's own words, so the rail was the app's least legible part. */
-const tip = (id: Parameters<typeof sectionGuide>[0]): string => sectionGuide(id)?.tip ?? id;
 
 interface Props {
   conversations: Conversation[];
@@ -51,10 +47,17 @@ export function Rail({
   onNew,
   onSelect,
   onOpenSearch,
-  userName = "Vous",
+  userName,
   onOpenSettings,
 }: Props) {
   const { section, go } = useSectionNav();
+  const t = useT();
+  /** The tooltip for a section: its label AND what it is for, from the one vocabulary
+   *  (`help/sections.ts`). A tip that only repeats the label taught nothing — and four of
+   *  these six names are the app's own words, so the rail was the app's least legible part. */
+  const tip = (id: Section): string => sectionGuide(id, t)?.tip ?? id;
+  /** L'étiquette lue du même bouton — le NOM seul, sans la phrase qui l'explique. */
+  const label = (id: Section): string => sectionGuide(id, t)?.label ?? id;
   // Les portes gouvernables (`state/featureAccess.ts`) : une porte fermée ne rend
   // pas son entrée. La fonctionnalité, elle, continue de tourner — sauf Compétences.
   const access = useFeatureAccess();
@@ -69,21 +72,21 @@ export function Rail({
       <button
         className="rail-btn rail-logo"
         onClick={onExpand}
-        data-tip="Développer la barre latérale"
-        aria-label="Développer la barre latérale"
+        data-tip={t.chrome.expandSidebar}
+        aria-label={t.chrome.expandSidebar}
       >
         <BrandMark size={24} className="brand-mark" />
       </button>
 
-      <button className="rail-new" onClick={onNew} data-tip="Nouvelle conversation" aria-label="Nouvelle conversation">
+      <button className="rail-new" onClick={onNew} data-tip={t.chrome.newChat} aria-label={t.chrome.newChat}>
         <PlusIcon size={18} />
       </button>
 
       <button
         className="rail-btn"
         onClick={onOpenSearch}
-        data-tip="Rechercher (⌘K)"
-        aria-label="Rechercher"
+        data-tip={t.chrome.searchShortcut}
+        aria-label={t.chrome.search}
       >
         <SearchIcon size={18} />
       </button>
@@ -92,7 +95,7 @@ export function Rail({
         className={`rail-btn rail-nav ${section === "chats" ? "active" : ""}`}
         onClick={() => go("chats")}
         data-tip={tip("chats")}
-        aria-label="Conversations"
+        aria-label={label("chats")}
       >
         <MessageIcon size={16} />
       </button>
@@ -101,7 +104,7 @@ export function Rail({
           className={`rail-btn rail-nav ${section === "library" ? "active" : ""}`}
           onClick={() => go("library")}
           data-tip={tip("library")}
-          aria-label="Bibliothèque"
+          aria-label={label("library")}
         >
           <BookIcon size={16} />
         </button>
@@ -111,7 +114,7 @@ export function Rail({
           className={`rail-btn rail-nav ${section === "competences" ? "active" : ""}`}
           onClick={() => go("competences")}
           data-tip={tip("competences")}
-          aria-label="Compétences"
+          aria-label={label("competences")}
         >
           <SparklesIcon size={16} />
         </button>
@@ -120,8 +123,8 @@ export function Rail({
         <button
           className={`rail-btn rail-nav ${section === "memory" ? "active" : ""}`}
           onClick={() => go("memory")}
-          data-tip={memoryFresh ? "Mémoire — nouveaux souvenirs notés" : tip("memory")}
-          aria-label={memoryFresh ? "Mémoire — nouveaux souvenirs notés" : "Mémoire"}
+          data-tip={memoryFresh ? t.chrome.memoryFresh : tip("memory")}
+          aria-label={memoryFresh ? t.chrome.memoryFresh : label("memory")}
         >
           <MemoryIcon size={16} />
           {/* Background extraction noted something the user hasn't seen — cleared on visit. */}
@@ -132,7 +135,7 @@ export function Rail({
         className={`rail-btn rail-nav ${section === "vault" ? "active" : ""}`}
         onClick={() => go("vault")}
         data-tip={tip("vault")}
-        aria-label="Coffre"
+        aria-label={label("vault")}
       >
         <LockIcon size={16} />
       </button>
@@ -147,18 +150,18 @@ export function Rail({
       <button
         className="rail-btn"
         onClick={() => onOpenSettings("privacy")}
-        data-tip={`${protectedN} élément(s) protégé(s) — rapport de confidentialité`}
-        aria-label="Rapport de confidentialité"
+        data-tip={t.chrome.privacyReportTip(protectedN)}
+        aria-label={t.chrome.privacyReport}
       >
         <ShieldIcon size={18} />
       </button>
       <button
         className="rail-avatar"
         onClick={() => onOpenSettings()}
-        data-tip="Compte & paramètres"
-        aria-label="Compte & paramètres"
+        data-tip={t.chrome.account}
+        aria-label={t.chrome.account}
       >
-        <Avatar name={userName} size={30} muted />
+        <Avatar name={userName ?? t.chrome.you} size={30} muted />
       </button>
 
     </div>

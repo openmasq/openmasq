@@ -10,6 +10,7 @@ import { ImportModal } from "./import";
 import { disabledKindsOf, effectiveRedactCategories } from "../../send/redactionOptions";
 import { DEFAULT_MODEL_ID } from "../../prompt/models";
 import { BRAND } from "@openmasq/branding";
+import { AppearanceSection } from "./AppearanceSection";
 
 /** The "Compte" tab — the app's real account/privacy/redaction settings. The
  *  default-model picker lives in the Modèles settings tab (`Settings/models/`). */
@@ -38,17 +39,6 @@ export function AccountTab({
   const { user, enabled: authEnabled, signOut } = useAuth();
   // Code interpreter is desktop-only (needs host.python) — the toggle is hidden elsewhere.
   const host = useHost();
-
-  // Le thème avait deux axes ; il n'en reste qu'UN au choix — le FOND, clair ou sombre.
-  // L'accent est l'indigo dans les deux cas : `blueAccent` (state/storePersistence) traduit
-  // aussi les thèmes verts déjà persistés, donc ce commutateur ne peut plus produire de
-  // valeur que cette fonction refuserait.
-  const isDark = draft.theme === "dark" || draft.theme === "blue-dark";
-  const themeFor = (dark: boolean): NonNullable<Settings["theme"]> => (dark ? "blue-dark" : "blue");
-  const applyTheme = (theme: NonNullable<Settings["theme"]>) => {
-    captureEvent({ name: "theme_toggle", theme });
-    setDraft((d) => ({ ...d, theme }));
-  };
 
   return (
     <>
@@ -179,18 +169,7 @@ export function AccountTab({
         </section>
       )}
 
-      <section className="settings-section">
-        <div className="cv-eyebrow">Apparence</div>
-        <div className="settings-card">
-          <div className="toggle-row">
-            <div className="row-body">
-              <div className="row-title">Mode sombre</div>
-              <div className="row-desc">Passe l'application en couleurs sombres.</div>
-            </div>
-            <Switch checked={isDark} onChange={(v) => applyTheme(themeFor(v))} />
-          </div>
-        </div>
-      </section>
+      <AppearanceSection draft={draft} setDraft={setDraft} />
 
       {/* Le créneau absent (aperçu web, mobile) ⇒ pas d'interrupteur : un réglage qui
           promet une bannière que la plateforme ne sait pas dessiner est un mensonge. */}

@@ -6,7 +6,6 @@ import type { Conversation } from "../../types";
 import { BookIcon, CheckIcon, EmptyState, SearchIcon, TrashIcon } from "../../components/brand";
 import { ConfirmDialog } from "../../components/feedback/ConfirmDialog";
 import { PageHeader } from "../../containers/shell/PageHeader";
-import { sectionSubtitle } from "../../help";
 import { LibraryTabs } from "./LibraryTabs";
 import { FileCard } from "./FileCard";
 import { FileRow } from "./FileRow";
@@ -111,8 +110,7 @@ export function LibraryView({
     // [page column | full-height panel], like LibraryPage's ResizableSplit.
     <main className="library-page">
       <PageHeader
-        title="Bibliothèque"
-        subtitle={sectionSubtitle("library")}
+        section="library"
         onToggleSidebar={onToggleSidebar}
       />
 

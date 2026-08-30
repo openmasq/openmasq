@@ -5,7 +5,8 @@ import { ArrowRightIcon, ChevLeftIcon } from "../../components/brand";
 import { captureEvent } from "../../analytics";
 import { useDialogFocus } from "../../hooks/useDialogFocus";
 import { RedactionRulesContent } from "../../containers/modals/redaction/RedactionRulesContent";
-import { SECTION_GUIDE, sectionOneLiner } from "../../help";
+import { sectionGuides, sectionOneLiner } from "../../help";
+import { useT } from "../../i18n";
 import { RedactionDemo } from "../../components/RedactionDemo";
 import { KeyChoice } from "./KeyChoice";
 import { platformAccessServed } from "../../send/platformAccess";
@@ -47,6 +48,7 @@ interface Props {
 }
 
 export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpenRouter, keyConfigured }: Props) {
+  const t = useT();
   // Ce build a-t-il un service hébergé (passerelle + comptes) ? Il décide de ce que ce
   // parcours peut PROMETTRE — `send/platformAccess.ts`.
   const served = platformAccessServed();
@@ -160,7 +162,7 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                     à la deuxième page d'un premier lancement, ça se saute. La phrase
                     longue existe toujours — dans « Aide », quand on la cherche. */}
                 <dl className="ob-sections">
-                  {SECTION_GUIDE.map((s) => (
+                  {sectionGuides(t).map((s) => (
                     <div key={s.id} className="ob-section">
                       <dt>{s.label}</dt>
                       <dd>{sectionOneLiner(s)}</dd>

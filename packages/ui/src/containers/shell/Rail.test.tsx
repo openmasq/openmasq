@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { getMessages } from "@openmasq/i18n";
 import { Provider } from "react-redux";
 import { describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
@@ -28,11 +29,16 @@ const railProps = (onOpenSettings: (tab?: string) => void) => ({
   onOpenSettings,
 });
 
+/* Les libellés viennent du CATALOGUE, pas d'une recopie : le test viserait sinon une
+   chaîne française en dur dans une app qui bascule en anglais — et il tomberait à la
+   première retouche de copie plutôt qu'à une vraie régression de comportement. */
+const t = getMessages("fr");
+
 describe("Rail — le bouclier mène au rapport de confidentialité", () => {
   it("le bouclier demande l'onglet « privacy »", async () => {
     const onOpenSettings = vi.fn();
     const m = await mount(<Rail {...railProps(onOpenSettings)} />, { wrap });
-    await m.click('[aria-label="Rapport de confidentialité"]');
+    await m.click(`[aria-label="${t.chrome.privacyReport}"]`);
     expect(onOpenSettings).toHaveBeenCalledWith("privacy");
     await m.unmount();
   });
@@ -40,7 +46,7 @@ describe("Rail — le bouclier mène au rapport de confidentialité", () => {
   it("l'avatar garde l'onglet par défaut — les deux ne font PAS le même geste", async () => {
     const onOpenSettings = vi.fn();
     const m = await mount(<Rail {...railProps(onOpenSettings)} />, { wrap });
-    await m.click('[aria-label="Compte & paramètres"]');
+    await m.click(`[aria-label="${t.chrome.account}"]`);
     expect(onOpenSettings).toHaveBeenCalledWith();
     await m.unmount();
   });

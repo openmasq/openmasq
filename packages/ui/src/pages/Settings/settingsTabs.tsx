@@ -12,6 +12,8 @@ import {
   ZapIcon,
 } from "../../components/brand";
 import { useHost, type OrgProfileInfo } from "../../host";
+import type { Messages } from "@openmasq/i18n";
+import { useT } from "../../i18n";
 import { tabAvailable, type SettingsCapabilities, type SettingsTabId as TabId } from "./settingsIndex";
 
 /**
@@ -30,19 +32,30 @@ import { tabAvailable, type SettingsCapabilities, type SettingsTabId as TabId } 
  */
 export type SettingsGroup = "main" | "advanced";
 
-export const SETTINGS_NAV: { id: TabId; label: string; icon: ReactNode; group: SettingsGroup }[] = [
-  { id: "account", label: "Compte", icon: <UserIcon size={19} />, group: "main" },
-  { id: "privacy", label: "Confidentialité", icon: <ShieldIcon size={19} />, group: "main" },
-  { id: "models", label: "Modèles", icon: <ZapIcon size={19} />, group: "main" },
-  { id: "mcp", label: "Connecteurs", icon: <GridIcon size={19} />, group: "main" },
-  { id: "billing", label: "Paiement", icon: <CardIcon size={19} />, group: "advanced" },
-  { id: "usage", label: "Usage", icon: <ActivityIcon size={19} />, group: "advanced" },
-  { id: "audit", label: "Journal", icon: <ShieldIcon size={19} />, group: "advanced" },
-  { id: "browser", label: "Navigateur", icon: <BrowserIcon size={19} />, group: "advanced" },
-  { id: "sync", label: "Vos appareils", icon: <RefreshIcon size={19} />, group: "advanced" },
-  { id: "org", label: "Organisation", icon: <UsersIcon size={19} />, group: "advanced" },
-  { id: "versions", label: "Versions", icon: <LayersIcon size={19} />, group: "advanced" },
+/**
+ * L'ICÔNE et le GROUPE de chaque onglet, en ordre de rail. L'ÉTIQUETTE n'est pas ici : elle
+ * vit dans le catalogue avec le titre et la phrase du même onglet (`settingsIndex.ts` →
+ * `settings.tabs`), sinon le rail et l'en-tête nommeraient l'onglet deux fois — et une
+ * traduction n'en corrigerait qu'un.
+ */
+const SETTINGS_NAV_SHAPE: { id: TabId; icon: ReactNode; group: SettingsGroup }[] = [
+  { id: "account", icon: <UserIcon size={19} />, group: "main" },
+  { id: "privacy", icon: <ShieldIcon size={19} />, group: "main" },
+  { id: "models", icon: <ZapIcon size={19} />, group: "main" },
+  { id: "mcp", icon: <GridIcon size={19} />, group: "main" },
+  { id: "billing", icon: <CardIcon size={19} />, group: "advanced" },
+  { id: "usage", icon: <ActivityIcon size={19} />, group: "advanced" },
+  { id: "audit", icon: <ShieldIcon size={19} />, group: "advanced" },
+  { id: "browser", icon: <BrowserIcon size={19} />, group: "advanced" },
+  { id: "sync", icon: <RefreshIcon size={19} />, group: "advanced" },
+  { id: "org", icon: <UsersIcon size={19} />, group: "advanced" },
+  { id: "versions", icon: <LayersIcon size={19} />, group: "advanced" },
 ];
+
+/** Le rail des réglages dans la langue de `t` — forme + étiquette réunies. */
+export function settingsNav(t: Messages): { id: TabId; label: string; icon: ReactNode; group: SettingsGroup }[] {
+  return SETTINGS_NAV_SHAPE.map((n) => ({ ...n, label: t.settings.tabs[n.id].label }));
+}
 
 /**
  * Les capacités de CETTE instance, lues sur l'hôte. Un créneau absent = le build n'a pas
@@ -66,5 +79,5 @@ export function useSettingsCapabilities(orgProfile?: OrgProfileInfo | null): Set
  */
 export function useVisibleSettingsTabs(orgProfile?: OrgProfileInfo | null) {
   const caps = useSettingsCapabilities(orgProfile);
-  return SETTINGS_NAV.filter((t) => tabAvailable(t.id, caps));
+  return settingsNav(useT()).filter((n) => tabAvailable(n.id, caps));
 }

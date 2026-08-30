@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as R
 import { createPortal } from "react-dom";
 import type { ProviderId } from "@openmasq/llm";
 import { ModelLogo, MessageIcon, PlusIcon, XIcon, LayoutSplitIcon, BrowserIcon, FileIcon } from "../../components/brand";
+import { useT } from "../../i18n";
 import { useWorkspaceDnd } from "../../workspace";
 
 export interface ConvTab {
@@ -47,6 +48,7 @@ export function ConvTabs({
    *  droite" menu — making the drag-to-split gesture discoverable. */
   onSplitTab?: (id: string, side: "left" | "right") => void;
 }) {
+  const t = useT();
   // Hover-reveal split menu: a short dwell on a tab pops a light dropdown offering to
   // put it in a split pane left/right. Portaled + fixed-positioned so the tab strip's
   // `overflow-x` scroller can't clip it. Only meaningful when a pane holds ≥2 tabs
@@ -123,47 +125,48 @@ export function ConvTabs({
   return (
     <div className="conv-tabs" role="tablist">
       <div className="conv-tabs-scroll" ref={scrollRef}>
-        {tabs.map((t, i) => {
-          const on = t.id === activeId;
+        {/* `tab`, pas `t` : dans ce composant `t` est le catalogue de traduction. */}
+        {tabs.map((tab, i) => {
+          const on = tab.id === activeId;
           return (
             <div
-              key={t.id}
+              key={tab.id}
               role="tab"
               aria-selected={on}
-              className={`conv-tab${on ? " on" : ""}${t.id === draggingId ? " dragging" : ""}${t.kind ? ` conv-tab--${t.kind}` : ""}`}
+              className={`conv-tab${on ? " on" : ""}${tab.id === draggingId ? " dragging" : ""}${tab.kind ? ` conv-tab--${tab.kind}` : ""}`}
               style={{ "--tab-op": tabOpacity(i) } as CSSProperties}
-              onPointerDown={onTabPointerDown && !t.kind ? (e) => onTabPointerDown(t.id, e) : undefined}
+              onPointerDown={onTabPointerDown && !tab.kind ? (e) => onTabPointerDown(tab.id, e) : undefined}
               // In workspace mode selection rides the DRAG pointerdown — which non-chat
               // tabs deliberately don't get (their lifecycle isn't the conv DnD's). They
               // therefore keep a PLAIN CLICK, or the tab is dead (the reported bug).
-              onClick={onTabPointerDown && !t.kind ? undefined : () => onSelect(t.id)}
-              onMouseEnter={(e) => scheduleOpen(t.id, e.currentTarget)}
+              onClick={onTabPointerDown && !tab.kind ? undefined : () => onSelect(tab.id)}
+              onMouseEnter={(e) => scheduleOpen(tab.id, e.currentTarget)}
               onMouseLeave={scheduleClose}
-              title={t.title}
+              title={tab.title}
             >
               <span className="conv-tab-ico">
-                {t.busy ? (
-                  <span className="conv-tab-spin" aria-label="Génération en cours" role="status" />
-                ) : t.kind === "browser" ? (
+                {tab.busy ? (
+                  <span className="conv-tab-spin" aria-label={t.chat.generating} role="status" />
+                ) : tab.kind === "browser" ? (
                   <BrowserIcon size={15} />
-                ) : t.kind === "file" ? (
+                ) : tab.kind === "file" ? (
                   <FileIcon size={15} />
-                ) : t.provider ? (
+                ) : tab.provider ? (
                   // `tile` so monochrome vendor marks (kimi/grok/…) stay
                   // visible on the light tab — they're drawn for their brand tile.
-                  <ModelLogo provider={t.provider} modelId={t.modelId} size={17} tile />
+                  <ModelLogo provider={tab.provider} modelId={tab.modelId} size={17} tile />
                 ) : (
                   <MessageIcon size={14} />
                 )}
               </span>
-              <span className="conv-tab-label">{t.title}</span>
+              <span className="conv-tab-label">{tab.title}</span>
               <button
                 className="conv-tab-x"
-                aria-label="Fermer l'onglet"
+                aria-label={t.chat.closeTab}
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onClose(t.id);
+                  onClose(tab.id);
                 }}
               >
                 <XIcon size={12} />
@@ -176,8 +179,8 @@ export function ConvTabs({
             to the far edge of the bar. */}
         <button
           className="conv-tab-new"
-          aria-label="Nouvelle conversation"
-          title="Nouvelle conversation"
+          aria-label={t.chrome.newChat}
+          title={t.chrome.newChat}
           onClick={onNew}
         >
           <PlusIcon size={16} />
@@ -187,8 +190,8 @@ export function ConvTabs({
         <button
           type="button"
           className="conv-tabs-more"
-          title={`${hidden} onglet${hidden > 1 ? "s" : ""} hors de vue — faire défiler`}
-          aria-label={`${hidden} onglets hors de vue`}
+          title={t.chat.hiddenTabsTip(hidden)}
+          aria-label={t.chat.hiddenTabs(hidden)}
           onClick={() => {
             const el = scrollRef.current;
             if (!el) return;
@@ -210,7 +213,7 @@ export function ConvTabs({
             onMouseEnter={cancelClose}
             onMouseLeave={scheduleClose}
           >
-            <div className="conv-tab-split-head">Diviser l'écran</div>
+            <div className="conv-tab-split-head">{t.chat.splitScreen}</div>
             <button
               role="menuitem"
               className="conv-tab-split-item"
@@ -219,7 +222,8 @@ export function ConvTabs({
                 setMenu(null);
               }}
             >
-              <LayoutSplitIcon size={15} />À gauche
+              <LayoutSplitIcon size={15} />
+              {t.chat.splitLeft}
             </button>
             <button
               role="menuitem"
@@ -232,7 +236,7 @@ export function ConvTabs({
               <span className="conv-tab-split-flip">
                 <LayoutSplitIcon size={15} />
               </span>
-              À droite
+              {t.chat.splitRight}
             </button>
           </div>,
           document.body,

@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { SettingsTabId } from "../../../pages/Settings/settingsIndex";
 
 /**
@@ -10,18 +11,20 @@ import type { SettingsTabId } from "../../../pages/Settings/settingsIndex";
  * is completeness: a tab missing from every group would silently vanish from the phone,
  * which is how a setting becomes unreachable. Hence the "Autres" fallback below, and
  * `settingsScreenModel.test.ts` pinning that the two together cover the whole tab set.
+ *
+ * Le TITRE de chaque groupe vient du catalogue ; ce qui reste ici est la COMPOSITION —
+ * quel onglet tombe dans quel groupe, et dans quel ordre. Une langue ne regroupe pas les
+ * réglages autrement.
  */
-const GROUPS: { title: string; ids: SettingsTabId[] }[] = [
-  { title: "Compte", ids: ["account", "billing", "usage"] },
+const GROUPS: { key: keyof Messages["settings"]["groups"]; ids: SettingsTabId[] }[] = [
+  { key: "account", ids: ["account", "billing", "usage"] },
   // The product's own subject leads, with the journal that evidences it.
-  { title: "Confidentialité", ids: ["privacy", "audit"] },
-  { title: "IA & outils", ids: ["models", "mcp", "browser"] },
-  { title: "Vos appareils", ids: ["sync"] },
-  { title: "Organisation", ids: ["org"] },
-  { title: "Application", ids: ["versions"] },
+  { key: "privacy", ids: ["privacy", "audit"] },
+  { key: "aiTools", ids: ["models", "mcp", "browser"] },
+  { key: "devices", ids: ["sync"] },
+  { key: "org", ids: ["org"] },
+  { key: "app", ids: ["versions"] },
 ];
-
-const FALLBACK_TITLE = "Autres";
 
 export interface SettingsGroup<T> {
   title: string;
@@ -35,20 +38,21 @@ export interface SettingsGroup<T> {
  */
 export function groupSettingsTabs<T extends { id: SettingsTabId }>(
   tabs: T[],
+  t: Messages,
 ): SettingsGroup<T>[] {
-  const byId = new Map(tabs.map((t) => [t.id, t]));
+  const byId = new Map(tabs.map((tab) => [tab.id, tab]));
   const out: SettingsGroup<T>[] = [];
   const placed = new Set<SettingsTabId>();
   for (const g of GROUPS) {
     const items = g.ids.flatMap((id) => {
-      const t = byId.get(id);
-      if (!t) return [];
+      const tab = byId.get(id);
+      if (!tab) return [];
       placed.add(id);
-      return [t];
+      return [tab];
     });
-    if (items.length) out.push({ title: g.title, items });
+    if (items.length) out.push({ title: t.settings.groups[g.key], items });
   }
-  const rest = tabs.filter((t) => !placed.has(t.id));
-  if (rest.length) out.push({ title: FALLBACK_TITLE, items: rest });
+  const rest = tabs.filter((tab) => !placed.has(tab.id));
+  if (rest.length) out.push({ title: t.settings.groups.other, items: rest });
   return out;
 }

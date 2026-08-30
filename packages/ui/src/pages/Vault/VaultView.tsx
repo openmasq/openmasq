@@ -6,7 +6,6 @@ import { REDACT_TYPES } from "@openmasq/redact";
 import type { CoffreTerm, Conversation } from "../../types";
 import { coffreOccurrences, coffreTypeLabel, type CoffreOccurrences } from "../../send/coffre";
 import { PageHeader } from "../../containers/shell/PageHeader";
-import { sectionSubtitle } from "../../help";
 import { VaultUsesModal } from "./VaultUsesModal";
 import { VaultAddModal } from "./parts/VaultAddModal";
 import { VaultFilters } from "./parts/VaultFilters";
@@ -128,8 +127,7 @@ export function VaultView({
   return (
     <main className="library-page">
       <PageHeader
-        title="Coffre"
-        subtitle={sectionSubtitle("vault")}
+        section="vault"
         onToggleSidebar={onToggleSidebar}
       />
 

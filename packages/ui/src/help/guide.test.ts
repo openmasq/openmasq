@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { GUIDE, SECTION_GUIDE, sectionGuide, sectionSubtitle } from "./index";
+import { getMessages, LOCALES } from "@openmasq/i18n";
+import { GUIDE, sectionGuide, sectionGuides, sectionSubtitle } from "./index";
 import { DEFAULT_SETTINGS } from "../state/storePersistence";
 import { isFreeModel } from "@openmasq/llm/pricing";
 import { findModelAny } from "../prompt/models";
@@ -18,30 +19,40 @@ import { findModelAny } from "../prompt/models";
 const NAVIGABLE = ["chats", "library", "competences", "memory", "vault"] as const;
 
 describe("le guide décrit l'app RÉELLE", () => {
-  it("couvre exactement les sections navigables — une section ajoutée sans être expliquée casse ici", () => {
-    expect(SECTION_GUIDE.map((s) => s.id).sort()).toEqual([...NAVIGABLE].sort());
-  });
+  it.each(LOCALES)(
+    "[%s] couvre exactement les sections navigables — une section ajoutée sans être expliquée casse ici",
+    (locale) => {
+      expect(sectionGuides(getMessages(locale)).map((s) => s.id).sort()).toEqual([...NAVIGABLE].sort());
+    },
+  );
 
-  it("chaque section dit son nom ET son usage — une infobulle qui répète le libellé n'apprend rien", () => {
-    for (const s of SECTION_GUIDE) {
-      expect(s.label.length, s.id).toBeGreaterThan(2);
-      // The tip must carry MORE than the label (that was the whole defect).
-      expect(s.tip.length, `${s.id}: l'infobulle doit expliquer, pas répéter`).toBeGreaterThan(
-        s.label.length + 12,
-      );
-      expect(s.tip.startsWith(s.label), `${s.id}: l'infobulle commence par le libellé`).toBe(true);
-      expect(s.guide.length, s.id).toBeGreaterThan(60);
-    }
-  });
+  it.each(LOCALES)(
+    "[%s] chaque section dit son nom ET son usage — une infobulle qui répète le libellé n'apprend rien",
+    (locale) => {
+      for (const s of sectionGuides(getMessages(locale))) {
+        expect(s.label.length, s.id).toBeGreaterThan(2);
+        // The tip must carry MORE than the label (that was the whole defect).
+        expect(s.tip.length, `${s.id}: l'infobulle doit expliquer, pas répéter`).toBeGreaterThan(
+          s.label.length + 12,
+        );
+        expect(s.tip.startsWith(s.label), `${s.id}: l'infobulle commence par le libellé`).toBe(true);
+        expect(s.guide.length, s.id).toBeGreaterThan(60);
+      }
+    },
+  );
 
-  it("toute section AYANT un en-tête de page a son sous-titre (les 5 pages le lisent d'ici)", () => {
-    for (const id of ["library", "competences", "memory", "vault"] as const) {
-      expect(sectionSubtitle(id), id).not.toBe("");
-    }
-    // `chats` n'a pas d'en-tête : ne jamais inventer une phrase que rien n'affiche.
-    expect(sectionGuide("chats")?.subtitle).toBeUndefined();
-    expect(sectionGuide("settings")).toBeUndefined();
-  });
+  it.each(LOCALES)(
+    "[%s] toute section AYANT un en-tête de page a son sous-titre (les 5 pages le lisent d'ici)",
+    (locale) => {
+      const t = getMessages(locale);
+      for (const id of ["library", "competences", "memory", "vault"] as const) {
+        expect(sectionSubtitle(id, t), id).not.toBe("");
+      }
+      // `chats` n'a pas d'en-tête : ne jamais inventer une phrase que rien n'affiche.
+      expect(sectionGuide("chats", t)?.subtitle).toBeUndefined();
+      expect(sectionGuide("settings", t)).toBeUndefined();
+    },
+  );
 
   it("« un modèle gratuit est déjà sélectionné » — vrai du modèle réellement semé", () => {
     const seeded = findModelAny(DEFAULT_SETTINGS.defaultModelId);

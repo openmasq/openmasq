@@ -15,6 +15,7 @@ export const ALLOWED = {
   app_open: [],
   section_change: ["section"],
   theme_toggle: ["theme"],
+  language_change: ["locale"],
   new_chat: [],
   select_conversation: ["id"],
   delete_conversation: ["id"],

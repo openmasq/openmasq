@@ -5,6 +5,7 @@ import { RedactionRulesModal, DebugLogModal } from "../../containers/modals";
 import { IconButton, SidebarIcon, ChevLeftIcon, DotsIcon } from "../../components/brand";
 import type { Conversation, Settings } from "../../types";
 import { usePopover } from "../../hooks/usePopover";
+import { useT } from "../../i18n";
 import { ConvTabs, type ConvTab } from "./ConvTabs";
 import { HeaderMenu } from "./HeaderMenu";
 
@@ -74,6 +75,7 @@ export function ChatHeader({
   onTabPointerDown?: (id: string, e: import("react").PointerEvent) => void;
   onSplitTab?: (id: string, side: "left" | "right") => void;
 }) {
+  const t = useT();
   const [rulesOpen, setRulesOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
@@ -90,12 +92,12 @@ export function ChatHeader({
     <>
       <div className="chat-topbar">
         {onBack ? (
-          <IconButton size="sm" label="Retour aux conversations" onClick={onBack}>
+          <IconButton size="sm" label={t.chat.backToConversations} onClick={onBack}>
             <ChevLeftIcon size={18} />
           </IconButton>
         ) : (
           onToggleSidebar && (
-            <IconButton size="sm" label="Basculer la barre latérale" onClick={onToggleSidebar}>
+            <IconButton size="sm" label={t.chat.toggleSidebar} onClick={onToggleSidebar}>
               <SidebarIcon size={18} />
             </IconButton>
           )
@@ -105,7 +107,7 @@ export function ChatHeader({
         {onBack ? (
           <div className="chat-title-mobile">
             <div className="chat-title-mobile-name">
-              {conversation?.title || "Nouvelle conversation"}
+              {conversation?.title || t.chrome.untitledConversation}
             </div>
             {modelName && <div className="chat-title-mobile-model">{modelName}</div>}
           </div>
@@ -132,7 +134,7 @@ export function ChatHeader({
           <div className="menu-anchor" ref={menuRef}>
             <IconButton
               size="sm"
-              label="Plus"
+              label={t.chat.more}
               active={menuOpen}
               onClick={toggleMenu}
             >
@@ -199,9 +201,11 @@ export function ChatHeader({
       <AnimatePresence>
         {confirmDelete && onDelete && (
           <ConfirmDialog
-            title="Supprimer la conversation ?"
-            message="Cette conversation et ses messages seront définitivement supprimés. Cette action est irréversible."
-            confirmLabel="Supprimer la conversation"
+            title={t.chrome.deleteConversation}
+            message={t.chrome.deleteConversationBody(
+              conversation?.title || t.chrome.untitledConversation,
+            )}
+            confirmLabel={t.chrome.deleteConversationAction}
             onCancel={() => setConfirmDelete(false)}
             onConfirm={() => {
               setConfirmDelete(false);

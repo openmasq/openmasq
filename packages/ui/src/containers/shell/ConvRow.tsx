@@ -6,6 +6,7 @@ import { findModelAny } from "../../prompt/models";
 import { DotsIcon, EditIcon, IconButton, ModelLogo, TrashIcon } from "../../components/brand";
 import { CONV_TITLE_MAX } from "../../state/renameConversation";
 import { usePopover } from "../../hooks/usePopover";
+import { useT } from "../../i18n";
 import { relTime } from "../../hooks/conversationGroups";
 
 /**
@@ -36,6 +37,7 @@ export function ConvRow({
   /** Absent ⇒ no delete item. */
   onAskDelete?: () => void;
 }) {
+  const t = useT();
   const model = findModelAny(conv.modelId) ?? findModel(conv.modelId);
   // The popover's trigger ref rides the WRAPPER, not the button: `IconButton` forwards
   // no ref, and the wrapper's rect is the button's anyway (it wraps it exactly). The
@@ -97,7 +99,7 @@ export function ConvRow({
           autoFocus
           value={draft}
           maxLength={CONV_TITLE_MAX}
-          aria-label="Renommer la conversation"
+          aria-label={t.chat.renameConversation}
           // The row's own onClick selects the conversation; a click INSIDE the field
           // (to place the caret) would otherwise navigate away mid-rename.
           onClick={(e) => e.stopPropagation()}
@@ -110,7 +112,7 @@ export function ConvRow({
         />
       ) : (
         <span className="conv-title flex-min">
-          <span className="om-sweep">{conv.title || "Nouvelle conversation"}</span>
+          <span className="om-sweep">{conv.title || t.chrome.untitledConversation}</span>
         </span>
       )}
       {!editing && <span className="conv-time">{relTime(conv.updatedAt)}</span>}
@@ -122,7 +124,7 @@ export function ConvRow({
         >
           <IconButton
             size="sm"
-            label="Actions"
+            label={t.chat.rowActions}
             active={menu.open}
             expanded={menu.open}
             haspopup="menu"
@@ -148,7 +150,7 @@ export function ConvRow({
             {onRename && (
               <button className="header-menu-item" role="menuitem" onClick={startRename}>
                 <EditIcon size={15} />
-                Renommer
+                {t.chat.rename}
               </button>
             )}
             {onAskDelete && (
@@ -161,7 +163,7 @@ export function ConvRow({
                 }}
               >
                 <TrashIcon size={15} />
-                Supprimer la conversation
+                {t.chrome.deleteConversationAction}
               </button>
             )}
           </div>,

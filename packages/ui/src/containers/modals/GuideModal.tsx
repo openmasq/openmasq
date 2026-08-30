@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ModalShell } from "./ModalShell";
-import { GUIDE, HELP_CENTER_URL, SECTION_GUIDE } from "../../help";
+import { GUIDE, HELP_CENTER_URL, sectionGuides } from "../../help";
+import { useT } from "../../i18n";
 import { ArrowRightIcon, HelpIcon } from "../../components/brand";
 import { RedactionDemo } from "../../components/RedactionDemo";
 import { useReleaseNotes } from "../../state/releaseNotes";
@@ -28,6 +29,7 @@ export function GuideModal({
   initialChapter?: string;
 }) {
   const [active, setActive] = useState(initialChapter ?? GUIDE[0].id);
+  const t = useT();
   // ⚠️ Le chapitre « Nouveautés » n'existe que là où les notes existent : sur une
   // plateforme sans relais (aperçu navigateur), un onglet qui ne peut RIEN afficher est
   // pire qu'un onglet absent — il se lit comme une panne de l'app.
@@ -100,10 +102,10 @@ export function GuideModal({
 
             {chapter.terms && (
               <dl className="guide-terms">
-                {chapter.terms.map((t) => (
-                  <div key={t.term} className="guide-term">
-                    <dt>{t.term}</dt>
-                    <dd>{t.def}</dd>
+                {chapter.terms.map((term) => (
+                  <div key={term.term} className="guide-term">
+                    <dt>{term.term}</dt>
+                    <dd>{term.def}</dd>
                   </div>
                 ))}
               </dl>
@@ -111,7 +113,7 @@ export function GuideModal({
 
             {chapter.sections && (
               <dl className="guide-terms">
-                {SECTION_GUIDE.map((s) => (
+                {sectionGuides(t).map((s) => (
                   <div key={s.id} className="guide-term">
                     <dt>{s.label}</dt>
                     <dd>{s.guide}</dd>

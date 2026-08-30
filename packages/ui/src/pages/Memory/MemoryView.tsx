@@ -1,7 +1,6 @@
 import { BRAND } from "@openmasq/branding";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../containers/shell/PageHeader";
-import { sectionSubtitle } from "../../help";
 import { MemoryIcon, EmptyState, PlusIcon, Switch } from "../../components/brand";
 import { MEMORY_CATEGORIES, newCardEntity } from "../../memory";
 import { buildMemoryGraph } from "../../memory/graph";
@@ -143,8 +142,7 @@ export function MemoryView({
   return (
     <main className="library-page">
       <PageHeader
-        title="Mémoire"
-        subtitle={sectionSubtitle("memory")}
+        section="memory"
         onToggleSidebar={onToggleSidebar}
         action={
           <div className="om-mem-actions">
