@@ -4,6 +4,7 @@ import {
   creditsCentsForAccountType,
   creditPeriod,
   CREDITS_CENTS_PER_SEAT,
+  unlimitedCredits,
 } from "./index.js";
 
 describe("deriveCreditCents", () => {
@@ -74,5 +75,22 @@ describe("creditPeriod — une fenêtre PÉRIMÉE ne vaut pas « il lui reste to
   it("un abonnement non payant ou absent : mois calendaire", () => {
     expect(isCalendarMonth(creditPeriod(sub("2026-08-05T00:00:00Z", "2026-09-05T00:00:00Z", "canceled"), NOW))).toBe(true);
     expect(isCalendarMonth(creditPeriod(undefined, NOW))).toBe(true);
+  });
+});
+
+describe("unlimitedCredits — le statut du MODE GRATUIT", () => {
+  it("n'est jamais bloqué, garde la consommation, et le dit par `unlimited`", () => {
+    const start = new Date("2026-08-01T00:00:00Z");
+    const end = new Date("2026-09-01T00:00:00Z");
+    const s = unlimitedCredits(12_345, start, end);
+    expect(s.blocked).toBe(false);
+    expect(s.unlimited).toBe(true);
+    expect(s.consumed_cents).toBe(12_345);
+    // ⚠️ Un client qui recalculerait `balance ≤ 0` lirait « bloqué » : c'est `blocked`
+    // qui décide, et `unlimited` qui explique pourquoi il est faux malgré un solde nul.
+    expect(s.allotment_cents).toBe(0);
+    expect(s.balance_cents).toBe(0);
+    expect(s.period_start).toBe(start.toISOString());
+    expect(s.period_end).toBe(end.toISOString());
   });
 });

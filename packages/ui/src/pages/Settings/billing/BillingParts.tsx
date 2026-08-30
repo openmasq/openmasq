@@ -204,12 +204,15 @@ export function OrgManagedBilling({
   );
 }
 
-/** The prepaid-credits progress bar for the current period. */
+/** The prepaid-credits progress bar for the current period. Le mode gratuit n'atteint
+ *  jamais ce composant (`BillingTab` rend `FreeModeBilling` avant) ; s'il y arrivait,
+ *  un `unlimited` se lit comme « pas de jauge » plutôt que « 0 € restants ». */
 export function CreditsMeter({ credits }: { credits: CreditBalance }) {
   const pct =
     credits.allotmentCents > 0
       ? Math.min(100, Math.round((credits.consumedCents / credits.allotmentCents) * 100))
       : 0;
+  if (credits.unlimited) return null;
   return (
     <section>
       <div className="cv-eyebrow mb-3">CRÉDITS · CETTE PÉRIODE</div>

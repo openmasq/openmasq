@@ -433,3 +433,35 @@ describe("visibleModels — ce que le sélecteur a le droit de lister", () => {
     expect(visibleModels(all, undefined)).toHaveLength(all.length);
   });
 });
+
+describe("modelUnavailableReason — le MODE GRATUIT du déploiement", () => {
+  // Le serveur sert `tier: "unlimited"` + des crédits `unlimited` (jamais bloqués) : un
+  // modèle inclus PAYANT doit être proposé. Épinglé parce que la garde ne lit que
+  // `tier === "free"` — si un jour elle lisait « palier connu du catalogue », ce test
+  // dirait que le mode gratuit vient de cacher tous les modèles inclus.
+  const unlimitedSub = { tier: "unlimited", status: "active", freeMode: true } as unknown as BillingSubscription;
+  const unlimited = { blocked: false, unlimited: true, allotmentCents: 0, balanceCents: 0 } as unknown as CreditBalance;
+
+  it("un modèle inclus payant est disponible sans clé, sur un palier « unlimited »", () => {
+    expect(
+      modelUnavailableReason({
+        ...BASE,
+        model: PAID,
+        effectivePlatform: true,
+        personalSub: unlimitedSub,
+        personalCredits: unlimited,
+      }),
+    ).toBeNull();
+  });
+
+  it("⛔ un solde à 0 ne bloque PAS quand `blocked` est faux — c'est le drapeau qui décide, jamais l'arithmétique", () => {
+    // `allotmentCents`/`balanceCents` valent 0 en mode gratuit : recalculer `balance ≤ 0`
+    // côté client cacherait tout. Seul `blocked` (serveur) fait foi.
+    expect(
+      modelUnavailableReason({ ...BASE, model: PAID, effectivePlatform: true, personalSub: unlimitedSub, personalCredits: unlimited }),
+    ).toBeNull();
+    expect(
+      modelUnavailableReason({ ...BASE, model: PAID, effectivePlatform: true, personalSub: unlimitedSub, personalCredits: { ...unlimited, blocked: true } as CreditBalance }),
+    ).toBe("no_credits");
+  });
+});

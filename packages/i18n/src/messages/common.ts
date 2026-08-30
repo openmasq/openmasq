@@ -37,4 +37,14 @@ export interface NavMessages {
 export interface BillingMessages {
   /** Échec d'ouverture de la page de paiement Stripe. */
   checkoutOpenFailed: string;
+  /** Le MODE GRATUIT du déploiement (`OPENMASQ_FREE_MODE`) : l'onglet Paiement n'a plus
+   *  d'offre à montrer — tout est inclus. Titre, explication, et la ligne de la jauge qui
+   *  ne peut plus dire « restants sur ». */
+  freeModeEyebrow: string;
+  freeModeTitle: string;
+  freeModeBody: (brand: string) => string;
+  /** « 1,20 € utilisés ce mois-ci · sans limite » — le montant vient d'`Intl`. */
+  freeModeUsed: (amount: string) => string;
+  /** Le libellé du palier synthétique servi en mode gratuit (`tierLabel`). */
+  unlimitedTier: string;
 }

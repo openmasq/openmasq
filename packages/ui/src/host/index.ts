@@ -15,7 +15,8 @@ import type { DbHost, FilesHost } from "./files";
 import type { EmbeddingsHost, MemoryIndexHost } from "./embeddings";
 import type { CloudFsHost } from "./cloudFs";
 import type { LocalFsHost } from "./localFs";
-import type { AuthHost, SyncHost, OrgHost, BillingHost, AvisHost } from "./account";
+import type { AuthHost, SyncHost, OrgHost, AvisHost } from "./account";
+import type { BillingHost } from "./billing";
 import type { OrgSharesHost } from "./orgShares";
 import type { AppHost, EnvHost, UpdatesHost } from "./updates";
 import type {
@@ -40,6 +41,7 @@ export * from "./embeddings";
 export * from "./cloudFs";
 export * from "./localFs";
 export * from "./account";
+export * from "./billing";
 export * from "./orgShares";
 export * from "./updates";
 export * from "./platform";

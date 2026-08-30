@@ -12,6 +12,7 @@ import { type CreditBalance, type OrgProfileInfo } from "../../../host";
 import { useAppSelector } from "../../../state/redux";
 import { selectBillingCache } from "../../../state/settingsCache";
 import { tierLabel, formatCents } from "../../../state/billing";
+import { useT } from "../../../i18n/I18nProvider";
 import { CreditsMeter } from "./CreditsMeter";
 import { dailyActivityCounts, dailyModelMessages } from "./usageActivity";
 import { buildSeries, seriesColors } from "./usageSeries";
@@ -39,6 +40,7 @@ export function UsageTab({
   // (`settingsPrefetch`) — shared with the Paiement tab, so this tab reads them
   // from the cache instead of re-fetching on its own mount.
   const { sub, credits: personalCredits } = useAppSelector(selectBillingCache);
+  const t = useT();
 
   // Hide an empty balance (0 consumed on a 0 allotment).
   const meaningful = (c?: CreditBalance | null): c is CreditBalance =>
@@ -235,7 +237,11 @@ export function UsageTab({
               <CreditsMeter label="Organisation" sub={orgProfile?.organizationName} credits={orgCredits} />
             )}
             {personal && (
-              <CreditsMeter label="Mon abonnement" sub={tierLabel(sub?.tier ?? "free")} credits={personal} />
+              <CreditsMeter
+                label="Mon abonnement"
+                sub={sub?.freeMode ? t.billing.unlimitedTier : tierLabel(sub?.tier ?? "free")}
+                credits={personal}
+              />
             )}
           </div>
         </section>

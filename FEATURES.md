@@ -885,6 +885,11 @@ answer is never served to be billed afterwards. The rule protects the user as mu
 publisher.
 
 - [x] Subscription, included credits, history — `packages/credits/`
+- [x] **Free mode** of a self-hosted deployment (`OPENMASQ_FREE_MODE=1` on the API **and**
+      the gateway): the tab shows « Tout est inclus sur cette version » instead of the plan
+      grid, every included model is offered without a credit cap, and nothing is sold —
+      `packages/ui/src/pages/Settings/billing/FreeModeBilling.tsx`,
+      `packages/credits/src/freeMode.ts`, `SELF_HOSTING.md`
 - [x] A free model stays usable without a subscription
 - [x] A send that cannot be funded is refused **before** it leaves
 - [x] The "credits exhausted" refusal always offers a **gesture**: subscription + key for a

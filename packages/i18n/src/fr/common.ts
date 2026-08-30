@@ -30,4 +30,10 @@ export const nav = {
 
 export const billing = {
   checkoutOpenFailed: "Impossible d'ouvrir la page de paiement. Réessayez.",
+  freeModeEyebrow: "VOTRE ACCÈS",
+  freeModeTitle: "Tout est inclus sur cette version",
+  freeModeBody: (brand) =>
+    `Cette installation de ${brand} n'a ni abonnement ni paiement : tous les modèles inclus sont disponibles, sans limite de crédits. Vos propres clés et vos modèles locaux fonctionnent comme d'habitude.`,
+  freeModeUsed: (amount) => `${amount} utilisés ce mois-ci · sans limite`,
+  unlimitedTier: "Tout inclus",
 } satisfies Messages["billing"];

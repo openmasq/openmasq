@@ -1,5 +1,6 @@
 import type { Knex } from "knex";
 import { creditsCentsForAccountType } from "./tiers.js";
+import { isFreeMode } from "./freeMode.js";
 
 // Prepaid MONTHLY budget in eurocents. Allotment = tier credits × seats (org:
 // active members; individual: 1). Consumed = Σ server-derived cost of BILLABLE
@@ -13,6 +14,12 @@ export interface CreditStatus {
   balance_cents: number;
   /** No budget left for billable (platform answer-model) usage. */
   blocked: boolean;
+  /** MODE GRATUIT du déploiement (`freeMode.ts`) : aucune enveloppe ne s'applique. Les
+   *  montants restent ce qu'ils sont — `consumed_cents` dit ce qui a été consommé, mais
+   *  `allotment_cents`/`balance_cents` valent 0 et ne veulent rien dire : un client qui
+   *  recalculerait `balance ≤ 0` lirait « bloqué » à tort. C'est `blocked` qui décide,
+   *  jamais une arithmétique côté client, et `unlimited` dit POURQUOI il est faux. */
+  unlimited: boolean;
   period_start: string;
   period_end: string;
 }
@@ -78,6 +85,22 @@ function build(allotment: number, consumed: number, start: Date, end: Date): Cre
     consumed_cents: consumed,
     balance_cents: balance,
     blocked: balance <= 0,
+    unlimited: false,
+    period_start: start.toISOString(),
+    period_end: end.toISOString(),
+  };
+}
+
+/** Le statut en MODE GRATUIT : jamais bloqué, aucune enveloppe. La consommation réelle
+ *  est conservée (elle se lit encore dans l'onglet Usage) ; c'est le PLAFOND qui n'existe
+ *  plus, pas la mesure. */
+export function unlimitedCredits(consumed: number, start: Date, end: Date): CreditStatus {
+  return {
+    allotment_cents: 0,
+    consumed_cents: consumed,
+    balance_cents: 0,
+    blocked: false,
+    unlimited: true,
     period_start: start.toISOString(),
     period_end: end.toISOString(),
   };
@@ -97,6 +120,9 @@ export async function getOrgCredits(
   const seats = Math.max(1, Number(count));
   const allotment = creditsCentsForAccountType(accountType) * seats;
   const consumed = await consumedCents(db, (q) => q.where({ id_organization }), start, end);
+  // Le mode gratuit se lit APRÈS la mesure, jamais à la place : la consommation reste
+  // vraie, seul le plafond disparaît (`freeMode.ts`).
+  if (isFreeMode()) return unlimitedCredits(consumed, start, end);
   return build(allotment, consumed, start, end);
 }
 
@@ -115,5 +141,6 @@ export async function getUserCredits(
     start,
     end,
   );
+  if (isFreeMode()) return unlimitedCredits(consumed, start, end);
   return build(allotment, consumed, start, end);
 }

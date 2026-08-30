@@ -8,6 +8,8 @@ import { selectBillingCache } from "../../../state/settingsCache";
 import { loadBilling, pollBilling } from "../../../state/settingsPrefetch";
 import { PLAN_TIERS, knownTier, tierAction } from "../../../state/billing";
 import { OrgManagedBilling, CreditsMeter, ChangeTierConfirm, PlanCard } from "./BillingParts";
+import { FreeModeBilling } from "./FreeModeBilling";
+import { useBillingActions } from "./useBillingActions";
 
 interface Props {
   /** The signed-in member's org authorization (null/undefined = solo user). */
@@ -35,13 +37,6 @@ export function BillingTab({ orgProfile }: Props) {
   // instant. The checkout-return poll below writes fresh data back through the
   // same cache.
   const { sub, credits, loaded } = useAppSelector(selectBillingCache);
-  // `busy` marks WHICH action is in flight so only that button spins:
-  // `"portal"` or `tier:<slug>` (checkout/change), else null.
-  const [busy, setBusy] = useState<string | null>(null);
-  // A user-facing reason the last checkout/portal/change action opened nothing
-  // (signed out, already subscribed, no Stripe customer, backend error) — so the
-  // button never fails silently. Cleared when a new action starts.
-  const [error, setError] = useState<string | null>(null);
   // A pending in-app tier change awaiting confirmation.
   const [confirmTier, setConfirmTier] = useState<string | null>(null);
   /** Cancels the in-flight checkout-return poll, if any. */
@@ -63,8 +58,7 @@ export function BillingTab({ orgProfile }: Props) {
     [host, dispatch, userId],
   );
 
-  // Initial subscription/credits come from the Settings prefetch cache; this tab
-  // only needs to clear its poll timer on unmount.
+  // Subscription/credits come from the Settings prefetch cache; only clear the poll on unmount.
   useEffect(() => {
     return () => {
       pollRef.current?.();
@@ -77,9 +71,8 @@ export function BillingTab({ orgProfile }: Props) {
     return billing.onReturn(() => pollRefresh());
   }, [billing, pollRefresh]);
 
-  // UNKNOWN (null) is not "free": no host billing slot, a failed fetch or a load still
-  // in flight must mark NO card as the current one — claiming « 0 € · Abonnement actuel »
-  // to a paying account is worse than showing nothing (`knownTier`).
+  // UNKNOWN (null) is not "free": no billing slot, a failed fetch or a load in flight must
+  // mark NO card current — « 0 € · Abonnement actuel » to a paying account is worse (`knownTier`).
   const currentTier = knownTier(sub);
   const isPaid = !!currentTier && currentTier !== "free";
   // Mode testeur du DÉPLOIEMENT — offert seulement si l'hôte sait l'exécuter : un libellé
@@ -91,69 +84,12 @@ export function BillingTab({ orgProfile }: Props) {
   // actions se grisent. `undefined` = inconnu ⇒ on laisse ouvert, le 503 dira pourquoi.
   const billingOpen = sub?.billingEnabled !== false;
 
-  /** Fallback when a rejection isn't an Error with a message. */
-  const GENERIC_ERR = "Impossible d'ouvrir la page de paiement. Réessayez.";
-
-  async function checkout(tier: string) {
-    if (!billing) return;
-    setBusy(`tier:${tier}`);
-    setError(null);
-    try {
-      await billing.startCheckout(tier);
-      // The plan flips after the webhook; poll so it appears without a manual
-      // refresh even if the deep-link return is missed.
-      pollRefresh();
-    } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : GENERIC_ERR);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function doChangeTier(tier: string) {
-    if (!billing?.changeTier) return;
-    setBusy(`tier:${tier}`);
-    setError(null);
-    try {
-      await billing.changeTier(tier);
-      await refresh();
-      pollRefresh(3);
-    } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : GENERIC_ERR);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function portal() {
-    if (!billing) return;
-    setBusy("portal");
-    setError(null);
-    try {
-      await billing.openPortal();
-    } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : GENERIC_ERR);
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  // Mode TESTEUR : ni Stripe ni navigateur — le palier est posé côté serveur, qui relit
-  // l'interrupteur global lui-même. `"free"` est le RETRAIT (testable dans les deux sens).
-  async function selfGrant(tier: string) {
-    if (!billing) return;
-    setBusy(`tier:${tier}`);
-    setError(null);
-    try {
-      if (tier === "free") await billing.selfRevoke?.();
-      else await billing.selfGrant?.(tier);
-      await refresh();
-    } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : GENERIC_ERR);
-    } finally {
-      setBusy(null);
-    }
-  }
+  // Les quatre gestes d'argent + le couple busy/erreur qu'ils écrivent (`useBillingActions`).
+  const { busy, error, setError, checkout, changeTier, portal, selfGrant } = useBillingActions(
+    billing,
+    refresh,
+    pollRefresh,
+  );
 
   // Où va un clic sur un autre palier : décision PURE et testée (`state/billing.ts`) — sa
   // branche « un octroi n'est pas un abonné » est celle qui avait tué le tunnel d'achat.
@@ -164,6 +100,8 @@ export function BillingTab({ orgProfile }: Props) {
     else void checkout(tier);
   }
 
+  // MODE GRATUIT du déploiement : rien à vendre, rien à plafonner — avant l'org aussi.
+  if (sub?.freeMode) return <FreeModeBilling credits={credits} />;
   // Org members are billed per-seat by their organization — never individually.
   if (orgProfile) return <OrgManagedBilling orgProfile={orgProfile} host={host} />;
 
@@ -290,7 +228,7 @@ export function BillingTab({ orgProfile }: Props) {
           onConfirm={() => {
             const t = confirmTier;
             setConfirmTier(null);
-            void doChangeTier(t);
+            void changeTier(t);
           }}
           onCancel={() => setConfirmTier(null)}
         />
