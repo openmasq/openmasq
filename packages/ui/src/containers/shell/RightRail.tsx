@@ -15,6 +15,7 @@ import { FolderTreePanel } from "./folders/FolderTreePanel";
 import { RailRow, RailSquare, FaviconTile } from "./RightRailParts";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../i18n";
 /**
  * The RIGHT RAIL — the workspace's right-edge sidebar, a sibling of the left
  * `Rail`/`Sidebar` on the shell frame (mounted by `AppShell`, `chats` + `library`).
@@ -123,6 +124,7 @@ export function RightRail({
    *  conversation (see `useShell.askAboutTarget`), never written into the draft. */
   onAskTarget?: (target: AskTarget) => void;
 }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   // La CAPACITÉ de la plateforme, pas « y a-t-il déjà des dossiers » : le panneau doit
   // s'afficher justement quand il n'y a rien, puisque c'est lui qui invite à en ajouter.
@@ -132,8 +134,8 @@ export function RightRail({
     <button
       type="button"
       className="rail-btn"
-      title={expanded ? "Réduire la barre" : "Agrandir la barre"}
-      aria-label={expanded ? "Réduire la barre" : "Agrandir la barre"}
+      title={expanded ? t.shell.rightRail.collapse : t.shell.rightRail.expand}
+      aria-label={expanded ? t.shell.rightRail.collapse : t.shell.rightRail.expand}
       aria-pressed={expanded}
       onClick={() => setExpanded((v) => !v)}
     >
@@ -145,8 +147,8 @@ export function RightRail({
     <button
       type="button"
       className={`rail-btn${browserBusy && !browserOnScreen ? " busy" : ""}`}
-      title="Nouvel onglet navigateur"
-      aria-label="Nouvel onglet navigateur"
+      title={t.shell.rightRail.newBrowserTab}
+      aria-label={t.shell.rightRail.newBrowserTab}
       onClick={onNewBrowser}
     >
       <BrowserIcon size={18} />
@@ -221,9 +223,9 @@ export function RightRail({
 
   if (expanded) {
     return (
-      <aside className="right-rail expanded" aria-label="Navigateur, dossiers et aide">
+      <aside className="right-rail expanded" aria-label={t.shell.rightRail.ariaLabel}>
         <div className="rr-head">
-          <span className="cv-eyebrow rr-title">Panneau droit</span>
+          <span className="cv-eyebrow rr-title">{t.shell.rightRail.title}</span>
           {expandBtn}
         </div>
         {/* UNE colonne, deux gisements empilés : les onglets web et les sources de
@@ -233,29 +235,27 @@ export function RightRail({
             l'autre côté. Un seul défilement aussi : deux ascenseurs dans 214 px, c'est
             deux fois trop. */}
         <div className="rr-body">
-          <div className="rr-tree-group" title="Navigateur">
+          <div className="rr-tree-group" title={t.shell.rightRail.browser}>
             <span className="rr-group-ico" aria-hidden="true">
               <BrowserIcon size={13} />
             </span>
-            <span className="cv-eyebrow rr-group-lbl">Web</span>
+            <span className="cv-eyebrow rr-group-lbl">{t.shell.rightRail.web}</span>
             <span className="rr-group-rule" aria-hidden="true" />
             <button
               type="button"
               className="rr-tree-gear"
-              title="Nouvel onglet navigateur"
-              aria-label="Nouvel onglet navigateur"
+              title={t.shell.rightRail.newBrowserTab}
+              aria-label={t.shell.rightRail.newBrowserTab}
               onClick={onNewBrowser}
             >
               <PlusIcon size={13} />
             </button>
           </div>
           <div className="rr-list">
-            {browserTabs.map((t) => (
-              <RailRow key={t.id} {...itemProps(t)} />
+            {browserTabs.map((tab) => (
+              <RailRow key={tab.id} {...itemProps(tab)} />
             ))}
-            {browserTabs.length === 0 && (
-              <div className="rr-empty">Aucun onglet ouvert.</div>
-            )}
+            {browserTabs.length === 0 && <div className="rr-empty">{t.shell.rightRail.noTabs}</div>}
           </div>
           {hasFolders && (
             <FolderTreePanel
@@ -271,7 +271,7 @@ export function RightRail({
   }
 
   return (
-    <aside className="right-rail" aria-label="Navigateur, dossiers et aide">
+    <aside className="right-rail" aria-label={t.shell.rightRail.ariaLabel}>
       {expandBtn}
       {newBrowserBtn}
       {/* Un arbre ne tient pas dans 44 px : le rail étroit montre les onglets, et le
@@ -280,16 +280,16 @@ export function RightRail({
         <button
           type="button"
           className="rail-btn"
-          title="Dossiers et stockage connecté — ouvrir le panneau"
-          aria-label="Dossiers et stockage connecté"
+          title={t.shell.rightRail.foldersTip}
+          aria-label={t.shell.rightRail.folders}
           onClick={() => setExpanded(true)}
         >
           <FolderIcon size={18} />
         </button>
       )}
       {browserTabs.length > 0 && <span className="right-rail-sep" aria-hidden="true" />}
-      {browserTabs.map((t) => (
-        <RailSquare key={t.id} {...itemProps(t)} />
+      {browserTabs.map((tab) => (
+        <RailSquare key={tab.id} {...itemProps(tab)} />
       ))}
       <span className="right-rail-spacer" aria-hidden="true" />
       {shareInboxNarrow}

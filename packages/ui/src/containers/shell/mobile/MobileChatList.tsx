@@ -7,6 +7,7 @@ import { BrandMark } from "../../../components/media/BrandLogo";
 import { groupConversationsByDate, relTime } from "../../../hooks/conversationGroups";
 import { conversationProtectedCount } from "../../../state/protectedCount";
 
+import { useT } from "../../../i18n";
 interface Props {
   conversations: Conversation[];
   onSelect: (id: string) => void;
@@ -23,6 +24,7 @@ interface Props {
  * "pushes" the chat screen (AppShell owns that navigation state).
  */
 export function MobileChatList({ conversations, onSelect, onNew, onOpenSettings, userName = "Vous" }: Props) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -45,7 +47,7 @@ export function MobileChatList({ conversations, onSelect, onNew, onOpenSettings,
           type="button"
           className="mobile-home-account"
           onClick={onOpenSettings}
-          aria-label="Compte et réglages"
+          aria-label={t.shell.mobile.accountAndSettings}
         >
           <Avatar name={userName} size={30} muted />
         </button>
@@ -56,15 +58,15 @@ export function MobileChatList({ conversations, onSelect, onNew, onOpenSettings,
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher une conversation…"
-          aria-label="Rechercher une conversation"
+          placeholder={t.shell.mobile.searchConversation}
+          aria-label={t.shell.mobile.searchConversationAria}
         />
       </label>
 
       <div className="mobile-home-list">
         {filtered.length === 0 && (
           <p className="empty-hint">
-            {query ? "Aucune conversation ne correspond." : "Aucune conversation pour le moment."}
+            {query ? t.shell.mobile.noMatch : t.chrome.noConversations}
           </p>
         )}
         {groups.map((group) => (
@@ -81,13 +83,13 @@ export function MobileChatList({ conversations, onSelect, onNew, onOpenSettings,
                   </span>
                   <span className="mobile-thread-body">
                     <span className="mobile-thread-top">
-                      <span className="mobile-thread-title">{c.title || "Nouvelle conversation"}</span>
+                      <span className="mobile-thread-title">{c.title || t.chrome.untitledConversation}</span>
                       <span className="mobile-thread-time">{relTime(c.updatedAt)}</span>
                     </span>
                     <span className="mobile-thread-bottom">
-                      <span className="mobile-thread-snippet">{last?.content || "Conversation vide"}</span>
+                      <span className="mobile-thread-snippet">{last?.content || t.shell.mobile.emptyConversation}</span>
                       {protectedN > 0 && (
-                        <span className="mobile-thread-shield" title={`${protectedN} élément(s) redacted(s)`}>
+                        <span className="mobile-thread-shield" title={t.shell.mobile.redactedCount(protectedN)}>
                           <ShieldIcon size={11} />
                           {protectedN}
                         </span>
@@ -101,7 +103,7 @@ export function MobileChatList({ conversations, onSelect, onNew, onOpenSettings,
         ))}
       </div>
 
-      <button type="button" className="mobile-fab" onClick={onNew} aria-label="Nouvelle conversation">
+      <button type="button" className="mobile-fab" onClick={onNew} aria-label={t.chrome.newChat}>
         <PlusIcon size={24} />
       </button>
     </div>

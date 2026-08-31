@@ -1,6 +1,7 @@
 import type { PanelItem } from "../../state/redux";
 import { FileIcon, FolderIcon, GridIcon, PlusIcon, XIcon } from "../../components/brand";
 
+import { useT } from "../../i18n";
 /**
  * The side panel's DOCUMENT tabs — one horizontal tab per open file / artifact, at the
  * TOP of the panel and styled like the conversation tabs (reuses `.conv-tab*`). This is
@@ -23,6 +24,7 @@ export function PanelTabs({
   onClose: (id: string) => void;
   onOpenFile: () => void;
 }) {
+  const t = useT();
   const label = (i: PanelItem) =>
     i.kind === "artifact"
       ? i.artifact.title
@@ -57,7 +59,7 @@ export function PanelTabs({
               <span className="conv-tab-label">{label(i)}</span>
               <button
                 className="conv-tab-x"
-                aria-label="Fermer l'onglet"
+                aria-label={t.shell.panelTabs.closeTab}
                 onClick={(e) => {
                   e.stopPropagation();
                   onClose(i.id);
@@ -70,8 +72,8 @@ export function PanelTabs({
         })}
         <button
           className="conv-tab-new"
-          aria-label="Ouvrir un fichier"
-          title="Ouvrir un fichier de la bibliothèque"
+          aria-label={t.shell.panelTabs.openFile}
+          title={t.shell.panelTabs.openFileTip}
           onClick={onOpenFile}
         >
           <PlusIcon size={16} />

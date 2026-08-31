@@ -6,6 +6,7 @@ import type { MemoryCard, MemoryData } from "../../../types";
 import { groupMemoryCards, toneStyle } from "./memoryScreenModel";
 import { MemoryAddSheet, MemoryCardSheet, MemoryProfileSheet } from "./MobileMemorySheets";
 
+import { useT } from "../../../i18n";
 /**
  * The mobile Mémoire (kit `chat-app-mobile` MemoryScreen). The desktop draws the cards as
  * a force-directed graph — a canvas you drag with a mouse; here they are category groups
@@ -42,6 +43,7 @@ export function MobileMemoryScreen({
   onUpdate: (id: string, patch: Partial<Omit<MemoryCard, "id" | "createdAt">>) => void;
   onRemove: (id: string) => void;
 }) {
+  const t = useT();
   const groups = useMemo(() => groupMemoryCards(memoire.cards), [memoire.cards]);
   const [addTo, setAddTo] = useState<{ id: string; label: string } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -54,41 +56,39 @@ export function MobileMemoryScreen({
   return (
     <div className="mobile-screen mmem">
       <header className="mmem-head">
-        <h1 className="mmem-title">Mémoire</h1>
+        <h1 className="mmem-title">{t.sections.memory.label}</h1>
         <p className="mmem-sub">
-          Ce que {BRAND.name} retient d'une conversation à l'autre — <strong>{total}</strong>{" "}
-          élément{total === 1 ? "" : "s"}. Tout reste sur votre machine et part redacted.
+          {t.shell.mobile.memory.sub(BRAND.name, total)}
         </p>
       </header>
 
       <div className="mmem-body">
         <button type="button" className="mmem-profile" onClick={() => setProfileOpen(true)}>
-          <span className="mmem-profile-label">Profil</span>
+          <span className="mmem-profile-label">{t.shell.mobile.memory.profile}</span>
           <span className={`mmem-profile-text${profile ? "" : " empty"}`}>
-            {profile || `Qui vous êtes et ce que ${BRAND.name} doit garder en tête.`}
+            {profile || t.shell.mobile.memory.profilePlaceholder(BRAND.name)}
           </span>
         </button>
 
         <label className="mmem-auto">
           <Switch checked={memoryAuto} onChange={onToggleAuto} />
           <span>
-            Extraction automatique — {BRAND.name} note seul les faits durables, à partir du texte
-            déjà redacted.
+            {t.shell.mobile.memory.autoExtract(BRAND.name)}
           </span>
         </label>
 
         {groups.length === 0 ? (
           <p className="mmem-empty">
-            Rien en mémoire pour l'instant.
+            {t.shell.mobile.memory.empty}
             <span className="mmem-empty-sub">
-              Dites « retiens que… » dans une conversation, ou ajoutez une fiche ci-dessous.
+              {t.shell.mobile.memory.emptySub}
             </span>
             <button
               type="button"
               className="btn-primary mmem-cta"
               onClick={() => setAddTo({ id: "personne", label: memoryCategory("personne").label })}
             >
-              <PlusIcon size={16} /> Nouvelle fiche
+              <PlusIcon size={16} /> {t.shell.mobile.memory.newCard}
             </button>
           </p>
         ) : (
@@ -104,7 +104,7 @@ export function MobileMemoryScreen({
                 <button
                   type="button"
                   className="mmem-group-add"
-                  aria-label={`Ajouter à ${g.label}`}
+                  aria-label={t.shell.mobile.memory.addTo(g.label)}
                   onClick={() => setAddTo({ id: g.id, label: g.label })}
                 >
                   <PlusIcon size={16} />

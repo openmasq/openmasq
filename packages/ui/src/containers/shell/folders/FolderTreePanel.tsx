@@ -15,6 +15,7 @@ import { TreeRow } from "./TreeRow";
 import { FILESYSTEM_CONNECTOR_ID, localServerId } from "../../../state/mcpIds";
 import { panelOpenLocalFile, useAppDispatch } from "../../../state/redux";
 
+import { useT } from "../../../i18n";
 /**
  * « Dossiers » — les sources de fichiers, dans la barre de droite.
  *
@@ -47,6 +48,7 @@ export function FolderTreePanel({
    *  pour aller la lire. Absent ⇒ l'action de survol n'est pas offerte. */
   onAskTarget?: (target: AskTarget) => void;
 }) {
+  const t = useT();
   const dispatch = useAppDispatch();
   const host = useHost();
   const tree = useFolderTree(true);
@@ -125,18 +127,18 @@ export function FolderTreePanel({
             libellés de section coûtent une ligne chacun et disent ce que les deux
             glyphes opposent déjà (le disque ici / le nuage plus bas). Le titre entier
             reste dans l'infobulle et dans le nom accessible. */}
-        <div className="rr-tree-group" title="Sur cet appareil">
+        <div className="rr-tree-group" title={t.shell.folders.onThisDevice}>
           <span className="rr-group-ico" aria-hidden="true">
             <HardDriveIcon size={13} />
           </span>
-          <span className="cv-eyebrow rr-group-lbl">Local</span>
+          <span className="cv-eyebrow rr-group-lbl">{t.shell.folders.local}</span>
           <span className="rr-group-rule" aria-hidden="true" />
           {onManageFolders && (
             <button
               type="button"
               className="rr-tree-gear"
-              title="Gérer les dossiers autorisés"
-              aria-label="Gérer les dossiers autorisés"
+              title={t.shell.folders.manageFolders}
+              aria-label={t.shell.folders.manageFolders}
               onClick={onManageFolders}
             >
               <SettingsIcon size={13} />
@@ -169,14 +171,14 @@ export function FolderTreePanel({
           ),
         )}
         {tree.roots.length === 0 && (
-          <div className="rr-empty">Aucun dossier autorisé pour l&apos;instant.</div>
+          <div className="rr-empty">{t.shell.folders.noFolders}</div>
         )}
         {canAdd && (
           <button
             type="button"
             className="rr-tree-add"
-            title="Autoriser un dossier de plus"
-            aria-label="Autoriser un dossier de plus"
+            title={t.shell.folders.addFolder}
+            aria-label={t.shell.folders.addFolder}
             aria-busy={adding}
             onClick={() => void addFolder()}
           >

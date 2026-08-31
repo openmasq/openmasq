@@ -6,6 +6,7 @@ import { useCloudTree, parseCloudKey } from "../../../hooks/useCloudTree";
 import { useMcpConnectedIds } from "../../../hooks/useMcpConnectedIds";
 import { TreeRow } from "./TreeRow";
 
+import { useT } from "../../../i18n";
 /**
  * Le STOCKAGE CONNECTÉ (Drive, OneDrive, Dropbox) dans la vue « Dossiers » — le second
  * gisement, sous son propre marqueur de groupe.
@@ -35,6 +36,7 @@ export function StorageSources({
    *  un nom nu (« patrons ») se lisait comme un concept, pas comme le dossier cliqué. */
   onAsk?: (target: AskTarget) => void;
 }) {
+  const t = useT();
   const connected = useMcpConnectedIds();
   const cloud = useCloudTree(true);
   /* Un compte navigable remplace sa ligne d'état par sa racine — sinon il apparaîtrait
@@ -43,11 +45,11 @@ export function StorageSources({
 
   return (
     <>
-      <div className="rr-tree-group" title="Stockage connecté">
+      <div className="rr-tree-group" title={t.shell.folders.connectedStorage}>
         <span className="rr-group-ico" aria-hidden="true">
           <CloudIcon size={13} />
         </span>
-        <span className="cv-eyebrow rr-group-lbl">Cloud</span>
+        <span className="cv-eyebrow rr-group-lbl">{t.shell.folders.cloud}</span>
         <span className="rr-group-rule" aria-hidden="true" />
       </div>
       {cloud.rows.map(({ key, entry, depth, expanded, loading, failed }) => {
@@ -60,7 +62,7 @@ export function StorageSources({
             key={key}
             type="button"
             className="rr-src"
-            title={`${connector?.name ?? label}${source?.label ? ` — ${source.label}` : ""}`}
+            title={t.shell.folders.sourceLabel(connector?.name ?? label, source?.label ?? "")}
             onClick={() => cloud.toggle(entry.path)}
           >
             <span className={`rr-tree-chev${expanded ? " open" : ""}`} aria-hidden="true">
@@ -71,7 +73,7 @@ export function StorageSources({
             )}
             <span className="rr-src-name">{label}</span>
             {failed ? (
-              <span className="rr-tree-failed" title="Ce compte n'a pas pu être listé — repliez puis rouvrez pour réessayer">
+              <span className="rr-tree-failed" title={t.shell.folders.accountFailed}>
                 !
               </span>
             ) : loading ? (

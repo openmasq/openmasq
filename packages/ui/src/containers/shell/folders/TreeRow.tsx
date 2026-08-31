@@ -2,6 +2,7 @@ import { ChevRightIcon, FolderIcon, MessageIcon } from "../../../components/bran
 import type { LocalFsEntry } from "../../../host";
 import { extLabel } from "../../../state/localFsPaths";
 
+import { useT } from "../../../i18n";
 /** Une ligne de l'arbre : un dossier qui se déplie, un fichier qui s'ouvre. Le survol
  *  d'un dossier propose « Demander » — l'intention même pour laquelle on ouvre ce
  *  panneau pendant qu'on écrit. */
@@ -25,6 +26,7 @@ export function TreeRow({
   onOpen: () => void;
   onAsk?: (entry: LocalFsEntry) => void;
 }) {
+  const t = useT();
   const isDir = entry.kind === "dir";
   return (
     <span className="rr-tree-line">
@@ -56,7 +58,7 @@ export function TreeRow({
             propre signe : « … » pour toujours faisait attendre un contenu qui ne vient pas
             (la raison, elle, s'affiche en bas du panneau). */}
         {failed ? (
-          <span className="rr-tree-failed" title="Ce dossier n'a pas pu être lu — repliez puis rouvrez pour réessayer">
+          <span className="rr-tree-failed" title={t.shell.folders.folderFailed}>
             !
           </span>
         ) : loading ? (
@@ -67,11 +69,11 @@ export function TreeRow({
         <button
           type="button"
           className="rr-tree-ask"
-          title={`Demander à propos de ${entry.name}`}
-          aria-label={`Demander à propos de ${entry.name}`}
+          title={t.shell.folders.askAbout(entry.name)}
+          aria-label={t.shell.folders.askAbout(entry.name)}
           onClick={() => onAsk(entry)}
         >
-          <MessageIcon size={9} /> Demander
+          <MessageIcon size={9} /> {t.shell.folders.ask}
         </button>
       )}
     </span>

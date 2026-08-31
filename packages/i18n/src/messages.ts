@@ -50,6 +50,7 @@ import type {
 } from "./messages/privacy";
 import type { ProviderKeysMessages } from "./messages/providerKeys";
 import type { SectionsMessages } from "./messages/sections";
+import type { ShellMessages } from "./messages/shell";
 import type { SettingsMessages } from "./messages/settings";
 import type {
   AccountTabMessages,
@@ -112,6 +113,7 @@ export interface Messages {
     };
   };
   chrome: ChromeMessages;
+  shell: ShellMessages;
   sections: SectionsMessages;
   chat: ChatMessages;
   webNav: WebNavMessages;

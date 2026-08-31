@@ -87,7 +87,7 @@ export function MobileSettingsScreen({
           <button
             type="button"
             className="mset-back"
-            aria-label="Retour aux réglages"
+            aria-label={t.shell.mobile.settings.backToSettings}
             onClick={() => setOpen(false)}
           >
             <ChevLeftIcon size={20} />
@@ -117,7 +117,7 @@ export function MobileSettingsScreen({
   return (
     <div className="mobile-screen mset">
       <header className="mset-head">
-        <h1 className="mset-title">Réglages</h1>
+        <h1 className="mset-title">{t.nav.settings}</h1>
       </header>
       <div className="mset-body">
         <button
@@ -130,8 +130,8 @@ export function MobileSettingsScreen({
         >
           <Avatar name={accountDisplayName(email)} size={44} muted />
           <span className="mset-account-text">
-            <span className="mset-account-name">{email ?? "Vous"}</span>
-            <span className="mset-account-sub">{org ? `${org} · Organisation` : "Espace privé"}</span>
+            <span className="mset-account-name">{email ?? t.chrome.you}</span>
+            <span className="mset-account-sub">{org ? t.shell.mobile.settings.orgSuffix(org) : t.chrome.privateSpace}</span>
           </span>
           <ChevRightIcon size={18} />
         </button>
@@ -140,7 +140,7 @@ export function MobileSettingsScreen({
             de place, et une app qui ne s'explique nulle part n'a pas de recours. */}
         {onOpenGuide && (
           <section className="mset-group">
-            <div className="cv-eyebrow mset-group-title">Aide</div>
+            <div className="cv-eyebrow mset-group-title">{t.shell.mobile.settings.help}</div>
             <div className="mset-list">
               <button type="button" className="mset-row" onClick={onOpenGuide}>
                 <span className="mset-row-ico">

@@ -2,6 +2,7 @@ import { type ReactNode } from "react";
 import type { PanelItem } from "../../state/redux";
 import { PanelTabs } from "./PanelTabs";
 
+import { useT } from "../../i18n";
 /**
  * THE side panel — the right half of the screen, shared by the chats and the
  * bibliothèque (its state lives in the `panel` slice, so it survives section
@@ -30,11 +31,12 @@ export function SidePanel({
   onCloseItem: (id: string) => void;
   onOpenFile: () => void;
 }) {
+  const t = useT();
   const active = items.find((i) => i.id === activeId) ?? items[items.length - 1] ?? null;
   const docItems = items.filter((i) => i.kind !== "browser");
   const docActiveId = active && active.kind !== "browser" ? active.id : null;
   return (
-    <aside className="side-panel" aria-label="Panneau latéral">
+    <aside className="side-panel" aria-label={t.shell.panelTabs.sidePanel}>
       {docItems.length > 0 && (
         <PanelTabs
           items={docItems}

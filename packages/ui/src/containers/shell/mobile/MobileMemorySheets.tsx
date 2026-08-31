@@ -4,6 +4,7 @@ import { BottomSheet, TrashIcon } from "../../../components/brand";
 import { MAX_FACTS_CHARS, MAX_PROFILE_CHARS, memoryCategory } from "../../../memory";
 import type { MemoryCard } from "../../../types";
 import { toneStyle } from "./memoryScreenModel";
+import { useT } from "../../../i18n";
 
 /**
  * The three bottom sheets of the mobile Mémoire (kit `chat-app-mobile` MemoryScreen):
@@ -23,6 +24,7 @@ export function MemoryAddSheet({
   onClose: () => void;
   onAdd: (entity: string, cat: string) => void;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState("");
   useEffect(() => {
     if (cat) setDraft("");
@@ -34,21 +36,21 @@ export function MemoryAddSheet({
     onClose();
   };
   return (
-    <BottomSheet open={!!cat} onClose={onClose} maxH="auto" label="Ajouter un souvenir">
+    <BottomSheet open={!!cat} onClose={onClose} maxH="auto" label={t.shell.mobile.memory.addSheet}>
       {cat && (
         <div className="mmem-sheet">
-          <div className="mmem-sheet-title">Ajouter à « {cat.label} »</div>
+          <div className="mmem-sheet-title">{t.shell.mobile.memory.addToCategory(cat.label)}</div>
           <input
             className="mmem-input"
             value={draft}
             autoFocus
-            placeholder="Nouveau souvenir…"
-            aria-label="Nom du souvenir"
+            placeholder={t.shell.mobile.memory.newMemory}
+            aria-label={t.shell.mobile.memory.memoryName}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && commit()}
           />
           <button type="button" className="btn-primary mmem-cta" disabled={!draft.trim()} onClick={commit}>
-            Ajouter
+            {t.shell.mobile.memory.add}
           </button>
         </div>
       )}
@@ -73,6 +75,7 @@ export function MemoryCardSheet({
   onUpdate: (id: string, patch: Partial<Omit<MemoryCard, "id" | "createdAt">>) => void;
   onRemove: (id: string) => void;
 }) {
+  const t = useT();
   const [entity, setEntity] = useState("");
   const [facts, setFacts] = useState("");
   useEffect(() => {
@@ -90,18 +93,18 @@ export function MemoryCardSheet({
     onClose();
   };
   return (
-    <BottomSheet open={!!card} onClose={close} maxH="auto" label="Souvenir">
+    <BottomSheet open={!!card} onClose={close} maxH="auto" label={t.shell.mobile.memory.memorySheet}>
       {card && (
         <div className="mmem-sheet">
           <div className="mmem-sheet-head">
             <span className="mmem-dot" style={toneStyle(memoryCategory(card.cat).tone)} aria-hidden="true" />
             <span className="mmem-sheet-cat">{memoryCategory(card.cat).label}</span>
-            {card.source === "auto" && <span className="mmem-auto-badge">noté par {BRAND.name}</span>}
+            {card.source === "auto" && <span className="mmem-auto-badge">{t.shell.mobile.memory.notedBy(BRAND.name)}</span>}
           </div>
           <input
             className="mmem-input"
             value={entity}
-            aria-label="Nom du souvenir"
+            aria-label={t.shell.mobile.memory.memoryName}
             onChange={(e) => setEntity(e.target.value)}
           />
           <textarea
@@ -109,8 +112,8 @@ export function MemoryCardSheet({
             value={facts}
             rows={4}
             maxLength={MAX_FACTS_CHARS}
-            placeholder="Ce qu'il faut retenir — un fait durable, pas une conversation."
-            aria-label="Faits"
+            placeholder={t.shell.mobile.memory.factsPlaceholder}
+            aria-label={t.shell.mobile.memory.facts}
             onChange={(e) => setFacts(e.target.value)}
           />
           <button
@@ -121,7 +124,7 @@ export function MemoryCardSheet({
               onClose();
             }}
           >
-            <TrashIcon size={18} /> Supprimer de la mémoire
+            <TrashIcon size={18} /> {t.shell.mobile.memory.removeFromMemory}
           </button>
         </div>
       )}
@@ -141,21 +144,22 @@ export function MemoryProfileSheet({
   onClose: () => void;
   onSave: (profile: string) => void;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState(profile);
   useEffect(() => {
     if (open) setDraft(profile);
   }, [open, profile]);
   return (
-    <BottomSheet open={open} onClose={onClose} maxH="auto" label="Profil de mémoire">
+    <BottomSheet open={open} onClose={onClose} maxH="auto" label={t.shell.mobile.memory.profileSheet}>
       <div className="mmem-sheet">
-        <div className="mmem-sheet-title">Profil</div>
+        <div className="mmem-sheet-title">{t.shell.mobile.memory.profile}</div>
         <textarea
           className="mmem-textarea"
           value={draft}
           rows={5}
           maxLength={MAX_PROFILE_CHARS}
-          placeholder="Ex. Consultant indépendant, clients PME, répond en français, ton direct."
-          aria-label="Profil de mémoire"
+          placeholder={t.shell.mobile.memory.profileTextPlaceholder}
+          aria-label={t.shell.mobile.memory.profileSheet}
           onChange={(e) => setDraft(e.target.value)}
         />
         <button
@@ -166,7 +170,7 @@ export function MemoryProfileSheet({
             onClose();
           }}
         >
-          Enregistrer
+          {t.common.save}
         </button>
       </div>
     </BottomSheet>

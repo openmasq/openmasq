@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
 
+import { useT } from "../../i18n";
 /**
  * The right rail's ITEM leaves (rule 1 split): one square icon tab (collapsed /
  * normal widths) and one labelled row (expanded width). Each lists ONE agent-browser
@@ -44,19 +45,20 @@ export function RailSquare({
   onSelect: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
   return (
     <span className="right-rail-tab">
       <button
         type="button"
         className={`rail-btn${on ? " active" : ""}${drive ? " driving" : ""}`}
-        title={on ? `Replier — ${label}` : label}
-        aria-label={on ? `Replier — ${label}` : label}
+        title={on ? t.shell.rightRail.collapseItem(label) : label}
+        aria-label={on ? t.shell.rightRail.collapseItem(label) : label}
         onClick={onSelect}
       >
         {tile}
-        {drive && <span className="rail-drive" aria-hidden="true" title="Navigateur piloté" />}
+        {drive && <span className="rail-drive" aria-hidden="true" title={t.shell.rightRail.driven} />}
       </button>
-      <button type="button" className="right-rail-x" aria-label={`Fermer — ${label}`} onClick={onClose}>
+      <button type="button" className="right-rail-x" aria-label={t.shell.rightRail.closeItem(label)} onClick={onClose}>
         ×
       </button>
     </span>
@@ -78,6 +80,7 @@ export function RailRow({
   onSelect: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
   return (
     <button type="button" className={`rr-item${on ? " on" : ""}`} title={label} onClick={onSelect}>
       <span className={`rr-item-tile${drive ? " driving" : ""}`}>
@@ -88,7 +91,7 @@ export function RailRow({
       <span
         className="rr-item-x"
         role="button"
-        aria-label={`Fermer — ${label}`}
+        aria-label={t.shell.rightRail.closeItem(label)}
         onClick={(e) => {
           e.stopPropagation();
           onClose();
