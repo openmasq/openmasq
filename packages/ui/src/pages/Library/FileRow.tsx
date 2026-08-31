@@ -12,6 +12,7 @@ import { useFileThumb } from "./useFileThumb";
 import { useInView } from "../../hooks/useInView";
 import type { LibCardFile } from "./FileCard";
 
+import { useT } from "../../i18n";
 const KIND_ICON = { document: BookIcon, sheet: GridIcon, audio: MicIcon } as const;
 
 /**
@@ -41,6 +42,7 @@ export function FileRow({
   onToggle: () => void;
   onDownload?: () => void;
 }) {
+  const t = useT();
   const isImage = file.kind === "image";
   const [markRef, inView] = useInView<HTMLSpanElement>();
   const thumb = useFileThumb(file.id, file.mime, isImage && inView);
@@ -54,7 +56,7 @@ export function FileRow({
       role="button"
       tabIndex={0}
       aria-pressed={selectMode ? selected : undefined}
-      title={selectMode ? "Sélectionner" : "Ouvrir le fichier"}
+      title={selectMode ? t.lists.library.selectFile : t.lists.library.openFile}
       onClick={act}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -102,7 +104,7 @@ export function FileRow({
         onClick={(e) => e.stopPropagation()}
       >
         {onDownload && !selectMode && (
-          <IconButton size="sm" label="Ouvrir dans l'application" onClick={onDownload}>
+          <IconButton size="sm" label={t.lists.library.openInApp} onClick={onDownload}>
             <DownloadIcon size={14} />
           </IconButton>
         )}

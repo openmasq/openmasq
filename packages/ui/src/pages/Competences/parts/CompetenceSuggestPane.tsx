@@ -3,6 +3,7 @@ import { SparklesIcon } from "../../../components/brand";
 import { COMPETENCE_CATEGORIES, competenceCategory } from "../../../competences/competences";
 import { templateCategory, type AnyTemplate } from "../../../suggestions";
 
+import { useT } from "../../../i18n";
 /**
  * The compétence editor's RIGHT column: the ready-made instructions, filterable by
  * category.
@@ -28,6 +29,7 @@ export function CompetenceSuggestPane({
   confirmingId?: string;
   onPick: (id: string) => void;
 }) {
+  const t = useT();
   const [cat, setCat] = useState("all");
   const chips = useMemo(() => {
     const present = new Set(suggestions.map(templateCategory));
@@ -49,7 +51,7 @@ export function CompetenceSuggestPane({
       <div className="om-skill-field">
         <span className="om-sugg-label">
           <SparklesIcon size={13} />
-          Instructions toutes prêtes
+          {t.lists.competences.presets}
         </span>
         <div className="om-sugg-chips">
           {chips.map((c) => (

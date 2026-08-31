@@ -12,6 +12,7 @@ import { extOf, fmtDate, type LibKind } from "./libraryKinds";
 import { useFileThumb } from "./useFileThumb";
 import { useInView } from "../../hooks/useInView";
 
+import { useT } from "../../i18n";
 /** The card shape LibraryView feeds in (a stored file + its resolved category). */
 export interface LibCardFile {
   id: string;
@@ -48,6 +49,7 @@ export function FileCard({
   /** Kit footer action: hand the file to the OS (open externally / download). */
   onDownload?: () => void;
 }) {
+  const t = useT();
   const isImage = file.kind === "image";
   // Only load an image's bytes once its card nears the viewport (lazy, like the chat) —
   // an off-screen library image is never read from the DB nor decoded.
@@ -63,7 +65,7 @@ export function FileCard({
       role="button"
       tabIndex={0}
       aria-pressed={selectMode ? selected : undefined}
-      title={selectMode ? "Sélectionner" : "Ouvrir le fichier"}
+      title={selectMode ? t.lists.library.selectFile : t.lists.library.openFile}
       onClick={act}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -122,11 +124,11 @@ export function FileCard({
             span swallows the click so Télécharger doesn't ALSO open the panel. */}
         {!selectMode && (
           <span className="file-card-foot-actions" onClick={(e) => e.stopPropagation()}>
-            <IconButton size="sm" label="Aperçu" onClick={onOpen}>
+            <IconButton size="sm" label={t.lists.library.preview} onClick={onOpen}>
               <SearchIcon size={15} />
             </IconButton>
             {onDownload && (
-              <IconButton size="sm" label="Ouvrir dans l'app externe" onClick={onDownload}>
+              <IconButton size="sm" label={t.lists.library.openExternal} onClick={onDownload}>
                 <DownloadIcon size={15} />
               </IconButton>
             )}

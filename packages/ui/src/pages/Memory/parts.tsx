@@ -48,19 +48,20 @@ export function MemoryMergeHint({
   onMerge: () => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   return (
     <div className="om-mem-merge" role="note">
       <span className="om-mem-merge-text">
         Doublon probable&nbsp;: <strong>{cardOf(hint.keepId)?.entity}</strong> et{" "}
         <strong>{cardOf(hint.dropId)?.entity}</strong> semblent décrire la même entité
-        {hint.reason === "semantic" ? " (contenus très proches)" : ""}. La fusion garde tous les
+        {hint.reason === "semantic" ? t.lists.memory.mergeSemantic : ""}. La fusion garde tous les
         faits et l'ancien nom en alias.
       </span>
       <button type="button" className="btn-primary btn-inline" onClick={onMerge}>
-        Fusionner
+        {t.lists.memory.merge}
       </button>
       <button type="button" className="btn-ghost btn-inline" onClick={onDismiss}>
-        Ignorer
+        {t.lists.memory.dismiss}
       </button>
     </div>
   );
@@ -69,13 +70,14 @@ export function MemoryMergeHint({
 /** The delete safety net — « Annuler » reinserts the card VERBATIM (same id, history
  *  included) while the toast lives. */
 export function MemoryUndoToast({ undo, onRestore }: { undo: MemoryCard; onRestore: () => void }) {
+  const t = useT();
   return (
     <div className="om-mem-undo" role="status">
       <span>
         Fiche « <strong>{undo.entity}</strong> » supprimée.
       </span>
       <button type="button" className="btn-ghost btn-inline" onClick={onRestore}>
-        Annuler
+        {t.lists.memory.undo}
       </button>
     </div>
   );

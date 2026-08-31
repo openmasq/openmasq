@@ -6,6 +6,7 @@ import { fmtDate } from "./libraryKinds";
 import type { ReattachSource } from "./reattach";
 import { conversationSnippet, fileAnchorIn, useFileUsage, type UsageFile } from "./useFileUsage";
 
+import { useT } from "../../i18n";
 export type { UsageFile };
 
 /**
@@ -31,19 +32,20 @@ export function FileUsagePanel({
    *  Absent on surfaces without the tab system (mobile). */
   onOpenInTab?: (src: ReattachSource) => void;
 }) {
+  const t = useT();
   const { used, loading } = useFileUsage(file, conversations);
 
   return (
     <div className="om-usage">
       <div className="cv-eyebrow">
         {loading
-          ? "Conversations…"
-          : `Utilisé dans ${used.length} conversation${used.length === 1 ? "" : "s"}`}
+          ? t.lists.library.conversationsLoading
+          : t.lists.library.usedIn(used.length)}
       </div>
       <div className="om-usage-list">
         {!loading && used.length === 0 && (
           <p className="om-usage-none">
-            Ce fichier n'apparaît dans aucune de vos conversations.
+            {t.lists.library.notUsed}
           </p>
         )}
         {used.map((c) => {
@@ -92,7 +94,7 @@ export function FileUsagePanel({
           className="btn-secondary btn-inline self-start"
           onClick={() => onOpenInTab({ id: file.id, name: file.name, mime: file.mime })}
         >
-          Ouvrir dans un onglet
+          {t.lists.library.openInTab}
         </button>
       )}
     </div>

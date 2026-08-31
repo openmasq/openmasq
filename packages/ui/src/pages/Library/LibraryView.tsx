@@ -11,11 +11,12 @@ import { FileCard } from "./FileCard";
 import { FileRow } from "./FileRow";
 import { ViewModeToggle } from "../../components/ViewModeToggle";
 import { useViewMode } from "../../hooks/useViewMode";
-import { LIB_TABS, type LibTab } from "./libraryKinds";
+import type { LibTab } from "./libraryKinds";
 import { useLibraryFiles } from "./useLibraryFiles";
 import type { LibFile } from "./libFile";
 import type { ReattachSource } from "./reattach";
 
+import { useT } from "../../i18n";
 /* The file library — every file you've attached, stored locally in the DB `files`
    table (original + redacted bytes). Listed via host.db.listFiles, aggregated
    across conversations. Read-only view; never throws when the DB isn't configured.
@@ -39,6 +40,7 @@ export function LibraryView({
   /** Expand/collapse the primary sidebar (shell-owned). */
   onToggleSidebar?: () => void;
 }) {
+  const t = useT();
   const host = useHost();
   const [view, setView] = useViewMode("library");
   const dispatch = useAppDispatch();
@@ -116,19 +118,19 @@ export function LibraryView({
 
       <div className="library-body">
         {files === null ? (
-          <div className="library-empty">Chargement…</div>
+          <div className="library-empty">{t.lists.loading}</div>
         ) : total === 0 ? (
           <div className="library-inner">
             <EmptyState
               tone="mint"
-              eyebrow="Bibliothèque"
+              eyebrow={t.sections.library.label}
               icon={<BookIcon size={26} />}
-              title="Vos fichiers, redacted et rangés."
-              body="Tout fichier partagé dans une conversation atterrit ici, déjà redacted. Glissez-en un dans la zone de message pour commencer."
+              title={t.lists.library.empty.title}
+              body={t.lists.library.empty.body}
               points={[
-                { glyph: "◱", label: "Images", tone: "pink" },
-                { glyph: "▤", label: "Documents", tone: "amber" },
-                { glyph: "⛉", label: "Redaction auto", tone: "lime" },
+                { glyph: "◱", label: t.lists.library.empty.points[0], tone: "pink" },
+                { glyph: "▤", label: t.lists.library.empty.points[1], tone: "amber" },
+                { glyph: "⛉", label: t.lists.library.empty.points[2], tone: "lime" },
               ]}
             />
           </div>
@@ -161,15 +163,15 @@ export function LibraryView({
                       disabled={selected.size === 0}
                       onClick={() => setConfirmBulk(true)}
                     >
-                      <TrashIcon size={14} /> Supprimer{selected.size ? ` (${selected.size})` : ""}
+                      <TrashIcon size={14} /> {t.lists.library.deleteCount(selected.size)}
                     </button>
                     <button className="btn-ghost btn-inline" onClick={exitSelect}>
-                      Terminé
+                      {t.lists.library.done}
                     </button>
                   </div>
                 ) : (
                   <button className="btn-ghost btn-inline" onClick={() => setSelectMode(true)}>
-                    <CheckIcon size={14} /> Sélectionner
+                    <CheckIcon size={14} /> {t.lists.library.select}
                   </button>
                 )}
               </div>
@@ -177,13 +179,11 @@ export function LibraryView({
             {visible.length === 0 ? (
               <EmptyState
                 tone="sky"
-                eyebrow={query.trim() ? "Recherche" : "Catégorie"}
+                eyebrow={query.trim() ? t.lists.library.noMatch.search : t.lists.library.noMatch.category}
                 icon={<SearchIcon size={26} />}
-                title="Aucun fichier trouvé."
+                title={t.lists.library.noMatch.title}
                 body={
-                  query.trim()
-                    ? `Rien ne correspond à « ${query.trim()} » dans cette catégorie. Essayez un autre terme ou l'onglet « Tout ».`
-                    : `Aucun fichier dans « ${LIB_TABS.find((t) => t.id === tab)?.label ?? "cette catégorie"} ». Essayez l'onglet « Tout ».`
+                  t.lists.library.noMatch.body
                 }
               />
             ) : (
@@ -208,12 +208,10 @@ export function LibraryView({
       <AnimatePresence>
         {confirmBulk && (
           <ConfirmDialog
-            title={`Supprimer ${selected.size} fichier${selected.size === 1 ? "" : "s"} ?`}
-            message={`${selected.size === 1 ? "Ce fichier sera" : "Ces fichiers seront"} définitivement supprimé${
-              selected.size === 1 ? "" : "s"
-            } de la bibliothèque (fichier original + version redacted). Cette action est irréversible.`}
-            confirmLabel="Supprimer"
-            cancelLabel="Annuler"
+            title={t.lists.library.deleteTitle(selected.size)}
+            message={t.lists.library.deleteBody(selected.size)}
+            confirmLabel={t.common.delete}
+            cancelLabel={t.common.cancel}
             onConfirm={deleteSelected}
             onCancel={() => setConfirmBulk(false)}
           />

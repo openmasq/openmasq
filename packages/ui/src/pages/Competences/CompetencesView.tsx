@@ -27,6 +27,7 @@ import {
   EMPTY_DRAFT,
   type CompetenceDraft,
 } from "./CompetenceModal";
+import { useT } from "../../i18n";
 
 /**
  * The COMPÉTENCES page — reusable prompts the user writes once and inserts into a
@@ -82,6 +83,7 @@ export function CompetencesView({
   /** False during the initial per-account load (see `VaultView`'s same prop). */
   loaded?: boolean;
 }) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const [view, setView] = useViewMode("competences");
   const [cat, setCat] = useState("all");
@@ -170,19 +172,19 @@ export function CompetencesView({
 
           {filtered.length === 0 ? (
             competences.length === 0 && !loaded ? (
-              <div className="library-empty">Chargement…</div>
+              <div className="library-empty">{t.lists.loading}</div>
             ) : competences.length === 0 ? (
               <EmptyState
                 tone="lime"
-                eyebrow="Compétences"
+                eyebrow={t.sections.competences.label}
                 icon={<SparklesIcon size={26} />}
-                title="Vos consignes, prêtes à réutiliser"
-                body="Une bonne consigne écrite une fois — réponse e-mail, traduction, résumé — réutilisable partout."
+                title={t.lists.competences.empty.title}
+                body={t.lists.competences.empty.body}
                 points={[
-                  { glyph: "✦", label: "Rangées par catégorie", tone: "violet" },
-                  { glyph: "★", label: "Épinglables", tone: "amber" },
+                  { glyph: "✦", label: t.lists.competences.empty.points[0], tone: "violet" },
+                  { glyph: "★", label: t.lists.competences.empty.points[1], tone: "amber" },
                 ]}
-                cta="Créer ma première compétence"
+                cta={t.lists.competences.empty.cta}
                 ctaIcon={<PlusIcon size={16} />}
                 onCta={() => setDraft(EMPTY_DRAFT)}
               />
@@ -191,13 +193,13 @@ export function CompetencesView({
                 tone="sky"
                 eyebrow={
                   cat === "all"
-                    ? "Recherche"
-                    : `Catégorie · ${COMPETENCE_CATEGORIES.find((c) => c.id === cat)?.label ?? cat}`
+                    ? t.lists.competences.noMatch.search
+                    : `${t.lists.competences.noMatch.category} · ${COMPETENCE_CATEGORIES.find((c) => c.id === cat)?.label ?? cat}`
                 }
                 icon={<SearchIcon size={26} />}
-                title="Rien ici pour ce filtre."
-                body="Aucune compétence ne correspond à cette catégorie ou à votre recherche. Essayez « Toutes » ou créez-en une nouvelle."
-                cta="Nouvelle compétence"
+                title={t.lists.competences.noMatch.title}
+                body={t.lists.competences.noMatch.body}
+                cta={t.lists.competences.noMatch.cta}
                 ctaIcon={<PlusIcon size={16} />}
                 onCta={() => setDraft(EMPTY_DRAFT)}
               />
@@ -206,8 +208,8 @@ export function CompetencesView({
             <div className={view === "list" ? "om-rows" : "om-skill-grid"}>
               {view === "grid" ? (
                 <CreateCard
-                  label="Nouvelle compétence"
-                  hint="Un prompt réutilisable"
+                  label={t.lists.competences.createLabel}
+                  hint={t.lists.competences.createHint}
                   onClick={() => setDraft(EMPTY_DRAFT)}
                 />
               ) : (
@@ -218,8 +220,8 @@ export function CompetencesView({
                     <PlusIcon size={15} />
                   </span>
                   <span className="om-row-main">
-                    <span className="om-row-name">Nouvelle compétence</span>
-                    <span className="om-row-sub">Un prompt réutilisable</span>
+                    <span className="om-row-name">{t.lists.competences.createLabel}</span>
+                    <span className="om-row-sub">{t.lists.competences.createHint}</span>
                   </span>
                 </button>
               )}
@@ -254,7 +256,7 @@ export function CompetencesView({
               if (dismissTimer.current) clearTimeout(dismissTimer.current);
             }}
           >
-            Annuler
+            {t.lists.competences.undo}
           </button>
         </div>
       )}

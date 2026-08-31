@@ -1,6 +1,7 @@
 import { SearchIcon } from "../../components/brand";
 import { LIB_TABS, type LibTab } from "./libraryKinds";
 
+import { useT } from "../../i18n";
 /**
  * The library's category tab bar (Tout / Images / Documents / Tableurs / Audio) with
  * live counts, plus the search field on the right — the design's LibraryPage header.
@@ -23,6 +24,7 @@ export function LibraryTabs({
   query: string;
   onQuery: (q: string) => void;
 }) {
+  const t = useT();
   return (
     <div className="lib-tabs">
       {LIB_TABS.map((t) => {
@@ -45,7 +47,7 @@ export function LibraryTabs({
         <input
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Rechercher un fichier"
+          placeholder={t.lists.library.search}
         />
       </label>
     </div>

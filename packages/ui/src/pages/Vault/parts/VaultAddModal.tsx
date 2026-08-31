@@ -4,6 +4,7 @@ import { ModalShell } from "../../../containers/modals/ModalShell";
 import { CheckIcon, LockIcon } from "../../../components/brand";
 import { REDACT_TYPES } from "@openmasq/redact";
 
+import { useT } from "../../../i18n";
 /**
  * The Coffre's ADD modal (design-kit `VaultAddModal`): term + type chips + an
  * optional note, under a head band tinted live by the chosen type's hue. Pure —
@@ -17,6 +18,7 @@ export function VaultAddModal({
   onClose: () => void;
   onAdd: (value: string, token: string, note?: string) => void;
 }) {
+  const t = useT();
   const [value, setValue] = useState("");
   const [note, setNote] = useState("");
   const [token, setToken] = useState(REDACT_TYPES[0].token);
@@ -38,7 +40,7 @@ export function VaultAddModal({
         </span>
         <div className="om-vault-addm-titles">
           <div className="cv-display om-vault-addm-title">
-            <span className="om-mark">Ajouter au coffre</span>
+            <span className="om-mark">{t.lists.vault.add.title}</span>
           </div>
           <div className="om-vault-addm-sub">
             Ce terme sera masqué avant chaque envoi, quel que soit le modèle.
@@ -57,13 +59,13 @@ export function VaultAddModal({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="ex. Projet Northwind, FR76 3000…"
+            placeholder={t.lists.vault.add.termPlaceholder}
             autoFocus
           />
         </div>
 
         <div>
-          <div className="cv-eyebrow om-vault-addm-label">Type de donnée</div>
+          <div className="cv-eyebrow om-vault-addm-label">{t.lists.vault.add.type}</div>
           <div className="om-vault-addm-types">
             {REDACT_TYPES.map((t) => {
               const on = t.token === token;
@@ -95,7 +97,7 @@ export function VaultAddModal({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="ex. Nom de code interne"
+            placeholder={t.lists.vault.add.notePlaceholder}
           />
         </div>
       </div>

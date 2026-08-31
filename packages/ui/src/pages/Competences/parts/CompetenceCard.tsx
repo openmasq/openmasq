@@ -4,6 +4,7 @@ import { competenceCategory } from "../../../competences/competences";
 import { ArrowRightIcon, SendIcon } from "../../../components/brand";
 import { ScopeBadge } from "../../../components/brand/ScopeBadge";
 
+import { useT } from "../../../i18n";
 /**
  * One compétence as a card (kit `SkillCard`). Pure presentation — every action is a
  * prop, so the page owns the store writes (components/ tier rules apply to page parts).
@@ -38,6 +39,7 @@ export function CompetenceCard({
   /** Opens the « Partager » dialog for THIS compétence (personal cards only). */
   onShare?: () => void;
 }) {
+  const t = useT();
   const cat = competenceCategory(competence.cat);
   const uses = competence.uses ?? 0;
   const name = competence.name || "Sans titre";
@@ -58,7 +60,7 @@ export function CompetenceCard({
       className={`om-skill-card om-sweep-host om-step-in${selected ? " selected" : ""}`}
       role="button"
       tabIndex={0}
-      aria-label={`Modifier la compétence ${name}`}
+      aria-label={t.lists.competences.editAria(name)}
       onClick={onEdit}
       onKeyDown={onCardKeyDown}
     >
@@ -75,7 +77,7 @@ export function CompetenceCard({
             className={`om-skill-pin${competence.pinned ? " on" : ""}`}
             onClick={(e) => stop(e, onTogglePin)}
             aria-pressed={!!competence.pinned}
-            title={competence.pinned ? "Retirer de la barre latérale" : "Épingler dans la barre latérale"}
+            title={competence.pinned ? t.lists.competences.unpin : t.lists.competences.pin}
           >
             {competence.pinned ? "★" : "☆"}
           </button>
@@ -97,10 +99,10 @@ export function CompetenceCard({
           type="button"
           className="om-skill-use"
           onClick={(e) => stop(e, onUse)}
-          title="Insérer dans la conversation"
-          aria-label={`Utiliser ${name}`}
+          title={t.lists.competences.useTip}
+          aria-label={t.lists.competences.useAria(name)}
         >
-          <SendIcon size={13} /> <span className="om-sweep">Utiliser</span>
+          <SendIcon size={13} /> <span className="om-sweep">{t.lists.competences.use}</span>
         </button>
         <span className="om-skill-spacer" />
         {onShare && (
@@ -110,9 +112,9 @@ export function CompetenceCard({
             type="button"
             className="om-skill-share"
             onClick={(e) => stop(e, onShare)}
-            title="Partager cette compétence"
+            title={t.lists.competences.shareTip}
           >
-            <ArrowRightIcon size={12} /> Partager
+            <ArrowRightIcon size={12} /> {t.lists.competences.share}
           </button>
         )}
         <span className="om-skill-uses">{uses}×</span>

@@ -14,6 +14,7 @@ import { PromptFileField } from "./parts/PromptFileField";
 import { ServerPicker } from "./parts/ServerPicker";
 import type { Competence } from "../../types";
 
+import { useT } from "../../i18n";
 /** The category vocabulary, mapped for the shared picker. Module-level: the list is
  *  static, so it never needs to be rebuilt per render. */
 /** Un ensemble vide STABLE : une nouvelle `Set` par rendu re-rendrait le sélecteur à
@@ -104,6 +105,7 @@ export function CompetenceModal({
    *  ONCE by the page, so the cue and the template ranking can't disagree. */
   connected?: ReadonlySet<string>;
 }) {
+  const t = useT();
   const [draft, setDraft] = useState<CompetenceDraft>(initial);
   // Le dépliant des connecteurs s'ouvre de lui-même sur une compétence qui en porte
   // déjà : le replier sur une routine existante cacherait ce qu'elle fait.
@@ -159,10 +161,10 @@ export function CompetenceModal({
             <span className="om-skill-head-glyph">{cat.glyph}</span>
             <div className="om-skill-head-text">
               <ModalTitle>
-                {initial.id ? "Modifier la compétence" : "Nouvelle compétence"}
+                {initial.id ? t.lists.competences.modal.titleEdit : t.lists.competences.modal.titleNew}
               </ModalTitle>
               <p className="om-skill-head-sub">
-                Un prompt réutilisable, inséré en un clic dans vos conversations.
+                {t.lists.competences.modal.sub}
               </p>
             </div>
           </div>
@@ -188,34 +190,34 @@ export function CompetenceModal({
               the moment you pick, so the choice reads twice. */}
           <div className="om-skill-row">
             <label className="om-skill-field om-skill-col-grow">
-              <span className="cv-eyebrow">Nom</span>
+              <span className="cv-eyebrow">{t.lists.competences.modal.name}</span>
               <input
                 className="om-skill-input"
                 value={draft.name}
                 onChange={(e) => patch({ name: e.target.value })}
-                placeholder="Réponse e-mail pro"
+                placeholder={t.lists.competences.modal.namePlaceholder}
                 autoFocus
               />
             </label>
             <div className="om-skill-field om-skill-col-cat">
-              <span className="cv-eyebrow">Catégorie</span>
+              <span className="cv-eyebrow">{t.lists.competences.modal.category}</span>
               <HueSelect
                 value={draft.cat}
                 options={CAT_OPTIONS}
                 onChange={(cat) => patch({ cat })}
-                ariaLabel="Catégorie"
+                ariaLabel={t.lists.competences.modal.category}
                 neutral
               />
             </div>
           </div>
 
           <label className="om-skill-field">
-            <span className="cv-eyebrow">Description</span>
+            <span className="cv-eyebrow">{t.lists.competences.modal.description}</span>
             <input
               className="om-skill-input"
               value={draft.desc}
               onChange={(e) => patch({ desc: e.target.value })}
-              placeholder="Rédige une réponse claire à partir d'un e-mail reçu."
+              placeholder={t.lists.competences.modal.descriptionPlaceholder}
             />
           </label>
 
@@ -224,8 +226,8 @@ export function CompetenceModal({
             onChange={(prompt) => patch({ prompt })}
             note={
               draft.servers.length
-                ? "L'instruction part avec votre message, et nomme les connecteurs choisis."
-                : "L'instruction part avec votre message sous forme d'étiquette."
+                ? t.lists.competences.modal.noteWithServers
+                : t.lists.competences.modal.noteWithoutServers
             }
           />
 
@@ -240,11 +242,11 @@ export function CompetenceModal({
               aria-expanded={showServers}
             >
               <ChevDownIcon size={15} />
-              <span className="cv-eyebrow">Connecteurs</span>
+              <span className="cv-eyebrow">{t.lists.competences.modal.connectors}</span>
               <span className="om-skill-disclose-sum">
                 {draft.servers.length
-                  ? `${draft.servers.length} intégration${draft.servers.length > 1 ? "s" : ""}`
-                  : "toutes"}
+                  ? t.lists.competences.modal.someConnectors(draft.servers.length)
+                  : t.lists.competences.modal.allConnectors}
               </span>
             </button>
             {showServers && (
@@ -263,7 +265,7 @@ export function CompetenceModal({
         <div className="om-skill-modal-foot">
           {onDelete && (
             <button type="button" className="btn-ghost om-skill-del" onClick={onDelete}>
-              Supprimer
+              {t.lists.competences.modal.delete}
             </button>
           )}
           {onDuplicate && (
@@ -271,14 +273,14 @@ export function CompetenceModal({
               type="button"
               className="btn-ghost"
               onClick={() => onDuplicate(draft)}
-              title="Créer une copie de cette compétence (modifications en cours incluses)"
+              title={t.lists.competences.modal.duplicateTip}
             >
-              Dupliquer
+              {t.lists.competences.modal.duplicate}
             </button>
           )}
           <span className="om-skill-spacer" />
           <button type="button" className="btn-ghost" onClick={onClose}>
-            Annuler
+            {t.common.cancel}
           </button>
           <button
             type="button"
@@ -286,7 +288,7 @@ export function CompetenceModal({
             disabled={!canSave}
             onClick={() => canSave && onSave(draft)}
           >
-            {initial.id ? "Enregistrer" : "Créer"}
+            {initial.id ? t.common.save : t.lists.competences.modal.create}
           </button>
         </div>
       </div>

@@ -18,6 +18,7 @@ import { MemoryMergeHint, MemoryPageMenu, MemoryUndoToast } from "./parts";
 import { useMemoryReview } from "./useMemoryReview";
 import type { Conversation, MemoryCard, MemoryData } from "../../types";
 
+import { useT } from "../../i18n";
 /**
  * The MÉMOIRE page — the kit's GRAPH design over the real store: core → category hubs →
  * one leaf per entity card, with the REAL cross-links (a card whose facts mention
@@ -63,6 +64,7 @@ export function MemoryView({
    *  same prop for why an empty memory then must read as "loading", not "empty". */
   loaded?: boolean;
 }) {
+  const t = useT();
   const [selected, setSelected] = useState<string | null>(null);
   // Recherche + bascule Graphe/Liste : le graphe fait COMPRENDRE (les liens), la liste
   // fait TROUVER — à 50+ fiches, retrouver celle à corriger est un scan, pas un survol.
@@ -151,7 +153,7 @@ export function MemoryView({
               {/* Une seule promesse : ce geste crée une fiche. Le graphe ne relie
                   que sur une MENTION dans les faits, jamais sur une création. */}
               <PlusIcon size={16} />
-              Nouvelle fiche
+              {t.lists.memory.newCard}
             </button>
           </div>
         }
@@ -220,7 +222,7 @@ export function MemoryView({
           )}
 
           {memoire.cards.length === 0 && !memoire.profile?.trim() && !loaded ? (
-            <div className="library-empty">Chargement…</div>
+            <div className="library-empty">{t.lists.loading}</div>
           ) : memoire.cards.length === 0 && !memoire.profile?.trim() ? (
             // Les trois points disent déjà la forme, le geste et le bénéfice : le corps ne
             // les répète pas, il ne garde que les exemples et le régime au repos.
@@ -230,16 +232,16 @@ export function MemoryView({
             // (`useMemory.ts`), et de bout en bout en transit.
             <EmptyState
               tone="violet"
-              eyebrow="Mémoire"
+              eyebrow={t.sections.memory.label}
               icon={<MemoryIcon size={26} />}
-              title="Une mémoire qui vous appartient."
-              body="Notez les faits durables — un client, un projet, vos préférences. Ils sont chiffrés, et vous seul pouvez les lire."
+              title={t.lists.memory.empty.title}
+              body={t.lists.memory.empty.body}
               points={[
-                { glyph: "◆", label: "Une fiche par personne ou projet", tone: "violet" },
-                { glyph: "✦", label: "« Retiens que… » dans le chat", tone: "sky" },
-                { glyph: "◈", label: "Rappelée quand elle est utile", tone: "lime" },
+                { glyph: "◆", label: t.lists.memory.empty.points[0], tone: "violet" },
+                { glyph: "✦", label: t.lists.memory.empty.points[1], tone: "sky" },
+                { glyph: "◈", label: t.lists.memory.empty.points[2], tone: "lime" },
               ]}
-              cta="Créer ma première fiche"
+              cta={t.lists.memory.empty.cta}
               ctaIcon={<PlusIcon size={16} />}
               onCta={addCard}
             />
@@ -265,16 +267,16 @@ export function MemoryView({
               <div className="om-mem-edge-legend">
                 <span className="om-mem-edge-key">
                   <span className="om-mem-edge-swatch cat" />
-                  catégorie
+                  {t.lists.memory.legend.category}
                 </span>
-                <span className="om-mem-edge-key" title="Une fiche cite le nom (ou un alias) de l'autre dans ses faits — ajoutez ou retirez la mention pour créer ou défaire le lien.">
+                <span className="om-mem-edge-key" title={t.lists.memory.legend.mentionTip}>
                   <span className="om-mem-edge-swatch cross" />
-                  mention
+                  {t.lists.memory.legend.mention}
                 </span>
                 {clustered && (
-                  <span className="om-mem-edge-key" title="Deux fiches qui parlent de la même chose, rapprochées par l'analyse locale.">
+                  <span className="om-mem-edge-key" title={t.lists.memory.legend.sameTopicTip}>
                     <span className="om-mem-edge-swatch sem" />
-                    même sujet
+                    {t.lists.memory.legend.sameTopic}
                   </span>
                 )}
               </div>

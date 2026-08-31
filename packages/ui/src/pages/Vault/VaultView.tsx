@@ -11,6 +11,7 @@ import { VaultAddModal } from "./parts/VaultAddModal";
 import { VaultFilters } from "./parts/VaultFilters";
 import { VaultRow } from "./parts/VaultRow";
 
+import { useT } from "../../i18n";
 /**
  * The COFFRE page ("Coffre") — the user's dictionary of values ALWAYS redacted,
  * before every send, in every conversation, whatever the model. Reskin of the
@@ -56,6 +57,7 @@ export function VaultView({
    *  today's behaviour. */
   loaded?: boolean;
 }) {
+  const t = useT();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all"); // "all" | a token
   const [open, setOpen] = useState<CoffreTerm | null>(null);
@@ -154,20 +156,20 @@ export function VaultView({
 
           {filtered.length === 0 ? (
             display.length === 0 && !loaded ? (
-              <div className="library-empty">Chargement…</div>
+              <div className="library-empty">{t.lists.loading}</div>
             ) : display.length === 0 ? (
               <EmptyState
                 tone="pink"
-                eyebrow="Coffre"
+                eyebrow={t.sections.vault.label}
                 icon={<ShieldIcon size={26} />}
-                title="Vos termes, toujours redacted."
-                body="Les mots à masquer partout : noms de code, comptes, identifiants. Ajoutés une fois, remplacés à chaque envoi."
+                title={t.lists.vault.empty.title}
+                body={t.lists.vault.empty.body}
                 points={[
-                  { glyph: "◈", label: "Appliqué à tous les modèles", tone: "sky" },
-                  { glyph: "⌘", label: "Utilisations comptées", tone: "violet" },
-                  { glyph: "◑", label: "Rangé par catégorie", tone: "mint" },
+                  { glyph: "◈", label: t.lists.vault.empty.points[0], tone: "sky" },
+                  { glyph: "⌘", label: t.lists.vault.empty.points[1], tone: "violet" },
+                  { glyph: "◑", label: t.lists.vault.empty.points[2], tone: "mint" },
                 ]}
-                cta="Ajouter un premier terme"
+                cta={t.lists.vault.empty.cta}
                 ctaIcon={<PlusIcon size={16} />}
                 onCta={() => setAddOpen(true)}
               />
@@ -175,12 +177,14 @@ export function VaultView({
               <EmptyState
                 tone="violet"
                 eyebrow={
-                  filter === "all" ? "Recherche" : `Catégorie · ${coffreTypeLabel(filter)}`
+                  filter === "all"
+                    ? t.lists.vault.noMatch.search
+                    : `${t.lists.vault.noMatch.category} · ${coffreTypeLabel(filter)}`
                 }
                 icon={<SearchIcon size={26} />}
-                title="Aucun terme ici."
-                body="Rien ne correspond à cette catégorie ou à votre recherche. Choisissez « Tous » ou ajoutez un nouveau terme au coffre."
-                cta="Ajouter un terme"
+                title={t.lists.vault.noMatch.title}
+                body={t.lists.vault.noMatch.body}
+                cta={t.lists.vault.noMatch.cta}
                 ctaIcon={<PlusIcon size={16} />}
                 onCta={() => setAddOpen(true)}
               />

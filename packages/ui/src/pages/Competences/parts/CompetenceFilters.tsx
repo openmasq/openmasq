@@ -2,6 +2,7 @@ import { DownloadIcon, SearchIcon } from "../../../components/brand";
 import { ViewModeToggle } from "../../../components/ViewModeToggle";
 import type { ViewMode } from "../../../hooks/useViewMode";
 
+import { useT } from "../../../i18n";
 /**
  * La barre au-dessus de la liste : catégories, import, affichage, recherche.
  *
@@ -31,6 +32,7 @@ export function CompetenceFilters({
    *  lecture que la plateforme ne sait pas faire. */
   onImport?: () => void;
 }) {
+  const t = useT();
   return (
     <div className="om-skill-filters">
       {chips.map((c) => (
@@ -52,8 +54,8 @@ export function CompetenceFilters({
           type="button"
           className="om-skill-import"
           onClick={onImport}
-          title="Importer depuis Claude — vos compétences Claude Code, ou un dossier déposé"
-          aria-label="Importer depuis Claude"
+          title={t.lists.competences.importTip}
+          aria-label={t.lists.competences.import}
         >
           <DownloadIcon size={15} />
         </button>
@@ -64,8 +66,8 @@ export function CompetenceFilters({
         <input
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Rechercher une compétence"
-          aria-label="Rechercher une compétence"
+          placeholder={t.lists.competences.search}
+          aria-label={t.lists.competences.search}
         />
       </div>
     </div>

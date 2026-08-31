@@ -51,6 +51,7 @@ import type {
 import type { ProviderKeysMessages } from "./messages/providerKeys";
 import type { SectionsMessages } from "./messages/sections";
 import type { ConversationMessages } from "./messages/conversation";
+import type { ListsMessages } from "./messages/lists";
 import type { ShellMessages } from "./messages/shell";
 import type { ViewersMessages } from "./messages/viewers";
 import type { SettingsMessages } from "./messages/settings";
@@ -117,6 +118,7 @@ export interface Messages {
   chrome: ChromeMessages;
   shell: ShellMessages;
   sections: SectionsMessages;
+  lists: ListsMessages;
   chat: ChatMessages;
   conversation: ConversationMessages;
   webNav: WebNavMessages;

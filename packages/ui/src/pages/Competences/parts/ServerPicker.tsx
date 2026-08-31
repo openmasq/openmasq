@@ -46,9 +46,7 @@ export function ServerPicker({
   return (
     <div className="om-skill-field">
       <p className="om-wf-picker-note">
-        Par défaut, <strong>toutes</strong> les intégrations sont disponibles. Sélectionnez-en pour
-        restreindre la compétence à celles-ci — elles sont alors ajoutées en consigne au lancement.
-        Le point vert signale une intégration connectée.
+        {t.lists.competences.picker.note} {t.lists.competences.picker.connectedDot}
       </p>
       {/* Grouped by the canonical MCP categories; ONE scroll (the modal body's) —
           an inner scroll here made two nested scrollbars. */}

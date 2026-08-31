@@ -4,6 +4,7 @@ import { Markdown } from "../../../components/markdown/Markdown";
 import { PromptToolbar } from "../PromptToolbar";
 import { applyPromptMark } from "../promptFormat";
 
+import { useT } from "../../../i18n";
 /**
  * L'INSTRUCTION d'une compétence, encadrée comme un FICHIER : le prompt est un document
  * qu'on écrit une fois et qu'on rejoue, pas un champ de formulaire qu'on remplit à chaque
@@ -23,6 +24,7 @@ export function PromptFileField({
   onChange: (next: string) => void;
   note: string;
 }) {
+  const t = useT();
   // Rendered preview vs the editable source. The toolbar hides with the textarea: there
   // is nothing to format in a read-only render.
   const [preview, setPreview] = useState(false);
@@ -31,13 +33,13 @@ export function PromptFileField({
   return (
     <div className="om-skill-field">
       <div className="om-skill-promptlbl">
-        <span className="cv-eyebrow">Instruction</span>
-        <span className="om-skill-chars">{prompt.length} car.</span>
+        <span className="cv-eyebrow">{t.lists.competences.prompt.label}</span>
+        <span className="om-skill-chars">{t.lists.competences.prompt.chars(prompt.length)}</span>
       </div>
       <div className="om-skill-file">
         <div className="om-skill-file-bar">
           <span className="om-skill-file-dot" aria-hidden="true" />
-          <span className="om-skill-file-name">PROMPT.md</span>
+          <span className="om-skill-file-name">{t.lists.competences.prompt.fileName}</span>
           <div className="flex-spacer" />
           <button
             type="button"
@@ -46,7 +48,7 @@ export function PromptFileField({
             aria-pressed={preview}
           >
             <EyeIcon size={13} />
-            Aperçu
+            {t.lists.competences.prompt.preview}
           </button>
         </div>
         {!preview && (
@@ -73,7 +75,7 @@ export function PromptFileField({
             {prompt.trim() ? (
               <Markdown content={prompt} />
             ) : (
-              <span className="om-skill-preview-empty">Rien à prévisualiser.</span>
+              <span className="om-skill-preview-empty">{t.lists.competences.prompt.previewEmpty}</span>
             )}
           </div>
         ) : (
@@ -82,7 +84,7 @@ export function PromptFileField({
             className="om-skill-file-area"
             value={prompt}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={"Résume le document suivant en trois parties…\n\nDocument :\n"}
+            placeholder={t.lists.competences.prompt.placeholder}
             rows={7}
           />
         )}

@@ -3,6 +3,7 @@ import { neighborsOf, type MemoryGraphData } from "../../memory/graph";
 import { useForceSim } from "./useForceSim";
 import { useGraphViewport } from "./useGraphViewport";
 
+import { useT } from "../../i18n";
 /**
  * The Mémoire graph, rendered as LOCAL SVG — the kit draws the same layout with sigma
  * from a CDN, which the app forbids (CSP + rule 7). Layout is a force simulation
@@ -28,6 +29,7 @@ export function MemoryGraph({
   matched?: Set<string> | null;
   onSelect: (id: string | null) => void;
 }) {
+  const t = useT();
   const svgRef = useRef<SVGSVGElement | null>(null);
   const { nodes, dragStart, dragMove, dragEnd } = useForceSim(graph);
 
@@ -88,7 +90,7 @@ export function MemoryGraph({
       viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
       className="om-mem-graph"
       role="img"
-      aria-label={`Graphe de mémoire : ${nodes.length} nœuds`}
+      aria-label={t.lists.memory.graphAria(nodes.length)}
       onPointerDown={(e) => {
         if (e.button !== 0) return;
         e.currentTarget.setPointerCapture(e.pointerId);

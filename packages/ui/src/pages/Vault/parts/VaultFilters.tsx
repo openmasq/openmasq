@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { PlusIcon, SearchIcon } from "../../../components/brand";
 
+import { useT } from "../../../i18n";
 export interface VaultChip {
   id: string;
   label: string;
@@ -34,6 +35,7 @@ export function VaultFilters({
    *  already offers the add, so the toolbar button would be a duplicate. */
   showAdd?: boolean;
 }) {
+  const t = useT();
   return (
     <div className="om-vault-filters">
       {chips.map((c) => (
@@ -54,7 +56,7 @@ export function VaultFilters({
         <input
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Rechercher un terme"
+          placeholder={t.lists.vault.search}
           className="om-vault-search-input"
         />
       </div>

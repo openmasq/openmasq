@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { EyeIcon, EyeOffIcon } from "../../../components/brand";
 
+import { useT } from "../../../i18n";
 /**
  * A Coffre value, MASKED by default — a solid redaction bar on the ink pill,
  * revealed on demand (eye toggle) in its kind's highlight hue. The Coffre lists
@@ -19,6 +20,7 @@ export function VaultTermPill({
   /** Fixed-width bar (uses-modal header) instead of the length-derived one. */
   full?: boolean;
 }) {
+  const t = useT();
   const [revealed, setRevealed] = useState(false);
   return (
     <button
@@ -26,7 +28,7 @@ export function VaultTermPill({
       className={`om-vault-pill${revealed ? ` revealed hl-${tone}` : ""}`}
       onClick={() => setRevealed((v) => !v)}
       aria-pressed={revealed}
-      title={revealed ? "Masquer la valeur" : "Révéler la valeur"}
+      title={revealed ? t.lists.vault.hide : t.lists.vault.reveal}
     >
       <span className="om-vault-pill-val">
         {revealed ? (

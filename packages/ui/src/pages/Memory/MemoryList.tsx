@@ -2,6 +2,7 @@ import { CheckIcon, TrashIcon } from "../../components/brand";
 import { MEMORY_CATEGORIES, memoryCategory } from "../../memory";
 import type { MemoryCard, MemoryData } from "../../types";
 
+import { useT } from "../../i18n";
 /**
  * The Mémoire LIST view — the workhorse beside the graph: at 50+ cards, finding the one
  * fiche to edit is a scan, and a force layout doesn't scan. Rows sorted by recency
@@ -39,6 +40,7 @@ export function MemoryToolbar({
   grouped?: boolean;
   onGrouped?: (on: boolean) => void;
 }) {
+  const t = useT();
   return (
     <div className="om-skill-filters om-mem-toolbar">
       <input
@@ -46,18 +48,18 @@ export function MemoryToolbar({
         type="search"
         value={query}
         onChange={(e) => onQuery(e.target.value)}
-        placeholder="Rechercher une fiche (nom, alias, faits)…"
-        aria-label="Rechercher dans la mémoire"
+        placeholder={t.lists.memory.search}
+        aria-label={t.lists.memory.searchAria}
       />
       {reviewCount > 0 && (
         <button
           type="button"
           className={`om-skill-chip om-mem-fresh${fresh ? " on" : ""}`}
           aria-pressed={fresh}
-          title="Fiches écrites par la machine et pas encore relues, plus les doublons à trancher"
+          title={t.lists.memory.reviewTip}
           onClick={() => onFresh(!fresh)}
         >
-          À revoir · {reviewCount}
+          {t.lists.memory.review(reviewCount)}
         </button>
       )}
       <span className="om-skill-spacer" />
@@ -68,7 +70,7 @@ export function MemoryToolbar({
           aria-pressed={grouped}
           onClick={() => onGrouped(!grouped)}
         >
-          Par catégorie
+          {t.lists.memory.byCategory}
         </button>
       )}
       {(["graph", "list"] as const).map((v) => (
@@ -101,6 +103,7 @@ function Row({
   onConfirm?: (id: string) => void;
   onRemove?: (id: string) => void;
 }) {
+  const t = useT();
   return (
     <div role="listitem" className={`om-mem-row${selected ? " on" : ""}${fresh ? " fresh" : ""}`}>
       <button type="button" className="om-mem-row-main" onClick={() => onSelect(`card-${c.id}`)}>
@@ -108,16 +111,16 @@ function Row({
         <span className="om-mem-row-entity">{c.entity}</span>
         <span className="om-mem-row-facts">{c.facts}</span>
         {c.source === "auto" && <span className="om-mem-row-badge">auto</span>}
-        <span className="om-mem-row-date">{new Date(c.updatedAt).toLocaleDateString("fr-FR")}</span>
+        <span className="om-mem-row-date">{new Date(c.updatedAt).toLocaleDateString(t.common.intlTag)}</span>
       </button>
       {fresh && onConfirm && (
         <button
           type="button"
           className="om-mem-row-act"
-          title="Lu et approuvé tel quel — la fiche sort de « À revoir »"
+          title={t.lists.memory.confirmTip}
           onClick={() => onConfirm(c.id)}
         >
-          <CheckIcon size={13} /> Confirmer
+          <CheckIcon size={13} /> {t.lists.memory.confirm}
         </button>
       )}
       {/* La corbeille sur TOUTES les lignes, pas seulement « À revoir » : supprimer
@@ -126,8 +129,8 @@ function Row({
         <button
           type="button"
           className="om-mem-row-act danger"
-          title="Supprimer la fiche (annulable quelques secondes)"
-          aria-label={`Supprimer la fiche ${c.entity}`}
+          title={t.lists.memory.removeTip}
+          aria-label={t.lists.memory.removeAria(c.entity)}
           onClick={() => onRemove(c.id)}
         >
           <TrashIcon size={13} />
@@ -160,11 +163,12 @@ export function MemoryList({
   onConfirm?: (id: string) => void;
   onRemove?: (id: string) => void;
 }) {
+  const t = useT();
   const rows = memoire.cards
     .filter((c) => !matched || matched.has(c.id))
     .sort((a, b) => b.updatedAt - a.updatedAt);
   if (!rows.length) {
-    return <p className="om-skill-desc om-mem-list-empty">Aucune fiche ne correspond.</p>;
+    return <p className="om-skill-desc om-mem-list-empty">{t.lists.memory.noMatch}</p>;
   }
   const row = (c: MemoryCard) => (
     <Row

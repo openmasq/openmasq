@@ -6,6 +6,7 @@ import { coffreTypeLabel, type CoffreOccurrences } from "../../../send/coffre";
 import type { CoffreTerm } from "../../../types";
 import { VaultTermPill } from "./VaultTermPill";
 
+import { useT } from "../../../i18n";
 /** The models that have actually seen this term redacted — deduped, most-recent
  *  first (the uses already arrive sorted), capped like the kit's avatar stack. */
 function usedModels(occ: CoffreOccurrences): string[] {
@@ -40,6 +41,7 @@ export function VaultRow({
   /** Opens the « Partager » dialog for THIS term (personal rows only). */
   onShare?: () => void;
 }) {
+  const t = useT();
   const tone = hueForKind(term.token);
   const models = usedModels(occ);
   return (
@@ -66,25 +68,25 @@ export function VaultRow({
       </div>
       {scope && <ScopeBadge scope={scope} />}
       {onShare && (
-        <button type="button" className="om-vault-share" onClick={onShare} title="Partager ce terme">
-          Partager
+        <button type="button" className="om-vault-share" onClick={onShare} title={t.lists.vault.shareTip}>
+          {t.lists.vault.share}
         </button>
       )}
       <button
         className={`om-vault-occ${occ.totalCount ? "" : " empty"}`}
         onClick={onOpenUses}
-        title="Voir les occurrences"
+        title={t.lists.vault.usesTip}
       >
         <ShieldIcon size={13} />
-        {occ.totalCount} occ.
-        <span className="om-vault-occ-conv">· {occ.convCount} conv.</span>
+        {t.lists.vault.occurrences(occ.totalCount)}
+        <span className="om-vault-occ-conv">{t.lists.vault.conversations(occ.convCount)}</span>
       </button>
       {onRemove && (
         <button
           className="om-vault-del"
           onClick={onRemove}
-          title="Retirer du coffre"
-          aria-label="Retirer du coffre"
+          title={t.lists.vault.removeTip}
+          aria-label={t.lists.vault.removeTip}
         >
           <TrashIcon size={16} />
         </button>

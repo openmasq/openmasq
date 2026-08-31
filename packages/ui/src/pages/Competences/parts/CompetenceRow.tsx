@@ -4,6 +4,7 @@ import { competenceCategory } from "../../../competences/competences";
 import { ArrowRightIcon, SendIcon } from "../../../components/brand";
 import { ScopeBadge } from "../../../components/brand/ScopeBadge";
 
+import { useT } from "../../../i18n";
 /**
  * Une compétence en RANGÉE — la même que `CompetenceCard`, dense.
  *
@@ -37,6 +38,7 @@ export function CompetenceRow({
   /** Opens the « Partager » dialog for THIS compétence (personal rows only). */
   onShare?: () => void;
 }) {
+  const t = useT();
   const cat = competenceCategory(competence.cat);
   const name = competence.name || "Sans titre";
   const stop = (e: MouseEvent, run: () => void) => {
@@ -55,7 +57,7 @@ export function CompetenceRow({
       className={`om-row${selected ? " is-selected" : ""}`}
       role="button"
       tabIndex={0}
-      aria-label={`Modifier la compétence ${name}`}
+      aria-label={t.lists.competences.editAria(name)}
       onClick={onEdit}
       onKeyDown={onKeyDown}
     >
@@ -74,7 +76,7 @@ export function CompetenceRow({
             type="button"
             className="om-skill-share"
             onClick={(e) => stop(e, onShare)}
-            title="Partager cette compétence"
+            title={t.lists.competences.shareTip}
           >
             <ArrowRightIcon size={12} /> Partager
           </button>
@@ -85,7 +87,7 @@ export function CompetenceRow({
             className={`om-skill-pin${competence.pinned ? " on" : ""}`}
             onClick={(e) => stop(e, onTogglePin)}
             aria-pressed={!!competence.pinned}
-            title={competence.pinned ? "Retirer de la barre latérale" : "Épingler dans la barre latérale"}
+            title={competence.pinned ? t.lists.competences.unpin : t.lists.competences.pin}
           >
             {competence.pinned ? "★" : "☆"}
           </button>
@@ -94,8 +96,8 @@ export function CompetenceRow({
           type="button"
           className="om-skill-use"
           onClick={(e) => stop(e, onUse)}
-          title="Insérer dans la conversation"
-          aria-label={`Utiliser ${name}`}
+          title={t.lists.competences.useTip}
+          aria-label={t.lists.competences.useAria(name)}
         >
           <SendIcon size={13} />
         </button>
