@@ -1,56 +1,56 @@
 /**
- * LE vocabulaire lecture-vs-écriture des noms d'outils MCP — et LE classifieur qui le lit.
+ * THE read-vs-write vocabulary for MCP tool names — and THE classifier that reads it.
  *
- * Une seule maison (règle 9) parce qu'il y a DEUX frontières qui doivent juger pareil :
- * la boucle agentique du renderer (`@openmasq/ui` `isWriteTool` — l'UX de confirmation)
- * et le write-gate du process main (`apps/desktop` `isWriteToolName` — la frontière
- * réelle, celle qu'un XSS renderer ne peut pas contourner). Les deux copies avaient
- * dérivé : des listes de verbes disjointes, un ancrage différent, et des DÉFAUTS opposés
- * (l'UI laissait passer un nom inconnu, main le bloquait). Le défaut unifié est celui de
- * main : **inconnu ⇒ ÉCRITURE** (fail closed, règle 7) — un outil dont le nom ne dit
- * rien peut muter, donc il se confirme.
+ * One single home (rule 9) because there are TWO boundaries that must judge alike:
+ * the renderer's agentic loop (`@openmasq/ui` `isWriteTool` — the confirmation UX)
+ * and the main process's write-gate (`apps/desktop` `isWriteToolName` — the real
+ * boundary, the one a renderer XSS cannot bypass). The two copies had
+ * drifted: disjoint verb lists, different anchoring, and OPPOSITE DEFAULTS
+ * (the UI let an unknown name through, main blocked it). The unified default is
+ * main's: **unknown ⇒ WRITE** (fail closed, rule 7) — a tool whose name says
+ * nothing may mutate, so it confirms.
  *
- * Les quatre expressions se lisent ensemble ou pas du tout : `WRITE_VERB` est large et
- * collisionne avec des noms (`get_issue`, `get_run`), ce que `DESTRUCTIVE_VERB` et
- * `COMPOUND_WRITE` rattrapent, et `READ_VERB` n'est un ancrage de confiance que parce
- * qu'il est en TÊTE (`^`) — sans l'ancre, `delete_read_receipts` passerait pour une
- * lecture. Modifier l'une sans relire les autres, c'est ouvrir un chemin.
+ * The four expressions read together or not at all: `WRITE_VERB` is broad and
+ * collides with names (`get_issue`, `get_run`), which `DESTRUCTIVE_VERB` and
+ * `COMPOUND_WRITE` catch, and `READ_VERB` is a trust anchor only because
+ * it's at the HEAD (`^`) — without the anchor, `delete_read_receipts` would pass for a
+ * read. Editing one without re-reading the others opens a path.
  */
 
-/** Un verbe de LECTURE — ancré en TÊTE (`^`) : la tête du nom est la commande, et c'est
- *  le seul endroit où un verbe de lecture est une preuve de confiance. */
+/** A READ verb — anchored at the HEAD (`^`): the head of the name is the command, and it's
+ *  the only place where a read verb is proof of trust. */
 export const READ_VERB =
   /^(search|list|get|read|fetch|retrieve|find|lookup|describe|details?|query|count|download|export|check|view|show|preview|inspect|browse|scan)\b/i;
 
-/** Un verbe d'ÉCRITURE, n'importe où dans le nom. Volontairement LARGE (l'union des deux
- *  anciennes listes UI + main) : un token de cette liste dans un nom sans préfixe de
- *  lecture suffit à confirmer. */
+/** A WRITE verb, anywhere in the name. Deliberately BROAD (the union of the two
+ *  former UI + main lists): a token from this list in a name with no read
+ *  prefix is enough to confirm. */
 export const WRITE_VERB =
   /\b(write|create|update|modify|edit|delete|remove|destroy|post|put|patch|send|refund|charge|cancel|insert|upsert|upload|add|set|archive|rename|move|publish|deploy|revoke|pay|transfer|issue|capture|void|execute|run|apply|merge|drop|truncate|migrate|grant|approve|provision|terminate|restore|purge|wipe|replace|disable|enable|assign|invite|share)\b/i;
 
-/** Verbes destructeurs NON ambigus (audit H-5) : jamais un nom d'objet de lecture
- *  (contrairement à `issue`/`run`/`post` de WRITE_VERB), donc un de ces verbes N'IMPORTE
- *  OÙ l'emporte sur un préfixe de lecture — `get_and_purge`, `delete_read_receipts`. */
+/** NON-ambiguous destructive verbs (H-5 audit): never a read object name
+ *  (unlike `issue`/`run`/`post` in WRITE_VERB), so one of these verbs ANYWHERE
+ *  wins over a read prefix — `get_and_purge`, `delete_read_receipts`. */
 export const DESTRUCTIVE_VERB =
   /\b(delete|remove|destroy|drop|truncate|purge|erase|wipe|revoke|terminate|deprovision|deregister|unpublish|unlink|detach|disable|deactivate|refund|chargeback|cancel|void|overwrite|reset|uninstall|kill|expire)\b/i;
 
-/** Une commande COMPOSÉE — verbe de lecture, CONJONCTION, verbe d'écriture
- *  (`get_and_send_email`, `list_then_charge`). La conjonction distingue « deux
- *  commandes » d'une lecture d'objet au nom d'écriture (`get_issue` n'en a pas). */
+/** A COMPOUND command — read verb, CONJUNCTION, write verb
+ *  (`get_and_send_email`, `list_then_charge`). The conjunction distinguishes "two
+ *  commands" from a read of an object with a write-sounding name (`get_issue` has none). */
 export const COMPOUND_WRITE = new RegExp(
   `\\b(?:and|then|plus)\\b[\\w\\s]*?${WRITE_VERB.source}`,
   "i",
 );
 
-/** Verbe de lecture n'importe où — la preuve FAIBLE, acceptée seulement quand le nom ne
- *  porte AUCUNE preuve d'écriture (voir le classifieur). Dérivé de READ_VERB (une seule
- *  liste), l'ancre `^` en moins. */
+/** A read verb anywhere — the WEAK proof, accepted only when the name carries
+ *  NO proof of writing at all (see the classifier). Derived from READ_VERB (a single
+ *  list), minus the `^` anchor. */
 const READ_ANYWHERE = new RegExp(`\\b(?:${READ_VERB.source.slice(1)})`, "i");
 
-/** Les verbes de `WRITE_VERB` qui NOMMENT tout aussi couramment une LECTURE :
- *  `execute-sql`, `run-query`, `run-report`. Sous-ensemble strict, tenu court exprès —
- *  `apply`/`issue`/`capture`/`post` n'y sont PAS : leur usage lecture est marginal et le
- *  bénéfice ne vaut pas le risque. Ne sert qu'à `isAmbiguousWrite` ci-dessous. */
+/** The `WRITE_VERB` verbs that just as commonly NAME a READ:
+ *  `execute-sql`, `run-query`, `run-report`. A strict subset, deliberately kept short —
+ *  `apply`/`issue`/`capture`/`post` are NOT in it: their read usage is marginal and the
+ *  benefit isn't worth the risk. Only used by `isAmbiguousWrite` below. */
 export const AMBIGUOUS_WRITE_VERB = /\b(execute|run)\b/i;
 
 export interface ToolWriteAnnotations {
@@ -59,19 +59,19 @@ export interface ToolWriteAnnotations {
 }
 
 /**
- * Un outil est-il une ÉCRITURE (⇒ confirmation) ?
+ * Is a tool a WRITE (⇒ confirmation)?
  *
- * Une annotation serveur ne peut qu'AUGMENTER le soupçon, jamais le baisser (un serveur
- * compromis marquerait tout `readOnlyHint:true` pour sauter le dialogue) — un
- * `readOnlyHint:true` nu ne sert que de départage pour un nom GÉNÉRIQUE. Puis le nom :
- * un verbe destructeur n'importe où confirme AVANT le court-circuit lecture ; un préfixe
- * de lecture sans commande composée est une lecture ; un verbe d'écriture confirme ; un
- * verbe de lecture n'importe où avec ZÉRO preuve d'écriture est une lecture (le cas
- * `stripe_api_read`, `notion__notion-fetch` — le vendeur répète son nom devant le verbe).
- * La description, même confiance qu'une annotation, ne départage qu'un nom générique.
+ * A server annotation can only RAISE suspicion, never lower it (a compromised
+ * server would mark everything `readOnlyHint:true` to skip the dialog) — a bare
+ * `readOnlyHint:true` only breaks the tie for a GENERIC name. Then the name:
+ * a destructive verb anywhere confirms BEFORE the read short-circuit; a read
+ * prefix with no compound command is a read; a write verb confirms; a
+ * read verb anywhere with ZERO proof of writing is a read (the
+ * `stripe_api_read`, `notion__notion-fetch` case — the vendor repeats its name before the verb).
+ * The description, same trust as an annotation, only breaks the tie for a generic name.
  *
- * **Tout le reste ⇒ ÉCRITURE** (fail closed) : `notion-duplicate-page`, `issue`,
- * `customers` — un nom qui ne prouve pas la lecture se confirme.
+ * **Everything else ⇒ WRITE** (fail closed): `notion-duplicate-page`, `issue`,
+ * `customers` — a name that doesn't prove reading confirms.
  */
 export function classifyToolWrite(
   name: string,
@@ -82,20 +82,20 @@ export function classifyToolWrite(
     if (annotations.destructiveHint === true) return true;
     if (annotations.readOnlyHint === false) return true;
   }
-  // Le client de redaction tamponne UN SEUL préfixe `${server}__` : la frontière du
-  // connecteur est le PREMIER `__` (un `lastIndexOf` tronquerait un nom nu contenant `__`).
+  // The redaction client stamps a SINGLE `${server}__` prefix: the connector
+  // boundary is the FIRST `__` (a `lastIndexOf` would truncate a bare name containing `__`).
   const i = name.indexOf("__");
   const bare = i >= 0 ? name.slice(i + 2) : name;
   const words = bare.replace(/[_-]+/g, " ");
-  // Destructeur n'importe où : AVANT le court-circuit lecture (H-5).
+  // Destructive anywhere: BEFORE the read short-circuit (H-5).
   if (DESTRUCTIVE_VERB.test(words)) return true;
-  // Tête de lecture, pas de commande composée ⇒ lecture (get_issue reste une lecture).
+  // Read head, no compound command ⇒ read (get_issue stays a read).
   if (READ_VERB.test(words) && !COMPOUND_WRITE.test(words)) return false;
   if (WRITE_VERB.test(words)) return true;
-  // Preuve faible : un verbe de lecture n'importe où, avec — établi ci-dessus — zéro
-  // verbe d'écriture ni destructeur dans le nom (donc pas de composé possible).
+  // Weak proof: a read verb anywhere, with — established above — zero
+  // write or destructive verb in the name (so no compound is possible).
   if (READ_ANYWHERE.test(words)) return false;
-  // Nom générique : l'annotation puis la description départagent ; sinon fail closed.
+  // Generic name: the annotation then the description break the tie; otherwise fail closed.
   if (annotations?.readOnlyHint === true) return false;
   if (description) {
     if (WRITE_VERB.test(description) || DESTRUCTIVE_VERB.test(description)) return true;
@@ -105,21 +105,21 @@ export function classifyToolWrite(
 }
 
 /**
- * Le verdict d'ÉCRITURE ne tient-il QU'À un verbe AMBIGU, contre une déclaration de
- * lecture seule du serveur ? (`posthog__execute-sql` + `readOnlyHint:true`.)
+ * Does the WRITE verdict hold ONLY on an AMBIGUOUS verb, against a server's
+ * declared read-only claim? (`posthog__execute-sql` + `readOnlyHint:true`.)
  *
- * ⚠️ Ceci ne rend PAS l'outil lisible : `classifyToolWrite` dit toujours écriture, donc
- * la confirmation reste EXIGÉE — un `readOnlyHint` usurpé ne peut rien exécuter en
- * silence. Ça ne lève qu'une chose : le refus AUTOMATIQUE en mode consultation. Sans
- * cette nuance, « regarde l'activité » refusait `execute-sql` sans rien demander à
- * personne, et l'unique outil capable de répondre devenait inatteignable pour TOUTE
- * question de lecture (journal du 15/08 : neuf tours, aucune réponse). Demander est le
- * bon compromis ; refuser d'office ne protégeait de rien, puisque la confirmation
- * protégeait déjà.
+ * ⚠️ This does NOT make the tool readable: `classifyToolWrite` still says write, so
+ * confirmation stays REQUIRED — a spoofed `readOnlyHint` can execute nothing in
+ * silence. It only lifts one thing: the AUTOMATIC refusal in read-only mode. Without
+ * this nuance, "look at the activity" refused `execute-sql` without asking
+ * anyone anything, and the one tool able to answer became unreachable for ANY
+ * read question (log from 15/08: nine turns, no answer). Asking is the
+ * right compromise; refusing outright protected nothing, since confirmation
+ * already protected it.
  *
- * Faux ⇒ comportement inchangé. Exigences cumulatives : le serveur DÉCLARE la lecture
- * seule, aucun verbe destructeur ni composé, et le verdict TOMBE si l'on retire les
- * verbes ambigus (sinon un autre verbe d'écriture le porte — `run_and_delete`).
+ * False ⇒ unchanged behavior. Cumulative requirements: the server DECLARES read
+ * only, no destructive or compound verb, and the verdict FALLS if the ambiguous
+ * verbs are removed (otherwise another write verb carries it — `run_and_delete`).
  */
 export function isAmbiguousWrite(
   name: string,
@@ -127,12 +127,12 @@ export function isAmbiguousWrite(
   description?: string,
 ): boolean {
   if (annotations?.readOnlyHint !== true || annotations.destructiveHint === true) return false;
-  if (!classifyToolWrite(name, annotations, description)) return false; // déjà une lecture
+  if (!classifyToolWrite(name, annotations, description)) return false; // already a read
   const i = name.indexOf("__");
   const words = (i >= 0 ? name.slice(i + 2) : name).replace(/[_-]+/g, " ");
   if (DESTRUCTIVE_VERB.test(words) || COMPOUND_WRITE.test(words)) return false;
   if (!AMBIGUOUS_WRITE_VERB.test(words)) return false;
-  // Le verbe ambigu doit être la SEULE cause : sans lui, plus de verdict d'écriture.
+  // The ambiguous verb must be the SOLE cause: without it, no write verdict remains.
   const sansAmbigu = words.replace(new RegExp(AMBIGUOUS_WRITE_VERB.source, "gi"), " ");
   return !WRITE_VERB.test(sansAmbigu);
 }

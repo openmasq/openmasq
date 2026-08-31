@@ -183,7 +183,7 @@ describe("namesConnectedConnector — la réponse fabriquée sans outil (l'autre
 
   it("mot ENTIER seulement — un id enchâssé dans un autre mot ne mord pas", () => {
     expect(namesConnectedConnector("parle-moi de l'intercommunalité", ["intercom"])).toBe(false);
-    // …mais la même demande avec le mot isolé plus loin mord (le scan continue).
+    // …but the same request with the word isolated further on DOES bite (the scan continues).
     expect(namesConnectedConnector("l'intercommunalité, puis intercom", ["intercom"])).toBe(true);
   });
 

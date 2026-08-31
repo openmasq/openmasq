@@ -128,9 +128,9 @@ export function rateLimitInfo(body: string): RateLimitInfo {
  * Body-text based like everything in this file: only the thrown message survives IPC.
  */
 export function providerCreditsExhausted(body: string): boolean {
-  // « no credits remaining » : la formulation d'OpenRouter, observée en prod le
-  // 06/08/2026 — un 429 « You have no credits remaining. Add credits… » a subi les
-  // 7 tentatives du backoff puis s'est dit « limite de débit momentanée ».
+  // « no credits remaining »: OpenRouter's own wording, observed in prod on
+  // 06/08/2026 — a 429 « You have no credits remaining. Add credits… » went through
+  // the 7 backoff attempts before being called « limite de débit momentanée ».
   return /insufficient_quota|credit balance is too low|exceeded your current quota|no credits remaining/i.test(
     body || "",
   );

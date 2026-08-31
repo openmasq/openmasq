@@ -746,7 +746,7 @@ describe("completeWithTools — Google (Gemini)", () => {
 });
 
 describe("429 — un quota épuisé ne se réessaie pas", () => {
-  /** Réponse d'échec, corps compris (le corps EST lu une fois par la boucle). */
+  /** Failure response, body included (the body IS read once by the loop). */
   function mockFail(status: number, body: string) {
     const fn = vi.fn(async () => ({
       ok: false,
@@ -790,7 +790,7 @@ describe("429 — un quota épuisé ne se réessaie pas", () => {
   });
 
   it("une RAFALE, elle, est bien réessayée — le backoff sert à ça", async () => {
-    // Temps piloté : le vrai backoff attend ~31 s, ce qu'un test n'a pas à subir.
+    // Driven time: the real backoff waits ~31s, which a test shouldn't have to endure.
     vi.useFakeTimers();
     try {
       const fetchFn = mockFail(429, '{"error":{"message":"Too many requests"}}');
@@ -804,9 +804,9 @@ describe("429 — un quota épuisé ne se réessaie pas", () => {
     }
   });
 
-  /** Le 429 d'OpenAI quand le COMPTE n'a plus de crédits : aucun en-tête de quota,
-   *  aucun mot journalier — la détection rafale/période ne voit rien, et le backoff
-   *  brûlait ~30-60 s contre un refus que seul un paiement débloque. */
+  /** OpenAI's 429 when the ACCOUNT has no credits left: no quota header,
+   *  no daily wording — the burst/period detection sees nothing, and the backoff
+   *  used to burn ~30-60s against a refusal that only a payment unlocks. */
   const INSUFFICIENT_QUOTA = JSON.stringify({
     error: {
       message: "You exceeded your current quota, please check your plan and billing details.",

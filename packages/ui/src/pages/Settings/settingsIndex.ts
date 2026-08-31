@@ -118,10 +118,10 @@ const ENTRY_TABS = {
   environment: "versions",
 } as const satisfies Record<keyof Messages["settings"]["entries"], SettingsTabId>;
 
-/** Quel réglage vit dans quel onglet : une donnée de STRUCTURE, donc du code — un
- *  catalogue de traduction ne déplace pas un réglage d'un onglet à l'autre. La copie,
- *  elle, vient de `t` ; le `satisfies` ci-dessus fait échouer la compilation si une
- *  entrée du catalogue n'a pas d'onglet, ou l'inverse. */
+/** Which setting lives in which tab: a piece of STRUCTURE data, hence code — a
+ *  translation catalogue doesn't move a setting from one tab to another. The copy,
+ *  though, comes from `t`; the `satisfies` above fails the build if a
+ *  catalogue entry has no tab, or the reverse. */
 export function settingsEntries(
   t: Messages,
 ): { key: keyof Messages["settings"]["entries"]; tab: SettingsTabId; label: string; kw: string }[] {
@@ -134,27 +134,27 @@ export function settingsEntries(
 }
 
 /**
- * Les capacités DISTANTES ou plateforme dont dépend l'existence d'un onglet. Chacune est
- * un créneau d'hôte absent quand le build n'a pas reçu son adresse (`SELF_HOSTING.md`) :
- * une capacité manquante retire l'onglet, elle ne l'affiche pas vide. Un réglage qui
- * promet un service que ce build ne peut pas joindre est un mensonge, pas une invite.
+ * The REMOTE or platform capabilities a tab's existence depends on. Each is
+ * a host slot that's absent when the build hasn't received its address (`SELF_HOSTING.md`):
+ * a missing capability removes the tab, it doesn't show it empty. A setting that
+ * promises a service this build can't reach is a lie, not an invitation.
  */
 export interface SettingsCapabilities {
-  /** `host.org` + une appartenance : l'onglet Organisation. */
+  /** `host.org` + a membership: the Organisation tab. */
   org: boolean;
-  /** `host.sync` : Vos appareils (synchro chiffrée de bout en bout, via le backend). */
+  /** `host.sync`: Vos appareils (end-to-end encrypted sync, via the backend). */
   sync: boolean;
-  /** `host.browser` : le navigateur intégré (plateforme, pas réseau). */
+  /** `host.browser`: the built-in browser (platform, not network). */
   browser: boolean;
-  /** `host.billing` : Paiement — abonnement, crédits, portail Stripe. Branché seulement
-   *  dans un build qui VEND (`OPENMASQ_BILLING=1`) ; absent par défaut. */
+  /** `host.billing`: Paiement — subscription, credits, Stripe portal. Wired in only
+   *  in a build that SELLS (`OPENMASQ_BILLING=1`); absent by default. */
   billing: boolean;
 }
 
 /**
- * L'onglet `id` existe-t-il ici ? LA question, posée une seule fois : le rail des
- * réglages et la palette ⌘K la lisent tous les deux (règle 9) — sans quoi la palette
- * finit par proposer une destination que le rail n'a pas.
+ * Does tab `id` exist here? THE question, asked once: the settings rail
+ * and the ⌘K palette both read it (rule 9) — without which the palette
+ * ends up offering a destination the rail doesn't have.
  */
 export function tabAvailable(id: SettingsTabId, caps: SettingsCapabilities): boolean {
   if (id === "org") return caps.org;

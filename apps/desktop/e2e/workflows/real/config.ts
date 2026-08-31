@@ -1,49 +1,49 @@
 /*
- * Env + harnais de la suite RÉELLE (`../../workflows-real.e2e.ts`) : les VRAIS
- * connecteurs du compte dev, pas les fixtures. Comment c'est possible sans OAuth
- * interactif : les tokens MCP vivent par COMPTE dans le profil de l'app
- * (`accounts/mcp-<uid>.json`, valeurs chiffrées `safeStorage` → Keychain macOS,
- * déchiffrables par le même binaire Electron). On COPIE ce fichier du profil dev
- * vers le profil de test (même pattern que `e2e:login` copie les cookies), on
- * seed une session dont `user.id` est l'uid RÉEL, et `mcp:set-user` →
- * `mcpReconnectStored` reconnecte silencieusement tous les connecteurs stockés.
- * Il faut donc bien LANCER l'app (headless) : hors Electron les tokens sont
- * indéchiffrables et le write gate n'existe pas — et c'est le gate qu'on teste.
+ * Env + harness for the REAL suite (`../../workflows-real.e2e.ts`): the dev
+ * account's REAL connectors, not the fixtures. How that's possible without interactive
+ * OAuth: MCP tokens live PER ACCOUNT in the app's profile
+ * (`accounts/mcp-<uid>.json`, values encrypted via `safeStorage` → macOS Keychain,
+ * decryptable by the same Electron binary). We COPY this file from the dev profile
+ * into the test profile (same pattern as `e2e:login` copying cookies), we
+ * seed a session whose `user.id` is the REAL uid, and `mcp:set-user` →
+ * `mcpReconnectStored` silently reconnects every stored connector.
+ * So the app DOES need to be LAUNCHED (headless): outside Electron the tokens are
+ * undecryptable and the write gate doesn't exist — and it's the gate we're testing.
  *
- * Le harnais est un DOSSIER (rule 1) : `config` (ce qu'on vise), `launch` (profil
- * adopté + session seedée), `turn` (attendre/diagnostiquer un tour), `gate` (le
- * pont MCP + l'approbateur de la fenêtre non-spoofable).
+ * The harness is a FOLDER (rule 1): `config` (what we're targeting), `launch` (profile
+ * adopted + session seeded), `turn` (waiting for/diagnosing a turn), `gate` (the
+ * MCP bridge + the non-spoofable window's approver).
  */
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { BRAND } from "@openmasq/branding";
 
 export const REAL = process.env.E2E_REAL === "1";
-/** Modèle PAYANT demandé pour cette suite (les échecs du dossier tofix ont été
- *  observés dessus) — quelques centimes par run, jamais en CI. */
+/** PAID model required for this suite (the tofix folder's failures were
+ *  observed on it) — a few cents per run, never in CI. */
 export const REAL_MODEL = process.env.E2E_REAL_MODEL || "poolside/laguna-xs-2.1";
-/** Le compte dev visé : celui dont le store MCP du profil porte les connecteurs.
+/** The targeted dev account: the one whose profile's MCP store carries the connectors.
  *
- *  ⚠️ **Aucun défaut en dur, et c'est délibéré.** Ce dépôt est public : un uid Supabase et
- *  une adresse écrits ici désignent un compte RÉEL en production, que quiconque clone
- *  hériterait comme cible. Les deux viennent de l'environnement, et leur absence ARRÊTE la
- *  suite (voir plus bas) plutôt que de la laisser viser le compte de quelqu'un d'autre. */
+ *  ⚠️ **No hardcoded default, and that's deliberate.** This repo is public: a Supabase uid
+ *  and an address written here would designate a REAL production account, which anyone cloning
+ *  it would inherit as a target. Both come from the environment, and their absence STOPS the
+ *  suite (see below) rather than letting it target someone else's account. */
 export const REAL_UID = process.env.E2E_REAL_UID ?? "";
-/** L'adresse de ce même compte — sert de sentinelle PII et amorce la session seedée. */
+/** This same account's address — serves as a PII sentinel and seeds the seeded session. */
 export const REAL_EMAIL = process.env.E2E_REAL_EMAIL ?? "";
-/** Le profil qui DÉTIENT les connexions (l'app dev sur cette machine). */
+/** The profile that HOLDS the connections (the dev app on this machine). */
 export const REAL_PROFILE =
   process.env.E2E_REAL_PROFILE || resolve(homedir(), `Library/Application Support/${BRAND.name} (Dev)`);
-/** Sentinelles PII : des valeurs RÉELLES connues du compte/tenant dev qui ne
- *  doivent JAMAIS apparaître sur le wire (résultats d'outils re-redacted).
- *  Extensible par env (liste séparée par des virgules). */
+/** PII sentinels: REAL values known to the dev account/tenant that must
+ *  NEVER appear on the wire (re-redacted tool results).
+ *  Extensible via env (comma-separated list). */
 export const REAL_PII = [
   ...(REAL_EMAIL ? [REAL_EMAIL] : []),
   ...(process.env.E2E_REAL_PII ?? "").split(",").map((s) => s.trim()).filter(Boolean),
 ];
 
-// Fail closed, et TÔT : sans cible explicite la suite ne doit pas démarrer. Un run muet
-// qui vise un uid par défaut copierait le store MCP d'un compte qui n'est pas le vôtre.
+// Fail closed, and EARLY: without an explicit target the suite must not start. A silent run
+// targeting a default uid would copy the MCP store of an account that isn't yours.
 if (REAL && (!REAL_UID || !REAL_EMAIL)) {
   throw new Error(
     "E2E_REAL=1 exige E2E_REAL_UID (l'uid Supabase du compte dev) et E2E_REAL_EMAIL " +

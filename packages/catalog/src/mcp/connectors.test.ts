@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { MCP_CONNECTORS, connectorHosts, findConnector } from "./index";
 
 /**
- * `McpConnector.hosts` est une ALLOW-list de sécurité, pas une donnée d'affichage : les
- * sous-parties d'un lien pointant vers l'un de ces domaines restent EN CLAIR pour le
- * modèle (un id de page Notion redacted est un lien mort que le connecteur ne sait plus
- * relire). Un domaine trop large ou mal formé élargit donc silencieusement une exemption
- * de redaction — d'où ces invariants.
+ * `McpConnector.hosts` is a security ALLOW-list, not display data: the sub-parts of a
+ * link pointing to one of these domains stay IN CLEAR for the model (a redacted Notion
+ * page id is a dead link the connector can no longer read back). A domain that is too
+ * broad or malformed therefore silently widens a redaction exemption — hence these
+ * invariants.
  */
 describe("McpConnector.hosts", () => {
   const declared = MCP_CONNECTORS.flatMap((c) => (c.hosts ?? []).map((h) => [c.id, h] as const));
@@ -18,16 +18,16 @@ describe("McpConnector.hosts", () => {
     }
   });
 
-  // Le suffixe doit TERMINER l'hôte (`app.notion.com` finit par `.notion.com`), donc un
-  // domaine d'un seul cran exempterait tout un TLD, et un domaine de plateforme partagée
-  // exempterait les ressources de n'importe qui d'autre.
+  // The suffix must TERMINATE the host (`app.notion.com` ends with `.notion.com`), so a
+  // single-level domain would exempt an entire TLD, and a shared-platform domain would
+  // exempt anyone else's resources.
   it("n'exempte jamais un suffixe public ni un TLD", () => {
     const TOO_BROAD = new Set(["com", "net", "org", "io", "co", "app", "dev", "ai", "sh", "cloud", "google.com", "microsoft.com", "live.com", "amazonaws.com", "github.io", "herokuapp.com"]);
     for (const [id, h] of declared) expect([id, TOO_BROAD.has(h)]).toEqual([id, false]);
   });
 
-  // Ce que ces connecteurs renvoient, ce sont des pages TIERCES : les exempter
-  // reviendrait à exempter n'importe quelle URL parcourue, ce que la garde interdit.
+  // What these connectors return are THIRD-PARTY pages: exempting them
+  // would amount to exempting any browsed URL, which the guard forbids.
   it("reste vide pour les connecteurs de recherche / crawl", () => {
     for (const id of ["exa", "tavily", "firecrawl", "apify", "brightdata"]) {
       expect([id, connectorHosts(findConnector(id))]).toEqual([id, []]);
@@ -41,7 +41,7 @@ describe("McpConnector.hosts", () => {
     expect(connectorHosts(findConnector("notion--a1b2"))).toContain("notion.com");
   });
 
-  // Fail closed : rien de connu ⇒ aucune exemption.
+  // Fail closed: nothing known ⇒ no exemption.
   it("est vide pour un connecteur inconnu", () => {
     expect(connectorHosts(findConnector("nope"))).toEqual([]);
     expect(connectorHosts(undefined)).toEqual([]);

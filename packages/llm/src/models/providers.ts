@@ -85,16 +85,16 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
   },
   "claude-cli": {
     id: "claude-cli",
-    // L'ABONNEMENT Claude de l'utilisateur, via sa CLI Claude Code installée et déjà
-    // connectée (headless). Keyless par nature : l'auth vit dans la CLI, jamais ici.
+    // The user's Claude SUBSCRIPTION, via their Claude Code CLI installed and already
+    // connected (headless). Keyless by nature: auth lives in the CLI, never here.
     label: "Claude Code",
     keyless: true,
     hostCountry: { code: "US", label: "Hébergé aux États-Unis" },
   },
   "codex-cli": {
     id: "codex-cli",
-    // L'abonnement ChatGPT de l'utilisateur, via sa CLI Codex installée et connectée
-    // (« Sign in with ChatGPT »). Même patron que claude-cli.
+    // The user's ChatGPT subscription, via their Codex CLI installed and connected
+    // ("Sign in with ChatGPT"). Same pattern as claude-cli.
     label: "Codex",
     keyless: true,
     hostCountry: { code: "US", label: "Hébergé aux États-Unis" },

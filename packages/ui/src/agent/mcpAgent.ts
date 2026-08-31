@@ -540,10 +540,10 @@ const STUCK_STOP = 3;
 // same (tool, result): varied `run_python` failures, a write the user keeps declining
 // (incl. a confirm dialog DISMISSED). STUCK_STOP misses these (distinct results), so we
 // ALSO count non-productive outcomes across ALL tools — but AT MOST ONCE PER MODEL
-// RESPONSE (`bumpDead`): a batch of 7 `read_file` sur le même « utilise read_document »
-// brûlait toute la série en UNE réponse, tuant le tour AVANT que le modèle ait pu lire
-// le feedback (journal 02/08). La série mesure des RÉPONSES sans avancée, jamais des
-// appels ; remise à zéro sur tout appel productif.
+// RESPONSE (`bumpDead`): a batch of 7 `read_file` on the same « use read_document »
+// burned the whole series in ONE response, killing the turn BEFORE the model could read
+// the feedback (02/08 journal). The series measures RESPONSES with no progress, never
+// calls; reset on any productive call.
 const MAX_CONSECUTIVE_DEAD = 5;
 // Per-tool HARD backstop: a single tool called more than its cap in ONE turn stops the loop,
 // whatever its args or results. STUCK_STOP/MAX_CONSECUTIVE_DEAD both key on UNproductivity —
@@ -1944,8 +1944,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       // never a silent no-attachment send. Kept in WIRE form: this text goes back to
       // the model (rule 11 — no real value may ride our own note).
       let unresolvedAttachmentNames: string[] = [];
-      // Sortie d'un document de la conversation (e-mail `attachments`, dépôt Drive
-      // `file`) : le modèle NOMME, le desktop résout les octets — même confirmation.
+      // A document leaving the conversation (e-mail `attachments`, Drive
+      // `file` upload): the model NAMES it, the desktop resolves the bytes — same confirmation.
       const attachField = { send_email: "attachments", upload_file: "file" }[bareTool];
       if (attachField && !draftOnly && !consultOnly && p.resolveAttachments) {
         const raw = (args as Record<string, unknown>)[attachField];

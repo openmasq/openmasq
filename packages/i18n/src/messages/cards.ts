@@ -58,7 +58,7 @@ export interface CardsMessages {
     attachmentIgnored: string;
   };
 
-  /** La modale « comment envoyer ce document » : texte extrait ou pages en images. */
+  /** The « how to send this document » modal: extracted text or pages as images. */
   sendMode: {
     title: string;
     question: (fileCount: number) => string;

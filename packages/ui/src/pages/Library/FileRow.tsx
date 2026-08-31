@@ -79,9 +79,9 @@ export function FileRow({
         <span className="om-row-sub">{extOf(file.name)}</span>
       </span>
       <span className="om-row-meta">
-        {/* Le bouclier porte le COMPTE quand il y en a un : « protégé » sans nombre ne dit
-            pas si une valeur a été masquée ou quarante. Une image ou un PDF garde
-            `redacted:false` alors que son texte a bien été redacted — d'où le compte. */}
+        {/* The shield carries the COUNT when there is one: "protected" with no number doesn't
+            say whether one value was masked or forty. An image or a PDF keeps
+            `redacted:false` even though its text really was redacted — hence the count. */}
         {shielded && (
           <span
             className="om-row-shield"
@@ -99,8 +99,8 @@ export function FileRow({
       </span>
       <span
         className="om-row-actions"
-        // L'action ne doit pas OUVRIR le fichier au passage : la rangée entière est un
-        // bouton, donc tout clic à l'intérieur remonte jusqu'à elle.
+        // The action must not OPEN the file along the way: the whole row is a
+        // button, so any click inside it bubbles up to it.
         onClick={(e) => e.stopPropagation()}
       >
         {onDownload && !selectMode && (

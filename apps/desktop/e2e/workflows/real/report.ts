@@ -4,20 +4,20 @@ import { DESKTOP_DIR } from "../env";
 import type { LabResult } from "./lab";
 
 /*
- * L'ÉCRITURE DES RAPPORTS D'ÉVAL — `evals-reports/`, à la racine du dépôt.
+ * WRITING EVAL REPORTS — `evals-reports/`, at the repo root.
  *
- * Deux bancs, deux dossiers, JAMAIS mélangés : leurs chiffres ne veulent pas dire
- * la même chose. Le banc FIXTURES est déterministe (résultats d'outils figés) —
- * il mesure le MODÈLE et la GUIDANCE, et il est répétable à volonté. Le banc E2E
- * touche de vrais serveurs — il mesure ce que l'utilisateur vivra, mais ses
- * chiffres bougent avec la latence des services et le contenu réel des comptes.
- * Comparer un run fixtures à un run e2e ne prouverait rien ; comparer deux runs
- * fixtures avant/après un changement de guidance, si.
+ * Two benches, two folders, NEVER mixed: their numbers don't mean
+ * the same thing. The FIXTURES bench is deterministic (canned tool results) —
+ * it measures the MODEL and the GUIDANCE, and it's repeatable at will. The E2E bench
+ * touches real servers — it measures what the user will experience, but its
+ * numbers move with service latency and the accounts' real content.
+ * Comparing a fixtures run to an e2e run would prove nothing; comparing two
+ * fixtures runs before/after a guidance change does.
  *
- * ⚠️ Un rapport ne contient JAMAIS le texte des réponses en clair : les bancs
- * touchent de vrais comptes (fixtures comprises — leurs résultats portent de la
- * PII de test). On écrit des MESURES (durées, compte d'appels, répétitions,
- * verdicts) et, au plus, un extrait court explicitement neutralisé.
+ * ⚠️ A report NEVER contains the answers' plaintext: the benches
+ * touch real accounts (fixtures included — their results carry test
+ * PII). We write MEASUREMENTS (durations, call counts, repetitions,
+ * verdicts) and, at most, a short excerpt explicitly neutralized.
  */
 
 export type EvalMode = "fixtures" | "e2e";
@@ -29,9 +29,9 @@ export interface EvalRun {
   family: string;
   connectors: string[];
   results: LabResult[];
-  /** Confirmations d'écriture demandées par la boucle (outil + verdict). */
+  /** Write confirmations requested by the loop (tool + verdict). */
   confirms: { tool: string; approved: boolean }[];
-  /** Horodatage fourni par l'appelant (le spec) — pas d'horloge cachée ici. */
+  /** Timestamp provided by the caller (the spec) — no hidden clock here. */
   at: string;
 }
 
@@ -39,7 +39,7 @@ const REPORT_DIR = resolve(DESKTOP_DIR, "../../evals-reports");
 
 const dirFor = (mode: EvalMode) => resolve(REPORT_DIR, mode);
 
-/** Métriques agrégées d'un run — c'est ce qu'on suit d'un run à l'autre. */
+/** A run's aggregated metrics — what we track from one run to the next. */
 export function metricsOf(results: LabResult[]) {
   const n = results.length || 1;
   const calls = results.reduce((s, r) => s + r.tools.length, 0);
@@ -49,15 +49,15 @@ export function metricsOf(results: LabResult[]) {
     errors: results.filter((r) => r.error).length,
     stuck: results.filter((r) => r.timedOut).length,
     looped: results.filter((r) => r.loopStopped).length,
-    /** Boucles où un NOM D'OUTIL a été redacted : la boucle est (au moins en partie)
-     *  induite par le NER, pas par le modèle — à soustraire du reproche au modèle. */
+    /** Loops where a TOOL NAME was redacted: the loop is (at least in part)
+     *  induced by the NER, not by the model — to subtract from the model's blame. */
     redactLoops: results.filter((r) => r.loopStopped && r.toolRedactions.length).length,
-    /** Tours SANS aucun appel d'outil : le modèle a nié une capacité qu'il avait. */
+    /** Turns WITHOUT a single tool call: the model denied a capability it had. */
     silent: results.filter((r) => !r.tools.length && !r.error).length,
     calls,
-    /** Pire répétition d'un même outil, tous tours confondus. */
+    /** Worst repeat of the same tool, across all turns. */
     worstRepeat: Math.max(0, ...results.map((r) => r.maxRepeat)),
-    /** Outils DISTINCTS touchés — la « largeur » sur un workflow complexe. */
+    /** DISTINCT tools touched — the "breadth" on a complex workflow. */
     distinctTools: new Set(results.flatMap((r) => r.tools)).size,
     medianMs: [...results.map((r) => r.ms)].sort((a, b) => a - b)[Math.floor(n / 2)] ?? 0,
     maxMs: Math.max(0, ...results.map((r) => r.ms)),
@@ -67,7 +67,7 @@ export function metricsOf(results: LabResult[]) {
 const stateOf = (r: LabResult) =>
   r.timedOut ? "⏳ bloqué" : r.error ? "✗ erreur" : r.loopStopped ? "🔁 boucle" : r.tools.length ? "✓" : "⚠️ sans outil";
 
-/** Écrit (ou complète) le rapport d'un run et renvoie son chemin. */
+/** Writes (or appends to) a run's report and returns its path. */
 export function writeEvalReport(run: EvalRun): string {
   const dir = dirFor(run.mode);
   mkdirSync(dir, { recursive: true });
@@ -110,7 +110,7 @@ export function writeEvalReport(run: EvalRun): string {
   return path;
 }
 
-/** Une ligne par run dans un index commun — la vue « tous modèles » d'un coup d'œil. */
+/** One line per run in a shared index — the "all models" view at a glance. */
 export function appendEvalIndex(run: EvalRun): void {
   const dir = dirFor(run.mode);
   mkdirSync(dir, { recursive: true });

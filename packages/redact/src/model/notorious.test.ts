@@ -28,14 +28,14 @@ describe("isNotoriousEntity — category-scoped allow-list", () => {
   });
 
   it("⚠️ les MARQUES COMMERCIALES ne sont PLUS dispensées PAR DÉFAUT (décision produit 27/07/2026)", () => {
-    // « Google » est de notoriété publique, mais « je travaille chez Google » /
-    // « le dossier BNP Paribas avance » nomment l'employeur ou le client de celui qui
-    // écrit — une relation d'affaires, pas une connaissance générale. Ce qui reste
-    // dispensé (organismes publics, émetteurs de courrier, outillage, indices) est
-    // vérifié juste au-dessus : c'est la frontière, pas une exception.
-    // Depuis le 30/07/2026 la dispense revient en OPT-IN par niveau (`commercial: true`,
-    // Standard/Renforcé) — le bloc « dispense COMMERCIALE opt-in » ci-dessous. SANS le
-    // flag, le comportement du 27/07 est le contrat, et ce test l'épingle.
+    // « Google » is public knowledge, but « je travaille chez Google » /
+    // « le dossier BNP Paribas avance » name the writer's employer or client —
+    // a business relationship, not general knowledge. What stays
+    // dispensed (public bodies, mail senders, tooling, indices) is
+    // verified right above: that's the boundary, not an exception.
+    // Since 30/07/2026 the dispensation comes back as OPT-IN per level (`commercial: true`,
+    // Standard/Enhanced) — the "opt-in COMMERCIAL dispensation" block below. WITHOUT the
+    // flag, the 27/07 behaviour is the contract, and this test pins it.
     for (const v of ["Apple", "apple", "LVMH", "Société Générale", "BNP Paribas",
       "Airbus", "Renault", "Carrefour", "Goldman Sachs"]) {
       expect(isNotoriousEntity(v, "company"), v).toBe(false);
@@ -111,8 +111,8 @@ describe("filterCandidates — notorious gate interplay with forced/unrevealable
     emailSpans: null,
     input: "tu connais Pôle emploi ?",
   };
-  // Un organisme PUBLIC : les marques commerciales ne sont plus dispensées, donc le
-  // témoin de cette porte doit être quelque chose qu'elle épargne toujours.
+  // A PUBLIC body: commercial brands are no longer dispensed, so the
+  // witness for this gate must be something it always spares.
   const apple: Detection[] = [{ value: "Pôle emploi", category: "ORG" }];
 
   it("drops a notorious entity, but user-`forced` still wins (explicit ask)", () => {
@@ -130,8 +130,8 @@ describe("filterCandidates — notorious gate interplay with forced/unrevealable
 describe("pseudonymize — notorious entities keep the conversation PRISTINE", () => {
   it("a world-knowledge question ships verbatim and mints NOTHING (empty vault)", async () => {
     const vault: Vault = {};
-    // « Apple » est SORTI de cet exemple : une marque commerciale est désormais redacted.
-    // Ce que ce test protège reste entier — personnalité, organisme public, pays.
+    // « Apple » is REMOVED from this example: a commercial brand is now redacted.
+    // What this test protects stays whole — public figure, public body, country.
     const input = "Qui est Albert Einstein ? Tu connais Pôle emploi ? Et la France ?";
     const { text } = await pseudonymize(input, {
       complete: modelReturning([
@@ -230,8 +230,8 @@ describe("dispense COMMERCIALE opt-in — `commercial: true` (niveaux Standard/R
   });
 
   it("le scoping par catégorie tient MÊME avec le flag — un particulier au patronyme-marque reste protégé", () => {
-    // C'est la raison pour laquelle la dispense passe par le moteur et non par `keep`
-    // (qui est aveugle à la catégorie) : M. Hermès, Mme Renault, M. Leclerc.
+    // This is why the dispensation goes through the engine rather than `keep`
+    // (which is blind to category): M. Hermès, Mme Renault, M. Leclerc.
     for (const v of ["Hermès", "Tesla", "Renault", "Leclerc", "Michelin", "Chanel", "Dior"]) {
       expect(isNotoriousEntity(v, "name", commercial), v).toBe(false);
     }
@@ -240,7 +240,7 @@ describe("dispense COMMERCIALE opt-in — `commercial: true` (niveaux Standard/R
   it("une marque MULTI-mots taguée NAME est l'org mal lue (dispensée avec le flag) ; un mot seul jamais", () => {
     expect(isNotoriousEntity("BNP Paribas", "name", commercial)).toBe(true);
     expect(isNotoriousEntity("Goldman Sachs", "name", commercial)).toBe(true);
-    expect(isNotoriousEntity("BNP Paribas", "name")).toBe(false); // sans flag : inchangé
+    expect(isNotoriousEntity("BNP Paribas", "name")).toBe(false); // without the flag: unchanged
     expect(isNotoriousEntity("Renault", "name", commercial)).toBe(false);
   });
 
@@ -264,8 +264,8 @@ describe("dispense COMMERCIALE opt-in — `commercial: true` (niveaux Standard/R
   });
 
   it("« je travaille chez Google » reste redacted même avec le flag (rattachement à la 1re personne)", async () => {
-    // La notoriété dit que l'entité est publique, jamais que la RELATION l'est —
-    // la porte `isSelfBoundEntity` l'emporte sur la dispense, flag compris.
+    // Notoriety says the ENTITY is public, never that the RELATION is —
+    // the `isSelfBoundEntity` gate wins over the exemption, flag included.
     const vault: Vault = {};
     const { text } = await pseudonymize("je travaille chez Google depuis mars.", {
       complete: modelReturning([{ value: "Google", category: "ORG" }]),
@@ -278,11 +278,11 @@ describe("dispense COMMERCIALE opt-in — `commercial: true` (niveaux Standard/R
   });
 
   it("les intégrations MCP de l'app sont dans la dispense commerciale (échantillon ; la parité complète est côté app)", () => {
-    // Le test exhaustif lit le catalogue : `packages/ui/src/privacy/notorietyCatalogParity.test.ts`.
+    // The exhaustive test reads the catalogue: `packages/ui/src/privacy/notorietyCatalogParity.test.ts`.
     for (const v of ["Canva", "Gmail", "Google Drive", "Stripe", "Notion", "Sentry",
       "Supabase", "monday.com", "Hugging Face", "PostHog"]) {
       expect(isNotoriousEntity(v, "company", commercial), v).toBe(true);
-      expect(isNotoriousEntity(v, "company"), v).toBe(false); // Strict : redacted
+      expect(isNotoriousEntity(v, "company"), v).toBe(false); // Strict: redacted
     }
   });
 
@@ -308,8 +308,8 @@ describe("dispense PERSONNALITÉS — opt-out `people: false` (le niveau Strict)
     expect(isNotoriousEntity("Albert Einstein", "name")).toBe(true);
     expect(isNotoriousEntity("Albert Einstein", "name", { people: false })).toBe(false);
     expect(isNotoriousEntity("Macron", "name", { commercial: true, people: false })).toBe(false);
-    // Un pays redacted fait dériver le modèle sur une autre géographie — dispensé
-    // même en Strict ; idem le ticker (une valeur de marché n'identifie personne).
+    // A redacted country drifts the model onto another geography — exempted
+    // even in Strict; likewise the ticker (a market value identifies nobody).
     expect(isNotoriousEntity("France", "location", { people: false })).toBe(true);
     expect(isNotoriousEntity("SPY", "name", { people: false })).toBe(true);
   });
@@ -332,15 +332,15 @@ describe("dispense PERSONNALITÉS — opt-out `people: false` (le niveau Strict)
 
 describe("Cdiscount — deux marques notoires doivent recevoir le même traitement", () => {
   it("est dispensée comme les autres enseignes, hors Strict", () => {
-    // Mesuré le 14/08 : « Cdiscount » partait en « Voxa Labs » dans l'envoi même où
-    // « MAIF » restait en clair. Une marque d'e-commerce sur un relevé est le
-    // FOURNISSEUR, jamais l'identité du lecteur.
+    // Measured on 14/08: « Cdiscount » went out as « Voxa Labs » in the very send where
+    // « MAIF » stayed in clear. An e-commerce brand on a statement is the
+    // SUPPLIER, never the reader's identity.
     expect(isNotoriousEntity("Cdiscount", "company", { commercial: true })).toBe(true);
     expect(isNotoriousEntity("MAIF", "company", { commercial: true })).toBe(true);
-    // ⚠️ Les deux ne sont PAS dans la même famille, et c'est voulu : MAIF est un en-tête
-    // d'EXPÉDITEUR (assureur), dispensé même en Strict ; Cdiscount est une marque
-    // COMMERCIALE, donc dispensée seulement hors Strict. Ce que le constat pointait n'est
-    // pas cette asymétrie-là, c'est que Cdiscount ne figurait NULLE PART.
+    // ⚠️ The two are NOT in the same family, and that is deliberate: MAIF is a SENDER
+    // header (an insurer), exempted even in Strict; Cdiscount is a COMMERCIAL
+    // brand, so exempted only outside Strict. What the report pointed at is not
+    // that asymmetry, it is that Cdiscount appeared NOWHERE.
     expect(isNotoriousEntity("Cdiscount", "company")).toBe(false);
     expect(isNotoriousEntity("MAIF", "company")).toBe(true);
   });
@@ -349,9 +349,9 @@ describe("Cdiscount — deux marques notoires doivent recevoir le même traiteme
 describe("la FORME JURIDIQUE ne doit pas rater la dispense (constat 15/08, relevé réel)", () => {
   const spared = (v: string) => isNotoriousEntity(v, "company", { commercial: true });
 
-  /** En Renforcé, sur les libellés de contreparties d'un vrai relevé : « Ovh Sas » et
-   *  « Github, Inc. » étaient REDACTED alors que la politique les dispense, pendant qu'un
-   *  vrai client partait en clair — l'inverse de l'intention. */
+  /** In Renforcé, on the counterparty labels of a real statement: « Ovh Sas » and
+   *  « Github, Inc. » were REDACTED although the policy exempts them, while a
+   *  real customer was going out in clear — the opposite of the intent. */
   it("une marque connue reste dispensée sous son libellé bancaire", () => {
     for (const v of ["Ovh Sas", "OVH SAS", "GitHub Inc", "Github, Inc.", "Orange SARL"]) {
       expect(spared(v)).toBe(true);
@@ -359,21 +359,21 @@ describe("la FORME JURIDIQUE ne doit pas rater la dispense (constat 15/08, relev
   });
 
   it("⚠️ et la borne tient : un nom ORDINAIRE + forme juridique n'est PAS dispensé", () => {
-    // C'est ce qui sépare l'extension d'une exposition acceptée d'une nouvelle : seul le
-    // NOYAU compte, et il doit être dans la liste.
+    // That is what separates extending an accepted exposure from a new one: only the
+    // CORE counts, and it must be in the list.
     for (const v of ["Karl Studio SAS", "Apple Consulting", "Lestricolores", "Indy Comptabilite"]) {
       expect(spared(v)).toBe(false);
     }
   });
 
   it("…et le croisement NAME garde SA borne : le mot SEUL n'est jamais dispensé", () => {
-    // « Orange SARL » étiqueté NAME EST dispensé — c'est le croisement multi-mots que ce
-    // fichier documente déjà (une org mal lue en personne ; aucun particulier ne porte la
-    // raison sociale entière). Ce qui protège une personne, c'est que le mot SEUL ne l'est
-    // jamais : une vraie personne nommée Orange reste redacted.
+    // « Orange SARL » tagged NAME IS exempt — it is the multi-word crossing this
+    // file already documents (an org misread as a person; no individual carries the
+    // whole legal name). What protects a person is that the word ALONE never is:
+    // a real person named Orange stays redacted.
     expect(isNotoriousEntity("Orange SARL", "name", { commercial: true })).toBe(true);
     expect(isNotoriousEntity("Orange", "name", { commercial: true })).toBe(false);
-    // …et un nom de personne dont un mot ressemble à une marque n'est pas touché non plus.
+    // …and a person's name one of whose words looks like a brand is not touched either.
     expect(isNotoriousEntity("Camille Orange", "name", { commercial: true })).toBe(false);
   });
 });

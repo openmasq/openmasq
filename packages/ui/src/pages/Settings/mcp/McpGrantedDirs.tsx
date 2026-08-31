@@ -4,17 +4,17 @@ import { Btn } from "./McpBtn";
 
 import { useT } from "../../../i18n";
 /**
- * Les dossiers autorisés d'un serveur local DÉJÀ connecté, avec ajout et retrait.
+ * An ALREADY-connected local server's granted folders, with add and remove.
  *
- * Pourquoi sur la carte du connecté, et pas seulement dans le formulaire de connexion :
- * la liste ne se composait qu'une fois, à la connexion. Ajouter un deuxième dossier
- * demandait de tout déconnecter puis de ré-accorder chaque dossier un par un — une
- * révocation complète pour une addition. Personne ne le fait ; on renonce au dossier.
+ * Why on the connected card, and not only in the connect form: the list used to be
+ * composed just once, at connection time. Adding a second folder required disconnecting
+ * everything then re-granting each folder one by one — a full revocation for one
+ * addition. Nobody does that; they give up on the folder.
  *
- * Le retrait est immédiat côté hôte (le connecteur est reconstruit avec le nouveau
- * périmètre), donc ce bouton retire vraiment l'accès, il ne le retire pas « au prochain
- * lancement ». C'est aussi pour ça que l'erreur renvoyée par l'hôte s'affiche ici telle
- * quelle : une révocation qui échoue doit se voir.
+ * Removal is immediate on the host side (the connector is rebuilt with the new
+ * scope), so this button really removes access, it doesn't remove it "on the next
+ * launch". That's also why the error the host returns is displayed here exactly as
+ * received: a revocation that fails must be visible.
  */
 export function McpGrantedDirs({
   entry,
@@ -23,7 +23,7 @@ export function McpGrantedDirs({
   onSetDirs,
 }: {
   entry: McpCatalogEntry;
-  /** Les dossiers actuellement autorisés, par clé de paramètre. */
+  /** The currently granted folders, by parameter key. */
   params?: Record<string, string[]>;
   onPickDir: () => Promise<string | undefined>;
   onSetDirs: (key: string, dirs: string[]) => Promise<string | undefined>;
@@ -65,8 +65,8 @@ export function McpGrantedDirs({
                       dirs.filter((x) => x !== d),
                     )
                   }
-                  // Un dossier requis ne se retire pas s'il est le dernier : l'hôte
-                  // refuserait, autant ne pas proposer le geste.
+                  // A required folder can't be removed if it's the last one: the host
+                  // would refuse, so don't bother offering the gesture.
                   disabled={busy || (!!p.required && dirs.length === 1)}
                   aria-label={t.mcpTab.removeDir(d)}
                   title={p.required && dirs.length === 1 ? t.mcpTab.atLeastOneDir : t.mcpTab.remove}

@@ -10,13 +10,13 @@ import { FolderTreePanel } from "./FolderTreePanel";
 const STORAGE_COUNT = STORAGE_CONNECTORS.length;
 
 /**
- * L'arborescence des dossiers autorisés, dans le rail droit.
+ * The tree of granted folders, in the right rail.
  *
- * Ce qui vaut un test ici n'est pas la mise en page mais le contrat avec le disque et
- * avec le reste de l'app : on ne lit un dossier que quand quelqu'un l'ouvre (une lecture
- * spéculative, c'est du disque parcouru pour rien, et sur un dossier réseau ça se sent),
- * on ne le relit pas quand on le referme et le rouvre, et ouvrir un fichier passe par LE
- * panneau partagé — pas par un second visualiseur.
+ * What's worth testing here isn't the layout but the contract with the disk and
+ * with the rest of the app: a folder is read only when someone opens it (a speculative
+ * read is disk walked for nothing, and on a network folder it shows),
+ * it isn't re-read when closed then reopened, and opening a file goes through THE
+ * shared panel — not a second viewer.
  */
 
 const dir = (path: string, name: string): LocalFsEntry => ({
@@ -34,7 +34,7 @@ const file = (path: string, name: string): LocalFsEntry => ({
   mtime: 0,
 });
 
-/** Un `host.localFs` de test qui compte ses lectures. */
+/** A test `host.localFs` that counts its reads. */
 function fakeFs(listings: Record<string, LocalFsEntry[]>) {
   const listed: string[] = [];
   return {
@@ -65,7 +65,7 @@ describe("FolderTreePanel — les dossiers autorisés dans le rail", () => {
     });
     const m = await mount(<FolderTreePanel />, { host: { localFs: fs }, wrap });
 
-    // La racine s'affiche sans qu'aucun listing n'ait été demandé.
+    // The root shows without any listing having been requested.
     expect(m.findAll(".rr-src")).toHaveLength(1 + STORAGE_COUNT);
     expect(m.findAll(".rr-tree-row")).toHaveLength(0);
     expect(listed).toEqual([]);
@@ -77,7 +77,7 @@ describe("FolderTreePanel — les dossiers autorisés dans le rail", () => {
       expect.stringContaining("todo.md"),
     ]);
 
-    // Replier puis rouvrir : le listing est gardé, le disque n'est pas relu.
+    // Collapse then reopen: the listing is kept, the disk isn't re-read.
     await m.click(".rr-src");
     expect(m.findAll(".rr-tree-row")).toHaveLength(0);
     await m.click(".rr-src");
@@ -95,8 +95,8 @@ describe("FolderTreePanel — les dossiers autorisés dans le rail", () => {
     await m.click(fileRow);
 
     const item = store.getState().panel.items.find((i) => i.id === "localfile:/w/devis.pdf");
-    // Le chemin est la clé : rouvrir le même fichier refocalise son onglet au lieu d'en
-    // empiler un second, et un fichier renommé est bien un autre élément.
+    // The path is the key: reopening the same file refocuses its tab instead of
+    // stacking a second one, and a renamed file really is a different item.
     expect(item).toMatchObject({ kind: "localfile", name: "devis.pdf" });
     expect(store.getState().panel.open).toBe(true);
 
@@ -113,12 +113,12 @@ describe("FolderTreePanel — les dossiers autorisés dans le rail", () => {
     });
     await m.click(".rr-src");
 
-    // Un fichier LOCAL n'a pas d'action « Demander » : il s'ouvre, et le joindre est une
-    // autre décision (le panneau la porte). Le survol ne l'offre que sur un dossier.
+    // A LOCAL file has no « Demander » action: it opens, and attaching it is a
+    // separate decision (the panel carries it). The hover only offers it on a folder.
     expect(m.findAll(".rr-tree-ask")).toHaveLength(1);
     await m.click(".rr-tree-ask");
-    // La cible dit ce qu'elle EST — un dossier — pas seulement son chemin : c'est le
-    // `kind` qui fait le tag (et la ligne de contexte envoyée au modèle).
+    // The target says what it IS — a folder — not just its path: it's the
+    // `kind` that makes the tag (and the context line sent to the model).
     expect(asked).toEqual([{ kind: "folder", path: "/w/Clients" }]);
 
     await m.unmount();
@@ -133,9 +133,9 @@ describe("FolderTreePanel — les dossiers autorisés dans le rail", () => {
         calls.push({ id, key, dirs });
         return {} as never;
       },
-      // Le serveur TEL QUE main l'enregistre : `local-<catalogId>`, avec ses dossiers
-      // sous la clé du catalogue. Viser « filesystem » ne touchait rien, et l'appel
-      // partait dans le vide sans que rien ne s'affiche.
+      // The server AS main registers it: `local-<catalogId>`, with its folders
+      // under the catalog key. Targeting "filesystem" touched nothing, and the call
+      // went into the void with nothing shown.
       list: async () => [
         {
           id: "local-filesystem",
@@ -155,8 +155,8 @@ describe("FolderTreePanel — les dossiers autorisés dans le rail", () => {
     });
 
     await m.click(".rr-tree-add");
-    // `setDirs` REMPLACE la liste : n'envoyer que le nouveau chemin révoquerait tous les
-    // autres dossiers autorisés, en silence.
+    // `setDirs` REPLACES the list: sending only the new path would silently revoke all
+    // the other granted folders.
     expect(calls).toEqual([{ id: "local-filesystem", key: "root", dirs: ["/w", "/nouveau"] }]);
 
     await m.unmount();
@@ -200,8 +200,8 @@ describe("FolderTreePanel — les dossiers autorisés dans le rail", () => {
     });
     expect(m.findAll(".rr-tree-row")).toHaveLength(0);
     expect(m.find(".rr-empty").textContent).toContain("Aucun dossier autorisé");
-    // Le stockage connecté reste listé : c'est l'autre gisement, il ne dépend pas d'un
-    // dossier local accordé.
+    // Connected storage stays listed: it's the other deposit, it doesn't depend on a
+    // granted local folder.
     expect(m.findAll(".rr-src")).toHaveLength(STORAGE_COUNT);
     await m.unmount();
   });

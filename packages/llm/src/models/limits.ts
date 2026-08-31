@@ -25,14 +25,14 @@ export const MODEL_CONTEXT: Record<string, number> = {
   "claude-haiku-4-5": 200_000,
   // Anthropic — previous generation.
   "claude-sonnet-4-6": 1_000_000,
-  // Abonnement via la CLI Claude Code : la fenêtre dépend du modèle que l'abonnement
-  // sert ; 200K est le plancher commun de la gamme, jamais une promesse au-delà.
+  // Subscription via the Claude Code CLI: the window depends on the model the
+  // subscription serves; 200K is the common floor of the range, never a promise beyond it.
   "claude-cli": 200_000,
   "claude-cli-sonnet": 200_000,
   "claude-cli-opus": 200_000,
   "claude-cli-haiku": 200_000,
-  // Abonnement ChatGPT via la CLI Codex : la fenêtre est celle du modèle que le
-  // compte sert ; 400K est le plancher de la gamme GPT-5.x, jamais une promesse au-delà.
+  // ChatGPT subscription via the Codex CLI: the window is that of the model the
+  // account serves; 400K is the floor of the GPT-5.x range, never a promise beyond it.
   "codex-cli": 400_000,
   // Google Gemini — 3.1 Pro is a 2M-token model (official); the Flash/Flash-Lite
   // tiers are 1M.

@@ -121,30 +121,30 @@ export const DEFAULT_SETTINGS: Settings = {
   // fake. The on-screen token is a reading comfort, free; the token ON THE
   // WIRE costs in reply quality (`redact/bench/tokensVsFakes.md`), so it's opt-in.
   redactWireTokens: false,
-  // Vue SIMPLIFIÉE par défaut : ouvrir sur une hiérarchie à trois colonnes demande de
-  // choisir un fournisseur avant d'avoir choisi un modèle — un arbitrage que la plupart
-  // n'ont pas à faire. Les 300+ modèles restent à un clic (« Tous les modèles »), et le
-  // choix se persiste dès qu'on l'a fait une fois.
+  // SIMPLIFIED view by default: opening on a three-column hierarchy requires
+  // picking a provider before having picked a model — a tradeoff most
+  // don't need to make. The 300+ models stay one click away (« Tous les modèles »), and the
+  // choice persists once it's been made once.
   modelPickerSimple: true,
   // Category on/off defaults come from the single-source catalog (@openmasq/catalog)
   // so the desktop and the org admin console agree. All PII on; the noisy generic
   // `apikey` heuristic and bare `number` are off by default (the latter also gated
   // by `redactNumbers`).
   redactCategories: { ...CATEGORY_DEFAULTS },
-  // Le défaut a UN seul foyer (`prompt/models.ts`) : l'onboarding ne demande plus de
-  // modèle de chat, donc cette graine gouverne — et une deuxième écriture de l'id
-  // dériverait de la constante que tout le reste du code consulte (règle 9).
+  // The default has ONE single home (`prompt/models.ts`): onboarding no longer asks for a
+  // chat model, so this seed governs — and a second write of the id
+  // would drift from the constant the rest of the code consults (rule 9).
   defaultModelId: DEFAULT_MODEL_ID,
   theme: "blue",
-  // Langue : absente par défaut, ce qui laisse `state/locale.ts` choisir celle de l'HÔTE
-  // (un utilisateur anglophone démarre en anglais sans rien régler) avant le repli
-  // français. Poser « fr » ici imposerait le français à tout le monde — l'inverse du but.
+  // Language: absent by default, which lets `state/locale.ts` pick the HOST's
+  // (an English-speaking user starts in English without configuring anything) before the
+  // French fallback. Setting « fr » here would impose French on everyone — the opposite of the goal.
   language: undefined,
   onboarded: false,
   debugLog: false,
   linkPreviews: false, // opt-in: fetching a link leaks your IP + the link to that site
-  // Opt-in : l'app ne spawne JAMAIS la CLI Claude Code de l'utilisateur (son
-  // abonnement personnel) sans un geste explicite dans Réglages → Modèles.
+  // Opt-in: the app NEVER spawns the user's Claude Code CLI (their
+  // personal subscription) without an explicit action in Réglages → Modèles.
   claudeCliEnabled: false,
   codexCliEnabled: false,
   browserSearchEngine: "brave", // integrated-browser URL-bar search engine (user-switchable)
@@ -167,7 +167,7 @@ export function uid(): string {
 }
 
 export function load<T>(key: string, fallback: T): T {
-  migrateLegacyLocalStorage(); // les clés d'avant le renommage — une passe, puis no-op
+  migrateLegacyLocalStorage(); // the keys from before the rename — one pass, then a no-op
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : fallback;
@@ -180,8 +180,8 @@ export function load<T>(key: string, fallback: T): T {
 /** A message left `pending` from a PREVIOUS session = its stream was cut off
  *  (reload/quit mid-answer). Clear the flag + mark it `incomplete` so the UI
  *  shows an "interrupted" indicator + Réessayer instead of a frozen loader.
- *  Même sort pour `memoryNotedPending` (« Mise en mémoire… ») : une extraction qui n'a
- *  pas survécu à la session est morte — la légende figée mentirait pour toujours. */
+ *  Same fate for `memoryNotedPending` (« Mise en mémoire… »): an extraction that
+ *  didn't survive the session is dead — the frozen caption would lie forever. */
 export function clearStuckPending(convs: Conversation[]): Conversation[] {
   return convs.map((c) =>
     c.messages.some((m) => m.pending || m.memoryNotedPending)
@@ -221,24 +221,24 @@ export function normalizeSettings(s: Settings): Settings {
   ) {
     out.redactModelName = "mistral-small-latest";
   }
-  // L'accent vert n'est plus proposé : un thème persisté par une version antérieure est
-  // traduit vers son jumeau indigo, sinon le compte qui l'avait resterait en vert sans
-  // aucun interrupteur pour en sortir (le fond clair/sombre, lui, reste un choix).
+  // The green accent is no longer offered: a theme persisted by an earlier version is
+  // translated to its indigo twin, otherwise the account that had it would stay green with
+  // no switch to get out of it (the light/dark ground, though, stays a choice).
   out.theme = blueAccent(out.theme);
-  // La langue est ramenée à une locale LIVRÉE, ou effacée (⇒ langue de l'hôte au boot).
-  // Une valeur legacy/régionale/inconnue (« en-US », « de », un vieux blob) ne doit pas
-  // rester telle quelle : `state/locale.ts` la relit et `resolveLocale` la normaliserait
-  // de toute façon, mais l'effacer ici garde le blob persisté propre (règle 7 : une seule
-  // forme atteint le disque). Une valeur déjà valide (« fr »/« en ») est conservée.
+  // The language is brought back to a SHIPPED locale, or cleared (⇒ host language at boot).
+  // A legacy/regional/unknown value (« en-US », « de », an old blob) must not
+  // stay as-is: `state/locale.ts` rereads it and `resolveLocale` would normalize it
+  // anyway, but clearing it here keeps the persisted blob clean (rule 7: only one
+  // form reaches disk). An already-valid value (« fr »/« en ») is kept.
   out.language = resolveLocale(out.language) ?? undefined;
   // The offline local NER model is no longer user-selectable (one BERT model per
   // platform), so a legacy `redactLocalModel` setting is simply dropped on load.
   delete (out as { redactLocalModel?: unknown }).redactLocalModel;
-  // Les WORKFLOWS étaient une seconde liste du même objet ; il n'en reste qu'une. On
-  // verse l'ancienne dans les compétences (ids conservés — chips, liens profonds et tags
-  // de messages pointent dessus) puis on efface le champ, sinon la reprise se rejouerait
-  // à chaque chargement. La règle de fusion est pure et testée à part
-  // (`competences/migrate.ts`) ; ici on ne fait que l'appliquer et effacer.
+  // WORKFLOWS were a second list of the same object; only one remains. The
+  // old one is poured into compétences (ids kept — chips, deep links and message
+  // tags point at them) then the field is cleared, otherwise the migration would replay
+  // on every load. The merge rule is pure and tested separately
+  // (`competences/migrate.ts`); here we only apply it and clear.
   const merged = mergeLegacyWorkflows(out.competences, out.workflows);
   if (merged) out.competences = merged;
   delete (out as { workflows?: unknown }).workflows;
@@ -254,10 +254,10 @@ export function normalizeSettings(s: Settings): Settings {
   if (out.redactEngine === "remote" || out.redactEngine === "model") {
     out.redactEngine = "local";
   }
-  // Le défaut d'antan était anglais ; il suit le défaut courant (français). Sans cette
-  // reprise, un blob persisté par une version antérieure passerait pour un prompt
-  // personnalisé : détection PII payée à chaque envoi, et une phrase anglaise en tête du
-  // message système qui tire la réflexion des modèles vers l'anglais.
+  // The old-time default was English; it follows the current default (French). Without this
+  // migration, a blob persisted by an earlier version would pass for a
+  // custom prompt: PII detection paid on every send, and an English sentence heading the
+  // system message that pulls the models' reasoning toward English.
   if (out.systemPrompt === "You are a helpful assistant.") {
     out.systemPrompt = DEFAULT_SETTINGS.systemPrompt;
   }

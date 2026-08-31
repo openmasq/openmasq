@@ -1,33 +1,33 @@
 import type { Competence } from "../types";
 
 /**
- * LA REPRISE DE L'ANCIENNE LISTE « WORKFLOWS ».
+ * THE MIGRATION OF THE OLD « WORKFLOWS » LIST.
  *
- * Les deux listes étaient le même objet au champ près ; il n'en reste qu'une. Ce fichier
- * est ce qui fait que personne ne s'en aperçoit en perdant quelque chose : au chargement
- * d'un blob de réglages écrit par une version d'avant, `Settings.workflows` est versé
- * dans `Settings.competences` puis effacé.
+ * The two lists were the same object down to the field; only one remains. This file
+ * is what makes sure nobody notices by losing something: when loading
+ * a settings blob written by an earlier version, `Settings.workflows` is poured
+ * into `Settings.competences` and then erased.
  *
- * Trois choses tiennent, et chacune casse quelque chose de visible si on l'oublie :
+ * Three things hold, and each breaks something visible if forgotten:
  *
- * 1. **Les ids sont conservés.** Un chip de compositeur, un lien profond, un tag de
- *    message et un `uses` pointent dessus ; en frapper de nouveaux transformerait tout
- *    l'historique en références mortes.
- * 2. **L'ordre**, compétences d'abord puis routines, et le tri par date reste au
- *    rendu — une liste qui se réordonne toute seule au premier lancement se lit comme
- *    une perte de données.
- * 3. **Idempotent PAR RÉFÉRENCE.** Sans rien à reprendre, la MÊME liste revient, donc le
- *    chargement n'écrit pas d'état et ne relance pas la persistance en boucle.
+ * 1. **The ids are kept.** A composer chip, a deep link, a message
+ *    tag and a `uses` point to them; minting new ones would turn all of
+ *    history into dead references.
+ * 2. **The order** — compétences first then routines — and the sort by date stays at
+ *    render time — a list that reorders itself on first launch reads like
+ *    data loss.
+ * 3. **Idempotent BY REFERENCE.** With nothing to migrate, the SAME list comes back, so
+ *    loading writes no state and doesn't relaunch persistence in a loop.
  */
 
-/** La catégorie où atterrit un ex-workflow : le mot que les gens avaient, descendu d'une
- *  section à une catégorie (`COMPETENCE_CATEGORIES`). */
+/** The category an ex-workflow lands in: the word people had, demoted from a
+ *  section to a category (`COMPETENCE_CATEGORIES`). */
 const ROUTINE_CAT = "routine" as const;
 
-/** Normalise une entrée de l'ancienne liste en compétence. Un workflow n'avait pas de
- *  catégorie — il devient une « Routine ». Sa liste de connecteurs est gardée telle
- *  quelle : c'est elle qui portait tout le comportement, et une liste vide s'efface pour
- *  que le champ reste le test de « pilote des outils ». */
+/** Normalizes an entry from the old list into a compétence. A workflow had no
+ *  category — it becomes a « Routine ». Its connector list is kept as-
+ *  is: it's what carried all the behavior, and an empty list is erased so
+ *  that the field stays the test for "drives tools". */
 export function workflowToCompetence(wf: Competence): Competence {
   const servers = [...new Set(wf.servers ?? [])];
   const { servers: _drop, ...rest } = wf;
@@ -39,11 +39,11 @@ export function workflowToCompetence(wf: Competence): Competence {
 }
 
 /**
- * Fusionne l'ancienne liste dans la nouvelle. Une entrée dont l'id est DÉJÀ présent est
- * ignorée (une reprise rejouée, un blob synchronisé qui porte les deux) — sans quoi
- * rouvrir l'app dupliquerait la liste à chaque fois.
+ * Merges the old list into the new one. An entry whose id is ALREADY present is
+ * ignored (a replayed migration, a synced blob carrying both) — otherwise
+ * reopening the app would duplicate the list every time.
  *
- * Renvoie `null` quand il n'y a rien à faire, pour que l'appelant puisse ne pas écrire.
+ * Returns `null` when there's nothing to do, so the caller can skip the write.
  */
 export function mergeLegacyWorkflows(
   competences: readonly Competence[] | undefined,

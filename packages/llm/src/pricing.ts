@@ -6,9 +6,9 @@ export {
   MODEL_PRICING,
   MODEL_CONTEXT,
   isFreeModel,
-  // La liste du MODE GRATUIT passe par ce sous-chemin pour une raison précise : la
-  // PASSERELLE doit la relire (règle 7 — le sélecteur n'est pas une frontière), et elle
-  // n'importe que `@openmasq/credits`, qui n'importe que ceci.
+  // The FREE MODE list goes through this subpath for a precise reason: the
+  // GATEWAY must re-read it (rule 7 — the picker is not a boundary), and it
+  // only imports `@openmasq/credits`, which only imports this.
   FREE_MODE_MODEL_IDS,
   isFreeModeModel,
   type ModelPrice,

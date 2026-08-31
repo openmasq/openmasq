@@ -27,26 +27,26 @@ export const MODELS: ModelInfo[] = [
   { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6", provider: "anthropic", vision: true },
   { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", provider: "anthropic", vision: true },
 
-  // L'abonnement Claude de l'utilisateur, via SA CLI Claude Code installée (headless).
-  // Ces ids ne sont jamais des ids de wire : ce chemin ne parle à aucune API — le
-  // suffixe devient l'alias `--model` de la CLI (`subscription/turn.ts` cliModelAlias),
-  // qui le résout vers le modèle COURANT de la famille. `claude-cli` nu = le défaut de
-  // l'abonnement, sans drapeau (l'entrée historique — des conversations y sont
-  // épinglées). OUTILLÉS : les connecteurs de l'app leur sont offerts comme à un modèle
-  // à clé — c'est NOTRE boucle qui pilote, le pont MCP du desktop capturant l'appel pour
-  // qu'il passe par le coffre et la porte d'écriture (`subscription/toolsTurn.ts`).
-  // Texte seul (les pièces jointes sont refusées tôt par le pont). Opus dépend de
-  // l'offre (absent du plan Pro) : la CLI refuse alors le tour, son message remonte tel quel.
+  // The user's Claude subscription, via THEIR installed Claude Code CLI (headless).
+  // These ids are never wire ids: this path talks to no API at all — the
+  // suffix becomes the CLI's `--model` alias (`subscription/turn.ts` cliModelAlias),
+  // which resolves it to the family's CURRENT model. Bare `claude-cli` = the
+  // subscription's default, no flag (the historical entry — conversations are
+  // pinned to it). TOOLED: the app's connectors are offered to them like to a keyed
+  // model — it's OUR loop that drives, the desktop MCP bridge capturing the call so
+  // it passes through the vault and the write gate (`subscription/toolsTurn.ts`).
+  // Text only (attachments are refused early by the bridge). Opus depends on
+  // the plan (absent from the Pro plan): the CLI then refuses the turn, its message surfaces as-is.
   { id: "claude-cli", label: "Claude Code", provider: "claude-cli" },
   { id: "claude-cli-sonnet", label: "Claude Sonnet", provider: "claude-cli" },
   { id: "claude-cli-opus", label: "Claude Opus", provider: "claude-cli" },
   { id: "claude-cli-haiku", label: "Claude Haiku", provider: "claude-cli" },
 
-  // L'abonnement ChatGPT de l'utilisateur, via SA CLI Codex installée (même patron que
-  // claude-cli : l'id n'est jamais un id de wire, et les outils de l'app passent par le
-  // pont MCP du bureau — `subscription/codexToolsTurn.ts`). UNE entrée : avec un compte
-  // ChatGPT la CLI n'accepte QUE le modèle par défaut du compte — un `-m` explicite est
-  // refusé en 400 (mesuré, `subscription/codexEngine.ts`). Texte seul (pièces jointes).
+  // The user's ChatGPT subscription, via THEIR installed Codex CLI (same pattern as
+  // claude-cli: the id is never a wire id, and the app's tools go through the
+  // desktop MCP bridge — `subscription/codexToolsTurn.ts`). ONE entry: with a
+  // ChatGPT account the CLI accepts ONLY the account's default model — an explicit `-m` is
+  // refused with a 400 (measured, `subscription/codexEngine.ts`). Text only (attachments).
   { id: "codex-cli", label: "GPT Codex", provider: "codex-cli" },
 
   // Google Gemini
@@ -87,9 +87,9 @@ export const MODELS: ModelInfo[] = [
   // `:free` tiers (a `:free` slug 404s "use the paid slug instead" the moment its
   // sponsor pulls it). These ids were verified against the live GET /api/v1/models
   // catalogue; re-verify there before adding/renaming (never guess a `:free` slug).
-  // Les deux entrées de la LISTE SIMPLIFIÉE du sélecteur (`@openmasq/catalog`
-  // `SIMPLE_MODEL_IDS`) : vérifiées le 02/08/2026 dans le catalogue live, comme
-  // l'exige l'avertissement ci-dessus — jamais devinées.
+  // The two entries in the picker's SIMPLIFIED LIST (`@openmasq/catalog`
+  // `SIMPLE_MODEL_IDS`): verified on 02/08/2026 in the live catalogue, as
+  // the warning above requires — never guessed.
   { id: "openai/gpt-5.6-luna", label: "GPT-5.6 Luna", provider: "openrouter", vision: true },
   { id: "moonshotai/kimi-k2.6", label: "Kimi K2.6", provider: "openrouter", vision: true },
   { id: "x-ai/grok-4.20", label: "Grok 4.20", provider: "openrouter", vision: true },
@@ -101,10 +101,10 @@ export const MODELS: ModelInfo[] = [
   // Free tier — the strongest no-cost models currently live on OpenRouter (verified
   // present + priced 0/0 in the catalogue). Still gated on the user's own OpenRouter
   // key (a free model is not a platform/credit bypass off-platform).
-  // Le DÉFAUT des nouvelles conversations (`prompt/models.ts` `DEFAULT_MODEL_ID`) :
-  // gratuit, donc jamais bloqué par `modelAvailability` (« un modèle gratuit ne coûte
-  // rien en amont »), donc une installation neuve écrit sans clé ni abonnement.
-  // Texte seul, mais outils et raisonnement — vérifié le 02/08/2026 dans le catalogue live.
+  // The DEFAULT for new conversations (`prompt/models.ts` `DEFAULT_MODEL_ID`):
+  // free, so never blocked by `modelAvailability` ("a free model costs
+  // nothing upstream"), so a fresh install can send with no key nor subscription.
+  // Text only, but tools and reasoning — verified on 02/08/2026 in the live catalogue.
   { id: "poolside/laguna-s-2.1:free", label: "Laguna S 2.1 (gratuit)", provider: "openrouter" },
   { id: "nvidia/nemotron-3-ultra-550b-a55b:free", label: "Nemotron 3 Ultra (gratuit)", provider: "openrouter" },
   { id: "nvidia/nemotron-3-super-120b-a12b:free", label: "Nemotron 3 Super (gratuit)", provider: "openrouter" },

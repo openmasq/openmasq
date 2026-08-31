@@ -48,9 +48,9 @@ import { agentBrowserBoundsEpoch, shouldHideAgentBrowser } from "../../../hooks/
  * HIDDEN while actively moving (repositioning an alwaysOnTop window every frame fights the
  * OS drag and trails behind) then re-snapped ~160ms after the move settles.
  */
-/** Plafond du masquage dû à une ANIMATION de mise en page. `.nav-dock` glisse en 0,26 s ;
- *  au-delà de cette marge, une rafale qui continue n'est plus une transition de mise en
- *  page mais quelque chose qui boucle — et l'overlay doit revenir malgré elle. */
+/** Ceiling on hiding caused by a layout ANIMATION. `.nav-dock` glides over 0.26s;
+ *  beyond that margin, a burst that keeps going is no longer a layout transition
+ *  but something looping — and the overlay must come back despite it. */
 const MAX_ANIM_HIDE_MS = 600;
 
 export function useBrowserBounds(browser: BrowserHost | undefined, viewportRef: RefObject<HTMLElement>) {
@@ -79,23 +79,23 @@ export function useBrowserBounds(browser: BrowserHost | undefined, viewportRef: 
         resizing = false;
       }, 160);
     };
-    // ── Une TRANSITION de largeur est un redimensionnement, et se traite comme tel ──
+    // ── A width TRANSITION is a resize, and is treated as one ──
     //
-    // `.nav-dock` (la barre latérale gauche) anime sa largeur sur 0,26 s : le panneau se
-    // reflue trame par trame, et l'overlay le suit par une IPC par trame vers un AUTRE
-    // processus — il traîne donc visiblement derrière, en décalage, pendant toute
-    // l'animation. Le commentaire d'origine pariait que le rAF suivrait « sans
-    // scintillement » ; en pratique c'est le décalage qu'on voit, et il est pire.
-    // Même remède que pour un redimensionnement de fenêtre : on cache, on recale à la fin.
-    // Filtré sur `width` et sur les transitions qui ATTEIGNENT le document, donc une
-    // animation de couleur ou d'opacité (les survols du rail) ne déclenche rien.
-    // ⚠️ BORNÉ, et c'est la partie importante. Ce masquage se ré-arme à chaque transition :
-    // sans plafond, un flux continu de transitions de `width` (n'importe où dans le
-    // document — barre de progression, jauge, poignée survolée…) le repousserait
-    // indéfiniment et la fenêtre native ne reviendrait JAMAIS. Un « il ne s'affiche plus »
-    // est infiniment pire que le décalage qu'on corrige ici, donc la suppression est
-    // plafonnée : passé `MAX_ANIM_HIDE_MS` depuis le DÉBUT de la rafale, on cesse de la
-    // prolonger et l'overlay revient, quitte à traîner un peu.
+    // `.nav-dock` (the left sidebar) animates its width over 0.26s: the panel
+    // reflows frame by frame, and the overlay follows it via one IPC per frame to an OTHER
+    // process — so it visibly trails behind, out of sync, throughout the
+    // animation. The original comment bet that the rAF would follow "without
+    // flicker"; in practice it's the lag you see, and it's worse.
+    // Same remedy as for a window resize: hide, then snap at the end.
+    // Filtered on `width` and on transitions that REACH the document, so a
+    // color or opacity animation (rail hovers) triggers nothing.
+    // ⚠️ BOUNDED, and that's the important part. This hiding re-arms on every transition:
+    // without a ceiling, a continuous stream of `width` transitions (anywhere in the
+    // document — a progress bar, a gauge, a hovered handle…) would push it back
+    // indefinitely and the native window would NEVER come back. A "it's not showing anymore"
+    // is infinitely worse than the lag being fixed here, so the suppression is
+    // capped: past `MAX_ANIM_HIDE_MS` since the START of the burst, we stop
+    // extending it and the overlay comes back, even if it lags a little.
     let animStart = 0;
     const onTransition = (e: TransitionEvent) => {
       if (e.propertyName !== "width") return;
@@ -141,8 +141,8 @@ export function useBrowserBounds(browser: BrowserHost | undefined, viewportRef: 
           const r = el.getBoundingClientRect();
           // The screen origin (sx,sy) is part of the key: moving the window changes the
           // target SCREEN bounds even though the viewport rect is unchanged.
-          // L'ÉPOQUE fait partie de la clé : l'AUTRE propriétaire de la visibilité peut
-          // avoir remonté la fenêtre sans que ce rectangle change (`modalGate.ts`).
+          // The EPOCH is part of the key: the OTHER owner of visibility may
+          // have raised the window without this rectangle changing (`modalGate.ts`).
           const key = `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)},${sx},${sy},${agentBrowserBoundsEpoch()}`;
           if (r.width > 0 && r.height > 0 && key !== last) {
             last = key;
@@ -161,9 +161,9 @@ export function useBrowserBounds(browser: BrowserHost | undefined, viewportRef: 
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(forceResend) : null;
     if (el && ro) ro.observe(el);
     window.addEventListener("resize", onWindowResize);
-    // `transitionrun` couvre le DÉBUT (avant la première trame animée) et `transitionend`
-    // la FIN — chacun ré-arme le minuteur de 160 ms, donc l'overlay reste caché du premier
-    // au dernier pixel de l'animation, puis se recale sur le rectangle définitif.
+    // `transitionrun` covers the START (before the first animated frame) and `transitionend`
+    // the END — each re-arms the 160ms timer, so the overlay stays hidden from the first
+    // to the last pixel of the animation, then snaps back to the final rectangle.
     document.addEventListener("transitionrun", onTransition, true);
     document.addEventListener("transitionend", onTransition, true);
 

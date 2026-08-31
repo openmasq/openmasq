@@ -47,11 +47,11 @@ export interface CatalogRedactionCategory {
    *  rules modal and the docs so a short label never under-sells (or over-sells) the
    *  engine. Trust obligation (root rule 8): keep it accurate when rules change. */
   detail?: string;
-  /** Ce que le redaction de cette catégorie peut FAUSSER dans la réponse — l'autre
-   *  moitié de l'obligation de confiance (règle 8) : sur-vendre la fiabilité serait le
-   *  même bug que sur-vendre la protection. Affiché là où l'on coche (matrice des
-   *  règles). Chiffres et raisonnement : `packages/redact/bench/RAPPORT-risques-
-   *  utilite-2026-07.md` — une DÉRIVATION n'est pas une clé de coffre. */
+  /** What redacting this category can DISTORT in the reply — the other half of
+   *  the trust obligation (rule 8): overselling reliability would be the
+   *  same bug as overselling protection. Shown where it's checked (rules
+   *  matrix). Figures and reasoning: `packages/redact/bench/RAPPORT-risques-
+   *  utilite-2026-07.md` — a DERIVATION is not a vault key. */
   impact?: string;
 }
 

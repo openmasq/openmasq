@@ -1,59 +1,59 @@
 import type { WriteRisk } from "./writeRisk";
 
 /**
- * LA politique de confirmation d'action — le SEUL endroit qui décide QUAND une
- * confirmation apparaît et SUR QUELLE surface. Main (la fenêtre non-spoofable) et le
- * renderer (la carte inline) évaluent la MÊME liste (rule 9) : modifier une règle ici
- * change le comportement partout, sans toucher un call site.
+ * THE action-confirmation policy — the ONLY place that decides WHEN a
+ * confirmation appears and ON WHICH surface. Main (the non-spoofable window) and the
+ * renderer (the inline card) evaluate the SAME list (rule 9): editing a rule here
+ * changes behavior everywhere, without touching a call site.
  *
- * Le modèle : par mode, une liste ordonnée de règles ; la PREMIÈRE dont toutes les
- * conditions tiennent décide la surface. Aucune règle ne matche ⇒ pas de confirmation.
- * Les conditions lisent des FAITS mesurés par l'appelant (le loop / main) — la politique
- * ne re-dérive rien.
+ * The model: per mode, an ordered list of rules; the FIRST whose conditions all
+ * hold decides the surface. No rule matches ⇒ no confirmation.
+ * Conditions read FACTS measured by the caller (the loop / main) — the policy
+ * never re-derives anything.
  *
- * ⚠️ RÈGLE 7 — ce que ce fichier est, et n'est pas. La politique décrit une UX de
- * confirmation, pas la frontière de sécurité entière : les gates qui ne sont PAS des
- * confirmations (allow-list de domaines, scan d'exfil, SSRF, redaction) restent
- * inconditionnels et ne passent jamais par ici. Deux invariants à préserver en
- * l'éditant :
- *   - Les planchers `exfil` / `attachments` / `send` ouvrent TOUJOURS une carte, dans
- *     les deux modes — un signal d'exfiltration, un fichier qui part en clair ou un
- *     envoi ne se débouncent pas « une fois par conversation », et une règle `floor`
- *     n'est exemptable par AUCUNE allow-list (voir `ConfirmationRule.floor`).
- *   - Une condition illisible (op inconnu) MATCHE : l'évaluateur sur-confirme, il ne
- *     sous-confirme jamais.
+ * ⚠️ RULE 7 — what this file is, and is not. The policy describes a confirmation
+ * UX, not the entire security boundary: gates that are NOT confirmations
+ * (domain allow-list, exfil scan, SSRF, redaction) stay
+ * unconditional and never go through here. Two invariants to preserve when
+ * editing it:
+ *   - The `exfil` / `attachments` / `send` floors ALWAYS open a card, in
+ *     both modes — an exfiltration signal, a file leaving in clear, or a
+ *     send are not debounced "once per conversation", and a `floor` rule
+ *     is exemptable by NO allow-list (see `ConfirmationRule.floor`).
+ *   - An unreadable condition (unknown op) MATCHES: the evaluator over-confirms, it
+ *     never under-confirms.
  *
- * ⚠️ RÉSIDUEL ACCEPTÉ (décision produit) : en mode `standard` la fenêtre système
- * n'apparaît JAMAIS — un write ordinaire part sans confirmation tant que la
- * conversation n'a pas touché le web, et une seule carte est posée ensuite. La
- * confirmation systématique est l'opt-in « Mode renforcé » (Réglages), dont la
- * désactivation est confirmée sur la fenêtre non-spoofable pour qu'un XSS renderer ne
- * puisse pas rétrograder la posture à la place de l'utilisateur.
+ * ⚠️ ACCEPTED RESIDUAL (product decision): in `standard` mode the system window
+ * NEVER appears — an ordinary write goes out without confirmation as long as the
+ * conversation hasn't touched the web, and a single card is then posted. Systematic
+ * confirmation is the « Mode renforcé » opt-in (Settings), whose
+ * deactivation is confirmed on the non-spoofable window so that a renderer XSS
+ * can't downgrade the posture in place of the user.
  */
 
 export type ConfirmationMode = "standard" | "renforce";
 
 /**
- * L'ORDRE des modes — plus haut = plus confirmant. C'est ce qui rend une politique
- * d'organisation COMPOSABLE : l'org pose un PLANCHER, le membre ne peut que resserrer.
+ * The ORDER of modes — higher = more confirming. This is what makes an organization
+ * policy COMPOSABLE: the org sets a FLOOR, the member can only tighten it.
  *
- * L'asymétrie est la même que celle du fichier main (`confirmationMode.ts`) : monter est
- * libre, descendre se confirme. Un plancher ne fait qu'ajouter une borne basse.
+ * The asymmetry is the same as in the main file (`confirmationMode.ts`): raising is
+ * free, lowering confirms. A floor only adds a lower bound.
  */
 const MODE_RANK: Record<ConfirmationMode, number> = { standard: 0, renforce: 1 };
 
-/** `null`/inconnu ⇒ `null` (pas de plancher), jamais un mode inventé. */
+/** `null`/unknown ⇒ `null` (no floor), never an invented mode. */
 export function parseConfirmationMode(value: unknown): ConfirmationMode | null {
   return value === "standard" || value === "renforce" ? value : null;
 }
 
 /**
- * Le mode effectif = le plus strict du plancher de l'org et du choix du membre.
+ * The effective mode = the stricter of the org's floor and the member's choice.
  *
- * ⚠️ Pourquoi c'est sûr même si le plancher vient d'une source non vérifiée (le renderer
- * pousse le profil d'org à main) : la composition prend le MAXIMUM, donc un plancher
- * falsifié ne peut que rendre l'app PLUS confirmante. Un plancher ne peut jamais relâcher
- * quoi que ce soit — c'est ce qui permet de l'accepter sans preuve d'authenticité.
+ * ⚠️ Why this is safe even if the floor comes from an unverified source (the renderer
+ * pushes the org profile to main): composition takes the MAXIMUM, so a
+ * forged floor can only make the app MORE confirming. A floor can never relax
+ * anything — that's what allows accepting it without proof of authenticity.
  */
 export function composeConfirmationMode(
   orgFloor: ConfirmationMode | null | undefined,
@@ -63,38 +63,38 @@ export function composeConfirmationMode(
   return MODE_RANK[orgFloor] >= MODE_RANK[user] ? orgFloor : user;
 }
 
-/** Le membre peut-il encore choisir ? Faux quand le plancher est déjà au maximum — la
- *  case des réglages se verrouille alors, avec la raison, plutôt que de mentir. */
+/** Can the member still choose? False when the floor is already at maximum — the
+ *  settings toggle then locks, with the reason, rather than lying. */
 export function confirmationModeLocked(orgFloor: ConfirmationMode | null | undefined): boolean {
   return orgFloor === "renforce";
 }
 
-/** Où la confirmation se joue. `inline` = la carte dans la conversation (renderer, UX) ;
- *  `system-modal` = la fenêtre main non-spoofable (la frontière). */
+/** Where the confirmation plays out. `inline` = the card in the conversation (renderer, UX);
+ *  `system-modal` = the non-spoofable main window (the boundary). */
 export type ConfirmationSurface = "inline" | "system-modal";
 
 /**
- * Les faits qu'une condition peut lire. Numériques absents ⇒ 0 : main, qui ne connaît ni
- * les compteurs de conversation ni les signaux du loop, évalue avec son seul `risk` et
- * obtient exactement la part de la politique qui le concerne (les règles `system-modal`).
+ * The facts a condition can read. Absent numerics ⇒ 0: main, which knows neither
+ * conversation counters nor loop signals, evaluates with only its `risk` and
+ * gets exactly the part of the policy that concerns it (the `system-modal` rules).
  */
 export interface ConfirmationFacts {
-  /** Verdict de `writeRisk` sur CE call (main le juge sur sa propre vue). */
+  /** Verdict of `writeRisk` on THIS call (main judges it from its own view). */
   risk: WriteRisk;
-  /** Recherches internet déjà parties dans CETTE conversation (tour courant inclus). */
+  /** Internet searches already sent in THIS conversation (current turn included). */
   searchToolCalls?: number;
-  /** Signaux d'exfiltration levés par le scan du loop sur les args de CE call. */
+  /** Exfiltration signals raised by the loop's scan on THIS call's args. */
   exfilFlags?: number;
-  /** Fichiers que CE call joindrait (ils partent en clair). */
+  /** Files THIS call would attach (they leave in clear). */
   attachments?: number;
-  /** CE call fait PARTIR quelque chose vers un tiers (e-mail, message) : 1, sinon 0.
-   *  Un envoi ne se rattrape pas — pas de brouillon à supprimer, pas d'annulation. C'est
-   *  ce qui lui vaut un PLANCHER en mode `standard`, au même titre que l'exfiltration et
-   *  les pièces jointes : le mode allège les confirmations, il ne supprime pas celles qui
-   *  portent sur l'irréversible. (Journal du 27/07/2026 : « N'envoie rien » et l'e-mail
-   *  est parti sans qu'aucune carte ne s'ouvre.) */
+  /** THIS call sends something to a third party (e-mail, message): 1, otherwise 0.
+   *  A send can't be undone — no draft to delete, no cancellation. That's
+   *  what earns it a FLOOR in `standard` mode, just like exfiltration and
+   *  attachments: the mode lightens confirmations, it doesn't remove the ones that
+   *  bear on the irreversible. (Log from 27/07/2026: "Don't send anything" and the e-mail
+   *  went out with no card ever opening.) */
   sends?: number;
-  /** Confirmations déjà montrées dans CETTE conversation (pour `maxPerConversation`). */
+  /** Confirmations already shown in THIS conversation (for `maxPerConversation`). */
   confirmationsShown?: number;
 }
 
@@ -107,40 +107,40 @@ export interface ConfirmationCondition {
 }
 
 export interface ConfirmationRule {
-  /** Identifiant stable — les tests et l'appelant s'y réfèrent, jamais à l'index. */
+  /** Stable identifier — tests and the caller refer to it, never to the index. */
   id: string;
   surface: ConfirmationSurface;
-  /** Toutes les conditions doivent tenir (ET). Vide = toujours. */
+  /** All conditions must hold (AND). Empty = always. */
   when: ConfirmationCondition[];
-  /** La règle ne tire plus quand `confirmationsShown` atteint ce plafond. */
+  /** The rule no longer fires once `confirmationsShown` reaches this cap. */
   maxPerConversation?: number;
   /**
-   * PLANCHER : la confirmation que cette règle décide ne peut être exemptée par AUCUNE
-   * allow-list utilisateur (« Autoriser » par conversation, « toujours pour cet outil »,
-   * auto-approbation de session). Un plancher porte sur l'irréversible — exfiltration,
-   * pièce jointe, envoi — et « vous avez déjà confirmé » n'y est pas un consentement :
-   * le DEUXIÈME envoi se confirme aussi. Une règle sans `floor` reste exemptable.
+   * FLOOR: the confirmation this rule decides can be exempted by NO
+   * user allow-list ("Autoriser" per conversation, "toujours pour cet outil",
+   * session auto-approval). A floor bears on the irreversible — exfiltration,
+   * attachment, send — and "vous avez déjà confirmé" is not consent there:
+   * the SECOND send confirms too. A rule with no `floor` stays exemptable.
    */
   floor?: boolean;
 }
 
 /**
- * La politique elle-même — un littéral déclaratif, lisible comme du JSON.
+ * The policy itself — a declarative literal, readable like JSON.
  *
- * `standard` (défaut) : jamais de fenêtre système. Une SEULE carte par conversation,
- * et seulement une fois la conversation exposée à du contenu web (le vecteur
- * d'injection de prompt) — plus les TROIS planchers de sécurité, non plafonnés :
- * exfiltration, pièces jointes, et tout ce qui PART (un envoi ne s'annule pas).
+ * `standard` (default): never a system window. A SINGLE card per conversation,
+ * and only once the conversation is exposed to web content (the
+ * prompt-injection vector) — plus the THREE uncapped security floors:
+ * exfiltration, attachments, and anything that GOES OUT (a send can't be cancelled).
  *
- * `renforce` (opt-in Réglages) : le comportement historique — fenêtre système pour un
- * write risqué (`writeRisk === "high"`), carte inline pour tout le reste.
+ * `renforce` (Settings opt-in): the historical behavior — system window for a
+ * risky write (`writeRisk === "high"`), inline card for everything else.
  */
 export const CONFIRMATION_POLICY: Record<ConfirmationMode, ConfirmationRule[]> = {
   standard: [
     { id: "exfil-floor", surface: "inline", floor: true, when: [{ fact: "exfilFlags", op: "gt", value: 0 }] },
     { id: "attachments-floor", surface: "inline", floor: true, when: [{ fact: "attachments", op: "gt", value: 0 }] },
-    // Plancher, donc SANS `maxPerConversation` : chaque envoi se confirme, y compris le
-    // deuxième. Un « vous avez déjà confirmé un envoi » n'est pas un consentement.
+    // Floor, so WITHOUT `maxPerConversation`: every send confirms, including the
+    // second. A "vous avez déjà confirmé un envoi" is not consent.
     { id: "send-floor", surface: "inline", floor: true, when: [{ fact: "sends", op: "gt", value: 0 }] },
     {
       id: "post-search-once",
@@ -153,10 +153,10 @@ export const CONFIRMATION_POLICY: Record<ConfirmationMode, ConfirmationRule[]> =
     { id: "exfil", surface: "inline", floor: true, when: [{ fact: "exfilFlags", op: "gt", value: 0 }] },
     { id: "attachments", surface: "inline", floor: true, when: [{ fact: "attachments", op: "gt", value: 0 }] },
     { id: "risky-system", surface: "system-modal", when: [{ fact: "risk", op: "eq", value: "high" }] },
-    // Le mode renforcé ne peut pas être MOINS confirmant que standard : sans ce plancher,
-    // un envoi ordinaire matcherait `every-write` (exemptable) et un « Autoriser » ferait
-    // partir le deuxième e-mail sans carte — ce que standard, lui, refuse. Placé APRÈS
-    // `risky-system` : un envoi risqué garde la fenêtre système (main gate de son côté).
+    // Reinforced mode can't be LESS confirming than standard: without this floor,
+    // an ordinary send would match `every-write` (exemptable) and an "Autoriser" would
+    // let the second e-mail out with no card — which standard, itself, refuses. Placed AFTER
+    // `risky-system`: a risky send keeps the system window (main gates it on its side).
     { id: "send-floor", surface: "inline", floor: true, when: [{ fact: "sends", op: "gt", value: 0 }] },
     { id: "every-write", surface: "inline", when: [] },
   ],
@@ -183,17 +183,17 @@ function holds(c: ConfirmationCondition, facts: ConfirmationFacts): boolean {
     case "lte":
       return typeof v === "number" && typeof c.value === "number" && v <= c.value;
     default:
-      // Op inconnu (une édition future mal typée passée en force) : la condition MATCHE,
-      // donc la règle tire — on sur-confirme, on ne sous-confirme jamais (rule 7).
+      // Unknown op (a future mistyped edit forced through): the condition MATCHES,
+      // so the rule fires — we over-confirm, never under-confirm (rule 7).
       return true;
   }
 }
 
 /**
- * Évalue la politique pour un call d'écriture : la première règle du mode dont toutes
- * les conditions tiennent (et dont le plafond par conversation n'est pas atteint), ou
- * `null` = aucune confirmation requise. Un mode inconnu évalue `renforce` (fail closed :
- * la posture la plus confirmante).
+ * Evaluates the policy for a write call: the first rule of the mode whose
+ * conditions all hold (and whose per-conversation cap isn't reached), or
+ * `null` = no confirmation required. An unknown mode evaluates `renforce` (fail closed:
+ * the most confirming posture).
  */
 export function confirmationSurface(
   mode: ConfirmationMode,

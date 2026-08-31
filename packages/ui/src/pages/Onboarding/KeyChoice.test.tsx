@@ -8,25 +8,25 @@ import { KeyChoice } from "./KeyChoice";
 import { configurePlatformAccess } from "../../send/platformAccess";
 
 /**
- * L'écran « Abonnement, ou votre clé » du premier lancement.
+ * The "Abonnement, ou votre clé" screen at first launch.
  *
- * Il est parti sans test, et c'est le seul écran de l'accueil qui ÉCRIT un secret. Ce
- * qu'on vérifie ici n'est donc pas la mise en page mais les trois promesses que l'écran
- * fait à la personne qui colle sa clé :
+ * It shipped without a test, and it's the only onboarding screen that WRITES a secret. What
+ * is checked here is therefore not the layout but the three promises the screen
+ * makes to the person pasting their key:
  *
- *  1. la clé part chez le BON fournisseur — la ranger sous le mauvais est invisible à
- *     l'écran et ne se découvre qu'au premier envoi, sous la forme d'une erreur qui ne
- *     nomme pas sa cause ;
- *  2. un échec d'enregistrement est DIT — sans ça, on repart en croyant sa clé posée
- *     alors qu'elle n'existe nulle part (règle produit : un échec réel est toujours
- *     montré, jamais avalé) ;
- *  3. la clé n'est jamais RELUE par l'interface — elle est chiffrée côté privilégié, et
- *     l'écran ne doit pas la garder à l'écran ni dans le DOM après l'avoir envoyée.
+ *  1. the key goes to the RIGHT provider — filing it under the wrong one is invisible on
+ *     the screen and is only discovered on the first send, as an error that doesn't
+ *     name its cause;
+ *  2. a save failure is SAID — without that, you walk away believing your key is set
+ *     when it exists nowhere (product rule: a real failure is always
+ *     shown, never swallowed);
+ *  3. the key is never READ BACK by the UI — it's encrypted on the privileged side, and
+ *     the screen must not keep it on screen or in the DOM after sending it.
  */
 
 const noop = () => {};
 
-// Le défaut du paquet (un build hébergé) — restauré pour que l'ordre des tests ne compte pas.
+// The package's default (a hosted build) — restored so test order doesn't matter.
 afterEach(() => configurePlatformAccess({ served: true }));
 
 describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
@@ -43,8 +43,8 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
       />,
     );
 
-    // On choisit explicitement Anthropic : la valeur par défaut est OpenRouter, donc un
-    // câblage qui ignorerait la sélection passerait inaperçu sans ce clic.
+    // We explicitly pick Anthropic: the default value is OpenRouter, so wiring
+    // that ignored the selection would go unnoticed without this click.
     const anthropic = m
       .findAll(".ob-access-provider")
       .find((b) => b.textContent?.includes(PROVIDERS.anthropic.label))!;
@@ -72,10 +72,10 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     await m.type(".ob-access-input", "sk-test");
     await m.click(".ob-access-save");
 
-    // Le message du refus, pas un « Réessayez » générique qui perdrait la cause.
+    // The refusal's message, not a generic « Réessayez » that would lose the cause.
     expect(m.find(".ob-access-error").textContent).toContain("trousseau verrouillé");
-    // Et le bouton redevient actionnable : un échec qui laisse « Enregistrement… » à
-    // l'écran est un cul-de-sac.
+    // And the button becomes actionable again: a failure that leaves « Enregistrement… » on
+    // screen is a dead end.
     expect(m.find<HTMLButtonElement>(".ob-access-save").disabled).toBe(false);
 
     await m.unmount();
@@ -125,14 +125,14 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
       <KeyChoice mode="byo" onMode={noop} onSaveKey={async () => {}} keyConfigured={new Set()} />,
     );
 
-    // Les étapes cochables du fournisseur sélectionné, et le lien OFFICIEL du registre.
+    // The checkable steps for the selected provider, and the OFFICIAL registry link.
     expect(m.findAll(".byo-steps li").length).toBeGreaterThan(0);
     expect(m.find<HTMLAnchorElement>(".byo-link").href).toBe(
       providerKeyHelp("openrouter", getMessages("fr"))!.keyUrl,
     );
 
-    // Changer de fournisseur change le guide ET repart d'une liste vierge : une coche
-    // héritée du fournisseur précédent est un faux marque-page.
+    // Changing provider changes the guide AND starts over from a blank list: a tick
+    // inherited from the previous provider is a false bookmark.
     await m.click(
       m.findAll(".ob-access-provider").find((b) => b.textContent?.includes(PROVIDERS.openai.label))!,
     );
@@ -165,8 +165,8 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     expect(m.find(".byo-issue").className).toContain("error");
     expect(m.find(".byo-issue").textContent).toContain("sk-or-");
 
-    // Le verdict explique, il n'interdit pas : le préfixe est de la documentation, pas
-    // un contrat, et un blocage sur une forme périmée serait un cul-de-sac.
+    // The verdict explains, it doesn't forbid: the prefix is documentation, not
+    // a contract, and blocking on an outdated form would be a dead end.
     expect(m.find<HTMLButtonElement>(".ob-access-save").disabled).toBe(false);
     await m.click(".ob-access-save");
     expect(saved).toHaveLength(1);
@@ -178,16 +178,16 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     const m = await mount(<KeyChoice mode="byo" onMode={noop} keyConfigured={new Set()} />);
 
     expect(m.maybe(".ob-access-key")).toBeNull();
-    // Le CHOIX reste offert : c'est le formulaire qui manque, pas l'étape.
+    // The CHOICE is still offered: it's the form that's missing, not the step.
     expect(m.findAll(".ob-access-opt")).toHaveLength(2);
 
     await m.unmount();
   });
 
   it("sans service hébergé, la carte « Mon compte » n'existe pas et le formulaire s'ouvre seul", async () => {
-    // Un build sans backend (`SELF_HOSTING.md`) n'a AUCUN abonnement à proposer : offrir
-    // le choix serait offrir une porte qui ne mène nulle part. Il ne reste qu'un chemin,
-    // donc plus de question — le formulaire est l'étape.
+    // A build with no backend (`SELF_HOSTING.md`) has NO subscription to offer: offering
+    // the choice would be offering a door that leads nowhere. Only one path remains,
+    // so no more question — the form is the step.
     configurePlatformAccess({ served: false });
     const m = await mount(
       <KeyChoice mode={null} onMode={noop} onSaveKey={async () => {}} keyConfigured={new Set()} />,

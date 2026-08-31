@@ -16,8 +16,8 @@ import type { DeferredFile } from "../../state/deferredFile";
  */
 
 export interface ExtractDroppedDeps {
-  /** `host.files.extractBytes` — base64 in, extraction STRUCTURÉE out (texte + words/
-   *  ocrText/ocr) : c'est ce qui rend une image déposée peignable en REDACTED. */
+  /** `host.files.extractBytes` — base64 in, STRUCTURED extraction out (text + words/
+   *  ocrText/ocr): that's what makes a dropped image paintable as REDACTED. */
   extractBytes(
     data: string,
     name: string,

@@ -23,19 +23,19 @@
  *   lieux" or "convention collective" fall out of their function words + these entries.
  */
 /**
- * Les CODES d'opération d'un relevé — leur PROPRE liste parce que deux endroits en ont
- * besoin (règle 9) : ici, pour qu'un code seul ne soit jamais une entité ; et le rognage
- * de span (`../pseudonymize/spanEdges.ts`), pour qu'un code COLLÉ devant un nom sorte du
- * span. Sans le second, « VIR Rebour » était UNE entité — le fournisseur recevait deux
- * faux (un pour « VIR Rebour », un pour « REBOUR ») et le type d'opération disparaissait.
+ * A statement's operation CODES — their OWN list because two places need them
+ * (rule 9): here, so that a code alone is never an entity; and the span trimming
+ * (`../pseudonymize/spanEdges.ts`), so that a code STUCK in front of a name falls out of
+ * the span. Without the second, « VIR Rebour » was ONE entity — the provider received two
+ * fakes (one for « VIR Rebour », one for « REBOUR ») and the operation type disappeared.
  */
 export const BANK_OP_CODES = ["vir", "prlv", "reçu", "recu", "chq", "vrst", "remise"] as const;
 
 export const VIE_TERMS: string[] = [
-  // ── Emploi & accompagnement — français ────────────────────────────────────
-  // « emploi » manquait, et c'est LE mot d'une lettre de Pôle emploi : faké, tout le
-  // document parle d'un métier inventé. « rendez » aussi — « rendez-vous » était
-  // couvert, sa moitié non, d'où « tout troyes-vous fixé ».
+  // ── Employment & support — French ─────────────────────────────────────────
+  // « emploi » was missing, and it is THE word of a Pôle emploi letter: faked, the whole
+  // document talks about an invented trade. « rendez » too — « rendez-vous » was
+  // covered, its half was not, hence « tout troyes-vous fixé ».
   "emploi", "emplois", "rendez", "conseiller", "conseillère", "conseillere",
   "référent", "referent", "actualisation", "actualiser", "accompagnement",
   "demandeur d'emploi", "demandeurs d'emploi", "offre d'emploi", "offres d'emploi",
@@ -43,9 +43,9 @@ export const VIE_TERMS: string[] = [
   "indemnités", "indemnites", "cessation d'inscription", "mission locale",
   "cap emploi", "agence pour l'emploi", "service public de l'emploi",
 
-  // ── Fonctions publiques électives & d'État — français ─────────────────────
-  // Une FONCTION n'est jamais une identité. « maire » est délibérément ABSENT :
-  // c'est aussi un patronyme français, comme « prevost » plus bas — la fonction perd.
+  // ── Elective and State public offices — French ────────────────────────────
+  // A FUNCTION is never an identity. « maire » is deliberately ABSENT:
+  // it is also a French surname, like « prevost » below — the function loses.
   "ministre", "ministres", "secrétaire d'état", "secretaire d'etat", "préfet",
   "prefet", "préfète", "prefete", "sous-préfet", "sous-prefet", "député",
   "depute", "députée", "deputee", "sénateur", "senateur", "sénatrice",
@@ -53,7 +53,7 @@ export const VIE_TERMS: string[] = [
   "conseillere municipale", "conseiller départemental", "adjoint au maire",
   "élu", "elu", "élue", "elue", "élus", "elus", "mandat électif", "commune",
 
-  // ── Emploi / RH / paie — français ─────────────────────────────────────────
+  // ── Employment / HR / payroll — French ────────────────────────────────────
   "employeur", "employeurs", "salarié", "salarie", "salariée", "salariee",
   "salariés", "salaries", "apprenti", "apprentie", "apprentis", "stagiaire",
   "stagiaires", "intérimaire", "interimaire", "intérimaires", "interimaires",
@@ -85,7 +85,7 @@ export const VIE_TERMS: string[] = [
   "empregador", "empregado", "empregada", "folha de pagamento", "holerite",
   "salário", "demissão", "demissao", "rescisão", "rescisao", "férias", "ferias",
   "aviso prévio", "aviso previo", "décimo terceiro", "decimo terceiro",
-  // ── Immobilier / bail — français ──────────────────────────────────────────
+  // ── Property / lease — French ─────────────────────────────────────────────
   "bailleur", "bailleurs", "preneur", "preneurs", "colocataire", "colocataires",
   "caution", "cautions", "cautionnement", "dépôt de garantie", "depot de garantie",
   "loyer", "loyers", "charges", "charges locatives", "provision", "provisions",
@@ -106,7 +106,7 @@ export const VIE_TERMS: string[] = [
   "condominio", "spese condominiali",
   "locador", "locatário", "locatario", "inquilino", "aluguel", "aluguer",
   "caução", "caucao", "condomínio", "condominio",
-  // ── Santé — français ──────────────────────────────────────────────────────
+  // ── Health — French ───────────────────────────────────────────────────────
   "médecin", "medecin", "médecins", "medecins", "médecin traitant",
   "medecin traitant", "spécialiste", "specialiste", "praticien", "praticienne",
   "infirmier", "infirmière", "infirmiere", "pharmacien", "pharmacienne",
@@ -117,7 +117,7 @@ export const VIE_TERMS: string[] = [
   "feuille de soins", "carte vitale", "ald", "arrêt de travail", "arret de travail",
   "invalidité", "invalidite", "incapacité", "incapacite", "remboursement",
   "dépassement d'honoraires", "depassement d'honoraires", "parcours de soins",
-  // ── Santé — EN / DE / ES / IT / PT ────────────────────────────────────────
+  // ── Health — EN / DE / ES / IT / PT ───────────────────────────────────────
   "physician", "doctor", "practitioner", "nurse", "prescription", "dosage",
   "outpatient", "inpatient", "copay", "referral",
   "arzt", "ärztin", "aerztin", "hausarzt", "facharzt", "patientin", "rezept",
@@ -127,7 +127,7 @@ export const VIE_TERMS: string[] = [
   "medico di base", "paziente", "ricetta", "ticket", "visita", "ricovero",
   "médico de família", "medico de familia", "utente", "receita médica",
   "receita medica", "consulta médica", "baixa médica", "baixa medica",
-  // ── École / formation — français ──────────────────────────────────────────
+  // ── School / training — French ────────────────────────────────────────────
   "élève", "eleve", "élèves", "eleves", "étudiant", "etudiant", "étudiante",
   "etudiante", "étudiants", "etudiants", "enseignant", "enseignante",
   "enseignants", "professeur", "professeure", "professeurs", "directeur",
@@ -138,7 +138,7 @@ export const VIE_TERMS: string[] = [
   "trimestre", "inscription", "réinscription", "reinscription", "scolarité",
   "scolarite", "bourse", "bourses", "boursier", "boursière", "boursiere",
   "crous", "cantine", "internat", "redoublement", "orientation",
-  // ── École — EN / DE / ES / IT / PT ────────────────────────────────────────
+  // ── School — EN / DE / ES / IT / PT ───────────────────────────────────────
   "pupil", "student", "students", "teacher", "headteacher", "tuition",
   "enrollment", "enrolment", "transcript", "scholarship", "grade", "semester",
   "schüler", "schuelerin", "schülerin", "lehrer", "lehrerin", "zeugnis",
@@ -149,7 +149,7 @@ export const VIE_TERMS: string[] = [
   "iscrizione", "borsa di studio",
   "aluno", "aluna", "professor titular", "boletim", "matrícula escolar",
   "bolsa de estudos", "propina", "propinas",
-  // ── Greffe / registre / société — français ────────────────────────────────
+  // ── Registry / company register — French ──────────────────────────────────
   "greffe", "greffes", "greffier", "greffière", "greffiere", "tribunal",
   "tribunaux", "commerce", "instance", "juridiction", "audience",
   "inpi", "bodacc", "comptes annuels", "dépôt des comptes", "depot des comptes",
@@ -175,14 +175,14 @@ export const VIE_TERMS: string[] = [
   "capitale sociale", "scioglimento",
   "registo comercial", "registro comercial", "contas anuais", "revisor oficial",
   "contabilista", "capital social", "dissolução", "dissolucao",
-  // ── Banque / facture — français ───────────────────────────────────────────
+  // ── Banking / invoicing — French ──────────────────────────────────────────
   "titulaire", "titulaires", "co-titulaire", "cotitulaire", "bénéficiaire",
   "beneficiaire", "bénéficiaires", "beneficiaires", "donneur d'ordre",
   "virement", "virements", "prélèvement", "prelevement", "prélèvements",
-  // Les CODES d'opération d'un relevé bancaire — un grand livre en est truffé, et la
-  // couche NER faisait de « VIR » une société (« VOX », vécu 13/08) : chaque ligne du
-  // relevé parlait alors d'une entreprise fantôme. Écrits comme les banques les
-  // impriment (majuscules sans accent) ; la casse est pliée au lookup.
+  // The operation CODES of a bank statement — a ledger is riddled with them, and the
+  // NER layer made « VIR » a company (« VOX », lived 13/08): every statement line
+  // then spoke of a phantom business. Written the way banks
+  // print them (uppercase, unaccented); case is folded at lookup.
   ...BANK_OP_CODES,
   "prelevements", "échéance", "echeance", "échéances", "echeances", "solde",
   "soldes", "débit", "debit", "crédit", "credit", "relevé", "releve",
@@ -204,7 +204,7 @@ export const VIE_TERMS: string[] = [
   "scadenza", "importo", "sollecito",
   "titular da conta", "beneficiário", "transferência", "transferencia",
   "débito direto", "debito direto", "extrato", "vencimento", "montante",
-  // ── Administration — français ─────────────────────────────────────────────
+  // ── Administration — French ───────────────────────────────────────────────
   "préfecture", "prefecture", "sous-préfecture", "sous-prefecture", "mairie",
   "mairies", "commune", "communes", "canton", "cantons", "arrondissement",
   "arrondissements", "collectivité", "collectivite", "service public",
@@ -233,14 +233,14 @@ export const VIE_TERMS: string[] = [
   "requerente", "requerimento", "câmara municipal", "camara municipal",
   "certidão", "certidao", "comprovativo", "comprovativos", "prazo", "renovação",
   "renovacao",
-  // ── Rôles / intitulés d'équipe — la ligne sous chaque prénom d'un trombinoscope ──
+  // ── Roles / team titles — the line under each face-book first name ───────────────
   // A team page alternates "Prénom" / "rôle" lines; the NER glues them into one span
   // ("Maurice Expert") or tags the role alone. Role words are KINDS, never identities.
   // (Uppercase renderings — "TECH", "PARTNERSHIP" — fold to the same entries.)
   "product", "produit", "design", "designer", "tech", "technique", "engineering",
   "ingénierie", "ingenierie", "développeur", "developpeur", "développeuse",
-  // « ai » RETIRÉ : « Ai » est un prénom (JP/CN) et le produit redacted le CJK —
-  // épargner l'équipe coûterait le prénom en clair. « ia »/« ml » n'en sont pas.
+  // « ai » REMOVED: « Ai » is a first name (JP/CN) and the product redacts CJK —
+  // sparing the team would cost the first name in clear. « ia »/« ml » are not.
   "developpeuse", "developer", "data", "ia", "ml", "sécurité", "securite",
   "security", "partnership", "partnerships", "partenariat", "partenariats",
   "marketing", "growth", "go-to-market", "sales", "ventes", "ops", "operations",
@@ -252,16 +252,16 @@ export const VIE_TERMS: string[] = [
   "rédacteur", "redacteur", "rédactrice", "redactrice", "rédac. chef",
   "red team", "red team & ai", "fondateur", "fondatrice", "founder", "cofondateur",
   "cofondatrice", "co-founder", "medialab", "média",
-  // « media » (sans accent) est délibérément ABSENT — il double comme nom de marque,
-  // et le test de discipline (`orgAffixes.test.ts`) l'épingle. « média » reste.
+  // « media » (unaccented) is deliberately ABSENT — it doubles as a brand name,
+  // and the discipline test (`orgAffixes.test.ts`) pins it. « média » stays.
   "lab", "labs",
   "science", "sciences", "recherche", "research", "institut", "institute",
   "gouvernement", "gouvernements", "government", "governments",
-  // ── Enveloppes & produits d'épargne / placement — des TYPES, jamais des identités ──
-  // Le NER tague les sigles ORG (« PEA » → faké en acronyme inventé, et une question de
-  // culture financière — « les ETF éligibles au PEA » — devient un graphique de rien).
-  // Même famille que les labels iban/rcs déjà couverts : le SCHÉMA est générique, le
-  // NUMÉRO de compte reste redacted par ses propres règles.
+  // ── Savings & investment wrappers — TYPES, never identities ────────────────────────
+  // The NER tags ORG acronyms (« PEA » → faked into an invented acronym, and a question of
+  // financial literacy — « les ETF éligibles au PEA » — becomes a chart of nothing).
+  // Same family as the iban/rcs labels already covered: the SCHEME is generic, the
+  // account NUMBER stays redacted by its own rules.
   "pea", "pea-pme", "pel", "cel", "ldd", "ldds", "lep",
   "etf", "etfs", "tracker", "trackers", "sicav", "opcvm", "opci", "scpi",
   "fcp", "fcpi", "assurance-vie", "assurance vie", "compte-titres", "compte titres",

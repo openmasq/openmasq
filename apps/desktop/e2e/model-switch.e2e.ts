@@ -5,17 +5,17 @@ import { launchApp } from "./helpers";
 import { supabaseAuthStorageKey } from "./supabaseAuthKey";
 
 /**
- * SMOKE du changement de modèle — le geste le plus fréquent après « envoyer », et la
- * surface qui a mis toute l'app sur l'ErrorBoundary quand Chromium a changé ce que
- * `scrollIntoView` RETOURNE (une Promise, rendue par un effet concis → « destroy is
- * not a function » au démontage du finder). Le typecheck ne voit pas cette classe
- * (lib.dom déclare encore `void`) et le boot-smoke ne navigue pas : seul un VRAI
- * parcours — ouvrir le finder, marcher les colonnes, choisir, recommencer — l'attrape.
- * Aucun modèle appelé, aucun réseau requis ; release.yml le lance avant la signature.
+ * SMOKE test for changing models — the most frequent gesture after "send", and the
+ * surface that put the whole app on the ErrorBoundary when Chromium changed what
+ * `scrollIntoView` RETURNS (a Promise, rendered by a concise effect → "destroy is
+ * not a function" on the finder's unmount). The typecheck doesn't see this class
+ * (lib.dom still declares `void`) and the boot-smoke doesn't navigate: only a REAL
+ * path — open the finder, walk the columns, pick, do it again — catches it.
+ * No model called, no network required; release.yml runs it before signing.
  */
 test("changer deux fois de modèle dans une conversation ne jette jamais", async () => {
-  // Profil FRAIS à chaque run (le pattern du harness workflows) : l'état d'un run
-  // précédent — session invalidée, sidebar repliée — ne doit jamais faire flaker un smoke.
+  // FRESH profile on every run (the workflows harness pattern): a previous
+  // run's state — invalidated session, collapsed sidebar — must never flake a smoke test.
   const profile = resolve(__dirname, `.profile-model-switch-${process.pid}`);
   rmSync(profile, { recursive: true, force: true });
   mkdirSync(profile, { recursive: true });
@@ -24,7 +24,7 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(`${e.message}`));
   page.on("console", (m) => {
-    // La boundary AVALE l'erreur (pas de pageerror) — c'est sa trace console qui témoigne.
+    // The boundary SWALLOWS the error (no pageerror) — its console trace is the witness.
     if (m.type() === "error" && /ErrorBoundary|is not a function/.test(m.text()))
       errors.push(m.text().slice(0, 400));
   });
@@ -34,8 +34,8 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
       access_token: "fake", token_type: "bearer", expires_in: 3600, expires_at: future,
       refresh_token: "fake", user: { id: "u1", email: "test@acme.test", aud: "authenticated", role: "authenticated" },
     }));
-    // Les DEUX clés de settings — la globale ET la scopée par compte (`:u1`), comme le
-    // harness workflows : sans la scopée, l'app peut retomber sur l'onboarding/login.
+    // BOTH settings keys — the global one AND the account-scoped one (`:u1`), like the
+    // workflows harness: without the scoped one, the app can fall back to onboarding/login.
     const s = JSON.stringify({ onboarded: true, redactRulesSeen: true, redactEngine: "patterns", defaultModelId: "auto" });
     for (const k of ["openmasq.settings", "openmasq.settings:u1"]) localStorage.setItem(k, s);
   }, supabaseAuthStorageKey());
@@ -43,20 +43,20 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
   await page.waitForLoadState("domcontentloaded");
   await new Promise((r) => setTimeout(r, 2500));
 
-  // Rail replié OU sidebar dépliée : `DesktopShell` garde les DEUX panneaux MONTÉS (le
-  // dock anime sa largeur et les fait se croiser), donc un sélecteur par texte ou par
-  // classe attrape aussi celui de DERRIÈRE — que l'espace de conversation recouvre, d'où
-  // un clic qui ne peut jamais atterrir (le run Windows 31485829086 : « <div
-  // class="welcome"> intercepts pointer events », 60 tentatives, échec).
-  // `getByRole` lit l'arbre d'ACCESSIBILITÉ, qui exclut le panneau `aria-hidden` : il ne
-  // peut désigner que le bouton réellement actif, quel que soit l'état du dock.
-  // (L'ancien sélecteur cherchait aussi « Nouveau chat », libellé qui n'existe plus nulle
-  // part : il ne tenait que par son repli, et le repli visait le mauvais bouton.)
+  // Collapsed rail OR expanded sidebar: `DesktopShell` keeps BOTH panels MOUNTED (the
+  // dock animates its width and makes them cross), so a text or class
+  // selector also catches the one BEHIND — which the conversation area covers, hence
+  // a click that can never land (the Windows run 31485829086: "<div
+  // class="welcome"> intercepts pointer events", 60 attempts, failure).
+  // `getByRole` reads the ACCESSIBILITY tree, which excludes the `aria-hidden` panel: it
+  // can only designate the actually active button, whatever the dock's state.
+  // (The old selector also looked for "Nouveau chat", a label that no longer exists
+  // anywhere: it only held up by its fallback, and the fallback targeted the wrong button.)
   await page.getByRole("button", { name: "Nouvelle conversation" }).first().click();
   await new Promise((r) => setTimeout(r, 1000));
 
-  // Deux changements complets : le cleanup d'effet du finder court à CHAQUE
-  // navigation de focus ET à son démontage — le crash historique variait entre les deux.
+  // Two full changes: the finder's effect cleanup runs on EVERY
+  // focus navigation AND on its unmount — the historical crash varied between the two.
   const pickThrough = async (providerIdx: number) => {
     await page.locator(".model-chip").first().click();
     await new Promise((r) => setTimeout(r, 500));
@@ -67,7 +67,7 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
       if ((await item.count()) === 0) break;
       await item.click().catch(() => {});
       await new Promise((r) => setTimeout(r, 450));
-      if ((await page.locator(".model-finder").count()) === 0) return; // modèle choisi
+      if ((await page.locator(".model-finder").count()) === 0) return; // model chosen
     }
     await page.keyboard.press("Escape").catch(() => {});
   };
@@ -76,7 +76,7 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
   await pickThrough(2);
   await new Promise((r) => setTimeout(r, 1200));
 
-  // L'app est toujours vivante (pas d'ErrorBoundary) et aucune erreur n'a fusé.
+  // The app is still alive (no ErrorBoundary) and no error has fired.
   expect(errors, "le changement de modèle a jeté").toEqual([]);
   await expect(page.locator(".model-chip").first()).toBeAttached();
   await app.close();

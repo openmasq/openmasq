@@ -1,21 +1,21 @@
-// Base58Check — le validateur d'une adresse Bitcoin HÉRITÉE (`1…` P2PKH, `3…` P2SH).
+// Base58Check — the validator of a LEGACY Bitcoin address (`1…` P2PKH, `3…` P2SH).
 //
-// ⚠️ Pourquoi il existe : la règle Bitcoin était NUE (`[13][a-km-zA-HJ-NP-Z1-9]{25,34}`),
-// donc elle attrapait tout identifiant base58 de 26-34 caractères commençant par 1 ou 3 —
-// dont un id de page Notion (`36db8e7d426681e79f43d3395ddc1f87`, mesuré). Et comme
-// `crypto` mappe sur la catégorie `secret`, qui est dans `URL_EXEMPT_KINDS`, l'id était
-// redacted MÊME À L'INTÉRIEUR D'UNE URL, que « Adresses web » soit ON ou OFF : ni la garde
-// URL ni `structuralUrlHosts` ne pouvaient le couvrir, l'exemption credential passant
-// avant — à raison.
+// ⚠️ Why it exists: the Bitcoin rule was BARE (`[13][a-km-zA-HJ-NP-Z1-9]{25,34}`),
+// so it caught every base58 identifier of 26-34 characters starting with 1 or 3 —
+// including a Notion page id (`36db8e7d426681e79f43d3395ddc1f87`, measured). And since
+// `crypto` maps onto the `secret` category, which is in `URL_EXEMPT_KINDS`, the id was
+// redacted EVEN INSIDE A URL, whether « Adresses web » was ON or OFF: neither the URL
+// guard nor `structuralUrlHosts` could cover it, the credential exemption coming
+// first — rightly so.
 //
-// Ce n'est PAS un fail-open, c'est de la précision : une vraie adresse porte 4 octets de
-// somme de contrôle SHA-256d et les passe toujours, seules les non-adresses tombent. C'est
-// exactement la première branche de la barre du `engine/CLAUDE.md` (checksum-validated).
-// La branche `bc1…` (bech32) ne passe pas par ici — son préfixe littéral la qualifie déjà.
+// This is NOT a fail-open, it is precision: a real address carries 4 bytes of
+// SHA-256d checksum and always passes them, only non-addresses fall. It is
+// exactly the first branch of the `engine/CLAUDE.md` bar (checksum-validated).
+// The `bc1…` branch (bech32) does not come through here — its literal prefix qualifies it.
 //
-// SHA-256 est réimplémenté ici, en ~40 lignes, plutôt qu'importé : le cœur du paquet est
-// BROWSER-SAFE (pas de `node:crypto`) et `crypto.subtle` est ASYNCHRONE, alors qu'un
-// `validate` de règle est synchrone par contrat.
+// SHA-256 is reimplemented here, in ~40 lines, rather than imported: the package's core is
+// BROWSER-SAFE (no `node:crypto`) and `crypto.subtle` is ASYNCHRONOUS, whereas a rule's
+// `validate` is synchronous by contract.
 
 const K = [
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -28,8 +28,8 @@ const K = [
   0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ];
 
-/** SHA-256 d'un tableau d'octets → 32 octets. Implémentation de référence, non optimisée :
- *  elle ne tourne que sur ≤ 34 caractères, à la fréquence d'un match de règle. */
+/** SHA-256 of a byte array → 32 bytes. Reference implementation, unoptimised:
+ *  it only runs on ≤ 34 characters, at the frequency of a rule match. */
 function sha256(bytes: Uint8Array): Uint8Array {
   const h = [
     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
@@ -74,8 +74,8 @@ function sha256(bytes: Uint8Array): Uint8Array {
 
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-/** Décodage base58 → octets. `null` sur un caractère hors alphabet. Multiplication longue
- *  base-256 (pas de BigInt : entrée courte, et le paquet vise aussi de vieux runtimes). */
+/** base58 decoding → bytes. `null` on a character outside the alphabet. Long base-256
+ *  multiplication (no BigInt: short input, and the package also targets old runtimes). */
 function base58Decode(s: string): Uint8Array | null {
   const bytes: number[] = [];
   for (const ch of s) {
@@ -92,8 +92,8 @@ function base58Decode(s: string): Uint8Array | null {
       carry >>= 8;
     }
   }
-  // Chaque « 1 » de tête est un octet nul de tête (c'est la convention base58check, et
-  // c'est ce qui fait qu'une adresse P2PKH commence par « 1 »).
+  // Every leading « 1 » is a leading zero byte (that is the base58check convention, and
+  // it is what makes a P2PKH address start with « 1 »).
   for (const ch of s) {
     if (ch !== "1") break;
     bytes.push(0);
@@ -102,9 +102,9 @@ function base58Decode(s: string): Uint8Array | null {
 }
 
 /**
- * Une adresse Bitcoin HÉRITÉE valide : 25 octets (1 version + 20 de hash + 4 de somme),
- * version 0x00 (P2PKH, « 1… ») ou 0x05 (P2SH, « 3… »), et sha256d des 21 premiers octets
- * dont les 4 premiers égalent la somme portée.
+ * A valid LEGACY Bitcoin address: 25 bytes (1 version + 20 of hash + 4 of checksum),
+ * version 0x00 (P2PKH, « 1… ») or 0x05 (P2SH, « 3… »), and sha256d of the first 21 bytes
+ * whose first 4 equal the carried checksum.
  */
 export function isBitcoinLegacyAddress(s: string): boolean {
   const bytes = base58Decode(s.trim());
@@ -115,7 +115,7 @@ export function isBitcoinLegacyAddress(s: string): boolean {
   return true;
 }
 
-/** Encodage base58 d'octets — l'inverse de `base58Decode`, pour FABRIQUER une adresse. */
+/** base58 encoding of bytes — the inverse of `base58Decode`, to BUILD an address. */
 function base58Encode(bytes: Uint8Array): string {
   const digits: number[] = [];
   for (const b of bytes) {
@@ -133,27 +133,27 @@ function base58Encode(bytes: Uint8Array): string {
   let out = "";
   for (const b of bytes) {
     if (b !== 0) break;
-    out += "1"; // un octet nul de tête = un « 1 » de tête
+    out += "1"; // a leading null byte = a leading « 1 »
   }
   for (let i = digits.length - 1; i >= 0; i--) out += ALPHABET[digits[i]];
   return out;
 }
 
 /**
- * Un FAUX d'adresse Bitcoin héritée qui passe lui aussi le base58check.
+ * A FAKE legacy Bitcoin address that also passes the base58check.
  *
- * ⚠️ Sans ça, le faux était un brouillage caractère par caractère (`fakeToken`) : il
- * commençait par n'importe quelle lettre, ne passait aucune somme de contrôle, et ne
- * ressemblait donc pas à une adresse. C'est la règle du `model/CLAUDE.md` — « le faux de
+ * ⚠️ Without this, the fake was a character-by-character scramble (`fakeToken`): it
+ * started with any letter, passed no checksum, and therefore did not
+ * look like an address. This is the `model/CLAUDE.md` rule — « le faux de
  * TOUT identifiant à somme de contrôle passe SA propre somme : un faux qui échoue invite le
- * modèle à le "corriger", et la correction ne se retourne plus ». Elle vaut d'autant plus
- * depuis que la DÉTECTION exige le base58check : un faux invalide ne serait même pas
- * re-détecté comme une adresse par notre propre moteur.
+ * modèle à le "corriger", et la correction ne se retourne plus ». It holds all the more
+ * now that DETECTION requires the base58check: an invalid fake would not even be
+ * re-detected as an address by our own engine.
  *
- * La VERSION est conservée (« 1… » reste « 1… », « 3… » reste « 3… ») et seuls les 20
- * octets de hash sont retirés, déterministes sur la graine — donc même valeur, même faux.
- * `null` si l'original n'est pas une adresse héritée valide : l'appelant garde son
- * brouillage, comportement inchangé (bech32 compris).
+ * The VERSION is preserved (« 1… » stays « 1… », « 3… » stays « 3… ») and only the 20
+ * hash bytes are redrawn, deterministic on the seed — so same value, same fake.
+ * `null` if the original is not a valid legacy address: the caller keeps its
+ * scramble, behaviour unchanged (bech32 included).
  */
 export function fakeBitcoinLegacyAddress(value: string, seed: number): string | null {
   const bytes = base58Decode(value.trim());

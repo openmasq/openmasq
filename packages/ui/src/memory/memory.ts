@@ -15,8 +15,8 @@ import type { MemoryCard, MemoryCategory, MemoryData } from "../types";
  * which entities are relevant. See `send`'s injection + the loop's `memory_search`.
  */
 
-/** Category vocabulary. `id` persists; tone is presentation (`--hl-*` hues). Le MOT
- *  vient du catalogue : `memoryCategoryLabel(id, t)`. */
+/** Category vocabulary. `id` persists; tone is presentation (`--hl-*` hues). The WORD
+ *  comes from the catalogue: `memoryCategoryLabel(id, t)`. */
 export const MEMORY_CATEGORIES: { id: MemoryCategory; tone: string }[] = [
   { id: "personne", tone: "violet" },
   { id: "organisation", tone: "sky" },
@@ -28,8 +28,8 @@ export function memoryCategory(id: string): (typeof MEMORY_CATEGORIES)[number] {
   return MEMORY_CATEGORIES.find((c) => c.id === id) ?? MEMORY_CATEGORIES[3];
 }
 
-/** Le nom d'une catégorie, dans la langue de `t`. ⚠️ Le bloc de mémoire INJECTÉ, lui,
- *  est de la prose pour le MODÈLE : il prend la langue source (`select.ts`). */
+/** The name of a category, in `t`'s language. ⚠️ The INJECTED memory block, however,
+ *  is prose for the MODEL: it takes the source language (`select.ts`). */
 export function memoryCategoryLabel(id: string, t: Messages): string {
   return t.lists.memory.categories[memoryCategory(id).id];
 }
@@ -61,16 +61,16 @@ export function memoryNoteTitle(text: string, maxWords = 5, maxChars = 60): stri
     : title;
 }
 
-/** Le nom d'une fiche VIERGE créée depuis la page Mémoire (« Nouvelle fiche »). */
+/** The name of a BLANK card created from the Mémoire page (« Nouvelle fiche »). */
 export const NEW_CARD_ENTITY = "Nouvelle fiche";
 
 /**
- * Le nom d'une fiche vierge qui SURVIT à `autoCleanMemory` : deux fiches de même
- * catégorie qui partagent une clé sont UNE entité par définition du magasin, donc un
- * second placeholder au nom fixe était refondu dans le premier à l'instant même de sa
- * création — la fiche créée disparaissait, et le bouton semblait mort. On numérote
- * donc tant que la clé est prise. La boucle est bornée : `taken.size` clés ne peuvent
- * bloquer que `taken.size` candidats.
+ * The name of a blank card that SURVIVES `autoCleanMemory`: two cards of the same
+ * category sharing a key are ONE entity by the store's own definition, so a
+ * second fixed-name placeholder used to be merged into the first the instant it was
+ * created — the newly created card would vanish, and the button seemed dead. So it is
+ * numbered as long as the key is taken. The loop is bounded: `taken.size` keys can
+ * only block `taken.size` candidates.
  */
 export function newCardEntity(cards: readonly MemoryCard[]): string {
   const taken = new Set(cards.flatMap((c) => cardKeys(c)));
@@ -79,7 +79,7 @@ export function newCardEntity(cards: readonly MemoryCard[]): string {
     const name = `${NEW_CARD_ENTITY} ${n}`;
     if (!taken.has(normalizeMem(name))) return name;
   }
-  return NEW_CARD_ENTITY; // inatteignable — la borne ci-dessus garantit un libre
+  return NEW_CARD_ENTITY; // unreachable — the bound above guarantees a free one
 }
 
 /** Create a card from user input. Null when the entity is empty. Facts clamped. */
@@ -160,15 +160,15 @@ const TOKEN_HOMOGRAPHS = new Set([
   "stone", "hill", "wood", "field", "day", "may", "young", "strong",
 ]);
 
-/** Un TOKEN homographe (nom qui est aussi un mot courant) — exporté pour que
- *  l'extraction refuse un ALIAS mono-mot homographe (« Claire » posé en alias d'une
- *  des deux Claires fait déborder le rappel whole-key sur l'autre). */
+/** A homograph TOKEN (a name that is also an everyday word) — exported so that
+ *  extraction refuses a homograph single-word ALIAS (« Claire » set as an alias of one
+ *  of two Claires would spill the whole-key recall onto the other). */
 export const isTokenHomograph = (t: string): boolean => TOKEN_HOMOGRAPHS.has(normalizeMem(t));
 
-/** Les tokens d'une carte que le tier jeton REFUSE parce qu'ils sont des homographes
- *  (« pierre », « marche ») — le diagnostic du non-rappel SURPRENANT : « Pierre » tapé
- *  seul n'évoque pas la fiche « Pierre Marché », exprès, et sans cette liste
- *  l'utilisateur ne peut pas le savoir. Mêmes filtres de forme que `cardTokens`. */
+/** A card's tokens that the token tier REFUSES because they are homographs
+ *  (« pierre », « marche ») — the diagnostic for a SURPRISING non-recall: « Pierre » typed
+ *  alone doesn't evoke the « Pierre Marché » card, on purpose, and without this list
+ *  the user has no way to know it. Same shape filters as `cardTokens`. */
 export function deniedHomographTokens(card: MemoryCard): string[] {
   const out = new Set<string>();
   for (const k of cardKeys(card)) {
@@ -204,18 +204,18 @@ export function mentionsToken(normText: string, card: MemoryCard): boolean {
   return cardTokens(card).some((t) => keyInText(normText, t));
 }
 
-// La COMPACTION des faits (reformulation, mise à jour d'attribut, éviction à
-// saturation, historique `factsLog`) vit dans `compaction.ts` (règle 1) — le barrel
-// `index.ts` l'exporte à côté de ce fichier.
+// Facts COMPACTION (rewording, attribute update, eviction at
+// saturation, `factsLog` history) lives in `compaction.ts` (rule 1) — the barrel
+// `index.ts` exports it alongside this file.
 
-/** Fenêtre de la revue « Nouveautés » : ce que la machine a écrit RÉCEMMENT. */
+/** Window of the « Nouveautés » review: what the machine wrote RECENTLY. */
 export const MEMORY_FRESH_MS = 7 * 24 * 3600 * 1000;
 
-/** Les cartes à REVOIR : créées par l'extraction automatique dans la fenêtre, ou dont
- *  une phrase a été REMPLACÉE dans la fenêtre (l'historique `factsLog` date chaque
- *  remplacement — une carte manuelle mise à jour par la machine compte aussi). C'est
- *  la boîte de réception du mode silencieux : ce qui s'accumule sans revue est ce qui
- *  mine la confiance dans une mémoire automatique. */
+/** Cards TO REVIEW: created by automatic extraction within the window, or with
+ *  a sentence REPLACED within the window (the `factsLog` history dates each
+ *  replacement — a manual card updated by the machine counts too). This is
+ *  silent mode's inbox: what accumulates without review is what
+ *  undermines trust in an automatic memory. */
 export function freshCardIds(memory: MemoryData, now: number, windowMs = MEMORY_FRESH_MS): Set<string> {
   const cutoff = now - windowMs;
   return new Set(
@@ -233,9 +233,9 @@ export function freshCardIds(memory: MemoryData, now: number, windowMs = MEMORY_
   );
 }
 
-/** Les cartes qui répondent à la recherche de la page Mémoire (entité + alias + faits,
- *  `normalizeMem` des deux côtés) — `null` = pas de filtre. Servie aux DEUX vues : la
- *  liste filtre, le graphe estompe les feuilles non correspondantes. */
+/** Cards that match the Mémoire page's search (entity + alias + facts,
+ *  `normalizeMem` on both sides) — `null` = no filter. Served to BOTH views: the
+ *  list filters, the graph dims non-matching leaves. */
 export function matchingCardIds(memory: MemoryData, query: string): Set<string> | null {
   const q = normalizeMem(query);
   if (!q) return null;

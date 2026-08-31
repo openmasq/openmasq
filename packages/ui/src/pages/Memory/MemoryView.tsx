@@ -43,7 +43,7 @@ export function MemoryView({
   loaded = true,
 }: {
   memoire: MemoryData;
-  /** Pour l'usage (« rappelée dans N conversations ») — lu seul, jamais muté ici. */
+  /** For usage ("recalled in N conversations") — read only, never mutated here. */
   conversations?: readonly Conversation[];
   /** Deep-link from a chat caption: focus this card's node. The `n` nonce re-focuses
    *  the SAME card twice (mirrors the Compétences deep-link). */
@@ -55,7 +55,7 @@ export function MemoryView({
   onAdd: (input: { entity: string; facts: string; cat?: string; aliases?: string[] }) => MemoryCard | null;
   onUpdate: (id: string, patch: Partial<Omit<MemoryCard, "id" | "createdAt">>) => void;
   onRemove: (id: string) => void;
-  /** Réinsère une fiche supprimée TELLE QUELLE (même id) — l'« Annuler » du toast. */
+  /** Re-inserts a deleted card AS-IS (same id) — the toast's « Annuler ». */
   onRestore?: (card: MemoryCard) => void;
   /** Confirmed duplicate merge — `state/useMemory.ts` `mergeMemoryCards`. */
   onMerge?: (keepId: string, dropId: string) => void;
@@ -66,12 +66,12 @@ export function MemoryView({
 }) {
   const t = useT();
   const [selected, setSelected] = useState<string | null>(null);
-  // Recherche + bascule Graphe/Liste : le graphe fait COMPRENDRE (les liens), la liste
-  // fait TROUVER — à 50+ fiches, retrouver celle à corriger est un scan, pas un survol.
+  // Search + Graph/List toggle: the graph makes you UNDERSTAND (the links), the list
+  // makes you FIND — at 50+ cards, finding the one to fix is a scan, not a glance.
   const [view, setView] = useState<"graph" | "list">("graph");
   const [query, setQuery] = useState("");
-  // La LÉGENDE filtre (l'affordance la plus évidente de la page) — un clic sur une
-  // catégorie restreint la liste et estompe le graphe, comme la recherche.
+  // The LEGEND filters (the page's most obvious affordance) — clicking a
+  // category narrows the list and fades the graph, just like search.
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const [grouped, setGrouped] = useState(false);
   // Semantic edges from the on-device index (desktop). Present ⇒ the CLUSTERED view

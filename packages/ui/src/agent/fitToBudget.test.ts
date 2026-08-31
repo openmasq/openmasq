@@ -7,16 +7,16 @@ const tool = (name: string, serverId: string, description = "", schema: unknown 
   ({ name, serverId, description, inputSchema: schema }) as unknown as McpTool;
 
 describe("fitToBudget — le repli déterministe quand le routeur échoue", () => {
-  // Journal réel du 30/07/2026 : un échec du routeur (fournisseur en 503/400) fait
-  // basculer sur ce repli. Pour un modèle à TRÈS grand contexte, 283 schémas complets
-  // tenaient LARGEMENT sous le ratio de budget — rien n'était coupé (283/283 gardés,
-  // 372k tokens montants pour une tâche qui n'en demandait qu'un). « Ça rentre » n'est
-  // pas « c'est raisonnable » : `fitMaxTools` plafonne le NOMBRE, indépendamment du ratio.
+  // Real journal from 30/07/2026: a router failure (provider on 503/400) falls
+  // back to this fallback. For a model with a VERY large context, 283 full schemas
+  // fit WELL under the budget ratio — nothing was cut (283/283 kept,
+  // 372k tokens climbing for a task that only needed one). « It fits » is NOT
+  // « it's reasonable »: `fitMaxTools` caps the COUNT, independently of the ratio.
   const many = (n: number) =>
     Array.from({ length: n }, (_, i) => tool(`srv__tool_${i}`, "srv", `Outil numéro ${i}.`));
 
   it("respecte le plafond de nombre même quand tout tiendrait dans le ratio (fenêtre géante)", () => {
-    const huge = 10_000_000; // une fenêtre de contexte énorme — tout tiendrait sous le ratio
+    const huge = 10_000_000; // a huge context window — everything would fit under the ratio
     const kept = fitToBudget(many(283), huge, DEFAULT_CATALOG_CONFIG);
     expect(kept.length).toBeLessThanOrEqual(DEFAULT_CATALOG_CONFIG.fitMaxTools);
   });
@@ -30,7 +30,7 @@ describe("fitToBudget — le repli déterministe quand le routeur échoue", () =
 
   it("le ratio seul continue de couper même sous le plafond de nombre", () => {
     const cfg: CatalogConfig = { ...DEFAULT_CATALOG_CONFIG, fitMaxTools: 1000 };
-    const tiny = 500; // fenêtre minuscule — le ratio doit couper avant le plafond de nombre
+    const tiny = 500; // tiny window — the ratio must cut before the count cap
     const kept = fitToBudget(many(50), tiny, cfg);
     expect(kept.length).toBeLessThan(50);
   });

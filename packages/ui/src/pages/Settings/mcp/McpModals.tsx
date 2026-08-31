@@ -6,17 +6,17 @@ import { McpConnectorModal } from "./McpConnectorModal";
 import { groupPeers } from "./credGroup";
 import type { useMcpConnectors } from "./useMcpConnectors";
 
-/** Ce que `useMcpConnectors` rend — le contrat que les deux points de montage se passent
- *  tel quel. Défini ICI et pas dans le hook : son fichier est gelé par `check:loc`. */
+/** What `useMcpConnectors` renders — the contract the two mount points pass
+ *  around as-is. Defined HERE and not in the hook: its file is frozen by `check:loc`. */
 export type McpConnectors = ReturnType<typeof useMcpConnectors>;
 
 /**
- * La pile de modales d'un connecteur : le détail, le formulaire de clés BYO qu'il
- * ouvre, et l'inspecteur d'outils. Extraite de `McpTab` parce qu'elle a désormais DEUX
- * points de montage — l'onglet Réglages, et `ConnectorModalHost` qui l'ouvre depuis
- * n'importe où (règle 9 : une seule implémentation, pas deux copies du même câblage).
+ * A connector's modal stack: the detail view, the BYO key form it
+ * opens, and the tools inspector. Extracted from `McpTab` because it now has TWO
+ * mount points — the Réglages tab, and `ConnectorModalHost`, which opens it from
+ * anywhere (rule 9: one single implementation, not two copies of the same wiring).
  *
- * Aucun appel hôte ici : tout passe par le `useMcpConnectors` que l'appelant possède.
+ * No host call here: everything goes through the `useMcpConnectors` the caller owns.
  */
 export function McpModals({ c }: { c: McpConnectors }) {
   const host = useHost();
@@ -60,10 +60,10 @@ export function McpModals({ c }: { c: McpConnectors }) {
               setOpenId(null);
             }}
             onReauth={host.mcp?.reauthDirect ? (serverId) => reauth(serverId) : undefined}
-            // Les AUTRES connecteurs que la même autorisation fait tomber (Google partage
-            // un seul client OAuth) : la fiche les NOMME, et `setOpenId` bascule sur celui
-            // qu'on choisit de réparer ensuite — la même modale, sans quitter l'écran.
-            // Pourquoi nommer plutôt que tout re-consentir : `credGroup.ts`.
+            // The OTHER connectors the same authorization takes down with it (Google shares
+            // a single OAuth client): the card NAMES them, and `setOpenId` switches to whichever
+            // one you choose to fix next — the same modal, without leaving the screen.
+            // Why name them rather than re-consent to everything: `credGroup.ts`.
             peers={groupPeers(openItem.id, items)}
             onOpenPeer={(id) => setOpenId(id)}
             onInspect={(serverId) => {

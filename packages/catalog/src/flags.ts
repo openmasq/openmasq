@@ -1,56 +1,56 @@
 /**
- * La QUATRIÈME liste gouvernable : les accès aux sections qu'on peut fermer à distance
- * (drapeaux PostHog, servis par le relais `apps/analytics-fn`).
+ * The FOURTH governable list: access to sections that can be closed remotely
+ * (PostHog flags, served by the `apps/analytics-fn` relay).
  *
- * Elle vit ICI, à côté des modèles / connecteurs / catégories, pour la même raison
- * qu'eux : la clé de drapeau est écrite dans PostHog par un humain et lue par le
- * produit — deux endroits qui doivent nommer la MÊME chaîne, donc une seule source
- * (règle 9). Un drapeau tapé à la main dans un composant est un drapeau qui ne
- * s'éteindra jamais le jour où il faudra.
+ * It lives HERE, next to models / connectors / categories, for the same reason
+ * as them: the flag key is written in PostHog by a human and read by the
+ * product — two places that must name the SAME string, hence a single source
+ * (rule 9). A flag hand-typed in a component is a flag that will
+ * never turn off on the day it needs to.
  *
- * ══ POURQUOI LE DRAPEAU DIT « CACHER », ET JAMAIS « AUTORISER » ══════════════════
+ * ══ WHY THE FLAG SAYS "HIDE", AND NEVER "ALLOW" ══════════════════
  *
- * Mesuré contre le vrai PostHog (17/08), et c'est ce qui a décidé de la polarité :
- * **un drapeau DÉSACTIVÉ n'est pas rendu à `false` — il est ABSENT de la réponse.**
- * Avec une clé `access-*` (vrai = ouvert), le bouton « Disable » de l'interface — le
- * geste le plus évident du tableau de bord — produisait donc une réponse où la clé
- * manquait, que le client lit comme « pas d'avis » : la porte restait grande ouverte.
- * Un levier qui ne fait rien, en silence.
+ * Measured against real PostHog (17/08), and this is what decided the polarity:
+ * **a DISABLED flag isn't rendered as `false` — it's ABSENT from the response.**
+ * With an `access-*` key (true = open), the interface's « Disable » button — the
+ * dashboard's most obvious gesture — therefore produced a response where the key
+ * was missing, which the client reads as "no opinion": the door stayed wide open.
+ * A lever that does nothing, silently.
  *
- * Avec `hide-*` (vrai = fermé), les trois façons de ne rien dire retombent toutes sur
- * la MÊME valeur sûre :
- *   • drapeau jamais créé          → absent → `false` → ouvert
- *   • drapeau désactivé            → absent → `false` → ouvert
- *   • PostHog / relais injoignable → absent → `false` → ouvert
- * et le seul geste qui ferme est celui qui se lit comme tel : activer « cacher » à
- * 100 %. La polarité n'est pas un goût — c'est ce qui rend le fail-open structurel
- * au lieu de dépendre d'une consigne que personne ne relit.
+ * With `hide-*` (true = closed), the three ways of saying nothing all fall onto
+ * the SAME safe value:
+ *   • flag never created          → absent → `false` → open
+ *   • flag disabled               → absent → `false` → open
+ *   • PostHog / relay unreachable → absent → `false` → open
+ * and the only gesture that closes is the one that reads as such: turning "hide" on
+ * at 100%. The polarity isn't a taste — it's what makes fail-open structural
+ * instead of depending on an instruction nobody re-reads.
  *
- * ⚠️ **Ce sont des portes d'INTERFACE, jamais des gardes.** Le pire qu'un drapeau
- * puisse faire ici, c'est faire apparaître ou disparaître un écran. Aucun ne décide
- * de ce qui sort de la machine : le redaction, les allow-lists et les confirmations
- * d'écriture ne se pilotent pas depuis le réseau (règle 7). Ajouter une entrée dont
- * la valeur ABAISSERAIT une protection est un contresens — un relais injoignable
- * deviendrait une désactivation de garde.
+ * ⚠️ **These are INTERFACE doors, never guards.** The worst a flag
+ * can do here is make a screen appear or disappear. None decides
+ * what leaves the machine: redaction, allow-lists and write
+ * confirmations aren't steered from the network (rule 7). Adding an entry whose
+ * value would LOWER a protection is a contradiction — an unreachable relay
+ * would become a guard being disabled.
  */
 
-/** Les fonctionnalités dont l'ACCÈS est gouvernable. Chaque id est aussi une section
- *  de l'app (`Section` dans `@openmasq/ui`) — la correspondance est vérifiée là-bas,
- *  ce paquet ne connaît pas les types de l'UI. */
+/** The features whose ACCESS is governable. Each id is also a section
+ *  of the app (`Section` in `@openmasq/ui`) — the correspondence is verified there,
+ *  this package doesn't know the UI's types. */
 export type FeatureId = "memory" | "library" | "competences";
 
 export interface FeatureAccessSpec {
   id: FeatureId;
-  /** La clé EXACTE du drapeau côté PostHog. **Vrai = CACHÉ** (voir l'en-tête). */
+  /** The EXACT flag key on the PostHog side. **True = HIDDEN** (see the header). */
   hideFlag: string;
   /**
-   * `true` ⇒ fermer l'accès arrête AUSSI l'utilisation de la fonctionnalité.
+   * `true` ⇒ closing access ALSO stops using the feature.
    *
-   * C'est la distinction qui porte tout le dispositif. La Mémoire et la Bibliothèque
-   * continuent de FONCTIONNER porte fermée — la mémoire s'injecte, s'interroge et
-   * s'extrait comme avant, les fichiers continuent d'arriver ; seul l'écran
-   * d'inventaire disparaît. Les Compétences, elles, cessent d'être mises en scène :
-   * plus de palette « / », plus d'épinglées, plus de proposition du modèle.
+   * This is the distinction that carries the whole mechanism. Mémoire and the Library
+   * keep WORKING with the door closed — memory still gets injected, queried and
+   * extracted as before, files keep arriving; only the
+   * inventory screen disappears. Compétences, on the other hand, stop being staged:
+   * no more "/" palette, no more pinned ones, no more model suggestion.
    */
   cutsUsage: boolean;
 }
@@ -64,14 +64,14 @@ export const FEATURE_ACCESS: readonly FeatureAccessSpec[] = [
 const BY_ID = new Map(FEATURE_ACCESS.map((f) => [f.id, f]));
 
 export function featureSpec(id: FeatureId): FeatureAccessSpec {
-  // Non-null : la table est exhaustive sur `FeatureId` et `flags.test.ts` l'épingle.
+  // Non-null: the table is exhaustive over `FeatureId` and `flags.test.ts` pins it.
   return BY_ID.get(id) as FeatureAccessSpec;
 }
 
-/** L'état de départ : **tout ouvert**. Le défaut sûr est « le produit tel qu'il est
- *  livré », pas « fermé » — fermer trois sections sur une panne de réseau serait le
- *  vrai dégât. Une fonctionnalité NOUVELLE livrée éteinte le temps d'un déploiement
- *  progressif ne s'exprime pas ici : elle n'est simplement pas encore branchée. */
+/** The starting state: **everything open**. The safe default is "the product as
+ *  shipped", not "closed" — closing three sections over a network outage would be the
+ *  real damage. A NEW feature shipped off for the duration of a
+ *  progressive rollout isn't expressed here: it's simply not wired up yet. */
 export function featureAccessDefaults(): Record<FeatureId, boolean> {
   return Object.fromEntries(FEATURE_ACCESS.map((f) => [f.id, true])) as Record<
     FeatureId,
@@ -79,7 +79,7 @@ export function featureAccessDefaults(): Record<FeatureId, boolean> {
   >;
 }
 
-/** clé de drapeau « cacher » → id, pour lire une réponse PostHog sans réécrire la table. */
+/** "hide" flag key → id, to read a PostHog response without rewriting the table. */
 export function featureIdForHideFlag(flag: string): FeatureId | undefined {
   return FEATURE_ACCESS.find((f) => f.hideFlag === flag)?.id;
 }

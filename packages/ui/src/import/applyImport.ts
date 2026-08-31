@@ -1,18 +1,18 @@
 import { freeName } from "./claudeSkills";
 
-/** Ce que l'écran d'import renvoie, rangé par l'utilisateur ligne à ligne. */
+/** What the import screen returns, sorted by the user line by line. */
 export interface ImportChoice {
   name: string;
   desc: string;
   prompt: string;
-  /** Ce skill ressemble à une ROUTINE (il pilote des outils) — un pari de l'app que
-   *  l'aperçu laisse corriger ligne à ligne. Il ne décide plus d'une LISTE d'arrivée
-   *  (il n'y en a qu'une), seulement de la catégorie où la compétence est rangée. */
+  /** This skill looks like a ROUTINE (it drives tools) — a guess by the app that
+   *  the preview lets you correct line by line. It no longer decides a destination
+   *  LIST (there's only one), only the category the compétence is filed under. */
   asWorkflow: boolean;
 }
 
 export interface ImportTargets {
-  /** Les noms DÉJÀ pris — un import n'écrase jamais ce que l'utilisateur a écrit. */
+  /** Names ALREADY taken — an import never overwrites what the user has written. */
   competenceNames: readonly string[];
   addCompetence?: (input: {
     name: string;
@@ -24,22 +24,22 @@ export interface ImportTargets {
 }
 
 /**
- * Ranger un lot importé — la MÊME opération, quel que soit l'écran d'où l'import part.
+ * File an imported batch — the SAME operation, whichever screen the import starts from.
  *
- * ⚠️ Ce fichier existait pour une raison qui a disparu avec la fusion : il y avait DEUX
- * listes d'arrivée, chaque écran ne connaissait que la sienne, et un nom entrant n'était
- * comparé qu'à la mauvaise — il pouvait donc naître une seconde routine portant
- * exactement le nom d'une existante, alors que le nom est ce par quoi on la retrouve. Il
- * n'y a plus qu'une liste, donc plus qu'un jeu de noms pris : la classe de bug est
- * fermée par construction, et il ne reste ici que la libération du nom.
+ * ⚠️ This file existed for a reason that disappeared with the merge: there used to be TWO
+ * destination lists, each screen only knew its own, and an incoming name was only
+ * compared against the wrong one — so a second routine could be born
+ * bearing exactly the name of an existing one, when the name is what you find it by. There
+ * is now only one list, so only one set of taken names: the bug class is
+ * closed by construction, and all that's left here is freeing up the name.
  *
- * ⚠️ Aucun `servers` n'est deviné : un skill Claude ne nomme aucun connecteur de l'app, et
- * en inventer un rattacherait la routine à un service que la personne n'a peut-être pas
- * branché. Le pari « ça ressemble à une routine » ne va donc pas plus loin que la
- * CATÉGORIE, qui se corrige d'un menu.
+ * ⚠️ No `servers` is ever guessed: a Claude skill names none of the app's connectors, and
+ * inventing one would attach the routine to a service the person may not have
+ * connected. The « looks like a routine » guess therefore never goes further than the
+ * CATEGORY, which is corrected from a menu.
  *
- * Rien n'écrase jamais : un nom pris prend « (2) », donc relancer un import est sans
- * risque pour ce que l'utilisateur a modifié depuis.
+ * Nothing is ever overwritten: a taken name gets « (2) », so re-running an import carries no
+ * risk for what the user has since modified.
  */
 export function applySkillImport(items: readonly ImportChoice[], t: ImportTargets): void {
   const taken = new Set(t.competenceNames);

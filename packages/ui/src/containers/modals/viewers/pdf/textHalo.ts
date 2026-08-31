@@ -1,17 +1,17 @@
 /**
- * Géométrie du HALO des zones de texte détecté — pur, unit-testé.
+ * Geometry of the HALO over detected text zones — pure, unit-tested.
  *
- * Le halo dit à l'utilisateur « ceci a été LU (et part donc, redacted, vers le modèle) » ;
- * ce qui n'en porte pas n'a pas été lu. Pour être agréable ET représentatif, on ne dessine
- * ni un rectangle par MOT (constellation de confettis) ni la boîte englobante d'un
- * paragraphe (elle couvrirait du vide sur les lignes courtes) : les mots sont fusionnés en
- * BANDES DE LIGNE — une bande par segment de ligne réellement écrit, gonflée d'une marge
- * proportionnelle à la hauteur du texte. Le rendu (`.pdfv-texthalo`) est à bords NETS —
- * un lavis plat, sans flou : la frontière lu/non-lu est une information, et un dégradé la
- * rendrait indécidable exactement là où elle compte.
+ * The halo tells the user "this was READ (and therefore goes out, redacted, to the model)";
+ * what carries none was not read. To be pleasant AND representative, we draw
+ * neither a rectangle per WORD (confetti constellation) nor the bounding box of a
+ * paragraph (it would cover empty space on short lines): the words are merged into
+ * LINE BANDS — one band per actually-written line segment, inflated by a margin
+ * proportional to the text height. The render (`.pdfv-texthalo`) has SHARP edges —
+ * a flat wash, no blur: the read/unread boundary is information, and a gradient would
+ * make it undecidable exactly where it matters.
  *
- * Entrées en px (l'espace CSS de la page ou le raster naturel d'une image) ; sorties dans
- * le même espace — l'appelant convertit en % pour suivre la page responsive.
+ * Inputs in px (the page's CSS space or an image's natural raster); outputs in
+ * the same space — the caller converts to % to follow the responsive page.
  */
 
 export interface HaloBox {
@@ -23,16 +23,16 @@ export interface HaloBox {
 
 export type HaloRegion = HaloBox;
 
-/** Deux mots d'une même ligne fusionnent si l'écart horizontal ≤ ce facteur × la hauteur
- *  de ligne — assez large pour absorber les espaces inter-mots et la ponctuation, assez
- *  étroit pour laisser deux COLONNES distinctes (une gouttière fait plusieurs hauteurs). */
+/** Two words on the same line merge if the horizontal gap ≤ this factor × the line
+ *  height — wide enough to absorb inter-word spacing and punctuation, narrow
+ *  enough to leave two distinct COLUMNS (a gutter is several heights wide). */
 const GAP_FACTOR = 1.6;
-/** Marges du gonflement, en fraction de la hauteur de ligne — petites pour ne pas annexer
- *  les marges du document (les bords étant nets, la bande EST la frontière montrée). */
+/** Inflation margins, as a fraction of line height — small so as not to annex
+ *  the document's margins (with sharp edges, the band IS the shown boundary). */
 const PAD_X = 0.45;
 const PAD_Y = 0.24;
-/** Deux boîtes appartiennent à la même LIGNE si leur recouvrement vertical atteint cette
- *  fraction de la plus petite des deux hauteurs. */
+/** Two boxes belong to the same LINE if their vertical overlap reaches this
+ *  fraction of the smaller of the two heights. */
 const LINE_OVERLAP = 0.45;
 
 const finite = (b: HaloBox): boolean =>
@@ -44,7 +44,7 @@ interface Line {
   boxes: HaloBox[];
 }
 
-/** Fusionne des boîtes de mots en bandes de ligne gonflées, bornées à `bounds`. */
+/** Merges word boxes into inflated line bands, bounded to `bounds`. */
 export function haloRegions(
   boxes: readonly HaloBox[],
   bounds: { w: number; h: number },
@@ -52,8 +52,8 @@ export function haloRegions(
   const clean = boxes.filter(finite);
   if (!clean.length) return [];
 
-  // 1. Regrouper en LIGNES par recouvrement vertical (les boîtes arrivent dans un ordre
-  // quelconque : couche texte puis mots OCR — on trie par centre vertical d'abord).
+  // 1. Group into LINES by vertical overlap (the boxes arrive in some
+  // arbitrary order: text layer then OCR words — sort by vertical center first).
   const sorted = [...clean].sort((a, b) => a.top + a.h / 2 - (b.top + b.h / 2));
   const lines: Line[] = [];
   for (const b of sorted) {
@@ -68,8 +68,8 @@ export function haloRegions(
     }
   }
 
-  // 2. Dans chaque ligne : fusion en segments (l'écart > GAP_FACTOR × hauteur sépare —
-  // c'est ce qui garde deux colonnes distinctes), puis gonflement borné à la page.
+  // 2. Within each line: merge into segments (a gap > GAP_FACTOR × height separates —
+  // this is what keeps two distinct columns), then inflate bounded to the page.
   const out: HaloRegion[] = [];
   for (const line of lines) {
     const h = line.y1 - line.y0;

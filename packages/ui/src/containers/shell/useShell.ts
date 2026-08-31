@@ -73,14 +73,14 @@ export type ShellApi = {
   guide: {
     open: boolean;
     setOpen: (v: boolean) => void;
-    /** Le chapitre demandé à l'ouverture (sinon le premier). Vit ici et non dans la
-     *  modale : c'est l'APPELANT qui sait pourquoi il ouvre. */
+    /** The chapter requested on open (else the first one). Lives here and not in the
+     *  modal: it's the CALLER who knows why it's opening. */
     chapter?: string;
     openChapter: (id: string) => void;
   };
-  /** Une mise à jour TÉLÉCHARGÉE qui attend un redémarrage — l'annonce et son geste
-   *  (`shell/hooks/useUpdateReady.ts`). Shell-level pour la même raison que le guide :
-   *  elle arrive quel que soit l'écran, et le rail droit doit pouvoir la rouvrir. */
+  /** A DOWNLOADED update waiting for a restart — the announcement and its gesture
+   *  (`shell/hooks/useUpdateReady.ts`). Shell-level for the same reason as the guide:
+   *  it arrives regardless of the screen, and the right rail must be able to reopen it. */
   update: UpdateReadyApi;
   mcpReconnect: ReturnType<typeof useMcpReconnect>;
   /** The tiling workspace layout — a pane resolves its own tab strip against it. */
@@ -91,7 +91,7 @@ export type ShellApi = {
   search: ReturnType<typeof useSearchPalette>;
   avis: ReturnType<typeof useAvis>;
   split: ReturnType<typeof useSplitRatio>;
-  /** « Demander » depuis le navigateur : amorcer une question SUR la page ouverte. */
+  /** « Demander » from the browser: prime a question ABOUT the open page. */
   askAboutPage: (draft: string) => void;
 } & StagedIntents;
 // ^ The staging concerns (pending attach/compétence/workflow/« Demander » target,
@@ -120,9 +120,9 @@ export function useShell({
   const avis = useAvis({ chat, section });
   const split = useSplitRatio();
 
-  // Une réponse qui arrive pendant qu'on regarde ailleurs se signale au SYSTÈME, et le
-  // clic ramène ici. Monté dans la coquille et pas dans le store parce qu'ouvrir un fil,
-  // c'est aussi revenir à la section « chats » — ce que seule la nav sait faire.
+  // A reply arriving while looking elsewhere signals to the SYSTEM, and the
+  // click brings you back here. Mounted in the shell and not in the store because opening a thread
+  // also means returning to the "chats" section — which only the nav knows how to do.
   useReplyNotice({
     conversations: chat.conversations,
     activeId: chat.activeId,
@@ -146,18 +146,18 @@ export function useShell({
   // target) — their own hook, consumed once by ChatView via `pending`.
   const staged = useStagedIntents({ chat, go });
   /**
-   * « Demander » depuis le bandeau du navigateur — le pendant de `askAboutTarget` pour la
-   * page ouverte.
+   * « Demander » from the browser bar — the counterpart of `askAboutTarget` for the
+   * open page.
    *
-   * ⚠️ Il écrit dans la conversation COURANTE, là où le dossier en ouvre une neuve. Le
-   * navigateur vit dans l'écran scindé, À CÔTÉ d'une conversation : en créer une autre
-   * remplacerait le contexte que l'utilisateur regarde justement pendant qu'il pose sa
-   * question. Une conversation n'est créée que s'il n'y en a aucune.
+   * ⚠️ It writes into the CURRENT conversation, whereas the folder version opens a new one. The
+   * browser lives in the split screen, BESIDE a conversation: creating another one
+   * would replace the context the user is precisely looking at while asking their
+   * question. A conversation is only created if there is none.
    *
-   * Le TEXTE arrive déjà rédigé (`BrowserPanel` → `askPageDraft`, pur et testé) : la
-   * page possède sa vocabulaire, ce niveau-ci ne possède que la conversation — un
-   * `containers/` n'importe pas dans `pages/`. Le panneau reste ouvert : le geste est
-   * « à propos de CE que je regarde ».
+   * The TEXT arrives already drafted (`BrowserPanel` → `askPageDraft`, pure and tested): the
+   * page owns its vocabulary, this level owns only the conversation — a
+   * `containers/` doesn't import into `pages/`. The panel stays open: the gesture is
+   * "about WHAT I'm looking at".
    */
   const askAboutPage = (draft: string) => {
     const existing = chat.activeId;
@@ -215,8 +215,8 @@ export function useShell({
     greetingName: firstNameOf(auth.user),
     guide: {
       open: guideOpen,
-      // Ouvrir SANS chapitre efface le précédent : le guide ne doit pas rouvrir sur le
-      // chapitre d'un autre geste.
+      // Opening WITHOUT a chapter clears the previous one: the guide must not reopen on the
+      // chapter of a different gesture.
       setOpen: (v: boolean) => {
         if (v) setGuideChapter(undefined);
         setGuideOpen(v);

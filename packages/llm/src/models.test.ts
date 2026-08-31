@@ -17,9 +17,9 @@ describe("DeepSeek provider", () => {
     expect(p.defaultBaseUrl).toBe("https://api.deepseek.com/v1");
     expect(p.hostCountry?.code).toBe("CN");
     expect(p.keyless).toBeUndefined();
-    // DeepSeek est BYO-clé PERSONNELLE UNIQUEMENT : la plateforme ne le sert pas sur sa
-    // propre clé, donc un envoi sans clé est refusé « Clé requise » — jamais facturé
-    // à l'abonnement. Même règle pour OpenAI / Anthropic / Google / Mistral.
+    // DeepSeek is BYO PERSONAL-key ONLY: the platform does not serve it on its own
+    // key, so a keyless send is refused "Key required" — never billed to the
+    // subscription. Same rule for OpenAI / Anthropic / Google / Mistral.
     expect(isPlatformProvider("deepseek")).toBe(false);
     for (const byo of ["openai", "anthropic", "google", "mistral"] as const) {
       expect(isPlatformProvider(byo), byo).toBe(false);

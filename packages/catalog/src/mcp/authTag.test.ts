@@ -26,7 +26,7 @@ describe("mcpAuthTag — what the app's own client can actually do", () => {
     const gmail = findConnector("gmail")!;
     const tag = mcpAuthTag(gmail);
     expect(gmail.byoOnly).toBeFalsy();
-    expect(gmail.byoAdds).toBeUndefined(); // rien que le byo ajoute → pas de chip « limité »
+    expect(gmail.byoAdds).toBeUndefined(); // nothing that byo adds → no "limited" chip
     expect(tag.label).toBe("1-clic");
     expect(tag.title).not.toMatch(/vos propres clés/i);
   });
@@ -61,7 +61,7 @@ describe("mcpAuthTag — what the app's own client can actually do", () => {
   });
 
   it("an unrestricted direct connector keeps the plain 1-clic blurb", () => {
-    // 30/07/2026 : managed ≡ byo sur les connecteurs Google (capacités 1-clic 100 %).
+    // 30/07/2026: managed ≡ byo on the Google connectors (1-clic capabilities 100%).
     const cal = findConnector("google-calendar")!;
     expect(cal.scopes?.byo).toEqual(cal.scopes?.managed);
     const tag = mcpAuthTag(cal);

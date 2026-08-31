@@ -15,7 +15,7 @@ import { deferDroppedFile } from "./extractDropped";
 import { grantDroppedFolder, grantMessage } from "./grantDroppedFolder";
 
 /**
- * Glisser-déposer sur une conversation. Wraps the chat area, paints the overlay while a
+ * Drag-and-drop onto a conversation. Wraps the chat area, paints the overlay while a
  * drag is over it, and routes the drop.
  *
  * Presentation + wiring only — every decision is in a sibling `.ts` and unit-tested:
@@ -33,9 +33,9 @@ export function DropZone({
   disabled,
 }: {
   children: ReactNode;
-  /** Les fichiers déposés, sous la forme DIFFÉRÉE du shell : le chip paraît avant la
-   *  lecture (« un fichier joint PARAÎT avant d'être lu »), l'OCR remplit ensuite.
-   *  L'échec d'extraction est PAR FICHIER, porté par le chip — plus de bannière de lot. */
+  /** The dropped files, in the shell's DEFERRED form: the chip appears before it's
+   *  read (« un fichier joint PARAÎT avant d'être lu »), the OCR fills it in afterwards.
+   *  Extraction failure is PER FILE, carried by the chip — no more batch banner. */
   onFiles(files: DeferredFile[]): void;
   /** No drop while the composer can't take one (a read-only or projected transcript). */
   disabled?: boolean;
@@ -95,10 +95,10 @@ export function DropZone({
         setOffer(intake.folders);
       }
       if (!intake.files.length) return;
-      // Mise en scène IMMÉDIATE : chaque fichier part en DeferredFile — le chip paraît
-      // dès le drop, l'extraction (et sa progression OCR) le remplit. L'échec reste PAR
-      // FICHIER, porté par le chip (`stageDeferredFile`), plus jamais par une bannière
-      // qui jetait le lot entier.
+      // IMMEDIATE staging: each file goes out as a DeferredFile — the chip appears
+      // right at drop time, extraction (and its OCR progress) fills it in. Failure stays PER
+      // FILE, carried by the chip (`stageDeferredFile`), never again by a banner
+      // that discarded the whole batch.
       onFiles(
         intake.files.map((file) =>
           deferDroppedFile(file, {

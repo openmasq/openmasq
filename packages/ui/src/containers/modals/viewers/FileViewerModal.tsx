@@ -77,7 +77,7 @@ export function FileViewerModal({
    *  the overlay live means a FULL NER pass over the document BEFORE the first paint —
    *  seconds of blank skeleton on open (the reported « lent comme s'il était
    *  redacted »). Default `true`: a STORED file's redacted view is the product. */
-  /** État INITIAL de la bascule Redacted ⇄ Original (défaut : redacted). */
+  /** INITIAL state of the Redacted ⇄ Original toggle (default: redacted). */
   redacted?: boolean;
 }) {
   const t = useT();
@@ -86,15 +86,15 @@ export function FileViewerModal({
   // "redacted" (the document) | an extra tab's id. No longer a VERSION choice — the
   // document has one version here.
   const [tab, setTab] = useState<string>("redacted");
-  // La bascule Redacted ⇄ Original (demandée 14/08) : un INTERRUPTEUR dans la ligne de
-  // note, pas un onglet — le même geste pour PDF, image, tableur et texte. Ouvre
-  // TOUJOURS sur le redacted (la version sûre à avoir à l'écran) ; montrer l'original
-  // est un clic délibéré, qui ne survit pas à la réouverture.
+  // The Redacted ⇄ Original toggle (requested 14/08): a SWITCH in the note
+  // row, not a tab — the same gesture for PDF, image, spreadsheet and text. ALWAYS
+  // opens on the redacted (the safe version to have on screen); showing the original
+  // is a deliberate click, which doesn't survive reopening.
   const [showRedacted, setShowRedacted] = useState(redacted);
 
   const kind = kindOf(mime, name);
-  // Joindre un fichier local prend des secondes (lecture + OCR) : `useAskAction` rend
-  // cette attente visible et interdit le second clic qui doublait le travail.
+  // Attaching a local file takes seconds (read + OCR): `useAskAction` makes
+  // that wait visible and forbids the second click that used to double the work.
   const ask = useAskAction(onAsk);
 
   useEffect(() => {
@@ -115,14 +115,14 @@ export function FileViewerModal({
 
   const openExternal =
     onOpenExternal ?? (host.db?.openFile ? () => void host.db?.openFile?.(id) : undefined);
-  // Les catégories de CE fichier (carte du dépôt stockée) quand on les a — celles de
-  // toute la conversation nommaient des choses absentes du document.
+  // THIS file's categories (stored drop-time map) when we have them — the whole
+  // conversation's used to name things absent from the document.
   const stored =
     data && data !== "error" ? storedReplacements(data.extraction?.redactions) : undefined;
   const fileKinds = storedKinds(stored);
-  // La ligne + bascule existent dès que le viewer PEUT peindre un redaction : le drapeau
-  // de la méta (octets redacted ou compte) OU une carte de dépôt stockée — un appelant
-  // qui ne sait pas dire `redacted` (méta introuvable) ne doit pas cacher un masquage réel.
+  // The row + toggle exist as soon as the viewer CAN paint a redaction: the meta
+  // flag (redacted bytes or count) OR a stored drop-time map — a caller
+  // that can't say `redacted` (meta not found) must not hide a real masking.
   const redaction = !!redacted || !!stored?.length;
   const labels = redaction ? maskedLabels(fileKinds ?? kinds) : "";
 
@@ -236,8 +236,8 @@ export function FileViewerModal({
                     : "Version partagée aux modèles"
                   : "Original — vos données réelles, jamais partagées telles quelles"}
               </span>
-              {/* Un <span>, pas un <label> : le Switch est un button[role=switch], qu'un
-                  label ne relaie pas — le mot est une étiquette, l'interrupteur le geste. */}
+              {/* A <span>, not a <label>: the Switch is a button[role=switch], which a
+                  label doesn't relay — the word is a label, the switch is the gesture. */}
               <span className="fv-seg-toggle">
                 {t.viewers.redactedToggle}
                 <Switch checked={showRedacted} onChange={setShowRedacted} />

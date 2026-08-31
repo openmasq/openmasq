@@ -9,14 +9,14 @@ import type { Host, UpdateStatus } from "../../../host";
 import { useUpdateReady, type UpdateReadyApi } from "./useUpdateReady";
 
 /**
- * L'ANNONCE D'UNE MISE À JOUR TÉLÉCHARGÉE — ce que le système faisait, en pire.
+ * THE ANNOUNCEMENT OF A DOWNLOADED UPDATE — what the system used to do, worse.
  *
- * Trois choses valent d'être épinglées, parce que chacune, ratée, se manifeste comme un
- * défaut de l'app et non comme une ligne de code fausse : elle ne s'ouvre que sur
- * `downloaded` (jamais sur « disponible » — la version n'est alors pas là) ; elle ne
- * s'ouvre qu'UNE fois par version, l'updater re-signalant à chaque vérification ; et
- * refermer n'efface pas la mise à jour, sans quoi le bouton du rail n'aurait rien à
- * rouvrir.
+ * Three things are worth pinning, because each one, if missed, shows up as an
+ * app defect rather than as an incorrect line of code: it only opens on
+ * `downloaded` (never on « disponible » — the version isn't there yet); it only
+ * opens ONCE per version, the updater re-signalling on every check; and
+ * closing it doesn't erase the update, or else the rail's button would have nothing to
+ * reopen.
  */
 
 const NOTE = {
@@ -27,7 +27,7 @@ const NOTE = {
   highlights: ["feat: Quelque chose"],
 };
 
-/** Un hôte de bureau minimal + le moyen de POUSSER un statut, comme l'updater le fait. */
+/** A minimal desktop host + the means to PUSH a status, as the updater does. */
 function fakeHost() {
   let cb: ((s: UpdateStatus) => void) | null = null;
   const installs: number[] = [];
@@ -79,8 +79,8 @@ describe("useUpdateReady", () => {
     await ui.unmount();
   });
 
-  /** ⚠️ « Disponible » veut dire « on l'a vue sur le serveur », pas « on l'a ». Annoncer
-   *  là proposerait un redémarrage qui n'installerait rien. */
+  /** ⚠️ « Disponible » means « we saw it on the server », not « we have it ». Announcing
+   *  it there would offer a restart that would install nothing. */
   it("ne s'ouvre PAS tant que la mise à jour n'est que disponible ou en cours", async () => {
     const h = fakeHost();
     const { ui, out } = await render(h.host);
@@ -102,8 +102,8 @@ describe("useUpdateReady", () => {
     expect(out.api!.open).toBe(false);
 
     await act(async () => h.push({ state: "downloaded", version: "0.5.1" }));
-    expect(out.api!.open).toBe(false); // ne se rouvre pas par-dessus ce qu'on écrit
-    // …mais la mise à jour n'est pas perdue : c'est ce que le bouton du rail rouvre.
+    expect(out.api!.open).toBe(false); // doesn't reopen over what we're writing
+    // …but the update isn't lost: that's what the rail's button reopens.
     expect(out.api!.version).toBe("0.5.1");
 
     await ui.unmount();

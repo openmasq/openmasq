@@ -33,8 +33,8 @@ describe("isPlatformProvider — platform-eligible providers", () => {
       expect(isPlatformProvider(p)).toBe(true);
   });
   it("exclut les BYO-clé-personnelle, le local et les sessions sans clé", () => {
-    // Les cinq grands ne sont PLUS servis sur les clés de la plateforme : sans clé
-    // personnelle, l'envoi est refusé, jamais facturé à l'abonnement.
+    // The five majors are NO LONGER served on the platform's keys: with no personal
+    // key, the send is refused, never billed to the subscription.
     for (const p of ["openai", "anthropic", "google", "mistral", "deepseek",
                      "openai-compat", "openai-session", "anthropic-session",
                      "claude-cli", "codex-cli"] as const)

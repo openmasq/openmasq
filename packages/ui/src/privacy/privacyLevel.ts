@@ -19,10 +19,10 @@ import type { Messages, PrivacyLevelCopy } from "@openmasq/i18n";
 export type PrivacyLevel = "standard" | "renforce" | "strict" | "custom";
 
 /**
- * Les niveaux, dans l'ordre CROISSANT de protection — c'est ce qui fait lire la liste
- * comme une échelle, et c'est la seule chose de ce bloc qui ne soit pas de la copie : une
- * langue ne réordonne pas une échelle. Les quatre registres viennent du catalogue
- * (`privacyLevels`), où ils s'écrivent en français et en anglais.
+ * The levels, in INCREASING order of protection — that is what makes the list read as a
+ * scale, and it is the only thing in this block that is not copy: a language does not
+ * reorder a scale. The four registers come from the catalogue (`privacyLevels`), where
+ * they are written in French and English.
  */
 export function privacyLevelMeta(t: Messages): {
   id: Exclude<PrivacyLevel, "custom">;
@@ -40,9 +40,9 @@ export function privacyLevelMeta(t: Messages): {
     tradeoff: copy.tradeoff,
   });
   return [
-    // ⚠️ `reduced` est un FAIT sur ce que le niveau protège, pas une étiquette : il retire
-    // le bouclier du sélecteur et interdit à ce niveau d'être le défaut d'installation
-    // (voir le bloc ci-dessous). Il reste donc en code, hors du catalogue.
+    // ⚠️ `reduced` is a FACT about what the level protects, not a label: it removes the
+    // shield from the selector and forbids this level from being the install default
+    // (see the block below). It therefore stays in code, outside the catalogue.
     { ...resolve("standard", t.privacyLevels.standard), reduced: true as const },
     resolve("renforce", t.privacyLevels.renforce),
     resolve("strict", t.privacyLevels.strict),
@@ -50,44 +50,44 @@ export function privacyLevelMeta(t: Messages): {
 }
 
 /**
- * ⚠️ « Standard » PROTÈGE MOINS QUE LES DÉFAUTS — et c'est le seul niveau dans ce cas.
+ * ⚠️ "Standard" PROTECTS LESS THAN THE DEFAULTS — and it is the only level in that case.
  *
- * C'est le retour assumé de l'ancien preset « Navigation » : il laisse en clair les cinq
- * catégories BETA (noms, dates de naissance, adresses, lieux, entreprises), celles que
- * seul le modèle détecte. Ce preset avait été retiré parce que le moteur couvre déjà la
- * recherche web sans baisser la garde (le filtre de notoriété ne masque jamais une
- * personnalité, une grande marque ni un pays, et `WebNavRedactOffer` propose de révéler
- * le reste juste avant l'appel qui l'emporterait). Il revient sous condition, et les
- * conditions sont la contrepartie, pas de la décoration :
+ * It is the deliberate return of the old "Navigation" preset: it leaves the five BETA
+ * categories in clear (names, dates of birth, addresses, places, companies), the ones
+ * only the model detects. This preset had been removed because the engine already covers
+ * web search without lowering its guard (the notoriety filter never masks a public figure,
+ * a major brand, or a country, and `WebNavRedactOffer` offers to reveal the rest right
+ * before the call that would trigger it). It comes back conditionally, and the conditions
+ * are the trade-off, not decoration:
  *
- *  1. il porte `reduced: true` et NE PORTE PAS le bouclier — un bouclier à côté
- *     affirmerait la protection qu'il retire (règle 8 : une UI qui sur-vend le masquage
- *     est un bug de confiance). ⚠️ L'étiquette « protection réduite » qui l'accompagnait
- *     a été retirée : ce qui reste dit ce qu'il laisse lisible, c'est la MATRICE, dépliée
- *     par défaut sous les cartes (`Settings/privacy/PrivacyTab.tsx`). Si elle cessait de
- *     l'être, il faudrait rendre l'étiquette — sans quoi plus rien ne le signale ;
- *  2. il n'est PAS le défaut d'installation. `CATEGORY_DEFAULTS` vaut « Renforcé », donc
- *     personne n'y atterrit sans l'avoir choisi ;
- *  3. il respecte {@link ALWAYS_ON}, le plancher que TOUS les niveaux partagent.
+ *  1. it carries `reduced: true` and does NOT carry the shield — a shield next to it would
+ *     assert the protection it removes (rule 8: a UI that oversells masking is a trust
+ *     bug). ⚠️ The "reduced protection" label that used to go with it has been removed:
+ *     what states what it leaves readable now is the MATRIX, expanded by default under
+ *     the cards (`Settings/privacy/PrivacyTab.tsx`). If it stopped being expanded, the
+ *     label would need to come back — otherwise nothing signals it anymore;
+ *  2. it is NOT the install default. `CATEGORY_DEFAULTS` is "Renforcé", so nobody lands
+ *     there without having chosen it;
+ *  3. it respects {@link ALWAYS_ON}, the floor that ALL levels share.
  *
- * Ajouter un autre niveau réduit demande les trois, explicitement.
+ * Adding another reduced level requires all three, explicitly.
  */
 
 /**
- * Le PLANCHER : les catégories qu'aucun niveau n'éteint, niveau réduit compris.
+ * The FLOOR: the categories no level turns off, reduced level included.
  *
- * `apikey` y est parce que son manque est d'une autre nature que celui d'un nom : une
- * chaîne en forme de clé qu'on laisse passer EST une clé en clair. L'heuristique est
- * large et attrape aussi des références produit inoffensives — c'est le prix, et il est
- * payé sciemment. L'utilisateur garde la main catégorie par catégorie (son choix devient
- * « Sur mesure », comme pour n'importe quelle autre) ; ce que ce plancher garantit, c'est
- * qu'aucun PRESET ne l'éteint dans son dos.
+ * `apikey` is here because its absence is of a different nature than a name's: a
+ * string shaped like a key that is let through IS a key in clear. The heuristic is
+ * broad and also catches harmless product references — that is the price, and it is
+ * paid knowingly. The user keeps control category by category (their choice becomes
+ * « Sur mesure », like any other); what this floor guarantees is that no PRESET turns
+ * it off behind their back.
  */
 export const ALWAYS_ON: readonly RedactCategoryKey[] = ["apikey", "secret"];
 
-/** Les catégories BETA — détectées par le modèle seul. C'est EXACTEMENT ce que le niveau
- *  « Standard » laisse passer. Dérivé du catalogue (`ai`), jamais recopié : une nouvelle
- *  catégorie BETA rejoint la liste le jour où elle existe. */
+/** The BETA categories — detected by the model alone. This is EXACTLY what the
+ *  "Standard" level lets through. Derived from the catalogue (`ai`), never copied: a
+ *  new BETA category joins the list the day it exists. */
 const BETA_KEYS: RedactCategoryKey[] = REDACT_CATEGORIES.filter((c) => c.ai).map(
   (c) => c.key as RedactCategoryKey,
 );
@@ -105,7 +105,7 @@ export function categoriesForLevel(level: Exclude<PrivacyLevel, "custom">): Sett
         : level === "standard"
           ? CATEGORY_DEFAULTS[key] !== false && !BETA_KEYS.includes(key)
           : CATEGORY_DEFAULTS[key] !== false;
-    // Le plancher passe EN DERNIER : aucun niveau ne peut l'éteindre, pas même le réduit.
+    // The floor is applied LAST: no level can turn it off, not even the reduced one.
     out[key] = on || ALWAYS_ON.includes(key);
   }
   return out as Settings["redactCategories"];
@@ -127,10 +127,10 @@ export function levelOf(
   const forced = new Set(forcedCategories ?? []);
   const keys = ALL_KEYS.filter((k) => !forced.has(k));
   const on = (k: RedactCategoryKey) => (categories?.[k] ?? CATEGORY_DEFAULTS[k]) !== false;
-  // Comparé aux maps que `categoriesForLevel` produit VRAIMENT, pas à une seconde
-  // définition de chaque niveau : le round-trip est alors vrai par construction, et le
-  // plancher n'a pas à être répété ici. Du plus protecteur au moins, pour qu'un niveau
-  // qui en contient un autre ne le masque pas.
+  // Compared against the maps that `categoriesForLevel` ACTUALLY produces, not a second
+  // definition of each level: the round-trip is then true by construction, and the
+  // floor does not have to be repeated here. From most protective to least, so that a
+  // level containing another does not mask it.
   for (const id of ["strict", "renforce", "standard"] as const) {
     const map = categoriesForLevel(id);
     if (keys.every((k) => on(k) === (map[k] !== false))) return id;
@@ -140,36 +140,36 @@ export function levelOf(
 
 /** How many categories are actually protecting, org-forced ones included. */
 /**
- * LA LISTE DE NOTORIÉTÉ : les personnalités publiques et les grandes entreprises —
- * intégrations MCP de l'app comprises, absolument (demande produit du 30/07/2026 ;
- * la parité avec le catalogue de connecteurs est épinglée par
- * `notorietyCatalogParity.test.ts`) — que tout niveau SAUF Strict ne redacted jamais.
- * Elle vit dans `@openmasq/redact` (`model/notoriousData.ts` — une seule maison,
- * règle 9) et est re-exportée ici pour que les écrans de réglages puissent la MONTRER
- * sans la recopier.
+ * THE NOTORIETY LIST: public figures and major companies —
+ * the app's MCP integrations included, absolutely (product request from 30/07/2026;
+ * parity with the connector catalogue is pinned by
+ * `notorietyCatalogParity.test.ts`) — that every level EXCEPT Strict never redacted.
+ * It lives in `@openmasq/redact` (`model/notoriousData.ts` — a single home,
+ * rule 9) and is re-exported here so the settings screens can SHOW it
+ * without copying it.
  */
 export { NOTORIOUS_COMMERCIAL_ORGS, NOTORIOUS_PEOPLE };
 
-/** Ce que le niveau accorde à la dispense de notoriété — les deux flags du moteur. */
+/** What the level grants to the notoriety exemption — the engine's two flags. */
 export interface NotorietyPolicy {
-  /** `commercialNotoriety` : grandes marques + intégrations MCP dispensées. */
+  /** `commercialNotoriety`: major brands + MCP integrations exempted. */
   commercial: boolean;
-  /** `peopleNotoriety` : personnalités publiques dispensées. */
+  /** `peopleNotoriety`: public figures exempted. */
   people: boolean;
 }
 
 /**
- * La dispense de notoriété du niveau — le store la passe à chaque appel moteur.
+ * The level's notoriety exemption — the store passes it on every engine call.
  *
- * **Strict redacted tout** : marques, intégrations MCP ET personnalités (« le modèle
- * raisonne sur des valeurs fictives » vaut aussi pour elles). **Tout autre niveau**
- * (Standard, Renforcé, Sur mesure) dispense les deux : une grande marque ou « Albert
- * Einstein » y sont de la connaissance générale — les redact fait répondre le
- * modèle sur une entreprise inventée ou sur personne. Ce que la dispense ne couvre
- * jamais, quel que soit le niveau : la porte « je travaille chez Google » du moteur
- * l'emporte (l'entité est publique, la RELATION de l'utilisateur non), et le scoping
- * par catégorie aussi (un particulier nommé Hermès/Leclerc reste protégé). Les pays
- * restent dispensés même en Strict (un pays redacted fait dériver la géographie).
+ * **Strict redacted everything**: brands, MCP integrations AND public figures ("the
+ * model reasons over fictional values" applies to them too). **Every other level**
+ * (Standard, Renforcé, Sur mesure) exempts both: a major brand or "Albert
+ * Einstein" are general knowledge here — to redact them makes the model answer
+ * about a made-up company or about nobody. What the exemption never covers,
+ * whatever the level: the "I work at Google" gate in the engine wins (the entity
+ * is public, the user's RELATION to it is not), and per-category scoping too (a
+ * private individual named Hermès/Leclerc stays protected). Countries remain
+ * exempted even under Strict (a redacted country makes geography drift).
  */
 export function notorietyForLevel(level: PrivacyLevel): NotorietyPolicy {
   const strict = level === "strict";
@@ -177,14 +177,14 @@ export function notorietyForLevel(level: PrivacyLevel): NotorietyPolicy {
 }
 
 /**
- * Combien de traits le glyphe de niveau porte : la protection, dessinée comme une quantité
+ * How many bars the level glyph carries: protection, drawn as a quantity
  * (`components/brand` `LevelsIcon`). Standard 1, Renforcé 2, Strict 3.
  *
- * ⚠️ « Sur mesure » ne peut revendiquer AUCUN palier — c'est justement l'ensemble qui n'en
- * est aucun. Lui donner trois traits sur-vendrait la protection (règle 8 : une UI qui
- * sur-vend le masquage est un bug de confiance) ; lui en donner un la sous-vendrait tout
- * autant. On le déduit donc de ce qui est RÉELLEMENT actif, par tiers — la seule réponse qui
- * ne promette rien qu'on ne tienne pas.
+ * ⚠️ « Sur mesure » cannot claim ANY tier — it is precisely the set that is none of
+ * them. Giving it three bars would oversell the protection (rule 8: a UI that
+ * oversells masking is a trust bug); giving it one would undersell it just as
+ * much. So it is deduced from what is REALLY active, by thirds — the only answer
+ * that promises nothing it does not hold.
  */
 export function levelBars(
   level: PrivacyLevel,

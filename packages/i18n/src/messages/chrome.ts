@@ -29,7 +29,7 @@ export interface ChromeMessages {
   /** The conversation list: its read label, and what it says when empty. */
   conversations: string;
   noConversations: string;
-  /** La carte de compte en pied de barre — nom de repli, sous-titre, pastille. */
+  /** The account card in the bar's footer — fallback name, subtitle, badge. */
   you: string;
   privateSpace: string;
   private: string;

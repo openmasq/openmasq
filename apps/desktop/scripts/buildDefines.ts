@@ -1,27 +1,27 @@
 /**
- * Les `define` des bundles main et renderer — sortis d'`electron.vite.config.ts`
- * (cap 300 LOC, règle 1) : c'est du VOCABULAIRE d'identifiants, pas de la config de
- * build. ⚠️ AUCUN défaut committé — ni pour un identifiant lié à un compte fournisseur
- * (projet Supabase, DSN Sentry, clients OAuth GitHub/Slack/Google/Microsoft), NI pour
- * l'adresse d'un service (backend, passerelle, relais auth, flux de mises à jour) : un
- * dépôt public qui les embarque fait transiter le trafic de chaque fork par CE
- * compte-là, et propose à ses utilisateurs un SaaS qui n'est pas le leur. Non fourni au
- * build ⇒ "" ⇒ la capacité se désactive proprement (pas de comptes, pas de facturation,
- * pas de synchro, pas de modèles inclus, pas de télémétrie, connecteur « non
- * configuré ») et l'app tourne sur la machine — clés perso, modèles locaux, CLI
- * d'abonnement, redaction on-device. La liste complète et comment déployer les siens :
- * le dépôt privé `infra` ; les valeurs de DEV : `apps/desktop/.env.development`.
+ * The main and renderer bundles' `define`s — pulled out of `electron.vite.config.ts`
+ * (300 LOC cap, rule 1): this is a VOCABULARY of identifiers, not build config.
+ * ⚠️ NO committed default — neither for an identifier tied to a provider account
+ * (Supabase project, Sentry DSN, GitHub/Slack/Google/Microsoft OAuth clients), NOR for
+ * a service's address (backend, gateway, auth relay, updates feed): a
+ * public repo that embeds them routes every fork's traffic through THAT
+ * account, and offers its users a SaaS that isn't theirs. Not supplied at
+ * build time ⇒ "" ⇒ the capability disables cleanly (no accounts, no billing,
+ * no sync, no included models, no telemetry, connector "not
+ * configured") and the app runs on the machine — personal keys, local models, a
+ * subscription CLI, on-device redaction. The full list and how to deploy your own:
+ * the private `infra` repo; DEV values: `apps/desktop/.env.development`.
  */
 /**
- * Les adresses de l'API et de la passerelle — les SEULS services distants derrière la
- * porte `OPENMASQ_BILLING`. Sans `"1"`, elles sont cuites VIDES quoi que le build ait reçu :
- * pas de comptes API, pas de synchro, pas d'organisations, pas d'avis, pas de modèles
- * inclus ni de redaction côté serveur, et donc rien à vendre (`@openmasq/ui`
- * `send/platformAccess.ts` `subscriptionsSold`). Restent JOIGNABLES sans la porte, parce
- * qu'ils ne sont pas « le serveur » du produit : le projet Supabase (l'authentification),
- * le relais Slack (`OPENMASQ_AUTH_URL`), les analytics + notes de version (le relais
- * `VITE_ANALYTICS_RELAY_URL`), le flux de mises à jour et Sentry — chacun sur sa propre
- * variable, comme avant.
+ * The API and gateway addresses — the ONLY remote services behind the
+ * `OPENMASQ_BILLING` gate. Without `"1"`, they are baked EMPTY no matter what the build received:
+ * no API accounts, no sync, no organizations, no reviews, no included
+ * models nor server-side redaction, and therefore nothing to sell (`@openmasq/ui`
+ * `send/platformAccess.ts` `subscriptionsSold`). They stay REACHABLE without the gate, because
+ * they are not "the server" of the product: the Supabase project (authentication),
+ * the Slack relay (`OPENMASQ_AUTH_URL`), analytics + release notes (the
+ * `VITE_ANALYTICS_RELAY_URL` relay), the updates feed and Sentry — each on its own
+ * variable, as before.
  */
 export const BILLING_GATED_SERVICES = [
   "OPENMASQ_BACKEND_URL",
@@ -30,17 +30,17 @@ export const BILLING_GATED_SERVICES = [
   "OPENMASQ_GATEWAY_URL_STAGING",
 ] as const;
 
-/** `true` quand ce build embarque la pile distante complète — et la vend. */
+/** `true` when this build embeds the full remote stack — and sells it. */
 export function billingEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   return env.OPENMASQ_BILLING === "1";
 }
 
-/** Les adresses des services first-party (backend + passerelle, par environnement) —
- *  UNE liste, injectée dans les deux bundles : `src/environments/index.ts` est partagé
- *  main/renderer, et un define manquant d'un côté laisserait le littéral `process.env.…`
- *  tel quel (il jette dans un renderer sandboxé). Vide = capacité absente, jamais un
- *  repli sur les serveurs de la marque. Pur (l'env en argument) pour être testé :
- *  `buildDefines.test.ts` épingle que la porte ferme bien ces quatre-là, et rien d'autre. */
+/** The first-party service addresses (backend + gateway, per environment) —
+ *  ONE list, injected into both bundles: `src/environments/index.ts` is shared
+ *  main/renderer, and a define missing on one side would leave the literal `process.env.…`
+ *  as-is (it throws in a sandboxed renderer). Empty = capability absent, never a
+ *  fallback onto the brand's servers. Pure (env as argument) so it can be tested:
+ *  `buildDefines.test.ts` pins that the gate really closes these four, and nothing else. */
 export function serviceDefines(env: NodeJS.ProcessEnv = process.env): Record<string, string> {
   const open = billingEnabled(env);
   const gated = BILLING_GATED_SERVICES.map((name) => [
@@ -48,15 +48,15 @@ export function serviceDefines(env: NodeJS.ProcessEnv = process.env): Record<str
     JSON.stringify(open ? (env[name] ?? "") : ""),
   ]);
   const flags = [
-    // ⚠️ `"1"` autorise la pile AUTO-HÉBERGÉE saisie dans l'app (Réglages → Versions) —
-    // une exception assumée à « un nom, jamais une URL » (`src/environments/customStack.ts`).
-    // Un self-hosteur la pose pour SON build ; la CI de la marque ne la pose jamais, et le
-    // binaire officiel relit un pointeur `custom` comme la production. Indépendante de
-    // `OPENMASQ_BILLING` : c'est SON serveur, pas le nôtre.
+    // ⚠️ `"1"` authorizes the SELF-HOSTED stack entered in the app (Settings → Versions) —
+    // an accepted exception to "a name, never a URL" (`src/environments/customStack.ts`).
+    // A self-hoster sets it for THEIR build; the brand's CI never sets it, and the
+    // official binary reads a `custom` pointer just like production. Independent of
+    // `OPENMASQ_BILLING`: it's THEIR server, not ours.
     "OPENMASQ_ALLOW_CUSTOM_STACK",
-    // ⚠️ `"1"` = la pile distante complète, ET sa vente : l'onglet Paiement, les pastilles
-    // « Abonnement requis », le mur payant de la synchro. Absent ⇒ les quatre adresses
-    // ci-dessus sont vides, rien ne se vend et rien n'en parle — le DÉFAUT du produit.
+    // ⚠️ `"1"` = the full remote stack, AND selling it: the Billing tab, the
+    // "Subscription required" badges, sync's paywall. Absent ⇒ the four addresses
+    // above are empty, nothing sells and nothing mentions it — the product's DEFAULT.
     "OPENMASQ_BILLING",
   ].map((name) => [`process.env.${name}`, JSON.stringify(env[name] ?? "")]);
   return Object.fromEntries([...gated, ...flags]);
@@ -67,28 +67,28 @@ export function mainDefines(): Record<string, string> {
     "process.env.VITE_UPDATES_URL": JSON.stringify(process.env.VITE_UPDATES_URL ?? ""),
     "process.env.VITE_UPDATES_CHANNEL": JSON.stringify(process.env.VITE_UPDATES_CHANNEL ?? ""),
     // Desktop-direct MCP connector OAuth client ids (read in main `mcp/connectors`).
-    // ⚠️ AUCUN défaut committé : chaque id/secret appartient à un compte fournisseur
-    // (GitHub app, Slack app, projet Google Cloud, app Azure) — un dépôt public qui les
-    // embarque fait transiter le trafic de chaque fork par CE compte-là. Non fourni au
-    // build ⇒ "" ⇒ le connecteur affiche « non configuré » et le mode « Mes clés »
-    // reste disponible (le chemin existait déjà pour Microsoft).
+    // ⚠️ NO committed default: each id/secret belongs to a provider account
+    // (GitHub app, Slack app, Google Cloud project, Azure app) — a public repo that
+    // embeds them routes every fork's traffic through THAT account. Not supplied at
+    // build time ⇒ "" ⇒ the connector shows "not configured" and "My keys" mode
+    // stays available (the path already existed for Microsoft).
     "process.env.OPENMASQ_GITHUB_CLIENT_ID": JSON.stringify(
       process.env.OPENMASQ_GITHUB_CLIENT_ID ?? "",
     ),
     "process.env.OPENMASQ_SLACK_CLIENT_ID": JSON.stringify(
       process.env.OPENMASQ_SLACK_CLIENT_ID ?? "",
     ),
-    // Le relais auth-only (apps/auth) qui sert /slack/* — l'échange code→jeton que
-    // Slack interdit de faire sur l'appareil (il exige un secret client). L'endpoint est
-    // PUBLIC (le secret vit dans la fonction, jamais dans le client), mais il reste le
-    // déploiement de QUELQU'UN : pas de défaut committé non plus, sinon l'OAuth Slack de
-    // chaque fork passerait par le relais de la marque. Vide ⇒ le connecteur Slack dit
-    // « non configuré » (`main/mcp/connectors/oauthSlack.ts`) et les autres marchent.
+    // The auth-only relay (apps/auth) that serves /slack/* — the code→token exchange
+    // Slack forbids doing on-device (it requires a client secret). The endpoint is
+    // PUBLIC (the secret lives in the function, never in the client), but it remains
+    // SOMEONE's deployment: no committed default either, or every fork's Slack OAuth
+    // would go through the brand's relay. Empty ⇒ the Slack connector says
+    // "not configured" (`main/mcp/connectors/oauthSlack.ts`) and the others work.
     "process.env.OPENMASQ_AUTH_URL": JSON.stringify(process.env.OPENMASQ_AUTH_URL ?? ""),
     // Google "Desktop app" OAuth client — loopback 127.0.0.1 + PKCE. For an INSTALLED
     // app Google's own model treats the client_secret as NON-confidential (PKCE is the
-    // real protection; `oauthGoogle.ts` says as much) — mais il reste l'identifiant
-    // d'un projet Cloud précis : env uniquement, jamais committé.
+    // real protection; `oauthGoogle.ts` says as much) — but it remains the identifier
+    // of a specific Cloud project: env only, never committed.
     // ⚠️ ONLY safe because it is a "Desktop app" client type — a "Web application"
     // secret WOULD be confidential.
     "process.env.OPENMASQ_GOOGLE_CLIENT_ID": JSON.stringify(
@@ -105,43 +105,43 @@ export function mainDefines(): Record<string, string> {
     "process.env.OPENMASQ_MICROSOFT_CLIENT_ID": JSON.stringify(
       process.env.OPENMASQ_MICROSOFT_CLIENT_ID ?? "",
     ),
-    // Le projet Supabase + sa clé PUBLIABLE et le DSN Sentry — lus par
-    // `src/environments/index.ts` et `src/sentry/policy.ts`, partagés main/renderer
-    // (le même define existe côté renderer). Vides ⇒ pas de comptes / pas de Sentry.
+    // The Supabase project + its PUBLISHABLE key and the Sentry DSN — read by
+    // `src/environments/index.ts` and `src/sentry/policy.ts`, shared main/renderer
+    // (the same define exists on the renderer side). Empty ⇒ no accounts / no Sentry.
     "process.env.OPENMASQ_SUPABASE_URL": JSON.stringify(process.env.OPENMASQ_SUPABASE_URL ?? ""),
     "process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
       process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY ?? "",
     ),
     "process.env.OPENMASQ_SENTRY_DSN": JSON.stringify(process.env.OPENMASQ_SENTRY_DSN ?? ""),
-    // Les ADRESSES des services, même règle que les identifiants ci-dessus : aucun
-    // défaut committé — et derrière la porte `OPENMASQ_BILLING` (voir `serviceDefines`).
-    // Vides ⇒ l'app n'a ni backend (comptes/facturation/synchro/avis/orga) ni passerelle
-    // (redaction cloud + modèles inclus) — elle tourne sur la machine. Lues par
-    // `src/environments/index.ts`, partagées main/renderer. Déployer les siennes : le
-    // dépôt privé `infra`.
+    // Service ADDRESSES, same rule as the identifiers above: no
+    // committed default — and behind the `OPENMASQ_BILLING` gate (see `serviceDefines`).
+    // Empty ⇒ the app has neither a backend (accounts/billing/sync/reviews/org) nor a gateway
+    // (cloud redaction + included models) — it runs on the machine. Read by
+    // `src/environments/index.ts`, shared main/renderer. Deploying your own: the
+    // private `infra` repo.
     ...serviceDefines(),
   };
 }
 
-/** Le pendant renderer — mêmes identifiants pour les modules PARTAGÉS que le renderer
- *  bundle aussi (`src/environments`, `src/sentry/policy`) : sans ces doublons le
- *  littéral `process.env.…` resterait tel quel et jetterait (pas de `process` dans un
- *  renderer sandboxé). */
+/** The renderer counterpart — same identifiers for the SHARED modules the renderer
+ *  also bundles (`src/environments`, `src/sentry/policy`): without these duplicates the
+ *  literal `process.env.…` would stay as-is and throw (no `process` in a
+ *  sandboxed renderer). */
 export function rendererDefines(pkgVersion: string): Record<string, string> {
   return {
     "import.meta.env.VITE_APP_VERSION": JSON.stringify(process.env.VITE_APP_VERSION ?? pkgVersion),
-    // Le MÊME canal que le bundle main, pour que Sentry étiquette les deux processus
-    // du même environnement. Sans ce doublon, le renderer serait « development » sur
-    // une build de production — et on chercherait les bugs dans le mauvais bac.
+    // The SAME channel as the main bundle, so Sentry tags both processes
+    // with the same environment. Without this duplicate, the renderer would be "development" on
+    // a production build — and bugs would get hunted in the wrong bucket.
     "import.meta.env.VITE_UPDATES_CHANNEL": JSON.stringify(process.env.VITE_UPDATES_CHANNEL ?? ""),
-    // Le renderer ne décide pas des mises à jour, mais il décide s'il en MONTRE l'écran :
-    // sans flux, `host.updates` reste absent (`appEnv.ts` UPDATES_CONFIGURED). Même
-    // variable que le bundle main, doublée pour la même raison que le canal.
+    // The renderer doesn't decide on updates, but it decides whether to SHOW their screen:
+    // without a feed, `host.updates` stays absent (`appEnv.ts` UPDATES_CONFIGURED). Same
+    // variable as the main bundle, duplicated for the same reason as the channel.
     "import.meta.env.VITE_UPDATES_URL": JSON.stringify(process.env.VITE_UPDATES_URL ?? ""),
-    // Doublons des define du main pour les modules PARTAGÉS que le renderer bundle
-    // aussi (`src/environments/index.ts` via appEnv, `src/sentry/policy.ts` via
-    // sentry/renderer) : sans eux, le littéral `process.env.…` resterait tel quel et
-    // jetterait (`process` n'existe pas dans un renderer sandboxé).
+    // Duplicates of the main defines for the SHARED modules the renderer
+    // also bundles (`src/environments/index.ts` via appEnv, `src/sentry/policy.ts` via
+    // sentry/renderer): without them, the literal `process.env.…` would stay as-is and
+    // throw (`process` doesn't exist in a sandboxed renderer).
     "process.env.OPENMASQ_SUPABASE_URL": JSON.stringify(process.env.OPENMASQ_SUPABASE_URL ?? ""),
     "process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
       process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY ?? "",

@@ -67,7 +67,7 @@ export interface ListsMessages {
     use: string;
     shareTip: string;
     share: string;
-    /** La modale. */
+    /** The modal. */
     modal: {
       titleNew: string;
       titleEdit: string;
@@ -87,7 +87,7 @@ export interface ListsMessages {
       duplicateTip: string;
       create: string;
     };
-    /** Le champ d'instruction. */
+    /** The instruction field. */
     prompt: {
       label: string;
       chars: (count: number) => string;
@@ -182,7 +182,7 @@ export interface ListsMessages {
     removeTip: string;
     reveal: string;
     hide: string;
-    /** La modale d'ajout. */
+    /** The add modal. */
     add: {
       title: string;
       sub: string;

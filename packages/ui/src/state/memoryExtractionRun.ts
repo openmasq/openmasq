@@ -14,8 +14,8 @@ import {
   type SliceTurn,
 } from "../memory/extract";
 
-// `pinMemoryNote` (la note « retiens ça » épinglée sur la réponse) vit dans
-// `./memoryNote.ts` — extrait d'ici pour la règle 1, ré-exporté pour les importeurs.
+// `pinMemoryNote` (the « retiens ça » note pinned on the reply) lives in
+// `./memoryNote.ts` — extracted from here for rule 1, re-exported for importers.
 export { pinMemoryNote } from "./memoryNote";
 import { pinMemoryPending } from "./memoryNote";
 
@@ -54,8 +54,8 @@ export interface MemoryExtractionDeps {
   patchConversation: (id: string, fn: (c: Conversation) => Conversation) => void;
   /** EXPLICIT-ask feedback: pin « N faits notés » on the conversation's last assistant
    *  message, with the ids of the cards the run CREATED (deep-link + « Annuler ») and
-   *  de celles qu'il a MISES À JOUR (« fiche mise à jour », deep-link vers l'historique
-   *  du panneau). The ask was explicit, so the answer must be visible — silent runs
+   *  of those it UPDATED (« fiche mise à jour », deep-link to the panel's
+   *  history). The ask was explicit, so the answer must be visible — silent runs
    *  stay in the debug log only. `failed` = the extraction genuinely FAILED (model
    *  unreachable, or its reply unusable after a retry) — an honest « réessayez »,
    *  distinct from count 0. */
@@ -88,8 +88,8 @@ export async function runMemoryExtraction(
   const { settings, complete } = deps;
   // `memoryAuto` gates the SILENT extraction only — an explicit « retiens que… » is
   // its own consent for that turn (see the module doc). « Sans mémoire dans cette
-  // conversation » (conv.memoryOff) coupe le silencieux de la même façon : l'interrupteur
-  // promet qu'aucune mémoire n'entre NI ne sort d'ici sans geste explicite.
+  // conversation » (conv.memoryOff) cuts the silent one the same way: the switch
+  // promises that no memory goes in OR out of here without an explicit action.
   if ((!settings.memoryAuto && !opts?.explicit) || !complete) return 0;
   if (conv.memoryOff && !opts?.explicit) return 0;
   const from = conv.memoryWatermark ?? 0;
@@ -119,24 +119,24 @@ export async function runMemoryExtraction(
   }
 
   const vault = conv.redactionVault ?? {};
-  // Mode AUTO : le sentinel ne résout pas — repli sur le défaut (gratuit, routé par
-  // `completeRouting`) plutôt que de sauter : « retiens que… » doit marcher en Auto aussi.
+  // AUTO mode: the sentinel doesn't resolve — fall back to the default (free, routed by
+  // `completeRouting`) rather than skipping: « retiens que… » must work in Auto too.
   const model = findModelAny(isAutoModelId(conv.modelId) ? DEFAULT_MODEL_ID : conv.modelId);
   if (!model) {
     advance();
     return 0;
   }
-  // La demande explicite s'annonce AVANT l'appel modèle (« Mise en mémoire… ») : les
-  // secondes d'extraction après un « retiens que… » étaient un silence total qui se
-  // lisait comme une fonctionnalité morte. Posé APRÈS toutes les sorties silencieuses
-  // ci-dessus — chaque chemin restant finit par `noteOnMessage` → `pinMemoryNote`,
-  // qui remplace cet état par le résultat.
+  // The explicit request is announced BEFORE the model call (« Mise en mémoire… »): the
+  // seconds of extraction after a « retiens que… » used to be total silence that
+  // read as a dead feature. Placed AFTER all the silent exits
+  // above — every remaining path ends at `noteOnMessage` → `pinMemoryNote`,
+  // which replaces this state with the result.
   if (explicit) deps.patchConversation(conv.id, pinMemoryPending);
-  // EXPLICIT: « retiens tout ça » désigne le plus souvent la RÉPONSE (une page navigée,
-  // une liste que le modèle vient de produire) — la fenêtre relue inclut donc les tours
-  // ASSISTANT, étiquetés, dans le wire ET dans le texte d'ancrage anti-hallucination.
-  // Égress-neutre (voir `wireTurns`) ; le mode silencieux reste user-only (la boucle
-  // d'auto-renforcement que `ConvSlice` documente).
+  // EXPLICIT: « retiens tout ça » most often points at the REPLY (a navigated page,
+  // a list the model just produced) — the reread window therefore includes the
+  // ASSISTANT turns, labeled, in the wire AND in the anti-hallucination anchor text.
+  // Egress-neutral (see `wireTurns`); the silent mode stays user-only (the
+  // self-reinforcement loop that `ConvSlice` documents).
   const turns: SliceTurn[] = explicit
     ? readMsgs.flatMap((m): SliceTurn[] =>
         (m.role === "user" || m.role === "assistant") && m.content
@@ -146,12 +146,12 @@ export async function runMemoryExtraction(
     : slice.userTexts.map((t): SliceTurn => ({ role: "user", text: t }));
   const wire = explicit ? wireTurns(turns, vault) : wireSlice(slice.userTexts, vault);
   const limit = factLimitFor(explicit);
-  // BORNÉ : `host.complete` n'a pas de canal d'annulation (voir `chat:complete` côté
-  // main) — une promesse qui ne se résout jamais verrouillait `inFlight` À VIE pour la
-  // conversation (le `.finally()` de `useMemoryExtraction` ne tournait jamais) : plus
-  // AUCUNE extraction future, silencieusement. Le timeout transforme la pendaison en
-  // « unreachable » ordinaire — watermark préservé, retry au prochain passage, et sur
-  // une demande explicite l'utilisateur voit « réessayez » au lieu de rien.
+  // BOUNDED: `host.complete` has no cancellation channel (see `chat:complete` on the
+  // main side) — a promise that never resolves used to lock `inFlight` FOR LIFE for the
+  // conversation (the `.finally()` of `useMemoryExtraction` never ran): no more
+  // future extraction, silently. The timeout turns the hang into an
+  // ordinary « unreachable » — watermark preserved, retried on the next pass, and on
+  // an explicit request the user sees « réessayez » instead of nothing.
   const EXTRACT_CALL_TIMEOUT_MS = 60_000;
   const call = (messages: CompletePayload["messages"]) =>
     Promise.race([
@@ -174,10 +174,10 @@ export async function runMemoryExtraction(
       ]);
     } catch (e) {
       unreachable = true;
-      // Le frère ILLISIBLE (plus bas) est journalisé depuis toujours — l'échec TRANSPORT
-      // ne l'était pas, et le journal induisait en erreur : des entrées pour les échecs
-      // de parsing, RIEN pour un modèle injoignable (audit 13/08). Cause réelle, bornée
-      // par le message d'erreur — jamais le contenu.
+      // The ILLEGIBLE sibling (further down) has always been journaled — the TRANSPORT
+      // failure wasn't, and the journal was misleading: entries for parsing
+      // failures, NOTHING for an unreachable model (audit 13/08). Real cause, bounded
+      // by the error message — never the content.
       pushDebug(
         {
           type: "tool",
@@ -191,8 +191,8 @@ export async function runMemoryExtraction(
     }
     let out = parseExtraction(reply, limit);
     if (out) return out;
-    // Réponse ILLISIBLE (aucun objet JSON — un modèle « thinking » bavard) ≠ « rien à
-    // retenir » : UNE relance corrective, bornée, la réponse fautive en contexte.
+    // ILLEGIBLE reply (no JSON object at all — a chatty « thinking » model) ≠ « nothing to
+    // retain »: ONE corrective retry, bounded, the faulty reply given as context.
     try {
       out = parseExtraction(
         await call([
@@ -208,7 +208,7 @@ export async function runMemoryExtraction(
         limit,
       );
     } catch {
-      /* out reste null — traité par le balayage */
+      /* out stays null — handled by the sweep */
     }
     return out;
   };

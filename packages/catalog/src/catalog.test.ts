@@ -64,7 +64,7 @@ describe("mcp catalog", () => {
     const gmail = findConnector("gmail");
     expect(gmail?.transport).toBe("direct");
     expect(gmail?.byoOnly).toBeFalsy();
-    // 30/07/2026 : capacités 1-clic = 100 % du byo — read + send dans les DEUX modes.
+    // 30/07/2026: 1-click capabilities = 100% of byo — read + send in BOTH modes.
     const full = [
       "https://www.googleapis.com/auth/gmail.readonly",
       "https://www.googleapis.com/auth/gmail.send",
@@ -74,8 +74,8 @@ describe("mcp catalog", () => {
   });
 
   it("les connecteurs Google offrent 100 % de leurs capacités en 1-clic (managed ≡ byo)", () => {
-    // Décision produit 30/07/2026 : plus aucun scope Google réservé au byo — CASA est
-    // un prérequis d'ops (vérification du client), jamais une porte dans le code.
+    // Product decision 30/07/2026: no Google scope is reserved for byo anymore — CASA is
+    // an ops prerequisite (client verification), never a gate in the code.
     for (const id of ["gmail", "google-calendar", "google-drive", "google-docs", "google-sheets", "google-tasks", "google-analytics"]) {
       const c = findConnector(id);
       expect(c?.byoOnly, id).toBeFalsy();
@@ -145,11 +145,11 @@ describe("redaction catalog", () => {
     }
   });
 
-  // `apikey` a quitté ce palier. Elle reste l'heuristique la plus large du catalogue —
-  // elle attrape des références produit inoffensives, et c'est pourquoi elle était OFF —
-  // mais son MANQUE, lui, est une clé qui part en clair. Elle appartient donc au plancher
-  // que TOUS les niveaux de protection partagent (`ALWAYS_ON`, `ui/privacy/privacyLevel.ts`),
-  // y compris le niveau réduit. Décision produit, pas un réglage de bruit.
+  // `apikey` has left that tier. It remains the catalogue's broadest heuristic —
+  // it catches harmless product references, which is why it was OFF —
+  // but its ABSENCE is a key going out in clear. So it belongs to the floor
+  // that ALL protection levels share (`ALWAYS_ON`, `ui/privacy/privacyLevel.ts`),
+  // reduced level included. A product decision, not a noise-tier setting.
   it("« Chaînes type clé » est ON par défaut — son manque est une clé en clair", () => {
     expect(CATEGORY_DEFAULTS.apikey, "apikey must default ON").toBe(true);
   });

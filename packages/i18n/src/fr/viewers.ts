@@ -1,5 +1,5 @@
 /**
- * The FR catalogue's « viewers » slice — the SOURCE language : les visionneuses de documents.
+ * The FR catalogue's « viewers » slice — the SOURCE language: the document viewers.
  */
 import type { Messages } from "../messages";
 

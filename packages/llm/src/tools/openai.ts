@@ -143,9 +143,9 @@ function toolsBody(opts: CompleteToolsOptions, stream: boolean): string {
   return JSON.stringify({
     model: opts.model,
     ...(cacheKey ? { prompt_cache_key: cacheKey } : {}),
-    // OpenRouter `:free` : demande le backend au meilleur DÉBIT — le routage par
-    // défaut (prix) n'arbitre rien à 0 €, et la latence des files :free est la
-    // douleur mesurée (tours à 45-420 s). Les modèles payants gardent le défaut.
+    // OpenRouter `:free`: request the backend at the best THROUGHPUT — the default
+    // routing (price) settles nothing at €0, and the :free queues' latency is the
+    // measured pain (turns at 45-420s). Paying models keep the default.
     ...(opts.provider === "openrouter" && opts.model.endsWith(":free")
       ? { provider: { sort: "throughput" } }
       : {}),

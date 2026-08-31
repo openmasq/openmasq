@@ -70,14 +70,14 @@ export interface McpConnector {
    *  "microsoft" = Microsoft identity platform, loopback + PKCE, PUBLIC client. */
   directAuth?: "device" | "pkce" | "slack" | "microsoft";
   /** OAuth scopes requested per credential mode (`direct` connectors). `managed` =
-   *  the app's own public client; `byo` = the user's own client. Depuis le
-   *  30/07/2026, `managed` ≡ `byo` sur les connecteurs Google (les scopes RESTRICTED
-   *  sont demandés sur le client de l'app aussi — la vérification CASA du client est
-   *  un prérequis d'ops pour la prod, jamais une raison de brider les capacités). */
+   *  the app's own public client; `byo` = the user's own client. Since
+   *  30/07/2026, `managed` ≡ `byo` on Google connectors (the RESTRICTED scopes
+   *  are requested on the app's client too — the client's CASA verification is
+   *  an ops prerequisite for prod, never a reason to limit capabilities). */
   scopes?: { managed: string[]; byo: string[] };
   /** `direct` + `byoOnly`: the connector is offered ONLY in "mes clés" mode — the UI
-   *  hides the quick "Connecter" (managed) action. Aucun connecteur ne le porte depuis
-   *  le 30/07/2026 ; the machinery stays for a future connector genuinely in that case. */
+   *  hides the quick "Connecter" (managed) action. No connector has carried it since
+   *  30/07/2026; the machinery stays for a future connector genuinely in that case. */
   byoOnly?: boolean;
   /** WHY the app's own client can't cover this connector — fully (`byoOnly`) or in part.
    *  Set it whenever `byoAdds` is set: the auth chip states this REASON instead of

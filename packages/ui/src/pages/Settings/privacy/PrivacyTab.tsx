@@ -16,7 +16,7 @@ import { activeCount, categoriesForLevel, levelOf, TOTAL_CATEGORIES } from "../.
  * « Confidentialité & redaction », « Confidentialité »), between a sign-out button and a
  * developer toggle, with the seventeen-category matrix always unfolded. Here the page is
  * one decision (the level), then the proof (what has been protected), then the display
- * options — la matrice restant dépliée sous les niveaux, comme leur détail.
+ * options — the matrix staying unfolded under the levels, as their detail.
  */
 export function PrivacyTab({
   draft,
@@ -35,11 +35,11 @@ export function PrivacyTab({
 }) {
   const t = useT();
   const level = levelOf(draft.redactCategories, forcedCategories);
-  // DÉPLIÉE par défaut sur cette page. Les descriptions des niveaux disent à quoi chacun
-  // SERT (« parfait pour le web »), plus ce qu'il coche : la matrice est donc ce qui
-  // répond à « et concrètement ? », y compris pour le niveau réduit, dont elle montre les
-  // cinq cases BETA décochées. Repliable, mais jamais le premier écran d'un choix de
-  // confidentialité. La modale de règles d'une conversation garde son propre défaut.
+  // UNFOLDED by default on this page. The levels' descriptions say what each one is
+  // FOR ("perfect for the web"), plus what it checks: the matrix is therefore what
+  // answers "and concretely?", including for the reduced level, where it shows the
+  // five BETA boxes unchecked. Collapsible, but never the first screen of a privacy
+  // choice. A conversation's rules modal keeps its own default.
   const [rulesOpen, setRulesOpen] = useState(true);
   const forced = new Set(forcedCategories ?? []);
   const active = activeCount(draft.redactCategories, forcedCategories);
@@ -85,12 +85,12 @@ export function PrivacyTab({
       <PrivacyReport conversations={conversations} onOpenAudit={onOpenAudit} />
 
       <section className="settings-section">
-        {/* TRANSPARENCE — déplacée depuis « Développeur » (audit du 27/07). Le réglage
-            décrivait « le message exact reçu par le modèle » : c'est un argument de
-            confiance, pas un outil de mise au point, et il n'avait rien à faire dans une
-            section que personne n'ouvre. Ce qu'il active reste le JOURNAL technique ;
-            le comparatif côte à côte, lui, est toujours disponible sans rien activer
-            (menu ⋯ → « Voir ce que le modèle a vu »). */}
+        {/* TRANSPARENCY — moved out of « Développeur » (audit of 27/07). The setting
+            described "the exact message received by the model": that's a trust
+            argument, not a debugging tool, and it had no business being in a
+            section nobody opens. What it activates remains the technical LOG;
+            the side-by-side comparison, meanwhile, is always available with nothing to
+            activate (⋯ menu → « Voir ce que le modèle a vu »). */}
         <div className="cv-eyebrow">{t.privacyTab.transparencyEyebrow}</div>
         <div className="settings-card">
           <div className="toggle-row">
@@ -111,9 +111,9 @@ export function PrivacyTab({
         </div>
       </section>
 
-      {/* DEUX réglages voisins, et c'est délibéré : l'un change ce que VOUS voyez, l'autre
-          ce qui PART. Les fondre en une case ferait passer un choix de confidentialité —
-          qui se paie en qualité de réponse — pour une préférence d'affichage. */}
+      {/* TWO neighboring settings, and it's deliberate: one changes what YOU see, the other
+          what LEAVES. Merging them into one checkbox would pass off a privacy choice —
+          one paid for in reply quality — as a display preference. */}
       <section className="settings-section">
         <div className="cv-eyebrow">{t.privacyTab.displayEyebrow}</div>
         <div className="settings-card">

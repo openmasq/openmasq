@@ -26,7 +26,7 @@ describe("consigne — ne pas habiller le vide", () => {
   });
 
   it("interdit de CONCLURE à partir d'une absence", () => {
-    // Le cœur du défaut : « rien trouvé » n'est pas une donnée sur l'entreprise.
+    // The core of the defect: "nothing found" is not data about the company.
     expect(GUIDANCE).toMatch(/ne tire AUCUNE conclusion de l'absence/);
   });
 
@@ -35,7 +35,7 @@ describe("consigne — ne pas habiller le vide", () => {
   });
 
   it("propose une sortie, plutôt qu'un simple interdit", () => {
-    // Une consigne purement négative laisse le modèle sans conduite de remplacement.
+    // A purely negative instruction leaves the model with no replacement course of action.
     expect(GUIDANCE).toMatch(/Propose plutôt ce qui débloquerait/);
   });
 });

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { ResultEchoLedger } from "./resultEcho";
 
-/* L'exemption de PROVENANCE du gate arg-exfil (H-4) : un appel dont chaque chaîne
-   d'argument est l'écho VERBATIM d'un résultat antérieur du MÊME connecteur ne
-   « glisse » rien — le connecteur a lui-même produit la valeur (journal 01/08 : carte
-   « données glissées » sur `read_document` d'un chemin que `find_files` venait de
-   lister). Ces cas épinglent les TROIS bords qui gardent l'exemption sûre. */
+/* The PROVENANCE exemption of the arg-exfil gate (H-4): a call whose every argument
+   string is the VERBATIM echo of a prior result from the SAME connector doesn't
+   « leak » anything — the connector itself produced the value (journal 01/08: « données
+   glissées » card on `read_document` for a path `find_files` had just
+   listed). These cases pin the THREE edges that keep the exemption sound. */
 
 describe("ResultEchoLedger", () => {
   const listing =
@@ -17,7 +17,7 @@ describe("ResultEchoLedger", () => {
     expect(
       l.allArgsEchoed("local-filesystem", { path: "/Users/x/Desktop/Dossier/rapport (2025).pdf" }),
     ).toBe(true);
-    // Les args non-chaîne (offset/limit) n'invalident pas l'écho.
+    // Non-string args (offset/limit) don't invalidate the echo.
     expect(
       l.allArgsEchoed("local-filesystem", {
         path: "/Users/x/Desktop/Dossier/notes.csv",
@@ -41,7 +41,7 @@ describe("ResultEchoLedger", () => {
     const l = new ResultEchoLedger();
     l.record("gmail", "IBAN du client : FR7630052114000012734500101");
     expect(l.allArgsEchoed("attacker", { q: "FR7630052114000012734500101" })).toBe(false);
-    // …et le même contenu reste un écho pour SON connecteur d'origine.
+    // …and the same content stays an echo for ITS OWN origin connector.
     expect(l.allArgsEchoed("gmail", { q: "FR7630052114000012734500101" })).toBe(true);
   });
 

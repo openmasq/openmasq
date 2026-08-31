@@ -54,10 +54,10 @@ export const MODEL_PRICING: Record<string, ModelPrice> = {
   "deepseek-v4-pro": { in: 0.435, out: 0.87 },
   "deepseek-v4-flash": { in: 0.14, out: 0.28 },
   // OpenRouter (BYO key, USD / 1M tokens — from the live OpenRouter catalogue; still
-  // provider-set + subject to change). A `:free` tier is 0/0 — et comme les ids CURÉS
-  // sont servis sur la clé de la plateforme, un modèle gratuit du registre marche SANS clé ni
-  // abonnement (le laissez-passer crédits ne tombe que sur la voie plateforme). Un slug
-  // découvert dynamiquement, lui, reste BYO — il n'est pas dans l'allow-list.
+  // provider-set + subject to change). A `:free` tier is 0/0 — and since the CURATED ids
+  // are served on the platform's key, a free registry model works with NO key nor
+  // subscription (the credits free pass only applies on the platform path). A dynamically
+  // discovered slug, on the other hand, stays BYO — it is not in the allow-list.
   "x-ai/grok-4.20": { in: 1.25, out: 2.5 },
   "openai/gpt-5.6-luna": { in: 0.1, out: 0.6 },
   "moonshotai/kimi-k2.6": { in: 0.6, out: 3.41 },

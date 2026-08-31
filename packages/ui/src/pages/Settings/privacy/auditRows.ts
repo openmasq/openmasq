@@ -4,25 +4,25 @@ import { protectedEntries } from "../../../state/protectedCount";
 import { conversationKindIndex, kindOf } from "./privacyStats";
 
 /**
- * Le journal de redaction, en données — la vue ne fait que rendre ce que ceci décide.
+ * The redaction journal, as data — the view only renders what this decides.
  *
- * ⚠️ **Le coffre réversible est PAR CONVERSATION, et le journal doit se lire ainsi.**
- * Chaque conversation a son propre sel : la MÊME valeur réelle reçoit un faux différent
- * d'une conversation à l'autre, et un faux ne veut rien dire hors de la sienne. Aplati en
- * une seule liste, le journal montrait donc « Julien Sabourdin » quatre fois avec quatre
- * remplaçants sans jamais dire pourquoi — on y lisait une incohérence du moteur là où
- * c'est justement la garantie : rien ne relie deux conversations entre elles.
+ * ⚠️ **The reversible vault is PER CONVERSATION, and the journal must read that way.**
+ * Each conversation has its own salt: the SAME real value receives a different fake
+ * from one conversation to the next, and a fake means nothing outside its own. Flattened into
+ * a single list, the journal used to show "Julien Sabourdin" four times with four
+ * different replacements without ever saying why — you'd read it as an engine inconsistency where
+ * it's actually the guarantee: nothing links two conversations to each other.
  *
- * ⚠️ **La DATE appartient au groupe, jamais à la ligne.** Le coffre n'horodate pas ses
- * entrées ; tout ce qu'on a est le `updatedAt` de la conversation. Répété sur chaque
- * ligne, il promettait l'heure du redaction de CETTE valeur — une précision qu'aucune
- * donnée ne porte. Sur l'en-tête du groupe, il dit ce qu'il est vraiment.
+ * ⚠️ **The DATE belongs to the group, never to the row.** The vault doesn't timestamp its
+ * entries; all we have is the conversation's `updatedAt`. Repeated on every
+ * row, it promised the time THIS value was redacted — a precision no
+ * data carries. On the group's header, it says what it actually is.
  */
 
 export interface AuditRow {
   id: string;
   convId: string;
-  /** Le message où la valeur réelle apparaît — la cible du saut, quand on la trouve. */
+  /** The message where the real value appears — the jump's target, when found. */
   msgId?: string;
   original: string;
   fake: string;
@@ -32,23 +32,23 @@ export interface AuditRow {
 export interface AuditGroup {
   convId: string;
   convTitle: string;
-  /** `Conversation.updatedAt` — la seule date que le coffre permette (voir ci-dessus). */
+  /** `Conversation.updatedAt` — the only date the vault allows (see above). */
   at: number;
   rows: AuditRow[];
 }
 
-/** Les groupes du journal, conversation la plus récente en tête. */
+/** The journal's groups, most recent conversation first. */
 export function buildAuditGroups(conversations: readonly Conversation[]): AuditGroup[] {
   const out: AuditGroup[] = [];
   for (const c of conversations) {
     const index = conversationKindIndex(c);
     const rows: AuditRow[] = [];
-    // Même définition que le bouclier et la carte « tout ce qui a été redacted », pour que
-    // le compte de cet onglet ne puisse pas diverger des leurs.
+    // Same definition as the shield and the « tout ce qui a été redacted » card, so that
+    // this tab's count can never diverge from theirs.
     for (const [fake, original] of protectedEntries(c)) {
-      // La valeur réelle apparaît telle quelle dans le `content` affiché d'un message (ou
-      // dans `modelContent` quand un fichier y a été replié) — on la localise pour ancrer
-      // le saut. La PREMIÈRE occurrence gagne.
+      // The real value appears as-is in a message's displayed `content` (or
+      // in `modelContent` when a file was folded into it) — we locate it to anchor
+      // the jump. The FIRST occurrence wins.
       const msg = c.messages.find(
         (m) => m.content?.includes(original) || m.modelContent?.includes(original),
       );
@@ -69,10 +69,10 @@ export function buildAuditGroups(conversations: readonly Conversation[]): AuditG
 }
 
 /**
- * Filtrer sans casser les groupes : une conversation dont plus rien ne correspond
- * DISPARAÎT (un en-tête vide se lit comme un groupe sans résultat, pas comme un exclu).
- * Le texte cherché porte aussi sur le TITRE — chercher une conversation garde tout son
- * redaction, ce qui est le geste « montre-moi celle-ci ».
+ * Filter without breaking the groups: a conversation where nothing matches anymore
+ * DISAPPEARS (an empty header reads as a group with no result, not as one excluded).
+ * The search text also covers the TITLE — searching a conversation keeps all its
+ * redaction, which is the "show me this one" action.
  */
 export function filterAuditGroups(
   groups: readonly AuditGroup[],
@@ -92,11 +92,11 @@ export function filterAuditGroups(
   return out;
 }
 
-/** Combien de valeurs, tous groupes confondus. */
+/** How many values, all groups combined. */
 export const countAuditRows = (groups: readonly AuditGroup[]): number =>
   groups.reduce((n, g) => n + g.rows.length, 0);
 
-/** Les catégories présentes, la plus fournie en tête. */
+/** The categories present, the most populated one first. */
 export function auditKindCounts(groups: readonly AuditGroup[]): { key: string; n: number }[] {
   const counts: Record<string, number> = {};
   for (const g of groups) for (const r of g.rows) counts[r.kind] = (counts[r.kind] ?? 0) + 1;
@@ -106,9 +106,9 @@ export function auditKindCounts(groups: readonly AuditGroup[]): { key: string; n
 }
 
 /**
- * Les N premières VALEURS, groupes conservés — ce que le défilement infini rend.
- * On compte les lignes, pas les groupes : une conversation à 500 entrées ne doit pas
- * arriver d'un bloc parce qu'elle tient sur un seul en-tête.
+ * The first N VALUES, groups preserved — what infinite scroll renders.
+ * We count rows, not groups: a conversation with 500 entries must not
+ * arrive all at once just because it fits under one header.
  */
 export function takeAuditRows(groups: readonly AuditGroup[], limit: number): AuditGroup[] {
   const out: AuditGroup[] = [];

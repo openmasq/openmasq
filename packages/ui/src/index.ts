@@ -15,9 +15,9 @@ export * from "./prompt/models";
 export { hueForProvider } from "./prompt/providerHue";
 export * from "./state/usage";
 export { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, captureEvent, captureError, type TrackEvent, type ErrorReport } from "./analytics";
-// À appeler AVANT le premier rendu, comme `configureAnalytics` : ce build a-t-il un
-// service hébergé (passerelle + comptes) ? Non ⇒ les modèles « inclus » redeviennent
-// des modèles à clé et rien ne promet d'abonnement (`send/platformAccess.ts`).
+// To call BEFORE the first render, like `configureAnalytics`: does this build have a
+// hosted service (gateway + accounts)? No ⇒ « included » models become
+// key-based models again and nothing promises an abonnement (`send/platformAccess.ts`).
 export { configurePlatformAccess } from "./send/platformAccess";
 
 export { useChatStore } from "./state/store";
@@ -25,13 +25,13 @@ export type { ChatStore } from "./state/store";
 // Call BEFORE the first React render to theme <html> pre-paint (avoids the splash
 // green→blue flash — the store's own theme effect runs only after mount).
 export { applyPersistedTheme } from "./state/theme";
-// L'i18n : la couche React (provider + hooks) et le catalogue typé re-exporté pour les
-// consommateurs (le desktop wrappe AppShell dans `I18nProvider`, /preview le pourra
-// aussi). Le pré-paint de la LANGUE vit DANS le provider (effet `<html lang>`), pas dans
-// le bootstrap — le splash statique n'a aucun texte traduisible.
+// The i18n: the React layer (provider + hooks) and the typed catalogue re-exported for
+// consumers (the desktop wraps AppShell in `I18nProvider`, /preview will be able
+// to too). The LANGUAGE pre-paint lives INSIDE the provider (`<html lang>` effect), not in
+// the bootstrap — the static splash has no translatable text.
 export { I18nProvider, useT, type I18nProviderProps } from "./i18n";
-// La langue d'appareil résolue (clé d'appareil → hôte → défaut), utilisable AVANT l'auth :
-// le renderer la joint à la connexion pour que l'email d'auth parte dans la bonne langue.
+// The resolved device language (device key → host → default), usable BEFORE auth:
+// the renderer attaches it to the connection so the auth email goes out in the right language.
 export { initialLocale } from "./state/locale";
 export { type Locale, LOCALES, DEFAULT_LOCALE, resolveLocale, getMessages, type Messages } from "@openmasq/i18n";
 export { MissingApiKeyError, CreditsExhaustedError } from "./state/errors";
@@ -57,15 +57,15 @@ export { MessageBubble } from "./components/message/MessageBubble";
 export { ModelSelector } from "./components/ModelSelector";
 export { Onboarding } from "./pages/Onboarding/Onboarding";
 export { ConfirmDialog } from "./components/feedback/ConfirmDialog";
-// La coque de modale et LA primitive de menu : deux consommateurs chacune (l'app et la
-// console web), ce qui est exactement ce qui fait sortir une pièce du paquet — sans ça,
-// la console redessinait sa propre coque (avec sa propre scrim) et ré-écrivait la
-// fermeture au clic-dehors à la main.
+// The modal shell and THE menu primitive: two consumers each (the app and the
+// web console), which is exactly what earns a piece its move out of the package — without that,
+// the console used to redraw its own shell (with its own scrim) and hand-rewrite
+// click-outside closing.
 export { ModalShell } from "./containers/modals/ModalShell";
 export { usePopover, type PopoverApi, type PopoverAnchor } from "./hooks/usePopover";
-// LE loader du produit — les cinq barres du redaction qui balaient. Sorti pour la même
-// raison que les deux au-dessus : la console web en est le second appelant, et elle
-// écrivait « Chargement… » en texte nu là où l'app fait tourner la marque.
+// THE product's loader — the five redaction bars that sweep. Moved out for the same
+// reason as the two above: the web console is its second caller, and it
+// used to write « Chargement… » as plain text where the app spins the brand.
 export { BrandLoader } from "./components/media/BrandLogo";
 
 export {
@@ -84,14 +84,14 @@ export type { RootState, AppDispatch, Section } from "./state/redux";
 // diagnosed (e.g. a tool NAME redacted by the NER) instead of guessed at.
 export { getDebugLog, setDebugCapture, isDebugCapture, clearDebugLog } from "./state/debug";
 export type { DebugEntry, DebugPair, TurnMessage } from "./state/debug";
-// Sort du tonneau parce qu'il a un SECOND appelant : le pont e2e du bureau, qui servait
-// le journal d'une conversation avec sa propre copie du prédicat. Qui voit quelle entrée
-// est une règle de confidentialité — elle n'existe qu'à un endroit (règle 9).
+// Leaves the barrel because it has a SECOND caller: the desktop's e2e bridge, which used to
+// serve a conversation's journal with its own copy of the predicate. Who sees which entry
+// is a privacy rule — it exists in exactly one place (rule 9).
 export { isEntryVisibleIn } from "./state/debugScope";
 
-// Les MODÈLES de workflow livrés + le remplissage de leurs `{accolades}`. Exportés
-// pour que la suite e2e du desktop rejoue le prompt RÉELLEMENT livré au lieu d'une
-// copie qui dériverait (`apps/desktop/e2e/workflows/templates.ts`).
+// The shipped workflow TEMPLATES + the filling of their `{braces}`. Exported
+// so the desktop's e2e suite replays the prompt ACTUALLY shipped instead of a
+// copy that would drift (`apps/desktop/e2e/workflows/templates.ts`).
 export {
   routineIds,
   fillTemplate,
@@ -99,10 +99,10 @@ export {
   type RoutineSuggestion,
 } from "./suggestions";
 
-// Le squelette COMMUN d'un canal de sync E2E (pull au chargement + à la reprise,
-// push après stabilisation). Desktop et mobile en tenaient chacun leur copie pour
-// les trois canaux — six fichiers quasi identiques dont un seul détail diffère
-// vraiment (comment la plateforme observe la « reprise »). Voir `hooks/useSyncChannel.ts`.
+// The COMMON skeleton of an E2E sync channel (pull on load + on resume,
+// push after settling). Desktop and mobile each used to keep their own copy for
+// the three channels — six near-identical files where only one detail truly
+// differs (how the platform observes « resume »). See `hooks/useSyncChannel.ts`.
 export {
   useSyncChannel,
   onWindowFocus,

@@ -20,7 +20,7 @@ export interface GuideChapterCopy {
   title: (brand: string) => string;
   /** The opening paragraph — what it is, in two or three sentences. */
   lead: (brand: string) => string;
-  /** Des points pratiques, courts. */
+  /** Short, practical points. */
   points?: readonly ((brand: string) => string)[];
   /** Term → definition, for the glossary chapter. */
   terms?: readonly { term: (brand: string) => string; def: (brand: string) => string }[];

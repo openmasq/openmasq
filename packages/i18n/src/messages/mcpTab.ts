@@ -23,7 +23,7 @@ export interface McpTabMessages {
   localServers: string;
   addedByYou: string;
   noMatch: (query: string) => string;
-  /** La carte. */
+  /** The card. */
   tools: (count: number) => string;
   accounts: (count: number) => string;
   blockedByOrg: string;
@@ -31,7 +31,7 @@ export interface McpTabMessages {
   connected: string;
   manage: string;
   connect: string;
-  /** La fiche. */
+  /** The detail sheet. */
   cancelConnect: string;
   linkCopied: string;
   copyLink: string;

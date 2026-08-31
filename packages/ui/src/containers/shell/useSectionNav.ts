@@ -8,20 +8,20 @@ import { sectionOrFallback, useFeatureAccess } from "../../state/featureAccess";
  * event, once). Replaces drilling `section` + an `onChats/onLibrary/onVault/onSettings`
  * callback set from AppShell into every nav chrome (Rail, BottomNav, …).
  *
- * ⚠️ **C'est aussi le seul endroit où une section FERMÉE est ramenée aux
- * conversations** (`state/featureAccess.ts`), et c'est possible parce que ce hook est
- * l'unique lecteur de `ui.section`. Trois cas y passent d'un coup, qu'un garde posé au
- * boot n'aurait pas couverts : une section persistée fermée depuis le dernier
- * lancement, un drapeau qui bascule PENDANT qu'on est sur l'écran, et tout `go()`
- * d'où qu'il vienne (rail, ⌘K, lien profond, amorce). On ne corrige pas redux pour
- * autant : la valeur persistée reste, donc rouvrir la porte ramène l'utilisateur là
- * où il était.
+ * ⚠️ **It's also the only place where a CLOSED section is brought back to
+ * conversations** (`state/featureAccess.ts`), and that's possible because this hook is
+ * the sole reader of `ui.section`. Three cases pass through it at once, which a guard
+ * placed at boot wouldn't have covered: a persisted section closed since the last
+ * launch, a flag that flips WHILE the user is on the screen, and any `go()`
+ * whatever it comes from (rail, ⌘K, deep link, priming). We don't fix redux for
+ * that though: the persisted value stays, so reopening the gate brings the user back
+ * where they were.
  */
 export function useSectionNav(): { section: Section; go: (s: Section) => void } {
   const dispatch = useAppDispatch();
   const stored = useAppSelector((s) => s.ui.section);
-  // Abonnement aux accès : sans lui, fermer une porte ne re-rendrait rien et
-  // l'écran fermé resterait affiché jusqu'à la prochaine navigation.
+  // Subscription to access: without it, closing a gate wouldn't re-render anything and
+  // the closed screen would stay shown until the next navigation.
   useFeatureAccess();
   const section = sectionOrFallback(stored);
   const go = (s: Section): void => {

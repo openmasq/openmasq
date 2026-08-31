@@ -5,9 +5,9 @@ import { tmpdir } from "node:os";
 import { DESKTOP_DIR, FIXTURE_FILE, FIXTURES, KEY, MODEL } from "./env";
 import { supabaseAuthStorageKey } from "../supabaseAuthKey";
 
-// Le harnais de la suite workflows : lancement isolé, seed de session, sélection du
-// modèle par l'UI, envoi façon humaine, approbation des écritures. Voir le doc-comment
-// du spec (`../workflows-openrouter.e2e.ts`) pour les invariants.
+// The workflows suite's harness: isolated launch, session seed, UI model
+// selection, human-style send, write approval. See the spec's doc-comment
+// (`../workflows-openrouter.e2e.ts`) for the invariants.
 /** Launch one ISOLATED app instance for this test (own profile, own logs) — the shared
  *  helpers.launchApp profile would collide across parallel workers. */
 export async function launchWorkflowApp(id: string): Promise<{
@@ -85,11 +85,11 @@ export async function seedSession(
   await page.reload();
   await page.waitForLoadState("domcontentloaded");
   await expect(page.locator(".composer-input").first()).toBeVisible({ timeout: 30_000 });
-  // Laisser le sign-in + mcp:set-user se poser, puis re-seed LIVE (voir docstring).
+  // Let sign-in + mcp:set-user settle, then re-seed LIVE (see docstring).
   await page.waitForTimeout(4000);
   await page.evaluate(applySettings, settings);
   await page.waitForTimeout(1500);
-  // Répondre au toast consentement RGPD s'il est affiché (il avale le focus).
+  // Respond to the GDPR consent toast if shown (it swallows focus).
   const consent = page.getByRole("button", { name: "Compris" });
   if (await consent.count().catch(() => 0)) await consent.first().click().catch(() => {});
 }
@@ -103,11 +103,11 @@ export async function selectModel(page: Page, modelId: string = MODEL): Promise<
   const search = page.getByPlaceholder(/Rechercher un modèle/);
   await expect(search).toBeVisible({ timeout: 10_000 });
   await search.fill(modelId);
-  // Un id peut exister en DEUX variantes (payante + `:free`, ex. laguna) et la
-  // recherche par préfixe les liste toutes deux — discriminer par le badge
-  // « gratuit » : id `:free` ⇒ l'option AVEC badge, sinon l'option SANS (le
-  // payant passe par la clé BYO ; le gratuit par la plateforme, dont l'auth
-  // e2e factice fait un 401 « Unsupported token algorithm »).
+  // An id can exist in TWO variants (paid + `:free`, e.g. laguna) and the
+  // prefix search lists both — discriminate by the "free"
+  // badge: `:free` id ⇒ the option WITH the badge, otherwise the option WITHOUT (the
+  // paid one goes through the BYO key; the free one through the platform, whose
+  // fake e2e auth causes a 401 "Unsupported token algorithm").
   const wantFree = /:free$/.test(modelId);
   const pick = () => {
     const all = page.locator(".model-option");
@@ -116,7 +116,7 @@ export async function selectModel(page: Page, modelId: string = MODEL): Promise<
   };
   let option = pick();
   if ((await option.count().catch(() => 0)) === 0) {
-    // Variante de catalogue (label dynamique) : retenter sur un fragment de l'id.
+    // Catalog variant (dynamic label): retry on a fragment of the id.
     await search.fill(modelId.split("/").pop()?.replace(/:free$/, "") ?? modelId);
     option = pick();
   }
@@ -159,16 +159,16 @@ export async function waitForFixtureTools(page: Page): Promise<void> {
 }
 
 /** Auto-approve loop, clicking like a human would: the renderer exfil card
- *  (« Autoriser », .btn-danger) AND the main un-spoofable window (sentinel
+ *  ("Allow", .btn-danger) AND the main un-spoofable window (sentinel
  *  https://example.invalid/write-allow). Returns how many approvals were clicked. */
 /**
- * Approuve les écritures comme le ferait un humain, en comptant SÉPARÉMENT les deux
- * surfaces — c'est ce qui permet au spec d'affirmer non seulement « l'utilisateur a
- * confirmé » mais « il a confirmé LÀ OÙ IL FALLAIT » :
- *   • `system` — la fenêtre main non-spoofable, hors du DOM du renderer (envoi, invitation,
- *     suppression, serveur non vérifié) ;
- *   • `chat`   — la carte dans la conversation, pour un geste local et réversible.
- * Un compteur unique laisserait un envoi passer par la carte sans que rien ne le signale.
+ * Approves writes the way a human would, counting the two surfaces
+ * SEPARATELY — this is what lets the spec assert not just "the user
+ * confirmed" but "they confirmed WHERE IT MATTERED":
+ *   • `system` — the non-spoofable main window, outside the renderer's DOM (send, invitation,
+ *     deletion, unverified server);
+ *   • `chat`   — the card in the conversation, for a local and reversible gesture.
+ * A single counter would let a send slip through the card without anything flagging it.
  */
 export function startAutoApprove(app: ElectronApplication, page: Page) {
   let stop = false;
@@ -197,11 +197,11 @@ export function startAutoApprove(app: ElectronApplication, page: Page) {
     }
   })();
   return {
-    /** Confirmations sur la fenêtre main non-spoofable. */
+    /** Confirmations on the non-spoofable main window. */
     systemCount: () => system,
-    /** Confirmations sur la carte in-conversation. */
+    /** Confirmations on the in-conversation card. */
     chatCount: () => chat,
-    /** Total — pour « une écriture n'a pas tourné sans confirmation du tout ». */
+    /** Total — for "a write didn't run with no confirmation at all". */
     approvedCount: () => system + chat,
     stop: async () => {
       stop = true;

@@ -47,7 +47,7 @@ export interface OrgSharesMessages {
   myShares: string;
   revoke: string;
   status: { pending: string; approved: string; refused: string; revoked: string };
-  /** La demande de partage. */
+  /** The share request. */
   promote: {
     eyebrow: string;
     title: string;

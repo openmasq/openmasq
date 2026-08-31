@@ -1,6 +1,6 @@
 /**
  * The EN catalogue's « availability » slice — translated from the source (`../fr/availability.ts`).
- * ⚠️ Un build qui ne vend rien ne doit dire ni « subscription » ni « credits » : voir le
+ * ⚠️ A build that sells nothing must say neither « subscription » nor « credits »: see the
  * contract. `satisfies` per entry: the compiler demands EXACTLY the contract's keys.
  */
 import type { Messages } from "../messages";

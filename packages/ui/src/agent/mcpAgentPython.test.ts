@@ -17,8 +17,8 @@ const GUIDANCE = readFileSync(join(__dirname, "mcpAgentPython.ts"), "utf8");
  * supported. So the rule is per-format and mechanical — **if the guidance offers a document
  * format, it must also say how to put a picture in it.**
  */
-// La consigne construit les noms au runtime (`PY = BRAND.slug`), donc le SOURCE porte la
-// forme dérivée `" + PY + "_pdf(` — c'est elle qu'on épingle, jamais un littéral de marque.
+// The guidance builds the names at runtime (`PY = BRAND.slug`), so the SOURCE carries
+// the derived form `" + PY + "_pdf(` — that's what we pin, never a brand literal.
 const FORMATS = [
   { label: "PDF", helper: /PY \+ "_pdf\(/, image: /doc\.image\(/ },
   { label: "Word", helper: /PY \+ "_docx\(/, image: /doc\.image\(/ },
@@ -45,10 +45,10 @@ describe("consigne run_python — chaque format de document offert sait recevoir
   });
 
   it("les accents français sont explicitement autorisés dans les documents générés", () => {
-    // Mesuré (15/08/2026) : sans cette phrase, le modèle « sécurise » son PDF en ôtant tous
-    // les diacritiques — « Societe par actions simplifiee », « Nationalite : Francaise » —
-    // dans un document destiné à une banque. Rien dans la chaîne ne les ôte : les helpers
-    // embarquent une police complète. C'est donc à la consigne de le dire.
+    // Measured (15/08/2026): without this sentence, the model "plays it safe" on its PDF by
+    // stripping all diacritics — "Societe par actions simplifiee", "Nationalite : Francaise" —
+    // in a document meant for a bank. Nothing along the way strips them: the helpers
+    // embed a full font. So it's up to the guidance to say so.
     expect(GUIDANCE).toMatch(/N'ôte JAMAIS les diacritiques/);
     expect(GUIDANCE).toMatch(/accents et ponctuation/);
   });

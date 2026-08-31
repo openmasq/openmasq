@@ -66,8 +66,8 @@ interface Props {
   /** Persist a DocumentCard edit into this message's ```document fence (store
    *  `editDocument`). Absent ⇒ generated documents render read-only. */
   onEditDocument?: (messageId: string, oldText: string, newText: string) => Promise<boolean>;
-  /** Adopter une compétence que le modèle vient de proposer (`SkillCard`).
-   *  Absent ⇒ la carte reste lisible et n'agit pas. */
+  /** Adopt a skill the model just proposed (`SkillCard`).
+   *  Absent ⇒ the card stays readable and inert. */
   onAddSkill?: (skill: ProposedSkill) => boolean;
   isSkillAdded?: (skill: ProposedSkill) => boolean;
   /** Platform HTML→PDF typesetter for a generated document's « Télécharger → PDF »
@@ -86,7 +86,7 @@ interface Props {
   onReRedact?: (value: string) => void;
   /** « Signaler un redaction incorrect » on a mark's popover — opens « Votre avis »
    *  prefilled. The bubble derives the surface from its own role (user message vs
-   *  réponse); `kindLabel` is the mark's category word, never the value. */
+   *  reply); `kindLabel` is the mark's category word, never the value. */
   onReportRedaction?: (surface: "message" | "reponse", kindLabel: string) => void;
   isRevealForced?: (value: string) => boolean;
   /** Values currently suspended (revealed) for this conversation. */
@@ -202,7 +202,7 @@ function MessageBubbleImpl({
     // Unified tabs: a document opened from the conversation becomes a TAB (kit);
     // the modal stays the fallback for surfaces without the tab system.
     if (onOpenFileTab) onOpenFileTab({ id: meta.id, name: meta.name, mime: meta.mime, convId });
-    // `redacted` = octets redacted OU compte de dépôt (un PDF/image n'a pas de scrubbed).
+    // `redacted` = redacted bytes OR deposit count (a PDF/image has no scrubbed).
     else setViewFile({ ...meta, redacted: meta.redacted || !!meta.redactedCount });
   };
 
@@ -235,7 +235,7 @@ function MessageBubbleImpl({
           </div>
         )}
         {message.askTarget && <AskTargetTag target={message.askTarget} />}
-        {/* ⚠️ `?? workflow` : l'ANCIEN tag, encore dans l'historique (`@openmasq/schema`). */}
+        {/* ⚠️ `?? workflow`: the OLD tag, still around in history (`@openmasq/schema`). */}
         {skillTag && <CompetenceTag competence={skillTag} vault={vault} kinds={kinds} />}
         {!!message.content.trim() && (
           <div className="msg-bubble" data-user-text>
@@ -339,7 +339,7 @@ function MessageBubbleImpl({
               renderPdf={renderPdf}
               imageIds={attachmentConvIds}
               loadImage={loadImage}
-              // Comme l'édition : une carte encore en train de s'écrire n'agit pas.
+              // Same as editing: a card still being written is inert.
               onAddSkill={message.pending ? undefined : onAddSkill}
               isSkillAdded={isSkillAdded}
             />
@@ -426,7 +426,7 @@ function MessageBubbleImpl({
             </div>
           )}
 
-        {/* Ce que l'app a à dire sur ce tour : la faute, et le quota restant. */}
+        {/* What the app has to say about this turn: the fault, and the remaining quota. */}
         <MessageNotices message={message} modelName={modelName} />
 
         {/* « retiens ça » feedback — the extraction pins its outcome on THIS reply
@@ -438,8 +438,8 @@ function MessageBubbleImpl({
             ids={message.suggestedIntegrations}
             connectedIds={connectedMcpIds}
             onConnect={(id) => onConnectIntegration?.(id)}
-            // « Continuer » (connecté) = régénérer CE tour : le modèle rejoue la demande
-            // d'origine avec les outils désormais présents — pas un détour par Réglages.
+            // « Continuer » (connected) = regenerate THIS turn: the model replays the
+            // original request with the now-present tools — not a detour through Réglages.
             onResume={onRegenerate ? () => onRegenerate(message.id) : undefined}
           />
         ) : null}

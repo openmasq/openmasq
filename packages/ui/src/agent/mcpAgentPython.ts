@@ -1,6 +1,6 @@
 import { BRAND } from "@openmasq/branding";
-// Préfixe des helpers Python définis par le préambule du runtime (apps/desktop) —
-// des noms RUNTIME côté sandbox, donc dérivés de la marque, jamais littéraux ici.
+// Prefix of the Python helpers defined by the runtime preamble (apps/desktop) —
+// sandbox-side RUNTIME names, so derived from the brand, never a literal here.
 const PY = BRAND.slug;
 
 // Python-interpreter (run_python) guidance + failure hints — pure, wire-safe (no PII),
@@ -9,20 +9,20 @@ const PY = BRAND.slug;
 /** Extra guidance appended when the code interpreter (`run_python`) is available.
  *  Weak models otherwise mis-route a "trace un graphique / calcule" request onto a
  *  filesystem connector (writing a `.py` to disk) or the browser — this steers every
- *  compute/plot task onto the sandbox. Wire-safe (no PII). FUNCTION, pas constante :
- *  ne nomme que les outils web RÉELLEMENT offerts — mesuré en éval, un modèle faible
- *  (Gemma) émet un pseudo-appel TEXTUEL vers `browser_navigate` dès que la guidance
- *  le mentionne alors qu'il n'est pas dans l'offre. */
+ *  compute/plot task onto the sandbox. Wire-safe (no PII). A FUNCTION, not a constant:
+ *  it names only the web tools ACTUALLY offered — measured in eval, a weak model
+ *  (Gemma) emits a TEXTUAL pseudo-call to `browser_navigate` as soon as the guidance
+ *  mentions it while it isn't in the offer. */
 export function pythonGuidance(webToolPhrase: string): string {
   return (
     "\n\nTu disposes de l'outil `run_python` : un interpréteur Python en bac à sable. Paquets pré-installés : numpy, pandas, scipy, matplotlib, seaborn (graphiques), yfinance, requests, **fpdf2 (PDF), openpyxl (Excel), python-docx (Word), python-pptx (PowerPoint)**. Pour TOUTE tâche de CALCUL, d'ANALYSE DE DONNÉES, de TRACÉ DE GRAPHIQUE ou de GÉNÉRATION DE FICHIER (PDF, Excel, Word, PowerPoint…), utilise `run_python` — c'est TOUJOURS le bon outil. N'écris JAMAIS un script Python sur le disque via un connecteur de fichiers (`write_file`…), et n'utilise PAS le navigateur pour ça." +
     " ⚠️ Tu NE PEUX PAS installer de paquets : `pip install`, `subprocess`, `os.system` sont INUTILES (aucun accès à PyPI, environnement figé). Utilise UNIQUEMENT les paquets listés ci-dessus ; si l'un manque pour la tâche, indique-le à l'utilisateur — ne tente PAS de l'installer et ne réessaie pas en boucle." +
     " 📊 Pour les GRAPHIQUES, utilise **seaborn / matplotlib** (`import seaborn as sns` / `matplotlib.pyplot`) : la figure est affichée AUTOMATIQUEMENT, PAS besoin de `plt.show()`. Tout FICHIER que tu enregistres (ex: `doc.save(\"rapport.pdf\")`, `wb.save(\"data.xlsx\")`, `prs.save(\"pres.pptx\")`) dans le dossier courant est AUTOMATIQUEMENT remis à l'utilisateur — utilise un nom relatif simple. 📄 Pour un DOCUMENT SOIGNÉ, utilise les helpers DÉJÀ DÉFINIS (charte graphique " + BRAND.name + " automatique) plutôt qu'une mise en page manuelle : PDF → `doc = " + PY + "_pdf(\"Titre\", \"Sous-titre\")` puis `doc.h1(...)`, `doc.h2(...)`, `doc.p(...)`, `doc.bullet(...)`, `doc.kv(\"Libellé\", \"Valeur\")`, `doc.table(df)`, `doc.save(\"rapport.pdf\")` ; 📈 pour METTRE UN GRAPHIQUE DANS LE PDF, enregistre la figure puis insère-la : `plt.savefig(\"chart.png\", dpi=200)` puis `doc.image(\"chart.png\", caption=\"Légende\")` (`w=` largeur en mm si besoin ; la figure reste AUSSI affichée dans la conversation — ajoute `plt.close()` après le savefig si tu ne veux QUE le PDF) ; Word → `doc = " + PY + "_docx(\"Titre\", \"Sous-titre\")` puis `doc.h1(...)`, `doc.h2(...)`, `doc.p(...)`, `doc.bullet(...)`, `doc.kv(\"Libellé\", \"Valeur\")`, `doc.table(df)`, `doc.save(\"rapport.docx\")` ; 🖼️ pour METTRE UNE ILLUSTRATION DANS LE WORD, enregistre la figure puis insère-la : `plt.savefig(\"chart.png\", dpi=200)` puis `doc.image(\"chart.png\", caption=\"Légende\")` (`w=` largeur en pouces si besoin) — n'annonce JAMAIS une illustration par un simple titre : soit tu insères l'image, soit tu dis que tu n'as pas pu ; PowerPoint → `prs = " + PY + "_pptx(\"Titre\", \"Sous-titre\")` puis `" + PY + "_slide(prs, \"Titre de diapo\", bullets=[...])`, `" + PY + "_slide(prs, \"Chiffres\", table=df)`, `" + PY + "_slide(prs, \"Graphique\", image=\"chart.png\")` (un PNG que tu as enregistré via `plt.savefig(\"chart.png\")`), enfin `prs.save(\"presentation.pptx\")`. ♻️ Un fichier DÉJÀ généré plus tôt dans la conversation (repère le marqueur « [Fichier(s) DÉJÀ généré(s)…] » dans l'historique) EXISTE TOUJOURS : pour l'envoyer/le joindre, NE le régénère PAS — réutilise-le tel quel. Pour le MODIFIER/enrichir à la demande de l'utilisateur : il est DÉJÀ PRÉSENT dans ton dossier courant `run_python` — charge-le (`openpyxl.load_workbook(\"data.xlsx\")`, `Presentation(\"pres.pptx\")`, `docx.Document(\"doc.docx\")`) et réenregistre-le sous le MÊME nom ; un PDF ne se rouvre pas : régénère-le enrichi sous le même nom. 🔁 Si un marqueur « Script d'analyse déjà exécuté » figure dans l'historique, c'est ta BASE DE TRAVAIL pour toute nouvelle itération (ajuster un paramètre, enrichir, corriger) : repars de CE script, modifie ce qui doit l'être et renvoie-le EN ENTIER — ne réécris JAMAIS l'analyse de zéro. Il est aussi copié dans ton dossier courant (`analyse.py`), réutilisable tel quel via `exec(open(\"analyse.py\").read())` avant ton code complémentaire. ⚠️ `run_python` n'a AUCUN accès Internet général : seules les données boursières (yfinance / Yahoo Finance) sont joignables ; un `requests`/`urllib` vers un site quelconque (Google, le site d'une entreprise…) ÉCHOUE toujours (« Max retries »). 📈 Pour récupérer des COURS d'actions/ETF, utilise le helper DÉJÀ DÉFINI `" + PY + "_prices(\"SPY VOO QQQ\", period=\"2y\")` (accepte une chaîne d'espaces ou une liste ; `period`=`\"1mo\"/\"6mo\"/\"1y\"/\"2y\"/\"5y\"/\"ytd\"/\"max\"`) : il renvoie un DataFrame propre, index de dates, UNE colonne par ticker, et gère toutes les formes de retour de yfinance. N'appelle PAS `yf.download(...)` toi-même — ses colonnes MultiIndex multi-tickers cassent le code naïf (`'DataFrame' object has no attribute 'to_frame'`, `unsupported format string passed to Series.__format__`). Pour un graphe de performances comparées, normalise en base 100 : `(df / df.iloc[0] * 100).plot()`." +
-    // ⚠️ Mesuré le 15/08/2026 sur une fiche société générée depuis un Kbis réel : le modèle
-    // a écrit « Societe par actions simplifiee », « Nationalite : Francaise », « Synthese » —
-    // TOUS les accents ôtés, dans un document que l'utilisateur destinait à sa banque. Rien
-    // ne les ôte dans la chaîne : les helpers embarquent une police complète. C'est le
-    // MODÈLE qui se protège d'un problème d'encodage imaginaire, faute qu'on lui dise.
+    // ⚠️ Measured 15/08/2026 on a company profile generated from a real Kbis: the model
+    // wrote "Societe par actions simplifiee", "Nationalite : Francaise", "Synthese" —
+    // ALL accents stripped, in a document the user meant for their bank. Nothing
+    // strips them along the way: the helpers embed a full font. It's the MODEL
+    // protecting itself from an imaginary encoding problem, for lack of being told otherwise.
     " ✍️ Écris le FRANÇAIS NORMALEMENT dans les documents générés : accents et ponctuation (é, è, ê, ç, à, ù, œ, « ») sont pleinement supportés par les helpers. N'ôte JAMAIS les diacritiques « par précaution d'encodage » — un document désaccentué (« Societe », « Nationalite ») est inutilisable, et c'est visible du premier coup d'œil." +
     " 🏆 Une demande de CLASSEMENT ou de PERFORMANCE de titres/ETF/indices (« les plus performants », « depuis janvier », « sur 1 an »…) se traite par les DONNÉES : `" + PY + "_prices` D'ABORD (`period=\"ytd\"`/`\"1y\"`…), calcule `(df.iloc[-1]/df.iloc[0]-1)*100`, trie, trace. La recherche web ne sert qu'à établir la LISTE des candidats (éligibilité, univers, ISIN) — JAMAIS aux chiffres de performance : un chiffre de cours lu dans un article est daté ou approximatif, celui de `" + PY + "_prices` est exact." +
     " ⛔ N'OUVRE JAMAIS le navigateur ni un site boursier (Boursorama, justETF, Yahoo Finance…) pour un COURS : c'est plus LENT et souvent BLOQUÉ (murs de cookies, anti-bot Cloudflare), alors que `" + PY + "_prices` donne les données propres en UN appel. ✋ Dès que `run_python` a produit le RÉSULTAT demandé (tableau, classement, valeur, graphique affiché), tu as ce qu'il faut : PRÉSENTE la réponse — ne relance PAS d'autres recherches/navigations/calculs pour « compléter » ou « re-vérifier » ce que tu as déjà. " +
@@ -42,7 +42,7 @@ export function webToolPhrase(browserAvailable: boolean, fetchManyAvailable: boo
 }
 
 
-/** A course-correction PRÉCISION appended to a FAILED `run_python` result when the error
+/** A course-correction clarification appended to a FAILED `run_python` result when the error
  *  is a NETWORK, TIMEOUT, package-INSTALL or MISSING-MODULE one — so the model stops LOOPING
  *  (`pip install` / another lib / re-running the same slow-or-offline code, all futile here)
  *  and uses an available package, the browser, or answers from what it has. `undefined` for a

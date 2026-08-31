@@ -3,13 +3,13 @@ import { useT } from "../../i18n";
 import { EmptyPromptSuggestions } from "./EmptyPromptSuggestions";
 
 /**
- * L'accueil d'une conversation VIDE — le bonjour, la promesse, le composeur, les amorces.
+ * The welcome for an EMPTY conversation — the greeting, the promise, the composer, the starters.
  *
- * Aucune marque produit en tête : le rail et la barre latérale la portent déjà à l'écran,
- * et un accueil qui s'ouvre sur SON logo parle de lui avant de parler à l'utilisateur.
+ * No product brand up top: the rail and the sidebar already carry it on screen,
+ * and a welcome that opens on ITS OWN logo talks about itself before talking to the user.
  *
- * Purement présentationnel : tout ce qu'il déclenche arrive en prop, et le composeur est
- * l'instance QUE `ChatView` rend aussi en bas d'un fil — la même, pas une seconde.
+ * Purely presentational: everything it triggers arrives as a prop, and the composer is
+ * the SAME instance `ChatView` also renders at the bottom of a thread — not a second one.
  */
 export function WelcomeScreen({
   greeting,
@@ -22,12 +22,12 @@ export function WelcomeScreen({
   greeting: string;
   composer: ReactNode;
   startersOff: boolean;
-  /** Envoie l'amorce — le MÊME chemin qu'un message tapé, jamais un raccourci qui
-   *  contournerait le redaction. */
+  /** Sends the starter — the SAME path as a typed message, never a shortcut that
+   *  would bypass redaction. */
   onPick: (prompt: string) => void;
-  /** « Voir les autres » : la liste complète des connecteurs. */
+  /** "See others": the full list of connectors. */
   onSeeAll?: () => void;
-  /** Absent ⇒ les amorces ne peuvent ni se masquer ni revenir (aucun réglage à écrire). */
+  /** Absent ⇒ starters can neither be hidden nor come back (no setting to write). */
   onSetStartersOff?: (off: boolean) => void;
 }) {
   const t = useT();
@@ -42,8 +42,8 @@ export function WelcomeScreen({
       {/* Composer right under the subtitle on home — in the action immediately. */}
       <div className="welcome-composer">{composer}</div>
       {startersOff ? (
-        // La sortie du cul-de-sac : « ne plus proposer » se défait d'un clic, au même
-        // endroit. Un lien, pas des cartes — l'écran reste calme.
+        // The way out of the dead end: "stop suggesting" undoes with one click, at the same
+        // spot. A link, not cards — the screen stays calm.
         onSetStartersOff && (
           <button type="button" className="om-starters-back" onClick={() => onSetStartersOff(false)}>
             {t.cards.welcome.seeExamples}

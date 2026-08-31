@@ -94,29 +94,29 @@ export interface CompleteToolsOptions {
 
 /** Token accounting for one model call (input = prompt, output = completion).
  *
- *  ⚠️ **`inputTokens` est TOUJOURS le prompt COMPLET, cache inclus.** Les deux familles
- *  de providers ne comptent pas pareil et la normalisation se fait à la lecture, pas
- *  ici : OpenAI/OpenRouter incluent déjà le cache dans `prompt_tokens`, alors
- *  qu'Anthropic le SORT (`input_tokens` = les seuls tokens facturés plein tarif, à
- *  côté de `cache_read_input_tokens` / `cache_creation_input_tokens`). Un lecteur
- *  Anthropic qui recopie `input_tokens` tel quel fait donc CHUTER le total dès que le
- *  cache marche — et on lit « moins cher » là où il faut lire « bien mis en cache ».
- *  Chaque adaptateur ré-additionne, de sorte que `cachedInputTokens` est partout une
- *  PART de `inputTokens`. */
+ *  ⚠️ **`inputTokens` is ALWAYS the FULL prompt, cache included.** The two provider
+ *  families don't count the same way and normalization happens at read time, not
+ *  here: OpenAI/OpenRouter already include the cache in `prompt_tokens`, whereas
+ *  Anthropic PULLS IT OUT (`input_tokens` = only the tokens billed at full rate, next
+ *  to `cache_read_input_tokens` / `cache_creation_input_tokens`). An Anthropic
+ *  reader that copies `input_tokens` as-is therefore makes the total DROP as soon as the
+ *  cache works — reading "cheaper" where it should read "well cached".
+ *  Each adapter re-adds them, so `cachedInputTokens` is everywhere a
+ *  PART of `inputTokens`. */
 export interface TokenUsage {
   inputTokens: number;
   outputTokens: number;
-  /** Part de `inputTokens` servie depuis le CACHE du provider (OpenAI/OpenRouter
-   *  `prompt_tokens_details.cached_tokens`, Anthropic `cache_read_input_tokens`) — la
-   *  mesure d'efficacité du préfixe stable (tri des outils + `prompt_cache_key` /
-   *  `cache_control`). Facturée ≈0,1× l'entrée. Absent quand non rapporté. */
+  /** Part of `inputTokens` served from the provider's CACHE (OpenAI/OpenRouter
+   *  `prompt_tokens_details.cached_tokens`, Anthropic `cache_read_input_tokens`) — the
+   *  efficiency measure of the stable prefix (tool sorting + `prompt_cache_key` /
+   *  `cache_control`). Billed ≈0.1× the input. Absent when not reported. */
   cachedInputTokens?: number;
-  /** Part de `inputTokens` ÉCRITE dans le cache par cet appel (Anthropic
-   *  `cache_creation_input_tokens`) — facturée ~1,25× l'entrée, et donc le coût
-   *  d'amorçage qu'un point de rupture doit rentabiliser sur les tours suivants.
-   *  Sans lui, un cache qui se ré-amorce à chaque tour (préfixe instable) se lit
-   *  comme un cache absent alors qu'il coûte PLUS cher que pas de cache du tout.
-   *  Non rapporté par OpenAI (l'écriture y est implicite et gratuite). */
+  /** Part of `inputTokens` WRITTEN to the cache by this call (Anthropic
+   *  `cache_creation_input_tokens`) — billed ~1.25× the input, and therefore the
+   *  priming cost a breakpoint must pay back over the following turns.
+   *  Without it, a cache that re-primes every turn (unstable prefix) reads
+   *  like an absent cache when it actually costs MORE than no cache at all.
+   *  Not reported by OpenAI (writing there is implicit and free). */
   cacheWriteInputTokens?: number;
 }
 
@@ -160,12 +160,12 @@ export type ProviderId =
   | "openai-compat"
   | "openai-session"
   | "anthropic-session"
-  /** L'abonnement Claude de l'utilisateur, servi par SA CLI Claude Code installée
-   *  (headless, moteur desktop `apps/desktop/src/main/subscription/`) — jamais par
-   *  ce client HTTP : ni clé, ni endpoint, l'auth reste dans la CLI. */
+  /** The user's Claude subscription, served by THEIR installed Claude Code CLI
+   *  (headless, desktop engine `apps/desktop/src/main/subscription/`) — never by
+   *  this HTTP client: no key, no endpoint, auth stays in the CLI. */
   | "claude-cli"
-  /** L'abonnement ChatGPT de l'utilisateur, servi par SA CLI Codex installée
-   *  (headless, même moteur desktop `subscription/`) — ni clé, ni endpoint ici. */
+  /** The user's ChatGPT subscription, served by THEIR installed Codex CLI
+   *  (headless, same desktop engine `subscription/`) — no key, no endpoint here. */
   | "codex-cli";
 
 /**

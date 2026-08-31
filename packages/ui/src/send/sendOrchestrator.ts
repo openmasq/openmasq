@@ -1771,7 +1771,7 @@ export function createSendMessage(d: SendMessageDeps) {
             // tool-exported image: MessageImages resolves it by name → data: URL).
             // A failed save THROWS through to the loop, which counts the delivery as
             // failed and tells the model so — swallowing it here let the model announce
-            // « figure affichée » about an image that exists nowhere (audit, règle
+            // « figure affichée » about an image that exists nowhere (audit, rule
             // « un échec réel est toujours montré »). The loop never breaks the turn.
             onPythonImage: async (img) => {
               if (!host.db?.saveFile) return;
@@ -1922,10 +1922,10 @@ export function createSendMessage(d: SendMessageDeps) {
                 model: model.id,
                 input: usage.inputTokens,
                 output: usage.outputTokens,
-                // Des COMPTES, jamais du contenu : la part d'entrée servie par le cache du
-                // provider et celle qu'il a fallu y écrire. C'est ce qui rend arbitrable
-                // l'extension de la mise en cache (un préfixe instable se ré-amorce à
-                // chaque tour et coûte PLUS cher qu'aucun cache).
+                // COUNTS, never content: the share of input served by the provider's
+                // cache and the share that had to be written to it. This is what makes
+                // extending the caching arbitrable (an unstable prefix re-primes on
+                // every turn and costs MORE than no cache at all).
                 ...(usage.cachedInputTokens ? { cached: usage.cachedInputTokens } : {}),
                 ...(usage.cacheWriteInputTokens ? { cacheWrite: usage.cacheWriteInputTokens } : {}),
               });
@@ -1934,8 +1934,8 @@ export function createSendMessage(d: SendMessageDeps) {
                 inputTokens: usage.inputTokens,
                 outputTokens: usage.outputTokens,
                 cachedInputTokens: usage.cachedInputTokens,
-                // Le cumul du tour agentique porte le nombre d'échanges qu'il couvre —
-                // sans quoi il se lit comme le coût de CE seul message (voir `debug.ts`).
+                // The agentic turn's cumulative total carries the number of exchanges it covers —
+                // without which it reads as the cost of THIS one message alone (see `debug.ts`).
                 modelTurns: usage.modelTurns,
               });
             },
@@ -1985,10 +1985,10 @@ export function createSendMessage(d: SendMessageDeps) {
                     : c.fileRedactions,
                 }));
               } catch {
-                // The link was ALREADY stripped from the model's view (« affiché à
-                // l'utilisateur ») — a failed fetch means the file exists for NOBODY.
-                // The turn survives, but the trace says so instead of silence (règle
-                // maison : un échec réel est toujours montré).
+                // The link was ALREADY stripped from the model's view ("shown to
+                // the user") — a failed fetch means the file exists for NOBODY.
+                // The turn survives, but the trace says so instead of silence (house
+                // rule: a real failure is always shown).
                 patchConversation(convId!, (c) => ({
                   ...c,
                   messages: c.messages.map((m) =>
@@ -2076,17 +2076,17 @@ export function createSendMessage(d: SendMessageDeps) {
             name: err instanceof Error ? err.name : undefined,
             message: toolErrDetail,
           });
-          // `send_error` aussi sur le chemin AGENT (audit 2026-08-10) : dès qu'un
-          // connecteur est branché, tout envoi passe par la boucle — n'émettre l'événement
-          // que depuis le chemin simple reproduisait le « zéro send_error en 30 jours »
-          // que le commentaire du stream décrit comme résolu. Code BORNÉ, jamais le brut.
+          // `send_error` on the AGENT path too (audit 2026-08-10): as soon as a
+          // connector is connected, every send goes through the loop — emitting the event
+          // only from the plain path reproduced the "zero send_error in 30 days"
+          // that the stream's comment describes as resolved. BOUNDED code, never the raw one.
           captureEvent({
             name: "send_error",
             provider: model.provider,
             model: model.id,
             reason: sendErrorReason(toolErrDetail),
-            // Les trois champs qui manquaient à TOUT vrai échec (audit 13/08) — le
-            // `requestId` joint à l'`inference_upstream_error` de la passerelle.
+            // The three fields that were missing from EVERY real failure (audit 13/08) — the
+            // `requestId` joined to the gateway's `inference_upstream_error`.
             status: httpStatus(toolErrDetail),
             requestId: requestIdOf(toolErrDetail),
             retries: retriesOf(toolErrDetail),
@@ -2094,8 +2094,8 @@ export function createSendMessage(d: SendMessageDeps) {
           // Persist the failure INLINE on the assistant bubble (like the stream `onError`
           // path) — survives reload and offers "Réessayer". Known bounded codes → a human
           // message; unknown → strip the IPC/JSON noise. Never the raw dump.
-          // ⚠️ `humanizeSendError` D'ABORD, 429 compris (errors.test.ts) ; l'action suit
-          // la cause (quota périodique → abonnement, clé refusée / compte à sec → clé).
+          // ⚠️ `humanizeSendError` FIRST, 429 included (errors.test.ts); the action follows
+          // the cause (periodic quota → subscription, refused key / empty account → key).
           const act = sendErrorAction(toolErrDetail, model.provider);
           const friendly =
             humanizeSendError(toolErrDetail, t, { personal: !orgProfileRef.current, provider: model.provider }) ?? fromWire(cleanErrorText(toolErrDetail));
@@ -2105,10 +2105,10 @@ export function createSendMessage(d: SendMessageDeps) {
             error: true,
             errorText: friendly,
             ...(act ? { errorAction: act } : {}),
-            // Un tour agentique qui échoue a déjà CONSOMMÉ des tokens (l'historique est
-            // parti, souvent plusieurs échanges) : estimer plutôt que d'enregistrer zéro
-            // — même règle que le chemin simple. Un usage déjà RAPPORTÉ n'est jamais
-            // écrasé par une estimation.
+            // An agentic turn that fails has already CONSUMED tokens (the history went
+            // out, often several exchanges): estimate rather than record zero
+            // — same rule as the plain path. A usage already REPORTED is never
+            // overwritten by an estimate.
             ...(agentUsageReported
               ? {}
               : {
@@ -2140,8 +2140,8 @@ export function createSendMessage(d: SendMessageDeps) {
         const STARTUP_MS = 75000; // time to first token
         const STALL_MS = 45000; // gap between tokens once streaming
         let watchdog: ReturnType<typeof setTimeout> | undefined;
-        // Le message dit ce qui s'est VRAIMENT passé (un stream mort, jamais l'ancien texte
-        // anglais accusant la session) ; sur un stall, `onError` garde la partie déjà reçue.
+        // The message says what ACTUALLY happened (a dead stream, never the old
+        // English text blaming the session); on a stall, `onError` keeps the part already received.
         const armWatchdog = (ms: number, msg: string) => {
           if (watchdog) clearTimeout(watchdog);
           watchdog = setTimeout(() => onError(msg), ms);
@@ -2211,7 +2211,7 @@ export function createSendMessage(d: SendMessageDeps) {
           // every in-repo provider now always reports one (`google.test.ts` pins it),
           // so `undefined` only remains on an aborted/dropped stream — exactly the
           // case that used to slip through as « terminé » (streamGoogle never set it,
-          // and a Gemini réponse coupée s'affichait comme complète).
+          // and a Gemini reply cut short displayed as complete).
           const truncated =
             done?.finish === "length" || done?.finish === "cut" || done?.finish == null;
           updateAssistant({
@@ -2233,9 +2233,9 @@ export function createSendMessage(d: SendMessageDeps) {
               model: model.id,
               input: usage.inputTokens,
               output: usage.outputTokens,
-              // Le chat SIMPLE met aussi le prompt système en cache (`cache_control` /
-              // `prompt_cache_key`) : sans ces deux compteurs, seule la boucle agentique
-              // serait mesurable et on comparerait deux chemins sur des bases différentes.
+              // The SIMPLE chat also caches the system prompt (`cache_control` /
+              // `prompt_cache_key`): without these two counters, only the agentic loop
+              // would be measurable and we'd be comparing two paths on different bases.
               ...(usage.cachedInputTokens ? { cached: usage.cachedInputTokens } : {}),
               ...(usage.cacheWriteInputTokens ? { cacheWrite: usage.cacheWriteInputTokens } : {}),
             });
@@ -2259,11 +2259,11 @@ export function createSendMessage(d: SendMessageDeps) {
             humanizeSendError(message, t, { personal: !orgProfileRef.current, provider: model.provider }) ?? fromWire(cleanErrorText(message));
           const act = sendErrorAction(message, model.provider); // une issue PROPOSÉE, pas seulement écrite
           dbg({ type: "error", scope: `stream · ${model.id}`, message: rawMsg });
-          // Le taux d'échec d'envoi était MORT dans PostHog : `send_error` n'était émis
-          // que depuis le `catch` de ChatView, qui ne se déclenche plus depuis que
-          // l'échec est PERSISTÉ ici au lieu d'être relancé — zéro `send_error` de
-          // production en 30 jours pour 192 envois. Il part maintenant d'où l'échec a
-          // vraiment lieu, avec un code BORNÉ (jamais le texte brut).
+          // The send failure rate was DEAD in PostHog: `send_error` was only emitted
+          // from ChatView's `catch`, which no longer fires now that
+          // the failure is PERSISTED here instead of being rethrown — zero `send_error` in
+          // production over 30 days for 192 sends. It now fires from where the failure
+          // actually happens, with a BOUNDED code (never the raw text).
           captureEvent({
             name: "send_error",
             provider: model.provider,

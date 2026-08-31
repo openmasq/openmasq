@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// La consigne vit dans la description de `memory_search` — extraite avec les autres
-// méta-outils vers `interceptedTools.ts` (mcpAgent.ts est au plafond LOC).
+// The guidance lives in `memory_search`'s description — extracted along with the
+// other meta-tools to `interceptedTools.ts` (mcpAgent.ts is at the LOC cap).
 const GUIDANCE = readFileSync(join(__dirname, "interceptedTools.ts"), "utf8");
 
 /**
@@ -36,12 +36,12 @@ describe("consigne mémoire — le modèle n'annonce pas un résultat qu'il igno
   });
 
   it("dit QUI connaît le résultat, sinon l'interdiction n'a pas de contrepartie", () => {
-    // Sans ça le modèle se tait ou improvise ; il faut qu'il sache que l'app l'affiche.
+    // Without this the model stays silent or improvises; it needs to know the app shows it.
     expect(GUIDANCE).toMatch(/l'application l'affiche elle-même sous ta réponse/);
   });
 
   it("lui donne la formulation de remplacement, pas seulement l'interdit", () => {
-    // Une consigne purement négative produit soit un silence, soit un contournement.
+    // A purely negative instruction produces either silence or a workaround.
     expect(GUIDANCE).toMatch(/REFORMULE en une/);
   });
 

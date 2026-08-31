@@ -25,7 +25,7 @@ const catalogue = (
   })),
 });
 
-/** Le minimum qu'une entrée doit porter pour être un modèle de CHAT (texte → texte). */
+/** The minimum an entry must carry to be a CHAT model (text → text). */
 const TEXT = {
   context_length: 128000,
   architecture: { input_modalities: ["text"], output_modalities: ["text"] },
@@ -55,15 +55,15 @@ describe("normalizeOpenRouterModels", () => {
     const raw = {
       data: [
         { id: "anthropic/claude-opus-5:batch", name: "Claude Opus 5 (batch)", ...TEXT },
-        // Le marqueur d'id sans le libellé, et l'inverse : chacun suffit à refuser.
+        // The id marker without the label, and the reverse: either alone is enough to refuse.
         { id: "openai/gpt-5.6-luna:batch", name: "OpenAI: GPT-5.6 Luna", ...TEXT },
         { id: "vendor/deferred", name: "Vendor: Deferred (batch)", ...TEXT },
         { id: "anthropic/claude-opus-5", name: "Claude Opus 5", ...TEXT },
-        // ⚠️ « batch » AILLEURS que dans la marque de variante n'est pas un motif de refus.
+        // ⚠️ "batch" ANYWHERE other than in the variant marker is not a reason to refuse.
         { id: "vendor/batchelor-7b", name: "Vendor: Batchelor 7B", ...TEXT },
       ],
     };
-    // Trié : la sortie est ordonnée par prix puis libellé, ce que ce cas ne juge pas.
+    // Sorted: the output is ordered by price then label, which this case does not judge.
     const ids = normalizeOpenRouterModels(raw).map((m) => m.id).sort();
     expect(ids).toEqual(["anthropic/claude-opus-5", "vendor/batchelor-7b"]);
   });

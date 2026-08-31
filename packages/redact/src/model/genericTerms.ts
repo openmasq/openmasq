@@ -119,10 +119,10 @@ export function isGenericWithArticle(value: string): boolean {
  * construction", so an extra check can only stop a non-PII word from being faked. The
  * reverse — a site that checks less — is what shipped "URSSAF" as somebody's surname.
  */
-// « RCS LILLE (MÉTROPOLE) », « Greffe de Nanterre » : la CITATION D'UN REGISTRE public —
-// elle identifie le greffe, jamais l'entreprise ni la personne. Un NER la tague ORG et
-// elle partait au coffre (« VOXA LABS → RCS LILLE », journal 02/08). Préfixe strict :
-// « RCS MediaGroup » serait épargné aussi — acceptable, c'est une marque notoire.
+// « RCS LILLE (MÉTROPOLE) », « Greffe de Nanterre »: a public REGISTRY MENTION —
+// it identifies the registry, never the company or the person. A NER tags it ORG and
+// it was going to the vault (« VOXA LABS → RCS LILLE », log 02/08). Strict prefix:
+// « RCS MediaGroup » would be spared too — acceptable, it's a notorious brand.
 const REGISTRY_MENTION_RE = /^(rcs|greffe)\s+\S/i;
 
 export function isNonPiiTerm(value: string, category?: string): boolean {
@@ -138,17 +138,17 @@ export function isNonPiiTerm(value: string, category?: string): boolean {
 }
 
 /**
- * Un médicament, une pathologie ou une partie du corps — épargné pour TOUTE catégorie
- * SAUF `health`.
+ * A medication, a pathology or a body part — spared for EVERY category
+ * EXCEPT `health`.
  *
- * Le scope est la raison d'être du volume. « DOLIPRANE » part au coffre parce qu'un NER
- * l'étiquette ORGANISATION, pas parce que quelqu'un y a vu un diagnostic : c'est CE
- * réflexe-là qu'on éteint. Sous `health`, la valeur continue d'obéir au réglage « Santé »
- * de l'utilisateur, qui est la seule catégorie dont le métier est de masquer une maladie —
- * l'épargner à plat l'aurait rendue inerte (`aiKinds.test.ts` le vérifie).
+ * The scoping is this volume's whole reason for being. « DOLIPRANE » goes to the vault because a NER
+ * tags it ORGANISATION, not because someone saw a diagnosis in it: it's THAT
+ * reflex we're turning off. Under `health`, the value keeps obeying the user's
+ * « Santé » setting, which is the only category whose job is to mask an illness —
+ * sparing it flat-out would have made it inert (`aiKinds.test.ts` verifies this).
  *
- * `category` absente ⇒ épargné : les appelants sans catégorie (mode marqueurs, lecteur du
- * détecteur) n'ont jamais eu l'intention de redact une molécule.
+ * Absent `category` ⇒ spared: callers with no category (marker mode, the detector's
+ * own reader) never intended to redact a medication.
  */
 export function isClinicalTerm(value: string, category?: string): boolean {
   if (category === "health") return false;

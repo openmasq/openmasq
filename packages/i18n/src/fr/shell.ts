@@ -1,5 +1,5 @@
 /**
- * The FR catalogue's « shell » slice — the SOURCE language : le rail droit, les onglets de
+ * The FR catalogue's « shell » slice — the SOURCE language: the right rail, the
  * panel tabs, the folder tree and the phone screens.
  */
 import type { Messages } from "../messages";

@@ -7,8 +7,8 @@
  * connector is the model ECHOING what that connector just told it — re-opening a path
  * `find_files` returned. Nothing new leaves the machine, so the « données glissées dans
  * les paramètres » card is a false alarm that trains the user to blind-click the one
- * card that must stay meaningful (journal 01/08 : carte sur `read_document` d'un chemin
- * que le connecteur venait de lister).
+ * card that must stay meaningful (journal 01/08: card on `read_document` for a path
+ * the connector had just listed).
  *
  * Why this stays SOUND as an exemption (rule 7):
  * - Verbatim-only: a fake smuggled INSIDE a larger/composed arg breaks the verbatim

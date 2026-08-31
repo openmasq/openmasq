@@ -11,8 +11,8 @@ import { mount } from "../../testKit";
 import type { Host } from "../../host";
 import { brandUrl } from "@openmasq/branding";
 
-/** Le guide est un menu par THÈME + un seul chapitre affiché — pas une colonne à tout
- *  dérouler. Épingle : chaque thème est au sommaire, cliquer l'un affiche SON contenu. */
+/** The guide is a menu by THEME + a single displayed chapter — not one column to
+ *  scroll through entirely. Pins: every theme is in the summary, clicking one shows ITS content. */
 const NOTES = [
   { version: "0.4.2", releaseDate: "2026-08-05", title: "Le redaction voit plus large", body: "", highlights: ["feat: Adresses — les compléments aussi"] },
   { version: "0.4.1", releaseDate: "2026-07-28", title: "Réglages plus courts", body: "", highlights: [] },
@@ -31,8 +31,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/* Le modal rend le catalogue de la langue par défaut hors provider — c'est donc
-   celui-là que le test attend. */
+/* The modal renders the default language's catalog outside a provider — so that's
+   the one the test expects. */
 const GUIDE = guideChapters(getMessages("fr"));
 
 describe("GuideModal — sommaire par thème", () => {

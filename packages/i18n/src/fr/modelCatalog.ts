@@ -1,5 +1,5 @@
 /**
- * The FR catalogue's « modelCatalog » slice — the SOURCE language. Les fiches sont en deux
+ * The FR catalogue's « modelCatalog » slice — the SOURCE language. The cards come in two
  * halves (`modelCatalogA`, `modelCatalogB`) to hold the 300-LOC cap; this file assembles
  * them and carries the capability chips.
  */

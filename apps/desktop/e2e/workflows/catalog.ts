@@ -1,29 +1,29 @@
-// Le catalogue des workflows e2e : prompts réels + attentes (voir le spec).
-/** PII des fixtures que le moteur `patterns` attrape (emails + tél intl) : AUCUNE ne
- *  doit atteindre le wire. Les noms propres (catégorie IA, off en patterns) sont
- *  volontairement exclus de l'assertion. */
+// The e2e workflows catalog: real prompts + expectations (see the spec).
+/** Fixtures' PII that the `patterns` engine catches (emails + intl phone): NONE
+ *  must reach the wire. Proper names (AI category, off in patterns) are
+ *  deliberately excluded from the assertion. */
 export const FIXTURE_PII = [
   "camille.vernay@exemple-corp.fr",
   "jp.bertholet@bertholet-associes.fr",
   "no-reply@notif.exemple.fr",
   "+33 6 12 34 56 78",
 ];
-/** Le destinataire RÉEL tapé dans le prompt d'envoi d'email. */
+/** The REAL recipient typed in the email-send prompt. */
 export const REAL_TO = "l.morvan@exemple-corp.fr";
 
 export interface Workflow {
   id: string;
   prompt: string;
-  /** Serveurs fixtures dont on attend au moins un appel (modèle tools-capable).
-   *  VIDE = prompt sans outil : l'app doit répondre en flux simple, sans rien appeler. */
+  /** Fixture servers we expect at least one call to (tools-capable model).
+   *  EMPTY = tool-less prompt: the app must answer in a simple flow, calling nothing. */
   servers: string[];
-  /** Sur QUELLE surface l'écriture doit être confirmée — c'est une assertion de sécurité,
-   *  pas un détail de mise en scène : `"system"` = la fenêtre main non-spoofable (envoi,
-   *  invitation, suppression…), `"chat"` = la carte dans la conversation (geste local et
-   *  réversible). Le classement vient de `@openmasq/catalog/mcp` `writeRisk`, et ce champ
-   *  est ce qui empêche un envoi de glisser vers la surface que le renderer peut cliquer. */
+  /** On WHICH surface the write must be confirmed — this is a security assertion,
+   *  not a staging detail: `"system"` = the non-spoofable main window (send,
+   *  invitation, deletion…), `"chat"` = the card in the conversation (local and
+   *  reversible gesture). The classification comes from `@openmasq/catalog/mcp` `writeRisk`, and this field
+   *  is what stops a send from sliding onto the surface the renderer can click. */
   write?: "system" | "chat";
-  /** Indices de contenu, vérifiés en soft UNIQUEMENT sous E2E_STRICT=1. */
+  /** Content hints, checked SOFT ONLY under E2E_STRICT=1. */
   contentHints: RegExp[];
 }
 
@@ -38,7 +38,7 @@ export const WORKFLOWS: Workflow[] = [
     id: "send-email",
     prompt: `Envoie un email à ${REAL_TO} pour confirmer le rendez-vous de jeudi à 10h30. Sujet : « Confirmation rendez-vous ».`,
     servers: ["gmail"],
-    write: "system", // un envoi part chez un tiers et ne se rattrape pas
+    write: "system", // a send goes out to a third party and can't be undone
     contentHints: [/envoyé|envoi/i],
   },
   {
@@ -51,7 +51,7 @@ export const WORKFLOWS: Workflow[] = [
     id: "schedule-meeting",
     prompt: "Cale un point de 30 minutes intitulé « Suivi projet » jeudi prochain à 14h dans mon agenda.",
     servers: ["google-calendar"],
-    write: "system", // un évènement notifie ses invités
+    write: "system", // an event notifies its invitees
     contentHints: [/créé|ajouté|agenda/i],
   },
   {
@@ -77,7 +77,7 @@ export const WORKFLOWS: Workflow[] = [
     prompt: "Combien ai-je encaissé ce mois-ci ?",
     servers: ["stripe"],
     contentHints: [/9[  ]?870|paiement/i],
-    // NB: l'outil réel est `list_payment_intents` (mcp.stripe.com), pas "list_payments".
+    // NB: the real tool is `list_payment_intents` (mcp.stripe.com), not "list_payments".
   },
   {
     id: "sprint-status",
@@ -89,16 +89,16 @@ export const WORKFLOWS: Workflow[] = [
     id: "task-add",
     prompt: "Ajoute une tâche : relancer le client vendredi.",
     servers: ["asana"],
-    write: "chat", // une tâche dans son propre espace : local et réversible
+    write: "chat", // a task in its own space: local and reversible
     contentHints: [/tâche|créée|ajoutée/i],
   },
 
-  // ── Ajouts : les demandes les plus banales qui manquaient ────────────────────────
+  // ── Additions: the most mundane requests that were missing ────────────────────────
   {
-    // Le geste le plus fréquent après « résume ma boîte » : répondre. Et il est
-    // volontairement formulé « ne l'envoie pas » — un brouillon est un écrit à FAIBLE
-    // risque, donc il doit se confirmer DANS la conversation, jamais par une fenêtre
-    // système. C'est le pendant de `send-email` : même connecteur, autre surface.
+    // The most frequent gesture after "summarize my inbox": reply. And it's
+    // deliberately phrased "don't send it" — a draft is a LOW-risk
+    // write, so it must be confirmed WITHIN the conversation, never through a
+    // system window. It's `send-email`'s counterpart: same connector, different surface.
     id: "draft-reply",
     prompt:
       "Réponds à Camille pour décaler le point budget à mardi 14h — prépare le brouillon, ne l'envoie pas.",
@@ -107,30 +107,30 @@ export const WORKFLOWS: Workflow[] = [
     contentHints: [/brouillon|préparé/i],
   },
   {
-    // « Où est ce mail déjà ? » — la recherche est plus fréquente que le résumé.
+    // "Where's that email again?" — searching is more frequent than summarizing.
     id: "search-inbox",
     prompt: "Retrouve l'email où on parle du contrat et de la clause de résiliation.",
     servers: ["gmail"],
     contentHints: [/résiliation|contrat/i],
   },
   {
-    // Le premier prompt de la journée, et il traverse DEUX connecteurs — c'est là que
-    // les résultats se reredact en chaîne.
+    // The first prompt of the day, and it crosses TWO connectors — this is where
+    // the results get re-redacted in a chain.
     id: "today-plan",
     prompt: "Prépare ma journée : ce que j'ai à l'agenda et ce qui attend une réponse dans mes mails.",
     servers: ["google-calendar", "gmail"],
     contentHints: [/agenda|réunion|email/i],
   },
   {
-    // Après une réunion, personne ne demande un résumé : on demande QUI FAIT QUOI.
+    // After a meeting, nobody asks for a summary: they ask WHO DOES WHAT.
     id: "meeting-actions",
     prompt: "Sors-moi les décisions et les actions de ma dernière réunion — qui fait quoi, pour quand.",
     servers: ["fireflies"],
     contentHints: [/action|décision|relance/i],
   },
   {
-    // Écriture faible-risque sur un SECOND connecteur : une note reste dans le CRM de
-    // l'utilisateur. Vérifie que la surface « chat » n'est pas un cas particulier d'Asana.
+    // Low-risk write on a SECOND connector: a note stays within the user's
+    // CRM. Verifies the "chat" surface isn't an Asana-specific special case.
     id: "crm-note",
     prompt:
       "Note dans le CRM que Jean-Pierre Bertholet demande une remise de 10 % avant de signer.",
@@ -139,8 +139,8 @@ export const WORKFLOWS: Workflow[] = [
     contentHints: [/note|CRM|ajoutée/i],
   },
   {
-    // L'usage le plus courant d'un assistant, tous produits confondus : écrire un texte.
-    // Aucun outil ne doit être appelé — et la PII TAPÉE (l'adresse) ne doit pas partir.
+    // The most common use of an assistant, across every product: writing a text.
+    // No tool must be called — and the TYPED PII (the address) must not go out.
     id: "compose-followup",
     prompt:
       "Rédige une relance courte et polie pour un client qui n'a pas répondu depuis dix jours. Signe « Léa Morvan — l.morvan@exemple-corp.fr ».",
@@ -148,8 +148,8 @@ export const WORKFLOWS: Workflow[] = [
     contentHints: [/relance|bonjour|cordialement/i],
   },
   {
-    // Le collage brut : une signature de mail, à trier. Tout ce qui est collé est de la
-    // PII, et rien ne justifie un outil — c'est le cas le plus dense en données réelles.
+    // The raw paste: an email signature, to sort out. Everything pasted is
+    // PII, and nothing justifies a tool — it's the case densest in real data.
     id: "extract-contact",
     prompt:
       "Range-moi ce contact : « Camille Vernay, Directrice financière, Exemple-Corp, camille.vernay@exemple-corp.fr, +33 6 12 34 56 78 ». Nom, rôle, société, email, téléphone.",
