@@ -1,3 +1,5 @@
+import type { Messages } from "@openmasq/i18n";
+import { connectorCopy } from "../../../help/catalogCopy";
 import {
   BROWSER_CONNECTOR_ID,
   connectorIdFromInstance,
@@ -85,7 +87,6 @@ export function displayUrl(url: string): string {
   }
 }
 
-
 /** Build the unified item list from the catalogs + the live server state. */
 export function buildMcpItems(opts: {
   servers: McpServerInfo[];
@@ -99,8 +100,10 @@ export function buildMcpItems(opts: {
   /** Include the controllable-browser connector (only when the desktop host exposes
    *  `enableBrowser` — absent in the browser preview). */
   browserEnabled?: boolean;
+  /** La langue de l'appelant — nom + description viennent de `connectorCopy`. */
+  t: Messages;
 }): McpItem[] {
-  const { servers, catalog, directConnectors, isBlocked, credGroups, browserEnabled } = opts;
+  const { servers, catalog, directConnectors, isBlocked, credGroups, browserEnabled, t } = opts;
   const byId = new Map(servers.map((s) => [s.id, s]));
   const items: McpItem[] = [];
 
@@ -114,8 +117,7 @@ export function buildMcpItems(opts: {
     items.push({
       id: browser.id,
       serverId: browser.id,
-      name: browser.name,
-      desc: browser.desc,
+      ...connectorCopy(browser.id, browser, t),
       tone: browser.tone ?? "mint",
       category: browser.category,
       kind: "browser",
@@ -144,8 +146,7 @@ export function buildMcpItems(opts: {
     items.push({
       id: p.id,
       serverId: p.id,
-      name: p.name,
-      desc: p.desc,
+      ...connectorCopy(p.id, p, t),
       tone: p.tone,
       category: p.category,
       kind: "remote",
@@ -178,8 +179,7 @@ export function buildMcpItems(opts: {
     items.push({
       id: c.id,
       serverId: c.id,
-      name: c.name,
-      desc: c.desc,
+      ...connectorCopy(c.id, c, t),
       tone: c.tone ?? "mint",
       category: c.category,
       kind: "direct",
@@ -192,8 +192,7 @@ export function buildMcpItems(opts: {
       connector: c,
       accounts,
       // Own stored creds OR any sibling in the same group (Google connectors share).
-      hasCreds:
-        accounts.some((a) => a.credMode === "byo") || credGroups?.has(credGroupOf(c.id)),
+      hasCreds: accounts.some((a) => a.credMode === "byo") || credGroups?.has(credGroupOf(c.id)),
     });
   }
 
@@ -240,8 +239,7 @@ export function buildMcpItems(opts: {
     items.push({
       id: entry.id,
       serverId,
-      name: entry.name,
-      desc: entry.desc,
+      ...connectorCopy(entry.id, entry, t),
       tone: entry.tone,
       kind: "local",
       connected: !!info?.connected,

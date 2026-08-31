@@ -35,6 +35,12 @@ import type { ErrorsMessages } from "./messages/errors";
 import type { GuideMessages } from "./messages/guide";
 import type { LanguageMessages } from "./messages/language";
 import type { DocViewsMessages, DownloadsMessages, MenusMessages } from "./messages/menus";
+import type {
+  ConnectorCatalogMessages,
+  ModelCatalogMessages,
+  RedactionCatalogMessages,
+} from "./messages/catalogCopy";
+import type { ByoMessages, McpTabMessages, VersionsTabMessages } from "./messages/mcpTab";
 import type { ModalsMessages } from "./messages/modals";
 import type { OnboardingMessages } from "./messages/onboarding";
 import type {
@@ -65,6 +71,7 @@ export type { PrivacyLevelCopy } from "./messages/privacy";
 export type { ProviderKeyCopy } from "./messages/providerKeys";
 export type { SettingsEntry, SettingsTab } from "./messages/settings";
 export type { PlanTierCopy } from "./messages/common";
+export type { ConnectorCopy, ModelCopy, RedactionCategoryCopy } from "./messages/catalogCopy";
 
 export interface Messages {
   common: CommonMessages;
@@ -133,5 +140,11 @@ export interface Messages {
   syncTab: SyncTabMessages;
   orgTab: OrgTabMessages;
   importModal: ImportModalMessages;
+  mcpTab: McpTabMessages;
+  versionsTab: VersionsTabMessages;
+  byo: ByoMessages;
+  connectorCatalog: ConnectorCatalogMessages;
+  redactionCatalog: RedactionCatalogMessages;
+  modelCatalog: ModelCatalogMessages;
   language: LanguageMessages;
 }

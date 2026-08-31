@@ -1,7 +1,13 @@
 import { useState, type CSSProperties } from "react";
 import { LockIcon, InfoIcon, ChevDownIcon } from "../../../components/brand";
-import { REDACT_CATEGORIES, REDACT_CATEGORY_GROUPS, REDACT_GROUP_TONE } from "../../../privacy/redactCategories";
+import {
+  REDACT_CATEGORIES,
+  REDACT_CATEGORY_GROUPS,
+  REDACT_GROUP_TONE,
+} from "../../../privacy/redactCategories";
 import type { RedactCategoryKey } from "../../../types";
+import { useT } from "../../../i18n";
+import { redactionCopy, redactionSectionLabel } from "../../../help/catalogCopy";
 
 /* The SHARED body of the "Règles de redaction" surface — the grouped category
    catalogue. Rendered BOTH inside RedactionRulesModal (scope tabs / org-lock /
@@ -46,6 +52,7 @@ export function RedactionRulesContent({
   /** When provided, renders the "réinitialiser" button (conversation scope only). */
   onReset?: () => void;
 }) {
+  const t = useT();
   const lockedSet = forced ?? new Set<string>();
   // The one open detail line (catalog `detail`): a chip's ⓘ toggles it, one at a time.
   // The chip itself keeps its toggle role — expansion must never flip a category.
@@ -99,111 +106,120 @@ export function RedactionRulesContent({
                   <ChevDownIcon size={15} />
                 </span>
                 <span className="rrm-group-swatch" />
-                <span className="cv-eyebrow rrm-group-h">{group}</span>
+                <span className="cv-eyebrow rrm-group-h">{redactionSectionLabel(group, t)}</span>
               </button>
               <button
                 type="button"
                 className="rrm-master"
                 onClick={setAll}
                 aria-pressed={allOn}
-                title={allOn ? "Tout désactiver" : "Tout activer"}
+                title={allOn ? t.redactionCatalog.allOff : t.redactionCatalog.allOn}
               >
-                <span className="rrm-master-count">{onCount}/{items.length}</span>
+                <span className="rrm-master-count">
+                  {onCount}/{items.length}
+                </span>
                 <span className={`rrm-master-sw${allOn ? " all" : someOn ? " some" : ""}`}>
                   <span className="rrm-master-knob" />
                 </span>
               </button>
             </div>
             {open && (
-            <div className="rrm-tags" id={groupId(group)}>
-              {items.map((t, i) => {
-                const locked = lockedSet.has(t.key);
-                const on = locked || isOn(t.key);
-                const overridden = !locked && (isOverridden?.(t.key) ?? false);
-                const detailOpen = openDetail === t.key;
-                return (
-                  <span key={t.key} className="rrm-cat-wrap">
-                  <button
-                    type="button"
-                    onClick={() => !locked && setCat(t.key, !on)}
-                    // The chip IS the control, so it carries the on/off state the
-                    // Switch used to expose. `aria-disabled` (not `disabled`) keeps a
-                    // locked chip focusable, so its "why" tooltip is still reachable.
-                    aria-pressed={on}
-                    aria-disabled={locked || undefined}
-                    // The catalog `detail` says what the short label can't — the REAL
-                    // coverage behind the toggle ("ID national" hides ~40 countries,
-                    // MRZ, plaques…). A locked chip keeps its "why" instead.
-                    title={locked ? "Imposée par votre organisation" : t.detail}
-                    className={`rrm-cat ${on ? "on" : ""}${locked ? " locked" : ""}`}
-                    // ONLY the tone + its per-chip shade go inline (per-item data);
-                    // every state that derives from them — off / on / hover — is mixed
-                    // in CSS. Setting the colours here instead would make them inline,
-                    // and an inline background/border CANNOT be overridden by a `:hover`
-                    // rule, so the active chips would silently lose their hover.
-                    // `.rrm-cat` declares its own `--cat-tone` default, so this must sit
-                    // on the chip (an inherited value would lose to that default).
-                    style={{
-                      "--cat-tone": groupTone,
-                      "--cat-shade": chipShade(groupTone, i, items.length),
-                    } as CSSProperties}
-                  >
-                    <span className="rrm-dot" />
-                    <span className="rrm-cat-label">{t.label}</span>
-                    {t.ai && <span className="rrm-tag ai">BETA</span>}
-                    {locked && (
-                      <span className="rrm-tag lock">
-                        <LockIcon size={11} />
-                      </span>
-                    )}
-                    {overridden && <span className="rrm-tag">modifié</span>}
-                  </button>
-                  {t.detail && (
-                    <button
-                      type="button"
-                      className={`rrm-cat-info ${detailOpen ? "open" : ""}`}
-                      onClick={() => setOpenDetail(detailOpen ? null : t.key)}
-                      aria-expanded={detailOpen}
-                      aria-controls={`rrm-detail-${t.key}`}
-                      aria-label={`Détail — ${t.label}`}
-                      title="Voir ce que cette catégorie couvre"
-                      style={{ "--cat-tone": groupTone } as CSSProperties}
-                    >
-                      <InfoIcon size={12} />
-                    </button>
-                  )}
-                  </span>
-                );
-              })}
-            </div>
+              <div className="rrm-tags" id={groupId(group)}>
+                {items.map((cat, i) => {
+                  const locked = lockedSet.has(cat.key);
+                  const on = locked || isOn(cat.key);
+                  const overridden = !locked && (isOverridden?.(cat.key) ?? false);
+                  const detailOpen = openDetail === cat.key;
+                  const copy = redactionCopy(cat.key, cat, t);
+                  return (
+                    <span key={cat.key} className="rrm-cat-wrap">
+                      <button
+                        type="button"
+                        onClick={() => !locked && setCat(cat.key, !on)}
+                        // The chip IS the control, so it carries the on/off state the
+                        // Switch used to expose. `aria-disabled` (not `disabled`) keeps a
+                        // locked chip focusable, so its "why" tooltip is still reachable.
+                        aria-pressed={on}
+                        aria-disabled={locked || undefined}
+                        // The catalog `detail` says what the short label can't — the REAL
+                        // coverage behind the toggle ("ID national" hides ~40 countries,
+                        // MRZ, plaques…). A locked chip keeps its "why" instead.
+                        title={locked ? t.redactionCatalog.lockedByOrg : copy.detail}
+                        className={`rrm-cat ${on ? "on" : ""}${locked ? " locked" : ""}`}
+                        // ONLY the tone + its per-chip shade go inline (per-item data);
+                        // every state that derives from them — off / on / hover — is mixed
+                        // in CSS. Setting the colours here instead would make them inline,
+                        // and an inline background/border CANNOT be overridden by a `:hover`
+                        // rule, so the active chips would silently lose their hover.
+                        // `.rrm-cat` declares its own `--cat-tone` default, so this must sit
+                        // on the chip (an inherited value would lose to that default).
+                        style={
+                          {
+                            "--cat-tone": groupTone,
+                            "--cat-shade": chipShade(groupTone, i, items.length),
+                          } as CSSProperties
+                        }
+                      >
+                        <span className="rrm-dot" />
+                        <span className="rrm-cat-label">{copy.label}</span>
+                        {cat.ai && <span className="rrm-tag ai">BETA</span>}
+                        {locked && (
+                          <span className="rrm-tag lock">
+                            <LockIcon size={11} />
+                          </span>
+                        )}
+                        {overridden && (
+                          <span className="rrm-tag">{t.redactionCatalog.modified}</span>
+                        )}
+                      </button>
+                      {cat.detail && (
+                        <button
+                          type="button"
+                          className={`rrm-cat-info ${detailOpen ? "open" : ""}`}
+                          onClick={() => setOpenDetail(detailOpen ? null : cat.key)}
+                          aria-expanded={detailOpen}
+                          aria-controls={`rrm-detail-${cat.key}`}
+                          aria-label={t.redactionCatalog.detailAria(copy.label)}
+                          title={t.redactionCatalog.detailTip}
+                          style={{ "--cat-tone": groupTone } as CSSProperties}
+                        >
+                          <InfoIcon size={12} />
+                        </button>
+                      )}
+                    </span>
+                  );
+                })}
+              </div>
             )}
-            {open && (() => {
-              // The expanded line renders UNDER its group's chip row (full width) —
-              // inserting it inside the flex-wrap would tear the row apart.
-              const openItem = items.find((c) => c.key === openDetail && c.detail);
-              return openItem ? (
-                <div
-                  className="rrm-cat-detail"
-                  id={`rrm-detail-${openItem.key}`}
-                  style={{ "--cat-tone": groupTone } as CSSProperties}
-                >
-                  <strong>{openItem.label}</strong> — {openItem.detail}
-                  {openItem.impact && (
-                    // L'autre moitié de l'obligation de confiance (règle 8) : dire aussi
-                    // ce que la protection peut FAUSSER — un âge calculé, une entreprise
-                    // inconnue du modèle — là où l'on coche, pas dans une doc lointaine.
-                    <span className="rrm-cat-impact">{openItem.impact}</span>
-                  )}
-                </div>
-              ) : null;
-            })()}
+            {open &&
+              (() => {
+                // The expanded line renders UNDER its group's chip row (full width) —
+                // inserting it inside the flex-wrap would tear the row apart.
+                const openItem = items.find((c) => c.key === openDetail && c.detail);
+                const openCopy = openItem && redactionCopy(openItem.key, openItem, t);
+                return openItem && openCopy ? (
+                  <div
+                    className="rrm-cat-detail"
+                    id={`rrm-detail-${openItem.key}`}
+                    style={{ "--cat-tone": groupTone } as CSSProperties}
+                  >
+                    <strong>{openCopy.label}</strong> — {openCopy.detail}
+                    {openCopy.impact && (
+                      // L'autre moitié de l'obligation de confiance (règle 8) : dire aussi
+                      // ce que la protection peut FAUSSER — un âge calculé, une entreprise
+                      // inconnue du modèle — là où l'on coche, pas dans une doc lointaine.
+                      <span className="rrm-cat-impact">{openCopy.impact}</span>
+                    )}
+                  </div>
+                ) : null;
+              })()}
           </div>
         );
       })}
 
       {onReset && (
         <button className="rrm-reset" onClick={onReset}>
-          Réinitialiser — hériter des réglages par défaut
+          {t.redactionCatalog.reset}
         </button>
       )}
     </>

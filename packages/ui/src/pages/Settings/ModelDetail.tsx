@@ -9,11 +9,15 @@ import {
 import { useT } from "../../i18n";
 import { ModelLogo } from "../../components/brand";
 import { CountryFlag } from "../../components/media/CountryFlag";
+import { modelCopy, modelTagLabel } from "../../help/catalogCopy";
 
 /** A USD-per-1M-tokens figure, trimmed (2.5 → "2,50 $", 0.04 → "0,04 $"). FR decimal
  *  comma to match the rest of the UI; the raw prices are USD list estimates. */
 function fmtUsd(n: number): string {
-  return `${n.toFixed(2).replace(/\.?0+$/, "").replace(".", ",")} $`;
+  return `${n
+    .toFixed(2)
+    .replace(/\.?0+$/, "")
+    .replace(".", ",")} $`;
 }
 
 /** One 1–5 capability bar (5 segments, filled to `value`). Higher = better. */
@@ -47,6 +51,7 @@ function fmtCtx(n: number): string {
 export function ModelDetail({ model }: { model: ModelInfo }) {
   const t = useT();
   const meta = modelMeta(model.id);
+  const copy = modelCopy(model.id, meta, t);
   const ctx = contextWindow(model.id);
   const p = meta.profile;
   const host = PROVIDERS[model.provider].hostCountry;
@@ -97,9 +102,7 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
               <span className="model-price-row">
                 {t.modelsTab.detail.priceOut} <b>{fmtUsd(price.out)}</b>
               </span>
-              <span className="model-price-unit">
-                {t.modelsTab.detail.priceUnit}
-              </span>
+              <span className="model-price-unit">{t.modelsTab.detail.priceUnit}</span>
             </p>
           )}
         </div>
@@ -116,22 +119,22 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
         </div>
       </div>
 
-      {meta.strengths.length > 0 && (
+      {copy.strengths.length > 0 && (
         <div className="model-detail-section">
           <div className="cv-eyebrow">{t.modelsTab.detail.strengths}</div>
           <ul className="model-detail-list">
-            {meta.strengths.map((s, i) => (
+            {copy.strengths.map((s, i) => (
               <li key={i}>{s}</li>
             ))}
           </ul>
         </div>
       )}
 
-      {meta.weaknesses.length > 0 && (
+      {copy.weaknesses.length > 0 && (
         <div className="model-detail-section">
           <div className="cv-eyebrow">{t.modelsTab.detail.tradeoffs}</div>
           <ul className="model-detail-list muted">
-            {meta.weaknesses.map((s, i) => (
+            {copy.weaknesses.map((s, i) => (
               <li key={i}>{s}</li>
             ))}
           </ul>
@@ -140,14 +143,14 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
 
       <div className="model-detail-section">
         <div className="cv-eyebrow">{t.modelsTab.detail.bestFor}</div>
-        <p className="model-detail-bestfor">{meta.bestFor}</p>
+        <p className="model-detail-bestfor">{copy.bestFor}</p>
       </div>
 
       {meta.tags.length > 0 && (
         <div className="model-detail-tags">
-          {meta.tags.map((t) => (
-            <span key={t} className="model-tag">
-              {t}
+          {meta.tags.map((tag) => (
+            <span key={tag} className="model-tag">
+              {modelTagLabel(tag, t)}
             </span>
           ))}
         </div>

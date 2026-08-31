@@ -3,6 +3,7 @@ import type { McpCatalogEntry } from "../../../host";
 import { Btn } from "./McpBtn";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../../i18n";
 /**
  * The LOCAL (stdio) server setup fields — the read-only command line, declared env
  * inputs, and native directory-grant pickers — plus the "Connecter" action. Lifted
@@ -21,6 +22,7 @@ export function McpLocalFields({
   onConnect: (env: Record<string, string>, params: Record<string, string | string[]>) => void;
   onPickDir: () => Promise<string | undefined>;
 }) {
+  const t = useT();
   const [env, setEnv] = useState<Record<string, string>>({});
   const [params, setParams] = useState<Record<string, string | string[]>>({});
 
@@ -47,9 +49,7 @@ export function McpLocalFields({
   return (
     <div className="mcp-local-fields">
       {entry.inProcess ? (
-        <p className="mcp-cmd-note">
-          Exécuté en interne par {BRAND.name} (aucun processus externe lancé).
-        </p>
+        <p className="mcp-cmd-note">{t.mcpTab.runsInternally(BRAND.name)}</p>
       ) : (
         <code className="mcp-cmd">$ {entry.commandLine}</code>
       )}
@@ -74,15 +74,15 @@ export function McpLocalFields({
                   type="button"
                   className="opacity-60 hover:opacity-100"
                   onClick={() => removeDir(p.key, d)}
-                  aria-label={`Retirer ${d}`}
-                  title="Retirer"
+                  aria-label={t.mcpTab.removeDir(d)}
+                  title={t.mcpTab.remove}
                 >
                   ✕
                 </button>
               </div>
             ))}
             <Btn
-              label={p.multiple && dirs.length ? "Ajouter un dossier…" : `${p.label} : choisir…`}
+              label={p.multiple && dirs.length ? t.mcpTab.addDir : t.mcpTab.chooseDir(p.label)}
               onClick={() => addDir(p)}
               subtle
             />
@@ -96,7 +96,7 @@ export function McpLocalFields({
             <>
               {" "}
               <a href={entry.setupUrl} target="_blank" rel="noreferrer">
-                guide ↗
+                {t.mcpTab.guide}
               </a>
             </>
           )}
@@ -104,7 +104,7 @@ export function McpLocalFields({
       )}
       <div className="mcp-modal-actions">
         <Btn
-          label={busy ? "Connexion…" : "Connecter"}
+          label={busy ? t.mcpTab.connecting : t.mcpTab.connect.replace(" →", "")}
           onClick={() => onConnect(env, params)}
           disabled={busy || missingRequired}
           loading={busy}

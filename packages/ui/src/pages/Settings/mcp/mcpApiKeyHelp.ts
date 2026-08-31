@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 /**
  * Per-connector API-KEY help + how the key is applied — the data behind the
  * "Clé API" tutorial shown in `McpConnectorModal` for API-key connectors.
@@ -19,50 +20,24 @@ export interface ApiKeyHelp {
   /** Input label / placeholder. */
   keyLabel: string;
   /** Ordered FR tutorial steps. */
-  steps: string[];
+  steps: readonly string[];
 }
 
-export const MCP_API_KEY_HELP: Record<string, ApiKeyHelp> = {
-  exa: {
-    keyIn: "query",
-    param: "exaApiKey",
-    keyUrl: "https://dashboard.exa.ai/api-keys",
-    keyLabel: "Clé Exa",
-    steps: [
-      "Créez un compte sur exa.ai.",
-      "Ouvrez le tableau de bord → API Keys (dashboard.exa.ai/api-keys).",
-      "Créez puis copiez une clé.",
-      "Collez-la ci-dessous.",
-    ],
-  },
-  tavily: {
-    keyIn: "query",
-    param: "tavilyApiKey",
-    keyUrl: "https://app.tavily.com/home",
-    keyLabel: "Clé Tavily (tvly-…)",
-    steps: [
-      "Créez un compte gratuit sur tavily.com.",
-      "Dans le tableau de bord (app.tavily.com), ouvrez API Keys.",
-      "Copiez votre clé (elle commence par tvly-).",
-      "Collez-la ci-dessous.",
-    ],
-  },
-  fireflies: {
-    keyIn: "header",
-    keyUrl: "https://fireflies.ai/dashboard/settings/api",
-    keyLabel: "Clé Fireflies",
-    steps: [
-      "Connectez-vous sur fireflies.ai.",
-      "Ouvrez Paramètres → Developer Settings (fireflies.ai/dashboard/settings/api).",
-      "Copiez votre clé (générez-la si nécessaire).",
-      "Collez-la ci-dessous — elle est chiffrée sur votre machine, jamais envoyée au modèle.",
-    ],
-  },
+/** Les FAITS de la clé de chaque connecteur — où elle se règle, et où elle se prend. */
+const API_KEY_SHAPE: Record<string, Omit<ApiKeyHelp, "keyLabel" | "steps">> = {
+  exa: { keyIn: "query", param: "exaApiKey", keyUrl: "https://dashboard.exa.ai/api-keys" },
+  tavily: { keyIn: "query", param: "tavilyApiKey", keyUrl: "https://app.tavily.com/home" },
+  fireflies: { keyIn: "header", keyUrl: "https://fireflies.ai/dashboard/settings/api" },
 };
 
 /** The API-key help for a connector id, or undefined if none is documented. */
-export function apiKeyHelp(id: string): ApiKeyHelp | undefined {
-  return MCP_API_KEY_HELP[id];
+/** La fiche complète — faits + copie dans la langue de `t`. */
+export function apiKeyHelp(id: string, t: Messages): ApiKeyHelp | undefined {
+  const shape = API_KEY_SHAPE[id];
+  const copy = (
+    t.mcpTab.apiKeys as Record<string, { label: string; steps: readonly string[] } | undefined>
+  )[id];
+  return shape && copy ? { ...shape, keyLabel: copy.label, steps: copy.steps } : undefined;
 }
 
 /**
@@ -70,9 +45,27 @@ export function apiKeyHelp(id: string): ApiKeyHelp | undefined {
  * preserving any existing query string). Returns the base URL unchanged for a
  * header key (the key travels as a Bearer header, not in the URL).
  */
-export function composeApiKeyUrl(baseUrl: string, help: ApiKeyHelp, key: string): string {
+export function composeApiKeyUrl(
+  baseUrl: string,
+  help: Pick<ApiKeyHelp, "keyIn" | "param">,
+  key: string,
+): string {
   if (help.keyIn !== "query" || !help.param) return baseUrl;
   const u = new URL(baseUrl);
   u.searchParams.set(help.param, key.trim());
   return u.toString();
+}
+
+/**
+ * Ce que l'hôte doit recevoir pour connecter un service à clé : l'adresse portant la clé
+ * en paramètre, ou la clé nue (en-tête). La FORME suffit — pas de copie, donc pas de
+ * langue : le connecteur dit où va sa clé, `useMcpConnectors` n'a plus à le savoir.
+ */
+export function apiKeyConnectOpts(
+  id: string,
+  baseUrl: string,
+  key: string,
+): { url: string } | { apiKey: string } {
+  const shape = API_KEY_SHAPE[id];
+  return shape?.keyIn === "query" ? { url: composeApiKeyUrl(baseUrl, shape, key) } : { apiKey: key };
 }

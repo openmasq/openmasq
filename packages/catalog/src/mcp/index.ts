@@ -20,7 +20,12 @@
  * barrel re-exports the SAME public surface, so `@openmasq/catalog/mcp` is unchanged.
  */
 export type { McpTransport, McpAuth, McpCategory, McpConnector, McpAuthTag } from "./types";
-export { MCP_CATEGORIES, MCP_CATEGORY_OTHER, mcpCategoryLabel, groupByMcpCategory } from "./categories";
+export {
+  MCP_CATEGORIES,
+  MCP_CATEGORY_OTHER,
+  mcpCategoryLabel,
+  groupByMcpCategory,
+} from "./categories";
 export {
   MCP_CONNECTORS,
   STORAGE_CONNECTORS,
@@ -30,7 +35,7 @@ export {
   connectorHosts,
 } from "./registry";
 export { BROWSER_CONNECTOR_ID } from "./connectors/builtin";
-export { mcpAuthTag } from "./authTag";
+export { mcpAuthTag, mcpAuthShape, type McpAuthShape, type McpAuthVariant } from "./authTag";
 export { writeRisk, needsSystemConfirm, type WriteRisk, type WriteRiskContext } from "./writeRisk";
 export {
   READ_VERB,

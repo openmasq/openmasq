@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import type { McpServerInfo } from "../../../host";
 import { buildMcpItems, BROWSER_CONNECTOR_ID } from "./mcpItems";
@@ -18,8 +19,11 @@ const browserServer: McpServerInfo = {
   toolCount: 16,
 };
 
+const fr = getMessages("fr");
+
 const build = (servers: McpServerInfo[], browserEnabled = true) =>
   buildMcpItems({
+    t: fr,
     servers,
     catalog: [],
     directConnectors: [],

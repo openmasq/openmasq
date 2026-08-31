@@ -1,6 +1,7 @@
 import { AlertIcon } from "../../../../components/brand";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../../../i18n";
 /**
  * What adding an unvetted MCP server actually costs the user. Every line is a fact
  * about the pipeline, not a disclaimer:
@@ -18,28 +19,27 @@ import { BRAND } from "@openmasq/branding";
  * the help site (outside this repo) states the same thing, and the two must not drift.
  */
 export function McpCustomWarning() {
+  const t = useT();
   return (
     <div className="mcp-warn">
       <span className="mcp-warn-icon" aria-hidden="true">
         <AlertIcon size={16} />
       </span>
       <div className="mcp-warn-text">
-        <p className="mcp-warn-title">Ce service n'est pas vérifié par {BRAND.name}.</p>
+        <p className="mcp-warn-title">{t.mcpTab.customWarnTitle(BRAND.name)}</p>
         <ul className="mcp-warn-list">
           <li>
-            Il reçoit <strong>vos données réelles</strong> : pour qu'un outil agisse
-            vraiment, ce qui lui est envoyé est unredacted au dernier moment.
+            {t.mcpTab.customWarnReal.lead}
+            <strong>{t.mcpTab.customWarnReal.strong}</strong>
+            {t.mcpTab.customWarnReal.tail}
           </li>
-          <li>
-            Ses réponses reviennent dans la conversation, et le modèle s'en sert : un
-            service malveillant peut chercher à le manipuler.
-          </li>
+          <li>{t.mcpTab.customWarnReplies}</li>
           <li>
             {BRAND.name} continue de vous demander confirmation avant toute action qui modifie
             quelque chose.
           </li>
         </ul>
-        <p className="mcp-warn-foot">N'ajoutez que des services dont vous connaissez l'origine.</p>
+        <p className="mcp-warn-foot">{t.mcpTab.customWarnFoot}</p>
       </div>
     </div>
   );

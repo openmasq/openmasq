@@ -103,7 +103,7 @@ export function McpConnectorModal({
   // the raw URL field. A documented `apiKeyHelp` is required (else fall back to URL).
   const help =
     item.kind === "remote" && item.auth === "apikey" && !item.connected && !item.configured
-      ? apiKeyHelp(item.id)
+      ? apiKeyHelp(item.id, t)
       : undefined;
 
   const [copied, setCopied] = useState(false);
@@ -137,7 +137,9 @@ export function McpConnectorModal({
             brut reste au journal de débogage. Inconnu ⇒ on garde le brut, plutôt que
             d'inventer une phrase rassurante sur une panne qu'on ne comprend pas. */}
         {item.error && (
-          <div className="mcp-modal-error">{connectorErrorText(item.error)?.text ?? item.error}</div>
+          <div className="mcp-modal-error">
+            {connectorErrorText(item.error, t)?.text ?? item.error}
+          </div>
         )}
         <McpHint item={item} />
 
@@ -150,14 +152,14 @@ export function McpConnectorModal({
         {busy && (onCancelConnect || connectUrl) && (
           <div className="mcp-modal-actions">
             {onCancelConnect && (
-              <Btn label="Annuler la connexion" onClick={onCancelConnect} subtle danger />
+              <Btn label={t.mcpTab.cancelConnect} onClick={onCancelConnect} subtle danger />
             )}
             {connectUrl && (
               <Btn
-                label={copied ? "Lien copié ✓" : "Copier le lien"}
+                label={copied ? t.mcpTab.linkCopied : t.mcpTab.copyLink}
                 onClick={copyLink}
                 subtle
-                title="Copier le lien de connexion pour l'ouvrir dans un autre navigateur"
+                title={t.mcpTab.copyLinkTip}
               />
             )}
           </div>
@@ -170,13 +172,13 @@ export function McpConnectorModal({
             the ordinary "ça marche" connected UI with nothing to explain the drop. */}
         {item.locked && (
           <div className="mcp-modal-note">
-            <LockIcon size={13} /> Ce connecteur est bloqué par votre organisation
-            {item.connected
-              ? " — il reste connecté, mais l'assistant ne peut plus utiliser ses outils."
-              : "."}
+            <LockIcon size={13} /> {t.mcpTab.blockedNote}
+            {item.connected ? t.mcpTab.blockedStillConnected : "."}
           </div>
         )}
-        {item.locked && !item.connected ? null : item.connected && item.accounts && item.accounts.length ? (
+        {item.locked && !item.connected ? null : item.connected &&
+          item.accounts &&
+          item.accounts.length ? (
           <McpAccounts
             item={item}
             busy={busy}
@@ -202,9 +204,9 @@ export function McpConnectorModal({
               />
             )}
             <div className="mcp-modal-actions">
-              <Btn label="Voir les outils" onClick={() => onInspect(item.serverId)} subtle />
+              <Btn label={t.mcpTab.seeTools} onClick={() => onInspect(item.serverId)} subtle />
               <Btn
-                label="Déconnecter"
+                label={t.mcpTab.disconnect}
                 onClick={() => onDisconnect(item.serverId)}
                 disabled={busy}
                 subtle

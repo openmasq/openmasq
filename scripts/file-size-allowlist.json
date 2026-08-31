@@ -15,8 +15,7 @@
   "apps/desktop/src/renderer/src/auth.ts": 521,
   "packages/ui/src/agent/toolCatalog.ts": 428,
   "packages/redact/src/engine/rules/rules.ts": 412,
-  "packages/llm/src/modelMeta.ts": 406,
-  "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 384,
+  "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 383,
   "packages/llm/src/tools/openai.ts": 357,
   "apps/desktop/src/main/mcp/persist.ts": 340,
   "packages/redact/src/engine/rules/rules.france.ts": 305

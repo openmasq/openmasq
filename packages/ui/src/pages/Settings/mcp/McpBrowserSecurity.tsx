@@ -4,6 +4,7 @@ import { normalizeDomain } from "../../../state/browserPolicy";
 import { captureEvent } from "../../../analytics";
 import type { Settings } from "../../../types";
 
+import { useT } from "../../../i18n";
 /**
  * Agent-browser prompt-injection hardening (desktop only). Two controls:
  *  - READ-ONLY (recherche = lecture seule): withholds the browser's write tools
@@ -19,6 +20,7 @@ export function McpBrowserSecurity({
   settings: Settings;
   setSettings: (updater: (s: Settings) => Settings) => void;
 }) {
+  const t = useT();
   const readOnly = !!settings.browserReadOnly;
   const [domainsText, setDomainsText] = useState((settings.browserAllowedDomains ?? []).join("\n"));
   // Resync when `browserAllowedDomains` changes UNDER us (account switch, the async DB
@@ -40,19 +42,15 @@ export function McpBrowserSecurity({
 
   return (
     <section className="settings-section">
-      <div className="cv-eyebrow">Sécurité du navigateur agent</div>
+      <div className="cv-eyebrow">{t.mcpTab.browserSecurityEyebrow}</div>
       <div className="settings-card">
         <div className="toggle-row">
           <span className="row-icon tone-coral">
             <LayoutSplitIcon size={16} />
           </span>
           <div className="row-body">
-            <div className="row-title">Lecture seule (recherche)</div>
-            <div className="row-desc">
-              Le navigateur ne peut que naviguer et lire — clic, saisie et envoi de
-              formulaire sont retirés du modèle. Neutralise les actions qu'une page
-              malveillante tenterait d'injecter.
-            </div>
+            <div className="row-title">{t.mcpTab.readOnly}</div>
+            <div className="row-desc">{t.mcpTab.readOnlyHint}</div>
           </div>
           <Switch
             checked={readOnly}
@@ -68,12 +66,8 @@ export function McpBrowserSecurity({
             <LockIcon size={16} />
           </span>
           <div className="row-body">
-            <div className="row-title">Domaines autorisés</div>
-            <div className="row-desc">
-              Si renseigné, le modèle ne peut naviguer QUE vers ces domaines (sous-domaines
-              inclus) ; tout le reste est refusé. Un domaine par ligne. Laisser vide = aucune
-              restriction. La barre d'adresse manuelle n'est jamais restreinte.
-            </div>
+            <div className="row-title">{t.mcpTab.allowedDomains}</div>
+            <div className="row-desc">{t.mcpTab.allowedDomainsHint}</div>
             <textarea
               className="mcp-allowlist"
               value={domainsText}
@@ -82,7 +76,7 @@ export function McpBrowserSecurity({
               placeholder={"github.com\nnotion.so\nmon-crm.exemple.fr"}
               onChange={(e) => setDomainsText(e.target.value)}
               onBlur={(e) => commitDomains(e.target.value)}
-              aria-label="Domaines autorisés pour le navigateur agent"
+              aria-label={t.mcpTab.allowedDomainsAria}
             />
           </div>
         </div>

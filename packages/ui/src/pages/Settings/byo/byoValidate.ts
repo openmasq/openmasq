@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import { MCP_CONNECTORS, type McpConnector } from "@openmasq/catalog/mcp";
 
 /**
@@ -57,27 +58,27 @@ const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function clientIdIssue(
   auth: DirectAuth | undefined,
   raw: string,
+  t: Messages,
 ): FieldIssue | undefined {
   const v = raw.trim();
   if (!v) return undefined;
-  if (/\s/.test(v))
-    return { level: "error", message: "Un identifiant ne contient pas d'espace — vérifiez le copier-coller." };
+  if (/\s/.test(v)) return { level: "error", message: t.byo.noSpaces };
   if (auth === "pkce") {
     if (v.startsWith("AIza"))
       return {
         level: "error",
-        message: "Ceci est une clé d'API, pas un ID client. L'ID client vient de « Créer un ID client OAuth ».",
+        message: t.byo.isApiKeyNotClientId,
       };
     if (!v.endsWith(".apps.googleusercontent.com"))
       return {
         level: "error",
-        message: "Un ID client Google se termine par « .apps.googleusercontent.com ».",
+        message: t.byo.googleSuffix,
       };
   }
   if (auth === "microsoft" && !GUID.test(v))
     return {
       level: "error",
-      message: "L'ID d'application Microsoft est de la forme 00000000-0000-0000-0000-000000000000.",
+      message: t.byo.microsoftGuid,
     };
   return undefined;
 }
@@ -88,17 +89,17 @@ export function clientIdIssue(
 export function clientSecretIssue(
   auth: DirectAuth | undefined,
   raw: string,
+  t: Messages,
 ): FieldIssue | undefined {
   const v = raw.trim();
   if (!v) return undefined;
-  if (/\s/.test(v))
-    return { level: "error", message: "Un code secret ne contient pas d'espace — vérifiez le copier-coller." };
+  if (/\s/.test(v)) return { level: "error", message: t.byo.secretNoSpaces };
   if (v.endsWith(".apps.googleusercontent.com"))
-    return { level: "error", message: "Ceci est l'ID client — le code secret est la seconde valeur." };
+    return { level: "error", message: t.byo.secretIsClientId };
   if (auth === "pkce" && !v.startsWith("GOCSPX-"))
     return {
       level: "warn",
-      message: "Les codes secrets Google commencent en général par « GOCSPX- ». Vérifiez que c'est bien le code secret du client.",
+      message: t.byo.secretPrefixWarn,
     };
   return undefined;
 }

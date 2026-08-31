@@ -3,6 +3,7 @@ import { Btn } from "../McpBtn";
 import { composeApiKeyUrl, type ApiKeyHelp } from "../mcpApiKeyHelp";
 import type { McpItem } from "../mcpItems";
 
+import { useT } from "../../../../i18n";
 /**
  * A REMOTE connector that isn't connected yet — either a one-click OAuth /
  * already-configured endpoint (optionally asking for the URL of a custom
@@ -30,6 +31,7 @@ export function McpRemoteBody({
   onConnectApiKey: (key: string) => void;
   onRemove: () => void;
 }) {
+  const t = useT();
   const [url, setUrl] = useState(item.url ?? "");
   const [key, setKey] = useState("");
   const needsUrl = !item.url && !item.configured;
@@ -43,14 +45,14 @@ export function McpRemoteBody({
     return (
       <>
         <div className="mcp-apikey-help">
-          <div className="mcp-apikey-title">Où trouver votre clé</div>
+          <div className="mcp-apikey-title">{t.mcpTab.whereKey}</div>
           <ol className="mcp-apikey-steps">
             {help.steps.map((s, i) => (
               <li key={i}>{s}</li>
             ))}
           </ol>
           <a className="mcp-apikey-link" href={help.keyUrl} target="_blank" rel="noreferrer">
-            Obtenir ma clé →
+            {t.mcpTab.getKey}
           </a>
         </div>
         <input
@@ -66,7 +68,7 @@ export function McpRemoteBody({
         />
         <div className="mcp-modal-actions">
           <Btn
-            label={busy ? "Connexion…" : "Connecter"}
+            label={busy ? t.mcpTab.connecting : t.byo.connect}
             onClick={submit}
             disabled={busy || !key.trim()}
             loading={busy}
@@ -82,16 +84,22 @@ export function McpRemoteBody({
         <input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://… (adresse du connecteur)"
+          placeholder={t.mcpTab.urlPlaceholder}
           className="mcp-url-input"
         />
       )}
       <div className="mcp-modal-actions">
         {item.configured && (
-          <Btn label="Oublier" onClick={onRemove} disabled={busy} subtle title="Efface la config enregistrée" />
+          <Btn
+            label={t.mcpTab.forget}
+            onClick={onRemove}
+            disabled={busy}
+            subtle
+            title={t.mcpTab.forgetTip}
+          />
         )}
         <Btn
-          label={busy ? "Connexion…" : "Connecter"}
+          label={busy ? t.mcpTab.connecting : t.byo.connect}
           onClick={() => onConnectRemote(url)}
           disabled={busy || (needsUrl && !url.trim())}
           loading={busy}

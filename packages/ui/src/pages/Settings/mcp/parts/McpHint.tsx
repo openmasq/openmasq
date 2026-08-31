@@ -3,6 +3,7 @@ import { authTagOf } from "../mcpAuth";
 import { connectorErrorText } from "../connectorErrorText";
 import type { McpItem } from "../mcpItems";
 
+import { useT } from "../../../../i18n";
 /**
  * The kit's lime privacy block. Two facts, always: HOW this connector
  * authenticates (the shared catalog tag's own explanation — rule 9, no second
@@ -18,18 +19,16 @@ import type { McpItem } from "../mcpItems";
  * La promesse de redaction, elle, ne bouge jamais : elle vaut dans les deux états.
  */
 export function McpHint({ item }: { item: McpItem }) {
-  const expired = item.error ? connectorErrorText(item.error)?.reconnect : false;
+  const t = useT();
+  const expired = item.error ? connectorErrorText(item.error, t)?.reconnect : false;
   return (
     <div className="mcp-hint">
       <span className="mcp-hint-icon" aria-hidden="true">
         <ShieldIcon size={16} />
       </span>
       <p className="mcp-hint-text">
-        {expired
-          ? "Reconnectez-vous ci-dessous : votre configuration est conservée, il n'y a rien à recréer."
-          : authTagOf(item).title}{" "}
-        Comme ailleurs, vos données sensibles sont masquées avant tout échange avec ce
-        service.
+        {expired ? t.mcpTab.reconnectKeepsConfig : authTagOf(item, t).title}{" "}
+        {t.mcpTab.maskedAsEverywhere}
       </p>
     </div>
   );

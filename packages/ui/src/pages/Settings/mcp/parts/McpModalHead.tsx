@@ -4,6 +4,7 @@ import { McpTile } from "../../../../components/media/McpTile";
 import { authTagOf } from "../mcpAuth";
 import type { McpItem } from "../mcpItems";
 
+import { useT } from "../../../../i18n";
 /**
  * The connector modal's head: the brand tile, the name as the kit's lime marker
  * title, its one-line description, the auth-model pill (how you connect it), and the
@@ -16,7 +17,8 @@ import type { McpItem } from "../mcpItems";
  * them has no way out of a dialog that fills the screen.
  */
 export function McpModalHead({ item, onClose }: { item: McpItem; onClose: () => void }) {
-  const tag = authTagOf(item);
+  const t = useT();
+  const tag = authTagOf(item, t);
   return (
     <div className="mcp-modal-head">
       <McpTile id={item.id} name={item.name} tone={item.tone} lg />
@@ -33,8 +35,8 @@ export function McpModalHead({ item, onClose }: { item: McpItem; onClose: () => 
         type="button"
         className="fv-close fv-close-x"
         onClick={onClose}
-        title="Fermer (Échap)"
-        aria-label="Fermer"
+        title={t.mcpTab.closeTip}
+        aria-label={t.mcpTab.close}
       >
         <XIcon size={17} />
       </button>

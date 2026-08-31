@@ -18,6 +18,7 @@ import {
   type AuditRow,
 } from "./auditRows";
 import { BRAND } from "@openmasq/branding";
+import { privacyKindLabel } from "../../../help/catalogCopy";
 
 // Le journal de redaction détaillé : chaque valeur que le moteur a protégée, reconstruite
 // depuis le `redactionVault` persisté (faux→réel) et `redactionKinds` (réel→catégorie). Il
@@ -71,7 +72,7 @@ export function AuditRedactionView({
     for (const g of filtered) {
       for (const r of g.rows) {
         lines.push(
-          [meta(r.kind)?.label ?? r.kind, r.original, r.fake, g.convTitle, new Date(g.at).toLocaleString(t.common.intlTag)]
+          [privacyKindLabel(r.kind, t), r.original, r.fake, g.convTitle, new Date(g.at).toLocaleString(t.common.intlTag)]
             .map(csvCell)
             .join(","),
         );
@@ -175,7 +176,7 @@ export function AuditRedactionView({
                 >
                   {/* per-type colour is data-driven → inline */}
                   <span className="audit-dot" style={{ background: m?.fg ?? "var(--text-faint)" }} />
-                  {m?.label ?? key} · {n}
+                  {privacyKindLabel(key, t)} · {n}
                 </button>
               );
             })}
@@ -220,7 +221,7 @@ export function AuditRedactionView({
                   <div key={r.id} className="audit-grid audit-row">
                     <span className="audit-type" style={{ background: m?.bg }}>
                       <span className="audit-type-dot" style={{ background: m?.fg }} />
-                      {m?.label ?? r.kind}
+                      {privacyKindLabel(r.kind, t)}
                     </span>
                     {/* Valeur réelle MASQUÉE par défaut (aucun `title` qui la fuite) ; le clic
                         la révèle dans une modale. Masque de longueur fixe, pour ne pas livrer
@@ -270,7 +271,7 @@ export function AuditRedactionView({
       <AnimatePresence>
         {reveal && (
           <AuditRevealModal
-            typeLabel={meta(reveal.row.kind)?.label ?? reveal.row.kind}
+            typeLabel={privacyKindLabel(reveal.row.kind, t)}
             typeFg={meta(reveal.row.kind)?.fg}
             typeBg={meta(reveal.row.kind)?.bg}
             original={reveal.row.original}

@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import { BRAND } from "@openmasq/branding";
 // La logique pure de la carte Environnement (Réglages → Versions) : à qui proposer la
 // bascule, et quelle phrase mettre sur un refus. Séparée de la présentation (règle
@@ -29,16 +30,16 @@ export function envSwitchOffered(p: {
 }
 
 /** Le vocabulaire de refus du main → une phrase honnête pour l'utilisateur. */
-export function switchRefusalText(reason?: string): string {
+export function switchRefusalText(reason: string | undefined, t: Messages): string {
   switch (reason) {
     case "not_privileged":
       // ⚠️ « accès bêta » était FAUX ici : ce drapeau ouvre l'ENVIRONNEMENT de test (à
       // quelle API l'app parle), pas le canal bêta (quels builds elle reçoit). Les deux
       // sont indépendants depuis l'artefact unique — `main/ipc/registerEnvIpc.ts`.
-      return `Bascule refusée : ce compte n'est pas autorisé sur l'environnement de test. L'accès s'accorde par l'équipe ${BRAND.name}.`;
+      return t.versionsTab.refusal.notPrivileged(BRAND.name);
     case "write_failed":
-      return "La bascule n'a pas pu être enregistrée — rien n'a changé. Réessayez.";
+      return t.versionsTab.refusal.writeFailed;
     default:
-      return "La bascule a échoué. Réessayez.";
+      return t.versionsTab.refusal.generic;
   }
 }

@@ -2,6 +2,8 @@ import { CheckIcon } from "../../../components/brand";
 import { McpTile } from "../../../components/media/McpTile";
 import { MCP_CONNECTORS, groupByMcpCategory } from "@openmasq/catalog/mcp";
 
+import { useT } from "../../../i18n";
+import { connectorCopy, mcpCategoryLabel } from "../../../help/catalogCopy";
 /** The connector catalog grouped in the canonical category order — static, so
  *  built once at module level (same grouping as Settings → MCP). */
 const SERVER_GROUPS = groupByMcpCategory(MCP_CONNECTORS);
@@ -38,14 +40,15 @@ export function ServerPicker({
   /** Back to the permissive default (clears the scope). */
   onSelectAll: () => void;
 }) {
+  const t = useT();
   const allOn = selected.length === 0;
 
   return (
     <div className="om-skill-field">
       <p className="om-wf-picker-note">
-        Par défaut, <strong>toutes</strong> les intégrations sont disponibles. Sélectionnez-en
-        pour restreindre la compétence à celles-ci — elles sont alors ajoutées en consigne au
-        lancement. Le point vert signale une intégration connectée.
+        Par défaut, <strong>toutes</strong> les intégrations sont disponibles. Sélectionnez-en pour
+        restreindre la compétence à celles-ci — elles sont alors ajoutées en consigne au lancement.
+        Le point vert signale une intégration connectée.
       </p>
       {/* Grouped by the canonical MCP categories; ONE scroll (the modal body's) —
           an inner scroll here made two nested scrollbars. */}
@@ -55,9 +58,9 @@ export function ServerPicker({
           className={`om-wf-pick om-wf-pick-all${allOn ? " on" : ""}`}
           onClick={onSelectAll}
           aria-pressed={allOn}
-          title="Autoriser toutes les intégrations"
+          title={t.mcpTab.allIntegrationsTip}
         >
-          Toutes les intégrations
+          {t.mcpTab.allIntegrations}
           {allOn && (
             <span className="om-wf-pick-check">
               <CheckIcon size={13} />
@@ -67,11 +70,12 @@ export function ServerPicker({
 
         {SERVER_GROUPS.map((g) => (
           <div key={g.id} className="om-wf-group">
-            <div className="cv-eyebrow om-wf-group-h">{g.label}</div>
+            <div className="cv-eyebrow om-wf-group-h">{mcpCategoryLabel(g.id, t)}</div>
             <div className="om-wf-group-list">
               {g.items.map((c) => {
                 const on = selected.includes(c.id);
                 const isConnected = connected.has(c.id);
+                const copy = connectorCopy(c.id, c, t);
                 return (
                   <button
                     key={c.id}
@@ -79,12 +83,16 @@ export function ServerPicker({
                     className={`om-wf-pick${on ? " on" : ""}`}
                     onClick={() => onToggle(c.id)}
                     aria-pressed={on}
-                    title={isConnected ? `${c.name} · connecté` : c.desc}
+                    title={isConnected ? t.mcpTab.connectedDot(copy.name) : copy.desc}
                   >
-                    <McpTile sm id={c.id} name={c.name} tone={c.tone ?? "violet"} />
-                    {c.name}
+                    <McpTile sm id={c.id} name={copy.name} tone={c.tone ?? "violet"} />
+                    {copy.name}
                     {isConnected && (
-                      <span className="om-wf-pick-dot" title="Connecté" aria-label="Connecté" />
+                      <span
+                        className="om-wf-pick-dot"
+                        title={t.mcpTab.connected}
+                        aria-label={t.mcpTab.connected}
+                      />
                     )}
                     {on && (
                       <span className="om-wf-pick-check">

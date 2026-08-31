@@ -2,6 +2,7 @@ import { useReleaseNotesFeed } from "../../../../state/releaseNotes";
 import { ReleaseNotesList } from "../../../../components/releaseNotes";
 import { BrandLoader } from "../../../../components/media/BrandLogo";
 
+import { useT } from "../../../../i18n";
 /**
  * L'HISTORIQUE PUBLIÉ dans le menu Versions — les versions et ce que chacune a apporté
  * (Contentful, via analytics-fn), la plus récente en tête.
@@ -19,6 +20,7 @@ import { BrandLoader } from "../../../../components/media/BrandLogo";
  * (`components/releaseNotes`), donc une note se lit pareil dans les deux écrans.
  */
 export function PublishedNotes() {
+  const t = useT();
   const { notes, loading, unavailable } = useReleaseNotesFeed();
 
   // Pas de source de notes (aperçu navigateur, relais coupé) : pas de section vide.
@@ -27,7 +29,7 @@ export function PublishedNotes() {
   return (
     <>
       <div className="ver-hist-head">
-        <div className="cv-eyebrow ver-eyebrow">CE QUI A CHANGÉ</div>
+        <div className="cv-eyebrow ver-eyebrow">{t.versionsTab.publishedEyebrow}</div>
       </div>
       {loading ? (
         <div className="rn-loading">
@@ -36,7 +38,7 @@ export function PublishedNotes() {
       ) : notes.length === 0 ? (
         // Une liste vide se DIT : un espace blanc se lit comme une panne de l'app, et rien
         // ne permettrait de savoir si c'est elle ou l'équipe qui n'a rien publié.
-        <div className="ver-table ver-empty">Aucune note de version publiée pour le moment.</div>
+        <div className="ver-table ver-empty">{t.versionsTab.noPublished}</div>
       ) : (
         <ReleaseNotesList notes={notes} />
       )}

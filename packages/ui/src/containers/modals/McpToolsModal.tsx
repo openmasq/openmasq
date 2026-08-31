@@ -1,4 +1,3 @@
-
 import { useEffect, useMemo, useState } from "react";
 import type { McpTool } from "@openmasq/mcp";
 import { useHost } from "../../host";
@@ -7,6 +6,7 @@ import { Markdown } from "../../components/markdown/Markdown";
 import { BrandLoader } from "../../components/media/BrandLogo";
 import { LayersIcon, XIcon, IconButton, ChevDownIcon } from "../../components/brand";
 
+import { useT } from "../../i18n";
 /** A short, markdown-stripped one-liner for the collapsed preview. */
 function previewOf(desc: string): string {
   const flat = desc
@@ -34,6 +34,7 @@ export function McpToolsModal({
   serverName: string;
   onClose: () => void;
 }) {
+  const t = useT();
   const host = useHost();
   const [tools, setTools] = useState<McpTool[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +71,7 @@ export function McpToolsModal({
     [tools, open],
   );
   const toggleAll = () =>
-    setOpen(() => (allOpen ? new Set() : new Set((tools ?? []).map((t) => t.name))));
+    setOpen(() => (allOpen ? new Set() : new Set((tools ?? []).map((tool) => tool.name))));
 
   return (
     <ModalShell onClose={onClose} width="560px" maxHeight="80vh">
@@ -81,17 +82,15 @@ export function McpToolsModal({
         <div className="rlog-head-text">
           <div className="rlog-title">{serverName}</div>
           <div className="rlog-sub">
-            {tools == null
-              ? "Chargement des outils…"
-              : `${tools.length} outil${tools.length === 1 ? "" : "s"} disponible${tools.length === 1 ? "" : "s"}`}
+            {tools == null ? t.mcpTab.loadingTools : t.mcpTab.toolsAvailable(tools.length)}
           </div>
         </div>
         {!!tools?.length && (
           <button type="button" className="mcp-tool-allbtn" onClick={toggleAll}>
-            {allOpen ? "Tout replier" : "Tout déplier"}
+            {allOpen ? t.mcpTab.collapseAll : t.mcpTab.expandAll}
           </button>
         )}
-        <IconButton label="Fermer" size="sm" onClick={onClose}>
+        <IconButton label={t.mcpTab.close} size="sm" onClick={onClose}>
           <XIcon size={18} />
         </IconButton>
       </div>
@@ -101,35 +100,35 @@ export function McpToolsModal({
         ) : tools == null ? (
           <div className="mcp-tool-loading">
             <BrandLoader size={40} mono />
-            <span>Chargement des outils…</span>
+            <span>{t.mcpTab.loadingTools}</span>
           </div>
         ) : tools.length === 0 ? (
-          <div className="rlog-empty">Ce connecteur ne propose aucun outil.</div>
+          <div className="rlog-empty">{t.mcpTab.noTools}</div>
         ) : (
           <div className="mcp-tool-list">
-            {tools.map((t) => {
-              const isOpen = open.has(t.name);
+            {tools.map((tool) => {
+              const isOpen = open.has(tool.name);
               return (
-                <div key={t.name} className={`mcp-tool${isOpen ? " open" : ""}`}>
+                <div key={tool.name} className={`mcp-tool${isOpen ? " open" : ""}`}>
                   <button
                     type="button"
                     className="mcp-tool-head"
-                    onClick={() => toggle(t.name)}
+                    onClick={() => toggle(tool.name)}
                     aria-expanded={isOpen}
                   >
                     <span className="mcp-tool-head-text">
-                      <span className="mcp-tool-name mono">{strip(t.name)}</span>
-                      {!isOpen && t.description && (
-                        <span className="mcp-tool-preview">{previewOf(t.description)}</span>
+                      <span className="mcp-tool-name mono">{strip(tool.name)}</span>
+                      {!isOpen && tool.description && (
+                        <span className="mcp-tool-preview">{previewOf(tool.description)}</span>
                       )}
                     </span>
                     <span className="mcp-tool-chev" aria-hidden="true">
                       <ChevDownIcon size={14} />
                     </span>
                   </button>
-                  {isOpen && t.description && (
+                  {isOpen && tool.description && (
                     <div className="mcp-tool-md">
-                      <Markdown content={t.description} />
+                      <Markdown content={tool.description} />
                     </div>
                   )}
                 </div>

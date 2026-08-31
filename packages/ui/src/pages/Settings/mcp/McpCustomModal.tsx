@@ -3,6 +3,7 @@ import { ModalShell, ModalTitle } from "../../../containers/modals";
 import { Btn } from "./McpBtn";
 import { McpCustomWarning } from "./parts/McpCustomWarning";
 
+import { useT } from "../../../i18n";
 /**
  * "Ajouter un serveur MCP" — the form for a server the app has NOT vetted.
  *
@@ -22,6 +23,7 @@ export function McpCustomModal({
   /** Resolves to an error message, or null on success (the caller then closes). */
   onAdd: (input: { name: string; url: string; apiKey?: string }) => Promise<string | null>;
 }) {
+  const t = useT();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -44,27 +46,25 @@ export function McpCustomModal({
 
   return (
     <ModalShell onClose={onClose} width="560px">
-      <ModalTitle>Ajouter un connecteur personnalisé</ModalTitle>
-      <p className="mcp-modal-sub">
-        Connectez un service qui n'est pas dans la liste, via son adresse.
-      </p>
+      <ModalTitle>{t.mcpTab.customTitle}</ModalTitle>
+      <p className="mcp-modal-sub">{t.mcpTab.customSub}</p>
 
       <McpCustomWarning />
 
       <label className="mcp-field-label" htmlFor="mcp-custom-name">
-        Nom
+        {t.mcpTab.customName}
       </label>
       <input
         id="mcp-custom-name"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Mon connecteur"
+        placeholder={t.mcpTab.customNamePlaceholder}
         className="mcp-url-input"
         autoComplete="off"
       />
 
       <label className="mcp-field-label" htmlFor="mcp-custom-url">
-        Adresse du service
+        {t.mcpTab.customUrl}
       </label>
       <input
         id="mcp-custom-url"
@@ -77,14 +77,14 @@ export function McpCustomModal({
       />
 
       <label className="mcp-field-label" htmlFor="mcp-custom-key">
-        Clé d'accès <span className="mcp-field-opt">— facultatif</span>
+        {t.mcpTab.customKey} <span className="mcp-field-opt">{t.mcpTab.optional}</span>
       </label>
       <input
         id="mcp-custom-key"
         type="password"
         value={apiKey}
         onChange={(e) => setApiKey(e.target.value)}
-        placeholder="Laissez vide si le service se connecte sans clé"
+        placeholder={t.mcpTab.customKeyPlaceholder}
         className="mcp-url-input"
         autoComplete="off"
       />
@@ -95,17 +95,15 @@ export function McpCustomModal({
           checked={understood}
           onChange={(e) => setUnderstood(e.target.checked)}
         />
-        <span>
-          J'ai compris les risques et je fais confiance à ce service.
-        </span>
+        <span>{t.mcpTab.customUnderstood}</span>
       </label>
 
       {error && <p className="mcp-custom-error">{error}</p>}
 
       <div className="mcp-modal-actions">
-        <Btn label="Annuler" onClick={onClose} subtle disabled={busy} />
+        <Btn label={t.mcpTab.cancel} onClick={onClose} subtle disabled={busy} />
         <Btn
-          label={busy ? "Ajout…" : "Ajouter et connecter"}
+          label={busy ? t.mcpTab.adding : t.mcpTab.addAndConnect}
           onClick={() => void submit()}
           disabled={!ready}
           loading={busy}

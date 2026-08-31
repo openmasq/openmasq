@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import { MCP_CONNECTORS, findConnector } from "@openmasq/catalog/mcp";
 import { isUntouchedDraft, pickSuggestions } from "./suggestions";
@@ -20,6 +21,8 @@ import type { Competence } from "../types";
 
 const asCompetence = (s: CompetenceSuggestion): Competence =>
   makeCompetence({ name: s.name, prompt: s.prompt, desc: s.desc, cat: s.cat })!;
+
+const fr = getMessages("fr");
 
 describe("pickSuggestions", () => {
   const all = [
@@ -147,8 +150,9 @@ describe("COMPETENCE_SUGGESTIONS", () => {
 describe("ROUTINE_SUGGESTIONS", () => {
   it("are all saveable as-is", () => {
     for (const s of ROUTINE_SUGGESTIONS)
-      expect(makeCompetence({ name: s.name, prompt: s.prompt, desc: s.desc, servers: s.servers }))
-        .not.toBeNull();
+      expect(
+        makeCompetence({ name: s.name, prompt: s.prompt, desc: s.desc, servers: s.servers }),
+      ).not.toBeNull();
   });
 
   it("only name connector ids the CATALOG knows (rule 9 — no second registry here)", () => {
@@ -173,14 +177,14 @@ describe("ROUTINE_SUGGESTIONS", () => {
     // Depuis que le 1-clic couvre 100 % des capacités Google, plus aucun template
     // n'exige « vos clés ». La règle historique (au plus UN template gated, marqué)
     // se ré-applique d'elle-même si un connecteur gated revient au catalogue.
-    const gated = suggestedRoutines([]).filter((s) => ownKeysNeeded(s).length > 0);
+    const gated = suggestedRoutines([]).filter((s) => ownKeysNeeded(s, fr).length > 0);
     expect(gated).toEqual([]);
   });
 
   it("« Préparer ma journée » stays CASA-free — no Gmail read hiding in the agenda routine", () => {
     const journee = ROUTINE_SUGGESTIONS.find((s) => s.id === "preparer-journee")!;
     expect(journee.servers).toEqual(["google-calendar"]);
-    expect(ownKeysNeeded(journee)).toEqual([]);
+    expect(ownKeysNeeded(journee, fr)).toEqual([]);
   });
 
   it("has unique ids and names, and every template names at least one connector", () => {
@@ -280,7 +284,10 @@ describe("focusRoutines — ticking an integration always answers about IT", () 
     const ticks = MCP_CONNECTORS.slice(0, 8).map((c) => c.id);
     const items = focusRoutines(ranked, new Set(ticks), 6);
     for (const id of ticks)
-      expect(items.some((s) => s.servers.includes(id)), `dropped "${id}"`).toBe(true);
+      expect(
+        items.some((s) => s.servers.includes(id)),
+        `dropped "${id}"`,
+      ).toBe(true);
   });
 
   it("un-ticking everything goes back to the general list", () => {
@@ -293,8 +300,9 @@ describe("focusRoutines — ticking an integration always answers about IT", () 
 describe("genericRoutineFor", () => {
   it("is saveable, read-only, and speaks the catalog's own words", () => {
     const g = genericRoutineFor("microsoft-outlook")!;
-    expect(makeCompetence({ name: g.name, prompt: g.prompt, desc: g.desc, servers: g.servers }))
-      .not.toBeNull();
+    expect(
+      makeCompetence({ name: g.name, prompt: g.prompt, desc: g.desc, servers: g.servers }),
+    ).not.toBeNull();
     expect(g.prompt).toContain("Lecture seule");
     expect(g.prompt).toContain("{"); // a value to fill at launch, like every template
     expect(g.desc).toContain(findConnector("microsoft-outlook")!.desc.slice(1));
@@ -306,7 +314,7 @@ describe("genericRoutineFor", () => {
     // `adminConsent` (une autre mécanique). Elle se rallume seule si un connecteur
     // gated revient ; le test « is DERIVED » ci-dessous épingle la dérivation.
     for (const id of ["google-drive", "gmail", "microsoft-sharepoint", "slack"])
-      expect(ownKeysNeeded(genericRoutineFor(id)!), id).toEqual([]);
+      expect(ownKeysNeeded(genericRoutineFor(id)!, fr), id).toEqual([]);
   });
 
   it("returns nothing for an unknown id rather than inventing a service", () => {
@@ -320,14 +328,18 @@ describe("ownKeysNeeded — « il faut vos propres clés pour ça »", () => {
   it("Gmail et Drive ne sont PLUS gated — le 1-clic couvre lecture + envoi (30/07/2026)", () => {
     // C'était le jour prévu par le test « is DERIVED » ci-dessous : les marques ont
     // disparu d'elles-mêmes en retirant `byoAdds`/`byoOnly` du catalogue.
-    expect(ownKeysNeeded(byId("revue-boite-mail"))).toEqual([]);
-    expect(ownKeysNeeded(byId("point-client"))).toEqual([]);
+    expect(ownKeysNeeded(byId("revue-boite-mail"), fr)).toEqual([]);
+    expect(ownKeysNeeded(byId("point-client"), fr)).toEqual([]);
   });
 
-
   it("says nothing for a one-click template", () => {
-    for (const id of ["comparer-offres", "preparer-journee", "point-hebdo-slack", "recherche-notion"])
-      expect(ownKeysNeeded(byId(id)), id).toEqual([]);
+    for (const id of [
+      "comparer-offres",
+      "preparer-journee",
+      "point-hebdo-slack",
+      "recherche-notion",
+    ])
+      expect(ownKeysNeeded(byId(id), fr), id).toEqual([]);
   });
 
   it("is DERIVED, so it disappears on its own the day the audit clears", () => {

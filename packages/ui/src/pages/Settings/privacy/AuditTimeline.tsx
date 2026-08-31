@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useT } from "../../../i18n";
 import { PRIVACY_KINDS } from "../../../privacy/redactCategories";
 import { dailyRedactionsByCategory, type RedactionAt } from "./auditActivity";
+import { privacyKindLabel } from "../../../help/catalogCopy";
 
 const KIND_META = new Map(PRIVACY_KINDS.map((k) => [k.key, k]));
 
@@ -20,7 +21,7 @@ export function AuditTimeline({ entries, days = 14 }: { entries: RedactionAt[]; 
   );
   const maxDay = Math.max(1, ...stack.map((d) => d.total));
   const hasData = cats.length > 0;
-  const label = (k: string) => KIND_META.get(k)?.label ?? k;
+  const label = (k: string) => privacyKindLabel(k, t);
   const colour = (k: string) => KIND_META.get(k)?.fg ?? "var(--text-faint)";
 
   return (

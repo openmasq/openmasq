@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 /**
  * Ce que l'UTILISATEUR lit quand un connecteur a échoué — le pendant lisible de
  * `connectorErrorReason` (qui, lui, ne rend qu'un enum pour la mesure).
@@ -37,15 +38,18 @@ export interface ConnectorErrorText {
 }
 
 /** Rend le texte utilisateur, ou `null` si on ne sait pas (⇒ garder le brut). */
-export function connectorErrorText(raw: string | undefined | null): ConnectorErrorText | null {
+export function connectorErrorText(
+  raw: string | undefined | null,
+  t: Messages,
+): ConnectorErrorText | null {
   const m = (raw ?? "").trim();
   if (!m) return null;
   // L'ORDRE porte la règle : une clé refusée et un 403 ressemblent à une expiration, mais
   // le geste diffère — on teste donc du plus spécifique au plus général.
-  if (APIKEY_RE.test(m)) return { text: "La clé API a été refusée — vérifiez-la et saisissez-la à nouveau.", reconnect: false };
-  if (UNSUPPORTED_RE.test(m)) return { text: "Ce service ne prend pas en charge la connexion automatique.", reconnect: false };
-  if (FORBIDDEN_RE.test(m)) return { text: "Ce service refuse l'accès — vérifiez vos droits chez lui, puis reconnectez-vous.", reconnect: true };
-  if (EXPIRED_RE.test(m)) return { text: "Votre autorisation a expiré — reconnectez-vous pour continuer.", reconnect: true };
-  if (NETWORK_RE.test(m)) return { text: "Service injoignable — réessayez dans un instant.", reconnect: false };
+  if (APIKEY_RE.test(m)) return { text: t.mcpTab.errors.apikey, reconnect: false };
+  if (UNSUPPORTED_RE.test(m)) return { text: t.mcpTab.errors.unsupported, reconnect: false };
+  if (FORBIDDEN_RE.test(m)) return { text: t.mcpTab.errors.forbidden, reconnect: true };
+  if (EXPIRED_RE.test(m)) return { text: t.mcpTab.errors.expired, reconnect: true };
+  if (NETWORK_RE.test(m)) return { text: t.mcpTab.errors.network, reconnect: false };
   return null;
 }

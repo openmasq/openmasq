@@ -44,34 +44,29 @@ export function EnvCard() {
 
   const target = otherEnv(env.name);
   // La pile auto-hébergée a son nom dans le catalogue ; les environnements cuits, le leur.
-  const currentLabel = env.name === "custom" ? t.selfHost.envLabel : envLabel(env.name);
+  const currentLabel = env.name === "custom" ? t.selfHost.envLabel : envLabel(env.name, t);
   const description =
     env.name === "custom"
       ? t.selfHost.envDescription
       : env.name === "staging"
-        ? "Environnement de test — données et services de préversion."
-        : "L'environnement normal de l'app.";
+        ? t.versionsTab.envStagingDesc
+        : t.versionsTab.envProductionDesc;
 
   const onSwitch = async () => {
-    if (
-      !window.confirm(
-        `Basculer vers l'environnement ${envLabel(target)} ? L'app redémarre et rouvre côté ${envLabel(target)}, avec les données de cet environnement.`,
-      )
-    )
-      return;
+    if (!window.confirm(t.versionsTab.envSwitchConfirm(envLabel(target, t)))) return;
     setBusy(true);
     setErr(null);
     const r = await env.switchTo(target).catch(() => null);
     // ok:true ⇒ l'app redémarre : rien à rendre. Tout le reste se dit.
     if (!r || !r.ok) {
-      setErr(switchRefusalText(r?.reason));
+      setErr(switchRefusalText(r?.reason, t));
       setBusy(false);
     }
   };
 
   return (
     <section className="mb-6">
-      <div className="cv-eyebrow ver-eyebrow">ENVIRONNEMENT</div>
+      <div className="cv-eyebrow ver-eyebrow">{t.versionsTab.envEyebrow}</div>
       <div className="ver-now om-sweep-host">
         <span className="ver-now-mark">
           <LayersIcon size={22} />
@@ -83,7 +78,7 @@ export function EnvCard() {
           <div className="ver-now-chan">{description}</div>
         </div>
         <button onClick={onSwitch} disabled={busy} className="ver-btn">
-          <span className="om-sweep">Basculer vers {envLabel(target)}</span>
+          <span className="om-sweep">{t.versionsTab.envSwitchTo(envLabel(target, t))}</span>
         </button>
       </div>
       {err && (

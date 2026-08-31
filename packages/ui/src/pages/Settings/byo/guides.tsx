@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { McpConnector } from "@openmasq/catalog/mcp";
 import { BRAND } from "@openmasq/branding";
+import type { Messages } from "@openmasq/i18n";
 
 /**
  * The per-provider walkthrough shown in the "Mes clés" modal: a DIRECT link at each
@@ -70,97 +71,117 @@ export interface Guide {
   idPlaceholder: string;
 }
 
-export function guideFor(c: McpConnector): Guide {
+/** Le tutoriel d'un connecteur, dans la langue de `t` — les liens et les valeurs à
+ *  coller restent ici (des FAITS), chaque phrase vient du catalogue (`byo.*`). */
+export function guideFor(c: McpConnector, t: Messages): Guide {
   // `directAuth`: "device" = GitHub (client id only), "microsoft" = Microsoft Entra
   // PUBLIC client (client id only, PKCE), "pkce" = Google (id + secret).
   if (c.directAuth === "microsoft") {
     // Microsoft identity platform: a PUBLIC "Mobile and desktop" client — loopback
     // 127.0.0.1 redirect + PKCE, so NO client secret (see main's oauthMicrosoft.ts).
+    const g = t.byo.microsoft;
     return {
       needsSecret: false,
-      intro:
-        "≈ 3 min. Une simple inscription d'application Microsoft Entra, sans code secret. Les autorisations sont accordées au moment de la connexion.",
+      intro: g.intro,
       idPlaceholder: "00000000-0000-0000-0000-000000000000",
-      note: "L'adresse « http://127.0.0.1/callback » reste sur votre ordinateur — le port n'a pas d'importance, et aucun code secret n'est à créer.",
+      note: g.note,
       steps: [
         <>
-          Ouvrez le portail Microsoft Entra : <Lnk href={MS.register}>Inscrire une application</Lnk>.
+          {g.s1.lead}
+          <Lnk href={MS.register}>{g.s1.link}</Lnk>.
         </>,
         <>
-          Nommez-la « {BRAND.name} », puis sous <strong>« Types de comptes pris en charge »</strong>{" "}
-          choisissez <strong>« Comptes dans un annuaire organisationnel quelconque et comptes
-          Microsoft personnels »</strong> (pour les comptes pro comme Outlook.com).
+          {g.s2.a}
+          {BRAND.name}
+          {g.s2.b}
+          <strong>{g.s2.c}</strong>
+          {g.s2.d}
         </>,
         <>
-          Sous <strong>« URI de redirection »</strong>, sélectionnez la plateforme{" "}
-          <strong>« Applications de bureau et mobiles »</strong> et saisissez{" "}
-          <strong>http://127.0.0.1/callback</strong> — puis cliquez sur « S'inscrire ». (Vous
-          pouvez aussi l'ajouter ensuite dans l'onglet « Authentification ».)
+          {g.s3.a}
+          <strong>{g.s3.b}</strong>
+          {g.s3.c}
+          <strong>{g.s3.d}</strong>
+          {g.s3.e}
         </>,
         <>
-          Sur la page <strong>« Vue d'ensemble »</strong>, copiez l'
-          <strong>« ID d'application (client) »</strong> et collez-le ci-dessous —{" "}
-          <strong>aucun secret nécessaire</strong>.
+          {g.s4.a}
+          <strong>{g.s4.b}</strong>
+          {g.s4.c}
+          <strong>{g.s4.d}</strong>.
         </>,
       ],
     };
   }
   if (c.directAuth === "device") {
+    const g = t.byo.github;
     return {
       needsSecret: false,
-      intro: "≈ 1 min. Aucune application à faire vérifier, aucun code secret.",
+      intro: g.intro,
       idPlaceholder: "Iv1.a1b2c3d4e5f6…",
       steps: [
         <>
-          Créez une app OAuth GitHub : <Lnk href={GH.newApp}>Nouvelle OAuth App</Lnk>. Nom :
-          « {BRAND.name} » ; les champs Homepage / Callback URL peuvent être n'importe quoi (inutilisés
-          en device flow).
+          {g.s1.lead}
+          <Lnk href={GH.newApp}>{g.s1.link}</Lnk>
+          {g.s1.tail(BRAND.name)}
         </>,
         <>
-          Sur la page de l'app, cochez <strong>« Enable Device Flow »</strong>, puis
-          enregistrez.
+          {g.s2.a}
+          <strong>{g.s2.b}</strong>
+          {g.s2.c}
         </>,
         <>
-          Copiez le <strong>Client ID</strong> (en haut de la page) et collez-le ci-dessous —{" "}
-          <strong>aucun secret nécessaire</strong>.
+          {g.s3.a}
+          <strong>{g.s3.b}</strong>
+          {g.s3.c}
+          <strong>{g.s3.d}</strong>.
         </>,
       ],
     };
   }
+  const g = t.byo.google;
   const apis = googleApis(c.id);
   const multi = apis.length > 1;
   return {
     needsSecret: true,
-    intro:
-      "≈ 3 min. Votre application en mode test débloque toutes les fonctionnalités, sans vérification ni contrôle de Google.",
+    intro: g.intro,
     idPlaceholder: "1234-abcd….apps.googleusercontent.com",
-    note: "L'adresse « 127.0.0.1 » (votre ordinateur) est autorisée automatiquement pour une application de bureau — rien à déclarer.",
+    note: g.note,
     steps: [
       <>
-        Créez ou choisissez un projet : <Lnk href={G.newProject}>Nouveau projet Google Cloud</Lnk>.
+        {g.s1.lead}
+        <Lnk href={G.newProject}>{g.s1.link}</Lnk>.
       </>,
       <>
-        {multi ? "Activez les API : " : "Activez l'API : "}
+        {multi ? g.s2.enableMany : g.s2.enableOne}
         {apis.map((a, i) => (
           <span key={a.href}>
-            {i > 0 ? (i === apis.length - 1 ? " et " : ", ") : ""}
+            {i > 0 ? (i === apis.length - 1 ? g.s2.and : ", ") : ""}
             <Lnk href={a.href}>{a.label}</Lnk>
           </span>
         ))}
-        {multi ? " → bouton « Activer » pour chacune." : " → bouton « Activer »."}
+        {multi ? g.s2.tailMany : g.s2.tailOne}
       </>,
       <>
-        Ouvrez l'<Lnk href={G.consent}>écran de consentement OAuth</Lnk> → type{" "}
-        <strong>« Externe »</strong>, puis dans <strong>« Utilisateurs test »</strong> ajoutez
-        votre adresse Google (c'est ce qui évite toute vérification/audit).
+        {g.s3.a}
+        <Lnk href={G.consent}>{g.s3.link}</Lnk>
+        {g.s3.b}
+        <strong>{g.s3.c}</strong>
+        {g.s3.d}
+        {g.s3.e}
       </>,
       <>
-        Créez les identifiants : <Lnk href={G.credentials}>Créer un ID client OAuth</Lnk> → type
-        d'application <strong>« Application de bureau »</strong>.
+        {g.s4.a}
+        <Lnk href={G.credentials}>{g.s4.link}</Lnk>
+        {g.s4.b}
+        <strong>{g.s4.c}</strong>
       </>,
       <>
-        Copiez l'<strong>ID client</strong> et le <strong>Code secret du client</strong> et
-        collez-les ci-dessous.
+        {g.s5.a}
+        <strong>{g.s5.b}</strong>
+        {g.s5.c}
+        <strong>{g.s5.d}</strong>
+        {g.s5.e}
       </>,
     ],
   };

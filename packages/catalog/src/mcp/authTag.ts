@@ -33,11 +33,52 @@ function byoReasonText(c: Pick<McpConnector, "byoReason">): string {
     : `Google vérifie encore ${BRAND.name} avant d'ouvrir cet accès en un clic (en cours)`;
 }
 
+/** The SHAPE of a connector's auth story — every branch `mcpAuthTag` renders, without
+ *  the words. The desktop UI renders the same shape from its language catalogue
+ *  (`@openmasq/i18n` `connectorCatalog.auth`), so the two can never disagree on WHICH
+ *  story a connector tells — only on the language it is told in. */
+export type McpAuthVariant =
+  | "builtin"
+  | "byoOnly"
+  | "byoLimited"
+  | "device"
+  | "directFull"
+  | "local"
+  | "broker"
+  | "apikey"
+  | "oneClickRemote";
+
+export interface McpAuthShape {
+  kind: McpAuthTag["kind"];
+  variant: McpAuthVariant;
+  /** `byoAdds` verbatim when set — what the one-click does NOT cover. */
+  what?: string;
+  /** Why "Mes clés" is the way in (BYO variants only). */
+  reason?: "admin-consent" | "google-review";
+}
+
+export function mcpAuthShape(
+  c: Pick<McpConnector, "transport" | "auth" | "directAuth" | "byoOnly" | "byoReason" | "byoAdds">,
+): McpAuthShape {
+  if (c.transport === "builtin") return { kind: "builtin", variant: "builtin" };
+  if (c.transport === "direct") {
+    const reason = c.byoReason === "admin-consent" ? "admin-consent" : "google-review";
+    // No first-party client at all → do NOT advertise a one-click that isn't offered: the
+    // modal only shows "Mes clés" here, and the chip must agree with the buttons.
+    if (c.byoOnly) return { kind: "direct", variant: "byoOnly", what: c.byoAdds, reason };
+    // A first-party client that covers only PART of the connector (Gmail: it sends, it
+    // cannot read). The plain one-click line alone would overstate what you get.
+    if (c.byoAdds) return { kind: "direct", variant: "byoLimited", what: c.byoAdds, reason };
+    return { kind: "direct", variant: c.directAuth === "device" ? "device" : "directFull" };
+  }
+  if (c.transport === "stdio") return { kind: "local", variant: "local" };
+  if (c.transport === "broker") return { kind: "broker", variant: "broker" };
+  if (c.auth === "apikey") return { kind: "apikey", variant: "apikey" };
+  return { kind: "oneclick", variant: "oneClickRemote" };
+}
+
 export function mcpAuthTag(
-  c: Pick<
-    McpConnector,
-    "transport" | "auth" | "directAuth" | "byoOnly" | "byoReason" | "byoAdds"
-  >,
+  c: Pick<McpConnector, "transport" | "auth" | "directAuth" | "byoOnly" | "byoReason" | "byoAdds">,
 ): McpAuthTag {
   if (c.transport === "builtin") {
     return {

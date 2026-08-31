@@ -2,6 +2,7 @@ import { Btn } from "../McpBtn";
 import type { McpConnector } from "@openmasq/catalog/mcp";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../../../i18n";
 /**
  * A desktop-DIRECT connector that isn't connected yet: the app's own one-click
  * OAuth, and/or "Mes clés" (BYO client id/secret, stored encrypted on this
@@ -23,54 +24,59 @@ export function McpDirectBody({
   onByo: () => void;
   onConnectDirect: () => void;
 }) {
+  const t = useT();
   return (
     <>
-      {hasCreds && (
-        <p className="mcp-modal-note">
-          Vos identifiants sont déjà enregistrés sur cette machine — « Mes clés » permet de
-          les réutiliser ou de les remplacer.
-        </p>
-      )}
+      {hasCreds && <p className="mcp-modal-note">{t.mcpTab.credsSaved}</p>}
       {connector.adminConsent && (
         // Said BEFORE the click, not discovered as a failure: a member who is not an admin
         // would otherwise read Microsoft's refusal as "l'app est cassée". The one-off,
         // org-wide nature is the point — it is what makes this a five-minute approval
         // rather than an integration project.
-        <p className="mcp-modal-note">
-          Première connexion dans votre organisation&nbsp;: un administrateur doit approuver
-          {BRAND.name} une seule fois, pour tout le monde. Si vous ne l&apos;êtes pas, lancez la
-          connexion&nbsp;: {BRAND.name} vous donnera le lien à lui transmettre.
-        </p>
+        <p className="mcp-modal-note">{t.mcpTab.adminConsent(BRAND.name)}</p>
       )}
       <div className="mcp-modal-actions">
         {connector.byoOnly ? (
           <Btn
-            label={busy ? "Connexion…" : hasCreds ? "Reconnecter" : "Mes clés"}
+            label={busy ? t.mcpTab.connecting : hasCreds ? t.mcpTab.reconnect : t.mcpTab.myKeys}
             onClick={onByo}
             disabled={busy}
             loading={busy}
           />
         ) : connector.directAuth === "slack" ? (
-          <Btn label={busy ? "Connexion…" : "Connecter"} onClick={onConnectDirect} disabled={busy} loading={busy} />
+          <Btn
+            label={busy ? t.mcpTab.connecting : t.byo.connect}
+            onClick={onConnectDirect}
+            disabled={busy}
+            loading={busy}
+          />
         ) : connector.byoAdds ? (
           // The app's 1-clic covers only PART of this connector, so "Mes clés" leads:
           // it is the mode that actually does what the user came for. The 1-clic stays
           // one click away, but must not present itself as the complete option.
           <>
             <Btn
-              label={busy ? "Connexion…" : "Connecter (limité)"}
+              label={busy ? t.mcpTab.connecting : t.mcpTab.connectLimited}
               onClick={onConnectDirect}
               disabled={busy}
               loading={busy}
               subtle
-              title={`Sans vos clés, ${BRAND.name} ne peut pas ${connector.byoAdds}.`}
+              title={t.mcpTab.connectLimitedTip(
+                BRAND.name,
+                connector.byoAdds ?? t.connectorCatalog.auth.thisAccess,
+              )}
             />
-            <Btn label="Mes clés" onClick={onByo} disabled={busy} />
+            <Btn label={t.mcpTab.myKeys} onClick={onByo} disabled={busy} />
           </>
         ) : (
           <>
-            <Btn label="Mes clés" onClick={onByo} disabled={busy} subtle />
-            <Btn label={busy ? "Connexion…" : "Connecter"} onClick={onConnectDirect} disabled={busy} loading={busy} />
+            <Btn label={t.mcpTab.myKeys} onClick={onByo} disabled={busy} subtle />
+            <Btn
+              label={busy ? t.mcpTab.connecting : t.byo.connect}
+              onClick={onConnectDirect}
+              disabled={busy}
+              loading={busy}
+            />
           </>
         )}
       </div>

@@ -1,4 +1,6 @@
-import { findConnector, mcpAuthTag } from "@openmasq/catalog/mcp";
+import type { Messages } from "@openmasq/i18n";
+import { findConnector } from "@openmasq/catalog/mcp";
+import { connectorCopy, mcpAuthTagCopy } from "../help/catalogCopy";
 import type { Competence } from "../types";
 import { pickSuggestions } from "./suggestions";
 import { ROUTINE_SUGGESTIONS, type RoutineSuggestion } from "./routineTemplates";
@@ -17,7 +19,7 @@ export interface OwnKeysNote {
    *  (« lire vos emails ») — the whole point: Gmail SENDS in one click, only
    *  READING needs the user's own client. */
   adds: string;
-  /** The full user-facing sentence, straight from `mcpAuthTag` — the copy has ONE
+  /** The full user-facing sentence, straight from `mcpAuthTagCopy` — the copy has ONE
    *  home, so the chip and the Réglages card can never explain it differently. */
   title: string;
 }
@@ -34,12 +36,16 @@ export interface OwnKeysNote {
  * template is in that case — every Gmail one reads — and over-warning is the right
  * side to err on: the alternative is a hand-written flag per template, which drifts.
  */
-export function ownKeysNeeded(s: Pick<RoutineSuggestion, "servers">): OwnKeysNote[] {
+export function ownKeysNeeded(s: Pick<RoutineSuggestion, "servers">, t: Messages): OwnKeysNote[] {
   const notes: OwnKeysNote[] = [];
   for (const id of s.servers) {
     const c = findConnector(id);
     if (!c || (!c.byoOnly && !c.byoAdds)) continue;
-    notes.push({ service: c.name, adds: c.byoAdds ?? "cet accès", title: mcpAuthTag(c).title });
+    notes.push({
+      service: connectorCopy(c.id, c, t).name,
+      adds: c.byoAdds ?? t.connectorCatalog.auth.thisAccess,
+      title: mcpAuthTagCopy(c, t).title,
+    });
   }
   return notes;
 }
@@ -118,7 +124,9 @@ export function focusRoutines(
   if (!focus?.size) return ranked.slice(0, limit);
   const covered = (s: RoutineSuggestion) => s.servers.filter((id) => focus.has(id)).length;
   // Curated first, best coverage first (two ticked services beat one).
-  const matching = [...ranked.filter((s) => covered(s) > 0)].sort((a, b) => covered(b) - covered(a));
+  const matching = [...ranked.filter((s) => covered(s) > 0)].sort(
+    (a, b) => covered(b) - covered(a),
+  );
   const served = new Set(matching.flatMap((s) => s.servers.filter((id) => focus.has(id))));
   const generated = [...focus]
     .filter((id) => !served.has(id))

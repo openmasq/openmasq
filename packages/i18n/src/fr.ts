@@ -10,6 +10,9 @@ import type { Messages } from "./messages";
 import { agent } from "./fr/agent";
 import { availability } from "./fr/availability";
 import { cards } from "./fr/cards";
+import { connectorCatalog } from "./fr/connectorCatalog";
+import { modelCatalog } from "./fr/modelCatalog";
+import { redactionCatalog } from "./fr/redactionCatalog";
 import { chat, chrome, composer } from "./fr/chrome";
 import { connectors } from "./fr/connectors";
 import { billing, common, nav } from "./fr/common";
@@ -17,6 +20,9 @@ import { language } from "./fr/language";
 import { errors } from "./fr/errors";
 import { guide } from "./fr/guide";
 import { docViews, downloads, menus } from "./fr/menus";
+import { mcpTab } from "./fr/mcpTab";
+import { versionsTab } from "./fr/versionsTab";
+import { byo } from "./fr/byo";
 import { modals } from "./fr/modals";
 import { onboarding } from "./fr/onboarding";
 import { providerKeys } from "./fr/providerKeys";
@@ -90,6 +96,12 @@ export const fr = {
   syncTab,
   orgTab,
   importModal,
+  mcpTab,
+  versionsTab,
+  byo,
+  connectorCatalog,
+  redactionCatalog,
+  modelCatalog,
   webNav,
   selfHost,
 } satisfies Messages;

@@ -31,29 +31,30 @@ import { UsersIcon, MessageIcon, ActivityIcon, LayersIcon, KeyIcon } from "../co
 const hlFg = (h: Hue) => `var(--hl-${h})`;
 const hlBg = (h: Hue) => `color-mix(in oklch, var(--hl-${h}) 16%, transparent)`;
 
-/** Privacy report rows — one per fine category, coloured from `CATEGORY_HUE`. */
-const PRIVACY_BASE: { key: keyof typeof CATEGORY_HUE; label: string; Icon: ComponentType<{ size?: number }> }[] = [
-  { key: "name", label: "Noms", Icon: UsersIcon },
-  { key: "dob", label: "Dates de naissance", Icon: ActivityIcon },
-  { key: "username", label: "Pseudos / identifiants", Icon: UsersIcon },
-  { key: "email", label: "Adresses e-mail", Icon: MessageIcon },
-  { key: "phone", label: "Numéros de téléphone", Icon: ActivityIcon },
-  { key: "address", label: "Adresses postales", Icon: ActivityIcon },
-  { key: "location", label: "Lieux", Icon: ActivityIcon },
-  { key: "company", label: "Noms d'entreprise", Icon: LayersIcon },
-  { key: "card", label: "Cartes bancaires", Icon: KeyIcon },
-  { key: "iban", label: "IBAN", Icon: KeyIcon },
-  { key: "national_id", label: "Identifiants nationaux", Icon: KeyIcon },
-  { key: "ip", label: "Adresses IP", Icon: ActivityIcon },
-  { key: "number", label: "Nombres", Icon: ActivityIcon },
-  { key: "path", label: "Chemins de fichiers", Icon: LayersIcon },
-  { key: "secret", label: "Clés & secrets", Icon: KeyIcon },
-  { key: "apikey", label: "Chaînes de type clé", Icon: KeyIcon },
+/** Privacy report rows — one per fine category, coloured from `CATEGORY_HUE`. The
+ *  LABEL is not here: `help/catalogCopy.ts` `privacyKindLabel(key, t)` reads it from the
+ *  language catalogue (`redactionCatalog.kinds`). */
+const PRIVACY_BASE: { key: keyof typeof CATEGORY_HUE; Icon: ComponentType<{ size?: number }> }[] = [
+  { key: "name", Icon: UsersIcon },
+  { key: "dob", Icon: ActivityIcon },
+  { key: "username", Icon: UsersIcon },
+  { key: "email", Icon: MessageIcon },
+  { key: "phone", Icon: ActivityIcon },
+  { key: "address", Icon: ActivityIcon },
+  { key: "location", Icon: ActivityIcon },
+  { key: "company", Icon: LayersIcon },
+  { key: "card", Icon: KeyIcon },
+  { key: "iban", Icon: KeyIcon },
+  { key: "national_id", Icon: KeyIcon },
+  { key: "ip", Icon: ActivityIcon },
+  { key: "number", Icon: ActivityIcon },
+  { key: "path", Icon: LayersIcon },
+  { key: "secret", Icon: KeyIcon },
+  { key: "apikey", Icon: KeyIcon },
 ];
 
 export const PRIVACY_KINDS: {
   key: string;
-  label: string;
   bg: string;
   fg: string;
   Icon: ComponentType<{ size?: number }>;

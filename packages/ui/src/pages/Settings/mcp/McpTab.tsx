@@ -10,6 +10,8 @@ import { McpConnectorCard } from "./McpConnectorCard";
 import { McpCustomModal } from "./McpCustomModal";
 import { McpModals } from "./McpModals";
 
+import { useT } from "../../../i18n";
+import { mcpCategoryLabel } from "../../../help/catalogCopy";
 /* MCP servers tab — a searchable 2-column card grid grouped by category. The cards
    carry NO connect/disconnect buttons: clicking one opens a single detail modal
    that holds every action (remote OAuth / desktop-direct managed+BYO / local stdio).
@@ -23,11 +25,23 @@ export function McpTab({
    *  suggested-integration cards. The `n` nonce re-applies even for the same id. */
   requestedConnector?: { id: string; n: number };
 } = {}) {
+  const t = useT();
   const host = useHost();
   // L'objet entier est passé tel quel à `McpModals` (la pile de modales, partagée avec
   // `ConnectorModalHost`) ; l'onglet ne destructure que ce que sa GRILLE affiche.
   const c = useMcpConnectors({ allowedMcpIds, requestedConnector });
-  const { servers, query, setQuery, setOpenId, items, groups, localItems, customItems, nothing, addCustom } = c;
+  const {
+    servers,
+    query,
+    setQuery,
+    setOpenId,
+    items,
+    groups,
+    localItems,
+    customItems,
+    nothing,
+    addCustom,
+  } = c;
   // The "add a server" affordance exists ONLY where the platform can actually vet the
   // endpoint (main mints the id + runs the SSRF guard). Absent slot ⇒ no button.
   const [adding, setAdding] = useState(false);
@@ -60,10 +74,8 @@ export function McpTab({
   if (!host.mcp) {
     return (
       <section className="settings-section">
-        <div className="cv-eyebrow">SERVEURS MCP</div>
-        <p className="mcp-empty">
-          Les connecteurs MCP ne sont pas disponibles sur cette plateforme.
-        </p>
+        <div className="cv-eyebrow">{t.mcpTab.eyebrow}</div>
+        <p className="mcp-empty">{t.mcpTab.unavailable}</p>
       </section>
     );
   }
@@ -91,103 +103,102 @@ export function McpTab({
 
   return (
     <>
-    <section className="settings-section">
-      <div className="mcp-head">
-        <div className="cv-eyebrow">SERVEURS MCP</div>
-        <div className="mcp-count">
-          {connectedCount} connecté{connectedCount === 1 ? "" : "s"} · {items.length} disponibles
-        </div>
-      </div>
-      <div className="mcp-search-row">
-        <label className="audit-search mcp-search">
-          <SearchIcon size={16} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher un connecteur…"
-          />
-        </label>
-        {canAddCustom && (
-          <button
-            type="button"
-            className="mcp-btn subtle mcp-add-btn"
-            onClick={() => setAdding(true)}
-            title="Connecter un service qui n'est pas dans la liste"
-          >
-            <PlusIcon size={14} /> Ajouter un connecteur
-          </button>
-        )}
-      </div>
-
-      {remoteToOffer.length > 0 && (
-        <div className="mcp-group">
-          <div className="cv-eyebrow mcp-cat-eyebrow">SUR VOS AUTRES APPAREILS</div>
-          <div className="flex flex-col gap-2">
-            {remoteToOffer.map((r) => (
-              <div key={r.id} className="flex items-center justify-between gap-3 text-sm">
-                <span className="min-w-0 truncate">
-                  {r.name}
-                  {r.label ? <span className="text-muted"> · {r.label}</span> : null}
-                </span>
-                <Btn
-                  subtle
-                  label="Connecter sur cet appareil"
-                  onClick={() => setOpenId(r.connectorId)}
-                />
-              </div>
-            ))}
+      <section className="settings-section">
+        <div className="mcp-head">
+          <div className="cv-eyebrow">{t.mcpTab.eyebrow}</div>
+          <div className="mcp-count">
+            {connectedCount} connecté{connectedCount === 1 ? "" : "s"} · {items.length} disponibles
           </div>
         </div>
-      )}
-
-      {groups.map((group) => (
-        <div key={group.id} className="mcp-group">
-          <div className="cv-eyebrow mcp-cat-eyebrow">{group.label}</div>
-          {grid(group.items)}
+        <div className="mcp-search-row">
+          <label className="audit-search mcp-search">
+            <SearchIcon size={16} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.mcpTab.search}
+            />
+          </label>
+          {canAddCustom && (
+            <button
+              type="button"
+              className="mcp-btn subtle mcp-add-btn"
+              onClick={() => setAdding(true)}
+              title={t.mcpTab.addTip}
+            >
+              <PlusIcon size={14} /> {t.mcpTab.add}
+            </button>
+          )}
         </div>
-      ))}
 
-      {localItems.length > 0 && (
-        <div className="mcp-group">
-          <div className="cv-eyebrow mcp-cat-eyebrow">SERVEURS LOCAUX</div>
-          {grid(localItems)}
-        </div>
-      )}
-
-      {/* User-added servers keep their own section: they are not audited connectors and
-          must not read as one, sitting inside a category next to the vetted ones. */}
-      {customItems.length > 0 && (
-        <div className="mcp-group">
-          <div className="cv-eyebrow mcp-cat-eyebrow">AJOUTÉS PAR VOUS — NON VÉRIFIÉS</div>
-          {grid(customItems)}
-        </div>
-      )}
-
-      {nothing && <p className="mcp-empty">Aucun connecteur ne correspond à « {query} ».</p>}
-
-      {/* La MÊME pile qu'ailleurs dans l'app (`ConnectorModalHost`) — une seule
-          implémentation du câblage connect/déconnect, pas deux copies (règle 9). */}
-      <McpModals c={c} />
-
-      <AnimatePresence>
-        {adding && (
-          <McpCustomModal
-            busy={addBusy}
-            onClose={() => setAdding(false)}
-            onAdd={async (input) => {
-              setAddBusy(true);
-              try {
-                return await addCustom(input);
-              } finally {
-                setAddBusy(false);
-              }
-            }}
-          />
+        {remoteToOffer.length > 0 && (
+          <div className="mcp-group">
+            <div className="cv-eyebrow mcp-cat-eyebrow">{t.mcpTab.otherDevices}</div>
+            <div className="flex flex-col gap-2">
+              {remoteToOffer.map((r) => (
+                <div key={r.id} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="min-w-0 truncate">
+                    {r.name}
+                    {r.label ? <span className="text-muted"> · {r.label}</span> : null}
+                  </span>
+                  <Btn
+                    subtle
+                    label={t.mcpTab.connectHere}
+                    onClick={() => setOpenId(r.connectorId)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         )}
-      </AnimatePresence>
 
-    </section>
-    <McpWriteConfirm />
+        {groups.map((group) => (
+          <div key={group.id} className="mcp-group">
+            <div className="cv-eyebrow mcp-cat-eyebrow">{mcpCategoryLabel(group.id, t)}</div>
+            {grid(group.items)}
+          </div>
+        ))}
+
+        {localItems.length > 0 && (
+          <div className="mcp-group">
+            <div className="cv-eyebrow mcp-cat-eyebrow">{t.mcpTab.localServers}</div>
+            {grid(localItems)}
+          </div>
+        )}
+
+        {/* User-added servers keep their own section: they are not audited connectors and
+          must not read as one, sitting inside a category next to the vetted ones. */}
+        {customItems.length > 0 && (
+          <div className="mcp-group">
+            <div className="cv-eyebrow mcp-cat-eyebrow">{t.mcpTab.addedByYou}</div>
+            {grid(customItems)}
+          </div>
+        )}
+
+        {nothing && <p className="mcp-empty">{t.mcpTab.noMatch(query)}</p>}
+
+        {/* La MÊME pile qu'ailleurs dans l'app (`ConnectorModalHost`) — une seule
+          implémentation du câblage connect/déconnect, pas deux copies (règle 9). */}
+        <McpModals c={c} />
+
+        <AnimatePresence>
+          {adding && (
+            <McpCustomModal
+              busy={addBusy}
+              onClose={() => setAdding(false)}
+              onAdd={async (input) => {
+                setAddBusy(true);
+                try {
+                  return await addCustom(input);
+                } finally {
+                  setAddBusy(false);
+                }
+              }}
+            />
+          )}
+        </AnimatePresence>
+      </section>
+      <McpWriteConfirm />
     </>
   );
 }

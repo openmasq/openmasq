@@ -2,6 +2,7 @@ import { ShieldIcon, XIcon, IconButton } from "../../../components/brand";
 import { useT } from "../../../i18n";
 import { ModalShell } from "../../../containers/modals";
 import type { PrivacyBreakdown } from "./privacyStats";
+import { privacyKindLabel } from "../../../help/catalogCopy";
 
 /** The by-type breakdown modal, shared by BOTH privacy cards (your-messages and
  *  all-interceptions). `title` names which set it shows; the counts come straight
@@ -25,9 +26,7 @@ export function PrivacyBreakdownModal({
         </span>
         <div className="rlog-head-text">
           <div className="rlog-title">{title}</div>
-          <div className="rlog-sub">
-            {t.privacyTab.protectedValues(total)}
-          </div>
+          <div className="rlog-sub">{t.privacyTab.protectedValues(total)}</div>
         </div>
         <IconButton label={t.privacyTab.revealClose} size="sm" onClick={onClose}>
           <XIcon size={18} />
@@ -35,7 +34,8 @@ export function PrivacyBreakdownModal({
       </div>
       <div className="rlog-body privacy-modal-body">
         <div className="privacy-types-list">
-          {rows.map(({ key, label, bg, fg, Icon, count }) => {
+          {rows.map(({ key, bg, fg, Icon, count }) => {
+            const label = privacyKindLabel(key, t);
             const pct = total ? Math.round((count / total) * 100) : 0;
             return (
               <div key={key} className="privacy-type-row">

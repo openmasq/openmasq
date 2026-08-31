@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { McpCatalogEntry } from "../../../host";
 import { Btn } from "./McpBtn";
 
+import { useT } from "../../../i18n";
 /**
  * Les dossiers autorisés d'un serveur local DÉJÀ connecté, avec ajout et retrait.
  *
@@ -27,6 +28,7 @@ export function McpGrantedDirs({
   onPickDir: () => Promise<string | undefined>;
   onSetDirs: (key: string, dirs: string[]) => Promise<string | undefined>;
 }) {
+  const t = useT();
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,23 +59,24 @@ export function McpGrantedDirs({
                 <button
                   type="button"
                   className="opacity-60 hover:opacity-100"
-                  onClick={() => apply(p.key, dirs.filter((x) => x !== d))}
+                  onClick={() =>
+                    apply(
+                      p.key,
+                      dirs.filter((x) => x !== d),
+                    )
+                  }
                   // Un dossier requis ne se retire pas s'il est le dernier : l'hôte
                   // refuserait, autant ne pas proposer le geste.
                   disabled={busy || (!!p.required && dirs.length === 1)}
-                  aria-label={`Retirer ${d}`}
-                  title={
-                    p.required && dirs.length === 1
-                      ? "Au moins un dossier est requis — ajoutez-en un autre avant de retirer celui-ci"
-                      : "Retirer"
-                  }
+                  aria-label={t.mcpTab.removeDir(d)}
+                  title={p.required && dirs.length === 1 ? t.mcpTab.atLeastOneDir : t.mcpTab.remove}
                 >
                   ✕
                 </button>
               </div>
             ))}
             <Btn
-              label={busy ? "Mise à jour…" : "Ajouter un dossier…"}
+              label={busy ? t.mcpTab.updating : t.mcpTab.addDir}
               onClick={async () => {
                 const dir = await onPickDir();
                 if (!dir || dirs.includes(dir)) return;

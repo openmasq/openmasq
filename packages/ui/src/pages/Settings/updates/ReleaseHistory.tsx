@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import { useEffect, useRef, useState } from "react";
 import { ChevDownIcon } from "../../../components/brand";
 import { BrandLoader } from "../../../components/media/BrandLogo";
@@ -6,6 +7,7 @@ import { baseVersion, latestPerVersion, type ReleaseNote } from "../../../state/
 import { ReleaseNoteBody } from "../../../components/releaseNotes";
 import type { DesktopRelease } from "../../../host";
 
+import { useT } from "../../../i18n";
 // The version HISTORY list of the Versions tab — a card list of published builds,
 // each expandable to its Contentful release notes (fetched from analytics-fn and
 // matched by version). Mirrors the design-system `VersionsSection`. Split out of
@@ -26,10 +28,10 @@ export function noteLookup(notes: ReleaseNote[]): (version: string) => ReleaseNo
 // Release lifecycle → the coloured state pill next to the version (mirrors the DS
 // VersionsSection): the running build is "Installée", a newer published build
 // "Disponible", anything older "Précédente".
-const STATE_LABEL: Record<string, string> = {
-  current: "Installée",
-  available: "Disponible",
-  past: "Précédente",
+const STATE_LABEL: Record<"current" | "available" | "past", (t: Messages) => string> = {
+  current: (t) => t.versionsTab.stateCurrent,
+  available: (t) => t.versionsTab.stateAvailable,
+  past: (t) => t.versionsTab.statePast,
 };
 
 // The history renders a PAGE at a time, growing as a bottom sentinel scrolls into
@@ -57,6 +59,7 @@ export function ReleaseTable({
   noteFor: (version: string) => ReleaseNote | undefined;
   action: (r: DesktopRelease, cur: boolean) => React.ReactNode;
 }) {
+  const t = useT();
   // Versions the user has manually COLLAPSED (default = all expanded).
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const toggle = (version: string) =>
@@ -108,14 +111,16 @@ export function ReleaseTable({
                   <span className="ver-ver-num">
                     <span className="om-sweep">{r.version}</span>
                   </span>
-                  <span className={`ver-state ${state}`}>{STATE_LABEL[state]}</span>
+                  <span className={`ver-state ${state}`}>{STATE_LABEL[state](t)}</span>
                 </div>
                 {lead && <div className="ver-rellead">{lead}</div>}
               </div>
               <div className="ver-relrow-right" onClick={(e) => e.stopPropagation()}>
                 <span className="ver-reldate">
                   {r.created_at || note?.releaseDate
-                    ? new Date(r.created_at ?? note!.releaseDate!).toLocaleDateString()
+                    ? new Date(r.created_at ?? note!.releaseDate!).toLocaleDateString(
+                        t.common.intlTag,
+                      )
                     : "—"}
                 </span>
                 {action(r, cur)}
@@ -129,7 +134,7 @@ export function ReleaseTable({
                     className={`ver-relchev${expanded ? " open" : ""}`}
                     onClick={() => toggle(r.version)}
                     aria-expanded={expanded}
-                    aria-label={`${expanded ? "Replier" : "Déplier"} les notes de la version ${r.version}`}
+                    aria-label={t.versionsTab.toggleNotes(expanded, r.version)}
                   >
                     <ChevDownIcon size={16} />
                   </button>

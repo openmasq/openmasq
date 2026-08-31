@@ -12,6 +12,7 @@ import {
 } from "../../ChatWorkspace/writeConfirm";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../../i18n";
 /**
  * Réglages → MCP « Confirmation des actions » : the two knobs over
  * `CONFIRMATION_POLICY` (`@openmasq/catalog/mcp` — WHERE the behaviour itself is
@@ -34,6 +35,7 @@ import { BRAND } from "@openmasq/branding";
  * policy the member can appear to defeat is not a policy.
  */
 export function McpWriteConfirm() {
+  const t = useT();
   const host = useHost();
   const { orgProfile } = useChatStore();
   const floor = orgProfile?.confirmationFloor;
@@ -101,7 +103,7 @@ export function McpWriteConfirm() {
 
   return (
     <section className="settings-section">
-      <div className="cv-eyebrow">Confirmation des actions</div>
+      <div className="cv-eyebrow">{t.mcpTab.confirmEyebrow}</div>
       <div className="settings-card">
         {setMode && (
           <div className="toggle-row">
@@ -109,18 +111,14 @@ export function McpWriteConfirm() {
               <ShieldIcon size={16} />
             </span>
             <div className="row-body">
-              <div className="row-title">Mode renforcé</div>
+              <div className="row-title">{t.mcpTab.reinforced}</div>
               <div className="row-desc">
-                Chaque action d'écriture (envoi d'email, création ou modification sur un compte
-                connecté) demande votre confirmation — les plus sensibles dans une fenêtre
-                dédiée. Désactivé, {BRAND.name} ne demande qu'une confirmation par conversation,
-                après une recherche internet (et toujours en cas de signal de fuite ou de
-                pièce jointe). Conservé au redémarrage.
+                {t.mcpTab.reinforcedHint(BRAND.name)}
                 {locked && (
                   <>
                     {" "}
-                    <strong>Imposé par votre organisation</strong> — vous pouvez le renforcer,
-                    pas l'assouplir.
+                    <strong>{t.mcpTab.imposedByOrg.strong}</strong>
+                    {t.mcpTab.imposedByOrg.tail}
                   </>
                 )}
               </div>
@@ -138,11 +136,8 @@ export function McpWriteConfirm() {
               <ShieldIcon size={16} />
             </span>
             <div className="row-body">
-              <div className="row-title">Tout autoriser sans demander (cette session)</div>
-              <div className="row-desc">
-                Les actions s'exécutent sans confirmation pendant cette session — une fenêtre vous
-                le fera confirmer une fois. Tout redevient protégé au redémarrage.
-              </div>
+              <div className="row-title">{t.mcpTab.autoApprove}</div>
+              <div className="row-desc">{t.mcpTab.autoApproveHint}</div>
             </div>
             <Switch checked={on} onChange={(v) => void toggleAuto(v)} />
           </div>

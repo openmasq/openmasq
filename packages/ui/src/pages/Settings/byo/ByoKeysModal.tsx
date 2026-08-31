@@ -12,6 +12,7 @@ import {
   type FieldIssue,
 } from "./byoValidate";
 
+import { useT } from "../../../i18n";
 /**
  * "Mes clés" (BYO) setup for a desktop-direct connector: the per-provider
  * walkthrough (`./guides.tsx`), then the fields it needs. The shape is per
@@ -63,7 +64,8 @@ export function ByoKeysModal({
   onSubmit: (creds: { clientId: string; clientSecret?: string }) => void | Promise<void>;
   onClose: () => void;
 }) {
-  const guide = guideFor(connector);
+  const t = useT();
+  const guide = guideFor(connector, t);
   const family = connector.directAuth ?? "other";
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
@@ -78,14 +80,17 @@ export function ByoKeysModal({
       return next;
     });
 
-  const idIssue = clientIdIssue(connector.directAuth, clientId);
-  const secretIssue = guide.needsSecret ? clientSecretIssue(connector.directAuth, clientSecret) : undefined;
+  const idIssue = clientIdIssue(connector.directAuth, clientId, t);
+  const secretIssue = guide.needsSecret
+    ? clientSecretIssue(connector.directAuth, clientSecret, t)
+    : undefined;
 
   // Entering EITHER field means the user is replacing the saved keys → require a
   // FULL new pair. Blank-and-saved reuses the stored credential; blank-and-none
   // isn't submittable.
   const typing = clientId.trim().length > 0 || clientSecret.trim().length > 0;
-  const complete = clientId.trim().length > 0 && (!guide.needsSecret || clientSecret.trim().length > 0);
+  const complete =
+    clientId.trim().length > 0 && (!guide.needsSecret || clientSecret.trim().length > 0);
   const reuse = !!hasExisting && !typing;
   const ready = (reuse || complete) && !blocks(idIssue) && !blocks(secretIssue);
 
@@ -112,31 +117,28 @@ export function ByoKeysModal({
   return (
     <ModalShell onClose={onClose} width="540px" maxHeight="88vh">
       <div className="rrm-head">
-        <div className="cv-eyebrow rrm-eyebrow">MES CLÉS</div>
+        <div className="cv-eyebrow rrm-eyebrow">{t.byo.eyebrow}</div>
         <h2 className="cv-display rrm-title">
-          Connecter <span className="rrm-hl">{connector.name}</span>
+          {t.byo.connect} <span className="rrm-hl">{connector.name}</span>
         </h2>
-        <p className="rrm-sub">{guide.intro} Vos identifiants restent chiffrés sur cette machine.</p>
+        <p className="rrm-sub">
+          {guide.intro} {t.byo.encryptedNote}
+        </p>
       </div>
 
       <div className="byo-body">
         {hasExisting ? (
           <div className="byo-saved">
             <span className="byo-saved-dot" aria-hidden="true" />
-            <span>
-              Des identifiants sont déjà enregistrés sur cette machine. Laissez les
-              champs vides pour les réutiliser, ou saisissez-en de nouveaux pour les
-              remplacer.
-            </span>
+            <span>{t.byo.existing}</span>
           </div>
         ) : (
           others.length > 0 && (
             <div className="byo-saved">
               <span className="byo-saved-dot" aria-hidden="true" />
               <span>
-                <strong>À faire une seule fois.</strong> Les identifiants créés ici serviront
-                aussi à vos autres services {familyName} ({others.join(", ")}) — vous n'aurez
-                pas à recommencer.
+                <strong>{t.byo.onceLead}</strong>
+                {t.byo.onceTail(familyName, others.join(", "))}
               </span>
             </div>
           )
@@ -150,8 +152,8 @@ export function ByoKeysModal({
                 className="byo-tick"
                 onClick={() => toggleStep(i)}
                 aria-pressed={done.has(i)}
-                aria-label={done.has(i) ? `Étape ${i + 1} : à refaire` : `Étape ${i + 1} : c'est fait`}
-                title="Marquer cette étape comme faite"
+                aria-label={done.has(i) ? t.byo.stepDone(i + 1) : t.byo.stepTodo(i + 1)}
+                title={t.byo.markDone}
               >
                 {done.has(i) && <CheckIcon size={11} />}
               </button>
@@ -162,7 +164,7 @@ export function ByoKeysModal({
         {guide.note && <p className="byo-hint">{guide.note}</p>}
 
         <div className="field">
-          <span className="field-label">ID client</span>
+          <span className="field-label">{t.byo.clientId}</span>
           <input
             type="text"
             value={clientId}
@@ -170,7 +172,7 @@ export function ByoKeysModal({
             autoComplete="off"
             spellCheck={false}
             aria-invalid={blocks(idIssue) || undefined}
-            placeholder={hasExisting ? "•••• enregistré — laisser vide pour conserver" : guide.idPlaceholder}
+            placeholder={hasExisting ? t.byo.keepPlaceholder : guide.idPlaceholder}
             onChange={(e) => setClientId(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !guide.needsSecret && submit()}
           />
@@ -178,14 +180,14 @@ export function ByoKeysModal({
         </div>
         {guide.needsSecret && (
           <div className="field">
-            <span className="field-label">Code secret du client</span>
+            <span className="field-label">{t.byo.clientSecret}</span>
             <input
               type="password"
               value={clientSecret}
               autoComplete="off"
               spellCheck={false}
               aria-invalid={blocks(secretIssue) || undefined}
-              placeholder={hasExisting ? "•••• enregistré — laisser vide pour conserver" : "GOCSPX-…"}
+              placeholder={hasExisting ? t.byo.keepPlaceholder : "GOCSPX-…"}
               onChange={(e) => setClientSecret(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && submit()}
             />
@@ -196,10 +198,10 @@ export function ByoKeysModal({
 
       <div className="confirm-footer">
         <button className="btn-ghost btn-inline" onClick={onClose}>
-          Annuler
+          {t.byo.cancel}
         </button>
         <button className="btn-primary btn-inline" onClick={submit} disabled={!ready || busy}>
-          {busy ? "Connexion…" : reuse ? "Conserver et connecter" : "Connecter"}{" "}
+          {busy ? t.byo.connecting : reuse ? t.byo.keepAndConnect : t.byo.connect}{" "}
           <ArrowRightIcon size={15} />
         </button>
       </div>

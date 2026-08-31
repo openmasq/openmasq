@@ -9,6 +9,9 @@ import type { Messages } from "./messages";
 import { agent } from "./en/agent";
 import { availability } from "./en/availability";
 import { cards } from "./en/cards";
+import { connectorCatalog } from "./en/connectorCatalog";
+import { modelCatalog } from "./en/modelCatalog";
+import { redactionCatalog } from "./en/redactionCatalog";
 import { chat, chrome, composer } from "./en/chrome";
 import { connectors } from "./en/connectors";
 import { billing, common, nav } from "./en/common";
@@ -16,6 +19,9 @@ import { language } from "./en/language";
 import { errors } from "./en/errors";
 import { guide } from "./en/guide";
 import { docViews, downloads, menus } from "./en/menus";
+import { mcpTab } from "./en/mcpTab";
+import { versionsTab } from "./en/versionsTab";
+import { byo } from "./en/byo";
 import { modals } from "./en/modals";
 import { onboarding } from "./en/onboarding";
 import { providerKeys } from "./en/providerKeys";
@@ -89,6 +95,12 @@ export const en = {
   syncTab,
   orgTab,
   importModal,
+  mcpTab,
+  versionsTab,
+  byo,
+  connectorCatalog,
+  redactionCatalog,
+  modelCatalog,
   webNav,
   selfHost,
 } satisfies Messages;

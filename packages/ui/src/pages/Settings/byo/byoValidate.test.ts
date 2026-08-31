@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import { MCP_CONNECTORS, findConnector, type McpConnector } from "@openmasq/catalog/mcp";
 import {
@@ -10,42 +11,44 @@ import {
 
 const GOOGLE_ID = "1234-abcd.apps.googleusercontent.com";
 
+const fr = getMessages("fr");
+
 describe("clientIdIssue", () => {
   it("accepts a real Google client id, and says nothing on an empty field", () => {
-    expect(clientIdIssue("pkce", GOOGLE_ID)).toBeUndefined();
-    expect(clientIdIssue("pkce", `  ${GOOGLE_ID}  `)).toBeUndefined();
-    expect(clientIdIssue("pkce", "")).toBeUndefined();
+    expect(clientIdIssue("pkce", GOOGLE_ID, fr)).toBeUndefined();
+    expect(clientIdIssue("pkce", `  ${GOOGLE_ID}  `, fr)).toBeUndefined();
+    expect(clientIdIssue("pkce", "", fr)).toBeUndefined();
   });
 
   it("catches the two classic mix-ups at paste time, not three screens later", () => {
     // An API key…
-    expect(clientIdIssue("pkce", "AIzaSyD-EXAMPLE")).toMatchObject({ level: "error" });
+    expect(clientIdIssue("pkce", "AIzaSyD-EXAMPLE", fr)).toMatchObject({ level: "error" });
     // …and the PROJECT id, which looks plausible and fails only at connect time.
-    expect(clientIdIssue("pkce", "acme-desktop-431012")).toMatchObject({ level: "error" });
+    expect(clientIdIssue("pkce", "acme-desktop-431012", fr)).toMatchObject({ level: "error" });
   });
 
   it("requires a GUID for Microsoft and rejects a pasted line break anywhere", () => {
-    expect(clientIdIssue("microsoft", "00000000-0000-0000-0000-000000000000")).toBeUndefined();
-    expect(clientIdIssue("microsoft", "not-a-guid")).toMatchObject({ level: "error" });
-    expect(clientIdIssue("device", "Iv1.a1b2c3\nd4")).toMatchObject({ level: "error" });
+    expect(clientIdIssue("microsoft", "00000000-0000-0000-0000-000000000000", fr)).toBeUndefined();
+    expect(clientIdIssue("microsoft", "not-a-guid", fr)).toMatchObject({ level: "error" });
+    expect(clientIdIssue("device", "Iv1.a1b2c3\nd4", fr)).toMatchObject({ level: "error" });
   });
 
   it("does NOT invent a shape for GitHub — an unrecognised value is not a wrong one", () => {
     // GitHub ships several id formats (OAuth App hex, `Iv1.`, `Ov23li`). Refusing what
     // we merely don't recognise would lock the user out of their own credentials.
-    expect(clientIdIssue("device", "Iv1.a1b2c3d4e5f6")).toBeUndefined();
-    expect(clientIdIssue("device", "1234567890abcdef1234")).toBeUndefined();
+    expect(clientIdIssue("device", "Iv1.a1b2c3d4e5f6", fr)).toBeUndefined();
+    expect(clientIdIssue("device", "1234567890abcdef1234", fr)).toBeUndefined();
   });
 });
 
 describe("clientSecretIssue", () => {
   it("blocks the client id pasted into the secret field", () => {
-    expect(clientSecretIssue("pkce", GOOGLE_ID)).toMatchObject({ level: "error" });
+    expect(clientSecretIssue("pkce", GOOGLE_ID, fr)).toMatchObject({ level: "error" });
   });
 
   it("only WARNS on an unfamiliar Google secret — older clients predate GOCSPX-", () => {
-    expect(clientSecretIssue("pkce", "GOCSPX-abcdef")).toBeUndefined();
-    const issue = clientSecretIssue("pkce", "legacy-secret-value");
+    expect(clientSecretIssue("pkce", "GOCSPX-abcdef", fr)).toBeUndefined();
+    const issue = clientSecretIssue("pkce", "legacy-secret-value", fr);
     expect(issue?.level).toBe("warn");
     expect(blocks(issue)).toBe(false); // …so the submit stays possible
   });

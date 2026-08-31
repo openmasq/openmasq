@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { connectorErrorReason } from "./connectorErrorReason";
 import { groupByMcpCategory, MCP_CONNECTORS } from "@openmasq/catalog/mcp";
+import { useT } from "../../../i18n";
 import { useHost, type CredMode, type McpCatalogEntry, type McpServerInfo } from "../../../host";
 import { captureEvent } from "../../../analytics";
 import { buildMcpItems, matchesSearch, type McpItem } from "./mcpItems";
-import { apiKeyHelp, composeApiKeyUrl } from "./mcpApiKeyHelp";
+import { apiKeyConnectOpts } from "./mcpApiKeyHelp";
 import { useAddCustomServer } from "./useAddCustomServer";
 import { isConnectorAllowed } from "../../../privacy/orgAllowList";
 
@@ -20,6 +21,7 @@ export function useMcpConnectors({
   requestedConnector?: { id: string; n: number };
 }) {
   const host = useHost();
+  const t = useT();
   // La décision vit dans `privacy/orgAllowList.ts` — l'agent la prend aussi, et les
   // deux normalisations d'id avaient divergé (les instances multi-comptes manquaient
   // ici, donc un connecteur refusé se déverrouillait avec un second compte).
@@ -106,8 +108,9 @@ export function useMcpConnectors({
         isBlocked,
         credGroups,
         browserEnabled: !!host.mcp?.enableBrowser,
+        t,
       }),
-    [servers, catalog, directConnectors, isBlocked, credGroups, host],
+    [servers, catalog, directConnectors, isBlocked, credGroups, host, t],
   );
   const openItem = openId ? items.find((i) => i.id === openId) ?? null : null;
   const byoItem = byoId ? items.find((i) => i.id === byoId) ?? null : null;
@@ -241,11 +244,7 @@ export function useMcpConnectors({
   const addAccountApiKey = useCallback(
     async (item: McpItem, rawKey: string) => {
       if (!host.mcp?.addAccountRemote || isBlocked(item.id)) return;
-      const help = apiKeyHelp(item.id);
-      const opts =
-        help && help.keyIn === "query"
-          ? { url: composeApiKeyUrl(item.url ?? "", help, rawKey) }
-          : { apiKey: rawKey };
+      const opts = apiKeyConnectOpts(item.id, item.url ?? "", rawKey);
       setBusyFor(item.serverId, true);
       try {
         applyInfo(await host.mcp.addAccountRemote(item.id, opts), item.id);

@@ -3,6 +3,7 @@ import { Btn } from "../McpBtn";
 import type { McpAccount, McpItem } from "../mcpItems";
 import { MANAGED_CRED_MODE, type CredMode } from "../../../../host";
 
+import { useT } from "../../../../i18n";
 /**
  * The connected-accounts list of a multi-account connector (direct OR remote),
  * plus the "add another account" affordance — which differs per kind/auth:
@@ -34,6 +35,7 @@ export function McpAccounts({
   onAddAccountRemote?: () => void;
   onAddAccountApiKey?: (key: string) => void;
 }) {
+  const t = useT();
   const [key, setKey] = useState("");
   const c = item.connector;
   const submitAddApiKey = () => {
@@ -44,12 +46,7 @@ export function McpAccounts({
 
   return (
     <>
-      {item.kind === "direct" && (
-        <p className="mcp-modal-note">
-          Un outil refuse l'accès ? L'autorisation a expiré ou a changé — « Reconnecter »
-          relance la connexion au service avec les accès à jour.
-        </p>
-      )}
+      {item.kind === "direct" && <p className="mcp-modal-note">{t.mcpTab.reconnectHint}</p>}
       {/* ⚠️ La panne est de GROUPE, la réparation ne l'est pas : les connecteurs Google
           partagent une seule autorisation, donc ils tombent ensemble, mais « Reconnecter »
           ne remet à neuf que celui-ci (`mcpReauthDirect` purge UN id). Sans cette ligne,
@@ -59,10 +56,10 @@ export function McpAccounts({
           (`credGroup.ts`). */}
       {!!peers?.length && (
         <p className="mcp-modal-note mcp-note-flow">
-          Cette autorisation couvre aussi{" "}
+          {t.mcpTab.sharedAuthLead}
           {peers.map((p, i) => (
             <span key={p.id}>
-              {i > 0 && (i === peers.length - 1 ? " et " : ", ")}
+              {i > 0 && (i === peers.length - 1 ? t.mcpTab.and : ", ")}
               {onOpenPeer ? (
                 <button type="button" className="mcp-peer-link" onClick={() => onOpenPeer(p.id)}>
                   {p.name}
@@ -92,13 +89,33 @@ export function McpAccounts({
       {item.kind === "direct" && onAddAccount ? (
         <div className="mcp-modal-actions">
           {c?.byoOnly ? (
-            <Btn label="Ajouter un compte" onClick={() => onAddAccount("byo")} disabled={busy} subtle />
+            <Btn
+              label={t.mcpTab.addAccount}
+              onClick={() => onAddAccount("byo")}
+              disabled={busy}
+              subtle
+            />
           ) : c?.directAuth === "slack" ? (
-            <Btn label="Ajouter un compte" onClick={() => onAddAccount(MANAGED_CRED_MODE)} disabled={busy} subtle />
+            <Btn
+              label={t.mcpTab.addAccount}
+              onClick={() => onAddAccount(MANAGED_CRED_MODE)}
+              disabled={busy}
+              subtle
+            />
           ) : (
             <>
-              <Btn label="Ajouter un compte" onClick={() => onAddAccount(MANAGED_CRED_MODE)} disabled={busy} subtle />
-              <Btn label="… avec mes clés" onClick={() => onAddAccount("byo")} disabled={busy} subtle />
+              <Btn
+                label={t.mcpTab.addAccount}
+                onClick={() => onAddAccount(MANAGED_CRED_MODE)}
+                disabled={busy}
+                subtle
+              />
+              <Btn
+                label={t.mcpTab.addAccountByo}
+                onClick={() => onAddAccount("byo")}
+                disabled={busy}
+                subtle
+              />
             </>
           )}
         </div>
@@ -111,13 +128,13 @@ export function McpAccounts({
             onKeyDown={(e) => {
               if (e.key === "Enter") submitAddApiKey();
             }}
-            placeholder="Nouvelle clé pour un autre compte"
+            placeholder={t.mcpTab.newKeyPlaceholder}
             className="mcp-url-input"
             autoComplete="off"
           />
           <div className="mcp-modal-actions">
             <Btn
-              label={busy ? "Connexion…" : "Ajouter un compte"}
+              label={busy ? t.mcpTab.connecting : t.mcpTab.addAccount}
               onClick={submitAddApiKey}
               disabled={busy || !key.trim()}
               loading={busy}
@@ -128,7 +145,7 @@ export function McpAccounts({
       ) : item.kind === "remote" && onAddAccountRemote ? (
         <div className="mcp-modal-actions">
           <Btn
-            label={busy ? "Connexion…" : "Ajouter un compte"}
+            label={busy ? t.mcpTab.connecting : t.mcpTab.addAccount}
             onClick={onAddAccountRemote}
             disabled={busy}
             loading={busy}
@@ -155,22 +172,25 @@ function AccountRow({
   onReauth?: () => void;
   onDisconnect: () => void;
 }) {
+  const t = useT();
   return (
     <div className="mcp-account-row">
       <div className="mcp-account-meta">
-        <div className="mcp-account-label">{account.label ?? "Compte principal"}</div>
+        <div className="mcp-account-label">{account.label ?? t.mcpTab.mainAccount}</div>
         <div className={`mcp-account-sub ${account.error ? "error" : ""}`}>
           {account.error
             ? account.error
             : account.toolCount != null
-              ? `${account.toolCount} outil${account.toolCount > 1 ? "s" : ""}`
-              : "Connecté"}
+              ? t.mcpTab.tools(account.toolCount)
+              : t.mcpTab.connected}
         </div>
       </div>
       <div className="mcp-account-actions">
-        <Btn label="Outils" onClick={onInspect} subtle />
-        {onReauth && <Btn label={busy ? "…" : "Reconnecter"} onClick={onReauth} disabled={busy} subtle />}
-        <Btn label="Déconnecter" onClick={onDisconnect} disabled={busy} subtle danger />
+        <Btn label={t.mcpTab.toolsLabel} onClick={onInspect} subtle />
+        {onReauth && (
+          <Btn label={busy ? "…" : t.mcpTab.reconnect} onClick={onReauth} disabled={busy} subtle />
+        )}
+        <Btn label={t.mcpTab.disconnect} onClick={onDisconnect} disabled={busy} subtle danger />
       </div>
     </div>
   );
