@@ -57,16 +57,8 @@ initSentryRenderer();
 // referenced → jamais inliné dans le bundle expédié, quel que soit l'env de build.
 // Les URL et leurs défauts vivent dans `./appEnv`. L'envoi reste soumis au consentement
 // in-app (+ Do-Not-Track) : rien ici ne touche la porte de confidentialité.
-// Ce build a-t-il un service hébergé ? Il en faut les DEUX moitiés — une passerelle
-// (l'endpoint) et des comptes (le jeton) — sans quoi un modèle « inclus » n'a rien à
-// appeler. Non ⇒ ces modèles redeviennent des modèles à CLÉ et aucune surface ne promet
-// d'abonnement (`@openmasq/ui` `send/platformAccess.ts`). Un build sans backend est un
-// état NORMAL, c'est le défaut du dépôt (le dépôt privé `infra` dit comment déployer).
-// « Vendu » suit `OPENMASQ_BILLING=1` — la porte qui fait aussi entrer l'API et la
-// passerelle au build (`scripts/buildDefines.ts`) : sans elle rien de distant n'existe
-// hormis l'auth, le relais Slack, les analytics et les mises à jour, et rien ne se vend.
-// Une pile SAISIE (`OPENMASQ_ALLOW_CUSTOM_STACK`) peut servir sans vendre : c'est le cas
-// « served && !sold » que ce couple garde distinct.
+// SERVI = passerelle + comptes ; VENDU = `OPENMASQ_BILLING=1` (la porte des adresses
+// distantes au build — `appEnv.ts` BILLING_SOLD). Une pile saisie sert sans vendre.
 configurePlatformAccess({
   served: GATEWAY_CONFIGURED && AUTH_CONFIGURED,
   sold: BILLING_SOLD && SYNC_ENABLED,
@@ -491,16 +483,9 @@ const host: Host = {
     : undefined,
   // Org SHARES (coffre/compétences → org/équipe/personne, sous approbation).
   orgShares: SYNC_ENABLED ? orgSharesHost : undefined,
-  // Individual (per-person) billing — subscription + prepaid credits + Stripe
-  // checkout/portal, backed by the backend /subscriptions/* with the auth token.
-  // ⚠️ Branché SEULEMENT dans un build qui vend (`BILLING_SOLD`) : le créneau est ce qui
-  // fait exister l'onglet Paiement, la bannière « Vous utilisez les modèles gratuits » et
-  // le mur payant de la synchro — autant de surfaces qui, sans rien à vendre, mentiraient.
+  // Billing individuel (backend + Stripe) — SEULEMENT dans un build qui VEND : ce créneau fait exister l'onglet Paiement et chaque upsell.
   billing: SYNC_ENABLED && BILLING_SOLD ? billingHost : undefined,
-  // "Votre avis" — posts the user's feedback to the backend, which emails it to the
-  // team. Gated on the SAME backend-configured flag as billing/org: with no backend
-  // there is nowhere to send it, so the rail action is not offered at all rather
-  // than offered and dead.
+  // « Votre avis » — vers le backend ; sans lui, l'action du rail n'est pas offerte.
   avis: SYNC_ENABLED ? avisHost : undefined,
   // La passerelle (apps/gateway) — redaction cloud ET inférence des modèles inclus.
   // ABSENTE quand le build n'en fournit pas l'adresse : le moteur de redaction reste
