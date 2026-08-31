@@ -10,8 +10,8 @@ there is no separate agreement to sign.
 
 ## Getting started
 
-Prerequisites: **Node ≥ 20** (CI runs 26), **pnpm** (`corepack enable`), and Docker for
-the local backend stack.
+Prerequisites: **Node ≥ 20** (CI runs 26) and **pnpm** (`corepack enable`). No server, no
+Docker: the app runs on its own.
 
 ```bash
 pnpm install
