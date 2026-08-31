@@ -77,24 +77,24 @@ export function BillingTab({ orgProfile }: Props) {
   const currentTier = knownTier(sub);
   const t = useT();
   const isPaid = !!currentTier && currentTier !== "free";
-  // Mode testeur du DÉPLOIEMENT — offert seulement si l'hôte sait l'exécuter : un libellé
-  // « S'octroyer » sans `selfGrant` derrière serait un bouton mort (aperçu, mobile).
+  // DEPLOYMENT tester mode — offered only if the host knows how to run it: a label
+  // « S'octroyer » with no `selfGrant` behind it would be a dead button (aperçu, mobile).
   const testerMode = sub?.selfGrantEnabled === true && !!billing?.selfGrant;
   const finalizing = sub?.status === "pending_checkout";
-  // Le déploiement encaisse-t-il ? Les cartes restent AFFICHÉES (même offre, mêmes
-  // montants — la grille ne dépend pas de Stripe, elle vient du catalogue), seules les
-  // actions se grisent. `undefined` = inconnu ⇒ on laisse ouvert, le 503 dira pourquoi.
+  // Does the deployment take payments? The cards stay DISPLAYED (same offer, same
+  // amounts — the grid doesn't depend on Stripe, it comes from the catalogue), only the
+  // actions grey out. `undefined` = unknown ⇒ leave it open, the 503 will say why.
   const billingOpen = sub?.billingEnabled !== false;
 
-  // Les quatre gestes d'argent + le couple busy/erreur qu'ils écrivent (`useBillingActions`).
+  // The four money gestures + the busy/error pair they write (`useBillingActions`).
   const { busy, error, setError, checkout, changeTier, portal, selfGrant } = useBillingActions(
     billing,
     refresh,
     pollRefresh,
   );
 
-  // Où va un clic sur un autre palier : décision PURE et testée (`state/billing.ts`) — sa
-  // branche « un octroi n'est pas un abonné » est celle qui avait tué le tunnel d'achat.
+  // Where a click on another tier goes: a PURE, tested decision (`state/billing.ts`) — its
+  // "a grant is not a subscriber" branch is the one that had killed the checkout funnel.
   function onPickTier(tier: string) {
     const act = tierAction({ testerMode, isPaid, isGranted: sub?.isGranted, canChangeTier: !!billing?.changeTier });
     if (act === "self-grant") void selfGrant(tier);
@@ -102,7 +102,7 @@ export function BillingTab({ orgProfile }: Props) {
     else void checkout(tier);
   }
 
-  // MODE GRATUIT du déploiement : rien à vendre, rien à plafonner — avant l'org aussi.
+  // FREE MODE for the deployment: nothing to sell, nothing to cap — checked before the org too.
   if (sub?.freeMode) return <FreeModeBilling credits={credits} />;
   // Org members are billed per-seat by their organization — never individually.
   if (orgProfile) return <OrgManagedBilling orgProfile={orgProfile} host={host} />;
@@ -149,8 +149,8 @@ export function BillingTab({ orgProfile }: Props) {
         {/* Loaded, a billing host exists, and still no subscription: the fetch
             failed (signed out, backend down). Say so — otherwise the grid simply
             marks no card and reads as "I have no plan". */}
-        {/* Le bouton est le même ; ce qu'il déclenche ne l'est pas. Une ligne suffit —
-            sans elle, un « S'abonner » qui n'encaisse rien laisse croire à un paiement. */}
+        {/* The button is the same; what it triggers isn't. One line is enough —
+            without it, a « S'abonner » that charges nothing suggests a payment. */}
         {testerMode && (
           <div className="mt-2 text-xs text-muted">
             {t.billingTab.testerNote}

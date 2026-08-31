@@ -41,11 +41,11 @@ describe("GuideModal — sommaire par thème", () => {
     const ui = await render({ releaseNotesUrl: "https://exemple.test/release-notes" });
 
     expect(titles(ui)).toEqual(GUIDE.map((c) => c.title));
-    // Un seul chapitre rendu, le premier par défaut.
+    // A single chapter rendered, the first one by default.
     expect(ui.findAll(".guide-chapter")).toHaveLength(1);
     expect(ui.find(".guide-chapter-title").textContent).toBe(GUIDE[0].title);
 
-    // Cliquer le dernier thème affiche SON contenu (et marque l'entrée active).
+    // Clicking the last theme shows ITS content (and marks the entry active).
     const items = ui.findAll(".guide-nav-item");
     const last = items[items.length - 1];
     await ui.click(last);
@@ -56,11 +56,11 @@ describe("GuideModal — sommaire par thème", () => {
   });
 
   /**
-   * Le guide dans l'app est court par construction ; la documentation complète est en
-   * ligne. Le lien vers elle est donc de l'en-tête (donc visible depuis TOUS les
-   * chapitres), et il sort par le navigateur SYSTÈME : un `target="_blank"` que le
-   * processus principal filtre par schéma. Le perdre, c'est laisser le guide se faire
-   * passer pour toute l'aide qui existe.
+   * The in-app guide is short by design; the full documentation is online.
+   * The link to it therefore lives in the header (so it's visible from EVERY
+   * chapter), and it opens through the SYSTEM browser: a `target="_blank"` that the
+   * main process filters by scheme. Losing it would let the guide pass itself
+   * off as all the help that exists.
    */
   it("l'en-tête porte le lien vers le centre d'aide étendu, sortant vers le navigateur", async () => {
     const ui = await render({ releaseNotesUrl: "https://exemple.test/release-notes" });
@@ -70,7 +70,7 @@ describe("GuideModal — sommaire par thème", () => {
     expect(HELP_CENTER_URL).toBe(brandUrl("help"));
     expect(cta.getAttribute("target")).toBe("_blank");
     expect(cta.getAttribute("rel")).toContain("noreferrer");
-    // Il porte l'appel à l'action de la marque, et reste là quel que soit le chapitre.
+    // It carries the brand's call to action, and stays there regardless of chapter.
     expect(cta.classList.contains("btn-primary")).toBe(true);
     await ui.click(ui.findAll(".guide-nav-item").at(-1)!);
     expect(ui.maybe(".guide-head-cta")).not.toBeNull();
@@ -80,10 +80,10 @@ describe("GuideModal — sommaire par thème", () => {
 });
 
 /**
- * L'HISTORIQUE DES VERSIONS DANS L'AIDE — les notes publiées (Contentful) se lisent sans
- * quitter l'app. Deux choses valent d'être épinglées : que le chapitre RENDE les notes du
- * cache, et qu'il DISPARAISSE là où cette source n'existe pas — un onglet qui ne peut rien
- * afficher se lit comme une panne de l'app, pas comme une absence de contenu.
+ * VERSION HISTORY IN THE HELP — the published notes (Contentful) can be read without
+ * leaving the app. Two things are worth pinning: that the chapter RENDERS the cache's
+ * notes, and that it DISAPPEARS where this source doesn't exist — a tab that can display
+ * nothing reads as an app failure, not as an absence of content.
  */
 describe("GuideModal — l'onglet « Nouveautés »", () => {
   it("liste les versions publiées, la plus récente en tête", async () => {
@@ -94,9 +94,9 @@ describe("GuideModal — l'onglet « Nouveautés »", () => {
     const versions = ui.findAll(".rn-version").map((v) => v.textContent);
     expect(versions).toEqual(["0.4.2", "0.4.1"]);
     expect(ui.find(".rn-title").textContent).toBe("Le redaction voit plus large");
-    // La puce garde sa mise en forme de note de version (le même rendu qu'aux Réglages).
+    // The bullet keeps its release-note formatting (the same render as in Réglages).
     expect(ui.find(".ver-rellist").textContent).toContain("Adresses");
-    // La date est écrite en français, jamais l'ISO brut.
+    // The date is written in French, never the raw ISO.
     expect(ui.find(".rn-date").textContent).toBe("5 août 2026");
 
     await ui.unmount();
@@ -104,17 +104,17 @@ describe("GuideModal — l'onglet « Nouveautés »", () => {
 
   it("sans source de notes (aperçu navigateur), le chapitre n'existe pas", async () => {
     store.dispatch(setReleaseNotesCache(NOTES));
-    const ui = await render({}); // pas de `releaseNotesUrl`
+    const ui = await render({}); // no `releaseNotesUrl`
     expect(titles(ui)).not.toContain("Nouveautés");
     await ui.unmount();
   });
 
   it("demande les notes lui-même — on ouvre l'aide sans être passé par les Réglages", async () => {
-    // Le préchargement vit dans Réglages ; l'aide s'ouvre depuis le rail. Sans cette
-    // demande, l'onglet serait vide chez qui n'a jamais ouvert les Réglages.
+    // The prefetch lives in Réglages; help opens from the rail. Without this
+    // request, the tab would be empty for anyone who never opened Réglages.
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ items: NOTES }) }));
     vi.stubGlobal("fetch", fetchMock);
-    store.dispatch(resetSettingsCache()); // cache jamais chargé → `loading` vrai
+    store.dispatch(resetSettingsCache()); // cache never loaded → `loading` true
 
     const ui = await render({ releaseNotesUrl: "https://exemple.test/release-notes" });
     await ui.click(ui.findAll(".guide-nav-item").find((i) => i.textContent === "Nouveautés")!);

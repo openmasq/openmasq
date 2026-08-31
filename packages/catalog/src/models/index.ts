@@ -71,27 +71,27 @@ export function findCatalogModel(id: string): CatalogModel | undefined {
 }
 
 /**
- * La LISTE SIMPLIFIÉE du sélecteur de modèles — ce que voit quelqu'un qui ne veut pas
- * choisir. Elle vit ici, et pas dans l'UI, parce que c'est une liste GOUVERNABLE : la
- * console d'org doit pouvoir dire ce qu'un membre voit par défaut (règle 9, comme les
- * connecteurs et les catégories de redaction).
+ * The SIMPLIFIED LIST for the model picker — what someone who doesn't want to
+ * choose sees. It lives here, not in the UI, because it's a GOVERNABLE list: the
+ * org console must be able to say what a member sees by default (rule 9, like
+ * connectors and redaction categories).
  *
- * ⚠️ **Que des ids OpenRouter, à dessein.** OpenRouter marche sur la clé PERSONNELLE de
- * l'utilisateur : la vue simplifiée reste donc utilisable sans abonnement. Les mêmes
- * modèles côté Scaleway sont *platform-provided* — la liste se serait
- * affichée entièrement grisée pour qui n'a pas souscrit, ce qui est le contraire d'une
- * simplification.
+ * ⚠️ **OpenRouter ids ONLY, by design.** OpenRouter runs on the user's PERSONAL
+ * key: the simplified view therefore stays usable without a subscription. The same
+ * models on the Scaleway side are *platform-provided* — the list would have
+ * displayed entirely greyed out for anyone who hasn't subscribed, which is the opposite of
+ * a simplification.
  *
- * L'ordre EST l'affichage : gratuits d'abord, parce que c'est ce qu'on essaie sans rien
- * engager. Les ids ont été vérifiés le 02/08/2026 dans le catalogue live
- * (`GET https://openrouter.ai/api/v1/models`) — la règle du registre interdit d'en
- * deviner un, et un `:free` se fait retirer sans préavis.
+ * The order IS the display: free ones first, because that's what you try without committing
+ * to anything. The ids were verified on 02/08/2026 in the live catalogue
+ * (`GET https://openrouter.ai/api/v1/models`) — the registry rule forbids
+ * guessing one, and a `:free` gets pulled with no notice.
  */
 export const SIMPLE_MODEL_IDS: readonly string[] = Object.freeze([
-  // Le premier EST le modèle par défaut des nouvelles conversations
-  // (`@openmasq/ui` `DEFAULT_MODEL_ID`) : la première ligne de la liste et le modèle
-  // sur lequel on écrit sans rien régler doivent être le même, sinon la liste s'ouvre
-  // en désignant autre chose que ce qui tourne.
+  // The first one IS the default model for new conversations
+  // (`@openmasq/ui` `DEFAULT_MODEL_ID`): the list's first row and the model
+  // you send on without changing anything must be the same one, or the list opens
+  // pointing at something other than what's actually running.
   "poolside/laguna-s-2.1:free",
   "nvidia/nemotron-3-ultra-550b-a55b:free",
   "openai/gpt-5.6-luna",
@@ -99,8 +99,8 @@ export const SIMPLE_MODEL_IDS: readonly string[] = Object.freeze([
   "deepseek/deepseek-chat-v3.1",
 ]);
 
-/** Les modèles de la vue simplifiée, dans l'ordre de la liste, ignorant un id retiré du
- *  registre — une liste figée ne doit jamais faire disparaître le sélecteur. */
+/** The simplified view's models, in list order, skipping an id removed from the
+ *  registry — a frozen list must never make the picker disappear. */
 export function simpleModels(): CatalogModel[] {
   return SIMPLE_MODEL_IDS.map((id) => findCatalogModel(id)).filter((m): m is CatalogModel => !!m);
 }

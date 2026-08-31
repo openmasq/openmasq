@@ -13,13 +13,13 @@ import type { Section } from "../types";
  * on. Single-sourcing them (rule 9) is also what keeps the in-app guide TRUE: it renders
  * these strings rather than a second description that can drift.
  *
- * ## Ce fichier ASSEMBLE, il ne rédige pas
+ * ## This file ASSEMBLES, it does not author
  *
- * La copie vit dans le catalogue, en français ET en anglais ; ici on la résout (le nom de
- * marque est injecté, pas écrit dans les catalogues) et on la présente sous la forme que
- * les écrans consomment. D'où le `t: Messages` que chaque fonction réclame : ce module
- * reste PUR — pas de React, pas de contexte — donc utilisable par un test comme par un
- * composant, qui lui passe son `useT()`.
+ * The copy lives in the catalogue, in French AND English; here it is resolved (the brand
+ * name is injected, not written into the catalogues) and presented in the shape that
+ * the screens consume. Hence the `t: Messages` every function requires: this module
+ * stays PURE — no React, no context — so it's usable by a test as much as by a
+ * component, which passes it its own `useT()`.
  *
  * `settings` is deliberately absent — a gear is self-evident and has its own per-tab
  * index (`pages/Settings/settingsIndex.ts`).
@@ -38,26 +38,26 @@ export interface SectionGuide {
   subtitle?: string;
   /** The guide's paragraph: plain language, no product jargon, no file names. */
   guide: string;
-  /** Ce qu'on TAPE au ⌘K en plus de l'étiquette — des mots, pas une phrase. */
+  /** What gets TYPED into ⌘K besides the label — words, not a sentence. */
   keywords: string;
 }
 
 /**
- * Le `tip` sans son préfixe d'étiquette : « Conversations — vos échanges avec les
- * modèles » donne « vos échanges avec les modèles ».
+ * The `tip` without its label prefix: « Conversations — vos échanges avec les
+ * modèles » gives « vos échanges avec les modèles ».
  *
- * Le premier lancement liste les endroits avec leur NOM en regard : y remettre le nom
- * dans la phrase le dirait deux fois, et le paragraphe du guide (`guide`) y serait six
- * fois trop long. On DÉRIVE donc du `tip` — dont la forme « Étiquette — ce à quoi ça
- * sert » est une convention du catalogue, épinglée par `sections.test.ts` dans CHAQUE
- * langue — plutôt que d'écrire une troisième version de la même phrase quelque part.
+ * The first launch lists the places with their NAME right beside them: putting the name
+ * back in the sentence would say it twice, and the guide paragraph (`guide`) would be six
+ * times too long there. So it DERIVES from the `tip` — whose « Label — what it's
+ * for » shape is a catalogue convention, pinned by `sections.test.ts` in EVERY
+ * language — rather than writing a third version of the same sentence somewhere.
  */
 export function sectionOneLiner(s: SectionGuide): string {
   const cut = s.tip.indexOf("—");
   return cut < 0 ? s.tip : s.tip.slice(cut + 1).trim();
 }
 
-/** Le vocabulaire des sections dans la langue de `t`, en ordre de navigation. */
+/** The sections' vocabulary in `t`'s language, in navigation order. */
 export function sectionGuides(t: Messages): readonly SectionGuide[] {
   const s = t.sections;
   return [

@@ -1,17 +1,17 @@
-// Les MODÈLES de workflow livrés (`@openmasq/ui` `routineIds` + `fillTemplate`), joués comme
-// des workflows e2e : l'utilisateur choisit un modèle dans la modale, remplit ses
-// accolades, envoie — et l'app déroule sa réalité contre les fixtures MCP.
+// The shipped workflow TEMPLATES (`@openmasq/ui` `routineIds` + `fillTemplate`), played as
+// e2e workflows: the user picks a template in the modal, fills in its
+// braces, sends — and the app runs its reality against the MCP fixtures.
 //
-// Le prompt vient du CATALOGUE PRODUIT, jamais d'une copie : reformuler un modèle
-// jusqu'à ce qu'il ne pilote plus son connecteur doit casser ce test. C'est aussi ce qui
-// fait que ces entrées ne peuvent pas vieillir sans qu'on le sache.
+// The prompt comes from the PRODUCT CATALOG, never a copy: rephrasing a template
+// until it no longer drives its connector must break this test. That's also what
+// keeps these entries from aging without anyone knowing.
 
 import { routineIds, fillTemplate, templateServers } from "@openmasq/ui";
 import type { Workflow } from "./catalog";
 
-/** Les valeurs qu'un utilisateur taperait dans les `{accolades}` de chaque modèle.
- *  Une accolade non couverte fait THROW `fillTemplate` au chargement du module —
- *  un modèle qui gagne un paramètre casse la suite au lieu d'envoyer « {dépôt} ». */
+/** The values a user would type into each template's `{braces}`.
+ *  An uncovered brace makes `fillTemplate` THROW when the module loads —
+ *  a template that gains a parameter breaks the suite instead of sending "{dépôt}". */
 const BLANKS: Record<string, Record<string, string>> = {
   "preparer-journee": { date: "jeudi" },
   "compte-rendu-reunions": { date: "lundi" },
@@ -27,8 +27,8 @@ const BLANKS: Record<string, Record<string, string>> = {
   "erreurs-semaine": { projet: "acme-app", date: "lundi" },
 };
 
-/** Indices de CONTENU par modèle — soft, vérifiés seulement sous `E2E_STRICT=1`
- *  (cf. l'en-tête du spec : le texte d'un petit modèle gratuit ne se pinne pas). */
+/** CONTENT hints per template — soft, checked only under `E2E_STRICT=1`
+ *  (see the spec's header: a small free model's text can't be pinned). */
 const HINTS: Record<string, RegExp[]> = {
   "preparer-journee": [/rendez-vous|agenda|jeudi/i],
   "compte-rendu-reunions": [/décision|action|réunion/i],
@@ -45,23 +45,23 @@ const HINTS: Record<string, RegExp[]> = {
 };
 
 /**
- * ⚠️ « comparer-offres » est ABSENT, et pas par oubli : il pilote le navigateur
- * intégré, qui est une vraie fenêtre Electron pilotée par CDP — pas un serveur MCP que
- * `OPENMASQ_E2E_MCP_FIXTURES` peut simuler. Le tester ici reviendrait à faire sortir
- * la suite sur le vrai web, donc à rendre son résultat dépendant d'un site tiers. Sa
- * garantie (lecture seule, aucun clic/saisie) est tenue par son scénario `evals`.
+ * ⚠️ "comparer-offres" is ABSENT, and not by oversight: it drives the
+ * embedded browser, which is a real Electron window driven by CDP — not an MCP server
+ * `OPENMASQ_E2E_MCP_FIXTURES` can simulate. Testing it here would mean sending
+ * the suite out onto the real web, making its result depend on a third-party site. Its
+ * guarantee (read-only, no click/input) is held by its `evals` scenario.
  */
-// La suite joue les modèles dans la langue SOURCE — `fillTemplate` s'y replie, et les
-// `{accolades}` de `BLANKS` y sont nommées. Les IDS, eux, n'ont pas de langue.
+// The suite plays the templates in the SOURCE language — `fillTemplate` falls back to it, and
+// `BLANKS`'s `{braces}` are named in it. The IDs themselves have no language.
 export const TEMPLATE_WORKFLOWS: Workflow[] = routineIds()
   .filter((id) => BLANKS[id])
   .map((id) => ({
     id: `tpl-${id}`,
     prompt: fillTemplate(id, BLANKS[id]),
     servers: templateServers(id),
-    // AUCUN modèle livré n'écrit — leur copie le dit toutes (« n'envoie rien »,
-    // « lecture seule », « consultation seule »). Pas de `write`, donc la suite exige
-    // qu'aucune fenêtre de confirmation ne s'ouvre : si l'une se met à agir, c'est ici
-    // que ça se voit, avant que l'utilisateur ne le découvre sur son vrai compte.
+    // NO shipped template writes — their copy all say so ("sends nothing",
+    // "read-only", "view only"). No `write`, so the suite requires
+    // that no confirmation window opens: if one starts acting, this is
+    // where it shows, before the user discovers it on their real account.
     contentHints: HINTS[id] ?? [],
   }));

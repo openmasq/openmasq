@@ -7,17 +7,17 @@ import { useT } from "../../i18n";
 import type { Conversation } from "../../types";
 
 /**
- * « Voyez ce que le modèle a vu » — votre message et sa contrepartie, côte à côte.
+ * « Voyez ce que le modèle a vu » — your message and its counterpart, side by side.
  *
- * Demandé par l'audit du 27/07 : la garantie du produit était vérifiable au survol
- * d'une marque, valeur par valeur, ou dans un journal technique réservé à l'équipe.
- * Personne d'extérieur ne pouvait lire les DEUX textes entiers l'un en face de l'autre
- * — la seule forme qui répond vraiment à « qu'est-ce qui est parti ? ».
+ * Requested by the 27/07 audit: the product's guarantee was verifiable by hovering
+ * a mark, value by value, or in a technical log reserved to the team.
+ * No outsider could read the TWO whole texts facing each other
+ * — the only form that truly answers « qu'est-ce qui est parti ? ».
  *
- * ⚠️ Les deux colonnes sont RECALCULÉES depuis le texte réel et le coffre
- * (`transparencyPairs` → `applyVault`), la même substitution que l'envoi. Ne jamais la
- * remplacer par une copie du wire prise au moment du send : une copie peut diverger de
- * ce qui part réellement, et une preuve qui diverge de la chose prouvée ne prouve rien.
+ * ⚠️ The two columns are RECOMPUTED from the real text and the vault
+ * (`transparencyPairs` → `applyVault`), the same substitution as the send. Never
+ * replace it with a copy of the wire taken at send time: a copy can diverge from
+ * what actually goes out, and a proof that diverges from the thing it proves proves nothing.
  */
 export function TransparencyModal({
   conversation,
@@ -31,9 +31,9 @@ export function TransparencyModal({
   const pairs = transparencyPairs(conversation);
   const kinds = conversation.redactionKinds;
   const vault = conversation.redactionVault ?? {};
-  // La définition unique (`state/protectedCount.ts`) : une VALEUR protégée, pas une entrée
-  // de coffre — celui-ci porte les alias d'une même valeur, et ce panneau est justement
-  // celui où le chiffre annoncé se compte à l'écran.
+  // The single definition (`state/protectedCount.ts`): a protected VALUE, not a vault
+  // entry — the vault carries the aliases of the same value, and this panel is precisely
+  // the one where the announced figure gets counted on screen.
   const total = conversationProtectedCount(conversation);
   const t = useT();
 
@@ -79,10 +79,10 @@ function PairRow({
   kinds?: Record<string, string>;
 }) {
   const t = useT();
-  // ⚠️ Les en-têtes SUIVENT le rôle. Sur une réponse, « ce que vous avez écrit » serait
-  // faux des deux côtés : la gauche est ce que VOUS LISEZ (rétabli), la droite ce que le
-  // modèle a réellement PRODUIT — il n'a jamais tenu que des pseudonymes, à l'aller comme
-  // au retour. Un libellé qui ment sur ce panneau-ci ruinerait précisément ce qu'il prouve.
+  // ⚠️ The headers FOLLOW the role. On a reply, "what you wrote" would be
+  // wrong on both sides: the left is what YOU READ (restored), the right is what the
+  // model actually PRODUCED — it only ever held pseudonyms, on the way out as on
+  // the way back. A label that lies on this panel would ruin precisely what it proves.
   const isUser = pair.role === "user";
   const leftHead = isUser ? t.modals.transparency.youWrote : t.modals.transparency.youRead;
   const rightHead = isUser ? t.modals.transparency.modelReceived : t.modals.transparency.modelWrote;
@@ -102,7 +102,7 @@ function PairRow({
             <span>{leftHead}</span>
           </div>
           <p className="tsp-text">
-            {/* Les valeurs RÉELLES, surlignées à leur couleur de catégorie. */}
+            {/* The REAL values, highlighted in their category color. */}
             <Segments segments={toSegments(pair.real, vault, kinds)} />
           </p>
         </div>
@@ -112,7 +112,7 @@ function PairRow({
             <span>{rightHead}</span>
           </div>
           <p className="tsp-text">
-            {/* `wireSegments` surligne les PSEUDONYMES : c'est la forme partie. */}
+            {/* `wireSegments` highlights the PSEUDONYMS: that's the form that left. */}
             <Segments segments={wireSegments(pair.wire, vault, kinds)} />
           </p>
         </div>
@@ -121,9 +121,9 @@ function PairRow({
   );
 }
 
-/** Segments → texte + marques. Volontairement SANS `data-real` : ce panneau MONTRE, il
- *  ne propose pas de unredact — le survol qui ouvre le menu d'action vit dans la
- *  conversation, où l'action a un sens. */
+/** Segments → text + marks. Deliberately WITHOUT `data-real`: this panel SHOWS, it
+ *  doesn't offer to un-redact — the hover that opens the action menu lives in the
+ *  conversation, where the action makes sense. */
 function Segments({ segments }: { segments: RedactionSegment[] }) {
   return (
     <>

@@ -1,6 +1,6 @@
-/* Le rendu CONSOLE d'une entrée wire (le `%c` devtools + sa copie épinglée de la
-   palette) vit dans `wireTrace.ts` — ce fichier est l'ANNEAU du journal seul, et la
-   séparation est ce qui garde chacun sous le cap des 300 lignes. */
+/* The CONSOLE rendering of a wire entry (the `%c` devtools + its pinned copy of the
+   palette) lives in `wireTrace.ts` — this file is the journal's RING alone, and the
+   separation is what keeps each one under the 300-line cap. */
 
 /* ── In-app debug log buffer ──────────────────────────────────────────────
    So the raw DevTools console isn't required: wire messages, MCP tool calls and
@@ -37,11 +37,11 @@ export type DebugEntry =
   // `inputTokens`/`outputTokens` are patched in AFTER the model replies (the send
   // reports usage on `onDone`/`onUsage`). Absent when the provider reports no usage
   // (openai-compat/local).
-  // ⚠️ Sur un tour AGENTIQUE ce coût est le CUMUL de tous les échanges modèle du tour,
-  // pas celui de ce message-là : le journal du 27/07/2026 affichait « 28 079 entrée »
-  // sous un message de 221 caractères, à côté d'un « 13 938 entrée » au tour 1 qui
-  // semblait le contredire. `modelTurns` porte le nombre d'échanges couverts, et
-  // `wireTokenSummary` le DIT quand il y en a plus d'un.
+  // ⚠️ On an AGENTIC turn this cost is the CUMULATIVE total of all the turn's model
+  // exchanges, not this particular message's: the 27/07/2026 journal showed « 28,079 input »
+  // under a 221-character message, next to a « 13,938 input » at turn 1 that
+  // seemed to contradict it. `modelTurns` carries the number of exchanges covered, and
+  // `wireTokenSummary` SAYS so when there's more than one.
   | { id: string; at: number; conv?: string; type: "wire"; model: string; text: string; vault?: Record<string, string>; kinds?: Record<string, string>; inputTokens?: number; outputTokens?: number; cachedInputTokens?: number; modelTurns?: number }
   | { id: string; at: number; conv?: string; type: "tool"; name: string; ok: boolean; args?: string; result?: string; error?: string; pairs?: DebugPair[]; vault?: Record<string, string>; kinds?: Record<string, string> }
   // ONE model exchange of the agentic loop (tour N): what was ADDED to the request
@@ -55,10 +55,10 @@ export type DebugEntry =
       request: TurnMessage[]; requestFull?: boolean; msgCount: number;
       toolsOffered: number; toolNames?: string[]; toolChoice?: string;
       text?: string; toolCalls?: { name: string; args: string }[]; stopReason?: string;
-      // `cachedInputTokens` = la PART de `inputTokens` servie par le cache du provider
-      // (préfixe stable : prompt système + schémas d'outils). Un tour agentique renvoie
-      // tout l'historique, donc c'est ce ratio — pas l'entrée brute — qui dit si le
-      // préfixe est réutilisé ou refacturé plein tarif à chaque échange.
+      // `cachedInputTokens` = the SHARE of `inputTokens` served by the provider's cache
+      // (stable prefix: system prompt + tool schemas). An agentic turn resends
+      // the whole history, so it's this ratio — not the raw input — that says whether the
+      // prefix is reused or re-billed at full price on every exchange.
       inputTokens?: number; outputTokens?: number; cachedInputTokens?: number; ms?: number; error?: string;
       vault?: Record<string, string>; kinds?: Record<string, string>;
     }
@@ -136,21 +136,21 @@ export async function attachDebugStore(s: DebugStore | null): Promise<void> {
     if (store !== s) return; // a later attach (fast account switch) won the race
     const parsed: unknown = raw ? JSON.parse(raw) : null;
     if (Array.isArray(parsed)) {
-      // Les entrées NON ESTAMPILLÉES sont jetées. Aucun émetteur n'en produit (un chat pas
-      // encore créé estampille `DRAFT_CONV`), donc une entrée sans `conv` dans le blob ne
-      // peut venir que d'un anneau écrit AVANT que l'estampillage soit complet (11/08).
-      // Les garder coûtait deux fois : `debugScope.ts` les montrait dans CHAQUE
-      // conversation — « en changeant de conversation le journal reste le même » — et
-      // elles occupaient des places de l'anneau de 200 que rien ne peut plus afficher.
-      // Un événement d'app légitime est bon marché à perdre : il se ré-émet.
+      // UN-STAMPED entries are dropped. No emitter produces any (a chat not
+      // yet created stamps `DRAFT_CONV`), so an entry with no `conv` in the blob can
+      // only come from a ring written BEFORE stamping was complete (11/08).
+      // Keeping them cost twice over: `debugScope.ts` showed them in EVERY
+      // conversation — « switching conversation, the journal stays the same » — and
+      // they occupied slots of the 200-entry ring that nothing can display any more.
+      // A legitimate app event is cheap to lose: it gets re-emitted.
       const stored = parsed as DebugEntry[];
       buffer = stored.filter((e) => e.conv != null).slice(-MAX_ENTRIES);
       // Continue ids past the hydrated ones so `updateDebug` can never patch a
       // resurrected entry by id collision.
       seq = buffer.reduce((m, e) => Math.max(m, Number(String(e.id).slice(1)) || 0), seq);
       listeners.forEach((l) => l());
-      // Ré-écrire UNE fois quand on a jeté quelque chose, sinon le blob les garde jusqu'à
-      // la prochaine entrée — et un journal qu'on n'alimente plus ne se nettoierait jamais.
+      // Re-write ONCE when something got dropped, otherwise the blob keeps them until
+      // the next entry — and a journal that's no longer fed would never clean itself up.
       if (buffer.length !== stored.length) scheduleSave();
     }
   } catch {
@@ -184,22 +184,22 @@ export function subscribeDebugLog(cb: () => void): () => void {
 }
 
 /**
- * La conversation-BROUILLON. Un fichier déposé sur un chat NEUF travaille pour une
- * conversation qui n'existe pas encore (elle naît au premier envoi) : ses entrées
- * (OCR, redaction de document) partaient donc SANS `conv` — or une entrée sans `conv`
- * est un événement d'APP, montré dans TOUTES les conversations, et l'anneau est persisté
- * par compte : le journal de chaque conversation embarquait le redaction de documents
- * d'un autre fil, indéfiniment. Les émetteurs du dépôt estampillent CE sentinel à la
- * place, et le premier envoi l'adopte (`adoptDraftDebug`). La valeur ne peut pas
- * entrer en collision avec un id réel (les ids sont des uid alphanumériques).
+ * The DRAFT conversation. A file dropped on a NEW chat works for a
+ * conversation that doesn't exist yet (it's born on the first send): its entries
+ * (OCR, document redaction) used to go out WITH NO `conv` — but an entry with no `conv`
+ * is an APP event, shown in EVERY conversation, and the ring is persisted
+ * per account: each conversation's journal was carrying another thread's document
+ * redaction, indefinitely. The staging's emitters now stamp THIS sentinel
+ * instead, and the first send adopts it (`adoptDraftDebug`). The value cannot
+ * collide with a real id (ids are alphanumeric uids).
  */
 export const DRAFT_CONV = "·brouillon·";
 
 /**
- * Le premier envoi vient de CRÉER la conversation : les entrées du brouillon lui
- * appartiennent — re-clé en place. Résiduel assumé : deux chats neufs menés de front
- * partagent le même brouillon (exactement comme leur mise en scène de fichiers,
- * `stagedFiles` clé ""), donc le premier qui envoie adopte tout.
+ * The first send just CREATED the conversation: the draft's entries
+ * belong to it — re-keyed in place. Accepted residual: two new chats driven side by
+ * side share the same draft (exactly like their file staging,
+ * `stagedFiles` key ""), so whichever sends first adopts everything.
  */
 export function adoptDraftDebug(convId: string): void {
   if (!buffer.some((e) => e.conv === DRAFT_CONV)) return;
@@ -208,14 +208,14 @@ export function adoptDraftDebug(convId: string): void {
   scheduleSave();
 }
 
-// Qui peut VOIR quelle entrée (brouillon compris) est une question de confidentialité,
-// pas de stockage : la règle vit dans `debugScope.ts` (règle 10). Ici ne restent que le
-// sentinel et l'adoption, qui MUTENT l'anneau.
+// Who can SEE which entry (draft included) is a matter of privacy,
+// not storage: the rule lives in `debugScope.ts` (rule 10). Only the
+// sentinel and the adoption, which MUTATE the ring, remain here.
 
 /** Record a debug entry (no-op unless capture is on). `convId` scopes it to one
  *  conversation (stamped at emit time so concurrent tab turns stay separate); omit
- *  for an app-level event — jamais pour du travail de conversation : un chat pas
- *  encore créé estampille `DRAFT_CONV`. Returns the new entry's id (or "" when
+ *  for an app-level event — never for conversation work: a chat not
+ *  yet created stamps `DRAFT_CONV`. Returns the new entry's id (or "" when
  *  capture is off) so a live `phase` step can be refined via `updateDebug`. */
 export function pushDebug(e: NewEntry, convId?: string): string {
   if (!capture) return "";

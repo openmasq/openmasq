@@ -14,11 +14,11 @@ import { sectionGuides, type SectionGuide } from "./sections";
  * never describe a section differently from the nav that leads to it.
  */
 
-/* Les SYNONYMES — ce qu'un utilisateur tape en plus de l'étiquette — vivent avec le reste
-   du vocabulaire de section (`sections.keywords` du catalogue), et non dans une seconde
-   table ici : la liste anglaise et la liste française ne sont pas la traduction l'une de
-   l'autre (un francophone tape « coffre-fort », un anglophone « vault »), donc elles se
-   rédigent là où chaque langue s'écrit. */
+/* The SYNONYMS — what a user types besides the label — live with the rest
+   of the section vocabulary (the catalogue's `sections.keywords`), not in a second
+   table here: the English list and the French list are not each other's
+   translation (a French speaker types « coffre-fort », an English speaker « vault »), so they
+   are authored where each language is written. */
 
 export interface SectionDestination {
   /** A real section, or the pseudo-destination `"guide"` (opens « Aide »). */
@@ -34,7 +34,7 @@ const guideEntry = (t: Messages): SectionDestination & { kw: string } => ({
   kw: t.sections.helpEntry.keywords,
 });
 
-/** Fold accents + lowercase, so « memoire » trouve « Mémoire ». Same rule as the
+/** Fold accents + lowercase, so « memoire » finds « Mémoire ». Same rule as the
  *  settings search — a user types without accents far more often than with. */
 const fold = (s: string): string =>
   s
@@ -47,10 +47,10 @@ const fold = (s: string): string =>
  * nothing — the palette stays conversation-first, and listing all seven rows under an
  * empty box would bury the recent chats.
  *
- * `isOpen` filtre les sections dont la PORTE est fermée (`state/featureAccess.ts`) :
- * un résultat ⌘K vers un écran non monté serait un cul-de-sac. Il est INJECTÉ pour que
- * ce dossier reste le vocabulaire, sans rien savoir de l'état de l'app — et pour que
- * son test n'ait pas d'état global à remettre à zéro. Absent ⇒ tout est ouvert.
+ * `isOpen` filters out sections whose GATE is closed (`state/featureAccess.ts`):
+ * a ⌘K result pointing to a screen that isn't mounted would be a dead end. It is INJECTED so
+ * this folder stays the vocabulary, knowing nothing about the app's state — and so
+ * its test has no global state to reset. Absent ⇒ everything is open.
  */
 export function searchSections(
   query: string,

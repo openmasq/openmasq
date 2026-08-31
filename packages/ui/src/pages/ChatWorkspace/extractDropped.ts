@@ -33,11 +33,11 @@ export interface ExtractDroppedDeps {
 export const MAX_DROP_BYTES = 64 * 1024 * 1024;
 
 /**
- * Un fichier déposé sous la forme DIFFÉRÉE du shell (`DeferredFile`) : le chip paraît
- * AVANT la lecture (même promesse que « Demander » et la Bibliothèque — une seule
- * mécanique de mise en scène, `deferredAttach.ts`), et la progression OCR remonte page
- * par page. Le canal de progression est partagé entre extractions concurrentes, d'où le
- * filtre sur le NOM du fichier.
+ * A dropped file in the shell's DEFERRED form (`DeferredFile`): the chip appears
+ * BEFORE it's read (the same promise as « Demander » and the Bibliothèque — a single
+ * staging mechanism, `deferredAttach.ts`), and OCR progress comes back page by
+ * page. The progress channel is shared across concurrent extractions, hence the
+ * filter on the file's NAME.
  */
 export function deferDroppedFile(file: File, deps: ExtractDroppedDeps): DeferredFile {
   return {
@@ -80,8 +80,8 @@ async function extractOne(
   const carried: ExtractedFile = { ...base, data, ...(file.type ? { mime: file.type } : {}) };
   try {
     const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress);
-    // TOUT ce que la route bytes rend voyage avec le fichier : `words` est ce qui
-    // permet à l'aperçu de peindre l'image REDACTED (boîtes) au lieu de l'originale.
+    // EVERYTHING the bytes route returns travels with the file: `words` is what
+    // lets the aperçu paint the REDACTED image (boxes) instead of the original.
     return {
       ...carried,
       text: r.text,

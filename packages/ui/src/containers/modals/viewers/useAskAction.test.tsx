@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { mount } from "../../../testKit";
 import { useAskAction, ASK_LABEL, type AskState } from "./useAskAction";
 
-/** Le bouton réduit à ce que le hook en fait — le visualiseur n'ajoute que l'icône. */
+/** The button reduced to what the hook makes of it — the viewer only adds the icon. */
 function AskButton({ onAsk }: { onAsk?: () => void | Promise<unknown> }) {
   const ask = useAskAction(onAsk);
   return (
@@ -29,7 +29,7 @@ describe("« Demander » — l'attente se voit, la panne se dit", () => {
     expect(state(m)).toBe("pending");
     expect(m.find<HTMLButtonElement>(".fv-ask").disabled).toBe(true);
 
-    await m.click(".fv-ask"); // inerte pendant l'attente
+    await m.click(".fv-ask"); // inert while pending
     resolve();
     await m.rerender(<AskButton onAsk={onAsk} />);
     expect(onAsk).toHaveBeenCalledTimes(1);
@@ -37,8 +37,8 @@ describe("« Demander » — l'attente se voit, la panne se dit", () => {
   });
 
   it("un SECOND clic pendant l'attente ne relance rien", async () => {
-    // La régression visée : le bouton ne changeait pas d'état, donc on recliquait — et
-    // chaque clic relançait lecture + OCR, puis joignait le fichier une fois de plus.
+    // The targeted regression: the button didn't change state, so it got clicked again — and
+    // each click relaunched read + OCR, then attached the file once more.
     const onAsk = vi.fn(() => new Promise<void>(() => {}));
     const m = await mount(<AskButton onAsk={onAsk} />);
     await m.click(".fv-ask");
@@ -71,8 +71,8 @@ describe("« Demander » — l'attente se voit, la panne se dit", () => {
   });
 
   it("un geste SYNCHRONE ne fait jamais clignoter le bouton", async () => {
-    // Les autres appelants du visualiseur rendent `void` : ils doivent se comporter
-    // exactement comme avant — aucun état d'attente, aucun blocage.
+    // The other callers of the viewer return `void`: they must behave exactly as before
+    // — no pending state, no blocking.
     const onAsk = vi.fn();
     const m = await mount(<AskButton onAsk={onAsk} />);
     await m.click(".fv-ask");

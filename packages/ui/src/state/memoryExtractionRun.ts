@@ -213,17 +213,17 @@ export async function runMemoryExtraction(
     return out;
   };
 
-  // Un plafond par appel ne doit pas devenir un plafond par DEMANDE : quand une passe
-  // remplit son quota, on redemande ce qui manque (`extractSweep.ts`). Le mode silencieux
-  // garde une passe unique — il n'a rien demandé.
+  // A per-call ceiling must not become a per-REQUEST ceiling: when a pass
+  // fills its quota, what's missing gets re-requested (`extractSweep.ts`). The silent mode
+  // keeps a single pass — it asked for nothing.
   const sweep = await sweepExtraction(runPass, {
     limit,
     maxPasses: explicit ? DEFAULT_MAX_PASSES : 1,
     known: knownEntities(settings.memoire),
   });
   if (unreachable && !sweep.facts.length) {
-    // Modèle injoignable (transitoire) : watermark préservé, retenté sur un déclencheur
-    // ultérieur — mais une demande EXPLICITE n'échoue jamais en silence.
+    // Unreachable model (transient): watermark preserved, retried on a later
+    // trigger — but an EXPLICIT request never fails silently.
     if (explicit) deps.noteOnMessage?.(conv.id, 0, undefined, true);
     return 0;
   }
@@ -231,9 +231,9 @@ export async function runMemoryExtraction(
     ? { facts: sweep.facts, profile: sweep.profile }
     : null;
   if (!parsed) {
-    // Deux réponses illisibles à température 0 : re-payer la même tranche en boucle ne
-    // la rendra pas lisible. Le watermark avance, l'échec est TRACÉ — et montré à
-    // l'utilisateur quand il a demandé (jamais un échec réel en silence).
+    // Two illegible replies at temperature 0: re-paying for the same slice in a loop won't
+    // make it legible. The watermark advances, the failure is TRACED — and shown to
+    // the user when they asked (never a real failure in silence).
     advance();
     if (explicit) deps.noteOnMessage?.(conv.id, 0, undefined, true);
     pushDebug(

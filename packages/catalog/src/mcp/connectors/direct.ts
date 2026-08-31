@@ -17,13 +17,13 @@ export const DIRECT: McpConnector[] = [
     directAuth: "device",
     scopes: { managed: ["repo", "read:user"], byo: ["repo", "read:user"] },
   },
-  // ⚠️ Décision produit 30/07/2026 : les scopes Google RESTRICTED (gmail.readonly,
-  // drive.readonly) sont désormais demandés sur le client de l'app AUSSI — capacités
-  // 1-clic = 100 % des capacités BYO (`managed` ≡ `byo` sur tous les connecteurs
-  // Google). CASA n'est PAS une porte dans le code : c'est le prérequis d'OPS pour
-  // publier le client en prod (audit sécurité annuel + vérification Google). D'ici
-  // là, le client tourne sous le régime « app en test » de Google (écran
-  // d'avertissement, testeurs plafonnés, refresh tokens à durée limitée).
+  // ⚠️ Product decision 30/07/2026: Google's RESTRICTED scopes (gmail.readonly,
+  // drive.readonly) are now also requested on the app's client — 1-clic
+  // capabilities = 100% of BYO capabilities (`managed` ≡ `byo` on every Google
+  // connector). CASA is NOT a gate in the code: it's OPS's prerequisite to
+  // publish the client in prod (annual security audit + Google verification). Until
+  // then, the client runs under Google's "app in testing" regime (warning
+  // screen, capped testers, time-limited refresh tokens).
   {
     // Loopback + PKCE ("Desktop app" Google client, incremental consent).
     id: "google-calendar",
@@ -35,21 +35,21 @@ export const DIRECT: McpConnector[] = [
     hosts: ["calendar.google.com"],
     directAuth: "pkce",
     scopes: {
-      // `calendar.events` et PAS `auth/calendar` : les deux outils exposés (lister,
-      // créer un événement) n'ont besoin que des événements — le scope complet ajoute
-      // les ACL, les réglages et la suppression d'agendas, qu'aucun outil n'utilise.
-      // Minimisation = ce que l'écran de consentement Google et l'audit CASA vérifient
-      // en premier. Une connexion d'AVANT garde son ancien scope jusqu'à reconnexion.
+      // `calendar.events` and NOT `auth/calendar`: the two exposed tools (list,
+      // create an event) only need events — the full scope adds
+      // ACLs, settings, and calendar deletion, which no tool uses.
+      // Minimization = what the Google consent screen and the CASA audit check
+      // first. A connection from BEFORE keeps its old scope until reconnection.
       managed: ["https://www.googleapis.com/auth/calendar.events"],
       byo: ["https://www.googleapis.com/auth/calendar.events"],
     },
   },
   {
     // Merged Gmail (same Google "Desktop app" client). 1-clic (managed) = READ +
-    // SEND, comme le byo — les outils restent exposés par scope ACCORDÉ (desktop
-    // `run.ts`) : une connexion 1-clic d'AVANT le 30/07 n'a accordé que
-    // `gmail.send` et n'offre donc que `send_email` tant qu'elle n'est pas
-    // reconnectée (consentement incrémental).
+    // SEND, same as byo — tools stay exposed by GRANTED scope (desktop
+    // `run.ts`): a 1-clic connection from BEFORE 30/07 only granted
+    // `gmail.send` and therefore only offers `send_email` until it's
+    // reconnected (incremental consent).
     id: "gmail",
     name: "Gmail",
     desc: "Lire, rechercher et envoyer vos emails",
@@ -80,9 +80,9 @@ export const DIRECT: McpConnector[] = [
     hosts: ["drive.google.com"],
     directAuth: "pkce",
     scopes: {
-      // + `drive.file` (NON sensible) : l'écriture sans élargir la surface restreinte —
-      // l'app ne crée/retouche que SES fichiers. Parité avec la maison OAuth
-      // (`@openmasq/connectors` drive.ts) tenue par `scopesParity.test.ts`.
+      // + `drive.file` (NOT sensitive): writing without widening the restricted surface —
+      // the app only creates/touches ITS OWN files. Parity with the in-house OAuth
+      // (`@openmasq/connectors` drive.ts) held by `scopesParity.test.ts`.
       managed: ["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive.file"],
       byo: ["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive.file"],
     },

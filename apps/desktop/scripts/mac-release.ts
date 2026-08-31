@@ -1,34 +1,34 @@
 /**
- * LA RELEASE macOS, avec les deux notarisations EN PARALLÈLE.
+ * THE macOS RELEASE, with both notarizations IN PARALLEL.
  *
- * Pourquoi ce script existe. `electron-builder` traite les arches de bout en bout, l'une
- * après l'autre : empaquetage → signature → soumission à Apple → **attente** → agrafage →
- * dmg/zip, puis la même chose pour la seconde. L'attente d'Apple est du réseau pur, et on la
- * payait DEUX FOIS en série sur un runner macOS facturé au décuple. Mesuré en CI sur une
- * seule arche (run 123) : 21 min 55 pour cette étape, contre 58 s d'install et 49 s de build
- * — c'est 84 % du job, et ça double avec la seconde arche.
+ * Why this script exists. `electron-builder` processes arches end-to-end, one
+ * after another: packaging → signing → submission to Apple → **wait** → stapling →
+ * dmg/zip, then the same thing for the second. Apple's wait is pure network, and it was
+ * being paid TWICE in series on a macOS runner billed at ten times the rate. Measured in CI on a
+ * single arch (run 123): 21 min 55 for this step, versus 58 s of install and 49 s of build
+ * — that's 84% of the job, and it doubles with the second arch.
  *
- * Ce que ce script change, et RIEN d'autre : la notarisation sort du pipeline
- * d'electron-builder pour que les deux soumissions attendent ENSEMBLE. La signature reste
- * séquentielle (c'est du CPU, la paralléliser sur un runner à 3 cœurs ne gagne rien et
- * ferait courir deux imports de certificat sur le même trousseau temporaire).
+ * What this script changes, and NOTHING else: notarization comes out of the
+ * electron-builder pipeline so both submissions wait TOGETHER. Signing stays
+ * sequential (it's CPU work, parallelizing it on a 3-core runner gains nothing and
+ * would run two certificate imports on the same temporary keychain).
  *
- *   1. `eb --dir` par arche, notarisation DÉSACTIVÉE → deux .app signés, fuses posés,
- *      `archPrune` passé (il tourne dans `afterPack`, donc rien de ce garde n'est perdu).
- *   2. `ditto` + `notarytool submit --wait` sur les deux, EN PARALLÈLE.
- *   3. `stapler staple` chacun — AVANT la fabrication des distribuables, sans quoi le zip et
- *      le dmg téléchargés ne porteraient pas le ticket et Gatekeeper devrait interroger
- *      Apple en ligne (donc : échec hors ligne, chez l'utilisateur).
- *   4. `eb --prepackaged` par arche → dmg + zip + blockmaps, depuis les apps agrafées.
- *   5. Les deux `latest-mac.yml` partiels sont fusionnés en un seul, par le SEUL code qui
- *      sait le faire (`apps/updates`, à qui ce format appartient) — voir plus bas.
+ *   1. `eb --dir` per arch, notarization DISABLED → two signed .apps, fuses set,
+ *      `archPrune` run (it runs inside `afterPack`, so none of that guard is lost).
+ *   2. `ditto` + `notarytool submit --wait` on both, IN PARALLEL.
+ *   3. `stapler staple` each one — BEFORE building the distributables, without which the zip and
+ *      downloaded dmg would not carry the ticket and Gatekeeper would have to query
+ *      Apple online (so: offline failure, at the user's).
+ *   4. `eb --prepackaged` per arch → dmg + zip + blockmaps, from the stapled apps.
+ *   5. The two partial `latest-mac.yml` files are merged into one, by the ONLY code that
+ *      knows how (`apps/updates`, which owns this format) — see below.
  *
- * ⚠️ Tout passe par `pnpm run eb`, jamais `electron-builder` en direct : `eb.mjs` calcule la
- * version d'Electron depuis la dépendance résolue et refuse un lanceur non-pnpm. Sortir de
- * ce chemin, c'est réintroduire les deux pannes qu'il existe pour empêcher.
+ * ⚠️ Everything goes through `pnpm run eb`, never `electron-builder` directly: `eb.mjs` computes the
+ * Electron version from the resolved dependency and refuses a non-pnpm runner. Straying from
+ * this path means reintroducing the two failures it exists to prevent.
  *
- * `OPENMASQ_MAC_RELEASE_DRY_RUN=1` imprime le plan (toutes les commandes, dans l'ordre) et
- * sort sans rien exécuter — comment on relit ce fichier sans payer 40 minutes de build.
+ * `OPENMASQ_MAC_RELEASE_DRY_RUN=1` prints the plan (every command, in order) and
+ * exits without running anything — how to review this file without paying for a 40-minute build.
  */
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync, renameSync } from "node:fs";
@@ -41,17 +41,17 @@ const DESKTOP = join(HERE, "..");
 const ROOT = join(DESKTOP, "..", "..");
 const RELEASE = join(DESKTOP, "release");
 const DRY = process.env.OPENMASQ_MAC_RELEASE_DRY_RUN === "1";
-// Le nom du produit vient de la seule maison de la marque (règle 9).
+// The product name comes from the brand's one home (rule 9).
 const BRAND = JSON.parse(readFileSync(join(ROOT, "packages", "branding", "branding.json"), "utf8")) as {
   name: string;
 };
 
-/** Les arches, LUES dans electron-builder.cjs (règle 9 : cette liste n'a qu'une maison). */
+/** The arches, READ from electron-builder.cjs (rule 9: this list has only one home). */
 export const macArches = (config?: EbConfigShape): string[] =>
   shippedTriples("mac", config).map((t) => t.split("-").slice(1).join("-"));
 
-/** Les identifiants d'Apple. Absents ⇒ on s'arrête AVANT de signer : découvrir qu'on ne peut
- *  pas notariser après 40 minutes d'empaquetage est le pire moment pour l'apprendre. */
+/** The Apple credentials. Absent ⇒ we stop BEFORE signing: discovering that we can't
+ *  notarize after 40 minutes of packaging is the worst moment to learn it. */
 function requireNotarizationCreds(): { id: string; pwd: string; team: string } {
   const [id, pwd, team] = ["APPLE_ID", "APPLE_APP_SPECIFIC_PASSWORD", "APPLE_TEAM_ID"].map(
     (k) => process.env[k] ?? "",
@@ -66,8 +66,8 @@ function requireNotarizationCreds(): { id: string; pwd: string; team: string } {
   return { id, pwd, team };
 }
 
-/** Exécute une commande, en héritant des flux. Rejette sur un code non nul OU un signal —
- *  un enfant tué n'a pas de code, et le lire comme un succès expédierait du non-notarisé. */
+/** Runs a command, inheriting the streams. Rejects on a nonzero code OR a signal —
+ *  a killed child has no code, and reading that as a success would ship something non-notarized. */
 function run(cmd: string, args: string[], opts: { cwd?: string } = {}): Promise<void> {
   if (DRY) {
     console.log(`  $ ${cmd} ${args.join(" ")}`);
@@ -84,10 +84,10 @@ function run(cmd: string, args: string[], opts: { cwd?: string } = {}): Promise<
 }
 
 /**
- * Le dossier de l'app d'une arche — VÉRIFIÉ, pas supposé. electron-builder nomme
- * `release/mac` et `release/mac-arm64`, mais cette convention est la sienne : on relit donc
- * l'arche réelle du binaire avec `lipo`. Une inversion des deux dossiers livrerait à chaque
- * processeur l'app de l'autre, ce qu'aucune étape ultérieure ne rattraperait.
+ * An arch's app folder — VERIFIED, not assumed. electron-builder names
+ * `release/mac` and `release/mac-arm64`, but this convention is its own: so we re-read
+ * the binary's real arch with `lipo`. A swap of the two folders would deliver each
+ * processor the other's app, which no later step would catch.
  */
 async function appDirFor(arch: string): Promise<string> {
   const candidates = [join(RELEASE, `mac-${arch}`), join(RELEASE, "mac")];
@@ -118,7 +118,7 @@ async function main(version: string): Promise<void> {
   const creds = requireNotarizationCreds();
   console.log(`[mac-release] ${arches.length} arche(s) : ${arches.join(", ")} — version ${version}`);
 
-  // ── 1. empaqueter + signer, SANS notariser ────────────────────────────────────────────
+  // ── 1. package + sign, WITHOUT notarizing ────────────────────────────────────────────
   console.log("[mac-release] 1/5 empaquetage + signature (notarisation désactivée)");
   for (const arch of arches) {
     await eb([
@@ -132,11 +132,11 @@ async function main(version: string): Promise<void> {
   const apps = new Map<string, string>();
   for (const arch of arches) apps.set(arch, await appDirFor(arch));
 
-  // Un .app sans `app-update.yml` ne saura plus JAMAIS se mettre à jour : chaque
-  // vérification meurt en ENOENT, et la seule issue pour l'utilisateur est une
-  // réinstallation à la main. On refuse donc de continuer — ICI, avant de payer
-  // 20 minutes de notarisation pour un artefact qu'il faudra rappeler. Le fichier
-  // est écrit par `afterPack.cjs` (l'empaquetage `--dir` seul ne le produit pas).
+  // An .app without `app-update.yml` will NEVER be able to update again: every
+  // check dies with ENOENT, and the user's only way out is a manual
+  // reinstall. So we refuse to continue — HERE, before paying for
+  // 20 minutes of notarization for an artifact that will have to be recalled. The file
+  // is written by `afterPack.cjs` (`--dir` packaging alone does not produce it).
   for (const arch of arches) {
     const yml = join(apps.get(arch)!, "Contents", "Resources", "app-update.yml");
     if (!DRY && !existsSync(yml)) {
@@ -147,14 +147,14 @@ async function main(version: string): Promise<void> {
     }
   }
 
-  // ── 2. notariser LES DEUX en parallèle ────────────────────────────────────────────────
+  // ── 2. notarize BOTH in parallel ────────────────────────────────────────────────
   console.log("[mac-release] 2/5 notarisation des deux arches EN PARALLÈLE (l'attente est d'Apple)");
   const started = Date.now();
   const submissions = arches.map(async (arch) => {
     const app = apps.get(arch)!;
     const zip = join(RELEASE, `notarize-${arch}.zip`);
-    // Le même `ditto` qu'electron-builder faisait pour nous — notarytool n'accepte pas un
-    // dossier .app nu, il lui faut une archive.
+    // The same `ditto` electron-builder used to do for us — notarytool doesn't accept a
+    // bare .app folder, it needs an archive.
     await run("ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", app, zip]);
     await run("xcrun", [
       "notarytool",
@@ -170,10 +170,10 @@ async function main(version: string): Promise<void> {
     ]);
     console.log(`[mac-release]   ${arch} : notarisé`);
   });
-  // ⚠️ `allSettled`, pas `all` : avec `all`, la première arche en échec ferait sortir le
-  // process pendant que l'autre soumission court encore, et on perdrait le diagnostic de
-  // celle qui a peut-être échoué aussi. On attend TOUT, puis on décide — et on échoue si
-  // l'une quelconque a échoué.
+  // ⚠️ `allSettled`, not `all`: with `all`, the first arch to fail would exit the
+  // process while the other submission is still running, and we'd lose the diagnosis of
+  // the one that might have failed too. We wait for EVERYTHING, then decide — and fail if
+  // any one of them failed.
   const results = await Promise.allSettled(submissions);
   const failed = results.flatMap((r, i) => (r.status === "rejected" ? [`${arches[i]} : ${r.reason}`] : []));
   if (failed.length > 0) {
@@ -182,11 +182,11 @@ async function main(version: string): Promise<void> {
   }
   console.log(`[mac-release]   les deux notarisations ont pris ${Math.round((Date.now() - started) / 1000)} s AU TOTAL`);
 
-  // ── 3. agrafer AVANT de fabriquer quoi que ce soit ────────────────────────────────────
+  // ── 3. staple BEFORE building anything at all ────────────────────────────────────────────
   console.log("[mac-release] 3/5 agrafage des tickets");
   for (const arch of arches) await run("xcrun", ["stapler", "staple", apps.get(arch)!]);
 
-  // ── 4. dmg + zip depuis les apps agrafées ─────────────────────────────────────────────
+  // ── 4. dmg + zip from the stapled apps ─────────────────────────────────────────────
   console.log("[mac-release] 4/5 fabrication des distribuables");
   const manifests: string[] = [];
   for (const arch of arches) {
@@ -201,8 +201,8 @@ async function main(version: string): Promise<void> {
       "--publish",
       "never",
     ]);
-    // Chaque passe réécrit `latest-mac.yml` avec SES seuls fichiers : on met de côté avant
-    // que la suivante ne l'écrase.
+    // Each pass rewrites `latest-mac.yml` with ONLY its own files: we set it aside before
+    // the next one overwrites it.
     const produced = join(RELEASE, "latest-mac.yml");
     const kept = join(RELEASE, `latest-mac.${arch}.yml`);
     if (!DRY) {
@@ -212,11 +212,11 @@ async function main(version: string): Promise<void> {
     manifests.push(kept);
   }
 
-  // ── 5. un seul manifeste ──────────────────────────────────────────────────────────────
-  // La fusion est faite par `apps/updates`, à qui le format appartient et qui la met déjà en
-  // œuvre pour SERVIR des legs publiés séparément (`src/lib/desktopArch.ts`). Une seconde
-  // implémentation ici serait exactement le doublon que la règle 9 interdit ; on appelle donc
-  // la sienne, en CLI — il n'y a pas d'import d'app à app.
+  // ── 5. a single manifest ──────────────────────────────────────────────────────────────
+  // The merge is done by `apps/updates`, which owns the format and already implements it
+  // to SERVE legs published separately (`src/lib/desktopArch.ts`). A second
+  // implementation here would be exactly the duplicate rule 9 forbids; so we call
+  // its own, via CLI — there's no app-to-app import.
   console.log("[mac-release] 5/5 fusion des manifestes");
   await run(
     "pnpm",
@@ -226,9 +226,9 @@ async function main(version: string): Promise<void> {
   console.log("[mac-release] terminé.");
 }
 
-// ⚠️ Rien ne s'exécute à l'IMPORT. Ce module est chargé par son test (qui vérifie la seule
-// décision pure : quelles arches), et un script qui empaquette au moment où on l'importe est
-// un script qu'on finit par ne pas tester du tout.
+// ⚠️ Nothing runs on IMPORT. This module is loaded by its test (which verifies the only
+// pure decision: which arches), and a script that packages the moment it's imported is
+// a script that ends up not being tested at all.
 const invokedDirectly = process.argv[1] ? fileURLToPath(import.meta.url) === process.argv[1] : false;
 if (invokedDirectly) {
   const version = process.argv[2];

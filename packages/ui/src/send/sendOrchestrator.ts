@@ -2257,7 +2257,7 @@ export function createSendMessage(d: SendMessageDeps) {
           const rawMsg = fromWire(message);
           const safeMsg =
             humanizeSendError(message, t, { personal: !orgProfileRef.current, provider: model.provider }) ?? fromWire(cleanErrorText(message));
-          const act = sendErrorAction(message, model.provider); // une issue PROPOSÉE, pas seulement écrite
+          const act = sendErrorAction(message, model.provider); // a PROPOSED way out, not just stated
           dbg({ type: "error", scope: `stream · ${model.id}`, message: rawMsg });
           // The send failure rate was DEAD in PostHog: `send_error` was only emitted
           // from ChatView's `catch`, which no longer fires now that

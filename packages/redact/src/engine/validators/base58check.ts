@@ -144,9 +144,9 @@ function base58Encode(bytes: Uint8Array): string {
  *
  * ⚠️ Without this, the fake was a character-by-character scramble (`fakeToken`): it
  * started with any letter, passed no checksum, and therefore did not
- * look like an address. This is the `model/CLAUDE.md` rule — « le faux de
- * TOUT identifiant à somme de contrôle passe SA propre somme : un faux qui échoue invite le
- * modèle à le "corriger", et la correction ne se retourne plus ». It holds all the more
+ * look like an address. This is the `model/CLAUDE.md` rule — « the fake of
+ * EVERY checksummed identifier passes ITS OWN checksum: a failing fake invites the
+ * model to "correct" it, and the correction no longer reverses ». It holds all the more
  * now that DETECTION requires the base58check: an invalid fake would not even be
  * re-detected as an address by our own engine.
  *

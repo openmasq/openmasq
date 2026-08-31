@@ -7,7 +7,7 @@ import type { Conversation } from "../../types";
 
 /**
  * The sidebar row is the app's PRIMARY navigation, so it must be operable without a
- * mouse: a focusable `role="option"` selected with Entrée/Espace. The guard the last
+ * mouse: a focusable `role="option"` selected with Enter/Space. The guard the last
  * case pins: a key pressed ON the ⋯ actions button (which lives inside the row) must
  * never double as a row selection.
  */

@@ -12,21 +12,21 @@ import { resolveEffectivePlatform } from "./routing";
 import { subscriptionsSold } from "./platformAccess";
 
 /**
- * Le mode AUTO : `conversation.modelId` peut valoir ce sentinel au lieu d'un id de
- * modèle réel — le modèle est alors CHOISI à chaque envoi, ici, déterministiquement.
+ * AUTO mode: `conversation.modelId` can hold this sentinel instead of a real
+ * model id — the model is then CHOSEN on every send, here, deterministically.
  *
- * Deux invariants, tous deux côté sûr :
- * - **Jamais un modèle que la barrière d'envoi refuserait.** Les candidats passent par
- *   `modelUnavailableReason` — le MÊME helper que `preflightError` et le sélecteur
- *   (règle 9) — donc l'escalade vers un modèle métré (passerelle plateforme, crédits) n'est
- *   possible QUE si l'abonnement/le budget la couvre déjà. Un compte gratuit sans clé
- *   ne voit le routeur choisir qu'entre les `:free`.
- * - **La décision est LOCALE et déterministe.** Aucun appel réseau, aucun modèle : des
- *   signaux calculés sur la machine (longueur, pièces jointes, connecteurs actifs) et le
- *   positionnement relatif de `modelMeta` (famille/palier, pas des benchmarks inventés).
+ * Two invariants, both on the safe side:
+ * - **Never a model the send gate would refuse.** Candidates go through
+ *   `modelUnavailableReason` — the SAME helper as `preflightError` and the picker
+ *   (rule 9) — so escalating to a metered model (platform gateway, credits) is
+ *   possible ONLY if the subscription/budget already covers it. A free account with no key
+ *   only ever sees the router choose among the `:free` models.
+ * - **The decision is LOCAL and deterministic.** No network call, no model: it's
+ *   signals computed on the machine (length, attachments, active connectors) and
+ *   `modelMeta`'s relative positioning (family/tier, not invented benchmarks).
  *
- * `preflightError` revérifie l'élu à l'envoi comme n'importe quel choix manuel — le
- * routeur est une préférence, jamais une autorisation.
+ * `preflightError` re-checks the chosen one at send time like any manual choice — the
+ * router is a preference, never an authorization.
  */
 export const AUTO_MODEL_ID = "auto";
 export const AUTO_MODEL_LABEL = "Auto";
@@ -35,32 +35,32 @@ export function isAutoModelId(id: string | undefined | null): boolean {
   return id === AUTO_MODEL_ID;
 }
 
-/** La classe de tâche que le routeur a reconnue — trois paliers, pas plus : chaque
- *  palier de plus rend la décision moins explicable à l'utilisateur. */
+/** The task class the router recognised — three tiers, no more: every
+ *  extra tier makes the decision less explainable to the user. */
 export type AutoTaskClass = "leger" | "standard" | "expert";
 
-/** Comment l'envoi routé sera FACTURÉ — c'est ce que l'UI doit rendre explicite :
- *  `metered` = passerelle plateforme, décompté des crédits d'abonnement. */
+/** How the routed send will be BILLED — this is what the UI must make explicit:
+ *  `metered` = platform gateway, deducted from subscription credits. */
 export type AutoBilling = "free" | "byo" | "metered";
 
 export interface AutoRouteSignals {
-  /** Le texte utilisateur de CET envoi (lu localement — rien ne part d'ici). */
+  /** THIS send's user text (read locally — nothing leaves from here). */
   text: string;
-  /** Taille cumulée des documents joints (caractères extraits). */
+  /** Cumulative size of the attached documents (extracted characters). */
   attachmentChars: number;
-  /** Des pages/images partent avec l'envoi ⇒ un modèle `vision` est requis. */
+  /** Pages/images go out with the send ⇒ a `vision` model is required. */
   hasImages: boolean;
-  /** L'envoi entrera dans la boucle agentique (connecteurs MCP branchés + host capable). */
+  /** The send will enter the agentic loop (MCP connectors connected + capable host). */
   usesConnectors: boolean;
-  /** Le code interpreter est forcé pour cet envoi (tag « graphique »). */
+  /** The code interpreter is forced for this send (the "graphique" tag). */
   forcesCode?: boolean;
-  /** Le dernier message ne demande qu'à CONSULTER (`agent/readIntent.ts`) — passé en
-   *  booléen pour garder ce module découplé de `agent/`. */
+  /** The last message only asks to CONSULT (`agent/readIntent.ts`) — passed as a
+   *  boolean to keep this module decoupled from `agent/`. */
   consultOnly?: boolean;
 }
 
-/** Les entrées de disponibilité — exactement celles de `modelUnavailableReason`, passées
- *  telles quelles pour que le routeur ne puisse pas router autrement que la barrière. */
+/** The availability inputs — exactly those of `modelUnavailableReason`, passed
+ *  as-is so the router can never route differently from the gate. */
 export interface AutoRouteAvailability {
   billingMode: string | undefined;
   keyConfigured: ReadonlySet<string>;
@@ -79,29 +79,29 @@ export interface AutoRouteResult {
   billing: AutoBilling;
 }
 
-/** Marge de génération réservée au-delà de l'entrée estimée (tokens). */
+/** Generation headroom reserved beyond the estimated input (tokens). */
 const REPLY_HEADROOM_TOKENS = 2000;
-/** Au-delà de ce volume d'entrée (texte + documents), la tâche est `expert`. */
+/** Beyond this input volume (text + documents), the task is `expert`. */
 const EXPERT_CHARS = 12_000;
-/** En deçà (texte seul, sans outil ni pièce jointe), la tâche est `leger`. */
+/** Below this (text alone, no tool or attachment), the task is `leger`. */
 const LIGHT_CHARS = 280;
-/** Une TRANSFORMATION de surface (`lightTaskAsk` : traduire, résumer…) reste légère
- *  au-delà de 280 caractères — jusqu'à ce plafond : le volume à transformer n'est pas
- *  de la difficulté, mais au-delà la fenêtre et la tenue du fil recomptent. */
+/** A surface TRANSFORMATION (`lightTaskAsk`: translate, summarise…) stays light
+ *  beyond 280 characters — up to this cap: the volume to transform is not
+ *  the difficulty, but beyond it the window and thread continuity count again. */
 const LIGHT_TASK_CHARS = 2_000;
 
 /**
- * Classe de tâche, déterministe et explicable. L'ordre est la règle :
- * l'« expert » gagne sur le « léger » (un petit message qui force du code reste expert,
- * et le lexique LOURD gagne sur le léger — « traduis puis optimise » n'est pas léger).
- * Les signaux structurels décident d'abord ; le lexique (`autoTaskIntent.ts`,
- * FR·EN·ES·DE·IT·PT) AFFINE : un verbe expert (« prouve », « débogue »…) ou une
- * consigne multi-étapes classe expert ; un verbe de transformation classe léger.
+ * Task class, deterministic and explainable. Order is the rule:
+ * "expert" beats "light" (a small message that forces code stays expert,
+ * and HEAVY vocabulary beats light — "translate then optimise" is not light).
+ * Structural signals decide first; the vocabulary (`autoTaskIntent.ts`,
+ * FR·EN·ES·DE·IT·PT) REFINES: an expert verb ("prove", "debug"…) or a
+ * multi-step instruction classes as expert; a transformation verb classes as light.
  */
 export function classifyAutoTask(s: AutoRouteSignals): AutoTaskClass {
   const totalChars = s.text.length + s.attachmentChars;
   const code = s.forcesCode || /```/.test(s.text);
-  // Agir via des connecteurs demande un vrai tool-caller ; consulter est plus tolérant.
+  // Acting via connectors requires a real tool-caller; consulting is more tolerant.
   const acts = s.usesConnectors && !s.consultOnly;
   if (code || acts || totalChars > EXPERT_CHARS || hardTaskAsk(s.text)) return "expert";
   const bare = !s.usesConnectors && !s.hasImages && s.attachmentChars === 0;

@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import type { ModelDay } from "./usageActivity";
 import { NAMED_SERIES, OTHER_ID, buildSeries, dayCount } from "./usageSeries";
 
-/** Un jour synthétique : `{modèle: compte}`. */
+/** A synthetic day: `{model: count}`. */
 const day = (byModel: Record<string, number>): ModelDay => ({
   total: Object.values(byModel).reduce((a, b) => a + b, 0),
   byModel,
 });
 
-/** Sept modèles, volumes décroissants — `models` arrive déjà trié, comme le produit. */
+/** Seven models, decreasing volumes — `models` arrives already sorted, like the product. */
 const SEVEN = ["a", "b", "c", "d", "e", "f", "g"];
 const WINDOW = [day({ a: 7, b: 6, c: 5, d: 4, e: 3, f: 2, g: 1 })];
 
@@ -19,9 +19,9 @@ describe("buildSeries — cinq nommés, le reste dans « Autres »", () => {
     expect(s).toHaveLength(NAMED_SERIES + 1);
   });
 
-  // La règle que la rampe elle-même énonce : sept emplacements, ordre FIXE, jamais
-  // cyclés. Une huitième série qui reprendrait `--chart-1` serait indiscernable de la
-  // première — pire que de s'annoncer « autre ».
+  // The rule the ramp itself states: seven slots, FIXED order, never
+  // cycled. An eighth series reusing `--chart-1` would be indistinguishable from the
+  // first — worse than labeling itself "other".
   it("n'attribue jamais deux fois la même teinte", () => {
     const colors = buildSeries(WINDOW, SEVEN).map((x) => x.color);
     expect(new Set(colors).size).toBe(colors.length);
@@ -41,7 +41,7 @@ describe("buildSeries — cinq nommés, le reste dans « Autres »", () => {
     expect(s.map((x) => x.id)).toEqual(["a", "b"]);
   });
 
-  // ⚠️ Une légende qui nomme un modèle sans aplat fait chercher une couleur absente.
+  // ⚠️ A legend that names a model with no fill makes you look for an absent color.
   it("ignore un modèle listé mais SANS message sur la fenêtre", () => {
     const s = buildSeries([day({ a: 2 })], ["a", "fantome"]);
     expect(s.map((x) => x.id)).toEqual(["a"]);

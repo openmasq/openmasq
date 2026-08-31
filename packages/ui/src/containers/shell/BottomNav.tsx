@@ -22,8 +22,8 @@ import { useSectionNav } from "./useSectionNav";
 export function BottomNav() {
   const { section, go } = useSectionNav();
   const t = useT();
-  // Une porte fermée retire son onglet ; la barre se resserre (elle n'a jamais eu
-  // de largeur fixe). `state/featureAccess.ts` pour ce que « fermée » veut dire.
+  // A closed gate removes its tab; the bar tightens up (it never had a fixed
+  // width). See `state/featureAccess.ts` for what "closed" means.
   const access = useFeatureAccess();
   const all: { key: Section; label: string; Icon: typeof MessageIcon; on: boolean; act: () => void }[] = [
     { key: "chats", label: t.nav.chats, Icon: MessageIcon, on: section === "chats", act: () => go("chats") },

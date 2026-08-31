@@ -32,13 +32,13 @@ export function ApiKeyModal({
    *  `state/connectOpenRouter.ts`). Offered ABOVE the paste field because it is the
    *  shorter road: nothing to copy, no page to visit. Absent ⇒ paste only. */
   onConnect?: () => Promise<boolean>;
-  /** Une clé de ce fournisseur est DÉJÀ enregistrée sur cette machine. La modale ne peut
-   *  pas la relire (elle vit chiffrée dans le processus privilégié, jamais rendue au
-   *  renderer) — elle peut seulement le DIRE, et proposer de la remplacer ou de la
-   *  retirer. Sans ça, la même modale vide s'ouvrait dans les deux cas et on ne savait
-   *  pas si l'on était en train d'en ajouter une ou d'en écraser une. */
+  /** A key for this provider is ALREADY saved on this machine. The modal cannot
+   *  reread it (it lives encrypted in the privileged process, never handed back to
+   *  the renderer) — it can only SAY so, and offer to replace or remove it. Without
+   *  this, the same empty modal would open in both cases and there was no way to
+   *  tell whether one was adding a key or overwriting one. */
   hasKey?: boolean;
-  /** Retirer la clé enregistrée. Absent ⇒ l'action n'est pas offerte. */
+  /** Remove the saved key. Absent ⇒ the action isn't offered. */
   onClear?: () => void | Promise<void>;
   /** Save-button text. Default fits the missing-key banner (auto-retries send). */
   saveLabel?: string;
@@ -53,7 +53,7 @@ export function ApiKeyModal({
   // the registry `keyUrl` link for a provider with no documented help.
   const help = providerKeyHelp(provider, t);
   const getUrl = help?.keyUrl ?? keyUrl;
-  // Sans préfixe connu, on nomme le fournisseur plutôt que d'inventer une forme de clé.
+  // Without a known prefix, we name the provider rather than invent a key shape.
   const placeholder = help?.placeholder ?? t.modals.apiKey.keyPlaceholderFallback(label);
 
   const connect = async () => {
@@ -93,7 +93,7 @@ export function ApiKeyModal({
           {t.modals.apiKey.sub}
         </p>
         {hasKey && (
-          // Ce que l'app peut honnêtement dire : qu'il y en a une, pas laquelle.
+          // What the app can honestly say: that one exists, not which one.
           <p className="akm-has-key">
             <CheckIcon size={14} /> {t.modals.apiKey.alreadySaved(label)}
           </p>

@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { classifyToolWrite, isAmbiguousWrite, DESTRUCTIVE_VERB, READ_VERB } from "./writeVocabulary";
 
-// LE classifieur écriture partagé (règle 9) : le write-gate de main
-// (`apps/desktop/.../writeGate.ts` `isWriteToolName`) et la boucle du renderer
-// (`@openmasq/ui` `isWriteTool`) appellent tous deux CETTE fonction. Les cas
-// ci-dessous épinglent le contrat que les deux frontières avaient laissé dériver.
+// THE shared write classifier (rule 9): main's write-gate
+// (`apps/desktop/.../writeGate.ts` `isWriteToolName`) and the renderer's loop
+// (`@openmasq/ui` `isWriteTool`) both call THIS function. The cases
+// below pin the contract the two boundaries had let drift.
 
 describe("classifyToolWrite — fail closed : inconnu ⇒ ÉCRITURE", () => {
   it("un nom GÉNÉRIQUE (ni verbe de lecture ni d'écriture) se confirme", () => {
-    // Les trois noms de l'audit : aucun verbe, un effet inconnu — donc une écriture,
-    // des DEUX côtés de la frontière (l'UI répondait « lecture » ici : fail open).
+    // The three names from the audit: no verb, an unknown effect — hence a write,
+    // on BOTH sides of the boundary (the UI answered "read" here: fail open).
     for (const n of ["notion__notion-duplicate-page", "linear__issue", "stripe__customers"]) {
       expect(classifyToolWrite(n), n).toBe(true);
     }
@@ -20,7 +20,7 @@ describe("classifyToolWrite — fail closed : inconnu ⇒ ÉCRITURE", () => {
     expect(classifyToolWrite("acme__frobnicate", { readOnlyHint: true })).toBe(false);
     expect(classifyToolWrite("stripe__api", undefined, "Retrieve a resource")).toBe(false);
     expect(classifyToolWrite("stripe__api", undefined, "Create or update a resource")).toBe(true);
-    // Une description ambiguë ne départage rien : fail closed.
+    // An ambiguous description breaks no tie: fail closed.
     expect(classifyToolWrite("stripe__api", undefined, "Stripe API")).toBe(true);
   });
 });
@@ -40,8 +40,8 @@ describe("classifyToolWrite — les lectures ne sur-confirment pas", () => {
   });
 
   it("verbe de lecture derrière un préfixe vendeur, ZÉRO preuve d'écriture ⇒ lecture", () => {
-    // Le cas qui rendrait le défaut fail-closed invivable sans ce palier : Stripe et
-    // Notion répètent leur nom devant le verbe.
+    // The case that would make the fail-closed default unlivable without this tier: Stripe and
+    // Notion repeat their name before the verb.
     for (const n of ["stripe__stripe_api_read", "stripe__stripe_api_details", "notion__notion-fetch"]) {
       expect(classifyToolWrite(n), n).toBe(false);
     }
@@ -54,8 +54,8 @@ describe("classifyToolWrite — les contournements fermés (H-5)", () => {
       "crm__get_and_purge",
       "data__list_then_delete",
       "acct__fetch_and_wipe",
-      // L'ancre `^` de READ_VERB est ce qui empêche « read » au MILIEU du nom de
-      // blanchir le delete en tête.
+      // READ_VERB's `^` anchor is what stops "read" in the MIDDLE of the name from
+      // whitewashing a leading delete.
       "mail__delete_read_receipts",
     ]) {
       expect(classifyToolWrite(n), n).toBe(true);
@@ -66,19 +66,19 @@ describe("classifyToolWrite — les contournements fermés (H-5)", () => {
     for (const n of ["mail__get_and_send_email", "billing__list_then_charge", "crm__fetch_and_create"]) {
       expect(classifyToolWrite(n), n).toBe(true);
     }
-    // Lecture + conjonction + NOM (pas un verbe d'écriture) reste une lecture.
+    // Read + conjunction + NOUN (not a write verb) stays a read.
     expect(classifyToolWrite("crm__get_customer_and_orders")).toBe(false);
   });
 
   it("une annotation serveur AUGMENTE le soupçon, ne le baisse jamais", () => {
     expect(classifyToolWrite("acme__get_report", { destructiveHint: true })).toBe(true);
     expect(classifyToolWrite("acme__list_things", { readOnlyHint: false })).toBe(true);
-    // readOnlyHint:true ne blanchit JAMAIS un nom d'écriture.
+    // readOnlyHint:true NEVER whitewashes a write name.
     expect(classifyToolWrite("gmail__send_email", { readOnlyHint: true })).toBe(true);
   });
 
   it("les verbes que les DEUX anciennes listes se partageaient mal (l'union)", () => {
-    // main seul connaissait upload/replace/invite/share ; l'UI seule destroy/upsert/void.
+    // main alone knew upload/replace/invite/share; the UI alone destroy/upsert/void.
     for (const n of [
       "drive__upload_file",
       "cfg__replace_settings",
@@ -97,7 +97,7 @@ describe("isAmbiguousWrite — « execute » n'est pas une preuve de mutation", 
   const RO = { readOnlyHint: true };
 
   it("le cas du journal : execute-sql déclaré lecture seule", () => {
-    // Il RESTE une écriture (donc confirmé) — c'est le refus AUTOMATIQUE qu'on lève.
+    // It STAYS a write (so confirmed) — it's the AUTOMATIC refusal that's lifted.
     expect(classifyToolWrite("posthog__execute-sql", RO)).toBe(true);
     expect(isAmbiguousWrite("posthog__execute-sql", RO)).toBe(true);
     for (const n of ["db__run_query", "bi__run-report", "wh__execute_query"])
@@ -116,7 +116,7 @@ describe("isAmbiguousWrite — « execute » n'est pas une preuve de mutation", 
   });
 
   it("le verbe ambigu doit être la SEULE cause du verdict", () => {
-    // « create » porte le verdict tout seul : retirer « run » ne le fait pas tomber.
+    // "create" carries the verdict alone: removing "run" doesn't make it fall.
     for (const n of ["db__run_create_index", "api__execute_update_user"])
       expect(isAmbiguousWrite(n, RO), n).toBe(false);
   });

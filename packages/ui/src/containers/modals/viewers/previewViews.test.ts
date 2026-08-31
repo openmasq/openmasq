@@ -15,8 +15,8 @@ const file = (over: Partial<PreviewFile>): PreviewFile => ({
   ...over,
 });
 
-/* Les libellés attendus plus bas sont ceux du français ; ce fichier teste QUELLES couches
-   existent pour quelle forme de fichier, pas comment elles s'appellent. */
+/* The labels expected below are the French ones; this file tests WHICH layers
+   exist for which file shape, not what they're called. */
 const t = getMessages("fr");
 
 const ids = (f: PreviewFile) => previewViews(previewShape(f), f, t).map((v) => v.id);
@@ -27,9 +27,9 @@ describe("un CSV s'ouvre sur ce qui PART, pas sur ce qu'on a déposé", () => {
     file({ name: "grand-livre.csv", data: "QUJD", ...over });
 
   it("la grille REDACTED est la vue d'ouverture", () => {
-    // Cette modale sert à vérifier ce qui quitte la machine. Ouverte sur les vraies
-    // valeurs, elle donnait la lecture inverse : on relit son fichier, on le reconnaît,
-    // on envoie — le redaction restait un cran plus loin dans le menu.
+    // This modal exists to verify what leaves the machine. Opened on the real
+    // values, it gave the inverse reading: you re-read your file, recognize it,
+    // send it — the redaction stayed one notch further in the menu.
     expect(opens(csv())).toBe("redacted");
   });
 
@@ -46,7 +46,7 @@ describe("un CSV s'ouvre sur ce qui PART, pas sur ce qu'on a déposé", () => {
   });
 
   it("la règle vaut pour TOUS les formats, pas seulement le CSV", () => {
-    // Un .xlsx, un .docx, un .txt : tous ouvraient sur le document tel quel.
+    // An .xlsx, a .docx, a .txt: all used to open on the document as-is.
     expect(opens(file({ name: "compte.xlsx", data: "QUJD" }))).toBe("redacted");
     expect(opens(file({ name: "contrat.docx", data: "QUJD" }))).toBe("redacted");
     expect(opens(file({ name: "notes.txt" }))).toBe("redacted");
@@ -54,8 +54,8 @@ describe("un CSV s'ouvre sur ce qui PART, pas sur ce qu'on a déposé", () => {
   });
 
   it("mais PAS pour le PDF ni l'image : leur vue d'ouverture EST déjà redacted", () => {
-    // Les fausses valeurs y sont peintes sur les pages / les pixels : les envoyer sur la
-    // couche texte ferait perdre le document au lieu de montrer ce qui part.
+    // The fake values are painted onto the pages / the pixels there: sending them to the
+    // text layer would lose the document instead of showing what leaves.
     expect(opens(file({ name: "a.pdf", data: "QUJD" }))).toBe("pdf");
     expect(opens(file({ name: "a.png", data: "QUJD" }))).toBe("image");
   });

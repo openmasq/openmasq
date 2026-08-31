@@ -1,9 +1,9 @@
 import type { MemoryCard } from "../types";
 import { MAX_FACTS_CHARS, normalizeMem } from "./memory";
 
-// Le CONTRAT de l'extracteur : le prompt strict-JSON, le parse tolérant (une réponse
-// malformée = « rien appris », jamais un tour cassé) et le filtre anti-secret.
-// Scindé de `extract.ts` (règle 1) ; ré-exporté depuis lui.
+// The extractor's CONTRACT: the strict-JSON prompt, the tolerant parse (a malformed
+// reply = "nothing learned", never a broken turn) and the anti-secret filter.
+// Split from `extract.ts` (rule 1); re-exported from it.
 
 /**
  * Max facts accepted from ONE extraction call.
@@ -96,9 +96,9 @@ export interface Extraction {
 
 const CATS = new Set(["personne", "organisation", "projet", "autre"]);
 
-/** Un modèle « thinking » livre parfois sa chaîne de pensée dans la réponse même
- *  (balises `<think>`, ou tour reasoning-only retombé en texte) — elle contient
- *  volontiers des accolades et des exemples JSON qui piégeraient le scan. */
+/** A "thinking" model sometimes delivers its chain of thought within the reply itself
+ *  (`<think>` tags, or a reasoning-only turn that fell back to text) — it readily
+ *  contains braces and JSON examples that would trip up the scan. */
 const stripReasoning = (s: string): string =>
   s.replace(/<think>[\s\S]*?<\/think>/gi, "").replace(/<\/?think>/gi, "");
 
@@ -130,8 +130,8 @@ function jsonCandidates(s: string): string[] {
 }
 
 /** Parse + clamp the model's reply. Returns `null` when NO JSON object parses at all —
- *  an ILLISIBLE reply the caller may retry — and an (possibly empty) extraction for a
- *  parseable one: « rien appris » et « réponse cassée » sont deux réponses différentes.
+ *  an UNREADABLE reply the caller may retry — and an (possibly empty) extraction for a
+ *  parseable one: "nothing learned" and "broken reply" are two different answers.
  *  Never throws. Candidates are read LAST first (a thinking model quotes JSON examples
  *  in its prose before concluding), preferring the last one shaped like the contract. */
 export function parseExtraction(reply: string, limit = MAX_EXTRACTED_FACTS): Extraction | null {
@@ -181,12 +181,12 @@ export function parseExtraction(reply: string, limit = MAX_EXTRACTED_FACTS): Ext
   };
 }
 
-/** Un NOM d'entité est un GROUPE NOMINAL court, jamais un fragment de phrase. Journal
- *  du 02/08 : une fiche « Les deux fichiers sont des… » rangée comme organisation — son
- *  forced la redact ensuite en gibberish (« Brightpath capitalshojojkxm ») à chaque
- *  injection. Rejets : ponctuation de phrase, plus de 6 mots, une forme verbale
- *  conjuguée en MINUSCULES (sensible à la casse exprès — « Plan A », « Grand Est »
- *  restent des noms). Conservateur : un rejet ne perd qu'une fiche mal née. */
+/** An entity NAME is a short NOUN PHRASE, never a sentence fragment. Log
+ *  entry from 02/08: a card « Les deux fichiers sont des… » filed as an organization — its
+ *  forced redaction then turned it into gibberish (« Brightpath capitalshojojkxm ») on every
+ *  injection. Rejects: sentence punctuation, more than 6 words, a conjugated verb
+ *  form in LOWERCASE (deliberately case-sensitive — « Plan A », « Grand Est »
+ *  remain names). Conservative: a rejection only loses one ill-born card. */
 const SENTENCE_VERB_RE =
   /\b(est|sont|était|étaient|sera|seront|a|ont|avait|avaient|fait|font|peut|peuvent|doit|doivent|is|are|was|were|has|have)\b/;
 export function isNominalEntityName(name: string): boolean {

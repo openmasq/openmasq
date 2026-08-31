@@ -58,16 +58,16 @@ describe("parseExtraction — strict, clamped, never throws", () => {
   });
 
   it("une entité FRAGMENT DE PHRASE est refusée — le bug « Brightpath capitalshojojkxm »", () => {
-    // Journal 02/08 : « Les deux fichiers sont des… » rangé comme organisation → le
-    // forced le redact ensuite en gibberish à chaque injection. Un nom d'entité est
-    // un groupe nominal court ; un alias non nominal est simplement abandonné.
+    // Log entry from 02/08: « Les deux fichiers sont des… » filed as an organization → its
+    // forced redaction then turned it into gibberish on every injection. An entity name is
+    // a short noun phrase; a non-nominal alias is simply dropped.
     const reply = JSON.stringify({
       faits: [
         { entite: "Les deux fichiers sont des bilans prévisionnels", cat: "organisation", fait: "x" },
         { entite: "Le client a signé le devis…", cat: "autre", fait: "x" },
         { entite: "Karl Studio", cat: "organisation", fait: "ok", alias: "elle est basée à Paris" },
-        { entite: "Plan A", cat: "projet", fait: "gardé" }, // « A » majuscule ≠ le verbe avoir
-        { entite: "Grand Est", cat: "autre", fait: "gardé" }, // « Est » majuscule ≠ être
+        { entite: "Plan A", cat: "projet", fait: "gardé" }, // capitalized « A » ≠ the verb avoir
+        { entite: "Grand Est", cat: "autre", fait: "gardé" }, // capitalized « Est » ≠ être
       ],
     });
     const out = parseExtraction(reply)!;
@@ -338,11 +338,11 @@ describe("« retiens ça » — the explicit fast path", () => {
     expect(isExplicitMemoryAsk("quelle heure est-il ?")).toBe(false);
   });
 
-  // Le cas signalé : « note les en mémoire » n'a rien déclenché, et « mémorise ça » — la
-  // façon la plus littérale de le demander — non plus. La liste ne connaissait que
-  // « retiens » et « note QUE / note BIEN », c'est-à-dire la tournure qui introduit un fait,
-  // jamais celle qui désigne ce qui vient d'être dit. Un utilisateur qui demande deux fois
-  // et n'obtient rien conclut que la mémoire ne marche pas.
+  // The reported case: « note les en mémoire » triggered nothing, and « mémorise ça » — the
+  // most literal way to ask for it — didn't either. The list only knew
+  // « retiens » and « note QUE / note BIEN », i.e. the phrasing that introduces a fact,
+  // never the one that refers to what was just said. A user who asks twice
+  // and gets nothing concludes memory doesn't work.
   it("attrape les formulations DIRECTES, pas seulement « retiens » / « note que »", async () => {
     const { isExplicitMemoryAsk } = await import("./extract");
     for (const s of [
@@ -369,7 +369,7 @@ describe("« retiens ça » — the explicit fast path", () => {
     const { isExplicitMemoryAsk } = await import("./extract");
     for (const s of [
       "quels sont les concurrents ?",
-      "enregistre le fichier sur le disque", // « enregistre » sans objet démonstratif
+      "enregistre le fichier sur le disque", // « enregistre » with no demonstrative object
       "garde le rythme",
       "la mémoire vive de mon PC",
     ]) {
@@ -574,11 +574,11 @@ describe("« retiens ça » — the explicit fast path", () => {
 });
 
 describe("préférences — jamais une carte-note à titre inventé (la régression des doublons)", () => {
-  /* Le rapport : des dizaines de cartes « Préférence de réponse » / « Préférence
-     utilisateur », toutes portant « Préfère des réponses courtes en français ».
-     La chaîne : « je préfère » déclenche le mode explicite → l'entité inventée ne
-     s'ancre pas → carte-note, et le titre change à CHAQUE run, donc le merge clé-
-     entité recrée une carte à chaque extraction. Deux verrous, épinglés ici. */
+  /* The report: dozens of cards « Préférence de réponse » / « Préférence
+     utilisateur », all carrying « Préfère des réponses courtes en français ».
+     The chain: « je préfère » triggers explicit mode → the invented entity doesn't
+     anchor → note-card, and the title changes on EVERY run, so the entity-key
+     merge recreates a card on every extraction. Two locks, pinned here. */
 
   it("une note auto-préférence est routée vers le PROFIL, pas vers une carte", () => {
     const parsed = {
