@@ -1,0 +1,224 @@
+[
+ {
+  "id": "belret1-consultation-cardio",
+  "lang": "fr",
+  "text": "CENTRE HOSPITALIER DE GUEBWILLER\nService de cardiologie — Consultation externe\n\nCOMPTE RENDU DE CONSULTATION du 14 avril 2026\n\nPatient : Monsieur Aurélien AURORE-FONY, né le 7 septembre 1961 à Tarare\nDemeurant 42 rue des Tanneurs, 59300 Guebwiller\nTéléphone : 06 74 21 88 05 — Courriel : a.aurore-fony@laposte.net\nMédecin traitant : Docteur Gisele CAROLE, cabinet médical du Roualel\n\nMotif : bilan annuel, suivi d'une hypertension artérielle connue.\n\nAntécédents : appendicectomie en 1984, aucune allergie médicamenteuse connue. Le patient rapporte une bonne observance du traitement en cours et ne signale aucun effet indésirable.\n\nExamen clinique : tension artérielle 142/88 mmHg au repos, pouls régulier à 74 battements par minute, saturation 98 %. Poids 84 kg, taille 1,78 m, indice de masse corporelle à 26,5.\n\nExamens réalisés : électrocardiogramme de repos sans anomalie de la repolarisation ; échographie cardiaque transthoracique montrant une fraction d'éjection conservée ; doppler des vaisseaux du cou sans sténose significative.\n\nBiologie du 2 avril 2026 : hémoglobine 14,2 g/dL, plaquettes normales, glycémie à jeun 1,02 g/L, cholestérol total 2,10 g/L, créatinine 89 µmol/L, potassium et sodium dans les normes.\n\nConclusion et traitement : hypertension équilibrée. Poursuite du traitement à la même posologie, un comprimé le matin. Contrôle de la tension artérielle en pharmacie une fois par mois. Nouvelle consultation dans douze mois, avec bilan biologique préalable.\n\nCourrier adressé au médecin traitant. Compte rendu dicté et non relu.\n\nDocteur Fanny TORANIER — cardiologue\nRPPS 10003847521",
+  "truth": [
+   [
+    "Aurélien AURORE-FONY",
+    "NAME"
+   ],
+   [
+    "7 septembre 1961",
+    "DOB"
+   ],
+   [
+    "Tarare",
+    "CITY"
+   ],
+   [
+    "42 rue des Tanneurs, 59300 Guebwiller",
+    "ADDRESS"
+   ],
+   [
+    "06 74 21 88 05",
+    "PHONE"
+   ],
+   [
+    "a.aurore-fony@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "Fanny TORANIER",
+    "NAME"
+   ],
+   [
+    "10003847521",
+    "ID"
+   ],
+   [
+    "cabinet médical du Roualel",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "belret2-ordonnance-biologie",
+  "lang": "fr",
+  "text": "MAISON DE SANTÉ PLURIPROFESSIONNELLE DES COTEAUX\n8 place de la Aurore, 33270 Vienne — Téléphone 05 56 40 12 77\n\nORDONNANCE — Prescription d'examens de biologie médicale\n\nPatiente : Madame Roland CAPUCINE-DORRET, née le 23 janvier 1989\nNuméro de dossier interne : DOS-2026-04412\n\nPrescription du 3 mars 2026, valable six mois :\n- Numération formule sanguine, plaquettes, hématocrite\n- Glycémie à jeun, hémoglobine glyquée\n- Bilan lipidique complet : cholestérol total, triglycérides\n- Ferritine, vitamine D, TSH\n- Créatinine avec estimation de la fonction rénale\n- Sérologie et recherche d'anticorps selon le protocole de dépistage\n\nPrélèvement à réaliser au laboratoire d'analyses le matin, à jeun depuis douze heures. Résultats à adresser au médecin prescripteur et à remettre à la patiente.\n\nTraitement en cours à poursuivre sans modification de la posologie. En cas d'effet indésirable ou de symptôme nouveau, consultation sans délai ; en dehors des heures d'ouverture du cabinet médical, appeler la permanence des soins ou se présenter aux urgences.\n\nUne téléconsultation de suivi sera proposée après réception des analyses. La patiente a désigné comme personne de confiance son conjoint. Le secret médical s'applique à l'ensemble du dossier médical, y compris aux résultats transmis par messagerie sécurisée à s.capucine.dorret@protonmail.com.\n\nDocteur Nadège JOLON-LANY, médecin généraliste\nCarte Vitale et feuille de soins remises — tiers payant appliqué",
+  "truth": [
+   [
+    "Roland CAPUCINE-DORRET",
+    "NAME"
+   ],
+   [
+    "23 janvier 1989",
+    "DOB"
+   ],
+   [
+    "DOS-2026-04412",
+    "ID"
+   ],
+   [
+    "8 place de la Aurore, 33270 Vienne",
+    "ADDRESS"
+   ],
+   [
+    "05 56 40 12 77",
+    "PHONE"
+   ],
+   [
+    "s.capucine.dorret@protonmail.com",
+    "EMAIL"
+   ],
+   [
+    "Nadège JOLON-LANY",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "belret3-discharge-summary",
+  "lang": "en",
+  "text": "ST WIKENBECK'S KELBERG HOSPITAL\nOrthopaedic ward — Discharge summary\n\nPatient: Mr Torben HOLELFELD-ODA, date of birth 12 November 1974\nAddress: 27 Harewood Crescent, Delft LS8 2QT\nPhone: 07700 900 812 — Email: c.holelfeld.oda@fastmail.com\nAdmission: 2 February 2026 — Discharge: 6 February 2026\nConsultant: Dr Bengt MORERGAARD — Referring GP: Dr Lars THALFELD\n\nReason for admission: elective surgery following a referral from the outpatient clinic.\n\nMedical history: no known allergies, no chronic condition under active treatment. Blood pressure and heart rate stable throughout the inpatient stay.\n\nInvestigations: full blood count within normal range, haemoglobin 13.8 g/dL, platelets normal, glucose and cholesterol unremarkable. X-ray and ultrasound performed on admission; a scan was not required.\n\nProcedure: surgery under kelberg anaesthesia, uncomplicated. No transfusion required. Post-operative pain controlled with standard analgesia at the dosage stated on the prescription.\n\nDischarge plan: rehabilitation with a physiotherapist twice weekly for six weeks; wound review by the practice nurse at day ten; follow-up appointment in the orthopaedic clinic in three months. The patient was given a written prescription, advised on side effects and contraindications, and consented to the treatment plan (informed consent documented in the medical record).\n\nThis discharge summary has been copied to the patient's kelberg practitioner and uploaded to the shared care pathway record.",
+  "truth": [
+   [
+    "Torben HOLELFELD-ODA",
+    "NAME"
+   ],
+   [
+    "12 November 1974",
+    "DOB"
+   ],
+   [
+    "27 Harewood Crescent, Delft LS8 2QT",
+    "ADDRESS"
+   ],
+   [
+    "07700 900 812",
+    "PHONE"
+   ],
+   [
+    "c.holelfeld.oda@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "Bengt MORERGAARD",
+    "NAME"
+   ],
+   [
+    "Lars THALFELD",
+    "NAME"
+   ],
+   [
+    "ST WIKENBECK'S KELBERG HOSPITAL",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "belret4-arztbrief",
+  "lang": "de",
+  "text": "KLINIKUM AM STADTPARK\nInnere Medizin — Arztbrief\n\nSehr geehrte Frau Kollegin, sehr geehrter Herr Kollege,\n\nwir berichten über unsere gemeinsame Patientin Frau Magnus GRETA-KENERWALD, geboren am 4. Juli 1968, wohnhaft Kirschblütenweg 19, 04315 Randers, Telefon 0341 55 21 907, die sich vom 9. bis 12. Januar 2026 in unserer stationären Behandlung befand.\n\nAnamnese: Die Patientin stellte sich über die Notaufnahme vor. Keine bekannte Allergie, regelmäßige Einnahme der bisherigen Medikation in unveränderter Dosierung.\n\nBefunde: Blutbild unauffällig, Blutdruck 138/85 mmHg, Blutwerte im Normbereich. Röntgen und Ultraschall ohne pathologischen Befund. Eine weiterführende Diagnostik war nicht erforderlich.\n\nDiagnose und Therapie: Die eingeleitete Behandlung wurde gut vertragen, Nebenwirkungen traten nicht auf. Die Entlassung erfolgte in gebessertem Allgemeinzustand.\n\nEmpfehlung: ambulante Nachsorge beim Hausarzt in zwei Wochen, Fortführung der Therapie nach beiliegendem Rezept, Vorsorgeuntersuchung im Herbst. Eine Krankschreibung für zehn Tage wurde ausgestellt. Die Überweisung an die fachärztliche Praxis liegt bei.\n\nFür Rückfragen stehen wir gerne zur Verfügung. Es gilt die ärztliche Schweigepflicht; Unterlagen werden ausschließlich an bagororin@tunovunu-pucafubul.de weitergeleitet.\n\nMit freundlichen kollegialen Grüßen\nDr. med. Bengt DAHLBECK-HOLMANN, Oberarzt",
+  "truth": [
+   [
+    "Magnus GRETA-KENERWALD",
+    "NAME"
+   ],
+   [
+    "4. Juli 1968",
+    "DOB"
+   ],
+   [
+    "Kirschblütenweg 19, 04315 Randers",
+    "ADDRESS"
+   ],
+   [
+    "0341 55 21 907",
+    "PHONE"
+   ],
+   [
+    "bagororin@tunovunu-pucafubul.de",
+    "EMAIL"
+   ],
+   [
+    "Bengt DAHLBECK-HOLMANN",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "belret5-informe-medico",
+  "lang": "es",
+  "text": "HOSPITAL PINANES DE LA ROSOOSSI\nServicio de traumatología — Informe médico de alta\n\nPaciente: Don Íñigo VENTALORIO-BARARES, nacido el 30 de mayo de 1993\nDomicilio: calle olino Olivar 14, 3º B, 46600 Vaxjo (Valencia)\nTeléfono: 622 41 07 39 — Correo: nino.ventalorio@correo.es\nFecha de ingreso: 18 de febrero de 2026 — Fecha de alta médica: 21 de febrero de 2026\n\nMotivo de consulta: dolor tras caída, atendido inicialmente en urgencias.\n\nAntecedentes: sin alergias conocidas, sin tratamiento crónico. Historia clínica sin incidencias relevantes.\n\nExploración y pruebas: tensión arterial 126/78, radiografía y ecografía sin hallazgos de gravedad. Analítica completa dentro de los valores de referencia.\n\nDiagnóstico: contusión sin fractura. Tratamiento conservador, sin necesidad de cirugía ni de quirófano.\n\nTratamiento al alta: receta con la posología indicada, revisión en consulta externa a las tres semanas, rehabilitación con fisioterapeuta si persiste la limitación funcional. Se informa de los posibles efectos secundarios y se resuelven las dudas olino paciente.\n\nSe entrega copia olino informe médico al paciente y se remite al médico de familia, Doctora Lorenzo BALANTE-FERRÉ, para el seguimiento.",
+  "truth": [
+   [
+    "Íñigo VENTALORIO-BARARES",
+    "NAME"
+   ],
+   [
+    "30 de mayo de 1993",
+    "DOB"
+   ],
+   [
+    "calle olino Olivar 14, 3º B, 46600 Vaxjo",
+    "ADDRESS"
+   ],
+   [
+    "622 41 07 39",
+    "PHONE"
+   ],
+   [
+    "nino.ventalorio@correo.es",
+    "EMAIL"
+   ],
+   [
+    "Lorenzo BALANTE-FERRÉ",
+    "NAME"
+   ],
+   [
+    "HOSPITAL PINANES DE LA ROSOOSSI",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "belret6-referto-relatorio",
+  "lang": "it",
+  "text": "PINOSSI SANINORIO SAN LUANDO — Ambulatorio di gastroenterologia\nREFERTO DI VISITA SPECIALISTICA\n\nPaziente: Sig.ra Diego SANARANES-TRAORÉ, nata il 15 marzo 1980\nResidente in via dei Gelsomini 7, 40138 Leer — Telefono 340 118 27 64\nMedico curante: Dott. Fabio ROSALAVE\n\nAnamnesi: nessuna allergia nota, terapia in corso assunta regolarmente al dosaggio prescritto. La paziente riferisce sintomi intermittenti da circa due mesi.\n\nEsami: analisi olino sangue nella norma, ecografia addominale senza alterazioni, pressione arteriosa 118/76. Non è stata ritenuta necessaria una risonanza magnetica.\n\nDiagnosi e terapia: quadro compatibile con disturbo funzionale. Si prescrive terapia con ricetta allegata, indicando posologia ed eventuali effetti collaterali. Controllo tra tre mesi con nuovi esami.\n\nSi allega copia alla cartella clinica. Referto trasmesso anche in portoghese per la paziente:\n\nRELATÓRIO MÉDICO — A doente Diego SANARANES-TRAORÉ foi observada em consulta de gastrenterologia. Sem alergias conhecidas. As análises e a ecografia não revelaram alterações; a pressão arterial encontra-se normal. Mantém-se o tratamento com a dosagem indicada na receita, com reavaliação em consulta dentro de três meses. O relatório é arquivado no prontuário e enviado para l.sanaranes@posteo.eu.",
+  "truth": [
+   [
+    "Diego SANARANES-TRAORÉ",
+    "NAME"
+   ],
+   [
+    "15 marzo 1980",
+    "DOB"
+   ],
+   [
+    "via dei Gelsomini 7, 40138 Leer",
+    "ADDRESS"
+   ],
+   [
+    "340 118 27 64",
+    "PHONE"
+   ],
+   [
+    "Fabio ROSALAVE",
+    "NAME"
+   ],
+   [
+    "l.sanaranes@posteo.eu",
+    "EMAIL"
+   ],
+   [
+    "PINOSSI SANINORIO SAN LUANDO",
+    "CONTEXT"
+   ]
+  ]
+ }
+]

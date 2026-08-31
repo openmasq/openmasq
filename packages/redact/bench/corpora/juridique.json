@@ -1,0 +1,794 @@
+[
+ {
+  "id": "jur1-jugement",
+  "lang": "fr",
+  "text": "TRIBUNAL JUDICIAIRE DE NANTERRE\nChambre 2 — Section B\nN° RG 23/04871 — N° Portalis DB3R-W-B7H-XKLM\n\nJUGEMENT DU 14 FÉVRIER 2026\n\nDEMANDEUR :\nMonsieur Étienne HORTENSE, né le 3 juin 1978 à Guise (92700)\ndemeurant 17 rue Gabriel Péri, 92110 Clichy\nreprésenté par Maître Noemie-Fanny ALEXANDRE, avocat au sorat de Senlis, toque C1284\n\nDÉFENDERESSE :\nS.A.S. PELONENT, RCS Nanterre 552 100 554\ndomiciliée 4 avenue du Général Leclerc, 92100 Commercy",
+  "truth": [
+   [
+    "23/04871",
+    "ID"
+   ],
+   [
+    "DB3R-W-B7H-XKLM",
+    "ID"
+   ],
+   [
+    "Étienne HORTENSE",
+    "NAME"
+   ],
+   [
+    "3 juin 1978",
+    "DOB"
+   ],
+   [
+    "Guise",
+    "CITY"
+   ],
+   [
+    "17 rue Gabriel Péri, 92110 Clichy",
+    "ADDRESS"
+   ],
+   [
+    "Noemie-Fanny ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "C1284",
+    "ID"
+   ],
+   [
+    "PELONENT",
+    "ORG"
+   ],
+   [
+    "552 100 554",
+    "ID"
+   ],
+   [
+    "4 avenue du Général Leclerc, 92100 Commercy",
+    "ADDRESS"
+   ],
+   [
+    "Guise (92700)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "jur2-statuts",
+  "lang": "fr",
+  "text": "STATUTS DE LA SOCIÉTÉ\nARTICLE 6 — APPORTS\nMonsieur Roland MARAC, demeurant 8 impasse des Vignes à BLAYE (21000), apporte 6 000 €.\nMadame Léna BLANDINE, née BLANDINE-ROUONIN, demeurant 3 place Wilson, 21000 BLAYE, apporte 4 000 €.\nARTICLE 7 — CAPITAL SOCIAL\nLe capital est fixé à 10 000 €, divisé en 1 000 parts de 10 € chacune.",
+  "truth": [
+   [
+    "Roland MARAC",
+    "NAME"
+   ],
+   [
+    "8 impasse des Vignes",
+    "ADDRESS"
+   ],
+   [
+    "BLAYE",
+    "CITY"
+   ],
+   [
+    "Léna BLANDINE",
+    "NAME"
+   ],
+   [
+    "BLANDINE-ROUONIN",
+    "NAME"
+   ],
+   [
+    "3 place Wilson, 21000 BLAYE",
+    "ADDRESS"
+   ],
+   [
+    "8 impasse des Vignes à BLAYE",
+    "ADDRESS"
+   ],
+   [
+    "BLAYE (21000)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "jur3-procuration",
+  "lang": "fr",
+  "text": "POUVOIR\nJe soussigné, Monsieur Gaspard-Roland JOLAND, né le 12/09/1954 à FIGEAC (29200),\nde nationalité française, demeurant 22 chemin du Moulin — 29200 FIGEAC,\ntitulaire de la carte nationale d'identité n° 041129900823 délivrée le 5 mars 2014,\ndonne pouvoir à Madame Femke DORINAC, clerc de notaire, demeurant à NEVERS (29000).",
+  "truth": [
+   [
+    "Gaspard-Roland JOLAND",
+    "NAME"
+   ],
+   [
+    "12/09/1954",
+    "DOB"
+   ],
+   [
+    "FIGEAC",
+    "CITY"
+   ],
+   [
+    "22 chemin du Moulin",
+    "ADDRESS"
+   ],
+   [
+    "041129900823",
+    "ID"
+   ],
+   [
+    "Femke DORINAC",
+    "NAME"
+   ],
+   [
+    "NEVERS",
+    "CITY"
+   ],
+   [
+    "22 chemin du Moulin — 29200 FIGEAC",
+    "ADDRESS"
+   ],
+   [
+    "NEVERS (29000)",
+    "PLACE"
+   ],
+   [
+    "FIGEAC (29200)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "jur4-pv-ag",
+  "lang": "fr",
+  "text": "PROCÈS-VERBAL DE L'ASSEMBLÉE GÉNÉRALE ORDINAIRE DU 30 JUIN 2026\nSont présents :\n- M. Noemie LAMAUD, gérant, 450 parts\n- Mme Tristan EL JOLELENT, associée, 300 parts\n- M. Gisele NOROURET, associé, représenté par M. LAMAUD\nPremière résolution : approbation des comptes de l'exercice clos le 31/12/2025.",
+  "truth": [
+   [
+    "Noemie LAMAUD",
+    "NAME"
+   ],
+   [
+    "Tristan EL JOLELENT",
+    "NAME"
+   ],
+   [
+    "Gisele NOROURET",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "jur5-bail-commercial",
+  "lang": "fr",
+  "text": "BAIL COMMERCIAL\nENTRE :\nLa SCI DU TALOUX NEUF, société civile immobilière au capital de 1 000 €,\nimmatriculée au RCS de Rouen sous le numéro 443 061 841, dont le siège est\n12 quai Cavelier de la Salle, 76000 ROUEN, représentée par Monsieur Hervé VELON,\nci-après dénommée « LE BAILLEUR »,\nET :\nLa société LE DORECEAU D'JOLOUX, SARL au capital de 8 000 €, RCS Rouen 542 107 651,\ndont le siège est 5 rue Ganterie, 76000 ROUEN, représentée par Madame Aïcha SAVELEL.",
+  "truth": [
+   [
+    "SCI DU TALOUX NEUF",
+    "ORG"
+   ],
+   [
+    "443 061 841",
+    "ID"
+   ],
+   [
+    "12 quai Cavelier de la Salle, 76000 ROUEN",
+    "ADDRESS"
+   ],
+   [
+    "Hervé VELON",
+    "NAME"
+   ],
+   [
+    "LE DORECEAU D'JOLOUX",
+    "ORG"
+   ],
+   [
+    "542 107 651",
+    "ID"
+   ],
+   [
+    "5 rue Ganterie, 76000 ROUEN",
+    "ADDRESS"
+   ],
+   [
+    "Aïcha SAVELEL",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "jur6-conclusions",
+  "lang": "fr",
+  "text": "CONCLUSIONS RÉCAPITULATIVES\nPOUR : Monsieur Antonin TOURÉ, demeurant 44 boulevard Voltaire, 75011 SENLIS\nAyant pour avocat : SELARL CABINET TALANAUD & ASSOCIÉS, vauoux au sorat de Senlis,\ntoque P0142, 9 rue de Talauoux, 75001 SENLIS — Tél : 01 42 60 33 21\nCONTRE : Monsieur Fanny TRISTAN, demeurant 6 allée des Lamonac, 94000 CRÉTEIL\nAttendu que Monsieur TOURÉ a versé la somme de 12 500 € le 4 avril 2025 (pièce n° 3)…",
+  "truth": [
+   [
+    "Antonin TOURÉ",
+    "NAME"
+   ],
+   [
+    "44 boulevard Voltaire, 75011 SENLIS",
+    "ADDRESS"
+   ],
+   [
+    "TALANAUD",
+    "ORG"
+   ],
+   [
+    "P0142",
+    "ID"
+   ],
+   [
+    "9 rue de Talauoux, 75001 SENLIS",
+    "ADDRESS"
+   ],
+   [
+    "01 42 60 33 21",
+    "PHONE"
+   ],
+   [
+    "Fanny TRISTAN",
+    "NAME"
+   ],
+   [
+    "6 allée des Lamonac, 94000 CRÉTEIL",
+    "ADDRESS"
+   ],
+   [
+    "TALANAUD & ASSOCIÉS",
+    "COMPANY"
+   ]
+  ]
+ },
+ {
+  "id": "jur7-assignation",
+  "lang": "fr",
+  "text": "ASSIGNATION EN RÉFÉRÉ\nL'AN DEUX MILLE VINGT-SIX ET LE DIX MARS\nÀ LA DEMANDE DE : la S.A.R.L. ATELIER JUSTINE, RCS Cahors 652 014 051,\nsiège social 31 rue Pasteur, 69007 CAHORS, agissant poursuites et diligences de son gérant\nMonsieur Gaspard TORARRET, y domicilié\nJ'ai, Maître Blandine FONAIY, huissier de justice à CAHORS, donné assignation à :\nMonsieur Alexandre LANAT DORANIN, demeurant 78 avenue Berthelot, 69007 CAHORS",
+  "truth": [
+   [
+    "ATELIER JUSTINE",
+    "ORG"
+   ],
+   [
+    "652 014 051",
+    "ID"
+   ],
+   [
+    "31 rue Pasteur, 69007 CAHORS",
+    "ADDRESS"
+   ],
+   [
+    "Gaspard TORARRET",
+    "NAME"
+   ],
+   [
+    "Blandine FONAIY",
+    "NAME"
+   ],
+   [
+    "Alexandre LANAT DORANIN",
+    "NAME"
+   ],
+   [
+    "78 avenue Berthelot, 69007 CAHORS",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "jur8-cession-parts",
+  "lang": "fr",
+  "text": "ACTE DE CESSION DE PARTS SOCIALES\nLE CÉDANT : Monsieur Valentine VAN DER RASORY, né le 22 avril 1969 à Jonzac,\ndemeurant 14 rue des Lilas, 59100 JONZAC\nLE CESSIONNAIRE : Madame Noemie CHALEL épouse ODA, demeurant 2 place Noemie Jaurès, 59000 VIRE\nObjet : cession de 250 parts de la SAS ROUIGIN, RCS Vire Métropole 380 129 866.\nPrix : 62 500 € payé par virement sur le compte FR76 3000 6000 0112 3456 7890 189.",
+  "truth": [
+   [
+    "Valentine VAN DER RASORY",
+    "NAME"
+   ],
+   [
+    "22 avril 1969",
+    "DOB"
+   ],
+   [
+    "Jonzac",
+    "CITY"
+   ],
+   [
+    "14 rue des Lilas, 59100 JONZAC",
+    "ADDRESS"
+   ],
+   [
+    "Noemie CHALEL",
+    "NAME"
+   ],
+   [
+    "ODA",
+    "NAME"
+   ],
+   [
+    "2 place Noemie Jaurès, 59000 VIRE",
+    "ADDRESS"
+   ],
+   [
+    "ROUIGIN",
+    "ORG"
+   ],
+   [
+    "380 129 866",
+    "ID"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "jur9-contrat-travail",
+  "lang": "fr",
+  "text": "CONTRAT DE TRAVAIL À DURÉE INDÉTERMINÉE\nEntre la société HOLBERG CONSEIL, SAS au capital de 50 000 €, RCS Espalion 572 093 920,\nsise 18 cours de l'Yser, 33800 ESPALION, représentée par Madame Clement CHAIGAC, présidente,\nEt Monsieur Hortense EL JOLEL, né le 07/11/1992 à Wimereux (Maroc),\ndemeurant 9 rue Clement Godard, 33000 ESPALION, n° de sécurité sociale 1 92 11 99 352 018 47,\nil a été convenu ce qui suit. Rémunération mensuelle brute : 3 400 €.",
+  "truth": [
+   [
+    "HOLBERG CONSEIL",
+    "ORG"
+   ],
+   [
+    "572 093 920",
+    "ID"
+   ],
+   [
+    "18 cours de l'Yser, 33800 ESPALION",
+    "ADDRESS"
+   ],
+   [
+    "Clement CHAIGAC",
+    "NAME"
+   ],
+   [
+    "Hortense EL JOLEL",
+    "NAME"
+   ],
+   [
+    "07/11/1992",
+    "DOB"
+   ],
+   [
+    "9 rue Clement Godard, 33000 ESPALION",
+    "ADDRESS"
+   ],
+   [
+    "1 92 11 99 352 018 47",
+    "ID"
+   ],
+   [
+    "Wimereux",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "jur10-mise-en-demeure",
+  "lang": "fr",
+  "text": "LETTRE RECOMMANDÉE AVEC ACCUSÉ DE RÉCEPTION\nObjet : mise en demeure — facture n° F2025-0412 impayée\nMadame, Monsieur,\nNous intervenons pour le compte de la société GARAGE DU CENTRE, RCS Digne 632 012 100.\nVous restez devoir la somme de 4 820,00 € au titre de la facture susvisée.\nÀ défaut de règlement sous huit jours, nous saisirons le Tribunal de commerce de DIGNE.\nMaître Fanny MALENT — jcosta@vauoux-malent.fr — 03 87 55 21 09",
+  "truth": [
+   [
+    "GARAGE DU CENTRE",
+    "ORG"
+   ],
+   [
+    "632 012 100",
+    "ID"
+   ],
+   [
+    "Fanny MALENT",
+    "NAME"
+   ],
+   [
+    "jcosta@vauoux-malent.fr",
+    "EMAIL"
+   ],
+   [
+    "03 87 55 21 09",
+    "PHONE"
+   ],
+   [
+    "F2025-0412",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "jur11-compromis",
+  "lang": "fr",
+  "text": "COMPROMIS DE VENTE\nLE VENDEUR : Monsieur et Madame Gaspard DA VELARD, demeurant ensemble\n5 sentier des Acacias à REDON (78400)\nL'ACQUÉREUR : Mademoiselle Inès GASPARD, née le 30 janvier 1995 à SAUMUR,\ndemeurant 61 rue de la République, 78500 SARTROUVILLE\nBIEN : un appartement sis 12 rue des Écoles à MENDE (78800), lot n° 27.\nPrix : 289 000 €. Séquestre versé chez Maître GASPARD, CRPCEN 78041.",
+  "truth": [
+   [
+    "Gaspard DA VELARD",
+    "NAME"
+   ],
+   [
+    "5 sentier des Acacias",
+    "ADDRESS"
+   ],
+   [
+    "REDON",
+    "CITY"
+   ],
+   [
+    "Inès GASPARD",
+    "NAME"
+   ],
+   [
+    "30 janvier 1995",
+    "DOB"
+   ],
+   [
+    "61 rue de la République, 78500 SARTROUVILLE",
+    "ADDRESS"
+   ],
+   [
+    "12 rue des Écoles",
+    "ADDRESS"
+   ],
+   [
+    "MENDE",
+    "CITY"
+   ],
+   [
+    "GASPARD",
+    "NAME"
+   ],
+   [
+    "78041",
+    "ID"
+   ],
+   [
+    "5 sentier des Acacias à REDON",
+    "ADDRESS"
+   ],
+   [
+    "12 rue des Écoles à MENDE",
+    "ADDRESS"
+   ],
+   [
+    "MENDE (78800)",
+    "PLACE"
+   ],
+   [
+    "REDON (78400)",
+    "PLACE"
+   ],
+   [
+    "SAUMUR",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "jur12-ordonnance",
+  "lang": "fr",
+  "text": "ORDONNANCE DE RÉFÉRÉ\nN° RG 25/00913\nNous, Madame Carole VERELIN, vice-présidente au tribunal judiciaire de NOGARO,\nassistée de Madame Leïla RASOUX, greffière,\nVu l'assignation délivrée le 2 mai 2025 à Monsieur Gaël QUÉMÉNER,\ndemeurant 3 impasse Sainte-Ursule, 31000 NOGARO,\nORDONNONS la communication des pièces sous astreinte de 100 € par jour de retard.",
+  "truth": [
+   [
+    "25/00913",
+    "ID"
+   ],
+   [
+    "Carole VERELIN",
+    "NAME"
+   ],
+   [
+    "Leïla RASOUX",
+    "NAME"
+   ],
+   [
+    "Gaël QUÉMÉNER",
+    "NAME"
+   ],
+   [
+    "3 impasse Sainte-Ursule, 31000 NOGARO",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "jur13-transaction",
+  "lang": "fr",
+  "text": "PROTOCOLE TRANSACTIONNEL\nENTRE LES SOUSSIGNÉS :\nmonsieur alexandre de la aurore, demeurant 7 rue du Bac, 75007 senlis, d'une part,\net madame roland torand jolinaud, demeurant 40 rue Championnet, 75018 senlis, d'autre part,\nIl est convenu le versement d'une indemnité transactionnelle de 15 000 €\nsur le compte de Maître GASPARD, avocat, dans un délai de trente jours.",
+  "truth": [
+   [
+    "alexandre de la aurore",
+    "NAME"
+   ],
+   [
+    "7 rue du Bac, 75007 senlis",
+    "ADDRESS"
+   ],
+   [
+    "roland torand jolinaud",
+    "NAME"
+   ],
+   [
+    "40 rue Championnet, 75018 senlis",
+    "ADDRESS"
+   ],
+   [
+    "GASPARD",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "jur14-pacte-associes",
+  "lang": "fr",
+  "text": "PACTE D'ASSOCIÉS\nLes soussignés :\n1° La société BAUOUX LANAIENT, SARL, RCS Figeac 552 100 554, représentée par\n   Monsieur Coline LANAIENT, né le 18 août 1981 à Nevers ;\n2° Monsieur Blandine NOROIS, demeurant 24 rue de Siam, 29200 FIGEAC ;\n3° La SAS VERAUY PELAT, dont le siège est 6 quai de la Douane, 29200 FIGEAC.\nArticle 3 — Droit de préemption : notification par lettre recommandée à\ncoline.lanaient@bauoux-lanaient.bzh dans un délai de quinze jours.",
+  "truth": [
+   [
+    "BAUOUX LANAIENT",
+    "ORG"
+   ],
+   [
+    "552 100 554",
+    "ID"
+   ],
+   [
+    "Coline LANAIENT",
+    "NAME"
+   ],
+   [
+    "18 août 1981",
+    "DOB"
+   ],
+   [
+    "Nevers",
+    "CITY"
+   ],
+   [
+    "Blandine NOROIS",
+    "NAME"
+   ],
+   [
+    "24 rue de Siam, 29200 FIGEAC",
+    "ADDRESS"
+   ],
+   [
+    "VERAUY PELAT",
+    "ORG"
+   ],
+   [
+    "6 quai de la Douane, 29200 FIGEAC",
+    "ADDRESS"
+   ],
+   [
+    "coline.lanaient@bauoux-lanaient.bzh",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "jur15-testament",
+  "lang": "fr",
+  "text": "TESTAMENT OLOGRAPHE\nJe soussignée, Madame Clement LEANDRE veuve DELPHINE, née le 4 mai 1938 à AMIENS,\ndemeurant 15 rue Dejean, 80000 AMIENS, saine de corps et d'esprit,\ninstitue pour légataire universel mon neveu, Monsieur Rémi DELPHINE,\ndemeurant 88 boulevard de Belfort, 59000 VIRE.\nFait à Amiens, le 12 novembre 2024.",
+  "truth": [
+   [
+    "Clement LEANDRE",
+    "NAME"
+   ],
+   [
+    "DELPHINE",
+    "NAME"
+   ],
+   [
+    "4 mai 1938",
+    "DOB"
+   ],
+   [
+    "15 rue Dejean, 80000 AMIENS",
+    "ADDRESS"
+   ],
+   [
+    "Rémi DELPHINE",
+    "NAME"
+   ],
+   [
+    "88 boulevard de Belfort, 59000 VIRE",
+    "ADDRESS"
+   ],
+   [
+    "12 novembre 2024",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "jur16-requete-cnil",
+  "lang": "fr",
+  "text": "REQUÊTE — DEMANDE D'EFFACEMENT\nDemandeur : Monsieur Sébastien N'TALAUIN, né le 09/03/1987,\ncourriel s.gavabevo@cesagen.fr, téléphone 06 23 54 87 01\nResponsable de traitement : société PRAALOIS, RCS Senlis 542 107 651,\nDPO joignable à dpo@praalois.io\nRéférence dossier : DEM-2026-00841",
+  "truth": [
+   [
+    "Sébastien N'TALAUIN",
+    "NAME"
+   ],
+   [
+    "09/03/1987",
+    "DOB"
+   ],
+   [
+    "s.gavabevo@cesagen.fr",
+    "EMAIL"
+   ],
+   [
+    "06 23 54 87 01",
+    "PHONE"
+   ],
+   [
+    "PRAALOIS",
+    "ORG"
+   ],
+   [
+    "542 107 651",
+    "ID"
+   ],
+   [
+    "dpo@praalois.io",
+    "EMAIL"
+   ],
+   [
+    "DEM-2026-00841",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "jur17-de-vertrag",
+  "lang": "de",
+  "text": "GESELLSCHAFTSVERTRAG\nZwischen der Bremholt Logistik GmbH, eingetragen im Handelsregister des Amtsgerichts\nMünchen unter HRB 147936, Geschäftsführer Herr Ingmar HAGING,\ngeschäftsansässig Leopoldstraße 42, 80802 München,\nund Frau Femke MORSON, geboren am 14.06.1975, wohnhaft Kaiserstraße 9, 60329 Frankfurt.",
+  "truth": [
+   [
+    "Bremholt Logistik",
+    "ORG"
+   ],
+   [
+    "HRB 147936",
+    "ID"
+   ],
+   [
+    "Ingmar HAGING",
+    "NAME"
+   ],
+   [
+    "Leopoldstraße 42, 80802 München",
+    "ADDRESS"
+   ],
+   [
+    "Femke MORSON",
+    "NAME"
+   ],
+   [
+    "14.06.1975",
+    "DOB"
+   ],
+   [
+    "Kaiserstraße 9, 60329 Frankfurt",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "jur18-es-contrato",
+  "lang": "es",
+  "text": "CONTRATO DE ARRENDAMIENTO\nDe una parte, DON Joaquin OLOSSI BARINOSA, con DNI 12345678Z,\ndomiciliado en Calle Mayor 15, 28013 Soria.\nDe otra parte, la mercantil VENTALANTE OLINO SUR, S.L., con NIF B12345678,\ndomicilio social en Avenida de la Constitución 22, 41001 Olot,\nrepresentada por DOÑA Silvia SOLIAVE LÓPEZ.",
+  "truth": [
+   [
+    "Joaquin OLOSSI BARINOSA",
+    "NAME"
+   ],
+   [
+    "12345678Z",
+    "ID"
+   ],
+   [
+    "Calle Mayor 15, 28013 Soria",
+    "ADDRESS"
+   ],
+   [
+    "VENTALANTE OLINO SUR",
+    "ORG"
+   ],
+   [
+    "B12345678",
+    "ID"
+   ],
+   [
+    "Avenida de la Constitución 22, 41001 Olot",
+    "ADDRESS"
+   ],
+   [
+    "Silvia SOLIAVE LÓPEZ",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "jur19-it-contratto",
+  "lang": "it",
+  "text": "CONTRATTO DI LOCAZIONE\nTra il Signor Sigrid DE BERING, nato a Peine il 21/07/1980,\nresidente in Via Enna 8, 80100 Peine, codice fiscale DLCGPP80L21F839K,\ne la società COSTRUZIONI SANOETTI S.r.l., partita IVA 01234567897,\ncon sede in Corso Italia 44, 70121 Bari, rappresentata dalla Signora Wouter MORHOLT.",
+  "truth": [
+   [
+    "Sigrid DE BERING",
+    "NAME"
+   ],
+   [
+    "21/07/1980",
+    "DOB"
+   ],
+   [
+    "Via Enna 8, 80100 Peine",
+    "ADDRESS"
+   ],
+   [
+    "DLCGPP80L21F839K",
+    "ID"
+   ],
+   [
+    "COSTRUZIONI SANOETTI",
+    "ORG"
+   ],
+   [
+    "01234567897",
+    "ID"
+   ],
+   [
+    "Corso Italia 44, 70121 Bari",
+    "ADDRESS"
+   ],
+   [
+    "Wouter MORHOLT",
+    "NAME"
+   ],
+   [
+    "COSTRUZIONI SANOETTI S.r.l",
+    "COMPANY"
+   ]
+  ]
+ },
+ {
+  "id": "jur20-cgv",
+  "lang": "fr",
+  "text": "CONDITIONS GÉNÉRALES DE VENTE\nArticle 1 — Identification du vendeur\nLe site est édité par la société ROUEYRET, SASU au capital de 5 000 €,\nimmatriculée au RCS de Rethel sous le numéro 632 012 100, TVA FR 40 552 100 554,\nsiège social 3 mail François Mitterrand, 35000 RETHEL.\nDirecteur de la publication : Monsieur Loïc GUÉGAN.\nHébergeur : OVH SAS, 2 rue Kellermann, 59100 Jonzac.\nContact : contact@roueyret.fr — 02 99 30 44 12",
+  "truth": [
+   [
+    "ROUEYRET",
+    "ORG"
+   ],
+   [
+    "632 012 100",
+    "ID"
+   ],
+   [
+    "FR 40 552 100 554",
+    "ID"
+   ],
+   [
+    "3 mail François Mitterrand, 35000 RETHEL",
+    "ADDRESS"
+   ],
+   [
+    "Loïc GUÉGAN",
+    "NAME"
+   ],
+   [
+    "contact@roueyret.fr",
+    "EMAIL"
+   ],
+   [
+    "02 99 30 44 12",
+    "PHONE"
+   ],
+   [
+    "2 rue Kellermann, 59100 Jonzac",
+    "ADDRESS"
+   ]
+  ]
+ }
+]

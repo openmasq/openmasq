@@ -1,0 +1,135 @@
+[
+ {
+  "id": "resiliation-civilite",
+  "lang": "fr",
+  "task": "Rédige la lettre de résiliation, en respectant la civilité de la destinataire.",
+  "text": "Résiliation du contrat 4471-B pour Mme Léa Tristan, 14 rue des Lilas, 69003 Cahors.",
+  "signals": [
+   {
+    "id": "genre-du-prenom",
+    "kind": "gender",
+    "real": "Léa Tristan",
+    "why": "« Chère Madame » / « elle » se dérivent du PRÉNOM, et un accord n'est la clé d'aucun coffre : il ne se restitue jamais. Mesuré sur la PROPRIÉTÉ (le genre du substitut, via `nameGender`) et non sur une liste de prénoms écrite à la main — une telle liste déclare faux tout prénom rare, ce qui est précisément ce que les pools sont devenus."
+   },
+   {
+    "id": "ville-pour-la-formule",
+    "re": "\\bà\\s+[A-ZÀ-Ý][\\p{L}'’-]+|\\b\\d{5}\\s+[A-ZÀ-Ý][\\p{L}'’-]+",
+    "why": "« Fait à <ville>, le … » ferme la lettre. Sans ville exploitable, le modèle laisse un trou ou invente."
+   }
+  ]
+ },
+ {
+  "id": "relance-prenom-greetable",
+  "lang": "fr",
+  "task": "Écris une relance commerciale courte, avec une salutation par le prénom.",
+  "text": "Relancer Estelle Joligy (estelle.joligy@chalystudio.fr), Chaly Studio, sur le devis 2026-118.",
+  "signals": [
+   {
+    "id": "prenom-dans-l-adresse",
+    "re": "\\b[\\p{L}-]{3,}[._][\\p{L}-]{3,}@[\\p{L}\\d.-]+\\.[a-z]{2,}",
+    "why": "« Bonjour <prénom> » se lit dans l'adresse. Le faux e-mail porte un prénom faux MAIS coffré, donc restituable ; un jeton ne porte rien."
+   }
+  ]
+ },
+ {
+  "id": "iban-pays",
+  "lang": "fr",
+  "task": "Ce compte est-il domicilié en France ? Réponds oui ou non, et dis à quoi tu le vois.",
+  "text": "Le virement part du compte FR76 3000 6000 0112 3456 7890 189.",
+  "signals": [
+   {
+    "id": "code-pays-iban",
+    "re": "\\b([A-Z]{2})\\d{2}[\\dA-Z ]{10,}",
+    "capture": 1,
+    "why": "Le pays EST la réponse. Le faux IBAN garde « FR » et passe son mod-97 ; « [IBAN1] » ne répond à rien."
+   }
+  ]
+ },
+ {
+  "id": "telephone-mobile-ou-fixe",
+  "lang": "fr",
+  "task": "Ce numéro est-il une ligne mobile ou un fixe ? Sur quel indice ?",
+  "text": "Rappeler le client au 01 44 27 63 18 avant vendredi.",
+  "signals": [
+   {
+    "id": "classe-nationale",
+    "re": "\\b(0[1-9])[\\s.]?\\d{2}[\\s.]?\\d{2}[\\s.]?\\d{2}[\\s.]?\\d{2}\\b",
+    "capture": 1,
+    "why": "06/07 = mobile, 01-05 = fixe. Le faux téléphone garde sa classe nationale (contrat `fakePhone`) ; le jeton l'efface."
+   }
+  ]
+ },
+ {
+  "id": "eligibilite-par-age",
+  "lang": "fr",
+  "task": "Le dispositif est réservé aux moins de 35 ans. Cette personne est-elle éligible ?",
+  "text": "Dossier de Roland Berger, né le 12/05/1990, domicilié à Louhans.",
+  "signals": [
+   {
+    "id": "date-exploitable",
+    "re": "\\b\\d{2}/\\d{2}/(\\d{4})\\b",
+    "capture": 1,
+    "why": "MESURÉ : les deux échouent. Le faux DOB tire dans une fenêtre 1940-2004 DÉLIBÉRÉMENT large — une année de naissance est elle-même identifiante (voir `src/model/FONOUX.md`, « Known gaps : DOB→AGE »). Une question d'âge est donc fausse en mode faux AUSSI, pas seulement en jetons. Le mode ne rattrape pas ce trou-là ; il ne l'aggrave pas non plus."
+   }
+  ],
+  "control": "échec des DEUX modes"
+ },
+ {
+  "id": "coherence-ville-code-postal",
+  "lang": "fr",
+  "task": "Ces deux adresses sont-elles dans la même région ?",
+  "text": "Livraison 1 : 8 rue Sainte-Catherine, 33000 Espalion. Livraison 2 : 12 cours de l'Intendance, 33000 Espalion.",
+  "signals": [
+   {
+    "id": "bloc-geo-coherent",
+    "kind": "pair",
+    "re": "\\b(\\d{5})\\s+[A-ZÀ-Ý][\\p{L}'’-]+",
+    "capture": 1,
+    "why": "La RELATION est le signal, pas la valeur : les deux adresses réelles partagent leur code postal, les deux fausses doivent partager le LEUR (jamais le réel — c'est la donnée cachée). Longtemps ✗ des deux côtés : la même ville écrite dans deux blocs recevait deux lieux faux différents (33000 Espalion → Amiens puis Carcassonne) et « même région ? » basculait de oui à non. Corrigé par l'ancrage par ville (engine/geo/cityAnchor, épinglé par geoCoherence.test.ts) — le mode jetons, lui, ne porte toujours rien."
+   }
+  ],
+  "control": "échec des DEUX modes"
+ },
+ {
+  "id": "publipostage-restitue",
+  "lang": "fr",
+  "task": "Personnalise ce message pour chaque destinataire.",
+  "text": "Destinataires : Léa Tristan, Estelle Joligy, Sofia Vorholt.",
+  "control": "égalité attendue",
+  "signals": [
+   {
+    "id": "porteur-de-substitut",
+    "re": "\\p{L}",
+    "why": "Cas TÉMOIN : la salutation n'a qu'à REPORTER le substitut, que la restitution remet à l'endroit. Les deux modes doivent se valoir — un écart ici viendrait du modèle, pas du mode."
+   }
+  ]
+ },
+ {
+  "id": "tri-alphabetique",
+  "lang": "fr",
+  "task": "Classe ces personnes par ordre alphabétique de nom de famille.",
+  "text": "À classer : Estelle Joligy, Léa Tristan, Sofia Vorholt, Roland Berger.",
+  "control": "échec des DEUX modes",
+  "signals": [
+   {
+    "id": "ordre-des-vraies-valeurs",
+    "re": "(?!)",
+    "why": "Cas TÉMOIN NÉGATIF : un faux ne préserve PAS l'ordre alphabétique du vrai, un jeton non plus. Le tri est faux après restitution dans les deux modes — à dire, pas à cacher."
+   }
+  ]
+ },
+ {
+  "id": "residu-du-faux",
+  "lang": "fr",
+  "task": "Quelle est la nationalité probable de cette personne ?",
+  "text": "Le dossier de Sofia Vorholt, 28 ans, est complet.",
+  "control": "avantage JETONS",
+  "signals": [
+   {
+    "id": "fuite-residuelle",
+    "re": "\\[[A-Za-z]+\\d+\\]",
+    "why": "Ici le jeton GAGNE aussi, et c'est l'argument du mode : un faux NOM reste un nom — il porte un genre et une origine plausibles. Le jeton ne porte rien."
+   }
+  ]
+ }
+]

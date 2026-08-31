@@ -1,0 +1,214 @@
+[
+ {
+  "id": "n1",
+  "lang": "fr",
+  "text": "La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. C'est dans ce contexte que Clement Hortense a été nommée responsable du pôle qualité. Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. ",
+  "truth": [
+   [
+    "Clement Hortense",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "n2",
+  "lang": "fr",
+  "text": "Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. Le règlement du solde devra être effectué par virement sur le compte suivant : FR76 3000 1007 9412 3456 7890 185, avant la date d'échéance indiquée.",
+  "truth": [
+   [
+    "FR76 3000 1007 9412 3456 7890 185",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "n3",
+  "lang": "fr",
+  "text": "Pour toute question, vous pouvez joindre le secrétariat au 06 12 34 56 78. La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. ",
+  "truth": [
+   [
+    "06 12 34 56 78",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "n4",
+  "lang": "fr",
+  "text": "Le projet a été initié par Fanny Talanaud il y a deux ans. La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. La coordination est désormais assurée par Tristan Marac.",
+  "truth": [
+   [
+    "Fanny Talanaud",
+    "NAME"
+   ],
+   [
+    "Tristan Marac",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "n5",
+  "lang": "en",
+  "text": "The onboarding process was reviewed in detail during the last workshop, where the team gathered feedback from multiple departments. Several participants highlighted the need for clearer documentation and a more structured training path for venlo hires. The discussion also touched on tooling, collaboration habits and the overall pace of delivery across the different squads. Action items were assigned and a follow-up was scheduled for the end of the month. Any questions can be directed to estelle.whitman@voraring-traders.com during business hours. In the following section, the analysis focuses on retention metrics and their evolution over the past year. While the overall trend remains positive, a few cohorts show signs of stagnation that deserve closer investigation. The report recommends a series of targeted experiments to better understand the underlying drivers and to validate the most promising hypotheses before any large-scale rollout. ",
+  "truth": [
+   [
+    "estelle.whitman@voraring-traders.com",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "n6",
+  "lang": "fr",
+  "text": "Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Les bureaux se trouvent désormais au 8 avenue du Général Leclerc, 69003 Cahors, au troisième étage. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. ",
+  "truth": [
+   [
+    "8 avenue du Général Leclerc",
+    "ADDRESS"
+   ],
+   [
+    "69003",
+    "POSTAL"
+   ],
+   [
+    "Cahors",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "n7",
+  "lang": "fr",
+  "text": "La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. Le dossier a finalement été confié à Monsieur Noemie-\nGaspard Tristan, expert-comptable. Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. ",
+  "truth": [
+   [
+    "Noemie-Gaspard Tristan",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "n8",
+  "lang": "fr",
+  "text": "La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Le témoignage recueilli auprès de Fanny Capucine a été déterminant pour la suite de l'enquête. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. ",
+  "truth": [
+   [
+    "Fanny Capucine",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "n9",
+  "lang": "zh",
+  "text": "本季度的工作总结显示，各个项目团队在过去几个月里取得了显著进展。大家在会议上分享了各自的成果，讨论了下阶段的重点方向，并提出了若干改进建议。整体预算基本符合预期，尽管由于一些技术上的意外情况，个别项目出现了轻微的超支。管理层再次强调了按时交付和保证质量的重要性。其中，客户曲若飞提出的建议得到了团队的高度重视。本季度的工作总结显示，各个项目团队在过去几个月里取得了显著进展。大家在会议上分享了各自的成果，讨论了下阶段的重点方向，并提出了若干改进建议。整体预算基本符合预期，尽管由于一些技术上的意外情况，个别项目出现了轻微的超支。管理层再次强调了按时交付和保证质量的重要性。",
+  "truth": [
+   [
+    "曲若飞",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "n10",
+  "lang": "fr",
+  "text": "Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Le titulaire, né le 03/04/1988, a présenté les justificatifs requis lors du rendez-vous. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. ",
+  "truth": [
+   [
+    "03/04/1988",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "n11",
+  "lang": "en",
+  "text": "The onboarding process was reviewed in detail during the last workshop, where the team gathered feedback from multiple departments. Several participants highlighted the need for clearer documentation and a more structured training path for venlo hires. The discussion also touched on tooling, collaboration habits and the overall pace of delivery across the different squads. Action items were assigned and a follow-up was scheduled for the end of the month. In the following section, the analysis focuses on retention metrics and their evolution over the past year. While the overall trend remains positive, a few cohorts show signs of stagnation that deserve closer investigation. The report recommends a series of targeted experiments to better understand the underlying drivers and to validate the most promising hypotheses before any large-scale rollout. The onboarding process was reviewed in detail during the last workshop, where the team gathered feedback from multiple departments. Several participants highlighted the need for clearer documentation and a more structured training path for venlo hires. The discussion also touched on tooling, collaboration habits and the overall pace of delivery across the different squads. Action items were assigned and a follow-up was scheduled for the end of the month. Please forward the signed copy to Anders Falelstra before Friday.",
+  "truth": [
+   [
+    "Anders Falelstra",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "n12",
+  "lang": "en",
+  "text": "Femke O'Kelbeck will chair the committee this quarter. The onboarding process was reviewed in detail during the last workshop, where the team gathered feedback from multiple departments. Several participants highlighted the need for clearer documentation and a more structured training path for venlo hires. The discussion also touched on tooling, collaboration habits and the overall pace of delivery across the different squads. Action items were assigned and a follow-up was scheduled for the end of the month. In the following section, the analysis focuses on retention metrics and their evolution over the past year. While the overall trend remains positive, a few cohorts show signs of stagnation that deserve closer investigation. The report recommends a series of targeted experiments to better understand the underlying drivers and to validate the most promising hypotheses before any large-scale rollout. The onboarding process was reviewed in detail during the last workshop, where the team gathered feedback from multiple departments. Several participants highlighted the need for clearer documentation and a more structured training path for venlo hires. The discussion also touched on tooling, collaboration habits and the overall pace of delivery across the different squads. Action items were assigned and a follow-up was scheduled for the end of the month. ",
+  "truth": [
+   [
+    "Femke O'Kelbeck",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "n13",
+  "lang": "fr",
+  "text": "La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. La société Velauaud Savaud, basée à Louhans, a remporté l'appel d'offres. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. ",
+  "truth": [
+   [
+    "Velauaud Savaud",
+    "ORG"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "n14",
+  "lang": "fr",
+  "text": "La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. Contact principal : Élodie Aurore (mathis.aurore@acme-corp.fr, +33 6 88 77 66 55). Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Adresse de facturation : 3 rue Blanche, 75009 Senlis. Par ailleurs, la question de la conformité réglementaire a fait l'objet d'une attention particulière. Un audit interne sera mené au cours des prochaines semaines afin de vérifier que l'ensemble des processus respecte les exigences en vigueur. Les conclusions seront présentées lors du prochain comité, accompagnées d'un plan d'action détaillé et d'un calendrier de mise en œuvre. ",
+  "truth": [
+   [
+    "Élodie Aurore",
+    "NAME"
+   ],
+   [
+    "mathis.aurore@acme-corp.fr",
+    "EMAIL"
+   ],
+   [
+    "+33 6 88 77 66 55",
+    "PHONE"
+   ],
+   [
+    "3 rue Blanche",
+    "ADDRESS"
+   ],
+   [
+    "75009",
+    "POSTAL"
+   ],
+   [
+    "Senlis",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "n15",
+  "lang": "fr",
+  "text": "Le rapport souligne également que la satisfaction des utilisateurs progresse régulièrement depuis le début de l'année, portée par les nombreuses améliorations apportées à l'interface et par la réactivité du support. Plusieurs retours mentionnent toutefois des lenteurs occasionnelles qu'il conviendra de traiter en priorité. Les prochaines étapes incluent une refonte partielle du parcours d'inscription ainsi qu'une optimisation des performances côté serveur. Le compte-rendu a été rédigé par Blandine Norouand, assistante de direction. La réunion trimestrielle a permis de faire le point sur l'avancement des différents chantiers en cours. Les équipes ont présenté leurs résultats, discuté des priorités du prochain semestre et identifié plusieurs axes d'amélioration. Le budget alloué reste globalement conforme aux prévisions, malgré quelques dépassements ponctuels liés à des imprévus techniques. La direction a rappelé l'importance de respecter les délais et de maintenir un niveau de qualité élevé sur l'ensemble des livrables attendus. ",
+  "truth": [
+   [
+    "Blandine Norouand",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "n16",
+  "lang": "en",
+  "text": "The onboarding process was reviewed in detail during the last workshop, where the team gathered feedback from multiple departments. Several participants highlighted the need for clearer documentation and a more structured training path for venlo hires. The discussion also touched on tooling, collaboration habits and the overall pace of delivery across the different squads. Action items were assigned and a follow-up was scheduled for the end of the month. In the following section, the analysis focuses on retention metrics and their evolution over the past year. While the overall trend remains positive, a few cohorts show signs of stagnation that deserve closer investigation. The report recommends a series of targeted experiments to better understand the underlying drivers and to validate the most promising hypotheses before any large-scale rollout. The onboarding process was reviewed in detail during the last workshop, where the team gathered feedback from multiple departments. Several participants highlighted the need for clearer documentation and a more structured training path for venlo hires. The discussion also touched on tooling, collaboration habits and the overall pace of delivery across the different squads. Action items were assigned and a follow-up was scheduled for the end of the month. In the following section, the analysis focuses on retention metrics and their evolution over the past year. While the overall trend remains positive, a few cohorts show signs of stagnation that deserve closer investigation. The report recommends a series of targeted experiments to better understand the underlying drivers and to validate the most promising hypotheses before any large-scale rollout. For escalations, email favor.gov@example.org directly. The onboarding process was reviewed in detail during the last workshop, where the team gathered feedback from multiple departments. Several participants highlighted the need for clearer documentation and a more structured training path for venlo hires. The discussion also touched on tooling, collaboration habits and the overall pace of delivery across the different squads. Action items were assigned and a follow-up was scheduled for the end of the month. In the following section, the analysis focuses on retention metrics and their evolution over the past year. While the overall trend remains positive, a few cohorts show signs of stagnation that deserve closer investigation. The report recommends a series of targeted experiments to better understand the underlying drivers and to validate the most promising hypotheses before any large-scale rollout. ",
+  "truth": [
+   [
+    "favor.gov@example.org",
+    "EMAIL"
+   ]
+  ]
+ }
+]

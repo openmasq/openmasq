@@ -49,7 +49,11 @@ export const workspaceSrcAlias = [
  * `vitest.config.ts` spreads it into its `exclude`: a bench that came back one day would be
  * declared HERE, never in the unit suite (its timeout under load is not a test's).
  */
-export const CORPUS_TESTS: string[] = [];
+export const CORPUS_TESTS = [
+  "packages/**/src/**/*.recall.test.ts",
+  "packages/redact/src/benchReplay.test.ts",
+  "packages/redact/src/benchFixes.test.ts",
+];
 
 /**
  * The files INCOMPATIBLE with `--no-isolate` (the fast lane `pnpm test:redact`): they stub

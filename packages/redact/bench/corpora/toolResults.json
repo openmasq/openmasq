@@ -1,0 +1,4521 @@
+[
+ {
+  "id": "tr-gmail-list",
+  "lang": "fr",
+  "text": "{\"messages\":[{\"id\":\"18f2a9c4b1\",\"threadId\":\"18f2a9c4b1\",\"snippet\":\"Bonjour Clement, ci-joint le devis signé.\",\"payload\":{\"headers\":[\n{\"name\":\"From\",\"value\":\"Carole Guingamp <l.guingamp@atelier-lanaud.fr>\"},\n{\"name\":\"To\",\"value\":\"clement.jolaud@exemple.fr\"},\n{\"name\":\"Cc\",\"value\":\"compta@atelier-lanaud.fr, Tristan VELIGIER <n.veligier@exemple.fr>\"},\n{\"name\":\"Subject\",\"value\":\"Devis 2026-0417 - chantier 8 rue des Cordeliers\"},\n{\"name\":\"Date\",\"value\":\"Tue, 14 Jul 2026 09:12:44 +0200\"}]}}]}",
+  "truth": [
+   [
+    "Carole Guingamp",
+    "NAME"
+   ],
+   [
+    "l.guingamp@atelier-lanaud.fr",
+    "EMAIL"
+   ],
+   [
+    "clement.jolaud@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "compta@atelier-lanaud.fr",
+    "EMAIL"
+   ],
+   [
+    "Tristan VELIGIER",
+    "NAME"
+   ],
+   [
+    "n.veligier@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "8 rue des Cordeliers",
+    "ADDRESS"
+   ],
+   [
+    "Clement",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gmail-signature",
+  "lang": "fr",
+  "text": "Objet : RE: relance facture\n--\nBien cordialement,\n\nCapucine Gaspard\nResponsable administrative - MENUISERIE CHALONAT\n2 rue Lavoisier, 92100 Commercy-Rocamadour\nTel. 01 46 21 88 04 - Mob. 06 74 21 88 05\ncapucine.gaspard@menuiserie-chalonat.fr",
+  "truth": [
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "MENUISERIE CHALONAT",
+    "ORG"
+   ],
+   [
+    "2 rue Lavoisier",
+    "ADDRESS"
+   ],
+   [
+    "92100",
+    "POSTAL"
+   ],
+   [
+    "Commercy-Rocamadour",
+    "CITY"
+   ],
+   [
+    "01 46 21 88 04",
+    "PHONE"
+   ],
+   [
+    "06 74 21 88 05",
+    "PHONE"
+   ],
+   [
+    "capucine.gaspard@menuiserie-chalonat.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-outlook-message",
+  "lang": "en",
+  "text": "{\"value\":[{\"subject\":\"Onboarding - venlo joiner\",\"from\":{\"emailAddress\":{\"name\":\"Bengt Morergaard\",\"address\":\"bengt.morergaard@kenarstra.co.uk\"}},\n\"toRecipients\":[{\"emailAddress\":{\"name\":\"Lars Thalfeld\",\"address\":\"t.thalfeld@kenarstra.co.uk\"}}],\n\"bodyPreview\":\"Sigrid starts on 3 August. Home address 12 Marlowe Court, Kolding BS6 5HN, mobile 07700 900 812.\",\"receivedDateTime\":\"2026-07-21T08:03:11Z\"}]}",
+  "truth": [
+   [
+    "Bengt Morergaard",
+    "NAME"
+   ],
+   [
+    "bengt.morergaard@kenarstra.co.uk",
+    "EMAIL"
+   ],
+   [
+    "Lars Thalfeld",
+    "NAME"
+   ],
+   [
+    "t.thalfeld@kenarstra.co.uk",
+    "EMAIL"
+   ],
+   [
+    "Sigrid",
+    "NAME"
+   ],
+   [
+    "12 Marlowe Court",
+    "ADDRESS"
+   ],
+   [
+    "Kolding",
+    "CITY"
+   ],
+   [
+    "BS6 5HN",
+    "POSTAL"
+   ],
+   [
+    "07700 900 812",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-superhuman-thread",
+  "lang": "fr",
+  "text": "From: Coline AGATHE <a.agathe@cabinet-agathe.fr>\nTo: Gisele CAROLE <gisele.carole@laposte.net>\nSubject: promesse de vente\n\nMadame,\nJe confirme le rendez-vous du 12 septembre a 14h a l office notarial.\nMerci de vous munir de votre piece d identite (CNI n 990275301245) et d un RIB.\nCordialement, A. AGATHE - 04 73 21 55 09",
+  "truth": [
+   [
+    "Coline AGATHE",
+    "NAME"
+   ],
+   [
+    "a.agathe@cabinet-agathe.fr",
+    "EMAIL"
+   ],
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "gisele.carole@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "990275301245",
+    "ID"
+   ],
+   [
+    "04 73 21 55 09",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-slack-history",
+  "lang": "fr",
+  "text": "{\"messages\":[\n{\"user\":\"U03KD9T2A\",\"text\":\"<@U07QW1L4B> tu peux appeler Mme Alexandre au 06 09 55 71 20 ? elle attend le devis\",\"ts\":\"1753692184.001\"},\n{\"user\":\"U07QW1L4B\",\"text\":\"ok je lui envoie sur r.gisele@free.fr, son adresse c est 3 rue du Bourg 27200 Quimperle\",\"ts\":\"1753692240.002\"}]}",
+  "truth": [
+   [
+    "Alexandre",
+    "NAME"
+   ],
+   [
+    "06 09 55 71 20",
+    "PHONE"
+   ],
+   [
+    "r.gisele@free.fr",
+    "EMAIL"
+   ],
+   [
+    "3 rue du Bourg",
+    "ADDRESS"
+   ],
+   [
+    "27200",
+    "POSTAL"
+   ],
+   [
+    "Quimperle",
+    "CITY"
+   ],
+   [
+    "U03KD9T2A",
+    "ID"
+   ],
+   [
+    "U07QW1L4B",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-slack-profile",
+  "lang": "en",
+  "text": "{\"ok\":true,\"profile\":{\"real_name\":\"Femke Heike-Grondorf\",\"display_name\":\"femke\",\n\"title\":\"Head of People\",\"phone\":\"+44 7700 900 455\",\"email\":\"femke.heike@kenarstra.co.uk\",\n\"fields\":{\"Xf01\":{\"value\":\"Room 4.12, 220 Corn Street, Kolding\"},\"Xf02\":{\"value\":\"1984-11-02\"}}}}",
+  "truth": [
+   [
+    "Femke Heike-Grondorf",
+    "NAME"
+   ],
+   [
+    "+44 7700 900 455",
+    "PHONE"
+   ],
+   [
+    "femke.heike@kenarstra.co.uk",
+    "EMAIL"
+   ],
+   [
+    "220 Corn Street",
+    "ADDRESS"
+   ],
+   [
+    "Kolding",
+    "CITY"
+   ],
+   [
+    "1984-11-02",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tr-teams-chat",
+  "lang": "de",
+  "text": "{\"value\":[{\"from\":{\"user\":{\"displayName\":\"Magnus Greta-Kenerwald\"}},\n\"body\":{\"content\":\"Hallo Bengt, die Patientin wohnt Kirschbluetenweg 19, 04315 Randers. Telefon 0341 55 21 907.\"},\n\"createdDateTime\":\"2026-07-19T14:22:00Z\"}]}",
+  "truth": [
+   [
+    "Magnus Greta-Kenerwald",
+    "NAME"
+   ],
+   [
+    "Bengt",
+    "NAME"
+   ],
+   [
+    "Kirschbluetenweg 19",
+    "ADDRESS"
+   ],
+   [
+    "04315",
+    "POSTAL"
+   ],
+   [
+    "Randers",
+    "CITY"
+   ],
+   [
+    "0341 55 21 907",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gcal-event",
+  "lang": "fr",
+  "text": "{\"summary\":\"Point trimestriel - dossier JUSTINE\",\"location\":\"12 rue des Ecoles, 78800 Mende\",\n\"start\":{\"dateTime\":\"2026-09-03T10:00:00+02:00\"},\n\"attendees\":[{\"email\":\"leandre.gaspard@exemple.fr\",\"displayName\":\"Leandre GASPARD\",\"responseStatus\":\"accepted\"},\n{\"email\":\"p.megan@exemple.fr\",\"displayName\":\"Gaspard DA VELARD\"},\n{\"email\":\"notaire@etude-gaspard.fr\",\"displayName\":\"Etude GASPARD\"}],\n\"description\":\"Prevoir le RIB FR76 3000 6000 0112 3456 7890 189\"}",
+  "truth": [
+   [
+    "JUSTINE",
+    "NAME"
+   ],
+   [
+    "12 rue des Ecoles",
+    "ADDRESS"
+   ],
+   [
+    "78800",
+    "POSTAL"
+   ],
+   [
+    "Mende",
+    "CITY"
+   ],
+   [
+    "leandre.gaspard@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Leandre GASPARD",
+    "NAME"
+   ],
+   [
+    "p.megan@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Gaspard DA VELARD",
+    "NAME"
+   ],
+   [
+    "notaire@etude-gaspard.fr",
+    "EMAIL"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "tr-fireflies-transcript",
+  "lang": "fr",
+  "text": "{\"transcript\":{\"title\":\"Equipe pedagogique - 21 juillet\",\"date\":\"2026-07-21\",\n\"host_email\":\"h.gisele@exemple.fr\",\"organizer_email\":\"o.hortense@exemple.fr\",\n\"participants\":[\"h.gisele@exemple.fr\",\"o.hortense@exemple.fr\",\"femke.chalinier@passau.fr\"],\n\"meeting_attendees\":[{\"displayName\":\"Leandre Gisele\",\"email\":\"h.gisele@exemple.fr\"},\n{\"displayName\":\"Coline Hortense-Maron\",\"email\":\"o.hortense@exemple.fr\"}],\n\"speakers\":[{\"id\":0,\"name\":\"Leandre Gisele\"},{\"id\":1,\"name\":\"Coline Hortense-Maron\"}],\n\"sentences\":[{\"speaker_id\":0,\"speaker_name\":\"Leandre Gisele\",\"start_time\":12.4,\"text\":\"Donc pour Justine, on reste sur un amenagement d horaires.\"},\n{\"speaker_id\":1,\"speaker_name\":\"Coline Hortense-Maron\",\"start_time\":31.9,\"raw_text\":\"Sa mere Femke Chalinier m a appele au 07 82 15 43 60 hier.\"}],\n\"summary\":{\"action_items\":[\"Rappeler Femke Chalinier au 07 82 15 43 60\"]}}}",
+  "truth": [
+   [
+    "h.gisele@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "o.hortense@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "femke.chalinier@passau.fr",
+    "EMAIL"
+   ],
+   [
+    "Leandre Gisele",
+    "NAME"
+   ],
+   [
+    "Coline Hortense-Maron",
+    "NAME"
+   ],
+   [
+    "Justine",
+    "NAME"
+   ],
+   [
+    "Femke Chalinier",
+    "NAME"
+   ],
+   [
+    "07 82 15 43 60",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gtasks-list",
+  "lang": "fr",
+  "text": "{\"items\":[{\"title\":\"Rappeler M. Estelle GISELE - 02 40 12 34 56\",\"notes\":\"dossier 12 3456 78, ne le 14/03/1979\",\"status\":\"needsAction\"},\n{\"title\":\"Envoyer attestation a tristan.veligier@exemple.fr\",\"status\":\"completed\"}]}",
+  "truth": [
+   [
+    "Estelle GISELE",
+    "NAME"
+   ],
+   [
+    "02 40 12 34 56",
+    "PHONE"
+   ],
+   [
+    "12 3456 78",
+    "ID"
+   ],
+   [
+    "14/03/1979",
+    "DOB"
+   ],
+   [
+    "tristan.veligier@exemple.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-supabase-sql",
+  "lang": "en",
+  "text": "| id | email | full_name | phone | created_at |\n| 4471 | o.caspar@laposte.net | Megan CASPAR | 0663120944 | 2026-01-14 |\n| 4472 | p.gaspard@wp.pl | Ulla GASPARD | +33755012288 | 2026-01-15 |\n| 4473 | j.thaleling@usal.es | Greta THALELING-THALDORF | 0721398421 | 2026-02-02 |",
+  "truth": [
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "Megan CASPAR",
+    "NAME"
+   ],
+   [
+    "0663120944",
+    "PHONE"
+   ],
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "Ulla GASPARD",
+    "NAME"
+   ],
+   [
+    "+33755012288",
+    "PHONE"
+   ],
+   [
+    "j.thaleling@usal.es",
+    "EMAIL"
+   ],
+   [
+    "Greta THALELING-THALDORF",
+    "NAME"
+   ],
+   [
+    "0721398421",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-neon-json",
+  "lang": "fr",
+  "text": "{\"rows\":[{\"client_id\":9042,\"nom\":\"Gisele ALEXANDRE\",\"adresse\":\"12 allee des Tamaris\",\"cp\":\"64600\",\"ville\":\"YVETOT\",\"iban\":\"FR34 1027 8060 4100 0204 5230 187\",\"naissance\":\"1991-01-04\"},\n{\"client_id\":9043,\"nom\":\"Roland CAPUCINE\",\"adresse\":\"7 impasse des Acacias\",\"cp\":\"69100\",\"ville\":\"Yssingeaux\",\"iban\":\"FR76 3000 4028 3700 0105 7289 121\",\"naissance\":\"1979-11-30\"}],\"rowCount\":2}",
+  "truth": [
+   [
+    "Gisele ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "12 allee des Tamaris",
+    "ADDRESS"
+   ],
+   [
+    "64600",
+    "POSTAL"
+   ],
+   [
+    "YVETOT",
+    "CITY"
+   ],
+   [
+    "FR34 1027 8060 4100 0204 5230 187",
+    "IBAN"
+   ],
+   [
+    "1991-01-04",
+    "DOB"
+   ],
+   [
+    "Roland CAPUCINE",
+    "NAME"
+   ],
+   [
+    "7 impasse des Acacias",
+    "ADDRESS"
+   ],
+   [
+    "69100",
+    "POSTAL"
+   ],
+   [
+    "Yssingeaux",
+    "CITY"
+   ],
+   [
+    "FR76 3000 4028 3700 0105 7289 121",
+    "IBAN"
+   ],
+   [
+    "1979-11-30",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tr-prisma-ndjson",
+  "lang": "en",
+  "text": "{\"userId\":\"usr_8812\",\"email\":\"torben.holelfeld@fastmail.com\",\"name\":\"Torben Holelfeld-Oda\",\"ssn\":\"AB123456C\",\"dob\":\"1974-11-12\"}\n{\"userId\":\"usr_8813\",\"email\":\"sigrid.stendorf@kenarstra.ac.uk\",\"name\":\"Sigrid Stendorf-Falinmann\",\"ssn\":\"CD654321D\",\"dob\":\"1999-06-06\"}",
+  "truth": [
+   [
+    "torben.holelfeld@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "Torben Holelfeld-Oda",
+    "NAME"
+   ],
+   [
+    "AB123456C",
+    "ID"
+   ],
+   [
+    "1974-11-12",
+    "DOB"
+   ],
+   [
+    "sigrid.stendorf@kenarstra.ac.uk",
+    "EMAIL"
+   ],
+   [
+    "Sigrid Stendorf-Falinmann",
+    "NAME"
+   ],
+   [
+    "CD654321D",
+    "ID"
+   ],
+   [
+    "1999-06-06",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tr-airtable-records",
+  "lang": "fr",
+  "text": "{\"records\":[{\"id\":\"recA1\",\"fields\":{\"Nom\":\"Mireille CLEMENT-LANELIER\",\"Email\":\"mireille.clement@edu.univ-fcomte.fr\",\"Telephone\":\"06 12 90 44 71\",\"Numero etudiant\":\"22104877\",\"Ville\":\"Confolens\"}},\n{\"id\":\"recA2\",\"fields\":{\"Nom\":\"Clement DOREYARD-LANALAUD\",\"Email\":\"clement.doreyard@gmail.com\",\"Telephone\":\"07 68 12 44 90\",\"Numero etudiant\":\"22104912\",\"Ville\":\"Chauny\"}}]}",
+  "truth": [
+   [
+    "Mireille CLEMENT-LANELIER",
+    "NAME"
+   ],
+   [
+    "mireille.clement@edu.univ-fcomte.fr",
+    "EMAIL"
+   ],
+   [
+    "06 12 90 44 71",
+    "PHONE"
+   ],
+   [
+    "22104877",
+    "ID"
+   ],
+   [
+    "Confolens",
+    "CITY"
+   ],
+   [
+    "Clement DOREYARD-LANALAUD",
+    "NAME"
+   ],
+   [
+    "clement.doreyard@gmail.com",
+    "EMAIL"
+   ],
+   [
+    "07 68 12 44 90",
+    "PHONE"
+   ],
+   [
+    "22104912",
+    "ID"
+   ],
+   [
+    "Chauny",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-synapse-csv",
+  "lang": "fr",
+  "text": "nom;prenom;date_naissance;nir;email;telephone\nAURORE;Noemie-Belauret;04/02/1961;1 61 02 33 150 021 44;jb.aurore@passau.fr;05 56 40 12 77\nCAROLE;Gisele;18/09/1958;2 58 09 59 120 005 12;c.carole@laposte.net;02 96 33 21 08",
+  "truth": [
+   [
+    "AURORE",
+    "NAME"
+   ],
+   [
+    "Noemie-Belauret",
+    "NAME"
+   ],
+   [
+    "04/02/1961",
+    "DOB"
+   ],
+   [
+    "1 61 02 33 150 021 44",
+    "ID"
+   ],
+   [
+    "jb.aurore@passau.fr",
+    "EMAIL"
+   ],
+   [
+    "05 56 40 12 77",
+    "PHONE"
+   ],
+   [
+    "CAROLE",
+    "NAME"
+   ],
+   [
+    "Gisele",
+    "NAME"
+   ],
+   [
+    "18/09/1958",
+    "DOB"
+   ],
+   [
+    "2 58 09 59 120 005 12",
+    "ID"
+   ],
+   [
+    "c.carole@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "02 96 33 21 08",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-dropbox-search",
+  "lang": "fr",
+  "text": "{\"matches\":[{\"metadata\":{\"name\":\"bulletin_paie_ALEXANDRE_juin2026.pdf\",\"path_display\":\"/Comptabilite/Paie/2026/bulletin_paie_ALEXANDRE_juin2026.pdf\",\"size\":88213}},\n{\"metadata\":{\"name\":\"CNI_Leandre_JUSTINE_recto.jpg\",\"path_display\":\"/RH/Pieces identite/CNI_Leandre_JUSTINE_recto.jpg\",\"size\":412887}}]}",
+  "truth": [
+   [
+    "ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "Leandre",
+    "NAME"
+   ],
+   [
+    "JUSTINE",
+    "NAME"
+   ],
+   [
+    "/Comptabilite/Paie/2026/bulletin_paie_ALEXANDRE_juin2026.pdf",
+    "PATH"
+   ],
+   [
+    "/RH/Pieces identite/CNI_Leandre_JUSTINE_recto.jpg",
+    "PATH"
+   ]
+  ]
+ },
+ {
+  "id": "tr-intercom-contact",
+  "lang": "en",
+  "text": "{\"type\":\"contact\",\"id\":\"6612ab\",\"name\":\"Wouter Morholt\",\"email\":\"wouter.morholt@posteo.eu\",\"phone\":\"+39 340 118 27 64\",\n\"location\":{\"city\":\"Leer\",\"country\":\"Italy\"},\"custom_attributes\":{\"vat\":\"IT01234567897\",\"birthday\":\"1980-03-15\",\n\"last_note\":\"Called about invoice, address via dei Gelsomini 7, 40138 Leer\"}}",
+  "truth": [
+   [
+    "Wouter Morholt",
+    "NAME"
+   ],
+   [
+    "wouter.morholt@posteo.eu",
+    "EMAIL"
+   ],
+   [
+    "+39 340 118 27 64",
+    "PHONE"
+   ],
+   [
+    "Leer",
+    "CITY"
+   ],
+   [
+    "IT01234567897",
+    "ID"
+   ],
+   [
+    "1980-03-15",
+    "DOB"
+   ],
+   [
+    "via dei Gelsomini 7",
+    "ADDRESS"
+   ],
+   [
+    "40138",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-attio-record",
+  "lang": "fr",
+  "text": "{\"data\":{\"values\":{\"name\":[{\"value\":\"Capucine N'TALAUIN\"}],\"email_addresses\":[{\"email_address\":\"s.devigado@nufenup.fr\"}],\n\"phone_numbers\":[{\"phone_number\":\"+33 6 23 54 87 01\"}],\"company\":[{\"value\":\"PRAALOIS\"}],\n\"notes\":[{\"content\":\"RCS Senlis 542 107 651. DPO joignable a dpo@praalois.io\"}]}}}",
+  "truth": [
+   [
+    "Capucine N'TALAUIN",
+    "NAME"
+   ],
+   [
+    "s.devigado@nufenup.fr",
+    "EMAIL"
+   ],
+   [
+    "+33 6 23 54 87 01",
+    "PHONE"
+   ],
+   [
+    "PRAALOIS",
+    "ORG"
+   ],
+   [
+    "542 107 651",
+    "ID"
+   ],
+   [
+    "dpo@praalois.io",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-close-lead",
+  "lang": "en",
+  "text": "{\"leads\":[{\"display_name\":\"Blandine Chaier\",\"contacts\":[{\"name\":\"Blandine Chaier\",\n\"emails\":[{\"email\":\"b.chaier@exemple.fr\"}],\"phones\":[{\"phone\":\"+33472889012\"}]}],\n\"addresses\":[{\"address_1\":\"14 Avenue des Garorel\",\"city\":\"Plauen-et-Zwickau\",\"zipcode\":\"69300\",\"country\":\"FR\"}],\n\"custom\":{\"siret\":\"73282932000074\"}}]}",
+  "truth": [
+   [
+    "Blandine Chaier",
+    "NAME"
+   ],
+   [
+    "b.chaier@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "+33472889012",
+    "PHONE"
+   ],
+   [
+    "14 Avenue des Garorel",
+    "ADDRESS"
+   ],
+   [
+    "Plauen-et-Zwickau",
+    "CITY"
+   ],
+   [
+    "69300",
+    "POSTAL"
+   ],
+   [
+    "73282932000074",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-jotform-submission",
+  "lang": "fr",
+  "text": "{\"content\":{\"answers\":{\n\"3\":{\"name\":\"nom\",\"text\":\"Nom complet\",\"answer\":\"Justine CHALINIER-PRAIN\"},\n\"4\":{\"name\":\"naissance\",\"text\":\"Date de naissance\",\"answer\":\"11/10/2011\"},\n\"5\":{\"name\":\"email\",\"text\":\"E-mail du responsable\",\"answer\":\"femke.chalinier@passau.fr\"},\n\"6\":{\"name\":\"tel\",\"text\":\"Telephone\",\"answer\":\"07 82 15 43 60\"},\n\"7\":{\"name\":\"adresse\",\"text\":\"Adresse\",\"answer\":\"6 allee des Cytises, 59110 La Vesoul\"},\n\"8\":{\"name\":\"secu\",\"text\":\"Numero de securite sociale\",\"answer\":\"2 11 10 59 350 128 41\"}}}}",
+  "truth": [
+   [
+    "Justine CHALINIER-PRAIN",
+    "NAME"
+   ],
+   [
+    "11/10/2011",
+    "DOB"
+   ],
+   [
+    "femke.chalinier@passau.fr",
+    "EMAIL"
+   ],
+   [
+    "07 82 15 43 60",
+    "PHONE"
+   ],
+   [
+    "6 allee des Cytises",
+    "ADDRESS"
+   ],
+   [
+    "59110",
+    "POSTAL"
+   ],
+   [
+    "La Vesoul",
+    "CITY"
+   ],
+   [
+    "2 11 10 59 350 128 41",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-monday-item",
+  "lang": "fr",
+  "text": "{\"data\":{\"boards\":[{\"items_page\":{\"items\":[{\"id\":\"1234567890\",\"name\":\"Recrutement - Clement DOREYARD\",\n\"email\":\"pulse-1234567890@chalin.monday.com\",\"creator\":{\"id\":\"9876543210\",\"name\":\"Antonin PELECARD-TALEAU\"},\n\"subscribers\":[{\"id\":\"111\",\"name\":\"Leandre Gisele\",\"email\":\"h.gisele@exemple.fr\"}],\n\"column_values\":[{\"id\":\"email\",\"text\":\"clement.doreyard@gmail.com\",\"value\":\"{\\\"email\\\":\\\"clement.doreyard@gmail.com\\\"}\",\"type\":\"email\"},\n{\"id\":\"phone\",\"text\":\"06 12 90 44 71\",\"value\":\"{\\\"phone\\\":\\\"0612904471\\\"}\",\"type\":\"phone\"},\n{\"id\":\"text\",\"text\":\"CV recu, habite 31 quai de la Loire 45000 Chauny\",\"type\":\"text\"},\n{\"id\":\"date\",\"text\":\"1997-08-19\",\"value\":\"{\\\"date\\\":\\\"1997-08-19\\\"}\",\"type\":\"date\"}]}]}}]}}",
+  "truth": [
+   [
+    "Clement DOREYARD",
+    "NAME"
+   ],
+   [
+    "Antonin PELECARD-TALEAU",
+    "NAME"
+   ],
+   [
+    "Leandre Gisele",
+    "NAME"
+   ],
+   [
+    "h.gisele@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "clement.doreyard@gmail.com",
+    "EMAIL"
+   ],
+   [
+    "06 12 90 44 71",
+    "PHONE"
+   ],
+   [
+    "31 quai de la Loire",
+    "ADDRESS"
+   ],
+   [
+    "45000",
+    "POSTAL"
+   ],
+   [
+    "Chauny",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-asana-task",
+  "lang": "en",
+  "text": "{\"data\":{\"name\":\"Offboarding - Lars Thalfeld\",\"assignee\":{\"name\":\"Bengt Morergaard\",\"email\":\"bengt.morergaard@kenarstra.co.uk\"},\n\"notes\":\"Return laptop to 220 Corn Street, Kolding BS6 5HN. Personal mail t.thalfeld.priv@fastmail.com, mobile 07700 900 231.\",\n\"due_on\":\"2026-08-03\"}}",
+  "truth": [
+   [
+    "Lars Thalfeld",
+    "NAME"
+   ],
+   [
+    "Bengt Morergaard",
+    "NAME"
+   ],
+   [
+    "bengt.morergaard@kenarstra.co.uk",
+    "EMAIL"
+   ],
+   [
+    "220 Corn Street",
+    "ADDRESS"
+   ],
+   [
+    "Kolding",
+    "CITY"
+   ],
+   [
+    "BS6 5HN",
+    "POSTAL"
+   ],
+   [
+    "t.thalfeld.priv@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "07700 900 231",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-linear-issue",
+  "lang": "en",
+  "text": "{\"issue\":{\"identifier\":\"SEC-412\",\"title\":\"PII in staging dump\",\"assignee\":{\"name\":\"Capucine Gaspard\",\"email\":\"capucine.gaspard@chalalois.eu\"},\n\"description\":\"The dump at /var/backups/prod/users_2026_07.sql contains 4 812 rows. Sample: fanny.malent@vauoux-malent.fr / 03 87 55 21 09.\",\n\"creator\":{\"name\":\"Fanny MALENT\"}}}",
+  "truth": [
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "capucine.gaspard@chalalois.eu",
+    "EMAIL"
+   ],
+   [
+    "/var/backups/prod/users_2026_07.sql",
+    "PATH"
+   ],
+   [
+    "fanny.malent@vauoux-malent.fr",
+    "EMAIL"
+   ],
+   [
+    "03 87 55 21 09",
+    "PHONE"
+   ],
+   [
+    "Fanny MALENT",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-atlassian-jira",
+  "lang": "fr",
+  "text": "{\"issues\":[{\"key\":\"SUP-2291\",\"fields\":{\"summary\":\"Client mecontent - remboursement\",\n\"reporter\":{\"displayName\":\"Gaspard JOLON-LANY\",\"emailAddress\":\"n.jolon@exemple.fr\"},\n\"description\":\"Mme Roland CAPUCINE-DORRET, 8 place de la Aurore 33270 Vienne, tel 05 56 40 12 77. Carte terminant 4242.\"}}]}",
+  "truth": [
+   [
+    "Gaspard JOLON-LANY",
+    "NAME"
+   ],
+   [
+    "n.jolon@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Roland CAPUCINE-DORRET",
+    "NAME"
+   ],
+   [
+    "8 place de la Aurore",
+    "ADDRESS"
+   ],
+   [
+    "33270",
+    "POSTAL"
+   ],
+   [
+    "Vienne",
+    "CITY"
+   ],
+   [
+    "05 56 40 12 77",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-notion-page",
+  "lang": "fr",
+  "text": "# Fiche salarie\n\n| Champ | Valeur |\n| Nom | Roland LEANDRE |\n| Matricule | 004782 |\n| Date de naissance | 12/05/1988 |\n| Adresse | 12 rue des Forges, 25000 CONFOLENS |\n| IBAN | FR76 3000 6000 0112 3456 7890 189 |\n| Securite sociale | 1 84 03 75 120 005 12 |\n| Manager | Roland CAPUCINE |",
+  "truth": [
+   [
+    "Roland LEANDRE",
+    "NAME"
+   ],
+   [
+    "004782",
+    "ID"
+   ],
+   [
+    "12/05/1988",
+    "DOB"
+   ],
+   [
+    "12 rue des Forges",
+    "ADDRESS"
+   ],
+   [
+    "25000",
+    "POSTAL"
+   ],
+   [
+    "CONFOLENS",
+    "CITY"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ],
+   [
+    "1 84 03 75 120 005 12",
+    "ID"
+   ],
+   [
+    "Roland CAPUCINE",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gdrive-list",
+  "lang": "fr",
+  "text": "{\"files\":[{\"name\":\"Contrat_travail_ROLAND_Noemie.docx\",\"mimeType\":\"application/vnd.openxmlformats-officedocument.wordprocessingml.document\",\n\"owners\":[{\"displayName\":\"Noemie ROLAND\",\"emailAddress\":\"noemie.roland@banquepop.fr\"}],\"modifiedTime\":\"2026-06-02T09:41:00Z\"},\n{\"name\":\"Releve_notes_CLEMENT.pdf\",\"owners\":[{\"displayName\":\"Antonin Pelecard\",\"emailAddress\":\"f.pelecard@univ-fcomte.fr\"}]}]}",
+  "truth": [
+   [
+    "ROLAND",
+    "NAME"
+   ],
+   [
+    "Noemie",
+    "NAME"
+   ],
+   [
+    "Noemie ROLAND",
+    "NAME"
+   ],
+   [
+    "noemie.roland@banquepop.fr",
+    "EMAIL"
+   ],
+   [
+    "CLEMENT",
+    "NAME"
+   ],
+   [
+    "Antonin Pelecard",
+    "NAME"
+   ],
+   [
+    "f.pelecard@univ-fcomte.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gdocs-content",
+  "lang": "fr",
+  "text": "ATTESTATION D EMPLOYEUR\n\nJe soussigne Blandine BLANDINE, gerant de CLEROURET, atteste que\nMonsieur Roland LEANDRE, ne le 12 mai 1988 a Confolens, demeurant\n12 rue des Forges 25000 CONFOLENS, est employe depuis le 3 janvier 2019.\nNumero de securite sociale : 1 84 03 75 120 005 12.\nFait a Confolens, le 14 juillet 2026.",
+  "truth": [
+   [
+    "Blandine BLANDINE",
+    "NAME"
+   ],
+   [
+    "CLEROURET",
+    "ORG"
+   ],
+   [
+    "Roland LEANDRE",
+    "NAME"
+   ],
+   [
+    "12 mai 1988",
+    "DOB"
+   ],
+   [
+    "12 rue des Forges",
+    "ADDRESS"
+   ],
+   [
+    "25000",
+    "POSTAL"
+   ],
+   [
+    "CONFOLENS",
+    "CITY"
+   ],
+   [
+    "1 84 03 75 120 005 12",
+    "ID"
+   ],
+   [
+    "3 janvier 2019",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gsheets-values",
+  "lang": "fr",
+  "text": "{\"range\":\"Adherents!A1:F4\",\"values\":[\n[\"nom\",\"prenom\",\"email\",\"telephone\",\"cp\",\"ville\"],\n[\"GISELE\",\"Edith\",\"r.gisele@free.fr\",\"06 09 55 71 20\",\"27200\",\"Quimperle\"],\n[\"BLANDINE\",\"Blandine\",\"b.blandine@exemple.fr\",\"02 32 51 09 44\",\"27200\",\"Quimperle\"],\n[\"FANNY\",\"Fanny\",\"m.fanny@exemple.re\",\"06 92 77 12 03\",\"97400\",\"Saint-Auch\"]]}",
+  "truth": [
+   [
+    "GISELE",
+    "NAME"
+   ],
+   [
+    "Edith",
+    "NAME"
+   ],
+   [
+    "r.gisele@free.fr",
+    "EMAIL"
+   ],
+   [
+    "06 09 55 71 20",
+    "PHONE"
+   ],
+   [
+    "27200",
+    "POSTAL"
+   ],
+   [
+    "Quimperle",
+    "CITY"
+   ],
+   [
+    "BLANDINE",
+    "NAME"
+   ],
+   [
+    "Blandine",
+    "NAME"
+   ],
+   [
+    "b.blandine@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "02 32 51 09 44",
+    "PHONE"
+   ],
+   [
+    "FANNY",
+    "NAME"
+   ],
+   [
+    "Fanny",
+    "NAME"
+   ],
+   [
+    "m.fanny@exemple.re",
+    "EMAIL"
+   ],
+   [
+    "06 92 77 12 03",
+    "PHONE"
+   ],
+   [
+    "97400",
+    "POSTAL"
+   ],
+   [
+    "Saint-Auch",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-onedrive-item",
+  "lang": "de",
+  "text": "{\"value\":[{\"name\":\"Zeugnis_THALELING_2026.pdf\",\"createdBy\":{\"user\":{\"displayName\":\"Lars Thaleling\",\"email\":\"lars.thaleling@web.de\"}},\n\"parentReference\":{\"path\":\"/drive/root:/Schule/Zeugnisse\"},\"size\":204118,\n\"description\":\"Schuelerin Greta THALELING-THALDORF, geboren am 27. Dezember 2009, Lindenstrasse 42, 76133 Horsens\"}]}",
+  "truth": [
+   [
+    "Lars Thaleling",
+    "NAME"
+   ],
+   [
+    "lars.thaleling@web.de",
+    "EMAIL"
+   ],
+   [
+    "Greta THALELING-THALDORF",
+    "NAME"
+   ],
+   [
+    "27. Dezember 2009",
+    "DOB"
+   ],
+   [
+    "Lindenstrasse 42",
+    "ADDRESS"
+   ],
+   [
+    "76133",
+    "POSTAL"
+   ],
+   [
+    "Horsens",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-sharepoint-search",
+  "lang": "en",
+  "text": "{\"hitsContainers\":[{\"hits\":[{\"summary\":\"Payroll register Q2 - Megan CASPAR, IBAN FR76 1027 8060 2100 0204 8630 163, NI number QQ123456C\",\n\"resource\":{\"name\":\"payroll_q2_2026.xlsx\",\"webUrl\":\"https://contoso.sharepoint.com/sites/HR/payroll_q2_2026.xlsx\",\n\"createdBy\":{\"user\":{\"displayName\":\"Sigrid Stendorf-Falinmann\"}}}}]}]}",
+  "truth": [
+   [
+    "Megan CASPAR",
+    "NAME"
+   ],
+   [
+    "FR76 1027 8060 2100 0204 8630 163",
+    "IBAN"
+   ],
+   [
+    "QQ123456C",
+    "ID"
+   ],
+   [
+    "Sigrid Stendorf-Falinmann",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-filesystem-list",
+  "lang": "fr",
+  "text": "/Users/alexandre.edith/Documents/Impots/2026/avis_imposition_2026.pdf\n/Users/alexandre.edith/Documents/Belret/ordonnance_dr_carole.pdf\n/Users/alexandre.edith/Downloads/CNI_scan_recto.jpg\n/Users/alexandre.edith/Documents/Vauel/RIB_LCL.pdf",
+  "truth": [
+   [
+    "/Users/alexandre.edith/Documents/Impots/2026/avis_imposition_2026.pdf",
+    "PATH"
+   ],
+   [
+    "/Users/alexandre.edith/Documents/Belret/ordonnance_dr_carole.pdf",
+    "PATH"
+   ],
+   [
+    "/Users/alexandre.edith/Downloads/CNI_scan_recto.jpg",
+    "PATH"
+   ],
+   [
+    "/Users/alexandre.edith/Documents/Vauel/RIB_LCL.pdf",
+    "PATH"
+   ],
+   [
+    "alexandre.edith",
+    "NAME"
+   ],
+   [
+    "carole",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-stripe-customer",
+  "lang": "en",
+  "text": "{\"object\":\"customer\",\"id\":\"cus_QjA8kLm2\",\"name\":\"Freja Niels\",\"email\":\"l.niels@exemple.fr\",\n\"phone\":\"+33641220987\",\"address\":{\"line1\":\"41 rue Wikstra Zola\",\"postal_code\":\"59800\",\"city\":\"VIRE\",\"country\":\"FR\"},\n\"metadata\":{\"tax_id\":\"19 87 654 321 098\"},\n\"sources\":{\"data\":[{\"object\":\"card\",\"brand\":\"visa\",\"last4\":\"4242\",\"exp_month\":11,\"exp_year\":2029,\"name\":\"FREJA NIELS\"}]}}",
+  "truth": [
+   [
+    "Freja Niels",
+    "NAME"
+   ],
+   [
+    "l.niels@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "+33641220987",
+    "PHONE"
+   ],
+   [
+    "41 rue Wikstra Zola",
+    "ADDRESS"
+   ],
+   [
+    "59800",
+    "POSTAL"
+   ],
+   [
+    "VIRE",
+    "CITY"
+   ],
+   [
+    "19 87 654 321 098",
+    "ID"
+   ],
+   [
+    "FREJA NIELS",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-stripe-charges",
+  "lang": "fr",
+  "text": "{\"data\":[{\"id\":\"ch_3Qk1\",\"billing_details\":{\"name\":\"Coline AGATHE\",\"email\":\"a.agathe@cabinet-agathe.fr\",\n\"address\":{\"line1\":\"5 avenue des Thermes\",\"postal_code\":\"63130\",\"city\":\"BAYEUX\"}},\"payment_method_details\":{\"card\":{\"last4\":\"1881\",\"country\":\"FR\"}}},\n{\"id\":\"ch_3Qk2\",\"billing_details\":{\"name\":\"Gisele CAROLE\",\"email\":\"gisele.carole@laposte.net\",\n\"address\":{\"line1\":\"11 rue des Gras\",\"postal_code\":\"63000\",\"city\":\"DINARD-GUINGAMP\"}}}]}",
+  "truth": [
+   [
+    "Coline AGATHE",
+    "NAME"
+   ],
+   [
+    "a.agathe@cabinet-agathe.fr",
+    "EMAIL"
+   ],
+   [
+    "5 avenue des Thermes",
+    "ADDRESS"
+   ],
+   [
+    "63130",
+    "POSTAL"
+   ],
+   [
+    "BAYEUX",
+    "CITY"
+   ],
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "gisele.carole@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "11 rue des Gras",
+    "ADDRESS"
+   ],
+   [
+    "63000",
+    "POSTAL"
+   ],
+   [
+    "DINARD-GUINGAMP",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-paypal-transaction",
+  "lang": "en",
+  "text": "{\"transaction_details\":[{\"payer_info\":{\"email_address\":\"nino.ventalorio@correo.es\",\"payer_name\":{\"alternate_full_name\":\"Nino Ventalorio-Barares\"},\n\"address\":{\"line1\":\"calle olino Olivar 14, 3 B\",\"city\":\"Vaxjo\",\"postal_code\":\"46600\",\"country_code\":\"ES\"},\"phone\":\"622 41 07 39\"},\n\"transaction_info\":{\"transaction_id\":\"7HT88291RC4432711\"}}]}",
+  "truth": [
+   [
+    "nino.ventalorio@correo.es",
+    "EMAIL"
+   ],
+   [
+    "Nino Ventalorio-Barares",
+    "NAME"
+   ],
+   [
+    "calle olino Olivar 14",
+    "ADDRESS"
+   ],
+   [
+    "Vaxjo",
+    "CITY"
+   ],
+   [
+    "46600",
+    "POSTAL"
+   ],
+   [
+    "622 41 07 39",
+    "PHONE"
+   ],
+   [
+    "7HT88291RC4432711",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-square-customer",
+  "lang": "en",
+  "text": "{\"customers\":[{\"id\":\"K7A3\",\"given_name\":\"Sigrid\",\"family_name\":\"De Bering\",\n\"email_address\":\"g.dageru@nubapa.eu\",\"phone_number\":\"+39 3401182764\",\n\"address\":{\"address_line_1\":\"Via Enna 8\",\"address_line_2\":\"interno 3\",\"locality\":\"Peine\",\n\"administrative_district_level_1\":\"Campania\",\"postal_code\":\"80100\",\"country\":\"IT\"},\n\"birthday\":\"1980-07-21\",\"reference_id\":\"DLCGPP80L21F839K\",\"note\":\"Cliente storico, contattare al 081 552 30 11\"}]}",
+  "truth": [
+   [
+    "Sigrid",
+    "NAME"
+   ],
+   [
+    "De Bering",
+    "NAME"
+   ],
+   [
+    "g.dageru@nubapa.eu",
+    "EMAIL"
+   ],
+   [
+    "+39 3401182764",
+    "PHONE"
+   ],
+   [
+    "Via Enna 8",
+    "ADDRESS"
+   ],
+   [
+    "Peine",
+    "CITY"
+   ],
+   [
+    "80100",
+    "POSTAL"
+   ],
+   [
+    "1980-07-21",
+    "DOB"
+   ],
+   [
+    "DLCGPP80L21F839K",
+    "ID"
+   ],
+   [
+    "081 552 30 11",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-sentry-event",
+  "lang": "en",
+  "text": "{\"eventID\":\"9f1c2\",\"title\":\"TypeError: cannot read properties of undefined\",\n\"user\":{\"id\":\"4471\",\"email\":\"o.caspar@laposte.net\",\"username\":\"obrunel\",\"ip_address\":\"92.184.105.22\"},\n\"culprit\":\"computeVat(/srv/app/dist/billing/vat.js)\",\n\"contexts\":{\"os\":{\"name\":\"macOS\"},\"runtime\":{\"name\":\"node\",\"version\":\"22.4.0\"}},\n\"tags\":[[\"server_name\",\"srv-prod-01.chalin.local\"],[\"url\",\"https://app.chalin.fr/facture/4471\"]]}",
+  "truth": [
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "obrunel",
+    "ID"
+   ],
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "/srv/app/dist/billing/vat.js",
+    "PATH"
+   ]
+  ]
+ },
+ {
+  "id": "tr-sentry-breadcrumbs",
+  "lang": "fr",
+  "text": "{\"breadcrumbs\":[{\"message\":\"POST /api/clients { \\\"nom\\\": \\\"Gisele ALEXANDRE\\\", \\\"email\\\": \\\"r.alexandre@exemple.fr\\\", \\\"tel\\\": \\\"06 45 67 89 01\\\" }\"},\n{\"message\":\"auth ok user=rhaddad ip=88.174.22.9\"},\n{\"message\":\"lecture /home/deploy/.env AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMIK7MDENGbPxRfiCYEXAMPLEKEY\"}]}",
+  "truth": [
+   [
+    "Gisele ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "r.alexandre@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "06 45 67 89 01",
+    "PHONE"
+   ],
+   [
+    "rhaddad",
+    "ID"
+   ],
+   [
+    "88.174.22.9",
+    "IP"
+   ],
+   [
+    "/home/deploy/.env",
+    "PATH"
+   ],
+   [
+    "wJalrXUtnFEMIK7MDENGbPxRfiCYEXAMPLEKEY",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "tr-github-commits",
+  "lang": "en",
+  "text": "[{\"sha\":\"a91f2c4\",\"commit\":{\"author\":{\"name\":\"Carole Peland\",\"email\":\"carole.peland@protonmail.com\",\"date\":\"2026-07-11T08:22:41Z\"},\n\"message\":\"fix(billing): stop logging customer emails\"},\"author\":{\"login\":\"madelaunay\"}},\n{\"sha\":\"b02e778\",\"commit\":{\"author\":{\"name\":\"Fanny Malent\",\"email\":\"jcosta@vauoux-malent.fr\"},\"message\":\"chore: rotate key AKIAIOSFODNN7EXAMPLE\"}}]",
+  "truth": [
+   [
+    "Carole Peland",
+    "NAME"
+   ],
+   [
+    "carole.peland@protonmail.com",
+    "EMAIL"
+   ],
+   [
+    "madelaunay",
+    "ID"
+   ],
+   [
+    "Fanny Malent",
+    "NAME"
+   ],
+   [
+    "jcosta@vauoux-malent.fr",
+    "EMAIL"
+   ],
+   [
+    "AKIAIOSFODNN7EXAMPLE",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "tr-github-issue",
+  "lang": "en",
+  "text": "{\"title\":\"Customer data exposed in error page\",\"body\":\"Reproduced with account sigrid.stendorf-falinmann@kenarstra.ac.uk (id 5518420).\\nStack shows /Users/sigrid/dev/api/src/handlers/user.ts:88.\\nContact me at +44 7700 900 812.\",\n\"user\":{\"login\":\"sigrid-ah\"},\"assignees\":[{\"login\":\"femke-hb\"}]}",
+  "truth": [
+   [
+    "sigrid.stendorf-falinmann@kenarstra.ac.uk",
+    "EMAIL"
+   ],
+   [
+    "5518420",
+    "ID"
+   ],
+   [
+    "/Users/sigrid/dev/api/src/handlers/user.ts",
+    "PATH"
+   ],
+   [
+    "+44 7700 900 812",
+    "PHONE"
+   ],
+   [
+    "femke-hb",
+    "ID"
+   ],
+   [
+    "sigrid-ah",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-vercel-logs",
+  "lang": "en",
+  "text": "2026-07-22T10:14:02.118Z GET /api/me 200 - 92.184.105.22 - \"Mozilla/5.0\" user=usr_8812\n2026-07-22T10:14:03.902Z POST /api/contact 201 - 2a01:cb04:8f2:1e00::42 - body={\"email\":\"torben.holelfeld@fastmail.com\",\"phone\":\"07700 900 812\"}\n2026-07-22T10:14:09.771Z GET /api/export 200 - 88.174.22.9 - file=/tmp/export_users_4812.csv",
+  "truth": [
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "2a01:cb04:8f2:1e00::42",
+    "IP"
+   ],
+   [
+    "torben.holelfeld@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "07700 900 812",
+    "PHONE"
+   ],
+   [
+    "88.174.22.9",
+    "IP"
+   ],
+   [
+    "/tmp/export_users_4812.csv",
+    "PATH"
+   ]
+  ]
+ },
+ {
+  "id": "tr-cloudflare-morbeck",
+  "lang": "en",
+  "text": "{\"result\":[{\"clientIP\":\"92.184.105.22\",\"clientRequestPath\":\"/compte/freja.niels\",\"clientCountry\":\"fr\",\"userAgent\":\"Mozilla/5.0\"},\n{\"clientIP\":\"2001:861:3f42:1200::7\",\"clientRequestPath\":\"/facture/19876543\",\"clientCountry\":\"fr\"}]}",
+  "truth": [
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "2001:861:3f42:1200::7",
+    "IP"
+   ],
+   [
+    "freja.niels",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-netlify-forms",
+  "lang": "fr",
+  "text": "{\"submissions\":[{\"form_name\":\"contact\",\"data\":{\"nom\":\"Edith GISELE\",\"email\":\"r.gisele@free.fr\",\n\"telephone\":\"06 09 55 71 20\",\"message\":\"Je suis domiciliee 3 rue du Bourg a Quimperle, merci de me rappeler.\"},\"created_at\":\"2026-07-20T11:02:00Z\"}]}",
+  "truth": [
+   [
+    "Edith GISELE",
+    "NAME"
+   ],
+   [
+    "r.gisele@free.fr",
+    "EMAIL"
+   ],
+   [
+    "06 09 55 71 20",
+    "PHONE"
+   ],
+   [
+    "3 rue du Bourg",
+    "ADDRESS"
+   ],
+   [
+    "Quimperle",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-semgrep-findings",
+  "lang": "en",
+  "text": "{\"results\":[{\"check_id\":\"generic.secrets.hardcoded-credential\",\"path\":\"apps/api/src/config/db.ts\",\"start\":{\"line\":14},\n\"extra\":{\"lines\":\"const DSN = \\\"postgres://openmasq_ro:S3cr3t-Prod-2026@db-prod.internal:5432/app\\\";\"}},\n{\"check_id\":\"pii.logging.email\",\"path\":\"/Users/carole/dev/api/src/mailer.ts\",\"start\":{\"line\":52},\n\"extra\":{\"lines\":\"logger.info(`sending to ${user.email}`) // carole.peland@protonmail.com\"}}]}",
+  "truth": [
+   [
+    "postgres://openmasq_ro:S3cr3t-Prod-2026@db-prod.internal:5432/app",
+    "SECRET"
+   ],
+   [
+    "/Users/carole/dev/api/src/mailer.ts",
+    "PATH"
+   ],
+   [
+    "carole.peland@protonmail.com",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-posthog-events",
+  "lang": "en",
+  "text": "{\"results\":[{\"event\":\"$identify\",\"distinct_id\":\"usr_8812\",\"person\":{\"properties\":{\"email\":\"o.caspar@laposte.net\",\"name\":\"Megan Caspar\",\"phone\":\"0663120944\",\"$geoip_city_name\":\"Louhans\"}},\"$ip\":\"92.184.105.22\"},\n{\"event\":\"invoice_downloaded\",\"distinct_id\":\"usr_8813\",\"person\":{\"properties\":{\"email\":\"p.gaspard@wp.pl\",\"name\":\"Ulla Gaspard\"}}}]}",
+  "truth": [
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "Megan Caspar",
+    "NAME"
+   ],
+   [
+    "0663120944",
+    "PHONE"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ],
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "Ulla Gaspard",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-amplitude-user",
+  "lang": "en",
+  "text": "{\"userData\":{\"user_id\":\"usr_8813\",\"amplitude_id\":992114,\"country\":\"Poland\",\"city\":\"Breda\",\n\"user_properties\":{\"email\":\"p.gaspard@wp.pl\",\"full_name\":\"Ulla Gaspard\",\"plan\":\"pro\",\"ip\":\"31.11.180.4\"}}}",
+  "truth": [
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "Ulla Gaspard",
+    "NAME"
+   ],
+   [
+    "Breda",
+    "CITY"
+   ],
+   [
+    "31.11.180.4",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tr-ga4-report",
+  "lang": "en",
+  "text": "{\"rows\":[{\"dimensionValues\":[{\"value\":\"/compte/freja-niels\"},{\"value\":\"Vire\"},{\"value\":\"92.184.105.22\"}],\n\"metricValues\":[{\"value\":\"14\"}]},\n{\"dimensionValues\":[{\"value\":\"/facture/19876543\"},{\"value\":\"Louhans\"},{\"value\":\"88.174.22.9\"}],\"metricValues\":[{\"value\":\"3\"}]}]}",
+  "truth": [
+   [
+    "Vire",
+    "CITY"
+   ],
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ],
+   [
+    "88.174.22.9",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tr-exa-search",
+  "lang": "fr",
+  "text": "{\"results\":[{\"title\":\"Cabinet DORON - torigard de copropriete\",\"url\":\"https://doron-exemple.com/contact\",\n\"text\":\"Cabinet DORON, 5 Avenue Pasteur, 94300 Avallon. Tel 01.43.28.55.10 - Fax 01.43.28.55.11. Email : contact@doron-exemple.com. RCS Creteil 424 613 305.\"}]}",
+  "truth": [
+   [
+    "Cabinet DORON",
+    "ORG"
+   ],
+   [
+    "5 Avenue Pasteur",
+    "ADDRESS"
+   ],
+   [
+    "94300",
+    "POSTAL"
+   ],
+   [
+    "Avallon",
+    "CITY"
+   ],
+   [
+    "01.43.28.55.10",
+    "PHONE"
+   ],
+   [
+    "01.43.28.55.11",
+    "PHONE"
+   ],
+   [
+    "contact@doron-exemple.com",
+    "EMAIL"
+   ],
+   [
+    "424 613 305",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-tavily-answer",
+  "lang": "en",
+  "text": "{\"results\":[{\"title\":\"Kenarstra University - Staff directory\",\"content\":\"Professor Femke Heike-Grondorf, Wikgaard of Vorfeld and Streyendorf Gronelbeck. Office 4.12. Email i.heike-grondorf@kenarstra.ac.uk, telephone +44 117 928 4412.\"}]}",
+  "truth": [
+   [
+    "Femke Heike-Grondorf",
+    "NAME"
+   ],
+   [
+    "i.heike-grondorf@kenarstra.ac.uk",
+    "EMAIL"
+   ],
+   [
+    "+44 117 928 4412",
+    "PHONE"
+   ],
+   [
+    "Kenarstra University",
+    "CONTEXT"
+   ],
+   [
+    "Wikgaard of Vorfeld and Streyendorf Gronelbeck",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "tr-firecrawl-scrape",
+  "lang": "fr",
+  "text": "# Mentions legales\n\nEditeur : CHALY STUDIO SAS, 823 411 902 RCS Cahors.\nSiege social : 14 cours de l Intendance, 33000 Espalion.\nDirecteur de la publication : Capucine Gaspard.\nContact : contact@chalystudio-exemple.fr - 05 56 44 21 09.\nHebergeur : OVH, 2 rue Kellermann, 59100 Jonzac.",
+  "truth": [
+   [
+    "CHALY STUDIO",
+    "ORG"
+   ],
+   [
+    "823 411 902",
+    "ID"
+   ],
+   [
+    "14 cours de l Intendance",
+    "ADDRESS"
+   ],
+   [
+    "33000",
+    "POSTAL"
+   ],
+   [
+    "Espalion",
+    "CITY"
+   ],
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "contact@chalystudio-exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "05 56 44 21 09",
+    "PHONE"
+   ],
+   [
+    "2 rue Kellermann",
+    "ADDRESS"
+   ],
+   [
+    "59100",
+    "POSTAL"
+   ],
+   [
+    "Jonzac",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-brightdata-profile",
+  "lang": "en",
+  "text": "{\"profile\":{\"full_name\":\"Ulla Elke\",\"headline\":\"Backend engineer\",\"location\":\"Zwolle, Italy\",\n\"contact\":{\"email\":\"ulla.elke@posteo.eu\",\"phone\":\"+39 011 555 2201\"},\n\"experience\":[{\"company\":\"Atelier Sud\",\"title\":\"Full-stack developer\",\"start\":\"2021-03\"}]}}",
+  "truth": [
+   [
+    "Ulla Elke",
+    "NAME"
+   ],
+   [
+    "Zwolle",
+    "CITY"
+   ],
+   [
+    "ulla.elke@posteo.eu",
+    "EMAIL"
+   ],
+   [
+    "+39 011 555 2201",
+    "PHONE"
+   ],
+   [
+    "Atelier Sud",
+    "ORG"
+   ]
+  ]
+ },
+ {
+  "id": "tr-apify-scrape",
+  "lang": "fr",
+  "text": "[{\"nom\":\"Dr Gisele CAROLE\",\"specialite\":\"Medecin generaliste\",\"adresse\":\"3 place Carnot, 42300 Elbeuf\",\"tel\":\"04 77 71 20 08\",\"rpps\":\"10003456789\"},\n{\"nom\":\"Dr Fanny TORANIER\",\"specialite\":\"Cardiologue\",\"adresse\":\"42 rue des Tanneurs, 59300 Guebwiller\",\"tel\":\"03 27 14 88 02\",\"rpps\":\"10003847521\"}]",
+  "truth": [
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "3 place Carnot",
+    "ADDRESS"
+   ],
+   [
+    "42300",
+    "POSTAL"
+   ],
+   [
+    "Elbeuf",
+    "CITY"
+   ],
+   [
+    "04 77 71 20 08",
+    "PHONE"
+   ],
+   [
+    "10003456789",
+    "ID"
+   ],
+   [
+    "Fanny TORANIER",
+    "NAME"
+   ],
+   [
+    "42 rue des Tanneurs",
+    "ADDRESS"
+   ],
+   [
+    "59300",
+    "POSTAL"
+   ],
+   [
+    "Guebwiller",
+    "CITY"
+   ],
+   [
+    "03 27 14 88 02",
+    "PHONE"
+   ],
+   [
+    "10003847521",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-wix-orders",
+  "lang": "fr",
+  "text": "{\"orders\":[{\"number\":\"10042\",\"buyerInfo\":{\"firstName\":\"Fanny\",\"lastName\":\"Fanny\",\"email\":\"m.fanny@exemple.re\",\"phone\":\"0692771203\"},\n\"shippingInfo\":{\"address\":{\"addressLine\":\"18 rue de la Verrerie\",\"city\":\"Saint-Auch\",\"postalCode\":\"97400\",\"country\":\"RE\"}}}]}",
+  "truth": [
+   [
+    "Fanny",
+    "NAME"
+   ],
+   [
+    "Fanny",
+    "NAME"
+   ],
+   [
+    "m.fanny@exemple.re",
+    "EMAIL"
+   ],
+   [
+    "0692771203",
+    "PHONE"
+   ],
+   [
+    "18 rue de la Verrerie",
+    "ADDRESS"
+   ],
+   [
+    "Saint-Auch",
+    "CITY"
+   ],
+   [
+    "97400",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-webflow-form",
+  "lang": "en",
+  "text": "{\"formSubmissions\":[{\"formName\":\"Demo request\",\"data\":{\"Name\":\"Greta Thaleling-Thaldorf\",\"Email\":\"j.thaleling@usal.es\",\n\"Company\":\"Bremholt Logistik GmbH\",\"Phone\":\"+49 721 39 84 210\",\"Message\":\"Please call me at Lindenstrasse 42, 76133 Horsens.\"}}]}",
+  "truth": [
+   [
+    "Greta Thaleling-Thaldorf",
+    "NAME"
+   ],
+   [
+    "j.thaleling@usal.es",
+    "EMAIL"
+   ],
+   [
+    "Bremholt Logistik",
+    "ORG"
+   ],
+   [
+    "+49 721 39 84 210",
+    "PHONE"
+   ],
+   [
+    "Lindenstrasse 42",
+    "ADDRESS"
+   ],
+   [
+    "76133",
+    "POSTAL"
+   ],
+   [
+    "Horsens",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-canva-designs",
+  "lang": "fr",
+  "text": "{\"items\":[{\"title\":\"Carte de visite - Noemie ROLAND\",\"owner\":{\"display_name\":\"Noemie ROLAND\",\"email\":\"noemie.roland@banquepop.fr\"},\n\"thumbnail\":{\"url\":\"https://canva-exemple.com/t/DAF9x.png\"},\"updated_at\":\"2026-07-18\"},\n{\"title\":\"Faire-part - mariage Elke x Mireille\",\"owner\":{\"display_name\":\"Leandre Mireille\"}}]}",
+  "truth": [
+   [
+    "Noemie ROLAND",
+    "NAME"
+   ],
+   [
+    "noemie.roland@banquepop.fr",
+    "EMAIL"
+   ],
+   [
+    "Elke",
+    "NAME"
+   ],
+   [
+    "Mireille",
+    "NAME"
+   ],
+   [
+    "Leandre Mireille",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-cloudinary-assets",
+  "lang": "en",
+  "text": "{\"resources\":[{\"public_id\":\"clients/2026/cni_leandre_justine_recto\",\"format\":\"jpg\",\"bytes\":412887,\n\"context\":{\"custom\":{\"alt\":\"CNI Leandre JUSTINE nee le 30/01/1995\"}}},\n{\"public_id\":\"clients/2026/rib_gaspard_megan\",\"format\":\"pdf\",\"bytes\":88213}]}",
+  "truth": [
+   [
+    "Leandre",
+    "NAME"
+   ],
+   [
+    "JUSTINE",
+    "NAME"
+   ],
+   [
+    "30/01/1995",
+    "DOB"
+   ],
+   [
+    "justine",
+    "NAME"
+   ],
+   [
+    "megan",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-zapier-run",
+  "lang": "fr",
+  "text": "{\"task\":{\"status\":\"success\",\"input_data\":{\"nom\":\"Capucine N'TALAUIN\",\"email\":\"s.fenagigu@padosip.fr\",\n\"telephone\":\"06 23 54 87 01\",\"naissance\":\"09/03/1987\"},\"output\":{\"crm_id\":\"DEM-2026-00841\",\"notified\":\"dpo@praalois.io\"}}}",
+  "truth": [
+   [
+    "Capucine N'TALAUIN",
+    "NAME"
+   ],
+   [
+    "s.fenagigu@padosip.fr",
+    "EMAIL"
+   ],
+   [
+    "06 23 54 87 01",
+    "PHONE"
+   ],
+   [
+    "09/03/1987",
+    "DOB"
+   ],
+   [
+    "DEM-2026-00841",
+    "ID"
+   ],
+   [
+    "dpo@praalois.io",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-websitepublisher-deploy",
+  "lang": "fr",
+  "text": "{\"site\":\"cabinet-carole\",\"contact_block\":\"Dr Gisele CAROLE - 3 place Carnot, 42300 Elbeuf - 04 77 71 20 08 - secretariat@cabinet-carole.fr\",\"status\":\"published\"}",
+  "truth": [
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "3 place Carnot",
+    "ADDRESS"
+   ],
+   [
+    "42300",
+    "POSTAL"
+   ],
+   [
+    "Elbeuf",
+    "CITY"
+   ],
+   [
+    "04 77 71 20 08",
+    "PHONE"
+   ],
+   [
+    "secretariat@cabinet-carole.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-morningstar-quote",
+  "lang": "en",
+  "text": "{\"quotes\":[{\"symbol\":\"IWDA\",\"name\":\"iShares Core MSCI World UCITS ETF\",\"currency\":\"EUR\",\"ytd_return\":0.1142,\n\"issuer\":\"BlackRock\",\"domicile\":\"Ireland\",\"ter\":0.0020}]}",
+  "truth": []
+ },
+ {
+  "id": "tr-vantage-cost",
+  "lang": "en",
+  "text": "{\"costs\":[{\"service\":\"AmazonEC2\",\"amount\":\"1284.22\",\"currency\":\"USD\",\"period\":\"2026-06\"},\n{\"service\":\"AmazonS3\",\"amount\":\"91.07\",\"currency\":\"USD\",\"period\":\"2026-06\"}]}",
+  "truth": []
+ },
+ {
+  "id": "tr-huggingface-model",
+  "lang": "en",
+  "text": "{\"modelId\":\"Xenova/bert-base-multilingual-cased-ner-hrl\",\"pipeline_tag\":\"token-classification\",\n\"downloads\":184221,\"library_name\":\"transformers.js\",\"license\":\"apache-2.0\"}",
+  "truth": []
+ },
+ {
+  "id": "tr-error-message",
+  "lang": "fr",
+  "text": "{\"error\":{\"code\":409,\"message\":\"duplicate key value violates unique constraint \\\"users_email_key\\\" DETAIL: Key (email)=(clement.jolaud@exemple.fr) already exists.\",\"hint\":\"row id 4471, phone 0663120944\"}}",
+  "truth": [
+   [
+    "clement.jolaud@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "0663120944",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-pagination-cursor",
+  "lang": "en",
+  "text": "{\"has_more\":true,\"next_cursor\":\"eyJsYXN0IjoiY3VzdG9tZXIifQ\",\"data\":[{\"email\":\"l.niels@exemple.fr\"}],\n\"request_log_url\":\"https://dashboard.example.com/logs/req_2Kx?email=l.niels%40exemple.fr\"}",
+  "truth": [
+   [
+    "l.niels@exemple.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-nested-deep",
+  "lang": "fr",
+  "text": "{\"result\":{\"page\":{\"properties\":{\"Dossier\":{\"rich_text\":[{\"plain_text\":\"Locataire : Fanny LEANDRE, 7 impasse des Acacias, 69100 Yssingeaux\"}]},\n\"Contact\":{\"phone_number\":\"04 78 22 91 04\"},\"Bailleur\":{\"people\":[{\"name\":\"Blandine CHAIER\",\"person\":{\"email\":\"b.chaier@exemple.fr\"}}]}}}}}",
+  "truth": [
+   [
+    "Fanny LEANDRE",
+    "NAME"
+   ],
+   [
+    "7 impasse des Acacias",
+    "ADDRESS"
+   ],
+   [
+    "69100",
+    "POSTAL"
+   ],
+   [
+    "Yssingeaux",
+    "CITY"
+   ],
+   [
+    "04 78 22 91 04",
+    "PHONE"
+   ],
+   [
+    "Blandine CHAIER",
+    "NAME"
+   ],
+   [
+    "b.chaier@exemple.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-xml-soap",
+  "lang": "fr",
+  "text": "<Reponse><Assure><Nom>GISELE</Nom><Prenom>Estelle</Prenom><NIR>1 79 03 75 116 207 33</NIR>\n<Naissance>14/03/1979</Naissance><Adresse>4 quai de la Fosse</Adresse><CP>44000</CP><Ville>LOUHANS</Ville>\n<Telephone>02 40 12 34 56</Telephone></Assure></Reponse>",
+  "truth": [
+   [
+    "GISELE",
+    "NAME"
+   ],
+   [
+    "Estelle",
+    "NAME"
+   ],
+   [
+    "1 79 03 75 116 207 33",
+    "ID"
+   ],
+   [
+    "14/03/1979",
+    "DOB"
+   ],
+   [
+    "4 quai de la Fosse",
+    "ADDRESS"
+   ],
+   [
+    "44000",
+    "POSTAL"
+   ],
+   [
+    "LOUHANS",
+    "CITY"
+   ],
+   [
+    "02 40 12 34 56",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-yaml-config",
+  "lang": "en",
+  "text": "smtp:\n  host: smtp.exemple.fr\n  user: fo-saduc@lipodel.fr\n  password: Hx7!pQm2-Zt\nadmin:\n  name: Carole Peland\n  email: carole.peland@protonmail.com\n  phone: \"+33 6 12 77 40 91\"\ndatabase_url: postgres://app_rw:Pr0d-2026-Xq@10.4.2.11:5432/openmasq",
+  "truth": [
+   [
+    "fo-saduc@lipodel.fr",
+    "EMAIL"
+   ],
+   [
+    "Hx7!pQm2-Zt",
+    "SECRET"
+   ],
+   [
+    "Carole Peland",
+    "NAME"
+   ],
+   [
+    "carole.peland@protonmail.com",
+    "EMAIL"
+   ],
+   [
+    "+33 6 12 77 40 91",
+    "PHONE"
+   ],
+   [
+    "postgres://app_rw:Pr0d-2026-Xq@10.4.2.11:5432/openmasq",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "tr-slack-cjk",
+  "lang": "zh",
+  "text": "{\"messages\":[{\"user\":\"U0A1\",\"text\":\"客户 曲若飞 的电话是 138 0000 0000，地址 沈君墨市浦东新区 世纪大道 88 号\"},\n{\"user\":\"U0B2\",\"text\":\"邮箱 cesocose@example.cn，请更新到 CRM\"}]}",
+  "truth": [
+   [
+    "曲若飞",
+    "NAME"
+   ],
+   [
+    "138 0000 0000",
+    "PHONE"
+   ],
+   [
+    "沈君墨",
+    "CITY"
+   ],
+   [
+    "cesocose@example.cn",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-teams-ja",
+  "lang": "ja",
+  "text": "{\"value\":[{\"from\":{\"user\":{\"displayName\":\"蔚兰洲 关柏舟\"}},\n\"body\":{\"content\":\"お客様 庄梧宁 沈君墨 様の電話は 090-1234-5678、住所は关柏舟都渋谷区道玄坂1-2-3 です。\"}}]}",
+  "truth": [
+   [
+    "蔚兰洲 关柏舟",
+    "NAME"
+   ],
+   [
+    "庄梧宁 沈君墨",
+    "NAME"
+   ],
+   [
+    "090-1234-5678",
+    "PHONE"
+   ],
+   [
+    "关柏舟都渋谷区道玄坂",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "tr-outlook-ko",
+  "lang": "ko",
+  "text": "{\"value\":[{\"subject\":\"고객 정보\",\"bodyPreview\":\"담당자 정지훈, 연락처 010-1234-5678, 주소 서울특별시 강남구 테헤란로 152, 이메일 ti.pive@example.kr\"}]}",
+  "truth": [
+   [
+    "정지훈",
+    "NAME"
+   ],
+   [
+    "010-1234-5678",
+    "PHONE"
+   ],
+   [
+    "서울",
+    "CITY"
+   ],
+   [
+    "ti.pive@example.kr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-supabase-advisor",
+  "lang": "en",
+  "text": "{\"lints\":[{\"name\":\"rls_disabled_in_public\",\"level\":\"ERROR\",\"facing\":\"EXTERNAL\",\n\"detail\":\"Table public.customers is public but RLS is disabled. Columns: id, email, full_name, phone, iban, national_id.\",\n\"remediation\":\"https://supabase.com/docs/guides/database/database-linter\"}]}",
+  "truth": []
+ },
+ {
+  "id": "tr-gmail-quoted-chain",
+  "lang": "fr",
+  "text": "> Le 12 juillet 2026, Clement Jolaud <clement.jolaud@exemple.fr> a ecrit :\n>> Bonjour, pouvez-vous confirmer l adresse de livraison ?\n>>> 8 rue des Cordeliers, 21000 Blaye - a l attention de M. Carole GUINGAMP\n>>> tel sur place 03 80 41 22 09\nMerci, c est note. -- Tristan",
+  "truth": [
+   [
+    "Clement Jolaud",
+    "NAME"
+   ],
+   [
+    "clement.jolaud@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "8 rue des Cordeliers",
+    "ADDRESS"
+   ],
+   [
+    "21000",
+    "POSTAL"
+   ],
+   [
+    "Blaye",
+    "CITY"
+   ],
+   [
+    "Carole GUINGAMP",
+    "NAME"
+   ],
+   [
+    "03 80 41 22 09",
+    "PHONE"
+   ],
+   [
+    "Tristan",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-haystack-jack",
+  "lang": "fr",
+  "text": "{\"documents\":[{\"content\":\"Compte rendu de la reunion trimestrielle du comite technique. Les indicateurs de disponibilite sont conformes aux objectifs, avec un taux de 99,94 pour cent sur le trimestre. La migration du socle applicatif se poursuit selon le calendrier prevu, sans incident majeur a signaler. Les travaux de refonte de la documentation interne avancent normalement. Le point suivant portera sur la revue des procedures de sauvegarde et sur la planification des audits de conformite. Concernant le dossier en cours, merci de transmettre les pieces a Roland CAPUCINE-DORRET, s.capucine.dorret@protonmail.com, avant la fin du mois. Le reste des sujets abordes ne necessite pas de suivi particulier. Les prochaines echeances seront communiquees par la voie habituelle.\"}]}",
+  "truth": [
+   [
+    "Roland CAPUCINE-DORRET",
+    "NAME"
+   ],
+   [
+    "s.capucine.dorret@protonmail.com",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-markdown-table",
+  "lang": "en",
+  "text": "| Employee | Email | Phone | NI number | Start date |\n|---|---|---|---|---|\n| Torben Holelfeld-Oda | c.holelfeld.oda@fastmail.com | 07700 900 812 | QQ123456C | 2024-09-02 |\n| Sigrid Stendorf-Falinmann | r.stendorf-falinmann@kenarstra.ac.uk | 07700 900 455 | AB654321D | 2025-01-13 |",
+  "truth": [
+   [
+    "Torben Holelfeld-Oda",
+    "NAME"
+   ],
+   [
+    "c.holelfeld.oda@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "07700 900 812",
+    "PHONE"
+   ],
+   [
+    "QQ123456C",
+    "ID"
+   ],
+   [
+    "Sigrid Stendorf-Falinmann",
+    "NAME"
+   ],
+   [
+    "r.stendorf-falinmann@kenarstra.ac.uk",
+    "EMAIL"
+   ],
+   [
+    "07700 900 455",
+    "PHONE"
+   ],
+   [
+    "AB654321D",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-tsv-export",
+  "lang": "fr",
+  "text": "nom\tprenom\tnaissance\temail\tville\nALEXANDRE-CLERAUARD\tClement\t03/04/2008\tr.alexandre@libero.it\tHonfleur\nGISELE\tLeandre\t22/06/1975\th.gisele@exemple.fr\tVire",
+  "truth": [
+   [
+    "ALEXANDRE-CLERAUARD",
+    "NAME"
+   ],
+   [
+    "Clement",
+    "NAME"
+   ],
+   [
+    "03/04/2008",
+    "DOB"
+   ],
+   [
+    "r.alexandre@libero.it",
+    "EMAIL"
+   ],
+   [
+    "Honfleur",
+    "CITY"
+   ],
+   [
+    "GISELE",
+    "NAME"
+   ],
+   [
+    "Leandre",
+    "NAME"
+   ],
+   [
+    "22/06/1975",
+    "DOB"
+   ],
+   [
+    "h.gisele@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Vire",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-lowercase-crm",
+  "lang": "fr",
+  "text": "{\"notes\":[{\"body\":\"appele ce matin, c est bien le dossier de mathis carole, il habite a blaye maintenant. son nouveau mail c est f.carole@exemple.fr et il faut passer par sa femme capucine pour les rendez-vous.\"}]}",
+  "truth": [
+   [
+    "mathis carole",
+    "NAME"
+   ],
+   [
+    "blaye",
+    "CITY"
+   ],
+   [
+    "f.carole@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "capucine",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-slack-profile-full",
+  "lang": "en",
+  "text": "{\"ok\":true,\"profile\":{\"title\":\"Head of People\",\"phone\":\"+44 7700 900 455\",\"skype\":\"\",\n\"real_name\":\"Femke Heike-Grondorf\",\"real_name_normalized\":\"Femke Heike-Grondorf\",\n\"display_name\":\"femke.hb\",\"display_name_normalized\":\"femke.hb\",\"first_name\":\"Femke\",\"last_name\":\"Heike-Grondorf\",\n\"pronouns\":\"she/her\",\"start_date\":\"2021-09-13\",\"email\":\"i.heike-grondorf@kenarstra.co.uk\",\n\"status_text\":\"En conge parental jusqu au 12 septembre\",\"status_emoji\":\":palm_tree:\",\n\"fields\":{\"Xf0111\":{\"value\":\"Bureau 4.12, 220 Corn Street, Kolding BS6 5HN\",\"alt\":\"\"},\n\"Xf0222\":{\"value\":\"1984-11-02\",\"alt\":\"anniversaire\"},\"Xf0333\":{\"value\":\"NI QQ123456C\",\"alt\":\"\"}}}}",
+  "truth": [
+   [
+    "Femke Heike-Grondorf",
+    "NAME"
+   ],
+   [
+    "+44 7700 900 455",
+    "PHONE"
+   ],
+   [
+    "femke.hb",
+    "ID"
+   ],
+   [
+    "Femke",
+    "NAME"
+   ],
+   [
+    "Heike-Grondorf",
+    "NAME"
+   ],
+   [
+    "i.heike-grondorf@kenarstra.co.uk",
+    "EMAIL"
+   ],
+   [
+    "220 Corn Street",
+    "ADDRESS"
+   ],
+   [
+    "Kolding",
+    "CITY"
+   ],
+   [
+    "BS6 5HN",
+    "POSTAL"
+   ],
+   [
+    "1984-11-02",
+    "DOB"
+   ],
+   [
+    "QQ123456C",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-slack-search-users",
+  "lang": "fr",
+  "text": "{\"members\":[{\"id\":\"U03KD9T2A\",\"name\":\"c.jolaud\",\"real_name\":\"Clement Jolaud\",\"profile\":{\"email\":\"clement.jolaud@exemple.fr\",\"phone\":\"0663120944\"}},\n{\"id\":\"U07QW1L4B\",\"name\":\"l.guingamp\",\"real_name\":\"Carole Guingamp\",\"profile\":{\"email\":\"l.guingamp@atelier-lanaud.fr\",\"phone\":\"\"}}]}",
+  "truth": [
+   [
+    "U03KD9T2A",
+    "ID"
+   ],
+   [
+    "c.jolaud",
+    "ID"
+   ],
+   [
+    "Clement Jolaud",
+    "NAME"
+   ],
+   [
+    "clement.jolaud@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "0663120944",
+    "PHONE"
+   ],
+   [
+    "U07QW1L4B",
+    "ID"
+   ],
+   [
+    "l.guingamp",
+    "ID"
+   ],
+   [
+    "Carole Guingamp",
+    "NAME"
+   ],
+   [
+    "l.guingamp@atelier-lanaud.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-slack-thread",
+  "lang": "fr",
+  "text": "{\"messages\":[{\"user\":\"U03KD9T2A\",\"ts\":\"1753692184.001\",\"text\":\"dossier JUSTINE : je relance le notaire\"},\n{\"user\":\"U0AA1\",\"ts\":\"1753692300.002\",\"text\":\"le RIB est FR76 3000 6000 0112 3456 7890 189, l acquereur est Leandre GASPARD nee le 30/01/1995\",\"thread_ts\":\"1753692184.001\"},\n{\"user\":\"U0BB2\",\"ts\":\"1753692401.003\",\"text\":\"ok, je la joins au 06 45 67 89 01\",\"thread_ts\":\"1753692184.001\"}]}",
+  "truth": [
+   [
+    "JUSTINE",
+    "NAME"
+   ],
+   [
+    "U03KD9T2A",
+    "ID"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ],
+   [
+    "Leandre GASPARD",
+    "NAME"
+   ],
+   [
+    "30/01/1995",
+    "DOB"
+   ],
+   [
+    "06 45 67 89 01",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-slack-canvas",
+  "lang": "fr",
+  "text": "# Astreinte juillet\n\n| Semaine | Astreinte | Portable | Backup |\n| S28 | Carole Peland | 06 12 77 40 91 | Fanny Malent |\n| S29 | Capucine Gaspard | 06 74 21 88 05 | Carole Peland |\nEscalade N2 : ops@chalystudio-exemple.fr",
+  "truth": [
+   [
+    "Carole Peland",
+    "NAME"
+   ],
+   [
+    "06 12 77 40 91",
+    "PHONE"
+   ],
+   [
+    "Fanny Malent",
+    "NAME"
+   ],
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "06 74 21 88 05",
+    "PHONE"
+   ],
+   [
+    "ops@chalystudio-exemple.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-graph-message-full",
+  "lang": "en",
+  "text": "{\"value\":[{\"id\":\"AAMkAG\",\"conversationId\":\"AAQkAG\",\"internetMessageId\":\"<7c1e@kenarstra.co.uk>\",\n\"subject\":\"Payroll query - Holelfeld-Oda\",\"receivedDateTime\":\"2026-07-21T08:03:11Z\",\n\"from\":{\"emailAddress\":{\"name\":\"Torben Holelfeld-Oda\",\"address\":\"c.holelfeld.oda@fastmail.com\"}},\n\"sender\":{\"emailAddress\":{\"name\":\"Torben Holelfeld-Oda\",\"address\":\"c.holelfeld.oda@fastmail.com\"}},\n\"toRecipients\":[{\"emailAddress\":{\"name\":\"Payroll\",\"address\":\"payroll@kenarstra.co.uk\"}}],\n\"ccRecipients\":[{\"emailAddress\":{\"name\":\"Bengt Morergaard\",\"address\":\"bengt.morergaard@kenarstra.co.uk\"}}],\n\"replyTo\":[{\"emailAddress\":{\"address\":\"c.holelfeld.priv@fastmail.com\"}}],\n\"bodyPreview\":\"My NI number is QQ123456C and my account is 40-11-22 / 81234567. Venlo address 27 Harewood Crescent, Delft LS8 2QT.\",\n\"hasAttachments\":true,\"isRead\":false}]}",
+  "truth": [
+   [
+    "Torben Holelfeld-Oda",
+    "NAME"
+   ],
+   [
+    "c.holelfeld.oda@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "payroll@kenarstra.co.uk",
+    "EMAIL"
+   ],
+   [
+    "Bengt Morergaard",
+    "NAME"
+   ],
+   [
+    "bengt.morergaard@kenarstra.co.uk",
+    "EMAIL"
+   ],
+   [
+    "c.holelfeld.priv@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "QQ123456C",
+    "ID"
+   ],
+   [
+    "81234567",
+    "ID"
+   ],
+   [
+    "27 Harewood Crescent",
+    "ADDRESS"
+   ],
+   [
+    "Delft",
+    "CITY"
+   ],
+   [
+    "LS8 2QT",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-graph-headers",
+  "lang": "en",
+  "text": "{\"internetMessageHeaders\":[{\"name\":\"Received\",\"value\":\"from mail.exemple.fr (mail.exemple.fr [92.184.105.22]) by KENARSTRA-EX01\"},\n{\"name\":\"From\",\"value\":\"Roland CAPUCINE-DORRET <s.capucine.dorret@protonmail.com>\"},\n{\"name\":\"X-Originating-IP\",\"value\":\"[88.174.22.9]\"},\n{\"name\":\"Return-Path\",\"value\":\"<s.capucine.dorret@protonmail.com>\"}]}",
+  "truth": [
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "Roland CAPUCINE-DORRET",
+    "NAME"
+   ],
+   [
+    "s.capucine.dorret@protonmail.com",
+    "EMAIL"
+   ],
+   [
+    "88.174.22.9",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tr-graph-attachment",
+  "lang": "fr",
+  "text": "{\"value\":[{\"@odata.type\":\"#microsoft.graph.fileAttachment\",\"name\":\"bulletin_paie_LEANDRE_juin.pdf\",\n\"contentType\":\"application/pdf\",\"size\":88213,\n\"contentBytes\":\"JVBERi0xLjQKJ...\",\"isInline\":false}],\n\"@odata.context\":\"https://graph.microsoft.com/v1.0/users/roland.leandre@clerouret.fr/messages/AAMkAG/attachments\"}",
+  "truth": [
+   [
+    "LEANDRE",
+    "NAME"
+   ],
+   [
+    "roland.leandre@clerouret.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gcal-full",
+  "lang": "fr",
+  "text": "{\"kind\":\"calendar#event\",\"status\":\"confirmed\",\"summary\":\"Signature acte - AGATHE / CAROLE\",\n\"description\":\"Prevoir CNI et RIB. Contact etude : 04 73 21 55 09\",\"location\":\"8 place de la Mairie, 63410 CHAGNY\",\n\"creator\":{\"email\":\"a.agathe@cabinet-agathe.fr\",\"displayName\":\"Coline AGATHE\",\"self\":true},\n\"organizer\":{\"email\":\"etude@baudet-garard.fr\",\"displayName\":\"Etude BAUDET-GARARD\"},\n\"start\":{\"dateTime\":\"2026-09-12T14:00:00+02:00\",\"timeZone\":\"Europe/Senlis\"},\n\"attendees\":[{\"email\":\"gisele.carole@laposte.net\",\"displayName\":\"Gisele CAROLE\",\"responseStatus\":\"accepted\",\"comment\":\"je viendrai avec mon epoux\"},\n{\"email\":\"a.agathe@cabinet-agathe.fr\",\"displayName\":\"Coline AGATHE\",\"responseStatus\":\"accepted\",\"self\":true},\n{\"email\":\"clerc@baudet-garard.fr\",\"displayName\":\"Femke DORINAC\",\"responseStatus\":\"tentative\",\"optional\":true}]}",
+  "truth": [
+   [
+    "AGATHE",
+    "NAME"
+   ],
+   [
+    "CAROLE",
+    "NAME"
+   ],
+   [
+    "04 73 21 55 09",
+    "PHONE"
+   ],
+   [
+    "8 place de la Mairie",
+    "ADDRESS"
+   ],
+   [
+    "63410",
+    "POSTAL"
+   ],
+   [
+    "CHAGNY",
+    "CITY"
+   ],
+   [
+    "a.agathe@cabinet-agathe.fr",
+    "EMAIL"
+   ],
+   [
+    "Coline AGATHE",
+    "NAME"
+   ],
+   [
+    "etude@baudet-garard.fr",
+    "EMAIL"
+   ],
+   [
+    "gisele.carole@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "clerc@baudet-garard.fr",
+    "EMAIL"
+   ],
+   [
+    "Femke DORINAC",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gcal-freebusy",
+  "lang": "fr",
+  "text": "{\"calendars\":{\"gisele.carole@cabinet-carole.fr\":{\"busy\":[{\"start\":\"2026-09-03T09:00:00Z\",\"end\":\"2026-09-03T10:30:00Z\"}]},\n\"fanny.toranier@chu-guebwiller.fr\":{\"busy\":[],\"errors\":[{\"domain\":\"calendar\",\"reason\":\"notFound\"}]}}}",
+  "truth": [
+   [
+    "gisele.carole@cabinet-carole.fr",
+    "EMAIL"
+   ],
+   [
+    "fanny.toranier@chu-guebwiller.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-stripe-customer-full",
+  "lang": "en",
+  "text": "{\"id\":\"cus_QjA8kLm2\",\"object\":\"customer\",\"name\":\"Freja Niels\",\"email\":\"l.niels@exemple.fr\",\"phone\":\"+33641220987\",\n\"address\":{\"line1\":\"41 rue Wikstra Zola\",\"line2\":\"Batiment C, appartement 12\",\"city\":\"VIRE\",\"state\":\"Hauts-de-France\",\"postal_code\":\"59800\",\"country\":\"FR\"},\n\"shipping\":{\"name\":\"Freja NIELS\",\"phone\":\"+33641220987\",\"address\":{\"line1\":\"7 impasse des Acacias\",\"city\":\"Yssingeaux\",\"postal_code\":\"69100\",\"country\":\"FR\"}},\n\"invoice_settings\":{\"custom_fields\":[{\"name\":\"Numero fiscal\",\"value\":\"19 87 654 321 098\"},{\"name\":\"Reference dossier\",\"value\":\"20 22 C314159 26\"}],\"footer\":null},\n\"preferred_locales\":[\"fr-FR\"],\"invoice_prefix\":\"0759376C\",\"metadata\":{\"crm_id\":\"DEM-2026-00841\",\"siret\":\"73282932000074\"},\"delinquent\":false}",
+  "truth": [
+   [
+    "Freja Niels",
+    "NAME"
+   ],
+   [
+    "l.niels@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "+33641220987",
+    "PHONE"
+   ],
+   [
+    "41 rue Wikstra Zola",
+    "ADDRESS"
+   ],
+   [
+    "VIRE",
+    "CITY"
+   ],
+   [
+    "59800",
+    "POSTAL"
+   ],
+   [
+    "Freja NIELS",
+    "NAME"
+   ],
+   [
+    "7 impasse des Acacias",
+    "ADDRESS"
+   ],
+   [
+    "Yssingeaux",
+    "CITY"
+   ],
+   [
+    "69100",
+    "POSTAL"
+   ],
+   [
+    "19 87 654 321 098",
+    "ID"
+   ],
+   [
+    "20 22 C314159 26",
+    "ID"
+   ],
+   [
+    "DEM-2026-00841",
+    "ID"
+   ],
+   [
+    "73282932000074",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-stripe-dispute",
+  "lang": "en",
+  "text": "{\"object\":\"dispute\",\"reason\":\"fraudulent\",\"status\":\"needs_response\",\n\"evidence\":{\"customer_name\":\"Ulla Gaspard\",\"customer_email_address\":\"p.gaspard@wp.pl\",\n\"customer_purchase_ip\":\"31.11.180.4\",\"billing_address\":\"ul. Dluga 14, 31-147 Breda, PL\",\n\"shipping_tracking_number\":\"1Z999AA10123456784\",\"customer_signature\":\"file_1Qk\"}}",
+  "truth": [
+   [
+    "Ulla Gaspard",
+    "NAME"
+   ],
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "31.11.180.4",
+    "IP"
+   ],
+   [
+    "ul. Dluga 14",
+    "ADDRESS"
+   ],
+   [
+    "Breda",
+    "CITY"
+   ],
+   [
+    "1Z999AA10123456784",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-stripe-payout-report",
+  "lang": "fr",
+  "text": "balance_transaction_id,created,type,customer_email,customer_name,card_last4,description\ntxn_3Qk1,2026-07-02,charge,a.agathe@cabinet-agathe.fr,Coline AGATHE,1881,Honoraires acte\ntxn_3Qk2,2026-07-03,charge,gisele.carole@laposte.net,Gisele CAROLE,4242,Frais de dossier\ntxn_3Qk3,2026-07-05,refund,leandre.gaspard@exemple.fr,Leandre GASPARD,0002,Annulation",
+  "truth": [
+   [
+    "a.agathe@cabinet-agathe.fr",
+    "EMAIL"
+   ],
+   [
+    "Coline AGATHE",
+    "NAME"
+   ],
+   [
+    "gisele.carole@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "leandre.gaspard@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Leandre GASPARD",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-sentry-user-geo",
+  "lang": "en",
+  "text": "{\"event_id\":\"9f1c2a\",\"level\":\"error\",\"logger\":\"api\",\n\"user\":{\"id\":\"4471\",\"username\":\"obrunel\",\"email\":\"o.caspar@laposte.net\",\"ip_address\":\"92.184.105.22\",\n\"geo\":{\"city\":\"Louhans\",\"country_code\":\"FR\",\"region\":\"Pays de la Loire\"},\"subscription\":\"pro\",\"phone\":\"0663120944\"},\n\"request\":{\"url\":\"https://app.chalin.fr/compte/megan-caspar\",\"headers\":{\"X-Forwarded-For\":\"92.184.105.22\"}}}",
+  "truth": [
+   [
+    "obrunel",
+    "ID"
+   ],
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ],
+   [
+    "0663120944",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-sentry-issue-list",
+  "lang": "fr",
+  "text": "[{\"shortId\":\"OPENMASQ-4F\",\"title\":\"ValidationError: iban invalide\",\"culprit\":\"validateIban(/app/src/billing/iban.ts)\",\n\"metadata\":{\"value\":\"FR76 3000 6000 0112 3456 7890 189 rejete pour Roland LEANDRE\"},\"count\":\"312\",\n\"assignedTo\":{\"name\":\"Carole Peland\",\"email\":\"carole.peland@protonmail.com\"}}]",
+  "truth": [
+   [
+    "/app/src/billing/iban.ts",
+    "PATH"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ],
+   [
+    "Roland LEANDRE",
+    "NAME"
+   ],
+   [
+    "Carole Peland",
+    "NAME"
+   ],
+   [
+    "carole.peland@protonmail.com",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-airtable-full",
+  "lang": "fr",
+  "text": "{\"records\":[{\"id\":\"rec560UJdUtocSouk\",\"createdTime\":\"2026-07-12T21:03:48.000Z\",\n\"fields\":{\"Nom\":\"Edith GISELE\",\"Adresse\":\"3 rue du Bourg\",\"Ville\":\"Quimperle\",\"CP\":\"27200\",\n\"Email\":\"r.gisele@free.fr\",\"Telephone\":\"06 09 55 71 20\",\"Date de naissance\":\"1962-04-18\",\"Actif\":true}},\n{\"id\":\"rec3lbPRG4aVqkeOQ\",\"createdTime\":\"2026-07-12T21:03:49.000Z\",\n\"fields\":{\"Nom\":\"Blandine BLANDINE\",\"Adresse\":\"12 place du Marche\",\"Ville\":\"Quimperle\",\"CP\":\"27200\",\n\"Email\":\"b.blandine@exemple.fr\",\"Telephone\":\"02 32 51 09 44\",\"Date de naissance\":\"1958-12-02\"}}],\n\"offset\":\"itrXXX/rec3lbPRG4aVqkeOQ\"}",
+  "truth": [
+   [
+    "Edith GISELE",
+    "NAME"
+   ],
+   [
+    "3 rue du Bourg",
+    "ADDRESS"
+   ],
+   [
+    "Quimperle",
+    "CITY"
+   ],
+   [
+    "27200",
+    "POSTAL"
+   ],
+   [
+    "r.gisele@free.fr",
+    "EMAIL"
+   ],
+   [
+    "06 09 55 71 20",
+    "PHONE"
+   ],
+   [
+    "1962-04-18",
+    "DOB"
+   ],
+   [
+    "Blandine BLANDINE",
+    "NAME"
+   ],
+   [
+    "12 place du Marche",
+    "ADDRESS"
+   ],
+   [
+    "b.blandine@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "02 32 51 09 44",
+    "PHONE"
+   ],
+   [
+    "1958-12-02",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tr-notion-sql",
+  "lang": "fr",
+  "text": "{\"rows\":[{\"Nom\":\"Mireille CLEMENT-LANELIER\",\"Email\":\"mireille.clement@edu.univ-fcomte.fr\",\"Statut\":\"Actif\",\"Tuteur\":\"Antonin PELECARD-TALEAU\",\"Naissance\":\"2003-02-02\"},\n{\"Nom\":\"Clement DOREYARD-LANALAUD\",\"Email\":\"clement.doreyard@gmail.com\",\"Statut\":\"Alumni\",\"Tuteur\":\"Leandre GISELE\",\"Naissance\":\"1997-08-19\"}],\"has_more\":false}",
+  "truth": [
+   [
+    "Mireille CLEMENT-LANELIER",
+    "NAME"
+   ],
+   [
+    "mireille.clement@edu.univ-fcomte.fr",
+    "EMAIL"
+   ],
+   [
+    "Antonin PELECARD-TALEAU",
+    "NAME"
+   ],
+   [
+    "2003-02-02",
+    "DOB"
+   ],
+   [
+    "Clement DOREYARD-LANALAUD",
+    "NAME"
+   ],
+   [
+    "clement.doreyard@gmail.com",
+    "EMAIL"
+   ],
+   [
+    "Leandre GISELE",
+    "NAME"
+   ],
+   [
+    "1997-08-19",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tr-notion-comments",
+  "lang": "fr",
+  "text": "{\"comments\":[{\"created_by\":{\"name\":\"Capucine Gaspard\",\"person\":{\"email\":\"capucine.gaspard@chalalois.eu\"}},\n\"rich_text\":[{\"plain_text\":\"J ai appele le client au 05 56 44 21 09, il confirme l adresse 14 cours de l Intendance 33000 Espalion.\"}],\n\"created_time\":\"2026-07-19T10:12:00Z\"}]}",
+  "truth": [
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "capucine.gaspard@chalalois.eu",
+    "EMAIL"
+   ],
+   [
+    "05 56 44 21 09",
+    "PHONE"
+   ],
+   [
+    "14 cours de l Intendance",
+    "ADDRESS"
+   ],
+   [
+    "33000",
+    "POSTAL"
+   ],
+   [
+    "Espalion",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-supabase-json-agg",
+  "lang": "en",
+  "text": "[{\"json_agg\":[{\"id\":4471,\"email\":\"o.caspar@laposte.net\",\"full_name\":\"Megan Caspar\",\"iban\":\"FR76 1027 8060 2100 0204 8630 163\",\"dob\":\"1990-04-17\",\"last_ip\":\"92.184.105.22\"},\n{\"id\":4472,\"email\":\"p.gaspard@wp.pl\",\"full_name\":\"Ulla Gaspard\",\"iban\":\"FR76 1254 8029 0000 0430 0245 170\",\"dob\":\"1986-02-11\",\"last_ip\":\"31.11.180.4\"}]}]",
+  "truth": [
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "Megan Caspar",
+    "NAME"
+   ],
+   [
+    "FR76 1027 8060 2100 0204 8630 163",
+    "IBAN"
+   ],
+   [
+    "1990-04-17",
+    "DOB"
+   ],
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "Ulla Gaspard",
+    "NAME"
+   ],
+   [
+    "FR76 1254 8029 0000 0430 0245 170",
+    "IBAN"
+   ],
+   [
+    "1986-02-11",
+    "DOB"
+   ],
+   [
+    "31.11.180.4",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tr-supabase-logs",
+  "lang": "en",
+  "text": "{\"result\":[{\"timestamp\":1753692184000000,\"event_message\":\"POST /rest/v1/profiles {\\\"email\\\":\\\"j.thaleling@usal.es\\\",\\\"phone\\\":\\\"+49 721 39 84 210\\\"}\",\"metadata\":[{\"request\":[{\"cf\":[{\"clientIp\":\"185.12.44.7\"}]}]}]},\n{\"timestamp\":1753692190000000,\"event_message\":\"auth.signin user=clement.alexandre@libero.it ip=93.45.201.8\"}]}",
+  "truth": [
+   [
+    "j.thaleling@usal.es",
+    "EMAIL"
+   ],
+   [
+    "+49 721 39 84 210",
+    "PHONE"
+   ],
+   [
+    "185.12.44.7",
+    "IP"
+   ],
+   [
+    "clement.alexandre@libero.it",
+    "EMAIL"
+   ],
+   [
+    "93.45.201.8",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tr-linear-graphql",
+  "lang": "en",
+  "text": "{\"data\":{\"issues\":{\"nodes\":[{\"identifier\":\"OPS-118\",\"title\":\"GDPR erasure request\",\n\"description\":\"Subject: Capucine N'TALAUIN, s.magudobu@bumisin.fr, born 09/03/1987. Delete rows in users, orders, sessions.\",\n\"assignee\":{\"name\":\"Carole Peland\",\"email\":\"carole.peland@protonmail.com\"},\n\"creator\":{\"name\":\"Fanny MALENT\",\"email\":\"jcosta@vauoux-malent.fr\"},\n\"comments\":{\"nodes\":[{\"body\":\"Confirme par telephone au 06 23 54 87 01.\"}]}}]}}}",
+  "truth": [
+   [
+    "Capucine N'TALAUIN",
+    "NAME"
+   ],
+   [
+    "s.magudobu@bumisin.fr",
+    "EMAIL"
+   ],
+   [
+    "09/03/1987",
+    "DOB"
+   ],
+   [
+    "Carole Peland",
+    "NAME"
+   ],
+   [
+    "carole.peland@protonmail.com",
+    "EMAIL"
+   ],
+   [
+    "Fanny MALENT",
+    "NAME"
+   ],
+   [
+    "jcosta@vauoux-malent.fr",
+    "EMAIL"
+   ],
+   [
+    "06 23 54 87 01",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-asana-stories",
+  "lang": "fr",
+  "text": "{\"data\":[{\"resource_subtype\":\"comment_added\",\"created_by\":{\"name\":\"Leandre Gisele\",\"email\":\"h.gisele@exemple.fr\"},\n\"text\":\"Les parents de Justine CHALINIER-PRAIN ont ete recus. Coordonnees : femke.chalinier@passau.fr / 07 82 15 43 60. Adresse 6 allee des Cytises 59110 La Vesoul.\"}]}",
+  "truth": [
+   [
+    "Leandre Gisele",
+    "NAME"
+   ],
+   [
+    "h.gisele@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Justine CHALINIER-PRAIN",
+    "NAME"
+   ],
+   [
+    "femke.chalinier@passau.fr",
+    "EMAIL"
+   ],
+   [
+    "07 82 15 43 60",
+    "PHONE"
+   ],
+   [
+    "6 allee des Cytises",
+    "ADDRESS"
+   ],
+   [
+    "59110",
+    "POSTAL"
+   ],
+   [
+    "La Vesoul",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-monday-graphql",
+  "lang": "fr",
+  "text": "{\"data\":{\"boards\":[{\"items_page\":{\"items\":[{\"name\":\"Dossier GISELE\",\"column_values\":[\n{\"id\":\"person\",\"value\":\"{\\\"personsAndTeams\\\":[{\\\"id\\\":4471,\\\"kind\\\":\\\"person\\\"}]}\",\"text\":\"Gaspard JOLON-LANY\"},\n{\"id\":\"email\",\"text\":\"estelle.gisele@exemple.fr\"},{\"id\":\"phone\",\"text\":\"02 40 12 34 56\"},\n{\"id\":\"date_naissance\",\"text\":\"1979-03-14\"},{\"id\":\"numero\",\"text\":\"12 3456 78\"}]}]}}]}}",
+  "truth": [
+   [
+    "GISELE",
+    "NAME"
+   ],
+   [
+    "Gaspard JOLON-LANY",
+    "NAME"
+   ],
+   [
+    "estelle.gisele@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "02 40 12 34 56",
+    "PHONE"
+   ],
+   [
+    "1979-03-14",
+    "DOB"
+   ],
+   [
+    "12 3456 78",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-jira-adf",
+  "lang": "fr",
+  "text": "{\"fields\":{\"summary\":\"Demande d effacement RGPD\",\"reporter\":{\"accountId\":\"5b10a2\",\"displayName\":\"Gaspard JOLON-LANY\",\"emailAddress\":\"n.jolon@exemple.fr\"},\n\"assignee\":{\"accountId\":\"5b10ac\",\"displayName\":\"Capucine Gaspard\",\"emailAddress\":\"capucine.gaspard@chalalois.eu\"},\n\"description\":{\"type\":\"doc\",\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"Mme Roland CAPUCINE-DORRET, nee le 23 janvier 1989, 8 place de la Aurore 33270 Vienne, tel 05 56 40 12 77.\"}]}]}}}",
+  "truth": [
+   [
+    "Gaspard JOLON-LANY",
+    "NAME"
+   ],
+   [
+    "n.jolon@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "capucine.gaspard@chalalois.eu",
+    "EMAIL"
+   ],
+   [
+    "Roland CAPUCINE-DORRET",
+    "NAME"
+   ],
+   [
+    "23 janvier 1989",
+    "DOB"
+   ],
+   [
+    "8 place de la Aurore",
+    "ADDRESS"
+   ],
+   [
+    "33270",
+    "POSTAL"
+   ],
+   [
+    "Vienne",
+    "CITY"
+   ],
+   [
+    "05 56 40 12 77",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-confluence-page",
+  "lang": "fr",
+  "text": "<h2>Annuaire de l equipe</h2><table><tr><th>Nom</th><th>Poste</th><th>Mobile</th><th>Mail</th></tr>\n<tr><td>Carole Peland</td><td>SRE</td><td>06 12 77 40 91</td><td>carole.peland@protonmail.com</td></tr>\n<tr><td>Fanny Malent</td><td>Juriste</td><td>03 87 55 21 09</td><td>jcosta@vauoux-malent.fr</td></tr></table>",
+  "truth": [
+   [
+    "Carole Peland",
+    "NAME"
+   ],
+   [
+    "06 12 77 40 91",
+    "PHONE"
+   ],
+   [
+    "carole.peland@protonmail.com",
+    "EMAIL"
+   ],
+   [
+    "Fanny Malent",
+    "NAME"
+   ],
+   [
+    "03 87 55 21 09",
+    "PHONE"
+   ],
+   [
+    "jcosta@vauoux-malent.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-github-search-code",
+  "lang": "en",
+  "text": "{\"items\":[{\"path\":\"seeds/customers.sql\",\"repository\":{\"full_name\":\"chalin/api\"},\n\"text_matches\":[{\"fragment\":\"INSERT INTO customers (email, name, phone) VALUES ('clement.jolaud@exemple.fr','Clement Jolaud','0663120944');\"}]},\n{\"path\":\".env.example\",\"text_matches\":[{\"fragment\":\"STRIPE_SECRET_KEY=sk_live_51Qk8ZxMoCkX2pRvT4nJ7wYbA\"}]}]}",
+  "truth": [
+   [
+    "clement.jolaud@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Clement Jolaud",
+    "NAME"
+   ],
+   [
+    "0663120944",
+    "PHONE"
+   ],
+   [
+    "sk_live_51Qk8ZxMoCkX2pRvT4nJ7wYbA",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "tr-github-pr-reviews",
+  "lang": "en",
+  "text": "[{\"user\":{\"login\":\"madelaunay\"},\"state\":\"CHANGES_REQUESTED\",\n\"body\":\"This logs the full customer object. Repro: user 4471 (o.caspar@laposte.net) shows up in /var/log/app/access.log.\"},\n{\"user\":{\"login\":\"jcosta-legal\"},\"state\":\"COMMENTED\",\"body\":\"Contact me at jcosta@vauoux-malent.fr before merging.\"}]",
+  "truth": [
+   [
+    "madelaunay",
+    "ID"
+   ],
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "/var/log/app/access.log",
+    "PATH"
+   ],
+   [
+    "jcosta-legal",
+    "ID"
+   ],
+   [
+    "jcosta@vauoux-malent.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-intercom-conversation",
+  "lang": "en",
+  "text": "{\"conversation_parts\":[{\"author\":{\"type\":\"user\",\"name\":\"Wouter Morholt\",\"email\":\"wouter.morholt@posteo.eu\"},\n\"body\":\"<p>My card ending 4242 was charged twice. Account under via dei Gelsomini 7, 40138 Leer. Mobile +39 340 118 27 64.</p>\"},\n{\"author\":{\"type\":\"admin\",\"name\":\"Fabio Rosalave\",\"email\":\"support@chalin.it\"},\"body\":\"<p>Refund issued.</p>\"}]}",
+  "truth": [
+   [
+    "Wouter Morholt",
+    "NAME"
+   ],
+   [
+    "wouter.morholt@posteo.eu",
+    "EMAIL"
+   ],
+   [
+    "via dei Gelsomini 7",
+    "ADDRESS"
+   ],
+   [
+    "40138",
+    "POSTAL"
+   ],
+   [
+    "Leer",
+    "CITY"
+   ],
+   [
+    "+39 340 118 27 64",
+    "PHONE"
+   ],
+   [
+    "Fabio Rosalave",
+    "NAME"
+   ],
+   [
+    "support@chalin.it",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-attio-list-entries",
+  "lang": "fr",
+  "text": "{\"data\":[{\"parent_record_id\":\"rec_a1\",\"entry_values\":{\"stage\":[{\"status\":{\"title\":\"Negociation\"}}],\n\"owner\":[{\"referenced_actor_name\":\"Capucine Gaspard\"}],\n\"contact\":[{\"value\":\"Gaspard DA VELARD - p.megan@exemple.fr - 06 45 67 89 01\"}],\n\"adresse\":[{\"value\":\"5 sentier des Acacias, 78400 REDON\"}]}}]}",
+  "truth": [
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "Gaspard DA VELARD",
+    "NAME"
+   ],
+   [
+    "p.megan@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "06 45 67 89 01",
+    "PHONE"
+   ],
+   [
+    "5 sentier des Acacias",
+    "ADDRESS"
+   ],
+   [
+    "78400",
+    "POSTAL"
+   ],
+   [
+    "REDON",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-close-activities",
+  "lang": "en",
+  "text": "{\"data\":[{\"_type\":\"Call\",\"direction\":\"outbound\",\"phone\":\"+33472889012\",\"duration\":184,\n\"note\":\"Spoke with Blandine Chaier about the lease at 14 Avenue des Garorel, 69300 Plauen-et-Zwickau. Sending to b.chaier@exemple.fr.\"},\n{\"_type\":\"Email\",\"to\":[\"b.chaier@exemple.fr\"],\"subject\":\"Bail - Chaier\"}]}",
+  "truth": [
+   [
+    "+33472889012",
+    "PHONE"
+   ],
+   [
+    "Blandine Chaier",
+    "NAME"
+   ],
+   [
+    "14 Avenue des Garorel",
+    "ADDRESS"
+   ],
+   [
+    "69300",
+    "POSTAL"
+   ],
+   [
+    "Plauen-et-Zwickau",
+    "CITY"
+   ],
+   [
+    "b.chaier@exemple.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gdrive-permissions",
+  "lang": "fr",
+  "text": "{\"permissions\":[{\"type\":\"user\",\"role\":\"owner\",\"emailAddress\":\"noemie.roland@banquepop.fr\",\"displayName\":\"Noemie ROLAND\"},\n{\"type\":\"user\",\"role\":\"writer\",\"emailAddress\":\"capucine.gaspard@chalalois.eu\",\"displayName\":\"Capucine Gaspard\"},\n{\"type\":\"user\",\"role\":\"reader\",\"emailAddress\":\"rabosefoc.2026@novicecas.fr\",\"displayName\":\"Fanny FANNY\"},\n{\"type\":\"anyone\",\"role\":\"reader\",\"allowFileDiscovery\":false}]}",
+  "truth": [
+   [
+    "noemie.roland@banquepop.fr",
+    "EMAIL"
+   ],
+   [
+    "Noemie ROLAND",
+    "NAME"
+   ],
+   [
+    "capucine.gaspard@chalalois.eu",
+    "EMAIL"
+   ],
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "rabosefoc.2026@novicecas.fr",
+    "EMAIL"
+   ],
+   [
+    "Fanny FANNY",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-gdrive-revisions",
+  "lang": "fr",
+  "text": "{\"revisions\":[{\"id\":\"1\",\"modifiedTime\":\"2026-06-02T09:41:00Z\",\"lastModifyingUser\":{\"displayName\":\"Roland LEANDRE\",\"emailAddress\":\"roland.leandre@clerouret.fr\"}},\n{\"id\":\"2\",\"modifiedTime\":\"2026-06-14T11:02:00Z\",\"lastModifyingUser\":{\"displayName\":\"Roland CAPUCINE\",\"emailAddress\":\"e.capucine@clerouret.fr\"}}]}",
+  "truth": [
+   [
+    "Roland LEANDRE",
+    "NAME"
+   ],
+   [
+    "roland.leandre@clerouret.fr",
+    "EMAIL"
+   ],
+   [
+    "Roland CAPUCINE",
+    "NAME"
+   ],
+   [
+    "e.capucine@clerouret.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-dropbox-shared-links",
+  "lang": "fr",
+  "text": "{\"links\":[{\"url\":\"https://www.dropbox.com/s/8a2f/CNI_JUSTINE_Leandre.jpg\",\"name\":\"CNI_JUSTINE_Leandre.jpg\",\n\"path_lower\":\"/rh/pieces identite/cni_justine_leandre.jpg\",\"link_permissions\":{\"resolved_visibility\":{\".tag\":\"public\"}}}]}",
+  "truth": [
+   [
+    "JUSTINE",
+    "NAME"
+   ],
+   [
+    "Leandre",
+    "NAME"
+   ],
+   [
+    "/rh/pieces identite/cni_justine_leandre.jpg",
+    "PATH"
+   ],
+   [
+    "justine",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-onedrive-search",
+  "lang": "de",
+  "text": "{\"value\":[{\"name\":\"Arztbrief_GRETA-KENERWALD.pdf\",\"webUrl\":\"https://klinikum.sharepoint.com/Dokumente/Arztbrief_GRETA-KENERWALD.pdf\",\n\"lastModifiedBy\":{\"user\":{\"displayName\":\"Bengt Dahlbeck-Holmann\",\"email\":\"h.dahlbeck@klinikum-stadtpark.de\"}},\n\"searchResult\":{\"onClickTelemetryUrl\":\"\"},\"summary\":\"Patientin Magnus GRETA-KENERWALD, geboren am 4. Juli 1968, Kirschbluetenweg 19, 04315 Randers\"}]}",
+  "truth": [
+   [
+    "GRETA-KENERWALD",
+    "NAME"
+   ],
+   [
+    "Bengt Dahlbeck-Holmann",
+    "NAME"
+   ],
+   [
+    "h.dahlbeck@klinikum-stadtpark.de",
+    "EMAIL"
+   ],
+   [
+    "Magnus GRETA-KENERWALD",
+    "NAME"
+   ],
+   [
+    "4. Juli 1968",
+    "DOB"
+   ],
+   [
+    "Kirschbluetenweg 19",
+    "ADDRESS"
+   ],
+   [
+    "04315",
+    "POSTAL"
+   ],
+   [
+    "Randers",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-filesystem-read",
+  "lang": "fr",
+  "text": "{\"path\":\"/Users/carole.peland/Desktop/liste_beneficiaires.csv\",\"content\":\"nom,prenom,iban,montant\\nLEANDRE,Roland,FR76 3000 6000 0112 3456 7890 189,2140.00\\nCAPUCINE,Roland,FR34 1027 8060 4100 0204 5230 187,1980.50\"}",
+  "truth": [
+   [
+    "/Users/carole.peland/Desktop/liste_beneficiaires.csv",
+    "PATH"
+   ],
+   [
+    "carole.peland",
+    "NAME"
+   ],
+   [
+    "LEANDRE",
+    "NAME"
+   ],
+   [
+    "Roland",
+    "NAME"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ],
+   [
+    "CAPUCINE",
+    "NAME"
+   ],
+   [
+    "Roland",
+    "NAME"
+   ],
+   [
+    "FR34 1027 8060 4100 0204 5230 187",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "tr-paypal-invoice",
+  "lang": "fr",
+  "text": "{\"invoice\":{\"detail\":{\"invoice_number\":\"INV2-9K4T\",\"reference\":\"DEM-2026-00841\"},\n\"invoicer\":{\"business_name\":\"CHALY STUDIO SAS\",\"email_address\":\"facturation@chalystudio-exemple.fr\"},\n\"primary_recipients\":[{\"billing_info\":{\"name\":{\"full_name\":\"Coline Roland AGATHE\"},\"email_address\":\"a.agathe@cabinet-agathe.fr\",\n\"phones\":[{\"national_number\":\"473215509\",\"country_code\":\"33\"}],\n\"address\":{\"address_line_1\":\"5 avenue des Thermes\",\"admin_area_2\":\"BAYEUX\",\"postal_code\":\"63130\",\"country_code\":\"FR\"}}}]}}",
+  "truth": [
+   [
+    "INV2-9K4T",
+    "ID"
+   ],
+   [
+    "DEM-2026-00841",
+    "ID"
+   ],
+   [
+    "CHALY STUDIO",
+    "ORG"
+   ],
+   [
+    "facturation@chalystudio-exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Coline Roland AGATHE",
+    "NAME"
+   ],
+   [
+    "a.agathe@cabinet-agathe.fr",
+    "EMAIL"
+   ],
+   [
+    "5 avenue des Thermes",
+    "ADDRESS"
+   ],
+   [
+    "BAYEUX",
+    "CITY"
+   ],
+   [
+    "63130",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-square-orders",
+  "lang": "en",
+  "text": "{\"orders\":[{\"id\":\"ord_7K2\",\"fulfillments\":[{\"type\":\"SHIPMENT\",\"shipment_details\":{\n\"recipient\":{\"display_name\":\"Sigrid De Bering\",\"email_address\":\"g.mapusi@surafu.eu\",\"phone_number\":\"+39 3401182764\",\n\"address\":{\"address_line_1\":\"Via Enna 8\",\"locality\":\"Peine\",\"postal_code\":\"80100\",\"country\":\"IT\"}},\n\"tracking_number\":\"1Z999AA10123456784\",\"carrier\":\"UPS\"}}]}]}",
+  "truth": [
+   [
+    "Sigrid De Bering",
+    "NAME"
+   ],
+   [
+    "g.mapusi@surafu.eu",
+    "EMAIL"
+   ],
+   [
+    "+39 3401182764",
+    "PHONE"
+   ],
+   [
+    "Via Enna 8",
+    "ADDRESS"
+   ],
+   [
+    "Peine",
+    "CITY"
+   ],
+   [
+    "80100",
+    "POSTAL"
+   ],
+   [
+    "1Z999AA10123456784",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-vercel-runtime-errors",
+  "lang": "en",
+  "text": "{\"errors\":[{\"message\":\"PrismaClientKnownRequestError: Unique constraint failed on the fields: (`email`)\",\n\"requestPath\":\"/api/signup\",\"statusCode\":500,\"clientIp\":\"92.184.105.22\",\n\"payload\":\"{\\\"email\\\":\\\"fanny.fanny@exemple.re\\\",\\\"phone\\\":\\\"0692771203\\\",\\\"cp\\\":\\\"97400\\\"}\",\n\"deploymentId\":\"dpl_9Kx\",\"branch\":\"main\"}]}",
+  "truth": [
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "fanny.fanny@exemple.re",
+    "EMAIL"
+   ],
+   [
+    "0692771203",
+    "PHONE"
+   ],
+   [
+    "97400",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-cloudflare-firewall",
+  "lang": "en",
+  "text": "{\"result\":[{\"action\":\"block\",\"clientIP\":\"185.12.44.7\",\"clientCountryName\":\"DE\",\"clientRequestHTTPHost\":\"app.chalin.fr\",\n\"clientRequestPath\":\"/api/export?email=clement.alexandre%40libero.it\",\"userAgent\":\"curl/8.4.0\",\"rayName\":\"8f2a1b\"},\n{\"action\":\"challenge\",\"clientIP\":\"2a01:cb04:8f2:1e00::42\",\"clientRequestPath\":\"/compte/mireille-clement-lanelier\"}]}",
+  "truth": [
+   [
+    "185.12.44.7",
+    "IP"
+   ],
+   [
+    "2a01:cb04:8f2:1e00::42",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tr-netlify-deploy-log",
+  "lang": "fr",
+  "text": "12:04:11 Building site cabinet-carole\n12:04:19 Warning: hardcoded contact in src/pages/contact.astro\n12:04:19   > Dr Gisele CAROLE, 3 place Carnot 42300 Elbeuf, 04 77 71 20 08\n12:04:22 Env var SENDGRID_API_KEY=SG.f9K2xQ8mTgWpL4nV.Rt7yUiOp3aSdFgHjKlZxCvBnM1qW2eR set\n12:04:31 Site deployed",
+  "truth": [
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "3 place Carnot",
+    "ADDRESS"
+   ],
+   [
+    "42300",
+    "POSTAL"
+   ],
+   [
+    "Elbeuf",
+    "CITY"
+   ],
+   [
+    "04 77 71 20 08",
+    "PHONE"
+   ],
+   [
+    "SG.f9K2xQ8mTgWpL4nV.Rt7yUiOp3aSdFgHjKlZxCvBnM1qW2eR",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "tr-semgrep-sarif",
+  "lang": "en",
+  "text": "{\"runs\":[{\"results\":[{\"ruleId\":\"pii.export.unfiltered\",\"level\":\"error\",\n\"locations\":[{\"physicalLocation\":{\"artifactLocation\":{\"uri\":\"src/jobs/export_users.ts\"},\"region\":{\"startLine\":41}}}],\n\"message\":{\"text\":\"Exports email, phone, national_id without consent check. Sample row: c.holelfeld.oda@fastmail.com / QQ123456C\"}}]}]}",
+  "truth": [
+   [
+    "c.holelfeld.oda@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "QQ123456C",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-posthog-hogql",
+  "lang": "en",
+  "text": "{\"columns\":[\"person.properties.email\",\"person.properties.name\",\"properties.$geoip_city_name\",\"properties.$ip\",\"count()\"],\n\"results\":[[\"l.niels@exemple.fr\",\"Freja Niels\",\"Vire\",\"92.184.105.22\",42],\n[\"p.gaspard@wp.pl\",\"Ulla Gaspard\",\"Breda\",\"31.11.180.4\",17],\n[\"m.fanny@exemple.re\",\"Fanny Fanny\",\"Saint-Auch\",\"88.174.22.9\",3]]}",
+  "truth": [
+   [
+    "l.niels@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Freja Niels",
+    "NAME"
+   ],
+   [
+    "Vire",
+    "CITY"
+   ],
+   [
+    "92.184.105.22",
+    "IP"
+   ],
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "Ulla Gaspard",
+    "NAME"
+   ],
+   [
+    "Breda",
+    "CITY"
+   ],
+   [
+    "31.11.180.4",
+    "IP"
+   ],
+   [
+    "m.fanny@exemple.re",
+    "EMAIL"
+   ],
+   [
+    "Fanny Fanny",
+    "NAME"
+   ],
+   [
+    "Saint-Auch",
+    "CITY"
+   ],
+   [
+    "88.174.22.9",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tr-amplitude-cohort",
+  "lang": "en",
+  "text": "user_id,device_id,email,name,country,city,last_seen\nusr_8812,d7f2a,o.caspar@laposte.net,Megan Caspar,France,Louhans,2026-07-22\nusr_8813,c1e88,p.gaspard@wp.pl,Ulla Gaspard,Poland,Breda,2026-07-21",
+  "truth": [
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "Megan Caspar",
+    "NAME"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ],
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "Ulla Gaspard",
+    "NAME"
+   ],
+   [
+    "Breda",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tr-firecrawl-crawl-map",
+  "lang": "fr",
+  "text": "{\"pages\":[{\"url\":\"https://cabinet-carole.fr/equipe\",\"markdown\":\"## Notre equipe\\n\\n**Dr Gisele CAROLE** - Medecin generaliste - RPPS 10003456789\\n**Dr Fanny TORANIER** - Cardiologue - RPPS 10003847521\\n\\nSecretariat : 04 77 71 20 08\"}]}",
+  "truth": [
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "10003456789",
+    "ID"
+   ],
+   [
+    "Fanny TORANIER",
+    "NAME"
+   ],
+   [
+    "10003847521",
+    "ID"
+   ],
+   [
+    "04 77 71 20 08",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tr-exa-contents",
+  "lang": "en",
+  "text": "{\"results\":[{\"title\":\"Bremholt Logistik GmbH - Impressum\",\"url\":\"https://bremholt-logistik.de/impressum\",\n\"text\":\"Bremholt Logistik GmbH, Leopoldstrasse 42, 80802 Hameln. Handelsregister HRB 147936. Geschaeftsfuehrer: Ingmar HAGING. Telefon +49 89 552 10 44, E-Mail info@bremholt-logistik.de. USt-IdNr DE812345678.\"}]}",
+  "truth": [
+   [
+    "Bremholt Logistik",
+    "ORG"
+   ],
+   [
+    "Leopoldstrasse 42",
+    "ADDRESS"
+   ],
+   [
+    "80802",
+    "POSTAL"
+   ],
+   [
+    "Hameln",
+    "CITY"
+   ],
+   [
+    "HRB 147936",
+    "ID"
+   ],
+   [
+    "Ingmar HAGING",
+    "NAME"
+   ],
+   [
+    "+49 89 552 10 44",
+    "PHONE"
+   ],
+   [
+    "info@bremholt-logistik.de",
+    "EMAIL"
+   ],
+   [
+    "DE812345678",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tr-brightdata-serp",
+  "lang": "fr",
+  "text": "{\"organic\":[{\"title\":\"Fanny MALENT - Avocat au sorat de Digne\",\"link\":\"https://vauoux-malent.fr\",\n\"snippet\":\"Maitre Fanny MALENT, 12 rue Serpenoise 57000 Digne. Tel 03 87 55 21 09. Toque 214. jcosta@vauoux-malent.fr\"}]}",
+  "truth": [
+   [
+    "Fanny MALENT",
+    "NAME"
+   ],
+   [
+    "12 rue Serpenoise",
+    "ADDRESS"
+   ],
+   [
+    "57000",
+    "POSTAL"
+   ],
+   [
+    "Digne",
+    "CITY"
+   ],
+   [
+    "03 87 55 21 09",
+    "PHONE"
+   ],
+   [
+    "jcosta@vauoux-malent.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-mixed-encoding",
+  "lang": "fr",
+  "text": "{\"batch\":[{\"raw\":\"nom=LEANDRE&prenom=Roland&email=roland.leandre%40clerouret.fr&tel=06%2012%2077%2040%2091\"},\n{\"raw\":\"nom=CAPUCINE&prenom=Roland&email=e.capucine%40clerouret.fr&iban=FR76%201027%208060%204100%200204%205230%20187\"}]}",
+  "truth": [
+   [
+    "LEANDRE",
+    "NAME"
+   ],
+   [
+    "Roland",
+    "NAME"
+   ],
+   [
+    "CAPUCINE",
+    "NAME"
+   ],
+   [
+    "Roland",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tr-jsonl-bulk",
+  "lang": "en",
+  "text": "{\"op\":\"upsert\",\"doc\":{\"email\":\"torben.holelfeld@fastmail.com\",\"name\":\"Torben Holelfeld-Oda\",\"ni\":\"QQ123456C\"}}\n{\"op\":\"upsert\",\"doc\":{\"email\":\"sigrid.stendorf@kenarstra.ac.uk\",\"name\":\"Sigrid Stendorf-Falinmann\",\"ni\":\"AB654321D\"}}\n{\"op\":\"delete\",\"doc\":{\"email\":\"t.thalfeld@kenarstra.co.uk\"}}",
+  "truth": [
+   [
+    "torben.holelfeld@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "Torben Holelfeld-Oda",
+    "NAME"
+   ],
+   [
+    "QQ123456C",
+    "ID"
+   ],
+   [
+    "sigrid.stendorf@kenarstra.ac.uk",
+    "EMAIL"
+   ],
+   [
+    "Sigrid Stendorf-Falinmann",
+    "NAME"
+   ],
+   [
+    "AB654321D",
+    "ID"
+   ],
+   [
+    "t.thalfeld@kenarstra.co.uk",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tr-truncated-payload",
+  "lang": "fr",
+  "text": "{\"data\":[{\"nom\":\"Clement ALEXANDRE-CLERAUARD\",\"email\":\"r.alexandre@libero.it\",\"tel\":\"333 470 19 82\",\"adresse\":\"via delle Camelie 22, 16145 Honfleur\",\"parent\":\"Irene ALEXANDRE\",\"mail_parent\":\"irene.alexandre@libero.it\",\"matricola\":\"2026114532\",\"nascita\":\"2008-04-03\",\"note\":\"iscritto al corino, tra",
+  "truth": [
+   [
+    "Clement ALEXANDRE-CLERAUARD",
+    "NAME"
+   ],
+   [
+    "r.alexandre@libero.it",
+    "EMAIL"
+   ],
+   [
+    "333 470 19 82",
+    "PHONE"
+   ],
+   [
+    "via delle Camelie 22",
+    "ADDRESS"
+   ],
+   [
+    "16145",
+    "POSTAL"
+   ],
+   [
+    "Honfleur",
+    "CITY"
+   ],
+   [
+    "Irene ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "irene.alexandre@libero.it",
+    "EMAIL"
+   ],
+   [
+    "2026114532",
+    "ID"
+   ],
+   [
+    "2008-04-03",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tr-zapier-webhook",
+  "lang": "en",
+  "text": "{\"payload\":{\"form\":\"Contact\",\"submitted_at\":\"2026-07-22T09:14:00Z\",\"answers\":{\n\"full_name\":\"Ulla Elke\",\"work_email\":\"ulla.elke@posteo.eu\",\"mobile\":\"+39 011 555 2201\",\n\"company\":\"Atelier Sud\",\"vat\":\"IT01234567897\",\"address\":\"corso Vittorio Fabio 118, 10121 Zwolle\"}}}",
+  "truth": [
+   [
+    "Ulla Elke",
+    "NAME"
+   ],
+   [
+    "ulla.elke@posteo.eu",
+    "EMAIL"
+   ],
+   [
+    "+39 011 555 2201",
+    "PHONE"
+   ],
+   [
+    "Atelier Sud",
+    "ORG"
+   ],
+   [
+    "IT01234567897",
+    "ID"
+   ],
+   [
+    "corso Vittorio Fabio 118",
+    "ADDRESS"
+   ],
+   [
+    "10121",
+    "POSTAL"
+   ],
+   [
+    "Zwolle",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tc-supabase-sql-where",
+  "lang": "en",
+  "text": "SELECT id, full_name, iban FROM public.customers\nWHERE email = 'o.caspar@laposte.net' OR phone = '0663120944'\n   OR (last_name = 'Gaspard' AND birth_date = '1986-02-11')\nORDER BY created_at DESC LIMIT 50;",
+  "truth": [
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "0663120944",
+    "PHONE"
+   ],
+   [
+    "Gaspard",
+    "NAME"
+   ],
+   [
+    "1986-02-11",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tc-supabase-sql-insert",
+  "lang": "fr",
+  "text": "INSERT INTO beneficiaires (nom, prenom, iban, adresse, cp, ville, naissance) VALUES\n  ('LEANDRE','Roland','FR76 3000 6000 0112 3456 7890 189','12 rue des Forges','25000','CONFOLENS','1988-05-12'),\n  ('CAPUCINE','Roland','FR34 1027 8060 4100 0204 5230 187','7 impasse des Acacias','69100','Yssingeaux','1979-11-30');",
+  "truth": [
+   [
+    "LEANDRE",
+    "NAME"
+   ],
+   [
+    "Roland",
+    "NAME"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ],
+   [
+    "12 rue des Forges",
+    "ADDRESS"
+   ],
+   [
+    "25000",
+    "POSTAL"
+   ],
+   [
+    "CONFOLENS",
+    "CITY"
+   ],
+   [
+    "1988-05-12",
+    "DOB"
+   ],
+   [
+    "CAPUCINE",
+    "NAME"
+   ],
+   [
+    "Roland",
+    "NAME"
+   ],
+   [
+    "FR34 1027 8060 4100 0204 5230 187",
+    "IBAN"
+   ],
+   [
+    "7 impasse des Acacias",
+    "ADDRESS"
+   ],
+   [
+    "69100",
+    "POSTAL"
+   ],
+   [
+    "Yssingeaux",
+    "CITY"
+   ],
+   [
+    "1979-11-30",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tc-supabase-sql-update",
+  "lang": "fr",
+  "text": "UPDATE profils SET telephone = '06 45 67 89 01', email = 'leandre.gaspard@exemple.fr'\nWHERE numero_secu = '2 95 01 78 123 456 22' AND nom = 'GASPARD';",
+  "truth": [
+   [
+    "06 45 67 89 01",
+    "PHONE"
+   ],
+   [
+    "leandre.gaspard@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "2 95 01 78 123 456 22",
+    "ID"
+   ],
+   [
+    "GASPARD",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tc-posthog-hogql",
+  "lang": "en",
+  "text": "SELECT person.properties.email, count()\nFROM events\nWHERE person.properties.email IN ('l.niels@exemple.fr', 'p.gaspard@wp.pl')\n  AND properties.$ip = '92.184.105.22'\n  AND timestamp > now() - INTERVAL 7 DAY\nGROUP BY person.properties.email",
+  "truth": [
+   [
+    "l.niels@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "92.184.105.22",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tc-posthog-filter",
+  "lang": "en",
+  "text": "{\"kind\":\"EventsQuery\",\"properties\":[{\"key\":\"email\",\"operator\":\"exact\",\"value\":[\"fanny.fanny@exemple.re\"],\"type\":\"person\"},\n{\"key\":\"$geoip_city_name\",\"operator\":\"exact\",\"value\":[\"Saint-Auch\"],\"type\":\"event\"}],\"after\":\"-30d\"}",
+  "truth": [
+   [
+    "fanny.fanny@exemple.re",
+    "EMAIL"
+   ],
+   [
+    "Saint-Auch",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tc-notion-sql",
+  "lang": "fr",
+  "text": "SELECT * FROM \"collection://f336d0bc\" WHERE \"Email\" = ? AND \"Tuteur\" = ?\n-- params: [\"mireille.clement@edu.univ-fcomte.fr\", \"Antonin PELECARD-TALEAU\"]",
+  "truth": [
+   [
+    "mireille.clement@edu.univ-fcomte.fr",
+    "EMAIL"
+   ],
+   [
+    "Antonin PELECARD-TALEAU",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tc-linear-graphql-vars",
+  "lang": "en",
+  "text": "query Issues($filter: IssueFilter) { issues(filter: $filter) { nodes { id title } } }\nvariables: {\"filter\":{\"assignee\":{\"email\":{\"eq\":\"carole.peland@protonmail.com\"}},\n\"searchableContent\":{\"contains\":\"Capucine N'TALAUIN 06 23 54 87 01\"}}}",
+  "truth": [
+   [
+    "carole.peland@protonmail.com",
+    "EMAIL"
+   ],
+   [
+    "Capucine N'TALAUIN",
+    "NAME"
+   ],
+   [
+    "06 23 54 87 01",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tc-slack-search-query",
+  "lang": "fr",
+  "text": "{\"tool\":\"slack_search_public\",\"arguments\":{\"query\":\"from:@c.jolaud \\\"8 rue des Cordeliers\\\" OR \\\"06 09 55 71 20\\\"\",\"count\":20}}",
+  "truth": [
+   [
+    "c.jolaud",
+    "ID"
+   ],
+   [
+    "8 rue des Cordeliers",
+    "ADDRESS"
+   ],
+   [
+    "06 09 55 71 20",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tc-gmail-search-query",
+  "lang": "fr",
+  "text": "{\"tool\":\"gmail_search\",\"arguments\":{\"q\":\"from:l.guingamp@atelier-lanaud.fr to:clement.jolaud@exemple.fr subject:devis after:2026/07/01\"}}",
+  "truth": [
+   [
+    "l.guingamp@atelier-lanaud.fr",
+    "EMAIL"
+   ],
+   [
+    "clement.jolaud@exemple.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tc-stripe-search",
+  "lang": "en",
+  "text": "{\"tool\":\"stripe_search_customers\",\"arguments\":{\"query\":\"email:'l.niels@exemple.fr' OR name:'Freja Niels' OR metadata['siret']:'73282932000074'\"}}",
+  "truth": [
+   [
+    "l.niels@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Freja Niels",
+    "NAME"
+   ],
+   [
+    "73282932000074",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "tc-intercom-search",
+  "lang": "en",
+  "text": "{\"query\":{\"operator\":\"AND\",\"value\":[{\"field\":\"email\",\"operator\":\"=\",\"value\":\"wouter.morholt@posteo.eu\"},\n{\"field\":\"phone\",\"operator\":\"=\",\"value\":\"+39 340 118 27 64\"},{\"field\":\"location.city\",\"operator\":\"=\",\"value\":\"Leer\"}]}}",
+  "truth": [
+   [
+    "wouter.morholt@posteo.eu",
+    "EMAIL"
+   ],
+   [
+    "+39 340 118 27 64",
+    "PHONE"
+   ],
+   [
+    "Leer",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tc-airtable-formula",
+  "lang": "fr",
+  "text": "{\"tool\":\"airtable_list_records\",\"arguments\":{\"filterByFormula\":\"AND({Email}='r.gisele@free.fr',{CP}='27200',{Nom}='Edith GISELE')\",\"maxRecords\":10}}",
+  "truth": [
+   [
+    "r.gisele@free.fr",
+    "EMAIL"
+   ],
+   [
+    "27200",
+    "POSTAL"
+   ],
+   [
+    "Edith GISELE",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tc-jira-jql",
+  "lang": "fr",
+  "text": "{\"jql\":\"project = SUP AND reporter = 'n.jolon@exemple.fr' AND text ~ \\\"Roland CAPUCINE-DORRET\\\" AND created >= -30d\"}",
+  "truth": [
+   [
+    "n.jolon@exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Roland CAPUCINE-DORRET",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "tc-sentry-query",
+  "lang": "en",
+  "text": "{\"tool\":\"sentry_search_issues\",\"arguments\":{\"query\":\"user.email:c.holelfeld.oda@fastmail.com user.ip:92.184.105.22 is:unresolved\",\"statsPeriod\":\"14d\"}}",
+  "truth": [
+   [
+    "c.holelfeld.oda@fastmail.com",
+    "EMAIL"
+   ],
+   [
+    "92.184.105.22",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "tc-vercel-logs-query",
+  "lang": "en",
+  "text": "{\"tool\":\"get_runtime_logs\",\"arguments\":{\"projectId\":\"prj_9K\",\"teamId\":\"team_2x\",\"query\":\"fanny.fanny@exemple.re OR 0692771203\",\"level\":[\"error\"],\"since\":\"24h\"}}",
+  "truth": [
+   [
+    "fanny.fanny@exemple.re",
+    "EMAIL"
+   ],
+   [
+    "0692771203",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tc-filesystem-write",
+  "lang": "fr",
+  "text": "{\"tool\":\"write_file\",\"arguments\":{\"path\":\"/Users/carole.peland/Desktop/relance.txt\",\n\"content\":\"Monsieur Roland LEANDRE, 12 rue des Forges 25000 CONFOLENS — solde du au 31/07.\"}}",
+  "truth": [
+   [
+    "/Users/carole.peland/Desktop/relance.txt",
+    "PATH"
+   ],
+   [
+    "carole.peland",
+    "NAME"
+   ],
+   [
+    "Roland LEANDRE",
+    "NAME"
+   ],
+   [
+    "12 rue des Forges",
+    "ADDRESS"
+   ],
+   [
+    "25000",
+    "POSTAL"
+   ],
+   [
+    "CONFOLENS",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "tc-gmail-send",
+  "lang": "fr",
+  "text": "{\"tool\":\"gmail_send\",\"arguments\":{\"to\":\"gisele.carole@laposte.net\",\"cc\":\"a.agathe@cabinet-agathe.fr\",\n\"subject\":\"Signature du 12 septembre\",\"body\":\"Madame CAROLE, merci de vous munir de votre CNI n 990275301245 et du RIB FR76 3000 6000 0112 3456 7890 189.\"}}",
+  "truth": [
+   [
+    "gisele.carole@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "a.agathe@cabinet-agathe.fr",
+    "EMAIL"
+   ],
+   [
+    "CAROLE",
+    "NAME"
+   ],
+   [
+    "990275301245",
+    "ID"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "tc-webbrowse-url",
+  "lang": "fr",
+  "text": "{\"tool\":\"browse\",\"arguments\":{\"url\":\"https://annuaire.exemple.fr/recherche?nom=Gisele+CAROLE&ville=Elbeuf&tel=0477712008\"}}",
+  "truth": [
+   [
+    "Gisele",
+    "NAME"
+   ],
+   [
+    "CAROLE",
+    "NAME"
+   ],
+   [
+    "Elbeuf",
+    "CITY"
+   ]
+  ]
+ }
+]

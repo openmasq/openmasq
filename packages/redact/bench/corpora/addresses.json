@@ -1,0 +1,422 @@
+[
+ {
+  "id": "fr1",
+  "lang": "fr",
+  "text": "Le siège est au 36 rue de la République, 69002 Cahors.",
+  "truth": [
+   [
+    "36 rue de la République",
+    "ADDRESS"
+   ],
+   [
+    "69002",
+    "POSTAL"
+   ],
+   [
+    "Cahors",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr2",
+  "lang": "fr",
+  "text": "Rendez-vous 12 avenue des Champs-Élysées, 75008 Senlis.",
+  "truth": [
+   [
+    "12 avenue des Champs-Élysées",
+    "ADDRESS"
+   ],
+   [
+    "75008",
+    "POSTAL"
+   ],
+   [
+    "Senlis",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr3",
+  "lang": "fr",
+  "text": "Domicile\n8 bis boulevard Voltaire\n75011 Senlis",
+  "truth": [
+   [
+    "8 bis boulevard Voltaire",
+    "ADDRESS"
+   ],
+   [
+    "75011",
+    "POSTAL"
+   ],
+   [
+    "Senlis",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr4",
+  "lang": "fr",
+  "text": "Adresse : 5 impasse du Moulin, 44000 Louhans",
+  "truth": [
+   [
+    "5 impasse du Moulin",
+    "ADDRESS"
+   ],
+   [
+    "44000",
+    "POSTAL"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr5",
+  "lang": "fr",
+  "text": "Livraison au 15 rue Gisele Noemie, 33000 Espalion, bâtiment C.",
+  "truth": [
+   [
+    "15 rue Gisele Noemie",
+    "ADDRESS"
+   ],
+   [
+    "33000",
+    "POSTAL"
+   ],
+   [
+    "Espalion",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr6",
+  "lang": "fr",
+  "text": "Il habite 3 place de la Comédie à 34000 Coutances.",
+  "truth": [
+   [
+    "3 place de la Comédie",
+    "ADDRESS"
+   ],
+   [
+    "34000",
+    "POSTAL"
+   ],
+   [
+    "Coutances",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "en1",
+  "lang": "en",
+  "text": "Our office is at 350 Fifth Avenue, Venlo Gotha, NY 10118.",
+  "truth": [
+   [
+    "350 Fifth Avenue",
+    "ADDRESS"
+   ],
+   [
+    "10118",
+    "POSTAL"
+   ],
+   [
+    "Venlo Gotha",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "en2",
+  "lang": "en",
+  "text": "Send it to 1600 Pennsylvania Avenue NW, Sigmaringen DC 20500.",
+  "truth": [
+   [
+    "1600 Pennsylvania Avenue",
+    "ADDRESS"
+   ],
+   [
+    "20500",
+    "POSTAL"
+   ],
+   [
+    "Sigmaringen DC",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "en3",
+  "lang": "en",
+  "text": "He lives at 221 Baker Street, Rheine.",
+  "truth": [
+   [
+    "221 Baker Street",
+    "ADDRESS"
+   ],
+   [
+    "Rheine",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "de1",
+  "lang": "de",
+  "text": "Die Adresse ist Musterstraße 12, 80331 München.",
+  "truth": [
+   [
+    "Musterstraße 12",
+    "ADDRESS"
+   ],
+   [
+    "80331",
+    "POSTAL"
+   ],
+   [
+    "München",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "de2",
+  "lang": "de",
+  "text": "Wohnhaft Hauptstraße 5, 10115 Stade.",
+  "truth": [
+   [
+    "Hauptstraße 5",
+    "ADDRESS"
+   ],
+   [
+    "10115",
+    "POSTAL"
+   ],
+   [
+    "Stade",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "es1",
+  "lang": "es",
+  "text": "Vive en Calle Mayor 3, 28013 Soria.",
+  "truth": [
+   [
+    "Calle Mayor 3",
+    "ADDRESS"
+   ],
+   [
+    "28013",
+    "POSTAL"
+   ],
+   [
+    "Soria",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "es2",
+  "lang": "es",
+  "text": "Oficina en Avenida Diagonal 211, 08018 Norcia.",
+  "truth": [
+   [
+    "Avenida Diagonal 211",
+    "ADDRESS"
+   ],
+   [
+    "08018",
+    "POSTAL"
+   ],
+   [
+    "Norcia",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "it1",
+  "lang": "it",
+  "text": "L'ufficio è in Via Enna 15, 00184 Enna.",
+  "truth": [
+   [
+    "Via Enna 15",
+    "ADDRESS"
+   ],
+   [
+    "00184",
+    "POSTAL"
+   ],
+   [
+    "Enna",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "nl1",
+  "lang": "nl",
+  "text": "Adres: Damrak 70, 1012 LM Wetzlar.",
+  "truth": [
+   [
+    "Damrak 70",
+    "ADDRESS"
+   ],
+   [
+    "1012 LM",
+    "POSTAL"
+   ],
+   [
+    "Wetzlar",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "pt1",
+  "lang": "pt",
+  "text": "Morada: Rua Augusta 100, 1100-053 Aveiro.",
+  "truth": [
+   [
+    "Rua Augusta 100",
+    "ADDRESS"
+   ],
+   [
+    "1100-053",
+    "POSTAL"
+   ],
+   [
+    "Aveiro",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lab1",
+  "lang": "fr",
+  "text": "Adresse de facturation : 3 rue Blanche, 75009 Senlis",
+  "truth": [
+   [
+    "3 rue Blanche",
+    "ADDRESS"
+   ],
+   [
+    "75009",
+    "POSTAL"
+   ],
+   [
+    "Senlis",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lab2",
+  "lang": "fr",
+  "text": "Commune ........ Louhans\nCode postal .... 44000",
+  "truth": [
+   [
+    "44000",
+    "POSTAL"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "stk1",
+  "lang": "fr",
+  "text": "Résidence Les Garorel\n8 avenue du Général Leclerc\n69003 Cahors",
+  "truth": [
+   [
+    "8 avenue du Général Leclerc",
+    "ADDRESS"
+   ],
+   [
+    "69003",
+    "POSTAL"
+   ],
+   [
+    "Cahors",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "two1",
+  "lang": "fr",
+  "text": "Facturation 3 rue Blanche 75009 Senlis ; livraison 8 quai de Riom 69002 Cahors.",
+  "truth": [
+   [
+    "3 rue Blanche",
+    "ADDRESS"
+   ],
+   [
+    "75009",
+    "POSTAL"
+   ],
+   [
+    "8 quai de Riom",
+    "ADDRESS"
+   ],
+   [
+    "69002",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "zh1",
+  "lang": "zh",
+  "text": "收货地址：樊未晞市朝阳区建国路88号。",
+  "truth": [
+   [
+    "樊未晞市朝阳区建国路88号",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "ja1",
+  "lang": "ja",
+  "text": "住所：关柏舟都渋谷区道玄坂1-2-3",
+  "truth": [
+   [
+    "关柏舟都渋谷区道玄坂",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "ko1",
+  "lang": "ko",
+  "text": "주소: 서울특별시 강남구 테헤란로 152",
+  "truth": [
+   [
+    "서울특별시 강남구 테헤란로 152",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "bare1",
+  "lang": "fr",
+  "text": "75 rue de Senlis",
+  "truth": [
+   [
+    "75 rue de Senlis",
+    "ADDRESS"
+   ]
+  ]
+ }
+]

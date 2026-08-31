@@ -1,0 +1,591 @@
+[
+ {
+  "id": "dob-01",
+  "lang": "fr",
+  "text": "Né le 14/03/1988.",
+  "truth": [
+   [
+    "14/03/1988",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-02",
+  "lang": "fr",
+  "text": "Date de naissance 1988-03-14.",
+  "truth": [
+   [
+    "1988-03-14",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-03",
+  "lang": "fr",
+  "text": "Né le 14.03.88.",
+  "truth": [
+   [
+    "14.03.88",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-04",
+  "lang": "fr",
+  "text": "Né le 31-01-1955.",
+  "truth": [
+   [
+    "31-01-1955",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-05",
+  "lang": "fr",
+  "text": "Né le 12.04.2024.",
+  "truth": [
+   [
+    "12.04.2024",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-06",
+  "lang": "fr",
+  "text": "Né le 23/12/1969.",
+  "truth": [
+   [
+    "23/12/1969",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-07",
+  "lang": "fr",
+  "text": "Né le 02/11/1975.",
+  "truth": [
+   [
+    "02/11/1975",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-08",
+  "lang": "fr",
+  "text": "Born on 05/08/1994.",
+  "truth": [
+   [
+    "05/08/1994",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-09",
+  "lang": "fr",
+  "text": "Née le 14 mars 1988.",
+  "truth": [
+   [
+    "14 mars 1988",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-10",
+  "lang": "fr",
+  "text": "Son anniversaire est le 3 juillet 1992.",
+  "truth": [
+   [
+    "3 juillet 1992",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-11",
+  "lang": "fr",
+  "text": "Elle est née le 29 février 1996.",
+  "truth": [
+   [
+    "29 février 1996",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-12",
+  "lang": "fr",
+  "text": "Il est né un 1er avril 1980.",
+  "truth": [
+   [
+    "1er avril 1980",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-13",
+  "lang": "fr",
+  "text": "Sa date de naissance est le 8 janvier 2003.",
+  "truth": [
+   [
+    "8 janvier 2003",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-14",
+  "lang": "fr",
+  "text": "Née le 17 novembre 1982.",
+  "truth": [
+   [
+    "17 novembre 1982",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-15",
+  "lang": "fr",
+  "text": "Né en 1988.",
+  "truth": [
+   [
+    "1988",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-16",
+  "lang": "fr",
+  "text": "Ma fille est née en mars 2015.",
+  "truth": [
+   [
+    "mars 2015",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-17",
+  "lang": "fr",
+  "text": "DDN : 07/09/2001.",
+  "truth": [
+   [
+    "07/09/2001",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "dob-18",
+  "lang": "fr",
+  "text": "Né(e) le : 15/06/1990.",
+  "truth": [
+   [
+    "15/06/1990",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "pse-01",
+  "lang": "fr",
+  "text": "Handle : @estelle_d",
+  "truth": [
+   [
+    "@estelle_d",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-02",
+  "lang": "fr",
+  "text": "Identifiant : ad-9218",
+  "truth": [
+   [
+    "ad-9218",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-03",
+  "lang": "fr",
+  "text": "Pseudo : K4v14r_fan",
+  "truth": [
+   [
+    "K4v14r_fan",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-04",
+  "lang": "fr",
+  "text": "utilisateur : a.joligy",
+  "truth": [
+   [
+    "a.joligy",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-05",
+  "lang": "fr",
+  "text": "login: root_adm",
+  "truth": [
+   [
+    "root_adm",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-06",
+  "lang": "fr",
+  "text": "Mon pseudo est ajoligy92.",
+  "truth": [
+   [
+    "ajoligy92",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-07",
+  "lang": "fr",
+  "text": "Mon username est darkvador75.",
+  "truth": [
+   [
+    "darkvador75",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-08",
+  "lang": "fr",
+  "text": "Connecte-toi avec le compte chalin_admin.",
+  "truth": [
+   [
+    "chalin_admin",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-09",
+  "lang": "fr",
+  "text": "Mon gamertag est xX_Shadow_Xx.",
+  "truth": [
+   [
+    "xX_Shadow_Xx",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-10",
+  "lang": "fr",
+  "text": "Le compte utilisé est jdupont2.",
+  "truth": [
+   [
+    "jdupont2",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-11",
+  "lang": "fr",
+  "text": "Mon identifiant client est 88-45-KL.",
+  "truth": [
+   [
+    "88-45-KL",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "pse-12",
+  "lang": "fr",
+  "text": "Mon id Discord : estelle#4521",
+  "truth": [
+   [
+    "estelle#4521",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-01",
+  "lang": "fr",
+  "text": "US : +1 (212) 736-5000",
+  "truth": [
+   [
+    "+1 (212) 736-5000",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-02",
+  "lang": "fr",
+  "text": "US : +1 (555) 123-4567",
+  "truth": [
+   [
+    "+1 (555) 123-4567",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-03",
+  "lang": "fr",
+  "text": "Bearer : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
+  "truth": [
+   [
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-04",
+  "lang": "fr",
+  "text": "Partage : \\\\srv-fichiers\\compta\\2026",
+  "truth": [
+   [
+    "srv-fichiers",
+    "PATH"
+   ],
+   [
+    "compta",
+    "PATH"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-05",
+  "lang": "fr",
+  "text": "Joins estelle [at] chalin.io",
+  "truth": [
+   [
+    "estelle [at] chalin.io",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-06",
+  "lang": "fr",
+  "text": "Permis de conduire : 851135",
+  "truth": [
+   [
+    "851135",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-07",
+  "lang": "fr",
+  "text": "Mdp wifi : maison2026!",
+  "truth": [
+   [
+    "maison2026!",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-08",
+  "lang": "fr",
+  "text": "Clé de licence : A1B2C-D3E4F-G5H6I-J7K8L",
+  "truth": [
+   [
+    "A1B2C-D3E4F-G5H6I-J7K8L",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-09",
+  "lang": "fr",
+  "text": "Le code du coffre est 4581.",
+  "truth": [
+   [
+    "4581",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-10",
+  "lang": "fr",
+  "text": "Résidence Les Chênes, appartement 12B, 5 allée Talaud, 69003 Cahors",
+  "truth": [
+   [
+    "5 allée Talaud",
+    "ADDRESS"
+   ],
+   [
+    "69003",
+    "POSTAL"
+   ],
+   [
+    "Cahors",
+    "CITY"
+   ],
+   [
+    "Résidence Les Chênes",
+    "ADDRESS"
+   ],
+   [
+    "12B",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "fmt-11",
+  "lang": "fr",
+  "text": "Réunion à la Défense.",
+  "truth": [
+   [
+    "la Défense",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "url-01",
+  "lang": "fr",
+  "text": "Va sur www.notre-intranet-chalin.fr",
+  "truth": [
+   [
+    "www.notre-intranet-chalin.fr",
+    "URL"
+   ]
+  ]
+ },
+ {
+  "id": "url-02",
+  "lang": "fr",
+  "text": "Serveur : srv-prod-01.chalin.local",
+  "truth": [
+   [
+    "srv-prod-01.chalin.local",
+    "URL"
+   ]
+  ]
+ },
+ {
+  "id": "url-03",
+  "lang": "fr",
+  "text": "Lien : https://app.chalin.io?token=abc123secret",
+  "truth": [
+   [
+    "abc123secret",
+    "SECRET"
+   ],
+   [
+    "https://app.chalin.io",
+    "URL"
+   ]
+  ]
+ },
+ {
+  "id": "amt-01",
+  "lang": "fr",
+  "text": "Mon salaire est de 85 000 €.",
+  "truth": [
+   [
+    "85 000",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "amt-02",
+  "lang": "fr",
+  "text": "Rémunération annuelle : 120 000 $ brut",
+  "truth": [
+   [
+    "120 000",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "amt-03",
+  "lang": "fr",
+  "text": "Je gagne 85k€.",
+  "truth": [
+   [
+    "85k",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "amt-04",
+  "lang": "fr",
+  "text": "Augmentation à 62 000 € au 1er septembre.",
+  "truth": [
+   [
+    "62 000",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "amt-05",
+  "lang": "fr",
+  "text": "Vire 12 500 € sur l IBAN FR7630006000011234567890189.",
+  "truth": [
+   [
+    "12 500",
+    "AMOUNT"
+   ],
+   [
+    "FR7630006000011234567890189",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "amt-06",
+  "lang": "fr",
+  "text": "Appartement acheté 320 000 €.",
+  "truth": [
+   [
+    "320 000",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "amt-07",
+  "lang": "fr",
+  "text": "Budget 150 000 € pour le client.",
+  "truth": [
+   [
+    "150 000",
+    "AMOUNT"
+   ]
+  ]
+ }
+]

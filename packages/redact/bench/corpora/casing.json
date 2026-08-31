@@ -1,0 +1,1040 @@
+[
+ {
+  "id": "lc-fr-je-suis",
+  "lang": "fr",
+  "text": "Je suis estelle joligy.",
+  "truth": [
+   [
+    "estelle joligy",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-appelle",
+  "lang": "fr",
+  "text": "Je m'appelle capucine linand et j'habite à nogaro.",
+  "truth": [
+   [
+    "capucine linand",
+    "NAME"
+   ],
+   [
+    "nogaro",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-pour-info",
+  "lang": "fr",
+  "text": "Pour info, le rendez-vous avec émilie laminac est déplacé à vire.",
+  "truth": [
+   [
+    "émilie laminac",
+    "NAME"
+   ],
+   [
+    "vire",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-confirme",
+  "lang": "fr",
+  "text": "Je te confirme que le colis part demain pour louhans. Le destinataire est fanny sorier.",
+  "truth": [
+   [
+    "louhans",
+    "CITY"
+   ],
+   [
+    "fanny sorier",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-oublie-pas",
+  "lang": "fr",
+  "text": "N'oublie pas d'inviter grégoire norouand à la réunion de lundi.",
+  "truth": [
+   [
+    "grégoire norouand",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-question",
+  "lang": "fr",
+  "text": "Est-ce que quelqu'un connaît le contact de tristan verarent à la mairie de jonzac ?",
+  "truth": [
+   [
+    "tristan verarent",
+    "NAME"
+   ],
+   [
+    "jonzac",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-verifie",
+  "lang": "fr",
+  "text": "Peux-tu vérifier si l'agence de dinard-guingamp a bien reçu le dossier de valentine rouonel ?",
+  "truth": [
+   [
+    "dinard-guingamp",
+    "CITY"
+   ],
+   [
+    "valentine rouonel",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-apostrophe",
+  "lang": "fr",
+  "text": "L'assistante de monsieur valentine a appelé ce matin.",
+  "truth": [
+   [
+    "valentine",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-citation",
+  "lang": "fr",
+  "text": "« Je passe voir mireille malent demain », a-t-il écrit.",
+  "truth": [
+   [
+    "mireille malent",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-partenaire",
+  "lang": "fr",
+  "text": "Notre partenaire talac santé ouvre une antenne à corte.",
+  "truth": [
+   [
+    "talac santé",
+    "ORG"
+   ],
+   [
+    "corte",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-retrouve",
+  "lang": "fr",
+  "text": "On se retrouve chez mathis carole samedi ; il habite près de blaye maintenant.",
+  "truth": [
+   [
+    "mathis carole",
+    "NAME"
+   ],
+   [
+    "blaye",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lc-fr-devis",
+  "lang": "fr",
+  "text": "Le devis de monel ouest est arrivé. Le chantier démarre à toul la semaine prochaine.",
+  "truth": [
+   [
+    "monel ouest",
+    "ORG"
+   ],
+   [
+    "toul",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lc-en-update",
+  "lang": "en",
+  "text": "Quick update: the meeting with einar maren moved to tuesday. He will call from nordhorn.",
+  "truth": [
+   [
+    "einar maren",
+    "NAME"
+   ],
+   [
+    "nordhorn",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lc-en-forward",
+  "lang": "en",
+  "text": "Please forward the report to ylva holholt, she is based in fulda.",
+  "truth": [
+   [
+    "ylva holholt",
+    "NAME"
+   ],
+   [
+    "fulda",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lc-en-reminder",
+  "lang": "en",
+  "text": "Reminder: send the keys to lene vorbeck before he leaves for wesel on thursday.",
+  "truth": [
+   [
+    "lene vorbeck",
+    "NAME"
+   ],
+   [
+    "wesel",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-fr-retour",
+  "lang": "fr",
+  "text": "Bonjour. Merci pour ton retour hier soir. Peux-tu envoyer le contrat à fanny capucine avant vendredi ? Elle travaille chez verinat studio à espalion.",
+  "truth": [
+   [
+    "fanny capucine",
+    "NAME"
+   ],
+   [
+    "verinat studio",
+    "ORG"
+   ],
+   [
+    "espalion",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-fr-recrutement",
+  "lang": "fr",
+  "text": "Bonjour à tous. Le point d'équipe est décalé à jeudi. Concernant le recrutement, nous avons reçu clerel candidatures intéressantes. La première vient de tristan justine, qui a travaillé cinq ans à mayenne. La deuxième est celle de alexandre clerin. Enfin, la dernière nous vient d'un profil senior basé à rethel.",
+  "truth": [
+   [
+    "tristan justine",
+    "NAME"
+   ],
+   [
+    "mayenne",
+    "CITY"
+   ],
+   [
+    "alexandre clerin",
+    "NAME"
+   ],
+   [
+    "rethel",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-fr-compte-rendu",
+  "lang": "fr",
+  "text": "Compte rendu du 12 :\n\nLe transfert du site est validé. L'équipe de digne prend le relais dès lundi. Contact sur place : noemie guingamp.\n\nProchaine étape : signature chez torouier vauoux la semaine prochaine.",
+  "truth": [
+   [
+    "digne",
+    "CITY"
+   ],
+   [
+    "noemie guingamp",
+    "NAME"
+   ],
+   [
+    "torouier vauoux",
+    "ORG"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-fr-succession",
+  "lang": "fr",
+  "text": "bonjour,\n\nje fais suite à notre appel de ce matin. le dossier de succession de monsieur andré talauret est presque complet, il manque seulement l'attestation notariale. son notaire, maître hélène sorouon, doit nous l'envoyer avant la fin du mois. je vous tiendrai informé.\n\nbien cordialement,\nedith moneyent",
+  "truth": [
+   [
+    "andré talauret",
+    "NAME"
+   ],
+   [
+    "hélène sorouon",
+    "NAME"
+   ],
+   [
+    "edith moneyent",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-fr-bonne-nouvelle",
+  "lang": "fr",
+  "text": "Bonne nouvelle : le poste est validé. La prise de fonction de estelle vauarin est fixée au 1er septembre à pamiers.",
+  "truth": [
+   [
+    "estelle vauarin",
+    "NAME"
+   ],
+   [
+    "pamiers",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-fr-salle",
+  "lang": "fr",
+  "text": "Tout est ok pour la salle. Dernier point : la facture doit être adressée à l'hôtel du norat, à domfront, au nom de roland siméon.",
+  "truth": [
+   [
+    "hôtel du norat",
+    "ORG"
+   ],
+   [
+    "domfront",
+    "CITY"
+   ],
+   [
+    "roland siméon",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-fr-liste",
+  "lang": "fr",
+  "text": "À faire :\n- appeler roland bensaïd\n- réserver le train pour lisieux\n- envoyer le devis à atelier lanaud",
+  "truth": [
+   [
+    "roland bensaïd",
+    "NAME"
+   ],
+   [
+    "lisieux",
+    "CITY"
+   ],
+   [
+    "atelier lanaud",
+    "ORG"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-fr-etiquettes",
+  "lang": "fr",
+  "text": "client : alexandre verard\nville : macon\nsociété : guingamp télécom",
+  "truth": [
+   [
+    "alexandre verard",
+    "NAME"
+   ],
+   [
+    "macon",
+    "CITY"
+   ],
+   [
+    "guingamp télécom",
+    "ORG"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-en-recap",
+  "lang": "en",
+  "text": "hi team,\n\nquick recap of friday's call. the pilot with bremunmann morbeck starts next month. their lead engineer, nils bersen, will be onsite in husum for the kickoff. we still need a signed nda from their side.\n\nbest,\nanders",
+  "truth": [
+   [
+    "bremunmann morbeck",
+    "ORG"
+   ],
+   [
+    "nils bersen",
+    "NAME"
+   ],
+   [
+    "husum",
+    "CITY"
+   ],
+   [
+    "anders",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lcpar-en-contract",
+  "lang": "en",
+  "text": "Thanks for the update. As discussed, the contract goes to falengaard & kelinsen for review. Their office in delft handles it. Please copy caspar kelgaard on the email.",
+  "truth": [
+   [
+    "falengaard & kelinsen",
+    "ORG"
+   ],
+   [
+    "delft",
+    "CITY"
+   ],
+   [
+    "caspar kelgaard",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "chat-fr-rappeler",
+  "lang": "fr",
+  "text": "tu peux rappeler fanny sorat ce soir ? il est dispo après 18h",
+  "truth": [
+   [
+    "fanny sorat",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "chat-fr-numero",
+  "lang": "fr",
+  "text": "salut, est-ce que tu as le numéro de gisele soron ? je dois la joindre avant midi",
+  "truth": [
+   [
+    "gisele soron",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "chat-fr-vol",
+  "lang": "fr",
+  "text": "je cherche un vol pour figeac jeudi matin, retour dimanche soir",
+  "truth": [
+   [
+    "figeac",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "chat-fr-rdv",
+  "lang": "fr",
+  "text": "rdv 15h gare de vire avec blandine leandre, ne sois pas en retard",
+  "truth": [
+   [
+    "vire",
+    "CITY"
+   ],
+   [
+    "blandine leandre",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "chat-en-invoice",
+  "lang": "en",
+  "text": "hey did you see the invoice from holberg vorwald? femke streyberg sent it twice",
+  "truth": [
+   [
+    "holberg vorwald",
+    "ORG"
+   ],
+   [
+    "femke streyberg",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "chat-en-intro",
+  "lang": "en",
+  "text": "hi, my name is emma stenfeld and i live in kolding",
+  "truth": [
+   [
+    "emma stenfeld",
+    "NAME"
+   ],
+   [
+    "kolding",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "chat-es-intro",
+  "lang": "es",
+  "text": "hola, soy lucía roseletti y vivo en olot desde 2020",
+  "truth": [
+   [
+    "lucía roseletti",
+    "NAME"
+   ],
+   [
+    "olot",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "caps-fr-dossier",
+  "lang": "fr",
+  "text": "DOSSIER SUIVI PAR MADAME MIREILLE, AGENCE DE ABBEVILLE.",
+  "truth": [
+   [
+    "MIREILLE",
+    "NAME"
+   ],
+   [
+    "ABBEVILLE",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "caps-fr-urgent",
+  "lang": "fr",
+  "text": "URGENT : merci de rappeler auch linelat avant 17h.",
+  "truth": [
+   [
+    "auch linelat",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "ctrl-fr-plain",
+  "lang": "fr",
+  "text": "Je m'appelle Valentine Mony et je travaille chez Rouois Énergie à Coutances.",
+  "truth": [
+   [
+    "Valentine Mony",
+    "NAME"
+   ],
+   [
+    "Rouois Énergie",
+    "ORG"
+   ],
+   [
+    "Coutances",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "ctrl-fr-paragraphe",
+  "lang": "fr",
+  "text": "Bonjour Madame Gaspard. Suite à notre échange, je vous confirme le rendez-vous de mardi à Objat. Mon collègue Noemie Clerois vous accueillera.",
+  "truth": [
+   [
+    "Gaspard",
+    "NAME"
+   ],
+   [
+    "Objat",
+    "CITY"
+   ],
+   [
+    "Noemie Clerois",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "ctrl-en-meeting",
+  "lang": "en",
+  "text": "Yesterday I met Bengt Vorormann at the Alkmaar office of Mordorf Groning.",
+  "truth": [
+   [
+    "Bengt Vorormann",
+    "NAME"
+   ],
+   [
+    "Alkmaar",
+    "CITY"
+   ],
+   [
+    "Mordorf Groning",
+    "ORG"
+   ]
+  ]
+ },
+ {
+  "id": "mix-fr-freres",
+  "lang": "fr",
+  "text": "Mathis Carole a dit que son frère roland carole viendrait aussi.",
+  "truth": [
+   [
+    "Mathis Carole",
+    "NAME"
+   ],
+   [
+    "roland carole",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "mix-fr-associe",
+  "lang": "fr",
+  "text": "Contacte Carole Ménard ou son associé mathis jolier pour la visite.",
+  "truth": [
+   [
+    "Carole Ménard",
+    "NAME"
+   ],
+   [
+    "mathis jolier",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "md-fr-cr",
+  "lang": "fr",
+  "text": "# compte rendu — projet ondine\n\nprésents : mathis malel, edith monon\nexcusé : le service compta\n\nle chantier de embrun démarre au s2. mathis relance le fournisseur.",
+  "truth": [
+   [
+    "mathis malel",
+    "NAME"
+   ],
+   [
+    "edith monon",
+    "NAME"
+   ],
+   [
+    "embrun",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "md-en-changelog",
+  "lang": "en",
+  "text": "## follow-ups\n- ping gunnar hagholt about the gotha office\n- close the q3 ticket",
+  "truth": [
+   [
+    "gunnar hagholt",
+    "NAME"
+   ],
+   [
+    "gotha",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "list-num-fr",
+  "lang": "fr",
+  "text": "1. relancer bérengère vauigon\n2. confirmer la salle à bapaume\n3. payer l'acompte du traiteur",
+  "truth": [
+   [
+    "bérengère vauigon",
+    "NAME"
+   ],
+   [
+    "bapaume",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "mail-fr-reply",
+  "lang": "fr",
+  "text": "> bonjour, le créneau de 14h est-il toujours bon ?\n> merci, gisele\n\noui c'est bon pour moi. je préviens joël monret et l'équipe de saint-voiron.",
+  "truth": [
+   [
+    "gisele",
+    "NAME"
+   ],
+   [
+    "joël monret",
+    "NAME"
+   ],
+   [
+    "saint-voiron",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "sig-fr-lettre",
+  "lang": "fr",
+  "text": "veuillez agréer, madame, mes salutations distinguées.\n\nrémi jolinret\ndirecteur d'agence — uzes",
+  "truth": [
+   [
+    "rémi jolinret",
+    "NAME"
+   ],
+   [
+    "uzes",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "csv-fr",
+  "lang": "fr",
+  "text": "nom,prenom,ville\ncoline,mathis,ceret\nmathis,inès,etampes",
+  "truth": [
+   [
+    "coline",
+    "NAME"
+   ],
+   [
+    "mathis",
+    "NAME"
+   ],
+   [
+    "ceret",
+    "CITY"
+   ],
+   [
+    "mathis",
+    "NAME"
+   ],
+   [
+    "inès",
+    "NAME"
+   ],
+   [
+    "etampes",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "log-fr",
+  "lang": "fr",
+  "text": "2026-07-21 14:02:11 INFO connexion de capucine rouon depuis le poste de condom\n2026-07-21 14:05:37 WARN échec d'envoi vers le serveur de cognac",
+  "truth": [
+   [
+    "capucine rouon",
+    "NAME"
+   ],
+   [
+    "condom",
+    "CITY"
+   ],
+   [
+    "cognac",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "log-en",
+  "lang": "en",
+  "text": "2026-06-30 09:14 login failure for astrid dahlberg from the itzehoe gateway",
+  "truth": [
+   [
+    "astrid dahlberg",
+    "NAME"
+   ],
+   [
+    "itzehoe",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "json-fr",
+  "lang": "fr",
+  "text": "{\"client\": \"noemie blandine\", \"agence\": \"belfort\", \"commercial\": \"fanny hortense\"}",
+  "truth": [
+   [
+    "noemie blandine",
+    "NAME"
+   ],
+   [
+    "belfort",
+    "CITY"
+   ],
+   [
+    "fanny hortense",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "transcript-fr",
+  "lang": "fr",
+  "text": "donc voilà j'ai eu madame gisele au téléphone elle confirme le créneau de mardi et elle rappelle depuis carpentras en fin de journée",
+  "truth": [
+   [
+    "gisele",
+    "NAME"
+   ],
+   [
+    "carpentras",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "srt-fr",
+  "lang": "fr",
+  "text": "1\n00:00:01,000 --> 00:00:04,000\nbonsoir, ici le répondeur de agathe joleau\n\n2\n00:00:04,500 --> 00:00:07,000\nrappelez-moi au sujet du local d'autun",
+  "truth": [
+   [
+    "agathe joleau",
+    "NAME"
+   ],
+   [
+    "autun",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "dialog-fr",
+  "lang": "fr",
+  "text": "— tu as vu le message de solène ?\n— oui, elle arrive de mauriac demain matin.",
+  "truth": [
+   [
+    "solène",
+    "NAME"
+   ],
+   [
+    "mauriac",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "screenplay-fr",
+  "lang": "fr",
+  "text": "INT. BUREAU — JOUR\n\nCLEMENT (au téléphone) : tu diras à fanny quéré que le tournage est décalé.\n\nelle raccroche et quitte la pièce.",
+  "truth": [
+   [
+    "CLEMENT",
+    "NAME"
+   ],
+   [
+    "fanny quéré",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "poem-fr",
+  "lang": "fr",
+  "text": "Dans la brume du matin\nMarchait mathis linarin\nVers le dorand de etampes\nOù l'attendait sa sœur",
+  "truth": [
+   [
+    "mathis linarin",
+    "NAME"
+   ],
+   [
+    "etampes",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "form-caps-fr",
+  "lang": "fr",
+  "text": "NOM : noemie\nPRÉNOM : capucine\nVILLE DE NAISSANCE : lunel",
+  "truth": [
+   [
+    "noemie",
+    "NAME"
+   ],
+   [
+    "capucine",
+    "NAME"
+   ],
+   [
+    "lunel",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "ticket-fr",
+  "lang": "fr",
+  "text": "ticket #4521 — priorité haute\ndemandeur : clement chael\nsite : brioude\nrésumé : accès refusé depuis lundi matin",
+  "truth": [
+   [
+    "clement chael",
+    "NAME"
+   ],
+   [
+    "brioude",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "cal-fr",
+  "lang": "fr",
+  "text": "objet : point mensuel\nquand : jeudi, 10 h\noù : agence de dinan\navec : noemie savret, le pôle travaux",
+  "truth": [
+   [
+    "dinan",
+    "CITY"
+   ],
+   [
+    "noemie savret",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "invoice-fr",
+  "lang": "fr",
+  "text": "facture n° 2214-B\nclient : menuiserie lamat\nlivraison : nevers\ncontact sur place : edith le savin",
+  "truth": [
+   [
+    "menuiserie lamat",
+    "ORG"
+   ],
+   [
+    "nevers",
+    "CITY"
+   ],
+   [
+    "edith le savin",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "social-fr",
+  "lang": "fr",
+  "text": "super week-end à dieppe avec léa beraiaud !! on remet ça #vacances #plage",
+  "truth": [
+   [
+    "dieppe",
+    "CITY"
+   ],
+   [
+    "léa beraiaud",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "sms-fr-abrege",
+  "lang": "fr",
+  "text": "slt tu px passer chez carole lamand vers 20h ? c urgent",
+  "truth": [
+   [
+    "carole lamand",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "name-first-fr",
+  "lang": "fr",
+  "text": "carole guingamp a laissé un message pour toi ce matin",
+  "truth": [
+   [
+    "carole guingamp",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "cap-prenom-lc-nom-fr",
+  "lang": "fr",
+  "text": "Estelle joligy m'a rappelé hier soir au sujet du bail.",
+  "truth": [
+   [
+    "Estelle joligy",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "caps-ref-fr",
+  "lang": "fr",
+  "text": "RAPPEL : faire signer le contrat à roland saveyy avant vendredi. Réf. dossier BAUOREL-2214.",
+  "truth": [
+   [
+    "roland saveyy",
+    "NAME"
+   ],
+   [
+    "BAUOREL",
+    "ORG"
+   ]
+  ]
+ },
+ {
+  "id": "titlecase-hard-fr",
+  "lang": "fr",
+  "text": "Compte Rendu De La Visite Avec le consultant gaspard toraud",
+  "truth": [
+   [
+    "gaspard toraud",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "de-ctrl",
+  "lang": "de",
+  "text": "Gestern habe ich Frau Caspar in Hoxter getroffen und wir haben den Vertrag besprochen.",
+  "truth": [
+   [
+    "Caspar",
+    "NAME"
+   ],
+   [
+    "Hoxter",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "it-chat",
+  "lang": "it",
+  "text": "ciao, sono ulla elke e abito a zwolle da due anni",
+  "truth": [
+   [
+    "ulla elke",
+    "NAME"
+   ],
+   [
+    "zwolle",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "pt-chat",
+  "lang": "pt",
+  "text": "olá, falei com inês mireille ontem à noite em lamego",
+  "truth": [
+   [
+    "inês mireille",
+    "NAME"
+   ],
+   [
+    "lamego",
+    "CITY"
+   ]
+  ]
+ }
+]

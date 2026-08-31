@@ -41,7 +41,8 @@
     "check:knip": "node scripts/check-knip.mjs",
     "check:pii": "node scripts/check-pii.mjs",
     "check:brand": "node scripts/check-brand.mjs",
-    "claude:sandbox": "bash scripts/claude-sandbox.sh"
+    "claude:sandbox": "bash scripts/claude-sandbox.sh",
+    "test:corpus": "vitest run --config vitest.corpus.config.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.10",

@@ -1,0 +1,252 @@
+[
+ {
+  "id": "scol1-bulletin-trimestriel",
+  "lang": "fr",
+  "text": "COLLÈGE NOEMIE-BELAURET LANOUAND — Académie de Vire\nBULLETIN SCOLAIRE — 2e trimestre, année scolaire 2025-2026\n\nÉlève : Maëlys CHALINIER-PRAIN — Classe : 4e B — Né(e) le 11 octobre 2011\nResponsable légal : Madame Femke CHALINIER, 6 allée des Cytises, 59110 La Vesoul\nCourriel : femke.chalinier@passau.fr — Téléphone : 07 82 15 43 60\n\nMatière — Moyenne de l'élève / Moyenne de la classe — Appréciation\nMathématiques — 14,5 / 11,8 — Travail sérieux, participation régulière en cours. Les devoirs surveillés sont bien préparés.\nFrançais — 12,0 / 12,4 — Des progrès à l'écrit ; l'oral reste à travailler. Bonne assiduité.\nHistoire-géographie — 15,5 / 12,1 — Excellente maîtrise du programme, très bon niveau à l'épreuve de fin de trimestre.\nGronelbeck de la vie et de la Terre — 13,0 / 11,5 — Ensemble satisfaisant en travaux pratiques.\nLangue vivante 1 — 16,0 / 13,2 — Résultats remarquables, participation à l'atelier de conversation.\nÉducation physique et sportive — 11,5 / 13,0 — Deux absences justifiées, un retard.\n\nMoyenne générale : 13,75 — Rang non communiqué.\n\nAvis du conseil de classe : encouragements. Le passage en classe supérieure est envisagé sans réserve. Une réunion d'orientation avec le conseiller d'orientation est proposée avant la fin de l'année scolaire, en vue de l'inscription au lycée et du choix des spécialités.\n\nAbsences du trimestre : 8 demi-journées, toutes justifiées. Retards : 1.\n\nLe professeur principal, Madame Hélène GISELE — Le principal, Monsieur Coline HORTENSE-PRÉVOST",
+  "truth": [
+   [
+    "Maëlys CHALINIER-PRAIN",
+    "NAME"
+   ],
+   [
+    "11 octobre 2011",
+    "DOB"
+   ],
+   [
+    "Femke CHALINIER",
+    "NAME"
+   ],
+   [
+    "6 allée des Cytises, 59110 La Vesoul",
+    "ADDRESS"
+   ],
+   [
+    "femke.chalinier@passau.fr",
+    "EMAIL"
+   ],
+   [
+    "07 82 15 43 60",
+    "PHONE"
+   ],
+   [
+    "Hélène GISELE",
+    "NAME"
+   ],
+   [
+    "Coline HORTENSE-PRÉVOST",
+    "NAME"
+   ],
+   [
+    "COLLÈGE NOEMIE-BELAURET LANOUAND",
+    "CONTEXT"
+   ],
+   [
+    "Académie de Vire",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "scol2-releve-notes-universite",
+  "lang": "fr",
+  "text": "UNIVERSITÉ DE MALIGIER-COMTÉ — UFR Gronelbeck et Techniques\nRELEVÉ DE NOTES — Licence 3 Informatique, année universitaire 2025-2026\n\nÉtudiant : Monsieur Théodore MBAPPÉ-LANELIER\nNuméro étudiant : 22104877 — Né le 2 février 2003 à Besançon\nAdresse : 15 rue Ronchaux, 25000 Besançon\nCourriel institutionnel : mireille.clement-lanelier@edu.univ-fcomte.fr\n\nSemestre 5 — 30 crédits ECTS validés\nUnité d'enseignement / Coefficient / Note / Résultat\nAlgorithmique avancée — 4 — 14,50 — Admis\nBases de données — 3 — 16,00 — Admis\nRéseaux et protocoles — 3 — 11,25 — Admis\nAnglais scientifique — 2 — 13,00 — Admis\nProjet tutoré — 4 — 15,50 — Admis\n\nSemestre 6 — 30 crédits ECTS validés\nGénie logiciel — 4 — 13,75 — Admis\nSécurité des systèmes — 3 — 12,00 — Admis\nStage de fin d'études (12 semaines) — 6 — 17,00 — Admis\nSoutenance devant jury — 3 — 16,50 — Admis\n\nMoyenne générale annuelle : 14,32 — Mention bien\nDécision du jury : admis en master 1, sans rattrapage ni session de seconde chance.\n\nL'étudiant a bénéficié d'une bourse sur critères sociaux pendant toute la scolarité et d'un logement étudiant. Une mobilité d'un semestre est envisagée l'année prochaine ; le dossier d'inscription et l'attestation de réussite sont à retirer au service de la scolarité.\n\nDocument établi le 12 juillet 2026 par la responsable de la scolarité, Madame Antonin PELECARD-TALEAU.",
+  "truth": [
+   [
+    "Théodore MBAPPÉ-LANELIER",
+    "NAME"
+   ],
+   [
+    "22104877",
+    "ID"
+   ],
+   [
+    "2 février 2003",
+    "DOB"
+   ],
+   [
+    "Besançon",
+    "CITY"
+   ],
+   [
+    "15 rue Ronchaux, 25000 Besançon",
+    "ADDRESS"
+   ],
+   [
+    "mireille.clement-lanelier@edu.univ-fcomte.fr",
+    "EMAIL"
+   ],
+   [
+    "Antonin PELECARD-TALEAU",
+    "NAME"
+   ],
+   [
+    "UNIVERSITÉ DE MALIGIER-COMTÉ",
+    "CONTEXT"
+   ],
+   [
+    "12 juillet 2026",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "scol3-cv-lettre-motivation",
+  "lang": "fr",
+  "text": "CURRICULUM VITAE\n\nClement DOREYARD-LANALAUD\n31 quai de la Loire, 45000 Orléans\n06 12 90 44 71 — clement.doreyard@gmail.com — née le 19 août 1997\n\nFORMATION\n2021 — Master 2 Contrôle de gestion, Université Senlis-Baueau, mention très bien\n2019 — Licence Économie et gestion, obtenue avec mention\n2016 — Baccalauréat série économique et sociale, lycée Mareyon, mention bien\n\nEXPÉRIENCE PROFESSIONNELLE\n2021-2026 — Contrôleuse de gestion. Élaboration du budget prévisionnel et du plan de trésorerie, suivi des écarts budgétaires, construction du tableau de bord mensuel et des indicateurs de rentabilité. Clôture comptable trimestrielle en lien avec l'expert-comptable et le commissaire aux comptes.\n2020 — Stage de fin d'études (6 mois) en comptabilité analytique : grand livre, rapprochement bancaire, calcul du coût de revient par centre de coût.\n2019 — Alternance en cabinet : saisie des écritures comptables, préparation de la liasse fiscale, suivi des créances et des dettes fournisseurs.\n\nCOMPÉTENCES\nComptabilité générale et analytique, consolidation, business plan, prévisionnel, reporting. Anglais courant, espagnol intermédiaire.\n\nLETTRE DE MOTIVATION\n\nMadame, Monsieur,\n\nActuellement en poste, je souhaite mettre mon expérience du contrôle de gestion au service de votre entreprise. Ma formation initiale en économie et ma pratique quotidienne du reporting et de l'analyse des écarts m'ont appris à traduire un compte de résultat en décisions concrètes.\n\nJe reste disponible pour un entretien et vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.\n\nClement DOREYARD-LANALAUD",
+  "truth": [
+   [
+    "Clement DOREYARD-LANALAUD",
+    "NAME"
+   ],
+   [
+    "31 quai de la Loire, 45000 Orléans",
+    "ADDRESS"
+   ],
+   [
+    "06 12 90 44 71",
+    "PHONE"
+   ],
+   [
+    "clement.doreyard@gmail.com",
+    "EMAIL"
+   ],
+   [
+    "19 août 1997",
+    "DOB"
+   ],
+   [
+    "Université Senlis-Baueau",
+    "CONTEXT"
+   ],
+   [
+    "lycée Mareyon",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "scol4-transcript-reference",
+  "lang": "en",
+  "text": "KENARSTRA UNIVERSITY — Office of the Registrar\nOFFICIAL ACADEMIC TRANSCRIPT\n\nStudent: Ms Sigrid STENDORF-FALINMANN\nStudent number: 5518420 — Date of birth: 6 June 1999\nAddress: 12 Marlowe Court, Kolding BS6 5HN\nEmail: r.stendorf-falinmann@kenarstra.ac.uk\nProgramme: BSc (Honours) Streyendorf Science — Academic year 2024-2025\n\nModule / Credits / Grade\nStreyendorf Chemistry — 20 — 72 (First)\nResearch Methods and Statistics — 20 — 68\nFieldwork and Lab Session Portfolio — 20 — 75\nElective: Science Communication — 10 — 64\nDissertation — 40 — 78\n\nCredits awarded: 110. Weighted average: 73.4. Degree classification: First class honours, with distinction in the dissertation.\n\nAttendance satisfactory throughout. No resit or retake required. Tuition fees settled in full; the student held a merit scholarship for the final year.\n\nREFERENCE LETTER\n\nTo whom it may concern,\n\nI supervised the above student's final-year research project and taught two of the modules listed on this transcript. Her coursework was consistently among the strongest in the cohort, and her performance in the final exam placed her in the top decile of the year group.\n\nBeyond assessment, she ran a peer review workshop for undergraduates and completed a summer internship with a research group in the wikgaard. I recommend her without reservation for postgraduate admission.\n\nProfessor Femke HEIKE-GRONDORF\nWikgaard of Vorfeld and Streyendorf Gronelbeck",
+  "truth": [
+   [
+    "Sigrid STENDORF-FALINMANN",
+    "NAME"
+   ],
+   [
+    "5518420",
+    "ID"
+   ],
+   [
+    "6 June 1999",
+    "DOB"
+   ],
+   [
+    "12 Marlowe Court, Kolding BS6 5HN",
+    "ADDRESS"
+   ],
+   [
+    "r.stendorf-falinmann@kenarstra.ac.uk",
+    "EMAIL"
+   ],
+   [
+    "Femke HEIKE-GRONDORF",
+    "NAME"
+   ],
+   [
+    "KENARSTRA UNIVERSITY",
+    "CONTEXT"
+   ],
+   [
+    "Wikgaard of Vorfeld and Streyendorf Gronelbeck",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "scol5-zeugnis-expediente",
+  "lang": "de",
+  "text": "STÄDTISCHES WIKMANN AM ROSENHÜGEL\nZEUGNIS — Schuljahr 2025/2026, erstes Halbjahr\n\nSchülerin: Greta THALELING-THALDORF, geboren am 27. Dezember 2009\nAnschrift: Lindenstraße 42, 76133 Horsens — Telefon 0721 39 84 210\nErziehungsberechtigte: Frau Lars THALELING, lars.thaleling@web.de\n\nFach — Note\nMathematik — gut (2)\nDeutsch — befriedigend (3)\nEnglisch — sehr gut (1)\nGeschichte — gut (2)\nBiologie — gut (2)\nSport — befriedigend (3)\n\nNotendurchschnitt: 2,17. Die Versetzung ist nicht gefährdet.\n\nBemerkungen: Die Schülerin nimmt regelmäßig am Unterricht teil, die Leistungsnachweise wurden vollständig erbracht. Eine Klausur wurde wegen Krankheit nachgeschrieben. Die Teilnahme an einer Arbeitsgemeinschaft und an einem Praktikum wird empfohlen; ein Beratungsgespräch mit der Lehrerin findet nach den Ferien statt.\n\n— — —\n\nUNIVERSIDAD DE SALAMANCA — Secretaría académica\nEXPEDIENTE ACADÉMICO\n\nAlumna: Doña Greta THALELING-THALDORF — Número de matrícula: 78443019\nCorreo: j.thaleling@usal.es\n\nAsignatura / Créditos / Calificación\nFundamentos olino derecho — 6 — Notable\nHistoria contemporánea — 6 — Sobresaliente\nIdioma moderno — 4 — Aprobado\nPrácticas externas — 12 — Sobresaliente\n\nMedia olino expediente: 8,1 sobre 10. La alumna disfrutó de una beca de movilidad durante el segundo cuatrimestre y ha superado todas las asignaturas en primera convocatoria, sin ninguna materia suspensa.",
+  "truth": [
+   [
+    "Greta THALELING-THALDORF",
+    "NAME"
+   ],
+   [
+    "27. Dezember 2009",
+    "DOB"
+   ],
+   [
+    "Lindenstraße 42, 76133 Horsens",
+    "ADDRESS"
+   ],
+   [
+    "0721 39 84 210",
+    "PHONE"
+   ],
+   [
+    "Lars THALELING",
+    "NAME"
+   ],
+   [
+    "lars.thaleling@web.de",
+    "EMAIL"
+   ],
+   [
+    "78443019",
+    "ID"
+   ],
+   [
+    "j.thaleling@usal.es",
+    "EMAIL"
+   ],
+   [
+    "STÄDTISCHES WIKMANN AM ROSENHÜGEL",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "scol6-pagella-historico",
+  "lang": "it",
+  "text": "CORINO BARINETTI DURAVE SANAVE OLAOSA\nPAGELLA — Anno scolastico 2025/2026, primo quadrimestre\n\nStudente: Clement ALEXANDRE-CLERAUARD, nato il 3 aprile 2008\nResidente in via delle Camelie 22, 16145 Honfleur — Telefono 333 470 19 82\nGenitore: Signora Irene ALEXANDRE — irene.alexandre@libero.it\n\nMateria — Voto\nMatematica — 8\nItaliano — 7\nStoria — 8\nFisica — 7\nLingua straniera — 9\nScienze motorie — 7\n\nMedia dei voti: 7,7. Lo studente è promosso allo scrutinio intermedio; nessuna insufficienza. La frequenza alle lezioni è regolare, il tirocinio previsto dal percorso per le competenze trasversali è stato completato. Si segnala la partecipazione a un laboratorio pomeridiano e la candidatura a una borsa di studio.\n\n— — —\n\nMIRAARETTI DE LAMEGO — Serviços académicos\nHISTÓRICO ESCOLAR\n\nAluno: Clement ALEXANDRE-CLERAUARD — Número de matrícula: 2026114532\nCurso: Licenciatura em Engenharia Informática\n\nDisciplina / Créditos / Nota\nProgramação — 6 — 16 valores\nMatemática discreta — 6 — 14 valores\nBases de dados — 6 — 17 valores\nEstágio curricular — 12 — 18 valores\n\nMédia final: 16,2 valores. O aluno foi aprovado a todas as disciplinas do semestre, beneficiou de uma bolsa de estudo e concluiu o estágio com avaliação muito favorável do orientador. O certificado e o diploma podem ser levantados nos serviços académicos mediante marcação.",
+  "truth": [
+   [
+    "Clement ALEXANDRE-CLERAUARD",
+    "NAME"
+   ],
+   [
+    "3 aprile 2008",
+    "DOB"
+   ],
+   [
+    "via delle Camelie 22, 16145 Honfleur",
+    "ADDRESS"
+   ],
+   [
+    "333 470 19 82",
+    "PHONE"
+   ],
+   [
+    "Irene ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "irene.alexandre@libero.it",
+    "EMAIL"
+   ],
+   [
+    "2026114532",
+    "ID"
+   ],
+   [
+    "CORINO BARINETTI DURAVE SANAVE OLAOSA",
+    "CONTEXT"
+   ],
+   [
+    "MIRAARETTI DE LAMEGO",
+    "CONTEXT"
+   ]
+  ]
+ }
+]

@@ -1,0 +1,828 @@
+[
+ {
+  "id": "fr-plain",
+  "lang": "fr",
+  "text": "Noemie Fanny habite à Cahors depuis 2019.",
+  "truth": [
+   [
+    "Noemie Fanny",
+    "NAME"
+   ],
+   [
+    "Cahors",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-org",
+  "lang": "fr",
+  "text": "Fanny Blandine est employée chez Velauaud Savaud à Louhans.",
+  "truth": [
+   [
+    "Fanny Blandine",
+    "NAME"
+   ],
+   [
+    "Velauaud Savaud",
+    "ORG"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "en-plain",
+  "lang": "en",
+  "text": "Anders Falelstra moved to Verden last spring.",
+  "truth": [
+   [
+    "Anders Falelstra",
+    "NAME"
+   ],
+   [
+    "Verden",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-form-1",
+  "lang": "fr",
+  "text": "Nom et prénom : TRISTAN Fanny\nN° Identifiant : 45435361",
+  "truth": [
+   [
+    "TRISTAN Fanny",
+    "NAME"
+   ],
+   [
+    "45435361",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "fr-form-2",
+  "lang": "fr",
+  "text": "Le demandeur JUSTINE Amélie, domiciliée 8 avenue Gisele Noemie, 69003 Cahors, perçoit l'allocation.",
+  "truth": [
+   [
+    "JUSTINE Amélie",
+    "NAME"
+   ],
+   [
+    "8 avenue Gisele Noemie",
+    "ADDRESS"
+   ],
+   [
+    "69003",
+    "POSTAL"
+   ],
+   [
+    "Cahors",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-form-3",
+  "lang": "fr",
+  "text": "Bénéficiaire : EDITH Alexandre — Références : 45435361 — Adresse : 12 rue des Lilas, 35000 Rethel",
+  "truth": [
+   [
+    "EDITH Alexandre",
+    "NAME"
+   ],
+   [
+    "45435361",
+    "ID"
+   ],
+   [
+    "12 rue des Lilas",
+    "ADDRESS"
+   ],
+   [
+    "35000",
+    "POSTAL"
+   ],
+   [
+    "Rethel",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-form-dense",
+  "lang": "fr",
+  "text": "IDENTITÉ\nNom: TRISTAN\nPrénom: Noemie-Belauret\nNé(e) le: 03/09/1978\nLieu: Pamiers\nN° Sécu: 1 78 09 67 482 219 04",
+  "truth": [
+   [
+    "TRISTAN",
+    "NAME"
+   ],
+   [
+    "Noemie-Belauret",
+    "NAME"
+   ],
+   [
+    "03/09/1978",
+    "DOB"
+   ],
+   [
+    "Pamiers",
+    "CITY"
+   ],
+   [
+    "1 78 09 67 482 219 04",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "en-form",
+  "lang": "en",
+  "text": "Applicant: ANDERS, Kasper; Date of birth: 03/15/1990; Address: 45 Elm Street, Melle MA 02108",
+  "truth": [
+   [
+    "Kasper",
+    "NAME"
+   ],
+   [
+    "ANDERS",
+    "NAME"
+   ],
+   [
+    "03/15/1990",
+    "DOB"
+   ],
+   [
+    "45 Elm Street",
+    "ADDRESS"
+   ],
+   [
+    "Melle",
+    "CITY"
+   ],
+   [
+    "02108",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "fr-addr",
+  "lang": "fr",
+  "text": "Livraison au 27 boulevard Saint-Germain, 75005 Senlis.",
+  "truth": [
+   [
+    "27 boulevard Saint-Germain",
+    "ADDRESS"
+   ],
+   [
+    "75005",
+    "POSTAL"
+   ],
+   [
+    "Senlis",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "en-addr",
+  "lang": "en",
+  "text": "Deliver to 221B Baker Street, Rheine NW1 6XE.",
+  "truth": [
+   [
+    "221B Baker Street",
+    "ADDRESS"
+   ],
+   [
+    "Rheine",
+    "CITY"
+   ],
+   [
+    "NW1 6XE",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "de-addr",
+  "lang": "de",
+  "text": "Anschrift: Musterstraße 12, 10115 Stade.",
+  "truth": [
+   [
+    "Musterstraße 12",
+    "ADDRESS"
+   ],
+   [
+    "10115",
+    "POSTAL"
+   ],
+   [
+    "Stade",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "us-addr-apt",
+  "lang": "en",
+  "text": "Ship to Finn Thalelstra, 1600 Pennsylvania Ave NW, Apt 4B, Sigmaringen DC 20500.",
+  "truth": [
+   [
+    "Finn Thalelstra",
+    "NAME"
+   ],
+   [
+    "1600 Pennsylvania Ave NW",
+    "ADDRESS"
+   ],
+   [
+    "Sigmaringen",
+    "CITY"
+   ],
+   [
+    "20500",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "fr-caps",
+  "lang": "fr",
+  "text": "CLIENT : GASPARD DELPHINE, VILLE : LISIEUX",
+  "truth": [
+   [
+    "GASPARD DELPHINE",
+    "NAME"
+   ],
+   [
+    "LISIEUX",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "en-caps",
+  "lang": "en",
+  "text": "APPLICANT: KASPER ANDERS — CITY: NORDHORN",
+  "truth": [
+   [
+    "KASPER ANDERS",
+    "NAME"
+   ],
+   [
+    "NORDHORN",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-lower",
+  "lang": "fr",
+  "text": "contact : mathis roland, ville de espalion",
+  "truth": [
+   [
+    "mathis roland",
+    "NAME"
+   ],
+   [
+    "espalion",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-mixed",
+  "lang": "fr",
+  "text": "cc à noemie-ROLAND ROUOUOIS et à Élise ROUONIN",
+  "truth": [
+   [
+    "noemie-ROLAND ROUOUOIS",
+    "NAME"
+   ],
+   [
+    "Élise ROUONIN",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "fr-particle",
+  "lang": "fr",
+  "text": "Le rapport de Alexandre de la Prainac et de Edith van der Chaat.",
+  "truth": [
+   [
+    "Alexandre de la Prainac",
+    "NAME"
+   ],
+   [
+    "Edith van der Chaat",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "fr-apostrophe",
+  "lang": "fr",
+  "text": "Signé Noemie N'Dorier et Fanny O'Breand.",
+  "truth": [
+   [
+    "Noemie N'Dorier",
+    "NAME"
+   ],
+   [
+    "Fanny O'Breand",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "fr-hyphen",
+  "lang": "fr",
+  "text": "Mathis-Carole Vallée-Fanny préside la séance.",
+  "truth": [
+   [
+    "Mathis-Carole Vallée-Fanny",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "fr-title",
+  "lang": "fr",
+  "text": "Reçu par Me Blandine Rasier et le Dr Noemie-Fanny Savarin.",
+  "truth": [
+   [
+    "Blandine Rasier",
+    "NAME"
+   ],
+   [
+    "Noemie-Fanny Savarin",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "amb-word-1",
+  "lang": "fr",
+  "text": "Monsieur Gaspard Blandine a rencontré Madame Blandine Gaspard.",
+  "truth": [
+   [
+    "Gaspard Blandine",
+    "NAME"
+   ],
+   [
+    "Blandine Gaspard",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "amb-word-2",
+  "lang": "en",
+  "text": "Ms. Ralf Jack and Mr. Jack Ralf signed the lease.",
+  "truth": [
+   [
+    "Ralf Jack",
+    "NAME"
+   ],
+   [
+    "Jack Ralf",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "amb-place-name",
+  "lang": "fr",
+  "text": "Senlis Vauac n'est pas la ville de Senlis.",
+  "truth": [
+   [
+    "Senlis Vauac",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "amb-brand",
+  "lang": "en",
+  "text": "Henrik Vorgaard drives a Toyota to Passau Vechta.",
+  "truth": [
+   [
+    "Henrik Vorgaard",
+    "NAME"
+   ],
+   [
+    "Passau Vechta",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-contact",
+  "lang": "fr",
+  "text": "Téléphone 06 12 34 56 78, courriel noemie.fanny@example.com",
+  "truth": [
+   [
+    "06 12 34 56 78",
+    "PHONE"
+   ],
+   [
+    "noemie.fanny@example.com",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "fr-dob",
+  "lang": "fr",
+  "text": "Née le 12/04/1989 à Nogaro.",
+  "truth": [
+   [
+    "12/04/1989",
+    "DOB"
+   ],
+   [
+    "Nogaro",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-ssn",
+  "lang": "fr",
+  "text": "Numéro de sécurité sociale : 1 89 04 75 116 001 23",
+  "truth": [
+   [
+    "1 89 04 75 116 001 23",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "fr-iban",
+  "lang": "fr",
+  "text": "IBAN : FR76 3000 6000 0112 3456 7890 189",
+  "truth": [
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "intl-passport",
+  "lang": "en",
+  "text": "Passport No. AB1234567 issued to Sigrid Morsen.",
+  "truth": [
+   [
+    "AB1234567",
+    "ID"
+   ],
+   [
+    "Sigrid Morsen",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "trap-currency",
+  "lang": "fr",
+  "trap": true,
+  "text": "Le montant est de 1 250 EUR, soit 1 500 USD ou 900 GBP.",
+  "truth": []
+ },
+ {
+  "id": "trap-months",
+  "lang": "fr",
+  "trap": true,
+  "text": "Rendez-vous en mars, puis en mai, août et décembre.",
+  "truth": []
+ },
+ {
+  "id": "trap-months-en",
+  "lang": "en",
+  "trap": true,
+  "text": "See you in March, then in May, August and December.",
+  "truth": []
+ },
+ {
+  "id": "trap-units",
+  "lang": "fr",
+  "trap": true,
+  "text": "Poids 3 kg, distance 42 km, surface 85 m², énergie 12 kWh.",
+  "truth": []
+ },
+ {
+  "id": "trap-doctype",
+  "lang": "fr",
+  "trap": true,
+  "text": "Merci de joindre le CV, la facture, le devis et l'attestation.",
+  "truth": []
+ },
+ {
+  "id": "trap-homograph",
+  "lang": "fr",
+  "trap": true,
+  "text": "La réunion de lundi porte sur le budget et le planning.",
+  "truth": []
+ },
+ {
+  "id": "trap-bodies",
+  "lang": "fr",
+  "trap": true,
+  "text": "Dossier transmis à l'URSSAF, la CAF et le Trésor public.",
+  "truth": []
+ },
+ {
+  "id": "mix-1",
+  "lang": "fr",
+  "text": "M. Fanny a versé 1 250 EUR à la CAF le 3 mars.",
+  "truth": [
+   [
+    "Fanny",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "mix-2",
+  "lang": "fr",
+  "text": "Réunion le 5 mai : Élodie Aurore présente le budget de 900 EUR.",
+  "truth": [
+   [
+    "Élodie Aurore",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "nested",
+  "lang": "fr",
+  "text": "Le Dr Tristan Sororret de l'hôpital Saint-Tory à Senlis.",
+  "truth": [
+   [
+    "Tristan Sororret",
+    "NAME"
+   ],
+   [
+    "hôpital Saint-Tory",
+    "ORG"
+   ],
+   [
+    "Senlis",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "list-names",
+  "lang": "fr",
+  "text": "Présents : Léa Tristan, Noemie Garel, Inès Pely, Alexandre Petit.",
+  "truth": [
+   [
+    "Léa Tristan",
+    "NAME"
+   ],
+   [
+    "Noemie Garel",
+    "NAME"
+   ],
+   [
+    "Inès Pely",
+    "NAME"
+   ],
+   [
+    "Alexandre Petit",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "glued",
+  "lang": "fr",
+  "text": "NomPrénomFANNYMathisVille Vire",
+  "truth": [
+   [
+    "FANNY",
+    "NAME"
+   ],
+   [
+    "Mathis",
+    "NAME"
+   ],
+   [
+    "Vire",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "es",
+  "lang": "es",
+  "text": "El solicitante Bianca García vive en Olot, calle Mayor 5.",
+  "truth": [
+   [
+    "Bianca García",
+    "NAME"
+   ],
+   [
+    "Olot",
+    "CITY"
+   ],
+   [
+    "calle Mayor 5",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "it",
+  "lang": "it",
+  "text": "Il cliente Tomas Chaigac abita a Guarda in via Enna 10.",
+  "truth": [
+   [
+    "Tomas Chaigac",
+    "NAME"
+   ],
+   [
+    "Guarda",
+    "CITY"
+   ],
+   [
+    "via Enna 10",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "pt",
+  "lang": "pt",
+  "text": "O titular João Velard reside em Aveiro.",
+  "truth": [
+   [
+    "João Velard",
+    "NAME"
+   ],
+   [
+    "Aveiro",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "nl",
+  "lang": "nl",
+  "text": "Aanvrager Sigrid de Wiksen woont in Wetzlar.",
+  "truth": [
+   [
+    "Sigrid de Wiksen",
+    "NAME"
+   ],
+   [
+    "Wetzlar",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "ru",
+  "lang": "ru",
+  "text": "Заявитель Иван Петров проживает в Москве.",
+  "truth": [
+   [
+    "Иван Петров",
+    "NAME"
+   ],
+   [
+    "Москве",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "zh-2char",
+  "lang": "zh",
+  "text": "客户曲若飞先生住在樊未晞市朝阳区建国路88号。",
+  "truth": [
+   [
+    "曲若飞",
+    "NAME"
+   ],
+   [
+    "樊未晞",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "zh-3char",
+  "lang": "zh",
+  "text": "申请人关柏舟在沈君墨工作。",
+  "truth": [
+   [
+    "关柏舟",
+    "NAME"
+   ],
+   [
+    "沈君墨",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "zh-mixed",
+  "lang": "zh",
+  "text": "骆云开 vorwald at Tencent in 訾同光。",
+  "truth": [
+   [
+    "骆云开",
+    "NAME"
+   ],
+   [
+    "訾同光",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "ja",
+  "lang": "ja",
+  "text": "申込者の宁则川さんは关柏舟都渋谷区に住んでいます。",
+  "truth": [
+   [
+    "宁则川",
+    "NAME"
+   ],
+   [
+    "关柏舟",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "ja-short",
+  "lang": "ja",
+  "text": "担当は庄梧宁です。池慕言支店。",
+  "truth": [
+   [
+    "庄梧宁",
+    "NAME"
+   ],
+   [
+    "池慕言",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "ko",
+  "lang": "ko",
+  "text": "신청자 김민준은 서울특별시 강남구에 삽니다.",
+  "truth": [
+   [
+    "김민준",
+    "NAME"
+   ],
+   [
+    "서울",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "ko-short",
+  "lang": "ko",
+  "text": "담당자 이수 연락처는 부산입니다.",
+  "truth": [
+   [
+    "이수",
+    "NAME"
+   ],
+   [
+    "부산",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "fr-pv-ag",
+  "lang": "fr",
+  "text": "Créer une note de procès verbal d'assemblée générale. Déclarant Fanny Capucine non rémunéré par l'entreprise Garaud Studio. Statut : À justifier. Activité pour mon entreprise. Du 01/06/2026 au 30/06/2026, recherche toutes les informations nécessaires sur internet en test.",
+  "truth": [
+   [
+    "Fanny Capucine",
+    "NAME"
+   ],
+   [
+    "Garaud Studio",
+    "ORG"
+   ]
+  ]
+ }
+]

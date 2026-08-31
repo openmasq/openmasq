@@ -1,0 +1,691 @@
+[
+ {
+  "id": "adm1",
+  "lang": "fr",
+  "text": "N° de personne : 2241037                                LÉO TRISTAN\nN° compte : 204712583                                   5 rue des Bruyères",
+  "truth": [
+   [
+    "2241037",
+    "ID"
+   ],
+   [
+    "204712583",
+    "ID"
+   ],
+   [
+    "5 rue des Bruyères",
+    "ADDRESS"
+   ],
+   [
+    "LÉO TRISTAN",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "adm2",
+  "lang": "fr",
+  "text": "Société Civile à Capital Variable - 850 861 036 RCS Carpentras",
+  "truth": [
+   [
+    "850 861 036",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm3",
+  "lang": "fr",
+  "text": "N° SIRET 512 704 838 22 761 N° TVA intracommunautaire : FR 16 850 861 036",
+  "truth": [
+   [
+    "512 704 838 22 761",
+    "ID"
+   ],
+   [
+    "FR 16 850 861 036",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm4",
+  "lang": "fr",
+  "text": "Monsieur Antonin Lamecois BERONIER, demeurant à\nDECIZE-SOUS-VIERZON (93390) 2 mail Clement du Gast ApptA02.",
+  "truth": [
+   [
+    "Antonin Lamecois BERONIER",
+    "NAME"
+   ],
+   [
+    "DECIZE-SOUS-VIERZON (93390)",
+    "PLACE"
+   ],
+   [
+    "2 mail Clement du Gast",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "adm5",
+  "lang": "fr",
+  "text": "demeurant à SENLIS 17ÈME\nFOUGERES (75017) 84 rue des Tourterelles.",
+  "truth": [
+   [
+    "SENLIS 17ÈME FOUGERES (75017)",
+    "PLACE"
+   ],
+   [
+    "84 rue des Tourterelles",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "adm6",
+  "lang": "fr",
+  "text": "Néà CONDOM (79000) le17 mars 1993.\nCélibataire.",
+  "truth": [
+   [
+    "CONDOM (79000)",
+    "PLACE"
+   ],
+   [
+    "17 mars 1993",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "adm7",
+  "lang": "fr",
+  "text": "titulaire d'un Office Notarial identifié sous le numéro CRPCEN 95079,",
+  "truth": [
+   [
+    "95079",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm8",
+  "lang": "fr",
+  "text": "CHALY STUDIO\n80075678829645\nCompte de résultat 2024",
+  "truth": [
+   [
+    "CHALY STUDIO",
+    "ORG"
+   ],
+   [
+    "80075678829645",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm9",
+  "lang": "fr",
+  "text": "Sécurité sociale : 1 8 4 0 3 7 5 1 2 0 0 0 5 1 2 (copie carte Vitale jointe)",
+  "truth": [
+   [
+    "1 8 4 0 3 7 5 1 2 0 0 0 5 1 2",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm10",
+  "lang": "fr",
+  "text": "Votre point de livraison (PDL) : 12 345 678 901 234 — relevé Linky du 03/2026",
+  "truth": [
+   [
+    "12 345 678 901 234",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm11",
+  "lang": "fr",
+  "text": "Mme TRISTAN Velaland née ALEXANDRE, demeurant 12 bis rue des Acacias, 59000 Vire",
+  "truth": [
+   [
+    "TRISTAN Velaland",
+    "NAME"
+   ],
+   [
+    "ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "12 bis rue des Acacias, 59000 Vire",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "adm12",
+  "lang": "fr",
+  "text": "Madame DELPHINE Blandine épouse TRISTAN, ci-après « la caution »,",
+  "truth": [
+   [
+    "DELPHINE Blandine",
+    "NAME"
+   ],
+   [
+    "TRISTAN",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "adm13",
+  "lang": "fr",
+  "text": "Mutuelle Prévoyance — N° adhérent : 00834912 — garanties au 01/01/2026",
+  "truth": [
+   [
+    "00834912",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm14",
+  "lang": "fr",
+  "text": "Numéro de contrat : AB-2023-004518\nÉchéance principale : 1er avril",
+  "truth": [
+   [
+    "AB-2023-004518",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm15",
+  "lang": "fr",
+  "text": "envoi contre signature, n° de recommandé : 1A 123 456 7890 1",
+  "truth": [
+   [
+    "1A 123 456 7890 1",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm16",
+  "lang": "fr",
+  "text": "Tribunal judiciaire de Nanterre — N° RG : 23/01234 — audience du 12 mai",
+  "truth": [
+   [
+    "23/01234",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm17",
+  "lang": "fr",
+  "text": "Code postal ......... 44000\nVille ................ LOUHANS",
+  "truth": [
+   [
+    "44000",
+    "POSTAL"
+   ],
+   [
+    "LOUHANS",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "adm18",
+  "lang": "fr",
+  "text": "IBAN : FR76 3000 4000\n0312 3456 7890 143\nBIC : SOGEFRPP",
+  "truth": [
+   [
+    "FR76 3000 4000 0312 3456 7890 143",
+    "IBAN"
+   ],
+   [
+    "SOGEFRPP",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm19",
+  "lang": "fr",
+  "text": "Références à rappeler\nnuméro identifiant 5742853G\nnuméro de dossier 992",
+  "truth": [
+   [
+    "5742853G",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm20",
+  "lang": "fr",
+  "text": "adresse des travaux : Bât. C, Esc. 2, 15 avenue des Érables, 93170 Bagnolet",
+  "truth": [
+   [
+    "15 avenue des Érables, 93170 Bagnolet",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "adm21",
+  "lang": "fr",
+  "text": "FT NORD BERIER LE SAVELAT CS 20008 59012 VIRE CEDEX",
+  "truth": [
+   [
+    "59012 VIRE",
+    "POSTAL"
+   ],
+   [
+    "BERIER LE SAVELAT",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "adm22",
+  "lang": "fr",
+  "text": "N° Sécurité sociale : 059067608065798 (chiffre illisible sur l'original)",
+  "truth": [
+   [
+    "059067608065798",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm23",
+  "lang": "fr",
+  "text": "Le locataire, M. Roland LANIER, règle un loyer de 745,00 € pour le logement situé 3 ter impasse du Vieux Puits, 87000 Macon.",
+  "truth": [
+   [
+    "Roland LANIER",
+    "NAME"
+   ],
+   [
+    "3 ter impasse du Vieux Puits, 87000 Macon",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "adm24",
+  "lang": "fr",
+  "text": "Numéro France Travail 10192854774 et code d'accès personnel.",
+  "truth": [
+   [
+    "10192854774",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm25",
+  "lang": "fr",
+  "text": "Tél.......... 06 12 34 56 78\nCourriel ..... alexandre.rouon@exemple.fr",
+  "truth": [
+   [
+    "06 12 34 56 78",
+    "PHONE"
+   ],
+   [
+    "alexandre.rouon@exemple.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "adm26",
+  "lang": "fr",
+  "text": "acte reçu par Maître FANNY notaire à SAINT-QUEN le3 mars 1955, volume 4459, numéro 22",
+  "truth": [
+   [
+    "FANNY",
+    "NAME"
+   ],
+   [
+    "3 mars 1955",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "adm27",
+  "lang": "fr",
+  "text": "N° SIRET 512 704 838 immatriculée au greffe",
+  "truth": [
+   [
+    "512 704 838",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm28",
+  "lang": "fr",
+  "text": "règlement sur IBAN FR76.3000.4000.0312.3456.7890.143 avant le 15",
+  "truth": [
+   [
+    "FR76.3000.4000.0312.3456.7890.143",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "adm29",
+  "lang": "fr",
+  "text": "M. et Mme EDITH-ROLAND, propriétaires indivis,",
+  "truth": [
+   [
+    "EDITH-ROLAND",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "adm30",
+  "lang": "fr",
+  "text": "Nom et prénom : FANNY Noemie N° sécu : 184037512000512",
+  "truth": [
+   [
+    "FANNY Noemie",
+    "NAME"
+   ],
+   [
+    "184037512000512",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm31",
+  "lang": "fr",
+  "text": "TVA intracommunautaire : FR 16 512 704 838 (espaces fines)",
+  "truth": [
+   [
+    "FR 16 512 704 838",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "adm32",
+  "lang": "fr",
+  "text": "Solde antérieur 0,00\nREPARTITIONS 112,91 112,91\nCSG DEDUCTIBLE 6.80% (BASE 98.25%) 7,54 105,87\nSOLDE À PORTER AU COMPTE 95,72",
+  "truth": []
+ },
+ {
+  "id": "adm33",
+  "lang": "fr",
+  "text": "Fait pour servir et valoir ce que de droit.\nSignature :\nT. EDITH",
+  "truth": [
+   [
+    "T. EDITH",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "adm34",
+  "lang": "fr",
+  "text": "FT NORD 44 AV DU CAPITAINE GLARNER 93585 ST PRIVAS SUR RIOM CEDEX\ndemeurant 93400 ST PRIVAS SUR RIOM.",
+  "truth": [
+   [
+    "44 AV DU CAPITAINE GLARNER 93585 ST PRIVAS SUR RIOM",
+    "ADDRESS"
+   ],
+   [
+    "93400 ST PRIVAS SUR RIOM",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "fisc1-avis-ir",
+  "lang": "fr",
+  "text": "DIRECTION GÉNÉRALE DES FINANCES PUBLIQUES\nAVIS D'IMPÔT 2026 — IMPÔT SUR LE REVENU\n\nNuméro fiscal :         12 34 567 890 123\nRéférence de l'avis :   20 35 A195936 32\nNuméro FIP :            350 54 32 4525937789 3\n\nTRISTAN Fanny et TRISTAN née CAROLE Capucine\n8 rue des Lamonac\n44300 LOUHANS\n\nRevenu fiscal de référence : 41 250 €    Nombre de parts : 2,5",
+  "truth": [
+   [
+    "12 34 567 890 123",
+    "ID"
+   ],
+   [
+    "20 35 A195936 32",
+    "ID"
+   ],
+   [
+    "350 54 32 4525937789 3",
+    "ID"
+   ],
+   [
+    "TRISTAN Fanny",
+    "NAME"
+   ],
+   [
+    "CAROLE Capucine",
+    "NAME"
+   ],
+   [
+    "8 rue des Lamonac",
+    "ADDRESS"
+   ],
+   [
+    "LOUHANS",
+    "CITY"
+   ],
+   [
+    "8 rue des Lamonac\n44300 LOUHANS",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "fisc2-taxe-fonciere",
+  "lang": "fr",
+  "text": "TAXE FONCIÈRE SUR LES PROPRIÉTÉS BÂTIES — 2026\nRôle : 21 / 0123456 / 45          Numéro FIP : 118 76 04 9931204558 7\nNuméro fiscal : 24 68 013 579 246\nPropriétaire : Mme Aurélie MARIER\nBien imposé : 12 impasse du Verger, 31400 NOGARO\nMontant à payer : 1 284 €          Date limite : 15/10/2026",
+  "truth": [
+   [
+    "21 / 0123456 / 45",
+    "ID"
+   ],
+   [
+    "118 76 04 9931204558 7",
+    "ID"
+   ],
+   [
+    "24 68 013 579 246",
+    "ID"
+   ],
+   [
+    "Aurélie MARIER",
+    "NAME"
+   ],
+   [
+    "12 impasse du Verger, 31400 NOGARO",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "fisc3-taxe-habitation",
+  "lang": "fr",
+  "text": "TAXE D'HABITATION SUR LES RÉSIDENCES SECONDAIRES\nNuméro d'occupant : 12 3456 78       Référence de l'avis : 21 40 B072118 09\nLocal : 4 quai de la Fosse, 44000 LOUHANS\nOccupant : M. Estelle GISELE — né le 14/03/1979\nService gestionnaire : SIP LOUHANS CENTRE — 02 40 12 34 56",
+  "truth": [
+   [
+    "12 3456 78",
+    "ID"
+   ],
+   [
+    "21 40 B072118 09",
+    "ID"
+   ],
+   [
+    "4 quai de la Fosse, 44000 LOUHANS",
+    "ADDRESS"
+   ],
+   [
+    "Estelle GISELE",
+    "NAME"
+   ],
+   [
+    "14/03/1979",
+    "DATE"
+   ],
+   [
+    "02 40 12 34 56",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "fisc4-asdir",
+  "lang": "fr",
+  "text": "AVIS DE SITUATION DÉCLARATIVE À L'IMPÔT SUR LE REVENU\nDéclarant 1\nNIELS Freja\nNuméro fiscal\n19 87 654 321 098\nRéférence de l'avis\n20 22 C314159 26\nAdresse\n41 rue Émile Zola\n59800 VIRE",
+  "truth": [
+   [
+    "NIELS Freja",
+    "NAME"
+   ],
+   [
+    "19 87 654 321 098",
+    "ID"
+   ],
+   [
+    "20 22 C314159 26",
+    "ID"
+   ],
+   [
+    "41 rue Émile Zola",
+    "ADDRESS"
+   ],
+   [
+    "VIRE",
+    "CITY"
+   ],
+   [
+    "41 rue Émile Zola\n59800 VIRE",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "fisc5-contravention",
+  "lang": "fr",
+  "text": "AVIS DE CONTRAVENTION — ANTAI\nNuméro de l'avis : 20 26 A0154893 71\nNuméro de dossier : 2026/CT/778412\nTitulaire du certificat : M. Ulla GASPARD\nImmatriculation : GH-482-QR — 6 sentier des Meuniers, 78290 CROISSY-SUR-RIOM\nMontant : 135,00 €    Payer avant le : 30/04/2026",
+  "truth": [
+   [
+    "20 26 A0154893 71",
+    "ID"
+   ],
+   [
+    "2026/CT/778412",
+    "ID"
+   ],
+   [
+    "Ulla GASPARD",
+    "NAME"
+   ],
+   [
+    "GH-482-QR",
+    "ID"
+   ],
+   [
+    "6 sentier des Meuniers, 78290 CROISSY-SUR-RIOM",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "fisc6-caf",
+  "lang": "fr",
+  "text": "CAISSE D'ALLOCATIONS FAMILIALES DU RHÔNE\nATTESTATION DE PAIEMENT\nNuméro allocataire : 0 456 789 K       Identifiant unique : 69 2026 0045678\nMadame Tristan VELIGIER\nN° de sécurité sociale : 2 94 03 69 386 017 21\n27 avenue de la République, 69003 CAHORS\nVersement du 05/03/2026 : 512,40 € sur le compte FR76 3000 4028 3700 0105 7289 121",
+  "truth": [
+   [
+    "0 456 789 K",
+    "ID"
+   ],
+   [
+    "69 2026 0045678",
+    "ID"
+   ],
+   [
+    "Tristan VELIGIER",
+    "NAME"
+   ],
+   [
+    "2 94 03 69 386 017 21",
+    "ID"
+   ],
+   [
+    "27 avenue de la République, 69003 CAHORS",
+    "ADDRESS"
+   ],
+   [
+    "FR76 3000 4028 3700 0105 7289 121",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "fisc7-urssaf",
+  "lang": "fr",
+  "text": "URSSAF ÎLE-DE-FRANCE — APPEL DE COTISATIONS\nNuméro de compte cotisant : 117 0001234567 89\nSIRET : 392 315 545 00021\nMENUISERIE CHALONAT\n2 rue Lavoisier, 92100 COMMERCY-ROCAMADOUR\nPériode : 1er trimestre 2026     Montant appelé : 4 812,00 €\nRéférence de paiement : 20 26 T1 117 0001234567",
+  "truth": [
+   [
+    "117 0001234567 89",
+    "ID"
+   ],
+   [
+    "392 315 545 00021",
+    "ID"
+   ],
+   [
+    "MENUISERIE CHALONAT",
+    "ORG"
+   ],
+   [
+    "2 rue Lavoisier, 92100 COMMERCY-ROCAMADOUR",
+    "ADDRESS"
+   ],
+   [
+    "20 26 T1 117 0001234567",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "fisc8-carte-grise",
+  "lang": "fr",
+  "text": "CERTIFICAT D'IMMATRICULATION\nA. Numéro d'immatriculation : GH-482-QR\nB. Date de 1re immatriculation : 12/06/2019\nC.1 Titulaire : DA VELARD Gaspard\nC.3 Adresse : 5 sentier des Acacias, 78400 REDON\nNuméro de formule : 2019 AB 12345\nE. Numéro d'identification : VF1RFB00X66123456",
+  "truth": [
+   [
+    "GH-482-QR",
+    "ID"
+   ],
+   [
+    "DA VELARD Gaspard",
+    "NAME"
+   ],
+   [
+    "5 sentier des Acacias, 78400 REDON",
+    "ADDRESS"
+   ],
+   [
+    "2019 AB 12345",
+    "ID"
+   ],
+   [
+    "VF1RFB00X66123456",
+    "ID"
+   ]
+  ]
+ }
+]

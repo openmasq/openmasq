@@ -1,0 +1,508 @@
+[
+ {
+  "id": "doc1-cni-ocr",
+  "lang": "fr",
+  "text": "REPUBLIQUE FRANCAISE\n\nCARTENATIONALE D'IDENTITÉ No: 090476102853     Nationalité Française\n               GT Nom CAPUCINE\n\n                   Prénomis): CAPUCINE ÉLISE\n\n                  SexeE F           Néle)le : 14.02.1988\n                   a: LOUHANS\n                       1,70m            - RF         -",
+  "truth": [
+   [
+    "090476102853",
+    "ID"
+   ],
+   [
+    "CAPUCINE",
+    "NAME"
+   ],
+   [
+    "CAPUCINE ÉLISE",
+    "NAME"
+   ],
+   [
+    "14.02.1988",
+    "DOB"
+   ],
+   [
+    "LOUHANS",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "doc2-quittance",
+  "lang": "fr",
+  "text": "BAIL D'HABITATION - QUITTANCE DE LOYERS\nQUITTANCE POUR LA PERIODE DU 01/04/2025 au 30/06/2025\n\nNom du propriétaire: Blandine CHAIER\n                   14 Avenue des Garorel\n                   69300 Plauen-et-Zwickau\n\nNom du locataire : MonsieurFanny LEANDRE\n\nAdresse des locaux loués : 7 impasse des Acacias, 69100, Yssingeaux, appartement B12\nMontantdu loyer        820,00€\nReçu du locataire ci-dessus désigné la somme de 820,00€\nFait à Plauen Le 30/06/2025",
+  "truth": [
+   [
+    "Blandine CHAIER",
+    "NAME"
+   ],
+   [
+    "14 Avenue des Garorel",
+    "ADDRESS"
+   ],
+   [
+    "69300 Plauen-et-Zwickau",
+    "ADDRESS"
+   ],
+   [
+    "Fanny LEANDRE",
+    "NAME"
+   ],
+   [
+    "7 impasse des Acacias",
+    "ADDRESS"
+   ],
+   [
+    "Yssingeaux",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "doc3-facture",
+  "lang": "fr",
+  "text": "Ateliers Brumaire (site brumaire-exemple.fr)\nSociété par actions simplifiée\nSIRET : 732 829 320 00074 - RCS Cahors\nN° de TVA intracommunautaire : FR44732829320\nSiège : 12 quai des Célestins, 69002 Cahors\nTel. : 04 72 10 20 30\nDate de la commande : 3 mars 2025\nRéférence de la commande (n° facture) : 815234907712\nAdresse de facturation :\nÉlodie LAMAURET\n25 rue des Capucins\n69001 Cahors\nMontant total (HT) : 410.00€",
+  "truth": [
+   [
+    "732 829 320 00074",
+    "ID"
+   ],
+   [
+    "FR44732829320",
+    "ID"
+   ],
+   [
+    "12 quai des Célestins",
+    "ADDRESS"
+   ],
+   [
+    "04 72 10 20 30",
+    "PHONE"
+   ],
+   [
+    "815234907712",
+    "ID"
+   ],
+   [
+    "Élodie LAMAURET",
+    "NAME"
+   ],
+   [
+    "25 rue des Capucins",
+    "ADDRESS"
+   ],
+   [
+    "69001 Cahors",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "doc4-attestation-vereyac",
+  "lang": "fr",
+  "text": "NOUS CONTACTER\n N° client : 5 402 918 736\n mail : nurifuc@pupocurupob-dofegar.fr\n                                    HORTENSE MATHIS VALENTINE\n                                    9 ALLEE DES CHARMILLES\n                                    44300 LOUHANS\nTitulaire du contrat\n HORTENSE MATHIS VALENTINE\nVotre contrat\n N° de compte : 6 07 2 481 220 519\n• Point de livraison (PDL) :\n N° 14431234568470\nPar la présente, nous attestons que M. MATHIS VALENTINE HORTENSE est titulaire d'un contrat pour le logement situé au 9 ALLEE DES CHARMILLES, 44300 LOUHANS.",
+  "truth": [
+   [
+    "5 402 918 736",
+    "ID"
+   ],
+   [
+    "nurifuc@pupocurupob-dofegar.fr",
+    "EMAIL"
+   ],
+   [
+    "HORTENSE MATHIS VALENTINE",
+    "NAME"
+   ],
+   [
+    "9 ALLEE DES CHARMILLES",
+    "ADDRESS"
+   ],
+   [
+    "44300 LOUHANS",
+    "ADDRESS"
+   ],
+   [
+    "6 07 2 481 220 519",
+    "ID"
+   ],
+   [
+    "14431234568470",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "doc5-avenant-ocr",
+  "lang": "fr",
+  "text": "AVENANT AU CONTRAT DE LOCATION\nCet avenant vient modifier le contrat signé le 15 mai 2024 entre\nLE BAILLEUR :MrRoland GASPARD, 31 RUE DES LILAS, 93100, VERVINS\nEt LES COLOCATAIRES :\nLe premiercolocataire :Mademoiselle Inès JUSTINE\nLe deuxième colocataire:Monsieur NoemieFONONOUX\nF.n date du 15mai2024 aété signé un bail relatifàla colocation du logement situé au 4 sentier des Vignes à VERVINS, 93100.\n- Monsieur Rémi LAMIN s'engage à payer par virement dans le compte avec l'IBAN numéro : FR76 3000 6000 0112 3456 7890 189",
+  "truth": [
+   [
+    "Roland GASPARD",
+    "NAME"
+   ],
+   [
+    "31 RUE DES LILAS",
+    "ADDRESS"
+   ],
+   [
+    "VERVINS",
+    "CITY"
+   ],
+   [
+    "Inès JUSTINE",
+    "NAME"
+   ],
+   [
+    "Noemie FONONOUX",
+    "NAME"
+   ],
+   [
+    "4 sentier des Vignes",
+    "ADDRESS"
+   ],
+   [
+    "Rémi LAMIN",
+    "NAME"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ],
+   [
+    "15 mai 2024",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "doc6-bulletin-paie",
+  "lang": "fr",
+  "text": "BULLETIN DE PAIE - EN EUROS - mars 2025\n18 rue des Frères Lumière            6 place du Marché    CATEGORIE  Ingénieurs et Cadres\nEMPLOI   Analyste financier\nN° SIRET: 73282932000074      Début de période: 01/03/2025\nVoici votre bulletin de paie de mars 2025N° de sécurité sociale : 184037512000512  Taux horaire  26.9800\nVotre salaire avant impôt   3 050,40 €\nRémunération brute   4 020,00 €",
+  "truth": [
+   [
+    "18 rue des Frères Lumière",
+    "ADDRESS"
+   ],
+   [
+    "6 place du Marché",
+    "ADDRESS"
+   ],
+   [
+    "73282932000074",
+    "ID"
+   ],
+   [
+    "184037512000512",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "doc7-diagnostic",
+  "lang": "fr",
+  "text": "Constat de repérage Amiante n° 512-vente-20250310\nNuméro de dossier : 512-AMIANTE-20250310\nAdresse    Rue : ....................18 rue de la verrerie (3)\nCode postal, ville : .38000 MAYENNE (France)\nLe(s) propriétaire(s) :   Nom et prénom :....Mme AURORE CHALAUD\nAdresse : ..............27 cours Berriat\nN° de certification : 22-4518\nRaison sociale de l'entreprise : Sorinvelent (Numéro SIRET : 73282932000074)\nNuméro de police et date de validité : 84210395/701283456 -\nTél. : 0476102938/0611223344 - E-mail : contact@sorinvelent-exemple.fr\nCompagnie d'assurance : AssurBat n° 84210395/701283456",
+  "truth": [
+   [
+    "512-AMIANTE-20250310",
+    "ID"
+   ],
+   [
+    "18 rue de la verrerie",
+    "ADDRESS"
+   ],
+   [
+    "38000 MAYENNE",
+    "ADDRESS"
+   ],
+   [
+    "AURORE CHALAUD",
+    "NAME"
+   ],
+   [
+    "27 cours Berriat",
+    "ADDRESS"
+   ],
+   [
+    "22-4518",
+    "ID"
+   ],
+   [
+    "73282932000074",
+    "ID"
+   ],
+   [
+    "84210395/701283456",
+    "ID"
+   ],
+   [
+    "0476102938",
+    "PHONE"
+   ],
+   [
+    "0611223344",
+    "PHONE"
+   ],
+   [
+    "contact@sorinvelent-exemple.fr",
+    "EMAIL"
+   ],
+   [
+    "Sorinvelent",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "doc8-promesse-notariale",
+  "lang": "fr",
+  "text": "A CHAGNY (Puy-de-Dôme), 8 place de la Mairie, au siège de l'Office Notarial, ci-après nommé,\n« Chalaion-GARARD », titulaire d'un Office Notarial identifié sous le numéro CRPCEN 63412,\nMonsieur Coline Roland AGATHE, Architecte, demeurant à BAYEUX (63130) 5 avenue des Thermes.\nNé à FLERS (15000) le 7 mars 1991.\nMadame Gisele CAROLE, demeurant à DINARD-GUINGAMP (63000) 11 rue des Gras.",
+  "truth": [
+   [
+    "8 place de la Mairie",
+    "ADDRESS"
+   ],
+   [
+    "63412",
+    "ID"
+   ],
+   [
+    "Coline Roland AGATHE",
+    "NAME"
+   ],
+   [
+    "BAYEUX",
+    "CITY"
+   ],
+   [
+    "5 avenue des Thermes",
+    "ADDRESS"
+   ],
+   [
+    "FLERS",
+    "CITY"
+   ],
+   [
+    "7 mars 1991",
+    "DOB"
+   ],
+   [
+    "Gisele CAROLE",
+    "NAME"
+   ],
+   [
+    "11 rue des Gras",
+    "ADDRESS"
+   ],
+   [
+    "DINARD-GUINGAMP",
+    "CONTEXT"
+   ],
+   [
+    "63000",
+    "CONTEXT"
+   ],
+   [
+    "63130",
+    "CONTEXT"
+   ],
+   [
+    "15000",
+    "CONTEXT"
+   ],
+   [
+    "CHAGNY",
+    "CONTEXT"
+   ],
+   [
+    "Chalaion-GARARD",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "doc9-appel-fonds",
+  "lang": "fr",
+  "text": "CABINET TORIGARD DU NORAT\nRC 424613305 CODE APE 703 C Carte prof. CPI 6902 2018 000 024 618 SIRET 73282932000074\n42 Avenue Noemie Moulin\nMessagerie : retidi@biralecuroma-tevepum.fr.\nMontant de l'appel de fonds  231.58 €\nAVANT LE   MONTANT   BENEFICIAIRE   COMPTE BENEFICIAIRE\nBIC : BSPFFRPPXXX\nIBAN: FR76 3000 6000 0112 3456 7890 189\n231.58€",
+  "truth": [
+   [
+    "424613305",
+    "ID"
+   ],
+   [
+    "6902 2018 000 024 618",
+    "ID"
+   ],
+   [
+    "73282932000074",
+    "ID"
+   ],
+   [
+    "42 Avenue Noemie Moulin",
+    "ADDRESS"
+   ],
+   [
+    "retidi@biralecuroma-tevepum.fr",
+    "EMAIL"
+   ],
+   [
+    "BSPFFRPPXXX",
+    "BIC"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "doc10-attestation-mandat",
+  "lang": "fr",
+  "text": "ATTESTATION DE NON-RÉMUNÉRATION DU PRÉSIDENT\n\nTOROIS ATELIER\nSociété par Actions Simplifiée (SAS)\nSiège social : 3 passage des Panoramas – 75002 Senlis\nRCS Senlis 732 829 320\n\nJe soussigné,\nClement GUINGAMP, Présidente de la société TOROIS ATELIER,\natteste sur l'honneur qu'au titre de l'exercice social 2026 je n'ai perçu aucune rémunération.",
+  "truth": [
+   [
+    "TOROIS ATELIER",
+    "ORG"
+   ],
+   [
+    "3 passage des Panoramas",
+    "ADDRESS"
+   ],
+   [
+    "75002 Senlis",
+    "ADDRESS"
+   ],
+   [
+    "732 829 320",
+    "ID"
+   ],
+   [
+    "Clement GUINGAMP",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "doc11-pv-ag-ocr",
+  "lang": "fr",
+  "text": "CabinetGIRODET5 Praaivauier94300Avallon\nTel 01.43.28.55.10 Fax 01.43.28.55.11a Email:contact@doron-exemple.com\nCarte professionnelleCestiontransaction n 18-204- RCSCréteil 424 613 305\nL'an deux mille vingt-cinq, le clerel juin à 18h00, les copropriétaires de la Résidence 27\nRUE DES ORMEAUX convoqués par le Torigard DORON sont réunis en assemblée générale.\nOnt voté pour: 8copropriétaires représentant 210/ 210 tantièmes",
+  "truth": [
+   [
+    "01.43.28.55.10",
+    "PHONE"
+   ],
+   [
+    "01.43.28.55.11",
+    "PHONE"
+   ],
+   [
+    "contact@doron-exemple.com",
+    "EMAIL"
+   ],
+   [
+    "424 613 305",
+    "ID"
+   ],
+   [
+    "27 RUE DES ORMEAUX",
+    "ADDRESS"
+   ],
+   [
+    "Torigard DORON",
+    "CONTEXT"
+   ],
+   [
+    "Praaivauier94300Avallon",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "doc12-adhesion-assurance",
+  "lang": "fr",
+  "text": "Adresse de correspondance :\n9 ALLEE DES CHARMILLES\nNuméro de dossier assurance : 29184730\nContrat concerné : ProtectHabitat Plus\nMonsieur HORTENSE,\nNous vous remercions d'avoir initié le processus d'adhésion.\nASSURIA VIE, S.A. au capital de 1 000 000 000 €, siège social : 22 rue de la Vauel - 75002 Senlis, 732 829 320 RCS Senlis.",
+  "truth": [
+   [
+    "9 ALLEE DES CHARMILLES",
+    "ADDRESS"
+   ],
+   [
+    "29184730",
+    "ID"
+   ],
+   [
+    "HORTENSE",
+    "NAME"
+   ],
+   [
+    "22 rue de la Vauel",
+    "ADDRESS"
+   ],
+   [
+    "732 829 320",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "doc13-accord-credit",
+  "lang": "fr",
+  "text": "Société de courtage d'assurances immatriculée au Registre des Intermédiaires en Assurance sous le n° 09218374.\nMme DELPHINE FANNY                  Revenus Mensuels : 2 980,45 €\n16 RUE DES REMPARTS                 Charges Mensuelles : 410,20 €\n21000 BLAYE                         Revenu fiscal de référence 2024 : 24 750 €\nCoût (hors frais) : 195 000,00 €\nCoût total du financement Vauel du Centre estimé : 61 240,80 €",
+  "truth": [
+   [
+    "09218374",
+    "ID"
+   ],
+   [
+    "DELPHINE FANNY",
+    "NAME"
+   ],
+   [
+    "16 RUE DES REMPARTS",
+    "ADDRESS"
+   ],
+   [
+    "21000 BLAYE",
+    "ADDRESS"
+   ],
+   [
+    "Vauel du Centre",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "doc14-passeport-mrz",
+  "lang": "fr",
+  "text": "PASSEPORT\nRÉPUBLIQUE FRANÇAISE   Passeport n° 19FV52814\nNom : ROLAND\nPrénom(s) : VALENTINE NOEMIE\nNé(e) le : 22.11.1979\nà : ESPALION\nP<FRAROLAND<<VALENTINE<NOEMIE<<<<<<<<<<<<<<<<<<<\n19FV528143FRA7911223M3011205<<<<<<<<<<<<<<04",
+  "truth": [
+   [
+    "19FV52814",
+    "ID"
+   ],
+   [
+    "ROLAND",
+    "NAME"
+   ],
+   [
+    "VALENTINE NOEMIE",
+    "NAME"
+   ],
+   [
+    "22.11.1979",
+    "DOB"
+   ],
+   [
+    "ESPALION",
+    "CITY"
+   ],
+   [
+    "P<FRAROLAND<<VALENTINE<NOEMIE<<<<<<<<<<<<<<<<<<<",
+    "ID"
+   ],
+   [
+    "19FV528143FRA7911223M3011205<<<<<<<<<<<<<<04",
+    "ID"
+   ]
+  ]
+ }
+]

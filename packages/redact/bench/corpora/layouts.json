@@ -1,0 +1,1110 @@
+[
+ {
+  "id": "lay1",
+  "lang": "fr",
+  "text": "BULLETIN DE PAIE                              Période : 01/06/2026 au 30/06/2026\nSARL CLEROURET                                Matricule : 004782\n12 rue des Forges                             N° SS : 1 84 03 75 120 005 12\n25000 BESANÇON                                Emploi : Chef de chantier\nSalarié : Monsieur Roland LEANDRE\nNet à payer ......................... 2 418,63 €\nVirement sur IBAN FR76 3000 6000 0112 3456 7890 189",
+  "truth": [
+   [
+    "1 84 03 75 120 005 12",
+    "ID"
+   ],
+   [
+    "Roland LEANDRE",
+    "NAME"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ],
+   [
+    "12 rue des Forges",
+    "ADDRESS"
+   ],
+   [
+    "25000 BESANÇON",
+    "ADDRESS"
+   ],
+   [
+    "004782",
+    "ID"
+   ],
+   [
+    "CLEROURET",
+    "ORG"
+   ]
+  ]
+ },
+ {
+  "id": "lay2",
+  "lang": "fr",
+  "text": "DATE       LIBELLÉ OPÉRATION                                   MONTANT\n03/06      VIR SEPA RECU M. OU MME BLANDINE                    + 1 250,00\n05/06      PRLV SEPA ENGIE                                     -   84,12\n12/06      VIR EMIS VERS FR14 2004 1010 0505\n           0001 3M02 606                                       - 400,00",
+  "truth": [
+   [
+    "BLANDINE",
+    "NAME"
+   ],
+   [
+    "FR14 2004 1010 0505\n           0001 3M02 606",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "lay3",
+  "lang": "fr",
+  "text": "GREFFE DU TRIBUNAL DE COMMERCE DE CAHORS\nEXTRAIT KBIS\nImmatriculation au RCS, numéro 831 054 792 R.C.S. Cahors\nIdentifiant EUID : FR6901.831054792\nDénomination : ATELIER TALAUOUX\nAdresse du siège : 8 quai Saint-Valentine 69002 Cahors\nGérant : Madame Inès SAVAND, née le 17 mai 1988 à Yssingeaux",
+  "truth": [
+   [
+    "831 054 792",
+    "ID"
+   ],
+   [
+    "FR6901.831054792",
+    "ID"
+   ],
+   [
+    "ATELIER TALAUOUX",
+    "ORG"
+   ],
+   [
+    "8 quai Saint-Valentine 69002 Cahors",
+    "ADDRESS"
+   ],
+   [
+    "Inès SAVAND",
+    "NAME"
+   ],
+   [
+    "17 mai 1988",
+    "DOB"
+   ],
+   [
+    "Yssingeaux",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "lay4",
+  "lang": "fr",
+  "text": "FACTURE N° 2026-0611\nMENUISERIE CHALONAT — SIRET 552 100 554 00013\nTVA intracommunautaire : FR 40 552 100 554\nContact : https://menuiserie-chalonat.fr/rdv?email=roland.chalonat@menuiserie-chalonat.fr\nTél : 06 44 21 09 87\nTOTAL TTC : 1 968,00 €",
+  "truth": [
+   [
+    "552 100 554 00013",
+    "ID"
+   ],
+   [
+    "FR 40 552 100 554",
+    "ID"
+   ],
+   [
+    "roland.chalonat@menuiserie-chalonat.fr",
+    "EMAIL"
+   ],
+   [
+    "06 44 21 09 87",
+    "PHONE"
+   ],
+   [
+    "2026-0611",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "lay5",
+  "lang": "fr",
+  "text": "Assurance Maladie de la Gironde\nObjet : votre déclaration de médecin traitant\nN° d'immatriculation : 2 8 5 0 7 3 3 1 8 8 2 4 6 0 7\nVotre médecin traitant : docteur leandre a bien été enregistré.\nAdresse du cabinet : 14 cours de l'Intendance, 33000 Espalion",
+  "truth": [
+   [
+    "2 8 5 0 7 3 3 1 8 8 2 4 6 0 7",
+    "ID"
+   ],
+   [
+    "leandre",
+    "NAME"
+   ],
+   [
+    "14 cours de l'Intendance, 33000 Espalion",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "lay6",
+  "lang": "fr",
+  "text": "CERTIFICAT DE SCOLARITÉ — Année universitaire 2025-2026\nNom de l'étudiant\nHORTENSE\nPrénom\nLeandre\nINE : 1029384756D\nNé le : 03/02/2004\nInscrit en : Licence 2 Informatique",
+  "truth": [
+   [
+    "1029384756D",
+    "ID"
+   ],
+   [
+    "03/02/2004",
+    "DOB"
+   ],
+   [
+    "HORTENSE",
+    "NAME"
+   ],
+   [
+    "Leandre",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lay7",
+  "lang": "fr",
+  "text": "CARTENATIONALE D'IDENTITÉ No: 990275301245\nNéle: 23.09.1996 àNogaro\nIDFRABERTHIER<<<<<<<<<<<<<<<<<<<<<<9902\n7530124509FRA9609238M<<<<<<<<<<<<<<04",
+  "truth": [
+   [
+    "990275301245",
+    "ID"
+   ],
+   [
+    "IDFRABERTHIER<<<<<<<<<<<<<<<<<<<<<<9902",
+    "ID"
+   ],
+   [
+    "7530124509FRA9609238M<<<<<<<<<<<<<<04",
+    "ID"
+   ],
+   [
+    "23.09.1996",
+    "DOB"
+   ],
+   [
+    "Nogaro",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "lay8",
+  "lang": "fr",
+  "text": "Fanny LAMEYAT\nDéveloppeuse full-stack\nfanny.lameyat@proton.me · +33 7 68 12 44 90\n38 rue Ordener, 75018 Senlis · Permis B",
+  "truth": [
+   [
+    "Fanny LAMEYAT",
+    "NAME"
+   ],
+   [
+    "fanny.lameyat@proton.me",
+    "EMAIL"
+   ],
+   [
+    "+33 7 68 12 44 90",
+    "PHONE"
+   ],
+   [
+    "38 rue Ordener, 75018 Senlis",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "lay9",
+  "lang": "fr",
+  "text": "ENTRE LES SOUSSIGNÉS\nmonsieur justine guingamp, ci-après « le bailleur »,\net madame chloé norouand, ci-après « la locataire »,\nDépôt de garantie : 890,00 € versé sur le compte\nRIB : 30002 00550 0000157841Z 25",
+  "truth": [
+   [
+    "justine guingamp",
+    "NAME"
+   ],
+   [
+    "chloé norouand",
+    "NAME"
+   ],
+   [
+    "30002 00550 0000157841Z 25",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "lay10",
+  "lang": "fr",
+  "text": "Moyen de paiement enregistré :\nCarte n° 4539 1488\n0343 6467 — exp. 09/27\nTitulaire : R. PETIT",
+  "truth": [
+   [
+    "4539 1488\n0343 6467",
+    "CARD"
+   ],
+   [
+    "R. PETIT",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lay11",
+  "lang": "fr",
+  "text": "Nom: TRISTAN | Prénom: Carole | Email: carole.tristan@exemple.org | Téléphone: 06 71 22 83 94\nNom: MAREN | Prénom: Agathe | Email: c.maren@exemple.org | Téléphone: 07 55 60 41 28",
+  "truth": [
+   [
+    "TRISTAN",
+    "NAME"
+   ],
+   [
+    "Carole",
+    "NAME"
+   ],
+   [
+    "carole.tristan@exemple.org",
+    "EMAIL"
+   ],
+   [
+    "06 71 22 83 94",
+    "PHONE"
+   ],
+   [
+    "MAREN",
+    "NAME"
+   ],
+   [
+    "Agathe",
+    "NAME"
+   ],
+   [
+    "c.maren@exemple.org",
+    "EMAIL"
+   ],
+   [
+    "07 55 60 41 28",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "lay12",
+  "lang": "fr",
+  "text": "Titulaire du contrat ................ Mathis AUCH\nAdresse e-mail ...................... mathis.auch@passau.fr\nN° de téléphone ..................... 06.51.42.90.77",
+  "truth": [
+   [
+    "Mathis AUCH",
+    "NAME"
+   ],
+   [
+    "mathis.auch@passau.fr",
+    "EMAIL"
+   ],
+   [
+    "06.51.42.90.77",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "lay13",
+  "lang": "fr",
+  "text": "Veuillez agréer, Madame, l'expression de nos salutations distinguées.\n\nFait à Louhans, le 12 mars 2026\nNoemie ROLAND\nDirecteur d'agence\nnoemie.roland@banquepop.fr",
+  "truth": [
+   [
+    "Noemie ROLAND",
+    "NAME"
+   ],
+   [
+    "noemie.roland@banquepop.fr",
+    "EMAIL"
+   ],
+   [
+    "12 mars 2026",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "lay14",
+  "lang": "fr",
+  "text": "Par-devant Maître DELPHINE, notaire à BAYONNE (64100),\na comparu : Monsieur Gisele ALEXANDRE, demeurant à YVETOT (64600),\n12 allée des Tamaris, né à CORTE (64000) le 4 janvier 1991.",
+  "truth": [
+   [
+    "DELPHINE",
+    "NAME"
+   ],
+   [
+    "Gisele ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "12 allée des Tamaris",
+    "ADDRESS"
+   ],
+   [
+    "4 janvier 1991",
+    "DOB"
+   ],
+   [
+    "BAYONNE (64100)",
+    "ADDRESS"
+   ],
+   [
+    "YVETOT (64600)",
+    "ADDRESS"
+   ],
+   [
+    "CORTE (64000)",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "lay15",
+  "lang": "fr",
+  "text": "Références bancaires                     Identité du souscripteur\nIBAN : FR76 1027 8060 4100 0204 5230 187  Nom : CAPUCINE\nBIC : CMCIFR2A                           Prénom : Roland\nDomiciliation : RASAT TOREYOIS            Né(e) le : 30/11/1979",
+  "truth": [
+   [
+    "FR76 1027 8060 4100 0204 5230 187",
+    "IBAN"
+   ],
+   [
+    "CMCIFR2A",
+    "IBAN"
+   ],
+   [
+    "CAPUCINE",
+    "NAME"
+   ],
+   [
+    "Roland",
+    "NAME"
+   ],
+   [
+    "30/11/1979",
+    "DOB"
+   ],
+   [
+    "RASAT TOREYOIS",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "lay16",
+  "lang": "fr",
+  "text": "Collège Sorauy-Clereau — Convocation\nParents de l'élève : M. et Mme TRAORÉ\nFacture d'électricité jointe — Point de livraison (PDL) : 14 728 493 026 511\nRéférence client : sans objet",
+  "truth": [
+   [
+    "TRAORÉ",
+    "NAME"
+   ],
+   [
+    "14 728 493 026 511",
+    "ID"
+   ],
+   [
+    "Collège Sorauy-Clereau",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "lay17-tableau-filets",
+  "lang": "fr",
+  "text": "FACTURE 2026-0441\n┌──────────────────────────────┬───────────────────┬────────────┐\n│ CLIENT                       │ RÉFÉRENCE         │ ÉCHÉANCE   │\n├──────────────────────────────┼───────────────────┼────────────┤\n│ Mme Blandine CLERINOIS       │ CMD-2026-441      │ 30/04/2026 │\n│ 14 rue de l'Abreuvoir        │ TVA FR 57 392315545            │\n│ 92500 Pontivy-Alencon        │                   │            │\n└──────────────────────────────┴───────────────────┴────────────┘\nRèglement par virement : FR76 3000 4028 3700 0105 7289 121\nFacturation : s.clerinois@atelier-brun.fr — 01 47 32 66 08",
+  "truth": [
+   [
+    "Blandine CLERINOIS",
+    "NAME"
+   ],
+   [
+    "14 rue de l'Abreuvoir",
+    "ADDRESS"
+   ],
+   [
+    "Pontivy-Alencon",
+    "CITY"
+   ],
+   [
+    "FR 57 392315545",
+    "ID"
+   ],
+   [
+    "FR76 3000 4028 3700 0105 7289 121",
+    "IBAN"
+   ],
+   [
+    "s.clerinois@atelier-brun.fr",
+    "EMAIL"
+   ],
+   [
+    "01 47 32 66 08",
+    "PHONE"
+   ],
+   [
+    "92500 Pontivy-Alencon",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "lay18-fil-email",
+  "lang": "fr",
+  "text": "De : Aurore TOREL <k.torel@cabinet-orvault.fr>\nÀ : \"Dossier FONOUAT\" <fafufab@depururi-niceti.fr>\nCc : m.fonouat91@laposte.net\nObjet : RE: RE: Compromis — pièces manquantes\nDate : jeu. 12 mars 2026 09:41\n\n> Le 11 mars 2026 à 18:02, Noemie FONOUAT a écrit :\n> Je vous confirme mon adresse : 8 allée des Lamonac, 44120 Vertou\n> et mon portable 06 71 45 90 33.\n\nBien reçu, il manque l'attestation d'assurance.\n--\nAurore TOREL | Clerc de notaire\nCabinet ORVAULT — 02 40 76 11 25",
+  "truth": [
+   [
+    "Aurore TOREL",
+    "NAME"
+   ],
+   [
+    "k.torel@cabinet-orvault.fr",
+    "EMAIL"
+   ],
+   [
+    "fafufab@depururi-niceti.fr",
+    "EMAIL"
+   ],
+   [
+    "m.fonouat91@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "Noemie FONOUAT",
+    "NAME"
+   ],
+   [
+    "8 allée des Lamonac, 44120 Vertou",
+    "ADDRESS"
+   ],
+   [
+    "06 71 45 90 33",
+    "PHONE"
+   ],
+   [
+    "02 40 76 11 25",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "lay19-export-messagerie",
+  "lang": "fr",
+  "text": "[14/03/2026 08:12] Delphine MARAC : je suis devant le 27 rue Championnet\n[14/03/2026 08:13] Capucine LAMAC : ok j'arrive, tu as le code ? 43B29\n[14/03/2026 08:15] Delphine MARAC : appelle-moi au 07 58 22 41 06 si souci\n[14/03/2026 08:31] Capucine LAMAC : envoie le RIB à capucine.lamac@gmx.fr\n[14/03/2026 08:33] Delphine MARAC : FR76 2004 1010 0505 0001 3002 675",
+  "truth": [
+   [
+    "Delphine MARAC",
+    "NAME"
+   ],
+   [
+    "Capucine LAMAC",
+    "NAME"
+   ],
+   [
+    "27 rue Championnet",
+    "ADDRESS"
+   ],
+   [
+    "07 58 22 41 06",
+    "PHONE"
+   ],
+   [
+    "capucine.lamac@gmx.fr",
+    "EMAIL"
+   ],
+   [
+    "FR76 2004 1010 0505 0001 3002 675",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "lay20-log-json",
+  "lang": "fr",
+  "text": "2026-03-14T09:22:31Z INFO  api.users  payload={\"id\":48213,\"nom\":\"Gaspard\",\"prenom\":\"Élodie\",\"email\":\"mathis.gaspard@sfr.fr\",\"tel\":\"+33 6 23 87 14 55\",\"adresse\":{\"voie\":\"5 impasse du Lavoir\",\"cp\":\"31700\",\"ville\":\"Melun\"},\"iban\":\"FR76 1027 8060 2100 0204 8630 163\"}\n2026-03-14T09:22:31Z WARN  api.users  duplicate email for id=48214",
+  "truth": [
+   [
+    "Gaspard",
+    "NAME"
+   ],
+   [
+    "Élodie",
+    "NAME"
+   ],
+   [
+    "mathis.gaspard@sfr.fr",
+    "EMAIL"
+   ],
+   [
+    "+33 6 23 87 14 55",
+    "PHONE"
+   ],
+   [
+    "5 impasse du Lavoir",
+    "ADDRESS"
+   ],
+   [
+    "Melun",
+    "CITY"
+   ],
+   [
+    "FR76 1027 8060 2100 0204 8630 163",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "lay21-config-yaml",
+  "lang": "fr",
+  "text": "# deploy/prod.yaml\nsmtp:\n  host: smtp.hebergeur-x.fr\n  user: contact@menuiserie-beraud.fr\n  pass: \"Sm7p!Tanc2026#x\"\nowner:\n  name: Alexandre CAPUCINE-MONARON\n  phone: \"+33 4 78 92 10 47\"\ndb_url: postgres://openmasq:Xy8v2Qm@10.2.14.7:5432/facturation",
+  "truth": [
+   [
+    "contact@menuiserie-beraud.fr",
+    "EMAIL"
+   ],
+   [
+    "Sm7p!Tanc2026#x",
+    "SECRET"
+   ],
+   [
+    "Alexandre CAPUCINE-MONARON",
+    "NAME"
+   ],
+   [
+    "+33 4 78 92 10 47",
+    "PHONE"
+   ],
+   [
+    "postgres://openmasq:Xy8v2Qm@10.2.14.7:5432/facturation",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "lay22-ordonnance",
+  "lang": "fr",
+  "text": "Dr Noemie-Pelois MARANEAU                          ORDONNANCE\nMédecin généraliste — RPPS 10003456789\n3 place Carnot, 42300 Elbeuf — Tél. 04 77 71 20 08\n\nPatiente : Tristan VELIGIER, née le 12/03/1994\nN° de sécurité sociale : 2 94 03 69 386 017 21\n\nDOLIPRANE 1000 mg ................ 1 cp matin, midi, soir ....  7 jours\nESOMEPRAZOLE 20 mg ............... 1 gélule le matin ........ 30 jours\nRenouvellement : non — À représenter avant le 12/06/2026",
+  "truth": [
+   [
+    "Noemie-Pelois MARANEAU",
+    "NAME"
+   ],
+   [
+    "10003456789",
+    "ID"
+   ],
+   [
+    "3 place Carnot, 42300 Elbeuf",
+    "ADDRESS"
+   ],
+   [
+    "04 77 71 20 08",
+    "PHONE"
+   ],
+   [
+    "Tristan VELIGIER",
+    "NAME"
+   ],
+   [
+    "12/03/1994",
+    "DATE"
+   ],
+   [
+    "2 94 03 69 386 017 21",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "lay23-analyses-labo",
+  "lang": "fr",
+  "text": "LABORATOIRE BIOMÉRIDIEN — 21 avenue Noemie Jaurès, 33150 Cenon\nPatient : AURORE Noemie-Belauret           Né le : 04/02/1961\nDossier : 2026/BM/44127                  Prescripteur : Dr M. TRISTAN\n──────────────────────────────────────────────────────────────────\nAnalyse                    Résultat        Valeurs de référence\nHémoglobine                11,2 g/dL       13,0 – 17,0\nFerritine                  18 µg/L         30 – 400\nGlycémie à jeun            1,42 g/L        0,74 – 1,06",
+  "truth": [
+   [
+    "21 avenue Noemie Jaurès, 33150 Cenon",
+    "ADDRESS"
+   ],
+   [
+    "AURORE Noemie-Belauret",
+    "NAME"
+   ],
+   [
+    "04/02/1961",
+    "DATE"
+   ],
+   [
+    "2026/BM/44127",
+    "ID"
+   ],
+   [
+    "TRISTAN",
+    "NAME"
+   ],
+   [
+    "LABORATOIRE BIOMÉRIDIEN",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "lay24-bulletin-scolaire",
+  "lang": "fr",
+  "text": "COLLÈGE DES VELIGAND MONAND — 12 rue des Écoles, 30900 Nîmes\nÉlève : ANTONIN Maëlys — classe de 4e B — née le 18/07/2011\nINE : 0712345678H                      Responsable légal : M. Gaspard ANTONIN\n\nMatière            Moy. élève   Moy. classe   Appréciation\nFrançais              14,5         11,8       Bon trimestre. Mme TRISTAN\nMathématiques          8,0         10,2       Difficultés. M. ALEXANDRE\nAnglais               15,0         12,4       Très bonne élève. Mme FANNY",
+  "truth": [
+   [
+    "12 rue des Écoles, 30900 Nîmes",
+    "ADDRESS"
+   ],
+   [
+    "ANTONIN Maëlys",
+    "NAME"
+   ],
+   [
+    "18/07/2011",
+    "DATE"
+   ],
+   [
+    "0712345678H",
+    "ID"
+   ],
+   [
+    "Gaspard ANTONIN",
+    "NAME"
+   ],
+   [
+    "TRISTAN",
+    "NAME"
+   ],
+   [
+    "ALEXANDRE",
+    "NAME"
+   ],
+   [
+    "FANNY",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lay25-formulaire-cases",
+  "lang": "fr",
+  "text": "DÉCLARATION DE SINISTRE — MULTIRISQUE HABITATION\nContrat n° H-2019-884512          Sinistre n° 26/03/7741\nAssuré   ☒ M.   ☐ Mme            Nom : AURORE Grégory\nAdresse du risque : 62 boulevard Chanzy, 53000 Laval\nTéléphone  ☒ fixe 02 43 56 71 09    ☐ portable ______________\nNature   ☐ Vol   ☒ Dégât des eaux   ☐ Incendie   ☐ Bris de glace\nIBAN pour indemnisation : FR76 1254 8029 0000 0430 0245 170",
+  "truth": [
+   [
+    "H-2019-884512",
+    "ID"
+   ],
+   [
+    "AURORE Grégory",
+    "NAME"
+   ],
+   [
+    "62 boulevard Chanzy, 53000 Laval",
+    "ADDRESS"
+   ],
+   [
+    "02 43 56 71 09",
+    "PHONE"
+   ],
+   [
+    "FR76 1254 8029 0000 0430 0245 170",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "lay26-reservation-voyage",
+  "lang": "fr",
+  "text": "CONFIRMATION DE RÉSERVATION — Réf. PNR 4KQ7ZB\nPassager                    Vol      Départ             Arrivée\nCOLINE/CAPUCINE MME       AF1276   14MAR 07:35 TLS    09:05 CDG\nCOLINE/NOEMIE DORY           AF1276   14MAR 07:35 TLS    09:05 CDG\nContact : c.coline83@passau.fr — 06 88 30 12 74\nHôtel : 9 rue Notre-Dame, 78100 Saint-Germain-en-Laye",
+  "truth": [
+   [
+    "4KQ7ZB",
+    "ID"
+   ],
+   [
+    "COLINE/CAPUCINE",
+    "NAME"
+   ],
+   [
+    "COLINE/NOEMIE",
+    "NAME"
+   ],
+   [
+    "c.coline83@passau.fr",
+    "EMAIL"
+   ],
+   [
+    "06 88 30 12 74",
+    "PHONE"
+   ],
+   [
+    "9 rue Notre-Dame, 78100 Saint-Germain-en-Laye",
+    "ADDRESS"
+   ],
+   [
+    "CAPUCINE MME",
+    "NAME"
+   ],
+   [
+    "NOEMIE DORY",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "lay27-carte-visite",
+  "lang": "fr",
+  "text": "                    CABINET NOREL & PELON\n                  Expertise comptable — Audit\n\n                     Fanny NOREL-GARALENT\n                    Expert-comptable inscrite\n\n              17 quai des Chartrons — 33000 Espalion\n          fanny.norel@norel-associes.fr · 05 56 44 12 90",
+  "truth": [
+   [
+    "CABINET NOREL & PELON",
+    "ORG"
+   ],
+   [
+    "Fanny NOREL-GARALENT",
+    "NAME"
+   ],
+   [
+    "17 quai des Chartrons — 33000 Espalion",
+    "ADDRESS"
+   ],
+   [
+    "fanny.norel@norel-associes.fr",
+    "EMAIL"
+   ],
+   [
+    "05 56 44 12 90",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "lay28-organigramme",
+  "lang": "fr",
+  "text": "DIRECTION GÉNÉRALE\n├─ Pôle Finance — Responsable : Estelle GISELE (f.gisele@groupe-avelis.com)\n│  ├─ Comptabilité : Léa GARIGON, poste 4412\n│  └─ Contrôle de gestion : Mathis BELAION, poste 4418\n└─ Pôle Ressources humaines — Responsable : Estelle LEANDRE-RASARD\n   └─ Paie : Ophélie BREEAU, 06 12 44 78 03",
+  "truth": [
+   [
+    "Estelle GISELE",
+    "NAME"
+   ],
+   [
+    "f.gisele@groupe-avelis.com",
+    "EMAIL"
+   ],
+   [
+    "Léa GARIGON",
+    "NAME"
+   ],
+   [
+    "Mathis BELAION",
+    "NAME"
+   ],
+   [
+    "Estelle LEANDRE-RASARD",
+    "NAME"
+   ],
+   [
+    "Ophélie BREEAU",
+    "NAME"
+   ],
+   [
+    "06 12 44 78 03",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "lay29-colonnes-fusionnees",
+  "lang": "fr",
+  "text": "Le conseil municipal a voté        Mme Régine GISELE, 62 ans,\nla rénovation de la halle          domiciliée 3 rue du Bourg,\ncouverte pour 1,2 M€. Le maire,    a déposé un recours. Elle\nBlandine BLANDINE, a rappelé         peut être jointe au\nque le chantier débutera           06 09 55 71 20 ou par\nen septembre prochain.             courriel r.gisele@free.fr.",
+  "truth": [
+   [
+    "Régine GISELE",
+    "NAME"
+   ],
+   [
+    "3 rue du Bourg",
+    "ADDRESS"
+   ],
+   [
+    "Blandine BLANDINE",
+    "NAME"
+   ],
+   [
+    "06 09 55 71 20",
+    "PHONE"
+   ],
+   [
+    "r.gisele@free.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "lay30-mandat-sepa",
+  "lang": "fr",
+  "text": "MANDAT DE PRÉLÈVEMENT SEPA\nRéférence unique du mandat (RUM) : RUM-2026-000841-CB\nIdentifiant créancier SEPA (ICS) : FR83ZZZ483291\nCréancier : VEREYAC TALAUD SAS, 4 rue Lavoisier, 69100 Yssingeaux\nDébiteur  : M. Hortense EL JOLELENT\n            27 avenue de la République, 69003 Cahors\nIBAN : FR76 3000 4028 3700 0105 7289 121     BIC : CMCIFR2A\nFait à Cahors, le 06/02/2026 — Signature : Y. EL JOLELENT",
+  "truth": [
+   [
+    "RUM-2026-000841-CB",
+    "ID"
+   ],
+   [
+    "FR83ZZZ483291",
+    "ID"
+   ],
+   [
+    "VEREYAC TALAUD",
+    "ORG"
+   ],
+   [
+    "4 rue Lavoisier, 69100 Yssingeaux",
+    "ADDRESS"
+   ],
+   [
+    "Hortense EL JOLELENT",
+    "NAME"
+   ],
+   [
+    "27 avenue de la République, 69003 Cahors",
+    "ADDRESS"
+   ],
+   [
+    "FR76 3000 4028 3700 0105 7289 121",
+    "IBAN"
+   ],
+   [
+    "CMCIFR2A",
+    "ID"
+   ]
+  ]
+ },
+ {
+  "id": "lay31-cni-mrz",
+  "lang": "fr",
+  "text": "RÉPUBLIQUE FRANÇAISE — CARTE NATIONALE D'IDENTITÉ\nNom : DA MALENT JOLONAT          Prénom(s) : Inès, Finn\nNé(e) le : 21.05.1993 à PORTO (PORTUGAL)\nTaille : 1,64 m                 Sexe : F\nIDFRA9305721007<<<<<<<<<<<<<<<\n9305214F3305201PRT<<<<<<<<<<<6\nDA<MALENT<JOLONAT<<LEANDRE<FINN<<",
+  "truth": [
+   [
+    "DA MALENT JOLONAT",
+    "NAME"
+   ],
+   [
+    "Inès",
+    "NAME"
+   ],
+   [
+    "21.05.1993",
+    "DATE"
+   ],
+   [
+    "IDFRA9305721007<<<<<<<<<<<<<<<",
+    "ID"
+   ],
+   [
+    "9305214F3305201PRT<<<<<<<<<<<6",
+    "ID"
+   ],
+   [
+    "DA<MALENT<JOLONAT<<LEANDRE<FINN<<",
+    "ID"
+   ],
+   [
+    "21.05.1993 à PORTO (PORTUGAL)",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "lay32-export-tabule",
+  "lang": "fr",
+  "text": "nom\tprenom\tdate_naissance\temail\ttelephone\tiban\nCASPAR\tOphélie\t1990-04-17\to.caspar@laposte.net\t0663120944\tFR76 1027 8060 2100 0204 8630 163\nGASPARD\tUlla\t1985-11-02\tp.gaspard@wp.pl\t+33755012288\tFR76 1254 8029 0000 0430 0245 170",
+  "truth": [
+   [
+    "CASPAR",
+    "NAME"
+   ],
+   [
+    "Ophélie",
+    "NAME"
+   ],
+   [
+    "1990-04-17",
+    "DATE"
+   ],
+   [
+    "o.caspar@laposte.net",
+    "EMAIL"
+   ],
+   [
+    "0663120944",
+    "PHONE"
+   ],
+   [
+    "FR76 1027 8060 2100 0204 8630 163",
+    "IBAN"
+   ],
+   [
+    "GASPARD",
+    "NAME"
+   ],
+   [
+    "Ulla",
+    "NAME"
+   ],
+   [
+    "p.gaspard@wp.pl",
+    "EMAIL"
+   ],
+   [
+    "+33755012288",
+    "PHONE"
+   ],
+   [
+    "FR76 1254 8029 0000 0430 0245 170",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "lay33-derive-colonnes",
+  "lang": "fr",
+  "text": "FICHE ADHÉRENT\nNom\nPrénom\nDate de naissance\nAdresse\nCode postal / Ville\nTéléphone\nCourriel\n\nLEANDRE\nNoemie-Talareau\n03/12/1987\n41 rue Émile Zola\n59800 Vire\n03 20 55 41 87\nac.leandre@nordnet.fr",
+  "truth": [
+   [
+    "LEANDRE",
+    "NAME"
+   ],
+   [
+    "Noemie-Talareau",
+    "NAME"
+   ],
+   [
+    "03/12/1987",
+    "DATE"
+   ],
+   [
+    "41 rue Émile Zola",
+    "ADDRESS"
+   ],
+   [
+    "Vire",
+    "CITY"
+   ],
+   [
+    "03 20 55 41 87",
+    "PHONE"
+   ],
+   [
+    "ac.leandre@nordnet.fr",
+    "EMAIL"
+   ],
+   [
+    "41 rue Émile Zola\n59800 Vire",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "lay34-notes-bas-page",
+  "lang": "fr",
+  "text": "… le bénéficiaire¹ percevra la somme convenue².\nLe mandataire³ atteste de l'exactitude des présentes.\n_______________________\n¹ M. Leandre BRÉHIER, né le 09/08/1954, demeurant 6 sentier des Meuniers, 78290 Croissy-sur-Riom.\n² Versement sur le compte FR76 2004 1010 0505 0001 3002 675 ouvert au nom de l'intéressé.\n³ Maître Hélène CHAALAT, notaire, tél. 01 39 76 22 14.",
+  "truth": [
+   [
+    "Leandre BRÉHIER",
+    "NAME"
+   ],
+   [
+    "09/08/1954",
+    "DATE"
+   ],
+   [
+    "6 sentier des Meuniers, 78290 Croissy-sur-Riom",
+    "ADDRESS"
+   ],
+   [
+    "FR76 2004 1010 0505 0001 3002 675",
+    "IBAN"
+   ],
+   [
+    "Hélène CHAALAT",
+    "NAME"
+   ],
+   [
+    "01 39 76 22 14",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "lay35-facture-de-en",
+  "lang": "de",
+  "text": "RECHNUNG / INVOICE Nr. 2026-0088\nKunde / Customer:              Lieferadresse / Delivery:\nHerr Ingmar Kenorson       Kenorson Branenholt GmbH\nLindenstraße 47                Gewerbering 12\n04103 Randers                  04435 Lorrach\nTel.: +49 341 2298 4471        E-Mail: m.kenorson@kenorson-branenholt.de\nIBAN: DE02 1203 0000 0000 2020 51",
+  "truth": [
+   [
+    "Ingmar Kenorson",
+    "NAME"
+   ],
+   [
+    "Lindenstraße 47",
+    "ADDRESS"
+   ],
+   [
+    "Randers",
+    "CITY"
+   ],
+   [
+    "Kenorson Branenholt GmbH",
+    "ORG"
+   ],
+   [
+    "Gewerbering 12",
+    "ADDRESS"
+   ],
+   [
+    "+49 341 2298 4471",
+    "PHONE"
+   ],
+   [
+    "m.kenorson@kenorson-branenholt.de",
+    "EMAIL"
+   ],
+   [
+    "DE02 1203 0000 0000 2020 51",
+    "IBAN"
+   ],
+   [
+    "Gewerbering 12\n04103 Randers",
+    "ADDRESS"
+   ],
+   [
+    "04435 Lorrach",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "lay36-manuscrit-ocr",
+  "lang": "fr",
+  "text": "FICHE DE RENSEIGNEMENTS (saisie manuscrite)\nNom du souscripteur ..... NIELS-GARARAC Freja\nDate de naissance ....... O5/O9/l982\nAdresse ................. 3l bis rue des Casernes\n                          6O00O CASTRES\nPortable ................ O6 4l 22 87 O3\nCourriel ................ freja.niels62@wanadoo,fr",
+  "truth": [
+   [
+    "NIELS-GARARAC Freja",
+    "NAME"
+   ],
+   [
+    "O5/O9/l982",
+    "DATE"
+   ],
+   [
+    "3l bis rue des Casernes",
+    "ADDRESS"
+   ],
+   [
+    "CASTRES",
+    "CITY"
+   ],
+   [
+    "O6 4l 22 87 O3",
+    "PHONE"
+   ],
+   [
+    "freja.niels62@wanadoo,fr",
+    "EMAIL"
+   ],
+   [
+    "6O00O CASTRES",
+    "PLACE"
+   ]
+  ]
+ }
+]

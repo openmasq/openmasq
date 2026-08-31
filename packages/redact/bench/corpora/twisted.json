@@ -1,0 +1,458 @@
+[
+ {
+  "id": "h1",
+  "lang": "fr",
+  "text": "Coordonnées du client :\nNoemie\nFanny\nTéléphone 06 12 34 56 78",
+  "truth": [
+   [
+    "Noemie Fanny",
+    "NAME"
+   ],
+   [
+    "06 12 34 56 78",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "h2",
+  "lang": "fr",
+  "text": "Le bénéficiaire Noemie-\nGaspard Tristan a contresigné le contrat.",
+  "truth": [
+   [
+    "Noemie-Gaspard Tristan",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h3",
+  "lang": "fr",
+  "text": "Nom ....................... Cleraud\nPrénom .................... Élise\nVille ...................... Nogaro",
+  "truth": [
+   [
+    "Élise Cleraud",
+    "NAME"
+   ],
+   [
+    "Nogaro",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h4",
+  "lang": "fr",
+  "text": "Adresse de livraison\n12 rue des\nLilas\n75011\nSenlis",
+  "truth": [
+   [
+    "12 rue des Lilas",
+    "ADDRESS"
+   ],
+   [
+    "75011",
+    "POSTAL"
+   ],
+   [
+    "Senlis",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h5",
+  "lang": "fr",
+  "text": "Vous pouvez m'écrire à noemie.fanny\n@societe-generale.fr dès que possible.",
+  "truth": [
+   [
+    "noemie.fanny@societe-generale.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "h6",
+  "lang": "fr",
+  "text": "IBAN :\nFR76 3000 1007 94\n12 3456 7890 185",
+  "truth": [
+   [
+    "FR76 3000 1007 9412 3456 7890 185",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "h7",
+  "lang": "fr",
+  "text": "Poste occupéINGÉNIEUR Fanny Capucine2450 salaire net",
+  "truth": [
+   [
+    "Fanny Capucine",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h8",
+  "lang": "fr",
+  "text": "M.\nJUSTINE\n(Noemie-Fonoux),\ndirecteur général",
+  "truth": [
+   [
+    "Noemie-Fonoux Justine",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h9",
+  "lang": "fr",
+  "text": "Tél : 06 12\n34 56 78 (portable)",
+  "truth": [
+   [
+    "06 12 34 56 78",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "h10",
+  "lang": "fr",
+  "text": "Nom | Ville | CP\nFanny |\nEspalion | 33000",
+  "truth": [
+   [
+    "Fanny",
+    "NAME"
+   ],
+   [
+    "Espalion",
+    "CITY"
+   ],
+   [
+    "33000",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "h11",
+  "lang": "fr",
+  "text": "--\nÉlodie Aurore\nDirectrice Marketing\nmathis.aurore@acme-corp.fr\n+33 6 88 77 66 55",
+  "truth": [
+   [
+    "Élodie Aurore",
+    "NAME"
+   ],
+   [
+    "mathis.aurore@acme-corp.fr",
+    "EMAIL"
+   ],
+   [
+    "+33 6 88 77 66 55",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "h12",
+  "lang": "fr",
+  "text": "Date de naissance\n03/\n04/\n1988",
+  "truth": [
+   [
+    "03/04/1988",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "h13",
+  "lang": "fr",
+  "text": "Vendeur : Mathis Petit\nAcheteur : Carole\nRouonin",
+  "truth": [
+   [
+    "Mathis Petit",
+    "NAME"
+   ],
+   [
+    "Carole Rouonin",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h14",
+  "lang": "fr",
+  "text": "Résidence Les\nGarorel, Bât. C\n8 avenue du\nGénéral Leclerc\n69003 Cahors",
+  "truth": [
+   [
+    "8 avenue du Général Leclerc",
+    "ADDRESS"
+   ],
+   [
+    "69003",
+    "POSTAL"
+   ],
+   [
+    "Cahors",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h15",
+  "lang": "fr",
+  "text": "Le dossier a été remis à Madame Coline\nTristan le 3 mars dernier.",
+  "truth": [
+   [
+    "Coline Tristan",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h16",
+  "lang": "en",
+  "text": "Full name .......... Falelstra\nGiven name ......... Anders\nCity ............... Verden",
+  "truth": [
+   [
+    "Anders Falelstra",
+    "NAME"
+   ],
+   [
+    "Verden",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h17",
+  "lang": "en",
+  "text": "Reach out at anders.falelstra@\nvoraring-traders.com anytime.",
+  "truth": [
+   [
+    "anders.falelstra@voraring-traders.com",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "h18",
+  "lang": "en",
+  "text": "Ship to:\n221B Baker\nStreet\nApt 4\nVerden WA\n98101",
+  "truth": [
+   [
+    "221B Baker Street",
+    "ADDRESS"
+   ],
+   [
+    "Verden",
+    "CITY"
+   ],
+   [
+    "98101",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "h19",
+  "lang": "fr",
+  "text": "EXPÉRIENCE                    Clement Hortense\n2020-2024   Chef de projet   Lisieux",
+  "truth": [
+   [
+    "Clement Hortense",
+    "NAME"
+   ],
+   [
+    "Lisieux",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h20",
+  "lang": "zh",
+  "text": "客户姓名:\n张\n伟\n电话: 138 0000 0000",
+  "truth": [
+   [
+    "曲若飞",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h21",
+  "lang": "zh",
+  "text": "收货地址\n岑晚棠\n南山区\n科技园\n518057",
+  "truth": [
+   [
+    "岑晚棠",
+    "CITY"
+   ],
+   [
+    "518057",
+    "POSTAL"
+   ]
+  ]
+ },
+ {
+  "id": "h22",
+  "lang": "ja",
+  "text": "お客様\n田中\n关柏舟\n様\n電話 090-1234-5678",
+  "truth": [
+   [
+    "宁则川",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h23",
+  "lang": "ko",
+  "text": "고객명\n김\n민준\n서울",
+  "truth": [
+   [
+    "김민준",
+    "NAME"
+   ],
+   [
+    "서울",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h24",
+  "lang": "de",
+  "text": "Lieferadresse:\nBremholt-\nstraße 12\n80331\nMünchen",
+  "truth": [
+   [
+    "Musterstraße 12",
+    "ADDRESS"
+   ],
+   [
+    "80331",
+    "POSTAL"
+   ],
+   [
+    "München",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h25",
+  "lang": "fr",
+  "text": "Le notaire Alexandre de la\nPrainac a validé l'acte.",
+  "truth": [
+   [
+    "Alexandre de la Prainac",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h26",
+  "lang": "fr",
+  "text": "Code postal .... 44000\nCommune ........ Louhans\nDépartement .... Loire-Atlantique",
+  "truth": [
+   [
+    "44000",
+    "POSTAL"
+   ],
+   [
+    "Louhans",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h27",
+  "lang": "fr",
+  "text": "Numéro\nde\ntéléphone :\n+33\n6\n45\n67\n89\n01",
+  "truth": [
+   [
+    "+33 6 45 67 89 01",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "h28",
+  "lang": "fr",
+  "text": "destinataire: tristan\nROLAND — service comptabilité",
+  "truth": [
+   [
+    "tristan ROLAND",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h29",
+  "lang": "fr",
+  "text": "Facturation\n3 rue Blanche\n75009 Senlis\nLivraison\n8 quai de Riom\n69002 Cahors",
+  "truth": [
+   [
+    "3 rue Blanche",
+    "ADDRESS"
+   ],
+   [
+    "75009",
+    "POSTAL"
+   ],
+   [
+    "Senlis",
+    "CITY"
+   ],
+   [
+    "8 quai de Riom",
+    "ADDRESS"
+   ],
+   [
+    "69002",
+    "POSTAL"
+   ],
+   [
+    "Cahors",
+    "CITY"
+   ]
+  ]
+ },
+ {
+  "id": "h30",
+  "lang": "fr",
+  "text": "Client : S O P H I E   B E R N A R D",
+  "truth": [
+   [
+    "FANNY BLANDINE",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "h31",
+  "lang": "en",
+  "text": "From: Femke\n O'Kelbeck <femke.oconnor@\nexample.org>",
+  "truth": [
+   [
+    "Femke O'Kelbeck",
+    "NAME"
+   ],
+   [
+    "femke.oconnor@example.org",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "h32",
+  "lang": "fr",
+  "text": "Coordonnées bancaires\nIBAN\nFR14 2004 1010 0505 0001 3M02 606\nBIC\nBNPAFRPPXXX",
+  "truth": [
+   [
+    "FR14 2004 1010 0505 0001 3M02 606",
+    "IBAN"
+   ]
+  ]
+ }
+]

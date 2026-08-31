@@ -1,0 +1,6499 @@
+[
+ {
+  "id": "minces-card-caisse",
+  "lang": "fr",
+  "text": "Export caisse — 30/07/2026 (extraits)\nticket;heure;moyen;numero;montant\n10452;09:14;CB;4539 5787 6362 1486;24,90\n10453;09:21;CB;5453 0112 8367 9015;112,00\n10454;09:36;AMEX;3714 496353 98431;89,50\n10455;09:40;CB;4916 7700 1894 2352;7,20",
+  "truth": [
+   [
+    "4539 5787 6362 1486",
+    "CARD"
+   ],
+   [
+    "5453 0112 8367 9015",
+    "CARD"
+   ],
+   [
+    "3714 496353 98431",
+    "CARD"
+   ],
+   [
+    "4916 7700 1894 2352",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-sav",
+  "lang": "fr",
+  "text": "Bonjour, suite à mon appel au SAV : le prélèvement de 112 € est passé DEUX fois sur ma carte 2224-1059-8274-3166. Ma collègue Mme Guingamp a eu le même souci avec la 4451 0398 4217 6509 (débit du 12/07). Merci de rembourser sur la même carte, pas sur l'IBAN FR33 3000 2005 5000 0015 7841 Z25.",
+  "truth": [
+   [
+    "2224-1059-8274-3166",
+    "CARD"
+   ],
+   [
+    "4451 0398 4217 6509",
+    "CARD"
+   ],
+   [
+    "Guingamp",
+    "NAME"
+   ],
+   [
+    "FR33 3000 2005 5000 0015 7841 Z25",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-maroux-de",
+  "lang": "de",
+  "text": "Reservierungsbestätigung — Maroux Lindenhof, Zimmer 204\nGarantie: Kreditkarte 4539 5787 6362 1486 (Visa), Ablauf 09/27.\nBei Anreise nach 18 Uhr wird die Karte 5453 0112 8367 9015 mit einer Nacht belastet.",
+  "truth": [
+   [
+    "4539 5787 6362 1486",
+    "CARD"
+   ],
+   [
+    "5453 0112 8367 9015",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-recibo-es",
+  "lang": "es",
+  "text": "RECIBO DE PAGO — Taller Mecánico\nCliente abonó 340,00 € con tarjeta 4916 7700 1894 2352.\nSegundo pago (piezas) con la tarjeta de empresa 3459 821764 09319.",
+  "truth": [
+   [
+    "4916 7700 1894 2352",
+    "CARD"
+   ],
+   [
+    "3459 821764 09319",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-scontrino-it",
+  "lang": "it",
+  "text": "SCONTRINO n. 88 — pagamento POS\nCarta: 2224 1059 8274 3166  AUT: 003321\nStorno richiesto sulla carta 36001234567895 (Diners, 14 cifre).",
+  "truth": [
+   [
+    "2224 1059 8274 3166",
+    "CARD"
+   ],
+   [
+    "36001234567895",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-ocr-glue",
+  "lang": "fr",
+  "text": "(scan OCR) Réglé par carte bancaireN°4539578763621486le 12/06, solde néant.\nCarte de secours : 6200 1234 5678 9010 (UnionPay).",
+  "truth": [
+   [
+    "4539578763621486",
+    "CARD"
+   ],
+   [
+    "6200 1234 5678 9010",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-wrap",
+  "lang": "fr",
+  "text": "Merci de vérifier le paiement refusé :\ncarte 4451 0398\n4217 6509 — code erreur 05.\nLa carte 5001 2345 6789 0123 457 (Maestro 19 chiffres) fonctionne, elle.",
+  "truth": [
+   [
+    "4451 0398 4217 6509",
+    "CARD"
+   ],
+   [
+    "5001 2345 6789 0123 457",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-nbsp",
+  "lang": "fr",
+  "text": "Relevé d'opérations (PDF) : CB 4916 7700 1894 2352 — clerel écritures en attente, carte de M. Mathis Chaelret.",
+  "truth": [
+   [
+    "4916 7700 1894 2352",
+    "CARD"
+   ],
+   [
+    "Mathis Chaelret",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-json",
+  "lang": "en",
+  "text": "Webhook payload (sandbox replay):\n{\"event\":\"payment.failed\",\"card_number\":\"4539578763621486\",\"exp\":\"0927\",\"holder_email\":\"t.renard@passau.fr\",\"attempts\":3}\nRetry with backup card 3528 1234 5678 9012 (JCB) if the decline persists.",
+  "truth": [
+   [
+    "4539578763621486",
+    "CARD"
+   ],
+   [
+    "3528 1234 5678 9012",
+    "CARD"
+   ],
+   [
+    "t.renard@passau.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-pt",
+  "lang": "pt",
+  "text": "Comprovativo: compra de 58,90 € no cartão 5453 0112 8367 9015.\nO reembolso será feito no mesmo cartão (final 9015), prazo 5 dias úteis.",
+  "truth": [
+   [
+    "5453 0112 8367 9015",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-nl",
+  "lang": "nl",
+  "text": "Betalingsherinnering: de incasso van uw kaart 4000 1234 5678 8 (13 cijfers, oude reeks) is mislukt.\nGebruik anders de zakelijke kaart 3714 4963 5398 431.",
+  "truth": [
+   [
+    "4000 1234 5678 8",
+    "CARD"
+   ],
+   [
+    "3714 4963 5398 431",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-log",
+  "lang": "en",
+  "text": "[2026-07-30 09:14:02] WARN psp.gateway retry=2 masked=false pan=2224105982743166 auth=declined\n[2026-07-30 09:14:09] INFO psp.gateway pan=4916770018942352 auth=approved batch=88213",
+  "truth": [
+   [
+    "2224105982743166",
+    "CARD"
+   ],
+   [
+    "4916770018942352",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-table-md",
+  "lang": "en",
+  "text": "| booking | guest | card on file | status |\n|---|---|---|---|\n| A-1201 | R. Ryan | 4539-5787-6362-1486 | confirmed |\n| A-1202 | K. Capucine | 5453-0112-8367-9015 | no-show |",
+  "truth": [
+   [
+    "4539-5787-6362-1486",
+    "CARD"
+   ],
+   [
+    "5453-0112-8367-9015",
+    "CARD"
+   ],
+   [
+    "R. Ryan",
+    "NAME"
+   ],
+   [
+    "K. Capucine",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-card-mixte",
+  "lang": "fr",
+  "text": "Litige n° 2026/RC/0031 — double débit.\nCarte concernée : 3459 8217 6409 319 (Amex pro), titulaire M. Roland Saveceau.\nPremière carte remplacée : 4451-0398-4217-6509 (opposition du 02/05).\nContact : y.saveceau@saveceau-conseil.fr / 06 44 71 20 93.",
+  "truth": [
+   [
+    "3459 8217 6409 319",
+    "CARD"
+   ],
+   [
+    "4451-0398-4217-6509",
+    "CARD"
+   ],
+   [
+    "Roland Saveceau",
+    "NAME"
+   ],
+   [
+    "y.saveceau@saveceau-conseil.fr",
+    "EMAIL"
+   ],
+   [
+    "06 44 71 20 93",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-kbis",
+  "lang": "fr",
+  "text": "EXTRAIT KBIS — GREFFE DU TRIBUNAL DE COMMERCE DE NANTERRE\nDénomination : ATELIERS BREARAT\nImmatriculation : 947 782 603 RCS Nanterre\nSIRET (siège) : 947 782 603 00015\nTVA intracommunautaire : FR13947782603\nEUID : FR7501.947782603",
+  "truth": [
+   [
+    "ATELIERS BREARAT",
+    "ORG"
+   ],
+   [
+    "947 782 603",
+    "COMPANY_ID"
+   ],
+   [
+    "947 782 603 00015",
+    "COMPANY_ID"
+   ],
+   [
+    "FR13947782603",
+    "COMPANY_ID"
+   ],
+   [
+    "FR7501.947782603",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-facture-fr",
+  "lang": "fr",
+  "text": "FACTURE F-2026-1188 — Menuiserie Gaspard & Fils\nSiège : 12 rue des Tanneurs, 49100 Objat\nSIREN : 812345676  —  N° TVA : FR19812345676\nClient : SARL FONANON D'OR, SIRET 81234567600041",
+  "truth": [
+   [
+    "Menuiserie Gaspard & Fils",
+    "ORG"
+   ],
+   [
+    "12 rue des Tanneurs",
+    "ADDRESS"
+   ],
+   [
+    "49100",
+    "POSTAL"
+   ],
+   [
+    "Objat",
+    "CITY"
+   ],
+   [
+    "812345676",
+    "COMPANY_ID"
+   ],
+   [
+    "FR19812345676",
+    "COMPANY_ID"
+   ],
+   [
+    "FONANON D'OR",
+    "ORG"
+   ],
+   [
+    "81234567600041",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-impressum-de",
+  "lang": "de",
+  "text": "Impressum — Bremarsen Wiking GmbH\nRegistergericht: Amtsgericht München, HRB 21488\nUSt-IdNr.: DE812345670\nGeschäftsführerin: Frau Gunnar Morendorf",
+  "truth": [
+   [
+    "Bremarsen Wiking GmbH",
+    "ORG"
+   ],
+   [
+    "HRB 21488",
+    "COMPANY_ID"
+   ],
+   [
+    "DE812345670",
+    "COMPANY_ID"
+   ],
+   [
+    "Gunnar Morendorf",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-fattura-it",
+  "lang": "it",
+  "text": "FATTURA ELETTRONICA n. 2026/442\nCedente: Balarosa Caseino s.r.l. — P.IVA 00743980583\nCessionario: studio legale, partita IVA 01827346550",
+  "truth": [
+   [
+    "Balarosa Caseino s.r.l.",
+    "CONTEXT"
+   ],
+   [
+    "00743980583",
+    "COMPANY_ID"
+   ],
+   [
+    "01827346550",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-factura-es",
+  "lang": "es",
+  "text": "FACTURA 2026-0771 — Roselorio Ibéricos S.L.\nCIF: B29045887\nCliente: cooperativa agraria, NIF de empresa: A58318219",
+  "truth": [
+   [
+    "Roselorio Ibéricos S.L.",
+    "CONTEXT"
+   ],
+   [
+    "B29045887",
+    "COMPANY_ID"
+   ],
+   [
+    "A58318219",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-nota-br",
+  "lang": "pt",
+  "text": "NOTA FISCAL ELETRÔNICA — Série 1, nº 88.412\nEmitente: Transportes Ventelanes Ltda., CNPJ 60.701.190/0001-04\nDestinatário: CNPJ 45.308.912/0001-63",
+  "truth": [
+   [
+    "Transportes Ventelanes Ltda.",
+    "ORG"
+   ],
+   [
+    "60.701.190/0001-04",
+    "COMPANY_ID"
+   ],
+   [
+    "45.308.912/0001-63",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-invoice-au",
+  "lang": "en",
+  "text": "TAX INVOICE — Branberg Wikholt Joinery Pty Ltd\nABN 30 012 345 623\nRegistered company: ACN 004 294 553",
+  "truth": [
+   [
+    "Branberg Wikholt Joinery Pty Ltd",
+    "CONTEXT"
+   ],
+   [
+    "30 012 345 623",
+    "COMPANY_ID"
+   ],
+   [
+    "004 294 553",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-faktura-pl",
+  "lang": "pl",
+  "text": "FAKTURA VAT 2026/07/301\nSprzedawca: Borienowievład Borenko Gorinov, NIP: PL5250007715\nNabywca: spółka z o.o., NIP 9472461871",
+  "truth": [
+   [
+    "Borienowievład Borenko Gorinov",
+    "CONTEXT"
+   ],
+   [
+    "PL5250007715",
+    "COMPANY_ID"
+   ],
+   [
+    "9472461871",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-nordics",
+  "lang": "sv",
+  "text": "Fakturauppgifter / Faktureringsoplysninger\nMomsreg.nr (SE): SE556016022701\nDansk leverandør: CVR DK 36 29 40 27",
+  "truth": [
+   [
+    "SE556016022701",
+    "COMPANY_ID"
+   ],
+   [
+    "DK 36 29 40 27",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-benelux",
+  "lang": "nl",
+  "text": "Offerte — Lindsen Stenenson b.v.\nBTW-nummer: NL812345670B01\nBelgische partner: BE0456248903\nPortugese leverancier: PT509345115",
+  "truth": [
+   [
+    "Lindsen Stenenson b.v.",
+    "CONTEXT"
+   ],
+   [
+    "NL812345670B01",
+    "COMPANY_ID"
+   ],
+   [
+    "BE0456248903",
+    "COMPANY_ID"
+   ],
+   [
+    "PT509345115",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-lei-report",
+  "lang": "en",
+  "text": "Counterparty annex (extract): the swap is cleared against the entity bearing LEI 724500A93HDWMKNX2872; settlement instructions unchanged (BIC AGRIFRPP812).",
+  "truth": [
+   [
+    "724500A93HDWMKNX2872",
+    "COMPANY_ID"
+   ],
+   [
+    "AGRIFRPP812",
+    "BIC"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-w9-us",
+  "lang": "en",
+  "text": "Form W-9 (recap) — Line 1: Kenstra & Vorholt Consulting LLC. EIN: 84-3172906. Backup withholding: not subject.",
+  "truth": [
+   [
+    "Kenstra & Vorholt Consulting LLC",
+    "CONTEXT"
+   ],
+   [
+    "84-3172906",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-uen-sg",
+  "lang": "en",
+  "text": "Vendor onboarding — Singapore branch registered as T09LL0328J (UEN), GST-registered.",
+  "truth": [
+   [
+    "T09LL0328J",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-json-crm",
+  "lang": "en",
+  "text": "CRM sync result:\n{\"account\":\"Ateliers Brearat\",\"siret\":\"94778260300015\",\"vat\":\"FR13947782603\",\"country\":\"FR\",\"hrb\":\"HRB 88231\",\"status\":\"active\"}",
+  "truth": [
+   [
+    "Ateliers Brearat",
+    "CONTEXT"
+   ],
+   [
+    "94778260300015",
+    "COMPANY_ID"
+   ],
+   [
+    "FR13947782603",
+    "COMPANY_ID"
+   ],
+   [
+    "HRB 88231",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "minces-cid-mail-mixte",
+  "lang": "fr",
+  "text": "Objet : ouverture de compte fournisseur\nBonjour, voici les éléments : SIREN 947 782 603, TVA FR13 947 782 603, RIB : 30002 00550 0000157841Z 25.\nCordialement, P. Estelle (p.estelle@brearat.fr)",
+  "truth": [
+   [
+    "947 782 603",
+    "COMPANY_ID"
+   ],
+   [
+    "FR13 947 782 603",
+    "COMPANY_ID"
+   ],
+   [
+    "30002 00550 0000157841Z 25",
+    "IBAN"
+   ],
+   [
+    "Estelle",
+    "NAME"
+   ],
+   [
+    "p.estelle@brearat.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "minces-user-social-export",
+  "lang": "en",
+  "text": "Followers export (page 3):\n@lofodug_rud — joined 2019, 8.2k followers\n@toged_guras92 — joined 2021\n@mireva_garaud — muted\nMentions pending review: @gavir_pudev, @nirepesulac",
+  "truth": [
+   [
+    "@lofodug_rud",
+    "USERNAME"
+   ],
+   [
+    "@toged_guras92",
+    "USERNAME"
+   ],
+   [
+    "@mireva_garaud",
+    "USERNAME"
+   ],
+   [
+    "@gavir_pudev",
+    "USERNAME"
+   ],
+   [
+    "@nirepesulac",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-user-forum-fr",
+  "lang": "fr",
+  "text": "Modération du forum — file d'attente :\npseudo : ticarap92 (3 signalements)\npseudo : vudefoni_sob (spam présumé)\nLe membre @pinalo_gop conteste son bannissement.",
+  "truth": [
+   [
+    "ticarap92",
+    "USERNAME"
+   ],
+   [
+    "vudefoni_sob",
+    "USERNAME"
+   ],
+   [
+    "@pinalo_gop",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-user-labels-multi",
+  "lang": "de",
+  "text": "Zugangsdaten (intern, bitte löschen):\nBenutzername: h.napaso_vod\nAnmeldename: bosudu-gogas2\nIl collega italiano — nome utente: magisunivap77\nCuenta española — nombre de usuario: tova.codicub",
+  "truth": [
+   [
+    "h.napaso_vod",
+    "USERNAME"
+   ],
+   [
+    "bosudu-gogas2",
+    "USERNAME"
+   ],
+   [
+    "magisunivap77",
+    "USERNAME"
+   ],
+   [
+    "tova.codicub",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-user-yaml",
+  "lang": "en",
+  "text": "# staging fixture (sanitised?)\naccounts:\n  - username: \"gogufe_pog\"\n    role: admin\n  - login: \"roten.pesosu\"\n    role: viewer\nsupport handle on the status page: @garaud_helpdesk",
+  "truth": [
+   [
+    "gogufe_pog",
+    "USERNAME"
+   ],
+   [
+    "roten.pesosu",
+    "USERNAME"
+   ],
+   [
+    "@garaud_helpdesk",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-user-gaming",
+  "lang": "pt",
+  "text": "Relatório de partida — servidor BR#4\nNome de utilizador: lumivo_luvuv\nDenúncia contra o jogador @geteno_guvarat (linguagem tóxica).\nUtilizador: mifal.peruv22 — banido 48h.",
+  "truth": [
+   [
+    "lumivo_luvuv",
+    "USERNAME"
+   ],
+   [
+    "@geteno_guvarat",
+    "USERNAME"
+   ],
+   [
+    "mifal.peruv22",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-user-nl-pl",
+  "lang": "nl",
+  "text": "Ticket 4471 — accountherstel\nGebruikersnaam: dufo.sagoludune\nPoolse klant, nazwa użytkownika: sududela_son\nTwitter-handle voor verificatie: @pavomiva",
+  "truth": [
+   [
+    "dufo.sagoludune",
+    "USERNAME"
+   ],
+   [
+    "sududela_son",
+    "USERNAME"
+   ],
+   [
+    "@pavomiva",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-user-serialized",
+  "lang": "en",
+  "text": "Audit trail (Sentry-like):\n{\"user\":{\"username\":\"marivu.gan\",\"ip_address\":\"203.0.113.44\"},\"action\":\"login_failed\",\"attempts\":6}\n{\"user\":{\"username\":\"tolena_supen\"},\"action\":\"password_reset\"}",
+  "truth": [
+   [
+    "marivu.gan",
+    "USERNAME"
+   ],
+   [
+    "tolena_supen",
+    "USERNAME"
+   ],
+   [
+    "203.0.113.44",
+    "IP"
+   ]
+  ]
+ },
+ {
+  "id": "minces-user-negatifs",
+  "lang": "en",
+  "text": "Deploy notes: the @media query broke, @param docs regenerated, package moved to @scope/pkg — none of these are handles. Real reporter: @sitod_ponup.",
+  "truth": [
+   [
+    "@sitod_ponup",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "minces-token-env",
+  "lang": "en",
+  "text": "# .env.staging (extract — rotate after incident!)\nMORBECK_WRITE_KEY=Kq82ZmWx4Tp7Vn31Rd\nFEATURE_GATE_TOKEN=v2rT8kZm5nQw1Xc7Jb4\n# the old one (already revoked): q7Zx9mKp2Lw4Vt8Rb1\n",
+  "truth": [
+   [
+    "Kq82ZmWx4Tp7Vn31Rd",
+    "TOKEN"
+   ],
+   [
+    "v2rT8kZm5nQw1Xc7Jb4",
+    "TOKEN"
+   ],
+   [
+    "q7Zx9mKp2Lw4Vt8Rb1",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "minces-token-curl",
+  "lang": "en",
+  "text": "Repro (staging):\ncurl -H \"X-Api-Token: mV93kTqZ7Rw2Xp8Lc4Yn\" https://api.staging.internal/v2/export\nFallback token (read-only): zW4pQ81mKr7Tt2Vx9Jd3",
+  "truth": [
+   [
+    "mV93kTqZ7Rw2Xp8Lc4Yn",
+    "TOKEN"
+   ],
+   [
+    "zW4pQ81mKr7Tt2Vx9Jd3",
+    "TOKEN"
+   ],
+   [
+    "https://api.staging.internal/v2/export",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "minces-token-yaml-ci",
+  "lang": "en",
+  "text": "# ci pipeline vars (masked? NO — fix)\nvariables:\n  REGISTRY_PULL_TOKEN: \"nX7wKp92Zr4Tm1Qv8Yc3Lb\"\n  SLACK_RELAY_SECRET: \"tK4zVm81Rw7Xp2Qn9Jd5\"\nsteps:\n  - run: deploy --key gY72mZkW9Xq4Tp1Vr8Nc",
+  "truth": [
+   [
+    "nX7wKp92Zr4Tm1Qv8Yc3Lb",
+    "TOKEN"
+   ],
+   [
+    "tK4zVm81Rw7Xp2Qn9Jd5",
+    "TOKEN"
+   ],
+   [
+    "gY72mZkW9Xq4Tp1Vr8Nc",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "minces-token-log-fr",
+  "lang": "fr",
+  "text": "[incident 2026-07-29] Le jeton d'export nZ81kWq7Tm4Xp2Vr9Yc3 a fuité dans les logs du proxy (ligne 4412). Jeton de remplacement émis : bQ94zTkW2Xm7Rp1Vn8Jc — à stocker dans le coffre, PAS dans le wiki.",
+  "truth": [
+   [
+    "nZ81kWq7Tm4Xp2Vr9Yc3",
+    "TOKEN"
+   ],
+   [
+    "bQ94zTkW2Xm7Rp1Vn8Jc",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "minces-token-docker-de",
+  "lang": "de",
+  "text": "docker-compose.override.yml (bitte NIE committen):\n  environment:\n    - MQTT_BRIDGE_TOKEN=wR72kZmQ9Xt4Vp1Nc8Yb\n    - BACKUP_HMAC_SEED=pT94zWkV2Xr7Qm1Jn8Lc5\nDer alte Wert kY81mZqW4Tp7Xv2Rn9Jc wurde widerrufen.",
+  "truth": [
+   [
+    "wR72kZmQ9Xt4Vp1Nc8Yb",
+    "TOKEN"
+   ],
+   [
+    "pT94zWkV2Xr7Qm1Jn8Lc5",
+    "TOKEN"
+   ],
+   [
+    "kY81mZqW4Tp7Xv2Rn9Jc",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "minces-token-mixte-secret",
+  "lang": "fr",
+  "text": "Runbook accès (extrait) :\nmot de passe applicatif : corbeau-madras-812\njeton API partenaire : hW29kZqT7Xm4Vp1Rc8Nb\nclé de signature webhook : whsec_9zTkW2Xm7Rp1Vn8JcQ4\n",
+  "truth": [
+   [
+    "corbeau-madras-812",
+    "SECRET"
+   ],
+   [
+    "hW29kZqT7Xm4Vp1Rc8Nb",
+    "TOKEN"
+   ],
+   [
+    "whsec_9zTkW2Xm7Rp1Vn8JcQ4",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "minces-token-es",
+  "lang": "es",
+  "text": "Nota interna: el token de integración qM82zWkT4Xr7Vp1Nc9Jb5 caduca el viernes; el nuevo (vL73kZmQ9Xt2Wp4Rn8Yc) ya está en el gestor de secretos.",
+  "truth": [
+   [
+    "qM82zWkT4Xr7Vp1Nc9Jb5",
+    "TOKEN"
+   ],
+   [
+    "vL73kZmQ9Xt2Wp4Rn8Yc",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "minces-health-ordonnance",
+  "lang": "fr",
+  "text": "COMPTE RENDU — service de cardiologie\nPatient : dossier médical n° 88213470\nGroupe sanguin : O négatif — diagnostic principal (CIM-10) : I48.1\nPraticien : RPPS 10003456789, service FINESS 750712184.",
+  "truth": [
+   [
+    "88213470",
+    "HEALTH"
+   ],
+   [
+    "O négatif",
+    "HEALTH"
+   ],
+   [
+    "I48.1",
+    "HEALTH"
+   ],
+   [
+    "10003456789",
+    "HEALTH"
+   ],
+   [
+    "750712184",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "minces-health-de",
+  "lang": "de",
+  "text": "Aufnahmebogen (Auszug)\nBlutgruppe: AB negativ\nPatientennummer: 55098213\nDiagnose (ICD-10): E11.9 — weitere Abklärung ambulant.",
+  "truth": [
+   [
+    "AB negativ",
+    "HEALTH"
+   ],
+   [
+    "55098213",
+    "HEALTH"
+   ],
+   [
+    "E11.9",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "minces-health-es",
+  "lang": "es",
+  "text": "Historia clínica nº 77120945 — urgencias\nGrupo sanguíneo: B positivo\nDiagnóstico (CIE/ICD): F32.1, seguimiento en consulta.",
+  "truth": [
+   [
+    "77120945",
+    "HEALTH"
+   ],
+   [
+    "B positivo",
+    "HEALTH"
+   ],
+   [
+    "F32.1",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "minces-health-it",
+  "lang": "it",
+  "text": "Referto — pronto soccorso\nCartella clinica n. 66031287\nGruppo sanguigno: A positivo — diagnosi ICD-10: J45.0",
+  "truth": [
+   [
+    "66031287",
+    "HEALTH"
+   ],
+   [
+    "A positivo",
+    "HEALTH"
+   ],
+   [
+    "J45.0",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "minces-health-en",
+  "lang": "en",
+  "text": "Discharge summary (extract)\nMRN: A88213470 — blood type: O+\nPrimary diagnosis (ICD-10): K35.80; follow-up in 6 weeks.\nAttending listed under medical record 55531208 for the transfer.",
+  "truth": [
+   [
+    "A88213470",
+    "HEALTH"
+   ],
+   [
+    "O+",
+    "HEALTH"
+   ],
+   [
+    "K35.80",
+    "HEALTH"
+   ],
+   [
+    "55531208",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "minces-health-nl",
+  "lang": "nl",
+  "text": "Overdracht — spoedeisende hulp\nBloedgroep: B negatief (bevestigd)\nPatiëntnummer: 44210873 — diagnose (ICD-10): S72.0",
+  "truth": [
+   [
+    "B negatief",
+    "HEALTH"
+   ],
+   [
+    "44210873",
+    "HEALTH"
+   ],
+   [
+    "S72.0",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "minces-health-pt",
+  "lang": "pt",
+  "text": "Resumo de alta\nProntuário: 99120384\nTipo sanguíneo: AB positivo — diagnóstico (CID/ICD): M54.5",
+  "truth": [
+   [
+    "99120384",
+    "HEALTH"
+   ],
+   [
+    "AB positivo",
+    "HEALTH"
+   ],
+   [
+    "M54.5",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "minces-health-tabular",
+  "lang": "fr",
+  "text": "Astreinte — transmissions (ne pas diffuser)\n| lit | dossier médical | groupe sanguin | code diagnostic |\n|---|---|---|---|\n| 12 | 70318452 | A− | G40.3 |\n| 14 | 70318460 | O positif | N18.4 |",
+  "truth": [
+   [
+    "70318452",
+    "CONTEXT"
+   ],
+   [
+    "A−",
+    "CONTEXT"
+   ],
+   [
+    "G40.3",
+    "CONTEXT"
+   ],
+   [
+    "70318460",
+    "CONTEXT"
+   ],
+   [
+    "O positif",
+    "CONTEXT"
+   ],
+   [
+    "N18.4",
+    "CONTEXT"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-fr1",
+  "lang": "fr",
+  "text": "Opposition faite ce matin sur la carte 4490 7076 9234 3899 — merci de confirmer par retour.",
+  "truth": [
+   [
+    "4490 7076 9234 3899",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-fr2",
+  "lang": "fr",
+  "text": "Le paiement de la commande est passé sur la CB 5149-4369-8543-4940 au lieu de la carte cadeau.",
+  "truth": [
+   [
+    "5149-4369-8543-4940",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-fr3",
+  "lang": "fr",
+  "text": "Ticket client : « débit inconnu, carte 5514327414149430 » — à vérifier avec la vauel.",
+  "truth": [
+   [
+    "5514327414149430",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-en1",
+  "lang": "en",
+  "text": "Chargeback filed for card 2267 4789 8341 2109 (reason code 10.4) — evidence due Friday.",
+  "truth": [
+   [
+    "2267 4789 8341 2109",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-en2",
+  "lang": "en",
+  "text": "Subscription renewal failed; card on file 3754-1858-5616-569 expired last month.",
+  "truth": [
+   [
+    "3754-1858-5616-569",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-de1",
+  "lang": "de",
+  "text": "Die Buchung wurde auf die Karte 3452 7834 3858 763 zurückerstattet (Beleg folgt).",
+  "truth": [
+   [
+    "3452 7834 3858 763",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-de2",
+  "lang": "de",
+  "text": "Bitte Karte 36927052349851 sperren — Verdacht auf Missbrauch seit gestern Abend.",
+  "truth": [
+   [
+    "36927052349851",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-es1",
+  "lang": "es",
+  "text": "El cargo duplicado en la tarjeta 3581 6121 4183 8501 será devuelto en 48 h.",
+  "truth": [
+   [
+    "3581 6121 4183 8501",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-it1",
+  "lang": "it",
+  "text": "Rimborso emesso sulla carta 6292 9270 7654 1059 — contabile in allegato.",
+  "truth": [
+   [
+    "6292 9270 7654 1059",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-pt1",
+  "lang": "pt",
+  "text": "A anuidade foi lançada no cartão 5005-6565-2563-0903-414; contestação aberta.",
+  "truth": [
+   [
+    "5005-6565-2563-0903-414",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-nl1",
+  "lang": "nl",
+  "text": "De borg is teruggestort op kaart 4814 9416 1094 1 (referentie R-2214).",
+  "truth": [
+   [
+    "4814 9416 1094 1",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-en3",
+  "lang": "en",
+  "text": "POS batch log: pan=5158325814987012 auth=approved tid=88213",
+  "truth": [
+   [
+    "5158325814987012",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-fr4",
+  "lang": "fr",
+  "text": "Carte de la flotte pro : 3743 6547 4543 456 — plafond relevé à 4 000 €.",
+  "truth": [
+   [
+    "3743 6547 4543 456",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-card-en4",
+  "lang": "en",
+  "text": "Guest folio shows card 4638 5650 3850 9471 guaranteed the late checkout.",
+  "truth": [
+   [
+    "4638 5650 3850 9471",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-fr1",
+  "lang": "fr",
+  "text": "L'entreprise est immatriculée sous le SIREN 170967293.",
+  "truth": [
+   [
+    "170967293",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-fr2",
+  "lang": "fr",
+  "text": "Bail commercial signé avec la SCI (110 903 655 RCS Cahors).",
+  "truth": [
+   [
+    "110 903 655",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-fr3",
+  "lang": "fr",
+  "text": "Le devis mentionne un SIRET erroné : 19654325000027.",
+  "truth": [
+   [
+    "19654325000027",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-fr4",
+  "lang": "fr",
+  "text": "TVA à reporter sur la déclaration : FR05156561037.",
+  "truth": [
+   [
+    "FR05156561037",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-fr5",
+  "lang": "fr",
+  "text": "Fournisseur immatriculé 118 901 859 00033 (siège).",
+  "truth": [
+   [
+    "118 901 859 00033",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-it1",
+  "lang": "it",
+  "text": "Il fornitore ha comunicato la partita IVA 03309711202 per la fatturazione.",
+  "truth": [
+   [
+    "03309711202",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-pl1",
+  "lang": "pl",
+  "text": "Proszę o fakturę na NIP 1132456789.",
+  "truth": [
+   [
+    "1132456789",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-pt1",
+  "lang": "pt",
+  "text": "A empresa portuguesa opera com o NIF PT511234562.",
+  "truth": [
+   [
+    "PT511234562",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-en1",
+  "lang": "en",
+  "text": "Supplier registered in Australia — ABN 51234560081.",
+  "truth": [
+   [
+    "51234560081",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-en2",
+  "lang": "en",
+  "text": "The bauoux reports under LEI 969500KSV493XWY0PS33 in the annex.",
+  "truth": [
+   [
+    "969500KSV493XWY0PS33",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-sv1",
+  "lang": "sv",
+  "text": "Fakturera med momsnummer SE556210685501.",
+  "truth": [
+   [
+    "SE556210685501",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-da1",
+  "lang": "da",
+  "text": "Leverandøren er registreret med CVR-nr. DK17851403.",
+  "truth": [
+   [
+    "DK17851403",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-nl1",
+  "lang": "nl",
+  "text": "Gebruik BTW-nummer NL861234567B01 op de creditnota.",
+  "truth": [
+   [
+    "NL861234567B01",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-de2",
+  "lang": "de",
+  "text": "Eingetragen beim Amtsgericht Köln, HRB 102344.",
+  "truth": [
+   [
+    "HRB 102344",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-en3",
+  "lang": "en",
+  "text": "W-9 on file lists EIN 91-2140328 for the vendor.",
+  "truth": [
+   [
+    "91-2140328",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-br1",
+  "lang": "pt",
+  "text": "Emitir a NF para o CNPJ 87.120.345/0001-67.",
+  "truth": [
+   [
+    "87.120.345/0001-67",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-sg1",
+  "lang": "en",
+  "text": "The Singapore entity (UEN S98LP1204K) signs the addendum.",
+  "truth": [
+   [
+    "S98LP1204K",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-fr6",
+  "lang": "fr",
+  "text": "Courtier inscrit à l'ORIAS sous le numéro 21 004 718.",
+  "truth": [
+   [
+    "21 004 718",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-pl2",
+  "lang": "pl",
+  "text": "Kontrahent podał NIP 526-10-40-828 do umowy ramowej.",
+  "truth": [
+   [
+    "526-10-40-828",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-at1",
+  "lang": "de",
+  "text": "Die österreichische Tochter fakturiert unter ATU62954018.",
+  "truth": [
+   [
+    "ATU62954018",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-ie1",
+  "lang": "en",
+  "text": "The Irish branch invoices under VAT IE6388047V.",
+  "truth": [
+   [
+    "IE6388047V",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-es1",
+  "lang": "es",
+  "text": "La sociedad figura con CIF B8312046H en el registro mercantil.",
+  "truth": [
+   [
+    "B8312046H",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-cid-de1",
+  "lang": "de",
+  "text": "Die Zweigniederlassung ist unter HRA 4482 eingetragen; die Muttergesellschaft führt die USt-IdNr. DE298764321.",
+  "truth": [
+   [
+    "HRA 4482",
+    "COMPANY_ID"
+   ],
+   [
+    "DE298764321",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-en1",
+  "lang": "en",
+  "text": "Please DM @susudu_lasigat before escalating the outage thread.",
+  "truth": [
+   [
+    "@susudu_lasigat",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-en2",
+  "lang": "en",
+  "text": "Reviewer assigned: login: deben.verupo (read-only).",
+  "truth": [
+   [
+    "deben.verupo",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-fr1",
+  "lang": "fr",
+  "text": "Nom d'utilisateur : veroux.lx — mot de passe envoyé par SMS.",
+  "truth": [
+   [
+    "veroux.lx",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-fr2",
+  "lang": "fr",
+  "text": "Le compte @lenorim_fitelib a demandé la suppression de ses données.",
+  "truth": [
+   [
+    "@lenorim_fitelib",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-de1",
+  "lang": "de",
+  "text": "Benutzername: nute.defagog9 — Zugang läuft Freitag ab.",
+  "truth": [
+   [
+    "nute.defagog9",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-es1",
+  "lang": "es",
+  "text": "Nombre de usuario: micon_rirab (cuenta bloqueada tras 5 intentos).",
+  "truth": [
+   [
+    "micon_rirab",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-it1",
+  "lang": "it",
+  "text": "Nome utente: vodofuge_cugog — reset inviato.",
+  "truth": [
+   [
+    "vodofuge_cugog",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-pt1",
+  "lang": "pt",
+  "text": "O utilizador @tomor_befibovo pediu a exportação RGPD.",
+  "truth": [
+   [
+    "@tomor_befibovo",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-nl1",
+  "lang": "nl",
+  "text": "Gebruikersnaam: capecogu.noco — tijdelijk wachtwoord actief.",
+  "truth": [
+   [
+    "capecogu.noco",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-en3",
+  "lang": "en",
+  "text": "Handle migration: @god_gamodec becomes @relesob_fufur next sprint.",
+  "truth": [
+   [
+    "@god_gamodec",
+    "USERNAME"
+   ],
+   [
+    "@relesob_fufur",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-fr3",
+  "lang": "fr",
+  "text": "Pseudo : lemul-d-bomep — signalé pour usurpation du pseudo : depuf-d-cobep.",
+  "truth": [
+   [
+    "lemul-d-bomep",
+    "USERNAME"
+   ],
+   [
+    "depuf-d-cobep",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-user-en4",
+  "lang": "en",
+  "text": "Nickname: gifaga_tase joined the beta cohort.",
+  "truth": [
+   [
+    "gifaga_tase",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-en1",
+  "lang": "en",
+  "text": "Rotate the ingest key bV82kQmZ4Xt7Wp1Rc9Yn before the audit.",
+  "truth": [
+   [
+    "bV82kQmZ4Xt7Wp1Rc9Yn",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-en2",
+  "lang": "en",
+  "text": "Grafana alert webhook uses token cW93zTkQ7Xm2Vp4Rn8Jb.",
+  "truth": [
+   [
+    "cW93zTkQ7Xm2Vp4Rn8Jb",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-fr1",
+  "lang": "fr",
+  "text": "La clé d'import sX74kZmW9Qt2Vp8Rn1Yc traîne encore dans le README interne.",
+  "truth": [
+   [
+    "sX74kZmW9Qt2Vp8Rn1Yc",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-fr2",
+  "lang": "fr",
+  "text": "Jeton de préproduction : dK85zWmQ2Xr7Tp4Vn9Jc1 (expire dimanche).",
+  "truth": [
+   [
+    "dK85zWmQ2Xr7Tp4Vn9Jc1",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-de1",
+  "lang": "de",
+  "text": "Der Export-Schlüssel fY96kZqW4Xm1Tp7Vr2Nc8 gehört in den Vault, nicht ins Wiki.",
+  "truth": [
+   [
+    "fY96kZqW4Xm1Tp7Vr2Nc8",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-es1",
+  "lang": "es",
+  "text": "El token de staging gZ87mWkQ3Xt9Vp2Rn4Yc6 sigue activo — revocar hoy.",
+  "truth": [
+   [
+    "gZ87mWkQ3Xt9Vp2Rn4Yc6",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-it1",
+  "lang": "it",
+  "text": "La chiave temporanea hQ18zTkW5Xm3Vp7Rn2Yc9 va ruotata dopo il rilascio.",
+  "truth": [
+   [
+    "hQ18zTkW5Xm3Vp7Rn2Yc9",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-pt1",
+  "lang": "pt",
+  "text": "O token de sincronização jR29kWmZ6Xt4Vp1Qn8Yc3 vazou no log do proxy.",
+  "truth": [
+   [
+    "jR29kWmZ6Xt4Vp1Qn8Yc3",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-nl1",
+  "lang": "nl",
+  "text": "De koppelingssleutel kS31zQmW7Xr5Tp2Vn9Jc4 staat nog in de e-mail van vorige week.",
+  "truth": [
+   [
+    "kS31zQmW7Xr5Tp2Vn9Jc4",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-en3",
+  "lang": "en",
+  "text": "CI masked var leaked in trace: value=mT42kZqW8Xn6Vp3Rc1Yb7 (rotate + purge).",
+  "truth": [
+   [
+    "mT42kZqW8Xn6Vp3Rc1Yb7",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-en4",
+  "lang": "en",
+  "text": "Pairing code for the kiosk fleet: nU53zWkQ9Xm7Tp4Vr2Jc8.",
+  "truth": [
+   [
+    "nU53zWkQ9Xm7Tp4Vr2Jc8",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-fr3",
+  "lang": "fr",
+  "text": "Deux jetons à révoquer : pV64kQmZ1Xt8Wr5Nc3Yb9 et qW75zTkM2Xn9Vp6Rc4Jd1.",
+  "truth": [
+   [
+    "pV64kQmZ1Xt8Wr5Nc3Yb9",
+    "TOKEN"
+   ],
+   [
+    "qW75zTkM2Xn9Vp6Rc4Jd1",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-fr1",
+  "lang": "fr",
+  "text": "Transfusion possible : groupe sanguin B− confirmé au laboratoire.",
+  "truth": [
+   [
+    "B−",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-fr2",
+  "lang": "fr",
+  "text": "Merci de rappeler le patient du dossier médical 61208453 avant 18 h.",
+  "truth": [
+   [
+    "61208453",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-en1",
+  "lang": "en",
+  "text": "Lab flagged the sample for MRN 90217364 — repeat draw needed.",
+  "truth": [
+   [
+    "90217364",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-en2",
+  "lang": "en",
+  "text": "Coding review: diagnosis C50.9 was entered twice on the claim.",
+  "truth": [
+   [
+    "C50.9",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-de1",
+  "lang": "de",
+  "text": "Die Krankenakte 33108276 wird an die Reha weitergeleitet.",
+  "truth": [
+   [
+    "33108276",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-es1",
+  "lang": "es",
+  "text": "Ingreso urgente: grupo sanguíneo O negativo, avisar al banco de sangre.",
+  "truth": [
+   [
+    "O negativo",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-it1",
+  "lang": "it",
+  "text": "Aggiornare la cartella clinica 50291837 con il referto di oggi.",
+  "truth": [
+   [
+    "50291837",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-fr3",
+  "lang": "fr",
+  "text": "Ordonnance signée — praticien RPPS 10009876543.",
+  "truth": [
+   [
+    "10009876543",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-fr4",
+  "lang": "fr",
+  "text": "Résultat du typage : rhésus AB+ à confirmer sur seconde détermination.",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-en3",
+  "lang": "en",
+  "text": "Donor screening: blood group A negative, cleared for apheresis.",
+  "truth": [
+   [
+    "A negative",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-de2",
+  "lang": "de",
+  "text": "Kodierung geprüft: Diagnose F41.1 bleibt führend im Bericht.",
+  "truth": [
+   [
+    "F41.1",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-pt2",
+  "lang": "pt",
+  "text": "Atualizar o prontuário 88031246 com o laudo de imagem.",
+  "truth": [
+   [
+    "88031246",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-fr5",
+  "lang": "fr",
+  "text": "Le laboratoire est rattaché au FINESS 690023072 pour la facturation.",
+  "truth": [
+   [
+    "690023072",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-en4",
+  "lang": "en",
+  "text": "Chart audit: medical record 71203984 lacks the consent form.",
+  "truth": [
+   [
+    "71203984",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-it2",
+  "lang": "it",
+  "text": "Trasfusione autorizzata: gruppo sanguigno O negativo (seconda determinazione).",
+  "truth": [
+   [
+    "O negativo",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-hlt-es2",
+  "lang": "es",
+  "text": "Alta pendiente en la historia clínica 60218457 (planta 3).",
+  "truth": [
+   [
+    "60218457",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "camp-tok-en5",
+  "lang": "en",
+  "text": "Kiosk provisioning: primary key rT65kWqZ3Xm8Vp2Nc9Jd4, recovery key sU76zQmW4Xn1Tp7Vr3Yc8.",
+  "truth": [
+   [
+    "rT65kWqZ3Xm8Vp2Nc9Jd4",
+    "TOKEN"
+   ],
+   [
+    "sU76zQmW4Xn1Tp7Vr3Yc8",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-fr-0",
+  "lang": "fr",
+  "text": "Le règlement de l'acompte est passé sur la carte 5425 4301 8743 8762.\nOpposition enregistrée pour la carte 2221-8587-2561-0562 (perte déclarée).\nL'abonnement se renouvelle sur la CB 6284965678361430721 le 5 du mois.\nÉcriture en double sur la carte 6284 5650 7616 9418 721, remboursement demandé.",
+  "truth": [
+   [
+    "5425 4301 8743 8762",
+    "CARD"
+   ],
+   [
+    "2221-8587-2561-0562",
+    "CARD"
+   ],
+   [
+    "6284965678361430721",
+    "CARD"
+   ],
+   [
+    "6284 5650 7616 9418 721",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-en-1",
+  "lang": "en",
+  "text": "Chargeback opened for card 5058 7458 1614 3670 901, reason code 13.1.\nRecurring billing moved to card 3729 272345 47259 after the decline.\nFolio guaranteed with card 6294-1434-1816-9215 at check-in.\nPOS settlement log: pan=3528743652341092 auth=approved.\nCard 5034 9236 9696 7674 709 was flagged by the fraud rules overnight.",
+  "truth": [
+   [
+    "5058 7458 1614 3670 901",
+    "CARD"
+   ],
+   [
+    "3729 272345 47259",
+    "CARD"
+   ],
+   [
+    "6294-1434-1816-9215",
+    "CARD"
+   ],
+   [
+    "3528743652341092",
+    "CARD"
+   ],
+   [
+    "5034 9236 9696 7674 709",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-de-2",
+  "lang": "de",
+  "text": "Die Buchung wurde mit der Karte 6296 3654 7098 1470 garantiert.\nKartenzahlung 5054 1894 5850 9414 723 wurde vom Terminal abgelehnt.\nDie Erstattung erfolgt auf die Karte 3783-476969-81215.\nBitte die Karte 349238167478706 sperren, Verdacht auf Missbrauch.\nDie Buchung wurde mit der Karte 3681 4783 4509 86 garantiert.",
+  "truth": [
+   [
+    "6296 3654 7098 1470",
+    "CARD"
+   ],
+   [
+    "5054 1894 5850 9414 723",
+    "CARD"
+   ],
+   [
+    "3783-476969-81215",
+    "CARD"
+   ],
+   [
+    "349238167478706",
+    "CARD"
+   ],
+   [
+    "3681 4783 4509 86",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-es-3",
+  "lang": "es",
+  "text": "El cargo se aplicó a la tarjeta 5050 7072 1654 7878 163.\nDevolución emitida a la tarjeta 3589 0329 4505 2708 en 48 horas.\nLa suscripción se renovó con la tarjeta 5603-6941-6127-2786.\nEl cargo se aplicó a la tarjeta 2221238983432522.\nDevolución emitida a la tarjeta 3661 0387 0103 03 en 48 horas.",
+  "truth": [
+   [
+    "5050 7072 1654 7878 163",
+    "CARD"
+   ],
+   [
+    "3589 0329 4505 2708",
+    "CARD"
+   ],
+   [
+    "5603-6941-6127-2786",
+    "CARD"
+   ],
+   [
+    "2221238983432522",
+    "CARD"
+   ],
+   [
+    "3661 0387 0103 03",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-it-4",
+  "lang": "it",
+  "text": "Storno emesso sulla carta 5036 5012 7078 5656 366, contabile in allegato.\nLa prenotazione è garantita dalla carta 4852 5090 3458 3.\nL'addebito è stato effettuato sulla carta 5601-6985-8985-6700.\nStorno emesso sulla carta 6501496985470161, contabile in allegato.\nLa prenotazione è garantita dalla carta 3589 2943 6743 0388.",
+  "truth": [
+   [
+    "5036 5012 7078 5656 366",
+    "CARD"
+   ],
+   [
+    "4852 5090 3458 3",
+    "CARD"
+   ],
+   [
+    "5601-6985-8985-6700",
+    "CARD"
+   ],
+   [
+    "6501496985470161",
+    "CARD"
+   ],
+   [
+    "3589 2943 6743 0388",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-pt-5",
+  "lang": "pt",
+  "text": "A mensalidade foi cobrada no cartão 5176 5458 5850 5853.\nO estorno foi lançado no cartão 5396 5634 5832 7499.\nA mensalidade foi cobrada no cartão 6250-1874-3674-3255.\nO estorno foi lançado no cartão 4341630345812568.\nA mensalidade foi cobrada no cartão 6589 0747 2785 6321.",
+  "truth": [
+   [
+    "5176 5458 5850 5853",
+    "CARD"
+   ],
+   [
+    "5396 5634 5832 7499",
+    "CARD"
+   ],
+   [
+    "6250-1874-3674-3255",
+    "CARD"
+   ],
+   [
+    "4341630345812568",
+    "CARD"
+   ],
+   [
+    "6589 0747 2785 6321",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-nl-6",
+  "lang": "nl",
+  "text": "De borg is teruggestort op kaart 3418 501612 38163.\nDe incasso van kaart 6507 2987 2945 2347 is mislukt.\nDe borg is teruggestort op kaart 3589-2703-4321-4344.\nDe incasso van kaart 4272329258900 is mislukt.\nDe borg is teruggestort op kaart 3589 0961 2189 4704.",
+  "truth": [
+   [
+    "3418 501612 38163",
+    "CARD"
+   ],
+   [
+    "6507 2987 2945 2347",
+    "CARD"
+   ],
+   [
+    "3589-2703-4321-4344",
+    "CARD"
+   ],
+   [
+    "4272329258900",
+    "CARD"
+   ],
+   [
+    "3589 0961 2189 4704",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-pl-7",
+  "lang": "pl",
+  "text": "Płatność kartą 6011 1674 5410 3871 została odrzucona.\nObciążenie zostało cofnięte na kartę 6218 1096 5258 5039.\nPłatność kartą 5072-5698-3656-7074-947 została odrzucona.\nObciążenie zostało cofnięte na kartę 5607012563452789.\nPłatność kartą 2221 2741 4361 6704 została odrzucona.",
+  "truth": [
+   [
+    "6011 1674 5410 3871",
+    "CARD"
+   ],
+   [
+    "6218 1096 5258 5039",
+    "CARD"
+   ],
+   [
+    "5072-5698-3656-7074-947",
+    "CARD"
+   ],
+   [
+    "5607012563452789",
+    "CARD"
+   ],
+   [
+    "2221 2741 4361 6704",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-sv-8",
+  "lang": "sv",
+  "text": "Återbetalningen gjordes till kortet 3528 5498 5478 7275.\nÅterbetalningen gjordes till kortet 5370 9818 9494 1014.\nÅterbetalningen gjordes till kortet 5594-7232-5670-9476.\nÅterbetalningen gjordes till kortet 5058109474329692347.\nÅterbetalningen gjordes till kortet 4652 5458 5476 6.",
+  "truth": [
+   [
+    "3528 5498 5478 7275",
+    "CARD"
+   ],
+   [
+    "5370 9818 9494 1014",
+    "CARD"
+   ],
+   [
+    "5594-7232-5670-9476",
+    "CARD"
+   ],
+   [
+    "5058109474329692347",
+    "CARD"
+   ],
+   [
+    "4652 5458 5476 6",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-da-9",
+  "lang": "da",
+  "text": "Beløbet er refunderet til kortet 6296 1872 1656 5056.\nBeløbet er refunderet til kortet 4707 8383 0183 0783.\nBeløbet er refunderet til kortet 3623-4349-8363-64.\nBeløbet er refunderet til kortet 6587252949478304.\nBeløbet er refunderet til kortet 5685 4967 4783 6162.",
+  "truth": [
+   [
+    "6296 1872 1656 5056",
+    "CARD"
+   ],
+   [
+    "4707 8383 0183 0783",
+    "CARD"
+   ],
+   [
+    "3623-4349-8363-64",
+    "CARD"
+   ],
+   [
+    "6587252949478304",
+    "CARD"
+   ],
+   [
+    "5685 4967 4783 6162",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-fr-10",
+  "lang": "fr",
+  "text": "L'abonnement se renouvelle sur la CB 4901 6745 2701 4942 le 5 du mois.\nÉcriture en double sur la carte 6280 1876 9878 7636 768, remboursement demandé.\nCaution de l'hôtel prise sur la carte 3601-4965-4725-24, non débitée.\nLe terminal a refusé la carte 5283454723678765 (code 51).\nReçu n° 8841 : paiement carte 5467 2163 8385 6322, montant 63,20 €.",
+  "truth": [
+   [
+    "4901 6745 2701 4942",
+    "CARD"
+   ],
+   [
+    "6280 1876 9878 7636 768",
+    "CARD"
+   ],
+   [
+    "3601-4965-4725-24",
+    "CARD"
+   ],
+   [
+    "5283454723678765",
+    "CARD"
+   ],
+   [
+    "5467 2163 8385 6322",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-en-11",
+  "lang": "en",
+  "text": "POS settlement log: pan=5354 1250 3090 3278 auth=approved.\nCard 6278 3490 7258 1294 was flagged by the fraud rules overnight.\nSplit payment: remainder charged to card 4543-8103-6363-8303.\nThe refund was issued to card 36250167696722 yesterday.\nChargeback opened for card 6561 8747 4365 4309, reason code 13.1.",
+  "truth": [
+   [
+    "5354 1250 3090 3278",
+    "CARD"
+   ],
+   [
+    "6278 3490 7258 1294",
+    "CARD"
+   ],
+   [
+    "4543-8103-6363-8303",
+    "CARD"
+   ],
+   [
+    "36250167696722",
+    "CARD"
+   ],
+   [
+    "6561 8747 4365 4309",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-de-12",
+  "lang": "de",
+  "text": "Die Erstattung erfolgt auf die Karte 5574 7692 7852 7838.\nBitte die Karte 5336 3018 5098 9431 sperren, Verdacht auf Missbrauch.\nDie Buchung wurde mit der Karte 6274-3214-7896-5078 garantiert.\nKartenzahlung 3528589296163073 wurde vom Terminal abgelehnt.\nDie Erstattung erfolgt auf die Karte 4143 0589 2103 6321.",
+  "truth": [
+   [
+    "5574 7692 7852 7838",
+    "CARD"
+   ],
+   [
+    "5336 3018 5098 9431",
+    "CARD"
+   ],
+   [
+    "6274-3214-7896-5078",
+    "CARD"
+   ],
+   [
+    "3528589296163073",
+    "CARD"
+   ],
+   [
+    "4143 0589 2103 6321",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-es-13",
+  "lang": "es",
+  "text": "Devolución emitida a la tarjeta 4941 2783 8967 4728 en 48 horas.\nLa suscripción se renovó con la tarjeta 6501 6189 6767 4383.\nEl cargo se aplicó a la tarjeta 5447-4563-0989-6367.\nDevolución emitida a la tarjeta 5249890101810145 en 48 horas.\nLa suscripción se renovó con la tarjeta 3727 032529 29699.",
+  "truth": [
+   [
+    "4941 2783 8967 4728",
+    "CARD"
+   ],
+   [
+    "6501 6189 6767 4383",
+    "CARD"
+   ],
+   [
+    "5447-4563-0989-6367",
+    "CARD"
+   ],
+   [
+    "5249890101810145",
+    "CARD"
+   ],
+   [
+    "3727 032529 29699",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-it-14",
+  "lang": "it",
+  "text": "La prenotazione è garantita dalla carta 2221 8701 6549 2369.\nL'addebito è stato effettuato sulla carta 6541 8165 6569 2383.\nStorno emesso sulla carta 5443-8701-6501-6742, contabile in allegato.\nLa prenotazione è garantita dalla carta 6280743490547634342.",
+  "truth": [
+   [
+    "2221 8701 6549 2369",
+    "CARD"
+   ],
+   [
+    "6541 8165 6569 2383",
+    "CARD"
+   ],
+   [
+    "5443-8701-6501-6742",
+    "CARD"
+   ],
+   [
+    "6280743490547634342",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-pt-15",
+  "lang": "pt",
+  "text": "A mensalidade foi cobrada no cartão 3528 9638 7238 9214.\nO estorno foi lançado no cartão 5332 3856 7016 3495.\nA mensalidade foi cobrada no cartão 5594 5230 1418 9692.\nO estorno foi lançado no cartão 5370-1052-3436-1036.\nA mensalidade foi cobrada no cartão 5596387690325618.",
+  "truth": [
+   [
+    "3528 9638 7238 9214",
+    "CARD"
+   ],
+   [
+    "5332 3856 7016 3495",
+    "CARD"
+   ],
+   [
+    "5594 5230 1418 9692",
+    "CARD"
+   ],
+   [
+    "5370-1052-3436-1036",
+    "CARD"
+   ],
+   [
+    "5596387690325618",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-nl-16",
+  "lang": "nl",
+  "text": "De borg is teruggestort op kaart 3589 4107 8305 4186.\nDe incasso van kaart 5625 8321 6143 2307 is mislukt.\nDe borg is teruggestort op kaart 5265 6903 8305 6105.\nDe incasso van kaart 5647-6109-0501-8986 is mislukt.",
+  "truth": [
+   [
+    "3589 4107 8305 4186",
+    "CARD"
+   ],
+   [
+    "5625 8321 6143 2307",
+    "CARD"
+   ],
+   [
+    "5265 6903 8305 6105",
+    "CARD"
+   ],
+   [
+    "5647-6109-0501-8986",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-pl-17",
+  "lang": "pl",
+  "text": "Płatność kartą 5312725272525639 została odrzucona.\nObciążenie zostało cofnięte na kartę 5514 1412 1876 5410.\nPłatność kartą 5058 1098 7456 1276 545 została odrzucona.\nObciążenie zostało cofnięte na kartę 3767 092783 05471.\nPłatność kartą 5192-5610-3230-3032 została odrzucona.",
+  "truth": [
+   [
+    "5312725272525639",
+    "CARD"
+   ],
+   [
+    "5514 1412 1876 5410",
+    "CARD"
+   ],
+   [
+    "5058 1098 7456 1276 545",
+    "CARD"
+   ],
+   [
+    "3767 092783 05471",
+    "CARD"
+   ],
+   [
+    "5192-5610-3230-3032",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-sv-18",
+  "lang": "sv",
+  "text": "Återbetalningen gjordes till kortet 374507892703259.\nÅterbetalningen gjordes till kortet 6290 5272 1058 7091.\nÅterbetalningen gjordes till kortet 2530 1652 7818 9036.\nÅterbetalningen gjordes till kortet 3528 3272 3654 1615.",
+  "truth": [
+   [
+    "374507892703259",
+    "CARD"
+   ],
+   [
+    "6290 5272 1058 7091",
+    "CARD"
+   ],
+   [
+    "2530 1652 7818 9036",
+    "CARD"
+   ],
+   [
+    "3528 3272 3654 1615",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-da-19",
+  "lang": "da",
+  "text": "Beløbet er refunderet til kortet 5607-4741-6905-2944.\nBeløbet er refunderet til kortet 36670767254541.\nBeløbet er refunderet til kortet 6523 8761 8785 2502.\nBeløbet er refunderet til kortet 3721 674765 27038.",
+  "truth": [
+   [
+    "5607-4741-6905-2944",
+    "CARD"
+   ],
+   [
+    "36670767254541",
+    "CARD"
+   ],
+   [
+    "6523 8761 8785 2502",
+    "CARD"
+   ],
+   [
+    "3721 674765 27038",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-fr-20",
+  "lang": "fr",
+  "text": "Caution de l'hôtel prise sur la carte 2221 0507 2309 6784, non débitée.\nLe terminal a refusé la carte 6280-5030-9670-3698-920 (code 51).\nReçu n° 8841 : paiement carte 36830383816145, montant 63,20 €.\nLa carte de la flotte 6527 4905 4501 6747 arrive à échéance en octobre.",
+  "truth": [
+   [
+    "2221 0507 2309 6784",
+    "CARD"
+   ],
+   [
+    "6280-5030-9670-3698-920",
+    "CARD"
+   ],
+   [
+    "36830383816145",
+    "CARD"
+   ],
+   [
+    "6527 4905 4501 6747",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-en-21",
+  "lang": "en",
+  "text": "The refund was issued to card 6212 5830 3072 7073 yesterday.\nChargeback opened for card 5332 3438 3812 1632, reason code 13.1.\nRecurring billing moved to card 5194-3096-7250-3877 after the decline.\nFolio guaranteed with card 5358369856307877 at check-in.\nPOS settlement log: pan=6011 9212 9072 5259 auth=approved.",
+  "truth": [
+   [
+    "6212 5830 3072 7073",
+    "CARD"
+   ],
+   [
+    "5332 3438 3812 1632",
+    "CARD"
+   ],
+   [
+    "5194-3096-7250-3877",
+    "CARD"
+   ],
+   [
+    "5358369856307877",
+    "CARD"
+   ],
+   [
+    "6011 9212 9072 5259",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-de-22",
+  "lang": "de",
+  "text": "Die Buchung wurde mit der Karte 5209 2505 0127 0762 garantiert.\nKartenzahlung 5461 2329 6787 2540 wurde vom Terminal abgelehnt.\nDie Erstattung erfolgt auf die Karte 6503-8905-2785-0740.\nBitte die Karte 5603036581654765 sperren, Verdacht auf Missbrauch.",
+  "truth": [
+   [
+    "5209 2505 0127 0762",
+    "CARD"
+   ],
+   [
+    "5461 2329 6787 2540",
+    "CARD"
+   ],
+   [
+    "6503-8905-2785-0740",
+    "CARD"
+   ],
+   [
+    "5603036581654765",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-es-23",
+  "lang": "es",
+  "text": "La suscripción se renovó con la tarjeta 5098 3614 9436 3434 520.\nEl cargo se aplicó a la tarjeta 4658 7494 5012 9.\nDevolución emitida a la tarjeta 3589 4783 6743 8125 en 48 horas.\nLa suscripción se renovó con la tarjeta 3749-418965-63015.\nEl cargo se aplicó a la tarjeta 347890547878567.",
+  "truth": [
+   [
+    "5098 3614 9436 3434 520",
+    "CARD"
+   ],
+   [
+    "4658 7494 5012 9",
+    "CARD"
+   ],
+   [
+    "3589 4783 6743 8125",
+    "CARD"
+   ],
+   [
+    "3749-418965-63015",
+    "CARD"
+   ],
+   [
+    "347890547878567",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-it-24",
+  "lang": "it",
+  "text": "L'addebito è stato effettuato sulla carta 4729 2987 0169 2768.\nStorno emesso sulla carta 3643 0527 6987 21, contabile in allegato.\nLa prenotazione è garantita dalla carta 6288 9036 7058 7810 527.\nL'addebito è stato effettuato sulla carta 2221-6341-2709-6928.\nStorno emesso sulla carta 6286129230721436523, contabile in allegato.",
+  "truth": [
+   [
+    "4729 2987 0169 2768",
+    "CARD"
+   ],
+   [
+    "3643 0527 6987 21",
+    "CARD"
+   ],
+   [
+    "6288 9036 7058 7810 527",
+    "CARD"
+   ],
+   [
+    "2221-6341-2709-6928",
+    "CARD"
+   ],
+   [
+    "6286129230721436523",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-pt-25",
+  "lang": "pt",
+  "text": "A mensalidade foi cobrada no cartão 4587 4189 4147 0988.\nO estorno foi lançado no cartão 6543 6183 8567 6382.\nA mensalidade foi cobrada no cartão 3589 8727 8383 2301.\nO estorno foi lançado no cartão 5663-6501-0907-0127.\nA mensalidade foi cobrada no cartão 6529636741234926.",
+  "truth": [
+   [
+    "4587 4189 4147 0988",
+    "CARD"
+   ],
+   [
+    "6543 6183 8567 6382",
+    "CARD"
+   ],
+   [
+    "3589 8727 8383 2301",
+    "CARD"
+   ],
+   [
+    "5663-6501-0907-0127",
+    "CARD"
+   ],
+   [
+    "6529636741234926",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-nl-26",
+  "lang": "nl",
+  "text": "De borg is teruggestort op kaart 5558 9614 5870 3459.\nDe incasso van kaart 3528 7676 3898 3032 is mislukt.\nDe borg is teruggestort op kaart 4329 4965 6903 0766.\nDe incasso van kaart 6549-4921-4987-4103 is mislukt.\nDe borg is teruggestort op kaart 376163454169097.",
+  "truth": [
+   [
+    "5558 9614 5870 3459",
+    "CARD"
+   ],
+   [
+    "3528 7676 3898 3032",
+    "CARD"
+   ],
+   [
+    "4329 4965 6903 0766",
+    "CARD"
+   ],
+   [
+    "6549-4921-4987-4103",
+    "CARD"
+   ],
+   [
+    "376163454169097",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-pl-27",
+  "lang": "pl",
+  "text": "Płatność kartą 2221 6167 4943 8984 została odrzucona.\nObciążenie zostało cofnięte na kartę 2221 8969 0529 8907.\nPłatność kartą 6507 0541 4769 2307 została odrzucona.\nObciążenie zostało cofnięte na kartę 3787-676789-25478.",
+  "truth": [
+   [
+    "2221 6167 4943 8984",
+    "CARD"
+   ],
+   [
+    "2221 8969 0529 8907",
+    "CARD"
+   ],
+   [
+    "6507 0541 4769 2307",
+    "CARD"
+   ],
+   [
+    "3787-676789-25478",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-sv-28",
+  "lang": "sv",
+  "text": "Återbetalningen gjordes till kortet 5221076701272124.\nÅterbetalningen gjordes till kortet 4890 5094 9856 4.\nÅterbetalningen gjordes till kortet 5425 2929 4945 6189.\nÅterbetalningen gjordes till kortet 6569 6761 4925 2568.",
+  "truth": [
+   [
+    "5221076701272124",
+    "CARD"
+   ],
+   [
+    "4890 5094 9856 4",
+    "CARD"
+   ],
+   [
+    "5425 2929 4945 6189",
+    "CARD"
+   ],
+   [
+    "6569 6761 4925 2568",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-da-29",
+  "lang": "da",
+  "text": "Beløbet er refunderet til kortet 5196-9258-7674-7032.\nBeløbet er refunderet til kortet 5394747874701872.\nBeløbet er refunderet til kortet 6011 7056 5452 3834.\nBeløbet er refunderet til kortet 3414 121438 50928.\nBeløbet er refunderet til kortet 6286 5892 5436 7078 723.",
+  "truth": [
+   [
+    "5196-9258-7674-7032",
+    "CARD"
+   ],
+   [
+    "5394747874701872",
+    "CARD"
+   ],
+   [
+    "6011 7056 5452 3834",
+    "CARD"
+   ],
+   [
+    "3414 121438 50928",
+    "CARD"
+   ],
+   [
+    "6286 5892 5436 7078 723",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-fr-30",
+  "lang": "fr",
+  "text": "Reçu n° 8841 : paiement carte 3528-5852-9836-3018, montant 63,20 €.\nLa carte de la flotte 3528925090387676 arrive à échéance en octobre.\nLe règlement de l'acompte est passé sur la carte 5396 1070 5056 1418.\nOpposition enregistrée pour la carte 3498 307092 36301 (perte déclarée).\nL'abonnement se renouvelle sur la CB 6280 5458 9696 9092 142 le 5 du mois.",
+  "truth": [
+   [
+    "3528-5852-9836-3018",
+    "CARD"
+   ],
+   [
+    "3528925090387676",
+    "CARD"
+   ],
+   [
+    "5396 1070 5056 1418",
+    "CARD"
+   ],
+   [
+    "3498 307092 36301",
+    "CARD"
+   ],
+   [
+    "6280 5458 9696 9092 142",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-en-31",
+  "lang": "en",
+  "text": "Folio guaranteed with card 4141-0327-4307-8946 at check-in.\nPOS settlement log: pan=5241036303610945 auth=approved.\nCard 5685 2785 2167 0748 was flagged by the fraud rules overnight.\nSplit payment: remainder charged to card 2221 0183 0925 0109.\nThe refund was issued to card 2221 8929 6103 4765 yesterday.",
+  "truth": [
+   [
+    "4141-0327-4307-8946",
+    "CARD"
+   ],
+   [
+    "5241036303610945",
+    "CARD"
+   ],
+   [
+    "5685 2785 2167 0748",
+    "CARD"
+   ],
+   [
+    "2221 0183 0925 0109",
+    "CARD"
+   ],
+   [
+    "2221 8929 6103 4765",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-de-32",
+  "lang": "de",
+  "text": "Die Erstattung erfolgt auf die Karte 2530-5618-5650-9639.\nBitte die Karte 2530567278507895 sperren, Verdacht auf Missbrauch.\nDie Buchung wurde mit der Karte 2530 9412 5412 1650 garantiert.\nKartenzahlung 5392 7034 5654 5858 wurde vom Terminal abgelehnt.\nDie Erstattung erfolgt auf die Karte 5138 1472 3290 9690.",
+  "truth": [
+   [
+    "2530-5618-5650-9639",
+    "CARD"
+   ],
+   [
+    "2530567278507895",
+    "CARD"
+   ],
+   [
+    "2530 9412 5412 1650",
+    "CARD"
+   ],
+   [
+    "5392 7034 5654 5858",
+    "CARD"
+   ],
+   [
+    "5138 1472 3290 9690",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-es-33",
+  "lang": "es",
+  "text": "El cargo se aplicó a la tarjeta 4678-5436-7852-7.\nDevolución emitida a la tarjeta 5605830983652544 en 48 horas.\nLa suscripción se renovó con la tarjeta 2221 8761 6769 8564.\nEl cargo se aplicó a la tarjeta 6567 6547 0369 8783.",
+  "truth": [
+   [
+    "4678-5436-7852-7",
+    "CARD"
+   ],
+   [
+    "5605830983652544",
+    "CARD"
+   ],
+   [
+    "2221 8761 6769 8564",
+    "CARD"
+   ],
+   [
+    "6567 6547 0369 8783",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-it-34",
+  "lang": "it",
+  "text": "Storno emesso sulla carta 3496 745458 16722, contabile in allegato.\nLa prenotazione è garantita dalla carta 3667-4163-4301-84.\nL'addebito è stato effettuato sulla carta 2221254963892783.\nStorno emesso sulla carta 6581 4121 0189 2546, contabile in allegato.\nLa prenotazione è garantita dalla carta 5485 0923 2567 8720.",
+  "truth": [
+   [
+    "3496 745458 16722",
+    "CARD"
+   ],
+   [
+    "3667-4163-4301-84",
+    "CARD"
+   ],
+   [
+    "2221254963892783",
+    "CARD"
+   ],
+   [
+    "6581 4121 0189 2546",
+    "CARD"
+   ],
+   [
+    "5485 0923 2567 8720",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-wrap-fr",
+  "lang": "fr",
+  "text": "Le règlement de l'acompte est passé sur la carte 2221 8785 8721\n2984.",
+  "truth": [
+   [
+    "2221 8785 8721 2984",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-wrap-en",
+  "lang": "en",
+  "text": "The refund was issued to card 6581 4729 8303\n8543 yesterday.",
+  "truth": [
+   [
+    "6581 4729 8303 8543",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-card-wrap-de",
+  "lang": "de",
+  "text": "Die Erstattung erfolgt auf die Karte 3721 618107\n05053.",
+  "truth": [
+   [
+    "3721 618107 05053",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-fr-0",
+  "lang": "fr",
+  "text": "Références : 314 389 255 RCS Espalion, capital 12 000 €.\nLe devis émane du SIRET 178 987 657 00014 (agence de Tours).\nLa facture porte la TVA FR23576181879.\nL'entité déclare sous le LEI 724500HE3O9UVWHUJS28.",
+  "truth": [
+   [
+    "314 389 255",
+    "COMPANY_ID"
+   ],
+   [
+    "178 987 657 00014",
+    "COMPANY_ID"
+   ],
+   [
+    "FR23576181879",
+    "COMPANY_ID"
+   ],
+   [
+    "724500HE3O9UVWHUJS28",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-fr-1",
+  "lang": "fr",
+  "text": "La société est immatriculée sous le SIREN 605 296 383.\nÉtablissement principal : SIRET 485 410 526 00049.\nAssujetti belge : BE0705674109.\nRéférences : 552 529 414 RCS Espalion, capital 12 000 €.",
+  "truth": [
+   [
+    "605 296 383",
+    "COMPANY_ID"
+   ],
+   [
+    "485 410 526 00049",
+    "COMPANY_ID"
+   ],
+   [
+    "BE0705674109",
+    "COMPANY_ID"
+   ],
+   [
+    "552 529 414",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-fr-2",
+  "lang": "fr",
+  "text": "Le devis émane du SIRET 376 521 019 00036 (agence de Tours).\nLa facture porte la TVA FR22770589893.\nL'entité déclare sous le LEI 72450034X6J45EZG5Y70.\nRéférences : 861 074 920 RCS Espalion, capital 12 000 €.",
+  "truth": [
+   [
+    "376 521 019 00036",
+    "COMPANY_ID"
+   ],
+   [
+    "FR22770589893",
+    "COMPANY_ID"
+   ],
+   [
+    "72450034X6J45EZG5Y70",
+    "COMPANY_ID"
+   ],
+   [
+    "861 074 920",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-fr-3",
+  "lang": "fr",
+  "text": "Établissement principal : SIRET 627 070 360 00067.\nAssujetti belge : BE0903632105.\nLe bailleur (SIREN 714 361 490) percevra le dépôt de garantie.\nLe devis émane du SIRET 530 929 470 00056 (agence de Tours).",
+  "truth": [
+   [
+    "627 070 360 00067",
+    "COMPANY_ID"
+   ],
+   [
+    "BE0903632105",
+    "COMPANY_ID"
+   ],
+   [
+    "714 361 490",
+    "COMPANY_ID"
+   ],
+   [
+    "530 929 470 00056",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-fr-4",
+  "lang": "fr",
+  "text": "La facture porte la TVA FR08154561674.\nL'entité déclare sous le LEI 7245009I3S1IJK9INK15.\nLe bailleur (SIREN 267 632 701) percevra le dépôt de garantie.\nÉtablissement principal : SIRET 889 254 504 00089.",
+  "truth": [
+   [
+    "FR08154561674",
+    "COMPANY_ID"
+   ],
+   [
+    "7245009I3S1IJK9INK15",
+    "COMPANY_ID"
+   ],
+   [
+    "267 632 701",
+    "COMPANY_ID"
+   ],
+   [
+    "889 254 504 00089",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-fr-5",
+  "lang": "fr",
+  "text": "Assujetti belge : BE0367896551.\nRéférences : 192 383 016 RCS Espalion, capital 12 000 €.\nLe devis émane du SIRET 716 781 836 00076 (agence de Tours).\nLa facture porte la TVA FR11332565696.",
+  "truth": [
+   [
+    "BE0367896551",
+    "COMPANY_ID"
+   ],
+   [
+    "192 383 016",
+    "COMPANY_ID"
+   ],
+   [
+    "716 781 836 00076",
+    "COMPANY_ID"
+   ],
+   [
+    "FR11332565696",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-fr-6",
+  "lang": "fr",
+  "text": "L'entité déclare sous le LEI 724500B89I78527W5Q37.\nRéférences : 469 296 982 RCS Espalion, capital 12 000 €.\nÉtablissement principal : SIRET 287 614 945 00022.",
+  "truth": [
+   [
+    "724500B89I78527W5Q37",
+    "COMPANY_ID"
+   ],
+   [
+    "469 296 982",
+    "COMPANY_ID"
+   ],
+   [
+    "287 614 945 00022",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-pt-0",
+  "lang": "pt",
+  "text": "Fornecedor cadastrado sob o CNPJ 03.016.549/0001-62.\nA empresa opera com o NIF PT550501410.\nEmitir a nota fiscal para o CNPJ 58.725.634/0001-91.\nA empresa opera com o NIF PT527892548.",
+  "truth": [
+   [
+    "03.016.549/0001-62",
+    "COMPANY_ID"
+   ],
+   [
+    "PT550501410",
+    "COMPANY_ID"
+   ],
+   [
+    "58.725.634/0001-91",
+    "COMPANY_ID"
+   ],
+   [
+    "PT527892548",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-pt-1",
+  "lang": "pt",
+  "text": "Fornecedor cadastrado sob o CNPJ 03.670.763/0001-38.\nA empresa opera com o NIF PT538941812.\nEmitir a nota fiscal para o CNPJ 70.727.034/0001-68.\nA empresa opera com o NIF PT525230343.",
+  "truth": [
+   [
+    "03.670.763/0001-38",
+    "COMPANY_ID"
+   ],
+   [
+    "PT538941812",
+    "COMPANY_ID"
+   ],
+   [
+    "70.727.034/0001-68",
+    "COMPANY_ID"
+   ],
+   [
+    "PT525230343",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-pt-2",
+  "lang": "pt",
+  "text": "Fornecedor cadastrado sob o CNPJ 21.414.509/0001-50.\nA empresa opera com o NIF PT596969058.\nEmitir a nota fiscal para o CNPJ 90.765.638/0001-06.\nA empresa opera com o NIF PT563630124.",
+  "truth": [
+   [
+    "21.414.509/0001-50",
+    "COMPANY_ID"
+   ],
+   [
+    "PT596969058",
+    "COMPANY_ID"
+   ],
+   [
+    "90.765.638/0001-06",
+    "COMPANY_ID"
+   ],
+   [
+    "PT563630124",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-pt-3",
+  "lang": "pt",
+  "text": "Fornecedor cadastrado sob o CNPJ 21.838.905/0001-05.\nA empresa opera com o NIF PT514505850.",
+  "truth": [
+   [
+    "21.838.905/0001-05",
+    "COMPANY_ID"
+   ],
+   [
+    "PT514505850",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-0",
+  "lang": "en",
+  "text": "Supplier trades under ABN 27 696 700 009.\nThe company is registered as ACN 167 838 146.\nThe vendor's W-9 lists EIN 64-1618785.\nThe Singapore entity (UEN S49WX6383K) signs the addendum.",
+  "truth": [
+   [
+    "27 696 700 009",
+    "COMPANY_ID"
+   ],
+   [
+    "167 838 146",
+    "COMPANY_ID"
+   ],
+   [
+    "64-1618785",
+    "COMPANY_ID"
+   ],
+   [
+    "S49WX6383K",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-1",
+  "lang": "en",
+  "text": "French VAT number on file: FR33845230168.\nTax invoice issued by ABN 70 189 234 041.\nThe company is registered as ACN 238 961 012.\nSwedish VAT SE818705250401 verified in VIES.",
+  "truth": [
+   [
+    "FR33845230168",
+    "COMPANY_ID"
+   ],
+   [
+    "70 189 234 041",
+    "COMPANY_ID"
+   ],
+   [
+    "238 961 012",
+    "COMPANY_ID"
+   ],
+   [
+    "SE818705250401",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-2",
+  "lang": "en",
+  "text": "Danish entity DK56521208 appears on the invoice.\nThe vendor's W-9 lists EIN 59-0543452.\nThe Singapore entity (UEN S64NW7674Z) signs the addendum.\nThe fund reports under LEI 7245008HQF4523OPEN07.",
+  "truth": [
+   [
+    "DK56521208",
+    "COMPANY_ID"
+   ],
+   [
+    "59-0543452",
+    "COMPANY_ID"
+   ],
+   [
+    "S64NW7674Z",
+    "COMPANY_ID"
+   ],
+   [
+    "7245008HQF4523OPEN07",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-3",
+  "lang": "en",
+  "text": "Supplier trades under ABN 05 076 581 071.\nThe company is registered as ACN 107 238 728.\nThe vendor's W-9 lists EIN 10-7254565.\nThe Singapore entity (UEN R39SZ4383C) signs the addendum.",
+  "truth": [
+   [
+    "05 076 581 071",
+    "COMPANY_ID"
+   ],
+   [
+    "107 238 728",
+    "COMPANY_ID"
+   ],
+   [
+    "10-7254565",
+    "COMPANY_ID"
+   ],
+   [
+    "R39SZ4383C",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-4",
+  "lang": "en",
+  "text": "French VAT number on file: FR87247692726.\nTax invoice issued by ABN 36 749 830 061.\nThe company is registered as ACN 672 587 254.\nSwedish VAT SE232349632901 verified in VIES.",
+  "truth": [
+   [
+    "FR87247692726",
+    "COMPANY_ID"
+   ],
+   [
+    "36 749 830 061",
+    "COMPANY_ID"
+   ],
+   [
+    "672 587 254",
+    "COMPANY_ID"
+   ],
+   [
+    "SE232349632901",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-5",
+  "lang": "en",
+  "text": "Danish entity DK32747205 appears on the invoice.\nThe vendor's W-9 lists EIN 77-2527870.\nThe Singapore entity (UEN R62HU5076H) signs the addendum.\nThe fund reports under LEI 724500YF8PQZSXQBWL17.",
+  "truth": [
+   [
+    "DK32747205",
+    "COMPANY_ID"
+   ],
+   [
+    "77-2527870",
+    "COMPANY_ID"
+   ],
+   [
+    "R62HU5076H",
+    "COMPANY_ID"
+   ],
+   [
+    "724500YF8PQZSXQBWL17",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-6",
+  "lang": "en",
+  "text": "Supplier trades under ABN 45 092 502 060.\nThe company is registered as ACN 543 252 580.\nThe vendor's W-9 lists EIN 44-9434147.\nThe Singapore entity (UEN R17GN6749E) signs the addendum.",
+  "truth": [
+   [
+    "45 092 502 060",
+    "COMPANY_ID"
+   ],
+   [
+    "543 252 580",
+    "COMPANY_ID"
+   ],
+   [
+    "44-9434147",
+    "COMPANY_ID"
+   ],
+   [
+    "R17GN6749E",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-7",
+  "lang": "en",
+  "text": "French VAT number on file: FR43429854508.\nTax invoice issued by ABN 58 121 832 040.\nThe company is registered as ACN 094 325 078.\nSwedish VAT SE016741252701 verified in VIES.",
+  "truth": [
+   [
+    "FR43429854508",
+    "COMPANY_ID"
+   ],
+   [
+    "58 121 832 040",
+    "COMPANY_ID"
+   ],
+   [
+    "094 325 078",
+    "COMPANY_ID"
+   ],
+   [
+    "SE016741252701",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-8",
+  "lang": "en",
+  "text": "Danish entity DK16361801 appears on the invoice.\nThe vendor's W-9 lists EIN 63-8345276.\nThe Singapore entity (UEN S96DI5230B) signs the addendum.\nThe fund reports under LEI 724500KL23KL2F8LUN05.",
+  "truth": [
+   [
+    "DK16361801",
+    "COMPANY_ID"
+   ],
+   [
+    "63-8345276",
+    "COMPANY_ID"
+   ],
+   [
+    "S96DI5230B",
+    "COMPANY_ID"
+   ],
+   [
+    "724500KL23KL2F8LUN05",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-9",
+  "lang": "en",
+  "text": "Supplier trades under ABN 05 058 361 050.\nThe company is registered as ACN 343 454 900.\nThe vendor's W-9 lists EIN 78-5252127.\nThe Singapore entity (UEN S87SN8969W) signs the addendum.",
+  "truth": [
+   [
+    "05 058 361 050",
+    "COMPANY_ID"
+   ],
+   [
+    "343 454 900",
+    "COMPANY_ID"
+   ],
+   [
+    "78-5252127",
+    "COMPANY_ID"
+   ],
+   [
+    "S87SN8969W",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-en-10",
+  "lang": "en",
+  "text": "French VAT number on file: FR08687858944.",
+  "truth": [
+   [
+    "FR08687858944",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-pl-0",
+  "lang": "pl",
+  "text": "Kontrahent podał NIP 5678941451 do umowy.\nNabywca: NIP 034-345-63-66.\nProszę wystawić fakturę na NIP 2965690920.\nNabywca: NIP 589-634-94-14.",
+  "truth": [
+   [
+    "5678941451",
+    "COMPANY_ID"
+   ],
+   [
+    "034-345-63-66",
+    "COMPANY_ID"
+   ],
+   [
+    "2965690920",
+    "COMPANY_ID"
+   ],
+   [
+    "589-634-94-14",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-pl-1",
+  "lang": "pl",
+  "text": "Kontrahent podał NIP 7410587273 do umowy.\nNabywca: NIP 458-325-49-25.\nProszę wystawić fakturę na NIP 6361494989.\nNabywca: NIP 301-670-12-50.",
+  "truth": [
+   [
+    "7410587273",
+    "COMPANY_ID"
+   ],
+   [
+    "458-325-49-25",
+    "COMPANY_ID"
+   ],
+   [
+    "6361494989",
+    "COMPANY_ID"
+   ],
+   [
+    "301-670-12-50",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-pl-2",
+  "lang": "pl",
+  "text": "Kontrahent podał NIP 1472563691 do umowy.\nNabywca: NIP 438-181-45-80.\nProszę wystawić fakturę na NIP 2729056540.\nNabywca: NIP 525-676-74-10.",
+  "truth": [
+   [
+    "1472563691",
+    "COMPANY_ID"
+   ],
+   [
+    "438-181-45-80",
+    "COMPANY_ID"
+   ],
+   [
+    "2729056540",
+    "COMPANY_ID"
+   ],
+   [
+    "525-676-74-10",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-pl-3",
+  "lang": "pl",
+  "text": "Kontrahent podał NIP 5638143051 do umowy.\nNabywca: NIP 816-147-49-25.",
+  "truth": [
+   [
+    "5638143051",
+    "COMPANY_ID"
+   ],
+   [
+    "816-147-49-25",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-sv-0",
+  "lang": "sv",
+  "text": "Fakturera med momsregistreringsnummer SE181670987501.\nFakturera med momsregistreringsnummer SE981018149601.\nFakturera med momsregistreringsnummer SE367416743601.\nFakturera med momsregistreringsnummer SE723816389801.",
+  "truth": [
+   [
+    "SE181670987501",
+    "COMPANY_ID"
+   ],
+   [
+    "SE981018149601",
+    "COMPANY_ID"
+   ],
+   [
+    "SE367416743601",
+    "COMPANY_ID"
+   ],
+   [
+    "SE723816389801",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-da-0",
+  "lang": "da",
+  "text": "Leverandøren er registreret med CVR DK89692105.\nLeverandøren er registreret med CVR DK29214301.\nLeverandøren er registreret med CVR DK61856706.\nLeverandøren er registreret med CVR DK63834904.",
+  "truth": [
+   [
+    "DK89692105",
+    "COMPANY_ID"
+   ],
+   [
+    "DK29214301",
+    "COMPANY_ID"
+   ],
+   [
+    "DK61856706",
+    "COMPANY_ID"
+   ],
+   [
+    "DK63834904",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-nl-0",
+  "lang": "nl",
+  "text": "Belgisch BTW-nummer: BE0858905405.\nGebruik BTW-nummer NL189210749B25 op de creditnota.\nGebruik BTW-nummer NL850347654B50 op de creditnota.\nBelgisch BTW-nummer: BE0694567807.",
+  "truth": [
+   [
+    "BE0858905405",
+    "COMPANY_ID"
+   ],
+   [
+    "NL189210749B25",
+    "COMPANY_ID"
+   ],
+   [
+    "NL850347654B50",
+    "COMPANY_ID"
+   ],
+   [
+    "BE0694567807",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-nl-1",
+  "lang": "nl",
+  "text": "Gebruik BTW-nummer NL921854343B97 op de creditnota.\nGebruik BTW-nummer NL056925616B54 op de creditnota.\nBelgisch BTW-nummer: BE0490949068.\nGebruik BTW-nummer NL945818345B77 op de creditnota.",
+  "truth": [
+   [
+    "NL921854343B97",
+    "COMPANY_ID"
+   ],
+   [
+    "NL056925616B54",
+    "COMPANY_ID"
+   ],
+   [
+    "BE0490949068",
+    "COMPANY_ID"
+   ],
+   [
+    "NL945818345B77",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-nl-2",
+  "lang": "nl",
+  "text": "Gebruik BTW-nummer NL216783672B16 op de creditnota.\nBelgisch BTW-nummer: BE0272723814.\nGebruik BTW-nummer NL787490101B39 op de creditnota.",
+  "truth": [
+   [
+    "NL216783672B16",
+    "COMPANY_ID"
+   ],
+   [
+    "BE0272723814",
+    "COMPANY_ID"
+   ],
+   [
+    "NL787490101B39",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-it-0",
+  "lang": "it",
+  "text": "Il fornitore ha comunicato la P.IVA 83850581030.\nFatturare alla partita IVA 14321298144.\nIl fornitore ha comunicato la P.IVA 67618521495.\nFatturare alla partita IVA 78589490123.",
+  "truth": [
+   [
+    "83850581030",
+    "COMPANY_ID"
+   ],
+   [
+    "14321298144",
+    "COMPANY_ID"
+   ],
+   [
+    "67618521495",
+    "COMPANY_ID"
+   ],
+   [
+    "78589490123",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-it-1",
+  "lang": "it",
+  "text": "Il fornitore ha comunicato la P.IVA 65636389655.\nFatturare alla partita IVA 54905818180.\nIl fornitore ha comunicato la P.IVA 69696147854.",
+  "truth": [
+   [
+    "65636389655",
+    "COMPANY_ID"
+   ],
+   [
+    "54905818180",
+    "COMPANY_ID"
+   ],
+   [
+    "69696147854",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-de-0",
+  "lang": "de",
+  "text": "Die Rechnung trägt die USt-IdNr. DE194763494.\nDie österreichische Tochter fakturiert unter ATU38101870.\nEingetragen beim Amtsgericht, HRA 15283.\nUmsatzsteuer-Identifikationsnummer: DE325416163.",
+  "truth": [
+   [
+    "DE194763494",
+    "COMPANY_ID"
+   ],
+   [
+    "ATU38101870",
+    "COMPANY_ID"
+   ],
+   [
+    "HRA 15283",
+    "COMPANY_ID"
+   ],
+   [
+    "DE325416163",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-de-1",
+  "lang": "de",
+  "text": "Die österreichische Tochter fakturiert unter ATU43454341.\nEingetragen beim Amtsgericht, HRB 70770.\nDie Rechnung trägt die USt-IdNr. DE298925270.\nDie österreichische Tochter fakturiert unter ATU92389494.",
+  "truth": [
+   [
+    "ATU43454341",
+    "COMPANY_ID"
+   ],
+   [
+    "HRB 70770",
+    "COMPANY_ID"
+   ],
+   [
+    "DE298925270",
+    "COMPANY_ID"
+   ],
+   [
+    "ATU92389494",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-de-2",
+  "lang": "de",
+  "text": "Eingetragen beim Amtsgericht, HRA 13269.\nUmsatzsteuer-Identifikationsnummer: DE789270549.\nDie österreichische Tochter fakturiert unter ATU05896563.\nEingetragen beim Amtsgericht, HRB 91900.",
+  "truth": [
+   [
+    "HRA 13269",
+    "COMPANY_ID"
+   ],
+   [
+    "DE789270549",
+    "COMPANY_ID"
+   ],
+   [
+    "ATU05896563",
+    "COMPANY_ID"
+   ],
+   [
+    "HRB 91900",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-de-3",
+  "lang": "de",
+  "text": "Die Rechnung trägt die USt-IdNr. DE110385634.\nDie österreichische Tochter fakturiert unter ATU54947058.\nEingetragen beim Amtsgericht, HRA 89847.\nUmsatzsteuer-Identifikationsnummer: DE209096903.",
+  "truth": [
+   [
+    "DE110385634",
+    "COMPANY_ID"
+   ],
+   [
+    "ATU54947058",
+    "COMPANY_ID"
+   ],
+   [
+    "HRA 89847",
+    "COMPANY_ID"
+   ],
+   [
+    "DE209096903",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-de-4",
+  "lang": "de",
+  "text": "Die österreichische Tochter fakturiert unter ATU09010149.\nEingetragen beim Amtsgericht, HRB 84286.\nDie Rechnung trägt die USt-IdNr. DE398767078.\nDie österreichische Tochter fakturiert unter ATU94745490.",
+  "truth": [
+   [
+    "ATU09010149",
+    "COMPANY_ID"
+   ],
+   [
+    "HRB 84286",
+    "COMPANY_ID"
+   ],
+   [
+    "DE398767078",
+    "COMPANY_ID"
+   ],
+   [
+    "ATU94745490",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-de-5",
+  "lang": "de",
+  "text": "Eingetragen beim Amtsgericht, HRA 35537.",
+  "truth": [
+   [
+    "HRA 35537",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-es-0",
+  "lang": "es",
+  "text": "Factura emitida al NIF J6989230J.\nLa sociedad figura con CIF S7074983I en el registro.\nFactura emitida al NIF P85698721.\nLa sociedad figura con CIF G34561034 en el registro.",
+  "truth": [
+   [
+    "J6989230J",
+    "COMPANY_ID"
+   ],
+   [
+    "S7074983I",
+    "COMPANY_ID"
+   ],
+   [
+    "P85698721",
+    "COMPANY_ID"
+   ],
+   [
+    "G34561034",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-cid-es-1",
+  "lang": "es",
+  "text": "Factura emitida al NIF N87854147.\nLa sociedad figura con CIF H7472587A en el registro.\nFactura emitida al NIF F61416969.",
+  "truth": [
+   [
+    "N87854147",
+    "COMPANY_ID"
+   ],
+   [
+    "H7472587A",
+    "COMPANY_ID"
+   ],
+   [
+    "F61416969",
+    "COMPANY_ID"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-en-0",
+  "lang": "en",
+  "text": "Follower export (page 1):\n@rederodup — ok\n@vupinu_let — ok\n@burec_lit — ok\n@nebopoget — ok\n@besacusod — ok\n@nidifi_von — ok\n@pafada_nor — ok\n@notele_bim — ok",
+  "truth": [
+   [
+    "@rederodup",
+    "USERNAME"
+   ],
+   [
+    "@vupinu_let",
+    "USERNAME"
+   ],
+   [
+    "@burec_lit",
+    "USERNAME"
+   ],
+   [
+    "@nebopoget",
+    "USERNAME"
+   ],
+   [
+    "@besacusod",
+    "USERNAME"
+   ],
+   [
+    "@nidifi_von",
+    "USERNAME"
+   ],
+   [
+    "@pafada_nor",
+    "USERNAME"
+   ],
+   [
+    "@notele_bim",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-fr-1",
+  "lang": "fr",
+  "text": "File de modération — lot 2 :\n@monetodora_51 — ok\n@cusob_top — ok\n@fanasi_sec — ok\n@bolor_tom — ok\n@liriro_63 — ok\n@culevenaga — ok\n@raguli_val — ok\n@renusita — ok",
+  "truth": [
+   [
+    "@monetodora_51",
+    "USERNAME"
+   ],
+   [
+    "@cusob_top",
+    "USERNAME"
+   ],
+   [
+    "@fanasi_sec",
+    "USERNAME"
+   ],
+   [
+    "@bolor_tom",
+    "USERNAME"
+   ],
+   [
+    "@liriro_63",
+    "USERNAME"
+   ],
+   [
+    "@culevenaga",
+    "USERNAME"
+   ],
+   [
+    "@raguli_val",
+    "USERNAME"
+   ],
+   [
+    "@renusita",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-en-2",
+  "lang": "en",
+  "text": "Mentions pending review, batch 3:\n@funomirid_93 — ok\n@vurire_rag — ok\n@sisabed_get — ok\n@lepava_pig — ok\n@tiligu_nin — ok\n@soturo_nop — ok",
+  "truth": [
+   [
+    "@funomirid_93",
+    "USERNAME"
+   ],
+   [
+    "@vurire_rag",
+    "USERNAME"
+   ],
+   [
+    "@sisabed_get",
+    "USERNAME"
+   ],
+   [
+    "@lepava_pig",
+    "USERNAME"
+   ],
+   [
+    "@tiligu_nin",
+    "USERNAME"
+   ],
+   [
+    "@soturo_nop",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-es-3",
+  "lang": "es",
+  "text": "Cuentas reportadas, lote 4:\n@renemito_fof — ok\n@tumon93 — ok\n@minupu_pab — ok\n@lufac_red — ok\n@siriti55 — ok\n@mafopa69 — ok\n@nupipu_71 — ok",
+  "truth": [
+   [
+    "@renemito_fof",
+    "USERNAME"
+   ],
+   [
+    "@tumon93",
+    "USERNAME"
+   ],
+   [
+    "@minupu_pab",
+    "USERNAME"
+   ],
+   [
+    "@lufac_red",
+    "USERNAME"
+   ],
+   [
+    "@siriti55",
+    "USERNAME"
+   ],
+   [
+    "@mafopa69",
+    "USERNAME"
+   ],
+   [
+    "@nupipu_71",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-de-4",
+  "lang": "de",
+  "text": "Gemeldete Konten, Charge 5:\n@satafofobu_tol — ok\n@curecogot — ok\n@pimila_sof — ok\n@noraro_9 — ok\n@rufoci_bam — ok\n@boguv_37 — ok\n@tomemogar — ok",
+  "truth": [
+   [
+    "@satafofobu_tol",
+    "USERNAME"
+   ],
+   [
+    "@curecogot",
+    "USERNAME"
+   ],
+   [
+    "@pimila_sof",
+    "USERNAME"
+   ],
+   [
+    "@noraro_9",
+    "USERNAME"
+   ],
+   [
+    "@rufoci_bam",
+    "USERNAME"
+   ],
+   [
+    "@boguv_37",
+    "USERNAME"
+   ],
+   [
+    "@tomemogar",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-pt-5",
+  "lang": "pt",
+  "text": "Contas sinalizadas, lote 6:\n@futurilu_dov — ok\n@metof_nil — ok\n@poderetin — ok\n@vamiru_21 — ok\n@niseve_11 — ok\n@rusagim_89 — ok\n@femitonen — ok\n@tidov_ced — ok",
+  "truth": [
+   [
+    "@futurilu_dov",
+    "USERNAME"
+   ],
+   [
+    "@metof_nil",
+    "USERNAME"
+   ],
+   [
+    "@poderetin",
+    "USERNAME"
+   ],
+   [
+    "@vamiru_21",
+    "USERNAME"
+   ],
+   [
+    "@niseve_11",
+    "USERNAME"
+   ],
+   [
+    "@rusagim_89",
+    "USERNAME"
+   ],
+   [
+    "@femitonen",
+    "USERNAME"
+   ],
+   [
+    "@tidov_ced",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-en-6",
+  "lang": "en",
+  "text": "Follower export (page 7):\n@diromesasu_tav — ok\n@serici35 — ok\n@logadalu — ok\n@detusu_59 — ok\n@picug_pav — ok\n@conado_vug — ok\n@letefo_gag — ok",
+  "truth": [
+   [
+    "@diromesasu_tav",
+    "USERNAME"
+   ],
+   [
+    "@serici35",
+    "USERNAME"
+   ],
+   [
+    "@logadalu",
+    "USERNAME"
+   ],
+   [
+    "@detusu_59",
+    "USERNAME"
+   ],
+   [
+    "@picug_pav",
+    "USERNAME"
+   ],
+   [
+    "@conado_vug",
+    "USERNAME"
+   ],
+   [
+    "@letefo_gag",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-fr-7",
+  "lang": "fr",
+  "text": "File de modération — lot 8 :\n@tureforal_85 — ok\n@litali_gib — ok\n@tusili_29 — ok\n@lomide_dut — ok\n@regaf_93 — ok\n@gefimo47 — ok",
+  "truth": [
+   [
+    "@tureforal_85",
+    "USERNAME"
+   ],
+   [
+    "@litali_gib",
+    "USERNAME"
+   ],
+   [
+    "@tusili_29",
+    "USERNAME"
+   ],
+   [
+    "@lomide_dut",
+    "USERNAME"
+   ],
+   [
+    "@regaf_93",
+    "USERNAME"
+   ],
+   [
+    "@gefimo47",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-en-8",
+  "lang": "en",
+  "text": "Mentions pending review, batch 9:\n@cinerovasuron — ok\n@sutuge77 — ok\n@lumoge_71 — ok\n@desas_ruc — ok\n@ripumo_87 — ok\n@gemafen_57 — ok\n@pigerunis — ok\n@potobas_5 — ok",
+  "truth": [
+   [
+    "@cinerovasuron",
+    "USERNAME"
+   ],
+   [
+    "@sutuge77",
+    "USERNAME"
+   ],
+   [
+    "@lumoge_71",
+    "USERNAME"
+   ],
+   [
+    "@desas_ruc",
+    "USERNAME"
+   ],
+   [
+    "@ripumo_87",
+    "USERNAME"
+   ],
+   [
+    "@gemafen_57",
+    "USERNAME"
+   ],
+   [
+    "@pigerunis",
+    "USERNAME"
+   ],
+   [
+    "@potobas_5",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-es-9",
+  "lang": "es",
+  "text": "Cuentas reportadas, lote 10:\n@vumefoco_69 — ok\n@losoma_71 — ok\n@furub_25 — ok\n@lodinutum — ok\n@cetin85 — ok\n@binope_pet — ok\n@cidavefen — ok",
+  "truth": [
+   [
+    "@vumefoco_69",
+    "USERNAME"
+   ],
+   [
+    "@losoma_71",
+    "USERNAME"
+   ],
+   [
+    "@furub_25",
+    "USERNAME"
+   ],
+   [
+    "@lodinutum",
+    "USERNAME"
+   ],
+   [
+    "@cetin85",
+    "USERNAME"
+   ],
+   [
+    "@binope_pet",
+    "USERNAME"
+   ],
+   [
+    "@cidavefen",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-de-10",
+  "lang": "de",
+  "text": "Gemeldete Konten, Charge 11:\n@dafiditocuge — ok\n@deducemi — ok\n@bigebo_fir — ok\n@fuvep_vil — ok\n@cisigalan — ok\n@vucefede — ok",
+  "truth": [
+   [
+    "@dafiditocuge",
+    "USERNAME"
+   ],
+   [
+    "@deducemi",
+    "USERNAME"
+   ],
+   [
+    "@bigebo_fir",
+    "USERNAME"
+   ],
+   [
+    "@fuvep_vil",
+    "USERNAME"
+   ],
+   [
+    "@cisigalan",
+    "USERNAME"
+   ],
+   [
+    "@vucefede",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-pt-11",
+  "lang": "pt",
+  "text": "Contas sinalizadas, lote 12:\n@busufibulaf — ok\n@ruvuge_nif — ok\n@lebas_37 — ok\n@rotupu_gan — ok\n@rocof_17 — ok\n@daveluvos — ok\n@mamecidip — ok\n@cosicunod — ok",
+  "truth": [
+   [
+    "@busufibulaf",
+    "USERNAME"
+   ],
+   [
+    "@ruvuge_nif",
+    "USERNAME"
+   ],
+   [
+    "@lebas_37",
+    "USERNAME"
+   ],
+   [
+    "@rotupu_gan",
+    "USERNAME"
+   ],
+   [
+    "@rocof_17",
+    "USERNAME"
+   ],
+   [
+    "@daveluvos",
+    "USERNAME"
+   ],
+   [
+    "@mamecidip",
+    "USERNAME"
+   ],
+   [
+    "@cosicunod",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-en-12",
+  "lang": "en",
+  "text": "Follower export (page 13):\n@bolefilag_tor — ok\n@nurobera — ok\n@gefeto_43 — ok\n@batifi_bav — ok\n@cinupi_rut — ok\n@besavufive — ok\n@detodasep — ok\n@tudevuv_fef — ok",
+  "truth": [
+   [
+    "@bolefilag_tor",
+    "USERNAME"
+   ],
+   [
+    "@nurobera",
+    "USERNAME"
+   ],
+   [
+    "@gefeto_43",
+    "USERNAME"
+   ],
+   [
+    "@batifi_bav",
+    "USERNAME"
+   ],
+   [
+    "@cinupi_rut",
+    "USERNAME"
+   ],
+   [
+    "@besavufive",
+    "USERNAME"
+   ],
+   [
+    "@detodasep",
+    "USERNAME"
+   ],
+   [
+    "@tudevuv_fef",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-list-fr-13",
+  "lang": "fr",
+  "text": "File de modération — lot 14 :\n@laporopom_vub — ok\n@cimago_con — ok\n@pagudi_tip — ok\n@rifogipud — ok\n@nosecetip — ok\n@dopene_95 — ok",
+  "truth": [
+   [
+    "@laporopom_vub",
+    "USERNAME"
+   ],
+   [
+    "@cimago_con",
+    "USERNAME"
+   ],
+   [
+    "@pagudi_tip",
+    "USERNAME"
+   ],
+   [
+    "@rifogipud",
+    "USERNAME"
+   ],
+   [
+    "@nosecetip",
+    "USERNAME"
+   ],
+   [
+    "@dopene_95",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-0",
+  "lang": "en",
+  "text": "pseudo: bemal.17\nnom d'utilisateur: pudogegub\nusername: rotodu_ges\nlogin: curani_7",
+  "truth": [
+   [
+    "bemal.17",
+    "USERNAME"
+   ],
+   [
+    "pudogegub",
+    "USERNAME"
+   ],
+   [
+    "rotodu_ges",
+    "USERNAME"
+   ],
+   [
+    "curani_7",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-1",
+  "lang": "en",
+  "text": "nickname: bocogu_61\nBenutzername: pavoge_39\nnombre de usuario: celifon37\nnome utente: meceni_den",
+  "truth": [
+   [
+    "bocogu_61",
+    "USERNAME"
+   ],
+   [
+    "pavoge_39",
+    "USERNAME"
+   ],
+   [
+    "celifon37",
+    "USERNAME"
+   ],
+   [
+    "meceni_den",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-2",
+  "lang": "en",
+  "text": "nome de utilizador: cebubeg.bos\ngebruikersnaam: duboni_vug\nnazwa użytkownika: vecolu5\npseudo: putafogod",
+  "truth": [
+   [
+    "cebubeg.bos",
+    "USERNAME"
+   ],
+   [
+    "duboni_vug",
+    "USERNAME"
+   ],
+   [
+    "vecolu5",
+    "USERNAME"
+   ],
+   [
+    "putafogod",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-3",
+  "lang": "en",
+  "text": "nom d'utilisateur: talusi_sif\nusername: vosuni.dib\nlogin: bosug65\nnickname: lofinigom",
+  "truth": [
+   [
+    "talusi_sif",
+    "USERNAME"
+   ],
+   [
+    "vosuni.dib",
+    "USERNAME"
+   ],
+   [
+    "bosug65",
+    "USERNAME"
+   ],
+   [
+    "lofinigom",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-4",
+  "lang": "en",
+  "text": "Benutzername: mopugi.81\nnombre de usuario: nicigi.59\nnome utente: curid_goc\nnome de utilizador: giveliren",
+  "truth": [
+   [
+    "mopugi.81",
+    "USERNAME"
+   ],
+   [
+    "nicigi.59",
+    "USERNAME"
+   ],
+   [
+    "curid_goc",
+    "USERNAME"
+   ],
+   [
+    "giveliren",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-5",
+  "lang": "en",
+  "text": "gebruikersnaam: podim_doc\nnazwa użytkownika: namera.poc\npseudo: binomas.53\nnom d'utilisateur: negom_mon",
+  "truth": [
+   [
+    "podim_doc",
+    "USERNAME"
+   ],
+   [
+    "namera.poc",
+    "USERNAME"
+   ],
+   [
+    "binomas.53",
+    "USERNAME"
+   ],
+   [
+    "negom_mon",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-6",
+  "lang": "en",
+  "text": "username: sumim_73\nlogin: luleri_rel\nnickname: borova.com\nBenutzername: pecuto_35",
+  "truth": [
+   [
+    "sumim_73",
+    "USERNAME"
+   ],
+   [
+    "luleri_rel",
+    "USERNAME"
+   ],
+   [
+    "borova.com",
+    "USERNAME"
+   ],
+   [
+    "pecuto_35",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-7",
+  "lang": "en",
+  "text": "nombre de usuario: nanagu_49\nnome utente: suvorolib\nnome de utilizador: bipep.49\ngebruikersnaam: cenipu_7",
+  "truth": [
+   [
+    "nanagu_49",
+    "USERNAME"
+   ],
+   [
+    "suvorolib",
+    "USERNAME"
+   ],
+   [
+    "bipep.49",
+    "USERNAME"
+   ],
+   [
+    "cenipu_7",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-8",
+  "lang": "en",
+  "text": "nazwa użytkownika: vesobi.3\npseudo: boser_fov\nnom d'utilisateur: nasidi.91\nusername: doduru25",
+  "truth": [
+   [
+    "vesobi.3",
+    "USERNAME"
+   ],
+   [
+    "boser_fov",
+    "USERNAME"
+   ],
+   [
+    "nasidi.91",
+    "USERNAME"
+   ],
+   [
+    "doduru25",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-9",
+  "lang": "en",
+  "text": "login: cegita.99\nnickname: puroge_73\nBenutzername: supate.sut\nnombre de usuario: ciditi_71",
+  "truth": [
+   [
+    "cegita.99",
+    "USERNAME"
+   ],
+   [
+    "puroge_73",
+    "USERNAME"
+   ],
+   [
+    "supate.sut",
+    "USERNAME"
+   ],
+   [
+    "ciditi_71",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-10",
+  "lang": "en",
+  "text": "nome utente: vodifoginu\nnome de utilizador: vasosu27\ngebruikersnaam: rafume.tav\nnazwa użytkownika: pibofutav",
+  "truth": [
+   [
+    "vodifoginu",
+    "USERNAME"
+   ],
+   [
+    "vasosu27",
+    "USERNAME"
+   ],
+   [
+    "rafume.tav",
+    "USERNAME"
+   ],
+   [
+    "pibofutav",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-11",
+  "lang": "en",
+  "text": "pseudo: sefet_boc\nnom d'utilisateur: cosepu.par\nusername: bidacovu\nlogin: rilomo_95",
+  "truth": [
+   [
+    "sefet_boc",
+    "USERNAME"
+   ],
+   [
+    "cosepu.par",
+    "USERNAME"
+   ],
+   [
+    "bidacovu",
+    "USERNAME"
+   ],
+   [
+    "rilomo_95",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-12",
+  "lang": "en",
+  "text": "nickname: lafape.tom\nBenutzername: macive83\nnombre de usuario: dubidu_tum\nnome utente: povalafud",
+  "truth": [
+   [
+    "lafape.tom",
+    "USERNAME"
+   ],
+   [
+    "macive83",
+    "USERNAME"
+   ],
+   [
+    "dubidu_tum",
+    "USERNAME"
+   ],
+   [
+    "povalafud",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-13",
+  "lang": "en",
+  "text": "nome de utilizador: mimubal.nud\ngebruikersnaam: minaga_geb\nnazwa użytkownika: feriso45\npseudo: nicugu_seb",
+  "truth": [
+   [
+    "mimubal.nud",
+    "USERNAME"
+   ],
+   [
+    "minaga_geb",
+    "USERNAME"
+   ],
+   [
+    "feriso45",
+    "USERNAME"
+   ],
+   [
+    "nicugu_seb",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-14",
+  "lang": "en",
+  "text": "nom d'utilisateur: visene_can\nusername: mufute.bid\nlogin: tivid1\nnickname: nunulonus",
+  "truth": [
+   [
+    "visene_can",
+    "USERNAME"
+   ],
+   [
+    "mufute.bid",
+    "USERNAME"
+   ],
+   [
+    "tivid1",
+    "USERNAME"
+   ],
+   [
+    "nunulonus",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-15",
+  "lang": "en",
+  "text": "Benutzername: danipoca\nnombre de usuario: gucinu_tab\nnome utente: ganub_vuv\nnome de utilizador: cumefu.67",
+  "truth": [
+   [
+    "danipoca",
+    "USERNAME"
+   ],
+   [
+    "gucinu_tab",
+    "USERNAME"
+   ],
+   [
+    "ganub_vuv",
+    "USERNAME"
+   ],
+   [
+    "cumefu.67",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-user-labels-16",
+  "lang": "en",
+  "text": "gebruikersnaam: geropen45",
+  "truth": [
+   [
+    "geropen45",
+    "USERNAME"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-0",
+  "lang": "en",
+  "text": "Rotation batch 1:\nEXPORT_KEY=kfumSjQr674mi28R67\n  ingest_token: \"kF4M2bgrNxUmABqzE4LVS3\"\ncurl -H \"X-Api-Token: k3QzW8kdATG9NxcmSB\" $REPLAY_ENDPOINT\njeton de préproduction : K3gZNx35ATgH1xCM2BQ\nclé d'import à révoquer : KG3eXLDa3yHNPU5sTGHNxc\nDer Schlüssel KUdJ38ZN1kDsK8hNxcDa gehört in den Vault.",
+  "truth": [
+   [
+    "kfumSjQr674mi28R67",
+    "TOKEN"
+   ],
+   [
+    "kF4M2bgrNxUmABqzE4LVS3",
+    "TOKEN"
+   ],
+   [
+    "k3QzW8kdATG9NxcmSB",
+    "TOKEN"
+   ],
+   [
+    "K3gZNx35ATgH1xCM2BQ",
+    "TOKEN"
+   ],
+   [
+    "KG3eXLDa3yHNPU5sTGHNxc",
+    "TOKEN"
+   ],
+   [
+    "KUdJ38ZN1kDsK8hNxcDa",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-1",
+  "lang": "en",
+  "text": "Rotation batch 2:\njeton de préproduction : kbyZW7k5sby6e2LMAt\nclé d'import à révoquer : kbYzWXu0AKyRwPc2JbYh\nDer Schlüssel kRnFcV26g6ExL52b8ZEp gehört in den Vault.\nEl token Kf4da5Ghn7LmJ3GRnP4vs caduca el viernes.\nLa chiave temporanea ksbyr8x4MJ4Ghnxc5StQZ va ruotata.\nO token kr6Fc6aBGHW6uDajgr vazou no log do proxy.",
+  "truth": [
+   [
+    "kbyZW7k5sby6e2LMAt",
+    "TOKEN"
+   ],
+   [
+    "kbYzWXu0AKyRwPc2JbYh",
+    "TOKEN"
+   ],
+   [
+    "kRnFcV26g6ExL52b8ZEp",
+    "TOKEN"
+   ],
+   [
+    "Kf4da5Ghn7LmJ3GRnP4vs",
+    "TOKEN"
+   ],
+   [
+    "ksbyr8x4MJ4Ghnxc5StQZ",
+    "TOKEN"
+   ],
+   [
+    "kr6Fc6aBGHW6uDajgr",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-2",
+  "lang": "en",
+  "text": "Rotation batch 3:\nEl token KeFUD21yRe7UmsBY3NfcDS caduca el viernes.\nLa chiave temporanea KSbyh6X4DA1Qzn345a3g va ruotata.\nO token K8zw3kds3Gr63umabG9e vazou no log do proxy.\nDe sleutel ke7udJt6H6pLV228rnf staat nog in de wiki.\n[rotate] value=KPkmSj5zwxL9atGZNfU scope=read-only\nEXPORT_KEY=KC5AKQrW7UMa18ZwPc",
+  "truth": [
+   [
+    "KeFUD21yRe7UmsBY3NfcDS",
+    "TOKEN"
+   ],
+   [
+    "KSbyh6X4DA1Qzn345a3g",
+    "TOKEN"
+   ],
+   [
+    "K8zw3kds3Gr63umabG9e",
+    "TOKEN"
+   ],
+   [
+    "ke7udJt6H6pLV228rnf",
+    "TOKEN"
+   ],
+   [
+    "KPkmSj5zwxL9atGZNfU",
+    "TOKEN"
+   ],
+   [
+    "KC5AKQrW7UMa18ZwPc",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-3",
+  "lang": "en",
+  "text": "Rotation batch 4:\nDe sleutel k5Ajq86P46ABYzwxUVJj staat nog in de wiki.\n[rotate] value=KbGH3fLvAb8h6p3dSbg scope=read-only\nEXPORT_KEY=KyRwfk5sjYz65C5STqhn\n  ingest_token: \"kexcMajG9n66m2jQzeX\"\ncurl -H \"X-Api-Token: kf4V2BG4E2UDS38hEFkd\" $REPLAY_ENDPOINT\njeton de préproduction : KdsTGHE3LmajYz5fCMJ",
+  "truth": [
+   [
+    "k5Ajq86P46ABYzwxUVJj",
+    "TOKEN"
+   ],
+   [
+    "KbGH3fLvAb8h6p3dSbg",
+    "TOKEN"
+   ],
+   [
+    "KyRwfk5sjYz65C5STqhn",
+    "TOKEN"
+   ],
+   [
+    "kexcMajG9n66m2jQzeX",
+    "TOKEN"
+   ],
+   [
+    "kf4V2BG4E2UDS38hEFkd",
+    "TOKEN"
+   ],
+   [
+    "KdsTGHE3LmajYz5fCMJ",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-4",
+  "lang": "en",
+  "text": "Rotation batch 5:\n  ingest_token: \"kBqZe2LMSBg0n7UMiT8h\"\ncurl -H \"X-Api-Token: Kz6PUDijY9WpLmS5yheP4\" $REPLAY_ENDPOINT\njeton de préproduction : k4dabGrNFC2Jb4zwpL5\nclé d'import à révoquer : kMs3GhE7U8J2yhnFLd\nDer Schlüssel KDSbgZNp732jQrefCdi gehört in den Vault.\nEl token KJ3G1EPkmibY5WfUma caduca el viernes.\nLa chiave temporanea KsjyZE1u7iTqRn7udibq va ruotata.",
+  "truth": [
+   [
+    "kBqZe2LMSBg0n7UMiT8h",
+    "TOKEN"
+   ],
+   [
+    "Kz6PUDijY9WpLmS5yheP4",
+    "TOKEN"
+   ],
+   [
+    "k4dabGrNFC2Jb4zwpL5",
+    "TOKEN"
+   ],
+   [
+    "kMs3GhE7U8J2yhnFLd",
+    "TOKEN"
+   ],
+   [
+    "KDSbgZNp732jQrefCdi",
+    "TOKEN"
+   ],
+   [
+    "KJ3G1EPkmibY5WfUma",
+    "TOKEN"
+   ],
+   [
+    "KsjyZE1u7iTqRn7udibq",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-5",
+  "lang": "en",
+  "text": "Rotation batch 6:\nclé d'import à révoquer : kzw7kms8qzW0cmJtgZ\nDer Schlüssel kz6PkDJb8zWPL4stqzEf gehört in den Vault.\nEl token kPkVJ4qhE4u52KqH6XcVsB caduca el viernes.\nLa chiave temporanea KjYznX35ABYznx7daKQ va ruotata.\nO token kG26XLds0Gh6pk5AjGr vazou no log do proxy.\nDe sleutel kzExuMJKY4NXUvA6YRwF staat nog in de wiki.\n[rotate] value=KPc5ABGHnpkd3KQH5PLDa scope=read-only",
+  "truth": [
+   [
+    "kzw7kms8qzW0cmJtgZ",
+    "TOKEN"
+   ],
+   [
+    "kz6PkDJb8zWPL4stqzEf",
+    "TOKEN"
+   ],
+   [
+    "kPkVJ4qhE4u52KqH6XcVsB",
+    "TOKEN"
+   ],
+   [
+    "KjYznX35ABYznx7daKQ",
+    "TOKEN"
+   ],
+   [
+    "kG26XLds0Gh6pk5AjGr",
+    "TOKEN"
+   ],
+   [
+    "kzExuMJKY4NXUvA6YRwF",
+    "TOKEN"
+   ],
+   [
+    "KPc5ABGHnpkd3KQH5PLDa",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-6",
+  "lang": "en",
+  "text": "Rotation batch 7:\nLa chiave temporanea ktYRe0UMJbQh60k5iBQzN7 va ruotata.\nO token kFCVaBGHE4c0A3YHWFUd vazou no log do proxy.\nDe sleutel kDatG0e7UmATQ6NfCmSK staat nog in de wiki.\n[rotate] value=KtY3Wpu7ajGZ6F4mJTgrn scope=read-only\nEXPORT_KEY=Knp452jQ56pkdsT89N",
+  "truth": [
+   [
+    "ktYRe0UMJbQh60k5iBQzN7",
+    "TOKEN"
+   ],
+   [
+    "kFCVaBGHE4c0A3YHWFUd",
+    "TOKEN"
+   ],
+   [
+    "kDatG0e7UmATQ6NfCmSK",
+    "TOKEN"
+   ],
+   [
+    "KtY3Wpu7ajGZ6F4mJTgrn",
+    "TOKEN"
+   ],
+   [
+    "Knp452jQ56pkdsT89N",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-7",
+  "lang": "en",
+  "text": "Rotation batch 8:\n[rotate] value=Kpcvsjgh9p1dsTyrnF4mi scope=read-only\nEXPORT_KEY=KSTQ5WXUma7Q9Ep4DaBqHE\n  ingest_token: \"kWxUV0t86wFcV2bY9wXLm\"\ncurl -H \"X-Api-Token: kmABQr66LviT82WxuD\" $REPLAY_ENDPOINT\njeton de préproduction : KD3j39WPLvAbGr6X4va",
+  "truth": [
+   [
+    "Kpcvsjgh9p1dsTyrnF4mi",
+    "TOKEN"
+   ],
+   [
+    "KSTQ5WXUma7Q9Ep4DaBqHE",
+    "TOKEN"
+   ],
+   [
+    "kWxUV0t86wFcV2bY9wXLm",
+    "TOKEN"
+   ],
+   [
+    "kmABQr66LviT82WxuD",
+    "TOKEN"
+   ],
+   [
+    "KD3j39WPLvAbGr6X4va",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-8",
+  "lang": "en",
+  "text": "Rotation batch 9:\ncurl -H \"X-Api-Token: kKqRwfcDA3yHN6CDst8rnf\" $REPLAY_ENDPOINT\njeton de préproduction : KpLdA3Yrwp15AKYznf4vS\nclé d'import à révoquer : KsTQheP47A9GZw7cds\nDer Schlüssel kJjQ9ex2vAjY92FkmAbqr gehört in den Vault.\nEl token KZn7k52b9REXcVAK1ZWpu caduca el viernes.\nLa chiave temporanea kcVa26zNp4DJTyhnFCDaB va ruotata.",
+  "truth": [
+   [
+    "kKqRwfcDA3yHN6CDst8rnf",
+    "TOKEN"
+   ],
+   [
+    "KpLdA3Yrwp15AKYznf4vS",
+    "TOKEN"
+   ],
+   [
+    "KsTQheP47A9GZw7cds",
+    "TOKEN"
+   ],
+   [
+    "kJjQ9ex2vAjY92FkmAbqr",
+    "TOKEN"
+   ],
+   [
+    "KZn7k52b9REXcVAK1ZWpu",
+    "TOKEN"
+   ],
+   [
+    "kcVa26zNp4DJTyhnFCDaB",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-9",
+  "lang": "en",
+  "text": "Rotation batch 10:\nDer Schlüssel Kg167CVJtY9ExUViKy gehört in den Vault.\nEl token kqh6PcvaKq9n6u6SjyzWx caduca el viernes.\nLa chiave temporanea kx4dSt8hExCMS2q9ex va ruotata.\nO token k7kvJK8rNpk0J0gheX vazou no log do proxy.\nDe sleutel KXLds38r1p7Vi3gzwX4VS staat nog in de wiki.",
+  "truth": [
+   [
+    "Kg167CVJtY9ExUViKy",
+    "TOKEN"
+   ],
+   [
+    "kqh6PcvaKq9n6u6SjyzWx",
+    "TOKEN"
+   ],
+   [
+    "kx4dSt8hExCMS2q9ex",
+    "TOKEN"
+   ],
+   [
+    "k7kvJK8rNpk0J0gheX",
+    "TOKEN"
+   ],
+   [
+    "KXLds38r1p7Vi3gzwX4VS",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-10",
+  "lang": "en",
+  "text": "Rotation batch 11:\nO token KtgZEpLv1Kgz9PLviBGrN vazou no log do proxy.\nDe sleutel kwX4vA3qHWx4V2bq9Ep staat nog in de wiki.\n[rotate] value=kfUDA3Yzn8cMS4YhNPkmaK scope=read-only\nEXPORT_KEY=kKgH66C0STG9Wf4VJjYh\n  ingest_token: \"KZw3cV2KghnX4Ma18ZNXu\"",
+  "truth": [
+   [
+    "KtgZEpLv1Kgz9PLviBGrN",
+    "TOKEN"
+   ],
+   [
+    "kwX4vA3qHWx4V2bq9Ep",
+    "TOKEN"
+   ],
+   [
+    "kfUDA3Yzn8cMS4YhNPkmaK",
+    "TOKEN"
+   ],
+   [
+    "kKgH66C0STG9Wf4VJjYh",
+    "TOKEN"
+   ],
+   [
+    "KZw3cV2KghnX4Ma18ZNXu",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-11",
+  "lang": "en",
+  "text": "Rotation batch 12:\nEXPORT_KEY=kDabYhnXu5i8QZ66LD2b8Z\n  ingest_token: \"KrEpc1JjyHeF4D9BQZW\"\ncurl -H \"X-Api-Token: KePLDitQz65u1a3GzW\" $REPLAY_ENDPOINT\njeton de préproduction : KePCDsjy36pLv2B8Hn7CVS\nclé d'import à révoquer : KsTQrepk1SjG5W7LVATgHE",
+  "truth": [
+   [
+    "kDabYhnXu5i8QZ66LD2b8Z",
+    "TOKEN"
+   ],
+   [
+    "KrEpc1JjyHeF4D9BQZW",
+    "TOKEN"
+   ],
+   [
+    "KePLDitQz65u1a3GzW",
+    "TOKEN"
+   ],
+   [
+    "KePCDsjy36pLv2B8Hn7CVS",
+    "TOKEN"
+   ],
+   [
+    "KsTQrepk1SjG5W7LVATgHE",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-12",
+  "lang": "en",
+  "text": "Rotation batch 13:\njeton de préproduction : kXcmJ2Y6eFUdsTYr67\nclé d'import à révoquer : KxudiK5hw7k5SBGreFU5s\nDer Schlüssel kSBg9Wx6vi2qzN7uDStQR gehört in den Vault.\nEl token KHexkMJKYhex77abyZepC caduca el viernes.\nLa chiave temporanea Ku5S7GhNXL5S3g9WP45S va ruotata.\nO token Ka387wfLvabY1Nxuva vazou no log do proxy.\nDe sleutel KaTYze9k5sTG5nxLVS staat nog in de wiki.",
+  "truth": [
+   [
+    "kXcmJ2Y6eFUdsTYr67",
+    "TOKEN"
+   ],
+   [
+    "KxudiK5hw7k5SBGreFU5s",
+    "TOKEN"
+   ],
+   [
+    "kSBg9Wx6vi2qzN7uDStQR",
+    "TOKEN"
+   ],
+   [
+    "KHexkMJKYhex77abyZepC",
+    "TOKEN"
+   ],
+   [
+    "Ku5S7GhNXL5S3g9WP45S",
+    "TOKEN"
+   ],
+   [
+    "Ka387wfLvabY1Nxuva",
+    "TOKEN"
+   ],
+   [
+    "KaTYze9k5sTG5nxLVS",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-13",
+  "lang": "en",
+  "text": "Rotation batch 14:\nEl token K3QRnFUdJb7z5XLv2t8 caduca el viernes.\nLa chiave temporanea Ky9WpkV23QRWFUDATg va ruotata.\nO token KqHWpc32tY7n7UViKghW7u vazou no log do proxy.\nDe sleutel kUM20y26FumijQRNfLv staat nog in de wiki.\n[rotate] value=kDSjQ8eFk5JjGZe0cvAKyH scope=read-only\nEXPORT_KEY=kRE4uMs3q0EfcMSTY9nf",
+  "truth": [
+   [
+    "K3QRnFUdJb7z5XLv2t8",
+    "TOKEN"
+   ],
+   [
+    "Ky9WpkV23QRWFUDATg",
+    "TOKEN"
+   ],
+   [
+    "KqHWpc32tY7n7UViKghW7u",
+    "TOKEN"
+   ],
+   [
+    "kUM20y26FumijQRNfLv",
+    "TOKEN"
+   ],
+   [
+    "kDSjQ8eFk5JjGZe0cvAKyH",
+    "TOKEN"
+   ],
+   [
+    "kRE4uMs3q0EfcMSTY9nf",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-14",
+  "lang": "en",
+  "text": "Rotation batch 15:\nDe sleutel KC7abQ16FCMaTGhn7U staat nog in de wiki.\n[rotate] value=k45AjQRefLViK2h664VJB scope=read-only\nEXPORT_KEY=kjQhwFc6S4q9ExumaK\n  ingest_token: \"k3Qre6uv28G9NxkM2jqHWP\"\ncurl -H \"X-Api-Token: k7cMABgrEXc2S4qZwX\" $REPLAY_ENDPOINT",
+  "truth": [
+   [
+    "KC7abQ16FCMaTGhn7U",
+    "TOKEN"
+   ],
+   [
+    "k45AjQRefLViK2h664VJB",
+    "TOKEN"
+   ],
+   [
+    "kjQhwFc6S4q9ExumaK",
+    "TOKEN"
+   ],
+   [
+    "k3Qre6uv28G9NxkM2jqHWP",
+    "TOKEN"
+   ],
+   [
+    "k7cMABgrEXc2S4qZwX",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-15",
+  "lang": "en",
+  "text": "Rotation batch 16:\n  ingest_token: \"kL5sb8zw70VsBY2wP452B\"\ncurl -H \"X-Api-Token: kK8HW8Lds6grNfcVAT\" $REPLAY_ENDPOINT\njeton de préproduction : k3QR6845JTyznpuMSB\nclé d'import à révoquer : KtYHwpcm99GHnPkDSKQ\nDer Schlüssel kgzNxUmJ6yREpUM2tQH gehört in den Vault.",
+  "truth": [
+   [
+    "kL5sb8zw70VsBY2wP452B",
+    "TOKEN"
+   ],
+   [
+    "kK8HW8Lds6grNfcVAT",
+    "TOKEN"
+   ],
+   [
+    "k3QR6845JTyznpuMSB",
+    "TOKEN"
+   ],
+   [
+    "KtYHwpcm99GHnPkDSKQ",
+    "TOKEN"
+   ],
+   [
+    "kgzNxUmJ6yREpUM2tQH",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-16",
+  "lang": "en",
+  "text": "Rotation batch 17:\nclé d'import à révoquer : kNFk52BYH6x44aBG9eX4m\nDer Schlüssel KDA3Grw5472j8rWfLV2K8 gehört in den Vault.\nEl token K8RWxCdAT896Fu72tgrnXc caduca el viernes.\nLa chiave temporanea kC5sbyH6XU4aTGz4xCM23 va ruotata.\nO token kjGhn7C8SjG2ExUDa3Y9 vazou no log do proxy.\nDe sleutel k9N845STYrE4Lvajqr staat nog in de wiki.\n[rotate] value=Khwx5mibQrw7cvAB9ZEpc scope=read-only",
+  "truth": [
+   [
+    "kNFk52BYH6x44aBG9eX4m",
+    "TOKEN"
+   ],
+   [
+    "KDA3Grw5472j8rWfLV2K8",
+    "TOKEN"
+   ],
+   [
+    "K8RWxCdAT896Fu72tgrnXc",
+    "TOKEN"
+   ],
+   [
+    "kC5sbyH6XU4aTGz4xCM23",
+    "TOKEN"
+   ],
+   [
+    "kjGhn7C8SjG2ExUDa3Y9",
+    "TOKEN"
+   ],
+   [
+    "k9N845STYrE4Lvajqr",
+    "TOKEN"
+   ],
+   [
+    "Khwx5mibQrw7cvAB9ZEpc",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-17",
+  "lang": "en",
+  "text": "Rotation batch 18:\nLa chiave temporanea k5s8q9NXkvi8qHeXLD va ruotata.\nO token Km21g96p4DaTgze9CdSKg vazou no log do proxy.\nDe sleutel kQHe2CVJBqR0xcdSKQrEX staat nog in de wiki.\n[rotate] value=kXCVa6g9E6kdi3QhN7 scope=read-only\nEXPORT_KEY=k7Cm2Ky4W4kM2By9epcd\n  ingest_token: \"KvA1G5wx4V2TyRE74M2\"",
+  "truth": [
+   [
+    "k5s8q9NXkvi8qHeXLD",
+    "TOKEN"
+   ],
+   [
+    "Km21g96p4DaTgze9CdSKg",
+    "TOKEN"
+   ],
+   [
+    "kQHe2CVJBqR0xcdSKQrEX",
+    "TOKEN"
+   ],
+   [
+    "kXCVa6g9E6kdi3QhN7",
+    "TOKEN"
+   ],
+   [
+    "k7Cm2Ky4W4kM2By9epcd",
+    "TOKEN"
+   ],
+   [
+    "KvA1G5wx4V2TyRE74M2",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-18",
+  "lang": "en",
+  "text": "Rotation batch 19:\n[rotate] value=k3gZwpuDJ2qhe8cdstGzw7 scope=read-only\nEXPORT_KEY=KPCMibyz77k5ib5H6XuM2\n  ingest_token: \"KABg1w74Vsby3NXUv23YrW\"\ncurl -H \"X-Api-Token: K6xu5SBG5wfUVajgrN\" $REPLAY_ENDPOINT\njeton de préproduction : knXLvSK89Wpu2abYhwx\nclé d'import à révoquer : kFkmJbqzN7c82jQ8eFLv\nDer Schlüssel KMSjq76x4Ditg7NXcvaTg gehört in den Vault.",
+  "truth": [
+   [
+    "k3gZwpuDJ2qhe8cdstGzw7",
+    "TOKEN"
+   ],
+   [
+    "KPCMibyz77k5ib5H6XuM2",
+    "TOKEN"
+   ],
+   [
+    "KABg1w74Vsby3NXUv23YrW",
+    "TOKEN"
+   ],
+   [
+    "K6xu5SBG5wfUVajgrN",
+    "TOKEN"
+   ],
+   [
+    "knXLvSK89Wpu2abYhwx",
+    "TOKEN"
+   ],
+   [
+    "kFkmJbqzN7c82jQ8eFLv",
+    "TOKEN"
+   ],
+   [
+    "KMSjq76x4Ditg7NXcvaTg",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-19",
+  "lang": "en",
+  "text": "Rotation batch 20:\ncurl -H \"X-Api-Token: k9wpcdabYre04DstGrW7cm\" $REPLAY_ENDPOINT\njeton de préproduction : kdJbYZnfu6aTq9n8cVajGH\nclé d'import à révoquer : k960U5SjYzWpcMSKY6W7cD\nDer Schlüssel k5STGRN0cVST8rn0LV23yr gehört in den Vault.\nEl token kzWFUmitg0w0uMAjyzwpuv caduca el viernes.\nLa chiave temporanea KmiTQRwX4vJ58ze7cdajy va ruotata.",
+  "truth": [
+   [
+    "k9wpcdabYre04DstGrW7cm",
+    "TOKEN"
+   ],
+   [
+    "kdJbYZnfu6aTq9n8cVajGH",
+    "TOKEN"
+   ],
+   [
+    "k960U5SjYzWpcMSKY6W7cD",
+    "TOKEN"
+   ],
+   [
+    "k5STGRN0cVST8rn0LV23yr",
+    "TOKEN"
+   ],
+   [
+    "kzWFUmitg0w0uMAjyzwpuv",
+    "TOKEN"
+   ],
+   [
+    "KmiTQRwX4vJ58ze7cdajy",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-20",
+  "lang": "en",
+  "text": "Rotation batch 21:\nDer Schlüssel Kz6F3DiKyznPu7ij8HW gehört in den Vault.\nEl token KnPk5sByrexLmSbQ367LVA caduca el viernes.\nLa chiave temporanea K2ByZNxu3aBqrW3uDsKy va ruotata.\nO token KyhwpCdJ7Y1EXLvstg vazou no log do proxy.\nDe sleutel K8He7LVity76x4vStYRn staat nog in de wiki.",
+  "truth": [
+   [
+    "Kz6F3DiKyznPu7ij8HW",
+    "TOKEN"
+   ],
+   [
+    "KnPk5sByrexLmSbQ367LVA",
+    "TOKEN"
+   ],
+   [
+    "K2ByZNxu3aBqrW3uDsKy",
+    "TOKEN"
+   ],
+   [
+    "KyhwpCdJ7Y1EXLvstg",
+    "TOKEN"
+   ],
+   [
+    "K8He7LVity76x4vStYRn",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-21",
+  "lang": "en",
+  "text": "Rotation batch 22:\nO token KFUDJ3GzE75DSjqZWPkD2 vazou no log do proxy.\nDe sleutel kst6rEfC5itqR0fkVAT staat nog in de wiki.\n[rotate] value=KbQ9NFc7itqzN5uMSKQ scope=read-only\nEXPORT_KEY=kgZE7cm2TQR2Xcv23YhWp\n  ingest_token: \"kfcms4yHnFuMS0QR6P\"\ncurl -H \"X-Api-Token: k7kdatyRE04m23GHwpCVab\" $REPLAY_ENDPOINT\njeton de préproduction : kBY9WxuvAb84w6uVs3yH",
+  "truth": [
+   [
+    "KFUDJ3GzE75DSjqZWPkD2",
+    "TOKEN"
+   ],
+   [
+    "kst6rEfC5itqR0fkVAT",
+    "TOKEN"
+   ],
+   [
+    "KbQ9NFc7itqzN5uMSKQ",
+    "TOKEN"
+   ],
+   [
+    "kgZE7cm2TQR2Xcv23YhWp",
+    "TOKEN"
+   ],
+   [
+    "kfcms4yHnFuMS0QR6P",
+    "TOKEN"
+   ],
+   [
+    "k7kdatyRE04m23GHwpCVab",
+    "TOKEN"
+   ],
+   [
+    "kBY9WxuvAb84w6uVs3yH",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-22",
+  "lang": "en",
+  "text": "Rotation batch 23:\nEXPORT_KEY=kwx4m4TqreX4mJbg96P\n  ingest_token: \"kPcdA6ghWXC02TghW7\"\ncurl -H \"X-Api-Token: k7uDSKg8W7UMSj84WFUV\" $REPLAY_ENDPOINT\njeton de préproduction : kmA2Q6wf45sKG96pu5SK\nclé d'import à révoquer : K3GZ3FUDA3qzNF15sT8\nDer Schlüssel kQhWFuMajy64Pk52by9 gehört in den Vault.\nEl token KznxU57TgR6f5DsTyhexL caduca el viernes.",
+  "truth": [
+   [
+    "kwx4m4TqreX4mJbg96P",
+    "TOKEN"
+   ],
+   [
+    "kPcdA6ghWXC02TghW7",
+    "TOKEN"
+   ],
+   [
+    "k7uDSKg8W7UMSj84WFUV",
+    "TOKEN"
+   ],
+   [
+    "kmA2Q6wf45sKG96pu5SK",
+    "TOKEN"
+   ],
+   [
+    "K3GZ3FUDA3qzNF15sT8",
+    "TOKEN"
+   ],
+   [
+    "kQhWFuMajy64Pk52by9",
+    "TOKEN"
+   ],
+   [
+    "KznxU57TgR6f5DsTyhexL",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-23",
+  "lang": "en",
+  "text": "Rotation batch 24:\njeton de préproduction : K5ibYZNPL5S57RnX4dAbG\nclé d'import à révoquer : KY9EX4DSTGR6pk5atqRwfc\nDer Schlüssel kCVaK69np4MSbYHN7LD gehört in den Vault.\nEl token kVJb8hepU6sB84WXkvaj caduca el viernes.\nLa chiave temporanea Kb5rEpUMJtGzW7c3ABGHN va ruotata.\nO token kNXuM2j8Z67c5A3QZ67kV vazou no log do proxy.",
+  "truth": [
+   [
+    "K5ibYZNPL5S57RnX4dAbG",
+    "TOKEN"
+   ],
+   [
+    "KY9EX4DSTGR6pk5atqRwfc",
+    "TOKEN"
+   ],
+   [
+    "kCVaK69np4MSbYHN7LD",
+    "TOKEN"
+   ],
+   [
+    "kVJb8hepU6sB84WXkvaj",
+    "TOKEN"
+   ],
+   [
+    "Kb5rEpUMJtGzW7c3ABGHN",
+    "TOKEN"
+   ],
+   [
+    "kNXuM2j8Z67c5A3QZ67kV",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-24",
+  "lang": "en",
+  "text": "Rotation batch 25:\nEl token kAKgHnX0D2tyHNf4diT caduca el viernes.\nLa chiave temporanea KBGzNFCdST3Zn9U5sBg va ruotata.\nO token kGHeXuV2b8RNF4m2jQz vazou no log do proxy.\nDe sleutel khnfkDS8g6N7u5JTQz staat nog in de wiki.\n[rotate] value=kHn2kDSbgzn24VaKGZ scope=read-only\nEXPORT_KEY=KZEfC5JjGR7F1VAbgzw",
+  "truth": [
+   [
+    "kAKgHnX0D2tyHNf4diT",
+    "TOKEN"
+   ],
+   [
+    "KBGzNFCdST3Zn9U5sBg",
+    "TOKEN"
+   ],
+   [
+    "kGHeXuV2b8RNF4m2jQz",
+    "TOKEN"
+   ],
+   [
+    "khnfkDS8g6N7u5JTQz",
+    "TOKEN"
+   ],
+   [
+    "kHn2kDSbgzn24VaKGZ",
+    "TOKEN"
+   ],
+   [
+    "KZEfC5JjGR7F1VAbgzw",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-25",
+  "lang": "en",
+  "text": "Rotation batch 26:\nDe sleutel k7cmSTqh644dJKQze6CVi3 staat nog in de wiki.\n[rotate] value=kT8HWpCMs4yHnPuMSb scope=read-only\nEXPORT_KEY=kt8rEfLdS4y9WPU2ityR\n  ingest_token: \"KhnxLdatg9w75VsjGzE\"\ncurl -H \"X-Api-Token: K61cVAj8ZE3LDS38ZN7U\" $REPLAY_ENDPOINT",
+  "truth": [
+   [
+    "k7cmSTqh644dJKQze6CVi3",
+    "TOKEN"
+   ],
+   [
+    "kT8HWpCMs4yHnPuMSb",
+    "TOKEN"
+   ],
+   [
+    "kt8rEfLdS4y9WPU2ityR",
+    "TOKEN"
+   ],
+   [
+    "KhnxLdatg9w75VsjGzE",
+    "TOKEN"
+   ],
+   [
+    "K61cVAj8ZE3LDS38ZN7U",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-26",
+  "lang": "en",
+  "text": "Rotation batch 27:\n  ingest_token: \"KMJKQZNxu5aKg937kmA\"\ncurl -H \"X-Api-Token: KA3Q9w54vJbG9E7C5At8\" $REPLAY_ENDPOINT\njeton de préproduction : kQrEpUD6TGR6xumatgR\nclé d'import à révoquer : kZn7c4S88rnpcvS3gZ\nDer Schlüssel KRwPL7ijgrwPL1iB8zw gehört in den Vault.\nEl token KE7LvA3Y9WxCvs7grnpuvS caduca el viernes.\nLa chiave temporanea kS3qZ6X2vABQ6efkVSj va ruotata.",
+  "truth": [
+   [
+    "KMJKQZNxu5aKg937kmA",
+    "TOKEN"
+   ],
+   [
+    "KA3Q9w54vJbG9E7C5At8",
+    "TOKEN"
+   ],
+   [
+    "kQrEpUD6TGR6xumatgR",
+    "TOKEN"
+   ],
+   [
+    "kZn7c4S88rnpcvS3gZ",
+    "TOKEN"
+   ],
+   [
+    "KRwPL7ijgrwPL1iB8zw",
+    "TOKEN"
+   ],
+   [
+    "KE7LvA3Y9WxCvs7grnpuvS",
+    "TOKEN"
+   ],
+   [
+    "kS3qZ6X2vABQ6efkVSj",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-27",
+  "lang": "en",
+  "text": "Rotation batch 28:\nclé d'import à révoquer : KY9NxC7SbYhn7u5JKG\nDer Schlüssel kYzefUmaBq2eFU2sKgr gehört in den Vault.\nEl token KHwp7ViTqhNP7DiTqZWPU caduca el viernes.\nLa chiave temporanea kcMiT2HwPk2aBy96xU5 va ruotata.\nO token KmsKGhn3451BgH6pCDs vazou no log do proxy.\nDe sleutel Kij8rN9c3iTYrwPUMi staat nog in de wiki.",
+  "truth": [
+   [
+    "KY9NxC7SbYhn7u5JKG",
+    "TOKEN"
+   ],
+   [
+    "kYzefUmaBq2eFU2sKgr",
+    "TOKEN"
+   ],
+   [
+    "KHwp7ViTqhNP7DiTqZWPU",
+    "TOKEN"
+   ],
+   [
+    "kcMiT2HwPk2aBy96xU5",
+    "TOKEN"
+   ],
+   [
+    "KmsKGhn3451BgH6pCDs",
+    "TOKEN"
+   ],
+   [
+    "Kij8rN9c3iTYrwPUMi",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-token-28",
+  "lang": "en",
+  "text": "Rotation batch 29:\nLa chiave temporanea KBY9N7UdA9GrNxU5ATg va ruotata.\nO token KgH6xcvAK87w7cMATy vazou no log do proxy.\nDe sleutel ky6n745aBQhe7CMJ2QZN7 staat nog in de wiki.",
+  "truth": [
+   [
+    "KBY9N7UdA9GrNxU5ATg",
+    "TOKEN"
+   ],
+   [
+    "KgH6xcvAK87w7cMATy",
+    "TOKEN"
+   ],
+   [
+    "ky6n745aBQhe7CMJ2QZN7",
+    "TOKEN"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-fr-0",
+  "lang": "fr",
+  "text": "groupe sanguin : A−\ndossier médical : 436561\ndiagnostic (CIM-10) : S85\npraticien RPPS 10050129434",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "436561",
+    "HEALTH"
+   ],
+   [
+    "S85",
+    "HEALTH"
+   ],
+   [
+    "10050129434",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-en-1",
+  "lang": "en",
+  "text": "blood type : O negative\nnuméro patient : 470169\ncode diagnostic : B95",
+  "truth": [
+   [
+    "O negative",
+    "HEALTH"
+   ],
+   [
+    "470169",
+    "HEALTH"
+   ],
+   [
+    "B95",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-de-2",
+  "lang": "de",
+  "text": "Blutgruppe : AB+\nMRN : 769672\ndiagnosis (ICD-10): V40.8",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "769672",
+    "HEALTH"
+   ],
+   [
+    "V40.8",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-es-3",
+  "lang": "es",
+  "text": "grupo sanguíneo : B positivo\nmedical record : 109098\nDiagnose (ICD-10): N02.4",
+  "truth": [
+   [
+    "B positivo",
+    "HEALTH"
+   ],
+   [
+    "109098",
+    "HEALTH"
+   ],
+   [
+    "N02.4",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-it-4",
+  "lang": "it",
+  "text": "gruppo sanguigno : AB+\nPatientennummer : 10385098\ndiagnóstico (CIE/ICD): Z78.0",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "10385098",
+    "HEALTH"
+   ],
+   [
+    "Z78.0",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-pt-5",
+  "lang": "pt",
+  "text": "tipo sanguíneo : AB+\nKrankenakte : 1098165\ndiagnosi ICD-10: C77\npraticien RPPS 10058969416",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "1098165",
+    "HEALTH"
+   ],
+   [
+    "C77",
+    "HEALTH"
+   ],
+   [
+    "10058969416",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-nl-6",
+  "lang": "nl",
+  "text": "bloedgroep : O negatief\nhistoria clínica : 4561278\ndiagnóstico (CID/ICD): G04.0",
+  "truth": [
+   [
+    "O negatief",
+    "HEALTH"
+   ],
+   [
+    "4561278",
+    "HEALTH"
+   ],
+   [
+    "G04.0",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-fr-7",
+  "lang": "fr",
+  "text": "groupe sanguin : B positif\ncartella clinica : 16541290\ndiagnostic (CIM-10) : V60.8\npraticien RPPS 10852163630",
+  "truth": [
+   [
+    "B positif",
+    "HEALTH"
+   ],
+   [
+    "16541290",
+    "HEALTH"
+   ],
+   [
+    "V60.8",
+    "HEALTH"
+   ],
+   [
+    "10852163630",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-en-8",
+  "lang": "en",
+  "text": "blood type : O negative\nprontuário : 47230949\ncode diagnostic : E49",
+  "truth": [
+   [
+    "O negative",
+    "HEALTH"
+   ],
+   [
+    "47230949",
+    "HEALTH"
+   ],
+   [
+    "E49",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-de-9",
+  "lang": "de",
+  "text": "Blutgruppe : B positiv\npatiëntnummer : 5878947\ndiagnosis (ICD-10): N43",
+  "truth": [
+   [
+    "B positiv",
+    "HEALTH"
+   ],
+   [
+    "5878947",
+    "HEALTH"
+   ],
+   [
+    "N43",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-es-10",
+  "lang": "es",
+  "text": "grupo sanguíneo : AB+\ndossier médical : 58341674\nDiagnose (ICD-10): A82.8\npraticien RPPS 10092587278",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "58341674",
+    "HEALTH"
+   ],
+   [
+    "A82.8",
+    "HEALTH"
+   ],
+   [
+    "10092587278",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-it-11",
+  "lang": "it",
+  "text": "gruppo sanguigno : A−\nnuméro patient : 690309\ndiagnóstico (CIE/ICD): W25",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "690309",
+    "HEALTH"
+   ],
+   [
+    "W25",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-pt-12",
+  "lang": "pt",
+  "text": "tipo sanguíneo : B positivo\nMRN : 9652345\ndiagnosi ICD-10: S07",
+  "truth": [
+   [
+    "B positivo",
+    "HEALTH"
+   ],
+   [
+    "9652345",
+    "HEALTH"
+   ],
+   [
+    "S07",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-nl-13",
+  "lang": "nl",
+  "text": "bloedgroep : AB+\nmedical record : 729274\ndiagnóstico (CID/ICD): G96.8",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "729274",
+    "HEALTH"
+   ],
+   [
+    "G96.8",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-fr-14",
+  "lang": "fr",
+  "text": "groupe sanguin : B positif\nPatientennummer : 989210\ndiagnostic (CIM-10) : G82.2",
+  "truth": [
+   [
+    "B positif",
+    "HEALTH"
+   ],
+   [
+    "989210",
+    "HEALTH"
+   ],
+   [
+    "G82.2",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-en-15",
+  "lang": "en",
+  "text": "blood type : AB+\nKrankenakte : 7636545\ncode diagnostic : P13\npraticien RPPS 10052307232",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "7636545",
+    "HEALTH"
+   ],
+   [
+    "P13",
+    "HEALTH"
+   ],
+   [
+    "10052307232",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-de-16",
+  "lang": "de",
+  "text": "Blutgruppe : O negativ\nhistoria clínica : 254325\ndiagnosis (ICD-10): E19\npraticien RPPS 10256389872",
+  "truth": [
+   [
+    "O negativ",
+    "HEALTH"
+   ],
+   [
+    "254325",
+    "HEALTH"
+   ],
+   [
+    "E19",
+    "HEALTH"
+   ],
+   [
+    "10256389872",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-es-17",
+  "lang": "es",
+  "text": "grupo sanguíneo : A−\ncartella clinica : 07018181\nDiagnose (ICD-10): J83\npraticien RPPS 10430385258",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "07018181",
+    "HEALTH"
+   ],
+   [
+    "J83",
+    "HEALTH"
+   ],
+   [
+    "10430385258",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-it-18",
+  "lang": "it",
+  "text": "gruppo sanguigno : A−\nprontuário : 0563632\ndiagnóstico (CIE/ICD): V70.0\npraticien RPPS 10452109230",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "0563632",
+    "HEALTH"
+   ],
+   [
+    "V70.0",
+    "HEALTH"
+   ],
+   [
+    "10452109230",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-pt-19",
+  "lang": "pt",
+  "text": "tipo sanguíneo : A−\npatiëntnummer : 058121\ndiagnosi ICD-10: J69",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "058121",
+    "HEALTH"
+   ],
+   [
+    "J69",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-nl-20",
+  "lang": "nl",
+  "text": "bloedgroep : B positief\ndossier médical : 92749274\ndiagnóstico (CID/ICD): L36.8\npraticien RPPS 10674709290",
+  "truth": [
+   [
+    "B positief",
+    "HEALTH"
+   ],
+   [
+    "92749274",
+    "HEALTH"
+   ],
+   [
+    "L36.8",
+    "HEALTH"
+   ],
+   [
+    "10674709290",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-fr-21",
+  "lang": "fr",
+  "text": "groupe sanguin : O négatif\nnuméro patient : 6525632\ndiagnostic (CIM-10) : O80.4\npraticien RPPS 10634341256",
+  "truth": [
+   [
+    "O négatif",
+    "HEALTH"
+   ],
+   [
+    "6525632",
+    "HEALTH"
+   ],
+   [
+    "O80.4",
+    "HEALTH"
+   ],
+   [
+    "10634341256",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-en-22",
+  "lang": "en",
+  "text": "blood type : O negative\nMRN : 0907694\ncode diagnostic : O76.0",
+  "truth": [
+   [
+    "O negative",
+    "HEALTH"
+   ],
+   [
+    "0907694",
+    "HEALTH"
+   ],
+   [
+    "O76.0",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-de-23",
+  "lang": "de",
+  "text": "Blutgruppe : B positiv\nmedical record : 5256963\ndiagnosis (ICD-10): F35\npraticien RPPS 10892349410",
+  "truth": [
+   [
+    "B positiv",
+    "HEALTH"
+   ],
+   [
+    "5256963",
+    "HEALTH"
+   ],
+   [
+    "F35",
+    "HEALTH"
+   ],
+   [
+    "10892349410",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-es-24",
+  "lang": "es",
+  "text": "grupo sanguíneo : A−\nPatientennummer : 47672905\nDiagnose (ICD-10): W51",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "47672905",
+    "HEALTH"
+   ],
+   [
+    "W51",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-it-25",
+  "lang": "it",
+  "text": "gruppo sanguigno : AB+\nKrankenakte : 3256305\ndiagnóstico (CIE/ICD): A77",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "3256305",
+    "HEALTH"
+   ],
+   [
+    "A77",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-pt-26",
+  "lang": "pt",
+  "text": "tipo sanguíneo : B positivo\nhistoria clínica : 32509656\ndiagnosi ICD-10: P00.8",
+  "truth": [
+   [
+    "B positivo",
+    "HEALTH"
+   ],
+   [
+    "32509656",
+    "HEALTH"
+   ],
+   [
+    "P00.8",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-nl-27",
+  "lang": "nl",
+  "text": "bloedgroep : B positief\ncartella clinica : 7878949\ndiagnóstico (CID/ICD): P99",
+  "truth": [
+   [
+    "B positief",
+    "HEALTH"
+   ],
+   [
+    "7878949",
+    "HEALTH"
+   ],
+   [
+    "P99",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-fr-28",
+  "lang": "fr",
+  "text": "groupe sanguin : AB+\nprontuário : 769030\ndiagnostic (CIM-10) : T68.8\npraticien RPPS 10010367058",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "769030",
+    "HEALTH"
+   ],
+   [
+    "T68.8",
+    "HEALTH"
+   ],
+   [
+    "10010367058",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-en-29",
+  "lang": "en",
+  "text": "blood type : O negative\npatiëntnummer : 056767\ncode diagnostic : D51\npraticien RPPS 10032321476",
+  "truth": [
+   [
+    "O negative",
+    "HEALTH"
+   ],
+   [
+    "056767",
+    "HEALTH"
+   ],
+   [
+    "D51",
+    "HEALTH"
+   ],
+   [
+    "10032321476",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-de-30",
+  "lang": "de",
+  "text": "Blutgruppe : A−\ndossier médical : 690703\ndiagnosis (ICD-10): C61",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "690703",
+    "HEALTH"
+   ],
+   [
+    "C61",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-es-31",
+  "lang": "es",
+  "text": "grupo sanguíneo : B positivo\nnuméro patient : 101616\nDiagnose (ICD-10): D90.6\npraticien RPPS 10050541474",
+  "truth": [
+   [
+    "B positivo",
+    "HEALTH"
+   ],
+   [
+    "101616",
+    "HEALTH"
+   ],
+   [
+    "D90.6",
+    "HEALTH"
+   ],
+   [
+    "10050541474",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-it-32",
+  "lang": "it",
+  "text": "gruppo sanguigno : A−\nMRN : 8107496\ndiagnóstico (CIE/ICD): O10.2",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "8107496",
+    "HEALTH"
+   ],
+   [
+    "O10.2",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-pt-33",
+  "lang": "pt",
+  "text": "tipo sanguíneo : AB+\nmedical record : 923294\ndiagnosi ICD-10: H12.4\npraticien RPPS 10650543850",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "923294",
+    "HEALTH"
+   ],
+   [
+    "H12.4",
+    "HEALTH"
+   ],
+   [
+    "10650543850",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-nl-34",
+  "lang": "nl",
+  "text": "bloedgroep : O negatief\nPatientennummer : 096909\ndiagnóstico (CID/ICD): X19",
+  "truth": [
+   [
+    "O negatief",
+    "HEALTH"
+   ],
+   [
+    "096909",
+    "HEALTH"
+   ],
+   [
+    "X19",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-fr-35",
+  "lang": "fr",
+  "text": "groupe sanguin : AB+\nKrankenakte : 3416927\ndiagnostic (CIM-10) : D53\npraticien RPPS 10032545692",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "3416927",
+    "HEALTH"
+   ],
+   [
+    "D53",
+    "HEALTH"
+   ],
+   [
+    "10032545692",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-en-36",
+  "lang": "en",
+  "text": "blood type : O negative\nhistoria clínica : 2301630\ncode diagnostic : E88.6\npraticien RPPS 10296307438",
+  "truth": [
+   [
+    "O negative",
+    "HEALTH"
+   ],
+   [
+    "2301630",
+    "HEALTH"
+   ],
+   [
+    "E88.6",
+    "HEALTH"
+   ],
+   [
+    "10296307438",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-de-37",
+  "lang": "de",
+  "text": "Blutgruppe : O negativ\ncartella clinica : 03832547\ndiagnosis (ICD-10): A77\npraticien RPPS 10058961270",
+  "truth": [
+   [
+    "O negativ",
+    "HEALTH"
+   ],
+   [
+    "03832547",
+    "HEALTH"
+   ],
+   [
+    "A77",
+    "HEALTH"
+   ],
+   [
+    "10058961270",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-es-38",
+  "lang": "es",
+  "text": "grupo sanguíneo : O negativo\nprontuário : 0107014\nDiagnose (ICD-10): L88.8",
+  "truth": [
+   [
+    "O negativo",
+    "HEALTH"
+   ],
+   [
+    "0107014",
+    "HEALTH"
+   ],
+   [
+    "L88.8",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-it-39",
+  "lang": "it",
+  "text": "gruppo sanguigno : B positivo\npatiëntnummer : 5450721\ndiagnóstico (CIE/ICD): W31\npraticien RPPS 10450301834",
+  "truth": [
+   [
+    "B positivo",
+    "HEALTH"
+   ],
+   [
+    "5450721",
+    "HEALTH"
+   ],
+   [
+    "W31",
+    "HEALTH"
+   ],
+   [
+    "10450301834",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-pt-40",
+  "lang": "pt",
+  "text": "tipo sanguíneo : A−\ndossier médical : 4749076\ndiagnosi ICD-10: M26.6",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "4749076",
+    "HEALTH"
+   ],
+   [
+    "M26.6",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-nl-41",
+  "lang": "nl",
+  "text": "bloedgroep : AB+\nnuméro patient : 741296\ndiagnóstico (CID/ICD): I36.0",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "741296",
+    "HEALTH"
+   ],
+   [
+    "I36.0",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-fr-42",
+  "lang": "fr",
+  "text": "groupe sanguin : B positif\nMRN : 56125892\ndiagnostic (CIM-10) : C76.0",
+  "truth": [
+   [
+    "B positif",
+    "HEALTH"
+   ],
+   [
+    "56125892",
+    "HEALTH"
+   ],
+   [
+    "C76.0",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-en-43",
+  "lang": "en",
+  "text": "blood type : B positive\nmedical record : 7456721\ncode diagnostic : F87\npraticien RPPS 10670309472",
+  "truth": [
+   [
+    "B positive",
+    "HEALTH"
+   ],
+   [
+    "7456721",
+    "HEALTH"
+   ],
+   [
+    "F87",
+    "HEALTH"
+   ],
+   [
+    "10670309472",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-de-44",
+  "lang": "de",
+  "text": "Blutgruppe : A−\nPatientennummer : 092969\ndiagnosis (ICD-10): H21",
+  "truth": [
+   [
+    "A−",
+    "HEALTH"
+   ],
+   [
+    "092969",
+    "HEALTH"
+   ],
+   [
+    "H21",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-es-45",
+  "lang": "es",
+  "text": "grupo sanguíneo : B positivo\nKrankenakte : 18145078\nDiagnose (ICD-10): B96.0",
+  "truth": [
+   [
+    "B positivo",
+    "HEALTH"
+   ],
+   [
+    "18145078",
+    "HEALTH"
+   ],
+   [
+    "B96.0",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-it-46",
+  "lang": "it",
+  "text": "gruppo sanguigno : B positivo\nhistoria clínica : 987652\ndiagnóstico (CIE/ICD): Y26.4",
+  "truth": [
+   [
+    "B positivo",
+    "HEALTH"
+   ],
+   [
+    "987652",
+    "HEALTH"
+   ],
+   [
+    "Y26.4",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-pt-47",
+  "lang": "pt",
+  "text": "tipo sanguíneo : AB+\ncartella clinica : 1230147\ndiagnosi ICD-10: P93",
+  "truth": [
+   [
+    "AB+",
+    "HEALTH"
+   ],
+   [
+    "1230147",
+    "HEALTH"
+   ],
+   [
+    "P93",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "serie-hlt-nl-48",
+  "lang": "nl",
+  "text": "bloedgroep : B positief",
+  "truth": [
+   [
+    "B positief",
+    "HEALTH"
+   ]
+  ]
+ },
+ {
+  "id": "minces-ocr-confusables",
+  "lang": "fr",
+  "text": "(scan OCR) Avis de virement — compte débité FR76 3OO0 6000 0112 3456 7890 189, carte associée 5453 O112 8367 9O15, le 12/06.",
+  "truth": [
+   [
+    "FR76 3OO0 6000 0112 3456 7890 189",
+    "IBAN"
+   ],
+   [
+    "5453 O112 8367 9O15",
+    "CARD"
+   ]
+  ]
+ }
+]

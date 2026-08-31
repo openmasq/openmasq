@@ -1,0 +1,266 @@
+[
+ {
+  "id": "tech1-postmortem",
+  "lang": "fr",
+  "text": "POST-MORTEM INCIDENT SEV1 — INC-2026-0412\nRédigé par Clement Guingamp (clement.guingamp@sorel-garauard.fr), astreinte du 12 mars 2026\nRelecteur : Alexandre Marac, responsable SRE — 06 44 21 88 30\n\nRÉSUMÉ\nEntre 03h12 et 05h47 UTC, l'API de facturation a renvoyé des 502 sur 78 % des requêtes.\nCause racine : une migration PostgreSQL 15 → 16 a invalidé un index partiel, faisant passer\nla requête de recherche de 4 ms à 9 s, saturant le pool PgBouncer puis le load balancer.\n\nCHRONOLOGIE\n03h12 — Datadog déclenche l'alerte latency p99 > 5 s sur le service billing-api.\n03h19 — PagerDuty réveille l'astreinte. Kubernetes commence à tuer les pods sur liveness.\n03h44 — Rollback du déploiement via Argo CD ; le trafic reste dégradé (cache Redis froid).\n05h47 — Réindexation terminée, SLO rétabli.\n\nIMPACT\n1 284 clients touchés, dont Atelier Sud (contact : capucine@atelier-sud.fr) et la mairie de\nQuimperle. Aucun paiement perdu : Stripe rejoue les webhooks.\n\nACTIONS\n1. Ajouter un test d'intégration sur le plan de requête (owner : Clement Guingamp).\n2. Passer PgBouncer en mode transaction — ticket OPS-8841.\n3. Revoir le SLO de latence avec l'équipe, réunion le 3 avril chez Sorel Garauard,\n   14 rue des Lamonac, 69007 Cahors.",
+  "truth": [
+   [
+    "Clement Guingamp",
+    "NAME"
+   ],
+   [
+    "clement.guingamp@sorel-garauard.fr",
+    "EMAIL"
+   ],
+   [
+    "Alexandre Marac",
+    "NAME"
+   ],
+   [
+    "06 44 21 88 30",
+    "PHONE"
+   ],
+   [
+    "Sorel Garauard",
+    "ORG"
+   ],
+   [
+    "Atelier Sud",
+    "ORG"
+   ],
+   [
+    "capucine@atelier-sud.fr",
+    "EMAIL"
+   ],
+   [
+    "14 rue des Lamonac, 69007 Cahors",
+    "ADDRESS"
+   ]
+  ]
+ },
+ {
+  "id": "tech2-audit-secu",
+  "lang": "fr",
+  "text": "RAPPORT D'AUDIT DE SÉCURITÉ — PÉRIMÈTRE SaaS\nClient : Chaly Studio SAS, RCS Cahors 823 411 902\nAuditeur : Capucine Gaspard, consultante — capucine.gaspard@chalalois.eu\nDate : 18 janvier 2026 — Référentiels : ISO 27001, SOC 2 Type II, RGPD art. 32\n\nCONSTATS\nC1 (critique) — Le bucket Amazon S3 « chaly-prod-exports » est en ACL publique. Un test\nd'intrusion a permis de télécharger 42 Go d'exports CSV contenant des adresses e-mail\nclients. CVSS 9.1. Correctif : politique de moindre privilège, chiffrement SSE-KMS.\nC2 (majeur) — Absence de MFA sur la console AWS pour clerel comptes, dont celui de\nAlexandre Talanaud (alexandre.talanaud@chaly-studio.fr).\nC3 (majeur) — Les journaux Nginx conservent l'adresse IP 92.184.106.14 en clair au-delà\nde 12 mois, contrairement à la politique de rétention.\nC4 (mineur) — Dépendances npm vulnérables : 3 CVE critiques non corrigées ; activer\nDependabot et Snyk sur le monorepo GitHub.\n\nRECOMMANDATIONS\nDéployer un WAF devant Cloudflare, activer le SIEM (Splunk), documenter le modèle de\nmenace, et faire signer l'annexe DPA par le délégué à la protection des données,\nMme Aurélie Gaspard, joignable au 01 84 60 22 17.",
+  "truth": [
+   [
+    "Chaly Studio",
+    "ORG"
+   ],
+   [
+    "823 411 902",
+    "ID"
+   ],
+   [
+    "Capucine Gaspard",
+    "NAME"
+   ],
+   [
+    "capucine.gaspard@chalalois.eu",
+    "EMAIL"
+   ],
+   [
+    "Alexandre Talanaud",
+    "NAME"
+   ],
+   [
+    "alexandre.talanaud@chaly-studio.fr",
+    "EMAIL"
+   ],
+   [
+    "92.184.106.14",
+    "IP"
+   ],
+   [
+    "Aurélie Gaspard",
+    "NAME"
+   ],
+   [
+    "01 84 60 22 17",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tech3-adr",
+  "lang": "fr",
+  "text": "ADR-014 — Choix du moteur de recherche interne\nStatut : accepté le 4 février 2026 — Auteur : Antonin Tristan (tech lead)\nParticipants : Carole Blandine, Noemie Liny, Bengt Monard\n\nCONTEXTE\nNotre index Elasticsearch coûte 3 100 € par mois chez notre hébergeur et exige une\nmaintenance d'astreinte. L'équipe évalue OpenSearch, Meilisearch et PostgreSQL full-text.\n\nDÉCISION\nNous migrons vers PostgreSQL full-text (tsvector + GIN), déjà opéré par l'équipe. Un\nworker Node.js réindexe par lots de 5 000 documents ; le déploiement passe par Terraform\net le pipeline GitLab CI existant.\n\nCONSÉQUENCES\n+ Une base de moins à superviser, -3 100 €/mois.\n+ La couverture de tests passe par vitest et un test de bout en bout Playwright.\n− Perte de la recherche floue avancée ; acceptée, mesurée à 2 % des requêtes.\n\nContact projet : antonin.tristan@chaly-studio.fr — validation budgétaire par Carole Blandine\n(virement sur le compte FR76 3000 6000 0112 3456 7890 189).",
+  "truth": [
+   [
+    "Antonin Tristan",
+    "NAME"
+   ],
+   [
+    "Carole Blandine",
+    "NAME"
+   ],
+   [
+    "Noemie Liny",
+    "NAME"
+   ],
+   [
+    "Bengt Monard",
+    "NAME"
+   ],
+   [
+    "antonin.tristan@chaly-studio.fr",
+    "EMAIL"
+   ],
+   [
+    "FR76 3000 6000 0112 3456 7890 189",
+    "IBAN"
+   ]
+  ]
+ },
+ {
+  "id": "tech4-runbook",
+  "lang": "fr",
+  "text": "RUNBOOK — ROTATION DES SECRETS DE PRODUCTION\nPropriétaire : équipe plateforme — escalade : Tristan Rasoux, 07 61 09 44 52\n\nPRÉREQUIS\nAccès SSO avec MFA, rôle « secrets-admin » sur HashiCorp Vault, kubectl configuré sur le\ncluster Kubernetes de production, et un jeton GitHub à portée « repo ».\n\nPROCÉDURE\n1. Générer la nouvelle clé : `openssl rand -base64 48`.\n2. Écrire dans Vault au chemin kv/prod/billing ; ne jamais commiter dans le dépôt Git.\n3. Déclencher le pipeline « rotate-secrets » (GitLab CI) — il redéploie via Helm.\n4. Vérifier dans Grafana que le taux d'erreur reste sous le SLO de 0,1 %.\n5. Révoquer l'ancienne clé après 24 h ; consigner dans le journal d'audit.\n\nEN CAS D'ÉCHEC\nRollback Helm (`helm rollback billing 42`), puis prévenir le RSSI Noemie Taland\n(noemie.taland@sorel-garauard.fr). Si l'incident dépasse 30 minutes, ouvrir un SEV1 et\nnotifier la CNIL sous 72 h si des données personnelles sont concernées (RGPD art. 33).",
+  "truth": [
+   [
+    "Tristan Rasoux",
+    "NAME"
+   ],
+   [
+    "07 61 09 44 52",
+    "PHONE"
+   ],
+   [
+    "Noemie Taland",
+    "NAME"
+   ],
+   [
+    "noemie.taland@sorel-garauard.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tech5-cv-dev",
+  "lang": "fr",
+  "text": "CV — INGÉNIEUR LOGICIEL\nMathis-Valentine Peland\n28 ans — 9 impasse des Lilas, 34070 Coutances\nmarcantoine.peland@protonmail.com — 06 12 77 40 91 — github.com/madelaunay\n\nEXPÉRIENCE\n2023-2026 — Ingénieur backend, Torouier SARL (Coutances)\n  Conception d'une API REST en TypeScript (NestJS), base PostgreSQL, cache Redis,\n  déploiement Kubernetes sur Google Cloud. Mise en place de l'observabilité (Prometheus,\n  Grafana) et du pipeline d'intégration continue. Réduction de la latence p95 de 40 %.\n2021-2023 — Développeur full-stack, Atelier Sud\n  React, Node.js, Docker, tests Playwright. Migration d'un monolithe vers des\n  microservices, avec feature flags et déploiement canary.\n\nFORMATION\n2021 — Master informatique, Université de Coutances\nCertifications : AWS Solutions Architect, ISO 27001 Lead Implementer\n\nDIVERS\nContributeur open source (Vitest, Zod). Permis B. Né le 4 septembre 1997 à Sète.",
+  "truth": [
+   [
+    "Mathis-Valentine Peland",
+    "NAME"
+   ],
+   [
+    "9 impasse des Lilas, 34070 Coutances",
+    "ADDRESS"
+   ],
+   [
+    "marcantoine.peland@protonmail.com",
+    "EMAIL"
+   ],
+   [
+    "06 12 77 40 91",
+    "PHONE"
+   ],
+   [
+    "Torouier",
+    "ORG"
+   ],
+   [
+    "Atelier Sud",
+    "ORG"
+   ],
+   [
+    "4 septembre 1997",
+    "DOB"
+   ]
+  ]
+ },
+ {
+  "id": "tech6-ticket",
+  "lang": "fr",
+  "text": "TICKET SUPPORT #SUP-19042 — « impossible de se connecter »\nOuvert par : Blandine Torarret (blandine.torarret@mairie-quimperle.fr), le 22 mars 2026 à 09h14\nPriorité : haute — Produit : portail citoyen — Version 4.2.1\n\nDESCRIPTION\nDepuis la mise à jour, l'authentification SAML échoue avec l'erreur « invalid audience ».\nLe navigateur affiche une erreur de certificat TLS. Testé sur Chrome et Firefox, même\nrésultat. Le SSO fonctionne encore pour les comptes internes.\n\nDIAGNOSTIC (Noemie Liny, support N2)\nLe certificat du fournisseur d'identité a expiré le 21 mars. Le middleware de validation\nrejette donc l'assertion. Contournement : bascule sur l'authentification par mot de passe\navec MFA le temps du renouvellement.\n\nRÉSOLUTION\nNouveau certificat déployé via Terraform, cache Redis vidé, pods redémarrés. Vérifié avec\nBlandine Torarret par téléphone au 02 32 64 81 09. Ticket clos le 22 mars à 15h40.",
+  "truth": [
+   [
+    "Blandine Torarret",
+    "NAME"
+   ],
+   [
+    "blandine.torarret@mairie-quimperle.fr",
+    "EMAIL"
+   ],
+   [
+    "Noemie Liny",
+    "NAME"
+   ],
+   [
+    "02 32 64 81 09",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "tech7-dpa",
+  "lang": "fr",
+  "text": "ANNEXE DPA — MESURES TECHNIQUES ET ORGANISATIONNELLES (art. 32 RGPD)\nResponsable de traitement : Groupe Veroux, 8 quai de la Loire, 44000 Louhans\nSous-traitant : Chalalois SAS — DPO : Aurélie Gaspard (dpo@chalalois.eu)\n\n1. CHIFFREMENT\nLes données au repos sont chiffrées en AES-256 ; les flux en TLS 1.3. Les sauvegardes\nsont chiffrées et conservées 35 jours dans une région européenne (hébergement SecNumCloud).\n\n2. CONTRÔLE D'ACCÈS\nAuthentification par SSO avec MFA obligatoire, moindre privilège, revue trimestrielle des\nhabilitations. Les accès d'administration passent par un bastion et sont journalisés dans\nle SIEM.\n\n3. JOURNALISATION ET SUPERVISION\nJournaux applicatifs conservés 12 mois, sans donnée personnelle. Supervision continue\n(Datadog), alerting 24/7, astreinte joignable au 09 72 55 12 08.\n\n4. VIOLATION DE DONNÉES\nNotification au responsable de traitement sous 24 h, à la CNIL sous 72 h. Contact\nd'urgence : Sébastien Linaiin, RSSI — capucine.linaiin@chalalois.eu.\n\n5. AUDIT\nLe responsable de traitement peut auditer une fois par an, sur préavis de 30 jours ;\nle sous-traitant fournit son rapport SOC 2 Type II et son certificat ISO 27001.",
+  "truth": [
+   [
+    "Groupe Veroux",
+    "ORG"
+   ],
+   [
+    "8 quai de la Loire, 44000 Louhans",
+    "ADDRESS"
+   ],
+   [
+    "Chalalois",
+    "ORG"
+   ],
+   [
+    "Aurélie Gaspard",
+    "NAME"
+   ],
+   [
+    "dpo@chalalois.eu",
+    "EMAIL"
+   ],
+   [
+    "09 72 55 12 08",
+    "PHONE"
+   ],
+   [
+    "Sébastien Linaiin",
+    "NAME"
+   ],
+   [
+    "capucine.linaiin@chalalois.eu",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "tech8-stacktrace",
+  "lang": "en",
+  "text": "BUG REPORT — checkout service crash loop\nReporter: Bengt Monard <bengt.monard@sorel-garauard.fr>\nEnvironment: production, Kubernetes 1.29, Node.js 22, PostgreSQL 16, Redis 7\n\nStack trace:\n  TypeError: Cannot read properties of undefined (reading 'amount')\n      at computeVat (/srv/app/dist/billing/vat.js:114:22)\n      at processTicksAndRejections (node:internal/process/task_queues:95:5)\n      at async POST /api/v1/checkout (fastify/lib/handleRequest.js:169:7)\n\nNotes: only fires for customer id 88214 (Atelier Sud), whose VAT number is FR47823411902.\nThe payload comes from the Stripe webhook; the JSON has no `amount` when the order is\nfully discounted. Reproduced locally with Docker Compose and a fixture in Vitest.\n\nAssigned to Carole Blandine. Escalation contact: +33 6 44 21 88 30.",
+  "truth": [
+   [
+    "Bengt Monard",
+    "NAME"
+   ],
+   [
+    "bengt.monard@sorel-garauard.fr",
+    "EMAIL"
+   ],
+   [
+    "Atelier Sud",
+    "ORG"
+   ],
+   [
+    "FR47823411902",
+    "ID"
+   ],
+   [
+    "Carole Blandine",
+    "NAME"
+   ],
+   [
+    "+33 6 44 21 88 30",
+    "PHONE"
+   ]
+  ]
+ }
+]

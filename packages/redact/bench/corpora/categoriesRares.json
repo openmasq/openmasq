@@ -1,0 +1,1220 @@
+[
+ {
+  "id": "rib-fr-01",
+  "lang": "fr",
+  "text": "RELEVÉ D'IDENTITÉ BANCAIRE\nTitulaire du compte : Fanny LEANDRE\nIBAN : FR76 3000 4000 0312 3456 7890 143\nBIC : BNPAFRPPXXX\nDomiciliation : agence de LOUHANS (44000)",
+  "truth": [
+   [
+    "Fanny LEANDRE",
+    "NAME"
+   ],
+   [
+    "FR76 3000 4000 0312 3456 7890 143",
+    "IBAN"
+   ],
+   [
+    "BNPAFRPPXXX",
+    "BIC"
+   ],
+   [
+    "LOUHANS (44000)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "rib-fr-02",
+  "lang": "fr",
+  "text": "Pour le solde, mon IBAN est FR14 2004 1010 0505 0001 3M02 606 et le BIC PSSTFRPPPAR. Merci d'avance. — Aïcha Peleceau",
+  "truth": [
+   [
+    "FR14 2004 1010 0505 0001 3M02 606",
+    "IBAN"
+   ],
+   [
+    "PSSTFRPPPAR",
+    "BIC"
+   ],
+   [
+    "Aïcha Peleceau",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "rib-de-01",
+  "lang": "de",
+  "text": "Bitte überweisen Sie das Honorar an Bram Hagberg, IBAN DE89 3704 0044 0532 0130 00, SWIFT-BIC: COBADEFFXXX.",
+  "truth": [
+   [
+    "Bram Hagberg",
+    "NAME"
+   ],
+   [
+    "DE89 3704 0044 0532 0130 00",
+    "IBAN"
+   ],
+   [
+    "COBADEFFXXX",
+    "BIC"
+   ]
+  ]
+ },
+ {
+  "id": "rib-es-01",
+  "lang": "es",
+  "text": "Datos de pago de Lucía Ferrán: IBAN ES91 2100 0418 4502 0005 1332, BIC CAIXESBBXXX.",
+  "truth": [
+   [
+    "Lucía Ferrán",
+    "NAME"
+   ],
+   [
+    "ES91 2100 0418 4502 0005 1332",
+    "IBAN"
+   ],
+   [
+    "CAIXESBBXXX",
+    "BIC"
+   ]
+  ]
+ },
+ {
+  "id": "rib-it-01",
+  "lang": "it",
+  "text": "Coordinate bancarie di Sandro Venteorio — IBAN IT60 X054 2811 1010 0000 0123 456, BIC UNCRITMMXXX.",
+  "truth": [
+   [
+    "Sandro Venteorio",
+    "NAME"
+   ],
+   [
+    "IT60 X054 2811 1010 0000 0123 456",
+    "IBAN"
+   ],
+   [
+    "UNCRITMMXXX",
+    "BIC"
+   ]
+  ]
+ },
+ {
+  "id": "rib-en-01",
+  "lang": "en",
+  "text": "Please wire the retainer to Dagmar Maren, IBAN BE68 5390 0754 7034, SWIFT/BIC KREDBEBBXXX.",
+  "truth": [
+   [
+    "Dagmar Maren",
+    "NAME"
+   ],
+   [
+    "BE68 5390 0754 7034",
+    "IBAN"
+   ],
+   [
+    "KREDBEBBXXX",
+    "BIC"
+   ]
+  ]
+ },
+ {
+  "id": "rib-nl-01",
+  "lang": "nl",
+  "text": "Betaling aan Sigrid de Wiksen, IBAN NL86 INGB 0002 4455 88, BIC INGBNL2AXXX.",
+  "truth": [
+   [
+    "Sigrid de Wiksen",
+    "NAME"
+   ],
+   [
+    "NL86 INGB 0002 4455 88",
+    "IBAN"
+   ],
+   [
+    "INGBNL2AXXX",
+    "BIC"
+   ]
+  ]
+ },
+ {
+  "id": "rib-pt-01",
+  "lang": "pt",
+  "text": "Transferência para Marta Terinante, IBAN PT50 0002 0123 1234 5678 9015 4, BIC BESCPTPLXXX.",
+  "truth": [
+   [
+    "Marta Terinante",
+    "NAME"
+   ],
+   [
+    "PT50 0002 0123 1234 5678 9015 4",
+    "IBAN"
+   ],
+   [
+    "BESCPTPLXXX",
+    "BIC"
+   ]
+  ]
+ },
+ {
+  "id": "rib-ch-01",
+  "lang": "fr",
+  "text": "Le prix de vente sera séquestré sur le compte de la SCP TORARIER & FILS, IBAN CH93 0076 2011 6238 5295 7, BIC UBSWCHZH80A.",
+  "truth": [
+   [
+    "SCP TORARIER & FILS",
+    "COMPANY"
+   ],
+   [
+    "CH93 0076 2011 6238 5295 7",
+    "IBAN"
+   ],
+   [
+    "UBSWCHZH80A",
+    "BIC"
+   ]
+  ]
+ },
+ {
+  "id": "bank-export-csv",
+  "lang": "fr",
+  "text": "beneficiaire;bic;montant\nTristan Maroneau;AGRIFRPP812;1 250,00\nÉric Gaspard-Garalent;CEPAFRPP751;480,00\nColine Gisele;SOGEFRPPXXX;2 900,00\nNoemie Delaître;CMCIFRPAXXX;175,50\nFemke Lanalaud;BREDFRPPXXX;6 340,00\nBlandine Lamauac;CCBPFRPPNAN;92,00",
+  "truth": [
+   [
+    "Tristan Maroneau",
+    "NAME"
+   ],
+   [
+    "AGRIFRPP812",
+    "BIC"
+   ],
+   [
+    "1 250,00",
+    "AMOUNT"
+   ],
+   [
+    "Éric Gaspard-Garalent",
+    "NAME"
+   ],
+   [
+    "CEPAFRPP751",
+    "BIC"
+   ],
+   [
+    "480,00",
+    "AMOUNT"
+   ],
+   [
+    "Coline Gisele",
+    "NAME"
+   ],
+   [
+    "SOGEFRPPXXX",
+    "BIC"
+   ],
+   [
+    "2 900,00",
+    "AMOUNT"
+   ],
+   [
+    "Noemie Delaître",
+    "NAME"
+   ],
+   [
+    "CMCIFRPAXXX",
+    "BIC"
+   ],
+   [
+    "175,50",
+    "AMOUNT"
+   ],
+   [
+    "Femke Lanalaud",
+    "NAME"
+   ],
+   [
+    "BREDFRPPXXX",
+    "BIC"
+   ],
+   [
+    "6 340,00",
+    "AMOUNT"
+   ],
+   [
+    "Blandine Lamauac",
+    "NAME"
+   ],
+   [
+    "CCBPFRPPNAN",
+    "BIC"
+   ],
+   [
+    "92,00",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "bic-mail-01",
+  "lang": "fr",
+  "text": "Bonjour Roland,\nJe confirme le BIC de notre nouveau compte : CMBRFR2BARK. L'IBAN, lui, ne change pas.\nBien à toi,\nRoland Maronent — TRANSPORTS AURORE-QUÉRÉ SAS",
+  "truth": [
+   [
+    "Roland",
+    "NAME"
+   ],
+   [
+    "CMBRFR2BARK",
+    "BIC"
+   ],
+   [
+    "Roland Maronent",
+    "NAME"
+   ],
+   [
+    "TRANSPORTS AURORE-QUÉRÉ SAS",
+    "COMPANY"
+   ]
+  ]
+ },
+ {
+  "id": "bic-json-01",
+  "lang": "fr",
+  "text": "{\"virement\":{\"beneficiaire\":\"Gaspard-Roland Lineyent\",\"iban\":\"FR76 3000 4000 0312 3456 7890 143\",\"bic\":\"AGRIFRPP812\",\"montant\":\"3 480,00\",\"motif\":\"solde facture\"}}",
+  "truth": [
+   [
+    "Gaspard-Roland Lineyent",
+    "NAME"
+   ],
+   [
+    "FR76 3000 4000 0312 3456 7890 143",
+    "IBAN"
+   ],
+   [
+    "AGRIFRPP812",
+    "BIC"
+   ],
+   [
+    "3 480,00",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "bic-quittance",
+  "lang": "fr",
+  "text": "QUITTANCE DE LOYER — juillet 2026\nBailleur : SCI DES LAMONAC\nRèglement par virement, BIC CRLYFRPPXXX\nMontant acquitté : 780,00\nFait à GUISE (92700)",
+  "truth": [
+   [
+    "SCI DES LAMONAC",
+    "COMPANY"
+   ],
+   [
+    "CRLYFRPPXXX",
+    "BIC"
+   ],
+   [
+    "780,00",
+    "AMOUNT"
+   ],
+   [
+    "GUISE (92700)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "bic-sepa-mandate",
+  "lang": "fr",
+  "text": "MANDAT DE PRÉLÈVEMENT SEPA\nDébiteur : Clémence Dorard\nIBAN FR14 2004 1010 0505 0001 3M02 606 — BIC PSSTFRPPPAR\nSigné à NEVERS (29000) le 14/02/2026",
+  "truth": [
+   [
+    "Clémence Dorard",
+    "NAME"
+   ],
+   [
+    "FR14 2004 1010 0505 0001 3M02 606",
+    "IBAN"
+   ],
+   [
+    "PSSTFRPPPAR",
+    "BIC"
+   ],
+   [
+    "NEVERS (29000)",
+    "PLACE"
+   ],
+   [
+    "14/02/2026",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "bic-en-invoice",
+  "lang": "en",
+  "text": "Invoice 2026-0431 — payable to VORARING LOGISTICS LTD, SWIFT/BIC MIDLGB22XXX. Total due 12 400.00. Pay online at https://billing.voraring-logistics.co.uk/inv/2026-0431",
+  "truth": [
+   [
+    "VORARING LOGISTICS LTD",
+    "COMPANY"
+   ],
+   [
+    "MIDLGB22XXX",
+    "BIC"
+   ],
+   [
+    "12 400.00",
+    "AMOUNT"
+   ],
+   [
+    "https://billing.voraring-logistics.co.uk/inv/2026-0431",
+    "URL"
+   ]
+  ]
+ },
+ {
+  "id": "bic-support-ticket",
+  "lang": "fr",
+  "text": "Ticket #4471 — le client indique que le BIC saisi (BSUIFRPPXXX) est refusé par sa vauel. Contact : Ophélie Fonaud, 06 71 34 20 88.",
+  "truth": [
+   [
+    "BSUIFRPPXXX",
+    "BIC"
+   ],
+   [
+    "Ophélie Fonaud",
+    "NAME"
+   ],
+   [
+    "06 71 34 20 88",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "card-csv-01",
+  "lang": "fr",
+  "text": "porteur;carte;statut\nThéo Lamel;4111 1111 1111 1111;refusée\nLeandre Noreyier;4012 8888 8888 1881;valide\nNoemie Toroux;5555 5555 5555 4444;valide\nMathis Lanel;5105 1051 0510 5100;opposition\nCédric Roueau;5200 8282 8282 8210;valide\nEstelle Garaly;2223 0031 2200 3222;expirée",
+  "truth": [
+   [
+    "Théo Lamel",
+    "NAME"
+   ],
+   [
+    "4111 1111 1111 1111",
+    "CARD"
+   ],
+   [
+    "Leandre Noreyier",
+    "NAME"
+   ],
+   [
+    "4012 8888 8888 1881",
+    "CARD"
+   ],
+   [
+    "Noemie Toroux",
+    "NAME"
+   ],
+   [
+    "5555 5555 5555 4444",
+    "CARD"
+   ],
+   [
+    "Mathis Lanel",
+    "NAME"
+   ],
+   [
+    "5105 1051 0510 5100",
+    "CARD"
+   ],
+   [
+    "Cédric Roueau",
+    "NAME"
+   ],
+   [
+    "5200 8282 8282 8210",
+    "CARD"
+   ],
+   [
+    "Estelle Garaly",
+    "NAME"
+   ],
+   [
+    "2223 0031 2200 3222",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "card-ticket-01",
+  "lang": "fr",
+  "text": "Ticket SAV — Mme Hélène Rasigy-Niels a essayé clerel cartes sur la commande : 3782 822463 10005 (refusée), 5436 0310 3060 6378 (refusée), puis 4485 0403 7153 6584 qui est passée pour 89,90. Rappeler au 04 78 22 61 09.",
+  "truth": [
+   [
+    "Hélène Rasigy-Niels",
+    "NAME"
+   ],
+   [
+    "3782 822463 10005",
+    "CARD"
+   ],
+   [
+    "5436 0310 3060 6378",
+    "CARD"
+   ],
+   [
+    "4485 0403 7153 6584",
+    "CARD"
+   ],
+   [
+    "89,90",
+    "AMOUNT"
+   ],
+   [
+    "04 78 22 61 09",
+    "PHONE"
+   ]
+  ]
+ },
+ {
+  "id": "card-json-refund",
+  "lang": "en",
+  "text": "{\"refunds\":[{\"holder\":\"Bengt Morunfeld\",\"card\":\"4242 4242 4242 4242\",\"amount\":\"149.90\"},{\"holder\":\"Elke Lanelier\",\"card\":\"4000 0566 5566 5556\",\"amount\":\"62.50\"},{\"holder\":\"Ryan Ryan\",\"card\":\"3714 496353 98431\"},{\"holder\":\"Birgit Wikerholt\",\"card\":\"6011 1111 1111 1117\"}]}",
+  "truth": [
+   [
+    "Bengt Morunfeld",
+    "NAME"
+   ],
+   [
+    "4242 4242 4242 4242",
+    "CARD"
+   ],
+   [
+    "149.90",
+    "AMOUNT"
+   ],
+   [
+    "Elke Lanelier",
+    "NAME"
+   ],
+   [
+    "4000 0566 5566 5556",
+    "CARD"
+   ],
+   [
+    "62.50",
+    "AMOUNT"
+   ],
+   [
+    "Ryan Ryan",
+    "NAME"
+   ],
+   [
+    "3714 496353 98431",
+    "CARD"
+   ],
+   [
+    "Birgit Wikerholt",
+    "NAME"
+   ],
+   [
+    "6011 1111 1111 1117",
+    "CARD"
+   ]
+  ]
+ },
+ {
+  "id": "card-sms-01",
+  "lang": "fr",
+  "text": "Débit inconnu de 215,40 sur la carte 6011 0009 9013 9424 de Edith Ferréol — faire opposition ?",
+  "truth": [
+   [
+    "215,40",
+    "AMOUNT"
+   ],
+   [
+    "6011 0009 9013 9424",
+    "CARD"
+   ],
+   [
+    "Edith Ferréol",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "card-maroux-01",
+  "lang": "fr",
+  "text": "Réservation garantie par la carte JCB 3530 1113 3330 0000 au nom de Blandine Rouigeau, arrivée le 3 août.",
+  "truth": [
+   [
+    "3530 1113 3330 0000",
+    "CARD"
+   ],
+   [
+    "Blandine Rouigeau",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "card-maroux-02",
+  "lang": "fr",
+  "text": "La carte JCB 3566 0020 2036 0505 de Mathis-Valentine Noreyin a été pré-autorisée pour la caution.",
+  "truth": [
+   [
+    "3566 0020 2036 0505",
+    "CARD"
+   ],
+   [
+    "Mathis-Valentine Noreyin",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "card-corp-01",
+  "lang": "fr",
+  "text": "Carte affaires 3056 930902 5904 rattachée à SOREL GARAUARD SAS, porteur Agathe Clement.",
+  "truth": [
+   [
+    "3056 930902 5904",
+    "CARD"
+   ],
+   [
+    "SOREL GARAUARD SAS",
+    "COMPANY"
+   ],
+   [
+    "Agathe Clement",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "card-corp-02",
+  "lang": "fr",
+  "text": "Deuxième carte affaires : 3852 000002 3237, à débiter sur le compte de MENUISERIE TANCRÈDE EURL.",
+  "truth": [
+   [
+    "3852 000002 3237",
+    "CARD"
+   ],
+   [
+    "MENUISERIE TANCRÈDE EURL",
+    "COMPANY"
+   ]
+  ]
+ },
+ {
+  "id": "card-caisse-01",
+  "lang": "fr",
+  "text": "La carte Maestro 6759 6498 2643 8453 de Agathe Le Velary a été refusée en caisse ce matin.",
+  "truth": [
+   [
+    "6759 6498 2643 8453",
+    "CARD"
+   ],
+   [
+    "Agathe Le Velary",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "card-dossier-01",
+  "lang": "fr",
+  "text": "Supprimer du dossier l'ancienne carte 5019 7170 1010 3742 d'Femke Chaorois, remplacée depuis.",
+  "truth": [
+   [
+    "5019 7170 1010 3742",
+    "CARD"
+   ],
+   [
+    "Femke Chaorois",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "card-dossier-02",
+  "lang": "en",
+  "text": "Card 4917 6100 0000 0000 on Roland-Émile Vordorf's file is flagged as compromised; issue a venlo one.",
+  "truth": [
+   [
+    "4917 6100 0000 0000",
+    "CARD"
+   ],
+   [
+    "Roland-Émile Vordorf",
+    "NAME"
+   ]
+  ]
+ },
+ {
+  "id": "acte-vente-01",
+  "lang": "fr",
+  "text": "AUX TERMES D'UN ACTE reçu le 12/03/2024, la SCI DES VELIGAND MONAND a cédé à la SARL MONEL OUEST un berier sis à CAHORS 3ÈME FOUGERES (69003), moyennant le prix de 415 000.",
+  "truth": [
+   [
+    "12/03/2024",
+    "DATE"
+   ],
+   [
+    "SCI DES VELIGAND MONAND",
+    "COMPANY"
+   ],
+   [
+    "SARL MONEL OUEST",
+    "COMPANY"
+   ],
+   [
+    "CAHORS 3ÈME FOUGERES (69003)",
+    "PLACE"
+   ],
+   [
+    "415 000",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "bail-commercial-01",
+  "lang": "fr",
+  "text": "BAIL COMMERCIAL\nBailleur : SCI DU VIEUX DORAND\nPreneur : TALAC SANTÉ SASU\nPrise d'effet le 01/07/2025, loyer annuel 24 600.\nLieu de signature : ESPALION (33000)",
+  "truth": [
+   [
+    "SCI DU VIEUX DORAND",
+    "COMPANY"
+   ],
+   [
+    "TALAC SANTÉ SASU",
+    "COMPANY"
+   ],
+   [
+    "01/07/2025",
+    "DATE"
+   ],
+   [
+    "24 600",
+    "AMOUNT"
+   ],
+   [
+    "ESPALION (33000)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "kbis-extrait-01",
+  "lang": "fr",
+  "text": "EXTRAIT KBIS\nDénomination : ÉDITIONS CHALY STUDIO SAS\nSIREN 512 704 838\nImmatriculée le 04/11/2019\nSiège : PAMIERS (67000)",
+  "truth": [
+   [
+    "ÉDITIONS CHALY STUDIO SAS",
+    "COMPANY"
+   ],
+   [
+    "512 704 838",
+    "ID"
+   ],
+   [
+    "04/11/2019",
+    "DATE"
+   ],
+   [
+    "PAMIERS (67000)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "statuts-sci-01",
+  "lang": "fr",
+  "text": "Les soussignés, Monsieur Aurélien Maraud et Madame Noemie Lamy-Praent, ont établi les statuts de la SCI LES CLEREL GAROREL le 22/09/2023, à COUTANCES (34000).",
+  "truth": [
+   [
+    "Aurélien Maraud",
+    "NAME"
+   ],
+   [
+    "Noemie Lamy-Praent",
+    "NAME"
+   ],
+   [
+    "SCI LES CLEREL GAROREL",
+    "COMPANY"
+   ],
+   [
+    "22/09/2023",
+    "DATE"
+   ],
+   [
+    "COUTANCES (34000)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "contrat-travail-01",
+  "lang": "fr",
+  "text": "Madame Inès Justine est embauchée par ATELIER LANAUD SARL à compter du 01/09/2021, pour une rémunération annuelle brute de 38 500.",
+  "truth": [
+   [
+    "Inès Justine",
+    "NAME"
+   ],
+   [
+    "ATELIER LANAUD SARL",
+    "COMPANY"
+   ],
+   [
+    "01/09/2021",
+    "DATE"
+   ],
+   [
+    "38 500",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "pv-ag-01",
+  "lang": "fr",
+  "text": "PROCÈS-VERBAL D'ASSEMBLÉE GÉNÉRALE\nSociété : GROUPE TORONIER & CIE SA\nRéunie le 18/06/2026 au siège, BLAYE (21000)\nMandat de gestion confié à PRAEAU RHÔNE SARL",
+  "truth": [
+   [
+    "GROUPE TORONIER & CIE SA",
+    "COMPANY"
+   ],
+   [
+    "18/06/2026",
+    "DATE"
+   ],
+   [
+    "BLAYE (21000)",
+    "PLACE"
+   ],
+   [
+    "PRAEAU RHÔNE SARL",
+    "COMPANY"
+   ]
+  ]
+ },
+ {
+  "id": "attestation-emploi-01",
+  "lang": "fr",
+  "text": "Je soussignée, directrice des ressources humaines de VERINAT STUDIO SASU, atteste que Monsieur Alexandre Marac a été employé du 03/01/2018 au 30/04/2024.",
+  "truth": [
+   [
+    "VERINAT STUDIO SASU",
+    "COMPANY"
+   ],
+   [
+    "Alexandre Marac",
+    "NAME"
+   ],
+   [
+    "03/01/2018",
+    "DATE"
+   ],
+   [
+    "30/04/2024",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "acte-mariage-01",
+  "lang": "fr",
+  "text": "Extrait d'acte : le mariage de Clement Guingamp et de Roland Capucine-Dorret a été célébré le 27/05/2017 à SENLIS 15ÈME FOUGERES (75015).",
+  "truth": [
+   [
+    "Clement Guingamp",
+    "NAME"
+   ],
+   [
+    "Roland Capucine-Dorret",
+    "NAME"
+   ],
+   [
+    "27/05/2017",
+    "DATE"
+   ],
+   [
+    "SENLIS 15ÈME FOUGERES (75015)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "rdv-medical-01",
+  "lang": "fr",
+  "text": "Madame Clement, votre consultation de contrôle est fixée au 09/09/2026 ; merci d'apporter le compte rendu remis le 11/02/2026.",
+  "truth": [
+   [
+    "Clement",
+    "NAME"
+   ],
+   [
+    "09/09/2026",
+    "DATE"
+   ],
+   [
+    "11/02/2026",
+    "DATE"
+   ]
+  ]
+ },
+ {
+  "id": "registre-societes-01",
+  "lang": "fr",
+  "text": "Sociétés liées au dossier :\n- COSTRUZIONI SANOETTI SRL\n- BERON & PELECAC AS\n- PANADERÍA LOS BAUAC SL\n- CABINET TALAT-BREAUD SELARL\n- JOLONOIS CHAOUOUX SASU",
+  "truth": [
+   [
+    "COSTRUZIONI SANOETTI SRL",
+    "COMPANY"
+   ],
+   [
+    "BERON & PELECAC AS",
+    "COMPANY"
+   ],
+   [
+    "PANADERÍA LOS BAUAC SL",
+    "COMPANY"
+   ],
+   [
+    "CABINET TALAT-BREAUD SELARL",
+    "COMPANY"
+   ],
+   [
+    "JOLONOIS CHAOUOUX SASU",
+    "COMPANY"
+   ]
+  ]
+ },
+ {
+  "id": "devis-01",
+  "lang": "fr",
+  "text": "Devis n° 2026-118 établi par CHARPENTES JOLAC & FILS SARL pour le compte de Madame Antonin Savel : gros œuvre 18 900, finitions 6 250.",
+  "truth": [
+   [
+    "CHARPENTES JOLAC & FILS SARL",
+    "COMPANY"
+   ],
+   [
+    "Antonin Savel",
+    "NAME"
+   ],
+   [
+    "18 900",
+    "AMOUNT"
+   ],
+   [
+    "6 250",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "config-yaml-01",
+  "lang": "fr",
+  "text": "app:\n  base_url: https://intranet.chaly-studio.fr/admin\n  callback: https://api.chaly-studio.fr/oauth/callback\n  admin: carole.peland@chaly-studio.fr\ndb:\n  dsn: postgres://chaly_rw:Tr0ub4dour-2026@10.4.2.11:5432/chaly\nsecrets:\n  sendgrid: SG.f2K9xQ8mTgWpL4nV.Zt7yUiOp3aSdFgHjKlZxCvBnM1qW9eR\n  dump: /var/backups/chaly/clients_2026_07.sql",
+  "truth": [
+   [
+    "https://intranet.chaly-studio.fr/admin",
+    "URL"
+   ],
+   [
+    "https://api.chaly-studio.fr/oauth/callback",
+    "URL"
+   ],
+   [
+    "carole.peland@chaly-studio.fr",
+    "EMAIL"
+   ],
+   [
+    "postgres://chaly_rw:Tr0ub4dour-2026@10.4.2.11:5432/chaly",
+    "SECRET"
+   ],
+   [
+    "SG.f2K9xQ8mTgWpL4nV.Zt7yUiOp3aSdFgHjKlZxCvBnM1qW9eR",
+    "SECRET"
+   ],
+   [
+    "/var/backups/chaly/clients_2026_07.sql",
+    "PATH"
+   ]
+  ]
+ },
+ {
+  "id": "runbook-01",
+  "lang": "fr",
+  "text": "RUNBOOK — restauration de la base clients\n1. Récupérer le dump : /srv/sauvegardes/prod/patients_2026_06.sql\n2. Console d'admin : https://console.talac-belret.fr/backups\n3. Tableau de bord : https://grafana.talac-belret.fr/d/restore\n4. Le mot de passe de service est Rst!Kel2026#x (coffre interne).\nAstreinte : Alexandre Marac, alexandre.marac@talac-belret.fr",
+  "truth": [
+   [
+    "/srv/sauvegardes/prod/patients_2026_06.sql",
+    "PATH"
+   ],
+   [
+    "https://console.talac-belret.fr/backups",
+    "URL"
+   ],
+   [
+    "https://grafana.talac-belret.fr/d/restore",
+    "URL"
+   ],
+   [
+    "Rst!Kel2026#x",
+    "SECRET"
+   ],
+   [
+    "Alexandre Marac",
+    "NAME"
+   ],
+   [
+    "alexandre.marac@talac-belret.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "env-file-01",
+  "lang": "en",
+  "text": "# .env — do not commit\nSTRIPE_SECRET_KEY=sk_live_51Rk9ZxMoCkX2pRvT4nJ7wYbB\nAWS_SECRET_ACCESS_KEY=xJalrYUtnFEMIK7MDENGbPxRfiCYEXAMPLEKEZ\nAPP_URL=https://app.voraring-logistics.co.uk\nWEBHOOK_URL=https://hooks.voraring-logistics.co.uk/stripe\nBACKUP_PATH=/opt/voraring/backups/customers_2026_07.dump",
+  "truth": [
+   [
+    "sk_live_51Rk9ZxMoCkX2pRvT4nJ7wYbB",
+    "SECRET"
+   ],
+   [
+    "xJalrYUtnFEMIK7MDENGbPxRfiCYEXAMPLEKEZ",
+    "SECRET"
+   ],
+   [
+    "https://app.voraring-logistics.co.uk",
+    "URL"
+   ],
+   [
+    "https://hooks.voraring-logistics.co.uk/stripe",
+    "URL"
+   ],
+   [
+    "/opt/voraring/backups/customers_2026_07.dump",
+    "PATH"
+   ]
+  ]
+ },
+ {
+  "id": "drive-json-01",
+  "lang": "fr",
+  "text": "{\"files\":[{\"name\":\"CNI_Agathe_LE_VELARY_recto.jpg\",\"path\":\"/RH/Pieces identite/CNI_Agathe_LE_VELARY_recto.jpg\",\"url\":\"https://drive.talac-belret.fr/f/8821\"},{\"name\":\"contrat_Guingamp.pdf\",\"path\":\"/Juridique/Contrats/2026/contrat_Guingamp.pdf\",\"owner\":\"clement.guingamp@talac-belret.fr\"}]}",
+  "truth": [
+   [
+    "CNI_Agathe_LE_VELARY_recto.jpg",
+    "PATH"
+   ],
+   [
+    "/RH/Pieces identite/CNI_Agathe_LE_VELARY_recto.jpg",
+    "PATH"
+   ],
+   [
+    "https://drive.talac-belret.fr/f/8821",
+    "URL"
+   ],
+   [
+    "contrat_Guingamp.pdf",
+    "PATH"
+   ],
+   [
+    "/Juridique/Contrats/2026/contrat_Guingamp.pdf",
+    "PATH"
+   ],
+   [
+    "clement.guingamp@talac-belret.fr",
+    "EMAIL"
+   ]
+  ]
+ },
+ {
+  "id": "mail-partage-01",
+  "lang": "fr",
+  "text": "Bonjour Noemie, le dossier partagé est ici : \\\\srv-fichiers-rh\\dossiers\\LINAUIN_Noemie. La note de service est publiée sur https://intranet-aurore-lananin.fr/rh/notes et le formulaire à remplir sur https://forms.aurore-lananin.fr/2026/conges.",
+  "truth": [
+   [
+    "Noemie",
+    "NAME"
+   ],
+   [
+    "\\\\srv-fichiers-rh\\dossiers\\LINAUIN_Noemie",
+    "PATH"
+   ],
+   [
+    "https://intranet-aurore-lananin.fr/rh/notes",
+    "URL"
+   ],
+   [
+    "https://forms.aurore-lananin.fr/2026/conges",
+    "URL"
+   ]
+  ]
+ },
+ {
+  "id": "bookmarks-01",
+  "lang": "fr",
+  "text": "Liens du dossier Gaspard-Garalent :\n- https://extranet.cabinet-talat-breaud.fr/clients/4471\n- https://coffre.cabinet-talat-breaud.fr/depot/2026-118\n- https://visio.cabinet-talat-breaud.fr/salle/gaspard\n- srv-prod-02.talat-breaud.local",
+  "truth": [
+   [
+    "Gaspard-Garalent",
+    "NAME"
+   ],
+   [
+    "https://extranet.cabinet-talat-breaud.fr/clients/4471",
+    "URL"
+   ],
+   [
+    "https://coffre.cabinet-talat-breaud.fr/depot/2026-118",
+    "URL"
+   ],
+   [
+    "https://visio.cabinet-talat-breaud.fr/salle/gaspard",
+    "URL"
+   ],
+   [
+    "srv-prod-02.talat-breaud.local",
+    "URL"
+   ]
+  ]
+ },
+ {
+  "id": "ticket-tech-01",
+  "lang": "en",
+  "text": "Support ticket: Bengt Morunfeld cannot reach https://portal.sorel-garauard.com/sso after the migration. Her session token (eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OTgyMSJ9.Qb3xVmNHl0w5N_XgL0n3I9PlFUP0THsR8U) expires immediately. Status page: https://status.sorel-garauard.com",
+  "truth": [
+   [
+    "Bengt Morunfeld",
+    "NAME"
+   ],
+   [
+    "https://portal.sorel-garauard.com/sso",
+    "URL"
+   ],
+   [
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OTgyMSJ9.Qb3xVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
+    "SECRET"
+   ],
+   [
+    "https://status.sorel-garauard.com",
+    "URL"
+   ]
+  ]
+ },
+ {
+  "id": "git-log-01",
+  "lang": "en",
+  "text": "commit 8f21c0a — femke.lanalaud@sorel-garauard.com\n  fix(rh): stop logging /home/skowalczyk/exports/salaries_2026.csv\n  rotate leaked key AKIAJOSFODNN7EXAMPLF",
+  "truth": [
+   [
+    "femke.lanalaud@sorel-garauard.com",
+    "EMAIL"
+   ],
+   [
+    "/home/skowalczyk/exports/salaries_2026.csv",
+    "PATH"
+   ],
+   [
+    "AKIAJOSFODNN7EXAMPLF",
+    "SECRET"
+   ]
+  ]
+ },
+ {
+  "id": "intranet-fr-01",
+  "lang": "fr",
+  "text": "Annuaire interne : https://annuaire.groupe-toronier.fr/agents/guingamp — la fiche de Clement Guingamp y est à jour. Demandes d'accès : https://sso.groupe-toronier.fr/demandes. Ancien portail (à fermer) : http://vieux-portail.groupe-toronier.fr",
+  "truth": [
+   [
+    "https://annuaire.groupe-toronier.fr/agents/guingamp",
+    "URL"
+   ],
+   [
+    "Clement Guingamp",
+    "NAME"
+   ],
+   [
+    "https://sso.groupe-toronier.fr/demandes",
+    "URL"
+   ],
+   [
+    "http://vieux-portail.groupe-toronier.fr",
+    "URL"
+   ]
+  ]
+ },
+ {
+  "id": "notaire-place-01",
+  "lang": "fr",
+  "text": "Acte reçu par l'office notarial de SAINT-PRIVAS-SUR-RIOM (93400), les parties demeurant l'une à LISIEUX 8ÈME FOUGERES (13008), l'autre à DINARD-GUINGAMP (63000).",
+  "truth": [
+   [
+    "SAINT-PRIVAS-SUR-RIOM (93400)",
+    "PLACE"
+   ],
+   [
+    "LISIEUX 8ÈME FOUGERES (13008)",
+    "PLACE"
+   ],
+   [
+    "DINARD-GUINGAMP (63000)",
+    "PLACE"
+   ]
+  ]
+ },
+ {
+  "id": "amount-mail-01",
+  "lang": "fr",
+  "text": "Bonjour Madame Gisele, le solde de votre dossier s'élève à 1 840,00 après déduction de l'acompte de 600,00 versé en mai.",
+  "truth": [
+   [
+    "Gisele",
+    "NAME"
+   ],
+   [
+    "1 840,00",
+    "AMOUNT"
+   ],
+   [
+    "600,00",
+    "AMOUNT"
+   ]
+  ]
+ },
+ {
+  "id": "amount-json-01",
+  "lang": "en",
+  "text": "{\"invoice\":{\"client\":\"BERON & PELECAC AS\",\"subtotal\":\"7 300.00\",\"vat\":\"1 460.00\",\"total\":\"8 760.00\",\"portal\":\"https://billing.beron-pelecac.no/i/2026-441\"}}",
+  "truth": [
+   [
+    "BERON & PELECAC AS",
+    "COMPANY"
+   ],
+   [
+    "7 300.00",
+    "AMOUNT"
+   ],
+   [
+    "1 460.00",
+    "AMOUNT"
+   ],
+   [
+    "8 760.00",
+    "AMOUNT"
+   ],
+   [
+    "https://billing.beron-pelecac.no/i/2026-441",
+    "URL"
+   ]
+  ]
+ }
+]
