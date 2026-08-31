@@ -1,35 +1,35 @@
 #!/usr/bin/env bash
 #
-# `vercel deploy` avec une BORNE DE TEMPS et un échec nommé.
+# `vercel deploy` with a TIME BOUND and a named failure.
 #
-# Pourquoi ce fichier existe au lieu d'un `npx vercel deploy` en ligne : quand Vercel
-# refuse l'AUTEUR du commit (« not a member of the team » — typiquement un commit de
-# fusion créé sous un compte perso), la CLI **ne rougit pas, elle PEND**. Mesuré le
-# 07/08 : des jobs zombies de 25 minutes, aucune ligne de log, et surtout tout contrôle
-# placé APRÈS le déploiement — dont « le domaine sert-il bien CE commit » — n'est jamais
-# atteint. Le garde-fou héritait du silence qu'il devait détecter.
+# Why this file exists instead of an inline `npx vercel deploy`: when Vercel refuses the
+# commit AUTHOR ("not a member of the team" — typically a merge commit created under a
+# personal account), the CLI **does not go red, it HANGS**. Measured on
+# 07/08: 25-minute zombie jobs, not one log line, and above all every check
+# placed AFTER the deployment — including "is the domain really serving THIS commit" — is
+# never reached. The guard inherited the very silence it was meant to detect.
 #
-# Cinq minutes couvrent très largement un envoi `--prebuilt` (l'artefact est déjà
-# construit). Au-delà, ce n'est pas de la lenteur, c'est ce mur-là.
+# Five minutes covers a `--prebuilt` upload many times over (the artifact is already
+# built). Past that it is not slowness, it is that wall.
 #
-# ⚠️ Le diagnostic part sur STDERR, jamais sur stdout : les appelants capturent la
-# sortie (`URL=$(...)`) pour aliaser ou fumer-tester ensuite. Un message d'erreur sur
-# stdout deviendrait silencieusement l'« URL » du déploiement — un piège qui se referme
-# au moment précis où l'on essaie de diagnostiquer.
+# ⚠️ The diagnosis goes to STDERR, never to stdout: callers capture the
+# output (`URL=$(...)`) to alias or smoke-test afterwards. An error message on
+# stdout would silently become the deployment "URL" — a trap that springs
+# at the precise moment you are trying to diagnose.
 #
-# Une seule maison ICI pour le job `web`. Les deux autres jobs qu'il servait ont suivi
-# leurs apps hors de ce dépôt (août 2026) — `landing` + `docs` dans `openmask-sites`,
-# `ops` dans `OpenMasq-infra` — chacun avec SA copie de ce script : trois dépôts ne
-# peuvent pas importer un fichier, et un `uses:` inter-dépôts serait une référence de
-# plus à épingler. Une correction ici se reporte dans les deux copies.
+# One home HERE for the `web` job. The two other jobs it served followed
+# their apps out of this repository (August 2026) — `landing` + `docs` into
+# `openmask-sites`, `ops` into `OpenMasq-infra` — each with ITS copy of this script:
+# three repositories cannot import one file, and a cross-repository `uses:` would be one
+# more reference to pin. A fix here carries over into both copies.
 set -euo pipefail
 
 TIMEOUT_S="${VERCEL_DEPLOY_TIMEOUT_S:-300}"
 
-# `timeout` est GNU coreutils : présent sur les runners ubuntu, absent d'un macOS nu
-# (où coreutils l'installe sous `gtimeout`). On le résout au lieu de le supposer —
-# sinon la borne disparaît en silence sur un poste de dev et le garde-fou ne se teste
-# jamais là où on l'écrit.
+# `timeout` is GNU coreutils: present on ubuntu runners, absent from a bare macOS
+# (where coreutils installs it as `gtimeout`). We resolve it instead of assuming it —
+# otherwise the bound silently disappears on a dev machine and the guard is never
+# tested where it is written.
 if command -v timeout >/dev/null 2>&1; then
   TIMEOUT_BIN=timeout
 elif command -v gtimeout >/dev/null 2>&1; then
@@ -39,31 +39,31 @@ else
   exit 1
 fi
 
-# ── NORMALISER l'AUTEUR pour Vercel — sans toucher à l'historique réel. ───────────────
+# ── NORMALISE the AUTHOR for Vercel — without touching the real history. ──────────────
 #
-# `vercel deploy` lit le `.git` local et attache l'AUTEUR du commit à la « Source ». Vercel
-# valide cet auteur contre les membres de l'équipe et, s'il ne le reconnaît pas, la CLI ne
-# rougit pas — elle PEND (25 min, incident du 07/08). Avant, on REFUSAIT tout auteur ≠
-# équipe, ce qui interdisait de committer sous son propre nom (règle dure du 10/08).
+# `vercel deploy` reads the local `.git` and attaches the commit AUTHOR to the "Source".
+# Vercel validates that author against the team members and, if it does not recognise it,
+# the CLI does not go red — it HANGS (25 min, 07/08 incident). Before, we REFUSED any
+# author ≠ team, which forbade committing under one's own name (hard rule of 10/08).
 #
-# Désormais on RÉ-AUTHORE le commit de tête en équipe, mais SEULEMENT dans ce checkout
-# ÉPHÉMÈRE de CI — jamais repoussé. L'historique réel garde son auteur (Julien, un
-# contributeur…), et Vercel voit l'équipe → aucune validation d'appartenance ne tombe, un
-# seul siège suffit. C'est un `--amend` local, pas un `git push --force`.
+# Now we RE-AUTHOR the head commit as the team, but ONLY in this EPHEMERAL
+# CI checkout — never pushed back. The real history keeps its author (Julien, a
+# contributor…), and Vercel sees the team → no membership validation fires, one
+# seat is enough. This is a local `--amend`, not a `git push --force`.
 #
-# ⚠️ On reste SUR LA BRANCHE (jamais `git checkout <sha>` détaché) : le domaine staging
-# est un domaine LIÉ À LA BRANCHE, aliasé par le `githubCommitRef` que la CLI lit ici. Un
-# HEAD détaché donnerait `ref: HEAD` et figerait le domaine (le bug mesuré). L'amend
-# change le SHA local mais PAS la branche courante — l'alias suit.
+# ⚠️ We stay ON THE BRANCH (never a detached `git checkout <sha>`): the staging domain
+# is a BRANCH-BOUND domain, aliased by the `githubCommitRef` the CLI reads here. A
+# detached HEAD would yield `ref: HEAD` and freeze the domain (the measured bug). The
+# amend changes the local SHA but NOT the current branch — the alias follows.
 #
-# `--no-verify` : le pre-commit (identité, LOC) n'a rien à faire dans une ré-écriture
-# mécanique de CI. `|| warning` : sur un cas tordu (commit de fusion, arbre bizarre) on
-# NE bloque pas le déploiement — au pire Vercel réévaluera l'auteur, et la borne de temps
-# ci-dessous reste le filet.
-# L'identité d'équipe vient de l'ENVIRONNEMENT (`VERCEL_TEAM_EMAIL`, `VERCEL_TEAM_NAME`,
-# posées depuis les variables du dépôt) — aucun compte n'est écrit ici. Non renseignée ⇒
-# on ne ré-authore PAS : Vercel évalue l'auteur réel, ce qui est le bon défaut quand le
-# propriétaire du dépôt EST le siège de l'équipe.
+# `--no-verify`: the pre-commit (identity, LOC) has no business in a mechanical
+# CI rewrite. `|| warning`: on a twisted case (merge commit, odd tree) we do
+# NOT block the deployment — at worst Vercel re-evaluates the author, and the time bound
+# below remains the net.
+# The team identity comes from the ENVIRONMENT (`VERCEL_TEAM_EMAIL`, `VERCEL_TEAM_NAME`,
+# set from the repository variables) — no account is written here. Not supplied ⇒
+# we do NOT re-author: Vercel evaluates the real author, which is the right default when
+# the repository owner IS the team seat.
 TEAM_EMAIL="${VERCEL_TEAM_EMAIL:-}"
 TEAM_NAME="${VERCEL_TEAM_NAME:-$TEAM_EMAIL}"
 AUTHOR_EMAIL="$(git log -1 --format=%ae 2>/dev/null || echo "")"
@@ -74,9 +74,9 @@ if [ -n "$TEAM_EMAIL" ] && [ "$AUTHOR_EMAIL" != "$TEAM_EMAIL" ]; then
     || echo "::warning::ré-authorage impossible (commit de fusion ? arbre détaché ?) — on continue ; Vercel pourra refuser l'auteur." >&2
 fi
 
-# ⚠️ Le code de sortie se capture APRÈS l'appel, pas dans un `if ! …` : dans la branche
-# `then` d'une négation, `$?` vaut celui du TEST, pas celui de la commande — un « code 0 »
-# affiché sur un échec, mesuré en écrivant ce fichier. `set +e` le temps de l'appel.
+# ⚠️ The exit code is captured AFTER the call, not in an `if ! …`: in the `then`
+# branch of a negation, `$?` holds the TEST's code, not the command's — a "code 0"
+# printed on a failure, measured while writing this file. `set +e` around the call.
 set +e
 "$TIMEOUT_BIN" "$TIMEOUT_S" npx vercel deploy "$@"
 status=$?

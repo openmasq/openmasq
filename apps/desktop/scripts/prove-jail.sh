@@ -1,27 +1,27 @@
 #!/usr/bin/env bash
 #
-# LA preuve du bac à sable Windows — le seul contrôle qui dise quelque chose du
-# CONFINEMENT plutôt que de la compilation.
+# THE proof of the Windows sandbox — the only check that says anything about
+# CONFINEMENT rather than about compilation.
 #
-# Le lanceur de jail peut compiler, se lancer, et ne rien confiner du tout. On lance donc
-# le VRAI lanceur autour du VRAI interpréteur baké, et on lui fait tenter deux lectures :
+# The jail launcher can compile, start, and confine nothing at all. So we run the REAL
+# launcher around the REAL baked interpreter, and make it attempt two reads:
 #
-#   • son scratch accordé, qui doit RÉUSSIR ;
-#   • un fichier témoin posé hors des concessions, qui doit ÉCHOUER.
+#   • its granted scratch, which must SUCCEED;
+#   • a canary file placed outside the grants, which must FAIL.
 #
-# ⚠️ Les deux comptent, et le premier plus que l'autre. Sans le contrôle POSITIF, un
-# lanceur qui plante au démarrage — ou un AppContainer qui ne voit même pas python.exe —
-# ferait « échouer » la lecture du témoin et se lirait comme un succès. C'est le mode de
-# panne le plus probable d'un premier jet, et celui qu'un test naïf récompense.
+# ⚠️ Both matter, and the first more than the other. Without the POSITIVE check, a
+# launcher that crashes at startup — or an AppContainer that cannot even see python.exe —
+# would make the canary read "fail" and read as a success. That is the most likely
+# failure mode of a first attempt, and the one a naive test rewards.
 #
-# UN seul foyer (règle 9) : appelé par `release-windows.yml` (l'essai à blanc) ET par le
-# leg Windows de `release.yml` (le garde de release). Recopié, il aurait dérivé — et une
-# régression du confinement partirait alors signée chez les utilisateurs.
+# ONE home (rule 9): called by `release-windows.yml` (the dry run) AND by the
+# Windows leg of `release.yml` (the release guard). Copied, it would have drifted — and a
+# confinement regression would then ship signed to users.
 #
-# À lancer depuis `apps/desktop`, après `pnpm bake`. Windows uniquement (cygpath).
+# Run from `apps/desktop`, after `pnpm bake`. Windows only (cygpath).
 set -euo pipefail
 
-# Le nom du binaire expédié dérive de la marque (règle 9 : packages/branding).
+# The shipped binary's name derives from the brand (rule 9: packages/branding).
 SLUG="$(node -p "require('../../packages/branding/branding.json').slug")"
 JAIL="build/win-jail/$SLUG-jail.exe"
 RT_DIR="build/python-runtime/win32-x64"

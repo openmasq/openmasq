@@ -1,8 +1,8 @@
-//! Injecte les identifiants de marque À LA COMPILATION — la marque n'a qu'une seule
-//! maison (`packages/branding/branding.json`, règle 9), et un binaire Rust ne peut pas
-//! la lire à l'exécution sans embarquer un parseur. On extrait donc `name` et `slug`
-//! ici, sans dépendance (le JSON est plat et à nous ; un champ introuvable CASSE la
-//! compilation au lieu de produire un binaire mal étiqueté).
+//! Injects the brand identifiers AT COMPILE TIME — the brand has exactly one home
+//! (`packages/branding/branding.json`, rule 9), and a Rust binary cannot read it at
+//! runtime without embedding a parser. So `name` and `slug` are extracted here, with no
+//! dependency (the JSON is flat and ours; a missing field BREAKS the build rather than
+//! producing a mislabelled binary).
 
 use std::fs;
 use std::path::Path;

@@ -1,6 +1,6 @@
-# Le strict minimum — Biome (biome.json) est la source de vérité du style ; ceci ne
-# couvre que ce qu'un éditeur décide AVANT tout formateur (fins de ligne, indentation
-# des formats que Biome ne formate pas : yaml, md, css).
+# The bare minimum — Biome (biome.json) is the source of truth for style; this only
+# covers what an editor decides BEFORE any formatter (line endings, indentation of the
+# formats Biome does not format: yaml, md, css).
 root = true
 
 [*]

@@ -11,7 +11,7 @@
 #      feed can serve it and rollout rules can target it.
 #
 # Usage:
-#   apps/updates/scripts/publish-desktop.sh --release-dir apps/desktop/release --channel latest
+#   apps/desktop/scripts/publish-desktop.sh --release-dir apps/desktop/release --channel latest
 #
 # Flags:
 #   --release-dir <dir>   electron-builder output dir (default apps/desktop/release)
@@ -102,11 +102,11 @@ done
 
 # ── 2. Register each manifest with the Worker ───────────────────────
 for m in "${MANIFESTS[@]}"; do
-    # La plateforme est une DIMENSION de la clé côté Worker (une ligne par
-    # plateforme) : sans elle, enregistrer `latest.yml` après `latest-mac.yml`
-    # écrasait le manifeste mac. Le Worker la relit dans le contenu du manifeste
-    # et ne fait confiance à ce paramètre qu'à défaut — on l'envoie quand même,
-    # parce que le nom du fichier est ici une information certaine.
+    # The platform is a DIMENSION of the Worker-side key (one row per
+    # platform): without it, registering `latest.yml` after `latest-mac.yml`
+    # overwrote the mac manifest. The Worker re-reads it from the manifest content
+    # and only trusts this parameter as a fallback — we send it anyway,
+    # because here the file name is certain information.
     case "$m" in
         latest-mac.yml)   PLATFORM=mac ;;
         latest-linux.yml) PLATFORM=linux ;;

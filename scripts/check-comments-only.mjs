@@ -18,16 +18,30 @@ const changed = execSync(`git diff --name-only ${ref}`, { encoding: "utf8" })
   .split("\n")
   .filter(Boolean);
 
+/**
+ * The file's TOKENS, comments excluded — via the real parser, not the raw scanner.
+ *
+ * ⚠️ A bare `createScanner` loop cannot do this: a template literal with a `${…}`
+ * substitution needs `reScanTemplateToken` after the closing brace, and without it the
+ * next backtick opens a template that runs to EOF — swallowing the rest of the file,
+ * comments included, into ONE token. The checker then reported "code changed" on a
+ * purely editorial diff. Parsing gives the token boundaries for free, and correctly for
+ * regexes and JSX too; leaf nodes are the tokens, and `getText()` excludes the leading
+ * trivia where comments live.
+ */
 const tokens = (src, file) => {
-  const scanner = ts.createScanner(ts.ScriptTarget.Latest, /* skipTrivia */ true, ts.LanguageVariant.JSX, src);
+  const kind = file.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, /* setParentNodes */ true, kind);
   const out = [];
-  for (;;) {
-    const k = scanner.scan();
-    if (k === ts.SyntaxKind.EndOfFileToken) break;
-    // JSX text carries the visible copy; keep it — a change there is NOT a comment.
-    out.push(`${k}:${scanner.getTokenText()}`);
-    if (out.length > 400000) throw new Error(`${file}: too many tokens`);
-  }
+  const walk = (n) => {
+    // ⚠️ JSDoc blocks come back as CHILD NODES, not as trivia: without this skip, every
+    // `/** … */` we translate reads as a token change and the checker cries wolf.
+    if (n.kind >= ts.SyntaxKind.FirstJSDocNode && n.kind <= ts.SyntaxKind.LastJSDocNode) return;
+    const kids = n.getChildren(sf);
+    if (kids.length === 0) out.push(`${n.kind}:${n.getText(sf)}`);
+    else for (const k of kids) walk(k);
+  };
+  for (const k of sf.getChildren(sf)) walk(k);
   return out.join("\n");
 };
 
@@ -35,7 +49,10 @@ const lines = (src, isComment) =>
   src.split("\n").filter((l) => !isComment(l.trim())).join("\n");
 
 const HASH = (l) => l.startsWith("#");
-const CSS = (l) => l.startsWith("/*") || l.startsWith("*") || l.startsWith("//");
+// JSONC (turbo.json, tsconfig.json), Rust and CSS all carry `//` or `/* … */` on their
+// own lines here; the token comparison above needs a real parser, so these compare the
+// non-comment LINES instead — enough, because a code change in them moves a line.
+const SLASH = (l) => l.startsWith("/*") || l.startsWith("*") || l.startsWith("//") || l.startsWith("//!");
 
 let bad = 0;
 let ok = 0;
@@ -58,8 +75,9 @@ for (const f of changed) {
   }
   let same;
   if (/\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/.test(f)) same = tokens(before, f) === tokens(after, f);
-  else if (/\.(ya?ml|toml|sh|env.*)$/.test(f) || /Dockerfile/.test(f)) same = lines(before, HASH) === lines(after, HASH);
-  else if (/\.css$/.test(f)) same = lines(before, CSS) === lines(after, CSS);
+  else if (/\.(ya?ml|toml|sh|env.*|editorconfig|npmrc)$/.test(f) || /Dockerfile|\/pre-commit$/.test(f))
+    same = lines(before, HASH) === lines(after, HASH);
+  else if (/\.(css|json|rs)$/.test(f)) same = lines(before, SLASH) === lines(after, SLASH);
   else same = before === after;
   if (same) ok++;
   else {

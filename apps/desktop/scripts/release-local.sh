@@ -1,48 +1,48 @@
 #!/usr/bin/env bash
-# Déploiement desktop STAGING depuis un poste — le MIROIR EXACT de release.yml.
+# STAGING desktop deployment from a workstation — the EXACT MIRROR of release.yml.
 #
-# Règle unique : chaque VITE_* baké ici porte la MÊME valeur qu'en CI, résolue à la
-# MÊME source. Les variables GitHub (publiques) sont lues EN DIRECT via `gh` — si la
-# CI change d'URL, ce script suit sans édition ; une variable absente en CI bake VIDE
-# ici aussi (le repli embarqué de l'app est le même des deux côtés). Les secrets
-# viennent de leurs foyers locaux : `.env` racine (signature Apple, R2, bypass Vercel)
-# et l'environnement (`OPENMASQ_UPDATES_ADMIN_TOKEN`, `OPENMASQ_ANALYTICS_APP_KEY`) —
-# les mêmes valeurs que celles poussées dans GitHub Actions.
+# One rule: every VITE_* baked here carries the SAME value as in CI, resolved from the
+# SAME source. The GitHub variables (public) are read LIVE through `gh` — if CI
+# changes a URL, this script follows with no edit; a variable absent in CI bakes EMPTY
+# here too (the app's embedded fallback is the same on both sides). The secrets
+# come from their local homes: the root `.env` (Apple signing, R2, Vercel bypass)
+# and the environment (`OPENMASQ_UPDATES_ADMIN_TOKEN`, `OPENMASQ_ANALYTICS_APP_KEY`) —
+# the same values as those pushed into GitHub Actions.
 #
-# Version : `X.Y.Z-staging.A.B` — au-dessus du dernier build du canal, EN DESSOUS du
-# prochain run CI (A+1) : les builds locaux s'intercalent sans jamais entrer en
-# collision avec la numérotation `-staging.<run_number>` de la CI.
+# Version: `X.Y.Z-staging.A.B` — above the channel's last build, BELOW the
+# next CI run (A+1): local builds slot in without ever colliding
+# with CI's `-staging.<run_number>` numbering.
 #
-# Étapes = release.yml : build (VITE_* bakés, porte check-bundle incluse) → bake
-# (sha256) → electron-builder sign+notarize → check:pkgtree → publish (artefacts
-# d'abord, enregistrement Worker en DERNIER — le canal ne voit jamais un état
-# intermédiaire).
+# Steps = release.yml: build (VITE_* baked, check-bundle gate included) → bake
+# (sha256) → electron-builder sign+notarize → check:pkgtree → publish (artifacts
+# first, Worker registration LAST — the channel never sees an intermediate
+# state).
 set -euo pipefail
 
 DESKTOP="$(cd "$(dirname "$0")/.." && pwd)"
 ROOT="$(cd "$DESKTOP/../.." && pwd)"
 REPO="tgaudibert/openmasq"
 CHANNEL="desktop-staging"
-# La marque n'a qu'une maison (règle 9) : le domaine vient de packages/branding.
+# The brand has one home (rule 9): the domain comes from packages/branding.
 BRAND_DOMAIN="$(node -p "require('$ROOT/packages/branding/branding.json').domain")"
 UPDATES_URL="${UPDATES_URL:-https://updates.$BRAND_DOMAIN}"
 
-# ── L'arbre doit être COMMITTÉ — la CI construit un commit, jamais un chantier ──
-# C'est le dernier écart local/CI, et le plus sournois : un déploiement lancé pendant
-# qu'une autre session édite embarque du travail à moitié fait (vécu : un type en
-# cours de refactor a cassé le build ; s'il avait compilé, il aurait ÉTÉ LIVRÉ).
-# OPENMASQ_RELEASE_DIRTY=1 pour outrepasser en connaissance de cause.
+# ── The tree must be COMMITTED — CI builds a commit, never a work in progress ──
+# This is the last local/CI gap, and the most insidious: a deployment started while
+# another session is editing ships half-done work (lived: a type mid-refactor
+# broke the build; had it compiled, it would have SHIPPED).
+# OPENMASQ_RELEASE_DIRTY=1 to override knowingly.
 if [ -z "${OPENMASQ_RELEASE_DIRTY:-}" ] && [ -n "$(git -C "$ROOT" status --porcelain --untracked-files=no)" ]; then
   echo "✗ arbre de travail modifié — committe (ou OPENMASQ_RELEASE_DIRTY=1) :"
   git -C "$ROOT" status --porcelain --untracked-files=no | head -10
   exit 1
 fi
 
-# ── Secrets locaux ───────────────────────────────────────────────────────────
+# ── Local secrets ────────────────────────────────────────────────────────────
 set -a; source "$ROOT/.env"; set +a
 export CSC_LINK="$MAC_CSC_LINK" CSC_KEY_PASSWORD="$MAC_CSC_KEY_PASSWORD"
 export R2_SECRET_ACCESS_KEY="${R2_SECRET_ACCESS_KEY:-$R2_SECRET_KEY_ID}"
-# L'infra n'est plus dans ce dépôt : ces deux secrets se fournissent par l'environnement.
+# The infra no longer lives in this repository: both secrets come from the environment.
 UPDATES_ADMIN_TOKEN="${OPENMASQ_UPDATES_ADMIN_TOKEN:-}"
 ANALYTICS_APP_KEY="${OPENMASQ_ANALYTICS_APP_KEY:-}"
 [ -n "$UPDATES_ADMIN_TOKEN" ] || { echo "✗ OPENMASQ_UPDATES_ADMIN_TOKEN manquant (export-le avant de lancer)"; exit 1; }
@@ -53,16 +53,16 @@ for v in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TE
   [ -n "${!v:-}" ] || { echo "✗ $v manquant (.env racine)"; exit 1; }
 done
 
-# ── Variables CI, lues en direct (parité stricte, y compris l'ABSENCE) ───────
+# ── CI variables, read live (strict parity, ABSENCE included) ────────────────
 ghvar() { gh api "repos/$REPO/actions/variables/$1" --jq .value 2>/dev/null || true; }
 ANALYTICS_RELAY_URL="$(ghvar ANALYTICS_RELAY_URL)"
 SCW_REDACT_URL_STAGING="$(ghvar SCW_REDACT_URL_STAGING)"
 
-# ── Version : s'intercaler entre le dernier build du canal et le prochain run CI ──
-# Le compteur `A` est le run-number CI, GLOBAL au dépôt : il s'hérite du canal même
-# quand la base X.Y.Z vient d'être bumpée (0.3.2-staging.106.1 → 0.3.3-staging.106.2,
-# toujours sous le 0.3.3-staging.107 que produira le prochain run CI). Une base du
-# canal PLUS RÉCENTE que package.json = un bump oublié, refus.
+# ── Version: slot in between the channel's last build and the next CI run ────
+# The `A` counter is the CI run-number, GLOBAL to the repository: it is inherited from
+# the channel even when the X.Y.Z base has just been bumped (0.3.2-staging.106.1 →
+# 0.3.3-staging.106.2, still below the 0.3.3-staging.107 the next CI run will produce). A
+# channel base NEWER than package.json = a forgotten bump, refusal.
 PKG="$(node -p "require('$DESKTOP/package.json').version")"
 LIVE="$(curl -fsS "$UPDATES_URL/desktop/$CHANNEL/latest-mac.yml" | awk '/^version:/{print $2}')"
 SUFFIX="${LIVE#*-staging.}"
@@ -78,7 +78,7 @@ A="${SUFFIX%%.*}"; B="${SUFFIX#"$A"}"; B="${B#.}"
 VERSION="$PKG-staging.$A.$(( ${B:-0} + 1 ))"
 echo "→ canal: $LIVE · local: $VERSION (CI suivante: $PKG-staging.$((A + 1)))"
 
-# ── Build (les MÊMES clés que release.yml, valeur pour valeur) ───────────────
+# ── Build (the SAME keys as release.yml, value for value) ────────────────────
 ( cd "$ROOT" && \
   VITE_BACKEND_URL="https://staging.$BRAND_DOMAIN" \
   VITE_ADMIN_URL="https://staging.$BRAND_DOMAIN/admin" \
@@ -89,18 +89,18 @@ echo "→ canal: $LIVE · local: $VERSION (CI suivante: $PKG-staging.$((A + 1)))
   VITE_BACKEND_BYPASS="$VERCEL_AUTOMATION_BYPASS_SECRET" \
   pnpm exec turbo run build --filter=@openmasq/desktop... )
 
-# ── Bake (no-op vérifié sha256 quand le cache est bon) ───────────────────────
+# ── Bake (a sha256-verified no-op when the cache is good) ────────────────────
 ( cd "$DESKTOP" && npm run bake )
 
-# ── Package + sign + notarize (la chaîne ulimit de release.yml, sans sudo) ───
+# ── Package + sign + notarize (release.yml's ulimit chain, without sudo) ─────
 ulimit -n 262144 2>/dev/null || ulimit -n 65536 2>/dev/null || ulimit -n 10240 2>/dev/null || true
 echo "→ ulimit -n effectif : $(ulimit -n)"
 ( cd "$DESKTOP" && pnpm run eb --publish never -c.extraMetadata.version="$VERSION" )
 
-# ── La porte de l'arbre packagé (celle qui a bloqué la release CI) ───────────
+# ── The packaged-tree gate (the one that blocked the CI release) ─────────────
 ( cd "$ROOT" && pnpm check:pkgtree --require-tree )
 
-# ── Publication : artefacts d'abord, enregistrement Worker en dernier ────────
+# ── Publication: artifacts first, Worker registration last ───────────────────
 export UPDATES_URL UPDATES_ADMIN_TOKEN
 export AWS_REQUEST_CHECKSUM_CALCULATION=when_required AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
 bash "$ROOT/apps/updates/scripts/publish-desktop.sh" --release-dir "$DESKTOP/release" --channel "$CHANNEL"

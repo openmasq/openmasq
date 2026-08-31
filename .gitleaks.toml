@@ -14,18 +14,18 @@ paths = [
   '''packages/redact/src/__fixtures__/.*''',
   '''.*\.test\.tsx?$''',
   '''apps/backend/docker-compose\.yml''',
-  # Les EMPREINTES d'intégrité des poids de modèles — l'exact opposé d'un secret : elles
-  # existent pour qu'un octet substitué n'atteigne jamais onnxruntime (règle 7). Le contenu
-  # de ces deux fichiers est une table d'URL et de sha256, rien d'autre. Scopé au FICHIER
-  # plutôt qu'à un motif : autoriser globalement « 64 caractères hexadécimaux » muselerait
-  # aussi une vraie clé de 256 bits encodée en hex.
+  # The integrity FINGERPRINTS of the model weights — the exact opposite of a secret: they
+  # exist so a substituted byte never reaches onnxruntime (rule 7). The content of these
+  # two files is a table of URLs and sha256s, nothing else. Scoped to the FILE rather than
+  # to a pattern: globally allowing "64 hex characters" would also muzzle a real 256-bit
+  # key written in hex.
   '''apps/desktop/src/main/embed/model\.ts$''',
   '''packages/redact/src/local/ner\.ts$''',
 ]
-# Autorisé par le PRÉFIXE qui annonce la publication, jamais par le chemin : ces deux clés
-# sont destinées à un client et voyagent déjà dans chaque binaire. Le préfixe est ce qui les
-# distingue de leur jumelle secrète, et c'est lui qu'on épingle — une `sb_secret_…` ou une
-# `phx_…` (clé d'API personnelle PostHog) continue donc de déclencher, où qu'elle soit.
+# Allowed by the PREFIX that announces publishability, never by path: both keys are meant
+# for a client and already travel in every binary. The prefix is what tells them apart from
+# their secret twin, and the prefix is what we pin — an `sb_secret_…` or a
+# `phx_…` (a personal PostHog API key) therefore still fires, wherever it sits.
 regexes = [
   '''sb_publishable_[A-Za-z0-9_-]{16,}''',
   '''phc_[A-Za-z0-9]{40,}''',

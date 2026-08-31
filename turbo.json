@@ -5,32 +5,32 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      // Sans `inputs`, turbo hache TOUT le paquet — or la règle 5 impose d'éditer le
-      // `CLAUDE.md` dans le même changement, donc chaque commit invalidait le build du
-      // paquet ET de tout son aval pour un markdown que `tsup` ne lit jamais (mesuré :
-      // une ligne ajoutée à `packages/redact/CLAUDE.md` coûtait 2 min 14 de rebuild).
-      // Les tests sortent aussi : ils ne sont pas des points d'entrée de bundle. Ils
-      // restent dans les `inputs` de `typecheck`, lui les vérifie pour de bon.
+      // Without `inputs`, turbo hashes the WHOLE package — but rule 5 requires editing the
+      // `CLAUDE.md` in the same change, so every commit invalidated the build of the
+      // package AND everything downstream of it, for a markdown `tsup` never reads
+      // (measured: one line added to `packages/redact/CLAUDE.md` cost 2 min 14 of rebuild).
+      // Tests are out too: they are not bundle entry points. They stay in `typecheck`'s
+      // `inputs` — that task checks them for real.
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.md",
         "!**/*.test.ts",
         "!**/*.test.tsx"
       ],
-      // ⚠️ Un `outputs` qui rate les artefacts d'une tâche la rend NON RESTITUABLE : turbo
-      // met le log en cache, pas le résultat, et la relance en entier à chaque fois (il le
-      // dit — « no output files found for task … »). C'était le cas des deux apps Next
-      // (`ops`, `docs` ; `web` est passée à Vite → `dist/**`, `landing` a quitté ce monorepo
-      // le 18/08). `.next/cache/**` est exclu : c'est le cache interne de
-      // Next, qu'il gère lui-même et qui pèse plus lourd que la sortie.
-      // `@openmasq/backend#build` est un `tsc --noEmit` — il n'a vraiment aucune sortie.
+      // ⚠️ An `outputs` that misses a task's artifacts makes it NON-RESTORABLE: turbo caches
+      // the log, not the result, and re-runs it in full every time (it says so — "no output
+      // files found for task …"). That was the case for the two Next apps
+      // (`ops`, `docs`; `web` moved to Vite → `dist/**`, `landing` left this monorepo
+      // on 18/08). `.next/cache/**` is excluded: it is Next's internal
+      // cache, which it manages itself and which weighs more than the output.
+      // `@openmasq/backend#build` is a `tsc --noEmit` — it genuinely has no output.
       "outputs": ["dist/**", "out/**", ".next/**", "!.next/cache/**"],
-      // ⚠️ TOUTE variable bakée dans le bundle appartient à cette liste, sinon deux
-      // valeurs différentes partagent une entrée de cache et turbo REND un bundle bâti
-      // avec l'autre — un binaire qui parle à la mauvaise origine, sans qu'aucune étape
-      // ne l'annonce. Ces quatre-là manquaient alors que `release.yml` les passe : c'est
-      // l'URL de redaction (un manque = « Failed to fetch ») et le contournement de la
-      // protection Vercel du staging qui pouvaient sauter d'un build à l'autre.
+      // ⚠️ EVERY variable baked into the bundle belongs in this list, or two different
+      // values share one cache entry and turbo HANDS BACK a bundle built with the other —
+      // a binary talking to the wrong origin, with no step announcing it. These four were
+      // missing while `release.yml` passes them: the redaction URL (missing it = "Failed
+      // to fetch") and the staging Vercel protection bypass were the ones that could jump
+      // from one build to the next.
       "env": [
         "VITE_BACKEND_URL",
         "VITE_ADMIN_URL",
@@ -40,14 +40,14 @@
         "VITE_BACKEND_BYPASS",
         "VITE_ANALYTICS_RELAY_URL",
         "VITE_ANALYTICS_APP_KEY",
-        // Bakée elle aussi (`electron.vite.config.ts` en fait un `define`), donc soumise à
-        // la même règle que les URL ci-dessus. Elle manquait : deux versions du MÊME code
-        // partageaient une entrée, et un build local restituait le bundle de la version
-        // précédente — le renderer annonçait alors à PostHog et Sentry une version qui
-        // n'est pas celle de l'app installée, précisément le désalignement que
-        // `src/sentry/policy.test.ts` veille à empêcher côté CI. Invisible en CI (le job
-        // de release ne restaure aucun cache turbo), mortel sur une release faite depuis
-        // une machine, où le cache est partagé avec tous les autres builds.
+        // Baked as well (`electron.vite.config.ts` turns it into a `define`), so subject to
+        // the same rule as the URLs above. It was missing: two versions of the SAME code
+        // shared one entry, and a local build handed back the previous version's bundle —
+        // the renderer then reported to PostHog and Sentry a version that is not the one
+        // the installed app carries, precisely the mismatch
+        // `src/sentry/policy.test.ts` guards against in CI. Invisible in CI (the release
+        // job restores no turbo cache), fatal on a release made from a
+        // machine, where the cache is shared with every other build.
         "VITE_APP_VERSION"
       ]
     },
@@ -57,9 +57,9 @@
       "persistent": true
     },
     "typecheck": {
-      // `^build` est nécessaire : seul `apps/desktop` alias les paquets vers `src` par
-      // ses `paths` (parité tenue par `pnpm check:alias`) ; partout ailleurs `tsc`
-      // résout par node_modules, donc par les `dist/*.d.ts`.
+      // `^build` is required: only `apps/desktop` aliases the packages to `src` through
+      // its `paths` (parity held by `pnpm check:alias`); everywhere else `tsc`
+      // resolves through node_modules, hence through the `dist/*.d.ts`.
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "!**/*.md"]
     },
