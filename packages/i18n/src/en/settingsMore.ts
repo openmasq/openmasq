@@ -53,6 +53,7 @@ export const usageTab = {
   filterAll: "All",
   filterByo: "With my keys",
   filterSubscription: "With the subscription",
+  filterIncluded: "With the included models",
   rangeAria: "Observation window",
   days: (n) => `${n} d`,
   kpiMessages: "Messages",
@@ -63,6 +64,7 @@ export const usageTab = {
   kpiNoSubscription: "no subscription",
   subByo: "own keys",
   subSubscription: "subscription",
+  subIncluded: "included models",
   subAll: "total",
   unattributed: (n) =>
     `${n.toLocaleString("en-GB")} unattributed message${n > 1 ? "s" : ""} (sent before keys / subscription tracking) — visible under “All”.`,

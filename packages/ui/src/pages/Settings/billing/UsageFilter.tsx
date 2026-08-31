@@ -1,11 +1,12 @@
 import type { Messages } from "@openmasq/i18n";
 import type { BilledFilter } from "../../../state/usage";
+import { subscriptionsSold } from "../../../send/platformAccess";
 
 import { useT } from "../../../i18n";
 const OPTIONS: { id: BilledFilter; label: (t: Messages) => string }[] = [
   { id: "all", label: (t) => t.usageTab.filterAll },
   { id: "byo", label: (t) => t.usageTab.filterByo },
-  { id: "subscription", label: (t) => t.usageTab.filterSubscription },
+  { id: "subscription", label: (t) => (subscriptionsSold() ? t.usageTab.filterSubscription : t.usageTab.filterIncluded) },
 ];
 
 /**

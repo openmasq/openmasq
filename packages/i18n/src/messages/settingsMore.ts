@@ -55,6 +55,8 @@ export interface UsageTabMessages {
   filterAll: string;
   filterByo: string;
   filterSubscription: string;
+  /** La même option quand rien ne se vend (le défaut) : la voie se nomme par les modèles inclus. */
+  filterIncluded: string;
   rangeAria: string;
   /** « 14 j » — le bouton d'une fenêtre. */
   days: (n: number) => string;
@@ -66,6 +68,7 @@ export interface UsageTabMessages {
   kpiNoSubscription: string;
   subByo: string;
   subSubscription: string;
+  subIncluded: string;
   subAll: string;
   unattributed: (count: number) => string;
   estimated: (count: number) => string;

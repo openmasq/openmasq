@@ -148,7 +148,7 @@ export const modelsTab = {
   defaultLead: "Your new conversations start on",
   defaultTip: "See this model's card",
   freeBadge: "free",
-  freeBadgeTip: "Free model — limited usage, no subscription. Click to learn more.",
+  freeBadgeTip: "Free model — included with your account, limited usage. Click to learn more.",
   addFavorite: "Add to favourites",
   removeFavorite: "Remove from favourites",
   searchPlaceholder: "Search a model (name, gpt, claude…)",
@@ -159,7 +159,7 @@ export const modelsTab = {
   price: "Price",
   priceTiers: { free: "Free", eco: "Budget", standard: "Standard", premium: "Premium" },
   priceTierTips: {
-    free: "$0 — never touches your credits",
+    free: "$0 — free with your account",
     eco: "≤ $3 / M output tokens",
     standard: "$3 to $20 / M output tokens",
     premium: "> $20 / M output tokens",

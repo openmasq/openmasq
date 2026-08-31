@@ -90,7 +90,13 @@ export function UsageTab({
   );
 
   const filterSub =
-    billed === "byo" ? t.usageTab.subByo : billed === "subscription" ? t.usageTab.subSubscription : t.usageTab.subAll;
+    billed === "byo"
+      ? t.usageTab.subByo
+      : billed === "subscription"
+        ? subscriptionsSold()
+          ? t.usageTab.subSubscription
+          : t.usageTab.subIncluded
+        : t.usageTab.subAll;
 
   return (
     <>
@@ -105,11 +111,15 @@ export function UsageTab({
         <div className="usage-kpis">
           {kpi(t.usageTab.kpiMessages, totals.messages.toLocaleString(t.common.intlTag), filterSub)}
           {kpi(t.usageTab.kpiTokens, formatTokens(totals.total), t.usageTab.kpiTokensSub)}
-          {kpi(
-            t.usageTab.kpiCredits,
-            creditBal ? formatCents(Math.max(0, creditBal.consumedCents)) : "—",
-            creditBal ? t.usageTab.kpiCreditsOf(formatCents(creditBal.allotmentCents)) : t.usageTab.kpiNoSubscription,
-          )}
+          {/* Sans budget mesuré ET sans rien à vendre (le défaut), une carte « Crédits — aucun
+              abonnement » parlerait d'un produit qui n'existe pas : elle n'apparaît que
+              lorsqu'un solde existe (budget d'organisation) ou qu'un build vend. */}
+          {(creditBal || subscriptionsSold()) &&
+            kpi(
+              t.usageTab.kpiCredits,
+              creditBal ? formatCents(Math.max(0, creditBal.consumedCents)) : "—",
+              creditBal ? t.usageTab.kpiCreditsOf(formatCents(creditBal.allotmentCents)) : t.usageTab.kpiNoSubscription,
+            )}
         </div>
         {billed !== "all" && unbilled > 0 && (
           <p className="mcp-note usage-unknown">

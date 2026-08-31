@@ -149,7 +149,7 @@ export const modelsTab = {
   defaultLead: "Vos nouvelles conversations démarrent sur",
   defaultTip: "Voir la fiche de ce modèle",
   freeBadge: "gratuit",
-  freeBadgeTip: "Modèle gratuit — usage limité, sans abonnement. Cliquez pour en savoir plus.",
+  freeBadgeTip: "Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus.",
   addFavorite: "Ajouter aux favoris",
   removeFavorite: "Retirer des favoris",
   searchPlaceholder: "Rechercher un modèle (nom, gpt, claude…)",
@@ -160,7 +160,7 @@ export const modelsTab = {
   price: "Prix",
   priceTiers: { free: "Gratuit", eco: "Éco", standard: "Standard", premium: "Premium" },
   priceTierTips: {
-    free: "0 $ — n'entame jamais vos crédits",
+    free: "0 $ — gratuit avec votre compte",
     eco: "≤ 3 $ / M tokens en sortie",
     standard: "3 à 20 $ / M tokens en sortie",
     premium: "> 20 $ / M tokens en sortie",

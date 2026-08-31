@@ -89,6 +89,15 @@ const fold = (s: string): string =>
  * Deliberately a hand-kept list of the settings worth FINDING, not a mirror of every
  * control: a row per redaction category would bury the four things people look for.
  */
+/** Les entrées qui EXIGENT une capacité au-delà de leur onglet : « Facturation des
+ *  messages » vit dans Compte, mais son interrupteur n'existe que si `host.billing`
+ *  est branché (build `OPENMASQ_BILLING=1`) — l'offrir sans lui mène à une section
+ *  absente. La porte réutilise `available` avec l'ID de l'onglet qui PORTE la
+ *  capacité (`billing`), pour ne pas inventer un second vocabulaire. */
+const ENTRY_REQUIRES: Partial<Record<keyof Messages["settings"]["entries"], SettingsTabId>> = {
+  messageBilling: "billing",
+};
+
 const ENTRY_TABS = {
   darkMode: "account",
   importConversations: "account",
@@ -113,11 +122,13 @@ const ENTRY_TABS = {
  *  catalogue de traduction ne déplace pas un réglage d'un onglet à l'autre. La copie,
  *  elle, vient de `t` ; le `satisfies` ci-dessus fait échouer la compilation si une
  *  entrée du catalogue n'a pas d'onglet, ou l'inverse. */
-export function settingsEntries(t: Messages): { tab: SettingsTabId; label: string; kw: string }[] {
+export function settingsEntries(
+  t: Messages,
+): { key: keyof Messages["settings"]["entries"]; tab: SettingsTabId; label: string; kw: string }[] {
   return (Object.entries(ENTRY_TABS) as [keyof typeof ENTRY_TABS, SettingsTabId][]).map(
     ([key, tab]) => {
       const entry: SettingsEntry = t.settings.entries[key];
-      return { tab, label: entry.label, kw: entry.kw };
+      return { key, tab, label: entry.label, kw: entry.kw };
     },
   );
 }
@@ -179,7 +190,11 @@ export function searchSettings(
   // which is all a palette can do.
   const seen = new Set(tabs.map((d) => fold(d.label)));
   const entries = settingsEntries(t).filter(
-    (e) => ok(e.tab) && fold(`${e.label} ${e.kw}`).includes(q) && !seen.has(fold(e.label)),
+    (e) =>
+      ok(e.tab) &&
+      ok(ENTRY_REQUIRES[e.key] ?? e.tab) &&
+      fold(`${e.label} ${e.kw}`).includes(q) &&
+      !seen.has(fold(e.label)),
   ).map<SettingsDestination>((e) => ({
     id: e.tab,
     label: e.label,

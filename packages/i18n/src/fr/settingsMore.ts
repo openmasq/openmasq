@@ -54,6 +54,7 @@ export const usageTab = {
   filterAll: "Tous",
   filterByo: "Avec mes clés",
   filterSubscription: "Avec l'abonnement",
+  filterIncluded: "Avec les modèles inclus",
   rangeAria: "Fenêtre d'observation",
   days: (n) => `${n} j`,
   kpiMessages: "Messages",
@@ -64,6 +65,7 @@ export const usageTab = {
   kpiNoSubscription: "aucun abonnement",
   subByo: "clés perso",
   subSubscription: "abonnement",
+  subIncluded: "modèles inclus",
   subAll: "cumul",
   unattributed: (n) =>
     `${n.toLocaleString("fr-FR")} message${n > 1 ? "s" : ""} non attribué${n > 1 ? "s" : ""} (envoyé${n > 1 ? "s" : ""} avant le suivi clés / abonnement) — visible${n > 1 ? "s" : ""} sous « Tous ».`,
