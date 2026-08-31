@@ -12,25 +12,54 @@
  * d'abonnement, redaction on-device. La liste complète et comment déployer les siens :
  * le dépôt privé `infra` ; les valeurs de DEV : `apps/desktop/.env.development`.
  */
+/**
+ * Les adresses de l'API et de la passerelle — les SEULS services distants derrière la
+ * porte `OPENMASQ_BILLING`. Sans `"1"`, elles sont cuites VIDES quoi que le build ait reçu :
+ * pas de comptes API, pas de synchro, pas d'organisations, pas d'avis, pas de modèles
+ * inclus ni de redaction côté serveur, et donc rien à vendre (`@openmasq/ui`
+ * `send/platformAccess.ts` `subscriptionsSold`). Restent JOIGNABLES sans la porte, parce
+ * qu'ils ne sont pas « le serveur » du produit : le projet Supabase (l'authentification),
+ * le relais Slack (`OPENMASQ_AUTH_URL`), les analytics + notes de version (le relais
+ * `VITE_ANALYTICS_RELAY_URL`), le flux de mises à jour et Sentry — chacun sur sa propre
+ * variable, comme avant.
+ */
+export const BILLING_GATED_SERVICES = [
+  "OPENMASQ_BACKEND_URL",
+  "OPENMASQ_BACKEND_URL_STAGING",
+  "OPENMASQ_GATEWAY_URL",
+  "OPENMASQ_GATEWAY_URL_STAGING",
+] as const;
+
+/** `true` quand ce build embarque la pile distante complète — et la vend. */
+export function billingEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.OPENMASQ_BILLING === "1";
+}
+
 /** Les adresses des services first-party (backend + passerelle, par environnement) —
  *  UNE liste, injectée dans les deux bundles : `src/environments/index.ts` est partagé
  *  main/renderer, et un define manquant d'un côté laisserait le littéral `process.env.…`
  *  tel quel (il jette dans un renderer sandboxé). Vide = capacité absente, jamais un
- *  repli sur les serveurs de la marque. */
-function SERVICE_DEFINES(): Record<string, string> {
-  return Object.fromEntries(
-    [
-      "OPENMASQ_BACKEND_URL",
-      "OPENMASQ_BACKEND_URL_STAGING",
-      "OPENMASQ_GATEWAY_URL",
-      "OPENMASQ_GATEWAY_URL_STAGING",
-      // ⚠️ `"1"` autorise la pile AUTO-HÉBERGÉE saisie dans l'app (Réglages → Versions) —
-      // une exception assumée à « un nom, jamais une URL » (`src/environments/customStack.ts`).
-      // Un self-hosteur la pose pour SON build ; la CI de la marque ne la pose jamais, et le
-      // binaire officiel relit un pointeur `custom` comme la production.
-      "OPENMASQ_ALLOW_CUSTOM_STACK",
-    ].map((name) => [`process.env.${name}`, JSON.stringify(process.env[name] ?? "")]),
-  );
+ *  repli sur les serveurs de la marque. Pur (l'env en argument) pour être testé :
+ *  `buildDefines.test.ts` épingle que la porte ferme bien ces quatre-là, et rien d'autre. */
+export function serviceDefines(env: NodeJS.ProcessEnv = process.env): Record<string, string> {
+  const open = billingEnabled(env);
+  const gated = BILLING_GATED_SERVICES.map((name) => [
+    `process.env.${name}`,
+    JSON.stringify(open ? (env[name] ?? "") : ""),
+  ]);
+  const flags = [
+    // ⚠️ `"1"` autorise la pile AUTO-HÉBERGÉE saisie dans l'app (Réglages → Versions) —
+    // une exception assumée à « un nom, jamais une URL » (`src/environments/customStack.ts`).
+    // Un self-hosteur la pose pour SON build ; la CI de la marque ne la pose jamais, et le
+    // binaire officiel relit un pointeur `custom` comme la production. Indépendante de
+    // `OPENMASQ_BILLING` : c'est SON serveur, pas le nôtre.
+    "OPENMASQ_ALLOW_CUSTOM_STACK",
+    // ⚠️ `"1"` = la pile distante complète, ET sa vente : l'onglet Paiement, les pastilles
+    // « Abonnement requis », le mur payant de la synchro. Absent ⇒ les quatre adresses
+    // ci-dessus sont vides, rien ne se vend et rien n'en parle — le DÉFAUT du produit.
+    "OPENMASQ_BILLING",
+  ].map((name) => [`process.env.${name}`, JSON.stringify(env[name] ?? "")]);
+  return Object.fromEntries([...gated, ...flags]);
 }
 
 export function mainDefines(): Record<string, string> {
@@ -79,21 +108,18 @@ export function mainDefines(): Record<string, string> {
     // Le projet Supabase + sa clé PUBLIABLE et le DSN Sentry — lus par
     // `src/environments/index.ts` et `src/sentry/policy.ts`, partagés main/renderer
     // (le même define existe côté renderer). Vides ⇒ pas de comptes / pas de Sentry.
-    "process.env.OPENMASQ_SUPABASE_URL": JSON.stringify(
-      process.env.OPENMASQ_SUPABASE_URL ?? "",
-    ),
+    "process.env.OPENMASQ_SUPABASE_URL": JSON.stringify(process.env.OPENMASQ_SUPABASE_URL ?? ""),
     "process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
       process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY ?? "",
     ),
-    "process.env.OPENMASQ_SENTRY_DSN": JSON.stringify(
-      process.env.OPENMASQ_SENTRY_DSN ?? "",
-    ),
+    "process.env.OPENMASQ_SENTRY_DSN": JSON.stringify(process.env.OPENMASQ_SENTRY_DSN ?? ""),
     // Les ADRESSES des services, même règle que les identifiants ci-dessus : aucun
-    // défaut committé. Vides ⇒ l'app n'a ni backend (comptes/facturation/synchro/avis/
-    // orga) ni passerelle (redaction cloud + modèles inclus) — elle tourne sur la
-    // machine. Lues par `src/environments/index.ts`, partagées main/renderer.
-    // Déployer les siennes : le dépôt privé `infra`.
-    ...SERVICE_DEFINES(),
+    // défaut committé — et derrière la porte `OPENMASQ_BILLING` (voir `serviceDefines`).
+    // Vides ⇒ l'app n'a ni backend (comptes/facturation/synchro/avis/orga) ni passerelle
+    // (redaction cloud + modèles inclus) — elle tourne sur la machine. Lues par
+    // `src/environments/index.ts`, partagées main/renderer. Déployer les siennes : le
+    // dépôt privé `infra`.
+    ...serviceDefines(),
   };
 }
 
@@ -116,15 +142,11 @@ export function rendererDefines(pkgVersion: string): Record<string, string> {
     // aussi (`src/environments/index.ts` via appEnv, `src/sentry/policy.ts` via
     // sentry/renderer) : sans eux, le littéral `process.env.…` resterait tel quel et
     // jetterait (`process` n'existe pas dans un renderer sandboxé).
-    "process.env.OPENMASQ_SUPABASE_URL": JSON.stringify(
-      process.env.OPENMASQ_SUPABASE_URL ?? "",
-    ),
+    "process.env.OPENMASQ_SUPABASE_URL": JSON.stringify(process.env.OPENMASQ_SUPABASE_URL ?? ""),
     "process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
       process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY ?? "",
     ),
-    "process.env.OPENMASQ_SENTRY_DSN": JSON.stringify(
-      process.env.OPENMASQ_SENTRY_DSN ?? "",
-    ),
-    ...SERVICE_DEFINES(),
+    "process.env.OPENMASQ_SENTRY_DSN": JSON.stringify(process.env.OPENMASQ_SENTRY_DSN ?? ""),
+    ...serviceDefines(),
   };
 }

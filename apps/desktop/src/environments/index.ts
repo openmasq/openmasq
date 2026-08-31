@@ -31,6 +31,11 @@
  * d'abonnement, redaction on-device. Même règle que les identifiants OAuth et le DSN
  * Sentry (`scripts/buildDefines.ts`), étendue aux adresses. Comment fournir sa propre
  * pile : le dépôt privé `infra`.
+ *
+ * ⚠️ **Et même fournies, l'API et la passerelle n'entrent qu'avec `OPENMASQ_BILLING=1`**
+ * (`scripts/buildDefines.ts` `serviceDefines`) : sans la porte, le build les cuit vides.
+ * Le projet Supabase, lui, n'est pas derrière elle — l'authentification reste joignable
+ * seule, comme le relais Slack, les analytics et les mises à jour.
  */
 
 /**

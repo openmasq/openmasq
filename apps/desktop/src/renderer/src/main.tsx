@@ -18,7 +18,14 @@ import {
 import "@openmasq/ui/styles.css";
 import { App } from "./App";
 import { AUTH_CONFIGURED, authHost } from "./auth";
-import { syncHost, getOrgProfile, setOrgCacheUser, SYNC_ENABLED, pullSyncedIntegrations, orgSharesHost } from "./sync";
+import {
+  syncHost,
+  getOrgProfile,
+  setOrgCacheUser,
+  SYNC_ENABLED,
+  pullSyncedIntegrations,
+  orgSharesHost,
+} from "./sync";
 import { billingHost } from "./billing";
 import { avisHost } from "./avis";
 // LE lecteur d'environnement du renderer — un seul endroit lit `import.meta.env`,
@@ -29,6 +36,7 @@ import {
   ANALYTICS_DEBUG,
   ANALYTICS_RELAY_URL,
   BACKEND_CONFIGURED,
+  BILLING_SOLD,
   GATEWAY_CONFIGURED,
   RELEASE_NOTES_URL,
   UPDATES_CONFIGURED,
@@ -53,8 +61,16 @@ initSentryRenderer();
 // (l'endpoint) et des comptes (le jeton) — sans quoi un modèle « inclus » n'a rien à
 // appeler. Non ⇒ ces modèles redeviennent des modèles à CLÉ et aucune surface ne promet
 // d'abonnement (`@openmasq/ui` `send/platformAccess.ts`). Un build sans backend est un
-// état NORMAL, c'est le défaut du dépôt (`SELF_HOSTING.md`).
-configurePlatformAccess({ served: GATEWAY_CONFIGURED && AUTH_CONFIGURED });
+// état NORMAL, c'est le défaut du dépôt (le dépôt privé `infra` dit comment déployer).
+// « Vendu » suit `OPENMASQ_BILLING=1` — la porte qui fait aussi entrer l'API et la
+// passerelle au build (`scripts/buildDefines.ts`) : sans elle rien de distant n'existe
+// hormis l'auth, le relais Slack, les analytics et les mises à jour, et rien ne se vend.
+// Une pile SAISIE (`OPENMASQ_ALLOW_CUSTOM_STACK`) peut servir sans vendre : c'est le cas
+// « served && !sold » que ce couple garde distinct.
+configurePlatformAccess({
+  served: GATEWAY_CONFIGURED && AUTH_CONFIGURED,
+  sold: BILLING_SOLD && SYNC_ENABLED,
+});
 
 configureAnalytics({
   relayUrl: ANALYTICS_RELAY_URL,
@@ -133,8 +149,7 @@ window.openmasq.onAppEvent?.((e) => captureEvent(e as TrackEvent));
 // forwards to the Electron preload bridge (window.openmasq). A mobile shell
 // would provide its own Host here instead.
 const host: Host = {
-  startChat: (payload, handlers) =>
-    window.openmasq.startChat(payload, handlers),
+  startChat: (payload, handlers) => window.openmasq.startChat(payload, handlers),
   app: {
     versions: () => window.openmasq.app.versions(),
   },
@@ -187,33 +202,34 @@ const host: Host = {
   // ⚠️ Deux conditions : un flux fourni au build (sinon il n'y a RIEN à interroger — pas
   // de carte de mise à jour, pas d'historique de versions, pas de notes) et un preload à
   // jour (un dev non redémarré dégrade au lieu de jeter).
-  updates: UPDATES_CONFIGURED && window.openmasq.updates
-    ? {
-        current: () => window.openmasq.updates.current(),
-    revealLog: window.openmasq.updates.revealLog
-      ? () => window.openmasq.updates.revealLog!()
+  updates:
+    UPDATES_CONFIGURED && window.openmasq.updates
+      ? {
+          current: () => window.openmasq.updates.current(),
+          revealLog: window.openmasq.updates.revealLog
+            ? () => window.openmasq.updates.revealLog!()
+            : undefined,
+          list: () => window.openmasq.updates.list(),
+          permissions: () => window.openmasq.updates.permissions(),
+          check: () => window.openmasq.updates.check(),
+          pin: (version) => window.openmasq.updates.pin(version),
+          setChannel: (channel) => window.openmasq.updates.setChannel(channel),
+          listAll: () => window.openmasq.updates.listAll(),
+          switchTo: (arg) => window.openmasq.updates.switchTo(arg),
+          install: () => window.openmasq.updates.install(),
+          onStatus: (cb) => window.openmasq.updates.onStatus(cb),
+          // Guarded like the rest: an un-restarted preload without the probe degrades to
+          // « jamais d'auto-install » (main fail-closes on silence), never a throw.
+          ...(window.openmasq.updates.onQuiescenceAsk
+            ? {
+                onQuiescenceAsk: (cb: (askId: string) => void) =>
+                  window.openmasq.updates.onQuiescenceAsk(cb),
+                replyQuiescence: (askId: string, busy: boolean) =>
+                  window.openmasq.updates.replyQuiescence(askId, busy),
+              }
+            : {}),
+        }
       : undefined,
-        list: () => window.openmasq.updates.list(),
-        permissions: () => window.openmasq.updates.permissions(),
-        check: () => window.openmasq.updates.check(),
-        pin: (version) => window.openmasq.updates.pin(version),
-        setChannel: (channel) => window.openmasq.updates.setChannel(channel),
-        listAll: () => window.openmasq.updates.listAll(),
-        switchTo: (arg) => window.openmasq.updates.switchTo(arg),
-        install: () => window.openmasq.updates.install(),
-        onStatus: (cb) => window.openmasq.updates.onStatus(cb),
-        // Guarded like the rest: an un-restarted preload without the probe degrades to
-        // « jamais d'auto-install » (main fail-closes on silence), never a throw.
-        ...(window.openmasq.updates.onQuiescenceAsk
-          ? {
-              onQuiescenceAsk: (cb: (askId: string) => void) =>
-                window.openmasq.updates.onQuiescenceAsk(cb),
-              replyQuiescence: (askId: string, busy: boolean) =>
-                window.openmasq.updates.replyQuiescence(askId, busy),
-            }
-          : {}),
-      }
-    : undefined,
   env: envSlot(),
   db: {
     configured: () => window.openmasq.db.configured(),
@@ -236,8 +252,7 @@ const host: Host = {
       ? { listEgress: (limit?: number) => window.openmasq.db.listEgress(limit) }
       : {}),
     saveFile: (file) => window.openmasq.db.saveFile(file as any),
-    listFiles: (conversationId) =>
-      window.openmasq.db.listFiles(conversationId) as any,
+    listFiles: (conversationId) => window.openmasq.db.listFiles(conversationId) as any,
     loadFile: (id) => window.openmasq.db.loadFile(id) as any,
     deleteFile: (id) => window.openmasq.db.deleteFile(id),
     conversationsForFile: (hash) => window.openmasq.db.conversationsForFile(hash),
@@ -287,7 +302,9 @@ const host: Host = {
     ? (baseUrl) => window.openmasq.probeLocalEndpoint!(baseUrl)
     : undefined,
   // Same un-restarted-preload guard: absent ⇒ `claude-cli` isn't offered (fail-closed).
-  probeClaudeCli: window.openmasq.probeClaudeCli ? () => window.openmasq.probeClaudeCli!() : undefined,
+  probeClaudeCli: window.openmasq.probeClaudeCli
+    ? () => window.openmasq.probeClaudeCli!()
+    : undefined,
   probeCodexCli: window.openmasq.probeCodexCli ? () => window.openmasq.probeCodexCli!() : undefined,
   completeTools: (payload) => window.openmasq.completeTools(payload) as any,
   // STREAMING tool turn (assistant text token-by-token). Optional-chained: an
@@ -315,8 +332,7 @@ const host: Host = {
     addCustom: window.openmasq.mcp.addCustom
       ? (input) => window.openmasq.mcp.addCustom!(input)
       : undefined,
-    addStdio: (catalogId, env, params) =>
-      window.openmasq.mcp.addStdio(catalogId, env, params),
+    addStdio: (catalogId, env, params) => window.openmasq.mcp.addStdio(catalogId, env, params),
     pickDir: (hint) => window.openmasq.mcp.pickDir(hint),
     setDirs: (id, key, dirs) => window.openmasq.mcp.setDirs(id, key, dirs),
     remove: (id) => window.openmasq.mcp.remove(id),
@@ -385,8 +401,7 @@ const host: Host = {
         status: () => window.openmasq.browser!.status(),
         show: () => window.openmasq.browser!.show(),
         hide: () => window.openmasq.browser!.hide(),
-        navigate: (url: string, tabId?: string) =>
-          window.openmasq.browser!.navigate(url, tabId),
+        navigate: (url: string, tabId?: string) => window.openmasq.browser!.navigate(url, tabId),
         tabNew:
           typeof window.openmasq.browser.tabNew === "function"
             ? (url?: string) => window.openmasq.browser!.tabNew!(url)
@@ -438,7 +453,11 @@ const host: Host = {
     // Deux passagers, même geste : `setOrgCacheUser` (la politique d'orga ne s'hérite pas) et
     // la PHRASE DE SYNCHRO, qui était à portée APPAREIL — le compte suivant héritait de la clé
     // E2E du précédent (`main/store/CLAUDE.md`). `?.` : un preload dev non redémarré dégrade.
-    setUser: (userId) => (setOrgCacheUser(userId), void window.openmasq.sync?.setUser?.(userId), window.openmasq.keys.setUser(userId)),
+    setUser: (userId) => (
+      setOrgCacheUser(userId),
+      void window.openmasq.sync?.setUser?.(userId),
+      window.openmasq.keys.setUser(userId)
+    ),
     configured: () => window.openmasq.keys.configured(),
     set: (id, value) => window.openmasq.keys.set(id, value),
     clear: (id) => window.openmasq.keys.clear(id),
@@ -467,18 +486,17 @@ const host: Host = {
   org: SYNC_ENABLED
     ? {
         getProfile: getOrgProfile,
-        openAdmin: () =>
-          window.open(
-            ADMIN_URL,
-            "_blank",
-          ),
+        openAdmin: () => window.open(ADMIN_URL, "_blank"),
       }
     : undefined,
   // Org SHARES (coffre/compétences → org/équipe/personne, sous approbation).
   orgShares: SYNC_ENABLED ? orgSharesHost : undefined,
   // Individual (per-person) billing — subscription + prepaid credits + Stripe
   // checkout/portal, backed by the backend /subscriptions/* with the auth token.
-  billing: SYNC_ENABLED ? billingHost : undefined,
+  // ⚠️ Branché SEULEMENT dans un build qui vend (`BILLING_SOLD`) : le créneau est ce qui
+  // fait exister l'onglet Paiement, la bannière « Vous utilisez les modèles gratuits » et
+  // le mur payant de la synchro — autant de surfaces qui, sans rien à vendre, mentiraient.
+  billing: SYNC_ENABLED && BILLING_SOLD ? billingHost : undefined,
   // "Votre avis" — posts the user's feedback to the backend, which emails it to the
   // team. Gated on the SAME backend-configured flag as billing/org: with no backend
   // there is nowhere to send it, so the rail action is not offered at all rather

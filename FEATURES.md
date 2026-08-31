@@ -23,7 +23,14 @@ value: what the build receives decides what EXISTS. Without them — accounts, b
 and devices, organizations and shares (the inbox, "share" on the vault and the skills),
 "Votre avis", included models, release notes, auto-update and the environment switch,
 analytics — **none of it appears**: no tab, no ⌘K entry, no card, no switch, and the
-onboarding no longer offers a subscription. Everything else (your own keys, local models,
+onboarding no longer offers a subscription. **`OPENMASQ_BILLING=1` is the gate of the
+remote stack** (`apps/desktop/scripts/buildDefines.ts`): without it the API and gateway
+addresses are baked EMPTY even when supplied — no accounts API, sync, organizations,
+feedback, included models or server-side redaction — and nothing is sold
+(`send/platformAccess.ts` `subscriptionsSold`): no Paiement tab, no upsell card, no paid
+wall on sync, no « Abonnement, ou votre clé » step, no surface saying « abonnement » or
+« crédits ». Sign-in (Supabase), the Slack relay, analytics, release notes, auto-update and
+Sentry stay on their own variables, outside the gate. Everything else (your own keys, local models,
 CLI subscriptions, redaction, documents, connectors, sandbox) works as it is. Deploying
 your own stack: the private `infra` repository.
 
@@ -871,7 +878,9 @@ risk — a policy that depends on everyone's goodwill is not a policy.
       never swallowed silently
 
 ### Paiement
-**Access**: Réglages → **Paiement**.
+**Access**: Réglages → **Paiement** — **only in a build that sells** (`OPENMASQ_BILLING=1`;
+off by default, and then the tab, every upsell and the very word « abonnement » are absent:
+`packages/ui/src/send/platformAccess.test.ts`).
 
 **What it makes possible.** A subscription with included credits, the consumption history,
 and the possibility of paying nothing at all — by plugging in your own keys or staying on the
@@ -891,6 +900,10 @@ publisher.
       `packages/ui/src/pages/Settings/billing/FreeModeBilling.tsx`,
       `packages/credits/src/freeMode.ts`
 - [x] A free model stays usable without a subscription
+- [x] **Nothing sold by default**: without `OPENMASQ_BILLING=1` the `billing` host is not
+      wired, `canPitchSubscription` is always false, the sync wall never shows, and every
+      refusal names the account or the key, never an abonnement —
+      `packages/ui/src/send/platformAccess.test.ts`
 - [x] A send that cannot be funded is refused **before** it leaves
 - [x] The "credits exhausted" refusal always offers a **gesture**: subscription + key for a
       free account, « Renseigner la clé » for an organization member or an account with no

@@ -70,6 +70,18 @@ export const BACKEND_URL: string = env.VITE_BACKEND_URL || URLS.backend;
  */
 export const BACKEND_CONFIGURED: boolean = !!BACKEND_URL;
 
+/**
+ * Ce build embarque-t-il la pile distante — et la vend-il ? `OPENMASQ_BILLING=1` au
+ * build, et rien d'autre. C'est la MÊME porte qui laisse entrer les adresses de l'API et
+ * de la passerelle (`scripts/buildDefines.ts` `serviceDefines`) : sans elle, `BACKEND_URL`
+ * et `REDACT_FN_URL` sont vides (hors des `VITE_*` de dev), donc pas de créneau `billing`
+ * (pas d'onglet Paiement), pas de synchro, pas d'organisations, pas de modèles inclus — et
+ * aucune surface ne dit « abonnement » (`@openmasq/ui` `send/platformAccess.ts`
+ * `subscriptionsSold`). L'authentification Supabase, le relais Slack, les analytics et
+ * les mises à jour ne dépendent pas d'elle.
+ */
+export const BILLING_SOLD: boolean = process.env.OPENMASQ_BILLING === "1";
+
 /** Le nom de l'environnement EFFECTIF de cette instance — ce que la bascule a résolu,
  *  pas ce que le canal suggère. Exposé pour être MONTRÉ (Réglages → Synchronisation) :
  *  une app qui ne dit pas à qui elle parle laisse diagnostiquer à l'aveugle. */

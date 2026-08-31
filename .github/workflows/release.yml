@@ -290,14 +290,44 @@ jobs:
       # de la table du binaire, à l'exécution.
       - run: pnpm exec turbo run build --filter=@openmasq/desktop...
         env:
-          # ⚠️ PAS d'URL d'environnement ici, et c'est LE point de l'artefact unique : les
-          # adresses (backend, admin, gateway, Supabase) vivent dans la table cuite du
-          # binaire (`src/environments/`), résolues à l'EXÉCUTION — production par défaut,
-          # staging par la bascule privilégiée. Baker une URL referait un build qui
-          # appartient à son environnement, c'est-à-dire exactement ce qu'on a défait.
-          # Le CANAL, lui, reste baké : c'est le défaut du premier lancement (quels BUILDS
-          # une install NEUVE recevra), pas à quelle API on parle — et son absence veut
-          # dire « build local » pour les analytics, un signal qu'on ne veut pas perdre.
+          # Les adresses des services arrivent ICI, au build, et nulle part dans le dépôt
+          # (`src/environments/index.ts` : aucun défaut committé — un fork qui n'en fournit
+          # pas construit une app qui tourne sur la machine). L'artefact reste UNIQUE :
+          # production ET staging sont cuits ensemble dans la table du binaire, et c'est la
+          # bascule privilégiée qui choisit à l'exécution — jamais un build par environnement.
+          #
+          # ⚠️ `OPENMASQ_BILLING` est LA porte (`scripts/buildDefines.ts` `serviceDefines`) :
+          # sans `"1"`, l'API et la passerelle sont cuites VIDES même fournies — le build
+          # public n'a alors ni comptes API, ni synchro, ni organisations, ni modèles
+          # inclus, et ne vend rien. Ne restent que l'authentification Supabase, le relais
+          # Slack, les analytics et le flux de mises à jour, chacun sur sa variable. C'est
+          # une variable de dépôt (`vars`), pas un littéral : l'ouvrir ou la fermer ne
+          # demande pas de commit.
+          OPENMASQ_BILLING: ${{ vars.OPENMASQ_BILLING }}
+          OPENMASQ_BACKEND_URL: ${{ vars.OPENMASQ_BACKEND_URL }}
+          OPENMASQ_BACKEND_URL_STAGING: ${{ vars.OPENMASQ_BACKEND_URL_STAGING }}
+          OPENMASQ_GATEWAY_URL: ${{ vars.OPENMASQ_GATEWAY_URL }}
+          OPENMASQ_GATEWAY_URL_STAGING: ${{ vars.OPENMASQ_GATEWAY_URL_STAGING }}
+          # Hors de la porte — joignables dans tout build officiel : le projet Supabase
+          # (identifiants client, publics par nature), le relais Slack (`apps/auth`, dans le
+          # dépôt privé `infra`), le DSN Sentry et les identifiants OAuth des connecteurs
+          # (chacun est l'identifiant d'un compte fournisseur précis : env, jamais commité).
+          OPENMASQ_SUPABASE_URL: ${{ vars.OPENMASQ_SUPABASE_URL }}
+          OPENMASQ_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OPENMASQ_SUPABASE_PUBLISHABLE_KEY }}
+          OPENMASQ_AUTH_URL: ${{ vars.OPENMASQ_AUTH_URL }}
+          OPENMASQ_SENTRY_DSN: ${{ vars.OPENMASQ_SENTRY_DSN }}
+          OPENMASQ_GITHUB_CLIENT_ID: ${{ vars.OPENMASQ_GITHUB_CLIENT_ID }}
+          OPENMASQ_SLACK_CLIENT_ID: ${{ vars.OPENMASQ_SLACK_CLIENT_ID }}
+          OPENMASQ_GOOGLE_CLIENT_ID: ${{ vars.OPENMASQ_GOOGLE_CLIENT_ID }}
+          OPENMASQ_GOOGLE_CLIENT_SECRET: ${{ secrets.OPENMASQ_GOOGLE_CLIENT_SECRET }}
+          OPENMASQ_MICROSOFT_CLIENT_ID: ${{ vars.OPENMASQ_MICROSOFT_CLIENT_ID }}
+          # Le flux de mises à jour (Worker `apps/updates`) — la même adresse que celle où
+          # les étapes de publication poussent, plus bas (`UPDATES_URL`). Vide ⇒ pas
+          # d'auto-update ni d'écran Versions (`appEnv.ts` UPDATES_CONFIGURED).
+          VITE_UPDATES_URL: ${{ vars.UPDATES_URL || format('https://updates.{0}', steps.brand.outputs.domain) }}
+          # Le CANAL, lui, est le défaut du premier lancement (quels BUILDS une install
+          # NEUVE recevra), pas à quelle API on parle — et son absence veut dire « build
+          # local » pour les analytics, un signal qu'on ne veut pas perdre.
           VITE_UPDATES_CHANNEL: ${{ needs.meta.outputs.channel }}
           # ⚠️ LA MÊME version que `-c.extraMetadata.version` plus bas, et c'est tout
           # l'enjeu : ce bundle-ci est construit AVANT qu'electron-builder ne timbre la
@@ -319,10 +349,9 @@ jobs:
           # non-identity). Empty
           # value => no attestation header (a relay with ANALYTICS_APP_KEYS set 401s).
           VITE_ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
-          # (redact-fn : plus baké non plus — les origines gateway (prod / staging)
-          # sont dans la même table, résolues avec l'environnement. Et AUCUN bypass Vercel :
-          # l'artefact unique le livrerait à tout le monde — la garde `assertNoBakedBypass`
-          # d'electron.vite.config.ts fait échouer tout build de CI qui en porterait un.)
+          # (AUCUN bypass Vercel : l'artefact unique le livrerait à tout le monde — la garde
+          # `assertNoBakedBypass` d'electron.vite.config.ts fait échouer tout build de CI
+          # qui en porterait un.)
 
       # SOURCEMAPS → Sentry. Les bundles sont minifiés et leurs maps produites en
       # `hidden` (jamais référencées, exclues de l'app par electron-builder — la garde :
