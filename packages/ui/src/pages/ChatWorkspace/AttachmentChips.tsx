@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { useT } from "../../i18n";
 import { FileIcon, RefreshIcon } from "../../components/brand";
 import type { Attachment } from "./Composer";
 import { ocrShortfall } from "./ocrShortfall";
@@ -26,6 +27,7 @@ export function AttachmentChips({
   onRemove: (index: number) => void;
   onOpen: (cid: string) => void;
 }) {
+  const t = useT();
   return (
     <div className="attach-chips">
       {attachments.map((a, i) => {
@@ -57,7 +59,7 @@ export function AttachmentChips({
             key={i}
             role="button"
             tabIndex={0}
-            aria-label={`${a.name} — ${openable ? "consulter le fichier" : "fichier en cours de traitement"}`}
+            aria-label={`${a.name} — ${openable ? t.composer.attachments.open : t.composer.attachments.processing}`}
             aria-disabled={!openable || undefined}
             className={`attach-chip ${a.error || a.redactError ? "err" : engineChanged ? "stale" : ""}`}
             title={
@@ -66,7 +68,7 @@ export function AttachmentChips({
                 : a.redactError
                   ? a.redactError
                   : a.redacting
-                    ? "Redaction en cours…"
+                    ? t.composer.attachments.redacting
                     : engineChanged
                       ? "Redacted avec vos anciens réglages — reredact pour appliquer les réglages actuels"
                       : "Consulter le fichier"
@@ -119,15 +121,15 @@ export function AttachmentChips({
                           : a.redactPreview > 0
                             ? // The unit matters on a chip this small: « 🛡 10 » read as a
                               // file count / a page number as often as a redaction count.
-                              `🛡 ${a.redactPreview} valeur${a.redactPreview > 1 ? "s" : ""}`
+                              t.composer.attachments.values(a.redactPreview)
                             : a.kind}
               </span>
             </span>
             {showOcrAll && (
               <button
                 className="attach-retry"
-                aria-label={`Lire les ${shortfall!.total} pages`}
-                title={`Seules les ${shortfall!.read} premières pages ont été lues (et donc redacted). Relire le document en entier — quelques secondes par page.`}
+                aria-label={t.composer.attachments.readAllPages(shortfall!.total)}
+                title={t.composer.attachments.readAllPagesTip(shortfall!.read)}
                 onClick={(e) => {
                   e.stopPropagation();
                   onOcrAll!(a.cid);
@@ -139,11 +141,11 @@ export function AttachmentChips({
             {showRerun && (
               <button
                 className="attach-retry"
-                aria-label={a.redactError ? "Réessayer le redaction" : "Reredact"}
+                aria-label={a.redactError ? t.composer.attachments.retryRedaction : t.composer.attachments.reRedact}
                 title={
                   a.redactError
-                    ? "Réessayer le redaction"
-                    : "Reredact (moteur de redaction modifié)"
+                    ? t.composer.attachments.retryRedaction
+                    : t.composer.attachments.reRedactTip
                 }
                 onClick={(e) => {
                   e.stopPropagation();
@@ -155,7 +157,7 @@ export function AttachmentChips({
             )}
             <button
               className="attach-x"
-              aria-label="Supprimer"
+              aria-label={t.composer.attachments.remove}
               onClick={(e) => {
                 e.stopPropagation();
                 onRemove(i);

@@ -1,4 +1,5 @@
 import { useRef, useState, type MouseEvent } from "react";
+import { useT } from "../../i18n";
 import { ModalShell, ModalTitle } from "../../containers/modals";
 import { Markdown } from "../../components/markdown/Markdown";
 import { ShieldIcon } from "../../components/brand";
@@ -55,6 +56,7 @@ export function ComposerTextModal({
   onAddToCoffre?: (text: string, token: string) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const taRef = useRef<HTMLTextAreaElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<"edit" | "preview">("edit");
@@ -75,11 +77,8 @@ export function ComposerTextModal({
   return (
     <ModalShell onClose={onClose} width="min(880px, 94vw)" maxHeight="86vh">
       <div className="composer-modal">
-        <ModalTitle>Éditer le message</ModalTitle>
-        <p className="composer-modal-sub">
-          Le texte long s'édite ici — le redaction reste visible en direct ; l'envoi se
-          fait depuis la zone de saisie.
-        </p>
+        <ModalTitle>{t.composer.modal.title}</ModalTitle>
+        <p className="composer-modal-sub">{t.composer.modal.sub}</p>
         <div className="composer-modal-tabs" role="tablist">
           <button
             type="button"
@@ -88,7 +87,7 @@ export function ComposerTextModal({
             className={`composer-modal-tab${tab === "edit" ? " on" : ""}`}
             onClick={() => setTab("edit")}
           >
-            Éditer
+            {t.composer.modal.tabEdit}
           </button>
           <button
             type="button"
@@ -97,21 +96,17 @@ export function ComposerTextModal({
             className={`composer-modal-tab${tab === "preview" ? " on" : ""}`}
             onClick={() => setTab("preview")}
           >
-            Aperçu
+            {t.composer.modal.tabPreview}
           </button>
           {liveCount > 0 && (
             <span className="protected-pill sm">
               <ShieldIcon size={12} />
-              {liveCount} à redact
+              {t.composer.modal.toMask(liveCount)}
             </span>
           )}
         </div>
         {mirrorOff && tab === "edit" && (
-          <p className="composer-modal-note">
-            Surlignage en direct suspendu au-delà de {MIRROR_MAX_CHARS.toLocaleString("fr-FR")}{" "}
-            caractères (pour garder la frappe fluide) — la détection et la protection à
-            l'envoi restent inchangées, les étiquettes ci-dessous restent actives.
-          </p>
+          <p className="composer-modal-note">{t.composer.modal.mirrorOff(MIRROR_MAX_CHARS)}</p>
         )}
         {tab === "edit" ? (
           <div className="composer-modal-editor">
@@ -136,7 +131,7 @@ export function ComposerTextModal({
         )}
         <div className="composer-modal-foot">
           <button type="button" className="btn-primary" onClick={onClose}>
-            Terminé
+            {t.composer.modal.done}
           </button>
         </div>
         {markMenu && (

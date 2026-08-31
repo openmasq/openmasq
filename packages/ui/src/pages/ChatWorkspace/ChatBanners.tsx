@@ -1,4 +1,5 @@
 import { Banner } from "../../components/feedback/Banner";
+import { useT } from "../../i18n";
 
 /**
  * The bottom banner stack — full-bleed feedback above the composer. SEND failures
@@ -14,12 +15,13 @@ export function ChatBanners({
   attachWarning: string | null;
   onDismissAttachWarning: () => void;
 }) {
+  const t = useT();
   if (!attachWarning) return null;
   return (
     <div className="kb-stack">
       <Banner
         tone="warning"
-        title="Pièce jointe ignorée"
+        title={t.cards.banners.attachmentIgnored}
         message={attachWarning}
         onClose={onDismissAttachWarning}
       />

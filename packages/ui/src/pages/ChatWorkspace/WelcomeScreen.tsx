@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useT } from "../../i18n";
 import { EmptyPromptSuggestions } from "./EmptyPromptSuggestions";
 
 /**
@@ -29,6 +30,7 @@ export function WelcomeScreen({
   /** Absent ⇒ les amorces ne peuvent ni se masquer ni revenir (aucun réglage à écrire). */
   onSetStartersOff?: (off: boolean) => void;
 }) {
+  const t = useT();
   return (
     <div className="welcome">
       <h1 className="cv-display">{greeting}</h1>
@@ -36,7 +38,7 @@ export function WelcomeScreen({
           DEFAULT categories actually catch. Names are honest here because the AI set
           defaults ON (catalog.test.ts pins it) with the offline NER as the default
           engine — if that default changes, this sentence changes with it. */}
-      <p>Écrivez librement : noms, e-mails et numéros sont redacted avant d'atteindre le modèle.</p>
+      <p>{t.cards.welcome.subtitle}</p>
       {/* Composer right under the subtitle on home — in the action immediately. */}
       <div className="welcome-composer">{composer}</div>
       {startersOff ? (
@@ -44,7 +46,7 @@ export function WelcomeScreen({
         // endroit. Un lien, pas des cartes — l'écran reste calme.
         onSetStartersOff && (
           <button type="button" className="om-starters-back" onClick={() => onSetStartersOff(false)}>
-            Voir des exemples
+            {t.cards.welcome.seeExamples}
           </button>
         )
       ) : (

@@ -69,7 +69,11 @@ describe("complétude des catalogues (chaque langue livrée est entière)", () =
           if (!v.trim()) empties.push(path);
         } else if (typeof v === "function") {
           // Une entrée à variable : on l'appelle avec un échantillon pour la voir rendre.
-          const out = (v as (x: unknown) => unknown)(1);
+          // AUTANT d'arguments qu'elle en déclare — une entrée à deux trous (« N caractères
+          // · N lignes ») recevait sinon `undefined` en second, et le catalogue jetait
+          // depuis le test censé le vérifier.
+          const sample = Array.from({ length: Math.max(1, v.length) }, () => 1);
+          const out = (v as (...a: unknown[]) => unknown)(...sample);
           if (typeof out === "string" && !out.trim()) empties.push(path);
         } else if (v && typeof v === "object") {
           for (const k of Object.keys(v as Record<string, unknown>))

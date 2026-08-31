@@ -1,5 +1,6 @@
 import { AgentCard, AgentCardDesc, AgentCardTitle, GlyphTile } from "../../components/agent/AgentCard";
 import { ArrowRightIcon, EyeIcon, ShieldIcon } from "../../components/brand";
+import { useT } from "../../i18n";
 
 /**
  * L'encart de TRANSPARENCE — montré UNE FOIS, après la première réponse d'une
@@ -31,12 +32,13 @@ export function TransparencyCard({
   onOpen: () => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   return (
     <AgentCard
       className="transparency-card"
       role="group"
-      ariaLabel="Ce que le modèle a vu"
-      eyebrow="Transparence"
+      ariaLabel={t.cards.transparency.ariaLabel}
+      eyebrow={t.cards.transparency.eyebrow}
       tile={
         <GlyphTile>
           <ShieldIcon size={18} />
@@ -46,26 +48,21 @@ export function TransparencyCard({
         <>
           <span className="agent-card-note">
             <EyeIcon size={13} />
-            <span>Rien à activer : c'est déjà ce qui s'est passé.</span>
+            <span>{t.cards.transparency.note}</span>
           </span>
           <span className="agent-card-spacer" />
           <button className="btn-ghost btn-inline" onClick={onDismiss}>
-            Plus tard
+            {t.cards.transparency.later}
           </button>
           <button className="btn-primary btn-inline" onClick={onOpen}>
-            Voir ce que le modèle a vu <ArrowRightIcon size={14} />
+            {t.cards.transparency.open} <ArrowRightIcon size={14} />
           </button>
         </>
       }
     >
-      <AgentCardTitle>
-        {count} information{count === 1 ? "" : "s"} protégée{count === 1 ? "" : "s"} pendant cet
-        échange
-      </AgentCardTitle>
+      <AgentCardTitle>{t.cards.transparency.title(count)}</AgentCardTitle>
       <AgentCardDesc>
-        {modelName ?? "Le modèle"} n'a jamais reçu ces valeurs : elles ont été remplacées par des
-        pseudonymes avant l'envoi, puis rétablies dans la réponse que vous lisez. Ouvrez le
-        comparatif pour voir votre message et ce qui est réellement parti, côte à côte.
+        {t.cards.transparency.desc(modelName ?? t.cards.transparency.theModel)}
       </AgentCardDesc>
     </AgentCard>
   );

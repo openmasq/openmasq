@@ -85,4 +85,87 @@ export interface ComposerMessages {
   currentLevel: string;
   /** L'étiquette lue du sélecteur de niveau des Réglages. */
   protectionLevel: string;
+
+  /** L'invitation de la zone de saisie. Elle ne REDIT pas la promesse de redaction : le
+   *  sous-titre d'accueil la fait une fois, et dans un fil ce sont les marques sur ce
+   *  qu'on tape qui la démontrent. */
+  placeholder: (brand: string) => string;
+
+  /** La ligne d'intention au-dessus de la saisie : compétence choisie, blancs à combler,
+   *  et l'indice « ceci sera retenu ». */
+  editSkill: string;
+  slotsToFill: string;
+  removeTool: string;
+  memoryHint: string;
+  memoryHintTip: string;
+
+  /** L'avertissement d'UTILITÉ — redact ceci risque de fausser la réponse. Ses deux
+   *  issues : envoyer en clair pour ce message, ou masquer l'avis. */
+  keepInClearTip: string;
+  dismissWarning: string;
+
+  useSkill: string;
+  attachFile: string;
+  stop: string;
+  send: string;
+  /** Le bouton d'envoi MORPHE : envoyer → redaction → redacted. Trois états, trois mots. */
+  redacting: string;
+  redactingAria: string;
+  redacted: string;
+
+  /** Les pastilles de DÉTECTION sous la saisie — chacune bascule « redacted ⇄ en clair ». */
+  detect: {
+    reMask: string;
+    uncertain: string;
+    keepInClear: string;
+    /** Le mot porté par une détection incertaine, à même la pastille. */
+    toVerify: string;
+    showAll: string;
+    more: (count: number) => string;
+    collapseTip: string;
+    collapse: string;
+  };
+
+  /** Le brouillon LONG, replié en carte : on l'édite dans une modale. */
+  longText: {
+    openTip: string;
+    /** Les nombres passent par `Intl` DANS le catalogue — chaque langue connaît la sienne. */
+    summary: (chars: number, lines: number) => string;
+    edit: string;
+  };
+
+  /** La modale d'édition du texte long. */
+  modal: {
+    title: string;
+    sub: string;
+    tabEdit: string;
+    tabPreview: string;
+    toMask: (count: number) => string;
+    /** Au-delà d'un seuil le surlignage en direct se suspend — la protection, elle, non. */
+    mirrorOff: (maxChars: number) => string;
+    done: string;
+  };
+
+  /** Les PIÈCES JOINTES en attente d'envoi. */
+  attachments: {
+    open: string;
+    processing: string;
+    redacting: string;
+    /** « 🛡 3 valeurs » — l'unité compte sur une pastille aussi petite. */
+    values: (count: number) => string;
+    readAllPages: (total: number) => string;
+    readAllPagesTip: (read: number) => string;
+    retryRedaction: string;
+    reRedact: string;
+    reRedactTip: string;
+    remove: string;
+  };
+
+  /** Le DÉPÔT de fichiers sur la fenêtre. */
+  drop: {
+    title: string;
+    sub: string;
+    close: string;
+    folderDialog: string;
+  };
 }

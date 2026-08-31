@@ -25,6 +25,7 @@
  * liste des namespaces ; les tranches de `messages/` n'existent que pour tenir le cap
  * 300 LOC (règle 1), comme `packages/emails/i18n/`.
  */
+import type { CardsMessages } from "./messages/cards";
 import type { ChatMessages, ChromeMessages, ComposerMessages } from "./messages/chrome";
 import type { BillingMessages, CommonMessages, NavMessages } from "./messages/common";
 import type { LanguageMessages } from "./messages/language";
@@ -84,6 +85,7 @@ export interface Messages {
   chat: ChatMessages;
   webNav: WebNavMessages;
   composer: ComposerMessages;
+  cards: CardsMessages;
   menus: MenusMessages;
   privacyLevels: PrivacyLevelsMessages;
   redactTypes: RedactTypesMessages;

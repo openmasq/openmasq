@@ -1,4 +1,5 @@
 import { BRAND } from "@openmasq/branding";
+import { useT } from "../../i18n";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { placeSlashPalette, SLASH_MAX, type SlashPlacement } from "./slashPlacement";
@@ -250,6 +251,7 @@ export function Composer({
    *  préversion sans réglages n'aurait rien où écrire. */
   redactLevel?: RedactLevelApi;
 }) {
+  const t = useT();
   const taRef = useRef<HTMLTextAreaElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const [previewCid, setPreviewCid] = useState<string | null>(null);
@@ -638,7 +640,7 @@ export function Composer({
               type="button"
               className="composer-tag-edit"
               onClick={onEditTag}
-              title="Éditer la compétence"
+              title={t.composer.editSkill}
             >
               {tag.label}
             </button>
@@ -661,10 +663,8 @@ export function Composer({
           {tag.slots && tag.slots.length > 0 && (() => {
             const { shown, hidden } = cappedSlots(tag.slots);
             return (
-              <span className="composer-tag-srvs" title="À préciser dans votre message">
-                {shown.map((s) => (
-                  <span key={s} className="composer-tag-slot">{`{${s}}`}</span>
-                ))}
+              <span className="composer-tag-srvs" title={t.composer.slotsToFill}>
+                {shown.map((s) => <span key={s} className="composer-tag-slot">{`{${s}}`}</span>)}
                 {hidden.length > 0 && (
                   <span className="composer-tag-slot" title={hidden.map((h) => `{${h}}`).join(" ")}>{`+${hidden.length}`}</span>
                 )}
@@ -674,7 +674,7 @@ export function Composer({
           <button
             type="button"
             className="composer-tag-x"
-            aria-label="Retirer l'outil"
+            aria-label={t.composer.removeTool}
             onClick={onClearTag}
           >
             ×
@@ -687,10 +687,10 @@ export function Composer({
       {memoryHint && isExplicitMemoryAsk(input) && (
         <div
           className="composer-tag tone-violet composer-memhint"
-          title="Demande explicite de retenir — le fait durable sera noté dans la Mémoire (local, chiffré)"
+          title={t.composer.memoryHintTip}
         >
           <MemoryIcon size={13} />
-          <span>Sera noté en mémoire</span>
+          <span>{t.composer.memoryHint}</span>
         </div>
       )}
       <div className="composer-input-wrap" ref={inputWrapRef}>
@@ -728,7 +728,7 @@ export function Composer({
                spelling it out again here made the home screen say the same sentence
                twice. In a thread there is no subtitle and none is needed: the marks on
                what you type demonstrate it live, which beats asserting it. */
-            placeholder={`Message à ${BRAND.name}…`}
+            placeholder={t.composer.placeholder(BRAND.name)}
             grow={200}
             onKeyDown={onKeyDown}
             onMouseUp={onTaMouseUp}
@@ -767,15 +767,15 @@ export function Composer({
           <button
             type="button"
             className="utility-risk-keep"
-            title="Envoyer ces valeurs telles quelles pour ce message — le modèle verra les vraies"
+            title={t.composer.keepInClearTip}
             onClick={() => utilRisk.keepInClear(utilRisk.risk!)}
           >
-            Garder en clair
+            {t.menus.markKeep.keep}
           </button>
           <button
             type="button"
             className="utility-risk-dismiss"
-            aria-label="Masquer cet avertissement"
+            aria-label={t.composer.dismissWarning}
             onClick={() => utilRisk.dismiss(utilRisk.risk!.kind)}
           >
             ×
@@ -833,7 +833,7 @@ export function Composer({
                 `aria-label` + its tooltip — an icon-only control is never label-less. */}
             <IconButton
               size="sm"
-              label="Utiliser une compétence"
+              label={t.composer.useSkill}
               active={skillOpen}
               expanded={skillOpen}
               haspopup="menu"
@@ -863,12 +863,12 @@ export function Composer({
           </div>
         )}
         {canAttach && (
-          <IconButton size="sm" label="Joindre un fichier" onClick={onAttach}>
+          <IconButton size="sm" label={t.composer.attachFile} onClick={onAttach}>
             <PaperclipIcon size={18} />
           </IconButton>
         )}
         {isStreaming ? (
-          <button className="send-btn stop" onClick={onStop} aria-label="Arrêter">
+          <button className="send-btn stop" onClick={onStop} aria-label={t.composer.stop}>
             <StopIcon size={16} />
           </button>
         ) : (
@@ -877,7 +877,7 @@ export function Composer({
             className={`send-btn${busy ? " is-busy has-text" : ""}${showDone ? " is-done has-text" : ""}`}
             onClick={onSubmit}
             disabled={sendDisabled}
-            aria-label={busy ? "Redaction en cours" : showDone ? "Redacted" : "Envoyer"}
+            aria-label={busy ? t.composer.redactingAria : showDone ? t.composer.redacted : t.composer.send}
             aria-busy={busy}
             whileTap={sendDisabled ? undefined : { scale: 0.94 }}
             transition={{ type: "spring", stiffness: 520, damping: 34 }}
@@ -897,7 +897,7 @@ export function Composer({
                   transition={{ duration: 0.16 }}
                 >
                   <span className="pill-spin" aria-hidden="true" />
-                  Redaction
+                  {t.composer.redacting}
                 </motion.span>
               ) : showDone ? (
                 <motion.span
@@ -910,7 +910,7 @@ export function Composer({
                   transition={{ duration: 0.16 }}
                 >
                   <CheckIcon size={16} />
-                  Redacted
+                  {t.composer.redacted}
                 </motion.span>
               ) : (
                 <motion.span

@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 // Write-confirmation helpers for the agentic MCP loop's tool gate. Keeps the logic
 // (readable arg summary, the copy, the session allow-list) out of the card (.tsx =
 // presentation).
@@ -261,32 +262,36 @@ export function writeConfirmCopy(
   reason: WriteConfirmReason,
   server: string,
   host: string,
+  t: Messages,
 ): WriteConfirmCopy {
-  const note = "Les valeurs affichées sont vos vraies données — c'est exactement ce qui partira.";
+  const c = t.cards.writeConfirm;
+  // LA phrase la plus lourde des trois cartes : ce qui s'affiche est la VRAIE donnée.
+  // Une seule entrée, partagée — trois formulations en feraient trois promesses.
+  const note = c.note;
   switch (reason) {
     case "nav-exfil":
       return {
-        eyebrow: "Navigation web",
-        title: host ? `Ouvrir ${host} ?` : "Autoriser cette navigation ?",
-        desc: "L'adresse emporte des données de la conversation — vérifiez qu'elles sont attendues.",
+        eyebrow: c.navExfil.eyebrow,
+        title: host ? c.navExfil.title(host) : c.navExfil.titleNoHost,
+        desc: c.navExfil.desc,
         note,
-        confirm: "Ouvrir",
+        confirm: c.navExfil.confirm,
       };
     case "attachments":
       return {
-        eyebrow: "Confirmation requise",
-        title: "Envoyer ces fichiers ?",
-        desc: `Cet envoi via ${server} emporte vos fichiers réels, dans leur version non redacted.`,
+        eyebrow: c.attachments.eyebrow,
+        title: c.attachments.title,
+        desc: c.attachments.desc(server),
         note,
-        confirm: "Envoyer",
+        confirm: c.attachments.confirm,
       };
     default:
       return {
-        eyebrow: "Confirmation requise",
-        title: "Autoriser cette action ?",
-        desc: `L'assistant demande à ${server} d'exécuter l'action ci-dessous. Elle peut créer, modifier ou supprimer des données — vérifiez son contenu avant d'autoriser.`,
+        eyebrow: c.action.eyebrow,
+        title: c.action.title,
+        desc: c.action.desc(server),
         note,
-        confirm: "Autoriser",
+        confirm: c.action.confirm,
       };
   }
 }

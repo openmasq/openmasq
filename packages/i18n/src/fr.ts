@@ -7,6 +7,7 @@
  * tranche se valide déjà pour sa part, donc une clé oubliée nomme SA tranche.
  */
 import type { Messages } from "./messages";
+import { cards } from "./fr/cards";
 import { chat, chrome, composer } from "./fr/chrome";
 import { billing, common, nav } from "./fr/common";
 import { language } from "./fr/language";
@@ -48,6 +49,7 @@ const selfHost = {
 
 export const fr = {
   billing,
+  cards,
   chat,
   chrome,
   common,

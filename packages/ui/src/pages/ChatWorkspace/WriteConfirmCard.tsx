@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n";
 import { ShieldIcon, SendIcon, CheckIcon } from "../../components/brand";
 import { AgentCard, GlyphTile, AgentCardTitle, AgentCardDesc } from "../../components/agent/AgentCard";
 import { describeWriteArgs, writeConfirmCopy, navHostOf } from "./writeConfirm";
@@ -44,7 +45,8 @@ export function WriteConfirmCard({
 }) {
   const [remember, setRemember] = useState(false);
   const { lines, context, json } = describeWriteArgs(args);
-  const copy = writeConfirmCopy(reason, server, navHostOf(args));
+  const t = useT();
+  const copy = writeConfirmCopy(reason, server, navHostOf(args), t);
   // Neutre par défaut : une confirmation n'a pas à crier pour être lue, et la teinte
   // pleine la faisait ressembler à une marque de redaction. Elle ne prend une couleur
   // que quand elle a quelque chose à SIGNALER — la boucle a levé un signal d'exfiltration
@@ -55,7 +57,7 @@ export function WriteConfirmCard({
     <AgentCard
       className="write-confirm-card"
       role="group"
-      ariaLabel="Confirmation d'action"
+      ariaLabel={t.cards.writeConfirm.ariaLabel}
       stripe={flagged ? "var(--amber-500)" : "var(--border-strong)"}
       eyebrow={copy.eyebrow}
       tile={
@@ -71,7 +73,7 @@ export function WriteConfirmCard({
           </span>
           <span className="agent-card-spacer" />
           <button className="btn-ghost btn-inline" onClick={() => onDecision(false, false)}>
-            Annuler
+            {t.cards.writeConfirm.cancel}
           </button>
           {/* La CTA de la marque, pas le rouge du danger : ce bouton AUTORISE ce que
               l'utilisateur a demandé. Le rouge se réserve au destructif (`ConfirmDialog`
@@ -109,7 +111,7 @@ export function WriteConfirmCard({
           vulgarised name there would describe a permission wider than the one granted. */}
       <div className="agent-card-box">
         <div className="agent-card-box-target">
-          <span className="agent-card-box-target-label">Cible</span>
+          <span className="agent-card-box-target-label">{t.cards.writeConfirm.target}</span>
           <span className="agent-card-box-target-val" title={`${server} · ${tool}`}>
             {server} · {humanToolLabel(server, tool)} ({tool})
           </span>
@@ -129,9 +131,7 @@ export function WriteConfirmCard({
           <div className="write-confirm-attachments-head">
             <ShieldIcon size={14} />
             <span>
-              {attachments.length === 1
-                ? "1 fichier de vos données sera joint (envoyé en clair) :"
-                : `${attachments.length} fichiers de vos données seront joints (envoyés en clair) :`}
+              {t.cards.writeConfirm.attachmentsWarning(attachments.length)}
             </span>
           </div>
           <ul className="write-confirm-attachments-list">

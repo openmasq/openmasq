@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n";
 import { FileIcon, ShieldIcon } from "../../components/brand";
 import type { Item } from "./composerDetection";
 import type { longTextStats } from "./composerDetection";
@@ -28,6 +29,7 @@ export function DetectChips({
   keepSet: Set<string>;
   onToggle: (value: string) => void;
 }) {
+  const t = useT();
   const [expanded, setExpanded] = useState(false);
   // Kept (un-redacted) values are NEVER folded away: that decision must stay
   // visible and revertable. The fold only hides still-redacted chips.
@@ -52,16 +54,16 @@ export function DetectChips({
             className={`detect-chip hl-${hue} ${kept ? "kept" : ""}${doubt ? " doubt" : ""}`}
             title={
               kept
-                ? "Redact à nouveau cet élément"
+                ? t.composer.detect.reMask
                 : doubt
-                  ? "Détection incertaine — redacted par défaut. Cliquez pour garder en clair."
-                  : "Garder en clair (ne PAS redact) — envoyé tel quel au modèle"
+                  ? t.composer.detect.uncertain
+                  : t.composer.detect.keepInClear
             }
             onClick={() => onToggle(value)}
           >
             <ShieldIcon size={11} />
             <span className="detect-chip-val">{value}</span>
-            {doubt && <span className="detect-chip-doubt">à vérifier</span>}
+            {doubt && <span className="detect-chip-doubt">{t.composer.detect.toVerify}</span>}
             <span className="detect-chip-x">{kept ? "↺" : "✕"}</span>
           </button>
         );
@@ -70,20 +72,20 @@ export function DetectChips({
         <button
           type="button"
           className="detect-chip detect-more"
-          title="Afficher toutes les détections"
+          title={t.composer.detect.showAll}
           onClick={() => setExpanded(true)}
         >
-          +{hidden} autres
+          {t.composer.detect.more(hidden)}
         </button>
       )}
       {expanded && items.length > CHIP_COLLAPSE_LIMIT && (
         <button
           type="button"
           className="detect-chip detect-more"
-          title="Replier la liste"
+          title={t.composer.detect.collapseTip}
           onClick={() => setExpanded(false)}
         >
-          Réduire
+          {t.composer.detect.collapse}
         </button>
       )}
     </div>
@@ -98,22 +100,22 @@ export function LongTextCard({
   stats: ReturnType<typeof longTextStats>;
   onOpen: () => void;
 }) {
+  const t = useT();
   return (
     <button
       type="button"
       className="composer-longtext"
       onClick={onOpen}
-      title="Ouvrir l'éditeur (texte long)"
+      title={t.composer.longText.openTip}
     >
       <FileIcon size={16} />
       <span className="composer-longtext-body">
         <span className="composer-longtext-title">
-          Texte long — {stats.chars.toLocaleString("fr-FR")} caractères ·{" "}
-          {stats.lines.toLocaleString("fr-FR")} lignes
+          {t.composer.longText.summary(stats.chars, stats.lines)}
         </span>
         {stats.preview && <span className="composer-longtext-preview">{stats.preview}</span>}
       </span>
-      <span className="composer-longtext-cta">Éditer</span>
+      <span className="composer-longtext-cta">{t.composer.longText.edit}</span>
     </button>
   );
 }

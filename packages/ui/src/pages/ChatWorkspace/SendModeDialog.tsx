@@ -1,4 +1,5 @@
 import { ModalShell } from "../../containers/modals/ModalShell";
+import { useT } from "../../i18n";
 
 /**
  * Asked before sending a message that has document attachments: send the
@@ -37,53 +38,45 @@ export function SendModeDialog({
   onSwitchAndFile: () => void;
   onCancel: () => void;
 }) {
+  const t = useT();
   return (
     <ModalShell onClose={onCancel} width="480px">
       <div className="confirm-body">
-        <h2 className="cv-display confirm-title">Envoyer le document</h2>
-        <p className="confirm-text">
-          Comment envoyer {fileCount === 1 ? "ce document" : `ces ${fileCount} documents`} au
-          modèle&nbsp;? Dans les deux cas, seule la version redacted part.
-        </p>
+        <h2 className="cv-display confirm-title">{t.cards.sendMode.title}</h2>
+        <p className="confirm-text">{t.cards.sendMode.question(fileCount)}</p>
       </div>
 
       <div className="sendmode-options">
         <button className="sendmode-opt" onClick={onText}>
           <span className="sendmode-opt-head">
-            <span className="sendmode-opt-title">Texte extrait</span>
-            <span className="sendmode-opt-size">≈ {textTokens} tokens de texte</span>
+            <span className="sendmode-opt-title">{t.cards.sendMode.textOption}</span>
+            <span className="sendmode-opt-size">{t.cards.sendMode.textTokens(textTokens)}</span>
           </span>
-          <span className="sendmode-opt-desc">
-            Le texte du document, redacted — rapide et léger, sans la mise en page.
-          </span>
+          <span className="sendmode-opt-desc">{t.cards.sendMode.textDesc}</span>
         </button>
 
         {modelVision ? (
           <button className="sendmode-opt sendmode-opt--accent" onClick={onFile}>
             <span className="sendmode-opt-head">
-              <span className="sendmode-opt-title">Document redacted (fichier)</span>
+              <span className="sendmode-opt-title">{t.cards.sendMode.fileOption}</span>
               {fileSizeLabel && (
                 <span className={`sendmode-opt-size ${fileTooBig ? "over" : ""}`}>
-                  {fileSizeLabel === "…" ? "calcul…" : `≈ ${fileSizeLabel}`}
+                  {fileSizeLabel === "…" ? t.cards.sendMode.computing : t.cards.sendMode.approx(fileSizeLabel)}
                 </span>
               )}
             </span>
             <span className="sendmode-opt-desc">
-              Les pages redactées en images — garde la mise en page, les tableaux, la structure.
-              {fileTooBig && (
-                <b className="sendmode-opt-warn"> — trop volumineux pour ce modèle, préférez le texte.</b>
-              )}
+              {t.cards.sendMode.fileDesc}
+              {fileTooBig && <b className="sendmode-opt-warn">{t.cards.sendMode.tooBig}</b>}
             </span>
           </button>
         ) : (
           <div className="sendmode-opt sendmode-opt--disabled">
-            <span className="sendmode-opt-title">Document redacted (fichier)</span>
-            <span className="sendmode-opt-desc">
-              ⚠ {modelLabel} ne gère pas l'envoi de fichiers.
-            </span>
+            <span className="sendmode-opt-title">{t.cards.sendMode.fileOption}</span>
+            <span className="sendmode-opt-desc">{t.cards.sendMode.noFiles(modelLabel)}</span>
             {suggestedVisionLabel && (
               <button className="sendmode-switch" onClick={onSwitchAndFile}>
-                Basculer sur {suggestedVisionLabel} et envoyer le fichier
+                {t.cards.sendMode.switchAndSend(suggestedVisionLabel)}
               </button>
             )}
           </div>
@@ -92,7 +85,7 @@ export function SendModeDialog({
 
       <div className="confirm-footer">
         <button className="btn-ghost" onClick={onCancel}>
-          Annuler
+          {t.cards.sendMode.cancel}
         </button>
       </div>
     </ModalShell>

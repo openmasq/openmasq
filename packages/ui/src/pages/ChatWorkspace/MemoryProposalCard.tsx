@@ -1,6 +1,7 @@
 import { BRAND } from "@openmasq/branding";
 import { AgentCard, GlyphTile, AgentCardTitle, AgentCardDesc } from "../../components/agent/AgentCard";
 import { LockIcon, MemoryIcon } from "../../components/brand";
+import { useT } from "../../i18n";
 
 /**
  * The one-time in-chat « activer la mémoire automatique ? » proposal — the same
@@ -18,10 +19,11 @@ export function MemoryProposalCard({
   onActivate: () => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   return (
     <div className="memory-propose">
       <AgentCard
-        eyebrow="Mémoire"
+        eyebrow={t.cards.memoryProposal.eyebrow}
         tile={
           <GlyphTile>
             <MemoryIcon size={18} />
@@ -31,25 +33,20 @@ export function MemoryProposalCard({
           <>
             <span className="agent-card-note">
               <LockIcon size={13} />
-              <span>Local · chiffré · toujours redacted avant d'atteindre un modèle</span>
+              <span>{t.cards.memoryProposal.note}</span>
             </span>
             <span className="agent-card-spacer" />
             <button type="button" className="btn-ghost btn-inline" onClick={onDismiss}>
-              Non merci
+              {t.cards.memoryProposal.decline}
             </button>
             <button type="button" className="btn-primary btn-inline" onClick={onActivate}>
-              Activer
+              {t.cards.memoryProposal.activate}
             </button>
           </>
         }
       >
-        <AgentCardTitle marked>{BRAND.name} peut retenir l'essentiel</AgentCardTitle>
-        <AgentCardDesc>
-          Cette conversation contient des faits durables. Avec la mémoire automatique, {BRAND.name}
-          note seul vos clients, projets et préférences — à partir du texte déjà redacted,
-          rien de nouveau ne quitte votre machine — et les rappelle dans chaque conversation
-          utile. Vous pouvez aussi dire «&nbsp;retiens que…&nbsp;» à tout moment.
-        </AgentCardDesc>
+        <AgentCardTitle marked>{t.cards.memoryProposal.title(BRAND.name)}</AgentCardTitle>
+        <AgentCardDesc>{t.cards.memoryProposal.desc(BRAND.name)}</AgentCardDesc>
       </AgentCard>
     </div>
   );

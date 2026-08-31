@@ -52,4 +52,74 @@ export const composer = {
   redactLevel: "Masking level",
   currentLevel: "Current level",
   protectionLevel: "Protection level",
+
+  placeholder: (brand) => `Message ${brand}…`,
+
+  editSkill: "Edit the skill",
+  slotsToFill: "To fill in inside your message",
+  removeTool: "Remove the tool",
+  memoryHint: "Will be kept in memory",
+  memoryHintTip:
+    "An explicit ask to remember — the durable fact will be noted in Memory (local, encrypted)",
+
+  keepInClearTip: "Send these values as they are for this message — the model sees the real ones",
+  dismissWarning: "Hide this warning",
+
+  useSkill: "Use a skill",
+  attachFile: "Attach a file",
+  stop: "Stop",
+  send: "Send",
+  redacting: "Masking",
+  redactingAria: "Masking in progress",
+  redacted: "Masked",
+
+  detect: {
+    reMask: "Mask this item again",
+    uncertain: "Uncertain detection — masked by default. Click to leave it in clear.",
+    keepInClear: "Leave in clear (do NOT mask) — sent as-is to the model",
+    toVerify: "to check",
+    showAll: "Show every detection",
+    more: (n) => `+${n} more`,
+    collapseTip: "Collapse the list",
+    collapse: "Collapse",
+  },
+
+  longText: {
+    openTip: "Open the editor (long text)",
+    summary: (chars, lines) =>
+      `Long text — ${chars.toLocaleString("en-GB")} characters · ${lines.toLocaleString("en-GB")} lines`,
+    edit: "Edit",
+  },
+
+  modal: {
+    title: "Edit the message",
+    sub: "Long text is edited here — the masking stays visible live; sending happens from the message box.",
+    tabEdit: "Edit",
+    tabPreview: "Preview",
+    toMask: (n) => `${n} to mask`,
+    mirrorOff: (max) =>
+      `Live highlighting is suspended beyond ${max.toLocaleString("en-GB")} characters (to keep typing smooth) — detection and protection at send time are unchanged, and the chips below stay active.`,
+    done: "Done",
+  },
+
+  attachments: {
+    open: "view the file",
+    processing: "file being processed",
+    redacting: "Masking…",
+    values: (n) => `🛡 ${n} value${n > 1 ? "s" : ""}`,
+    readAllPages: (total) => `Read all ${total} pages`,
+    readAllPagesTip: (read) =>
+      `Only the first ${read} pages were read (and therefore masked). Re-read the whole document — a few seconds per page.`,
+    retryRedaction: "Retry the masking",
+    reRedact: "Mask again",
+    reRedactTip: "Mask again (the masking engine changed)",
+    remove: "Remove",
+  },
+
+  drop: {
+    title: "Drop here",
+    sub: "A file is attached to the message; a folder is offered for you to authorise.",
+    close: "Close",
+    folderDialog: "Authorise a folder",
+  },
 } satisfies Messages["composer"];

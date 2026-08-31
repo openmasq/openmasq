@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useT } from "../../i18n";
 import { useHost } from "../../host";
 import type { DeferredFile } from "../../state/deferredFile";
 import { bytesToBase64 } from "../../state/bytes";
@@ -39,6 +40,7 @@ export function DropZone({
   /** No drop while the composer can't take one (a read-only or projected transcript). */
   disabled?: boolean;
 }) {
+  const t = useT();
   const host = useHost();
   const [over, setOver] = useState(false);
   const [offer, setOffer] = useState<DroppedFolder[]>([]);
@@ -148,10 +150,8 @@ export function DropZone({
           <div className="drop-overlay-card">
             <FolderIcon size={22} />
             <div>
-              <div className="drop-overlay-title">Déposez ici</div>
-              <div className="drop-overlay-sub">
-                Un fichier est joint au message ; un dossier vous est proposé à l'autorisation.
-              </div>
+              <div className="drop-overlay-title">{t.composer.drop.title}</div>
+              <div className="drop-overlay-sub">{t.composer.drop.sub}</div>
             </div>
           </div>
         </div>
@@ -164,14 +164,14 @@ export function DropZone({
           </div>
           <div className="drop-offer-actions">
             <button type="button" className="btn-ghost btn-inline" onClick={() => setGrantNotice(null)}>
-              Fermer
+              {t.composer.drop.close}
             </button>
           </div>
         </div>
       )}
 
       {offer.length > 0 && (
-        <div className="drop-offer" role="dialog" aria-label="Autoriser un dossier">
+        <div className="drop-offer" role="dialog" aria-label={t.composer.drop.folderDialog}>
           <div className="drop-offer-body">
             <div className="drop-offer-title">{folderOfferText(offer)}</div>
             <p className="drop-offer-note">{FOLDER_OFFER_NOTE}</p>

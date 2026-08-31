@@ -1,4 +1,5 @@
 import { ArrowRightIcon, ShieldIcon, XIcon } from "../../components/brand";
+import { useT } from "../../i18n";
 
 /**
  * « Comprendre mon redaction » — le petit conteneur sous les premières réponses.
@@ -20,32 +21,31 @@ export function RedactionIntroCard({
   onOpen: () => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   return (
-    <div className="redintro" role="group" aria-label="Comprendre mon redaction">
+    <div className="redintro" role="group" aria-label={t.cards.redactionIntro.ariaLabel}>
       <button type="button" className="redintro-open" onClick={onOpen}>
         <span className="redintro-ic">
           <ShieldIcon size={14} />
         </span>
         <span className="redintro-copy">
-          <span className="redintro-title">Comprendre mon redaction</span>
-          <span className="redintro-sub">
-            Ce qui est masqué, ce qui reste en clair, et pourquoi le compteur peut rester à zéro
-          </span>
+          <span className="redintro-title">{t.cards.redactionIntro.title}</span>
+          <span className="redintro-sub">{t.cards.redactionIntro.sub}</span>
         </span>
         <ArrowRightIcon size={13} />
       </button>
       <button
         type="button"
         className="redintro-close"
-        title="Fermer pour toujours — le chapitre reste dans l'Aide"
-        aria-label="Fermer pour toujours"
+        title={t.cards.redactionIntro.closeTip}
+        aria-label={t.cards.redactionIntro.close}
         onClick={(e) => {
           e.stopPropagation();
           onDismiss();
         }}
       >
         <XIcon size={12} />
-        <span>Fermer pour toujours</span>
+        <span>{t.cards.redactionIntro.close}</span>
       </button>
     </div>
   );
