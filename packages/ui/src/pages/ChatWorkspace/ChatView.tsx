@@ -345,7 +345,7 @@ export function ChatView({
   const { openAvis } = useAvisOpen();
   const openConnector = useOpenConnector();
   const reportRedaction = openAvis
-    ? (surface: "message" | "reponse", kind: string) => openAvis(redactionProblemDraft(surface, kind))
+    ? (surface: "message" | "reponse", kind: string) => openAvis(redactionProblemDraft(surface, t, kind))
     : undefined;
   const redactAsync = useRedaction();
   /**
@@ -557,7 +557,7 @@ export function ChatView({
   // "Préciser": quote the selection into the composer + tag the send.
   const onPreciserSelection = () => {
     if (!sel) return;
-    setActiveTag({ tag: "preciser", label: "Préciser", tone: "forest" });
+    setActiveTag({ tag: "preciser", label: t.conversation.clarify, tone: "forest" });
     const quote = `« ${sel.text} »`;
     handleInput(input ? `${input}\n\n${quote}` : quote);
     dropSelection();

@@ -75,6 +75,14 @@ export const modals = {
     attachContextSub:
       "App version, current screen and install identifier. Never the content of your conversations.",
     attachJournal: "Attach the debug log",
+    inDocument: "in a document",
+    inReply: "in a reply",
+    inMessage: "in a message",
+    problemKind: (kind) => ` (kind: ${kind})`,
+    problemBody: (where, kind) =>
+      `Incorrect redaction${kind} ${where}.\nWhat went wrong (without pasting the real value): `,
+    journalDraft: "Report from the debug journal.\nWhat went wrong: ",
+    replyDraft: "About this reply: ",
     attachJournalSub:
       "The text that went to the model (already redacted), the tools and the errors — without the lookup table, so no real value. Preview below.",
     confidential: "Confidential",
@@ -99,6 +107,7 @@ export const modals = {
     keyLabel: (provider) => `${provider} key`,
     getOne: "get one ↗",
     removeKey: "Remove the key",
+    keyPlaceholderFallback: (provider) => `Your ${provider} key`,
   },
 
   debug: {
@@ -122,6 +131,7 @@ export const modals = {
       "Opens “Your feedback” with the journal attached WITHOUT the mapping — you see it before it is sent",
     sendToDevs: "Send to the devs",
     copyEntry: "Copy this entry",
+    tabs: { all: "All", phase: "Steps", wire: "Wire", turn: "Exchanges", tool: "Tools", error: "Errors" },
   },
 
   guide: {

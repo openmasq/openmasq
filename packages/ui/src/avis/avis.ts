@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 /**
  * The AVIS payload + its pure rules — "Votre avis" (the rail's speech-bubble
  * action): the user telling US something. React-free and unit-tested; the modal
@@ -143,15 +144,16 @@ export type RedactionProblemSurface = "message" | "reponse" | "document";
  */
 export function redactionProblemDraft(
   surface: RedactionProblemSurface,
+  t: Messages,
   kindLabel?: string,
 ): FeedbackDraft {
+  const a = t.modals.avis;
   const where =
-    surface === "document" ? "dans un document" : surface === "reponse" ? "dans une réponse" : "dans un message";
-  const kind = kindLabel ? ` (type : ${kindLabel})` : "";
+    surface === "document" ? a.inDocument : surface === "reponse" ? a.inReply : a.inMessage;
   return {
     ...EMPTY_FEEDBACK,
     category: "bug",
-    message: `Redaction incorrect${kind} ${where}.\nCe qui n'allait pas (sans coller la valeur réelle) : `,
+    message: a.problemBody(where, kindLabel ? a.problemKind(kindLabel) : ""),
   };
 }
 
@@ -173,11 +175,11 @@ export function capJournal(journal: string): string {
  * redacted→réel pairs. It is truncated tail-first here so the modal previews
  * EXACTLY what would be sent. `mood` stays null (sentiment is the user's to pick).
  */
-export function debugJournalDraft(journal: string): FeedbackDraft {
+export function debugJournalDraft(journal: string, t: Messages): FeedbackDraft {
   return {
     ...EMPTY_FEEDBACK,
     category: "bug",
-    message: "Rapport depuis le journal de débogage.\nCe qui n'allait pas : ",
+    message: t.modals.avis.journalDraft,
     journal: capJournal(journal),
     attachJournal: true,
   };
@@ -200,12 +202,12 @@ export function debugJournalDraft(journal: string): FeedbackDraft {
  * conversation reaches the payload beyond what the journal already carries — and the
  * modal shows that verbatim before anything is sent.
  */
-export function messageFeedbackDraft(journal?: string): FeedbackDraft {
+export function messageFeedbackDraft(t: Messages, journal?: string): FeedbackDraft {
   const attached = capJournal(journal ?? "");
   return {
     ...EMPTY_FEEDBACK,
     category: attached ? "bug" : EMPTY_FEEDBACK.category,
-    message: "À propos de cette réponse : ",
+    message: t.modals.avis.replyDraft,
     ...(attached ? { journal: attached, attachJournal: true } : {}),
   };
 }

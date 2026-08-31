@@ -154,25 +154,25 @@ describe("vocabularies", () => {
 
 describe("redactionProblemDraft", () => {
   it("prefills a bug draft phrased for the surface + kind, mood left to the user", () => {
-    const d = redactionProblemDraft("document", "e-mail");
+    const d = redactionProblemDraft("document", fr, "e-mail");
     expect(d.category).toBe("bug");
     expect(d.mood).toBeNull(); // sentiment is never prefilled
     expect(d.message).toContain("dans un document");
     expect(d.message).toContain("(type : e-mail)");
     // The template warns against pasting the real value (the privacy promise).
     expect(d.message).toContain("sans coller la valeur réelle");
-    expect(redactionProblemDraft("reponse").message).toContain("dans une réponse");
-    expect(redactionProblemDraft("message").message).not.toContain("type :");
+    expect(redactionProblemDraft("reponse", fr).message).toContain("dans une réponse");
+    expect(redactionProblemDraft("message", fr).message).not.toContain("type :");
   });
 
   it("is NOT sendable as-is — the user must still pick a mood", () => {
-    expect(canSendFeedback(redactionProblemDraft("message"))).toBe(false);
+    expect(canSendFeedback(redactionProblemDraft("message", fr))).toBe(false);
   });
 });
 
 describe("debugJournalDraft", () => {
   it("prefills a bug draft with the journal attached (toggle ON), mood left to the user", () => {
-    const d = debugJournalDraft("redact → gpt\nBonjour [PERSON1]");
+    const d = debugJournalDraft("redact → gpt\nBonjour [PERSON1]", fr);
     expect(d.category).toBe("bug");
     expect(d.mood).toBeNull();
     expect(d.attachJournal).toBe(true);
@@ -184,7 +184,7 @@ describe("debugJournalDraft", () => {
   });
 
   it("truncates tail-first at the cap so the PREVIEW equals what would be sent", () => {
-    const d = debugJournalDraft("a".repeat(MAX_AVIS_JOURNAL + 50) + "RECENT");
+    const d = debugJournalDraft("a".repeat(MAX_AVIS_JOURNAL + 50) + "RECENT", fr);
     expect(d.journal).toHaveLength(MAX_AVIS_JOURNAL);
     expect(d.journal?.endsWith("RECENT")).toBe(true);
   });
@@ -192,7 +192,7 @@ describe("debugJournalDraft", () => {
 
 describe("messageFeedbackDraft — the action-row button", () => {
   it("arrives ready to send: journal attached, Bug, no mood needed", () => {
-    const d = messageFeedbackDraft("redact → gpt\nBonjour [PERSON1]");
+    const d = messageFeedbackDraft(fr, "redact → gpt\nBonjour [PERSON1]");
     expect(d.category).toBe("bug");
     expect(d.mood).toBeNull();
     expect(d.attachJournal).toBe(true);
@@ -201,7 +201,7 @@ describe("messageFeedbackDraft — the action-row button", () => {
 
   it("still opens WITHOUT a journal (debug mode off) — it just isn't a bug report", () => {
     // The button must never tell a user to go enable a setting before they can speak.
-    const d = messageFeedbackDraft("");
+    const d = messageFeedbackDraft(fr, "");
     expect(d.journal).toBeUndefined();
     expect(d.attachJournal).toBeUndefined();
     expect(d.category).toBe(EMPTY_FEEDBACK.category);
@@ -211,12 +211,12 @@ describe("messageFeedbackDraft — the action-row button", () => {
   });
 
   it("never quotes the reply — only names it", () => {
-    const d = messageFeedbackDraft("wire…");
+    const d = messageFeedbackDraft(fr, "wire…");
     expect(d.message).toBe("À propos de cette réponse : ");
   });
 
   it("caps an over-long journal tail-first, like every other entry point", () => {
-    const d = messageFeedbackDraft("a".repeat(MAX_AVIS_JOURNAL + 50) + "RECENT");
+    const d = messageFeedbackDraft(fr, "a".repeat(MAX_AVIS_JOURNAL + 50) + "RECENT");
     expect(d.journal).toHaveLength(MAX_AVIS_JOURNAL);
     expect(d.journal?.endsWith("RECENT")).toBe(true);
   });

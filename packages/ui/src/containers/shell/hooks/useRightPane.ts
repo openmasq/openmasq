@@ -22,6 +22,7 @@ import type { Artifact, ArtifactApi } from "../../providers/artifact";
 import type { LinkOpenApi } from "../../providers/linkOpen";
 import type { FileOpenApi } from "../../providers/fileOpen";
 import type { RailBrowserTab } from "../RightRail";
+import { useT } from "../../../i18n";
 
 export type RightPane = {
   items: PanelItem[];
@@ -52,6 +53,7 @@ export type RightPane = {
  * read the same values.
  */
 export function useRightPane({ chat, section }: { chat: ChatStore; section: Section }): RightPane {
+  const t = useT();
   const dispatch = useAppDispatch();
   const host = useHost();
   const panel = useAppSelector((s) => s.panel);
@@ -141,7 +143,7 @@ export function useRightPane({ chat, section }: { chat: ChatStore; section: Sect
           favicon: t.favicon,
           agent: t.agent,
         }))
-      : browserItems.map(() => ({ id: "browser", label: "Navigateur" }));
+      : browserItems.map(() => ({ id: "browser", label: t.conversation.browser.pane }));
   const activeWebTab = !hasBrowser ? null : (webTabs.find((t) => t.active)?.id ?? "browser");
 
   return {

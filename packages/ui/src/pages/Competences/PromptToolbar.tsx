@@ -9,14 +9,15 @@ import { useT } from "../../i18n";
  * otherwise blur the textarea first, dropping the selection the mark is supposed to
  * wrap — the toolbar would format nothing.
  */
-const MARKS: { id: PromptMark; label: string; title: string; cls?: string }[] = [
-  { id: "bold", label: "B", title: "Gras", cls: "b" },
-  { id: "italic", label: "I", title: "Italique", cls: "i" },
-  { id: "heading", label: "H", title: "Titre" },
-  { id: "quote", label: "❝", title: "Citation" },
-  { id: "bullet", label: "•", title: "Liste à puces" },
-  { id: "ordered", label: "1.", title: "Liste numérotée" },
-  { id: "code", label: "</>", title: "Code", cls: "code" },
+/** Le GLYPHE de chaque bouton (il ne se traduit pas) ; son nom vient du catalogue. */
+const MARKS: { id: PromptMark; label: string; cls?: string }[] = [
+  { id: "bold", label: "B", cls: "b" },
+  { id: "italic", label: "I", cls: "i" },
+  { id: "heading", label: "H" },
+  { id: "quote", label: "❝" },
+  { id: "bullet", label: "•" },
+  { id: "ordered", label: "1." },
+  { id: "code", label: "</>", cls: "code" },
 ];
 
 export function PromptToolbar({ onMark }: { onMark: (m: PromptMark) => void }) {
@@ -28,8 +29,8 @@ export function PromptToolbar({ onMark }: { onMark: (m: PromptMark) => void }) {
           key={m.id}
           type="button"
           className={`om-skill-tool${m.cls ? ` ${m.cls}` : ""}`}
-          title={m.title}
-          aria-label={m.title}
+          title={t.lists.marks[m.id]}
+          aria-label={t.lists.marks[m.id]}
           onMouseDown={(e) => {
             e.preventDefault();
             onMark(m.id);

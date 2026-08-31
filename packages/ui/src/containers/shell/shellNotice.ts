@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { BannerTone } from "../../components/feedback/bannerTones";
 import type { McpReconnectItem } from "../../hooks/useMcpReconnect";
 import { BRAND } from "@openmasq/branding";
@@ -24,16 +25,19 @@ export interface ShellNotice {
   dismissible: boolean;
 }
 
-export function pickShellNotice(input: {
-  reconnecting: boolean;
-  mcpItems: McpReconnectItem[];
-  showAccess: boolean;
-}): ShellNotice | null {
+export function pickShellNotice(
+  input: {
+    reconnecting: boolean;
+    mcpItems: McpReconnectItem[];
+    showAccess: boolean;
+  },
+  t: Messages,
+): ShellNotice | null {
   if (input.reconnecting) {
     return {
       kind: "offline",
       tone: "warning",
-      title: "Hors ligne",
+      title: t.leaves.offline,
       message:
         `Connexion à ${BRAND.name} perdue. Vos conversations restent accessibles — reconnexion automatique en cours…`,
       dismissible: false,
@@ -60,7 +64,7 @@ export function pickShellNotice(input: {
     return {
       kind: "access",
       tone: "info",
-      title: "Vous utilisez les modèles gratuits",
+      title: t.leaves.freeModelsNotice,
       message: subscriptionsSold()
         ? `Pour ouvrir tout le catalogue : un abonnement ${BRAND.name}, ou votre propre clé chez un fournisseur.`
         : "Pour ouvrir tout le catalogue : votre propre clé chez un fournisseur.",

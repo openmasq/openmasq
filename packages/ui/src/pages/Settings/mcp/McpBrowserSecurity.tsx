@@ -73,6 +73,8 @@ export function McpBrowserSecurity({
               value={domainsText}
               spellCheck={false}
               rows={3}
+              // Des exemples de DOMAINES, pas une phrase : ils se lisent pareil dans toutes les
+              // langues, et les traduire donnerait un faux « exemple.fr » par langue.
               placeholder={"github.com\nnotion.so\nmon-crm.exemple.fr"}
               onChange={(e) => setDomainsText(e.target.value)}
               onBlur={(e) => commitDomains(e.target.value)}

@@ -27,6 +27,17 @@ export const chrome = {
   deleteConversationBody: (title) =>
     `“${title}” and all of its messages will be deleted from this device. This cannot be undone.`,
   untitledConversation: "New conversation",
+  groups: {
+    today: "Today",
+    yesterday: "Yesterday",
+    last7: "Last 7 days",
+    last30: "Last 30 days",
+  },
+  justNow: "just now",
+  help: "Help",
+  helpTip: (brand) => `Help — getting started with ${brand}`,
+  sendFeedback: "Send feedback",
+  releaseKinds: { feat: "What's new", imp: "Improvements", fix: "Fixes" },
 } satisfies Messages["chrome"];
 
 export const chat = {
@@ -74,6 +85,12 @@ export const composer = {
   redacted: "Masked",
 
   detect: {
+    partialNone: "analysis incomplete",
+    partialNoneHint:
+      "The deep analysis could not finish on this text. Sending runs it again in full — nothing leaves unanalysed.",
+    partialCount: (n) => `at least ${n} to redact`,
+    partialCountHint:
+      "The count is partial: the deep analysis could not finish on a text this size. Sending runs it again in full, with more time — so there will be at least this many.",
     reMask: "Mask this item again",
     uncertain: "Uncertain detection — masked by default. Click to leave it in clear.",
     keepInClear: "Leave in clear (do NOT mask) — sent as-is to the model",

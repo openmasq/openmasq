@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import type { Conversation } from "../types";
 import { groupConversationsByDate } from "./conversationGroups";
@@ -11,6 +12,8 @@ function conv(id: string, updatedAt: number): Conversation {
   return { id, title: id, modelId: "m", messages: [], createdAt: updatedAt, updatedAt };
 }
 
+const fr = getMessages("fr");
+
 describe("groupConversationsByDate", () => {
   it("buckets into today / yesterday / 7d / 30d / month", () => {
     const convs = [
@@ -21,7 +24,7 @@ describe("groupConversationsByDate", () => {
       conv("tenDays", NOW - 10 * DAY),
       conv("old", NOW - 120 * DAY), // ~4 months back
     ];
-    const groups = groupConversationsByDate(convs, NOW);
+    const groups = groupConversationsByDate(convs, fr, NOW);
     const byLabel = Object.fromEntries(
       groups.map((g) => [g.label, g.items.map((c) => c.id)]),
     );
@@ -37,14 +40,15 @@ describe("groupConversationsByDate", () => {
   it("preserves input order and returns groups most-recent first", () => {
     const groups = groupConversationsByDate(
       [conv("a", NOW - 10 * DAY), conv("b", NOW - 60_000), conv("c", NOW - 1 * DAY)],
+      fr,
       NOW,
     );
     expect(groups.map((g) => g.key)).toEqual(["30d", "today", "yesterday"]);
   });
 
   it("omits empty groups and handles an empty input", () => {
-    expect(groupConversationsByDate([], NOW)).toEqual([]);
-    const groups = groupConversationsByDate([conv("t", NOW - 60_000)], NOW);
+    expect(groupConversationsByDate([], fr, NOW)).toEqual([]);
+    const groups = groupConversationsByDate([conv("t", NOW - 60_000)], fr, NOW);
     expect(groups).toHaveLength(1);
     expect(groups[0].label).toBe("Aujourd'hui");
   });
@@ -52,6 +56,7 @@ describe("groupConversationsByDate", () => {
   it("treats the 7-day boundary as inclusive, 8 days as 30-day bucket", () => {
     const groups = groupConversationsByDate(
       [conv("seven", NOW - 7 * DAY), conv("eight", NOW - 8 * DAY)],
+      fr,
       NOW,
     );
     expect(groups.find((g) => g.key === "7d")?.items.map((c) => c.id)).toEqual(["seven"]);

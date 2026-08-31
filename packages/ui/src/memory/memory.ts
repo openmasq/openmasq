@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import { isCjkText, isGenericTerm, isStopword } from "@openmasq/redact";
 import type { MemoryCard, MemoryCategory, MemoryData } from "../types";
 
@@ -14,16 +15,23 @@ import type { MemoryCard, MemoryCategory, MemoryData } from "../types";
  * which entities are relevant. See `send`'s injection + the loop's `memory_search`.
  */
 
-/** Category vocabulary. `id` persists; label/tone are presentation (`--hl-*` hues). */
-export const MEMORY_CATEGORIES: { id: MemoryCategory; label: string; tone: string }[] = [
-  { id: "personne", label: "Personne", tone: "violet" },
-  { id: "organisation", label: "Organisation", tone: "sky" },
-  { id: "projet", label: "Projet", tone: "lime" },
-  { id: "autre", label: "Autre", tone: "amber" },
+/** Category vocabulary. `id` persists; tone is presentation (`--hl-*` hues). Le MOT
+ *  vient du catalogue : `memoryCategoryLabel(id, t)`. */
+export const MEMORY_CATEGORIES: { id: MemoryCategory; tone: string }[] = [
+  { id: "personne", tone: "violet" },
+  { id: "organisation", tone: "sky" },
+  { id: "projet", tone: "lime" },
+  { id: "autre", tone: "amber" },
 ];
 
 export function memoryCategory(id: string): (typeof MEMORY_CATEGORIES)[number] {
   return MEMORY_CATEGORIES.find((c) => c.id === id) ?? MEMORY_CATEGORIES[3];
+}
+
+/** Le nom d'une catégorie, dans la langue de `t`. ⚠️ Le bloc de mémoire INJECTÉ, lui,
+ *  est de la prose pour le MODÈLE : il prend la langue source (`select.ts`). */
+export function memoryCategoryLabel(id: string, t: Messages): string {
+  return t.lists.memory.categories[memoryCategory(id).id];
 }
 
 /** Bounds — memory COMPACTS over time (facts merge into the card), it never grows a

@@ -5,6 +5,10 @@
 import type { Messages } from "../messages";
 
 export const login = {
+  heading: "Content de vous revoir.",
+  subheading:
+    "Entrez votre e-mail : nous vous envoyons un lien de connexion, sans mot de passe.",
+  checkYourEmail: "Consultez vos e-mails",
   passwordlessStrip: "SANS MOT DE PASSE · LIEN ENVOYÉ PAR E-MAIL",
   offline:
     "Vous êtes hors ligne. La connexion nécessite un accès réseau — vérifiez votre connexion, puis réessayez.",
@@ -97,6 +101,9 @@ export const modelPicker = {
   none: "Aucun modèle",
   models: "Modèles",
   allModels: "Tous les modèles",
+  sectionDefault: "Par défaut",
+  sectionFavorites: "Favoris",
+  sectionCurrent: "Modèle en cours",
   freeTip:
     "Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus.",
   howToUse: "Comment utiliser ce modèle ?",
@@ -142,6 +149,10 @@ export const leaves = {
     local: "en local",
     alwaysOn: "Session & sécurité — toujours actifs",
     usageStats: "Statistiques d'usage",
+    essentials: "Essentiels",
+    disable: "Désactiver",
+    statsOn: "Actives — compteurs et écrans visités, sans contenu.",
+    statsOff: "Désactivées — plus aucune statistique n'est envoyée.",
   },
   privacyLevels: {
     custom: "Sur mesure",
@@ -150,6 +161,15 @@ export const leaves = {
   },
   demo: { youWrite: "CE QUE VOUS ÉCRIVEZ", modelReceives: "CE QUE LE MODÈLE REÇOIT" },
   toolTrace: "APPEL D'OUTILS",
+  conversations: "Conversations",
+  offline: "Hors ligne",
+  freeModelsNotice: "Vous utilisez les modèles gratuits",
+  viewGrid: "Affichage en grille",
+  viewList: "Affichage en liste",
+  hide: "Masquer",
+  display: "Affichage",
+  resize: "Redimensionner",
+  loading: "Chargement",
   errorBoundary: {
     title: "Une erreur est survenue",
     body: "Un problème inattendu est survenu. Vos données, enregistrées sur votre ordinateur, sont intactes.",

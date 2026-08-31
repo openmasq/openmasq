@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import { buildMemoryGraph, crossLinks, neighborsOf } from "./graph";
 import type { MemoryData } from "../types";
@@ -11,9 +12,11 @@ const MEM: MemoryData = {
   ],
 };
 
+const fr = getMessages("fr");
+
 describe("buildMemoryGraph — the kit layout over real data", () => {
   it("core + one hub per NON-EMPTY category (+ profil) + one leaf per card", () => {
-    const g = buildMemoryGraph(MEM);
+    const g = buildMemoryGraph(MEM, fr);
     const kinds = g.nodes.map((n) => n.kind);
     expect(kinds.filter((k) => k === "core")).toHaveLength(1);
     expect(kinds.filter((k) => k === "hub")).toHaveLength(4); // profil + personne + organisation + projet
@@ -24,18 +27,18 @@ describe("buildMemoryGraph — the kit layout over real data", () => {
 
   it("draws the REAL cross-link: Augustin's facts mention Karl Studio", () => {
     expect(crossLinks(MEM.cards)).toEqual([["a", "b"]]);
-    const g = buildMemoryGraph(MEM);
+    const g = buildMemoryGraph(MEM, fr);
     expect(g.edges.some((e) => e.cross && e.source === "card-a" && e.target === "card-b")).toBe(true);
     // …and the selection neighbourhood follows it.
     expect(neighborsOf("card-a", g.edges).has("card-b")).toBe(true);
   });
 
   it("deterministic: same store, same picture (positions included)", () => {
-    expect(buildMemoryGraph(MEM)).toEqual(buildMemoryGraph(MEM));
+    expect(buildMemoryGraph(MEM, fr)).toEqual(buildMemoryGraph(MEM, fr));
   });
 
   it("an empty memory is just the core node", () => {
-    const g = buildMemoryGraph({ cards: [] });
+    const g = buildMemoryGraph({ cards: [] }, fr);
     expect(g.nodes).toHaveLength(1);
     expect(g.edges).toHaveLength(0);
   });

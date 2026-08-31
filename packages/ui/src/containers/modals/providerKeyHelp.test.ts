@@ -60,7 +60,7 @@ describe("providerKeyIssue — ce qui se voit à la saisie", () => {
       const help = providerKeyHelp(provider, tt)!;
       expect(help.steps?.length, provider).toBeGreaterThan(2);
       expect(help.note?.trim(), provider).not.toBe("");
-      if (!help.prefix) continue;
+      if (!help.prefix || !help.placeholder) continue;
       expect(help.placeholder.startsWith(help.prefix), provider).toBe(true);
     }
   });

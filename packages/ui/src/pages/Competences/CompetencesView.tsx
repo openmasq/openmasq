@@ -11,7 +11,8 @@ import {
 import { ImportSkillsModal, type SkillImportChoice } from "../../containers/modals";
 import { useHost } from "../../host";
 import {
-  COMPETENCE_CATEGORIES,
+  competenceCategories,
+  competenceCategory,
   competenceCounts,
   filterCompetences,
 } from "../../competences/competences";
@@ -123,10 +124,10 @@ export function CompetencesView({
   // filter is a dead end.
   const chips = useMemo(
     () => [
-      { id: "all", label: "Toutes" },
-      ...COMPETENCE_CATEGORIES.filter((c) => counts[c.id]),
+      { id: "all", label: t.lists.allFeminine },
+      ...competenceCategories(t).filter((c) => counts[c.id]),
     ],
-    [counts],
+    [counts, t],
   );
 
   const save = (d: CompetenceDraft) => {
@@ -194,7 +195,7 @@ export function CompetencesView({
                 eyebrow={
                   cat === "all"
                     ? t.lists.competences.noMatch.search
-                    : `${t.lists.competences.noMatch.category} · ${COMPETENCE_CATEGORIES.find((c) => c.id === cat)?.label ?? cat}`
+                    : `${t.lists.competences.noMatch.category} · ${competenceCategory(cat, t).label}`
                 }
                 icon={<SearchIcon size={26} />}
                 title={t.lists.competences.noMatch.title}

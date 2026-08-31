@@ -1,5 +1,6 @@
 import { BRAND_RING, BRAND_BAR } from "./BrandMark";
 
+import { useT } from "../../../i18n";
 /**
  * Animated brand mark for loading states: the ring holds still, ghosted, while
  * the redaction bar sweeps across it and back — the redaction being applied,
@@ -25,6 +26,7 @@ export function BrandLoader({
   /** Paint the mark in the strong ink (the black logo) rather than inheriting. */
   mono?: boolean;
 }) {
+  const t = useT();
   const classes = ["om-loader", mono ? "mono" : "", className].filter(Boolean).join(" ");
   return (
     <svg
@@ -34,7 +36,7 @@ export function BrandLoader({
       fill="currentColor"
       className={classes}
       role="img"
-      aria-label="Chargement"
+      aria-label={t.leaves.loading}
     >
       <path fillRule="evenodd" clipRule="evenodd" d={BRAND_RING} className="om-loader-ring" />
       <rect {...BRAND_BAR} className="om-loader-bar" />

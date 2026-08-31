@@ -39,7 +39,7 @@ export function CompetenceRow({
   onShare?: () => void;
 }) {
   const t = useT();
-  const cat = competenceCategory(competence.cat);
+  const cat = competenceCategory(competence.cat, t);
   const name = competence.name || "Sans titre";
   const stop = (e: MouseEvent, run: () => void) => {
     e.stopPropagation();

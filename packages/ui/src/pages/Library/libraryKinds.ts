@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 /**
  * Library file classification + display helpers (pure). Buckets a stored file into
  * one of the design's category tabs (Images / Documents / Tableurs / Audio) from its
@@ -25,14 +26,12 @@ export function libKindOf(mime: string, name: string): LibKind {
  *  folders are browsed from the right rail, never copied here. */
 export type LibTab = "all" | LibKind;
 
-/** The category tabs, in the design's order. */
-export const LIB_TABS: { id: "all" | LibKind; label: string }[] = [
-  { id: "all", label: "Tout" },
-  { id: "image", label: "Images" },
-  { id: "document", label: "Documents" },
-  { id: "sheet", label: "Tableurs" },
-  { id: "audio", label: "Audio" },
-];
+/** The category tabs, in the design's order — les MOTS viennent du catalogue. */
+export const LIB_TAB_IDS: readonly ("all" | LibKind)[] = ["all", "image", "document", "sheet", "audio"];
+
+export function libTabs(t: Messages): { id: "all" | LibKind; label: string }[] {
+  return LIB_TAB_IDS.map((id) => ({ id, label: t.lists.libraryTabs[id] }));
+}
 
 /** Uppercase extension chip (PDF / XLS / DOC…), capped to 4 chars. Implemented one tier
  *  down (`state/localFsPaths.ts`) since the right rail's folder tree labels files the same

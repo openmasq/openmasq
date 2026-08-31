@@ -44,6 +44,16 @@ export interface ChromeMessages {
   deleteConversationBody: (title: string) => string;
   /** Le titre de repli d'une conversation qui n'en a pas encore. */
   untitledConversation: string;
+  /** Les tranches de temps de la liste des conversations. */
+  groups: { today: string; yesterday: string; last7: string; last30: string };
+  /** L'heure relative d'une ligne de conversation — le reste est de l'`Intl`. */
+  justNow: string;
+  /** Le pied du rail droit. */
+  help: string;
+  helpTip: (brand: string) => string;
+  sendFeedback: string;
+  /** Les trois familles d'une note de version. */
+  releaseKinds: { feat: string; imp: string; fix: string };
 }
 
 /**
@@ -115,6 +125,11 @@ export interface ComposerMessages {
 
   /** Les pastilles de DÉTECTION sous la saisie — chacune bascule « redacted ⇄ en clair ». */
   detect: {
+    /** L'analyse approfondie a ABANDONNÉ : le dire, et dire que l'envoi la refait. */
+    partialNone: string;
+    partialNoneHint: string;
+    partialCount: (count: number) => string;
+    partialCountHint: string;
     reMask: string;
     uncertain: string;
     keepInClear: string;

@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { Conversation } from "../types";
 
 /** One date bucket of conversations, ordered most-recent first. */
@@ -17,8 +18,8 @@ function startOfDay(ts: number): number {
 }
 
 /** "mars 2026" → "Mars 2026". */
-function monthLabel(ts: number): string {
-  const s = new Date(ts).toLocaleDateString("fr-FR", {
+function monthLabel(ts: number, t: Messages): string {
+  const s = new Date(ts).toLocaleDateString(t.common.intlTag, {
     month: "long",
     year: "numeric",
   });
@@ -27,18 +28,18 @@ function monthLabel(ts: number): string {
 
 /** Compact relative time for a conversation row, e.g. "3m", "2h", "Hier", "lun.".
  *  Shared by the desktop `Sidebar` and the mobile chat list. */
-export function relTime(ts: number): string {
+export function relTime(ts: number, t: Messages): string {
   const diff = Date.now() - ts;
   const min = diff / 60000;
-  if (min < 1) return "à l'instant";
+  if (min < 1) return t.chrome.justNow;
   if (min < 60) return `${Math.round(min)}m`;
   const h = min / 60;
   if (h < 24) return `${Math.round(h)}h`;
   const d = h / 24;
-  if (d < 2) return "Hier";
+  if (d < 2) return t.chrome.groups.yesterday;
   if (d < 7)
-    return new Date(ts).toLocaleDateString(undefined, { weekday: "short" });
-  return new Date(ts).toLocaleDateString(undefined, {
+    return new Date(ts).toLocaleDateString(t.common.intlTag, { weekday: "short" });
+  return new Date(ts).toLocaleDateString(t.common.intlTag, {
     day: "numeric",
     month: "short",
   });
@@ -52,6 +53,7 @@ export function relTime(ts: number): string {
  */
 export function groupConversationsByDate(
   convs: Conversation[],
+  t: Messages,
   now: number = Date.now(),
 ): ConvGroup[] {
   const todayStart = startOfDay(now);
@@ -60,12 +62,12 @@ export function groupConversationsByDate(
 
   const bucketFor = (ts: number): { key: string; label: string } => {
     const daysAgo = Math.floor((todayStart - startOfDay(ts)) / DAY_MS);
-    if (daysAgo <= 0) return { key: "today", label: "Aujourd'hui" };
-    if (daysAgo === 1) return { key: "yesterday", label: "Hier" };
-    if (daysAgo <= 7) return { key: "7d", label: "7 derniers jours" };
-    if (daysAgo <= 30) return { key: "30d", label: "30 derniers jours" };
+    if (daysAgo <= 0) return { key: "today", label: t.chrome.groups.today };
+    if (daysAgo === 1) return { key: "yesterday", label: t.chrome.groups.yesterday };
+    if (daysAgo <= 7) return { key: "7d", label: t.chrome.groups.last7 };
+    if (daysAgo <= 30) return { key: "30d", label: t.chrome.groups.last30 };
     const d = new Date(ts);
-    return { key: `m-${d.getFullYear()}-${d.getMonth()}`, label: monthLabel(ts) };
+    return { key: `m-${d.getFullYear()}-${d.getMonth()}`, label: monthLabel(ts, t) };
   };
 
   for (const c of convs) {

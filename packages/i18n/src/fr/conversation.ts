@@ -52,8 +52,15 @@ export const conversation = {
     ofCount: (idx, count) => ` (${idx}/${count})`,
   },
   chooseFolder: "Choisir le dossier",
+  folderPickFailed: "sélection impossible",
+  folderGrantFailed: "échec de l'autorisation",
+  slashRemember: {
+    label: "Retenir en mémoire",
+    desc: "Insère « Retiens que… » — le fait durable sera noté dans la Mémoire, localement.",
+  },
   opening: "Ouverture…",
   memoryToast: "Noté en mémoire",
+  clarify: "Préciser",
 
   writeConfirm: {
     targetTip: (server, tool) => `${server} · ${tool}`,

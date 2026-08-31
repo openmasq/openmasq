@@ -1,8 +1,9 @@
+import type { Messages } from "@openmasq/i18n";
 import { useState } from "react";
 import { ModalShell } from "../../containers/modals/ModalShell";
 import { ModalTitle } from "../../containers/modals/ModalTitle";
 import { ChevDownIcon, HueSelect, type HueOption } from "../../components/brand";
-import { COMPETENCE_CATEGORIES } from "../../competences/competences";
+import { competenceCategories, competenceCategory } from "../../competences/competences";
 import {
   isUntouchedDraft,
   isRoutineTemplate,
@@ -21,12 +22,8 @@ import { useT } from "../../i18n";
  *  chaque frappe dans le nom. */
 const EMPTY_CONNECTED: ReadonlySet<string> = new Set<string>();
 
-const CAT_OPTIONS: HueOption[] = COMPETENCE_CATEGORIES.map((c) => ({
-  value: c.id,
-  label: c.label,
-  tone: c.tone,
-  glyph: c.glyph,
-}));
+const catOptions = (t: Messages): HueOption[] =>
+  competenceCategories(t).map((c) => ({ value: c.id, label: c.label, tone: c.tone, glyph: c.glyph }));
 
 /** The draft a create/edit modal edits. `id` absent ⇒ a new compétence. */
 export interface CompetenceDraft {
@@ -114,7 +111,7 @@ export function CompetenceModal({
   // Same bar as `makeCompetence`: a compétence with no name or no prompt is not a
   // thing, so the primary action stays disabled rather than failing silently.
   const canSave = !!draft.name.trim() && !!draft.prompt.trim();
-  const cat = COMPETENCE_CATEGORIES.find((c) => c.id === draft.cat) ?? COMPETENCE_CATEGORIES[0];
+  const cat = competenceCategory(draft.cat, t);
   // Templates only on a NEW compétence: editing one is not the moment to be offered
   // a replacement for it.
   const offered = !initial.id && suggestions?.length ? suggestions : [];
@@ -203,7 +200,7 @@ export function CompetenceModal({
               <span className="cv-eyebrow">{t.lists.competences.modal.category}</span>
               <HueSelect
                 value={draft.cat}
-                options={CAT_OPTIONS}
+                options={catOptions(t)}
                 onChange={(cat) => patch({ cat })}
                 ariaLabel={t.lists.competences.modal.category}
                 neutral

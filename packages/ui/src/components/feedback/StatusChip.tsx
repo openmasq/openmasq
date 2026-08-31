@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BANNER_ICONS, type BannerAction, type BannerTone } from "./bannerTones";
 
+import { useT } from "../../i18n";
 /**
  * La pastille d'ÉTAT — l'avis permanent, dit en un mot.
  *
@@ -24,6 +25,7 @@ export interface StatusChipProps {
 }
 
 export function StatusChip({ tone, title, message, action, onClose }: StatusChipProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const hasDetail = !!message || !!action;
   const head = (
@@ -62,7 +64,7 @@ export function StatusChip({ tone, title, message, action, onClose }: StatusChip
           <div className="kchip-head">{head}</div>
         )}
         {onClose && (
-          <button type="button" className="kchip-x" aria-label="Masquer" onClick={onClose}>
+          <button type="button" className="kchip-x" aria-label={t.leaves.hide} onClick={onClose}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>

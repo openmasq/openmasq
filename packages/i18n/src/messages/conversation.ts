@@ -52,8 +52,15 @@ export interface ConversationMessages {
   suspendedBody: string;
   docPrep: { analysing: string; redacting: string; page: (page: number, total: number) => string; pages: (total: number) => string; ofCount: (idx: number, count: number) => string };
   chooseFolder: string;
+  /** Le refus d'un dossier déposé, dit par l'hôte ou par nous. */
+  folderPickFailed: string;
+  folderGrantFailed: string;
+  /** L'entrée « /… » du composeur. */
+  slashRemember: { label: string; desc: string };
   opening: string;
   memoryToast: string;
+  /** L'étiquette du geste « Préciser » — la citation qu'on vient de coller. */
+  clarify: string;
 
   /** La carte de confirmation d'écriture (le reste vit dans `cards`). */
   writeConfirm: { targetTip: (server: string, tool: string) => string; alsoOtherChats: string };

@@ -4,6 +4,7 @@ import { setMemoryFresh, useAppDispatch, useAppSelector, type Section } from "..
 import { useMcpConnectedIds } from "../../../hooks/useMcpConnectedIds";
 import { featureAccess } from "../../../state/featureAccess";
 import type { MemoryUiApi } from "../../../memory/memoryUi";
+import { useT } from "../../../i18n";
 
 /** A deep-link request: an id plus a nonce, so asking for the SAME id twice re-opens it. */
 export type DeepLink = { id: string; n: number } | null;
@@ -43,6 +44,7 @@ export function useShellDeepLinks({
   section: Section;
   go: (s: Section) => void;
 }): ShellDeepLinks {
+  const t = useT();
   const dispatch = useAppDispatch();
   // Live set of connected connector ids — used to auto-return to a conversation once the
   // connector it sent the user to Réglages to connect actually connects.
@@ -93,7 +95,7 @@ export function useShellDeepLinks({
       },
       resolve: (ids) =>
         ids.flatMap((id) => {
-          if (id === "profile") return [{ id, label: "Profil" }];
+          if (id === "profile") return [{ id, label: t.lists.memory.profileNode }];
           const card = chat.memoire.cards.find((c) => c.id === id);
           return card ? [{ id, label: card.entity }] : [];
         }),

@@ -80,6 +80,15 @@ export interface ModalsMessages {
     attachContext: string;
     attachContextSub: string;
     attachJournal: string;
+    /** Où le redaction a fauté — la phrase entre dans le brouillon que la personne relit. */
+    inDocument: string;
+    inReply: string;
+    inMessage: string;
+    problemKind: (kind: string) => string;
+    problemBody: (where: string, kind: string) => string;
+    /** Les deux autres brouillons pré-remplis — la personne les relit et les complète. */
+    journalDraft: string;
+    replyDraft: string;
     attachJournalSub: string;
     confidential: string;
     /** Les humeurs et les types de retour : le glyphe et l'id restent au code. */
@@ -103,6 +112,8 @@ export interface ModalsMessages {
     keyLabel: (provider: string) => string;
     getOne: string;
     removeKey: string;
+    /** Le repli quand la clé du fournisseur n'a pas de préfixe reconnaissable. */
+    keyPlaceholderFallback: (provider: string) => string;
   };
 
   /** Le journal de débogage — le RÉEL de cette conversation. */
@@ -125,6 +136,7 @@ export interface ModalsMessages {
     sendToDevsTip: string;
     sendToDevs: string;
     copyEntry: string;
+    tabs: { all: string; phase: string; wire: string; turn: string; tool: string; error: string };
     /** Les étiquettes d'une entrée et le texte copié. */
   };
 

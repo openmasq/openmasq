@@ -22,7 +22,8 @@ import {
  *  (Nouveautés / Améliorations / Corrections), plus son corps markdown. `fallback` est
  *  la note brute du manifeste de build, quand Contentful n'en a pas. */
 export function ReleaseNoteBody({ note, fallback }: { note?: ReleaseNote; fallback?: string }) {
-  const groups = note ? groupHighlights(note.highlights) : [];
+  const t = useT();
+  const groups = note ? groupHighlights(note.highlights, t) : [];
   if (note && (groups.length > 0 || note.body)) {
     return (
       <div className="ver-relnotes">

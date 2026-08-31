@@ -1,7 +1,7 @@
 import { BRAND } from "@openmasq/branding";
 import { useEffect, useState } from "react";
 import { BottomSheet, TrashIcon } from "../../../components/brand";
-import { MAX_FACTS_CHARS, MAX_PROFILE_CHARS, memoryCategory } from "../../../memory";
+import { MAX_FACTS_CHARS, MAX_PROFILE_CHARS, memoryCategory, memoryCategoryLabel } from "../../../memory";
 import type { MemoryCard } from "../../../types";
 import { toneStyle } from "./memoryScreenModel";
 import { useT } from "../../../i18n";
@@ -98,7 +98,7 @@ export function MemoryCardSheet({
         <div className="mmem-sheet">
           <div className="mmem-sheet-head">
             <span className="mmem-dot" style={toneStyle(memoryCategory(card.cat).tone)} aria-hidden="true" />
-            <span className="mmem-sheet-cat">{memoryCategory(card.cat).label}</span>
+            <span className="mmem-sheet-cat">{memoryCategoryLabel(card.cat, t)}</span>
             {card.source === "auto" && <span className="mmem-auto-badge">{t.shell.mobile.memory.notedBy(BRAND.name)}</span>}
           </div>
           <input

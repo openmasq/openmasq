@@ -87,16 +87,16 @@ export function AnalyticsNotice({
         </p>
         {details && (
           <div className="ac-rows">
-            <Row label="Essentiels" sub={t.leaves.analytics.alwaysOn} on />
+            <Row label={t.leaves.analytics.essentials} sub={t.leaves.analytics.alwaysOn} on />
             <Row
               label={t.leaves.analytics.usageStats}
               sub={
                 analyticsOn
-                  ? "Actives — compteurs et écrans visités, sans contenu."
-                  : "Désactivées — plus aucune statistique n'est envoyée."
+                  ? t.leaves.analytics.statsOn
+                  : t.leaves.analytics.statsOff
               }
               on={analyticsOn}
-              action={analyticsOn ? { label: "Désactiver", onClick: disable } : undefined}
+              action={analyticsOn ? { label: t.leaves.analytics.disable, onClick: disable } : undefined}
             />
           </div>
         )}

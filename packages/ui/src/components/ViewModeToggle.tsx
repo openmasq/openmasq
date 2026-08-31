@@ -1,9 +1,10 @@
 import { TilesIcon, RowsIcon } from "./brand";
 import type { ViewMode } from "../hooks/useViewMode";
 
-const MODES: { id: ViewMode; label: string; icon: (p: { size?: number }) => JSX.Element }[] = [
-  { id: "grid", label: "Affichage en grille", icon: TilesIcon },
-  { id: "list", label: "Affichage en liste", icon: RowsIcon },
+import { useT } from "../i18n";
+const MODES: { id: ViewMode; icon: (p: { size?: number }) => JSX.Element }[] = [
+  { id: "grid", icon: TilesIcon },
+  { id: "list", icon: RowsIcon },
 ];
 
 /**
@@ -28,16 +29,17 @@ export function ViewModeToggle({
   onChange: (m: ViewMode) => void;
   className?: string;
 }) {
+  const t = useT();
   return (
-    <div className={`om-viewmode ${className}`.trim()} role="radiogroup" aria-label="Affichage">
-      {MODES.map(({ id, label, icon: Glyph }) => (
+    <div className={`om-viewmode ${className}`.trim()} role="radiogroup" aria-label={t.leaves.display}>
+      {MODES.map(({ id, icon: Glyph }) => (
         <button
           key={id}
           type="button"
           role="radio"
           aria-checked={mode === id}
-          aria-label={label}
-          title={label}
+          aria-label={id === "grid" ? t.leaves.viewGrid : t.leaves.viewList}
+          title={id === "grid" ? t.leaves.viewGrid : t.leaves.viewList}
           className={`om-viewmode-btn${mode === id ? " active" : ""}`}
           onClick={() => onChange(id)}
         >

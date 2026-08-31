@@ -103,7 +103,7 @@ export function MessageActions({
           className={pulseRef.current ? "msg-action-pulse" : undefined}
           label={t.conversation.actions.feedback}
           onClick={() => {
-            openAvis(messageFeedbackDraft(journalExportFor(conversationId)));
+            openAvis(messageFeedbackDraft(t, journalExportFor(conversationId)));
             captureEvent({ name: "avis_from_message" });
           }}
         >

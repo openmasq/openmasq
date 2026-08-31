@@ -301,7 +301,7 @@ export function Composer({
   // Built-in palette actions (« Retenir en mémoire »…) — listed ABOVE the compétences;
   // the keyboard cursor spans actions THEN compétences as one list. Il n'y a plus de
   // troisième section : les routines SONT des compétences, elles sortent du même filtre.
-  const slashActs = useMemo(() => (slashQ === null ? null : slashActionMatches(slashQ, memoryOpen)), [slashQ, memoryOpen]);
+  const slashActs = useMemo(() => (slashQ === null ? null : slashActionMatches(slashQ, t, memoryOpen)), [slashQ, t, memoryOpen]);
   const slashActCount = slashActs?.length ?? 0;
   const slashItemCount = slashItems?.length ?? 0;
   const slashCount = slashActCount + slashItemCount;
@@ -554,7 +554,7 @@ export function Composer({
     competenceExtraCount(detection.items, utilRisk.competenceCats);
   // L'aperçu ne doit jamais afficher un zéro qu'il n'a pas fini de calculer.
   const hasSomething = !!input.trim() || utilRisk.competenceCats.length > 0;
-  const scanState = previewStatus(detecting, liveCount, hasSomething, modelGaveUp);
+  const scanState = previewStatus(detecting, liveCount, hasSomething, t, modelGaveUp);
   const [showDone, setShowDone] = useState(false);
   const wasBusy = useRef(false);
   useEffect(() => {

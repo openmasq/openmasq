@@ -61,7 +61,7 @@ export function PrivacyLevelPicker({
         <div className="privacy-level on privacy-level-custom" role="radio" aria-checked>
           <span className="privacy-level-head">
             <ShieldIcon size={15} />
-            <span className="privacy-level-name">Sur mesure</span>
+            <span className="privacy-level-name">{t.leaves.privacyLevels.custom}</span>
             <span className="privacy-level-check">
               <CheckIcon size={14} />
             </span>

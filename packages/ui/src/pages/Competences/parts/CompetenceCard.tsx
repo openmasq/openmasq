@@ -40,7 +40,7 @@ export function CompetenceCard({
   onShare?: () => void;
 }) {
   const t = useT();
-  const cat = competenceCategory(competence.cat);
+  const cat = competenceCategory(competence.cat, t);
   const uses = competence.uses ?? 0;
   const name = competence.name || "Sans titre";
 

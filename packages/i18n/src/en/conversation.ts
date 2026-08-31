@@ -52,8 +52,15 @@ export const conversation = {
     ofCount: (idx, count) => ` (${idx}/${count})`,
   },
   chooseFolder: "Choose the folder",
+  folderPickFailed: "could not pick a folder",
+  folderGrantFailed: "the authorisation failed",
+  slashRemember: {
+    label: "Remember in memory",
+    desc: "Inserts “Remember that…” — the durable fact is noted in Memory, locally.",
+  },
   opening: "Opening…",
   memoryToast: "Noted in memory",
+  clarify: "Clarify",
 
   writeConfirm: {
     targetTip: (server, tool) => `${server} · ${tool}`,

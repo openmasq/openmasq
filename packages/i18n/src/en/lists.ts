@@ -5,6 +5,27 @@ import type { Messages } from "../messages";
 
 export const lists = {
   loading: "Loading…",
+  allFeminine: "All",
+  allMasculine: "All",
+  libraryTabs: { all: "All", image: "Images", document: "Documents", sheet: "Spreadsheets", audio: "Audio" },
+  competenceCategories: {
+    all: "All",
+    redaction: "Writing",
+    analyse: "Analysis",
+    code: "Code",
+    juridique: "Legal",
+    support: "Support",
+    routine: "Routines",
+  },
+  marks: {
+    bold: "Bold",
+    italic: "Italic",
+    heading: "Heading",
+    quote: "Quote",
+    bullet: "Bulleted list",
+    ordered: "Numbered list",
+    code: "Code",
+  },
 
   competences: {
     empty: {
@@ -92,6 +113,12 @@ export const lists = {
     removeTip: "Delete the card (undoable for a few seconds)",
     removeAria: (entity) => `Delete the card ${entity}`,
     graphAria: (n) => `Memory graph: ${n} nodes`,
+    coreNode: "Memory",
+    profileNode: "Profile",
+    categories: { personne: "Person", organisation: "Organisation", projet: "Project", autre: "Other" },
+    hubDesc: (category) => `${category} — the cards in this category.`,
+    onlyShow: (category) => `Show only: ${category}`,
+    clearFilter: "Clear the filter",
     legend: {
       category: "category",
       mention: "mention",

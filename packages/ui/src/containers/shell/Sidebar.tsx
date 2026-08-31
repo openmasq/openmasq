@@ -76,7 +76,7 @@ export function Sidebar({
   const access = useFeatureAccess();
   const [pendingDelete, setPendingDelete] = useState<Conversation | null>(null);
   const groups = useMemo(
-    () => groupConversationsByDate(conversations),
+    () => groupConversationsByDate(conversations, t),
     [conversations],
   );
 

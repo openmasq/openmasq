@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import { SIMPLE_MODEL_IDS } from "@openmasq/catalog";
 import type { ModelInfo } from "@openmasq/llm";
 
@@ -99,14 +100,15 @@ export interface SimpleMenuSection {
 export function simpleMenuSections(
   models: readonly ModelInfo[],
   p: { favSet: ReadonlySet<string>; defaultId?: string },
+  t: Messages,
 ): SimpleMenuSection[] {
   const fav = models.filter((m) => p.favSet.has(m.id));
   const hors = models.filter((m) => !p.favSet.has(m.id));
   const def = p.defaultId ? fav.find((m) => m.id === p.defaultId) : undefined;
   const sections: SimpleMenuSection[] = [];
-  if (def) sections.push({ label: "Par défaut", models: [def] });
+  if (def) sections.push({ label: t.modelPicker.sectionDefault, models: [def] });
   const autres = def ? fav.filter((m) => m.id !== def.id) : fav;
-  if (autres.length) sections.push({ label: "Favoris", models: autres });
-  if (hors.length) sections.push({ label: "Modèle en cours", models: hors });
+  if (autres.length) sections.push({ label: t.modelPicker.sectionFavorites, models: autres });
+  if (hors.length) sections.push({ label: t.modelPicker.sectionCurrent, models: hors });
   return sections;
 }

@@ -53,10 +53,12 @@ function useOnline(): boolean {
  * précisément ce qu'une carte recopiée perdait.
  */
 export function LoginScreen({
-  heading = "Content de vous revoir.",
-  subheading = "Entrez votre e-mail : nous vous envoyons un lien de connexion, sans mot de passe.",
+  heading,
+  subheading,
 }: { heading?: string; subheading?: React.ReactNode } = {}) {
   const t = useT();
+  const title = heading ?? t.login.heading;
+  const sub = subheading ?? t.login.subheading;
   const { sendMagicLink, verifyCode, codeSupported, linkFirst, googleSupported } = useAuth();
   const online = useOnline();
   const [stage, setStage] = useState<"email" | "sent">("email");
@@ -118,10 +120,10 @@ export function LoginScreen({
             <span className="cv-display login-word-letters">{BRAND.name}</span>
           </div>
           <ModalTitle as="h1" size="23px">
-            {stage === "email" ? heading : "Consultez vos e-mails"}
+            {stage === "email" ? title : t.login.checkYourEmail}
           </ModalTitle>
           {stage === "email" ? (
-            <p className="login-sub">{subheading}</p>
+            <p className="login-sub">{sub}</p>
           ) : (
             /* ⚠️ L'ACCUSÉ D'ENVOI a disparu d'ici (18/08) — « Nous avons envoyé un lien à
                vous@… Cliquez dessus… ». Le titre au-dessus dit déjà d'aller voir ses

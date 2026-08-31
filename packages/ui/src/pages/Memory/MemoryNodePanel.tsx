@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { XIcon, CheckIcon, IconButton } from "../../components/brand";
-import { MAX_FACTS_CHARS, MEMORY_CATEGORIES, memoryCategory, restoreFact } from "../../memory";
+import { MAX_FACTS_CHARS, MEMORY_CATEGORIES, restoreFact, memoryCategoryLabel } from "../../memory";
 import type { MemoryCardUsage } from "../../memory/usage";
 import type { GraphNode, MemoryGraphData } from "../../memory/graph";
 import { neighborsOf } from "../../memory/graph";
@@ -101,7 +101,7 @@ export function MemoryNodePanel({
                 onClick={() => edit(card.id, { cat: c.id })}
                 aria-pressed={card.cat === c.id}
               >
-                {c.label}
+                {memoryCategoryLabel(c.id, t)}
               </button>
             ))}
           </div>
@@ -134,7 +134,7 @@ export function MemoryNodePanel({
             placeholder={t.lists.memory.panel.aliasesPlaceholder}
             aria-label={t.lists.memory.panel.aliases}
           />
-          {card.source === "auto" && <span className="om-skill-cat om-mem-auto-badge">notée automatiquement</span>}
+          {card.source === "auto" && <span className="om-skill-cat om-mem-auto-badge">{t.lists.memory.panel.autoNoted}</span>}
           {/* L'historique de compaction : ce qu'une mise à jour a REMPLACÉ (deadline
               changée, phrase évincée à saturation). Visible et rétablissable — une
               consolidation qui écrase sa preuve en silence est le défaut mesuré des
@@ -169,7 +169,7 @@ export function MemoryNodePanel({
         <div className="om-mem-panel-body">
           <div className="om-mem-panel-name om-mem-panel-static">{node.label}</div>
           {node.kind === "hub" && node.id !== "profil" && (
-            <p className="om-skill-desc">{memoryCategory(node.id.replace("hub-", "")).label} — les fiches de cette catégorie.</p>
+            <p className="om-skill-desc">{t.lists.memory.hubDesc(memoryCategoryLabel(node.id.replace("hub-", ""), t))}</p>
           )}
         </div>
       )}

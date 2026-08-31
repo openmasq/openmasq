@@ -75,6 +75,14 @@ export const modals = {
     attachContextSub:
       "Version de l'app, écran actuel et identifiant d'installation. Jamais le contenu de vos conversations.",
     attachJournal: "Joindre le journal de débogage",
+    inDocument: "dans un document",
+    inReply: "dans une réponse",
+    inMessage: "dans un message",
+    problemKind: (kind) => ` (type : ${kind})`,
+    problemBody: (where, kind) =>
+      `Redaction incorrect${kind} ${where}.\nCe qui n'allait pas (sans coller la valeur réelle) : `,
+    journalDraft: "Rapport depuis le journal de débogage.\nCe qui n'allait pas : ",
+    replyDraft: "À propos de cette réponse : ",
     attachJournalSub:
       "Le texte parti au modèle (déjà redacted), les outils et les erreurs — sans la table de correspondance, donc aucune valeur réelle. Aperçu ci-dessous.",
     confidential: "Confidentiel",
@@ -99,6 +107,7 @@ export const modals = {
     keyLabel: (provider) => `Clé ${provider}`,
     getOne: "en obtenir une ↗",
     removeKey: "Retirer la clé",
+    keyPlaceholderFallback: (provider) => `Votre clé ${provider}`,
   },
 
   debug: {
@@ -122,6 +131,7 @@ export const modals = {
       "Ouvre « Votre avis » avec le journal SANS mapping joint — vous le voyez avant l'envoi",
     sendToDevs: "Envoyer aux devs",
     copyEntry: "Copier cette entrée",
+    tabs: { all: "Tout", phase: "Étapes", wire: "Wire", turn: "Échanges", tool: "Outils", error: "Erreurs" },
   },
 
   guide: {

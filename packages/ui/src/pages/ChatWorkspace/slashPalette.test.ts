@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import { slashQuery, slashMatches, clampSlashIndex, slashActionMatches } from "./slashPalette";
 import type { Competence } from "../../types";
@@ -12,6 +13,8 @@ const c = (name: string, desc?: string): Competence => ({
   uses: 0,
   createdAt: 0,
 });
+
+const fr = getMessages("fr");
 
 describe("slashQuery — when the palette is open", () => {
   it("opens on a bare '/' with an empty query", () => {
@@ -59,15 +62,15 @@ describe("clampSlashIndex", () => {
 describe("slashActionMatches — the built-in « /retenir » action", () => {
   it("lists on the bare '/', on an id prefix and on a label word", () => {
     for (const q of ["", "r", "reten", "mémoire"]) {
-      expect(slashActionMatches(q).map((a) => a.id), q).toEqual(["retenir"]);
+      expect(slashActionMatches(q, fr).map((a) => a.id), q).toEqual(["retenir"]);
     }
   });
   it("stays out of unrelated lookups", () => {
-    expect(slashActionMatches("traduction")).toEqual([]);
+    expect(slashActionMatches("traduction", fr)).toEqual([]);
   });
   it("its insert seeds the explicit-ask phrasing the extraction recognises", async () => {
     const { isExplicitMemoryAsk } = await import("../../memory/extract");
-    for (const a of slashActionMatches("")) {
+    for (const a of slashActionMatches("", fr)) {
       expect(isExplicitMemoryAsk(a.insert + "je préfère le train"), a.id).toBe(true);
     }
   });

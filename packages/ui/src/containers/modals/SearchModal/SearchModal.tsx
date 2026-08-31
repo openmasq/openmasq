@@ -63,7 +63,7 @@ export function SearchModal({
   const filtered = conversations.filter((c) =>
     (c.title || "Nouvelle conversation").toLowerCase().includes(q.toLowerCase()),
   );
-  const groups = useMemo(() => groupConversationsByDate(filtered), [filtered]);
+  const groups = useMemo(() => groupConversationsByDate(filtered, t), [filtered, t]);
   // Each injected group. An EMPTY query yields none of them (the palette stays
   // conversation-first), so the rows appear only once you actually type.
   const sections = useMemo(

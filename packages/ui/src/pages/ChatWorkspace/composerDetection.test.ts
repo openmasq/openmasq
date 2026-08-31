@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Intercepte la télémétrie : le test vérifie l'ÉMISSION, pas le réseau (aucun ici de
@@ -20,6 +21,8 @@ import { makeToggleKeep,
  * `onDetectPii` there), so the rules looked entirely inert. The SEND always honoured
  * them — it was the preview that lied, on the surface whose whole purpose is trust.
  */
+const fr = getMessages("fr");
+
 describe("detectRegex — the live preview obeys the redaction rules", () => {
   const text = "Écris à marie@exemple.fr au 06 12 34 56 78";
 
@@ -295,12 +298,12 @@ describe("previewStatus — FINI vs ABANDONNÉ (document long, 15/08)", () => {
   // portait que les règles (e-mails + téléphones + SIREN) — ni l'adresse du cabinet ni
   // les noms de personnes, pourtant détectés sur le même texte en court.
   it("analyse complète ⇒ un compte ferme, sans explication à donner", () => {
-    const s = previewStatus(false, 321, true);
+    const s = previewStatus(false, 321, true, fr);
     expect(s).toEqual({ kind: "count", label: "321 à redact" });
   });
 
   it("analyse ABANDONNÉE ⇒ « au moins N », marqué partiel, avec l'explication", () => {
-    const s = previewStatus(false, 321, true, true);
+    const s = previewStatus(false, 321, true, fr, true);
     expect(s.kind).toBe("count");
     if (s.kind !== "count") return;
     expect(s.label).toBe("au moins 321 à redact");
@@ -311,7 +314,7 @@ describe("previewStatus — FINI vs ABANDONNÉ (document long, 15/08)", () => {
 
   it("abandon SANS aucune détection ⇒ on le dit, on ne se tait pas", () => {
     // Se taire se lirait « rien à redact » sur un document qu'on n'a pas fini de lire.
-    const s = previewStatus(false, 0, true, true);
+    const s = previewStatus(false, 0, true, fr, true);
     expect(s.kind).toBe("count");
     if (s.kind !== "count") return;
     expect(s.label).toBe("analyse incomplète");
@@ -319,12 +322,12 @@ describe("previewStatus — FINI vs ABANDONNÉ (document long, 15/08)", () => {
   });
 
   it("pendant l'analyse : toujours le silence (c'est le bouton qui parle)", () => {
-    expect(previewStatus(true, 321, true).kind).toBe("none");
-    expect(previewStatus(true, 321, true, true).kind).toBe("none");
+    expect(previewStatus(true, 321, true, fr).kind).toBe("none");
+    expect(previewStatus(true, 321, true, fr, true).kind).toBe("none");
   });
 
   it("zéro détection sur une analyse COMPLÈTE reste silencieux, comme avant", () => {
-    expect(previewStatus(false, 0, true).kind).toBe("none");
-    expect(previewStatus(false, 5, false).kind).toBe("none");
+    expect(previewStatus(false, 0, true, fr).kind).toBe("none");
+    expect(previewStatus(false, 5, false, fr).kind).toBe("none");
   });
 });

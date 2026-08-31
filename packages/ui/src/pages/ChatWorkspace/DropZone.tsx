@@ -122,7 +122,7 @@ export function DropZone({
       // revoke them (`setDirs` replaces the set).
       const servers = (await host.mcp?.list().catch(() => [])) ?? [];
       for (const folder of offer) {
-        const outcome = await grantDroppedFolder({ mcp: host.mcp, servers }, folder.hintPath);
+        const outcome = await grantDroppedFolder({ mcp: host.mcp, servers }, folder.hintPath, t);
         const message = grantMessage(outcome);
         if (message) setGrantNotice(message);
         // A cancelled dialog is the user declining THIS folder; stop rather than marching

@@ -6,6 +6,27 @@ import type { Messages } from "../messages";
 
 export const lists = {
   loading: "Chargement…",
+  allFeminine: "Toutes",
+  allMasculine: "Tous",
+  libraryTabs: { all: "Tout", image: "Images", document: "Documents", sheet: "Tableurs", audio: "Audio" },
+  competenceCategories: {
+    all: "Toutes",
+    redaction: "Rédaction",
+    analyse: "Analyse",
+    code: "Code",
+    juridique: "Juridique",
+    support: "Support",
+    routine: "Routines",
+  },
+  marks: {
+    bold: "Gras",
+    italic: "Italique",
+    heading: "Titre",
+    quote: "Citation",
+    bullet: "Liste à puces",
+    ordered: "Liste numérotée",
+    code: "Code",
+  },
 
   competences: {
     empty: {
@@ -93,6 +114,12 @@ export const lists = {
     removeTip: "Supprimer la fiche (annulable quelques secondes)",
     removeAria: (entity) => `Supprimer la fiche ${entity}`,
     graphAria: (n) => `Graphe de mémoire : ${n} nœuds`,
+    coreNode: "Mémoire",
+    profileNode: "Profil",
+    categories: { personne: "Personne", organisation: "Organisation", projet: "Projet", autre: "Autre" },
+    hubDesc: (category) => `${category} — les fiches de cette catégorie.`,
+    onlyShow: (category) => `Ne montrer que : ${category}`,
+    clearFilter: "Retirer le filtre",
     legend: {
       category: "catégorie",
       mention: "mention",

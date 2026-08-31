@@ -1,3 +1,4 @@
+import { getMessages, LOCALES } from "@openmasq/i18n";
 import { COMPETENCE_CATEGORIES } from "../competences/competences";
 import { findConnector } from "@openmasq/catalog/mcp";
 
@@ -62,8 +63,14 @@ const stripAccents = (s: string) => s.normalize("NFD").replace(/\p{M}+/gu, "");
  *  que l'id (« redaction »), accents et casse indifférents. */
 function resolveCat(raw: string): string | undefined {
   const k = stripAccents(raw.trim().toLowerCase());
+  // Le LIBELLÉ est accepté dans TOUTES les langues livrées : le modèle écrit dans celle
+  // de la conversation, qui n'est pas forcément celle de l'interface.
   return COMPETENCE_CATEGORIES.find(
-    (c) => c.id === k || stripAccents(c.label.toLowerCase()) === k,
+    (c) =>
+      c.id === k ||
+      LOCALES.some(
+        (loc) => stripAccents(getMessages(loc).lists.competenceCategories[c.id].toLowerCase()) === k,
+      ),
   )?.id;
 }
 

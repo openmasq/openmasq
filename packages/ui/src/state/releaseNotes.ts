@@ -156,10 +156,10 @@ export interface HighlightGroup {
 // Ordered so groups always render Nouveautés → Améliorations → Corrections. `match`
 // tests ONLY a bullet's leading `token:` word — a bullet whose leading word isn't a
 // recognised category keeps its full text (never mis-stripped) under `feat`.
-const GROUP_META: { key: HighlightGroupKey; label: string; tone: string; match: RegExp }[] = [
-  { key: "feat", label: "Nouveautés", tone: "", match: /^(feat|feature|new|nouveaut[eé]s?|nouveau)$/i },
-  { key: "imp", label: "Améliorations", tone: "imp", match: /^(imp|improvement|perf|am[eé]lioration|enhance)$/i },
-  { key: "fix", label: "Corrections", tone: "fix", match: /^(fix|bug|correction|hotfix)$/i },
+const GROUP_META: { key: HighlightGroupKey; tone: string; match: RegExp }[] = [
+  { key: "feat", tone: "", match: /^(feat|feature|new|nouveaut[eé]s?|nouveau)$/i },
+  { key: "imp", tone: "imp", match: /^(imp|improvement|perf|am[eé]lioration|enhance)$/i },
+  { key: "fix", tone: "fix", match: /^(fix|bug|correction|hotfix)$/i },
 ];
 
 /** Classify a highlight by its optional leading `category:` token. Only strips the
@@ -173,7 +173,7 @@ function classifyHighlight(h: string): { key: HighlightGroupKey; text: string } 
 }
 
 /** Bucket a note's flat `highlights` into the (non-empty) design groups, in order. */
-export function groupHighlights(highlights: string[]): HighlightGroup[] {
+export function groupHighlights(highlights: string[], t: Messages): HighlightGroup[] {
   const buckets: Record<HighlightGroupKey, string[]> = { feat: [], imp: [], fix: [] };
   for (const h of highlights) {
     if (!h || !h.trim()) continue;
@@ -182,7 +182,7 @@ export function groupHighlights(highlights: string[]): HighlightGroup[] {
   }
   return GROUP_META.filter((g) => buckets[g.key].length > 0).map((g) => ({
     key: g.key,
-    label: g.label,
+    label: t.chrome.releaseKinds[g.key],
     tone: g.tone,
     items: buckets[g.key],
   }));

@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { McpHost, McpServerInfo } from "../../host";
 
 /**
@@ -63,6 +64,7 @@ function findFs(servers: readonly McpServerInfo[]): McpServerInfo | undefined {
 export async function grantDroppedFolder(
   deps: GrantDeps,
   hint: string | undefined,
+  t: Messages,
 ): Promise<GrantOutcome> {
   const mcp = deps.mcp;
   if (!mcp?.pickDir) return { status: "unavailable" };
@@ -71,7 +73,7 @@ export async function grantDroppedFolder(
   try {
     picked = await mcp.pickDir(hint);
   } catch (e) {
-    return { status: "error", message: e instanceof Error ? e.message : "sélection impossible" };
+    return { status: "error", message: e instanceof Error ? e.message : t.conversation.folderPickFailed };
   }
   // Cancelled: the user opened the dialog and declined. Not an error, no banner.
   if (!picked) return { status: "cancelled" };
@@ -98,7 +100,7 @@ export async function grantDroppedFolder(
       if (connected.error) return { status: "error", message: connected.error };
     }
   } catch (e) {
-    return { status: "error", message: e instanceof Error ? e.message : "échec de l'autorisation" };
+    return { status: "error", message: e instanceof Error ? e.message : t.conversation.folderGrantFailed };
   }
 
   deps.onChanged?.();

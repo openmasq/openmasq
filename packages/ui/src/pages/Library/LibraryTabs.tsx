@@ -1,5 +1,5 @@
 import { SearchIcon } from "../../components/brand";
-import { LIB_TABS, type LibTab } from "./libraryKinds";
+import { libTabs, type LibTab } from "./libraryKinds";
 
 import { useT } from "../../i18n";
 /**
@@ -27,17 +27,17 @@ export function LibraryTabs({
   const t = useT();
   return (
     <div className="lib-tabs">
-      {LIB_TABS.map((t) => {
-        const on = active === t.id;
+      {libTabs(t).map((tab) => {
+        const on = active === tab.id;
         return (
           <button
-            key={t.id}
+            key={tab.id}
             className={`lib-tab${on ? " on" : ""}`}
-            onClick={() => onSelect(t.id)}
+            onClick={() => onSelect(tab.id)}
             aria-pressed={on}
           >
-            {t.label}
-            <span className="lib-tab-count">{counts[t.id] ?? 0}</span>
+            {tab.label}
+            <span className="lib-tab-count">{counts[tab.id] ?? 0}</span>
           </button>
         );
       })}

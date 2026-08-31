@@ -1,5 +1,6 @@
+import type { Messages } from "@openmasq/i18n";
 import type { CSSProperties } from "react";
-import { MEMORY_CATEGORIES, memoryCategory } from "../../../memory";
+import { MEMORY_CATEGORIES, memoryCategory, memoryCategoryLabel } from "../../../memory";
 import type { MemoryCard } from "../../../types";
 
 /**
@@ -28,7 +29,7 @@ export interface MemoryGroup {
  * card can be remembered yet invisible. Empty groups are dropped — a heading with no
  * chips is noise on a small screen, and the add affordance lives at the screen level.
  */
-export function groupMemoryCards(cards: MemoryCard[]): MemoryGroup[] {
+export function groupMemoryCards(cards: MemoryCard[], t: Messages): MemoryGroup[] {
   const byId = new Map<string, MemoryCard[]>();
   for (const card of cards) {
     const cat = memoryCategory(card.cat).id;
@@ -38,7 +39,7 @@ export function groupMemoryCards(cards: MemoryCard[]): MemoryGroup[] {
   }
   return MEMORY_CATEGORIES.filter((c) => byId.has(c.id)).map((c) => ({
     id: c.id,
-    label: c.label,
+    label: memoryCategoryLabel(c.id, t),
     tone: c.tone,
     cards: byId.get(c.id) ?? [],
   }));

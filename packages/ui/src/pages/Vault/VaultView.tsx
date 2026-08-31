@@ -111,7 +111,7 @@ export function VaultView({
   // each wearing its type's highlight hue.
   const chips = useMemo(
     () => [
-      { id: "all", label: "Tous" },
+      { id: "all", label: t.lists.allMasculine },
       ...REDACT_TYPES.filter((t) => counts[t.token]).map((t) => ({
         id: t.token,
         label: t.label,

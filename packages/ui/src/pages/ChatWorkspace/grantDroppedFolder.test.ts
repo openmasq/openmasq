@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi } from "vitest";
 import type { McpHost, McpServerInfo } from "../../host";
 import {
@@ -23,12 +24,14 @@ function host(over: Partial<McpHost> = {}): McpHost {
   } as unknown as McpHost;
 }
 
+const fr = getMessages("fr");
+
 describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
   it("passes the dropped path as a HINT only, and grants the PICKED one", async () => {
     // The invariant: a renderer-supplied path must never reach `setDirs`. If it ever did,
     // an XSS would grant itself any folder on the disk.
     const mcp = host({ pickDir: vi.fn(async () => "/Users/x/Autre") });
-    const out = await grantDroppedFolder({ mcp, servers: [server([])] }, "/Users/x/Déposé");
+    const out = await grantDroppedFolder({ mcp, servers: [server([])] }, "/Users/x/Déposé", fr);
     expect(mcp.pickDir).toHaveBeenCalledWith("/Users/x/Déposé");
     expect(mcp.setDirs).toHaveBeenCalledWith(FS_CONNECTOR_ID, FS_DIRS_KEY, ["/Users/x/Autre"]);
     expect(out).toEqual({ status: "granted", path: "/Users/x/Autre" });
@@ -36,7 +39,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
 
   it("CARRIES OVER the existing roots — widening scope must not revoke what was granted", async () => {
     const mcp = host();
-    await grantDroppedFolder({ mcp, servers: [server(["/a", "/b"])] }, undefined);
+    await grantDroppedFolder({ mcp, servers: [server(["/a", "/b"])] }, undefined, fr);
     expect(mcp.setDirs).toHaveBeenCalledWith(FS_CONNECTOR_ID, FS_DIRS_KEY, [
       "/a",
       "/b",
@@ -46,7 +49,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
 
   it("installs the connector with the dropped folder as its ONLY root when absent", async () => {
     const mcp = host();
-    const out = await grantDroppedFolder({ mcp, servers: [] }, undefined);
+    const out = await grantDroppedFolder({ mcp, servers: [] }, undefined, fr);
     expect(mcp.addStdio).toHaveBeenCalledWith(FS_CONNECTOR_ID, {}, { [FS_DIRS_KEY]: ["/Users/x/Projets"] });
     expect(out.status).toBe("granted");
   });
@@ -58,7 +61,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
     const mcp = host({
       addStdio: vi.fn(async () => ({ id: "local-filesystem" }) as McpServerInfo),
     });
-    await grantDroppedFolder({ mcp, servers: [] }, undefined);
+    await grantDroppedFolder({ mcp, servers: [] }, undefined, fr);
     expect(mcp.connect).toHaveBeenCalledWith("local-filesystem");
     expect(mcp.connect).not.toHaveBeenCalledWith(FS_CONNECTOR_ID);
   });
@@ -68,7 +71,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
     // connected on a name no server had.
     const mcp = host();
     const installed = { id: "local-filesystem", params: { [FS_DIRS_KEY]: ["/a"] } } as unknown as McpServerInfo;
-    await grantDroppedFolder({ mcp, servers: [installed] }, undefined);
+    await grantDroppedFolder({ mcp, servers: [installed] }, undefined, fr);
     expect(mcp.addStdio).not.toHaveBeenCalled();
     expect(mcp.setDirs).toHaveBeenCalledWith("local-filesystem", FS_DIRS_KEY, ["/a", "/Users/x/Projets"]);
   });
@@ -76,7 +79,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
   it("still recognises a folder already in scope on the `local-` id", async () => {
     const mcp = host({ pickDir: vi.fn(async () => "/a") });
     const installed = { id: "local-filesystem", params: { [FS_DIRS_KEY]: ["/a"] } } as unknown as McpServerInfo;
-    expect(await grantDroppedFolder({ mcp, servers: [installed] }, undefined)).toEqual({
+    expect(await grantDroppedFolder({ mcp, servers: [installed] }, undefined, fr)).toEqual({
       status: "already",
       path: "/a",
     });
@@ -84,7 +87,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
 
   it("a CANCELLED dialog grants nothing and is not an error", async () => {
     const mcp = host({ pickDir: vi.fn(async () => undefined) });
-    const out = await grantDroppedFolder({ mcp, servers: [server([])] }, "/Users/x/Déposé");
+    const out = await grantDroppedFolder({ mcp, servers: [server([])] }, "/Users/x/Déposé", fr);
     expect(out).toEqual({ status: "cancelled" });
     expect(mcp.setDirs).not.toHaveBeenCalled();
     expect(grantMessage(out)).toBeNull(); // silent on purpose
@@ -92,7 +95,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
 
   it("says so when the folder is already in scope, rather than doing nothing", async () => {
     const mcp = host({ pickDir: vi.fn(async () => "/a") });
-    const out = await grantDroppedFolder({ mcp, servers: [server(["/a"])] }, undefined);
+    const out = await grantDroppedFolder({ mcp, servers: [server(["/a"])] }, undefined, fr);
     expect(out).toEqual({ status: "already", path: "/a" });
     expect(mcp.setDirs).not.toHaveBeenCalled();
   });
@@ -102,14 +105,14 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
     const mcp = host({
       setDirs: vi.fn(async () => ({ error: "dossier non autorisé" }) as McpServerInfo),
     });
-    const out = await grantDroppedFolder({ mcp, servers: [server([])] }, undefined);
+    const out = await grantDroppedFolder({ mcp, servers: [server([])] }, undefined, fr);
     expect(out).toEqual({ status: "error", message: "dossier non autorisé" });
     expect(grantMessage(out)).toContain("dossier non autorisé");
   });
 
   it("surfaces a refusal from the INSTALL path too", async () => {
     const mcp = host({ addStdio: vi.fn(async () => ({ error: "refusé" }) as McpServerInfo) });
-    const out = await grantDroppedFolder({ mcp, servers: [] }, undefined);
+    const out = await grantDroppedFolder({ mcp, servers: [] }, undefined, fr);
     expect(out).toEqual({ status: "error", message: "refusé" });
     expect(mcp.connect).not.toHaveBeenCalled();
   });
@@ -120,30 +123,31 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
         throw new Error("dialogue indisponible");
       }),
     });
-    expect(await grantDroppedFolder({ mcp, servers: [] }, undefined)).toEqual({
+    expect(await grantDroppedFolder({ mcp, servers: [] }, undefined, fr)).toEqual({
       status: "error",
       message: "dialogue indisponible",
     });
   });
 
   it("is unavailable — not broken — on a platform with no picker", async () => {
-    expect(await grantDroppedFolder({ mcp: undefined, servers: [] }, undefined)).toEqual({
+    expect(await grantDroppedFolder({ mcp: undefined, servers: [] }, undefined, fr)).toEqual({
       status: "unavailable",
     });
     const noSetDirs = host({ setDirs: undefined });
-    expect(await grantDroppedFolder({ mcp: noSetDirs, servers: [server([])] }, undefined)).toEqual({
+    expect(await grantDroppedFolder({ mcp: noSetDirs, servers: [server([])] }, undefined, fr)).toEqual({
       status: "unavailable",
     });
   });
 
   it("notifies the caller only on a real change", async () => {
     const onChanged = vi.fn();
-    await grantDroppedFolder({ mcp: host(), servers: [server([])], onChanged }, undefined);
+    await grantDroppedFolder({ mcp: host(), servers: [server([])], onChanged }, undefined, fr);
     expect(onChanged).toHaveBeenCalledTimes(1);
     onChanged.mockClear();
     await grantDroppedFolder(
       { mcp: host({ pickDir: vi.fn(async () => undefined) }), servers: [], onChanged },
       undefined,
+      fr,
     );
     expect(onChanged).not.toHaveBeenCalled();
   });

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { SparklesIcon } from "../../../components/brand";
-import { COMPETENCE_CATEGORIES, competenceCategory } from "../../../competences/competences";
+import { competenceCategories, competenceCategory } from "../../../competences/competences";
 import { templateCategory, type AnyTemplate } from "../../../suggestions";
 
 import { useT } from "../../../i18n";
@@ -34,8 +34,8 @@ export function CompetenceSuggestPane({
   const chips = useMemo(() => {
     const present = new Set(suggestions.map(templateCategory));
     return [
-      { id: "all", label: "Toutes" },
-      ...COMPETENCE_CATEGORIES.filter((c) => present.has(c.id)),
+      { id: "all", label: t.lists.allFeminine },
+      ...competenceCategories(t).filter((c) => present.has(c.id)),
     ];
   }, [suggestions]);
   const shown = useMemo(
@@ -84,7 +84,7 @@ export function CompetenceSuggestPane({
                 <span className="om-sugg-card-desc">
                   {asking ? "Remplacer ce que vous avez écrit ? Cliquez à nouveau." : s.desc}
                 </span>
-                <span className="om-sugg-card-meta">{competenceCategory(templateCategory(s)).label}</span>
+                <span className="om-sugg-card-meta">{competenceCategory(templateCategory(s), t).label}</span>
               </button>
             );
           })}

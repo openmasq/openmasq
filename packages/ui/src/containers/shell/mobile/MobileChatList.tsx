@@ -34,7 +34,7 @@ export function MobileChatList({ conversations, onSelect, onNew, onOpenSettings,
       return `${c.title} ${last}`.toLowerCase().includes(q);
     });
   }, [conversations, query]);
-  const groups = useMemo(() => groupConversationsByDate(filtered), [filtered]);
+  const groups = useMemo(() => groupConversationsByDate(filtered, t), [filtered, t]);
 
   return (
     <div className="mobile-home">
@@ -84,7 +84,7 @@ export function MobileChatList({ conversations, onSelect, onNew, onOpenSettings,
                   <span className="mobile-thread-body">
                     <span className="mobile-thread-top">
                       <span className="mobile-thread-title">{c.title || t.chrome.untitledConversation}</span>
-                      <span className="mobile-thread-time">{relTime(c.updatedAt)}</span>
+                      <span className="mobile-thread-time">{relTime(c.updatedAt, t)}</span>
                     </span>
                     <span className="mobile-thread-bottom">
                       <span className="mobile-thread-snippet">{last?.content || t.shell.mobile.emptyConversation}</span>

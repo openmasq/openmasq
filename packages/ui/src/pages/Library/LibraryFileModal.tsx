@@ -5,6 +5,7 @@ import { FileUsagePanel } from "./FileUsagePanel";
 import { useFileUsage } from "./useFileUsage";
 import type { LibFile } from "./libFile";
 import type { ReattachSource } from "./reattach";
+import { useT } from "../../i18n";
 
 /**
  * The Bibliothèque's file viewer: the modal plus the usage data its Conversations
@@ -32,6 +33,7 @@ export function LibraryFileModal({
   /** Kit: render as the library's inline right-side detail panel, not a modal. */
   panel?: boolean;
 }) {
+  const t = useT();
   const usageFile = useMemo(
     () => ({
       id: file.id,
@@ -83,7 +85,7 @@ export function LibraryFileModal({
       extraTabs={[
         {
           id: "conversations",
-          label: "Conversations",
+          label: t.leaves.conversations,
           // Undefined while loading — the tab shows no badge rather than a "0" that
           // contradicts the panel it labels.
           count: loading ? undefined : used.length,

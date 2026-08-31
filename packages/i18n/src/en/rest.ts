@@ -5,6 +5,10 @@
 import type { Messages } from "../messages";
 
 export const login = {
+  heading: "Good to see you again.",
+  subheading:
+    "Enter your email: we send you a sign-in link, with no password.",
+  checkYourEmail: "Check your email",
   passwordlessStrip: "NO PASSWORD · A LINK SENT BY EMAIL",
   offline:
     "You are offline. Signing in needs a network connection — check yours, then try again.",
@@ -97,6 +101,9 @@ export const modelPicker = {
   none: "No model",
   models: "Models",
   allModels: "All the models",
+  sectionDefault: "Default",
+  sectionFavorites: "Favourites",
+  sectionCurrent: "Current model",
   freeTip: "Free model — included with your account, limited usage. Click to find out more.",
   howToUse: "How do I use this model?",
   isDefault: "Default model for new conversations",
@@ -141,6 +148,10 @@ export const leaves = {
     local: "locally",
     alwaysOn: "Session & security — always on",
     usageStats: "Usage statistics",
+    essentials: "Essentials",
+    disable: "Turn off",
+    statsOn: "On — counters and screens visited, with no content.",
+    statsOff: "Off — no statistic is sent any more.",
   },
   privacyLevels: {
     custom: "Custom",
@@ -148,6 +159,15 @@ export const leaves = {
   },
   demo: { youWrite: "WHAT YOU WRITE", modelReceives: "WHAT THE MODEL RECEIVES" },
   toolTrace: "TOOL CALLS",
+  conversations: "Conversations",
+  offline: "Offline",
+  freeModelsNotice: "You are using the free models",
+  viewGrid: "Grid view",
+  viewList: "List view",
+  hide: "Hide",
+  display: "Display",
+  resize: "Resize",
+  loading: "Loading",
   errorBoundary: {
     title: "Something went wrong",
     body: "An unexpected problem occurred. Your data, saved on your computer, is intact.",

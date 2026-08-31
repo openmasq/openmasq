@@ -53,10 +53,11 @@ export function SimpleMenu({
   // Les BLOCS décident de l'ordre affiché (le défaut passe en tête) ; `models` en est
   // l'aplatissement, et c'est LUI que le clavier suit — deux ordres, l'un pour l'œil et
   // l'autre pour les flèches, c'est la flèche « bas » qui saute une ligne.
-  const sections = simpleMenuSections(simpleMenuModels(available, value, favorites), {
-    favSet,
-    defaultId: defaultModelId,
-  });
+  const sections = simpleMenuSections(
+    simpleMenuModels(available, value, favorites),
+    { favSet, defaultId: defaultModelId },
+    t,
+  );
   const models = sections.flatMap((s) => s.models);
   const [focusId, setFocusId] = useState(() => (models.some((m) => m.id === value) ? value : models[0]?.id) ?? "");
   const focusRef = useRef<HTMLButtonElement>(null);

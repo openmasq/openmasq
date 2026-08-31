@@ -1,7 +1,12 @@
+import { DEFAULT_LOCALE, getMessages } from "@openmasq/i18n";
 import { isStopword } from "@openmasq/redact";
 import type { MemoryData } from "../types";
-import { memoryCategory, normalizeMem } from "./memory";
+import { memoryCategoryLabel, normalizeMem } from "./memory";
 import { fmtDay } from "./select";
+
+/** Le bloc injecté est lu par le MODÈLE, jamais affiché : il garde la langue source,
+ *  comme le reste du prompt système. */
+const SOURCE = getMessages(DEFAULT_LOCALE);
 
 /**
  * `memory_search` — the model-PULLED path (agent turns), split from `select.ts`
@@ -43,7 +48,7 @@ export async function searchMemoryHybrid(
     if (lines.length >= max || h.sim < SEARCH_MIN_SIM) break; // trié par cosinus décroissant
     const card = memory.cards.find((c) => c.id === h.id);
     if (!card) continue;
-    const line = `${card.entity} (${memoryCategory(card.cat).label.toLowerCase()}) : ${card.facts} (noté le ${fmtDay(card.updatedAt)})`;
+    const line = `${card.entity} (${memoryCategoryLabel(card.cat, SOURCE).toLowerCase()}) : ${card.facts} (noté le ${fmtDay(card.updatedAt)})`;
     if (have.has(line)) continue; // déjà trouvée par le lexical
     have.add(line);
     lines.push(line);
@@ -74,7 +79,7 @@ export function searchMemoryStore(memory: MemoryData | undefined, query: string,
   return hits
     .map(
       ({ card }) =>
-        `${card.entity} (${memoryCategory(card.cat).label.toLowerCase()}) : ${card.facts} (noté le ${fmtDay(card.updatedAt)})`,
+        `${card.entity} (${memoryCategoryLabel(card.cat, SOURCE).toLowerCase()}) : ${card.facts} (noté le ${fmtDay(card.updatedAt)})`,
     )
     .join("\n");
 }

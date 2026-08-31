@@ -9,6 +9,11 @@
  */
 
 export interface LoginMessages {
+  /** Le titre par DÉFAUT — `apps/web` en pose un autre sur sa page d'invitation, où la
+   *  connexion n'est pas un retour mais une arrivée. */
+  heading: string;
+  subheading: string;
+  checkYourEmail: string;
   passwordlessStrip: string;
   offline: string;
   email: string;
@@ -83,6 +88,9 @@ export interface ModelPickerMessages {
   none: string;
   models: string;
   allModels: string;
+  sectionDefault: string;
+  sectionFavorites: string;
+  sectionCurrent: string;
   freeTip: string;
   howToUse: string;
   isDefault: string;
@@ -106,10 +114,29 @@ export interface ModelPickerMessages {
 
 /** Les feuilles partagées : ce qu'elles disent et que personne d'autre ne dit. */
 export interface LeavesMessages {
-  analytics: { privacyTitle: string; local: string; alwaysOn: string; usageStats: string };
+  analytics: {
+    privacyTitle: string;
+    local: string;
+    alwaysOn: string;
+    usageStats: string;
+    essentials: string;
+    disable: string;
+    statsOn: string;
+    statsOff: string;
+  };
   privacyLevels: { custom: string; customNote: string };
   demo: { youWrite: string; modelReceives: string };
   toolTrace: string;
+  conversations: string;
+  offline: string;
+  freeModelsNotice: string;
+  viewGrid: string;
+  viewList: string;
+  /** Les cinq contrôles nus des feuilles : ils n'ont qu'un nom accessible. */
+  hide: string;
+  display: string;
+  resize: string;
+  loading: string;
   errorBoundary: { title: string; body: string; reload: string; retry: string };
   code: { csvTable: string; rowsCols: (rows: number, cols: number) => string; lines: (count: number) => string };
   document: { saveFailed: string; shortcuts: string; seeAll: string; editorAria: string; seePrompt: string };

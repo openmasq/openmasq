@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import { makeMemoryCard } from "./memory";
 import { CLUSTER_MIN_SIM, buildClusteredGraph, buildClusters, cardEmbedText } from "./cluster";
@@ -7,6 +8,8 @@ const card = (entity: string, facts: string, cat = "personne", ts = 1): MemoryCa
   ...makeMemoryCard({ entity, facts, cat })!,
   updatedAt: ts,
 });
+
+const fr = getMessages("fr");
 
 describe("buildClusters — semantic ∪ mention union", () => {
   const manon = card("Manon Verdolini", "Cliente, dossier fiscal.", "personne", 3);
@@ -65,7 +68,7 @@ describe("buildClusteredGraph — same vocabulary as the radial graph", () => {
     const b = card("B SARL", "y", "organisation");
     const solo = card("Loner", "z", "autre");
     const mem: MemoryData = { cards: [a, b, solo] };
-    const g = buildClusteredGraph(mem, [{ a: a.id, b: b.id, sim: 0.95 }]);
+    const g = buildClusteredGraph(mem, [{ a: a.id, b: b.id, sim: 0.95 }], fr);
     expect(g.clusters).toHaveLength(1);
     const hub = g.nodes.find((n) => n.kind === "hub")!;
     expect(hub.group).toBe(true);
@@ -80,15 +83,15 @@ describe("buildClusteredGraph — same vocabulary as the radial graph", () => {
     const b = card("B SARL", "bb", "organisation");
     const mem: MemoryData = { cards: [a, b] };
     const e = [{ a: a.id, b: b.id, sim: 0.93 }];
-    const g = buildClusteredGraph(mem, e);
-    expect(g).toEqual(buildClusteredGraph(mem, e));
+    const g = buildClusteredGraph(mem, e, fr);
+    expect(g).toEqual(buildClusteredGraph(mem, e, fr));
     expect(g.clusters).toHaveLength(1);
   });
 
   it("a drawn sem edge and the union obey the SAME rule (no link the clustering ignored)", () => {
     const p1 = card("Karim Bennour", "x", "personne");
     const p2 = card("Léa Fontaine", "y", "personne");
-    const g = buildClusteredGraph({ cards: [p1, p2] }, [{ a: p1.id, b: p2.id, sim: 0.94 }]);
+    const g = buildClusteredGraph({ cards: [p1, p2] }, [{ a: p1.id, b: p2.id, sim: 0.94 }], fr);
     expect(g.clusters).toEqual([]);
     expect(g.edges.some((e) => e.sem)).toBe(false); // not clustered ⇒ not drawn either
   });

@@ -1,7 +1,7 @@
 import { BRAND } from "@openmasq/branding";
 import { useMemo, useState } from "react";
 import { PlusIcon, Switch } from "../../../components/brand";
-import { memoryCategory } from "../../../memory";
+import { memoryCategoryLabel } from "../../../memory";
 import type { MemoryCard, MemoryData } from "../../../types";
 import { groupMemoryCards, toneStyle } from "./memoryScreenModel";
 import { MemoryAddSheet, MemoryCardSheet, MemoryProfileSheet } from "./MobileMemorySheets";
@@ -44,7 +44,7 @@ export function MobileMemoryScreen({
   onRemove: (id: string) => void;
 }) {
   const t = useT();
-  const groups = useMemo(() => groupMemoryCards(memoire.cards), [memoire.cards]);
+  const groups = useMemo(() => groupMemoryCards(memoire.cards, t), [memoire.cards]);
   const [addTo, setAddTo] = useState<{ id: string; label: string } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -86,7 +86,7 @@ export function MobileMemoryScreen({
             <button
               type="button"
               className="btn-primary mmem-cta"
-              onClick={() => setAddTo({ id: "personne", label: memoryCategory("personne").label })}
+              onClick={() => setAddTo({ id: "personne", label: memoryCategoryLabel("personne", t) })}
             >
               <PlusIcon size={16} /> {t.shell.mobile.memory.newCard}
             </button>

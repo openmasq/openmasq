@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import type { MemoryCard, MemoryCategory, MemoryData } from "../types";
 import { buildClusteredGraph, type SemanticEdge } from "./cluster";
@@ -27,7 +28,9 @@ const semEdges: SemanticEdge[] = [
   { a: "p1", b: "p2", sim: 0.96 },
   { a: "p3", b: "p4", sim: 0.96 },
 ];
-const graph = () => buildClusteredGraph(memory, semEdges);
+const graph = () => buildClusteredGraph(memory, semEdges, fr);
+
+const fr = getMessages("fr");
 
 describe("force layout", () => {
   it("is deterministic and finite — same data, same picture", () => {

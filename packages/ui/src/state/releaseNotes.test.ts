@@ -1,12 +1,15 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import { groupHighlights, latestPerVersion, splitHighlight } from "./releaseNotes";
 
 // `groupHighlights` buckets Contentful's flat `highlights` list into the design's
 // 3 colour-coded sections by an optional leading `feat:`/`imp:`/`fix:` token, while
 // keeping un-prefixed bullets under "Nouveautés" so existing flat notes are unchanged.
+const fr = getMessages("fr");
+
 describe("groupHighlights", () => {
   it("puts un-prefixed bullets under Nouveautés (feat), preserving full text", () => {
-    const groups = groupHighlights(["Workflows — enchaînez des actions", "Mode sombre"]);
+    const groups = groupHighlights(["Workflows — enchaînez des actions", "Mode sombre"], fr);
     expect(groups).toHaveLength(1);
     expect(groups[0]).toMatchObject({ key: "feat", label: "Nouveautés", tone: "" });
     expect(groups[0].items).toEqual(["Workflows — enchaînez des actions", "Mode sombre"]);
@@ -17,7 +20,7 @@ describe("groupHighlights", () => {
       "feat: Nouvel onboarding",
       "imp: Recherche plus rapide",
       "fix: Correction du mode sombre",
-    ]);
+    ], fr);
     expect(groups.map((g) => g.key)).toEqual(["feat", "imp", "fix"]);
     expect(groups.map((g) => g.tone)).toEqual(["", "imp", "fix"]);
     expect(groups[0].items).toEqual(["Nouvel onboarding"]);
@@ -26,7 +29,7 @@ describe("groupHighlights", () => {
   });
 
   it("keeps a real 'word:' bullet intact when the tag isn't a known category", () => {
-    const groups = groupHighlights(["Stripe: nouvelle intégration"]);
+    const groups = groupHighlights(["Stripe: nouvelle intégration"], fr);
     expect(groups).toHaveLength(1);
     expect(groups[0].key).toBe("feat");
     expect(groups[0].items).toEqual(["Stripe: nouvelle intégration"]);
@@ -38,19 +41,19 @@ describe("groupHighlights", () => {
       "improvement: Y",
       "bug: Z",
       "correction: W",
-    ]);
+    ], fr);
     const byKey = Object.fromEntries(groups.map((g) => [g.key, g.items]));
     expect(byKey.imp).toEqual(["X", "Y"]);
     expect(byKey.fix).toEqual(["Z", "W"]);
   });
 
   it("emits groups in Nouveautés → Améliorations → Corrections order and drops empties", () => {
-    const groups = groupHighlights(["fix: A", "feat: B"]);
+    const groups = groupHighlights(["fix: A", "feat: B"], fr);
     expect(groups.map((g) => g.key)).toEqual(["feat", "fix"]);
   });
 
   it("ignores blank entries", () => {
-    expect(groupHighlights(["", "   ", "feat:   "])).toEqual([]);
+    expect(groupHighlights(["", "   ", "feat:   "], fr)).toEqual([]);
   });
 });
 

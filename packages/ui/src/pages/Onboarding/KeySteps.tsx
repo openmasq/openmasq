@@ -93,7 +93,7 @@ export function KeySteps({
           type="password"
           className="ob-access-input"
           placeholder={
-            help
+            help?.placeholder
               ? t.onboarding.keySteps.placeholder(label, help.placeholder)
               : t.onboarding.keySteps.placeholderPlain(label)
           }

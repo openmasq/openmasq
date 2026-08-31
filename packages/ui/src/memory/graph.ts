@@ -1,5 +1,6 @@
+import type { Messages } from "@openmasq/i18n";
 import type { MemoryCard, MemoryData } from "../types";
-import { MEMORY_CATEGORIES, cardKeys, memoryCategory, normalizeMem } from "./memory";
+import { MEMORY_CATEGORIES, cardKeys, memoryCategory, normalizeMem, memoryCategoryLabel } from "./memory";
 
 /**
  * The Mémoire GRAPH — the kit's radial layout (core → category hubs → card leaves),
@@ -62,9 +63,9 @@ export function crossLinks(cards: MemoryCard[]): [string, string][] {
 }
 
 /** Build the radial graph from the store. Deterministic — same data, same picture. */
-export function buildMemoryGraph(memory: MemoryData): MemoryGraphData {
+export function buildMemoryGraph(memory: MemoryData, t: Messages): MemoryGraphData {
   const nodes: GraphNode[] = [
-    { id: "core", label: "Mémoire", kind: "core", tone: "core", size: 20, x: 0, y: 0 },
+    { id: "core", label: t.lists.memory.coreNode, kind: "core", tone: "core", size: 20, x: 0, y: 0 },
   ];
   const edges: GraphEdge[] = [];
 
@@ -84,7 +85,7 @@ export function buildMemoryGraph(memory: MemoryData): MemoryGraphData {
     gi++;
     nodes.push({
       id: "profil",
-      label: "Profil",
+      label: t.lists.memory.profileNode,
       kind: "hub",
       tone: "mint",
       size: 13,
@@ -100,7 +101,7 @@ export function buildMemoryGraph(memory: MemoryData): MemoryGraphData {
     const hx = Math.cos(a) * HUB_R;
     const hy = Math.sin(a) * HUB_R;
     const hid = `hub-${g.cat.id}`;
-    nodes.push({ id: hid, label: g.cat.label, kind: "hub", tone: g.cat.tone, size: 13, x: hx, y: hy });
+    nodes.push({ id: hid, label: memoryCategoryLabel(g.cat.id, t), kind: "hub", tone: g.cat.tone, size: 13, x: hx, y: hy });
     edges.push({ source: "core", target: hid });
     g.cards.forEach((card, li) => {
       const la = a + (li - (g.cards.length - 1) / 2) * 0.5;

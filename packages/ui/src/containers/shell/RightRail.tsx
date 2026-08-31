@@ -180,9 +180,9 @@ export function RightRail({
           },
         ]
       : []),
-    { key: "guide", icon: <HelpIcon size={17} />, label: "Aide", title: `Aide — prendre en main ${BRAND.name}`, onClick: onOpenGuide },
+    { key: "guide", icon: <HelpIcon size={17} />, label: t.chrome.help, title: t.chrome.helpTip(BRAND.name), onClick: onOpenGuide },
     ...(onOpenAvis
-      ? [{ key: "avis", icon: <FeedbackIcon size={17} />, label: "Envoyer un avis", title: "Envoyer un avis", onClick: onOpenAvis }]
+      ? [{ key: "avis", icon: <FeedbackIcon size={17} />, label: t.chrome.sendFeedback, title: t.chrome.sendFeedback, onClick: onOpenAvis }]
       : []),
   ];
 

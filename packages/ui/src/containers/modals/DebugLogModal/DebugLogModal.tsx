@@ -12,14 +12,8 @@ import { Row } from "./parts";
 
 import { useT } from "../../../i18n";
 type Filter = "all" | "phase" | "wire" | "turn" | "tool" | "error";
-const TABS: { id: Filter; label: string }[] = [
-  { id: "all", label: "Tout" },
-  { id: "phase", label: "Étapes" },
-  { id: "wire", label: "Wire" },
-  { id: "turn", label: "Échanges" },
-  { id: "tool", label: "Outils" },
-  { id: "error", label: "Erreurs" },
-];
+/** L'ordre des filtres ; leurs mots viennent du catalogue (`modals.debug.tabs`). */
+const TAB_IDS: readonly Filter[] = ["all", "phase", "wire", "turn", "tool", "error"];
 
 /**
  * In-app debug log — wire messages (exact redacted text sent to the model + the
@@ -101,13 +95,13 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
           )}
         </div>
         <div className="dbg-tabs">
-          {TABS.map((t) => (
+          {TAB_IDS.map((id) => (
             <button
-              key={t.id}
-              className={`dbg-tab ${filter === t.id ? "on" : ""}`}
-              onClick={() => setFilter(t.id)}
+              key={id}
+              className={`dbg-tab ${filter === id ? "on" : ""}`}
+              onClick={() => setFilter(id)}
             >
-              {t.label}
+              {t.modals.debug.tabs[id]}
             </button>
           ))}
         </div>
@@ -147,7 +141,7 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
               className="dbg-action primary"
               title={t.modals.debug.sendToDevsTip}
               onClick={() => {
-                openAvis(debugJournalDraft(toText([...shown].reverse(), { mapping: false })));
+                openAvis(debugJournalDraft(toText([...shown].reverse(), { mapping: false }), t));
                 onClose();
               }}
             >

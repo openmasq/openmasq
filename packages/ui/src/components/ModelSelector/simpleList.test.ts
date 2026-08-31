@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import { SIMPLE_MODEL_IDS } from "@openmasq/catalog";
 import { MODELS, type ModelInfo } from "@openmasq/llm";
@@ -10,6 +11,8 @@ const byId = (id: string): ModelInfo => {
   return m;
 };
 const ALL = MODELS.slice();
+
+const fr = getMessages("fr");
 
 describe("la liste favorite elle-même", () => {
   // ⚠️ Une liste figée d'ids et un registre qui bouge : sans ce test, retirer un modèle
@@ -161,7 +164,7 @@ describe("simpleMenuSections — ce que chaque bloc annonce", () => {
 
   it("sort le DÉFAUT de la liste des favoris et le met en tête", () => {
     const models = [m("a"), m("def"), m("b")];
-    const sec = simpleMenuSections(models, { favSet: new Set(["a", "def", "b"]), defaultId: "def" });
+    const sec = simpleMenuSections(models, { favSet: new Set(["a", "def", "b"]), defaultId: "def" }, fr);
     expect(sec.map((s) => [s.label, s.models.map((x) => x.id)])).toEqual([
       ["Par défaut", ["def"]],
       ["Favoris", ["a", "b"]],
@@ -169,27 +172,27 @@ describe("simpleMenuSections — ce que chaque bloc annonce", () => {
   });
 
   it("annonce le modèle en cours ajouté en queue, hors favoris", () => {
-    const sec = simpleMenuSections([m("a"), m("cur")], { favSet: new Set(["a"]), defaultId: "a" });
+    const sec = simpleMenuSections([m("a"), m("cur")], { favSet: new Set(["a"]), defaultId: "a" }, fr);
     expect(sec.map((s) => s.label)).toEqual(["Par défaut", "Modèle en cours"]);
     expect(sec[1].models.map((x) => x.id)).toEqual(["cur"]);
   });
 
   it("aucun bloc VIDE : un intitulé sans ligne dessous est du bruit", () => {
     // Défaut inconnu de la liste ⇒ pas de bloc « Par défaut ».
-    expect(simpleMenuSections([m("a")], { favSet: new Set(["a"]), defaultId: "zzz" })).toEqual([
+    expect(simpleMenuSections([m("a")], { favSet: new Set(["a"]), defaultId: "zzz" }, fr)).toEqual([
       { label: "Favoris", models: [m("a")] },
     ]);
     // Un seul favori, qui EST le défaut ⇒ un seul bloc, pas un « Favoris » vide.
     expect(
-      simpleMenuSections([m("a")], { favSet: new Set(["a"]), defaultId: "a" }).map((s) => s.label),
+      simpleMenuSections([m("a")], { favSet: new Set(["a"]), defaultId: "a" }, fr).map((s) => s.label),
     ).toEqual(["Par défaut"]);
-    expect(simpleMenuSections([], { favSet: new Set(), defaultId: "a" })).toEqual([]);
+    expect(simpleMenuSections([], { favSet: new Set(), defaultId: "a" }, fr)).toEqual([]);
   });
 
   it("le modèle courant qui est AUSSI le défaut reste « Modèle en cours »", () => {
     // Il n'est pas épinglé : ce qui compte à cet endroit de la liste est qu'il vienne de
     // la conversation, pas des favoris.
-    const sec = simpleMenuSections([m("a"), m("cur")], { favSet: new Set(["a"]), defaultId: "cur" });
+    const sec = simpleMenuSections([m("a"), m("cur")], { favSet: new Set(["a"]), defaultId: "cur" }, fr);
     expect(sec.map((s) => s.label)).toEqual(["Favoris", "Modèle en cours"]);
   });
 });

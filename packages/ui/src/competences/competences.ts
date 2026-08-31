@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { Competence, CompetenceCategoryId } from "../types";
 
 /**
@@ -15,34 +16,42 @@ import type { Competence, CompetenceCategoryId } from "../types";
  * pipeline like any typed text.
  */
 
-/** The category vocabulary. `id` persists; label/tone/glyph are presentation.
+/** The category vocabulary. `id` persists; tone/glyph are presentation, and the LABEL
+ *  comes from the reader's catalogue (`lists.competenceCategories`) — pass a `t`.
  *  `tone` keys the `--hl-*` highlight tokens. */
 // ⚠️ Glyphs must exist in `--font-display` (Space Grotesk). The kit uses "✍" for
 // Rédaction, but that's a dingbat the font lacks — it rendered as a BLANK tile in the
 // app (verified in a build). Stick to Latin-1/geometric marks, which all render.
 export const COMPETENCE_CATEGORIES: {
   id: CompetenceCategoryId;
-  label: string;
   tone: string;
   glyph: string;
 }[] = [
-  { id: "redaction", label: "Rédaction", tone: "sky", glyph: "¶" },
-  { id: "analyse", label: "Analyse", tone: "violet", glyph: "◑" },
-  { id: "code", label: "Code", tone: "lime", glyph: "{}" },
-  { id: "juridique", label: "Juridique", tone: "amber", glyph: "§" },
-  { id: "support", label: "Support", tone: "pink", glyph: "◈" },
+  { id: "redaction", tone: "sky", glyph: "¶" },
+  { id: "analyse", tone: "violet", glyph: "◑" },
+  { id: "code", tone: "lime", glyph: "{}" },
+  { id: "juridique", tone: "amber", glyph: "§" },
+  { id: "support", tone: "pink", glyph: "◈" },
   // La destination des anciens « workflows », et la catégorie que la modale propose
   // d'elle-même dès qu'on choisit des connecteurs. Le mot que les gens avaient n'est pas
   // perdu : il est descendu d'une SECTION à une catégorie, ce qui est sa vraie taille.
-  { id: "routine", label: "Routines", tone: "mint", glyph: "»" },
+  { id: "routine", tone: "mint", glyph: "»" },
 ];
 
 const FALLBACK = COMPETENCE_CATEGORIES[0];
 
 /** The category record for an id, never undefined — an unknown id (an older or
  *  hand-edited entry) degrades to the first category rather than crashing a render. */
-export function competenceCategory(id: string): (typeof COMPETENCE_CATEGORIES)[number] {
-  return COMPETENCE_CATEGORIES.find((c) => c.id === id) ?? FALLBACK;
+export type CompetenceCategory = (typeof COMPETENCE_CATEGORIES)[number] & { label: string };
+
+/** La liste ENTIÈRE, libellée dans la langue de `t` — l'ordre reste celui du dessin. */
+export function competenceCategories(t: Messages): CompetenceCategory[] {
+  return COMPETENCE_CATEGORIES.map((c) => ({ ...c, label: t.lists.competenceCategories[c.id] }));
+}
+
+export function competenceCategory(id: string, t: Messages): CompetenceCategory {
+  const cat = COMPETENCE_CATEGORIES.find((c) => c.id === id) ?? FALLBACK;
+  return { ...cat, label: t.lists.competenceCategories[cat.id] };
 }
 
 /** A stable id. `crypto.randomUUID` where available, else a time+random fallback

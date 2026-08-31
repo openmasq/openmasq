@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import { filterCompetences } from "../../competences/competences";
 import type { Competence } from "../../types";
 
@@ -40,11 +41,9 @@ export interface SlashAction {
 
 /** The built-ins. « /retenir » teaches the MÉMOIRE's conversational gesture — picking
  *  it seeds the phrase whose send gets noted (and whose chip confirms it). */
-export const SLASH_ACTIONS: SlashAction[] = [
+const SLASH_SHAPE: readonly { id: string; insert: string }[] = [
   {
     id: "retenir",
-    label: "Retenir en mémoire",
-    desc: "Insère « Retiens que… » — le fait durable sera noté dans la Mémoire, localement.",
     insert: "Retiens que ",
   },
 ];
@@ -53,10 +52,16 @@ export const SLASH_ACTIONS: SlashAction[] = [
  *  `memoryOpen` (défaut : vrai) les retire toutes : « /retenir » est une AFFORDANCE de la
  *  Mémoire, qui s'en va avec sa porte — la Mémoire, elle, continue de fonctionner, et
  *  « retiens que… » écrit en toutes lettres reste honoré (`../../state/featureAccess.ts`). */
-export function slashActionMatches(query: string, memoryOpen = true): SlashAction[] {
+/** Les actions livrées, libellées dans la langue de `t` — leur `insert`, lui, est la
+ *  PHRASE que la mémoire reconnaît : elle appartient au geste, pas à la traduction. */
+function slashActions(t: Messages): SlashAction[] {
+  return SLASH_SHAPE.map((a) => ({ ...a, ...t.conversation.slashRemember }));
+}
+
+export function slashActionMatches(query: string, t: Messages, memoryOpen = true): SlashAction[] {
   if (!memoryOpen) return [];
   const q = query.trim().toLowerCase();
-  return SLASH_ACTIONS.filter(
+  return slashActions(t).filter(
     (a) => !q || a.id.startsWith(q) || a.label.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q),
   );
 }

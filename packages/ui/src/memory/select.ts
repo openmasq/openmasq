@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, getMessages } from "@openmasq/i18n";
 import { isNonPiiTerm, isNotoriousEntity } from "@openmasq/redact";
 import type { MemoryCard, MemoryData } from "../types";
 import { isNominalEntityName } from "./extractParse";
@@ -7,11 +8,15 @@ import {
   cardKeys,
   deniedHomographTokens,
   keyInText,
-  memoryCategory,
+  memoryCategoryLabel,
   mentions,
   mentionsToken,
   normalizeMem,
 } from "./memory";
+
+/** Le bloc injecté est lu par le MODÈLE, jamais affiché : il garde la langue source,
+ *  comme le reste du prompt système. */
+const SOURCE = getMessages(DEFAULT_LOCALE);
 
 /**
  * WHICH memory to inject — the deterministic cascade, entirely client-side on REAL
@@ -156,7 +161,7 @@ export function formatMemoryBlock(profile: string | undefined, cards: MemoryCard
   if (profile) lines.push(profile);
   for (const c of cards)
     lines.push(
-      `- ${c.entity} (${memoryCategory(c.cat).label.toLowerCase()}) : ${c.facts} (noté le ${fmtDay(c.updatedAt)})`,
+      `- ${c.entity} (${memoryCategoryLabel(c.cat, SOURCE).toLowerCase()}) : ${c.facts} (noté le ${fmtDay(c.updatedAt)})`,
     );
   return lines.join("\n");
 }

@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import {
   COMPETENCE_CATEGORIES,
@@ -20,6 +21,8 @@ const mk = (p: Partial<Competence>): Competence => ({
   uses: p.uses,
   createdAt: p.createdAt ?? 1,
 });
+
+const fr = getMessages("fr");
 
 describe("makeCompetence", () => {
   it("trims and stamps a new compétence", () => {
@@ -47,8 +50,8 @@ describe("makeCompetence", () => {
 
 describe("competenceCategory", () => {
   it("resolves a known id and degrades on an unknown one instead of throwing", () => {
-    expect(competenceCategory("code").label).toBe("Code");
-    expect(competenceCategory("nope")).toBe(COMPETENCE_CATEGORIES[0]);
+    expect(competenceCategory("code", fr).label).toBe("Code");
+    expect(competenceCategory("nope", fr).id).toBe(COMPETENCE_CATEGORIES[0].id);
   });
 });
 

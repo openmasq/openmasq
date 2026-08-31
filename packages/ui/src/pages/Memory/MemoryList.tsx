@@ -1,5 +1,5 @@
 import { CheckIcon, TrashIcon } from "../../components/brand";
-import { MEMORY_CATEGORIES, memoryCategory } from "../../memory";
+import { MEMORY_CATEGORIES, memoryCategory, memoryCategoryLabel } from "../../memory";
 import type { MemoryCard, MemoryData } from "../../types";
 
 import { useT } from "../../i18n";
@@ -197,7 +197,7 @@ export function MemoryList({
       {groups.map((g) => (
         <div key={g.cat.id} className="om-mem-group">
           <div className="cv-eyebrow om-mem-group-head">
-            {g.cat.label} · {g.rows.length}
+            {memoryCategoryLabel(g.cat.id, t)} · {g.rows.length}
           </div>
           {g.rows.map(row)}
         </div>

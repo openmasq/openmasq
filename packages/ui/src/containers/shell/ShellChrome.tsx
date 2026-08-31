@@ -20,6 +20,7 @@ import { LoginScreen } from "../../pages/Login";
 import { AppIntro } from "../../components/media/BrandLogo";
 import { useHost } from "../../host";
 import type { ShellApi } from "./useShell";
+import { useT } from "../../i18n";
 
 /**
  * The account gate's full-screen takeover (`ShellApi.splash`): resolve the session before
@@ -62,6 +63,7 @@ export function ShellChrome({
   footer?: ReactNode;
   children: ReactNode;
 }) {
+  const t = useT();
   const dispatch = useAppDispatch();
   const host = useHost();
   const { chat, overlay, avis, search, deep, conv, mcpReconnect } = shell;
@@ -96,11 +98,10 @@ export function ShellChrome({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [established, onboarded]);
 
-  const notice = pickShellNotice({
-    reconnecting: shell.reconnecting,
-    mcpItems: mcpReconnect.items,
-    showAccess,
-  });
+  const notice = pickShellNotice(
+    { reconnecting: shell.reconnecting, mcpItems: mcpReconnect.items, showAccess },
+    t,
+  );
   const runNoticeAction = (kind: ShellNoticeKind) => {
     if (kind === "access") return deep.openSettings("models");
     if (kind !== "mcp") return;

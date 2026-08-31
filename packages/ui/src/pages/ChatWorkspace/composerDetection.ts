@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import { redact, hueForKind, entityVariantRegex, entityKey } from "@openmasq/redact";
 import { captureEvent } from "../../analytics";
 import { dropNested } from "./composerNesting";
@@ -214,6 +215,7 @@ export function previewStatus(
   detecting: boolean,
   count: number,
   hasText: boolean,
+  t: Messages,
   partial = false,
 ): PreviewStatus {
   if (!hasText || detecting) return { kind: "none" };
@@ -223,19 +225,19 @@ export function previewStatus(
     return partial
       ? {
           kind: "count",
-          label: "analyse incomplète",
+          label: t.composer.detect.partialNone,
           partial: true,
-          hint: "L'analyse approfondie n'a pas pu finir sur ce texte. L'envoi la refait entièrement — rien ne part sans être analysé.",
+          hint: t.composer.detect.partialNoneHint,
         }
       : { kind: "none" };
   return partial
     ? {
         kind: "count",
-        label: `au moins ${count} à redact`,
+        label: t.composer.detect.partialCount(count),
         partial: true,
-        hint: "Le décompte est partiel : l'analyse approfondie n'a pas pu finir sur un texte de cette taille. L'envoi la refait entièrement, avec plus de temps — il y aura donc au moins ce nombre.",
+        hint: t.composer.detect.partialCountHint,
       }
-    : { kind: "count", label: `${count} à redact` };
+    : { kind: "count", label: t.composer.modal.toMask(count) };
 }
 
 /**

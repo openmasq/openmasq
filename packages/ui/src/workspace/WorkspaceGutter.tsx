@@ -1,6 +1,7 @@
 import { useRef, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { blockAgentOverlay, unblockAgentOverlay } from "../hooks/modalGate";
 
+import { useT } from "../i18n";
 const MIN = 0.15; // a pane never shrinks below 15% of its split
 const MAX = 0.85;
 
@@ -28,6 +29,7 @@ export function WorkspaceGutter({
   index: number;
   onResize: (sizes: number[]) => void;
 }) {
+  const t = useT();
   const dragging = useRef(false);
 
   const onPointerDown = (e: ReactPointerEvent) => {
@@ -69,7 +71,7 @@ export function WorkspaceGutter({
       className={`ws-gutter ${direction}`}
       role="separator"
       aria-orientation={direction === "row" ? "vertical" : "horizontal"}
-      aria-label="Redimensionner"
+      aria-label={t.leaves.resize}
       onPointerDown={onPointerDown}
     >
       <span className="ws-gutter-grip" aria-hidden />

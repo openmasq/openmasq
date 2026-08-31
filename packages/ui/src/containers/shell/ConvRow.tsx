@@ -115,7 +115,7 @@ export function ConvRow({
           <span className="om-sweep">{conv.title || t.chrome.untitledConversation}</span>
         </span>
       )}
-      {!editing && <span className="conv-time">{relTime(conv.updatedAt)}</span>}
+      {!editing && <span className="conv-time">{relTime(conv.updatedAt, t)}</span>}
       {hasActions && !editing && (
         <span
           className="conv-actions"

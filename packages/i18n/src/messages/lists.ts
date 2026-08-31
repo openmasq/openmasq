@@ -30,6 +30,23 @@ export interface NoMatchCopy {
 export interface ListsMessages {
   /** Ce que les quatre partagent. */
   loading: string;
+  /** Le « tout » d'un filtre — masculin/féminin selon la liste, d'où deux clés. */
+  allFeminine: string;
+  allMasculine: string;
+  /** Les onglets de catégorie de la Bibliothèque. */
+  libraryTabs: { all: string; image: string; document: string; sheet: string; audio: string };
+  /** Les catégories d'une compétence, et le « toutes » du filtre. */
+  competenceCategories: {
+    all: string;
+    redaction: string;
+    analyse: string;
+    code: string;
+    juridique: string;
+    support: string;
+    routine: string;
+  };
+  /** Les boutons de mise en forme de l'éditeur d'instruction. */
+  marks: { bold: string; italic: string; heading: string; quote: string; bullet: string; ordered: string; code: string };
   competences: {
     empty: EmptyStateCopy;
     noMatch: NoMatchCopy;
@@ -97,6 +114,14 @@ export interface ListsMessages {
     removeTip: string;
     removeAria: (entity: string) => string;
     graphAria: (count: number) => string;
+    /** Les deux nœuds que le graphe dessine lui-même. */
+    coreNode: string;
+    profileNode: string;
+    /** Les quatre catégories d'une fiche. */
+    categories: { personne: string; organisation: string; projet: string; autre: string };
+    hubDesc: (category: string) => string;
+    onlyShow: (category: string) => string;
+    clearFilter: string;
     /** La légende des traits du graphe. */
     legend: { category: string; mention: string; mentionTip: string; sameTopic: string; sameTopicTip: string };
     /** Le panneau d'une fiche. */

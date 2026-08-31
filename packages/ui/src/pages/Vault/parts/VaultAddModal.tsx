@@ -43,7 +43,7 @@ export function VaultAddModal({
             <span className="om-mark">{t.lists.vault.add.title}</span>
           </div>
           <div className="om-vault-addm-sub">
-            Ce terme sera masqué avant chaque envoi, quel que soit le modèle.
+            {t.lists.vault.add.sub}
           </div>
         </div>
       </div>
@@ -51,7 +51,7 @@ export function VaultAddModal({
       <div className="om-vault-addm-body">
         <div>
           <label className="cv-eyebrow om-vault-addm-label" htmlFor="om-vault-addm-term">
-            Terme à redact
+            {t.lists.vault.add.term}
           </label>
           <input
             id="om-vault-addm-term"
@@ -89,7 +89,7 @@ export function VaultAddModal({
 
         <div>
           <label className="cv-eyebrow om-vault-addm-label" htmlFor="om-vault-addm-note">
-            Note (optionnel)
+            {t.lists.vault.add.note}
           </label>
           <input
             id="om-vault-addm-note"

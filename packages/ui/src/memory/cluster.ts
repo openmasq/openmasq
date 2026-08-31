@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { MemoryCard, MemoryData } from "../types";
 import { MEMORY_CATEGORIES, memoryCategory } from "./memory";
 import { crossLinks, type GraphEdge, type GraphNode, type MemoryGraphData } from "./graph";
@@ -138,6 +139,7 @@ const OUTER_R = 13.5;
 export function buildClusteredGraph(
   memory: MemoryData,
   semEdges: SemanticEdge[],
+  t: Messages,
   minSim = CLUSTER_MIN_SIM,
 ): ClusteredGraphData {
   const clusters = buildClusters(memory.cards, semEdges, minSim);
@@ -146,7 +148,7 @@ export function buildClusteredGraph(
   const byId = new Map(memory.cards.map((c) => [c.id, c]));
 
   const nodes: GraphNode[] = [
-    { id: "core", label: "Mémoire", kind: "core", tone: "core", size: 20, x: 0, y: 0 },
+    { id: "core", label: t.lists.memory.coreNode, kind: "core", tone: "core", size: 20, x: 0, y: 0 },
   ];
   const edges: GraphEdge[] = [];
 
@@ -159,7 +161,7 @@ export function buildClusteredGraph(
     gi++;
     nodes.push({
       id: "profil",
-      label: "Profil",
+      label: t.lists.memory.profileNode,
       kind: "hub",
       tone: "mint",
       size: 13,

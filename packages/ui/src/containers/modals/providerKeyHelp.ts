@@ -14,8 +14,9 @@ import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 export interface ProviderKeyShape {
   /** The provider's OFFICIAL key page. */
   keyUrl: string;
-  /** Input placeholder = the key's recognisable prefix. */
-  placeholder: string;
+  /** Input placeholder = the key's recognisable prefix. Absent quand la clé n'en a
+   *  pas : l'appelant met alors « Votre clé <fournisseur> », qui se traduit. */
+  placeholder?: string;
   /** The prefix a key of this provider PROVABLY starts with, when it has one — the
    *  paste-time verdict's only hard fact. Absent = the provider mints keys with no
    *  fixed shape, and no shape claim may be made about them. */
@@ -49,7 +50,6 @@ const PROVIDER_KEY_SHAPE: Partial<Record<ProviderId, ProviderKeyShape>> = {
   },
   mistral: {
     keyUrl: "https://console.mistral.ai/api-keys",
-    placeholder: "Votre clé Mistral",
   },
   deepseek: {
     keyUrl: "https://platform.deepseek.com/api_keys",

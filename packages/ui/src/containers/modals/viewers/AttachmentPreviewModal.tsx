@@ -631,7 +631,7 @@ export function AttachmentPreviewModal({
           onReveal={(real) => toggleReveal(real)}
           onReRedact={(real) => toggleReveal(real)}
           onDelete={onDeleteRedaction}
-          onReport={openAvis ? (kind) => openAvis(redactionProblemDraft("document", kind)) : undefined}
+          onReport={openAvis ? (kind) => openAvis(redactionProblemDraft("document", t, kind)) : undefined}
         />
       )}
 

@@ -41,7 +41,7 @@ export function SkillCard({ kind, text }: { kind: "competence" | "workflow"; tex
   // L'adoption elle-même est aussi idempotente (`useAddProposedSkill`), ceinture-bretelles.
   const added = justAdded || (complete && (isSkillAdded?.(skill) ?? false));
   const isWf = kind === "workflow";
-  const cat = !isWf && skill.cat ? competenceCategory(skill.cat) : null;
+  const cat = !isWf && skill.cat ? competenceCategory(skill.cat, t) : null;
 
   return (
     <div className="md-skill-card">

@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import { previewStatus } from "./composerDetection";
 
@@ -13,23 +14,25 @@ import { previewStatus } from "./composerDetection";
    partiel qui se lirait comme un total, ni un zéro. L'état « ça travaille » est porté par
    le bouton d'envoi, sur exactement la même fenêtre (`busy = redacting || detecting`). */
 
+const fr = getMessages("fr");
+
 describe("previewStatus — l'aperçu ne promet que ce qu'il a calculé", () => {
   it("se tait tant qu'une couche travaille, même avec des valeurs déjà repérées", () => {
     // Un compte partiel affiché ici se lirait comme le résultat final.
-    expect(previewStatus(true, 2, true)).toEqual({ kind: "none" });
-    expect(previewStatus(true, 0, true)).toEqual({ kind: "none" });
+    expect(previewStatus(true, 2, true, fr)).toEqual({ kind: "none" });
+    expect(previewStatus(true, 0, true, fr)).toEqual({ kind: "none" });
   });
 
   it("n'affiche le total qu'une fois les deux couches revenues", () => {
-    expect(previewStatus(false, 3, true)).toEqual({ kind: "count", label: "3 à redact" });
+    expect(previewStatus(false, 3, true, fr)).toEqual({ kind: "count", label: "3 à redact" });
   });
 
   it("le zéro acquis est muet", () => {
-    expect(previewStatus(false, 0, true)).toEqual({ kind: "none" });
+    expect(previewStatus(false, 0, true, fr)).toEqual({ kind: "none" });
   });
 
   it("ne dit rien sur un composeur vide", () => {
-    expect(previewStatus(true, 0, false)).toEqual({ kind: "none" });
-    expect(previewStatus(false, 5, false)).toEqual({ kind: "none" });
+    expect(previewStatus(true, 0, false, fr)).toEqual({ kind: "none" });
+    expect(previewStatus(false, 5, false, fr)).toEqual({ kind: "none" });
   });
 });

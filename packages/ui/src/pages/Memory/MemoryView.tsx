@@ -2,7 +2,7 @@ import { BRAND } from "@openmasq/branding";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../containers/shell/PageHeader";
 import { MemoryIcon, EmptyState, PlusIcon, Switch } from "../../components/brand";
-import { MEMORY_CATEGORIES, newCardEntity } from "../../memory";
+import { MEMORY_CATEGORIES, newCardEntity, memoryCategoryLabel } from "../../memory";
 import { buildMemoryGraph } from "../../memory/graph";
 import { buildClusteredGraph } from "../../memory/cluster";
 import { memoryExportFilename, memoryExportText } from "../../memory/memoryExport";
@@ -96,10 +96,10 @@ export function MemoryView({
     if (requestedId) setSelected(`card-${requestedId.id}`);
   }, [requestedId]);
   const clustered = useMemo(
-    () => (semEdges ? buildClusteredGraph(memoire, semEdges) : null),
-    [memoire, semEdges],
+    () => (semEdges ? buildClusteredGraph(memoire, semEdges, t) : null),
+    [memoire, semEdges, t],
   );
-  const graph = useMemo(() => clustered ?? buildMemoryGraph(memoire), [clustered, memoire]);
+  const graph = useMemo(() => clustered ?? buildMemoryGraph(memoire, t), [clustered, memoire, t]);
   const selNode = graph.nodes.find((n) => n.id === selected) ?? null;
   const selCard = selNode?.cardId ? memoire.cards.find((c) => c.id === selNode.cardId) ?? null : null;
   const legend = MEMORY_CATEGORIES.filter((c) => memoire.cards.some((k) => k.cat === c.id));
@@ -184,11 +184,11 @@ export function MemoryView({
                 type="button"
                 className={`om-mem-legend${catFilter === c.id ? " on" : ""}`}
                 aria-pressed={catFilter === c.id}
-                title={catFilter === c.id ? "Retirer le filtre" : `Ne montrer que : ${c.label}`}
+                title={catFilter === c.id ? t.lists.memory.clearFilter : t.lists.memory.onlyShow(memoryCategoryLabel(c.id, t))}
                 onClick={() => setCatFilter((cur) => (cur === c.id ? null : c.id))}
               >
                 <span className="om-mem-dot-chip sm" style={{ background: `var(--hl-${c.tone})` }} />
-                {c.label}
+                {memoryCategoryLabel(c.id, t)}
               </button>
             ))}
           </div>

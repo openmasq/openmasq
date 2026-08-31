@@ -53,7 +53,8 @@ export function ApiKeyModal({
   // the registry `keyUrl` link for a provider with no documented help.
   const help = providerKeyHelp(provider, t);
   const getUrl = help?.keyUrl ?? keyUrl;
-  const placeholder = help?.placeholder ?? "sk-…";
+  // Sans préfixe connu, on nomme le fournisseur plutôt que d'inventer une forme de clé.
+  const placeholder = help?.placeholder ?? t.modals.apiKey.keyPlaceholderFallback(label);
 
   const connect = async () => {
     if (!onConnect || connecting) return;
