@@ -3,10 +3,10 @@ import { findConnector } from "@openmasq/catalog/mcp";
 import { connectorCopy, mcpAuthTagCopy } from "../help/catalogCopy";
 import type { Competence } from "../types";
 import { pickSuggestions } from "./suggestions";
-import { ROUTINE_SUGGESTIONS, type RoutineSuggestion } from "./routineTemplates";
+import { routineSuggestions, type RoutineSuggestion } from "./routineTemplates";
 import { genericRoutineFor } from "./routineGeneric";
 
-export { ROUTINE_SUGGESTIONS, type RoutineSuggestion };
+export { routineSuggestions, type RoutineSuggestion };
 
 /** How many templates the modal offers at once. */
 export const ROUTINE_SUGGESTION_LIMIT = 6;
@@ -72,6 +72,7 @@ export function ownKeysNeeded(s: Pick<RoutineSuggestion, "servers">, t: Messages
  */
 export function suggestedRoutines(
   existing: readonly Competence[],
+  t: Messages,
   opts: {
     /** Catalog ids with a connected account — ranked first. */
     connected?: ReadonlySet<string>;
@@ -81,9 +82,10 @@ export function suggestedRoutines(
   } = {},
 ): RoutineSuggestion[] {
   const { connected, unavailable, limit = ROUTINE_SUGGESTION_LIMIT } = opts;
+  const all = routineSuggestions(t);
   const offerable = unavailable?.size
-    ? ROUTINE_SUGGESTIONS.filter((s) => !s.servers.some((id) => unavailable.has(id)))
-    : ROUTINE_SUGGESTIONS;
+    ? all.filter((s) => !s.servers.some((id) => unavailable.has(id)))
+    : all;
   if (!connected?.size) return pickSuggestions(offerable, existing, limit);
   const connectedCount = (s: RoutineSuggestion) =>
     s.servers.filter((id) => connected.has(id)).length;
@@ -119,6 +121,7 @@ export function suggestedRoutines(
 export function focusRoutines(
   ranked: readonly RoutineSuggestion[],
   focus: ReadonlySet<string> | undefined,
+  t: Messages,
   limit = ROUTINE_SUGGESTION_LIMIT,
 ): RoutineSuggestion[] {
   if (!focus?.size) return ranked.slice(0, limit);
@@ -130,7 +133,7 @@ export function focusRoutines(
   const served = new Set(matching.flatMap((s) => s.servers.filter((id) => focus.has(id))));
   const generated = [...focus]
     .filter((id) => !served.has(id))
-    .map(genericRoutineFor)
+    .map((id) => genericRoutineFor(id, t))
     .filter((s): s is RoutineSuggestion => s !== undefined);
   return [...matching, ...generated].slice(0, Math.max(limit, focus.size));
 }

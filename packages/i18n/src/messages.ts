@@ -52,6 +52,7 @@ import type { ProviderKeysMessages } from "./messages/providerKeys";
 import type { SectionsMessages } from "./messages/sections";
 import type { ConversationMessages } from "./messages/conversation";
 import type { ListsMessages } from "./messages/lists";
+import type { TemplatesMessages } from "./messages/templates";
 import type {
   LeavesMessages,
   LoginMessages,
@@ -125,6 +126,7 @@ export interface Messages {
   shell: ShellMessages;
   sections: SectionsMessages;
   lists: ListsMessages;
+  templates: TemplatesMessages;
   login: LoginMessages;
   orgShares: OrgSharesMessages;
   modelPicker: ModelPickerMessages;

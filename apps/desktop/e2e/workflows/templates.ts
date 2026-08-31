@@ -1,4 +1,4 @@
-// Les MODÈLES de workflow livrés (`@openmasq/ui` `ROUTINE_SUGGESTIONS`), joués comme
+// Les MODÈLES de workflow livrés (`@openmasq/ui` `routineIds` + `fillTemplate`), joués comme
 // des workflows e2e : l'utilisateur choisit un modèle dans la modale, remplit ses
 // accolades, envoie — et l'app déroule sa réalité contre les fixtures MCP.
 //
@@ -6,7 +6,7 @@
 // jusqu'à ce qu'il ne pilote plus son connecteur doit casser ce test. C'est aussi ce qui
 // fait que ces entrées ne peuvent pas vieillir sans qu'on le sache.
 
-import { ROUTINE_SUGGESTIONS, fillTemplate, templateServers } from "@openmasq/ui";
+import { routineIds, fillTemplate, templateServers } from "@openmasq/ui";
 import type { Workflow } from "./catalog";
 
 /** Les valeurs qu'un utilisateur taperait dans les `{accolades}` de chaque modèle.
@@ -51,15 +51,17 @@ const HINTS: Record<string, RegExp[]> = {
  * la suite sur le vrai web, donc à rendre son résultat dépendant d'un site tiers. Sa
  * garantie (lecture seule, aucun clic/saisie) est tenue par son scénario `evals`.
  */
-export const TEMPLATE_WORKFLOWS: Workflow[] = ROUTINE_SUGGESTIONS.filter(
-  (t) => BLANKS[t.id],
-).map((t) => ({
-  id: `tpl-${t.id}`,
-  prompt: fillTemplate(t.id, BLANKS[t.id]),
-  servers: templateServers(t.id),
-  // AUCUN modèle livré n'écrit — leur copie le dit toutes (« n'envoie rien »,
-  // « lecture seule », « consultation seule »). Pas de `write`, donc la suite exige
-  // qu'aucune fenêtre de confirmation ne s'ouvre : si l'une se met à agir, c'est ici
-  // que ça se voit, avant que l'utilisateur ne le découvre sur son vrai compte.
-  contentHints: HINTS[t.id] ?? [],
-}));
+// La suite joue les modèles dans la langue SOURCE — `fillTemplate` s'y replie, et les
+// `{accolades}` de `BLANKS` y sont nommées. Les IDS, eux, n'ont pas de langue.
+export const TEMPLATE_WORKFLOWS: Workflow[] = routineIds()
+  .filter((id) => BLANKS[id])
+  .map((id) => ({
+    id: `tpl-${id}`,
+    prompt: fillTemplate(id, BLANKS[id]),
+    servers: templateServers(id),
+    // AUCUN modèle livré n'écrit — leur copie le dit toutes (« n'envoie rien »,
+    // « lecture seule », « consultation seule »). Pas de `write`, donc la suite exige
+    // qu'aucune fenêtre de confirmation ne s'ouvre : si l'une se met à agir, c'est ici
+    // que ça se voit, avant que l'utilisateur ne le découvre sur son vrai compte.
+    contentHints: HINTS[id] ?? [],
+  }));

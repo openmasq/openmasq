@@ -4,6 +4,7 @@ import { useHost } from "../../../host";
 import { offeredTemplates, type AnyTemplate } from "../../../suggestions";
 import { useConnectedConnectors } from "./useConnectedConnectors";
 import type { Competence } from "../../../types";
+import { useT } from "../../../i18n";
 
 /**
  * Les MODÈLES DE DÉPART que la page passe à sa modale, et le repère « connecté » que le
@@ -18,6 +19,7 @@ export function useTemplates(competences: readonly Competence[]): {
   suggestions: AnyTemplate[];
   connected: Set<string>;
 } {
+  const t = useT();
   const host = useHost();
   const connected = useConnectedConnectors();
   // Le navigateur intégré s'active côté HÔTE, et ce chemin est absent sur certaines
@@ -32,8 +34,8 @@ export function useTemplates(competences: readonly Competence[]): {
   // vide pour les catégories que le plafond avait écartées. Ceux que la personne a déjà
   // écrits (par le nom) sont retirés, donc la liste rétrécit quand la sienne grandit.
   const suggestions = useMemo(
-    () => offeredTemplates(competences, { limit: 99, connected, unavailable }),
-    [competences, connected, unavailable],
+    () => offeredTemplates(competences, t, { limit: 99, connected, unavailable }),
+    [competences, t, connected, unavailable],
   );
   return { suggestions, connected };
 }

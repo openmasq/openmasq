@@ -30,6 +30,7 @@ import { sections } from "./en/sections";
 import { conversation } from "./en/conversation";
 import { leaves, login, modelPicker, orgShares } from "./en/rest";
 import { lists } from "./en/lists";
+import { templates } from "./en/templates";
 import { shell } from "./en/shell";
 import { viewers } from "./en/viewers";
 import { settings } from "./en/settings";
@@ -76,6 +77,7 @@ export const en = {
   chrome,
   conversation,
   lists,
+  templates,
   login,
   orgShares,
   modelPicker,

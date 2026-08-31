@@ -93,7 +93,7 @@ export { isEntryVisibleIn } from "./state/debugScope";
 // pour que la suite e2e du desktop rejoue le prompt RÉELLEMENT livré au lieu d'une
 // copie qui dériverait (`apps/desktop/e2e/workflows/templates.ts`).
 export {
-  ROUTINE_SUGGESTIONS,
+  routineIds,
   fillTemplate,
   templateServers,
   type RoutineSuggestion,

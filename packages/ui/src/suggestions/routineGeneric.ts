@@ -1,4 +1,6 @@
+import type { Messages } from "@openmasq/i18n";
 import { findConnector } from "@openmasq/catalog/mcp";
+import { connectorCopy } from "../help/catalogCopy";
 import type { RoutineSuggestion } from "./routineTemplates";
 
 /**
@@ -17,25 +19,20 @@ import type { RoutineSuggestion } from "./routineTemplates";
  * service beats a precise idea about the wrong one, which is what the general-list
  * fallback used to show.
  */
-export function genericRoutineFor(connectorId: string): RoutineSuggestion | undefined {
+export function genericRoutineFor(connectorId: string, t: Messages): RoutineSuggestion | undefined {
   const c = findConnector(connectorId);
   if (!c) return undefined;
+  const copy = connectorCopy(c.id, c, t);
   return {
     // Namespaced so it can never collide with a curated id, and stable per connector
     // (the picked-state check and React keys both need that).
     id: `generic:${c.id}`,
-    name: `Faire le point sur ${c.name}`,
+    name: t.templates.generic.name(copy.name),
     // The catalog's own one-liner, lowercased into the sentence — it is what the
     // Réglages card already tells the user this connector does, so the two agree.
-    desc: `Une routine de départ : ${lowerFirst(c.desc)}`,
+    desc: t.templates.generic.desc(lowerFirst(copy.desc)),
     servers: [c.id],
-    prompt: `Fais le point sur {ce qui m'intéresse} dans ${c.name}.
-
-1. Ce que tu trouves, du plus pertinent au moins pertinent, avec sa date.
-2. Ce que chaque élément dit, en deux lignes.
-3. Ce qui attend une action de ma part.
-
-Lecture seule : ne crée, ne modifie et n'envoie rien.`,
+    prompt: t.templates.generic.prompt(copy.name),
   };
 }
 

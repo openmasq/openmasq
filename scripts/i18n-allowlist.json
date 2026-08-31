@@ -2,10 +2,8 @@
   "packages/ui/src/send/inboundScreen.ts": 22,
   "packages/ui/src/send/sendOrchestrator.ts": 20,
   "packages/ui/src/memory/extractParse.ts": 19,
-  "packages/ui/src/suggestions/routineTemplates.ts": 16,
   "packages/ui/src/pages/ChatWorkspace/ChatView.tsx": 14,
   "packages/ui/src/memory/extractExplicit.ts": 13,
-  "packages/ui/src/suggestions/competenceSuggestions.ts": 13,
   "packages/ui/src/pages/ChatWorkspace/starters.ts": 12,
   "packages/ui/src/send/preflight.ts": 12,
   "packages/ui/src/memory/memoryExport.ts": 11,
@@ -168,6 +166,5 @@
   "packages/ui/src/state/settingsPrefetch.ts": 1,
   "packages/ui/src/state/store.ts": 1,
   "packages/ui/src/state/storedFiles.ts": 1,
-  "packages/ui/src/state/useAuthReconnect.ts": 1,
-  "packages/ui/src/suggestions/routineGeneric.ts": 1
+  "packages/ui/src/state/useAuthReconnect.ts": 1
 }

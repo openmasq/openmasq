@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { Competence, CompetenceCategoryId } from "../types";
 import { suggestedCompetences, type CompetenceSuggestion } from "./competenceSuggestions";
 import { suggestedRoutines, type RoutineSuggestion } from "./routineSuggestions";
@@ -38,6 +39,7 @@ export function templateCategory(t: AnyTemplate): CompetenceCategoryId {
  */
 export function offeredTemplates(
   existing: readonly Competence[],
+  t: Messages,
   opts: {
     connected?: ReadonlySet<string>;
     unavailable?: ReadonlySet<string>;
@@ -47,7 +49,7 @@ export function offeredTemplates(
 ): AnyTemplate[] {
   const { limit, connected, unavailable } = opts;
   return [
-    ...suggestedCompetences(existing, limit),
-    ...suggestedRoutines(existing, { connected, unavailable, limit }),
+    ...suggestedCompetences(existing, t, limit),
+    ...suggestedRoutines(existing, t, { connected, unavailable, limit }),
   ];
 }

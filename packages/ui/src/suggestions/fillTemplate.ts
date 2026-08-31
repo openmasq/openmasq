@@ -1,4 +1,5 @@
-import { ROUTINE_SUGGESTIONS } from "./routineTemplates";
+import { DEFAULT_LOCALE, getMessages, type Messages } from "@openmasq/i18n";
+import { routineSuggestions, templateServersOf } from "./routineTemplates";
 
 /**
  * The SHIPPED prompt of a workflow template, with its `{accolades}` filled in — what
@@ -10,8 +11,15 @@ import { ROUTINE_SUGGESTIONS } from "./routineTemplates";
  * longer drives its connector and both suites fail; copies would have kept passing
  * while the shipped text drifted.
  */
-export function fillTemplate(id: string, values: Record<string, string>): string {
-  const tpl = ROUTINE_SUGGESTIONS.find((s) => s.id === id);
+export function fillTemplate(
+  id: string,
+  values: Record<string, string>,
+  /** Les `{accolades}` sont NOMMÉES dans la langue source, et les scénarios les
+   *  remplissent par ce nom — d'où le repli sur elle plutôt que sur la langue de
+   *  l'appareil, qui rendrait le remplissage dépendant d'un réglage. */
+  t: Messages = getMessages(DEFAULT_LOCALE),
+): string {
+  const tpl = routineSuggestions(t).find((s) => s.id === id);
   if (!tpl) throw new Error(`modèle de routine inconnu : « ${id} »`);
   const missing: string[] = [];
   const filled = tpl.prompt.replace(/\{([^}]+)\}/g, (_, raw: string) => {
@@ -29,7 +37,7 @@ export function fillTemplate(id: string, values: Record<string, string>): string
 
 /** The connectors a template declares — the set its scenario must actually drive. */
 export function templateServers(id: string): string[] {
-  const tpl = ROUTINE_SUGGESTIONS.find((s) => s.id === id);
-  if (!tpl) throw new Error(`modèle de routine inconnu : « ${id} »`);
-  return tpl.servers;
+  const servers = templateServersOf(id);
+  if (!servers) throw new Error(`modèle de routine inconnu : « ${id} »`);
+  return servers;
 }
