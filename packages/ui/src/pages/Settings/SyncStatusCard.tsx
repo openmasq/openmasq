@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { SyncHost, SyncStatusSnapshot } from "../../host";
 import { syncStatusLine } from "./syncStatusLine";
 
+import { useT } from "../../i18n";
 /**
  * Le TÉMOIN d'état de la synchro : l'environnement RÉSOLU (celui de la bascule, jamais
  * déduit du canal — une 0.5.0-staging peut parler à la production, c'est précisément ce
@@ -13,6 +14,7 @@ import { syncStatusLine } from "./syncStatusLine";
  * carte ne se rend pas — mieux qu'un état inventé.
  */
 export function SyncStatusCard({ sync }: { sync: SyncHost }) {
+  const t = useT();
   const [status, setStatus] = useState<SyncStatusSnapshot | null>(null);
 
   useEffect(() => {
@@ -24,18 +26,18 @@ export function SyncStatusCard({ sync }: { sync: SyncHost }) {
   }, [sync]);
 
   if (!status) return null;
-  const line = syncStatusLine(status);
+  const line = syncStatusLine(status, t);
   return (
     <div className="settings-card sync-status-card">
       <div className="sync-status-row">
-        <span className="cv-eyebrow">Environnement</span>
+        <span className="cv-eyebrow">{t.syncTab.envEyebrow}</span>
         <span className="sync-status-env">
-          {status.env === "production" ? "Production" : status.env === "staging" ? "Staging" : status.env}
+          {status.env === "production" ? t.syncTab.envProduction : status.env === "staging" ? t.syncTab.envStaging : status.env}
           <code className="sync-status-host">{status.backendHost}</code>
         </span>
       </div>
       <div className="sync-status-row">
-        <span className="cv-eyebrow">Synchronisation</span>
+        <span className="cv-eyebrow">{t.syncTab.statusEyebrow}</span>
         <span className={`sync-status-line is-${line.tone}`}>{line.text}</span>
       </div>
     </div>

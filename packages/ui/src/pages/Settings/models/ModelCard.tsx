@@ -5,6 +5,7 @@ import { pickerBlocks, unavailableLabel, type UnavailableReason } from "../../..
 import { modelDisplay } from "../../../prompt/models";
 import { captureEvent } from "../../../analytics";
 
+import { useT } from "../../../i18n";
 /**
  * One selectable model card in the default-model picker. Extracted from `ModelsTab`
  * so the grid can be rendered both flat and inside a vendor-family sub-group without
@@ -39,7 +40,8 @@ export function ModelCard({
   /** Épingler/retirer des favoris. Absent ⇒ pas d'étoile. */
   onToggleFavorite?: (id: string) => void;
 }) {
-  const unavailable = reason ? unavailableLabel(reason, PROVIDERS[model.provider].label) : null;
+  const t = useT();
+  const unavailable = reason ? unavailableLabel(reason, PROVIDERS[model.provider].label, t) : null;
   // Only a HARD reason (nothing to call) disables the card — a subscription/key-gated
   // model stays pickable, the send's inline container explains the escapes.
   const hardBlocked = !!reason && pickerBlocks(reason);
@@ -70,7 +72,7 @@ export function ModelCard({
                opens the explainer without picking the model. */
             <span
               className={`model-free-badge${onAccessInfo ? " clickable" : ""}`}
-              title="Modèle gratuit — usage limité, sans abonnement. Cliquez pour en savoir plus."
+              title="Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus."
               role={onAccessInfo ? "button" : undefined}
               tabIndex={onAccessInfo ? 0 : undefined}
               onClick={

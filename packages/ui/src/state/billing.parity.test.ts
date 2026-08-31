@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { CREDITS_CENTS_PER_SEAT, creditsCentsForAccountType } from "@openmasq/credits";
-import { PLAN_TIERS } from "./billing";
+import { getMessages } from "@openmasq/i18n";
+import { planTiers } from "./billing";
+
+const PLAN_TIERS = planTiers(getMessages("fr"));
 
 /**
  * PARITÉ règle 9 : `PLAN_TIERS.creditsCents` (l'affichage des cartes d'abonnement)

@@ -1,9 +1,11 @@
+import type { Messages } from "@openmasq/i18n";
 import type { BilledFilter } from "../../../state/usage";
 
-const OPTIONS: { id: BilledFilter; label: string }[] = [
-  { id: "all", label: "Tous" },
-  { id: "byo", label: "Avec mes clés" },
-  { id: "subscription", label: "Avec l'abonnement" },
+import { useT } from "../../../i18n";
+const OPTIONS: { id: BilledFilter; label: (t: Messages) => string }[] = [
+  { id: "all", label: (t) => t.usageTab.filterAll },
+  { id: "byo", label: (t) => t.usageTab.filterByo },
+  { id: "subscription", label: (t) => t.usageTab.filterSubscription },
 ];
 
 /**
@@ -18,8 +20,9 @@ export function UsageFilter({
   value: BilledFilter;
   onChange: (v: BilledFilter) => void;
 }) {
+  const t = useT();
   return (
-    <div className="om-seg" role="tablist" aria-label="Filtrer la consommation">
+    <div className="om-seg" role="tablist" aria-label={t.usageTab.filterAria}>
       {OPTIONS.map((o) => (
         <button
           key={o.id}
@@ -29,7 +32,7 @@ export function UsageFilter({
           className={`om-seg-btn${value === o.id ? " on" : ""}`}
           onClick={() => onChange(o.id)}
         >
-          {o.label}
+          {o.label(t)}
         </button>
       ))}
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useT } from "../../../i18n";
 import { AnimatePresence } from "framer-motion";
 import { ShieldIcon, SearchIcon, DownloadIcon, EyeIcon, MessageIcon, ArrowRightIcon } from "../../../components/brand";
 import { BrandLoader } from "../../../components/media/BrandLogo";
@@ -44,6 +45,7 @@ export function AuditRedactionView({
    *  protected). `msgId` is omitted when the value can't be located in a message. */
   onOpenMessage?: (convId: string, msgId?: string) => void;
 }) {
+  const t = useT();
   const [q, setQ] = useState("");
   // Même contrôle que les vues d'usage : deux graphes du même produit réglés différemment font douter de ce qu'on lit.
   const [auditDays, setAuditDays] = useState<UsageRangeDays>(DEFAULT_RANGE);
@@ -69,7 +71,7 @@ export function AuditRedactionView({
     for (const g of filtered) {
       for (const r of g.rows) {
         lines.push(
-          [meta(r.kind)?.label ?? r.kind, r.original, r.fake, g.convTitle, new Date(g.at).toLocaleString("fr-FR")]
+          [meta(r.kind)?.label ?? r.kind, r.original, r.fake, g.convTitle, new Date(g.at).toLocaleString(t.common.intlTag)]
             .map(csvCell)
             .join(","),
         );
@@ -118,11 +120,10 @@ export function AuditRedactionView({
         </span>
         <div className="audit-hero-text">
           <div className="audit-hero-num">
-            {total.toLocaleString("fr-FR")} élément{total === 1 ? "" : "s"} redacted
-            {total === 1 ? "" : "s"}
+            {t.privacyTab.auditCount(total)}
           </div>
           <div className="audit-hero-sub">
-            Avant d'atteindre un modèle · restaurés uniquement dans votre copie, jamais transmis.
+            {t.privacyTab.auditSub}
           </div>
         </div>
         <button
@@ -130,16 +131,16 @@ export function AuditRedactionView({
           className="audit-export"
           onClick={exportCsv}
           disabled={filteredCount === 0}
-          title="Exporter la sélection en CSV"
+          title={t.privacyTab.auditExportTip}
         >
-          <DownloadIcon size={15} /> Exporter
+          <DownloadIcon size={15} /> {t.privacyTab.auditExport}
         </button>
       </div>
 
       {total === 0 ? (
         <div className="settings-card audit-empty">
           <ShieldIcon size={22} />
-          <p>Aucun redaction enregistré pour l'instant.</p>
+          <p>{t.privacyTab.auditEmpty}</p>
         </div>
       ) : (
         <>
@@ -156,13 +157,13 @@ export function AuditRedactionView({
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Rechercher une valeur ou une conversation…"
+                placeholder={t.privacyTab.auditSearch}
               />
             </label>
           </div>
           <div className="audit-chips">
             <button className={`audit-chip ${cat === null ? "on" : ""}`} onClick={() => setCat(null)}>
-              Tout · {total}
+              {t.privacyTab.auditAll(total)}
             </button>
             {cats.map(({ key, n }) => {
               const m = meta(key);
@@ -190,7 +191,7 @@ export function AuditRedactionView({
                   <button
                     type="button"
                     className="audit-group-title audit-conv-link"
-                    title={`Ouvrir · ${g.convTitle}`}
+                    title={t.privacyTab.auditOpenConv(g.convTitle)}
                     onClick={() => onOpenMessage(g.convId, g.rows[0]?.msgId)}
                   >
                     <MessageIcon size={14} />
@@ -203,12 +204,12 @@ export function AuditRedactionView({
                   </span>
                 )}
                 <span className="audit-group-n">
-                  {g.rows.length} valeur{g.rows.length === 1 ? "" : "s"}
+                  {t.privacyTab.auditValues(g.rows.length)}
                 </span>
-                <span className="audit-when">{relTime(g.at)}</span>
+                <span className="audit-when">{relTime(g.at, t)}</span>
               </div>
               <div className="audit-grid audit-cols">
-                {["TYPE", "VALEUR RÉELLE", "REMPLACÉE PAR"].map((h) => (
+                {[t.privacyTab.auditColType, t.privacyTab.auditColReal, t.privacyTab.auditColFake].map((h) => (
                   <span key={h} className="audit-th">{h}</span>
                 ))}
                 <span className="audit-th" />
@@ -228,8 +229,8 @@ export function AuditRedactionView({
                       type="button"
                       className="audit-orig audit-reveal-btn"
                       onClick={() => setReveal({ row: r, convTitle: g.convTitle, at: g.at })}
-                      aria-label="Révéler la valeur réelle"
-                      title="Cliquer pour révéler"
+                      aria-label={t.privacyTab.auditRevealAria}
+                      title={t.privacyTab.auditRevealTip}
                     >
                       <span className="audit-mask">•••••••</span>
                       <EyeIcon size={13} />
@@ -241,8 +242,8 @@ export function AuditRedactionView({
                       <button
                         type="button"
                         className="audit-goto audit-conv-link"
-                        title="Aller au message"
-                        aria-label="Aller au message"
+                        title={t.privacyTab.auditGoToMessage}
+                        aria-label={t.privacyTab.auditGoToMessage}
                         onClick={() => onOpenMessage(r.convId, r.msgId)}
                       >
                         <ArrowRightIcon size={15} />
@@ -258,10 +259,10 @@ export function AuditRedactionView({
           {hasMore ? (
             <div ref={sentinelRef} className="audit-loader">
               <BrandLoader size={22} mono />
-              <span>Chargement… ({shownCount} / {filteredCount})</span>
+              <span>{t.privacyTab.auditLoading(shownCount, filteredCount)}</span>
             </div>
           ) : (
-            filteredCount > PAGE_SIZE && <div className="audit-note">{filteredCount} entrées.</div>
+            filteredCount > PAGE_SIZE && <div className="audit-note">{t.privacyTab.auditEntries(filteredCount)}</div>
           )}
         </>
       )}

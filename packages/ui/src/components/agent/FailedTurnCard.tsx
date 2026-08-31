@@ -1,8 +1,8 @@
 import type { Message } from "../../types";
 import { KeyIcon, InfoIcon, RefreshIcon, ArrowRightIcon } from "../brand";
 import { AgentCard, GlyphTile, AgentCardTitle } from "./AgentCard";
-import { BILLING_CTA } from "../../help";
 
+import { useT } from "../../i18n";
 type ErrorAction = NonNullable<Message["errorAction"]>;
 
 /** The short status label above the message, by CTA kind — sauf quand le TEXTE dit
@@ -12,7 +12,11 @@ function eyebrowFor(action: ErrorAction | undefined, text: string): string {
   // « n'a plus de crédits » = le compte FOURNISSEUR de l'utilisateur est à sec ;
   // « Crédits épuisés » = le budget d'abonnement. Dans les deux cas la clé/l'abonnement du
   // CTA est une issue proposée, pas la cause — l'eyebrow ne doit pas mentir dessus.
-  if (text.startsWith("Crédits épuisés") || /n'a plus de crédits/.test(text)) {
+  if (
+    text.startsWith("Crédits épuisés") ||
+    text.startsWith("Ce modèle n'est pas disponible") ||
+    /n'a plus de crédits/.test(text)
+  ) {
     return "Envoi impossible";
   }
   // Un quota épuisé porte la MÊME action (l'abonnement) sans en faire une exigence :
@@ -53,6 +57,7 @@ export function FailedTurnCard({
   onAction?: (assistantId: string, action: ErrorAction) => void;
   onRetry?: (assistantId: string) => void;
 }) {
+  const t = useT();
   // Un échec est un STATUT, pas une catégorie de redaction : il prend l'écarlate
   // sémantique. (`--hl-coral` n'était déclaré nulle part — le liseré et la tuile
   // n'avaient donc AUCUNE couleur : `background: var(--indéfini)` est invalide.)
@@ -88,7 +93,7 @@ export function FailedTurnCard({
           )}
           {action?.kind === "upgrade_plan" && onAction && (
             <button className="btn-primary btn-inline" onClick={() => onAction(assistantId, action)}>
-              {BILLING_CTA.upgrade} <ArrowRightIcon size={14} />
+              {t.billing.ctaUpgrade} <ArrowRightIcon size={14} />
             </button>
           )}
         </>

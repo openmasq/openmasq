@@ -2,9 +2,9 @@ import type { CreditBalance } from "../../host";
 import type { Message } from "../../types";
 import { ZapIcon, ClockIcon, ArrowRightIcon, KeyIcon } from "../brand";
 import { AgentCard, GlyphTile, AgentCardTitle, AgentCardDesc } from "./AgentCard";
-import { BILLING_CTA } from "../../help";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../i18n";
 /** Eurocents → "1,20 €". */
 function euros(cents: number): string {
   return `${(cents / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
@@ -59,6 +59,7 @@ export function CreditsCard({
   resetIso?: string;
   onAction: (assistantId: string, action: NonNullable<Message["errorAction"]>) => void;
 }) {
+  const t = useT();
   const name = label ?? provider;
   const reset = resetLabel(resetIso);
   const pct = usedPct(credits);
@@ -92,7 +93,7 @@ export function CreditsCard({
             className="btn-primary btn-inline"
             onClick={() => onAction(assistantId, { kind: "upgrade_plan" })}
           >
-            {BILLING_CTA.see} <ArrowRightIcon size={14} />
+            {t.billing.ctaSee} <ArrowRightIcon size={14} />
           </button>
         </>
       }

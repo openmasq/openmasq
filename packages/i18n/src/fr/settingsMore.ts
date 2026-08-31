@@ -1,0 +1,198 @@
+/**
+ * Tranche « settingsMore » du catalogue FR — la langue SOURCE (Paiement, Usage, Vos
+ * appareils, Organisation, Import). `satisfies` par entrée.
+ */
+import type { Messages } from "../messages";
+
+export const billingTab = {
+  close: "Fermer",
+  yourSubscription: "VOTRE ABONNEMENT",
+  testerNote: "Sur cette version, l'abonnement est appliqué immédiatement et sans paiement.",
+  billingClosed:
+    "Les abonnements ne sont pas encore ouverts sur cette version — l'offre ci-dessus est affichée à titre indicatif.",
+  unreadable:
+    "Votre abonnement n'a pas pu être lu pour l'instant — vérifiez votre connexion, puis rouvrez cet onglet.",
+  finalizing: "Finalisation de votre abonnement…",
+  cancelAtEnd:
+    "Votre abonnement se termine à la fin de la période en cours. Réactivez-le depuis « Ouvrir le portail ».",
+  billingEyebrow: "FACTURATION",
+  stripeManaged: "Géré par Stripe",
+  stripeHint: "Moyen de paiement, factures et reçus dans le portail sécurisé.",
+  opening: "Ouverture…",
+  openPortal: "Ouvrir le portail",
+  stripeSecure: "Paiements sécurisés par Stripe. La facturation et vos reçus sont gérés depuis le portail Stripe.",
+  unavailableHere: "La gestion de l'abonnement n'est pas disponible sur cette plateforme.",
+  recommended: "Recommandé",
+  perMonth: " / mois",
+  noCredits: "Sans crédits inclus",
+  creditsIncluded: (amount) => `${amount} de crédits inclus`,
+  currentPlan: "Abonnement actuel",
+  backToFree: "Revenir au gratuit",
+  oneMoment: "Un instant…",
+  subscribe: "S'abonner",
+  choosePlan: "Choisir cet abonnement",
+  downgrade: "Rétrograder",
+  upgradeTitle: (name) => `Passer à l'abonnement ${name} ?`,
+  downgradeTitle: (name) => `Rétrograder vers ${name} ?`,
+  upgradeBody: (name, price) =>
+    `Votre abonnement passe immédiatement à ${name} (${price} / mois). La différence est facturée au prorata pour la période en cours.`,
+  downgradeBody: (name, price) =>
+    `Votre abonnement passe à ${name} (${price} / mois). Le crédit correspondant est appliqué au prochain cycle de facturation.`,
+  confirmChange: "Confirmer le changement",
+  orgManaged: "Facturation gérée par votre organisation",
+  orgCovered: (org) =>
+    `Votre accès est couvert par l'organisation${org} (facturation par siège). Les abonnements individuels ne s'appliquent pas à un membre d'une organisation.`,
+  manageInAdmin: "Gérer dans la console admin",
+  manageInAdminHint: (brand) => `Gérez l'abonnement de l'organisation depuis la console d'administration ${brand}.`,
+  creditsEyebrow: "CRÉDITS · CETTE PÉRIODE",
+  remainingOf: (remaining, total) => `restants sur ${total}`,
+  usedRemaining: (used, remaining, total) => ` utilisés · ${remaining} restants sur ${total}`,
+} satisfies Messages["billingTab"];
+
+export const usageTab = {
+  filterAria: "Filtrer la consommation",
+  filterAll: "Tous",
+  filterByo: "Avec mes clés",
+  filterSubscription: "Avec l'abonnement",
+  rangeAria: "Fenêtre d'observation",
+  days: (n) => `${n} j`,
+  kpiMessages: "Messages",
+  kpiTokens: "Tokens",
+  kpiTokensSub: "tous modèles",
+  kpiCredits: "Crédits utilisés",
+  kpiCreditsOf: (total) => `sur ${total}`,
+  kpiNoSubscription: "aucun abonnement",
+  subByo: "clés perso",
+  subSubscription: "abonnement",
+  subAll: "cumul",
+  unattributed: (n) =>
+    `${n.toLocaleString("fr-FR")} message${n > 1 ? "s" : ""} non attribué${n > 1 ? "s" : ""} (envoyé${n > 1 ? "s" : ""} avant le suivi clés / abonnement) — visible${n > 1 ? "s" : ""} sous « Tous ».`,
+  estimated: (n) =>
+    `${n.toLocaleString("fr-FR")} réponse${n > 1 ? "s" : ""} interrompue${n > 1 ? "s" : ""} : les tokens y sont estimés. Le fournisseur ne transmet le décompte exact qu'à la toute fin — un arrêt ou une coupure l'empêche d'arriver, alors que les tokens déjà produits, eux, sont bien facturés.`,
+  activityTitle: (days) => `Activité · ${days} derniers jours`,
+  activityMeta: (max) => `conversations / jour${max > 0 ? ` · max ${max}` : ""}`,
+  activityAria: (days) => `Activité des ${days} derniers jours`,
+  dayLabel: (ago, n) => `J-${ago} · ${n} conversation${n > 1 ? "s" : ""}`,
+  perModelTitle: "Usage par modèle",
+  perModelEmpty: "Aucun usage enregistré pour l'instant.",
+  msgs: (n) => `${n} msg`,
+  unknownPrice: "Tarif inconnu (modèle local/gratuit)",
+  tokensNote:
+    "Tokens cumulés sur toutes vos conversations (certains modèles locaux/gratuits ne rapportent pas de compteur). Le coût est une estimation (tarifs publics indicatifs en USD, hors remises/caching).",
+  creditsEyebrow: "CRÉDITS · CETTE PÉRIODE",
+  creditsNote:
+    "Crédits prépayés consommés par les modèles fournis par la plateforme (sans clé personnelle) — solde réel mesuré côté serveur.",
+  orgLabel: "Organisation",
+  mySubscription: "Mon abonnement",
+  myAccount: "Mon compte",
+  timelineTitle: (days) => `Messages · ${days} derniers jours`,
+  timelineMeta: (max) => `messages / jour, par modèle${max > 1 ? ` · max ${max}` : ""}`,
+  timelineEmpty: "Aucun message sur la période.",
+  timelineAria: "Messages par jour et par modèle",
+  other: "Autres",
+} satisfies Messages["usageTab"];
+
+export const syncTab = {
+  paidEyebrow: "Fonctionnalité payante",
+  paidTitle: "La synchro, sur tous vos appareils.",
+  paidBody:
+    "Vos règles, votre coffre et votre historique sur tous vos appareils, chiffrés de bout en bout. Inclus dans les offres payantes.",
+  paidPoint1: "Multi-appareils en temps réel",
+  paidPoint2: "Chiffré de bout en bout",
+  paidPoint3: "Inclus dans les abonnements payants",
+  eyebrow: "Synchronisation",
+  devicesEyebrow: "Appareils connectés",
+  deviceCount: (n) => `${n} ${n === 1 ? "appareil" : "appareils"}`,
+  noDevices:
+    "Aucun autre appareil pour l'instant. Connectez-vous avec la même phrase secrète sur un autre appareil pour le voir apparaître ici.",
+  ok: "OK",
+  cancel: "Annuler",
+  device: "Appareil",
+  current: "● actuel",
+  seen: "vu",
+  rename: "Renommer",
+  revoke: "Révoquer",
+  platforms: { desktop: "Ordinateur", extension: "Navigateur", mobile: "Mobile", web: "Web" },
+  passTitle: "Synchroniser cet appareil",
+  passDesc: "Règles, historique et catégories, chiffrés de bout en bout",
+  passActive: "Active",
+  passUnset: "Non définie",
+  passNote: {
+    lead: "Vos données redacted sont chiffrées de bout en bout avec cette phrase ",
+    before: "avant",
+    mid: " d'être synchronisées — elle ne quitte jamais vos appareils et nous ne pouvons pas la récupérer. Saisissez la ",
+    same: "même",
+    tail: " phrase sur chacun de vos appareils pour qu'ils se synchronisent.",
+  },
+  passSaveFailed: "La phrase n'a pas pu être enregistrée. Reconnectez-vous, puis réessayez.",
+  passDisableFailed: "La synchronisation n'a pas pu être désactivée. Réessayez.",
+  passMismatch:
+    "Cette phrase n'ouvre pas les données déjà synchronisées : un autre de vos appareils utilise une phrase différente. Tant qu'elles ne sont pas identiques, ce qu'il synchronise restera illisible ici (et inversement). Saisissez la même phrase sur chaque appareil — celle-ci, ou la sienne.",
+  passPlaceholder: "Au moins 8 caractères…",
+  generate: "Générer",
+  save: "Enregistrer",
+  change: "Changer",
+  disable: "Désactiver",
+  passOffline:
+    "La synchronisation réseau n'est pas encore configurée sur cette version — la phrase est enregistrée localement et s'activera dès que le backend sera branché.",
+  envEyebrow: "Environnement",
+  envProduction: "Production",
+  envStaging: "Staging",
+  statusEyebrow: "Synchronisation",
+  justNow: "à l'instant",
+  minutesAgo: (m) => `il y a ${m} min`,
+  hoursAgo: (h) => `il y a ${h} h`,
+  daysAgo: (d) => `il y a ${d} j`,
+  yesterday: "hier",
+  failure: "échec",
+  failureMismatch: "Réessayer n’y changera rien : vérifiez la phrase secrète de cet appareil.",
+  failureRetry: "Réessaiera tout seul.",
+  failedAt: (when, reason, tail) => `Échec ${when} — ${reason}. ${tail}`,
+  lastOk: (when) => `Dernier échange réussi ${when}.`,
+  noExchange: "Aucun échange depuis le lancement de l'app.",
+} satisfies Messages["syncTab"];
+
+export const orgTab = {
+  eyebrow: "Votre organisation",
+  yourOrg: "Votre organisation",
+  roleOwner: "Propriétaire",
+  roleAdmin: "Administrateur",
+  roleMember: "Membre",
+  planFree: "Gratuit",
+  planPro: "Business",
+  plan: (name) => `plan ${name}`,
+  members: "membres",
+  yourRole: "votre rôle",
+  rules: (n) => (n === 1 ? "règle imposée" : "règles imposées"),
+  accessEyebrow: "Accès",
+  forcedTitle: "Règles imposées par l'organisation",
+  forcedList: (list) => `${list} — non désactivables`,
+  forcedNone: "Aucune règle imposée pour le moment",
+  active: "ACTIVES",
+  adminConsole: "Console d'administration",
+  adminConsoleHint: "Gérer les membres, l'usage et la sécurité",
+  minimalNote: (org) => `Le redaction minimal est imposé par ${org} et ne peut être désactivé.`,
+} satisfies Messages["orgTab"];
+
+export const importModal = {
+  title: "Importer des conversations",
+  beta: "Bêta",
+  sub: "Récupérez vos fils depuis un autre assistant via son export officiel. Tout se passe sur votre appareil : le fichier n'est envoyé nulle part.",
+  hintChatgpt:
+    "chatgpt.com → Réglages → Contrôles des données → Exporter. Déposez ici le .zip reçu par e-mail.",
+  hintClaude:
+    "claude.ai → Réglages → Confidentialité → Exporter. Déposez ici l'archive reçue par e-mail.",
+  geminiSoonTip: "Google Takeout ne préserve pas la structure des fils — bientôt.",
+  geminiSoon: "Gemini · bientôt",
+  choose: (provider) => `Choisir le fichier d'export ${provider}…`,
+  maskedNote:
+    "Les valeurs sensibles détectées sont redacted dès l'import : si vous poursuivez un fil ici, son historique part masqué.",
+  redacting: (done, total) => `Redaction des conversations… ${done} / ${total}`,
+  reading: "Lecture de l'export…",
+  imported: (n) => `${n.toLocaleString("fr-FR")} conversation${n === 1 ? "" : "s"} importée${n === 1 ? "" : "s"}`,
+  skipped: (n) => ` · ${n.toLocaleString("fr-FR")} déjà présente${n === 1 ? "" : "s"} (ignorée${n === 1 ? "" : "s"})`,
+  doneNote:
+    "Retrouvez-les dans vos conversations. Fonctionnalité en bêta : la détection à l'import utilise le moteur standard ; vos nouveaux messages bénéficient de la détection complète à l'envoi.",
+  close: "Fermer",
+  failed: "L'import a échoué. Réessayez.",
+} satisfies Messages["importModal"];

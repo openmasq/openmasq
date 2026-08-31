@@ -1,4 +1,5 @@
 import { ShieldIcon, XIcon, IconButton } from "../../../components/brand";
+import { useT } from "../../../i18n";
 import { ModalShell } from "../../../containers/modals";
 import type { PrivacyBreakdown } from "./privacyStats";
 
@@ -14,6 +15,7 @@ export function PrivacyBreakdownModal({
   breakdown: PrivacyBreakdown;
   onClose: () => void;
 }) {
+  const t = useT();
   const { rows, total } = breakdown;
   return (
     <ModalShell onClose={onClose} width="440px" maxHeight="80vh">
@@ -24,10 +26,10 @@ export function PrivacyBreakdownModal({
         <div className="rlog-head-text">
           <div className="rlog-title">{title}</div>
           <div className="rlog-sub">
-            {total.toLocaleString()} valeur{total === 1 ? "" : "s"} protégée{total === 1 ? "" : "s"}
+            {t.privacyTab.protectedValues(total)}
           </div>
         </div>
-        <IconButton label="Fermer" size="sm" onClick={onClose}>
+        <IconButton label={t.privacyTab.revealClose} size="sm" onClick={onClose}>
           <XIcon size={18} />
         </IconButton>
       </div>

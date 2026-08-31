@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { RefreshIcon } from "../../components/brand";
 import type { SyncHost } from "../../host";
 
+import { useT } from "../../i18n";
 /**
  * La carte de la PHRASE E2E — poser, changer, désactiver. Sortie de `SyncSection` quand
  * celle-ci a passé les 300 lignes (règle 1) : la phrase et la liste des appareils sont deux
@@ -20,6 +21,7 @@ import type { SyncHost } from "../../host";
  */
 export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
   const [pass, setPass] = useState<string | null>(null);
+  const t = useT();
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -51,7 +53,7 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
       const stored = await sync.getPassphrase();
       setPass(stored);
       if (!stored) {
-        setFailure("La phrase n'a pas pu être enregistrée. Reconnectez-vous, puis réessayez.");
+        setFailure(t.syncTab.passSaveFailed);
         return;
       }
       setDraft("");
@@ -61,7 +63,7 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
       // DIT maintenant plutôt que de laisser chaque canal se sceller en silence.
       setPassMismatch((await sync.verifyPassphrase?.(phrase)) === "mismatch");
     } catch {
-      setFailure("La phrase n'a pas pu être enregistrée. Reconnectez-vous, puis réessayez.");
+      setFailure(t.syncTab.passSaveFailed);
     } finally {
       setBusy(false);
     }
@@ -75,14 +77,14 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
       const stored = await sync.getPassphrase();
       setPass(stored);
       if (stored) {
-        setFailure("La synchronisation n'a pas pu être désactivée. Réessayez.");
+        setFailure(t.syncTab.passDisableFailed);
         return;
       }
       setEditing(true);
       setPassMismatch(false);
     } catch {
       setPass(await sync.getPassphrase().catch(() => null));
-      setFailure("La synchronisation n'a pas pu être désactivée. Réessayez.");
+      setFailure(t.syncTab.passDisableFailed);
     } finally {
       setBusy(false);
     }
@@ -95,28 +97,26 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
           <RefreshIcon size={19} />
         </span>
         <div className="sync-key-body">
-          <div className="sync-key-title">Synchroniser cet appareil</div>
+          <div className="sync-key-title">{t.syncTab.passTitle}</div>
           <div className="sync-key-desc">
-            Règles, historique et catégories, chiffrés de bout en bout
+            {t.syncTab.passDesc}
           </div>
         </div>
         <span className={`keyless-badge ${hasPass ? "on" : "off"}`}>
-          {hasPass ? "Active" : "Non définie"}
+          {hasPass ? t.syncTab.passActive : t.syncTab.passUnset}
         </span>
       </div>
       <p className="modal-note sync-key-note">
-        Vos données redacted sont chiffrées de bout en bout avec cette phrase{" "}
-        <b>avant</b> d'être synchronisées — elle ne quitte jamais vos appareils et nous ne
-        pouvons pas la récupérer. Saisissez la <b>même</b> phrase sur chacun de vos appareils
-        pour qu'ils se synchronisent.
+        {t.syncTab.passNote.lead}
+        <b>{t.syncTab.passNote.before}</b>
+        {t.syncTab.passNote.mid}
+        <b>{t.syncTab.passNote.same}</b>
+        {t.syncTab.passNote.tail}
       </p>
       {failure && <p className="modal-note sync-key-note sync-pass-warn">{failure}</p>}
       {passMismatch && (
         <p className="modal-note sync-key-note sync-pass-warn">
-          Cette phrase n'ouvre pas les données déjà synchronisées : un autre de vos appareils
-          utilise une phrase différente. Tant qu'elles ne sont pas identiques, ce qu'il
-          synchronise restera illisible ici (et inversement). Saisissez la même phrase sur
-          chaque appareil — celle-ci, ou la sienne.
+          {t.syncTab.passMismatch}
         </p>
       )}
 
@@ -128,15 +128,15 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
               type="text"
               autoComplete="off"
               spellCheck={false}
-              placeholder="Au moins 8 caractères…"
+              placeholder={t.syncTab.passPlaceholder}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
             />
             <button className="ghost" disabled={busy} onClick={() => setDraft(sync.generatePassphrase())}>
-              Générer
+              {t.syncTab.generate}
             </button>
             <button className="primary" disabled={busy || !canSave} onClick={save}>
-              Enregistrer
+              {t.syncTab.save}
             </button>
           </div>
           {hasPass && (
@@ -147,25 +147,24 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
                 setDraft("");
               }}
             >
-              Annuler
+              {t.syncTab.cancel}
             </button>
           )}
         </>
       ) : (
         <div className="keyless-actions">
           <button className="ghost" disabled={busy} onClick={() => setEditing(true)}>
-            Changer
+            {t.syncTab.change}
           </button>
           <button className="ghost text-err" disabled={busy} onClick={disable}>
-            Désactiver
+            {t.syncTab.disable}
           </button>
         </div>
       )}
 
       {!sync.enabled && (
         <p className="keyless-hint">
-          La synchronisation réseau n'est pas encore configurée sur cette version — la phrase
-          est enregistrée localement et s'activera dès que le backend sera branché.
+          {t.syncTab.passOffline}
         </p>
       )}
     </div>

@@ -11,6 +11,7 @@ import { disabledKindsOf, effectiveRedactCategories } from "../../send/redaction
 import { DEFAULT_MODEL_ID } from "../../prompt/models";
 import { BRAND } from "@openmasq/branding";
 import { AppearanceSection } from "./AppearanceSection";
+import { useT } from "../../i18n";
 
 /** The "Compte" tab — the app's real account/privacy/redaction settings. The
  *  default-model picker lives in the Modèles settings tab (`Settings/models/`). */
@@ -34,6 +35,7 @@ export function AccountTab({
   onImportConversations?: (convs: Conversation[]) => { added: number; skipped: number };
 }) {
   const [importOpen, setImportOpen] = useState(false);
+  const t = useT();
   // The signed-in account (email + sign-out). Absent in the browser preview
   // (no host.auth) → the account section is skipped.
   const { user, enabled: authEnabled, signOut } = useAuth();
@@ -44,18 +46,18 @@ export function AccountTab({
     <>
       {authEnabled && user && (
         <section className="settings-section">
-          <div className="cv-eyebrow">Compte</div>
+          <div className="cv-eyebrow">{t.accountTab.eyebrow}</div>
           <div className="settings-card account-card">
             <span className="account-avatar">
               <UsersIcon size={20} />
             </span>
             <div className="account-info">
-              <div className="account-email">{user.email ?? "Compte connecté"}</div>
-              <div className="account-hint">Connecté à {BRAND.name} sur cet appareil.</div>
+              <div className="account-email">{user.email ?? t.accountTab.signedInFallback}</div>
+              <div className="account-hint">{t.accountTab.signedInHint(BRAND.name)}</div>
             </div>
             <button type="button" className="account-signout" onClick={() => void signOut()}>
               <LogOutIcon size={15} />
-              Se déconnecter
+              {t.accountTab.signOut}
             </button>
           </div>
           {/* The CURRENT organization, right under the identity it governs — the
@@ -67,25 +69,25 @@ export function AccountTab({
               className="settings-card account-card account-org"
               onClick={onOpenOrg}
               disabled={!onOpenOrg}
-              title="Voir l'organisation"
+              title={t.accountTab.viewOrg}
             >
               <span className="org-avatar">
                 {(orgProfile.organizationName ?? "?").trim().charAt(0).toUpperCase() || "?"}
               </span>
               <div className="account-info">
                 <div className="account-email">
-                  {orgProfile.organizationName ?? "Votre organisation"}
+                  {orgProfile.organizationName ?? t.accountTab.yourOrg}
                 </div>
                 <div className="account-hint">
                   {[
                     orgProfile.organizationSlug,
                     orgProfile.role === "owner"
-                      ? "propriétaire"
+                      ? t.accountTab.roleOwner
                       : orgProfile.role === "admin"
-                        ? "administrateur"
-                        : "membre",
+                        ? t.accountTab.roleAdmin
+                        : t.accountTab.roleMember,
                     orgProfile.memberCount != null
-                      ? `${orgProfile.memberCount} membre${orgProfile.memberCount > 1 ? "s" : ""}`
+                      ? t.accountTab.members(orgProfile.memberCount)
                       : null,
                   ]
                     .filter(Boolean)
@@ -103,16 +105,15 @@ export function AccountTab({
               type="button"
               className="settings-card account-card account-org"
               onClick={() => host.org!.openAdmin!()}
-              title="Créer une organisation — dans l'app web"
+              title={t.accountTab.createOrgTip}
             >
               <span className="org-avatar">
                 <UsersIcon size={18} />
               </span>
               <div className="account-info">
-                <div className="account-email">Créer une organisation</div>
+                <div className="account-email">{t.accountTab.createOrg}</div>
                 <div className="account-hint">
-                  Partages d'équipe, règles imposées, facturation par siège — la création se
-                  fait dans l'app web.
+                  {t.accountTab.createOrgHint}
                 </div>
               </div>
               <ExternalIcon size={16} />
@@ -123,41 +124,42 @@ export function AccountTab({
 
       {onImportConversations && (
         <section className="settings-section">
-          <div className="cv-eyebrow">Vos données</div>
+          <div className="cv-eyebrow">{t.accountTab.dataEyebrow}</div>
           <div className="settings-card">
             <div className="toggle-row">
               <div className="row-body">
                 <div className="row-title flex items-center gap-2">
-                  Importer des conversations
+                  {t.accountTab.importTitle}
                   <span className="font-mono text-[10px] uppercase tracking-[0.06em] rounded-[3px] px-1.5 py-0.5 bg-[var(--hl-violet)] text-[color:var(--ink-on-hl)]">
-                    Bêta
+                    {t.accountTab.beta}
                   </span>
                 </div>
                 <div className="row-desc">
-                  Depuis un export ChatGPT ou Claude — traité sur votre appareil.
+                  {t.accountTab.importHint}
                 </div>
               </div>
               <button type="button" className="btn-ghost shrink-0 inline-flex items-center gap-2" onClick={() => setImportOpen(true)}>
-                <DownloadIcon size={15} /> Importer
+                <DownloadIcon size={15} /> {t.accountTab.importCta}
               </button>
             </div>
           </div>
         </section>
       )}
 
-      {/* Sans facturation (build sans backend — le dépôt privé `infra`), il n'y a PAS
-          d'abonnement à utiliser : l'interrupteur n'offrirait qu'un aiguillage vers un
-          service que ce build ne peut pas joindre. Absent, donc — et le seul chemin
-          restant, vos propres clés, est déjà celui par défaut. */}
+      {/* `host.billing` n'existe que dans un build qui VEND des abonnements
+          (`OPENMASQ_BILLING=1` — éteint par défaut) : sans lui il n'y a PAS d'abonnement à
+          utiliser, et l'interrupteur n'offrirait qu'un aiguillage vers une vente qui
+          n'existe pas. Absent, donc — les modèles inclus se servent sur le compte, et vos
+          propres clés passent devant dès qu'elles existent (`send/routing.ts`). */}
       {host.billing && (
         <section className="settings-section">
-          <div className="cv-eyebrow">Facturation des messages</div>
+          <div className="cv-eyebrow">{t.accountTab.billingEyebrow}</div>
           <div className="settings-card">
             <div className="toggle-row">
               <div className="row-body">
-                <div className="row-title">Utiliser mon abonnement {BRAND.name}</div>
+                <div className="row-title">{t.accountTab.subscriptionToggle(BRAND.name)}</div>
                 <div className="row-desc">
-                  Désactivé, vos messages passent par vos propres comptes (OpenAI, Gemini…).
+                  {t.accountTab.subscriptionToggleHint}
                 </div>
               </div>
               <Switch
@@ -175,14 +177,13 @@ export function AccountTab({
           promet une bannière que la plateforme ne sait pas dessiner est un mensonge. */}
       {host.notify && (
         <section className="settings-section">
-          <div className="cv-eyebrow">Notifications</div>
+          <div className="cv-eyebrow">{t.accountTab.notifEyebrow}</div>
           <div className="settings-card">
             <div className="toggle-row">
               <div className="row-body">
-                <div className="row-title">Prévenir quand une réponse arrive</div>
+                <div className="row-title">{t.accountTab.notifTitle}</div>
                 <div className="row-desc">
-                  Seulement si vous regardez ailleurs — autre fenêtre, ou autre conversation.
-                  La bannière ne montre ni le message ni le titre du fil ; le clic y ramène.
+                  {t.accountTab.notifHint}
                 </div>
               </div>
               <Switch
@@ -195,12 +196,12 @@ export function AccountTab({
       )}
 
       <section className="settings-section">
-        <div className="cv-eyebrow">Statistiques</div>
+        <div className="cv-eyebrow">{t.accountTab.statsEyebrow}</div>
         <div className="settings-card">
           <div className="toggle-row">
             <div className="row-body">
-              <div className="row-title">Statistiques d'usage anonymes</div>
-              <div className="row-desc">Des compteurs d'usage — jamais vos messages.</div>
+              <div className="row-title">{t.accountTab.statsTitle}</div>
+              <div className="row-desc">{t.accountTab.statsHint}</div>
             </div>
             <Switch
               checked={draft.analyticsConsent ?? !isDevMode}
@@ -216,13 +217,13 @@ export function AccountTab({
       </section>
 
       <section className="settings-section">
-        <div className="cv-eyebrow">Développeur</div>
+        <div className="cv-eyebrow">{t.accountTab.devEyebrow}</div>
         <div className="settings-card">
           <div className="toggle-row">
             <div className="row-body">
-              <div className="row-title">Aperçus de liens</div>
+              <div className="row-title">{t.accountTab.linkPreviews}</div>
               <div className="row-desc">
-                Une vignette sous les liens. Activer révèle votre adresse IP au site lié.
+                {t.accountTab.linkPreviewsHint}
               </div>
             </div>
             <Switch

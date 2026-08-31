@@ -1,14 +1,8 @@
 import { ShieldIcon, ArrowRightIcon } from "../../components/brand";
 import { useHost, type OrgProfileInfo } from "../../host";
 import { REDACT_CATEGORIES } from "../../privacy/redactCategories";
+import { useT } from "../../i18n";
 
-/** Human label + badge tone for an org role. */
-const ROLE_META: Record<string, { label: string }> = {
-  owner: { label: "Propriétaire" },
-  admin: { label: "Administrateur" },
-  member: { label: "Membre" },
-};
-const PLAN_LABEL: Record<string, string> = { FREE: "Gratuit", PRO: "Business" };
 
 /** Category key → its display label (for the "règles imposées" list). */
 const catLabel = (key: string): string =>
@@ -24,9 +18,17 @@ const catLabel = (key: string): string =>
  */
 export function OrgSection({ org }: { org: OrgProfileInfo }) {
   const host = useHost();
-  const roleLabel = org.role ? (ROLE_META[org.role]?.label ?? org.role) : "Membre";
+  const t = useT();
+  // Rôle et plan : des clés serveur, nommées dans la langue de l'interface.
+  const roles: Record<string, string> = {
+    owner: t.orgTab.roleOwner,
+    admin: t.orgTab.roleAdmin,
+    member: t.orgTab.roleMember,
+  };
+  const plans: Record<string, string> = { FREE: t.orgTab.planFree, PRO: t.orgTab.planPro };
+  const roleLabel = org.role ? (roles[org.role] ?? org.role) : t.orgTab.roleMember;
   const initial = (org.organizationName ?? "?").trim().charAt(0).toUpperCase() || "?";
-  const planLine = [org.organizationSlug, org.plan && `plan ${PLAN_LABEL[org.plan] ?? org.plan}`]
+  const planLine = [org.organizationSlug, org.plan && t.orgTab.plan(plans[org.plan] ?? org.plan)]
     .filter(Boolean)
     .join(" · ");
   const forced = org.forcedCategories;
@@ -36,11 +38,11 @@ export function OrgSection({ org }: { org: OrgProfileInfo }) {
   return (
     <div className="org-tab">
       <section>
-        <div className="cv-eyebrow">Votre organisation</div>
+        <div className="cv-eyebrow">{t.orgTab.eyebrow}</div>
         <div className="settings-card pad org-card">
           <span className="org-avatar">{initial}</span>
           <div className="org-body">
-            <div className="org-name">{org.organizationName ?? "Votre organisation"}</div>
+            <div className="org-name">{org.organizationName ?? t.orgTab.yourOrg}</div>
             {planLine && <div className="org-sub">{planLine}</div>}
           </div>
           <span className="org-role-badge">{roleLabel}</span>
@@ -50,9 +52,9 @@ export function OrgSection({ org }: { org: OrgProfileInfo }) {
       <section>
         <div className="org-stats">
           {[
-            [org.memberCount != null ? String(org.memberCount) : "—", "membres"],
-            [roleLabel, "votre rôle"],
-            [String(forced.length), forced.length === 1 ? "règle imposée" : "règles imposées"],
+            [org.memberCount != null ? String(org.memberCount) : "—", t.orgTab.members],
+            [roleLabel, t.orgTab.yourRole],
+            [String(forced.length), t.orgTab.rules(forced.length)],
           ].map(([n, l]) => (
             <div key={l} className="settings-card pad org-stat">
               <span className="org-stat-n">{n}</span>
@@ -63,24 +65,24 @@ export function OrgSection({ org }: { org: OrgProfileInfo }) {
       </section>
 
       <section>
-        <div className="cv-eyebrow">Accès</div>
+        <div className="cv-eyebrow">{t.orgTab.accessEyebrow}</div>
         <div className="settings-card org-access">
           <div className="org-access-row">
             <div className="row-body">
-              <div className="row-title">Règles imposées par l'organisation</div>
+              <div className="row-title">{t.orgTab.forcedTitle}</div>
               <div className="row-desc">
                 {forced.length
-                  ? `${forced.map(catLabel).join(", ")} — non désactivables`
-                  : "Aucune règle imposée pour le moment"}
+                  ? t.orgTab.forcedList(forced.map(catLabel).join(", "))
+                  : t.orgTab.forcedNone}
               </div>
             </div>
-            {forced.length > 0 && <span className="org-access-tag">ACTIVES</span>}
+            {forced.length > 0 && <span className="org-access-tag">{t.orgTab.active}</span>}
           </div>
           {canOpenAdmin && (
             <button className="org-access-row org-access-btn" onClick={() => host.org!.openAdmin!()}>
               <div className="row-body">
-                <div className="row-title">Console d'administration</div>
-                <div className="row-desc">Gérer les membres, l'usage et la sécurité</div>
+                <div className="row-title">{t.orgTab.adminConsole}</div>
+                <div className="row-desc">{t.orgTab.adminConsoleHint}</div>
               </div>
               <ArrowRightIcon size={16} />
             </button>
@@ -88,8 +90,7 @@ export function OrgSection({ org }: { org: OrgProfileInfo }) {
         </div>
         {forced.length > 0 && (
           <div className="org-foot-note">
-            <ShieldIcon size={13} /> Le redaction minimal est imposé par{" "}
-            {org.organizationName ?? "votre organisation"} et ne peut être désactivé.
+            <ShieldIcon size={13} /> {t.orgTab.minimalNote(org.organizationName ?? t.orgTab.yourOrg.toLowerCase())}
           </div>
         )}
       </section>

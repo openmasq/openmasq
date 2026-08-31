@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useT } from "../../../i18n";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { CheckIcon, FamilyLogo, SettingsIcon } from "../../../components/brand";
 import { selectableModels } from "../../../prompt/models";
@@ -92,6 +93,7 @@ export function ModelsTab({
   const favSet = favoriteSet(favoriteModels);
   // Which provider's key modal is open (opened from a model's gear).
   const [keyProvider, setKeyProvider] = useState<ProviderId | null>(null);
+  const t = useT();
   // The « Modèles gratuits » explainer, opened from a card's badge.
   const [freeInfoOpen, setFreeInfoOpen] = useState(false);
   // Only a KNOWN-free, non-org account gets the subscribe pitch — the prefetch has
@@ -129,7 +131,7 @@ export function ModelsTab({
     <>
       {/* Les ACCÈS d'abord (ce qui allonge la liste), la liste ensuite — toujours
           dépliée : c'est la barre de filtres qui la rend navigable, pas un repli. */}
-      <div className="cv-eyebrow mb-3">Vos accès</div>
+      <div className="cv-eyebrow mb-3">{t.modelsTab.accessEyebrow}</div>
       <ProviderAccess
         keyConfigured={keyConfigured}
         hasSubscription={!pitchSubscription}
@@ -143,7 +145,7 @@ export function ModelsTab({
         model={pickerModels.find((m) => m.id === defaultModelId)}
         onPreview={setPreviewId}
       />
-      <div className="cv-eyebrow mt-4 mb-3">Modèles disponibles ({pickerModels.length})</div>
+      <div className="cv-eyebrow mt-4 mb-3">{t.modelsTab.availableEyebrow(pickerModels.length)}</div>
       <div className="model-picker-split">
           <div className="model-picker-list" onMouseLeave={() => setPreviewId(null)}>
             <ModelFilterBar
@@ -158,7 +160,7 @@ export function ModelsTab({
             />
             {filtered.length === 0 && (
               <p className="model-filter-empty">
-                Aucun modèle ne correspond{query.trim() ? ` à « ${query.trim()} »` : ""}.
+                {t.modelsTab.noMatch(query.trim())}
               </p>
             )}
             {MODEL_PROVIDER_ORDER.map((pid) => {
@@ -174,6 +176,7 @@ export function ModelsTab({
                 keyed,
                 hasKey,
                 unavailableModels,
+                t,
               });
               // Sub-group the provider's cards by vendor family — clarifies the dense
               // aggregator/platform groups (OpenRouter, Scaleway — both multi-vendor).
@@ -205,8 +208,8 @@ export function ModelsTab({
                         <button
                           type="button"
                           className="model-gear"
-                          title={`${hasKey ? "Modifier" : "Renseigner"} la clé ${PROVIDERS[pid].label}`}
-                          aria-label={`${hasKey ? "Modifier" : "Renseigner"} la clé ${PROVIDERS[pid].label}`}
+                          title={t.modelsTab.keyGearTip(hasKey, PROVIDERS[pid].label)}
+                          aria-label={t.modelsTab.keyGearTip(hasKey, PROVIDERS[pid].label)}
                           onClick={() => setKeyProvider(pid)}
                         >
                           <SettingsIcon size={14} />
@@ -264,8 +267,7 @@ export function ModelsTab({
           )}
       </div>
       <p className="modal-note">
-        Le ⚙ de chaque service ouvre sa clé (chiffrée sur cette machine, jamais lue en
-        clair). La pastille indique si une clé y est déjà enregistrée.
+        {t.modelsTab.gearNote}
       </p>
 
       <LocalModelSection url={localModelUrl} onUrl={onLocalModelUrl} />

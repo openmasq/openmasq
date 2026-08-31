@@ -1,3 +1,4 @@
+import { useT } from "../../../i18n";
 /** Les fenêtres offertes. 14 reste le défaut — c'est ce que les panneaux montraient
  *  avant d'être réglables, et changer le défaut aurait modifié tous les chiffres sans
  *  que personne ne l'ait demandé. 90 est le plafond : au-delà, une barre par jour
@@ -21,8 +22,9 @@ export function UsageRange({
   value: number;
   onChange: (v: UsageRangeDays) => void;
 }) {
+  const t = useT();
   return (
-    <div className="om-seg" role="tablist" aria-label="Fenêtre d'observation">
+    <div className="om-seg" role="tablist" aria-label={t.usageTab.rangeAria}>
       {RANGES.map((d) => (
         <button
           key={d}
@@ -32,7 +34,7 @@ export function UsageRange({
           className={`om-seg-btn${value === d ? " on" : ""}`}
           onClick={() => onChange(d)}
         >
-          {d} j
+          {t.usageTab.days(d)}
         </button>
       ))}
     </div>

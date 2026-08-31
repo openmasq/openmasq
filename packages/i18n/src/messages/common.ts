@@ -44,7 +44,34 @@ export interface NavMessages {
 
 /** Facturation / crédits. Les MONTANTS ne sont PAS ici : `Intl.NumberFormat` les rend
  *  selon la locale (`billing.ts` `formatCents`). Ici seulement la prose. */
+/** Un palier d'abonnement tel que la grille le montre. Prix et crédits viennent du code. */
+export interface PlanTierCopy {
+  name: string;
+  tag?: string;
+  feats: readonly ((brand: string) => string)[];
+}
+
 export interface BillingMessages {
+  /** Les deux CTA : pas d'abonnement encore, ou un plus grand. */
+  ctaSee: string;
+  ctaUpgrade: string;
+  /** Ce qu'on lit quand l'usage inclus du mois est épuisé — deux surfaces le rendent. */
+  exhaustedTitle: string;
+  exhaustedBody: string;
+  tiers: { free: PlanTierCopy; solo: PlanTierCopy; team: PlanTierCopy };
+  tierLabels: { free: string; solo: string; team: string; scale: string };
+  errors: {
+    disabled: string;
+    testerMode: string;
+    alreadyActive: string;
+    noCustomer: string;
+    priceNotConfigured: string;
+    stripe: string;
+    signIn: string;
+    accountNotFound: string;
+    serverDown: string;
+    generic: string;
+  };
   /** Échec d'ouverture de la page de paiement Stripe. */
   checkoutOpenFailed: string;
   /** Le MODE GRATUIT du déploiement (`OPENMASQ_FREE_MODE`) : l'onglet Paiement n'a plus

@@ -1,7 +1,8 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { BILLING_CTA, RETIRED_MONEY_WORDS, retiredMoneyPattern } from "./money";
+import { getMessages, LOCALES } from "@openmasq/i18n";
+import { RETIRED_MONEY_WORDS, retiredMoneyPattern } from "./money";
 
 /**
  * The money lexicon can only stay unified if something CHECKS it. A synonym never comes
@@ -77,9 +78,16 @@ describe("le lexique de l'argent — UN mot par concept", () => {
   });
 
   it("les boutons qui mènent au paiement portent UN libellé par intention", () => {
-    expect(BILLING_CTA.see).toMatch(/abonnement/i);
-    expect(BILLING_CTA.upgrade).toMatch(/abonnement/i);
-    expect(BILLING_CTA.see).not.toBe(BILLING_CTA.upgrade);
+    const fr = getMessages("fr").billing;
+    expect(fr.ctaSee).toMatch(/abonnement/i);
+    expect(fr.ctaUpgrade).toMatch(/abonnement/i);
+    // Dans chaque langue les deux intentions restent DEUX libellés — et le mot du produit
+    // ne se traduit pas en « plan » : l'anglais dit « subscription ».
+    for (const locale of LOCALES) {
+      const b = getMessages(locale).billing;
+      expect(b.ctaSee).not.toBe(b.ctaUpgrade);
+      expect(b.ctaSee + b.ctaUpgrade).toMatch(/abonnement|subscription/i);
+    }
   });
 
   it("« jetons » reste réservé au REDACTION — jamais aux unités facturées", () => {

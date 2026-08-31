@@ -1,4 +1,5 @@
 import { SEARCH_ENGINES, DEFAULT_SEARCH_ENGINE } from "../../state/searchEngines";
+import { useT } from "../../i18n";
 import { SearchEngineLogo } from "../../components/media/SearchEngineLogo";
 import { CheckIcon } from "../../components/brand";
 import { captureEvent } from "../../analytics";
@@ -21,16 +22,15 @@ export function BrowserTab({
   draft: Settings;
   setDraft: (updater: (s: Settings) => Settings) => void;
 }) {
+  const t = useT();
   const current = draft.browserSearchEngine ?? DEFAULT_SEARCH_ENGINE;
 
   return (
     <>
       <section className="settings-section">
-        <div className="cv-eyebrow">Moteur de recherche</div>
+        <div className="cv-eyebrow">{t.browserTab.engineEyebrow}</div>
         <p className="modal-note">
-          Le moteur utilisé quand vous saisissez des mots-clés (plutôt qu'une adresse)
-          dans la barre du navigateur intégré. Modifiable aussi depuis le menu à côté
-          des onglets.
+          {t.browserTab.engineHint}
         </p>
         <div className="browser-engine-grid">
           {SEARCH_ENGINES.map((e) => {

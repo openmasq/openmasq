@@ -6,11 +6,12 @@ import { useAuth } from "../../../state/useAuth";
 import { useAppDispatch, useAppSelector } from "../../../state/redux";
 import { selectBillingCache } from "../../../state/settingsCache";
 import { loadBilling, pollBilling } from "../../../state/settingsPrefetch";
-import { PLAN_TIERS, knownTier, tierAction } from "../../../state/billing";
+import { knownTier, planTiers, tierAction } from "../../../state/billing";
 import { OrgManagedBilling, CreditsMeter, ChangeTierConfirm, PlanCard } from "./BillingParts";
 import { FreeModeBilling } from "./FreeModeBilling";
 import { useBillingActions } from "./useBillingActions";
 
+import { useT } from "../../../i18n";
 interface Props {
   /** The signed-in member's org authorization (null/undefined = solo user). */
   orgProfile?: OrgProfileInfo | null;
@@ -74,6 +75,7 @@ export function BillingTab({ orgProfile }: Props) {
   // UNKNOWN (null) is not "free": no billing slot, a failed fetch or a load in flight must
   // mark NO card current — « 0 € · Abonnement actuel » to a paying account is worse (`knownTier`).
   const currentTier = knownTier(sub);
+  const t = useT();
   const isPaid = !!currentTier && currentTier !== "free";
   // Mode testeur du DÉPLOIEMENT — offert seulement si l'hôte sait l'exécuter : un libellé
   // « S'octroyer » sans `selfGrant` derrière serait un bouton mort (aperçu, mobile).
@@ -121,14 +123,14 @@ export function BillingTab({ orgProfile }: Props) {
             onClick={() => setError(null)}
             className="shrink-0 text-xs text-muted underline"
           >
-            Fermer
+            {t.billingTab.close}
           </button>
         </div>
       )}
       <section>
-        <div className="cv-eyebrow mb-3">VOTRE ABONNEMENT</div>
+        <div className="cv-eyebrow mb-3">{t.billingTab.yourSubscription}</div>
         <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(210px,1fr))]">
-          {PLAN_TIERS.map((p) => (
+          {planTiers(t).map((p) => (
             <PlanCard
               key={p.tier}
               p={p}
@@ -151,30 +153,27 @@ export function BillingTab({ orgProfile }: Props) {
             sans elle, un « S'abonner » qui n'encaisse rien laisse croire à un paiement. */}
         {testerMode && (
           <div className="mt-2 text-xs text-muted">
-            Sur cette version, l'abonnement est appliqué immédiatement et sans paiement.
+            {t.billingTab.testerNote}
           </div>
         )}
         {!billingOpen && !testerMode && (
           <div className="mt-2 text-xs text-muted">
-            Les abonnements ne sont pas encore ouverts sur cette version — l'offre ci-dessus est
-            affichée à titre indicatif.
+            {t.billingTab.billingClosed}
           </div>
         )}
         {loaded && !currentTier && !!billing && (
           <div className="mt-2 text-xs text-muted">
-            Votre abonnement n'a pas pu être lu pour l'instant — vérifiez votre connexion, puis
-            rouvrez cet onglet.
+            {t.billingTab.unreadable}
           </div>
         )}
         {finalizing && (
           <div className="mt-2 flex items-center gap-2 text-xs text-muted">
-            <span className="login-spin" /> Finalisation de votre abonnement…
+            <span className="login-spin" /> {t.billingTab.finalizing}
           </div>
         )}
         {isPaid && sub?.cancelAtPeriodEnd && (
           <div className="mt-2 text-xs text-[var(--amber-600,#b45309)]">
-            Votre abonnement se termine à la fin de la période en cours. Réactivez-le depuis « Ouvrir
-            le portail ».
+            {t.billingTab.cancelAtEnd}
           </div>
         )}
       </section>
@@ -182,16 +181,16 @@ export function BillingTab({ orgProfile }: Props) {
       {credits && <CreditsMeter credits={credits} />}
 
       <section>
-        <div className="cv-eyebrow mb-3">FACTURATION</div>
+        <div className="cv-eyebrow mb-3">{t.billingTab.billingEyebrow}</div>
         <div className="settings-card">
           <div className="flex items-center gap-3.5 px-[18px] py-4">
             <span className="w-[46px] h-8 rounded-[6px] bg-[#635bff] text-white inline-flex items-center justify-center font-display font-extrabold text-xs tracking-[0.01em] shrink-0">
               stripe
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-base font-semibold text-strong">Géré par Stripe</div>
+              <div className="text-base font-semibold text-strong">{t.billingTab.stripeManaged}</div>
               <div className="text-xs text-muted">
-                Moyen de paiement, factures et reçus dans le portail sécurisé.
+                {t.billingTab.stripeHint}
               </div>
             </div>
             <button
@@ -201,23 +200,22 @@ export function BillingTab({ orgProfile }: Props) {
             >
               {busy === "portal" ? (
                 <>
-                  <span className="login-spin" /> Ouverture…
+                  <span className="login-spin" /> {t.billingTab.opening}
                 </>
               ) : (
-                "Ouvrir le portail"
+                t.billingTab.openPortal
               )}
             </button>
           </div>
         </div>
         <div className="flex items-center gap-1.5 mt-2.5 text-xs text-muted">
-          <ShieldIcon size={13} /> Paiements sécurisés par Stripe. La facturation et vos reçus sont
-          gérés depuis le portail Stripe.
+          <ShieldIcon size={13} /> {t.billingTab.stripeSecure}
         </div>
       </section>
 
       {!billing && (
         <div className="text-xs text-muted">
-          La gestion de l'abonnement n'est pas disponible sur cette plateforme.
+          {t.billingTab.unavailableHere}
         </div>
       )}
 

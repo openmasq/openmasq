@@ -1,5 +1,6 @@
+import { getMessages } from "@openmasq/i18n";
 import { afterEach, describe, expect, it } from "vitest";
-import { configurePlatformAccess } from "./platformAccess";
+import { configurePlatformAccess, includedWith, subscriptionsSold } from "./platformAccess";
 import { resolveEffectivePlatform } from "./routing";
 import { modelUnavailableReason, unavailableLabel } from "./modelAvailability";
 import { preflightError } from "./preflight";
@@ -24,6 +25,10 @@ const reasonFor = (served: boolean) => {
 
 // Le défaut du paquet, et ce que tout autre test suppose.
 afterEach(() => configurePlatformAccess({ served: true }));
+
+/* Les pastilles se testent sur le catalogue français ; ce qu'on épingle — quel mot est
+   INTERDIT selon les drapeaux de build — vaut pour toute langue. */
+const fr = getMessages("fr");
 
 describe("un build SANS service hébergé (ni passerelle ni comptes)", () => {
   it("ne route plus rien vers la plateforme — il n'y a ni endpoint ni jeton à obtenir", () => {
@@ -58,11 +63,36 @@ describe("un build SANS service hébergé (ni passerelle ni comptes)", () => {
     const refused = gate();
     expect(refused?.text).toMatch(/Clé manquante/);
     expect(refused?.text).not.toMatch(/abonnement/i);
-    expect(unavailableLabel("no_key", "OpenRouter").title).not.toMatch(/abonnement/i);
+    expect(unavailableLabel("no_key", "OpenRouter", fr).title).not.toMatch(/abonnement/i);
 
-    // Et avec le service, la seconde issue existe : elle se dit (rien n'a changé pour
-    // le build hébergé).
+    // Et avec le service ET la vente, la seconde issue existe : elle se dit (rien n'a
+    // changé pour le build hébergé qui vend).
+    configurePlatformAccess({ served: true, sold: true });
+    expect(unavailableLabel("no_key", "OpenRouter", fr).title).toMatch(/abonnement/i);
+  });
+});
+
+describe("un build qui SERT sans VENDRE (le défaut du paquet)", () => {
+  it("ne vend rien tant que le build ne le dit pas", () => {
     configurePlatformAccess({ served: true });
-    expect(unavailableLabel("no_key", "OpenRouter").title).toMatch(/abonnement/i);
+    expect(subscriptionsSold()).toBe(false);
+    configurePlatformAccess({ served: true, sold: true });
+    expect(subscriptionsSold()).toBe(true);
+  });
+
+  it("nomme la voie incluse par le compte, jamais par un abonnement", () => {
+    configurePlatformAccess({ served: true });
+    expect(includedWith("Om", fr)).toBe("avec votre compte Om");
+    expect(unavailableLabel("no_key", "OpenRouter", fr).title).toMatch(/avec votre compte/);
+    expect(unavailableLabel("no_key", "OpenRouter", fr).title).not.toMatch(/abonnement/i);
+    // Le modèle « inclus » reste inclus : la pastille ne le vend pas, elle le nomme.
+    for (const reason of ["no_credits", "free_mode_only"] as const) {
+      const { chip, title } = unavailableLabel(reason, "OpenRouter", fr);
+      expect(chip).not.toMatch(/abonnement/i);
+      expect(title).not.toMatch(/abonnement|crédits/i);
+    }
+    configurePlatformAccess({ served: true, sold: true });
+    expect(includedWith("Om", fr)).toBe("dans l'abonnement Om");
+    expect(unavailableLabel("no_credits", "OpenRouter", fr).chip).toBe("Abonnement requis");
   });
 });

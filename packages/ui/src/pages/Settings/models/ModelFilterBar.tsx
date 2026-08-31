@@ -1,4 +1,5 @@
 import { FamilyLogo, SearchIcon, XIcon } from "../../../components/brand";
+import { useT } from "../../../i18n";
 import { PRICE_TIERS, type FamilyOption, type PriceTier } from "../../../prompt/modelFilter";
 
 /**
@@ -31,6 +32,7 @@ export function ModelFilterBar({
   /** How many models the current query + family + price match — shown when filtering. */
   matchCount: number;
 }) {
+  const t = useT();
   const filtering = !!query.trim() || !!family || !!price;
   return (
     <div className="model-filter">
@@ -39,9 +41,9 @@ export function ModelFilterBar({
         <input
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder="Rechercher un modèle (nom, gpt, claude…)"
+          placeholder={t.modelsTab.searchPlaceholder}
           className="model-filter-input"
-          aria-label="Rechercher un modèle"
+          aria-label={t.modelsTab.searchAria}
         />
         {filtering && (
           <span className="model-filter-count">{matchCount}</span>
@@ -50,8 +52,8 @@ export function ModelFilterBar({
           <button
             type="button"
             className="model-filter-clear"
-            title="Effacer la recherche"
-            aria-label="Effacer la recherche"
+            title={t.modelsTab.clearSearch}
+            aria-label={t.modelsTab.clearSearch}
             onClick={() => onQuery("")}
           >
             <XIcon size={13} />
@@ -65,7 +67,7 @@ export function ModelFilterBar({
             className={`model-family-chip${family === null ? " on" : ""}`}
             onClick={() => onFamily(null)}
           >
-            <span className="om-sweep">Tous</span>
+            <span className="om-sweep">{t.modelsTab.all}</span>
           </button>
           {families.map((f) => (
             <button
@@ -84,24 +86,24 @@ export function ModelFilterBar({
       {/* Price-tier row — deliberately a DIFFERENT chip species from the vendor chips
           above (mono micro-pills behind a « PRIX » eyebrow), so the two filter axes
           can't be misread as one list. A tier click toggles; « Tous » clears. */}
-      <div className="model-filter-prices" role="group" aria-label="Filtrer par prix de token">
-        <span className="model-filter-prices-label">Prix</span>
+      <div className="model-filter-prices" role="group" aria-label={t.modelsTab.priceAria}>
+        <span className="model-filter-prices-label">{t.modelsTab.price}</span>
         <button
           type="button"
           className={`model-price-chip${price === null ? " on" : ""}`}
           onClick={() => onPrice(null)}
         >
-          Tous
+          {t.modelsTab.all}
         </button>
-        {PRICE_TIERS.map((t) => (
+        {PRICE_TIERS.map((tier) => (
           <button
-            key={t.key}
+            key={tier.key}
             type="button"
-            className={`model-price-chip${price === t.key ? " on" : ""}`}
-            title={t.title}
-            onClick={() => onPrice(price === t.key ? null : t.key)}
+            className={`model-price-chip${price === tier.key ? " on" : ""}`}
+            title={t.modelsTab.priceTierTips[tier.key]}
+            onClick={() => onPrice(price === tier.key ? null : tier.key)}
           >
-            {t.label}
+            {t.modelsTab.priceTiers[tier.key]}
           </button>
         ))}
       </div>

@@ -20,6 +20,7 @@ import { modelStyle } from "./usageHue";
 import { UsageFilter } from "./UsageFilter";
 import { UsageRange, DEFAULT_RANGE, type UsageRangeDays } from "./UsageRange";
 import { ModelTimeline } from "./ModelTimeline";
+import { subscriptionsSold } from "../../../send/platformAccess";
 
 /**
  * Usage overview, matching the design-system `UsageSection`:
@@ -89,7 +90,7 @@ export function UsageTab({
   );
 
   const filterSub =
-    billed === "byo" ? "clés perso" : billed === "subscription" ? "abonnement" : "cumul";
+    billed === "byo" ? t.usageTab.subByo : billed === "subscription" ? t.usageTab.subSubscription : t.usageTab.subAll;
 
   return (
     <>
@@ -102,28 +103,22 @@ export function UsageTab({
 
       <section className="settings-section">
         <div className="usage-kpis">
-          {kpi("Messages", totals.messages.toLocaleString("fr-FR"), filterSub)}
-          {kpi("Tokens", formatTokens(totals.total), "tous modèles")}
+          {kpi(t.usageTab.kpiMessages, totals.messages.toLocaleString(t.common.intlTag), filterSub)}
+          {kpi(t.usageTab.kpiTokens, formatTokens(totals.total), t.usageTab.kpiTokensSub)}
           {kpi(
-            "Crédits utilisés",
+            t.usageTab.kpiCredits,
             creditBal ? formatCents(Math.max(0, creditBal.consumedCents)) : "—",
-            creditBal ? `sur ${formatCents(creditBal.allotmentCents)}` : "aucun abonnement",
+            creditBal ? t.usageTab.kpiCreditsOf(formatCents(creditBal.allotmentCents)) : t.usageTab.kpiNoSubscription,
           )}
         </div>
         {billed !== "all" && unbilled > 0 && (
           <p className="mcp-note usage-unknown">
-            {unbilled.toLocaleString("fr-FR")} message{unbilled > 1 ? "s" : ""} non attribué
-            {unbilled > 1 ? "s" : ""} (envoyé{unbilled > 1 ? "s" : ""} avant le suivi
-            clés / abonnement) — visible{unbilled > 1 ? "s" : ""} sous « Tous ».
+            {t.usageTab.unattributed(unbilled)}
           </p>
         )}
         {estimated > 0 && (
           <p className="mcp-note usage-unknown">
-            {estimated.toLocaleString("fr-FR")} réponse{estimated > 1 ? "s" : ""} interrompue
-            {estimated > 1 ? "s" : ""} : les tokens y sont <strong>estimés</strong>. Le
-            fournisseur ne transmet le décompte exact qu'à la toute fin — un arrêt ou une
-            coupure l'empêche d'arriver, alors que les tokens déjà produits, eux, sont bien
-            facturés.
+            {t.usageTab.estimated(estimated)}
           </p>
         )}
       </section>
@@ -131,7 +126,7 @@ export function UsageTab({
       <section className="settings-section">
         <div className="usage-panel">
           <div className="usage-panel-head">
-            <h3 className="usage-panel-title">Activité · {days} derniers jours</h3>
+            <h3 className="usage-panel-title">{t.usageTab.activityTitle(days)}</h3>
             {/* The kit labels this "messages / jour, par modèle" over per-model stacked
                 bars. The persisted schema has no per-message timestamp, so the only
                 honest daily signal is conversations touched — say exactly that. */}
@@ -139,15 +134,15 @@ export function UsageTab({
                 toute seule, et une infobulle « améliore, elle ne conditionne pas » — la
                 valeur haute doit être lisible sans survoler. */}
             <span className="usage-panel-meta">
-              conversations / jour{maxDaily > 0 ? ` · max ${maxDaily}` : ""}
+              {t.usageTab.activityMeta(maxDaily)}
             </span>
           </div>
           {/* Kit chrome: per-day BARS. The kit stacks them per model, but the schema
               has no per-message timestamp — a per-model split would be invented, so
               the bars stay single-hue over the honest daily signal. */}
-          <div className="usage-bars" role="group" aria-label={`Activité des ${days} derniers jours`}>
+          <div className="usage-bars" role="group" aria-label={t.usageTab.activityAria(days)}>
             {daily.map((v, i) => {
-              const label = `J-${days - 1 - i} · ${v} conversation${v > 1 ? "s" : ""}`;
+              const label = t.usageTab.dayLabel(days - 1 - i, v);
               return (
                 /* La CIBLE de survol est la colonne entière, pas la barre : à 6 messages
                    sur 14 jours une barre fait 3 px de haut, et le jour à zéro n'a rien à
@@ -185,9 +180,9 @@ export function UsageTab({
 
       <section className="settings-section">
         <div className="usage-panel">
-          <h3 className="usage-panel-title usage-mtitle">Usage par modèle</h3>
+          <h3 className="usage-panel-title usage-mtitle">{t.usageTab.perModelTitle}</h3>
           {rows.length === 0 ? (
-            <p className="mcp-empty usage-empty">Aucun usage enregistré pour l'instant.</p>
+            <p className="mcp-empty usage-empty">{t.usageTab.perModelEmpty}</p>
           ) : (
             <div className="usage-models">
               {rows.map((r) => {
@@ -205,10 +200,10 @@ export function UsageTab({
                       {/* largeur + couleur issues de la donnée → inline assumé */}
                       <div className="usage-mbar-fill" style={{ width: pct + "%", background: colorOf.get(r.model) ?? "var(--chart-other)" }} />
                     </div>
-                    <span className="usage-mmsgs">{r.messages.toLocaleString("fr-FR")} msg</span>
+                    <span className="usage-mmsgs">{t.usageTab.msgs(r.messages.toLocaleString(t.common.intlTag))}</span>
                     <span
                       className="usage-mcost"
-                      title={r.priced ? undefined : "Tarif inconnu (modèle local/gratuit)"}
+                      title={r.priced ? undefined : t.usageTab.unknownPrice}
                     >
                       {r.priced ? formatUsd(r.costUsd) : "—"}
                     </span>
@@ -219,27 +214,24 @@ export function UsageTab({
           )}
         </div>
         <p className="mcp-note">
-          Tokens cumulés sur toutes vos conversations (certains modèles
-          locaux/gratuits ne rapportent pas de compteur). Le coût est une{" "}
-          <b>estimation</b> (tarifs publics indicatifs en USD, hors remises/caching).
+          {t.usageTab.tokensNote}
         </p>
       </section>
 
       {hasCredits && (
         <section className="settings-section">
-          <div className="cv-eyebrow">CRÉDITS · CETTE PÉRIODE</div>
+          <div className="cv-eyebrow">{t.usageTab.creditsEyebrow}</div>
           <p className="mcp-note">
-            Crédits prépayés consommés par les modèles fournis par la plateforme (sans clé
-            personnelle) — solde réel mesuré côté serveur.
+            {t.usageTab.creditsNote}
           </p>
           <div className="usage-credits">
             {orgCredits && (
-              <CreditsMeter label="Organisation" sub={orgProfile?.organizationName} credits={orgCredits} />
+              <CreditsMeter label={t.usageTab.orgLabel} sub={orgProfile?.organizationName} credits={orgCredits} />
             )}
             {personal && (
               <CreditsMeter
-                label="Mon abonnement"
-                sub={sub?.freeMode ? t.billing.unlimitedTier : tierLabel(sub?.tier ?? "free")}
+                label={subscriptionsSold() ? t.usageTab.mySubscription : t.usageTab.myAccount}
+                sub={sub?.freeMode ? t.billing.unlimitedTier : tierLabel(sub?.tier ?? "free", t)}
                 credits={personal}
               />
             )}

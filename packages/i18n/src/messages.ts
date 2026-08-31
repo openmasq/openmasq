@@ -26,6 +26,7 @@
  * 300 LOC (règle 1), comme `packages/emails/i18n/`.
  */
 import type { AgentMessages } from "./messages/agent";
+import type { AvailabilityMessages } from "./messages/availability";
 import type { CardsMessages } from "./messages/cards";
 import type { ChatMessages, ChromeMessages, ComposerMessages } from "./messages/chrome";
 import type { BillingMessages, CommonMessages, NavMessages } from "./messages/common";
@@ -44,12 +45,26 @@ import type {
 import type { ProviderKeysMessages } from "./messages/providerKeys";
 import type { SectionsMessages } from "./messages/sections";
 import type { SettingsMessages } from "./messages/settings";
+import type {
+  AccountTabMessages,
+  BrowserTabMessages,
+  ModelsTabMessages,
+  PrivacyTabMessages,
+} from "./messages/settingsTabs";
+import type {
+  BillingTabMessages,
+  ImportModalMessages,
+  OrgTabMessages,
+  SyncTabMessages,
+  UsageTabMessages,
+} from "./messages/settingsMore";
 
 export type { DownloadFormatCopy } from "./messages/menus";
 export type { GuideChapterCopy } from "./messages/guide";
 export type { PrivacyLevelCopy } from "./messages/privacy";
 export type { ProviderKeyCopy } from "./messages/providerKeys";
 export type { SettingsEntry, SettingsTab } from "./messages/settings";
+export type { PlanTierCopy } from "./messages/common";
 
 export interface Messages {
   common: CommonMessages;
@@ -97,6 +112,7 @@ export interface Messages {
   cards: CardsMessages;
   errors: ErrorsMessages;
   agent: AgentMessages;
+  availability: AvailabilityMessages;
   connectors: ConnectorsMessages;
   guide: GuideMessages;
   menus: MenusMessages;
@@ -108,5 +124,14 @@ export interface Messages {
   downloads: DownloadsMessages;
   docViews: DocViewsMessages;
   settings: SettingsMessages;
+  accountTab: AccountTabMessages;
+  privacyTab: PrivacyTabMessages;
+  browserTab: BrowserTabMessages;
+  modelsTab: ModelsTabMessages;
+  billingTab: BillingTabMessages;
+  usageTab: UsageTabMessages;
+  syncTab: SyncTabMessages;
+  orgTab: OrgTabMessages;
+  importModal: ImportModalMessages;
   language: LanguageMessages;
 }

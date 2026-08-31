@@ -1,7 +1,8 @@
+import type { Messages } from "@openmasq/i18n";
 import { isFreeModel, isFreeModeModel, type ProviderId } from "@openmasq/llm";
 import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host";
 import { BRAND } from "@openmasq/branding";
-import { platformAccessServed } from "./platformAccess";
+import { includedWith, platformAccessServed, subscriptionsSold } from "./platformAccess";
 
 /**
  * Can this model actually SEND right now — and if not, why?
@@ -194,49 +195,36 @@ export function modelUnavailableReason(p: AvailabilityInput): UnavailableReason 
 export function unavailableLabel(
   reason: UnavailableReason,
   providerLabel: string,
+  t: Messages,
 ): { chip: string; title: string } {
+  const a = t.availability;
   switch (reason) {
     case "no_key":
       return {
-        chip: "Clé requise",
+        chip: a.keyRequired,
         // La seconde issue n'existe QUE si ce build a un service hébergé : la promettre
         // dans un build qui n'en a pas (auto-hébergé, local) enverrait chercher un
         // abonnement introuvable.
         title:
-          `Aucune clé API ${providerLabel} n'est enregistrée sur cet appareil — ajoutez-la dans Réglages → Modèles pour utiliser ce modèle` +
-          (platformAccessServed() ? `, ou choisissez un modèle inclus dans l'abonnement ${BRAND.name}.` : "."),
+          a.noKeyTitle(providerLabel) +
+          (platformAccessServed() ? a.noKeyOrIncluded(includedWith(BRAND.name, t)) : "."),
       };
+    // Un build qui ne VEND rien (`subscriptionsSold`, le défaut) ne dit ni « abonnement »
+    // ni « crédits » : le modèle n'est pas ouvert sur ce compte, et la clé est l'issue.
     case "no_credits":
-      return {
-        chip: "Abonnement requis",
-        title: `Ce modèle passe par votre abonnement ${BRAND.name}, et vos crédits sont épuisés. Prenez un abonnement, ou renseignez votre propre clé ${providerLabel} pour l'utiliser directement.`,
-      };
+      return subscriptionsSold()
+        ? { chip: a.subscriptionRequired, title: a.noCreditsSold(BRAND.name, providerLabel) }
+        : { chip: a.unavailable, title: a.noCreditsUnsold(BRAND.name, providerLabel) };
     case "free_mode_only":
-      return {
-        chip: "Abonnement requis",
-        title:
-          `L'accès gratuit de ${BRAND.name} sert Laguna et Nemotron. Pour ce modèle, prenez un ` +
-          `abonnement ou renseignez votre propre clé ${providerLabel}.`,
-      };
+      return subscriptionsSold()
+        ? { chip: a.subscriptionRequired, title: a.freeModeSold(BRAND.name, providerLabel) }
+        : { chip: a.keyRequired, title: a.freeModeUnsold(BRAND.name, providerLabel) };
     case "cli_unavailable":
       // `providerLabel` = la CLI du fournisseur (« Claude Code », « Gemini CLI »).
-      return {
-        chip: "CLI requise",
-        title:
-          `Ce modèle passe par la CLI ${providerLabel} installée sur cette machine. ` +
-          "Installez-la et connectez-la, puis activez-la dans Réglages → Modèles.",
-      };
+      return { chip: a.cliRequired, title: a.cliUnavailable(providerLabel) };
     case "no_endpoint":
-      return {
-        chip: "Adresse manquante",
-        title:
-          "Adresse manquante — ajoutez-la dans Réglages → Modèles → Modèle sur votre ordinateur.",
-      };
+      return { chip: a.noEndpoint, title: a.noEndpointTitle };
     case "endpoint_unreachable":
-      return {
-        chip: "Serveur injoignable",
-        title:
-          "Votre serveur local (Ollama, LM Studio…) ne répond pas. Vérifiez qu'il est démarré.",
-      };
+      return { chip: a.endpointUnreachable, title: a.endpointUnreachableTitle };
   }
 }

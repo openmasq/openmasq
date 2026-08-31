@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useT } from "../../../i18n";
 import { PRIVACY_KINDS } from "../../../privacy/redactCategories";
 import { dailyRedactionsByCategory, type RedactionAt } from "./auditActivity";
 
@@ -12,6 +13,7 @@ const KIND_META = new Map(PRIVACY_KINDS.map((k) => [k.key, k]));
  * colour (single-sourced via `PRIVACY_KINDS`).
  */
 export function AuditTimeline({ entries, days = 14 }: { entries: RedactionAt[]; days?: number }) {
+  const t = useT();
   const { days: stack, cats } = useMemo(
     () => dailyRedactionsByCategory(entries, days),
     [entries, days],
@@ -24,21 +26,21 @@ export function AuditTimeline({ entries, days = 14 }: { entries: RedactionAt[]; 
   return (
     <div className="usage-panel">
       <div className="usage-panel-head">
-        <h3 className="usage-panel-title">Redactions · {days} derniers jours</h3>
-        <span className="usage-panel-meta">valeurs redacted / jour, par catégorie</span>
+        <h3 className="usage-panel-title">{t.privacyTab.timelineTitle(days)}</h3>
+        <span className="usage-panel-meta">{t.privacyTab.timelineMeta}</span>
       </div>
 
       {!hasData ? (
-        <p className="mcp-empty usage-empty">Aucun redaction sur la période.</p>
+        <p className="mcp-empty usage-empty">{t.privacyTab.timelineEmpty}</p>
       ) : (
         <>
-          <div className="usage-stack" role="img" aria-label="Valeurs redacted par jour et par catégorie">
+          <div className="usage-stack" role="img" aria-label={t.privacyTab.timelineAria}>
             {stack.map((d, i) => (
               <div key={i} className="usage-stack-col">
                 {/* total height from data → the allowed inline-style exception */}
                 <div
                   className="usage-stack-bar"
-                  title={`${d.total} valeur${d.total > 1 ? "s" : ""} redacted${d.total > 1 ? "s" : ""}`}
+                  title={t.privacyTab.timelineBarTip(d.total)}
                   style={{ height: `${(d.total / maxDay) * 100}%` }}
                 >
                   {cats.map((k) => {

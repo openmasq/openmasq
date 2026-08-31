@@ -6,6 +6,7 @@ import {
   modelMeta,
   type ModelInfo,
 } from "@openmasq/llm";
+import { useT } from "../../i18n";
 import { ModelLogo } from "../../components/brand";
 import { CountryFlag } from "../../components/media/CountryFlag";
 
@@ -17,10 +18,11 @@ function fmtUsd(n: number): string {
 
 /** One 1–5 capability bar (5 segments, filled to `value`). Higher = better. */
 function Bar({ label, value }: { label: string; value: number }) {
+  const t = useT();
   return (
     <div className="model-bar">
       <span className="model-bar-label">{label}</span>
-      <span className="model-bar-track" aria-label={`${label} ${value}/5`}>
+      <span className="model-bar-track" aria-label={t.modelsTab.detail.barAria(label, value)}>
         {[1, 2, 3, 4, 5].map((i) => (
           <span key={i} className={`model-bar-seg${i <= value ? " on" : ""}`} />
         ))}
@@ -43,6 +45,7 @@ function fmtCtx(n: number): string {
  * shown only when the metadata carries confidently-known real figures.
  */
 export function ModelDetail({ model }: { model: ModelInfo }) {
+  const t = useT();
   const meta = modelMeta(model.id);
   const ctx = contextWindow(model.id);
   const p = meta.profile;
@@ -69,10 +72,10 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
           </span>
         )}
         <span className={`model-badge ${meta.openSource ? "oss" : "hosted"}`}>
-          {meta.openSource ? "Open source" : "Hébergé"}
+          {meta.openSource ? t.modelsTab.detail.openSource : t.modelsTab.detail.hosted}
         </span>
-        {ctx && <span className="model-badge ctx">Contexte {fmtCtx(ctx)}</span>}
-        {model.vision && <span className="model-badge">Vision</span>}
+        {ctx && <span className="model-badge ctx">{t.modelsTab.detail.context(fmtCtx(ctx))}</span>}
+        {model.vision && <span className="model-badge">{t.modelsTab.detail.vision}</span>}
       </div>
 
       {price && (
@@ -81,21 +84,21 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
               « Vos messages 2,5 $ » se lisait comme le prix d'un message (remonté le
               11/08). Un tarif que l'on peut lire comme mille fois trop cher n'est pas
               une information, c'est un repoussoir. */}
-          <div className="cv-eyebrow">Tarif indicatif — pour environ 1 million de mots</div>
+          <div className="cv-eyebrow">{t.modelsTab.detail.priceEyebrow}</div>
           {free ? (
             <p className="model-detail-price">
-              <b>Gratuit</b>
+              <b>{t.modelsTab.detail.free}</b>
             </p>
           ) : (
             <p className="model-detail-price">
               <span className="model-price-row">
-                Ce que vous envoyez <b>{fmtUsd(price.in)}</b>
+                {t.modelsTab.detail.priceIn} <b>{fmtUsd(price.in)}</b>
               </span>
               <span className="model-price-row">
-                La réponse du modèle <b>{fmtUsd(price.out)}</b>
+                {t.modelsTab.detail.priceOut} <b>{fmtUsd(price.out)}</b>
               </span>
               <span className="model-price-unit">
-                Prix public du fournisseur, en dollars — ce n'est pas votre facture.
+                {t.modelsTab.detail.priceUnit}
               </span>
             </p>
           )}
@@ -103,19 +106,19 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
       )}
 
       <div className="model-detail-section">
-        <div className="cv-eyebrow">Profil (indicatif)</div>
+        <div className="cv-eyebrow">{t.modelsTab.detail.profileEyebrow}</div>
         <div className="model-bars">
-          <Bar label="Raisonnement" value={p.reasoning} />
-          <Bar label="Code" value={p.coding} />
-          <Bar label="Vitesse" value={p.speed} />
-          <Bar label="Économie" value={p.cost} />
-          <Bar label="Images" value={p.multimodal} />
+          <Bar label={t.modelsTab.detail.reasoning} value={p.reasoning} />
+          <Bar label={t.modelsTab.detail.coding} value={p.coding} />
+          <Bar label={t.modelsTab.detail.speed} value={p.speed} />
+          <Bar label={t.modelsTab.detail.cost} value={p.cost} />
+          <Bar label={t.modelsTab.detail.images} value={p.multimodal} />
         </div>
       </div>
 
       {meta.strengths.length > 0 && (
         <div className="model-detail-section">
-          <div className="cv-eyebrow">Points forts</div>
+          <div className="cv-eyebrow">{t.modelsTab.detail.strengths}</div>
           <ul className="model-detail-list">
             {meta.strengths.map((s, i) => (
               <li key={i}>{s}</li>
@@ -126,7 +129,7 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
 
       {meta.weaknesses.length > 0 && (
         <div className="model-detail-section">
-          <div className="cv-eyebrow">Compromis</div>
+          <div className="cv-eyebrow">{t.modelsTab.detail.tradeoffs}</div>
           <ul className="model-detail-list muted">
             {meta.weaknesses.map((s, i) => (
               <li key={i}>{s}</li>
@@ -136,7 +139,7 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
       )}
 
       <div className="model-detail-section">
-        <div className="cv-eyebrow">Idéal pour</div>
+        <div className="cv-eyebrow">{t.modelsTab.detail.bestFor}</div>
         <p className="model-detail-bestfor">{meta.bestFor}</p>
       </div>
 
@@ -152,7 +155,7 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
 
       {meta.benchmarks && meta.benchmarks.length > 0 && (
         <div className="model-detail-section">
-          <div className="cv-eyebrow">Résultats de tests</div>
+          <div className="cv-eyebrow">{t.modelsTab.detail.benchmarks}</div>
           <ul className="model-detail-list">
             {meta.benchmarks.map((b) => (
               <li key={b.name}>

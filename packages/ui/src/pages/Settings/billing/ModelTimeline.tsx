@@ -5,9 +5,10 @@ import { findModelAny } from "../../../prompt/models";
 import { dailyModelMessages } from "./usageActivity";
 import { OTHER_ID, buildSeries, dayCount } from "./usageSeries";
 
+import { useT } from "../../../i18n";
 /** Le nom affiché d'une série : le libellé du registre, ou « Autres » pour le seau. */
-const seriesLabel = (id: string): string =>
-  id === OTHER_ID ? "Autres" : findModelAny(id)?.label ?? id;
+const seriesLabel = (id: string, other: string): string =>
+  id === OTHER_ID ? other : findModelAny(id)?.label ?? id;
 
 /**
  * Barres empilées — messages/jour, une couleur PAR MODÈLE.
@@ -33,6 +34,7 @@ export function ModelTimeline({
   filter: BilledFilter;
   days?: number;
 }) {
+  const t = useT();
   const { days: stack, models } = useMemo(
     () => dailyModelMessages(conversations, days, filter),
     [conversations, days, filter],
@@ -47,19 +49,19 @@ export function ModelTimeline({
   return (
     <div className="usage-panel">
       <div className="usage-panel-head">
-        <h3 className="usage-panel-title">Messages · {days} derniers jours</h3>
+        <h3 className="usage-panel-title">{t.usageTab.timelineTitle(days)}</h3>
         {/* Le MAX est écrit : sans axe des ordonnées, une hauteur seule ne dit rien, et
             l'infobulle doit AJOUTER une lecture, pas en conditionner une. */}
         <span className="usage-panel-meta">
-          messages / jour, par modèle{maxDay > 1 ? ` · max ${maxDay}` : ""}
+          {t.usageTab.timelineMeta(maxDay)}
         </span>
       </div>
 
       {series.length === 0 ? (
-        <p className="mcp-empty usage-empty">Aucun message sur la période.</p>
+        <p className="mcp-empty usage-empty">{t.usageTab.timelineEmpty}</p>
       ) : (
         <>
-          <div className="usage-stack" role="group" aria-label="Messages par jour et par modèle">
+          <div className="usage-stack" role="group" aria-label={t.usageTab.timelineAria}>
             {stack.map((d, i) => {
               // Le survol dit QUI, pas seulement combien : une barre empilée sans
               // infobulle oblige à faire l'aller-retour vers la légende pour chaque
@@ -68,7 +70,7 @@ export function ModelTimeline({
               const lines = series
                 .map((s) => ({ s, n: dayCount(d, s, named) }))
                 .filter((x) => x.n > 0)
-                .map((x) => `${seriesLabel(x.s.id)} : ${x.n}`);
+                .map((x) => `${seriesLabel(x.s.id, t.usageTab.other)} : ${x.n}`);
               const label = lines.length ? [day, ...lines].join("\n") : `${day} · aucun message`;
               return (
                 /* La cible est la COLONNE, pas la barre : à un message par jour la barre
@@ -111,7 +113,7 @@ export function ModelTimeline({
             {series.map((s) => (
               <span key={s.id} className="usage-legend-item">
                 <span className="usage-legend-dot" style={{ background: s.color }} />
-                {seriesLabel(s.id)}
+                {seriesLabel(s.id, t.usageTab.other)}
                 <span className="usage-legend-n">{s.total}</span>
               </span>
             ))}

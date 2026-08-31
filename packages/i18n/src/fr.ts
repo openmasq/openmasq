@@ -8,6 +8,7 @@
  */
 import type { Messages } from "./messages";
 import { agent } from "./fr/agent";
+import { availability } from "./fr/availability";
 import { cards } from "./fr/cards";
 import { chat, chrome, composer } from "./fr/chrome";
 import { connectors } from "./fr/connectors";
@@ -22,6 +23,8 @@ import { providerKeys } from "./fr/providerKeys";
 import { privacyLevels, redactTypes, webNav } from "./fr/privacy";
 import { sections } from "./fr/sections";
 import { settings } from "./fr/settings";
+import { accountTab, browserTab, modelsTab, privacyTab } from "./fr/settingsTabs";
+import { billingTab, importModal, orgTab, syncTab, usageTab } from "./fr/settingsMore";
 
 const selfHost = {
   envLabel: "Auto-hébergé",
@@ -56,6 +59,7 @@ const selfHost = {
 
 export const fr = {
   agent,
+  availability,
   billing,
   cards,
   chat,
@@ -77,6 +81,15 @@ export const fr = {
   redactTypes,
   sections,
   settings,
+  accountTab,
+  privacyTab,
+  browserTab,
+  modelsTab,
+  billingTab,
+  usageTab,
+  syncTab,
+  orgTab,
+  importModal,
   webNav,
   selfHost,
 } satisfies Messages;

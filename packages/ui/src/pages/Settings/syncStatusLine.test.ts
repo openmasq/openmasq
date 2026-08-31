@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import { syncStatusLine } from "./syncStatusLine";
 import type { SyncStatusSnapshot } from "../../host";
@@ -18,11 +19,12 @@ const snap = (over: Partial<SyncStatusSnapshot>): SyncStatusSnapshot => ({
   ...over,
 });
 
+const fr = getMessages("fr");
+
 describe("syncStatusLine — le plus récent des deux événements dit le verdict", () => {
   it("échec APRÈS succès = panne EN COURS, quoi qu'ait réussi avant", () => {
     const { text, tone } = syncStatusLine(
-      snap({ lastOkAt: NOW - 600_000, lastErrorAt: NOW - 60_000, lastError: "HTTP 403" }),
-      NOW,
+      snap({ lastOkAt: NOW - 600_000, lastErrorAt: NOW - 60_000, lastError: "HTTP 403" }), fr, NOW,
     );
     expect(tone).toBe("err");
     // La raison est MONTRÉE : « HTTP 403 » (appareil révoqué) et « serveur injoignable »
@@ -32,29 +34,27 @@ describe("syncStatusLine — le plus récent des deux événements dit le verdic
 
   it("succès APRÈS échec = panne finie — l'afficher encore apprendrait à ignorer le rouge", () => {
     const { text, tone } = syncStatusLine(
-      snap({ lastErrorAt: NOW - 600_000, lastError: "serveur injoignable", lastOkAt: NOW - 30_000 }),
-      NOW,
+      snap({ lastErrorAt: NOW - 600_000, lastError: "serveur injoignable", lastOkAt: NOW - 30_000 }), fr, NOW,
     );
     expect(tone).toBe("ok");
     expect(text).not.toContain("injoignable");
   });
 
   it("aucun appel depuis le lancement : neutre, pas une panne", () => {
-    const { tone, text } = syncStatusLine(snap({}), NOW);
+    const { tone, text } = syncStatusLine(snap({}), fr, NOW);
     expect(tone).toBe("muted");
     expect(text).toContain("Aucun échange");
   });
 
   it("un échec sans succès antérieur est bien un échec", () => {
-    expect(syncStatusLine(snap({ lastErrorAt: NOW - 5_000, lastError: "HTTP 503" }), NOW).tone).toBe("err");
+    expect(syncStatusLine(snap({ lastErrorAt: NOW - 5_000, lastError: "HTTP 503" }), fr, NOW).tone).toBe("err");
   });
 
   it("une panne DÉFINITIVE ne promet pas de se réparer seule — elle dit quoi faire", () => {
     // Le déchiffrement impossible (la phrase n'ouvre pas l'enveloppe) : aucun réessai n'y
     // changera rien, et « Réessaiera tout seul » ferait attendre une issue qui ne vient pas.
     const out = syncStatusLine(
-      snap({ lastErrorAt: NOW - 5_000, lastError: "la phrase secrète…", lastErrorFatal: true }),
-      NOW,
+      snap({ lastErrorAt: NOW - 5_000, lastError: "la phrase secrète…", lastErrorFatal: true }), fr, NOW,
     );
     expect(out.tone).toBe("err");
     expect(out.text).not.toMatch(/Réessaiera tout seul/);
@@ -62,7 +62,7 @@ describe("syncStatusLine — le plus récent des deux événements dit le verdic
   });
 
   it("une panne ORDINAIRE garde sa promesse de réessai", () => {
-    const out = syncStatusLine(snap({ lastErrorAt: NOW - 5_000, lastError: "HTTP 503" }), NOW);
+    const out = syncStatusLine(snap({ lastErrorAt: NOW - 5_000, lastError: "HTTP 503" }), fr, NOW);
     expect(out.text).toMatch(/Réessaiera tout seul/);
   });
 });

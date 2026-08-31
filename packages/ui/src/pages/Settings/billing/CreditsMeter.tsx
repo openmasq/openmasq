@@ -1,6 +1,5 @@
 import { formatCents } from "../../../state/billing";
 import type { CreditBalance } from "../../../host";
-import { CREDITS_EXHAUSTED } from "../../../help/money";
 import { useLocale, useT } from "../../../i18n/I18nProvider";
 
 /**
@@ -9,9 +8,10 @@ import { useLocale, useT } from "../../../i18n/I18nProvider";
  * had already drifted on what still works once the budget is spent.
  */
 export function CreditsExhausted() {
+  const t = useT();
   return (
     <div className="mt-2 text-xs text-body">
-      <b className="text-strong">{CREDITS_EXHAUSTED.title}</b> {CREDITS_EXHAUSTED.body}
+      <b className="text-strong">{t.billing.exhaustedTitle}</b> {t.billing.exhaustedBody}
     </div>
   );
 }
@@ -59,10 +59,12 @@ export function CreditsMeter({
       </div>
       <div className="flex items-baseline justify-between mb-2 text-sm text-body">
         <span>
-          <b className="text-strong">{formatCents(Math.max(0, credits.consumedCents))}</b> utilisés
-          {" · "}
-          {formatCents(Math.max(0, credits.balanceCents))} restants sur{" "}
-          {formatCents(credits.allotmentCents)}
+          <b className="text-strong">{formatCents(Math.max(0, credits.consumedCents))}</b>
+          {t.billingTab.usedRemaining(
+            formatCents(Math.max(0, credits.consumedCents)),
+            formatCents(Math.max(0, credits.balanceCents)),
+            formatCents(credits.allotmentCents),
+          )}
         </span>
         <span className="text-xs text-muted">{pct}%</span>
       </div>

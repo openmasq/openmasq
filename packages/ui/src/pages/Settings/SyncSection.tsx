@@ -5,23 +5,27 @@ import { SyncStatusCard } from "./SyncStatusCard";
 import { SyncPassphraseCard } from "./SyncPassphraseCard";
 import { useAppSelector } from "../../state/redux";
 import { selectBillingCache } from "../../state/settingsCache";
-import { BILLING_CTA } from "../../help";
+import { knownTier } from "../../state/billing";
+import { subscriptionsSold } from "../../send/platformAccess";
 
-import { PLATFORM_LABEL, relTime } from "./syncFormat";
+import { platformLabel, relTime } from "./syncFormat";
 
+import { useT } from "../../i18n";
 /**
  * Settings section for cross-device sync: the E2E passphrase (the key that never
  * leaves the user's devices) + the list of connected devices with revoke. Uses
  * `host.sync`; the caller renders it only when that capability exists.
  *
- * Sync is a PAID feature: a free account sees the premium info container instead of
- * the controls (`onUpgrade` deep-links to the Paiement tab). The gate keys off the
- * billing cache's `loaded` flag so a paid user is never walled while it's still
- * fetching (unknown ⇒ show the controls).
+ * Sync is a PAID feature ONLY in a build that sells subscriptions (`subscriptionsSold`,
+ * off by default — then it is simply included with the account): there, a KNOWN free
+ * tier sees the premium info container instead of the controls (`onUpgrade` deep-links
+ * to the Paiement tab). Unknown (still fetching, no `billing` host, a failed fetch —
+ * `knownTier` reads all three as null) never walls anyone: unknown ⇒ show the controls.
  */
 export function SyncSection({ sync, onUpgrade }: { sync: SyncHost; onUpgrade?: () => void }) {
+  const t = useT();
   const { sub, loaded } = useAppSelector(selectBillingCache);
-  const isFree = loaded && (sub?.tier ?? "free") === "free";
+  const isFree = subscriptionsSold() && loaded && knownTier(sub) === "free";
   const [devices, setDevices] = useState<SyncDeviceInfo[]>([]);
   const [busy, setBusy] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -66,16 +70,16 @@ export function SyncSection({ sync, onUpgrade }: { sync: SyncHost; onUpgrade?: (
         <SyncStatusCard sync={sync} />
         <EmptyState
           tone="violet"
-          eyebrow="Fonctionnalité payante"
+          eyebrow={t.syncTab.paidEyebrow}
           icon={<RefreshIcon size={26} />}
-          title="La synchro, sur tous vos appareils."
-          body="Vos règles, votre coffre et votre historique sur tous vos appareils, chiffrés de bout en bout. Inclus dans les offres payantes."
+          title={t.syncTab.paidTitle}
+          body={t.syncTab.paidBody}
           points={[
-            { glyph: "⇄", label: "Multi-appareils en temps réel", tone: "violet" },
-            { glyph: "🔒", label: "Chiffré de bout en bout", tone: "sky" },
-            { glyph: "★", label: "Inclus dans les abonnements payants", tone: "amber" },
+            { glyph: "⇄", label: t.syncTab.paidPoint1, tone: "violet" },
+            { glyph: "🔒", label: t.syncTab.paidPoint2, tone: "sky" },
+            { glyph: "★", label: t.syncTab.paidPoint3, tone: "amber" },
           ]}
-          cta={BILLING_CTA.see}
+          cta={t.billing.ctaSee}
           ctaIcon={<ArrowRightIcon size={16} />}
           onCta={onUpgrade}
         />
@@ -85,7 +89,7 @@ export function SyncSection({ sync, onUpgrade }: { sync: SyncHost; onUpgrade?: (
 
   return (
     <section className="settings-section sync-tab">
-      <div className="cv-eyebrow">Synchronisation</div>
+      <div className="cv-eyebrow">{t.syncTab.eyebrow}</div>
 
       <SyncPassphraseCard sync={sync} />
 
@@ -93,15 +97,14 @@ export function SyncSection({ sync, onUpgrade }: { sync: SyncHost; onUpgrade?: (
 
       <section>
         <div className="sync-devices-head">
-          <div className="cv-eyebrow">Appareils connectés</div>
+          <div className="cv-eyebrow">{t.syncTab.devicesEyebrow}</div>
           <span className="sync-devices-count">
-            {devices.length} {devices.length === 1 ? "appareil" : "appareils"}
+            {t.syncTab.deviceCount(devices.length)}
           </span>
         </div>
         {devices.length === 0 ? (
           <p className="modal-note">
-            Aucun autre appareil pour l'instant. Connectez-vous avec la même phrase secrète
-            sur un autre appareil pour le voir apparaître ici.
+            {t.syncTab.noDevices}
           </p>
         ) : (
           <div className="settings-card clip sync-devices-card">
@@ -124,21 +127,21 @@ export function SyncSection({ sync, onUpgrade }: { sync: SyncHost; onUpgrade?: (
                           onChange={(e) => setNameDraft(e.target.value)}
                         />
                         <button className="primary" disabled={busy || !nameDraft.trim()} onClick={saveName}>
-                          OK
+                          {t.syncTab.ok}
                         </button>
                         <button className="link-btn" onClick={() => setRenaming(false)}>
-                          Annuler
+                          {t.syncTab.cancel}
                         </button>
                       </div>
                     ) : (
                       <>
                         <span className="sync-device-name">
-                          {d.name || "Appareil"}
-                          {d.current && <span className="sync-device-cur">● actuel</span>}
+                          {d.name || t.syncTab.device}
+                          {d.current && <span className="sync-device-cur">{t.syncTab.current}</span>}
                         </span>
                         <span className="sync-device-meta">
-                          {PLATFORM_LABEL[d.platform] ?? (d.platform || "—")} · vu{" "}
-                          {relTime(d.lastSeenAt)}
+                          {platformLabel(d.platform, t) ?? (d.platform || "—")} · {t.syncTab.seen}{" "}
+                          {relTime(d.lastSeenAt, t)}
                         </span>
                       </>
                     )}
@@ -152,12 +155,12 @@ export function SyncSection({ sync, onUpgrade }: { sync: SyncHost; onUpgrade?: (
                         setRenaming(true);
                       }}
                     >
-                      Renommer
+                      {t.syncTab.rename}
                     </button>
                   )}
                   {!d.current && (
                     <button className="ghost sync-device-revoke" disabled={busy} onClick={() => revoke(d.deviceId)}>
-                      Révoquer
+                      {t.syncTab.revoke}
                     </button>
                   )}
                 </div>

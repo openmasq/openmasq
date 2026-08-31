@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../../i18n";
 import { EyeIcon, XIcon, CopyIcon, IconButton } from "../../../components/brand";
 import { ModalShell } from "../../../containers/modals";
 
@@ -26,6 +27,7 @@ export function AuditRevealModal({
   at: number;
   onClose: () => void;
 }) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   const copy = () => {
     void navigator.clipboard?.writeText(original).then(() => {
@@ -40,7 +42,7 @@ export function AuditRevealModal({
           <EyeIcon size={18} />
         </span>
         <div className="rlog-head-text">
-          <div className="rlog-title">Valeur réelle</div>
+          <div className="rlog-title">{t.privacyTab.revealTitle}</div>
           <div className="rlog-sub">
             {/* per-type colour is data-driven → inline */}
             <span className="audit-reveal-tag" style={{ background: typeBg, color: typeFg }}>
@@ -48,7 +50,7 @@ export function AuditRevealModal({
             </span>
           </div>
         </div>
-        <IconButton label="Fermer" size="sm" onClick={onClose}>
+        <IconButton label={t.privacyTab.revealClose} size="sm" onClick={onClose}>
           <XIcon size={18} />
         </IconButton>
       </div>
@@ -56,26 +58,26 @@ export function AuditRevealModal({
         {/* The real value, revealed — monospace, selectable, with a copy affordance. */}
         <div className="audit-reveal-value">
           <span className="audit-reveal-real">{original}</span>
-          <button type="button" className="audit-reveal-copy" onClick={copy} title="Copier">
-            <CopyIcon size={14} /> {copied ? "Copié" : "Copier"}
+          <button type="button" className="audit-reveal-copy" onClick={copy} title={t.privacyTab.revealCopy}>
+            <CopyIcon size={14} /> {copied ? t.privacyTab.revealCopied : t.privacyTab.revealCopy}
           </button>
         </div>
         <dl className="audit-reveal-meta">
           <div>
-            <dt>Remplacée par</dt>
+            <dt>{t.privacyTab.revealReplacedBy}</dt>
             <dd className="audit-reveal-fake">{fake}</dd>
           </div>
           <div>
-            <dt>Conversation</dt>
+            <dt>{t.privacyTab.revealConversation}</dt>
             <dd>{convTitle}</dd>
           </div>
           <div>
-            <dt>Quand</dt>
-            <dd>{new Date(at).toLocaleString("fr-FR")}</dd>
+            <dt>{t.privacyTab.revealWhen}</dt>
+            <dd>{new Date(at).toLocaleString(t.common.intlTag)}</dd>
           </div>
         </dl>
         <p className="audit-reveal-note">
-          Cette valeur n'a jamais quitté votre machine — le modèle n'a vu que le remplacement.
+          {t.privacyTab.revealNote}
         </p>
       </div>
     </ModalShell>

@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import type { BillingHost } from "../../../host";
+import { BillingApiError, billingErrorMessage } from "../../../state/billing";
+import { useT } from "../../../i18n";
 
 /** Fallback when a rejection isn't an Error with a message. */
-const GENERIC_ERR = "Impossible d'ouvrir la page de paiement. Réessayez.";
 
 /**
  * The four money GESTURES of the Paiement tab — checkout, in-place tier change, the
@@ -24,6 +25,7 @@ export function useBillingActions(
   refresh: () => Promise<void>,
   pollRefresh: (times?: number) => void,
 ) {
+  const t = useT();
   const [busy, setBusy] = useState<string | null>(null);
   // A user-facing reason the last checkout/portal/change action opened nothing (signed
   // out, already subscribed, no Stripe customer, backend error) — so the button never
@@ -37,11 +39,19 @@ export function useBillingActions(
     try {
       await fn();
     } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : GENERIC_ERR);
+      // Un `BillingApiError` porte statut + code : la phrase se choisit ICI, dans la langue
+      // de l'interface. Toute autre erreur garde son message ; sans message, le générique.
+      setError(
+        e instanceof BillingApiError
+          ? billingErrorMessage(e.status, t, e.code)
+          : e instanceof Error && e.message
+            ? e.message
+            : t.billing.errors.generic,
+      );
     } finally {
       setBusy(null);
     }
-  }, []);
+  }, [t]);
 
   const checkout = useCallback(
     (tier: string) => {

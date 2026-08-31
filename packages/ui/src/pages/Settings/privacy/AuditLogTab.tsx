@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useT } from "../../../i18n";
 import type { Conversation } from "../../../types";
 import { AuditRedactionView } from "./AuditRedactionView";
 import { EgressJournalCard } from "./EgressJournalCard";
@@ -23,6 +24,7 @@ export function AuditLogTab({
   conversations: Conversation[];
   onOpenMessage?: (convId: string, msgId?: string) => void;
 }) {
+  const t = useT();
   const [view, setView] = useState<View>("redaction");
   // Le compteur du segment « Redaction » : ce que la vue affichera, calculé ici pour
   // que l'étiquette ne mente pas avant même qu'on l'ouvre.
@@ -34,7 +36,7 @@ export function AuditLogTab({
   return (
     <>
       <div className="settings-section">
-        <div className="om-seg" role="tablist" aria-label="Journal">
+        <div className="om-seg" role="tablist" aria-label={t.privacyTab.auditAria}>
           <button
             type="button"
             role="tab"
@@ -42,7 +44,7 @@ export function AuditLogTab({
             className={`om-seg-btn${view === "redaction" ? " on" : ""}`}
             onClick={() => setView("redaction")}
           >
-            Redaction
+            {t.privacyTab.auditRedaction}
             <span className="om-seg-n">{protectedTotal}</span>
           </button>
           <button
@@ -52,7 +54,7 @@ export function AuditLogTab({
             className={`om-seg-btn${view === "network" ? " on" : ""}`}
             onClick={() => setView("network")}
           >
-            Réseau
+            {t.privacyTab.auditNetwork}
           </button>
         </div>
       </div>

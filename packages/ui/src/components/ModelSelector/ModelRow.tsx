@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import { useT } from "../../i18n";
 import { PROVIDERS, type ModelInfo } from "@openmasq/llm";
 import { modelDisplay } from "../../prompt/models";
 import { modelMeta } from "../../prompt/modelMeta";
@@ -43,9 +44,10 @@ export const ModelRow = forwardRef<
     onAccessInfo?: (focus: "free" | "credits" | "key", providerLabel?: string) => void;
   }
 >(function ModelRow({ model, selected, focused, reason, suppressChip, compact, onChoose, onHover, onAccessInfo, favorite, onToggleFavorite, isDefault, onSetDefault }, ref) {
+  const t = useT();
   const meta = modelMeta(model.id);
   const display = modelDisplay(model);
-  const unavailable = reason ? unavailableLabel(reason, PROVIDERS[model.provider].label) : null;
+  const unavailable = reason ? unavailableLabel(reason, PROVIDERS[model.provider].label, t) : null;
   const hardBlocked = !!reason && pickerBlocks(reason);
   return (
     <button
@@ -65,7 +67,7 @@ export const ModelRow = forwardRef<
                stopPropagation keeps a badge click from PICKING the model. */
             <span
               className={`model-free-badge${onAccessInfo ? " clickable" : ""}`}
-              title="Modèle gratuit — usage limité, sans abonnement. Cliquez pour en savoir plus."
+              title="Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus."
               role={onAccessInfo ? "button" : undefined}
               tabIndex={onAccessInfo ? 0 : undefined}
               onClick={

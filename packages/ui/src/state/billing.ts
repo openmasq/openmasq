@@ -1,5 +1,6 @@
 import { BRAND } from "@openmasq/branding";
-import { DEFAULT_LOCALE, type Locale } from "@openmasq/i18n";
+import { DEFAULT_LOCALE, type Locale, type Messages, type PlanTierCopy } from "@openmasq/i18n";
+import { subscriptionsSold } from "../send/platformAccess";
 // Canonical plan-tier catalog (Free / Solo / Team) — the single vocabulary the desktop
 // + extension read. The backend catalog (GET /subscriptions/prices) is the pricing
 // source of truth; these amounts mirror it for display when a live fetch isn't wired.
@@ -30,57 +31,25 @@ export interface PlanTier {
   feats: string[];
 }
 
-export const PLAN_TIERS: PlanTier[] = [
-  {
-    tier: "free",
-    name: "Gratuit",
-    priceCents: 0,
-    creditsCents: 0,
-    tag: "Dès l'inscription",
-    feats: [`Redaction géré par ${BRAND.name}`, "Modèles essentiels", "1 appareil", "Historique 30 jours"],
-  },
-  {
-    tier: "solo",
-    name: "Solo",
-    priceCents: 1200,
-    creditsCents: 800,
-    feats: [
-      "Tout Gratuit, plus :",
-      "Tous les modèles dans un fil",
-      "Synchro multi-appareils",
-      "Historique illimité",
-    ],
-  },
-  {
-    tier: "team",
-    name: "Team",
-    priceCents: 1200,
-    creditsCents: 800,
-    recommended: true,
-    // Même prix que Solo : ce que Team ajoute est le CADRE, jamais le volume.
-    feats: [
-      "Tout Solo, pour chaque membre, plus :",
-      "Règles de redaction imposées",
-      "Modèles et connecteurs autorisés",
-      "Facture unique et journal d'audit",
-    ],
-  },
-];
+/** La grille des paliers dans la langue de `t`. Prix, crédits et « recommandé » sont des
+ *  FAITS de l'offre et restent ici ; nom, étiquette et arguments viennent du catalogue. */
+export function planTiers(t: Messages): PlanTier[] {
+  const b = BRAND.name;
+  const copy = (c: PlanTierCopy) => ({ name: c.name, tag: c.tag, feats: c.feats.map((f) => f(b)) });
+  return [
+    { tier: "free", priceCents: 0, creditsCents: 0, ...copy(t.billing.tiers.free) },
+    { tier: "solo", priceCents: 1200, creditsCents: 800, ...copy(t.billing.tiers.solo) },
+    { tier: "team", priceCents: 1200, creditsCents: 800, recommended: true, ...copy(t.billing.tiers.team) },
+  ];
+}
 
-const LABEL: Record<string, string> = {
-  free: "Free",
-  solo: "Solo",
-  team: "Team",
-  scale: "Scale",
-  // legacy account types
-  FREE: "Free",
-  PRO: "Team",
-};
 
 /** Display label for a tier slug / legacy account type. */
-export function tierLabel(tier?: string | null): string {
-  if (!tier) return "Free";
-  return LABEL[tier] ?? LABEL[tier.toLowerCase()] ?? tier;
+export function tierLabel(tier: string | null | undefined, t: Messages): string {
+  if (!tier) return t.billing.tierLabels.free;
+  // `PRO` est l'ancien nom serveur du palier Team ; les autres clés sont des slugs.
+  const key = tier === "PRO" ? "team" : tier.toLowerCase();
+  return (t.billing.tierLabels as Record<string, string | undefined>)[key] ?? tier;
 }
 
 /**
@@ -102,6 +71,9 @@ export function canPitchSubscription(p: {
   /** The signed-in member's org authorization (any non-null value = in an org). */
   inOrg?: boolean;
 }): boolean {
+  // Rien à vendre dans ce build (`subscriptionsSold`, le défaut) ⇒ jamais de pitch, quel
+  // que soit le palier : c'est la seule porte que chaque surface d'upsell relit.
+  if (!subscriptionsSold()) return false;
   if (p.inOrg) return false;
   return !!p.sub && (p.sub.tier ?? "free") === "free";
 }
@@ -156,34 +128,41 @@ export function tierAction(p: {
  * The getters may stay silent (they return null), but an ACTION — checkout, portal,
  * change-tier — that opens nothing MUST say why.
  */
-export function billingErrorMessage(status: number, code?: string): string {
+/**
+ * L'échec d'une action de paiement tel que l'HÔTE le remonte : un statut et un code borné,
+ * jamais une phrase. La phrase se choisit dans l'UI (`billingErrorMessage`), dans la langue
+ * de l'interface — un hôte qui la formulait figeait le français dans `apps/desktop`.
+ */
+export class BillingApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly code?: string,
+  ) {
+    super(code ? `billing ${status} ${code}` : `billing ${status}`);
+    this.name = "BillingApiError";
+  }
+}
+
+export function billingErrorMessage(status: number, t: Messages, code?: string): string {
+  const e = t.billing.errors;
   switch (code) {
     case "BILLING_DISABLED":
-      // Le déploiement n'a pas de clé Stripe : l'offre s'affiche, l'achat est fermé. Dire
-      // « réessayez » serait faux (rien ne changera à la prochaine tentative) et « erreur »
-      // ferait croire à une panne — c'est un état, et il se dit tel quel.
-      return "Les abonnements ne sont pas encore ouverts sur cette version. L'offre est affichée à titre indicatif.";
+      return e.disabled;
     case "TESTER_MODE_ENABLED":
-      // Un ÉTAT du déploiement, pas une panne : « réessayez » serait faux, rien ne
-      // changera au prochain clic tant que l'interrupteur est allumé.
-      //
-      // ⚠️ Ne PAS nommer un bouton « S'octroyer » : en mode testeur le libellé ne change
-      // pas, seul l'effet change (décision du 14/08). Et qui lit ce message est justement
-      // sur une version qui ignore le mode — sinon elle n'aurait pas ouvert de caisse.
-      return "Ce déploiement n'encaisse pas les abonnements : les offres s'y activent sans paiement, depuis une application à jour.";
+      return e.testerMode;
     case "SUBSCRIPTION_ALREADY_ACTIVE":
-      return "Un abonnement est déjà actif sur ce compte — utilisez « Ouvrir le portail » pour le gérer.";
+      return e.alreadyActive;
     case "NO_STRIPE_CUSTOMER":
-      return "Aucun abonnement à gérer pour l'instant — abonnez-vous d'abord.";
+      return e.noCustomer;
     case "STRIPE_PRICE_NOT_CONFIGURED":
-      return "La facturation n'est pas encore configurée côté serveur. Contactez le support.";
+      return e.priceNotConfigured;
     case "STRIPE_API_ERROR":
-      return "Erreur Stripe temporaire. Réessayez dans un instant.";
+      return e.stripe;
   }
-  if (status === 401) return "Connectez-vous pour gérer votre abonnement.";
-  if (status === 404) return "Compte introuvable — reconnectez-vous.";
-  if (status >= 500) return "Le service de paiement ne répond pas. Réessayez dans un instant.";
-  return "Impossible d'ouvrir la page de paiement. Réessayez.";
+  if (status === 401) return e.signIn;
+  if (status === 404) return e.accountNotFound;
+  if (status >= 500) return e.serverDown;
+  return e.generic;
 }
 
 /** Formate des centimes d'euro comme un montant EUR, dans la LOCALE donnée (« 1,00 € »

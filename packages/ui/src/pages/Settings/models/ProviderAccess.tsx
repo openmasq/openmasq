@@ -1,9 +1,10 @@
 import { PROVIDERS, isPlatformProvider, type ProviderId } from "@openmasq/llm";
 import { CheckIcon, ModelLogo, ArrowRightIcon, PlusIcon } from "../../../components/brand";
-import { BILLING_CTA } from "../../../help";
 import { KEYED_PROVIDERS } from "../shared";
 import { BRAND } from "@openmasq/branding";
+import { subscriptionsSold } from "../../../send/platformAccess";
 
+import { useT } from "../../../i18n";
 /**
  * « Vos accès » — the head of Réglages → Modèles, in place of the old per-need model
  * recommendations. Since the five big vendors became personal-key-only, the question a
@@ -48,6 +49,7 @@ export function ProviderAccess({
   onOpenKey: (p: ProviderId) => void;
   onOpenBilling?: () => void;
 }) {
+  const t = useT();
   /** OpenRouter leads: the only provider reachable BOTH ways. */
   const order: ProviderId[] = ["openrouter", ...KEYED_PROVIDERS.filter((p) => p !== "openrouter")];
   if (byoKeysBlocked) {
@@ -101,12 +103,13 @@ export function ProviderAccess({
           );
         })}
       </div>
-      {/* L'abonnement, UNE fois : c'est un fait de compte, pas de fournisseur. */}
-      {!hasSubscription && onOpenBilling && (
+      {/* L'abonnement, UNE fois : c'est un fait de compte, pas de fournisseur — et
+          seulement dans un build qui VEND (`subscriptionsSold`, éteint par défaut). */}
+      {subscriptionsSold() && !hasSubscription && onOpenBilling && (
         <p className="provider-grid-note">
           Sans clé, l&apos;abonnement {BRAND.name} ouvre les modèles inclus.{" "}
           <button type="button" className="lnk" onClick={onOpenBilling}>
-            {BILLING_CTA.upgrade} <ArrowRightIcon size={12} />
+            {t.billing.ctaUpgrade} <ArrowRightIcon size={12} />
           </button>
         </p>
       )}

@@ -7,6 +7,9 @@ export type {
   SettingsEntry,
   PrivacyLevelCopy,
   DownloadFormatCopy,
+  PlanTierCopy,
+  GuideChapterCopy,
+  ProviderKeyCopy,
 } from "./messages";
 export {
   type Locale,

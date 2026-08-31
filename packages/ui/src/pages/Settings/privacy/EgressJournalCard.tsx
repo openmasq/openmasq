@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useT } from "../../../i18n";
 import { useHost } from "../../../host";
 import type { EgressEntry } from "../../../host";
 import { SearchIcon, ShieldIcon } from "../../../components/brand";
@@ -38,6 +39,7 @@ export function EgressJournalCard() {
   }, [listEgress]);
 
   const groups = useMemo(() => groupEgress(entries ?? []), [entries]);
+  const t = useT();
   const shown = useMemo(() => filterEgress(groups, q), [groups, q]);
   const stats = useMemo(() => summarise(groups), [groups]);
 
@@ -48,38 +50,37 @@ export function EgressJournalCard() {
       <div className="settings-card">
         <header className="egress-head">
           <h3 className="egress-title">
-            <ShieldIcon size={16} /> Ce qui est sorti de la machine
+            <ShieldIcon size={16} /> {t.privacyTab.egressTitle}
           </h3>
           <p className="egress-sub">
-            Les adresses que l'app a réellement contactées, et celles qu'elle a refusées.
-            Le nom du site seulement — jamais la page, jamais ce qui a été demandé.
+            {t.privacyTab.egressSub}
           </p>
         </header>
 
         {entries === null ? (
-          <p className="egress-empty">Lecture du journal…</p>
+          <p className="egress-empty">{t.privacyTab.egressLoading}</p>
         ) : groups.length === 0 ? (
           <p className="egress-empty">
-            Rien pour l'instant : aucune adresse contactée depuis cet appareil.
+            {t.privacyTab.egressEmpty}
           </p>
         ) : (
           <>
             <p className="egress-stats">
               <span>
                 <span className="egress-stat">{stats.origins}</span>{" "}
-                {stats.origins === 1 ? "adresse" : "adresses"}
+                {t.privacyTab.egressOrigins(stats.origins)}
               </span>
               <span>·</span>
               <span>
                 <span className="egress-stat">{stats.contacts}</span>{" "}
-                {stats.contacts === 1 ? "contact" : "contacts"}
+                {t.privacyTab.egressContacts(stats.contacts)}
               </span>
               {stats.refused > 0 ? (
                 <>
                   <span>·</span>
                   <span>
-                    <span className="egress-stat">{stats.refused}</span> refusé
-                    {stats.refused === 1 ? "" : "s"}
+                    <span className="egress-stat">{stats.refused}</span>{" "}
+                    {t.privacyTab.egressRefusedWord(stats.refused)}
                   </span>
                 </>
               ) : null}
@@ -90,7 +91,7 @@ export function EgressJournalCard() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Rechercher une adresse ou une origine…"
+                placeholder={t.privacyTab.egressSearch}
               />
             </label>
 
@@ -100,7 +101,7 @@ export function EgressJournalCard() {
                   <div className="min-w-0">
                     <div className="egress-host">
                       <span>{g.host}</span>
-                      {g.insecure ? <span className="egress-plain">non chiffré</span> : null}
+                      {g.insecure ? <span className="egress-plain">{t.privacyTab.egressInsecure}</span> : null}
                     </div>
                     <div className="egress-sources">{g.sources.join(" · ")}</div>
                   </div>
@@ -110,18 +111,18 @@ export function EgressJournalCard() {
                     {g.refused > 0 ? (
                       <span
                         className="hl-red egress-refused"
-                        title={g.lastRefusalReason ?? "refusé"}
+                        title={g.lastRefusalReason ?? t.privacyTab.egressRefusedFallback}
                       >
-                        {g.refused} refusé{g.refused === 1 ? "" : "s"}
+                        {t.privacyTab.egressRefused(g.refused)}
                       </span>
                     ) : null}
                     <span className="egress-count">{g.total}×</span>
-                    <span>{relTime(g.lastAt)}</span>
+                    <span>{relTime(g.lastAt, t)}</span>
                   </div>
                 </li>
               ))}
               {shown.length === 0 ? (
-                <li className="egress-empty">Aucune adresse ne correspond.</li>
+                <li className="egress-empty">{t.privacyTab.egressNoMatch}</li>
               ) : null}
             </ul>
           </>

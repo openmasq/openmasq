@@ -1,7 +1,8 @@
+import { DEFAULT_LOCALE, getMessages } from "@openmasq/i18n";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { ModelBlockedByOrgError, CreditsExhaustedError } from "../state/errors";
 import { modelUnavailableReason } from "./modelAvailability";
-import { platformAccessServed } from "./platformAccess";
+import { includedWith, platformAccessServed, subscriptionsSold } from "./platformAccess";
 import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host";
 import type { Message } from "../types";
 import { BRAND } from "@openmasq/branding";
@@ -90,9 +91,11 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
   // carte d'actions : prendre un abonnement, ou renseigner sa propre clé.
   if (reason === "free_mode_only") {
     return {
-      text:
-        `L'accès gratuit de ${BRAND.name} sert Laguna et Nemotron. Pour ce modèle, prenez un ` +
-        "abonnement, ou renseignez votre propre clé.",
+      // Sans rien à vendre (`subscriptionsSold`, le défaut), la seule issue est la clé.
+      text: subscriptionsSold()
+        ? `L'accès gratuit de ${BRAND.name} sert Laguna et Nemotron. Pour ce modèle, prenez un ` +
+          "abonnement, ou renseignez votre propre clé."
+        : `Votre compte ${BRAND.name} inclut Laguna et Nemotron. Pour ce modèle, renseignez votre propre clé.`,
       action: p.hasBilling
         ? { kind: "credit_options", provider: p.provider, label: PROVIDERS[p.provider].label }
         : { kind: "missing_key", provider: p.provider, label: PROVIDERS[p.provider].label },
@@ -140,7 +143,7 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
       // que si ce build a un service hébergé (`platformAccess.ts`).
       text:
         `Clé manquante pour ${PROVIDERS[p.provider].label}. Renseignez-la pour envoyer` +
-        (platformAccessServed() ? ` — ou choisissez un modèle inclus dans l'abonnement ${BRAND.name}.` : "."),
+        (platformAccessServed() ? ` — ou choisissez un modèle inclus ${includedWith(BRAND.name, getMessages(DEFAULT_LOCALE))}.` : "."),
       action: { kind: "missing_key", provider: p.provider, label: PROVIDERS[p.provider].label },
     };
   }

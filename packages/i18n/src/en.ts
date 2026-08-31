@@ -7,6 +7,7 @@
  */
 import type { Messages } from "./messages";
 import { agent } from "./en/agent";
+import { availability } from "./en/availability";
 import { cards } from "./en/cards";
 import { chat, chrome, composer } from "./en/chrome";
 import { connectors } from "./en/connectors";
@@ -21,6 +22,8 @@ import { providerKeys } from "./en/providerKeys";
 import { privacyLevels, redactTypes, webNav } from "./en/privacy";
 import { sections } from "./en/sections";
 import { settings } from "./en/settings";
+import { accountTab, browserTab, modelsTab, privacyTab } from "./en/settingsTabs";
+import { billingTab, importModal, orgTab, syncTab, usageTab } from "./en/settingsMore";
 
 const selfHost = {
   envLabel: "Self-hosted",
@@ -55,6 +58,7 @@ const selfHost = {
 
 export const en = {
   agent,
+  availability,
   billing,
   cards,
   chat,
@@ -76,6 +80,15 @@ export const en = {
   redactTypes,
   sections,
   settings,
+  accountTab,
+  privacyTab,
+  browserTab,
+  modelsTab,
+  billingTab,
+  usageTab,
+  syncTab,
+  orgTab,
+  importModal,
   webNav,
   selfHost,
 } satisfies Messages;

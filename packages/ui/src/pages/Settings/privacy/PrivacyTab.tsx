@@ -1,4 +1,5 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
+import { useT } from "../../../i18n";
 import { ChevDownIcon, ShieldIcon, Switch } from "../../../components/brand";
 import { captureEvent } from "../../../analytics";
 import { RedactionRulesContent } from "../../../containers/modals/redaction/RedactionRulesContent";
@@ -32,6 +33,7 @@ export function PrivacyTab({
   /** Open the detailed journal (its own tab). */
   onOpenAudit?: () => void;
 }) {
+  const t = useT();
   const level = levelOf(draft.redactCategories, forcedCategories);
   // DÉPLIÉE par défaut sur cette page. Les descriptions des niveaux disent à quoi chacun
   // SERT (« parfait pour le web »), plus ce qu'il coche : la matrice est donc ce qui
@@ -45,7 +47,7 @@ export function PrivacyTab({
   return (
     <>
       <section className="settings-section">
-        <div className="cv-eyebrow">Ce qui est protégé</div>
+        <div className="cv-eyebrow">{t.privacyTab.protectedEyebrow}</div>
         <PrivacyLevelPicker
           level={level}
           onPick={(id) => setDraft((d) => ({ ...d, redactCategories: categoriesForLevel(id) }))}
@@ -58,10 +60,10 @@ export function PrivacyTab({
             onClick={() => setRulesOpen((o) => !o)}
           >
             <span className="row-body">
-              <span className="row-title">Régler catégorie par catégorie</span>
+              <span className="row-title">{t.privacyTab.perCategory}</span>
               <span className="row-desc">
-                {active}/{TOTAL_CATEGORIES} actives
-                {forced.size > 0 && ` · ${forced.size} gérée(s) par votre organisation`}
+                {t.privacyTab.activeCount(active, TOTAL_CATEGORIES)}
+                {forced.size > 0 && t.privacyTab.managedByOrg(forced.size)}
               </span>
             </span>
             <span className={`settings-rules-chev${rulesOpen ? " on" : ""}`}>
@@ -89,18 +91,13 @@ export function PrivacyTab({
             section que personne n'ouvre. Ce qu'il active reste le JOURNAL technique ;
             le comparatif côte à côte, lui, est toujours disponible sans rien activer
             (menu ⋯ → « Voir ce que le modèle a vu »). */}
-        <div className="cv-eyebrow">Transparence</div>
+        <div className="cv-eyebrow">{t.privacyTab.transparencyEyebrow}</div>
         <div className="settings-card">
           <div className="toggle-row">
             <div className="row-body">
-              <div className="row-title">Journal technique détaillé</div>
+              <div className="row-title">{t.privacyTab.debugLogTitle}</div>
               <div className="row-desc">
-                Ajoute « Journal de débogage » au menu ⋯ de chaque conversation, et trace
-                dans la console le message exact parti au modèle. Le journal lui-même —
-                échanges, outils appelés, erreurs — est tenu en permanence, sur cet
-                appareil uniquement ; c'est lui qu'un retour « Votre avis » peut joindre,
-                toujours sans la table de correspondance. Le comparatif « ce que le modèle
-                a vu » ne dépend pas de ce réglage.
+                {t.privacyTab.debugLogHint}
               </div>
             </div>
             <Switch
@@ -118,18 +115,17 @@ export function PrivacyTab({
           ce qui PART. Les fondre en une case ferait passer un choix de confidentialité —
           qui se paie en qualité de réponse — pour une préférence d'affichage. */}
       <section className="settings-section">
-        <div className="cv-eyebrow">Affichage</div>
+        <div className="cv-eyebrow">{t.privacyTab.displayEyebrow}</div>
         <div className="settings-card">
           <div className="toggle-row">
             <span className="row-icon tone-coral">
               <ShieldIcon size={16} />
             </span>
             <div className="row-body">
-              <div className="row-title">Afficher des jetons plutôt que des pseudonymes</div>
+              <div className="row-title">{t.privacyTab.tokenDisplayTitle}</div>
               {/* One line. The five-line version of this text is the Guide's job. */}
               <div className="row-desc">
-                Une valeur protégée se lit « [PERSON1] » plutôt qu'un faux nom. N'change que
-                l'affichage : le modèle, lui, reçoit ce que dit le réglage ci-dessous.
+                {t.privacyTab.tokenDisplayHint}
               </div>
             </div>
             <Switch
@@ -141,18 +137,16 @@ export function PrivacyTab({
       </section>
 
       <section className="settings-section">
-        <div className="cv-eyebrow">Ce que le modèle reçoit</div>
+        <div className="cv-eyebrow">{t.privacyTab.wireEyebrow}</div>
         <div className="settings-card">
           <div className="toggle-row">
             <span className="row-icon tone-coral">
               <ShieldIcon size={16} />
             </span>
             <div className="row-body">
-              <div className="row-title">Le modèle ne voit que des jetons</div>
+              <div className="row-title">{t.privacyTab.wireTokensTitle}</div>
               <div className="row-desc">
-                Au lieu d'un faux nom vraisemblable, le modèle reçoit « [PERSON1] ». Plus
-                sobre — un faux nom reste un nom —, mais il rédige et raisonne moins bien
-                sur des marqueurs. S'applique aux conversations commencées ensuite.
+                {t.privacyTab.wireTokensHint}
               </div>
             </div>
             <Switch

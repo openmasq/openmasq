@@ -80,7 +80,8 @@ export function SettingsView({
   // Resilient active tab: a caller can hand us an unexpected value (e.g. a click handler
   // that leaks its event through `openSettings`), so fall back to "account" rather than
   // index `META` with an unknown key.
-  const meta = settingsMeta(useT());
+  const t = useT();
+  const meta = settingsMeta(t);
   const activeTab: TabId = meta[tab] ? tab : "account";
   const navItems = useVisibleSettingsTabs(orgProfile);
   const mainItems = navItems.filter((t) => t.group === "main");
@@ -113,8 +114,8 @@ export function SettingsView({
         <button
           className="settings-rail-back"
           onClick={onClose}
-          aria-label="Retour aux conversations"
-          title="Retour aux conversations"
+          aria-label={t.accountTab.backToChats}
+          title={t.accountTab.backToChats}
         >
           <ChevLeftIcon size={18} />
         </button>
@@ -134,7 +135,7 @@ export function SettingsView({
                   <ChevDownIcon size={18} />
                 </span>
                 <span className="settings-rail-lab">
-                  <span className="om-sweep">Avancé</span>
+                  <span className="om-sweep">{t.accountTab.advanced}</span>
                 </span>
               </button>
               {advOpen && advItems.map(railBtn)}

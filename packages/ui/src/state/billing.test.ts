@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { getMessages } from "@openmasq/i18n";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { configurePlatformAccess } from "../send/platformAccess";
 import { canPitchSubscription, knownTier, billingErrorMessage, tierAction } from "./billing";
+
+const fr = getMessages("fr");
 
 describe("tierAction", () => {
   it("un abonné PAYANT change de palier sur place", () => {
@@ -30,7 +34,7 @@ describe("billingErrorMessage — le mode testeur est un ÉTAT, pas une panne", 
     // doit dire quoi faire à la place. « Réessayez » serait faux — rien ne changera au
     // prochain clic tant que l'interrupteur est allumé.
     it("dit que rien ne s'encaisse ici, et ne promet ni panne ni réessai", () => {
-        const m = billingErrorMessage(409, "TESTER_MODE_ENABLED");
+        const m = billingErrorMessage(409, fr, "TESTER_MODE_ENABLED");
         expect(m).toMatch(/sans paiement/i);
         expect(m).not.toMatch(/réessayez/i);
         // Le libellé du bouton ne change PAS en mode testeur : promettre « S'octroyer »
@@ -56,18 +60,28 @@ describe("knownTier", () => {
 
 describe("billingErrorMessage", () => {
   it("explains the backend codes an action can fail with", () => {
-    expect(billingErrorMessage(409, "SUBSCRIPTION_ALREADY_ACTIVE")).toContain("déjà actif");
-    expect(billingErrorMessage(400, "NO_STRIPE_CUSTOMER")).toContain("abonnez-vous");
-    expect(billingErrorMessage(401)).toContain("Connectez-vous");
-    expect(billingErrorMessage(503)).toContain("ne répond pas");
+    expect(billingErrorMessage(409, fr, "SUBSCRIPTION_ALREADY_ACTIVE")).toContain("déjà actif");
+    expect(billingErrorMessage(400, fr, "NO_STRIPE_CUSTOMER")).toContain("abonnez-vous");
+    expect(billingErrorMessage(401, fr)).toContain("Connectez-vous");
+    expect(billingErrorMessage(503, fr)).toContain("ne répond pas");
   });
 
   it("always yields a message, so a dead button can never stay silent", () => {
-    expect(billingErrorMessage(418, "SOMETHING_NEW").length).toBeGreaterThan(0);
+    expect(billingErrorMessage(418, fr, "SOMETHING_NEW").length).toBeGreaterThan(0);
   });
 });
 
 describe("canPitchSubscription", () => {
+  // Ces règles ne jouent que dans un build qui VEND ; le défaut du paquet ne vend rien.
+  beforeEach(() => configurePlatformAccess({ served: true, sold: true }));
+  afterEach(() => configurePlatformAccess({ served: true }));
+
+  it("never pitches in a build that sells nothing — the default", () => {
+    configurePlatformAccess({ served: true });
+    expect(canPitchSubscription({ sub: { tier: "free" } })).toBe(false);
+    expect(canPitchSubscription({ sub: {} })).toBe(false);
+  });
+
   it("pitches only to a KNOWN free account", () => {
     expect(canPitchSubscription({ sub: { tier: "free" } })).toBe(true);
   });

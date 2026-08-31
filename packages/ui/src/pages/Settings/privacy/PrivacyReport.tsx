@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useT } from "../../../i18n";
 import { AnimatePresence } from "framer-motion";
 import { ShieldIcon, ChevDownIcon } from "../../../components/brand";
 import { PrivacyBreakdownModal } from "./PrivacyBreakdownModal";
@@ -23,6 +24,7 @@ export function PrivacyReport({
   /** Open the detailed journal. Absent ⇒ the link is not offered. */
   onOpenAudit?: () => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState<Which | null>(null);
 
   const messages = useMemo(() => messageBreakdown(conversations), [conversations]);
@@ -33,12 +35,11 @@ export function PrivacyReport({
   if (all.total === 0 && messages.total === 0) {
     return (
       <section className="settings-section">
-        <div className="cv-eyebrow">Ce qui a été protégé</div>
+        <div className="cv-eyebrow">{t.privacyTab.reportEyebrow}</div>
         <div className="settings-card privacy-empty">
           <ShieldIcon size={18} />
           <p>
-            Rien n'est encore parti d'ici. Dès votre premier message, vous verrez ici ce que
-            {BRAND.name} a protégé — et de quel type.
+            {t.privacyTab.reportEmpty(BRAND.name)}
           </p>
         </div>
       </section>
@@ -47,22 +48,22 @@ export function PrivacyReport({
 
   return (
     <section className="settings-section">
-      <div className="cv-eyebrow">Ce qui a été protégé</div>
+      <div className="cv-eyebrow">{t.privacyTab.reportEyebrow}</div>
       <div className="privacy-stats">
         <PrivacyStatCard
           breakdown={messages}
-          sub={(n) => `saisies dans vos messages · ${n} conversation${n === 1 ? "" : "s"}`}
+          sub={(n) => t.privacyTab.reportMessagesSub(n)}
           onOpen={() => setOpen("messages")}
         />
         <PrivacyStatCard
           breakdown={all}
-          sub={() => "tout ce qui a été redacted · messages, outils et documents"}
+          sub={() => t.privacyTab.reportAllSub}
           onOpen={() => setOpen("all")}
         />
       </div>
       {onOpenAudit && (
         <button type="button" className="privacy-audit-link" onClick={onOpenAudit}>
-          Voir le journal détaillé
+          {t.privacyTab.reportDetail}
           <span className="chev-rot-90">
             <ChevDownIcon size={15} />
           </span>
@@ -72,14 +73,14 @@ export function PrivacyReport({
       <AnimatePresence>
         {open === "messages" && (
           <PrivacyBreakdownModal
-            title="Vos messages · par type"
+            title={t.privacyTab.reportMessagesTitle}
             breakdown={messages}
             onClose={() => setOpen(null)}
           />
         )}
         {open === "all" && (
           <PrivacyBreakdownModal
-            title="Tout ce qui a été redacted · par type"
+            title={t.privacyTab.reportAllTitle}
             breakdown={all}
             onClose={() => setOpen(null)}
           />
@@ -100,6 +101,7 @@ function PrivacyStatCard({
   sub: (chats: number) => string;
   onOpen: () => void;
 }) {
+  const t = useT();
   const has = breakdown.rows.length > 0;
   return (
     <button
@@ -108,7 +110,7 @@ function PrivacyStatCard({
       onClick={() => has && onOpen()}
       disabled={!has}
       aria-haspopup="dialog"
-      title={has ? "Voir la répartition par type" : undefined}
+      title={has ? t.privacyTab.reportByTypeTip : undefined}
     >
       <span className="privacy-shield">
         <ShieldIcon size={26} />
@@ -119,7 +121,7 @@ function PrivacyStatCard({
       </div>
       {has && (
         <span className="privacy-card-cta">
-          Par type
+          {t.privacyTab.reportByType}
           <span className="chev-rot-90">
             <ChevDownIcon size={16} />
           </span>

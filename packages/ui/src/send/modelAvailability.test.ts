@@ -1,4 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { getMessages } from "@openmasq/i18n";
+import { afterEach, describe, it, expect } from "vitest";
+import { configurePlatformAccess } from "./platformAccess";
 import type { ProviderId } from "@openmasq/llm";
 import {
   modelUnavailableReason,
@@ -30,6 +32,10 @@ const paidSub = { tier: "solo", status: "active" } as unknown as BillingSubscrip
 const PAID = { id: "x-ai/grok-4.20", provider: "openrouter" as ProviderId };
 const FREE = { id: "poolside/laguna-s-2.1:free", provider: "openrouter" as ProviderId };
 const LOCAL = { id: "llama3.3", provider: "openai-compat" as ProviderId };
+
+/* Les pastilles se testent sur le catalogue français ; ce qu'on épingle — quel mot est
+   INTERDIT selon les drapeaux de build — vaut pour toute langue. */
+const fr = getMessages("fr");
 
 describe("modelUnavailableReason", () => {
   it("is available when the platform budget is fine", () => {
@@ -115,7 +121,7 @@ describe("modelUnavailableReason", () => {
       // s'affiche « gratuit » — « crédits épuisés » serait faux deux fois.
       expect(reason).toBe("free_mode_only");
       expect(pickerHides(reason!)).toBe(true);
-      expect(unavailableLabel(reason!, "OpenRouter").title).toContain("Laguna et Nemotron");
+      expect(unavailableLabel(reason!, "OpenRouter", fr).title).toContain("Laguna et Nemotron");
     });
 
     it("ne touche PAS un compte qui paie : les autres `:free` restent servis", () => {
@@ -383,21 +389,26 @@ describe("pickerBlocks — what disables a row vs what only informs it", () => {
 });
 
 describe("unavailableLabel", () => {
+  // Par défaut rien ne se vend : la pastille dit « Indisponible ». « Abonnement requis »
+  // n'existe que dans un build qui vend (`platformAccess.test.ts` épingle l'absence).
+  afterEach(() => configurePlatformAccess({ served: true }));
+
   it("names the provider whose key would unlock a credit-blocked model", () => {
-    const { chip, title } = unavailableLabel("no_credits", "OpenAI");
+    configurePlatformAccess({ served: true, sold: true });
+    const { chip, title } = unavailableLabel("no_credits", "OpenAI", fr);
     expect(chip).toBe("Abonnement requis");
     expect(title).toContain("OpenAI");
   });
 
   it("points a self-hosted model at the endpoint setting, not a key", () => {
-    const { chip, title } = unavailableLabel("no_endpoint", "OpenAI-compatible / Local");
+    const { chip, title } = unavailableLabel("no_endpoint", "OpenAI-compatible / Local", fr);
     expect(chip).toBe("Adresse manquante");
     expect(title).toContain("Modèle sur votre ordinateur");
     expect(title).not.toContain("clé");
   });
 
   it("says the local server is unreachable, pointing at starting it", () => {
-    const { chip, title } = unavailableLabel("endpoint_unreachable", "OpenAI-compatible / Local");
+    const { chip, title } = unavailableLabel("endpoint_unreachable", "OpenAI-compatible / Local", fr);
     expect(chip).toBe("Serveur injoignable");
     expect(title).toMatch(/démarré/i);
   });

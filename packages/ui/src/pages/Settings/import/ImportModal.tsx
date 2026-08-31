@@ -6,13 +6,8 @@ import type { Conversation } from "../../../types";
 import type { ImportOutcome, ImportProvider } from "../../../import";
 import { runImport, PROVIDER_LABEL } from "./importRunner";
 
+import { useT } from "../../../i18n";
 /** Where each provider's official export lives — shown under the selected tile. */
-const PROVIDER_HINT: Record<ImportProvider, string> = {
-  chatgpt:
-    "chatgpt.com → Réglages → Contrôles des données → Exporter. Déposez ici le .zip reçu par e-mail.",
-  claude:
-    "claude.ai → Réglages → Confidentialité → Exporter. Déposez ici l'archive reçue par e-mail.",
-};
 
 type Phase =
   | { step: "pick" }
@@ -41,6 +36,7 @@ export function ImportModal({
   onClose: () => void;
 }) {
   const [provider, setProvider] = useState<ImportProvider>("chatgpt");
+  const t = useT();
   const [phase, setPhase] = useState<Phase>({ step: "pick" });
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -60,7 +56,7 @@ export function ImportModal({
       });
       setPhase({ step: "done", outcome: onImport(convs) });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "L'import a échoué. Réessayez.");
+      setError(e instanceof Error ? e.message : t.importModal.failed);
       setPhase({ step: "pick" });
     }
   }
@@ -71,14 +67,13 @@ export function ImportModal({
           measure: 26px sides, matching `.rrm-head`/`.rrm-body`). */}
       <div className="px-[26px] pt-[22px] pb-[22px]">
       <div className="flex items-center gap-2.5 mb-1">
-        <ModalTitle>Importer des conversations</ModalTitle>
+        <ModalTitle>{t.importModal.title}</ModalTitle>
         <span className="font-mono text-[10px] uppercase tracking-[0.06em] rounded-[3px] px-1.5 py-0.5 bg-[var(--hl-violet)] text-[color:var(--ink-on-hl)]">
-          Bêta
+          {t.importModal.beta}
         </span>
       </div>
       <p className="text-sm text-muted mb-4">
-        Récupérez vos fils depuis un autre assistant via son export officiel. Tout se passe sur
-        votre appareil : le fichier n'est envoyé nulle part.
+        {t.importModal.sub}
       </p>
 
       {phase.step === "pick" && (
@@ -99,14 +94,14 @@ export function ImportModal({
             ))}
             <div
               className="flex flex-col items-center gap-2 py-3.5 rounded-[var(--radius-md)] bg-surface-sunken border-[1.5px] border-border-subtle opacity-55"
-              title="Google Takeout ne préserve pas la structure des fils — bientôt."
+              title={t.importModal.geminiSoonTip}
             >
               <ModelLogo provider="google" size={22} />
-              <span className="text-sm font-semibold text-muted">Gemini · bientôt</span>
+              <span className="text-sm font-semibold text-muted">{t.importModal.geminiSoon}</span>
             </div>
           </div>
 
-          <p className="text-xs text-muted leading-relaxed mb-3">{PROVIDER_HINT[provider]}</p>
+          <p className="text-xs text-muted leading-relaxed mb-3">{provider === "chatgpt" ? t.importModal.hintChatgpt : t.importModal.hintClaude}</p>
 
           {error && (
             <div role="alert" className="mb-3 text-sm text-[var(--red-500,#d4493f)]">
@@ -126,13 +121,12 @@ export function ImportModal({
             }}
           />
           <button type="button" className="btn-primary w-full justify-center" onClick={() => fileRef.current?.click()}>
-            Choisir le fichier d'export {PROVIDER_LABEL[provider]}…
+            {t.importModal.choose(PROVIDER_LABEL[provider])}
           </button>
 
           <div className="flex items-center gap-1.5 mt-3 text-xs text-muted">
             <ShieldIcon size={13} />
-            Les valeurs sensibles détectées sont redacted dès l'import : si vous poursuivez un fil
-            ici, son historique part masqué.
+            {t.importModal.maskedNote}
           </div>
         </>
       )}
@@ -142,8 +136,8 @@ export function ImportModal({
           <BrandLoader size={30} mono />
           <span className="text-sm text-muted">
             {phase.total > 0
-              ? `Redaction des conversations… ${phase.done} / ${phase.total}`
-              : "Lecture de l'export…"}
+              ? t.importModal.redacting(phase.done, phase.total)
+              : t.importModal.reading}
           </span>
         </div>
       )}
@@ -151,18 +145,14 @@ export function ImportModal({
       {phase.step === "done" && (
         <div className="flex flex-col gap-3 py-2">
           <div className="text-base text-strong font-semibold">
-            {phase.outcome.added.toLocaleString("fr-FR")} conversation
-            {phase.outcome.added === 1 ? "" : "s"} importée{phase.outcome.added === 1 ? "" : "s"}
-            {phase.outcome.skipped > 0 &&
-              ` · ${phase.outcome.skipped.toLocaleString("fr-FR")} déjà présente${phase.outcome.skipped === 1 ? "" : "s"} (ignorée${phase.outcome.skipped === 1 ? "" : "s"})`}
+            {t.importModal.imported(phase.outcome.added)}
+            {phase.outcome.skipped > 0 && t.importModal.skipped(phase.outcome.skipped)}
           </div>
           <p className="text-sm text-muted m-0">
-            Retrouvez-les dans vos conversations. Fonctionnalité en bêta : la détection à l'import
-            utilise le moteur standard ; vos nouveaux messages bénéficient de la détection complète
-            à l'envoi.
+            {t.importModal.doneNote}
           </p>
           <button type="button" className="btn-primary self-start" onClick={onClose}>
-            Fermer
+            {t.importModal.close}
           </button>
         </div>
       )}

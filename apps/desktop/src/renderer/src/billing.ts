@@ -6,7 +6,7 @@
  * web console, not here.
  */
 import Debug from "debug";
-import { billingErrorMessage, captureError } from "@openmasq/ui";
+import { BillingApiError, captureError } from "@openmasq/ui";
 import type { BillingHost, BillingSubscription, CreditBalance } from "@openmasq/ui";
 import { authHost } from "./auth";
 import { backendFetch } from "./backendFetch";
@@ -73,7 +73,7 @@ function openExternal(url: string): void {
 async function action<T>(path: string, body?: unknown, method: "POST" | "DELETE" = "POST"): Promise<T> {
   const token = (await authHost.getAccessToken?.()) ?? null;
   debug("action %s %s (token=%s)", method, path, token ? "présent" : "absent");
-  if (!token) throw new Error(billingErrorMessage(401));
+  if (!token) throw new BillingApiError(401);
   let res: Response;
   try {
     res = await backendFetch(`${BASE_URL}/api-features${path}`, {
@@ -98,7 +98,7 @@ async function action<T>(path: string, body?: unknown, method: "POST" | "DELETE"
     // Même règle que `api` : l'échec HTTP d'une ACTION de paiement se rapporte —
     // statut + chemin + code borné du backend, jamais le corps.
     captureError({ scope: "billing", code: detail?.code ?? "http", status: res.status, message: path });
-    throw new Error(billingErrorMessage(res.status, detail?.code));
+    throw new BillingApiError(res.status, detail?.code);
   }
   return (await res.json()) as T;
 }
@@ -175,7 +175,7 @@ export const billingHost: BillingHost = {
     });
     const url = d.checkout_url ?? d.url;
     debug("startCheckout checkout_url=%s", url ? "présent" : "absent");
-    if (!url) throw new Error(billingErrorMessage(500));
+    if (!url) throw new BillingApiError(500);
     debug("startCheckout → openExternal");
     openExternal(url);
   },
@@ -227,7 +227,7 @@ export const billingHost: BillingHost = {
     const d = await action<{ portal_url?: string; url?: string }>("/subscriptions/portal", { origin: "desktop" });
     const url = d.portal_url ?? d.url;
     debug("openPortal portal_url=%s", url ? "présent" : "absent");
-    if (!url) throw new Error(billingErrorMessage(500));
+    if (!url) throw new BillingApiError(500);
     debug("openPortal → openExternal");
     openExternal(url);
   },

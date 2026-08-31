@@ -1,10 +1,11 @@
 import { CheckIcon, ShieldIcon } from "../../../components/brand";
 import { ConfirmDialog } from "../../../components/feedback/ConfirmDialog";
 import type { CreditBalance, Host, OrgProfileInfo } from "../../../host";
-import { PLAN_TIERS, formatCents, type PlanTier } from "../../../state/billing";
+import { formatCents, planTiers, type PlanTier } from "../../../state/billing";
 import { CreditsExhausted } from "./CreditsMeter";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../../i18n";
 // Presentational pieces split out of BillingTab to keep it under the 300-LOC cap.
 
 // Tier order, so we can tell an upgrade from a downgrade (label + confirmation).
@@ -45,6 +46,7 @@ export function PlanCard({
   onPick: (tier: string) => void;
   onPortal: () => void;
 }) {
+  const t = useT();
   return (
     <div
       className={`flex flex-col gap-3 p-[18px] rounded-[var(--radius-lg)] bg-surface-card border-[1.5px] transition-colors ${
@@ -55,7 +57,7 @@ export function PlanCard({
         <span className="text-base font-bold text-strong">{p.name}</span>
         {p.recommended && (
           <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-strong bg-[var(--hl-lime)] rounded-[3px] px-1.5 py-0.5">
-            Recommandé
+            {t.billingTab.recommended}
           </span>
         )}
         {p.tag && (
@@ -66,9 +68,9 @@ export function PlanCard({
       </div>
       <div>
         <span className="cv-display text-[30px] text-strong">{formatCents(p.priceCents)}</span>
-        {p.priceCents > 0 && <span className="text-sm text-muted font-semibold"> / mois</span>}
+        {p.priceCents > 0 && <span className="text-sm text-muted font-semibold">{t.billingTab.perMonth}</span>}
         <div className="text-sm text-muted mt-0.5">
-          {p.tier === "free" ? "Sans crédits inclus" : `${formatCents(p.creditsCents)} de crédits inclus`}
+          {p.tier === "free" ? t.billingTab.noCredits : t.billingTab.creditsIncluded(formatCents(p.creditsCents))}
         </div>
       </div>
       <div className="flex flex-col gap-[7px]">
@@ -84,7 +86,7 @@ export function PlanCard({
       <div className="flex-1" />
       {on ? (
         <button disabled className="btn-ghost w-full inline-flex items-center justify-center gap-2 disabled:opacity-100 disabled:cursor-default">
-          <CheckIcon size={14} /> Abonnement actuel
+          <CheckIcon size={14} /> {t.billingTab.currentPlan}
         </button>
       ) : p.tier === "free" ? (
         // « Revenir au gratuit » is a DOWNGRADE — it only exists relative to a KNOWN
@@ -97,10 +99,10 @@ export function PlanCard({
           >
             {busy === "portal" ? (
               <>
-                <span className="login-spin" /> Ouverture…
+                <span className="login-spin" /> {t.billingTab.opening}
               </>
             ) : (
-              "Revenir au gratuit"
+              t.billingTab.backToFree
             )}
           </button>
         ) : null
@@ -112,14 +114,14 @@ export function PlanCard({
         >
           {busy === `tier:${p.tier}` ? (
             <>
-              <span className="login-spin" /> Un instant…
+              <span className="login-spin" /> {t.billingTab.oneMoment}
             </>
           ) : !isPaid ? (
-            "S'abonner"
+            t.billingTab.subscribe
           ) : TIER_RANK[p.tier] > TIER_RANK[currentTier] ? (
-            "Choisir cet abonnement"
+            t.billingTab.choosePlan
           ) : (
-            "Rétrograder"
+            t.billingTab.downgrade
           )}
         </button>
       )}
@@ -140,18 +142,19 @@ export function ChangeTierConfirm({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  const target = PLAN_TIERS.find((p) => p.tier === tier);
+  const t = useT();
+  const target = planTiers(t).find((p) => p.tier === tier);
   const up = (TIER_RANK[tier] ?? 0) > (TIER_RANK[currentTier] ?? 0);
   const price = formatCents(target?.priceCents ?? 0);
   return (
     <ConfirmDialog
-      title={up ? `Passer à l'abonnement ${target?.name} ?` : `Rétrograder vers ${target?.name} ?`}
+      title={up ? t.billingTab.upgradeTitle(target?.name ?? "") : t.billingTab.downgradeTitle(target?.name ?? "")}
       message={
         up
-          ? `Votre abonnement passe immédiatement à ${target?.name} (${price} / mois). La différence est facturée au prorata pour la période en cours.`
-          : `Votre abonnement passe à ${target?.name} (${price} / mois). Le crédit correspondant est appliqué au prochain cycle de facturation.`
+          ? t.billingTab.upgradeBody(target?.name ?? "", price)
+          : t.billingTab.downgradeBody(target?.name ?? "", price)
       }
-      confirmLabel={up ? "Confirmer le changement" : "Rétrograder"}
+      confirmLabel={up ? t.billingTab.confirmChange : t.billingTab.downgrade}
       danger={false}
       onConfirm={onConfirm}
       onCancel={onCancel}
@@ -168,34 +171,33 @@ export function OrgManagedBilling({
   orgProfile: OrgProfileInfo;
   host: Host;
 }) {
+  const t = useT();
   const canManage = orgProfile.role === "owner" || orgProfile.role === "admin";
   const openAdmin = host.org?.openAdmin;
   return (
     <div className="flex flex-col gap-5">
       <section>
-        <div className="cv-eyebrow mb-3">FACTURATION</div>
+        <div className="cv-eyebrow mb-3">{t.billingTab.billingEyebrow}</div>
         <div className="settings-card pad flex flex-col gap-2.5">
           <div className="flex items-center gap-2.5">
             <span className="shrink-0 text-[var(--forest-500,#3c6b1e)]">
               <ShieldIcon size={16} />
             </span>
             <span className="text-base font-semibold text-strong">
-              Facturation gérée par votre organisation
+              {t.billingTab.orgManaged}
             </span>
           </div>
           <div className="text-sm text-body leading-snug">
-            Votre accès est couvert par l'organisation
-            {orgProfile.organizationName ? ` ${orgProfile.organizationName}` : ""} (facturation par
-            siège). Les abonnements individuels ne s'appliquent pas à un membre d'une organisation.
+            {t.billingTab.orgCovered(orgProfile.organizationName ? ` ${orgProfile.organizationName}` : "")}
           </div>
           {canManage && openAdmin && (
             <button onClick={() => openAdmin()} className="btn-primary self-start mt-1">
-              Gérer dans la console admin
+              {t.billingTab.manageInAdmin}
             </button>
           )}
           {canManage && !openAdmin && (
             <div className="text-xs text-muted">
-              Gérez l'abonnement de l'organisation depuis la console d'administration {BRAND.name}.
+              {t.billingTab.manageInAdminHint(BRAND.name)}
             </div>
           )}
         </div>
@@ -212,16 +214,17 @@ export function CreditsMeter({ credits }: { credits: CreditBalance }) {
     credits.allotmentCents > 0
       ? Math.min(100, Math.round((credits.consumedCents / credits.allotmentCents) * 100))
       : 0;
+  const t = useT();
   if (credits.unlimited) return null;
   return (
     <section>
-      <div className="cv-eyebrow mb-3">CRÉDITS · CETTE PÉRIODE</div>
+      <div className="cv-eyebrow mb-3">{t.billingTab.creditsEyebrow}</div>
       <div className="settings-card pad">
         <div>
           <div className="flex items-baseline justify-between mb-2 text-sm text-body">
             <span>
               <b className="text-strong">{formatCents(Math.max(0, credits.balanceCents))}</b>{" "}
-              restants sur {formatCents(credits.allotmentCents)}
+              {t.billingTab.remainingOf(formatCents(Math.max(0, credits.balanceCents)), formatCents(credits.allotmentCents))}
             </span>
             <span className="text-xs text-muted">{pct}%</span>
           </div>
