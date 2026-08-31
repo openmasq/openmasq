@@ -3,7 +3,7 @@ import { ModalTitle } from "./ModalTitle";
 import { RefreshIcon } from "../../components/brand";
 import { ReleaseNoteBody } from "../../components/releaseNotes";
 import { releaseDate, type ReleaseNote } from "../../state/releaseNotes";
-import { useLocale, useT } from "../../i18n";
+import { useT } from "../../i18n";
 import { BRAND } from "@openmasq/branding";
 
 /**
@@ -31,7 +31,6 @@ export function UpdateReadyModal({
   onInstall: () => void;
 }) {
   const t = useT();
-  const { locale } = useLocale();
   return (
     <ModalShell onClose={onClose} width="min(560px, 94vw)" maxHeight="82vh">
       <div className="om-upd">
@@ -44,7 +43,7 @@ export function UpdateReadyModal({
             <ModalTitle>{note?.title || `${BRAND.name} ${version}`}</ModalTitle>
             <p className="om-upd-sub">
               {t.modals.updateReady.version(version)}
-              {note?.releaseDate ? ` · ${releaseDate(note.releaseDate, locale)}` : ""}
+              {note?.releaseDate ? ` · ${releaseDate(note.releaseDate, t)}` : ""}
             </p>
           </div>
         </div>

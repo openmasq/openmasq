@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { CheckIcon } from "../../components/brand";
 import { providerKeyHelp, providerKeyIssue } from "../../containers/modals/providerKeyHelp";
@@ -38,6 +39,7 @@ export function KeySteps({
   onSave: (value: string) => Promise<boolean>;
   saving: boolean;
 }) {
+  const t = useT();
   const [value, setValue] = useState("");
   const [done, setDone] = useState<Set<number>>(() => new Set());
 
@@ -72,7 +74,7 @@ export function KeySteps({
                   aria-label={
                     done.has(i) ? `Étape ${i + 1} : à refaire` : `Étape ${i + 1} : c'est fait`
                   }
-                  title="Marquer cette étape comme faite"
+                  title={t.onboarding.keySteps.markDone}
                 >
                   {done.has(i) && <CheckIcon size={11} />}
                 </button>
@@ -81,7 +83,7 @@ export function KeySteps({
             ))}
           </ol>
           <a className="byo-link" href={help.keyUrl} target="_blank" rel="noreferrer">
-            Ouvrir {new URL(help.keyUrl).host} ↗
+            {t.onboarding.keySteps.openHost(new URL(help.keyUrl).host)}
           </a>
         </>
       )}
@@ -90,7 +92,11 @@ export function KeySteps({
         <input
           type="password"
           className="ob-access-input"
-          placeholder={help ? `Clé ${label} — ${help.placeholder}` : `Clé ${label}`}
+          placeholder={
+            help
+              ? t.onboarding.keySteps.placeholder(label, help.placeholder)
+              : t.onboarding.keySteps.placeholderPlain(label)
+          }
           value={value}
           autoComplete="off"
           spellCheck={false}
@@ -105,7 +111,7 @@ export function KeySteps({
           disabled={!value.trim() || saving}
           onClick={() => void save()}
         >
-          {saving ? "Enregistrement…" : "Enregistrer"}
+          {saving ? t.onboarding.keySteps.saving : t.onboarding.keySteps.save}
         </button>
       </div>
       {issue && <p className={`byo-issue ${issue.level}`}>{issue.message}</p>}

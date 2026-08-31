@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { SendErrorReason } from "../../analytics/events";
 import type { Message } from "../../types";
 import { PROVIDERS, providerCreditsExhausted, rateLimitInfo, type ProviderId } from "@openmasq/llm";
@@ -56,26 +57,28 @@ const INVALID_KEY = /invalid_api_key|incorrect api key|invalid x-api-key|authent
  */
 export function humanizeSendError(
   raw: string,
+  t: Messages,
   opts?: { personal?: boolean; provider?: ProviderId },
 ): string | null {
+  const e = t.errors;
   const m = raw || "";
   /** « OpenAI », or null when the caller couldn't say. */
   const name = opts?.provider ? (PROVIDERS[opts.provider]?.label ?? opts.provider) : null;
-  const chez = name ? `chez ${name}` : "chez le fournisseur";
+  const chez = name ? e.atProvider(name) : e.theProvider;
   if (/CREDITS_EXHAUSTED/.test(m)) return new CreditsExhaustedError(opts?.personal ?? false).message;
   if (/CREDITS_UNVERIFIABLE/.test(m)) {
     // Fail-closed volontaire de la passerelle (solde illisible ≠ solde à zéro) : la
     // cause est transitoire, et « rien n'est parti » est la première question.
-    return "On n'a pas pu vérifier vos crédits. Rien n'est parti — réessayez.";
+    return e.creditsUnverifiable;
   }
   if (/MODEL_NOT_ALLOWED/.test(m)) {
-    return `Ce modèle n'est pas disponible avec votre compte ${BRAND.name}. Choisissez-en un autre.`;
+    return e.modelNotAllowed(BRAND.name);
   }
   if (/UPSTREAM_(ERROR|UNAVAILABLE)/.test(m)) {
     // Bounded gateway code — covers a transient upstream blip AND a persistent
     // misconfiguration indistinguishably (the body is deliberately message-free),
     // so don't promise « temporaire » : offer the model switch as the way out.
-    return `${BRAND.name} n'a pas pu joindre le fournisseur. Réessayez, ou changez de modèle.`;
+    return e.upstreamUnavailable(BRAND.name);
   }
   // AVANT le 429 : l'insufficient_quota d'OpenAI EST un 429, et la branche rafale lui
   // répondait « patientez quelques secondes » — faux sur la cause (pas une rafale), le
@@ -85,14 +88,10 @@ export function humanizeSendError(
   if (providerCreditsExhausted(m)) {
     // L'acteur nommé, un geste, pas de périphrase. Le CTA clé est un BOUTON
     // (`sendErrorAction` → missing_key).
-    return name
-      ? `Votre compte ${name} n'a plus de crédits. Rechargez-le chez ${name}, ou changez de modèle.`
-      : "Votre compte chez le fournisseur n'a plus de crédits. Rechargez-le, ou changez de modèle.";
+    return name ? e.providerCreditsNamed(name) : e.providerCredits;
   }
   if (INVALID_KEY.test(m)) {
-    return name
-      ? `Votre clé ${name} a été refusée. Vérifiez-la, ou renseignez-en une nouvelle.`
-      : "Votre clé a été refusée par le fournisseur. Vérifiez-la, ou renseignez-en une nouvelle.";
+    return name ? e.invalidKeyNamed(name) : e.invalidKey;
   }
   // A 429 used to fall through to the raw provider JSON — a wall of headers and ids
   // where the one thing the user needed (« c'est reparti demain à 2 h ») was buried.
@@ -102,27 +101,27 @@ export function humanizeSendError(
     if (!rl.daily) {
       // « quelques secondes » n'est dit que quand on ne sait pas mieux : la passerelle
       // met sa fenêtre (`retryAfterMs`) dans le corps, autant la citer.
-      const wait = rl.retryAfterMs ? formatWait(rl.retryAfterMs) : "quelques secondes";
-      return `Trop de requêtes d'un coup. Attendez ${wait} et réessayez.`;
+      const wait = rl.retryAfterMs ? formatWait(rl.retryAfterMs, t) : e.someSeconds;
+      return e.rateBurst(wait);
     }
     // Le TEXTE porte la cause et l'heure de reprise — « Ça repart demain à 2 h » dit
     // déjà que réessayer avant est inutile. Les issues sont des BOUTONS (l'abonnement
     // en CTA, le sélecteur de modèle sous le message) : pas d'énumération en prose.
     // « gratuites » seulement quand le CORPS le dit (`rl.free`) : périodique n'implique
     // pas gratuit, et un palier journalier sur clé PAYANTE l'affichait à qui paie.
-    const when = rl.resetAt ? ` Ça repart ${formatReset(rl.resetAt)}.` : "";
+    const when = rl.resetAt ? e.resetsAt(formatReset(rl.resetAt, t)) : "";
     if (rl.free) {
       // Les sources gratuites connues sont journalières (free-models-per-day…), donc
       // « du jour » est exact ici — il ne l'est pas pour un quota périodique quelconque.
-      const cap = rl.limit ? `${rl.limit.toLocaleString("fr-FR")} requêtes gratuites` : "requêtes gratuites";
-      return `Vos ${cap} du jour sont épuisées.${when}`;
+      const cap = rl.limit ? e.freeCap(rl.limit.toLocaleString(t.common.intlTag)) : e.freeCapPlain;
+      return e.dailyExhausted(cap, when);
     }
-    return `Votre quota ${chez} est épuisé pour le moment.${when}`;
+    return e.quotaExhausted(chez, when);
   }
   if (/MODEL_STALL/.test(m)) {
     // La CAUSE la plus fréquente reste dite — sans elle, « pas de réponse » n'oriente
     // vers aucun geste.
-    return "Le modèle n'a pas répondu. Souvent : trop de connecteurs actifs — essayez d'en déconnecter quelques-uns.";
+    return e.modelStall;
   }
   return null;
 }
@@ -130,24 +129,25 @@ export function humanizeSendError(
 /** « ~30 s » / « ~1 min » — une attente annoncée par le refuseur, dite en unités
  *  qu'on lit d'un coup d'œil. Arrondi vers le haut : promettre moins que la fenêtre
  *  ferait rebuter le « Réessayer » une seconde trop tôt. */
-function formatWait(ms: number): string {
+function formatWait(ms: number, t: Messages): string {
   const s = Math.ceil(ms / 1000);
-  if (s < 60) return `~${s} s`;
-  return `~${Math.ceil(s / 60)} min`;
+  if (s < 60) return t.errors.waitSeconds(s);
+  return t.errors.waitMinutes(Math.ceil(s / 60));
 }
 
 /** « demain à 02:00 » / « le 5 août à 02:00 » — a reset the user can plan around, not an
  *  epoch. Same day ⇒ just the hour; tomorrow ⇒ named; beyond ⇒ the date. Exported: the
  *  low-quota warning must word the SAME reset the exhaustion message does (rule 9). */
-export function formatReset(at: number): string {
+export function formatReset(at: number, t: Messages): string {
+  const intl = t.common.intlTag;
   const d = new Date(at);
-  const hh = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+  const hh = d.toLocaleTimeString(intl, { hour: "2-digit", minute: "2-digit" });
   const days = Math.round(
     (new Date(d).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86_400_000,
   );
-  if (days <= 0) return `à ${hh}`;
-  if (days === 1) return `demain à ${hh}`;
-  return `le ${d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })} à ${hh}`;
+  if (days <= 0) return t.errors.resetToday(hh);
+  if (days === 1) return t.errors.resetTomorrow(hh);
+  return t.errors.resetOnDate(d.toLocaleDateString(intl, { day: "numeric", month: "long" }), hh);
 }
 
 /**

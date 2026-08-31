@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useT } from "../i18n";
 import { redactNumbersOn } from "../send/redactNumbers";
 import { modelsVersion, onModelsChanged } from "@openmasq/llm";
 import type { ChatMessage } from "@openmasq/llm";
@@ -58,6 +59,7 @@ import { useLocalEndpointProbe, useClaudeCliProbe, useCodexCliProbe } from "./ef
  *  either decision closes it for the session. */
 
 export function useChatStore() {
+  const t = useT();
   const host = useHost();
   const [settings, setSettings] = useState<Settings>(() =>
     normalizeSettings({
@@ -78,8 +80,7 @@ export function useChatStore() {
   const [activeId, setActiveId] = useState<string | null>(null);
   // True once the initial per-account load (localStorage + any async DB merge) has
   // SETTLED — lets a caller tell "genuinely empty" from "still loading". The shell's
-  // startup empty-conversation seed keys off this so it never fires mid-load and mints
-  // a spurious empty chat before the real ones arrive.
+  // startup seed keys off this, so it never fires mid-load and mints a spurious chat.
   const [loaded, setLoaded] = useState(false);
   // The signed-in account id that conversation storage is scoped to. `undefined` =
   // not resolved yet (don't load/persist); string = signed in; null = signed out.
@@ -1281,16 +1282,15 @@ export function useChatStore() {
     [],
   );
 
-  // L'ORCHESTRATION vit dans send/sendOrchestrator.ts — le corps de l'envoi,
-  // déplacé EN BLOC et octet-pour-octet (le plan de state/CLAUDE.md : « must move
-  // as a WHOLE »). Le sac de captures se construit ICI, dans le useCallback, avec
-  // les MÊMES dépendances qu'avant : les valeurs vues par l'envoi sont celles du
-  // rendu qui a (re)créé le callback — sémantique de fermeture inchangée.
-  // `conversations` reste une dépendance sans entrer dans le sac, comme avant :
-  // il ne sert qu'à RE-CRÉER le callback (le corps lit conversationsRef, vivant).
+  // L'ORCHESTRATION vit dans send/sendOrchestrator.ts (le plan de state/CLAUDE.md :
+  // « must move as a WHOLE »). Le sac de captures se construit ICI, dans le useCallback,
+  // avec les MÊMES dépendances : les valeurs vues par l'envoi sont celles du rendu qui a
+  // (re)créé le callback — sémantique de fermeture inchangée. `conversations` reste une
+  // dépendance sans entrer dans le sac : il ne sert qu'à RE-CRÉER le callback.
   const sendMessage = useCallback(
     (...args: Parameters<ReturnType<typeof createSendMessage>>) =>
       createSendMessage({
+        t,
         host,
         settings,
         activeId,

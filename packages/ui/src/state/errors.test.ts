@@ -1,34 +1,39 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import { humanizeSendError, cleanErrorText, sendErrorAction, sendErrorReason } from "./errors";
+
+/* Les classes d'erreur et leurs gestes ne dépendent pas de la langue ; le catalogue
+   français est le témoin, et les motifs attendus plus bas sont les siens. */
+const t = getMessages("fr");
 
 describe("humanizeSendError", () => {
   it("maps the raw 402 CREDITS_EXHAUSTED tool-loop error to a readable FR message", () => {
     const raw =
       `Error invoking remote method 'chat:complete-tools': Error: scaleway tools request failed (402): {"error":"CREDITS_EXHAUSTED"}`;
-    const msg = humanizeSendError(raw);
+    const msg = humanizeSendError(raw, t);
     expect(msg).toBeTruthy();
     expect(msg).toMatch(/Crédits épuisés/);
     expect(msg).not.toContain("{"); // no JSON, no IPC noise
   });
 
   it("maps MODEL_NOT_ALLOWED and UPSTREAM_ERROR / UPSTREAM_UNAVAILABLE", () => {
-    expect(humanizeSendError('… {"error":"MODEL_NOT_ALLOWED"}')).toMatch(/pas disponible/);
-    expect(humanizeSendError('… {"error":"UPSTREAM_ERROR"}')).toMatch(/joindre le fournisseur/);
+    expect(humanizeSendError('… {"error":"MODEL_NOT_ALLOWED"}', t)).toMatch(/pas disponible/);
+    expect(humanizeSendError('… {"error":"UPSTREAM_ERROR"}', t)).toMatch(/joindre le fournisseur/);
     // The gateway's bounded upstream-throw code (never leaks the internal message).
-    expect(humanizeSendError('Anthropic tools request failed (502): {"error":"UPSTREAM_UNAVAILABLE"}')).toMatch(
+    expect(humanizeSendError('Anthropic tools request failed (502): {"error":"UPSTREAM_UNAVAILABLE"}', t)).toMatch(
       /joindre le fournisseur/,
     );
   });
 
   it("maps the TTFT-watchdog MODEL_STALL to an actionable message (too many tools / slow model)", () => {
-    const msg = humanizeSendError("MODEL_STALL");
+    const msg = humanizeSendError("MODEL_STALL", t);
     expect(msg).toMatch(/n'a pas répondu/);
     expect(msg).toMatch(/outils|connecteurs/);
     expect(msg).not.toContain("MODEL_STALL"); // the raw marker isn't shown
   });
 
   it("returns null for an unrecognised error", () => {
-    expect(humanizeSendError("some random failure")).toBeNull();
+    expect(humanizeSendError("some random failure", t)).toBeNull();
   });
 });
 
@@ -67,7 +72,7 @@ describe("humanizeSendError — un quota épuisé, dit en français", () => {
     });
 
   it("dit la limite et QUAND ça repart — « Ça repart demain » rend le reste inutile à dire", () => {
-    const msg = humanizeSendError(raw)!;
+    const msg = humanizeSendError(raw, t)!;
     expect(msg).toContain("50 requêtes gratuites");
     expect(msg).toContain("demain à 02:00");
     // Et surtout PAS le conseil faux d'un quota journalier.
@@ -77,7 +82,7 @@ describe("humanizeSendError — un quota épuisé, dit en français", () => {
   });
 
   it("une RAFALE garde le conseil qui marche pour elle : attendre", () => {
-    const msg = humanizeSendError('mistral tools request failed (429): {"error":"Too many requests"}')!;
+    const msg = humanizeSendError('mistral tools request failed (429): {"error":"Too many requests"}', t)!;
     expect(msg).toMatch(/attendez quelques secondes/i);
     expect(msg).not.toMatch(/quota/i);
   });
@@ -87,7 +92,7 @@ describe("humanizeSendError — un quota épuisé, dit en français", () => {
   // version énumérait « changez de modèle, ou passez par l'abonnement » en prose — le
   // tic le plus machinal du corpus, redondant avec les clics visibles juste dessous.
   it("reste court et n'énumère pas en prose ce que les boutons portent déjà", () => {
-    const msg = humanizeSendError(raw)!;
+    const msg = humanizeSendError(raw, t)!;
     expect(msg.length).toBeLessThan(120);
     expect(msg).not.toMatch(/ou passez|ou changez/i);
   });
@@ -125,7 +130,7 @@ describe("humanizeSendError — un compte fournisseur à sec (la clé de l'utili
 
   it("dit la vraie cause et le vrai remède — jamais « patientez »", () => {
     for (const raw of [OPENAI, ANTHROPIC]) {
-      const msg = humanizeSendError(raw)!;
+      const msg = humanizeSendError(raw, t)!;
       expect(msg).toMatch(/n'a plus de crédits/);
       expect(msg).toMatch(/rechargez/i);
       expect(msg).not.toMatch(/patientez|attendez/i);
@@ -134,10 +139,10 @@ describe("humanizeSendError — un compte fournisseur à sec (la clé de l'utili
   });
 
   it("nomme l'acteur quand l'appelant le connaît — « votre compte OpenAI », pas une périphrase", () => {
-    expect(humanizeSendError(OPENAI, { provider: "openai" })).toContain("Votre compte OpenAI");
-    expect(humanizeSendError(ANTHROPIC, { provider: "anthropic" })).toContain("Votre compte Anthropic");
+    expect(humanizeSendError(OPENAI, t, { provider: "openai" })).toContain("Votre compte OpenAI");
+    expect(humanizeSendError(ANTHROPIC, t, { provider: "anthropic" })).toContain("Votre compte Anthropic");
     // Sans fournisseur, le repli reste honnête et générique.
-    expect(humanizeSendError(OPENAI)).toContain("chez le fournisseur");
+    expect(humanizeSendError(OPENAI, t)).toContain("chez le fournisseur");
   });
 
   it("offre la modale de clé quand l'appelant nomme le fournisseur", () => {
@@ -161,7 +166,7 @@ describe("humanizeSendError — une clé refusée (présente mais fausse)", () =
 
   it("le dit en français, avec le geste qui répare", () => {
     for (const raw of [OPENAI_401, ANTHROPIC_401]) {
-      const msg = humanizeSendError(raw)!;
+      const msg = humanizeSendError(raw, t)!;
       expect(msg).toMatch(/clé.*refusée/i);
       expect(msg).not.toContain("{");
     }
@@ -171,7 +176,7 @@ describe("humanizeSendError — une clé refusée (présente mais fausse)", () =
 
 describe("humanizeSendError — les codes passerelle restants", () => {
   it("CREDITS_UNVERIFIABLE a sa phrase — un fail-closed voulu n'est pas un code cryptique", () => {
-    const msg = humanizeSendError('scaleway tools request failed (402): {"error":"CREDITS_UNVERIFIABLE"}')!;
+    const msg = humanizeSendError('scaleway tools request failed (402): {"error":"CREDITS_UNVERIFIABLE"}', t)!;
     expect(msg).toMatch(/vérifier vos crédits/i);
     expect(msg).toMatch(/rien n'est parti/i); // la promesse reste, dite une fois
     expect(msg).not.toContain("CREDITS_UNVERIFIABLE");
@@ -179,15 +184,18 @@ describe("humanizeSendError — les codes passerelle restants", () => {
 
   it("CREDITS_EXHAUSTED se décline selon le compte — perso n'a pas d'organisation", () => {
     const raw = 'scaleway tools request failed (402): {"error":"CREDITS_EXHAUSTED"}';
-    expect(humanizeSendError(raw, { personal: true })).not.toMatch(/organisation/);
-    expect(humanizeSendError(raw, { personal: true })).toMatch(/abonnement supérieur/);
-    expect(humanizeSendError(raw, { personal: false })).toMatch(/organisation/);
+    expect(humanizeSendError(raw, t, { personal: true })).not.toMatch(/organisation/);
+    expect(humanizeSendError(raw, t, { personal: true })).toMatch(/abonnement supérieur/);
+    expect(humanizeSendError(raw, t, { personal: false })).toMatch(/organisation/);
     // Défaut inchangé (compatibilité) : la formulation org.
-    expect(humanizeSendError(raw)).toMatch(/organisation/);
+    expect(humanizeSendError(raw, t)).toMatch(/organisation/);
   });
 
   it("la rafale de la passerelle cite SA fenêtre plutôt que « quelques secondes »", () => {
-    const msg = humanizeSendError('scaleway tools request failed (429): {"error":"RATE_LIMITED","retryAfterMs":60000}')!;
+    const msg = humanizeSendError(
+      'scaleway tools request failed (429): {"error":"RATE_LIMITED","retryAfterMs":60000}',
+      t,
+    )!;
     expect(msg).toContain("~1 min");
     expect(msg).not.toContain("quelques secondes");
   });
@@ -197,6 +205,7 @@ describe("humanizeSendError — « gratuit » n'est dit que quand le corps le di
   it("un quota JOURNALIER sur clé payante n'est pas « gratuit »", () => {
     const msg = humanizeSendError(
       'google tools request failed (429): {"error":{"message":"Daily request quota exceeded for this project"}}',
+      t,
     )!;
     expect(msg).toMatch(/^Votre quota chez le fournisseur est épuisé/);
     expect(msg).not.toMatch(/gratuit/i);

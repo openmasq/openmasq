@@ -1,4 +1,5 @@
 import { ShieldIcon, ZapIcon } from "../brand";
+import { useT } from "../../i18n";
 import { autoRouteCaption } from "../../send/autoRoute";
 import { ToolStruggleNotice } from "./ToolStruggleNotice";
 import { quotaNotice } from "./quotaNotice";
@@ -19,8 +20,9 @@ export function MessageNotices({
   message: Message;
   modelName?: string;
 }) {
+  const t = useT();
   if (message.pending) return null;
-  const quota = quotaNotice(message.quotaLeft);
+  const quota = quotaNotice(t, message.quotaLeft);
   return (
     <>
       {/* Mode AUTO : quel modèle a été élu et sur quel argent l'envoi est parti —

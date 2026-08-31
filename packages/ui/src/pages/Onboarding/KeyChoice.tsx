@@ -1,4 +1,5 @@
 import { BRAND } from "@openmasq/branding";
+import { useT } from "../../i18n";
 import { useState } from "react";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { CheckIcon } from "../../components/brand";
@@ -52,6 +53,7 @@ export function KeyChoice({
 }) {
   // Ce build a-t-il un service hébergé ? Sans lui, « Mon compte » n'existe pas.
   const served = platformAccessServed();
+  const t = useT();
   const [provider, setProvider] = useState<ProviderId>("openrouter");
   const [busy, setBusy] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -72,11 +74,11 @@ export function KeyChoice({
       if (await onConnectOpenRouter()) setConnectFailed(false);
       else {
         setConnectFailed(true);
-        setError("Connexion non terminée. Réessayez — rien n'a été enregistré.");
+        setError(t.onboarding.keyChoice.errorIncomplete);
       }
     } catch {
       setConnectFailed(true);
-      setError("Connexion impossible. Réessayez dans un instant.");
+      setError(t.onboarding.keyChoice.errorUnreachable);
     } finally {
       setConnecting(false);
     }
@@ -90,7 +92,7 @@ export function KeyChoice({
       await onSaveKey(provider, key);
       return true;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "La clé n'a pas pu être enregistrée. Réessayez.");
+      setError(e instanceof Error ? e.message : t.onboarding.keyChoice.errorSaveFailed);
       return false;
     } finally {
       setBusy(false);
@@ -144,20 +146,20 @@ export function KeyChoice({
       {served &&
         option(
           "subscription",
-          `Mon compte ${BRAND.name}`,
-          "Aucune clé à gérer : les modèles puisent dans les crédits de votre abonnement.",
+          t.onboarding.keyChoice.subscription.title(BRAND.name),
+          t.onboarding.keyChoice.subscription.sub,
         )}
       {/* La voie RECOMMANDÉE, et la seule à ne rien coûter : une clé OpenRouter atteint tous
           les modèles — les gratuits compris, sur le quota du compte de l'utilisateur, jamais
           le nôtre. Le « conseillé » vit sur la carte parce que c'est ICI qu'on choisit ; la
           suite (OAuth en un clic, rien à copier) est déjà sous la carte une fois cochée. */}
+      {/* « jamais relue par l'interface » : un invariant interne qui fuyait dans l'écran —
+          l'utilisateur n'a pas d'« interface », il a sa machine. */}
       {option(
         "byo",
-        "Ma propre clé API",
-        // « jamais relue par l'interface » : un invariant interne qui fuyait dans
-        // l'écran — l'utilisateur n'a pas d'« interface », il a sa machine.
-        "Une clé OpenRouter ouvre tous les modèles, les gratuits compris, sur votre compte. Un clic pour l'obtenir ; elle reste chiffrée sur cette machine.",
-        "conseillé",
+        t.onboarding.keyChoice.ownKey.title,
+        t.onboarding.keyChoice.ownKey.sub,
+        t.onboarding.keyChoice.recommended,
       )}
 
       {(mode === "byo" || !served) && onSaveKey && (
@@ -174,14 +176,13 @@ export function KeyChoice({
                 {keyConfigured.has(p) && <CheckIcon size={12} />} {PROVIDERS[p].label}
                 {/* Une seule clé atteint tous les modèles : c'est la raison du conseil,
                     et elle vaut d'être dite là où l'on choisit, pas dans une note. */}
-                {p === "openrouter" && <span className="ob-access-tag">conseillé</span>}
+                {p === "openrouter" && <span className="ob-access-tag">{t.onboarding.keyChoice.recommended}</span>}
               </button>
             ))}
           </div>
           {keyConfigured.has(provider) ? (
             <div className="ob-access-saved">
-              <CheckIcon size={14} /> Clé {PROVIDERS[provider].label} enregistrée — vous êtes
-              prêt.
+              <CheckIcon size={14} /> {t.onboarding.keyChoice.savedKey(PROVIDERS[provider].label)}
             </div>
           ) : canConnect && !manual ? (
             <>
@@ -190,18 +191,15 @@ export function KeyChoice({
                 className="ob-access-connect"
                 disabled={connecting}
                 onClick={() => void connect()}
-                title={`${BRAND.name} se connecte à votre compte OpenRouter : vos crédits, votre quota.`}
+                title={t.onboarding.keyChoice.connectTip(BRAND.name)}
               >
                 {connecting
-                  ? "Autorisation dans votre navigateur…"
+                  ? t.onboarding.keyChoice.connecting
                   : connectFailed
-                    ? "Réessayer"
-                    : "Obtenir une clé gratuitement"}
+                    ? t.onboarding.keyChoice.retry
+                    : t.onboarding.keyChoice.connect}
               </button>
-              <p className="ob-access-hint">
-                OpenRouter s&apos;ouvre, vous acceptez, la clé revient chiffrée ici — rien à
-                copier.
-              </p>
+              <p className="ob-access-hint">{t.onboarding.keyChoice.connectHint}</p>
               {/* L'échec est une issue, pas seulement un message : sans cette porte on
                   reste sur un bouton qui vient de refuser. */}
               <button
@@ -210,8 +208,8 @@ export function KeyChoice({
                 onClick={() => setManual(true)}
               >
                 {connectFailed
-                  ? "Créer la clé à la main"
-                  : "J'ai déjà une clé OpenRouter"}
+                  ? t.onboarding.keyChoice.manualCreate
+                  : t.onboarding.keyChoice.manualHave}
               </button>
             </>
           ) : (

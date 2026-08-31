@@ -100,12 +100,9 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
           <div className="ob-body-inner">
             {rules ? (
               <>
-                <div className="cv-eyebrow ob-eyebrow">REDACTION</div>
-                <h1 className="cv-display ob-title">Régler finement</h1>
-                <p className="ob-sub">
-                  Ces réglages sont déjà bons par défaut. Vous les retrouverez à tout moment
-                  dans Réglages&nbsp;→&nbsp;Compte.
-                </p>
+                <div className="cv-eyebrow ob-eyebrow">{t.onboarding.tune.eyebrow}</div>
+                <h1 className="cv-display ob-title">{t.onboarding.tune.title}</h1>
+                <p className="ob-sub">{t.onboarding.tune.sub}</p>
                 <RedactionRulesContent
                   isOn={(k) => !!settings.redactCategories[k]}
                   setCat={(k, on) =>
@@ -118,17 +115,12 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
               </>
             ) : step === 0 ? (
               <>
-                <div className="cv-eyebrow ob-eyebrow">REDACTION</div>
+                <div className="cv-eyebrow ob-eyebrow">{t.onboarding.redaction.eyebrow}</div>
                 <h1 className="cv-display ob-title">
-                  Écrivez{" "}
-                  <span className="ob-title-hl hl-sky">librement</span>
+                  {t.onboarding.redaction.titleLead}{" "}
+                  <span className="ob-title-hl hl-sky">{t.onboarding.redaction.titleHighlight}</span>
                 </h1>
-                <p className="ob-sub">
-                  Avant qu&apos;un message ne parte, {BRAND.name} repère les données sensibles et les
-                  remplace par de fausses valeurs. Le modèle ne travaille que sur celles-ci —
-                  vous, vous continuez de voir les vraies. C&apos;est ce remplacement qu&apos;on
-                  appelle le redaction.
-                </p>
+                <p className="ob-sub">{t.onboarding.redaction.sub(BRAND.name)}</p>
                 <RedactionDemo />
                 {/* What the FIRST screen owes the reader, because it is what stops them
                     reaching for a « mode navigation » the moment a search misfires. Both
@@ -139,25 +131,22 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                     than as a caveat on a settings card nobody reads at pick time. */}
                 <ul className="ob-ready ob-behaviour">
                   <li>
-                    Les personnalités, grandes marques et pays ne sont{" "}
-                    <strong>jamais masqués</strong>&nbsp;: une question de culture générale
-                    reste une question de culture générale.
+                    {t.onboarding.redaction.notoriety.lead}
+                    <strong>{t.onboarding.redaction.notoriety.strong}</strong>
+                    {t.onboarding.redaction.notoriety.tail}
                   </li>
                   <li>
-                    Avant une recherche sur le web, {BRAND.name} vous <strong>propose de révéler</strong>{" "}
-                    ce qui est masqué — sans quoi la recherche porterait sur une entreprise ou
-                    une ville qui n&apos;existent pas.
+                    {t.onboarding.redaction.webReveal.lead(BRAND.name)}
+                    <strong>{t.onboarding.redaction.webReveal.strong}</strong>
+                    {t.onboarding.redaction.webReveal.tail}
                   </li>
                 </ul>
               </>
             ) : step === 1 ? (
               <>
-                <div className="cv-eyebrow ob-eyebrow">VOTRE ESPACE</div>
-                <h1 className="cv-display ob-title">Six endroits, six usages</h1>
-                <p className="ob-sub">
-                  La barre de gauche mène à tout. Vous n&apos;avez rien à y préparer&nbsp;: chaque
-                  endroit se remplit en travaillant.
-                </p>
+                <div className="cv-eyebrow ob-eyebrow">{t.onboarding.places.eyebrow}</div>
+                <h1 className="cv-display ob-title">{t.onboarding.places.title}</h1>
+                <p className="ob-sub">{t.onboarding.places.sub}</p>
                 {/* UNE ligne par endroit, pas le paragraphe du guide : six paragraphes
                     à la deuxième page d'un premier lancement, ça se saute. La phrase
                     longue existe toujours — dans « Aide », quand on la cherche. */}
@@ -172,16 +161,14 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
               </>
             ) : step === 2 ? (
               <>
-                <div className="cv-eyebrow ob-eyebrow">ACCÈS AUX MODÈLES</div>
+                <div className="cv-eyebrow ob-eyebrow">{t.onboarding.access.eyebrow}</div>
                 {/* Sans service hébergé (`send/platformAccess.ts`), il n'y a pas d'abonnement
                     à proposer : le titre ne pose plus un choix qui n'existe pas. */}
                 <h1 className="cv-display ob-title">
-                  {served ? "Abonnement, ou votre clé" : "Votre clé, ou un modèle local"}
+                  {served ? t.onboarding.access.titleServed : t.onboarding.access.titleUnserved}
                 </h1>
                 <p className="ob-sub">
-                  {served
-                    ? "Vous changerez d'avis quand vous voudrez. Dans les deux cas, le redaction s'applique avant chaque envoi."
-                    : "Une clé, un modèle qui tourne sur votre machine, ou votre abonnement Claude Code / Codex — le redaction s'applique avant chaque envoi, quel que soit le chemin."}
+                  {served ? t.onboarding.access.subServed : t.onboarding.access.subUnserved}
                 </p>
                 <KeyChoice
                   // `?? null` : rien n'est coché tant que rien n'a été choisi.
@@ -194,46 +181,35 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
               </>
             ) : (
               <>
-                <div className="cv-eyebrow ob-eyebrow">C&apos;EST PRÊT</div>
-                <h1 className="cv-display ob-title">La protection, elle, est déjà active</h1>
+                <div className="cv-eyebrow ob-eyebrow">{t.onboarding.ready.eyebrow}</div>
+                <h1 className="cv-display ob-title">{t.onboarding.ready.title}</h1>
                 {/* Ce que l'étape précédente laisse en suspens : le redaction ne dépend
                     d'AUCUN des deux accès, et « Passer » ne coupe rien. La deuxième
                     phrase est ce qui rend la première vérifiable — un modèle gratuit est
                     sélectionné d'office (`prompt/models.ts` DEFAULT_MODEL_ID), donc une
                     installation neuve écrit sans clé et sans abonnement. */}
                 <p className="ob-sub">
-                  {served ? (
-                    <>
-                      Elle ne dépend ni d&apos;un abonnement ni d&apos;une clé&nbsp;: dès votre
-                      premier message, le redaction s&apos;applique. Un modèle gratuit est déjà
-                      sélectionné et fonctionne avec votre compte {BRAND.name}.
-                    </>
-                  ) : (
-                    // Sans service hébergé, aucun modèle n'est joignable tant qu'un accès
-                    // n'est pas branché : le dire, plutôt que promettre un modèle prêt.
-                    <>
-                      Elle ne dépend d&apos;aucun compte&nbsp;: dès votre premier message, le
-                      redaction s&apos;applique. Il ne manque qu&apos;un accès à un
-                      modèle&nbsp;— une clé, un serveur local, ou votre CLI.
-                    </>
-                  )}
+                  {/* Sans service hébergé, aucun modèle n'est joignable tant qu'un accès
+                      n'est pas branché : le dire, plutôt que promettre un modèle prêt. */}
+                  {served
+                    ? t.onboarding.ready.subServed(BRAND.name)
+                    : t.onboarding.ready.subUnserved}
                 </p>
                 <ul className="ob-ready">
+                  <li>{t.onboarding.ready.modelHint}</li>
                   <li>
-                    Le nom du modèle est sous la zone de saisie — cliquez-le pour en changer,
-                    ou pour brancher un accès si vous avez passé l&apos;étape.
+                    {t.onboarding.ready.slashHint.lead}
+                    <strong>{t.onboarding.ready.slashHint.strong}</strong>
+                    {t.onboarding.ready.slashHint.tail}
                   </li>
                   <li>
-                    Tapez <strong>/</strong> dans la zone de message pour vos compétences, vos
-                    workflows et «&nbsp;retiens que…&nbsp;».
-                  </li>
-                  <li>
-                    Un doute&nbsp;? <strong>Aide</strong>, en bas de la barre de droite, reprend
-                    tout ça — la démonstration comprise.
+                    {t.onboarding.ready.helpHint.lead}
+                    <strong>{t.onboarding.ready.helpHint.strong}</strong>
+                    {t.onboarding.ready.helpHint.tail}
                   </li>
                 </ul>
                 <button type="button" className="ob-tune" onClick={() => setRules(true)}>
-                  Régler finement le redaction
+                  {t.onboarding.ready.tuneRedaction}
                 </button>
               </>
             )}
@@ -243,25 +219,25 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
         <div className="ob-footer">
           {rules ? (
             <button onClick={() => setRules(false)} className="ob-skip">
-              <ChevLeftIcon size={16} /> Retour
+              <ChevLeftIcon size={16} /> {t.onboarding.back}
             </button>
           ) : (
             <button onClick={skip} className="ob-skip">
-              Passer
+              {t.onboarding.skip}
             </button>
           )}
           <div className="flex-spacer" />
           {rules ? (
             <button onClick={finish} className="ob-next">
-              Commencer <ArrowRightIcon size={17} />
+              {t.onboarding.start} <ArrowRightIcon size={17} />
             </button>
           ) : step < STEPS - 1 ? (
             <button onClick={() => setStep((s) => s + 1)} className="ob-next">
-              Suivant <ArrowRightIcon size={17} />
+              {t.onboarding.next} <ArrowRightIcon size={17} />
             </button>
           ) : (
             <button onClick={finish} className="ob-next">
-              Commencer <ArrowRightIcon size={17} />
+              {t.onboarding.start} <ArrowRightIcon size={17} />
             </button>
           )}
         </div>

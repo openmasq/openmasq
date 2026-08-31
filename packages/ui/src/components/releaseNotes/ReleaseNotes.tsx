@@ -1,5 +1,5 @@
 import { Markdown } from "../markdown/Markdown";
-import { useLocale } from "../../i18n";
+import { useT } from "../../i18n";
 import {
   releaseDate,
   groupHighlights,
@@ -68,14 +68,14 @@ export function ReleaseNoteBody({ note, fallback }: { note?: ReleaseNote; fallba
  * quelque chose, et un trou dans une chronologie se lit comme une panne.
  */
 export function ReleaseNotesList({ notes }: { notes: readonly ReleaseNote[] }) {
-  const { locale } = useLocale();
+  const t = useT();
   return (
     <div className="rn-list">
       {latestPerVersion(notes).map((n) => (
         <article className="rn-item" key={`${n.version}-${n.releaseDate ?? ""}`}>
           <header className="rn-item-head">
             <span className="rn-version">{n.version}</span>
-            {n.releaseDate && <span className="rn-date">{releaseDate(n.releaseDate, locale)}</span>}
+            {n.releaseDate && <span className="rn-date">{releaseDate(n.releaseDate, t)}</span>}
           </header>
           {n.title && <h4 className="rn-title">{n.title}</h4>}
           <ReleaseNoteBody note={n} />

@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 
 import { redactNumbersOn } from "../send/redactNumbers";
 import { contextWindow, isFreeModel, supportsTools } from "@openmasq/llm";
@@ -97,12 +98,6 @@ import { BRAND } from "@openmasq/branding";
 
 // Les trois constantes MODULE que seul l'envoi consommait — déménagées avec lui.
 // La consigne du NARRATEUR d'outil (la phrase « Je recherche… » du chargeur).
-const TOOL_SUMMARY_SYSTEM =
-  "Tu résumes, en UNE courte phrase française à la première personne du présent " +
-  "(ex. \u00ab Je recherche les actualités françaises \u00bb, \u00ab J'envoie l'e-mail à l'équipe \u00bb), " +
-  "ce que fait cet appel d'outil — pour l'afficher à l'utilisateur PENDANT l'attente. " +
-  "Décris l'INTENTION lisiblement, sans jargon ni nom d'outil technique. " +
-  "Maximum 12 mots. Pas de guillemets, pas de ponctuation finale, aucune autre sortie.";
 const TOOL_SUMMARY_TIMEOUT_MS = 6000;
 
 /**
@@ -134,10 +129,14 @@ export interface SendMessageDeps {
   claudeCliReadyRef: React.MutableRefObject<boolean | null>;
   /** Idem `codex-cli`. */
   codexCliReadyRef: React.MutableRefObject<boolean | null>;
+  /** Le catalogue de la LANGUE D'INTERFACE : les phrases d'échec persistées sur la bulle,
+   *  et la consigne de résumé d'outil — dont la SORTIE s'affiche dans la chrome. */
+  t: Messages;
 }
 
 export function createSendMessage(d: SendMessageDeps) {
   const {
+    t,
     host,
     settings,
     activeId,
@@ -445,7 +444,7 @@ export function createSendMessage(d: SendMessageDeps) {
           ...c,
           messages: c.messages.map((m) =>
             m.id === assistantMsg.id
-              ? { ...m, pending: false, error: true, errorText: "Interrompu avant l'appel au modèle — rien n'est parti." }
+              ? { ...m, pending: false, error: true, errorText: t.errors.interruptedBeforeSend }
               : m,
           ),
           updatedAt: Date.now(),
@@ -1466,7 +1465,7 @@ export function createSendMessage(d: SendMessageDeps) {
                             : undefined,
                         temperature: 0,
                         messages: [
-                          { role: "system", content: TOOL_SUMMARY_SYSTEM },
+                          { role: "system", content: t.agent.toolIntentSystem },
                           { role: "user", content: `Outil : ${info.server} · ${info.tool}\nArguments : ${argsText}` },
                         ],
                       }),
@@ -2002,7 +2001,7 @@ export function createSendMessage(d: SendMessageDeps) {
                               tool: "export",
                               server: "web",
                               ok: false,
-                              note: "fichier exporté impossible à récupérer — réessayez",
+                              note: t.errors.exportedFileLost,
                             },
                           ],
                         }
@@ -2099,7 +2098,7 @@ export function createSendMessage(d: SendMessageDeps) {
           // la cause (quota périodique → abonnement, clé refusée / compte à sec → clé).
           const act = sendErrorAction(toolErrDetail, model.provider);
           const friendly =
-            humanizeSendError(toolErrDetail, { personal: !orgProfileRef.current, provider: model.provider }) ?? fromWire(cleanErrorText(toolErrDetail));
+            humanizeSendError(toolErrDetail, t, { personal: !orgProfileRef.current, provider: model.provider }) ?? fromWire(cleanErrorText(toolErrDetail));
           commitTurnVault();
           updateAssistant({
             pending: false,
@@ -2179,7 +2178,7 @@ export function createSendMessage(d: SendMessageDeps) {
           if (settled) return;
           if (!mTFirst && delta) mTFirst = Date.now(); // first token of the plain stream
           acc += delta;
-          armWatchdog(STALL_MS, "La réponse s'est interrompue en cours de route. Réessayez, ou changez de modèle.");
+          armWatchdog(STALL_MS, t.errors.replyInterrupted);
           scheduleFlush(); // de-redact + render throttled to ~animation cadence
         };
         /** What this turn actually cost, measured when the provider told us and
@@ -2257,7 +2256,7 @@ export function createSendMessage(d: SendMessageDeps) {
           // Debug Log keeps the RAW detail; the bubble shows the humanised message.
           const rawMsg = fromWire(message);
           const safeMsg =
-            humanizeSendError(message, { personal: !orgProfileRef.current, provider: model.provider }) ?? fromWire(cleanErrorText(message));
+            humanizeSendError(message, t, { personal: !orgProfileRef.current, provider: model.provider }) ?? fromWire(cleanErrorText(message));
           const act = sendErrorAction(message, model.provider); // une issue PROPOSÉE, pas seulement écrite
           dbg({ type: "error", scope: `stream · ${model.id}`, message: rawMsg });
           // Le taux d'échec d'envoi était MORT dans PostHog : `send_error` n'était émis
@@ -2315,7 +2314,7 @@ export function createSendMessage(d: SendMessageDeps) {
 
           // Start the clock now that the request is in flight, and let Stop
           // finalize this stream directly (treats the partial reply as complete).
-          armWatchdog(STARTUP_MS, "Le modèle n'a pas commencé à répondre. Réessayez, ou changez de modèle.");
+          armWatchdog(STARTUP_MS, t.errors.replyNeverStarted);
           finishRef.current.set(convId!, onDone);
         } catch (err) {
           onError(err instanceof Error ? err.message : String(err));

@@ -7,6 +7,16 @@
 
 /** Verbes et mots d'action réutilisés partout — la première chose à ne pas dupliquer. */
 export interface CommonMessages {
+  /**
+   * La BALISE `Intl` de cette langue — « fr-FR », « en-GB ».
+   *
+   * Elle vit dans le catalogue pour que `t` suffise à tout formater : un formateur qui
+   * réclamerait en plus la `Locale` obligerait chaque appelant à porter les deux, et
+   * c'est exactement là qu'on finit par en oublier un. Régionale EXPRÈS — « fr » n'est
+   * pas une balise de région, et `toLocaleString("fr")` ne groupe pas les milliers ni
+   * n'écrit l'heure comme « fr-FR ».
+   */
+  intlTag: string;
   cancel: string;
   save: string;
   close: string;

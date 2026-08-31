@@ -7,12 +7,15 @@
  * tranche se valide déjà pour sa part, donc une clé oubliée nomme SA tranche.
  */
 import type { Messages } from "./messages";
+import { agent } from "./fr/agent";
 import { cards } from "./fr/cards";
 import { chat, chrome, composer } from "./fr/chrome";
 import { billing, common, nav } from "./fr/common";
 import { language } from "./fr/language";
+import { errors } from "./fr/errors";
 import { docViews, downloads, menus } from "./fr/menus";
 import { modals } from "./fr/modals";
+import { onboarding } from "./fr/onboarding";
 import { privacyLevels, redactTypes, webNav } from "./fr/privacy";
 import { sections } from "./fr/sections";
 import { settings } from "./fr/settings";
@@ -49,6 +52,7 @@ const selfHost = {
 } satisfies Messages["selfHost"];
 
 export const fr = {
+  agent,
   billing,
   cards,
   chat,
@@ -57,10 +61,12 @@ export const fr = {
   composer,
   docViews,
   downloads,
+  errors,
   language,
   menus,
   modals,
   nav,
+  onboarding,
   privacyLevels,
   redactTypes,
   sections,

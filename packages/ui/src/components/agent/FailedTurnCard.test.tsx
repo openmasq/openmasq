@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 import { FailedTurnCard } from "./FailedTurnCard";
@@ -10,11 +11,16 @@ import { humanizeSendError } from "../../state/errors";
 // Le bandeau se décide sur le TEXTE, donc raccourcir un message ailleurs peut le faire
 // basculer en silence — c'est arrivé en raccourcissant celui du quota, qui commençait par
 // « Le quota gratuit… ». Ce test relit le message RÉEL plutôt qu'une constante recopiée.
+/* Les classes d'erreur et leurs gestes ne dépendent pas de la langue ; le catalogue
+   français est le témoin, et les motifs attendus plus bas sont les siens. */
+const t = getMessages("fr");
+
 describe("FailedTurnCard — un quota épuisé n'est pas un abonnement requis", () => {
   it("garde « Quota épuisé » au-dessus du vrai message de quota", async () => {
     const text = humanizeSendError(
       'openrouter request failed (429): {"error":{"message":"Rate limit exceeded: free-models-per-day",' +
         '"metadata":{"limit_source":"openrouter_free_tier_daily"}}}',
+      t,
     )!;
     const ui = await mount(
       <FailedTurnCard

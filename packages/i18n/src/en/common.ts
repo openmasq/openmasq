@@ -8,6 +8,7 @@
 import type { Messages } from "../messages";
 
 export const common = {
+  intlTag: "en-GB",
   cancel: "Cancel",
   save: "Save",
   close: "Close",

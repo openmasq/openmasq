@@ -1,4 +1,4 @@
-import type { Locale } from "@openmasq/i18n";
+import type { Messages } from "@openmasq/i18n";
 import { useEffect } from "react";
 import { useHost } from "../host";
 import { useAppDispatch, useAppSelector } from "./redux";
@@ -111,13 +111,13 @@ export const HL_TONES = ["pink", "amber", "sky", "lime", "mint", "violet"] as co
  * français. La date est construite en UTC — un ISO nu (`2026-07-11`) est minuit UTC, et
  * l'afficher dans le fuseau local le reculait d'un jour à l'ouest de Greenwich.
  */
-export function releaseDate(iso: string | null, locale: Locale): string {
+export function releaseDate(iso: string | null, t: Messages): string {
   if (!iso) return "";
   const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return iso;
   const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
   try {
-    return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", {
+    return new Intl.DateTimeFormat(t.common.intlTag, {
       day: "numeric",
       month: "long",
       year: "numeric",
