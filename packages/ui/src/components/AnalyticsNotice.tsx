@@ -5,6 +5,7 @@ import { captureEvent } from "../analytics";
 import type { Settings } from "../types";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../i18n";
 const NOTICE_KEY = `${BRAND.slug}.analytics.notice`;
 
 /**
@@ -33,6 +34,7 @@ export function AnalyticsNotice({
   settings: Settings;
   onChange: (s: Settings) => void;
 }) {
+  const t = useT();
   const [dismissed, setDismissed] = useState(() => {
     try {
       return localStorage.getItem(NOTICE_KEY) === "1";
@@ -73,19 +75,21 @@ export function AnalyticsNotice({
           <span className="ac-ic">
             <ShieldIcon size={15} />
           </span>
-          <span className="ac-title">Confidentialité &amp; RGPD</span>
+          <span className="ac-title">          {t.leaves.analytics.privacyTitle}
+</span>
           <span className="ac-pill">ANONYME</span>
         </div>
         <p className="ac-body">
-          Le redaction s'exécute <strong>en local</strong>, avant tout envoi. {BRAND.name} mesure aussi
+          Le redaction s'exécute <strong>          {t.leaves.analytics.local}
+</strong>, avant tout envoi. {BRAND.name} mesure aussi
           l'usage de l'app avec des statistiques anonymes — jamais vos messages, vos fichiers ni vos
           données sensibles. Elles sont facultatives : vous pouvez les refuser.
         </p>
         {details && (
           <div className="ac-rows">
-            <Row label="Essentiels" sub="Session & sécurité — toujours actifs" on />
+            <Row label="Essentiels" sub={t.leaves.analytics.alwaysOn} on />
             <Row
-              label="Statistiques d'usage"
+              label={t.leaves.analytics.usageStats}
               sub={
                 analyticsOn
                   ? "Actives — compteurs et écrans visités, sans contenu."

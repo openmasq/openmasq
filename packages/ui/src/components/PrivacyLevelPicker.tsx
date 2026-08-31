@@ -5,7 +5,8 @@ import { useT } from "../i18n";
 /**
  * The level control — the page's ONE decision.
  *
- * « Sur mesure » is never offered as a button: it is a STATE the user lands in by opening
+ * «           {t.leaves.privacyLevels.custom}
+ » is never offered as a button: it is a STATE the user lands in by opening
  * the rules below, so the control shows it as the current choice when it applies but
  * doesn't invite it. Picking a preset from there rewrites the categories, which is why the
  * custom card says so before they click.
@@ -66,7 +67,7 @@ export function PrivacyLevelPicker({
             </span>
           </span>
           <span className="privacy-level-desc">
-            Vos réglages, catégorie par catégorie. Choisir un niveau ci-dessus les remplacera.
+            {t.leaves.privacyLevels.customNote}
           </span>
         </div>
       )}

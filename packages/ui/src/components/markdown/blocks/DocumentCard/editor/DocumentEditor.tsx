@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { blocksToDom, domToMarkdown, parseBlocks, type BlockType } from "./blocks";
 import { blockRuleFor, enterEndsBlock, markForChord, typeAfterEnter } from "./typing";
 
+import { useT } from "../../../../../i18n";
 /**
  * The document, EDITED IN PLACE — same typography as the rendered card, no mode switch,
  * no markdown source on screen. Replaces the mono `<textarea>` the card used to swap in,
@@ -31,6 +32,7 @@ export function DocumentEditor({
   onCancel: () => void;
   saving?: boolean;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   // The latest markdown, so a blur/⌘Enter save never has to re-read a detached node.
   const read = () => (ref.current ? domToMarkdown(ref.current) : markdown);
@@ -174,7 +176,7 @@ export function DocumentEditor({
       suppressContentEditableWarning
       role="textbox"
       aria-multiline="true"
-      aria-label="Contenu du document"
+      aria-label={t.leaves.document.editorAria}
       aria-busy={saving || undefined}
       spellCheck
       onKeyDown={onKeyDown}

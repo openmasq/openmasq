@@ -1,3 +1,4 @@
+import { useT } from "../../i18n";
 /**
  * The login card's presentational leaves — the small, stateless pieces
  * `LoginScreen.tsx` composes. Split out to keep that file under the 300-LOC cap
@@ -16,6 +17,7 @@
  * this states only what the sign-in code actually does.
  */
 export function AssureStrip() {
+  const t = useT();
   return (
     <div className="login-assure">
       <svg
@@ -33,7 +35,7 @@ export function AssureStrip() {
         <rect x="3" y="11" width="18" height="11" rx="2" />
         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
       </svg>
-      SANS MOT DE PASSE · LIEN ENVOYÉ PAR E-MAIL
+      {t.login.passwordlessStrip}
     </div>
   );
 }
@@ -69,6 +71,7 @@ export function Err({ children }: { children: React.ReactNode }) {
  *  network (to request a magic link / verify a code), so explain that up front
  *  rather than letting the user submit into a silent "Failed to fetch". */
 export function OfflineNote() {
+  const t = useT();
   return (
     <div className="login-offline" role="status">
       <svg
@@ -91,7 +94,7 @@ export function OfflineNote() {
         <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
         <line x1="12" y1="20" x2="12.01" y2="20" />
       </svg>
-      <span>Vous êtes hors ligne. La connexion nécessite un accès réseau — vérifiez votre connexion, puis réessayez.</span>
+      <span>{t.login.offline}</span>
     </div>
   );
 }

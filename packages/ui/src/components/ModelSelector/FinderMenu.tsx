@@ -7,6 +7,7 @@ import { favoriteSet } from "./simpleList";
 import { providerGroupLabel } from "./providers";
 import { useFinderNav } from "./useFinderNav";
 
+import { useT } from "../../i18n";
 /** Fixed-viewport placement for the menu (portaled to `body` by `ModelSelector`). */
 export interface MenuPos {
   left: number;
@@ -62,6 +63,7 @@ export function FinderMenu({
    *  les deux sens au même coût, sinon la vue courte est un aller sans retour. */
   onSimplify?: () => void;
 }) {
+  const t = useT();
   const {
     query, setQuery, price, setPrice,
     providers, families, familyModels, results,
@@ -91,7 +93,7 @@ export function FinderMenu({
         <SearchIcon size={15} />
         <input
           ref={inputRef}
-          placeholder="Rechercher un modèle (nom, gpt, claude…)"
+          placeholder={t.modelPicker.search}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -99,8 +101,8 @@ export function FinderMenu({
 
       {/* Price-tier row — the Settings grid's chips (`.model-price-chip`), narrowing
           every column + the search. A tier click toggles; « Tous » clears. */}
-      <div className="model-filter-prices finder" role="group" aria-label="Filtrer par prix de token">
-        <span className="model-filter-prices-label">Prix</span>
+      <div className="model-filter-prices finder" role="group" aria-label={t.modelPicker.priceFilter}>
+        <span className="model-filter-prices-label">{t.modelPicker.price}</span>
         <button
           type="button"
           className={`model-price-chip${price === null ? " on" : ""}`}
@@ -124,18 +126,19 @@ export function FinderMenu({
           <button
             type="button"
             className="model-price-chip"
-            title="Afficher seulement une courte liste de modèles"
+            title={t.modelPicker.simpleViewTip}
             onClick={onSimplify}
           >
-            Vue simplifiée
+                          {t.modelPicker.simpleView}
+
           </button>
         )}
         {onOpenSettings && (
           <button
               type="button"
               className="model-gear"
-              title="Gérer les modèles et les clés (Réglages)"
-              aria-label="Gérer les modèles et les clés (Réglages)"
+              title={t.modelPicker.manage}
+              aria-label={t.modelPicker.manage}
               onClick={onOpenSettings}
             >
               <SettingsIcon size={14} />
@@ -145,7 +148,7 @@ export function FinderMenu({
 
       {results ? (
         <div className="model-finder-results">
-          {results.length === 0 && <div className="model-empty">Aucun modèle</div>}
+          {results.length === 0 && <div className="model-empty">{t.modelPicker.none}</div>}
           {results.map((m) => (
             <ModelRow
               key={m.id}

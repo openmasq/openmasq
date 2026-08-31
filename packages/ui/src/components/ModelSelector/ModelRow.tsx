@@ -67,7 +67,7 @@ export const ModelRow = forwardRef<
                stopPropagation keeps a badge click from PICKING the model. */
             <span
               className={`model-free-badge${onAccessInfo ? " clickable" : ""}`}
-              title="Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus."
+              title={t.modelPicker.freeTip}
               role={onAccessInfo ? "button" : undefined}
               tabIndex={onAccessInfo ? 0 : undefined}
               onClick={
@@ -103,7 +103,7 @@ export const ModelRow = forwardRef<
                 className="model-unavailable clickable"
                 role="button"
                 tabIndex={0}
-                title="Comment utiliser ce modèle ?"
+                title={t.modelPicker.howToUse}
                 onClick={(ev) => {
                   ev.stopPropagation();
                   onAccessInfo(reason === "no_key" ? "key" : "credits", PROVIDERS[model.provider].label);
@@ -166,7 +166,7 @@ export const ModelRow = forwardRef<
           role="button"
           tabIndex={isDefault ? -1 : 0}
           aria-disabled={isDefault}
-          title={isDefault ? "Modèle par défaut des nouvelles conversations" : "Définir comme modèle par défaut"}
+          title={isDefault ? t.modelPicker.isDefault : t.modelPicker.setDefault}
           onClick={(ev) => {
             ev.stopPropagation();
             if (!isDefault) onSetDefault(model.id);
@@ -189,7 +189,7 @@ export const ModelRow = forwardRef<
           className={`model-fav${favorite ? " on" : ""}`}
           role="button"
           tabIndex={0}
-          title={favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+          title={favorite ? t.modelPicker.removeFavorite : t.modelPicker.addFavorite}
           aria-pressed={favorite}
           onClick={(ev) => {
             ev.stopPropagation();

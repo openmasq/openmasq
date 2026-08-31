@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useHost, type Host } from "../../../host";
 import { Switch } from "../../../components/brand";
 
+import { useT } from "../../../i18n";
 /**
  * Les opt-in « abonnement par CLI » — `claude-cli` (Claude Code) et `codex-cli`
  * (Gemini) : servir le chat par une CLI installée sur la machine (le moteur desktop
@@ -68,28 +69,22 @@ function CliOptInSection({
 }
 
 export function ClaudeCliSection(props: { enabled: boolean; onEnabled: (on: boolean) => void }) {
+  const t = useT();
   return (
     <CliOptInSection
       slot="probeClaudeCli"
-      title="Votre abonnement Claude"
-      note="Si vous avez un abonnement Claude et la CLI Claude Code installée, vos conversations peuvent passer par elle — sans clé API. Le redaction s'applique comme partout : le modèle ne voit que des données remplacées."
-      rowTitle="Utiliser ma CLI Claude Code"
-      onDesc="Ajoute « Claude Code » à la liste des modèles. Chaque envoi consomme votre abonnement Claude personnel."
-      missingDesc="CLI introuvable sur cette machine : installez Claude Code et connectez-le à votre compte Claude, puis revenez ici."
+      {...t.modelPicker.cli.claude}
       {...props}
     />
   );
 }
 
 export function CodexCliSection(props: { enabled: boolean; onEnabled: (on: boolean) => void }) {
+  const t = useT();
   return (
     <CliOptInSection
       slot="probeCodexCli"
-      title="Votre abonnement ChatGPT"
-      note="Si vous avez un abonnement ChatGPT et la CLI Codex installée, vos conversations peuvent passer par elle — sans clé API. Le redaction s'applique comme partout : le modèle ne voit que des données remplacées."
-      rowTitle="Utiliser ma CLI Codex"
-      onDesc="Ajoute « GPT Codex » à la liste des modèles. Chaque envoi consomme votre abonnement ChatGPT personnel."
-      missingDesc="CLI introuvable sur cette machine : installez-la (npm i -g @openai/codex), connectez-la avec « codex login », puis revenez ici."
+      {...t.modelPicker.cli.codex}
       {...props}
     />
   );

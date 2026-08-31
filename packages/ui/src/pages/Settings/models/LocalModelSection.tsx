@@ -1,3 +1,4 @@
+import { useT } from "../../../i18n";
 /**
  * « Modèle sur votre ordinateur » — the OpenAI-compatible endpoint (Ollama, LM Studio…).
  *
@@ -11,16 +12,16 @@ export function LocalModelSection({
   url: string;
   onUrl: (url: string) => void;
 }) {
+  const t = useT();
   return (
     <section className="settings-section">
-      <div className="cv-eyebrow">Modèle sur votre ordinateur</div>
+      <div className="cv-eyebrow">{t.modelPicker.local.eyebrow}</div>
       <p className="modal-note">
-        Si vous faites tourner un modèle d'IA sur votre propre ordinateur (avec Ollama,
-        LM Studio…), indiquez son adresse ici.
+        {t.modelPicker.local.note}
       </p>
       <div className="settings-card pad">
         <label className="field">
-          <span className="field-label">Adresse du modèle</span>
+          <span className="field-label">{t.modelPicker.local.label}</span>
           <input
             type="text"
             placeholder="http://localhost:11434/v1"

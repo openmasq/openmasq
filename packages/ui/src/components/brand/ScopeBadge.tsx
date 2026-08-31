@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { LockIcon } from "./icons/sections";
 import { scopeOf } from "../../orgShares/scopes";
+import { useT } from "../../i18n";
 
 /**
  * One badge for every object that carries a sharing scope (coffre terms,
@@ -17,7 +18,8 @@ export function ScopeBadge({
   size?: "sm" | "md";
   locked?: boolean;
 }) {
-  const sc = scopeOf(scope);
+  const t = useT();
+  const sc = scopeOf(scope, t);
   return (
     <span
       className={`om-scope is-${size}`}

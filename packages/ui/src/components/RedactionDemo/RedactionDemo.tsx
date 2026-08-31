@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { DEMO_SPANS, demoLegend } from "./demo";
 
+import { useT } from "../../i18n";
 /**
  * The promise, in motion: the same sentence twice — what you write, and what the model
  * receives — with the sensitive spans flipping to their fakes on a gentle loop.
@@ -17,6 +18,7 @@ import { DEMO_SPANS, demoLegend } from "./demo";
  * state (the point is the comparison, and the comparison is spatial, not temporal).
  */
 export function RedactionDemo() {
+  const t = useT();
   const [flipped, setFlipped] = useState(false);
   const reduced =
     typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -40,7 +42,8 @@ export function RedactionDemo() {
     <div className="ob-demo">
       <div className="ob-demo-row">
         <div className="ob-demo-side">
-          <div className="cv-eyebrow ob-demo-lbl">CE QUE VOUS ÉCRIVEZ</div>
+          <div className="cv-eyebrow ob-demo-lbl">          {t.leaves.demo.youWrite}
+</div>
           <p className="ob-demo-text">
             {DEMO_SPANS.map((s, i) =>
               s.fake ? (
@@ -55,7 +58,8 @@ export function RedactionDemo() {
         </div>
 
         <div className="ob-demo-side">
-          <div className="cv-eyebrow ob-demo-lbl">CE QUE LE MODÈLE REÇOIT</div>
+          <div className="cv-eyebrow ob-demo-lbl">          {t.leaves.demo.modelReceives}
+</div>
           <p className="ob-demo-text">
             {DEMO_SPANS.map((s, i) =>
               s.fake ? (

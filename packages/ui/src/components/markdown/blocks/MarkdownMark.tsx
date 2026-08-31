@@ -4,6 +4,7 @@ import { MarkdownDocContext } from "../context";
 import { baseName } from "../../../state/localFsPaths";
 import { FileIcon } from "../../brand/icons";
 
+import { useT } from "../../../i18n";
 /**
  * The renderer for the `<mark>` elements `rehypeRedact` emits (the redaction marks).
  * Every mark renders unchanged — except a **local file PATH** (`data-kind="path"`)
@@ -44,6 +45,7 @@ function resolveBarePath(real: string, vault?: Record<string, string>): string |
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- react-markdown override shape (same as `a`/`p` in Markdown.tsx)
 export function MarkdownMark(props: any) {
+  const t = useT();
   const { node: _node, children, ...rest } = props;
   const real = rest["data-real"] as string | undefined;
   const kind = rest["data-kind"] as string | undefined;
@@ -62,8 +64,8 @@ export function MarkdownMark(props: any) {
       <button
         type="button"
         onClick={() => openLocalPath(path)}
-        aria-label={`Ouvrir ${name} dans le panneau`}
-        title={`Ouvrir ${name} dans le panneau`}
+        aria-label={t.leaves.openInPanel(name)}
+      title={t.leaves.openInPanel(name)}
         className="md-open-file inline-flex items-center justify-center align-[-3px] w-[18px] h-[18px] mr-1 rounded-[var(--radius-sm)] text-muted cursor-pointer hover:text-body hover:bg-surface-hover transition-colors"
       >
         <FileIcon size={13} />

@@ -1,8 +1,9 @@
 import type { Competence } from "../../../types";
 import type { ItemScope } from "../../../orgShares/scopes";
-import { SCOPES } from "../../../orgShares/scopes";
+import { scopes } from "../../../orgShares/scopes";
 import { ScopeBadge } from "../../../components/brand/ScopeBadge";
 import { CompetenceCard } from "./CompetenceCard";
+import { useT } from "../../../i18n";
 
 /** A mirror compétence carries the scope of the share it arrived by
  *  (device-local tag written by the org sync aggregation). */
@@ -24,10 +25,11 @@ export function OrgCompetencesBlock({
   competences: SharedCompetence[];
   onUse: (c: Competence) => void;
 }) {
+  const t = useT();
   if (!competences.length) return null;
   return (
     <div className="om-org-sections">
-      {SCOPES.filter((sc) => sc.id !== "personal").map((sc) => {
+      {scopes(t).filter((sc) => sc.id !== "personal").map((sc) => {
         const rows = competences.filter((c) => (c.orgScope ?? "org") === sc.id);
         if (!rows.length) return null;
         return (

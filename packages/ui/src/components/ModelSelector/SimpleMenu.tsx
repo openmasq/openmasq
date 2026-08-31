@@ -6,6 +6,7 @@ import type { MenuPos } from "./FinderMenu";
 import { ModelRow } from "./ModelRow";
 import { favoriteSet, simpleMenuModels, simpleMenuSections } from "./simpleList";
 
+import { useT } from "../../i18n";
 /**
  * La vue SIMPLIFIÉE du sélecteur : une liste courte, pas un navigateur. Pas de colonnes,
  * pas de recherche, pas de filtres de prix — sur cinq entrées, chacun de ces outils coûte
@@ -47,6 +48,7 @@ export function SimpleMenu({
   /** Passer en vue complète (tous les fournisseurs) — le menu RESTE ouvert. */
   onShowAll: () => void;
 }) {
+  const t = useT();
   const favSet = favoriteSet(favorites);
   // Les BLOCS décident de l'ordre affiché (le défaut passe en tête) ; `models` en est
   // l'aplatissement, et c'est LUI que le clavier suit — deux ordres, l'un pour l'œil et
@@ -100,7 +102,7 @@ export function SimpleMenu({
       className="model-finder simple"
       tabIndex={-1}
       role="listbox"
-      aria-label="Modèles"
+      aria-label={t.modelPicker.models}
       style={{
         position: "fixed",
         left: pos.left,
@@ -111,7 +113,7 @@ export function SimpleMenu({
       onKeyDown={onKeyDown}
     >
       <div className="model-simple-list">
-        {models.length === 0 && <div className="model-empty">Aucun modèle</div>}
+        {models.length === 0 && <div className="model-empty">{t.modelPicker.none}</div>}
         {/* Un intitulé par bloc — « ces cinq-là, pourquoi ? ». `simpleMenuSections` les
             compose (et n'en rend aucun de vide) ; la vue ne fait que les dérouler. */}
         {sections.map((sec) => (
@@ -140,7 +142,7 @@ export function SimpleMenu({
       </div>
       <button type="button" className="model-simple-all" onClick={onShowAll}>
         <ExpandIcon size={14} />
-        Tous les modèles
+        {t.modelPicker.allModels}
       </button>
     </div>
   );

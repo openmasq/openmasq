@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 // @vitest-environment jsdom
 import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it } from "vitest";
@@ -16,6 +17,8 @@ const page = () => {
  * and the user acts on it (a value that lives only in the pixels is not in the text the
  * model receives). Three ways it can quietly become a lie or a nuisance:
  */
+const fr = getMessages("fr");
+
 describe("buildImageZoneLayer", () => {
   it("outlines each zone, %-positioned in the page's own space", () => {
     const el = page();
@@ -66,8 +69,8 @@ describe("buildTextHaloLayer — la légende est l'interrupteur du halo", () => 
     const p1 = document.createElement("div");
     const p2 = document.createElement("div");
     wrap.append(p1, p2);
-    buildTextHaloLayer(p1, [box], 600, 800, true);
-    buildTextHaloLayer(p2, [box], 600, 800, false);
+    buildTextHaloLayer(p1, [box], 600, 800, true, fr);
+    buildTextHaloLayer(p2, [box], 600, 800, false, fr);
     const legend = p1.querySelector<HTMLButtonElement>(".pdfv-halolegend")!;
     expect(legend.tagName).toBe("BUTTON");
     expect(legend.getAttribute("aria-pressed")).toBe("true");
@@ -89,7 +92,7 @@ describe("buildTextHaloLayer — la légende est l'interrupteur du halo", () => 
     document.body.appendChild(wrap2);
     const q = document.createElement("div");
     wrap2.appendChild(q);
-    buildTextHaloLayer(q, [box], 600, 800, true);
+    buildTextHaloLayer(q, [box], 600, 800, true, fr);
     expect(wrap2.classList.contains("pdfv-halo-off")).toBe(true);
     wrap2.querySelector<HTMLButtonElement>(".pdfv-halolegend")!.click();
     expect(wrap2.classList.contains("pdfv-halo-off")).toBe(false);
@@ -112,15 +115,15 @@ describe("buildTextHaloLayer — la légende est l'interrupteur du halo", () => 
 
 describe("imageSourceNote — never explains a code nothing on screen wears", () => {
   it("is absent when nothing was marked", () => {
-    expect(imageSourceNote(0, 0)).toBeNull();
+    expect(imageSourceNote(0, 0, fr)).toBeNull();
   });
 
   it("explains the outlines when there are outlines", () => {
-    expect(imageSourceNote(3, 0)).toContain("Les zones encadrées");
+    expect(imageSourceNote(3, 0, fr)).toContain("Les zones encadrées");
   });
 
   it("speaks of pages, not outlines, when only whole pages were marked", () => {
-    const note = imageSourceNote(0, 2)!;
+    const note = imageSourceNote(0, 2, fr)!;
     expect(note).toContain("2 pages");
     expect(note).not.toContain("encadrées");
   });

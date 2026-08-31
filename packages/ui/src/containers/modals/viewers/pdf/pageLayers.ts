@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { ImageZone, RedactBox, RenderedPage } from "@openmasq/redact/pdf-redact";
 import { haloRegions, type HaloBox } from "./textHalo";
 import { migrateLegacyLocalStorage } from "../../../../state/legacyStorage";
@@ -52,7 +53,8 @@ export function buildTextHaloLayer(
   /** Poser la LÉGENDE (« Halo = texte reconnu… ») sur cette page — l'appelant la
    *  demande pour la PREMIÈRE page seulement : une étiquette par page serait du bruit,
    *  et sans elle le halo est un mystère. */
-  withLegend = false,
+  withLegend: boolean,
+  t: Messages,
 ): void {
   pageEl.querySelector(":scope > .pdfv-texthalo")?.remove();
   pageEl.querySelector(":scope > .pdfv-halolegend")?.remove();
@@ -73,11 +75,9 @@ export function buildTextHaloLayer(
     // n'est pas concerné : c'est une préférence d'AFFICHAGE, jamais une protection.
     const sync = () => {
       const off = haloOff();
-      legend.textContent = off
-        ? "Halo masqué — le texte reconnu part redacted quand même"
-        : "Halo = texte reconnu, redacted avant envoi";
+      legend.textContent = off ? t.viewers.pdf.haloOff : t.viewers.pdf.haloOn;
       legend.setAttribute("aria-pressed", String(!off));
-      legend.title = off ? "Réafficher le halo" : "Masquer le halo";
+      legend.title = off ? t.viewers.pdf.showHalo : t.viewers.pdf.hideHalo;
     };
     sync();
     legend.addEventListener("click", () => {
@@ -208,16 +208,17 @@ function zoneEl(z: ImageZone, cssW: number, cssH: number): HTMLElement {
  * The legend, in the user's terms. Never claims more than was marked: with only
  * whole-image pages there are no outlines to explain, and with neither there is no note.
  */
-export function imageSourceNote(zones: number, imageOnlyPages: number): string | null {
+export function imageSourceNote(
+  zones: number,
+  imageOnlyPages: number,
+  t: Messages,
+): string | null {
   if (zones > 0) {
     const pages =
       imageOnlyPages > 0
-        ? ` ${imageOnlyPages} page${imageOnlyPages > 1 ? "s sont lues" : " est lue"} entièrement dans l'image.`
+        ? t.viewers.pdf.imagePages(imageOnlyPages)
         : "";
-    return (
-      "Les zones encadrées (logo, tampon, cachet) appartiennent à l'image : elles ne font pas " +
-      `partie du texte envoyé au modèle, et ne portent donc pas de halo.${pages}`
-    );
+    return t.viewers.pdf.imageZones(pages);
   }
   if (imageOnlyPages > 0) {
     return imageOnlyPages > 1

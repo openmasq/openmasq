@@ -4,10 +4,11 @@ import { ModalShell } from "../modals/ModalShell";
 import { CheckIcon, SearchIcon, ShieldIcon } from "../../components/brand";
 import { useHost } from "../../host";
 import type { OrgShareAudienceInput, OrgShareAudienceOptions } from "../../host/orgShares";
-import { SHARE_TARGETS } from "../../orgShares/scopes";
+import { shareTargets } from "../../orgShares/scopes";
 import { coffreTypeLabel } from "../../send/coffre";
 import type { CoffreTerm, Competence } from "../../types";
 
+import { useT } from "../../i18n";
 /** What is being shared: ONE item at a time (design: promotion per row/card). */
 export type PromoteSubject =
   | { kind: "term"; term: CoffreTerm }
@@ -33,6 +34,7 @@ export function SharePromoteModal({
   /** Runs the proposal; true closes the dialog. */
   onShare: (audience: OrgShareAudienceInput) => Promise<boolean>;
 }) {
+  const t = useT();
   const host = useHost();
   const [options, setOptions] = useState<OrgShareAudienceOptions>({ teams: [], members: [] });
   const [target, setTarget] = useState<"person" | "team" | "org">("team");
@@ -63,7 +65,7 @@ export function SharePromoteModal({
   }, [prose, isTerm]);
 
   const targets = useMemo(
-    () => SHARE_TARGETS.filter((t) => t.id !== "team" || !!options.myTeamUuid),
+    () => shareTargets(t).filter((x) => x.id !== "team" || !!options.myTeamUuid),
     [options.myTeamUuid],
   );
   const people = options.members.filter((m) => !m.me);
@@ -90,9 +92,9 @@ export function SharePromoteModal({
   return (
     <ModalShell onClose={onClose} width="520px" maxHeight="90vh">
       <div className="om-promote-head">
-        <div className="cv-eyebrow">Partager</div>
-        <div className="cv-display om-promote-title">Avec qui ?</div>
-        <p className="om-promote-sub">Vous gardez votre copie et pouvez continuer à la modifier.</p>
+        <div className="cv-eyebrow">{t.orgShares.promote.eyebrow}</div>
+        <div className="cv-display om-promote-title">{t.orgShares.promote.title}</div>
+        <p className="om-promote-sub">{t.orgShares.promote.sub}</p>
       </div>
 
       <div className="om-promote-body">
@@ -129,8 +131,8 @@ export function SharePromoteModal({
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 autoFocus
-                placeholder="Rechercher un collègue"
-                aria-label="Rechercher un collègue"
+                placeholder={t.orgShares.promote.search}
+                aria-label={t.orgShares.promote.search}
               />
             </div>
             <div className="om-promote-list">
@@ -144,28 +146,28 @@ export function SharePromoteModal({
                     aria-pressed={on}
                     onClick={() => setWho(p.uuid)}
                   >
-                    <span className="om-promote-person-name">{p.name ?? "Membre"}</span>
+                    <span className="om-promote-person-name">{p.name ?? t.orgShares.promote.member}</span>
                     {p.role && <span className="om-promote-person-role">{p.role}</span>}
                     {on && <CheckIcon size={15} />}
                   </button>
                 );
               })}
               {!hits.length && (
-                <div className="om-promote-none">Personne de ce nom dans l'organisation.</div>
+                <div className="om-promote-none">{t.orgShares.promote.nobody}</div>
               )}
             </div>
             {/* The pick must stay visible once the search narrows past it, or
                 the confirm button enables with no visible reason. */}
             {picked && !hits.some((p) => p.uuid === who) && (
               <div className="om-promote-picked">
-                Sélectionné : <b>{picked.name ?? "Membre"}</b>
+                {t.orgShares.promote.picked} <b>{picked.name ?? t.orgShares.promote.member}</b>
               </div>
             )}
           </div>
         )}
 
         <div className="cv-eyebrow om-promote-preview-label">
-          {isTerm ? "Le terme partagé" : "Ce qui sera partagé"}
+          {isTerm ? t.orgShares.promote.previewTerm : t.orgShares.promote.previewOther}
         </div>
         <div className="om-promote-preview">
           {isTerm ? (
@@ -184,32 +186,28 @@ export function SharePromoteModal({
           <div className="om-promote-note">
             <ShieldIcon size={14} />
             <span>
-              Le terme et son substitut deviennent communs avec les destinataires : ce nom sera
-              masqué de la même façon dans vos conversations.
+              {t.orgShares.promote.termNote}
             </span>
           </div>
         ) : preview && preview.total > 0 ? (
           <div className="om-promote-note">
             <ShieldIcon size={14} />
             <span>
-              <b>
-                {preview.total} élément{preview.total > 1 ? "s" : ""} redacted
-                {preview.total > 1 ? "s" : ""}
-              </b>{" "}
-              avant le partage — le texte ci-dessus est exactement ce que verront les autres.
+              <b>{t.orgShares.promote.redactedNote(preview.total)}</b>
+              {t.orgShares.promote.redactedTail}
             </span>
           </div>
         ) : (
-          <div className="om-promote-clean">Aucune donnée sensible détectée dans ce contenu.</div>
+          <div className="om-promote-clean">{t.orgShares.promote.clean}</div>
         )}
       </div>
 
       <div className="om-promote-foot">
         <button type="button" className="btn-ghost" onClick={onClose}>
-          Annuler
+          {t.common.cancel}
         </button>
         <button type="button" className="btn-primary" onClick={submit} disabled={!valid || busy}>
-          Envoyer la demande
+          {t.orgShares.promote.send}
         </button>
       </div>
     </ModalShell>

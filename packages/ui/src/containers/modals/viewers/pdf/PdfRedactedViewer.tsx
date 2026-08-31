@@ -193,7 +193,7 @@ export function PdfRedactedViewer({
           // Légende sur la PREMIÈRE page seulement — une par page serait du bruit.
           // `wireWords`, jamais `words` : un mot pris dans l'image (logo, tampon) est lu
           // et encadré, mais son texte ne part pas — un halo dessus contredirait le cadre.
-          if (showTextHalo && pg.wireWords.length) buildTextHaloLayer(pageEl, pg.wireWords, cssW, cssH, pageIndex === 0);
+          if (showTextHalo && pg.wireWords.length) buildTextHaloLayer(pageEl, pg.wireWords, cssW, cssH, pageIndex === 0, t);
           // Before the marks, so a redaction box always paints OVER a zone outline.
           const marked = buildImageZoneLayer(pageEl, pg, cssW, cssH);
           imgTally.zones += marked.zones;
@@ -233,10 +233,10 @@ export function PdfRedactedViewer({
           <span className="flex-min">{warn}</span>
         </div>
       )}
-      {state === "ready" && imageSourceNote(imgSrc.zones, imgSrc.pages) && (
+      {state === "ready" && imageSourceNote(imgSrc.zones, imgSrc.pages, t) && (
         <div className="pdfv-imgnote" role="note">
           <span className="pdfv-imgnote-key" aria-hidden="true" />
-          <span className="flex-min">{imageSourceNote(imgSrc.zones, imgSrc.pages)}</span>
+          <span className="flex-min">{imageSourceNote(imgSrc.zones, imgSrc.pages, t)}</span>
         </div>
       )}
       {state === "loading" && (

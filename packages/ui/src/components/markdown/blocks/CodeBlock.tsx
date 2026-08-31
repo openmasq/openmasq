@@ -8,6 +8,7 @@ import { DocumentCard } from "./DocumentCard";
 import { SkillCard } from "./SkillCard";
 import { documentTitle } from "../../export/documentExport";
 
+import { useT } from "../../../i18n";
 /**
  * A fenced code block with a header: the language label + a per-language accent
  * colour + a copy button. react-markdown renders a fenced block as
@@ -136,6 +137,7 @@ function ArtifactChip({
 }
 
 export function CodeBlock({ node, children }: any) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   const lang = langOf(node);
   const label = lang ? (LANG_LABEL[lang] ?? lang.toUpperCase()) : "Code";
@@ -162,8 +164,8 @@ export function CodeBlock({ node, children }: any) {
       <ArtifactChip
         kind="csv"
         lang={lang}
-        title="Tableau CSV"
-        hint={`${csvTable.rows.length} ligne${csvTable.rows.length > 1 ? "s" : ""} · ${cols} colonne${cols > 1 ? "s" : ""}`}
+        title={t.leaves.code.csvTable}
+        hint={t.leaves.code.rowsCols(csvTable.rows.length, cols)}
         text={text}
       />
     );
@@ -174,7 +176,7 @@ export function CodeBlock({ node, children }: any) {
         kind="code"
         lang={lang}
         title={label}
-        hint={`${lines} ligne${lines > 1 ? "s" : ""}`}
+        hint={t.leaves.code.lines(lines)}
         text={text}
       />
     );

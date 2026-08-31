@@ -1,0 +1,175 @@
+/**
+ * Tranche « rest » du catalogue FR — la langue SOURCE : connexion, partages
+ * d'organisation, sélecteur de modèles, feuilles partagées.
+ */
+import type { Messages } from "../messages";
+
+export const login = {
+  passwordlessStrip: "SANS MOT DE PASSE · LIEN ENVOYÉ PAR E-MAIL",
+  offline:
+    "Vous êtes hors ligne. La connexion nécessite un accès réseau — vérifiez votre connexion, puis réessayez.",
+  email: "E-mail professionnel",
+  emailPlaceholder: "vous@entreprise.com",
+  sending: "Envoi…",
+  sendLink: "Envoyer le lien de connexion",
+  or: "ou",
+  continueWithGoogle: "Continuer avec Google",
+  noPassword: "Pas de mot de passe : votre e-mail suffit.",
+  code: "Code de connexion",
+  verifying: "Vérification…",
+  signInWithCode: "Se connecter avec le code",
+  linkNotOpening: "Le lien ne s'ouvre pas ? Saisir le code reçu par e-mail",
+  useAnotherAddress: "Utiliser une autre adresse",
+  resend: "Renvoyer",
+  resendLink: "Renvoyer le lien",
+} satisfies Messages["login"];
+
+export const orgShares = {
+  requests: "Demandes de partage",
+  requestsCount: (n) => `${n} demande${n > 1 ? "s" : ""} de partage`,
+  requestsShort: "Demandes",
+  empty: "Rien à examiner. Les termes et compétences proposés par vos collègues apparaîtront ici.",
+  vaultTerm: "Terme du coffre",
+  competence: "Compétence",
+  proposedBy: (author) => `Proposé par ${author}`,
+  someMember: "un membre",
+  accept: "Accepter",
+  refuse: "Refuser",
+  myShares: "Mes partages",
+  revoke: "Retirer",
+  status: { pending: "En attente", approved: "Partagé", refused: "Refusé", revoked: "Retiré" },
+  promote: {
+    eyebrow: "Partager",
+    title: "Avec qui ?",
+    sub: "Vous gardez votre copie et pouvez continuer à la modifier.",
+    search: "Rechercher un collègue",
+    member: "Membre",
+    nobody: "Personne de ce nom dans l'organisation.",
+    picked: "Sélectionné :",
+    previewTerm: "Le terme partagé",
+    previewOther: "Ce qui sera partagé",
+    termNote:
+      "Le terme et son substitut deviennent communs avec les destinataires : ce nom sera masqué de la même façon dans vos conversations.",
+    redactedNote: (n) => `${n} élément${n > 1 ? "s" : ""} redacted${n > 1 ? "s" : ""}`,
+    redactedTail: " avant le partage — le texte ci-dessus est exactement ce que verront les autres.",
+    clean: "Aucune donnée sensible détectée dans ce contenu.",
+    send: "Envoyer la demande",
+  },
+  scopes: {
+    org: {
+      label: "Organisation",
+      short: "Orga",
+      note: "Partagé à toute l'organisation — visible et utilisable par tous les membres.",
+    },
+    team: {
+      label: "Équipe",
+      short: "Équipe",
+      note: "Partagé avec votre équipe — visible et utilisable par ses membres.",
+    },
+    personal: { label: "Personnel", short: "Perso", note: "Visible de vous seul." },
+  },
+  targets: {
+    person: {
+      label: "Une personne",
+      desc: "Un collègue de votre organisation.",
+      approval: "Elle reçoit une demande et accepte — rien d'autre à valider.",
+    },
+    team: {
+      label: "Votre équipe",
+      desc: "Les membres de votre équipe.",
+      approval: "Un administrateur est notifié et valide la demande.",
+    },
+    org: {
+      label: "Toute l'organisation",
+      desc: "Tous les comptes de l'organisation.",
+      approval: "Un administrateur est notifié et approuve la demande.",
+    },
+  },
+} satisfies Messages["orgShares"];
+
+export const modelPicker = {
+  search: "Rechercher un modèle (nom, gpt, claude…)",
+  priceFilter: "Filtrer par prix de token",
+  price: "Prix",
+  simpleView: "Vue simplifiée",
+  simpleViewTip: "Afficher seulement une courte liste de modèles",
+  manage: "Gérer les modèles et les clés (Réglages)",
+  none: "Aucun modèle",
+  models: "Modèles",
+  allModels: "Tous les modèles",
+  freeTip:
+    "Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus.",
+  howToUse: "Comment utiliser ce modèle ?",
+  isDefault: "Modèle par défaut des nouvelles conversations",
+  setDefault: "Définir comme modèle par défaut",
+  addFavorite: "Ajouter aux favoris",
+  removeFavorite: "Retirer des favoris",
+  defaultSummaryTip: "Voir la fiche de ce modèle",
+  defaultSummaryLabel: "Vos nouvelles conversations démarrent sur",
+  keySaved: "Clé enregistrée",
+  included: "Inclus",
+  addKey: "Ajouter une clé",
+  local: {
+    eyebrow: "Modèle sur votre ordinateur",
+    note: "Si vous faites tourner un modèle d'IA sur votre propre ordinateur (avec Ollama, LM Studio…), indiquez son adresse ici.",
+    label: "Adresse du modèle",
+  },
+  cli: {
+    claude: {
+      title: "Votre abonnement Claude",
+      note: "Si vous avez un abonnement Claude et la CLI Claude Code installée, vos conversations peuvent passer par elle — sans clé API. Le redaction s'applique comme partout : le modèle ne voit que des données remplacées.",
+      rowTitle: "Utiliser ma CLI Claude Code",
+      onDesc:
+        "Ajoute « Claude Code » à la liste des modèles. Chaque envoi consomme votre abonnement Claude personnel.",
+      missingDesc:
+        "CLI introuvable sur cette machine : installez Claude Code et connectez-le à votre compte Claude, puis revenez ici.",
+    },
+    codex: {
+      title: "Votre abonnement ChatGPT",
+      note: "Si vous avez un abonnement ChatGPT et la CLI Codex installée, vos conversations peuvent passer par elle — sans clé API. Le redaction s'applique comme partout : le modèle ne voit que des données remplacées.",
+      rowTitle: "Utiliser ma CLI Codex",
+      onDesc:
+        "Ajoute « GPT Codex » à la liste des modèles. Chaque envoi consomme votre abonnement ChatGPT personnel.",
+      missingDesc:
+        "CLI introuvable sur cette machine : installez-la (npm i -g @openai/codex), connectez-la avec « codex login », puis revenez ici.",
+    },
+  },
+} satisfies Messages["modelPicker"];
+
+export const leaves = {
+  analytics: {
+    privacyTitle: "Confidentialité & RGPD",
+    local: "en local",
+    alwaysOn: "Session & sécurité — toujours actifs",
+    usageStats: "Statistiques d'usage",
+  },
+  privacyLevels: {
+    custom: "Sur mesure",
+    customNote:
+      "Vos réglages, catégorie par catégorie. Choisir un niveau ci-dessus les remplacera.",
+  },
+  demo: { youWrite: "CE QUE VOUS ÉCRIVEZ", modelReceives: "CE QUE LE MODÈLE REÇOIT" },
+  toolTrace: "APPEL D'OUTILS",
+  errorBoundary: {
+    title: "Une erreur est survenue",
+    body: "Un problème inattendu est survenu. Vos données, enregistrées sur votre ordinateur, sont intactes.",
+    reload: "Recharger",
+    retry: "Réessayer",
+  },
+  code: {
+    csvTable: "Tableau CSV",
+    rowsCols: (rows, cols) =>
+      `${rows} ligne${rows > 1 ? "s" : ""} · ${cols} colonne${cols > 1 ? "s" : ""}`,
+    lines: (n) => `${n} ligne${n > 1 ? "s" : ""}`,
+  },
+  document: {
+    saveFailed: "Enregistrement impossible — votre texte est toujours là.",
+    shortcuts: "⌘↵ pour enregistrer · Échap pour annuler",
+    seeAll: "Voir tout",
+    editorAria: "Contenu du document",
+    seePrompt: "Voir le prompt",
+  },
+  openInPanel: (name) => `Ouvrir ${name} dans le panneau`,
+  loadingImage: (name) => `Chargement de ${name}`,
+  openImage: (name) => `Consulter ${name}`,
+} satisfies Messages["leaves"];

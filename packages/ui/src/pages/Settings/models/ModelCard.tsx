@@ -72,7 +72,7 @@ export function ModelCard({
                opens the explainer without picking the model. */
             <span
               className={`model-free-badge${onAccessInfo ? " clickable" : ""}`}
-              title="Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus."
+              title={t.modelPicker.freeTip}
               role={onAccessInfo ? "button" : undefined}
               tabIndex={onAccessInfo ? 0 : undefined}
               onClick={
@@ -97,7 +97,7 @@ export function ModelCard({
           className={`model-fav${favorite ? " on" : ""}`}
           role="button"
           tabIndex={0}
-          title={favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+          title={favorite ? t.modelPicker.removeFavorite : t.modelPicker.addFavorite}
           aria-pressed={favorite}
           onClick={(ev) => {
             ev.stopPropagation();

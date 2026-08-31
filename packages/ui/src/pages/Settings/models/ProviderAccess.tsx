@@ -91,12 +91,12 @@ export function ProviderAccess({
               {ready ? (
                 <span className="provider-card-state">
                   <CheckIcon size={12} />
-                  {hasKey ? "Clé enregistrée" : "Inclus"}
+                  {hasKey ? t.modelPicker.keySaved : t.modelPicker.included}
                 </span>
               ) : (
                 <span className="provider-card-state add">
                   <PlusIcon size={12} />
-                  Ajouter une clé
+                  {t.modelPicker.addKey}
                 </span>
               )}
             </button>

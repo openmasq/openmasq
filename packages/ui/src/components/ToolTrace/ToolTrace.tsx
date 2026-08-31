@@ -5,6 +5,7 @@ import { formatElapsed } from "../../agent/mcpAgentWatchdog";
 import { groupToolCalls, isCurrentStep, type ToolCallRecord, type TraceTool } from "./trace";
 import { humanToolLabel } from "../../agent/humanToolLabel";
 
+import { useT } from "../../i18n";
 /** The status dot at the head of each tool row: done (lime check), error (amber),
  *  running (spinner) or pending (hollow ring) — matches the design-system trace.
  *
@@ -50,12 +51,14 @@ export function ToolTrace({
   pendingStatus?: string;
   live?: boolean;
 }) {
+  const t = useT();
   const runs = groupToolCalls(calls, pendingTool);
   if (runs.length === 0) return null;
 
   return (
     <>
-      {live && <div className="cv-eyebrow om-think-label mcp-trace-eyebrow">APPEL D'OUTILS</div>}
+      {live && <div className="cv-eyebrow om-think-label mcp-trace-eyebrow">          {t.leaves.toolTrace}
+</div>}
       {runs.map((run, runIndex) => {
         // A live turn is BUSY even between two calls — « terminé » under a still-running
         // turn is the same untruth the frozen dots were.

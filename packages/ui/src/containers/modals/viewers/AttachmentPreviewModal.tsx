@@ -312,7 +312,7 @@ export function AttachmentPreviewModal({
         const nat = imageNaturalRef.current;
         if (!alive || !wrap || !nat) return;
         // Halo des zones que l'OCR a LUES — même sémantique que les pages PDF.
-        if (imageWords.length) buildTextHaloLayer(wrap, imageWords, nat.w, nat.h, true);
+        if (imageWords.length) buildTextHaloLayer(wrap, imageWords, nat.w, nat.h, true, t);
         // Word-processor-style pick over the scan (same shared core as the PDF
         // pages): raster-space words, natural dims as the coordinate space.
         if (!cv || !onForceRedact || !imageWords.length) return;

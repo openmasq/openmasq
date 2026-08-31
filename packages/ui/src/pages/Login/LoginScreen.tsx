@@ -6,6 +6,7 @@ import { ModalTitle } from "../../containers/modals/ModalTitle";
 import { AssureStrip, Err, OfflineNote, Field, Spinner, GoogleIcon, SpamHint } from "./parts";
 import { friendlyError } from "./loginErrors";
 
+import { useT } from "../../i18n";
 /** Track browser connectivity so the login card can explain that sign-in needs a
  *  network (a magic link / code can't be requested offline) instead of failing
  *  silently on submit. Seeds from `navigator.onLine`, then follows online/offline. */
@@ -55,6 +56,7 @@ export function LoginScreen({
   heading = "Content de vous revoir.",
   subheading = "Entrez votre e-mail : nous vous envoyons un lien de connexion, sans mot de passe.",
 }: { heading?: string; subheading?: React.ReactNode } = {}) {
+  const t = useT();
   const { sendMagicLink, verifyCode, codeSupported, linkFirst, googleSupported } = useAuth();
   const online = useOnline();
   const [stage, setStage] = useState<"email" | "sent">("email");
@@ -136,7 +138,7 @@ export function LoginScreen({
 
           {stage === "email" ? (
             <form onSubmit={submitEmail} className="login-fields">
-              <Field label="E-mail professionnel">
+              <Field label={t.login.email}>
                 {/* `required` n'est pas décoratif : sans lui, un champ VIDE est valide en HTML,
                     donc le formulaire se soumet et `submitEmail` le renvoie en silence
                     (`if (!addr) return`). Résultat mesuré : le bouton ne faisait RIEN, sans un
@@ -146,22 +148,22 @@ export function LoginScreen({
                     fait simplement entrer le cas vide dans CE mécanisme-là, au lieu d'ouvrir
                     une seconde surface d'erreur pour un seul cas. Le garde de `submitEmail`
                     reste, en défense en profondeur. */}
-                <input type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@entreprise.com" className="login-input" />
+                <input type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.login.emailPlaceholder} className="login-input" />
               </Field>
               {error && <Err>{error}</Err>}
               <button type="submit" disabled={busy} className="btn-primary login-btn">
                 {busy && <Spinner />}
-                {busy ? "Envoi…" : "Envoyer le lien de connexion"}
+                {busy ? t.login.sending : t.login.sendLink}
               </button>
               {googleSupported && (
                 <>
                   <div className="login-divider">
-                    <span className="login-divider-lbl">ou</span>
+                    <span className="login-divider-lbl">{t.login.or}</span>
                   </div>
                   {/* Google SSO is temporarily disabled (greyed out, non-cliquable). */}
                   <button type="button" disabled className="login-sso">
                     <GoogleIcon />
-                    <span className="om-sweep">Continuer avec Google</span>
+                    <span className="om-sweep">{t.login.continueWithGoogle}</span>
                   </button>
                 </>
               )}
@@ -172,13 +174,13 @@ export function LoginScreen({
                   démentir. Ce qui reste vrai partout, c'est l'absence de mot de passe ;
                   le cas « adresse pas encore ouverte » est dit par `loginErrors.ts`, au
                   moment où on l'apprend. */}
-              <p className="login-note">Pas de mot de passe : votre e-mail suffit.</p>
+              <p className="login-note">{t.login.noPassword}</p>
             </form>
           ) : (
             <div className="login-fields">
               {codeSupported && (!linkFirst || showCode) && (
                 <form onSubmit={submitCode} className="login-fields">
-                  <Field label="Code de connexion">
+                  <Field label={t.login.code}>
                     <input
                       type="text"
                       inputMode="numeric"
@@ -191,19 +193,19 @@ export function LoginScreen({
                     />
                   </Field>
                   <button type="submit" disabled={verifying} className="btn-primary login-btn">
-                    {verifying ? "Vérification…" : "Se connecter avec le code"}
+                    {verifying ? t.login.verifying : t.login.signInWithCode}
                   </button>
                 </form>
               )}
               {error && <Err>{error}</Err>}
               {codeSupported && linkFirst && !showCode && (
                 <button type="button" onClick={() => setShowCode(true)} className="login-link login-code-disclose">
-                  <span className="om-sweep">Le lien ne s'ouvre pas ? Saisir le code reçu par e-mail</span>
+                  <span className="om-sweep">{t.login.linkNotOpening}</span>
                 </button>
               )}
               <div className="login-code-row">
-                <button type="button" onClick={() => { setStage("email"); setError(null); setCode(""); setShowCode(false); }} className="login-link"><span className="om-sweep">Utiliser une autre adresse</span></button>
-                <button type="button" disabled={busy} onClick={async () => { setBusy(true); setError(null); try { const r = await sendMagicLink(email.trim()); if (r.error) setError(friendlyError(r.error)); } catch (err) { setError(friendlyError(err)); } finally { setBusy(false); } }} className="login-link"><span className="om-sweep">{busy ? "Envoi…" : codeSupported && !linkFirst ? "Renvoyer" : "Renvoyer le lien"}</span></button>
+                <button type="button" onClick={() => { setStage("email"); setError(null); setCode(""); setShowCode(false); }} className="login-link"><span className="om-sweep">{t.login.useAnotherAddress}</span></button>
+                <button type="button" disabled={busy} onClick={async () => { setBusy(true); setError(null); try { const r = await sendMagicLink(email.trim()); if (r.error) setError(friendlyError(r.error)); } catch (err) { setError(friendlyError(err)); } finally { setBusy(false); } }} className="login-link"><span className="om-sweep">{busy ? t.login.sending : codeSupported && !linkFirst ? t.login.resend : t.login.resendLink}</span></button>
               </div>
               <AssureStrip />
             </div>

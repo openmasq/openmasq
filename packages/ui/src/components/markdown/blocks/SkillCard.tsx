@@ -7,6 +7,7 @@ import { competenceCategory } from "../../../competences/competences";
 import { parseProposedSkill, isCompleteSkill } from "../../../suggestions/proposedSkill";
 import { MarkdownDocContext } from "../context";
 
+import { useT } from "../../../i18n";
 /**
  * Une COMPÉTENCE ou un WORKFLOW que le modèle vient de fabriquer, rendu sous sa réponse
  * comme une carte qu'un clic ajoute à la liste de l'utilisateur — le pendant du
@@ -28,6 +29,7 @@ import { MarkdownDocContext } from "../context";
  * mobile), la carte reste lisible et n'agit pas — le régime des autres blocs.
  */
 export function SkillCard({ kind, text }: { kind: "competence" | "workflow"; text: string }) {
+  const t = useT();
   const { onAddSkill, isSkillAdded } = useContext(MarkdownDocContext);
   const [justAdded, setJustAdded] = useState(false);
   const [open, setOpen] = useState(false);
@@ -72,7 +74,7 @@ export function SkillCard({ kind, text }: { kind: "competence" | "workflow"; tex
                 className="btn-ghost btn-inline"
                 onClick={() => setOpen((v) => !v)}
               >
-                {open ? "Masquer" : "Voir le prompt"}
+                {open ? "Masquer" : t.leaves.document.seePrompt}
               </button>
             )}
             {/* Ajouté : le bouton ne disparaît pas, il se FIGE — sinon on ne sait plus

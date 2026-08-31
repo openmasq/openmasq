@@ -6,7 +6,8 @@ import { DownloadMenu } from "./DownloadMenu";
 import { DocumentEditor } from "./editor/DocumentEditor";
 import { isRichFormat, type DownloadFormat, type RichFormat } from "./formats";
 
-// Height (px) above which the body is clipped behind a fade + a "Voir tout" toggle,
+import { useT } from "../../../../i18n";
+// Height (px) above which the body is clipped behind a fade + a t.leaves.document.seeAll toggle,
 // so a multi-page document doesn't dominate the thread. `scrollHeight` is the full
 // content height regardless of the CSS cap, so the check is cap-independent.
 const CLIP_ABOVE = 440;
@@ -46,6 +47,7 @@ const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingm
  * from the SAVED text, so an edit flows into every format.
  */
 export function DocumentCard({ title, text }: { title: string; text: string }) {
+  const t = useT();
   const { vault, kinds, revealed, onDocumentEdit, renderPdf, loadImage } = useContext(MarkdownDocContext);
   const bodyRef = useRef<HTMLDivElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -177,11 +179,11 @@ export function DocumentCard({ title, text }: { title: string; text: string }) {
             // check, and a failure has to say so rather than look like a save.
             saveFailed ? (
               <span className="md-document-edit-err">
-                Enregistrement impossible — votre texte est toujours là.
+                {t.leaves.document.saveFailed}
               </span>
             ) : (
               <span className="md-document-edit-hint">
-                {saving ? "Enregistrement…" : "⌘↵ pour enregistrer · Échap pour annuler"}
+                {saving ? "Enregistrement…" : t.leaves.document.shortcuts}
               </span>
             )
           ) : (
@@ -215,7 +217,7 @@ export function DocumentCard({ title, text }: { title: string; text: string }) {
           </div>
           {(tall || expanded) && (
             <button type="button" className="md-document-toggle" onClick={() => setExpanded((v) => !v)}>
-              {expanded ? "Replier" : "Voir tout"}
+              {expanded ? "Replier" : t.leaves.document.seeAll}
             </button>
           )}
         </>

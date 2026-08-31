@@ -1,4 +1,6 @@
 import { Component, type ReactNode } from "react";
+import { getMessages } from "@openmasq/i18n";
+import { initialLocale } from "../../state/locale";
 
 /**
  * Catches any render-time throw in the app tree and shows a recoverable error
@@ -27,14 +29,15 @@ export class ErrorBoundary extends Component<
   render() {
     const { error } = this.state;
     if (!error) return this.props.children;
+    // Une CLASSE ne peut pas lire le contexte i18n par un hook, et le repli doit rester
+    // le plus bête possible : c'est l'écran qui s'affiche quand tout le reste a échoué.
+    // La langue de l'appareil suffit — le provider, lui, a peut-être disparu avec l'arbre.
+    const t = getMessages(initialLocale()).leaves.errorBoundary;
     return (
       <div className="app app-error">
         <div className="app-error-card">
-          <h1 className="cv-display app-error-title">Une erreur est survenue</h1>
-          <p className="app-error-text">
-            Un problème inattendu est survenu. Vos données, enregistrées sur votre ordinateur,
-            ne sont pas perdues — rechargez pour reprendre.
-          </p>
+          <h1 className="cv-display app-error-title">{t.title}</h1>
+          <p className="app-error-text">{t.body}</p>
           <p className="app-error-detail">{error.message}</p>
           <div className="app-error-actions">
             <button
@@ -44,10 +47,10 @@ export class ErrorBoundary extends Component<
                 window.location.reload();
               }}
             >
-              Recharger
+              {t.reload}
             </button>
             <button className="btn-ghost" onClick={() => this.setState({ error: null })}>
-              Réessayer
+              {t.retry}
             </button>
           </div>
         </div>

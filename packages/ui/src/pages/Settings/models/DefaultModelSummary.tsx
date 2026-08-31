@@ -2,6 +2,7 @@ import { PROVIDERS, type ModelInfo } from "@openmasq/llm";
 import { CheckIcon, ModelLogo } from "../../../components/brand";
 import { modelDisplay } from "../../../prompt/models";
 
+import { useT } from "../../../i18n";
 /**
  * CE QUI RÉPOND QUAND ON OUVRE UNE CONVERSATION — nommé en haut de l'écran.
  *
@@ -22,13 +23,14 @@ export function DefaultModelSummary({
   /** Afficher la fiche de ce modèle dans le panneau de détail. */
   onPreview: (id: string) => void;
 }) {
+  const t = useT();
   if (!model) return null;
   const display = modelDisplay(model);
   return (
     <button
       type="button"
       className="model-default-summary"
-      title="Voir la fiche de ce modèle"
+      title={t.modelPicker.defaultSummaryTip}
       onMouseEnter={() => onPreview(model.id)}
       onClick={() => onPreview(model.id)}
     >
@@ -37,7 +39,7 @@ export function DefaultModelSummary({
       </span>
       <ModelLogo provider={model.provider} modelId={model.id} size={22} tile />
       <span className="model-default-body">
-        <span className="model-default-label">Vos nouvelles conversations démarrent sur</span>
+        <span className="model-default-label">{t.modelPicker.defaultSummaryLabel}</span>
         <span className="model-default-name">
           {display.label}
           {display.free && <span className="model-free-badge">gratuit</span>}

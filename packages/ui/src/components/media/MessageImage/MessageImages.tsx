@@ -3,6 +3,7 @@ import { PaperclipIcon } from "../../brand";
 import { useStoredImage } from "./useStoredImage";
 import { useInView } from "../../../hooks/useInView";
 
+import { useT } from "../../../i18n";
 interface ImageAttachment {
   name: string;
   kind: string;
@@ -24,6 +25,7 @@ function MessageImage({
   conversationIds: string[];
   onOpen: (name: string) => void;
 }) {
+  const t = useT();
   // Gate the DB read + decode on visibility (the ref rides on whichever root renders),
   // so an off-screen inline image never loads its bytes — like the library thumbnails.
   const [ref, inView] = useInView<HTMLElement>();
@@ -34,7 +36,7 @@ function MessageImage({
       <span
         ref={ref as Ref<HTMLSpanElement>}
         className="msg-image-skeleton"
-        aria-label={`Chargement de ${attachment.name}`}
+        aria-label={t.leaves.loadingImage(attachment.name)}
       />
     );
   }
@@ -43,7 +45,7 @@ function MessageImage({
       <button
         ref={ref as Ref<HTMLButtonElement>}
         className="msg-file"
-        title={`Consulter ${attachment.name}`}
+        title={t.leaves.openImage(attachment.name)}
         onClick={() => onOpen(attachment.name)}
       >
         <PaperclipIcon size={13} />
@@ -55,7 +57,7 @@ function MessageImage({
     <button
       ref={ref as Ref<HTMLButtonElement>}
       className="msg-image"
-      title={`Consulter ${attachment.name}`}
+      title={t.leaves.openImage(attachment.name)}
       onClick={() => onOpen(attachment.name)}
     >
       <img src={state.src} alt={attachment.name} loading="lazy" decoding="async" />
