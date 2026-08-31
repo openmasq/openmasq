@@ -13,10 +13,11 @@
   "apps/desktop/src/main/mcp/browser/process.ts": 533,
   "apps/desktop/src/main/python/sandbox.ts": 527,
   "apps/desktop/src/renderer/src/auth.ts": 521,
+  "packages/redact/src/engine/rules/rules.ts": 438,
   "packages/ui/src/agent/toolCatalog.ts": 428,
-  "packages/redact/src/engine/rules/rules.ts": 412,
   "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 383,
   "packages/llm/src/tools/openai.ts": 357,
   "apps/desktop/src/main/mcp/persist.ts": 340,
-  "packages/redact/src/engine/rules/rules.france.ts": 305
+  "packages/redact/src/engine/rules/rules.france.ts": 305,
+  "packages/ui/src/pages/Settings/models/ModelsTab.tsx": 303
 }

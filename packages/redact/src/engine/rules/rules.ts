@@ -1,5 +1,5 @@
 import type { RedactionRule, RedactionType } from "../../types";
-import { luhn, ibanValid, siret, latLong, isStructuredId, isRealIp, isIsin, isBenignConfigValue, deconfuseOcrDigits, isEpochMs, isDateTimeRun } from "../validators";
+import { luhn, ibanValid, siret, latLong, isStructuredId, isRealIp, isIsin, isBenignConfigValue, deconfuseOcrDigits, isEpochMs, isDateTimeRun, luhnDigits } from "../validators";
 import { ssnValid } from "../validators/validators.identifiers";
 import { isValidIntlPhone } from "../phones";
 import { ADDRESSED_URL } from "../urls";
@@ -96,16 +96,16 @@ const IPV6_RE =
   `|(?:${H4}:){1,7}:)(?![:.\\w])`;
 const IP_RE = new RegExp(`${IPV4_RE}|${IPV6_RE}`, "g");
 
-// L'URL ENTIÈRE, quand la catégorie « url » est active. ⚠️ Le motif vient de `../urls.ts`
-// — le MÊME qui définit les spans pour la porte de suppression. Deux définitions de « ce
-// qu'est une URL » diraient tôt ou tard deux choses différentes sur la même adresse (règle
-// 9), et ici l'une décide de masquer quand l'autre décide de protéger.
+// The WHOLE URL, when the « url » category is active. ⚠️ The pattern comes from `../urls.ts`
+// — the SAME one that defines the spans for the suppression gate. Two definitions of "what
+// a URL is" would sooner or later say two different things about the same address (rule
+// 9), and here one decides to mask while the other decides to protect.
 //
-// La règle est placée TÔT et volontairement gourmande : elle réclame l'adresse d'un bloc,
-// jeton de requête compris. Un secret DANS une URL est donc masqué avec elle plutôt qu'à
-// part — même protection, une seule entrée de coffre, et pas de marqueur avalé par le
-// motif au passage suivant. Quand la catégorie est ÉTEINTE (le défaut), cette règle ne
-// tourne pas du tout et la porte de suppression reprend son rôle habituel.
+// The rule is placed EARLY and deliberately greedy: it claims the whole address, its
+// query token included. A secret INSIDE a URL is therefore masked along with it rather than
+// separately — same protection, one single vault entry, and no marker swallowed by the
+// pattern on the next pass. When the category is OFF (the default), this rule
+// doesn't run at all and the suppression gate resumes its usual role.
 const URL_RULE: RedactionRule = { type: "url", pattern: new RegExp(ADDRESSED_URL.source, "gi") };
 
 // Order matters: most specific shapes first.
@@ -248,11 +248,37 @@ export const RULES: RedactionRule[] = [
     // word (« cartão 5005-… » matched from the o, failed Luhn, and its rejection
     // CONSUMED the real card behind it — the DOB_RULE lesson yet again).
     pattern: new RegExp(String.raw`\b\d(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?[0-9Oo]){11,17}(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d\b`, "g"),
-    // ⚠️ `!isEpochMs` (13 chiffres CONTIGUS) avant Luhn : un horodatage epoch-ms le passe
-    // ~1 fois sur 10 — les révisions de fichiers partaient en « card » (`validators.ts`).
+    // ⚠️ `!isEpochMs` (13 CONTIGUOUS digits) before Luhn: an epoch-ms timestamp passes it
+    // ~1 time in 10 — file revisions were going out as « card » (`validators.ts`).
     validate: (m) =>
       maxOneWrap(m) && !isEpochMs(m) &&
       (luhn(m) || ((m.match(/\d/g)?.length ?? 0) >= 10 && luhn(deconfuseOcrDigits(m)))),
+  },
+  {
+    // SHORT Maestro: 12 digits, the only length under 13 a real network actually issues.
+    // Any 12-digit run passes Luhn 1 time in 10 — far too common
+    // (order number, invoice ref) for the shape alone — so TWO anchors: the
+    // Maestro IIN prefix (5018/5020/5038/5893/6304/6759/6761-3) AND Luhn. After the
+    // 13-19 rule: a longer run keeps priority. Found by the external bench
+    // (the presidio-research generator emits these forms; 10 leaks measured).
+    type: "card",
+    pattern: new RegExp(String.raw`\b(?:5018|5020|5038|5893|6304|6759|676[123])(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d){8}\b`, "g"),
+    // `luhn()` carries the classic PAN's 13-19 floor — here the length is fixed
+    // to 12 by the regex itself, only the pure checksum (`luhnDigits`) needs verifying.
+    validate: (m) => { const d = m.replace(/\D/g, ""); return maxOneWrap(m) && d.length === 12 && luhnDigits(d); },
+  },
+  {
+    // 12 digits WITHOUT a Maestro IIN: only under an EXPLICIT card label
+    // (« credit card 587428561654 » — real forms from the external bench). The context
+    // replaces the prefix as the second anchor, Luhn stays the first — same
+    // logic as the SSN rule. gate()'s HEAD blocks « postcard »; « mastercard »
+    // is never followed by a bare 12-digit run in the wild without being a card.
+    type: "card",
+    pattern: gate(
+      String.raw`(?:credit|debit)\s+card|card|carte(?:\s+(?:bancaire|bleue|de\s+cr[ée]dit))?|kreditkarte|tarjeta|carta`,
+      String.raw`\d(?:(?:${SP}{1,2})?\d){11}\b`,
+    ),
+    validate: (m) => { const d = m.replace(/\D/g, ""); return d.length === 12 && luhnDigits(d); },
   },
   {
     // Country(2) + check(2) + 10–30 alnum, confirmed by ISO 7064 mod-97 — in ANY
@@ -282,7 +308,7 @@ export const RULES: RedactionRule[] = [
   // FR surface reads at a glance; the spread keeps the exact ordering (after card/IBAN,
   // before the international spread).
   ...FRANCE_RULES,
-  // Royaume-Uni, formes distinctives (`rules.uk.ts`) — ⚠️ l'ordre compte : ENTRE FR et l'EIN.
+  // United Kingdom, distinctive forms (`rules.uk.ts`) — ⚠️ order matters: BETWEEN FR and EIN.
   ...UK_RULES,
   // US EIN — context-gated (bare `\d\d-\d{7}` is too generic).
   { type: "company_id", pattern: gate("ein", String.raw`\d{2}-\d{7}\b`) },
@@ -296,13 +322,13 @@ export const RULES: RedactionRule[] = [
   // be separated from the code by a few LOWERCASE filler words + separators
   // ("mon BIC est X", "code BIC : X", "le BIC de la banque : X", "SWIFT/BIC X") —
   // lowercase-only filler so an ALLCAPS code is never consumed as a filler word.
-  // ⚠️ Le SÉPARATEUR est la moitié de la garde, et il était trop étroit : une PAIRE
-  // SÉRIALISÉE (`"bic":"AGRIFRPP812"`) et une valeur entre PARENTHÈSES (« le BIC saisi
-  // (BSUIFRPPXXX) ») laissaient le code en clair — le guillemet et la parenthèse n'étaient
-  // pas des séparateurs. Le mot-clé lui-même est désormais insensible à la casse (une clé
-  // JSON s'écrit `bic`), lettre par lettre : passer le drapeau `i` à TOUTE la règle aurait
-  // rendu `[A-Z]{6}` minuscule et transformé n'importe quel mot de huit lettres suivant
-  // « bic » en code bancaire. La valeur reste donc strictement en capitales.
+  // ⚠️ The SEPARATOR is half the guard, and it was too narrow: a SERIALISED
+  // PAIR (`"bic":"AGRIFRPP812"`) and a value in PARENTHESES (« le BIC saisi
+  // (BSUIFRPPXXX) ») left the code in clear — the quote and the parenthesis weren't
+  // separators. The keyword itself is now case-insensitive (a JSON key is
+  // written `bic`), letter by letter: passing the `i` flag to the WHOLE rule would have
+  // made `[A-Z]{6}` match lowercase and turned any eight-letter word following
+  // « bic » into a bank code. The value therefore stays strictly capitalised.
   {
     type: "bic",
     pattern:
@@ -325,10 +351,10 @@ export const RULES: RedactionRule[] = [
     // tab/dot/dash. French typography groups digits with U+00A0/U+202F and PDF extraction
     // emits them verbatim, so a plain `[ ]` shipped an NBSP-grouped number in CLEAR — the
     // same hole card/IBAN/NIR/SIRET/VAT were already fixed for. Audit-verified.
-    // ⚠️ Cette règle n'a PAS besoin de gérer la forme parenthésée `+1 (212) 736-5000` :
-    // l'élargir est un no-op MESURÉ — `phones.ts` `detectPhones` couvre déjà toutes les
-    // formes libphonenumber, crochets compris ; un benchmark de CE motif seul dit le
-    // contraire (l'unité qui compte est le pipeline). Épinglé dans `isolatedFormats.test.ts`.
+    // ⚠️ This rule does NOT need to handle the parenthesised form `+1 (212) 736-5000`:
+    // widening it is a MEASURED no-op — `phones.ts` `detectPhones` already covers all the
+    // libphonenumber forms, brackets included; a benchmark of THIS pattern alone says the
+    // opposite (the unit that counts is the pipeline). Pinned in `isolatedFormats.test.ts`.
     pattern: new RegExp(String.raw`(?:\+|00)\d{1,3}(?:(?:${SP}|[\t.\-])?\d{1,4}){3,8}`, "g"),
     validate: isValidIntlPhone,
   },

@@ -47,7 +47,9 @@ export function foldWidth(s: string): string {
 }
 
 /** Luhn (mod-10) over the digit string. */
-function luhnDigits(d: string): boolean {
+/** The PURE Luhn sum, with no length floor — for shapes whose
+ *  length is already fixed by their regex (Maestro 12 digits). */
+export function luhnDigits(d: string): boolean {
   let sum = 0;
   let dbl = false;
   for (let i = d.length - 1; i >= 0; i--) {
@@ -129,12 +131,12 @@ export function frVat(match: string): boolean {
 }
 
 /** ISO 7064 mod-97 — confirms an IBAN-shaped string actually checksums.
- *  Prose guard FIRST : « FR40182376 du 13 Mars 2023 » (une réf de facture suivie de sa
- *  date) passe le mod-97 par pur hasard (1/97) — le faux produit alors une date
- *  impossible (« 98 Mars 4986 ») et le modèle « découvre » une incohérence qui n'existe
- *  pas (journal 02/08). Un token d'un vrai IBAN espacé est alphanumérique OU tout en
- *  MAJUSCULES (« GB29 NWBK … ») ; un token purement alphabétique portant une minuscule
- *  (« du », « Mars ») est de la prose, jamais du BBAN. */
+ *  Prose guard FIRST: « FR40182376 du 13 Mars 2023 » (an invoice reference followed by its
+ *  date) passes mod-97 by pure chance (1/97) — the fake then produces an
+ *  impossible date (« 98 Mars 4986 ») and the model "discovers" an inconsistency that
+ *  doesn't exist (02/08 log). A token from a real spaced IBAN is alphanumeric OR entirely
+ *  UPPERCASE (« GB29 NWBK … »); a purely alphabetic token carrying a lowercase letter
+ *  (« du », « Mars ») is prose, never a BBAN. */
 export function ibanValid(match: string): boolean {
   for (const tok of match.split(/\s+/)) {
     if (/^[A-Za-zÀ-ÿ]+$/.test(tok) && !/^[A-ZÀ-Ý]+$/.test(tok)) return false;
@@ -203,12 +205,12 @@ export function isWordNumberGlue(s: string): boolean {
   return letters.length >= 3 && /[aeiouyàâäéèêëïîôöùûü]/i.test(letters);
 }
 
-// ⚠️ NE PAS élargir cette garde à la prose soudée dont le chiffre est ENCLAVÉ
-// (« earticle3du », « ferontavantle5dumoisparvirement ») : essayé le 16/08/2026, refusé.
-// Le banc sur documents réels les compte en faux positifs, mais c'est un arbitrage DÉJÀ
-// pris et épinglé — `model/pseudonymize/gluedProse.test.ts` : « rien dans sa FORME ne le
-// sépare d'une clé : on préfère un faux positif à la fuite d'un secret ». Le mécanisme de
-// prose collée vit là-bas (`gluedProse.ts`), pas ici.
+// ⚠️ DO NOT widen this guard to glued prose whose digit is ENCLAVED
+// (« earticle3du », « ferontavantle5dumoisparvirement »): tried on 16/08/2026, rejected.
+// The bench on real documents counts them as false positives, but this is a trade-off ALREADY
+// made and pinned — `model/pseudonymize/gluedProse.test.ts`: "nothing in its SHAPE
+// separates it from a key: we prefer a false positive over a leaked secret". The glued-prose
+// mechanism lives over there (`gluedProse.ts`), not here.
 
 /**
  * True when an `ip`-rule match is a genuine IP. IPv4 (no colon) is already octet-
@@ -262,11 +264,11 @@ export function isBenignConfigValue(value: string): boolean {
 
 /**
  * A bare CONTIGUOUS 13-digit run inside the plausible epoch-MILLISECONDS window
- * (2001→2055). File mtimes/révisions ride tool results constantly ("révision:
+ * (2001→2055). File mtimes/revisions ride tool results constantly ("révision:
  * 1767643960092"), and a random 13-digit run passes Luhn ~1/10 and the Thai TNIN
  * mod-11 ~1/11 — so the BARE 13-digit checksum rules (card, TNIN) sporadically
- * redact des timestamps en « card »/« national_id » (journal 01/08), corrompant
- * la valeur pour le modèle. Contiguous-only: a real card is spaced/dashed on documents,
+ * redacted timestamps as « card »/« national_id » (01/08 log), corrupting
+ * the value for the model. Contiguous-only: a real card is spaced/dashed on documents,
  * and a SEPARATED match never enters this guard. Residual: a genuine bare Visa-13 or
  * TNIN whose value falls in the window is skipped — the gated/labelled paths still
  * catch it in context.
@@ -280,8 +282,8 @@ export function isEpochMs(match: string): boolean {
 /**
  * `DD-MM-YYYY[ HH]` — the datetime layout of FR bank/accounting exports (Qonto CSV:
  * « 01-09-2025 01:24:55 »), which is ALSO 10 digits starting `0…` and matched the FR
- * national phone rule (journal 01/08 : dates fakées en téléphone, années 8322 rendues
- * au modèle, chronologie du relevé détruite). Layout + calendar plausibility: a real
+ * national phone rule (01/08 log: dates faked as phone numbers, years like 8322 handed
+ * to the model, the statement's chronology destroyed). Layout + calendar plausibility: a real
  * phone is never written dash-dash-GLUED-space, so nothing dialable is lost. The HOUR
  * is optional ON PURPOSE: after the full match fails, `longestValidPrefix` re-runs the
  * validator on the whitespace-trimmed prefix « 01-09-2025 » — the bare date must be
