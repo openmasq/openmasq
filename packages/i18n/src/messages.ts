@@ -29,7 +29,9 @@ import type { AgentMessages } from "./messages/agent";
 import type { CardsMessages } from "./messages/cards";
 import type { ChatMessages, ChromeMessages, ComposerMessages } from "./messages/chrome";
 import type { BillingMessages, CommonMessages, NavMessages } from "./messages/common";
+import type { ConnectorsMessages } from "./messages/connectors";
 import type { ErrorsMessages } from "./messages/errors";
+import type { GuideMessages } from "./messages/guide";
 import type { LanguageMessages } from "./messages/language";
 import type { DocViewsMessages, DownloadsMessages, MenusMessages } from "./messages/menus";
 import type { ModalsMessages } from "./messages/modals";
@@ -39,11 +41,14 @@ import type {
   RedactTypesMessages,
   WebNavMessages,
 } from "./messages/privacy";
+import type { ProviderKeysMessages } from "./messages/providerKeys";
 import type { SectionsMessages } from "./messages/sections";
 import type { SettingsMessages } from "./messages/settings";
 
 export type { DownloadFormatCopy } from "./messages/menus";
+export type { GuideChapterCopy } from "./messages/guide";
 export type { PrivacyLevelCopy } from "./messages/privacy";
+export type { ProviderKeyCopy } from "./messages/providerKeys";
 export type { SettingsEntry, SettingsTab } from "./messages/settings";
 
 export interface Messages {
@@ -92,9 +97,12 @@ export interface Messages {
   cards: CardsMessages;
   errors: ErrorsMessages;
   agent: AgentMessages;
+  connectors: ConnectorsMessages;
+  guide: GuideMessages;
   menus: MenusMessages;
   modals: ModalsMessages;
   onboarding: OnboardingMessages;
+  providerKeys: ProviderKeysMessages;
   privacyLevels: PrivacyLevelsMessages;
   redactTypes: RedactTypesMessages;
   downloads: DownloadsMessages;

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ModalShell } from "./ModalShell";
-import { GUIDE, HELP_CENTER_URL, sectionGuides } from "../../help";
+import { CHAPTER_IDS, guideChapters, HELP_CENTER_URL, sectionGuides } from "../../help";
 import { useT } from "../../i18n";
 import { ArrowRightIcon, HelpIcon } from "../../components/brand";
 import { RedactionDemo } from "../../components/RedactionDemo";
@@ -28,13 +28,13 @@ export function GuideModal({
    *  qui compterait dessus casserait au premier réordonnancement. */
   initialChapter?: string;
 }) {
-  const [active, setActive] = useState(initialChapter ?? GUIDE[0].id);
+  const [active, setActive] = useState(initialChapter ?? CHAPTER_IDS[0]);
   const t = useT();
   // ⚠️ Le chapitre « Nouveautés » n'existe que là où les notes existent : sur une
   // plateforme sans relais (aperçu navigateur), un onglet qui ne peut RIEN afficher est
   // pire qu'un onglet absent — il se lit comme une panne de l'app.
   const { unavailable } = useReleaseNotes();
-  const chapters = GUIDE.filter((c) => !c.releases || !unavailable);
+  const chapters = guideChapters(t).filter((c) => !c.releases || !unavailable);
   const chapter = chapters.find((c) => c.id === active) ?? chapters[0];
 
   return (

@@ -9,12 +9,15 @@ import type { Messages } from "./messages";
 import { agent } from "./en/agent";
 import { cards } from "./en/cards";
 import { chat, chrome, composer } from "./en/chrome";
+import { connectors } from "./en/connectors";
 import { billing, common, nav } from "./en/common";
 import { language } from "./en/language";
 import { errors } from "./en/errors";
+import { guide } from "./en/guide";
 import { docViews, downloads, menus } from "./en/menus";
 import { modals } from "./en/modals";
 import { onboarding } from "./en/onboarding";
+import { providerKeys } from "./en/providerKeys";
 import { privacyLevels, redactTypes, webNav } from "./en/privacy";
 import { sections } from "./en/sections";
 import { settings } from "./en/settings";
@@ -58,14 +61,17 @@ export const en = {
   chrome,
   common,
   composer,
+  connectors,
   docViews,
   downloads,
   errors,
+  guide,
   language,
   menus,
   modals,
   nav,
   onboarding,
+  providerKeys,
   privacyLevels,
   redactTypes,
   sections,

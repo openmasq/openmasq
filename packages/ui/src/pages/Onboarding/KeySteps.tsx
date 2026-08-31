@@ -43,9 +43,9 @@ export function KeySteps({
   const [value, setValue] = useState("");
   const [done, setDone] = useState<Set<number>>(() => new Set());
 
-  const help = providerKeyHelp(provider);
+  const help = providerKeyHelp(provider, t);
   const label = PROVIDERS[provider].label;
-  const issue = providerKeyIssue(provider, value);
+  const issue = providerKeyIssue(provider, value, t);
 
   const toggleStep = (i: number) =>
     setDone((prev) => {
@@ -64,7 +64,7 @@ export function KeySteps({
       {help && (
         <>
           <ol className="byo-steps">
-            {help.steps.map((s, i) => (
+            {help.steps?.map((s, i) => (
               <li key={i} className={done.has(i) ? "done" : undefined}>
                 <button
                   type="button"

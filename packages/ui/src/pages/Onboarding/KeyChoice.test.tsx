@@ -2,7 +2,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { PROVIDERS } from "@openmasq/llm";
 import { mount } from "../../testKit";
-import { PROVIDER_KEY_HELP } from "../../containers/modals/providerKeyHelp";
+import { getMessages } from "@openmasq/i18n";
+import { providerKeyHelp } from "../../containers/modals/providerKeyHelp";
 import { KeyChoice } from "./KeyChoice";
 import { configurePlatformAccess } from "../../send/platformAccess";
 
@@ -127,7 +128,7 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     // Les étapes cochables du fournisseur sélectionné, et le lien OFFICIEL du registre.
     expect(m.findAll(".byo-steps li").length).toBeGreaterThan(0);
     expect(m.find<HTMLAnchorElement>(".byo-link").href).toBe(
-      PROVIDER_KEY_HELP.openrouter!.keyUrl,
+      providerKeyHelp("openrouter", getMessages("fr"))!.keyUrl,
     );
 
     // Changer de fournisseur change le guide ET repart d'une liste vierge : une coche

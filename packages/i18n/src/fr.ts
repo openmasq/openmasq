@@ -10,12 +10,15 @@ import type { Messages } from "./messages";
 import { agent } from "./fr/agent";
 import { cards } from "./fr/cards";
 import { chat, chrome, composer } from "./fr/chrome";
+import { connectors } from "./fr/connectors";
 import { billing, common, nav } from "./fr/common";
 import { language } from "./fr/language";
 import { errors } from "./fr/errors";
+import { guide } from "./fr/guide";
 import { docViews, downloads, menus } from "./fr/menus";
 import { modals } from "./fr/modals";
 import { onboarding } from "./fr/onboarding";
+import { providerKeys } from "./fr/providerKeys";
 import { privacyLevels, redactTypes, webNav } from "./fr/privacy";
 import { sections } from "./fr/sections";
 import { settings } from "./fr/settings";
@@ -59,14 +62,17 @@ export const fr = {
   chrome,
   common,
   composer,
+  connectors,
   docViews,
   downloads,
   errors,
+  guide,
   language,
   menus,
   modals,
   nav,
   onboarding,
+  providerKeys,
   privacyLevels,
   redactTypes,
   sections,

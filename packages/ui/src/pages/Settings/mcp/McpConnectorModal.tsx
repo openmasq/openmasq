@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../../i18n";
 import { ModalShell } from "../../../containers/modals";
 import type { CredMode } from "../../../host";
 import { LockIcon } from "../../../components/brand";
@@ -94,7 +95,8 @@ export function McpConnectorModal({
    *  d'erreur à afficher, ou `undefined` si c'est passé. Absent ⇒ pas d'édition offerte. */
   onSetDirs?: (serverId: string, key: string, dirs: string[]) => Promise<string | undefined>;
 }) {
-  const info = connectorInfo(item.id);
+  const t = useT();
+  const info = connectorInfo(item.id, t);
   const c = item.connector;
   // API-key connector (Exa/Tavily via URL query param; Fireflies via Bearer header)
   // that isn't connected/configured yet → show the key tutorial + input instead of

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "../../i18n";
 import { ModalShell } from "./ModalShell";
 import { KeyIcon, ArrowRightIcon, CheckIcon, TrashIcon } from "../../components/brand";
 import type { ProviderId } from "@openmasq/llm";
@@ -42,6 +43,7 @@ export function ApiKeyModal({
   /** Save-button text. Default fits the missing-key banner (auto-retries send). */
   saveLabel?: string;
 }) {
+  const t = useT();
   const [value, setValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [connecting, setConnecting] = useState(false);
@@ -49,7 +51,7 @@ export function ApiKeyModal({
   // Detailed per-provider "where to find your key" tutorial (steps + official link +
   // key prefix), like the MCP connector key flow. Falls back to the minimal form +
   // the registry `keyUrl` link for a provider with no documented help.
-  const help = providerKeyHelp(provider);
+  const help = providerKeyHelp(provider, t);
   const getUrl = help?.keyUrl ?? keyUrl;
   const placeholder = help?.placeholder ?? "sk-…";
 
@@ -122,7 +124,7 @@ export function ApiKeyModal({
           <div className="mcp-apikey-help">
             <div className="mcp-apikey-title">Où trouver votre clé {label}</div>
             <ol className="mcp-apikey-steps">
-              {help.steps.map((s, i) => (
+              {help.steps?.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
             </ol>

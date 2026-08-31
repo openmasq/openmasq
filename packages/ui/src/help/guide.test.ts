@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getMessages, LOCALES } from "@openmasq/i18n";
-import { GUIDE, sectionGuide, sectionGuides, sectionSubtitle } from "./index";
+import { guideChapters, sectionGuide, sectionGuides, sectionSubtitle } from "./index";
 import { DEFAULT_SETTINGS } from "../state/storePersistence";
 import { isFreeModel } from "@openmasq/llm/pricing";
 import { findModelAny } from "../prompt/models";
@@ -17,6 +17,17 @@ import { findModelAny } from "../prompt/models";
  *  section added to `types.ts` must be added HERE too, which is what makes the next
  *  test fail until the guide learns about it. */
 const NAVIGABLE = ["chats", "library", "competences", "memory", "vault"] as const;
+
+/** Toute la prose d'une langue, mise bout à bout — ce qu'un utilisateur LIT. */
+const proseOf = (locale: Parameters<typeof getMessages>[0]) =>
+  guideChapters(getMessages(locale))
+    .flatMap((c) => [
+      c.title,
+      c.lead,
+      ...(c.points ?? []),
+      ...(c.terms ?? []).flatMap((x) => [x.term, x.def]),
+    ])
+    .join(" ");
 
 describe("le guide décrit l'app RÉELLE", () => {
   it.each(LOCALES)(
@@ -67,29 +78,42 @@ describe("le guide décrit l'app RÉELLE", () => {
     expect(DEFAULT_SETTINGS.redactEngine).toBe("local");
   });
 
-  it("le guide reste un GUIDE : du français pour un humain, aucun terme d'implémentation", () => {
-    const prose = GUIDE.flatMap((c) => [
-      c.title,
-      c.lead,
-      ...(c.points ?? []),
-      ...(c.terms ?? []).flatMap((t) => [t.term, t.def]),
-    ]).join(" ");
-    // Le vocabulaire interne n'a rien à faire devant l'utilisateur (règle 8).
-    for (const banned of ["MCP", "vault", "packages/", "IPC", "API", "localStorage", "redaction."]) {
-      expect(prose, `terme technique dans le guide : ${banned}`).not.toContain(banned);
-    }
-    expect(GUIDE.length).toBeGreaterThanOrEqual(4);
-    // Chaque chapitre s'ouvre sur de VRAIES phrases, jamais un fragment de titre.
-    for (const c of GUIDE) {
+  it.each(LOCALES)("[%s] le guide reste un GUIDE : de vraies phrases, jamais un fragment", (locale) => {
+    const chapters = guideChapters(getMessages(locale));
+    expect(chapters.length).toBeGreaterThanOrEqual(4);
+    for (const c of chapters) {
       expect(c.lead.length, c.id).toBeGreaterThan(60);
       expect(c.lead.trim().endsWith("."), `${c.id}: phrase complète`).toBe(true);
+      expect(c.title.trim(), c.id).not.toBe("");
     }
   });
 
-  it("le mot « redaction » est DÉFINI, pas seulement employé", () => {
-    const lexicon = GUIDE.flatMap((c) => c.terms ?? []);
-    expect(lexicon.some((t) => /redact/i.test(t.term))).toBe(true);
+  it.each(LOCALES)("[%s] aucun terme d'IMPLÉMENTATION devant l'utilisateur", (locale) => {
+    const prose = proseOf(locale);
+    // Ceux-ci ne sont d'aucune langue : ce sont des noms de nos entrailles (règle 8).
+    for (const banned of ["MCP", "packages/", "IPC", "localStorage"]) {
+      expect(prose, `terme technique dans le guide : ${banned}`).not.toContain(banned);
+    }
+  });
+
+  it("le guide FRANÇAIS n'emprunte pas le vocabulaire anglais du code", () => {
+    // « vault » et « API » sont justes en anglais et faux en français : la liste est donc
+    // par langue, pas commune. Une liste unique interdirait à la version anglaise d'écrire
+    // « The vault », qui est précisément le mot de son lexique.
+    const prose = proseOf("fr");
+    for (const banned of ["vault", "API", "redaction."]) {
+      expect(prose, `anglicisme ou coquille dans le guide FR : ${banned}`).not.toContain(banned);
+    }
+  });
+
+  it.each([
+    ["fr", /redact/i],
+    ["en", /mask/i],
+  ] as const)("[%s] le mot du produit est DÉFINI, pas seulement employé", (locale, word) => {
+    const chapters = guideChapters(getMessages(locale));
+    const lexicon = chapters.flatMap((c) => c.terms ?? []);
+    expect(lexicon.some((x) => word.test(x.term))).toBe(true);
     // …et expliqué dès le premier chapitre, avant d'être réutilisé partout.
-    expect(GUIDE[0].lead).toMatch(/redaction/i);
+    expect(chapters[0].lead).toMatch(word);
   });
 });

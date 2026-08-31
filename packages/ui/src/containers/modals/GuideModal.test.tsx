@@ -3,7 +3,8 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 import { Provider } from "react-redux";
 import type { ReactNode } from "react";
 import { GuideModal } from "./GuideModal";
-import { GUIDE, HELP_CENTER_URL } from "../../help";
+import { getMessages } from "@openmasq/i18n";
+import { guideChapters, HELP_CENTER_URL } from "../../help";
 import { store } from "../../state/redux";
 import { resetSettingsCache, setReleaseNotesCache } from "../../state/settingsCache";
 import { mount } from "../../testKit";
@@ -29,6 +30,10 @@ const titles = (ui: Awaited<ReturnType<typeof render>>) =>
 afterEach(() => {
   vi.unstubAllGlobals();
 });
+
+/* Le modal rend le catalogue de la langue par défaut hors provider — c'est donc
+   celui-là que le test attend. */
+const GUIDE = guideChapters(getMessages("fr"));
 
 describe("GuideModal — sommaire par thème", () => {
   it("tous les chapitres sont au menu, un seul est affiché, et le clic change lequel", async () => {
