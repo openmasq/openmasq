@@ -30,7 +30,7 @@
  * l'app tourne entièrement sur la machine : clés perso, modèles locaux, CLI
  * d'abonnement, redaction on-device. Même règle que les identifiants OAuth et le DSN
  * Sentry (`scripts/buildDefines.ts`), étendue aux adresses. Comment fournir sa propre
- * pile : `SELF_HOSTING.md`.
+ * pile : le dépôt privé `infra`.
  */
 
 /**

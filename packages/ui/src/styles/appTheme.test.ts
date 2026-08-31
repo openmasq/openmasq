@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import { readStylesheet } from "./readStylesheet";
 
@@ -20,10 +20,14 @@ import { readStylesheet } from "./readStylesheet";
  */
 const CSS = readStylesheet();
 
-/** Le document racine de chaque console — celui qui porte le `<html>`. */
-const ROOTS = [
-  ["apps/web (console d'administration)", "../../../../apps/web/index.html"],
-] as const;
+/** Le document racine de chaque console — celui qui porte le `<html>`.
+ *  ⚠️ La console vit dans le dépôt privé `infra` depuis le 31/08/2026 : quand elle n'est
+ *  pas à côté (le dépôt public), il n'y a rien à lire, et le test se déclare sauté plutôt
+ *  que de casser sur un ENOENT — un test qui échoue pour une raison qui n'est pas la sienne
+ *  finit désactivé. */
+const ROOTS = (
+  [["apps/web (console d'administration)", "../../../../apps/web/index.html"]] as const
+).filter(([, path]) => existsSync(new URL(path, import.meta.url)));
 
 /** The LAST `--name` declared in a block of CSS (later wins), lowercased. */
 function declared(css: string, name: string): string | undefined {
@@ -36,7 +40,8 @@ function themeBlock(name: string): string {
   return new RegExp(`\\[data-theme="${name}"\\]\\s*\\{([^}]*)\\}`).exec(CSS)?.[1] ?? "";
 }
 
-describe.each(ROOTS)("%s — l'accent du produit", (_label, path) => {
+describe.skipIf(ROOTS.length === 0)("les consoles nomment leur thème", () => {
+  describe.each(ROOTS)("%s — l'accent du produit", (_label, path) => {
   const src = readFileSync(new URL(path, import.meta.url), "utf8");
   const theme = /<html[^>]*\sdata-theme="([^"]+)"/.exec(src)?.[1];
 
@@ -53,4 +58,5 @@ describe.each(ROOTS)("%s — l'accent du produit", (_label, path) => {
     // squelette vert satisferait sa propre déclaration).
     expect(declared(block, "--brand")).toMatch(/^#3939fa$/);
   });
+});
 });

@@ -123,7 +123,7 @@ const UPDATES_CHANNEL: string = env.VITE_UPDATES_CHANNEL || "";
  * (`main/updates/config.ts`), doublée ici par un `define` du renderer — sans elle, le
  * créneau `host.updates` reste absent et la carte « Mise à jour » comme l'historique des
  * versions ne s'affichent pas. Se mettre à jour depuis le flux de quelqu'un d'autre,
- * c'est se faire remplacer son binaire : il n'y a donc pas de défaut (`SELF_HOSTING.md`).
+ * c'est se faire remplacer son binaire : il n'y a donc pas de défaut (dépôt privé `infra`).
  */
 export const UPDATES_CONFIGURED: boolean = !!env.VITE_UPDATES_URL;
 

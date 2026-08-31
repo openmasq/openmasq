@@ -109,7 +109,7 @@ export function CustomStackCard() {
       </div>
       {err && (
         <div className="ver-note ver-note-after">
-          <span className="ver-note-icon">🔒</span>
+          <span className="ver-note-icon">{"\u{1F512}"}</span>
           <span>{err}</span>
         </div>
       )}

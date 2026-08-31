@@ -25,7 +25,7 @@ and devices, organizations and shares (the inbox, "share" on the vault and the s
 analytics — **none of it appears**: no tab, no ⌘K entry, no card, no switch, and the
 onboarding no longer offers a subscription. Everything else (your own keys, local models,
 CLI subscriptions, redaction, documents, connectors, sandbox) works as it is. Deploying
-your own stack: `SELF_HOSTING.md`.
+your own stack: the private `infra` repository.
 
 **Scope.** The product = the desktop app (Electron). The web preview mounts the same UI with
 fewer capabilities — flagged 🌐 (preview) where it differs; 📱 marks the screens of the
@@ -855,18 +855,18 @@ risk — a policy that depends on everyone's goodwill is not a policy.
 - [x] **Personal API keys disabled on a managed account** — refused both on write AND on
       injection by the privileged process — `apps/desktop/src/main/store/keysPolicy.ts`
 - [x] The refusal of a non-permitted model is **re-checked server-side** by the gateway, the
-      only point that depends on no workstation — `apps/gateway/src/features/inference/shared/orgModelPolicy.ts`
+      only point that depends on no workstation — the gateway's `orgModelPolicy` (private `infra` repository)
 - [x] Blocked connectors **and** a mandated confirmation level as a floor — enforced by the
       privileged process, not only by the interface
-- [x] Separate admin console — `apps/web/`
-- [x] Organization-side audit log — `apps/backend/`
+- [x] Separate admin console — the web console (private `infra` repository)
+- [x] Organization-side audit log — the API (private `infra` repository)
 - [x] Shared credit pool
 - [x] **Subscription manager** in the console (plan, amount actually charged, cancellation) —
-      `apps/web/components/admin/subscription/`
+      the console's subscription screen (private `infra` repository)
 - [x] **The subscription follows the headcount**: an ACCEPTED invitation adds a seat billed
       pro rata, a departure removes it; a pending invitation costs nothing
 - [x] The amount displayed is the one the provider charges, never a price reconstructed from
-      the catalogue — `apps/backend/src/features/subscriptions/seatBilling.test.ts`
+      the catalogue — the API's `seatBilling.test.ts` (private `infra` repository)
 - [x] A gap between active members and billed seats is **shown**, with a gesture to close it,
       never swallowed silently
 
@@ -889,7 +889,7 @@ publisher.
       the gateway): the tab shows « Tout est inclus sur cette version » instead of the plan
       grid, every included model is offered without a credit cap, and nothing is sold —
       `packages/ui/src/pages/Settings/billing/FreeModeBilling.tsx`,
-      `packages/credits/src/freeMode.ts`, `SELF_HOSTING.md`
+      `packages/credits/src/freeMode.ts`
 - [x] A free model stays usable without a subscription
 - [x] A send that cannot be funded is refused **before** it leaves
 - [x] The "credits exhausted" refusal always offers a **gesture**: subscription + key for a
@@ -945,7 +945,7 @@ stuck with a version that breaks your use.
       « Appliquer et redémarrer ». The addresses are validated outside the UI (https only),
       confirmed by a native dialog, and the app restarts in its own `(Custom)` profile —
       `packages/ui/src/pages/Settings/updates/parts/CustomStackCard.tsx`,
-      `apps/desktop/src/environments/customStack.test.ts`, `SELF_HOSTING.md`
+      `apps/desktop/src/environments/customStack.test.ts`
 
 ---
 
@@ -1112,7 +1112,7 @@ What surrounds the product, and what it is for.
 
 - **User documentation** (French, for the public), **online at `help.<domain>`** —
   maintained outside this repository
-- **Organization admin console** (roles, policy, audit) — `apps/web/`
+- **Organization admin console** (roles, policy, audit) — private `infra` repository
 - **Inference gateway**: proxy, credit metering, and server-side redaction for those without
-  the local horsepower — `apps/gateway/`
-- **Remote API**: accounts, billing, sync, administration — `apps/backend/`
+  the local horsepower — private `infra` repository
+- **Remote API**: accounts, billing, sync, administration — private `infra` repository

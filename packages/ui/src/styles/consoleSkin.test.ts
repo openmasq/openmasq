@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
 import { readStylesheet } from "./readStylesheet";
 
@@ -17,10 +17,11 @@ import { readStylesheet } from "./readStylesheet";
  * et la console doit PORTER la marque. L'une sans l'autre ne fait rien.
  */
 const CSS = readStylesheet();
-const ADMIN_SHELL = readFileSync(
-  new URL("../../../../apps/web/components/admin/shell/AdminShell.tsx", import.meta.url),
-  "utf8",
-);
+// La console vit dans le dépôt privé `infra` depuis le 31/08/2026 : sans elle à côté (le
+// dépôt public), la moitié « la console porte la marque » n'a rien à lire — la moitié
+// « la feuille l'épargne » reste vérifiable, c'est elle qui protège contre la régression CSS.
+const SHELL_URL = new URL("../../../../apps/web/components/admin/shell/AdminShell.tsx", import.meta.url);
+const ADMIN_SHELL = existsSync(SHELL_URL) ? readFileSync(SHELL_URL, "utf8") : null;
 
 describe("la peau sans bordure du chat épargne la console", () => {
   it("exclut `.om-console` du sélecteur qui neutralise hairlines et ombres", () => {
@@ -38,7 +39,7 @@ describe("la peau sans bordure du chat épargne la console", () => {
     expect(CSS).toMatch(/\.om-console a\s*\{\s*color:\s*revert-layer;?\s*\}/);
   });
 
-  it("la coque de la console porte bien la marque", () => {
+  it.skipIf(ADMIN_SHELL === null)("la coque de la console porte bien la marque", () => {
     expect(ADMIN_SHELL).toContain("om-console");
   });
 });

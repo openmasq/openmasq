@@ -145,7 +145,7 @@ export function AccountTab({
         </section>
       )}
 
-      {/* Sans facturation (build sans backend — `SELF_HOSTING.md`), il n'y a PAS
+      {/* Sans facturation (build sans backend — le dépôt privé `infra`), il n'y a PAS
           d'abonnement à utiliser : l'interrupteur n'offrirait qu'un aiguillage vers un
           service que ce build ne peut pas joindre. Absent, donc — et le seul chemin
           restant, vos propres clés, est déjà celui par défaut. */}

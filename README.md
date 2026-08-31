@@ -98,21 +98,17 @@ point the app at a local model. Your Claude Code / Codex CLI subscription works 
 **This build has no backend, and needs none.** No accounts, no billing, no sync, no
 telemetry, no auto-update: every first-party service is supplied at build time and
 absent by default, so the app runs entirely on your machine. Redaction is on-device
-either way. To run your own stack — accounts, API, gateway — see
-[`SELF_HOSTING.md`](SELF_HOSTING.md).
+either way.
 
-`pnpm dev` talks to **local** services only. To work on the account/billing/sync side,
-bring the local stack up (the full protocol, including deployment, is in
-[`SELF_HOSTING.md`](SELF_HOSTING.md)):
+**The server side is not in this repository.** Accounts, the API, the inference
+gateway, the admin console and the update feed are services the brand runs; their
+code will be published separately once it is ready to be run by someone else. Until
+then, an app built from this repository talks to nobody but the model provider you
+point it at — the variables that connect it to a stack are documented in
+`apps/desktop/scripts/buildDefines.ts`.
 
-```bash
-cd apps/backend && docker compose up -d       # Postgres + GoTrue + gateway + Mailpit
-pnpm --filter @openmasq/backend migrate && pnpm --filter @openmasq/backend seed
-pnpm --filter @openmasq/backend dev          # → :3003
-```
-
-The dev defaults, the bootstrap account and the ports are documented in
-`apps/desktop/.env.development`, which is committed on purpose.
+`pnpm dev` talks to **local** services only; the dev defaults and the ports are
+documented in `apps/desktop/.env.development`, which is committed on purpose.
 
 ---
 

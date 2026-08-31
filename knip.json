@@ -39,26 +39,6 @@
         "tsx"
       ]
     },
-    "apps/updates": {
-      "entry": [
-        "scripts/*.ts"
-      ],
-      "ignoreDependencies": [
-        "cloudflare"
-      ]
-    },
-    "apps/backend": {
-      "entry": [
-        "api/index.ts",
-        "src/server.ts",
-        "src/config/app/migrations/*.ts",
-        "src/config/app/seeds/*.ts",
-        "src/config/app/reset-db.ts",
-        "src/config/app/bootstrap-dev-user.ts",
-        "tests/e2e/**/*.ts",
-        "**/unitTest/**/*.ts"
-      ]
-    },
     "packages/ort": {
       "entry": [
         "src/index.cjs",

@@ -559,7 +559,7 @@ jobs:
       # se serait produit en silence.
       - name: Publish desktop release (R2 + register with updates Worker)
         if: ${{ matrix.platform != 'win' || env.WIN_CSC_LINK != '' }}
-        run: bash apps/updates/scripts/publish-desktop.sh --release-dir apps/desktop/release --channel ${{ needs.meta.outputs.storage_channel }}
+        run: bash apps/desktop/scripts/publish-desktop.sh --release-dir apps/desktop/release --channel ${{ needs.meta.outputs.storage_channel }}
         env:
           UPDATES_URL: ${{ vars.UPDATES_URL || format('https://updates.{0}', steps.brand.outputs.domain) }}
           UPDATES_ADMIN_TOKEN: ${{ secrets.UPDATES_ADMIN_TOKEN }}

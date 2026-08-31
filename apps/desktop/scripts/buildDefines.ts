@@ -10,7 +10,7 @@
  * pas de synchro, pas de modèles inclus, pas de télémétrie, connecteur « non
  * configuré ») et l'app tourne sur la machine — clés perso, modèles locaux, CLI
  * d'abonnement, redaction on-device. La liste complète et comment déployer les siens :
- * `SELF_HOSTING.md` ; les valeurs de DEV : `apps/desktop/.env.development`.
+ * le dépôt privé `infra` ; les valeurs de DEV : `apps/desktop/.env.development`.
  */
 /** Les adresses des services first-party (backend + passerelle, par environnement) —
  *  UNE liste, injectée dans les deux bundles : `src/environments/index.ts` est partagé
@@ -92,7 +92,7 @@ export function mainDefines(): Record<string, string> {
     // défaut committé. Vides ⇒ l'app n'a ni backend (comptes/facturation/synchro/avis/
     // orga) ni passerelle (redaction cloud + modèles inclus) — elle tourne sur la
     // machine. Lues par `src/environments/index.ts`, partagées main/renderer.
-    // Déployer les siennes : `SELF_HOSTING.md`.
+    // Déployer les siennes : le dépôt privé `infra`.
     ...SERVICE_DEFINES(),
   };
 }

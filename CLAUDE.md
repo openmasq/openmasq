@@ -95,6 +95,8 @@ browser extension) live outside this repo.
    tier, a credit amount, an RBAC key, an API shape, a wire field) lives in ONE package and is
    IMPORTED: governable lists → `packages/catalog`; billing/credits → `packages/credits`;
    cross-app API shapes → types-only (`packages/schema`); provider bytes → `@openmasq/llm/wire`.
+   The server side lives in another repository now: a wire field or a billing fact it shares
+   with this one still has ONE home here (`packages/credits`, `packages/schema`, `packages/sync`).
    A **behaviour** copied "to keep the same shape" is the same bug with more surface — extract
    the skeleton and leave only the genuine point of variation at the call site
    (`useSyncChannel`'s resume signal is the model). Before writing a second implementation of
@@ -134,16 +136,9 @@ browser extension) live outside this repo.
 apps/
   desktop/     Electron app (the product): src/main (IPC, DB, MCP, streaming) · src/preload
                (contextBridge → window.openmasq) · src/renderer · e2e/ (real OpenAI API)
-  web/         SPA React+Vite : /preview harness + the org ADMIN console. Ships WITH the backend in
-               ONE Vercel project (same-origin API)
-  backend/     Remote API (Express/Knex/Postgres/Supabase JWT/Stripe): billing, accounts,
-               settings sync, org admin (RBAC + audit log)
-  gateway/     Inference gateway (proxy + credit metering) AND the server-side redaction
-               endpoint (reuses packages/redact; same vault → reversible)
   api/         MCP broker + OAuth AS (Google/Slack/GitHub) — a LOCAL sidecar the desktop spawns
-  auth/        Env-INDEPENDENT OAuth-only fn: client secrets + the code→token exchange for
-               flows that can't run on-device (Slack). DATA never transits; relay single-use
-  analytics-fn/ Edge relay → PostHog (server-side key) + Contentful proxy · updates/ (self-describing)
+  (the SERVER side — API, gateway, admin console, update feed, relays, e-mail templates —
+   moved to the private `infra` repository on 2026-08-31; this repo builds and runs with none of it)
 packages/
   branding/    THE one home of the brand (branding.json: name, domains, scheme) — rule 9
   i18n/        Typed message catalogue (fr source + en), React-free — `check:i18n` ratchet

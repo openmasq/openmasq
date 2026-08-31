@@ -59,7 +59,7 @@ export function settingsNav(t: Messages): { id: TabId; label: string; icon: Reac
 
 /**
  * Les capacités de CETTE instance, lues sur l'hôte. Un créneau absent = le build n'a pas
- * reçu l'adresse du service (ou la plateforme ne sait pas le faire) : `SELF_HOSTING.md`.
+ * reçu l'adresse du service (ou la plateforme ne sait pas le faire) : le dépôt privé `infra`.
  * Exposé pour que la palette ⌘K pose la même question que le rail, sans la recopier.
  */
 export function useSettingsCapabilities(orgProfile?: OrgProfileInfo | null): SettingsCapabilities {

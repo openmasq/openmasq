@@ -20,12 +20,7 @@ const root = join(here, "..");
  * Test files that legitimately do NOT run under the root vitest config. Each needs a
  * reason: "it isn't run" must be a decision, never an oversight.
  */
-const KNOWN_UNRUN = [
-  {
-    pattern: "apps/backend/src/features/*/unitTest/**",
-    why: "JEST supertest STEP HELPERS — exported functions with no `it`/`describe`; vitest picks them up and fails. Run by `pnpm --filter @openmasq/backend test:e2e` through tests/e2e/scenario_*.ts.",
-  },
-];
+const KNOWN_UNRUN = [];
 
 function includePatterns() {
   const src = readFileSync(join(root, "vitest.config.ts"), "utf8");

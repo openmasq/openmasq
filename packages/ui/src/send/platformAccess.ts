@@ -5,7 +5,7 @@
  * titre que `BRAND` : d'où un foyer unique plutôt qu'un drapeau qu'on ferait descendre
  * dans chaque composant qui parle d'abonnement.
  *
- * Sans elle, un build sans backend (le cas open source par défaut — `SELF_HOSTING.md`)
+ * Sans elle, un build sans backend (le cas open source par défaut ; les services vivent dans le dépôt privé `infra`)
  * offrait quand même les modèles de la plateforme et disait « prenez un abonnement » :
  * deux affirmations fausses. Avec elle, ces mêmes modèles redeviennent ce qu'ils sont
  * vraiment sur cette machine — des modèles à CLÉ, dont la clé de l'utilisateur est la

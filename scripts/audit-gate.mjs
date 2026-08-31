@@ -21,20 +21,14 @@
  */
 import { spawnSync } from "node:child_process";
 
-/** Workspaces whose runtime dependencies reach a user (shipped) or the network
- *  (served). Paths from `pnpm audit` encode `/` as `__` (e.g. `apps__desktop`);
+/** Workspaces whose runtime dependencies reach a user (shipped). The served
+ *  services (API, gateway, console, worker, relays) live in the private infra repo. Paths from `pnpm audit` encode `/` as `__` (e.g. `apps__desktop`);
  *  we normalise back to `apps/desktop`. NOTE: apps/landing left this monorepo for
  *  its own repo (18/08) — it isn't even a workspace member here anymore, so this
  *  set never needed to name it. */
 const SERVED_WORKSPACES = new Set([
   "apps/desktop", // Electron app shipped to users
   "apps/api", // MCP broker sidecar (runs on the user's machine)
-  "apps/backend", // Express API (served)
-  "apps/web", // Next SSR admin console + API (served)
-  "apps/updates", // Cloudflare Worker (internet-facing)
-  "apps/analytics-fn", // Scaleway function (internet-facing)
-  "apps/auth", // OAuth relay function (internet-facing)
-  "apps/gateway", // redact-fn container (internet-facing)
 ]);
 
 /** Direct deps that are build/test/CI tooling — a vuln here never ships in a

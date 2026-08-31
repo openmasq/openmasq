@@ -19,17 +19,10 @@ pnpm dev                     # builds the packages, then launches the Electron a
 ```
 
 Dev talks to **local** services only (the convention is committed in
-`apps/desktop/.env.development`). The app runs with no backend at all; for account
-sign-in and server-side redaction, bring the local stack up:
-
-```bash
-cd apps/backend && docker compose up -d     # Postgres + GoTrue + gateway + Mailpit
-pnpm --filter @openmasq/backend migrate && pnpm --filter @openmasq/backend seed
-pnpm --filter @openmasq/backend dev           # → :3003
-```
-
-Running your own deployment instead — the services, their variables, the order — is
-`SELF_HOSTING.md`.
+`apps/desktop/.env.development`). The app runs with no backend at all: paste a provider
+key or point it at a local model. The server side (accounts, API, gateway, admin
+console, update feed) lives in a separate, private repository and is not needed to
+work on anything in this one.
 
 ## The working loop
 

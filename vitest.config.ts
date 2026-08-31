@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 import { workspaceSrcAlias, CORPUS_TESTS, NO_ISOLATE_UNSAFE_TESTS } from "./scripts/vitest.workspaceAlias";
@@ -106,16 +107,13 @@ const unit = defineConfig({
       // MCP broker OAuth primitives (PKCE, redirect_uri, token store).
       "apps/api/src/**/*.test.{ts,tsx}",
       // Scaleway redaction function: GPT-OSS detection (mocked fetch) + handler.
-      "apps/gateway/src/**/*.test.{ts,tsx}",
       // Scaleway analytics-fn: supertest e2e over the Express app (relay + release-notes).
-      "apps/analytics-fn/src/**/*.test.{ts,tsx}",
       // La console d'administration : sa logique de vue PURE (le pivot de l'Overview —
       // ce que les filtres calculent réellement à partir du cube que le backend renvoie),
       // et `src/` — les routes de la SPA vivent là depuis la bascule Vite, un test posé
       // dans `src/routes/` ne serait sinon JAMAIS exécuté (l'avertissement ci-dessus).
       // `apps/web/e2e` est du Playwright et s'appelle `*.e2e.ts`, donc ce glob ne peut pas
       // l'attraper ; `.next/` non plus, il n'y a pas de `*.test.ts` dedans.
-      "apps/web/{components,lib,src}/**/*.test.{ts,tsx}",
       // Le site vitrine (`apps/landing`) a quitté ce monorepo (dépôt séparé,
       // 18/08) — sa suite tourne là-bas désormais, plus ici.
       // ⚠️ `apps/backend` is the ONE tree that may NOT be globbed: `features/*/unitTest/**`
@@ -125,38 +123,26 @@ const unit = defineConfig({
       // guard between the Terraform/Stripe catalogue and the TS the app runs), the
       // feedback relay (payload allow-list + HTML escaping of untrusted free text), and
       // the Stripe return-URL resolver. Widening one means moving those helpers first.
-      "apps/backend/src/features/inference/**/*.test.{ts,tsx}",
       // Un seul `*` : les fichiers POSÉS dans `subscriptions/` (le test de parité, le
       // calcul sièges↔prix), jamais `subscriptions/unitTest/**` et ses helpers jest.
-      "apps/backend/src/features/subscriptions/*.test.{ts,tsx}",
       // Idem, un seul `*` : l'OCTROI d'abonnement (`features/admin/`) — les règles
       // d'écritures d'argent accordées sans paiement (quel palier, quelle période, ce que
       // révoquer remet à zéro). Pas de helpers jest dans ce dossier aujourd'hui ; le `*`
       // unique le garde vrai si l'on en ajoute.
-      "apps/backend/src/features/admin/*.test.{ts,tsx}",
-      "apps/backend/src/features/feedback/**/*.test.{ts,tsx}",
       // Un seul `*` : la projection rôles→drapeaux (`flags.test.ts` — ce que l'extérieur
       // a le droit de savoir d'un compte), jamais `users/unitTest/**` et ses helpers jest.
-      "apps/backend/src/features/users/*.test.{ts,tsx}",
       // La ROUTE PUBLIQUE (demandes du site) : ses gardes sont ses tests.
-      "apps/backend/src/features/landing/**/*.test.{ts,tsx}",
       // Idem, un seul `*` : le prédicat de la barrière de direction sync (quel
       // device lit/écrit quel scope — coffres ET records), jamais `sync/unitTest/**`.
-      "apps/backend/src/features/sync/*.test.{ts,tsx}",
       // La règle de confiance du webhook Stripe (résolution du sujet de
       // facturation — subject.test.ts) : logique pure à deps injectées, pas de
       // helpers jest dans ce dossier, le glob est sûr.
-      "apps/backend/src/features_webhooks/*.test.{ts,tsx}",
-      "apps/backend/src/lib/*.test.{ts,tsx}",
       // Un cran plus bas, `lib/email/` : l'AIGUILLAGE des audiences Resend. C'est lui qui
       // décide à qui part une annonce de version — et son absence de repli est ce qui
       // empêche une variable d'environnement oubliée de renvoyer les inscrits du site
       // dans la diffusion. Pas de helpers jest ici, le glob est sûr.
-      "apps/backend/src/lib/email/*.test.{ts,tsx}",
-      "apps/backend/src/routes/*.test.{ts,tsx}",
       // Les GARDES (`routes/middlewares/`) : `requireSuperAdmin` décide qui peut créditer
       // un compte sans paiement — la seule autorisation du dépôt qui donne de l'argent.
-      "apps/backend/src/routes/middlewares/*.test.{ts,tsx}",
       // L'outillage de la RACINE. Un seul `*` : les fichiers posés dans `scripts/`, jamais
       // les helpers vitest qui l'entourent. Ce qui s'y teste décide de ce qu'une session
       // peut lire et écrire (`claude-sandbox.sh` — le profil seatbelt de `claude:sandbox`),
@@ -170,6 +156,6 @@ const unit = defineConfig({
 
 export default defineConfig({
   test: {
-    projects: [unit, "./apps/updates"],
+    projects: [unit, ...(existsSync("apps/updates") ? ["./apps/updates"] : [])],
   },
 });
