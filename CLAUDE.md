@@ -127,6 +127,11 @@ browser extension) live outside this repo.
     tabs + entries, screen folders, modals) and fails on one it doesn't name; cited paths
     must exist, stated counters must be the real ones — a number nothing can recompute does
     not belong there. Adding OR removing a screen/tab/setting/modal edits it in the same commit.
+14. **The app ships in TWO languages — never a string hardcoded in one.** French is SOURCE, English
+    ships beside it in the SAME commit: STRUCTURE (ids, order, flags) stays in code, COPY goes to
+    the typed catalogue — `useT()` in a component, `t: Messages` in a `.ts` module. **Enforced**:
+    `pnpm check:i18n` (frozen ratchet) is **accent-blind** — hardcoded English fails like hardcoded
+    French, in a label TABLE as in a JSX attribute. What is NOT: `packages/i18n/CLAUDE.md`.
 
 ---
 
