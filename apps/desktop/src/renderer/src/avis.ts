@@ -1,11 +1,11 @@
 /**
- * Desktop "Votre avis" host. POSTs the user's feedback to the backend
- * `/api-features/feedback` with the signed-in Supabase token; the backend emails it
+ * Desktop "Your feedback" host. POSTs the user's feedback to the backend
+ * `/v1/feedback` with the signed-in Supabase token; the backend emails it
  * to the team and takes the identity from that VERIFIED token (rule 7 — the body
  * carries no email, and must not).
  *
  * ⚠️ Unlike the billing getters next door, this is NOT best-effort: it REJECTS on
- * any failure. The modal shows "votre message est bien arrivé chez l'équipe" only
+ * any failure. The modal shows "your message safely reached the team" only
  * when `send` resolves, so swallowing an error here would turn that into a lie and
  * silently bin what the user wrote.
  */
@@ -38,7 +38,7 @@ export const avisHost: AvisHost = {
     }
     let res: Response;
     try {
-      res = await backendFetch(`${BASE_URL}/api-features/feedback`, {
+      res = await backendFetch(`${BASE_URL}/v1/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(avis),

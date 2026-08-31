@@ -2,7 +2,7 @@ import { BRAND } from "@openmasq/branding";
 import { DEFAULT_LOCALE, type Locale, type Messages, type PlanTierCopy } from "@openmasq/i18n";
 import { subscriptionsSold } from "../send/platformAccess";
 // Canonical plan-tier catalog (Free / Solo / Team) — the single vocabulary the desktop
-// + extension read. The backend catalog (GET /subscriptions/prices) is the pricing
+// + extension read. The backend catalog (GET /v1/billing/prices) is the pricing
 // source of truth; these amounts mirror it for display when a live fetch isn't wired.
 // Per seat (org) or per person (individual). Amounts in eurocents. Credits = the
 // prepaid monthly model-usage budget included.
@@ -122,7 +122,7 @@ export function tierAction(p: {
 /**
  * Map a backend billing failure (HTTP status + the response `code`) to the message
  * shown to the user. Lives HERE, not in a host, because every surface that drives
- * `/subscriptions/*` needs the same wording — desktop and mobile both import it, and
+ * `/v1/billing/*` needs the same wording — desktop and mobile both import it, and
  * a second copy would drift on the day a new backend code appears (root rule 9).
  *
  * The getters may stay silent (they return null), but an ACTION — checkout, portal,

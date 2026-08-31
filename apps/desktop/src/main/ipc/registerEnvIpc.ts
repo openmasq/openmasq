@@ -10,50 +10,50 @@ import { relaunchSafely } from "../updates/install";
 import { handle, obj } from "./handle";
 
 /**
- * La famille « environnement » : QUEL environnement cette install joint, et comment elle
- * en change. Un seul module, parce que c'est une seule frontière (règle 10).
+ * The "environment" family: WHICH environment this install talks to, and how it
+ * changes it. A single module, because it's a single boundary (rule 10).
  *
- * ⚠️ **Changer d'environnement n'est pas une préférence** : c'est décider à quelle API
- * l'app parle, donc quelles données elle lit et écrit. La porte est donc en MAIN, jamais
- * dans l'interface — un XSS du renderer appellerait l'IPC directement (règle 7). Elle a
- * trois dents, et l'ordre compte :
+ * ⚠️ **Changing environment is not a preference**: it decides which API
+ * the app talks to, hence which data it reads and writes. So the gate is in MAIN, never
+ * in the UI — a renderer XSS would call the IPC directly (rule 7). It has
+ * three teeth, and the order matters:
  *
- * 1. **Allow-list de NOMS.** La cible doit être `"staging"` ou `"production"`. Ce qui est
- *    persisté puis relu n'est jamais une adresse : `environments/` dit pourquoi.
- * 2. **Revenir à l'environnement courant est toujours permis** — ça ne bascule rien.
- * 3. **Sinon, une permission vérifiée SERVEUR**, fail-closed, par l'un de DEUX chemins :
- *    le drapeau de COMPTE `staging_tester` (backend de PRODUCTION, jeton Supabase du
- *    compte — accordé à une personne, valable sur toutes ses machines, retiré d'un
- *    geste), ou `allow_self_pin` (Worker updates, par machine — le dépannage support,
- *    même porte que le changement de canal). Le jeton vient du renderer, et c'est
- *    correct : ce n'est pas une AFFIRMATION qu'on croit, c'est un credential que le
- *    backend vérifie — un jeton volé est le même problème que partout ailleurs.
+ * 1. **Allow-list of NAMES.** The target must be `"staging"` or `"production"`. What is
+ *    persisted then read back is never an address: `environments/` says why.
+ * 2. **Returning to the current environment is always allowed** — that switches nothing.
+ * 3. **Otherwise, a SERVER-verified permission**, fail-closed, via one of TWO paths:
+ *    the ACCOUNT flag `staging_tester` (PRODUCTION backend, the account's Supabase
+ *    token — granted to a person, valid on all their machines, revoked with one
+ *    gesture), or `allow_self_pin` (updates Worker, per machine — support
+ *    troubleshooting, the same gate as a channel change). The token comes from the renderer,
+ *    and that's correct: it's not an ASSERTION we trust, it's a credential the
+ *    backend verifies — a stolen token is the same problem as everywhere else.
  *
- * ⚠️ **Le canal de mises à jour n'est PAS touché**, et c'est volontaire. Avec un artefact
- * unique, l'octet livré est le même partout : « quels builds je reçois » (le canal) et « à
- * quelle API je parle » (l'environnement) deviennent deux axes indépendants, accordés
- * séparément. Les faire bouger ensemble ici recréerait le couplage qu'on défait.
+ * ⚠️ **The update channel is NOT touched**, and that's deliberate. With a single
+ * artifact, the shipped bytes are the same everywhere: "which builds I receive" (the channel) and
+ * "which API I talk to" (the environment) become two independent axes, granted
+ * separately. Moving them together here would recreate the coupling we're undoing.
  *
- * La pile AUTO-HÉBERGÉE (`custom`) a sa propre porte d'ÉCRITURE — `registerCustomStackIpc`
- * (validation en main + boîte native) — et n'existe que dans un build qui l'honore. Ici on
- * ne fait qu'y REVENIR (`env:switch` vers `custom`), ce qui suppose une pile déjà écrite.
+ * The SELF-HOSTED stack (`custom`) has its own WRITE gate — `registerCustomStackIpc`
+ * (validated in main + native box) — and exists only in a build that honors it. Here we
+ * only RETURN to it (`env:switch` toward `custom`), which assumes a stack already written.
  */
 
-/** Brancher la famille. `current` est l'environnement résolu au démarrage, `baseUserData`
- *  le dossier de BASE où vit le pointeur (jamais le profil courant — voir `environment.ts`). */
-/** Le drapeau `staging_tester` du COMPTE, demandé au backend de PRODUCTION — toujours
- *  lui : la vérité des rôles vit dans sa base, quel que soit l'environnement courant
- *  (et il n'est jamais derrière la protection Vercel). Fail-closed sur tout : jeton
- *  absent, réseau, non-2xx, réponse difforme — un refus, jamais une exception. */
+/** Wire up the family. `current` is the environment resolved at startup, `baseUserData`
+ *  the BASE folder where the pointer lives (never the current profile — see `environment.ts`). */
+/** The ACCOUNT's `staging_tester` flag, requested from the PRODUCTION backend — always
+ *  that one: the truth of roles lives in its DB, whatever the current environment
+ *  (and it's never behind Vercel protection). Fail-closed on everything: token
+ *  absent, network, non-2xx, malformed response — a refusal, never an exception. */
 async function accountIsStagingTester(token: unknown): Promise<boolean> {
   if (typeof token !== "string" || !token) return false;
   try {
     const ctl = new AbortController();
     const t = setTimeout(() => ctl.abort(), 5000);
     t.unref?.();
-    const res = await fetch(`${ENVIRONMENTS[DEFAULT_ENV].backend}/api-features/users/me/flags`, {
-      // L'identité du client voyage AUSSI sur ce chemin-ci : il est authentifié, donc il
-      // provisionne la ligne `users` comme n'importe quel autre — voir `clientIdentity.ts`.
+    const res = await fetch(`${ENVIRONMENTS[DEFAULT_ENV].backend}/v1/flags`, {
+      // The client identity travels on this path TOO: it's authenticated, so it
+      // provisions the `users` row like any other — see `clientIdentity.ts`.
       headers: { Authorization: `Bearer ${token}`, [CLIENT_HEADER]: clientIdentityHeader(app.getVersion()) },
       signal: ctl.signal,
     });
@@ -71,15 +71,15 @@ export function registerEnvIpc(
   window: () => BrowserWindow | null = () => null,
 ): void {
   const current = args.env;
-  // La pile saisie, relue (et REVALIDÉE) depuis le pointeur : c'est elle que le renderer
-  // reçoit en `custom`, et elle qu'on conserve quand on bascule vers un environnement cuit.
+  // The entered stack, read back (and RE-VALIDATED) from the pointer: this is what the renderer
+  // receives as `custom`, and what we keep when switching to a baked environment.
   const { custom } = readEnvPointerFull(args.baseUserData);
   const payload = resolvedEnvPayload(current, custom);
   registerCustomStackIpc({ baseUserData: args.baseUserData, window });
 
-  // SYNCHRONE, et c'est délibéré : `renderer/src/appEnv.ts` doit connaître les adresses au
-  // chargement du module, avant que `auth.ts` ne construise le client Supabase. Un aller
-  // -retour asynchrone arriverait trop tard. Un seul échange, au tout début du boot.
+  // SYNCHRONOUS, and it's deliberate: `renderer/src/appEnv.ts` must know the addresses at
+  // module load, before `auth.ts` builds the Supabase client. An asynchronous round
+  // trip would arrive too late. A single exchange, at the very start of boot.
   ipcMain.on("env:resolved-sync", (e) => {
     e.returnValue = payload;
   });
@@ -89,9 +89,9 @@ export function registerEnvIpc(
     const verdict = classifyEnvChange({
       wanted,
       current,
-      // La permission n'est demandée QUE si la cible est STAGING — pas d'appel réseau pour
-      // un no-op, ni pour un retour en production ou vers la pile de l'utilisateur.
-      // Compte d'abord (le chemin durable), machine ensuite (le dépannage).
+      // Permission is requested ONLY if the target is STAGING — no network call for
+      // a no-op, nor for a return to production or to the user's own stack.
+      // Account first (the durable path), machine second (troubleshooting).
       allowed:
         wanted === "staging" && wanted !== current
           ? (await accountIsStagingTester(token)) || (await selfPinAllowed())
@@ -106,10 +106,10 @@ export function registerEnvIpc(
     }
     if (verdict.env === current) return { ok: true, env: current, relaunching: false };
 
-    // La pile saisie SURVIT à une bascule vers un environnement cuit : on y revient d'un clic.
+    // The entered stack SURVIVES a switch to a baked environment: one click returns to it.
     if (!writeEnvPointer(args.baseUserData, verdict.env, undefined, custom)) {
-      // Le pointeur n'a pas pu s'écrire : ne PAS redémarrer, ou l'app rouvrirait
-      // l'ancien environnement sans que personne comprenne pourquoi.
+      // The pointer couldn't be written: do NOT restart, or the app would reopen
+      // the old environment with nobody understanding why.
       return { ok: false, reason: "write_failed", env: current };
     }
     void relaunchSafely(() => {

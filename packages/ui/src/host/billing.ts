@@ -65,7 +65,7 @@ export interface CreditBalance {
 
 /**
  * Optional INDIVIDUAL (per-person) billing capability — present on platforms that
- * can reach the backend `/subscriptions/*` with a signed-in session (desktop, mobile;
+ * can reach the backend `/v1/billing/*` with a signed-in session (desktop, mobile;
  * the extension would route through its background). Org (per-seat) billing is
  * administered in the web console, not here. Checkout/portal open the returned Stripe
  * URL in the system browser.

@@ -1,6 +1,6 @@
 /**
  * `fetch` for our first-party Vercel backend (`app.<domaine> / staging.<domaine>`,
- * `/api-features/*`).
+ * `/v1/*`).
  *
  * The STAGING web deployment sits behind **Vercel Deployment Protection** (Vercel
  * Authentication) — a shipped desktop app can't complete the SSO, so every backend
@@ -21,11 +21,11 @@ const BYPASS = BACKEND_BYPASS;
 export const BACKEND_BYPASS_ENABLED = !!BYPASS;
 
 /**
- * ⚠️ CE helper, et pas `fetch`, pour TOUT appel à notre backend — c'est ce qui rend
- * l'identité du client universelle plutôt que « posée aux endroits auxquels on a pensé ».
- * Le backend s'en sert pour savoir qu'une connexion vient de l'app de bureau (et non du
- * site ou d'une console), ce qui décide notamment de l'enrôlement dans la liste de
- * diffusion : `clientIdentity.ts` dit pourquoi ce n'est PAS une frontière de sécurité.
+ * ⚠️ THIS helper, not `fetch`, for EVERY call to our backend — that's what makes
+ * the client identity universal rather than "set at the spots we thought of".
+ * The backend uses it to know a connection comes from the desktop app (and not the
+ * site or a console), which notably decides enrollment in the mailing
+ * list: `clientIdentity.ts` says why this is NOT a security boundary.
  */
 export function backendFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const headers = new Headers(init?.headers);

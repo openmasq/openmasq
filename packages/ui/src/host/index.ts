@@ -191,7 +191,7 @@ export interface Host {
   redactFnUrl?: string;
   /**
    * Optional base URL of the backend's OpenAI-compatible INFERENCE proxy
-   * (`<VITE_BACKEND_URL>/api-features/inference`). Platform-provided models
+   * (`<VITE_BACKEND_URL>/v1/inference`). Platform-provided models
    * (`isPlatformProvider`, e.g. Scaleway) send here with the user's Supabase
    * token as the bearer — the platform holds the provider key and meters credits.
    * Absent = platform models can't send (they have no user key).

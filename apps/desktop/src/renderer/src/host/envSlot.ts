@@ -10,30 +10,30 @@ import { authHost } from "../auth";
 import type { Host } from "@openmasq/ui";
 
 /**
- * L'environnement d'exécution (production/staging) + sa bascule — la carte
- * « Environnement » de Réglages → Versions, et la pile AUTO-HÉBERGÉE qu'on y saisit.
+ * The runtime environment (production/staging) + its switch — the
+ * "Environment" card in Settings → Versions, and the SELF-HOSTED stack entered there.
  *
- * Hors de `main.tsx` parce que c'est le seul slot du `Host` qui porte une DÉCISION à
- * lui (trois gardes qui se composent), et parce que la composition racine doit rester
- * lisible d'un écran : ce qu'on y lit est la LISTE des capacités, pas comment l'une
- * d'elles se garde.
+ * Outside `main.tsx` because it's the only `Host` slot that carries a DECISION of its
+ * own (three composed guards), and because the root composition must stay
+ * readable in one screen: what's read there is the LIST of capabilities, not how one
+ * of them is guarded.
  *
- * Les trois gardes, dans l'ordre où elles tombent :
- * 1. `switchTo` absent du preload (non redémarré) ⇒ pas de carte du tout, jamais un throw.
- * 2. Un seul backend cuit ⇒ rien à basculer… SAUF si le build honore une pile
- *    auto-hébergée : c'est justement dans un build sans backend qu'on en saisit une.
- * 3. `setCustomStack` absent du preload ⇒ la carte s'affiche sans la pile saisie.
+ * The three guards, in the order they fall:
+ * 1. `switchTo` missing from preload (not restarted) ⇒ no card at all, never a throw.
+ * 2. Only one backend baked in ⇒ nothing to switch to… UNLESS the build honors a
+ *    self-hosted stack: that's precisely in a build without a backend that one is entered.
+ * 3. `setCustomStack` missing from preload ⇒ the card shows without the entered stack.
  *
- * ⚠️ Tout ce qui est ici est de l'AFFICHAGE. La décision revit en main
- * (`registerEnvIpc` / `registerCustomStackIpc`, fail-closed) : un renderer ne décide
- * de rien, et `stagingTester` ne fait que proposer ou non la bascule.
+ * ⚠️ Everything here is DISPLAY. The decision lives in main
+ * (`registerEnvIpc` / `registerCustomStackIpc`, fail-closed): a renderer decides
+ * nothing, and `stagingTester` only proposes the switch or not.
  */
 export function envSlot(): Host["env"] {
   return (BACKEND_CONFIGURED || CUSTOM_STACK_ALLOWED) && window.openmasq.env?.switchTo
     ? {
         name: RUNTIME_ENV,
-        // La pile saisie : proposée seulement si le build l'honore ET que le preload la
-        // sait écrire (un preload d'avant la fonctionnalité n'a pas la méthode).
+        // The entered stack: proposed only if the build honors it AND the preload
+        // knows how to write it (a preload from before the feature lacks the method).
         customStack:
           CUSTOM_STACK_ALLOWED && window.openmasq.env.setCustomStack
             ? {
@@ -46,14 +46,14 @@ export function envSlot(): Host["env"] {
           const token = (await authHost.getAccessToken?.().catch(() => null)) ?? undefined;
           return window.openmasq.env.switchTo(envName, token);
         },
-        // AFFICHAGE seulement (proposer ou non la bascule), fail-closed à false — la vraie
-        // garde revit en main au moment de basculer, et BACKEND_URL est bien la production.
+        // DISPLAY only (propose the switch or not), fail-closed to false — the real
+        // guard lives in main at switch time, and BACKEND_URL is indeed production.
         stagingTester: async () => {
           try {
             const token = await authHost.getAccessToken?.();
             if (!token) return false;
-            // `backendFetch`, jamais `fetch` : il porte l'identité du client — voir sa source.
-            const res = await backendFetch(`${BACKEND_URL}/api-features/users/me/flags`, {
+            // `backendFetch`, never `fetch`: it carries the client identity — see its source.
+            const res = await backendFetch(`${BACKEND_URL}/v1/flags`, {
               headers: { authorization: `Bearer ${token}` },
             });
             if (!res.ok) return false;

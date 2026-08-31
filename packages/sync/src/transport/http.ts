@@ -24,7 +24,7 @@ import type {
 import { createDeviceAuth } from "./deviceAuth";
 
 export interface HttpTransportOptions {
-  /** Backend origin, e.g. https://api.acme.test (no trailing /api-features). */
+  /** Backend origin, e.g. https://api.acme.test (no trailing /v1). */
   baseUrl: string;
   /** Current Supabase access token, or null when signed out. */
   getToken: () => Promise<string | null> | string | null;
@@ -41,15 +41,15 @@ export interface HttpTransportOptions {
    *  (`x-<slug>-device-token`, capability signed inside) instead of the bare id
    *  — the id is enumerable, the secret is not. Mint failure (older backend)
    *  falls back to the id header. */
-  /** ⚠️ Peut rendre une PROMESSE : sur le bureau le secret vit dans le magasin
-   *  chiffré du processus principal, pas en mémoire du renderer. */
+  /** ⚠️ Can return a PROMISE: on desktop the secret lives in the main process's
+   *  encrypted store, not in the renderer's memory. */
   getDeviceSecret?: () => string | null | Promise<string | null>;
   /** Override the global fetch (e.g. a Capacitor native HTTP shim). */
   fetch?: typeof fetch;
 }
 
 export function httpTransport(opts: HttpTransportOptions): SyncTransport & RecordTransport {
-  const root = opts.baseUrl.replace(/\/+$/, "") + "/api-features";
+  const root = opts.baseUrl.replace(/\/+$/, "") + "/v1";
   const doFetch = opts.fetch ?? globalThis.fetch.bind(globalThis);
   // Mint cache + cool-down live in `deviceAuth.ts` (shared with the org-scope
   // transport — one home, rule 9); per-transport state, never module-level.
@@ -119,13 +119,13 @@ export function httpTransport(opts: HttpTransportOptions): SyncTransport & Recor
     },
 
     async listOrgs(): Promise<OrgRef[]> {
-      // ⚠️ « Pas de jeton » (déconnecté, ou l'auth pas encore résolue au démarrage)
-      // doit lire comme INCONNU — jamais comme « aucune organisation ». Le `call`
-      // silencieux d'à côté rendait [], que `getOrgProfile` prenait pour un
-      // no-org JOIGNABLE : profil null + cache par compte EFFACÉ — un membre
-      // paraissait solo (carte « Créer une organisation », politique envolée)
-      // sur une simple course de démarrage. On JETTE, donc l'appelant garde la
-      // dernière bonne politique et réessaie.
+      // ⚠️ "No token" (signed out, or auth not yet resolved at startup)
+      // must read as UNKNOWN — never as "no organization". The silent `call`
+      // next door used to return [], which `getOrgProfile` took for a
+      // REACHABLE no-org: null profile + per-account cache CLEARED — a member
+      // appeared solo ("Créer une organisation" card, policy gone)
+      // over a mere startup race. We THROW, so the caller keeps the
+      // last good policy and retries.
       if (!(await opts.getToken())) throw new Error("[sync] signed out — org membership unknown");
       const out = await call<{ organizations: OrgRef[] }>("/organizations/me");
       return out?.organizations ?? [];

@@ -19,7 +19,7 @@ import type {
 } from "../orgScope/orgTypes";
 
 export function orgHttpTransport(opts: HttpTransportOptions): OrgScopeTransport {
-  const root = opts.baseUrl.replace(/\/+$/, "") + "/api-features";
+  const root = opts.baseUrl.replace(/\/+$/, "") + "/v1";
   const doFetch = opts.fetch ?? globalThis.fetch.bind(globalThis);
   const enc = encodeURIComponent;
 
@@ -62,14 +62,14 @@ export function orgHttpTransport(opts: HttpTransportOptions): OrgScopeTransport 
 
   return {
     async getMyMemberKey(): Promise<MemberKeyEnvelope | null> {
-      const out = await call<{ key: MemberKeyEnvelope | null }>("/sync/member-key", {
+      const out = await call<{ key: MemberKeyEnvelope | null }>("/sync/member-keyss", {
         headers: await dev(),
       });
       return out?.key ?? null;
     },
 
     async putMemberKey(envelope, replace): Promise<MemberKeyEnvelope> {
-      const out = await call<{ key: MemberKeyEnvelope }>("/sync/member-key", {
+      const out = await call<{ key: MemberKeyEnvelope }>("/sync/member-keyss", {
         method: "PUT",
         body: JSON.stringify({ key: envelope, replace: !!replace }),
         headers: await dev(),

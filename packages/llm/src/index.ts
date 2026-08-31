@@ -53,7 +53,7 @@ export async function* streamChat(
       );
     case "scaleway":
       // PLATFORM-PROVIDED: proxied by the platform's backend (OpenAI-compatible). The
-      // desktop injects baseUrl=<backend>/api-features/inference + the Supabase
+      // desktop injects baseUrl=<backend>/v1/inference + the Supabase
       // JWT as opts.apiKey — no provider key.
       return yield* streamOpenAI(
         opts,

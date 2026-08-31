@@ -45,13 +45,13 @@ import { BACKEND_CONFIGURED, BACKEND_URL } from "../appEnv";
 // thread-key presence, device ids, and operation names.
 const debug = Debug("openmasq:sync");
 
-// Same Vercel origin serves the SPA AND `/api-features/*` (root vercel.json).
-// L'origine et son défaut vivent dans `../appEnv` (LE seul lecteur d'import.meta.env).
+// Same Vercel origin serves the SPA AND `/v1/*` (root vercel.json).
+// The origin and its default live in `../appEnv` (THE only reader of import.meta.env).
 const BASE_URL = BACKEND_URL;
 
-/** Y a-t-il un backend dans ce build ? Réexporté depuis `appEnv` — un `!!BASE_URL`
- *  recomposé ici serait une seconde maison pour la même question (règle 9), et c'est
- *  précisément ce qui faisait passer un build SANS backend pour un build avec. */
+/** Is there a backend in this build? Re-exported from `appEnv` — a `!!BASE_URL`
+ *  recomposed here would be a second home for the same question (rule 9), and that's
+ *  precisely what made a build WITHOUT a backend pass for one that has one. */
 export const SYNC_ENABLED = BACKEND_CONFIGURED;
 
 /** Rename this device: persist the name locally (so future heartbeats keep it)
@@ -66,9 +66,9 @@ export async function setDeviceName(name: string): Promise<void> {
 // `where` can carry an org uuid suffix — stripped so `code` stays bounded.
 export function reportSyncError(where: string, err: unknown): void {
   debug("transport error @ %s: %s", where, err instanceof Error ? err.message : err);
-  // ⚠️ Une panne de DÉCHIFFREMENT réussit côté HTTP, donc le témoin du transport la
-  // manque et annonce « dernier échange réussi » sur une synchro morte. On la lui donne
-  // ici — c'est le seul endroit qui voit l'erreur elle-même.
+  // ⚠️ A DECRYPTION failure succeeds on the HTTP side, so the transport witness
+  // misses it and reports "last exchange successful" on a dead sync. We feed it
+  // here — it's the only place that sees the error itself.
   if (isCryptoFailure(err)) {
     recordCryptoFailure("la phrase secrète de cet appareil n’ouvre pas les données synchronisées");
   }
@@ -93,8 +93,8 @@ export function transportOptions(): HttpTransportOptions | null {
     getDeviceSecret: () => deviceSecret(),
     // Carry the Vercel deployment-protection bypass on the STAGING backend
     // (no-op in prod, which isn't protected) so sync/org calls aren't SSO-walled.
-    // Le témoin observe chaque issue (Réglages → Synchronisation) — la réponse
-    // repart intacte, le contrat best-effort ne change pas.
+    // The witness observes every outcome (Settings → Sync) — the response
+    // goes back out unchanged, the best-effort contract doesn't change.
     fetch: withExchangeWitness(backendFetch),
   };
 }
@@ -140,8 +140,8 @@ export function recordSync(): RecordSync | null {
   return recordsCached;
 }
 
-/** Confronter une phrase aux enveloppes déjà stockées côté serveur (Réglages → sync) —
- *  le signal immédiat qui manquait le 14/08 quand deux appareils divergeaient. */
+/** Check a passphrase against the envelopes already stored server-side (Settings → sync) —
+ *  the immediate signal that was missing on 14/08 when two devices diverged. */
 export async function checkPassphrase(p: string): Promise<PassphraseVerdict> {
   const t = transport();
   return t ? verifyPassphrase(t, p) : "unreachable";
@@ -243,7 +243,7 @@ export async function reportAudit(convs: Conversation[]): Promise<void> {
     const vault: Record<string, string> = {};
     const kinds: Record<string, string> = {};
     for (const [placeholder, original] of Object.entries(c.redactionVault ?? {})) {
-      // `seen` compare des EMPREINTES : le journal ne détient plus les valeurs.
+      // `seen` compares FINGERPRINTS: the ledger no longer holds the values.
       if (!original || (await reported.seen(original))) continue;
       vault[placeholder] = original;
       kinds[original] = c.redactionKinds?.[original] ?? "secret";

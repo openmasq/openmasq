@@ -1,6 +1,6 @@
 /**
  * Desktop INDIVIDUAL (per-person) billing host. Talks to the backend
- * `/api-features/subscriptions/*` with the signed-in Supabase token, and opens
+ * `/v1/account + /v1/billing/*` with the signed-in Supabase token, and opens
  * Stripe Checkout / portal URLs in the system browser. Best-effort: signed out or
  * no backend → getters return null. Org (per-seat) billing is administered in the
  * web console, not here.
@@ -28,7 +28,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T | null> {
       debug("api %s %s → null (signed out)", method, path);
       return null;
     }
-    const res = await backendFetch(`${BASE_URL}/api-features${path}`, {
+    const res = await backendFetch(`${BASE_URL}/v1${path}`, {
       ...init,
       headers: {
         "Content-Type": "application/json",
@@ -38,10 +38,10 @@ async function api<T>(path: string, init?: RequestInit): Promise<T | null> {
     });
     debug("api %s %s ← %d %s", method, path, res.status, res.ok ? "ok" : "non-ok");
     if (!res.ok) {
-      // Un ÉCHEC HTTP se rapporte comme un échec réseau — statut/chemin seulement,
-      // jamais le corps. Le trou mesuré le 07/08 : deux 502 de change-tier n'ont émis
-      // AUCUN événement (seul le réseau était capturé), pendant que l'avis rapportait
-      // ses 400 — l'incident ne s'est vu que parce que l'utilisateur est tombé dessus.
+      // An HTTP FAILURE is reported like a network failure — status/path only,
+      // never the body. The gap measured on 07/08: two change-tier 502s emitted
+      // NO event at all (only the network was captured), while feedback reported
+      // its 400s — the incident was only seen because a user ran into it.
       captureError({ scope: "billing", code: "http", status: res.status, message: path });
       return null;
     }
@@ -68,15 +68,15 @@ function openExternal(url: string): void {
 /** Send a billing ACTION and return the parsed body. Unlike `api`, this THROWS a
  *  user-facing Error on any failure (signed out, non-2xx, network) so the caller
  *  can surface it — an action that opens nothing must never fail silently.
- *  La MÉTHODE est un paramètre (le retrait d'un auto-octroi est un DELETE) : une
- *  seconde fonction jumelle aurait deux fois la même gestion d'erreur à tenir. */
+ *  The METHOD is a parameter (revoking a self-grant is a DELETE): a
+ *  second twin function would mean maintaining the same error handling twice over. */
 async function action<T>(path: string, body?: unknown, method: "POST" | "DELETE" = "POST"): Promise<T> {
   const token = (await authHost.getAccessToken?.()) ?? null;
   debug("action %s %s (token=%s)", method, path, token ? "présent" : "absent");
   if (!token) throw new BillingApiError(401);
   let res: Response;
   try {
-    res = await backendFetch(`${BASE_URL}/api-features${path}`, {
+    res = await backendFetch(`${BASE_URL}/v1${path}`, {
       method,
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
@@ -95,8 +95,8 @@ async function action<T>(path: string, body?: unknown, method: "POST" | "DELETE"
   if (!res.ok) {
     const detail = (await res.json().catch(() => null)) as { code?: string } | null;
     debug("action %s %s ✕ %d code=%s", method, path, res.status, detail?.code ?? "(none)");
-    // Même règle que `api` : l'échec HTTP d'une ACTION de paiement se rapporte —
-    // statut + chemin + code borné du backend, jamais le corps.
+    // Same rule as `api`: the HTTP failure of a payment ACTION is reported —
+    // status + path + the backend's bounded code, never the body.
     captureError({ scope: "billing", code: detail?.code ?? "http", status: res.status, message: path });
     throw new BillingApiError(res.status, detail?.code);
   }
@@ -106,7 +106,7 @@ async function action<T>(path: string, body?: unknown, method: "POST" | "DELETE"
 export const billingHost: BillingHost = {
   async getSubscription(): Promise<BillingSubscription | null> {
     debug("getSubscription");
-    const d = await api<{ subscription?: any } & Record<string, any>>("/subscriptions/me");
+    const d = await api<{ subscription?: any } & Record<string, any>>("/account");
     if (!d) {
       debug("getSubscription → null");
       return null;
@@ -117,22 +117,22 @@ export const billingHost: BillingHost = {
       status: s.subscription_status ?? s.status ?? "free",
       cancelAtPeriodEnd: s.cancel_at_period_end ?? false,
       currentPeriodEnd: s.current_period_end ?? undefined,
-      // Octroi (palier inclus / accès donné) plutôt que vente : décide si un changement de
-      // palier passe par la CAISSE ou par l'échange de prix Stripe. Absent ⇒ `false`, donc
-      // le comportement d'un vrai abonné — c'est celui qu'un backend plus ancien servait.
+      // Grant (included tier / given access) rather than a sale: decides whether a tier
+      // change goes through CHECKOUT or through a Stripe price swap. Absent ⇒ `false`, so
+      // the behavior of a real subscriber — that's what an older backend served.
       isGranted: s.is_granted === true,
-      // Se lit à la RACINE de la réponse, pas sur l'abonnement : c'est une capacité du
-      // déploiement, pas une propriété du compte. Absent ⇒ `undefined`, que l'UI lit
-      // comme « inconnu, laisse le bouton » (cf. `BillingSubscription`).
+      // Read at the ROOT of the response, not on the subscription: it's a deployment
+      // capability, not an account property. Absent ⇒ `undefined`, which the UI reads
+      // as "unknown, leave the button" (see `BillingSubscription`).
       billingEnabled: typeof d.billing_enabled === "boolean" ? d.billing_enabled : undefined,
-      // Même lecture, même raison : le mode testeur est une capacité du DÉPLOIEMENT.
-      // Absent ⇒ `undefined` ⇒ l'offre normale, jamais un bouton « S'octroyer » sur un
-      // backend qui refuserait — ici l'inconnu se lit comme éteint, à l'inverse de
-      // `billingEnabled` : proposer un octroi qui n'existe pas est un bouton MORT.
+      // Same read, same reason: tester mode is a DEPLOYMENT capability.
+      // Absent ⇒ `undefined` ⇒ the normal offer, never a "Grant myself" button on a
+      // backend that would refuse it — here the unknown reads as off, the opposite of
+      // `billingEnabled`: offering a grant that doesn't exist is a DEAD button.
       selfGrantEnabled: d.self_grant_enabled === true,
-      // Même famille : une capacité du déploiement, à la racine, et l'inconnu se lit
-      // ÉTEINT — promettre « tout inclus » à qui la passerelle répondra 402 est le pire
-      // des deux mensonges.
+      // Same family: a deployment capability, at the root, and the unknown reads
+      // as OFF — promising "all included" to someone the gateway will answer 402 is the worse
+      // of the two lies.
       freeMode: d.free_mode === true,
     };
     debug("getSubscription → tier=%s status=%s cancelAtEnd=%s", sub.tier, sub.status, sub.cancelAtPeriodEnd);
@@ -141,7 +141,7 @@ export const billingHost: BillingHost = {
 
   async getCredits(): Promise<CreditBalance | null> {
     debug("getCredits");
-    const d = await api<{ credits?: any } & Record<string, any>>("/subscriptions/credits");
+    const d = await api<{ credits?: any } & Record<string, any>>("/billing/credits");
     if (!d) {
       debug("getCredits → null");
       return null;
@@ -169,7 +169,7 @@ export const billingHost: BillingHost = {
     // `origin` tells the backend which surface to send the user back to — here the
     // web bounce page that deep-links into this app. It is an allow-listed SURFACE
     // name, never a URL: the server owns the destination.
-    const d = await action<{ checkout_url?: string; url?: string }>("/subscriptions/checkout", {
+    const d = await action<{ checkout_url?: string; url?: string }>("/billing/checkout", {
       tier,
       origin: "desktop",
     });
@@ -181,8 +181,8 @@ export const billingHost: BillingHost = {
   },
 
   async isTester(): Promise<boolean> {
-    // Le drapeau voyage sur `/subscriptions/me` (une seule route lue par l'app) : on ne
-    // rouvre pas un aller-retour pour lui. Fail-closed — toute panne vaut « éteint ».
+    // The flag travels on `/account` (a single route the app reads): we don't
+    // open a separate round trip for it. Fail-closed — any failure counts as "off".
     try {
       const sub = await billingHost.getSubscription();
       return sub?.selfGrantEnabled === true;
@@ -192,16 +192,16 @@ export const billingHost: BillingHost = {
   },
 
   async selfGrant(tier: string): Promise<void> {
-    // L'auto-octroi : aucun Stripe, aucun navigateur — le palier est posé côté serveur,
-    // qui relit l'interrupteur global lui-même. Jette un message lisible en cas de refus.
+    // Self-grant: no Stripe, no browser — the tier is set server-side,
+    // which reads the global switch itself. Throws a readable message on refusal.
     debug("selfGrant tier=%s", tier);
-    await action<{ ok: boolean; tier: string }>("/subscriptions/self-grant", { tier });
+    await action<{ ok: boolean; tier: string }>("/billing/grant", { tier });
     debug("selfGrant → done");
   },
 
   async selfRevoke(): Promise<void> {
     debug("selfRevoke");
-    await action<{ ok: boolean }>("/subscriptions/self-grant", undefined, "DELETE");
+    await action<{ ok: boolean }>("/billing/grant", undefined, "DELETE");
     debug("selfRevoke → done");
   },
 
@@ -210,7 +210,7 @@ export const billingHost: BillingHost = {
     // swap (prorated), no browser round-trip. Throws a user-facing message on
     // failure (surfaced by the UI); the caller refreshes on success.
     debug("changeTier tier=%s", tier);
-    await action<{ tier: string; changed: boolean }>("/subscriptions/change-tier", { tier });
+    await action<{ tier: string; changed: boolean }>("/billing/change-tier", { tier });
     debug("changeTier → done");
   },
 
@@ -224,7 +224,7 @@ export const billingHost: BillingHost = {
   async openPortal(): Promise<void> {
     // The backend returns `portal_url` (Stripe Billing Portal URL).
     debug("openPortal");
-    const d = await action<{ portal_url?: string; url?: string }>("/subscriptions/portal", { origin: "desktop" });
+    const d = await action<{ portal_url?: string; url?: string }>("/billing/portal", { origin: "desktop" });
     const url = d.portal_url ?? d.url;
     debug("openPortal portal_url=%s", url ? "présent" : "absent");
     if (!url) throw new BillingApiError(500);
