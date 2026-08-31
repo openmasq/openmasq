@@ -17,6 +17,7 @@ import {
   type WireEntry,
 } from "./entryText";
 
+import { useT } from "../../../i18n";
 /** Render text with redacted tokens highlighted — shared by wire + tool entries.
  *  Each mark carries `data-real`/`data-fake`/`data-kind`/`data-tone` so the shared
  *  `RedactionInlineReveal` (mounted over the log body) hover-reveals the ORIGINAL
@@ -82,11 +83,12 @@ function Wire({ e }: { e: WireEntry }) {
 
 /** Small per-entry copy button (stops the copy-all propagation). */
 function CopyButton({ text }: { text: string }) {
+  const t = useT();
   const [done, setDone] = useState(false);
   return (
     <button
       className="dbg-copy"
-      title="Copier cette entrée"
+      title={t.modals.debug.copyEntry}
       onClick={async (ev) => {
         ev.stopPropagation();
         try {

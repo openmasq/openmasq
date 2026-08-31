@@ -135,6 +135,7 @@ export const redactionCatalog = {
   modified: "modifié",
   detailAria: (label) => `Détail — ${label}`,
   detailTip: "Voir ce que cette catégorie couvre",
+  neutralKind: "élément",
   allOn: "Tout activer",
   allOff: "Tout désactiver",
   reset: "Réinitialiser — hériter des réglages par défaut",

@@ -4,6 +4,7 @@ import { parseDocx } from "./parseDocx";
 import { DocxRender } from "./DocxRender";
 import type { DocxDoc } from "./docxModel";
 
+import { useT } from "../../../../i18n";
 // Faithful .docx preview. Parses the OOXML ourselves (`parseDocx`) into a typed model
 // and renders it with React (`DocxRender`) — see `docxModel.ts` for why a closed model
 // rather than a sanitised HTML string.
@@ -13,6 +14,7 @@ import type { DocxDoc } from "./docxModel";
 // read, rendered and forgotten — nothing here writes to disk or the DB.
 
 export function DocxViewer({ bytes }: { bytes: Uint8Array }) {
+  const t = useT();
   const [doc, setDoc] = useState<DocxDoc | null | "error">(null);
 
   useEffect(() => {
@@ -31,6 +33,6 @@ export function DocxViewer({ bytes }: { bytes: Uint8Array }) {
   }, [bytes]);
 
   if (doc === null) return <FileSkeleton variant="doc" />;
-  if (doc === "error") return <div className="fv-status">Document illisible.</div>;
+  if (doc === "error") return <div className="fv-status">{t.viewers.unreadableDocument}</div>;
   return <DocxRender doc={doc} />;
 }

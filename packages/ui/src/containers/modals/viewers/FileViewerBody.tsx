@@ -13,6 +13,7 @@ import { Markdown } from "../../../components/markdown/Markdown";
 import { CSV, CSV_EXT, tileLabel, type FileViewerKind } from "./fileKind";
 import { useDisplayReplacements } from "./doc/displayReplacements";
 
+import { useT } from "../../../i18n";
 export type LoadedFile = {
   name: string;
   mime: string;
@@ -57,6 +58,7 @@ export function FileViewerBody({
   /** Present when the platform can hand the file to the OS (`host.db.openFile`). */
   onOpenExternal?: () => void;
 }) {
+  const t = useT();
   const textRef = useRef<HTMLElement>(null); // inert active-hit ref (search-less text page)
   // Images render as a plain <img> from a `data:` URL — the FULL native resolution,
   // crisp at any device-pixel-ratio.
@@ -87,7 +89,7 @@ export function FileViewerBody({
   if (data === null) {
     return <FileSkeleton variant={kind === "image" ? "image" : kind === "sheet" ? "sheet" : "doc"} />;
   }
-  if (data === "error") return <div className="fv-status">Fichier introuvable.</div>;
+  if (data === "error") return <div className="fv-status">{t.viewers.fileNotFound}</div>;
   if (kind === "image") {
     // Un scan redacted se montre REDACTED quand on a de quoi le peindre (boîtes OCR +
     // carte du dépôt) — l'original nu reste l'onglet Aperçu, et le repli si la peinture
@@ -132,10 +134,10 @@ export function FileViewerBody({
   return (
     <div className="fv-fallback">
       <div className="fv-fallback-badge">{tileLabel(kind, name)}</div>
-      <p>L'aperçu n'est pas disponible pour ce format dans l'app.</p>
+      <p>{t.viewers.noPreviewForFormat}</p>
       {onOpenExternal && (
         <button className="btn-primary btn-inline" onClick={onOpenExternal}>
-          Ouvrir le fichier
+          {t.viewers.openFile}
         </button>
       )}
     </div>

@@ -10,6 +10,7 @@ import { debugJournalDraft } from "../../../avis/avis";
 import { matchesQuery, toText } from "./entryText";
 import { Row } from "./parts";
 
+import { useT } from "../../../i18n";
 type Filter = "all" | "phase" | "wire" | "turn" | "tool" | "error";
 const TABS: { id: Filter; label: string }[] = [
   { id: "all", label: "Tout" },
@@ -29,6 +30,7 @@ const TABS: { id: Filter; label: string }[] = [
  * read-only over the log body — a developer view has no per-conversation reveal action).
  */
 export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId?: string | null }) {
+  const t = useT();
   const entries = useSyncExternalStore(subscribeDebugLog, getDebugLog);
   const { openAvis } = useAvisOpen();
   const [filter, setFilter] = useState<Filter>("all");
@@ -72,28 +74,28 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
   return (
     <ModalShell onClose={onClose} width="620px" maxHeight="86vh">
       <div className="rrm-head">
-        <div className="cv-eyebrow rrm-eyebrow">DÉVELOPPEUR</div>
-        <h2 className="cv-display rrm-title">Journal de débogage</h2>
+        <div className="cv-eyebrow rrm-eyebrow">{t.modals.debug.eyebrow}</div>
+        <h2 className="cv-display rrm-title">{t.modals.debug.title}</h2>
         {/* Le détail de ce que contient le journal était une phrase de quatre lignes qui
             RÉÉNUMÉRAIT les filtres juste en dessous (Wire, Échanges, Outils, Erreurs).
             Ce qu'elle disait et que rien d'autre ne dit : c'est le RÉEL, et c'est scopé à
             cette conversation. */}
         <p className="rrm-sub">
-          Ce qui a réellement été envoyé et reçu pour <strong>cette conversation</strong> —{" "}
-          {/* Le pluriel français part à DEUX : « 0 entrée », pas « 0 entrées ». */}
-          {convEntries.length} entrée{convEntries.length > 1 ? "s" : ""}.
+          {t.modals.debug.subLead}
+          <strong>{t.modals.debug.thisConversation}</strong>
+          {t.modals.debug.subCount(convEntries.length)}
         </p>
         <div className="dbg-search">
           <SearchIcon size={14} />
           <input
             type="text"
             className="dbg-search-input"
-            placeholder="Rechercher (valeur réelle ou redacted, outil, erreur…)"
+            placeholder={t.modals.debug.searchPlaceholder}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           {query && (
-            <button className="dbg-search-clear" title="Effacer" onClick={() => setQuery("")}>
+            <button className="dbg-search-clear" title={t.modals.debug.clearSearch} onClick={() => setQuery("")}>
               <XIcon size={13} />
             </button>
           )}
@@ -116,40 +118,40 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
         <div className="dbg-actions">
           <button
             className="dbg-action"
-            title="Copie le journal complet, mapping redacted → original inclus (valeurs réelles — pour vos yeux)"
+            title={t.modals.debug.copyFullTip}
             onClick={() => copy("full")}
           >
             {copied === "full" ? <CheckIcon size={13} /> : <CopyIcon size={13} />}
-            {copied === "full" ? "Copié" : "Copier (réel)"}
+            {copied === "full" ? t.modals.debug.copied : t.modals.debug.copyFull}
           </button>
           <button
             className="dbg-action"
-            title="Copie le journal SANS le mapping redacted → original (aucune valeur réelle) — sûr à partager"
+            title={t.modals.debug.copyNoMapTip}
             onClick={() => copy("nomap")}
           >
             {copied === "nomap" ? <CheckIcon size={13} /> : <CopyIcon size={13} />}
-            {copied === "nomap" ? "Copié" : "Sans mapping"}
+            {copied === "nomap" ? t.modals.debug.copied : t.modals.debug.copyNoMap}
           </button>
           {/* Vider ne touche QUE cette conversation (`convId ?? undefined` → tout quand
               aucune n'est ciblée) : jamais l'activité d'un autre onglet. */}
           <button
             className="dbg-action"
-            title="Vider le journal de cette conversation"
+            title={t.modals.debug.clearTip}
             onClick={() => clearDebugLog(convId ?? undefined)}
           >
-            <XIcon size={13} /> Vider
+            <XIcon size={13} /> {t.modals.debug.clear}
           </button>
           <span className="dbg-actions-spacer" />
           {openAvis && (
             <button
               className="dbg-action primary"
-              title="Ouvre « Votre avis » avec le journal SANS mapping joint — vous le voyez avant l'envoi"
+              title={t.modals.debug.sendToDevsTip}
               onClick={() => {
                 openAvis(debugJournalDraft(toText([...shown].reverse(), { mapping: false })));
                 onClose();
               }}
             >
-              <SendIcon size={13} /> Envoyer aux devs
+              <SendIcon size={13} /> {t.modals.debug.sendToDevs}
             </button>
           )}
         </div>

@@ -7,6 +7,7 @@ import { categoriesForLevel, levelOf } from "../../../privacy/privacyLevel";
 import type { Conversation, RedactCategoryKey, Settings } from "../../../types";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../../i18n";
 /* Redaction rules. Two scopes when a conversation is given: "Cette conversation" edits a
    sparse per-chat override (inherits the global default for untouched categories);
    "Par défaut" edits the global settings.
@@ -41,6 +42,7 @@ export function RedactionRulesModal({
    *  member can't disable them). Rendered with a 🔒 "Organisation" tag. */
   forcedCategories?: string[];
 }) {
+  const t = useT();
   const forced = new Set(forcedCategories ?? []);
   const perConv = !!(conversation && onChangeConversation);
   const [tab, setTab] = useState<"conversation" | "default">(
@@ -64,22 +66,22 @@ export function RedactionRulesModal({
   return (
     <ModalShell onClose={onClose} width="580px" maxHeight="86vh">
       <div className="rrm-head">
-        <div className="cv-eyebrow rrm-eyebrow">REDACTION</div>
+        <div className="cv-eyebrow rrm-eyebrow">{t.modals.redactionRules.eyebrow}</div>
         <h2 className="cv-display rrm-title">
-          Règles de <span className="rrm-hl">redaction</span>
+          {t.modals.redactionRules.titleLead}<span className="rrm-hl">{t.modals.redactionRules.titleHighlight}</span>
         </h2>
         <p className="rrm-sub">
-          Les catégories activées sont retirées de vos messages avant qu'un modèle ne les voie.
+          {t.modals.redactionRules.sub}
         </p>
       </div>
 
       {perConv && (
         <div className="rrm-tabs">
           <button className={onConvTab ? "on" : ""} onClick={() => setTab("conversation")}>
-            Cette conversation
+            {t.modals.redactionRules.thisConversation}
           </button>
           <button className={!onConvTab ? "on" : ""} onClick={() => setTab("default")}>
-            Par défaut
+            {t.modals.redactionRules.byDefault}
           </button>
         </div>
       )}
@@ -117,11 +119,9 @@ export function RedactionRulesModal({
               onChange={(on) => onMemoryOff(!on)}
             />
             <span className="rrm-memory-text">
-              <strong>Mémoire dans cette conversation</strong>
+              <strong>{t.modals.redactionRules.memoryTitle}</strong>
               <span>
-                Coupée : rien de votre mémoire n'accompagne les envois d'ici, le modèle ne
-                peut pas la consulter, et {BRAND.name} n'y note rien de lui-même. « Retiens
-                que… » reste possible — c'est votre demande.
+                {t.modals.redactionRules.memoryDesc(BRAND.name)}
               </span>
             </span>
           </label>

@@ -13,6 +13,14 @@ export interface ModalsMessages {
     theModel: string;
     close: string;
     empty: string;
+    /** Les en-têtes SUIVENT le rôle : sur une réponse, « ce que vous avez écrit » serait faux. */
+    youWrote: string;
+    youRead: string;
+    modelReceived: string;
+    modelWrote: string;
+    yourMessage: string;
+    reply: string;
+    swapped: (count: number) => string;
   };
 
   /** Le message BRUT d'un fournisseur ou d'un outil — jamais ajouté à la conversation. */
@@ -72,8 +80,97 @@ export interface ModalsMessages {
     attachContext: string;
     attachContextSub: string;
     attachJournal: string;
+    attachJournalSub: string;
+    confidential: string;
     /** Les humeurs et les types de retour : le glyphe et l'id restent au code. */
     moods: { love: string; ok: string; meh: string };
     categories: { idea: string; bug: string; love: string; other: string };
+  };
+
+  /** La clé d'un fournisseur — collée, ou obtenue en un clic. */
+  apiKey: {
+    eyebrow: string;
+    title: (provider: string) => string;
+    sub: string;
+    alreadySaved: (provider: string) => string;
+    connectTip: (brand: string, provider: string) => string;
+    authorizing: string;
+    getNewKey: string;
+    getFreeKey: string;
+    orPaste: string;
+    whereToFind: (provider: string) => string;
+    getMyKey: string;
+    keyLabel: (provider: string) => string;
+    getOne: string;
+    removeKey: string;
+  };
+
+  /** Le journal de débogage — le RÉEL de cette conversation. */
+  debug: {
+    eyebrow: string;
+    title: string;
+    /** « Ce qui a réellement été envoyé et reçu pour CETTE conversation — N entrées. » */
+    subLead: string;
+    thisConversation: string;
+    subCount: (count: number) => string;
+    searchPlaceholder: string;
+    clearSearch: string;
+    copyFullTip: string;
+    copyFull: string;
+    copyNoMapTip: string;
+    copyNoMap: string;
+    copied: string;
+    clearTip: string;
+    clear: string;
+    sendToDevsTip: string;
+    sendToDevs: string;
+    copyEntry: string;
+    /** Les étiquettes d'une entrée et le texte copié. */
+  };
+
+  /** L'aide, et ses notes de version. */
+  guide: { helpCenter: string; themes: string; noReleases: string };
+
+  /** L'import des compétences de Claude Code. */
+  importSkills: {
+    eyebrow: string;
+    title: string;
+    sub: (brandOfSource: string) => string;
+    reading: string;
+    dropTitle: string;
+    nothingFound: string;
+  };
+
+  /** « Comment accéder à ce modèle ? » */
+  modelAccess: {
+    eyebrow: string;
+    freeModels: string;
+    includedModels: string;
+    freeDescSold: (brand: string) => string;
+    freeDescServed: (brand: string) => string;
+    subscription: (brand: string) => string;
+    subscriptionDesc: (brand: string) => string;
+    subscriptionCovers: string;
+    subscriptionCoversDesc: string;
+    ownKey: string;
+    ownKeyDesc: (soldSuffix: string) => string;
+    ownKeyWithoutCredits: string;
+    ownKeyStatic: string;
+    openRouterNote: (brand: string) => string;
+  };
+
+  /** Les en-têtes de groupe de ⌘K, et l'état d'une conversation qui génère. */
+  searchRows: { goTo: string; files: string; settings: string; generating: string };
+
+  /** Les règles de redaction : le cadre autour des puces. */
+  redactionRules: {
+    eyebrow: string;
+    titleLead: string;
+    titleHighlight: string;
+    sub: string;
+    thisConversation: string;
+    byDefault: string;
+    memoryTitle: string;
+    memoryDesc: (brand: string) => string;
   };
 }

@@ -5,6 +5,7 @@ import type { SettingsDestination } from "../../../pages/Settings/settingsIndex"
 import type { LibFile } from "../../../pages/Library/libFile";
 import { FILE_ICON, SECTION_ROW_ICON } from "./rowMeta";
 
+import { useT } from "../../../i18n";
 /**
  * The palette's non-conversation result groups. Pure presentation: each takes its rows,
  * the running keyboard index and the highlight, and reports clicks upward — the ordering
@@ -31,10 +32,11 @@ export function SectionRows({
   setActive,
   onGo,
 }: GroupProps<SectionDestination> & { onGo: (id: SectionDestination["id"]) => void }) {
+  const t = useT();
   if (!items.length) return null;
   return (
     <div>
-      <div className="cv-eyebrow">Aller à</div>
+      <div className="cv-eyebrow">{t.modals.searchRows.goTo}</div>
       {items.map((s, i) => {
         const idx = from + i;
         const isActive = idx === activeIdx;
@@ -66,10 +68,11 @@ export function FileRows({
   setActive,
   onOpen,
 }: GroupProps<LibFile> & { onOpen: (f: LibFile) => void }) {
+  const t = useT();
   if (!items.length) return null;
   return (
     <div>
-      <div className="cv-eyebrow">Fichiers</div>
+      <div className="cv-eyebrow">{t.modals.searchRows.files}</div>
       {items.map((f, i) => {
         const idx = from + i;
         const isActive = idx === activeIdx;
@@ -101,10 +104,11 @@ export function SettingsRows({
   setActive,
   onOpen,
 }: GroupProps<SettingsDestination> & { onOpen: (id: string) => void }) {
+  const t = useT();
   if (!items.length) return null;
   return (
     <div>
-      <div className="cv-eyebrow">Réglages</div>
+      <div className="cv-eyebrow">{t.modals.searchRows.settings}</div>
       {items.map((d, i) => {
         const idx = from + i;
         const isActive = idx === activeIdx;

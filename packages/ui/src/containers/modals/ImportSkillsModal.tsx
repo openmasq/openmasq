@@ -8,6 +8,7 @@ import { parseSkills, type ParsedSkill } from "../../import/claudeSkills";
 import { skillsFromDrop } from "../../import/dropSkills";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../i18n";
 /** Ce que l'écran renvoie : une compétence, ou un workflow, au choix de l'utilisateur. */
 export interface SkillImportChoice {
   name: string;
@@ -38,6 +39,7 @@ export function ImportSkillsModal({
   onImport: (items: SkillImportChoice[]) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const host = useHost();
   const listSkills = host.claudeSkills?.list;
   const [found, setFound] = useState<ParsedSkill[] | null>(null);
@@ -119,11 +121,10 @@ export function ImportSkillsModal({
   return (
     <ModalShell onClose={onClose} width="620px">
       <div className="rrm-head">
-        <div className="cv-eyebrow rrm-eyebrow">DEPUIS CLAUDE</div>
-        <ModalTitle>Importer mes compétences</ModalTitle>
+        <div className="cv-eyebrow rrm-eyebrow">{t.modals.importSkills.eyebrow}</div>
+        <ModalTitle>{t.modals.importSkills.title}</ModalTitle>
         <p className="rrm-sub">
-          Celles que Claude Code garde sur cet appareil, ou un dossier que vous déposez ici.
-          Rien ne sort de la machine, et rien n'est modifié chez Claude.
+          {t.modals.importSkills.sub("Claude Code")}
         </p>
       </div>
 
@@ -139,19 +140,19 @@ export function ImportSkillsModal({
         {found === null ? (
           <div className="imp-loading">
             <BrandLoader size={22} mono />
-            <span>Lecture des compétences…</span>
+            <span>{t.modals.importSkills.reading}</span>
           </div>
         ) : found.length === 0 ? (
           <div className="imp-drop">
             <FolderIcon size={26} />
-            <p className="imp-drop-title">Déposez vos compétences ici</p>
+            <p className="imp-drop-title">{t.modals.importSkills.dropTitle}</p>
             <p className="imp-drop-sub">
               Le dossier <code>.claude/skills</code>, une compétence seule, un fichier
               <code>.md</code>, ou le <code>.zip</code> téléversé sur claude.ai.
             </p>
             {failed ? null : (
               <p className="imp-drop-scan">
-                Rien trouvé automatiquement sur cet appareil.
+                {t.modals.importSkills.nothingFound}
               </p>
             )}
           </div>
@@ -208,7 +209,7 @@ export function ImportSkillsModal({
 
       <div className="confirm-footer">
         <button className="btn-ghost btn-inline" onClick={onClose}>
-          Annuler
+          {t.common.cancel}
         </button>
         <button
           className="btn-primary btn-inline"

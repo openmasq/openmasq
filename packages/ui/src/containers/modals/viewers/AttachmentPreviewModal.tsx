@@ -397,8 +397,8 @@ export function AttachmentPreviewModal({
   // La ligne d'en-tête, à TROIS états de premier rang (en cours / échec / compte
   // PROUVÉ) — le pourquoi vit sur `previewStatus` (doc/docSummary.ts), testé.
   const status = useMemo(
-    () => previewStatus({ redacting, redactProgress, redactError, replacements: file.replacements }),
-    [redacting, redactProgress, redactError, file.replacements],
+    () => previewStatus({ redacting, redactProgress, redactError, replacements: file.replacements }, t),
+    [redacting, redactProgress, redactError, file.replacements, t],
   );
 
   const views = previewViews(shape, file, t);
@@ -416,7 +416,7 @@ export function AttachmentPreviewModal({
     <ModalShell onClose={onClose} width="min(1200px, 94vw)" maxHeight="90vh">
       <div className="fv-corner">
         {views.length > 1 && <DocViewMenu views={views} view={view} onPick={setView} />}
-        <button type="button" className="fv-close fv-close-x" onClick={onClose} title="Fermer (Échap)" aria-label="Fermer">
+        <button type="button" className="fv-close fv-close-x" onClick={onClose} title={t.viewers.closeTip} aria-label={t.viewers.close}>
           <XIcon size={18} />
         </button>
       </div>
@@ -492,7 +492,7 @@ export function AttachmentPreviewModal({
                   key={value}
                   type="button"
                   className={`detect-chip hl-${hue} kept`}
-                  title="Gardée en clair — envoyée telle quelle au modèle. Cliquer pour re-redact."
+                  title={t.viewers.keptClearTip}
                   onClick={() => toggleReveal(value)}
                 >
                   <ShieldIcon size={11} />
@@ -503,7 +503,7 @@ export function AttachmentPreviewModal({
             })}
             {revealed.size > 1 && (
               <button className="btn-ghost btn-inline" onClick={() => onRevealChange([])}>
-                Tout re-redact
+                {t.viewers.reRedactAll}
               </button>
             )}
           </div>
@@ -516,7 +516,7 @@ export function AttachmentPreviewModal({
           bytes === null ? (
             <FileSkeleton variant={isImage ? "image" : isSheet ? "sheet" : "doc"} />
           ) : bytes === "error" ? (
-            <div className="fv-status">Impossible de lire le fichier.</div>
+            <div className="fv-status">{t.viewers.unreadableFile}</div>
           ) : view === "image" ? (
             <div className="fv-image">
               <div className="fv-imgwrap" ref={imgWrapRef}>
@@ -587,8 +587,7 @@ export function AttachmentPreviewModal({
           </>
         ) : (
           <div className="fv-status">
-            Aucun texte n'a pu être extrait de ce fichier (image sans texte, PDF
-            scanné non reconnu…).
+            {t.viewers.noTextExtracted}
           </div>
         )}
       </div>
@@ -599,17 +598,17 @@ export function AttachmentPreviewModal({
           to the "Redacted" text view to hand-redact a value the detector missed. */}
       {canForce ? (
         <div className="fv-footbar" role="note">
-          <ShieldIcon size={12} /> Sélectionnez une valeur pour la redact manuellement
+          <ShieldIcon size={12} /> {t.viewers.selectToRedact}
         </div>
       ) : !!onForceRedact && !!file.text && (view === "pdf" || view === "rich" || view === "image") ? (
         <div className="fv-footbar" role="note">
           <ShieldIcon size={12} />
           <span>
-            Une valeur n'a pas été masquée ? Cliquez dessus dans le document, ou passez à la vue{" "}
+            {t.viewers.missedValueLead}
             <button type="button" className="fv-hint-link" onClick={() => setView("redacted")}>
-              Redacted
-            </button>{" "}
-            et sélectionnez-la pour la redact à la main.
+              {t.docViews.redacted}
+            </button>
+            {t.viewers.missedValueTail}
           </span>
         </div>
       ) : null}

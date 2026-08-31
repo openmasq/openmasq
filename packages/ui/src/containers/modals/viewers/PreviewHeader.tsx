@@ -4,6 +4,7 @@ import { DocSearchBar } from "./doc/DocSearchBar";
 import type { useDocSearch } from "./doc/useDocSearch";
 import type { PreviewStatus } from "./doc/docSummary";
 
+import { useT } from "../../../i18n";
 /**
  * The preview modal's header block: eyebrow, filename, the STATUS subtitle and the
  * search / re-redact toolbar. Extracted from `AttachmentPreviewModal` (over the LOC
@@ -34,11 +35,12 @@ export function PreviewHeader({
   redacting?: boolean;
   onRerun?: () => void;
 }) {
+  const t = useT();
   const [detailOpen, setDetailOpen] = useState(false);
-  const line = `${chars.toLocaleString()} caractères extraits · ${status.label}`;
+  const line = t.viewers.extracted(chars.toLocaleString(t.common.intlTag), status.label);
   return (
     <div className="rrm-head fv-head">
-      <div className="cv-eyebrow rrm-eyebrow">FICHIER · APERÇU</div>
+      <div className="cv-eyebrow rrm-eyebrow">{t.viewers.eyebrow}</div>
       <h2 className="cv-display rrm-title fv-title fv-title-caption">{name}</h2>
       {status.detail ? (
         <button
@@ -61,11 +63,11 @@ export function PreviewHeader({
           {showSearch && <DocSearchBar search={search} />}
           {showRerun && (
             <div className="fv-reredact">
-              <span className="fv-stale-hint" title="Redacted avec vos anciens réglages">
-                <ShieldIcon size={12} /> Anciens réglages
+              <span className="fv-stale-hint" title={t.viewers.staleTip}>
+                <ShieldIcon size={12} /> {t.viewers.staleChip}
               </span>
               <button className="btn-ghost btn-inline" onClick={onRerun} disabled={redacting}>
-                <RefreshIcon size={13} /> {redacting ? "Reredaction…" : "Reredact"}
+                <RefreshIcon size={13} /> {redacting ? t.viewers.rerunning : t.viewers.rerun}
               </button>
             </div>
           )}

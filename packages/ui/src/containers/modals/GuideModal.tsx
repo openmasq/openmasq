@@ -56,13 +56,13 @@ export function GuideModal({
           target="_blank"
           rel="noreferrer noopener"
         >
-          <span>Centre d&apos;aide complet</span>
+          <span>{t.modals.guide.helpCenter}</span>
           <ArrowRightIcon size={15} />
         </a>
       </div>
 
       <div className="guide-layout">
-        <nav className="guide-nav" aria-label="Thèmes du guide">
+        <nav className="guide-nav" aria-label={t.modals.guide.themes}>
           {chapters.map((c) => (
             <button
               key={c.id}

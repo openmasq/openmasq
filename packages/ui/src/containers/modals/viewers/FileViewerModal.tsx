@@ -8,6 +8,7 @@ import { Switch } from "../../../components/brand";
 import { storedKinds, storedReplacements } from "./pdf/storedReplacements";
 import { fmtSize, kindOf, maskedLabels, tileLabel } from "./fileKind";
 
+import { useT } from "../../../i18n";
 type Loaded = LoadedFile;
 
 /**
@@ -79,6 +80,7 @@ export function FileViewerModal({
   /** État INITIAL de la bascule Redacted ⇄ Original (défaut : redacted). */
   redacted?: boolean;
 }) {
+  const t = useT();
   const host = useHost();
   const [data, setData] = useState<Loaded | null | "error">(null);
   // "redacted" (the document) | an extra tab's id. No longer a VERSION choice — the
@@ -179,13 +181,13 @@ export function FileViewerModal({
           </button>
         )}
         {openExternal && (
-          <IconButton size="sm" label="Ouvrir dans l'app externe" onClick={openExternal}>
+          <IconButton size="sm" label={t.viewers.openExternal} onClick={openExternal}>
             <DownloadIcon size={16} />
           </IconButton>
         )}
         {/* Panel mode (kit): NO close button — the rail's tab ✕ owns closing. */}
         {!panel && (
-          <button type="button" className="fv-close" onClick={onClose} title="Fermer (Échap)" aria-label="Fermer">
+          <button type="button" className="fv-close" onClick={onClose} title={t.viewers.closeTip} aria-label={t.viewers.close}>
             <XIcon size={20} />
           </button>
         )}
@@ -198,10 +200,10 @@ export function FileViewerModal({
         <div className="fv-tabs">
           <button
             className={`fv-tab ${tab === "redacted" ? "on" : ""}`}
-            title="La version partagée aux modèles"
+            title={t.viewers.sharedVersion}
             onClick={() => setTab("redacted")}
           >
-            <ShieldIcon size={13} /> Document
+            <ShieldIcon size={13} /> {t.viewers.documentTab}
           </button>
           {(extraTabs ?? []).map((t) => (
             <button
@@ -237,7 +239,7 @@ export function FileViewerModal({
               {/* Un <span>, pas un <label> : le Switch est un button[role=switch], qu'un
                   label ne relaie pas — le mot est une étiquette, l'interrupteur le geste. */}
               <span className="fv-seg-toggle">
-                Redacted
+                {t.viewers.redactedToggle}
                 <Switch checked={showRedacted} onChange={setShowRedacted} />
               </span>
             </div>

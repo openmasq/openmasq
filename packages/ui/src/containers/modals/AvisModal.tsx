@@ -214,8 +214,7 @@ export function AvisModal({
                   <span>
                     <span className="om-avis-attach-title">{t.modals.avis.attachJournal}</span>
                     <span className="om-avis-attach-sub">
-                      Le texte parti au modèle (déjà redacted), les outils et les erreurs — sans la
-                      table de correspondance, donc aucune valeur réelle. Aperçu ci-dessous.
+                      {t.modals.avis.attachJournalSub}
                     </span>
                   </span>
                 </label>
@@ -231,11 +230,11 @@ export function AvisModal({
           <div className="om-avis-foot">
             <span className="om-avis-confidential">
               <ShieldIcon size={13} />
-              Confidentiel
+              {t.modals.avis.confidential}
             </span>
             <span className="om-avis-spacer" />
             <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>
-              Annuler
+              {t.common.cancel}
             </button>
             <button type="button" className="btn-primary" onClick={submit} disabled={!canSend}>
               {busy ? "Envoi…" : "Envoyer"}

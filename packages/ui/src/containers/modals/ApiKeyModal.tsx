@@ -84,18 +84,17 @@ export function ApiKeyModal({
   return (
     <ModalShell onClose={onClose} width="480px">
       <div className="rrm-head">
-        <div className="cv-eyebrow rrm-eyebrow">CLÉ D'ACCÈS</div>
+        <div className="cv-eyebrow rrm-eyebrow">{t.modals.apiKey.eyebrow}</div>
         <h2 className="cv-display rrm-title">
-          Clé <span className="rrm-hl">{label}</span>
+          {t.modals.apiKey.title("")} <span className="rrm-hl">{label}</span>
         </h2>
         <p className="rrm-sub">
-          Votre clé reste chiffrée sur cette machine, jamais envoyée au modèle.
+          {t.modals.apiKey.sub}
         </p>
         {hasKey && (
           // Ce que l'app peut honnêtement dire : qu'il y en a une, pas laquelle.
           <p className="akm-has-key">
-            <CheckIcon size={14} /> Une clé {label} est déjà enregistrée. En coller une
-            nouvelle la remplacera.
+            <CheckIcon size={14} /> {t.modals.apiKey.alreadySaved(label)}
           </p>
         )}
       </div>
@@ -108,21 +107,21 @@ export function ApiKeyModal({
               className="btn-primary btn-inline akm-connect-btn"
               onClick={() => void connect()}
               disabled={connecting}
-              title={`${BRAND.name} se connecte à votre compte ${label} : vos crédits, votre quota.`}
+              title={t.modals.apiKey.connectTip(BRAND.name, label)}
             >
               {connecting
-                ? "Autorisation dans votre navigateur…"
+                ? t.modals.apiKey.authorizing
                 : hasKey
-                  ? "Obtenir une nouvelle clé"
-                  : "Obtenir une clé gratuitement"}
+                  ? t.modals.apiKey.getNewKey
+                  : t.modals.apiKey.getFreeKey}
             </button>
             {connectError && <p className="akm-connect-error">{connectError}</p>}
-            <div className="akm-or">ou collez une clé existante</div>
+            <div className="akm-or">{t.modals.apiKey.orPaste}</div>
           </div>
         )}
         {help && (
           <div className="mcp-apikey-help">
-            <div className="mcp-apikey-title">Où trouver votre clé {label}</div>
+            <div className="mcp-apikey-title">{t.modals.apiKey.whereToFind(label)}</div>
             <ol className="mcp-apikey-steps">
               {help.steps?.map((s, i) => (
                 <li key={i}>{s}</li>
@@ -133,17 +132,17 @@ export function ApiKeyModal({
             )}
             {getUrl && (
               <a className="mcp-apikey-link" href={getUrl} target="_blank" rel="noreferrer">
-                Obtenir ma clé →
+                {t.modals.apiKey.getMyKey}
               </a>
             )}
           </div>
         )}
         <div className="field">
           <span className="field-label">
-            Clé {label}
+            {t.modals.apiKey.keyLabel(label)}
             {!help && getUrl && (
               <a href={getUrl} target="_blank" rel="noreferrer">
-                en obtenir une ↗
+                {t.modals.apiKey.getOne}
               </a>
             )}
           </span>
@@ -171,12 +170,12 @@ export function ApiKeyModal({
             className="btn-ghost btn-inline akm-clear"
             onClick={() => void Promise.resolve(onClear()).then(onClose)}
           >
-            <TrashIcon size={14} /> Retirer la clé
+            <TrashIcon size={14} /> {t.modals.apiKey.removeKey}
           </button>
         )}
         <span className="akm-foot-spacer" />
         <button className="btn-ghost btn-inline" onClick={onClose}>
-          Annuler
+          {t.common.cancel}
         </button>
         <button
           className="btn-primary btn-inline"

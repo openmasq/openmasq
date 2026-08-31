@@ -28,6 +28,7 @@ import { providerKeys } from "./en/providerKeys";
 import { privacyLevels, redactTypes, webNav } from "./en/privacy";
 import { sections } from "./en/sections";
 import { shell } from "./en/shell";
+import { viewers } from "./en/viewers";
 import { settings } from "./en/settings";
 import { accountTab, browserTab, modelsTab, privacyTab } from "./en/settingsTabs";
 import { billingTab, importModal, orgTab, syncTab, usageTab } from "./en/settingsMore";
@@ -71,6 +72,7 @@ export const en = {
   chat,
   chrome,
   shell,
+  viewers,
   common,
   composer,
   connectors,

@@ -1,5 +1,7 @@
 import { Fragment, type CSSProperties, type RefObject } from "react";
-import { kindLabelFr } from "../../../../components/message/kindLabel";
+import type { Messages } from "@openmasq/i18n";
+import { useT } from "../../../../i18n";
+import { kindLabel } from "../../../../components/message/kindLabel";
 import { docRevealSegments } from "./docReveal";
 import type { PdfReplacement } from "../pdf/pdfReplacements";
 import { splitMatches, type DocChunk, type SearchSeg } from "./docSearch";
@@ -87,6 +89,7 @@ function renderPage(
   startIndex: number,
   active: number,
   activeRef: RefObject<HTMLElement | null>,
+  t: Messages,
   onToggleReveal?: (real: string) => void,
 ): { nodes: React.ReactNode[]; next: number } {
   let start = startIndex;
@@ -127,9 +130,7 @@ function renderPage(
         data-real={m.real}
         data-tone={m.tone}
         data-kind={m.kind}
-        aria-label={`Valeur redacted${m.kind ? ` (${kindLabelFr(m.kind)})` : ""}${
-          m.revealed ? " — gardée en clair" : ""
-        } — inspecter`}
+        aria-label={t.viewers.markAria(m.kind ? kindLabel(m.kind, t) : "", m.revealed)}
       >
         {inner}
       </button>
@@ -159,6 +160,7 @@ export function DocText({
   activeRef: RefObject<HTMLElement | null>;
   onToggleReveal?: (real: string) => void;
 }) {
+  const t = useT();
   const { ref, availWidth } = useContainerWidth();
   const fullText = chunks.map((c) => c.text).join("");
   const { pageWidth, fontSize, overflow } = pageMetrics(bodyCols(fullText), availWidth);
@@ -171,7 +173,7 @@ export function DocText({
   return (
     <div className="fv-desk" ref={ref}>
       {pages.map((pg, pi) => {
-        const { nodes, next } = renderPage(pg, query, start, active, activeRef, onToggleReveal);
+        const { nodes, next } = renderPage(pg, query, start, active, activeRef, t, onToggleReveal);
         start = next;
         return (
           <div className="fv-page" style={pageStyle} key={pi}>

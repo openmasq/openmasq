@@ -71,6 +71,8 @@ export interface RedactionCatalogMessages {
   modified: string;
   detailAria: (label: string) => string;
   detailTip: string;
+  /** Le mot qu'on emploie quand on ne SAIT pas ce qu'une valeur est. */
+  neutralKind: string;
   allOn: string;
   allOff: string;
   reset: string;

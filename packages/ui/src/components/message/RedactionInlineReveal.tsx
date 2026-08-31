@@ -1,7 +1,8 @@
 import { useEffect, type RefObject, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useMarkHover } from "./useMarkHover";
-import { kindLabelFr } from "./kindLabel";
+import { useT } from "../../i18n";
+import { kindLabel } from "./kindLabel";
 import { EyeIcon } from "../brand/icons/data";
 import { LayersIcon, FeedbackIcon } from "../brand/icons/sections";
 import { TrashIcon } from "../brand/icons/actions";
@@ -91,6 +92,7 @@ export function RedactionInlineReveal({
    *  the raw pseudonym, which is what the audit journal (Réglages → Journal) deliberately keeps. */
   displayTokens?: Map<string, string>;
 }) {
+  const t = useT();
   // All the hover/tap plumbing — which mark, which presentation, when it closes —
   // lives in `useMarkHover.ts` (logic in .ts); this file is the card itself.
   const { hov, below, sheetOpen, sheetMode, close, cancelHide, scheduleHide } =
@@ -130,15 +132,15 @@ export function RedactionInlineReveal({
     close();
   };
 
-  // The FRENCH label, never the engine key: the card used to read « Unredact tous les
-  // « company » » in an otherwise French interface (`kindLabel.ts`).
-  const kindLabel = kindLabelFr(hov.kind);
+  // The label in the READER's language, never the engine key: the card used to read
+  // « Unredact tous les « company » » in an otherwise French interface (`kindLabel.ts`).
+  const label = kindLabel(hov.kind, t);
   // The card + actions — ONE content tree, two presentations (popover / sheet).
   const content = (
     <>
       <span className="rmark-pop-value" title={valueTitle}>
         <span className="rmark-pop-eyebrow">
-          {kindLabel} · {show === "real" ? "valeur réelle" : "vu par le modèle"}
+          {label} · {show === "real" ? "valeur réelle" : "vu par le modèle"}
         </span>
         <span className="rmark-pop-val">
           {(show === "real" ? hov.real : displayTokens?.get(hov.real) ?? hov.fake) || "—"}

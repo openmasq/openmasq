@@ -73,7 +73,7 @@ export function ModelAccessModal({
   return (
     <ModalShell onClose={onClose} width="min(560px, 94vw)">
       <div className="rrm-head">
-        <div className="cv-eyebrow rrm-eyebrow">ACCÈS AUX MODÈLES</div>
+        <div className="cv-eyebrow rrm-eyebrow">{t.modals.modelAccess.eyebrow}</div>
         <h2 className="cv-display rrm-title">{title}</h2>
         <p className="rrm-sub">{lead}</p>
       </div>
@@ -84,11 +84,11 @@ export function ModelAccessModal({
               <ZapIcon size={18} />
             </span>
             <span className="fm-option-body">
-              <span className="fm-option-title">{sold ? "Les modèles gratuits" : "Les modèles inclus"}</span>
+              <span className="fm-option-title">{sold ? t.modals.modelAccess.freeModels : t.modals.modelAccess.includedModels}</span>
               <span className="fm-option-desc">
                 {sold
-                  ? `Inclus avec votre compte ${BRAND.name}, sans abonnement et sans clé. Usage limité — c'est ce qui est déjà sélectionné par défaut.`
-                  : `Servis sur votre compte ${BRAND.name}, sans clé à gérer. Un modèle gratuit est déjà sélectionné par défaut ; son débit dépend du fournisseur.`}
+                  ? t.modals.modelAccess.freeDescSold(BRAND.name)
+                  : t.modals.modelAccess.freeDescServed(BRAND.name)}
               </span>
             </span>
           </div>
@@ -104,10 +104,9 @@ export function ModelAccessModal({
               <ShieldIcon size={18} />
             </span>
             <span className="fm-option-body">
-              <span className="fm-option-title">Un abonnement {BRAND.name}</span>
+              <span className="fm-option-title">{t.modals.modelAccess.subscription(BRAND.name)}</span>
               <span className="fm-option-desc">
-                Les modèles fournis par {BRAND.name}, sans aucune clé à gérer : vos crédits mensuels
-                paient l&apos;usage.
+                {t.modals.modelAccess.subscriptionDesc(BRAND.name)}
               </span>
             </span>
             <ArrowRightIcon size={15} />
@@ -118,9 +117,9 @@ export function ModelAccessModal({
               <ShieldIcon size={18} />
             </span>
             <span className="fm-option-body">
-              <span className="fm-option-title">Votre abonnement couvre déjà ces modèles</span>
+              <span className="fm-option-title">{t.modals.modelAccess.subscriptionCovers}</span>
               <span className="fm-option-desc">
-                Choisissez simplement un modèle non gratuit — rien d&apos;autre à faire.
+                {t.modals.modelAccess.subscriptionCoversDesc}
               </span>
             </span>
           </div>
@@ -136,10 +135,11 @@ export function ModelAccessModal({
               <KeyIcon size={18} />
             </span>
             <span className="fm-option-body">
-              <span className="fm-option-title">Votre propre clé</span>
+              <span className="fm-option-title">{t.modals.modelAccess.ownKey}</span>
               <span className="fm-option-desc">
-                Branchez votre clé OpenAI, Anthropic, Mistral… : c&apos;est votre fournisseur qui
-                vous facture{sold ? ", sans passer par vos crédits" : ""}. La protection est la même.
+                {t.modals.modelAccess.ownKeyDesc(
+                  sold ? t.modals.modelAccess.ownKeyWithoutCredits : "",
+                )}
               </span>
             </span>
             <ArrowRightIcon size={15} />
@@ -150,9 +150,9 @@ export function ModelAccessModal({
               <KeyIcon size={18} />
             </span>
             <span className="fm-option-body">
-              <span className="fm-option-title">Votre propre clé</span>
+              <span className="fm-option-title">{t.modals.modelAccess.ownKey}</span>
               <span className="fm-option-desc">
-                Renseignez-la via l&apos;engrenage ⚙ de chaque fournisseur, sur cette page.
+                {t.modals.modelAccess.ownKeyStatic}
               </span>
             </span>
           </div>
@@ -160,8 +160,7 @@ export function ModelAccessModal({
       </div>
       {served && (
         <p className="rrm-sub fm-note">
-          Cas particulier : dans le catalogue étendu OpenRouter, seuls les modèles proposés par
-          {BRAND.name} passent sans clé — les autres demandent votre propre clé OpenRouter.
+          {t.modals.modelAccess.openRouterNote(BRAND.name)}
         </p>
       )}
       {onSubscribe && (

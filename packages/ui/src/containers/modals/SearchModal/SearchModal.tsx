@@ -205,8 +205,8 @@ export function SearchModal({
                     className={`search-row${isActive ? " is-active" : ""}`}
                   >
                     {model && <ModelLogo provider={model.provider} modelId={model.id} size={16} />}
-                    <span className="search-row-title">{c.title || "Nouvelle conversation"}</span>
-                    {busy && <span className="search-row-spin" aria-label="Génération en cours" />}
+                    <span className="search-row-title">{c.title || t.chrome.untitledConversation}</span>
+                    {busy && <span className="search-row-spin" aria-label={t.modals.searchRows.generating} />}
                     <span className="search-time">{relTime(c.updatedAt)}</span>
                   </button>
                 );

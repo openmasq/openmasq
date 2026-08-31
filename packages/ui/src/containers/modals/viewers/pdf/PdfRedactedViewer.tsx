@@ -16,6 +16,7 @@ import {
 import { FileSkeleton } from "../FileSkeleton";
 import { buildImageZoneLayer, buildRevealMarks, buildTextHaloLayer, imageSourceNote } from "./pageLayers";
 
+import { useT } from "../../../../i18n";
 /**
  * PDF preview: thin React shell over the SHARED `renderRedactedPdf`
  * (@openmasq/redact/pdf-redact) — the same pixel-paint core the extension reuses,
@@ -68,6 +69,7 @@ export function PdfRedactedViewer({
    *  (menu closed or type picked). */
   onWordPick?: (value: string, x: number, y: number, release: () => void) => void;
 }) {
+  const t = useT();
   const redact = useRedaction();
   // Keep `onReveal` in a ref so a fresh function identity each render doesn't
   // re-trigger the (heavy) full re-render — only a `revealed` change should.
@@ -246,18 +248,18 @@ export function PdfRedactedViewer({
         </div>
       )}
       {state === "error" && (
-        <div className="fv-status">Aperçu PDF indisponible (utilisez « Ouvrir »).</div>
+        <div className="fv-status">{t.viewers.pdf.unavailable}</div>
       )}
       {state === "ready" && empty && (
-        <div className="fv-status">Aucune page à afficher.</div>
+        <div className="fv-status">{t.viewers.pdf.noPages}</div>
       )}
       {state === "ready" && !empty && (
-        <div className="pdfv-zoom" role="group" aria-label="Zoom du document">
+        <div className="pdfv-zoom" role="group" aria-label={t.viewers.pdf.zoomGroup}>
           <button
             type="button"
             onClick={() => setZoom((z) => Math.max(0.5, Math.round((z / 1.25) * 100) / 100))}
-            aria-label="Dézoomer"
-            title="Dézoomer"
+            aria-label={t.viewers.pdf.zoomOut}
+            title={t.viewers.pdf.zoomOut}
           >
             −
           </button>
@@ -265,15 +267,15 @@ export function PdfRedactedViewer({
             type="button"
             className="pdfv-zoom-fit"
             onClick={() => setZoom(1)}
-            title="Ajuster à la largeur du panneau"
+            title={t.viewers.pdf.fitWidth}
           >
             {Math.round(zoom * 100)} %
           </button>
           <button
             type="button"
             onClick={() => setZoom((z) => Math.min(3, Math.round(z * 1.25 * 100) / 100))}
-            aria-label="Zoomer"
-            title="Zoomer"
+            aria-label={t.viewers.pdf.zoomIn}
+            title={t.viewers.pdf.zoomIn}
           >
             +
           </button>

@@ -1,4 +1,5 @@
-import { kindLabelFr } from "../../../../components/message/kindLabel";
+import type { Messages } from "@openmasq/i18n";
+import { kindLabel } from "../../../../components/message/kindLabel";
 
 /**
  * What the preview's subtitle says about a document's redaction.
@@ -34,44 +35,50 @@ export interface PreviewStatus extends DocSummary {
   pending?: boolean;
 }
 
-export function previewStatus(opts: {
-  redacting?: boolean;
-  redactProgress?: { done: number; total: number };
-  redactError?: string;
-  replacements: ReadonlyArray<{ real: string; kind?: string }> | undefined;
-}): PreviewStatus {
+export function previewStatus(
+  opts: {
+    redacting?: boolean;
+    redactProgress?: { done: number; total: number };
+    redactError?: string;
+    replacements: ReadonlyArray<{ real: string; kind?: string }> | undefined;
+  },
+  t: Messages,
+): PreviewStatus {
   if (opts.redacting) {
     const p = opts.redactProgress;
     return {
-      label: `redaction en cours…${p && p.total > 1 ? ` (${p.done}/${p.total})` : ""}`,
+      label:
+        p && p.total > 1 ? t.viewers.summary.redactingProgress(p.done, p.total) : t.viewers.summary.redacting,
       detail: "",
       pending: true,
     };
   }
-  if (opts.redactError) return { label: "échec du redaction", detail: opts.redactError, failed: true };
+  if (opts.redactError)
+    return { label: t.viewers.summary.failed, detail: opts.redactError, failed: true };
   if (opts.replacements === undefined)
-    return { label: "redaction non vérifié ici", detail: "", pending: true };
-  return docSummary(opts.replacements);
+    return { label: t.viewers.summary.notChecked, detail: "", pending: true };
+  return docSummary(opts.replacements, t);
 }
 
 export function docSummary(
   replacements: ReadonlyArray<{ real: string; kind?: string }> | undefined,
+  t: Messages,
 ): DocSummary {
   const byKind = new Map<string, number>();
   const seen = new Set<string>();
   for (const r of replacements ?? []) {
     if (!r.real || seen.has(r.real)) continue; // one count per distinct VALUE
     seen.add(r.real);
-    const label = kindLabelFr(r.kind);
+    const label = kindLabel(r.kind, t);
     byKind.set(label, (byKind.get(label) ?? 0) + 1);
   }
   const total = seen.size;
   const detail = [...byKind.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "fr"))
-    .map(([label, n]) => `${n} × ${label}`)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], t.common.intlTag))
+    .map(([label, n]) => t.viewers.summary.byKind(n, label))
     .join(" · ");
   return {
-    label: total === 0 ? "aucune valeur détectée" : `${total} valeur${total > 1 ? "s" : ""} protégée${total > 1 ? "s" : ""}`,
+    label: total === 0 ? t.viewers.summary.none : t.viewers.summary.protected(total),
     detail,
   };
 }

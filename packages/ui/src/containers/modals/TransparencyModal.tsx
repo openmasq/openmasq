@@ -78,20 +78,21 @@ function PairRow({
   vault: Record<string, string>;
   kinds?: Record<string, string>;
 }) {
+  const t = useT();
   // ⚠️ Les en-têtes SUIVENT le rôle. Sur une réponse, « ce que vous avez écrit » serait
   // faux des deux côtés : la gauche est ce que VOUS LISEZ (rétabli), la droite ce que le
   // modèle a réellement PRODUIT — il n'a jamais tenu que des pseudonymes, à l'aller comme
   // au retour. Un libellé qui ment sur ce panneau-ci ruinerait précisément ce qu'il prouve.
   const isUser = pair.role === "user";
-  const leftHead = isUser ? "Ce que vous avez écrit" : "Ce que vous lisez";
-  const rightHead = isUser ? "Ce que le modèle a reçu" : "Ce que le modèle a écrit";
+  const leftHead = isUser ? t.modals.transparency.youWrote : t.modals.transparency.youRead;
+  const rightHead = isUser ? t.modals.transparency.modelReceived : t.modals.transparency.modelWrote;
 
   return (
     <div className="tsp-pair">
       <div className="tsp-pair-head">
-        <span className="cv-eyebrow">{isUser ? "Votre message" : "Réponse"}</span>
+        <span className="cv-eyebrow">{isUser ? t.modals.transparency.yourMessage : t.modals.transparency.reply}</span>
         <span className="tsp-pair-count">
-          {pair.swapped} remplacement{pair.swapped === 1 ? "" : "s"}
+          {t.modals.transparency.swapped(pair.swapped)}
         </span>
       </div>
       <div className="tsp-cols">

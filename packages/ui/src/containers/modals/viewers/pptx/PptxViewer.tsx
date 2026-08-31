@@ -4,6 +4,7 @@ import { parsePptx } from "./parsePptx";
 import { PptxRender } from "./PptxRender";
 import type { PptxDeck } from "./pptxModel";
 
+import { useT } from "../../../../i18n";
 // Faithful .pptx preview: each slide rendered at its true geometry (see
 // `pptxLayout.ts` for the scaling), from the deck's own shape positions.
 //
@@ -12,6 +13,7 @@ import type { PptxDeck } from "./pptxModel";
 // read, rendered and forgotten.
 
 export function PptxViewer({ bytes }: { bytes: Uint8Array }) {
+  const t = useT();
   const [deck, setDeck] = useState<PptxDeck | null | "error">(null);
 
   useEffect(() => {
@@ -29,6 +31,6 @@ export function PptxViewer({ bytes }: { bytes: Uint8Array }) {
   }, [bytes]);
 
   if (deck === null) return <FileSkeleton variant="doc" />;
-  if (deck === "error") return <div className="fv-status">Présentation illisible.</div>;
+  if (deck === "error") return <div className="fv-status">{t.viewers.unreadablePresentation}</div>;
   return <PptxRender deck={deck} />;
 }

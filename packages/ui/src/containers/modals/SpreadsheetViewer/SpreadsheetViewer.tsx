@@ -3,6 +3,7 @@ import { FileSkeleton } from "../viewers/FileSkeleton";
 import type { PdfReplacement } from "../viewers/pdf/pdfReplacements";
 import { parse, makeMatcher, segmentsOf, MAX_ROWS, MAX_COLS, type Sheet } from "./parse";
 
+import { useT } from "../../../i18n";
 // Faithful spreadsheet preview: renders the parsed workbook as a real grid (column
 // letters + row numbers + merged cells), one tab per sheet. Works for
 // .xlsx/.xlsm/.xls/.ods (binary) and .csv/.tsv (text). `xlsx` (SheetJS) is
@@ -51,6 +52,7 @@ export function SpreadsheetViewer({
    *  cells there used to read as « partis en clair » when they never left at all. */
   cutRow?: number | null;
 }) {
+  const t = useT();
   const [sheets, setSheets] = useState<Sheet[] | null | "error">(null);
   const [active, setActive] = useState(0);
   const matcher = useMemo(() => makeMatcher(replacements), [replacements]);
@@ -102,7 +104,7 @@ export function SpreadsheetViewer({
   }, [active, bytes]);
 
   if (sheets === null) return <FileSkeleton variant="sheet" />;
-  if (sheets === "error") return <div className="fv-status">Feuille illisible.</div>;
+  if (sheets === "error") return <div className="fv-status">{t.viewers.unreadableSheet}</div>;
 
   const sheet = sheetOrNull!;
   const total = sheet.rows.length;
@@ -136,7 +138,7 @@ export function SpreadsheetViewer({
           data-real={seg.real}
           data-tone={seg.tone}
           data-kind={seg.kind ?? ""}
-          aria-label={`Cellule redacted${isRevealed ? " — gardée en clair" : ""} — inspecter`}
+          aria-label={t.viewers.cellAria(isRevealed)}
         >
           {shown}
         </button>

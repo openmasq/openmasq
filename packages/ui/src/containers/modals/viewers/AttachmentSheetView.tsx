@@ -1,6 +1,7 @@
 import { SpreadsheetViewer } from "../SpreadsheetViewer";
 import type { PdfReplacement } from "./pdf/pdfReplacements";
 
+import { useT } from "../../../i18n";
 /**
  * A spreadsheet, in the preview's TWO readings — and it stays a spreadsheet in both.
  *
@@ -40,6 +41,7 @@ export function AttachmentSheetView({
    *  mapped exactly (multi-sheet, blank-row skips) — show the generic note only. */
   wireCut?: boolean;
 }) {
+  const t = useT();
   if (!redacted) return <SpreadsheetViewer bytes={bytes} csv={csv} />;
   return (
     <>
@@ -54,8 +56,7 @@ export function AttachmentSheetView({
       />
       {wireCut && (
         <div className="fv-sheet-note fv-cut-note">
-          Classeur volumineux : une partie ne part pas au modèle (l'envoi tronque chaque
-          document) — ce qui ne part pas ne quitte jamais la machine.
+          {t.viewers.sheetCut}
         </div>
       )}
     </>
