@@ -52,7 +52,7 @@ const SETTINGS_NAV_SHAPE: { id: TabId; icon: ReactNode; group: SettingsGroup }[]
   { id: "versions", icon: <LayersIcon size={19} />, group: "advanced" },
 ];
 
-/** Le rail des réglages dans la langue de `t` — forme + étiquette réunies. */
+/** The settings rail in `t`'s language — shape + label reunited. */
 export function settingsNav(t: Messages): { id: TabId; label: string; icon: ReactNode; group: SettingsGroup }[] {
   return SETTINGS_NAV_SHAPE.map((n) => ({ ...n, label: t.settings.tabs[n.id].label }));
 }

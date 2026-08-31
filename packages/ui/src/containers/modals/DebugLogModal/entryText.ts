@@ -42,21 +42,21 @@ export function pairsOf(e: WireEntry): DebugPair[] {
  *  (patched in post-send) — some providers report none. Shared by the row UI + the
  *  copy/search text so the cost is visible AND searchable.
  *
- *  ⚠️ Sur un tour AGENTIQUE ce coût est le CUMUL de tous les échanges modèle du tour,
- *  pas celui de ce message-là — le message ne part qu'une fois, mais chaque tour renvoie
- *  tout l'historique. La mention « cumul de N tours » est ce qui empêche de le lire comme
- *  une contradiction avec les lignes `turn` (journal du 27/07/2026 : « 28 079 entrée »
- *  sous un message de 221 caractères, « 13 938 entrée » au tour 1 juste en dessous). */
+ *  ⚠️ On an AGENTIC turn this cost is the CUMULATIVE total of every model exchange in
+ *  the turn, not just this one message's — the message is only sent once, but each turn
+ *  resends the whole history. The « cumul de N tours » mention is what keeps this from
+ *  reading as a contradiction with the `turn` lines (log from 27/07/2026: « 28 079 entrée »
+ *  under a 221-character message, « 13 938 entrée » at turn 1 right below). */
 export function wireTokenSummary(e: WireEntry): string | null {
   if (e.inputTokens == null) return null;
   const out = e.outputTokens ?? 0;
   const cost = estimateCost(e.model, e.inputTokens, out);
   const turns = (e.modelTurns ?? 0) > 1 ? ` · cumul de ${e.modelTurns} tours` : "";
-  // La part d'entrée servie par le CACHE du provider. Sans elle, une boucle agentique qui
-  // renvoie tout l'historique à chaque tour se lit comme une entrée qui enfle, sans dire si
-  // le préfixe stable (système + schémas d'outils) est réutilisé ou refacturé plein tarif.
-  // ⚠️ `cost` reste l'estimation PLEIN TARIF (une lecture de cache est facturée ≈0,1×) —
-  // c'est donc un majorant, et c'est cette part-là qui dit de combien.
+  // The input share served by the provider's CACHE. Without it, an agentic loop that
+  // resends the whole history every turn reads as an input that's ballooning, without saying
+  // whether the stable prefix (system + tool schemas) is reused or re-billed at full rate.
+  // ⚠️ `cost` stays the FULL-RATE estimate (a cache read is billed ≈0.1×) —
+  // so it's an upper bound, and this share is what says by how much.
   const cached =
     e.cachedInputTokens ? ` (dont ${formatTokens(e.cachedInputTokens)} en cache)` : "";
   return `${formatTokens(e.inputTokens)} entrée${cached} · ${formatTokens(out)} sortie · ${formatUsd(cost)}${turns}`;
@@ -92,8 +92,8 @@ export function turnSummary(e: TurnEntry): string {
   ];
   if (e.inputTokens != null) {
     const out = e.outputTokens ?? 0;
-    // Le tour-par-tour est LE bon endroit pour lire le cache : c'est ici qu'on voit la part
-    // grimper du tour 1 (amorçage) au tour 2+ (réutilisation), ou ne pas grimper du tout.
+    // Turn-by-turn is THE right place to read the cache: it's here that you see the share
+    // climb from turn 1 (priming) to turn 2+ (reuse), or not climb at all.
     const cached = e.cachedInputTokens ? ` (dont ${formatTokens(e.cachedInputTokens)} en cache)` : "";
     parts.push(`${formatTokens(e.inputTokens)} entrée${cached} · ${formatTokens(out)} sortie · ${formatUsd(estimateCost(e.model, e.inputTokens, out))}`);
   }
@@ -118,10 +118,10 @@ const mapBlock = (pairs: DebugPair[]): string => {
   return map ? `\n\nMapping (redacted → original):\n${map}` : "";
 };
 
-/** L'export « sans mapping » remplace la paire supprimée par un GABARIT de forme
- *  (`valueShape.ts` : casse/chiffres/séparateurs/longueur, jamais un caractère de la
- *  valeur ; un secret n'exporte même pas sa structure) + le résumé par catégorie —
- *  le diagnostic que l'avis emporte sans casser la promesse. */
+/** The « sans mapping » export replaces the removed pair with a shape TEMPLATE
+ *  (`valueShape.ts`: case/digits/separators/length, never a character of the
+ *  value; a secret doesn't even export its structure) + the per-category summary —
+ *  the diagnostic the avis carries without breaking the promise. */
 const shapeBlock = (pairs: DebugPair[]): string => {
   if (!pairs.length) return "";
   const rows = pairs
@@ -130,7 +130,7 @@ const shapeBlock = (pairs: DebugPair[]): string => {
   return `\n\nRedaction : ${summarizePairs(pairs)}\nFormes (redacted → gabarit, jamais la valeur):\n${rows}`;
 };
 
-/** Le bloc de queue d'une entrée : mapping réel en interne, gabarits dans l'export. */
+/** An entry's tail block: real mapping internally, templates in the export. */
 const tailBlock = (pairs: DebugPair[], withMap: boolean): string =>
   withMap ? mapBlock(pairs) : shapeBlock(pairs);
 
@@ -186,15 +186,15 @@ export function toText(entries: readonly DebugEntry[], opts?: { mapping?: boolea
  * export — the form that is safe to attach to an avis (wire text that already left
  * the machine, with every redacted→réel pair stripped).
  *
- * Scoped by THE rule, `state/debugScope.ts` `isEntryVisibleIn` — pas par une copie du
- * prédicat. Celle qui vivait ici disait « cette conversation OU sans `conv` », c'est-à-dire
- * la version d'avant le durcissement : un avis pouvait emporter des entrées non
- * attribuées, et n'emportait jamais celles du BROUILLON. Une règle de confidentialité
- * recopiée n'est corrigée qu'au premier exemplaire (règle 9).
+ * Scoped by THE rule, `state/debugScope.ts` `isEntryVisibleIn` — not by a copy of the
+ * predicate. The one that used to live here said "this conversation OR no `conv`", i.e.
+ * the pre-hardening version: an avis could carry off unattributed entries,
+ * and never carried off the DRAFT's. A copied privacy rule
+ * only gets fixed in its first copy (rule 9).
  *
- * Il lit le tampon vif parce que le tampon EST la source — mais il exporte TOUT, là où le
- * bouton de la modale exporte ce que l'utilisateur regarde (son filtre + sa recherche).
- * Deux sélections, un seul sérialiseur ; l'avis n'a pas de filtre à honorer.
+ * It reads the live buffer because the buffer IS the source — but it exports EVERYTHING, whereas
+ * the modal's button exports what the user is looking at (their filter + their search).
+ * Two selections, one serializer; the avis has no filter to honor.
  *
  * Empty when debug mode is off — nothing is captured then, and an empty string is what
  * tells the modal it has no journal to offer.

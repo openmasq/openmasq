@@ -1,23 +1,23 @@
-// Ce qu'on dit quand un tour finit MAL — et comment on le reconnaît.
+// What we say when a turn ends BADLY — and how we recognise it.
 //
-// Le pendant de `mcpAgentGuidance.ts` : celui-ci parle au modèle AVANT qu'il agisse,
-// celui-là lit ce qu'il a rendu et formule le diagnostic pour l'utilisateur (panne du
-// navigateur, cap d'appels, tour épuisé, réponse qui promet d'agir sans appeler).
-// Découpé pour la règle 1, re-exporté par `mcpAgentGuidance.ts` : aucun importeur ne
-// change. Tout est PUR, sans PII (wire-safe) et testé par `mcpAgentGuidance.test.ts`.
+// The counterpart of `mcpAgentGuidance.ts`: that one talks to the model BEFORE it
+// acts, this one reads what it returned and formulates the diagnosis for the user
+// (browser fault, call cap, exhausted turn, a reply that promises to act without
+// calling). Split out for rule 1, re-exported by `mcpAgentGuidance.ts`: no importer
+// changes. Everything is PURE, PII-free (wire-safe) and tested by `mcpAgentGuidance.test.ts`.
 
 import { connectorBrandName } from "@openmasq/catalog/mcp";
 import { humanToolLabel } from "./humanToolLabel";
 import { connectorOfTool } from "./toolStruggle";
 
 /**
- * Un outil TEL QU'ON LE MONTRE à l'utilisateur : son libellé français et la marque du
- * connecteur — « **Lecture · e-mails** (Gmail) », jamais `gmail__get_message`.
+ * A tool AS SHOWN to the user: its French label and the connector's brand —
+ * "**Lecture · e-mails** (Gmail)", never `gmail__get_message`.
  *
- * Ce message-ci s'affiche COMME une réponse de l'assistant, à quelqu'un qui voulait lire
- * ses e-mails ; un nom d'outil en `snake_case` n'y désigne rien qu'il puisse reconnaître,
- * et surtout rien sur quoi il puisse agir. Le vocabulaire est celui de la trace juste
- * au-dessus (`humanToolLabel`, l'unique traducteur), pour que les deux se répondent.
+ * This message displays AS an assistant reply, to someone who wanted to read their
+ * emails; a `snake_case` tool name names nothing they can recognise there, and above
+ * all nothing they can act on. The vocabulary is that of the trace just above
+ * (`humanToolLabel`, the one translator), so the two answer each other.
  */
 function toolPhrase(name: string): string {
   const connectorId = connectorOfTool(name, "");
@@ -27,7 +27,7 @@ function toolPhrase(name: string): string {
   return brand ? `**${label}** (${brand})` : `**${label}**`;
 }
 
-/** La panne répétée retenue par la boucle, telle que `exhaustionMessage` la lit. */
+/** The repeated failure the loop retains, as `exhaustionMessage` reads it. */
 export interface RepeatedFailure {
   tool: string;
   error: string;
@@ -35,12 +35,12 @@ export interface RepeatedFailure {
 }
 
 /**
- * Retenir une panne d'outil répétée, pour ne pas l'imputer au modèle.
+ * Retain a repeated tool failure, so as not to blame it on the model.
  *
- * `distinctInputs` est ce qui tranche : plusieurs entrées pour une seule panne veut dire
- * que le modèle a bien changé d'appel — c'est l'outil qui ne répond pas. On ne garde que
- * la PREMIÈRE ligne utile du résultat, bornée : le message d'erreur, pas le corps entier.
- * `content` arrive déjà redacted (la boucle ne voit que des faux), donc wire-safe.
+ * `distinctInputs` is what decides: several inputs for a single failure means the
+ * model DID vary its call — it's the tool that isn't answering. We keep only the
+ * FIRST useful line of the result, bounded: the error message, not the whole body.
+ * `content` arrives already redacted (the loop only ever sees fakes), so wire-safe.
  */
 export function repeatedFailureOf(tool: string, content: string, distinctInputs: number): RepeatedFailure {
   return {
@@ -70,20 +70,21 @@ export const BROWSER_BACKEND_FAULT_MESSAGE =
   "⚠️ Le navigateur intégré n'a pas pu ouvrir de page — panne technique du navigateur, pas du modèle.\n\n" +
   "Changer de modèle n'y changera rien : fermez puis rouvrez le navigateur (ou relancez l'app).";
 
-/** Mot d'action des libellés journal de la carte de confirmation, par raison — le
- *  journal disait « Écriture autorisée » pour une navigation (libellé menteur, journal
- *  01/08) ; la carte, elle, dit déjà la vraie raison. */
+/** Action word for the confirm card's journal labels, by reason — the journal used
+ *  to say "Écriture autorisée" for a navigation (a lying label, journal 01/08); the
+ *  card itself already states the real reason. */
 export function confirmActLabel(reason: string): string {
   if (reason === "nav-exfil") return "Navigation";
   if (reason === "attachments") return "Pièces jointes";
   return "Écriture";
 }
 
-/** Le résultat renvoyé à CHAQUE appel au-delà du cap per-tool (`maxSameToolCalls`) —
- *  l'appel n'est PAS dispatché. Un batch légitime de N lectures distinctes ne doit plus
- *  tuer le tour (journal 01/08 : 11 `get_file_info`, tour entier avorté au 9e alors que
- *  les 8 résultats suffisaient) ; le hard-stop (`exhaustionMessage`) ne tombe que si le
- *  modèle INSISTE avec le même outil à la réponse SUIVANTE. Épinglé par `mcpAgent.test.ts`. */
+/** The result returned for EVERY call past the per-tool cap (`maxSameToolCalls`) —
+ *  the call is NOT dispatched. A legitimate batch of N distinct reads must no longer
+ *  kill the turn (journal 01/08: 11 `get_file_info`, whole turn aborted at the 9th
+ *  when the 8 results already sufficed); the hard-stop (`exhaustionMessage`) only
+ *  falls if the model INSISTS with the same tool on the NEXT response. Pinned by
+ *  `mcpAgent.test.ts`. */
 export function capRefusalNote(tool: string, max: number): string {
   return (
     `Limite d'appels atteinte pour \`${tool}\` dans ce tour (${max}) : cet appel n'a PAS été exécuté. ` +
@@ -112,10 +113,10 @@ export function exhaustionMessage(s: {
    *  doing exactly the right thing and just didn't find the answer, so telling it
    *  « le modèle n'a pas convergé, changez de modèle » is bad advice. */
   hammered?: { tool: string; web: boolean };
-  /** Le blocage venait d'un outil qui ÉCHOUAIT, pas d'un modèle qui se répétait.
-   *  `distinctInputs` dit lequel des deux : >1 ⇒ le modèle a bien varié ses appels et
-   *  c'est l'outil qui ne répond pas — lui conseiller « changez de modèle » serait
-   *  accuser le mauvais coupable. `error` est le message de l'outil, déjà redacted. */
+  /** The block came from a tool that was FAILING, not a model repeating itself.
+   *  `distinctInputs` says which of the two: >1 ⇒ the model DID vary its calls and
+   *  it's the tool that isn't answering — telling it "change model" would be
+   *  accusing the wrong culprit. `error` is the tool's message, already redacted. */
   repeatedFailure?: RepeatedFailure;
 }): string {
   const total = [...s.callCounts.values()].reduce((a, b) => a + b, 0);
@@ -131,9 +132,9 @@ export function exhaustionMessage(s: {
   // Tools the model kept malforming (bad JSON / bad args) and never got right.
   const unresolved = [...s.argErrored].filter((t) => !s.succeeded.has(t));
 
-  // Une recherche web qui n'aboutit pas n'est pas une panne : le parcours était le
-  // bon, la réponse n'était pas sur les pages ouvertes. On le DIT, et on propose ce
-  // qui aide vraiment (préciser la cible), pas « changez de modèle ».
+  // A web search that doesn't succeed isn't a failure: the path taken was the
+  // right one, the answer just wasn't on the pages opened. We SAY so, and suggest
+  // what actually helps (narrowing the target), not "change model".
   if (s.hammered?.web) {
     const pages = s.callCounts.get(s.hammered.tool) ?? total;
     return [
@@ -152,7 +153,7 @@ export function exhaustionMessage(s: {
   const lines = [header];
   const fail = s.repeatedFailure;
   if (fail && fail.distinctInputs > 1) {
-    // Le cas qui accusait le modèle à tort : des ENTRÉES différentes, la même panne.
+    // The case that wrongly accused the model: different INPUTS, the same failure.
     lines.push(
       `${toolPhrase(fail.tool)} a échoué ${stuckRepeats + 1} fois de suite, sur des entrées différentes. ` +
         `Le modèle a bien varié ses appels — c'est l'outil qui ne répond pas :`,
@@ -247,10 +248,10 @@ export function looksLikeRefusal(raw: string): boolean {
   }
   // PLAN-LEAK: prose NAMING a namespaced tool instead of EMITTING the call (pinned).
   if (/\b[a-z][\w-]*__[a-z][\w-]*\b/i.test(text)) return true;
-  // PSEUDO-APPEL TEXTUEL : le modèle imprime la SYNTAXE d'un tool call au lieu de
-  // l'émettre par le canal outillé — mesuré en éval sur Gemma
-  // (`<|tool_call>call:browser_navigate{url:…}`), variantes DeepSeek/Qwen incluses.
-  // Comme le plan-leak : un retry forcé récupère généralement l'appel réel.
+  // TEXTUAL PSEUDO-CALL: the model prints the SYNTAX of a tool call instead of
+  // emitting it through the tooled channel — measured in eval on Gemma
+  // (`<|tool_call>call:browser_navigate{url:…}`), DeepSeek/Qwen variants included.
+  // Like the plan-leak: a forced retry generally recovers the real call.
   if (/<\|?tool[_▁]?calls?\|?>|\bcall:[a-z][\w-]*\s*\{|\[tool_?call\]|<tool_?call>/i.test(text)) return true;
   // Deferral: it promises to act (fetch/check/look…) but produced no tool call.
   return /(?:je vais (?:consulter|vérifier|regarder|chercher|récupérer|accéder|lire|examiner|aller voir|jeter un)|je (?:consulte|vérifie|regarde|récupère|recherche)|laissez[- ]moi (?:consulter|vérifier|regarder|voir)|un (?:instant|moment)|tout de suite|let me (?:check|look|see|retrieve|fetch|pull up|access|grab)|i'?ll (?:check|look|retrieve|fetch|access|get|pull up|take a look)|one moment|hold on|give me a (?:moment|sec)|d[ée]jame (?:comprobar|revisar|ver|buscar|acceder)|voy a (?:comprobar|revisar|buscar|mirar|ver|consultar)|un momento|enseguida|lass mich [^.!?\n]{0,15}(?:nachsehen|prüfen|nachschauen|schauen)|einen (?:moment|augenblick)|ich (?:schaue|prüfe|sehe)(?: kurz| mal| eben)? nach|fammi (?:controllare|verificare|vedere|cercare)|un (?:momento|attimo)|(?:controllo|verifico) subito|deixe-me (?:verificar|checar|ver|procurar|acessar)|vou (?:verificar|checar|procurar|olhar|consultar)|um (?:momento|instante)|laat me [^.!?\n]{0,15}(?:kijken|controleren|checken)|een (?:moment|ogenblik)|ik (?:kijk|controleer) even)/i.test(
@@ -259,19 +260,19 @@ export function looksLikeRefusal(raw: string): boolean {
 }
 
 /**
- * La demande NOMME un connecteur CONNECTÉ — et le tour s'est terminé sans le moindre
- * appel d'outil. `looksLikeRefusal` ne couvre que le refus/report EN PROSE ; un modèle
- * faible a un troisième mode d'échec, pire : il INVENTE des données plausibles (mesuré :
- * « quels sont les utilisateurs d'intercom ? » → tableau de noms/emails/téléphones
- * fabriqués, zéro appel — lu comme une fuite de redaction par l'utilisateur, alors que
- * rien n'était réel). Quand l'utilisateur nomme le service, répondre sans l'interroger
- * n'est jamais la bonne réponse — même récupération opportuniste que le refus : UNE
- * relance forcée lecture seule, et l'indice « modèle trop limité » si elle ne peut pas.
+ * The request NAMES a CONNECTED connector — and the turn ended without a single
+ * tool call. `looksLikeRefusal` only covers refusal/deferral IN PROSE; a weak model
+ * has a third, worse failure mode: it INVENTS plausible data (measured: "what are
+ * intercom's users?" → a table of fabricated names/emails/phone numbers, zero calls
+ * — read by the user as a redaction leak, when nothing was real). When the user
+ * names the service, answering without querying it is never the right answer — same
+ * opportunistic recovery as the refusal case: ONE forced read-only retry, and the
+ * "model too limited" hint if it can't.
  *
- * Borné au connecteur nommé MOT ENTIER (frontières non alphanumériques) pour qu'une
- * réponse conversationnelle ordinaire ne soit jamais détournée ; les ids composés
- * (`google-calendar`) ne matchent que tels quels — aide au rappel, pas porte de
- * correction (le raté coûte le statu quo, le faux positif un appel de lecture).
+ * Bounded to the connector named as a WHOLE WORD (non-alphanumeric boundaries) so an
+ * ordinary conversational reply is never diverted; composite ids
+ * (`google-calendar`) only match as such — a recall aid, not a correctness gate
+ * (a miss costs the status quo, a false positive one read call).
  */
 export function namesConnectedConnector(
   requestText: string,

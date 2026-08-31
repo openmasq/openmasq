@@ -71,12 +71,12 @@ describe("makeNavClearRedactor", () => {
     expect(f).toHaveBeenCalledTimes(1);
   });
 
-  // ⚠️ La casse ne fait PAS partie de l'identité d'une valeur du Coffre — sa promesse est
-  // « toujours redacted ». Le test ci-dessus ne le prouvait pas : « Projet Antigone » passe
-  // par le chemin FUZZY de `variantOccurrences`, déjà insensible à la casse. Le repli —
-  // seul chemin pour une valeur portant un CHIFFRE ou un sigle de moins de 4 lettres, soit
-  // la forme même d'un nom de projet — comparait en casse EXACTE : la page atteignait le
-  // modèle avec la valeur du Coffre EN CLAIR.
+  // ⚠️ Case is NOT part of a Coffre value's identity — its promise is
+  // « always redacted ». The test above didn't prove it: « Projet Antigone » goes
+  // through `variantOccurrences`'s FUZZY path, already case-insensitive. The fallback —
+  // the only path for a value carrying a DIGIT or an acronym under 4 letters, exactly
+  // the shape of a project name — compared in EXACT case: the page reached the
+  // model with the Coffre value IN CLEAR.
   it.each([["ACME2024", "acme2024"], ["IBM", "ibm"]])(
     "ESCALATE aussi quand le Coffre dit « %s » et que la page écrit « %s »",
     async (stored, onPage) => {

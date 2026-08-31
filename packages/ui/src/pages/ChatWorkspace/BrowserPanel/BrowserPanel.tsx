@@ -66,9 +66,9 @@ export function BrowserPanel({
    *  that added one is gone (« Demander » took its place), so the row shows what a
    *  previous version saved and navigates to it — nothing writes the list any more. */
   bookmarks?: BrowserBookmark[];
-  /** « Demander » : reçoit le BROUILLON déjà rédigé (`askPageDraft`) et l'ouvre dans la
-   *  conversation courante — la page possède sa vocabulaire, le shell la conversation
-   *  (un `containers/` n'importe pas dans `pages/`). Absent ⇒ pas de bouton. */
+  /** « Demander »: receives the DRAFT already written (`askPageDraft`) and opens it in the
+   *  current conversation — the page owns its vocabulary, the shell the conversation
+   *  (a `containers/` doesn't import into `pages/`). Absent ⇒ no button. */
   onAsk?: (draft: string) => void;
   /** A conversation link the user chose to open in the integrated browser — opens a
    *  NEW tab, or re-focuses the existing tab already showing that URL. */
@@ -108,19 +108,19 @@ export function BrowserPanel({
   // Tell main when the model is driving → it floats the native drive-halo overlay OVER the
   // browser window (a DOM element can't — the native window has no z-order). Cleared on
   // unmount so the halo never lingers. No-op where the host lacks `setDriving`.
-  // ⚠️ C'est DÉSORMAIS le seul signal « le modèle pilote » de ce panneau : la pastille de
-  // texte qui doublait le liseré a été retirée. `automating` reste donc load-bearing —
-  // le supprimer éteindrait le halo, pas seulement une phrase.
+  // ⚠️ This is NOW the only "the model is driving" signal for this panel: the text
+  // chip that used to double the border was removed. `automating` therefore stays load-bearing —
+  // removing it would kill the halo, not just a sentence.
   useEffect(() => {
     void browser?.setDriving?.(automating);
   }, [automating, browser]);
   useEffect(() => () => void browser?.setDriving?.(false), [browser]);
-  // MÊME définition que le gate global (`hooks/useMcpConnectedIds.ts`) — les deux
-  // propriétaires de cette fenêtre ne peuvent plus diverger.
+  // THE SAME definition as the global gate (`hooks/useMcpConnectedIds.ts`) — the two
+  // owners of this window can no longer diverge.
   const offline = useAgentBrowserOffline();
   // No browser ⇒ no bounds ⇒ the native window stays down. An UNFOCUSED embedded pane
-  // must not fight the focused one for the single overlay; and ⚠️ DÉCONNECTÉ, cette
-  // fenêtre `alwaysOnTop` masquerait « Activer » — invisible ET hors d'atteinte du clic.
+  // must not fight the focused one for the single overlay; and ⚠️ DISCONNECTED, this
+  // `alwaysOnTop` window would hide « Activer » — invisible AND out of the click's reach.
   useBrowserBounds(overlayActive === false || offline ? undefined : browser, viewportRef);
 
   const active = tabs.find((t) => t.id === activeId) ?? tabs[0];
@@ -277,8 +277,8 @@ export function BrowserPanel({
           if (browser) navigate(url);
         }}
       />
-      {/* Ce pied portait une phrase de réassurance — vraie, mais inerte : elle répétait à
-          demeure ce que l'app fait partout, sur la seule bande où une ACTION tenait. */}
+      {/* This footer used to carry a reassurance sentence — true, but inert: it permanently
+          repeated what the app does everywhere, on the one strip where an ACTION belonged. */}
       <div className="vb-note">
         {onAsk && active?.url ? (
           <button

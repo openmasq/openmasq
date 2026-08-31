@@ -1,44 +1,44 @@
 import type { ModelDay } from "./usageActivity";
 
-/** Combien de modèles reçoivent une couleur à eux. La rampe en offre sept
- *  (`--chart-1..7`) ; on en montre CINQ, parce qu'au-delà une légende cesse d'être lue
- *  et qu'un sixième aplat prend la place qu'il faut pour distinguer les cinq premiers. */
+/** How many models get a color of their own. The ramp offers seven
+ *  (`--chart-1..7`); we show FIVE, because beyond that a legend stops being read
+ *  and a sixth flat tone takes the room needed to distinguish the first five. */
 export const NAMED_SERIES = 5;
 
-/** Le seau « tout le reste ». Son libellé est du produit, pas de la donnée. */
+/** The "everything else" bucket. Its label is product copy, not data. */
 export const OTHER_ID = "__other__";
 
 export interface Series {
-  /** Id de modèle, ou `OTHER_ID`. */
+  /** Model id, or `OTHER_ID`. */
   id: string;
-  /** Le jeton CSS à peindre — `var(--chart-N)` ou `var(--chart-other)`. */
+  /** The CSS token to paint — `var(--chart-N)` or `var(--chart-other)`. */
   color: string;
-  /** Total sur la fenêtre, pour l'ordre de la légende et son chiffre. */
+  /** Total over the window, for the legend's order and its count. */
   total: number;
 }
 
 /**
- * **Quelles séries la timeline dessine, et de quelle couleur.**
+ * **Which series the timeline draws, and in what color.**
  *
- * Les cinq modèles les plus utilisés sur la fenêtre reçoivent chacun une teinte de la
- * rampe catégorielle ; tous les autres fondent dans « Autres ». C'est la règle que la
- * rampe elle-même énonce (`styles.css`) : sept emplacements assignés dans un ORDRE FIXE
- * et jamais cyclés — repeindre une huitième série avec la couleur de la première serait
- * pire que d'admettre qu'elle est « autre ».
+ * The five most-used models over the window each get a shade from the
+ * categorical ramp; everyone else melts into "Autres". It's the rule the
+ * ramp itself states (`styles.css`): seven slots assigned in a FIXED ORDER
+ * and never cycled — repainting an eighth series with the first one's color would be
+ * worse than admitting it's "other".
  *
- * ⚠️ **La couleur suit le MODÈLE, jamais son rang d'affichage.** Deux modèles restent
- * distincts même quand l'un passe devant l'autre : l'emplacement est attribué une fois,
- * sur le classement de la fenêtre, et `colorOf` le relit par id. Résiduel assumé et
- * mesurable : changer de fenêtre (7 → 90 jours) peut changer QUI est dans le top 5, donc
- * recolorer. L'alternative — figer les couleurs sur tout l'historique — ferait qu'une
- * fenêtre courte dessinerait cinq séries « autres » sans en nommer aucune, ce qui est le
- * défaut inverse et pire.
+ * ⚠️ **The color follows the MODEL, never its display rank.** Two models stay
+ * distinct even when one overtakes the other: the slot is assigned once,
+ * on the window's ranking, and `colorOf` re-reads it by id. Accepted and measurable
+ * residual: changing the window (7 → 90 days) can change WHO is in the top 5, hence
+ * recoloring. The alternative — freezing colors over the whole history — would make a
+ * short window draw five "other" series without naming any of them, which is the
+ * opposite bug, and worse.
  *
- * ⚠️ **Un modèle ABSENT de la fenêtre n'a pas de série.** On ne peint pas une ligne à
- * zéro : une légende qui nomme cinq modèles dont trois n'ont rien envoyé fait chercher
- * des aplats qui n'existent pas.
+ * ⚠️ **A model ABSENT from the window has no series.** We don't paint a line at
+ * zero: a legend naming five models of which three sent nothing makes you look
+ * for flat tones that don't exist.
  *
- * Pur — `usageSeries.test.ts`.
+ * Pure — `usageSeries.test.ts`.
  */
 export function buildSeries(days: ModelDay[], models: string[]): Series[] {
   const totals = new Map<string, number>();
@@ -47,8 +47,8 @@ export function buildSeries(days: ModelDay[], models: string[]): Series[] {
       if (n > 0) totals.set(id, (totals.get(id) ?? 0) + n);
     }
   }
-  // `models` porte déjà l'ordre du volume décroissant ; on le filtre sur ce que la
-  // fenêtre contient VRAIMENT plutôt que de refaire un tri qui pourrait en diverger.
+  // `models` already carries the descending-volume order; we filter it against what the
+  // window ACTUALLY contains rather than redo a sort that could diverge from it.
   const present = models.filter((m) => (totals.get(m) ?? 0) > 0);
   const named = present.slice(0, NAMED_SERIES);
   const rest = present.slice(NAMED_SERIES);
@@ -68,7 +68,7 @@ export function buildSeries(days: ModelDay[], models: string[]): Series[] {
   return out;
 }
 
-/** Le compte d'une série pour un jour — « Autres » additionne tout ce qui n'est pas nommé. */
+/** A series' count for a day — "Autres" adds up everything that isn't named. */
 export function dayCount(day: ModelDay, s: Series, named: ReadonlySet<string>): number {
   if (s.id !== OTHER_ID) return day.byModel[s.id] ?? 0;
   let n = 0;
@@ -77,10 +77,10 @@ export function dayCount(day: ModelDay, s: Series, named: ReadonlySet<string>): 
 }
 
 /**
- * `id de modèle → jeton de couleur`, pour toute surface qui doit s'ACCORDER avec le
- * graphe — la liste « Usage par modèle » sous lui, d'abord. Deux panneaux voisins qui
- * peignent le même modèle de deux couleurs différentes sont pires qu'un seul panneau.
- * Un modèle hors du top 5 rend le neutre, exactement comme sa part dans la barre.
+ * `model id → color token`, for any surface that must AGREE with the
+ * chart — the "Usage par modèle" list below it, first of all. Two neighboring panels
+ * that paint the same model in two different colors are worse than a single panel.
+ * A model outside the top 5 renders as neutral, exactly like its share in the bar.
  */
 export function seriesColors(series: Series[]): Map<string, string> {
   return new Map(series.map((s) => [s.id, s.color]));

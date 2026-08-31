@@ -18,8 +18,8 @@ export function HeaderMenu({
   protectedCount: number;
   settings?: Settings;
   onOpenRules: () => void;
-  /** Le comparatif côte à côte. Toujours offert : l'encart qui l'annonce ne se montre
-   *  qu'une fois, donc c'est ici que la preuve reste atteignable ensuite. */
+  /** The side-by-side comparison. Always offered: the banner announcing it only shows
+   *  once, so this is where the evidence stays reachable afterward. */
   onOpenTransparency: () => void;
   onOpenDebug: () => void;
   onAskDelete?: () => void;
@@ -39,12 +39,12 @@ export function HeaderMenu({
         <EyeIcon size={15} />
         {t.chat.seeWhatTheModelSaw}
       </button>
-      {/* Le TOGGLE est la porte (Réglages → Confidentialité → « Journal technique
-          détaillé ») : l'activer est l'acte volontaire, et le journal ne contient que
-          des données que ce renderer tient déjà. L'ex-condition « compte interne »
-          (email d'équipe) ne protégeait rien par design — et a fini par bloquer
-          l'équipe elle-même sur staging, connectée avec un autre compte. Un réglage
-          qui capture sans AUCUNE surface pour lire serait pire qu'aucun réglage. */}
+      {/* The TOGGLE is the gate (Réglages → Confidentialité → « Journal technique
+          détaillé »): turning it on is the deliberate act, and the log only holds
+          data this renderer already has. The former « compte interne » condition
+          (team email) protected nothing by design — and ended up blocking
+          the team itself on staging, signed in with a different account. A setting
+          that captures with NO surface to read it would be worse than no setting. */}
       {settings?.debugLog && (
         <button className="header-menu-item" onClick={onOpenDebug}>
           <ActivityIcon size={15} />

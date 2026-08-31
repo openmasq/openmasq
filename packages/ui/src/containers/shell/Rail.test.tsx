@@ -8,15 +8,15 @@ import { mount } from "../../testKit";
 import { Rail } from "./Rail";
 
 /**
- * Le bouclier du rail PROMET le rapport de confidentialité — c'est ce que dit son
- * `aria-label` et sa bulle (« N élément(s) protégé(s) — rapport de confidentialité »).
- * Il partageait pourtant son geste avec l'avatar (`go("settings")`), donc il déposait
- * sur l'onglet par défaut : « Compte ». Pour une avocate, le rapport n'est pas un
- * gadget — c'est la pièce qui prouve que le secret professionnel a tenu ; un bouton qui
- * l'annonce et ouvre autre chose EMPÊCHE le geste au lieu de le servir.
+ * The rail's shield PROMISES the privacy report — that's what its
+ * `aria-label` and its tooltip say (« N élément(s) protégé(s) — rapport de confidentialité »).
+ * Yet it shared its gesture with the avatar (`go("settings")`), so it used to land
+ * on the default tab: « Compte ». For a lawyer, the report isn't a
+ * gimmick — it's the piece that proves professional secrecy held; a button that
+ * announces it and opens something else PREVENTS the gesture instead of serving it.
  *
- * Le test épingle la DESTINATION, pas la couleur : l'onglet demandé doit être `privacy`
- * pour le bouclier, et l'onglet par défaut pour l'avatar.
+ * The test pins the DESTINATION, not the colour: the requested tab must be `privacy`
+ * for the shield, and the default tab for the avatar.
  */
 const wrap = (children: ReactNode) => <Provider store={store}>{children}</Provider>;
 
@@ -29,9 +29,9 @@ const railProps = (onOpenSettings: (tab?: string) => void) => ({
   onOpenSettings,
 });
 
-/* Les libellés viennent du CATALOGUE, pas d'une recopie : le test viserait sinon une
-   chaîne française en dur dans une app qui bascule en anglais — et il tomberait à la
-   première retouche de copie plutôt qu'à une vraie régression de comportement. */
+/* The labels come from the CATALOGUE, not a copy-paste: otherwise the test would target a
+   hardcoded French string in an app that switches to English — and it would fail at the
+   first copy tweak rather than at a real behaviour regression. */
 const t = getMessages("fr");
 
 describe("Rail — le bouclier mène au rapport de confidentialité", () => {

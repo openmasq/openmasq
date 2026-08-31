@@ -26,7 +26,7 @@ export function libKindOf(mime: string, name: string): LibKind {
  *  folders are browsed from the right rail, never copied here. */
 export type LibTab = "all" | LibKind;
 
-/** The category tabs, in the design's order — les MOTS viennent du catalogue. */
+/** The category tabs, in the design's order — the WORDS come from the catalogue. */
 export const LIB_TAB_IDS: readonly ("all" | LibKind)[] = ["all", "image", "document", "sheet", "audio"];
 
 export function libTabs(t: Messages): { id: "all" | LibKind; label: string }[] {
@@ -38,19 +38,19 @@ export function libTabs(t: Messages): { id: "all" | LibKind; label: string }[] {
  *  way and a container may not read this module; re-exported so the cards keep their name. */
 export { extLabel as extOf } from "../../state/localFsPaths";
 
-/* ⚠️ PAS de teinte par extension — et surtout pas celle qui vivait ici.
+/* ⚠️ NO tint by extension — and above all not the one that used to live here.
  *
- * `toneFor` hachait l'extension vers l'une des SIX couleurs de surlignage, écrites en hex
- * GELÉ puis posées en style inline. Trois choses en même temps :
- *   · ces six teintes sont la LANGUE DU REDACTION (`SECTION_HUE`) — un PDF rose à côté
- *     d'une marque rose affirme une parenté qui n'existe pas ;
- *   · un hex gelé ne s'inverse avec aucun thème (règle 12) : la teinte restait claire sur
- *     les deux fonds sombres ;
- *   · et la couleur ne disait RIEN — un hachage n'est pas une catégorie, deux tableurs
- *     sortaient de deux couleurs et un PDF pouvait partager la sienne avec un MP3.
- * La vignette est donc du chrome neutre (`--surface-sunken` + le glyphe de son type), et
- * la couleur reste réservée à ce qui en porte une : la marque de redaction, le bouclier
- * « protégé », la sélection.
+ * `toneFor` hashed the extension to one of the SIX highlight colors, written as a FROZEN
+ * hex then applied as inline style. Three things at once:
+ *   · those six tints are the LANGUAGE OF REDACTION (`SECTION_HUE`) — a pink PDF next to
+ *     a pink brand asserts a kinship that doesn't exist;
+ *   · a frozen hex inverts with no theme (rule 12): the tint stayed light on
+ *     both dark backgrounds;
+ *   · and the color said NOTHING — a hash is not a category, two spreadsheets
+ *     came out in two colors and a PDF could share its own with an MP3.
+ * The thumbnail is therefore neutral chrome (`--surface-sunken` + its type's glyph), and
+ * color stays reserved for what actually carries one: the redaction mark, the "protégé"
+ * shield, the selection.
  */
 
 /** Always-visible file date: relative for the last 2 days, else "13 janv. 2026"

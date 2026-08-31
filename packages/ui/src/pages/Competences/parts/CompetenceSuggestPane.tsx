@@ -8,10 +8,10 @@ import { useT } from "../../../i18n";
  * The compétence editor's RIGHT column: the ready-made instructions, filterable by
  * category.
  *
- * ⚠️ Elle sert les DEUX familles de modèles depuis la fusion : les prompts de prose et
- * les routines à connecteurs (le chip « Routines »). Chacune garde son propre
- * classement en amont (`suggestions/offered.ts` dit pourquoi) ; ici on ne fait que
- * filtrer et rendre, sur la catégorie — la seule question que les deux partagent est
+ * ⚠️ It serves BOTH template families since the merge: prose prompts and
+ * connector-driven routines (the « Routines » chip). Each keeps its own
+ * upstream ranking (`suggestions/offered.ts` says why); here we only
+ * filter and render, by category — the one question both share is
  * « pour quel genre de travail ? ».
  *
  * Only categories that actually have a template get a chip: an empty filter is a

@@ -38,10 +38,10 @@ export function PlanCard({
   tierKnown?: boolean;
   busy: string | null;
   billingAvailable: boolean;
-  /** Mode testeur du déploiement : le MÊME bouton, mais l'action est INSTANTANÉE — le
-   *  palier est posé côté serveur au lieu d'ouvrir Stripe. Le libellé ne change donc pas
-   *  (c'est le même geste pour la personne), seulement ce qu'il déclenche ; et il ne
-   *  dépend plus de Stripe, puisqu'un octroi n'appelle personne. */
+  /** Deployment tester mode: the SAME button, but the action is INSTANT — the
+   *  tier is set server-side instead of opening Stripe. The label therefore doesn't change
+   *  (it's the same gesture for the person), only what it triggers; and it no longer
+   *  depends on Stripe, since a grant calls nobody. */
   instant?: boolean;
   onPick: (tier: string) => void;
   onPortal: () => void;
@@ -206,9 +206,9 @@ export function OrgManagedBilling({
   );
 }
 
-/** The prepaid-credits progress bar for the current period. Le mode gratuit n'atteint
- *  jamais ce composant (`BillingTab` rend `FreeModeBilling` avant) ; s'il y arrivait,
- *  un `unlimited` se lit comme « pas de jauge » plutôt que « 0 € restants ». */
+/** The prepaid-credits progress bar for the current period. Free mode never reaches
+ *  this component (`BillingTab` renders `FreeModeBilling` first); if it did,
+ *  an `unlimited` reads as « pas de jauge » rather than « 0 € restants ». */
 export function CreditsMeter({ credits }: { credits: CreditBalance }) {
   const pct =
     credits.allotmentCents > 0

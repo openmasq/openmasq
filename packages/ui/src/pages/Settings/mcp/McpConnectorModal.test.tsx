@@ -47,7 +47,7 @@ describe("McpConnectorModal — bloqué par l'organisation", () => {
   it("le dit même DÉJÀ CONNECTÉ — et garde l'action Déconnecter", async () => {
     const m = await open({ connected: true, locked: true });
     expect(m.el.textContent).toContain("bloqué par votre organisation");
-    // Il reste connecté : on doit pouvoir se déconnecter, pas rester dans une impasse.
+    // It's still connected: you must be able to disconnect, not be stuck in a dead end.
     expect(m.el.textContent).toContain("Déconnecter");
     await m.unmount();
   });
@@ -67,10 +67,10 @@ describe("McpConnectorModal — bloqué par l'organisation", () => {
 });
 
 /**
- * Journal du 15/08 (Vercel) : sous « Refresh token is invalid. » — de l'anglais brut — la
- * modale servait la phrase du PREMIER branchement, « vous acceptez, et c'est fini. Rien à
- * créer. ». L'utilisateur lisait donc une panne, puis un texte d'accueil, et le seul bouton
- * nommé était « Oublier » : la réparation (« Connecter ») n'était signalée nulle part.
+ * Log from 15/08 (Vercel): under "Refresh token is invalid." — raw English — the
+ * modal served the FIRST-connection sentence, "you accept, and it's done. Nothing to
+ * create.". The user was therefore reading a failure, then a welcome text, and the only
+ * button named was « Oublier »: the fix (« Connecter ») was flagged nowhere.
  */
 describe("McpConnectorModal — autorisation expirée", () => {
   const EXPIRED = { configured: true, error: "Refresh token is invalid." };
@@ -86,9 +86,9 @@ describe("McpConnectorModal — autorisation expirée", () => {
     const m = await open(EXPIRED);
     expect(m.el.textContent).toContain("Reconnectez-vous");
     expect(m.el.textContent).not.toContain("Rien à créer");
-    // La promesse de redaction, elle, tient dans les deux états.
+    // The redaction promise, though, holds in both states.
     expect(m.el.textContent).toContain("masquées");
-    // Et la réparation reste offerte à côté d'« Oublier ».
+    // And the fix stays offered next to « Oublier ».
     expect(m.el.textContent).toContain("Connecter");
     await m.unmount();
   });

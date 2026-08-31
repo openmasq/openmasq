@@ -70,8 +70,8 @@ export function useShellDeepLinks({
   };
   const openCompetenceById = useCallback(
     (id: string) => {
-      // Porte fermée : `go` retomberait sur les conversations, et l'éditeur s'ouvrirait
-      // par-dessus — une modale d'une fonctionnalité retirée. On ne fait rien.
+      // Gate closed: `go` would fall back to conversations, and the editor would open
+      // on top — a modal for a removed feature. Do nothing.
       if (!featureAccess("competences")) return;
       setOpenComp((p) => ({ id, n: (p?.n ?? 0) + 1 }));
       go("competences");
@@ -83,11 +83,11 @@ export function useShellDeepLinks({
   // memory store actually changes.
   const memoryUiApi = useMemo<MemoryUiApi>(
     () => ({
-      // ⚠️ Porte fermée : la légende « Mémoire utilisée » RESTE (c'est la décision —
-      // rien ne doit s'accumuler invisiblement), mais elle ne mène plus à un écran
-      // qui n'est pas monté. `resolve` et `forget` continuent : voir CE qui a servi
-      // et pouvoir l'oublier est justement ce qui garde la fonctionnalité honnête
-      // quand son inventaire n'est plus atteignable.
+      // ⚠️ Gate closed: the « Mémoire utilisée » caption STAYS (that's the decision —
+      // nothing should accumulate invisibly), but it no longer leads to a screen
+      // that isn't mounted. `resolve` and `forget` carry on: seeing WHAT was used
+      // and being able to forget it is exactly what keeps the feature honest
+      // when its inventory is no longer reachable.
       open: (cardId) => {
         if (!featureAccess("memory")) return;
         if (cardId) setOpenMemCard((p) => ({ id: cardId, n: (p?.n ?? 0) + 1 }));

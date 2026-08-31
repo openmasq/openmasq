@@ -23,16 +23,16 @@ export function GuideModal({
   initialChapter,
 }: {
   onClose: () => void;
-  /** Ouvrir sur CE chapitre (ex. `protection` depuis « Comprendre mon redaction »).
-   *  Explicite plutôt que « le premier » : l'ordre du guide est éditorial, un appelant
-   *  qui compterait dessus casserait au premier réordonnancement. */
+  /** Open on THIS chapter (e.g. `protection` from « Comprendre mon redaction »).
+   *  Explicit rather than « the first one »: the guide's order is editorial, a caller
+   *  relying on it would break at the first reordering. */
   initialChapter?: string;
 }) {
   const [active, setActive] = useState(initialChapter ?? CHAPTER_IDS[0]);
   const t = useT();
-  // ⚠️ Le chapitre « Nouveautés » n'existe que là où les notes existent : sur une
-  // plateforme sans relais (aperçu navigateur), un onglet qui ne peut RIEN afficher est
-  // pire qu'un onglet absent — il se lit comme une panne de l'app.
+  // ⚠️ The « Nouveautés » chapter only exists where the notes exist: on a
+  // platform with no relay (browser aperçu), a tab that can display NOTHING is
+  // worse than no tab at all — it reads as the app being broken.
   const { unavailable } = useReleaseNotes();
   const chapters = guideChapters(t).filter((c) => !c.releases || !unavailable);
   const chapter = chapters.find((c) => c.id === active) ?? chapters[0];
@@ -47,9 +47,9 @@ export function GuideModal({
           <div className="cv-eyebrow guide-eyebrow">AIDE</div>
           <h2 className="cv-display guide-title">Prendre en main {BRAND.name}</h2>
         </div>
-        {/* Le centre d'aide étendu. `target="_blank"` est la sortie vers le navigateur
-            SYSTÈME (le processus principal la filtre par schéma) — jamais le navigateur
-            agent, qui est un outil du modèle, pas une visionneuse de documentation. */}
+        {/* The extended help center. `target="_blank"` is the exit to the SYSTEM
+            browser (the main process filters it by scheme) — never the agent
+            browser, which is a model tool, not a documentation viewer. */}
         <a
           className="btn-primary guide-head-cta"
           href={HELP_CENTER_URL}
@@ -81,9 +81,9 @@ export function GuideModal({
             <h3 className="guide-chapter-title">{chapter.title}</h3>
             <p className="guide-lead">{chapter.lead}</p>
 
-            {/* La démonstration du premier lancement, à demeure : c'est l'explication la
-                plus claire du produit, et elle disparaissait avec l'accueil. Même
-                composant, donc les deux ne peuvent pas raconter deux produits. */}
+            {/* The first-launch demo, kept for good: it's the clearest
+                explanation of the product, and it used to disappear with onboarding. Same
+                component, so the two can't tell two different stories about the product. */}
             {chapter.demo && <RedactionDemo />}
 
 
@@ -95,9 +95,9 @@ export function GuideModal({
               </ul>
             )}
 
-            {/* L'historique publié — un drapeau dans `help/`, le contenu ici : `help/`
-                reste du texte, et c'est le guide qui monte ce qui vient du réseau. APRÈS
-                les points : la liste fait des dizaines de versions, ce qui les enterrerait. */}
+            {/* The published history — a flag in `help/`, the content here: `help/`
+                stays text, and it's the guide that mounts what comes from the network. AFTER
+                the points: the list runs to dozens of versions, which would bury them. */}
             {chapter.releases && <GuideReleases />}
 
             {chapter.terms && (
@@ -126,9 +126,9 @@ export function GuideModal({
       </div>
 
       <div className="guide-foot">
-        {/* Fantôme, pas lime : la marque n'a qu'UN appel à l'action par écran, et sur un
-            guide c'est « aller lire plus », pas « fermer ». La sortie reste évidente — la
-            croix et le fond cliquable ferment aussi. */}
+        {/* Ghost, not lime: the brand has only ONE call-to-action per screen, and on a
+            guide it's « go read more », not « close ». The exit stays obvious — the
+            cross and the clickable background also close it. */}
         <button type="button" className="btn-ghost" onClick={onClose}>
           J&apos;ai compris
         </button>

@@ -74,13 +74,13 @@ export function McpConnectorModal({
   onRemove: () => void;
   onByo: () => void;
   /** Force a fresh OAuth for a connected desktop-direct account (fixes a stale /
-   *  wrong-scope token → 403). Absent when the host can't re-auth. ⚠️ Il ne répare
-   *  QU'UN id — d'où `peers`. */
+   *  wrong-scope token → 403). Absent when the host can't re-auth. ⚠️ It only fixes
+   *  ONE id — hence `peers`. */
   onReauth?: (serverId: string) => void;
-  /** Les autres connecteurs CONNECTÉS que la même autorisation fait tomber (Google
-   *  partage un client OAuth). Vide hors groupe partagé — voir `credGroup.ts`. */
+  /** The other CONNECTED connectors the same authorization takes down with it (Google
+   *  shares an OAuth client). Empty outside a shared group — see `credGroup.ts`. */
   peers?: McpItem[];
-  /** Ouvrir la fiche d'un de ces connecteurs pour le réparer à son tour. */
+  /** Open one of these connectors' card to fix it in turn. */
   onOpenPeer?: (connectorId: string) => void;
   onInspect: (serverId: string) => void;
   /** Connect an ADDITIONAL account of a desktop-direct connector (multi-account).
@@ -91,8 +91,8 @@ export function McpConnectorModal({
   /** Connect an ADDITIONAL account of a REMOTE API-key connector with a fresh key. */
   onAddAccountApiKey?: (key: string) => void;
   onPickDir: () => Promise<string | undefined>;
-  /** Remplacer les dossiers autorisés d'un serveur local connecté. Renvoie un message
-   *  d'erreur à afficher, ou `undefined` si c'est passé. Absent ⇒ pas d'édition offerte. */
+  /** Replace a connected local server's granted folders. Returns an error message
+   *  to display, or `undefined` if it succeeded. Absent ⇒ no editing offered. */
   onSetDirs?: (serverId: string, key: string, dirs: string[]) => Promise<string | undefined>;
 }) {
   const t = useT();
@@ -133,9 +133,9 @@ export function McpConnectorModal({
             </a>
           </div>
         )}
-        {/* Le message du fournisseur est TRADUIT en un geste (`connectorErrorText`) ; le
-            brut reste au journal de débogage. Inconnu ⇒ on garde le brut, plutôt que
-            d'inventer une phrase rassurante sur une panne qu'on ne comprend pas. */}
+        {/* The provider's message is TRANSLATED into a gesture (`connectorErrorText`); the
+            raw one stays in the debug log. Unknown ⇒ we keep the raw one, rather than
+            inventing a reassuring sentence about a failure we don't understand. */}
         {item.error && (
           <div className="mcp-modal-error">
             {connectorErrorText(item.error, t)?.text ?? item.error}
@@ -193,8 +193,8 @@ export function McpConnectorModal({
           />
         ) : item.connected ? (
           <>
-            {/* Un serveur local garde ses dossiers ÉDITABLES une fois connecté : sans ça,
-                ajouter un dossier demandait de déconnecter et de tout ré-accorder. */}
+            {/* A local server keeps its folders EDITABLE once connected: without this,
+                adding a folder required disconnecting and re-granting everything. */}
             {item.kind === "local" && item.entry && onSetDirs && (
               <McpGrantedDirs
                 entry={item.entry}

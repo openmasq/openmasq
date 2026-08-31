@@ -24,13 +24,13 @@ import { useAgentBrowserOffline } from "../../../hooks/useMcpConnectedIds";
 export function useAgentBrowserVisibility(onScreen: boolean): void {
   const host = useHost();
   const visibleRef = useRef(false);
-  // ⚠️ CONNECTEUR DÉCONNECTÉ ⇒ la fenêtre ne monte pas, ici NON PLUS. Il y a DEUX
-  // propriétaires de sa visibilité (celui-ci, global, et `useBrowserBounds` côté panneau) :
-  // n'en museler qu'un ne sert à rien, l'autre la remonte aussitôt — c'est ce qui laissait
-  // la carte « Le navigateur n'est pas connecté » recouverte par une frame vide. Les deux
-  // lisent le MÊME fait (`useMcpConnectorConnected`), comme ils lisent déjà le même
-  // `shouldHideAgentBrowser`. `null` (pas encore su) n'empêche rien : on ne cache que sur
-  // un « non » CERTAIN.
+  // ⚠️ CONNECTOR DISCONNECTED ⇒ the window doesn't mount here EITHER. There are TWO
+  // owners of its visibility (this one, global, and `useBrowserBounds` on the panel side):
+  // muzzling only one does nothing, the other brings it back up right away — that's what
+  // used to leave the « Le navigateur n'est pas connecté » card covered by an empty frame. Both
+  // read the SAME fact (`useMcpConnectorConnected`), just as they already read the same
+  // `shouldHideAgentBrowser`. `null` (not yet known) prevents nothing: we only hide on
+  // a CERTAIN « no ».
   const disconnected = useAgentBrowserOffline();
 
   useEffect(() => {
@@ -52,9 +52,9 @@ export function useAgentBrowserVisibility(onScreen: boolean): void {
       if (shouldShow === visibleRef.current) return;
       visibleRef.current = shouldShow;
       if (shouldShow) {
-        // ⚠️ L'ÉCRIVAIN des bornes (`useBrowserBounds`) ignore cette remontée : sans ce
-        // signal il garde sa dernière clé et n'émet rien, donc la fenêtre revient aux
-        // bornes d'avant — décalée si la mise en page a bougé entre-temps.
+        // ⚠️ The bounds WRITER (`useBrowserBounds`) ignores this remount: without this
+        // signal it keeps its last key and emits nothing, so the window comes back to the
+        // previous bounds — offset if the layout has moved in the meantime.
         invalidateAgentBrowserBounds();
         b.show();
       } else b.hide();

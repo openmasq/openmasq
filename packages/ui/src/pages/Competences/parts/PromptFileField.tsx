@@ -6,18 +6,18 @@ import { applyPromptMark } from "../promptFormat";
 
 import { useT } from "../../../i18n";
 /**
- * L'INSTRUCTION d'une compétence, encadrée comme un FICHIER : le prompt est un document
- * qu'on écrit une fois et qu'on rejoue, pas un champ de formulaire qu'on remplit à chaque
- * envoi. Barre de mise en forme, bascule Aperçu, compteur de caractères.
+ * A compétence's INSTRUCTION, framed as a FILE: the prompt is a document
+ * written once and replayed, not a form field filled in on every
+ * send. Formatting toolbar, Preview toggle, character counter.
  *
- * Sorti de `CompetenceModal.tsx` quand la modale a gagné le choix des connecteurs : le
- * fichier passait le plafond de 300 lignes (règle 1), et c'est le bloc le plus autonome —
- * il ne tient que sa propre sélection de texte et son propre mode aperçu.
+ * Pulled out of `CompetenceModal.tsx` once the modal gained the connector picker: the
+ * file went past the 300-line cap (rule 1), and it's the most self-contained block —
+ * it only holds its own text selection and its own preview mode.
  */
 export function PromptFileField({
   prompt,
   onChange,
-  /** La phrase sous le champ. Elle change selon que la compétence pilote des outils. */
+  /** The sentence under the field. It changes depending on whether the compétence drives tools. */
   note,
 }: {
   prompt: string;

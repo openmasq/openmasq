@@ -6,8 +6,8 @@ import { DESKTOP_DIR, FIXTURE_FILE, KEY } from "../env";
 import { REAL_EMAIL, REAL_MODEL, REAL_PROFILE, REAL_UID, realStoreSource } from "./config";
 import { supabaseAuthStorageKey } from "../../supabaseAuthKey";
 
-/** Lance une app isolée SANS fixtures MCP, le store RÉEL adopté dans son profil.
- *  Le profil (tokens copiés compris) est jetable — supprimé par `cleanup()`. */
+/** Launches an isolated app WITHOUT MCP fixtures, the REAL store adopted into its profile.
+ *  The profile (copied tokens included) is disposable — removed by `cleanup()`. */
 export async function launchRealApp(
   id: string,
   opts: { connectors?: string[]; mode?: "fixtures" | "e2e" } = {},
@@ -21,9 +21,9 @@ export async function launchRealApp(
   const profile = resolve(DESKTOP_DIR, `e2e/.profile-workflows/real-${id}-${process.pid}`);
   rmSync(profile, { recursive: true, force: true });
   mkdirSync(resolve(profile, "accounts"), { recursive: true });
-  // Banc FIXTURES : aucun credential réel n'est adopté — les connexions viennent
-  // du fichier de fixtures, servi en mémoire par main. Banc E2E : on adopte le
-  // store MCP du compte dev (déchiffrable car c'est le MÊME binaire Electron).
+  // FIXTURES bench: no real credential is adopted — connections come from
+  // the fixtures file, served in memory by main. E2E bench: we adopt the
+  // dev account's MCP store (decryptable because it's the SAME Electron binary).
   if (!fixtures) {
     const src = realStoreSource();
     if (!existsSync(src))
@@ -32,9 +32,9 @@ export async function launchRealApp(
       );
     copyFileSync(src, resolve(profile, "accounts", `mcp-${REAL_UID}.json`));
   }
-  // Le magasin de CLÉS du compte, s'il existe : la clé provider est alors présente
-  // AU MONTAGE (`keyConfigured` peuplé d'emblée) — ce qui rend inutiles le
-  // `keys.set` + le SECOND reload de `seedRealSession`, ~40 s par test.
+  // The account's KEY store, if it exists: the provider key is then present
+  // AT MOUNT (`keyConfigured` populated right away) — which makes the
+  // `keys.set` + the SECOND reload of `seedRealSession` unnecessary, ~40 s per test.
   const keysSrc = resolve(REAL_PROFILE, "accounts", `keys-${REAL_UID}.enc`);
   if (existsSync(keysSrc))
     copyFileSync(keysSrc, resolve(profile, "accounts", `keys-${REAL_UID}.enc`));
@@ -51,14 +51,14 @@ export async function launchRealApp(
       OPENMASQ_E2E: "1",
       OPENMASQ_USER_DATA_DIR: profile,
       OPENMASQ_E2E_WIRE_LOG: wireLog,
-      // Le SOUS-ENSEMBLE de connecteurs à reconnecter (~20 outils au lieu de 450) :
-      // le levier de VITESSE et de DÉTERMINISME — prompt court, routeur trivial,
-      // moins de tours perdus. C'est ce qui rend l'itération sur la guidance
-      // agentique praticable. Absent ⇒ tous les connecteurs du compte.
+      // The SUBSET of connectors to reconnect (~20 tools instead of 450):
+      // the SPEED and DETERMINISM lever — short prompt, trivial router,
+      // fewer wasted turns. This is what makes iterating on agentic
+      // guidance practical. Absent ⇒ all the account's connectors.
       ...(opts.connectors?.length ? { OPENMASQ_E2E_MCP_ONLY: opts.connectors.join(",") } : {}),
-      // Banc FIXTURES : les connexions canned (déterministes, gratuites côté
-      // services). Le MODÈLE, lui, est bien réel dans les deux bancs — c'est lui
-      // qu'on évalue. Banc E2E : rien ici, on parle aux VRAIS serveurs.
+      // FIXTURES bench: canned connections (deterministic, free on the
+      // services' side). The MODEL, though, is indeed real in both benches — it's what
+      // we're evaluating. E2E bench: nothing here, we talk to the REAL servers.
       ...(fixtures ? { OPENMASQ_E2E_MCP_FIXTURES: FIXTURE_FILE } : {}),
     },
   });
@@ -68,15 +68,15 @@ export async function launchRealApp(
     app,
     page,
     wireLog,
-    /** `keepLogs` (échec) : le wire log — REDACTÉ par construction — reste en tmp
-     *  pour l'autopsie ; le PROFIL (copie des credentials) est TOUJOURS effacé. */
+    /** `keepLogs` (failure): the wire log — REDACTED by construction — stays in tmp
+     *  for the autopsy; the PROFILE (copy of the credentials) is ALWAYS erased. */
     cleanup: async (keepLogs = false) => {
       await app.close().catch(() => {});
-      // ⚠️ `maxRetries` : la baignade Python (`run_python`) écrit encore des
-      // milliers de fichiers dans le profil au moment du `close`, d'où des
-      // ENOTEMPTY sur un `rmSync` immédiat (mesuré sur le groupe `tableur`). On
-      // retente — la suppression du profil (copie de credentials) ne doit JAMAIS
-      // être abandonnée sur une course de fichiers.
+      // ⚠️ `maxRetries`: the Python sandbox (`run_python`) is still writing
+      // thousands of files into the profile at `close` time, hence
+      // ENOTEMPTY on an immediate `rmSync` (measured on the `tableur` group). We
+      // retry — deleting the profile (copy of credentials) must NEVER
+      // be abandoned to a file race.
       rmSync(profile, { recursive: true, force: true, maxRetries: 12, retryDelay: 400 });
       if (!keepLogs) rmSync(wireLog, { force: true });
     },
@@ -84,12 +84,12 @@ export async function launchRealApp(
 }
 
 /**
- * FAIL LOUD : chaque connecteur déclaré par le groupe doit exposer au moins un
- * outil. Sans ça, un groupe dont 2 connecteurs sur 3 ne se connectent pas tourne
- * quand même et produit des chiffres qui ne mesurent RIEN — c'est exactement
- * comme ça qu'un « le modèle n'a appelé aucun outil » a été pris pour un échec de
- * routage alors que le service n'était pas branché du tout.
- * `waitForRealTools` ne vérifie qu'UN préfixe ; celui-ci les vérifie tous.
+ * FAIL LOUD: every connector declared by the group must expose at least one
+ * tool. Without this, a group where 2 out of 3 connectors don't connect still
+ * runs and produces numbers that measure NOTHING — that's exactly
+ * how a "the model called no tool" outcome was mistaken for a routing
+ * failure when the service wasn't connected at all.
+ * `waitForRealTools` only checks ONE prefix; this one checks all of them.
  */
 export async function assertConnectorsAvailable(page: Page, connectors: string[]): Promise<void> {
   if (!connectors.length) return;
@@ -107,18 +107,18 @@ export async function assertConnectorsAvailable(page: Page, connectors: string[]
     );
 }
 
-/** Session seedée sur l'uid RÉEL (mêmes clés localStorage que `seedSession`, mais
- *  scopées `:<uid réel>` — c'est ce scoping qui fait pointer `mcp:set-user` sur le
- *  store adopté). Moteur `patterns` (déterministe) + modèle payant par défaut. */
+/** Session seeded on the REAL uid (same localStorage keys as `seedSession`, but
+ *  scoped `:<real uid>` — it's this scoping that makes `mcp:set-user` point at the
+ *  adopted store). `patterns` engine (deterministic) + paid model by default. */
 export async function seedRealSession(page: Page): Promise<void> {
   const settings = JSON.stringify({
     onboarded: true,
     redactRulesSeen: true,
     redactEngine: "patterns",
     defaultModelId: REAL_MODEL,
-    // BYO explicite : en "subscription", `resolveEffectivePlatform` force la
-    // passerelle MÊME avec une clé — or notre session est factice, donc le token
-    // Supabase qui partirait est refusé (401 « Unsupported token algorithm »).
+    // Explicit BYO: in "subscription" mode, `resolveEffectivePlatform` forces the
+    // gateway EVEN with a key — but our session is fake, so the Supabase
+    // token that would go out gets refused (401 "Unsupported token algorithm").
     billingMode: "byo",
     apiKeys: { openrouter: KEY },
   });
@@ -148,12 +148,12 @@ export async function seedRealSession(page: Page): Promise<void> {
   await page.reload();
   await page.waitForLoadState("domcontentloaded");
   await expect(page.locator(".composer-input").first()).toBeVisible({ timeout: 30_000 });
-  // La clé provider vient du magasin de clés COPIÉ (voir `launchRealApp`), donc
-  // `keyConfigured` est peuplé dès le montage et le routage est BYO — sans second
-  // reload. Filet : si ce compte n'a pas de clé au magasin, la poser par l'IPC
-  // Réglages et recharger UNE fois (le store ne lit `keys.configured()` qu'au
-  // montage ; un `keys.set` tardif ne rafraîchit pas `keyConfigured`, et le send
-  // partirait alors sur la PASSERELLE avec le token Supabase factice → 401).
+  // The provider key comes from the COPIED key store (see `launchRealApp`), so
+  // `keyConfigured` is populated right at mount and routing is BYO — no second
+  // reload needed. Safety net: if this account has no key in the store, set it via the
+  // Settings IPC and reload ONCE (the store only reads `keys.configured()` at
+  // mount; a late `keys.set` doesn't refresh `keyConfigured`, and the send
+  // would then go out over the GATEWAY with the fake Supabase token → 401).
   const hasKey = async () =>
     (
       await page.evaluate(() =>
@@ -174,7 +174,7 @@ export async function seedRealSession(page: Page): Promise<void> {
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator(".composer-input").first()).toBeVisible({ timeout: 30_000 });
   }
-  // Le flux sign-in écrase le blob pré-boot — re-seed LIVE (pattern du harnais).
+  // The sign-in flow overwrites the pre-boot blob — re-seed LIVE (harness pattern).
   await page.evaluate(apply, seed);
   const consent = page.getByRole("button", { name: "Compris" });
   if (await consent.count().catch(() => 0)) await consent.first().click().catch(() => {});

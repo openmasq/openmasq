@@ -5,36 +5,36 @@
  * exchanged for the short-lived device token that authenticates record calls
  * (a bare device id is enumerable via the device list; the secret is not).
  *
- * ⚠️ **Le SECRET vit dans le magasin chiffré du processus principal**, pas dans le
- * localStorage : c'est lui qui prouve l'identité de l'appareil, donc ce qui ferme
- * l'usurpation de replica, et le localStorage de Chromium est du LevelDB en clair sur le
- * disque. La phrase avait déjà déménagé ; le secret était resté, ce qui mettait
- * l'asymétrie exactement à l'envers de son rôle.
+ * ⚠️ **The SECRET lives in the main process's encrypted store**, not in
+ * localStorage: it's what proves the device's identity, so what closes off
+ * replica impersonation, and Chromium's localStorage is plaintext LevelDB on
+ * disk. The passphrase had already moved; the secret had stayed behind, which put
+ * the asymmetry exactly backwards from its role.
  *
- * L'ID, lui, RESTE en localStorage à dessein : ce n'est pas un secret (le serveur le
- * publie dans la liste des appareils), et le déplacer inventerait un nouvel appareil à
- * chaque profil — c'est déjà ce qui crée les doublons de la liste.
+ * The ID, though, STAYS in localStorage on purpose: it's not a secret (the server
+ * publishes it in the device list), and moving it would invent a new device on
+ * every profile — that's already what creates the list's duplicates.
  */
 import type { DeviceIdentity } from "@openmasq/sync";
 import { BRAND } from "@openmasq/branding";
 
 const DEVICE_ID_KEY = `${BRAND.slug}:sync-device-id`;
 const DEVICE_NAME_KEY = `${BRAND.slug}:sync-device-name`;
-/** L'ancien emplacement du secret, EN CLAIR. Lu une fois, puis effacé. */
+/** The old location of the secret, IN PLAINTEXT. Read once, then erased. */
 const LEGACY_SECRET_KEY = `${BRAND.slug}:sync-device-secret`;
 
 /**
- * Le secret TOFU de cet appareil, créé à la première demande.
+ * This device's TOFU secret, created on first request.
  *
- * ⚠️ La migration n'est pas un confort : sans elle, un appareil déjà enregistré
- * repartirait avec un secret neuf que le serveur refuserait (le hash stocké est celui de
- * la PREMIÈRE inscription, jamais réécrit) — sa synchro serait morte, et l'utilisateur
- * n'aurait aucun moyen de le comprendre.
+ * ⚠️ The migration isn't a nicety: without it, an already-registered device
+ * would start over with a fresh secret the server would refuse (the stored hash is that of
+ * the FIRST registration, never rewritten) — its sync would be dead, and the user
+ * would have no way to understand why.
  */
 export async function deviceSecret(): Promise<string> {
-  // ⚠️ Le pont peut être ABSENT (preload non redémarré en dev, aperçu navigateur). On
-  // dégrade vers l'ancien emplacement au lieu de jeter : une exception ici ferait échouer
-  // `deviceIdentity()`, donc l'inscription, donc TOUTE la synchro — en silence.
+  // ⚠️ The bridge can be ABSENT (preload not restarted in dev, browser preview). We
+  // degrade to the old location instead of throwing: an exception here would fail
+  // `deviceIdentity()`, so registration, so ALL of sync — silently.
   const bridge = window.openmasq?.sync;
   const legacy = (): string | null => {
     try {
@@ -61,10 +61,10 @@ export async function deviceSecret(): Promise<string> {
   const stored = await bridge.getDeviceSecret();
   if (stored) return stored;
 
-  // Migration ponctuelle : l'ancien secret EN CLAIR est adopté tel quel puis effacé. Sans
-  // elle, un appareil déjà inscrit repartirait avec un secret neuf que le serveur
-  // refuserait — le hash stocké est celui de la PREMIÈRE inscription, jamais réécrit — et
-  // sa synchro mourrait sans que rien ne l'explique.
+  // One-time migration: the old PLAINTEXT secret is adopted as-is then erased. Without
+  // it, an already-registered device would start over with a fresh secret the server
+  // would refuse — the stored hash is that of the FIRST registration, never rewritten — and
+  // its sync would die with nothing to explain why.
   const s = legacy() ?? mint();
   await bridge.setDeviceSecret(s);
   try {
@@ -83,8 +83,8 @@ function autoDeviceName(): string {
   return plat ? `${BRAND.name} Desktop · ${plat}` : `${BRAND.name} Desktop`;
 }
 
-/** L'id seul, SYNCHRONE : il n'est pas secret (le serveur le publie dans la liste des
- *  appareils), et le rendre asynchrone aurait contaminé tout le transport pour rien. */
+/** The id alone, SYNCHRONOUS: it isn't secret (the server publishes it in the
+ *  device list), and making it async would have contaminated the whole transport for nothing. */
 export function deviceId(): string {
   let id = localStorage.getItem(DEVICE_ID_KEY);
   if (!id) {

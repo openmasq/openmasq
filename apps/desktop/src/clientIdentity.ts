@@ -1,39 +1,39 @@
 /**
- * QUI parle à notre API — un en-tête, posé par l'app de bureau sur chacun de ses appels.
+ * WHO is talking to our API — a header, set by the desktop app on every one of its calls.
  *
- * ⚠️ **Ce n'est pas une frontière de sécurité, et il ne faut jamais s'en servir comme
- * telle.** N'importe qui peut forger cet en-tête ; l'identité et l'autorité viennent du
- * jeton vérifié, jamais d'ici (règle 7). Il répond à une question de PRODUIT, pas
- * d'autorisation : « cette requête vient-elle de l'application de bureau ? » — et mentir
- * n'ouvre aucune porte, ça ne fait que s'inscrire soi-même sur une liste de diffusion.
+ * ⚠️ **This is not a security boundary, and it must never be used as
+ * one.** Anyone can forge this header; identity and authority come from the
+ * verified token, never from here (rule 7). It answers a PRODUCT question, not
+ * an authorization one: "does this request come from the desktop app?" — and lying
+ * opens no door, it just enrolls you on a distribution list.
  *
- * Ce qu'il rend possible, et qui ne l'était pas : le backend voit passer les mêmes
- * requêtes authentifiées depuis l'app, le site, la console d'organisation et la console
- * ops, sans pouvoir les distinguer. Une règle qui dit « les gens qui se sont connectés
- * SUR L'APP DE BUREAU » était donc inapplicable — on ne savait pas le dire.
+ * What it makes possible, and wasn't before: the backend sees the same
+ * authenticated requests go by from the app, the website, the organization console and the
+ * ops console, unable to tell them apart. A rule saying "people who signed in
+ * ON THE DESKTOP APP" was therefore unenforceable — there was no way to say it.
  *
- * ⚠️ `User-Agent` n'était pas une option : Chromium l'interdit à `fetch` depuis un
- * renderer (en-tête gardé). D'où un en-tête à nous.
+ * ⚠️ `User-Agent` wasn't an option: Chromium forbids `fetch` from a
+ * renderer from setting it (guarded header). Hence a header of our own.
  *
- * Le nom DÉRIVE de la marque (`brandHeader`, règle 9) ; le backend, qui ne peut pas
- * importer une app sœur (`pnpm check:dup`), le dérive de la même maison. Le test de
- * parité côté backend (`clientApp.parity.test.ts`) relit ce fichier.
+ * The name DERIVES from the brand (`brandHeader`, rule 9); the backend, which can't
+ * import a sibling app (`pnpm check:dup`), derives it from the same source. The backend-side
+ * parity test (`clientApp.parity.test.ts`) reads this file back.
  */
 import { brandHeader } from "@openmasq/branding";
 
-/** L'en-tête. Minuscules : Node normalise, et une comparaison de casse est un piège. */
+/** The header. Lowercase: Node normalizes it, and a case comparison is a trap. */
 export const CLIENT_HEADER = brandHeader("client");
 
-/** Le produit que ce binaire EST. Une seule valeur — il n'y en a pas d'autre ici.
- *  PAS exporté : rien d'autre n'en a besoin ici, et le test de parité le lit comme du
- *  TEXTE (il ne peut pas l'importer — apps sœurs). Un export que personne n'importe est
- *  du code mort pour knip, et le cliquet a raison. */
+/** The product this binary IS. A single value — there's no other one here.
+ *  NOT exported: nothing else needs it here, and the parity test reads it as
+ *  TEXT (it can't import it — sibling apps). An export nobody imports is
+ *  dead code to knip, and the ratchet is right. */
 const CLIENT_PRODUCT = "desktop";
 
 /**
- * La valeur envoyée : `desktop/0.8.0`, ou `desktop` si la version n'a pas été cuite
- * (dev). Le backend ne lit que le produit ; la version voyage pour les journaux, et
- * c'est ce qui permettra un jour de corréler une erreur à une version de client.
+ * The value sent: `desktop/0.8.0`, or `desktop` if the version hasn't been baked
+ * (dev). The backend only reads the product; the version travels for the logs, and
+ * that's what will one day let an error be correlated to a client version.
  */
 export function clientIdentityHeader(version?: string): string {
   return version ? `${CLIENT_PRODUCT}/${version}` : CLIENT_PRODUCT;

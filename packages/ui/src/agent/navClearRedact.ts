@@ -50,8 +50,8 @@ export function makeNavClearRedactor(opts: {
   /** value → category map (this send's spans included), so the per-tool clear
    *  policy can prove which vault entries it may leave un-replayed. */
   kinds?: Record<string, string>;
-  /** Les domaines des intégrations connectées — voir `send/redactKeep.ts`
-   *  `connectedUrlHosts`. Leurs liens gardent leur structure même en Strict. */
+  /** The domains of the connected integrations — see `send/redactKeep.ts`
+   *  `connectedUrlHosts`. Their links keep their structure even in Strict. */
   structuralUrlHosts?: string[];
   /** Called once per ESCALATED result (counts-only analytics hook — the reason
    *  stays in the journal entry, never in the callback). */
@@ -90,11 +90,11 @@ export function makeNavClearRedactor(opts: {
           replayed = {};
           for (const [t, v] of Object.entries(vault)) if (!excluded.has(t)) replayed[t] = v;
         }
-        // Le replay ne réécrit pas l'INTÉRIEUR d'une URL (`urlOccurrenceGuard`) : ici
-        // la tolérance casse/séparateurs le rendait doublement destructeur sur les
-        // liens de la page. Même arbitrage qu'ailleurs — la garde ne s'applique jamais
-        // à `URL_EXEMPT_KINDS` (clé, PAN/IBAN, e-mail, téléphone), et une catégorie
-        // qu'on ne sait pas prouver reste substituée (fail closed).
+        // The replay does not rewrite the INSIDE of a URL (`urlOccurrenceGuard`): here
+        // the case/separator tolerance made it doubly destructive on the
+        // page's links. Same trade-off as elsewhere — the guard never applies
+        // to `URL_EXEMPT_KINDS` (key, PAN/IBAN, email, phone), and a category
+        // that can't be proven stays substituted (fail closed).
         const urlSpans = [
           ...(opts.disabledKinds.includes("url") ? detectUrlSpans(text) : []),
           ...detectHostedUrlSpans(text, opts.structuralUrlHosts ?? []),
@@ -133,9 +133,9 @@ export function makeNavClearRedactor(opts: {
       }
     } catch (e) {
       escalate = true;
-      // La cause VOYAGE avec le verdict : « erreur pendant la décision » seul rendait un
-      // deref d'undefined, une URL malformée et un bug de forme de vault indistinguables
-      // — sur le chemin chaud de chaque appel web gouverné (audit 13/08).
+      // The CAUSE TRAVELS with the verdict: « erreur pendant la décision » alone made an
+      // undefined deref, a malformed URL and a vault-shape bug indistinguishable
+      // — on the hot path of every governed web call (audit 13/08).
       why = `erreur pendant la décision : ${e instanceof Error ? e.message : String(e)}`;
     }
     try {

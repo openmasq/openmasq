@@ -117,10 +117,10 @@ function renderPage(
           {inner}
         </mark>
       );
-    // Pas d'onClick : inspecter ≠ révéler (audit 2026-08-10). Le clic (et Entrée — le
-    // bouton est le chemin CLAVIER) ÉPINGLE la carte de révélation partagée
-    // (`useMarkHover` délégué sur le conteneur) ; « Unredact » est l'action
-    // explicite DE la carte, jamais le geste d'exploration lui-même.
+    // No onClick: inspect ≠ reveal (audit 2026-08-10). The click (and Enter — the
+    // button is the KEYBOARD path) PINS the shared reveal card
+    // (`useMarkHover` delegated on the container); « Unredact » is the card's
+    // explicit action, never the exploration gesture itself.
     return (
       <button
         key={i}

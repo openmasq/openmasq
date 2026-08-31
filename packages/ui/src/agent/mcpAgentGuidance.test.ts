@@ -24,7 +24,7 @@ describe("looksLikeRefusal", () => {
   });
 
   describe("pseudo-appel TEXTUEL — la SYNTAXE d'un tool call imprimée au lieu d'être émise", () => {
-    // Mesuré en éval réelle sur Gemma :free — la réponse finale ÉTAIT la syntaxe.
+    // Measured in a real eval on Gemma :free — the final answer WAS the syntax.
     for (const text of [
       '<|tool_call>call:browser_navigate{url:<|"|>https://html.duckduckgo.com/html/?q=x<|"|>}<tool_call|>',
       'call:web_fetch_many{"urls":["https://a.fr"]}',

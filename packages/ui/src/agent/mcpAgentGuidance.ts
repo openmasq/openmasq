@@ -3,8 +3,8 @@ import { INTERRUPTED_TOOL_RESULT, TIMED_OUT_WRITE_RESULT } from "./turnCheckpoin
 import type { ChatMessage } from "@openmasq/llm";
 import { LANGUAGE_REMINDER } from "../prompt/systemPrompt";
 import { pythonGuidance, webToolPhrase } from "./mcpAgentPython";
-// Préfixe des helpers Python définis par le préambule du runtime (apps/desktop) —
-// des noms RUNTIME côté sandbox, donc dérivés de la marque, jamais littéraux ici.
+// Prefix of the Python helpers defined by the runtime preamble (apps/desktop) —
+// sandbox-side RUNTIME names, so derived from the brand, never a literal here.
 const PY = BRAND.slug;
 
 
@@ -12,10 +12,10 @@ const PY = BRAND.slug;
 // re-exported here so importers never learn the split happened.
 export { pythonFailReason, pythonErrorHint, webToolPhrase } from "./mcpAgentPython";
 
-// Idem pour la MAUVAISE fin de tour — la reconnaître et la dire : `mcpAgentOutcome.ts`.
-// Ce fichier-ci ne garde que ce qu'on dit au modèle AVANT qu'il agisse.
-// Une faute de RECOPIE d'identifiant est la seule panne d'outil qu'on sache réparer à la
-// place du modèle — la bonne valeur est encore dans un résultat précédent.
+// Same for a BAD turn ending — recognising it and saying so: `mcpAgentOutcome.ts`.
+// This file keeps only what we say to the model BEFORE it acts.
+// An identifier COPY-OVER typo is the only tool failure we know how to repair in the
+// model's place — the correct value is still in a prior result.
 export { opaqueIdsIn, identifierTypoHint } from "./identifierTypo";
 export {
   repeatedFailureOf,
@@ -37,14 +37,14 @@ export {
 const TOOL_USE_GUIDANCE =
   "Tu disposes d'outils connecteurs déjà connectés. Dès qu'une demande correspond à une action qu'un de ces outils permet (rechercher, ouvrir, dupliquer, modifier, exporter ou télécharger un design ou un fichier existant, ou agir sur un service connecté), APPELLE l'outil approprié plutôt que d'expliquer une procédure manuelle. N'affirme jamais que tu ne peux pas effectuer une action sans avoir d'abord tenté l'outil correspondant. " +
   "IMPORTANT — rédiger un contenu n'est PAS écrire un fichier : si l'utilisateur demande de RÉDIGER, GÉNÉRER, CRÉER ou PRÉPARER un contenu (un procès-verbal, un courrier, un texte, un tableau, du code…) SANS demander explicitement de l'ENREGISTRER/SAUVEGARDER sur le disque et sans nommer le fichier ou le service où le placer, RÉPONDS directement dans la conversation avec ce contenu — n'appelle PAS `write_file` et n'invente AUCUN chemin de fichier. N'utilise un connecteur de FICHIERS (lecture/écriture sur le disque) QUE si l'utilisateur demande explicitement de lire, d'enregistrer ou de modifier un fichier. De même, RÉDIGER un e-mail ou un message n'est PAS l'ENVOYER : sans demande EXPLICITE d'envoi (« envoie », « envoie-le », « transmets »…), présente le texte rédigé dans la conversation (bloc document) et n'appelle AUCUN outil d'envoi (`send_email`, `send_message`…) — l'utilisateur décidera ensuite de l'envoyer. " +
-  // Mesuré le 28/07/2026 : « fais de la veille sur les fournisseurs de X » — le web ne
-  // rend rien sur une PME privée, et le modèle en tire trois sections dont « l'absence
-  // d'actualités suggère une stabilité de la chaîne d'approvisionnement ». C'est une
-  // conclusion tirée du néant, présentée comme un constat. La règle du produit est la
-  // même partout : une panne réelle se dit, elle ne s'habille pas.
+  // Measured 28/07/2026: "fais de la veille sur les fournisseurs de X" (monitor X's
+  // suppliers) — the web returns nothing on a private SME, and the model draws three
+  // sections from it including "the absence of news suggests supply-chain stability".
+  // That's a conclusion drawn from nothing, presented as a finding. The product rule
+  // is the same everywhere: a genuine failure is stated, never dressed up.
   "RIEN TROUVÉ se dit en une phrase, et ne se déduit pas. Si une recherche ne rend aucun résultat utile, dis-le simplement et arrête-toi là : ne tire AUCUNE conclusion de l'absence (ne pas trouver d'actualité sur une entreprise ne prouve ni sa stabilité, ni sa santé, ni quoi que ce soit), ne remplis pas la réponse de sections vides, et ne reformule pas le vide en plusieurs points pour lui donner du volume. Propose plutôt ce qui débloquerait : une source précise, une orthographe, un site officiel. " +
-  // Le cas signalé : la fiche mémoire de l'entreprise ÉTAIT injectée (« Mémoire utilisée »)
-  // et le modèle a quand même répondu comme s'il ne savait rien d'elle.
+  // The reported case: the company's memory card WAS injected ("Mémoire utilisée")
+  // and the model still answered as if it knew nothing about it.
   "Ce que la MÉMOIRE t'a déjà donné sur une personne ou une organisation nommée dans la demande fait partie de ta réponse : sers-t'en pour cadrer la recherche (secteur, taille, ville, année) et pour répondre quand le web n'ajoute rien — ne réponds jamais comme si tu ne savais rien d'une entité dont le contexte te décrit déjà. " +
   "Les arguments de chaque appel d'outil DOIVENT être un objet JSON strictement valide et conforme au schéma de l'outil (guillemets doubles fermés, pas de virgule finale, types respectés). Si un outil renvoie deux fois de suite un résultat vide ou identique, NE répète PAS le même appel : change d'approche (autres paramètres, autre outil) ou explique à l'utilisateur ce qui bloque. " +
   "RAPIDITÉ — quand plusieurs LECTURES indépendantes sont nécessaires (consulter l'agenda ET les e-mails ET un CRM…), émets TOUS ces appels de lecture ENSEMBLE dans le MÊME tour, pas un par un : ils s'exécutent en parallèle. Séquence uniquement quand un appel a besoin du RÉSULTAT d'un autre (et les écritures restent une par une). " +
@@ -84,8 +84,8 @@ const BROWSER_RECENCY_GUIDANCE =
 
 /** Appended when the batch web reader (`web_fetch_many`) is available — steers the model
  *  to read several KNOWN URLs in ONE parallel call instead of opening them one by one.
- *  The browser is mentioned ONLY when it is actually offered (un modèle faible imite
- *  sinon un `browser_navigate` textuel qui n'existe pas dans l'offre). */
+ *  The browser is mentioned ONLY when it is actually offered (otherwise a weak model
+ *  imitates a textual `browser_navigate` that isn't in the offer). */
 function webFetchManyGuidance(browserAvailable: boolean): string {
   return (
     "\n\n⚡ Tu disposes de `web_fetch_many` : il récupère le TEXTE de plusieurs pages EN PARALLÈLE (jusqu'à 8 URLs). " +
@@ -131,11 +131,11 @@ export function withToolGuidance(
   if (browserAvailable) guidance += BROWSER_RECENCY_GUIDANCE;
   if (fetchManyAvailable) guidance += webFetchManyGuidance(!!browserAvailable);
   if (suggestBlock) guidance += suggestBlock;
-  // DERNIER bloc, toujours — cet append repousse la règle de langue du message système à
-  // 7 % du haut (mesuré : ~13 500 caractères d'outillage derrière elle), si bien que ce
-  // qu'un petit modèle lit juste avant le tour de l'utilisateur parle du navigateur, pas
-  // de la langue. `LANGUAGE_REMINDER` la redit là où la récence porte ; la règle qui fait
-  // foi reste `LANGUAGE_GUIDANCE`, dans le même fichier (voir son commentaire).
+  // LAST block, always — this append pushes the system message's language rule to
+  // 7% from the top (measured: ~13,500 characters of tooling behind it), so what a
+  // small model reads right before the user's turn talks about the browser, not
+  // about language. `LANGUAGE_REMINDER` restates it where recency lands; the rule
+  // of record stays `LANGUAGE_GUIDANCE`, in the same file (see its comment).
   guidance += `\n\n${LANGUAGE_REMINDER}`;
   const first = messages[0];
   if (first?.role === "system") {
@@ -146,23 +146,23 @@ export function withToolGuidance(
 
 
 /**
- * ⛔ Ce qu'on dit au modèle dès le PREMIER échec d'une ÉCRITURE — et pourquoi ce n'est pas
- * la note générique « déjà renvoyé 2 fois » (qui, elle, attend une répétition).
+ * ⛔ What we tell the model on the VERY FIRST failure of a WRITE — and why this isn't
+ * the generic "already returned twice" note (which waits for a repeat).
  *
- * Un échec d'écriture NE PROUVE PAS que l'effet n'a pas eu lieu. Outlook a rendu
- * « Unexpected end of JSON input » sur un `202 Accepted` VIDE de Graph — donc sur un mail
- * DÉJÀ PARTI ; la boucle a relancé le même appel, un second mail est parti, et
- * l'utilisateur a été informé que l'envoi avait échoué (18/08). Cette cause-là est corrigée
- * à la racine (`main/mcp/connectors/run.ts`), mais elle reviendra sous une autre forme — un
- * délai dépassé, une coupure après la requête — et un doublon d'envoi ou de paiement ne se
- * rattrape pas. Une LECTURE, elle, se rejoue sans risque : cette note ne vaut que pour les
- * écritures. ⚠️ Ne pas l'ajouter quand le résultat porte déjà `TIMED_OUT_WRITE_RESULT` : il
- * dit la même chose, et `turnCheckpoint` s'appuie sur son égalité EXACTE.
+ * A write failure does NOT prove the effect didn't happen. Outlook returned
+ * "Unexpected end of JSON input" on an EMPTY `202 Accepted` from Graph — meaning on a
+ * mail ALREADY SENT; the loop retried the same call, a second mail went out, and the
+ * user was told the send had failed (18/08). That particular cause is fixed at the
+ * root (`main/mcp/connectors/run.ts`), but it will come back in another shape — a
+ * timeout, a cut after the request — and a duplicate send or payment can't be undone.
+ * A READ, on the other hand, replays with no risk: this note only applies to writes.
+ * ⚠️ Don't add it when the result already carries `TIMED_OUT_WRITE_RESULT`: it says
+ * the same thing, and `turnCheckpoint` relies on its EXACT equality.
  */
 export function withFailedWriteNote(content: string, toolName: string, applies: boolean): string {
-  // ⚠️ Jamais quand le résultat PORTE DÉJÀ la consigne : un dispatch dont le délai est
-  // dépassé rend `TIMED_OUT_WRITE_RESULT`, qui dit la même chose pour la même raison —
-  // et `turnCheckpoint` s'appuie sur l'égalité EXACTE de ce texte.
+  // ⚠️ Never when the result ALREADY CARRIES the instruction: a dispatch whose timeout
+  // has elapsed returns `TIMED_OUT_WRITE_RESULT`, which says the same thing for the
+  // same reason — and `turnCheckpoint` relies on this text's EXACT equality.
   if (!applies || content === TIMED_OUT_WRITE_RESULT || content === INTERRUPTED_TOOL_RESULT) {
     return content;
   }

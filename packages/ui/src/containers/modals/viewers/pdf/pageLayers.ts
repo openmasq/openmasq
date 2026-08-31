@@ -17,19 +17,19 @@ import { migrateLegacyLocalStorage } from "../../../../state/legacyStorage";
 const BLEED = 4;
 
 /**
- * Le HALO des zones de texte détecté : ce qui, redacted, part vers le modèle (l'appelant
- * fournit `RenderedPage.wireWords`). Ce qui n'en porte pas ne part pas en texte : soit non
- * lu (photo, zone illisible), soit pris dans l'image — logo, tampon — et c'est alors le
- * CADRE (`buildImageZoneLayer`) qui le dit, jamais le halo : les deux marques font des
- * affirmations opposées et ne doivent pas se recouvrir. La géométrie (bandes de ligne
- * fusionnées, `textHalo.ts`) suit l'étendue réelle du texte ; le rendu CSS est un aplat à
- * bords nets. La COUCHE est `pointer-events: none` + `aria-hidden` (pur contexte) ; la
- * LÉGENDE, elle, est un BOUTON : cliquer masque/réaffiche le halo, et la préférence est
- * retenue (`openmasq.haloOff`) — la légende reste visible pour pouvoir le rallumer.
+ * The HALO over detected text zones: what, redacted, goes out to the model (the caller
+ * supplies `RenderedPage.wireWords`). What carries none does not go out as text: either not
+ * read (photo, unreadable zone), or baked into the image — logo, stamp — in which case the
+ * FRAME (`buildImageZoneLayer`) is what says so, never the halo: the two marks make
+ * opposite claims and must not overlap. The geometry (merged line
+ * bands, `textHalo.ts`) follows the text's real extent; the CSS render is a flat fill with
+ * sharp edges. The LAYER is `pointer-events: none` + `aria-hidden` (pure context); the
+ * LEGEND, though, is a BUTTON: clicking hides/shows the halo again, and the preference is
+ * remembered (`openmasq.haloOff`) — the legend stays visible so it can be turned back on.
  */
 const HALO_OFF_KEY = "openmasq.haloOff";
 const haloOff = (): boolean => {
-  migrateLegacyLocalStorage(); // les clés d'avant le renommage — une passe, puis no-op
+  migrateLegacyLocalStorage(); // the keys from before the rename — one pass, then a no-op
   try {
     return localStorage.getItem(HALO_OFF_KEY) === "1";
   } catch {
@@ -41,7 +41,7 @@ const setHaloOff = (off: boolean): void => {
     if (off) localStorage.setItem(HALO_OFF_KEY, "1");
     else localStorage.removeItem(HALO_OFF_KEY);
   } catch {
-    /* préférence de VUE seule — sans stockage, le toggle vaut pour la session. */
+    /* VIEW preference only — with no storage, the toggle applies for the session. */
   }
 };
 
@@ -50,9 +50,9 @@ export function buildTextHaloLayer(
   boxes: readonly HaloBox[],
   cssW: number,
   cssH: number,
-  /** Poser la LÉGENDE (« Halo = texte reconnu… ») sur cette page — l'appelant la
-   *  demande pour la PREMIÈRE page seulement : une étiquette par page serait du bruit,
-   *  et sans elle le halo est un mystère. */
+  /** Place the LEGEND (« Halo = texte reconnu… ») on this page — the caller
+   *  requests it for the FIRST page only: one label per page would be noise,
+   *  and without it the halo is a mystery. */
   withLegend: boolean,
   t: Messages,
 ): void {
@@ -60,19 +60,19 @@ export function buildTextHaloLayer(
   pageEl.querySelector(":scope > .pdfv-halolegend")?.remove();
   const regions = haloRegions(boxes, { w: cssW, h: cssH });
   if (!regions.length) return;
-  // La bascule vit sur le PARENT des pages : une préférence, toutes les pages du
-  // document — pas une page allumée et sa voisine éteinte.
+  // The toggle lives on the pages' PARENT: one preference, every page of the
+  // document — not one page on and its neighbor off.
   const scope = pageEl.parentElement ?? pageEl;
   scope.classList.toggle("pdfv-halo-off", haloOff());
   if (withLegend) {
     const legend = document.createElement("button");
     legend.type = "button";
     legend.className = "pdfv-halolegend";
-    // ⚠️ L'ÉTAT SE LIT SUR L'ÉTIQUETTE, pas seulement dans `aria-pressed`. Halo éteint, le
-    // bouton était identique à halo allumé : on croit alors que rien n'a été reconnu —
-    // donc que rien ne sera redacted (conclusion tirée en parcours le 15/08, sur un vrai
-    // relevé bancaire). Et la phrase d'extinction doit RAPPELER que le redaction, lui,
-    // n'est pas concerné : c'est une préférence d'AFFICHAGE, jamais une protection.
+    // ⚠️ THE STATE READS ON THE LABEL, not only in `aria-pressed`. With halo off, the
+    // button used to look identical to halo on: this led to believing nothing had been recognized —
+    // therefore that nothing would be redacted (a conclusion drawn during a walkthrough on 15/08, on a real
+    // bank statement). And the off-state sentence must REMIND that redaction itself
+    // is not affected: it is a DISPLAY preference, never a protection.
     const sync = () => {
       const off = haloOff();
       legend.textContent = off ? t.viewers.pdf.haloOff : t.viewers.pdf.haloOn;
@@ -140,7 +140,7 @@ export function buildRevealMarks(
       mark.dataset.real = bx.real;
       mark.dataset.tone = bx.tone;
       if (bx.kind) mark.dataset.kind = bx.kind;
-      // Un bouton VIDE n'a aucun nom accessible — un lecteur d'écran n'annonçait rien.
+      // An EMPTY button has no accessible name — a screen reader announced nothing.
       mark.setAttribute(
         "aria-label",
         `Valeur redacted${bx.revealed ? " — gardée en clair" : ""} — inspecter`,

@@ -63,12 +63,12 @@ export async function loadLocalFile(host: Host, entry: LocalFsEntry): Promise<Ex
   const fs = host.localFs;
   if (!fs) throw new Error("Navigation de dossiers indisponible.");
   const mime = mimeOf(entry.name);
-  // L'extraction se fait LÀ OÙ EST LE FICHIER quand la plateforme le sait faire, et EN MÊME
-  // TEMPS que la lecture des octets : les deux sont indépendants, les enchaîner ajoutait
-  // l'OCR bout à bout à la lecture. Le repli, lui, DOIT rester séquentiel — il renvoie les
-  // octets d'où ils viennent pour les faire extraire, et il ne rend que du TEXTE :
-  // `words`/`ocrPages` restent de l'autre côté, donc un scan s'affiche sans ses boîtes.
-  // C'est cette perte, pas le redaction, qui laissait un document local sans marques.
+  // Extraction happens WHERE THE FILE IS when the platform can do it, and AT THE SAME
+  // TIME as reading the bytes: the two are independent, chaining them added
+  // OCR end-to-end to the read. The fallback, though, MUST stay sequential — it sends the
+  // bytes back to where they came from to have them extracted, and it only returns TEXT:
+  // `words`/`ocrPages` stay on the other side, so a scan shows up without its boxes.
+  // It was this loss, not redaction, that left a local document with no marks.
   const [{ base64 }, rich] = await Promise.all([
     fs.read(entry.path),
     fs.extract?.(entry.path).catch(() => undefined),
@@ -83,16 +83,16 @@ export async function loadLocalFile(host: Host, entry: LocalFsEntry): Promise<Ex
   return {
     ...(rich ?? {}),
     name: entry.name,
-    // La FORME du fichier, pas « document » en dur : la tuile image, la vue feuille et le
-    // contournement d'erreur des images se décident tous là-dessus, et un `kind` figé les
-    // faisait tous manquer leur cible.
+    // The file's SHAPE, not a hardcoded « document »: the image tile, the sheet view and the
+    // image error fallback all decide on this, and a frozen `kind` used to make
+    // them all miss their target.
     kind: typeof rich?.kind === "string" ? rich.kind : "document",
     text,
     chars: text.length,
     mime,
     data: base64,
-    // ⚠️ Jamais de `path` : la plateforme n'en rend pas, et en fabriquer un ici rouvrirait
-    // exactement la porte que `localfs:extract` referme.
+    // ⚠️ Never a `path`: the platform doesn't return one, and fabricating one here would reopen
+    // exactly the door that `localfs:extract` closes.
     path: undefined,
   };
 }

@@ -7,9 +7,9 @@
  * Adding a tab in one place used to mean remembering two others; now a tab that
  * exists is searchable and titled by construction.
  *
- * Pure functions of the CATALOGUE (`@openmasq/i18n`) — la copie s'écrit là, en français
- * et en anglais ; ce fichier n'en garde que la STRUCTURE (l'ordre des onglets, quel
- * réglage vit dans lequel) et l'assemble. Toujours sans React, donc testable tel quel.
+ * Pure functions of the CATALOGUE (`@openmasq/i18n`) — the copy is written there, in French
+ * and in English; this file only keeps the STRUCTURE (the tab order, which
+ * setting lives in which) and assembles it. Still React-free, so testable as-is.
  */
 import { BRAND } from "@openmasq/branding";
 import type { Messages, SettingsEntry } from "@openmasq/i18n";
@@ -44,9 +44,9 @@ export interface SettingsDestination {
 }
 
 /**
- * L'ORDRE des onglets — la seule chose de cette liste qui ne soit pas de la copie. Il
- * décide du rail comme des résultats ⌘K, et n'a rien à faire dans un catalogue de
- * traduction : une langue ne réordonne pas des réglages.
+ * The tab ORDER — the one thing in this list that isn't copy. It
+ * decides the rail as much as the ⌘K results, and has no business in a translation
+ * catalogue: a language doesn't reorder settings.
  */
 const TAB_ORDER = [
   "account",
@@ -62,7 +62,7 @@ const TAB_ORDER = [
   "versions",
 ] as const satisfies readonly SettingsTabId[];
 
-/** Les onglets dans la langue de `t`, en ordre de catalogue. */
+/** The tabs in `t`'s language, in catalogue order. */
 export function settingsDestinations(t: Messages): SettingsDestination[] {
   return TAB_ORDER.map((id) => {
     const tab = t.settings.tabs[id];
@@ -89,11 +89,11 @@ const fold = (s: string): string =>
  * Deliberately a hand-kept list of the settings worth FINDING, not a mirror of every
  * control: a row per redaction category would bury the four things people look for.
  */
-/** Les entrées qui EXIGENT une capacité au-delà de leur onglet : « Facturation des
- *  messages » vit dans Compte, mais son interrupteur n'existe que si `host.billing`
- *  est branché (build `OPENMASQ_BILLING=1`) — l'offrir sans lui mène à une section
- *  absente. La porte réutilise `available` avec l'ID de l'onglet qui PORTE la
- *  capacité (`billing`), pour ne pas inventer un second vocabulaire. */
+/** The entries that REQUIRE a capability beyond their tab: « Facturation des
+ *  messages » lives in Compte, but its switch only exists if `host.billing`
+ *  is wired in (build `OPENMASQ_BILLING=1`) — offering it without that leads to a
+ *  missing section. The gate reuses `available` with the ID of the tab that CARRIES
+ *  the capability (`billing`), so as not to invent a second vocabulary. */
 const ENTRY_REQUIRES: Partial<Record<keyof Messages["settings"]["entries"], SettingsTabId>> = {
   messageBilling: "billing",
 };

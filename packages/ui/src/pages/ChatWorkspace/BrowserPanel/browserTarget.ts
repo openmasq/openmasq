@@ -82,15 +82,15 @@ export function toggleBookmark(
 }
 
 /**
- * Le brouillon qu'amorce « Demander à propos de cette page ».
+ * The draft that « Demander à propos de cette page » seeds.
  *
- * L'URL y figure TOUJOURS, en plus du titre : c'est elle qui situe la page pour l'outil
- * navigateur — un titre ne suffit pas à y retourner, et deux pages portent souvent le
- * même. Un titre vide (page en cours de chargement, document sans `<title>`) retombe sur
- * l'URL plutôt que de laisser des chevrons vides.
+ * The URL is ALWAYS included, in addition to the title: it's what locates the page for
+ * the browser tool — a title alone isn't enough to go back to it, and two pages often
+ * share the same one. An empty title (page still loading, a document with no
+ * `<title>`) falls back to the URL rather than leaving empty chevrons.
  *
- * Le texte part ensuite dans le pipeline d'envoi comme n'importe quel texte tapé — donc
- * une URL qui contient une vraie valeur est redacted par le moteur, pas ici.
+ * The text then travels through the send pipeline like any typed text — so a URL that
+ * contains a real value is redacted by the engine, not here.
  */
 export function askPageDraft(page: { url: string; title?: string }): string {
   const label = (page.title ?? "").trim() || page.url;

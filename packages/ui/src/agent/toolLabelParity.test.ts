@@ -4,20 +4,20 @@ import { toolActionLabel, toolStartNarration } from "./toolActionLabel";
 import { isWriteTool } from "./mcpAgentClassify";
 
 /**
- * TROIS surfaces nomment le même appel — le chargeur pendant l'action
- * (`toolActionLabel`), la narration posée au moment du dispatch (`toolStartNarration`)
- * et la ligne de trace persistée (`humanToolLabel`). Rien ne les tenait ensemble : un
- * commentaire affirmait que la table unique l'empêchait, et l'exception `run_python`
- * juste en dessous le démentait. Un commentaire ne fait pas échouer la CI ; ce fichier si.
+ * THREE surfaces name the same call — the loader during the action
+ * (`toolActionLabel`), the narration seeded at dispatch time (`toolStartNarration`)
+ * and the persisted trace line (`humanToolLabel`). Nothing held them together: a
+ * comment claimed the single table prevented it, and the `run_python` exception
+ * right below it disproved that. A comment doesn't fail CI; this file does.
  *
- * Deux propriétés, et la seconde est une question d'honnêteté, pas de style :
- *  1. un outil INTERCEPTÉ porte le même nom partout ;
- *  2. le vocabulaire « amusant » par connecteur ne peut habiller qu'une LECTURE — il est
- *     entièrement fait de verbes de lecture (fouille, farfouille, feuilletage…), et il
- *     s'affichait pendant un envoi de mail ou une suppression de fichier.
+ * Two properties, and the second is a matter of honesty, not style:
+ *  1. an INTERCEPTED tool carries the same name everywhere;
+ *  2. the "fun" per-connector vocabulary may only dress a READ — it's
+ *     made entirely of reading verbs (fouille, farfouille, feuilletage…), and it
+ *     used to show during an email send or a file deletion.
  */
 
-/** Le libellé nu, sans les « … » ni la taille d'argument que le chargeur ajoute. */
+/** The bare label, without the « … » or the argument size the loader adds. */
 const nu = (s: string | undefined) => (s ?? "").replace(/….*$/, "");
 
 describe("un outil intercepté porte le MÊME nom sur les trois surfaces", () => {
@@ -30,7 +30,7 @@ describe("un outil intercepté porte le MÊME nom sur les trois surfaces", () =>
 });
 
 describe("le vocabulaire amusant n'habille jamais une écriture", () => {
-  // Un appel d'écriture par connecteur « amusant » couvert, tel qu'il arrive vraiment.
+  // A write call from a "fun"-covered connector, exactly as it happens for real.
   const ecritures = [
     "gmail__send_email",
     "microsoft-outlook__send_email",
@@ -48,9 +48,9 @@ describe("le vocabulaire amusant n'habille jamais une écriture", () => {
     it(`${plein} : le chargeur annonce l'action, pas une fouille`, () => {
       const direct = nu(toolActionLabel(plein));
       const trace = humanToolLabel(connecteur, outil);
-      // C'est bien une écriture selon la SEULE définition qui compte (celle du gate).
+      // It really is a write per the ONLY definition that matters (the gate's).
       expect(isWriteTool(outil), `${outil} devrait être classé écriture`).toBe(true);
-      // …donc le chargeur porte le verbe de la trace, jamais la phrase de lecture.
+      // …so the loader carries the trace's verb, never the read phrase.
       expect(direct, `« ${direct} » pendant ${plein}`).toContain(trace);
       expect(toolStartNarration(outil, connecteur)).toBe(trace);
     });

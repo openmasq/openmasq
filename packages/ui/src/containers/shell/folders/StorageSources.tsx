@@ -8,39 +8,39 @@ import { TreeRow } from "./TreeRow";
 
 import { useT } from "../../../i18n";
 /**
- * Le STOCKAGE CONNECTÉ (Drive, OneDrive, Dropbox) dans la vue « Dossiers » — le second
- * gisement, sous son propre marqueur de groupe.
+ * CONNECTED STORAGE (Drive, OneDrive, Dropbox) in the « Dossiers » view — the second
+ * deposit, under its own group marker.
  *
- * ⚠️ Deux régimes, et la ligne dit lequel. Un compte que l'app sait PARCOURIR
- * (`host.cloudFs` : Drive et OneDrive par appel direct, Dropbox par son propre outil de
- * listage) est une racine dépliable, exactement comme un dossier local : même arbre, même
- * dépliage paresseux. Les autres — un compte non connecté, ou un serveur qui ne rend pas de
- * liste exploitable — gardent la ligne d'état qui ouvre la modale du connecteur. C'est main
- * qui tranche, en n'annonçant source QUE ce qu'il sait lister : un chevron qui ne mènerait
- * nulle part serait pire que pas de chevron.
+ * ⚠️ Two regimes, and the row says which. An account the app knows how to BROWSE
+ * (`host.cloudFs`: Drive and OneDrive by direct call, Dropbox through its own
+ * listing tool) is an expandable root, exactly like a local folder: same tree, same
+ * lazy expansion. The others — an unconnected account, or a server that doesn't return a
+ * usable list — keep the status row that opens the connector's modal. It's main
+ * that decides, by only announcing a source it knows how to list: a chevron that led
+ * nowhere would be worse than no chevron.
  *
- * La ligne garde son NOM et son gabarit. Le logo seul suffirait à reconnaître trois
- * marques mondiales, mais l'alignement avec les racines locales juste au-dessus — même
- * ligne, même pastille d'état — est ce qui fait lire les deux gisements comme UNE liste
- * de sources plutôt que deux inventaires sans rapport.
+ * The row keeps its NAME and its template. The logo alone would be enough to recognize three
+ * world-famous brands, but the alignment with the local roots just above — same
+ * row, same status dot — is what makes the two deposits read as ONE list
+ * of sources rather than two unrelated inventories.
  */
 export function StorageSources({
   onOpenConnector,
   onAsk,
 }: {
-  /** Ouvre la modale du connecteur (par-dessus l'écran courant, pas un détour). */
+  /** Opens the connector's modal (over the current screen, no detour). */
   onOpenConnector?: (connectorId: string) => void;
-  /** « Demander » sur un dossier ou un fichier distant : rien ne part, la conversation
-   *  porte la cible en TAG — dossier ou fichier, avec son service — et le modèle ira la
-   *  lire avec les outils du connecteur. Le `kind` vient de l'entrée cliquée : sans lui,
-   *  un nom nu (« patrons ») se lisait comme un concept, pas comme le dossier cliqué. */
+  /** « Demander » on a remote folder or file: nothing is sent, the conversation
+   *  carries the target as a TAG — folder or file, with its service — and the model will
+   *  go read it with the connector's tools. The `kind` comes from the clicked entry: without it,
+   *  a bare name (« patrons ») read as a concept, not as the clicked folder. */
   onAsk?: (target: AskTarget) => void;
 }) {
   const t = useT();
   const connected = useMcpConnectedIds();
   const cloud = useCloudTree(true);
-  /* Un compte navigable remplace sa ligne d'état par sa racine — sinon il apparaîtrait
-     deux fois, une fois comme arbre et une fois comme état. */
+  /* A browsable account replaces its status row with its root — otherwise it would appear
+     twice, once as a tree and once as a status. */
   const browsable = new Set(cloud.sources.map((s) => s.connectorId));
 
   return (
@@ -91,15 +91,15 @@ export function StorageSources({
             loading={loading}
             failed={failed}
             onToggle={() => cloud.toggle(entry.path)}
-            /* Un fichier distant ne s'OUVRE pas dans le panneau : ses octets ne passent
-               pas par cette voie. Le cliquer DEMANDE — ce que le modèle sait faire. */
+            /* A remote file does NOT open in the panel: its bytes don't pass
+               through this route. Clicking it ASKS — what the model knows how to do. */
             onOpen={() =>
               onAsk?.({
                 kind: entry.kind === "dir" ? "folder" : "file",
                 name: entry.name,
-                /* `label`, pas `connector.name` : le tag et la ligne de contexte du
-                   modèle portent le SERVICE (« Google Drive »), pas le suffixe d'UI
-                   du catalogue (« (lecture) »). */
+                /* `label`, not `connector.name`: the tag and the model's context
+                   line carry the SERVICE (« Google Drive »), not the catalog's UI
+                   suffix (« (lecture) »). */
                 source: connector ? label : undefined,
               })
             }
@@ -120,8 +120,8 @@ export function StorageSources({
             key={c.id}
             type="button"
             className={`rr-src${on ? "" : " off"}`}
-            /* L'état complet vit dans l'infobulle : à 214 px, une phrase par ligne
-               remplit le panneau d'explications et cache ce qu'on venait y chercher. */
+            /* The full status lives in the tooltip: at 214 px, one sentence per row
+               fills the panel with explanations and hides what you came there to find. */
             title={
               on
                 ? `${c.name} — connecté, accessible au modèle. Ouvrir ses réglages.`
@@ -130,14 +130,14 @@ export function StorageSources({
             onClick={() => onOpenConnector?.(c.id)}
           >
             <span className="rr-tree-chev" aria-hidden="true" />
-            {/* La marque du fournisseur : trois sources de stockage se distinguent par
-                leur logo avant leur nom. Même tuile que les cartes de connecteurs. */}
+            {/* The provider's mark: three storage sources are told apart by
+                their logo before their name. Same tile as the connector cards. */}
             <McpTile id={c.id} name={c.name} tone={c.tone ?? "sky"} sm />
-            {/* « (lecture) » ne dit rien ici — tout ce panneau est en lecture, et le nom
-                entier reste dans l'infobulle. */}
+            {/* « (lecture) » says nothing here — this whole panel is read-only, and the
+                full name stays in the tooltip. */}
             <span className="rr-src-name">{connectorBrandName(c.id) ?? c.name}</span>
-            {/* Connecté : une pastille. Sinon la prise, qui EST l'action. Deux glyphes de
-                même largeur, donc les lignes s'alignent quel que soit leur état. */}
+            {/* Connected: a dot. Otherwise the plug, which IS the action. Two glyphs of
+                the same width, so the rows align whatever their state. */}
             {on ? (
               <span className="rr-src-dot" aria-hidden="true" />
             ) : (

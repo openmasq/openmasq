@@ -710,35 +710,35 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
     namespace: false,
   });
 
-  // Schémas distants assainis AVANT tout lecteur (routage, toolInfo, argErrorHint) —
-  // un `required` dégénéré rend l'outil inappelable ; le pourquoi : `schemaSanity.ts`.
+  // Remote schemas sanitized BEFORE any reader (routing, toolInfo, argErrorHint) —
+  // a degenerate `required` makes the tool uncallable; the why: `schemaSanity.ts`.
   const allTools = sanitizeToolSchemas(await client.listTools());
   // Org enforcement: keep ONLY the tools whose connector the org opened, so a member
-  // can't invoke a server that was connected before the policy landed — ni un
-  // connecteur arrivé au catalogue après elle.
-  // Allow-list (règle 7) : un outil ne passe que si son connecteur figure dans ce que
-  // l'organisation a ouvert. La normalisation d'id (préfixes `broker-`/`local-`,
-  // instances multi-comptes) vit dans `privacy/orgAllowList.ts`, partagée avec l'écran
-  // des réglages — les deux copies avaient divergé.
+  // can't invoke a server that was connected before the policy landed — nor a
+  // connector that arrived in the catalog after it.
+  // Allow-list (rule 7): a tool passes only if its connector is among what
+  // the organization opened. Id normalization (`broker-`/`local-` prefixes,
+  // multi-account instances) lives in `privacy/orgAllowList.ts`, shared with the
+  // settings screen — the two copies had drifted apart.
   const isBlockedId = (id: string | undefined): boolean =>
     !isConnectorAllowed(id, p.allowedServerIds);
   /**
-   * ⚠️ Le connecteur se lit sur le NOM, pas sur `serverId`. `RedactingMcpClient.listTools`
-   * réécrit `serverId` avec l'id de la CONNEXION, et la boucle n'en a qu'une (`ipcConn`,
-   * id « ipc ») : `serverId` valait donc « ipc » pour TOUS les outils, la comparaison ne
-   * pouvait matcher aucun id de connecteur, et le blocage d'organisation ne bloquait
-   * rien — un connecteur interdit mais déjà connecté restait appelable par l'agent,
-   * exactement le cas que ce filtre existe pour couvrir. Main namespace les noms
-   * (`gmail__send_email`), donc le préfixe est la source fiable ; `serverId` reste testé
-   * en second pour les hôtes qui donnent une connexion par connecteur.
+   * ⚠️ The connector is read from the NAME, not from `serverId`. `RedactingMcpClient.listTools`
+   * rewrites `serverId` with the CONNECTION's id, and the loop has only one (`ipcConn`,
+   * id « ipc »): `serverId` was therefore « ipc » for ALL tools, the comparison could
+   * match no connector id, and the org block blocked
+   * nothing — a connector forbidden but already connected stayed callable by the agent,
+   * exactly the case this filter exists to cover. Main namespaces the names
+   * (`gmail__send_email`), so the prefix is the reliable source; `serverId` is still tested
+   * second, for hosts that give one connection per connector.
    */
   const isBlockedTool = (t: McpTool): boolean => {
     const i = t.name.indexOf("__");
-    // ⚠️ Un OR (nom OU serverId) était juste en liste de refus ; en allow-list il
-    // refuserait TOUT, `serverId` valant « ipc » partout. On identifie UN connecteur —
-    // préfixe du nom d'abord, `serverId` à défaut — et on juge cet id-là. Un outil
-    // qu'aucun connecteur ne revendique (`run_python`, `memory_search`) n'est pas
-    // gouverné ici ; un serveur ajouté à la main (`custom-…`) l'est, et tombe.
+    // ⚠️ An OR (name OR serverId) was fine in a denylist; in an allow-list it
+    // would refuse EVERYTHING, `serverId` being « ipc » everywhere. We identify ONE connector —
+    // the name's prefix first, `serverId` as a fallback — and judge that one id. A tool
+    // that no connector claims (`run_python`, `memory_search`) is not
+    // governed here; a manually added server (`custom-…`) is, and falls.
     const id = (i > 0 ? t.name.slice(0, i) : undefined) ?? t.serverId;
     if (!id) return false;
     const governed = id.startsWith("custom-") || !!findConnector(connectorIdFromInstance(id));
@@ -812,8 +812,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
   // model call — see `scopePreflight`.
   const scope = scopePreflight(p.scopedConnectors, connectedIds);
   let suggested = false; // the model proposed some itself — its pick wins over ours
-  // La partie TAPÉE seulement — le wire porte aussi les documents pliés et NOS notes
-  // d'échafaudage, qui déclenchaient des cartes d'intégration (voir `typedPartOfWire`).
+  // Only the TYPED part — the wire also carries folded documents and OUR
+  // scaffolding notes, which used to trigger integration cards (see `typedPartOfWire`).
   const requestText = typedPartOfWire(String([...p.history].reverse().find((m) => m.role === "user")?.content ?? ""));
   // Browser exists but isn't connected → steer the model to PROPOSE it (the card above)
   // rather than a paid connector or a hallucinated answer. Only when it's not already usable.
@@ -828,8 +828,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
   const callCounts = new Map<string, number>(); // real tool calls issued per tool
   const capNotedTurn = new Map<string, number>(); // turn where the per-tool cap note was delivered
   let budgetNotedTurn = -1; // turn where the context-budget refusal was delivered
-  // Ce qui borne un batch de lectures — pourquoi le NOMBRE d'appels n'y suffit pas, et
-  // pourquoi le prefetch part par vagues : `readBudget.ts`.
+  // What bounds a read batch — why the NUMBER of calls isn't enough, and
+  // why the prefetch goes out in waves: `readBudget.ts`.
   const charBudget = resultCharBudget(contextWindow(p.modelId));
   const usedChars = () => toolResultChars(messages);
   const resultEcho = new ResultEchoLedger(); // per-connector WIRE results (arg-exfil provenance)
@@ -840,7 +840,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
   let webNavAsked = false; // the pre-search reveal gate fires ONCE per send
   const opResolved = new Set<string>(); // deduped (connector|resource|action) live-derive probes
   const repeatedResult = new Map<string, number>(); // max repeats-beyond-first per tool
-  const seenIds = new Set<string>(); // identifiants montrés par les résultats (`identifierTypo.ts`)
+  const seenIds = new Set<string>(); // identifiers shown by results (`identifierTypo.ts`)
   let repeatedFailure: ReturnType<typeof repeatedFailureOf> | undefined;
 
   // `hasBrowser` (computed above) also drives BROWSER_RECENCY_GUIDANCE — steer the model to
@@ -874,17 +874,17 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
   // Accumulate token usage across every model call this agentic turn makes.
   let inputTokens = 0;
   let outputTokens = 0;
-  // La PART de `inputTokens` servie par le cache du provider, et celle qu'un tour a dû
-  // ÉCRIRE dedans. C'est la seule mesure qui dit si le préfixe stable (prompt système +
-  // schémas d'outils, re-envoyés à chaque tour) est réellement réutilisé : une boucle
-  // agentique renvoie tout l'historique à chaque échange, donc un cache qui rate se lit
-  // comme une facture d'entrée qui enfle sans que rien ne le signale.
+  // The SHARE of `inputTokens` served by the provider's cache, and the share a turn had to
+  // WRITE into it. It's the only measure that tells whether the stable prefix (system prompt +
+  // tool schemas, re-sent every turn) is actually reused: an agentic
+  // loop resends the whole history on every exchange, so a cache miss reads
+  // like an input bill that swells with nothing flagging it.
   let cachedInputTokens = 0;
   let cacheWriteInputTokens = 0;
-  // Combien d'ÉCHANGES modèle ce cumul recouvre. Sans lui, le journal affichait
-  // « 28 079 entrée » sous un message de 221 caractères — le cumul du tour entier
-  // présenté comme le coût de CE message, à côté d'un « 13 938 entrée » au tour 1 qui
-  // le contredisait (journal du 27/07/2026). Le chiffre était juste, la légende non.
+  // How many model EXCHANGES this cumulative figure covers. Without it, the journal showed
+  // « 28 079 entrée » under a 221-character message — the whole turn's cumulative total
+  // presented as the cost of THIS message, next to a « 13 938 entrée » at turn 1 that
+  // contradicted it (27/07/2026 journal). The number was correct, the caption wasn't.
   let modelTurns = 0;
   const emitUsage = () => {
     if (inputTokens || outputTokens)
@@ -939,11 +939,11 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
     return true;
   };
 
-  // Le Stop peut avoir été cliqué pendant le ROUTAGE (`selectTools`, un appel de modèle
-  // qui précède ces aides et peut durer). Sans ce point d'arrêt, un tour interrompu
-  // continuait jusqu'au premier `aborted()` de la boucle en affichant d'abord des cartes
-  // « connecteur manquant » — voire en TERMINANT dessus (`scope.unusable`), c'est-à-dire
-  // en répondant à un tour que l'utilisateur venait d'annuler.
+  // Stop can have been clicked during ROUTING (`selectTools`, a model call
+  // that precedes these helpers and can take a while). Without this stop point, an interrupted turn
+  // kept going until the loop's first `aborted()`, first showing "missing
+  // connector" cards — or even ENDING on one (`scope.unusable`), i.e.
+  // answering a turn the user had just cancelled.
   if (aborted()) return finalizeAborted();
 
   // BEFORE the first model call: the cards are computable now, and a turn spent
@@ -976,13 +976,13 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
   // `soft` = an OPPORTUNISTIC call (the forced retry) whose failure must NOT fail
   // the turn: on a non-abort error it sets `softCallFailed` and returns null
   // instead of throwing, so the caller can keep the answer it already has.
-  /** Les outils SANS effet de bord. Un rappel FORCÉ (`tool_choice=required`) n'a le droit
-   *  de choisir que là-dedans : forcer un appel est une incitation à aller CHERCHER une
-   *  information quand le modèle a répondu à côté — jamais un mandat pour AGIR. Sans ce
-   *  filtre, une question a créé un événement dans l'agenda réel de l'utilisatrice
-   *  (journal du 27/07/2026 : « de ton compte agenda, à quel compte ? » →
-   *  `google-calendar__create_event`). Un effet de bord ne doit jamais naître d'une
-   *  heuristique de relance. */
+  /** Tools WITHOUT side effects. A FORCED recall (`tool_choice=required`) may only
+   *  choose from among these: forcing a call is an incentive to go LOOK UP
+   *  information when the model answered off-target — never a mandate to ACT. Without this
+   *  filter, a question created an event in the user's real calendar
+   *  (27/07/2026 journal: « de ton compte agenda, à quel compte ? » →
+   *  `google-calendar__create_event`). A side effect must never be born from a
+   *  retry heuristic. */
   const readOnlyToolDefs = (): ToolDef[] =>
     toolDefs.filter((d) => {
       const info = toolInfo.get(d.name);
@@ -1187,8 +1187,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         softCallFailed = true;
         return null;
       }
-      // Le run meurt AVANT le premier outil : c'est le cas dominant en production
-      // (17 % des boucles, 1,0 tour, 0 appel). Le code borné dit enfin de quoi.
+      // The run dies BEFORE the first tool: it's the dominant case in production
+      // (17% of loops, 1.0 turn, 0 calls). The bounded code finally says why.
       emitLoopSummary("error", sendErrorReason(err));
       throw err;
     } finally {
@@ -1202,11 +1202,11 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
     type: "phase",
     scope: "loop",
     label: "Boucle MCP démarrée",
-    // Les TROIS chiffres du journal doivent se réconcilier. Le 27/07/2026 il fallait
-    // deviner que « 0/296 » (pick routeur) + « 2/296 outils » (après rattrapage) + « 7
-    // outils offerts » (au modèle) parlaient de la même chose : les 5 outils INTERNES
-    // (load_tools, run_python, memory_search, web_fetch_many, suggest_integrations) ne
-    // sont pas des outils connecteur et n'apparaissaient nulle part dans le compte.
+    // The journal's THREE numbers must reconcile. On 27/07/2026 you had to
+    // guess that « 0/296 » (router pick) + « 2/296 outils » (after rescue) + « 7
+    // outils offerts » (to the model) were talking about the same thing: the 5 INTERNAL
+    // tools (load_tools, run_python, memory_search, web_fetch_many, suggest_integrations)
+    // are not connector tools and appeared nowhere in the count.
     detail:
       `${selected.length}/${mcpTools.length} outil${mcpTools.length > 1 ? "s" : ""} connecteur` +
       `${toolDefs.length - selected.length ? ` + ${toolDefs.length - selected.length} interne${toolDefs.length - selected.length > 1 ? "s" : ""}` : ""}` +
@@ -1289,10 +1289,10 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       // reject it — certains paliers gratuits 400 dessus), keep that answer instead of
       // failing the whole turn. Only a genuine Stop (abort → not softCallFailed)
       // finalizes as interrupted.
-      // …et seulement s'il reste un outil SANS effet de bord à proposer : forcer un appel
-      // alors que le seul choix possible écrit, c'est fabriquer l'effet de bord soi-même.
-      // …ou une réponse FABRIQUÉE — connecteur NOMMÉ + zéro appel : le modèle invente
-      // des données plausibles au lieu de refuser (pourquoi : `namesConnectedConnector`).
+      // …and only if a tool WITHOUT side effects remains to offer: forcing a call
+      // when the only possible choice writes is fabricating the side effect ourselves.
+      // …or a FABRICATED answer — connector NAMED + zero calls: the model invents
+      // plausible data instead of refusing (why: `namesConnectedConnector`).
       const fabricated = namesConnectedConnector(requestText, connectedIds);
       if (!anyToolCall && !forcedRetryDone && (looksLikeRefusal(res.text) || fabricated) && readOnlyToolDefs().length) {
         forcedRetryDone = true;
@@ -1340,18 +1340,18 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       p.onText(lastText, true);
     }
 
-    // ⚠️ CANONICALISER CHAQUE NOM UNE FOIS, AVANT TOUTE DÉCISION — prefetch compris :
-    // la boucle keye TOUT sur le nom écrit par le modèle (connecteur, politique de
-    // résultat, mode clair, caps, idempotence), et le recalage vivait DANS le chemin
-    // séquentiel — le prefetch décidait encore sur le nom nu (audit 2026-08-10). Les
-    // méta-outils interceptés sont EXCLUS (`INTERCEPTED_META_TOOLS`, voir sa doc).
+    // ⚠️ CANONICALIZE EVERY NAME ONCE, BEFORE ANY DECISION — prefetch included:
+    // the loop keys EVERYTHING on the name the model wrote (connector, result
+    // policy, clear mode, caps, idempotency), and the realignment used to live IN the
+    // sequential path — the prefetch was still deciding on the bare name (2026-08-10 audit). The
+    // intercepted meta-tools are EXCLUDED (`INTERCEPTED_META_TOOLS`, see its doc).
     for (const call of res.toolCalls) {
       if (!INTERCEPTED_META_TOOLS.has(call.name))
         call.name = canonicalToolName(call.name, fullByName.keys());
     }
 
-    // Les lectures de ce tour partent en parallèle, par vagues bornées par le contexte —
-    // sélection, garanties et budget : `prefetch.ts`.
+    // This turn's reads go out in parallel, in waves bounded by the context —
+    // selection, guarantees and budget: `prefetch.ts`.
     const prefetch = new Map<string, ReturnType<typeof client.callTool>>();
     if (res.toolCalls.length > 1) {
       await prefetchReads({
@@ -1456,9 +1456,9 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       // via the same vault) below before it goes back into the conversation.
       if (call.name === "run_python" && p.runPython) {
         const code = p.fromWire(typeof args.code === "string" ? args.code : "");
-        // Un `code` ABSENT ou VIDE ne s'exécute pas : mesuré en éval (ling), un modèle
-        // émet `run_python({})` en boucle — exécuter du vide renvoie un succès muet que
-        // le modèle ré-émet à l'identique (5 tours perdus). Erreur EXPLICITE + streak.
+        // A MISSING or EMPTY `code` does not run: measured in eval (ling), a model
+        // emits `run_python({})` in a loop — running nothing returns a silent success that
+        // the model re-emits identically (5 turns lost). EXPLICIT error + streak.
         if (!code.trim()) {
           argErrored.add("run_python");
           const emptyMsg =
@@ -1547,7 +1547,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
             `[${deliveredFiles.length} fichier(s) remis à l'utilisateur : ${deliveredFiles.map((f) => f.name).join(", ")}.]`;
         }
         if (failedDeliveries.length) {
-          // Honest failure (règle maison) : the deliverable was produced but could NOT
+          // Honest failure (house rule): the deliverable was produced but could NOT
           // be handed over — the model must say so, not present a phantom file.
           content +=
             (content ? "\n\n" : "") +
@@ -1560,14 +1560,14 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         }
         if (!r.ok && r.stderr.trim()) {
           content += (content ? "\n\n" : "") + `Erreur d'exécution :\n${r.stderr.trim().slice(0, 4000)}`;
-          // PRÉCISION on a package/install error so the model course-corrects instead of
+          // CLARIFICATION on a package/install error so the model course-corrects instead of
           // looping (it kept trying `pip install` / another lib). State plainly that
           // installing is impossible and which packages ARE available.
           const hint = pythonErrorHint(r.stderr, { browser: hasBrowser, fetchMany: !!p.fetchMany });
           if (hint) content += `\n\n${hint}`;
-          // Une erreur de CODE (pas de réseau/timeout — là, réessayer est proscrit) se
-          // corrige par ITÉRATION : mesuré en éval, un modèle repart de zéro et perd
-          // le travail déjà bon — le steer explicite vers « modifie et renvoie ENTIER ».
+          // A CODE error (not network/timeout — there, retrying is forbidden) is
+          // fixed by ITERATION: measured in eval, a model starts over from scratch and loses
+          // work that was already good — the explicit steer toward « modify and resend WHOLE ».
           if (pythonFailReason(r.stderr) === "runtime" || pythonFailReason(r.stderr) === "module") {
             content += "\n\nCorrige le script ci-dessus (garde ce qui marchait, change ce qui a échoué) et renvoie-le EN ENTIER dans un nouvel appel `run_python` — jamais un fragment.";
           }
@@ -1734,8 +1734,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         continue;
       }
 
-      // Le nom est déjà canonique : la passe UNIQUE tourne en tête de réponse, avant le
-      // prefetch (voir le bloc au-dessus de `prefetchReads`) — plus de re-calage ici.
+      // The name is already canonical: the SINGLE pass runs at the head of the response, before
+      // the prefetch (see the block above `prefetchReads`) — no more realignment here.
       const server = serverOf(call.name);
       // Trace fields: connector = the name prefix before "__", bare tool = the rest.
       const px = call.name.indexOf("__");
@@ -1743,8 +1743,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       const bareTool = px > 0 ? call.name.slice(px + 2) : call.name;
       // Privacy-safe: names/ids only — never the arguments.
       captureEvent({ name: "tool_called", server, tool: call.name, connector: connectorId, provider: p.provider, model: p.modelId, loopId });
-      // Au cap per-tool : REFUSÉ sans dispatch ni compte (prefetch sauté ; `callCounts` =
-      // EXÉCUTÉS), sommé de conclure ; `finishExhausted` seulement s'il INSISTE ensuite.
+      // At the per-tool cap: REFUSED with no dispatch or count (prefetch skipped; `callCounts` =
+      // EXECUTED), told to conclude; `finishExhausted` only if it INSISTS afterward.
       if (usedChars() >= charBudget) {
         messages.push({ role: "tool", toolCallId: call.id, content: contextBudgetNote(call.name) });
         dbg({ type: "tool", vault: p.vault, kinds: p.kinds, name: call.name, ok: false, args: safeJson(call.arguments), error: `budget de contexte atteint (${charBudget} car.) — appel non dispatché` });
@@ -1765,7 +1765,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       callCounts.set(call.name, (callCounts.get(call.name) ?? 0) + 1);
       let content: string;
       let reason: ToolErrorReason | undefined;
-      let trueUnknown = false; // le vrai verdict quand la relance a coercé `unknown`
+      let trueUnknown = false; // the true verdict when the retry coerced `unknown`
       // The RAW error text (before redaction masks it) — used ONLY to pattern-match
       // an agent-browser backend fault below. Never surfaced to the model (the fixed
       // BROWSER_BACKEND_FAULT_MESSAGE is), so matching the raw string leaks nothing.
@@ -1782,8 +1782,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       // trace row via onToolResult so the finished trace shows where time went.
       let tCall = 0;
       let callMs: number | undefined;
-      // Hoistée hors du `try` : le `catch` doit pouvoir CLORE la ligne du journal, sinon
-      // un appel qui échoue (ou un Stop) la laisse à jamais sur son « en cours… ».
+      // Hoisted out of the `try`: the `catch` must be able to CLOSE the journal line, or
+      // a call that fails (or a Stop) leaves it forever on its « en cours… ».
       let callPhase = "";
 
       // Parsability gate: the model emitted a tool call whose raw arguments were
@@ -1808,8 +1808,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         continue;
       }
 
-      // Appel AVEUGLE au schéma (réel, jamais chargé, args inventés) : le schéma s'enregistre
-      // d'abord ; rejet SEULEMENT sur violation prouvable — `schemaBlind.ts` porte les raisons.
+      // BLIND call to the schema (real, never loaded, made-up args): the schema registers
+      // first; rejection ONLY on a provable violation — `schemaBlind.ts` carries the reasons.
       if (!toolInfo.has(call.name) && fullByName.has(call.name)) {
         const full = fullByName.get(call.name)!;
         toolInfo.set(call.name, full);
@@ -1877,30 +1877,30 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       const isWrite = isWriteTool(call.name, info?.description, info?.annotations);
       const idemKey = isWrite && p.turnId ? writeKey(p.turnId, call.name, args) : null;
       const alreadyDone = !!idemKey && !!p.writeLedgerHas?.(idemKey);
-      // COMPORTEMENT, pas confirmation : « Rédige un email à X » n'est PAS « envoie un
-      // email à X ». Un modèle faible saute directement à `send_email` sur une simple
-      // demande de RÉDACTION (journal 2026-07-26 : email parti sur-le-champ, aucune
-      // carte en mode standard). Quand le DERNIER message utilisateur demande de
-      // rédiger/préparer une communication SANS verbe d'envoi, tout outil d'ENVOI est
-      // refusé DÉTERMINISTIQUEMENT et le modèle est orienté vers un brouillon dans la
-      // conversation — l'envoi n'a lieu que sur demande explicite (« envoie-le »), qui
-      // porte un verbe d'envoi et rouvre la porte au tour suivant.
+      // BEHAVIOUR, not confirmation: « Draft an email to X » is NOT « send an
+      // email to X ». A weak model jumps straight to `send_email` on a simple
+      // DRAFTING request (2026-07-26 journal: email sent on the spot, no
+      // card in standard mode). When the LAST user message asks to
+      // draft/prepare a communication WITHOUT a send verb, any SEND tool is
+      // DETERMINISTICALLY refused and the model is steered toward a draft in the
+      // conversation — sending only happens on explicit request (« send it »), which
+      // carries a send verb and reopens the door on the next turn.
       const lastUserText =
         [...p.history].reverse().find((m) => m.role === "user")?.content ?? "";
       const draftOnly =
         isWrite &&
         isCommSendTool(bareTool) &&
         isDraftOnlyIntent(typeof lastUserText === "string" ? lastUserText : "");
-      // Même famille, un cran plus large : « CONSULTER » n'est pas « AGIR ». Journal du
-      // 27/07/2026 — « Prépare ma journée : mes rendez-vous dans l'ordre » et le modèle,
-      // sans avoir LU l'agenda une seule fois, a créé un événement inventé (participants
-      // et salle compris) dans l'agenda réel. La confirmation ne le rattrape pas : en
-      // mode `standard` (le défaut) `CONFIRMATION_POLICY` n'ouvre AUCUNE carte pour une
-      // écriture ordinaire tant que la conversation n'a pas touché le web — la création
-      // partait sans que rien ne s'affiche. Quand le dernier message ne demandait qu'à
-      // consulter, toute écriture est donc refusée ICI, quel que soit le mode.
+      // Same family, one notch wider: « CONSULT » is not « ACT ». 27/07/2026
+      // journal — « Prepare my day: my appointments in order » and the model,
+      // without having READ the calendar even once, created a made-up event (participants
+      // and room included) in the real calendar. Confirmation doesn't catch it: in
+      // `standard` mode (the default) `CONFIRMATION_POLICY` opens NO card for an
+      // ordinary write until the conversation has touched the web — the creation
+      // went through with nothing shown. When the last message only asked to
+      // consult, any write is therefore refused HERE, whatever the mode.
       //
-      // Les deux exemptions (navigateur, écriture AMBIGUË) sont dans `refusedAsConsultOnly`.
+      // The two exemptions (browser, AMBIGUOUS write) are in `refusedAsConsultOnly`.
       const consultOnly = refusedAsConsultOnly(
         call.name,
         isWrite,
@@ -2003,15 +2003,15 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       } else {
         // A READ is DISPATCHED WITHOUT ASKING — only a write may interrupt the user.
         //
-        // Confirmer sur des args de LECTURE qui portent une donnée de la conversation tirait
-        // sur le cas normal (« recherche Entreprise Zorvia » embarque « Zorvia » : c'est ce
-        // qu'une recherche FAIT), et un gate qui demande sur l'ordinaire apprend à cliquer
-        // sans lire — ce qu'on dépense ensuite sur la carte d'écriture, la seule qui compte.
+        // Confirming on READ args carrying conversation data was shooting
+        // at the normal case (« search Entreprise Zorvia » embeds « Zorvia »: that's what
+        // a search DOES), and a gate that asks about the ordinary case teaches clicking
+        // without reading — spent later on the write card, the only one that matters.
         //
-        // Le scan TOURNE toujours : on a cessé de bloquer, pas de voir (journal). Confirment
-        // encore : toute ÉCRITURE, tout appel portant une pièce jointe (des octets réels qui
-        // partent), et une NAVIGATION dont l'URL porte des données réelles — là seulement la
-        // destination est choisie par le modèle. Celle d'un connecteur est fixée par le lien.
+        // The scan ALWAYS runs: we stopped blocking, not seeing (journal). Still
+        // confirming: any WRITE, any call carrying an attachment (real bytes that
+        // leave), and a NAVIGATION whose URL carries real data — there only is the
+        // destination chosen by the model. A connector's is fixed by the link.
         if (!missing.length && !skipsArgExfilScan(call.name)) {
           const argExfil = analyzeArgExfil(deredactedArgs, vaultVals);
           if (argExfil.suspicious && !resultEcho.allArgsEchoed(connectorId, args))
@@ -2027,7 +2027,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         needsConfirm = true;
       }
       let declinedByUser = false;
-      // Redaction dynamique: does THIS call touch redacted data? A governed web call
+      // Dynamic redaction: does THIS call touch redacted data? A governed web call
       // that doesn't gets replay-only results and SKIPS the reveal card below (nothing
       // would be masked in its results, so the card's warning would be false — the
       // "actualité en Espagne" case). Recomputed per call: a later call of the SAME
@@ -2166,9 +2166,9 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         reason = "operational";
         dbg({ type: "tool", vault: p.vault, kinds: p.kinds, name: call.name, ok: false, args: safeJson(call.arguments), error: "consultation demandée — écriture non sollicitée, refusée" });
         gateBlocked("consult_only", bareTool, connectorId);
-        // ⚠️ DIRE QUI REFUSE : sans note, la trace affiche « échec » et le modèle paraphrase
-        // en accusant le service (« refusée par l'intégration » — alors qu'aucun appel n'est
-        // parti, 15/08). Une note portée par la TRACE, le modèle ne peut pas la réécrire.
+        // ⚠️ SAY WHO REFUSES: without a note, the trace shows « échec » and the model paraphrases
+        // by blaming the service (« refused by the integration » — when no call
+        // went out, 15/08). A note carried by the TRACE, the model can't rewrite it.
         p.onToolResult?.({ tool: bareTool, server: connectorId, ok: false, note: `refusé par ${BRAND.name} — demande lue comme une consultation` });
         messages.push({ role: "tool", toolCallId: call.id, content });
         if (bumpDead() >= MAX_CONSECUTIVE_DEAD) return finishExhausted();
@@ -2249,23 +2249,23 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
                 })
                 .catch(() => {})
             : null;
-          // Les lectures d'un tour multi-appels ont été pré-lancées plus haut : on attend
-          // CE résultat plutôt que d'en refaire un en série (le nom d'outil est threadé par
-          // le client, le redaction est passé par le mutex — le parallélisme est sûr).
-          // Tout le reste s'appelle ici, dans l'ordre.
+          // A multi-call turn's reads were pre-launched above: we await
+          // THIS result rather than redoing one in series (the tool name is threaded by
+          // the client, redaction goes through the mutex — the parallelism is safe).
+          // Everything else is called here, in order.
           //
-          // Les DEUX chemins portent le chien de garde par appel : les ticks doux font
-          // vivre la ligne du journal pendant un appel long, et le budget dur par classe
-          // change un outil PENDU en erreur `transport` que la machinerie d'impasse absorbe
-          // déjà — sans lui, seul le Stop de l'utilisateur libérerait le tour
-          // (`TTFT_WATCHDOG_MS` couvre le blocage du MODÈLE, pas celui de l'outil). Un
-          // appel pré-lancé est mesuré depuis CETTE attente, exprès généreux ; le Stop
-          // gagne quand même tout de suite (`raceAbort` enveloppe les deux).
+          // BOTH paths carry the per-call watchdog: soft ticks keep the journal
+          // line alive during a long call, and the hard per-class budget
+          // turns a HUNG tool into a `transport` error that the dead-end machinery already
+          // absorbs — without it, only the user's Stop would free the turn
+          // (`TTFT_WATCHDOG_MS` covers the MODEL stalling, not the tool). A
+          // pre-launched call is measured from THIS wait, deliberately generous; Stop
+          // still wins right away (`raceAbort` wraps both).
           //
-          // Cadence comportementale (anti-bot) : un humain n'agit pas à l'instant où la
-          // page peint. Un léger délai avant une INTERACTION navigateur (clic/saisie/nav,
-          // jamais une lecture, qui est pré-lancée) adoucit le signal « inhumainement
-          // rapide ». Interruptible, et seulement sur le chemin séquentiel.
+          // Behavioural pacing (anti-bot): a human doesn't act the instant the
+          // page paints. A slight delay before a browser INTERACTION (click/type/nav,
+          // never a read, which is pre-launched) softens the "inhumanly
+          // fast" signal. Interruptible, and only on the sequential path.
           if (isBrowserWriteTool(call.name) && !prefetch.has(call.id)) {
             const paceMs = 350 + Math.floor(Math.random() * 600);
             const sig = p.signal;
@@ -2301,9 +2301,9 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
           );
           callSettled = true; // the round-trip returned → a late summary no longer touches the live line
           callMs = Date.now() - tCall;
-          // `detail` DOIT être réécrit avec le label : sans lui la ligne du journal garde
-          // le « en cours… » posé au dispatch et se lit « Outil terminé · X — en cours…
-          // (686 ms) », c'est-à-dire l'inverse d'un état terminé (journal du 27/07/2026).
+          // `detail` MUST be rewritten along with the label: without it the journal line keeps
+          // the « en cours… » set at dispatch and reads « Outil terminé · X — en cours…
+          // (686 ms) », i.e. the opposite of a finished state (27/07/2026 journal).
           updateDebug(callPhase, {
             label: `Outil ${result.isError ? "en échec" : "terminé"} · ${call.name}`,
             detail: result.isError ? "le connecteur a renvoyé une erreur" : "terminé",
@@ -2346,8 +2346,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         } catch (err) {
           callSettled = true;
           if (tCall) callMs = Date.now() - tCall;
-          // Même règle qu'au succès : la ligne du journal ne doit pas rester sur son
-          // « en cours… » de dispatch. Elle est close AVANT le retour anticipé du Stop.
+          // Same rule as on success: the journal line must not stay on its
+          // dispatch « en cours… ». It is closed BEFORE Stop's early return.
           updateDebug(callPhase, {
             label: `Outil ${aborted() || isAbortError(err) ? "interrompu" : "en échec"} · ${call.name}`,
             detail: aborted() || isAbortError(err) ? "interrompu par l'utilisateur" : "l'appel a échoué",
@@ -2379,9 +2379,9 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
             // user to change model, when no model can call a tool that does not exist.
             reason = "operational";
             struggle.markUnknownTool(call.name);
-            // Le routeur a-t-il RATÉ un outil qui existe pourtant ? `toolInfo` ne porte que
-            // le pick ; `fullByName` porte tout. Si le nom existe en vrai, ce n'est pas le
-            // modèle qui a inventé — c'est le routage qui l'a privé de l'outil.
+            // Did the router MISS a tool that does exist? `toolInfo` carries only
+            // the pick; `fullByName` carries everything. If the name genuinely exists, it isn't the
+            // model that invented it — it's routing that deprived it of the tool.
             if (fullByName.has(call.name)) {
               captureEvent({
                 name: "tool_route_miss",
@@ -2420,9 +2420,9 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
               : "Tool error (détails masqués).";
             reason = classifyToolError(msg);
           }
-          // ⚠️ La réécriture `unknown → transport` sert la MÉCANIQUE de relance ; la
-          // TÉLÉMÉTRIE, elle, garde la vérité — sinon chaque throw inclassable polluait
-          // le bucket réseau (audit 13/08). `trueUnknown` est replié dans `tool_error`.
+          // ⚠️ The `unknown → transport` rewrite serves the retry MECHANICS; the
+          // TELEMETRY, though, keeps the truth — otherwise every unclassifiable throw polluted
+          // the network bucket (13/08 audit). `trueUnknown` is folded back into `tool_error`.
           if (reason === "unknown") {
             trueUnknown = true;
             reason = "transport";
@@ -2431,7 +2431,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         }
       }
 
-      // Durée de chaque appel DISPATCHÉ, succès compris (les rejets pré-dispatch n'ont pas de callMs).
+      // Duration of every DISPATCHED call, successes included (pre-dispatch rejections have no callMs).
       if (callMs !== undefined) captureEvent({ name: "tool_result", connector: connectorId, tool: bareTool, ok: !reason, ms: callMs, provider: p.provider, model: p.modelId, loopId });
 
       // A browser-backend PROTOCOL fault (Electron can't create a CDP page target,
@@ -2455,7 +2455,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       }
 
       if (reason) {
-        // `attempt` lit le compteur AVANT l'incrément du bloc arg_error — même valeur, zéro hoist.
+        // `attempt` reads the counter BEFORE the arg_error block's increment — same value, zero hoist.
         captureEvent({ name: "tool_error", server, tool: call.name, reason: trueUnknown ? "unknown" : reason, connector: connectorId, provider: p.provider, model: p.modelId, loopId,
           ...(toolErrRaw && reason !== "arg_error" ? { family: classifyErrorFamily(toolErrRaw) } : {}), ...(missing.length ? { param: missing[0] } : {}),
           ...(reason === "arg_error" ? { attempt: (argErrorCount.get(call.name) ?? 0) + 1 } : {}), ...(callMs !== undefined ? { ms: callMs } : {}) });
@@ -2477,7 +2477,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
             ? unknownToolHint(fullByName)
             : argErrorHint(call.name, toolInfo.get(call.name)?.inputSchema, attempt);
         }
-        // Un identifiant recopié de travers : on rend la bonne valeur (`identifierTypo.ts`).
+        // A miscopied identifier: we hand back the correct value (`identifierTypo.ts`).
         else content += identifierTypoHint(args, seenIds);
       } else {
         succeeded.add(call.name);
@@ -2553,17 +2553,17 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         ms: callMs,
       });
 
-      // Stuck-loop guard, CUMULATIF et clé sur (outil + contenu exact) : un outil qui
-      // rend toujours le MÊME résultat est une impasse. Ce n'est pas un `arg_error`,
-      // donc rien plus haut ne pousse le modèle, et un modèle faible ignore un indice
-      // poli (GLM-5.2 bouclait update/modify/edit/patch). Un comptage CONSÉCUTIF le
-      // raterait aussi : un succès au milieu remet la série à zéro. D'où un décompte
-      // sur TOUT le tour, avec escalade — indice dès la 2e, ARRÊT DUR à la 3e.
+      // Stuck-loop guard, CUMULATIVE and keyed on (tool + exact content): a tool that
+      // always returns the SAME result is a dead end. It isn't an `arg_error`,
+      // so nothing above nudges the model, and a weak model ignores a polite hint
+      // (GLM-5.2 kept looping update/modify/edit/patch). A CONSECUTIVE count would
+      // also miss it: a success in the middle resets the streak to zero. Hence a count
+      // over the WHOLE turn, with escalation — a hint from the 2nd, a HARD STOP at the 3rd.
       //
-      // Seules les occurrences NON PRODUCTIVES comptent : produire, c'est de NOUVEAUX
-      // arguments ET un vrai résultat (ni erreur, ni impasse). Chercher plusieurs
-      // clients dont chacun est légitimement introuvable est une EXPLORATION à résultat
-      // vide valide — jamais une boucle.
+      // Only NON-PRODUCTIVE occurrences count: being productive means NEW
+      // arguments AND a genuine result (neither an error nor a dead end). Looking up several
+      // customers each of which is legitimately not found is valid EXPLORATION with an
+      // empty result — never a loop.
       const tallyKey = `${call.name} ${content}`;
       const seen = (resultTally.get(tallyKey) ?? 0) + 1;
       resultTally.set(tallyKey, seen);
@@ -2586,7 +2586,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       }
       // repeatedResult[tool] = max unproductive-repeats, consumed by exhaustionMessage.
       if (stuckSeen - 1 > (repeatedResult.get(call.name) ?? 0)) repeatedResult.set(call.name, stuckSeen - 1);
-      // Une répétition qui vient d'un ÉCHEC n'accuse pas le modèle (`repeatedFailureOf`).
+      // A repetition that comes from a FAILURE doesn't blame the model (`repeatedFailureOf`).
       if (reason && stuckSeen >= 2) repeatedFailure = repeatedFailureOf(call.name, content, argsSeen.size);
       if (stuckSeen >= STUCK_STOP) {
         // Keep the model's context coherent (record this tool turn), then stop the
@@ -2609,7 +2609,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         messages.push({ role: "tool", toolCallId: call.id, content });
         return finishExhausted();
       }
-      // Une ÉCRITURE qui échoue ne se rejoue pas — le pourquoi est sur `withFailedWriteNote`.
+      // A WRITE that fails is not replayed — the why is on `withFailedWriteNote`.
       content = withFailedWriteNote(content, call.name, !!reason && stuckSeen === 1 && isWriteTool(call.name, info?.description, info?.annotations));
       if (stuckSeen >= 2) {
         // Name the OTHER tools of this connector that are callable RIGHT NOW, so the

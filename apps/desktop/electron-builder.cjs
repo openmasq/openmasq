@@ -1,12 +1,12 @@
-// Config electron-builder — en JS (CJS) et non en YAML, pour UNE raison : la marque n'a
-// qu'une maison (`packages/branding/branding.json`, règle 9) et un YAML ne sait pas la
-// lire. Tout identifiant de produit (appId, productName, scheme, URL du flux de mise à
-// jour) est DÉRIVÉ ci-dessous ; les valeurs produites sont identiques octet pour octet à
-// celles expédiées jusqu'ici — parc installé oblige.
+// electron-builder config — in JS (CJS) rather than YAML, for ONE reason: the brand has
+// only one home (`packages/branding/branding.json`, rule 9) and YAML cannot read
+// it. Every product identifier (appId, productName, scheme, update-feed URL)
+// is DERIVED below; the values produced are byte-for-byte identical to
+// those shipped so far — the installed base demands it.
 //
-// ⚠️ Ce fichier est chargé par `scripts/eb.mjs` (`--config`), qui reste le SEUL point
-// d'entrée d'empaquetage. `scripts/shippedTriples.ts` le `require()` aussi : la liste des
-// arches expédiées n'a que cette maison-ci.
+// ⚠️ This file is loaded by `scripts/eb.mjs` (`--config`), which remains the ONLY packaging
+// entry point. `scripts/shippedTriples.ts` also `require()`s it: the list of shipped
+// arches has only this one home.
 const brand = require("../../packages/branding/branding.json");
 
 module.exports = {
@@ -14,10 +14,10 @@ module.exports = {
   productName: brand.name,
   copyright: `Copyright © 2025 ${brand.name}`,
 
-  // Le package.json de l'app n'embarque plus la marque : `name` (dossier NSIS + repli
-  // `userData` d'Electron sous Windows — voir le commentaire historique dans `eb.mjs`),
-  // `productName` (CFBundleName mac ⇒ `userData`) et `author` sont posés ICI, pour que
-  // TOUS les chemins d'empaquetage (`package`, `dist`, `release`, CI) les aient.
+  // The app's package.json no longer embeds the brand: `name` (NSIS folder + Electron's
+  // Windows `userData` fallback — see the historical comment in `eb.mjs`),
+  // `productName` (macOS CFBundleName ⇒ `userData`) and `author` are set HERE, so that
+  // EVERY packaging path (`package`, `dist`, `release`, CI) has them.
   extraMetadata: {
     name: brand.slug,
     productName: brand.name,
@@ -68,25 +68,25 @@ module.exports = {
   // electron-vite already bundles main/preload/renderer into out/, and the
   // workspace packages are bundled in too, so we only ship out/ + package.json.
   // electron-builder adds the production node_modules (electron-updater).
-  // ⛔ CETTE LISTE EST UNE ALLOWLIST, ET SON EFFET DÉPEND DE LA FORME DE `mac.files` /
-  // `win.files` — lisez le bloc `mac.files` AVANT de toucher à l'une des trois.
+  // ⛔ THIS LIST IS AN ALLOWLIST, AND ITS EFFECT DEPENDS ON THE SHAPE OF `mac.files` /
+  // `win.files` — read the `mac.files` block BEFORE touching any of the three.
   //
-  // Ce qu'elle garantit : l'app ne contient QUE `out/` et `package.json` (les node_modules
-  // sont filtrés à part, par le matcher dédié). Rien du dossier de travail — ni sources, ni
-  // tests, ni outillage, ni fichiers d'environnement.
+  // What it guarantees: the app contains ONLY `out/` and `package.json` (node_modules
+  // are filtered separately, by the dedicated matcher). Nothing from the working directory — no sources, no
+  // tests, no tooling, no environment files.
   //
-  // ⚠️ Une allowlist qui ne s'applique pas ne se VOIT pas : build vert, app qui démarre,
-  // simplement bien plus grosse que sa config ne le dit. D'où `afterPack.cjs`, qui RELIT
-  // l'asar produit et casse le build sur toute entrée hors de cette liste
-  // (`packageContents.cjs`) : la config est une intention, l'artefact est la preuve.
+  // ⚠️ An allowlist that doesn't apply is NOT VISIBLE: green build, app that starts,
+  // simply much bigger than its config says. Hence `afterPack.cjs`, which RE-READS
+  // the produced asar and breaks the build on any entry outside this list
+  // (`packageContents.cjs`): the config is an intention, the artifact is the proof.
   files: [
     "out/**",
     "package.json",
-    // Les sourcemaps ne sont JAMAIS expédiées : une `.map` embarque `sourcesContent`, donc
-    // le TypeScript d'origine, commentaires compris — l'expédier annulerait la minification
-    // que `electron.vite.config.ts` vient de faire. ⚠️ Cette ligne filtre POUR DE BON depuis
-    // que les maps sont produites en `hidden` pour l'upload Sentry : elles existent dans
-    // `out/`, et sans elle les 26 `.map` de nos bundles partent dans l'app.
+    // Sourcemaps are NEVER shipped: a `.map` embeds `sourcesContent`, i.e.
+    // the original TypeScript, comments included — shipping it would undo the minification
+    // `electron.vite.config.ts` just did. ⚠️ This line has actually been filtering something since
+    // the maps started being produced in `hidden` mode for the Sentry upload: they exist in
+    // `out/`, and without it our bundles' 26 `.map` files would go into the app.
     "!out/**/*.map",
     // electron-vite bundles every @openmasq/* workspace package into out/, so the
     // pnpm-symlinked copies in node_modules aren't needed at runtime. electron-builder
@@ -94,37 +94,37 @@ module.exports = {
     // ("… must be under apps/desktop/") because the symlink targets live outside the
     // app root (packages/*). Exclude the whole scope (+ any stray turbo logs).
     "!node_modules/@openmasq/**",
-    // Nos `CLAUDE.md` décrivent le modèle de menace et la garde qui le couvre — c'est le
-    // document le plus utile qu'on puisse offrir à qui cherche un trou, et deux partaient
-    // encore par `node_modules` (`tesseract2.js`, notre OCR vendoré).
+    // Our `CLAUDE.md` files describe the threat model and the guard that covers it — it's the
+    // most useful document we could hand someone looking for a hole, and two were still
+    // shipping via `node_modules` (`tesseract2.js`, our vendored OCR).
     "!**/CLAUDE.md",
     "!**/.turbo/**",
-    // transformers.js (Node) met en cache les modèles TÉLÉCHARGÉS PENDANT LE DEV dans son
-    // propre dossier de paquet — 346 Mo de re-uploads Xenova/* non pinnés embarqués tels
-    // quels dans l'app (838 Mo de zip au lieu de ~490 : mesuré sur 0.3.3-staging.106.2).
-    // Jamais du runtime : les modèles licites arrivent sha256-pinnés par extraResources
-    // (ner-models / embed-models). Un poste de dev est le seul à avoir ce cache, donc la
-    // CI ne voyait rien — l'exclusion protège les deux.
+    // transformers.js (Node) caches the models DOWNLOADED DURING DEV in its
+    // own package folder — 346 MB of unpinned Xenova/* re-uploads embedded as-is
+    // in the app (838 MB zip instead of ~490: measured on 0.3.3-staging.106.2).
+    // Never at runtime: the legitimate models arrive sha256-pinned via extraResources
+    // (ner-models / embed-models). A dev machine is the only one with this cache, so
+    // CI saw nothing — the exclusion protects both.
     "!**/@huggingface/transformers/.cache/**",
     // onnxruntime-node (the local-NER runtime, via @huggingface/transformers) ships
-    // native binaries for EVERY platform (~210 MB total). Linux n'est jamais une cible :
-    // ça se dit ici, une fois. Ce qui reste dépend de la plateforme QU'ON CONSTRUIT et vit
-    // donc dans `mac.files` / `win.files` — un binaire darwin dans l'app Windows (et
-    // inversement) n'est pas seulement du poids, c'est une plateforme entière expédiée à
-    // l'autre : mesuré à 137 Mo dans le premier essai Windows.
-    // ⚠️ DEUX noms, et ce n'est pas une ceinture-bretelles : depuis `@openmasq/ort`, le moteur
-    // natif est installé sous l'alias `ort-native` (`npm:onnxruntime-node@…`). Les motifs qui ne
-    // nommaient que `onnxruntime-node` ont donc cessé de matcher SANS rien casser — 53 Mo de
-    // binaires Linux et Windows repartaient dans chaque .app mac, et dans chaque mise à jour.
-    // Un renommage de paquet qui rend une exclusion muette ne se voit qu'à la pesée.
+    // native binaries for EVERY platform (~210 MB total). Linux is never a target:
+    // that's said here, once. What remains depends on the platform WE ARE BUILDING and so lives
+    // in `mac.files` / `win.files` — a darwin binary in the Windows app (and
+    // vice versa) isn't just weight, it's a whole platform shipped to
+    // the other: measured at 137 MB in the first Windows attempt.
+    // ⚠️ TWO names, and this isn't belt-and-suspenders: since `@openmasq/ort`, the
+    // native engine is installed under the alias `ort-native` (`npm:onnxruntime-node@…`). Patterns that
+    // only named `onnxruntime-node` therefore stopped matching WITHOUT breaking anything — 53 MB of
+    // Linux and Windows binaries kept shipping in every mac .app, and in every update.
+    // A package rename that silences an exclusion only shows up on the scale.
     "!**/onnxruntime-node/bin/napi-v6/linux/**",
     "!**/ort-native/bin/napi-v6/linux/**",
     "!**/@libsql/linux-*/**",
-    // Le MÊME oubli, sur les deux autres natifs — et personne ne l'avait vu parce qu'il ne
-    // casse rien : `@napi-rs/canvas` et `sharp` publient leurs prébuilts Linux en paquets de
-    // plateforme, que `supportedArchitectures` installe, et rien ne les excluait. Mesuré dans
-    // l'app arm64 de 0.5.0-staging.149 : 110 Mo de canvas (glibc+musl × x64+arm64) et 65 Mo de
-    // libvips. Du code inexécutable sur un Mac, réexpédié à CHAQUE mise à jour.
+    // The SAME oversight, on the two other natives — and nobody had seen it because it
+    // breaks nothing: `@napi-rs/canvas` and `sharp` publish their Linux prebuilts as platform
+    // packages, which `supportedArchitectures` installs, and nothing excluded them. Measured in
+    // the arm64 app of 0.5.0-staging.149: 110 MB of canvas (glibc+musl × x64+arm64) and 65 MB of
+    // libvips. Code that can't run on a Mac, re-shipped on EVERY update.
     "!**/@napi-rs/canvas-linux-*/**",
     "!**/@img/sharp-linux*/**",
     "!**/@img/sharp-libvips-linux*/**",
@@ -135,13 +135,13 @@ module.exports = {
     // + source maps are dead weight — drop them.
     "!**/@huggingface/transformers/node_modules/onnxruntime-web/dist/*.wasm",
     "!**/@huggingface/transformers/**/*.map",
-    // ⚠️ Le motif ci-dessus ne matche PLUS ce qui est réellement expédié. pnpm hisse
-    // `onnxruntime-web` à la RACINE de node_modules ; c'est cette copie-là qui part, et le
-    // chemin imbriqué sous `transformers` n'existe pas dans l'app. Résultat mesuré :
-    // 74 Mo de `.wasm` + 21 Mo de sourcemaps embarqués pour rien. Rien ne les charge — le
-    // moteur WASM du repli Intel vit sous l'ALIAS `ort-wasm` (un paquet distinct, trié par
-    // arche dans `scripts/archPrune.cjs`), qu'aucun de ces motifs ne touche : les exclure ici
-    // priverait un Mac Intel de son SEUL moteur.
+    // ⚠️ The pattern above no longer matches what's actually shipped. pnpm hoists
+    // `onnxruntime-web` to the ROOT of node_modules; it's that copy that ships, and the
+    // path nested under `transformers` doesn't exist in the app. Measured result:
+    // 74 MB of `.wasm` + 21 MB of sourcemaps embedded for nothing. Nothing loads them — the
+    // Intel-fallback WASM engine lives under the ALIAS `ort-wasm` (a separate package, sorted by
+    // arch in `scripts/archPrune.cjs`), which none of these patterns touch: excluding them here
+    // would deprive an Intel Mac of its ONLY engine.
     "!**/onnxruntime-web/dist/*.wasm",
     "!**/onnxruntime-web/**/*.map",
     // pdfjs-dist: the MAIN process uses `pdfjs-dist/legacy`; the renderer's pdf.js + worker
@@ -158,38 +158,38 @@ module.exports = {
   // needed). Don't let electron-builder try to recompile it, and keep the native
   // .node files out of the asar archive so they can be loaded at runtime.
   npmRebuild: false,
-  // ⛔ CETTE LISTE EST CE QUI DONNE SON SENS AU FUSIBLE D'INTÉGRITÉ ASAR. Tout ce qui est
-  // dégroupé vit en fichiers nus, modifiables, HORS du hash que le fusible vérifie — chaque
-  // motif ajouté ici agrandit donc la surface qu'un processus local peut réécrire dans
-  // l'app signée. On ne dégroupe que ce qui se charge PAR CHEMIN DE FICHIER, pas par le
-  // `require` patché : les binaires natifs et leurs dylibs voisines (dlopen ne lit pas
-  // l'asar), le wasm et ses workers `.mjs`, et les arbres qu'un `worker_threads` atteint
-  // par `__dirname` (un Worker ne sait pas démarrer sur une entrée DANS l'asar — la raison
-  // d'être de chaque motif est en face). TOUT LE RESTE du JS reste sous le sceau : un
-  // express ou un undici réécrit sur le disque ne se charge plus.
+  // ⛔ THIS LIST IS WHAT GIVES THE ASAR INTEGRITY FUSE ITS MEANING. Everything that is
+  // unbundled lives as bare, modifiable files, OUTSIDE the hash the fuse verifies — each
+  // pattern added here therefore widens the surface a local process can rewrite inside
+  // the signed app. Only what loads BY FILE PATH is unbundled, not through the
+  // patched `require`: native binaries and their neighboring dylibs (dlopen does not read
+  // the asar), the wasm and its `.mjs` workers, and the trees a `worker_threads` reaches
+  // via `__dirname` (a Worker cannot start on an entry POINT INSIDE the asar — the reason
+  // for each pattern is right beside it). ALL THE REST of the JS stays under the seal: an
+  // express or an undici rewritten to disk no longer loads.
   //
-  // L'ancien état — `**/node_modules/**` entier — datait des enfants RUN_AS_NODE, qui ne
-  // lisaient pas l'asar. Ce fusible est COUPÉ depuis l'audit B1 et plus rien ne spawn
-  // ainsi : @playwright/mcp part en mode APP (asar-aware) et les workers fs/NER/embed/
-  // extraction sont des `utilityProcess` — qui chargent depuis l'asar (leur entrée `out/`
-  // y a toujours vécu). Un futur serveur stdio par `nodeSpawn.ts` retomberait dans le cas
-  // RUN_AS_NODE : il exigerait de dégrouper SA closure — voir le commentaire de ce fichier.
+  // The old state — the WHOLE `**/node_modules/**` — dated back to the RUN_AS_NODE children, which did not
+  // read the asar. This fuse has been CUT since audit B1 and nothing spawns
+  // that way anymore: @playwright/mcp launches in APP mode (asar-aware) and the fs/NER/embed/
+  // extraction workers are `utilityProcess`es — which load from the asar (their `out/` entry
+  // has always lived there). A future stdio server via `nodeSpawn.ts` would fall back into the
+  // RUN_AS_NODE case: it would require unbundling ITS closure — see this file's comment.
   asarUnpack: [
     "**/*.node",
-    // Natifs + leurs bibliothèques dynamiques voisines (dlopen par chemin réel).
+    // Natives + their neighboring dynamic libraries (dlopen by real path).
     "**/@libsql/**",
     "**/onnxruntime-node/**",
     "**/ort-native/**",
     "**/@napi-rs/**",
     "**/@img/**",
-    // Le moteur ONNX WASM (repli Intel) : `.wasm` + workers `.mjs` chargés par chemin.
+    // The ONNX WASM engine (Intel fallback): `.wasm` + `.mjs` workers loaded by path.
     "**/ort-wasm/**",
-    // `@huggingface/transformers` : arbre d'assets `import()`é paresseusement, qui résout
-    // ses natifs/wasm par chemin (electron.vite.config.ts le garde external pour la même
-    // raison).
+    // `@huggingface/transformers`: a lazily-`import()`ed asset tree, which resolves
+    // its natives/wasm by path (electron.vite.config.ts keeps it external for the same
+    // reason).
     "**/@huggingface/transformers/**",
-    // L'OCR vendoré : son Worker (`worker_threads`) démarre sur `dist/worker/worker.js`
-    // résolu par `__dirname`, et le worker `require()`e le core WASM à côté.
+    // The vendored OCR: its Worker (`worker_threads`) starts on `dist/worker/worker.js`
+    // resolved via `__dirname`, and the worker `require()`s the WASM core beside it.
     "**/tesseract2.js/**",
     "**/tesseract.js-core/**",
   ],
@@ -201,15 +201,15 @@ module.exports = {
   // `<app>/Contents/Resources/python-runtime` + `.../ner-models`, resolved at runtime via
   // `process.resourcesPath` (see `src/main/python/runtime.ts` + `src/main/localNer.ts`). No
   // runtime network fetch; the CPython tarball is sha256-pinned at bake time.
-  // NOTE: mac ships TWO arches (see `mac.target`), donc les deux runtimes doivent avoir été
-  // bakés (`BAKE_TARGET=darwin-x64 pnpm bake:runtime` en plus du bake hôte) — `mac.extraResources`
-  // ci-dessous prend celui de l'arche construite. Un runtime manquant se voit au build.
+  // NOTE: mac ships TWO arches (see `mac.target`), so both runtimes must have been
+  // baked (`BAKE_TARGET=darwin-x64 pnpm bake:runtime` in addition to the host bake) — `mac.extraResources`
+  // below takes the one for the arch being built. A missing runtime shows up at build time.
   extraResources: [
-    // ⚖️ La LICENCE et le NOTICE voyagent AVEC le binaire : l'app redistribue du code et des
-    // poids sous Apache-2.0 (SheetJS/xlsx et tesseract2 dans les bundles, tessdata_fast,
-    // docTR et les poids NER dans les ressources), et §4(a)/(d) de la licence demandent que
-    // le destinataire en reçoive copie. Ils sont HORS asar (l'allowlist de `packageContents`
-    // n'admet que out/ + node_modules + package.json), donc lisibles dans
+    // ⚖️ The LICENSE and the NOTICE travel WITH the binary: the app redistributes code and
+    // weights under Apache-2.0 (SheetJS/xlsx and tesseract2 in the bundles, tessdata_fast,
+    // docTR and the NER weights in the resources), and §4(a)/(d) of the license require that
+    // the recipient receive a copy. They are OUTSIDE the asar (`packageContents`'s allowlist
+    // only admits out/ + node_modules + package.json), so readable in
     // `Contents/Resources/`.
     { from: "../../LICENSE", to: "LICENSE" },
     { from: "../../NOTICE", to: "NOTICE" },
@@ -226,57 +226,57 @@ module.exports = {
   ],
 
   mac: {
-    // Le runtime Python est le SEUL extraResource par triple (les modèles sont des poids,
-    // pas des binaires) — il descend donc dans le bloc de sa plateforme.
+    // The Python runtime is the ONLY extraResource per triple (the models are weights,
+    // not binaries) — so it goes down into its platform's block.
     //
-    // `${arch}` est développé PAR ARCH CONSTRUITE (electron-builder passe `files`, `from` et
-    // `to` dans son `macroExpander`), donc une seule ligne sert les deux : chaque .app reçoit
-    // le runtime de SON processeur. Un chemin en dur donnait le runtime arm64 à l'app x64 —
-    // invisible au build, mortel au premier `import numpy` chez l'utilisateur.
+    // `${arch}` is expanded PER BUILT ARCH (electron-builder passes `files`, `from` and
+    // `to` through its `macroExpander`), so a single line serves both: each .app receives
+    // the runtime for ITS processor. A hardcoded path used to give the arm64 runtime to the x64 app —
+    // invisible at build time, fatal at the user's first `import numpy`.
     extraResources: [{ from: "build/python-runtime/darwin-${arch}", to: "python-runtime" }],
-    // ⛔⛔ AUCUN `files:` ICI, NI SOUS `win:` — ET CE N'EST PAS NÉGOCIABLE.
+    // ⛔⛔ NO `files:` HERE, NOR UNDER `win:` — AND THIS IS NOT NEGOTIABLE.
     //
-    // Un `files` de plateforme devient un matcher À PART, qui walke le dossier de l'app pour
-    // son propre compte. Comme il ne contient que des négations, `AppFileWalker` lui préfixe
-    // `**/*` (`addAllPatternIfNeed`) — il ratisse donc TOUT `apps/desktop/`, par-dessus
-    // l'allowlist racine, qui ne peut RIEN retrancher de ce qu'un autre matcher a déjà pris.
-    // Ce n'est pas une hypothèse : l'app se retrouve alors à porter le dossier de travail
-    // entier au lieu de sa seule sortie de build, sans que rien ne rougisse — le build reste
-    // vert, l'app démarre, et l'écart ne se voit qu'en ouvrant l'asar.
+    // A platform `files` becomes a SEPARATE matcher, which walks the app's folder on
+    // its own account. Since it contains only negations, `AppFileWalker` prefixes it with
+    // `**/*` (`addAllPatternIfNeed`) — so it rakes ALL of `apps/desktop/`, on top of
+    // the root allowlist, which cannot subtract ANYTHING another matcher has already taken.
+    // This is not a hypothesis: the app then ends up carrying the whole working
+    // directory instead of just its build output, with nothing turning red — the build stays
+    // green, the app starts, and the gap only shows up when opening the asar.
     //
-    // ⚠️ La forme `- filter:` NE SAUVE PAS : elle remet bien l'allowlist racine en tête, mais
-    // le second matcher garde son `**/*`. Testé, mesuré, toujours fuyant. La seule forme sûre
-    // est l'ABSENCE de la clé.
+    // ⚠️ The `- filter:` form does NOT SAVE YOU: it does put the root allowlist back on top, but
+    // the second matcher keeps its `**/*`. Tested, measured, still leaking. The only safe form
+    // is the ABSENCE of the key.
     //
-    // Où sont donc passés les prébuilts de l'autre plateforme (que `supportedArchitectures`
-    // installe, et qui partiraient sinon) : dans `scripts/archPrune.cjs`, avec le tri par
-    // ARCHE qui y vivait déjà pour la même raison de fond — `afterPack` connaît la plateforme
-    // ET l'arche construites, tourne avant la signature, et supprime au lieu de filtrer.
+    // So where did the other platform's prebuilts go (which `supportedArchitectures`
+    // installs, and which would otherwise ship): into `scripts/archPrune.cjs`, with the
+    // per-ARCH sort that already lived there for the same underlying reason — `afterPack` knows the
+    // built platform AND arch, runs before signing, and deletes rather than filters.
     category: "public.app-category.productivity",
     target: [
-      // ── LES DEUX ARCHES, depuis UN SEUL runner Apple Silicon ───────────────────────────
+      // ── BOTH ARCHES, FROM A SINGLE Apple Silicon runner ───────────────────────────
       //
-      // Ce qui bloquait l'Intel n'était pas l'outillage mais le MOTEUR : `onnxruntime-node` ne
-      // publie plus aucun binaire macOS x86_64, son `require` jetait, `@huggingface/transformers`
-      // échouait en entier, le NER local ne démarrait pas — et l'app, qui échoue fermé à raison,
-      // refusait TOUT envoi. `@openmasq/ort` le lève en choisissant le moteur à l'exécution
-      // (natif s'il existe, WASM sinon), local et hors ligne dans les deux cas.
+      // What was blocking Intel wasn't the tooling but the ENGINE: `onnxruntime-node` no
+      // longer publishes any macOS x86_64 binary, its `require` used to throw, `@huggingface/transformers`
+      // failed entirely, the local NER wouldn't start — and the app, which fails closed for good reason,
+      // refused EVERY send. `@openmasq/ort` lifts this by choosing the engine at runtime
+      // (native if it exists, WASM otherwise), local and offline either way.
       //
-      // Le reste était déjà prêt : le runtime Python x64 se bake depuis un runner Apple Silicon
-      // (`bake-python-runtime.ts` mode cross — wheels résolues par tag puis relues octet par
-      // octet), `extraResources` suit l'arche (`darwin-${arch}`), les prébuilts des deux arches
-      // sont installés (`supportedArchitectures`), et electron-updater sert DEUX arches depuis UN
-      // `latest-mac.yml` (`MacUpdater.filterFilesForArch` : arm64 préféré sur arm64/Rosetta,
-      // entrées arm64 exclues sur x64) — une seule ligne de manifeste, pas de collision de clé.
+      // The rest was already ready: the x64 Python runtime bakes from an Apple Silicon runner
+      // (`bake-python-runtime.ts` cross mode — wheels resolved by tag then re-read byte by
+      // byte), `extraResources` follows the arch (`darwin-${arch}`), both arches' prebuilts
+      // are installed (`supportedArchitectures`), and electron-updater serves TWO arches from ONE
+      // `latest-mac.yml` (`MacUpdater.filterFilesForArch`: arm64 preferred on arm64/Rosetta,
+      // arm64 entries excluded on x64) — a single manifest line, no key collision.
       //
-      // ⚠️ UN runner, pas deux : `macos-latest` est arm64 et construit les deux (l'install, le
-      // build turbo et le bake sont payés UNE fois ; seuls l'empaquetage et la notarisation
-      // doublent). Un second leg Intel coûterait ~230 min-eq de plus par release sur une image
-      // (`macos-15-intel`) que GitHub retire en août 2027.
+      // ⚠️ ONE runner, not two: `macos-latest` is arm64 and builds both (the install, the
+      // turbo build and the bake are paid for ONCE; only packaging and notarization
+      // double up). A second Intel leg would cost ~230 min-eq more per release on an image
+      // (`macos-15-intel`) GitHub retires in August 2027.
       //
-      // ⚠️ Ce que ces deux lignes N'assurent PAS : que chaque .app contienne le moteur de SON
-      // processeur. C'est `scripts/archPrune.cjs` qui trie et qui VÉRIFIE — un .app sans moteur
-      // casse le build au lieu de s'installer chez quelqu'un pour refuser chaque envoi.
+      // ⚠️ What these two lines do NOT ensure: that each .app contains the engine for ITS
+      // processor. That's what `scripts/archPrune.cjs` sorts and VERIFIES — a .app without an engine
+      // breaks the build instead of installing on someone's machine to refuse every send.
       { target: "dmg", arch: ["arm64", "x64"] },
       // zip is required by electron-updater (Squirrel.Mac) to apply updates.
       { target: "zip", arch: ["arm64", "x64"] },
@@ -314,90 +314,90 @@ module.exports = {
     artifactName: "${productName}-${version}-${arch}.${ext}",
   },
 
-  // ⚠️ CONSTRUITE ET LANCÉE EN CI, PAS ENCORE PUBLIABLE — et il ne reste QU'UNE raison.
+  // ⚠️ BUILT AND LAUNCHED IN CI, NOT PUBLISHABLE YET — and only ONE reason remains.
   //
-  //  1. Ce bloc se construit sur un runner windows-latest, mais plus pour la raison qui était
-  //     écrite ici : le bake N'EXIGE plus l'interpréteur cible (`bake-python-runtime.ts` mode
-  //     cross — pip résout par tag, et les octets produits sont relus). Ce qui exige encore
-  //     Windows, c'est le RESTE de l'empaquetage : l'installeur NSIS, et le lanceur de jail
-  //     (`<slug>-jail.exe`) qui se compile au MSVC. La matrice de `release.yml` s'en charge.
-  //  2. ⛔ Publier sur un canal exige la signature Authenticode, et RIEN d'autre désormais.
-  //     L'écrasement du manifeste mac par `latest.yml` est CORRIGÉ (migration 0007 : la clé
-  //     unique porte la plateforme). Reste que sans certificat, `NsisUpdater.verifySignature`
-  //     ne vérifie rien du tout (pas de `publisherName` dans `app-update.yml`) : la mise à
-  //     jour Windows n'aurait aucune ancre d'intégrité hors TLS, là où mac s'appuie sur
-  //     Developer ID + notarisation. `release.yml` REFUSE donc de publier le leg Windows tant
-  //     que `WIN_CSC_LINK` est vide — l'installeur reste récupérable sur le run.
+  //  1. This block builds on a windows-latest runner, but no longer for the reason that was
+  //     written here: the bake no longer REQUIRES the target interpreter (`bake-python-runtime.ts` cross
+  //     mode — pip resolves by tag, and the resulting bytes are re-read). What still requires
+  //     Windows is the REST of packaging: the NSIS installer, and the jail launcher
+  //     (`<slug>-jail.exe`) which compiles under MSVC. `release.yml`'s matrix handles that.
+  //  2. ⛔ Publishing to a channel requires Authenticode signing, and NOTHING else now.
+  //     The mac manifest being overwritten by `latest.yml` is FIXED (migration 0007: the
+  //     unique key carries the platform). What remains is that without a certificate,
+  //     `NsisUpdater.verifySignature` verifies nothing at all (no `publisherName` in
+  //     `app-update.yml`): the Windows update would have no integrity anchor besides TLS,
+  //     whereas mac relies on Developer ID + notarization. `release.yml` therefore REFUSES
+  //     to publish the Windows leg as long as `WIN_CSC_LINK` is empty — the installer stays retrievable on the run.
   //
-  // L'exécution de code Python, elle, N'est PLUS indisponible ici : `winJail.ts` confine le
-  // run dans un AppContainer (preuve positive + négative jouée en CI, `scripts/prove-jail.sh`),
-  // donc le runtime embarqué ci-dessous sert vraiment.
+  // Running Python code, on the other hand, is NO LONGER unavailable here: `winJail.ts` confines the
+  // run inside an AppContainer (positive + negative proof run in CI, `scripts/prove-jail.sh`),
+  // so the runtime bundled below actually serves a purpose.
   win: {
-    // ⚠️ `extraFiles`, PAS `extraResources` : ces DLL doivent atterrir à côté de l'exécutable
-    // de l'app. Windows cherche les dépendances d'un module natif dans le dossier de
-    // l'EXÉCUTABLE — les y poser couvre donc d'un coup `@libsql` (base, chargée au démarrage)
-    // et `onnxruntime-node` (NER local + embeddings), sans dépendre d'où chaque `.node` est
-    // dégroupé. Sans elles, une machine sans « Visual C++ Redistributable » tue l'app au
-    // lancement sur l'erreur 126. Provenance + arbitrage : `scripts/bake-vcruntime.ts`.
+    // ⚠️ `extraFiles`, NOT `extraResources`: these DLLs must land right beside the app's
+    // executable. Windows looks for a native module's dependencies in the
+    // EXECUTABLE's folder — putting them there therefore covers, in one shot, `@libsql` (database, loaded at startup)
+    // and `onnxruntime-node` (local NER + embeddings), regardless of where each `.node` is
+    // unbundled. Without them, a machine without "Visual C++ Redistributable" kills the app at
+    // launch on error 126. Origin + tradeoff: `scripts/bake-vcruntime.ts`.
     extraFiles: [{ from: "build/win-vcruntime", to: ".", filter: ["*.dll"] }],
     extraResources: [
       { from: "build/python-runtime/win32-x64", to: "python-runtime" },
-      // `<slug>-jail.exe` — le pendant Windows de `sandbox-exec` et de `bwrap`, sauf qu'aucun
-      // des deux n'existe ici : il est CONSTRUIT depuis `native/win-jail/` par `bake:jail`.
-      // Son absence ne dégrade rien en silence — `jailAvailability()` retombe sur "none" et
-      // l'interpréteur refuse de tourner (`src/main/python/sandbox.ts`).
+      // `<slug>-jail.exe` — the Windows counterpart of `sandbox-exec` and `bwrap`, except that neither
+      // of the two exists here: it is BUILT from `native/win-jail/` by `bake:jail`.
+      // Its absence doesn't silently degrade anything — `jailAvailability()` falls back to "none" and
+      // the interpreter refuses to run (`src/main/python/sandbox.ts`).
       { from: "build/win-jail", to: "win-jail" },
     ],
-    // ⛔ PAS de `files:` ici non plus — la raison est écrite en entier sous `mac:`, et elle
-    // vaut à l'identique : un `files` de plateforme ratisse tout `apps/desktop/`. Les
-    // binaires darwin sont retirés de l'app Windows par `scripts/archPrune.cjs`.
+    // ⛔ NO `files:` here either — the reason is written in full under `mac:`, and it
+    // holds identically: a platform `files` rakes all of `apps/desktop/`. The
+    // darwin binaries are removed from the Windows app by `scripts/archPrune.cjs`.
     //
-    // x64 seul — mais la raison a été MESURÉE, et elle n'est plus définitive.
+    // x64 only — but the reason has been MEASURED, and it's no longer final.
     //
-    // @libsql ne PUBLIE pas de `win32-arm64-msvc` (npm : `libsql@0.5.29` déclare neuf
-    // paquets de plateforme, ARM sur macOS et Linux, rien pour Windows ; demande amont
-    // ouverte depuis février 2025). Sans lui une app Windows arm64 ne peut pas ouvrir sa
-    // base — d'où l'exclusion.
+    // @libsql does NOT publish a `win32-arm64-msvc` (npm: `libsql@0.5.29` declares nine
+    // platform packages, ARM on macOS and Linux, nothing for Windows; upstream request
+    // open since February 2025). Without it a Windows arm64 app cannot open its
+    // database — hence the exclusion.
     //
-    // ⚠️ Ce qui a changé : un spike CI (11/08/2026) a cross-compilé `libsql-js` en
-    // `aarch64-pc-windows-msvc` — `cargo build --release` via Neon, cdylib de 12,2 Mo,
-    // en-tête PE Machine=0xAA64 vérifié. TOUTES les autres dépendances natives ont déjà
-    // leur binaire ARM64 (onnxruntime-node, CPython via un PBS récent, @napi-rs/canvas,
-    // sharp, Electron, le lanceur de jail). L'ARM64 natif n'est donc plus fermé : il demande
-    // de baker ce prebuilt comme on bake le lanceur (sha256-pinné, extraResources) et de
-    // bumper `PBS_TAG` pour le CPython aarch64.
+    // ⚠️ What changed: a CI spike (11/08/2026) cross-compiled `libsql-js` to
+    // `aarch64-pc-windows-msvc` — `cargo build --release` via Neon, a 12.2 MB cdylib,
+    // PE header Machine=0xAA64 verified. ALL the other native dependencies already have
+    // their ARM64 binary (onnxruntime-node, CPython via a recent PBS, @napi-rs/canvas,
+    // sharp, Electron, the jail launcher). Native ARM64 is therefore no longer closed off: it requires
+    // baking this prebuilt the way the launcher is baked (sha256-pinned, extraResources) and
+    // bumping `PBS_TAG` for aarch64 CPython.
     //
-    // Non fait, à dessein : ça compile, ça n'a pas TOURNÉ (aucun runner GitHub Windows
-    // ARM64 n'existe, la vérification demande une vraie machine), et ce serait du code
-    // amont compilé par nous sur la brique qui détient le coffre. En attendant, Windows 11
-    // ARM exécute le x64 en émulation — la pénalité tombe sur le SIMD, donc sur le NER du
-    // redaction, qui est sur le chemin de chaque envoi.
+    // Not done, on purpose: it compiles, it hasn't RUN (no GitHub Windows
+    // ARM64 runner exists, verification requires a real machine), and it would be
+    // upstream code we compiled ourselves onto the brick that holds the vault. In the meantime, Windows 11
+    // ARM runs the x64 build under emulation — the penalty falls on SIMD, hence on the redaction's
+    // NER, which is on the path of every send.
     //
-    // (Ce tri-là aussi vit dans `archPrune.cjs`, plan `win32` : les prébuilts `win32-arm64`
-    // sont installés par `supportedArchitectures` et n'ont rien à faire dans un .exe x64.)
+    // (That sort also lives in `archPrune.cjs`, `win32` plan: the `win32-arm64` prebuilts
+    // are installed by `supportedArchitectures` and have no business in an x64 .exe.)
     icon: "build/icon.png",
-    // PAS de `zip` ici, contrairement à `mac`. La symétrie était fausse : sur mac
-    // electron-updater applique le .zip (Squirrel.Mac ne sait pas ouvrir un .dmg), sur
-    // Windows il applique l'INSTALLEUR NSIS (+ son .blockmap pour le différentiel). Un zip
-    // Windows n'aurait donc été téléversé et conservé par personne.
+    // NO `zip` here, unlike `mac`. The symmetry was misleading: on mac
+    // electron-updater applies the .zip (Squirrel.Mac cannot open a .dmg), on
+    // Windows it applies the NSIS INSTALLER (+ its .blockmap for the diff). A Windows
+    // zip would therefore have been uploaded and kept by nobody.
     target: [{ target: "nsis", arch: ["x64"] }],
   },
 
-  // Réglages NSIS explicites — les défauts d'electron-builder décident sinon en silence.
+  // Explicit NSIS settings — electron-builder's defaults otherwise decide silently.
   nsis: {
-    // Nom sans espace ET portant l'arch, comme le .dmg : le défaut est
-    // `<productName> Setup <version>.exe`, dont l'espace se retrouve encodé dans la clé R2
-    // et dans le manifeste, et dont l'absence d'arch fait classer l'installeur en x64 par
-    // DÉFAUT côté Worker (`getDesktopInstallers.ts` lit l'arch dans le nom de fichier).
+    // A name with no space AND carrying the arch, like the .dmg: the default is
+    // `<productName> Setup <version>.exe`, whose space ends up encoded in the R2 key
+    // and in the manifest, and whose lack of an arch makes the Worker classify the installer as x64
+    // by DEFAULT (`getDesktopInstallers.ts` reads the arch from the filename).
     artifactName: "${productName}-${version}-${arch}.${ext}",
-    // Installation PAR UTILISATEUR, sans UAC (le choix de VS Code, Slack, Discord) : une
-    // install par-machine demanderait l'élévation à CHAQUE mise à jour automatique, ce que
-    // l'auto-updater ne sait pas faire sans interrompre l'utilisateur.
+    // PER-USER install, no UAC (the choice made by VS Code, Slack, Discord): a
+    // per-machine install would require elevation on EVERY automatic update, which
+    // the auto-updater cannot do without interrupting the user.
     oneClick: true,
     perMachine: false,
     allowToChangeInstallationDirectory: false,
-    // Désinstaller ne détruit ni les conversations, ni le coffre, ni les clés : ce sont les
-    // données de l'utilisateur, et une réinstallation doit les retrouver.
+    // Uninstalling destroys neither the conversations, nor the vault, nor the keys: these are the
+    // user's data, and a reinstall must find them again.
     deleteAppDataOnUninstall: false,
     shortcutName: brand.name,
   },

@@ -10,9 +10,9 @@ describe("pickStarters — deux rangées", () => {
   });
 
   it("sans aucun connecteur, la seconde rangée n'est faite que d'OFFRES", () => {
-    // La régression que ce module existe pour empêcher : une carte d'intégration qui
-    // porterait un PROMPT sur une install où rien n'est branché ne pourrait qu'échouer.
-    // Elle propose de connecter — `connected:false` — et ne promet donc rien.
+    // The regression this module exists to prevent: an integration card that
+    // carried a PROMPT on an install where nothing is connected could only fail.
+    // It offers to connect — `connected:false` — and so promises nothing.
     const { integrations } = pickStarters([]);
     expect(integrations.length).toBeGreaterThan(0);
     expect(integrations.every((s) => s.connected === false)).toBe(true);
@@ -27,7 +27,7 @@ describe("pickStarters — deux rangées", () => {
   });
 
   it("nomme le service RÉELLEMENT connecté, pas le premier de la liste", () => {
-    // Même métier, autre fournisseur : quelqu'un sur Outlook ne doit jamais voir Gmail.
+    // Same profession, different provider: someone on Outlook must never see Gmail.
     expect(pickStarters(["microsoft-outlook"]).integrations[0].connectorId).toBe(
       "microsoft-outlook",
     );
@@ -48,8 +48,8 @@ describe("pickStarters — deux rangées", () => {
   });
 
   it("un service ne remplit jamais deux cases — offres comprises", () => {
-    // Outlook sert le mail ET l'agenda. Deux cartes au même logo se lisent comme un bug
-    // et dépensent la moitié de la rangée sur un seul service.
+    // Outlook serves mail AND calendar. Two cards with the same logo read as a bug
+    // and spend half the row on a single service.
     for (const connected of [[], ["microsoft-outlook"], ["gmail", "microsoft-outlook"]]) {
       const ids = pickStarters(connected).integrations.map((s) => s.connectorId);
       expect(new Set(ids).size).toBe(ids.length);
@@ -59,7 +59,7 @@ describe("pickStarters — deux rangées", () => {
 
 describe("catalogue des amorces", () => {
   it("chaque amorce d'intégration nomme des connecteurs RÉELS du catalogue", () => {
-    // Une coquille est silencieuse : la carte n'apparaîtrait jamais, pour personne.
+    // A typo is silent: the card would never appear, for anyone.
     for (const s of INTEGRATION_STARTERS) {
       if (s.need.kind !== "connector") continue;
       for (const id of s.need.ids)

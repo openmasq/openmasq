@@ -1,22 +1,22 @@
 /**
- * Le code qui s'exécute DANS la page, écrit en chaînes de caractères — délibérément.
+ * The code that runs IN the page, written as strings — deliberately.
  *
- * ⚠️ Deux raisons, et la première mord silencieusement. (1) Le pilote tourne sous tsx, dont
- * esbuild garde les noms de fonctions en injectant un helper `__name` ; ce helper n'existe
- * pas dans la page, donc toute fonction NOMMÉE (`const visible = …`) placée dans un
- * `page.evaluate` casse à l'exécution avec « __name is not defined » — un plantage qui ne
- * ressemble pas du tout à sa cause. Une chaîne n'est transpilée par personne.
- * (2) Le digest et le ciblage d'un clic DOIVENT nommer les éléments de la MÊME façon : si
- * `click` voyait un autre nom que celui listé, l'agent cliquerait à côté et rapporterait un
- * faux bug. Un seul préambule, importé par les deux (règle 9).
+ * ⚠️ Two reasons, and the first one bites silently. (1) The driver runs under tsx, whose
+ * esbuild keeps function names by injecting a `__name` helper; this helper doesn't exist
+ * in the page, so any NAMED function (`const visible = …`) placed in a
+ * `page.evaluate` breaks at runtime with "__name is not defined" — a crash that doesn't
+ * look at all like its cause. A string is transpiled by no one.
+ * (2) The digest and a click's targeting MUST name elements the SAME way: if
+ * `click` saw a different name than the one listed, the agent would click elsewhere and report a
+ * false bug. A single preamble, imported by both (rule 9).
  */
 /**
- * Rend une EXPRESSION appelée, argument compris.
+ * Returns a called EXPRESSION, argument included.
  *
- * ⚠️ `page.evaluate("(x) => …", arg)` ne fait PAS ce qu'on croit dans le binding Node :
- * la chaîne est évaluée comme une expression et la fonction obtenue n'est jamais appelée —
- * on récupère `undefined`, donc un digest vide, donc un agent qui croit l'écran vide. On
- * appelle donc nous-mêmes, en sérialisant l'argument dans la source.
+ * ⚠️ `page.evaluate("(x) => …", arg)` does NOT do what you'd think in the Node
+ * binding: the string is evaluated as an expression and the resulting function is never called —
+ * you get back `undefined`, hence an empty digest, hence an agent that believes the screen is empty. We
+ * therefore call it ourselves, serializing the argument into the source.
  */
 export const appel = (expr: string, arg?: unknown): string =>
   `(${expr})(${arg === undefined ? "" : JSON.stringify(arg)})`;
@@ -34,7 +34,7 @@ const PRELUDE = `
       .replace(/\\s+/g, " ").trim().slice(0, 80);
 `;
 
-/** Le digest d'écran. Argument : le nombre de messages à rendre. */
+/** The screen digest. Argument: the number of messages to render. */
 export const EXPR_DIGEST = `(limite) => {
   ${PRELUDE}
   const vus = new Map();
@@ -85,7 +85,7 @@ export const EXPR_DIGEST = `(limite) => {
   };
 }`;
 
-/** Marque le n-ième élément nommé `nom`. Argument : `{nom, n, HIT}`. Rend `true` s'il existe. */
+/** Marks the nth element named `nom`. Argument: `{nom, n, HIT}`. Returns `true` if it exists. */
 export const EXPR_MARQUER = `(a) => {
   ${PRELUDE}
   document.querySelectorAll("[" + a.HIT + "]").forEach((e) => e.removeAttribute(a.HIT));
@@ -99,15 +99,15 @@ export const EXPR_MARQUER = `(a) => {
   return false;
 }`;
 
-/** Retire le marqueur. Argument : le nom de l'attribut. */
+/** Removes the marker. Argument: the attribute's name. */
 export const EXPR_DEMARQUER = `(h) => document.querySelectorAll("[" + h + "]").forEach((e) => e.removeAttribute(h))`;
 
 /**
- * L'état de service du profil : le mode réel est-il RÉELLEMENT disponible ?
+ * The profile's service state: is real mode ACTUALLY available?
  *
- * Trois faits qu'un agent ne doit pas avoir à deviner en regardant une capture — un écran de
- * connexion et un écran vide se ressemblent, et « je crois que je suis connecté » a produit
- * des rapports qui laissaient croire au réel un parcours joué en simulation.
+ * Three facts an agent shouldn't have to guess by looking at a screenshot — a
+ * sign-in screen and an empty screen look alike, and "I think I'm signed in" has produced
+ * reports that made a real path look like a simulated run.
  */
 export const EXPR_SANTE = `async () => {
   const cle = Object.keys(localStorage).find((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));

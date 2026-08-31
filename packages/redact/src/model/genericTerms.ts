@@ -16,7 +16,7 @@ import { GENERIC_TERMS } from "./genericTermsData";
 import { CLINIQUE_TERMS } from "./vocab";
 import { isPublicBodyCompound } from "./publicBodies";
 
-/** Molécules, pathologies, anatomie — épargnées SAUF sous la catégorie `health`. */
+/** Molecules, pathologies, anatomy — spared EXCEPT under the `health` category. */
 const CLINICAL_TERMS = new Set(CLINIQUE_TERMS.map((t) => t.toLowerCase()));
 
 /** True when `value` is a single generic document/design/type word (never PII).
@@ -26,35 +26,35 @@ const CLINICAL_TERMS = new Set(CLINIQUE_TERMS.map((t) => t.toLowerCase()));
  *  "résumé" is unaffected — and it's ADDITIVE to the exact-lowercase match, so a
  *  multi-word entry ("curriculum vitae") still matches via the plain lowercase form. */
 /**
- * Jours et mois, entiers et abrégés, FR + EN. Jamais une entité à eux seuls.
+ * Days and months, full and abbreviated, FR + EN. Never an entity on their own.
  *
- * ⚠️ Ils sont dans l'en-tête `Date:` de CHAQUE e-mail, en tête de ligne et capitalisés —
- * exactement la forme qu'un NER lit comme un nom propre. Mesuré sur une vraie boîte mail
- * (journal du 04/08) : « Sun » redacted en tant qu'ORGANISATION, « Thu » en tant que LIEU.
- * Le modèle recevait « Ash, 02 Aug 2026 » et « Gap, 30 Jul 2026 » — des dates devenues
- * illisibles, dans une demande qui portait justement sur « les e-mails de la semaine ».
+ * ⚠️ They're in the `Date:` header of EVERY e-mail, at the start of the line and capitalised —
+ * exactly the shape a NER reads as a proper noun. Measured on a real mailbox
+ * (log from 04/08): « Sun » redacted as an ORGANISATION, « Thu » as a PLACE.
+ * The model received « Ash, 02 Aug 2026 » and « Gap, 30 Jul 2026 » — dates turned
+ * unreadable, in a request that was specifically about « the week's e-mails ».
  *
- * Valeur ENTIÈRE seulement (c'est la porte d'entrée d'`isGenericTerm`), donc « Sun
- * Microsystems » ou « Mars SA » restent des candidats.
+ * WHOLE value only (that's `isGenericTerm`'s entry gate), so « Sun
+ * Microsystems » or « Mars SA » remain candidates.
  */
 const CALENDAR_TERMS = new Set([
-  // Jours — aucun ne double un prénom courant, entiers et abrégés, FR + EN.
+  // Days — none doubles as a common first name, full and abbreviated, FR + EN.
   "mon", "tue", "tues", "wed", "weds", "thu", "thur", "thurs", "fri", "sat", "sun",
   "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
   "lun", "mer", "jeu", "ven", "sam", "dim",
   "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche",
-  // Mois — ABRÉGÉS seulement, et seulement ceux qui ne sont pas aussi un prénom ou un
-  // patronyme. « mars / avril / mai / march / april / may / june / august » restent
-  // DEHORS : c'est la discipline d'allow-list déjà pinnée par `aiKinds.test.ts`, et la
-  // rompre laisserait en clair, pour toujours, quelqu'un qui s'appelle Avril ou June.
-  // « mar » est exclu pour la même raison (mars/March), « sep » ne l'est pas.
+  // Months — ABBREVIATED only, and only the ones that aren't also a first name or a
+  // surname. « mars / avril / mai / march / april / may / june / august » stay
+  // OUT: it's the allow-list discipline already pinned by `aiKinds.test.ts`, and
+  // breaking it would leave someone named Avril or June in clear, forever.
+  // « mar » is excluded for the same reason (mars/March), « sep » isn't.
   "jan", "janv", "feb", "févr", "fevr", "apr", "avr", "jul", "juil", "aug", "sept", "sep",
   "oct", "nov", "dec", "déc",
 ]);
 export function isGenericTerm(value: string): boolean {
   const lower = value.trim().toLowerCase();
   if (GENERIC_TERMS.has(lower)) return true;
-  // Un point d'abréviation collé (« Aug. », « janv. ») fait partie du mot, pas de la valeur.
+  // A glued abbreviation period (« Aug. », « janv. ») is part of the word, not the value.
   if (CALENDAR_TERMS.has(lower.replace(/\.$/, ""))) return true;
   const noSep = lower.replace(/[.\s_'’-]+/g, "");
   if (noSep !== lower && GENERIC_TERMS.has(noSep)) return true;

@@ -28,9 +28,9 @@ export function deredactArgs(v: unknown, fromWire: (s: string) => string): unkno
 
 /** Compact the WIRE history for the next model turn: tool-result legs OLDER than the
  *  last `keepTurns` assistant tool-turns are truncated — a long workflow re-reads
- *  every past result verbatim on EVERY turn (mesuré : le 6e tour d'un scénario
- *  5-connecteurs relit ~8k tokens déjà exploités), which is both the token bill and
- *  the context-window pressure that breaks weak models on long orchestrations.
+ *  every past result verbatim on EVERY turn (measured: the 6th turn of a
+ *  5-connector scenario re-reads ~8k tokens already used), which is both the token
+ *  bill and the context-window pressure that breaks weak models on long orchestrations.
  *  Returns NEW objects (the caller's `messages` — journal, retries — stay intact);
  *  only `role:"tool"` content shrinks, never user/system/assistant. */
 export function compactToolHistory<M extends { role: string; content: string }>(

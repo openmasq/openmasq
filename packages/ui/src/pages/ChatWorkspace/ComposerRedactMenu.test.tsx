@@ -6,9 +6,9 @@ import { getMessages } from "@openmasq/i18n";
 import { privacyLevelMeta } from "../../privacy/privacyLevel";
 
 /**
- * Le clic POSE le niveau, et il le pose sur LA CONVERSATION : le composeur agit sur ce
- * qu'on a devant soi. Le défaut global se change là où on le pèse. La seule exception est
- * forcée — sans conversation, il n'y a rien à surcharger.
+ * The click SETS the level, and it sets it on THE CONVERSATION: the composer acts on
+ * what's in front of you. The global default changes where it's weighed. The only exception
+ * is forced — without a conversation, there is nothing to override.
  */
 const api = (over: Partial<RedactLevelApi> = {}): RedactLevelApi => ({
   level: "renforce",
@@ -33,8 +33,8 @@ describe("ComposerRedactMenu", () => {
     await m.unmount();
   });
 
-  /* Sans conversation (premier message), il n'y a rien à surcharger : c'est le défaut qui
-     reçoit — sinon le geste ne ferait rien du tout. */
+  /* Without a conversation (first message), there is nothing to override: the default
+     receives it — otherwise the gesture would do nothing at all. */
   it("sans conversation, le clic écrit le DÉFAUT", async () => {
     const a = api({ onApplyConversation: undefined });
     const m = await mount(<ComposerRedactMenu api={a} onDone={() => {}} />);
@@ -51,10 +51,10 @@ describe("ComposerRedactMenu", () => {
     await m.unmount();
   });
 
-  /* Le glyphe EST l'échelle : les TROIS traits sont toujours là, et c'est le nombre de
-     traits GRAS qui dit le niveau. N'en dessiner que N faisait perdre la comparaison — un
-     seul trait ne se compare à rien — et faisait sauter l'encombrement du bouton d'un
-     niveau à l'autre. */
+  /* The glyph IS the scale: the THREE bars are always there, and it's the number of
+     BOLD bars that states the level. Drawing only N of them lost the comparison — a
+     single bar compares to nothing — and made the button's footprint jump from one
+     level to another. */
   it("les trois traits sont toujours là ; seul le nombre de GRAS varie", async () => {
     const m = await mount(<ComposerRedactMenu api={api()} onDone={() => {}} />);
     const paths = (label: string) => [
@@ -69,13 +69,13 @@ describe("ComposerRedactMenu", () => {
     await m.unmount();
   });
 
-  /* Le texte vient de `privacyLevelMeta` (`short`), jamais du composant : une seconde
-     surface qui réécrirait les niveaux, c'est deux vocabulaires (règle 9). */
+  /* The text comes from `privacyLevelMeta` (`short`), never from the component: a second
+     surface that rewrote the levels would be two vocabularies (rule 9). */
   it("les descriptions sortent du vocabulaire partagé, pas du composant", async () => {
     const m = await mount(<ComposerRedactMenu api={api()} onDone={() => {}} />);
     const texts = m.findAll(".crm-level-desc").map((el) => el.textContent);
-    // Hors provider, `useT()` rend le catalogue de la langue par défaut : c'est donc
-    // celui-là que le composant a affiché.
+    // Outside a provider, `useT()` renders the default language's catalogue: so that's
+    // the one the component displayed.
     expect(texts).toEqual(privacyLevelMeta(getMessages("fr")).map((meta) => meta.short));
     await m.unmount();
   });

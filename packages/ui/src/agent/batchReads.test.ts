@@ -10,7 +10,7 @@ const one = (name: string) => [{ name }];
 
 describe("advanceSoloRead — reconnaître la lecture cible par cible", () => {
   it("compte les tours consécutifs sur le MÊME outil, seul", () => {
-    // La séquence signalée : huit `slack__read_channel`, un par tour.
+    // The reported sequence: eight `slack__read_channel`, one per turn.
     let s = advanceSoloRead(null, one("slack__read_channel"));
     expect(s).toEqual({ tool: "slack__read_channel", count: 1 });
     s = advanceSoloRead(s, one("slack__read_channel"));
@@ -20,7 +20,7 @@ describe("advanceSoloRead — reconnaître la lecture cible par cible", () => {
   it("le silence déjà accordé SUIT la série, et meurt avec elle", () => {
     const told = advanceSoloRead({ tool: "a", count: 2, told: true }, one("a"));
     expect(told).toEqual({ tool: "a", count: 3, told: true });
-    // Une nouvelle série repart vierge : elle mérite sa propre note.
+    // A new streak starts clean: it deserves its own note.
     expect(advanceSoloRead(told, one("b"))).toEqual({ tool: "b", count: 1 });
   });
 
@@ -68,7 +68,7 @@ describe("batchReadNudge — ce que le modèle lit", () => {
   });
 
   it("ne porte AUCUNE valeur d'argument — il part sur le fil", () => {
-    // Il rejoint un résultat d'outil déjà redacted ; il ne doit rien y ajouter de neuf.
+    // It joins a tool result that's already redacted; it must not add anything new to it.
     expect(batchReadNudge("slack__read_channel", 3)).not.toMatch(/\{|"channel"|C0[A-Z0-9]/);
   });
 });

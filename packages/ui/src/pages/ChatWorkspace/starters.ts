@@ -98,12 +98,12 @@ export const UNIVERSAL_STARTERS: Starter[] = [
   },
   {
     // Teaches the MÉMOIRE's conversational gesture — an explicit « retiens que… » needs
-    // no opt-in, so this one cannot fail either. La phrase est un DÉMONSTRATEUR, pas un
-    // pense-bête : des personnes + une entreprise nommées (le redaction s'allume sous
-    // les yeux de l'utilisateur AVANT que ça parte au modèle) ET plusieurs faits à
-    // entités (des FICHES naissent, la légende « N faits notés » se clique vers le
-    // graphe de la page Mémoire). L'ancienne version — « je préfère des réponses
-    // courtes » seule — ne produisait qu'une ligne de profil : rien à voir, rien à cliquer.
+    // no opt-in, so this one cannot fail either. The sentence is a DEMONSTRATOR, not a
+    // memo: named people + a named company (redaction lights up before the user's
+    // eyes BEFORE it goes out to the model) AND several entity-linked facts (CARDS get
+    // born, the "N facts noted" caption clicks through to the Mémoire page's graph).
+    // The old version — "I prefer short replies" alone — produced only one profile
+    // line: nothing to see, nothing to click.
     id: "memory",
     cat: "Mémoire",
     prompt:

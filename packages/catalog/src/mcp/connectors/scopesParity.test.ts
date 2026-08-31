@@ -11,13 +11,13 @@ import {
 } from "@openmasq/connectors";
 
 /**
- * LA parité qui a manqué le 12/08 : les scopes Google vivent dans DEUX paquets qui ne
- * peuvent pas s'importer en production — le catalogue (l'affichage, les cartes) et
- * `@openmasq/connectors` (celui que l'OAuth demande réellement,
- * `apps/desktop/src/main/mcp/connectors/index.ts`). Un « resserrage » fait d'un seul
- * côté est alors COSMÉTIQUE : c'est arrivé — Agenda ramené à `calendar.events` dans le
- * catalogue pendant que l'OAuth continuait de demander `auth/calendar` complet.
- * Un test peut importer les deux (alias workspace) ; un commentaire ne peut pas échouer.
+ * THE parity that broke on 12/08: Google scopes live in TWO packages that
+ * cannot import each other in production — the catalog (display, cards) and
+ * `@openmasq/connectors` (the one OAuth actually requests,
+ * `apps/desktop/src/main/mcp/connectors/index.ts`). A "tightening" done on only one
+ * side is then COSMETIC: it happened — Calendar rolled back to `calendar.events` in the
+ * catalog while OAuth kept requesting the full `auth/calendar`.
+ * A test can import both (workspace alias); a comment cannot fail.
  */
 const HOMES = [
   ["google-calendar", googleCalendarConnector],

@@ -34,13 +34,13 @@ function cleanLabel(name: string, id: string): string {
 }
 
 /**
- * Une variante BATCH ? Deux marqueurs, et on refuse dès que l'UN parle.
+ * A BATCH variant? Two markers, and we refuse as soon as ONE speaks up.
  *
- * L'ID porte le suffixe de variante (`anthropic/claude-opus-5:batch`) — c'est la forme
- * structurelle, celle qu'OpenRouter route. Le NOM porte « (batch) », c'est ce qu'un humain
- * lit. Les deux coïncident aujourd'hui sur les 61 entrées du catalogue ; lire les DEUX
- * évite qu'un renommage d'un côté rouvre la porte de l'autre — et le suffixe seul aurait
- * laissé passer une variante nommée « (batch) » sans marqueur d'id.
+ * The ID carries the variant suffix (`anthropic/claude-opus-5:batch`) — that's the
+ * structural form, the one OpenRouter routes on. The NAME carries "(batch)", that's what a
+ * human reads. The two coincide today across the catalogue's 61 entries; reading BOTH
+ * avoids a rename on one side reopening the door on the other — and the suffix alone
+ * would have let through a variant named "(batch)" with no id marker.
  */
 function isBatchVariant(id: string, name: string): boolean {
   return /:batch$/i.test(id) || /\(\s*batch\s*\)/i.test(name);
@@ -68,13 +68,13 @@ export function normalizeOpenRouterModels(raw: unknown): DynamicModel[] {
     // they route opaquely to other models, so their price/context is meaningless in a
     // picker — and, on the gateway, a price we cannot charge for what actually ran.
     if (id.startsWith("openrouter/")) continue;
-    // Drop the BATCH variants (`…:batch`, libellés « … (batch) ») : 61 des 412 entrées du
-    // catalogue au 18/08. Ce sont les mêmes modèles servis par la file DIFFÉRÉE d'OpenRouter
-    // — la réponse arrive dans les heures qui suivent, pas dans le flux. Une app de chat ne
-    // peut rien en faire : le sélecteur en offrirait le double d'entrées pour une moitié qui
-    // ne répond jamais à l'écran. On coupe ICI plutôt que dans le sélecteur pour que la
-    // passerelle n'en garde pas un prix (elle lit la MÊME normalisation, c'est tout l'objet
-    // de ce fichier) : servable et sélectionnable restent la même liste.
+    // Drop the BATCH variants (`…:batch`, labeled "… (batch)"): 61 of the catalogue's 412
+    // entries on 18/08. These are the same models served by OpenRouter's DEFERRED queue
+    // — the reply arrives hours later, not in the stream. A chat app can do nothing with
+    // them: the picker would offer twice the entries for a half that never answers on
+    // screen. We cut HERE rather than in the picker so the gateway doesn't keep a price
+    // for them either (it reads the SAME normalization, that's the whole point of this
+    // file): servable and selectable stay the same list.
     if (isBatchVariant(id, typeof m.name === "string" ? m.name : "")) continue;
     const input = asStrArray(m.architecture?.input_modalities);
     const output = asStrArray(m.architecture?.output_modalities);

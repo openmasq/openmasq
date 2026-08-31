@@ -34,9 +34,9 @@ describe("makeStaging — la correction suit la pose, jamais l'inverse", () => {
   });
 
   it("PARQUE quand la conversation n'est pas encore à l'écran", () => {
-    // « Demander » crée la conversation et met le fichier en scène dans le même souffle :
-    // elle n'atteint l'écran qu'un commit plus tard. Poser localement le montrerait sur la
-    // conversation qu'on quitte.
+    // « Demander » creates the conversation and stages the file in the same breath:
+    // it only reaches the screen a commit later. Placing it locally would show it on
+    // the conversation being left.
     const h = harness("conv1");
     h.s.stage([chip("a")], "conv2");
     expect(h.local()).toHaveLength(0);
@@ -44,7 +44,7 @@ describe("makeStaging — la correction suit la pose, jamais l'inverse", () => {
   });
 
   it("corrige un chip PARQUÉ là où il est — sinon il reste « en cours » pour toujours", () => {
-    // LA régression que ce module existe pour empêcher.
+    // THE regression this module exists to prevent.
     const h = harness("conv1");
     h.s.stage([chip("a")], "conv2");
     h.s.patch("a", { extracting: false, text: "bonjour" }, "conv2");
@@ -87,9 +87,9 @@ describe("un même fichier ne se joint pas deux fois (15/08/2026)", () => {
   it("« Demander » répété sur le MÊME document n'ajoute rien", () => {
     const h = harness("conv1");
     h.s.stage([chip("a", { path: "/r/Kbis.pdf" })]);
-    h.s.stage([chip("b", { path: "/r/Kbis.pdf" })]); // même chemin, autre cid
+    h.s.stage([chip("b", { path: "/r/Kbis.pdf" })]); // same path, different cid
     expect(h.local()).toHaveLength(1);
-    expect(h.local()[0]?.cid).toBe("a"); // le premier chip reste, avec son redaction
+    expect(h.local()[0]?.cid).toBe("a"); // the first chip stays, with its redaction
   });
 
   it("un autre document s'ajoute normalement", () => {
@@ -100,9 +100,9 @@ describe("un même fichier ne se joint pas deux fois (15/08/2026)", () => {
   });
 
   it("⚠️ le chip VIDE déjà posé est reconnu quand le second clic arrive (cas réel)", () => {
-    // « Demander » pose un chip sans texte, que l'extraction remplit ensuite. Une clé figée
-    // sur la taille ne reconnaissait plus le premier — le doublon repassait, vérifié en
-    // direct dans l'app avant ce correctif.
+    // « Demander » places a chip with no text, which the extraction then fills in. A key
+    // frozen on the size no longer recognized the first one — the duplicate went through
+    // again, verified live in the app before this fix.
     const h = harness("conv1");
     h.s.stage([chip("a", { path: "/r/Kbis.pdf", text: "" })]);
     h.s.patch("a", { text: "contenu extrait, long" });
@@ -123,7 +123,7 @@ describe("un même fichier ne se joint pas deux fois (15/08/2026)", () => {
     h.s.stage([chip("a", { name: "note.txt", text: "bonjour" })]);
     h.s.stage([chip("b", { name: "note.txt", text: "bonjour" })]);
     expect(h.local()).toHaveLength(1);
-    // …mais un homonyme au contenu différent est bien un autre fichier.
+    // …but a namesake with different content really is a different file.
     h.s.stage([chip("c", { name: "note.txt", text: "autre chose" })]);
     expect(h.local()).toHaveLength(2);
   });

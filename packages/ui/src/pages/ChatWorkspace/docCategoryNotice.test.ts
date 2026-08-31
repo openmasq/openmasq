@@ -41,9 +41,9 @@ describe("inactiveCategoryLabels", () => {
     expect(labels).toEqual([]);
   });
 
-  // `apikey` a quitté le palier « bruit » : elle est ON par défaut et fait partie du
-  // plancher de tous les niveaux. L'éteindre est donc bien une protection PLUS FAIBLE
-  // que ce que le produit promet — c'est exactement ce que ce bandeau existe pour dire.
+  // `apikey` left the « bruit » tier: it is ON by default and part of the
+  // floor for every level. Turning it off is therefore genuinely WEAKER protection
+  // than what the product promises — that's exactly what this banner exists to say.
   it("liste « Chaînes type clé » quand elle est éteinte — c'est un écart au défaut", () => {
     const labels = inactiveCategoryLabels({ apikey: false }, undefined, undefined);
     expect(labels).toEqual(["Chaînes type clé (générique)"]);

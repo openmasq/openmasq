@@ -61,12 +61,12 @@ export function selectableModels(allowedModelIds?: string[]): ModelInfo[] {
   return ALL_MODELS.filter((m) => allowed.has(m.id));
 }
 
-/** Le modèle des nouvelles conversations — Laguna S 2.1 (OpenRouter, gratuit). Gratuit
- *  est la condition, pas une préférence : `send/modelAvailability.ts` ne bloque JAMAIS un
- *  modèle gratuit (« il ne coûte rien en amont »), donc une installation neuve écrit sans
- *  clé et sans abonnement. Repli sur le premier modèle du registre si cet id en disparaît.
- *  ⚠️ Un seul foyer : `state/storePersistence.ts` IMPORTE cette constante au lieu de
- *  réécrire l'id — les deux copies avaient déjà divergé une fois. */
+/** The model for new conversations — Laguna S 2.1 (OpenRouter, free). Free
+ *  is the condition, not a preference: `send/modelAvailability.ts` NEVER blocks a
+ *  free model (« it costs nothing upstream »), so a fresh install writes with no
+ *  key and no subscription. Falls back to the registry's first model if this id disappears.
+ *  ⚠️ One home only: `state/storePersistence.ts` IMPORTS this constant instead of
+ *  rewriting the id — the two copies had already diverged once. */
 export const DEFAULT_MODEL_ID =
   MODELS.find((m) => m.id === "poolside/laguna-s-2.1:free")?.id ?? MODELS[0].id;
 

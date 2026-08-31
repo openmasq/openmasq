@@ -1206,8 +1206,8 @@ export function createSendMessage(d: SendMessageDeps) {
               redactedCount: a.redactPreview,
               // Persist the extraction (text + OCR layers) so RE-ATTACHING this file skips
               // re-running OCR/parsing — the new conversation's send re-redacted the text.
-              // `redactions` = la carte du DÉPÔT, figée : c'est elle que le viewer de la
-              // Bibliothèque repeint (le coffre de conversation sur-marquait, cf. host).
+              // `redactions` = the DROP-TIME map, frozen: it is what the Library
+              // viewer repaints (the conversation vault was over-marking, see host).
               extraction:
                 a.text || a.replacements?.length
                   ? {
@@ -1226,9 +1226,9 @@ export function createSendMessage(d: SendMessageDeps) {
               captureEvent({
                 name: "file_attached",
                 mime: a.mime || "application/octet-stream",
-                // ⚠️ La taille du FICHIER quand on la connaît (octets ≈ base64 × ¾), pas la
-                // longueur du texte extrait : une image/un scan sans texte lisait « 0 »
-                // sous un champ nommé sizeBucket (audit 13/08).
+                // ⚠️ The FILE size when it is known (bytes ≈ base64 × ¾), not the
+                // extracted text's length: an image/scan with no text used to read "0"
+                // under a field named sizeBucket (audit 13/08).
                 sizeBucket: bucket(a.data ? Math.round(a.data.length * 0.75) : (a.text?.length ?? 0)),
                 redactions: spans.length,
               });
@@ -1246,11 +1246,11 @@ export function createSendMessage(d: SendMessageDeps) {
                 name: "document-redaction",
                 ok: true,
                 args: a.name,
-                // ⚠️ NE PAS écrire « 0 spans redacted » pour un PDF/image : la passe
-                // en place lève par conception sur ces formats, `spans` est vide, et la
-                // ligne disait donc l'inverse de la vérité dans la seule surface que
-                // l'utilisateur consulte pour vérifier que le redaction a eu lieu. Le
-                // texte, lui, EST redacted — c'est ce que montre la ligne du dessus.
+                // ⚠️ Do NOT write "0 spans redacted" for a PDF/image: the in-place
+                // pass throws by design on these formats, `spans` is empty, and the
+                // line was therefore stating the opposite of the truth on the one surface
+                // the user checks to verify redaction happened. The
+                // text itself IS redacted — that's what the line above shows.
                 result:
                   redacted === false
                     ? `format non réinscriptible — octets d'origine conservés (chiffrés) ; le texte envoyé est redacted`
@@ -1279,8 +1279,8 @@ export function createSendMessage(d: SendMessageDeps) {
       // doesn't re-detect a static prompt every send.)
       if (shouldRedactSystemPrompt(settings.systemPrompt, DEFAULT_SETTINGS.systemPrompt)) {
         try {
-          // `makeRedactFn` sait s'annuler — c'était le SEUL appelant à lui refuser le
-          // signal (le bug du Stop mort, une phase plus loin dans la même fonction).
+          // `makeRedactFn` knows how to cancel itself — this was the ONLY caller that
+          // denied it the signal (the dead-Stop bug, one phase further in the same function).
           const sys = await makeRedactFn(host, settings, orgProfileRef.current?.forcedCategories)(
             settings.systemPrompt,
             sendAbort.signal,
@@ -1293,8 +1293,8 @@ export function createSendMessage(d: SendMessageDeps) {
           return failClosed(e instanceof Error ? e.message : String(e));
         }
       }
-      // Dernière frontière avant le DISPATCH (stream ou boucle outils) — au-delà, les
-      // chemins posent leur PROPRE annulation dans `cancelRef` (relève de phase).
+      // Last boundary before the DISPATCH (stream or tool loop) — past this, the
+      // paths set their OWN cancellation into `cancelRef` (phase handoff).
       if (stoppedEarly()) return;
 
       // Today's date + recency nudge (so the model stops treating the present as
@@ -1303,8 +1303,8 @@ export function createSendMessage(d: SendMessageDeps) {
       // `toWire` — it's not PII — and rides into BOTH the plain stream AND the
       // agentic loop (which extends this same leading system message).
       const systemContent =
-        // `skills` : usage des Compétences fermé ⇒ on cesse de DEMANDER au modèle d'en
-        // proposer. La mémoire ci-dessous s'injecte porte fermée ou non — autre interrupteur.
+        // `skills`: Compétences usage off ⇒ we stop ASKING the model to
+        // suggest any. The memory below injects whether that door is closed or not — a different switch.
         buildSystemContent(toWire, settings.systemPrompt, numberMode(), {
           skills: featureUsage("competences"),
         }) + (memoryWire ? `\n\n${memoryWire}` : "");
@@ -1378,8 +1378,8 @@ export function createSendMessage(d: SendMessageDeps) {
         // fallback → everything rendered red in the redaction log).
         const toolKinds: Record<string, string> = {};
         const redactToolResult = makeRedactToolResult({
-          // Moteur distant/modèle purgés du send (normalizeSettings force local) — les
-          // branches correspondantes de toolResult.ts restent pour la gateway/évals.
+          // Remote/model engine purged from the send (normalizeSettings forces local) — the
+          // corresponding branches of toolResult.ts remain for the gateway/evals.
           useRemote: false,
           useAiDetect,
           useModel: false,
@@ -1393,10 +1393,10 @@ export function createSendMessage(d: SendMessageDeps) {
           // reaching the model in CLEAR — while the Coffre page promised "toujours
           // redacted". Pinned by `send/toolResult.test.ts` (coffre-in-tool-result).
           forced: toolForcedList(combinedCoffre(settings), conv),
-          // Le résultat de `memory_search` porte les entités des cartes (PII connu) —
-          // protégées par FORCED, jamais par la seule détection (voir toolResult.ts).
+          // `memory_search`'s result carries the cards' entities (known PII) —
+          // protected by FORCED, never by detection alone (see toolResult.ts).
           memorySearchForced: filterNotoriousFromForced(memoryForcedAll(settings.memoire), { commercial: commercialNotoriety, people: peopleNotoriety }),
-          // Le MÊME contexte moteur que le message — à une divergence près, explicite :
+          // The SAME engine context as the message — with one explicit divergence:
           // ⚠️ `turnKinds`, not `convKinds`: the tool-result redactor needs the value→kind
           // map to include THIS send's freshly-vaulted spans, or on a conversation's FIRST
           // message it cannot tell that a vaulted value is (say) a company — so neither a
@@ -1404,8 +1404,8 @@ export function createSendMessage(d: SendMessageDeps) {
           // can stop the vault replaying its fake into a tool result. Pinned by
           // `evals/navigation.test.ts` ("applies to the CURRENT send's tool results").
           engine: { ...engineCtx, kinds: turnKinds },
-          // La moisson « déjà en clair » lit les tours UTILISATEUR de CE wire (donc
-          // post-redaction) — jamais un texte d'outil/assistant (`toolResultKeep.ts`).
+          // The "already in clear" harvest reads THIS wire's USER turns (so
+          // post-redaction) — never a tool/assistant text (`toolResultKeep.ts`).
           wireUserTexts: history.filter((m) => m.role === "user").map((m) => m.content),
           completeFn,
           detectLocalFn,
@@ -1417,10 +1417,10 @@ export function createSendMessage(d: SendMessageDeps) {
         // main to cancel the in-flight provider fetch (the turn isn't streamed).
         const toolRequestId = uid();
         const toolController = new AbortController();
-        // Le provider a-t-il RAPPORTÉ l'usage de ce tour agentique ? Sur un tour qui
-        // échoue AVANT le rapport, la bulle reçoit une ESTIMATION (« zero is the one
-        // answer that is certainly wrong », send/estimateUsage.ts) — le chemin simple
-        // le faisait déjà, le chemin agent enregistrait zéro (audit 2026-08-10).
+        // Did the provider REPORT this agentic turn's usage? On a turn that
+        // fails BEFORE the report, the bubble gets an ESTIMATE ("zero is the one
+        // answer that is certainly wrong", send/estimateUsage.ts) — the plain path
+        // already did this, the agent path recorded zero (audit 2026-08-10).
         let agentUsageReported = false;
         cancelRef.current.set(convId!, () => {
           toolController.abort();
@@ -1488,15 +1488,15 @@ export function createSendMessage(d: SendMessageDeps) {
           // as Russian). Reads the LIVE conversation (`conversationsRef`) so it reflects the
           // categories actually active; no-ops (resolves at once) when nothing's offerable.
           //
-          // ⚠️ **CE MESSAGE SEULEMENT** (18/08). Le choix ne s'écrit plus dans la
-          // conversation : il vaut pour l'envoi en cours, et le suivant repart redacted.
-          // Un unredaction décidé pour UNE recherche n'a pas à suivre les vingt messages
-          // d'après — c'est le genre de portée qu'on accorde une fois et qu'on oublie, et
-          // que la carte devait alors annoncer en toutes lettres pour rester honnête.
-          // Corollaire assumé : la question est posée à CHAQUE envoi qui la mérite (une
-          // recherche qui porte une valeur redacted offrable), plus une seule fois par
-          // conversation — une décision par message est la contrepartie d'une portée par
-          // message. La boucle, elle, ne demande qu'UNE fois par envoi (`webNavAsked`).
+          // ⚠️ **THIS MESSAGE ONLY** (18/08). The choice is no longer written to the
+          // conversation: it applies to the current send, and the next one goes out redacted
+          // again. An un-redaction decided for ONE search has no reason to follow the twenty
+          // messages after it — that's the kind of scope you grant once and forget, and
+          // the card had to state it in full to stay honest.
+          // Accepted corollary: the question is asked on EVERY send that deserves it (a
+          // search carrying an offerable redacted value), plus exactly once per
+          // conversation — one decision per message is the price of one scope per
+          // message. The loop itself only asks ONCE per send (`webNavAsked`).
           //
           // ⚠️ This changes only what the MODEL sees. The query itself always carries the
           // REAL value (rule 11) whatever is picked here; revealing stops the RESULT coming
@@ -1517,20 +1517,20 @@ export function createSendMessage(d: SendMessageDeps) {
                 );
                 if (!offerable.length) return;
                 const picked = await opts.reviewWebNav!(offerable, convId!);
-                // The card returns what the user accepted to reveal — tout l'offert
-                // (« Passer en Standard ») ou rien. `[]` est aussi la valeur fermée d'un
-                // Stop / d'une carte restée pendante. `webNavRevealSet` re-filtre contre
-                // `offerable` : le renderer n'est pas une frontière (règle 7). Pinned by
+                // The card returns what the user accepted to reveal — the whole offer
+                // ("Passer en Standard") or nothing. `[]` is also the closed value of a
+                // Stop / a card left pending. `webNavRevealSet` re-filters against
+                // `offerable`: the renderer is not a trust boundary (rule 7). Pinned by
                 // `webNavReveal.test.ts`.
                 const reveal = webNavRevealSet(picked, offerable);
                 if (reveal.length) {
-                  // La SEULE écriture : `disabledKinds`, l'état de CET envoi, figé au
-                  // départ — donc AVANT cette garde bloquante. Sans cette ligne, les
-                  // RÉSULTATS de la recherche en cours (redacted via `disabledForTool`,
-                  // qui lit ce même tableau) resteraient masqués : c'est le « j'ai révélé
-                  // pour la recherche et c'est quand même redacted » qu'on a corrigé. On
-                  // mute le tableau partagé en place pour que `disabledForTool` et le
-                  // client de la boucle le voient tout de suite.
+                  // The ONLY write: `disabledKinds`, THIS send's state, frozen at the
+                  // start — so BEFORE this blocking gate. Without this line, the
+                  // ongoing search's RESULTS (redacted via `disabledForTool`, which
+                  // reads this same array) would stay masked: that's the "I revealed
+                  // it for the search and it's still redacted" bug we fixed. We
+                  // mutate the shared array in place so `disabledForTool` and the
+                  // loop's client see it right away.
                   for (const k of reveal) if (!disabledKinds.includes(k)) disabledKinds.push(k);
                 }
               }
@@ -1573,15 +1573,15 @@ export function createSendMessage(d: SendMessageDeps) {
             confirmWebNav,
             rewireWire,
             // The MÉMOIRE lookup — local, REAL-valued; the loop owns the un-redact/re-redacted
-            // halves. Only offered when there is anything to search — and jamais quand la
-            // conversation est « sans mémoire » (l'interrupteur coupe les DEUX sens, sinon
-            // il ment : le modèle pourrait retirer par l'outil ce que l'injection ne donne plus).
+            // halves. Only offered when there is anything to search — and never when the
+            // conversation is "sans mémoire" (the switch cuts BOTH directions, otherwise
+            // it lies: the model could retrieve via the tool what the injection no longer gives).
             searchMemory:
               !conv.memoryOff &&
               settings.memoire &&
               (settings.memoire.profile?.trim() || settings.memoire.cards.length)
-                ? // Hybride : lexical d'abord, complété par le rappel SÉMANTIQUE on-device
-                  // quand l'hôte l'offre (« mon client du secteur audio » sans le nommer).
+                ? // Hybrid: lexical first, completed by the on-device SEMANTIC recall
+                  // when the host offers it ("my client in the audio sector" without naming them).
                   (q: string) =>
                     searchMemoryHybrid(
                       settings.memoire,
@@ -1653,12 +1653,12 @@ export function createSendMessage(d: SendMessageDeps) {
             // browser's write tools; the allow-list bounds where it may navigate.
             browserReadOnly: settings.browserReadOnly,
             browserAllowedDomains: settings.browserAllowedDomains,
-            // Le scope de la compétence utilisée. `servers` n'était QUE de la guidance dans le
-            // prompt : le routeur — un appel de modèle — pouvait écarter les outils du
-            // connecteur demandé et le laissait injoignable sans `load_tools` (journal du
-            // 27/07/2026 : pick vide sur une routine scopée à Google Agenda). ÉLARGIT
-            // l'offre. Repli sur la DERNIÈRE utilisée (`activeCompetenceScope`, qui lit
-            // aussi l'ancien tag `workflow` de l'historique).
+            // The scope of the compétence used. `servers` used to be ONLY guidance in the
+            // prompt: the router — a model call — could drop the tools of the
+            // requested connector and leave it unreachable without `load_tools` (log from
+            // 27/07/2026: empty pick on a routine scoped to Google Agenda). WIDENS
+            // the offer. Falls back to the LAST one used (`activeCompetenceScope`, which also
+            // reads the old `workflow` tag from history).
             scopedConnectors: opts?.competence?.servers?.length
               ? opts.competence.servers
               : activeCompetenceScope(conv.messages),
@@ -1776,9 +1776,9 @@ export function createSendMessage(d: SendMessageDeps) {
             onPythonImage: async (img) => {
               if (!host.db?.saveFile) return;
               const fileConvId = conv.sessionConversationId || convId!;
-              // Le nom LISIBLE vient de la sandbox (slug du titre matplotlib — wheels.ts),
-              // plus jamais un `python-<uid>.png` opaque. Unicité PAR CONVERSATION :
-              // `findStoredFile` résout un clic par nom, dernier gagnant (storedFiles.ts).
+              // The READABLE name comes from the sandbox (matplotlib title slug — wheels.ts),
+              // never again an opaque `python-<uid>.png`. Uniqueness PER CONVERSATION:
+              // `findStoredFile` resolves a click by name, last one wins (storedFiles.ts).
               const stored = (await host.db.listFiles?.(fileConvId).catch(() => [])) ?? [];
               const name = uniqueFileName(img.name, new Set(stored.map((m) => m.name)));
               await host.db.saveFile({

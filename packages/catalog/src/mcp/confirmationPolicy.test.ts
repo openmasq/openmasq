@@ -22,7 +22,7 @@ describe("confirmationSurface — mode standard", () => {
     });
     expect(first?.id).toBe("post-search-once");
     expect(first?.surface).toBe("inline");
-    // La carte a été montrée une fois ⇒ le plafond ferme la règle pour la conversation.
+    // The card has been shown once ⇒ the cap closes the rule for the conversation.
     expect(
       confirmationSurface("standard", { risk: "low", searchToolCalls: 3, confirmationsShown: 1 }),
     ).toBeNull();
@@ -50,7 +50,7 @@ describe("confirmationSurface — mode standard", () => {
   });
 
   it("ne route JAMAIS vers la fenêtre système (main n'ouvre pas de modale en standard)", () => {
-    // Vue de MAIN : seuls `risk` est connu, les compteurs sont absents (⇒ 0).
+    // MAIN's view: only `risk` is known, the counters are absent (⇒ 0).
     expect(confirmationSurface("standard", { risk: "high" })).toBeNull();
     for (const rule of CONFIRMATION_POLICY.standard) {
       expect(rule.surface).not.toBe("system-modal");
@@ -60,8 +60,8 @@ describe("confirmationSurface — mode standard", () => {
 
 describe("les PLANCHERS sont déclarés dans la politique (floor) — pas dans un call site", () => {
   it("exfil / pièces jointes / envoi portent `floor` dans les DEUX modes", () => {
-    // C'est le bit que le renderer lit pour refuser l'exemption par allow-list
-    // (« Autoriser » n'est pas un consentement pour le deuxième envoi) — audit B.
+    // This is the bit the renderer reads to refuse the allow-list exemption
+    // ("Allow" is not consent for the second send) — audit B.
     const floors = Object.values(CONFIRMATION_POLICY)
       .flat()
       .filter((r) => r.floor === true)
@@ -111,7 +111,7 @@ describe("confirmationSurface — mode renforcé (le comportement historique)", 
     const r = confirmationSurface("renforce", { risk: "low", sends: 1 });
     expect(r?.id).toBe("send-floor");
     expect(r?.floor).toBe(true);
-    // Un envoi RISQUÉ garde la fenêtre système (le plancher est placé APRÈS risky-system) :
+    // A RISKY send keeps the system window (the floor is placed AFTER risky-system):
     expect(confirmationSurface("renforce", { risk: "high", sends: 1 })?.surface).toBe(
       "system-modal",
     );
@@ -130,10 +130,10 @@ describe("fail closed", () => {
   });
 
   it("un op inconnu MATCHE (sur-confirmer, jamais sous-confirmer)", () => {
-    // Repéré par IDENTIFIANT, jamais par index — c'est ce que le fichier de politique
-    // demande, et un test indexé casse dès qu'une règle s'insère avant lui (ce qui est
-    // arrivé en ajoutant le plancher d'envoi). On neutralise aussi les planchers placés
-    // AVANT, sans quoi c'est l'un d'eux qui répondrait.
+    // Found by ID, never by index — that is what the policy file demands, and an
+    // indexed test breaks as soon as a rule is inserted before it (which is what
+    // happened when the send floor was added). We also neutralize the floors placed
+    // BEFORE it, else one of them would answer instead.
     const rules = CONFIRMATION_POLICY.standard;
     const target = rules.find((r) => r.id === "post-search-once")!;
     const before = rules.slice(0, rules.indexOf(target));
@@ -149,15 +149,15 @@ describe("fail closed", () => {
   });
 
   it("un ENVOI se confirme toujours en mode standard, et à CHAQUE fois", () => {
-    // Le défaut du journal du 27/07/2026 : « N'envoie rien » et l'e-mail est parti sans
-    // carte, la conversation n'ayant pas touché le web. Un envoi ne s'annule pas, donc
-    // c'est un plancher — non plafonné, contrairement à la carte post-recherche.
+    // The bug from the 27/07/2026 journal: "Send nothing" and the e-mail went out with
+    // no card, the conversation never having touched the web. A send cannot be undone,
+    // so it's a floor — uncapped, unlike the post-search card.
     expect(confirmationSurface("standard", { risk: "low", sends: 1 })?.id).toBe("send-floor");
     expect(
       confirmationSurface("standard", { risk: "low", sends: 1, confirmationsShown: 12 })?.id,
       "un envoi déjà confirmé n'autorise pas le suivant",
     ).toBe("send-floor");
-    // Et rien ne change pour un write ordinaire : le mode reste léger.
+    // And nothing changes for an ordinary write: the mode stays light.
     expect(confirmationSurface("standard", { risk: "low" })).toBeNull();
   });
 });

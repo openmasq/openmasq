@@ -20,7 +20,7 @@ export function friendlyError(e: unknown): string {
   }
   if (/rate limit|too many|429/i.test(s)) return "Trop de tentatives. Patientez un instant puis réessayez.";
   if (/failed to fetch|network|fetch failed/i.test(s)) return "Réseau indisponible. Vérifiez votre connexion et réessayez.";
-  // Les deux formulations de GoTrue : le verrou d'instance et celui du fournisseur e-mail.
+  // GoTrue's two phrasings: the instance-wide lock and the email provider's own.
   if (/signups? (?:not allowed|are disabled|is disabled)|disabled? signups?/i.test(s)) {
     return "Aucun compte pour cette adresse, et les inscriptions sont fermées pour le moment. Vérifiez l’orthographe — si elle est bonne, l’accès reste à ouvrir de notre côté.";
   }

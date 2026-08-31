@@ -10,12 +10,12 @@ export function fmtTokens(n: number): string {
   return `${n}`;
 }
 
-/** Un montant en dollars, virgule française et zéros inutiles retirés (2.5 → « 2,50 $ »
- *  → « 2,5 $ »). Même écriture que le panneau de détail, qui est la version longue. */
+/** A dollar amount, French comma and useless zeros stripped (2.5 → « 2,50 $ »
+ *  → « 2,5 $ »). Same formatting as the detail panel, which is the long version. */
 function fmtUsd(n: number): string {
   return `${fmtNum(n)} $`;
 }
-/** Le nombre seul — pour la paire « 0,4/2 $ » où l'unité ne se dit qu'une fois. */
+/** The number alone — for the pair « 0,4/2 $ » where the unit is only said once. */
 function fmtNum(n: number): string {
   return n.toFixed(2).replace(/\.?0+$/, "").replace(".", ",");
 }
@@ -24,22 +24,22 @@ function fmtNum(n: number): string {
  * Formatted metadata shown under a model in the picker. Fields are absent when
  * we have no data for that model (local price, non-Mistral TPM…).
  *
- * ⚠️ **Chaque valeur se lit SANS glossaire — mais le glossaire a changé de forme (14/08).**
- * C'étaient « $0.4 / $2 », « 128k ctx », « 25k TPM » : des sigles muets (11/08). Puis des
- * MOTS (« Prix… Contexte… Débit… ») — lisibles, mais trois mots par ligne sur ~70 lignes.
- * Aujourd'hui : une ICÔNE porte le référent (pièces = prix, livre = contexte, jauge =
- * débit — appariées dans `ModelRow`) et le `*Title` OUVRE PAR LE MOT puis donne l'unité :
- * `brand/TooltipLayer` dessine tout `title`, au clavier comme au survol. Ne revenir ni
- * aux sigles nus (la leçon du 11/08) ni aux mots en ligne (celle du 14/08).
+ * ⚠️ **Every value reads WITHOUT a glossary — but the glossary changed shape (14/08).**
+ * It used to be « $0.4 / $2 », « 128k ctx », « 25k TPM »: mute acronyms (11/08). Then
+ * WORDS (« Prix… Contexte… Débit… ») — readable, but three words per line over ~70 lines.
+ * Today: an ICON carries the referent (coins = price, book = context, gauge =
+ * throughput — paired in `ModelRow`) and the `*Title` OPENS WITH THE WORD then gives the unit:
+ * `brand/TooltipLayer` renders any `title`, on keyboard focus as on hover. Go back to neither
+ * bare acronyms (the 11/08 lesson) nor inline words (the 14/08 one).
  */
 export interface ModelMeta {
-  /** Entrée / sortie, en dollars — e.g. « Prix 0,4 / 2 $ ». */
+  /** Input / output, in dollars — e.g. « Prix 0,4 / 2 $ ». */
   price?: string;
   priceTitle?: string;
-  /** Fenêtre de contexte — e.g. « Contexte 128k ». */
+  /** Context window — e.g. « Contexte 128k ». */
   context?: string;
   contextTitle?: string;
-  /** Rate limit tokens/minute — e.g. « Débit 25k/min » (indicatif, lié au compte). */
+  /** Rate limit tokens/minute — e.g. « Débit 25k/min » (indicative, tied to the account). */
   tpm?: string;
   tpmTitle?: string;
   /** The TPM is low enough (≤ 50k) to throttle the token-heavy MCP tool path. */
@@ -50,8 +50,8 @@ export function modelMeta(id: string): ModelMeta {
   const p = MODEL_PRICING[id];
   const ctx = MODEL_CONTEXT[id];
   const tpm = MODEL_TPM[id];
-  // Un modèle GRATUIT (0/0) ne porte pas de chip prix : le badge « gratuit » le dit
-  // déjà, et « 0/0 $ » à côté se lit comme une anomalie, pas comme une information.
+  // A FREE model (0/0) doesn't carry a price chip: the « gratuit » badge already
+  // says so, and « 0/0 $ » next to it reads as an anomaly, not as information.
   const paid = p && (p.in > 0 || p.out > 0);
   return {
     price: paid ? `${fmtNum(p.in)}/${fmtNum(p.out)} $` : undefined,

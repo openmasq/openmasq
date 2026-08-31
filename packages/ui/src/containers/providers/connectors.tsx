@@ -1,24 +1,24 @@
 import { createContext, useContext } from "react";
 
 /**
- * « Ouvre la modale de CE connecteur », de n'importe où.
+ * « Ouvre la modale de CE connecteur », from anywhere.
  *
- * Le canal seulement — aucune donnée, aucun appel hôte. L'implémentation (la modale,
- * `useMcpConnectors` et tous ses appels) vit dans `pages/Settings/mcp/`, et c'est
- * `AppShell` qui les branche l'un sur l'autre : un `containers/` ne remonte pas dans
- * `pages/` pour de la DONNÉE, mais la coquille a le droit de MONTER un écran (c'est ce
- * que fait déjà `shell/sections/`). Même montage que l'injection de `searchSettings`
- * dans `SearchModal`.
+ * The channel only — no data, no host call. The implementation (the modal,
+ * `useMcpConnectors` and all its calls) lives in `pages/Settings/mcp/`, and it's
+ * `AppShell` that wires the two together: a `containers/` doesn't reach up into
+ * `pages/` for DATA, but the shell is allowed to MOUNT a screen (which is what
+ * `shell/sections/` already does). Same wiring as `searchSettings`'s injection
+ * into `SearchModal`.
  *
- * ⚠️ `null` = aucun hôte monté (un harnais d'aperçu, un test) — pas une erreur. Comme
- * `linkOpen`, l'ABSENCE est le signal : l'appelant retombe alors sur son ancien chemin
- * (Réglages → Connecteurs) au lieu de jeter.
+ * ⚠️ `null` = no host mounted (a preview harness, a test) — not an error. Like
+ * `linkOpen`, the ABSENCE is the signal: the caller then falls back to its old path
+ * (Réglages → Connecteurs) instead of throwing.
  */
 const OpenConnectorCtx = createContext<((connectorId: string) => void) | null>(null);
 
 export const OpenConnectorProvider = OpenConnectorCtx.Provider;
 
-/** L'ouvreur de modale de connecteur, ou `null` si rien ne l'a monté. */
+/** The connector modal opener, or `null` if nothing mounted it. */
 export function useOpenConnector(): ((connectorId: string) => void) | null {
   return useContext(OpenConnectorCtx);
 }

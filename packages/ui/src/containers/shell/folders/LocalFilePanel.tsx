@@ -56,9 +56,9 @@ export function LocalFilePanel({
       mime={mime}
       onClose={onClose}
       loadFile={loadFile}
-      // Le fichier RÉEL, immédiatement : rien n'a été masqué puisque rien n'a été envoyé
-      // (la promesse de l'en-tête ci-dessus + `folders/CLAUDE.md`). Sans ceci, un PDF
-      // local payait une passe NER COMPLÈTE avant le premier pixel.
+      // The REAL file, immediately: nothing has been masked since nothing has been sent
+      // (the header's promise above + `folders/CLAUDE.md`). Without this, a local
+      // PDF used to pay for a FULL NER pass before the first pixel.
       redacted={false}
       onOpenExternal={fs ? () => void fs.open(path).catch(() => {}) : undefined}
       // Where it really lives — the user is looking at their own folder, not a copy.
@@ -66,10 +66,10 @@ export function LocalFilePanel({
       // READ-ONLY on purpose — no « Modifier » tab, for ANY format. In-app file
       // editing via the sidebar was removed with the CSV/Univer editors: the aperçu
       // shows the disk truth, « Ouvrir dans l'application » is where editing lives.
-      // ⚠️ On met en scène une PROMESSE, pas un fichier : la conversation s'ouvre et le chip
-      // paraît sur-le-champ, la lecture et l'OCR le remplissent après. Attendre ici rendait
-      // le geste muet pendant des secondes — c'est le comportement qu'a déjà le sélecteur
-      // natif, pas une faveur faite à ce chemin.
+      // ⚠️ What we stage is a PROMISE, not a file: the conversation opens and the chip
+      // appears right away, the read and the OCR fill it in afterwards. Waiting here made
+      // the gesture mute for seconds — that's the behaviour the native picker already
+      // has, not a favour done to this path.
       onAsk={
         onAttach
           ? () =>

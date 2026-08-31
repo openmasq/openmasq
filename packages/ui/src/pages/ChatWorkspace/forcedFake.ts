@@ -23,8 +23,8 @@ export async function forcedVaultPatch(
   /** A canonical `REDACT_TYPES` token (`NAME`, `ORG`, …). */
   token: string,
   convVault: Record<string, string> | undefined,
-  /** Le mode de la CONVERSATION : une valeur redacted à la main doit prendre la même
-   *  forme que les autres, sinon un coffre porte un faux au milieu de ses marqueurs. */
+  /** The CONVERSATION's mode: a manually redacted value must take the same
+   *  form as the others, or a vault ends up carrying a fake in the middle of its tokens. */
   mode?: "fake" | "token",
 ): Promise<{ vault: Record<string, string>; kinds: Record<string, string> } | null> {
   const v = value.trim();

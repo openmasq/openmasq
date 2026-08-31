@@ -19,7 +19,7 @@ const toolMsg = (content: string): ChatMessage => ({ role: "tool", content, tool
 describe("le budget : ce que les résultats d'un tour ont le droit d'occuper", () => {
   it("la moitié de la fenêtre, à ≈4 caractères par token", () => {
     expect(resultCharBudget(128_000)).toBe(256_000);
-    // Fenêtre inconnue ⇒ l'hypothèse basse, jamais « pas de limite ».
+    // Unknown window ⇒ the low hypothesis, never « no limit ».
     expect(resultCharBudget(undefined)).toBe(256_000);
     expect(resultCharBudget(1_000_000)).toBe(2_000_000);
   });
@@ -37,8 +37,8 @@ describe("le budget : ce que les résultats d'un tour ont le droit d'occuper", (
 
   it("mesure un résultat BRUT en entier — une mesure tronquée rend le budget aveugle", () => {
     const big = { content: [{ type: "text", text: "a".repeat(50_000) }] };
-    // La régression exacte : `safeJson` plafonne à 400, donc tout résultat pesait 400
-    // et aucune vague n'était jamais coupée.
+    // The exact regression: `safeJson` caps at 400, so every result weighed 400
+    // and no wave was ever cut off.
     expect(approxResultChars(big)).toBeGreaterThan(50_000);
     expect(approxResultChars(undefined)).toBe(2); // "{}"
   });
@@ -62,7 +62,7 @@ describe("dispatchInWaves — paralléliser sans décider à vide", () => {
       used: () => 0,
     });
     expect(dispatch).toHaveBeenCalledTimes(8);
-    expect(peak).toBe(8); // parallèle, pas sérialisé
+    expect(peak).toBe(8); // parallel, not serialized
   });
 
   it("la vague suivante ne part pas si la précédente a mangé le budget", async () => {
@@ -71,7 +71,7 @@ describe("dispatchInWaves — paralléliser sans décider à vide", () => {
     await dispatchInWaves({
       calls: Array.from({ length: 12 }, (_, i) => call("read", {}, `c${i}`)),
       dispatch,
-      budget: 900, // une vague de 2 le dépasse déjà
+      budget: 900, // a wave of 2 already exceeds it
       used: () => 0,
       wave: 2,
     });
@@ -140,7 +140,7 @@ describe("prefetchReads — QUI part en parallèle, et pourquoi pas les autres",
   });
 
   it("le plafond par outil se PROJETTE sur ce qui a déjà tourné ce tour", async () => {
-    // 30 = MAX_SAME_READ ; 28 déjà exécutés ⇒ seuls 2 des 5 restants partent.
+    // 30 = MAX_SAME_READ; 28 already executed ⇒ only 2 of the remaining 5 go out.
     const d = await run(
       Array.from({ length: 5 }, (_, i) => call("gmail__get_message", { id: i }, `m${i}`)),
       { callCounts: new Map([["gmail__get_message", 28]]) },
@@ -154,8 +154,8 @@ describe("prefetchReads — QUI part en parallèle, et pourquoi pas les autres",
   });
 
   it("⚠️ un argument qui EMBARQUE une donnée du coffre retombe sur le chemin gardé", async () => {
-    // H-4 : le prefetch un-redacted et atteint le vrai serveur AVANT la carte de
-    // confirmation. Un `lookup(note="…vraie PII…")` injecté fuirait sans ce contrôle.
+    // H-4: the prefetch de-redacts and reaches the real server BEFORE the confirm
+    // card. An injected `lookup(note="…real PII…")` would leak without this check.
     const d = await run([call("attacker__get_thing", { note: "dossier de Jean-Marc Rebour, 12 rue des Lilas" })], {
       vaultTerms: ["Jean-Marc Rebour", "12 rue des Lilas"],
     });

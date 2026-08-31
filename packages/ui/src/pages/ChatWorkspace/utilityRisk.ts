@@ -1,47 +1,47 @@
 import type { Cat } from "./composerDetection";
 
-// L'AVERTISSEMENT D'UTILITÉ — détecter que la RÉPONSE va dépendre d'une donnée redacted.
+// THE UTILITY WARNING — detecting that the RESPONSE is going to depend on a redacted value.
 //
-// Un faux préserve l'espèce (genre, pays, checksum…) mais pas tout : un âge calculé depuis
-// une fausse date de naissance est faux, « que fait cette entreprise ? » interroge une
-// entité que le modèle ne connaît pas, une distance entre deux lieux faux ne veut rien
-// dire — et une DÉRIVATION n'est pas une clé de coffre : rien ne la restitue. Le risque est
-// invisible par construction (le texte restitué est correct, seul le raisonnement est
-// faux), donc il faut le dire AVANT l'envoi. Chiffré dans
+// A fake preserves the species (gender, country, checksum…) but not everything: an age computed from
+// a fake date of birth is wrong, "what does this company do?" queries an
+// entity the model doesn't know, a distance between two fake places means nothing
+// — and a DERIVATION is not a vault key: nothing restores it. The risk is
+// invisible by construction (the returned text is correct, only the reasoning is
+// wrong), so it has to be said BEFORE sending. Measured in
 // `packages/redact/bench/RAPPORT-risques-utilite-2026-07.md`.
 //
-// C'est la généralisation du motif `WebNavRedactOffer` (le gate de révélation avant une
-// recherche web), avec les mêmes principes :
-//  - DÉTERMINISTE — un motif de question + une catégorie détectée, jamais un modèle ;
-//  - les DEUX conditions, ou rien : un motif sans donnée redacted de la catégorie n'est
-//    qu'une question ordinaire, une donnée sans motif n'est qu'une donnée protégée. Un
-//    avertissement qui parle trop apprend à cliquer sans lire (la leçon écrite du gate
-//    d'écriture) ;
-//  - il n'EMPÊCHE rien : la pastille informe et offre le geste « garder en clair » qui
-//    existe déjà (`toggleKeep`) — le redaction par défaut ne bouge pas.
+// It's the generalization of the `WebNavRedactOffer` pattern (the reveal gate before a
+// web search), with the same principles:
+//  - DETERMINISTIC — a question pattern + a detected category, never a model;
+//  - BOTH conditions, or nothing: a pattern with no redacted data in the category is
+//    just an ordinary question, a data point with no pattern is just a protected value. A
+//    warning that talks too much teaches you to click without reading (the lesson written
+//    into the write gate);
+//  - it BLOCKS nothing: the badge informs and offers the « garder en clair » action that
+//    already exists (`toggleKeep`) — default redaction doesn't move.
 
 export type UtilityRiskKind = "age" | "world" | "geo";
 
 export interface UtilityRisk {
   kind: UtilityRiskKind;
-  /** Les catégories moteur dont dépend la réponse (pour cibler les valeurs à révéler). */
+  /** The engine categories the answer depends on (to target the values to reveal). */
   cats: readonly string[];
-  /** Ce que la pastille dit — la LIMITE, jamais une promesse. */
+  /** What the badge says — the LIMIT, never a promise. */
   message: string;
 }
 
-/** Motif de question par risque. Multilingue FR/EN, mots ENTIERS, insensible à la casse. */
+/** Question pattern per risk. Multilingual FR/EN, WHOLE words, case-insensitive. */
 const PATTERNS: Record<UtilityRiskKind, RegExp> = {
-  // Un calcul sur une date : âge, ancienneté, délai écoulé/restant, éligibilité par âge.
+  // A calculation on a date: age, seniority, elapsed/remaining time, age-based eligibility.
   age: /\b(quel\s+[âa]ge|[âa]g[ée]e?s?\s+de\s+(?:moins|plus)|depuis\s+combien|dans\s+combien\s+de\s+(?:temps|jours|mois|ans)|combien\s+d['’]ann[ée]es|anciennet[ée]|majeur|mineur|retraite|how\s+old|years?\s+old|age\s+of|eligib\w*)\b/iu,
-  // La connaissance du monde sur une entité : ce qu'elle EST, fait, vaut, qui la dirige.
+  // World knowledge about an entity: what it IS, does, is worth, who runs it.
   world:
     /\b(que\s+fait|qui\s+est\s+derri[èe]re|c['’]est\s+quoi\s+comme\s+(?:boite|bo[îi]te|entreprise|soci[ée]t[ée])|quel\s+secteur|convention\s+collective|concurrents?\s+de|what\s+does\s+\S+\s+do|who\s+owns|competitors?\s+of|industry\s+of)\b/iu,
-  // La géographie dérivée : distance, trajet, proximité, même ville/région, météo locale.
+  // Derived geography: distance, trip, proximity, same city/region, local weather.
   geo: /\b(distance|combien\s+de\s+(?:km|kilom[èe]tres)|temps\s+de\s+(?:trajet|route)|proche\s+de|pr[èe]s\s+de\s+chez|m[êe]me\s+(?:ville|r[ée]gion|d[ée]partement|quartier)|itin[ée]raire|how\s+far|close\s+to|same\s+(?:city|region|area)|route\s+to|commute)\b/iu,
 };
 
-/** Les catégories moteur qui portent chaque risque (clés FINES, `redactionCategory`). */
+/** The engine categories each risk carries (FINE-grained keys, `redactionCategory`). */
 const RISK_CATS: Record<UtilityRiskKind, readonly string[]> = {
   age: ["dob", "date"],
   world: ["company"],
@@ -55,12 +55,12 @@ const MESSAGES: Record<UtilityRiskKind, string> = {
 };
 
 /**
- * Le risque d'utilité du brouillon, ou null. `detected` est la sortie des DEUX couches de
- * détection du composeur (`Cat.cat` = catégorie fine du moteur) — donc exactement ce qui
- * sera redacted à l'envoi, ni plus ni moins.
+ * The draft's utility risk, or null. `detected` is the output of the composer's TWO
+ * detection layers (`Cat.cat` = the engine's fine category) — so exactly what
+ * will be redacted on send, no more, no less.
  *
- * Un seul risque à la fois, le premier par gravité (âge > monde > géo) : deux pastilles
- * seraient déjà du bruit.
+ * Only one risk at a time, the first by severity (age > world > geo): two badges
+ * would already be noise.
  */
 export function utilityRisk(text: string, detected: readonly Cat[]): UtilityRisk | null {
   if (!text.trim() || detected.length === 0) return null;
@@ -68,31 +68,31 @@ export function utilityRisk(text: string, detected: readonly Cat[]): UtilityRisk
   for (const kind of ["age", "world", "geo"] as const) {
     if (!PATTERNS[kind].test(text)) continue;
     const cats = RISK_CATS[kind].filter((c) => present.has(c));
-    if (cats.length === 0) continue; // motif sans donnée redacted → question ordinaire
+    if (cats.length === 0) continue; // pattern with no redacted data → ordinary question
     return { kind, cats, message: MESSAGES[kind] };
   }
   return null;
 }
 
-/** Les valeurs du brouillon que « Garder en clair » doit relâcher pour ce risque. */
+/** The draft's values that « Garder en clair » must release for this risk. */
 export function riskValues(risk: UtilityRisk, detected: readonly Cat[]): string[] {
   const wanted = new Set(risk.cats);
   return [...new Set(detected.filter((d) => wanted.has(d.cat.toLowerCase())).map((d) => d.value))];
 }
 
-/** Le strict nécessaire d'une pièce jointe pour en tirer des catégories de risque. */
+/** The strict minimum of an attachment needed to derive risk categories from it. */
 export interface RiskAttachment {
   replacements?: readonly { real: string; kind?: string }[];
   reveal?: readonly string[];
 }
 
 /**
- * Les catégories redacted portées par les PIÈCES JOINTES — même vocabulaire fin que
- * le composeur (`PdfReplacement.kind` = `Cat.cat`). Une date de naissance vit bien plus
- * souvent dans un bulletin ou un dossier que dans le brouillon tapé : sans cette source,
- * l'avertissement était aveugle au cas le plus fréquent (mesuré 15/08 : substitut né en
- * 1948 pour une patiente de 57 ans — réponse calibrée « personne âgée », sans un mot).
- * Une valeur déjà révélée (`reveal`) part en clair : plus un risque, donc exclue ici.
+ * The redacted categories carried by ATTACHMENTS — the same fine vocabulary as
+ * the composer (`PdfReplacement.kind` = `Cat.cat`). A date of birth lives far more
+ * often in a report or a file than in the typed draft: without this source,
+ * the warning was blind to the most frequent case (measured 15/08: substitute born in
+ * 1948 for a 57-year-old patient — answer calibrated for "elderly person", without a word).
+ * A value already revealed (`reveal`) goes out in clear: no longer a risk, so excluded here.
  */
 export function attachmentCats(attachments: readonly RiskAttachment[]): Cat[] {
   return attachments.flatMap((a) => {
@@ -103,16 +103,16 @@ export function attachmentCats(attachments: readonly RiskAttachment[]): Cat[] {
   });
 }
 
-/** Pièce adressable par le geste « garder en clair » (le canal `onRevealChange`). */
+/** Attachment addressable by the « garder en clair » action (the `onRevealChange` channel). */
 export interface RevealableAttachment extends RiskAttachment {
   cid: string;
 }
 
 /**
- * Ce que « Garder en clair » doit faire des valeurs d'un risque : les valeurs du
- * BROUILLON passent par le keep existant ; celles d'une PIÈCE JOINTE par la liste
- * `reveal` du fichier — le même geste que « Unredact » dans l'aperçu. Rendu sous
- * forme de plan (cid → nouvelle liste) pour rester pur et testable.
+ * What « Garder en clair » must do with a risk's values: the DRAFT's values
+ * go through the existing keep; an ATTACHMENT's values go through the file's
+ * `reveal` list — the same action as « Unredact » in the aperçu. Rendered as
+ * a plan (cid → new list) to stay pure and testable.
  */
 export function revealPlan(
   values: readonly string[],

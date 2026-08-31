@@ -68,36 +68,36 @@ export function previewShape(file: PreviewFile): PreviewShape {
 }
 
 /**
- * La couche sur laquelle l'aperçu S'OUVRE — et elle montre toujours CE QUI PART.
+ * The layer the preview OPENS ON — and it always shows WHAT LEAVES.
  *
- * ⚠️ C'est la règle entière, pas une préférence par format. Cette modale a un seul métier :
- * vérifier ce qui va quitter la machine. Ouverte sur le document tel quel — ce que faisaient
- * le tableur, le .docx, la présentation et le markdown — elle donnait la lecture INVERSE :
- * on relit son propre fichier, on le reconnaît, on envoie, et le redaction restait une vue
- * de plus dans le menu du coin. Le PDF et l'image ouvraient déjà sur leurs valeurs peintes ;
- * il n'y avait aucune raison que les autres formats fassent le contraire.
+ * ⚠️ This is the whole rule, not a per-format preference. This modal has ONE job:
+ * verify what is about to leave the machine. Opened on the document as-is — which is
+ * what the spreadsheet, the .docx, the presentation and the markdown used to do — gave the
+ * INVERSE reading: you re-read your own file, recognize it, send it, and the redaction stayed
+ * one more view in the corner menu. The PDF and the image already opened on their painted
+ * values; there was no reason for the other formats to do the opposite.
  *
- * L'original reste à UN clic, annoncé pour ce qu'il est (« Le fichier tel quel, avant
- * redaction ») — relire « a-t-il masqué ce qu'il ne fallait pas ? » reste possible, mais
- * ce n'est plus ce qu'on voit en premier.
+ * The original stays ONE click away, announced for what it is (« Le fichier tel quel, avant
+ * redaction ») — re-reading "did it mask what it shouldn't have?" remains possible, but
+ * it is no longer what you see first.
  */
 export function initialView(s: PreviewShape, file: PreviewFile): DocView {
-  // Ces deux-là SONT déjà la version redacted : les fausses valeurs sont peintes sur les
-  // pages et sur les pixels. Elles restent la vue d'ouverture de leur format.
+  // These two ALREADY ARE the redacted version: the fake values are painted on the
+  // pages and on the pixels. They stay the opening view for their format.
   if (s.isImage && s.hasBytes) return "image";
   if (s.isPdf && s.hasBytes) return "pdf";
-  // Partout ailleurs : la couche redacted, dès qu'il y a de quoi la montrer. Conditionné à
-  // `file.text` parce que `previewViews` n'offre « Redacted » qu'à cette condition — ouvrir
-  // sur une vue absente du menu donnerait un écran que rien ne désigne.
+  // Everywhere else: the redacted layer, as soon as there's something to show. Conditioned on
+  // `file.text` because `previewViews` only offers « Redacted » under that condition — opening
+  // on a view absent from the menu would give a screen nothing points to.
   if (file.text) return "redacted";
-  // Sans texte extrait, il n'y a pas de couche redacted : on montre le document.
+  // With no extracted text, there is no redacted layer: show the document.
   if (s.isRich && s.hasBytes) return "rich";
   return "redacted";
 }
 
 /** The views on offer, in reading order: the document first, then the text layers.
- *  Les ÉTIQUETTES viennent du catalogue (`docViews`) ; ce qui reste ici est la RÈGLE —
- *  quelle couche existe pour quelle forme de fichier. */
+ *  The LABELS come from the catalog (`docViews`); what remains here is the RULE —
+ *  which layer exists for which file shape. */
 export function previewViews(s: PreviewShape, file: PreviewFile, t: Messages): DocViewOption[] {
   const v = t.docViews;
   const views: DocViewOption[] = [];
@@ -128,17 +128,17 @@ export function previewViews(s: PreviewShape, file: PreviewFile, t: Messages): D
 }
 
 /**
- * La vue « Redacted » d'un tableur peut-elle être une GRILLE, ou faut-il la couche texte ?
+ * Can a spreadsheet's « Redacted » view be a GRID, or does it need the text layer?
  *
- * ⚠️ Une grille n'est redacted que si l'on a de quoi la redact. Sans remplacements
- * (redaction non transmis, passe encore en vol), le rendu « fausses valeurs » n'a rien à
- * substituer : il affiche les VRAIES valeurs sous l'étiquette « Redacted ». C'était
- * supportable tant que cette vue demandait un clic ; depuis qu'elle est celle qui S'OUVRE,
- * le cas est devenu courant. Sans remplacements on retombe donc sur la couche texte, qui
- * sait attendre (squelette) puis relancer une passe — jamais l'original en douce.
+ * ⚠️ A grid is only redacted if there's something to redact it with. With no replacements
+ * (redaction not yet delivered, pass still in flight), the "fake values" render has nothing to
+ * substitute: it shows the REAL values under the « Redacted » label. That was
+ * tolerable while this view took a click to reach; since it's the one that OPENS,
+ * the case became common. With no replacements we therefore fall back to the text layer, which
+ * knows how to wait (skeleton) then re-run a pass — never the original on the sly.
  *
- * Une liste VIDE, elle, est une réponse : la passe a tourné et n'a rien trouvé, donc la
- * grille du fichier EST sa version redacted (même lecture que la couche texte).
+ * An EMPTY list, though, is an answer: the pass ran and found nothing, so the
+ * file's grid IS its redacted version (same reading as the text layer).
  */
 export function redactedGridReady(sheetGrid: boolean, hasReplacements: boolean): boolean {
   return sheetGrid && hasReplacements;

@@ -36,7 +36,7 @@ describe("makeCoalescingRedactor", () => {
     for (const batch of calls) {
       expect(batch).not.toEqual(expect.arrayContaining(["b"]));
     }
-    // gmail (a,c) part en lot ; browser (b) passe seul par `one`.
+    // gmail (a,c) goes out as a batch; browser (b) passes alone through `one`.
     expect(calls).toEqual([["a", "c"]]);
     expect(one).toHaveBeenCalledTimes(1);
   });
@@ -54,7 +54,7 @@ describe("makeCoalescingRedactor", () => {
     const redact = makeCoalescingRedactor({ one });
     const out = await Promise.all([redact("a", vault, "x"), redact("b", vault, "x"), redact("c", vault, "y")]);
     expect(out).toEqual(["S:a", "S:b", "S:c"]);
-    expect(maxActive).toBe(1); // l'identité atomique du vault repose dessus
+    expect(maxActive).toBe(1); // the vault's atomic identity depends on this
   });
 
   it("un lot qui ÉCHOUE retombe entrée par entrée sur `one` — rien n'est perdu", async () => {
@@ -98,7 +98,7 @@ describe("makeCoalescingRedactor", () => {
     const gate = new Promise<void>((r) => (release = r));
     const many = vi.fn(async (texts: string[]) => {
       seen.push([...texts]);
-      if (seen.length === 1) await gate; // la 1re passe reste occupée
+      if (seen.length === 1) await gate; // the 1st pass stays busy
       return texts.map((t) => `R:${t}`);
     });
     const one = vi.fn(async (t: string) => {
@@ -108,13 +108,13 @@ describe("makeCoalescingRedactor", () => {
     });
     const redact = makeCoalescingRedactor({ one, many });
     const first = redact("a", vault, "x");
-    await tick(); // la passe de « a » démarre (via `one`, groupe de 1)
+    await tick(); // the pass for « a » starts (via `one`, group of 1)
     const late = [redact("b", vault, "x"), redact("c", vault, "x")];
     await tick();
     release();
     const out = await Promise.all([first, ...late]);
     expect(out).toEqual(["R:a", "R:b", "R:c"]);
-    // b et c, arrivés pendant la passe de a, partent ensemble en UN lot.
+    // b and c, arriving during a's pass, go out together in ONE batch.
     expect(seen).toEqual([["a"], ["b", "c"]]);
   });
 });

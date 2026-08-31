@@ -7,13 +7,13 @@ import type { Competence } from "../../../types";
 import { useT } from "../../../i18n";
 
 /**
- * Les MODÈLES DE DÉPART que la page passe à sa modale, et le repère « connecté » que le
- * sélecteur de connecteurs affiche — UNE seule requête pour les deux, sinon le classement
- * « ce qui est branché d'abord » et les points verts pourraient se contredire à l'écran.
+ * The STARTING TEMPLATES the page passes to its modal, and the "connected" marker the
+ * connector picker displays — ONE single computation for both, otherwise the "what's
+ * plugged in first" ranking and the green dots could contradict each other on screen.
  *
- * Sorti de `CompetencesView` quand la page a absorbé les routines : elle passait le
- * plafond de 300 lignes (règle 1), et c'est le bloc le plus autonome — il ne dépend que
- * de la liste existante et de l'hôte.
+ * Pulled out of `CompetencesView` when the page absorbed the routines: it was passing
+ * the 300-line cap (rule 1), and this is the most self-contained block — it depends only
+ * on the existing list and the host.
  */
 export function useTemplates(competences: readonly Competence[]): {
   suggestions: AnyTemplate[];
@@ -22,17 +22,17 @@ export function useTemplates(competences: readonly Competence[]): {
   const t = useT();
   const host = useHost();
   const connected = useConnectedConnectors();
-  // Le navigateur intégré s'active côté HÔTE, et ce chemin est absent sur certaines
-  // plateformes (mobile, aperçu web) — même barrière que la carte du navigateur dans les
-  // Réglages. Un modèle qui le nomme y partirait pour ne rien faire, en silence.
+  // The built-in browser activates on the HOST side, and this path is absent on some
+  // platforms (mobile, web aperçu) — the same barrier as the browser card in
+  // Réglages. A template naming it would go there to do nothing, silently.
   const unavailable = useMemo(
     () => new Set(host.mcp?.enableBrowser ? [] : [BROWSER_CONNECTOR_ID]),
     [host],
   );
-  // TOUS, pas les six de la bande : la modale les montre dans une colonne défilante avec
-  // des chips de catégorie, et un chip qui filtrerait une liste déjà tronquée tomberait à
-  // vide pour les catégories que le plafond avait écartées. Ceux que la personne a déjà
-  // écrits (par le nom) sont retirés, donc la liste rétrécit quand la sienne grandit.
+  // ALL of them, not the strip's six: the modal shows them in a scrolling column with
+  // category chips, and a chip filtering an already-truncated list would come up
+  // empty for the categories the cap had excluded. Ones the person has already
+  // written (by name) are removed, so the list shrinks as theirs grows.
   const suggestions = useMemo(
     () => offeredTemplates(competences, t, { limit: 99, connected, unavailable }),
     [competences, t, connected, unavailable],

@@ -15,9 +15,9 @@ describe("deltaReasoning", () => {
   });
 
   it("reads OpenRouter reasoning_details (o-series/GPT-5.x : `reasoning` reste null)", () => {
-    // Journal 02/08 : la réflexion de gpt-5.6 via OpenRouter arrive dans des blocs
-    // typés — sans cette lecture, rien ne s'affichait pendant tout le think et le
-    // tour se lisait « pas streamé ».
+    // Journal 02/08: gpt-5.6's reasoning via OpenRouter arrives in typed
+    // blocks — without this reading, nothing displayed during the whole think and
+    // the turn read as "not streamed".
     expect(
       deltaReasoning({
         reasoning: null,
@@ -32,12 +32,12 @@ describe("deltaReasoning", () => {
         ],
       }),
     ).toBe("étape 1 étape 2");
-    // Un bloc chiffré (data) n'a rien d'affichable ; un tableau vide non plus.
+    // An encrypted block (data) has nothing displayable; neither does an empty array.
     expect(
       deltaReasoning({ reasoning_details: [{ type: "reasoning.encrypted", data: "…" }] }),
     ).toBeUndefined();
     expect(deltaReasoning({ reasoning_details: [] })).toBeUndefined();
-    // Le champ chaîne garde la priorité — un texte ne compte jamais deux fois.
+    // The string field keeps priority — a text is never counted twice.
     expect(
       deltaReasoning({ reasoning: "x", reasoning_details: [{ type: "reasoning.text", text: "x" }] }),
     ).toBe("x");

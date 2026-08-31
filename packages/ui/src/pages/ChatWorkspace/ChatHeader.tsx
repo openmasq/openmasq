@@ -42,14 +42,14 @@ export function ChatHeader({
 }: {
   conversation: Conversation | null;
   modelName?: string;
-  /** Ouvrir le comparatif « ce que le modèle a vu ». La modale vit dans `ChatView`, qui
-   *  porte aussi l'encart qui l'ouvre — le menu ne fait que la déclencher. */
+  /** Open the « ce que le modèle a vu » comparison. The modal lives in `ChatView`, which
+   *  also carries the banner that opens it — the menu only triggers it. */
   onOpenTransparency?: () => void;
   settings?: Settings;
   onChangeSettings?: (s: Settings) => void;
   /** Set this conversation's per-chat category override (sparse). */
   onChangeConversation?: (id: string, cats: Conversation["redactCategories"]) => void;
-  /** « Sans mémoire dans cette conversation » (rang de la modale de règles). */
+  /** « Sans mémoire dans cette conversation » (a row in the rules modal). */
   onSetMemoryOff?: (id: string, off: boolean) => void;
   /** Toggle this conversation's NEUTRAL-MARKS display mode (badge + hover highlight). */
   onToggleNeutralMarks?: (id: string) => void;

@@ -5,12 +5,12 @@ import { McpBrowserSecurity } from "./McpBrowserSecurity";
 import type { Settings } from "../../../types";
 
 /**
- * Régression : le textarea des domaines autorisés était initialisé UNE FOIS via
- * `useState`, sans jamais se resynchroniser si `browserAllowedDomains` changeait SOUS lui
- * (bascule de compte, réhydratation asynchrone depuis la base). Un utilisateur resté sur
- * cet onglet pendant la bascule voyait la liste de l'ancien compte, et la quitter (blur)
- * réenregistrait cette valeur périmée par-dessus la vraie — une liste d'autorisation du
- * navigateur agent silencieusement remplacée par celle d'un autre compte.
+ * Regression: the allowed-domains textarea was initialized ONCE via
+ * `useState`, and never resynced if `browserAllowedDomains` changed UNDER it
+ * (account switch, async rehydration from the database). A user who stayed on
+ * this tab during the switch saw the previous account's list, and leaving it (blur)
+ * re-saved that stale value over the real one — an agent-browser allow-list
+ * silently replaced by another account's.
  */
 
 const settings = (domains: string[]) => ({ browserAllowedDomains: domains }) as Settings;
@@ -20,7 +20,7 @@ describe("McpBrowserSecurity — le textarea des domaines suit le réglage exter
     const m = await mount(<McpBrowserSecurity settings={settings(["ancien.example"])} setSettings={() => {}} />);
     expect(m.find<HTMLTextAreaElement>(".mcp-allowlist").value).toBe("ancien.example");
 
-    // Le compte bascule : les réglages changent sans que l'utilisateur ait touché le champ.
+    // The account switches: the settings change without the user having touched the field.
     await m.rerender(<McpBrowserSecurity settings={settings(["nouveau.example"])} setSettings={() => {}} />);
     expect(m.find<HTMLTextAreaElement>(".mcp-allowlist").value).toBe("nouveau.example");
 

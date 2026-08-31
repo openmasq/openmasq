@@ -3,37 +3,37 @@ import { useHost } from "../../../host";
 import { noteForVersion, useReleaseNotesFeed, type ReleaseNote } from "../../../state/releaseNotes";
 
 /**
- * UNE MISE À JOUR EST TÉLÉCHARGÉE, ET PRÊTE À S'INSTALLER.
+ * AN UPDATE IS DOWNLOADED, AND READY TO INSTALL.
  *
- * ⚠️ C'est le RENDERER qui l'annonce, plus le système. Une boîte de dialogue de l'OS
- * disait « x.y.z is ready to install » en anglais, ne disait pas ce que la version
- * apporte, et volait le focus au milieu d'une phrase. Ici on a la note publiée
- * (Contentful) et on sait attendre : la fenêtre se referme, un bouton du rail droit la
- * rouvre tant que la version reste en attente.
+ * ⚠️ It's the RENDERER that announces it, not the system anymore. An OS dialog
+ * used to say "x.y.z is ready to install" in English, didn't say what the version
+ * brings, and stole focus mid-sentence. Here we have the published note
+ * (Contentful) and know how to wait: the window closes, a button on the right rail
+ * reopens it as long as the version stays pending.
  *
- * Trois choix qui tiennent :
- *  · **Une seule ouverture automatique par version.** `announcedRef` retient les versions
- *    déjà annoncées, donc un second évènement `downloaded` pour la même build — ils se
- *    répètent, l'updater re-signale à chaque vérification — ne rouvre rien par-dessus ce
- *    qu'on est en train d'écrire. Refermer n'efface pas la mise à jour : le bouton reste.
- *  · **La note n'est pas attendue.** Si Contentful ne répond pas, ou si la version n'a pas
- *    de note publiée, la fenêtre s'ouvre quand même avec le numéro et le geste — ce qui
- *    compte est « une nouvelle version est prête, redémarrez », et taire ça parce qu'un
- *    CMS est muet serait la seule vraie panne.
- *  · **`install()` est le seul geste que main est seul à pouvoir faire** ; tout le reste
- *    (quoi montrer, quand, à qui) est décidé ici.
+ * Three choices that hold up:
+ *  · **A single automatic opening per version.** `announcedRef` remembers the versions
+ *    already announced, so a second `downloaded` event for the same build — they
+ *    repeat, the updater re-signals on every check — doesn't reopen on top of what
+ *    is being written right now. Closing doesn't erase the update: the button stays.
+ *  · **The note is not waited for.** If Contentful doesn't respond, or the version has no
+ *    published note, the window opens anyway with the number and the action — what
+ *    matters is "a new version is ready, restart", and staying silent about that because a
+ *    CMS is mute would be the only real failure.
+ *  · **`install()` is the only gesture ONLY main can perform**; everything else
+ *    (what to show, when, to whom) is decided here.
  */
 export interface UpdateReadyApi {
-  /** La version téléchargée qui attend un redémarrage, sinon `null`. */
+  /** The downloaded version waiting for a restart, else `null`. */
   version: string | null;
-  /** Sa note publiée, si elle existe. */
+  /** Its published note, if it exists. */
   note?: ReleaseNote;
-  /** Poids du téléchargement, quand l'updater l'a donné. */
+  /** Download size, when the updater gave it. */
   sizeBytes?: number;
-  /** La fenêtre est-elle ouverte ? */
+  /** Is the window open? */
   open: boolean;
   setOpen: (v: boolean) => void;
-  /** Redémarrer et installer. */
+  /** Restart and install. */
   install: () => void;
 }
 
@@ -43,8 +43,8 @@ export function useUpdateReady(): UpdateReadyApi {
   const [ready, setReady] = useState<{ version: string; sizeBytes?: number } | null>(null);
   const [open, setOpen] = useState(false);
   const announcedRef = useRef<Set<string>>(new Set());
-  // Les notes sont demandées ICI aussi : on peut très bien n'avoir ouvert ni les Réglages
-  // ni l'aide de la session, et c'est précisément ce moment-là qui doit être servi.
+  // The notes are requested HERE too: it's entirely possible to have opened neither Réglages
+  // nor the session's help, and it is precisely that moment that must be served.
   const { notes } = useReleaseNotesFeed();
 
   useEffect(() => {

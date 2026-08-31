@@ -61,11 +61,11 @@ export const localConvSnapshot = (convs: Conversation[], hasDb: boolean): string
 //   • `coffre`      — a dictionary of REAL sensitive values the user always wants redacted.
 //   • `competences` — reusable prompts; free text the user wrote, and a template routinely
 //     carries the real example pasted in while drafting it (a client's name, a real e-mail).
-//     Les routines à connecteurs en font partie (elles nomment de vrais dépôts, projets,
-//     clients) : une seule liste, un seul régime au repos.
-//   • `workflows`   — l'ANCIENNE liste, encore sur le disque d'un appareil qui n'a pas
-//     repris l'app. Toujours retirée : le blob local ne doit pas garder en clair ce que la
-//     reprise versera dans `competences` au prochain chargement.
+//     The connector-routines are part of it (they name real repos, projects,
+//     clients): one single list, one single at-rest regime.
+//   • `workflows`   — the OLD list, still on the disk of a device that hasn't
+//     picked up the app. Always stripped: the local blob must not keep in clear what the
+//     migration will pour into `competences` on the next load.
 /** Drop the user-authored settings content from the localStorage copy when an encrypted
  *  Host DB owns it. `hasDb` = `!!host.db`. */
 export function stripUserContentForLocal(s: Settings, hasDb: boolean): Settings {
@@ -90,11 +90,11 @@ export function stripUserContentForLocal(s: Settings, hasDb: boolean): Settings 
 
 export const DEFAULT_SETTINGS: Settings = {
   openaiCompatBaseUrl: PROVIDERS["openai-compat"].defaultBaseUrl ?? "",
-  // En FRANÇAIS exprès : ce défaut est concaténé dans le MÊME message système que
-  // LANGUAGE_GUIDANCE (`send/buildWire.ts`), et une phrase anglaise y tire la réponse — et
-  // surtout la RÉFLEXION affichée — vers l'anglais. L'ancien défaut anglais est migré par
-  // `normalizeSettings`, sans quoi il compterait comme prompt PERSONNALISÉ et paierait une
-  // passe de détection à chaque envoi (`shouldRedactSystemPrompt`).
+  // Deliberately in FRENCH: this default is concatenated into the SAME system message as
+  // LANGUAGE_GUIDANCE (`send/buildWire.ts`), and an English sentence there pulls the reply — and
+  // especially the displayed REASONING — toward English. The old English default is migrated by
+  // `normalizeSettings`, without which it would count as a CUSTOM prompt and pay a
+  // detection pass on every send (`shouldRedactSystemPrompt`).
   systemPrompt: "Tu es un assistant utile.",
   // On-device "local" (BERT NER) engine — the ONLY engine. Free-form PII (names,
   // orgs, places) is detected fully offline — no LLM round-trip, no network — so
@@ -117,9 +117,9 @@ export const DEFAULT_SETTINGS: Settings = {
   // pseudonyms stay readable in the audit journal (Réglages → Journal). An explicit OFF persisted by
   // the user wins over this seed (normalizeSettings spreads user settings over it).
   redactTokenDisplay: true,
-  // Son voisin, et son inverse en défaut : ce que le MODÈLE reçoit reste un faux
-  // vraisemblable. Le jeton à l'écran est un confort de lecture, gratuit ; le jeton SUR LE
-  // FIL se paie en qualité de réponse (`redact/bench/tokensVsFakes.md`), donc il s'opte.
+  // Its neighbor, and its inverse by default: what the MODEL receives stays a plausible
+  // fake. The on-screen token is a reading comfort, free; the token ON THE
+  // WIRE costs in reply quality (`redact/bench/tokensVsFakes.md`), so it's opt-in.
   redactWireTokens: false,
   // Vue SIMPLIFIÉE par défaut : ouvrir sur une hiérarchie à trois colonnes demande de
   // choisir un fournisseur avant d'avoir choisi un modèle — un arbitrage que la plupart

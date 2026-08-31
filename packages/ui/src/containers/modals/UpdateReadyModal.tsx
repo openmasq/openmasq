@@ -7,15 +7,15 @@ import { useT } from "../../i18n";
 import { BRAND } from "@openmasq/branding";
 
 /**
- * « Une nouvelle version est prête » — ce que le système annonçait en anglais dans une
- * boîte de dialogue nue, l'app le dit désormais elle-même, avec ce que la version apporte.
+ * « Une nouvelle version est prête » — what the system used to announce in English in a
+ * bare dialog box, the app now says itself, with what the version brings.
  *
- * Le corps de la note est rendu par le MÊME composant que l'aide et les Réglages
- * (`components/releaseNotes`) : une note se lit à l'identique partout, par construction.
+ * The note's body is rendered by the SAME component as the help and the Réglages
+ * (`components/releaseNotes`): a note reads identically everywhere, by construction.
  *
- * ⚠️ Elle s'ouvre sans être bloquante. « Plus tard » n'annule rien — la mise à jour reste
- * téléchargée, et le bouton du rail droit la rouvre — parce que l'instant où une mise à
- * jour finit de se télécharger n'a aucune raison d'être celui où on veut tout arrêter.
+ * ⚠️ It opens without being blocking. « Plus tard » cancels nothing — the update stays
+ * downloaded, and the right rail's button reopens it — because the moment an update
+ * finishes downloading has no reason to be the moment one wants to stop everything.
  */
 export function UpdateReadyModal({
   version,
@@ -24,8 +24,8 @@ export function UpdateReadyModal({
   onInstall,
 }: {
   version: string;
-  /** La note publiée, quand elle existe. Absente ⇒ on annonce quand même : le geste
-   *  compte plus que le texte, et se taire parce qu'un CMS est muet serait la panne. */
+  /** The published note, when it exists. Absent ⇒ we announce anyway: the gesture
+   *  matters more than the text, and staying silent because a CMS is quiet would be the failure. */
   note?: ReleaseNote;
   onClose: () => void;
   onInstall: () => void;
@@ -52,8 +52,8 @@ export function UpdateReadyModal({
           {note ? (
             <ReleaseNoteBody note={note} />
           ) : (
-            // Pas de note publiée pour cette version : le dire, plutôt que d'ouvrir sur
-            // un blanc qui se lit comme une panne de l'app.
+            // No published note for this version: say so, rather than opening on
+            // a blank that reads as the app being broken.
             <p className="om-upd-empty">{t.modals.updateReady.noNote}</p>
           )}
         </div>

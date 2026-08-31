@@ -43,9 +43,9 @@ export function DetectChips({
     <div className="detect-chips">
       {shown.map(({ value, hue, uncertain }) => {
         const kept = keepSet.has(value);
-        // « À vérifier » : détection à source unique et signal faible (voir
-        // `Detection.uncertain`). La chip le MONTRE — la valeur reste redacted
-        // tant que l'utilisateur ne la garde pas en clair (fail closed).
+        // « À vérifier »: single-source detection and weak signal (see
+        // `Detection.uncertain`). The chip SHOWS it — the value stays redacted
+        // as long as the user doesn't keep it in clear (fail closed).
         const doubt = uncertain && !kept;
         return (
           <button

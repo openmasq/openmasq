@@ -30,10 +30,10 @@ describe("modelMeta", () => {
   });
 
   /**
-   * Le glossaire a changé de FORME, pas d'exigence (11/08 → 14/08) : la valeur en ligne
-   * est nue (l'icône du chip porte le référent — `ModelRow`), et c'est l'INFOBULLE qui
-   * OUVRE PAR LE MOT puis donne l'unité. Ni sigle muet, ni mot en ligne — les deux
-   * leçons, chacune épinglée ici.
+   * The glossary changed SHAPE, not requirement (11/08 → 14/08): the inline value
+   * is bare (the chip's icon carries the referent — `ModelRow`), and it's the TOOLTIP that
+   * OPENS WITH THE WORD then gives the unit. Neither a mute acronym, nor an inline word — both
+   * lessons, each pinned here.
    */
   it("le MOT ouvre l'infobulle, la valeur en ligne reste nue", () => {
     const m = modelMeta("mistral-medium-latest");
@@ -42,17 +42,17 @@ describe("modelMeta", () => {
     expect(m.tpmTitle).toMatch(/^Débit — /);
     expect(m.priceTitle).toContain("million de mots");
     expect(m.priceTitle).toContain("ce que vous envoyez");
-    // La valeur nue ne porte plus le mot : la place rendue est le but (14/08).
+    // The bare value no longer carries the word: the reclaimed space is the point (14/08).
     for (const v of [m.price, m.context, m.tpm]) {
       expect(v, "la valeur en ligne est nue, le mot vit dans l'infobulle").not.toMatch(/^[A-Z]/);
     }
-    // Pas de donnée ⇒ pas d'infobulle orpheline.
+    // No data ⇒ no orphaned tooltip.
     expect(modelMeta("gpt-4o").tpmTitle).toBeUndefined();
   });
 
   it("un modèle GRATUIT (0/0) ne porte PAS de chip prix — le badge le dit déjà", () => {
-    // Laguna est le défaut d'usine gratuit : « 0/0 $ » à côté de « gratuit » se lirait
-    // comme une anomalie, pas comme une information.
+    // Laguna is the free factory default: « 0/0 $ » next to « gratuit » would read
+    // as an anomaly, not as information.
     const free = modelMeta("poolside/laguna-s-2.1:free");
     expect(free.price).toBeUndefined();
     expect(free.priceTitle).toBeUndefined();

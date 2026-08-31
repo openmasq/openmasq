@@ -9,18 +9,18 @@ describe("compactToolHistory (compression de l'historique d'outils)", () => {
       msg("system", "sys"),
       msg("user", "question"),
       msg("assistant", "tour1"),
-      msg("tool", big), // ancien → tronqué
+      msg("tool", big), // old → truncated
       msg("assistant", "tour2"),
-      msg("tool", big), // fenêtre récente → intact
+      msg("tool", big), // recent window → intact
       msg("assistant", "tour3"),
-      msg("tool", big), // récent → intact
+      msg("tool", big), // recent → intact
     ];
     const out = compactToolHistory(msgs);
     expect(out[3].content.length).toBeLessThan(500);
     expect(out[3].content).toContain("tronqué");
     expect(out[5].content).toBe(big);
     expect(out[7].content).toBe(big);
-    // Jamais les legs user/system/assistant, et les originaux restent INTACTS.
+    // Never the user/system/assistant legs, and the originals stay INTACT.
     expect(out[0].content).toBe("sys");
     expect(msgs[3].content).toBe(big);
   });

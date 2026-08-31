@@ -194,8 +194,8 @@ describe("isPythonFrameworkArtifact (one-shot vault cleanup predicate — strict
 });
 
 describe("toolDiscoveryKeep — exempte la métadonnée de découverte d'outils", () => {
-  // Le vrai résultat `info execute-sql` du log rapporté (`ClickHouse → Brightpath`,
-  // `execute-sql → jade-tom`) : un bloc info avec schéma → doit être reconnu découverte.
+  // The real `info execute-sql` result from the reported log (`ClickHouse → Brightpath`,
+  // `execute-sql → jade-tom`): an info block with a schema → must be recognised as discovery.
   const infoBlock =
     "name: execute-sql\ntitle: Execute SQL query\ndescription: |-\n  Executes HogQL — PostHog's variant of SQL over ClickHouse.\ninputSchema: '{\"type\":\"object\"}'";
   const toolList = JSON.stringify(["execute-sql", "read-data-schema", "query-trends", "find-organizations", "search-issues", "dashboards-get-all", "insights-list", "query-funnel", "insight-query"]);
@@ -211,28 +211,28 @@ describe("toolDiscoveryKeep — exempte la métadonnée de découverte d'outils"
     expect(keep).toContain("execute-sql");
     expect(keep).toContain("HogQL");
     expect(keep).toContain("ClickHouse");
-    // Depuis le LISTING d'outils, chaque nom kebab est gardé.
+    // From the tool LISTING, every kebab name is kept.
     expect(toolDiscoveryKeep(toolList)).toContain("read-data-schema");
   });
 
   it("un résultat de DONNÉES (pas une découverte) n'est PAS exempté", () => {
-    // Un `call dashboards-get-all` renvoie des NOMS de dashboards = de la donnée.
+    // A `call dashboards-get-all` returns dashboard NAMES = data.
     const data = 'count: 1\nresults:\n  - name: Tableau de bord de Camille\n    pinned: true';
     expect(isToolDiscoveryResult(data)).toBe(false);
     expect(toolDiscoveryKeep(data)).toEqual([]);
-    // Un e-mail dans un résultat Gmail : jamais une découverte, jamais exempté.
+    // An email in a Gmail result: never discovery, never exempted.
     expect(toolDiscoveryKeep("De: camille.vernay@exemple.fr\nObjet: RDV")).toEqual([]);
   });
 
   it("GUARD vault : ne garde JAMAIS en clair une valeur que le vault tient pour réelle", () => {
-    // Cas limite : un slug kebab qui est en fait une vraie valeur PII connue.
+    // Edge case: a kebab slug that's actually a real, known PII value.
     const keep = toolDiscoveryKeep(infoBlock + "\nclient-secret-acme", ["client-secret-acme"]);
     expect(keep).not.toContain("client-secret-acme");
-    expect(keep).toContain("execute-sql"); // le reste tient
+    expect(keep).toContain("execute-sql"); // the rest holds
   });
 
   it("ne garde QUE des formes identifiant-d'API, jamais une PII dure", () => {
-    // Même dans un bloc découverte, un nom/e-mail (formes non-kebab) n'est pas gardé.
+    // Even inside a discovery block, a name/email (non-kebab shapes) is not kept.
     const keep = toolDiscoveryKeep(infoBlock + "\nauteur: Jean Rebour <jean@exemple.fr>");
     expect(keep).not.toContain("Jean Rebour");
     expect(keep.some((k) => k.includes("@"))).toBe(false);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { providerCreditsExhausted, rateLimitInfo, rateLimitLeft } from "./apiError";
 
-/** The body OpenRouter actually returned on the reported turn (journal du 02/08/2026). */
+/** The body OpenRouter actually returned on the reported turn (02/08/2026 journal). */
 const OPENROUTER_DAILY = JSON.stringify({
   error: {
     message:
@@ -32,8 +32,8 @@ describe("rateLimitInfo — une rafale n'est pas un quota épuisé", () => {
   });
 
   it("compteur à zéro + réinitialisation lointaine ⇒ périodique, même sans le dire", () => {
-    // Tous les fournisseurs ne nomment pas leur source de limite ; un compteur épuisé
-    // dont la remise à zéro est à des heures ne se rattrape pas par un backoff.
+    // Not every provider names its limit source; a spent counter whose reset is
+    // hours away is not caught up by a backoff.
     const far = Date.now() + 6 * 3600_000;
     const body = `{"headers":{"X-RateLimit-Remaining":"0","X-RateLimit-Reset":"${far}"}}`;
     expect(rateLimitInfo(body).daily).toBe(true);
@@ -73,7 +73,7 @@ describe("rateLimitLeft — le compteur des réponses RÉUSSIES", () => {
   });
 
   it("des en-têtes absents ne doivent JAMAIS couler un tour qui a réussi", () => {
-    // Beaucoup d'endpoints n'annoncent aucun quota ; lire un compteur est accessoire.
+    // Many endpoints announce no quota at all; reading a counter is incidental.
     expect(rateLimitLeft(undefined)).toBeUndefined();
     expect(rateLimitLeft(h({}))).toBeUndefined();
     expect(rateLimitLeft(h({ "x-ratelimit-remaining": "beaucoup" }))).toBeUndefined();
@@ -81,7 +81,7 @@ describe("rateLimitLeft — le compteur des réponses RÉUSSIES", () => {
 });
 
 describe("providerCreditsExhausted — un compte fournisseur à sec n'est pas une limite de débit", () => {
-  /** Les corps RÉELS des deux gros, tels qu'ils arrivent dans le message d'erreur. */
+  /** The REAL bodies from the two big ones, as they arrive in the error message. */
   const OPENAI_429 = JSON.stringify({
     error: {
       message:
@@ -103,8 +103,8 @@ describe("providerCreditsExhausted — un compte fournisseur à sec n'est pas un
 
   it("reconnaît l'insufficient_quota d'OpenAI (un 429 qui n'est pas une rafale)", () => {
     expect(providerCreditsExhausted(OPENAI_429)).toBe(true);
-    // …et que rateLimitInfo, lui, n'y voit RIEN de périodique : c'est exactement le trou
-    // qui faisait répondre « patientez quelques secondes » à un solde à zéro.
+    // …and that rateLimitInfo itself sees NOTHING periodic in it: this is exactly the
+    // hole that used to answer "wait a few seconds" to a zero balance.
     expect(rateLimitInfo(OPENAI_429).daily).toBe(false);
   });
 
@@ -113,8 +113,8 @@ describe("providerCreditsExhausted — un compte fournisseur à sec n'est pas un
   });
 
   it("reconnaît le « no credits remaining » d'OpenRouter — observé en prod le 06/08", () => {
-    // Le corps réel qui a subi 7 tentatives de backoff puis s'est dit « limite de
-    // débit momentanée » : un compte à sec, que seul un paiement débloque.
+    // The real body that went through 7 backoff attempts before being called a
+    // "momentary rate limit": an account at zero, which only a payment unlocks.
     expect(
       providerCreditsExhausted(
         '{"error":{"message":"You have no credits remaining. Add credits to continue using the API.","code":429}}',
@@ -133,10 +133,10 @@ describe("rateLimitInfo — gratuit et attente ne sont dits que quand le corps l
   it("`free` seulement sur un limit_source de palier gratuit", () => {
     expect(rateLimitInfo('{"metadata":{"limit_source":"openrouter_free_tier_daily"}}').free).toBe(true);
     expect(rateLimitInfo('{"error":"Rate limit exceeded: free-models-per-day"}').free).toBe(true);
-    // Un quota JOURNALIER sur clé payante est périodique mais PAS gratuit — c'est le
-    // cas qui affichait « Quota gratuit » à quelqu'un qui paie.
+    // A DAILY quota on a paying key is periodic but NOT free — this is the case
+    // that used to display "Free quota" to someone who pays.
     expect(rateLimitInfo('{"error":"Daily request quota exceeded for this project"}').free).toBeUndefined();
-    // Un « free » de passage dans une phrase ne fait pas un palier gratuit.
+    // A "free" that just passes through a sentence doesn't make a free tier.
     expect(rateLimitInfo('{"error":"feel free to retry"}').free).toBeUndefined();
   });
 

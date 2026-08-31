@@ -1,19 +1,19 @@
-// La garde « RÉDIGER ≠ ENVOYER », extraite de `mcpAgentClassify.ts` pour le garder sous
-// le plafond de 300 lignes (règle 1). Réexportée là-bas, donc invisible des importateurs —
-// le même motif que `mcpAgentGuidance.ts` → `mcpAgentPython.ts`.
+// The « DRAFT ≠ SEND » guard, extracted from `mcpAgentClassify.ts` to keep it under
+// the 300-line ceiling (rule 1). Re-exported there, so invisible to importers —
+// the same pattern as `mcpAgentGuidance.ts` → `mcpAgentPython.ts`.
 
 /**
- * « RÉDIGER » n'est pas « ENVOYER » — la garde déterministe.
+ * « RÉDIGER » (DRAFT) is not « ENVOYER » (SEND) — the deterministic guard.
  *
- * Journal du 26/07/2026 : « Rédige un email de remerciement à … » et un petit modèle
- * appelle `gmail__send_email` séance tenante. En mode de confirmation `standard` aucune
- * carte ne s'ouvre tant que la conversation n'a pas touché le web — l'email PARTAIT.
+ * Journal from 26/07/2026: « Rédige un email de remerciement à … » (Draft a thank-you email
+ * to …) and a small model calls `gmail__send_email` on the spot. In `standard` confirmation
+ * mode no card opens until the conversation has touched the web — the email WAS LEAVING.
  *
- * Le prompt système le dit déjà, mais un prompt est une prière, pas une garantie : un
- * envoi est irréversible, donc la boucle le refuse ELLE-MÊME, quel que soit le mode de
- * confirmation. La garde est volontairement étroite dans les deux sens — elle n'agit que
- * sur les outils d'ENVOI, et seulement quand la demande porte un verbe de RÉDACTION sans
- * verbe d'envoi. « Envoie un email… » passe.
+ * The system prompt already says so, but a prompt is a prayer, not a guarantee: a
+ * send is irreversible, so the loop refuses it ITSELF, whatever the confirmation
+ * mode. The guard is deliberately narrow both ways — it only acts
+ * on SEND tools, and only when the request carries a DRAFTING verb with no
+ * send verb. « Envoie un email… » (Send an email…) goes through.
  */
 const SEND_TOOL = /(^|_)(send|post|reply|forward)_(email|mail|message|messages|dm|sms)\b|(^|_)send_(email|mail|message)$/i;
 
@@ -21,10 +21,10 @@ export function isSendTool(name: string): boolean {
   return SEND_TOOL.test(name.replace(/^[a-z0-9-]+__/i, ""));
 }
 
-/** Verbes de RÉDACTION (produire un texte) et verbes d'ENVOI (le faire partir). */
-// ⚠️ Frontières en lookaround Unicode, jamais `\b` : `\b` est ASCII, donc « Écris » en
-// tête de phrase n'ouvrait aucune frontière et la garde ne se déclenchait pas.
-// Définition partagée : `send/wordEdges.ts` (règle 9).
+/** DRAFTING verbs (produce a text) and SEND verbs (make it leave). */
+// ⚠️ Boundaries via Unicode lookaround, never `\b`: `\b` is ASCII, so « Écris » at
+// the start of a sentence opened no boundary and the guard never triggered.
+// Shared definition: `send/wordEdges.ts` (rule 9).
 import { EDGE_L, EDGE_R } from "../send/wordEdges";
 const DRAFT_VERB = new RegExp(
   `${EDGE_L}(r[ée]dige|r[ée]diger|[ée]cris|[ée]crire|pr[ée]pare|pr[ée]parer|compose|composer|` +
@@ -38,11 +38,11 @@ const SEND_VERB = new RegExp(
 );
 
 /**
- * Une INTERDICTION explicite d'envoyer. Elle contient le verbe d'envoi, ce qui a retourné
- * la garde contre son objet : « N'envoie rien : montre-moi d'abord. » contenait « envoie »,
- * donc la demande se lisait comme un ordre d'envoi — et l'e-mail est parti (journal du
- * 27/07/2026). La négation est donc traitée AVANT, et elle est SUFFISANTE : dire « n'envoie
- * rien » n'oblige à aucun verbe de rédaction pour être respecté.
+ * An explicit PROHIBITION on sending. It contains the send verb, which turned
+ * the guard against its own target: « N'envoie rien : montre-moi d'abord. » contained « envoie »,
+ * so the request read as a send order — and the email went out (journal from
+ * 27/07/2026). The negation is therefore handled FIRST, and it is SUFFICIENT: saying « n'envoie
+ * rien » requires no drafting verb at all to be honored.
  */
 const NO_SEND = new RegExp(
   `${EDGE_L}(?:n['’ ]?(?:e[ ]?)?(?:les[ ]?|le[ ]?|lui[ ]?)?envoie|n['’ ]?envoyez|ne[ ](?:rien[ ])?envoyer|` +
@@ -52,13 +52,13 @@ const NO_SEND = new RegExp(
 );
 
 /**
- * La demande réclame-t-elle un BROUILLON plutôt qu'un envoi ?
+ * Does the request call for a DRAFT rather than a send?
  *
- * Trois cas, dans cet ordre — l'ordre EST la règle :
- *  1. une interdiction explicite d'envoyer ⇒ oui, quoi qu'il y ait d'autre dans le message ;
- *  2. sinon, un verbe d'envoi ⇒ non (sur-bloquer un « envoie » explicite serait aussi grave
- *     que laisser partir un « rédige ») ;
- *  3. sinon, un verbe de rédaction ⇒ oui.
+ * Three cases, in this order — the order IS the rule:
+ *  1. an explicit prohibition on sending ⇒ yes, whatever else is in the message;
+ *  2. otherwise, a send verb ⇒ no (over-blocking an explicit « envoie » would be as serious
+ *     as letting a « rédige » go out);
+ *  3. otherwise, a drafting verb ⇒ yes.
  */
 export function asksDraftNotSend(text: string | undefined | null): boolean {
   if (!text) return false;
@@ -66,7 +66,7 @@ export function asksDraftNotSend(text: string | undefined | null): boolean {
   return DRAFT_VERB.test(text) && !SEND_VERB.test(text);
 }
 
-/** Ce que le modèle reçoit à la place du résultat d'envoi : la consigne, pas une erreur. */
+/** What the model receives instead of the send result: the instruction, not an error. */
 export const DRAFT_NOT_SEND_STEER =
   "Envoi REFUSÉ : l'utilisateur a demandé de RÉDIGER, pas d'ENVOYER. L'e-mail n'est PAS " +
   "parti. Présente le texte rédigé dans la conversation (bloc document) et laisse " +

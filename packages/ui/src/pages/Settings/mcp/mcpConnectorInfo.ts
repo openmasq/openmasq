@@ -6,10 +6,10 @@ import type { Messages } from "@openmasq/i18n";
  * side-table shape of `mcpApiKeyHelp.ts`. Keyed by the catalog connector id. Ids absent
  * here simply render no about block (e.g. the local `filesystem` server has no company).
  *
- * La PHRASE de présentation, elle, vit dans le catalogue (`connectors`) : c'est de la
- * copie, et elle se traduit. Ce qui tient les deux tables ensemble est le TYPE de la
- * table ci-dessous — un connecteur présenté sans adresse, ou une adresse sans
- * présentation, ne compile pas.
+ * The presentation SENTENCE itself lives in the catalogue (`connectors`): it's
+ * copy, and it gets translated. What holds the two tables together is the TYPE of the
+ * table below — a connector presented with no address, or an address with no
+ * presentation, doesn't compile.
  */
 
 export interface ConnectorInfo {
@@ -76,12 +76,12 @@ const CONNECTOR_WEBSITE: Record<keyof Messages["connectors"], string> = {
   "microsoft-teams": "https://microsoft.com/microsoft-teams",
 };
 
-/** La fiche « à propos » d'un connecteur dans la langue de `t`, ou `undefined` s'il n'en
- *  a pas (les serveurs qui sont les NÔTRES : le navigateur, le disque local). */
+/** A connector's « à propos » card in `t`'s language, or `undefined` if it doesn't
+ *  have one (the servers that are OURS: the browser, the local disk). */
 export function connectorInfo(id: string, t: Messages): ConnectorInfo | undefined {
   const website = CONNECTOR_WEBSITE[id as keyof Messages["connectors"]];
   return website ? { about: t.connectors[id as keyof Messages["connectors"]], website } : undefined;
 }
 
-/** Les ids qui PORTENT une fiche — lu par le test de parité avec le catalogue. */
+/** The ids that CARRY a card — read by the parity test against the catalogue. */
 export const CONNECTOR_INFO_IDS = Object.keys(CONNECTOR_WEBSITE);
