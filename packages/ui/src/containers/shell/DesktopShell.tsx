@@ -152,7 +152,13 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
         ],
       }));
     for (const c of items.competences)
-      shell.chat.addCompetence({ name: c.name, prompt: c.prompt, desc: c.desc, cat: c.cat, servers: c.servers });
+      shell.chat.addCompetence({
+        name: c.name,
+        prompt: c.prompt,
+        desc: c.desc,
+        cat: c.cat,
+        servers: c.servers,
+      });
   };
 
   const footer = (section === "chats" || section === "library") && (
@@ -179,8 +185,8 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
       updateVersion={shell.update.version}
       onOpenGuide={() => shell.guide.setOpen(true)}
       onOpenAvis={host.avis ? () => avis.setOpen({}) : undefined}
-      shareInbox={<ShareInbox wide onAdopt={adoptShare} />}
-      shareInboxNarrow={<ShareInbox onAdopt={adoptShare} />}
+      shareInbox={<ShareInbox wide inOrg={!!chat.orgProfile} onAdopt={adoptShare} />}
+      shareInboxNarrow={<ShareInbox inOrg={!!chat.orgProfile} onAdopt={adoptShare} />}
       // Granting and revoking a folder happens in ONE place — the Filesystem connector —
       // so the tree links there instead of growing a second grant surface.
       // La modale du connecteur s'ouvre PAR-DESSUS le panneau : accorder un dossier ou

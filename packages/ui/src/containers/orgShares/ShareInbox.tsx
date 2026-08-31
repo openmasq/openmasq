@@ -3,7 +3,7 @@ import { BellIcon, CheckIcon, ShieldIcon, SparklesIcon } from "../../components/
 import { ScopeBadge } from "../../components/brand/ScopeBadge";
 import type { CoffreTerm, Competence } from "../../types";
 import type { OrgShareView } from "../../host/orgShares";
-import { useOrgShares } from "./useOrgShares";
+import { shareInboxVisible, useOrgShares } from "./useOrgShares";
 
 import { useT } from "../../i18n";
 const audienceScope = (s: OrgShareView): string =>
@@ -21,16 +21,21 @@ const audienceScope = (s: OrgShareView): string =>
  */
 export function ShareInbox({
   wide,
+  inOrg = false,
   onAdopt,
 }: {
   wide?: boolean;
+  /** Ce compte appartient-il à une organisation ? Sans elle (et sans partage déjà
+   *  reçu), la cloche n'annoncera jamais rien — elle n'est pas rendue
+   *  (`shareInboxVisible`). */
+  inOrg?: boolean;
   /** Land an accepted person-share's items in the PERSONAL lists. */
   onAdopt?: (items: { terms: CoffreTerm[]; competences: Competence[] }) => void;
 }) {
   const t = useT();
   const { available, api, shares, decide, revoke } = useOrgShares();
   const [open, setOpen] = useState(false);
-  if (!available) return null;
+  if (!shareInboxVisible({ available, inOrg, shareCount: shares.length })) return null;
 
   const toDecide = shares.filter((s) => s.canDecide);
   const mine = shares.filter((s) => s.mine);
@@ -72,16 +77,16 @@ export function ShareInbox({
       {open && (
         <>
           <div className="om-shinbox-scrim" onClick={() => setOpen(false)} />
-          <div className="om-shinbox-pop om-step-in" role="dialog" aria-label={t.orgShares.requests}>
+          <div
+            className="om-shinbox-pop om-step-in"
+            role="dialog"
+            aria-label={t.orgShares.requests}
+          >
             <div className="om-shinbox-head">
               <div className="cv-eyebrow">{t.orgShares.requests}</div>
             </div>
             <div className="om-shinbox-list">
-              {toDecide.length === 0 && (
-                <div className="om-shinbox-empty">
-                  {t.orgShares.empty}
-                </div>
-              )}
+              {toDecide.length === 0 && <div className="om-shinbox-empty">{t.orgShares.empty}</div>}
               {toDecide.map((s) => (
                 <div key={s.shareUuid} className="om-shinbox-row">
                   <div className="om-shinbox-meta">
@@ -94,9 +99,15 @@ export function ShareInbox({
                     <ScopeBadge scope={audienceScope(s)} />
                   </div>
                   <div className="om-shinbox-name">{s.label}</div>
-                  <div className="om-shinbox-by">{t.orgShares.proposedBy(s.authorName ?? t.orgShares.someMember)}</div>
+                  <div className="om-shinbox-by">
+                    {t.orgShares.proposedBy(s.authorName ?? t.orgShares.someMember)}
+                  </div>
                   <div className="om-shinbox-actions">
-                    <button type="button" className="btn-primary om-shinbox-act" onClick={() => void accept(s)}>
+                    <button
+                      type="button"
+                      className="btn-primary om-shinbox-act"
+                      onClick={() => void accept(s)}
+                    >
                       <CheckIcon size={13} /> {t.orgShares.accept}
                     </button>
                     <button
@@ -118,7 +129,9 @@ export function ShareInbox({
                     <div key={s.shareUuid} className="om-shinbox-row is-mine">
                       <div className="om-shinbox-meta">
                         <ScopeBadge scope={audienceScope(s)} />
-                        <span className={`om-org-status is-${s.status}`}>{t.orgShares.status[s.status]}</span>
+                        <span className={`om-org-status is-${s.status}`}>
+                          {t.orgShares.status[s.status]}
+                        </span>
                       </div>
                       <div className="om-shinbox-name">{s.label}</div>
                       {s.status !== "revoked" && (

@@ -9,6 +9,24 @@ import type { OrgShareView, OrgSharesHost } from "../../host/orgShares";
  * each share come from the SERVER — the UI greys on them, never re-derives the
  * matrix, and the backend re-checks every call anyway.
  */
+/**
+ * La cloche « Demandes » existe-t-elle ? Pure et testée (`shareInboxVisible.test.ts`).
+ *
+ * Trois conditions, toutes nécessaires : le créneau `host.orgShares` (un build sans
+ * backend n'a rien à lister), ET une raison d'exister — l'appartenance à une
+ * organisation (les partages voyagent entre membres), ou des partages déjà présents
+ * (le reliquat d'une organisation quittée reste décidable/révocable). Une cloche
+ * montée pour un compte solo, ou hors connexion, est un bouton qui n'annoncera
+ * jamais rien : du bruit, pas une invitation.
+ */
+export function shareInboxVisible(p: {
+  available: boolean;
+  inOrg: boolean;
+  shareCount: number;
+}): boolean {
+  return p.available && (p.inOrg || p.shareCount > 0);
+}
+
 export function useOrgShares(scope?: "coffre" | "userdata"): {
   available: boolean;
   api: OrgSharesHost | null;
