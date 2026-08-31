@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Changer de canal décide quels BUILDS cette install reçoit — pas à quelle API elle
-// parle : depuis l'artefact unique, l'environnement se change ailleurs et sous son propre
-// droit (`../ipc/registerEnvIpc.ts`). Le sélecteur de versions ne l'offre qu'à un appareil
-// privilégié, mais cette porte est de l'UI, et un XSS du renderer appelle l'IPC
-// directement (règle 7). Ces cas épinglent la garde côté main.
+// Changing channel decides which BUILDS this install receives — not which API it
+// talks to: since the single artifact, the environment is changed elsewhere and under its own
+// right (`../ipc/registerEnvIpc.ts`). The version picker only offers it to a
+// privileged device, but that gate is UI, and a renderer XSS calls the IPC
+// directly (rule 7). These cases pin the main-side guard.
 
 const cfg = { channel: "desktop-production", installId: "inst-1" };
 const applyFeed = vi.fn();

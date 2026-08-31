@@ -1,59 +1,59 @@
-// Le COMPLÉMENT d'adresse — « Résidence Les Chênes », « appartement 12B », « Bât. C »,
-// « escalier 3 » — la ligne qu'on écrit AVANT la rue et que les formes de `addresses.ts`
-// ne peuvent pas voir : elles s'ancrent sur un numéro + un type de voie, et un
-// complément n'a ni l'un ni l'autre.
+// The address COMPLEMENT — « Résidence Les Chênes », « appartement 12B », « Bât. C »,
+// « escalier 3 » — the line written BEFORE the street, which the shapes in `addresses.ts`
+// cannot see: they anchor on a number + a street type, and a
+// complement has neither.
 //
-// Remonté le 11/08 : « Résidence Les Chênes, appartement 12B, 5 allée Verte, 69003 Lyon »
-// ressortait avec la rue, le code postal et la ville faussés — et la résidence et le
-// numéro d'appartement en CLAIR. Or c'est exactement ce qui désigne le foyer une fois la
-// rue remplacée : dans une petite commune, « Résidence Les Chênes appartement 12B » suffit
-// à retrouver quelqu'un.
+// Reported on 11/08: « Résidence Les Chênes, appartement 12B, 5 allée Verte, 69003 Lyon »
+// came back with the street, postal code and city faked — and the residence and
+// apartment number in CLEAR. And that's exactly what identifies the household once the
+// street is replaced: in a small commune, « Résidence Les Chênes appartement 12B » is enough
+// to find someone.
 //
-// ⚠️ LA PORTE EST L'ADJACENCE, pas le mot-clé. « appartement » seul est un nom commun
-// (« il cherche un appartement »), et un mot-clé nu contredirait la barre de précision du
-// moteur. Un morceau n'est retenu que s'il TOUCHE une adresse déjà détectée — même ligne,
-// séparé d'elle par les seuls `,`/espaces (ou par d'autres compléments enchaînés). Il ne
-// crée donc jamais de détection là où il n'y a pas déjà une adresse.
+// ⚠️ THE GATE IS ADJACENCY, not the keyword. « appartement » alone is a common noun
+// (« il cherche un appartement »), and a bare keyword would contradict the engine's
+// precision bar. A chunk is only kept if it TOUCHES an already-detected address — same line,
+// separated from it only by `,`/spaces (or by other chained complements). So it
+// never creates a detection where there isn't already an address.
 import type { Detection } from "../types";
 import { fakeHandle } from "../model/fakes/primitives";
 
-/** Les mots qui ouvrent un complément. Abréviations comprises : c'est ainsi qu'on écrit
- *  une adresse sur une enveloppe. Le point final est optionnel (« Bât. » / « Bat »). */
+/** The words that open a complement. Abbreviations included: that's how
+ *  an address is written on an envelope. The trailing period is optional (« Bât. » / « Bat »). */
 const KEYWORD =
   "r[ée]sidence|r[ée]s|b[âa]timent|b[âa]t|immeuble|appartement|appart|appt|apt|" +
   "escalier|esc|[ée]tage|porte|lot|entr[ée]e|chez";
 
-/** Un morceau : le mot-clé + sa valeur courte, qui s'arrête à la virgule ou à la fin de
- *  ligne. La valeur reste bornée (≤ 30 signes) — au-delà on n'est plus dans un complément
- *  mais dans une phrase. */
+/** A chunk: the keyword + its short value, which stops at the comma or end of
+ *  line. The value stays bounded (≤ 30 characters) — beyond that we're no longer in a complement
+ *  but in a sentence. */
 const CHUNK = `(?:${KEYWORD})\\.?[^\\S\\r\\n]+[\\p{L}\\p{N}][\\p{L}\\p{N}'’\\-. ]{0,29}`;
 
-/** Une CHAÎNE de morceaux collée à ce qui suit : « Résidence X, appartement Y, ». */
+/** A CHAIN of chunks glued to what follows: « Résidence X, appartement Y, ». */
 const TRAILING_CHAIN = new RegExp(`(?:${CHUNK})(?:[^\\S\\r\\n]*,[^\\S\\r\\n]*(?:${CHUNK}))*[^\\S\\r\\n]*,?[^\\S\\r\\n]*$`, "iu");
 
 /**
- * …et la chaîne qui SUIT l'adresse : « 2 mail Camille du Gast, 92600, Asnières,
- * appartement A02 ». Mesuré le 16/08/2026 sur un bail RÉEL — ce fichier ne regardait que
- * l'AVANT (« la ligne qu'on écrit AVANT la rue »), et le document, lui, l'écrit APRÈS.
- * Même conséquence, mot pour mot, que celle qui a fait naître ce détecteur : rue, code
- * postal et ville faussés, le numéro d'appartement en clair.
+ * …and the chain that FOLLOWS the address: « 2 mail Camille du Gast, 92600, Asnières,
+ * appartement A02 ». Measured on 16/08/2026 on a REAL lease — this file only looked at
+ * the BEFORE (« the line written BEFORE the street »), while the document, itself, writes it AFTER.
+ * Same consequence, word for word, as the one that gave rise to this detector: street, postal
+ * code and city faked, apartment number in clear.
  *
- * ⚠️ Le morceau TRAÎNANT est plus STRICT que le morceau qui précède, et l'asymétrie est
- * voulue : ce qui SUIT une adresse est le plus souvent une phrase (« …, 69003 Lyon, entrée
- * libre de 9h à 18h »), là où ce qui la précède est une ligne d'adresse. Il doit donc être
- * un CODE — le mot-clé puis UN SEUL jeton alphanumérique portant un chiffre. Deux choses en
- * découlent, et les deux sont nécessaires : « entrée libre » ne passe pas (aucun chiffre),
- * et la valeur ne peut pas déborder sur la suite de la ligne — le document réel écrit
- * « appartement A02 Loyer de 650 eur » SANS virgule, et une valeur gloutonne aurait emporté
- * le loyer. Over-redact est un échec produit (barre de précision du `CLAUDE.md`) : on
- * préfère rater un « bâtiment C » traînant, forme que le côté AVANT couvre déjà.
+ * ⚠️ The TRAILING chunk is STRICTER than the one preceding it, and the asymmetry is
+ * intentional: what FOLLOWS an address is most often a sentence (« …, 69003 Lyon, entrée
+ * libre de 9h à 18h »), where what precedes it is an address line. It must therefore be
+ * a CODE — the keyword then a SINGLE alphanumeric token carrying a digit. Two things
+ * follow from this, and both are necessary: « entrée libre » doesn't pass (no digit),
+ * and the value cannot overflow onto the rest of the line — the real document writes
+ * « appartement A02 Loyer de 650 eur » WITHOUT a comma, and a greedy value would have carried off
+ * the rent. Over-redacting is a product failure (the precision bar in `CLAUDE.md`): we
+ * prefer to miss a trailing « bâtiment C », a form the BEFORE side already covers.
  */
 const TRAIL_CHUNK = `(?:${KEYWORD})\\.?[^\\S\\r\\n]+[\\p{L}\\p{N}]{1,10}`;
-// ⚠️ UN retour à la ligne est toléré AVANT le morceau, et un seul : un bloc d'adresse se
-// replie (« …, 92600, Asnières,\nappartement A02 » — mesuré sur le persona courtier, où le
-// complément partait EN CLAIR pour ce seul motif). C'est le même arbitrage que le joint `W`
-// des formes d'adresse : ce qui autorise le repli, c'est que le MOT-CLÉ ancre le morceau —
-// rien d'autre ne peut s'y glisser — et ici s'y ajoute l'exigence d'un jeton-code chiffré.
+// ⚠️ ONE line wrap is tolerated BEFORE the chunk, and only one: an address block
+// wraps (« …, 92600, Asnières,\nappartement A02 » — measured on the broker persona, where the
+// complement was going out IN CLEAR for this reason alone). It's the same trade-off as the `W`
+// join in address shapes: what allows the wrap is that the KEYWORD anchors the chunk —
+// nothing else can slip in — and here the requirement of a digit-bearing code token is added on top.
 const LEADING_CHAIN = new RegExp(
   `^[^\\S\\r\\n]*,?(?:[^\\S\\r\\n]*\\r?\\n)?[^\\S\\r\\n]*(?:${TRAIL_CHUNK})(?:[^\\S\\r\\n]*,[^\\S\\r\\n]*(?:${TRAIL_CHUNK}))*`,
   "iu",
@@ -61,11 +61,11 @@ const LEADING_CHAIN = new RegExp(
 const hasDigit = (chunk: string): boolean => /\d/.test(chunk.split(/\s+/).slice(1).join(" "));
 
 /**
- * Les compléments qui PRÉCÈDENT immédiatement une adresse détectée.
+ * The complements that IMMEDIATELY PRECEDE a detected address.
  *
- * `addresses` doit porter les détections d'adresse avec leur `start` (celles de
- * `detectAddresses`) : c'est l'ancre. Chaque morceau devient sa propre détection
- * `ADDRESS`, dans le pays de l'adresse qu'il complète — donc faussé avec elle.
+ * `addresses` must carry the address detections with their `start` (those from
+ * `detectAddresses`): that's the anchor. Each chunk becomes its own
+ * `ADDRESS` detection, in the country of the address it complements — so faked along with it.
  */
 export function detectAddressComplements(text: string, addresses: Detection[]): Detection[] {
   if (!text) return [];
@@ -73,7 +73,7 @@ export function detectAddressComplements(text: string, addresses: Detection[]): 
   const seen = new Set<string>();
   for (const addr of addresses) {
     if (addr.category !== "ADDRESS" || addr.start == null) continue;
-    // APRÈS l'adresse — plus strict (cf. `TRAIL_CHUNK` + `hasDigit`), et au plus UN repli.
+    // AFTER the address — stricter (see `TRAIL_CHUNK` + `hasDigit`), and at most ONE wrap.
     const end = addr.start + addr.value.length;
     const wrap = text.indexOf("\n", end);
     const secondEol = wrap === -1 ? -1 : text.indexOf("\n", wrap + 1);
@@ -89,26 +89,26 @@ export function detectAddressComplements(text: string, addresses: Detection[]): 
         out.push({ value, category: "ADDRESS", country: addr.country, start: end + apres.index + m.index });
       }
     }
-    // Le texte depuis le début de la LIGNE de l'adresse jusqu'à son premier caractère.
+    // The text from the start of the address's LINE to its first character.
     const lineStart = text.lastIndexOf("\n", addr.start - 1) + 1;
     const before = text.slice(lineStart, addr.start);
     if (!before.trim()) continue;
     const chain = TRAILING_CHAIN.exec(before);
     if (!chain) continue;
-    // Chaque morceau de la chaîne, isolément : un faux par complément, comme pour le
-    // reste — un seul span « Résidence X, appartement Y » donnerait un faux unique dont
-    // la ponctuation interne serait inventée.
+    // Each chunk of the chain, in isolation: one fake per complement, like for the
+    // rest — a single span « Résidence X, appartement Y » would give one fake whose
+    // internal punctuation would be invented.
     for (const m of chain[0].matchAll(new RegExp(CHUNK, "giu"))) {
       const value = m[0].replace(/[\s,.]+$/, "");
       if (value.length < 5) continue;
-      // ⚠️ Le tell de la PROSE est l'article indéfini : « il cherche un appartement
-      // 3 pièces, 12 rue de la Paix » n'est pas une adresse à trois lignes. Un
-      // complément d'adresse ne s'introduit pas, il s'écrit sec.
+      // ⚠️ PROSE's tell is the indefinite article: « il cherche un appartement
+      // 3 pièces, 12 rue de la Paix » is not a three-line address. An
+      // address complement doesn't introduce itself, it's written flat.
       const head = chain[0].slice(0, m.index).trimEnd();
       const beforeChunk = head ? head : before.slice(0, chain.index).trimEnd();
       if (/\b(?:un|une|des|du|le|la|les|ce|cet|cette|mon|ma|notre|leur)$/i.test(beforeChunk)) continue;
-      // Une désignation tient en trois mots (« Les Chênes », « 12B », « C ») ; au-delà
-      // on lit une phrase qui commence par le mot-clé.
+      // A designation fits in three words (« Les Chênes », « 12B », « C »); beyond that
+      // we're reading a sentence that starts with the keyword.
       if (value.split(/\s+/).length > 4) continue;
       const key = `ADDRESS::${value}`;
       if (seen.has(key)) continue;
@@ -125,26 +125,26 @@ export function detectAddressComplements(text: string, addresses: Detection[]): 
 }
 
 /**
- * Le FAUX d'un complément — le mot-clé RESTE, le code change.
+ * The FAKE of a complement — the keyword STAYS, the code changes.
  *
- * ⚠️ Sans lui, « appartement A02 » recevait « 27 CHEMIN des Tilleuls » : la catégorie est
- * ADDRESS, et la branche ADDRESS fabrique toujours une RUE. Un faux doit être de même
- * nature que la valeur (`model/CLAUDE.md`) — un complément qui devient une rue invente un
- * second lieu là où le document en désignait un seul, et le modèle raisonne dessus.
+ * ⚠️ Without it, « appartement A02 » got « 27 CHEMIN des Tilleuls »: the category is
+ * ADDRESS, and the ADDRESS branch always builds a STREET. A fake must be of the same
+ * nature as the value (`model/CLAUDE.md`) — a complement that becomes a street invents a
+ * second place where the document named only one, and the model reasons on it.
  *
- * BORNÉ AU CAS-CODE, exprès : seulement si la queue porte un chiffre. « Résidence Les
- * Chênes » est un NOM, et le brouillage lettre à lettre en ferait un mot illisible ; ce
- * cas-là garde le chemin d'avant, inchangé. `fakeHandle` préserve la classe de chaque
- * caractère (chiffre → chiffre, majuscule → majuscule), donc « A02 » reste un code
- * d'appartement crédible.
+ * BOUNDED TO THE CODE CASE, on purpose: only if the tail carries a digit. « Résidence Les
+ * Chênes » is a NAME, and letter-by-letter scrambling would turn it into an unreadable word; this
+ * case keeps the previous path, unchanged. `fakeHandle` preserves each character's
+ * class (digit → digit, uppercase → uppercase), so « A02 » stays a believable
+ * apartment code.
  */
 export function fakeAddressComplement(value: string, seed: number): string | null {
   const m = new RegExp(`^((?:${KEYWORD})\\.?[^\\S\\r\\n]+)(.+)$`, "iu").exec(value.trim());
   if (!m || !/\d/.test(m[2])) return null;
   const fake = fakeHandle(m[2], seed);
-  // « escalier 0 » n'existe pas : un zéro de tête ne se lit comme un code que si
-  // l'original en portait un (« porte 03 »). `fakeHandle` tire les chiffres uniformément,
-  // il faut donc le lui dire.
+  // « escalier 0 » doesn't exist: a leading zero only reads as a code if
+  // the original carried one (« porte 03 »). `fakeHandle` draws digits uniformly,
+  // so it has to be told.
   const zéroteté = fake.startsWith("0") && !m[2].startsWith("0");
   return m[1] + (zéroteté ? String(1 + (seed % 9)) + fake.slice(1) : fake);
 }

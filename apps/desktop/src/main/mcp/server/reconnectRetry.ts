@@ -1,37 +1,37 @@
 import type { McpServerInfo } from "./types";
 
 /*
- * Retry ciblé de la reconnexion SILENCIEUSE d'un connecteur distant (HTTP/OAuth).
+ * Targeted retry of a remote connector's (HTTP/OAuth) SILENT reconnect.
  *
- * Pourquoi : au démarrage (et à chaque bascule de compte), `mcpReconnectStored`
- * reconnecte TOUS les connecteurs en parallèle, best-effort, en UNE tentative
- * chacun. Un connecteur HTTP fait alors un refresh OAuth + un handshake JSON-RPC ;
- * sous charge (plusieurs instances, ou simplement un réseau lent), certains
- * échouent sur un timeout transitoire — et restent absents jusqu'à ce que
- * l'utilisateur les reconnecte à la main. Le bench e2e l'a mesuré : notion/airtable
- * (distants) non reconnectés là où gmail/calendar (OAuth on-device) tenaient.
+ * Why: at startup (and on every account switch), `mcpReconnectStored`
+ * reconnects ALL connectors in parallel, best-effort, in ONE attempt
+ * each. An HTTP connector then does an OAuth refresh + a JSON-RPC handshake;
+ * under load (several instances, or simply a slow network), some
+ * fail on a transient timeout — and stay absent until the
+ * user reconnects them by hand. The e2e bench measured it: notion/airtable
+ * (remote) not reconnected where gmail/calendar (on-device OAuth) held.
  *
- * La subtilité : NE PAS retenter un échec PERMANENT (autorisation expirée, serveur
- * sans inscription OAuth, clé refusée) — retenter n'y changerait rien et allongerait
- * le démarrage. On ne retente que le transitoire (réseau/timeout/handshake).
+ * The subtlety: do NOT retry a PERMANENT failure (expired authorization, server
+ * with no OAuth registration, refused key) — retrying would change nothing and would lengthen
+ * startup. Only the transient (network/timeout/handshake) is retried.
  */
 
-// Un échec dont retenter ne changerait rien : l'utilisateur doit ré-autoriser, ou le
-// serveur ne supporte pas le flux — surfacer tout de suite, ne pas boucler.
+// A failure retrying which would change nothing: the user must re-authorize, or the
+// server doesn't support the flow — surface it right away, don't loop.
 //
-// ⚠️ La liste doit parler la langue des FOURNISSEURS, pas la nôtre. Elle ne portait que
-// nos propres formulations (« authorization required/failed »), si bien que TOUTES les
-// façons dont un serveur annonce une autorisation morte passaient pour du transitoire :
-// `invalid_grant` (le code standard OAuth2), « Refresh token is invalid. » (Vercel),
-// « Token has been expired or revoked. » (Google), un 401/403 nu. Chaque connecteur
-// expiré payait donc 3 tentatives vouées à l'échec + le backoff, à CHAQUE démarrage et à
-// chaque bascule de compte — exactement ce que ce filtre existe pour éviter (15/08).
-// Un jeton mort ne ressuscite pas en réessayant : seul l'utilisateur peut ré-autoriser.
+// ⚠️ The list must speak the PROVIDERS' language, not ours. It used to carry only
+// our own phrasings (« authorization required/failed »), so much so that ALL the
+// ways a server announces a dead authorization passed for transient:
+// `invalid_grant` (the standard OAuth2 code), « Refresh token is invalid. » (Vercel),
+// « Token has been expired or revoked. » (Google), a bare 401/403. Every expired
+// connector therefore paid for 3 doomed attempts + the backoff, on EVERY startup and
+// every account switch — exactly what this filter exists to avoid (15/08).
+// A dead token doesn't come back to life by retrying: only the user can re-authorize.
 const PERMANENT_RE =
   /authorization required|authorization failed|dynamic client registration|clé api refusée|url refusée|unknown server|no url|invalid[_ ]grant|refresh token|expired or revoked|token (?:has )?(?:is )?(?:been )?(?:expired|revoked|invalid)|\b401\b|\b403\b|unauthorized|forbidden|invalid[_ ]client/i;
 
-/** `true` = échec transitoire, un retry a une chance ; `false` = permanent (ou pas
- *  d'erreur du tout). Sans message, on considère l'échec comme non-retentable. */
+/** `true` = transient failure, a retry has a chance; `false` = permanent (or no
+ *  error at all). With no message, the failure is treated as non-retryable. */
 export function isTransientConnectError(error: string | undefined): boolean {
   return !!error && !PERMANENT_RE.test(error);
 }
@@ -39,10 +39,10 @@ export function isTransientConnectError(error: string | undefined): boolean {
 const delay = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Tente la reconnexion, et retente sur un échec TRANSITOIRE avec un backoff
- * exponentiel. S'arrête dès que `isConnected()` est vrai, ou sur un échec permanent,
- * ou après `tries` tentatives. Best-effort : ne throw jamais (l'appelant est déjà
- * dans un `allSettled`).
+ * Attempts the reconnect, and retries on a TRANSIENT failure with an exponential
+ * backoff. Stops as soon as `isConnected()` is true, or on a permanent failure,
+ * or after `tries` attempts. Best-effort: never throws (the caller is already
+ * inside an `allSettled`).
  */
 export async function reconnectRemoteWithRetry(
   connectOnce: () => Promise<McpServerInfo>,
@@ -56,31 +56,31 @@ export async function reconnectRemoteWithRetry(
     try {
       last = await connectOnce();
     } catch {
-      // connectServer ne throw quasi jamais (il RETOURNE l'erreur), mais un throw
-      // inattendu est traité comme transitoire : on retente tant qu'il reste des essais.
+      // connectServer almost never throws (it RETURNS the error), but an unexpected
+      // throw is treated as transient: retried as long as attempts remain.
       if (i < tries - 1) await delay(baseDelayMs * 2 ** i);
       continue;
     }
     if (isConnected()) return last;
-    if (!isTransientConnectError(last.error)) return last; // permanent → inutile d'insister
+    if (!isTransientConnectError(last.error)) return last; // permanent → no point insisting
     if (i < tries - 1) await delay(baseDelayMs * 2 ** i);
   }
-  // Le DERNIER verdict remonte à l'appelant : c'est lui qui décide si l'échec mérite
-  // d'être MONTRÉ (une autorisation morte au démarrage n'était visible nulle part).
+  // The LAST verdict is returned to the caller: it's the caller who decides whether the failure
+  // deserves to be SHOWN (a dead authorization at startup used to be visible nowhere).
   return last;
 }
 
 /**
- * Cet échec de reconnexion SILENCIEUSE doit-il allumer la bannière « reconnexion
- * nécessaire » ?
+ * Should this SILENT reconnect failure light up the "reconnection
+ * needed" banner?
  *
- * L'erreur d'un connect n'est que la valeur de RETOUR de l'appel : `infoFor` ne la porte
- * pas, donc `mcp:list` non plus. Un connecteur dont le jeton avait expiré revenait donc
- * simplement ABSENT au démarrage — aucune bannière, rien sur sa fiche — et l'utilisateur
- * ne l'apprenait qu'en cliquant « Connecter » de lui-même (journal du 15/08, Vercel).
+ * A connect's error is only the RETURN value of the call: `infoFor` doesn't carry it,
+ * so neither does `mcp:list`. A connector whose token had expired therefore simply came
+ * back ABSENT at startup — no banner, nothing on its card — and the user
+ * only found out by clicking "Connect" on their own (15/08 log, Vercel).
  *
- * ⚠️ Seulement sur un échec PERMANENT. Hors ligne au lancement, tout serait annoncé « à
- * reconnecter » alors qu'il ne manque que le réseau — et ça se répare tout seul.
+ * ⚠️ Only on a PERMANENT failure. Offline at launch would otherwise announce everything as "needs
+ * reconnecting" when only the network is missing — and that fixes itself.
  */
 export function shouldFlagForReconnect(
   last: McpServerInfo | undefined,

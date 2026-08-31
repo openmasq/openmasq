@@ -19,19 +19,19 @@ export function bearerFetchJson(accessToken: string) {
       await res.text().catch(() => "");
       throw new Error(`Upstream request failed (${res.status})`);
     }
-    // ⚠️ **UN CORPS VIDE EST UN SUCCÈS VIDE.** Une écriture qui aboutit répond souvent SANS
-    // corps (Graph `sendMail` → `202` vide, un `DELETE` → `204`) : `res.json()` y jetait
-    // « Unexpected end of JSON input », l'outil remontait en ÉCHEC alors que l'effet avait
-    // eu lieu, et le modèle rejouait — donc un doublon (constaté le 18/08 sur Outlook, côté
-    // desktop). Le même correctif vit dans `apps/desktop/.../connectors/run.ts` : deux
-    // runtimes, donc deux copies, mais la même règle — les faire diverger rouvrirait le
-    // défaut du côté resté en arrière.
+    // ⚠️ **AN EMPTY BODY IS AN EMPTY SUCCESS.** A write that succeeds often replies with NO
+    // body (Graph `sendMail` → empty `202`, a `DELETE` → `204`): `res.json()` used to throw
+    // "Unexpected end of JSON input" there, the tool surfaced as a FAILURE even though the effect had
+    // taken place, and the model retried — hence a duplicate (observed on 18/08 on Outlook, on the
+    // desktop side). The same fix lives in `apps/desktop/.../connectors/run.ts`: two
+    // runtimes, so two copies, but the same rule — letting them drift would reopen the
+    // bug on whichever side was left behind.
     const text = await res.text();
     if (!text.trim()) return undefined as T;
     try {
       return JSON.parse(text) as T;
     } catch {
-      // Un 2xx illisible reste une anomalie, mais NOMMÉE — pas un `SyntaxError` orphelin.
+      // An unreadable 2xx is still an anomaly, but a NAMED one — not an orphan `SyntaxError`.
       throw new Error(`Upstream returned a non-JSON body (${res.status})`);
     }
   };

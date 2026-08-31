@@ -86,11 +86,11 @@ function wireEvents(getWin: () => BrowserWindow | null): void {
     const { code, message } = humanizeUpdateError(err);
     // Volet 1: route the (catchable) download/check/signature failures into telemetry,
     // tagged with the specific code + channel/version context so PostHog is diagnosable.
-    // ⚠️ SAUF `read_only_volume` : ce n'est pas une panne de mise à jour mais un fait
-    // d'ENVIRONNEMENT (l'app tourne depuis le .dmg / Downloads), corrigeable seulement
-    // par l'utilisateur en déplaçant l'app. Le remonter en `$exception` polluait Sentry
-    // (5 utilisateurs, 27 fois sur la 0.7.6) pour un « bug » qui n'en est pas un. On le
-    // LOGGUE et on le DIT à l'utilisateur (message ci-dessous), on ne l'alerte pas.
+    // ⚠️ EXCEPT `read_only_volume`: this isn't an update failure but an ENVIRONMENT
+    // fact (the app is running from the .dmg / Downloads), fixable only
+    // by the user moving the app. Reporting it as `$exception` polluted Sentry
+    // (5 users, 27 times on 0.7.6) for a "bug" that isn't one. We LOG it
+    // and TELL the user (message below), we don't alert on it.
     if (code !== "read_only_volume") reportUpdateFailure(reportError, code, err);
     send({ state: "error", code, message });
   });
@@ -99,8 +99,8 @@ function wireEvents(getWin: () => BrowserWindow | null): void {
 function registerUpdateIpc(): void {
   // Available in dev too, so the settings UI can render the current version +
   // the published releases list even without a real update check.
-  // Révéler le journal de mise à jour dans le Finder/Explorateur. Chemin FIXE côté main
-  // (aucune entrée du renderer — pas une primitive de lecture disque, audit 13/08 G11).
+  // Reveal the update log in Finder/Explorer. Path FIXED on the main side
+  // (no renderer input — not a disk-read primitive, audit 08/13 G11).
   handle("updates:reveal-log", [], () => {
     shell.showItemInFolder(updaterLogPath());
   });
@@ -110,8 +110,8 @@ function registerUpdateIpc(): void {
     installId: getConfig().installId,
   }));
 
-  // ⛔ Aucun `updates:set-auto`. La mise à jour est toujours automatique — un canal IPC qui
-  // sait l'éteindre est une porte pour l'éteindre, y compris depuis un renderer compromis.
+  // ⛔ No `updates:set-auto`. Updates are always automatic — an IPC channel that
+  // knows how to turn it off is a door to turn it off, including from a compromised renderer.
 
   handle("updates:list", [], async () => {
     const res = await fetch(`${feedBase(getConfig().channel)}/releases`);
@@ -160,8 +160,8 @@ function registerUpdateIpc(): void {
   // self-pin permission (else 403). Fail-safe to not-privileged on any error, so
   // the picker degrades to the device's own channel.
   handle("updates:list-all", [], async () => {
-    // Pas de flux configuré (build local, fork auto-hébergé) : aucune requête, une liste
-    // vide — le panneau Versions montre la version installée et rien d'autre.
+    // No feed configured (local build, self-hosted fork): no request, an
+    // empty list — the Versions panel shows the installed version and nothing else.
     if (!UPDATES_CONFIGURED) return { privileged: false, channels: [] };
     try {
       const res = await fetch(`${UPDATES_URL}/desktop/all-releases${deviceQuery()}`);
@@ -208,13 +208,13 @@ export function setupAutoUpdates(
     onBeforeInstall?: () => Promise<void>;
     reportError?: ReportError;
     reportEvent?: ReportEvent;
-    /** Du travail en vol côté MAIN (flux `chat:*`) — l'auto-installation s'abstient. */
+    /** Work in flight on the MAIN side (`chat:*` streams) — auto-install abstains. */
     mainBusy?: () => boolean;
   },
 ): void {
   loadConfig();
   autoUpdater.logger = updaterLogger;
-  // Toujours : plus rien ne peut le mettre à false (voir `config.ts`).
+  // Always: nothing can set it to false anymore (see `config.ts`).
   autoUpdater.autoDownload = true;
   autoUpdater.allowDowngrade = false;
   if (hooks?.onBeforeInstall) setBeforeInstall(hooks.onBeforeInstall);
@@ -224,14 +224,14 @@ export function setupAutoUpdates(
   // Updates only apply to packaged, signed builds — skip the real feed/check in
   // dev, but the IPC above still serves current()/list() so the UI renders.
   if (!app.isPackaged) return;
-  // Idem sans flux : un build qui n'a pas reçu d'adresse ne sonde rien, n'installe rien
-  // et ne rapporte aucune erreur de mise à jour. Se mettre à jour depuis le flux d'un
-  // AUTRE (celui de la marque) serait remplacer ce binaire par le sien.
+  // Same without a feed: a build that got no address probes nothing, installs nothing
+  // and reports no update error. Updating from ANOTHER's feed
+  // (the brand's own) would replace this binary with theirs.
   if (!UPDATES_CONFIGURED) return;
 
-  // Bundle amputé d'`app-update.yml` (la régression 0.6.0) : reconstruire l'équivalent
-  // dans userData pour que l'updater vive, ET le rapporter — une régression
-  // d'empaquetage guérie en silence resterait invisible jusqu'à la suivante.
+  // Bundle missing `app-update.yml` (the 0.6.0 regression): rebuild the equivalent
+  // in userData so the updater survives, AND report it — a packaging
+  // regression healed silently would stay invisible until the next one.
   const heal = ensureUpdateConfigFile();
   if (heal) reportUpdateFailure(reportError, "config-missing", new Error(heal.detail));
 
@@ -247,12 +247,12 @@ export function setupAutoUpdates(
   // renderer's analytics/onAppError subscription is live before we send.
   setTimeout(() => detectAndReportShipItFailure(reportError), 8000).unref?.();
 
-  // Le build posé : pré-vol d'espace disque, puis le statut vers le renderer.
+  // The staged build: disk-space pre-flight, then status to the renderer.
   wireDownloaded(getWin, () => reportError);
 
-  // Un build posé s'INSTALLE TOUT SEUL quand l'app est en arrière-plan prolongé ou que
-  // l'utilisateur est parti — le modal reste le chemin nominal, ceci rattrape l'app
-  // ouverte des jours que personne ne redémarre. Gardes + fail-closed : `autoInstall.ts`.
+  // A staged build INSTALLS ITSELF when the app is backgrounded for a long time or the
+  // user is away — the modal remains the nominal path, this catches the app left
+  // open for days that nobody restarts. Guards + fail-closed: `autoInstall.ts`.
   startAutoInstall(getWin, { mainBusy: hooks?.mainBusy ?? (() => false) });
 
   autoUpdater.on("error", (err) => {

@@ -1,5 +1,5 @@
-// Formes relevées sur la CLI 2.1.241. Le cas central : la CLI émet les deltas PUIS un
-// event `assistant` qui répète toute la réponse — un parser naïf l'affiche en double.
+// Shapes observed on CLI 2.1.241. The central case: the CLI emits the deltas THEN an
+// `assistant` event that repeats the whole response — a naive parser displays it twice.
 import { describe, expect, it } from "vitest";
 import { NdjsonLineBuffer, interpretClaudeEvent, normalizeUsage, toFinish } from "./claudeStream";
 
@@ -89,9 +89,9 @@ describe("interpretClaudeEvent", () => {
     ).toBeNull();
   });
 
-  // La PORTE du périmètre (`toolGate.ts`). `system/init` est le seul moment où l'app
-  // apprend ce que la CLI s'autorise, et il tombe AVANT le premier appel d'outil : un
-  // intrus doit sortir une ERREUR, que `spawnStream` remonte en tuant la CLI.
+  // The scope GATE (`toolGate.ts`). `system/init` is the only moment the app
+  // learns what the CLI allows itself, and it falls BEFORE the first tool call: an
+  // intruder must produce an ERROR, which `spawnStream` surfaces by killing the CLI.
   describe("périmètre d'outils annoncé à l'init", () => {
     const init = (tools?: unknown) => ({
       type: "system",

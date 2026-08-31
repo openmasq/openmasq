@@ -1,7 +1,7 @@
 /**
  * Desktop orchestration of the ORG-SHARE channel — coffre + compétences
- * partagés à l'org / une équipe / une personne, E2E à l'audience, approbation
- * avant lecture. All decisions live in `@openmasq/sync` (`orgScope/` — keys,
+ * shared to the org / a team / a person, E2E to the audience, approval
+ * before read. All decisions live in `@openmasq/sync` (`orgScope/` — keys,
  * audiences, rotation) and in the BACKEND (the share matrix); this file only
  * builds records from app items, aggregates readable shares into the
  * `Settings.orgCoffre` / `orgCompetences` mirrors, and exposes the UI-shaped
@@ -59,8 +59,8 @@ export function orgSync(): OrgScopeSync | null {
   return cached;
 }
 
-/** À appeler quand la phrase secrète change (mêmes moments que
- *  `recordSync().resetKeys()`) — sans quoi un partage scellé le reste. */
+/** To call when the passphrase changes (same moments as
+ *  `recordSync().resetKeys()`) — without which a sealed share stays sealed. */
 export function resetOrgKeys(): void {
   cached?.resetKeys();
 }
@@ -115,8 +115,8 @@ export function pullOrgShares(
     for (const share of shares) {
       if (!share.canRead || share.status !== "approved") continue;
       // A PERSON share never mirrors: accepting it ADOPTS the items into the
-      // recipient's PERSONAL list (ShareInbox → pullShareItems) — « vous
-      // gardez votre copie » goes both ways (design).
+      // recipient's PERSONAL list (ShareInbox → pullShareItems) — "you
+      // keep your copy" goes both ways (design).
       if (share.audience.kind === "user") continue;
       const { records } = await s.pullShare(orgUuid, share, 0);
       if (!records.length) continue;

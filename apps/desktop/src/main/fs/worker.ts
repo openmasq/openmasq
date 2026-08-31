@@ -56,7 +56,7 @@ parentPort.on("message", (e) => {
       if (!h) throw new Error(`outil filesystem inconnu : ${op}`);
       parentPort.postMessage({ id, ok: true, data: await h(g(), args ?? {}) });
     } catch (err) {
-      // Toujours du dispatch : la MISE EN FORME du refus vit dans `fsErrorText.ts`.
+      // Still just dispatch: the FORMATTING of the refusal lives in `fsErrorText.ts`.
       parentPort.postMessage({ id, ok: false, error: fsErrorText(err, surface) });
     }
   })();

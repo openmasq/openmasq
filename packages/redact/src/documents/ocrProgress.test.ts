@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { extractFromBytes, type ExtractDeps } from "./core";
 
-// La progression OCR est de l'AFFICHAGE : elle doit traverser l'extraction sans jamais
-// la modifier — mêmes résultats avec ou sans callback, et aucun tick pour un format
-// qui n'a pas d'OCR (l'extraction y est quasi instantanée).
+// OCR progress is purely for DISPLAY: it must pass through extraction without ever
+// altering it — same results with or without a callback, and no tick for a format
+// that has no OCR (extraction there is near-instant).
 describe("extractFromBytes — progression OCR (onOcrProgress)", () => {
   const PDF_BYTES = new TextEncoder().encode("%PDF-1.4\n% test document\n");
   const PNG_BYTES = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
@@ -12,7 +12,7 @@ describe("extractFromBytes — progression OCR (onOcrProgress)", () => {
     pdfText: async () => ({ text: "", pages: 2, imagePages: 2, layout: [] }),
     docxText: async () => "",
     ocrImage: async () => "texte lu",
-    // Le contrat : le binding reçoit le callback en 2e position et émet par page.
+    // The contract: the binding receives the callback in 2nd position and emits per page.
     ocrPdf: async (_bytes, onProgress) => {
       onProgress?.(0, 2);
       onProgress?.(1, 2);

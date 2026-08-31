@@ -68,13 +68,13 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
   // `fakeIndex.wordTaken` closes the casing hole: `taken.has(c.toLowerCase())` lowercases
   // the CANDIDATE but the set stores original-case keys — «hugo» sailed past «Hugo» and the
   // un-redaction of a bare «hugo» then rewrote the OTHER identity's real value.
-  // ⚠️ `collidesAvoid` JUSTE ICI, nulle part ailleurs pour un NOM. L'exemption NAME/EMAIL
-  // du garde `avoid` tient (rejeter le faux CANONIQUE scinderait la personne en deux), mais
-  // elle laissait un trou : un mot de faux NEUF pouvait tomber sur un mot d'un tour
-  // PRÉCÉDENT — `inputWords` ne voit que l'envoi courant — et le coffre global re-redacted
-  // ensuite ce mot-là partout. `mintTaken` n'est consulté QUE pour choisir un mot neuf,
-  // jamais pour réutiliser un canonique : la raison de l'exemption est intacte, et le repli
-  // garanti-unique de la boucle couvre un pool épuisé. `guards.test.ts` épingle les deux.
+  // ⚠️ `collidesAvoid` RIGHT HERE, nowhere else for a NAME. The NAME/EMAIL exemption
+  // from the `avoid` guard holds (rejecting the CANONICAL fake would split the person in
+  // two), but it left a hole: a NEW fake word could land on a word from a PREVIOUS
+  // turn — `inputWords` only sees the current send — and the global vault then re-redacts
+  // that word everywhere. `mintTaken` is consulted ONLY to choose a new word,
+  // never to reuse a canonical: the reason for the exemption is intact, and the
+  // guaranteed-unique fallback of the loop covers an exhausted pool. `guards.test.ts` pins both.
   const mintTaken = (c: string): boolean =>
     taken.has(c) || taken.has(c.toLowerCase()) || inputWords.has(c.toLowerCase()) ||
     fakeIndex.wordTaken(c) || collidesAvoid(c);
@@ -92,14 +92,14 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
     // per-word aliases already substitute it via `applyVault`, so no new vault entry
     // is needed — reuse the reconstructed placeholder for the match chip only.
     if (cat === "name") {
-      // Le faux DÉJÀ attribué à cette personne — par MOTS, ou par VALEUR ENTIÈRE quand le
-      // coffre la connaît sous une autre casse et une autre catégorie. Les deux chemins et
-      // ce qu'ils réparent : `../identity/reuse.ts`.
+      // The fake ALREADY assigned to this person — by WORDS, or by WHOLE VALUE when the
+      // vault knows them under another casing and another category. Both paths and
+      // what they fix: `../identity/reuse.ts`.
       const cased = reuseNameFake(value, input, { resolveFakeCI, resolveEntityFakeCI });
       if (cased !== undefined) {
         if (!entityValues.includes(value)) entityValues.push(value);
-        // L'entrée pour CETTE casse est ce qui fait que `applyVault` (sensible à la casse)
-        // substitue réellement.
+        // The entry for THIS casing is what makes `applyVault` (case-sensitive)
+        // actually substitute.
         if (!reverse.has(value) && !vault[cased] && cased !== value && !input.includes(cased)) {
           vault[cased] = value;
           reverse.set(value, cased);

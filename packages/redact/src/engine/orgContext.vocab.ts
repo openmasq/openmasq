@@ -23,14 +23,14 @@ export const PREFIX_FORMS = [
   "gmbh", "ug", "ag", "s\\.?l", "s\\.?r\\.?l", "spa", "lda",
   "société", "societe", "sociedad", "mercantil", "società", "societa", "sociedade",
   "association", "fondation", "mutuelle", "coopérative", "cooperative",
-  // Amorces de RELATION D'AFFAIRES — mesurées sur un bench manuel : le NER ne produit
-  // RIEN sur « chez LVMH », « le groupe Bouygues », « notre fournisseur OVHcloud », alors
-  // que la tournure désigne sans ambiguïté une organisation. La porte de casse ci-dessous
-  // fait le tri : le token capturé doit être à initiale majuscule, donc « chez moi »,
-  // « chez le médecin » ou « chez nous » ne capturent rien.
-  // « client » est délibérément ABSENT : « notre client Jean Rebour » désigne une
-  // personne bien plus souvent qu'une société, et lui donner un faux d'entreprise
-  // scinderait son identité.
+  // BUSINESS-RELATION leads — measured on a manual bench: the NER produces
+  // NOTHING on « chez LVMH », « le groupe Bouygues », « notre fournisseur OVHcloud », even
+  // though the phrasing unambiguously names an organisation. The casing gate below
+  // does the sorting: the captured token must be Uppercase-initial, so « chez moi »,
+  // « chez le médecin » or « chez nous » capture nothing.
+  // « client » is deliberately ABSENT: « notre client Jean Rebour » names a
+  // person far more often than a company, and giving it a company fake
+  // would split its identity.
   "chez", "groupe", "entreprise", "startup", "start-up", "pme", "eti",
   "enseigne", "filiale", "fournisseur", "prestataire", "employeur",
 ];

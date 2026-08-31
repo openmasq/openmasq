@@ -47,15 +47,15 @@ function distinctiveWords(s: string): string[] {
   return out;
 }
 
-/** True when the two reals describe the same PLACE. Two forms, both sanctionnées :
- *  l'inclusion («Rennes» ⊂ «35760 Rennes»), et la même VILLE nommée en queue d'adresse —
- *  « 14 cours de l'Intendance, 33000 Bordeaux » / « 5 rue du Loup, 33000 Bordeaux ».
- *  La seconde est ce que l'ancrage par ville (`engine/geo/cityAnchor`) produit à dessein :
- *  la même ville réelle reçoit le même lieu faux, donc deux adresses de cette ville
- *  PARTAGENT le mot de ville de leur faux — et la restitution de l'un comme de l'autre
- *  reste juste, puisque leurs réels partagent ce mot aussi. Sans cette moitié, l'ancre et
- *  l'index se contredisaient : la ville ancrée clashait à CHAQUE tentative (elle ne varie
- *  plus), 60 échecs, et la seconde adresse tombait sur le repli « redacted ». */
+/** True when the two reals describe the same PLACE. Two forms, both legitimate:
+ *  inclusion («Rennes» ⊂ «35760 Rennes»), and the same CITY named at the tail of an
+ *  address — « 14 cours de l'Intendance, 33000 Bordeaux » / « 5 rue du Loup, 33000 Bordeaux ».
+ *  The second is exactly what city-anchoring (`engine/geo/cityAnchor`) produces on purpose:
+ *  the same real city gets the same fake place, so two addresses in that city SHARE
+ *  the city word of their fake — and restoring either one stays correct, since their
+ *  reals share that word too. Without this half, the anchor and the index contradicted
+ *  each other: the anchored city clashed on EVERY attempt (it no longer varies),
+ *  60 failures, and the second address fell back to the "redacted" placeholder. */
 function samePlace(a: string, b: string): boolean {
   const [fa, fb] = [fold(a), fold(b)];
   if (fa.includes(fb) || fb.includes(fa)) return true;

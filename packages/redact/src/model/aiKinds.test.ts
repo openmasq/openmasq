@@ -81,15 +81,15 @@ describe("generic terms — case- AND separator-insensitive", () => {
 
 describe("leading article stripping (one identity across 'la Sacem' / 'Sacem')", () => {
   it("un ORG perd aussi la PRÉPOSITION avalée par le NER — le bug « oslen Partners »", () => {
-    // Journal 01/08 : « Quels sont les résultats de Karl Studio ? » → span NER
-    // « de Karl Studio » → faux « oslen Partners » substitué AVEC le « de » (grammaire
-    // cassée sur le wire) et une SECONDE identité pour l'org (entityKey ≠ coffre).
+    // Journal 01/08: « Quels sont les résultats de Karl Studio ? » → NER span
+    // « de Karl Studio » → fake « oslen Partners » substituted WITH the « de » (grammar
+    // broken on the wire) and a SECOND identity for the org (entityKey ≠ vault).
     expect(stripLeadingArticle("de Karl Studio", true)).toBe("Karl Studio");
     expect(stripLeadingArticle("d'Airbus", true)).toBe("Airbus");
-    expect(stripLeadingArticle("de la Sacem", true)).toBe("Sacem"); // enchaînée avec l'article
-    // Une PERSONNE garde sa particule (« de Gaulle ») — le strip est ORG-only.
+    expect(stripLeadingArticle("de la Sacem", true)).toBe("Sacem"); // chained with the article
+    // A PERSON keeps their particle (« de Gaulle ») — the strip is ORG-only.
     expect(stripLeadingArticle("de Gaulle")).toBe("de Gaulle");
-    // Un nom propre à préposition CAPITALISÉE reste entier, même en ORG.
+    // A proper name with a CAPITALISED preposition stays whole, even under ORG.
     expect(stripLeadingArticle("De Beers", true)).toBe("De Beers");
   });
 
@@ -479,13 +479,13 @@ describe("generic terms — courtesy/titles/dates/roles coverage (deny-list audi
 
 describe("CONSTAT PARCOURS 15/08 — une casse de plus, dans un coffre PRÉ-CHARGÉ", () => {
   /**
-   * Le fil d'un tour portait « KARL STUDIO » et « KARLSTUDIO » masqués et
-   * « Karl Studio » non. Le constat concluait « le moteur déterministe n'est pas en
-   * cause » — une sonde en UNE passe unifie bien les trois casses. Le défaut n'apparaît
-   * qu'avec un coffre DÉJÀ rempli, c'est-à-dire exactement la situation d'un résultat
-   * d'outil : le document précédent a vaulté la société comme ORGANISATION (entrée de
-   * valeur entière, sans alias par mot), et « Karl » étant un prénom du lexique, la
-   * nouvelle occurrence partait sur la machinerie NOM — qui mintait une seconde identité.
+   * The thread of one turn had « KARL STUDIO » and « KARLSTUDIO » masked and
+   * « Karl Studio » not. The finding concluded "the deterministic engine is not at
+   * fault" — a probe in ONE pass does unify all three casings. The bug only appears
+   * with a vault ALREADY populated, i.e. exactly the situation of a tool
+   * result: the previous document had vaulted the company as an ORGANISATION (a
+   * whole-value entry, no per-word alias), and since « Karl » is a first name in the lexicon,
+   * the new occurrence went through the NAME machinery — which minted a second identity.
    */
   const coffre = (real: string): Vault => ({ "Célestin Chastanet": real });
 
@@ -494,7 +494,7 @@ describe("CONSTAT PARCOURS 15/08 — une casse de plus, dans un coffre PRÉ-CHAR
     const r = await pseudonymize("Karl Studio a signé le procès-verbal.", { vault: v });
     expect(r.text).toContain("Célestin Chastanet");
     expect(r.text).not.toContain("Karl Studio");
-    // …et surtout : AUCUNE seconde identité n'est créée pour la même société.
+    // …and above all: NO second identity is created for the same company.
     expect(Object.values(v).filter((x) => /karl studio/i.test(x))).toHaveLength(1);
   });
 
@@ -506,8 +506,8 @@ describe("CONSTAT PARCOURS 15/08 — une casse de plus, dans un coffre PRÉ-CHAR
   });
 
   it("⚠️ le comportement des catégories qui marchaient déjà n'a pas bougé", async () => {
-    // `company`/`location`/… passaient par `resolveEntityFakeCI` depuis toujours : c'est
-    // NAME qui était le seul trou.
+    // `company`/`location`/… have always gone through `resolveEntityFakeCI`: it's
+    // NAME that was the only gap.
     const v = coffre("VOXA LABS");
     expect((await pseudonymize("Voxa Labs a signé.", { vault: v })).text)
       .toContain("Célestin Chastanet");
@@ -523,12 +523,12 @@ describe("CONSTAT PARCOURS 15/08 — une casse de plus, dans un coffre PRÉ-CHAR
 
 describe("un libellé de PERSONNE contraint le type d'une source probabiliste (16/08/2026)", () => {
   /**
-   * Mesuré avec le NER local DANS la boucle, ce que le constat parcours du 15/08
-   * demandait : sur une ligne ISOLÉE, « Salarié: Gwendal Kervoal » sortait
-   * « Salarié: Aix-en-Provence » — le salarié devenu une VILLE — et « Soizic Quéméner »
-   * une ENTREPRISE. Des noms bretons dont le second terme est aussi une commune : le NER
-   * tranche sur la forme, le libellé savait. Ici le NER est simulé pour que le cas tienne
-   * en unitaire, sans poids ni modèle.
+   * Measured with the local NER IN THE LOOP, which is what the 15/08 walkthrough
+   * finding called for: on an ISOLATED line, « Salarié: Gwendal Kervoal » came out as
+   * « Salarié: Aix-en-Provence » — the employee turned into a CITY — and « Soizic Quéméner »
+   * into a COMPANY. Breton names whose second term is also a commune: the NER
+   * decides from the shape, the label knew better. Here the NER is simulated so the case holds
+   * as a unit test, with no weights or model.
    */
   const nerDit = (value: string, category: string) => () =>
     Promise.resolve([{ value, category }]);
@@ -544,9 +544,9 @@ describe("un libellé de PERSONNE contraint le type d'une source probabiliste (1
   });
 
   it("⚠️ mais une vraie ORGANISATION sous un libellé de personne garde son type", async () => {
-    // La borne que le constat réclamait : une personne n'est jamais un lieu, donc ce
-    // sens-là se corrige sans risque — alors qu'un « Contact : Acme SARL » est une VRAIE
-    // société dans une colonne mal nommée, et l'écraser en NOM serait le défaut inverse.
+    // The bound the finding required: a person is never a place, so that
+    // direction can be corrected safely — whereas a « Contact : Acme SARL » is a REAL
+    // company in a mis-labeled column, and overwriting it as a NAME would be the opposite bug.
     const v: Vault = {};
     const r = await pseudonymize("Contact: Brantley Systems SARL", {
       vault: v,
@@ -566,11 +566,11 @@ describe("un libellé de PERSONNE contraint le type d'une source probabiliste (1
 });
 
 describe("la forme COLLÉE d'une entité connue — un domaine (16/08/2026)", () => {
-  /** Banc des personas EN CONVERSATION : le tour 1 vaulte « Karl Studio », l'outil renvoie
-   *  « karlstudio.fr » au tour 2, et l'allocateur mintait une identité NEUVE — la société
-   *  derrière deux faux sans rapport, dont un de PERSONNE, et son site attribué à
-   *  quelqu'un d'autre. `applyVaultVariants` mappait DÉJÀ cette graphie en fin de passe :
-   *  les deux étaient en désaccord, l'allocateur réclamant la valeur en premier. */
+  /** Bench for personas ACROSS A CONVERSATION: turn 1 vaults « Karl Studio », the tool returns
+   *  « karlstudio.fr » on turn 2, and the allocator used to mint a NEW identity — the company
+   *  ending up behind two unrelated fakes, one of them a PERSON, and its site attributed to
+   *  someone else. `applyVaultVariants` ALREADY mapped this spelling at the end of the pass:
+   *  the two disagreed, the allocator claiming the value first. */
   it("le tour 2 réutilise l'identité du tour 1", async () => {
     const vault: Vault = {};
     await pseudonymize("Conclusions contre la SAS Karl Studio.", { vault, reFakeExisting: true });
@@ -579,8 +579,8 @@ describe("la forme COLLÉE d'une entité connue — un domaine (16/08/2026)", ()
 
     await pseudonymize("[greffe] KARL STUDIO — karlstudio.fr — actif", { vault });
     const cle = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
-    // Toute entrée dont le RÉEL est la même entité doit porter le MÊME faux, à la casse
-    // près — une entrée par casse est voulue, une identité par graphie ne l'est pas.
+    // Every entry whose REAL is the same entity must carry the SAME fake, except for
+    // casing — one entry per casing is intended, one identity per spelling is not.
     const identites = new Set(
       Object.entries(vault)
         .filter(([, v]) => cle(v).includes("karlstudio"))

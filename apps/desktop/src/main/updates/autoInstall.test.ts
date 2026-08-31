@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 
-// Le module importe electron + electron-updater pour la MINUTERIE ; la décision testée
-// ici est pure. Même patron de mock que `install.test.ts`/`poll.test.ts`.
+// The module imports electron + electron-updater for the TIMER; the decision tested
+// here is pure. Same mock pattern as `install.test.ts`/`poll.test.ts`.
 vi.mock("electron", () => ({ BrowserWindow: {}, ipcMain: { once: () => {}, removeAllListeners: () => {} }, powerMonitor: {} }));
 vi.mock("electron-updater", () => ({ default: { autoUpdater: { on: () => {} } } }));
 vi.mock("./install", () => ({ quitAndInstallSafely: async () => {} }));
@@ -31,7 +31,7 @@ describe("shouldAutoInstall — le redémarrage automatique refuse au moindre do
 
   it("installe sur un ARRIÈRE-PLAN prolongé, même si l'utilisateur est actif ailleurs", () => {
     expect(shouldAutoInstall(quiet({ idleS: 0, blurredMs: AUTO_BLURRED_MS }))).toBe(true);
-    // …mais pas pour un détour de cinq minutes : le relaunch vole le premier plan.
+    // …but not for a five-minute detour: the relaunch steals the foreground.
     expect(shouldAutoInstall(quiet({ idleS: 0, blurredMs: 5 * 60_000 }))).toBe(false);
   });
 
@@ -45,9 +45,9 @@ describe("shouldAutoInstall — le redémarrage automatique refuse au moindre do
   });
 
   it("⚠️ FAIL-CLOSED : un renderer occupé — ou qui ne répond PAS — refuse", () => {
-    // Un tour agentique en vol ou un brouillon non envoyé (mémoire seulement) serait
-    // détruit par le redémarrage ; le silence du renderer se lit « occupé », jamais
-    // « probablement libre ».
+    // An agentic turn in flight or an unsent draft (memory only) would be
+    // destroyed by the restart; the renderer's silence reads as "busy", never
+    // "probably free".
     expect(shouldAutoInstall(quiet({ rendererBusy: true }))).toBe(false);
     expect(shouldAutoInstall(quiet({ rendererBusy: null }))).toBe(false);
   });

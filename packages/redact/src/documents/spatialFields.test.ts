@@ -4,12 +4,12 @@ import { redactExtracted } from "./reconcile";
 import type { OcrLayerPage } from "./geometry";
 import type { OcrWord } from "../ocr/layout";
 
-/* L'appariement 2D libellé→valeur : la forme qu'un formulaire imprime et que le
-   détecteur texte-plat REFUSE volontairement (la valeur à la ligne suivante). La
-   géométrie — alignement gauche + adjacence verticale — est ce qui rend le refus
-   levable sans redact de la prose. */
+/* The 2D label→value pairing: the shape a form prints and that the
+   flat-text detector deliberately REFUSES (the value on the next line). The
+   geometry — left alignment + vertical adjacency — is what makes the refusal
+   liftable without redacting prose. */
 
-// Une ligne de mots : y = rang de ligne (hauteur 10), x0 de départ configurable.
+// A line of words: y = line rank (height 10), configurable starting x0.
 const line = (text: string, row: number, x = 20): OcrWord[] => {
   let cx = x;
   return text.split(" ").map((t) => {
@@ -35,7 +35,7 @@ describe("spatialFieldLines — appariement par la géométrie", () => {
       ...line("Camille Valdonne", 1),
       ...line("8 Rue des Genêts", 2),
       ...line("35000 Rennes", 3),
-      ...line("Merci de votre confiance", 8), // trop loin — jamais pris
+      ...line("Merci de votre confiance", 8), // too far — never picked up
     ];
     expect(fields(words)).toBe(
       "Adresse : Camille Valdonne\nAdresse : 8 Rue des Genêts\nAdresse : 35000 Rennes",
@@ -69,11 +69,11 @@ describe("spatialFieldLines — appariement par la géométrie", () => {
 
 describe("redactExtracted — la 4e couche atteint le vault et le wire", () => {
   it("une valeur atteignable SEULEMENT par l'appariement spatial est vaultée et masquée", () => {
-    // Un NIR dont le libellé est À LA LIGNE DU DESSUS : dans le texte plat, la règle
-    // gated ne voit jamais « sécurité sociale » adjacent aux chiffres — la reconstruction
-    // les a séparés. La ligne synthétisée « sécurité sociale : 184… » la fait tirer.
-    // (redactExtracted passe par redact(), règles seules — le test reste dans ce que ce
-    // moteur sait voir ; le chemin d'envoi, lui, passe par pseudonymize.)
+    // A NIR whose label is ON THE LINE ABOVE: in the flat text, the gated
+    // rule never sees « sécurité sociale » adjacent to the digits — the reconstruction
+    // separated them. The synthesized line « sécurité sociale : 184… » makes it fire.
+    // (redactExtracted goes through redact(), rules only — the test stays within what this
+    // engine can see; the send path, meanwhile, goes through pseudonymize.)
     const words = [...line("N° de sécurité sociale :", 0), ...line("165031874259690", 1)];
     const file = {
       name: "doc.pdf",

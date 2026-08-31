@@ -8,9 +8,9 @@ const enoent = (): NodeJS.ErrnoException => {
 };
 
 describe("fsErrorText — un ENOENT côté OUTIL oriente, jamais côté UI", () => {
-  // Constat 15/08 : trois get_file_info ENOENT d'affilée sur des chemins RECOMPOSÉS
-  // (le modèle ne peut pas mémoriser les chemins, ils lui reviennent redacted) —
-  // le brut Node ne lui apprenait rien, la boucle mourait au cap.
+  // 15/08 finding: three get_file_info ENOENT in a row on RECOMPOSED paths
+  // (the model can't memorize paths, they come back to it redacted) —
+  // the raw Node error taught it nothing, the loop died at the cap.
   it("surface outil : le brut + la sortie (relister, recopier exactement)", () => {
     const t = fsErrorText(enoent(), "tool");
     expect(t).toContain("ENOENT");

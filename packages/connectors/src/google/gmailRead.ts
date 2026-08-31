@@ -3,14 +3,14 @@ import { sendEmail } from "./gmailSend";
 import { googleApiErrorHint } from "./googleApiError";
 
 /**
- * The single merged **Gmail** connector (`gmailConnector`, id `gmail`) : recherche +
- * liste de la boîte (en-têtes AVEC l'id du message), LECTURE d'un message
- * (`get_message` — le corps texte) et envoi (`send_email`, réutilisé de `gmailSend`).
- * Depuis le 30/07/2026 le 1-clic (managed) demande `gmail.readonly` + `gmail.send`
- * comme le byo — les quatre outils sont offerts dans les deux modes ; `run.ts` filtre
- * toujours par scope ACCORDÉ (une connexion d'avant reste envoi-seul jusqu'à
- * reconnexion). Tool output flows through the renderer's redaction like any other
- * connector — un corps de mail plein de PII part redacted au modèle.
+ * The single merged **Gmail** connector (`gmailConnector`, id `gmail`): search +
+ * inbox listing (headers WITH the message id), READING a message
+ * (`get_message` — the text body) and sending (`send_email`, reused from `gmailSend`).
+ * Since 30/07/2026 the 1-clic (managed) mode requests `gmail.readonly` + `gmail.send`
+ * just like byo — all four tools are offered in both modes; `run.ts` always filters
+ * by GRANTED scope (an earlier connection stays send-only until
+ * reconnection). Tool output flows through the renderer's redaction like any other
+ * connector — a mail body full of PII leaves redacted to the model.
  */
 const API = "https://gmail.googleapis.com/gmail/v1/users/me";
 
@@ -54,8 +54,8 @@ function readError(err: unknown): string {
 
 /** Fetch the metadata headers (From/Subject/Date) for a set of message ids. One
  *  failing message is SKIPPED (allSettled) rather than sinking the whole result.
- *  Chaque ligne PORTE l'id — sans lui, `get_message` n'a pas de cible et le modèle
- *  annonçait « le connecteur ne me donne pas le contenu » (revue d'emails dégradée). */
+ *  Each line CARRIES the id — without it, `get_message` has no target and the model
+ *  would announce "the connector doesn't give me the content" (degraded email review). */
 async function summarize(ctx: ConnectorToolCtx, ids: string[]): Promise<string> {
   const settled = await Promise.allSettled(
     ids.map((id) =>
@@ -75,8 +75,8 @@ async function summarize(ctx: ConnectorToolCtx, ids: string[]): Promise<string> 
   return rows.join("\n");
 }
 
-/** Le TEXTE d'un message : marche récursive des parties MIME, `text/plain` d'abord,
- *  repli sur `text/html` débalisé grossièrement. Base64url → UTF-8. */
+/** The TEXT of a message: recursive walk of MIME parts, `text/plain` first,
+ *  fallback to roughly-stripped `text/html`. Base64url → UTF-8. */
 function bodyText(part: GmailPart | undefined): string {
   if (!part) return "";
   const decode = (data?: string): string => {
@@ -104,8 +104,8 @@ function bodyText(part: GmailPart | undefined): string {
   return html.replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<[^>]+>/g, " ").replace(/\s{2,}/g, " ").trim();
 }
 
-// Le résultat repasse par le redaction puis par le cap générique des résultats
-// d'outils (16k) — cette borne-ci évite juste de payer la détection sur un mail-fleuve.
+// The result goes back through redaction then the generic tool-result cap
+// (16k) — this bound here just avoids paying detection cost on a river-length email.
 const MAX_BODY_CHARS = 20_000;
 
 const getMessage: ConnectorTool = {
@@ -190,10 +190,10 @@ export const gmailConnector: Connector = {
   id: "gmail",
   name: "Gmail",
   auth: "pkce",
-  // 30/07/2026 : le 1-clic (managed) demande AUSSI le scope RESTRICTED
-  // `gmail.readonly` — capacités 1-clic ≡ byo (CASA est un prérequis d'ops, pas une
-  // porte code). `run.ts` filtre toujours par scope ACCORDÉ : une connexion 1-clic
-  // d'avant n'offre que `send_email` tant qu'elle n'est pas reconnectée.
+  // 30/07/2026: 1-clic (managed) now ALSO requests the RESTRICTED scope
+  // `gmail.readonly` — 1-clic capabilities ≡ byo (CASA is an ops prerequisite, not a
+  // code gate). `run.ts` always filters by GRANTED scope: an earlier 1-clic
+  // connection only offers `send_email` until it is reconnected.
   scopes: {
     managed: [
       "https://www.googleapis.com/auth/gmail.readonly",

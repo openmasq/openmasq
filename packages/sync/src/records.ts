@@ -11,7 +11,7 @@
  *                   (lamport, deviceId) — Lamport clocks, never wall clocks.
  *   - `integration` — LWW per integration id (the directory: connector +
  *                   account + settings; credentials never ride here).
- *   - `userdata`  — LWW per entity (compétences / workflows / mémoire —
+ *   - `userdata`  — LWW per entity (skills / workflows / memory —
  *                   `userdata.ts` owns the allow-listed payloads).
  *   - `coffre`    — LWW per entity (the always-redacted terms — `coffre.ts`
  *                   owns the allow-listed payload; rides the `@coffre` scope).

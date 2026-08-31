@@ -1,49 +1,49 @@
-// La forme EN PROSE des champs de compte et de secret (« mon pseudo est arvio92 »,
-// « le mot de passe est corbeau83 ») — extraite de contextFields.ts pour le plafond
-// des 300 lignes (règle 1). Même contrat Detection, re-exportée par contextFields.
+// The PROSE form of account and secret fields (« mon pseudo est arvio92 »,
+// « le mot de passe est corbeau83 ») — extracted from contextFields.ts for the 300-line
+// cap (rule 1). Same Detection contract, re-exported by contextFields.
 import type { Detection } from "../types";
 
 /**
- * La forme EN PROSE d'un champ de compte : « mon pseudo est arvio92 », « my login is
- * jdoe ». Le détecteur étiqueté ci-dessous exige un DEUX-POINTS — mesuré sur un bench
- * manuel, « Pseudo : arvio92 » passait et « Mon pseudo est arvio92 » ne passait pas,
- * alors que la seconde est la façon dont on l'écrit dans un chat.
+ * The PROSE form of an account field: « mon pseudo est arvio92 », « my login is
+ * jdoe ». The labeled detector below requires a COLON — measured on a manual
+ * bench, « Pseudo : arvio92 » passed and « Mon pseudo est arvio92 » didn't,
+ * even though the second is how it's actually written in a chat.
  *
- * ⚠️ Le POSSESSIF est obligatoire, et c'est lui qui rend la règle sûre : « le login est
- * obligatoire » ne doit pas redact « obligatoire ». La valeur s'arrête au premier
- * blanc ou signe de ponctuation — elle ne peut pas avaler la fin de la phrase.
+ * ⚠️ The POSSESSIVE is mandatory, and it's what makes the rule safe: « le login est
+ * obligatoire » must not redact « obligatoire ». The value stops at the first
+ * space or punctuation mark — it can't swallow the rest of the sentence.
  *
- * Trois élargissements, tous adossés à ce même possessif (mesurés sur le corpus
- * `campagne-v1` : 6 des 13 identifiants manqués) :
- *  • `gamertag` — un nom de compte comme les autres, simplement absent de la liste ;
- *  • UN qualificatif entre le nom et la copule (« mon identifiant CLIENT est … »,
- *    « mon login WINDOWS est … ») — un seul mot, jamais deux, pour ne pas franchir
- *    une proposition entière ;
- *  • la forme à DEUX-POINTS (« mon id Discord : augustin#4521 »).
+ * Three extensions, all resting on this same possessive (measured on the
+ * `campagne-v1` corpus: 6 of the 13 missed identifiers):
+ *  • `gamertag` — an account name like any other, simply missing from the list;
+ *  • ONE qualifier between the name and the copula (« mon identifiant CLIENT est … »,
+ *    « mon login WINDOWS est … ») — a single word, never two, so as not to cross
+ *    an entire clause;
+ *  • the COLON form (« mon id Discord : augustin#4521 »).
  *
- * ⚠️ `id` est admis ICI et nulle part ailleurs, et c'est le possessif qui fait la
- * différence : `LABEL_GROUPS` exclut délibérément `id`/`identifiant`/`utilisateur` nus
- * parce que « Identifiant : » sur-déclenche. « MON id … » ne sur-déclenche pas. Le
- * `(?![\p{L}])` empêche `id` d'attraper le début d'« idée » ou d'« identité » — et c'est
- * un `(?!…)` plutôt qu'un `\b` parce que `\b` est ASCII-only en JS (cf. `gate()`).
+ * ⚠️ `id` is admitted HERE and nowhere else, and the possessive is what makes the
+ * difference: `LABEL_GROUPS` deliberately excludes bare `id`/`identifiant`/`utilisateur`
+ * because « Identifiant : » over-triggers. « MON id … » doesn't over-trigger. The
+ * `(?![\p{L}])` stops `id` from catching the start of « idée » or « identité » — and it's
+ * a `(?!…)` rather than a `\b` because `\b` is ASCII-only in JS (see `gate()`).
  */
 const SELF_HANDLE =
   /\b(?:mon|ma|notre|my|our)\s+(?:pseudo(?:nyme)?|login|identifiant|gamertag|nom d['’ ]utilisateur|username|handle|nickname|id)(?![\p{L}])(?:\s+[\p{L}]{2,12})?\s*(?:\s(?:est|is)\s|[:：])\s*([^\s.,;:!?«»"']{3,60})/giu;
 
 /**
- * La forme en prose d'un SECRET : « le mot de passe est corbeau83 », « my password is
- * hunter2secret ». Même architecture que SELF_HANDLE (copule bornée, valeur = UN jeton),
- * mais l'ancre de précision diffère : l'ARTICLE est admis (un mot de passe se dit « le
- * mot de passe », pas « mon »), donc c'est la VALEUR qui porte la garde — elle doit
- * contenir un chiffre, une capitale ou un symbole. « le mot de passe est obligatoire »
- * ne redacted jamais « obligatoire » ; « azerty » tout-minuscules est le trade assumé.
- * UN qualificatif toléré (« le mot de passe applicatif est … »), comme SELF_HANDLE.
+ * The prose form of a SECRET: « le mot de passe est corbeau83 », « my password is
+ * hunter2secret ». Same architecture as SELF_HANDLE (bounded copula, value = ONE token),
+ * but the precision anchor differs: the ARTICLE is allowed (a password is said "le
+ * mot de passe", not "mon"), so it's the VALUE that carries the guard — it must
+ * contain a digit, a capital letter or a symbol. « le mot de passe est obligatoire »
+ * never redacts « obligatoire »; all-lowercase « azerty » is the accepted trade-off.
+ * ONE qualifier tolerated (« le mot de passe applicatif est … »), like SELF_HANDLE.
  *
- * ⚠️ Les « code DE quelque chose » sont une ALLOW-LIST de choses qu'on déverrouille
- * (`CODE_OF`), jamais un `code de \p{L}+` générique : « le code de la route est clair »
- * en serait un. Remonté le 11/08 — « Le code du coffre est 4581 » passait en clair alors
- * que « Code du coffre : 4581 » était bien redacted : la forme à deux-points était
- * couverte, la forme parlée non, et c'est celle qu'on écrit dans un chat.
+ * ⚠️ The « code DE something » cases are an ALLOW-LIST of things you unlock
+ * (`CODE_OF`), never a generic `code de \p{L}+`: « le code de la route est clair »
+ * would be one. Reported on 11/08 — « Le code du coffre est 4581 » went out in clear while
+ * « Code du coffre : 4581 » was correctly redacted: the colon form was
+ * covered, the spoken form wasn't, and that's the one people write in a chat.
  */
 const CODE_OF =
   "coffre(?:-fort)?|porte|portail|entr[ée]e|immeuble|alarme|cadenas|digicode|interphone|" +

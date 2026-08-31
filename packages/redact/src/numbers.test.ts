@@ -6,7 +6,7 @@ import { isBareYear } from "./model/pseudonymizeNumbers";
 /**
  * `numbers: true` tokenises standalone quantities to `n1`/`n2` so the model computes
  * symbolically. Two things it must NOT touch — the reported financial-output corruption:
- * a bare calendar YEAR (a millésime) and a digit run GLUED inside an alphanumeric
+ * a bare calendar YEAR (a year label) and a digit run GLUED inside an alphanumeric
  * identifier (a stock ticker / ISIN). Both would poison the vault and mangle results.
  */
 describe("numbers tokenisation — millésime & ticker/ISIN carve-outs", () => {

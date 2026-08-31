@@ -16,8 +16,8 @@ import { pushBarePhoneLabels } from "./contextFields.phoneLabel";
 import { acceptFieldValue, cleanValue } from "./contextFields.values";
 
 export { detectSelfHandles } from "./contextFields.selfProse";
-// Ré-export : la garde de valeur a déménagé dans `contextFields.values.ts` (cap 300 LOC),
-// le NOM public ne bouge pas — `labelBlocks.ts` et les tests l'importent d'ici.
+// Re-export: the value guard moved to `contextFields.values.ts` (300 LOC cap),
+// the public NAME doesn't move — `labelBlocks.ts` and the tests import it from here.
 export { acceptFieldValue, cleanValue } from "./contextFields.values";
 
 function escape(s: string): string {
@@ -50,16 +50,16 @@ export function detectLabeledFields(text: string): Detection[] {
     // never reads as a label) — and the value: label, separator and value on the
     // SAME line ([^\S\r\n], never \s: a colon at end-of-line must not capture the
     // NEXT line as its "value"). Case-insensitive, Unicode.
-    // ⚠️ Un QUALIFICATIF entre le libellé et le deux-points — mais pour le groupe ID SEUL.
-    // Mesuré le 15/08/2026 sur un accord de principe réel : « Identifiant du Projet
-    // Crédit : 02799195 » n'accrochait pas, alors que « Identifiant : … » accroche — le
-    // libellé devait finir JUSTE avant le séparateur. Or un document d'entreprise qualifie
-    // toujours ses identifiants (« du Projet Crédit », « client », « de facturation »).
-    // Borné : au plus 3 mots de lettres, chacun ≤ 12 caractères, donc le qualificatif ne
-    // peut pas traverser une clause ; et la valeur reste soumise à `acceptFieldValue`
-    // (≥ 2 caractères, un chiffre exigé pour un champ numérique), ce qui écarte
-    // « Identifiant de la page : 3 ». Les autres groupes ne bougent pas — leur surface de
-    // faux positifs n'a pas été mesurée.
+    // ⚠️ A QUALIFIER between the label and the colon — but for the ID group ONLY.
+    // Measured on 15/08/2026 on a real accord de principe: « Identifiant du Projet
+    // Crédit : 02799195 » didn't match, while « Identifiant : … » does — the
+    // label had to end RIGHT BEFORE the separator. But a corporate document always
+    // qualifies its identifiers (« du Projet Crédit », « client », « de facturation »).
+    // Bounded: at most 3 letter-words, each ≤ 12 characters, so the qualifier can't
+    // cross a clause; and the value still goes through `acceptFieldValue`
+    // (≥ 2 characters, a digit required for a numeric field), which excludes
+    // « Identifiant de la page : 3 ». The other groups don't move — their false-positive
+    // surface hasn't been measured.
     const qualif = group.category === "ID" ? `(?:[^\\S\\r\\n]+[\\p{L}]{1,12}){0,3}` : "";
     const re = new RegExp(
       // Separator: colon (or fullwidth), a ≥4-dot leader — or a single `=`, the
@@ -70,7 +70,7 @@ export function detectLabeledFields(text: string): Detection[] {
       `(?<![\\p{L}])(?:${alt})s?(?:[^\\S\\r\\n]*\\(\\s*[\\p{L}]{0,10}\\s*\\)|[\\p{L}]{1,10}\\))?${qualif}[^\\S\\r\\n]*(?:[:：]|=(?!=)|\\.{4,})[^\\S\\r\\n]*([^\\n\\r]{2,120})`,
       "giu",
     );
-    // Le libellé TÉLÉPHONE sans deux-points (« Telefon 0721 … ») a sa propre branche.
+    // The PHONE label without a colon (« Telefon 0721 … ») has its own branch.
     if (group.category === "PHONE") pushBarePhoneLabels(text, alt, seen, out);
 
     let m: RegExpExecArray | null;
@@ -139,15 +139,15 @@ export function detectLabeledFields(text: string): Detection[] {
     // they bound the capture exactly, so no greedy run swallows the rest of the record
     // (`"nom":"Vernaux","prenom":…`). Same gates as the inline form below, `CODE_IDENT`
     // included: `"name": "read-data-schema"` in MCP tool metadata stays a tool id.
-    // ⚠️ Le vocabulaire est écrit en MOTS SÉPARÉS PAR DES ESPACES (« postal code »,
-    // « date de naissance ») alors qu'une clé sérialisée s'écrit `postal_code`,
-    // `postalCode`, `postal-code` ou `postalcode`. C'était LA cause du plafond mesuré :
-    // `POSTAL` restait à 67 % sur les retours d'outils, non par manque de vocabulaire mais
-    // parce qu'aucune clé ne pouvait matcher. Remplacer chaque espace par `[\s_-]*` couvre
-    // les quatre conventions d'un coup — et évite d'énumérer cinquante variantes à la main.
+    // ⚠️ The vocabulary is written as WORDS SEPARATED BY SPACES (« postal code »,
+    // « date de naissance ») whereas a serialised key is written `postal_code`,
+    // `postalCode`, `postal-code` or `postalcode`. This was THE cause of the measured ceiling:
+    // `POSTAL` stayed at 67% on tool results, not for lack of vocabulary but
+    // because no key could ever match. Replacing each space with `[\s_-]*` covers
+    // all four conventions at once — and avoids enumerating fifty variants by hand.
     const flex = (t: string) => escape(t).replace(/ /g, "[\\s_-]*");
-    // Les clés `serialisedOnly` ne sont admises QUE dans ce cadre : la paire clé/valeur
-    // quotée est la preuve que « cp » désigne un code postal et pas autre chose.
+    // `serialisedOnly` keys are admitted ONLY in this context: the quoted key/value
+    // pair is the proof that « cp » denotes a postal code and nothing else.
     const qalt = [...group.terms, ...(group.serialisedOnly ?? [])]
       .sort((a, b) => b.length - a.length)
       .map(flex)

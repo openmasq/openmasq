@@ -73,7 +73,7 @@ export const VOCAB_TERMS: string[] = [
   ...ADMIN_TERMS, // insurance / banking / social / tax / administration
   ...VIE_TERMS, // employment, housing, health, school, courts, invoices
   ...TECH_TERMS, // languages, infra, observability, compliance, protocols
-  ...TOOL_DOC_TERMS, // les mots qui structurent une doc d'outil (System/entity — 15/08)
+  ...TOOL_DOC_TERMS, // the words that structure a tool's doc (System/entity — 15/08)
   ...SANTE_TERMS, // care professions, exams, biology, treatment, care pathway
   ...EDU_TERMS, // schooling, higher education, degrees, assessment, research
   ...DROIT_TERMS, // procedure, parties, remedies, contract vocabulary

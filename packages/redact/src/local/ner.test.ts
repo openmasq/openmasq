@@ -227,9 +227,9 @@ describe("createNerPredict — ## continuation merge across labels", () => {
 });
 
 describe("« à vérifier » — accord des deux passes + score (le déclencheur mesuré)", () => {
-  /** Comme `fakePipeline`, mais chaque nom connu porte son score — pour piloter le
-   *  déclencheur `désaccord ET score < 0,99` passe par passe (la casse du nom connu
-   *  décide QUELLE passe le voit). */
+  /** Like `fakePipeline`, but each known name carries its score — to drive the
+   *  `disagreement AND score < 0.99` trigger pass by pass (the casing of the known name
+   *  decides WHICH pass sees it). */
   function scoredPipeline(known: Record<string, number>): NerPipeline {
     return (text: string) => {
       const out = [];
@@ -241,7 +241,7 @@ describe("« à vérifier » — accord des deux passes + score (le déclencheur
   }
 
   it("désaccord + score faible ⇒ uncertain (une seule passe l'a vu)", async () => {
-    // Texte ALL-CAPS ⇒ la 2e passe recasée est armée ; seul le titre-casé matche.
+    // ALL-CAPS text ⇒ the 2nd recased pass is armed; only the title-cased one matches.
     const predict = await createNerPredict({ pipeline: scoredPipeline({ Sabourdin: 0.7 }) });
     const found = await detectLocalNer("SABOURDIN REBOUR SARL", predict, { extendNames: false });
     expect(found).toEqual([{ value: "SABOURDIN", category: "NAME", uncertain: true }]);
@@ -262,7 +262,7 @@ describe("« à vérifier » — accord des deux passes + score (le déclencheur
   });
 
   it("texte à une seule passe ⇒ jamais de flag (l'absence de 2e lecture n'est pas un doute)", async () => {
-    // Prose à casse normale (≥3 % de majuscules hors débuts de phrase) : pas de recase.
+    // Normal-case prose (≥3% uppercase outside sentence starts): no recase.
     const pipe = vi.fn(scoredPipeline({ "Bernard Velinet": 0.6 }));
     const predict = await createNerPredict({ pipeline: pipe });
     const found = await detectLocalNer("Merci de contacter Bernard Velinet rapidement", predict, {
@@ -275,9 +275,9 @@ describe("« à vérifier » — accord des deux passes + score (le déclencheur
 
 describe("detectLocalNer — un span ORG qui avale la préposition rend « de » à la phrase", () => {
   it("« de Karl Studio » émet « Karl Studio » (identité unique, grammaire intacte)", async () => {
-    // Journal 01/08 : le span NER « de Karl Studio » devenait la valeur du coffre —
-    // le wire lisait « les résultats oslen Partners? » et l'org gagnait une seconde
-    // identité, distincte du faux déjà en coffre pour « Karl Studio ».
+    // Log 01/08: the NER span « de Karl Studio » became the vault value —
+    // the wire read « les résultats oslen Partners? » and the org gained a second
+    // identity, distinct from the fake already in the vault for « Karl Studio ».
     const input = "Quels sont les résultats de Karl Studio?";
     const start = input.indexOf("de Karl Studio");
     const predict = () => [

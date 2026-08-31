@@ -31,15 +31,15 @@ export const W = `(?:${H}*(?:,${H}*)?\\r?\\n${H}*|(?:,|${H})+)`;
 // refuses to substitute inside a word → the WHOLE address ships in clear while sitting
 // in the vault. (2) It must END on a word boundary, so the cap itself can never cut a
 // word in half either.
-// (3) Il doit STOPPER devant un MONTANT. La classe accepte chiffres ET espaces — pour
-// « rue du 8 Mai 1945 », qu'on ne peut pas sacrifier — donc sur un texte SANS ponctuation
-// elle court jusqu'à son plafond de 38 et emporte ce qui suit la rue. Mesuré sur la phrase
-// d'un artisan : « 12 rue des lilas a vitry 2400 euros ht pose comprise » partait en UNE
-// zone, remplacée en bloc par une fausse adresse — le montant n'atteignait jamais le
-// modèle, et le devis revenait sans prix. `trimAddressTail` ne rattrape pas ce cas : il
-// coupe au « code postal + ville », et il n'y a pas de code postal ici.
-// Le garde est étroit exprès : aucune voie ne s'appelle « … 2400 euros HT ». Un nombre
-// suivi d'une monnaie ou d'une mention de taxe n'est jamais un nom de rue.
+// (3) It must STOP before an AMOUNT. The class accepts digits AND spaces — for
+// « rue du 8 Mai 1945 », which can't be sacrificed — so on text WITHOUT punctuation
+// it runs to its 38-char cap and carries off whatever follows the street. Measured on a
+// tradesman's sentence: « 12 rue des lilas a vitry 2400 euros ht pose comprise » went out as ONE
+// zone, replaced wholesale by a fake address — the amount never reached the
+// model, and the quote came back with no price. `trimAddressTail` doesn't catch this case: it
+// cuts at the "postal code + city", and there is no postal code here.
+// The guard is deliberately narrow: no street is called « … 2400 euros HT ». A number
+// followed by a currency or a tax mention is never a street name.
 export const MONEY_AHEAD = "(?![,\\s]*\\d[\\d  .,]*\\s*(?:€|EUR\\b|euros?\\b|HT\\b|TTC\\b))";
 export const NAME =
   `(?:[\\p{L}0-9](?:(?![,\\s]+(?:[-–—][,\\s]*)?\\d{5}\\b)${MONEY_AHEAD}[\\p{L}0-9'’.\\- ]){1,38}[\\p{L}0-9.](?![\\p{L}0-9]))`;
@@ -48,24 +48,24 @@ export const NAME =
 // 4-digit), optionally consumed so the whole address is ONE span. City = a
 // Capitalised run (hyphens/apostrophes ok). A dash between street and postal is
 // tolerated ("… Grande Armée - 93360 NEUILLY-PLAISANCE" — the letterhead form).
-// ⚠️ Le séparateur code postal → ville est `[,\s]+`, pas `\s+` : le FORMULAIRE écrit
-// « 2 mail Camille du Gast, 92600, Asnières », et sur cette virgule la queue entière
-// décrochait. Mesuré le 16/08/2026 sur un bail et un avenant RÉELS — le résultat était le
-// pire des deux mondes : la RUE partait fausse pendant que le code postal ET la ville
-// restaient VRAIS, soit exactement l'incohérence géographique que la queue existe pour
-// empêcher, et une adresse réelle reconstituable à un numéro près. C'est la MÊME classe que
-// le joint rue → code postal juste avant, qui admet déjà la virgule.
+// ⚠️ The postal-code → city separator is `[,\s]+`, not `\s+`: the FORM writes
+// « 2 mail Camille du Gast, 92600, Asnières », and on that comma the whole tail
+// detached. Measured on 16/08/2026 on a REAL lease and its REAL amendment — the result was the
+// worst of both worlds: the STREET went out fake while the postal code AND the city
+// stayed TRUE, exactly the geographic incoherence this tail exists to
+// prevent, and a real address reconstructible down to one digit. This is the SAME class as
+// the street → postal-code join just above, which already admits the comma.
 export const CITY = "\\p{Lu}[\\p{L}'’.\\- ]{1,28}";
-// ⚠️ `MONEY_AHEAD` ici AUSSI, et pour une raison qui ne se voit pas en lisant la ligne :
-// ces formes sont compilées en `giu`, et **sous le drapeau `i`, `\\p{Lu}` matche les
-// minuscules**. La « ville capitalisée » que `CITY` croit exiger n'exige donc rien, et la
-// branche `\\d{4}` nu (les codes postaux BE/CH/AT/LU) lit « 2400 euros ht pose comprise »
-// comme « code postal 2400 + ville "euros ht pose comprise" ». Mesuré sur la phrase d'un
-// artisan : l'adresse emportait le MONTANT de son devis, remplacé en bloc par une fausse
-// adresse — le prix n'atteignait jamais le modèle.
-// Le garde refuse qu'un nombre suivi d'une monnaie ou d'une mention de taxe soit pris pour
-// un code postal. Il ne referme PAS le trou général du `i` sur `\\p{Lu}` (voir le registre) :
-// il ferme le cas mesuré, sans toucher à la barre de précision du reste.
+// ⚠️ `MONEY_AHEAD` HERE TOO, and for a reason that doesn't show up reading the line:
+// these forms are compiled with `giu`, and **under the `i` flag, `\\p{Lu}` matches
+// lowercase**. The "capitalised city" that `CITY` thinks it requires therefore requires nothing, and the
+// bare `\\d{4}` branch (the BE/CH/AT/LU postal codes) reads « 2400 euros ht pose comprise »
+// as "postal code 2400 + city 'euros ht pose comprise'". Measured on a
+// tradesman's sentence: the address carried off the AMOUNT of his quote, replaced wholesale by a fake
+// address — the price never reached the model.
+// The guard refuses to let a number followed by a currency or a tax mention pass for
+// a postal code. It does NOT close the general `i`-on-`\\p{Lu}` hole (see the register):
+// it closes the measured case, without touching the precision bar of the rest.
 export const TAIL_CORE = `[,\\s]+(?:[-–—][,\\s]*)?${MONEY_AHEAD}(?:\\d{5}|\\d{4}-\\d{3}|\\d{4}\\s?[A-Z]{2}|\\d{4})[,\\s]+${CITY}`;
 export const TAIL_ZIPCITY = `(?:${TAIL_CORE})?`;
 // Trailing "City ST ZIP" (US), "City POSTCODE" (GB), "City PROV A1A 1A1" (CA).

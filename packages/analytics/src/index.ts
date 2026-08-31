@@ -22,8 +22,8 @@
  * Split by concern (hard rule 2), re-exported here so the public surface is
  * unchanged: `types` (the contracts), `sanitize` (the walk), `sink` (the transport),
  * `errorTracking` (scrubMessage + the $exception noise controls), `createAnalytics`
- * (les deux composés), `web` (la plomberie commune aux SITES — id anonyme, `$pageview`
- * dédoublonné, mode d'URL).
+ * (the two composed), `web` (the plumbing shared by the SITES — anonymous id, deduplicated
+ * `$pageview`, URL mode).
  */
 export * from "./types";
 export * from "./sanitize";
@@ -31,8 +31,8 @@ export * from "./sink";
 export * from "./createAnalytics";
 export * from "./web";
 export { scrubMessage } from "./errorTracking";
-// `isOperationalError` sort du tonneau parce qu'il a un SECOND canal : le `beforeSend` de
-// Sentry côté bureau (`apps/desktop/src/sentry/policy.ts`). Ce qui compte comme « panne
-// d'exploitation, pas un bug » est UN fait — il était tranché ici pour PostHog, et Sentry
-// ne l'avait jamais reçu : 93 % de son volume était le bruit déjà écarté ailleurs.
+// `isOperationalError` steps outside the barrel because it has a SECOND channel: the desktop's
+// Sentry `beforeSend` (`apps/desktop/src/sentry/policy.ts`). What counts as "operational
+// failure, not a bug" is ONE fact — it was already settled here for PostHog, and Sentry
+// had never received it: 93% of its volume was noise already filtered out elsewhere.
 export { isOperationalError } from "./errorTracking";

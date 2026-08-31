@@ -16,7 +16,7 @@ import type { Detection } from "../types";
 import { PRE, SUF, DE, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./addressShapes";
 import { trimAddressTail } from "./addressTail";
 
-// Ré-exporté : `trimAddressTail` était ici, et les consommateurs l'importent de ce chemin.
+// Re-exported: `trimAddressTail` used to live here, and consumers import it from this path.
 export { trimAddressTail } from "./addressTail";
 
 /** A per-address country hint, or a resolver from the captured value. */
@@ -170,14 +170,14 @@ export function detectAddresses(text: string): Detection[] {
   // wrap once per joiner (a deed's narrow column breaks "17ÈME\nARRONDISSEMENT").
   const CITY_TOK = "[\\p{Lu}\\d][\\p{Lu}\\p{L}\\d'’-]*";
   const CITY_JOIN = "(?:[ \\t]+|\\r?\\n[ \\t]*)";
-  // …et les libellés qui introduisent le même lieu SANS « à » : « agence de NANTES
+  // …and the labels that introduce the same place WITHOUT « à »: « agence de NANTES
   // (44000) », « Lieu de signature : BORDEAUX (33000) », « au siège, DIJON (21000) ».
-  // Une liste d'AUTORISATION, jamais un assouplissement du contexte : la garde reste le
-  // libellé, exactement comme pour les identifiants. Ouvrir la porte à un séparateur nu
-  // (« : » ou « , ») ferait de « Référence : DOSSIER (12345) » un lieu.
-  // ⚠️ La casse ne peut PAS être portée par un drapeau : `i` rendrait `\p{Lu}` minuscule
-  // dans `CITY_TOK` et la règle attraperait « il habite (75008) ». Chaque lettre du
-  // libellé est donc rendue insensible à la casse une par une, la VALEUR restant capitale.
+  // An ALLOW-list, never a loosening of the context: the guard stays the
+  // label, exactly like for the identifiers. Opening the door to a bare separator
+  // (« : » or « , ») would turn « Référence : DOSSIER (12345) » into a place.
+  // ⚠️ The casing CANNOT be carried by a flag: `i` would make `\p{Lu}` match lowercase
+  // in `CITY_TOK` and the rule would catch « il habite (75008) ». Each letter of the
+  // label is therefore made case-insensitive one at a time, the VALUE staying capitalised.
   const ci = (w: string): string =>
     [...w].map((c) => (c.toLowerCase() === c.toUpperCase() ? c : `[${c.toLowerCase()}${c.toUpperCase()}]`)).join("");
   const PLACE_CUE = ["siège", "siege", "domiciliation", "domiciliée", "domiciliee", "domicilié",
@@ -254,15 +254,15 @@ export function detectAddresses(text: string): Detection[] {
     out.push({ value: m[1], category: "POSTAL_CODE", start: m.index });
   }
   pushAll(text, new RegExp(`\\b[A-Z]{1,2}\\d[A-Z\\d]?\\s?\\d[A-Z]{2}\\b`, "g"), "POSTAL_CODE", out, seen, 5, "GB");
-  // JP postal. Le marqueur 〒 est distinctif : il suffit à lui seul. La forme NUE
-  // `NNN-NNNN`, elle, ne l'est pas — elle exige un contexte JAPONAIS (au moins un
-  // caractère CJK dans le texte).
-  // ⚠️ Sans cette porte, elle réclamait la QUEUE de tout numéro nord-américain :
-  // « +1 (555) 123-4567 » ressortait « +1 (555) 864-2086 » — l'indicatif régional en
-  // clair sous une valeur d'apparence redacted (remonté le 11/08). Une demi-protection
-  // est pire qu'aucune : elle rassure. Et un `\d{3}-\d{4}` nu contredit la barre de
-  // précision du moteur (« une suite de chiffres nue n'est jamais une règle à elle
-  // seule ») — une référence de commande a exactement cette forme.
+  // JP postal. The 〒 marker is distinctive: it's enough on its own. The BARE
+  // `NNN-NNNN` form, on the other hand, isn't — it requires a JAPANESE context (at least one
+  // CJK character in the text).
+  // ⚠️ Without this gate, it claimed the TAIL of any North-American number:
+  // « +1 (555) 123-4567 » came out as « +1 (555) 864-2086 » — the area code left in
+  // clear under a value that looked redacted (reported on 11/08). Half-protection
+  // is worse than none: it's reassuring. And a bare `\d{3}-\d{4}` contradicts the engine's
+  // precision bar ("a bare digit run is never a rule on its own") — an order
+  // reference has exactly this shape.
   const hasCjk = /[\p{sc=Han}\p{sc=Hiragana}\p{sc=Katakana}]/u.test(text);
   pushAll(
     text,

@@ -38,8 +38,8 @@ export function buildFakePath(
   const { head, ext, parts } = splitPath(value);
   const lastIdx = lastSegIndex(parts);
   const pairs: [string, string][] = [];
-  // Même règle que `fakePath`, et pour la même raison : sans segment distinctif il
-  // n'y a rien à cacher, et un « faux » égal au réel serait rejeté par l'allocateur.
+  // Same rule as `fakePath`, and for the same reason: with no distinctive segment
+  // there is nothing to hide, and a "fake" equal to the real would be rejected by the allocator.
   const keepGeneric = hasDistinctiveSegment(parts);
   let out = head;
   for (let i = 0; i < parts.length; i++) {

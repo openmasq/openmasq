@@ -28,8 +28,8 @@ import {
 } from "./sync";
 import { billingHost } from "./billing";
 import { avisHost } from "./avis";
-// LE lecteur d'environnement du renderer — un seul endroit lit `import.meta.env`,
-// et c'est là que passera la bascule d'environnement à l'exécution (voir `./appEnv`).
+// THE renderer's environment reader — only one place reads `import.meta.env`,
+// and that's where the runtime environment switch will go through (see `./appEnv`).
 import {
   ADMIN_URL,
   ANALYTICS_APP_KEY,
@@ -46,19 +46,19 @@ import {
   RUNTIME_ENV,
 } from "./appEnv";
 
-// Avant tout le reste : une erreur pendant l'amorçage du renderer est justement
-// celle qu'on ne peut pas reproduire.
+// Before everything else: an error during renderer bootstrap is precisely
+// the one you can't reproduce.
 initSentryRenderer();
 
 // Wire opt-in usage analytics + error tracking through the FIRST-PARTY RELAY ONLY.
 // The desktop NEVER holds a PostHog key: it POSTs the neutral envelope to the relay
 // (apps/analytics-fn), which forwards to PostHog with its OWN server-side key. We
 // deliberately do NOT pass `key`/`apiHost` here so `VITE_POSTHOG_KEY` is never
-// referenced → jamais inliné dans le bundle expédié, quel que soit l'env de build.
-// Les URL et leurs défauts vivent dans `./appEnv`. L'envoi reste soumis au consentement
-// in-app (+ Do-Not-Track) : rien ici ne touche la porte de confidentialité.
-// SERVI = passerelle + comptes ; VENDU = `OPENMASQ_BILLING=1` (la porte des adresses
-// distantes au build — `appEnv.ts` BILLING_SOLD). Une pile saisie sert sans vendre.
+// referenced → never inlined in the shipped bundle, regardless of the build env.
+// The URLs and their defaults live in `./appEnv`. Sending stays subject to in-app
+// consent (+ Do-Not-Track): nothing here touches the privacy gate.
+// SERVED = gateway + accounts; SOLD = `OPENMASQ_BILLING=1` (the gate for remote
+// addresses at build time — `appEnv.ts` BILLING_SOLD). An entered stack serves without selling.
 configurePlatformAccess({
   served: GATEWAY_CONFIGURED && AUTH_CONFIGURED,
   sold: BILLING_SOLD && SYNC_ENABLED,
@@ -67,38 +67,38 @@ configurePlatformAccess({
 configureAnalytics({
   relayUrl: ANALYTICS_RELAY_URL,
   source: "desktop",
-  // Attest the RELAY request with the build's HMAC key (anti-abuse only, NON-identity : le
-  // relais vérifie que c'est un build officiel de l'app puis jette, donc les événements restent anonymes
-  // et partent déconnecté aussi). Sans clé (dev) ⇒ pas d'en-tête, le relais accepte.
+  // Attest the RELAY request with the build's HMAC key (anti-abuse only, NOT identity: the
+  // relay verifies it's an official build of the app then discards it, so events stay anonymous
+  // and go out logged-out too). No key (dev) ⇒ no header, the relay accepts it.
   appKey: ANALYTICS_APP_KEY,
-  // Estampille env + version sur chaque événement (`./appEnv` dit la dérivation, et pourquoi
-  // « vide » ne veut PAS dire production). ⚠️ `runtimeEnv` est le SECOND axe, estampillé nulle
-  // part : réservé aux DRAPEAUX, parce qu'un binaire de prod basculé sur staging reste
+  // Stamps env + version on every event (`./appEnv` explains the derivation, and why
+  // "empty" does NOT mean production). ⚠️ `runtimeEnv` is the SECOND axis, stamped nowhere
+  // else: reserved for FLAGS, because a prod binary switched to staging stays
   // `BUILD_ENV: "production"` (`@openmasq/analytics` types.ts).
   env: BUILD_ENV,
   runtimeEnv: RUNTIME_ENV,
   appVersion: APP_VERSION,
-  // Journalise chaque événement (envoyé / ignoré + raison) en dev ; VITE_POSTHOG_DEBUG=1 l'ouvre aussi sur un paquet.
+  // Logs every event (sent / skipped + reason) in dev; VITE_POSTHOG_DEBUG=1 also opens it on a package.
   debug: ANALYTICS_DEBUG,
 });
 
-// L'ID STABLE : l'`installId` d'`updates.json`, un uuid par machine qui survit à un
-// profil vidé — sans quoi un localStorage neuf refait une « personne » à chaque fois
-// (mesuré : 277 identités de production sur 278 n'avaient vécu qu'un seul jour).
+// The STABLE ID: the `installId` from `updates.json`, a per-machine uuid that survives a
+// wiped profile — without which a fresh localStorage recreates a "person" every time
+// (measured: 277 out of 278 production identities had lived only one day).
 //
-// ⚠️ On DÉCLARE la source, on ne pousse plus la valeur. La version poussée partait en
-// parallèle du démarrage et pariait que la file d'attente du sink durerait plus longtemps
-// que cet aller-retour IPC ; perdre ce pari — ou voir `current()` échouer — gravait un
-// `anon-…` définitif, l'adoption n'écrasant jamais rien. Ici le sink AWAIT `getAnonId()`,
-// donc aucun événement ne peut partir avant que la question soit tranchée. Le détail des
-// trois cas est dans `@openmasq/ui` `analytics/posthog.ts`.
+// ⚠️ We DECLARE the source, we no longer push the value. The pushed version ran in
+// parallel with startup and bet that the sink's queue would last longer
+// than this IPC round trip; losing that bet — or `current()` failing — would carve in a
+// definitive `anon-…`, adoption never overwriting anything. Here the sink AWAITS `getAnonId()`,
+// so no event can leave before the question is settled. The detail of the
+// three cases is in `@openmasq/ui` `analytics/posthog.ts`.
 setStableIdSource(async () => (await window.openmasq.updates?.current?.())?.installId);
 
-// Garde-fou contre les lancements NON HUMAINS, la première source de bruit dans les
-// chiffres : la vérité vient de MAIN (`OPENMASQ_E2E` au lancement), le renderer ne peut
-// pas se l'attribuer — un spec qui pilote l'app construite n'émet plus rien. Pas une
-// course : rien ne part avant que le consentement soit tranché (effet des réglages),
-// bien après cet aller-retour IPC.
+// Safeguard against NON-HUMAN launches, the top source of noise in the
+// numbers: the truth comes from MAIN (`OPENMASQ_E2E` at launch), the renderer can't
+// claim it for itself — a spec driving the built app no longer emits anything. Not a
+// race: nothing leaves before consent is settled (the settings effect),
+// well after this IPC round trip.
 void window.openmasq.env
   ?.isE2e?.()
   .then((on) => {
@@ -150,9 +150,9 @@ const host: Host = {
   media: window.openmasq.media
     ? { ensureMicAccess: () => window.openmasq.media.ensureMicAccess() }
     : undefined,
-  // Notification système quand une réponse arrive hors du champ de vision. Gardée comme
-  // `media` : un preload non redémarré (dev) doit dégrader en « pas de bannière », et le
-  // réglage disparaît de lui-même avec le créneau.
+  // System notification when a reply arrives out of view. Guarded like
+  // `media`: an un-restarted preload (dev) must degrade to "no banner", and the
+  // setting disappears on its own along with the slot.
   notify: window.openmasq.notify
     ? {
         supported: () => window.openmasq.notify.supported(),
@@ -160,7 +160,7 @@ const host: Host = {
         onActivate: (cb) => window.openmasq.notify.onActivate(cb),
       }
     : undefined,
-  claudeSkills: undefined, // ⛔ import Claude Code DÉSACTIVÉ — l'interrupteur, voir CLAUDE.md
+  claudeSkills: undefined, // ⛔ Claude Code import DISABLED — the switch, see CLAUDE.md
   // OpenGraph link-unfurl (opt-in via Settings.linkPreviews). Guarded like `media`.
   links: window.openmasq.links
     ? {
@@ -191,9 +191,9 @@ const host: Host = {
     ? { listOpenRouter: () => window.openmasq.models.listOpenRouter() }
     : undefined,
   // Auto-update controls (electron-updater ↔ the apps/updates Worker feed).
-  // ⚠️ Deux conditions : un flux fourni au build (sinon il n'y a RIEN à interroger — pas
-  // de carte de mise à jour, pas d'historique de versions, pas de notes) et un preload à
-  // jour (un dev non redémarré dégrade au lieu de jeter).
+  // ⚠️ Two conditions: a feed provided at build time (otherwise there's NOTHING to query — no
+  // update card, no version history, no notes) and an up-to-date preload
+  // (a non-restarted dev degrades instead of throwing).
   updates:
     UPDATES_CONFIGURED && window.openmasq.updates
       ? {
@@ -211,7 +211,7 @@ const host: Host = {
           install: () => window.openmasq.updates.install(),
           onStatus: (cb) => window.openmasq.updates.onStatus(cb),
           // Guarded like the rest: an un-restarted preload without the probe degrades to
-          // « jamais d'auto-install » (main fail-closes on silence), never a throw.
+          // "never auto-install" (main fail-closes on silence), never a throw.
           ...(window.openmasq.updates.onQuiescenceAsk
             ? {
                 onQuiescenceAsk: (cb: (askId: string) => void) =>
@@ -268,8 +268,8 @@ const host: Host = {
     pick: () => window.openmasq.files.pick(),
     pickPaths: () => window.openmasq.files.pickPaths(),
     extract: (paths, onProgress) => window.openmasq.files.extract(paths, onProgress),
-    // Gardé sur l'existence du pont : un preload non redémarré dégrade (pas de « Lire
-    // tout ») au lieu de jeter.
+    // Guarded on the bridge's existence: an un-restarted preload degrades (no "Read
+    // all") instead of throwing.
     extractAll: window.openmasq.files.extractAll
       ? (paths, onProgress) => window.openmasq.files.extractAll(paths, onProgress)
       : undefined,
@@ -442,9 +442,9 @@ const host: Host = {
     // Re-scope the encrypted key store to the signed-in account — the store's userId effect
     // calls this ALONGSIDE db/mcp setUser. Missing it left `currentUid` unresolved in main:
     // keys held in memory only, never persisted, legacy `keys.enc` never adopted.
-    // Deux passagers, même geste : `setOrgCacheUser` (la politique d'orga ne s'hérite pas) et
-    // la PHRASE DE SYNCHRO, qui était à portée APPAREIL — le compte suivant héritait de la clé
-    // E2E du précédent (`main/store/CLAUDE.md`). `?.` : un preload dev non redémarré dégrade.
+    // Two riders, one gesture: `setOrgCacheUser` (org policy doesn't inherit) and
+    // the SYNC PASSPHRASE, which used to be DEVICE-scoped — the next account inherited the
+    // previous one's E2E key (`main/store/CLAUDE.md`). `?.`: an un-restarted dev preload degrades.
     setUser: (userId) => (
       setOrgCacheUser(userId),
       void window.openmasq.sync?.setUser?.(userId),
@@ -454,7 +454,7 @@ const host: Host = {
     set: (id, value) => window.openmasq.keys.set(id, value),
     clear: (id) => window.openmasq.keys.clear(id),
     importLegacy: (map) => window.openmasq.keys.importLegacy(map),
-    // Optionnel : un preload non redémarré peut ne pas la porter.
+    // Optional: an un-restarted preload may not carry it.
     ...(window.openmasq.keys.setOrgByoAllowed
       ? { setOrgByoAllowed: (a: boolean | null) => window.openmasq.keys.setOrgByoAllowed!(a) }
       : {}),
@@ -464,13 +464,13 @@ const host: Host = {
       ? { connectOpenRouter: () => window.openmasq.keys.connectOpenRouter() }
       : {}),
   },
-  // Absent quand aucun projet Supabase n'est fourni au build : la porte de connexion
-  // est sautée (`useAuth` enabled:false) et l'app tourne entièrement en local — jamais
-  // un client d'auth pointé sur un projet par défaut (voir `auth.ts` AUTH_CONFIGURED).
+  // Absent when no Supabase project is supplied at build time: the login gate
+  // is skipped (`useAuth` enabled:false) and the app runs entirely locally — never
+  // an auth client pointed at a default project (see `auth.ts` AUTH_CONFIGURED).
   auth: AUTH_CONFIGURED ? authHost : undefined,
-  // Toute la synchro est DISTANTE (appareils, enveloppes, journal d'orga) : sans backend
-  // le créneau n'existe pas, donc ni onglet « Vos appareils », ni entrée ⌘K, ni carte de
-  // phrase de passe — plutôt qu'un écran qui n'aurait personne à qui parler.
+  // The whole sync stack is REMOTE (devices, envelopes, org log): without a backend
+  // the slot doesn't exist, so no "Your devices" tab, no ⌘K entry, no
+  // passphrase card — rather than a screen with no one to talk to.
   sync: BACKEND_CONFIGURED ? syncHost : undefined,
   // Organization authorization (membership/role + allow-lists), read from the
   // sync backend; absent = solo app. `openAdmin` opens the web admin console in
@@ -481,21 +481,21 @@ const host: Host = {
         openAdmin: () => window.open(ADMIN_URL, "_blank"),
       }
     : undefined,
-  // Org SHARES (coffre/compétences → org/équipe/personne, sous approbation).
+  // Org SHARES (coffre/skills → org/team/person, under approval).
   orgShares: SYNC_ENABLED ? orgSharesHost : undefined,
-  // Billing individuel (backend + Stripe) — SEULEMENT dans un build qui VEND : ce créneau fait exister l'onglet Paiement et chaque upsell.
+  // Individual billing (backend + Stripe) — ONLY in a build that SELLS: this slot makes the Payment tab and every upsell exist.
   billing: SYNC_ENABLED && BILLING_SOLD ? billingHost : undefined,
-  // « Votre avis » — vers le backend ; sans lui, l'action du rail n'est pas offerte.
+  // "Your feedback" — to the backend; without it, the rail action isn't offered.
   avis: SYNC_ENABLED ? avisHost : undefined,
-  // La passerelle (apps/gateway) — redaction cloud ET inférence des modèles inclus.
-  // ABSENTE quand le build n'en fournit pas l'adresse : le moteur de redaction reste
-  // celui de la machine (déjà le défaut) et les modèles servis par la plateforme
-  // deviennent indisponibles au lieu d'échouer à l'envoi (`platformServed`).
+  // The gateway (apps/gateway) — cloud redaction AND inference for included models.
+  // ABSENT when the build doesn't supply its address: the redaction engine remains
+  // the machine's own (already the default) and the models served by the platform
+  // become unavailable instead of failing on send (`platformServed`).
   ...(GATEWAY_CONFIGURED ? { redactFnUrl: REDACT_FN_URL, inferenceUrl: REDACT_FN_URL } : {}),
-  // Les notes de version (Réglages → Versions → « Nouveautés »), servies par le même
-  // service que le relais d'analytics (`/release-notes`, proxy Contentful en lecture).
-  // Adresse dérivée UNE fois dans `appEnv` ; absente ⇒ le panneau dit « indisponible »
-  // et la liste des versions, elle, reste là.
+  // Release notes (Settings → Versions → "What's new"), served by the same
+  // service as the analytics relay (`/release-notes`, read-only Contentful proxy).
+  // Address derived ONCE in `appEnv`; absent ⇒ the panel says "unavailable"
+  // and the version list stays there regardless.
   ...(RELEASE_NOTES_URL ? { releaseNotesUrl: RELEASE_NOTES_URL } : {}),
 };
 

@@ -113,21 +113,21 @@ describe("SIREN/SIRET — keyword on EITHER side, no checksum demand (OCR'd digi
 
 describe("TVA intracommunautaire — keyword path, no Luhn demand (mirrors SIREN)", () => {
   it("redacts a glued, Luhn-invalid TVA behind its keyword — the SIREN inside must not leak", () => {
-    // Vécu (parcours expert-comptable 13/08) : « TVA intracom FR00 753816290 » partait
-    // VERBATIM (frVat exige Luhn sur le SIREN embarqué) pendant que « SIREN 842 519 763 »
-    // était masqué trois lignes plus haut, sans Luhn exprès — les MÊMES chiffres, deux
-    // standards, et le SIREN réel reconstituable en clair dans la TVA.
+    // Seen (accountant walkthrough 13/08): « TVA intracom FR00 753816290 » was going out
+    // VERBATIM (frVat requires a Luhn check on the embedded SIREN) while « SIREN 842 519 763 »
+    // was masked three lines above, deliberately without Luhn — the SAME digits, two
+    // standards, and the real SIREN reconstructible in clear inside the TVA.
     const o = out("dossier (SIREN 842 519 763, TVA intracom FR00 753816290)");
     expect(o).not.toContain("FR00 753816290");
-    // Masquage ENTIER — le span fautif « intracom FR37 84 » laissait « 2519763 » en
-    // clair derrière le jeton, et « intracom » (mot ordinaire) partait redacted.
+    // WHOLE masking — the faulty span « intracom FR37 84 » left « 2519763 » in
+    // clear behind the token, and « intracom » (an ordinary word) was going out redacted.
     expect(o).not.toContain("2519763");
     expect(o).toContain("intracom");
   });
   it("keyword before the FR-form, ordinary prose gap, still redacts — without eating the next word", () => {
     const o = out("n° TVA FR00 753816290 de la société");
     expect(o).not.toContain("FR00 753816290");
-    // Le {8,12} glouton avalait « d» : « e la société » restait orphelin à l'écran.
+    // The greedy {8,12} was swallowing "d": "e la société" was left orphaned on screen.
     expect(o).toContain("de la société");
   });
   it("shape-only (no keyword) keeps the double-checksum bar — Luhn-invalid stays clear", () => {
@@ -136,10 +136,10 @@ describe("TVA intracommunautaire — keyword path, no Luhn demand (mirrors SIREN
 });
 
 describe("MRZ — la bande machine d'une pièce d'identité", () => {
-  // La bande OCR-B porte NOM, prénoms, date encodée et numéro — soudés aux chevrons.
-  // Dès que l'OCR la lit (relecture ciblée `ocr/garbled.ts`), elle DOIT être masquée :
-  // aucune autre règle ne voit un nom soudé dans « IDFRADUPONT<<< ». Forme distinctive
-  // (≥25 signes de [A-Z0-9<] dont ≥4 chevrons) — rien d'ordinaire n'y ressemble.
+  // The OCR-B band carries NAME, first names, encoded date and number — fused with chevrons.
+  // As soon as OCR reads it (targeted re-read `ocr/garbled.ts`), it MUST be masked:
+  // no other rule sees a name fused into « IDFRADUPONT<<< ». Distinctive shape
+  // (≥25 characters of [A-Z0-9<] including ≥4 chevrons) — nothing ordinary looks like it.
   it("masque les deux lignes d'une CNI, la ligne nom et la ligne numéro+date", () => {
     expect(
       redacted("IDFRADUPONTMARTIN<<<<<<<<<<<<<<353113 fin", "IDFRADUPONTMARTIN<<<<<<<<<<<<<<353113"),
@@ -193,9 +193,9 @@ describe("PDL / PRM — energy delivery point (14 digits, gated)", () => {
 });
 
 describe("avis d'impôt — les références du bloc en tête", () => {
-  // Seul « Numéro fiscal » était couvert (chiffres seuls). Les autres portent un groupe de
-  // LETTRES (« 20 35 A195936 32 »), donc aucune règle numérique ne pouvait les voir : elles
-  // partaient en clair sur chaque avis d'impôt, taxe foncière et taxe d'habitation.
+  // Only « Numéro fiscal » was covered (digits only). The others carry a group of
+  // LETTERS (« 20 35 A195936 32 »), so no numeric rule could see them: they
+  // were going out in clear on every tax notice, property tax and housing tax bill.
   it("redacted FIP, référence de l'avis, rôle et numéro d'occupant", () => {
     expect(redacted("Numéro FIP :      350 54 32 4525937789 3", "350 54 32 4525937789 3")).toBe(true);
     expect(redacted("Référence de l'avis :   20 35 A195936 32", "20 35 A195936 32")).toBe(true);
@@ -204,26 +204,26 @@ describe("avis d'impôt — les références du bloc en tête", () => {
   });
 
   it("« rôle » reste un mot ordinaire — c'est la FORME de la valeur qui décide", () => {
-    // Le libellé ouvre la règle, il ne la conclut pas : sans une valeur groupée, en
-    // majuscules et à ≥4 chiffres, rien n'est redacted.
+    // The label opens the rule, it doesn't close it: without a grouped value, in
+    // uppercase and with ≥4 digits, nothing is redacted.
     expect(out("le rôle de chacun est défini dans la convention")).toContain("chacun");
     expect(out("Rôle : responsable des achats")).toContain("responsable");
   });
 
   it("la référence ne franchit pas une gouttière de colonnes", () => {
-    // Un espacement de 2+ est une colonne voisine, pas la suite de la référence.
+    // A spacing of 2+ is a neighboring column, not the continuation of the reference.
     expect(out("FIP 350 54 32 4525937789 3     Autre colonne")).toContain("Autre colonne");
   });
 });
 
 describe("« RC » (ancien registre du commerce) + carte professionnelle CPI", () => {
   it("« RC 424613305 » : mot-clé adjacent + Luhn SIREN = company_id", () => {
-    // Vecteur Luhn-valide (celui du corpus doc9-appel-fonds).
+    // Luhn-valid vector (the one from the doc9-appel-fonds corpus).
     expect(redacted("CABINET X\nRC 424613305 CODE APE 703 C", "424613305")).toBe(true);
   });
 
   it("un numéro à 9 chiffres qui RATE son Luhn reste en clair derrière « RC »", () => {
-    // « RC » seul est ambigu (responsabilité civile) — sans checksum, pas de prise.
+    // Bare « RC » is ambiguous (civil liability) — without a checksum, no traction.
     expect(out("attestation RC 123456789 fournie au bailleur")).toContain("123456789");
   });
 

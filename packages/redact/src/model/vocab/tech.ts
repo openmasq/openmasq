@@ -27,7 +27,7 @@
  *   compound carrying a digit token, so a standard's number cannot fall out word by word.
  */
 export const TECH_TERMS: string[] = [
-  // ── Langages & runtimes ────────────────────────────────────────────────────────
+  // ── Languages & runtimes ───────────────────────────────────────────────────────
   "javascript", "typescript", "python", "java", "kotlin", "scala", "golang", "php",
   "perl", "haskell", "erlang", "elixir", "clojure", "fortran", "cobol", "assembler",
   "bash", "powershell", "zsh", "shell", "sql", "plsql", "tsql", "graphql", "wasm",
@@ -35,7 +35,7 @@ export const TECH_TERMS: string[] = [
   "interpréteur", "interpreteur", "interpreter", "compilateur", "compiler", "transpiler", "linter",
   "polyfill", "bytecode", "garbage collector", "ramasse-miettes",
 
-  // ── Frameworks & bibliothèques ────────────────────────────────────────────────
+  // ── Frameworks & libraries ─────────────────────────────────────────────────────
   "react", "angular", "vue", "svelte", "nuxt", "remix", "astro", "solid", "preact",
   "express", "fastify", "nest", "nestjs", "laravel", "symfony", "spring boot",
   "hibernate", "flask", "fastapi", "rails", "tailwind", "bootstrap", "jquery",
@@ -44,7 +44,7 @@ export const TECH_TERMS: string[] = [
   "storybook", "framework", "bibliothèque", "bibliotheque", "library", "sdk", "api", "rest", "grpc",
   "websocket", "webhook", "middleware", "endpoint", "boilerplate", "monorepo",
 
-  // ── Bases de données & stockage ───────────────────────────────────────────────
+  // ── Databases & storage ────────────────────────────────────────────────────────
   "postgresql", "postgres", "mysql", "mariadb", "sqlite", "mongodb", "couchdb", "dynamodb", "redis", "memcached", "elasticsearch", "opensearch",
   "clickhouse", "snowflake", "bigquery", "duckdb", "neo4j", "influxdb", "timescaledb",
   "base de données", "base de donnees", "database", "datenbank", "base de datos", "banco de dados",
@@ -52,7 +52,7 @@ export const TECH_TERMS: string[] = [
   "replication", "replica", "sauvegarde", "backup", "restauration", "restore",
   "entrepôt de données", "entrepot de donnees", "data warehouse", "lac de donnees", "data lake", "etl",
 
-  // ── Conteneurs, orchestration, infra ──────────────────────────────────────────
+  // ── Containers, orchestration, infra ──────────────────────────────────────────
   "docker", "dockerfile", "docker-compose", "podman", "containerd", "kubernetes",
   "k8s", "helm", "kustomize", "openshift", "nomad", "terraform", "opentofu",
   "ansible", "puppet", "chef", "pulumi", "vagrant", "conteneur", "container",
@@ -62,7 +62,7 @@ export const TECH_TERMS: string[] = [
   "hypervisor", "bare metal", "load balancer", "répartiteur de charge", "repartiteur de charge", "reverse proxy",
   "nginx", "apache httpd", "haproxy", "traefik", "envoy", "istio", "cdn",
 
-  // ── CI/CD & outillage ─────────────────────────────────────────────────────────
+  // ── CI/CD & tooling ───────────────────────────────────────────────────────────
   "git", "gitflow", "monodépôt", "monodepot", "pull request", "merge request", "rebase", "cherry-pick",
   "pipeline", "intégration continue", "integration continue", "continuous integration", "déploiement continu", "deploiement continu",
   "continuous deployment", "build", "artefact", "artifact", "registry", "runner",
@@ -71,7 +71,7 @@ export const TECH_TERMS: string[] = [
   "feature flag", "rollback", "canary", "blue-green", "staging", "préproduction", "preproduction",
   "production", "recette", "sandbox", "bac à sable", "bac a sable",
 
-  // ── Observabilité & incidents ─────────────────────────────────────────────────
+  // ── Observability & incidents ─────────────────────────────────────────────────
   "observabilité", "observabilite", "observability", "monitoring", "supervision", "télémétrie", "telemetrie",
   "telemetry", "métrique", "metrique", "metrics", "trace", "tracing", "span", "log", "logs",
   "journalisation", "alerting", "astreinte", "on-call", "post-mortem", "postmortem",
@@ -80,7 +80,7 @@ export const TECH_TERMS: string[] = [
   "bottleneck", "fuite mémoire", "fuite memoire", "memory leak", "stack trace", "trace d'appels",
   "cœur de fichier", "core dump", "profilage", "profiling", "benchmark",
 
-  // ── Sécurité, conformité, cadres ──────────────────────────────────────────────
+  // ── Security, compliance, frameworks ──────────────────────────────────────────
   "iso 27001", "iso 27701", "iso 9001", "soc 2", "soc2", "pci dss", "hipaa", "nis2",
   "eidas", "secnumcloud", "hds", "owasp", "cve", "cvss", "cwe", "mitre att&ck",
   "pentest", "test d'intrusion", "audit de sécurité", "audit de securite", "security audit", "analyse de risque",
@@ -94,7 +94,7 @@ export const TECH_TERMS: string[] = [
   "porte dérobée", "porte derobee", "hameçonnage", "hameconnage", "phishing", "rançongiciel", "rancongiciel", "ransomware",
   "logiciel malveillant", "malware", "bac à sable de sécurité", "bac a sable de securite", "sandboxing",
 
-  // ── Protocoles, formats, réseau ───────────────────────────────────────────────
+  // ── Protocols, formats, network ───────────────────────────────────────────────
   "http", "http/2", "http/3", "tcp", "udp", "quic", "dns", "dhcp", "smtp", "imap",
   "pop3", "ftp", "sftp", "ssh", "rsync", "webdav", "mqtt", "amqp", "rabbitmq",
   "json", "jsonl", "ndjson", "yaml", "toml", "xml", "csv", "tsv", "parquet", "avro",
@@ -103,7 +103,7 @@ export const TECH_TERMS: string[] = [
   "adresse ip", "ip address", "sous-réseau", "sous-reseau", "subnet", "passerelle", "gateway",
   "port", "proxy", "tunnel", "bande passante", "bandwidth", "paquet", "packet",
 
-  // ── Données, IA & traitement ──────────────────────────────────────────────────
+  // ── Data, AI & processing ─────────────────────────────────────────────────────
   "modèle de langage", "modele de langage", "language model", "llm", "embedding", "plongement",
   "vectorisation", "tokenisation", "tokenizer", "prompt", "inférence", "inference", "fine-tuning",
   "affinage", "entraînement", "entrainement", "training", "jeu de données", "jeu de donnees", "dataset", "corpus",
@@ -114,7 +114,7 @@ export const TECH_TERMS: string[] = [
   "hyperparameter", "surapprentissage", "overfitting", "rappel", "recall", "précision", "precision",
   "faux positif", "false positive", "faux négatif", "faux negatif", "false negative", "matrice de confusion",
 
-  // ── Architecture & méthode ────────────────────────────────────────────────────
+  // ── Architecture & methodology ─────────────────────────────────────────────────
   "architecture", "architecture hexagonale", "clean architecture", "event sourcing",
   "cqrs", "domain driven design", "ddd", "design pattern", "patron de conception",
   "refactoring", "refactorisation", "dette technique", "technical debt", "code review",
@@ -127,16 +127,16 @@ export const TECH_TERMS: string[] = [
 ];
 
 /**
- * Les mots qui STRUCTURENT une documentation d'outil (MCP, analytics, SQL).
+ * The words that STRUCTURE a tool's documentation (MCP, analytics, SQL).
  *
- * ⚠️ Re-mesuré le 15/08 sur la doc de l'outil `execute-sql` de PostHog : « ##### 1. System
- * Data » lu comme un nom fabriquait les alias System/system, et « entity » devenait un
- * patronyme — puis `applyVault` réécrivait CHAQUE occurrence de la conversation, résultats
- * d'outils compris. Le modèle lisait une doc décrivant des tables `ghislain.*` et écrivait
- * du SQL contre elles. Le bloc d'`genericTermsData.ts` couvrait data/schema/query, mais pas
- * ces deux-là. Même discipline que le volume ci-dessus : aucun n'est une PII isolé, aucun
- * ne double un prénom ni un patronyme (`vocabGuards.test.ts` le fait échouer sinon).
- * Régression de bout en bout : `../toolMetadata.test.ts`.
+ * ⚠️ Re-measured on 15/08 on PostHog's `execute-sql` tool doc: « ##### 1. System
+ * Data » read as a name manufactured the System/system aliases, and « entity » became a
+ * surname — then `applyVault` rewrote EVERY occurrence in the conversation, tool
+ * results included. The model was reading a doc describing `ghislain.*` tables and writing
+ * SQL against them. `genericTermsData.ts`'s block covered data/schema/query, but not
+ * these two. Same discipline as the volume above: none is a standalone PII, none
+ * doubles as a first name or surname (`vocabGuards.test.ts` fails otherwise if it does).
+ * End-to-end regression: `../toolMetadata.test.ts`.
  */
 export const TOOL_DOC_TERMS: string[] = [
   "system", "systems", "système", "systèmes", "systeme", "systemes",

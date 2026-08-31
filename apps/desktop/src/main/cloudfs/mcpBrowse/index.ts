@@ -4,30 +4,30 @@ import { listerFor, } from "./lister";
 import { asRecord, describeShape, parseToolList, } from "./read";
 
 /**
- * Parcourir un stockage dont nous n'écrivons PAS l'appel — un serveur MCP distant
- * (Dropbox) — en passant par l'outil de listage qu'il expose lui-même.
+ * Browse a storage whose call we do NOT write — a remote MCP server
+ * (Dropbox) — going through the listing tool it exposes itself.
  *
- * Drive et OneDrive sont des connecteurs DIRECTS : nous construisons l'URL, donc la forme
- * de la réponse est un contrat que nous tenons (`cloudfs/providers.ts`). Dropbox n'est
- * atteignable que par `https://mcp.dropbox.com/mcp`, et son `ListFolder` est le seul
- * listage qui existe. D'où la posture de ce module, qui est l'inverse d'une devinette :
+ * Drive and OneDrive are DIRECT connectors: we build the URL, so the shape
+ * of the response is a contract we hold (`cloudfs/providers.ts`). Dropbox is only
+ * reachable via `https://mcp.dropbox.com/mcp`, and its `ListFolder` is the only
+ * listing that exists. Hence this module's posture, which is the opposite of guessing:
  *
- *  - **`lister.ts` ne devine rien** : nom d'outil et argument de dossier en allow-list, le
- *    second choisi DANS le schéma déclaré. Tout le reste de ce que le serveur expose —
- *    écritures comprises — est inatteignable d'ici.
- *  - **`read.ts` échoue FERMÉ** : du JSON, et seulement s'il porte de quoi nommer ET classer
- *    chaque entrée. Sinon la source reprend sa ligne d'état, avec l'EMPREINTE de ce qu'on a
- *    reçu (des clés, jamais des valeurs) — un refus sans diagnostic est un mur.
+ *  - **`lister.ts` guesses nothing**: tool name and folder argument in an allow-list, the
+ *    second chosen FROM the declared schema. Everything else the server exposes —
+ *    writes included — is unreachable from here.
+ *  - **`read.ts` fails CLOSED**: JSON, and only if it carries enough to name AND classify
+ *    each entry. Otherwise the source reverts to its status line, with the FOOTPRINT of what was
+ *    received (keys, never values) — a refusal with no diagnostic is a wall.
  *
- * ⚠️ Ce que ça n'élargit PAS : lecture seule, aucun octet de contenu, aucun scope de plus
- * que ceux déjà accordés à la connexion. Le renderer peut déjà appeler
- * `mcp.callTool("dropbox__ListFolder")` et recevoir les vrais noms — ce qui change ici est
- * la FORME (typée pour une interface), pas la portée.
+ * ⚠️ What this does NOT widen: read-only, no byte of content, no scope beyond
+ * those already granted to the connection. The renderer can already call
+ * `mcp.callTool("dropbox__ListFolder")` and get the real names back — what changes here is
+ * the SHAPE (typed for a UI), not the scope.
  */
 
-/** Un identifiant de dossier vient du RENDERER. Il ne compose ici aucune URL — il devient
- *  un argument JSON que le serveur interprète — donc la garde est un plancher d'hygiène :
- *  bornée, sans caractère de contrôle. La racine est la chaîne vide, ce qu'attend Dropbox. */
+/** A folder identifier comes from the RENDERER. It composes no URL here — it becomes
+ *  a JSON argument the server interprets — so the guard is a hygiene floor:
+ *  bounded, no control character. The root is the empty string, which is what Dropbox expects. */
 export function assertFolderRef(ref: string | null): string {
   const s = ref ?? "";
   if (s.length > 1024) throw new Error("Chemin de dossier trop long.");
@@ -36,14 +36,14 @@ export function assertFolderRef(ref: string | null): string {
   return s;
 }
 
-/** Bornes de pagination : de quoi couvrir un vrai dossier sans boucler sur un serveur
- *  qui rendrait toujours `has_more`. Atteindre la borne TRONQUE — c'est le seul endroit
- *  où la liste peut être incomplète, et c'est dit ici plutôt que silencieux. */
+/** Pagination bounds: enough to cover a real folder without looping on a server
+ *  that would always return `has_more`. Reaching the bound TRUNCATES — it's the one place
+ *  where the list can be incomplete, and it's stated here rather than silent. */
 const MAX_PAGES = 20;
 const MAX_ENTRIES = 2000;
 
-/** Les parties TEXTE d'un résultat — y compris celles qu'un serveur emballe en `resource`,
- *  qui est le même texte sous un autre nom. */
+/** The TEXT parts of a result — including those a server wraps as `resource`,
+ *  which is the same text under another name. */
 const textsOf = (content: McpToolResult["content"]): string[] =>
   content.flatMap((c) => {
     if (c.type === "text" && typeof c.text === "string") return [c.text];
@@ -51,28 +51,28 @@ const textsOf = (content: McpToolResult["content"]): string[] =>
     return typeof res?.text === "string" ? [res.text] : [];
   });
 
-/** Le dossier d'un identifiant-CHEMIN (`/a/b.pdf` → `/a`, la racine → `/`). */
+/** The folder of a PATH-shaped identifier (`/a/b.pdf` → `/a`, the root → `/`). */
 const parentOf = (p: string): string => p.slice(0, p.lastIndexOf("/")) || "/";
 
 /**
- * Ne garder que les enfants DIRECTS du dossier demandé.
+ * Keep only the DIRECT children of the requested folder.
  *
- * ⚠️ Un `ListFolder` distant peut répondre RÉCURSIVEMENT : le petit-fils arrive alors à
- * côté de son parent, dans le même listing. L'arbre rend ce qu'on lui donne — le fichier
- * s'affichait donc à la racine ET dans son dossier, et replier le dossier n'enlevait rien
- * puisque l'autre ligne n'y était pour rien. C'est ici que ça se coupe, pas à l'écran :
- * un listing doit décrire UN dossier.
+ * ⚠️ A remote `ListFolder` can answer RECURSIVELY: the grandchild then arrives right
+ * next to its parent, in the same listing. The tree renders whatever it's given — so the file
+ * would show up at the root AND in its folder, and collapsing the folder removed nothing
+ * since the other row didn't depend on it. This is where it gets cut, not on screen:
+ * a listing must describe ONE folder.
  *
- * Ne s'applique qu'aux identifiants en forme de CHEMIN — un fileId Drive ou un itemId Graph
- * est opaque, on ne peut rien en déduire, donc on n'y touche pas.
+ * Applies only to PATH-shaped identifiers — a Drive fileId or a Graph itemId
+ * is opaque, nothing can be inferred from it, so it's left untouched.
  */
 export function directChildren(folder: string, entries: readonly RemoteEntry[]): RemoteEntry[] {
   const base = folder === "" || folder === "/" ? "/" : folder.replace(/\/+$/, "");
   return entries.filter((e) => !e.id.startsWith("/") || parentOf(e.id) === base);
 }
 
-/** Le contenu d'un dossier distant, via l'outil du serveur. Lève quand ce n'est pas
- *  lisible : l'appelant en fait « ce stockage ne se parcourt pas ». */
+/** A remote folder's content, via the server's tool. Throws when it isn't
+ *  readable: the caller turns that into "this storage can't be browsed". */
 export async function mcpBrowseList(
   conn: McpConnection,
   folderRef: string | null,
@@ -84,35 +84,35 @@ export async function mcpBrowseList(
   const seen = new Set<string>();
   let cursor: string | undefined;
   for (let page = 0; page < MAX_PAGES; page++) {
-    // Le dossier accompagne TOUJOURS le curseur : un outil dont le chemin est obligatoire
-    // refuserait une page de suite qui ne porterait que le curseur.
+    // The folder ALWAYS accompanies the cursor: a tool whose path is mandatory
+    // would refuse a follow-up page carrying only the cursor.
     const args: Record<string, string> = { [lister.folderArg]: folder };
     if (cursor && lister.cursorArg) args[lister.cursorArg] = cursor;
     const res = await conn.callTool({ name: lister.tool, arguments: args });
     if (res.isError) throw new Error("Ce dossier n'a pas pu être listé.");
     const texts = textsOf(res.content);
     const parsed = parseToolList(texts);
-    // L'empreinte accompagne le refus : sans elle, personne ne peut savoir CE QUI manque.
+    // The footprint accompanies the refusal: without it, nobody can know WHAT is missing.
     if (!parsed) throw new Error(`Ce stockage ne rend pas de liste exploitable — ${describeShape(texts)}.`);
     let neuf = 0;
     for (const e of directChildren(folder, parsed.entries)) {
-      // Un identifiant déjà vu ne rentre pas deux fois — un serveur qui IGNORE notre
-      // curseur re-servirait sinon la même page vingt fois, en doublons.
+      // An identifier already seen doesn't get added twice — a server that IGNORES our
+      // cursor would otherwise re-serve the same page twenty times, as duplicates.
       if (seen.has(e.id)) continue;
       seen.add(e.id);
       entries.push(e);
       neuf++;
     }
     cursor = parsed.cursor;
-    // Une page qui n'apporte RIEN de neuf arrête la pagination : c'est la signature d'un
-    // curseur ignoré, et insister ne ferait que repayer le même aller-retour.
+    // A page that brings NOTHING new stops the pagination: that's the signature of an
+    // ignored cursor, and insisting would only repay the same round trip.
     if (!cursor || !lister.cursorArg || !neuf || entries.length >= MAX_ENTRIES) break;
   }
   return sortRemote(entries.slice(0, MAX_ENTRIES));
 }
 
-// Ce que le barrel expose VRAIMENT : le reste est importé directement depuis
-// `./lister` / `./read` par ses consommateurs, et le ré-exporter ne créait que du
-// code inatteignable.
+// What the barrel REALLY exposes: the rest is imported directly from
+// `./lister` / `./read` by its consumers, and re-exporting it would only create
+// unreachable code.
 export { findFolderLister, isFolderListTool } from "./lister";
 export { describeShape, parseToolList } from "./read";

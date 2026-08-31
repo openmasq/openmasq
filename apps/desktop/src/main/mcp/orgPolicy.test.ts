@@ -17,15 +17,15 @@ describe("setOrgAllowedConnectors", () => {
   });
 
   it("distinguishes « pas encore su » (null) from « rien d'ouvert » ([]) — c'est la règle 7", () => {
-    // C'est LA distinction qui empêche une allow-list de redevenir une liste de refus :
-    // une politique absente laisse passer, une politique VIDE ferme.
+    // This is THE distinction that stops an allow-list from turning back into a deny-list:
+    // an absent policy lets through, an EMPTY policy closes.
     expect(setOrgAllowedConnectors([])).toEqual([]);
     expect(orgAllowedConnectors()).toEqual([]);
-    expect(isConnectorBlocked("notion")).toBe(true); // vide = rien d'autorisé
+    expect(isConnectorBlocked("notion")).toBe(true); // empty = nothing allowed
 
     _resetOrgPolicy();
-    expect(orgAllowedConnectors()).toBeNull(); // jamais publiée
-    expect(isConnectorBlocked("notion")).toBe(false); // porte ouverte, délibérément
+    expect(orgAllowedConnectors()).toBeNull(); // never published
+    expect(isConnectorBlocked("notion")).toBe(false); // open door, deliberately
   });
 
   it("CLEARS on anything that is not a list — a half-parsed policy reads as enforced", () => {
@@ -56,8 +56,8 @@ describe("isConnectorBlocked", () => {
   });
 
   it("refuses a connector added to the catalogue AFTER the policy was written", () => {
-    // La régression que la bascule règle 7 existe pour tenir : sous liste de refus, un
-    // connecteur que la politique ne nommait pas était utilisable partout.
+    // The regression the rule-7 switch exists to hold: under a deny-list, a
+    // connector the policy didn't name was usable everywhere.
     setOrgAllowedConnectors(["notion"]);
     expect(isConnectorBlocked("un-connecteur-tout-neuf")).toBe(true);
   });

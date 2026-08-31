@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { fakeBitcoinLegacyAddress, isBitcoinLegacyAddress } from "./base58check";
 import { pseudonymize, redact } from "../../index";
 
-/** De VRAIES adresses, seules à prouver quelque chose : une adresse inventée passerait le
- *  test sans rien dire (barre du `engine/CLAUDE.md` : des vecteurs checksum-valides).
- *  Bloc de genèse, bloc 170, et une P2SH. */
+/** REAL addresses, the only ones that prove anything: a made-up address would pass the
+ *  test without saying anything (the `engine/CLAUDE.md` bar: checksum-valid vectors only).
+ *  Genesis block, block 170, and a P2SH. */
 const REELLES = [
   "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
   "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
@@ -17,7 +17,7 @@ describe("base58check — la preuve d'une adresse Bitcoin héritée", () => {
   });
 
   it("…et un caractère changé ne passe plus : c'est la somme de contrôle qui parle", () => {
-    // Muter le dernier caractère laisse la FORME intacte — seule la somme distingue.
+    // Mutating the last character leaves the SHAPE intact — only the checksum distinguishes.
     for (const a of REELLES) {
       const mute = a.slice(0, -1) + (a.endsWith("a") ? "b" : "a");
       expect(isBitcoinLegacyAddress(mute)).toBe(false);
@@ -25,7 +25,7 @@ describe("base58check — la preuve d'une adresse Bitcoin héritée", () => {
   });
 
   it("l'id de page Notion qui a causé tout ceci ne passe pas", () => {
-    // Forme identique à une adresse : 32 caractères base58, commence par « 3 ».
+    // Same shape as an address: 32 base58 characters, starts with « 3 ».
     expect(isBitcoinLegacyAddress("36db8e7d426681e79f43d3395ddc1f87")).toBe(false);
   });
 
@@ -38,8 +38,8 @@ describe("base58check — la preuve d'une adresse Bitcoin héritée", () => {
 
 describe("…et ce que ça change dans le moteur", () => {
   it("l'id de page n'est plus redacted, la vraie adresse l'est toujours", async () => {
-    // ⚠️ Le symptôme d'origine : `crypto` mappe sur `secret`, exempté de la garde URL, donc
-    // l'id partait redacted même à l'intérieur d'une URL, quel que soit le réglage.
+    // ⚠️ The original symptom: `crypto` maps to `secret`, exempt from the URL guard, so
+    // the id used to be redacted even inside a URL, whatever the setting.
     expect((await redact("id de page 36db8e7d426681e79f43d3395ddc1f87", {})).text)
       .toContain("36db8e7d426681e79f43d3395ddc1f87");
     expect((await redact(`paiement vers ${REELLES[0]}`, {})).text).not.toContain(REELLES[0]);
@@ -52,10 +52,10 @@ describe("…et ce que ça change dans le moteur", () => {
 });
 
 describe("le FAUX d'une adresse passe la MÊME somme (16/08/2026)", () => {
-  /** Depuis que la DÉTECTION exige le base58check, un faux brouillé caractère par
-   *  caractère ne serait même pas re-reconnu comme une adresse par notre propre moteur —
-   *  et un faux qui échoue à sa somme invite le modèle à le « corriger », correction qui ne
-   *  se retourne plus (`model/CLAUDE.md`). */
+  /** Since DETECTION requires base58check, a fake scrambled character by
+   *  character wouldn't even be re-recognised as an address by our own engine —
+   *  and a fake that fails its checksum invites the model to « correct » it, a correction that
+   *  no longer reverses (`model/CLAUDE.md`). */
   it("chaque vraie adresse reçoit un faux VALIDE", () => {
     for (const a of REELLES) {
       const f = fakeBitcoinLegacyAddress(a, 42)!;
@@ -75,7 +75,7 @@ describe("le FAUX d'une adresse passe la MÊME somme (16/08/2026)", () => {
   });
 
   it("`null` sur ce qui n'est pas une adresse héritée — l'appelant garde son brouillage", () => {
-    // bech32 compris : sa preuve est son préfixe littéral, pas une somme.
+    // bech32 included: its proof is its literal prefix, not a checksum.
     expect(fakeBitcoinLegacyAddress("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", 1)).toBeNull();
     expect(fakeBitcoinLegacyAddress("36db8e7d426681e79f43d3395ddc1f87", 1)).toBeNull();
   });

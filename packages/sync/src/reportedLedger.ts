@@ -1,45 +1,45 @@
 import type { PassphraseStore } from "./accountPassphrase";
 
 /**
- * Le journal de DÉDOUBLONNAGE de l'audit d'organisation — par compte, et sans valeur en clair.
+ * The DEDUPLICATION ledger for org audit — per account, and with no value in the clear.
  *
- * ══ CE QU'IL FAISAIT ═══════════════════════════════════════════════════════════
+ * ══ WHAT IT USED TO DO ═══════════════════════════════════════════════════════════
  *
- * La table de faits d'une organisation est append-only : une valeur redacted ne doit être
- * comptée qu'une fois, d'où ce journal de ce qui a déjà été rapporté. Il avait deux défauts,
- * et ils sont indépendants l'un de l'autre :
+ * An organization's facts table is append-only: a redacted value must only be
+ * counted once, hence this ledger of what has already been reported. It had two flaws,
+ * and they're independent of one another:
  *
- *  1. **Une seule clé par appareil.** Les valeurs rapportées par le compte A empêchaient
- *     l'organisation de B de compter les siennes — un SOUS-COMPTAGE silencieux, dans les deux
- *     sens, sur un tableau de bord qu'un administrateur lit comme la vérité.
- *  2. **Il stockait les valeurs RÉELLES en clair.** De la vraie PII (noms, e-mails, numéros)
- *     dormait dans le stockage local — c'est-à-dire, sur le bureau, du LevelDB Chromium en
- *     clair sur le disque : exactement ce que les magasins de secrets refusent par principe.
- *     Or le journal n'a jamais eu besoin des valeurs : il a besoin de savoir SI une valeur y
- *     est déjà. Une empreinte répond à cette question-là et à aucune autre.
+ *  1. **A single key per device.** Values reported by account A prevented
+ *     B's organization from counting its own — a silent UNDER-COUNT, in either
+ *     direction, on a dashboard an administrator reads as the truth.
+ *  2. **It stored the REAL values in the clear.** Real PII (names, emails, numbers)
+ *     sat in local storage — that is, on the desktop, Chromium's LevelDB in the
+ *     clear on disk: exactly what secret stores refuse on principle.
+ *     Yet the ledger never needed the values: it needs to know IF a value is
+ *     already there. A hash answers that question and no other.
  *
- * ══ L'EMPREINTE, ET SON SEL ════════════════════════════════════════════════════
+ * ══ THE HASH, AND ITS SALT ════════════════════════════════════════════════════
  *
- * SHA-256 sur `<sel>:<valeur>`, tronqué à 128 bits (les collisions y sont hors de portée, et
- * une collision ne ferait de toute façon que ne pas recompter une valeur). Le SEL est tiré au
- * hasard une fois par installation et rangé à côté.
+ * SHA-256 on `<salt>:<value>`, truncated to 128 bits (collisions are out of reach there, and
+ * a collision would in any case only fail to recount a value once). The SALT is drawn
+ * randomly once per install and stored alongside.
  *
- * ⚠️ Ce qu'il apporte, exactement : sans lui, un e-mail ou un téléphone se retrouvent par
- * simple table pré-calculée — l'espace de ces valeurs est petit. Avec lui, une table
- * générique ne sert plus à rien. Il ne protège PAS contre quelqu'un qui a le fichier ET
- * teste une valeur précise : il a le sel aussi. C'est une défense contre la lecture de
- * masse (une sauvegarde, un disque récupéré), pas contre une attaque ciblée — et c'est la
- * défense qui correspond au risque réel d'un journal local.
+ * ⚠️ What it buys, exactly: without it, an email or a phone number can be recovered by a
+ * simple precomputed table — the space of those values is small. With it, a
+ * generic table becomes useless. It does NOT protect against someone who has the file AND
+ * tests one specific value: they have the salt too. It's a defense against bulk
+ * reading (a backup, a recovered disk), not against a targeted attack — and that's the
+ * defense that matches the real risk of a local ledger.
  */
 
-/** Ce que l'appelant manipule : des VALEURS. Les empreintes ne sortent jamais d'ici.
- *  ⚠️ `open()` charge UNE fois — `seen` par valeur relirait le stockage à chaque tour d'une
- *  boucle qui compte les entrées de tous les coffres. */
+/** What the caller handles: VALUES. Hashes never leave here.
+ *  ⚠️ `open()` loads ONCE — `seen` per value would re-read storage on every turn of a
+ *  loop that counts the entries across all vaults. */
 export interface OpenedLedger {
-  /** Cette valeur a-t-elle déjà été rapportée (donc : à ne pas recompter) ? */
+  /** Has this value already been reported (so: not to be recounted)? */
   seen(value: string): Promise<boolean>;
-  /** Marquer des valeurs comme rapportées et PERSISTER. À n'appeler qu'après un envoi
-   *  réussi : une panne du backend doit laisser le delta à retenter, pas le perdre. */
+  /** Mark values as reported and PERSIST. Only call after a successful
+   *  send: a backend outage must leave the delta to retry, not lose it. */
   mark(values: readonly string[]): Promise<void>;
 }
 
@@ -49,7 +49,7 @@ export interface ReportedLedger {
 
 export interface ReportedLedgerOptions {
   store: PassphraseStore;
-  /** L'ancienne clé, sans compte — migrée puis adoptée une fois. */
+  /** The old key, account-less — migrated then adopted once. */
   legacyKey: string;
   accountId: () => Promise<string | null | undefined>;
 }
@@ -106,16 +106,16 @@ export function reportedLedger(opts: ReportedLedgerOptions): ReportedLedger {
     opts.store.set(key, JSON.stringify([...new Set(list)]));
 
   /**
-   * L'ancienne clé, en deux temps — et l'ordre est le correctif :
+   * The old key, in two stages — and the order is the fix:
    *
-   *  1. **Le clair disparaît TOUT DE SUITE**, même déconnecté : les entrées qui n'ont pas la
-   *     forme d'une empreinte sont hachées et réécrites SUR PLACE. Attendre une connexion
-   *     laisserait la PII sur le disque indéfiniment sur une machine où personne ne se
-   *     reconnecte, et c'est le défaut le plus concret des deux.
-   *  2. **L'adoption par compte attend, elle, une connexion** : le journal migré revient au
-   *     PREMIER compte connecté (même politique que la phrase), puis un marqueur ferme la
-   *     porte et la clé partagée disparaît. Le supprimer sans l'avoir donné à personne ferait
-   *     re-rapporter tout l'historique — un SUR-comptage, l'autre moitié du défaut.
+   *  1. **The clear text disappears RIGHT AWAY**, even signed out: entries that don't have the
+   *     shape of a hash are hashed and rewritten IN PLACE. Waiting for a connection
+   *     would leave PII on disk indefinitely on a machine where nobody ever
+   *     reconnects, and that's the more concrete of the two flaws.
+   *  2. **Per-account adoption, on the other hand, waits for a connection**: the migrated ledger goes to the
+   *     FIRST connected account (same policy as the passphrase), then a marker closes the
+   *     door and the shared key disappears. Removing it without having given it to anyone would
+   *     re-report the whole history — an OVER-count, the other half of the flaw.
    */
   async function migrate(id: string | null): Promise<string[]> {
     const legacy = await readList(opts.legacyKey);
@@ -127,7 +127,7 @@ export function reportedLedger(opts: ReportedLedgerOptions): ReportedLedger {
         legacy.splice(0, legacy.length, ...hashed);
       }
     }
-    if (!id) return []; // déconnecté : le clair est parti, l'adoption attend
+    if (!id) return []; // signed out: the clear text is gone, adoption waits
     if (await opts.store.get(markerKey)) return [];
     await opts.store.set(markerKey, id);
     if (legacy.length) await writeList(scoped(id), [...(await readList(scoped(id))), ...legacy]);
@@ -145,8 +145,8 @@ export function reportedLedger(opts: ReportedLedgerOptions): ReportedLedger {
           return set.has(await digest(value));
         },
         async mark(values) {
-          // Déconnecté ⇒ rien n'a pu être rapporté, donc rien à marquer (et rien à écrire
-          // sous un nom qu'un compte suivant hériterait).
+          // Signed out ⇒ nothing could have been reported, so nothing to mark (and nothing to write
+          // under a name the next account would inherit).
           if (!id || !values.length) return;
           for (const v of values) set.add(await digest(v));
           await writeList(scoped(id), [...set]);

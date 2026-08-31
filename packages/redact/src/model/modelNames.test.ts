@@ -29,10 +29,10 @@ describe("modelNames — la grammaire famille + version/variante", () => {
     }
   });
 
-  // ⚠️ AUDIT 13/08 — la GRAMMAIRE reste étroite sur ces mots nus (elle est insensible à
-  // la catégorie, donc les dispenser ici les ferait fuir en tant que PERSONNE aussi). Ce
-  // sont bien des noms d'outils, mais ils sont dispensés par la liste ORGS SCOPÉE
-  // company (voir le test de portée plus bas), pas par la forme.
+  // ⚠️ AUDIT 13/08 — the GRAMMAR stays narrow on these bare words (it is insensitive
+  // to category, so sparing them here would let them leak as a PERSON too). These
+  // are indeed tool names, but they're spared by the SCOPED ORGS list for
+  // company (see the scope test further below), not by the shape.
   it("la grammaire ne couvre pas les mots nus ambigus (ORGS s'en charge, category-scopé)", () => {
     for (const v of [
       "Opus", "Sonnet", "Haiku", "Gemma", "Kimi", "Grok", "Llama", "Qwen", "Gpt", "Le Chat",
@@ -81,31 +81,31 @@ describe("notorious ⇄ modelNames — la portée par catégorie", () => {
     }
   });
 
-  // Les familles de modèles en un mot (« compare Opus et Sonnet ») : dispensées en tant
-  // qu'OUTIL, à TOUS les niveaux — décision produit 13/08. Mais SCOPÉES : la même graphie
-  // reste protégée en tant que PERSONNE (un prénom Gemma/Kimi ne fuit pas).
+  // One-word model families (« compare Opus et Sonnet »): spared as a
+  // TOOL, at ALL levels — product decision 13/08. But SCOPED: the same spelling
+  // stays protected as a PERSON (a Gemma/Kimi first name does not leak).
   it("les noms d'outils nus : dispensés en company (Strict compris), protégés en name", () => {
     const strict = { commercial: false, people: false };
     for (const v of ["Opus", "Sonnet", "Haiku", "Gemma", "Kimi", "Grok", "Llama", "Qwen", "Le Chat"]) {
       expect(isNotoriousEntity(v, "company", strict), `${v} company`).toBe(true);
     }
-    // Les mots d'UN SEUL tenant restent protégés en PERSONNE (un prénom ne fuit pas) ;
-    // « Le Chat » est multi-mots, donc dispensé aussi en name par la règle org-mal-lu
-    // existante — une personne nommée « Le Chat » est invraisemblable (c'est la marque).
+    // Single-word terms stay protected as a PERSON (a first name does not leak);
+    // « Le Chat » is multi-word, so it's also spared in name by the existing
+    // misread-org rule — a person named « Le Chat » is implausible (it's the brand).
     for (const v of ["Opus", "Sonnet", "Haiku", "Gemma", "Kimi", "Grok", "Llama", "Qwen"]) {
       expect(isNotoriousEntity(v, "name", strict), `${v} name`).toBe(false);
     }
   });
 
-  // ⚠️ AUDIT 13/08 — le gate de FRAGMENT (`pseudonymize/textContext.ts`) recompose
-  // « valeur + voisin » ; avec la grammaire de forme, « madame Claude 3 fois » libérait
-  // « Claude ». `shape: false` l'exclut, et c'est ce que ce test épingle.
+  // ⚠️ AUDIT 13/08 — the FRAGMENT gate (`pseudonymize/textContext.ts`) recomposes
+  // « value + neighbour »; with the shape grammar, « madame Claude 3 fois » used to release
+  // « Claude ». `shape: false` excludes it, and that's what this test pins.
   it("shape:false neutralise la grammaire de forme (le chemin du gate de fragment)", () => {
     const noShape = { ...std, shape: false as const };
     for (const v of ["Claude 3", "Claude 45", "Gemma 2", "Kimi 4"]) {
       expect(isNotoriousEntity(v, "name", noShape), v).toBe(false);
     }
-    // …sans toucher aux entités NOMMÉES, qui restent dispensées par la liste fermée.
+    // …without touching the NAMED entities, which stay spared by the closed list.
     expect(isNotoriousEntity("ChatGPT", "company", noShape)).toBe(true);
     expect(isNotoriousEntity("Pôle emploi", "company", noShape)).toBe(true);
   });

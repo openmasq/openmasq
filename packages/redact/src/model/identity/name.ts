@@ -61,15 +61,15 @@ const isFakeableToken = (t: string) =>
 const isNamePart = (t: string) =>
   isWordToken(t) &&
   !isStopword(t) &&
-  // …ni un PAYS : « HSBC FRANCE » lu comme un nom fabriquait l'alias FRANCE→<faux nom>,
-  // et `applyVault` réécrivait ensuite CHAQUE « FRANCE » de la conversation (journal
-  // 02/08) — l'invariant « les pays ne sont jamais masqués » cassé par un alias de mot.
+  // …nor a COUNTRY: « HSBC FRANCE » read as a name manufactured the alias FRANCE→<fake name>,
+  // and `applyVault` then rewrote EVERY « FRANCE » in the conversation (log
+  // 02/08) — the "countries are never masked" invariant broken by a word alias.
   !isCountry(t) &&
-  // …ni un mot du VOCABULAIRE. Même panne que la particule et que la civilité, par un
-  // troisième chemin : un détecteur propose « Signé Hugo SAVEL » ou « SARL BATIRENOV »,
-  // l'alias par mot naît quand même, et `applyVault` redacted ensuite CHAQUE « signé » de
-  // la conversation. Le point de passage `filter.ts` ne pouvait rien voir — il juge la
-  // valeur ENTIÈRE, et l'entière est bien un nom. Mesuré par `bench/sourceFp.bench.ts`.
+  // …nor a VOCABULARY word. Same failure as the particle and the civility, through a
+  // third path: a detector proposes « Signé Hugo SAVEL » or « SARL BATIRENOV »,
+  // the word alias is born anyway, and `applyVault` then redacts EVERY « signé » in
+  // the conversation. The `filter.ts` choke point couldn't see anything wrong — it judges the
+  // WHOLE value, and the whole value is indeed a name. Measured by `bench/sourceFp.bench.ts`.
   !isGenericTerm(t) &&
   !TITLE_PARTS.has(t.replace(/[.'’]/g, "").toLowerCase());
 

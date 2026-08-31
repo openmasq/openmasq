@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { redact } from "../../index";
 
-// Le NINO britannique s'ÉCRIT par paires. Un contrat de travail anglais, une fiche de paie,
-// un P45, un P60 et gov.uk lui-même impriment « AB 12 34 56 C » — la forme collée est
-// l'exception, pas la règle. Tant que seule la forme collée tirait, l'identifiant national
-// d'un salarié britannique partait en clair sur son écriture la plus courante.
+// The British NINO is WRITTEN in pairs. An English employment contract, a payslip,
+// a P45, a P60, and gov.uk itself print « AB 12 34 56 C » — the glued form is
+// the exception, not the rule. As long as only the glued form matched, a British
+// employee's national identifier left in clear on its most common written form.
 function out(text: string): string {
   return redact(text, {}).text;
 }
@@ -28,17 +28,17 @@ describe("UK National Insurance number — les deux écritures", () => {
   });
 
   it("ne franchit AUCUN saut de ligne — sans somme de contrôle, un préfixe rogné passerait", () => {
-    // Le NINO n'a pas de clé : la reprise de préfixe valide ne pourrait pas rejeter un
-    // « AB 12\n34 » tronqué, et réparer la fuite créerait un faux positif. Limite assumée.
+    // The NINO has no check digit: valid-prefix recovery could not reject a
+    // truncated « AB 12\n34 », and fixing the leak would create a false positive. Accepted limitation.
     expect(out("AB 12\n34\n56 C")).toContain("AB 12");
     expect(out("NINO AB 12 34\n56 C fin")).toContain("56 C");
   });
 
   it("ne mord pas sur une suite de mots ou de groupes ordinaire", () => {
-    // Lettres de tête hors classe (D/F/I/O/Q/U/V) ou lettre de queue hors A-D.
+    // Lead letters outside the class (D/F/I/O/Q/U/V) or trailing letter outside A-D.
     expect(out("DF 12 34 56 C")).toContain("DF 12 34 56 C");
     expect(out("AB 12 34 56 Z")).toContain("AB 12 34 56 Z");
-    // Groupes de mauvaise longueur.
+    // Wrong-length groups.
     expect(out("AB 123 45 6 C")).toContain("AB 123 45 6 C");
   });
 });

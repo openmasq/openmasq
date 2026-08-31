@@ -53,10 +53,10 @@ export function firstNamePool(realFirst: string): string[] {
   const g = nameGender(realFirst);
   return g === "m" ? FAKE_FIRST_M : g === "f" ? FAKE_FIRST_F : FAKE_FIRST;
 }
-/** Mêmes règles que les prénoms (voir plus haut) : patronymes français RÉELS mais rares,
- *  aucun mot ordinaire, aucun homonyme de personnalité, disjoints des prénoms. Les
- *  quatorze précédents étaient le palmarès des noms les plus portés en France — donc les
- *  plus susceptibles d'être aussi ceux d'une vraie personne dans la même conversation. */
+/** Same rules as the first names (see above): REAL French surnames but rare,
+ *  no ordinary word, no homonym of a public figure, disjoint from the first names. The
+ *  previous fourteen were the ranking of the most-common surnames in France — hence the
+ *  most likely to also belong to a real person in the same conversation. */
 export const FAKE_LAST = [
   "Aubertin", "Bouchereau", "Cazenave", "Chastanet", "Delsart", "Fressineau",
   "Grandjean", "Guilbaud", "Hennequin", "Lachaud", "Mabille", "Malbrancq",

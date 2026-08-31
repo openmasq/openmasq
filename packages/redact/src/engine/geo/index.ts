@@ -215,8 +215,8 @@ export function fakeGeo(category: string, value: string, h: number, country?: st
         origStreet,
       );
       if (!hasPlace) return streetLine;
-      // Ancrée sur la ville RÉELLE : une seconde adresse dans la même ville reçoit la
-      // même ville fausse — « même région ? » ne bascule plus (bench/tokensVsFakes.md).
+      // Anchored on the REAL city: a second address in the same city gets the
+      // same fake city — « same region? » no longer flips (bench/tokensVsFakes.md).
       const place = anchorPlace(anchors, c, origCity, pickPlaceForCountry(c, h, realPostal),
         (i) => pickPlaceForCountry(c, h + i * 7, realPostal), attempt);
       const out = (FORMATTERS[c] ?? DEFAULT_FMT)(num, street, place);

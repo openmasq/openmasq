@@ -3,7 +3,7 @@ import { applyProfilePath, profileSuffix, type ProfileApp } from "./profile";
 import type { EnvName } from "../environments";
 import { BRAND } from "@openmasq/branding";
 
-/** Un faux `app` qui note ce qu'on lui écrit — le module n'importe pas Electron. */
+/** A fake `app` that records what's written to it — the module doesn't import Electron. */
 function fakeApp(isPackaged: boolean, base = `/Users/x/Library/Application Support/${BRAND.name}`) {
   let userData = base;
   const app: ProfileApp = {
@@ -16,10 +16,10 @@ function fakeApp(isPackaged: boolean, base = `/Users/x/Library/Application Suppo
   return { app, path: () => userData };
 }
 
-/** Aucun choix écrit — le cas de toutes les installs existantes. Injecté explicitement
- *  plutôt que laissé au vrai disque : un test ne doit pas dépendre d'un ENOENT. */
+/** No choice written — the case for every existing install. Injected explicitly
+ *  rather than left to the real disk: a test must not depend on an ENOENT. */
 const noPointer = (_base: string, fallback: EnvName): EnvName => fallback;
-/** Un pointeur qui dit staging — l'install d'un membre de l'équipe qui a basculé. */
+/** A pointer that says staging — the install of a team member who switched. */
 const stagingPointer = (): EnvName => "staging";
 
 describe("profileSuffix — quel profil userData une instance ouvre", () => {
@@ -70,8 +70,8 @@ describe("applyProfilePath — ce qui est réellement écrit dans `userData`", (
     const { app, path } = fakeApp(true);
     applyProfilePath(app, {}, stagingPointer);
     const first = path();
-    // Un second processus repart du chemin PAR DÉFAUT d'Electron, pas du chemin déjà
-    // suffixé — d'où un faux `app` neuf ici, qui reproduit ce que fait un vrai lancement.
+    // A second process starts again from Electron's DEFAULT path, not the already
+    // suffixed one — hence a fresh fake `app` here, which reproduces what a real launch does.
     const second = fakeApp(true);
     applyProfilePath(second.app, {}, stagingPointer);
     expect(second.path()).toBe(first);

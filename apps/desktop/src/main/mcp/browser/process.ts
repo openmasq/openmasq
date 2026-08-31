@@ -240,9 +240,9 @@ function baseEnv(): NodeJS.ProcessEnv {
 
 function spawnArgs(): string[] {
   // Dev: process.execPath is the electron binary → re-run THIS app in agent mode.
-  // Packaged: execPath is the app → the bundled main auto-loads, no arg. Le chemin
-  // vient de `app.getAppPath()` et de NULLE PART ailleurs — voir `../../appEntry.ts`
-  // pour pourquoi `require.main.filename` (= « electron ») bloquait l'enfant.
+  // Packaged: execPath is the app → the bundled main auto-loads, no arg. The path
+  // comes from `app.getAppPath()` and from NOWHERE else — see `../../appEntry.ts`
+  // for why `require.main.filename` (= "electron") blocked the child.
   return helperSpawnArgs();
 }
 
@@ -302,8 +302,8 @@ function spawnChildPipe(): Promise<string> {
     proc.stdout?.on("data", onData);
     proc.on("exit", (code) => {
       if (child === proc) {
-        // Une mort EN COURS DE SESSION était totalement silencieuse (le prochain appel
-        // d'outil re-spawne sans un mot) — rapportée nommée désormais (audit 13/08).
+        // A death MID-SESSION used to be totally silent (the next tool
+        // call re-spawns without a word) — now reported by name (audit 13/08).
         if (settled && !isAppQuitting()) {
           reportMainError("browser", `agent-exit-${code ?? "?"}`, new Error(`agent browser (pipe) mort (code ${code})`));
         }
@@ -350,7 +350,7 @@ function spawnChildPort(): Promise<string> {
     proc.stdout?.on("data", onData);
     proc.on("exit", (code) => {
       if (child === proc) {
-        // Même règle que le transport pipe : la mort en cours de session se rapporte.
+        // Same rule as the pipe transport: a death mid-session gets reported.
         if (endpoint && !isAppQuitting()) {
           reportMainError("browser", `agent-exit-${code ?? "?"}`, new Error(`agent browser (port) mort (code ${code})`));
         }

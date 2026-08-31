@@ -1,25 +1,25 @@
 /**
- * La recette CLAUDE du tour outillé : les drapeaux de `claude -p` qui font du pont MCP
- * (`toolsBridge.ts`) la SEULE source d'outils, et le fichier de config qui porte son
- * jeton. Le squelette du tour — refus, aplatissement, course capture/fin — vit dans
- * `toolsTurn.ts` et nulle part ailleurs (règle 9).
+ * The CLAUDE recipe for the tooled turn: the `claude -p` flags that make the MCP bridge
+ * (`toolsBridge.ts`) the ONLY source of tools, and the config file that carries its
+ * token. The turn's skeleton — refusal, flattening, capture/finish race — lives in
+ * `toolsTurn.ts` and nowhere else (rule 9).
  *
- * Drapeaux — l'écart MESURÉ avec le tour simple (`engine.ts`) :
- * - PAS de `--safe-mode` : mesuré (CLI 2.1.246), il coupe les serveurs MCP même passés
- *   explicitement — incompatible avec le pont. L'isolement tient sans lui :
- *   `--setting-sources ""` seul suffit à ne pas lire le CLAUDE.md du cwd (canari mesuré) ;
- *   `--strict-mcp-config` fait du pont la SEULE source MCP (allow-list par construction).
- *   Résiduel assumé : mémoire `~/.claude/CLAUDE.md` et hooks utilisateur, absents de la
- *   machine de mesure — à re-vérifier sur un poste qui en a avant d'élargir.
- * - **`--tools ""` est CE qui borne le périmètre**, comme au tour simple (`engine.ts` en
- *   porte le raisonnement). Mesuré sur la 2.1.247 avec le pont branché : `system/init`
- *   annonce `["mcp__openmasq__<outil>"]` et RIEN d'autre — les outils du pont survivent
- *   au drapeau, les intégrés disparaissent. ⚠️ `--allowedTools` ne borne PAS le périmètre
- *   (mesuré : la liste annoncée est la même avec et sans lui) ; il reste posé pour la
- *   permission, et `--disallowed-tools` en ceinture-bretelles — ni l'un ni l'autre n'est
- *   la garde. Le filet d'exécution qui juge l'annonce est `toolGate.ts`.
- * - Le jeton du pont vit dans le FICHIER de config (0600, dossier jetable), jamais en
- *   argv : la ligne de commande d'un process est lisible par tout process local (`ps`).
+ * Flags — the MEASURED difference from the plain turn (`engine.ts`):
+ * - NO `--safe-mode`: measured (CLI 2.1.246), it cuts MCP servers even when passed
+ *   explicitly — incompatible with the bridge. Isolation holds without it:
+ *   `--setting-sources ""` alone is enough to skip reading the cwd's CLAUDE.md (measured canary);
+ *   `--strict-mcp-config` makes the bridge the ONLY MCP source (allow-list by construction).
+ *   Accepted residual: `~/.claude/CLAUDE.md` memory and user hooks, absent from the
+ *   measurement machine — to re-verify on a machine that has them before widening.
+ * - **`--tools ""` is WHAT bounds the perimeter**, as in the plain turn (`engine.ts` carries
+ *   the reasoning). Measured on 2.1.247 with the bridge wired: `system/init`
+ *   announces `["mcp__openmasq__<tool>"]` and NOTHING else — the bridge's tools survive
+ *   the flag, the built-in ones disappear. ⚠️ `--allowedTools` does NOT bound the perimeter
+ *   (measured: the announced list is the same with and without it); it stays set for
+ *   permission, and `--disallowed-tools` as a belt-and-braces — neither one is
+ *   the guard. The execution net that judges the announcement is `toolGate.ts`.
+ * - The bridge token lives in the config FILE (0600, disposable folder), never in
+ *   argv: a process's command line is readable by any local process (`ps`).
  */
 import { randomUUID } from "node:crypto";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -32,7 +32,7 @@ import { TOOLS_SERVER_NAME } from "./toolsBridge";
 import { cliModelAlias } from "./turn";
 import type { ToolsSpawnInput, ToolsSpawnPlan } from "./toolsRecipe";
 
-/** Le fichier `--mcp-config` : le pont est l'UNIQUE serveur, jeton en en-tête. */
+/** The `--mcp-config` file: the bridge is the ONLY server, token in the header. */
 function toolsMcpConfig(url: string, token: string): string {
   return JSON.stringify({
     mcpServers: {
@@ -65,7 +65,7 @@ export function buildToolsArgs(opts: {
     "--setting-sources",
     "",
     "--strict-mcp-config",
-    // L'ALLOW-LIST du périmètre : aucun outil intégré, le pont MCP passe quand même.
+    // The perimeter ALLOW-LIST: no built-in tool, the MCP bridge still gets through.
     "--tools",
     "",
     "--mcp-config",
@@ -83,8 +83,8 @@ export const claudeToolsRecipe = {
   label: "Claude Code",
   interpret: interpretClaudeEvent,
   async prepare(input: ToolsSpawnInput): Promise<ToolsSpawnPlan> {
-    // Dossier jetable à préfixe de marque (la convention app-owned du tmp), config 0600 :
-    // le jeton n'apparaît ni en argv ni dans un fichier lisible d'un autre compte.
+    // Brand-prefixed disposable folder (the app-owned tmp convention), 0600 config:
+    // the token appears neither in argv nor in a file readable by another account.
     const dir = await mkdtemp(join(tmpdir(), `${BRAND.slug}-cli-tools-`));
     const mcpConfigPath = join(dir, "mcp.json");
     await writeFile(mcpConfigPath, toolsMcpConfig(input.bridge.url, input.bridge.token), {

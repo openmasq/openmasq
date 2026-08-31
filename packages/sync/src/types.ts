@@ -145,7 +145,7 @@ export interface OrgProfile {
   role?: string;
   /** Caller's status in the primary org ("active" | "suspended"). */
   status?: string;
-  /** The ONLY model ids a member may use — an ALLOW-list (règle 7), not a deny-list:
+  /** The ONLY model ids a member may use — an ALLOW-list (rule 7), not a deny-list:
    *  a model absent here is refused, so a model added to the catalog tomorrow is NOT
    *  silently available in every organisation. Intersection across the caller's orgs. */
   allowedModelIds: string[];

@@ -13,8 +13,8 @@ const { trashItem, openPath } = vi.hoisted(() => ({
 }));
 vi.mock("electron", () => ({ shell: { trashItem, openPath } }));
 
-// Le pipeline d'extraction tire pdf.js + l'OCR : hors sujet ici, où seuls comptent le
-// portail traversé et ce que l'op REND au renderer.
+// The extraction pipeline pulls in pdf.js + OCR: out of scope here, where only the
+// gate crossed and what the op RETURNS to the renderer matter.
 const { extractPaths } = vi.hoisted(() => ({
   extractPaths: vi.fn(async (paths: string[]) => [
     {
@@ -22,7 +22,7 @@ const { extractPaths } = vi.hoisted(() => ({
       kind: "text",
       text: "bonjour",
       chars: 7,
-      path: paths[0], // le pipeline l'ajoute TOUJOURS — c'est ce qu'il faut retirer
+      path: paths[0], // the pipeline ALWAYS adds it — that's what must be stripped
       mime: "text/plain",
       words: [{ text: "bonjour", x0: 0, y0: 0, x1: 9, y1: 9 }],
     },
@@ -114,9 +114,9 @@ describe("extractDocument — un aller-retour, et jamais de chemin", () => {
   });
 
   it("ne rend JAMAIS le chemin au renderer", async () => {
-    // L'invariant de sécurité : un chemin remis au renderer est un chemin qu'un XSS
-    // repasse à `files:read`, dont la porte ne s'ouvre que pour un choix du sélecteur
-    // NATIF. Les octets, eux, ne confèrent rien de neuf.
+    // The security invariant: a path handed to the renderer is a path an XSS
+    // replays to `files:read`, whose gate only opens for a choice from the
+    // NATIVE picker. The bytes themselves grant nothing new.
     const out = await ops.extractDocument(join(root, "note.txt"));
     expect("path" in out).toBe(false);
   });

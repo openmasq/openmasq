@@ -3,8 +3,8 @@
 // any separator, and whether the person appears with their full name or only a fragment
 // (just the surname). Without this, a tool/search RESULT that re-introduces the same person
 // (Title-Cased "Julien Sabourdin", a bare "Sabourdin", a URL slug "Julien_Sabourdin") is
-// re-detected by the NER as fresh PII and gets a BRAND-NEW fake every round — the "remapping
-// involontaire" where one real person ends up behind a dozen unrelated fakes and the chain
+// re-detected by the NER as fresh PII and gets a BRAND-NEW fake every round — the "involuntary
+// remapping" where one real person ends up behind a dozen unrelated fakes and the chain
 // can't be reversed. Two mechanisms, mirrored for emails and plain names:
 //   - `buildFake*`  constructs the fake by REUSING each token's existing canonical
 //                   fake (case-insensitive) so shared tokens stay consistent;
@@ -17,7 +17,7 @@ export { emailNameAliases, buildFakeEmail } from "./email";
 export { buildFakeName, nameAliases } from "./name";
 export { reconstructGlued } from "./glued";
 export { placeAliases } from "./place";
-// …et les DEUX façons de retrouver le faux déjà attribué, que l'allocateur consulte avant
-// d'en battre un neuf. `reconstructName` n'est plus exporté d'ici : `reuse.ts` est son seul
-// appelant et l'importe directement.
+// …and the TWO ways to look up the fake already assigned, which the allocator checks before
+// minting a new one. `reconstructName` is no longer exported from here: `reuse.ts` is its only
+// caller and imports it directly.
 export { reuseNameFake } from "./reuse";

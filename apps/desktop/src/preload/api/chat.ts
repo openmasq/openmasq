@@ -56,24 +56,24 @@ export const chat = {
     return ipcRenderer.invoke("chat:complete", payload);
   },
 
-  /** Offline local PII detection (GLiNER) for the "IA locale (hors-ligne)" engine. */
+  /** Offline local PII detection (GLiNER) for the "local AI (offline)" engine. */
   detectLocalPii(payload: DetectLocalPayload): Promise<Detection[]> {
     return ipcRenderer.invoke("redact:detect-local", payload);
   },
 
   /** Reachability probe of a self-hosted (openai-compat / Ollama) endpoint — true if the
-   *  local server answered, false otherwise. Drives the picker's joignable/injoignable tag. */
+   *  local server answered, false otherwise. Drives the picker's reachable/unreachable tag. */
   probeLocalEndpoint(baseUrl: string): Promise<boolean> {
     return ipcRenderer.invoke("chat:probe-endpoint", baseUrl);
   },
 
-  /** La CLI Claude Code est-elle installée sur cette machine ? Un booléen seulement
-   *  (jamais un chemin) — c'est ce qui fait exister le modèle `claude-cli` au sélecteur. */
+  /** Is the Claude Code CLI installed on this machine? A boolean only
+   *  (never a path) — that's what makes the `claude-cli` model exist in the picker. */
   probeClaudeCli(): Promise<boolean> {
     return ipcRenderer.invoke("subscription:cli-available");
   },
 
-  /** Même sonde pour la CLI Codex — un booléen, jamais un chemin. */
+  /** Same probe for the Codex CLI — a boolean, never a path. */
   probeCodexCli(): Promise<boolean> {
     return ipcRenderer.invoke("subscription:codex-available");
   },

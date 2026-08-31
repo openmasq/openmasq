@@ -39,11 +39,11 @@ const OPERATIONAL_NAMES = new Set([
 // nécessaire" banner. A genuine packaging regression manifests DIFFERENTLY (a spawn
 // ENOENT / "cannot find module" / stdio failure), so this message-specific drop keeps
 // that signal. A FATAL (uncaught) instance is still never dropped (below).
-// « la requête a expiré » : Electron localise ses erreurs réseau dans la langue de l'OS,
-// donc le timeout d'un check de mise à jour ou d'un POST MCP arrive en FRANÇAIS sur les
-// postes francophones — invisible aux motifs anglais (mesuré : 66 rapports d'un timeout
-// du feed de mise à jour, pur réseau). « request timed out » est son jumeau anglais et le
-// texte du MCP -32001 (un serveur distant lent, pas un bug de code).
+// "la requête a expiré": Electron localizes its network errors in the OS's
+// language, so the timeout of an update check or an MCP POST arrives in FRENCH on
+// French-language machines — invisible to English patterns (measured: 66 reports of a
+// timeout from the update feed, pure network). "request timed out" is its English twin and the
+// text of MCP -32001 (a slow remote server, not a code bug).
 const OPERATIONAL_MSG =
   /failed to fetch|fetch failed|networkerror|load failed|net::err|econnrefused|enotfound|etimedout|only request this after|too many refresh_token|invalid refresh token|failed to reach hook|token has expired|not connected|connection closed|request timed out|la requête a expiré/i;
 

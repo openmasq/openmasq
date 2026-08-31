@@ -7,15 +7,15 @@ import {
 } from "@openmasq/connectors";
 
 /**
- * Les stockages que l'app sait PARCOURIR — un aiguillage, pas une implémentation.
+ * The storages the app knows how to BROWSE — a switchboard, not an implementation.
  *
- * Construire l'URL et relire la réponse vit dans `@openmasq/connectors`, avec l'outil
- * `list_folder` que le modèle appelle : le panneau et le modèle listent le même compte, il
- * n'y a donc qu'un seul code pour dire comment. La validation de l'identifiant est là-bas
- * aussi (`assertFileId`) — les deux appelants la traversent.
+ * Building the URL and parsing the response lives in `@openmasq/connectors`, along with the
+ * `list_folder` tool that the model calls: the panel and the model list the same account, so
+ * there is only one piece of code to say how. The id validation is over there too
+ * (`assertFileId`) — both callers go through it.
  *
- * ⚠️ ALLOW-list : un connecteur absent des DEUX listes n'est pas navigable, quoi qu'il
- * expose par ailleurs.
+ * ⚠️ ALLOW-list: a connector absent from BOTH lists is not browsable, whatever it
+ * otherwise exposes.
  */
 export type CloudEntry = RemoteEntry;
 
@@ -30,11 +30,11 @@ export const CLOUD_PROVIDERS: Record<string, CloudProvider> = {
 };
 
 /**
- * Les stockages qui n'ont PAS d'appel direct chez nous et se parcourent par l'outil de
- * listage de leur propre serveur MCP (`mcpBrowse.ts`).
+ * The storages that have NO direct call on our side and are browsed via the listing
+ * tool of their own MCP server (`mcpBrowse.ts`).
  *
- * ⚠️ Y figurer ne suffit pas : le serveur doit RÉELLEMENT exposer un listage en allow-list
- * et en rendre du JSON classable. Sinon la source garde sa ligne d'état — un chevron qui ne
- * mène nulle part serait pire que pas de chevron.
+ * ⚠️ Being listed here is not enough: the server must REALLY expose an allow-listed
+ * listing and return classifiable JSON from it. Otherwise the source keeps its status
+ * row — a chevron that leads nowhere would be worse than no chevron.
  */
 export const MCP_BROWSABLE = new Set(["dropbox"]);

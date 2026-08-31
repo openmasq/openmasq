@@ -88,9 +88,9 @@ function ensureChild(): UtilityProcess {
     else p.reject(new Error(msg.error));
   });
   c.on("exit", (code) => {
-    // Mort INATTENDUE seulement (l'éviction d'inactivité détache `child` avant de tuer,
-    // la fermeture de l'app passe par `isAppQuitting`) — rapportée NOMMÉE : sans ça, un
-    // embed tué OOM sous ses 120 Mo de poids ne laissait aucune trace (audit 13/08).
+    // UNEXPECTED death only (idle eviction detaches `child` before killing,
+    // app shutdown goes through `isAppQuitting`) — reported NAMED: without this, an
+    // embed killed OOM under its 120 MB of weights left no trace (13/08 audit).
     if (child === c && !isAppQuitting()) {
       reportMainError("embed", `worker-exit-${code ?? "?"}`, new Error(`embed-worker mort (code ${code})`));
     }

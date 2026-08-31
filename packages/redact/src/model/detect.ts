@@ -79,9 +79,9 @@ function parseFindings(reply: string): Array<{ value: unknown; category: unknown
   }
 }
 
-// `caseInsensitiveOccurrences` vit dans `../util` (avec `isWordGlued`/`isCjkText` dont
-// elle dépend, et d'où `variantOccurrences` peut enfin s'en servir) — réexportée ici pour
-// que les importateurs existants ne bougent pas.
+// `caseInsensitiveOccurrences` lives in `../util` (with `isWordGlued`/`isCjkText`, which
+// it depends on, and from where `variantOccurrences` can finally use it) — re-exported here
+// so existing importers don't have to move.
 export { caseInsensitiveOccurrences } from "../util";
 
 /** Turn a model category into a safe placeholder label, e.g. "Phone #" -> "PHONE". */
@@ -158,8 +158,8 @@ export async function detectWithModel(
       const raw = typeof item?.value === "string" ? item.value.trim() : "";
       if (raw.length < 2) continue;
       const category = categoryLabel(item.category);
-      // "la Sacem" → "Sacem" (+ "de Karl Studio" → "Karl Studio" pour un ORG) : le
-      // déterminant/préposition reste en clair + une seule identité atomique.
+      // "la Sacem" → "Sacem" (+ "de Karl Studio" → "Karl Studio" for an ORG): the
+      // determiner/preposition stays in clear + a single atomic identity.
       let value = stripLeadingArticle(raw, isOrgCategory(category));
       // "société KARL STUDIO" / "KARL STUDIO Forme" → "KARL STUDIO": strip the legal
       // form / descriptor so one company is ONE identity (the "plusieurs mappings" bug).
@@ -203,9 +203,9 @@ export async function detectWithModel(
 // intact. `l['’]` covers the elided form ("l'Afdas", no space); the rest need a space.
 const LEADING_ARTICLE_RE = /^(?:(?:les?|la|du|des|aux?|the)\s+|l['’]\s*)(?=\p{L})/u;
 // ORG-only extra: the lowercase PREPOSITION a NER swallows from running text
-// (« résultats de Karl Studio » → span "de Karl Studio", journal 01/08 : grammaire
-// cassée sur le wire ET une SECONDE identité pour l'org, l'entityKey divergeant du
-// coffre). NEVER applied to persons — a lowercase particle there is part of the name
+// (« résultats de Karl Studio » → span "de Karl Studio", 01/08 log: grammar
+// broken on the wire AND a SECOND identity for the org, the entityKey diverging from the
+// vault). NEVER applied to persons — a lowercase particle there is part of the name
 // ("de Gaulle"). Looped with the article strip so "de la Sacem" fully sheds.
 const LEADING_ORG_PREP_RE = /^(?:de\s+|d['’]\s*)(?=\p{L})/u;
 /** Drop a leading lowercase article/determiner from an entity value, keeping ≥2 chars.

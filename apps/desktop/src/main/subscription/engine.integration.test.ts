@@ -1,12 +1,12 @@
-// Test d'INTÉGRATION : il lance la vraie CLI, consomme le vrai abonnement et coûte des
-// jetons. Il ne tourne donc QUE sur demande explicite :
+// INTEGRATION test: it launches the real CLI, consumes the real subscription and costs
+// tokens. So it only runs on explicit request:
 //
 //   OPENMASQ_TEST_SUBSCRIPTION_CLI=1 npx vitest run apps/desktop/src/main/subscription
 //
-// Sans la variable il se saute, pour que `pnpm test` et la CI restent hermétiques.
-// Ce qu'il couvre et qu'aucun test pur ne peut couvrir : la boucle du générateur
-// (chunks → lignes → deltas → retour), et le fait que les drapeaux d'isolement
-// n'empêchent PAS l'auth par abonnement de fonctionner.
+// Without the variable it's skipped, so `pnpm test` and CI stay hermetic.
+// What it covers that no pure test can cover: the generator loop
+// (chunks → lines → deltas → return), and the fact that the isolation flags
+// do NOT prevent subscription auth from working.
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { mkdtempSync } from "node:fs";
@@ -45,7 +45,7 @@ describe.skipIf(!enabled)("streamClaudeSubscription (CLI réelle)", () => {
     expect(chunks.join("")).toContain("PONG");
     expect(result.value.finish).toBe("stop");
     expect(result.value.usage?.outputTokens).toBeGreaterThan(0);
-    // Le cache est ré-additionné : l'entrée totale dépasse toujours l'entrée nue.
+    // The cache is added back in: total input always exceeds the bare input.
     expect(result.value.usage?.inputTokens).toBeGreaterThan(0);
   }, 120_000);
 
@@ -103,7 +103,7 @@ describe.skipIf(!enabled)("streamClaudeSubscription (CLI réelle)", () => {
       r = await gen.next();
     }
 
-    // L'historique est bien PARVENU au modèle : le code n'est que dans le 2e message.
+    // The history DID REACH the model: the code only appears in the 2nd message.
     expect(chunks.join("")).toContain("BANANE42");
     expect(r.value.finish).toBe("stop");
   }, 120_000);

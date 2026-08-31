@@ -1,32 +1,32 @@
 /**
- * Le pont entre le contrat `streamChat` de OpenMasq (SANS état : tout l'historique à
- * chaque tour) et la CLI (AVEC état : sa propre session).
+ * The bridge between OpenMasq's `streamChat` contract (STATELESS: the whole history on
+ * every turn) and the CLI (STATEFUL: its own session).
  *
- * ## Pourquoi on aplatit, et pourquoi ce n'est pas un pis-aller
+ * ## Why we flatten, and why it isn't a stopgap
  *
- * Trois voies existent; deux sont des impasses, mesurées :
+ * Three paths exist; two are dead ends, measured:
  *
- * 1. `--input-format stream-json` — écarté. Relevé sur la CLI 2.1.241 : chaque message
- *    `user` du flux est exécuté comme un TOUR À PART (deux messages ⇒ deux `result`,
- *    deux réponses). C'est une conversation en direct, pas un préchargement
- *    d'historique : lui réinjecter N tours passés les REJOUERAIT et les refacturerait.
+ * 1. `--input-format stream-json` — discarded. Observed on CLI 2.1.241: each `user`
+ *    message in the stream is executed as a SEPARATE TURN (two messages ⇒ two `result`s,
+ *    two responses). It's a live conversation, not a history
+ *    preload: replaying N past turns into it would REPLAY them and re-bill them.
  *
- * 2. `--resume <session>` — la voie « native », et la moins chère : on n'enverrait que
- *    le dernier message, la CLI gardant le contexte. Écartée pour l'instant parce que
- *    `StreamChatOptions` ne porte AUCUN identifiant de conversation, et surtout parce
- *    que la session de la CLI DIVERGE dès que l'utilisateur édite, régénère ou supprime
- *    un tour — trois gestes ordinaires dans un chat. OpenMasq cesserait d'être la source
- *    de vérité de sa propre conversation. À reprendre si on plombe un id de
- *    conversation (voir la note en bas de `CLAUDE.md`).
+ * 2. `--resume <session>` — the "native" path, and the cheapest: we'd only send
+ *    the last message, the CLI keeping the context. Discarded for now because
+ *    `StreamChatOptions` carries NO conversation identifier, and above all because
+ *    the CLI's session DIVERGES as soon as the user edits, regenerates or deletes
+ *    a turn — three ordinary gestures in a chat. OpenMasq would stop being the source
+ *    of truth for its own conversation. Worth revisiting if we plumb through a
+ *    conversation id (see the note at the bottom of `CLAUDE.md`).
  *
- * 3. Aplatir l'historique en un prompt, session neuve à chaque tour — retenu. C'est
- *    EXACTEMENT ce que font déjà tous les autres providers de OpenMasq (`messages` complet
- *    à chaque appel) : même coût, même sémantique, aucune divergence possible, et zéro
- *    changement de contrat.
+ * 3. Flattening the history into a prompt, a fresh session every turn — chosen. This is
+ *    EXACTLY what every other OpenMasq provider already does (the full `messages`
+ *    on every call): same cost, same semantics, no possible divergence, and zero
+ *    contract change.
  */
 import type { ChatMessage } from "@openmasq/llm";
 
-/** Étiquettes de rôle du transcript. Explicites : le modèle lit un dialogue, pas un bloc. */
+/** Role labels for the transcript. Explicit: the model reads a dialogue, not a block. */
 const ROLE_LABEL: Record<string, string> = {
   user: "Utilisateur",
   assistant: "Assistant",
@@ -34,18 +34,18 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export interface FlattenedTurn {
-  /** Les messages `system`, joints — passés en `--system-prompt`. */
+  /** The `system` messages, joined — passed as `--system-prompt`. */
   system?: string;
-  /** Le reste, en transcript. Vide = rien à envoyer (l'appelant doit refuser le tour). */
+  /** The rest, as transcript. Empty = nothing to send (the caller must refuse the turn). */
   prompt: string;
 }
 
 /**
- * `ChatMessage[]` → un tour CLI.
+ * `ChatMessage[]` → a CLI turn.
  *
- * Cas particulier volontaire : une conversation d'UN SEUL message utilisateur est
- * envoyée NUE, sans étiquette de rôle — c'est le cas le plus fréquent (premier message),
- * et le décorer d'un « Utilisateur : » ferait dériver le ton de la réponse pour rien.
+ * A deliberate special case: a conversation of a SINGLE user message is
+ * sent BARE, with no role label — it's the most frequent case (first message),
+ * and decorating it with "User:" would drift the tone of the response for nothing.
  */
 export function flattenForCli(messages: ChatMessage[]): FlattenedTurn {
   const system = messages
@@ -72,9 +72,9 @@ export function flattenForCli(messages: ChatMessage[]): FlattenedTurn {
 }
 
 /**
- * Les pièces jointes ne passent pas par ce chemin : la CLI headless prend du texte, pas
- * des blocs image. Le signaler TÔT et clairement vaut mieux que de les laisser tomber en
- * silence — l'utilisateur verrait le modèle « ignorer » sa capture sans comprendre.
+ * Attachments don't go through this path: the headless CLI takes text, not
+ * image blocks. Flagging it EARLY and clearly beats letting them silently
+ * drop — the user would see the model "ignore" their capture without understanding why.
  */
 export function hasUnsupportedAttachments(messages: ChatMessage[]): boolean {
   return messages.some((m) => (m.attachments?.length ?? 0) > 0);

@@ -20,8 +20,8 @@ export function clampLimit(v: unknown, def: number, max: number): number {
 
 /** Accept a recipient list as a comma-separated STRING or an array of strings — a
  *  plain-string schema avoids weak models dropping the field on `oneOf`. */
-// Délègue à `stringList` — une seule normalisation pour tous les connecteurs (règle 9),
-// qui accepte en plus le tableau JSON ENCODÉ EN CHAÎNE qu'un modèle faible produit.
+// Delegates to `stringList` — one single normalization for all connectors (rule 9),
+// which additionally accepts the JSON array ENCODED AS A STRING that a weak model produces.
 export function addrs(v: unknown): string[] {
   return stringList(v);
 }

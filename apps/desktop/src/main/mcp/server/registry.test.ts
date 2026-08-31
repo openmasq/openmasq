@@ -6,16 +6,16 @@ vi.mock("../persist", () => ({ getServer: () => undefined }));
 vi.mock("../../runtime/errorReport", () => ({ reportMainError: () => {} }));
 
 /**
- * LA TABLE DE ROUTAGE N'EST JAMAIS VIDE (journal du 15/08).
+ * THE ROUTING TABLE IS NEVER EMPTY (15/08 log entry).
  *
- * `refreshRoutes` vidait la table EN TÊTE puis la remplissait derrière un
- * `await listTools()` par serveur. Tout appel d'outil tombant dans cette fenêtre —
- * un aller-retour réseau — ne trouvait pas sa route et mourait sur « Unknown MCP tool »
- * alors que l'outil existait : trois appels parallèles au même outil, deux passés, un
- * tué. Le rafraîchissement construit désormais à côté et bascule d'un coup.
+ * `refreshRoutes` cleared the table UP FRONT then refilled it behind an
+ * `await listTools()` per server. Any tool call landing in this window —
+ * a network round-trip — found no route and died with « Unknown MCP tool »
+ * even though the tool existed: three parallel calls to the same tool, two got through, one
+ * killed. The refresh now builds off to the side and swaps over in one shot.
  */
 
-/** Une connexion bouchon dont `listTools` s'ouvre quand on le décide. */
+/** A stub connection whose `listTools` opens whenever we decide to. */
 function fakeConn(toolNames: string[], gate?: Promise<void>): McpConnection {
   return {
     listTools: async () => {
@@ -38,13 +38,13 @@ describe("refreshRoutes — la table reste lisible PENDANT le rafraîchissement"
     await refreshRoutes();
     expect(routes.has("posthog__exec")).toBe(true);
 
-    // Rafraîchissement suivant, bloqué au milieu — c'est la fenêtre fatale d'avant.
+    // Next refresh, blocked halfway through — this is the fatal window from before.
     let ouvre!: () => void;
     const porte = new Promise<void>((r) => (ouvre = r));
     connected.set("posthog", fakeConn(["exec", "execute-sql"], porte));
     const enCours = refreshRoutes();
 
-    await Promise.resolve(); // on est bien DANS la fenêtre : listTools n'a pas rendu
+    await Promise.resolve(); // we are indeed INSIDE the window: listTools has not returned
     expect(routes.has("posthog__exec"), "route perdue pendant le refresh").toBe(true);
 
     ouvre();

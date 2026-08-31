@@ -2,14 +2,14 @@ import { describe, it, expect } from "vitest";
 import { detectSelfHandles } from "./contextFields";
 
 /**
- * ⚠️ RÉGRESSION — « les pseudos ne sont détectés que si on les annonce avec deux points ».
+ * ⚠️ REGRESSION — « handles are only detected when introduced with a colon ».
  *
- * Mesuré sur la campagne v1.0 : 6 identifiants sur 13 manqués, tous parce que la forme
- * EN PROSE ne couvrait qu'un nom sans qualificatif suivi de « est ». Personne n'écrit
- * « Pseudo : arvio92 » dans un chat.
+ * Measured on the v1.0 campaign: 6 identifiers out of 13 missed, all because the
+ * PROSE form only covered a bare name with no qualifier followed by « est ». Nobody
+ * writes « Pseudo : arvio92 » in a chat.
  *
- * Trois élargissements, tous adossés au POSSESSIF — c'est lui, et lui seul, qui rend la
- * règle sûre : « le login est obligatoire » ne doit jamais redact « obligatoire ».
+ * Three widenings, all anchored on the POSSESSIVE — it, and only it, is what makes
+ * the rule safe: « le login est obligatoire » must never redact « obligatoire ».
  */
 const found = (t: string): string[] => detectSelfHandles(t).map((d) => d.value);
 
@@ -18,10 +18,10 @@ describe("pseudo en prose — les formes qu'on écrit vraiment", () => {
     ["Mon pseudo est arvio92.", "arvio92"],
     ["Mon username est darkvador75.", "darkvador75"],
     ["My login is jdoe", "jdoe"],
-    ["Mon gamertag est xX_Shadow_Xx.", "xX_Shadow_Xx"], // vocabulaire
-    ["Mon identifiant client est 88-45-KL.", "88-45-KL"], // qualificatif
-    ["Mon login windows est admin2024", "admin2024"], // qualificatif
-    ["Mon id Discord : augustin#4521", "augustin#4521"], // deux-points
+    ["Mon gamertag est xX_Shadow_Xx.", "xX_Shadow_Xx"], // vocabulary
+    ["Mon identifiant client est 88-45-KL.", "88-45-KL"], // qualifier
+    ["Mon login windows est admin2024", "admin2024"], // qualifier
+    ["Mon id Discord : augustin#4521", "augustin#4521"], // colon
   ])("attrape la valeur de « %s »", (text, value) => {
     expect(found(text)).toContain(value);
   });
@@ -34,14 +34,14 @@ describe("ce qui borne la règle", () => {
   });
 
   it("« id » ne mord pas dans un mot plus long", () => {
-    // `(?![\p{L}])` et non `\b` : `\b` est ASCII-only en JS, donc inopérant après un
-    // mot accentué (le défaut corrigé dans `rules.tokens.ts`).
+    // `(?![\p{L}])` and not `\b`: `\b` is ASCII-only in JS, so inoperative after an
+    // accented word (the flaw fixed in `rules.tokens.ts`).
     expect(found("Mon idée est excellente.")).toEqual([]);
     expect(found("Mon identité est vérifiée.")).toEqual([]);
   });
 
   it("UN seul qualificatif, jamais une proposition entière", () => {
-    // Deux mots franchiraient une subordonnée et avaleraient n'importe quoi.
+    // Two words would cross a subordinate clause and swallow anything.
     expect(found("Mon identifiant sur le site est bidon")).toEqual([]);
   });
 
@@ -50,9 +50,9 @@ describe("ce qui borne la règle", () => {
   });
 
   it("⚠️ « utilisateur » et l'étiquette NUE restent volontairement hors périmètre", () => {
-    // `LABEL_GROUPS` les exclut parce qu'ils sur-déclenchent (« l'utilisateur est
-    // content »). Le possessif les rendrait sûrs, mais ces deux formulations-là n'en
-    // ont pas — les couvrir est un arbitrage, pas un correctif.
+    // `LABEL_GROUPS` excludes them because they over-trigger (« l'utilisateur est
+    // content »). The possessive would make them safe, but these two phrasings don't
+    // have one — covering them is a trade-off, not a fix.
     expect(found("utilisateur : a.vaudel")).toEqual([]);
     expect(found("Mon compte est bloqué.")).toEqual([]);
   });

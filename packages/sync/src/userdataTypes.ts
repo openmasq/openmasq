@@ -6,33 +6,33 @@
  * can't leak into a record.
  */
 
-/** One compétence, as the sync sees it (allow-listed). */
+/** One skill, as the sync sees it (allow-listed). */
 export interface SyncedCompetence {
   id: string;
   name: string;
   desc?: string;
   prompt: string;
   cat: string;
-  /** Présent sur la compétence LOCALE (une seule liste). Sur le FIL il décide du
-   *  compartiment — `snapshotOfSettings` — et n'est jamais émis ici : `cleanCompetence`
-   *  ne le connaît pas, une routine passe par `SyncedWorkflow`. */
+  /** Present on the LOCAL skill (a single list). On the WIRE it decides the
+   *  compartment — `snapshotOfSettings` — and is never emitted here: `cleanCompetence`
+   *  doesn't know it, a routine goes through `SyncedWorkflow`. */
   servers?: string[];
   pinned?: boolean;
   createdAt: number;
 }
 
 /**
- * Une compétence QUI PILOTE DES CONNECTEURS, telle qu'elle voyage. `servers` are catalog
+ * A skill THAT DRIVES CONNECTORS, as it travels. `servers` are catalog
  * connector IDS — display hints, never credentials/URLs (same contract as the
  * integrations directory).
  *
- * ⚠️ **C'est un compartiment du FIL, plus une liste de l'app.** Les compétences et les
- * « workflows » ont fusionné côté produit ; l'enveloppe, elle, garde ses deux
- * compartiments, parce qu'elle est déjà en circulation : un appareil resté sur une
- * version antérieure lit `wf:` et rien d'autre pour ses routines. On répartit donc à
- * l'émission (`servers` non vide ⇒ ce compartiment) et on refusionne à la réception —
- * les deux sens du même aller-retour, `userdataTypes.test.ts`. Le jour où plus aucun
- * appareil ancien ne tourne, ce compartiment se supprime d'un bloc.
+ * ⚠️ **This is a WIRE compartment, no longer an app list.** Skills and
+ * "workflows" merged on the product side; the envelope, though, keeps its two
+ * compartments, because it's already in circulation: a device stuck on an
+ * earlier version reads `wf:` and nothing else for its routines. So we split on
+ * emission (`servers` non-empty ⇒ this compartment) and re-merge on reception —
+ * both directions of the same round trip, `userdataTypes.test.ts`. The day no
+ * old device is running anymore, this compartment gets removed in one block.
  */
 export interface SyncedWorkflow {
   id: string;
@@ -40,15 +40,15 @@ export interface SyncedWorkflow {
   desc?: string;
   prompt: string;
   servers: string[];
-  /** La catégorie, pour un aller-retour entre appareils À JOUR. Un appareil ancien
-   *  l'ignore et la perd en réémettant : la réception retombe alors sur « routine »,
-   *  ce qui reste vrai — elle pilote bien des connecteurs. */
+  /** The category, for a round trip between UP-TO-DATE devices. An old device
+   *  ignores it and loses it on re-emit: reception then falls back to "routine",
+   *  which stays true — it does drive connectors. */
   cat?: string;
   pinned?: boolean;
   createdAt: number;
 }
 
-/** One mémoire card (allow-listed). `facts`/`entity` are REAL personal data —
+/** One memory card (allow-listed). `facts`/`entity` are REAL personal data —
  *  which is exactly why this scope is E2E-encrypted like a conversation. */
 export interface SyncedMemoryCard {
   id: string;
@@ -97,20 +97,20 @@ export const emptyUserdataSyncState = (accountId: string): UserdataSyncState => 
  *  the desktop and mobile hooks, rule 9). */
 export interface UserdataSettingsLike {
   competences?: SyncedCompetence[];
-  /** LEGACY — le champ local d'avant la fusion, encore lu sur un blob ancien. `servers`
-   *  y est facultatif, comme sur la compétence unique. */
+  /** LEGACY — the local field from before the merge, still read on an old blob. `servers`
+   *  is optional there, like on the single skill. */
   workflows?: SyncedCompetence[];
   memoire?: { profile?: string; cards: SyncedMemoryCard[] };
 }
 
 /**
- * ⚠️ L'app n'a plus qu'UNE liste ; le fil en a deux (voir `SyncedWorkflow`). On répartit
- * ici, sur le seul critère qui décide de tout ailleurs : `servers` non vide.
+ * ⚠️ The app now has only ONE list; the wire has two (see `SyncedWorkflow`). We split
+ * here, on the single criterion that decides everything else: `servers` non-empty.
  *
- * Ce n'est pas de la cosmétique — `cleanCompetence` n'émet pas `servers`, donc une
- * routine passée par le compartiment des compétences arriverait sur l'autre appareil
- * SANS ses connecteurs, c'est-à-dire en ne faisant plus rien. La répartition est ce qui
- * lui garde son comportement.
+ * This isn't cosmetic — `cleanCompetence` doesn't emit `servers`, so a
+ * routine passed through the skills compartment would arrive on the other device
+ * WITHOUT its connectors, meaning it would no longer do anything. The split is what
+ * keeps its behavior.
  */
 export const snapshotOfSettings = (s: UserdataSettingsLike): UserdataSnapshot => {
   const all = [...(s.competences ?? []), ...(s.workflows ?? [])];
@@ -134,9 +134,9 @@ export const snapshotOfSettings = (s: UserdataSettingsLike): UserdataSnapshot =>
 
 /** The Settings patch that applies a merged snapshot back (the caller spreads
  *  it over its Settings; extra local item fields already rode through absorb). */
-/** Le chemin inverse : les deux compartiments du fil reviennent dans l'UNIQUE liste de
- *  l'app. `workflows` repart vide — le champ local n'est plus écrit (la reprise d'un blob
- *  ancien est `competences/migrate.ts`), et le laisser plein le ferait réapparaître. */
+/** The reverse path: the wire's two compartments come back into the app's SINGLE
+ *  list. `workflows` goes out empty — the local field is no longer written (recovering an
+ *  old blob is `competences/migrate.ts`), and leaving it filled would make it reappear. */
 export const settingsPatchOf = (snap: UserdataSnapshot): Required<UserdataSettingsLike> => ({
   competences: [
     ...snap.competences,

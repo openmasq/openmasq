@@ -107,7 +107,7 @@ describe("deNest — occurrence-safe subsumption", () => {
 describe("filterCandidates — generic compounds (the PostHog overredaction)", () => {
   it("drops a compound whose EVERY word is generic, whatever the separator", () => {
     // Observed in prod: tool ids flagged as NAMEs, whose per-word aliases then
-    // redact every "data"/"query"/"trends" in the conversation.
+    // redacted every "data"/"query"/"trends" in the conversation.
     const kept = filterCandidates(
       [
         { value: "read-data-schema", category: "NAME" },
@@ -265,9 +265,9 @@ describe("a disabled category releases its value WHOLE (fragment gate)", () => {
 });
 
 describe("un span qui HABILLE une valeur forcée cède le pas (fiche Mémoire, 14/08)", () => {
-  // « Employeur de Camille Verlant » réclamé en ORG par le gate contextuel, alors que
-  // « Camille Verlant » est déjà FORCÉ par la fiche personne : le span plus long frappait
-  // un second faux, de type organisation — le modèle lisait deux entités pour une.
+  // « Employeur de Camille Verlant » claimed as ORG by the contextual gate, even though
+  // « Camille Verlant » is already FORCED by the person's record: the longer span struck
+  // a second fake, of type organisation — the model read two entities for one.
   it("« Employeur de X » cède quand X est forcé — X garde son propre faux", () => {
     const r = filterCandidates(
       [

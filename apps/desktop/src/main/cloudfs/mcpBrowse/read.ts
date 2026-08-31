@@ -1,19 +1,19 @@
 /**
- * LIRE la réponse d'un listage distant — la moitié qui échoue FERMÉ.
+ * READ the response of a remote listing — the half that fails CLOSED.
  *
- * On n'accepte que du JSON, et seulement s'il porte de quoi NOMMER et CLASSER chaque
- * entrée. Une prose faite pour un modèle, un JSON dont rien ne dit ce qui est un dossier
- * ⇒ `null`, donc « pas navigable » : la source reprend sa ligne d'état. **Inventer une
- * arborescence serait pire que ne pas en avoir**, et c'est ce que ce refus achète.
+ * We accept only JSON, and only if it carries enough to NAME and CLASSIFY each
+ * entry. Prose meant for a model, JSON that says nothing about what is a folder
+ * ⇒ `null`, so "not browsable": the source falls back to its status line. **Inventing a
+ * tree would be worse than having none**, and that's what this refusal buys.
  *
- * `describeShape` est l'autre moitié du contrat : un refus sans empreinte est un mur.
+ * `describeShape` is the other half of the contract: a refusal with no fingerprint is a wall.
  */
 import { remoteTime, type RemoteEntry } from "@openmasq/connectors";
 
-/** Les clés sous lesquelles un serveur range sa liste. */
+/** The keys under which a server files its list. */
 const LIST_KEYS = ["entries", "items", "files", "results", "contents", "children"];
 
-/** Les clés qui disent « dossier ». Aucune d'elles ⇒ on ne sait pas classer ⇒ on renonce. */
+/** The keys that say "folder". None of them ⇒ we can't classify ⇒ we give up. */
 const FOLDER_MARKS = [
   ".tag",
   "tag",
@@ -33,11 +33,11 @@ export const asRecord = (v: unknown): Record<string, unknown> | null =>
   v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
 
 /**
- * Le JSON d'une partie texte, quand il y en a un.
+ * The JSON of a text part, when there is one.
  *
- * Un serveur MCP encadre volontiers son JSON d'une clôture Markdown ou d'une phrase
- * d'introduction — c'est de la mise en forme pour un modèle, pas une autre donnée. On la
- * retire, sans jamais DEVINER une liste : ce qui n'est pas du JSON reste illisible.
+ * An MCP server readily wraps its JSON in a Markdown fence or an introductory
+ * sentence — that's formatting for a model, not other data. We strip it,
+ * without ever GUESSING a list: what isn't JSON stays unreadable.
  */
 export function readJson(text: string): unknown {
   const body = text.replace(/^\s*```(?:json)?\s*/i, "").replace(/```\s*$/, "");
@@ -49,7 +49,7 @@ export function readJson(text: string): unknown {
     try {
       return JSON.parse(c);
     } catch {
-      /* le candidat suivant */
+      /* try the next candidate */
     }
   }
   return undefined;
@@ -58,9 +58,9 @@ export function readJson(text: string): unknown {
 const arrayOfRecords = (v: unknown): v is unknown[] =>
   Array.isArray(v) && v.every((x) => !!asRecord(x));
 
-/** Le tableau d'entrées dans une réponse, où qu'il soit rangé. Les clés connues d'abord ;
- *  à défaut, le premier tableau d'OBJETS — un serveur a le droit de nommer sa liste
- *  autrement, mais pas de nous faire prendre une liste de chaînes pour des fichiers. */
+/** The array of entries in a response, wherever it's filed. Known keys first;
+ *  failing that, the first array of OBJECTS — a server may name its list
+ *  differently, but not make us mistake a list of strings for files. */
 function listIn(parsed: unknown): unknown[] | null {
   if (arrayOfRecords(parsed)) return parsed;
   const rec = asRecord(parsed);
@@ -70,8 +70,8 @@ function listIn(parsed: unknown): unknown[] | null {
   return null;
 }
 
-/** `"folder"` / `{".tag":"folder"}` / `is_folder: true` / le `folder` de Graph — ou `null`
- *  quand RIEN ne le dit, auquel cas on renonce plutôt que de tout aplatir en fichiers. */
+/** `"folder"` / `{".tag":"folder"}` / `is_folder: true` / Graph's `folder` — or `null`
+ *  when NOTHING says so, in which case we give up rather than flatten everything to files. */
 function kindOf(e: Record<string, unknown>): "dir" | "file" | null {
   for (const k of FOLDER_MARKS) {
     const v = e[k];
@@ -79,24 +79,24 @@ function kindOf(e: Record<string, unknown>): "dir" | "file" | null {
     if (typeof v === "string") {
       const low = v.toLowerCase();
       if (FOLDER_WORDS.has(low)) return "dir";
-      // Un type MIME dit « dossier » à sa façon (Drive : `…apps.folder`).
+      // A MIME type says "folder" its own way (Drive: `…apps.folder`).
       if (low.includes("/")) return low.includes("folder") ? "dir" : "file";
       return "file";
     }
   }
-  // Graph range le discriminant dans une facette : la PRÉSENCE de `folder` ou de `file`.
+  // Graph files the discriminant in a facet: the PRESENCE of `folder` or `file`.
   if (asRecord(e.folder)) return "dir";
   if (asRecord(e.file)) return "file";
   return null;
 }
 
 /**
- * L'EMPREINTE d'une réponse illisible : les clés, jamais les valeurs.
+ * The FINGERPRINT of an unreadable response: the keys, never the values.
  *
- * Sans elle, « ce stockage ne rend pas de liste exploitable » est un mur — on ne sait pas
- * si le serveur a répondu de la prose, une liste rangée ailleurs, ou des entrées qu'on ne
- * sait pas classer. Des NOMS de champs sont de la structure, pas des données : c'est ce qui
- * rend ce diagnostic montrable à celui qui le lit.
+ * Without it, "this storage doesn't return a usable list" is a wall — we don't know
+ * whether the server answered with prose, a list filed elsewhere, or entries we
+ * can't classify. Field NAMES are structure, not data: that's what makes this
+ * diagnostic showable to whoever reads it.
  */
 export function describeShape(texts: string[]): string {
   if (!texts.length) return "réponse vide";
@@ -116,14 +116,14 @@ export function describeShape(texts: string[]): string {
 
 const str = (v: unknown): string | undefined => (typeof v === "string" && v ? v : undefined);
 
-/** Le dernier segment d'un chemin — le nom, quand le serveur ne le donne pas à part. */
+/** The last segment of a path — the name, when the server doesn't give it separately. */
 const baseName = (p: string): string => p.slice(p.lastIndexOf("/") + 1) || p;
 
 /**
- * Une réponse d'outil → des entrées typées, ou `null` si on ne sait pas la lire.
+ * A tool response → typed entries, or `null` if we can't read it.
  *
- * `[]` est une réponse VALIDE (dossier vide) et se distingue de `null` (illisible) : la
- * première se dessine, la seconde retire l'arborescence.
+ * `[]` is a VALID response (empty folder) and is distinct from `null` (unreadable): the
+ * former is drawn, the latter withdraws the tree.
  */
 export function parseToolList(texts: string[]): {
   entries: RemoteEntry[];
@@ -131,7 +131,7 @@ export function parseToolList(texts: string[]): {
 } | null {
   for (const text of texts) {
     const parsed = readJson(text);
-    // De la prose : ce n'est pas une liste, c'est un paragraphe.
+    // Prose: not a list, a paragraph.
     if (parsed === undefined) continue;
     const raw = listIn(parsed);
     if (!raw) continue;
@@ -143,7 +143,7 @@ export function parseToolList(texts: string[]): {
         str(e.path_display) ?? str(e.path_lower) ?? str(e.path) ?? str(e.id) ?? str(e.fileId);
       const name = str(e.name) ?? (path ? baseName(path) : undefined);
       const kind = kindOf(e);
-      // Un seul champ manquant suffit : une liste à moitié classée se déplierait faux.
+      // One missing field is enough: a half-classified list would render wrong.
       if (!path || !name || !kind) return null;
       entries.push({
         id: path,

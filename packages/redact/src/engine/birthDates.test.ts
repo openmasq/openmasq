@@ -29,11 +29,11 @@ describe("detectBirthDates — civil-status prose ('Né à … le <date>')", () 
 });
 
 describe("dates d'ACTE — le verbe est la garde, pas la date", () => {
-  /* Mesuré sur `bench/corpora/categoriesRares.json` : 11 dates sur 12 partaient en clair —
-     bail, contrat de travail, Kbis, statuts, PV d'AG, acte de mariage, attestation d'emploi,
-     convocation médicale — à côté de parties nommées, elles, redacted. C'est la PAIRE qui
-     ré-identifie. Le détecteur de naissance ne pouvait pas les voir : il est gardé par le
-     contexte de naissance, et aucune règle ne tire sur une date nue. */
+  /* Measured on `bench/corpora/categoriesRares.json`: 11 dates out of 12 were leaving in clear —
+     lease, employment contract, Kbis, articles of association, AGM minutes, marriage
+     certificate, employment certificate, medical appointment notice — beside named parties,
+     which WERE redacted. It's the PAIR that re-identifies. The birth detector couldn't see
+     them: it's gated by birth context, and no rule fires on a bare date. */
   it.each([
     ["AUX TERMES D'UN ACTE reçu le 12/03/2024, la SCI a cédé", "12/03/2024"],
     ["Prise d'effet le 01/07/2025, loyer annuel 24 600.", "01/07/2025"],
@@ -55,8 +55,8 @@ describe("dates d'ACTE — le verbe est la garde, pas la date", () => {
   });
 
   it("ne tire PAS sur une date sans verbe d'acte — c'est toute la garde", () => {
-    // Un horodatage de journal, une date de facture, une période, une livraison : la
-    // catégorie serait noyée et le document deviendrait illisible pour le modèle.
+    // A log timestamp, an invoice date, a period, a delivery: the
+    // category would be flooded and the document would become unreadable for the model.
     expect(values("Facture du 12/03/2024 réglée")).toEqual([]);
     expect(values("12/03/2024 10:04:22 INFO démarrage")).toEqual([]);
     expect(values("Le rapport porte sur la période du 01/01/2026 au 31/12/2026.")).toEqual([]);
@@ -65,17 +65,17 @@ describe("dates d'ACTE — le verbe est la garde, pas la date", () => {
   });
 
   it("exige les SÉPARATEURS de la date — « signé le20juin2024 » reste de la prose collée", () => {
-    // `model/pseudonymize/gluedProse.test.ts` épingle l'autre bout de cette frontière.
+    // `model/pseudonymize/gluedProse.test.ts` pins the other end of this boundary.
     expect(values("signé le20juin2024 puis du20juin2024a la remise")).toEqual([]);
   });
 });
 
-/* RÉSIDU ASSUMÉ, mesuré : l'intercalaire entre le verbe et l'article est plafonné à DEUX
-   mots, donc « ont établi les statuts de la SCI LES TROIS TILLEULS le 22/09/2023 » n'est
-   pas suivi. L'élargir (un intercalaire paresseux de 40 caractères, comme `BIRTH_RE`)
-   attraperait « le contrat est daté et la réunion aura lieu le 15/04/2026 » — une date de
-   réunion, pas un acte. Le rappel perdu est d'UNE vérité sur le banc ; le faux positif
-   gagné serait sur toutes les dates de tous les documents. */
+/* ACCEPTED RESIDUAL, measured: the gap between the verb and the article is capped at TWO
+   words, so « ont établi les statuts de la SCI LES TROIS TILLEULS le 22/09/2023 » is not
+   followed. Widening it (a lazy 40-char gap, like `BIRTH_RE`) would catch
+   « le contrat est daté et la réunion aura lieu le 15/04/2026 » — a meeting
+   date, not a deed. The lost recall is ONE truth on the bench; the false positive
+   gained would be on every date of every document. */
 
 describe("dates d'acte — portée longue « à vérifier », clôture notariale, ordinal allemand", () => {
   const dets = (t: string) => detectBirthDates(t).map((d) => ({ v: d.value, u: d.uncertain ?? false }));

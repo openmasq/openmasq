@@ -29,10 +29,10 @@ const DATE_INTL = `(?:\\d{1,2}\\.?(?:\\s*de)?\\s*(?:${MONTH_INTL})(?:\\s*de)?\\s
 // 14.06.1975", "nascido em Lisboa a 2 de janeiro de 1988", "born on 5 May 1990". The
 // FR-only anchor left every foreign contract's birth date in CLEAR beside a faked name
 // and a faked birthplace — the identifying pair the FR branch exists to break.
-// Formes qui NOMMENT la date de naissance sans le verbe « naître » — mesurées sur un
-// bench manuel : « Son anniversaire est le 3 juillet 1992 » et « date de naissance :
-// … » (sans deux-points) partaient en clair, alors que « né le … » était protégé.
-// Une date d'anniversaire EST une date de naissance ; c'est la même donnée.
+// Forms that NAME the birth date without the verb « naître » — measured on a
+// manual bench: « Son anniversaire est le 3 juillet 1992 » and « date de naissance :
+// … » (without a colon) were going out in clear, while « né le … » was protected.
+// A birthday date IS a birth date; it's the same data.
 const BIRTH_WORD_INTL =
   "nat[oa]|nacid[oa]|nascid[oa]|geboren|born|anniversaire|date de naissance|birthday|birth date|date of birth|geburtsdatum|fecha de nacimiento|data di nascita|data de nascimento";
 const BIRTH_INTL_RE = new RegExp(
@@ -41,9 +41,9 @@ const BIRTH_INTL_RE = new RegExp(
 );
 
 const BIRTH_RE = new RegExp(
-  // « anniversaire » / « date de naissance » rejoignent « né(e) » : la branche INTL ne
-  // couvre pas les mois FRANÇAIS, donc « Son anniversaire est le 3 juillet 1992 »
-  // tombait entre les deux détecteurs.
+  // « anniversaire » / « date de naissance » join « né(e) »: the INTL branch doesn't
+  // cover FRENCH months, so « Son anniversaire est le 3 juillet 1992 »
+  // was falling between the two detectors.
   `\\b(?:n[ée](?:e|[àa]|e[àa])?|anniversaire|date de naissance)\\s*(?:[àa]\\s+)?(?:[^\\n.]{0,60}?\\s)?(le\\s*${DATE})`,
   "giu",
 );
@@ -94,41 +94,41 @@ export function detectBirthDates(text: string): Detection[] {
 }
 
 /**
- * La date d'un ACTE rattaché à des personnes nommées — « reçu le 12/03/2024 », « prise
+ * The date of a DEED tied to named people — « reçu le 12/03/2024 », « prise
  * d'effet le 01/07/2025 », « à compter du 01/09/2021 », « employé du … au … », « célébré
  * le 27/05/2017 ».
  *
- * Pourquoi elle manquait : le détecteur ci-dessus est gardé par le contexte de NAISSANCE,
- * et aucune règle ne tire sur une date nue — délibérément, sans quoi tout horodatage de
- * journal et toute date de facture seraient redacted. Résultat mesuré sur le banc : sur un
- * bail, un contrat de travail, un acte de mariage ou un compte rendu de consultation, les
- * parties étaient redacted et la date qui les rattache partait en clair. Or c'est la
- * paire qui ré-identifie : « embauché le 01/09/2021 » restreint un salarié à quelques
- * personnes.
+ * Why it was missing: the detector above is gated by BIRTH context,
+ * and no rule fires on a bare date — deliberately, else every log
+ * timestamp and every invoice date would be redacted. Result measured on the bench: on a
+ * lease, an employment contract, a marriage deed or a consultation report, the
+ * parties were redacted and the date tying them together went out in clear. Yet it's the
+ * pair that re-identifies: « embauché le 01/09/2021 » narrows an employee down to a few
+ * people.
  *
- * ⚠️ La garde est le VERBE, pas la date. Une liste d'AUTORISATION de participes d'acte,
- * suivie de son article, exactement comme la piste des identifiants (le libellé garde la
- * valeur). Ce qu'elle refuse volontairement : « facture du 12/03/2024 », « exporté le … »,
- * « 12/03/2024 10:04:22 » dans un journal — un acte, pas un horodatage.
+ * ⚠️ The gate is the VERB, not the date. An ALLOW-list of deed participles,
+ * followed by its article, exactly like the identifier track (the label carries the
+ * value). What it deliberately refuses: « facture du 12/03/2024 », « exporté le … »,
+ * « 12/03/2024 10:04:22 » in a log — a deed, not a timestamp.
  */
 const ACT_VERB =
   "re[çc]u|sign[ée]e?s?|[ée]tabli[es]?|conclu[es]?|c[ée]l[ée]br[ée]e?|immatricul[ée]e?|" +
   "embauch[ée]e?|employ[ée]e?|enregistr[ée]e?|d[ée]pos[ée]e?|r[ée]uni[es]?|" +
   "prise? d'effet|entr[ée]e? en vigueur|dat[ée]e?|renouvel[ée]e?|r[ée]sili[ée]e?|" +
   "fix[ée]e?|remis[es]?|nomm[ée]e?|mut[ée]e?|admis[es]?|inscrit[es]?";
-/** « à compter du », « avec effet au » : l'amorce porte déjà l'article. */
+/** « à compter du », « avec effet au »: the lead-in already carries the article. */
 const ACT_LEAD = "[àa] compter|avec effet|jusqu'au|depuis le";
-/** ⚠️ La date d'acte exige ses SÉPARATEURS, là où `DATE` tolère la soudure de l'OCR :
- *  « signé le20juin2024 » est de la prose agglutinée, pas une signature datée, et
- *  `gluedProse.test.ts` épingle qu'elle reste en clair. Le verbe garde la date ; le
- *  séparateur garde le verbe. */
+/** ⚠️ A deed date requires its SEPARATORS, where `DATE` tolerates OCR gluing:
+ *  « signé le20juin2024 » is agglutinated prose, not a dated signature, and
+ *  `gluedProse.test.ts` pins that it stays in clear. The verb guards the date; the
+ *  separator guards the verb. */
 const ACT_DATE =
   `(?:\\d{1,2}(?:er)?[^\\S\\r\\n]+(?:${MONTH})[^\\S\\r\\n]+\\d{4}|\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4})`;
-// ⚠️ `\b` est ASCII en JS : « employ**é** » n'a pas de frontière après son accent, et
-// « **é**tabli » n'en a pas devant — les deux verbes ne se déclenchaient jamais. Bornes
-// Unicode des deux côtés (le piège que `engine/CLAUDE.md` documente pour `gate()`).
-// L'article porte la même borne, sinon « établi **les** statuts » consomme le « le » de
-// « les » et la règle échoue juste après.
+// ⚠️ `\b` is ASCII in JS: « employ**é** » has no boundary after its accent, and
+// « **é**tabli » has none before it — neither verb was ever firing. Unicode
+// boundaries on both sides (the trap `engine/CLAUDE.md` documents for `gate()`).
+// The article carries the same boundary, else « établi **les** statuts » consumes the « le » of
+// « les » and the rule fails right after.
 const NOT_L = "(?![\\p{L}])";
 const ACT_RE = new RegExp(
   `(?<![\\p{L}])(?:(?:${ACT_VERB})${NOT_L}[^\\S\\r\\n]*(?:[^\\S\\r\\n]*[\\p{L}']{1,12}){0,2}[^\\S\\r\\n]*` +
@@ -136,23 +136,23 @@ const ACT_RE = new RegExp(
     `[^\\S\\r\\n]*(?:(?:le|du|au)${NOT_L})?[^\\S\\r\\n]*(${ACT_DATE})`,
   "giu",
 );
-/** Le SECOND terme d'un intervalle (« du 03/01/2018 au 30/04/2024 ») : la première date
- *  est prise par la règle ci-dessus, la seconde n'a que « au » devant elle. */
+/** The SECOND term of an interval (« du 03/01/2018 au 30/04/2024 »): the first date
+ *  is caught by the rule above, the second only has « au » before it. */
 const ACT_RANGE_RE = new RegExp(`(?:${ACT_DATE})[^\\S\\r\\n]*(?:au|jusqu'au|-|–)[^\\S\\r\\n]*(${ACT_DATE})`, "giu");
-/** LONGUE PORTÉE — le même verbe d'acte, mais 3 à 8 mots avant la date (« ont établi
- *  les statuts de la SCI LES TROIS TILLEULS le 22/09/2023 ») : la portée courte
- *  ci-dessus s'arrête à 2 mots et laissait la date de constitution en clair. Plus la
- *  fenêtre s'allonge, plus l'autorité du verbe se dilue — la détection sort donc
- *  MARQUÉE « à vérifier » (masquée par défaut, dé-masquable d'un clic), au lieu
- *  d'exiger du regex court une précision qu'il n'a pas à cette distance. */
+/** LONG RANGE — the same deed verb, but 3 to 8 words before the date (« ont établi
+ *  les statuts de la SCI LES TROIS TILLEULS le 22/09/2023 »): the short range
+ *  above stops at 2 words and left the incorporation date in clear. The longer
+ *  the window stretches, the more the verb's authority dilutes — so the detection comes out
+ *  FLAGGED "to verify" (masked by default, unmaskable with one click), instead
+ *  of demanding a precision from the short regex that it doesn't have at this distance. */
 const ACT_RE_FAR = new RegExp(
   `(?<![\\p{L}])(?:${ACT_VERB})${NOT_L}(?:[^\\S\\r\\n]+[\\p{L}''-]{1,15}){3,8}[^\\S\\r\\n]+` +
     `(?:le|du|en date du)${NOT_L}[^\\S\\r\\n]*(${ACT_DATE})`,
   "giu",
 );
-/** La clôture notariale « Fait à VILLE, le 22/09/2023 » — « fait » est trop commun pour
- *  rejoindre ACT_VERB (« il l'a fait le … »), mais ANCRÉ sur « à + Ville capitalisée »,
- *  la forme est sans ambiguïté ; seule la DATE est émise (la ville est aux géo). */
+/** The notarial closing « Fait à VILLE, le 22/09/2023 » — « fait » is too common to
+ *  join ACT_VERB (« il l'a fait le … »), but ANCHORED on « à + capitalized City »,
+ *  the form is unambiguous; only the DATE is emitted (the city belongs to geo). */
 const ACT_FAIT_RE = new RegExp(
   `(?<![\\p{L}])[Ff]aits?[^\\S\\r\\n]+[àa][^\\S\\r\\n]+\\p{Lu}[\\p{L}'’-]*(?:[ -]\\p{Lu}[\\p{L}'’-]*){0,3}[^\\S\\r\\n]*,?[^\\S\\r\\n]*le[^\\S\\r\\n]*(${ACT_DATE})`,
   "gu",
@@ -169,12 +169,12 @@ function detectActDates(text: string): Detection[] {
   };
   for (const m of text.matchAll(ACT_RE)) add(m[1] ?? "", m.index);
   for (const m of text.matchAll(ACT_FAIT_RE)) add(m[1] ?? "", m.index);
-  // La longue portée APRÈS la courte : une date déjà tenue par le bras court garde sa
-  // détection franche (le dédoublonnage par valeur fait foi), le flag ne s'ajoute
-  // qu'aux dates que SEULE la fenêtre large atteint.
+  // Long range AFTER the short one: a date already caught by the short arm keeps its
+  // clean detection (value-based dedup is authoritative), the flag is only added
+  // to dates that ONLY the wide window reaches.
   for (const m of text.matchAll(ACT_RE_FAR)) add(m[1] ?? "", m.index, true);
-  // L'intervalle n'est suivi que s'il OUVRE sur une date d'acte : sans cette borne,
-  // deux horodatages voisins suffiraient à déclencher.
+  // The interval is only followed if it OPENS onto a deed date: without this bound,
+  // two neighbouring timestamps would be enough to trigger.
   for (const m of text.matchAll(ACT_RANGE_RE)) {
     const before = text.slice(Math.max(0, m.index - 60), m.index);
     if (new RegExp(`(?:${ACT_VERB})(?![\\p{L}])[^\\S\\r\\n]*(?:le|du|au)?[^\\S\\r\\n]*$`, "iu").test(before))

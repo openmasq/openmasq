@@ -40,9 +40,9 @@ describe("protocolAction — qui a le droit de répondre au deep-link", () => {
     expect(protocolAction({ packaged: true, ...win, devEntry: null })).toBe("register");
   });
 
-  // Le bug : sur macOS `path`/`args` sont ignorés, donc un dev enregistrait
-  // `node_modules/electron/dist/Electron.app` — un Electron NU. Le lien d'un e-mail
-  // ouvrait alors « To run a local app… », et l'app installée avait perdu le schéma.
+  // The bug: on macOS `path`/`args` are ignored, so a dev would register
+  // `node_modules/electron/dist/Electron.app` — a BARE Electron. An email link
+  // would then open "To run a local app…", and the installed app had lost the scheme.
   it("un dev macOS ne s'enregistre JAMAIS — il se désenregistre", () => {
     expect(protocolAction({ packaged: false, ...mac, devEntry: "/abs/app" })).toBe("unregister");
     expect(protocolAction({ packaged: false, ...mac, devEntry: null })).toBe("unregister");
@@ -50,7 +50,7 @@ describe("protocolAction — qui a le droit de répondre au deep-link", () => {
 
   it("Windows garde l'enregistrement dev, où execPath + entrée sont honorés", () => {
     expect(protocolAction({ packaged: false, ...win, devEntry: "C:\\app" })).toBe("register");
-    // Sans entrée résolue, il n'y a rien de sensé à déclarer : on s'abstient.
+    // With no resolved entry, there's nothing sensible to declare: we abstain.
     expect(protocolAction({ packaged: false, ...win, devEntry: null })).toBe("skip");
   });
 });

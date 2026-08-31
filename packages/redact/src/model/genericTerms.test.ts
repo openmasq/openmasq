@@ -3,10 +3,10 @@ import { isGenericTerm } from "./genericTerms";
 
 describe("jours et mois — jamais une entité à eux seuls", () => {
   /**
-   * Journal du 04/08, sur une vraie boîte mail : « Sun » redacted en ORGANISATION,
-   * « Thu » en LIEU. Ils sont dans l'en-tête `Date:` de chaque e-mail, en tête de ligne
-   * et capitalisés — la forme même qu'un NER lit comme un nom propre. Le modèle recevait
-   * « Ash, 02 Aug 2026 », dans une demande qui portait sur « les e-mails de la semaine ».
+   * 04/08 log, on a real mailbox: « Sun » redacted as ORGANIZATION,
+   * « Thu » as PLACE. They sit in the `Date:` header of every e-mail, at the start of the
+   * line and capitalized — exactly the shape a NER reads as a proper noun. The model was
+   * receiving « Ash, 02 Aug 2026 », in a request about « the week's e-mails ».
    */
   it("écarte les jours et les abréviations de mois, FR et EN", () => {
     for (const v of ["Sun", "Thu", "Fri", "Sat", "Wed", "Mon", "dim", "jeu", "ven",
@@ -20,28 +20,28 @@ describe("jours et mois — jamais une entité à eux seuls", () => {
   });
 
   it("⚠️ n'écarte PAS les mots de date qui doublent un prénom", () => {
-    // La discipline d'allow-list déjà pinnée par `aiKinds.test.ts` : quelqu'un s'appelle
-    // Avril, June ou Mars, et l'écarter le laisserait en clair pour toujours. « mar » est
-    // dehors pour la même raison (mars/March).
+    // The allow-list discipline already pinned by `aiKinds.test.ts`: someone is named
+    // Avril, June or Mars, and dropping it would leave it in clear forever. « mar » is
+    // excluded for the same reason (mars/March).
     for (const v of ["mars", "avril", "mai", "march", "april", "may", "june", "august", "mar"])
       expect(isGenericTerm(v), v).toBe(false);
   });
 
   it("ne touche pas à un nom qui COMMENCE par un mot de calendrier", () => {
-    // Valeur ENTIÈRE seulement — sinon une vraie société disparaîtrait du filet.
+    // WHOLE value only — otherwise a real company would slip through the net.
     expect(isGenericTerm("Sun Microsystems")).toBe(false);
     expect(isGenericTerm("Friday Beers SAS")).toBe(false);
   });
 });
 
 /**
- * Journal du 15/08 — la doc de l'outil `execute-sql` (PostHog) partait REDACTED au
- * modèle : « ##### 1. System Data » lu comme un nom fabriquait les alias System/system, et
- * « entity » devenait un patronyme. `applyVault` réécrivait ensuite CHAQUE occurrence dans
- * la conversation, résultats d'outils compris — le modèle lisait une doc décrivant des
- * tables `ghislain.*` et écrivait du SQL contre elles. Même famille que « data »→« lucas »
- * et « UTC »→« HAL » déjà traités : le bloc couvrait data/schema/query, pas les deux mots
- * qui STRUCTURENT ces docs.
+ * 15/08 log — the `execute-sql` (PostHog) tool's doc was leaving REDACTED to the
+ * model: « ##### 1. System Data » read as a name manufactured the System/system aliases, and
+ * « entity » became a surname. `applyVault` then rewrote EVERY occurrence in
+ * the conversation, tool results included — the model was reading a doc describing
+ * `ghislain.*` tables and writing SQL against them. Same family as « data »→« lucas »
+ * and « UTC »→« HAL » already handled: the block covered data/schema/query, not the two words
+ * that STRUCTURE these docs.
  */
 describe("vocabulaire d'outil — les mots qui structurent une doc ne sont jamais une PII", () => {
   it("les mots exacts du journal", () => {

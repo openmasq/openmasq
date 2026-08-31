@@ -1,10 +1,10 @@
 import { app } from "electron";
 
 /**
- * « L'app est en train de se fermer » — l'état que tout rapporteur de mort d'un process
- * enfant doit consulter : la fermeture TUE les workers (NER, embed, fs, broker), et sans
- * cette porte chaque quit produirait quatre faux rapports de crash. UNE maison (règle 9) ;
- * le listener s'installe à l'import, avant tout fork.
+ * "The app is quitting" — the state every child-process death reporter
+ * must consult: shutdown KILLS the workers (NER, embed, fs, broker), and without
+ * this gate every quit would produce four false crash reports. ONE home (rule 9);
+ * the listener installs at import, before any fork.
  */
 let quitting = false;
 app.on("before-quit", () => {

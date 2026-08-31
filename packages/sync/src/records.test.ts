@@ -239,11 +239,11 @@ describe("createRecordSync — two devices", () => {
 });
 
 /**
- * Le COUPE-CIRCUIT du déchiffrement (`dekFor`). Une phrase qui n'ouvre pas l'enveloppe ne
- * l'ouvrira pas davantage au coup suivant : sans arrêt, chaque cycle re-tentait et
- * re-signalait sans rien faire avancer (24 rapports en quelques heures pour deux appareils,
- * 14/08, portée `@integrations`). Ces cas tiennent les trois moitiés qui comptent : on ne
- * réessaie plus, on ne signale qu'une fois, et une phrase corrigée rouvre la porte.
+ * The decryption CIRCUIT-BREAKER (`dekFor`). A passphrase that doesn't open the envelope won't
+ * open it any better on the next attempt: without a stop, every cycle retried and
+ * re-reported without moving anything forward (24 reports in a few hours for two devices,
+ * 14/08, `@integrations` scope). These cases hold the three halves that matter: we no longer
+ * retry, we report only once, and a corrected passphrase reopens the door.
  */
 describe("createRecordSync — une portée qui ne s'ouvre pas est scellée, pas martelée", () => {
   it("signale UNE fois et cesse d'appeler le serveur, quel que soit le nombre d'essais", async () => {
@@ -269,8 +269,8 @@ describe("createRecordSync — une portée qui ne s'ouvre pas est scellée, pas 
     for (let i = 0; i < 5; i++) await wrong.pull("conv-1", 0);
     await wrong.push("conv-1", [rec({ recordId: "r2" })]);
 
-    expect(errors).toEqual(["dekFor(conv-1)"]); // une fois, pas six
-    expect(keyReads).toBe(1); // et le serveur n'est plus sollicité pour rien
+    expect(errors).toEqual(["dekFor(conv-1)"]); // once, not six
+    expect(keyReads).toBe(1); // and the server is no longer hit for nothing
   });
 
   it("le sceau est PAR PORTÉE — une autre conversation reste tentée", async () => {
@@ -300,8 +300,8 @@ describe("createRecordSync — une portée qui ne s'ouvre pas est scellée, pas 
     const device = createRecordSync({ transport, getPassphrase: () => pass });
     expect((await device.pull("conv-1", 0)).records).toEqual([]);
 
-    pass = "right"; // la phrase est corrigée…
-    expect((await device.pull("conv-1", 0)).records).toEqual([]); // …mais la portée est scellée
+    pass = "right"; // the passphrase is fixed…
+    expect((await device.pull("conv-1", 0)).records).toEqual([]); // …but the scope is sealed
     device.resetKeys();
     expect((await device.pull("conv-1", 0)).records).toHaveLength(1);
   });

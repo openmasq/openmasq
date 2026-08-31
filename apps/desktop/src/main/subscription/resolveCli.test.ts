@@ -1,5 +1,5 @@
-// Le cas qui justifie ce fichier : l'app lancée depuis le Finder n'a PAS le PATH du
-// shell, donc une détection qui s'y fie marche en dev et échoue chez l'utilisateur.
+// The case that justifies this file: the app launched from the Finder does NOT have the
+// shell's PATH, so a detection that relies on it works in dev and fails for the user.
 import { describe, expect, it } from "vitest";
 import { candidatePaths, resolveCli } from "./resolveCli";
 

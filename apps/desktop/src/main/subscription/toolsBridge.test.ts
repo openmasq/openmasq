@@ -50,7 +50,7 @@ describe("toolsBridge — la frontière du pont (règle 7)", () => {
     }).then(() => (answered = true), () => {});
     const call = await bridge.nextCall();
     expect(call).toEqual({ name: "recherche", arguments: { q: "valeur-redacted" } });
-    expect(answered).toBe(false); // parqué : le tour tue la CLI, close() détruira le socket
+    expect(answered).toBe(false); // parked: the turn kills the CLI, close() will destroy the socket
   });
 
   it("un outil HORS catalogue est refusé en erreur JSON-RPC, jamais capturé", async () => {
@@ -63,7 +63,7 @@ describe("toolsBridge — la frontière du pont (règle 7)", () => {
     });
     const body = await r.json();
     expect(body.error.message).toContain("Bash");
-    // nextCall ne doit PAS avoir résolu sur ce refus.
+    // nextCall must NOT have resolved on this refusal.
     const raced = await Promise.race([bridge.nextCall(), Promise.resolve("rien")]);
     expect(raced).toBe("rien");
   });

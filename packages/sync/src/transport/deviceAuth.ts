@@ -4,12 +4,12 @@
  * TOFU secret exists (capability signed, id-spoof-proof), else the bare id.
  * One home (rule 9) for the mint cache AND its cool-down.
  *
- * ⚠️ Le cache du jeton a DEUX faces : le succès ET l'échec. Un backend qui ne
- * peut pas signer (secret absent ⇒ 503 fermé volontairement) était redemandé à
- * chaque appel — 44 erreurs serveur en deux jours. Le repli sur l'identifiant
- * nu garde la synchro vivante, donc la frappe attend (30 s → 15 min ; un
- * 401/403 part directement au palier haut : un refus ne se répare pas en
- * réessayant). Épinglé par `http.test.ts`.
+ * ⚠️ The token cache has TWO sides: success AND failure. A backend that can't
+ * sign (secret absent ⇒ deliberately closed 503) was re-requested on
+ * every call — 44 server errors in two days. Falling back to the bare
+ * id keeps sync alive, so minting waits (30 s → 15 min; a
+ * 401/403 goes straight to the highest tier: a refusal doesn't fix itself by
+ * retrying). Pinned by `http.test.ts`.
  */
 import { brandHeader } from "@openmasq/branding";
 
@@ -22,8 +22,8 @@ const mintBackoffS = (failures: number): number =>
 
 export interface DeviceAuthOptions {
   getDeviceId?: () => string | null;
-  /** ⚠️ Peut rendre une PROMESSE : sur le bureau le secret vit dans le magasin
-   *  chiffré du processus principal, pas en mémoire du renderer. */
+  /** ⚠️ Can return a PROMISE: on desktop the secret lives in the main process's
+   *  encrypted store, not in the renderer's memory. */
   getDeviceSecret?: () => string | null | Promise<string | null>;
   /** POST the mint call. Throws with a `status` on an HTTP failure (the
    *  transport's `call` does) — a 401/403 is a refusal, the rest a hiccup. */

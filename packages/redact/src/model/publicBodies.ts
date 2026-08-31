@@ -69,14 +69,14 @@ const MAX_TAIL_WORDS = 5;
  */
 export function isPublicBodyCompound(value: string): boolean {
   const v = value.trim().replace(/\s+/g, " ");
-  if (!v || /\d/.test(v)) return false; // un chiffre = une donnée, jamais un nom d'office
+  if (!v || /\d/.test(v)) return false; // a digit is data, never an office name
   const lower = v.toLowerCase();
   const body = SORTED.find(
     (b) => lower.startsWith(b) && (lower.length === b.length || /[\s'’-]/.test(lower[b.length])),
   );
   if (!body) return false;
   const tail = v.slice(body.length).trim();
-  if (!tail) return false; // le sigle nu relève déjà de la liste plate
+  if (!tail) return false; // the bare acronym is already covered by the flat list
   const words = tail.split(/[\s'’-]+/).filter(Boolean);
   return words.length <= MAX_TAIL_WORDS;
 }

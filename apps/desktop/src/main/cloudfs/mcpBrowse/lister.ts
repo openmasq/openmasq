@@ -1,51 +1,51 @@
 /**
- * DÉCOUVRIR l'outil de listage d'un serveur distant — la moitié qui n'invente rien.
+ * DISCOVER a remote server's listing tool — the half that invents nothing.
  *
- * Le NOM de l'outil est en allow-list : un serveur n'obtient pas ce chemin parce qu'il se
- * dit stockage, mais parce qu'il expose un outil dont le nom y figure. Tout le reste de ce
- * qu'il expose — écritures comprises — est inatteignable d'ici. L'argument de dossier est
- * lui aussi en allow-list, et il est choisi DANS le schéma déclaré, jamais deviné.
+ * The tool's NAME is allow-listed: a server doesn't get this path because it claims
+ * to be storage, but because it exposes a tool whose name is on the list. Everything
+ * else it exposes — writes included — is unreachable from here. The folder argument is
+ * also allow-listed, and it is chosen FROM the declared schema, never guessed.
  */
 import type { McpConnection, McpTool } from "@openmasq/mcp";
 
-/** `dropbox__ListFolder` → `listfolder` : le préfixe d'instance et la casse ne sont pas
- *  des informations, seul le nom de l'outil en est une. */
+/** `dropbox__ListFolder` → `listfolder`: the instance prefix and the case are not
+ *  information, only the tool's name is. */
 const norm = (name: string): string => {
   const bare = name.includes("__") ? name.slice(name.lastIndexOf("__") + 2) : name;
   return bare.toLowerCase().replace(/[^a-z]/g, "");
 };
 
-/** ALLOW-LIST — lister le contenu d'un dossier, et rien d'autre. */
+/** ALLOW-LIST — list a folder's contents, and nothing else. */
 const LIST_TOOLS = new Set(["listfolder", "listfolders", "listfiles", "listdirectory", "listdir"]);
 
-/** ALLOW-LIST — l'argument qui désigne le dossier à lister. */
+/** ALLOW-LIST — the argument that names the folder to list. */
 const FOLDER_ARGS = new Set(["path", "folder", "folderpath", "folderid", "directory", "dir"]);
 
-/** ALLOW-LIST — l'argument de pagination, quand l'outil en déclare un. */
+/** ALLOW-LIST — the pagination argument, when the tool declares one. */
 const CURSOR_ARGS = new Set(["cursor", "pagetoken", "nexttoken", "continuationtoken"]);
 
-/** Ce nom d'outil est-il un listage de dossier ? La question que `cloudSources()` pose à la
- *  table de ROUTAGE déjà en mémoire, pour n'annoncer navigable qu'un compte qui l'est —
- *  sans un aller-retour réseau par ligne. */
+/** Is this tool name a folder listing? The question `cloudSources()` asks the
+ *  ROUTING table already in memory, so it only announces as browsable an account that
+ *  actually is — without a network round trip per row. */
 export const isFolderListTool = (name: string): boolean => LIST_TOOLS.has(norm(name));
 
 export interface FolderLister {
-  /** Le nom RÉEL de l'outil sur le serveur (non préfixé). */
+  /** The tool's REAL name on the server (unprefixed). */
   tool: string;
-  /** L'argument qui porte le dossier. */
+  /** The argument carrying the folder. */
   folderArg: string;
-  /** L'argument de pagination, si l'outil en déclare un. */
+  /** The pagination argument, if the tool declares one. */
   cursorArg?: string;
 }
 
 type Schema = { properties?: Record<string, unknown>; required?: unknown };
 
 /**
- * L'outil de listage d'un serveur, ou `null` s'il n'en expose aucun d'utilisable.
+ * A server's listing tool, or `null` if it exposes none that's usable.
  *
- * « Utilisable » exclut un outil qui exige un argument que nous ne savons pas remplir :
- * l'appeler à moitié rendrait une erreur du serveur là où « ce compte ne se parcourt pas »
- * est la réponse honnête.
+ * "Usable" excludes a tool requiring an argument we don't know how to fill:
+ * calling it halfway would produce a server error where "this account can't be browsed"
+ * is the honest answer.
  */
 export function findFolderLister(tools: McpTool[]): FolderLister | null {
   for (const t of tools) {
@@ -65,8 +65,8 @@ export function findFolderLister(tools: McpTool[]): FolderLister | null {
 
 const listerCache = new WeakMap<McpConnection, FolderLister | null>();
 
-/** L'outil de listage d'une connexion, mémorisé — une reconnexion crée un autre objet,
- *  donc le cache se vide de lui-même quand la connexion change. */
+/** A connection's listing tool, memoized — a reconnect creates a different object,
+ *  so the cache empties itself when the connection changes. */
 export async function listerFor(conn: McpConnection): Promise<FolderLister | null> {
   const hit = listerCache.get(conn);
   if (hit !== undefined) return hit;

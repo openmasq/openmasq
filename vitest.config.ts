@@ -21,24 +21,24 @@ const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 const unit = defineConfig({
   resolve: {
     alias: [
-      // ⚠️ `electron` ne se résout JAMAIS vers le vrai paquet dans la suite. Son
-      // `index.js` ne rend pas une API mais le CHEMIN du binaire, et si `path.txt` manque
-      // il TÉLÉCHARGE 295 Mo à l'import. En local le binaire est là ; sur un runner il ne
-      // l'est pas, et le premier fichier de test qui touche `electron` paie ce
-      // téléchargement AU MILIEU de la suite — donc échoue si le réseau tousse, pendant
-      // qu'un autre fichier important le même module passe deux minutes plus tard. Une
-      // COURSE, arbitrée par la chance, qu'aucun `pnpm test` local ne peut montrer.
-      // Le bouchon rend le local et la CI identiques, et sans réseau.
-      // `vi.mock("electron", …)` (21 fichiers) gagne sur cet alias : un test qui a besoin
-      // d'un comportement le déclare, comme avant.
+      // ⚠️ `electron` is NEVER resolved to the real package in the suite. Its
+      // `index.js` doesn't render an API but the binary's PATH, and if `path.txt`
+      // is missing it DOWNLOADS 295 MB on import. Locally the binary is there; on a
+      // runner it isn't, and the first test file that touches `electron` pays for
+      // that download IN THE MIDDLE of the suite — so it fails if the network
+      // hiccups, while another file importing the same module passes two minutes
+      // later. A RACE, arbitrated by luck, that no local `pnpm test` can show.
+      // The stub makes local and CI identical, and network-free.
+      // `vi.mock("electron", …)` (21 files) wins over this alias: a test that needs
+      // a behavior declares it, as before.
       { find: /^electron$/, replacement: here("./scripts/vitest.electron-stub.ts") },
-      // ⚠️ Compagnon OBLIGÉ de l'alias ci-dessus. `@sentry/electron` importe `electron`
-      // EN INTERNE ; externalisé (défaut), cet import passe par le résolveur de NODE qui
-      // ignore les alias → le vrai paquet, module-CHAÎNE, « does not provide an export
-      // named 'app' ». Et l'INLINER ne va pas mieux : son init module-niveau lit
-      // `process.versions.electron` (absent hors Electron) et jette. Donc le même remède
-      // que pour electron : un bouchon, et un test qui a besoin d'un comportement le
-      // déclare via `vi.mock`. Symptôme du prochain paquet dans ce cas : ce SyntaxError.
+      // ⚠️ Mandatory companion of the alias above. `@sentry/electron` imports `electron`
+      // INTERNALLY; externalized (default), this import goes through NODE's resolver,
+      // which ignores aliases → the real package, CommonJS module, "does not provide
+      // an export named 'app'". And the INLINER is no better: its module-level init
+      // reads `process.versions.electron` (absent outside Electron) and throws. So the
+      // same remedy as for electron: a stub, and a test that needs a behavior
+      // declares it via `vi.mock`. Symptom of the next package in this situation: this SyntaxError.
       { find: /^@sentry\/electron\/(main|renderer)$/, replacement: here("./scripts/vitest.sentry-electron-stub.ts") },
       ...workspaceSrcAlias,
     ],
@@ -46,32 +46,32 @@ const unit = defineConfig({
   test: {
     name: "unit",
     environment: "node",
-    // WORKERS, pas des processus. Mesuré sur la suite entière (475 fichiers) : 370 s en
-    // `forks` (le défaut) contre ~85 s en `threads` — l'essentiel du gain vient de la
-    // COLLECTE, refaite par fichier, qu'un thread paie une fois par worker au lieu d'une
-    // fois par processus. ⚠️ L'ISOLATION PAR FICHIER EST CONSERVÉE, et ce n'est plus
-    // « aucun gain » : re-mesuré le 15/08/2026 (686 fichiers), `--no-isolate` divise par
-    // 2,7 le chemin chaud (`related` sur un fichier moteur : 31 s → 11,5 s)… et rend
-    // ~20 fichiers rouges SELON L'ORDRE des fichiers (état global partagé + cache
-    // d'importeurs sous `vi.mock` : trois runs mélangés donnent trois listes d'échecs
-    // différentes, ui/desktop/backend/gateway confondus). Un faux rouge qui accuse
-    // l'ordre et pas le code est la classe de signal que ce dépôt a déjà payée deux
-    // fois — l'isolation reste. L'exception VÉRIFIÉE : `pnpm test:redact`
-    // (`--no-isolate` scopé à packages/redact, mock-users exclus — voir
-    // NO_ISOLATE_UNSAFE_TESTS), stable sur 6 runs mélangés, 13 s → 4 s.
-    // NB vitest 3.2 : `isolate`/`pool` par PROJET sont ignorés (racine/CLI seulement) —
-    // un projet « pur » non isolé à côté d'un projet « app » isolé ne marche pas.
+    // WORKERS, not processes. Measured on the whole suite (475 files): 370 s in
+    // `forks` (the default) versus ~85 s in `threads` — most of the gain comes from
+    // COLLECTION, redone per file, which a thread pays once per worker instead of
+    // once per process. ⚠️ PER-FILE ISOLATION IS KEPT, and this is no longer
+    // "no gain": re-measured on 15/08/2026 (686 files), `--no-isolate` divides
+    // the hot path by 2.7 (`related` on an engine file: 31 s → 11.5 s)… and turns
+    // ~20 files red DEPENDING ON FILE ORDER (shared global state + importer
+    // cache under `vi.mock`: three shuffled runs give three different failure
+    // lists, ui/desktop/backend/gateway all mixed together). A false red that blames
+    // the order rather than the code is the class of signal this repo has already
+    // paid for twice — isolation stays. The VERIFIED exception: `pnpm test:redact`
+    // (`--no-isolate` scoped to packages/redact, mock-users excluded — see
+    // NO_ISOLATE_UNSAFE_TESTS), stable across 6 shuffled runs, 13 s → 4 s.
+    // NB vitest 3.2: `isolate`/`pool` per PROJECT are ignored (root/CLI only) —
+    // a non-isolated "pure" project next to an isolated "app" project doesn't work.
     pool: "threads",
-    // Le défaut de 5 s était sous la durée RÉELLE des tests de documents lourds
-    // (`releveRepartition`, `acteCautionnement`, `documents`) : ils tiennent à vide et
-    // expirent sous charge, ce qui produisait des rouges qui n'accusaient aucun bug. Un
-    // timeout ne coûte rien quand rien n'expire — il ne borne que l'échec.
+    // The 5 s default was below the REAL duration of the heavy-document tests
+    // (`releveRepartition`, `acteCautionnement`, `documents`): they hold up when idle and
+    // time out under load, which produced reds that blamed no actual bug. A
+    // timeout costs nothing when nothing times out — it only bounds the failure.
     testTimeout: 20_000,
-    // Les bancs corpus vivent hors de ce dépôt (voir CORPUS_TESTS) — un banc
-    // de rappel n'est pas un test unitaire, et son timeout sous charge non plus.
-    // VITEST_NO_ISOLATE : posé par `pnpm test:redact` SEULEMENT — la CLI `--exclude`
-    // est inerte en mode projects (l'exclude du projet gagne), donc la voie rapide
-    // passe par la config. Jamais posé à la main sur `pnpm test`.
+    // The corpus benches live outside this repo (see CORPUS_TESTS) — a recall
+    // bench is not a unit test, and neither is its timeout under load.
+    // VITEST_NO_ISOLATE: set by `pnpm test:redact` ONLY — the CLI `--exclude`
+    // is inert in projects mode (the project's exclude wins), so the fast path
+    // goes through the config. Never set by hand on `pnpm test`.
     exclude: [
       "**/node_modules/**",
       ...CORPUS_TESTS,
@@ -100,22 +100,22 @@ const unit = defineConfig({
       // boot script. One glob: this used to be FIFTEEN hand-listed directories, and the
       // trap was documented twice in the CLAUDE.md tree instead of being fixed.
       "apps/desktop/src/**/*.test.{ts,tsx}",
-      // Les scripts de BUILD du desktop. Ils ne s'expédient pas, mais ils décident de ce
-      // qui s'expédie : le tri par arche d'`archPrune.cjs` est la table qui dit quel
-      // moteur ONNX part dans quel .app, et se tromper là ne se voit qu'à l'usage.
+      // The desktop BUILD scripts. They don't ship, but they decide what
+      // ships: `archPrune.cjs`'s per-arch sort is the table that says which
+      // ONNX engine goes into which .app, and getting it wrong there only shows up in use.
       "apps/desktop/scripts/**/*.test.{ts,tsx}",
       // MCP broker OAuth primitives (PKCE, redirect_uri, token store).
       "apps/api/src/**/*.test.{ts,tsx}",
       // Scaleway redaction function: GPT-OSS detection (mocked fetch) + handler.
       // Scaleway analytics-fn: supertest e2e over the Express app (relay + release-notes).
-      // La console d'administration : sa logique de vue PURE (le pivot de l'Overview —
-      // ce que les filtres calculent réellement à partir du cube que le backend renvoie),
-      // et `src/` — les routes de la SPA vivent là depuis la bascule Vite, un test posé
-      // dans `src/routes/` ne serait sinon JAMAIS exécuté (l'avertissement ci-dessus).
-      // `apps/web/e2e` est du Playwright et s'appelle `*.e2e.ts`, donc ce glob ne peut pas
-      // l'attraper ; `.next/` non plus, il n'y a pas de `*.test.ts` dedans.
-      // Le site vitrine (`apps/landing`) a quitté ce monorepo (dépôt séparé,
-      // 18/08) — sa suite tourne là-bas désormais, plus ici.
+      // The admin console: its PURE view logic (the Overview's pivot —
+      // what the filters actually compute from the cube the backend returns),
+      // and `src/` — the SPA's routes have lived there since the Vite switch, a test placed
+      // in `src/routes/` would otherwise NEVER run (the warning above).
+      // `apps/web/e2e` is Playwright and is named `*.e2e.ts`, so this glob cannot
+      // catch it; nor `.next/`, there's no `*.test.ts` in there.
+      // The showcase site (`apps/landing`) has left this monorepo (separate repo,
+      // 18/08) — its suite now runs over there, not here.
       // ⚠️ `apps/backend` is the ONE tree that may NOT be globbed: `features/*/unitTest/**`
       // holds JEST supertest STEP HELPERS (exported functions, no `it`/`describe`), and
       // vitest picks them up and fails. Hence three narrow entries — the inference proxy
@@ -123,31 +123,31 @@ const unit = defineConfig({
       // guard between the Terraform/Stripe catalogue and the TS the app runs), the
       // feedback relay (payload allow-list + HTML escaping of untrusted free text), and
       // the Stripe return-URL resolver. Widening one means moving those helpers first.
-      // Un seul `*` : les fichiers POSÉS dans `subscriptions/` (le test de parité, le
-      // calcul sièges↔prix), jamais `subscriptions/unitTest/**` et ses helpers jest.
-      // Idem, un seul `*` : l'OCTROI d'abonnement (`features/admin/`) — les règles
-      // d'écritures d'argent accordées sans paiement (quel palier, quelle période, ce que
-      // révoquer remet à zéro). Pas de helpers jest dans ce dossier aujourd'hui ; le `*`
-      // unique le garde vrai si l'on en ajoute.
-      // Un seul `*` : la projection rôles→drapeaux (`flags.test.ts` — ce que l'extérieur
-      // a le droit de savoir d'un compte), jamais `users/unitTest/**` et ses helpers jest.
-      // La ROUTE PUBLIQUE (demandes du site) : ses gardes sont ses tests.
-      // Idem, un seul `*` : le prédicat de la barrière de direction sync (quel
-      // device lit/écrit quel scope — coffres ET records), jamais `sync/unitTest/**`.
-      // La règle de confiance du webhook Stripe (résolution du sujet de
-      // facturation — subject.test.ts) : logique pure à deps injectées, pas de
-      // helpers jest dans ce dossier, le glob est sûr.
-      // Un cran plus bas, `lib/email/` : l'AIGUILLAGE des audiences Resend. C'est lui qui
-      // décide à qui part une annonce de version — et son absence de repli est ce qui
-      // empêche une variable d'environnement oubliée de renvoyer les inscrits du site
-      // dans la diffusion. Pas de helpers jest ici, le glob est sûr.
-      // Les GARDES (`routes/middlewares/`) : `requireSuperAdmin` décide qui peut créditer
-      // un compte sans paiement — la seule autorisation du dépôt qui donne de l'argent.
-      // L'outillage de la RACINE. Un seul `*` : les fichiers posés dans `scripts/`, jamais
-      // les helpers vitest qui l'entourent. Ce qui s'y teste décide de ce qu'une session
-      // peut lire et écrire (`claude-sandbox.sh` — le profil seatbelt de `claude:sandbox`),
-      // et une règle de bac à sable fausse se lit comme une panne de l'outil, pas comme une
-      // règle : c'est exactement ce qu'un test doit rattraper à notre place.
+      // A single `*`: the files PLACED in `subscriptions/` (the parity test, the
+      // seats↔price calc), never `subscriptions/unitTest/**` and its jest helpers.
+      // Same, a single `*`: the subscription GRANT (`features/admin/`) — the rules
+      // for money writes granted without payment (which tier, which period, what
+      // revoking resets). No jest helpers in this folder today; the single `*`
+      // keeps this true if any are added.
+      // A single `*`: the roles→flags projection (`flags.test.ts` — what the outside
+      // is allowed to know about an account), never `users/unitTest/**` and its jest helpers.
+      // The PUBLIC ROUTE (site requests): its guards are its tests.
+      // Same, a single `*`: the sync direction-barrier predicate (which
+      // device reads/writes which scope — vaults AND records), never `sync/unitTest/**`.
+      // The Stripe webhook's trust rule (billing subject
+      // resolution — subject.test.ts): pure logic with injected deps, no
+      // jest helpers in this folder, the glob is safe.
+      // One notch down, `lib/email/`: the Resend audience ROUTING. It's what
+      // decides who a version announcement goes to — and its lack of a fallback is what
+      // prevents a forgotten environment variable from sending the site's subscribers
+      // into the broadcast. No jest helpers here, the glob is safe.
+      // The GUARDS (`routes/middlewares/`): `requireSuperAdmin` decides who can credit
+      // an account without payment — the repo's only authorization that gives out money.
+      // The ROOT tooling. A single `*`: the files placed in `scripts/`, never
+      // the vitest helpers around it. What's tested there decides what a session
+      // can read and write (`claude-sandbox.sh` — `claude:sandbox`'s seatbelt profile),
+      // and a wrong sandbox rule reads as a tool failure, not as a
+      // rule bug — exactly what a test must catch in our place.
       "scripts/*.test.{ts,tsx}",
     ],
     passWithNoTests: false,

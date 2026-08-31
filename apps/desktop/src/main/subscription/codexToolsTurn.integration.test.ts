@@ -1,12 +1,12 @@
-// Test d'INTÉGRATION : la vraie CLI Codex, le vrai abonnement ChatGPT, de vrais jetons.
-// Gardé derrière le même drapeau que `codexEngine.integration.test.ts` :
+// INTEGRATION test: the real Codex CLI, the real ChatGPT subscription, real tokens.
+// Kept behind the same flag as `codexEngine.integration.test.ts`:
 //
 //   OPENMASQ_TEST_SUBSCRIPTION_CODEX=1 npx vitest run apps/desktop/src/main/subscription/codexToolsTurn.integration.test.ts
 //
-// Ce qu'il prouve, et qu'aucun test pur ne peut prouver : l'override `-c mcp_servers.…`
-// SURVIT à `--ignore-user-config` (le pont est vu), `default_tools_approval_mode="approve"`
-// laisse l'appel partir dans un `exec` non interactif, et l'appel est CAPTURÉ par le pont
-// au lieu d'être exécuté par la CLI.
+// What it proves, and what no pure test can prove: the `-c mcp_servers.…` override
+// SURVIVES `--ignore-user-config` (the bridge is seen), `default_tools_approval_mode="approve"`
+// lets the call go out in a non-interactive `exec`, and the call is CAPTURED by the bridge
+// instead of being executed by the CLI.
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -31,12 +31,12 @@ describe.skipIf(!enabled || !binPath)("tour outillé codex — vraie CLI (consom
     const r = await completeSubscriptionTools(
       { cli: "codex", label: "Codex", binPath: binPath!, cwd: dir },
       {
-        // ⚠️ L'outil du test doit être une chose que le modèle NE PEUT PAS faire autrement.
-        // Mesuré : sur une question que le web sait résoudre (la météo) il prend
-        // `web_search` — actif côté serveur, cf. `codexEngine.ts` — et sur « mes fichiers »
-        // il cherche le disque. Le Dropbox de l'utilisateur, lui, n'existe que derrière
-        // le pont : c'est ce qui fait de ce test une mesure du BRANCHEMENT, pas de l'humeur
-        // du modèle.
+        // ⚠️ The test's tool must be something the model CANNOT do any other way.
+        // Measured: on a question the web can answer (the weather) it picks
+        // `web_search` — active server-side, see `codexEngine.ts` — and on "my files"
+        // it searches the disk. The user's Dropbox, on the other hand, only exists behind
+        // the bridge: that's what makes this test a measure of the WIRING, not the mood
+        // of the model.
         messages: [
           {
             role: "system",

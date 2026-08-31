@@ -4,17 +4,17 @@ import { unredact } from "../../index";
 import type { Vault } from "../../types";
 
 /**
- * L'ANCRAGE PAR VILLE — une ville réelle reçoit UN lieu faux, partout.
+ * CITY ANCHORING — a real city gets ONE fake place, everywhere.
  *
- * ⚠️ RÉGRESSION mesurée par `bench/tokensVsFakes.md` (« le défaut le plus coûteux que ce
- * banc ait trouvé ») : la même ville écrite dans deux adresses distinctes recevait deux
- * lieux faux différents — « ces deux adresses sont-elles dans la même région ? » basculait
- * de oui à non, et la réponse restituée restait fausse (une dérivation n'est pas une clé de
- * coffre). Ces tests pinnent la cohérence sur les trois axes : entre deux blocs, entre deux
- * adresses en prose, et d'un ENVOI à l'autre via le coffre.
+ * ⚠️ REGRESSION measured by `bench/tokensVsFakes.md` (« the most costly defect this
+ * bench ever found »): the same city written in two distinct addresses used to get two
+ * different fake places — « are these two addresses in the same region? » flipped
+ * from yes to no, and the restored answer stayed wrong (a derivation is not a vault
+ * key). These tests pin coherence on all three axes: between two blocks, between two
+ * prose addresses, and from one SEND to the next via the vault.
  */
 
-/** La ville fausse servie pour une valeur réelle du coffre (fake → real inversé). */
+/** The fake city served for a real vault value (fake → real inverted). */
 function fakeCityFor(vault: Vault, realNeedle: string): string | undefined {
   const hit = Object.entries(vault).find(([, real]) => real.includes(realNeedle));
   return hit?.[0].match(/\d{5}\s+([\p{L}\s'’-]+?)(?:\s+CEDEX.*)?$/u)?.[1]?.trim() ?? hit?.[0];
@@ -30,8 +30,8 @@ describe("cohérence géo inter-blocs — la même ville, le même faux", () => 
       { vault },
     );
     expect(text).not.toMatch(/Bordeaux/i);
-    // TOUTES les occurrences fausses de la ville sont identiques : « même région ? »
-    // ne peut plus basculer.
+    // ALL fake occurrences of the city are identical: « same region? »
+    // can no longer flip.
     const cities = [...text.matchAll(/\d{5}\s+([\p{L}'’-]+)/gu)].map((m) => m[1].toLowerCase());
     expect(cities.length).toBeGreaterThanOrEqual(2);
     expect(new Set(cities).size).toBe(1);
@@ -52,8 +52,8 @@ describe("cohérence géo inter-blocs — la même ville, le même faux", () => 
 
   it("deux villes réelles DISTINCTES gardent deux faux DISTINCTS (réversibilité)", async () => {
     const vault: Vault = {};
-    // Une ville nue en prose relève du NER, pas du pipeline déterministe — stub injecté,
-    // comme le produit le fait (`detectLocal`).
+    // A bare city in prose is the NER's job, not the deterministic pipeline — stub injected,
+    // as the product does it (`detectLocal`).
     const { text } = await pseudonymize(
       "Né à Bordeaux, il vit à Toulouse. Le dossier mentionne Bordeaux puis Toulouse.",
       {
@@ -67,7 +67,7 @@ describe("cohérence géo inter-blocs — la même ville, le même faux", () => 
     const reals = Object.values(vault).map((v) => v.toLowerCase());
     expect(reals).toContain("bordeaux");
     expect(reals).toContain("toulouse");
-    // Chaque faux ne sert qu'UNE valeur réelle — l'anti-collision de l'ancre.
+    // Each fake serves only ONE real value — the anchor's anti-collision.
     const fakes = Object.keys(vault).map((f) => f.toLowerCase());
     expect(new Set(fakes).size).toBe(fakes.length);
     expect(text).not.toMatch(/bordeaux|toulouse/i);
@@ -81,7 +81,7 @@ describe("cohérence géo inter-blocs — la même ville, le même faux", () => 
     });
     const first = fakeCityFor(vault, "Bordeaux");
     expect(first).toBeDefined();
-    // Second envoi, MÊME coffre, une adresse NOUVELLE (valeur différente) dans la même ville.
+    // Second send, SAME vault, a NEW address (different value) in the same city.
     const { text } = await pseudonymize(
       "Livraison au 9 quai des Chartrons, 33000 Bordeaux.",
       { vault },

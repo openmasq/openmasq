@@ -3,10 +3,10 @@ import { gmailConnector } from "./gmailRead";
 import type { ConnectorToolCtx } from "../types";
 
 /**
- * La LECTURE Gmail — le trou rapporté en usage réel : « le connecteur me donne
- * l'expéditeur, l'objet et la date, mais pas le contenu ». Les listes doivent porter
- * l'[id] (sinon `get_message` n'a pas de cible), et `get_message` doit extraire le
- * corps TEXTE d'une charge MIME réelle (multipart, base64url, repli HTML).
+ * Gmail READING — the gap reported in real usage: "the connector gives me
+ * the sender, the subject and the date, but not the content". Lists must carry
+ * the [id] (otherwise `get_message` has no target), and `get_message` must extract the
+ * TEXT body from a real MIME payload (multipart, base64url, HTML fallback).
  */
 
 const tool = (name: string) => gmailConnector.tools.find((t) => t.name === name)!;
@@ -93,7 +93,7 @@ describe("gmail — les listes portent l'id, get_message lit le corps", () => {
       ["get_message", "list_recent", "search_messages", "send_email"].sort(),
     );
     expect(tool("get_message").scope).toBe("https://www.googleapis.com/auth/gmail.readonly");
-    // managed ≡ byo (30/07/2026) : la lecture est offerte en 1-clic aussi.
+    // managed ≡ byo (30/07/2026): reading is offered in 1-click mode too.
     expect(gmailConnector.scopes.managed).toContain("https://www.googleapis.com/auth/gmail.readonly");
   });
 });

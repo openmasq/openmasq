@@ -83,8 +83,8 @@ export {
 } from "./events";
 export { httpTransport, type HttpTransportOptions } from "./transport/http";
 export { orgHttpTransport } from "./transport/orgHttp";
-// ORG-SHARE channel — coffre + compétences partagés à l'org / une équipe /
-// une personne, E2E à l'audience, APPROBATION avant lecture (orgScope/).
+// ORG-SHARE channel — coffre + skills shared to the org / one team /
+// one person, E2E to the audience, APPROVAL before reading (orgScope/).
 export {
   createOrgScopeSync,
   audienceMembers,

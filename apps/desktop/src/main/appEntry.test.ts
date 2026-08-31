@@ -14,9 +14,9 @@ describe("helperEntryArgs", () => {
     expect(helperEntryArgs(true, `/Applications/${BRAND.name}.app/Contents/Resources/app.asar`)).toEqual([]);
   });
 
-  // Régression: `require.main.filename` vaut « electron » dans le main d'Electron.
-  // Spawné tel quel, l'enfant ouvrait un dialogue natif modal « Unable to find
-  // Electron app at <cwd>/electron » et ne se terminait jamais.
+  // Regression: `require.main.filename` equals « electron » in Electron's main.
+  // Spawned as-is, the child opened a native modal dialog « Unable to find
+  // Electron app at <cwd>/electron » and never terminated.
   it("refuse un chemin relatif au lieu de spawner un enfant bloqué sur un dialogue", () => {
     expect(() => helperEntryArgs(false, "electron")).toThrow(/non absolu/);
     expect(() => helperEntryArgs(false, ".")).toThrow(/non absolu/);

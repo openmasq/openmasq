@@ -54,10 +54,10 @@ describe("MCP tool metadata rides in CLEAR (overredaction regression)", () => {
   });
 
   /**
-   * 15/08 — MÊME panne, par les deux mots que le bloc de vocabulaire ne portait pas :
-   * « ##### 1. System Data » lu comme un nom fabriquait les alias System/system, et
-   * « entity » devenait un patronyme. Le modèle recevait alors une doc décrivant des
-   * tables `ghislain.*` et écrivait du SQL contre elles.
+   * 15/08 — SAME failure, from the two words the vocabulary block didn't carry:
+   * "##### 1. System Data" read as a name manufactured the System/system aliases, and
+   * "entity" became a surname. The model then received a doc describing
+   * `ghislain.*` tables and wrote SQL against them.
    */
   const NER: Detection[] = [
     { value: "System Data", category: "NAME" },
@@ -81,9 +81,9 @@ Each event, action, and entity has its own data schema.`;
   });
 
   it("le TOUR SUIVANT n'est plus contaminé — c'est là que le bug se voyait", async () => {
-    // Le coffre est ré-appliqué à chaque nouveau texte : c'est CE rejeu, et non une
-    // nouvelle détection, qui corrompait la doc (« NER local : 0 entités » au journal,
-    // juste avant 4 valeurs remplacées).
+    // The vault is re-applied on every new text: it's THIS replay, and not a
+    // new detection, that was corrupting the doc ("local NER: 0 entities" in the log,
+    // right before 4 values got replaced).
     const vault: Vault = {};
     await pseudonymize(DOC, { vault, detectLocal: async () => NER });
     const suivant = "SELECT column_name FROM system.information_schema.columns";
@@ -92,8 +92,8 @@ Each event, action, and entity has its own data schema.`;
 
   it("une VRAIE identité dans la même doc reste couverte — rien n'est affaibli", async () => {
     const vault: Vault = {};
-    // ⚠️ Séparateur TIRET, pas des parenthèses : `Label : Nom (valeur)` laisse la valeur
-    // entre parenthèses EN CLAIR — fuite distincte, signalée le 15/08, non corrigée ici.
+    // ⚠️ DASH separator, not parentheses: `Label : Nom (valeur)` leaves the value
+    // inside the parentheses IN CLEAR — a distinct leak, reported on 15/08, not fixed here.
     const avecPii = `${DOC}\n\nContact : Julien Sabourdin — julien@exemple.fr`;
     const { text } = await pseudonymize(avecPii, {
       vault,

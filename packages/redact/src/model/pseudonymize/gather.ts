@@ -78,7 +78,7 @@ export async function gatherCandidates(
   for (const p of detectPhones(input)) candidates.push({ value: p.value, category: "PHONE" });
   const labeled = detectLabeledFields(input);
   candidates.push(...labeled);
-  // La forme en prose du même champ (« mon pseudo est … ») — voir `contextFields.ts`.
+  // The prose form of the same field (« mon pseudo est … ») — see `contextFields.ts`.
   candidates.push(...detectSelfHandles(input));
   candidates.push(...detectAccountNumbers(input));
   candidates.push(...detectFiscalNumbers(input));
@@ -89,8 +89,8 @@ export async function gatherCandidates(
   // Team-roster lists (bare first names above role lines) — the NER's blind spot.
   candidates.push(...detectTeamRoster(input));
   candidates.push(...detectLabelBlocks(input));
-  // L'adresse, puis ce qui la précède sur la même ligne (« Résidence X, appartement Y ») :
-  // le complément s'ancre sur l'adresse, il ne détecte rien tout seul.
+  // The address, then what precedes it on the same line (« Résidence X, appartement Y »):
+  // the complement anchors on the address, it detects nothing on its own.
   const addresses = detectAddresses(input);
   candidates.push(...addresses, ...detectAddressComplements(input, addresses));
   candidates.push(...detectBirthDates(input));
@@ -134,20 +134,20 @@ export async function gatherCandidates(
   // the user's `forced` — claims the same entity, the span is no longer single-source
   // and the « à vérifier » flag comes off. Never the reverse: doubt is never ADDED
   // here, and the flag never gates redaction (fail closed).
-  // UN LIBELLÉ DE PERSONNE CONTRAINT LE TYPE — il ne se contente pas de déclencher.
+  // A PERSON LABEL CONSTRAINS THE TYPE — it doesn't just trigger.
   //
-  // Mesuré le 16/08/2026 avec le NER local DANS la boucle (ce que le constat parcours du
-  // 15/08 demandait et n'avait pas pu faire) : sur une ligne ISOLÉE,
-  // « Salarié: Gwendal Kervoal » sortait « Salarié: Aix-en-Provence » — le salarié devenu
-  // une VILLE — et « Soizic Quéméner » une ENTREPRISE. Des noms bretons dont le second
-  // terme est aussi une commune : le NER tranche sur la forme, le libellé savait.
-  // (Les trois lignes dans UN MÊME texte convergent déjà ; l'app voyait deux types parce
-  // que les lignes tombaient dans des morceaux différents.)
+  // Measured on 16/08/2026 with the local NER IN THE loop (what the 15/08 field
+  // observation asked for and couldn't do): on an ISOLATED line,
+  // « Salarié: Gwendal Kervoal » came out as « Salarié: Aix-en-Provence » — the employee turned
+  // into a CITY — and « Soizic Quéméner » a COMPANY. Breton names whose second
+  // word is also a commune: the NER decides on shape, the label knew.
+  // (The three lines in ONE SAME text already converge; the app was seeing two types because
+  // the lines fell into different chunks.)
   //
-  // ⚠️ BORNÉ AU GÉO, et c'est le garde-fou que le constat réclamait (« la contrainte ne
-  // doit pas écraser un vrai cas d'entreprise dans une colonne mal nommée ») : une
-  // personne n'est JAMAIS un lieu, donc ce sens-là se corrige sans rien risquer ; alors
-  // qu'un « Contact : Acme SARL » est une VRAIE organisation, et garde son type.
+  // ⚠️ BOUNDED TO GEO, and that's the guardrail the field observation called for ("the
+  // constraint must not overwrite a genuine company case in a badly named column"): a
+  // person is NEVER a place, so that direction of correction is risk-free; whereas
+  // a « Contact : Acme SARL » is a REAL organization, and keeps its type.
   const GEO_MISTYPE = new Set(["city", "location", "address", "postal_code"]);
   const namedByLabel = new Set(
     labeled.filter((d) => d.category === "NAME").map((d) => entityKey(d.value)),

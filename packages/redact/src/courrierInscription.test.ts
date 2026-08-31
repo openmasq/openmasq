@@ -33,8 +33,8 @@ const detectLocal = async () => [
 
 async function run() {
   const vault: Record<string, string> = {};
-  // `url` éteinte = le défaut produit : le sujet est l'hôte collé « candidat.francetravail.fr »
-  // laissé LISIBLE par le filtre de notoriété, pas le masquage des adresses.
+  // `url` off = the default produces this: the subject is the glued host « candidat.francetravail.fr »
+  // left READABLE by the notoriety filter, not by address masking.
   const out = await pseudonymize(text, { vault, detectLocal, disabledKinds: ["url"] });
   return { vault, text: out.text };
 }

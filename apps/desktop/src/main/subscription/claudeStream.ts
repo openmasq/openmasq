@@ -1,24 +1,24 @@
 /**
- * Le flux `claude -p --output-format stream-json --verbose --include-partial-messages`,
- * traduit en actions pour l'UI. Formes RELEVÉES sur la CLI 2.1.241, pas supposées.
+ * The `claude -p --output-format stream-json --verbose --include-partial-messages` stream,
+ * translated into actions for the UI. Shapes OBSERVED on CLI 2.1.241, not assumed.
  *
- * C'est du NDJSON dont les events intéressants encapsulent le SSE Anthropic :
+ * It's NDJSON whose interesting events wrap the Anthropic SSE:
  *
  *   {"type":"stream_event","event":{"type":"content_block_delta",
  *    "delta":{"type":"text_delta","text":"La"}}, "session_id":"…"}
  *
- * ⚠️ **Le piège du doublon.** À la fin d'un tour, la CLI émet AUSSI un event
- * `{"type":"assistant","message":{…content:[{type:"text",text:"<toute la réponse>"}]}}`
- * qui REPRODUIT intégralement ce que les `content_block_delta` viennent de streamer.
- * Un parser qui lit les deux affiche la réponse en double. On ne lit donc le texte que
- * des deltas, et `assistant` sert uniquement de FILET quand les partiels sont absents
- * (`--include-partial-messages` non passé, ou une version qui ne les émet pas) — d'où
- * le drapeau `sawDelta` porté par le lecteur.
+ * ⚠️ **The duplicate trap.** At the end of a turn, the CLI ALSO emits an event
+ * `{"type":"assistant","message":{…content:[{type:"text",text:"<the whole response>"}]}}`
+ * that fully REPRODUCES what the `content_block_delta`s just streamed.
+ * A parser that reads both displays the response twice. So we only read text from
+ * deltas, and `assistant` serves only as a SAFETY NET when partials are absent
+ * (`--include-partial-messages` not passed, or a version that doesn't emit them) — hence
+ * the `sawDelta` flag carried by the reader.
  */
 import type { StreamFinish, TokenUsage } from "@openmasq/llm";
 import { cliToolGateMessage, unexpectedCliTools } from "./toolGate";
 
-/** Ce que le moteur fait remonter. Tout le reste du flux est ignoré volontairement. */
+/** What the engine surfaces. Everything else in the stream is deliberately ignored. */
 export type ClaudeAction =
   | { kind: "session"; id: string }
   | { kind: "text"; delta: string }
@@ -32,10 +32,10 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * `input_tokens` d'Anthropic EXCLUT le cache; le contrat de `TokenUsage` veut
- * `inputTokens` = prompt COMPLET, cache inclus (voir le commentaire dans
- * `@openmasq/llm` types.ts). On ré-additionne ici, comme les autres adaptateurs —
- * sans quoi un cache qui marche se lirait comme une baisse de consommation.
+ * Anthropic's `input_tokens` EXCLUDES the cache; the `TokenUsage` contract wants
+ * `inputTokens` = the FULL prompt, cache included (see the comment in
+ * `@openmasq/llm` types.ts). We re-add it here, like the other adapters —
+ * without which a working cache would read as a drop in consumption.
  */
 export function normalizeUsage(raw: unknown): TokenUsage | undefined {
   if (!isRecord(raw)) return undefined;
@@ -51,7 +51,7 @@ export function normalizeUsage(raw: unknown): TokenUsage | undefined {
   return usage;
 }
 
-/** `stop_reason` Anthropic → le vocabulaire `StreamFinish` de `@openmasq/llm`. */
+/** Anthropic's `stop_reason` → the `StreamFinish` vocabulary of `@openmasq/llm`. */
 export function toFinish(stopReason: unknown): StreamFinish {
   if (stopReason === "end_turn" || stopReason === "stop_sequence") return "stop";
   if (stopReason === "max_tokens") return "length";
@@ -59,11 +59,11 @@ export function toFinish(stopReason: unknown): StreamFinish {
 }
 
 /**
- * Un event NDJSON déjà parsé → l'action à jouer, ou `null` si l'event ne concerne pas
- * l'UI (`system/init`, `system/status`, `message_start`, `content_block_stop`…).
+ * An already-parsed NDJSON event → the action to play, or `null` if the event doesn't
+ * concern the UI (`system/init`, `system/status`, `message_start`, `content_block_stop`…).
  *
- * `sawDelta` : le lecteur a-t-il DÉJÀ reçu au moins un `content_block_delta` ? S'il en
- * a reçu, l'event `assistant` final est un doublon et on le jette.
+ * `sawDelta`: has the reader ALREADY received at least one `content_block_delta`? If it
+ * has, the final `assistant` event is a duplicate and we discard it.
  */
 export function interpretClaudeEvent(event: unknown, sawDelta: boolean): ClaudeAction | null {
   if (!isRecord(event)) return null;
@@ -84,7 +84,7 @@ export function interpretClaudeEvent(event: unknown, sawDelta: boolean): ClaudeA
     return null;
   }
 
-  // Filet: le tour complet, utile SEULEMENT si aucun delta n'est passé.
+  // Safety net: the full turn, useful ONLY if no delta was passed.
   if (type === "assistant" && !sawDelta && isRecord(event.message)) {
     const content = event.message.content;
     if (!Array.isArray(content)) return null;
@@ -95,8 +95,8 @@ export function interpretClaudeEvent(event: unknown, sawDelta: boolean): ClaudeA
     return text ? { kind: "text", delta: text } : null;
   }
 
-  // Le quota d'ABONNEMENT (fenêtre 5 h / hebdo), pas une limite d'API. C'est le signal
-  // à montrer tel quel : « ton abonnement est épuisé jusqu'à <resetsAt> », pas « erreur ».
+  // The SUBSCRIPTION quota (5 h / weekly window), not an API limit. It's the signal
+  // to show as-is: "your subscription is exhausted until <resetsAt>", not "error".
   if (type === "rate_limit_event" && isRecord(event.rate_limit_info)) {
     const info = event.rate_limit_info;
     return {
@@ -107,10 +107,10 @@ export function interpretClaudeEvent(event: unknown, sawDelta: boolean): ClaudeA
     };
   }
 
-  // `system/init` ANNONCE le périmètre d'outils du tour, AVANT le premier appel — la
-  // seule fenêtre où un outil que l'app n'a pas offert peut être REFUSÉ plutôt que subi.
-  // Un intrus rend une ERREUR : `spawnStream` la remonte et tue la CLI, donc le tour
-  // échoue au lieu de courir avec une capacité de plus (règle 7, voir `toolGate.ts`).
+  // `system/init` ANNOUNCES the turn's tool scope, BEFORE the first call — the
+  // only window where a tool the app didn't offer can be REFUSED instead of suffered.
+  // An intruder produces an ERROR: `spawnStream` surfaces it and kills the CLI, so the turn
+  // fails instead of running with one more capability (rule 7, see `toolGate.ts`).
   if (type === "system" && event.subtype === "init") {
     const unexpected = unexpectedCliTools(event.tools);
     if (unexpected.length) return { kind: "error", message: cliToolGateMessage(unexpected) };
@@ -134,14 +134,14 @@ export function interpretClaudeEvent(event: unknown, sawDelta: boolean): ClaudeA
 }
 
 /**
- * Découpe un flux d'octets en lignes NDJSON complètes. `spawn` livre des CHUNKS, pas
- * des lignes : un event de plusieurs Ko (l'`init`, un `message_start`) arrive coupé en
- * deux, et un `JSON.parse` par chunk le perdrait silencieusement.
+ * Splits a byte stream into complete NDJSON lines. `spawn` delivers CHUNKS, not
+ * lines: an event of several KB (the `init`, a `message_start`) arrives split in
+ * two, and a `JSON.parse` per chunk would silently lose it.
  */
 export class NdjsonLineBuffer {
   private buffer = "";
 
-  /** Les lignes complètes contenues dans ce chunk; le reliquat est gardé. */
+  /** The complete lines contained in this chunk; the remainder is kept. */
   push(chunk: string): string[] {
     this.buffer += chunk;
     const parts = this.buffer.split("\n");
@@ -149,7 +149,7 @@ export class NdjsonLineBuffer {
     return parts.map((l) => l.trim()).filter(Boolean);
   }
 
-  /** Le reliquat final (une dernière ligne sans `\n`), à traiter à la fermeture. */
+  /** The final remainder (a last line without `\n`), to handle at close. */
   flush(): string[] {
     const rest = this.buffer.trim();
     this.buffer = "";

@@ -1,26 +1,26 @@
-// utilityProcess child : l'EXTRACTION de documents (pdf.js + OCR docTR/Tesseract + les
-// parseurs office) sort du processus main. Mesuré (13/08) : la boucle par page d'un scan
-// bloquait la boucle d'événements de main par rafales de ~1 s (rasterisation pdf.js,
-// post-processing DBNet/CTC, encodage PNG) — pendant un scan de 8 pages, TOUT l'IPC
-// (envoi, réglages, menus) ramait à ~1 100 ms le ping. Ici, main redevient un relais.
-// Même mécanique que `../ner/worker.ts` : fork via `utilityProcess` (pas de fuse
-// RunAsNode), env MINIMAL (les seuls chemins d'assets OCR — jamais un secret), et
-// **jamais un log du texte extrait** (c'est du VRAI PII) — les seuls messages sortants
-// sont la progression (des nombres) et le résultat structuré rendu au parent.
+// utilityProcess child: document EXTRACTION (pdf.js + docTR/Tesseract OCR + the
+// office parsers) runs out of the main process. Measured (13/08): a scan's per-page loop
+// blocked main's event loop in bursts of ~1 s (pdf.js rasterization,
+// DBNet/CTC post-processing, PNG encoding) — during an 8-page scan, ALL of IPC
+// (send, settings, menus) crawled at a ~1,100 ms ping. Here, main goes back to being a relay.
+// Same mechanism as `../ner/worker.ts`: fork via `utilityProcess` (no RunAsNode
+// fuse), MINIMAL env (only the OCR asset paths — never a secret), and
+// **never a log of the extracted text** (that's REAL PII) — the only outgoing messages
+// are progress (numbers) and the structured result handed back to the parent.
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import { extractText, extractBytes, type ExtractedFile } from "@openmasq/redact/documents";
 
-// ⚠️ pdf.js (legacy) sous utilityProcess : `process.versions.electron` étant posé, il ne
-// se croit PAS en Node et EXIGE `GlobalWorkerOptions.workerSrc` au lieu d'auto-charger
-// son fake worker (observé : « No "GlobalWorkerOptions.workerSrc" specified » sur chaque
-// getDocument — texte ET OCR, donc tout PDF ressortait « sans couche texte »). On pointe
-// le worker sur son propre fichier, résolu depuis node_modules, en URL `file://` (un
-// chemin nu est refusé par l'import() du process utilitaire — même leçon que
-// `@openmasq/ort`). Posé AVANT le premier message ; inoffensif là où le fake worker
-// se serait chargé seul.
+// ⚠️ pdf.js (legacy) under utilityProcess: since `process.versions.electron` is set, it does
+// NOT believe it's in Node and REQUIRES `GlobalWorkerOptions.workerSrc` instead of auto-loading
+// its fake worker (observed: "No 'GlobalWorkerOptions.workerSrc' specified" on every
+// getDocument — text AND OCR, so every PDF came back "without a text layer"). We point
+// the worker at its own file, resolved from node_modules, as a `file://` URL (a
+// bare path is refused by the utility process's import() — same lesson as
+// `@openmasq/ort`). Set BEFORE the first message; harmless where the fake worker
+// would have loaded on its own.
 const requireHere = createRequire(__filename);
-/** Pourquoi l'épinglage a échoué, s'il a échoué — voir `pdfjsReady`. */
+/** Why the pinning failed, if it failed — see `pdfjsReady`. */
 let pinFailure = "";
 async function pinPdfjsWorkerSrc(): Promise<void> {
   try {
@@ -35,11 +35,11 @@ async function pinPdfjsWorkerSrc(): Promise<void> {
       opts.workerSrc = pathToFileURL(requireHere.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")).href;
     }
   } catch (e) {
-    // ⚠️ NE PAS AVALER. Cet épinglage est la condition d'existence de toute lecture de PDF
-    // dans ce processus : sans lui, pdf.js part sur son chemin NAVIGATEUR et chaque
-    // document ressort « sans couche texte » — un échec total qui se présente comme un
-    // fichier illisible. Mesuré le 15/08/2026 : le catch muet a coûté une enquête entière
-    // pour une cause qui tenait en une ligne de journal.
+    // ⚠️ DO NOT SWALLOW. This pinning is the condition of existence for any PDF read
+    // in this process: without it, pdf.js takes its BROWSER path and every
+    // document comes back "without a text layer" — a total failure that presents as an
+    // unreadable file. Measured on 15/08/2026: the silent catch cost a whole
+    // investigation for a cause that fit in one log line.
     pinFailure = e instanceof Error ? e.message : String(e);
   }
   // eslint-disable-next-line no-console
@@ -67,21 +67,21 @@ parentPort.on("message", (e) => {
       try {
         parentPort.postMessage({ id: req.id, progress: { done, pages } });
       } catch {
-        /* la progression est de l'affichage — jamais une raison d'échouer */
+        /* progress is display only — never a reason to fail */
       }
     };
     try {
-      await pdfjsReady; // le workerSrc pdf.js est épinglé avant tout getDocument
-      // Les deux entrées sont BEST-EFFORT côté redact (un fichier illisible rend
-      // `{error}` sans jeter) ; le catch ne couvre que l'imprévu (OOM d'un parseur…).
+      await pdfjsReady; // pdf.js's workerSrc is pinned before any getDocument
+      // Both entry points are BEST-EFFORT on the redact side (an unreadable file returns
+      // `{error}` without throwing); the catch only covers the unexpected (a parser OOM…).
       const file =
         req.kind === "path"
           ? await extractText(req.path, onProgress, req.ocrAllPages)
           : await extractBytes(Buffer.from(req.data, "base64"), req.name, req.mime, onProgress, req.ocrAllPages);
       parentPort.postMessage({ id: req.id, ok: true, file });
     } catch (err) {
-      // Un échec d'épinglage rend TOUT PDF illisible : le dire ICI, avec l'erreur, plutôt
-      // que de laisser l'utilisateur et le journal deviner une cause de fichier.
+      // A pinning failure makes EVERY PDF unreadable: say so HERE, with the error, rather
+      // than leaving the user and the log to guess at a file-related cause.
       const base = err instanceof Error ? err.message : String(err);
       parentPort.postMessage({
         id: req.id,

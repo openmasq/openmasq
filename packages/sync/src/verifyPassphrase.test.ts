@@ -4,9 +4,9 @@ import { verifyPassphrase } from "./verifyPassphrase";
 import type { ConvKeyEnvelope, RecordTransport } from "./types";
 
 /**
- * La divergence du 14/08 : un appareil à phrase différente ne reçoit AUCUN signal — il
- * pousse dans un monde parallèle et scelle chaque portée étrangère. Le verdict rendu ici
- * est ce qui transforme cette découverte différée en avertissement immédiat à la saisie.
+ * The 14/08 divergence: a device on a different passphrase receives NO signal — it
+ * pushes into a parallel world and seals every foreign scope. The verdict rendered here
+ * is what turns this delayed discovery into an immediate warning at entry time.
  */
 
 const transportWith = (envelopes: Record<string, ConvKeyEnvelope>): RecordTransport =>

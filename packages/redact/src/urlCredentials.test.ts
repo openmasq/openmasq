@@ -55,14 +55,14 @@ describe("contact identity embedded in a URL is still redacted (url gate off)", 
 });
 
 describe("chaîne de connexion : le span ENTIER, jamais son fragment e-mail", () => {
-  /* La garde « fragment d'e-mail » teste un CHEVAUCHEMENT. Une chaîne de connexion
-     fabrique elle-même un span e-mail avec son `motdepasse@hôte`, si bien qu'elle
-     chevauchait ce span et se faisait écarter : c'est le fragment, plus court, qui
-     repartait faussé — et l'UTILISATEUR, l'HÔTE et le PORT de la base restaient en clair
-     dans le texte envoyé au modèle. Un fragment n'a pas d'arrobase ; une valeur qui
-     CONTIENT une adresse est un sur-ensemble. Trouvé par un balayage du banc comparant
-     `redact()` (marqueur) et `pseudonymize()` : 3 valeurs sur 2 336 étaient détectées puis
-     envoyées en clair. */
+  /* The « email fragment » guard tests an OVERLAP. A connection string
+     itself manufactures an email span with its `password@host`, so much so that it
+     overlapped that span and got dropped: it was the shorter fragment that
+     left faked — and the database's USER, HOST and PORT stayed in clear
+     in the text sent to the model. A fragment has no at-sign; a value that
+     CONTAINS an address is a superset. Found by a bench scan comparing
+     `redact()` (marker) and `pseudonymize()`: 3 values out of 2,336 were detected then
+     sent in clear. */
   const DSN = "postgres://acme_ro:S3cr3t-Prod-2026@db-prod.internal:5432/app";
 
   it("redacted la chaîne entière, utilisateur et hôte compris", async () => {
@@ -70,7 +70,7 @@ describe("chaîne de connexion : le span ENTIER, jamais son fragment e-mail", ()
     const { text } = await pseudonymize(`const DSN = "${DSN}";`, { vault });
     expect(text).not.toContain(DSN);
     expect(text).not.toContain("S3cr3t-Prod-2026");
-    // UNE entrée de coffre pour UNE donnée : la chaîne complète, réversible telle quelle.
+    // ONE vault entry for ONE datum: the full string, reversible as-is.
     expect(Object.values(vault)).toEqual([DSN]);
   });
 
@@ -81,20 +81,20 @@ describe("chaîne de connexion : le span ENTIER, jamais son fragment e-mail", ()
   });
 
   it("la garde garde son objet : un fragment SANS arrobase confiné à une adresse est écarté", async () => {
-    // « gmail » seul, tagué ORG par un NER, ne doit pas être redacted : il ne remplacerait
-    // que le domaine et laisserait la partie locale — donc l'identité — en clair.
+    // « gmail » alone, tagged ORG by a NER, must not be redacted: it would only replace
+    // the domain and leave the local part — hence the identity — in clear.
     const complete = async () => JSON.stringify([{ value: "gmail", category: "ORG" }]);
     const { text } = await pseudonymize("écris à laura.bardell@gmail.com", { vault: {}, complete });
-    expect(text).not.toContain("laura.bardell@gmail.com"); // l'adresse ENTIÈRE est faussée
-    expect(text).not.toMatch(/laura\.bardell@[a-z]/); // …et jamais seulement son domaine
+    expect(text).not.toContain("laura.bardell@gmail.com"); // the WHOLE address is faked
+    expect(text).not.toMatch(/laura\.bardell@[a-z]/); // …and never only its domain
   });
 
   it("le sur-ensemble est STRICT : l'adresse re-détectée sous une autre étiquette reste couverte par « E-mail désactivé »", async () => {
-    // Un champ « Contact : » fait détecter la MÊME adresse une seconde fois, sous une
-    // catégorie que l'utilisateur n'a pas désactivée. Égale au span, elle reste un
-    // fragment — la laisser passer referait surface à l'adresse malgré le réglage.
-    // Le vault est muté EN PLACE (le résultat n'en retourne pas de copie) — garder sa
-    // propre référence, sinon l'assertion inspecte `undefined` et ne teste rien.
+    // A « Contact : » field causes the SAME address to be detected a second time, under a
+    // category the user hasn't disabled. Equal to the span, it remains a
+    // fragment — letting it through would resurface the address despite the setting.
+    // The vault is mutated IN PLACE (the result doesn't return a copy of it) — keep your
+    // own reference, or the assertion inspects `undefined` and tests nothing.
     const vault: Vault = {};
     const { text } = await pseudonymize("Contact : jean@exemple.fr", {
       vault,

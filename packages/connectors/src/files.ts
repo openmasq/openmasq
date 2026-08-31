@@ -1,31 +1,31 @@
 /**
- * Ce que « lister un dossier » veut dire, une fois pour toutes.
+ * What "listing a folder" means, once and for all.
  *
- * Deux chemins en ont besoin et ils ne doivent PAS diverger : l'outil `list_folder` que le
- * modèle appelle, et le panneau « Dossiers » de l'app, qui liste le même compte pour
- * l'utilisateur. Une seule construction d'URL, une seule relecture de réponse — sinon
- * l'écran et le modèle finissent par ne plus voir le même Drive.
+ * Two paths need it and they must NOT diverge: the `list_folder` tool the
+ * model calls, and the app's « Dossiers » panel, which lists the same account for
+ * the user. One single URL construction, one single response parsing — otherwise
+ * the screen and the model end up no longer seeing the same Drive.
  */
 
-/** Une entrée de dossier distant, réduite à ce qu'une liste montre. */
+/** A remote folder entry, reduced to what a listing shows. */
 export interface RemoteEntry {
-  /** L'identifiant du fournisseur (Drive fileId, Graph itemId) — jamais un chemin. */
+  /** The provider's identifier (Drive fileId, Graph itemId) — never a path. */
   id: string;
   name: string;
   kind: "dir" | "file";
-  /** Epoch ms ; 0 quand le fournisseur ne l'a pas donné. */
+  /** Epoch ms; 0 when the provider didn't give one. */
   mtime: number;
 }
 
 /**
- * Un identifiant de dossier arrive soit du MODÈLE (appel d'outil), soit du RENDERER
- * (panneau) — jamais de nous. Il finit dans l'URL du fournisseur : dans le `q='<id>' in
- * parents` de Drive, dans un segment de chemin de Graph. Il est donc validé en liste
- * blanche de caractères avant toute requête.
+ * A folder identifier arrives either from the MODEL (a tool call) or from the RENDERER
+ * (the panel) — never from us. It ends up in the provider's URL: in Drive's `q='<id>' in
+ * parents`, in a Graph path segment. It is therefore validated against a character
+ * allow-list before any request.
  *
- * Drive emploie `[A-Za-z0-9_-]`, Graph y ajoute `!` et `.`. Aucun des deux n'utilise de
- * guillemet, d'espace ni de barre oblique — précisément ce qu'il faudrait pour sortir de
- * la requête ou du chemin. Un id refusé LÈVE : c'est un appel malformé, pas un dossier vide.
+ * Drive uses `[A-Za-z0-9_-]`, Graph adds `!` and `.` to it. Neither uses a
+ * quote, a space, or a forward slash — exactly what would be needed to break out of
+ * the query or the path. A rejected id THROWS: that's a malformed call, not an empty folder.
  */
 const ID_RE = /^[A-Za-z0-9_!.-]{1,200}$/;
 export function assertFileId(id: string): string {
@@ -33,7 +33,7 @@ export function assertFileId(id: string): string {
   return id;
 }
 
-/** Dossiers d'abord, puis A→Z (insensible aux accents et à la casse). */
+/** Folders first, then A→Z (accent- and case-insensitive). */
 export function sortRemote(entries: RemoteEntry[]): RemoteEntry[] {
   return entries.sort(
     (a, b) =>
@@ -42,14 +42,14 @@ export function sortRemote(entries: RemoteEntry[]): RemoteEntry[] {
   );
 }
 
-/** Epoch ms depuis un ISO, 0 si absent ou illisible. */
+/** Epoch ms from an ISO string, 0 if absent or unreadable. */
 export const remoteTime = (iso?: string): number => {
   const t = iso ? Date.parse(iso) : NaN;
   return Number.isFinite(t) ? t : 0;
 };
 
-/** Le rendu d'une liste POUR LE MODÈLE — la même dans les deux connecteurs, pour qu'un
- *  changement de forme ne s'applique pas qu'à la moitié. */
+/** The rendering of a listing FOR THE MODEL — the same across both connectors, so a
+ *  shape change doesn't apply to only half of them. */
 export function renderRemoteList(entries: RemoteEntry[]): string {
   if (entries.length === 0) return "Dossier vide.";
   return entries
@@ -57,11 +57,11 @@ export function renderRemoteList(entries: RemoteEntry[]): string {
     .join("\n");
 }
 
-/** Un fichier à joindre/déposer — résolu par le DESKTOP (jamais le modèle) depuis le
- *  magasin local de la conversation et injecté dans l'appel en `__attachmentData`.
- *  `contentBase64` porte les octets ORIGINAUX (base64 standard) ; le modèle ne fait que
- *  NOMMER les fichiers, il ne voit jamais les octets. Une seule maison : Gmail, Outlook
- *  et Drive la partagent — la troisième copie est celle qu'on n'écrit pas (règle 9). */
+/** A file to attach/drop — resolved by the DESKTOP (never the model) from the
+ *  conversation's local store and injected into the call as `__attachmentData`.
+ *  `contentBase64` carries the ORIGINAL bytes (standard base64); the model only
+ *  NAMES the files, it never sees the bytes. One single home: Gmail, Outlook
+ *  and Drive share it — the third copy is the one we don't write (rule 9). */
 export interface AttachmentData {
   filename: string;
   mimeType: string;

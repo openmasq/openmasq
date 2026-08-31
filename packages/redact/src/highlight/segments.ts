@@ -93,11 +93,11 @@ function categoryOf(placeholder: string, value: string): { label: string; tone: 
   //    value's shape (via the same regex engine). Without this a fake-data email/
   //    phone/etc fell through to the SENSITIVE/coral tone — rendering RED in the
   //    chat while the composer showed it blue (its live per-category hue).
-  //    ⚠️ Le repli sur la forme du PLACEHOLDER exclut les familles clé/secret : un
-  //    SCRAMBLE (segment de chemin « u5MZS9…C » pour « juliensabourdin ») ressemble
-  //    toujours à un jeton, et le journal étiquetait « api token » un simple nom de
-  //    dossier (journal 02/08). Un vrai couple clé→clé garde son étiquette par la
-  //    forme de la VALEUR ; seul le repli-placeholder est bridé.
+  //    ⚠️ The fallback onto the PLACEHOLDER's shape excludes the key/secret families: a
+  //    SCRAMBLE (path segment « u5MZS9…C » for « juliensabourdin ») always
+  //    looks like a token, and the log labeled « api token » a plain folder
+  //    name (02/08 log). A genuine key→key pair keeps its label via the
+  //    shape of the VALUE; only the placeholder-fallback is bridled.
   const phShape = shapeCategory(placeholder);
   const shape =
     shapeCategory(value) ??

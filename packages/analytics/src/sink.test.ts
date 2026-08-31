@@ -2,20 +2,20 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { createSink } from "./index";
 
 /**
- * Le blocage des hôtes LOCAUX — la seule règle du transport qu'aucun consommateur
- * n'exerce (le bureau teste la file de consentement et le nettoyage, jamais l'hôte).
+ * Blocking LOCAL hosts — the one transport rule no consumer
+ * exercises (the desktop tests the consent queue and the sanitize walk, never the host).
  *
- * Ce qu'elle empêche : un `pnpm dev` ouvert toute la journée, rechargé à chaque
- * sauvegarde, qui compte le développeur comme une cohorte dans les chiffres du produit.
- * Ce qu'elle ne doit PAS empêcher : la production, y compris là où `location` n'existe
- * pas (rendu serveur, `file://` du bureau empaqueté) — d'où un blocage POSITIF seulement.
+ * What it prevents: a `pnpm dev` left open all day, reloaded on every
+ * save, counting the developer as a cohort in the product's numbers.
+ * What it must NOT prevent: production, including where `location` doesn't exist
+ * (server rendering, packaged desktop `file://`) — hence a POSITIVE block only.
  */
 const flush = (): Promise<unknown> => new Promise((r) => setTimeout(r, 0));
 
 function wire(hostname: string | null, allowLocalhost?: boolean) {
   const fetchFn = vi.fn(async () => ({ ok: true }));
   vi.stubGlobal("fetch", fetchFn);
-  vi.stubGlobal("navigator", {}); // ni Do-Not-Track ni GPC
+  vi.stubGlobal("navigator", {}); // neither Do-Not-Track nor GPC
   if (hostname === null) vi.stubGlobal("location", undefined);
   else vi.stubGlobal("location", { hostname });
   const s = createSink({ getAnonId: () => "anon-x", defaultSource: "test" });

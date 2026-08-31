@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { redact, unredact, redactionCategory, type Vault } from "./index";
 
 /** Redact with a fresh vault; assert the value is gone and restorable. */
-// ⚠️ `url` éteinte = LE DÉFAUT PRODUIT (`CATEGORY_DEFAULTS`), et c'est ce que ce test
-// modélise : ce qui se passe À L'INTÉRIEUR d'une URL qu'on ne masque pas. Le moteur nu,
-// lui, n'a rien de désactivé — même asymétrie que `username`, l'autre catégorie éteinte
-// par défaut. Sans ce `disabledKinds`, la règle URL réclame l'adresse entière et le test
-// n'observe plus son sujet.
+// ⚠️ `url` OFF = THE PRODUCT DEFAULT (`CATEGORY_DEFAULTS`), and that's what this test
+// models: what happens INSIDE a URL we don't mask. The bare engine
+// itself has nothing disabled — same asymmetry as `username`, the other category off
+// by default. Without this `disabledKinds`, the URL rule claims the whole address and the test
+// no longer observes its subject.
 function rt(input: string) {
   const vault: Vault = {};
   const { text, matches } = redact(input, { vault, disabledKinds: ["url"] });
@@ -63,14 +63,14 @@ describe("new regex rules (on by default)", () => {
   });
 
   it("BIC : le guillemet et la parenthèse sont des séparateurs, la clé JSON est en minuscules", () => {
-    // Mesuré sur le banc : 3 BIC sur 22 restaient en clair pour cette seule raison — la
-    // paire sérialisée d'un retour d'outil et la valeur entre parenthèses d'un ticket.
+    // Measured on the bench: 3 BIC out of 22 stayed in clear for this reason alone — the
+    // serialised pair of a tool result and the value in parentheses of a ticket.
     expect(rt('{"bic":"AGRIFRPP812"}').text).not.toContain("AGRIFRPP812");
     expect(rt("le BIC saisi (BSUIFRPPXXX) est refusé").text).not.toContain("BSUIFRPPXXX");
     expect(rt('bic: "MIDLGB22XXX"').text).not.toContain("MIDLGB22XXX");
     expect(rt("BIC;CEPAFRPP751").text).not.toContain("CEPAFRPP751");
-    // …et la valeur reste STRICTEMENT en capitales : le mot-clé seul est insensible à la
-    // casse. Sans quoi n'importe quel mot de huit lettres suivant « bic » serait un code.
+    // …and the value stays STRICTLY in capitals: only the keyword is case-
+    // insensitive. Otherwise any eight-letter word following « bic » would be a code.
     expect(rt("bic : le montant reste inchangé").text).toBe("bic : le montant reste inchangé");
   });
 

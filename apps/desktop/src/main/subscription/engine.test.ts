@@ -41,9 +41,9 @@ describe("buildClaudeArgs", () => {
     for (const tool of CHAT_DISALLOWED_TOOLS) expect(args).toContain(tool);
   });
 
-  // La garde du PÉRIMÈTRE. `--disallowed-tools` retire par NOM, donc il ne couvre que ce
-  // qu'on a pensé à écrire ; `--tools ""` est l'allow-list, et c'est elle qui décide ce
-  // qui existe pour le modèle (règle 7). Un tour de chat n'a besoin d'aucun outil intégré.
+  // The SCOPE guard. `--disallowed-tools` removes by NAME, so it only covers what
+  // someone thought to write; `--tools ""` is the allow-list, and it decides what
+  // exists for the model (rule 7). A chat turn needs no built-in tool.
   it("borne le périmètre par ALLOW-LIST : aucun outil intégré (--tools \"\")", () => {
     const args = buildClaudeArgs(base);
     const at = args.indexOf("--tools");

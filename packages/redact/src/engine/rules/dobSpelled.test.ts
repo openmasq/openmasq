@@ -2,18 +2,18 @@ import { describe, it, expect } from "vitest";
 import { redact } from "../../index";
 
 /**
- * ⚠️ REGRESSION — une date de naissance écrite en toutes lettres n'était JAMAIS détectée.
+ * ⚠️ REGRESSION — a birth date spelled out in words was NEVER detected.
  *
- * Mesuré sur le benchmark v1.0 : 8 formes sur 18. Tout ce qui était en chiffres passait,
- * tout ce qui était en lettres passait à travers, sans exception — et deux formes en
- * chiffres échouaient aussi parce que leur préfixe (« DDN », « Né(e) le ») n'était pas
- * reconnu.
+ * Measured on the v1.0 benchmark: 8 forms out of 18. Everything in digits passed,
+ * everything in letters fell through, without exception — and two digit
+ * forms also failed because their prefix (« DDN », « Né(e) le ») was not
+ * recognized.
  *
- * Deux causes distinctes, corrigées ensemble :
- *  1. `DATE_CORE` n'acceptait que du numérique ;
- *  2. le connecteur (« est le », « en », « un ») tombait dans le trou `\W{0,15}`, qui ne
- *     franchit que des caractères NON alphabétiques — donc « né en 1988 » n'atteignait
- *     jamais la date même une fois les mois littéraux ajoutés.
+ * Two distinct causes, fixed together:
+ *  1. `DATE_CORE` only accepted numerals;
+ *  2. the connector (« est le », « en », « un ») fell into the `\W{0,15}` gap, which only
+ *     crosses NON-alphabetic characters — so « né en 1988 » never
+ *     reached the date even once literal month names were added.
  */
 
 const isDob = (text: string): boolean => redact(text).matches.some((m) => m.type === "dob");
@@ -26,8 +26,8 @@ describe("dates de naissance — toutes lettres, partielles, préfixes", () => {
     "Il est né un 1er avril 1980",
     "Sa date de naissance est le 8 janvier 2003",
     "Née le 17 novembre 1982",
-    "Né en 1988", // année seule
-    "Ma fille est née en mars 2015", // mois + année
+    "Né en 1988", // year alone
+    "Ma fille est née en mars 2015", // month + year
     "DDN : 07/09/2001",
     "Né(e) le : 15/06/1990",
   ])("détecte « %s »", (text) => expect(isDob(text)).toBe(true));
@@ -42,15 +42,15 @@ describe("dates de naissance — toutes lettres, partielles, préfixes", () => {
 });
 
 /**
- * La contrepartie, et c'est elle qui borne le risque : la règle reste ADOSSÉE à un
- * contexte de naissance. Une date sans ce contexte n'est pas une donnée sensible — la
- * redact casserait chaque planning, facture et échéance d'une conversation de travail.
+ * The counterpart, and it's what bounds the risk: the rule stays ANCHORED to a
+ * birth context. A date without that context is not sensitive data — redacting it
+ * would break every schedule, invoice and deadline in a work conversation.
  */
 describe("le « Né(e) le » MUTILÉ par l'OCR (carte d'identité scannée)", () => {
-  // Fuite vécue (parcours 14/08, CNI réelle) : « SexeE M    Néle)le : 01.08.1996 » —
-  // l'OCR soude et mélange « Né(e) le », le connecteur n'y voit plus « le », et le trou
-  // `\W{0,15}` ne franchit pas les lettres du débris : la date de naissance RÉELLE
-  // partait en clair pendant que nom/prénom/lieu étaient masqués.
+  // Real leak (walkthrough 14/08, real CNI): « SexeE M    Néle)le : 01.08.1996 » —
+  // the OCR fuses and scrambles « Né(e) le », the connector no longer sees a "le" in it, and
+  // the `\W{0,15}` gap doesn't cross the debris letters: the REAL birth date
+  // was going out in clear while name/first name/place were masked.
   it("détecte la date derrière le label soudé/mélangé", () => {
     expect(isDob("SexeE M    Néle)le : 01.08.1996")).toBe(true);
     expect(isDob("Né(e)le: 12.03.1985 à BASTIA")).toBe(true);
@@ -71,10 +71,10 @@ describe("une date SANS contexte de naissance reste en clair", () => {
   ])("laisse « %s »", (text) => expect(isDob(text)).toBe(false));
 
   /**
-   * ⚠️ Le piège que l'ajout de l'année-seule crée, et la raison du `\b` dans `BORN` :
-   * « née » vit à l'intérieur d'« année ». Sans l'ancre, « Bonne année 2025 » se lisait
-   * comme une naissance. C'est le cas qui rend la règle année-seule sûre — l'enlever
-   * redact un millésime sur deux dans une conversation ordinaire.
+   * ⚠️ The trap that adding the year-alone form creates, and the reason for the `\b` in `BORN`:
+   * « née » lives inside « année ». Without the anchor, « Bonne année 2025 » was read
+   * as a birth. This is the case that makes the year-alone rule safe — removing it
+   * would redact every other year figure in an ordinary conversation.
    */
   it.each([
     "Bonne année 2025 à tous",

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { detectGazetteerNames } from "./nameGazetteer";
 
-/* La sécurité du gazetteer EST la règle d'appariement : un prénom seul ne tire jamais,
-   et chaque garde ci-dessous répond à un faux positif nommé. Toutes les personnes sont
-   inventées. */
+/* The gazetteer's safety IS the pairing rule: a lone first name never fires,
+   and each guard below answers a named false positive. All the people are
+   invented. */
 const vals = (t: string) => detectGazetteerNames(t).map((d) => d.value);
 
 describe("gazetteer de prénoms — rappel", () => {
@@ -22,12 +22,12 @@ describe("gazetteer de prénoms — rappel", () => {
 
   it("couvre plusieurs langues, accents perdus par l'OCR compris", () => {
     expect(vals("Contact : Aminata Bagayo et Zeynep Uslu.")).toEqual(["Aminata Bagayo", "Zeynep Uslu"]);
-    expect(vals("Signature de Helene Vernaux.")).toEqual(["Helene Vernaux"]); // Hélène sans accent
+    expect(vals("Signature de Helene Vernaux.")).toEqual(["Helene Vernaux"]); // Hélène without an accent
   });
 
   it("couvre la longue traîne INSEE — prénoms rares, régionaux, d'origine étrangère", () => {
-    // Chacun manquait au lexique curé et était un raté MESURÉ des bancs de rappel ;
-    // la traîne vient de firstNames.insee.data.ts (≥100 naissances depuis 1900).
+    // Each one was missing from the curated lexicon and was a MEASURED miss from the
+    // recall benches; the tail comes from firstNames.insee.data.ts (≥100 births since 1900).
     expect(vals("Dossier suivi par Clémence Charvoz et Jonas Wendrick.")).toEqual([
       "Clémence Charvoz",
       "Jonas Wendrick",
@@ -48,7 +48,7 @@ describe("gazetteer de prénoms — civilité collée par l'OCR", () => {
   });
 
   it("ne décolle pas un mot qui commence seulement comme une civilité", () => {
-    // « Mireille » commence par « Mr »… non : la garde exige civilité + Majuscule.
+    // "Mireille" starts with "Mr"… no: the guard requires honorific + Capital letter.
     expect(vals("Mireille Fontaine a signé.")).toEqual(["Mireille Fontaine"]);
   });
 });
@@ -92,8 +92,8 @@ describe("particules — « de », « Le », « van »… entre prénom et nom",
   });
 
   it("une séquence rejetée ne peut plus AVALER le nom qu'elle contient", () => {
-    // « Signature » ouvre la séquence à particule (« Signature de Helene… ») ; son
-    // rejet doit reprendre l'analyse après le premier token, pas consommer le span.
+    // "Signature" opens the particle sequence ("Signature de Helene…"); its
+    // rejection must resume the scan after the first token, not consume the span.
     expect(vals("Signature de Helene Vernaux.")).toEqual(["Helene Vernaux"]);
   });
 

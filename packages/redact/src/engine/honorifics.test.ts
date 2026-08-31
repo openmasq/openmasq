@@ -37,15 +37,15 @@ describe("detectHonorificNames — recall", () => {
 });
 
 describe("detectHonorificNames — l'honorifique COLLÉ par l'OCR", () => {
-  // Fuite vécue (parcours 14/08, bail scanné réel) : « MonsieurMaxime OZERAY » et
-  // « MonsieurThomas CORBŒLET » — l'OCR colle le titre au prénom, le séparateur
-  // exigeait 1-2 espaces, et l'identité entière partait EN CLAIR pendant que les
-  // noms bien espacés du même acte étaient masqués.
+  // Real leak (walkthrough 14/08, real scanned lease): « MonsieurMaxime OZERAY » and
+  // « MonsieurThomas CORBŒLET » — the OCR glues the title to the first name, the separator
+  // required 1-2 spaces, and the whole identity was going out IN CLEAR while the
+  // properly spaced names in the same deed were masked.
   it("détecte le nom quand l'OCR a collé le titre au prénom — la valeur INCLUT le titre soudé", () => {
-    // La valeur émise est « MonsieurRomain SORBON » ENTIER, pas « Romain SORBON » :
-    // le vault ne réécrit jamais un fragment dans un mot (isWordGlued), donc une
-    // valeur sans le titre serait détectée mais jamais remplacée — la fuite exacte
-    // qu'on ferme, avec une détection verte à l'appui.
+    // The emitted value is « MonsieurRomain SORBON » WHOLE, not « Romain SORBON »:
+    // the vault never rewrites a fragment inside a word (isWordGlued), so a
+    // value without the title would be detected but never replaced — the exact leak
+    // this closes, backed by a passing detection.
     const d = detectHonorificNames("Est présent MonsieurRomain SORBON, colocataire entrant.");
     expect(d.map((x) => x.value)).toContain("MonsieurRomain SORBON");
   });
@@ -56,8 +56,8 @@ describe("detectHonorificNames — l'honorifique COLLÉ par l'OCR", () => {
   });
 
   it("la colle n'existe qu'à la frontière minuscule→MAJUSCULE — jamais dans un mot ordinaire", () => {
-    // « FRAUEN » contient « FRAU » mais la frontière U→E est Lu→Lu ; « monsieurthomas »
-    // n'a pas de majuscule après la colle. Ni l'un ni l'autre ne doit produire un nom.
+    // « FRAUEN » contains « FRAU » but the U→E boundary is Lu→Lu; « monsieurthomas »
+    // has no uppercase letter after the glue point. Neither should produce a name.
     expect(detectHonorificNames("DIE FRAUEN VERSAMMLUNG beginnt.")).toEqual([]);
     expect(detectHonorificNames("le monsieurthomas du quartier")).toEqual([]);
   });
@@ -106,10 +106,10 @@ describe("detectHonorificNames — couples, maiden and marriage names", () => {
 describe("detectHonorificNames — les titres académiques se CUMULENT", () => {
   const values = (t: string) => detectHonorificNames(t).map((d) => d.value);
 
-  /** ⚠️ RÉGRESSION mesurée par `bench/sourceFp.bench.ts` : la mention de discipline était
-   *  le PREMIER jeton du match, donc le détecteur émettait « med » et s'arrêtait là — le
-   *  nom du praticien, deux jetons plus loin, n'était jamais proposé. Un faux positif qui
-   *  CACHAIT un manque : les deux moitiés sont vérifiées ici. */
+  /** ⚠️ REGRESSION measured by `bench/sourceFp.bench.ts`: the discipline mention was
+   *  the FIRST token of the match, so the detector emitted « med » and stopped there — the
+   *  practitioner's name, two tokens further, was never proposed. A false positive that
+   *  WAS HIDING a miss: both halves are checked here. */
   it("« Dr. med. » est un TITRE, pas un nom — et le vrai nom est retrouvé", () => {
     const v = values("Mit kollegialen Grüßen Dr. med. Hendrik WALDHOFF-ARNDT, Oberarzt");
     expect(v).toEqual(["Hendrik WALDHOFF-ARNDT"]);
@@ -121,14 +121,14 @@ describe("detectHonorificNames — les titres académiques se CUMULENT", () => {
     expect(values("Dr.-Ing. Klaus WULFF")).toEqual(["Klaus WULFF"]);
   });
 
-  /** Un titre refusé comme NOM doit rendre la main SUR lui, pas après : sinon la pile
-   *  « Prof. Dr. med. habil. » consommait le seul point d'ancrage et le nom était perdu. */
+  /** A title refused as a NAME must hand back control ON it, not after: otherwise the stack
+   *  « Prof. Dr. med. habil. » consumed the only anchor point and the name was lost. */
   it("une PILE de titres reste un titre", () => {
     expect(values("Prof. Dr. med. habil. Sabine BRENNEKE")).toEqual(["Sabine BRENNEKE"]);
   });
 
-  /** Le point est requis, exactement comme pour les titres abrégés : sans lui, « Med » ou
-   *  « Ing » est un mot capitalisé ordinaire — et l'avaler mangerait un vrai patronyme. */
+  /** The dot is required, exactly like for abbreviated titles: without it, « Med » or
+   *  « Ing » is an ordinary capitalized word — and swallowing it would eat a real surname. */
   it("sans le point, la continuation n'en est pas une", () => {
     expect(values("Dr Med SAVEL")).toContain("Med SAVEL");
   });

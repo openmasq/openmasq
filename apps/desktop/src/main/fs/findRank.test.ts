@@ -2,12 +2,12 @@ import { describe, it, expect } from "vitest";
 import { fold, queryTerms, lexicalScore, relativeCosines, rankCandidates } from "./findRank";
 
 /**
- * `find_files` existe parce qu'une SOUS-CHAÎNE ne répond pas à une question posée par
- * le sens. Le cas mesuré : « liste les documents fiscaux » sur un dossier contenant
- * « 001 Dépôt des comptes annuels … INPI … .pdf » — zéro mot en commun, donc
- * `search_files pattern:"fiscal"` renvoyait « aucun résultat » et le modèle concluait
- * qu'il n'y avait aucun document fiscal. Ces tests épinglent les deux étages qui
- * réparent ça, et la frontière entre eux.
+ * `find_files` exists because a SUBSTRING doesn't answer a question asked by
+ * meaning. The measured case: "list the tax documents" on a folder containing
+ * "001 Filing of annual accounts … INPI … .pdf" — zero words in common, so
+ * `search_files pattern:"fiscal"` returned "no results" and the model concluded
+ * there was no tax document. These tests pin down the two layers that
+ * fix that, and the boundary between them.
  */
 
 const CANDS = [
@@ -30,14 +30,14 @@ describe("queryTerms — ce qui mérite un appariement LITTÉRAL", () => {
   });
 
   it("une requête entièrement de cadrage ne laisse RIEN de littéral", () => {
-    // Sinon « Documents divers.pdf » gagnerait sur « documents », qui matche la moitié
-    // du disque — exactement le faux positif que l'étage sémantique doit trancher.
+    // Otherwise "Documents divers.pdf" would win on "documents", which matches half
+    // the disk — exactly the false positive the semantic layer has to settle.
     expect(queryTerms("liste tous les documents")).toEqual([]);
   });
 
-  // Le piège dans lequel la première version est tombée : `isGenericTerm` (redact)
-  // classe `fiscal`/`comptes`/`annuel`/`bail`/`facture` comme génériques — parce qu'ils
-  // ne sont pas du PII. Filtrer là-dessus supprimait le SEUL mot utile de la requête.
+  // The trap the first version fell into: `isGenericTerm` (redact)
+  // classes `fiscal`/`comptes`/`annuel`/`bail`/`facture` as generic — because they
+  // aren't PII. Filtering on that removed the ONLY useful word in the query.
   it("garde le vocabulaire documentaire, que redact classe pourtant en générique", () => {
     expect(queryTerms("comptes annuels")).toEqual(["comptes", "annuels"]);
     expect(queryTerms("les factures et le bilan")).toEqual(["factures", "bilan"]);
@@ -55,16 +55,16 @@ describe("cosinus e5 — lus en RELATIF, jamais en absolu", () => {
 });
 
 describe("classement", () => {
-  // LA régression : aucun mot commun entre la demande et le nom du fichier.
+  // THE regression: no word in common between the request and the file name.
   it("remonte le bon fichier sur « documents fiscaux » grâce au seul sémantique", () => {
-    const cos = [0.93, 0.84, 0.87]; // le dépôt INPI est le plus proche
+    const cos = [0.93, 0.84, 0.87]; // the INPI filing is the closest
     const out = rankCandidates(CANDS, "liste les documents fiscaux", cos, 3);
     expect(out[0].path).toBe(CANDS[0].path);
   });
 
   it("un vrai mot du nom l'emporte TOUJOURS sur une proximité sémantique", () => {
-    // « vacances » est littéralement dans le nom : même avec un cosinus défavorable,
-    // l'utilisateur qui tape un mot présent dans le nom désigne ce fichier-là.
+    // "vacances" is literally in the name: even with an unfavorable cosine,
+    // the user typing a word present in the name is designating that file.
     const cos = [0.95, 0.80, 0.9];
     const out = rankCandidates(CANDS, "photos de vacances", cos, 3);
     expect(out[0].path).toBe(CANDS[1].path);

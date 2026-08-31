@@ -2,8 +2,8 @@ import Debug from "debug";
 import { createClient } from "@supabase/supabase-js";
 import { captureError, initialLocale } from "@openmasq/ui";
 import type { AuthHost, AuthUser } from "@openmasq/ui";
-// Identifiants client Supabase — PUBLICS (clé publiable), résolus dans LE lecteur
-// d'environnement du renderer (`./appEnv`), qui porte aussi leurs défauts.
+// Supabase client credentials — PUBLIC (publishable key), resolved in THE renderer's
+// environment reader (`./appEnv`), which also carries their defaults.
 import { BRAND } from "@openmasq/branding"; import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./appEnv";
 
 // Enable with `localStorage.debug = "openmasq:*"`. Privacy: NEVER log the email,
@@ -276,10 +276,10 @@ const secureAuthStorage = {
   },
 };
 
-/** AUCUN projet Supabase au build ⇒ app SANS comptes : `main.tsx` n'installe pas
- *  `host.auth` (porte de connexion sautée) et rien n'appelle ce client. La sentinelle
- *  `.invalid` n'existe que parce que `createClient` refuse une URL vide — injoignable
- *  par construction (TLD réservé RFC 2606). */
+/** NO Supabase project at build ⇒ app WITHOUT accounts: `main.tsx` doesn't install
+ *  `host.auth` (sign-in gate skipped) and nothing calls this client. The `.invalid`
+ *  sentinel exists only because `createClient` refuses an empty URL — unreachable
+ *  by construction (RFC 2606 reserved TLD). */
 export const AUTH_CONFIGURED = !!SUPABASE_URL;
 const supabase = createClient(
   SUPABASE_URL || "https://auth-non-configuree.invalid",

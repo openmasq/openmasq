@@ -8,13 +8,13 @@ export const keys = {
   set: (id: string, value: string): Promise<void> =>
     ipcRenderer.invoke("keys:set", id, value),
   clear: (id: string): Promise<void> => ipcRenderer.invoke("keys:clear", id),
-  // « Connecter mon compte OpenRouter » (OAuth PKCE). Resolves true once the key is
+  // "Connect my OpenRouter account" (OAuth PKCE). Resolves true once the key is
   // stored. Nothing comes BACK through this channel but a boolean — the key is minted
   // and written entirely in main.
   connectOpenRouter: (): Promise<boolean> => ipcRenderer.invoke("keys:connect-openrouter"),
   importLegacy: (map: Record<string, string>): Promise<void> =>
     ipcRenderer.invoke("keys:import", map),
-  // Posture d'organisation : un compte géré n'écrit ni n'utilise de clé personnelle.
+  // Organization posture: a managed account neither writes nor uses a personal key.
   setOrgByoAllowed: (allowed: boolean | null): Promise<void> =>
     ipcRenderer.invoke("keys:set-org-byo-allowed", allowed),
 };
@@ -22,16 +22,16 @@ export const keys = {
 /** Cross-device sync passphrase (the E2E key) — stored ENCRYPTED at rest in the
  *  main process (safeStorage), never in plaintext localStorage. */
 export const sync = {
-  // La phrase est PAR COMPTE (`main/store/syncPass.ts`) : ce re-scope suit celui des clés,
-  // de la base et de MCP. Sans lui, changer de compte laissait la phrase du précédent en
-  // place et relançait la synchro pour quelqu'un qui ne l'avait jamais demandée.
+  // The passphrase is PER ACCOUNT (`main/store/syncPass.ts`): this re-scope follows that of the keys,
+  // the DB and MCP. Without it, switching account left the previous one's passphrase in
+  // place and restarted sync for someone who had never asked for it.
   setUser: (uid: string | null): Promise<void> => ipcRenderer.invoke("sync:set-user", uid),
   getPass: (): Promise<string | null> => ipcRenderer.invoke("sync:get-pass"),
   setPass: (value: string): Promise<void> => ipcRenderer.invoke("sync:set-pass", value),
   clearPass: (): Promise<void> => ipcRenderer.invoke("sync:clear-pass"),
-  // Le secret d'appareil suit la phrase : chiffré au repos dans le principal, jamais
-  // dans le localStorage. Pas de `clear` exposé — un appareil qui perd son secret
-  // devient un appareil INCONNU du serveur, ce qui n'est pas une action d'interface.
+  // The device secret follows the passphrase: encrypted at rest in main, never
+  // in localStorage. No `clear` exposed — a device that loses its secret
+  // becomes a device UNKNOWN to the server, which is not a UI action.
   getDeviceSecret: (): Promise<string | null> => ipcRenderer.invoke("sync:get-device-secret"),
   setDeviceSecret: (value: string): Promise<void> =>
     ipcRenderer.invoke("sync:set-device-secret", value),

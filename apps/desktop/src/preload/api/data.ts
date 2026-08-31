@@ -74,12 +74,12 @@ export const embeddings = {
   > => ipcRenderer.invoke("embeddings:search", payload),
 };
 
-/** Progression OCR pendant une extraction : `{name, page, pages}` par page lue. */
+/** OCR progress during an extraction: `{name, page, pages}` per page read. */
 export type OcrProgress = { name: string; page: number; pages: number };
 
-/** Écoute `files:ocr-progress` LE TEMPS d'une invoke (le modèle de `python.run` :
- *  abonnement scopé par appel, désabonné au settle). Le canal est global, la charge
- *  porte le nom du fichier — l'appelant filtre s'il extrait plusieurs fichiers. */
+/** Listens to `files:ocr-progress` for the DURATION of an invoke (the `python.run` model:
+ *  per-call scoped subscription, unsubscribed on settle). The channel is global, the payload
+ *  carries the file name — the caller filters if it extracts several files. */
 const withOcrProgress = <T>(
   invoke: () => Promise<T>,
   onProgress?: (p: OcrProgress) => void,
@@ -104,7 +104,7 @@ export const files = {
   ): Promise<
     { name: string; kind: string; text: string; chars: number; error?: string }[]
   > => withOcrProgress(() => ipcRenderer.invoke("files:extract", paths), onProgress),
-  // « Lire tout » : la même extraction, plafond d'OCR levé — voir registerFilesIpc.
+  // "Read all": the same extraction, OCR cap lifted — see registerFilesIpc.
   extractAll: (
     paths: string[],
     onProgress?: (p: OcrProgress) => void,
@@ -117,8 +117,8 @@ export const files = {
     name: string,
     mime?: string,
     onProgress?: (p: OcrProgress) => void,
-    // Structuré (texte + words/ocrText/ocr/ocrPages) : la route bytes rend la même
-    // richesse que la route chemin — l'aperçu d'un drop en dépend.
+    // Structured (text + words/ocrText/ocr/ocrPages): the bytes route renders the same
+    // richness as the path route — a drop's preview depends on it.
   ): Promise<{ text: string } & Record<string, unknown>> =>
     withOcrProgress(
       () => ipcRenderer.invoke("files:extract-bytes", { data, name, mime }),

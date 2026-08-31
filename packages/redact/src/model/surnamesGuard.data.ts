@@ -1,23 +1,23 @@
 /**
- * PATRONYMES COURANTS — **données de TEST uniquement**, jamais lues par le moteur.
+ * COMMON SURNAMES — **TEST data only**, never read by the engine.
  *
- * Elles servent le garde-fou de `vocabGuards.test.ts` : un terme de vocabulaire ne doit
- * jamais être atteignable comme nom de famille réel. Le lexique de prénoms
- * (`engine/names/firstNames.data.ts`) ne couvre pas cet axe, et les corpus n'apportent
- * qu'une centaine de patronymes — trop peu dès qu'on ajoute du vocabulaire COURANT, où le
- * piège est dense : « poisson », « berger », « meunier », « boulanger », « chevalier »,
- * « molly », « brando » sont tous des noms de famille portés par des gens réels.
+ * They serve the guardrail in `vocabGuards.test.ts`: a vocabulary term must
+ * never be reachable as a real surname. The first-name lexicon
+ * (`engine/names/firstNames.data.ts`) doesn't cover this axis, and the corpora only
+ * bring about a hundred surnames — too few once COMMON vocabulary is added, where the
+ * trap is dense: « poisson », « berger », « meunier », « boulanger », « chevalier »,
+ * « molly », « brando » are all surnames carried by real people.
  *
- * ⚠️ Ne JAMAIS importer ce fichier depuis `src/` hors des tests. Ce n'est pas une liste de
- * détection : s'en servir pour reconnaître un nom transformerait un outil de sécurité en
- * heuristique, et un patronyme absent y deviendrait un nom « non reconnu ».
+ * ⚠️ NEVER import this file from `src/` outside tests. This is not a detection
+ * list: using it to recognize a name would turn a security tool into a
+ * heuristic, and an absent surname would become an "unrecognized" name.
  *
- * Les formes sont écrites SANS accent quand l'usage administratif les écrit ainsi, et
- * accentuées sinon — la comparaison du test reproduit la portée exacte du moteur, qui
- * conserve les accents.
+ * Forms are written WITHOUT an accent when administrative usage writes them that way, and
+ * accented otherwise — the test comparison reproduces the engine's exact scope, which
+ * preserves accents.
  */
 export const COMMON_SURNAMES: string[] = [
-  // France — les plus portés
+  // France — the most common
   "martin", "bernard", "thomas", "petit", "robert", "richard", "durand", "dubois",
   "moreau", "laurent", "simon", "michel", "lefebvre", "lefèvre", "leroy", "roux",
   "david", "bertrand", "morel", "fournier", "girard", "bonnet", "dupont", "lambert",
@@ -51,7 +51,7 @@ export const COMMON_SURNAMES: string[] = [
   "gosselin", "hebert", "hébert", "jourdan", "lecoq", "lefort", "maillet", "marion",
   "maurice", "navarro", "pons", "pottier", "poulet", "raynaud", "regnier", "régnier",
   "ribeiro", "salmon", "seguin", "tanguy", "torres", "verdier", "vernet", "vallet",
-  // Hors France — les plus fréquents dans les corpus multilingues du produit
+  // Outside France — the most frequent in the product's multilingual corpora
   "smith", "jones", "brown", "wilson", "taylor", "davies", "evans", "walker",
   "young", "king", "wright", "baker", "green", "hall", "cook", "ward", "bell",
   "carter", "turner", "parker", "collins", "murphy", "kelly", "ryan", "brando",

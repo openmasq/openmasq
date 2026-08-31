@@ -36,7 +36,7 @@ describe("édition — fermée sur toute ambiguïté", () => {
   it("remplace dans le paragraphe concerné et laisse le reste OCTET pour OCTET", () => {
     const { xml, paragraph } = applyDocxEdit(BODY, "Total : 1500 & plus", "Total : 1800 & plus");
     expect(paragraph).toBe(3);
-    // Le paragraphe 1 (celui coupé en runs) n'est pas touché : son gras survit.
+    // Paragraph 1 (the one split across runs) isn't touched: its bold survives.
     expect(xml).toContain('<w:rPr><w:b/></w:rPr>');
     expect(docxParagraphs(xml)[2].text).toBe("Total : 1800 & plus");
   });
@@ -53,12 +53,12 @@ describe("édition — fermée sur toute ambiguïté", () => {
   });
 
   it("écrit dans le PREMIER run et vide les autres, sans les supprimer", () => {
-    // Supprimer un run jetterait les propriétés que Word y attache.
+    // Deleting a run would throw away the properties Word attaches to it.
     const { xml } = applyDocxEdit(BODY, "Bonjour Marie", "Salut Marie");
     const para = /<w:p>(?:(?!<\/w:p>)[\s\S])*Salut Marie[\s\S]*?<\/w:p>/.exec(xml)![0];
     expect(para).toContain("Salut Marie");
-    expect(para).toContain("<w:t></w:t>"); // le second run, vidé mais présent
-    expect(para).toContain("<w:b/>"); // ses propriétés intactes
+    expect(para).toContain("<w:t></w:t>"); // the second run, emptied but present
+    expect(para).toContain("<w:b/>"); // its properties intact
   });
 
   it("REFUSE un texte absent", () => {
@@ -66,8 +66,8 @@ describe("édition — fermée sur toute ambiguïté", () => {
   });
 
   it("REFUSE un texte présent dans plusieurs paragraphes", () => {
-    // « commun » est dans deux lignes. Choisir pour le modèle éditerait au mauvais endroit
-    // sans que personne le voie.
+    // "commun" is in two lines. Choosing for the model would edit the wrong spot
+    // without anyone seeing it.
     expect(() => applyDocxEdit(BODY, "commun", "x")).toThrow(/2 paragraphes/);
   });
 

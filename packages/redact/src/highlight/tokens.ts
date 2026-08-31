@@ -9,8 +9,8 @@ import { spanKindLabel } from "./segments";
  * marks show the user's REAL values and are never tokenised.
  *
  * DISPLAY-ONLY, by construction: nothing here touches the vault, the wire, or what the
- * model receives — the pseudonyms still ride the wire, and remain visible in the journal
- * de redaction and the hover reveals. These maps are consumed at RENDER time by the
+ * model receives — the pseudonyms still ride the wire, and remain visible in the redaction
+ * log and the hover reveals. These maps are consumed at RENDER time by the
  * document viewers (`displayReplacements.ts` in the ui package).
  *
  * Numbering: distinct values of one category are numbered in the order given

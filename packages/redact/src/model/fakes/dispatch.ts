@@ -27,9 +27,9 @@ export function fakeFor(
   attempt: number,
   country?: string,
   salt = 0,
-  // L'ancrage par ville (engine/geo/cityAnchor) : état d'UN appel de pseudonymize, jamais
-  // du module — deux conversations ne partagent rien. Absent (tests unitaires d'un faux
-  // seul) ⇒ comportement d'avant.
+  // City anchoring (engine/geo/cityAnchor): state of ONE pseudonymize call, never
+  // of the module — two conversations share nothing. Absent (unit tests of a single
+  // fake) ⇒ previous behaviour.
   geoAnchors?: GeoAnchors,
 ): string {
   const h = hashString(value) + salt + attempt * 101;
@@ -39,7 +39,7 @@ export function fakeFor(
   const a = attempt + salt;
   switch (category) {
     case "URL":
-      // Sans ce cas, une URL recevrait un faux de forme NOM — « allez sur Marc Charvet ».
+      // Without this case, a URL would get a NAME-shaped fake — « allez sur Marc Charvet ».
       return fakeUrl(value, a);
     case "IP":
       // In-range octets (0-255) / hex hextets — a VALID fake IP, not `fakeDigits`'s
@@ -63,11 +63,11 @@ export function fakeFor(
       // digits); keeps separators (:/-/.) so the shape (MAC/BIC/wallet) stays.
       return fakeToken(value, h);
     case "CRYPTO":
-      // Une adresse Bitcoin HÉRITÉE reçoit un faux qui passe le MÊME base58check : depuis
-      // que la DÉTECTION l'exige, un brouillage ne serait même pas re-reconnu comme une
-      // adresse par notre propre moteur — et un faux qui échoue à sa somme invite le modèle
-      // à le « corriger », correction qui ne se retourne plus. Les autres chaînes (bech32,
-      // Monero, Ethereum…) gardent le brouillage : leur preuve n'est pas une somme.
+      // A LEGACY Bitcoin address gets a fake that passes the SAME base58check: since
+      // DETECTION requires it, a scramble wouldn't even be re-recognised as an
+      // address by our own engine — and a fake that fails its checksum invites the model
+      // to « correct » it, a correction that no longer reverses. Other chains (bech32,
+      // Monero, Ethereum…) keep the scramble: their proof isn't a checksum.
       return fakeBitcoinLegacyAddress(value, h) ?? fakeToken(value, h);
     // NAME/EMAIL deliberately ABANDON length-matching (the documented trade: a usable
     // identity beats the size hint) — `fitLen` padded «Julien» into «Garciaopihar»,
@@ -139,10 +139,10 @@ export function fakeFor(
     case "POSTCODE":
     case "ZIP":
     case "ZIPCODE": {
-      // ⚠️ Un COMPLÉMENT d'adresse porte la catégorie ADDRESS, et la branche ADDRESS
-      // fabrique toujours une RUE : « appartement A02 » recevait « 27 CHEMIN des
-      // Tilleuls », soit un second lieu inventé là où le document en désignait un seul.
-      // Le faux d'un complément garde son mot-clé et ne change que le code.
+      // ⚠️ An address COMPLEMENT carries the ADDRESS category, and the ADDRESS branch
+      // always fabricates a STREET: « appartement A02 » used to get « 27 CHEMIN des
+      // Tilleuls », a second invented place where the document named only one.
+      // A complement's fake keeps its keyword and changes only the code.
       const comp = fakeAddressComplement(value, h);
       if (comp != null) return comp;
       const g = fakeGeo(category, value, h, country, geoAnchors, attempt) ??
@@ -171,8 +171,8 @@ export function fakeFor(
     case "NATIONAL_ID":
     case "COMPANY_ID":
     case "BANK_ROUTE":
-      // Une MRZ d'abord : ses LETTRES portent le nom — le mélange chiffres-seuls de
-      // `fakeDigits` les garderait (fuite). Prédicat partagé avec la règle (kinds.ts).
+      // An MRZ first: its LETTERS carry the name — `fakeDigits`'s digits-only
+      // scramble would keep them (a leak). Predicate shared with the rule (kinds.ts).
       if (isMrzShaped(value)) return fakeMrz(value, a);
       // A CHECKSUMMED id (NIR, SIREN/SIRET, TVA, RIB, CPF, ABN…) gets a fake
       // that passes the SAME checksum (fakes/checksummed) — the fakeCard/

@@ -17,8 +17,8 @@ describe("buildCodexArgs", () => {
 
   it("l'isolement mesuré : éphémère, config utilisateur et règles ignorées, hors git", () => {
     const args = buildCodexArgs(base);
-    // `--ignore-user-config` n'empêche PAS l'auth (« auth still uses CODEX_HOME ») :
-    // c'est le pendant du `--safe-mode` de claude.
+    // `--ignore-user-config` does NOT block auth ("auth still uses CODEX_HOME"):
+    // it's the counterpart of claude's `--safe-mode`.
     for (const f of ["--ephemeral", "--ignore-user-config", "--ignore-rules", "--skip-git-repo-check"])
       expect(args).toContain(f);
   });

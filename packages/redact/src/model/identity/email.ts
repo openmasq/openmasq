@@ -140,11 +140,11 @@ export function buildFakeEmail(
       fakeCap = pool[(h + attempt) % pool.length];
       for (let k = 0; k < pool.length; k++) {
         const cand = pool[(h + attempt + k) % pool.length];
-        // ⚠️ Tester les DEUX formes. Ce qui atterrit dans la partie locale est la forme
-        // PLIÉE (`valere`), pas le candidat du pool (`Valère`) : n'interroger que ce
-        // dernier fait passer le garde à côté de la chaîne qu'il est censé protéger, et
-        // deux personnes se retrouvent avec la même adresse. On sur-évite plutôt que de
-        // percuter — c'est le sens sûr.
+        // ⚠️ Test BOTH forms. What lands in the local part is the FOLDED
+        // form (`valere`), not the pool candidate (`Valère`): checking only the
+        // latter makes the guard miss the exact string it's supposed to protect, and
+        // two people end up with the same address. Over-avoiding beats
+        // colliding — it's the safe direction.
         const asMinted = foldAccents(cand.toLowerCase());
         if (cand.toLowerCase() === part.toLowerCase()) continue;
         if (isTaken(cand) || isTaken(asMinted)) continue;
@@ -153,12 +153,12 @@ export function buildFakeEmail(
       }
     }
     nameIdx++;
-    // ⚠️ Les diacritiques sont PLIÉS ici, et seulement ici : une partie locale accentuée
-    // (« valère.sauvestre@ ») n'est pas une adresse que les systèmes acceptent, et le
-    // premier outil qui la normalise produit une chaîne qui n'est plus une clé de coffre —
-    // le faux ne se restitue plus. Le nom AFFICHÉ de la personne garde son accent (c'est
-    // de la prose, `buildFakeName`) ; l'adresse, non. Les pools rares ont rendu le cas
-    // fréquent, il ne l'était pas avec « Tom » ou « Hugo ».
+    // ⚠️ Diacritics are FOLDED here, and only here: an accented local part
+    // (« valère.sauvestre@ ») is not an address systems accept, and the
+    // first tool that normalises it produces a string that is no longer a vault key —
+    // the fake stops reversing. The person's DISPLAYED name keeps its accent (that's
+    // prose, `buildFakeName`); the address doesn't. The rare-name pools made the case
+    // common, it wasn't with « Tom » or « Hugo ».
     return foldAccents(fakeCap.toLowerCase());
   });
   // Domain after the `@`: reuse this real domain's canonical fake; else, under the

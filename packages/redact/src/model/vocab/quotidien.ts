@@ -26,7 +26,7 @@
  *    are the classic French occupational surnames; the roster already refuses them.
  */
 export const QUOTIDIEN_TERMS: string[] = [
-  // ── Cuisine : gestes, cuissons, ustensiles ────────────────────────────────
+  // ── Cooking: actions, cooking methods, utensils ────────────────────────────────
   "émincer", "eminacer", "emincer", "ciseler", "hacher", "râper", "raper", "peler",
   "éplucher", "eplucher", "trancher", "découper", "decouper", "fouetter", "battre",
   "pétrir", "petrir", "pétrissage", "petrissage", "malaxer", "incorporer", "mélanger", "melanger", "remuer",
@@ -44,8 +44,8 @@ export const QUOTIDIEN_TERMS: string[] = [
   "pate feuilletee", "garniture", "assaisonnement", "marinade", "recette",
   "ingrédient", "ingredient", "ingrédients", "ingredients",
 
-  // ── Cuisine : aliments et préparations. ⚠️ Voir l'en-tête : ni fruits, ni
-  //    fleurs, ni métiers — ce sont des prénoms et des patronymes français.
+  // ── Cooking: foods and preparations. ⚠️ See the header: no fruits, no
+  //    flowers, no trades — those are French given names and surnames.
   "moutarde", "mayonnaise", "vinaigrette", "béchamel", "bechamel", "persillade",
   "bouillon", "fond de veau", "court-bouillon", "coulis", "purée", "puree",
   "gratin", "quiche", "tarte", "clafoutis", "crumble", "compote", "confiture",
@@ -62,7 +62,7 @@ export const QUOTIDIEN_TERMS: string[] = [
   "huile d'olive", "vinaigre balsamique", "sauce soja", "crème fraîche",
   "creme fraiche", "beurre demi-sel", "gruyère râpé", "gruyere rape",
 
-  // ── Bricolage : outils, matériaux, gestes ─────────────────────────────────
+  // ── DIY: tools, materials, actions ─────────────────────────────────
   "poncer", "ponçage", "poncage", "dégraisser", "degraisser", "décaper", "decaper",
   "lessiver", "spatuler", "enduire", "spackler", "rebouchage", "rebouchez",
   "sous-couche", "primaire d'accrochage", "peinture acrylique", "peinture glycéro",
@@ -80,7 +80,7 @@ export const QUOTIDIEN_TERMS: string[] = [
   "chaudiere", "radiateur", "purger", "disjoncteur", "tableau électrique",
   "tableau electrique", "prise de courant", "interrupteur", "gaine", "goulotte",
 
-  // ── Jardin, animaux ───────────────────────────────────────────────────────
+  // ── Garden, animals ───────────────────────────────────────────────────────
   "semer", "repiquer", "bouturer", "tailler", "élaguer", "elaguer", "désherber",
   "desherber", "biner", "pailler", "arroser", "rempoter", "greffer", "récolte",
   "recolte", "floraison", "potager", "jardinière", "jardiniere", "compost",
@@ -104,7 +104,7 @@ export const QUOTIDIEN_TERMS: string[] = [
   "championnat", "tournoi", "poule", "poules", "élimination directe",
   "elimination directe", "classement", "vestiaire", "licence sportive",
 
-  // ── Automobile, transport ─────────────────────────────────────────────────
+  // ── Car, transport ─────────────────────────────────────────────────
   "embrayage", "boîte de vitesses", "boite de vitesses", "courroie",
   "courroie de distribution", "plaquette de frein", "plaquettes de frein",
   "disque de frein", "amortisseur", "amortisseurs", "suspension", "géométrie",
@@ -118,14 +118,14 @@ export const QUOTIDIEN_TERMS: string[] = [
   "créneau de décollage", "creneau de decollage", "embarquement", "escale",
   "soute", "bagage à main", "bagage a main",
 
-  // ── Météo, saisons ────────────────────────────────────────────────────────
+  // ── Weather, seasons ────────────────────────────────────────────────────────
   "averse", "averses", "éclaircie", "eclaircie", "accalmie", "redoux", "verglas",
   "grésil", "gresil", "giboulée", "giboulee", "bruine", "crachin", "rafale",
   "rafales", "bourrasque", "canicule", "caniculaire", "sécheresse", "secheresse",
   "nappe phréatique", "nappe phreatique", "rosée", "rosee", "gelée", "gelee",
   "brouillard", "orage", "grêle", "grele", "houle", "marée", "maree", "ciel couvert",
 
-  // ── Maison, mobilier, ménage ──────────────────────────────────────────────
+  // ── House, furniture, housekeeping ──────────────────────────────────────────────
   "canapé", "canape", "fauteuil", "commode", "étagère", "etagere", "penderie",
   "matelas", "sommier", "couette", "oreiller", "traversin", "housse", "rideau",
   "rideaux", "store", "volet", "volets", "luminaire", "applique", "abat-jour",
@@ -133,21 +133,21 @@ export const QUOTIDIEN_TERMS: string[] = [
   "lessive", "adoucissant", "détartrant", "detartrant", "poubelle", "tri sélectif",
   "tri selectif", "encombrant", "déchetterie", "dechetterie", "gravats",
 
-  // ── Vêtements ─────────────────────────────────────────────────────────────
+  // ── Clothing ─────────────────────────────────────────────────────────────
   "manteau", "doudoune", "parka", "imperméable", "impermeable", "pull", "maille",
   "côtelée", "cotelee", "chemisier", "pantalon", "velours", "jean brut", "bottine",
   "bottines", "basket", "baskets", "mocassin", "escarpin", "écharpe", "echarpe",
   "ourlet", "retouche", "fermeture éclair", "fermeture eclair", "doublure",
   "encolure", "taille", "pointure", "essayage", "cabine",
 
-  // ── Achats, livraison, service client ─────────────────────────────────────
+  // ── Shopping, delivery, customer service ─────────────────────────────────────
   "centre de tri", "colis", "suivi de commande", "remise en main propre",
   "point relais", "bon de commande", "avoir", "remboursement", "réclamation",
   "reclamation", "garantie", "main-d'œuvre", "main-d'oeuvre", "pièce détachée",
   "piece detachee", "devis", "pose", "dépose", "depose", "livraison", "expédition",
   "expedition", "retour", "échange", "echange", "remise", "solde", "soldes",
 
-  // ── Autres langues — le noyau du quotidien ────────────────────────────────
+  // ── Other languages — the everyday core ────────────────────────────────
   // EN
   "preheat", "whisk", "simmer", "sauté", "saute", "knead", "sift", "baking tray",
   "frying pan", "saucepan", "gearbox", "clutch", "brake pads", "windscreen",

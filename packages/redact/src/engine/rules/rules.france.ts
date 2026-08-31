@@ -78,7 +78,7 @@ export const FRANCE_RULES: RedactionRule[] = [
   // FR+11 structure carry the precision; shape-only keeps frVat above). Complements the
   // `gi` EU rule (rules.identifiers.ts): its match can start INSIDE a lowercase word
   // and the consumed span shadows the real number in its own pass — this independent
-  // scan is the recovery. Résiduel : faux TVA indépendant du faux SIREN voisin.
+  // scan is the recovery. Residual: the fake VAT is independent of the neighbouring fake SIREN.
   {
     type: "company_id",
     pattern: gate("tva|vat|intracom(?:munautaire)?", String.raw`FR(?:${SP}?\d){11}\b`),
@@ -128,10 +128,10 @@ export const FRANCE_RULES: RedactionRule[] = [
     ),
     validate: (m) => maxOneWrap(m) && sirenSiret(m.replace(/\D/g, "").slice(0, 9)),
   },
-  // Carte professionnelle immobilière (loi Hoquet) — « CPI 6902 2018 000 024 618 » :
-  // greffe(4) année(4) numéro(3 3 3). Structure stricte + mot-clé adjacent ; pas de
-  // checksum publié pour ce schéma, la forme 4-4-3-3-3 est le second facteur. Même
-  // lookbehind COURT que « RC » ci-dessus, pour la même raison de coût.
+  // Carte professionnelle immobilière (loi Hoquet) — « CPI 6902 2018 000 024 618 »:
+  // registry(4) year(4) number(3 3 3). Strict structure + adjacent keyword; no
+  // published checksum for this scheme, the 4-4-3-3-3 form is the second factor. Same
+  // SHORT lookbehind as « RC » above, for the same cost reason.
   {
     type: "national_id",
     pattern: new RegExp(

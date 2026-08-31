@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { DEFAULT_ENV, readEnvPointer, readEnvPointerFull, writeEnvPointer, ENV_POINTER_FILE, type PointerIo } from "./environment";
 import { BRAND } from "@openmasq/branding";
 
-/** Un faux disque : ce que le pointeur lit et écrit, sans toucher au vrai. */
+/** A fake disk: what the pointer reads and writes, without touching the real one. */
 function fakeIo(seed?: Record<string, string>) {
   const files = new Map<string, string>(Object.entries(seed ?? {}));
   const io: PointerIo = {
@@ -103,7 +103,7 @@ describe("readEnvPointerFull — la pile AUTO-HÉBERGÉE dans le pointeur", () =
     expect(writeEnvPointer(BASE, "staging", io, STACK)).toBe(true);
     expect(JSON.parse(files.get(AT)!)).toEqual({ env: "staging", custom: STACK });
     expect(readEnvPointerFull(BASE, DEFAULT_ENV, io, true)).toEqual({ env: "staging", custom: STACK });
-    // …et l'oublier est explicite : sans pile, le fichier ne la porte plus.
+    // …and forgetting it is explicit: without a stack, the file no longer carries it.
     expect(writeEnvPointer(BASE, "production", io, null)).toBe(true);
     expect(JSON.parse(files.get(AT)!)).toEqual({ env: "production" });
   });

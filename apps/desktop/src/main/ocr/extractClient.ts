@@ -10,18 +10,18 @@ import { isAppQuitting } from "../runtime/quitState";
 import { BRAND } from "@openmasq/branding";
 
 /**
- * CLIENT du worker d'extraction (`extractWorker.ts`) — le pendant documents de
- * `../localNer.ts`, pour la même raison : l'extraction d'un scan coûtait des rafales de
- * ~1 s de CPU synchrone DANS main (ping IPC mesuré à 1 100 ms pendant l'OCR, 13/08), et
- * main est le processus qui tient l'IPC, les menus et les fenêtres. Fork paresseux,
- * relais `{id, progress|résultat}`, éviction d'inactivité (tesseract WASM + sessions
- * onnxruntime docTR = un plancher RAM qu'on rend), mort inattendue rapportée NOMMÉE.
+ * CLIENT of the extraction worker (`extractWorker.ts`) — the documents counterpart of
+ * `../localNer.ts`, for the same reason: extracting a scan cost bursts of
+ * ~1 s of synchronous CPU IN main (IPC ping measured at 1,100 ms during OCR, 13/08), and
+ * main is the process holding IPC, menus and windows. Lazy fork,
+ * `{id, progress|result}` relay, idle eviction (tesseract WASM + docTR onnxruntime
+ * sessions = a RAM floor we give back), an unexpected death reported NAMED.
  *
- * ⚠️ REPLI IN-PROCESS, et il est VOULU : si le worker ne peut pas NAÎTRE (spawn raté,
- * bundle absent), l'extraction retombe sur l'ancien chemin dans main — même code, mêmes
- * privilèges, aucun invariant de sécurité traversé ; on retrouve seulement la latence
- * d'avant. Une pièce jointe qui ne s'attache plus serait une régression pire que du jank.
- * (Rien à voir avec le NER, où le repli équivalent serait un FAIL-OPEN de redaction.)
+ * ⚠️ IN-PROCESS FALLBACK, and it is INTENDED: if the worker can't be BORN (spawn failed,
+ * bundle missing), extraction falls back to the old path in main — same code, same
+ * privileges, no security invariant crossed; we just get back the old latency.
+ * An attachment that no longer attaches would be a worse regression than jank.
+ * (Nothing to do with NER, where the equivalent fallback would be a redaction FAIL-OPEN.)
  */
 
 type Reply =
@@ -36,10 +36,10 @@ interface Pending {
   timer: ReturnType<typeof setTimeout>;
 }
 
-// Backstop seulement (un worker coincé sans mourir) : l'OCR d'un gros scan sur un poste
-// faible (Intel/WASM) se compte en minutes — large, jamais la borne nominale.
+// Backstop only (a worker stuck without dying): OCR on a big scan on a
+// low-power machine (Intel/WASM) is counted in minutes — generous, never the nominal bound.
 const EXTRACT_TIMEOUT_MS = 6 * 60 * 1000;
-// Tesseract WASM + les sessions docTR pèsent : on rend la RAM après cette inactivité.
+// Tesseract WASM + docTR sessions are heavy: we give back the RAM after this idle period.
 const IDLE_MS = 5 * 60 * 1000;
 const STDERR_RING_MAX = 2000;
 let stderrRing = "";
@@ -48,10 +48,10 @@ let child: UtilityProcess | null = null;
 let seq = 0;
 let inflight = 0;
 let idleTimer: NodeJS.Timeout | null = null;
-/** Le fork a échoué une fois ⇒ in-process pour la session (rapporté UNE fois). */
+/** The fork failed once ⇒ in-process for the session (reported ONCE). */
 let workerBroken = false;
-/** Le worker a déjà rendu AU MOINS un résultat — ce qui sépare « il ne naît pas ici »
- *  (repli in-process) de « il est mort en route » (le prochain fork repart). */
+/** The worker has already returned AT LEAST one result — this is what separates "it never
+ *  gets born here" (in-process fallback) from "it died en route" (the next fork tries again). */
 let everServed = false;
 const pending = new Map<number, Pending>();
 
@@ -65,7 +65,7 @@ function rejectAll(err: Error): void {
 
 function killChild(): void {
   const c = child;
-  child = null; // détaché AVANT kill : l'exit devient « attendu » pour le rapporteur
+  child = null; // detached BEFORE kill: the exit becomes "expected" for the reporter
   rejectAll(new Error("worker d'extraction arrêté"));
   if (c) {
     try {
@@ -78,19 +78,19 @@ function killChild(): void {
 
 function ensureChild(): UtilityProcess {
   if (child) return child;
-  const worker = join(__dirname, "extractWorker.js"); // émis par electron-vite (entrée main)
+  const worker = join(__dirname, "extractWorker.js"); // emitted by electron-vite (main entry)
   const c = utilityProcess.fork(worker, [], {
     serviceName: `${BRAND.slug}-extract`,
-    // Env MINIMAL : les seuls chemins/pins d'assets OCR que `runtime/ocrAssets.ts` a posés
-    // sur process.env au whenReady — JAMAIS l'env entier (secrets). Absents (dev sans
-    // bake) ⇒ le worker suit les mêmes replis que main (CDN dev / Tesseract-only).
+    // MINIMAL env: only the OCR asset paths/pins that `runtime/ocrAssets.ts` set
+    // on process.env at whenReady — NEVER the whole env (secrets). Absent (dev without
+    // a bake) ⇒ the worker follows the same fallbacks as main (dev CDN / Tesseract-only).
     env: Object.fromEntries(
       ["OPENMASQ_TESSERACT_LANG_PATH", "OPENMASQ_DOCTR_MODEL_PATH", "OPENMASQ_DOCTR_INTEGRITY", "OPENMASQ_DOCTR_REQUIRE_PIN"]
         .filter((k) => process.env[k])
         .map((k) => [k, process.env[k] as string]),
     ),
-    // Même contrat que le worker NER : le worker n'écrit JAMAIS le texte extrait sur
-    // stdout/stderr — l'anneau borné n'est relu que dans le rapport d'une mort anormale.
+    // Same contract as the NER worker: the worker NEVER writes the extracted text to
+    // stdout/stderr — the bounded ring is only read back in the report of an abnormal death.
     stdio: app.isPackaged ? "pipe" : "inherit",
   });
   if (app.isPackaged) {
@@ -169,7 +169,7 @@ async function run(
   }
 }
 
-/** Le repli in-process a-t-il pris la main pour cette requête ? Voir l'en-tête. */
+/** Has the in-process fallback taken over for this request? See the header. */
 async function withFallback(
   viaWorker: () => Promise<ExtractedFile>,
   inProcess: () => Promise<ExtractedFile>,
@@ -178,9 +178,9 @@ async function withFallback(
   try {
     return await viaWorker();
   } catch (e) {
-    // Un worker qui n'a JAMAIS servi = il ne naît pas ici (bundle manquant, spawn
-    // refusé) : in-process pour la session, dit une fois. Un worker qui a déjà servi
-    // puis meurt, lui, reste sur le chemin worker (le prochain fork repart).
+    // A worker that has NEVER served = it isn't getting born here (missing bundle, spawn
+    // refused): in-process for the session, said once. A worker that has already served
+    // then dies, on the other hand, stays on the worker path (the next fork tries again).
     if (!everServed) {
       workerBroken = true;
       reportMainError("ocr", "worker-fallback-inprocess", e);
@@ -190,11 +190,11 @@ async function withFallback(
   }
 }
 
-/** Extraction d'un fichier sur disque — worker d'abord, in-process en repli de session. */
+/** Extraction of a file on disk — worker first, in-process as session fallback. */
 export function extractTextInWorker(
   filePath: string,
   onOcrProgress?: (done: number, pages: number) => void,
-  /** « Lire tout » : lever le plafond d'OCR — threadé tel quel jusqu'au moteur. */
+  /** "Read all": lift the OCR cap — threaded as-is through to the engine. */
   ocrAllPages?: boolean,
 ): Promise<ExtractedFile> {
   return withFallback(
@@ -203,7 +203,7 @@ export function extractTextInWorker(
   );
 }
 
-/** Extraction d'octets en mémoire (base64 côté appelant IPC) — même contrat. */
+/** Extraction of in-memory bytes (base64 on the IPC caller side) — same contract. */
 export function extractBytesInWorker(
   bytes: Uint8Array,
   name: string,

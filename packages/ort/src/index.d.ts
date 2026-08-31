@@ -1,21 +1,21 @@
-// Les types du moteur — parce que ce paquet PREND LA PLACE d'`onnxruntime-node` (override
-// pnpm), et qu'un remplaçant sans déclarations casse tout consommateur TypeScript du nom
-// remplacé : `packages/redact/src/ocr/doctr/engine.ts` importe `onnxruntime-node`, atterrit
-// ici, et `tsc` le refuse (TS7016 — un `.mjs` n'a pas de types). Vu en CI, pas en local :
-// seul le `typecheck` du paquet passe par là.
+// The engine's types — because this package TAKES THE PLACE of `onnxruntime-node`
+// (pnpm override), and a replacement with no declarations breaks every TypeScript
+// consumer of the replaced name: `packages/redact/src/ocr/doctr/engine.ts` imports
+// `onnxruntime-node`, lands here, and `tsc` rejects it (TS7016 — a `.mjs` has no types).
+// Seen in CI, not locally: only the package's `typecheck` goes through there.
 //
-// ⚠️ Ce fichier décrit la surface COMMUNE aux deux entrées, et rien de plus. `index.cjs`
-// ré-exporte tout le moteur sous-jacent (`{ ...impl }`) là où `index.mjs` n'en nomme que
-// quatre : déclarer la surface CJS pour les deux ferait promettre à l'importateur ESM des
-// symboles qui n'existeraient pas au chargement. `envelopperWasm` reste volontairement
-// dehors — c'est l'interne testé par `index.test.ts`, qui le prend sur `./index.cjs`
-// directement, pas une API.
+// ⚠️ This file describes the surface COMMON to both entries, and nothing more. `index.cjs`
+// re-exports the whole underlying engine (`{ ...impl }`) where `index.mjs` names only
+// four: declaring the CJS surface for both would make the ESM importer a promise of
+// symbols that wouldn't exist at load time. `envelopperWasm` deliberately stays
+// outside — it's the internal tested by `index.test.ts`, which takes it from `./index.cjs`
+// directly, not an API.
 import type * as OrtNative from "ort-native";
 
 /**
- * Le moteur retenu à l'exécution. `"wasm"` sur les couples plateforme/arch sans binding
- * natif (Mac Intel) — c'est la seule chose que ce paquet ajoute au moteur, et elle est
- * lisible pour qu'un appelant puisse la journaliser ou l'afficher.
+ * The engine picked at runtime. `"wasm"` on platform/arch pairs with no native
+ * binding (Mac Intel) — this is the only thing this package adds to the engine, and it's
+ * readable so a caller can log or display it.
  */
 export declare const OPENMASQ_ORT_BACKEND: "native" | "wasm";
 

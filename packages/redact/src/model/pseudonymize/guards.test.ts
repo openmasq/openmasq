@@ -23,13 +23,13 @@ describe("buildAvoidGuard — the CURRENT input is part of the collision word se
 
 describe("…et un mot de faux NEUF d'un NOM respecte `avoid` (17/08/2026)", () => {
   /**
-   * NAME/EMAIL sont exemptés du garde `avoid` sur le candidat ENTIER, pour une raison
-   * qui tient : rejeter le faux canonique scinderait la personne en deux identités.
-   * L'exemption laissait pourtant un trou — mesuré au banc des contrats : un mot de faux
-   * NEUF pouvait tomber sur un mot déjà présent dans la CONVERSATION, et le coffre global
-   * re-redacted ensuite ce mot-là partout. C'est exactement ce que `avoid` existe pour
-   * empêcher. La contrainte est donc posée sur `mintTaken`, consulté UNIQUEMENT au choix
-   * d'un mot neuf — jamais à la réutilisation d'un canonique.
+   * NAME/EMAIL are exempt from the `avoid` guard on the WHOLE candidate, for a reason
+   * that holds: rejecting the canonical fake would split the person into two identities.
+   * The exemption did leave a hole though — measured on the contracts bench: a NEW
+   * fake word could land on a word already present in the CONVERSATION, and the global
+   * vault then re-redacts that word everywhere. That's exactly what `avoid` exists to
+   * prevent. The constraint is therefore placed on `mintTaken`, consulted ONLY when picking
+   * a new word — never on the reuse of a canonical one.
    */
   const MOTS = ["Chastanet", "Aubertin", "Fressineau", "Sauvestre", "Delsart", "Malbrancq"];
 
@@ -44,8 +44,8 @@ describe("…et un mot de faux NEUF d'un NOM respecte `avoid` (17/08/2026)", () 
   });
 
   it("⚠️ et l'identité ne se scinde pas pour autant — c'est la raison de l'exemption", async () => {
-    // Le faux canonique n'est PAS soumis au garde : la même personne, revue au tour
-    // suivant, garde son faux.
+    // The canonical fake is NOT subject to the guard: the same person, seen again the
+    // next turn, keeps their fake.
     const vault: Record<string, string> = {};
     const opts = {
       avoid: [MOTS.join(" ")],

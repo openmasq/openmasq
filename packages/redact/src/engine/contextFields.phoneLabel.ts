@@ -2,23 +2,23 @@ import type { Detection } from "../types";
 import { acceptFieldValue, cleanValue } from "./contextFields";
 
 /**
- * Le libellé TÉLÉPHONE **sans deux-points** — « Telefon 0734 82 57 190 »,
- * « Telefono 340 118 27 64 ». L'allemand et l'italien collent le libellé au numéro ; la
- * branche internationale de `phones.ts` exige un `+` ou un `00`, et la branche nationale
- * est spécifique à la France. Ces numéros n'avaient donc aucun détecteur.
+ * The PHONE label **with no colon** — « Telefon 0734 82 57 190 »,
+ * « Telefono 340 118 27 64 ». German and Italian glue the label to the number; the
+ * international branch of `phones.ts` requires a `+` or a `00`, and the national branch
+ * is specific to France. These numbers therefore had no detector.
  *
- * Ils n'ont été VUS qu'en corrigeant la capture gloutonne du détecteur de champs : ils
- * étaient jusque-là « détectés » par accident, en chevauchant dans la valeur d'adresse
- * voisine — le faux effaçait alors le libellé et le numéro en même temps que l'adresse.
- * Un span correct a fait apparaître la fuite qui se cachait derrière.
+ * They were only SEEN by fixing the field detector's greedy capture: they
+ * were until then "detected" by accident, by overlapping into the neighbouring
+ * address value — the fake then erased the label and the number along with the address.
+ * A correct span made the leak hiding behind it visible.
  *
- * ⚠️ **La garde porte sur la VALEUR, jamais sur le libellé.** Uniquement un run de
- * chiffres et de séparateurs, ≥ 7 caractères, AUCUNE lettre. Sans elle « Mobile 12 mois
- * inclus » deviendrait un numéro de téléphone. C'est aussi pourquoi la branche est
- * réservée à PHONE : c'est la seule catégorie dont la valeur ne peut pas porter de
- * lettre, donc la seule où un séparateur aussi faible qu'une espace reste sûr.
+ * ⚠️ **The guard is on the VALUE, never on the label.** Only a run of
+ * digits and separators, ≥ 7 characters, NO letter. Without it « Mobile 12 mois
+ * inclus » would become a phone number. This is also why the branch is
+ * reserved for PHONE: it's the only category whose value can never carry a
+ * letter, so the only one where a separator as weak as a space stays safe.
  *
- * Négatifs et positifs épinglés dans `contextFields.test.ts`.
+ * Negatives and positives pinned in `contextFields.test.ts`.
  */
 export function pushBarePhoneLabels(
   text: string,
@@ -26,8 +26,8 @@ export function pushBarePhoneLabels(
   seen: Set<string>,
   out: Detection[],
 ): void {
-  // NBSP et espace fine insécable incluses : ce sont les séparateurs de groupes que
-  // l'extraction PDF française émet verbatim.
+  // NBSP and narrow no-break space included: these are the group separators that
+  // French PDF extraction emits verbatim.
   const re = new RegExp(
     `(?<![\\p{L}])(?:${alt})[^\\S\\r\\n]+((?:\\+|00)?\\d[\\d.()\\u00a0\\u202f -]{6,24}\\d)(?![\\d-])`,
     "giu",

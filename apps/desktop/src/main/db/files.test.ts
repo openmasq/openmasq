@@ -58,8 +58,8 @@ describe("dbSaveFile → dbLoadFile extraction round-trip", () => {
   });
 
   it("un scan SANS texte mais AVEC carte est stocké quand même — l'image se repeint aussi", async () => {
-    // Une image redacted peut n'avoir aucun texte primaire ; jeter son extraction
-    // jetterait la seule source de peinture de la Bibliothèque.
+    // A redacted image may have no primary text at all; discarding its extraction
+    // would discard the Library's only source for painting it.
     const redactions = [{ real: "123 rue X", fake: "9 rue Y", kind: "location" }];
     await dbSaveFile({ ...base, id: "f5", extraction: { text: "", redactions } });
     expect((await dbLoadFile("f5"))!.extraction).toMatchObject({ redactions });

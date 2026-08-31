@@ -34,26 +34,26 @@ export function deepLinkTarget(url: string, scheme: string): DeepLinkHost | null
 }
 
 /**
- * Faut-il s'enregistrer comme handler du schéma de l'app auprès du système ?
+ * Should we register as the handler for the app's URL scheme with the OS?
  *
- * ⚠️ **Sur macOS, `path`/`args` de `setAsDefaultProtocolClient` sont IGNORÉS (Windows
- * seulement) : c'est le BUNDLE qui tourne qui est enregistré.** Non packagé, ce bundle est
- * `node_modules/electron/dist/Electron.app` — un Electron nu. Un `pnpm dev` volait donc le
- * schéma à l'app installée, et cliquer le lien d'un e-mail ouvrait l'écran « To run a local
- * app, execute the following on the command line » : le handler pointait sur un Electron
- * sans app. L'enregistrement LaunchServices étant PERSISTANT, ça survivait à l'arrêt du dev
- * — et avec un worktree par session, c'était le node_modules du DERNIER worktree lancé.
+ * ⚠️ **On macOS, `path`/`args` of `setAsDefaultProtocolClient` are IGNORED (Windows
+ * only): it's the running BUNDLE that gets registered.** Unpackaged, that bundle is
+ * `node_modules/electron/dist/Electron.app` — a bare Electron. A `pnpm dev` therefore stole the
+ * scheme from the installed app, and clicking an email link opened the "To run a local
+ * app, execute the following on the command line" screen: the handler pointed at an Electron
+ * with no app. Since the LaunchServices registration is PERSISTENT, it survived stopping dev
+ * — and with one worktree per session, it was the node_modules of the LAST worktree launched.
  *
- * Donc : macOS non packagé ⇒ on ne s'enregistre pas, et on se DÉSENREGISTRE (le dev signe
- * avec le CODE reçu par e-mail, pas le lien — `apps/desktop/CLAUDE.md`). Windows et Linux
- * gardent l'enregistrement dev, qui y honore bien execPath + l'entrée de l'app.
+ * So: unpackaged macOS ⇒ we don't register, and we DEREGISTER (dev signs in
+ * with the CODE received by email, not the link — `apps/desktop/CLAUDE.md`). Windows and Linux
+ * keep the dev registration, which there correctly honors execPath + the app entry.
  */
 export type ProtocolAction = "register" | "unregister" | "skip";
 
 export function protocolAction(o: {
   packaged: boolean;
   platform: NodeJS.Platform;
-  /** Le chemin de l'app, absolu et existant — sinon on ne peut rien déclarer de sensé. */
+  /** The app's path, absolute and existing — otherwise nothing sensible can be declared. */
   devEntry: string | null;
 }): ProtocolAction {
   if (o.packaged) return "register";

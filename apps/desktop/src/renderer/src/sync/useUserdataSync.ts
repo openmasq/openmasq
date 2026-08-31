@@ -1,7 +1,7 @@
 /**
  * Drives the USERDATA studio channel off the chat store (sibling of `useConvSync`).
- * Compétences (routines comprises) et mémoire vivent comme des champs des Settings du
- * compte : pull the E2E `@userdata` scope (merged snapshot → `setSettings`), push the delta after a
+ * Compétences (routines included) and mémoire live as fields of the
+ * account's Settings: pull the E2E `@userdata` scope (merged snapshot → `setSettings`), push the delta after a
  * local change settles. Best-effort; a total no-op without a passphrase / signed out.
  * Echo-safe: absorbed records align the ledger, so applying a pull never re-emits.
  *
@@ -33,9 +33,9 @@ export function useUserdataSync(store: Store): void {
         setRef.current((s) => ({ ...s, ...(settingsPatchOf(snap) as Partial<Settings>) }));
       }),
     push: () => void pushUserdataStudio(snapshotOfSettings(settingsRef.current)),
-    // Une seule liste depuis la fusion : `settings.workflows` n'est plus écrit
-    // (la reprise le vide au chargement), le garder en dépendance ne réveillerait
-    // qu'un push à vide.
+    // A single list since the merge: `settings.workflows` is no longer written
+    // (recovery empties it on load), keeping it as a dependency would only
+    // wake up an empty push.
     pushDeps: [store.settings.competences, store.settings.memoire],
   });
 }

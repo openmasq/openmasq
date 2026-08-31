@@ -60,8 +60,8 @@ export const APAC_RULES: RedactionRule[] = [
   cid(re(String.raw`\b[TSR]\d{2}[A-Z]{2}\d{4}[A-Z]\b`)),
   cid(gate("uen|unique entity number", String.raw`\d{8,9}[A-Z]`)),
   // Thailand — TNIN (13 digits, weighted mod-11 checksum). `!isEpochMs`: an epoch-ms
-  // timestamp is ALSO a bare 13-digit run and passes the mod-11 ~1/11 — file révisions
-  // in tool results were sporadically redacted « national_id » (journal 01/08).
+  // timestamp is ALSO a bare 13-digit run and passes the mod-11 ~1/11 — tool-result file
+  // revisions were sporadically redacted as "national_id" (log 01/08).
   nid(
     re(String.raw`\b[1-9](?:[134][0-9]|2[0-7]|5[0-8]|[67][01234567]|[89][0123456])\d{10}\b`),
     (m) => thTninValid(m) && !isEpochMs(m),

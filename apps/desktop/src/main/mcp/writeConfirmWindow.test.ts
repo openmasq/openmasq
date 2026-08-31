@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // The real confirmation opens a BrowserWindow; these tests inject the impl instead, so the
 // electron import only needs to RESOLVE (never be called). Mock it so the module loads in a
 // plain-node vitest context.
-// `app` : tiré par la politique DevTools (devtools.ts) — le mock usine énumère ce que la chaîne touche.
+// `app`: pulled in by the DevTools policy (devtools.ts) — the factory mock enumerates what the chain touches.
 vi.mock("electron", () => ({ BrowserWindow: class {}, app: {} }));
 
 import {

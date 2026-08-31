@@ -1,14 +1,14 @@
 import type { Host } from "@openmasq/ui";
 
 /**
- * Les deux SOURCES DE FICHIERS de l'hôte : les dossiers accordés sur cette machine et les
- * stockages connectés. Sorties de `main.tsx` (règle 1 : il ne pouvait plus grossir), et
- * ensemble parce qu'elles répondent à la même question côté UI — le panneau « Dossiers »
- * les affiche l'une sous l'autre.
+ * The host's two FILE SOURCES: folders granted on this machine and connected
+ * storages. Moved out of `main.tsx` (rule 1: it could no longer grow), and
+ * grouped together because they answer the same question on the UI side — the "Folders"
+ * panel shows them one below the other.
  *
- * ⚠️ Chacune est gardée sur SON namespace : le preload ne se recharge pas à chaud, donc un
- * preload antérieur à l'une d'elles doit la laisser ABSENTE — l'UI dégrade alors (le groupe
- * n'est pas navigable) au lieu d'appeler des méthodes qui n'existent pas.
+ * ⚠️ Each is guarded on ITS OWN namespace: the preload doesn't hot-reload, so a
+ * preload predating one of them must leave it ABSENT — the UI then degrades (the group
+ * isn't navigable) instead of calling methods that don't exist.
  */
 export function fileSourceSlots(): Pick<Host, "localFs" | "cloudFs"> {
   const bridge = window.openmasq;

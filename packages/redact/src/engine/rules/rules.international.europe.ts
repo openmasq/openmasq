@@ -63,27 +63,27 @@ export const EUROPE_RULES: RedactionRule[] = [
     type: "company_id",
     pattern: gate("cif|nif", String.raw`[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]\b`),
   },
-  // Spain — NUSS / número de afiliación a la Seguridad Social. L'équivalent EXACT du NIR
-  // français, que le moteur redacted depuis toujours : il figure sur chaque bulletin de
-  // paie, chaque contrat et chaque document de la Seguridad Social espagnole, et aucune
-  // règle ne le voyait — mesuré le 17/08/2026 sur une nómina réelle en colonnes, sous son
-  // propre libellé « Nº Seguridad Social ».
+  // Spain — NUSS / número de afiliación a la Seguridad Social. The EXACT equivalent of the
+  // French NIR, which the engine has always redacted: it appears on every payslip,
+  // every contract and every Spanish Seguridad Social document, and no
+  // rule saw it — measured on 17/08/2026 on a real nómina in columns, under its
+  // own label « Nº Seguridad Social ».
   //
-  // GARDÉ PAR LE MOT-CLÉ, pas par une somme de contrôle : le NUSS en a bien une (mod 97
-  // sur le corps), mais aucun vecteur publié ne permet de la VÉRIFIER ici, et une clé
-  // implémentée d'après une description laisserait passer les vrais numéros qu'elle
-  // calcule de travers — c'est-à-dire une fuite déguisée en règle. La barre de précision
-  // prévoit ce cas : une suite de chiffres banale est gardée par le mot du schéma.
-  // L'écriture réelle est 2 (province) + 7 ou 8 (séquence) + 2 (contrôle), séparés par
-  // espace, barre, point ou tiret — ou collés.
+  // GATED BY THE KEYWORD, not by a checksum: the NUSS does have one (mod 97
+  // on the body), but no published test vector lets us VERIFY it here, and a check
+  // implemented from a description would let through the real numbers it
+  // computes wrong — i.e. a leak disguised as a rule. The precision bar
+  // covers this case: a banal digit run is gated by the scheme's word.
+  // The real-world form is 2 (province) + 7 or 8 (sequence) + 2 (check), separated by
+  // space, slash, dot or dash — or glued.
   nid(
     gate(
-      // ⚠️ `n.a.f.` est l'ABRÉVIATION que les imprimés espagnols utilisent réellement pour
-      // le número de afiliación — le libellé en toutes lettres est l'exception, pas la
-      // règle. Sans elle, la garde posée le matin même ne couvrait que la moitié des
-      // documents où le numéro apparaît (contrat, nómina, alta en la Seguridad Social).
-      // Aucun risque du côté du « code NAF » FRANÇAIS : celui-ci vaut 4 chiffres + une
-      // lettre (6201Z), qui ne peut pas satisfaire les 11-12 chiffres exigés ci-dessous.
+      // ⚠️ `n.a.f.` is the ABBREVIATION Spanish forms actually use for
+      // the número de afiliación — the label spelled out in full is the exception, not the
+      // rule. Without it, the gate added that same morning only covered half the
+      // documents where the number appears (contract, nómina, alta en la Seguridad Social).
+      // No risk on the FRENCH « code NAF » side: that one is 4 digits + a
+      // letter (6201Z), which can't satisfy the 11-12 digits required below.
       "seguridad social|n[uú]mero de afiliaci[oó]n|afiliaci[oó]n|nuss|n\\.?\\s?a\\.?\\s?f\\.?",
       String.raw`\d{2}[ /.\-]?\d{7,8}[ /.\-]?\d{2}\b`,
     ),
@@ -96,18 +96,18 @@ export const EUROPE_RULES: RedactionRule[] = [
   nid(re(String.raw`\b[1-9]\d{10}\b`), deTaxIdValid),
   nid(gate("führerschein|fuehrerschein|fuhrerschein|driving licen|driver licen", String.raw`[A-Z]{2}\d{8}[A-Z0-9]`)),
   cid(re(String.raw`\bHR[AB]\s*\d{1,6}\b`)),
-  // ⚠️ L'espace après le préfixe est OBLIGATOIREMENT toléré : « USt-IdNr.: DE 123456789 »
-  // est une écriture courante des factures allemandes, et l'Allemagne était le SEUL pays
-  // du pack TVA (plus bas) à ne pas l'accepter — BE/PL/SE/DK/PT/NL/AT/ES/IE ont tous leur
-  // ` ?`. Un même numéro partait donc en clair ou redacted selon une espace.
+  // ⚠️ The space after the prefix MUST be tolerated: « USt-IdNr.: DE 123456789 »
+  // is a common way German invoices write it, and Germany was the ONLY country
+  // in the VAT pack (below) not to accept it — BE/PL/SE/DK/PT/NL/AT/ES/IE all have their
+  // ` ?`. So the same number went out in clear or redacted depending on a single space.
   cid(re(String.raw`\bDE ?\d{9}\b`)),
-  // La STEUERNUMMER — l'autre identifiant fiscal allemand, et le plus fréquent sur une
-  // facture : le §14 UStG en exige une des deux, et une TPE qui n'a pas d'USt-IdNr écrit
-  // celle-ci. Aucune règle ne la voyait. Gardée par son LIBELLÉ, pas par une clé : la
-  // partie « Land » est structurelle et il n'existe pas de somme de contrôle nationale
-  // publiée — une clé écrite d'après une description laisserait passer les vrais numéros
-  // qu'elle calculerait de travers. Les deux groupements officiels (10 et 11 chiffres),
-  // en barres obliques ou en espaces.
+  // The STEUERNUMMER — the other German tax id, and the most frequent one on an
+  // invoice: §14 UStG requires one of the two, and a small business without a USt-IdNr writes
+  // this one. No rule saw it. Gated by its LABEL, not by a check: the
+  // « Land » part is structural and there's no published national checksum —
+  // a check written from a description would let through the real numbers
+  // it would compute wrong. The two official groupings (10 and 11 digits),
+  // with slashes or spaces.
   cid(
     gate(
       "steuernummer|steuer-?nr|st\\.?-?nr",

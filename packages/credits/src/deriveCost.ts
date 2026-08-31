@@ -4,10 +4,10 @@ import type { TokenUsage } from "@openmasq/llm/wire";
 // Re-exported so the gateway (which depends on @openmasq/credits, not llm directly)
 // can skip the credit block for free models — the same single-source definition.
 //
-// ⚠️ DEUX prédicats, et ils ne répondent pas à la même question. `isFreeModel` = « ça ne
-// coûte rien à facturer » (prix 0/0). `isFreeModeModel` = « un compte sans abonnement ni
-// clé a le droit de l'exécuter sur NOTRE clé » — une liste nommée, plus courte. C'est le
-// second qui garde l'accès ; le premier reste la règle du compteur.
+// ⚠️ TWO predicates, and they don't answer the same question. `isFreeModel` = "it
+// costs nothing to bill" (price 0/0). `isFreeModeModel` = "an account with no
+// subscription or key is allowed to run it on OUR key" — a named list, shorter. It's the
+// second one that guards access; the first stays the meter's rule.
 export { isFreeModel, isFreeModeModel };
 
 // USD→EUR conversion for turning list prices into a budget. Approximate on

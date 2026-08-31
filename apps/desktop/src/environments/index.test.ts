@@ -15,10 +15,10 @@ describe("la table des environnements", () => {
   });
 
   it("aucune adresse n'a de défaut committé — un build sans variables n'a AUCUN service", () => {
-    // Le contrat open source (`index.ts`) : ce que la table porte, c'est ce que le BUILD
-    // a fourni, et rien d'autre. Un défaut de repli ferait parler chaque fork aux
-    // serveurs de la marque — et proposerait à ses utilisateurs un SaaS qui n'est pas
-    // le leur. Ce test compare donc à la variable, pas à une URL écrite ici.
+    // The open-source contract (`index.ts`): what the table carries is what the BUILD
+    // supplied, and nothing else. A fallback default would make every fork talk to the
+    // brand's servers — and would offer its users a SaaS that isn't
+    // theirs. This test therefore compares against the variable, not an URL written here.
     expect(ENVIRONMENTS.production.backend).toBe(process.env.OPENMASQ_BACKEND_URL ?? "");
     expect(ENVIRONMENTS.staging.backend).toBe(process.env.OPENMASQ_BACKEND_URL_STAGING ?? "");
     expect(ENVIRONMENTS.production.redactFn).toBe(process.env.OPENMASQ_GATEWAY_URL ?? "");
@@ -28,19 +28,19 @@ describe("la table des environnements", () => {
   it("chaque champ est une CHAÎNE, vide ou absolue — jamais `undefined`, jamais relative", () => {
     for (const [name, urls] of Object.entries(ENVIRONMENTS)) {
       for (const [field, value] of Object.entries(urls)) {
-        // Vide = la capacité n'existe pas dans ce build (état NORMAL). Non vide = une
-        // adresse absolue : une valeur relative se collerait à l'origine du renderer.
+        // Empty = the capability doesn't exist in this build (NORMAL state). Non-empty = an
+        // absolute address: a relative value would stick to the renderer's origin.
         expect(typeof value, `${name}.${field}`).toBe("string");
         if (value && field !== "supabaseAnonKey") {
           expect(value.startsWith("https://"), `${name}.${field}`).toBe(true);
         }
       }
-      // Le couple Supabase est vide ENSEMBLE : une URL sans clé (ou l'inverse) est un
-      // trou — l'auth échouerait à mi-chemin au lieu de ne pas exister.
+      // The Supabase pair is empty TOGETHER: a URL without a key (or the reverse) is a
+      // hole — auth would fail halfway instead of simply not existing.
       expect(!!urls.supabaseUrl, `${name} : URL et clé Supabase vont ensemble`).toBe(
         !!urls.supabaseAnonKey,
       );
-      // La console d'admin est SERVIE par le backend : elle en dérive, ou n'existe pas.
+      // The admin console is SERVED by the backend: it derives from it, or doesn't exist.
       expect(urls.admin, `${name}.admin`).toBe(urls.backend ? `${urls.backend}/admin` : "");
     }
   });

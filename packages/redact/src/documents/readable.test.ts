@@ -3,10 +3,10 @@ import { isUnreadableLayer, junkRatio } from "./readable";
 import { extractFromBytes, PDF_TEXT_MIN } from "./core";
 
 /**
- * Le cas réel (15/08/2026) : `read_document` sur un justificatif a rendu 854 caractères de
- * codes de glyphes — EN SUCCÈS. Une couche illisible est plus dangereuse qu'une couche
- * absente : absente, elle déclenche l'OCR ; illisible, elle l'empêche, et la PII de la page
- * n'est donc jamais examinée.
+ * The real case (15/08/2026): `read_document` on a supporting document returned 854 characters of
+ * glyph codes — SUCCESSFULLY. An unreadable layer is more dangerous than an
+ * absent one: absent, it triggers OCR; unreadable, it prevents it, and the page's PII
+ * is therefore never examined.
  */
 const CTRL = (n: number) => String.fromCharCode(n);
 const DEBRIS = `uH[${CTRL(0)}${CTRL(14)}HHW${CTRL(21)}HBB${CTRL(25)}[\n\nW${CTRL(2)}S,cj;${CTRL(2)}c,#\n`.repeat(12);
@@ -50,10 +50,10 @@ describe("couche texte illisible", () => {
       { name: "justif.pdf" },
       deps as never,
     );
-    // C'est l'OCR que le modèle lira, pas les débris.
+    // It's the OCR the model will read, not the debris.
     expect(f.text).toContain("106,98");
     expect(f.text).not.toContain("HBB");
-    // Et la LONGUEUR seule ne l'aurait pas vu : les débris passaient le seuil.
+    // And LENGTH alone wouldn't have caught it: the debris cleared the threshold.
     expect(DEBRIS.length).toBeGreaterThan(PDF_TEXT_MIN);
   });
 });

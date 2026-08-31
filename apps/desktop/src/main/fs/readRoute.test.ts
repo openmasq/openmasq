@@ -9,7 +9,7 @@ describe("readRoute — qui lit le fichier pour le modèle", () => {
   });
 
   it("read_file sur un DOCUMENT part à l'extraction au lieu d'être refusé (boucle 15/08)", () => {
-    // Le cas mesuré : trois `read_file` identiques sur la même facture PDF, jusqu'au cap.
+    // The measured case: three identical `read_file` calls on the same PDF invoice, up to the cap.
     expect(readRoute("read_file", "/r/factures/ovh/Facture_FR40182376.pdf")).toBe("main-extract");
     expect(readRoute("read_file", "/r/Bilan.XLSX")).toBe("main-extract");
     expect(readRoute("read_file", "/r/avenant.docx")).toBe("docx-worker");

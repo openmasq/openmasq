@@ -151,12 +151,12 @@ describe("absorbUserdataRecords", () => {
 });
 
 /**
- * L'ALLER-RETOUR DE LA FUSION — l'app n'a plus qu'UNE liste, l'enveloppe en garde DEUX.
+ * THE MERGE ROUND-TRIP — the app now has only ONE list, the envelope still keeps TWO.
  *
- * C'est le point qui décide si un appareil resté sur une version antérieure continue de
- * voir ses routines : elles doivent partir dans le compartiment `wf:`, sans quoi il ne
- * lirait rien pour elles ; et elles doivent revenir FUSIONNÉES, sans quoi la liste
- * unique se dédoublerait à chaque synchro.
+ * This is what decides whether a device still on an older version keeps
+ * seeing its routines: they must go out in the `wf:` compartment, without which it would
+ * read nothing for them; and they must come back MERGED, without which the
+ * single list would duplicate on every sync.
  */
 describe("fusion compétences ⇄ routines : la répartition du fil", () => {
   const prose = { id: "c1", name: "Relecture", prompt: "p", cat: "redaction", createdAt: 1 };
@@ -173,8 +173,8 @@ describe("fusion compétences ⇄ routines : la répartition du fil", () => {
     const snap = snapshotOfSettings({ competences: [prose, routine] });
     expect(snap.competences.map((c) => c.id)).toEqual(["c1"]);
     expect(snap.workflows.map((w) => w.id)).toEqual(["w1"]);
-    // Sans ça la routine arriverait sur l'autre appareil SANS ses connecteurs,
-    // c'est-à-dire en ne faisant plus rien (`cleanCompetence` n'émet pas `servers`).
+    // Without this the routine would arrive on the other device WITHOUT its connectors,
+    // i.e. no longer doing anything (`cleanCompetence` doesn't emit `servers`).
     expect(snap.workflows[0].servers).toEqual(["github"]);
   });
 

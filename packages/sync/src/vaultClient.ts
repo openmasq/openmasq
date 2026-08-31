@@ -27,8 +27,8 @@ function readRedactionPolicy(org: OrgRef): { forcedCategories: string[] } {
   return { forcedCategories };
 }
 
-/** Intersection de deux ensembles — la consolidation MULTI-ORGANISATION d'une
- *  allow-list : ce que toutes autorisent, et rien de plus. */
+/** Intersection of two sets — the MULTI-ORGANIZATION consolidation of an
+ *  allow-list: what all of them authorize, and nothing more. */
 function intersect(a: Set<string>, b: Set<string>): Set<string> {
   return new Set([...a].filter((x) => b.has(x)));
 }
@@ -166,18 +166,18 @@ export function createVaultSync(opts: VaultSyncOptions): VaultSync {
         return null;
       }
       try {
-        // Les listes sont des ALLOW-lists consolidées par INTERSECTION : un modèle
-        // n'est utilisable que si TOUTES les organisations de la personne l'autorisent.
-        // `null` = « on n'a pas encore d'intersection », distinct d'un ensemble vide
-        // (« aucune organisation n'autorise rien »), sans quoi la première itération
-        // écraserait tout.
+        // The lists are ALLOW-lists consolidated by INTERSECTION: a model
+        // is usable only if ALL of the person's organizations authorize it.
+        // `null` = "we don't have an intersection yet", distinct from an empty set
+        // ("no organization authorizes anything"), without which the first iteration
+        // would wipe out everything.
         let allowedModels: Set<string> | null = null;
         let allowedMcp: Set<string> | null = null;
         const forced = new Set<string>();
-        // ⚠️ Un échec PARTIEL ne doit ni ouvrir les vannes ni s'écrire dans le cache :
-        // sous l'ancienne forme, un `/models` en 5xx produisait une liste de blocage
-        // VIDE qui remplaçait la dernière bonne politique — le déblocage survivait
-        // alors aux redémarrages. On marque, et on rend la main plus bas.
+        // ⚠️ A PARTIAL failure must neither open the floodgates nor write itself to the
+        // cache: under the old form, a `/models` 5xx produced an EMPTY blocklist
+        // that replaced the last good policy — the unblocking then survived
+        // restarts. We flag it, and hand back control further below.
         let degraded = false;
         for (const org of orgs) {
           try {
@@ -199,10 +199,10 @@ export function createVaultSync(opts: VaultSyncOptions): VaultSync {
           const rp = readRedactionPolicy(org);
           for (const c of rp.forcedCategories) forced.add(c);
         }
-        // Politique incomplète ⇒ la dernière bonne connue fait autorité, et le cache
-        // n'est PAS réécrit. Sans cache (l'extension), on rend un profil marqué
-        // `degraded` avec des listes vides : en sémantique allow-list c'est le repli
-        // FERMÉ, et l'interface a de quoi le dire au lieu de bloquer sans raison.
+        // Incomplete policy ⇒ the last known good is authoritative, and the cache
+        // is NOT rewritten. Without a cache (the extension), we return a profile marked
+        // `degraded` with empty lists: in allow-list semantics that's the CLOSED
+        // fallback, and the UI has what it needs to say so instead of blocking for no reason.
         if (degraded) {
           const known = opts.orgCache?.get();
           if (known) return { ...known, degraded: true };
@@ -234,16 +234,16 @@ export function createVaultSync(opts: VaultSyncOptions): VaultSync {
           status: primary.status,
           allowedModelIds: [...(allowedModels ?? [])],
           allowedMcpIds: [...(allowedMcp ?? [])],
-          // Un compte géré par une organisation ne pose pas ses propres clés : c'est
-          // l'organisation qui fournit les modèles et paie les appels, et une clé
-          // personnelle serait une sortie que sa politique ne voit pas. Le jour où
-          // cela se gouverne par organisation, c'est ce champ qui portera le réglage.
+          // An account managed by an organization does not set its own keys: it's
+          // the organization that supplies the models and pays for the calls, and a
+          // personal key would be an exit its policy doesn't see. The day
+          // this becomes governable per organization, this is the field that will carry the setting.
           byoKeysAllowed: false,
           forcedCategories: [...forced],
           credits,
           ...(degraded ? { degraded: true } : {}),
         };
-        // Un profil dégradé ne devient jamais la référence en cache.
+        // A degraded profile never becomes the cached reference.
         if (!degraded) opts.orgCache?.set(profile);
         return profile;
       } catch (err) {

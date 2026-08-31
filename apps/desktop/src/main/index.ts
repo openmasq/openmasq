@@ -101,8 +101,8 @@ import { registerEnvIpc } from "./ipc/registerEnvIpc"; import { installCustomSta
 // no single-instance lock). It sets itself up here and the normal app init below
 // is guarded off, so the two never mix. See mcp/browser/agentMain.ts.
 const AGENT_BROWSER_MODE = isAgentBrowserProcess();
-// Sentry AVANT les trois modes : les deux helpers ré-entrent par CE fichier, donc un seul
-// init les couvre (l'étiquette `process` dit lequel a planté) — amorçage compris.
+// Sentry BEFORE the three modes: both helpers re-enter through THIS file, so a single
+// init covers them (the `process` tag says which one crashed) — bootstrap included.
 const SENTRY_MODE = isAgentBrowserProcess() ? "agent-browser" : isPlaywrightMcpProcess() ? "playwright-mcp" : "app";
 initSentryMain(SENTRY_MODE, app.isPackaged);
 if (AGENT_BROWSER_MODE) {
@@ -118,8 +118,8 @@ if (PLAYWRIGHT_MCP_MODE) {
 // Either helper mode skips ALL normal app init (window, scheme, single-instance lock).
 const HELPER_MODE = AGENT_BROWSER_MODE || PLAYWRIGHT_MCP_MODE;
 
-// QUEL profil `userData` cette instance ouvre (crochet e2e, dev, staging) — la décision
-// entière vit dans `./profile`, avec ses tests. Doit tourner avant `whenReady`.
+// WHICH `userData` profile this instance opens (e2e hook, dev, staging) — the whole
+// decision lives in `./profile`, with its tests. Must run before `whenReady`.
 const PROFILE = HELPER_MODE ? null : applyProfilePath(app, process.env);
 
 // E2E hook: Playwright drives Electron over CDP, which sets `navigator.webdriver
@@ -263,7 +263,7 @@ function createWindow(): void {
     backgroundColor: loadWindowTone(),
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     webPreferences: {
-      // Pas de DevTools sur une app empaquetée — la POLITIQUE et son pourquoi : devtools.ts.
+      // No DevTools on a packaged app — the POLICY and why it exists: devtools.ts.
       ...DEVTOOLS_PREF,
       preload: join(__dirname, "../preload/index.js"),
       // SECURITY (audit M-1): the preload imports ONLY `electron` (contextBridge/
@@ -406,9 +406,9 @@ function withKey<
   // which a renderer cannot forge. Residual: previewing a link the user only ever TYPED
   // (never received) needs a future explicit per-URL user grant.
   const rendererKey = options.apiKey; // supplied by the renderer (BYO key, or a platform Supabase token)
-  // ⛔ Compte géré : une clé personnelle STOCKÉE ne s'injecte plus — refuser la seule
-  // ÉCRITURE ne ferait rien contre une clé posée avant l'adhésion. La clé du modèle de
-  // REDACTION reste injectée : la retirer dégraderait la protection (`store/keysPolicy.ts`).
+  // ⛔ Managed account: a STORED personal key is no longer injected — refusing only the
+  // WRITE would do nothing against a key set before joining. The REDACTION model's key
+  // stays injected: removing it would degrade protection (`store/keysPolicy.ts`).
   const storedProviderKey = isByoKeysBlocked() ? undefined : getKey(options.provider);
   const apiKey = rendererKey || (redaction ? getKey("redactModel") : undefined) || storedProviderKey;
   // WHERE this call may be POSTed, and with which key — audit H1/H-2/M5, decided in ONE
@@ -430,8 +430,8 @@ function withKey<
   return out;
 }
 
-/** Rend une sonde « des flux en vol ? » — l'auto-installation d'une mise à jour
- *  (`updates/autoInstall.ts`) s'abstient tant qu'un `chat:*` streame. */
+/** Returns an "any in-flight streams?" probe — an update's auto-install
+ *  (`updates/autoInstall.ts`) holds off as long as a `chat:*` is streaming. */
 function registerChatHandlers(): () => boolean {
   const controllers = new Map<string, AbortController>();
 
@@ -453,8 +453,8 @@ function registerChatHandlers(): () => boolean {
       // usage) — `for await` would discard it. The final next() carries usage.
       // The model's live reflection rides its OWN channel — never appended to `reply`.
       const onReasoning = (delta: string) => send("chat:reasoning", delta);
-      // `claude-cli`/`codex-cli` : une CLI locale de l'utilisateur (subscription/) — ni
-      // clé ni endpoint, donc ni `withKey` ni décision d'egress ; CLI absente ⇒ `chat:error`.
+      // `claude-cli`/`codex-cli`: one of the user's local CLIs (subscription/) — neither
+      // key nor endpoint, so neither `withKey` nor an egress decision; CLI absent ⇒ `chat:error`.
       const cli = subscriptionCliFor(options.provider);
       const it = cli
         ? streamSubscriptionTurn(subscriptionTurnEnv(cli), {
@@ -498,8 +498,8 @@ function registerChatHandlers(): () => boolean {
     "chat:complete",
     async (_event, options: Omit<StreamChatOptions, "signal">) => {
       let out = "";
-      // Même aiguillage que `chat:start` : l'abonnement sert aussi les complétions
-      // hors-bande (extraction mémoire, compaction).
+      // Same routing as `chat:start`: the subscription also serves out-of-band
+      // completions (memory extraction, compaction).
       const cli = subscriptionCliFor(options.provider);
       const it = cli
         ? streamSubscriptionTurn(subscriptionTurnEnv(cli), {
@@ -528,10 +528,10 @@ function registerChatHandlers(): () => boolean {
   // connectors) — one trust boundary, one module. Each handler's relationship to the
   // untrusted renderer is stated there.
   registerPostureIpc();
-  // « La CLI Claude Code est-elle installée ? » — ce qui fait exister (ou pas) le
-  // modèle `claude-cli` dans les sélecteurs. Un booléen, jamais un chemin.
+  // "Is the Claude Code CLI installed?" — what makes the `claude-cli` model exist
+  // (or not) in the pickers. A boolean, never a path.
   registerSubscriptionIpc();
-  // L'environnement de cette instance + sa bascule (`PROFILE` nul en mode helper : rien à servir).
+  // This instance's environment + its switch (`PROFILE` null in helper mode: nothing to serve).
   if (PROFILE) registerEnvIpc(PROFILE, () => winRef);
 
   registerWindowIpc(() => winRef);
@@ -544,8 +544,8 @@ function registerChatHandlers(): () => boolean {
   // a second consumer of `main/fs`, deliberately not routed through `mcp:call-tool`
   // (see ipc/registerLocalFsIpc.ts for what it does and does not widen).
   registerLocalFsIpc();
-  // Le pendant distant : lister un Drive/OneDrive connecté (lecture seule, parité de
-  // portée avec les outils du connecteur — voir `cloudfs/index.ts`).
+  // The remote counterpart: listing a connected Drive/OneDrive (read-only, scope
+  // parity with the connector's tools — see `cloudfs/index.ts`).
   registerCloudFsIpc();
 
   // Agentic completion with tool-calling (drives MCP). Non-streaming: returns
@@ -566,7 +566,7 @@ function registerChatHandlers(): () => boolean {
       if (requestId) toolControllers.set(requestId, controller);
       e2eWireLog(rest as Parameters<typeof e2eWireLog>[0]);
       try {
-        // Une CLI d'abonnement sert ce tour ⇒ ni clé ni egress (`subscription/toolsRoute`).
+        // A subscription CLI serves this turn ⇒ neither key nor egress (`subscription/toolsRoute`).
         const sub = subscriptionToolsRoute(rest, { signal: controller.signal });
         if (sub) return await sub;
         return await completeWithTools({ ...withKey(rest), signal: controller.signal });
@@ -599,7 +599,7 @@ function registerChatHandlers(): () => boolean {
         }
       };
       try {
-        // Même aiguillage, en streamant le texte : deltas au fil de l'eau puis UN `done`.
+        // Same routing, streaming the text: deltas as they arrive then ONE `done`.
         const sub = subscriptionToolsRoute(rest, {
           signal: controller.signal,
           onDelta: (text) => send("chat:tools-chunk", text),
@@ -657,7 +657,7 @@ function registerChatHandlers(): () => boolean {
 
   // Write-only provider-API-key IPC (split into ipc/registerKeysIpc — encrypted at rest).
   registerKeysIpc();
-  // Les deux secrets de la synchro (phrase E2E + secret d'appareil), chiffrés au repos.
+  // The sync's two secrets (E2E passphrase + device secret), encrypted at rest.
   registerSyncSecretsIpc();
   // Supabase auth session (access + refresh tokens) — encrypted at rest via
   // safeStorage, NOT plaintext localStorage. Keyed by Supabase's own storage keys.
@@ -704,18 +704,18 @@ function registerChatHandlers(): () => boolean {
     (_e, catalogId: string, env: Record<string, string>, params?: Record<string, string>) =>
       mcpAddStdio(catalogId, env, params),
   );
-  // Le sélecteur natif de dossier pour un octroi de chemin MCP : `mcp/pickGrantDir.ts`
-  // (l'octroi lui-même, le hint non fiable et le crochet e2e y sont documentés ensemble).
+  // The native folder picker for an MCP path grant: `mcp/pickGrantDir.ts`
+  // (the grant itself, the untrusted hint, and the e2e hook are documented together there).
   ipcMain.handle("mcp:pick-dir", (_e, hint: unknown) => pickGrantDir(hint));
-  // Ajouter/retirer un dossier autorisé. Le gate est le même que pour un ajout (un dossier
-  // neuf doit venir du sélecteur natif de cette session).
+  // Add/remove an allowed folder. The gate is the same as for an addition (a
+  // new folder must come from this session's native picker).
   //
-  // ⚠️ La connexion vivante est DÉTRUITE avant d'être refaite, et ce n'est pas un détail :
-  // `connectServer` court-circuite sur un connecteur déjà connecté (`connected.has(id)` →
-  // il rafraîchit les routes et rend la main), et le worker filesystem reçoit ses racines
-  // par `FS_ROOTS` AU FORK, une seule fois. Un simple `mcpConnect` laissait donc le
-  // périmètre d'avant : le dossier ajouté restait introuvable pour le modèle jusqu'au
-  // redémarrage de l'app.
+  // ⚠️ The live connection is DESTROYED before being redone, and that's not a detail:
+  // `connectServer` short-circuits on a connector already connected (`connected.has(id)` →
+  // it refreshes the routes and returns), and the filesystem worker receives its roots
+  // via `FS_ROOTS` AT FORK TIME, once only. A plain `mcpConnect` therefore left the
+  // old perimeter in place: the added folder stayed unreachable for the model until the
+  // app restarted.
   ipcMain.handle("mcp:set-dirs", (_e, id: string, key: string, dirs: string[]) =>
     mcpSetStdioDirs(id, key, Array.isArray(dirs) ? dirs.map(String) : [], async (sid) => {
       await mcpDisconnect(sid);
@@ -803,16 +803,16 @@ app.whenReady().then(async () => {
   // into the native WASM parser on a packaged build. No-op in dev (CDN fallback).
   configureBundledOcr();
   configureBundledDoctr();
-  installMediaPermissions(); // micro (dictée) : Electron refuse getUserMedia sans handler
-  registerNotifyIpc(() => winRef); // bannière + clic qui ramène la fenêtre (./notify.ts)
-  registerClaudeSkillsIpc(); // énumère ~/.claude/skills (./claudeSkills.ts)
-  if (PROFILE) installCustomStackCspFor(PROFILE, join(__dirname, "../renderer/index.html")); // pile auto-hébergée : CSP élargie AVANT loadFile
+  installMediaPermissions(); // mic (dictation): Electron refuses getUserMedia with no handler
+  registerNotifyIpc(() => winRef); // banner + click that brings the window back (./notify.ts)
+  registerClaudeSkillsIpc(); // enumerates ~/.claude/skills (./claudeSkills.ts)
+  if (PROFILE) installCustomStackCspFor(PROFILE, join(__dirname, "../renderer/index.html")); // self-hosted stack: CSP widened BEFORE loadFile
   createWindow();
   warnIfNoAtRestEncryption(); // M-9: one-time notice if a packaged build has no keychain
-  // Rallume le moteur NER quand l'utilisateur REVIENT sur l'app : le worker est évincé
-  // après 10 min d'inactivité (RAM), et sans ceci le premier redaction d'après pause
-  // repaie tout le chargement à froid pendant que l'utilisateur regarde le bouton
-  // « Redaction » tourner. Couvre aussi le premier focus au lancement. No-op si chaud.
+  // Re-warms the NER engine when the user COMES BACK to the app: the worker is evicted
+  // after 10 min of inactivity (RAM), and without this the first redaction after a pause
+  // repays the whole cold load while the user watches the
+  // "Redaction" button spin. Also covers the first focus at launch. No-op if already warm.
   app.on("browser-window-focus", () => warmLocalNer());
   // Agent-browser control surface (open/close the isolated agent window, point it
   // at a start URL). The window itself lives in a SEPARATE process, spawned on demand.
@@ -856,7 +856,7 @@ app.whenReady().then(async () => {
     reportError: (code, err) => reportMainError("updates", code, err),
     // …and the update funnel (check/downloaded/install/installed) into product events.
     reportEvent: (event) => reportMainEvent(event),
-    // L'auto-installation en arrière-plan s'abstient tant qu'un flux chat:* est en vol.
+    // Background auto-install holds off as long as a chat:* stream is in flight.
     mainBusy: chatStreamsBusy,
   });
   // Cold start via the magic link on Windows/Linux: the URL is in our argv.

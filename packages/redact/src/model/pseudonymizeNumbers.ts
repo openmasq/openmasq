@@ -25,7 +25,7 @@ export function isBareNumber(value: string): boolean {
 
 /**
  * A bare 4-digit CALENDAR YEAR (1900–2099). Excluded from `numbers` tokenisation: a
- * millésime ("ETF 2026", "bilan 2025") is not a private figure to compute on, and
+ * year label ("ETF 2026", "bilan 2025") is not a private figure to compute on, and
  * tokenising it corrupts dates/labels AND pollutes the vault (the reported "2026 → n1"
  * that broke financial output + popped the web-nav reveal card). NOT a leak to spare:
  * an identifying number keeps its own category and is swapped by `numberCarriesMeaning`

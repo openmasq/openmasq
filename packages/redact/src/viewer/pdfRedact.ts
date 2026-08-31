@@ -79,7 +79,7 @@ export async function renderRedactedPdf(
   let modelError: string | undefined;
   if (redacted && !o.replacements && o.getReplacements) {
     // Surface the page count before the (slow) whole-document detection so the UI
-    // can show "N pages à redact · Analyse…" instead of a blank spinner.
+    // can show "N pages to redact · Analyzing…" instead of a blank spinner.
     o.onProgress?.({ phase: "detect", page: 0, total: pageCount });
     const r = await o.getReplacements(await fullText(doc, pageCount));
     reps = r.replacements;

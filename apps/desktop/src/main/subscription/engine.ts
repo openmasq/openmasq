@@ -1,64 +1,64 @@
 /**
- * Le moteur « abonnement » : un tour de chat servi par la CLI officielle de
- * l'utilisateur, en mode headless, au lieu d'une clé d'API.
+ * The "subscription" engine: a chat turn served by the user's official CLI,
+ * in headless mode, instead of an API key.
  *
- * L'auth ne passe JAMAIS par nous — la CLI lit son propre trousseau, et ce process ne
- * voit ni jeton, ni cookie, ni identifiant client. C'est la propriété qui fait tenir ce
- * chemin : on n'usurpe rien, on parle à un client installé et licencié par l'utilisateur.
- * Ne pas « optimiser » en allant lire les credentials de la CLI pour appeler l'API
- * directement : ce serait exactement la chose que ce module existe pour éviter.
+ * Auth NEVER goes through us — the CLI reads its own keychain, and this process sees
+ * no token, no cookie, no client credential. This is the property that this path rests
+ * on: nothing is impersonated, we talk to a client installed and licensed by the user.
+ * Do not "optimize" by reading the CLI's credentials to call the API
+ * directly: that would be exactly the thing this module exists to avoid.
  *
- * ## Les drapeaux, et pourquoi ceux-là (mesurés sur la CLI 2.1.241)
+ * ## The flags, and why those (measured on CLI 2.1.241)
  *
- * Par défaut la CLI hérite de TOUT l'environnement de développeur de l'utilisateur :
- * ses CLAUDE.md, ses serveurs MCP, ses plugins, ses hooks (l'un d'eux a planté en
- * cherchant `/dev/tty`, absent en headless). Inacceptable pour un moteur de chat
- * embarqué : le comportement dépendrait du poste, et l'environnement privé de
- * l'utilisateur fuiterait dans le produit.
+ * By default the CLI inherits ALL of the user's developer environment:
+ * their CLAUDE.md, their MCP servers, their plugins, their hooks (one of them crashed
+ * looking for `/dev/tty`, absent in headless mode). Unacceptable for an embedded chat
+ * engine: behavior would depend on the machine, and the user's private
+ * environment would leak into the product.
  *
- * Deux drapeaux sont nécessaires et COMPLÉMENTAIRES — chacun rate ce que l'autre attrape :
- *   • `--safe-mode`         coupe CLAUDE.md / mémoire auto / hooks, MAIS laisse les plugins
- *   • `--setting-sources ""` coupe les plugins, MAIS laisse revenir la mémoire auto
- * Mesuré : par défaut 14 serveurs MCP + 2 plugins + mémoire; les deux ensemble ⇒ 0 / 0 / none.
+ * Two flags are necessary and COMPLEMENTARY — each catches what the other misses:
+ *   • `--safe-mode`         cuts CLAUDE.md / auto memory / hooks, BUT leaves plugins
+ *   • `--setting-sources ""` cuts plugins, BUT lets auto memory come back
+ * Measured: by default 14 MCP servers + 2 plugins + memory; both together ⇒ 0 / 0 / none.
  *
- * ⚠️ **Ne pas remplacer par `--bare`.** Il nettoie davantage mais sa doc est explicite :
+ * ⚠️ **Do not replace with `--bare`.** It cleans more, but its docs are explicit:
  * « Anthropic auth is strictly ANTHROPIC_API_KEY … OAuth and keychain are never read ».
- * Il désactive donc l'abonnement, c'est-à-dire la raison d'être du module. `--safe-mode`,
- * lui, annonce « Auth … work normally » — et `apiKeySource: "none"` le confirme à l'exécution.
+ * So it disables the subscription, i.e. the module's very reason for existing. `--safe-mode`,
+ * on the other hand, states « Auth … work normally » — and `apiKeySource: "none"` confirms it at runtime.
  *
- * ⚠️ `--output-format stream-json` EXIGE `--verbose` (erreur sèche sinon).
+ * ⚠️ `--output-format stream-json` REQUIRES `--verbose` (hard error otherwise).
  *
- * ## Le périmètre d'outils est une ALLOW-LIST — `--tools ""`
+ * ## The tool perimeter is an ALLOW-LIST — `--tools ""`
  *
- * Un tour de chat n'a besoin d'AUCUN outil intégré de la CLI : ce que le modèle peut
- * appeler, c'est le pont de l'app et rien d'autre (tour outillé), donc rien du tout ici.
- * `--tools ""` dit exactement ça — mesuré sur la 2.1.247 : `system/init` annonce
- * `tools: []`, et les outils du pont MCP survivent au drapeau quand il y en a
- * (`claudeToolsTurn.ts`). C'est une allow-list au sens de la règle 7 : ce qui n'est pas
- * nommé n'existe pas pour le modèle.
+ * A chat turn needs NONE of the CLI's built-in tools: what the model may
+ * call is the app's bridge and nothing else (tooled turn), so nothing at all here.
+ * `--tools ""` says exactly that — measured on 2.1.247: `system/init` announces
+ * `tools: []`, and the MCP bridge's tools survive the flag when there are any
+ * (`claudeToolsTurn.ts`). It's an allow-list in the sense of rule 7: what isn't
+ * named doesn't exist for the model.
  *
- * ⚠️ Ni `--allowedTools` ni `--disallowed-tools` ne peuvent tenir ce rôle, mesuré :
- * le premier ne filtre pas le périmètre (il gouverne la PERMISSION, pas l'existence),
- * le second retire par NOM — donc il ne peut couvrir que ce qu'on a pensé à écrire, et
- * un nom qui change le vide en silence. `CHAT_DISALLOWED_TOOLS` reste posé en
- * ceinture-bretelles, jamais comme la garde ; la garde qui TIENT est `--tools ""`,
- * doublée du filet d'exécution sur `system/init` (`toolGate.ts`).
+ * ⚠️ Neither `--allowedTools` nor `--disallowed-tools` can hold this role, measured:
+ * the first doesn't filter the perimeter (it governs PERMISSION, not existence),
+ * the second removes by NAME — so it can only cover what we thought to write, and
+ * a name that changes empties it silently. `CHAT_DISALLOWED_TOOLS` stays in place as
+ * belt-and-suspenders, never as the guard; the guard that HOLDS is `--tools ""`,
+ * backed by the runtime net on `system/init` (`toolGate.ts`).
  */
 import type { StreamDone } from "@openmasq/llm";
 import { interpretClaudeEvent } from "./claudeStream";
 import { streamCliProcess, SubscriptionCliError } from "./spawnStream";
 
-// La boucle spawn/NDJSON/annulation vit dans `spawnStream.ts` (générique, une seule) ;
-// ce fichier ne garde que le SPÉCIFIQUE claude : les drapeaux mesurés et l'aiguillage.
+// The spawn/NDJSON/cancellation loop lives in `spawnStream.ts` (generic, a single one);
+// this file keeps only the claude-SPECIFIC part: the measured flags and the routing.
 export { SubscriptionCliError };
 
 /**
- * La CEINTURE-BRETELLES du périmètre, pas la garde : `--tools ""` (ci-dessus) est ce qui
- * décide, ces noms ne font que redire « non » sur les capacités qu'un usage chat n'a
- * jamais à toucher — écrire sur le disque, exécuter, aller chercher sur le réseau.
- * ⚠️ Ne JAMAIS traiter cette liste comme la protection : elle retire par nom, donc elle
- * ne couvre que ce qu'on a pensé à écrire (règle 7). Y ajouter une ligne ne remplace pas
- * de vérifier que `--tools ""` tient toujours.
+ * The perimeter's BELT-AND-SUSPENDERS, not the guard: `--tools ""` (above) is what
+ * decides, these names only restate "no" on capabilities a chat use should
+ * never touch — writing to disk, executing, reaching out over the network.
+ * ⚠️ NEVER treat this list as the protection: it removes by name, so it
+ * only covers what we thought to write (rule 7). Adding a line to it doesn't replace
+ * checking that `--tools ""` still holds.
  */
 export const CHAT_DISALLOWED_TOOLS = [
   "Bash",
@@ -78,28 +78,28 @@ export const CHAT_DISALLOWED_TOOLS = [
 ] as const;
 
 export interface ClaudeTurnOptions {
-  /** Chemin absolu résolu par `resolveCli`. */
+  /** Absolute path resolved by `resolveCli`. */
   binPath: string;
   prompt: string;
-  /** Le prompt système de OpenMasq. Passé en `--system-prompt` (un champ à part sur la
-   *  CLI, comme sur l'API Messages), jamais concaténé dans le prompt utilisateur. */
+  /** OpenMasq's system prompt. Passed as `--system-prompt` (a field of its own on the
+   *  CLI, like on the Messages API), never concatenated into the user prompt. */
   system?: string;
-  /** L'id de conversation OpenMasq, réutilisé comme `--session-id` (doit être un UUID). */
+  /** The OpenMasq conversation id, reused as `--session-id` (must be a UUID). */
   sessionId: string;
-  /** Alias de FAMILLE passé en `--model` (`sonnet`/`opus`/`haiku` — la CLI résout vers le
-   *  modèle courant de l'abonnement). Absent ⇒ pas de drapeau : le défaut de la CLI.
-   *  Mesuré (25/08) : `--model haiku` cohabite avec les drapeaux d'isolement. */
+  /** FAMILY alias passed as `--model` (`sonnet`/`opus`/`haiku` — the CLI resolves it to the
+   *  subscription's current model). Absent ⇒ no flag: the CLI's default.
+   *  Measured (25/08): `--model haiku` coexists with the isolation flags. */
   model?: string;
-  /** Reprendre la session existante plutôt que d'en ouvrir une (2ᵉ message et suivants). */
+  /** Resume the existing session rather than opening a new one (2nd message onward). */
   resume?: boolean;
   /**
-   * Répertoire de travail DÉDIÉ et neutre. Jamais le dossier d'un projet de
-   * l'utilisateur : la CLI y chercherait des réglages et des fichiers de contexte.
+   * DEDICATED and neutral working directory. Never one of the user's project
+   * folders: the CLI would look there for settings and context files.
    */
   cwd: string;
   signal?: AbortSignal;
   onReasoning?: (delta: string) => void;
-  /** Quota d'ABONNEMENT atteint (fenêtre 5 h / hebdo) — à afficher tel quel. */
+  /** SUBSCRIPTION quota reached (5h / weekly window) — to display as-is. */
   onRateLimit?: (info: { status: string; resetsAt?: number; windowType?: string }) => void;
 }
 
@@ -117,7 +117,7 @@ export function buildClaudeArgs(opts: ClaudeTurnOptions): string[] {
     "--setting-sources",
     "",
     "--strict-mcp-config",
-    // L'ALLOW-LIST du périmètre : aucun outil intégré pour un tour texte (cf. l'en-tête).
+    // The perimeter's ALLOW-LIST: no built-in tool for a text turn (see the header).
     "--tools",
     "",
     "--disallowed-tools",
@@ -127,9 +127,9 @@ export function buildClaudeArgs(opts: ClaudeTurnOptions): string[] {
 }
 
 /**
- * Un tour claude. Même contrat que `streamAnthropic` dans `@openmasq/llm` (deltas puis
- * `StreamDone`) — la boucle générique est `spawnStream.ts`, ce wrapper n'apporte que
- * les args mesurés et l'interpréteur claude.
+ * A claude turn. Same contract as `streamAnthropic` in `@openmasq/llm` (deltas then
+ * `StreamDone`) — the generic loop is `spawnStream.ts`, this wrapper only contributes
+ * the measured args and the claude interpreter.
  */
 export async function* streamClaudeSubscription(
   opts: ClaudeTurnOptions,

@@ -2,23 +2,23 @@ import { describe, expect, it } from "vitest";
 import { CONNECTORS } from "./index";
 
 /**
- * **Le nom d'un outil est son contrat, pas une étiquette.**
+ * **A tool's name is its contract, not a label.**
  *
- * La boucle agentique (`@openmasq/ui`) classe lecture-vs-écriture sur le VERBE DE TÊTE du
- * nom nu, et cette classification décide de trois choses d'un coup : une carte de
- * confirmation s'affiche ou non, l'appel part en parallèle avec les autres lectures du tour
- * ou non, et le modèle est invité à grouper ses lectures ou non.
+ * The agentic loop (`@openmasq/ui`) classifies read-vs-write on the HEAD VERB of the
+ * bare name, and this classification decides three things at once: whether a
+ * confirmation card is shown, whether the call goes out in parallel with the turn's other
+ * reads, and whether the model is prompted to group its reads.
  *
- * Ces connecteurs-ci tournent DANS notre processus : le nom est le nôtre, donc l'erreur est
- * la nôtre. `run_report` (un rapport GA4, une lecture) passait pour une exécution — l'
- * utilisateur confirmait chaque rapport, et rien ne se parallélisait. D'où ce garde-fou,
- * qui vit ici plutôt que du côté du classifieur : `@openmasq/ui` ne dépend pas de ce
- * paquet, et un test qui recopierait la liste des noms rouillerait le jour d'un renommage.
+ * These connectors run IN our process: the name is ours, so the mistake is
+ * ours. `run_report` (a GA4 report, a read) passed for an execution — the
+ * user confirmed every report, and nothing got parallelized. Hence this safeguard,
+ * which lives here rather than on the classifier's side: `@openmasq/ui` doesn't depend on this
+ * package, and a test that copied the list of names would go stale the day of a rename.
  */
 
-/** Verbes de tête que la boucle lit comme « ça exécute quelque chose ». Aucun outil de
- *  LECTURE ne doit en porter un ; un outil qui exécute vraiment est une exception à
- *  ajouter ici, en connaissance de cause. */
+/** Head verbs that the loop reads as "this executes something". No READ tool
+ *  should carry one; a tool that truly executes is an exception to
+ *  add here, knowingly. */
 const EXECUTION_HEAD = /^(run|exec|execute|perform|apply|invoke|trigger)[_-]/i;
 
 describe("les noms d'outils des connecteurs directs", () => {

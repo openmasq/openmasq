@@ -35,9 +35,9 @@ function encodeHeader(value: string): string {
 }
 
 /** Normalise a recipient arg (string or string[]) to a comma-joined header value. */
-// ⚠️ `stringList` (et non un découpage local) : un modèle peut envoyer un tableau JSON
-// ENCODÉ EN CHAÎNE (`'["a@b.c"]'`), que l'ancien code prenait pour une adresse unique
-// crochets compris. Une seule normalisation pour tous les connecteurs (règle 9).
+// ⚠️ `stringList` (and not a local split): a model may send a JSON array
+// ENCODED AS A STRING (`'["a@b.c"]'`), which the old code took for a single address,
+// brackets included. One single normalization for every connector (rule 9).
 function addrs(v: unknown): string | undefined {
   return stringList(v).join(", ") || undefined;
 }

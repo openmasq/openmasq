@@ -1,25 +1,25 @@
 import { dialog } from "electron";
-// Par le barrel, pas par `./server/lifecycle` : c'est la surface publique de la famille, et
-// la court-circuiter laisse une ré-exportation que plus personne n'atteint (knip la compte
-// comme du code mort — à juste titre).
+// Via the barrel, not via `./server/lifecycle`: it's the public surface of the family, and
+// short-circuiting it leaves a re-export that nothing reaches anymore (knip counts it
+// as dead code — rightly so).
 import { notePickedDir } from "./server";
 import { withAgentBrowserHidden } from "./browser";
 
 /**
- * Le sélecteur natif de dossier pour un octroi de chemin MCP — l'utilisateur ACCORDE le
- * dossier, c'est une capacité, pas un réglage.
+ * The native folder picker for an MCP path grant — the user GRANTS the
+ * folder, it's a capability, not a setting.
  *
- * `hint` ne fait que pré-positionner le dialogue sur un dossier qu'on vient de DÉPOSER. Il
- * vient du renderer, donc il n'est pas de confiance — et il est inoffensif, parce qu'il
- * n'accorde rien : l'octroi est `notePickedDir` sur ce que le dialogue RETOURNE. Un hint
- * forgé ouvre le sélecteur au mauvais endroit, et c'est toute sa puissance. Non-chaîne ⇒ ignoré.
+ * `hint` only pre-positions the dialog on a folder that was just DROPPED. It
+ * comes from the renderer, so it isn't trusted — and it's harmless, because it
+ * grants nothing: the grant is `notePickedDir` on what the dialog RETURNS. A forged
+ * hint opens the picker in the wrong place, and that's the full extent of its power. Non-string ⇒ ignored.
  *
- * ⚠️ Crochet E2E, jumeau de `OPENMASQ_E2E_ATTACH` : un sélecteur natif ne s'automatise pas,
- * donc un pilote de parcours désigne ici le dossier que l'utilisateur « aurait choisi ».
- * Double garde d'ENV DE LANCEMENT — un renderer ne peut pas écrire l'env du process
- * principal, donc une XSS ne peut pas s'auto-accorder un dossier. Et le chemin passe par
- * `notePickedDir` comme un vrai choix : l'octroi n'est pas court-circuité, il est produit
- * sans dialogue. Inerte sans les deux variables (donc en production).
+ * ⚠️ E2E hook, twin of `OPENMASQ_E2E_ATTACH`: a native picker can't be automated,
+ * so a journey driver designates here the folder the user "would have chosen".
+ * Double LAUNCH ENV guard — a renderer can't write the main process's
+ * env, so an XSS can't self-grant a folder. And the path goes through
+ * `notePickedDir` like a real choice: the grant isn't short-circuited, it's produced
+ * without a dialog. Inert without both variables (so in production).
  */
 export async function pickGrantDir(hint: unknown): Promise<string | undefined> {
   if (process.env.OPENMASQ_E2E && process.env.OPENMASQ_E2E_PICK_DIR) {

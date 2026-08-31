@@ -56,10 +56,10 @@ describe("fakeFor LOCATION — city vs country differentiation", () => {
 });
 
 describe("les nations du Royaume-Uni — la clause de droit applicable", () => {
-  // « governed by the law of England and Wales » est LA clause de droit applicable des
-  // contrats anglophones. « England » et « Scotland » étaient reconnues, « Wales » non :
-  // la clause devenait « England and <une commune française> », et le modèle raisonnait
-  // sur le droit d'un endroit qui n'a pas de droit. Sur-protéger a coûté la réponse.
+  // « governed by the law of England and Wales » is THE applicable-law clause of
+  // English-language contracts. « England » and « Scotland » were recognised, « Wales » was not:
+  // the clause became « England and <a French commune> », and the model reasoned
+  // about the law of a place that has no law. Over-protecting cost the answer.
   it("reconnaît les quatre nations, dans les écritures qu'un contrat porte", () => {
     for (const n of [
       "England", "Scotland", "Wales", "Northern Ireland",

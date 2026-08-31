@@ -35,10 +35,10 @@ export function configureBundledOcr(): void {
  * bundle is CJS). So `pnpm dev` runs docTR too once `pnpm bake:doctr` has produced the dir —
  * missing dir (bake not run) ⇒ Tesseract-only, no failure. `OPENMASQ_DOCTR_MODEL_PATH` overrides.
  *
- * NB: l'extraction (pdf.js + OCR) tourne désormais dans le WORKER dédié
- * (`../ocr/extractClient.ts`) — le coût main-thread par page (rasterisation, DBNet/CTC,
- * PNG) bloquait l'IPC par rafales de ~1 s (mesuré 13/08). Ces env vars restent posées
- * sur process.env de MAIN : le client les recopie dans l'env minimal du worker.
+ * NB: extraction (pdf.js + OCR) now runs in the dedicated WORKER
+ * (`../ocr/extractClient.ts`) — the main-thread cost per page (rasterization, DBNet/CTC,
+ * PNG) blocked IPC in ~1 s bursts (measured 13/08). These env vars are still set
+ * on MAIN's process.env: the client copies them into the worker's minimal env.
  */
 export function configureBundledDoctr(): void {
   if (process.env.OPENMASQ_DOCTR_MODEL_PATH) return; // an explicit override wins

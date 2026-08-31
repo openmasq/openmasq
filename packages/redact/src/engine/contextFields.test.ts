@@ -273,10 +273,10 @@ describe("detectLabeledFields — dotted leaders and double-label lines", () => 
 });
 
 describe("la forme SÉRIALISÉE — JSON / YAML / TOML", () => {
-  // Une charge utile d'API ou une ligne de log est une chose ordinaire à coller dans un
-  // chat (« pourquoi cette requête échoue ? ») et elle est DENSE en données personnelles.
-  // La passe inline exige le libellé collé à son deux-points ; une clé JSON porte un
-  // guillemet fermant entre les deux, donc l'enregistrement entier partait EN CLAIR.
+  // An API payload or a log line is an ordinary thing to paste into a
+  // chat (« why is this request failing? ») and it is DENSE with personal data.
+  // The inline pass requires the label glued to its colon; a JSON key carries a
+  // closing quote between the two, so the whole record was going out IN CLEAR.
   it("redacted un enregistrement JSON champ par champ", () => {
     const byCat = Object.fromEntries(
       detectLabeledFields('{"nom":"Vernaux","prenom":"Élodie","ville":"Blagnac"}').map((d) => [
@@ -290,24 +290,24 @@ describe("la forme SÉRIALISÉE — JSON / YAML / TOML", () => {
   });
 
   it("les guillemets de la valeur ne sont JAMAIS coffrés avec elle", () => {
-    // Sinon le faux remplace la ponctuation du document et la ligne n'est plus du YAML.
+    // Otherwise the fake replaces the document's punctuation and the line is no longer valid YAML.
     const values = detectLabeledFields('owner:\n  name: "Thibault Chandrel"').map((d) => d.value);
     expect(values).toContain("Thibault Chandrel");
     expect(values.some((v) => v.includes('"'))).toBe(false);
   });
 
   it("une métadonnée d'outil MCP reste un identifiant, pas une personne", () => {
-    // `CODE_IDENT` s'applique à cette passe comme aux autres : sans cela chaque fragment
-    // du nom d'outil recevrait un alias qui redact « data »/« query » partout.
+    // `CODE_IDENT` applies to this pass like to the others: without it each fragment
+    // of the tool name would get an alias that would redact « data »/« query » everywhere.
     expect(detectLabeledFields('{"name": "read-data-schema"}')).toEqual([]);
   });
 });
 
 describe("une ligne-LIBELLÉ n'est jamais la valeur de la précédente", () => {
   it("« Nom / Prénom » empilés ne coffrent pas le mot « Prénom »", () => {
-    // Le filtre générique ne couvre pas les mots de FORMULAIRE (ce sont les noms
-    // institutionnels qu'il liste), donc « Prénom » était coffré comme une personne —
-    // et toute occurrence ultérieure du mot était redacted dans la conversation.
+    // The generic filter doesn't cover FORM words (these are the institutional
+    // names it lists), so « Prénom » was vaulted as a person —
+    // and every later occurrence of the word was redacted in the conversation.
     const values = detectLabeledFields("Nom\nPrénom\n\nRebour\nMarie").map((d) => d.value);
     expect(values).not.toContain("Prénom");
   });
@@ -315,17 +315,17 @@ describe("une ligne-LIBELLÉ n'est jamais la valeur de la précédente", () => {
 
 describe("la forme VERTICALE exige un libellé SEUL sur sa ligne (le récépissé RCS)", () => {
   it("un libellé qui porte déjà sa valeur INLINE ne capture jamais la ligne suivante", () => {
-    // Le bug d'échappement : dans le template literal, `\S` non doublé se dégradait en
-    // « S » littéral — la classe « espaces horizontaux » devenait « tout sauf un S
-    // majuscule », avalait « : 2022B44821 » après le libellé, et le PREMIER MOT de la
-    // ligne suivante devenait la « valeur » : « Forme » (de « Forme Juridique ») coffré
-    // comme pièce d'identité sur chaque récépissé de dépôt des comptes.
+    // The escaping bug: in the template literal, an unescaped `\S` degraded into
+    // a literal « S » — the « horizontal whitespace » class became « anything but an
+    // uppercase S », swallowed « : 2022B44821 » after the label, and the FIRST WORD of the
+    // next line became the « value »: « Forme » (from « Forme Juridique ») vaulted
+    // as an identity document on every account-filing receipt.
     const doc =
       "Dénomination : Karl Studio                    Numéro RCS : 863 471 587\n" +
       "                                              Numéro Gestion : 2022B44821\n" +
       "Forme Juridique : Société par actions simplifiée";
     const values = detectLabeledFields(doc).map((d) => d.value);
-    expect(values).toContain("2022B44821"); // la vraie valeur, elle, reste couverte
+    expect(values).toContain("2022B44821"); // the real value, itself, stays covered
     expect(values).not.toContain("Forme");
     expect(values).not.toContain("Forme Juridique");
   });
@@ -338,8 +338,8 @@ describe("la forme VERTICALE exige un libellé SEUL sur sa ligne (le récépiss�
   });
 
   it("le formulaire VERTICAL légitime continue : libellé seul, valeur dessous", () => {
-    // La raison d'être de la règle (cellules de formulaire empilées par l'extraction
-    // PDF) — le fix ne doit pas la débrancher, qualificatifs stopword compris.
+    // The rule's reason for being (form cells stacked by PDF
+    // extraction) — the fix must not disconnect it, stopword qualifiers included.
     const dets = detectLabeledFields("Nom de l'étudiant\nBAGAYO");
     expect(dets.map((d) => d.value)).toContain("BAGAYO");
   });
@@ -348,10 +348,10 @@ describe("la forme VERTICALE exige un libellé SEUL sur sa ligne (le récépiss�
 describe("libellés — scolarité, permis, et le groupe SECRET", () => {
   const v = (t: string) => detectLabeledFields(t).map((d) => `${d.category}:${d.value}`);
 
-  /** ⚠️ RÉGRESSION mesurée par `bench/auditFull.ts` : 4 des 11 manques de la catégorie ID
-   *  étaient un numéro d'étudiant. Aucun n'a de somme de contrôle — la barre de précision
-   *  interdit donc à une règle de tirer sur la suite de chiffres nue, et le LIBELLÉ est le
-   *  seul ancrage possible. Il était présent dans le texte, dans quatre langues. */
+  /** ⚠️ REGRESSION measured by `bench/auditFull.ts`: 4 of the 11 misses in the ID category
+   *  were a student number. None has a checksum — the precision bar
+   *  therefore forbids a rule from firing on the bare digit run, and the LABEL is the
+   *  only possible anchor. It was present in the text, in four languages. */
   it("le numéro d'étudiant est ancré par son libellé, FR/EN/ES/DE", () => {
     expect(v("Numéro étudiant : 22104877 — Né le 2 février 2003")).toContain("ID:22104877");
     expect(v("Student number: 5518420 — Date of birth: 6 June 1999")).toContain("ID:5518420");
@@ -363,9 +363,9 @@ describe("libellés — scolarité, permis, et le groupe SECRET", () => {
     expect(v("Permis de conduire : 851135")).toContain("ID:851135");
   });
 
-  /** Le groupe SECRET manquait ENTIÈREMENT, et c'est le manque le plus grave de l'audit :
-   *  un mot de passe n'a aucune forme (« maison2026! » est indiscernable d'un mot
-   *  ordinaire), donc rien d'autre que le libellé ne peut l'attraper. */
+  /** The SECRET group was ENTIRELY missing, and it's the most serious miss in the audit:
+   *  a password has no shape at all (« maison2026! » is indistinguishable from an
+   *  ordinary word), so nothing but the label can catch it. */
   it("mot de passe et clé de licence sont redacted par leur libellé", () => {
     expect(v("Mdp wifi : maison2026!")).toContain("SECRET:maison2026!");
     expect(v("Mot de passe : Tr0ub4dor&3")).toContain("SECRET:Tr0ub4dor&3");
@@ -374,17 +374,17 @@ describe("libellés — scolarité, permis, et le groupe SECRET", () => {
       .toContain("SECRET:A1B2C-D3E4F-G5H6I-J7K8L");
   });
 
-  /** La PROSE n'est pas un libellé : sans deux-points, il n'y a pas de champ, et une
-   *  phrase qui MENTIONNE un mot de passe ne contient pas de mot de passe. */
+  /** PROSE is not a label: without a colon there is no field, and a
+   *  sentence that MENTIONS a password does not contain a password. */
   it("une mention en prose ne déclenche rien", () => {
     expect(v("Le permis de conduire est un document officiel.")).toEqual([]);
     expect(v("Mot de passe oublié ? Cliquez sur le lien.")).toEqual([]);
   });
 
-  /** Le tiret cadratin entouré d'espaces est un SÉPARATEUR DE CHAMP : sans cette coupe,
-   *  la capture gloutonne emportait le champ suivant et le faux réécrivait la date de
-   *  naissance en même temps que l'identifiant. Le trait d'union SIMPLE reste intact —
-   *  il vit à l'intérieur des noms et des adresses. */
+  /** An em-dash surrounded by spaces is a FIELD SEPARATOR: without this cut,
+   *  the greedy capture carried away the next field and the fake rewrote the birth
+   *  date at the same time as the identifier. The SIMPLE hyphen stays intact —
+   *  it lives inside names and addresses. */
   it("la valeur s'arrête au tiret cadratin, jamais au trait d'union", () => {
     expect(v("Numéro étudiant : 22104877 — Né le 2 février 2003")).toEqual(["ID:22104877"]);
     expect(v("Nom : Marie-Claire Saint-Chamas")).toContain("NAME:Marie-Claire Saint-Chamas");
@@ -394,11 +394,11 @@ describe("libellés — scolarité, permis, et le groupe SECRET", () => {
 describe("libellé TÉLÉPHONE sans deux-points — la forme DE/IT", () => {
   const v = (t: string) => detectLabeledFields(t).map((d) => `${d.category}:${d.value}`);
 
-  /** ⚠️ Exposé en corrigeant la capture gloutonne : ces numéros n'étaient « détectés »
-   *  que parce qu'ils CHEVAUCHAIENT dans la valeur d'adresse voisine — le faux effaçait
-   *  donc le libellé et le numéro avec l'adresse. Une fois le span corrigé, ils
-   *  partaient en clair. L'allemand et l'italien écrivent « Telefon 0721 … » sans
-   *  séparateur, et la branche internationale exige un `+` ou `00`. */
+  /** ⚠️ Exposed by fixing the greedy capture: these numbers were only « detected »
+   *  because they OVERLAPPED into the neighbouring address value — the fake was
+   *  therefore erasing the label and the number along with the address. Once the span
+   *  was fixed, they went out in clear. German and Italian write « Telefon 0721 … » with
+   *  no separator, and the international branch requires a `+` or `00`. */
   it("attrape le numéro national collé à son libellé", () => {
     expect(v("Karlsruhe — Telefon 0734 82 57 190 Erziehungsberechtigte: Frau B"))
       .toContain("PHONE:0734 82 57 190");
@@ -406,9 +406,9 @@ describe("libellé TÉLÉPHONE sans deux-points — la forme DE/IT", () => {
       .toContain("PHONE:340 118 27 64");
   });
 
-  /** LA garde, et elle porte sur la VALEUR, pas sur le libellé : un run de chiffres et
-   *  de séparateurs, ≥7 caractères, AUCUNE lettre. Sans elle « Mobile 12 mois inclus »
-   *  serait un numéro de téléphone. */
+  /** THE guard, and it applies to the VALUE, not the label: a run of digits and
+   *  separators, ≥7 characters, NO letters. Without it « Mobile 12 mois inclus »
+   *  would be a phone number. */
   it("refuse tout ce qui contient une lettre ou est trop court", () => {
     for (const t of [
       "Mobile 12 mois inclus dans le forfait",
@@ -422,11 +422,11 @@ describe("libellé TÉLÉPHONE sans deux-points — la forme DE/IT", () => {
 describe("forme SÉRIALISÉE — la clé d'une charge JSON n'a pas la syntaxe de la prose", () => {
   const v = (t: string) => detectLabeledFields(t).map((d) => `${d.category}:${d.value}`);
 
-  /** ⚠️ RÉGRESSION mesurée sur `corpora/toolResults.json` : POSTAL plafonnait à 67 % sur
-   *  les retours d'outils. La cause n'était PAS le vocabulaire — « postal code » y était —
-   *  mais la SYNTAXE : le vocabulaire s'écrit en mots séparés par des espaces, une clé
-   *  sérialisée s'écrit `postal_code`, `postalCode`, `postal-code` ou collée. Remplacer
-   *  chaque espace par `[\s_-]*` couvre les quatre conventions d'un coup. */
+  /** ⚠️ REGRESSION measured on `corpora/toolResults.json`: POSTAL capped at 67% on
+   *  tool results. The cause was NOT the vocabulary — « postal code » was there —
+   *  but the SYNTAX: the vocabulary is written as words separated by spaces, a
+   *  serialised key is written `postal_code`, `postalCode`, `postal-code` or glued together.
+   *  Replacing each space with `[\s_-]*` covers all four conventions at once. */
   it("matche snake_case, camelCase, kebab-case et collé", () => {
     expect(v('{"postal_code":"59800"}')).toContain("POSTAL_CODE:59800");
     expect(v('{"postalCode":"59800"}')).toContain("POSTAL_CODE:59800");
@@ -434,20 +434,20 @@ describe("forme SÉRIALISÉE — la clé d'une charge JSON n'a pas la syntaxe de
     expect(v('{"date_de_naissance":"04/02/1961"}')).toContain("DOB:04/02/1961");
   });
 
-  /** Les clés `serialisedOnly` sont l'arbitrage rendu au CADRE et non au mot : « CP » en
-   *  prose est ambigu — il reste refusé — mais `"cp":"27200"` dans une charge ne l'est pas.
-   *  La paire quotée borne la capture, c'est elle qui est la preuve. */
+  /** The `serialisedOnly` keys are the arbitration rendered to the FRAME rather than the word: « CP » in
+   *  prose is ambiguous — it stays rejected — but `"cp":"27200"` in a payload is not.
+   *  The quoted pair bounds the capture, it is the proof. */
   it("admet une clé courte DANS la forme sérialisée, et la refuse en prose", () => {
     expect(v('{"cp":"27200","ville":"Vernon"}')).toContain("POSTAL_CODE:27200");
     expect(v('{"zipcode":"69300"}')).toContain("POSTAL_CODE:69300");
     expect(v('{"admin_area_2":"ROYAT"}')).toContain("CITY:ROYAT");
-    // …et la prose, où « CP » peut désigner tout autre chose, ne déclenche rien.
+    // …and prose, where « CP » can mean anything else, triggers nothing.
     expect(v("Le CP : 27200 figure sur le courrier")).toEqual([]);
     expect(v("zip : voir plus bas")).toEqual([]);
   });
 
-  /** Une requête SQL est un ENVOI, pas un retour — et elle porte la donnée dans son
-   *  filtre. La même paire clé/valeur y apparaît avec `=` et des apostrophes. */
+  /** A SQL query is an OUTBOUND send, not a return — and it carries the data in its
+   *  filter. The same key/value pair appears there with `=` and apostrophes. */
   it("attrape la donnée dans le WHERE d'une requête", () => {
     expect(v("SELECT * FROM users WHERE email = 'o.vernel@laposte.net'"))
       .toContain("EMAIL:o.vernel@laposte.net");
@@ -460,16 +460,16 @@ describe("identifiant QUALIFIÉ — le libellé ne finit pas toujours au deux-po
   const vals = (t: string) => detectLabeledFields(t).map((d) => d.value);
 
   it("accroche un identifiant dont le libellé porte un qualificatif", () => {
-    // Mesuré sur un accord de principe RÉEL : « Identifiant du Projet Crédit : 02799195 »
-    // passait en clair, alors que « Identifiant : … » accrochait. Un document d'entreprise
-    // qualifie toujours ses identifiants.
+    // Measured on a REAL agreement in principle: « Identifiant du Projet Crédit : 02799195 »
+    // was going out in clear, while « Identifiant : … » caught. A corporate document
+    // always qualifies its identifiers.
     expect(vals("Identifiant du Projet Crédit : 02799195")).toContain("02799195");
     expect(vals("Identifiant : 02799195")).toContain("02799195");
     expect(vals("N° de gestion : 2022B44821")).toContain("2022B44821");
   });
 
   it("⚠️ le qualificatif est BORNÉ — il ne traverse pas une clause", () => {
-    // Au plus 3 mots de ≤12 lettres : au-delà, ce n'est plus un libellé mais une phrase.
+    // At most 3 words of ≤12 letters: beyond that, it's no longer a label but a sentence.
     expect(vals("Identifiant du projet de refonte complète du site : 02799195")).not.toContain("02799195");
   });
 
@@ -481,10 +481,10 @@ describe("identifiant QUALIFIÉ — le libellé ne finit pas toujours au deux-po
 describe("FUITE — un champ NOM avalait le champ VOISIN, qui partait en clair (16/08/2026)", () => {
   const vals = (t: string) => detectLabeledFields(t).map((d) => d.value);
 
-  /** Le coffre disait tout : la clé était `"Aurèle Aubertin (06 12 34 56 78)"` — le VRAI
-   *  téléphone À L'INTÉRIEUR du faux. La ligne entière était UNE valeur NOM, le candidat
-   *  téléphone imbriqué tombait au de-nest, et le faiseur de faux d'un NOM ne réécrit que
-   *  les mots de nom. */
+  /** The vault said it all: the key was `"Aurèle Aubertin (06 12 34 56 78)"` — the REAL
+   *  phone number INSIDE the fake. The whole line was ONE NAME value, the nested
+   *  phone candidate fell at the de-nest, and a NAME's fake-maker only rewrites
+   *  name words. */
   it("la valeur s'arrête à la PARENTHÈSE — téléphone, date de naissance, e-mail", () => {
     expect(vals("Contact : Julien Sabourdin (06 12 34 56 78)")).toEqual(["Julien Sabourdin"]);
     expect(vals("Gérant : Julien Sabourdin (né le 12/03/1984)")).toEqual(["Julien Sabourdin"]);
@@ -492,7 +492,7 @@ describe("FUITE — un champ NOM avalait le champ VOISIN, qui partait en clair (
   });
 
   it("…au TIRET ESPACÉ, jamais au tiret d'un nom composé", () => {
-    // Le tiret SIMPLE vit dans les noms ; c'est l'ESPACÉ qui sépare deux champs.
+    // The SIMPLE hyphen lives inside names; it's the SPACED one that separates two fields.
     expect(vals("Contact : Julien Sabourdin - julien@exemple.fr")).toEqual(["Julien Sabourdin"]);
     expect(vals("Nom : Jean-Pierre Saint-Chamas")).toEqual(["Jean-Pierre Saint-Chamas"]);
   });
@@ -503,9 +503,9 @@ describe("FUITE — un champ NOM avalait le champ VOISIN, qui partait en clair (
   });
 
   it("ce qui est coupé n'est pas perdu : il retombe sous SON détecteur", () => {
-    // C'est le point : imbriqué, le voisin était invisible ; coupé, il est vu.
-    // `Nom : REBOUR (né MORVAN)` laissait MORVAN en clair — il est maintenant un nom à
-    // part entière.
+    // That's the point: nested, the neighbour was invisible; cut, it is seen.
+    // `Nom : REBOUR (né MORVAN)` left MORVAN in clear — it is now a name in
+    // its own right.
     expect(vals("Nom : REBOUR (né MORVAN)")).toEqual(["REBOUR"]);
   });
 });
@@ -513,10 +513,10 @@ describe("FUITE — un champ NOM avalait le champ VOISIN, qui partait en clair (
 describe("CONSTAT PARCOURS 15/08 — un libellé de PERSONNE CONTRAINT le type (16/08/2026)", () => {
   const vals = (t: string) => detectLabeledFields(t).map((d) => `${d.category}:${d.value}`);
 
-  /** Le vocabulaire de la paie et de la signature manquait : sur « Salarié: … » le
-   *  détecteur ne voyait RIEN, donc le NER tranchait seul — et sur des noms bretons dont
-   *  le second terme est aussi une commune, il tranchait « Gwendal Kervoal » en VILLE et
-   *  « Soizic Quéméner » en ORGANISATION (capture 054). */
+  /** The payroll and signature vocabulary was missing: on « Salarié: … » the
+   *  detector saw NOTHING, so the NER decided alone — and on Breton names where
+   *  the second term is also a commune, it decided « Gwendal Kervoal » was a CITY and
+   *  « Soizic Quéméner » an ORGANISATION (capture 054). */
   it("« Salarié », « Employé », « Signataire » sont des libellés de NOM", () => {
     expect(vals("Salarié: Gwendal Kervoal")).toContain("NAME:Gwendal Kervoal");
     expect(vals("Employé : Awen Kervalec")).toContain("NAME:Awen Kervalec");
@@ -525,8 +525,8 @@ describe("CONSTAT PARCOURS 15/08 — un libellé de PERSONNE CONTRAINT le type (
   });
 
   it("⚠️ et ils ne débordent pas sur les libellés GÉO", () => {
-    // La contrainte de type ne s'applique qu'aux libellés de PERSONNE : une colonne
-    // « Ville » garde son type, sans quoi on corrigerait un défaut en en créant un autre.
+    // The type constraint only applies to PERSON labels: a
+    // « Ville » column keeps its type, or we'd fix one bug by creating another.
     expect(vals("Ville : Kervoal")).toContain("CITY:Kervoal");
     expect(vals("Adresse : 12 rue des Lilas")).toContain("ADDRESS:12 rue des Lilas");
   });
@@ -536,16 +536,16 @@ describe("l'idiome des JOURNAUX — `user_id=…` (persona support, 16/08/2026)"
   const vals = (t: string) => detectLabeledFields(t).map((d) => `${d.category}:${d.value}`);
 
   it("accroche l'identifiant d'un client dans une trace", () => {
-    // La branche en ligne comprenait déjà le `=` non quoté ; c'est le MOT qui manquait.
+    // The inline branch already understood the unquoted `=`; it's the WORD that was missing.
     expect(vals("Trace : user_id=8842019")).toContain("ID:8842019");
     expect(vals("customer_id: 4471")).toContain("ID:4471");
-    expect(vals("userId=8842019")).toContain("ID:8842019"); // la casse est déjà ignorée
+    expect(vals("userId=8842019")).toContain("ID:8842019"); // case is already ignored
   });
 
   it("⚠️ et la valeur s'arrête à la VIRGULE — sinon elle avale la ligne", () => {
-    // Mesuré : « user_id=8842019, ip 192.0.2.44 » devenait UNE valeur d'identifiant, et le
-    // faiseur de chiffres réécrivait l'IP à l'intérieur en « 944.9.8.74 » — une adresse qui
-    // n'existe pas. Un identifiant ne porte jamais de virgule.
+    // Measured: « user_id=8842019, ip 192.0.2.44 » was becoming ONE identifier value, and the
+    // number-faker was rewriting the IP inside it as « 944.9.8.74 » — an address that
+    // doesn't exist. An identifier never carries a comma.
     expect(vals("Trace : user_id=8842019, ip 192.0.2.44")).toContain("ID:8842019");
   });
 

@@ -51,28 +51,28 @@ export function gate(words: string, core: string): GatedPattern {
   // fired. The \b is redundant anyway — the separator class and the core both exclude
   // letters, so a longer word ("cnix…") can't chain into a match.
   //
-  // ⚠️ ET LE MÊME PIÈGE EN TÊTE, une case plus loin. Le `\b` de tête tenait sur une
-  // hypothèse — « tous les mots de contexte commencent par une lettre ASCII » — qui est
-  // FAUSSE depuis que le vocabulaire porte des mots CJK. Mesuré le 16/08/2026 (banc des
-  // personas hors de France) sur un vrai numéro : « My Number 8465 2198 7037 » est
-  // redacted, « マイナンバー 8465 2198 7037 » et « 個人番号 … » partent EN CLAIR — un
-  // numéro national japonais, sur son étiquette japonaise. Aucun `\b` n'existe devant un
-  // idéogramme, donc AUCUNE règle gardée par un mot CJK ne pouvait jamais tirer.
+  // ⚠️ AND THE SAME TRAP AT THE HEAD, one box further along. The leading `\b` rested on an
+  // assumption — "every context word starts with an ASCII letter" — which is
+  // FALSE now that the vocabulary carries CJK words. Measured on 16/08/2026 (the
+  // outside-France persona bench) on a real number: « My Number 8465 2198 7037 » is
+  // redacted, « マイナンバー 8465 2198 7037 » and « 個人番号 … » go out IN CLEAR — a
+  // Japanese national number, on its Japanese label. No `\b` exists before an
+  // ideograph, so NO rule gated by a CJK word could ever fire.
   //
-  // `(?<![A-Za-z0-9_])` dit la même chose que `\b` pour un mot-clé à initiale ASCII (le
-  // mot commence par une lettre, donc `\b` s'y réduit à « le précédent n'est pas un
-  // caractère de mot ») et laisse le CJK passer. La protection d'origine — qu'un SUFFIXE
-  // de mot ne serve pas de garde — est donc conservée telle quelle.
+  // `(?<![A-Za-z0-9_])` says the same thing as `\b` for an ASCII-initial keyword (the
+  // word starts with a letter, so `\b` there reduces to "the preceding character isn't a
+  // word character") and lets CJK through. The original protection — that a word
+  // SUFFIX shouldn't act as a gate — is therefore kept unchanged.
   const HEAD = `(?<![A-Za-z0-9_])`;
   //
   // The separator run carries `n`/`N`/`°`/`º` for the "N°" idiom — and `o`/`O` for its
   // ASCII rendering "No:", which is what an OCR (and most keyboards) produce. Without
   // it the gate stopped dead on "CARTE NATIONALE D'IDENTITÉ No: 1403…", the exact
   // separator a French identity document prints.
-  // La VIRGULE en fait partie parce que le libellé administratif la porte : « Immatriculation
-  // au RCS, numéro … ». Sans elle la course de séparateurs s'arrêtait net après le mot-clé,
-  // et le gate ne démarrait même pas (Kbis réel, 15/08/2026). Elle ne peut pas enjamber une
-  // autre valeur : ce qui suit doit rester séparateurs et mots courts.
+  // The COMMA is part of it because administrative wording carries it: « Immatriculation
+  // au RCS, numéro … ». Without it the separator run stopped dead right after the keyword,
+  // and the gate wouldn't even start (real Kbis, 15/08/2026). It can't reach across
+  // another value: what follows must stay separators and short words.
   const S = `[\\s:.#=nNoO°º'",\\-]`;
   // LINKING WORDS: « le passeport du titulaire porte le numéro 12AB34567 » is how a
   // CHAT phrases it, and the adversarial battery showed every gated family leaking on
@@ -85,37 +85,37 @@ export function gate(words: string, core: string): GatedPattern {
   // a versé 1 200 € sur le compte 1234567 » still blocks the gate) and ≤5 of ≤15
   // letters, so the keyword's authority never crosses a clause. The zero-separator
   // branch stays as before (OCR-glued keyword). Pinned in rules.gateFillers.test.ts.
-  // ⚠️ Les bornes BASSES commencent où la branche précédente s'arrête (16 après `S{1,15}`,
-  // 7 après le `S{1,6}` du filler) : une gouttière courte est DÉJÀ couverte, et laisser les
-  // deux branches se recouvrir doublait le coût du lookbehind sur les colonnes de nombres
-  // (mesuré : 0,47 → 1,02 ms par passe et par règle sur 30 Ko de relevé ; disjointes,
-  // 0,47 → 0,53). Le gain de détection est identique — seules les largeurs >15 manquaient.
+  // ⚠️ The LOW bounds start where the previous branch stops (16 after `S{1,15}`,
+  // 7 after the filler's `S{1,6}`): a short gutter is ALREADY covered, and letting the
+  // two branches overlap doubled the lookbehind's cost on number columns
+  // (measured: 0.47 → 1.02 ms per pass and per rule on 30 KB of statement; disjoint,
+  // 0.47 → 0.53). The detection gain is identical — only widths >15 were missing.
   const GUTTER = `[ \\t\\u00A0\\u202F]`;
   const FILLER = `(?:[a-zà-öø-ÿ]{1,15}(?:${S}{1,6}|${GUTTER}{7,60})){0,5}`;
-  // GOUTTIÈRE DE COLONNE — l'idiome des documents administratifs, que la fenêtre ci-dessus
-  // ne pouvait pas franchir. Sur un Kbis réel (15/08/2026), « Immatriculation au RCS,
-  // numéro » et sa valeur sont alignés en colonnes : ~18 espaces les séparent, donc >15, et
-  // le SIREN du domiciliataire partait EN CLAIR — celui de la société n'étant sauvé que par
-  // le « R.C.S. » qui le SUIT. Un SIREN se convertit en raison sociale par une recherche au
-  // registre public : masquer le nom et laisser le numéro ne masque rien.
+  // COLUMN GUTTER — the idiom of administrative documents, which the window above
+  // couldn't cross. On a real Kbis (15/08/2026), « Immatriculation au RCS,
+  // numéro » and its value are column-aligned: ~18 spaces separate them, so >15, and
+  // the domiciliary agent's SIREN went out IN CLEAR — the company's own being saved only by
+  // the « R.C.S. » that FOLLOWS it. A SIREN converts to a company name via a
+  // public-registry lookup: masking the name and leaving the number masks nothing.
   //
-  // Élargir `S{1,15}` aurait coûté la barre de précision (un séparateur quelconque peut
-  // enjamber une AUTRE valeur). Une gouttière d'espaces PURS, elle, ne le peut pas : s'il y
-  // avait quoi que ce soit entre le libellé et le nombre, la course d'espaces serait rompue.
-  // Sans saut de ligne (le cas vertical est à `labelBlocks.ts`), et bornée à une largeur de
-  // colonne. Épinglé dans `rules.gateGutter.test.ts`.
-  // MOT COLLÉ — l'OCR soude le mot-clé au mot suivant. Mesuré le 16/08/2026 sur un PV réel :
-  // « RCS Créteil 701 452 006 » est extrait « RCSCréteil 701 452 006 », et le SIREN partait
-  // EN CLAIR là où la même ligne espacée le redacted. Un SIREN se convertit en raison
-  // sociale par une recherche au registre public — le laisser, c'est ne rien masquer.
+  // Widening `S{1,15}` would have cost the precision bar (any separator can
+  // reach across ANOTHER value). A gutter of PURE spaces, however, cannot: if there
+  // were anything at all between the label and the number, the space run would be broken.
+  // No line break (the vertical case belongs to `labelBlocks.ts`), and bounded to one
+  // column width. Pinned in `rules.gateGutter.test.ts`.
+  // GLUED WORD — OCR fuses the keyword to the following word. Measured on 16/08/2026 on a real
+  // report: « RCS Créteil 701 452 006 » is extracted as « RCSCréteil 701 452 006 », and the SIREN went out
+  // IN CLEAR where the same spaced line redacts it. A SIREN converts to a company
+  // name via a public-registry lookup — leaving it means masking nothing.
   //
-  // ⚠️ Ce n'est PAS un `S{0,15}` devant le FILLER, essayé d'abord : cette forme recouvre la
-  // 4ᵉ branche, et le commentaire de la gouttière dit pourquoi c'est interdit — le banc sur
-  // documents réels est passé de ~1 min à >10 min, sur les mêmes colonnes de nombres. Une
-  // branche DISJOINTE ne coûte rien : elle exige ≥1 LETTRE juste après le mot-clé, là où la
-  // 1ʳᵉ exige ≥1 séparateur et la 4ᵉ n'admet aucune lettre — aucune position ne peut
-  // satisfaire deux branches. UN seul mot collé, puis de vrais séparateurs : au-delà, ce
-  // n'est plus une soudure d'OCR mais une phrase, et l'autorité du mot-clé s'y arrêterait.
+  // ⚠️ This is NOT an `S{0,15}` in front of the FILLER, tried first: that form overlaps the
+  // 4th branch, and the gutter comment says why that's forbidden — the bench on
+  // real documents went from ~1 min to >10 min, on the same number columns. A
+  // DISJOINT branch costs nothing: it requires ≥1 LETTER right after the keyword, where the
+  // 1st requires ≥1 separator and the 4th admits no letter — no position can
+  // satisfy two branches. ONE glued word only, then real separators: beyond that, it's
+  // no longer OCR fusion but a sentence, and the keyword's authority would stop there.
   const GLUED = `[a-zà-öø-ÿ]{1,15}${S}{1,6}`;
   const re: GatedPattern = new RegExp(
     `(?<=${HEAD}(?:${ocrTolerantWords(words)})(?:${S}{1,15}${FILLER}|${GLUED}|${GUTTER}{16,60}|${S}{0,15}))(?:${core})`,

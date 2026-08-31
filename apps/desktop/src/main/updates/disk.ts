@@ -11,38 +11,38 @@ export interface UpdInfo {
   files?: UpdFile[];
 }
 
-/** L'arche d'un artefact, avec le test EXACT d'electron-updater
- *  (`MacUpdater.filterFilesForArch` : le nom CONTIENT-il « arm64 »). Une autre définition
- *  ici et on pèserait un fichier que le client ne téléchargera pas. */
+/** An artifact's arch, with electron-updater's EXACT test
+ *  (`MacUpdater.filterFilesForArch`: does the name CONTAIN "arm64"). A different definition
+ *  here and we'd weigh a file the client won't download. */
 const isArm64File = (name: string): boolean => name.includes("arm64");
 
 /**
- * Les octets qu'electron-updater va réellement TÉLÉCHARGER pour cette mise à jour.
+ * The bytes electron-updater will actually DOWNLOAD for this update.
  *
- * ⚠️ UN SEUL FICHIER, PAS LE MANIFESTE. Sur macOS, Squirrel.Mac applique le `.zip` — le
- * `.dmg` du manifeste n'est là que pour le téléchargement manuel depuis le site, et
- * `MacUpdater` ne retient que les entrées de SON processeur. Additionner `files` revenait
- * donc à compter, depuis que mac livre deux arches, DEUX zips plus DEUX dmg : 2,9 Go
- * annoncés là où la machine en télécharge 0,72 — et, multiplié par `APPLY_SPACE_FACTOR`,
- * 6,4 Go d'espace exigés au lieu de ~2,4. Le pré-vol REFUSAIT alors une mise à jour qui
- * tenait largement (signalé sur 0.5.0-staging.149, 3,9 Go libres).
+ * ⚠️ ONE SINGLE FILE, NOT THE MANIFEST. On macOS, Squirrel.Mac applies the `.zip` — the
+ * manifest's `.dmg` is there only for manual download from the site, and
+ * `MacUpdater` keeps only the entries for ITS OWN processor. Summing `files` therefore amounted
+ * to counting, since mac ships two arches, TWO zips plus TWO dmg: 2.9 GB
+ * announced where the machine downloads 0.72 — and, multiplied by `APPLY_SPACE_FACTOR`,
+ * 6.4 GB of space required instead of ~2.4. The pre-flight then REFUSED an update that
+ * fit comfortably (reported on 0.5.0-staging.149, 3.9 GB free).
  *
- * Un garde qui échoue fermé doit se tromper du bon côté, mais pas de deux arches et d'un
- * facteur trois : à ce compte-là il n'empêche plus un échec, il empêche la mise à jour.
- * Épinglé par `disk.test.ts` (« pèse le seul fichier que cette machine téléchargera »).
+ * A guard that fails closed should err on the right side, but not by two arches and a
+ * factor of three: at that rate it no longer prevents a failure, it prevents the update.
+ * Pinned by `disk.test.ts` ("weighs the one file this machine will download").
  */
 export function totalUpdateSize(info: UpdInfo | undefined, arm64 = process.arch === "arm64"): number {
   const files = info?.files ?? [];
-  // Le `.zip` est le seul artefact que l'updater cherche (`findFile(files, "zip", …)`).
+  // The `.zip` is the only artifact the updater looks for (`findFile(files, "zip", …)`).
   const zips = files.filter((f) => (f.url ?? "").toLowerCase().endsWith(".zip"));
   const forArch = arm64
-    ? // Sur Apple Silicon (Rosetta compris) l'arm64 est préféré QUAND il existe ; sinon on
-      // retombe sur les entrées Intel, exactement comme le client.
+    ? // On Apple Silicon (Rosetta included) arm64 is preferred WHEN it exists; otherwise we
+      // fall back to the Intel entries, exactly like the client.
       (zips.some((f) => isArm64File(f.url ?? "")) ? zips.filter((f) => isArm64File(f.url ?? "")) : zips)
     : zips.filter((f) => !isArm64File(f.url ?? ""));
-  // Un manifeste sans `url` exploitable (ancien format, entrée mal formée) ne doit pas
-  // faire retomber le besoin à zéro — le garde serait muet. On reprend alors le plus gros
-  // fichier annoncé, qui majore ce qui sera téléchargé.
+  // A manifest with no usable `url` (old format, malformed entry) must not
+  // drop the requirement to zero — the guard would be mute. So the largest
+  // announced file is used instead, which overestimates what will be downloaded.
   const chosen = forArch.length > 0 ? forArch : files;
   return chosen.reduce((n, f) => Math.max(n, f.size ?? 0), 0);
 }
@@ -70,12 +70,12 @@ export const APPLY_SPACE_FACTOR = 2.2;
  *  UI never shows a `ditto`/`pkzip` technical dump. */
 export function humanizeUpdateError(err: unknown): { code: string; message: string } {
   const e = err as { message?: string; code?: string; errno?: number } | undefined;
-  // Le CODE compte autant que le texte : macOS localise ses erreurs réseau, donc le
-  // message d'un appareil français dit « La requête a expiré. » et aucun motif anglais ne
-  // le reconnaît. Mesuré : ces échecs remontaient en `updater-generic`, et l'utilisateur
-  // lisait « La mise à jour a échoué » au lieu de « vérifiez votre réseau » — le seul
-  // conseil qui l'aurait aidé. On lit donc `code`/`errno` en plus du texte, et on ajoute
-  // les formulations localisées que la télémétrie a réellement montrées.
+  // The CODE matters as much as the text: macOS localizes its network errors, so a
+  // French device's message reads « La requête a expiré. » and no English pattern
+  // recognizes it. Measured: these failures surfaced as `updater-generic`, and the user
+  // read « La mise à jour a échoué » instead of « vérifiez votre réseau » — the one
+  // piece of advice that would have helped. So `code`/`errno` are read in addition to the text, and
+  // the localized phrasings telemetry has actually shown are added.
   const raw = [e?.message ?? err ?? "", e?.code ?? ""].filter(Boolean).join(" ");
   if (/no space left|enospc|pkzip signature|not enough space|disk.*full|espace disque/i.test(raw))
     return {
@@ -83,12 +83,12 @@ export function humanizeUpdateError(err: unknown): { code: string; message: stri
       message:
         "Espace disque insuffisant pour installer la mise à jour. Libérez de l'espace disque, puis réessayez.",
     };
-  // Volume EN LECTURE SEULE : l'app tourne depuis le `.dmg` monté, ou depuis Downloads
-  // sous la translocation Gatekeeper — Squirrel.Mac ne peut pas s'écraser lui-même. Ce
-  // n'est PAS un bug : le seul remède est de déplacer l'app dans /Applications, et
-  // « réessayer » (le message `generic`) est un faux conseil. Classé à part pour donner
-  // la BONNE action ET pour cesser de le remonter en exception (index.ts) — c'est un fait
-  // d'ENVIRONNEMENT, pas une panne de mise à jour. Mesuré : 5 utilisateurs, 27 fois.
+  // READ-ONLY volume: the app is running from the mounted `.dmg`, or from Downloads
+  // under Gatekeeper translocation — Squirrel.Mac can't overwrite itself. This
+  // is NOT a bug: the only remedy is moving the app into /Applications, and
+  // "try again" (the `generic` message) is bad advice. Classified separately to give
+  // the RIGHT action AND to stop surfacing it as an exception (index.ts) — it's an
+  // ENVIRONMENT fact, not an update failure. Measured: 5 users, 27 times.
   if (/read-only volume|move the application|read only volume|volume en lecture seule/i.test(raw))
     return {
       code: "read_only_volume",
@@ -123,7 +123,7 @@ export function humanizeUpdateError(err: unknown): { code: string; message: stri
   // Transport: DNS / refused / reset / timeout before any HTTP status.
   if (
     /enotfound|econnrefused|econnreset|etimedout|epipe|socket hang|network|timed?\s?out/i.test(raw) ||
-    // Les mêmes causes, dites par l'OS dans la langue de l'utilisateur.
+    // The same causes, stated by the OS in the user's language.
     /requête a expiré|délai d'attente|connexion.*(perdue|interrompue)|hors ligne|impossible de se connecter/i.test(raw)
   )
     return {

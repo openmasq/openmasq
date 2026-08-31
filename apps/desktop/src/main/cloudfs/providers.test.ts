@@ -3,13 +3,13 @@ import { assertFileId } from "@openmasq/connectors";
 import { CLOUD_PROVIDERS } from "./providers";
 
 /**
- * Les adaptateurs de stockage distant.
+ * The remote storage adapters.
  *
- * Ce qui vaut un test, c'est la frontière : l'identifiant de dossier est la SEULE valeur
- * que le renderer choisit, et il finit dans l'URL d'un fournisseur — dans un `q='<id>' in
- * parents` chez Drive, dans un segment de chemin chez Graph. Une apostrophe ou une barre
- * oblique qui passerait sortirait de la requête. Le reste (le tri, le type d'entrée) se
- * vérifie ici plutôt qu'à l'écran, où une réponse d'API ne se rejoue pas.
+ * What's worth testing is the boundary: the folder identifier is the ONLY value
+ * the renderer chooses, and it ends up in a provider's URL — in a `q='<id>' in
+ * parents` on Drive, in a path segment on Graph. An apostrophe or a slash
+ * that got through would escape the query. The rest (sorting, entry type) is
+ * checked here rather than on screen, where an API response can't be replayed.
  */
 
 const drive = CLOUD_PROVIDERS["google-drive"];
@@ -32,7 +32,7 @@ describe("Google Drive", () => {
   it("liste les enfants du dossier, la racine étant l'alias `root`", () => {
     expect(drive.childrenUrl(null)).toContain(encodeURIComponent("'root' in parents"));
     expect(drive.childrenUrl("1a2B3c")).toContain(encodeURIComponent("'1a2B3c' in parents"));
-    // La corbeille n'est pas un dossier de travail.
+    // The trash is not a working folder.
     expect(drive.childrenUrl(null)).toContain(encodeURIComponent("trashed = false"));
   });
 
@@ -52,7 +52,7 @@ describe("Google Drive", () => {
     expect(entries.map((e) => e.name)).toEqual(["Élan", "Abeille.txt", "zebre.txt"]);
     expect(entries[0].kind).toBe("dir");
     expect(entries[2].mtime).toBeGreaterThan(0);
-    // Une entrée sans id ne peut pas être rouverte : elle n'entre pas dans l'arbre.
+    // An entry with no id can't be reopened: it doesn't enter the tree.
     expect(entries).toHaveLength(3);
   });
 

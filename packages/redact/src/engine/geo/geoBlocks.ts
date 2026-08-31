@@ -87,10 +87,10 @@ function fieldFake(cat: string, value: string, place: GeoPlace, country: ISO2): 
  *   values; `pseudonymize` uses it in place of the independent `fakeGeo`. Empty when there's
  *   no multi-field covered block. `taken` = fakes already issued (avoided for collision-safety).
  */
-/** Les catégories dont la valeur NOMME la ville du bloc — ce sur quoi l'ancre se pose. */
+/** The categories whose value NAMES the block's city — what the anchor rests on. */
 const CITYISH = new Set(["CITY", "TOWN", "LOCATION", "PLACE"]);
 
-/** La ville réelle qu'un champ du bloc nomme, s'il en nomme une. */
+/** The real city that a block field names, if it names one. */
 function blockCity(g: GeoCand): string | null {
   const cat = g.category.toUpperCase();
   if (!CITYISH.has(cat)) return null;
@@ -122,12 +122,12 @@ export function resolveGeoBlocks(
   }
   if (cur.length) blocks.push(cur);
 
-  // Chaque faux émis → la valeur réelle qu'il sert. L'unicité inter-blocs protège la
-  // réversibilité (deux RÉELS distincts ne partagent jamais un faux) — mais la MÊME valeur
-  // réelle DOIT pouvoir réutiliser son faux : c'était le défaut mesuré le plus coûteux du
-  // banc (`bench/tokensVsFakes.md`) — « 33000 Bordeaux » dans deux blocs devenait Amiens
-  // puis Carcassonne, et « même région ? » basculait de oui à non. Même règle pour `taken` :
-  // un faux déjà au coffre est réutilisable quand il y sert LA MÊME valeur réelle.
+  // Each emitted fake → the real value it serves. Cross-block uniqueness protects
+  // reversibility (two distinct REAL values never share a fake) — but the SAME real
+  // value MUST be able to reuse its fake: this was the most costly measured defect on
+  // the bench (`bench/tokensVsFakes.md`) — « 33000 Bordeaux » in two blocks became Amiens
+  // then Carcassonne, and « same region? » flipped from yes to no. Same rule for `taken`:
+  // a fake already in the vault is reusable when it serves THE SAME real value.
   const usedFakes = new Map<string, string>(); // fakeLower → realLower
   const vaultReal = new Map<string, string>(); // fakeLower → realLower (le coffre)
   for (const [fk, rl] of Object.entries(opts?.vault ?? {})) vaultReal.set(fk.toLowerCase(), rl.toLowerCase());
@@ -149,8 +149,8 @@ export function resolveGeoBlocks(
     const pool = PLACES_BY_COUNTRY[country];
     if (!pool || !pool.length) continue; // uncovered country (CN/KR today) → independent faker
     const seed = hash(block.map((g) => g.value).join("|"));
-    // L'ANCRE d'abord : si une ville du bloc a déjà son lieu (autre bloc, autre adresse,
-    // ou le coffre d'un envoi précédent), on l'essaie avant le tirage — même lieu partout.
+    // The ANCHOR first: if a block's city already has its place (another block, another
+    // address, or the vault of a previous send), try it before drawing — same place everywhere.
     const anchored = opts?.anchors
       ? block.map(blockCity).filter((c): c is string => !!c)
           .map((c) => opts.anchors!.byCity.get(`${country}|${c.toLowerCase()}`))
@@ -184,8 +184,8 @@ export function resolveGeoBlocks(
           out.set(a.value, a.fake);
           usedFakes.set(a.fake.toLowerCase(), a.value.toLowerCase());
         }
-      // Le lieu retenu devient l'ancre de chaque ville que le bloc nomme — les adresses
-      // isolées (fakeGeo) et les blocs suivants le réutiliseront.
+      // The chosen place becomes the anchor for every city the block names — standalone
+      // addresses (fakeGeo) and later blocks will reuse it.
       if (opts?.anchors) {
         for (const g of block) {
           const cityName = blockCity(g);

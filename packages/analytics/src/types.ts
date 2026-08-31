@@ -63,36 +63,36 @@ export interface ConfigureOptions {
    * unconfigured). */
   appKey?: string;
   /**
-   * Laisser passer les événements d'une page servie en LOCAL (`localhost`, `127.0.0.1`,
-   * `*.local`…). Par défaut `false` : une machine de développement n'alimente pas les
-   * chiffres du produit — un `pnpm dev` ouvert toute la journée, un rechargement à chaque
-   * sauvegarde, et les rapports comptent le développeur comme une cohorte. Même intention
-   * que `setAnalyticsSuspended` pour les lancements automatisés, mais décidée par l'HÔTE,
-   * donc sans rien à câbler dans chaque app.
+   * Let through events from a page served LOCALLY (`localhost`, `127.0.0.1`,
+   * `*.local`…). Default `false`: a development machine shouldn't feed the
+   * product's numbers — a `pnpm dev` left open all day, a reload on every
+   * save, and reports would count the developer as a cohort. Same intent
+   * as `setAnalyticsSuspended` for automated launches, but decided by the HOST,
+   * so nothing to wire in each app.
    *
-   * ⚠️ Le blocage ne s'applique QUE si l'on voit positivement un hôte de boucle locale : là
-   * où il n'y a pas de `location` (rendu serveur, `file://` du bureau empaqueté), on émet.
-   * Mettre `true` pour vérifier la chaîne d'ingestion depuis un poste — délibérément, pas
-   * par défaut.
+   * ⚠️ The block ONLY applies if a local-loopback host is positively detected: where
+   * there's no `location` (server rendering, the packaged desktop's `file://`), it emits.
+   * Set `true` to verify the ingestion chain from a workstation — deliberately, not
+   * by default.
    */
   allowLocalhost?: boolean;
   /** Deployment environment stamped on EVERY event's `properties.env`
    *  (`development` | `staging` | `production`). Not sensitive. */
   env?: string;
   /**
-   * L'environnement que l'app VISE réellement, quand il peut différer de `env`.
+   * The environment the app actually TARGETS, when it can differ from `env`.
    *
-   * ⚠️ Les deux existent parce qu'ils répondent à deux questions différentes, et les
-   * confondre se paie des deux côtés. `env` décrit le BUILD : c'est lui qui sépare un
-   * `pnpm dev` et un build local d'un déploiement, et tout chiffre produit en dépend —
-   * il ne doit pas bouger. `runtimeEnv` décrit l'API à laquelle cette instance PARLE,
-   * qui se change à l'exécution depuis l'artefact unique : un binaire de production
-   * basculé sur staging annonce toujours `env: "production"`.
+   * ⚠️ Both exist because they answer two different questions, and conflating
+   * them costs on both sides. `env` describes the BUILD: it's what separates a
+   * `pnpm dev` and a local build from a deployment, and every product figure depends on it —
+   * it must not move. `runtimeEnv` describes the API this instance TALKS to,
+   * which changes at runtime from the single artifact: a production binary
+   * switched to staging still announces `env: "production"`.
    *
-   * Seuls les DRAPEAUX le lisent (`flags.ts`), et c'est ce qui rend « fermer une porte
-   * en staging seulement » possible : écrit sur `env`, le ciblage raterait exactement
-   * les testeurs qu'il vise, et fermerait la porte du parc. Absent ⇒ non transmis, et
-   * une condition PostHog qui le nomme ne correspond simplement pas.
+   * Only the FLAGS read it (`flags.ts`), and that's what makes "closing a gate
+   * in staging only" possible: written on `env`, the targeting would miss exactly
+   * the testers it's aimed at, and would close the gate for the whole fleet. Absent ⇒ not sent, and
+   * a PostHog condition naming it simply won't match.
    */
   runtimeEnv?: string;
   /** App version stamped on EVERY event's `properties.app_version`. Not sensitive. */
@@ -112,18 +112,18 @@ export interface Sink {
    *  by the same consent/DNT/transport rules. Anonymised + bounded. */
   captureError(e: ErrorReport): void;
   /**
-   * Lire les DRAPEAUX du relais (`POST <origine du relais>/flags`) — la porte ouverte /
-   * fermée de certaines sections. `null` quand il n'y a pas de transport, sur une
-   * réponse illisible, ou sur la moindre erreur : l'appelant retombe alors sur ses
-   * défauts compilés, jamais sur « fermé ».
+   * Read the relay's FLAGS (`POST <relay origin>/flags`) — the open/closed
+   * gate for certain sections. `null` when there's no transport, on an
+   * unreadable response, or on any error whatsoever: the caller then falls back to its
+   * compiled defaults, never to "closed".
    *
-   * ⚠️ **Ce n'est PAS de la télémétrie, et le gate n'est donc pas le même.** Rien n'est
-   * rapporté : la requête ne porte que l'id anonyme qui sert de clé de répartition, et
-   * elle N'EST PAS soumise au consentement — refuser la mesure ne doit pas donner un
-   * produit différent. Elle reste coupée par `setAnalyticsSuspended` (un lancement
-   * automatisé doit voir des drapeaux DÉTERMINISTES, donc les défauts), et elle ignore
-   * délibérément le refus « hôte local » : celui-ci existe pour ne pas polluer les
-   * chiffres du produit, ce qu'une lecture de configuration ne fait pas.
+   * ⚠️ **This is NOT telemetry, and so the gate isn't the same.** Nothing is
+   * reported: the request only carries the anonymous id used as a routing key, and
+   * it is NOT subject to consent — refusing measurement must not give a
+   * different product. It stays cut off by `setAnalyticsSuspended` (an
+   * automated launch must see DETERMINISTIC flags, hence the defaults), and it
+   * deliberately ignores the "local host" refusal: that one exists to avoid polluting the
+   * product's numbers, which a configuration read doesn't do.
    */
   fetchFlags(): Promise<Record<string, boolean | string> | null>;
 }

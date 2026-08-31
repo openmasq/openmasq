@@ -40,14 +40,14 @@ const EN_COUNTRIES = [
 // Native / other spellings we RECOGNISE as countries (so they're not faked to a city)
 // but never emit as a fake.
 //
-// ⚠️ Les NATIONS DU ROYAUME-UNI y sont au complet, et c'est une question de fidélité, pas
-// de géographie : « England » et « Scotland » étaient reconnues, « Wales » non — donc
-// « governed by the law of England and Wales », la clause de droit applicable la plus
-// citée du monde anglophone, devenait « England and Niort » (mesuré le 17/08/2026 sur un
-// contrat de travail anglais ; « pays de Galles » → « nevers » en français). Un juriste
-// qui demande quel droit s'applique reçoit alors une réponse sur une commune française.
-// Reconnues seulement, jamais émises : ce ne sont pas des États souverains, donc le
-// vivier de faux ne bouge pas d'un mot.
+// ⚠️ The UNITED KINGDOM'S NATIONS are all present here, and it's a matter of fidelity, not
+// geography: "England" and "Scotland" were recognised, "Wales" was not — so
+// "governed by the law of England and Wales", the most-cited applicable-law clause
+// in the English-speaking world, became "England and Niort" (measured 17/08/2026 on an
+// English employment contract; "pays de Galles" → "nevers" in French). A lawyer
+// asking which law applies then gets an answer about a French commune.
+// Recognised only, never emitted: these are not sovereign states, so the
+// fake pool doesn't move an inch.
 const NATIVE = [
   "Deutschland", "España", "Italia", "Nederland", "Österreich", "Schweiz",
   "Belgien", "Belgïe", "Sverige", "Danmark", "Suomi", "Polska", "United Kingdom",

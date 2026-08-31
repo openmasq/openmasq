@@ -2,16 +2,16 @@ import { describe, it, expect } from "vitest";
 import { pseudonymize, unredact } from "../../index";
 import type { Vault } from "../../types";
 
-/* Le gazetteer de prénoms est un filet de RAPPEL de dernier recours : il tourne en
- * DERNIER dans `gather`, et seulement sur les clés d'entité qu'aucune autre source ne
- * revendique. Sans cette règle, un span qu'une source sémantique possède déjà recevait
- * une SECONDE identité NAME (des alias par mot à côté du faux d'ORG) — l'entité se
- * scindait dans le coffre. */
+/* The first-name gazetteer is a last-resort RECALL net: it runs
+ * LAST in `gather`, and only on entity keys no other source
+ * claims. Without this rule, a span a semantic source already owned would receive
+ * a SECOND NAME identity (per-word aliases alongside the ORG fake) — the entity
+ * split in the vault. */
 
 describe("gather — le gazetteer ne double-revendique jamais un span possédé", () => {
   it("« Oscar Studio » ORG (NER) ne devient pas AUSSI une personne prénommée Oscar", async () => {
-    // « oscar » est un prénom du lexique, donc le gazetteer voit une paire prénom+nom
-    // sur le MÊME span que l'ORG du NER. Une seule identité doit sortir.
+    // « oscar » is a lexicon first name, so the gazetteer sees a first+last name pair
+    // on the SAME span as the NER's ORG. Only one identity must come out.
     const vault: Vault = {};
     const { text } = await pseudonymize("Oscar Studio livre le lot.", {
       vault,

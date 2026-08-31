@@ -3,34 +3,34 @@ import { pseudonymize, unredact } from "../../index";
 import { buildFakeName } from "./name";
 
 /**
- * LA RÈGLE : un jeton d'un vrai nom ne part JAMAIS verbatim dans son propre faux.
+ * THE RULE: a token of a real name NEVER goes out verbatim inside its own fake.
  *
- * `buildFakeName` recopiait tel quel tout jeton que `isNamePart` refusait — un prédicat
- * qui répond en réalité à « puis-je ALIASER ce mot ? », pas à « puis-je l'envoyer ? ».
- * Deux familles de jetons tombaient donc dans le trou, et le coffre annonçait la valeur
- * redacted dans les deux cas (mesuré le 05/08) :
+ * `buildFakeName` used to copy through unchanged any token that `isNamePart` refused — a
+ * predicate that actually answers "can I ALIAS this word?", not "can I send it?".
+ * Two families of tokens fell into that hole, and the vault reported the value as
+ * faked in both cases (measured 05/08):
  *
- *  · hors Latin-1 — l'ancienne classe `[A-Za-zÀ-ÿ]` ratait un accent DÉCOMPOSÉ (NFD, ce
- *    que produit un collé macOS et la plupart des extractions PDF), un homoglyphe
- *    cyrillique/grec, une lettre pleine chasse ;
- *  · les exclusions SÉMANTIQUES — `Petit`, `Sala`, `France` sont de vrais patronymes que
- *    portent les listes de stopwords, de vocabulaire et de pays.
+ *  · non-Latin-1 — the old `[A-Za-zÀ-ÿ]` class missed a DECOMPOSED accent (NFD, what
+ *    a macOS paste and most PDF extractions produce), a Cyrillic/Greek homoglyph,
+ *    a fullwidth letter;
+ *  · SEMANTIC exclusions — `Petit`, `Sala`, `France` are real surnames that
+ *    also appear in the stopword, vocabulary and country lists.
  *
- * L'assertion est toujours la même et c'est la seule qui compte : la vraie valeur est
- * ABSENTE du texte qui part. Ce que le coffre contient ne le prouve pas.
+ * The assertion is always the same and it's the only one that matters: the real value is
+ * ABSENT from the text that goes out. What the vault contains does not prove that.
  *
- * ⚠️ Elle est vérifiée ICI, cas par cas, parce qu'elle ne l'est NULLE PART en général :
- * la post-condition de `pseudonymize/index.ts` prouve seulement qu'une correspondance
- * rapportée est RÉVERSIBLE (`vault[placeholder] === value`), jamais que la valeur a
- * réellement quitté le texte. C'est ce qui a laissé la fuite se présenter à
- * l'utilisateur comme un redaction accompli. La généraliser à ce point d'étranglement
- * — pour chaque correspondance, refuser l'envoi si sa valeur figure encore dans
- * `text` — fermerait la famille entière ; c'est le suivi ouvert.
+ * ⚠️ It is verified HERE, case by case, because it is verified NOWHERE ELSE in general:
+ * `pseudonymize/index.ts`'s post-condition only proves that a reported match is
+ * REVERSIBLE (`vault[placeholder] === value`), never that the value actually
+ * left the text. That is what let the leak present itself to the user as a
+ * completed redaction. Generalizing this at that choke point — for every match,
+ * refuse to send if its value still appears in `text` — would close the whole
+ * family; that is the open follow-up.
  */
 
 const forceName = (value: string) => ({ forced: [{ value, category: "name" }] });
 
-/** Redacted `texte` et rend ce qui part réellement + le coffre. */
+/** Redacts `texte` and returns what actually goes out + the vault. */
 async function envoyer(texte: string, opts: object = {}) {
   const vault: Record<string, string> = {};
   const res = await pseudonymize(texte, { vault, ...opts });
@@ -39,7 +39,7 @@ async function envoyer(texte: string, opts: object = {}) {
 
 describe("buildFakeName — aucun jeton réel n'est recopié dans le faux", () => {
   const cas: [string, string, string][] = [
-    // libellé, nom réel, le jeton qui partait en clair
+    // label, real name, the token that used to go out in clear
     ["accent DÉCOMPOSÉ (NFD)", "Élodie Morvan".normalize("NFD"), "Élodie".normalize("NFD")],
     ["homoglyphe cyrillique", "Еlodie Morvan", "Еlodie"],
     ["homoglyphe grec", "Elodie Morvαn", "Morvαn"],
@@ -55,7 +55,7 @@ describe("buildFakeName — aucun jeton réel n'est recopié dans le faux", () =
       const { sortie, vault } = await envoyer(texte, forceName(reel));
 
       expect(sortie, `« ${jeton} » est encore sur le fil : ${sortie}`).not.toContain(jeton);
-      // …et la valeur reste réversible : le coffre rend le nom RÉEL, entier.
+      // …and the value stays reversible: the vault returns the REAL name, whole.
       expect(unredact(sortie, vault)).toContain(reel);
     });
   }
@@ -83,8 +83,8 @@ describe("ce qui doit RESTER verbatim (la raison d'être du prédicat étroit)",
       vault,
       ...forceName("Jean Petit"),
     });
-    // Le mot ordinaire d'une phrase suivante ne doit pas être réécrit par `applyVault` :
-    // c'est l'invariant que l'exclusion sémantique protège, et il tient toujours.
+    // The ordinary word in a following sentence must not be rewritten by `applyVault`:
+    // that's the invariant the semantic exclusion protects, and it still holds.
     const suite = await pseudonymize("Un petit dossier, un grand résultat.", { vault });
     expect(suite.text).toContain("petit");
   });

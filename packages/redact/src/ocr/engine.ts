@@ -36,7 +36,7 @@ export interface OcrPage {
   /**
    * Boxes the DETECTOR found that recognition could NOT read (empty CTC output) —
    * `[x0, y0, x1, y1]` in the same top-left raster pixels as `words`. This is the raw
-   * material of « une zone détectée mais illisible » (a stamp, handwriting, a degraded
+   * material of « a detected but unreadable zone » (a stamp, handwriting, a degraded
    * MRZ band): it used to be silently dropped, which is the opposite of fail-closed for
    * a scan. Undefined ⇒ engine has no separate detect stage (Tesseract).
    */

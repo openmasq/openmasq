@@ -1,8 +1,8 @@
-/** Le YAML reconstruit d'`app-update.yml` — PUR (aucun import Electron), pour être
- *  testable et importé des deux côtés. Chaque VALEUR a sa maison chez l'appelant ;
- *  la FORME reproduit celle qu'electron-builder génère. ⚠️ Copie assumée de
- *  `scripts/appUpdateYml.cjs` (un module CJS de build ne s'importe pas du bundle
- *  main) — parité tenue par `appUpdateConfig.test.ts`, qui lit les DEUX. */
+/** The rebuilt YAML of `app-update.yml` — PURE (no Electron import), so it's
+ *  testable and importable from both sides. Each VALUE has its home at the caller;
+ *  the SHAPE reproduces the one electron-builder generates. ⚠️ Deliberate copy of
+ *  `scripts/appUpdateYml.cjs` (a CJS build module can't be imported from the
+ *  main bundle) — parity held by `appUpdateConfig.test.ts`, which reads BOTH. */
 export function rebuiltUpdateConfigContent(url: string, channel: string, productName: string): string {
   return [
     "provider: generic",

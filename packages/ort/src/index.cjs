@@ -1,20 +1,20 @@
-// Le moteur ONNX, avec le repli qui rend les Mac Intel utilisables. ⚠️ L'IMPLÉMENTATION est
-// ici, et seulement ici : `index.mjs` n'en est qu'une façade ESM (règle 9 — une seule maison).
+// The ONNX engine, with the fallback that makes Intel Macs usable. ⚠️ The IMPLEMENTATION is
+// here, and only here: `index.mjs` is just an ESM facade over it (rule 9 — one home only).
 //
-// POURQUOI CE PAQUET EXISTE : `onnxruntime-node` ne livre plus de binding natif pour
-// `darwin/x64` — le fichier n'est pas dans le paquet. Son `require` JETTE au chargement, donc
-// `import("@huggingface/transformers")` échoue EN ENTIER, donc le NER local ne démarre pas,
-// donc l'app — qui échoue FERMÉ, à raison — refuse TOUT envoi. Sur un Mac Intel, l'app ne
-// pouvait pas envoyer un seul message.
+// WHY THIS PACKAGE EXISTS: `onnxruntime-node` no longer ships a native binding for
+// `darwin/x64` — the file isn't in the package. Its `require` THROWS at load, so
+// `import("@huggingface/transformers")` fails ENTIRELY, so the local NER doesn't start,
+// so the app — which fails CLOSED, rightly — refuses ANY send. On an Intel Mac, the app
+// couldn't send a single message.
 //
-// Ce paquet prend la place de `onnxruntime-node` (override pnpm) et choisit À L'EXÉCUTION :
-// le binding natif quand il existe, le WASM (`onnxruntime-web`) sinon. Mesuré sur un mac mini
-// Intel 4 cœurs, mBERT q8 (178 Mo) : session en 1,8 s, passe avant de 48 jetons en ~320 ms
-// mono-thread — très en deçà du budget de 45 s que le renderer laisse à une détection.
+// This package stands in for `onnxruntime-node` (pnpm override) and chooses AT RUNTIME:
+// the native binding when it exists, WASM (`onnxruntime-web`) otherwise. Measured on a mac mini
+// Intel 4-core, mBERT q8 (178 MB): session in 1.8 s, forward pass of 48 tokens in ~320 ms
+// single-thread — well within the 45 s budget the renderer allows for a detection.
 //
-// ⚠️ Le repli reste LOCAL et HORS LIGNE : il ne change ni la posture vie privée, ni le
-// fail-closed. Rien ne part sur le réseau, et les poids restent ceux que le worker a
-// sha256-vérifiés avant de nous appeler.
+// ⚠️ The fallback stays LOCAL and OFFLINE: it changes neither the privacy posture nor the
+// fail-closed behavior. Nothing goes over the network, and the weights remain the ones the
+// worker sha256-verified before calling us.
 "use strict";
 const { readFileSync } = require("node:fs");
 const { dirname } = require("node:path");
@@ -22,12 +22,12 @@ const { pathToFileURL } = require("node:url");
 const os = require("node:os");
 
 /**
- * Les deux seules différences à gommer entre le natif et le WASM — extrait pour être
- * TESTABLE sans binding natif ni WASM (`index.test.ts` injecte une fausse implémentation) :
+ * The only two differences to smooth over between native and WASM — extracted to be
+ * TESTABLE without a native binding or WASM (`index.test.ts` injects a fake implementation):
  *
- *  • le natif accepte un CHEMIN de fichier, le WASM attend des octets. Une chaîne y serait
- *    comprise comme une URL à aller CHERCHER — exactement ce qu'on n'autorise pas ;
- *  • le fournisseur d'exécution s'appelle `cpu` côté natif, `wasm` ici.
+ *  • native accepts a file PATH, WASM expects bytes. A string there would be
+ *    understood as a URL to go FETCH — exactly what we don't allow;
+ *  • the execution provider is called `cpu` on the native side, `wasm` here.
  */
 function envelopperWasm(impl, lire = (p) => new Uint8Array(readFileSync(p))) {
   return Object.assign(Object.create(impl.InferenceSession), {
@@ -45,26 +45,26 @@ function envelopperWasm(impl, lire = (p) => new Uint8Array(readFileSync(p))) {
 }
 
 /**
- * Combien de fils d'exécution donner au WASM. Sans réglage explicite, onnxruntime-web
- * retombe à UN fil dès qu'un `self` sans `crossOriginIsolated` existe (le cas d'un
- * utilityProcess Electron) — c'est le mono-thread mesuré à ~320 ms la passe. Or ici on
- * n'est PAS dans un navigateur : `SharedArrayBuffer` est disponible sans COOP/COEP, et
- * ort-web honore toujours un réglage utilisateur (mesuré sur cette base : 593 → 237 ms
- * la passe de 128 jetons à 3 fils, sorties identiques). Un environnement qui ne
- * supporterait pas les threads ne CASSE rien : ort-web avertit et retombe à 1 tout seul.
- * Cœurs − 1 (le fil principal reste réactif), plafonné à 4 — au-delà, mesuré en recul.
+ * How many execution threads to give WASM. Without an explicit setting, onnxruntime-web
+ * falls back to ONE thread as soon as a `self` without `crossOriginIsolated` exists (the
+ * case for an Electron utilityProcess) — that's the single-thread case measured at ~320 ms
+ * per pass. But here we are NOT in a browser: `SharedArrayBuffer` is available without
+ * COOP/COEP, and ort-web always honors a user setting (measured on this basis: 593 → 237 ms
+ * for a 128-token pass at 3 threads, identical outputs). An environment that doesn't
+ * support threads doesn't BREAK anything: ort-web warns and falls back to 1 on its own.
+ * Cores − 1 (the main thread stays responsive), capped at 4 — beyond that, measured as a regression.
  */
 function nombreDeFils(coeurs, sharedArrayBuffer) {
   if (!sharedArrayBuffer) return 1;
   return Math.min(4, Math.max(1, coeurs - 1));
 }
 
-/** Le natif d'abord — chemin rapide, et le seul sur les plateformes qui en ont un. */
+/** Native first — the fast path, and the only one on platforms that have it. */
 function charger() {
   try {
     return { impl: require("ort-native"), moteur: "native" };
   } catch {
-    // Pas de binding pour ce couple plateforme/arch : le WASM, lui, n'en demande aucun.
+    // No binding for this platform/arch pair: WASM, on the other hand, needs none.
     return { impl: require("ort-wasm"), moteur: "wasm" };
   }
 }
@@ -72,19 +72,19 @@ function charger() {
 const { impl, moteur } = charger();
 
 if (moteur === "wasm") {
-  // ⚠️ DEUX raisons, et les deux sont obligatoires.
+  // ⚠️ TWO reasons, and both are mandatory.
   //
-  // Sécurité (règle 7) : sans chemin explicite, onnxruntime-web va chercher son `.wasm` sur
-  // un CDN. Du code exécutable téléchargé dans un process qui manipule de la PII en clair,
-  // c'est de l'exécution de code arbitraire. On l'épingle sur les octets installés à côté de
-  // nous, et jamais ailleurs.
+  // Security (rule 7): without an explicit path, onnxruntime-web goes looking for its
+  // `.wasm` on a CDN. Executable code downloaded into a process that handles PII in the
+  // clear is arbitrary code execution. We pin it to the bytes installed next to
+  // us, and never elsewhere.
   //
-  // Correction (mesurée) : le process utilitaire d'Electron a rejeté le chargement avec
-  // `ERR_UNSUPPORTED_ESM_URL_SCHEME` — ORT importait sa fabrique WASM par un CHEMIN, que
-  // l'`import()` de Node refuse. Il faut une URL `file://`, d'où `pathToFileURL`.
+  // Fix (measured): Electron's utility process rejected the load with
+  // `ERR_UNSUPPORTED_ESM_URL_SCHEME` — ORT was importing its WASM factory by a PATH, which
+  // Node's `import()` refuses. It needs a `file://` URL, hence `pathToFileURL`.
   impl.env.wasm.wasmPaths = `${pathToFileURL(dirname(require.resolve("ort-wasm"))).href}/`;
-  // Multi-thread (voir `nombreDeFils`). L'artefact `ort-wasm-simd-threaded.*` est déjà
-  // celui que `wasmPaths` épingle — le nombre de fils ne change pas d'où vient le code.
+  // Multi-thread (see `nombreDeFils`). The `ort-wasm-simd-threaded.*` artifact is already
+  // the one `wasmPaths` pins — the number of threads doesn't change where the code comes from.
   impl.env.wasm.numThreads = nombreDeFils(
     os.availableParallelism?.() ?? os.cpus().length,
     typeof SharedArrayBuffer !== "undefined",

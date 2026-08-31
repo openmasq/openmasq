@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { pseudonymize, type Vault, type Detection } from "./index";
 
 /**
- * End-to-end regression for the TEAM-PAGE audit (« le redaction semble approximatif sur
- * des listes ») — a roster of "Prénom / rôle" pairs, plus an expert committee. Three
+ * End-to-end regression for the TEAM-PAGE audit (« the redaction looks approximate on
+ * lists ») — a roster of "Prénom / rôle" pairs, plus an expert committee. Three
  * distinct failures were reported at once, each pinned here:
  *
  *  1. UNDER-detection — half the bare first names shipped in clear (no prose context,

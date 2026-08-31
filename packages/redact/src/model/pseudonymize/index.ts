@@ -115,15 +115,15 @@ export async function pseudonymize(
     },
     input,
   });
-  // Géo de prose (REGION/DEPARTMENT) : redacted seulement si des données personnelles
-  // sont présentes (un autre candidat survivant, ou un vault déjà amorcé) — voir
-  // `dropUnanchoredProseGeo`. Une question de géographie générale part en clair.
+  // Prose geo (REGION/DEPARTMENT): redacted only if personal data
+  // is present (another surviving candidate, or a vault already seeded) — see
+  // `dropUnanchoredProseGeo`. A general-geography question goes out in clear.
   const anchored = dropUnanchoredProseGeo(kept, Object.keys(vault).length === 0);
   const deNested = deNest(anchored, input);
 
   // Cross-field GEO coherence: one coherent real place per address block (Commune/Dépt/…).
-  // L'ancrage par ville : la même ville réelle reçoit UN lieu faux — entre deux blocs,
-  // entre deux adresses, et d'un envoi à l'autre (semé depuis le coffre).
+  // City anchoring: the same real city receives ONE fake place — across two blocks,
+  // across two addresses, and from one send to the next (seeded from the vault).
   const geoAnchors = createGeoAnchors();
   seedGeoAnchors(geoAnchors, vault, PLACES_BY_COUNTRY);
   const geoFakes = resolveGeoBlocks(deNested, taken, { anchors: geoAnchors, vault });
@@ -141,16 +141,16 @@ export async function pseudonymize(
     if (direct) return direct;
     const lc = real.toLowerCase();
     for (const [orig, token] of reverse) if (orig.toLowerCase() === lc) return token;
-    // ⚠️ …et la forme COLLÉE de la même entité, qui est celle d'un nom de domaine ou d'un
-    // identifiant. Mesuré le 16/08/2026 (banc des personas EN CONVERSATION) : le tour 1
-    // vaulte « Karl Studio », l'outil renvoie « karlstudio.fr » au tour 2, et l'allocateur
-    // mintait une identité NEUVE — la société derrière deux faux sans rapport, dont un de
-    // PERSONNE, et un site web attribué à quelqu'un d'autre.
+    // ⚠️ …and the GLUED form of the same entity, which is what a domain name or an
+    // identifier looks like. Measured 16/08/2026 (personas benchmark IN CONVERSATION): turn 1
+    // vaults « Karl Studio », the tool returns « karlstudio.fr » at turn 2, and the allocator
+    // was minting a NEW identity — the company behind two unrelated fakes, one of them a
+    // PERSON, and a website attributed to someone else.
     //
-    // Ce n'est pas un élargissement : `applyVaultVariants` mappait DÉJÀ cette graphie vers
-    // le jeton de l'entité, en fin de passe. Les deux étaient simplement en DÉSACCORD —
-    // l'allocateur réclamait la valeur avant que la passe de variantes ne la voie. On les
-    // aligne sur la même définition d'identité (`entityKey` : casse + séparateurs pliés).
+    // This is not a widening: `applyVaultVariants` was ALREADY mapping this spelling to
+    // the entity's token, at the end of the pass. The two were simply in DISAGREEMENT —
+    // the allocator was claiming the value before the variants pass saw it. They are
+    // aligned on the same identity definition (`entityKey`: casing + separators folded).
     const glue = entityKey(real);
     if (glue.length >= 4) {
       for (const [orig, token] of reverse) if (entityKey(orig) === glue) return token;
@@ -164,10 +164,10 @@ export async function pseudonymize(
   const entityCandidates = deNested;
 
   // Phase 3 — allocate a reversible substitute per entity (mutates the vault, fail-closed).
-  // Deux allocateurs, un seul contrat (« signalé ⇒ coffré ⇒ substitué », vérifié plus bas) :
-  // le mode JETONS ne dégrade pas l'allocation de faux, il la remplace — un marqueur n'a
-  // ni plausibilité à tenir ni collision à éviter, donc rien de la machinerie d'identité
-  // ne s'y applique. Voir `allocateTokens.ts`.
+  // Two allocators, one single contract (« reported ⇒ vaulted ⇒ substituted », checked below):
+  // TOKEN mode doesn't degrade fake allocation, it replaces it — a marker has
+  // no plausibility to uphold and no collision to avoid, so none of the identity
+  // machinery applies to it. See `allocateTokens.ts`.
   const entityValues: string[] = [];
   const entityCanon = new Map<string, string>();
   if (options.mode === "token") {
@@ -260,7 +260,7 @@ export async function pseudonymize(
   //    restore the reply with) and was never substituted. That is a real defect,
   //    so it fails CLOSED via `modelError`, which the send path turns into a
   //    refusal rather than a downgrade.
-  // « À vérifier » : re-attach the surviving candidates' `uncertain` flag to the matches
+  // "To verify": re-attach the surviving candidates' `uncertain` flag to the matches
   // by entity key (the allocators don't thread it — the value is the join). Done on the
   // POST-filter list, so a span the filter dropped can't flag anything, and a span
   // corroborated in `gather` was already cleared. Word-level ALIASES of a name don't

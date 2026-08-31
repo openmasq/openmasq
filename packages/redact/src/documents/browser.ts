@@ -72,9 +72,9 @@ async function ocrImage(bytes: Uint8Array): Promise<string> {
 }
 
 /** Rasterise each page to PNG (pdf.js + OffscreenCanvas) then OCR it via `cfg.ocr`.
- *  ⚠️ Le 2e paramètre est le callback de progression du contrat `ExtractDeps.ocrPdf` —
- *  un `maxPages` positionnel ici recevrait la FONCTION (Math.min(n, fn) = NaN, boucle
- *  sautée, OCR silencieusement vide). */
+ *  ⚠️ The 2nd parameter is the progress callback of the `ExtractDeps.ocrPdf` contract —
+ *  a positional `maxPages` here would receive the FUNCTION (Math.min(n, fn) = NaN, loop
+ *  skipped, OCR silently empty). */
 const OCR_PDF_MAX_PAGES = 10;
 async function ocrPdf(
   bytes: Uint8Array,
@@ -90,7 +90,7 @@ async function ocrPdf(
     try {
       onProgress?.(done, pages);
     } catch {
-      /* affichage seulement — jamais d'interruption de l'OCR */
+      /* display only — never interrupts the OCR */
     }
   };
   tick(0);
@@ -114,8 +114,8 @@ async function ocrPdf(
   if (doc.numPages > pages) {
     out.push(`[… ${doc.numPages - pages} page(s) supplémentaire(s) non océrisée(s)]`);
   }
-  // Meta minimal (le navigateur n'a pas le routeur docTR) : ce qu'il faut pour que le
-  // chip puisse dire « N/M pages lues » ici aussi.
+  // Minimal meta (the browser doesn't have the docTR router): just enough for the
+  // chip to say « N/M pages read » here too.
   return {
     text: out.join(PAGE_BREAK).trim(),
     meta: { engine: "tesseract", ms: Date.now() - t0, pages, pagesTotal: doc.numPages },

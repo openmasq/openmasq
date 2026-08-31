@@ -73,8 +73,8 @@ export function htmlToText(html: string, max = HTML_TEXT_MAX): string {
     .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, " ")
     // Page CHROME whose inner text is never reading content — a `<select>` of 60
     // region `<option>`s or a `<nav>` link farm lands at the TOP of the extract,
-    // the most expensive spot for the model (mesuré : la page de résultats DDG
-    // ouvrait sur 60 lignes de pays avant le premier résultat). `header` is KEPT
+    // the most expensive spot for the model (measured: the DDG results page
+    // used to open with 60 lines of countries before the first result). `header` is KEPT
     // (it often holds the h1); forms are kept (a forum's content can sit in one).
     .replace(/<select\b[^>]*>[\s\S]*?<\/select>/gi, " ")
     .replace(/<nav\b[^>]*>[\s\S]*?<\/nav>/gi, " ")

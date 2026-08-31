@@ -160,10 +160,10 @@ describe("fakeGeo PLACE — the notarial 'Ville (CP)' layout is preserved", () =
 
 describe("classe de l'initiale — l'élision du texte doit rester possible (15/08/2026)", () => {
   it("un département à initiale VOYELLE reçoit un faux à initiale voyelle", () => {
-    // Mesuré : « Crédit Agricole Mutuel d'Ille-et-Vilaine » devenait « d'Morbihan » —
-    // impossible à lire, et repérable comme un faux. L'article vit HORS du span (on ne
-    // peut donc pas le réécrire sans casser la restitution) : c'est l'INITIALE du faux
-    // qui doit s'adapter.
+    // Measured: "Crédit Agricole Mutuel d'Ille-et-Vilaine" became "d'Morbihan" —
+    // unreadable, and identifiable as a fake. The article lives OUTSIDE the span (so it
+    // can't be rewritten without breaking the restitution): it's the fake's INITIAL
+    // that must adapt.
     for (const h of [0, 1, 7, 13, 42, 100]) {
       const f = fakeDepartment("Ille-et-Vilaine", h);
       expect(f).not.toBe("Ille-et-Vilaine");
@@ -186,8 +186,8 @@ describe("classe de l'initiale — l'élision du texte doit rester possible (15/
     }
   });
 
-  // ⚠️ LIMITE ASSUMÉE : on rend l'élision POSSIBLE, pas l'article JUSTE. « d'Oise » se lit,
-  // là où le français écrirait « de l'Oise » — l'accord de l'article demanderait le genre
-  // et le nombre de chaque département, une donnée qu'on n'a pas. Le défaut corrigé est la
-  // séquence IMPOSSIBLE (« d'Morbihan »), qui trahit le faux ; le résidu, lui, se lit.
+  // ⚠️ ACCEPTED LIMITATION: we make the elision POSSIBLE, not the article CORRECT. "d'Oise"
+  // reads fine, where French would write "de l'Oise" — agreeing the article would require
+  // the gender and number of each department, data we don't have. The defect fixed is the
+  // IMPOSSIBLE sequence ("d'Morbihan"), which betrays the fake; the residual one still reads.
 });

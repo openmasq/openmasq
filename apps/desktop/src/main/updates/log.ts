@@ -15,9 +15,9 @@ function logFile(): string {
   return join(app.getPath("userData"), "logs", "updater.log");
 }
 
-/** Le chemin du journal de mise à jour — pour le bouton « Révéler » de Réglages →
- *  Versions (`updates:reveal-log`) : la seule surface où la vraie raison d'un
- *  `quitAndInstall` atterrit était un fichier qu'aucune UI n'atteignait (audit 13/08). */
+/** The update log's path — for the "Révéler" button in Settings →
+ *  Versions (`updates:reveal-log`): the only place the real reason for a
+ *  `quitAndInstall` landed used to be a file no UI could reach (audit 13/08). */
 export function updaterLogPath(): string {
   return logFile();
 }

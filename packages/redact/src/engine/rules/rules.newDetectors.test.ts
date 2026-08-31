@@ -171,19 +171,19 @@ describe("existing rules — IPv6 compression + SSN validation", () => {
 
 describe("secrets de configuration — la valeur entière, la bonne clé", () => {
   it("un mot de passe GUILLEMETÉ n'est pas coupé à son « # »", () => {
-    // Hors guillemets, « # » ouvre un commentaire (`KEY=val # note`) et la règle doit
-    // s'y arrêter ; DANS des guillemets c'est un caractère de mot de passe ordinaire.
-    // Coffré à « Sm7p!Tanc2026 », la queue « #x » partait en clair : un secret tronqué
-    // est un secret fuité.
+    // Outside quotes, « # » opens a comment (`KEY=val # note`) and the rule must
+    // stop there; INSIDE quotes it's an ordinary password character.
+    // Vaulted as « Sm7p!Tanc2026 », the tail « #x » used to leave in clear: a truncated secret
+    // is a leaked secret.
     expect(redacted('pass: "Sm7p!Tanc2026#x"', "Sm7p!Tanc2026#x")).toBe(true);
     expect(redacted('password: "Sm7p!Tanc2026#x"', "Sm7p!Tanc2026#x")).toBe(true);
-    // Hors guillemets, le commentaire reste hors de la valeur.
+    // Outside quotes, the comment stays out of the value.
     expect(kept("API_KEY=abcdef123456 # clé de test", "# clé de test")).toBe(true);
   });
 
   it("les clés « pass » / « mdp » sont bornées à une POSITION de clé", () => {
     expect(redacted("mdp : Sm7p2026x", "Sm7p2026x")).toBe(true);
-    // Un mot ordinaire finissant par « pass » ne peut pas ouvrir un secret.
+    // An ordinary word ending in « pass » cannot open a secret.
     expect(kept("il faut surpass: quelque chose ici", "quelque")).toBe(true);
   });
 });
@@ -192,15 +192,15 @@ describe("identifiants gatés ajoutés par le corpus de mises en page", () => {
   it("RPPS / ADELI — l'identifiant du PRATICIEN, en tête de toute ordonnance", () => {
     expect(redacted("Médecin généraliste — RPPS 10003456789", "10003456789")).toBe(true);
     expect(redacted("N° ADELI 691234567", "691234567")).toBe(true);
-    // Nu, c'est un compte quelconque : la barre de précision interdit qu'il parte seul.
+    // Bare, it's just any account: the precision bar forbids it leaving on its own.
     expect(kept("le rapport comptait 10003456789 actes", "10003456789")).toBe(true);
   });
 
   it("RUM (mandat SEPA) et PNR (dossier de réservation)", () => {
     expect(redacted("Référence unique du mandat (RUM) : RUM-2026-000841-CB", "2026-000841-CB")).toBe(true);
     expect(redacted("Réf. PNR 4KQ7ZB", "4KQ7ZB")).toBe(true);
-    // Un PNR mêle lettres ET chiffres — un mot de six lettres après « réservation »
-    // est de la prose.
+    // A PNR mixes letters AND digits — a six-letter word after « réservation »
+    // is prose.
     expect(kept("votre réservation ANNULE sans frais", "ANNULE")).toBe(true);
   });
 
@@ -222,7 +222,7 @@ describe("e-mail à ESPACE d'OCR — « amelie.brivet @example.com »", () => {
   it("la prose avec « @ » n'est jamais une adresse", () => {
     expect(redact("les prix @ 10 % restent stables", {}).matches).toEqual([]);
     expect(redact("rendez-vous @ midi place Balard", {}).matches).toEqual([]);
-    // deux espaces = gouttière de colonne, pas une adresse
+    // two spaces = column gutter, not an address
     expect(redact("brivet  @example.com", {}).text).toContain("brivet  @");
   });
 });
@@ -246,8 +246,8 @@ describe("confusables OCR — le checksum sur la lecture RÉPARÉE reste le juge
   });
 
   it("un O qui remplace un AUTRE chiffre échoue au Luhn réparé — et reste en clair", () => {
-    // 578O répare en 5780 alors que la carte valide portait 5787 : la réparation ne
-    // crée jamais une validité qui n'existait pas.
+    // 578O repairs to 5780 while the valid card actually carried 5787: the repair
+    // never creates a validity that didn't exist.
     expect(redact("Réglé par carte 4539 578O 6362 1486 hier.", {}).text).toContain("578O");
   });
 

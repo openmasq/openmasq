@@ -38,13 +38,13 @@ export interface Conversation {
    */
   redactionSalt?: number;
   /**
-   * CE QUE LE MODÈLE VOIT à la place d'une valeur sensible, ÉPINGLÉ sur la conversation :
-   * `"fake"` (défaut) un faux vraisemblable, `"token"` un marqueur opaque (`[PERSON1]`).
-   * Le réglage global ne décide qu'à la CRÉATION du premier redaction ; ensuite c'est
-   * cette valeur qui commande, parce qu'un basculement en cours de route laisserait un
-   * coffre moitié faux moitié jetons — chaque entrée reste réversible, mais l'historique
-   * renvoyé au modèle mélangerait les deux formes pour les mêmes personnes. Absent ⇒
-   * `"fake"`, ce que sont toutes les conversations écrites avant ce champ.
+   * WHAT THE MODEL SEES instead of a sensitive value, PINNED on the conversation:
+   * `"fake"` (default) a plausible fake, `"token"` an opaque marker (`[PERSON1]`).
+   * The global setting only decides at the CREATION of the first redaction; after that
+   * this value is what governs, because switching mid-way would leave a
+   * vault half fake half tokens — each entry stays reversible, but the history
+   * sent back to the model would mix the two forms for the same people. Absent ⇒
+   * `"fake"`, which is what every conversation written before this field is.
    */
   redactionMode?: "fake" | "token";
   /**
@@ -53,11 +53,11 @@ export interface Conversation {
    */
   memoryWatermark?: number;
   /**
-   * « Sans mémoire dans cette conversation » (modale de règles) : coupe l'INJECTION de
-   * la mémoire, l'outil de recherche en mémoire ET l'extraction silencieuse pour cette
-   * conversation — dans les deux sens, sinon l'interrupteur ment. Une demande EXPLICITE
-   * (« retiens que… ») reste honorée : elle est son propre consentement, la même règle
-   * que le réglage global d'extraction. Absent ⇒ mémoire active (le défaut).
+   * "No memory in this conversation" (rules modal): cuts memory INJECTION,
+   * the memory-search tool AND silent extraction for this
+   * conversation — in both directions, else the switch would be lying. An EXPLICIT
+   * request ("remember that…") is still honored: it is its own consent, the same rule
+   * as the global extraction setting. Absent ⇒ memory active (the default).
    */
   memoryOff?: boolean;
   /**
@@ -71,7 +71,7 @@ export interface Conversation {
    * NEUTRAL MARKS display mode for this conversation: redacted spans render as plain
    * text with a small category-coloured badge above them, and only take their full
    * highlight on hover. Pure DISPLAY preference — detection, vault and wire are
-   * untouched (flipping it redacted neither more nor less). Absent ⇒ off (classic
+   * untouched (flipping it redacts neither more nor less). Absent ⇒ off (classic
    * highlighted marks).
    */
   neutralMarks?: boolean;

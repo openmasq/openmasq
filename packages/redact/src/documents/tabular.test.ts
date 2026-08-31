@@ -111,10 +111,10 @@ describe("annotated tabular stays redactable + reversible", () => {
 });
 
 describe("sniffDelimiter — un CSV français ne perd pas ses centimes", () => {
-  // Le grand livre tel qu'un logiciel de compta FR l'exporte : colonnes en `;`,
-  // montants à virgule décimale. Lu à la virgule, `14 812,37` se coupait en deux et
-  // la moitié orpheline tombait — le modèle recevait `14 812` et concluait à un
-  // déséquilibre d'1 € sur une écriture qui tombe juste (parcours 15/08).
+  // The general ledger as a French accounting package exports it: columns on `;`,
+  // amounts with a decimal comma. Read on the comma, `14 812,37` was being cut in two and
+  // the orphan half dropped — the model received `14 812` and concluded on an
+  // imbalance of €1 on an entry that in fact balances (walkthrough 15/08).
   const GRAND_LIVRE = [
     "Date;Journal;Compte;Libellé;Débit;Crédit",
     "02/02/2026;VE0201;411000;Facture F2026-0141;14 812,37;",
@@ -127,7 +127,7 @@ describe("sniffDelimiter — un CSV français ne perd pas ses centimes", () => {
     const texte = gridToAnnotatedText(parseDelimited(GRAND_LIVRE, sniffDelimiter(GRAND_LIVRE)));
     for (const montant of ["14 812,37", "12 343,64", "2 468,73"])
       expect(texte).toContain(montant);
-    // Et la colonne est bien nommée : c'est ce qui donne son contexte au détecteur.
+    // And the column is properly named: that's what gives the detector its context.
     expect(texte).toContain("Débit: 14 812,37");
   });
 
@@ -140,7 +140,7 @@ describe("sniffDelimiter — un CSV français ne perd pas ses centimes", () => {
   });
 
   it("ignore un séparateur cité et ne conclut pas sur un fichier d'une ligne", () => {
-    // Les `;` ne vivent qu'à l'intérieur des guillemets : ils ne découpent rien.
+    // The `;` only live inside quotes: they don't split anything.
     const cite = 'nom,note\n"Savary; Paul",ok\n"Morvan; Luc",ok';
     expect(sniffDelimiter(cite)).toBe(",");
     expect(sniffDelimiter("juste;une;ligne")).toBe(",");
@@ -148,9 +148,9 @@ describe("sniffDelimiter — un CSV français ne perd pas ses centimes", () => {
 });
 
 describe("aucune cellule ne disparaît sous un en-tête plus étroit", () => {
-  // Un export comptable réel commence par une ligne de TITRE d'une seule cellule.
-  // Bornée à sa largeur, l'annotation ne gardait que la 1re colonne de chaque
-  // écriture : montants, comptes et libellés partaient à la poubelle en silence.
+  // A real accounting export starts with a single-cell TITLE line.
+  // Bounded to its width, the annotation only kept the 1st column of each
+  // entry: amounts, accounts and labels were silently thrown away.
   const AVEC_TITRE = [
     "Grand livre — TARVELONE MATÉRIAUX SARL",
     "Date;Compte;Libellé;Débit",
@@ -162,7 +162,7 @@ describe("aucune cellule ne disparaît sous un en-tête plus étroit", () => {
     expect(texte).toContain("Débit: 14 812,37");
     expect(texte).toContain("Compte: 411000");
     expect(texte).toContain("Libellé: Facture F2026-0141");
-    // Le préambule (le titre) est ré-émis, jamais jeté.
+    // The preamble (the title) is re-emitted, never dropped.
     expect(texte).toContain("Grand livre — TARVELONE MATÉRIAUX SARL");
   });
 
@@ -173,8 +173,8 @@ describe("aucune cellule ne disparaît sous un en-tête plus étroit", () => {
 });
 
 describe("en-tête : un TITRE fusionné n'en est pas un (bilan réel, 15/08/2026)", () => {
-  /** La forme d'un export comptable : titre en cellule FUSIONNÉE (ligne pleine largeur,
-   *  une seule cellule remplie), métadonnées, puis la vraie ligne d'en-tête. */
+  /** The shape of an accounting export: title in a MERGED cell (full-width row,
+   *  a single cell filled in), metadata, then the real header row. */
   const GRILLE = [
     ["PRÉVISIONNEL KARL STUDIO", "", "", "", ""],
     ["SIRET : 84631257904319", "", "", "", ""],
@@ -187,12 +187,12 @@ describe("en-tête : un TITRE fusionné n'en est pas un (bilan réel, 15/08/2026
 
   it("annote avec les VRAIES colonnes, pas avec le titre", () => {
     const out = gridToAnnotatedText(GRILLE);
-    // Le typage par colonne — la raison d'être de cette annotation — est rendu au détecteur
-    // ET au modèle : sans lui, « 1240.08 » arrivait sous le nom « col3 ».
+    // Column typing — the whole reason this annotation exists — is given back to the detector
+    // AND to the model: without it, « 1240.08 » arrived under the name « col3 ».
     expect(out).toContain("Brut: 14812.37");
     expect(out).toContain("Amortissements: 1240.08");
     expect(out).not.toContain("col2:");
-    // …et la raison sociale ne préfixe plus CHAQUE ligne (des centaines de répétitions).
+    // …and the company name no longer prefixes EVERY row (hundreds of repetitions).
     expect(out).not.toMatch(/PRÉVISIONNEL KARL STUDIO: Capital/);
   });
 
@@ -227,10 +227,10 @@ describe("annotatedCutRow — la coupe d'envoi mappée sur les LIGNES de la gril
     const full = gridToAnnotatedText(rows);
     const max = Math.floor(full.length / 3);
     const cut = annotatedCutRow(rows, max)!;
-    expect(cut).toBeGreaterThan(1); // l'en-tête + au moins une ligne passent
-    // Sérialiser UNIQUEMENT les lignes envoyées (en-tête + données < cut) tient dans max…
+    expect(cut).toBeGreaterThan(1); // the header + at least one row get through
+    // Serializing ONLY the sent rows (header + data < cut) fits within max…
     expect(gridToAnnotatedText(rows.slice(0, cut)).length).toBeLessThanOrEqual(max);
-    // …et ajouter la ligne de coupe déborde.
+    // …and adding the cut row overflows.
     expect(gridToAnnotatedText(rows.slice(0, cut + 1)).length).toBeGreaterThan(max);
   });
 
@@ -238,17 +238,17 @@ describe("annotatedCutRow — la coupe d'envoi mappée sur les LIGNES de la gril
     const rows = grid(50);
     const full = gridToAnnotatedText(rows);
     const max = Math.floor(full.length / 2);
-    // Le clip d'envoi : coupe à la dernière fin de ligne dans la borne.
+    // The send clip: cuts at the last line end within the bound.
     const nl = full.lastIndexOf("\n", max);
     const clipped = full.slice(0, nl);
     const cut = annotatedCutRow(rows, max)!;
-    // Chaque ligne envoyée est présente ENTIÈRE dans le texte clippé ; la première
-    // ligne coupée n'y est pas du tout.
+    // Every sent row is present IN FULL in the clipped text; the first
+    // cut row isn't there at all.
     const lastSent = `nom: Personne ${cut - 2} | email: personne${cut - 2}@exemple.fr`;
     const firstCutLine = `nom: Personne ${cut - 1} | email: personne${cut - 1}@exemple.fr`;
     expect(clipped).toContain(lastSent);
     expect(clipped).not.toContain(`Personne ${cut - 1}`);
-    expect(full).toContain(firstCutLine); // la ligne existe bien — elle est juste coupée
+    expect(full).toContain(firstCutLine); // the line does exist — it's just cut off
   });
 
   it("préambule + nom de feuille comptent dans la borne", () => {

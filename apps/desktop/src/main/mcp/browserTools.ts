@@ -38,9 +38,9 @@ export function playwrightMcpSpawn(cdpEndpoint: string): NodeSpawn {
   return {
     command: process.execPath,
     args: helperSpawnArgs(),
-    // Allowlist, jamais l'héritage : ce process exécute @playwright/mcp — du code
-    // tiers, avec les outils les plus dangereux du produit juste en dessous (C1). Il
-    // reçoit SES trois variables et le minimum vital, rien du shell (childEnv.ts).
+    // Allow-list, never inheritance: this process runs @playwright/mcp — third-party
+    // code, with the product's most dangerous tools just below it (C1). It
+    // receives ITS three variables and the bare minimum, nothing from the shell (childEnv.ts).
     env: minimalChildEnv({
       OPENMASQ_PWMCP: "1",
       PLAYWRIGHT_MCP_CDP_ENDPOINT: cdpEndpoint,

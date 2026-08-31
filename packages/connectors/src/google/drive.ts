@@ -11,13 +11,13 @@ import {
 import { googleApiErrorHint } from "./googleApiError";
 
 /**
- * Google Drive — lire tout le Drive, et DÉPOSER des fichiers.
+ * Google Drive — read the whole Drive, and DROP files onto it.
  *
- * Deux scopes, chacun taillé sur ses outils : `drive.readonly` (**RESTRICTED**) pour
- * chercher/lister/lire partout, et `drive.file` (NON sensible) pour l'écriture —
- * l'app ne peut créer et retoucher QUE ses propres fichiers, jamais modifier un
- * document existant du Drive. C'est le choix qui donne l'écriture sans élargir la
- * surface restreinte (vérification Google/CASA). Output is redacted downstream.
+ * Two scopes, each sized to its tools: `drive.readonly` (**RESTRICTED**) to
+ * search/list/read anywhere, and `drive.file` (NOT sensitive) for writing —
+ * the app can only create and edit its OWN files, never modify an
+ * existing Drive document. That's the choice that gives writing without widening the
+ * restricted surface (Google/CASA verification). Output is redacted downstream.
  */
 const API = "https://www.googleapis.com/drive/v3";
 const MAX_CHARS = 50_000;
@@ -39,12 +39,12 @@ function clampLimit(v: unknown, def: number, max: number): number {
 }
 
 /**
- * Lister le contenu d'un dossier — construit ici, consommé DEUX fois : par l'outil
- * ci-dessous et par le panneau « Dossiers » de l'app (`main/cloudfs`). Une seule URL, une
- * seule relecture, donc l'écran et le modèle voient le même Drive.
+ * List a folder's contents — built here, consumed TWICE: by the tool
+ * below and by the app's "Folders" panel (`main/cloudfs`). One single URL, one
+ * single parsing, so the screen and the model see the same Drive.
  */
 export function driveChildrenUrl(folderId: string | null): string {
-  // `root` est l'alias Drive de « Mon Drive » : aucun id spécial à inventer.
+  // `root` is Drive's alias for "My Drive": no special id to invent.
   const parent = folderId ? assertFileId(folderId) : "root";
   const filter = `'${parent}' in parents and trashed = false`;
   return (
@@ -161,9 +161,9 @@ const readDocument: ConnectorTool = {
 };
 
 
-/** Frontière du multipart — pure et exportée pour le test : un upload Drive est un
- *  `multipart/related` métadonnées JSON + octets base64, et une bordure mal fermée
- *  donne un 400 Google qui ne dit pas pourquoi. */
+/** Multipart boundary — pure and exported for the test: a Drive upload is a
+ *  `multipart/related` JSON metadata + base64 bytes, and a badly closed boundary
+ *  gives a Google 400 that doesn't say why. */
 export function buildDriveUpload(
   meta: { name: string; parents?: string[] },
   mimeType: string,
@@ -184,8 +184,8 @@ export function buildDriveUpload(
 
 const uploadFile: ConnectorTool = {
   name: "upload_file",
-  // `drive.file` : listé seulement quand l'ÉCRITURE a été accordée — une connexion
-  // d'avant reste lecture seule jusqu'à reconnexion (consentement incrémental).
+  // `drive.file`: listed only when WRITE has been granted — an earlier
+  // connection stays read-only until reconnection (incremental consent).
   scope: "https://www.googleapis.com/auth/drive.file",
   description:
     "Déposer un fichier sur le Google Drive de l'utilisateur. Deux sources, une seule à la fois : " +
@@ -193,12 +193,12 @@ const uploadFile: ConnectorTool = {
     "`text` = un contenu que tu écris (avec `name` obligatoire, ex. « notes.md »). " +
     "`folderId` (optionnel) cible un dossier — voir list_folder/search_files ; absent = la racine. " +
     "Ne peut PAS modifier un fichier existant du Drive. " +
-    // ⚠️ Dire ce qui MANQUE, pas seulement ce qui existe (parcours notaire, 17/08) : le
-    // dossier demandé n'existait pas, et le modèle a annoncé que « l'intégration ne permet
-    // pas » de sauvegarder — alors que CET outil était exposé. Le FAIT manquait ; la
-    // conduite à tenir, elle, n'est PAS tranchée ici (déposer à la racine ou refuser et
-    // instruire sont deux réponses défendables — registre, `À trancher`), donc cette phrase
-    // se garde d'en prescrire une.
+    // ⚠️ State what's MISSING, not only what exists (notary journey, 17/08): the
+    // requested folder didn't exist, and the model announced that "the integration doesn't
+    // allow" saving — when THIS tool was in fact exposed. The FACT was missing; the
+    // conduct to follow, though, is NOT settled here (dropping it at the root or refusing and
+    // instructing are both defensible answers — registry, `À trancher`), so this sentence
+    // deliberately avoids prescribing one.
     "Aucun outil ne CRÉE de dossier sur le Drive.",
   inputSchema: {
     type: "object",
@@ -262,9 +262,9 @@ export const googleDriveConnector: Connector = {
   id: "google-drive",
   name: "Google Drive",
   auth: "pkce",
-  // ⚠️ CETTE liste est celle que l'OAuth demande (`main/mcp/connectors/index.ts`) ; le
-  // catalogue en porte une copie d'affichage — `scopesParity.test.ts` les tient égales.
-  // `drive.file` donne l'écriture SANS élargir la surface restreinte (voir l'en-tête).
+  // ⚠️ THIS list is the one OAuth requests (`main/mcp/connectors/index.ts`); the
+  // catalog carries a display copy of it — `scopesParity.test.ts` keeps them equal.
+  // `drive.file` gives writing WITHOUT widening the restricted surface (see the header).
   scopes: {
     managed: ["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive.file"],
     byo: ["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive.file"],

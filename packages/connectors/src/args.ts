@@ -1,21 +1,21 @@
 /**
- * Normalisation des arguments que les modèles remplissent MAL.
+ * Normalization of arguments that models fill in WRONG.
  *
- * Un champ « liste de chaînes » arrive sous trois formes selon le modèle : le tableau
- * attendu, une chaîne séparée par des virgules, ou — c'est le piège — un tableau JSON
- * ENCODÉ EN CHAÎNE. Journal du 27/07/2026 :
+ * A "list of strings" field arrives in three shapes depending on the model: the expected
+ * array, a comma-separated string, or — this is the trap — a JSON array
+ * ENCODED AS A STRING. Journal entry from 27/07/2026:
  *
  *   "attendees": "[\"Équipe produit\"]"
  *
- * `Array.isArray` répond `false`, le champ est silencieusement ABANDONNÉ, l'événement
- * est créé sans participants et rien n'en informe le modèle — la pire des issues : une
- * écriture réussie, amputée, et personne pour le dire.
+ * `Array.isArray` returns `false`, the field is silently DROPPED, the event
+ * is created with no participants and nothing informs the model — the worst
+ * outcome: a successful write, amputated, with no one to say so.
  *
- * Même philosophie que la déclaration `to`/`cc`/`bcc` de Gmail (`google/gmailSend.ts`) :
- * on annonce au modèle la forme la plus simple à remplir, et on ACCEPTE les autres.
+ * Same philosophy as Gmail's `to`/`cc`/`bcc` declaration (`google/gmailSend.ts`):
+ * we announce to the model the simplest shape to fill, and we ACCEPT the others.
  */
 
-/** Un tableau JSON encodé en chaîne : `'["a", "b"]'`. */
+/** A JSON array encoded as a string: `'["a", "b"]'`. */
 function parseJsonArray(s: string): unknown[] | null {
   const t = s.trim();
   if (!t.startsWith("[") || !t.endsWith("]")) return null;
@@ -28,12 +28,12 @@ function parseJsonArray(s: string): unknown[] | null {
 }
 
 /**
- * Ramène une valeur à une liste de chaînes non vides, quelle que soit la forme reçue :
- * tableau, tableau JSON encodé en chaîne, ou chaîne séparée par des virgules ou des
- * points-virgules. Une entrée non-chaîne à l'intérieur d'un tableau est ignorée.
+ * Brings a value down to a list of non-empty strings, whatever shape it arrives in:
+ * array, JSON array encoded as a string, or a comma- or semicolon-separated
+ * string. A non-string entry inside an array is ignored.
  *
- * ⚠️ Ne découpe une CHAÎNE que si elle n'est pas un tableau JSON : `'["a, b"]'` rend
- * `["a, b"]` (une entrée), pas deux — la virgule y appartient à la valeur.
+ * ⚠️ Only splits a STRING if it isn't a JSON array: `'["a, b"]'` yields
+ * `["a, b"]` (one entry), not two — the comma there belongs to the value.
  */
 export function stringList(v: unknown): string[] {
   const raw: unknown[] = Array.isArray(v)

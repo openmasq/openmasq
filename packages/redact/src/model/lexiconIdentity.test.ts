@@ -22,7 +22,7 @@ import { FIRST_NAMES } from "../engine/names/firstNames.data";
 const fold = (s: string) => s.normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase();
 
 describe("les lexiques portent de VRAIS noms — pas des personas", () => {
-  /** Les plus portés en France : si ceux-là manquent, le lexique n'est plus un lexique. */
+  /** The most common in France: if these are missing, the lexicon is no longer a lexicon. */
   const SURNAMES = ["martin", "bernard", "dubois", "durand", "moreau", "leroy", "roux", "morel", "dupont", "rousseau"];
 
   it("COMMON_SURNAMES contient les patronymes français les plus courants", () => {
@@ -44,8 +44,8 @@ describe("les lexiques portent de VRAIS noms — pas des personas", () => {
     expect(FIRST_NAMES.size).toBeGreaterThan(1000);
   });
 
-  /** Un faux du pool dans un lexique de vrais noms : soit une rotation a frappé ici,
-   *  soit le pool a été peuplé depuis le lexique — les deux sont des bugs. */
+  /** A fake from the pool inside a lexicon of real names: either a rotation hit here,
+   *  or the pool was seeded from the lexicon — both are bugs. */
   it("aucun patronyme INVENTÉ du pool de faux n'a atterri dans le lexique", async () => {
     const { FAKE_LAST } = await import("./fakes/pools");
     const have = new Set(COMMON_SURNAMES.map(fold));

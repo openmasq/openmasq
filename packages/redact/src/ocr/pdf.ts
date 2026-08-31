@@ -94,7 +94,7 @@ export async function ocrPdf(
     try {
       onProgress?.(done, pages);
     } catch {
-      /* le progrès est de l'affichage — il n'interrompt jamais l'OCR */
+      /* progress is display only — it never interrupts the OCR */
     }
   };
   tick(0);
@@ -124,9 +124,9 @@ export async function ocrPdf(
   }
   // Engine label: the single engine, or "docTR+Tesseract" when pages routed differently.
   const engine = engines.size === 1 ? [...engines][0] : [...engines].sort().join("+");
-  // `pagesTotal` : le vrai nombre de pages du document, pour que l'AVAL puisse DIRE
-  // qu'une lecture a été partielle (le chip « N/M pages lues ») au lieu de l'enterrer
-  // dans un marqueur de texte que personne ne relit.
+  // `pagesTotal`: the document's true page count, so DOWNSTREAM can SAY that
+  // a read was partial (the « N/M pages read » chip) instead of burying it
+  // in a text marker nobody re-reads.
   return {
     text: out.join(PAGE_BREAK).trim(),
     meta: { engine, ms: Date.now() - t0, pages, pagesTotal: doc.numPages },

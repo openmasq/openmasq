@@ -5,38 +5,38 @@ import { isFolderListTool, mcpBrowseList } from "./mcpBrowse";
 import { CLOUD_PROVIDERS, MCP_BROWSABLE, type CloudEntry } from "./providers";
 
 /**
- * Parcourir un stockage connecté (Google Drive, OneDrive, Dropbox) depuis l'interface.
+ * Browse a connected storage (Google Drive, OneDrive, Dropbox) from the UI.
  *
- * Pourquoi ce n'est pas `mcp.callTool` — la même raison que pour les dossiers locaux
- * (`ipc/registerLocalFsIpc.ts`) : les outils d'un connecteur rendent de la PROSE pour un
- * modèle (`nom — type (date) · id:…`), et le panneau a besoin d'une liste typée. Même
- * compte, même jeton, même pare-feu — une forme faite pour une interface.
+ * Why this isn't `mcp.callTool` — the same reason as for local folders
+ * (`ipc/registerLocalFsIpc.ts`): a connector's tools render PROSE for a
+ * model (`name — type (date) · id:…`), and the panel needs a typed list. Same
+ * account, same token, same firewall — a shape made for a UI.
  *
- * SÉCURITÉ — ce que ça élargit, et ce que ça n'élargit pas :
- *  - **Lire est de la PARITÉ.** Le renderer peut déjà appeler
- *    `mcp.callTool("google-drive__search_files")` et recevoir les vrais noms. Ceci ajoute
- *    une forme, pas une portée : aucune écriture, aucun octet de contenu, aucun scope
- *    supplémentaire — les mêmes que ceux que l'utilisateur a accordés à l'OAuth.
- *  - **Le connecteur visé est en LISTE BLANCHE** (`CLOUD_PROVIDERS` pour un appel direct,
- *    `MCP_BROWSABLE` pour un serveur distant) et doit être CONNECTÉ. Un connecteur qui
- *    n'est pas un stockage n'est pas atteignable par ici, même si le renderer envoie son id.
- *  - **Deux régimes, une seule sortie.** Drive et OneDrive : nous construisons l'URL. Dropbox :
- *    nous appelons SON outil de listage, dont le nom est lui aussi en allow-list et dont la
- *    réponse est relue fermé (`mcpBrowse.ts`). Dans les deux cas, lister et rien d'autre.
- *  - **L'id de dossier est validé avant d'entrer dans une URL** (`assertCloudId`) : c'est
- *    la seule valeur que le renderer choisit.
- *  - **Le jeton ne quitte jamais main.** `directFetchJson` le résout (et le rafraîchit),
- *    applique le plancher SSRF et refuse de suivre une redirection authentifiée.
- *  - **Connecteur absent ⇒ capacité absente** : la source n'est pas listée, plutôt qu'une
- *    racine inventée.
+ * SECURITY — what this widens, and what it does not:
+ *  - **Reading is PARITY.** The renderer can already call
+ *    `mcp.callTool("google-drive__search_files")` and get the real names back. This adds
+ *    a shape, not a scope: no write, no byte of content, no extra
+ *    scope — the same ones the user already granted to the OAuth.
+ *  - **The targeted connector is ALLOW-LISTED** (`CLOUD_PROVIDERS` for a direct call,
+ *    `MCP_BROWSABLE` for a remote server) and must be CONNECTED. A connector that
+ *    isn't a storage isn't reachable from here, even if the renderer sends its id.
+ *  - **Two regimes, one output.** Drive and OneDrive: we build the URL. Dropbox:
+ *    we call ITS listing tool, whose name is also allow-listed and whose
+ *    response is read fail-closed (`mcpBrowse.ts`). In both cases, listing and nothing else.
+ *  - **The folder id is validated before entering a URL** (`assertCloudId`): it's
+ *    the only value the renderer chooses.
+ *  - **The token never leaves main.** `directFetchJson` resolves it (and refreshes it),
+ *    applies the SSRF floor and refuses to follow an authenticated redirect.
+ *  - **Connector absent ⇒ capability absent**: the source isn't listed, rather than an
+ *    invented root.
  */
 
 export interface CloudSource {
-  /** L'id d'INSTANCE du serveur (multi-compte : `google-drive--2`). */
+  /** The server's INSTANCE id (multi-account: `google-drive--2`). */
   id: string;
-  /** L'id de catalogue — ce qui décide du fournisseur et du logo. */
+  /** The catalog id — what decides the provider and the logo. */
   connectorId: string;
-  /** Le compte, quand le connecteur a su le nommer. */
+  /** The account, when the connector could name it. */
   label?: string;
 }
 
@@ -46,16 +46,16 @@ const connectorIdOf = (specId: string, stored?: string): string => {
   return i > 0 ? specId.slice(0, i) : specId;
 };
 
-/** Un serveur distant expose-t-il un listage de dossier ? Lu dans la table de ROUTAGE, que
- *  main tient déjà à jour — annoncer navigable un compte qui ne l'est pas donnerait un
- *  chevron qui ne mène nulle part. */
+/** Does a remote server expose a folder listing? Read from the ROUTING table, which
+ *  main already keeps up to date — announcing as browsable an account that isn't would give a
+ *  chevron that leads nowhere. */
 function exposesLister(serverId: string): boolean {
   const prefix = `${serverId}__`;
   for (const name of routes.keys()) if (name.startsWith(prefix) && isFolderListTool(name)) return true;
   return false;
 }
 
-/** Les stockages connectés que l'on sait parcourir. */
+/** The connected storages we know how to browse. */
 export function cloudSources(): CloudSource[] {
   return listServers()
     .map((s) => ({ id: s.id, connectorId: connectorIdOf(s.id, s.connectorId), label: s.label }))
@@ -67,19 +67,19 @@ export function cloudSources(): CloudSource[] {
     );
 }
 
-/** Le contenu d'un dossier (racine du compte si `folderId` est absent). */
+/** A folder's content (the account root if `folderId` is absent). */
 export async function cloudList(
   instanceId: string,
   folderId: string | null,
 ): Promise<{ entries: CloudEntry[] }> {
-  // On repart de la liste des sources : elle porte déjà les deux vérifications (c'est un
-  // stockage connu, il est connecté). Un id qui n'y est pas n'atteint aucune URL.
+  // Start from the source list: it already carries both checks (it's a
+  // known storage, it's connected). An id not in it reaches no URL.
   const source = cloudSources().find((s) => s.id === instanceId);
   if (!source) throw new Error("Ce stockage n'est pas connecté.");
   const provider = CLOUD_PROVIDERS[source.connectorId];
   if (!provider) {
-    // Serveur distant : son propre outil de listage. `connected` a déjà servi de garde
-    // au-dessus, donc la connexion existe.
+    // Remote server: its own listing tool. `connected` already served as a guard
+    // above, so the connection exists.
     const conn = connected.get(source.id)!;
     return { entries: await mcpBrowseList(conn, folderId) };
   }

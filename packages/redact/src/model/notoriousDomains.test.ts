@@ -24,11 +24,11 @@ describe("isNotoriousDomain — la marque en graphie DNS, sous-domaines compris"
 
   it("ne matche NI un domaine inconnu, NI un suffixe usurpé, NI de la prose", () => {
     for (const v of [
-      "karlstudio.fr", // le domaine d'une vraie PME reste une donnée
-      "linear.app.phish.io", // la notoriété est un SUFFIXE DNS, jamais un préfixe
-      "github.io", // apex d'hébergement de contenu UTILISATEUR — jamais dispensé
-      "voir linear.app", // prose, pas un domaine nu
-      "gmail", // un seul label n'est pas un domaine
+      "karlstudio.fr", // a real SME's domain stays data
+      "linear.app.phish.io", // notoriety is a DNS SUFFIX, never a prefix
+      "github.io", // USER-content hosting apex — never dispensed
+      "voir linear.app", // prose, not a bare domain
+      "gmail", // a single label is not a domain
     ]) {
       expect(isNotoriousDomain(v), v).toBe(false);
     }
@@ -48,13 +48,13 @@ describe("isNotoriousServiceEmail — double porte : domaine notoire ET boîte d
 
   it("ne dispense JAMAIS une adresse à allure personnelle, un domaine inconnu, ni sans le flag", () => {
     for (const v of [
-      "saanika.budhiraja@send.intercom.com", // une employée est une personne, pas la marque
+      "saanika.budhiraja@send.intercom.com", // an employee is a person, not the brand
       "jean.dupont@google.com",
-      "noreply@karlstudio.fr", // domaine non notoire : la PME reste protégée
+      "noreply@karlstudio.fr", // non-notorious domain: the SME stays protected
     ]) {
       expect(isNotoriousServiceEmail(v, on), v).toBe(false);
     }
-    // Strict ne passe pas le flag : tout reste redacted.
+    // Strict doesn't pass the flag: everything stays redacted.
     expect(isNotoriousServiceEmail("security@updates.linear.app")).toBe(false);
     expect(isNotoriousServiceEmail("security@updates.linear.app", { commercial: false })).toBe(false);
   });
@@ -63,7 +63,7 @@ describe("isNotoriousServiceEmail — double porte : domaine notoire ET boîte d
     expect(isNotoriousEntity("security@updates.linear.app", "email", { commercial: true })).toBe(true);
     expect(isNotoriousEntity("jean.dupont@gmail.com", "email", { commercial: true })).toBe(false);
     expect(isNotoriousEntity("security@updates.linear.app", "email")).toBe(false);
-    // Un domaine nu est la marque quelle que soit l'étiquette du NER.
+    // A bare domain is the brand whatever the NER label.
     expect(isNotoriousEntity("accounts.google.com", "company", { commercial: true })).toBe(true);
     expect(isNotoriousEntity("accounts.google.com", "location", { commercial: true })).toBe(true);
     expect(isNotoriousEntity("accounts.google.com", "company")).toBe(false);
@@ -107,8 +107,8 @@ describe("pseudonymize e2e — les régressions des parcours du 27/08", () => {
     const r = await pseudonymize(input, { vault, commercialNotoriety: true });
     expect(r.text).toContain("security@updates.linear.app");
     expect(r.text).not.toContain("jean.dupont@gmail.com");
-    expect(r.text).toMatch(/ [a-z0-9._-]+@gmail\.com/); // le faux personnel garde @gmail.com
-    // AUCUN alias de domaine n'empoisonne le coffre : « gmail.com » n'est jamais un ORIGINAL.
+    expect(r.text).toMatch(/ [a-z0-9._-]+@gmail\.com/); // the personal fake keeps @gmail.com
+    // NO domain alias poisons the vault: « gmail.com » is never an ORIGINAL.
     expect(Object.values(vault)).not.toContain("gmail.com");
   });
 
@@ -120,8 +120,8 @@ describe("pseudonymize e2e — les régressions des parcours du 27/08", () => {
     );
     expect(r.text).not.toContain("security@updates.linear.app");
     expect(r.text).not.toContain("jean.dupont@gmail.com");
-    // La clé d'un alias de domaine (faux → réel) n'est jamais un vrai domaine célèbre :
-    // c'est ce qui interdit au coffre de réécrire « gmail.com » en domaine d'un tiers.
+    // The key of a domain alias (fake → real) is never a real famous domain:
+    // that's what stops the vault from rewriting « gmail.com » into a third party's domain.
     for (const [fake, real] of Object.entries(vault)) {
       if (/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(real)) {
         expect(isNotoriousDomain(fake), `${fake} → ${real}`).toBe(false);
@@ -135,9 +135,9 @@ describe("pseudonymize e2e — les régressions des parcours du 27/08", () => {
       "Rapport envoyé par notifications@karlstudio.fr. Vos notifications restent actives.",
       { vault },
     );
-    expect(r.text).not.toContain("notifications@karlstudio.fr"); // l'adresse reste redacted
-    // …mais « notifications » n'est jamais un ORIGINAL du coffre : la prose ordinaire
-    // n'est pas réécrite (la corruption « 6 landry, toutes les heures »).
+    expect(r.text).not.toContain("notifications@karlstudio.fr"); // the address stays redacted
+    // …but « notifications » is never an ORIGINAL in the vault: ordinary prose
+    // isn't rewritten (the « 6 landry, toutes les heures » corruption).
     expect(Object.values(vault)).not.toContain("notifications");
     expect(Object.values(vault)).not.toContain("Notifications");
     expect(r.text).toContain("Vos notifications restent actives.");

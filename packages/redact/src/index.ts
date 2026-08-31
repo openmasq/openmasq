@@ -90,9 +90,9 @@ export { discoverSecrets, type DiscoverOptions } from "./model/detect";
 // The curated deny-lists + CJK test, for consumers whose matching must agree with the
 // engine's notion of "generic word" / "CJK morpheme" (rule 9: import, never re-declare).
 export { isStopword, isGenericTerm } from "./model/detect";
-// Le cœur DISTINCTIF d'un nom d'organisation (affixes légaux/génériques retirés des
-// deux bouts) — consommé par la Mémoire pour que « Atelier Torbel SARL » retrouve la
-// carte « Atelier Torbel » au lieu d'en créer une seconde (règle 9 : réutilisé, pas copié).
+// The DISTINCTIVE core of an organisation name (legal/generic affixes stripped from
+// both ends) — consumed by Memory so that « Atelier Torbel SARL » finds the
+// « Atelier Torbel » card again instead of creating a second one (rule 9: reused, not copied).
 export { stripOrgAffixes, isNonPiiTerm } from "./model/genericTerms";
 export { isCjkText } from "./util";
 export { pseudonymize, type PseudonymizeOptions } from "./model/pseudonymize";

@@ -63,15 +63,15 @@ async function onDownloaded(
     });
     return;
   }
-  // ⚠️ PLUS DE MODALE SYSTÈME ICI. Une boîte de dialogue de l'OS annonçait « <marque>
-  // x.y.z is ready to install » en anglais, sans dire ce que la version apporte, et
-  // volait le focus au milieu d'une phrase. C'est le RENDERER qui annonce désormais :
-  // il a la note de version (Contentful) et il sait attendre — la fenêtre se referme,
-  // un bouton du rail droit la rouvre. Main garde le seul geste qu'il est seul à
-  // pouvoir faire, `updates:install`.
+  // ⚠️ NO MORE SYSTEM MODAL HERE. An OS dialog used to announce "<brand>
+  // x.y.z is ready to install" in English, without saying what the version brings, and
+  // stole focus mid-sentence. It's now the RENDERER that announces it:
+  // it has the release note (Contentful) and knows how to wait — the window closes,
+  // a button in the right rail reopens it. Main keeps the only action only it
+  // can perform, `updates:install`.
   //
-  // Le statut est donc la SEULE sortie de ce chemin : ne pas l'émettre rendrait la mise
-  // à jour invisible, puisque plus rien d'autre ne parle.
+  // The status is therefore the ONLY output of this path: not emitting it would make the
+  // update invisible, since nothing else speaks anymore.
   logUpdate(`update downloaded: v${info?.version} (${fmtGB(size)})`);
   if (win && !win.isDestroyed())
     win.webContents.send("updates:status", {

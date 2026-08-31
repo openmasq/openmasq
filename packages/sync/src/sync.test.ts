@@ -167,8 +167,8 @@ describe("createVaultSync", () => {
         organization_settings: { redactionPolicy: { forcedCategories: ["email"], strict: true } },
       },
     ];
-    // Allow-list : seul ce que TOUTES les organisations autorisent reste utilisable.
-    // `gpt-5` est autorisé des deux côtés, `o4` d'un seul, `grok-2` refusé.
+    // Allow-list: only what ALL organizations authorize stays usable.
+    // `gpt-5` is authorized on both sides, `o4` on only one, `grok-2` refused.
     const policies: Record<string, { model_id: string; enabled: boolean }[]> = {
       "org-a": [
         { model_id: "gpt-5", enabled: true },
@@ -214,15 +214,15 @@ describe("createVaultSync", () => {
     expect(profile!.memberCount).toBe(48);
     expect(profile!.role).toBe("member");
     expect(profile!.status).toBe("active");
-    expect([...profile!.allowedModelIds].sort()).toEqual(["gpt-5"]); // INTERSECTION, pas union
+    expect([...profile!.allowedModelIds].sort()).toEqual(["gpt-5"]); // INTERSECTION, not union
     expect([...profile!.allowedMcpIds].sort()).toEqual(["linear"]);
     expect([...profile!.forcedCategories].sort()).toEqual(["email", "name"]); // union
-    expect(profile!.byoKeysAllowed).toBe(false); // compte géré ⇒ pas de clé personnelle
+    expect(profile!.byoKeysAllowed).toBe(false); // managed account ⇒ no personal key
   });
 
   it("getOrgProfile keeps the last-known-good when ONE policy call fails, and does not cache the degraded read", async () => {
-    // La régression : un `/models` en 5xx produisait une politique vide qui REMPLAÇAIT
-    // la bonne — le déblocage survivait alors aux redémarrages.
+    // The regression: a `/models` 5xx produced an empty policy that REPLACED
+    // the good one — the unblocking then survived restarts.
     const good = {
       orgs: [], organizationName: "Acme", role: "member", status: "active",
       allowedModelIds: ["gpt-5"], allowedMcpIds: ["linear"], byoKeysAllowed: false,
@@ -249,9 +249,9 @@ describe("createVaultSync", () => {
       },
     } as unknown as SyncTransport;
     const profile = await createVaultSync({ transport, getPassphrase: () => null, orgCache }).getOrgProfile();
-    expect(profile!.allowedModelIds).toEqual(["gpt-5"]); // la bonne politique tient
-    expect(profile!.degraded).toBe(true); // et l'interface peut le dire
-    expect(stored).toBe(good); // le cache n'a PAS été réécrit par la lecture partielle
+    expect(profile!.allowedModelIds).toEqual(["gpt-5"]); // the good policy holds
+    expect(profile!.degraded).toBe(true); // and the UI can say so
+    expect(stored).toBe(good); // the cache was NOT rewritten by the partial read
   });
 
   it("getOrgProfile fails CLOSED (empty allow-list) on a partial read with no cache", async () => {
@@ -274,7 +274,7 @@ describe("createVaultSync", () => {
       },
     } as unknown as SyncTransport;
     const profile = await createVaultSync({ transport, getPassphrase: () => null }).getOrgProfile();
-    expect(profile!.allowedModelIds).toEqual([]); // rien d'autorisé — le repli FERMÉ
+    expect(profile!.allowedModelIds).toEqual([]); // nothing authorized — the CLOSED fallback
     expect(profile!.degraded).toBe(true);
   });
 

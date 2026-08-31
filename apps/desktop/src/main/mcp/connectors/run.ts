@@ -24,9 +24,9 @@ async function assertConnectorTarget(url: string): Promise<void> {
   try {
     await assertPublicUrl(url, "connector");
   } catch (e) {
-    // Une panne DNS/réseau n'est pas un refus SSRF : les deux BLOQUENT (fail closed),
-    // mais l'étiquette doit dire la vraie cause — « injoignable » classe transport
-    // (réessayable) côté boucle, là où le refus reste un dead end.
+    // A DNS/network outage is not an SSRF refusal: both BLOCK (fail closed),
+    // but the label must state the real cause — "unreachable" is a transport class
+    // (retryable) on the loop's side, whereas a refusal remains a dead end.
     if ((e as NodeJS.ErrnoException)?.code === "EDNS_UNRESOLVED") {
       throw new Error(`Réseau ou DNS injoignable pour ce connecteur — réessaie dans un instant.`);
     }
@@ -88,9 +88,9 @@ class UpstreamError extends Error {
   constructor(
     message: string,
     readonly detail?: string,
-    /** Le STATUT HTTP, gardé pour que l'appelant puisse AGIR dessus — un 401 n'est pas une
-     *  panne mais un état du connecteur (cf. `callTool`). Le message, lui, reste la seule
-     *  chose que le modèle lit. */
+    /** The HTTP STATUS, kept so the caller can ACT on it — a 401 isn't a
+     *  failure but a connector STATE (see `callTool`). The message, on the other hand, remains the only
+     *  thing the model reads. */
     readonly status?: number,
   ) {
     super(message);
@@ -99,12 +99,12 @@ class UpstreamError extends Error {
 }
 
 function upstreamError(status: number, body: string, label?: string): UpstreamError {
-  // ⚠️ 401 = le fournisseur REFUSE le jeton stocké. C'est un état, pas une panne : réessayer
-  // échouera toujours, et « Upstream request failed (401) » ne dit à personne quoi faire —
-  // le modèle ne pouvait que le répéter, la connexion restait affichée comme valide, et le
-  // bouton « Réessayer » relançait un tour perdu d'avance (constaté le 15/08 sur GitHub).
-  // On rend donc le MÊME message actionnable que le chemin « jeton absent » : qui, où, et
-  // l'ordre de ne pas boucler.
+  // ⚠️ 401 = the provider REFUSES the stored token. It's a state, not a failure: retrying
+  // will always fail, and "Upstream request failed (401)" tells nobody what to do —
+  // the model could only repeat it, the connection stayed displayed as valid, and the
+  // "Retry" button relaunched a turn already lost (observed 15/08 on GitHub).
+  // So the SAME actionable message as the "token absent" path is returned: who, where, and
+  // the instruction not to loop.
   if (status === 401) {
     return new UpstreamError(
       `Connexion refusée par le fournisseur (401) pour « ${label ?? "ce connecteur"} » — le ` +
@@ -156,20 +156,20 @@ export function bearerFetchJson(accessToken: string, label?: string): ConnectorT
     if (!res.ok) {
       throw upstreamError(res.status, await res.text().catch(() => ""), label);
     }
-    // ⚠️ **UN CORPS VIDE EST UN SUCCÈS VIDE, PAS UNE ERREUR D'ANALYSE.** Une écriture qui
-    // réussit répond très souvent SANS corps — Graph `POST /me/sendMail` rend `202 Accepted`
-    // vide, un `DELETE` rend `204`. `res.json()` y jetait « Unexpected end of JSON input »,
-    // et tout ce qui suit était faux : l'outil remontait en ÉCHEC alors que le mail était
-    // parti, le modèle a relancé le même appel — donc un SECOND mail — puis a annoncé à
-    // l'utilisateur que l'envoi n'avait pas pu se faire (constaté le 18/08 sur Outlook).
-    // Un effet de bord réel présenté comme une panne est pire qu'une panne : il se répète.
+    // ⚠️ **AN EMPTY BODY IS AN EMPTY SUCCESS, NOT A PARSE ERROR.** A write that
+    // succeeds very often answers with NO body — Graph `POST /me/sendMail` returns an empty
+    // `202 Accepted`, a `DELETE` returns `204`. `res.json()` used to throw « Unexpected end of JSON input »
+    // there, and everything downstream was wrong: the tool reported back as a FAILURE while the mail had
+    // actually been sent, the model retried the same call — so a SECOND mail went out — then told
+    // the user the send hadn't worked (observed 18/08 on Outlook).
+    // A real side effect presented as a failure is worse than a failure: it repeats itself.
     const text = await res.text();
     if (!text.trim()) return undefined as T;
     try {
       return JSON.parse(text) as T;
     } catch {
-      // Un 2xx au corps illisible reste une anomalie — mais on la NOMME, au lieu de laisser
-      // remonter un `SyntaxError` que personne ne peut relier à ce qui s'est passé.
+      // A 2xx with an unreadable body remains an anomaly — but it's NAMED, instead of letting
+      // a `SyntaxError` surface that nobody can connect to what happened.
       throw new UpstreamError(
         `Réponse illisible du fournisseur (${res.status})${label ? ` pour « ${label} »` : ""} : ` +
           `l'appel a abouti mais son contenu n'est pas du JSON.`,
@@ -246,11 +246,11 @@ export function makeConnectorConnection(opts: {
           fetchJson: bearerFetchJson(accessToken, connector.name ?? id),
           fetchText: bearerFetchText(accessToken, connector.name ?? id),
         });
-        // Un appel qui PASSE prouve que le jeton vaut de nouveau : c'est ce qui referme le
-        // bandeau posé ci-dessous. Auto-cicatrisant exprès — le reconnecter emprunte un
-        // chemin différent du transport distant (`connectDirectServer`), et faire dépendre
-        // l'extinction du bandeau de ce chemin-là le laisserait allumé sur un connecteur
-        // redevenu sain.
+        // A call that PASSES proves the token is good again: that's what closes the
+        // banner set below. Deliberately self-healing — reconnecting it takes a
+        // different path than the remote transport (`connectDirectServer`), and making the
+        // banner's dismissal depend on that path would leave it lit on a connector that's
+        // become healthy again.
         if (needsReconnect.delete(id)) emitNeedsReconnect();
         return result;
       } catch (err) {
@@ -258,14 +258,14 @@ export function makeConnectorConnection(opts: {
         // tool added later cannot forget it (`Connector.errorHint`). `detail` carries
         // the provider's real explanation for the local journal ONLY; it never enters
         // `content`, which is the one thing the model reads.
-        // ⚠️ Un 401 est un ÉTAT du connecteur, pas l'échec d'un appel : le fournisseur
-        // refuse le jeton stocké, donc TOUS ses outils échoueront jusqu'à une reconnexion.
-        // Un connecteur DIRECT tourne en processus — il n'a pas de transport à laisser
-        // tomber, donc rien ne le signalait : le bandeau « reconnexion nécessaire » ne se
-        // levait que pour les connecteurs DISTANTS, et l'utilisateur ne voyait ici qu'un
-        // outil qui échoue, connecteur affiché vert (constaté le 15/08 sur GitHub). On le
-        // marque donc à la source. 401 SEUL : un 403 est un droit ou un scope manquant, et
-        // demander une reconnexion pour ça enverrait l'utilisateur refaire un tour inutile.
+        // ⚠️ A 401 is a connector STATE, not a call failure: the provider
+        // refuses the stored token, so ALL its tools will fail until a reconnection.
+        // A DIRECT connector runs in-process — it has no transport to drop,
+        // so nothing signaled it: the "reconnexion nécessaire" banner only
+        // lifted for REMOTE connectors, and the user here only saw a
+        // tool failing, connector displayed green (observed 15/08 on GitHub). So it's
+        // flagged at the source. 401 ALONE: a 403 is a missing right or scope, and
+        // asking for a reconnection over that would send the user through a pointless round trip.
         if (err instanceof UpstreamError && err.status === 401 && !needsReconnect.has(id)) {
           needsReconnect.add(id);
           emitNeedsReconnect();

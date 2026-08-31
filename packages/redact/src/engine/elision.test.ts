@@ -19,7 +19,7 @@ describe("réparation de l'élision au un-redaction", () => {
   });
 
   it("répare aussi le sens INVERSE : consonne → voyelle", () => {
-    // Faux à consonne (« de Kelby »), réel à voyelle → « d'Ambrell ».
+    // Consonant-initial fake ("de Kelby"), vowel-initial real → "d'Ambrell".
     expect(unredact("une facture de Kelby hier", { Kelby: "Ambrell" })).toBe(
       "une facture d'Ambrell hier",
     );
@@ -37,12 +37,12 @@ describe("réparation de l'élision au un-redaction", () => {
   });
 
   it("ne touche PAS `l'` — le genre est inconnu, et deviner est pire", () => {
-    // « le Karl » / « la Karl » : rien ne permet de choisir. On laisse.
+    // "le Karl" / "la Karl": nothing lets us choose. We leave it.
     expect(fixElisions("l'Karl Studio", ["Karl Studio"])).toBe("l'Karl Studio");
   });
 
   it("n'agit QUE devant la valeur restaurée", () => {
-    // Le reste de la phrase est du français que personne ne nous a demandé de corriger.
+    // The rest of the sentence is French nobody asked us to correct.
     expect(fixElisions("d'accord, parlons d'Karl", ["Karl"])).toBe("d'accord, parlons de Karl");
   });
 
@@ -64,9 +64,9 @@ describe("réparation de l'élision au un-redaction", () => {
 });
 
 describe("l'EMPHASE MARKDOWN s'intercale entre l'article et la valeur (16/08/2026)", () => {
-  /** Le modèle met les noms en gras : c'est le cas COURANT d'une réponse, pas un cas
-   *  limite. Ancrée sur la valeur nue, la réparation ne s'appliquait donc jamais là où
-   *  l'utilisateur lit — la même phrase sans gras était réparée. */
+  /** The model bolds names: it's the COMMON case for a reply, not an edge
+   *  case. Anchored on the bare value, the repair therefore never applied where
+   *  the user reads — the same sentence without bold WAS repaired. */
   it("répare à travers `**`, `*` et `__`", () => {
     expect(fixElisions("à la tête d'**Karl Studio**", ["Karl Studio"]))
       .toBe("à la tête de **Karl Studio**");
@@ -77,7 +77,7 @@ describe("l'EMPHASE MARKDOWN s'intercale entre l'article et la valeur (16/08/202
   });
 
   it("les marqueurs sont ré-émis VERBATIM — on touche l'article, jamais le balisage", () => {
-    // Le marqueur fermant est hors du motif : rien ne doit le déplacer ni le doubler.
+    // The closing marker is outside the pattern: nothing must move it or double it.
     expect(fixElisions("le dossier de **Ambrell**", ["Ambrell"]))
       .toBe("le dossier d'**Ambrell**");
   });

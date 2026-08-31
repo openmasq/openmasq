@@ -3,10 +3,10 @@ import { trimSpanEdges, stripCivilStatusPrefix, stripTrailingEmailParen, stripBa
 import { NOTORIOUS_COMMERCIAL_ORGS } from "../notoriousData";
 
 /**
- * Un span mal borné ne casse pas seulement l'affichage : la valeur cesse d'être ELLE-MÊME
- * pour tout ce qui compare des chaînes. Mesuré sur un vrai résultat d'outil (journal du
- * 04/08) : la marque « Github, » — virgule collée — partait redacted alors que
- * « Github » figure dans la liste de notoriété.
+ * A poorly bounded span doesn't just break display: the value stops being ITSELF
+ * for anything that compares strings. Measured on a real tool result (04/08
+ * log): the brand « Github, » — with a glued comma — used to be redacted even though
+ * « Github » is in the notoriety list.
  */
 describe("trimSpanEdges", () => {
   it("rogne la ponctuation de phrase aux DEUX bords", () => {
@@ -22,7 +22,7 @@ describe("trimSpanEdges", () => {
   });
 
   it("⚠️ ne touche pas aux PARENTHÈSES — elles portent du sens dans un lieu composite", () => {
-    // « ST OUEN (93400) » : les rogner cassait la restitution de la ville seule
+    // « ST OUEN (93400) »: trimming them broke restoring the city alone
     // (`placeAliases.test.ts`).
     expect(trimSpanEdges("ST OUEN (93400)")).toBe("ST OUEN (93400)");
   });
@@ -41,10 +41,10 @@ describe("trimSpanEdges", () => {
 });
 
 describe("stripCivilStatusPrefix — l'état civil n'est pas un prénom", () => {
-  // Le cas vécu (constat 13/08, rejoué 15/08) : le détecteur colle « née » dans le span
-  // du nom. Traité comme un jeton de nom, « née » recevait son propre faux et l'état
-  // civil disparaissait du wire — « née de La Roncheraye » → « sidonie de La
-  // Guilbaud », que le modèle relit comme une autre personne. L'acte devient infidèle.
+  // The real-world case (observed 13/08, replayed 15/08): the detector glues « née » into the
+  // name's span. Treated as a name token, « née » got its own fake and the civil
+  // status disappeared from the wire — « née de La Roncheraye » → « sidonie de La
+  // Guilbaud », which the model reads back as another person. The deed becomes unfaithful.
   it("dépouille née/épouse/veuve/dit en tête, et eux seuls", () => {
     expect(stripCivilStatusPrefix("née de La Roncheraye")).toBe("de La Roncheraye");
     expect(stripCivilStatusPrefix("Née Perrichon")).toBe("Perrichon");
@@ -59,8 +59,8 @@ describe("stripCivilStatusPrefix — l'état civil n'est pas un prénom", () => 
     expect(stripCivilStatusPrefix("Marie-Claire de La Roncheraye")).toBe(
       "Marie-Claire de La Roncheraye",
     );
-    // « Née » n'est un marqueur qu'en TÊTE et suivi d'un mot — un patronyme qui y
-    // ressemble sans espace derrière reste intact.
+    // « Née » is a marker only at the START and followed by a word — a surname that
+    // resembles it with nothing after stays intact.
     expect(stripCivilStatusPrefix("Néel")).toBe("Néel");
     expect(stripCivilStatusPrefix("Veuvey")).toBe("Veuvey");
     expect(stripCivilStatusPrefix("Dittmar")).toBe("Dittmar");
@@ -79,8 +79,8 @@ describe("« Nom (adresse@exemple.fr) » — la parenthèse ne doit pas emporter
   });
 
   it("⚠️ ne touche NI le composite lieu+code NI une parenthèse ordinaire", () => {
-    // Les parenthèses sont épargnées exprès (« ST OUEN (93400) » porte du sens) : le
-    // rognage ne vise QUE celles qui contiennent une adresse.
+    // Parentheses are deliberately spared (« ST OUEN (93400) » carries meaning): the
+    // trim only targets those that contain an address.
     expect(stripTrailingEmailParen("ST OUEN (93400)")).toBe("ST OUEN (93400)");
     expect(stripTrailingEmailParen("Taavi Remmel (bureau 12)")).toBe("Taavi Remmel (bureau 12)");
     expect(stripTrailingEmailParen("Rennes (35)")).toBe("Rennes (35)");
@@ -100,7 +100,7 @@ describe("code d'opération bancaire collé en tête d'un span (grand livre, 15/
   });
 
   it("ne touche pas un mot qui COMMENCE par un code", () => {
-    // « Virement » n'est pas « VIR », « Chquette » n'est pas « CHQ » : mots entiers.
+    // « Virement » is not « VIR », « Chquette » is not « CHQ »: whole words only.
     expect(stripBankOpPrefix("Virement Rebour")).toBe("Virement Rebour");
     expect(stripBankOpPrefix("Remisier Conseil")).toBe("Remisier Conseil");
   });

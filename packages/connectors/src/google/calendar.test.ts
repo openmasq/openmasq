@@ -22,12 +22,12 @@ const q = (url: string) => new URL(url).searchParams;
 
 describe("list_events — la fenêtre de dates", () => {
   it("couvre la JOURNÉE ENTIÈRE quand on ne donne que `from`", async () => {
-    // « Prépare ma journée du 3 août » : l'outil n'avait AUCUN paramètre de date, donc
-    // le modèle a demandé à l'utilisateur une date qu'il n'aurait pas pu transmettre.
+    // "Prépare ma journée du 3 août": the tool had NO date parameter, so
+    // the model asked the user for a date it wouldn't have been able to pass along.
     const { ctx, urls } = ctxFor([]);
     await listEvents.run({ from: "2026-08-03" }, ctx);
     const p = q(urls[0]);
-    // Bornes locales : minuit → 23:59:59.999 du 3 août CHEZ L'UTILISATEUR.
+    // Local bounds: midnight → 23:59:59.999 of August 3rd IN THE USER'S timezone.
     expect(new Date(p.get("timeMin")!).getTime()).toBe(new Date(2026, 7, 3, 0, 0, 0, 0).getTime());
     expect(new Date(p.get("timeMax")!).getTime()).toBe(
       new Date(2026, 7, 3, 23, 59, 59, 999).getTime(),
@@ -63,9 +63,9 @@ describe("list_events — la fenêtre de dates", () => {
 
 describe("list_events — ce que la ligne porte", () => {
   it("remonte fin, lieu, participants et notes — que l'API renvoyait déjà", async () => {
-    // Sans eux, « avec les participants et le lieu » et « ce qui se chevauche ou ne me
-    // laisse pas le temps de me déplacer » étaient incalculables : la ligne ne disait
-    // que « début — titre ».
+    // Without them, "with the participants and the location" and "what overlaps or doesn't
+    // leave me time to travel" were uncomputable: the line only said
+    // "start — title".
     const { ctx } = ctxFor([
       {
         summary: "Point produit",

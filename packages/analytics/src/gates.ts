@@ -1,18 +1,18 @@
 /**
- * Les REFUS du transport — les raisons de ne rien envoyer qui ne dépendent ni du
- * consentement ni de la configuration, mais de l'ENVIRONNEMENT où la page tourne.
+ * Transport REFUSALS — reasons to send nothing that depend neither on
+ * consent nor on configuration, but on the ENVIRONMENT the page runs in.
  *
- * Groupées ici plutôt que perdues au milieu de `sink.ts` : un relecteur doit voir la
- * famille d'un coup d'œil, et chacune est une fonction pure de globales du navigateur,
- * donc directement testable (`sink.test.ts`).
+ * Grouped here rather than lost in the middle of `sink.ts`: a reviewer should see the
+ * family at a glance, and each one is a pure function of browser globals,
+ * so directly testable (`sink.test.ts`).
  *
- * ⚠️ Elles disent toutes NON de la même façon : positivement. Une condition qu'on ne peut
- * pas observer (pas de `navigator`, pas de `location`) n'est pas un refus — le contraire
- * ferait taire la production le jour où un contexte n'expose pas l'un des deux, et une
- * mesure absente ne se remarque pas.
+ * ⚠️ They all say NO the same way: positively. A condition we cannot
+ * observe (no `navigator`, no `location`) is not a refusal — the opposite
+ * would silence production the day a context doesn't expose one of the two, and a
+ * missing measurement goes unnoticed.
  */
 
-/** Do-Not-Track / Global Privacy Control : la personne a demandé qu'on ne la suive pas. */
+/** Do-Not-Track / Global Privacy Control: the person asked not to be tracked. */
 export const dntEnabled = (): boolean => {
   try {
     const n = navigator as unknown as { doNotTrack?: string; globalPrivacyControl?: boolean };
@@ -23,16 +23,16 @@ export const dntEnabled = (): boolean => {
 };
 
 /**
- * La page est-elle servie depuis la machine de quelqu'un qui développe ?
+ * Is the page served from a developer's own machine?
  *
- * Ce que ça empêche : un `pnpm dev` ouvert toute la journée, rechargé à chaque sauvegarde,
- * qui compte le développeur comme une cohorte dans les chiffres du produit. Même intention
- * que la suspension des lancements automatisés, mais décidée par l'HÔTE — donc rien à
- * câbler dans chaque app.
+ * What this prevents: a `pnpm dev` left open all day, reloaded on every save,
+ * counting the developer as a cohort in the product's numbers. Same intent
+ * as suspending automated launches, but decided by the HOST — so nothing to
+ * wire into each app.
  *
- * ⚠️ Pas de `location` (rendu serveur, `file://` du bureau empaqueté) ⇒ **on émet**. Et le
- * test porte sur l'hôte ENTIER ou sur un suffixe : `localhost.exemple.fr` est un vrai
- * domaine, pas une boucle locale.
+ * ⚠️ No `location` (server rendering, packaged desktop `file://`) ⇒ **we emit**. And the
+ * test is on the WHOLE host or on a suffix: `localhost.example.fr` is a real
+ * domain, not a loopback.
  */
 export const isLoopbackHost = (): boolean => {
   try {
@@ -45,8 +45,8 @@ export const isLoopbackHost = (): boolean => {
       h === "::1" ||
       h === "[::1]" ||
       h.endsWith(".localhost") ||
-      // Le nom qu'un Mac se donne sur le réseau local (`macbook.local`) — c'est ainsi qu'on
-      // ouvre un `pnpm dev` depuis un téléphone pour tester le rendu mobile.
+      // The name a Mac gives itself on the local network (`macbook.local`) — that's how one
+      // opens a `pnpm dev` from a phone to test mobile rendering.
       h.endsWith(".local")
     );
   } catch {

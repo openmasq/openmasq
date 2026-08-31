@@ -1,6 +1,6 @@
 /**
- * The synced USERDATA studio (pure): the user's Compétences, Workflows and
- * Mémoire, as ALLOW-LISTED payloads on the record channel's reserved
+ * The synced USERDATA studio (pure): the user's Skills, Workflows and
+ * Memory, as ALLOW-LISTED payloads on the record channel's reserved
  * {@link USERDATA_SCOPE}. This is REAL user content (reusable prompts, durable
  * personal facts), so it rides the SAME E2E envelope as conversations — the
  * server only ever stores ciphertext, and the extension (contributor) can

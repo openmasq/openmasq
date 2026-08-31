@@ -1,9 +1,9 @@
-// La porte du PÉRIMÈTRE d'un tour d'abonnement. Le cas qui la motive est mesuré, pas
-// supposé : avec un retrait par NOM (`--disallowed-tools Bash Edit Read …`) la CLI 2.1.247
-// annonçait quand même une poignée d'outils intégrés, dont un qui prend une commande shell
-// et rend sa sortie au modèle — c'est-à-dire des octets que le coffre n'a jamais vus, donc
-// que le re-redaction ne peut pas masquer (règle 11). La propriété à tenir : SEUL le pont
-// de l'app existe pour le modèle, et une annonce qui dit autre chose fait échouer le tour.
+// The PERIMETER gate for a subscription turn. The case that motivates it is measured, not
+// assumed: with a removal BY NAME (`--disallowed-tools Bash Edit Read …`) CLI 2.1.247
+// still advertised a handful of built-in tools, including one that takes a shell command
+// and hands its output to the model — i.e. bytes the vault never saw, so
+// re-redaction can't mask them (rule 11). The property to hold: ONLY the app's
+// bridge exists for the model, and an advertisement that says otherwise fails the turn.
 import { describe, expect, it } from "vitest";
 import { cliToolGateMessage, unexpectedCliTools } from "./toolGate";
 
@@ -17,7 +17,7 @@ describe("unexpectedCliTools — allow-list par préfixe du pont (règle 7)", ()
   });
 
   it("REFUSE un outil intégré que l'app n'a pas offert", () => {
-    // Les noms exacts relevés sur la 2.1.247 sous les anciens drapeaux.
+    // The exact names observed on 2.1.247 under the old flags.
     expect(unexpectedCliTools(["Monitor", "CronCreate", "TaskCreate"])).toEqual([
       "Monitor",
       "CronCreate",
@@ -34,9 +34,9 @@ describe("unexpectedCliTools — allow-list par préfixe du pont (règle 7)", ()
   });
 
   it("ne rend AUCUN verdict sur une annonce absente ou d'une autre forme", () => {
-    // Volontaire, et documenté dans l'en-tête : le contrôle premier est `--tools ""`,
-    // qui est auto-vérifiant (la CLI refuse un drapeau inconnu). Refuser ici couperait
-    // le chat au premier renommage de champ sans rien acheter.
+    // Deliberate, and documented in the header: the primary control is `--tools ""`,
+    // which is self-verifying (the CLI refuses an unknown flag). Refusing here would break
+    // chat on the first field rename, buying nothing.
     expect(unexpectedCliTools(undefined)).toEqual([]);
     expect(unexpectedCliTools("Monitor")).toEqual([]);
     expect(unexpectedCliTools({ 0: "Monitor" })).toEqual([]);

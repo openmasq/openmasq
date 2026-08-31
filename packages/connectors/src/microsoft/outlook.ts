@@ -16,8 +16,8 @@ interface GraphMessage {
   body?: { contentType?: string; content?: string };
 }
 
-/** Chaque ligne PORTE l'id — la cible de `get_message` (sans lui, le modèle listait
- *  les en-têtes puis annonçait ne pas pouvoir lire les contenus). */
+/** Each line CARRIES the id — the target for `get_message` (without it, the model listed
+ *  the headers then announced it couldn't read the content). */
 function fmt(m: GraphMessage): string {
   const from = m.from?.emailAddress?.address ?? m.from?.emailAddress?.name ?? "?";
   const when = m.receivedDateTime ? ` — ${m.receivedDateTime.slice(0, 16).replace("T", " ")}` : "";
@@ -72,8 +72,8 @@ const listRecent: ConnectorTool = {
   },
 };
 
-// Le résultat repasse par le redaction puis le cap générique (16k) — cette borne
-// évite juste de payer la détection sur un mail-fleuve. Miroir du Gmail `get_message`.
+// The result goes back through redaction then the generic cap (16k) — this bound
+// just avoids paying for detection on a mile-long email. Mirrors Gmail's `get_message`.
 const MAX_BODY_CHARS = 20_000;
 
 const getMessage: ConnectorTool = {

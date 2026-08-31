@@ -68,12 +68,12 @@ describe("extractText — OCR dispatch", () => {
     const f = await extractText(fx("scanned-id.jpg"));
     expect(f.kind).toBe("image");
     expect(f.text).toBe("");
-    // Le repli CONSTATE l'échec ; il ne DIAGNOSTIQUE pas (15/08/2026 : un plantage du
-    // binding s'affichait « OCR indisponible sur cet appareil » alors que les modèles
-    // étaient bien là — un verdict faux, sans suite possible pour l'utilisateur).
+    // The fallback OBSERVES the failure; it does not DIAGNOSE it (15/08/2026: a
+    // binding crash used to display « OCR indisponible sur cet appareil » even though
+    // the models were indeed present — a false verdict, with no possible follow-up for the user).
     expect(f.error).toMatch(/la reconnaissance de texte a échoué/i);
     expect(f.error).not.toMatch(/indisponible sur cet appareil/i);
-    expect(f.rawCause).toContain("no native binary"); // la vraie cause reste, pour le journal
+    expect(f.rawCause).toContain("no native binary"); // the real cause stays, for the log
   });
 });
 

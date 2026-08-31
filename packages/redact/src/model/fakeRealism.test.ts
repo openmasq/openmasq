@@ -3,9 +3,9 @@ import { fakeFor } from "./fakes";
 import { luhnCheckDigit, mod97 } from "./fakes/primitives";
 
 /**
- * La VRAISEMBLANCE des fakes est une propriété de sécurité, pas un vernis : un fake qui
- * ne ressemble plus à un téléphone ou à une adresse invite le modèle à le « corriger »,
- * et un fake corrigé ne se un-redacted plus. Régressions de l'audit du relevé Sacem.
+ * The BELIEVABILITY of fakes is a security property, not a polish: a fake that
+ * no longer looks like a phone or an address invites the model to « correct » it,
+ * and a corrected fake no longer de-redacts. Regressions from the Sacem-statement audit.
  */
 describe("téléphone — l'indicatif et la classe survivent au redaction", () => {
   it("un mobile FR reste un mobile FR (06 → 06), séparateurs conservés", () => {
@@ -60,8 +60,8 @@ describe("adresse — le fake porte l'habit de l'original", () => {
 
   it("une adresse mixte classique garde sa forme d'origine (virgule, Title case)", () => {
     const fake = fakeFor("ADDRESS", "12 rue de la République, 69001 Lyon", 0, undefined, 42);
-    expect(fake).toMatch(/^\d+ [a-z]/u); // la rue reste en minuscules comme l'original
-    expect(fake).toMatch(/, \d{5} /u); // la virgule d'origine, pas un tiret
+    expect(fake).toMatch(/^\d+ [a-z]/u); // the street stays lowercase like the original
+    expect(fake).toMatch(/, \d{5} /u); // the original comma, not a dash
   });
 
   it("un « CP VILLE CEDEX » capturé comme PLACE garde son CEDEX", () => {
@@ -72,13 +72,13 @@ describe("adresse — le fake porte l'habit de l'original", () => {
 
 describe("e-mail — le suffixe de désambiguïsation ne transporte jamais le salt", () => {
   it("les chiffres du salt par-conversation n'apparaissent pas dans le fake", () => {
-    // « …savary9876@… » sous salt 987654321 : les premiers chiffres du secret par-
-    // conversation étaient imprimés dans le wire — une fuite partielle de la clé qui
-    // défait l'inversion par dictionnaire. Le salt ne décale que via le hash.
+    // « …savary9876@… » under salt 987654321: the first digits of the per-
+    // conversation secret were printed in the wire — a partial key leak that
+    // defeats dictionary inversion. The salt only shifts through the hash.
     const salt = 987654321;
     const fake = fakeFor("EMAIL", "tugdual.sabourdin@gmail.com", 0, undefined, salt);
     expect(fake).not.toMatch(/9876/);
-    expect(fake.split("@")[0]).not.toMatch(/\d{4,}/); // jamais un long run de chiffres
+    expect(fake.split("@")[0]).not.toMatch(/\d{4,}/); // never a long digit run
   });
 });
 
@@ -102,7 +102,7 @@ describe("checksums — un fake qui échoue sa propre validation est visible", (
       "GB82 WEST 1234 5698 7654 32",
     ]) {
       const fake = fakeFor("IBAN", iban, 0, undefined, 42);
-      expect(fake.slice(0, 2), iban).toBe(iban.slice(0, 2)); // pays verbatim
+      expect(fake.slice(0, 2), iban).toBe(iban.slice(0, 2)); // country verbatim
       expect(fake.replace(/[A-Za-z0-9]/g, "#")).toBe(iban.replace(/[A-Za-z0-9]/g, "#"));
       expect(fake).not.toBe(iban);
       const compact = fake.replace(/\s/g, "");
@@ -163,7 +163,7 @@ describe("pseudo — le fake garde la silhouette du handle", () => {
   it("les classes de caractères sont préservées (plus de casse en note de rançon)", () => {
     const fake = fakeFor("USERNAME", "@tugdual", 0, undefined, 42);
     expect(fake.startsWith("@")).toBe(true);
-    expect(fake.slice(1)).toMatch(/^[a-z]+$/); // l'original est tout en minuscules
+    expect(fake.slice(1)).toMatch(/^[a-z]+$/); // the original is all lowercase
     expect(fake).not.toBe("@tugdual");
     const mixed = fakeFor("USERNAME", "@Jean_Rebour75", 0, undefined, 42);
     expect(mixed).toMatch(/^@[A-Z][a-z]+_[A-Z][a-z]+\d\d$/);

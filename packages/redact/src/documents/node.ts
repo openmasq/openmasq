@@ -167,8 +167,8 @@ const nodeDeps: ExtractDeps = {
   },
   ocrImage: (bytes) => ocrImage(bytes),
   ocrImageLayout: (bytes) => ocrImageLayout(bytes),
-  // `undefined` pour lang/maxPages : les défauts de `ocrPdf` s'appliquent, seul le
-  // callback de progression est threadé.
+  // `undefined` for lang/maxPages: `ocrPdf`'s defaults apply, only the progress
+  // callback is threaded.
   ocrPdf: (bytes, onProgress, maxPages) => ocrPdf(bytes, undefined, maxPages, onProgress),
 };
 
@@ -176,7 +176,7 @@ const nodeDeps: ExtractDeps = {
 export async function extractText(
   filePath: string,
   onOcrProgress?: (done: number, pages: number) => void,
-  /** « Lire tout » : lever le plafond d'OCR (10 pages par défaut) — geste utilisateur. */
+  /** "Read all": lift the OCR cap (10 pages by default) — a user gesture. */
   ocrAllPages?: boolean,
 ): Promise<ExtractedFile> {
   const name = baseName(filePath);

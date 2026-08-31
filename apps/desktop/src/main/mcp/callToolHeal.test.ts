@@ -18,8 +18,8 @@ const { routes, reconnects } = vi.hoisted(() => ({
   reconnects: [] as string[],
 }));
 
-// `app` : tiré par la chaîne d'import via la politique DevTools (devtools.ts) — un mock
-// usine jette sur toute propriété absente, donc on énumère ce que la chaîne touche.
+// `app`: pulled in by the import chain via the DevTools policy (devtools.ts) — a factory
+// mock throws on any absent property, so we enumerate what the chain touches.
 vi.mock("electron", () => ({ BrowserWindow: class {}, app: {} }));
 vi.mock("./server/connect", () => ({
   ensureBrowserConnLive: vi.fn(async () => {}),

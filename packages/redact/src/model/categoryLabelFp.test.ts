@@ -5,18 +5,18 @@ import { isNonPiiTerm, isGenericTerm } from "./genericTerms";
 import type { Detection } from "../types";
 
 /**
- * ⚠️ REGRESSION — le mot qui ANNONCE la donnée était redacted à la place de la donnée.
+ * ⚠️ REGRESSION — the word that ANNOUNCES the data was redacted instead of the data.
  *
- * Mesuré sur le benchmark v1.0 (~7 % des messages touchés, précision 93 %) : « Mon
- * passeport est périmé » partait au modèle en « Mon Simon est périmé ». C'est le pire
- * des faux positifs parce qu'il est INVISIBLE — l'utilisateur relit sa phrase restaurée,
- * ne voit rien d'anormal, et conclut que le modèle répond mal. Un OUBLI se voit (rien
- * n'est surligné) et se rattrape par le Coffre ; celui-ci ne se voit pas.
+ * Measured on the v1.0 benchmark (~7% of messages affected, 93% precision): « Mon
+ * passeport est périmé » was leaving to the model as « Mon Simon est périmé ». It's the worst
+ * kind of false positive because it's INVISIBLE — the user reads back their restored sentence,
+ * sees nothing wrong, and concludes the model is answering poorly. A MISS is visible (nothing
+ * is highlighted) and can be caught via the Vault; this one can't be seen.
  *
- * Le mot désigne le TYPE de pièce, jamais son titulaire.
+ * The word names the TYPE of document, never its holder.
  */
 
-/** Ce que rend un NER qui tague le mot-catégorie — la sortie réellement observée. */
+/** What a NER that tags the category word returns — the actually observed output. */
 const tags = (value: string, category = "PER") =>
   async (): Promise<Detection[]> => [{ value, category }];
 
@@ -32,8 +32,8 @@ describe("un mot-catégorie n'est jamais redacted pour lui-même", () => {
   });
 
   it("laisse en clair le LABEL mais redacted bien la VALEUR qui le suit", () => {
-    // Le contre-test qui empêche la correction de devenir une perte de rappel : on
-    // n'a pas éteint la détection, on a juste cessé de viser le mauvais mot.
+    // The counter-test that keeps the fix from becoming a recall loss: we
+    // didn't turn off detection, we just stopped targeting the wrong word.
     return pseudonymize("Mon login est arvio92.", { detectLocal: tags("login") }).then((out) => {
       expect(out.text).toContain("login");
       expect(out.text).not.toContain("arvio92");
@@ -43,9 +43,9 @@ describe("un mot-catégorie n'est jamais redacted pour lui-même", () => {
 
 describe("isNonPiiTerm — UNE définition, partagée par les trois chemins", () => {
   /**
-   * Les trois sites avaient dérivé vers trois réponses différentes à la même question
-   * (root rule 9) : la même valeur pouvait être épargnée en mode FAKE et redacted en
-   * mode MARQUEUR. Ce test compare les deux modes sur la même entrée.
+   * The three call sites had drifted into three different answers to the same question
+   * (root rule 9): the same value could be spared in FAKE mode and redacted in
+   * MARKER mode. This test compares both modes on the same input.
    */
   it("le mode marqueur épargne exactement ce que le mode fake épargne", async () => {
     for (const label of ["passeport", "CNI", "sécu", "gamertag", "iban", "Le login"]) {
@@ -58,23 +58,23 @@ describe("isNonPiiTerm — UNE définition, partagée par les trois chemins", ()
   });
 
   it("réunit bien les quatre prédicats (mot, composé, article, stopword)", () => {
-    expect(isNonPiiTerm("passeport")).toBe(true); // terme générique
-    expect(isNonPiiTerm("Le login")).toBe(true); // article + terme
-    expect(isNonPiiTerm("read-data-schema")).toBe(true); // composé
-    expect(isNonPiiTerm("Berlioz")).toBe(false); // un vrai nom reste redactable
+    expect(isNonPiiTerm("passeport")).toBe(true); // generic term
+    expect(isNonPiiTerm("Le login")).toBe(true); // article + term
+    expect(isNonPiiTerm("read-data-schema")).toBe(true); // compound
+    expect(isNonPiiTerm("Berlioz")).toBe(false); // a real name stays redactable
   });
 });
 
 describe("la discipline d'allow-list tient (vocab/index.ts règle 2)", () => {
   it("« signe » reste redactable — c'est un prénom scandinave", () => {
-    // Le jumeau ASCII de « signé » est DÉLIBÉRÉMENT absent de la liste : une entrée
-    // d'allow-list expédie ce mot en clair pour toujours, et « Signe » est un prénom.
+    // The ASCII twin of « signé » is DELIBERATELY absent from the list: an allow-list
+    // entry ships this word in clear forever, and « Signe » is a first name.
     expect(isGenericTerm("signe")).toBe(false);
     expect(isNonPiiTerm("signe")).toBe(false);
   });
 
   it("les entrées ajoutées gardent leur forme ACCENTUÉE et son jumeau ASCII", () => {
-    // « sécu » est ce qu'on tape ; « secu » est ce que produit un export dégradé.
+    // « sécu » is what people type; « secu » is what a degraded export produces.
     expect(isGenericTerm("sécu")).toBe(true);
     expect(isGenericTerm("secu")).toBe(true);
   });

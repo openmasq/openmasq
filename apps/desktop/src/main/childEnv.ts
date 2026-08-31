@@ -1,35 +1,35 @@
 /**
- * L'environnement qu'un ENFANT tiers reçoit — une ALLOWLIST, jamais l'héritage.
+ * The environment a THIRD-PARTY CHILD receives — an ALLOWLIST, never inheritance.
  *
- * `{ ...process.env }` tend à l'enfant tout ce que la session de l'utilisateur porte :
- * lancée depuis un terminal, l'app hérite des `AWS_*`, `GITHUB_TOKEN`, clés d'API du
- * shell — et les retransmettait au broker (la closure express/@mcp qui détient les
- * jetons OAuth) et au serveur @playwright/mcp. Ces enfants exécutent du code TIERS :
- * la règle 7 dit de ne jamais tendre à un enfant un secret dont il n'a pas besoin, et
- * un héritage est une denylist implicite — chaque variable nouvelle passe par défaut.
+ * `{ ...process.env }` hands the child everything the user's session carries: launched
+ * from a terminal, the app inherits the shell's `AWS_*`, `GITHUB_TOKEN`, API keys — and
+ * used to forward them to the broker (the express/@mcp closure that holds the OAuth
+ * tokens) and to the @playwright/mcp server. These children run THIRD-PARTY code:
+ * rule 7 says never hand a child a secret it doesn't need, and inheritance is an
+ * implicit denylist — every new variable passes through by default.
  *
- * L'allowlist est le MINIMUM vital d'un process Node/Electron par plateforme :
- * identité et chemins (HOME, PATH, TMPDIR…), locale, proxys d'entreprise (sans eux une
- * machine derrière un proxy perd tout egress), et le socle Windows (un enfant sans
- * `SystemRoot` meurt en DLL init). Tout le reste — dont chaque secret possible — tombe.
+ * The allowlist is the vital MINIMUM of a Node/Electron process per platform:
+ * identity and paths (HOME, PATH, TMPDIR…), locale, corporate proxies (without them a
+ * machine behind a proxy loses all egress), and the Windows baseline (a child without
+ * `SystemRoot` dies at DLL init). Everything else — including every possible secret — is dropped.
  *
- * Les enfants DÉJÀ minimaux (NER, embed, extraction, jail Python) construisent leur env
- * à la main et n'ont pas besoin d'elle. Les re-spawns de NOTRE binaire (navigateur
- * agent) restent en héritage : même code, même confiance — filtrer n'y protège rien.
+ * Children that are ALREADY minimal (NER, embed, extraction, Python jail) build their env
+ * by hand and don't need it. Re-spawns of OUR OWN binary (agent browser) stay on
+ * inheritance: same code, same trust — filtering protects nothing there.
  */
 
-/** Ce qu'un enfant Node/Electron a le droit de voir. Rien d'autre ne passe. */
+/** What a Node/Electron child is allowed to see. Nothing else gets through. */
 const ALLOWED = [
-  // Identité + chemins (POSIX)
+  // Identity + paths (POSIX)
   "HOME", "USER", "LOGNAME", "PATH", "TMPDIR", "SHELL", "LANG", "LC_ALL", "TZ",
-  // Proxys d'entreprise — les deux casses existent dans la nature.
+  // Corporate proxies — both cases exist in the wild.
   "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy",
-  // Socle Windows — un process sans SystemRoot/COMSPEC ne démarre pas.
+  // Windows baseline — a process without SystemRoot/COMSPEC won't start.
   "SystemRoot", "SystemDrive", "windir", "COMSPEC", "PATHEXT",
   "APPDATA", "LOCALAPPDATA", "USERPROFILE", "PROGRAMDATA", "TEMP", "TMP",
 ] as const;
 
-/** Pur, pour être épinglé par `childEnv.test.ts` sans toucher au vrai environnement. */
+/** Pure, so it can be pinned by `childEnv.test.ts` without touching the real environment. */
 export function filterChildEnv(
   source: NodeJS.ProcessEnv,
   extra: Record<string, string> = {},
@@ -42,7 +42,7 @@ export function filterChildEnv(
   return { ...out, ...extra };
 }
 
-/** L'env minimal d'un enfant TIERS : l'allowlist + ce que l'appelant nomme. */
+/** The minimal env for a THIRD-PARTY child: the allowlist + whatever the caller names. */
 export function minimalChildEnv(extra: Record<string, string> = {}): Record<string, string> {
   return filterChildEnv(process.env, extra);
 }

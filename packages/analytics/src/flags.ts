@@ -1,29 +1,29 @@
 import { attestHeaders } from "./attest";
 
 /**
- * La lecture des DRAPEAUX d'accès sur le relais — hors de `sink.ts` parce que ce n'est
- * PAS de la télémétrie et que le gate n'est pas le même (voir `types.ts` `Sink.fetchFlags`).
+ * Reading access FLAGS on the relay — outside `sink.ts` because this is
+ * NOT telemetry and the gate isn't the same (see `types.ts` `Sink.fetchFlags`).
  *
- * Contrat : `POST <origine du relais>/flags` avec `{ distinct_id }` + un contexte de build
- * NON identifiant, réponse `{ flags: { clé: booléen | variante } }`.
+ * Contract: `POST <relay origin>/flags` with `{ distinct_id }` + a NON-identifying
+ * build context, response `{ flags: { key: boolean | variant } }`.
  *
- * ⚠️ Rien n'est rapporté ici : la requête ne porte que l'id anonyme qui sert de clé de
- * répartition. Elle n'est donc **pas soumise au consentement** — refuser la mesure ne doit
- * pas donner un produit différent — ni au refus « hôte local », qui existe pour ne pas
- * polluer les chiffres du produit, ce qu'une lecture de configuration ne fait pas. Le seul
- * refus qui s'applique est `setAnalyticsSuspended` : un lancement automatisé doit voir des
- * drapeaux DÉTERMINISTES, donc les défauts de l'appelant.
+ * ⚠️ Nothing is reported here: the request only carries the anonymous id that serves as the
+ * bucketing key. It is therefore **not subject to consent** — declining measurement must
+ * not give a different product — nor to the "local host" refusal, which exists to avoid
+ * polluting the product's numbers, which a configuration read doesn't do. The only
+ * refusal that applies is `setAnalyticsSuspended`: an automated launch must see
+ * DETERMINISTIC flags, i.e. the caller's defaults.
  *
- * `null` sur tout ce qui n'est pas une réponse lisible — l'appelant garde alors ses défauts
- * compilés, jamais « fermé ».
+ * `null` on anything that isn't a readable response — the caller then keeps its
+ * compiled defaults, never "closed".
  */
 export interface FlagFetchConfig {
   relayUrl?: string;
   appKey?: string;
   source?: string;
   env?: string;
-  /** L'environnement VISÉ (voir `types.ts` `ConfigureOptions.runtimeEnv`) — le seul
-   *  axe sur lequel un ciblage « staging seulement » dit la vérité. */
+  /** The TARGETED environment (see `types.ts` `ConfigureOptions.runtimeEnv`) — the only
+   *  axis on which a "staging only" targeting tells the truth. */
   runtimeEnv?: string;
   appVersion?: string;
 }
@@ -35,8 +35,8 @@ export async function fetchRelayFlags(
 ): Promise<Record<string, boolean | string> | null> {
   if (!cfg?.relayUrl) return null;
   try {
-    // `new URL("flags", ".../e")` remplace le DERNIER segment : ".../e" → ".../flags".
-    // Une seule variable d'environnement à tenir en phase, pas deux.
+    // `new URL("flags", ".../e")` replaces the LAST segment: ".../e" → ".../flags".
+    // A single environment variable to keep in sync, not two.
     const url = new URL("flags", cfg.relayUrl).toString();
     const res = await fetch(url, {
       method: "POST",
@@ -44,9 +44,9 @@ export async function fetchRelayFlags(
       body: JSON.stringify({
         distinct_id: distinctId,
         source: cfg.source,
-        // Les DEUX : `env` dit le build (dev / local / déployé), `runtime_env` l'API
-        // visée. Une condition PostHog les combine — « staging » pour n'atteindre que
-        // les testeurs, « env ≠ development » pour épargner les postes de dev.
+        // BOTH: `env` states the build (dev / local / deployed), `runtime_env` the API
+        // targeted. A PostHog condition combines them — "staging" to only reach
+        // testers, "env ≠ development" to spare dev machines.
         env: cfg.env,
         runtime_env: cfg.runtimeEnv,
         app_version: cfg.appVersion,
@@ -61,7 +61,7 @@ export async function fetchRelayFlags(
     log("recv", "flags", body.flags);
     return body.flags as Record<string, boolean | string>;
   } catch (e) {
-    // Hors ligne, relais en panne, CSP : l'appelant garde ses défauts. Jamais un throw.
+    // Offline, relay down, CSP: the caller keeps its defaults. Never a throw.
     log("error", "flags", String(e));
     return null;
   }

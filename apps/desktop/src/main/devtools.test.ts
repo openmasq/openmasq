@@ -1,9 +1,9 @@
-// La préférence `devTools` vaut PAR FENÊTRE : une fenêtre créée sans elle retombe sur le
-// défaut d'Electron (`true`) sans que rien ne rougisse — et la septième fenêtre, celle
-// qu'on ajoutera dans six mois, est exactement celle qui l'oubliera. Ce test scanne donc
-// le main : tout fichier qui CRÉE une fenêtre ou une vue doit référencer `DEVTOOLS_PREF`.
-// (Scan de texte, pas d'import : le module lit `app.isPackaged` à l'import, et c'est le
-// même procédé que `clientApp.parity.test.ts` — un commentaire ne peut pas échouer en CI.)
+// The `devTools` preference is PER-WINDOW: a window created without it falls back to
+// Electron's default (`true`) with nothing turning red — and the seventh window, the
+// one we'll add in six months, is exactly the one that will forget it. So this test scans
+// main: any file that CREATES a window or a view must reference `DEVTOOLS_PREF`.
+// (Text scan, not an import: the module reads `app.isPackaged` at import time, and it's the
+// same method as `clientApp.parity.test.ts` — a comment can't fail in CI.)
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";

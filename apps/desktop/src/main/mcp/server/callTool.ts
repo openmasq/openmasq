@@ -190,7 +190,7 @@ export async function mcpCallTool(call: McpToolCall): Promise<McpToolResult> {
           if ((e as NodeJS.ErrnoException)?.code === "EDNS_UNRESOLVED") {
             throw new Error(
               // « injoignable »/« réseau » → classifyToolError: transport (retryable);
-              // « indisponible » aurait classé operational (dead end) — le mauvais nudge.
+              // « indisponible » would have classified operational (dead end) — the wrong nudge.
               `Navigation impossible : réseau ou DNS injoignable (${new URL(url).hostname}). ` +
                 `Vérifie la connexion, puis réessaie.`,
             );

@@ -27,20 +27,20 @@ describe("boot theme script", () => {
   });
 
   it("replie chaque clé sur l'ANCIEN préfixe (parc d'avant le renommage du 24/08/2026)", () => {
-    // Ce script court AVANT le bundle, donc avant la passe `legacyStorage.ts` — il doit
-    // replier seul, sinon la première image d'un parc migré flashe au mauvais thème.
-    // (Préfixe assemblé pour ne pas être la seule « occurrence » que `check:brand` verrait.)
+    // This script runs BEFORE the bundle, so before the `legacyStorage.ts` pass — it must
+    // fall back on its own, otherwise the first frame of a migrated fleet flashes the wrong theme.
+    // (Prefix assembled so as not to be the only "occurrence" `check:brand` would see.)
     const OLD = ["proxy", "chat"].join("");
     expect(script.indexOf(`"${OLD}.theme"`)).toBeGreaterThan(script.indexOf('"openmasq.theme"'));
     expect(script.indexOf(`"${OLD}.settings"`)).toBeGreaterThan(script.indexOf('"openmasq.settings"'));
   });
 
   it("ne peint QUE de l'indigo — un thème vert enregistré devient son jumeau", () => {
-    // L'accent n'est plus au choix (`state/theme.ts` `blueAccent`). Ce script doit faire
-    // la MÊME traduction, sinon la première image est verte avant que React ne coerce :
-    // exactement le flash qu'il existe pour éviter.
+    // The accent is no longer a choice (`state/theme.ts` `blueAccent`). This script must do
+    // the SAME translation, otherwise the first frame is green before React coerces:
+    // exactly the flash it exists to avoid.
     expect(script).toContain('"blue-dark":"blue"');
-    // Et il ne peut poser que ces deux valeurs — pas de « light » ni de « dark » nus.
+    // And it can only set these two values — no bare "light" nor "dark".
     const poses = [...script.matchAll(/setAttribute\("data-theme",([^)]*)\)/g)].map((m) => m[1]);
     expect(poses).toHaveLength(1);
     expect(poses[0]).not.toMatch(/"light"|:"dark"/);

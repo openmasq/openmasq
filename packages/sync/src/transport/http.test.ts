@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { httpTransport } from "./http";
 
 /**
- * Le jeton d'appareil est un CACHE À DEUX FACES : on retenait le succès, jamais l'échec.
- * Un backend qui ne peut pas signer (secret absent ⇒ 503 volontairement fermé) était donc
- * redemandé à chaque appel de synchro — 44 erreurs serveur en deux jours, dont 25 d'un seul
- * appareil en quelques minutes, et autant d'exceptions dans les tableaux de bord. La
- * synchro, elle, continuait : l'en-tête d'identifiant nu est le repli prévu.
+ * The device token is a TWO-SIDED CACHE: only success was remembered, never failure.
+ * A backend that can't sign (secret absent ⇒ deliberately closed 503) was therefore
+ * re-requested on every sync call — 44 server errors in two days, 25 of them from one
+ * device in a few minutes, and just as many exceptions in the dashboards. The
+ * sync itself kept going: the bare-id header is the intended fallback.
  */
 function transport(fetchImpl: typeof fetch) {
   return httpTransport({
@@ -21,7 +21,7 @@ function transport(fetchImpl: typeof fetch) {
 
 const listVaultsBody = JSON.stringify({ vaults: [] });
 
-/** Un faux `fetch` qui compte les appels de frappe du jeton et sert `status` pour eux. */
+/** A fake `fetch` that counts token-minting calls and serves `status` for them. */
 function fakeFetch(tokenStatus: number) {
   const mintCalls: string[] = [];
   const headers: Array<Record<string, string>> = [];
@@ -51,7 +51,7 @@ describe("device-token mint — le repli ne doit pas marteler", () => {
     await t.listVaults();
 
     expect(mintCalls).toHaveLength(1);
-    // Les trois appels sont partis quand même — l'en-tête d'identifiant, pas le jeton.
+    // The three calls still went out — the id header, not the token.
     expect(headers).toHaveLength(3);
     for (const h of headers) {
       expect(h[brandHeader("device-id")]).toBe("dev-1");
@@ -67,12 +67,12 @@ describe("device-token mint — le repli ne doit pas marteler", () => {
     await t.listVaults();
     expect(mintCalls).toHaveLength(1);
 
-    // 30 s (le premier palier d'un hoquet) ne suffisent pas à rouvrir un refus.
+    // 30 s (a hiccup's first tier) isn't enough to reopen a refusal.
     vi.advanceTimersByTime(60_000);
     await t.listVaults();
     expect(mintCalls).toHaveLength(1);
 
-    // Le palier maximal, lui, finit par rouvrir : un appareil ré-enregistré doit repartir.
+    // The maximum tier, though, eventually reopens: a re-registered device must be able to restart.
     vi.advanceTimersByTime(900_000);
     await t.listVaults();
     expect(mintCalls).toHaveLength(2);

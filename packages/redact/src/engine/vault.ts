@@ -58,11 +58,11 @@ export function unredact(input: string, vault: Vault): string {
   // match; longer / multi-word fakes (names, companies) keep the case-insensitive restore
   // (models UPPER-CASE them in formal output).
   const isRisky = (c: string) => /^n\d+$/i.test(c) || (c.length <= 3 && !c.includes(" "));
-  // REPLI SUR LA FORME PLIÉE (sans diacritiques) — le modèle RÉ-ORTHOGRAPHIE parfois un
-  // faux : « Quémener » revient « Quéméner », il « corrige » vers la graphie qu'il connaît.
-  // Un seul signe de différence, et la casse ne suffit plus : l'utilisateur lisait alors LE
-  // FAUX à la place de sa donnée. Mêmes garde-fous que `byLower` — jamais sur un jeton
-  // risqué, jamais quand deux réels différents plient sur la même clé.
+  // FALLBACK TO THE FOLDED FORM (no diacritics) — the model sometimes RE-SPELLS a
+  // fake: « Quémener » comes back « Quéméner », it "corrects" toward the spelling it knows.
+  // A single mark of difference, and case alone is no longer enough: the user would then read THE
+  // FAKE instead of their data. Same safeguards as `byLower` — never on a
+  // risky token, never when two different reals fold onto the same key.
   const byFolded = new Map<string, { value: string; risky: boolean; ambiguous?: boolean }>();
   for (const t of tokens) {
     const c = collapse(t);
@@ -81,14 +81,14 @@ export function unredact(input: string, vault: Vault): string {
     // fake↔real) and must stay case-insensitively restorable — only a genuinely different real trips it.
     else if (prior.value.toLowerCase() !== vault[t].toLowerCase()) prior.ambiguous = true;
   }
-  // MARQUEURS (`[PERSON1]`, `[REDACTED_NAME_2]`) — la forme de clé du mode jetons. Un FAUX
-  // traverse la réponse intact parce que c'est du texte ordinaire ; un marqueur, le modèle
-  // le RÉÉCRIT : crochets échappés par le markdown (`\[PERSON1\]`), gras collé, ou
-  // simplement recopié sans crochets dans une phrase ou un en-tête de tableau. Chaque forme
-  // non restituée laisse « PERSON1 » sous les yeux de l'utilisateur à la place de SON
-  // information — c'est le mode qui ne tient plus sa promesse, pas un détail cosmétique.
-  // On rend donc les crochets OPTIONNELS et on résout sur le noyau. `(?!\d)` garde
-  // « PERSON12 » distinct de « PERSON1 » (le motif est fusionné, l'ordre ne suffit pas).
+  // MARKERS (`[PERSON1]`, `[REDACTED_NAME_2]`) — the token-mode key form. A FAKE
+  // crosses the reply intact because it's ordinary text; a marker, the model
+  // REWRITES: brackets escaped by markdown (`\[PERSON1\]`), bold glued on, or
+  // simply copied without brackets into a sentence or a table header. Every form
+  // that isn't restored leaves « PERSON1 » in front of the user instead of THEIR
+  // information — it's the mode failing to keep its promise, not a cosmetic detail.
+  // So the brackets are made OPTIONAL and resolution happens on the core. `(?!\d)` keeps
+  // « PERSON12 » distinct from « PERSON1 » (the pattern is merged, order alone isn't enough).
   const MARKER_RE = /^\[([A-Za-z][A-Za-z_]*\d*[A-Za-z_]*)(\d+[a-z]?)\]$/;
   const markerByLower = new Map<string, { value: string; ambiguous?: boolean }>();
   const pattern = tokens
@@ -97,8 +97,8 @@ export function unredact(input: string, vault: Vault): string {
       if (!m) return accentTolerantSource(escapeRegExp(t)).replace(/\s+/g, "[\\s_-]+");
       const core = `${m[1]}${m[2]}`.toLowerCase();
       const prior = markerByLower.get(core);
-      // Même noyau, deux réels VRAIMENT différents ⇒ on n'invente rien (même règle que
-      // `byLower`). Deux casses d'une même valeur restent, elles, restituables.
+      // Same core, two GENUINELY different reals ⇒ nothing is invented (same rule as
+      // `byLower`). Two casings of the same value, however, stay restorable.
       if (prior && prior.value.toLowerCase() !== vault[t].toLowerCase()) prior.ambiguous = true;
       else if (!prior) markerByLower.set(core, { value: vault[t] });
       return `\\\\?\\[?${escapeRegExp(m[1] + m[2])}(?!\\d)\\\\?\\]?`;
@@ -118,10 +118,10 @@ export function unredact(input: string, vault: Vault): string {
     // risky OR ambiguous (a case-only collision between two DIFFERENT reals) ⇒ never
     // case-insensitively over-restore: it would pick the wrong person's value.
     if (lower && !lower.risky && !lower.ambiguous) return lower.value;
-    // Dernier recours : la même valeur, diacritiques mis à plat.
+    // Last resort: the same value, diacritics flattened.
     const folded = byFolded.get(foldAccents(c).toLowerCase());
     if (folded && !folded.risky && !folded.ambiguous) return folded.value;
-    // Marqueur déformé : on retombe sur le NOYAU, crochets et échappements retirés.
+    // Deformed marker: fall back to the CORE, brackets and escapes stripped.
     const marker = markerByLower.get(c.replace(/[[\]\\]/g, "").toLowerCase());
     if (marker && !marker.ambiguous) return marker.value;
     return m;

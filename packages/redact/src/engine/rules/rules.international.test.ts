@@ -141,9 +141,9 @@ describe("gate() — accented context words actually fire (latent \\b bug)", () 
 });
 
 describe("Espagne — NUSS / número de afiliación a la Seguridad Social", () => {
-  // L'équivalent du NIR français, sur chaque bulletin de paie espagnol. Aucune règle ne le
-  // voyait : il partait en clair sous son propre libellé, y compris dans une nómina servie
-  // en colonnes annotées (le chemin des tableurs de l'app).
+  // The equivalent of the French NIR, on every Spanish payslip. No rule saw it: it
+  // shipped in clear under its own label, including in a nómina served in
+  // annotated columns (the app's spreadsheet path).
   const NUSS = "28 1234567 75";
   it("redacted les écritures qu'une nómina porte", () => {
     for (const t of [
@@ -158,9 +158,9 @@ describe("Espagne — NUSS / número de afiliación a la Seguridad Social", () =
     }
   });
 
-  /* L'ABRÉVIATION est ce qu'un imprimé porte réellement — le libellé en toutes lettres est
-     l'exception. Trouvé au parcours RH (contrat espagnol, 17/08) : la garde posée le matin
-     même ne couvrait donc que la moitié des documents où ce numéro apparaît. */
+  /* The ABBREVIATION is what a form actually carries — the label spelled out in full is
+     the exception. Found during the HR run-through (Spanish contract, 17/08): the guard
+     put in place that very morning covered only half the documents where this number appears. */
   it("redacted aussi sous son ABRÉVIATION (N.A.F.), celle des imprimés", () => {
     for (const t of ["N.A.F.: 28 1234567 75", "NAF 28 1234567 75", "N.A.F. 280123456775"]) {
       expect(redact(t, {}).text).toMatch(/\[REDACTED_NATIONAL_ID_\d+\]/);
@@ -171,8 +171,8 @@ describe("Espagne — NUSS / número de afiliación a la Seguridad Social", () =
     expect(redact(`Factura ${NUSS} emitida`, {}).text).toContain(NUSS);
     expect(redact("La seguridad social espanola cubre la baja.", {}).text)
       .toContain("La seguridad social espanola cubre la baja.");
-    // Le « code NAF » FRANÇAIS n'est pas concerné : 4 chiffres + une lettre ne peuvent pas
-    // satisfaire les 11-12 chiffres du NUSS. Épinglé pour que l'abréviation reste sûre.
+    // The FRENCH "code NAF" is not affected: 4 digits + a letter can't
+    // satisfy the NUSS's 11-12 digits. Pinned so the abbreviation stays safe.
     expect(redact("Code NAF : 6201Z, effectif 12 salariés.", {}).text).toContain("6201Z");
   });
 });

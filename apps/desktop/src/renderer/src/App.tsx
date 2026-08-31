@@ -25,11 +25,11 @@ export function App() {
   // also push and drive the recipient set. No-op outside an organization.
   useOrgScopeSync(store);
 
-  // La LANGUE de l'interface. `Settings.language` est la source de vérité une fois le blob
-  // chargé (et se synchronise entre appareils comme les autres réglages) ; tant qu'il est
-  // absent, le provider retombe sur la langue de l'HÔTE (`initialLocale`), pour qu'un
-  // anglophone démarre en anglais sans rien régler. Un changement de langue se persiste
-  // dans les réglages via `onLocaleChange`.
+  // The interface's LANGUAGE. `Settings.language` is the source of truth once the blob is
+  // loaded (and syncs across devices like other settings); as long as it is
+  // absent, the provider falls back to the HOST's language (`initialLocale`), so an
+  // English speaker starts in English without configuring anything. A language change is persisted
+  // to settings via `onLocaleChange`.
   const forcedLocale = resolveLocale(store.settings.language) ?? undefined;
 
   // A render-time throw anywhere in the tree used to blank the whole window (no
@@ -40,8 +40,8 @@ export function App() {
         locale={forcedLocale}
         onLocaleChange={(locale) => store.setSettings((s) => ({ ...s, language: locale }))}
       >
-        {/* Pilote programmatique de la boucle agentique, actif UNIQUEMENT sous un
-            lancement de test (drapeau de main) — voir `e2eBridge.tsx`. */}
+        {/* Programmatic driver for the agentic loop, active ONLY under a
+            test launch (main flag) — see `e2eBridge.tsx`. */}
         <E2eBridge store={store} />
         <AppShell store={store} />
       </I18nProvider>

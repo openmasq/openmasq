@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { pseudonymize } from "../../index";
 
-/* Mesuré sur un corpus de documents scannés réels : quand l'OCR colle les mots, le NER
-   lit les blocs obtenus comme des entités. Sept des seize faux positifs relevés avaient
-   cette seule forme. */
+/* Measured on a corpus of real scanned documents: when OCR glues words together, the NER
+   reads the resulting blocks as entities. Seven of the sixteen false positives found had
+   this single shape. */
 describe("prose agglutinée par l'OCR", () => {
   const values = async (t: string) => (await pseudonymize(t, { vault: {} })).matches.map((m) => m.value);
 
@@ -13,24 +13,24 @@ describe("prose agglutinée par l'OCR", () => {
   });
 
   it("laisse en place ce qu'on ne sait pas distinguer d'un secret", async () => {
-    // « ferontavantle5… » est de la prose collée, mais rien dans sa FORME ne le sépare
-    // d'une clé : on préfère un faux positif à la fuite d'un secret. Cas assumé, pinné.
+    // « ferontavantle5… » is glued prose, but nothing in its SHAPE separates it
+    // from a key: we prefer a false positive to a secret leak. Deliberate case, pinned.
     const v = await values("Les payements se ferontavantle5dumoisparvirement ce mois-ci.");
     expect(v).toContain("ferontavantle5dumoisparvirement");
   });
 
   it("ne touche PAS un secret, qui a légitimement cette forme", async () => {
-    // C'est tout l'objet du cadrage par catégorie : sk-live… n'est pas de la prose.
+    // This is exactly the point of category-scoping: sk-live… is not prose.
     const v = await values("AWS_SECRET_KEY=wja29fhq0284hfqp2");
     expect(v.join(" | ")).toContain("wja29fhq0284hfqp2");
   });
 
-  /* ⚠️ RÉGRESSION FAIL-OPEN (banc, 3 valeurs sur 2 333). Le préfixe est testé sans égard à
-     la casse : tout code en CAPITALES ouvrant par un mot-outil tombait dans la garde — et
-     un candidat écarté ici n'est ni redacted, ni compté dans `matches`, ni signalé par
-     `modelError`. Le moteur DÉTECTAIT la donnée et l'envoyait en clair en silence, ce que
-     `redact()` (mode marqueur) faisait apparaître : il la redact, lui.
-     Une valeur sans aucune minuscule n'est pas de la prose agglutinée. */
+  /* ⚠️ FAIL-OPEN REGRESSION (bench, 3 values out of 2,333). The prefix is tested case-
+     insensitively: any ALL-CAPS code starting with a function word fell into the guard — and
+     a candidate dropped here is neither redacted, nor counted in `matches`, nor signalled by
+     `modelError`. The engine DETECTED the value and sent it in clear silently, which
+     `redact()` (marker mode) exposed: it DID redact it.
+     A value with no lowercase letter at all is not glued prose. */
   it.each([
     ["BIC UNCRITMMXXX", "UNCRITMMXXX"], // « UN » + CRITMMXXX
     ["BIC CEPAFRPP751", "CEPAFRPP751"], // « CE » + PAFRPP751

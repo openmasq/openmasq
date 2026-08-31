@@ -106,7 +106,7 @@ export function registerDataIpc(): void {
   // a utilityProcess), NEVER the remote `embed()` above: a memory card is real PII.
   handle("memory:index-sync", [arr], (_e, cards) => memoryIndexSync(cards as MemoryIndexCard[]));
   handle("memory:index-edges", [optional(num)], (_e, k) => memoryIndexEdges(k));
-  // Le rappel sémantique de `memory_search` : la requête est du texte réel — embarquée
-  // sur l'appareil, jamais routée vers l'endpoint d'embeddings distant, jamais loggée.
+  // The semantic recall of `memory_search`: the query is real text — embedded
+  // on-device, never routed to the remote embeddings endpoint, never logged.
   handle("memory:index-query", [str, optional(num)], (_e, text, k) => memoryIndexQuery(text, k));
 }

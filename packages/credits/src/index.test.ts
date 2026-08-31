@@ -26,14 +26,14 @@ describe("deriveCreditCents", () => {
 
 describe("tier allotment", () => {
   it("maps account types to per-seat eurocents", () => {
-    // Solo et Team sont VOLONTAIREMENT identiques : ce qui les sépare est le cadre
-    // (règles imposées, modèles autorisés, facture unique), pas l'enveloppe.
+    // Solo and Team are DELIBERATELY identical: what separates them is the framework
+    // (imposed rules, allowed models, single invoice), not the budget.
     expect(creditsCentsForAccountType("SOLO")).toBe(800);
     expect(creditsCentsForAccountType("TEAM")).toBe(800);
   });
   it("un tier RETIRÉ de la vente garde son allotement (Scale)", () => {
-    // Stripe désactive un prix sans le supprimer : un abonnement pris avant le retrait
-    // se renouvelle encore. Mettre 0 ici créditerait rien à un siège payé 32 €.
+    // Stripe disables a price without deleting it: a subscription taken before the
+    // retirement still renews. Putting 0 here would credit nothing to a seat paid 32 €.
     expect(creditsCentsForAccountType("SCALE")).toBe(2800);
   });
   it("FREE/PRO/unknown → 0 (subscription-only)", () => {
@@ -61,10 +61,10 @@ describe("creditPeriod — une fenêtre PÉRIMÉE ne vaut pas « il lui reste to
   });
 
   it("une période ÉCOULÉE retombe sur le mois calendaire", () => {
-    // Sinon : la consommation se compte `created_at ∈ [start, end)`, donc AUCUN usage
-    // d'aujourd'hui n'y tombe → consommé 0 → jamais bloqué → crédits ILLIMITÉS. Le cas
-    // arrive forcément sur un abonnement octroyé (aucun webhook ne fait glisser sa
-    // période) et sur un abonnement Stripe dont un `invoice.paid` s'est perdu.
+    // Otherwise: consumption is counted `created_at ∈ [start, end)`, so NO usage
+    // from today falls into it → consumed 0 → never blocked → UNLIMITED credits. The case
+    // necessarily arises on a granted subscription (no webhook slides its
+    // period forward) and on a Stripe subscription whose `invoice.paid` got lost.
     expect(isCalendarMonth(creditPeriod(sub("2026-01-01T00:00:00Z", "2026-02-01T00:00:00Z"), NOW))).toBe(true);
   });
 
@@ -86,8 +86,8 @@ describe("unlimitedCredits — le statut du MODE GRATUIT", () => {
     expect(s.blocked).toBe(false);
     expect(s.unlimited).toBe(true);
     expect(s.consumed_cents).toBe(12_345);
-    // ⚠️ Un client qui recalculerait `balance ≤ 0` lirait « bloqué » : c'est `blocked`
-    // qui décide, et `unlimited` qui explique pourquoi il est faux malgré un solde nul.
+    // ⚠️ A client that recomputed `balance ≤ 0` would read "blocked": it's `blocked`
+    // that decides, and `unlimited` that explains why it's false despite a zero balance.
     expect(s.allotment_cents).toBe(0);
     expect(s.balance_cents).toBe(0);
     expect(s.period_start).toBe(start.toISOString());

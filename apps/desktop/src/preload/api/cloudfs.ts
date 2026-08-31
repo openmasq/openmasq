@@ -1,13 +1,13 @@
 import { ipcRenderer } from "electron";
 
 /**
- * Parcourir un stockage connecté (Drive, OneDrive, Dropbox) — le pendant de `localfs` pour les
- * fichiers qui ne sont pas sur cette machine. Même contrat d'enveloppe : main répond
- * `{ok, data} | {ok, error}` et on relève ici, pour que le panneau montre la vraie raison
- * d'un échec plutôt que « Error invoking remote method … ».
+ * Browse a connected storage (Drive, OneDrive, Dropbox) — the counterpart of `localfs` for
+ * files that aren't on this machine. Same envelope contract: main answers
+ * `{ok, data} | {ok, error}` and we re-throw here, so the panel shows the real reason
+ * for a failure rather than "Error invoking remote method …".
  *
- * Lecture seule, et de la seule forme dont une interface a besoin : lister. Lire le
- * CONTENU d'un fichier reste l'affaire du modèle et de ses outils.
+ * Read-only, and of the only shape an interface needs: listing. Reading the
+ * CONTENTS of a file remains the model's and its tools' business.
  */
 type Envelope<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -18,7 +18,7 @@ async function call<T>(channel: string, payload?: unknown): Promise<T> {
 }
 
 export interface CloudEntry {
-  /** L'identifiant du fournisseur (fileId Drive, itemId Graph, chemin Dropbox) — opaque. */
+  /** The provider's identifier (fileId Drive, itemId Graph, Dropbox path) — opaque. */
   id: string;
   name: string;
   kind: "dir" | "file";
@@ -32,9 +32,9 @@ export interface CloudSource {
 }
 
 export const cloudFs = {
-  /** Les stockages connectés que l'app sait parcourir (vide = aucun). */
+  /** The connected storages the app knows how to browse (empty = none). */
   sources: (): Promise<{ sources: CloudSource[] }> => call("cloudfs:sources"),
-  /** Le contenu d'un dossier ; `folderId` absent = la racine du compte. */
+  /** The contents of a folder; `folderId` absent = the account root. */
   list: (sourceId: string, folderId: string | null): Promise<{ entries: CloudEntry[] }> =>
     call("cloudfs:list", { sourceId, folderId }),
 };

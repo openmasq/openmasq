@@ -40,14 +40,14 @@ export interface E2eTurn {
   /** Reply text as SHOWN (un-redacted) — what the user would read. */
   text: string;
   error: boolean;
-  /** Le message d'échec persisté (« ENVOI IMPOSSIBLE … ») — LE diagnostic. */
+  /** The persisted failure message ("SEND FAILED …") — THE diagnostic. */
   errorText: string;
   /** Tool calls seen on the turn's messages, in order (`connector__tool`). */
   tools: string[];
-  /** LE JOURNAL DE REDACTION de la conversation : faux → réel (`redactionVault`).
-   *  Sans lui, une boucle « le modèle rejoue le même outil » peut CACHER une boucle
-   *  « le NER a redacted un NOM D'OUTIL » (`execute-sql → jade-tom`) qui casse la
-   *  découverte : le bench doit pouvoir distinguer les deux. */
+  /** THE conversation's REDACTION LOG: fake → real (`redactionVault`).
+   *  Without it, a "the model replays the same tool" loop can HIDE a
+   *  "NER redacted a TOOL NAME" loop (`execute-sql → jade-tom`) that breaks
+   *  discovery: the bench must be able to tell the two apart. */
   redactions: Record<string, string>;
   ms: number;
 }
@@ -60,10 +60,10 @@ declare global {
         text: string,
         opts?: { approveWrites?: boolean; revealForWeb?: boolean; modelId?: string },
       ) => string;
-      /** Un id de modèle est-il RÉSOLVABLE ? Un slug OpenRouter dynamique
-       *  (`poolside/laguna-xs-2.1`) n'entre au registre qu'après le fetch du
-       *  catalogue au montage ; envoyer avant, c'est partir sur le modèle d'USINE
-       *  (mesuré : « … tools request failed (401) »). Le spec attend ceci. */
+      /** Is a model id RESOLVABLE? A dynamic OpenRouter slug
+       *  (`poolside/laguna-xs-2.1`) only enters the registry after the
+       *  catalogue fetch on mount; sending before that means starting on the FACTORY
+       *  default model (measured: "… tools request failed (401)"). The spec waits for this. */
       modelReady: (id: string) => boolean;
       /** Snapshot of a turn (poll this from the spec). */
       turn: (convId: string) => E2eTurn | null;
@@ -73,26 +73,26 @@ declare global {
         convId: string;
         approved: boolean;
         at: number;
-        /** Les args RÉELS (un-redacted) soumis à confirmation — ce que le
-         *  connecteur recevra. Permet au spec de vérifier un destinataire. */
+        /** The REAL args (un-redacted) submitted for confirmation — what the
+         *  connector will receive. Lets the spec verify a recipient. */
         args: Record<string, unknown>;
       }[];
-      /** LE JOURNAL DE DÉBOGAGE d'une conversation : les entrées wire/turn/tool/phase
-       *  avec leurs correspondances redacted↔original — ce qu'affiche le Debug Log de
-       *  l'app. C'est ce qui permet d'ITÉRER : voir qu'un nom d'outil a été redacted,
-       *  quel tour a bouclé, quel wire est parti. Bornée au buffer de l'app (200). */
+      /** THE DEBUG LOG of a conversation: the wire/turn/tool/phase entries
+       *  with their redacted↔original mappings — what the app's Debug Log
+       *  displays. This is what enables ITERATION: seeing that a tool name was redacted,
+       *  which turn looped, which wire went out. Bounded by the app's buffer (200). */
       journal: (convId: string) => DebugEntry[];
-      /** Diagnostic ciblé : les correspondances où l'ORIGINAL ressemble à un NOM
-       *  D'OUTIL ou un terme technique (kebab-case, PascalCase mono-mot) redacted par
-       *  erreur — la cause racine des boucles posthog (`execute-sql → jade-tom`). */
+      /** Targeted diagnostic: mappings where the ORIGINAL looks like a TOOL
+       *  NAME or a technical term (kebab-case, single-word PascalCase) redacted by
+       *  mistake — the root cause of the posthog loops (`execute-sql → jade-tom`). */
       toolNameRedactions: (convId: string) => { fake: string; real: string }[];
     };
   }
 }
 
-/** Un ORIGINAL qui ressemble à une API/un nom d'outil plutôt qu'à de la PII :
- *  kebab-case (`execute-sql`), un mot technique connu, ou un slug de commande. Ce
- *  sont ceux que le NER n'aurait jamais dû redact dans un résultat de découverte. */
+/** An ORIGINAL that looks like an API/tool name rather than PII:
+ *  kebab-case (`execute-sql`), a known technical term, or a command slug. These
+ *  are the ones NER should never have redacted in a discovery result. */
 const TOOLISH = /^[a-z][a-z0-9]*(-[a-z0-9]+)+$|^(ClickHouse|HogQL|MCP|SQL|OAuth|API|SDK|JSON|HTTP)$/;
 
 export function E2eBridge({ store }: { store: ChatStore }) {
@@ -118,19 +118,19 @@ export function E2eBridge({ store }: { store: ChatStore }) {
         // the very concurrency this bridge exists to provide.
         void ref.current.sendMessage(text, undefined, {
           convId,
-          // Modèle EXPLICITE par tour : `createConversation` retomberait sur le
-          // défaut d'usine si `defaultModelId` n'est pas résolvable. Permet aussi
-          // de comparer deux modèles dans le MÊME lot.
+          // EXPLICIT model per turn: `createConversation` would fall back to the
+          // factory default if `defaultModelId` isn't resolvable. Also lets
+          // you compare two models in the SAME batch.
           ...(opts.modelId ? { modelId: opts.modelId } : {}),
           // The in-conversation confirmation card's answer, declared up front.
           // Recorded FIRST so a double-ask is visible even when both are approved.
           confirmToolWrite: async (info, cid) => {
-            // FAIL-CLOSED, comme la porte de révélation juste en dessous : une écriture
-            // n'est approuvée que si le tour la DEMANDE explicitement. Le défaut inverse
-            // (`!== false`) approuvait tout ce que le modèle décidait d'écrire sur les
-            // vrais comptes du compte dev, y compris sur un scénario de LECTURE — un
-            // événement fantôme est bien arrivé dans l'agenda réel (journal 27/07/2026),
-            // et le banc l'a compté comme un succès.
+            // FAIL-CLOSED, like the reveal gate just below: a write
+            // is approved only if the turn explicitly ASKS for it. The reverse default
+            // (`!== false`) approved anything the model decided to write on the
+            // dev account's real accounts, including on a READ scenario — a
+            // phantom event really did land in the real calendar (log 27/07/2026),
+            // and the bench counted it as a success.
             const approved = opts.approveWrites === true;
             confirms.push({ tool: info.tool, convId: cid, approved, at: Date.now(), args: info.args });
             return approved;
@@ -148,8 +148,8 @@ export function E2eBridge({ store }: { store: ChatStore }) {
         const conv = ref.current.conversations.find((c) => c.id === convId);
         if (!conv) return null;
         const last = [...conv.messages].reverse().find((m) => m.role === "assistant");
-        // `toolCalls` = la trace persistée du tour (schema `Message`) : l'outil,
-        // son serveur et son issue — la matière première du diagnostic de boucle.
+        // `toolCalls` = the turn's persisted trace (schema `Message`): the tool,
+        // its server and its outcome — the raw material for loop diagnostics.
         const tools = conv.messages.flatMap((m) => (m.toolCalls ?? []).map((t) => t.tool));
         return {
           convId,
@@ -158,7 +158,7 @@ export function E2eBridge({ store }: { store: ChatStore }) {
           error: !!last?.error,
           errorText: last?.errorText ?? "",
           tools,
-          // Le journal complet faux→réel accumulé sur la conversation (vault).
+          // The full fake→real log accumulated over the conversation (vault).
           redactions: { ...(conv.redactionVault ?? {}) },
           ms: Date.now() - (started.get(convId) ?? Date.now()),
         };
@@ -166,16 +166,16 @@ export function E2eBridge({ store }: { store: ChatStore }) {
 
       confirms: () => [...confirms],
 
-      // La portée est LA règle du paquet (`isEntryVisibleIn`), pas une copie : celle qui
-      // vivait ici acceptait `conv === undefined`, donc le journal d'une conversation
-      // emportait les entrées d'une autre — le bug même que le banc doit pouvoir voir.
+      // Scoping is the PACKAGE's rule (`isEntryVisibleIn`), not a copy: the one that
+      // used to live here accepted `conv === undefined`, so one conversation's log
+      // carried another one's entries — the very bug the bench must be able to see.
       journal: (convId) => getDebugLog().filter((e) => isEntryVisibleIn(e, convId)) as DebugEntry[],
 
       toolNameRedactions: (convId) => {
         const seen = new Map<string, string>();
         for (const e of getDebugLog()) {
           if (!isEntryVisibleIn(e, convId)) continue;
-          // Les `pairs` (tool) et le `vault` (wire/turn) portent le mapping faux→réel.
+          // The `pairs` (tool) and the `vault` (wire/turn) carry the fake→real mapping.
           const vault = "vault" in e ? e.vault : undefined;
           if (vault) for (const [fake, real] of Object.entries(vault)) if (TOOLISH.test(real)) seen.set(fake, real);
           const pairs = "pairs" in e ? e.pairs : undefined;
@@ -185,11 +185,11 @@ export function E2eBridge({ store }: { store: ChatStore }) {
       },
     };
 
-    // Le drapeau vient de MAIN (env de lancement) : le preload est sandboxé, il n'a
-    // pas `process.env`. Asynchrone, donc le spec attend l'apparition du pont.
+    // The flag comes from MAIN (launch env): the preload is sandboxed, it has
+    // no `process.env`. Asynchronous, so the spec waits for the bridge to appear.
     void window.openmasq.env.isE2e().then((on) => {
       if (on && !disposed) {
-        setDebugCapture(true); // le journal alimente le bench ; inerte hors e2e
+        setDebugCapture(true); // the journal feeds the bench; inert outside e2e
         window.__openmasqE2E = bridge;
       }
     });

@@ -15,7 +15,7 @@
  * a name. When a role word is also a family name, the role loses.
  */
 export const DROIT_TERMS: string[] = [
-  // ── Connecteurs & structure d'une décision — français ──────────────────────
+  // ── Connectors & structure of a decision — French ──────────────────────────
   "nonobstant", "attendu", "attendu que", "considérant", "considerant",
   "considérant que", "considerant que", "par ces motifs", "en conséquence",
   "en consequence", "dispositif", "motifs", "moyens", "exposé des faits",
@@ -26,12 +26,12 @@ export const DROIT_TERMS: string[] = [
   "le cas échéant", "le cas echeant", "ci-après", "ci-apres", "ci-dessus",
   "susvisé", "susvise", "précité", "precite", "article", "articles", "alinéa",
   "alinea", "paragraphe", "annexe", "préambule", "preambule",
-  // Structure documentaire — les têtes de section qu'une « initiale + Mot » de plan
-  // ("B. Introduction") ferait passer pour un patronyme sans elles.
+  // Document structure — the section headings that an "initial + Word" outline
+  // ("B. Introduction") would make pass for a surname without them.
   "introduction", "conclusion", "sommaire", "chapitre", "glossaire", "appendice",
   "avant-propos",
 
-  // ── Parties, juridictions, procédure — français ────────────────────────────
+  // ── Parties, jurisdictions, procedure — French ─────────────────────────────
   "demandeur", "demanderesse", "défendeur", "defendeur", "défenderesse",
   "defenderesse", "requérant", "requerant", "requérante", "requerante",
   "appelant", "appelante", "intimé", "intime", "intimée", "intimee", "partie",
@@ -47,17 +47,17 @@ export const DROIT_TERMS: string[] = [
   "delai de recours", "signification", "notification", "comparution",
   "défaut", "defaut", "contradictoire", "opposition", "renvoi", "radiation",
 
-  // ── Régimes matrimoniaux & état civil des actes — français ─────────────────
-  // Un acte notarié écrit « mariés sous le régime de la communauté réduite aux
-  // acquêts » et la couche NER en faisait une SOCIÉTÉ (« corvanics technologies
-  // roubaix », vécu 13/08) : le régime matrimonial du client devenait une entreprise
-  // inventée, l'acte restitué absurde. Ce sont des KINDS de régime, jamais des noms.
+  // ── Marital regimes & civil status of deeds — French ──────────────────────
+  // A notarial deed writes « mariés sous le régime de la communauté réduite aux
+  // acquêts » and the NER layer turned it into a COMPANY (« corvanics technologies
+  // roubaix », experienced 13/08): the client's marital regime became an invented
+  // company, the restored deed absurd. These are KINDS of regime, never names.
   "communauté", "communaute", "acquêts", "acquets", "réduite", "reduite",
   "universelle", "matrimonial", "matrimoniale", "matrimoniaux", "indivision",
-  // (« séparation de biens » : « séparation » + « biens » ci-dessous ; le composé
-  // tombe par `isGenericCompound`.)
+  // (« séparation de biens »: « séparation » + « biens » below; the compound
+  // falls through `isGenericCompound`.)
   "séparation", "separation", "biens",
-  // ── Effets, sanctions, obligations — français ──────────────────────────────
+  // ── Effects, sanctions, obligations — French ───────────────────────────────
   "mise en demeure", "injonction", "injonction de payer", "sommation de payer",
   "condamnation", "débouté", "deboute", "astreinte", "dommages et intérêts",
   "dommages et interets", "préjudice", "prejudice", "indemnisation",

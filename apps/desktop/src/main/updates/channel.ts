@@ -4,9 +4,9 @@ import { applyFeed, DEFAULT_CHANNEL, feedBase, getConfig, updateConfig } from ".
 /** The desktop channels that exist server-side. An ALLOW-list, because the target
  *  comes from the renderer: an unknown value used to be persisted verbatim and
  *  pointed the feed at `<worker>/desktop/<whatever>`.
- *  Les noms PUBLICS (beta/stable — artefact unique : le canal dit quels BUILDS on
- *  reçoit, plus quel environnement) ET les noms historiques, que les installs
- *  existantes persistent encore — le Worker aliase les deux sur les mêmes lignes
+ *  The PUBLIC names (beta/stable — single artifact: the channel says which BUILDS we
+ *  receive, not which environment) AND the historical names, which existing installs
+ *  still persist — the Worker aliases both to the same lines
  *  (`apps/updates/src/lib/desktopChannels.ts`). */
 const KNOWN_CHANNELS = new Set([
     "desktop-beta",
@@ -27,20 +27,20 @@ export type ChannelVerdict =
 
 /** PURE decision: may the renderer move this install to `wanted`?
  *
- *  ⚠️ **Le canal ne dit PLUS l'environnement** — la phrase qui vivait ici affirmait
- *  l'inverse, et elle était périmée depuis l'artefact unique : les adresses sont une
- *  table cuite résolue à l'exécution (`src/environments/`), donc un build bêta pointe
- *  la PRODUCTION comme les autres, et « à quelle API je parle » se change ailleurs,
- *  sous son propre droit (`../ipc/registerEnvIpc.ts`). Confondre les deux fait
- *  chercher le mauvais privilège quand une bascule est refusée.
+ *  ⚠️ **The channel no longer says the environment** — the sentence that used to live here claimed
+ *  the opposite, and it had been stale since the single artifact: addresses are a
+ *  baked table resolved at runtime (`src/environments/`), so a beta build points to
+ *  PRODUCTION like the others, and "which API am I talking to" changes elsewhere,
+ *  under its own right (`../ipc/registerEnvIpc.ts`). Conflating the two makes you
+ *  look for the wrong privilege when a switch is refused.
  *
- *  Ce qui reste vrai, et pourquoi la garde ne bouge pas : changer de canal décide
- *  quels BUILDS cette install recevra — un candidat non éprouvé au lieu du parc
- *  stable, sur la machine de quelqu'un. Le sélecteur de versions ne l'offre qu'à un
- *  appareil à qui l'opérateur a accordé `allow_self_pin`, mais une porte d'interface
- *  est de l'UX (règle 7) : un XSS du renderer appellerait `updates:set-channel`
- *  directement, et la prochaine vérification non épinglée servirait simplement le
- *  dernier build de l'autre canal.
+ *  What remains true, and why the gate doesn't move: changing channel decides
+ *  which BUILDS this install will receive — an unproven candidate instead of the
+ *  stable fleet, on someone's machine. The version picker only offers it to a
+ *  device the operator has granted `allow_self_pin`, but an interface gate
+ *  is UX (rule 7): an XSS in the renderer would call `updates:set-channel`
+ *  directly, and the next unpinned check would simply serve the
+ *  last build of the other channel.
  *
  *  Returning to this build's OWN baked channel never needs the permission: it
  *  undoes a switch rather than performing one, and refusing it would strand an

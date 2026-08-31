@@ -204,21 +204,21 @@ describe("boxLabel — un jeton d'affichage se peint « ••• »", () => {
   });
 
   it("laisse un PSEUDONYME intact — il fait la largeur de ce qu'il remplace", () => {
-    // C'est tout l'intérêt du mode par défaut : un faux nom se lit comme un nom.
+    // That's the whole point of the default mode: a fake name reads as a name.
     for (const f of ["Grandjean", "Karl Studio", "FR76 3000 6000 0112 3456 7890 189"])
       expect(boxLabel(f)).toBe(f);
   });
 
   it("ne confond pas une vraie valeur entre crochets avec un jeton", () => {
-    // Un document peut contenir « [NOTE] » ou « [Réf. 12] » en clair ; seuls les jetons
-    // que `CATEGORY_TOKEN` produit (MAJUSCULES + chiffres + « _ ») deviennent des points.
+    // A document may contain "[NOTE]" or "[Réf. 12]" in clear; only the tokens
+    // that `CATEGORY_TOKEN` produces (UPPERCASE + digits + "_") become dots.
     for (const f of ["[Réf. 12]", "[note]", "[a b]", "[]", "[Person1]"])
       expect(boxLabel(f)).toBe(f);
   });
 });
 
 describe("paintValueBox — le jeton peint tient dans la boîte", () => {
-  /** La police effectivement utilisée pour le dernier `fillText`. */
+  /** The font actually used for the last `fillText`. */
   const paintedWith = (fake: string, w: number) => {
     const { ctx, calls } = stubCtx();
     paintValueBox(ctx as never, box({ fake, w }));
@@ -227,9 +227,9 @@ describe("paintValueBox — le jeton peint tient dans la boîte", () => {
   };
 
   it("un jeton long sur une boîte étroite ne descend plus au plancher de police", () => {
-    // Le cas signalé : la boîte est taillée sur la VRAIE valeur (« Vaudel »), le jeton est
-    // sans rapport avec sa largeur. Avant, il rétrécissait jusqu'à MIN_FONT puis était
-    // rogné — « [COMP… », que le lecteur ne distingue pas d'une valeur tronquée.
+    // The reported case: the box is sized on the REAL value ("Vaudel"), the token is
+    // unrelated to its width. Before, it shrank down to MIN_FONT and then got
+    // clipped — "[COMP…", which the reader can't tell apart from a truncated value.
     const token = paintedWith("[COMPANY_ID2]", 24);
     expect(token.text).toBe(TOKEN_DOTS);
     expect(token.px, "les points doivent rester lisibles").toBeGreaterThan(7);
@@ -240,7 +240,7 @@ describe("paintValueBox — le jeton peint tient dans la boîte", () => {
     paintValueBox(ctx as never, box({ fake: "[COMPANY_ID2]", w: 24 }));
     const dotsPx = ctx.fontPx;
     const { ctx: ctx2 } = stubCtx();
-    // Même chaîne, mais non reconnue comme jeton → peinte telle quelle.
+    // Same string, but not recognised as a token → painted as-is.
     paintValueBox(ctx2 as never, box({ fake: "COMPANY_ID2", w: 24 }));
     expect(dotsPx).toBeGreaterThan(ctx2.fontPx);
     expect(calls.some((c) => c.op === "fill"), "le fond couvre toujours les vrais glyphes").toBe(true);

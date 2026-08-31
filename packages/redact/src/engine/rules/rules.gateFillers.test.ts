@@ -51,18 +51,18 @@ describe("gate() — linking words between keyword and value", () => {
 });
 
 describe("gate() — le mot-clé COLLÉ au mot suivant par l'OCR (16/08/2026)", () => {
-  /** Mesuré sur un PV d'assemblée RÉEL : le texte extrait porte « RCSCréteil 701 452 006 »
-   *  là où la page imprime « RCS Créteil ». Le SIREN partait EN CLAIR — alors que la même
-   *  ligne espacée le redacted. Un SIREN se convertit en raison sociale par une recherche
-   *  au registre public : le laisser, c'est ne rien masquer. */
+  /** Measured on a REAL assembly minutes: the extracted text reads « RCSCréteil 701 452 006 »
+   *  where the page prints « RCS Créteil ». The SIREN was leaving IN CLEAR — whereas the same
+   *  spaced line redacts it. A SIREN converts into a company name via a search
+   *  in the public registry: leaving it means masking nothing. */
   it("un SIREN reste redacted quand l'OCR soude le mot-clé à la ville", () => {
     expect(redacted("SAS au capital de 6400 euros -RCSCréteil 701 452 006", "701 452 006")).toBe(true);
-    // …et la forme espacée n'a pas bougé.
+    // …and the spaced form hasn't moved.
     expect(redacted("SAS au capital de 6400 euros - RCS Créteil 701 452 006", "701 452 006")).toBe(true);
   });
 
   it("UN seul mot soudé — au-delà c'est une phrase, pas une soudure", () => {
-    // La branche exige des séparateurs APRÈS le mot collé : elle ne peut pas enchaîner.
+    // The branch requires separators AFTER the glued word: it can't chain further.
     expect(out("RCSCréteilaprèsplusieursmotssanslimite 701 452 006")).toContain("701 452 006");
   });
 
@@ -72,26 +72,26 @@ describe("gate() — le mot-clé COLLÉ au mot suivant par l'OCR (16/08/2026)", 
 });
 
 describe("gate() — un mot-clé CJK n'a AUCUN `\\b` devant lui (16/08/2026)", () => {
-  /** Mesuré au banc des personas hors de France, sur un numéro VALIDE : l'étiquette
-   *  anglaise redacted, les japonaises non. Le `\b` de tête tenait sur une hypothèse —
-   *  « tous les mots de contexte commencent par une lettre ASCII » — devenue fausse quand
-   *  le vocabulaire a pris des mots CJK. Aucune règle gardée par un idéogramme ne pouvait
-   *  donc tirer. */
+  /** Measured on the bench of personas outside France, on a VALID number: the English
+   *  label redacts, the Japanese ones don't. The leading `\b` rested on an assumption —
+   *  "every context word starts with an ASCII letter" — that became false once
+   *  the vocabulary took on CJK words. No rule gated by an ideogram could
+   *  therefore fire. */
   it("le numéro national japonais est redacted sous SON étiquette", () => {
     expect(redacted("My Number 8465 2198 7037", "8465 2198 7037")).toBe(true);
     expect(redacted("マイナンバー 8465 2198 7037", "8465 2198 7037")).toBe(true);
     expect(redacted("個人番号 8465 2198 7037", "8465 2198 7037")).toBe(true);
-    // …et collé au texte japonais, qui n'a pas d'espaces.
+    // …and glued to the Japanese text, which has no spaces.
     expect(redacted("従業員：田中太郎、マイナンバー 846521987037、基本給", "846521987037")).toBe(true);
   });
 
   it("⚠️ et la protection d'origine tient : un SUFFIXE de mot ne garde rien", () => {
-    // `(?<![A-Za-z0-9_])` dit la même chose que `\b` pour un mot-clé à initiale ASCII.
+    // `(?<![A-Za-z0-9_])` says the same thing as `\b` for a keyword with an ASCII initial.
     expect(out("xxmy number 8465 2198 7037")).toContain("8465 2198 7037");
   });
 
   it("…et un numéro INVALIDE reste en clair, quelle que soit l'étiquette", () => {
-    // La barre de précision : la garde ouvre, la somme de contrôle décide.
+    // The precision bar: the guard opens, the checksum decides.
     expect(out("マイナンバー 123456789012")).toContain("123456789012");
   });
 });

@@ -13,12 +13,12 @@ interface SinkConfig {
    *  non-identifying: authenticates the client BUILD, not a user, so anonymous + signed-
    *  out events still send. Unset ⇒ no header (relay accepts when unconfigured). */
   appKey?: string;
-  /** Laisser passer une page servie en local (voir `isLoopbackHost`). Défaut : non. */
+  /** Let through a page served locally (see `isLoopbackHost`). Default: no. */
   allowLocalhost?: boolean;
   /** Stamped on every event's `properties.env`. */
   env?: string;
-  /** L'environnement VISÉ — lu par les DRAPEAUX seuls, jamais estampillé sur un
-   *  événement (voir `types.ts` `ConfigureOptions.runtimeEnv`). */
+  /** The TARGETED environment — read by FLAGS only, never stamped on an
+   *  event (see `types.ts` `ConfigureOptions.runtimeEnv`). */
   runtimeEnv?: string;
   /** Stamped on every event's `properties.app_version`. */
   appVersion?: string;
@@ -31,15 +31,15 @@ export function createSink(options: SinkOptions): Sink {
   let consent = false;
   let debug = false;
 
-  // ── La FILE d'attente pré-consentement ────────────────────────────────────
-  // Le consentement n'est pas connu au démarrage : il arrive avec les réglages, un
-  // effet après le montage. Tout ce qui était émis avant était JETÉ en silence — et
-  // c'est exactement le cas de `app_open`, dispatché au montage : ZÉRO `app_open` en
-  // production pendant que le dev en voyait (StrictMode y rejoue l'effet APRÈS la
-  // décision). Un dénominateur manquant rend toute activation/rétention incalculable.
-  // On met donc en attente, BORNÉ, jusqu'à ce que la décision tombe : un accord rejoue
-  // la file, un refus la jette. **Rien ne part avant la décision** — le gel est ce qui
-  // rend l'attente acceptable, pas un contournement du consentement.
+  // ── The pre-consent QUEUE ────────────────────────────────────
+  // Consent isn't known at startup: it arrives with the settings, an
+  // effect after mount. Everything emitted before that was DROPPED silently — and
+  // that's exactly the case for `app_open`, dispatched on mount: ZERO `app_open` in
+  // production while dev saw them (StrictMode replays the effect there AFTER the
+  // decision). A missing denominator makes any activation/retention uncomputable.
+  // So we queue, BOUNDED, until the decision lands: an accept replays
+  // the queue, a refusal drops it. **Nothing leaves before the decision** — the freeze is what
+  // makes the queueing acceptable, not a bypass of consent.
   const MAX_PENDING = 20;
   let consentDecided = false;
   let suspended = false;
@@ -68,10 +68,10 @@ export function createSink(options: SinkOptions): Sink {
         body: JSON.stringify(body),
       })
         .then((r) => {
-          // UNE relance sur une panne TRANSITOIRE (réseau, 5xx) — le tir-et-oublie
-          // perdait l'événement en silence (audit 13/08). Un 4xx ne se relance pas
-          // (le même corps re-produirait le même refus), et une seule relance : un
-          // canal de télémétrie ne mérite pas une file durable.
+          // ONE retry on a TRANSIENT failure (network, 5xx) — fire-and-forget
+          // silently lost the event (audit 13/08). A 4xx doesn't retry
+          // (the same body would reproduce the same refusal), and only one retry: a
+          // telemetry channel doesn't deserve a durable queue.
           if (r.ok) return;
           if (r.status >= 500 && attempt === 0) {
             log("retry", name, `HTTP ${r.status} → une relance dans 5 s`);
@@ -89,8 +89,8 @@ export function createSink(options: SinkOptions): Sink {
     }
   };
 
-  /** Les en-têtes d'attestation du RELAIS — le détail (et pourquoi ce n'est PAS une
-   *  identité) vit dans `attest.ts`, désormais partagé avec la lecture des drapeaux. */
+  /** The RELAY's attestation headers — the detail (and why this is NOT an
+   *  identity) lives in `attest.ts`, now shared with reading the flags. */
   const relayAttestHeaders = (): Promise<Record<string, string>> => attestHeaders(config?.appKey);
 
   /** Stamp EVERY event with the build's env + version (non-sensitive context), so PostHog
@@ -125,7 +125,7 @@ export function createSink(options: SinkOptions): Sink {
     }
   };
 
-  /** Mettre en attente jusqu'à la décision de consentement (borné). */
+  /** Queue until the consent decision (bounded). */
   const hold = (run: () => void, name: string): void => {
     if (pending.length >= MAX_PENDING) return log("skip", name, "file pleine (consentement non tranché)");
     pending.push(run);
@@ -138,7 +138,7 @@ export function createSink(options: SinkOptions): Sink {
     const queued = pending;
     pending = [];
     log("consent", on ? "on" : "off", queued.length ? `${queued.length} en attente` : "");
-    // Un refus JETTE la file — elle n'a jamais quitté la machine.
+    // A refusal DROPS the queue — it never left the machine.
     if (on) for (const run of queued) run();
   };
 
@@ -240,14 +240,14 @@ export function createSink(options: SinkOptions): Sink {
     };
     if (!config) return log("skip", "$exception", "no transport");
     if (suspended) return log("skip", "$exception", "suspendu (lancement automatisé)");
-    // Une erreur au démarrage (le cas le plus utile) est émise avant la décision de
-    // consentement : elle attend comme les autres, elle ne se perd plus.
+    // A startup error (the most useful case) is emitted before the consent
+    // decision: it waits like the others, it's no longer lost.
     if (!consentDecided) return hold(send, "$exception");
     send();
   };
 
-  /** Les drapeaux d'accès (`flags.ts`) — hors du gate de consentement par construction,
-   *  mais coupés par la suspension : un lancement automatisé doit voir les défauts. */
+  /** The access flags (`flags.ts`) — outside the consent gate by construction,
+   *  but cut off by suspension: an automated launch must see the defaults. */
   const fetchFlags = async (): Promise<Record<string, boolean | string> | null> => {
     if (suspended) {
       log("skip", "flags", "suspendu (lancement automatisé) → défauts");

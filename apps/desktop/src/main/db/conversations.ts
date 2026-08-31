@@ -126,8 +126,8 @@ export async function dbLoad(): Promise<{
       revealedValues: redaction.revealedValues?.length ? redaction.revealedValues : undefined,
       forcedRedactions: redaction.forcedRedactions?.length ? redaction.forcedRedactions : undefined,
       redactionSalt: typeof redaction.redactionSalt === "number" ? redaction.redactionSalt : undefined,
-      // Le mode redaction (faux ⇄ marqueurs) est épinglé sur la conversation : sans lui
-      // au rechargement, une conversation en jetons repartirait en faux au tour suivant.
+      // The redaction mode (fakes ⇄ markers) is pinned on the conversation: without it
+      // on reload, a conversation in tokens would revert to fakes on the next turn.
       redactionMode: redaction.redactionMode === "token" ? "token" : undefined,
       memoryWatermark: typeof redaction.memoryWatermark === "number" ? redaction.memoryWatermark : undefined,
     };

@@ -1,45 +1,45 @@
 /**
- * MAIN's copy of « ce compte a-t-il le droit d'utiliser SES PROPRES clés ? ».
+ * MAIN's copy of "can this account use ITS OWN keys?".
  *
- * Sur un compte géré par une organisation, la réponse est non : l'organisation fournit les
- * modèles et paie les appels, donc une clé personnelle serait une sortie que sa politique
- * ne voit pas — le membre contournerait la liste des modèles autorisés simplement en
- * collant une clé OpenAI. L'interface le dit et masque la grille des clés, mais une
- * interface n'est qu'une interface : l'écriture et l'INJECTION se refusent ici.
+ * On an account managed by an organization, the answer is no: the organization provides the
+ * models and pays for the calls, so a personal key would be an egress its policy
+ * doesn't see — the member would bypass the allowed-models list simply by
+ * pasting an OpenAI key. The UI says so and hides the keys grid, but a
+ * UI is only a UI: the write and the INJECTION are refused here.
  *
- * Ce module vit à côté du magasin de clés qu'il garde, et non dans la famille MCP, parce
- * qu'une vérification fail-closed doit se lire au même endroit que ce qu'elle protège
- * (règle 10) : le lecteur qui ouvre `keys.ts` voit la politique dans le même dossier.
+ * This module lives beside the keys store it guards, not in the MCP family, because
+ * a fail-closed check must be read in the same place as what it protects
+ * (rule 10): whoever opens `keys.ts` sees the policy in the same folder.
  *
- * ⚠️ **Trois états, pas deux**, et les confondre rouvrirait tout :
- * - `null` = jamais publié (aucun profil poussé depuis le lancement) ⇒ **autorisé**, sinon
- *   un compte solo perdrait ses clés le temps que le renderer démarre ;
- * - `true` = politique connue, clés personnelles permises ;
- * - `false` = compte géré ⇒ **refus**.
+ * ⚠️ **Three states, not two**, and conflating them would reopen everything:
+ * - `null` = never published (no profile pushed since launch) ⇒ **allowed**, otherwise
+ *   a solo account would lose its keys for however long the renderer takes to start;
+ * - `true` = known policy, personal keys allowed;
+ * - `false` = managed account ⇒ **refused**.
  *
- * Comme la politique de connecteurs, la valeur ARRIVE du renderer et main ne peut pas la
- * vérifier : un renderer compromis au point de pousser `true` récupère ses clés. Ce qui est
- * fermé, c'est tout le reste — un appel IPC direct, une modale rouverte, une clé déjà
- * stockée avant l'adhésion à l'organisation. Le contrôle qui, lui, se PROUVE est
- * côté serveur : la passerelle refuse un modèle hors de l'allow-list de l'organisation.
+ * Like the connector policy, the value ARRIVES from the renderer and main can't
+ * verify it: a renderer compromised enough to push `true` gets its keys back. What is
+ * closed is everything else — a direct IPC call, a reopened modal, a key already
+ * stored before joining the organization. The check that actually PROVES itself is
+ * server-side: the gateway refuses a model outside the organization's allow-list.
  */
 
 let byoAllowed: boolean | null = null;
 
-/** Publier la posture. Tout ce qui n'est pas un booléen efface la politique (« pas
- *  encore su ») plutôt que d'être deviné — une politique à moitié lue a l'air appliquée. */
+/** Publish the posture. Anything that isn't a boolean clears the policy ("not
+ *  known yet") rather than being guessed — a half-read policy looks enforced. */
 export function setOrgByoKeysAllowed(value: unknown): boolean | null {
   byoAllowed = typeof value === "boolean" ? value : null;
   return byoAllowed;
 }
 
-/** Les clés personnelles sont-elles refusées ? VRAI seulement sur un `false` explicite. */
+/** Are personal keys refused? TRUE only on an explicit `false`. */
 export function isByoKeysBlocked(): boolean {
   return byoAllowed === false;
 }
 
-/** Le refus rendu au renderer — il nomme la cause, pas la plomberie : la personne doit
- *  savoir que ce n'est pas une panne et à qui s'adresser. */
+/** The refusal returned to the renderer — it names the cause, not the plumbing: the
+ *  person needs to know this isn't a bug and who to contact. */
 export function byoKeysBlockedError(): Error {
   return new Error(
     "Les clés d'API personnelles sont désactivées par votre organisation. " +

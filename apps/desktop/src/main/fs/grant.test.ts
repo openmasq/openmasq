@@ -106,10 +106,10 @@ describe("filesystem grant gate", () => {
 });
 
 describe("le refus ORIENTE le modèle (constat agentique 15/08)", () => {
-  // Le modèle ne peut pas recopier un chemin autorisé — les résultats lui reviennent
-  // redacted segment par segment — donc il remonte vers un ancêtre (`~/Desktop`, puis
-  // `~`), se fait refuser trois fois, et la boucle annonce « aucun résultat » sur des
-  // dossiers pleins. Le refus doit donc dire OÙ chercher, et comment ne pas deviner.
+  // The model cannot copy an allowed path — the results come back to it
+  // redacted segment by segment — so it climbs toward an ancestor (`~/Desktop`, then
+  // `~`), gets refused three times, and the loop announces "no results" on
+  // full folders. The refusal must therefore say WHERE to look, and how not to guess.
   it("nomme les racines autorisées et dit d'omettre « path »", () => {
     const g = makeGrant([root]);
     const dehors = join(base, "ailleurs.txt");
@@ -120,9 +120,9 @@ describe("le refus ORIENTE le modèle (constat agentique 15/08)", () => {
       msg = (e as Error).message;
     }
     expect(msg).toContain("hors des dossiers autorisés");
-    // …la racine réelle, telle que `list_allowed_directories` la rend déjà au même modèle
+    // …the real root, as `list_allowed_directories` already renders it to the same model
     expect(msg).toContain(realpathSync(root));
-    // …et la sortie : ne pas inventer, omettre `path`
+    // …and the exit: don't invent, omit `path`
     expect(msg).toMatch(/omets/i);
     expect(msg).toMatch(/n'invente pas/i);
   });
@@ -139,6 +139,6 @@ describe("le refus ORIENTE le modèle (constat agentique 15/08)", () => {
       msg = (e as Error).message;
     }
     expect(msg).toContain("chemin protégé");
-    expect(msg).not.toMatch(/omets/i); // ne jamais inviter à contourner une interdiction
+    expect(msg).not.toMatch(/omets/i); // never invite bypassing a prohibition
   });
 });

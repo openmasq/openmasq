@@ -1,29 +1,29 @@
 name: Verify
 
-# LA vérification, en un seul endroit — en DEUX familles depuis le 13/08 :
+# THE verification, in a single place — in TWO families since 13/08:
 #
-#   • `verify` (BLOQUANT) — le comportement : build, typecheck, tests, et les gardes qui
-#     protègent ce qui S'EXÉCUTE (harnais de tests honnête, chaîne d'approvisionnement,
-#     bundles expédiés, retours d'effet). Rouge ⇒ ni merge, ni déploiement.
-#   • `hygiene` (NON bloquant, mais VISIBLE) — les cliquets de dette : taille de
-#     fichiers, docs, duplication, fichier maître, code mort. Le job s'affiche ROUGE
-#     quand une dette grandit — mais il ne retient ni un merge ni un déploiement :
-#     la promotion du 13/08 a été bloquée QUATRE fois par de l'hygiène pendant que les
-#     vrais bugs étaient ailleurs. La dette se paie, elle ne prend pas d'otages.
+#   • `verify` (BLOCKING) — behavior: build, typecheck, tests, and the guards that
+#     protect what RUNS (honest test harness, supply chain,
+#     shipped bundles, effect returns). Red ⇒ no merge, no deployment.
+#   • `hygiene` (NOT blocking, but VISIBLE) — debt ratchets: file
+#     size, docs, duplication, master file, dead code. The job shows RED
+#     when a debt grows — but it holds back neither a merge nor a deployment:
+#     the 13/08 promotion was blocked FOUR times by hygiene while the
+#     real bugs were elsewhere. Debt gets paid, it doesn't take hostages.
 #
-# Deux familles d'appelants, et c'est tout l'objet de ce fichier :
-#   • `ci.yml` — le retour sur PR et sur push.
-#   • CHAQUE workflow de déploiement, qui la met en `needs:` — c'est CETTE dépendance qui
-#     empêche un déploiement de partir sans tests. La protection de branche de `main`
-#     existe AUSSI (PR obligatoire + check « ci » — le job-verdict de ci.yml porte ce
-#     nom, un appelant de workflow réutilisable ne publiant que ses enfants) ; le
-#     `needs:` reste ce qui tient les DÉPLOIEMENTS, protection ou pas.
+# Two families of callers, and that is this file's whole purpose:
+#   • `ci.yml` — the feedback on PR and on push.
+#   • EVERY deployment workflow, which puts it in `needs:` — it is THIS dependency that
+#     prevents a deployment from going out without tests. `main`'s branch protection
+#     ALSO exists (mandatory PR + "ci" check — ci.yml's verdict job carries that
+#     name, a reusable-workflow caller only publishing its children); the
+#     `needs:` remains what holds the DEPLOYMENTS, protection or not.
 #
-# ⚠️ Les secrets sont OPTIONNELS et ne servent qu'aux valeurs bakées de `ci.yml`. Un
-# appelant qui n'en passe pas obtient un build aux valeurs vides — parfaitement suffisant
-# pour typechecker et tester, puisque ce build ne PUBLIE rien. Un gate qui ne reçoit aucun
-# secret ne peut en divulguer aucun : ne pas passer `secrets: inherit` depuis un
-# déploiement, ce serait rendre à un job de vérification tout le trousseau du dépôt.
+# ⚠️ Secrets are OPTIONAL and only serve `ci.yml`'s baked values. A
+# caller that doesn't pass any gets a build with empty values — perfectly sufficient
+# to typecheck and test, since this build PUBLISHES nothing. A gate that receives no
+# secret cannot leak any: not passing `secrets: inherit` from a
+# deployment would hand a verification job the repo's entire keyring.
 
 on:
   workflow_call:
@@ -36,18 +36,18 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    # Lecture seule, déclarée ICI parce que ce workflow est appelé : le job hérite sinon
-    # des permissions de l'appelant. Rien ici n'écrit via GITHUB_TOKEN.
+    # Read-only, declared HERE because this workflow is called: the job otherwise inherits
+    # the caller's permissions. Nothing here writes via GITHUB_TOKEN.
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          # Historique complet : plusieurs gates diffent contre une base (dérive
-          # FEATURES.md côté ci.yml), qu'un checkout superficiel ne sait pas résoudre.
+          # Full history: several gates diff against a base (FEATURES.md
+          # drift on ci.yml's side), which a shallow checkout cannot resolve.
           fetch-depth: 0
-          # Le token ne reste pas dans .git/config : tout ce qui suit (installs, builds,
-          # gates) exécute du code du dépôt et n'a besoin d'AUCUN credential git.
+          # The token doesn't stay in .git/config: everything that follows (installs, builds,
+          # gates) runs the repo's code and needs NO git credential at all.
           persist-credentials: false
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -55,13 +55,13 @@ jobs:
           node-version: 26
           cache: pnpm
 
-      # Cache turbo entre les runs. `pnpm build`/`typecheck` passent par
-      # scripts/turbo.mjs, dont le défaut est ce chemin ; les clés de turbo hachent le
-      # CONTENU (paquet + tâche + fichiers + deps), jamais le chemin ni la branche, donc
-      # n'importe quel cache récent restauré est valide — turbo rejoue seulement ce qui a
-      # changé. Mesuré à froid : Build 278 s + Typecheck 181 s ; un run qui ne touche
-      # qu'un paquet en repaie une fraction. Clé primaire unique (le SHA) pour que chaque
-      # run SAUVE son état ; restore-keys rattrape le plus récent.
+      # Turbo cache between runs. `pnpm build`/`typecheck` go through
+      # scripts/turbo.mjs, whose default is this path; turbo's keys hash the
+      # CONTENT (package + task + files + deps), never the path or the branch, so
+      # any recently restored cache is valid — turbo only replays what has
+      # changed. Measured cold: Build 278 s + Typecheck 181 s; a run that touches
+      # only one package repays a fraction. Unique primary key (the SHA) so that each
+      # run SAVES its state; restore-keys catches the most recent one.
       - name: Turbo cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
@@ -72,8 +72,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Le domaine n'a qu'UNE maison (règle 9) : le JSON de branding. Résolu ici plutôt
-      # que recopié en littéral dans les env du build.
+      # The domain has only ONE home (rule 9): the branding JSON. Resolved here rather
+      # than copied as a literal into the build's env.
       - name: Resolve deploy origins (packages/branding/branding.json)
         id: origins
         run: |
@@ -83,108 +83,108 @@ jobs:
           echo "backend=https://$HOST" >> "$GITHUB_OUTPUT"
           echo "admin=https://$HOST/admin" >> "$GITHUB_OUTPUT"
 
-      # turbo build d'abord : les packages de l'espace de travail doivent émettre leur
-      # dist/ (les apps le consomment, pas src). VITE_BACKEND_URL / VITE_ADMIN_URL fixent
-      # l'origine sync/org + admin dans les bundles construits : main →
-      # production, toute autre ref → staging. Config publique (comme l'URL Supabase),
-      # donc une var, pas un secret. Non renseignées, la source retombe sur production.
+      # turbo build first: the workspace packages must emit their
+      # dist/ (the apps consume that, not src). VITE_BACKEND_URL / VITE_ADMIN_URL set
+      # the sync/org + admin origin in the built bundles: main →
+      # production, any other ref → staging. Public config (like the Supabase URL),
+      # so a var, not a secret. Left unset, the source falls back to production.
       - name: Build
         env:
           VITE_BACKEND_URL: ${{ steps.origins.outputs.backend }}
           VITE_ADMIN_URL: ${{ steps.origins.outputs.admin }}
-          # Moteur Cloud redact-fn → le conteneur PROPRE à la branche (un par env).
-          # Var absente ⇒ vide ⇒ le moteur distant reste éteint et l'app retombe sur le
-          # regex local.
+          # Cloud redact-fn engine → the container SPECIFIC to the branch (one per env).
+          # Var absent ⇒ empty ⇒ the remote engine stays off and the app falls back to the
+          # local regex.
           VITE_REDACT_FN_URL: ${{ github.ref_name == 'main' && vars.SCW_REDACT_URL || vars.SCW_REDACT_URL_STAGING }}
-          # Analytique d'usage : clé d'ingestion PostHog bakée dans les bundles
-          # construits — transport DIRECT. Secret absent ⇒ vide ⇒ l'analytique ne fait rien
-          # (elle ne blanchit jamais quoi que ce soit). Pour passer au relais Scaleway
-          # conforme, poser la var ANALYTICS_RELAY_URL : elle gagne sur la clé, et le
-          # client n'en embarque plus aucune (aucun changement de code).
+          # Usage analytics: PostHog ingestion key baked into the
+          # built bundles — DIRECT transport. Secret absent ⇒ empty ⇒ analytics does nothing
+          # (it never launders anything). To switch to the compliant Scaleway
+          # relay, set the ANALYTICS_RELAY_URL var: it wins over the key, and the
+          # client no longer embeds any of it (no code change).
           VITE_POSTHOG_KEY: ${{ secrets.POSTHOG_INGEST_KEY }}
           VITE_POSTHOG_HOST: https://eu.i.posthog.com
           VITE_ANALYTICS_RELAY_URL: ${{ vars.ANALYTICS_RELAY_URL }}
-          # Clé HMAC d'attestation d'app : le client signe chaque POST au relais pour qu'il
-          # puisse rejeter le trafic ne venant pas d'un build officiel (anti-abus, pas
-          # d'identité). Valeur vide ⇒
-          # pas d'en-tête d'attestation (un relais avec ANALYTICS_APP_KEYS renverra 401).
+          # App-attestation HMAC key: the client signs each POST to the relay so it
+          # can reject traffic that doesn't come from an official build (anti-abuse, not
+          # identity). Empty value ⇒
+          # no attestation header (a relay with ANALYTICS_APP_KEYS will return 401).
           VITE_ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
         run: pnpm build
 
       - name: Typecheck
         run: pnpm typecheck
 
-      # Lint (Biome), tout l'arbre : les classes d'erreurs que le typecheck ne voit pas —
-      # hook après un return conditionnel, import mort, chaînage optionnel casté. Le
-      # FORMAT n'est PAS vérifié ici : un reformatage rétroactif gonflerait des fichiers
-      # denses au-delà du cap dur de 300 lignes (règle 1). Le format se tient sur le
-      # STAGÉ, en pré-commit — le code neuf/touché s'y conforme, sans réécrire l'existant.
+      # Lint (Biome), the whole tree: the classes of errors the typecheck cannot see —
+      # a hook after a conditional return, a dead import, a cast optional chain. The
+      # FORMAT is NOT checked here: a retroactive reformat would bloat
+      # dense files past the hard 300-line cap (rule 1). Format is enforced on
+      # STAGED code, in pre-commit — new/touched code conforms there, without rewriting existing code.
       - name: Lint (Biome)
         run: pnpm check:lint
 
-      # Un fichier de test que nul `include` n'apparie n'est jamais exécuté, et la suite
-      # reste verte — le seul mode d'échec qu'un avertissement ne peut pas rattraper. Ce
-      # gate exige que chaque *.test.ts(x) suivi soit apparié, ou listé avec sa raison.
+      # A test file that no `include` matches is never run, and the suite
+      # stays green — the one failure mode a warning cannot catch. This
+      # gate requires every tracked *.test.ts(x) to be matched, or listed with its reason.
       - name: Test-include guard
         run: pnpm check:tests
 
-      # Parité règle 9 : la table de résolution package → source existe dans le module
-      # vitest/electron-vite ET dans apps/desktop/tsconfig.json (JSON ne peut pas importer
-      # du TS). Une dérive fait résoudre un package vers src ici, vers dist là.
+      # Rule-9 parity: the package → source resolution table exists in the
+      # vitest/electron-vite module AND in apps/desktop/tsconfig.json (JSON cannot import
+      # TS). A drift resolves a package to src here, to dist there.
       - name: Workspace alias parity
         run: pnpm check:alias
 
 
 
-      # Garde chaîne d'approvisionnement, couche CI : tout `uses:` doit nommer un SHA de
-      # commit, pas un tag. Un tag est un pointeur mutable que son propriétaire peut
-      # réorienter vers du nouveau code, lequel s'exécute ici avec les secrets du job
-      # (certificats de signature, identifiants de store, jetons Vercel/Neon). La couche
-      # lockfile, c'est minimumReleaseAge dans pnpm-workspace.yaml ; ceci est la même idée
-      # un cran au-dessus.
+      # Supply-chain guard, CI layer: every `uses:` must name a commit
+      # SHA, not a tag. A tag is a mutable pointer its owner can
+      # redirect to new code, which then runs here with the job's secrets
+      # (signing certificates, store credentials, Vercel/Neon tokens). The
+      # lockfile layer is minimumReleaseAge in pnpm-workspace.yaml; this is the same idea
+      # one notch up.
       - name: Action-pin guard
         run: pnpm check:actions
 
 
-      # Garde du retour d'effet : un useEffect en flèche concise retourne son expression
-      # comme fonction de nettoyage React. La plateforme change ce que renvoient les API
-      # DOM SOUS les types (Chromium a fait renvoyer une Promise à scrollIntoView →
-      # « destroy is not a function » → toute l'app sur l'ErrorBoundary à chaque
-      # changement de modèle), et le typecheck ne peut pas voir cette classe. Corps en
-      # bloc et returns explicites uniquement.
+      # Effect-return guard: a concise-arrow useEffect returns its expression
+      # as its React cleanup function. The platform changes what the
+      # DOM APIs return UNDER the types (Chromium made scrollIntoView return a Promise →
+      # "destroy is not a function" → the whole app on the ErrorBoundary on every
+      # model change), and the typecheck cannot see this class. Block
+      # bodies and explicit returns only.
       - name: Effect-return guard
         run: pnpm check:effects
 
-      # Cliquet PII : les identités RÉELLES ne reviennent pas. Le produit se teste avec de
-      # la donnée qui RESSEMBLE à de la PII — c'est légitime, et `__fixtures__/` porte les
-      # personas inventées pour ça. Ce qui est interdit, c'est celle de quelqu'un. Le gate
-      # compare des EMPREINTES : ni le script ni ce log ne peuvent redire la valeur qu'ils
-      # protègent. BLOQUANT, et pas dans le job « hygiène » : les autres cliquets décrivent
-      # de la dette, celui-ci décrit une donnée personnelle publiée — un rouge qu'on
-      # regarde plus tard est déjà une fuite.
+      # PII ratchet: REAL identities don't come back. The product is tested with
+      # data that LOOKS LIKE PII — that's legitimate, and `__fixtures__/` carries the
+      # made-up personas for that. What's forbidden is someone's REAL data. The gate
+      # compares FINGERPRINTS: neither the script nor this log can restate the value they
+      # protect. BLOCKING, and not in the "hygiene" job: the other ratchets describe
+      # debt, this one describes a published personal data item — a red one
+      # looked at later is already a leak.
       - name: PII ratchet
         run: pnpm check:pii
 
-      # Ce qui part chez l'utilisateur ne doit pas expliquer le code qu'il contient : ni
-      # sourcemap (elle rend le TypeScript d'origine verbatim), ni bundle en clair. La
-      # porte relit les artefacts CONSTRUITS, donc elle vient après `pnpm build` — et
-      # la variante `:all` exige les trois ici, là où en local (`pnpm check:shipped`, dans
-      # `verify`) une cible non construite est simplement sautée. Deux scripts plutôt
-      # qu'un drapeau : pnpm avale les drapeaux qu'il croit siens.
+      # What ships to the user must not explain the code it contains: neither
+      # a sourcemap (it renders the original TypeScript verbatim), nor a plain bundle. The
+      # gate re-reads the BUILT artifacts, so it comes after `pnpm build` — and
+      # the `:all` variant requires all three here, whereas locally (`pnpm check:shipped`, in
+      # `verify`) an unbuilt target is simply skipped. Two scripts rather
+      # than one flag: pnpm swallows flags it thinks are its own.
       - name: Shipped-bundle guard
         run: pnpm check:shipped:all
 
-      # Tests unitaires (vitest). L'e2e desktop pilote la VRAIE API OpenAI (ça coûte de
-      # l'argent) et n'est volontairement PAS lancé en CI.
+      # Unit tests (vitest). The desktop e2e drives the REAL OpenAI API (it costs
+      # money) and is deliberately NOT run in CI.
       - name: Unit tests
         run: pnpm test
 
-  # Les CLIQUETS DE DETTE — non bloquants, mais pas invisibles : chaque garde tourne
-  # même si la précédente a échoué, et le job entier passe au ROUGE dès qu'une dette
-  # grandit (continue-on-error au niveau du JOB : l'appelant reste vert, l'écran non).
-  # La règle de fond ne change pas — la dette gelée ne peut que rétrécir — seul change
-  # QUI attend : plus personne. Un rouge ici se corrige dans la foulée, pas sous la
-  # menace d'un déploiement retenu.
+  # The DEBT RATCHETS — non-blocking, but not invisible: each guard runs
+  # even if the previous one failed, and the whole job turns RED as soon as a debt
+  # grows (continue-on-error at the JOB level: the caller stays green, the screen doesn't).
+  # The underlying rule doesn't change — frozen debt can only shrink — the only thing that changes
+  # is WHO waits: no one anymore. A red here gets fixed right away, not under the
+  # threat of a held-back deployment.
   hygiene:
     runs-on: ubuntu-latest
     continue-on-error: true
@@ -221,15 +221,15 @@ jobs:
         id: knip
         continue-on-error: true
         run: pnpm check:knip
-      # Cliquet i18n : la copie française en dur ne fait que baisser. Ici (non bloquant,
-      # visible) parce que c'est de la DETTE de traduction, pas un rouge de correction —
-      # comme ses jumeaux ci-dessus.
+      # i18n ratchet: hard-coded French copy only goes down. Here (non-blocking,
+      # visible) because it's translation DEBT, not a fix-me red —
+      # like its siblings above.
       - name: i18n ratchet
         id: i18n
         continue-on-error: true
         run: pnpm check:i18n
-      # Le verdict : un seul échec suffit à peindre le job en rouge (sans bloquer
-      # l'appelant). La liste dit LESQUELS, pour corriger sans relire cinq logs.
+      # The verdict: a single failure is enough to paint the job red (without blocking
+      # the caller). The list says WHICH ONES, to fix without rereading five logs.
       - name: Verdict hygiène
         run: |
           set -euo pipefail

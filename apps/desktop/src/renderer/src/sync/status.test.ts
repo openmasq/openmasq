@@ -8,9 +8,9 @@ import {
 } from "./status";
 
 /**
- * Le témoin de synchro : ce qui compte comme « ça marche ». La faute qu'il épingle :
- * confondre « le réseau répond » avec « la synchro fonctionne » — un 403 d'appareil
- * révoqué RÉPOND très bien, et c'est une panne totale de synchro.
+ * The sync witness: what counts as "it works". The mistake it pins down:
+ * confusing "the network answers" with "sync functions" — a 403 from a revoked
+ * device ANSWERS just fine, and that's a total sync failure.
  */
 describe("classifyOutcome", () => {
   it("un 4xx/5xx est un ÉCHEC — 401/403/503 sont les pannes que le témoin existe pour montrer", () => {
@@ -43,7 +43,7 @@ describe("withExchangeWitness — observe sans changer le contrat", () => {
     const g = withExchangeWitness(async () => {
       throw boom;
     });
-    // Le throw TRAVERSE — le best-effort de l'appelant reste le sien.
+    // The throw PASSES THROUGH — the caller's best-effort remains its own.
     await expect(g("https://x")).rejects.toBe(boom);
     expect(getExchangeState().lastError).toBe("serveur injoignable");
   });

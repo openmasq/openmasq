@@ -129,7 +129,7 @@ describe("e2eConnectorFilter — le sous-ensemble de connecteurs (E2E)", () => {
       expect(keep("posthog")).toBe(true);
       expect(keep("gmail--2")).toBe(false);
       expect(keep("neon")).toBe(false);
-      // Une instance multi-comptes du connecteur listé reste incluse.
+      // A multi-account instance of the listed connector stays included.
       expect(keep("slack--2")).toBe(true);
     });
   });

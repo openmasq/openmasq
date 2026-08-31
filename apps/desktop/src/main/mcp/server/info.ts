@@ -13,9 +13,9 @@ function displayUrl(spec: ServerSpec): string {
   return spec.url ?? "";
 }
 
-/** Les grants de chemin d'un serveur local, normalisés en listes — la carte les affiche
- *  et les édite. `undefined` (plutôt qu'un objet vide) hors stdio, pour que l'UI n'ait
- *  qu'un test à faire. */
+/** A local server's path grants, normalised into lists — the card displays them
+ *  and edits them. `undefined` (rather than an empty object) outside stdio, so the UI
+ *  only has one check to make. */
 function paramsOf(spec: ServerSpec): Record<string, string[]> | undefined {
   if (spec.kind !== "stdio" || !spec.params) return undefined;
   const out: Record<string, string[]> = {};

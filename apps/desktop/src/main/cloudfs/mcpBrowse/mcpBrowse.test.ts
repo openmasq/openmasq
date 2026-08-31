@@ -34,13 +34,13 @@ describe("findFolderLister — une ALLOW-list, pas une devinette", () => {
       tool("Search", props({ query: { type: "string" } })),
     ];
     expect(findFolderLister(tools)).toBeNull();
-    // Et la question posée par `cloudSources()` répond pareil.
+    // And the question `cloudSources()` asks gives the same answer.
     expect(tools.some((t) => isFolderListTool(t.name))).toBe(false);
   });
 
   it("renonce à un listage dont un argument OBLIGATOIRE nous est inconnu", () => {
-    // L'appeler à moitié rendrait une erreur du serveur là où « ce compte ne se parcourt
-    // pas » est la réponse honnête.
+    // Calling it halfway would produce a server error where « this account can't be
+    // browsed » is the honest answer.
     const t = tool("ListFolder", props({ path: {}, account_id: {} }, ["path", "account_id"]));
     expect(findFolderLister([t])).toBeNull();
   });
@@ -119,7 +119,7 @@ describe("describeShape — dire CE QUI manque, sans montrer aucune valeur", () 
     const out = describeShape([JSON.stringify({ entries: [{ name: "Contrat secret", path: "/x" }], has_more: false })]);
     expect(out).toContain("entries, has_more");
     expect(out).toContain("name, path");
-    // La valeur, elle, ne sort jamais.
+    // The value itself never comes out.
     expect(out).not.toContain("Contrat secret");
   });
 
@@ -180,7 +180,7 @@ describe("mcpBrowseList — l'appel, bout en bout", () => {
     const c = conn([tool("ListFolder", props({ path: {}, cursor: {} }))], [page, page, page]);
     const out = await mcpBrowseList(c, "");
     expect(out.map((x) => x.name)).toEqual(["a"]);
-    // Deux appels au plus : la 2e page n'apporte rien de neuf, donc on s'arrête là.
+    // Two calls at most: the 2nd page brings nothing new, so it stops there.
     expect(c.callTool.mock.calls.length).toBeLessThanOrEqual(2);
   });
 
@@ -213,8 +213,8 @@ describe("directChildren — un listing décrit UN dossier", () => {
   const e = (id: string, kind: "dir" | "file" = "file") => ({ id, name: id.split("/").pop()!, kind, mtime: 0 });
 
   it("un ListFolder RÉCURSIF perd ses petits-enfants", () => {
-    // Le bug vécu : le fichier s'affichait à la racine ET dans son dossier ; replier le
-    // dossier n'enlevait rien, puisque l'autre ligne n'y était pour rien.
+    // The bug we hit: the file showed at the root AND in its folder; collapsing the
+    // folder removed nothing, since the other row was unrelated to it.
     const recursif = [e("/Clients", "dir"), e("/Clients/devis.pdf"), e("/a.pdf")];
     expect(directChildren("", recursif).map((x) => x.id)).toEqual(["/Clients", "/a.pdf"]);
     expect(directChildren("/Clients", recursif).map((x) => x.id)).toEqual(["/Clients/devis.pdf"]);

@@ -5,16 +5,16 @@ const CTX = { clientId: "cid-123", redirectUri: "http://127.0.0.1:51234/cb" };
 
 describe("microsoftConsent — un refus de locataire mène à UNE action", () => {
   it("reconnaît les refus qu'un utilisateur ne peut pas lever seul", () => {
-    // Ce sont les deux codes que Microsoft renvoie quand l'approbation dépend d'un
-    // administrateur ; ils partagent le même remède, d'où la même branche.
+    // These are the two codes Microsoft returns when approval depends on an
+    // administrator; they share the same remedy, hence the same branch.
     expect(needsAdminConsent("access_denied — AADSTS90094: The grant requires admin permission")).toBe(true);
     expect(needsAdminConsent("AADSTS65001: The user or administrator has not consented")).toBe(true);
     expect(needsAdminConsent("consent_required")).toBe(true);
   });
 
   it("n'attrape pas un refus ORDINAIRE — sinon le message mentirait", () => {
-    // Un utilisateur qui ferme la fenêtre, ou un mot de passe refusé, n'a pas besoin de
-    // son administrateur : lui dire le contraire l'envoie déranger quelqu'un pour rien.
+    // A user who closes the window, or has a password rejected, doesn't need
+    // their administrator: telling them otherwise sends them to bother someone for nothing.
     expect(needsAdminConsent("access_denied — AADSTS65004: User declined to consent")).toBe(false);
     expect(needsAdminConsent("invalid_client")).toBe(false);
     expect(needsAdminConsent(undefined)).toBe(false);
@@ -22,8 +22,8 @@ describe("microsoftConsent — un refus de locataire mène à UNE action", () =>
   });
 
   it("le lien d'approbation vise « organizations », jamais un locataire deviné", () => {
-    // Le refus peut arriver avant qu'aucun compte ne soit résolu : on ne connaît pas le
-    // locataire, et c'est la connexion de l'administrateur qui le détermine.
+    // The refusal can arrive before any account is resolved: we don't know the
+    // tenant, and it's the administrator's sign-in that determines it.
     const u = new URL(adminConsentUrl(CTX.clientId, CTX.redirectUri));
     expect(u.pathname).toContain("/organizations/");
     expect(u.pathname).toContain("adminconsent");

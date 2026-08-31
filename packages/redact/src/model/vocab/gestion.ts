@@ -20,17 +20,17 @@ export const GESTION_TERMS: string[] = [
   "commissaire aux comptes", "grand livre", "livre journal", "écriture",
   "ecriture", "écritures", "ecritures", "écriture comptable",
   "ecriture comptable", "débit", "debit", "crédit", "credit", "solde",
-  // « frais » nu : « Frais Revolut Business » lu comme un NOM a fabriqué l'alias
-  // mot-à-mot frais→<faux prénom>, qui réécrivait ensuite CHAQUE « Frais d'abonnement »
-  // du relevé (journal 01/08). Le composé « note de frais » (pro.ts) ne suffit pas.
+  // bare "frais": « Frais Revolut Business » read as a NAME manufactured the
+  // word-for-word alias frais→<fake first name>, which then rewrote EVERY « Frais d'abonnement »
+  // on the statement (log 01/08). The compound « note de frais » (pro.ts) isn't enough.
   "frais", "fee", "fees",
   "lettrage", "rapprochement bancaire", "balance", "balance générale",
   "balance generale", "compte de résultat", "compte de resultat",
   "état financier", "etat financier", "états financiers", "etats financiers",
   "annexe comptable", "liasse fiscale", "clôture", "cloture",
-  // « TVA intracom » devenait une SOCIÉTÉ (« ARDENCO labs », vécu 13/08) — « TVA » était
-  // couvert, pas ses qualificatifs : le composé survivait et la mention fiscale la plus
-  // banale d'une facture partait redacted en entreprise inventée.
+  // « TVA intracom » was becoming a COMPANY (« ARDENCO labs », seen 13/08) — « TVA » was
+  // covered, not its qualifiers: the compound survived and an invoice's most
+  // ordinary tax mention was going out redacted as an invented company.
   "intracommunautaire", "intracommunautaires", "intracom", "autoliquidation",
   "clôture annuelle", "cloture annuelle", "exercice comptable", "exercice clos",
   "à nouveau", "a nouveau", "plan comptable", "compte", "comptes", "sous-compte",
@@ -80,18 +80,18 @@ export const GESTION_TERMS: string[] = [
   "balance sheet", "income statement", "profit and loss", "cash flow statement",
   "financial statements", "notes to the accounts", "closing", "year-end",
   "fiscal year", "financial year", "chart of accounts", "assets", "liabilities",
-  // Deux SIGLES DE TAXE, et deux seulement — ceux qu'un banc a mesurés (personas hors de
-  // France, 16/08/2026) : le NER les tageait ORGANISATION, donc « Compute the FICA
-  // withholding » partait avec un nom de société inventé et le modèle répondait à côté.
-  // Ils passent la discipline de ce dossier : ce sont des noms d'ACTE ou de TAXE, pas
-  // d'organisme ni de personne (règle 1), et ils font 4 signes (règle 3). Rien n'est
-  // ajouté par anticipation : un sigle se met ici quand une mesure l'a vu casser.
+  // Two TAX ACRONYMS, and only two — the ones a benchmark measured (personas outside
+  // France, 16/08/2026): the NER was tagging them ORGANISATION, so « Compute the FICA
+  // withholding » went out with an invented company name and the model answered off
+  // target. They pass this file's discipline: these are names of an ACT or TAX, not
+  // of a body or a person (rule 1), and they're 4 characters (rule 3). Nothing is
+  // added preemptively: an acronym goes here once a measurement has seen it break.
   //
-  // ⚠️ RÉSIDUEL ASSUMÉ : le NER propose souvent le COMPOSÉ (« SDLT band »), et
-  // `isGenericCompound` exige que CHAQUE mot soit couvert — « band » ne l'est pas. Essayé
-  // puis RETIRÉ : « tax band »/« tax bracket » n'y changent rien (le span n'est pas
-  // celui-là), et « band » nu est trop large pour une seule mesure. On préfère le résiduel
-  // à une entrée d'allow-list dont le coût est permanent.
+  // ⚠️ ACCEPTED RESIDUAL: the NER often proposes the COMPOUND (« SDLT band »), and
+  // `isGenericCompound` requires that EVERY word be covered — « band » isn't. Tried
+  // then REMOVED: « tax band »/« tax bracket » change nothing (the span isn't
+  // that one), and bare « band » is too broad for a single measurement. The residual is
+  // preferred over an allow-list entry whose cost is permanent.
   "fica", "sdlt",
   "current assets", "fixed assets", "equity", "shareholders equity",
   "depreciation", "amortization", "amortisation", "provision", "accrual",

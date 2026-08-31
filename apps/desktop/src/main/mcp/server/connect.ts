@@ -77,8 +77,8 @@ async function connectStdioServer(spec: ServerSpec): Promise<McpServerInfo> {
       // Keep buildEnv's SANITIZED env; only add the run-as-Node flag when we rewrote
       // the command to Electron's Node (the npx passthrough keeps the plain env).
       env: spawn.env ? { ...env, ELECTRON_RUN_AS_NODE: "1" } : env,
-      // Le processus enfant meurt : on le retire au lieu de continuer à le sonder.
-      // Même câblage que le distant (`connectRemote.ts`) — il lui manquait ici.
+      // The child process dies: we drop it instead of continuing to probe it.
+      // Same wiring as the remote path (`connectRemote.ts`) — it was missing here.
       onClose: handleConnectorClosed,
     });
     connected.set(spec.id, conn);
@@ -103,8 +103,8 @@ async function connectBrowserServer(spec: ServerSpec): Promise<McpServerInfo> {
     // @playwright/mcp at its CDP endpoint — which exposes ONLY the agent page, so
     // targeting is deterministic and the app's own UI is never reachable.
     const cdpEndpoint = await startAgentBrowser();
-    // `@playwright/mcp` est un enfant stdio, et il meurt avec le navigateur agent —
-    // c'est LE serveur qui a produit la boucle « Not connected ».
+    // `@playwright/mcp` is a stdio child, and it dies with the agent browser —
+    // it's THE server that produced the "Not connected" loop.
     const conn = await connectStdio({
       id: spec.id,
       ...playwrightMcpSpawn(cdpEndpoint),
@@ -244,7 +244,7 @@ export async function mcpReconnectStored(): Promise<void> {
   // `mcp:changed` on completion, so a serial `await` loop lit connectors up ONE BY ONE
   // over N×~2-3s in Settings → MCP; in parallel they surface within ~one handshake.
   // Best-effort per server (`allSettled` — one failure never blocks the others).
-  // `e2eFilterServers`: sous test seulement, un SOUS-ENSEMBLE (`OPENMASQ_E2E_MCP_ONLY`) — identité en production.
+  // `e2eFilterServers`: only under test, a SUBSET (`OPENMASQ_E2E_MCP_ONLY`) — identity in production.
   await Promise.allSettled(
     e2eFilterServers(listServers()).map(async (spec) => {
       if (connected.has(spec.id)) return;
@@ -259,7 +259,7 @@ export async function mcpReconnectStored(): Promise<void> {
           // persists — survives a relaunch); its window spawns hidden (show:false) until opened.
           if (isBrowserAgentEnabled()) await connectBrowserServer(spec);
         } else if (loadOAuth(spec.id)?.tokens) {
-          // Retry ciblé du transitoire (timeout de handshake sous charge) — cf. reconnectRetry.
+          // Targeted retry of the transient case (handshake timeout under load) — see reconnectRetry.
           last = await reconnectRemoteWithRetry(() => connectServer(spec.id, false), () => connected.has(spec.id));
         }
         if (shouldFlagForReconnect(last, connected.has(spec.id))) needsReconnect.add(spec.id);
@@ -274,7 +274,7 @@ export async function mcpReconnectStored(): Promise<void> {
   // never persisted, dropped by `mcpCloseAll` like any other, gates unweakened).
   maybeRegisterE2eFixtureConnections(connected);
   await refreshRoutes();
-  if (needsReconnect.size) emitNeedsReconnect(); // une seule émission pour la volée
+  if (needsReconnect.size) emitNeedsReconnect(); // a single emission for the whole batch
 }
 
 /**
@@ -293,7 +293,7 @@ export async function setMcpUser(userId: string | null): Promise<void> {
   needsReconnect.clear();
   emitNeedsReconnect();
   setPersistUser(userId);
-  healBrowserSpec(userId); // spec navigateur manquant → recréé dans le bon scope (le pourquoi : ./browserSpecHeal.ts)
+  healBrowserSpec(userId); // missing browser spec → recreated in the right scope (why: ./browserSpecHeal.ts)
   // Reconnects the new scope's servers AND calls refreshRoutes() (→ mcp:changed) even for
   // an empty scope, so the UI drops the previous account's connectors immediately.
   await mcpReconnectStored();

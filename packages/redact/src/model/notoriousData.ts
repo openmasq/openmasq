@@ -58,35 +58,35 @@ export const PEOPLE = [
   "Freddie Mercury", "David Bowie", "Céline Dion", "Édith Piaf", "Johnny Hallyday",
 ];
 
-/** Les PERSONNALITÉS de la dispense — exportées pour l'affichage côté app (même règle
- *  qu'au-dessus : la liste n'a qu'une maison). Dispensées par DÉFAUT (redact
- *  « Albert Einstein » fait raisonner le modèle sur personne) — sauf `people: false`,
- *  l'opt-out que le niveau Strict passe (décision produit 30/07/2026). */
+/** The dispensation's PERSONALITIES — exported for display on the app side (same rule
+ *  as above: the list has only one home). Dispensed by DEFAULT (redacting
+ *  « Albert Einstein » makes the model reason about nobody) — except `people: false`,
+ *  the opt-out the Strict level passes (product decision 30/07/2026). */
 export const NOTORIOUS_PEOPLE: readonly string[] = PEOPLE;
 
 // ── Famous ORGS / brands / finance (category "company") ─────────────────────────
 /**
- * ⚠️ MARQUES COMMERCIALES — dispense CONDITIONNELLE (`commercial` opt-in), plus jamais
- * inconditionnelle (décision produit, 27/07/2026 ; ré-ouverte par NIVEAU le 30/07/2026).
+ * ⚠️ COMMERCIAL BRANDS — CONDITIONAL dispensation (`commercial` opt-in), never again
+ * unconditional (product decision, 27/07/2026; reopened BY LEVEL on 30/07/2026).
  *
- * Pourquoi le retrait : « Google » est de notoriété publique, mais dans « je travaille
- * chez Google », « le dossier BNP Paribas avance » ou « la facture d'Airbus est en
- * retard », l'entité n'est pas une connaissance générale — c'est l'employeur, le client
- * ou le fournisseur de celui qui écrit. Un bench manuel de 100 prompts a relevé vingt de
- * ces phrases.
+ * Why the removal: « Google » is public knowledge, but in « I work
+ * at Google », « the BNP Paribas file is progressing » or « the Airbus invoice is
+ * late », the entity isn't general knowledge — it's the writer's employer, client,
+ * or supplier. A manual bench of 100 prompts turned up twenty of
+ * these sentences.
  *
- * Pourquoi le retour, et sous quelles conditions : les niveaux Standard et Renforcé
- * passent `commercial: true` (l'app décide, voir `@openmasq/ui` `privacy/privacyLevel.ts`)
- * — la marque part alors en clair SAUF quand le texte la rattache à celui qui écrit
- * (`isSelfBoundEntity`, la porte qui répond exactement au bench ci-dessus). Le mode
- * Strict ne passe pas le flag : la marque y reste redacted. Toujours category-scoped :
- * un particulier nommé Hermès/Tesla/Leclerc (NAME) reste protégé quel que soit le flag.
+ * Why it came back, and under what conditions: the Standard and Enhanced levels
+ * pass `commercial: true` (the app decides, see `@openmasq/ui` `privacy/privacyLevel.ts`)
+ * — the brand then goes out in clear EXCEPT when the text ties it to the writer
+ * (`isSelfBoundEntity`, the gate that answers exactly the bench above). Strict
+ * mode doesn't pass the flag: the brand stays redacted there. Always category-scoped:
+ * an individual named Hermès/Tesla/Leclerc (NAME) stays protected regardless of the flag.
  *
- * Ce qui reste dispensé SANS flag : les organismes publics et administratifs (Pôle
- * emploi, Assurance Maladie, CADA…), les émetteurs de courrier (assureurs mutualistes,
- * Sacem), l'outillage technique qu'un post-mortem cite, les produits ubiquitaires, les
- * indices et émetteurs de fonds, les pays et les personnalités. Aucun n'est une relation
- * d'affaires de l'utilisateur.
+ * What stays dispensed WITHOUT the flag: public and administrative bodies (Pôle
+ * emploi, Assurance Maladie, CADA…), mail senders (mutual insurers,
+ * Sacem), the technical tooling a post-mortem cites, ubiquitous products,
+ * indices and fund issuers, countries and public figures. None of these is a business
+ * relationship of the user.
  */
 export const COMMERCIAL_ORGS = [
   // Tech
@@ -105,10 +105,10 @@ export const COMMERCIAL_ORGS = [
   "LVMH", "L'Oréal", "Danone", "Nestlé", "Carrefour", "Auchan", "Leclerc", "Orange",
   "Bouygues", "Vinci", "SNCF", "RATP", "EDF", "Engie", "Air France", "Sanofi",
   "Pfizer", "Moderna", "AstraZeneca", "Michelin", "Decathlon", "Ikea", "McDonald's",
-  // E-commerce FR : la marque paraît sur un relevé bancaire ou une facture comme
-  // FOURNISSEUR, jamais comme l'identité du lecteur. Mesuré : faute d'y figurer, elle
-  // partait en « Voxa Labs » dans le même envoi où MAIF, elle, restait en clair — deux
-  // marques notoires, deux traitements, dans le même message.
+  // French e-commerce: the brand appears on a bank statement or an invoice as the
+  // SUPPLIER, never as the reader's identity. Measured: missing from the list, it
+  // went out as « Voxa Labs » in the same message where MAIF, itself, stayed in clear — two
+  // notorious brands, two treatments, in the same message.
   "Cdiscount",
   "Starbucks", "Coca-Cola", "Pepsi", "Nike", "Adidas", "Zara", "H&M", "Rolex",
   "Chanel", "Dior", "Hermès", "Gucci", "ExxonMobil", "Shell", "BP", "Aramco",
@@ -117,15 +117,15 @@ export const COMMERCIAL_ORGS = [
   "Banque Postale", "Boursorama", "Revolut", "N26", "AXA", "Allianz", "Visa",
   "Mastercard", "Goldman Sachs", "JPMorgan", "JP Morgan", "Morgan Stanley", "HSBC",
   "Deutsche Bank", "UBS", "Barclays", "Citigroup", "Berkshire Hathaway",
-  // ── Intégrations MCP de l'app ──────────────────────────────────────────────
-  // CHAQUE marque du catalogue de connecteurs (`@openmasq/catalog` mcp/connectors)
-  // doit être ici — demande produit du 30/07/2026 : dispensée hors Strict, redacted
-  // en Strict. C'est pourquoi elles vivent dans le bloc COMMERCIAL (conditionnel) et
-  // PAS dans ORGS (inconditionnel) — une marque-connecteur laissée dans ORGS serait
-  // épargnée en Strict. Épinglé par le test de parité côté app
-  // (`packages/ui/src/privacy/notorietyCatalogParity.test.ts` — il lit le catalogue,
-  // les deux packages ne pouvant pas s'importer, règle 9). Le nom d'un connecteur
-  // CONNECTÉ reste par ailleurs en clair à tous les niveaux via `keep` (routage).
+  // ── App's MCP integrations ──────────────────────────────────────────────
+  // EVERY brand in the connector catalog (`@openmasq/catalog` mcp/connectors)
+  // must be here — product request from 30/07/2026: dispensed outside Strict, redacted
+  // in Strict. That's why they live in the COMMERCIAL block (conditional) and
+  // NOT in ORGS (unconditional) — a connector brand left in ORGS would be
+  // spared in Strict. Pinned by the app-side parity test
+  // (`packages/ui/src/privacy/notorietyCatalogParity.test.ts` — it reads the catalog,
+  // the two packages being unable to import each other, rule 9). The name of a
+  // CONNECTED connector otherwise stays in clear at every level via `keep` (routing).
   "Gmail", "Google Agenda", "Google Calendar", "Google Drive", "Google Docs",
   "Google Sheets", "Google Tasks", "Google Analytics",
   "Outlook", "OneDrive", "SharePoint", "Microsoft Teams",
@@ -136,33 +136,33 @@ export const COMMERCIAL_ORGS = [
   "Sentry", "Vercel", "Netlify", "Cloudflare", "Supabase", "Neon",
   "Prisma", "Prisma Postgres", "Semgrep", "Zapier", "Amplitude", "PostHog",
   "Hugging Face", "Cloudinary", "Wix", "Webflow", "WebsitePublisher.ai", "Synapse",
-  // Expéditeurs de courrier transactionnel relevés redacted dans les parcours réels
-  // (le modèle raisonnait sur des courtiers et services inventés). Mêmes règles :
-  // company-scoped, mots simples au même titre que « Close »/« Square »/« Vantage ».
+  // Transactional mail senders observed redacted in real user journeys
+  // (the model was reasoning about invented brokers and services). Same rules:
+  // company-scoped, plain words just like « Close »/« Square »/« Vantage ».
   "Interactive Brokers", "Consensus", "Alpaca", "Alpaca Markets", "Daz", "Daz 3D",
   "Electro Dépôt",
 ];
 
-/** Les MARQUES commerciales de la dispense conditionnelle — exportées pour que l'app
- *  (la politique par NIVEAU de `@openmasq/ui` `privacy/privacyLevel.ts`) puisse montrer
- *  la liste sans la recopier (règle 9 : une seule maison). La POLITIQUE (quel niveau
- *  passe `commercial: true`) vit côté app ; la LISTE et sa discipline vivent ici. */
+/** The commercial BRANDS of the conditional dispensation — exported so the app
+ *  (the per-LEVEL policy in `@openmasq/ui` `privacy/privacyLevel.ts`) can show
+ *  the list without copying it (rule 9: one home only). The POLICY (which level
+ *  passes `commercial: true`) lives on the app side; the LIST and its discipline live here. */
 export const NOTORIOUS_COMMERCIAL_ORGS: readonly string[] = COMMERCIAL_ORGS;
 
 export const ORGS = [
-  // Hébergeurs : la loi française impose de NOMMER l'hébergeur dans les mentions
-  // légales/CGV, donc ils arrivent dans un document par obligation, jamais comme une
-  // donnée de l'utilisateur. Faké, le modèle répond sur un hébergeur inexistant.
-  // ⚠️ « Cloudflare » est SORTI d'ici : c'est un connecteur MCP de l'app, donc il vit
-  // dans le bloc COMMERCIAL (dispense conditionnelle — redacted en Strict).
+  // Hosting providers: French law requires NAMING the host in legal notices/T&Cs,
+  // so they appear in a document by obligation, never as the user's
+  // data. Faked, the model answers about a hosting provider that doesn't exist.
+  // ⚠️ « Cloudflare » is REMOVED from here: it's an app MCP connector, so it lives
+  // in the COMMERCIAL block (conditional dispensation — redacted in Strict).
   "OVH", "OVHcloud", "Scaleway",
-  // Fournisseurs et outils que TOUTE conversation technique nomme — un post-mortem, un
-  // audit ou un runbook les cite comme le contrat cite son hébergeur. Category-SCOPED,
-  // et pourquoi ils sont ici plutôt que dans `vocab/tech.ts`.
-  // ⚠️ Un outil qui est AUSSI un connecteur MCP de l'app (Sentry, Vercel, Netlify,
+  // Providers and tools that EVERY technical conversation names — a post-mortem, an
+  // audit or a runbook cites them like a contract cites its host. Category-SCOPED,
+  // and why they're here rather than in `vocab/tech.ts`.
+  // ⚠️ A tool that is ALSO an app MCP connector (Sentry, Vercel, Netlify,
   // Supabase, Atlassian, Asana, Linear, GitHub, Stripe, Slack, Notion, Outlook,
-  // OneDrive, SharePoint, Morningstar…) N'EST PAS ici : il vit dans le bloc COMMERCIAL,
-  // pour que Strict le redacted (parité épinglée par `notorietyCatalogParity.test.ts`).
+  // OneDrive, SharePoint, Morningstar…) is NOT here: it lives in the COMMERCIAL block,
+  // so Strict redacts it (parity pinned by `notorietyCatalogParity.test.ts`).
   "AWS", "Amazon Web Services", "Amazon S3", "Amazon EC2", "Azure", "Microsoft Azure",
   "Google Cloud", "Google Cloud Platform", "GCP", "DigitalOcean", "Heroku",
   "Fly.io", "Render", "Firebase", "Datadog", "Grafana",
@@ -170,8 +170,8 @@ export const ORGS = [
   "Jira", "Confluence", "Figma", "Miro", "Trello",
   "Docker Hub", "npm", "PyPI", "Maven Central", "Terraform Cloud", "HashiCorp", "HashiCorp Vault", "Vault", "Argo CD", "PgBouncer",
   "Postman", "Sonar", "SonarQube", "Snyk", "Dependabot", "Renovate",
-  // Rapatriés du bloc commercial retiré : dans un post-mortem ou un runbook ce sont
-  // des OUTILS que le document cite, jamais l'employeur de quelqu'un.
+  // Repatriated from the removed commercial block: in a post-mortem or a runbook these
+  // are TOOLS the document cites, never someone's employer.
   "GitLab", "Zoom", "Salesforce",
   // Ubiquitous PRODUCTS a NER tags as orgs ("dans Excel", "sur iPhone"). Company-
   // scoped like every entry here, so "Claude"/"Gemini" the FIRST NAMES stay protected
@@ -179,20 +179,20 @@ export const ORGS = [
   "Excel", "PowerPoint", "Windows", "macOS",
   "iOS", "iPhone", "iPad", "MacBook", "Android", "Chrome", "Firefox", "Safari",
   "ChatGPT", "Copilot", "Gemini", "Claude", "DeepSeek", "Perplexity",
-  // Les OUTILS d'IA que l'app cite elle-même (Réglages : « Modèle sur votre
-  // ordinateur » nomme Ollama et LM Studio) + l'app. Les noms de MODÈLES versionnés
-  // (« GPT-5.5 », « Claude Sonnet 4.6 ») passent par la grammaire `modelNames.ts`,
-  // pas par cette liste — elle ne suivrait jamais un catalogue vivant.
+  // The AI TOOLS the app cites itself (Settings: « Model on your
+  // computer » names Ollama and LM Studio) + the app. VERSIONED MODEL names
+  // (« GPT-5.5 », « Claude Sonnet 4.6 ») go through the `modelNames.ts` grammar,
+  // not through this list — it could never keep up with a living catalog.
   "Ollama", "LM Studio", "OpenRouter", "Cursor", "VS Code", "Claude Code",
   "Midjourney", BRAND.name,
-  // Les FAMILLES de modèles en un seul mot — des NOMS D'OUTILS que l'app cite sans
-  // arrêt (« compare Opus et Sonnet »). Ici EXPRÈS, et pas dans la grammaire de forme :
-  // cette liste est SCOPÉE PAR CATÉGORIE, donc « Opus » l'outil (company) est dispensé
-  // tandis que « Opus »/« Gemma »/« Kimi » le PRÉNOM (name) reste protégé — un mot nu
-  // n'est jamais dispensé sous « name » (`notorious.ts`). C'est ce qui rend le geste sûr
-  // là où la grammaire, insensible à la catégorie, faisait fuir « Claude » le prénom.
-  // Résidu ASSUMÉ : « la société Opus » part en clair — c'est un nom d'outil pour l'app,
-  // et pouvoir en parler prime (décision produit 13/08).
+  // Model FAMILIES in a single word — TOOL NAMES the app cites
+  // constantly (« compare Opus and Sonnet »). Deliberately HERE, and not in the shape
+  // grammar: this list is SCOPED BY CATEGORY, so « Opus » the tool (company) is dispensed
+  // while « Opus »/« Gemma »/« Kimi » the FIRST NAME (name) stays protected — a bare word
+  // is never dispensed under « name » (`notorious.ts`). This is what makes the move safe
+  // where the grammar, blind to category, was leaking « Claude » the first name.
+  // ACCEPTED residual: « la société Opus » goes out in clear — it's a tool name for the app,
+  // and being able to talk about it wins out (product decision 13/08).
   "Opus", "Sonnet", "Haiku", "Gemma", "Kimi", "Grok", "Llama", "Qwen", "Le Chat",
   // French retail banks + insurers, incl. the mutual/bancassurance subsidiaries whose
   // names paper an insurance letter (PACIFICA, PREDICA, CAMCA…). They are the SENDER's

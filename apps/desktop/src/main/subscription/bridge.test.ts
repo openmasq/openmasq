@@ -1,6 +1,6 @@
-// Le pont stateless→stateful. Le cas qui justifie le fichier : `--input-format
-// stream-json` rejoue chaque message user comme un tour facturé (mesuré), donc
-// l'historique DOIT être aplati, pas réinjecté.
+// The stateless→stateful bridge. The case that justifies this file: `--input-format
+// stream-json` replays each user message as a billed turn (measured), so
+// history MUST be flattened, not replayed.
 import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "@openmasq/llm";
 import { flattenForCli, hasUnsupportedAttachments } from "./bridge";

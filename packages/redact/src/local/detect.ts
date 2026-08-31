@@ -54,7 +54,7 @@ export interface LocalDetectOptions extends ChunkerOptions {
 }
 
 /** Below this mean token score, a span the two reads DISAGREE on is flagged `uncertain`
- *  (« à vérifier » in the pre-send audit). The pair « désaccord ET score < 0,99 » is the
+ *  (« to verify » in the pre-send audit). The pair « disagreement AND score < 0.99 » is the
  *  measured best trigger of `bench/confidence.bench.ts` — re-pick it from the bench,
  *  never by eye. The flag is UX-only: it never gates redaction. */
 const REVIEW_SCORE = 0.99;
@@ -139,9 +139,9 @@ export async function detectLocalNer(
   const min = options.threshold ?? 0;
   for (const span of spans) {
     if (span.score < min) continue;
-    // « À vérifier » — the measured trigger of bench/confidence.bench.ts (« désaccord des
-    // deux passes ET score moyen < 0,99 » : 47 % des FP rendus visibles pour 17 % des TP
-    // marqués). UX-ONLY, fail closed: the flag never drops a span — an uncertain span is
+    // « To verify » — the measured trigger of bench/confidence.bench.ts (« disagreement between
+    // the two passes AND mean score < 0.99 »: 47% of FPs made visible for 17% of TPs
+    // flagged). UX-ONLY, fail closed: the flag never drops a span — an uncertain span is
     // redacted exactly like a sure one, it is just SHOWN as reviewable before the send.
     const uncertain = span.agreed === false && span.score < REVIEW_SCORE;
     if (span.start < 0 || span.end > input.length || span.end <= span.start) continue;
@@ -154,9 +154,9 @@ export async function detectLocalNer(
         continue;
       category = "ORG";
     }
-    // Strip a leading lowercase article ("la Sacem" → "Sacem") — and, pour un ORG, la
-    // PRÉPOSITION avalée par le NER (« de Karl Studio » → « Karl Studio ») : sans elle
-    // le wire perdait le « de » ET l'org gagnait une seconde identité (journal 01/08).
+    // Strip a leading lowercase article ("la Sacem" → "Sacem") — and, for an ORG, the
+    // PREPOSITION swallowed by the NER (« de Karl Studio » → « Karl Studio »): without it
+    // the wire lost the « de » AND the org gained a second identity (log 01/08).
     let value = stripLeadingArticle(input.slice(span.start, span.end).trim(), category === "ORG");
     // "société KARL STUDIO" / "KARL STUDIO Forme" → "KARL STUDIO": strip the legal
     // form / descriptor so one company is ONE identity (mirrors the LLM path).

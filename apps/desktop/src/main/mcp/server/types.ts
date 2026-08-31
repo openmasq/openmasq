@@ -29,9 +29,9 @@ export interface McpServerInfo {
   label?: string;
   /** desktop-direct (local-oauth): which credentials it's configured to use. */
   credMode?: CredMode;
-  /** Local (stdio) path grants, by param key — les dossiers autorisés. Ce sont les
-   *  dossiers de l'utilisateur, pas un secret : la carte du connecteur les montre et
-   *  permet d'en ajouter/retirer sans déconnecter. Absent pour les autres types. */
+  /** Local (stdio) path grants, by param key — the authorized folders. These are the
+   *  user's own folders, not a secret: the connector's card shows them and
+   *  allows adding/removing without disconnecting. Absent for other types. */
   params?: Record<string, string[]>;
   /** desktop-direct + `byo`: the user's OWN client id/secret are already stored on
    *  this machine — so the "Mes clés" form can say so + let them be reused without

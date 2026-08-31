@@ -2,7 +2,7 @@ import { safeFetch } from "./net";
 import { htmlToText, HTML_TEXT_MAX } from "./htmlText";
 import { extractArticle } from "./articleExtract";
 
-/** Budget de texte TOTAL d'un batch (caractères) — réparti entre les pages. */
+/** TOTAL text budget for a batch (characters) — split across the pages. */
 const TOTAL_TEXT_BUDGET = 32_000;
 import { isAllowedBrowserUrl } from "../mcp/browserTools";
 
@@ -93,8 +93,8 @@ async function fetchOne(
     const raw = buf.toString("utf8");
     const isHtml = /^(?:text\/html|application\/xhtml)/i.test(contentType);
     // HTML → extracted readable text; text/data (JSON/CSV/plain/XML) → raw, bounded.
-    // Étage 1 : extraction ARTICLE (Readability) quand la page en est un — étage 2 :
-    // le scan chaîne (chrome-strip + main/article + budget), fallback fail-closed.
+    // Stage 1: ARTICLE extraction (Readability) when the page is one — stage 2:
+    // string scan (chrome-strip + main/article + budget), fail-closed fallback.
     const text = isHtml
       ? (extractArticle(raw, maxText) ?? htmlToText(raw, maxText))
       : raw.length > maxText
@@ -137,7 +137,7 @@ export async function webFetchMany(urls: unknown, opts: WebFetchManyOpts = {}): 
   if (!capped.length) return [];
   const fetchImpl = opts.fetchImpl ?? safeFetch;
   // TOTAL text budget SHARED across the batch: 4 pages at the full per-page cap put
-  // ~20k tokens into ONE turn (mesuré) — the whole point of a batch read is breadth,
+  // ~20k tokens into ONE turn (measured) — the whole point of a batch read is breadth,
   // not 4 full dumps. One page keeps the full cap; N pages split a fixed pool, floor
   // 4k chars so a page is never truncated into uselessness.
   const perPage = Math.max(4_000, Math.min(HTML_TEXT_MAX, Math.floor(TOTAL_TEXT_BUDGET / capped.length)));

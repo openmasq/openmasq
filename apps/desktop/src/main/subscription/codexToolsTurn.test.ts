@@ -12,10 +12,10 @@ const TOOLS: ToolDef[] = [
 ];
 
 /**
- * Une fausse CLI codex : un vrai exécutable qui fait ce que fait la vraie — lire l'URL du
- * pont dans l'override `-c`, le jeton dans SON ENVIRONNEMENT, puis appeler l'outil — sans
- * abonnement ni réseau. `argvDump`/`envDump` épinglent ce que l'enfant a réellement vu :
- * c'est là que vivent les assertions de frontière.
+ * A fake codex CLI: a real executable that does what the real one does — read the bridge's
+ * URL from the `-c` override, the token from ITS OWN ENVIRONMENT, then call the tool — with no
+ * subscription or network. `argvDump`/`envDump` pin down what the child actually saw:
+ * that's where the boundary assertions live.
  */
 function fakeCodex(dir: string, body: string): { binPath: string; argvDump: string } {
   const argvDump = join(dir, "argv.json");
@@ -56,15 +56,15 @@ describe("le tour outillé sur la CLI Codex", () => {
     );
     expect(r.stopReason).toBe("tool_calls");
     expect(r.toolCalls[0].name).toBe("dropbox_search");
-    // Les arguments restent REDACTED tels que le modèle les a émis : le un-redaction
-    // appartient à la boucle (règle 11), jamais à ce chemin.
+    // The arguments stay REDACTED exactly as the model emitted them: de-redaction
+    // belongs to the loop (rule 11), never to this path.
     expect(r.toolCalls[0].arguments).toEqual({ query: "PERSONNE_1" });
 
     const argv: string[] = JSON.parse(readFileSync(argvDump, "utf8"));
-    // ⚠️ Frontière : le jeton du pont ne passe JAMAIS en argv (lisible via `ps`) — il n'a
-    // atteint la fausse CLI que par son environnement, ce que prouve la capture ci-dessus.
+    // ⚠️ Boundary: the bridge's token NEVER passes through argv (readable via `ps`) — it only
+    // reached the fake CLI through its environment, which the capture above proves.
     expect(argv.join(" ")).not.toMatch(/[0-9a-f]{48}/);
-    // …et l'isolement du tour texte tient : ni config du poste, ni règles, ni exécution.
+    // …and the text turn's isolation holds: no machine config, no rules, no execution.
     expect(argv).toContain("--ignore-user-config");
     expect(argv).toContain("--ignore-rules");
     expect(argv).toContain("--ephemeral");
@@ -117,10 +117,10 @@ describe("codexToolsServerConfig — le pont est le SEUL serveur MCP, en allow-l
     const cfg = codexToolsServerConfig("http://127.0.0.1:5123/mcp", ["a", "b_c"]);
     expect(cfg.startsWith("mcp_servers.openmasq={")).toBe(true);
     expect(cfg).toContain('enabled_tools=["a","b_c"]');
-    // Sans « approve », l'appel MEURT sur « requires approval, but approval policy is
-    // never » : `codex exec` est non interactif (mesuré, CLI 0.149.1).
+    // Without "approve", the call DIES on "requires approval, but approval policy is
+    // never": `codex exec` is non-interactive (measured, CLI 0.149.1).
     expect(cfg).toContain('default_tools_approval_mode="approve"');
-    // Le jeton est NOMMÉ, jamais écrit : la CLI le lit dans l'environnement de son process.
+    // The token is NAMED, never written: the CLI reads it from its process's environment.
     expect(cfg).toContain(`bearer_token_env_var="${CODEX_TOOLS_TOKEN_ENV}"`);
   });
 

@@ -94,7 +94,7 @@ export const mcp = {
     return () => ipcRenderer.removeListener("mcp:needs-reconnect", handler);
   },
   /** The OAuth authorize URL of an in-flight interactive connect (id → url), so the UI
-   *  can offer "Copier le lien" to open the login in another browser. Returns unsubscribe. */
+   *  can offer "Copy the link" to open the login in another browser. Returns unsubscribe. */
   onOauthUrl: (cb: (e: { id: string; url: string }) => void): (() => void) => {
     const handler = (_: unknown, e: { id: string; url: string }) => cb(e);
     ipcRenderer.on("mcp:oauth-url", handler);

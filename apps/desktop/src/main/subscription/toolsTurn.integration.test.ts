@@ -1,8 +1,8 @@
 /**
- * Intégration RÉELLE : la vraie CLI, le vrai abonnement, de vrais jetons — gardée
- * derrière `OPENMASQ_TEST_SUBSCRIPTION_CLI=1` comme `engine.integration.test.ts`.
- * C'est le SEUL test qui prouve la propriété clé du tour outillé : sans `--safe-mode`,
- * l'auth par abonnement tient TOUJOURS (apiKeySource "none") ET le pont MCP est vu.
+ * REAL integration: the real CLI, the real subscription, real tokens — guarded
+ * behind `OPENMASQ_TEST_SUBSCRIPTION_CLI=1` like `engine.integration.test.ts`.
+ * It's the ONLY test that proves the tooled turn's key property: without `--safe-mode`,
+ * subscription auth ALWAYS holds (apiKeySource "none") AND the MCP bridge is seen.
  */
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

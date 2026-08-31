@@ -2,7 +2,7 @@
  * Desktop orchestration of the synced integrations DIRECTORY. Emission diffs
  * the LOCALLY-connected MCP servers against a per-account ledger and pushes
  * `integration`/`integrationTombstone` records on the reserved scope; the pull
- * side feeds the Réglages "Connecter sur cet appareil" section. Config only —
+ * side feeds the Settings "Connect on this device" section. Config only —
  * the allow-list in `@openmasq/sync` `integrations.ts` guarantees no URL, no
  * key, no token ever rides a record; the receiving device re-grants OAuth
  * itself, per device.
@@ -72,7 +72,7 @@ export async function pushIntegrationDirectory(servers: McpServerInfo[]): Promis
   }
 }
 
-/** The account's full directory (all devices), for the Réglages section. */
+/** The account's full directory (all devices), for the Settings section. */
 export async function pullSyncedIntegrations(): Promise<SyncedIntegration[]> {
   const rs = recordSync();
   if (!rs) return [];

@@ -86,11 +86,11 @@ export function setupUpdateTracking(report?: ReportEvent): void {
       name: "update_check",
       channel: getConfig().channel,
       result: "available",
-      // `found_version`, PAS `version` : PostHog affichait ce champ « App version »
-      // juste à côté du `app_version` estampillé sur chaque événement — la version
-      // TROUVÉE sur le feed lue comme la version QUI TOURNE (le faux « décalage »
-      // du 07/08). update_downloaded/install gardent `version` : là, c'est bien
-      // la version de l'artefact concerné.
+      // `found_version`, NOT `version`: PostHog displayed this field as "App version"
+      // right next to the `app_version` stamped on every event — the version
+      // FOUND on the feed read as the version CURRENTLY RUNNING (the false "drift"
+      // on 07/08). update_downloaded/install keep `version`: there, it really is
+      // the version of the artifact concerned.
       found_version: info?.version ?? UNKNOWN,
     });
   });

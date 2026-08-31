@@ -167,7 +167,7 @@ export const CLINIQUE_TERMS: string[] = [
   "tendon", "tendons", "ligament", "ligaments", "cartilage", "muscle", "muscles",
   "nerf", "nerfs", "moelle épinière", "moelle epiniere", "cerveau", "peau",
 
-  // ── Autres langues — le noyau qui apparaît vraiment ────────────────────────
+  // ── Other languages — the core that actually occurs ────────────────────────
   // EN
   "diabetes", "hypertension", "asthma", "migraine", "arthritis", "osteoarthritis",
   "pneumonia", "bronchitis", "influenza", "stroke", "heart failure", "cancer",

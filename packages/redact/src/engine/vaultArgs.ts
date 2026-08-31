@@ -4,7 +4,7 @@ import type { Vault } from "../types";
 /**
  * Restore MUTATED multi-word fakes in an outward arg. A model sometimes "corrects" a
  * scrambled fake into a plausible name by TRUNCATING its last word ("Léa Croshml" →
- * "Léa Cros", mesuré sur le web vivant) — the exact-match restore then misses it and
+ * "Léa Cros", measured on the live web) — the exact-match restore then misses it and
  * the dispatched query carries the degraded fake (a search about nobody). Only the
  * OUTWARD direction (args), where restoring toward the REAL value is the wanted
  * behaviour. Strict on purpose: leading words verbatim, last word must be one of the
@@ -42,18 +42,18 @@ function restoreMutatedFakes(input: string, vault: Vault): string {
 }
 
 /**
- * Restore a SINGLE-TOKEN fake the model MUTATED in its REPLY — measured shape : un long
- * nom de fichier scramblé dont la queue est dupliquée (« …-YRI-nKVc.csv » réécrit
- * « …-YRI-nKVnKV-nKV-nKV.csv », journal 02/08) : l'exact-match rate, et l'utilisateur
- * lit du charabia à la place de SON fichier. Réparé seulement quand TOUT tient :
- *  - le token du texte est long (≥ 16), porte un chiffre ET un séparateur (`-_.`) —
- *    la forme d'un scramble, jamais d'un mot de langue ;
- *  - il partage avec le fake un préfixe ≥ max(16, 75 % du fake) ET ≥ 60 % du token
- *    (le double seuil empêche un court fake « frère » partageant le préfixe de
- *    répertoire d'un chemin de voler la réparation) ;
- *  - UN SEUL fake satisfait cela — deux candidats ⇒ on ne devine pas.
- * Voie AFFICHAGE uniquement ({@link unredactReply}) : au pire l'utilisateur voit un
- * nom réel là où le modèle a écrit du bruit — jamais un octet vers l'extérieur.
+ * Restore a SINGLE-TOKEN fake the model MUTATED in its REPLY — measured shape: a long
+ * scrambled filename whose tail is duplicated (« …-YRI-nKVc.csv » rewritten as
+ * « …-YRI-nKVnKV-nKV-nKV.csv », log 02/08): the exact-match misses it, and the user
+ * reads gibberish in place of THEIR OWN file. Repaired only when EVERYTHING holds:
+ *  - the text's token is long (≥ 16), carries a digit AND a separator (`-_.`) —
+ *    the shape of a scramble, never of an ordinary word;
+ *  - it shares with the fake a prefix ≥ max(16, 75% of the fake) AND ≥ 60% of the token
+ *    (the double threshold stops a short "sibling" fake sharing a path's directory
+ *    prefix from stealing the repair);
+ *  - ONLY ONE fake satisfies this — two candidates ⇒ we don't guess.
+ * DISPLAY path ONLY ({@link unredactReply}): at worst the user sees a
+ * real name where the model wrote noise — never a byte sent outward.
  */
 function restoreMutatedTokens(input: string, vault: Vault): string {
   const fakes = Object.entries(vault).filter(
@@ -65,22 +65,22 @@ function restoreMutatedTokens(input: string, vault: Vault): string {
     if (tok in vault || !/\d/.test(tok) || !/[-_.]/.test(tok)) return tok;
     let hit: string | null = null;
     for (const [fake, real] of fakes) {
-      if (tok === fake) return tok; // exact = le travail d'unredact, déjà passé
+      if (tok === fake) return tok; // exact = unredact's job, already done
       const n = Math.min(tok.length, fake.length);
       let common = 0;
       while (common < n && tok[common] === fake[common]) common++;
       if (common < Math.max(16, Math.ceil(fake.length * 0.75))) continue;
       if (common < Math.ceil(tok.length * 0.6)) continue;
-      if (hit !== null && hit !== real) return tok; // ambigu : abstention
+      if (hit !== null && hit !== real) return tok; // ambiguous: abstain
       hit = real;
     }
     return hit ?? tok;
   });
 }
 
-/** De-redact a model REPLY for display: the exact reverse pass, puis la réparation des
- *  fakes MUTÉS ci-dessus. C'est la fonction du `fromWire` d'affichage — jamais celle
- *  des args sortants (`unredactArgs`), où deviner enverrait le guess à un serveur. */
+/** De-redact a model REPLY for display: the exact reverse pass, then the repair of the
+ *  MUTATED fakes above. This is the display `fromWire` function — never the
+ *  one for outward args (`unredactArgs`), where guessing would send the guess to a server. */
 export function unredactReply(input: string, vault: Vault): string {
   return restoreMutatedTokens(unredact(input, vault), vault);
 }

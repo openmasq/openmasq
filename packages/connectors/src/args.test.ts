@@ -6,8 +6,8 @@ describe("stringList — les trois formes qu'un modèle envoie pour une liste", 
     expect(stringList(["a@b.c", "d@e.f"])).toEqual(["a@b.c", "d@e.f"]);
   });
 
-  // Le cas du journal du 27/07/2026 : `Array.isArray` répondait `false`, le champ
-  // était abandonné en silence et l'événement créé SANS participants.
+  // The 27/07/2026 journal case: `Array.isArray` answered `false`, the field
+  // was silently dropped and the event created WITHOUT participants.
   it("le tableau JSON ENCODÉ EN CHAÎNE", () => {
     expect(stringList('["Équipe produit"]')).toEqual(["Équipe produit"]);
     expect(stringList('["a@b.c", "d@e.f"]')).toEqual(["a@b.c", "d@e.f"]);

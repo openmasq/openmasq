@@ -89,8 +89,8 @@ export class LocalFsConnection implements McpConnection {
       else p.reject(new Error(msg.error));
     });
     child.on("exit", (code) => {
-      // Mort INATTENDUE seulement (une fermeture volontaire pose `closed` d'abord, la
-      // fermeture de l'app passe par `isAppQuitting`) — rapportée NOMMÉE (audit 13/08).
+      // UNEXPECTED death only (a deliberate close sets `closed` first, an
+      // app quit goes through `isAppQuitting`) — reported NAMED (audit 13/08).
       if (!this.closed && this.child === child && !isAppQuitting()) {
         reportMainError("fs", `worker-exit-${code ?? "?"}`, new Error(`fs-worker mort (code ${code})`));
       }
@@ -142,9 +142,9 @@ export class LocalFsConnection implements McpConnection {
 
   async callTool(call: McpToolCall): Promise<McpToolResult> {
     try {
-      // QUI lit — le worker ou l'extraction de MAIN — est décidé par `readRoute` (pur,
-      // testé) : la scission `read_document` par format, ET le repli d'un `read_file`
-      // lancé sur un document, que ce fichier explique.
+      // WHO reads — the worker or MAIN's extraction — is decided by `readRoute` (pure,
+      // tested): the `read_document` split by format, AND the fallback for a `read_file`
+      // aimed at a document, that this file explains.
       const path = call.arguments?.path;
       const route = readRoute(call.name, path);
       if (route === "main-extract") {
@@ -152,8 +152,8 @@ export class LocalFsConnection implements McpConnection {
         const note = call.name === "read_file" ? extractedNote(basename(String(path))) : "";
         return { content: [{ type: "text", text: note + text }] };
       }
-      // Un `.docx` demandé par `read_file` prend la MÊME op que `read_document` : c'est la
-      // lecture par paragraphes que `edit_document` sait retrouver.
+      // A `.docx` requested by `read_file` takes the SAME op as `read_document`: it's the
+      // paragraph-by-paragraph read that `edit_document` knows how to find again.
       const op = route === "docx-worker" ? "read_document" : call.name;
       const text = await this.send("tool", op, call.arguments ?? {});
       // `find_files` is the mirror case: the worker walks (it owns the gate and the

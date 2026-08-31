@@ -110,12 +110,12 @@ describe("compileVault / segmentsWith — a matcher is REUSABLE", () => {
 describe("spanKindLabel — le repli-placeholder ne dit jamais « api token » pour un scramble", () => {
   it("un segment de chemin scramblé (valeur = mot pur) tombe sur « sensitive », pas « api token »", async () => {
     const { spanKindLabel } = await import("./segments");
-    // Journal 02/08 : `u5MZS9WVyjs7CB2 → juliensabourdin (api token)` — la VALEUR est un
-    // simple nom d'utilisateur, seul le FAKE (scramble alnum) ressemble à un jeton.
+    // Log 02/08: `u5MZS9WVyjs7CB2 → juliensabourdin (api token)` — the VALUE is a
+    // plain username, only the FAKE (alnum scramble) looks like a token.
     expect(spanKindLabel("u5MZS9WVyjs7CB2", "juliensabourdin")).toBe("sensitive");
-    // Un exactKind fourni gagne toujours…
+    // A supplied exactKind always wins…
     expect(spanKindLabel("u5MZS9WVyjs7CB2", "juliensabourdin", "path")).toBe("path");
-    // …et un couple dont la VALEUR a une forme (email) garde son étiquette précise.
+    // …and a pair whose VALUE has a shape (email) keeps its precise label.
     expect(spanKindLabel("jane@x.test", "marc@acme.com")).toBe("email");
   });
 });

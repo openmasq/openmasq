@@ -1,55 +1,55 @@
 /**
- * QUEL profil `userData` cette instance ouvre — décision pure, testée à côté.
+ * WHICH `userData` profile this instance opens — a pure decision, tested separately.
  *
- * Un profil, c'est la base SQLite du compte, les entrées de trousseau, `updates.json`,
- * les réglages, et le verrou d'instance unique. Deux instances qui se croient chez elles
- * dans le même dossier, c'est une base corrompue ; deux ENVIRONNEMENTS qui s'y croisent,
- * c'est pire — le coffre et les clés fournisseur d'un environnement relus par l'autre.
+ * A profile is the account's SQLite DB, keychain entries, `updates.json`,
+ * settings, and the single-instance lock. Two instances that think they own the same
+ * folder means a corrupted DB; two ENVIRONMENTS crossing paths there is worse —
+ * one environment's vault and provider keys read back by the other.
  *
- * ⚠️ **Le bug que ça ferme existe aujourd'hui.** Les deux builds partagent `appId`
- * (branding `desktopBundleId`) et `productName` (branding `name`), donc le même `userData` par défaut.
- * Basculer une install de staging vers production (la bascule privilégiée, qui réinstalle
- * le build de l'autre canal) fait donc ouvrir à l'app de PRODUCTION le coffre, les
- * conversations et les clés de STAGING. Rien ne l'empêchait.
+ * ⚠️ **The bug this closes exists today.** Both builds share `appId`
+ * (branding `desktopBundleId`) and `productName` (branding `name`), hence the same default `userData`.
+ * Switching an install from staging to production (the preferred switch, which reinstalls
+ * the other channel's build) therefore makes the PRODUCTION app open STAGING's vault,
+ * conversations and keys. Nothing prevented it.
  *
- * ⚠️ **Et la production garde le chemin NU — c'est la contrainte qui décide de tout le
- * reste.** Suffixer aussi la production enverrait chaque install existante sur un dossier
- * vide : conversations, coffre, clés, compte, tout « disparu » à la mise à jour suivante.
- * Le suffixe ne s'applique donc qu'aux environnements qui ne sont PAS la production. Les
- * installs de staging, elles, repartent d'un profil neuf — ce sont des données de test,
- * et c'est le prix, énoncé, de la séparation.
+ * ⚠️ **And production keeps the BARE path — that's the constraint that decides everything
+ * else.** Suffixing production too would send every existing install to an empty
+ * folder: conversations, vault, keys, account, all "gone" on the next update.
+ * The suffix therefore applies only to environments that are NOT production. Staging
+ * installs, for their part, start over with a fresh profile — that's test data,
+ * and it's the stated price of the separation.
  */
 import { DEFAULT_ENV, readEnvPointer, type EnvName } from "./environment";
 
-/** Ce que le profil peut valoir. `""` = le chemin par défaut d'Electron. */
+/** What the profile can be worth. `""` = Electron's default path. */
 export type ProfileSuffix = "" | " (Dev)" | " (Staging)" | " (Custom)";
 
 export interface ProfileInput {
-  /** L'environnement RÉSOLU de cette instance — le pointeur écrit s'il y en a un, sinon
-   *  celui du build (`environment.ts`). C'est ce qui rend le profil correct le jour où
-   *  l'environnement se choisit à l'exécution : le dossier suit le choix, pas le binaire. */
+  /** This instance's RESOLVED environment — the written pointer if there is one, else
+   *  the build's own (`environment.ts`). This is what keeps the profile correct the day
+   *  the environment gets chosen at runtime: the folder follows the choice, not the binary. */
   env: EnvName;
-  /** `app.isPackaged` — faux sous `electron-vite dev`. */
+  /** `app.isPackaged` — false under `electron-vite dev`. */
   isPackaged: boolean;
 }
 
 /**
- * Le suffixe à coller au `userData` par défaut.
+ * The suffix to append to the default `userData`.
  *
- * Trois cas, dans cet ordre, et l'ordre est la règle :
+ * Three cases, in this order, and the order is the rule:
  *
- * 1. **Non empaqueté ⇒ `" (Dev)"`.** Un `pnpm dev` et une app installée partagent
- *    `productName`, donc le même profil : un seul verrou d'instance (le second
- *    lancement se ferme) et une seule base SQLite ouverte deux fois. Le dev l'emporte
- *    sur l'environnement — un dev de build staging pointe déjà sur localhost
- *    (`.env.development`), il n'a rien à séparer de plus.
- * 2. **Environnement `staging` ⇒ `" (Staging)"`, `custom` ⇒ `" (Custom)"`.** Les deux qui
- *    se séparent — la pile auto-hébergée surtout : une adresse saisie ne doit JAMAIS
- *    relire le coffre et les clés de la production (`environments/customStack.ts`).
- * 3. **Sinon ⇒ `""`.** La production — et AUSSI un build empaqueté sans canal (un
- *    `pnpm run release` local), qui se résout en production : il partage ce profil
- *    aujourd'hui, et lui en inventer un autre déplacerait les données de quelqu'un sans
- *    qu'on l'ait demandé.
+ * 1. **Not packaged ⇒ `" (Dev)"`.** A `pnpm dev` and an installed app share
+ *    `productName`, hence the same profile: a single instance lock (the second
+ *    launch closes) and a single SQLite DB opened twice. Dev wins over
+ *    the environment — a dev build against staging already points at localhost
+ *    (`.env.development`), it has nothing more to separate.
+ * 2. **`staging` environment ⇒ `" (Staging)"`, `custom` ⇒ `" (Custom)"`.** The two that
+ *    separate out — the self-hosted stack especially: an entered address must NEVER
+ *    read back production's vault and keys (`environments/customStack.ts`).
+ * 3. **Otherwise ⇒ `""`.** Production — and ALSO a packaged build with no channel (a
+ *    local `pnpm run release`), which resolves to production: it shares this profile
+ *    today, and inventing another one for it would move someone's data without
+ *    it being asked for.
  */
 export function profileSuffix({ env, isPackaged }: ProfileInput): ProfileSuffix {
   if (!isPackaged) return " (Dev)";
@@ -58,12 +58,12 @@ export function profileSuffix({ env, isPackaged }: ProfileInput): ProfileSuffix 
   return "";
 }
 
-/** La part d'`app` dont ceci a besoin — injectée plutôt qu'importée, pour que ce module
- *  reste testable sans Electron (et que la décision au-dessus le reste tout court). */
-/** Ce que le reste de main doit savoir une fois le profil posé. */
+/** The part of `app` this needs — injected rather than imported, so this module
+ *  stays testable without Electron (and so the decision above stays one at all). */
+/** What the rest of main needs to know once the profile is set. */
 export interface ResolvedProfile {
   env: EnvName;
-  /** Le dossier `userData` de BASE — là où vit le pointeur, jamais le profil courant. */
+  /** The BASE `userData` folder — where the pointer lives, never the current profile. */
   baseUserData: string;
 }
 
@@ -74,20 +74,20 @@ export interface ProfileApp {
 }
 
 /**
- * Poser le profil de CETTE instance, et rendre ce que le reste de main doit savoir :
- * l'environnement retenu, et le dossier de BASE — celui-ci doit être capturé AVANT le
- * `setPath`, puisque après, `getPath("userData")` rend le profil suffixé, où le pointeur
- * ne vit pas. ⚠️ **Doit tourner avant `whenReady`** —
- * `userData` est lu pendant l'init d'Electron.
+ * Set THIS instance's profile, and return what the rest of main needs to know:
+ * the chosen environment, and the BASE folder — this must be captured BEFORE the
+ * `setPath`, since afterward `getPath("userData")` returns the suffixed profile, where
+ * the pointer doesn't live. ⚠️ **Must run before `whenReady`** —
+ * `userData` is read during Electron's init.
  *
- * `OPENMASQ_USER_DATA_DIR` l'emporte sur tout : c'est le crochet e2e, qui pointe un profil
- * jetable et déjà authentifié — il ne change PAS l'environnement, seulement le dossier.
- * Sinon : le pointeur écrit s'il existe, sinon l'environnement du build ; puis le suffixe,
- * et rien du tout quand il est vide — on ne réécrit pas le chemin de production avec sa
- * propre valeur.
+ * `OPENMASQ_USER_DATA_DIR` overrides everything: it's the e2e hook, which points at a
+ * disposable, already-authenticated profile — it does NOT change the environment, only the folder.
+ * Otherwise: the written pointer if it exists, else the build's environment; then the suffix,
+ * and nothing at all when it's empty — the production path is never rewritten with its
+ * own value.
  *
- * ⚠️ Le pointeur se lit dans le `userData` de BASE, donc AVANT tout `setPath` : c'est la
- * seule lecture possible, puisque le dossier final est ce qu'on est en train de décider.
+ * ⚠️ The pointer is read from the BASE `userData`, so BEFORE any `setPath`: it's the
+ * only possible read, since the final folder is what's currently being decided.
  */
 export function applyProfilePath(
   app: ProfileApp,
@@ -95,8 +95,8 @@ export function applyProfilePath(
   readPointer: (base: string, fallback: EnvName) => EnvName = readEnvPointer,
 ): ResolvedProfile {
   const baseUserData = app.getPath("userData");
-  // Sans pointeur, l'environnement est LA production — jamais déduit du canal (contrat de
-  // l'artefact unique : un candidat est le vrai logiciel en avance, pas un env de test).
+  // Without a pointer, the environment is PRODUCTION — never inferred from the channel (the
+  // single-artifact contract: a candidate is the real software ahead of time, not a test env).
   const env = readPointer(baseUserData, DEFAULT_ENV);
 
   if (vars.OPENMASQ_USER_DATA_DIR) {

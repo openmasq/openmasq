@@ -32,11 +32,11 @@ describe("lowercase-first name — the Title-cased occurrence still substitutes"
 
 describe("alias par mot — un mot du VOCABULAIRE n'en reçoit jamais", () => {
   /**
-   * ⚠️ RÉGRESSION mesurée par `bench/sourceFp.bench.ts`. Troisième chemin de la même
-   * panne que la particule (« de ») et la civilité (« MME ») : un détecteur propose
-   * « Signé Hugo SAVEL », le point de passage `filter.ts` ne voit rien à redire (la
-   * valeur ENTIÈRE est bien un nom), et l'alias par mot naît quand même — après quoi
-   * `applyVault` redacted CHAQUE « signé » de la conversation.
+   * ⚠️ REGRESSION measured by `bench/sourceFp.bench.ts`. Third path of the same
+   * failure as the particle (« de ») and the honorific (« MME »): a detector proposes
+   * « Signé Hugo SAVEL », the `filter.ts` choke point sees nothing wrong (the
+   * WHOLE value is indeed a name), and the per-word alias is born anyway — after which
+   * `applyVault` redacts EVERY « signé » in the conversation.
    */
   it("« Signé Hugo SAVEL » n'aliase pas « signé »", async () => {
     const vault: Record<string, string> = {};
@@ -46,7 +46,7 @@ describe("alias par mot — un mot du VOCABULAIRE n'en reçoit jamais", () => {
     });
     const vaulted = Object.values(vault).map((v) => v.toLowerCase());
     expect(vaulted).not.toContain("signé");
-    // …et le NOM, lui, reste bien redacted avec ses deux vrais mots.
+    // …and the NAME itself does stay redacted, with its two real words.
     expect(vaulted).toEqual(expect.arrayContaining(["hugo", "savel"]));
   });
 });

@@ -105,25 +105,25 @@ export interface RemoteRedactInput {
    *  (dictionary-invertible) and its fakes disagree with the client's for the same value.
    *  The server ignores it until redeployed (same rollout as `forced`/`avoid`). */
   salt?: number;
-  /** Ce que le modèle voit : `"fake"` (défaut) ou `"token"` (`[PERSON1]`). Sémantique
-   *  documentée une seule fois, dans `../model/CLAUDE.md`. Le mode est épinglé sur la
-   *  CONVERSATION, donc il doit rider ici aussi : sans lui, le moteur « cloud » renverrait
-   *  des faux à une conversation en mode jetons — la même conversation redacted de deux
-   *  façons selon le moteur choisi. Inerte tant que le serveur n'est pas redéployé (même
-   *  rollout que `forced`/`avoid`) : il ignore ce qu'il ne connaît pas, donc l'écart se
-   *  voit dans le journal plutôt que dans une fuite. */
+  /** What the model sees: `"fake"` (default) or `"token"` (`[PERSON1]`). Semantics
+   *  documented once, in `../model/CLAUDE.md`. The mode is pinned on the
+   *  CONVERSATION, so it must ride here too: without it, the "cloud" engine would return
+   *  fakes to a conversation in token mode — the same conversation redacted two
+   *  different ways depending on the engine chosen. Inert until the server is redeployed (same
+   *  rollout as `forced`/`avoid`): it ignores what it doesn't know, so the discrepancy
+   *  shows up in the log rather than in a leak. */
   mode?: "fake" | "token";
-  /** Élargit la dispense de notoriété aux MARQUES commerciales (intégrations MCP de
-   *  l'app comprises) — voir `PseudonymizeOptions.commercialNotoriety` (l'app le
-   *  calcule du NIVEAU : tout sauf Strict). Forwarded; the server ignores it until
+  /** Widens the notoriety exemption to COMMERCIAL brands (the app's own MCP
+   *  integrations included) — see `PseudonymizeOptions.commercialNotoriety` (the app
+   *  computes it from the LEVEL: everything except Strict). Forwarded; the server ignores it until
    *  redeployed (same rollout as `forced`/`avoid`) — fail-closed: via the remote
    *  engine the brands just STAY redacted until then. */
   commercialNotoriety?: boolean;
-  /** OPT-OUT de la dispense des PERSONNALITÉS (défaut TRUE = dispensées) — le niveau
-   *  Strict passe `false`. ⚠️ Rollout inverse du champ ci-dessus : tant que le serveur
-   *  n'est pas redéployé il IGNORE le champ et continue de dispenser les personnalités
-   *  — un Strict via moteur cloud les laisse donc lisibles jusqu'au redéploiement
-   *  (résiduel assumé, visible au journal ; le moteur local les redacted déjà). */
+  /** OPT-OUT of the PERSONALITIES exemption (default TRUE = exempt) — the
+   *  Strict level passes `false`. ⚠️ Reverse rollout from the field above: as long as the server
+   *  isn't redeployed it IGNORES the field and keeps exempting personalities
+   *  — a Strict level via the cloud engine therefore leaves them readable until redeployment
+   *  (accepted residual, visible in the log; the local engine already redacts them). */
   peopleNotoriety?: boolean;
   /** Skip the GPT-OSS pass; deterministic regex rules only. */
   patternsOnly?: boolean;
@@ -141,21 +141,21 @@ export interface RemoteRedactResult {
   vault: Vault;
   /** Set when the GPT-OSS pass failed; detection degraded to regex. */
   modelError?: string;
-  /** Le handshake de contrat : les options que le serveur a réellement appliquées.
-   *  ABSENT sur un serveur d'avant le handshake — même signal qu'une option
-   *  manquante : le client doit décider fail-closed ({@link remoteContractDowngrade}). */
+  /** The contract handshake: the options the server actually applied.
+   *  ABSENT on a server that predates the handshake — the same signal as a
+   *  missing option: the client must decide fail-closed ({@link remoteContractDowngrade}). */
   honored?: string[];
 }
 
 /**
- * Le serveur a-t-il IGNORÉ une option dont l'ignorance est une FUITE (pas un simple
- * écart de forme) ? Retourne la raison à montrer, ou null si le contrat tient.
+ * Did the server IGNORE an option whose being ignored is a LEAK (not a mere
+ * cosmetic discrepancy)? Returns the reason to display, or null if the contract holds.
  *
- * Les autres options « forwarded » ont chacune un filet (les `forced` ridant aussi en
- * `secrets`, le vault qui rejoue…) ou dégradent dans le sens PROTECTEUR (un
- * `commercialNotoriety` ignoré redacted plus, jamais moins). `peopleNotoriety: false`
- * est l'inverse : l'ignorer laisse les personnalités en clair sous l'étiquette Strict.
- * Chaque futur champ dont l'ignorance fuit s'ajoute ICI — le caller n'a qu'un appel.
+ * The other "forwarded" options each have a safety net (`forced` also riding in
+ * `secrets`, the vault that replays…) or degrade in the PROTECTIVE direction (an
+ * ignored `commercialNotoriety` redacts more, never less). `peopleNotoriety: false`
+ * is the opposite: ignoring it leaves personalities in clear under the Strict label.
+ * Every future field whose being ignored leaks gets added HERE — the caller only has one call site.
  */
 export function remoteContractDowngrade(
   input: Pick<RemoteRedactInput, "peopleNotoriety">,

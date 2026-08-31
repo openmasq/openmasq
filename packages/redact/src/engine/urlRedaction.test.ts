@@ -2,19 +2,19 @@ import { describe, it, expect } from "vitest";
 import { redact, pseudonymize, unredact } from "../index";
 
 /**
- * La catégorie « Adresses web (URL) » a DEUX comportements, et c'est voulu : c'est une
- * seule question posée à l'utilisateur (« une URL est-elle une donnée sensible ? »), donc
- * une seule bascule.
+ * The « Web addresses (URL) » category has TWO behaviours, and that's deliberate: it's a
+ * single question asked of the user (« is a URL sensitive data? »), hence
+ * a single toggle.
  *
- *  • ÉTEINTE (défaut) — l'adresse reste lisible, ET la porte de suppression empêche qu'une
- *    sous-partie soit masquée par erreur (nom de fichier d'image, jeton de cache d'une page
- *    consultée : le bruit qu'un audit avait signalé comme « néfaste »).
- *  • ACTIVE (à partir de Renforcé) — l'adresse entière est masquée.
+ *  • OFF (default) — the address stays readable, AND the suppression gate prevents a
+ *    sub-part from being masked by mistake (an image filename, a cache token of a page
+ *    visited: the noise an audit had flagged as « harmful »).
+ *  • ON (from Enhanced up) — the whole address is masked.
  *
- * ⚠️ Avant, la bascule n'avait que le premier comportement : le libellé promettait
- * « Adresses web complètes » et AUCUNE règle du moteur ne redact une URL. L'activer ne
- * faisait que lever la protection — donc empirait le résultat, ce que le testeur avait
- * observé sans pouvoir l'expliquer (« et en plus "intranet" se fait redact »).
+ * ⚠️ Before, the toggle only had the first behaviour: the label promised
+ * « Full web addresses » and NO engine rule redacted a URL. Turning it on only
+ * lifted protection — so it made the result worse, which the tester had
+ * observed without being able to explain it (« and on top of that "intranet" gets redacted »).
  */
 const OFF = { disabledKinds: ["url"] };
 const ON = { disabledKinds: [] as string[] };
@@ -30,7 +30,7 @@ describe("url ÉTEINTE — le défaut, pensé pour la navigation", () => {
   it("masque quand même une CLÉ portée par l'URL (exemption crédential, audit H-3)", () => {
     const out = redact("Lien : https://app.kelm.io?token=abc123secret", OFF).text;
     expect(out).not.toContain("abc123secret");
-    expect(out).toContain("app.kelm.io"); // l'adresse, elle, reste
+    expect(out).toContain("app.kelm.io"); // the address itself remains
   });
 });
 
@@ -59,12 +59,12 @@ describe("le faux d'URL — même nature, et réversible", () => {
     const out = await pseudonymize(src, { vault, ...ON });
     expect(out.text).toMatch(/^Lien : https:\/\/\w+\.\w+\.\w+\?token=\w+$/);
     expect(out.text).not.toContain("kelm");
-    expect(unredact(out.text, vault)).toBe(src); // le coffre rend l'adresse réelle
+    expect(unredact(out.text, vault)).toBe(src); // the vault restores the real address
   });
 
   it("ne rend PAS un faux de forme NOM — « allez sur Marc Charvet » serait illisible", async () => {
     const vault: Record<string, string> = {};
     const out = await pseudonymize("Va sur www.notre-intranet-kelm.fr", { vault, ...ON });
-    expect(out.text).toMatch(/\.\w+$/); // ça reste une adresse
+    expect(out.text).toMatch(/\.\w+$/); // it stays an address
   });
 });

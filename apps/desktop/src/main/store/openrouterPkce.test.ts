@@ -49,8 +49,8 @@ function stubExchange(body: unknown, ok = true) {
 const flushIo = () => new Promise<void>((r) => setImmediate(r));
 
 /** Begin a flow and wait until its (async) loopback listener has posed it.
- *  ⚠️ Renvoie la promesse ENVELOPPÉE : `await` sur une Promise<Promise<…>> aplatit les
- *  deux niveaux et attendrait la FIN du flux — le deadlock que ce helper évitait. */
+ *  ⚠️ Returns the WRAPPED promise: `await` on a Promise<Promise<…>> flattens the
+ *  two levels and would wait for the flow's END — the deadlock this helper avoided. */
 async function begun(): Promise<{ done: Promise<boolean> }> {
   const done = beginOpenRouterConnect();
   for (let i = 0; i < 100 && !hasPendingFlow(); i++) await flushIo();
@@ -119,7 +119,7 @@ describe("boucle locale — le retour recommandé (RFC 8252), sans course de sch
     expect(stored).toEqual([["openrouter", "sk-or-v1-loop"]]);
     const sent = calls[0].body as { code: string; code_verifier: string };
     expect(sent.code).toBe("c9");
-    expect(opened[0]).not.toContain(sent.code_verifier); // le verifier ne voyage jamais
+    expect(opened[0]).not.toContain(sent.code_verifier); // the verifier never travels
   });
 
   it("un GET hors /callback fait 404 et ne consomme rien ; sans code, page d'échec et flux intact", async () => {
@@ -132,7 +132,7 @@ describe("boucle locale — le retour recommandé (RFC 8252), sans course de sch
     const missing = await fetch(cb);
     expect(missing.status).toBe(200);
     expect(await missing.text()).toContain("réessayer");
-    expect(hasPendingFlow()).toBe(true); // annulation ≠ consommation : on peut réessayer
+    expect(hasPendingFlow()).toBe(true); // cancellation ≠ consumption: one can retry
     _resetOpenRouterFlow();
     await expect(done).resolves.toBe(false);
   });
@@ -143,7 +143,7 @@ describe("boucle locale — le retour recommandé (RFC 8252), sans course de sch
     const cb = launchedCallback();
     await fetch(`${cb}?code=c1`);
     await expect(done).resolves.toBe(true);
-    await expect(fetch(`${cb}?code=c2`)).rejects.toThrow(); // connexion refusée
+    await expect(fetch(`${cb}?code=c2`)).rejects.toThrow(); // connection refused
     expect(stored).toHaveLength(1);
   });
 });

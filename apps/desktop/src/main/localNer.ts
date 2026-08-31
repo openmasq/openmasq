@@ -58,16 +58,16 @@ interface Pending {
   timer: ReturnType<typeof setTimeout>;
 }
 
-// Cleanup backstop only — the renderer bounds a detection well before this (≤45 s :
-// `send/redactTimeout.ts`, appliqué par `makeRedactFn` ET par `raceRedactionWork` sur les
-// passes locales de l'envoi — cette seconde moitié a MANQUÉ un temps, et ce backstop
-// était alors la seule borne : bulle bloquée 5 min, bouton Stop mort). This just reaps a
+// Cleanup backstop only — the renderer bounds a detection well before this (≤45 s:
+// `send/redactTimeout.ts`, applied by `makeRedactFn` AND by `raceRedactionWork` on the
+// send's local passes — this second half MISSED a time for a while, and this backstop
+// was then the only bound: bubble stuck for 5 min, dead Stop button). This just reaps a
 // pending entry if the worker ever wedged without exiting.
 const DETECT_TIMEOUT_MS = 5 * 60 * 1000;
 // Kill the worker (a large RAM floor: weights + onnxruntime session) after this idle.
 const IDLE_MS = 10 * 60 * 1000;
-/** Queue de stderr du worker EMPAQUETÉ (borné) — la seule trace d'un échec de chargement
- *  natif ; relue uniquement dans le rapport d'une mort anormale. */
+/** Stderr queue of the PACKAGED worker (bounded) — the only trace of a native load
+ *  failure; read back only in the report of an abnormal death. */
 const STDERR_RING_MAX = 2000;
 let stderrRing = "";
 
@@ -109,12 +109,12 @@ function ensureChild(): UtilityProcess {
     // revision to forward, because the worker never fetches (see ner/worker.ts loadPredict).
     env: { NER_BUNDLED_DIR: BUNDLED },
     // DEV: inherit — a hard model-LOAD crash (onnxruntime native / import failure) is
-    // visible in the `pnpm dev` terminal. PACKAGED: "pipe" + anneau borné ci-dessous —
-    // la stderr est la SEULE trace d'un échec de chargement natif chez un utilisateur
-    // (audit 13/08 : en "ignore", la vraie erreur mourait dans le tuyau et le bug NER
-    // restait indiagnosticable). Sûr par invariant : le worker n'écrit JAMAIS `text`
-    // (le PII réel) sur stderr — voir ner/CLAUDE.md ; l'anneau n'est relu que dans un
-    // rapport de mort anormale, jamais imprimé.
+    // visible in the `pnpm dev` terminal. PACKAGED: "pipe" + the bounded ring below —
+    // stderr is the ONLY trace of a native load failure for a user
+    // (13/08 audit: on "ignore", the real error died in the pipe and the NER bug
+    // stayed undiagnosable). Safe by invariant: the worker NEVER writes `text`
+    // (the real PII) to stderr — see ner/CLAUDE.md; the ring is only read back in a
+    // report of an abnormal death, never printed.
     stdio: app.isPackaged ? "pipe" : "inherit",
   });
   if (app.isPackaged) {
@@ -130,16 +130,16 @@ function ensureChild(): UtilityProcess {
     if (msg.ok) p.resolve(msg.detections);
     else {
       // DEV DIAGNOSTIC: surface the worker's REAL error (model load / integrity / inference)
-      // instead of the renderer's generic "n'a pas pu se charger". No PII (it's an error
+      // instead of the renderer's generic "couldn't load". No PII (it's an error
       // string, not the input text). TODO: remove once the NER load bug is diagnosed.
       if (!app.isPackaged) console.error("[local-ner] detection failed:", msg.error);
       p.reject(new Error(msg.error));
     }
   });
   c.on("exit", (code) => {
-    // Une mort INATTENDUE seulement : l'éviction d'inactivité (`killChild` détache `child`
-    // AVANT de tuer) et la fermeture de l'app ne sont pas des crashs. Le rapport porte le
-    // NOM du worker + le code + la queue de stderr (jamais le texte — invariant du worker).
+    // An UNEXPECTED death only: idle eviction (`killChild` detaches `child`
+    // BEFORE killing) and the app closing are not crashes. The report carries the
+    // worker's NAME + the code + the stderr queue (never the text — the worker's invariant).
     if (child === c && !isAppQuitting()) {
       reportMainError(
         "ner",
@@ -157,20 +157,20 @@ function ensureChild(): UtilityProcess {
 }
 
 /**
- * Préchauffage BEST-EFFORT du moteur (fork + sha256 des poids + session onnxruntime :
- * plusieurs secondes sur une machine faible — le « premier redaction qui ne répond pas »).
- * Le renderer préchauffe déjà au montage (`state/effects/usePlatformEffects.ts`), mais une
- * seule fois : après l'éviction d'inactivité (IDLE_MS), le prochain envoi repayait tout à
- * froid. Appelé sur `browser-window-focus` : l'utilisateur revient ⇒ on rallume AVANT
- * qu'il tape. No-op si le worker vit déjà, et JAMAIS une garantie — l'envoi garde son
- * chemin fail-closed et remonte l'erreur réelle si le modèle ne charge pas (règle 7 :
- * un échec ici ne masque rien, il ne fait que renoncer à l'avance de chauffe).
+ * BEST-EFFORT warm-up of the engine (fork + sha256 of the weights + onnxruntime session:
+ * several seconds on a weak machine — the "first redaction that doesn't respond").
+ * The renderer already warms up on mount (`state/effects/usePlatformEffects.ts`), but only
+ * once: after idle eviction (IDLE_MS), the next send would re-pay the whole cold cost
+ * again. Called on `browser-window-focus`: the user comes back ⇒ we warm up BEFORE
+ * they type. No-op if the worker is already alive, and NEVER a guarantee — the send keeps
+ * its fail-closed path and surfaces the real error if the model doesn't load (rule 7:
+ * a failure here hides nothing, it only forgoes the warm-up head start).
  */
 export function warmLocalNer(): void {
-  if (!BUNDLED) return; // moteur indisponible : rien à chauffer, l'envoi le dira
-  if (child) return; // déjà chaud ou en cours de chargement
+  if (!BUNDLED) return; // engine unavailable: nothing to warm up, the send will say so
+  if (child) return; // already warm or currently loading
   detectLocalPii({ text: "bonjour" }).catch(() => {
-    /* best-effort — l'envoi remontera l'erreur réelle, lui */
+    /* best-effort — the send will surface the real error, that one will */
   });
 }
 

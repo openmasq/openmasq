@@ -67,12 +67,12 @@ export function isDistinctivePathSegment(seg: string): boolean {
   const s = seg.trim();
   if (s.length < 3) return false;
   if (GENERIC_PATH_SEGMENTS.has(s.toLowerCase())) return false;
-  // Un segment qui est un PAYS ou une MARQUE notoire (« factures/ovh ») reste VERBATIM,
-  // comme un segment générique : le vaulter minte un alias mot-à-mot que `applyVault`
-  // réapplique ensuite à la PROSE (« ovh - 2 rue kellermann » → « Ezy - … », journal
-  // 02/08) — la cascade même que les segments génériques évitent. Résiduel assumé : en
-  // Strict le nom de la marque reste lisible dans le chemin FAKE (le reste du chemin,
-  // lui, demeure redacted) ; l'alternative réécrivait la marque dans tout le texte.
+  // A segment that is a COUNTRY or a notorious BRAND (« invoices/ovh ») stays VERBATIM,
+  // like a generic segment: the vaulter mints a word-for-word alias that `applyVault`
+  // then reapplies to PROSE (« ovh - 2 rue kellermann » → « Ezy - … », 02/08
+  // log) — the very cascade generic segments avoid. Accepted residual: in
+  // Strict the brand name stays readable in the FAKE path (the rest of the path
+  // stays redacted); the alternative rewrote the brand throughout the whole text.
   if (isCountry(s) || isNotoriousEntity(s, "company", { commercial: true })) return false;
   const words = s.split(/\s+/).filter(Boolean);
   if (words.length > 0 && words.every((w) => isStopword(w) || GENERIC_PATH_SEGMENTS.has(w.toLowerCase()))) {

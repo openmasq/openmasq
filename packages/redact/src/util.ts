@@ -2,13 +2,13 @@
 export const capitalize = (s: string): string =>
   s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
-/** Retire les diacritiques (« Valère » → « Valere »). Une seule maison pour ce pli :
- *  il sert au genre (comparer un prénom à un lexique sans accents) ET à la composition
- *  d'une partie locale d'e-mail, où un accent n'a rien à faire — voir `identity/email.ts`. */
+/** Strips diacritics (« Valère » → « Valere »). One single home for this fold:
+ *  it serves gender detection (comparing a first name to an accent-free lexicon) AND
+ *  building an e-mail local part, where an accent has no business being — see `identity/email.ts`. */
 export const foldAccents = (s: string): string => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-/** Les variantes accentuées d'une lettre de base. Latin usuel — assez pour les langues que
- *  le produit voit, et volontairement pas un tableau Unicode complet. */
+/** The accented variants of a base letter. Common Latin — enough for the languages
+ *  the product sees, and deliberately not a full Unicode table. */
 const ACCENT_VARIANTS: Record<string, string> = {
   a: "àáâãäåāăą",
   c: "çćĉċč",
@@ -28,17 +28,17 @@ const ACCENT_VARIANTS: Record<string, string> = {
 };
 
 /**
- * Le motif d'une valeur, TOLÉRANT aux diacritiques : chaque lettre accentuable y accepte
- * ses variantes, dans les deux casses.
+ * The pattern for a value, TOLERANT of diacritics: every accentable letter accepts
+ * its variants, in both cases.
  *
- * ⚠️ Pourquoi c'est nécessaire à la passe INVERSE : le modèle RÉ-ORTHOGRAPHIE parfois un
- * faux. Un faux « Quémener » revient « Quéméner » — le modèle « corrige » vers la graphie
- * qu'il connaît. La suite de caractères diffère alors d'un seul signe, le motif ne
- * reconnaît plus son propre faux, et l'utilisateur lit LE FAUX à la place de sa donnée
- * (constaté le 15/08 sur une carte d'identité : le nom restitué, le prénom resté inventé).
+ * ⚠️ Why this is needed for the REVERSE pass: the model sometimes RE-SPELLS a
+ * fake. A fake « Quémener » comes back as « Quéméner » — the model "corrects" it toward the
+ * spelling it knows. The character sequence then differs by a single mark, the pattern no
+ * longer recognises its own fake, and the user reads THE FAKE instead of their data
+ * (observed on 15/08 on an identity card: the surname restored, the first name stayed invented).
  *
- * L'entrée est déjà échappée (`escapeRegExp`) : on ne touche qu'aux lettres, jamais aux
- * séquences d'échappement ni aux classes déjà posées.
+ * The input is already escaped (`escapeRegExp`): only the letters are touched, never the
+ * escape sequences or the classes already built.
  */
 export function accentTolerantSource(escaped: string): string {
   let out = "";
@@ -142,18 +142,18 @@ export function isWordGlued(text: string, start: number, matched: string): boole
     !(DIGIT.test(first) && CJKG.test(before));
   const gluedAfter =
     WORDISH.test(last) && WORDISH.test(after) && !(DIGIT.test(last) && CJKG.test(after));
-  // ⚠️ LE POINT EST UN LIANT DANS UN SIGLE, et `WORDISH` ne le voit pas — « R.C » à
-  // l'intérieur de « R.C.S. » n'est pas une valeur autonome, c'est un fragment. Une entrée
-  // de coffre de deux caractères réécrivait donc « 863 471 587 R.C.S. Paris » en
-  // « … GAP.S. Paris » : le modèle lit un registre qui n'existe pas (constat parcours du
-  // 15/08/2026, dont c'était l'hypothèse — reproduite le 16/08).
+  // ⚠️ THE DOT IS A BINDER INSIDE AN ACRONYM, and `WORDISH` doesn't see it — « R.C » inside
+  // « R.C.S. » isn't a standalone value, it's a fragment. A two-character vault
+  // entry therefore rewrote « 863 471 587 R.C.S. Paris » as
+  // « … GAP.S. Paris »: the model reads a registry that doesn't exist (found during a
+  // walkthrough on 15/08/2026, where this was the hypothesis — reproduced on 16/08).
   //
-  // C'est le pendant FORWARD du garde `isRisky` de la restitution, et il est borné trois
-  // fois : la valeur doit elle-même PORTER un point (c'est la signature d'un sigle — sans
-  // ça le garde attrapait « app » dans « app.notion.com », que la garde URL traite déjà, et
-  // il aurait laissé en clair un prénom court collé à un point) ; elle doit être COURTE
-  // (≤3 signes hors points) ; et le point voisin doit être INTERNE au jeton, suivi d'une
-  // lettre ou d'un chiffre — « le service R.C. » en fin de phrase garde sa substitution.
+  // This is the FORWARD counterpart of the `isRisky` guard on restitution, and it is bounded
+  // three ways: the value must itself CARRY a dot (that's the signature of an acronym — without
+  // it the guard caught « app » inside « app.notion.com », which the URL guard already handles, and
+  // it would have left a short first name glued to a dot in clear); it must be SHORT
+  // (≤3 characters excluding dots); and the neighbouring dot must be INTERNAL to the token, followed by a
+  // letter or a digit — « le service R.C. » at the end of a sentence keeps its substitution.
   const bare = matched.replace(/\./g, "");
   const afterNext = text[start + matched.length + 1] ?? "";
   const dottedFragment =
@@ -227,13 +227,13 @@ export function caseInsensitiveOccurrences(input: string, value: string): string
  *  A superset of {@link caseInsensitiveOccurrences}, onto which it FALLS BACK when the
  *  value can't be safely fuzzy-matched.
  *
- *  ⚠️ Ce repli était `input.includes(value)`, donc SENSIBLE À LA CASSE — et il est le
- *  SEUL chemin pour les valeurs que `entityVariantRegex` refuse : celles portant un
- *  CHIFFRE (« ACME2024 », « Projet A7 ») et les mots isolés de moins de 4 lettres
- *  (« IBM »). Or le Coffre promet « toujours redacted » : un terme saisi « ACME2024 »
- *  n'était pas reconnu écrit « acme2024 », ce qui faisait manquer l'escalade
- *  fail-closed du mode clair du navigateur (`agent/navClearRedact.ts`) — la page
- *  atteignait le modèle avec la valeur du Coffre en CLAIR. */
+ *  ⚠️ This fallback used to be `input.includes(value)`, so it was CASE-SENSITIVE — and it is
+ *  the ONLY path for values `entityVariantRegex` refuses: those carrying a
+ *  DIGIT (« ACME2024 », « Projet A7 ») and isolated words under 4 letters
+ *  (« IBM »). Yet the Vault promises "always redacted": a term entered as « ACME2024 »
+ *  wasn't recognised when written « acme2024 », which caused the fail-closed
+ *  escalation of the browser's clear mode (`agent/navClearRedact.ts`) to be missed — the page
+ *  reached the model with the Vault's value in CLEAR. */
 export function variantOccurrences(input: string, value: string): string[] {
   const re = entityVariantRegex(value);
   if (!re) return caseInsensitiveOccurrences(input, value);

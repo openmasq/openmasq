@@ -14,11 +14,11 @@ export interface CreditStatus {
   balance_cents: number;
   /** No budget left for billable (platform answer-model) usage. */
   blocked: boolean;
-  /** MODE GRATUIT du déploiement (`freeMode.ts`) : aucune enveloppe ne s'applique. Les
-   *  montants restent ce qu'ils sont — `consumed_cents` dit ce qui a été consommé, mais
-   *  `allotment_cents`/`balance_cents` valent 0 et ne veulent rien dire : un client qui
-   *  recalculerait `balance ≤ 0` lirait « bloqué » à tort. C'est `blocked` qui décide,
-   *  jamais une arithmétique côté client, et `unlimited` dit POURQUOI il est faux. */
+  /** FREE MODE of the deployment (`freeMode.ts`): no budget applies. The
+   *  amounts stay what they are — `consumed_cents` says what was consumed, but
+   *  `allotment_cents`/`balance_cents` are 0 and mean nothing: a client that
+   *  recomputed `balance ≤ 0` would wrongly read "blocked". It's `blocked` that decides,
+   *  never client-side arithmetic, and `unlimited` says WHY it's false. */
   unlimited: boolean;
   period_start: string;
   period_end: string;
@@ -38,20 +38,20 @@ function calendarMonth(): { start: Date; end: Date } {
 }
 
 /**
- * La fenêtre sur laquelle on compte la consommation.
+ * The window over which consumption is counted.
  *
- * ⚠️ **Une période PÉRIMÉE retombe sur le mois calendaire**, et ce n'est pas une
- * politesse : la consommation se compte `created_at ∈ [start, end)`, donc une fenêtre
- * passée ne contient AUCUN usage d'aujourd'hui — `consommé = 0`, solde plein, `blocked`
- * jamais vrai. Autrement dit, une période dépassée ne veut pas dire « il lui reste tout »,
- * elle veut dire **crédits illimités**, silencieusement.
+ * ⚠️ **An EXPIRED period falls back to the calendar month**, and that's not a
+ * courtesy: consumption is counted `created_at ∈ [start, end)`, so a period that has
+ * passed contains NO usage from today — `consumed = 0`, full balance, `blocked`
+ * never true. In other words, an overrun period doesn't mean "it still has everything left",
+ * it means **unlimited credits**, silently.
  *
- * Deux chemins y mènent pour de vrai : un abonnement OCTROYÉ (aucun webhook ne viendra
- * jamais faire glisser sa période) et un abonnement Stripe dont un `invoice.paid` s'est
- * perdu. Dans les deux cas, retomber sur le mois calendaire est la lecture FERMÉE — on
- * compte quelque chose plutôt que rien.
+ * Two paths genuinely lead there: a GRANTED subscription (no webhook will ever
+ * come slide its period forward) and a Stripe subscription whose `invoice.paid` got
+ * lost. In both cases, falling back to the calendar month is the CLOSED reading — we
+ * count something rather than nothing.
  *
- * Une période FUTURE (dérive d'horloge) est traitée pareil, pour la même raison.
+ * A FUTURE period (clock drift) is handled the same way, for the same reason.
  */
 export function creditPeriod(sub?: SubLike, now: Date = new Date()) {
   const paid = sub && (sub.subscription_status === "active" || sub.subscription_status === "trialing");
@@ -91,9 +91,9 @@ function build(allotment: number, consumed: number, start: Date, end: Date): Cre
   };
 }
 
-/** Le statut en MODE GRATUIT : jamais bloqué, aucune enveloppe. La consommation réelle
- *  est conservée (elle se lit encore dans l'onglet Usage) ; c'est le PLAFOND qui n'existe
- *  plus, pas la mesure. */
+/** Status in FREE MODE: never blocked, no budget. The actual consumption
+ *  is preserved (it still shows in the Usage tab); it's the CAP that no longer
+ *  exists, not the measurement. */
 export function unlimitedCredits(consumed: number, start: Date, end: Date): CreditStatus {
   return {
     allotment_cents: 0,
@@ -120,8 +120,8 @@ export async function getOrgCredits(
   const seats = Math.max(1, Number(count));
   const allotment = creditsCentsForAccountType(accountType) * seats;
   const consumed = await consumedCents(db, (q) => q.where({ id_organization }), start, end);
-  // Le mode gratuit se lit APRÈS la mesure, jamais à la place : la consommation reste
-  // vraie, seul le plafond disparaît (`freeMode.ts`).
+  // Free mode is read AFTER the measurement, never instead of it: consumption stays
+  // true, only the cap disappears (`freeMode.ts`).
   if (isFreeMode()) return unlimitedCredits(consumed, start, end);
   return build(allotment, consumed, start, end);
 }

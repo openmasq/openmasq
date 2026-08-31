@@ -133,11 +133,11 @@ export interface Message {
    */
   plotTag?: "graphique";
   /**
-   * Set on a USER message sent with a COMPÉTENCE: exactly like `plotTag`, the prompt
+   * Set on a USER message sent with a SKILL: exactly like `plotTag`, the prompt
    * rides `modelContent` (model-only) and the bubble shows a clickable tag instead of
    * the raw instruction.
    *
-   * `prompt` is a SNAPSHOT of what actually went out — the compétence can be edited or
+   * `prompt` is a SNAPSHOT of what actually went out — the skill can be edited or
    * deleted afterwards, and the tag must keep showing what this turn really sent, not
    * today's version of it.
    *
@@ -148,11 +148,11 @@ export interface Message {
    */
   competence?: { id: string; name: string; prompt?: string; servers?: string[] };
   /**
-   * ⚠️ LEGACY — l'ancien tag « workflow », plus jamais ÉCRIT, toujours LU. Les deux
-   * listes ont fusionné (une compétence porte des `servers`), mais ce champ est PERSISTÉ
-   * dans l'historique de tout le monde : le retirer effacerait l'étiquette de chaque tour
-   * déjà envoyé avec une routine, et la portée d'outils qu'un tour suivant en reprend.
-   * Donc : on écrit `competence`, on lit `competence ?? workflow`.
+   * ⚠️ LEGACY — the old "workflow" tag, never WRITTEN again, always READ. The two
+   * lists merged (a skill carries `servers`), but this field is PERSISTED
+   * in everyone's history: removing it would erase the label of every turn
+   * already sent with a routine, and the tool scope a following turn reuses from it.
+   * So: we write `competence`, we read `competence ?? workflow`.
    */
   workflow?: { id: string; name: string; prompt?: string; servers?: string[] };
   /** « Demander » target tag — like `competence`, model-only context line; shape + at-rest rule: `./askTarget.ts`. */
@@ -167,7 +167,7 @@ export interface Message {
   memoryNoted?: number;
   /**
    * Ids of the memory cards CREATED by that explicit-ask extraction — powers the
-   * caption's deep-link to the Mémoire page and its « Annuler » (remove the created
+   * caption's deep-link to the Memory page and its « Annuler » (remove the created
    * cards). OPAQUE ids (never entity names), resolved against the live memory store at
    * render — an id that no longer resolves means the card was since deleted/annulé.
    * Absent when the noted facts all merged into EXISTING cards (nothing cleanly
@@ -182,9 +182,9 @@ export interface Message {
    * only, resolved at render, never sensitive.
    */
   memoryUpdatedIds?: string[];
-  /** L'extraction explicite TOURNE — la légende « Mise en mémoire… ». Transitoire :
-   *  remplacé par `memoryNoted`/`…Failed` au résultat, purgé au chargement
-   *  (`clearStuckPending` — survivre au quit = passe morte). Not sensitive. */
+  /** The explicit extraction is RUNNING — the « Mise en mémoire… » caption. Transient:
+   *  replaced by `memoryNoted`/`…Failed` on the result, purged on load
+   *  (`clearStuckPending` — surviving a quit = a dead pass). Not sensitive. */
   memoryNotedPending?: boolean;
   /**
    * The explicit-ask extraction FAILED for real — model unreachable, or its reply
@@ -195,20 +195,20 @@ export interface Message {
    */
   memoryNotedFailed?: boolean;
   /**
-   * MÉMOIRE injected into THIS send (a USER message): the ids of the cards — plus the
+   * MEMORY injected into THIS send (a USER message): the ids of the cards — plus the
    * `"profile"` sentinel — whose facts rode the system content, redacted. Drives the
    * « Mémoire utilisée » caption, so the injection is visible instead of silent. Same
    * opacity rule as `memoryNotedIds`: ids only, resolved at render, never sensitive.
    */
   memoryUsed?: string[];
   /**
-   * MÉMOIRE quasi-ratée sur cet envoi (message UTILISATEUR) : les fiches qui auraient
-   * pu partir mais ne sont PAS parties pour une raison SURPRENANTE — le budget
-   * d'injection saturé, ou un prénom/nom trop courant volontairement ignoré seul
-   * (« Pierre » n'évoque pas la fiche « Pierre Marché », exprès). Rend le non-rappel
-   * diagnosticable au lieu d'invisible ; le non-rappel NORMAL (aucune mention) reste
-   * silencieux — le bruit apprendrait à ignorer la légende. Ids opaques + un code de
-   * raison, résolus au rendu : jamais de contenu, le régime de `memoryUsed`.
+   * MEMORY near-miss on this send (a USER message): the cards that could have
+   * gone out but did NOT, for a SURPRISING reason — the injection
+   * budget saturated, or a too-common first/last name deliberately ignored alone
+   * (« Pierre » doesn't evoke the « Pierre Marché » card, on purpose). Makes the non-recall
+   * diagnosable instead of invisible; NORMAL non-recall (no mention at all) stays
+   * silent — the noise would teach people to ignore the caption. Opaque ids + a reason
+   * code, resolved at render: never content, the same regime as `memoryUsed`.
    */
   memorySkipped?: { id: string; reason: "budget" | "homographe" }[];
   /**
@@ -226,12 +226,12 @@ export interface Message {
     tool: string;
     server: string;
     model: string;
-    /** `arg_error` = le modèle a mal formé les arguments et a renoncé ; `no_tool_used` =
-     *  il a répondu en prose sans jamais appeler d'outil (`tool` vide). Les deux méritent
-     *  « changez de modèle ». Les deux autres NON :
-     *  `unknown_tool` = le modèle a appelé un outil INEXISTANT (aucun modèle ne le peut) ;
-     *  `connector_error` = le CONNECTEUR a refusé un appel dont les arguments respectaient
-     *  son propre schéma — un modèle plus capable enverrait le même appel au même refus. */
+    /** `arg_error` = the model malformed the arguments and gave up; `no_tool_used` =
+     *  it answered in prose without ever calling a tool (`tool` empty). Both deserve
+     *  « changez de modèle ». The other two do NOT:
+     *  `unknown_tool` = the model called a NONEXISTENT tool (no model can do that);
+     *  `connector_error` = the CONNECTOR refused a call whose arguments matched
+     *  its own schema — a more capable model would send the same call to the same refusal. */
     kind: "arg_error" | "no_tool_used" | "unknown_tool" | "connector_error";
   };
   /**

@@ -155,10 +155,10 @@ export async function ocrImageLayout(
       const page = await doctrRecognize(buf);
       triedDoctr = true;
       if (preferDoctr(page)) {
-        // Une page gagnée par docTR peut contenir des régions rendues en DÉBRIS — la
-        // bande MRZ d'une CNI, détectée mais « - » (hors vocabulaire CTC, confiance
-        // au-dessus du plancher). Ces boîtes-là sont relues par Tesseract sur leur
-        // rectangle : le sens SÛR du routeur, région par région (`garbled.ts`).
+        // A page won by docTR can contain regions rendered as GARBAGE — the
+        // MRZ band of an ID card, detected but « - » (outside the CTC vocabulary, confidence
+        // above the floor). Those boxes are re-read by Tesseract on their
+        // rectangle: the SAFE direction of the router, region by region (`garbled.ts`).
         const suspects = garbledBoxes(page.words, page);
         let words = page.words;
         let text = page.text;
@@ -168,16 +168,16 @@ export async function ocrImageLayout(
             const relus = await tesseractRects(buf, lang, suspects);
             if (relus.length) {
               words = [...words.filter((w) => !isGarbledWord(w, suspects)), ...relus];
-              // QUARANTAINE, pas re-sérialisation : le texte docTR d'origine reste
-              // INTACT (les règles à contexte — « Né(e) le », le libellé CNI — jugent
-              // sur SA mise en page ; tout recomposer les cassait, mesuré), et les
-              // lignes relues s'apposent en bloc à la fin — même motif que le texte
-              // pivoté de `pdfLayout` (`reconstructLayout`, « quarantined »).
+              // QUARANTINE, not re-serialisation: the original docTR text stays
+              // INTACT (context rules — « Né(e) le », the ID-card label — judge
+              // on ITS layout; recomposing everything broke them, measured), and the
+              // re-read lines are appended as a block at the end — same pattern as the
+              // rotated text of `pdfLayout` (`reconstructLayout`, « quarantined »).
               text = `${page.text}\n\n${ocrWordsToText(relus)}`;
               engine = "doctr+tesseract";
             }
           } catch {
-            /* la relecture est un bonus — docTR seul, comme avant */
+            /* the re-read is a bonus — docTR alone, as before */
           }
         }
         return {
@@ -210,9 +210,9 @@ async function doctrRecognize(buf: Uint8Array): Promise<OcrPage> {
   return doctrEngine.recognize(buf);
 }
 
-/** Relecture CIBLÉE des régions-débris (`garbled.ts`) : un worker, un `SetRectangle` par
- *  boîte — l'API Tesseract ne ré-origine pas ses coordonnées, les mots relus retombent
- *  donc en place dans l'espace pleine image, prêts à fusionner avec ceux de docTR. */
+/** TARGETED re-read of garbage regions (`garbled.ts`): one worker, one `SetRectangle` per
+ *  box — the Tesseract API doesn't re-origin its coordinates, so the re-read words land
+ *  back in place in the full-image space, ready to merge with docTR's. */
 async function tesseractRects(buf: Uint8Array, lang: string, rects: readonly GarbledRect[]): Promise<OcrWord[]> {
   const createWorker = await loadTesseract();
   const worker = await createWorker(lang, 1, tesseract2Options());

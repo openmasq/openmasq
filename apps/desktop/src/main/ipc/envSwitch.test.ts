@@ -59,8 +59,8 @@ describe("resolvedEnvPayload — ce que le renderer reçoit", () => {
       const p = resolvedEnvPayload(name);
       expect(p.name).toBe(name);
       expect(p.backend).toBe(ENVIRONMENTS[name].backend);
-      // La clé Supabase est PUBLIABLE (c'est son nom) ; rien d'autre ne doit apparaître —
-      // en particulier aucun jeton de bypass, aucune clé fournisseur, aucun secret d'app.
+      // The Supabase key is PUBLISHABLE (that's its name); nothing else should appear —
+      // in particular no bypass token, no provider key, no app secret.
       expect(Object.keys(p).sort()).toEqual(
         ["admin", "backend", "name", "redactFn", "supabaseAnonKey", "supabaseUrl", "customStackAllowed", "customStack"].sort(),
       );
@@ -74,7 +74,7 @@ describe("resolvedEnvPayload — ce que le renderer reçoit", () => {
     const p = resolvedEnvPayload("custom", STACK, false);
     expect(p.customStackAllowed).toBe(false);
     expect(p.customStack).toBeNull();
-    // Et `custom` sans pile honorée est VIDE : jamais un repli sur la production.
+    // And `custom` without an honored stack is EMPTY: never a fallback to production.
     expect(p.backend).toBe("");
     expect(p.supabaseUrl).toBe("");
   });
@@ -87,7 +87,7 @@ describe("resolvedEnvPayload — ce que le renderer reçoit", () => {
     expect(c.customStack).toEqual(STACK);
     const prod = resolvedEnvPayload("production", STACK, true);
     expect(prod.backend).toBe(ENVIRONMENTS.production.backend);
-    expect(prod.customStack).toEqual(STACK); // pour pré-remplir l'écran et y revenir
+    expect(prod.customStack).toEqual(STACK); // to pre-fill the screen and return to it
   });
 });
 
@@ -116,9 +116,9 @@ describe("classifyEnvChange — la pile AUTO-HÉBERGÉE", () => {
   });
 
   it("deux environnements CONFIGURÉS portent des adresses distinctes — sinon basculer ne changerait rien", () => {
-    // Un build sans backend (le défaut du dépôt : aucune adresse cuite, voir
-    // `src/environments/index.ts`) n'a rien à distinguer — et la bascule ne lui sert de
-    // toute façon à rien. La propriété ne porte donc que sur ce qui EST fourni.
+    // A build with no backend (the repo's default: no baked address, see
+    // `src/environments/index.ts`) has nothing to distinguish — and switching serves it
+    // no purpose anyway. The property therefore only concerns what IS provided.
     const prod = resolvedEnvPayload("production").backend;
     const staging = resolvedEnvPayload("staging").backend;
     if (prod && staging) expect(prod).not.toBe(staging);

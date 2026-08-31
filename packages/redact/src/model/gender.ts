@@ -30,11 +30,11 @@ const MALE = new Set<string>(
     "emmanuel patrick pascal thierry laurent frederic stephane didier eric bruno herve " +
     "yannick fabrice arnaud cyril mustapha said omar ali hassan youssef nabil bilal " +
     "elias gabin nolan liam noe aaron ayoub imran malo timothe titouan ferdinand augustin " +
-    // Les prénoms des POOLS de faux (rares par construction — `fakes/pools.ts`). Sans eux
-    // le lexique répond `null` sur un substitut, et une VRAIE personne portant l'un de ces
-    // prénoms retombe sur le pool mixte : son faux peut changer de genre, ce qui fait
-    // écrire « Madame … née … elle » sur un homme — et un accord ne se restitue pas.
-    // `fakeNamePools.test.ts` épingle que chaque entrée d'un pool est classée du bon côté.
+    // The first names from the fake POOLS (rare by construction — `fakes/pools.ts`). Without them
+    // the lexicon answers `null` for a substitute, and a REAL person carrying one of these
+    // first names falls back to the mixed pool: their fake can change gender, which makes
+    // it write « Madame … née … elle » about a man — and an agreement doesn't reverse.
+    // `fakeNamePools.test.ts` pins that every entry of a pool is classified on the right side.
     "amaury anselme aurele aymeric basile celestin eudes firmin ghislain gontran hilaire " +
     "landry lubin severin thibaud valere"
   )
@@ -56,7 +56,7 @@ const FEMALE = new Set<string>(
     "louna jade lola inaya sarah lyna maelys ambre lou jeanne rose alba iris olivia " +
     "constance blanche philippine oriane albane domitille sixtine gabrielle raphaelle " +
     "veronica sabine muriel corinne chantal jacqueline ghislaine solange odette henriette " +
-    // Idem côté féminin (voir la note ci-dessus).
+    // Same on the female side (see the note above).
     "armelle bathilde blandine clotilde domitille eulalie gwenola hortense isaure mahaut " +
     "ninon odile sidonie solange tiphaine violaine"
   )

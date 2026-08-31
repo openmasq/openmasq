@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { detectIdentityDocFields } from "./identityDocs";
 
-/* Mesuré sur une vraie CNI scannée : 2 valeurs sur 5 attrapées, parce qu'une carte
-   n'écrit pas « Nom : X » mais « Nom X », et que l'OCR abîme les libellés eux-mêmes.
-   L'assouplissement est GATÉ sur l'en-tête du document — c'est ça qui le rend sûr. */
+/* Measured on a real scanned French ID card: 2 out of 5 values caught, because a card
+   doesn't write « Nom : X » but « Nom X », and OCR damages the labels themselves.
+   The relaxation is GATED on the document's header — that's what makes it safe. */
 const vals = (t: string) => detectIdentityDocFields(t).map((d) => [d.category, d.value]);
 
 const CARD = `REPUBLIQUE FRANCAISE
@@ -35,7 +35,7 @@ describe("champs de pièce d'identité (heuristique gated sur l'en-tête)", () =
   });
 
   it("dans une prose qui MENTIONNE la CNI, l'exigence ALL-CAPS retient les libellés usuels", () => {
-    // « nom commun », « le nom de la rue » : casse de prose → aucun match.
+    // « nom commun », « le nom de la rue » : prose casing → no match.
     const t = "J'ai perdu ma carte nationale d'identité hier. Le nom commun désigne une chose, et le nom de la rue a changé.";
     expect(vals(t)).toEqual([]);
   });

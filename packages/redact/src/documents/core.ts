@@ -32,10 +32,10 @@ export interface ExtractedFile {
   text: string;
   chars: number;
   error?: string;
-  /** La cause BRUTE derrière un `error` générique (`cleanErr` la cachait en console
-   *  seule — irrécupérable chez un utilisateur, audit 13/08). JAMAIS rendue dans l'UI
-   *  (l'allow-list de `cleanErr` reste la règle d'affichage) ; consommée par le journal
-   *  de débogage (`ocrDebug.ts`), qui vit dans le renderer et peut la tenir. */
+  /** The RAW cause behind a generic `error` (`cleanErr` used to hide it in console
+   *  only — unrecoverable for a user, 13/08 audit). NEVER rendered in the UI
+   *  (`cleanErr`'s allow-list remains the display rule); consumed by the debug
+   *  log (`ocrDebug.ts`), which lives in the renderer and can hold it. */
   rawCause?: string;
   /** Set when the SAFETY guard REFUSED the file (oversize / type-mismatch / bomb)
    *  — a deliberate rejection, not a parse failure. The UI shows it distinctly and
@@ -82,8 +82,8 @@ export interface OcrMeta {
   ms: number;
   /** Pages OCR'd (scanned PDF); absent for a single image. */
   pages?: number;
-  /** Le nombre TOTAL de pages du document — quand il dépasse `pages`, la lecture a été
-   *  partielle (plafond par défaut) et l'UI doit le dire, pas seulement le texte. */
+  /** The TOTAL number of pages in the document — when it exceeds `pages`, the read was
+   *  partial (default cap) and the UI must say so, not only the text. */
   pagesTotal?: number;
   /** docTR only: mean CTC confidence 0–1 of the recognised text (the routing signal). */
   confidence?: number;
@@ -127,8 +127,8 @@ export interface ExtractDeps {
   ocrPdf(
     bytes: Uint8Array,
     onProgress?: (done: number, pages: number) => void,
-    /** Plafond de pages (`Infinity` = « Lire tout » ; absent ⇒ défaut du binding, 10).
-     *  ⚠️ 3e position — la 2e est le callback (fonction dans `Math.min` = NaN). */
+    /** Page cap (`Infinity` = "Read all"; absent ⇒ binding default, 10).
+     *  ⚠️ 3rd position — the 2nd is the callback (function in `Math.min` = NaN). */
     maxPages?: number,
   ): Promise<string | { text: string; meta?: OcrMeta; layout?: OcrLayerPage[] }>;
   /** OCR an image KEEPING the positioned words, so the caller can paint the
@@ -155,10 +155,10 @@ export async function extractFromBytes(
   opts: {
     name: string;
     mime?: string;
-    /** Progression OCR (affichage seulement) : boucle par page d'un PDF scanné ;
-     *  0/1 → 1/1 autour de l'OCR d'une image ; rien pour un format sans OCR. */
+    /** OCR progress (display only): loops per page of a scanned PDF;
+     *  0/1 → 1/1 around an image's OCR; nothing for a format without OCR. */
     onOcrProgress?: (done: number, pages: number) => void;
-    /** « Lire tout » : lever le plafond d'OCR (défaut 10) — opt-in par GESTE utilisateur. */
+    /** "Read all": lift the OCR cap (default 10) — opt-in by user GESTURE. */
     ocrAllPages?: boolean;
   },
   deps: ExtractDeps,
@@ -184,7 +184,7 @@ export async function extractFromBytes(
       let textPages = typeof raw === "string" ? undefined : raw.layout;
       let ocrPages: OcrLayerPage[] | undefined;
       const layerMs = Date.now() - tText;
-      // ⚠️ Illisible == ABSENTE, sinon l'OCR n'est jamais tenté là où il faut (`readable.ts`).
+      // ⚠️ Unreadable == ABSENT, otherwise OCR is never attempted where it should be (`readable.ts`).
       const noLayer = text.length < PDF_TEXT_MIN || isUnreadableLayer(text);
       // A true SCAN whose thin text layer must be REPLACED by OCR (a header/footer over an
       // image-based form/RIB): empty layer, OR too SPARSE per page while those pages carry a
@@ -232,7 +232,7 @@ export async function extractFromBytes(
         // digital PDF the OCR layer is additive, so its failure must NOT break extraction
         // (we still have the exact text layer); we just get no second layer.
         if (noLayer) {
-          const c = cleanErr(e, OCR_FAILED); // le repli CONSTATE, il ne diagnostique pas — `errors.ts`
+          const c = cleanErr(e, OCR_FAILED); // the fallback STATES the fact, it does not diagnose — `errors.ts`
           return {
             name, kind: "pdf", text, chars: text.length, mime,
             error: `PDF sans couche texte — ${c.message}`, rawCause: c.raw,
@@ -243,7 +243,7 @@ export async function extractFromBytes(
     }
     if (IMAGE_EXT.has(ext)) {
       try {
-        // Une image = UNE passe OCR : le cadre 0/1 → 1/1 donne un état déterminé.
+        // An image = ONE OCR pass: the 0/1 → 1/1 frame gives a determined state.
         opts.onOcrProgress?.(0, 1);
         // Prefer the positioned OCR (keeps word boxes → visual redaction on the
         // scan); fall back to text-only OCR when the binding doesn't provide it.
@@ -282,7 +282,7 @@ export async function extractFromBytes(
       const raw = new TextDecoder("utf-8").decode(bytes);
       // CSV/TSV: parse the grid and re-emit header-annotated records (approach A) so the
       // detector sees each value beside its column label; raw text if no usable header.
-      // ⚠️ Le séparateur se DEVINE — `sniffDelimiter` dit ce que le supposer coûte.
+      // ⚠️ The separator is GUESSED — `sniffDelimiter` says what assuming it costs.
       if (ext === ".csv" || ext === ".tsv") {
         const grid = delimitedGrid(raw, ext === ".tsv");
         const text = gridToAnnotatedText(grid) || raw;

@@ -21,8 +21,8 @@ beforeEach(() => {
 const dump = () => JSON.stringify(mem);
 
 describe("le journal est PAR COMPTE", () => {
-  /* Le sous-comptage : ce que A a rapporté empêchait l'organisation de B de compter les
-     siennes, sur un tableau de bord qu'un administrateur lit comme la vérité. */
+  /* The under-counting: what A reported prevented B's organization from counting
+     its own, on a dashboard an administrator reads as the truth. */
   it("ce que A a rapporté n'aveugle pas B", async () => {
     account = "A";
     const a = await make().open();
@@ -60,20 +60,20 @@ describe("aucune valeur réelle ne dort sur le disque", () => {
     expect(dump()).not.toContain("0612345678");
   });
 
-  /* ⚠️ Le clair hérité doit partir MÊME déconnecté : attendre une connexion laisserait la
-     PII sur une machine où plus personne ne se reconnecte — le défaut le plus concret. */
+  /* ⚠️ Inherited plaintext must go EVEN while signed out: waiting for a connection would leave
+     PII on a machine nobody ever signs back into — the most concrete form of the bug. */
   it("l'ancien journal EN CLAIR est haché sur place, connecté ou non", async () => {
     mem[KEY] = JSON.stringify(["marc.rebour@example.fr"]);
-    await make().open(); // déconnecté
+    await make().open(); // signed out
     expect(dump()).not.toContain("marc.rebour@example.fr");
-    expect(mem[KEY]).toBeDefined(); // …mais l'info de dédoublonnage, elle, survit
+    expect(mem[KEY]).toBeDefined(); // …but the dedup info survives
   });
 
   it("le sel rend deux installations incomparables", async () => {
     account = "A";
     await (await make().open()).mark(["marc@ex.fr"]);
     const first = mem[`${KEY}:A`];
-    // Une autre installation : même valeur, autre sel.
+    // Another installation: same value, different salt.
     mem = {};
     account = "A";
     await (await make().open()).mark(["marc@ex.fr"]);
@@ -93,8 +93,8 @@ describe("l'héritage de l'ancienne clé", () => {
     expect(await (await make().open()).seen("deja@ex.fr")).toBe(false);
   });
 
-  /* Le supprimer sans l'avoir donné à personne ferait re-rapporter tout l'historique —
-     le SUR-comptage, l'autre moitié du défaut. */
+  /* Deleting it without having handed it to anyone would cause the entire history to be
+     re-reported — the OVER-counting, the other half of the bug. */
   it("déconnecté, il est conservé (haché) pour la prochaine connexion", async () => {
     mem[KEY] = JSON.stringify(["deja@ex.fr"]);
     await make().open();

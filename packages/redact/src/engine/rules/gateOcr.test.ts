@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { redact } from "../../index";
 
-/* Les gardes contextuelles sont ce qui transforme des chiffres banals en identifiant.
-   Mesuré sur une vraie carte d'identité scannée : docTR rend « CARTENATIONALE
-   D'IDENTITÉ » — un espace en moins — et le numéro de CNI partait en clair. */
+/* Context gates are what turns banal digits into an identifier.
+   Measured on a real scanned ID card: docTR renders « CARTENATIONALE
+   D'IDENTITÉ » — one space missing — and the CNI number left in clear. */
 describe("gardes contextuelles — tolérance au collage OCR", () => {
   it("attrape le numéro de CNI quand l'OCR a collé « CARTE » et « NATIONALE »", () => {
     const { matches } = redact("CARTENATIONALE D'IDENTITÉ No: 140335300272");
@@ -21,14 +21,14 @@ describe("gardes contextuelles — tolérance au collage OCR", () => {
   });
 
   it("n'ouvre pas la garde : sans le mot-clé, 12 chiffres restent 12 chiffres", () => {
-    // C'est tout l'intérêt d'une garde — une référence de commande n'est pas une pièce
-    // d'identité, et la tolérance ne doit pas transformer la règle en détecteur de chiffres.
+    // That's the whole point of a gate — an order reference isn't an identity
+    // document, and the tolerance must not turn the rule into a digit detector.
     const { matches } = redact("Référence de la commande : 140335300272");
     expect(matches.map((m) => m.value)).not.toContain("140335300272");
   });
 
   it("ne fusionne pas deux mots séparés par autre chose qu'un espace", () => {
-    // « carte / nationale » sur deux lignes d'un tableau n'est pas le libellé.
+    // « carte / nationale » across two lines of a table isn't the label.
     const { matches } = redact("carte\n\nquelque chose nationale d'identité 140335300272");
     expect(matches.map((m) => m.value)).not.toContain("140335300272");
   });

@@ -117,8 +117,8 @@ describe("« & Filles » / « & Frères » — le symétrique exact de « & Fils
   });
 
   it("mais la prose familiale reste de la prose", () => {
-    // Le garde KINSHIP borne le jeton de GAUCHE : c'est lui qui distingue une maison
-    // d'un partage entre enfants.
+    // The KINSHIP guard bounds the LEFT token: that's what distinguishes a firm
+    // from a split between children.
     expect(detectOrgContext("il partage entre père et filles le produit de la vente")).toEqual([]);
   });
 });
@@ -127,14 +127,14 @@ describe("dénominations en CAPITALES — le suffixe certifie le nom ENTIER", ()
   const v = (s: string) => detectOrgContext(s).map((d) => d.value);
 
   it("un mot générique CAPITALISÉ est de la matière de dénomination", () => {
-    // « ATELIER » / « SANTÉ » sont génériques — les élaguer laissait « VERNE » seul,
-    // sous le plancher de couverture des bancs. Le suffixe légal certifie le tout.
+    // « ATELIER » / « SANTÉ » are generic — trimming them left « VERNE » alone,
+    // below the benches' coverage floor. The legal suffix certifies the whole thing.
     expect(v("embauchée par ATELIER VERNE SARL à compter du 01/09/2021")).toContain("ATELIER VERNE");
     expect(v("Preneur : KELVEA SANTÉ SASU")).toContain("KELVEA SANTÉ");
   });
 
   it("un stopword TOUT-EN-CAPITALES compte dans un nom certifié par sa forme", () => {
-    // « vieux » est un stopword — « SCI DU VIEUX PORT » est une dénomination gravée.
+    // « vieux » is a stopword — « SCI DU VIEUX PORT » is an engraved denomination.
     expect(v("Bailleur : SCI DU VIEUX PORT")).toContain("DU VIEUX PORT");
   });
 
@@ -162,7 +162,7 @@ describe("suffixes nordiques (AS/AB/OY/BV) — sensibles à la casse, jamais l'a
   });
 
   it("l'anglais en capitales ne tire jamais", () => {
-    // « AS » suivi d'un mot en capitales est une tournure anglaise, pas un registre.
+    // « AS » followed by a capitalised word is an English phrase, not a registry.
     expect(v("SAVE AS PDF")).toEqual([]);
     expect(v("MARKED AS PAID")).toEqual([]);
     expect(v("AS SOON AS POSSIBLE")).toEqual([]);

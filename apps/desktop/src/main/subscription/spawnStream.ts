@@ -1,18 +1,18 @@
 /**
- * La boucle GÉNÉRIQUE d'un tour CLI headless : spawn, NDJSON → actions, annulation,
- * fail-closed. Extraite d'`engine.ts` au branchement de la 2ᵉ CLI (gemini) — la règle 9
- * interdit d'en copier une seconde : chaque CLI n'apporte que ses ARGS et son
- * INTERPRÉTEUR d'événements, le squelette est ici et nulle part ailleurs.
+ * The GENERIC loop of a headless CLI turn: spawn, NDJSON → actions, cancellation,
+ * fail-closed. Extracted from `engine.ts` when the 2nd CLI (gemini) was wired in — rule 9
+ * forbids copying a second one: each CLI only contributes its ARGS and its event
+ * INTERPRETER, the skeleton lives here and nowhere else.
  *
- * FAIL-CLOSED : une CLI absente, non authentifiée ou qui meurt REJETTE. On ne rend
- * jamais un flux vide silencieux, qui se lirait comme « le modèle n'a rien répondu ».
+ * FAIL-CLOSED: a CLI that's absent, unauthenticated, or that dies REJECTS. We never
+ * return a silent empty stream, which would read as « the model didn't answer ».
  */
 import { spawn } from "node:child_process";
 import type { StreamDone, StreamFinish, TokenUsage } from "@openmasq/llm";
 import { minimalChildEnv } from "../childEnv";
 import { NdjsonLineBuffer } from "./claudeStream";
 
-/** Ce qu'un interpréteur fait remonter. Tout le reste du flux est ignoré volontairement. */
+/** What an interpreter surfaces. Everything else in the stream is deliberately ignored. */
 export type CliAction =
   | { kind: "session"; id: string }
   | { kind: "text"; delta: string }
@@ -25,7 +25,7 @@ function raise(err: Error): never {
   throw err;
 }
 
-/** Erreur portant la sortie d'erreur de la CLI, pour que l'appelant la traduise. */
+/** Error carrying the CLI's error output, so the caller can translate it. */
 export class SubscriptionCliError extends Error {
   constructor(
     message: string,
@@ -40,23 +40,23 @@ export class SubscriptionCliError extends Error {
 export interface CliProcessOptions {
   binPath: string;
   args: string[];
-  /** Répertoire de travail DÉDIÉ et neutre — jamais un dossier de l'utilisateur. */
+  /** DEDICATED, neutral working directory — never a user folder. */
   cwd: string;
-  /** Variables AJOUTÉES à l'environnement minimal (ex. `GEMINI_CLI_HOME` neutre). */
+  /** Variables ADDED to the minimal environment (e.g. a neutral `GEMINI_CLI_HOME`). */
   extraEnv?: Record<string, string>;
-  /** Événement JSON (une ligne NDJSON) → action, ou null (ignoré). `sawDelta` permet à
-   *  un interpréteur de traiter différemment un récapitulatif final (piège claude n°3). */
+  /** JSON event (one NDJSON line) → action, or null (ignored). `sawDelta` lets an
+   *  interpreter treat a final recap differently (claude pitfall #3). */
   interpret: (event: unknown, sawDelta: boolean) => CliAction | null;
   signal?: AbortSignal;
   onReasoning?: (delta: string) => void;
-  /** Quota d'ABONNEMENT atteint — à afficher tel quel, jamais comme une erreur technique. */
+  /** SUBSCRIPTION quota reached — display as-is, never as a technical error. */
   onRateLimit?: (info: { status: string; resetsAt?: number; windowType?: string }) => void;
 }
 
 /**
- * Un tour. Rend les deltas de texte au fil de l'eau et retourne l'usage + la cause de
- * fin, exactement comme `streamAnthropic` dans `@openmasq/llm` — pour que le branchement
- * dans la couche provider soit un simple aiguillage.
+ * One turn. Streams text deltas as they arrive and returns usage + the finish
+ * reason, exactly like `streamAnthropic` in `@openmasq/llm` — so the wiring
+ * in the provider layer is a simple switch.
  */
 export async function* streamCliProcess(
   opts: CliProcessOptions,
@@ -88,7 +88,7 @@ export async function* streamCliProcess(
     try {
       event = JSON.parse(raw);
     } catch {
-      return; // une ligne non-JSON (bruit de démarrage) n'est pas une erreur
+      return; // a non-JSON line (startup noise) is not an error
     }
     const action = opts.interpret(event, sawDelta);
     if (!action) return;
@@ -141,9 +141,9 @@ export async function* streamCliProcess(
     finished = true;
   });
 
-  // Un Stop (abort) fait mourir l'enfant en SIGTERM ; certaines CLI émettent alors un
-  // dernier événement d'erreur (« context canceled » chez agy, mesuré) AVANT de
-  // fermer. Ce n'est pas une panne : l'utilisateur a annulé — on rend `cut`.
+  // A Stop (abort) kills the child with SIGTERM; some CLIs then emit one
+  // last error event (« context canceled » on agy, measured) BEFORE
+  // closing. This isn't a failure: the user cancelled — we return `cut`.
   const abortedCut = (): StreamDone | null =>
     opts.signal?.aborted ? { finish: "cut" } : null;
 
@@ -169,7 +169,7 @@ export async function* streamCliProcess(
         code,
       );
     }
-    // Sortie propre mais aucun `result` : le flux a été coupé, la réponse est tronquée.
+    // Clean exit but no `result`: the stream was cut, the response is truncated.
     return done ?? { finish: "cut" };
   } finally {
     opts.signal?.removeEventListener("abort", onAbort);

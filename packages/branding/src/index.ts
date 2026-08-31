@@ -1,47 +1,47 @@
 /**
- * @openmasq/branding — LA maison des VALEURS de marque (règle 9).
+ * @openmasq/branding — THE home of brand VALUES (rule 9).
  *
- * `branding.json` (à la racine de ce paquet) est le fichier de config par défaut : toute
- * VALEUR de marque qui atteint le runtime, le fil ou le disque (domaines, scheme de
- * deep-link, bundle id, adresse de support…) se DÉRIVE d'ici, jamais d'un littéral. Le
- * NOM lui-même sert aussi de namespace technique (scope npm, env `OPENMASQ_*`,
- * `window.openmasq`) depuis la migration du 24/08/2026 — sa simple apparition n'est plus
- * une faute ; `check:brand` garde désormais le retour de l'ANCIEN nom de code.
+ * `branding.json` (at the root of this package) is the default config file: every
+ * brand VALUE that reaches the runtime, the wire, or disk (domains, deep-link
+ * scheme, bundle id, support address…) is DERIVED from here, never from a literal. The
+ * NAME itself also serves as the technical namespace (npm scope, `OPENMASQ_*` env,
+ * `window.openmasq`) since the migration of 24/08/2026 — its mere appearance is no longer
+ * a mistake; `check:brand` now guards against the OLD codename's return instead.
  *
- * ⚠️ Beaucoup de ces valeurs sont PERSISTÉES ou SUR LE FIL : clés localStorage
- * (`brandKey("device-id")`), en-têtes HTTP (`brandHeader("sig")`), scheme de deep-link,
- * bundle id, domaines que le parc installé appelle. Changer une valeur du JSON change
- * donc le produit construit ET casse la compatibilité avec l'existant — c'est un choix
- * de marque, pas un refactor.
+ * ⚠️ Many of these values are PERSISTED or ON THE WIRE: localStorage keys
+ * (`brandKey("device-id")`), HTTP headers (`brandHeader("sig")`), deep-link scheme,
+ * bundle id, domains that the installed base calls. Changing a value in the JSON therefore
+ * changes the built product AND breaks compatibility with what's out there — it's a brand
+ * decision, not a refactor.
  */
 import config from "../branding.json";
 
 export interface BrandConfig {
-  /** Nom d'affichage du produit (UI, emails, titres de fenêtre). */
+  /** Product display name (UI, emails, window titles). */
   name: string;
-  /** Jeton minuscule : clés de stockage, en-têtes, noms d'artefacts (`<slug>-jail.exe`). */
+  /** Lowercase token: storage keys, headers, artifact names (`<slug>-jail.exe`). */
   slug: string;
-  /** Zone DNS primaire — les surfaces vivent sur ses sous-domaines (`app.`, `help.`…). */
+  /** Primary DNS zone — surfaces live on its subdomains (`app.`, `help.`…). */
   domain: string;
-  /** Domaine marketing secondaire. */
+  /** Secondary marketing domain. */
   altDomain: string;
-  /** Scheme des deep-links de l'app de bureau (`<protocol>://…`). */
+  /** Deep-link scheme of the desktop app (`<protocol>://…`). */
   protocol: string;
-  /** Identifiant de bundle de l'app de bureau (mac/Windows). */
+  /** Bundle identifier of the desktop app (mac/Windows). */
   desktopBundleId: string;
-  /** Hôte Sentry de l'organisation. */
+  /** Organization's Sentry host. */
   sentryHost: string;
-  /** Organisation HuggingFace qui héberge les ré-exports de modèles épinglés. */
+  /** HuggingFace organization that hosts the pinned model re-exports. */
   hfOrg: string;
-  /** Adresse de support affichée à l'utilisateur. */
+  /** Support address shown to the user. */
   supportEmail: string;
-  /** Zone d'envoi des emails transactionnels. */
+  /** Sending zone for transactional emails. */
   mailDomain: string;
 }
 
 export const BRAND: BrandConfig = config;
 
-/** `brandHost("app")` → `app.<domain>` ; sans argument → le domaine nu. */
+/** `brandHost("app")` → `app.<domain>`; with no argument → the bare domain. */
 export const brandHost = (sub?: string): string =>
   sub ? `${sub}.${BRAND.domain}` : BRAND.domain;
 
@@ -49,8 +49,8 @@ export const brandHost = (sub?: string): string =>
 export const brandUrl = (sub?: string, path = ""): string =>
   `https://${brandHost(sub)}${path}`;
 
-/** Clé/nom préfixé par le slug : `brandKey("device-id")` → `<slug>-device-id`. */
+/** Slug-prefixed key/name: `brandKey("device-id")` → `<slug>-device-id`. */
 export const brandKey = (suffix: string): string => `${BRAND.slug}-${suffix}`;
 
-/** En-tête HTTP propriétaire : `brandHeader("sig")` → `x-<slug>-sig`. */
+/** Proprietary HTTP header: `brandHeader("sig")` → `x-<slug>-sig`. */
 export const brandHeader = (suffix: string): string => `x-${BRAND.slug}-${suffix}`;

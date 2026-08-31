@@ -9,25 +9,25 @@ import {
 } from "../store/syncPass";
 
 /**
- * Les DEUX secrets de la synchro, exposés au renderer — regroupés ici plutôt qu'étalés
- * dans `index.ts` (règle 10 : la frontière de confiance se relit en famille, et celle-ci
- * a grandi le jour où le secret d'appareil a quitté le localStorage).
+ * The TWO sync secrets, exposed to the renderer — grouped here rather than spread
+ * across `index.ts` (rule 10: the trust boundary is reviewed as a family, and this one
+ * grew the day the device secret left localStorage).
  *
- * - **La phrase** est la clé E2E qui déchiffre les coffres de tous les appareils du compte.
- * - **Le secret d'appareil** (TOFU) prouve au serveur que cet appareil est bien celui-là ;
- *   c'est ce qui ferme l'usurpation de replica, l'id étant publié par la liste des appareils.
+ * - **The passphrase** is the E2E key that decrypts the vaults of every device on the account.
+ * - **The device secret** (TOFU) proves to the server that this device is indeed that one;
+ *   it's what closes off replica impersonation, since the id is published by the device list.
  *
- * Les deux vivent chiffrés au repos (`safeStorage`, `store/syncPass.ts`) — jamais dans le
- * localStorage du renderer, qui est du LevelDB Chromium en clair sur le disque.
+ * Both live encrypted at rest (`safeStorage`, `store/syncPass.ts`) — never in the renderer's
+ * localStorage, which is Chromium LevelDB in the clear on disk.
  *
- * ⚠️ Aucun `clear` pour le secret d'appareil : le perdre rend l'appareil INCONNU du serveur
- * (le hash stocké est celui de la première inscription et n'est jamais réécrit), ce qui
- * tuerait sa synchro sans recours. Ce n'est pas une action d'interface.
+ * ⚠️ No `clear` for the device secret: losing it makes the device UNKNOWN to the server
+ * (the stored hash is the one from the first registration and is never rewritten), which
+ * would kill its sync with no recourse. This isn't an interface action.
  */
 export function registerSyncSecretsIpc(): void {
-  // Le re-scope par compte. L'uid vient du renderer et finit dans un CHEMIN, donc il est
-  // assaini côté magasin (`accountSecretFile` → `safeUid`) : rien d'exploitable ne survit,
-  // et une valeur entièrement illégale vaut « déconnecté » (on n'écrit alors nulle part).
+  // Re-scoping per account. The uid comes from the renderer and ends up in a PATH, so it's
+  // sanitized on the store side (`accountSecretFile` → `safeUid`): nothing exploitable survives,
+  // and an entirely illegal value counts as "logged out" (nothing is written anywhere then).
   ipcMain.handle("sync:set-user", (_e, uid: unknown) =>
     setSyncPassUser(typeof uid === "string" ? uid : null),
   );

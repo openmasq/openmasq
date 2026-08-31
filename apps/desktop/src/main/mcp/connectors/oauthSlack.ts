@@ -31,10 +31,10 @@ const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms
 
 /** Poll the auth relay's single-use, verifier-gated retrieval until the token lands. */
 async function pollToken(base: string, verifier: string, deadline: number): Promise<string> {
-  // La DERNIÈRE panne rencontrée pendant l'attente : un relais 500, un TLS cassé et un
-  // consentement encore en attente produisaient tous le même « a expiré » plat après le
-  // timeout complet (audit 13/08 — le motif à copier était oauthMicrosoft, qui garde sa
-  // cause). Jamais de contenu : un statut ou un message d'erreur réseau.
+  // The LAST failure encountered while waiting: a relay 500, a broken TLS, and a
+  // consent still pending all produced the same flat "expired" after the
+  // full timeout (audit 13/08 — the pattern to copy was oauthMicrosoft, which keeps its
+  // cause). Never content: a status or a network error message.
   let lastFailure = "";
   while (Date.now() < deadline) {
     await sleep(POLL_INTERVAL_MS);

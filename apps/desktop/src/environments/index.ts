@@ -1,92 +1,92 @@
 /**
- * LES environnements que ce binaire sait joindre — une table, cuite, indexée par une clé
- * ÉNUMÉRÉE. Importée par main ET par le renderer (comme `src/sentry/`), pour qu'il n'y ait
- * qu'une maison à ces adresses.
+ * THE environments this binary knows how to reach — a table, baked, indexed by an
+ * ENUMERATED key. Imported by main AND by the renderer (like `src/sentry/`), so there's
+ * only one home for these addresses.
  *
- * ⚠️ **La clé est un nom, jamais une URL, et c'est la garde la plus importante du dossier.**
- * Ce qui est persisté puis relu est `"staging"` ou `"production"` — pas une adresse. Une URL
- * libre dans un fichier que l'utilisateur peut éditer (ou qu'un renderer compromis peut
- * faire écrire) vaudrait egress arbitraire depuis un binaire signé, notarisé, qui détient le
- * trousseau. Une clé inconnue retombe sur la production, jamais sur ce qu'elle prétend être.
+ * ⚠️ **The key is a name, never a URL, and it's the single most important guard in this file.**
+ * What gets persisted and read back is `"staging"` or `"production"` — not an address. A free
+ * URL in a file the user can edit (or that a compromised renderer could
+ * write) would amount to arbitrary egress from a signed, notarized binary holding the
+ * keychain. An unknown key falls back to production, never to whatever it claims to be.
  *
- * ⚠️ **L'environnement ne se DÉDUIT jamais du canal de mises à jour.** C'est le contrat de
- * l'artefact unique : le même binaire sert les candidats (canal beta) et le parc (canal
- * stable), et TOUS parlent à la production — un candidat est le vrai logiciel en avance,
- * pas un environnement de test. Le seul chemin vers staging est le pointeur ÉCRIT par la
- * bascule privilégiée (`main/environment.ts`). L'ancienne dérivation canal→environnement
- * (`envNameForChannel`) a été retirée pour que personne ne puisse la rebrancher « parce
- * qu'elle était là ».
+ * ⚠️ **The environment is NEVER DEDUCED from the updates channel.** That's the single-
+ * artifact contract: the same binary serves candidates (beta channel) and the fleet (stable
+ * channel), and ALL of them talk to production — a candidate is the real software ahead of
+ * schedule, not a test environment. The only path to staging is the pointer WRITTEN by the
+ * privileged switch (`main/environment.ts`). The old channel→environment derivation
+ * (`envNameForChannel`) was removed so no one could plug it back in "because
+ * it was there".
  *
- * ⚠️ Ces valeurs ne sont PAS des secrets : des adresses publiques et la clé publiable
- * Supabase. Le bypass Vercel de staging n'est PAS ici et n'a pas à y être — un artefact
- * unique le livrerait à tout le monde (voir `apps/desktop/CLAUDE.md`).
+ * ⚠️ These values are NOT secrets: public addresses and the Supabase publishable
+ * key. Staging's Vercel bypass is NOT here and has no business being here — a single
+ * artifact would ship it to everyone (see `apps/desktop/CLAUDE.md`).
  */
 /**
- * ⚠️ **AUCUNE adresse n'a de défaut committé, et c'est le contrat open source.** Un
- * dépôt public dont le build retomberait sur les serveurs de la marque enverrait le
- * trafic de chaque fork chez elle, et proposerait à ses utilisateurs de se connecter à
- * un SaaS qui n'est pas le leur. Chaque service arrive donc au BUILD ; **vide ⇒ la
- * capacité n'existe pas** (ni comptes, ni facturation, ni synchro, ni passerelle), et
- * l'app tourne entièrement sur la machine : clés perso, modèles locaux, CLI
- * d'abonnement, redaction on-device. Même règle que les identifiants OAuth et le DSN
- * Sentry (`scripts/buildDefines.ts`), étendue aux adresses. Comment fournir sa propre
- * pile : le dépôt privé `infra`.
+ * ⚠️ **NO address has a committed default, and that's the open-source contract.** A
+ * public repo whose build fell back to the brand's servers would send each fork's
+ * traffic back to it, and would offer its users a connection to a
+ * SaaS that isn't theirs. Each service therefore arrives at BUILD time; **empty ⇒ the
+ * capability doesn't exist** (no accounts, no billing, no sync, no gateway), and
+ * the app runs entirely on the machine: personal keys, local models, subscription
+ * CLI, on-device redaction. Same rule as the OAuth credentials and the Sentry
+ * DSN (`scripts/buildDefines.ts`), extended to addresses. How to supply your own
+ * stack: the private `infra` repo.
  *
- * ⚠️ **Et même fournies, l'API et la passerelle n'entrent qu'avec `OPENMASQ_BILLING=1`**
- * (`scripts/buildDefines.ts` `serviceDefines`) : sans la porte, le build les cuit vides.
- * Le projet Supabase, lui, n'est pas derrière elle — l'authentification reste joignable
- * seule, comme le relais Slack, les analytics et les mises à jour.
+ * ⚠️ **And even when supplied, the API and gateway only get in with `OPENMASQ_BILLING=1`**
+ * (`scripts/buildDefines.ts` `serviceDefines`): without the gate, the build bakes them empty.
+ * The Supabase project, though, isn't behind it — auth stays reachable
+ * on its own, like the Slack relay, analytics and updates.
  */
 
 /**
- * Les identifiants du PROJET Supabase ne sont PLUS committés : ils arrivent au BUILD
- * (`OPENMASQ_SUPABASE_URL` / `OPENMASQ_SUPABASE_PUBLISHABLE_KEY`, cuits en littéraux
- * par les `define` d'electron.vite.config.ts — main ET renderer). Vides ⇒ l'app tourne
- * SANS comptes : `auth.ts` ne construit pas de client et le créneau `host.auth` reste
- * absent (pas de porte de connexion) — fail-closed, jamais le projet de quelqu'un d'autre.
- * En dev, `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` (`.env.development` → GoTrue
- * local) l'emportent toujours (`appEnv.ts`).
+ * The Supabase PROJECT credentials are NO LONGER committed: they arrive at BUILD time
+ * (`OPENMASQ_SUPABASE_URL` / `OPENMASQ_SUPABASE_PUBLISHABLE_KEY`, baked into literals
+ * by electron.vite.config.ts's `define`s — main AND renderer). Empty ⇒ the app runs
+ * WITHOUT accounts: `auth.ts` builds no client and the `host.auth` slot stays
+ * absent (no login gate) — fail-closed, never someone else's project.
+ * In dev, `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` (`.env.development` → local
+ * GoTrue) always win (`appEnv.ts`).
  */
 const SUPABASE_URL = process.env.OPENMASQ_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY ?? "";
 
-/** L'API distante (comptes, facturation, synchro, avis, orga) et la passerelle
- *  (redaction cloud + inférence des modèles inclus), par environnement. Vides ⇒ ces
- *  créneaux d'hôte n'existent pas (`appEnv.ts` : `BACKEND_CONFIGURED` /
- *  `GATEWAY_CONFIGURED`). La console d'admin n'a PAS sa variable : elle est servie par
- *  le backend, donc dérivée de lui — deux adresses pour un seul déploiement seraient
- *  deux occasions de diverger (règle 9). */
+/** The remote API (accounts, billing, sync, reviews, org) and the gateway
+ *  (cloud redaction + inference for included models), per environment. Empty ⇒ these
+ *  host slots don't exist (`appEnv.ts`: `BACKEND_CONFIGURED` /
+ *  `GATEWAY_CONFIGURED`). The admin console has NO variable of its own: it's served by
+ *  the backend, so derived from it — two addresses for a single deployment would be
+ *  two chances to diverge (rule 9). */
 const BACKEND = process.env.OPENMASQ_BACKEND_URL ?? "";
 const BACKEND_STAGING = process.env.OPENMASQ_BACKEND_URL_STAGING ?? "";
 const GATEWAY = process.env.OPENMASQ_GATEWAY_URL ?? "";
 const GATEWAY_STAGING = process.env.OPENMASQ_GATEWAY_URL_STAGING ?? "";
 
-/** La console d'admin vit SOUS le backend (`/admin`). Pas de backend, pas de console —
- *  jamais un `/admin` orphelin qui ouvrirait une page blanche. */
+/** The admin console lives UNDER the backend (`/admin`). No backend, no console —
+ *  never an orphaned `/admin` that would open a blank page. */
 const adminOf = (backend: string): string =>
   backend ? `${backend.replace(/\/+$/, "")}/admin` : "";
 
-/** Les environnements CUITS — ceux dont la table ci-dessous porte les adresses. */
+/** The BAKED environments — the ones whose addresses the table below carries. */
 export type BuiltEnvName = "production" | "staging";
 
 /**
- * Tous les noms qu'un pointeur peut porter. `"custom"` est la pile AUTO-HÉBERGÉE
- * (`customStack.ts`) : ses adresses ne sont pas ici, elles vivent dans le pointeur écrit
- * par main — et le nom n'est HONORÉ que dans un build qui l'autorise
- * (`OPENMASQ_ALLOW_CUSTOM_STACK=1`) ; ailleurs il se relit comme la production.
+ * All the names a pointer can carry. `"custom"` is the SELF-HOSTED stack
+ * (`customStack.ts`): its addresses aren't here, they live in the pointer written
+ * by main — and the name is HONORED only in a build that allows it
+ * (`OPENMASQ_ALLOW_CUSTOM_STACK=1`); elsewhere it reads back as production.
  */
 export type EnvName = BuiltEnvName | "custom";
 
 export interface EnvUrls {
-  /** L'API distante de l'app (comptes, facturation, synchro, avis). */
+  /** The app's remote API (accounts, billing, sync, reviews). */
   backend: string;
-  /** La console d'administration d'organisation, ouverte dans le navigateur système. */
+  /** The organization admin console, opened in the system browser. */
   admin: string;
-  /** Le projet Supabase et sa clé PUBLIABLE (identifiants client, publics par nature). */
+  /** The Supabase project and its PUBLISHABLE key (client credentials, public by nature). */
   supabaseUrl: string;
   supabaseAnonKey: string;
-  /** Le conteneur gateway/redact-fn (redaction cloud + inférence des modèles inclus).
-   *  Hostnames canoniques tenus par Terraform, côté infra. */
+  /** The gateway/redact-fn container (cloud redaction + inference for included models).
+   *  Canonical hostnames held by Terraform, on the infra side. */
   redactFn: string;
 }
 
@@ -101,26 +101,26 @@ export const ENVIRONMENTS: Record<BuiltEnvName, EnvUrls> = {
   staging: {
     backend: BACKEND_STAGING,
     admin: adminOf(BACKEND_STAGING),
-    // Le MÊME projet Supabase que la production : les comptes sont partagés, seule
-    // l'API de l'app diffère. Le jour où staging aura son propre projet, c'est une
-    // seconde paire de variables à introduire ici, et nulle part ailleurs.
+    // The SAME Supabase project as production: accounts are shared, only
+    // the app's API differs. The day staging gets its own project, that's a
+    // second pair of variables to introduce here, and nowhere else.
     supabaseUrl: SUPABASE_URL,
     supabaseAnonKey: SUPABASE_PUBLISHABLE_KEY,
     redactFn: GATEWAY_STAGING,
   },
 };
 
-/** La valeur par défaut, et la réponse à toute entrée qu'on ne reconnaît pas. */
+/** The default value, and the answer to any input we don't recognize. */
 export const DEFAULT_ENV: BuiltEnvName = "production";
 
-/** `true` si `value` est un nom d'environnement connu — l'allow-list, en une fonction.
- *  `"custom"` en fait partie : c'est un NOM ; ce que le nom vaut (des adresses saisies)
- *  se décide ailleurs, et seulement dans un build qui l'autorise. */
+/** `true` if `value` is a known environment name — the allow-list, as a function.
+ *  `"custom"` is part of it: it's a NAME; what the name is worth (entered addresses)
+ *  is decided elsewhere, and only in a build that allows it. */
 export function isEnvName(value: unknown): value is EnvName {
   return value === "production" || value === "staging" || value === "custom";
 }
 
-/** `true` pour un environnement dont les adresses sont CUITES (indexable dans la table). */
+/** `true` for an environment whose addresses are BAKED (indexable in the table). */
 export function isBuiltEnvName(value: unknown): value is BuiltEnvName {
   return value === "production" || value === "staging";
 }

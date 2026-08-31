@@ -2,11 +2,11 @@ import { describe, it, expect } from "vitest";
 import { pseudonymize } from "../../index";
 import { buildFakeWordIndex } from "./fakeWordIndex";
 
-/* Régression d'un incident réel : un drop de CSV mint «20000 Ajaccio», «…76000 Rouen» et
-   «Hugo» ; la passe suivante (injection mémoire, même vault) mint «Ajaccio», «Rouen» et
-   «hugo» comme faux AUTONOMES d'autres valeurs. Le modèle répond sur la géographie fictive
-   du CSV, et la un-redaction réécrit son «Rouen (76000)» en «Paris (76000)». Un mot = une
-   identité, c'est l'invariant épinglé ici. */
+/* Regression from a real incident: a CSV drop mints «20000 Ajaccio», «…76000 Rouen» and
+   «Hugo»; the next pass (memory injection, same vault) mints «Ajaccio», «Rouen» and
+   «hugo» as STANDALONE fakes of other values. The model answers about the CSV's
+   fictional geography, and de-redaction rewrites its «Rouen (76000)» into «Paris (76000)». One word = one
+   identity, that's the invariant pinned here. */
 
 describe("FakeWordIndex — le prédicat", () => {
   const idx = buildFakeWordIndex({
@@ -31,16 +31,16 @@ describe("FakeWordIndex — le prédicat", () => {
   });
 
   it("EXEMPTE le même lieu — la cohérence de bloc géo est voulue", () => {
-    // «Beauvais» seul pour le réel «Villejuif» pendant que «60000 Beauvais» couvre
-    // «94800 Villejuif» : les deux réels décrivent la même place, un-redaction correct.
+    // «Beauvais» alone for the real «Villejuif» while «60000 Beauvais» covers
+    // «94800 Villejuif»: both reals describe the same place, correct de-redaction.
     expect(idx.clashes("Beauvais", "Villejuif")).toBe(false);
-    // Le même mot pour un réel SANS rapport reste un clash — le cas de corruption.
+    // The same word for an UNRELATED real stays a clash — the corruption case.
     expect(idx.clashes("Beauvais", "F. Faure")).toBe(true);
   });
 
   it("n'indexe pas les mots-outils qui se répètent entre faux PAR CONSTRUCTION", () => {
-    // «avenue», «rue», «saint»… se partagent entre adresses fictives sans ambiguïté :
-    // jamais clé de vault à eux seuls, donc jamais un-redacted seuls.
+    // «avenue», «rue», «saint»… are shared between fake addresses without ambiguity:
+    // never a vault key on their own, so never de-redacted on their own.
     expect(idx.clashes("96 avenue de la Gare", "13 Bd de Beaumont, 35000 Rennes")).toBe(false);
   });
 
@@ -52,7 +52,7 @@ describe("FakeWordIndex — le prédicat", () => {
 
 describe("allocateur — l'invariant tient de bout en bout", () => {
   it("aucun faux minté ne partage un mot distinctif avec les faux d'une passe PRÉCÉDENTE", async () => {
-    // Le vault arrive chargé des faux d'un drop antérieur (la situation de l'incident).
+    // The vault arrives already loaded with fakes from an earlier drop (the incident's situation).
     const vault: Record<string, string> = {
       "40 avenue Victor Hugo, 76000 Rouen": "59 Rue Alexandre Duval, 35000 Rennes",
       "20000 Ajaccio": "35760 Rennes",
@@ -60,7 +60,7 @@ describe("allocateur — l'invariant tient de bout en bout", () => {
     };
     const before = new Set(Object.keys(vault));
     const preIdx = buildFakeWordIndex(vault);
-    // Une passe qui mint des lieux et des noms nouveaux, quel que soit le tirage du faussaire.
+    // A pass that mints new places and names, whatever the faker's draw.
     await pseudonymize(
       "Le rendez-vous est fixé à Vitry-sur-Seine avec Maroussia Delrieux, puis retour à Paris chez M. Vernaux.",
       { vault },

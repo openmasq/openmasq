@@ -4,35 +4,35 @@ import { entityKey } from "../../util";
 import { CATEGORY_TOKEN } from "../../highlight/tokens";
 
 /**
- * Phase 3, MODE JETONS — l'alternative à `allocate.ts` quand le modèle ne doit voir que
- * des marqueurs (`[PERSON1]`) et jamais un faux vraisemblable.
+ * Phase 3, TOKEN MODE — the alternative to `allocate.ts` when the model must only see
+ * markers (`[PERSON1]`) and never a believable fake.
  *
- * Ce mode ne s'oppose pas à l'allocation de faux : il la SUPPRIME. Tout ce que
- * `allocate.ts` porte — pool de faux, recherche de collision sur 60 essais, cohérence géo
- * par bloc, `avoid`, index de mots, `salt`, alias e-mail/nom/lieu — n'existe que pour
- * qu'un faux reste plausible ET ne percute ni le texte ni un autre faux. Un jeton n'est
- * plausible pour rien et ne peut percuter personne : la seule chose à garantir ici est
- * l'unicité de la clé dans le coffre.
+ * This mode doesn't compete with fake allocation: it REPLACES it. Everything
+ * `allocate.ts` carries — fake pool, 60-attempt collision search, block-level geo
+ * coherence, `avoid`, word index, `salt`, email/name/place aliases — exists only so
+ * a fake stays plausible AND doesn't collide with the text or another fake. A token isn't
+ * plausible for anything and can't collide with anyone: the only thing to guarantee here
+ * is the key's uniqueness in the vault.
  *
- * Ce qui est CONSERVÉ, parce que ce sont des invariants du produit et pas des propriétés
- * des faux :
- *  - **une valeur réelle → un seul jeton**, sur toute la conversation (le coffre, relu à
- *    chaque tour, est la mémoire de ce choix) ;
- *  - **une entité → un seul NUMÉRO**, quelle que soit sa casse. `applyVault` est
- *    sensible à la casse, donc chaque casse a besoin de sa propre entrée de coffre ;
- *    elles partagent le numéro et ne diffèrent que par la casse du jeton
- *    (`[COMPANY1]` / `[Company1]` / `[company1]`), ce qu'un modèle lit comme un seul
- *    jeton alors que trois entrées distinctes restent réversibles chacune vers SA casse.
- *    Numéroter par valeur donnerait `[COMPANY1]`/`[COMPANY2]` pour une seule société —
- *    le modèle raisonnerait sur deux entreprises.
- *  - **jamais de valeur réelle laissée sur le fil** : si la clé calculée est déjà prise
- *    (ou présente telle quelle dans le texte de l'utilisateur), on incrémente jusqu'à
- *    trouver libre. La boucle termine — le compteur est monotone.
+ * What is KEPT, because these are product invariants and not properties
+ * of the fakes:
+ *  - **one real value → a single token**, across the whole conversation (the vault, reread
+ *    every turn, is the memory of that choice);
+ *  - **one entity → a single NUMBER**, whatever its casing. `applyVault` is
+ *    case-sensitive, so each casing needs its own vault entry;
+ *    they share the number and differ only by the token's casing
+ *    (`[COMPANY1]` / `[Company1]` / `[company1]`), which a model reads as a single
+ *    token while three distinct entries each stay reversible to THEIR casing.
+ *    Numbering by value would give `[COMPANY1]`/`[COMPANY2]` for a single company —
+ *    the model would reason about two companies.
+ *  - **never a real value left on the wire**: if the computed key is already taken
+ *    (or present verbatim in the user's text), we increment until
+ *    finding a free one. The loop terminates — the counter is monotonic.
  *
- * La numérotation est TOUJOURS suffixée d'un indice, là où l'affichage
- * (`highlight/tokens.ts`) laisse `[IBAN]` nu quand la catégorie n'a qu'une valeur : cet
- * affichage-là connaît l'ensemble complet, le fil non — il alloue au fil de l'eau, sans
- * savoir si une deuxième valeur suivra.
+ * The numbering is ALWAYS suffixed with an index, where the display
+ * (`highlight/tokens.ts`) leaves `[IBAN]` bare when the category has only one value: that
+ * display knows the complete set, the wire doesn't — it allocates on the fly, with no
+ * way to know if a second value will follow.
  */
 export interface AllocateTokensCtx {
   vault: Vault;
@@ -43,34 +43,34 @@ export interface AllocateTokensCtx {
   input: string;
 }
 
-/** `[PERSON12]` → sa famille + son indice. Sert à reprendre la numérotation d'un coffre
- *  existant : la casse est ignorée, les trois variantes d'une entité partageant l'indice. */
+/** `[PERSON12]` → its family + its index. Used to resume the numbering of an existing
+ *  vault: casing is ignored, the three variants of an entity sharing the index. */
 const TOKEN_RE = /^\[([A-Za-z][A-Za-z_]*?)(\d+)([a-z]?)\]$/;
 
-/** Le mot de famille d'une catégorie fine, via la MÊME table que l'affichage (règle 9).
- *  `INFO` est le repli neutre : une valeur sans catégorie exploitable ne doit pas hériter
- *  du repli `secret` de `redactionCategory` et se lire `[SECRET]`. */
+/** The family word of a fine-grained category, via the SAME table as the display (rule 9).
+ *  `INFO` is the neutral fallback: a value with no usable category must not inherit
+ *  `redactionCategory`'s `secret` fallback and read as `[SECRET]`. */
 function tokenWord(category: string): string {
   return CATEGORY_TOKEN[redactionCategory(category)] ?? "INFO";
 }
 
-/** Les familles dont une même entité se réécrit couramment dans plusieurs casses (un nom en
- *  capitales dans un en-tête, une société en minuscules dans une adresse e-mail). Les
- *  valeurs STRUCTURÉES (IBAN, e-mail, téléphone, chemin…) n'ont pas cette variance : elles
- *  gardent toujours la forme canonique, ce qui évite un `[Iban1]` inutilement bavard. */
+/** The families where the same entity is commonly rewritten in several casings (a name in
+ *  capitals in a header, a company in lowercase in an email address). STRUCTURED
+ *  values (IBAN, email, phone, path…) don't have this variance: they
+ *  always keep the canonical form, which avoids a needlessly noisy `[Iban1]`. */
 const CASED_KINDS = new Set(["name", "company", "location", "address", "health", "username"]);
 
 /**
- * La casse du jeton MIROITE celle de la valeur — c'est ce qui donne une clé de coffre
- * distincte par casse tout en gardant UN numéro par entité (`applyVault` est sensible à la
- * casse, donc chaque casse a besoin de son entrée).
+ * The token's casing MIRRORS the value's — that's what gives a vault key
+ * distinct per casing while keeping ONE number per entity (`applyVault` is case-
+ * sensitive, so each casing needs its own entry).
  *
- * La forme CANONIQUE est `[PERSON1]`, et elle sert la prose ordinaire (« Augustin Vaudel »,
- * casse de titre) : c'est de loin le cas majoritaire, et c'est aussi la forme que
- * l'affichage montre. Les deux autres n'existent que pour ne pas percuter la canonique —
- * une valeur tout en minuscules donne `[person1]`, une valeur tout en capitales `[Person1]`.
- * Ce dernier choix est arbitraire (les capitales auraient « mérité » la canonique), mais
- * c'est la casse la plus rare et le jeton reste visiblement le même.
+ * The CANONICAL form is `[PERSON1]`, and it serves ordinary prose (« Augustin Vaudel »,
+ * title case): that's by far the majority case, and it's also the form the
+ * display shows. The other two exist only to avoid colliding with the canonical one —
+ * an all-lowercase value gives `[person1]`, an all-caps value `[Person1]`.
+ * This last choice is arbitrary (all-caps would have "deserved" the canonical form), but
+ * it's the rarest casing and the token remains visibly the same.
  */
 function caseMirror(word: string, n: number, value: string, cat: string): string {
   if (!CASED_KINDS.has(cat)) return `[${word}${n}]`;
@@ -81,8 +81,8 @@ function caseMirror(word: string, n: number, value: string, cat: string): string
   return `[${word}${n}]`;
 }
 
-/** Les mots par lesquels deux écritures d'une personne se reconnaissent : ≥4 lettres, ce
- *  qui écarte les particules (de/la/du/van) et les initiales sans avoir à les lister. */
+/** The words by which two spellings of a person are recognised: ≥4 letters, which
+ *  rules out particles (de/la/du/van) and initials without having to list them. */
 function linkWords(value: string): string[] {
   return value
     .split(/[\s._-]+/)
@@ -92,8 +92,8 @@ function linkWords(value: string): string[] {
 
 export function allocateTokens(deNested: Detection[], ctx: AllocateTokensCtx): void {
   const { vault, reverse, taken, entityValues, record, input } = ctx;
-  // Compteur par famille, repris du coffre : un tour 2 doit continuer la numérotation du
-  // tour 1, sinon deux personnes différentes reçoivent `[PERSON1]`.
+  // Per-family counter, resumed from the vault: turn 2 must continue turn 1's
+  // numbering, else two different people get `[PERSON1]`.
   const counters = new Map<string, number>();
   for (const key of Object.keys(vault)) {
     const m = TOKEN_RE.exec(key);
@@ -101,23 +101,23 @@ export function allocateTokens(deNested: Detection[], ctx: AllocateTokensCtx): v
     const word = m[1].toUpperCase();
     counters.set(word, Math.max(counters.get(word) ?? 0, Number(m[2])));
   }
-  // `catégorie|clé d'entité` → l'indice déjà attribué à cette entité dans CE passage.
-  // Les casses vues à des tours précédents se retrouvent, elles, par le coffre.
+  // `category|entity key` → the index already assigned to this entity in THIS pass.
+  // Casings seen in previous turns, meanwhile, are recovered via the vault.
   const entityIndex = new Map<string, number>();
-  // Mot distinctif → indice de la personne qui le porte. C'est le RATTRAPAGE des écritures
-  // partielles : « Léa Morvan » puis « L. Morvan » ou « Morvan » tout court. Sans lui, un
-  // compte rendu ordinaire (« Présents : Léa Morvan, L. Morvan (excusée)… ») donne QUATRE
-  // jetons pour DEUX personnes, et le modèle compte quatre personnes. Le chemin des faux
-  // tient ça par ses alias par mot (`identity/name.ts`), qui n'existent pas ici : un jeton
-  // n'a pas de mots à partager. On partage donc l'INDICE, et la variante prend une lettre
-  // (`[PERSON1b]`) — assez proche pour se lire comme la même personne, assez distincte pour
-  // rester une clé de coffre à part, réversible vers SA propre écriture.
-  // ⚠️ Deux homonymes (« Jean Morvan » / « Léa Morvan ») se retrouvent liés. C'est le même
-  // arbitrage que côté faux, où ils partagent le faux patronyme : rapprocher à tort deux
-  // personnes qui portent le même nom coûte moins cher que scinder une personne en quatre.
+  // Distinctive word → index of the person who carries it. This is the CATCH for partial
+  // spellings: « Léa Morvan » then « L. Morvan » or just « Morvan ». Without it, an
+  // ordinary minutes document (« Present: Léa Morvan, L. Morvan (excused)… ») gives FOUR
+  // tokens for TWO people, and the model counts four people. The fake path
+  // handles this via its per-word aliases (`identity/name.ts`), which don't exist here: a token
+  // has no words to share. So we share the INDEX instead, and the variant takes a letter
+  // (`[PERSON1b]`) — close enough to read as the same person, distinct enough to
+  // stay a separate vault key, reversible to ITS own spelling.
+  // ⚠️ Two homonyms (« Jean Morvan » / « Léa Morvan ») end up linked. It's the same
+  // trade-off as on the fake side, where they share the fake surname: wrongly merging two
+  // people who share the same name costs less than splitting one person into four.
   const nameIndex = new Map<string, number>();
-  // Une entité déjà connue (une autre casse est dans le coffre) doit retrouver SON numéro
-  // plutôt qu'en consommer un nouveau.
+  // An entity already known (another casing is in the vault) must recover ITS number
+  // rather than consume a new one.
   for (const [key, value] of Object.entries(vault)) {
     const m = TOKEN_RE.exec(key);
     if (!m) continue;
@@ -142,8 +142,8 @@ export function allocateTokens(deNested: Detection[], ctx: AllocateTokensCtx): v
 
     let n = entityIndex.get(idKey);
     let token = n !== undefined ? at(n) : "";
-    // 2) Même personne écrite autrement (« L. Morvan » après « Léa Morvan ») : on garde SON
-    //    numéro et on prend la première lettre de variante libre.
+    // 2) Same person spelled differently (« L. Morvan » after « Léa Morvan »): we keep ITS
+    //    number and take the first free variant letter.
     if (n === undefined && cat === "name") {
       for (const w of linkWords(value)) {
         const known = nameIndex.get(w);
@@ -159,9 +159,9 @@ export function allocateTokens(deNested: Detection[], ctx: AllocateTokensCtx): v
       }
     }
     if (n === undefined || !free(token)) {
-      // Nouvelle entité — ou collision (l'utilisateur a lui-même écrit « [PERSON1] », ou
-      // deux casses se sont ramenées à la même forme). On avance jusqu'à une clé libre ;
-      // le compteur ne redescend jamais, donc la boucle termine.
+      // New entity — or collision (the user themselves wrote « [PERSON1] », or
+      // two casings collapsed to the same form). We advance until a free key;
+      // the counter never decreases, so the loop terminates.
       do {
         n = (counters.get(word) ?? 0) + 1;
         counters.set(word, n);

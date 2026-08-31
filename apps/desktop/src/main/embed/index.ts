@@ -69,11 +69,11 @@ export async function memoryIndexEdges(k = 3): Promise<SemanticEdge[]> {
   );
 }
 
-/** Le rappel SÉMANTIQUE de `memory_search` : la requête (texte réel, jamais loggé) est
- *  embarquée sur l'appareil avec le préfixe QUERY — e5 est asymétrique, le préfixe est
- *  porteur (`./model.ts`) — puis comparée aux vecteurs en cache. Renvoie ids + cosinus ;
- *  le PLANCHER appartient à l'UI (`@openmasq/ui` memory/select.ts), comme pour les
- *  edges. Indisponible (bundle absent) ⇒ `[]` — la recherche lexicale reste entière. */
+/** The SEMANTIC recall behind `memory_search`: the query (real text, never logged) is
+ *  embedded on-device with the QUERY prefix — e5 is asymmetric, the prefix carries
+ *  meaning (`./model.ts`) — then compared against the cached vectors. Returns ids + cosine;
+ *  the FLOOR belongs to the UI (`@openmasq/ui` memory/select.ts), same as for the
+ *  edges. Unavailable (bundle absent) ⇒ `[]` — lexical search remains intact. */
 export async function memoryIndexQuery(text: string, k = 4): Promise<{ id: string; sim: number }[]> {
   if (!embedAvailable() || !text.trim()) return [];
   const rows = await allMemoryEmbeddings(EMBED_MODEL_TAG);

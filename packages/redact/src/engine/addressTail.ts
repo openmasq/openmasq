@@ -1,6 +1,6 @@
-// Où FINIT une adresse — le seul sujet de ce fichier, sorti de `addresses.ts` pour le
-// garder sous le plafond ET parce que le champ étiqueté « Adresse : … » a besoin de la
-// MÊME coupe (règle 9 : une seconde implémentation dériverait).
+// Where an address ENDS — the sole subject of this file, split out of `addresses.ts` to
+// keep it under the cap AND because the labeled field « Adresse : … » needs the
+// SAME cut (rule 9: a second implementation would drift).
 
 // A French/EU street address ENDS at its "postal code + city". The NAME/CITY
 // sub-patterns are permissive (they allow spaces + `.` so multi-word streets and
@@ -16,22 +16,22 @@
 // period, a digit, or a lowercase-glued continuation ("PARIS"→ drops "siège"). Only
 // the FR/EU "code → city" order is handled (EN "City ST ZIP" / CJK are left as-is).
 const CITY_WORD = "\\p{Lu}\\p{Ll}+|\\p{Lu}+";
-// Les connecteurs qui vivent DANS un toponyme (« Neuilly sur Seine », « Villeneuve-d'Ascq »).
+// The connectors that live INSIDE a place name (« Neuilly sur Seine », « Villeneuve-d'Ascq »).
 const CITY_CONN = "en|de|du|des|la|le|les|l[eè]s|sur|sous|aux?|d['’]";
-// ⚠️ « et » n'est dans un nom de commune qu'à TRAIT D'UNION (« Ille-et-Vilaine ») ; espacé,
-// c'est la conjonction la plus courante du français.
+// ⚠️ « et » only appears in a commune name HYPHENATED (« Ille-et-Vilaine »); spaced,
+// it's the most common conjunction in French.
 const CITY_CONN_HYPHEN = "et";
-// ⚠️ Un connecteur doit être ENCADRÉ par deux mots de ville : une course ne peut pas s'y
-// terminer. Remonté par un utilisateur (12/08/2026) — « … 67000 Strasbourg et je travaille »
-// vaultait « Strasbourg et », donc le faux EFFAÇAIT le « et » et le modèle recevait un texte
-// mutilé. Idem « Strasbourg sur le papier » → « Strasbourg sur le ». `detectors.test.ts`.
+// ⚠️ A connector must be FRAMED by two city words: a run cannot end on one.
+// Reported by a user (12/08/2026) — « … 67000 Strasbourg et je travaille »
+// vaulted « Strasbourg et », so the fake ERASED the « et » and the model received a
+// mutilated text. Same for « Strasbourg sur le papier » → « Strasbourg sur le ». `detectors.test.ts`.
 const CITY_RUN = `(?:${CITY_WORD})(?:(?:[ -](?:${CITY_WORD}|${CITY_CONN})|-(?:${CITY_CONN_HYPHEN})){0,3}[ -](?:${CITY_WORD}))?`;
 const ADDR_END = new RegExp(
   `(?:\\d{5}|\\d{4}-\\d{3}|\\d{4}\\s?[A-Z]{2}|\\d{4})[,\\s]+(?:${CITY_RUN})`,
   "u",
 );
-/** Coupe à la FIN de l'adresse. Exportée parce que le champ étiqueté « Adresse : … » a le
- *  même besoin (sa capture va au bout de la LIGNE) et qu'une 2ᵉ implémentation dériverait. */
+/** Cuts at the END of the address. Exported because the labeled field « Adresse : … » has the
+ *  same need (its capture goes to the end of the LINE) and a 2nd implementation would drift. */
 export function trimAddressTail(v: string): string {
   const m = ADDR_END.exec(v);
   return m ? v.slice(0, m.index + m[0].length) : v;

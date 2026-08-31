@@ -34,10 +34,10 @@ function isSeedPhrase(match: string): boolean {
 }
 
 export const CRYPTO_RULES: RedactionRule[] = [
-  // Bitcoin, en DEUX règles parce que leur preuve n'est pas la même : bech32 est
-  // littéral-distinctif et se suffit ; la forme héritée n'est qu'une course base58, donc
-  // elle passe par le base58check. En TÊTE de liste : `rules.ts` les avait là, et l'ORDRE
-  // des règles décide qui réclame le span (et donc sa catégorie).
+  // Bitcoin, in TWO rules because their proof isn't the same: bech32 is
+  // literal-distinctive and self-sufficient; the legacy form is only a base58 run, so
+  // it goes through base58check. At the HEAD of the list: `rules.ts` had them there, and the
+  // ORDER of the rules decides who claims the span (and hence its category).
   { type: "crypto", pattern: /\bbc1[a-z0-9]{25,62}\b/g },
   {
     type: "crypto",

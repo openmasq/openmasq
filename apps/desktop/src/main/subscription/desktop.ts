@@ -1,8 +1,8 @@
 /**
- * La moitié LIÉE À ELECTRON du moteur d'abonnement : où sont les CLI sur CETTE
- * machine, dans quel répertoire neutre elles travaillent, et l'aiguillage
- * fournisseur → CLI. Tenue à part pour que `turn.ts` / `engine.ts` / `bridge.ts`
- * restent purs et testables sans Electron.
+ * The ELECTRON-BOUND half of the subscription engine: where the CLIs are on THIS
+ * machine, which neutral directory they work in, and the provider → CLI
+ * switchboard. Kept apart so `turn.ts` / `engine.ts` / `bridge.ts`
+ * stay pure and testable without Electron.
  */
 import { app } from "electron";
 import { mkdirSync } from "node:fs";
@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { resolveCli, type SubscriptionCliId } from "./resolveCli";
 import type { SubscriptionTurnEnv } from "./turn";
 
-/** Fournisseur du catalogue → CLI d'abonnement, ou `null` (pas un chemin CLI). */
+/** Catalog provider → subscription CLI, or `null` (not a CLI path). */
 export function subscriptionCliFor(provider: string): SubscriptionCliId | null {
   if (provider === "claude-cli") return "claude";
   if (provider === "codex-cli") return "codex";
@@ -23,10 +23,10 @@ const CLI_LABEL: Record<SubscriptionCliId, string> = {
 };
 
 /**
- * Le binaire d'une CLI, ou `null` (état NORMAL : non installée — l'UI le montre comme
- * une invite, jamais comme une erreur). Résolu à CHAQUE appel, pas mis en cache : la
- * sonde est quelques `access()` et l'utilisateur peut l'installer pendant que l'app
- * tourne.
+ * The binary for a CLI, or `null` (NORMAL state: not installed — the UI shows it as
+ * a prompt, never as an error). Resolved on EVERY call, not cached: the
+ * probe is a few `access()` calls and the user can install it while the app
+ * is running.
  */
 export function subscriptionCliPath(cli: SubscriptionCliId): string | null {
   return resolveCli(cli, {
@@ -36,14 +36,14 @@ export function subscriptionCliPath(cli: SubscriptionCliId): string | null {
   });
 }
 
-/** Compat : la sonde IPC historique (`subscription:cli-available`) vise claude. */
+/** Compat: the legacy IPC probe (`subscription:cli-available`) targets claude. */
 export function claudeCliPath(): string | null {
   return subscriptionCliPath("claude");
 }
 
 /**
- * Répertoire de travail dédié PAR CLI, sous `userData` — JAMAIS un dossier de projet
- * de l'utilisateur : une CLI y chercherait réglages et fichiers de contexte.
+ * Dedicated working directory PER CLI, under `userData` — NEVER a user
+ * project folder: a CLI would look there for settings and context files.
  */
 function subscriptionCwd(cli: SubscriptionCliId): string {
   const dir = join(app.getPath("userData"), "subscription-chat", cli);
@@ -51,7 +51,7 @@ function subscriptionCwd(cli: SubscriptionCliId): string {
   return dir;
 }
 
-/** L'environnement d'un tour, ou une erreur EXPLIQUÉE si la CLI manque (fail-closed). */
+/** A turn's environment, or an EXPLAINED error if the CLI is missing (fail-closed). */
 export function subscriptionTurnEnv(cli: SubscriptionCliId = "claude"): SubscriptionTurnEnv {
   const binPath = subscriptionCliPath(cli);
   if (!binPath) {

@@ -124,18 +124,18 @@ const regionOfDeptName = (n: string) =>
 
 /** A DIFFERENT real department — preferring the same region as the original (plausible). */
 /**
- * ⚠️ L'INITIALE garde sa classe (voyelle ↔ consonne), et ce n'est pas de l'esthétique.
+ * ⚠️ The INITIAL keeps its class (vowel ↔ consonant), and this isn't cosmetic.
  *
- * Le français élide DEVANT le faux, pas devant le vrai : « Crédit Agricole Mutuel
- * d'Ille-et-Vilaine » devenait « d'Morbihan » (mesuré 15/08/2026) — impossible à lire, et
- * repérable comme un faux, ce qui ruine la vraisemblance qui est toute la raison d'être des
- * faux. On ne peut pas réécrire l'article : il vit HORS du span, et le réécrire casserait la
- * restitution dans l'autre sens (« de Ille-et-Vilaine »). Garder la classe de l'initiale
- * suffit et ne coûte rien : « d' » reste juste devant une voyelle, « de/du » devant une
- * consonne, quel que soit l'article que porte le texte.
+ * French elides IN FRONT OF the fake, not the real value: « Crédit Agricole Mutuel
+ * d'Ille-et-Vilaine » became « d'Morbihan » (measured 15/08/2026) — unreadable, and
+ * identifiable as a fake, which ruins the plausibility that is the whole point of
+ * fakes. The article can't be rewritten: it lives OUTSIDE the span, and rewriting it would break
+ * restitution in the other direction (« de Ille-et-Vilaine »). Keeping the initial's class
+ * is enough and costs nothing: « d' » stays correct in front of a vowel, « de/du » in front of a
+ * consonant, whatever article the text carries.
  *
- * Repli explicite : si le sous-ensemble est vide, on reprend le pool entier — un faux
- * grammaticalement bancal vaut mieux que pas de faux.
+ * Explicit fallback: if the subset is empty, the whole pool is reused — a fake
+ * that's grammatically clunky beats no fake at all.
  */
 const startsWithVowel = (s: string): boolean => /^[aeiouyàâäéèêëîïôöùûü]/i.test(s.trim());
 
@@ -152,11 +152,11 @@ export function fakeDepartment(value: string, h: number): string {
     ? DEPARTMENTS.filter((d) => d.region === region && d.name.toLowerCase() !== real).map((d) => d.name)
     : [];
   const national = DEPT_NAMES.filter((n) => n.toLowerCase() !== real);
-  // ⚠️ ORDRE DES PRÉFÉRENCES, et il compte : la cohérence de RÉGION est un confort, la
-  // grammaire se lit. La Bretagne n'a aucun département à initiale voyelle hors
-  // Ille-et-Vilaine : garder la région coûtait « d'Morbihan » à chaque fois. On préfère
-  // donc, dans l'ordre : même région ET même classe d'initiale → même classe (national) →
-  // même région → n'importe lequel.
+  // ⚠️ ORDER OF PREFERENCES, and it matters: REGION coherence is a comfort,
+  // grammar is what's read. Brittany has no vowel-initial department other than
+  // Ille-et-Vilaine: keeping the region cost « d'Morbihan » every single time. So the preference
+  // order is: same region AND same initial class → same class (national) →
+  // same region → any.
   const memeRegionEtClasse = sameInitialClass(memeRegion, value);
   const pool = memeRegion.length && memeRegionEtClasse !== memeRegion
     ? memeRegionEtClasse
@@ -171,8 +171,8 @@ export function fakeDepartment(value: string, h: number): string {
 /** A DIFFERENT real region. */
 export function fakeRegion(value: string, h: number): string {
   const real = value.toLowerCase();
-  // Même raison qu'au-dessus : « en Île-de-France » ⇄ « en Auvergne », jamais « en Bretagne »
-  // là où le texte a élidé (`sameInitialClass`).
+  // Same reason as above: « en Île-de-France » ⇄ « en Auvergne », never « en Bretagne »
+  // where the text elided (`sameInitialClass`).
   const pool = sameInitialClass(REGION_NAMES.filter((n) => n.toLowerCase() !== real), value);
   return matchCase(pool[h % pool.length], value);
 }

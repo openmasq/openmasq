@@ -49,14 +49,14 @@ export async function quitAndInstallSafely(): Promise<void> {
 }
 
 /**
- * Le MÊME démontage, puis un simple redémarrage — pour la bascule d'environnement.
+ * The SAME teardown, then a plain restart — for the environment switch.
  *
- * Il vit ici, et pas à côté de la bascule, parce que la raison est identique et qu'elle
- * n'a qu'une maison : les instances Electron que l'app se re-lance à elle-même (navigateur
- * agent, serveur @playwright/mcp) ne meurent PAS avec main — elles sont ré-parentées à
- * launchd et survivent. Redémarrer sans les tuer laisserait tourner des enfants qui
- * détiennent l'état de l'ANCIEN environnement, pendant que la nouvelle instance en spawn
- * d'autres. Le `relaunch` est injecté pour que ce module n'importe toujours pas `app`.
+ * It lives here, not next to the switch, because the reason is identical and it
+ * has only one home: the Electron instances the app re-spawns itself (agent
+ * browser, @playwright/mcp server) do NOT die with main — they get reparented to
+ * launchd and survive. Restarting without killing them would leave running children
+ * holding the state of the OLD environment, while the new instance spawns
+ * others. `relaunch` is injected so this module still never imports `app`.
  */
 export async function relaunchSafely(relaunchAndQuit: () => void): Promise<void> {
   if (beforeInstall) {

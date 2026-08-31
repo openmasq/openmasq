@@ -114,9 +114,9 @@ export function registerLocalFsIpc(): void {
     }
   });
 
-  // L'extraction tourne en MAIN pour la même raison que `trash`/`open` : le pipeline (pdf.js,
-  // OCR docTR/Tesseract) y vit, un utilityProcess Node nu ne peut pas le faire. Même porte,
-  // deuxième appelant — jamais une seconde politique.
+  // Extraction runs in MAIN for the same reason as `trash`/`open`: the pipeline (pdf.js,
+  // docTR/Tesseract OCR) lives there, a bare Node utilityProcess can't do it. Same gate,
+  // second caller — never a second policy.
   ipcMain.handle("localfs:extract", async (_e, p: { path: string }): Promise<Envelope> => {
     const conn = getLiveFs();
     if (!conn) return { ok: false, error: NO_CONNECTOR };

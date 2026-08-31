@@ -6,17 +6,17 @@ import { safeUid } from "./keys";
 import { BRAND } from "@openmasq/branding";
 
 /**
- * UN secret de la synchro au repos, chiffré — le squelette que la phrase et le secret
- * d'appareil partagent.
+ * ONE sync-at-rest secret, encrypted — the skeleton the passphrase and the device
+ * secret share.
  *
- * Extrait le jour où le second est arrivé : les deux tiennent une valeur unique, dans un
- * fichier `${userData}/<nom>.enc` (0600, base64), chiffré par `safeStorage` (trousseau de
- * l'OS / DPAPI) avec repli base64 EN CLAIR et un avertissement quand le chiffrement n'est
- * pas disponible. Deux copies auraient divergé au premier ajustement — et ce sont
- * précisément les fichiers où une divergence ne se voit pas.
+ * Extracted the day the second one arrived: both hold a single value, in a
+ * file `${userData}/<name>.enc` (0600, base64), encrypted by `safeStorage` (OS
+ * keychain / DPAPI) with a PLAINTEXT base64 fallback and a warning when encryption is
+ * not available. Two copies would have diverged at the first tweak — and these are
+ * precisely the files where a divergence doesn't show.
  *
- * ⚠️ Ils vivent dans le processus PRINCIPAL, jamais dans le renderer : le localStorage de
- * Chromium est du LevelDB en clair sur le disque.
+ * ⚠️ They live in the MAIN process, never in the renderer: Chromium's localStorage
+ * is plaintext LevelDB on disk.
  */
 export interface SecretFile {
   get(): string | null;
@@ -61,26 +61,26 @@ export function secretFile(name: string, label: string): SecretFile {
 }
 
 export interface AccountSecretFile extends SecretFile {
-  /** Re-scoper sur `uid` (connexion / CHANGEMENT de compte) ; `null` = déconnecté. */
+  /** Re-scope onto `uid` (sign-in / account CHANGE); `null` = signed out. */
   setUser(uid: string | null): void;
-  /** Un compte est-il résolu ? Faux ⇒ rien ne se lit ni ne s'écrit sur le disque. */
+  /** Is an account resolved? False ⇒ nothing is read or written to disk. */
   scoped(): boolean;
 }
 
 /**
- * Le MÊME secret, mais **par compte** — `${userData}/accounts/<nom>-<uid>.enc`.
+ * The SAME secret, but **per account** — `${userData}/accounts/<name>-<uid>.enc`.
  *
- * Le squelette est celui de `keys.ts` (isolation par compte, adoption unique de l'ancien
- * fichier partagé, uid assaini avant de toucher un chemin) parce que c'est le même problème :
- * une machine partagée ne doit jamais laisser le compte B se servir du secret de A. Recopier
- * ce squelette une troisième fois aurait été le bug avec plus de surface (règle 9) — d'où
- * cette variante ici, à côté de celle qui ne l'est pas.
+ * The skeleton is `keys.ts`'s (per-account isolation, one-time adoption of the old
+ * shared file, uid sanitized before touching a path) because it's the same problem:
+ * a shared machine must never let account B use account A's secret. Recopying
+ * this skeleton a third time would have been the same bug with more surface (rule 9) — hence
+ * this variant here, next to the one that isn't.
  *
- * ⚠️ **Déconnecté, on n'écrit RIEN** (comme `keys.ts`) : pas de fichier « du compte inconnu »
- * qu'un compte suivant hériterait. Mais contrairement à `keys.ts`, `set()` **lève** dans ce
- * cas au lieu de ne rien faire en silence — poser une phrase de synchro est un geste dont
- * l'interface annonce le résultat, et un « c'est fait » qui n'a rien fait est précisément le
- * défaut qu'on corrige. `clear()` reste tolérant : effacer ce qui n'existe pas est un succès.
+ * ⚠️ **Signed out, we write NOTHING** (like `keys.ts`): no "unknown account" file
+ * that a following account would inherit. But unlike `keys.ts`, `set()` **throws** in this
+ * case instead of silently doing nothing — setting a sync passphrase is a gesture whose
+ * result the UI announces, and a "done" that did nothing is exactly the
+ * defect being fixed here. `clear()` stays tolerant: clearing what doesn't exist is a success.
  */
 export function accountSecretFile(name: string, label: string): AccountSecretFile {
   let uid: string | null = null;
@@ -90,29 +90,29 @@ export function accountSecretFile(name: string, label: string): AccountSecretFil
   const path = (): string | null => (uid ? join(accountsDir(), `${name}-${safeUid(uid)}.enc`) : null);
 
   /**
-   * Adoption UNIQUE de l'ancien fichier partagé : il revient au PREMIER compte qui se
-   * connecte après la mise à jour — son propriétaire dans l'immense majorité des cas, et
-   * celui qui autrement perdrait sa phrase sans pouvoir la retrouver (aucun séquestre). Un
-   * marqueur ferme la porte pour tous les autres, et l'ancien fichier est SUPPRIMÉ pour que
-   * le secret partagé ne traîne plus. Même geste que `keys.ts` / `db/` / `mcp/persist.ts`.
+   * ONE-TIME adoption of the old shared file: it goes to the FIRST account that
+   * signs in after the update — its owner in the vast majority of cases, and
+   * the one who would otherwise lose their passphrase with no way to recover it (no escrow). A
+   * marker closes the door for everyone else, and the old file is DELETED so
+   * the shared secret doesn't linger. Same gesture as `keys.ts` / `db/` / `mcp/persist.ts`.
    */
   const adoptLegacy = (): void => {
     const scoped = path();
     if (!scoped) return;
     try {
-      if (existsSync(scoped)) return; // ce compte a déjà le sien
-      if (existsSync(marker())) return; // déjà réclamé par un compte
+      if (existsSync(scoped)) return; // this account already has its own
+      if (existsSync(marker())) return; // already claimed by an account
       if (!existsSync(legacyFile())) {
-        writeFileSync(marker(), "", { mode: 0o600 }); // rien à adopter — on ferme la porte
+        writeFileSync(marker(), "", { mode: 0o600 }); // nothing to adopt — close the door
         return;
       }
       mkdirSync(accountsDir(), { recursive: true });
-      copyFileSync(legacyFile(), scoped); // octets chiffrés : le même trousseau les rouvre
+      copyFileSync(legacyFile(), scoped); // encrypted bytes: the same keychain reopens them
       writeFileSync(marker(), uid ?? "", { mode: 0o600 });
       try {
         unlinkSync(legacyFile());
       } catch {
-        /* au mieux — le marqueur empêche déjà une seconde adoption */
+        /* best-effort — the marker already prevents a second adoption */
       }
     } catch (e) {
       console.error(`[sync] legacy ${name} adoption failed:`, e);
@@ -151,7 +151,7 @@ export function accountSecretFile(name: string, label: string): AccountSecretFil
         writeFileSync(p, enc, { mode: 0o600 });
       } catch (err) {
         console.error(`[sync] failed to write ${name}-<uid>.enc:`, err);
-        throw err; // l'appelant DOIT pouvoir dire que ça n'a pas été posé
+        throw err; // the caller MUST be able to say it wasn't set
       }
     },
     clear() {
@@ -161,7 +161,7 @@ export function accountSecretFile(name: string, label: string): AccountSecretFil
         if (existsSync(p)) rmSync(p);
       } catch (err) {
         console.error(`[sync] failed to clear ${name}-<uid>.enc:`, err);
-        throw err; // idem : un « désactivé » qui n'a rien désactivé est un mensonge
+        throw err; // same here: a "disabled" that disabled nothing is a lie
       }
     },
   };

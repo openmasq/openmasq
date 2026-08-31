@@ -97,11 +97,11 @@ describe("pseudonymize end-to-end", () => {
     expect(r.text).toContain("https://app.notion.com/p/2b7c9f?pvs=1");
   });
 
-  // Le postcondition (« signalé ⇒ coffré ⇒ substitué ») ne vérifie pas la DISPARITION du
-  // texte, donc la garde ne doit jamais laisser une valeur ENTIÈREMENT en clair tout en la
-  // comptant comme redacted. Elle ne le peut pas : la garde partage les spans du filtre,
-  // et tout candidat qui a survécu au filtre a une occurrence HORS URL — celle-là est bien
-  // substituée. Épinglé ici parce que rien d'autre ne relie les deux.
+  // The postcondition ("flagged ⇒ vaulted ⇒ substituted") does not verify the DISAPPEARANCE
+  // of the text, so the guard must never leave a value ENTIRELY in clear while
+  // counting it as redacted. It cannot: the guard shares the filter's spans,
+  // and every candidate that survived the filter has an occurrence OUTSIDE a URL — that one
+  // is indeed substituted. Pinned here because nothing else ties the two together.
   it("never CLAIMS a redaction the guard left wholly in clear", async () => {
     const t = `Karl Studio a livré : https://app.notion.com/p/x-karl-studio-1`;
     const r = await pseudonymize(t, {

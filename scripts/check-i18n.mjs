@@ -1,43 +1,43 @@
 #!/usr/bin/env node
-// Cliquet i18n — la PORTE qui fait de « entièrement traduite » un invariant tenu par
-// l'outil et non par la vigilance (même forme que `check-file-size.mjs`, root rule 1).
+// i18n ratchet — the GATE that makes "fully translated" an invariant held by
+// the tool rather than vigilance (same shape as `check-file-size.mjs`, root rule 1).
 //
-// Le problème qu'elle résout : traduire ~1 900 chaînes est un marathon, et pendant qu'on
-// le court, du texte français EN DUR continue d'entrer. Sans garde, la fuite annule
-// l'avancée. Le cliquet gèle le compte d'AUJOURD'HUI par fichier : rien n'échoue à
-// l'instant présent, mais toute chaîne française neuve dans une zone couverte fait
-// échouer, et traduire (donc RETIRER des chaînes) resserre le cliquet.
+// The problem it solves: translating ~1,900 strings is a marathon, and while we
+// run it, hard-coded French text keeps coming in. Without a guard, the leak cancels
+// out the progress. The ratchet freezes TODAY's count per file: nothing fails at
+// the present moment, but any new French string in a covered zone makes it
+// fail, and translating (i.e. REMOVING strings) tightens the ratchet.
 //
-// Deux dents, comme le gabarit LOC :
-//   1. un fichier NEUF (hors liste gelée) qui porte de la copie française échoue ;
-//   2. un fichier gelé qui GROSSIT au-delà de son compte échoue.
+// Two teeth, like the LOC gauge:
+//   1. a NEW file (outside the frozen list) carrying French copy fails;
+//   2. a frozen file that GROWS past its count fails.
 //
-// Ce que ça compte = un proxy de « copie EN DUR » : un littéral de chaîne posé sur une
-// propriété que quelqu'un LIT (`title`, `aria-label`, `placeholder`, `label`…), un nœud de
-// texte JSX, et les deux branches d'un ternaire de chaînes. ⚠️ **Sans regarder les
-// accents** : la première version ne comptait que les littéraux accentués, donc
-// « Nouvelle conversation » ou « Search a file » passaient la porte — et l'anglais en dur
-// est exactement le même défaut que le français en dur, dans une app qui a deux langues.
-// C'est un PROXY, pas une preuve — d'où le gel : on ne juge pas si une chaîne DEVRAIT être
-// traduite, on empêche seulement leur NOMBRE de croître. Migrer une chaîne vers
-// `@openmasq/i18n` la fait disparaître du compte ; `--update` regèle à la baisse (jamais à
-// la hausse sans `--allow-growth`).
+// What this counts = a proxy for "HARD-CODED copy": a string literal sitting on a
+// property someone READS (`title`, `aria-label`, `placeholder`, `label`…), a JSX
+// text node, and both branches of a string ternary. ⚠️ **Without looking at
+// accents**: the first version only counted accented literals, so
+// "Nouvelle conversation" or "Search a file" got through the gate — and hard-coded English
+// is exactly the same defect as hard-coded French, in an app that has two languages.
+// It's a PROXY, not a proof — hence the freeze: we don't judge whether a string SHOULD be
+// translated, we only prevent their NUMBER from growing. Migrating a string to
+// `@openmasq/i18n` makes it disappear from the count; `--update` re-freezes downward (never
+// upward without `--allow-growth`).
 //
-// Périmètre : la CHROME d'UI de `packages/ui/src`, les EMAILS de `packages/emails`, et les
-// CATALOGUES partagés (`packages/catalog/src`, `packages/llm/src`) — leur copie lisible est
-// partie dans `@openmasq/i18n`, et c'est ici qu'on empêche qu'elle y revienne.
-// EXCLUS et pourquoi :
-//   • `**/*.test.*` — les tests ne s'affichent pas ;
-//   • `evals/**` — corpus/scénarios, jamais rendus à l'utilisateur ;
-//   • `agent/**`, `prompt/**` — prose destinée au MODÈLE : elle suit la langue de la
-//     CONVERSATION, pas celle de l'UI (analyse d'audit) — la traduire serait un contresens ;
-//   • `packages/emails/i18n/**` — c'est le CATALOGUE lui-même : sa `fr.ts` est pleine de
-//     français par nature (la source), la compter serait un contresens ;
-//   • `packages/emails/scripts/**` — outillage de release, pas un email envoyé ;
-//   • `packages/catalog/src/mcp/connectors/**` — le `desc` d'un connecteur est lu par le
-//     MODÈLE (`suggest_integrations`), pas seulement par l'UI : il reste en français, gelé.
-// Les autres apps (`apps/web`, `main`) entreront dans le périmètre quand leur conversion
-// commencera : élargir = ajouter un glob ici et regénérer la base.
+// Scope: the UI CHROME of `packages/ui/src`, the EMAILS of `packages/emails`, and the
+// shared CATALOGS (`packages/catalog/src`, `packages/llm/src`) — their readable copy has
+// moved into `@openmasq/i18n`, and this is where we prevent it from coming back.
+// EXCLUDED and why:
+//   • `**/*.test.*` — tests are never displayed;
+//   • `evals/**` — corpus/scenarios, never rendered to the user;
+//   • `agent/**`, `prompt/**` — prose addressed to the MODEL: it follows the language of the
+//     CONVERSATION, not the UI's (audit analysis) — translating it would be a contresens;
+//   • `packages/emails/i18n/**` — this is the CATALOG itself: its `fr.ts` is full of
+//     French by nature (the source), counting it would be a contresens;
+//   • `packages/emails/scripts/**` — release tooling, not a sent email;
+//   • `packages/catalog/src/mcp/connectors/**` — a connector's `desc` is read by the
+//     MODEL (`suggest_integrations`), not just by the UI: it stays in French, frozen.
+// The other apps (`apps/web`, `main`) will enter the scope when their conversion
+// starts: widening = adding a glob here and regenerating the baseline.
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -47,38 +47,38 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..");
 const allowlistPath = join(here, "i18n-allowlist.json");
 
-/** Les propriétés dont la valeur est LUE par quelqu'un — la liste est volontairement
- *  courte : une propriété technique (`className`, `href`, `id`) n'a rien à y faire. */
+/** The properties whose value is READ by someone — the list is deliberately
+ *  short: a technical property (`className`, `href`, `id`) has no business there. */
 const READ_NAMES =
   "title|aria-label|ariaLabel|placeholder|alt|label|message|confirmLabel|cancelLabel|subtitle" +
   "|hint|tip|desc|note|sub|eyebrow|heading|caption|cta|emptyTitle|emptyBody|rowTitle|onDesc" +
   "|missingDesc|approval|short";
-/** La forme JSX (`title="…"`) ET la forme TABLE (`desc: "…"`) : les deux portent de la
- *  copie, et c'est la seconde qui a laissé passer les catalogues pendant des mois.
- *  ⚠️ `name` est HORS liste : un nom de connecteur ou de modèle est un nom PROPRE
- *  (« Gmail », « GPT-5.5 ») — le compter ferait du bruit là où il n'y a rien à traduire. */
+/** The JSX form (`title="…"`) AND the TABLE form (`desc: "…"`): both carry
+ *  copy, and it's the second one that let the catalogs through for months.
+ *  ⚠️ `name` is OUT of the list: a connector or model name is a PROPER noun
+ *  ("Gmail", "GPT-5.5") — counting it would make noise where there's nothing to translate. */
 const READ_PROPS = new RegExp(`\\b(${READ_NAMES})\\s*[=:]\\s*\\{?(["'\`])((?:(?!\\2).){3,}?)\\2`, "g");
-/** Un ternaire dont LES DEUX branches sont des phrases — le motif d'un libellé bascule. */
+/** A ternary whose BOTH branches are sentences — the pattern of a toggled label. */
 const TERNARY = /\?\s*"([^"]{4,})"\s*:\s*"([^"]{4,})"/g;
 const JSX_TEXT = />([^<>{}\n]{3,}?)</g;
 
-/** Une valeur est-elle de la COPIE (par opposition à un id, une URL, une classe CSS) ? */
+/** Is a value COPY (as opposed to an id, a URL, a CSS class)? */
 function isCopy(v) {
   const s = v.trim();
   if (!/[A-Za-zÀ-ÿ]{3,}/.test(s)) return false;
   if (/^(https?:|\/|\.|#|\d)/.test(s)) return false;
-  if (/^[a-z0-9_\-./]+$/.test(s)) return false; // id, chemin, classe
-  if (/^[A-Z0-9_]+$/.test(s)) return false; // CONSTANTE
-  if (/^[a-z][a-zA-Z]*$/.test(s)) return false; // identifiant
+  if (/^[a-z0-9_\-./]+$/.test(s)) return false; // id, path, class
+  if (/^[A-Z0-9_]+$/.test(s)) return false; // CONSTANT
+  if (/^[a-z][a-zA-Z]*$/.test(s)) return false; // identifier
   if (/className|=>|\bPromise\b|\bRecord</.test(s)) return false;
   if (s.includes("${")) return false; // un gabarit à trous est du CODE, pas une phrase
-  // Une LISTE DE CLASSES (« intro-cell is-clear ») ou une liste de jetons techniques
-  // (des domaines d'exemple, un chemin) : tous les mots en minuscules-tirets.
+  // A LIST OF CLASSES ("intro-cell is-clear") or a list of technical tokens
+  // (example domains, a path): every word in lowercase-hyphens.
   if (s.split(/\s+|\\n/).every((w) => !w || /^[a-z0-9][a-z0-9._/-]*$/.test(w))) return false;
   return true;
 }
 
-/** Zones EXCLUES du périmètre (voir l'en-tête). */
+/** Zones EXCLUDED from the scope (see the header). */
 const EXCLUDE = [
   /\.(test|spec)\.tsx?$/,
   /\/evals\//,
@@ -86,8 +86,8 @@ const EXCLUDE = [
   /\/prompt\//,
   /^packages\/emails\/i18n\//,
   /^packages\/emails\/scripts\//,
-  // Le REGISTRE des modèles : `label` y est un nom PROPRE (« GPT-5.5 », « Claude Opus »),
-  // et son `desc` de fournisseur nomme des marques — rien à traduire, tout à faire du bruit.
+  // The model REGISTRY: `label` there is a PROPER noun ("GPT-5.5", "Claude Opus"),
+  // and its provider `desc` names brands — nothing to translate, everything would be noise.
   /^packages\/llm\/src\/models\//,
 ];
 
@@ -101,8 +101,8 @@ function coveredFiles() {
   return out.split("\n").filter((f) => f && !EXCLUDE.some((re) => re.test(f)));
 }
 
-/** Un PROXY de « chaînes de copie française en dur » dans un fichier. Retire commentaires
- *  de ligne et de bloc, puis compte les littéraux accentués + les textes JSX nus. */
+/** A PROXY for "hard-coded French copy strings" in a file. Strips line and
+ *  block comments, then counts accented literals + bare JSX text. */
 function frenchCopyCount(file) {
   let src;
   try {
@@ -163,9 +163,9 @@ if (process.argv.includes("--update")) {
   process.exit(0);
 }
 
-// DENT 1 — un fichier neuf porteur de copie française qui n'est pas dans la liste gelée.
+// TOOTH 1 — a new file carrying French copy that isn't in the frozen list.
 const fresh = withCopy.filter((f) => !(f in allow));
-// DENT 2 — un fichier gelé qui a grossi au-delà de son compte.
+// TOOTH 2 — a frozen file that has grown past its count.
 const grown = withCopy
   .filter((f) => f in allow && counts.get(f) > allow[f])
   .sort((a, b) => counts.get(b) - allow[b] - (counts.get(a) - allow[a]));

@@ -3,9 +3,9 @@ import { pseudonymize } from "./pseudonymize";
 import { isGenericTerm } from "./genericTerms";
 
 /**
- * Un détecteur qui propose comme ORG chaque terme du vocabulaire présent dans le texte —
- * le modèle volontairement plus dur de ce qu'un NER réel fait à ces documents. (Copie
- * locale : l'original vivait dans les bancs corpus, qui ont quitté ce dépôt.)
+ * A detector that proposes as ORG every vocabulary term present in the text —
+ * deliberately harsher than what a real NER does to these documents. (Local
+ * copy: the original lived in the corpus benchmarks, which have left this repo.)
  */
 const proposingDetector =
   (vocabulary: readonly string[]) =>
@@ -18,20 +18,20 @@ const proposingDetector =
     );
 
 /**
- * Le VOCABULAIRE DU QUOTIDIEN reste en clair — cuisine, bricolage, jardin, sport, voiture,
- * météo, livraison.
+ * EVERYDAY VOCABULARY stays in clear — cooking, DIY, gardening, sport, cars,
+ * weather, delivery.
  *
- * ⚠️ Ces phrases ne contiennent AUCUNE donnée personnelle. Mesuré avant `vocab/quotidien.ts`
- * sur 136 phrases de ce type passées dans le pipeline réel (NER local) : **16 revenaient
- * avec quelque chose dans le coffre** — « moutarde », « levain », « magret », « poncer »,
- * « nichoir », « wagon », « stivaletti ». Un NER casé rencontre un nom commun inconnu en
- * tête de phrase et y lit un nom propre ; le faux le remplace, et l'utilisateur reçoit une
- * réponse sur une recette qui ne parle plus de moutarde. Après le volume : 4, et ce sont
- * les quatre exclusions VOLONTAIRES (voir plus bas).
+ * ⚠️ These sentences contain NO personal data whatsoever. Measured before `vocab/quotidien.ts`
+ * on 136 sentences of this kind run through the real pipeline (local NER): **16 came back
+ * with something in the vault** — « moutarde », « levain », « magret », « poncer »,
+ * « nichoir », « wagon », « stivaletti ». A cased NER meets an unknown common noun at
+ * the start of a sentence and reads it as a proper noun; the fake replaces it, and the user gets
+ * back an answer about a recipe that no longer mentions mustard. After the volume was added: 4, and those are
+ * the four DELIBERATE exclusions (see below).
  *
- * Le détecteur est stubé pour SUR-ÉTIQUETER : sans lui, le pipeline déterministe ne propose
- * jamais « moutarde » comme organisation et le test ne prouverait rien — c'est la leçon
- * déjà inscrite dans `bench/domainBench.ts`.
+ * The detector is stubbed to OVER-LABEL: without it, the deterministic pipeline never
+ * proposes « moutarde » as an organisation and the test would prove nothing — that's the lesson
+ * already written into `bench/domainBench.ts`.
  */
 const PHRASES = [
   "Émincer les échalotes, faire suer au beurre, déglacer au vinaigre balsamique.",
@@ -49,7 +49,7 @@ const PHRASES = [
   "Refogar a cebola, juntar o caldo e deixar cozinhar em lume brando.",
 ];
 
-/** Les mots que le stub propose — ceux que la sonde a vraiment vus partir au coffre. */
+/** The words the stub proposes — the ones the probe actually saw go to the vault. */
 const VOCABULAIRE = [
   "moutarde", "levain", "magret", "aneth", "basilic", "fenouil", "gingembre",
   "émincer", "déglacer", "pétrissage", "poncer", "dégraisser", "sous-couche",
@@ -73,12 +73,12 @@ describe("vocabulaire du quotidien — une conversation ordinaire ne part pas au
   });
 
   /**
-   * L'AUTRE moitié, et elle est plus importante que la première. Ces quatre mots sont
-   * ordinaires — « le poisson est cuit », « une cheville molly », « le gardien a arrêté »,
-   * « le chaton a été vermifugé » — et ils restent redactable, parce que ce sont AUSSI
-   * des patronymes portés par des gens réels. L'asymétrie décide : un mot courant redacted
-   * à tort est une gêne visible et réparable d'un clic ; un nom épargné à tort est une
-   * fuite permanente et silencieuse.
+   * The OTHER half, and it matters more than the first. These four words are
+   * ordinary — « le poisson est cuit », « une cheville molly », « le gardien a arrêté »,
+   * « le chaton a été vermifugé » — and they stay redactable, because they are ALSO
+   * surnames carried by real people. The asymmetry decides: an ordinary word wrongly redacted
+   * is a visible nuisance fixable with one click; a name wrongly spared is a
+   * permanent, silent leak.
    */
   it("les homographes de patronymes restent redactable — c'est le prix assumé", () => {
     const spared = ["poisson", "chaton", "gardien", "molly"].filter(isGenericTerm);

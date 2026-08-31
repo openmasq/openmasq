@@ -2,8 +2,8 @@ import { getClient } from "./connection";
 import type { DbConversation } from "./types";
 
 /**
- * La SAUVEGARDE d'une conversation — sortie de `conversations.ts` (cap 300 LOC, règle 1) ;
- * le nom public ne bouge pas (ré-exporté par `conversations.ts`, barrel inchangé).
+ * The SAVE for a conversation — pulled out of `conversations.ts` (300 LOC cap, rule 1);
+ * the public name doesn't move (re-exported by `conversations.ts`, barrel unchanged).
  */
 /** Serialize a conversation's per-conv redaction config to the `redaction_config`
  *  JSON column — only the non-empty parts, or null when there's nothing to persist
@@ -25,13 +25,13 @@ function redactionConfigJson(conv: DbConversation): string | null {
 export async function dbSaveConversation(conv: DbConversation): Promise<void> {
   const client = getClient();
   if (!client) return;
-  // ⚠️ GARDE ANTI-EFFACEMENT (perte du 13/08). Une conversation SANS AUCUN message qui en
-  // écraserait alors que la base en détient est un SQUELETTE (état pas encore hydraté, ou
-  // un convMeta de sync appliqué avant le chargement), jamais un geste produit : rien dans
-  // l'app ne vide les messages d'une conversation — la suppression entière passe par
-  // dbDeleteConversation. Le miroir « reflète l'état mémoire » devient destructeur dans ce
-  // seul cas ; on préserve alors messages, coffre (redactions) ET redaction_config (le SEL
-  // y vit — l'écraser par null rendrait les futurs faux instables). Meta seule est écrite.
+  // ⚠️ ANTI-ERASURE GUARD (13/08 loss). A conversation with NO messages at all that would
+  // overwrite when the DB holds some is a SKELETON (state not yet hydrated, or a sync
+  // convMeta applied before loading), never a user action: nothing in the app empties a
+  // conversation's messages — full deletion goes through dbDeleteConversation.
+  // The mirror "reflects memory state" becomes destructive in this one case; we then
+  // preserve messages, vault (redactions) AND redaction_config (the SALT lives there —
+  // overwriting it with null would make future fakes unstable). Only meta is written.
   const skeleton =
     conv.messages.length === 0 &&
     Number(
@@ -57,8 +57,8 @@ export async function dbSaveConversation(conv: DbConversation): Promise<void> {
 
   const stmts: { sql: string; args: any[] }[] = [
     {
-      // En mode squelette, redaction_config garde la valeur STOCKÉE quand l'entrant est
-      // null (COALESCE) — même signal, même protection que les messages.
+      // In skeleton mode, redaction_config keeps the STORED value when the incoming
+      // value is null (COALESCE) — same signal, same protection as for messages.
       sql: `INSERT INTO conversations (id, title, model_id, created_at, updated_at, redaction_config)
             VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET title=excluded.title, model_id=excluded.model_id,

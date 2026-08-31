@@ -7,54 +7,54 @@ import { logUpdate } from "./log";
 const { autoUpdater } = electronUpdater;
 
 /**
- * L'installation AUTOMATIQUE d'un build téléchargé — quand l'app est en arrière-plan ou
- * que l'utilisateur est parti. Le modal « mise à jour prête » reste le chemin nominal ;
- * ceci est le rattrapage pour l'app qu'on ne redémarre jamais (ouverte des jours, la
- * mise à jour attendait un clic qui ne venait pas).
+ * The AUTOMATIC install of a downloaded build — when the app is in the background or
+ * the user is away. The "update ready" modal remains the nominal path;
+ * this is the catch-up for the app that's never restarted (open for days, the
+ * update waiting for a click that never came).
  *
- * FAIL-CLOSED partout : au moindre doute on ne redémarre PAS — un redémarrage rate au
- * pire une fenêtre d'installation (le prochain tick la retrouve), tandis qu'un
- * redémarrage pendant un tour agentique ou sur un brouillon non envoyé détruit du
- * travail (les brouillons sont mémoire-seulement, EXPRÈS — voir `state/CLAUDE.md`).
- * D'où les quatre gardes de `shouldAutoInstall` ET la sonde renderer : main demande
- * « es-tu quiescent ? » au moment de décider (tour en vol ? brouillon quelque part ?) et
- * traite l'absence de réponse comme « occupé ».
+ * FAIL-CLOSED everywhere: at the slightest doubt we do NOT restart — a missed restart
+ * at worst misses an install window (the next tick catches it), whereas a
+ * restart during an agentic turn or on an unsent draft destroys
+ * work (drafts are memory-only, ON PURPOSE — see `state/CLAUDE.md`).
+ * Hence `shouldAutoInstall`'s four guards AND the renderer probe: main asks
+ * "are you quiescent?" at decision time (a turn in flight? a draft somewhere?) and
+ * treats no answer as "busy".
  */
 const AUTO_POLL_MS = 60_000;
-/** L'utilisateur est PARTI : aucune entrée système depuis 10 min (powerMonitor). */
+/** The user is AWAY: no system input for 10 min (powerMonitor). */
 export const AUTO_IDLE_AWAY_S = 10 * 60;
-/** L'app est en ARRIÈRE-PLAN prolongé : floutée sans interruption depuis 30 min.
- *  Plus long que l'absence : l'utilisateur travaille peut-être À CÔTÉ, et le relaunch
- *  post-installation vole le premier plan — on ne le paie pas pour un détour de 5 min. */
+/** The app has been in the BACKGROUND for a while: blurred without interruption for 30 min.
+ *  Longer than the away threshold: the user may be working ALONGSIDE, and the relaunch
+ *  after install steals the foreground — we don't pay that price for a 5-minute detour. */
 export const AUTO_BLURRED_MS = 30 * 60_000;
-/** La sonde renderer répond vite ou pas du tout (renderer occupé/mort ⇒ occupé). */
+/** The renderer probe answers quickly or not at all (busy/dead renderer ⇒ busy). */
 const QUIESCENCE_TIMEOUT_MS = 3_000;
 
 export interface AutoInstallSignals {
-  /** Un build est posé (update-downloaded reçu, pas d'échec de pose depuis). */
+  /** A build is staged (update-downloaded received, no install failure since). */
   staged: boolean;
-  /** Une fenêtre de l'app a le focus OS. */
+  /** A window of the app has OS focus. */
   focused: boolean;
-  /** Secondes depuis la dernière entrée utilisateur, SYSTÈME entier. */
+  /** Seconds since the last user input, WHOLE system. */
   idleS: number;
-  /** Depuis combien de temps l'app est floutée sans interruption (0 si focus). */
+  /** How long the app has been blurred without interruption (0 if focused). */
   blurredMs: number;
-  /** Flux de conversation en vol côté MAIN (ceinture — le renderer le sait aussi). */
+  /** Conversation stream in flight on the MAIN side (belt — the renderer knows too). */
   mainBusy: boolean;
-  /** Réponse de la sonde renderer. `null` = pas de réponse ⇒ OCCUPÉ (fail-closed). */
+  /** Answer from the renderer probe. `null` = no answer ⇒ BUSY (fail-closed). */
   rendererBusy: boolean | null;
 }
 
-/** La décision, pure (testée) : arrière-plan prolongé OU utilisateur parti — et rien en
- *  vol nulle part. Chaque condition qui doute refuse. */
+/** The decision, pure (tested): background for a while OR user away — and nothing in
+ *  flight anywhere. Every condition that's in doubt refuses. */
 export function shouldAutoInstall(s: AutoInstallSignals): boolean {
   if (!s.staged || s.focused || s.mainBusy) return false;
   if (s.rendererBusy !== false) return false;
   return s.idleS >= AUTO_IDLE_AWAY_S || s.blurredMs >= AUTO_BLURRED_MS;
 }
 
-/** Demande au renderer s'il est quiescent (aucun envoi en vol, aucun brouillon).
- *  Silence/erreur ⇒ `null` (l'appelant lit ça « occupé »). */
+/** Asks the renderer whether it's quiescent (no send in flight, no draft).
+ *  Silence/error ⇒ `null` (the caller reads that as "busy"). */
 function askRendererBusy(win: BrowserWindow): Promise<boolean | null> {
   return new Promise((resolve) => {
     const id = `q${Date.now()}${Math.floor(Math.random() * 1e6)}`;
@@ -78,9 +78,9 @@ function askRendererBusy(win: BrowserWindow): Promise<boolean | null> {
 }
 
 /**
- * Arme la minuterie. `mainBusy` est injecté (la carte des flux `chat:*` vit dans
- * `index.ts`) ; l'état « posé » s'écoute ici même : `update-downloaded` l'arme,
- * une `error` d'après-téléchargement le désarme (la pose a échoué, `poll.ts` rejoue).
+ * Arms the timer. `mainBusy` is injected (the `chat:*` streams map lives in
+ * `index.ts`); the "staged" state is listened to right here: `update-downloaded` arms it,
+ * a post-download `error` disarms it (the install failed, `poll.ts` retries).
  */
 export function startAutoInstall(
   getWin: () => BrowserWindow | null,
@@ -113,8 +113,8 @@ export function startAutoInstall(
       idleS: powerMonitor.getSystemIdleTime(),
       blurredMs: Date.now() - blurredSince,
       mainBusy: probes.mainBusy(),
-      // Demandée en DERNIER, seulement si le reste est déjà réuni — pas de ping du
-      // renderer toutes les minutes pour rien.
+      // Asked LAST, only once everything else is already met — no pinging the
+      // renderer every minute for nothing.
       rendererBusy: null,
     };
     if (!shouldAutoInstall({ ...signals, rendererBusy: false })) return;
@@ -129,7 +129,7 @@ export function startAutoInstall(
 
   const timer = setInterval(() => {
     void tick().catch(() => {
-      installing = false; // un échec de pose rouvre la fenêtre au tick suivant
+      installing = false; // an install failure reopens the window on the next tick
     });
   }, AUTO_POLL_MS);
   timer.unref?.();

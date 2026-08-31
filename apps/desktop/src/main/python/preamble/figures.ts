@@ -1,19 +1,19 @@
 import { BRAND } from "@openmasq/branding";
 
 /**
- * La capture AUTOMATIQUE des figures matplotlib — le pendant « graphique » des aides
- * document (`pdf.ts`/`docx.ts`/`pptx.ts`) : chaque figure ouverte est estampillée du
- * wordmark puis sauvée dans `OPENMASQ_FIG_DIR`, à l'atexit ET à l'appel explicite de fin
- * de script (`buildScript`). Splicé TEXTUELLEMENT dans le PREAMBLE de `../wheels.ts`,
- * dont il consomme les globaux (`_os`, `__OPENMASQ_FIG_DIR`, `_KV_*`).
+ * The AUTOMATIC capture of matplotlib figures — the "graphics" counterpart of the
+ * document helpers (`pdf.ts`/`docx.ts`/`pptx.ts`): every open figure is stamped with the
+ * wordmark then saved into `OPENMASQ_FIG_DIR`, at atexit AND at the script's explicit
+ * end call (`buildScript`). Spliced TEXTUALLY into the PREAMBLE of `../wheels.ts`,
+ * whose globals it consumes (`_os`, `__OPENMASQ_FIG_DIR`, `_KV_*`).
  *
- * Le nom de fichier dérive du TITRE de la figure (suptitle, sinon le 1er axe) — c'est le
- * nom que l'utilisateur voit partout (bulle, Bibliothèque, Finder), et la consigne impose
- * déjà `set_title` au modèle ; `fig_N.png` nu finissait affiché tel quel. Le titre est du
- * texte écrit par le MODÈLE : ascii-fold + `[a-z0-9-]` seulement, jamais interpolé brut
- * dans un chemin (le double garde-fou côté main reste `readCollected`/`safeFileName`).
- * Collision dans le run → suffixe du numéro de figure, sinon le 1er savefig est écrasé
- * en silence. ⚠️ Python dans un template TS : jamais de `\${` ici.
+ * The file name derives from the figure's TITLE (suptitle, else the 1st axis) — it's the
+ * name the user sees everywhere (bubble, Library, Finder), and the instructions already
+ * require `set_title` of the model; a bare `fig_N.png` used to end up displayed as-is. The title is
+ * text written by the MODEL: ascii-fold + `[a-z0-9-]` only, never interpolated raw
+ * into a path (the double guardrail on the main side remains `readCollected`/`safeFileName`).
+ * Collision within the run → suffixed with the figure number, otherwise the 1st savefig is
+ * silently overwritten. ⚠️ Python inside a TS template: never any `\${` here.
  */
 const FIGURE_SAVER_RAW = `
 def __kv_fig_name(_fig, _n, _used):
@@ -59,6 +59,6 @@ def __kv_save_figures():
 _atexit.register(__kv_save_figures)
 `;
 
-// Le wordmark estampillé sur chaque figure dérive de la marque (règle 9). Remplacement
-// textuel plutôt qu'interpolation : ce template s'interdit tout `\${` (voir l'en-tête).
+// The wordmark stamped on every figure derives from the brand (rule 9). Textual
+// replacement rather than interpolation: this template forbids any `\${` (see the header).
 export const FIGURE_SAVER = FIGURE_SAVER_RAW.replace("__KV_WORDMARK__", BRAND.slug);

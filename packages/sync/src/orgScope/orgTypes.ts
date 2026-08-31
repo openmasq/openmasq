@@ -10,7 +10,7 @@
 import type { EncryptedRecord } from "../recordTypes";
 
 /** The two org scopes, an ALLOW-list (backend parity pinned by its gate test).
- *  `coffre` = always-redacted terms; `userdata` = compétences. */
+ *  `coffre` = always-redacted terms; `userdata` = skills. */
 export const ORG_COFFRE_SCOPE = "coffre";
 export const ORG_USERDATA_SCOPE = "userdata";
 export const ORG_SCOPES = [ORG_COFFRE_SCOPE, ORG_USERDATA_SCOPE] as const;

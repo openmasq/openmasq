@@ -29,7 +29,7 @@ export const localFs = {
   list: (path: string): Promise<{ path: string; entries: LocalFsEntry[]; truncated: boolean }> =>
     call("localfs:list", { path }),
   stat: (path: string): Promise<LocalFsEntry> => call("localfs:stat", { path }),
-  /** Raw bytes, base64 — one op serves an aperçu of text, an image and a PDF alike. */
+  /** Raw bytes, base64 — one op serves a preview of text, an image and a PDF alike. */
   read: (path: string): Promise<{ base64: string; size: number }> => call("localfs:read", { path }),
   search: (
     path: string,
@@ -39,8 +39,8 @@ export const localFs = {
   mkdir: (path: string): Promise<{ path: string }> => call("localfs:mkdir", { path }),
   rename: (source: string, destination: string): Promise<{ path: string }> =>
     call("localfs:rename", { source, destination }),
-  /** Texte ET géométrie OCR en UN aller-retour, extraits en main depuis le chemin accordé.
-   *  Ne rend JAMAIS de `path` : le renderer ne doit pas pouvoir le repasser à `files:read`. */
+  /** Text AND OCR geometry in ONE round trip, extracted in main from the granted path.
+   *  NEVER returns a `path`: the renderer must not be able to pass it back to `files:read`. */
   extract: (path: string): Promise<Record<string, unknown>> => call("localfs:extract", { path }),
   /** OS Corbeille, never `unlink` — a delete the user clicks stays recoverable. */
   trash: (path: string): Promise<null> => call("localfs:trash", { path }),

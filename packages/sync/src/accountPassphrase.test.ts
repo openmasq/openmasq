@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { accountPassphrase, type PassphraseStore } from "./accountPassphrase";
 
 /**
- * Le défaut que ces cas ferment : la phrase était rangée sous UNE clé par appareil, et
- * rien ne l'effaçait au changement de compte — le compte suivant héritait donc de la clé
- * E2E du précédent et se retrouvait synchronisé sans l'avoir demandé.
+ * The bug these cases close: the passphrase was stored under ONE key per device, and
+ * nothing cleared it on an account change — the next account therefore inherited the
+ * E2E key of the previous one and ended up synced without having asked for it.
  */
 let mem: Record<string, string>;
 const store: PassphraseStore = {
@@ -60,15 +60,15 @@ describe("l'héritage de l'ancienne clé sans compte", () => {
     mem["pass"] = "ancienne";
     account = "A";
     expect(await pass.get()).toBe("ancienne");
-    // …et la clé partagée a disparu, donc B repart sans phrase.
+    // …and the shared key is gone, so B starts fresh with no passphrase.
     expect(mem["pass"]).toBeUndefined();
     account = "B";
     expect(await pass.get()).toBeNull();
   });
 
-  /* ⚠️ Sans compte résolu, l'adoption NE DOIT PAS courir : elle supprimerait la clé
-     héritée, et une phrase perdue orpheline définitivement les coffres déjà synchronisés
-     (aucun séquestre). Elle attend donc la première connexion. */
+  /* ⚠️ Without a resolved account, adoption MUST NOT run: it would delete the
+     inherited key, and a lost passphrase permanently orphans the vaults already synced
+     (no escrow). So it waits for the first connection. */
   it("déconnecté, elle est PRÉSERVÉE pour la prochaine connexion", async () => {
     mem["pass"] = "ancienne";
     expect(await pass.get()).toBeNull();
@@ -77,8 +77,8 @@ describe("l'héritage de l'ancienne clé sans compte", () => {
     expect(await pass.get()).toBe("ancienne");
   });
 
-  /* La réactivation, à l'identique : éteindre puis recharger ré-adoptait l'ancienne
-     phrase si le marqueur n'était pas posé. */
+  /* Reactivation, identically: turning off then reloading used to re-adopt the old
+     passphrase if the marker wasn't set. */
   it("éteindre ferme la porte de l'adoption — pas de retour au rechargement", async () => {
     mem["pass"] = "ancienne";
     account = "A";

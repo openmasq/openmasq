@@ -37,8 +37,8 @@ async function openDb(file: string): Promise<void> {
   // that migration can't complete we fall back to opening plaintext — never a lockout.
   const key = dbEncryptionKey();
   const useKey = key ? await ensureEncrypted(file, key) : false;
-  // Le pilote natif se charge ICI, pas en tête de module : au chargement du bundle, un
-  // `dlopen` refusé par l'OS tue le processus avant Sentry et avant toute garde (`driver.ts`).
+  // The native driver is loaded HERE, not at the top of the module: at bundle-load, a
+  // `dlopen` refused by the OS kills the process before Sentry and before any guard (`driver.ts`).
   const createClient = await loadDriver();
   client = useKey && key
     ? createClient({ url: `file:${file}`, encryptionKey: key })
@@ -94,9 +94,9 @@ export async function setDbUser(userId: string | null): Promise<void> {
 async function maybeAdoptLegacyDb(accountFile: string): Promise<void> {
   const userData = app.getPath("userData");
   const marker = join(userData, `.${BRAND.slug}-legacy-db-adopted`);
-  // Les DEUX noms se tentent : le parc pré-isolation a écrit son fichier sous l'ANCIEN
-  // nom de code du dépôt (renommé le 24/08/2026 — le renommage n'a pas touché les
-  // disques), et "openmasq.db" couvre le nom courant. Exception nommée de `check:brand`.
+  // BOTH names are tried: the pre-isolation install base wrote its file under the OLD
+  // codename of the repo (renamed on 24/08/2026 — the rename didn't touch
+  // disks), and "openmasq.db" covers the current name. Named exception in `check:brand`.
   const legacy = ["openmasq.db", "openmasq.db"]
     .map((name) => join(userData, name))
     .find((p) => existsSync(p));

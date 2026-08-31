@@ -122,15 +122,15 @@ describe("detectAddresses — SPACE-separated commune continuation (ST OUEN SUR 
 });
 
 /**
- * Un artisan écrit sans ponctuation, et son message porte un MONTANT juste après l'adresse.
- * Sans garde, deux mécanismes indépendants emportaient ce montant dans la zone d'adresse :
- * la classe `NAME` (permissive : chiffres + espaces, pour « rue du 8 Mai 1945 ») courait
- * jusqu'à son plafond, et surtout `TAIL_CORE` lisait « 2400 » comme un code postal à quatre
- * chiffres suivi d'une « ville » — la capitalisation qu'il croit exiger étant inopérante,
- * les formes étant compilées avec le drapeau `i`.
+ * A tradesman writes without punctuation, and his message carries an AMOUNT right after the
+ * address. Without a guard, two independent mechanisms were dragging that amount into the
+ * address zone: the `NAME` class (permissive: digits + spaces, for "rue du 8 Mai 1945") ran
+ * up to its cap, and above all `TAIL_CORE` read "2400" as a four-digit postal code followed
+ * by a "city" — the capitalisation it believes it requires being inoperative, since the
+ * patterns are compiled with the `i` flag.
  *
- * Conséquence mesurée dans l'app : le montant partait remplacé par une fausse adresse, donc
- * le modèle ne le recevait JAMAIS et rendait un devis sans prix.
+ * Consequence measured in the app: the amount would get replaced by a fake address, so the
+ * model NEVER received it and rendered a quote with no price.
  */
 describe("detectAddresses — un MONTANT n'est ni une rue ni un code postal", () => {
   it("s'arrête avant le montant, sur une phrase sans ponctuation", () => {
@@ -144,7 +144,7 @@ describe("detectAddresses — un MONTANT n'est ni une rue ni un code postal", ()
     expect(addr("12 rue des lilas a vitry 1 234,56 € TTC")).toBe("12 rue des lilas a vitry");
   });
 
-  // Le garde est étroit EXPRÈS : ces trois-là doivent rester intacts.
+  // The guard is narrow ON PURPOSE: these three must stay intact.
   it("ne touche pas aux chiffres LÉGITIMES d'une adresse", () => {
     expect(addr("adresse 5 rue du 8 Mai 1945 a Vitry")).toBe("5 rue du 8 Mai 1945 a Vitry");
     expect(addr("domicilié 4 avenue de la Grande Armée 75017 Paris")).toBe(

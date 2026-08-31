@@ -3,13 +3,13 @@ import { pseudonymize, unredact } from "./index";
 import type { Detection, Vault } from "./types";
 
 /**
- * Le relevé de droits d'auteur Sacem — la régression des deux faux positifs rapportés :
- *  - « Etranger » (un libellé de FAMILLE de répartition, seul dans sa colonne) tagué ORG
- *    par le NER et faké en société inventée (« Ashborne ») ;
- *  - « SACEM » (l'ÉMETTEUR du relevé, jamais l'identité du lecteur) faké en « KELBY »,
- *    envoyant l'utilisateur consulter le site d'une société inexistante.
- * Le NER est SIMULÉ via `detectLocal` — c'est le contrat du choke point : toutes les
- * sources passent le même filtre, donc épingler le drop ici couvre le vrai NER.
+ * The Sacem royalty statement — the regression for the two reported false positives:
+ *  - "Etranger" (a distribution-FAMILY label, alone in its column) tagged ORG
+ *    by the NER and faked into an invented company ("Ashborne");
+ *  - "SACEM" (the statement's ISSUER, never the reader's identity) faked into "KELBY",
+ *    sending the user off to browse a nonexistent company's site.
+ * The NER is SIMULATED via `detectLocal` — that's the choke-point contract: every
+ * source passes through the same filter, so pinning the drop here covers the real NER.
  */
 const DOC = `Société Civile à Capital Variable - 775 675 739 RCS Nanterre
 N° SIRET 775 675 739 03 131 N° TVA intracommunautaire : FR 42 775 675 739
@@ -30,7 +30,7 @@ Copie Privée
 
 rendez-vous dans votre espace membre sur SACEM.FR`;
 
-/** Ce que le NER local tague plausiblement sur ce document. */
+/** What the local NER plausibly tags on this document. */
 const NER: Detection[] = [
   { value: "Sabourdin Julien", category: "NAME" },
   { value: "Etranger", category: "ORG" },
@@ -45,8 +45,8 @@ describe("relevé Sacem — les libellés du document ne sont pas des identités
       vault,
       detectLocal: async () => NER,
     });
-    expect(text).toContain("Etranger"); // générique de répartition — jamais une société
-    expect(text).toContain("SACEM.FR"); // l'émetteur notoire — le lien doit rester vrai
+    expect(text).toContain("Etranger"); // distribution generic — never a company
+    expect(text).toContain("SACEM.FR"); // the notorious issuer — the link must stay real
     expect(Object.values(vault)).not.toContain("Etranger");
     expect(Object.values(vault)).not.toContain("SACEM");
   });
@@ -61,6 +61,6 @@ describe("relevé Sacem — les libellés du document ne sont pas des identités
       expect(text, `${real} doit être redacted`).not.toContain(real);
       expect(Object.values(vault)).toContain(real);
     }
-    expect(unredact(text, vault)).toBe(DOC); // réversible, toujours
+    expect(unredact(text, vault)).toBe(DOC); // always reversible
   });
 });

@@ -1,66 +1,66 @@
 /**
- * Le squelette des surfaces WEB (centre d'aide, console admin) posé sur le même noyau
- * que le bureau et l'extension.
+ * The skeleton of the WEB surfaces (help center, admin console) set on the same core
+ * as the desktop and the extension.
  *
- * ⚠️ La landing en usait aussi, avant de quitter ce monorepo pour son propre dépôt
- * (18/08) — elle n'est plus un appelant CONSTATABLE d'ici, mais rien n'empêche son
- * nouveau dépôt de partager la même forme (voire ce même paquet, publié).
+ * ⚠️ The landing used it too, before leaving this monorepo for its own repo
+ * (18/08) — it is no longer an OBSERVABLE caller from here, but nothing prevents its
+ * new repo from sharing the same shape (even this same package, published).
  *
- * Ce que ces sites ont en commun n'est pas le vocabulaire d'événements — il diffère
- * vraiment — mais la PLOMBERIE autour : un identifiant anonyme tiré une fois dans
- * `localStorage`, une configuration idempotente, et un `$pageview` dédoublonné sur
- * l'URL précédente. Écrite une fois par site, c'était la même centaine de lignes
- * répétée (règle 9) ; écrite ici, le seul point de variation qui reste au point
- * d'appel est ce qui varie pour de vrai : le vocabulaire, la source, et la manière
- * dont l'URL a le droit d'être publiée.
+ * What these sites have in common is not the event vocabulary — it genuinely
+ * differs — but the PLUMBING around it: an anonymous id drawn once in
+ * `localStorage`, an idempotent configuration, and a `$pageview` deduplicated on
+ * the previous URL. Written once per site, it was the same hundred lines
+ * repeated (rule 9); written here, the only point of variation left at the call
+ * site is what genuinely varies: the vocabulary, the source, and the way
+ * the URL is allowed to be published.
  *
- * ⚠️ `urlMode: "path"` n'est pas un détail de propreté. Une console applicative met
- * des SECRETS dans la barre d'adresse — `/invite?token=…` est un jeton d'invitation
- * utilisable — et `$current_url` part tel quel chez PostHog. Un site public (aide,
- * landing) veut au contraire garder sa query : c'est là que vivent les UTM. D'où un
- * réglage explicite, sans défaut implicite pour les surfaces sensibles.
+ * ⚠️ `urlMode: "path"` is not a cleanliness detail. An application console puts
+ * SECRETS in the address bar — `/invite?token=…` is a usable invitation token
+ * — and `$current_url` leaves as-is to PostHog. A public site (help,
+ * landing) instead wants to keep its query: that's where the UTMs live. Hence an
+ * explicit setting, with no implicit default for sensitive surfaces.
  */
 import { createAnalytics } from "./createAnalytics";
 import type { Analytics, ConfigureOptions } from "./types";
 
 /**
- * Le jeton d'ingestion PUBLIC du projet PostHog (`phc_…`) — conçu pour être expédié
- * dans un navigateur, ce n'est pas un secret, MAIS il identifie UN projet précis :
- * il n'est donc plus committé. Fourni par l'ENV du build consommateur
- * (`OPENMASQ_POSTHOG_KEY`, à définir/inliner par le bundler du site appelant) ;
- * absent ⇒ chaîne vide ⇒ le noyau ne configure aucun transport et reste muet —
- * jamais le projet de quelqu'un d'autre. Le garde `typeof process` couvre un import
- * navigateur brut, où `process` n'existe pas.
+ * The PUBLIC ingestion token of the PostHog project (`phc_…`) — designed to be shipped
+ * in a browser, it's not a secret, BUT it identifies ONE specific project:
+ * it is therefore no longer committed. Provided by the consuming build's ENV
+ * (`OPENMASQ_POSTHOG_KEY`, to be defined/inlined by the calling site's bundler);
+ * absent ⇒ empty string ⇒ the core configures no transport and stays silent —
+ * never someone else's project. The `typeof process` guard covers a raw
+ * browser import, where `process` doesn't exist.
  */
 export const OPENMASQ_POSTHOG_KEY: string =
   (typeof process !== "undefined" ? process.env?.OPENMASQ_POSTHOG_KEY : undefined) ?? "";
 
-/** L'ingestion PostHog — cloud EU (l'organisation du produit). */
+/** PostHog ingestion — EU cloud (the product's organization). */
 export const OPENMASQ_POSTHOG_HOST = "https://eu.i.posthog.com";
 
 /**
- * Les clés que le `$pageview` a le droit de porter, pour que les trois sites les
- * déclarent identiquement dans leur `ALLOWED` (la marche de nettoyage jette tout ce
- * qui n'y figure pas). Un site qui ajoute une dimension étend cette liste chez lui :
+ * The keys that `$pageview` is allowed to carry, so the three sites
+ * declare them identically in their `ALLOWED` (the sanitize walk drops anything
+ * not listed there). A site that adds a dimension extends this list on its own side:
  * `{ $pageview: [...PAGEVIEW_KEYS, "channel"] }`.
  */
 export const PAGEVIEW_KEYS = ["$current_url", "$pathname"] as const;
 
-/** L'événement que `capturePageview` émet. Le nom et la forme sont ceux que PostHog
- *  attend nativement, pour que ça atterrisse dans Web Analytics sans transformation. */
+/** The event that `capturePageview` emits. The name and shape are the ones PostHog
+ *  expects natively, so it lands in Web Analytics without transformation. */
 export interface WebPageview {
   name: "$pageview";
   $current_url?: string;
   $pathname?: string;
 }
 
-/** Un identifiant anonyme stable, tiré au sort et gardé dans `localStorage`.
+/** A stable anonymous identifier, randomly drawn and kept in `localStorage`.
  *
- *  Ce n'est PAS un cookie de pistage : un UUID aléatoire, propre à ce navigateur,
- *  sans compte derrière et sans corrélation d'un site à l'autre — il sert à compter
- *  des visiteurs, pas à reconnaître quelqu'un. Stockage indisponible (navigation
- *  privée verrouillée, iframe cloisonnée) ⇒ `"anon"`, donc un comptage dégradé
- *  plutôt qu'une exception dans un chemin qui ne doit jamais casser la page. */
+ *  This is NOT a tracking cookie: a random UUID, specific to this browser,
+ *  with no account behind it and no cross-site correlation — it's used to count
+ *  visitors, not to recognize someone. Storage unavailable (locked-down
+ *  private browsing, sandboxed iframe) ⇒ `"anon"`, so a degraded count
+ *  rather than an exception in a path that must never break the page. */
 export function readLocalAnonId(storageKey: string): string {
   try {
     let id = localStorage.getItem(storageKey);
@@ -75,25 +75,25 @@ export function readLocalAnonId(storageKey: string): string {
 }
 
 export interface WebAnalyticsOptions {
-  /** Le vocabulaire du site (nom d'événement → clés conservées). */
+  /** The site's vocabulary (event name → keys kept). */
   allowed: Record<string, readonly string[]>;
-  /** `source` de l'enveloppe : `"docs"` | `"web"` ici ; `"landing"` reste une valeur
-   *  VALIDE si le dépôt extrait de la landing (18/08) rappelle ce noyau. */
+  /** envelope `source`: `"docs"` | `"web"` here; `"landing"` remains a
+   *  VALID value if the repo extracted from the landing (18/08) calls back into this core. */
   source: string;
-  /** La clé `localStorage` de l'identifiant anonyme (une par site — pas de
-   *  corrélation inter-sites, même sur un domaine partagé). */
+  /** The `localStorage` key of the anonymous identifier (one per site — no
+   *  cross-site correlation, even on a shared domain). */
   anonKey: string;
-  /** Préfixe des diagnostics console (noms d'événements seulement). */
+  /** Prefix for console diagnostics (event names only). */
   logPrefix?: string;
   /**
-   * Ce que `$current_url` a le droit de contenir.
-   * - `"full"` : l'URL complète, query comprise (sites publics — les UTM y vivent).
-   * - `"path"` : origine + chemin, **query et fragment retirés**. Le mode des
-   *   surfaces applicatives, où la query porte des jetons.
+   * What `$current_url` is allowed to contain.
+   * - `"full"`: the full URL, query included (public sites — the UTMs live there).
+   * - `"path"`: origin + path, **query and fragment stripped**. The mode for
+   *   application surfaces, where the query carries tokens.
    */
   urlMode: "full" | "path";
-  /** Le transport. `key` absente ET `relayUrl` absente ⇒ le noyau ne configure rien
-   *  et tout devient un no-op silencieux : c'est la lecture fail-closed. */
+  /** The transport. `key` absent AND `relayUrl` absent ⇒ the core configures nothing
+   *  and everything becomes a silent no-op: that's the fail-closed reading. */
   config: Pick<
     ConfigureOptions,
     "key" | "apiHost" | "relayUrl" | "debug" | "allowLocalhost" | "env" | "appVersion"
@@ -101,21 +101,21 @@ export interface WebAnalyticsOptions {
 }
 
 export interface WebAnalytics<E extends { name: string }> {
-  /** Configure le transport et allume la mesure de base. Idempotent, et sans effet
-   *  hors navigateur (rendu serveur / build statique). */
+  /** Configures the transport and turns on baseline measurement. Idempotent, and no effect
+   *  outside the browser (server rendering / static build). */
   configure(): void;
-  /** Une page a été vue → `$pageview`. Dédoublonné sur l'URL IMMÉDIATEMENT
-   *  précédente : le double montage de React StrictMode (et tout re-rendu) ne peut
-   *  pas compter deux fois, alors qu'un vrai aller-retour A→B→A compte encore. */
+  /** A page was viewed → `$pageview`. Deduplicated on the IMMEDIATELY
+   *  preceding URL: React StrictMode's double mount (and any re-render) can't
+   *  count twice, while a genuine A→B→A round trip still counts. */
   capturePageview(pathname: string, extra?: Record<string, string | number | boolean | undefined>): void;
-  /** Un événement propre au site, passé par la marche de nettoyage. */
+  /** A site-specific event, passed through the sanitize walk. */
   capture(event: E): void;
-  /** Le noyau sous-jacent, pour ce qu'un site fait de plus (canal `$exception`,
-   *  consentement révocable…). */
+  /** The underlying core, for whatever else a site does (the `$exception` channel,
+   *  revocable consent…). */
   core: Analytics<E>;
 }
 
-/** Compose le noyau partagé et la plomberie de site en une surface prête à monter. */
+/** Composes the shared core and site plumbing into a surface ready to mount. */
 export function createWebAnalytics<E extends { name: string }>(
   opts: WebAnalyticsOptions,
 ): WebAnalytics<E> {
@@ -140,18 +140,18 @@ export function createWebAnalytics<E extends { name: string }>(
       if (configured || typeof window === "undefined") return;
       configured = true;
       core.configureAnalytics({ source: opts.source, ...opts.config });
-      // Mesure de base allumée par défaut, sans cookie ni bannière : le noyau
-      // refuse déjà d'émettre sous Do-Not-Track / Global Privacy Control, et rien
-      // de nominatif ne circule. Un site qui ajouterait un canal plus intrusif
-      // (rejeu de session) lui demande son propre consentement, comme la landing.
+      // Baseline measurement turned on by default, with no cookie or banner: the core
+      // already refuses to emit under Do-Not-Track / Global Privacy Control, and nothing
+      // identifying travels. A site that adds a more intrusive channel
+      // (session replay) asks its own consent for it, like the landing.
       core.setAnalyticsConsent(true);
     },
     capturePageview(pathname, extra): void {
       if (typeof window === "undefined") return;
       const url = currentUrl();
-      // La clé de dédoublonnage est l'URL PUBLIÉE, pas `href` : en mode `"path"`,
-      // deux visites du même chemin avec des query différentes envoient la même
-      // chose, et n'ont donc aucune raison de compter deux fois.
+      // The deduplication key is the PUBLISHED URL, not `href`: in `"path"` mode,
+      // two visits to the same path with different queries send the same
+      // thing, and so have no reason to count twice.
       if (url === lastPageviewUrl) return;
       lastPageviewUrl = url;
       core.captureEvent({

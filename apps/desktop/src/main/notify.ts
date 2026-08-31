@@ -2,27 +2,27 @@ import { Notification, type BrowserWindow } from "electron";
 import { handle, obj } from "./ipc/handle";
 import { BRAND } from "@openmasq/branding";
 
-/** Ce qu'une bannière porte au plus. Coupé court : une notification système tronque de
- *  toute façon, et un texte long y devient illisible. */
+/** What a banner carries at most. Cut short: a system notification truncates
+ *  anyway, and long text becomes unreadable in it. */
 const MAX = 120;
 
 const text = (v: unknown, fallback: string): string =>
   typeof v === "string" && v.trim() ? v.slice(0, MAX) : fallback;
 
 /**
- * La notification SYSTÈME « une réponse est arrivée ».
+ * The SYSTEM "a reply has arrived" notification.
  *
- * Elle vit dans main pour une raison unique et suffisante : **le clic doit ramener la
- * fenêtre au premier plan**, ce qu'un renderer ne peut pas faire pour lui-même. Le reste
- * (quand notifier, quoi écrire) est décidé côté UI — `packages/ui/src/state/replyNotice.ts`
- * — et arrive ici déjà composé.
+ * It lives in main for one sufficient reason: **the click must bring the
+ * window to the foreground**, which a renderer can't do for itself. The rest
+ * (when to notify, what to write) is decided on the UI side — `packages/ui/src/state/replyNotice.ts`
+ * — and arrives here already composed.
  *
- * ⚠️ Ce processus n'INVENTE aucun texte à partir de la conversation, et n'en lit aucune :
- * il reçoit un titre et un corps déjà dépourvus de contenu, les borne, et les affiche. La
- * seule donnée qui traverse est l'id du fil, qui ne s'affiche jamais — il sert au retour.
+ * ⚠️ This process does NOT INVENT any text from the conversation, and reads none of it:
+ * it receives a title and a body already stripped of content, bounds them, and displays them. The
+ * only data that crosses over is the thread id, which is never displayed — it's used for the return trip.
  *
- * Le renderer est non fiable (règle 7) : l'id est renvoyé tel quel à la fenêtre qui l'a
- * fourni, jamais utilisé ici pour ouvrir, lire ou écrire quoi que ce soit.
+ * The renderer isn't trusted (rule 7): the id is sent back as-is to the window that
+ * provided it, never used here to open, read, or write anything.
  */
 export function registerNotifyIpc(getWin: () => BrowserWindow | null): void {
   handle("notify:supported", [], () => Notification.isSupported());
@@ -41,8 +41,8 @@ export function registerNotifyIpc(getWin: () => BrowserWindow | null): void {
     n.on("click", () => {
       const win = getWin();
       if (!win || win.isDestroyed()) return;
-      // Rendre la fenêtre visible AVANT de la focaliser : réduite dans le Dock, `focus()`
-      // seul ne la restaure pas, et l'app « répond » sans que rien n'apparaisse.
+      // Make the window visible BEFORE focusing it: minimized to the Dock, `focus()`
+      // alone doesn't restore it, and the app "responds" without anything appearing.
       if (win.isMinimized()) win.restore();
       win.show();
       win.focus();

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { detectContractNumbers } from "./contextFields";
 
-/* Mesuré sur documents administratifs réels : les identifiants de RELATION (client,
-   dossier, police, commande, PDL) étaient le plus gros gisement de rappel — aucune
-   règle ne connaissait ces libellés. Toutes les valeurs ci-dessous sont synthétiques. */
+/* Measured on real administrative documents: RELATION identifiers (client,
+   file, policy, order, PDL) were the biggest recall gap — no
+   rule knew these labels. All the values below are synthetic. */
 const vals = (t: string) => detectContractNumbers(t).map((d) => d.value);
 
 describe("identifiants de relation client (libellé + chiffres)", () => {
@@ -17,8 +17,8 @@ describe("identifiants de relation client (libellé + chiffres)", () => {
   });
 
   it("tolère des mots de liaison entre le libellé et le numéro", () => {
-    // « Numéro de police et date de validité : 86512345/801234567 » — la forme réelle
-    // d'un rapport de diagnostic ; le run accepte le « / » des polices d'assurance.
+    // « Numéro de police et date de validité : 86512345/801234567 » — the real shape
+    // of a diagnostic report; the rule accepts the « / » of insurance policies.
     expect(vals("Numéro de police et date de validité : 86512345/801234567")).toEqual([
       "86512345/801234567",
     ]);
@@ -29,8 +29,8 @@ describe("identifiants de relation client (libellé + chiffres)", () => {
   });
 
   it("ne gate JAMAIS sur le nom commun seul", () => {
-    // « la police », « le contrat », « je me rends compte » : sans tête de libellé
-    // (n°/numéro/référence) ni forme « X n° », la prose reste de la prose.
+    // « la police », « le contrat », « je me rends compte » : without a label head
+    // (n°/numéro/référence) nor an « X n° » form, prose stays prose.
     expect(vals("la police est intervenue au 36 quai des Orfèvres en 2024")).toEqual([]);
     expect(vals("le contrat prévoit une durée de 240 mois soit 1093,90 par mois")).toEqual([]);
     expect(vals("un dossier de 350 pages remis en 2023")).toEqual([]);

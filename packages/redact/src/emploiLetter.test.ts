@@ -1,19 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { pseudonymize } from "./index";
 
-/* Régression sur un cas RÉEL : une lettre de confirmation d'inscription à Pôle emploi,
-   redacted en conditions de production (identités substituées ici).
+/* Regression on a REAL case: a letter confirming registration with Pôle emploi,
+   redacted under production conditions (identities substituted here).
 
-   Le journal montrait trois défauts qui ne perdaient AUCUNE donnée mais rendaient le
-   document et la consigne inexploitables :
+   The log showed three defects that lost NO data but made the
+   document and the instruction unusable:
 
      « recherche d'torvel », « demandeurs d'torvel », « Offre Raisonnable d'Torvel »
      « Vous êtes tenu de vous rendre à tout troyes-vous fixé »
-     « Allège les phrases avignon sans changer le sens »   ← la consigne de l'utilisateur
+     « Allège les phrases avignon sans changer le sens »   ← the user's instruction
 
-   Les trois se produisaient PENDANT que le nom, l'adresse et l'identifiant étaient,
-   eux, correctement protégés. C'est donc un test de PRÉCISION : il vérifie d'abord que
-   la protection tient, puis que rien d'autre ne part au coffre. */
+   All three occurred WHILE the name, address and identifier were,
+   themselves, correctly protected. So this is a PRECISION test: it first checks that
+   the protection holds, then that nothing else goes into the vault. */
 
 const PROMPT = `Relis le texte ci-dessous.
 - Corrige l'orthographe, la grammaire et la ponctuation.
@@ -73,9 +73,9 @@ describe("lettre Pôle emploi — la protection tient, le reste reste lisible", 
   it("ne redacted pas « emploi » — c'est un mot de « Pôle emploi », qui est notoire", async () => {
     const vault: Record<string, string> = {};
     const { text: out } = await pseudonymize(texte, { vault });
-    // Le fragment d'entité notoire : `isNotoriousEntity` teste la valeur ENTIÈRE, donc
-    // « emploi » seul passait la porte pendant que « Pôle emploi » deux caractères plus
-    // loin était, lui, bien reconnu.
+    // The notorious-entity fragment: `isNotoriousEntity` tests the WHOLE value, so
+    // « emploi » alone used to get through while « Pôle emploi » two characters
+    // further along was, itself, correctly recognised.
     expect(Object.values(vault).map((v) => v.toLowerCase())).not.toContain("emploi");
     expect(out).toContain("recherche d'emploi");
     expect(out).toContain("Offre Raisonnable d'Emploi");
@@ -114,11 +114,11 @@ describe("lettre Pôle emploi — la protection tient, le reste reste lisible", 
 
 });
 
-/* ⚠️ Les tests ci-dessus n'exercent QUE le dictionnaire : ils passent à l'identique avec
-   les deux portes de `textContext.ts` désactivées, parce que le pipeline déterministe ne
-   propose jamais « emploi » comme organisation ni « lourdes » comme lieu — c'est le NER
-   qui le fait, et c'est là que ces portes agissent. On simule donc le détecteur, en lui
-   faisant proposer EXACTEMENT ce que le NER a proposé sur le vrai document. */
+/* ⚠️ The tests above exercise ONLY the dictionary: they pass identically with
+   both `textContext.ts` gates disabled, because the deterministic pipeline never
+   proposes « emploi » as an organisation nor « lourdes » as a place — the NER
+   does that, and that's where these gates act. So the detector is simulated, made to
+   propose EXACTLY what the NER proposed on the real document. */
 
 const proposant = (dets: { value: string; category: string }[]) => async () => JSON.stringify(dets);
 
@@ -149,9 +149,9 @@ describe("fragment d'entité notoire — le détecteur propose un mot, pas l'ent
   });
 
   it("ne rattache un fragment qu'à une entité RÉELLEMENT dispensée", async () => {
-    // « Goldman Sachs » n'est plus dispensée depuis le retrait des marques commerciales
-    // (27/07/2026), donc son fragment ne l'est pas non plus : une Léa Serval citée à côté
-    // reste redacted. La porte suit la liste, elle ne la double pas.
+    // « Goldman Sachs » has not been exempt since commercial brands were removed
+    // (27/07/2026), so its fragment isn't either: a Léa Serval mentioned right next to it
+    // still gets redacted. The gate follows the list, it doesn't duplicate it.
     const coffre = await coffreDe("Léa Serval a rencontré Goldman Sachs hier.", [
       { value: "Sachs", category: "NAME" },
     ]);
@@ -159,10 +159,10 @@ describe("fragment d'entité notoire — le détecteur propose un mot, pas l'ent
   });
 
   it("⚠️ RÉSIDUEL ASSUMÉ : un patronyme identique à un mot d'un organisme public", async () => {
-    // La branche « name » épargne un span MULTI-MOTS égal à un organisme public (un NER
-    // lit « Assurance Maladie » comme une personne). Conséquence : une Léa Maladie citée
-    // juste à côté part en clair. Documenté dans `textContext.ts` ; épingler le résiduel
-    // vaut mieux que le découvrir en production.
+    // The « name » branch spares a MULTI-WORD span equal to a public body (a NER
+    // reads « Assurance Maladie » as a person). Consequence: a Léa Maladie mentioned
+    // right next to it goes out in clear. Documented in `textContext.ts`; pinning the residual
+    // is better than discovering it in production.
     const coffre = await coffreDe("Léa Maladie a écrit à l'Assurance Maladie hier.", [
       { value: "Maladie", category: "NAME" },
     ]);
@@ -182,23 +182,23 @@ describe("homographe géographique en prose — « lourdes », « vannes »", ()
   });
 
   it("PROTÈGE toujours la vraie mention, même tapée en minuscules", async () => {
-    // Le discriminant : un mot locatif juste avant. C'est ce qui rend la porte sûre —
-    // quelqu'un qui tape sa ville sans majuscule doit rester protégé.
+    // The discriminant: a locative word right before. That's what makes the gate safe —
+    // someone who types their city without a capital letter must stay protected.
     for (const [t, mot] of [
       ["j'habite à vannes depuis trois ans", "vannes"],
       ["il est né à lourdes en 1980", "lourdes"],
       ["8 rue de Lorraine, 35000 vannes", "vannes"],
     ] as [string, string][]) {
       const coffre = await coffreDe(t, [{ value: mot, category: "LOCATION" }]);
-      // Protégée SOIT comme valeur propre, SOIT à l'intérieur de l'adresse entière que
-      // le détecteur d'adresse a attrapée — les deux comptent comme « protégée ».
+      // Protected EITHER as its own value, OR inside the whole address that
+      // the address detector caught — both count as "protected".
       expect([...coffre].some((v) => v.includes(mot)), `${mot} dans « ${t} »`).toBe(true);
     }
   });
 
   it("échoue FERMÉ quand il n'y a aucun indice — pas de voisin, pas de relâchement", async () => {
-    // Deux formes qui existent sur un vrai formulaire et qui n'ont PAS de mot locatif
-    // devant : la ville seule en début de ligne, et le code postal placé APRÈS.
+    // Two forms that exist on a real form and that do NOT have a locative word
+    // in front: the city alone at the start of a line, and the postal code placed AFTER.
     for (const t of ["vannes\n35000", "Ville\nvannes 35000", "vannes"]) {
       const coffre = await coffreDe(t, [{ value: "vannes", category: "LOCATION" }]);
       expect([...coffre].some((v) => v.includes("vannes")), `« ${t} »`).toBe(true);

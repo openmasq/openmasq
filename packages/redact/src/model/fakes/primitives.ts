@@ -40,7 +40,7 @@ export function fakeDigits(value: string, salt: number): string {
   // different spacing/grouping — "863 471 587 00015" vs "863 471 587 000 15" — yields
   // the SAME fake digits, re-laid-out under each spelling's own separators. Seeding on
   // the raw value hashed the two spellings differently → two unrelated fakes for one
-  // number (the reported "2 mappings différents"). `unredact` is already separator-
+  // number (the reported "2 different mappings"). `unredact` is already separator-
   // insensitive, so the reverse was fine; this makes the FORWARD fake consistent too.
   // FULLWIDTH digits (０-９, CJK documents) swap within their own width class — an
   // ASCII digit in a fullwidth id would read broken AND the identity pass-through

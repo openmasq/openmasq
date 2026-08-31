@@ -64,18 +64,18 @@ describe("recaseLike — a separator-less real gets a GLUED fake (URL hosts)", (
 });
 
 /**
- * ⚠️ Le REPLI de `variantOccurrences` est le seul chemin pour les valeurs que
- * `entityVariantRegex` refuse de fuzzy-matcher : celles portant un CHIFFRE
- * (« ACME2024 », « Projet A7 ») et les mots isolés de moins de 4 lettres (« IBM »).
- * Il était `input.includes(value)`, donc SENSIBLE À LA CASSE — alors que tout le reste
- * du moteur ne l'est pas. C'est la forme d'un nom de projet ou d'un sigle d'entreprise,
- * pas un cas de bord ; et c'est ce repli que consulte l'escalade fail-closed du mode
- * clair du navigateur (`ui/agent/navClearRedact.ts`) pour décider qu'une page contient
- * une valeur du Coffre.
+ * ⚠️ The FALLBACK of `variantOccurrences` is the only path for values that
+ * `entityVariantRegex` refuses to fuzzy-match: those carrying a DIGIT
+ * ("ACME2024", "Projet A7") and standalone words under 4 letters ("IBM").
+ * It used to be `input.includes(value)`, hence CASE-SENSITIVE — whereas everything else
+ * in the engine is not. This is the shape of a project name or a company acronym,
+ * not an edge case; and it's this fallback that the browser's clear-mode fail-closed
+ * escalation (`ui/agent/navClearRedact.ts`) consults to decide that a page contains
+ * a Vault value.
  */
 describe("variantOccurrences — insensible à la casse, repli compris", () => {
   it("valeur AVEC CHIFFRE : toutes les casses, avec les caractères RÉELS du texte", () => {
-    expect(entityVariantRegex("ACME2024")).toBeNull(); // c'est bien le repli qui joue
+    expect(entityVariantRegex("ACME2024")).toBeNull(); // it's indeed the fallback that plays
     expect(variantOccurrences("Contrat acme2024 puis ACME2024 signés.", "ACME2024")).toEqual([
       "acme2024",
       "ACME2024",

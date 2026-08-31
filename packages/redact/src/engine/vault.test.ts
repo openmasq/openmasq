@@ -106,10 +106,10 @@ describe("replayVault", () => {
 });
 
 /**
- * `applyVaultVariants` est la passe TOLÉRANTE résiduelle du trajet MODÈLE (après
- * `applyVault`) : une entité déjà en coffre revient en variante — « KARL_STUDIO » dans
- * un nom de fichier, un slug, une MAJUSCULE — et la passe exacte seule l'expédiait EN
- * CLAIR (journal 01/08). Ces cas épinglent la tolérance ET ses gardes anti-prose.
+ * `applyVaultVariants` is the residual TOLERANT pass of the MODEL leg (after
+ * `applyVault`): an entity already in the vault comes back as a variant — « KARL_STUDIO » in
+ * a filename, a slug, ALL CAPS — and the exact pass alone shipped it IN
+ * CLEAR (journal 01/08). These cases pin the tolerance AND its anti-prose guards.
  */
 describe("applyVaultVariants", () => {
   const vault = { "Kelby Works": "Karl Studio", "Sarah Savel": "Marie" };
@@ -150,7 +150,7 @@ describe("unredactArgs — restauration des fakes MUTÉS (troncature du dernier 
     const vault = { "Léa Croshml": "Karl Studio" };
     expect(unredactArgs("Léa Berliand habite ici", vault)).toBe("Léa Berliand habite ici");
     expect(unredactArgs("Léa Ro min trop court", vault)).toBe("Léa Ro min trop court");
-    // Deux fakes partageant le même motif tronqué → aucun des deux n'est deviné.
+    // Two fakes sharing the same truncated pattern → neither one is guessed.
     const ambiguous = { "Léa Croshml": "Karl Studio", "Léa Crosbzq": "Atelier Torbel" };
     expect(unredactArgs("contacte Léa Cros", ambiguous)).toBe("contacte Léa Cros");
   });
@@ -161,12 +161,12 @@ describe("unredactArgs — restauration des fakes MUTÉS (troncature du dernier 
 });
 
 describe("unredact — le modèle RÉ-ORTHOGRAPHIE un faux (accents)", () => {
-  // ⛔ LA RÉGRESSION, constatée le 15/08 sur une carte d'identité. Le faux « Quémener »
-  // est revenu « Quéméner » : le modèle a « corrigé » vers la graphie qu'il connaît. Un
-  // seul signe de différence — et la tolérance de CASSE n'y pouvait rien. Le nom de
-  // famille et la ville, eux, ont été restitués : l'utilisateur a donc lu un prénom
-  // INVENTÉ collé à son vrai nom, sans rien pour le lui signaler. C'est la promesse du
-  // produit qui tombe, pas un détail d'affichage.
+  // ⛔ THE REGRESSION, observed on 15/08 on an identity card. The fake « Quémener »
+  // came back as « Quéméner »: the model "corrected" it toward the spelling it knows. A
+  // single mark of difference — and CASE tolerance couldn't do anything about it. The surname
+  // and the city, on the other hand, were correctly restored: the user therefore read a first name
+  // that was INVENTED, glued to their real surname, with nothing to signal it. It's the product's
+  // promise that breaks down, not a display detail.
   const vault = { "AMAURY QUÉMENER": "CAMILLE CROS", ODILE: "MORVAN", BASTIA: "RENNES" };
 
   it("restitue un faux dont un accent a bougé", () => {
@@ -183,8 +183,8 @@ describe("unredact — le modèle RÉ-ORTHOGRAPHIE un faux (accents)", () => {
   });
 
   it("deux faux qui PLIENT sur la même clé ⇒ abstention, jamais le mauvais réel", () => {
-    // « Rene » et « René » sont deux personnes différentes : plié, c'est la même clé.
-    // Deviner afficherait la donnée de QUELQU'UN D'AUTRE — on ne restitue donc rien.
+    // « Rene » and « René » are two different people: folded, it's the same key.
+    // Guessing would display SOMEONE ELSE'S data — so nothing is restored.
     const ambigu = { Rene: "PAUL SAVARY", René: "LUCIE VIDAL" };
     expect(unredactReply("d'après Renè, …", ambigu)).toContain("Renè");
   });
@@ -203,7 +203,7 @@ describe("unredactReply — réparation d'un pseudonyme MUTÉ à l'affichage", (
     const vault = { [FAKE]: REAL };
     const reply = `Le relevé f0Rsf0P4lIl-grI9EJQjm_52-P47-a3it_0b-YRI-nKVnKV-nKV-nKV.csv liste les paiements.`;
     expect(unredactReply(reply, vault)).toBe(`Le relevé ${REAL} liste les paiements.`);
-    // …et la troncature du même fake aussi (préfixe ≥ 75 %).
+    // …and the truncation of the same fake too (prefix ≥ 75%).
     expect(unredactReply("voir f0Rsf0P4lIl-grI9EJQjm_52-P47-a3it_0b-YRI.csv", vault)).toBe(`voir ${REAL}`);
   });
 
@@ -211,12 +211,12 @@ describe("unredactReply — réparation d'un pseudonyme MUTÉ à l'affichage", (
     const vault = { [FAKE]: REAL };
     expect(unredactReply(`fichier ${FAKE} ouvert`, vault)).toBe(`fichier ${REAL} ouvert`);
     const prose = "la facture 2024-01-15_commande_client-standard.csv est un NOM RÉEL du texte";
-    expect(unredactReply(prose, vault)).toBe(prose); // long token à séparateurs ≠ candidat (préfixe insuffisant)
+    expect(unredactReply(prose, vault)).toBe(prose); // long separator-bearing token ≠ candidate (insufficient prefix)
   });
 
   it("deux fakes « frères » partageant un long préfixe ⇒ abstention (jamais deviné)", () => {
-    // Même préfixe de répertoire scramblé, fins différentes : la mutation ne désigne
-    // personne de façon unique — on n'affiche RIEN de réel.
+    // Same scrambled directory prefix, different endings: the mutation doesn't uniquely
+    // designate anyone — NOTHING real is displayed.
     const vault = {
       "/Users/g1GdGVu36x2JQTC/Desktop/ibin-kRQf8/rapport-a1.pdf": "/x/vrai-a.pdf",
       "/Users/g1GdGVu36x2JQTC/Desktop/ibin-kRQf8/rapport-b2.pdf": "/x/vrai-b.pdf",
@@ -227,19 +227,19 @@ describe("unredactReply — réparation d'un pseudonyme MUTÉ à l'affichage", (
 });
 
 describe("unredact — un faux de DATE reformulé en toutes lettres est restitué", () => {
-  // Le cas vécu (15/08, inventaire documentaliste) : le tableau recopiait le faux
-  // `13/08/2024` verbatim (restitué), la phrase d'à côté l'écrivait « du 13 août 2024
-  // au… » — la même date, autre format, la clé de rien : l'utilisateur lisait une date
-  // FAUSSE présentée comme un fait, au milieu d'un document par ailleurs juste.
+  // The real-world case (15/08, archivist inventory): the table copied the fake
+  // `13/08/2024` verbatim (restored), the sentence next to it wrote it as « du 13 août 2024
+  // au… » — the same date, a different format, the key to nothing: the user read a
+  // FALSE date presented as fact, in the middle of an otherwise correct document.
   const vault = { "13/08/2024": "12/02/2026" };
 
   it("restitue la forme longue française, avec et sans zéro de tête", () => {
     expect(unredact("Les dates couvertes vont du 13 août 2024 au 3 mars.", vault)).toBe(
       "Les dates couvertes vont du 12 février 2026 au 3 mars.",
     );
-    // La forme numérique exacte reste restituée comme avant.
+    // The exact numeric form is still restored as before.
     expect(unredact("Signé le 13/08/2024.", vault)).toBe("Signé le 12/02/2026.");
-    // Jour < 10 : les deux graphies du faux mappent la même forme canonique du réel.
+    // Day < 10: both spellings of the fake map to the same canonical form of the real.
     const v2 = { "05/01/2026": "09/11/2025" };
     expect(unredact("délivrée le 5 janvier 2026", v2)).toBe("délivrée le 9 novembre 2025");
     expect(unredact("délivrée le 05 janvier 2026", v2)).toBe("délivrée le 9 novembre 2025");
@@ -257,7 +257,7 @@ describe("unredact — un faux de DATE reformulé en toutes lettres est restitu�
       "le 14 juillet 2026, fête nationale",
     );
     expect(unredact("réf 13/08 sans année", vault)).toBe("réf 13/08 sans année");
-    // Un faux non-date ne dérive rien.
+    // A non-date fake derives nothing.
     expect(unredact("chez Oslen Group", { "Oslen Group": "Karl Studio" })).toBe(
       "chez Karl Studio",
     );
@@ -270,19 +270,19 @@ describe("unredact — un faux de DATE reformulé en toutes lettres est restitu�
 });
 
 describe("un fragment de SIGLE n'est pas une valeur (constat 15/08, reproduit le 16/08)", () => {
-  /** Sur un acte légal, « 863 471 587 R.C.S. Paris » ressortait « … GAP.S. Nevers » : le
-   *  modèle lit un registre qui n'existe pas. Le constat en avait l'hypothèse sans repro —
-   *  la voici : DEUX substitutions, dont une entrée de coffre de deux caractères. */
+  /** On a legal deed, « 863 471 587 R.C.S. Paris » came out as « … GAP.S. Nevers »: the
+   *  model reads a registry that doesn't exist. The finding had the hypothesis with no repro —
+   *  here it is: TWO substitutions, one of them a two-character vault entry. */
   it("une entrée courte ne réécrit plus l'intérieur d'un sigle", () => {
     expect(applyVault("863 471 587 R.C.S. Paris", { GAP: "R.C" })).toBe("863 471 587 R.C.S. Paris");
-    // …et la ville, elle, est bien remplacée : c'est l'intention.
+    // …and the city, meanwhile, is correctly replaced: that's the intent.
     expect(applyVault("863 471 587 R.C.S. Paris", { Nevers: "Paris" })).toBe("863 471 587 R.C.S. Nevers");
   });
 
   it("⚠️ mais la même valeur AUTONOME garde sa substitution", () => {
-    // Le garde est le pendant FORWARD d'`isRisky` : borné aux valeurs courtes ET au point
-    // INTERNE au jeton. Un point de fin de phrase ne doit rien bloquer, sinon on
-    // fabriquerait une fuite en corrigeant une corruption.
+    // The guard is the FORWARD counterpart of `isRisky`: bounded to short values AND to a dot
+    // INTERNAL to the token. A sentence-ending dot must not block anything, or we would
+    // manufacture a leak while fixing a corruption.
     expect(applyVault("le service R.C a répondu", { GAP: "R.C" })).toBe("le service GAP a répondu");
     expect(applyVault("le service R.C.", { GAP: "R.C" })).toBe("le service GAP.");
   });

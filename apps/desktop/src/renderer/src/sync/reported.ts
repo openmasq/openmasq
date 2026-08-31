@@ -3,17 +3,17 @@ import { BRAND } from "@openmasq/branding";
 import { authHost } from "../auth";
 
 /**
- * Le journal de dédoublonnage de l'audit d'organisation — PAR COMPTE et SANS valeur en
- * clair. La table de faits d'une organisation étant append-only, une valeur redacted ne
- * doit être comptée qu'une fois ; ce journal dit ce qui l'a déjà été.
+ * The dedup ledger for organization audit — PER ACCOUNT and WITHOUT plaintext
+ * values. Since an organization's facts table is append-only, a redacted value
+ * must be counted only once; this ledger records what has already been counted.
  *
- * ⚠️ Il vivait sous UNE clé d'appareil et il stockait les ORIGINAUX. Deux défauts : ce que
- * le compte A avait rapporté empêchait l'organisation de B de compter les siennes, et de la
- * vraie PII dormait en clair dans le localStorage — du LevelDB Chromium sur le disque,
- * c'est-à-dire l'endroit d'où la phrase de synchro et le secret d'appareil ont justement été
- * retirés. La politique (empreinte salée, clé par compte, migration du clair dès le premier
- * chargement) vit dans `@openmasq/sync` `reportedLedger`, partagée avec mobile et
- * l'extension et testée là-bas.
+ * ⚠️ It used to live under ONE device key and stored the ORIGINALS. Two flaws:
+ * what account A had reported prevented B's organization from counting its own,
+ * and real PII sat in plaintext in localStorage — Chromium LevelDB on disk,
+ * precisely the place from which the sync passphrase and the device secret were
+ * removed. The policy (salted hash, per-account key, plaintext migration on
+ * first load) lives in `@openmasq/sync` `reportedLedger`, shared with mobile
+ * and the extension and tested there.
  */
 const ledger = reportedLedger({
   store: {
@@ -28,7 +28,7 @@ const ledger = reportedLedger({
       try {
         localStorage.setItem(key, value);
       } catch {
-        /* quota / stockage indisponible — le delta sera simplement re-rapporté */
+        /* quota / storage unavailable — the delta will simply be re-reported */
       }
     },
     remove: async (key) => {
@@ -40,8 +40,8 @@ const ledger = reportedLedger({
     },
   },
   legacyKey: `${BRAND.slug}:sync-reported`,
-  // Le `sub` du jeton, décodé SANS vérification : ici c'est un nom de casier local, jamais
-  // une autorité — l'identité qui compte est celle que le backend re-dérive du jeton.
+  // The token's `sub`, decoded WITHOUT verification: here it's a local locker name,
+  // never an authority — the identity that matters is the one the backend re-derives from the token.
   accountId: async () => {
     try {
       const token = await authHost.getAccessToken?.();

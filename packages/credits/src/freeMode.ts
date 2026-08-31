@@ -1,39 +1,39 @@
 /**
- * Le MODE GRATUIT d'un déploiement — `OPENMASQ_FREE_MODE=1`.
+ * FREE MODE for a deployment — `OPENMASQ_FREE_MODE=1`.
  *
- * Allumé, personne ne paie et rien ne se vend : les crédits sont ILLIMITÉS (`credits.ts`
- * ne bloque plus, la passerelle ne pré-refuse plus), la caisse est fermée côté backend
- * (`isBillingEnabled()` ⇒ faux, donc 503 `BILLING_DISABLED` sur tout ce qui engage de
- * l'argent) et l'app remplace la grille d'offres par « tout est inclus ». C'est le mode
- * d'un déploiement AUTO-HÉBERGÉ qui n'a pas de Stripe et ne veut pas de plafond.
+ * When on, nobody pays and nothing is sold: credits are UNLIMITED (`credits.ts`
+ * no longer blocks, the gateway no longer pre-refuses), the till is closed on the backend
+ * side (`isBillingEnabled()` ⇒ false, so 503 `BILLING_DISABLED` on anything that involves
+ * money) and the app replaces the pricing grid with "everything's included". It's the mode
+ * for a SELF-HOSTED deployment that has no Stripe and wants no cap.
  *
- * ## Un fait DÉRIVÉ, jamais un réglage
+ * ## A DERIVED fact, never a setting
  *
- * Rien n'est écrit en base : ni ligne d'abonnement, ni type de compte. Retirer la
- * variable restaure exactement l'état d'avant — chaque compte retrouve son palier réel
- * (inclus, octroyé ou payé) et son enveloppe. C'est ce qui le distingue du mode testeur
- * (`app_settings`, octrois persistés) : celui-ci se reprend compte par compte, le mode
- * gratuit s'éteint d'un redéploiement.
+ * Nothing is written to the database: no subscription row, no account type. Removing the
+ * variable restores exactly the prior state — every account gets back its real tier
+ * (included, granted or paid) and its budget. That's what distinguishes it from tester mode
+ * (`app_settings`, persisted grants): that one is reclaimed account by account, free
+ * mode switches off on a redeploy.
  *
- * ## Une maison, DEUX services
+ * ## One home, TWO services
  *
- * Ce prédicat vit ici parce que `@openmasq/credits` est importé par le backend ET par la
- * passerelle — le seul endroit où une même lecture sert les deux. ⚠️ Chacun lit SON
- * environnement : la variable se pose sur les deux déploiements, sinon l'app affiche
- * « tout inclus » pendant que la passerelle répond 402 (`SELF_HOSTING.md`).
+ * This predicate lives here because `@openmasq/credits` is imported by the backend AND the
+ * gateway — the only place where the same read serves both. ⚠️ Each reads ITS OWN
+ * environment: the variable must be set on both deployments, otherwise the app shows
+ * "everything included" while the gateway answers 402 (`SELF_HOSTING.md`).
  *
- * ## Ce qu'il ne fait PAS
+ * ## What it does NOT do
  *
- * - Il n'annule aucun abonnement Stripe existant : Stripe continue de prélever ce qu'il
- *   prélevait. Le mode gratuit est pensé pour une cible SANS clé Stripe ; sur une cible
- *   qui en a une, l'opérateur résilie lui-même dans Stripe.
- * - Il ne touche pas aux modèles à clé personnelle ni aux modèles locaux — ils n'ont
- *   jamais dépendu des crédits.
+ * - It doesn't cancel any existing Stripe subscription: Stripe keeps charging what it
+ *   was charging. Free mode is designed for a target WITHOUT a Stripe key; on a target
+ *   that has one, the operator cancels it themselves in Stripe.
+ * - It doesn't touch personal-key models or local models — they never
+ *   depended on credits.
  *
- * ⚠️ Lu à CHAQUE appel, jamais figé au chargement : sur une fonction serverless le module
- * survit au déploiement qui pose (ou retire) la variable. Même règle que
- * `billingEnabled.ts` côté backend. Seule la valeur `"1"` allume — un `"true"`, un
- * `"yes"` ou un espace se lisent éteints, fail-closed sur le sens qui ouvre l'accès.
+ * ⚠️ Read on EVERY call, never frozen at load time: on a serverless function the module
+ * survives the deployment that sets (or removes) the variable. Same rule as
+ * `billingEnabled.ts` on the backend side. Only the value `"1"` turns it on — a `"true"`, a
+ * `"yes"` or a space reads as off, fail-closed on the direction that opens access.
  */
 export const FREE_MODE_ENV = "OPENMASQ_FREE_MODE";
 

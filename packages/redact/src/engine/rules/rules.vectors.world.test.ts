@@ -48,11 +48,11 @@ describe("Europe — second valid vector per scheme", () => {
     });
   }
 
-  /* Une FACTURE allemande, dans ses deux écritures réelles. Parcours expert-comptable
-     du 17/08 (angle M) : l'Allemagne était le seul pays du pack TVA sans ` ?` après son
-     préfixe, donc la MÊME TVA partait en clair ou redacted selon une espace ; et la
-     Steuernummer — que le §14 UStG rend obligatoire quand l'entreprise n'a pas
-     d'USt-IdNr, donc omniprésente chez les TPE — n'avait aucune règle. */
+  /* A German INVOICE, in its two real writings. Accountant persona run
+     of 17/08 (angle M): Germany was the only country in the VAT pack with no ` ?` after its
+     prefix, so the SAME VAT left in clear or redacted depending on a space; and the
+     Steuernummer — which §14 UStG makes mandatory when the company has no
+     USt-IdNr, hence ubiquitous among small businesses — had no rule at all. */
   it("redacts a German USt-IdNr in BOTH writings (spaced is the invoice form)", () => {
     expect(redacted("USt-IdNr.: DE123456789", "DE123456789")).toBe(true);
     expect(redacted("USt-IdNr.: DE 123456789", "DE 123456789")).toBe(true);
@@ -62,8 +62,8 @@ describe("Europe — second valid vector per scheme", () => {
     expect(redacted("Steuernummer: 12/345/67890", "12/345/67890")).toBe(true);
     expect(redacted("Steuernummer 123/456/78901", "123/456/78901")).toBe(true);
     expect(redacted("St.-Nr. 12 345 67890", "12 345 67890")).toBe(true);
-    // Sans le libellé, la forme est banale (une date, une référence) : le mot PORTE la
-    // précision, il n'y a pas de somme de contrôle nationale pour la porter à sa place.
+    // Without the label, the shape is banal (a date, a reference): the WORD carries the
+    // precision, there's no national check digit to carry it instead.
     expect(redacted("Position 12/345/67890 der Liste", "12/345/67890")).toBe(false);
   });
 

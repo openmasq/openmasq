@@ -1,18 +1,18 @@
 import type { OcrWord } from "./layout";
 
 /**
- * Les régions qu'un moteur a DÉTECTÉES mais rendues en DÉBRIS — et la relecture ciblée.
+ * The regions an engine DETECTED but rendered as GARBAGE — and the targeted re-read.
  *
- * Le cas qui fonde ce module (CNI scannée réelle, 14/08) : la bande MRZ — police OCR-B,
- * chevrons — est détectée par docTR mais son CRNN (vocabulaire latin ordinaire) la rend
- * « - » à confiance 63. Au-dessus du plancher (25), donc ni droppée ni marquée illisible :
- * un tiret prend la place d'une ligne qui porte NOM, prénoms, date de naissance encodée et
- * numéro — invisible du redaction, lisible à l'œil. Tesseract, lui, lit la bande à 86+.
+ * The case that founds this module (real scanned CNI, 14/08): the MRZ band — OCR-B font,
+ * chevrons — is detected by docTR but its CRNN (ordinary Latin vocabulary) renders it
+ * as « - » at confidence 63. Above the floor (25), so neither dropped nor marked unreadable:
+ * a dash takes the place of a line carrying NAME, first names, encoded birth date and
+ * number — invisible to redaction, readable to the eye. Tesseract, for its part, reads the band at 86+.
  *
- * La règle est GÉOMÉTRIQUE, pas spécifique à la MRZ : un texte de ≤ 2 signes dans une boîte
- * dont la largeur vaut ≥ 4 hauteurs est un débris — aucun vrai mot court n'occupe une boîte
- * pareille (un tiret réel vit dans une boîte étroite), et un vrai texte large en remplit la
- * boîte. La relecture est le sens SÛR du routeur, déjà documenté : « Tesseract reads what
+ * The rule is GEOMETRIC, not MRZ-specific: a text of ≤ 2 characters in a box
+ * whose width is ≥ 4 heights is garbage — no real short word occupies such a
+ * box (a real dash lives in a narrow box), and real wide text fills the
+ * box. The re-read is the SAFE direction of the router, already documented: « Tesseract reads what
  * docTR couldn't — never a leak ».
  */
 
@@ -23,16 +23,16 @@ export interface GarbledRect {
   height: number;
 }
 
-/** Largeur minimale, en hauteurs de boîte, pour qu'un texte dérisoire soit un débris. */
+/** Minimum width, in box heights, for a derisory text to be garbage. */
 const MIN_ASPECT = 4;
-/** Au-delà de ce nombre de signes (lettres/chiffres), le mot explique sa boîte. */
+/** Beyond this number of characters (letters/digits), the word explains its box. */
 const MAX_JUNK_CHARS = 2;
-/** Marge de relecture autour de la boîte (en fraction de sa hauteur) — Tesseract lit
- *  mieux avec un peu d'air, et la détection docTR serre parfois les glyphes. */
+/** Re-read margin around the box (as a fraction of its height) — Tesseract reads
+ *  better with a bit of breathing room, and docTR's detection sometimes crops the glyphs tight. */
 const PAD = 0.5;
 
-/** Les boîtes suspectes d'une page, prêtes pour `SetRectangle` (coordonnées pleine image —
- *  l'API Tesseract ne ré-origine pas, donc les mots relus retombent au bon endroit). */
+/** A page's suspicious boxes, ready for `SetRectangle` (full-image coordinates —
+ *  the Tesseract API doesn't re-origin, so the re-read words land back in the right place). */
 export function garbledBoxes(
   words: readonly OcrWord[],
   page: { width: number; height: number },
@@ -57,9 +57,9 @@ export function garbledBoxes(
   return out;
 }
 
-/** Vrai si `w` est l'un des mots-débris dont une boîte de `rects` est issue — le mot
- *  d'origine se RETIRE quand sa relecture le remplace (sinon le tiret fantôme reste
- *  dans le texte reconstruit, au milieu de la ligne relue). */
+/** True if `w` is one of the garbage words a box in `rects` came from — the
+ *  original word is REMOVED when its re-read replaces it (otherwise the ghost dash stays
+ *  in the reconstructed text, in the middle of the re-read line). */
 export function isGarbledWord(w: OcrWord, rects: readonly GarbledRect[]): boolean {
   return rects.some(
     (r) => w.x0 >= r.left - 1 && w.x1 <= r.left + r.width + 1 && w.y0 >= r.top - 1 && w.y1 <= r.top + r.height + 1,

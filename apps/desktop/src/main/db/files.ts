@@ -78,8 +78,8 @@ export async function dbSaveFile(f: DbFile): Promise<void> {
       f.redactedCount ?? 0,
       // The extraction is only stored when it carries actual text — an empty extract adds
       // nothing and would just make the reattach think it can skip a (still-needed) OCR.
-      // Texte OU carte de redaction : une image scannée peut n'avoir presque pas de
-      // texte et porter quand même sa carte — c'est elle que le viewer repeint.
+      // Text OR redaction map: a scanned image can have almost no
+      // text and still carry its map — that's what the viewer repaints.
       f.extraction?.text || (f.extraction?.redactions as unknown[] | undefined)?.length
         ? JSON.stringify(f.extraction)
         : null,

@@ -1,46 +1,46 @@
 /**
- * Où trouver le binaire d'une CLI d'abonnement — et pourquoi `PATH` ne suffit JAMAIS.
+ * Where to find a subscription CLI's binary — and why `PATH` is NEVER enough.
  *
- * L'app lancée depuis le Finder (le cas de tous les utilisateurs, par opposition à
- * `pnpm dev`) n'hérite pas du `PATH` du shell : macOS lui donne `/usr/bin:/bin:
- * /usr/sbin:/sbin` et rien de plus. Or `claude` s'installe dans `~/.local/bin`,
- * `codex` via npm global ou Homebrew — aucun de ces dossiers n'est dans
- * ce PATH minimal. C'est LE bug de cette famille : la détection marche en dev (lancé
- * d'un terminal, PATH complet) et échoue chez l'utilisateur, sans message utile.
+ * The app launched from the Finder (the case for every user, as opposed to
+ * `pnpm dev`) does not inherit the shell's `PATH`: macOS gives it `/usr/bin:/bin:
+ * /usr/sbin:/sbin` and nothing more. Yet `claude` installs into `~/.local/bin`,
+ * `codex` via npm global or Homebrew — none of these directories are in
+ * that minimal PATH. This is THE bug of this family: detection works in dev (launched
+ * from a terminal, full PATH) and fails for the user, with no useful message.
  *
- * On sonde donc des racines connues EN PLUS du PATH. On ne lance PAS de shell de
- * login pour récupérer le vrai PATH : spawner `zsh -lc` exécute les rc de
- * l'utilisateur, donc du code tiers arbitraire, depuis le process privilégié — la
- * règle 7 l'interdit, et le gain (quelques installs exotiques) ne vaut pas la surface.
+ * So we probe known roots IN ADDITION to PATH. We do NOT spawn a login
+ * shell to recover the real PATH: spawning `zsh -lc` runs the user's
+ * rc files, i.e. arbitrary third-party code, from the privileged process — rule
+ * 7 forbids it, and the gain (a few exotic installs) isn't worth the surface.
  *
- * ⚠️ Ce module ne dit PAS si la CLI est authentifiée, seulement si elle existe et est
- * exécutable. L'auth se constate à l'usage (voir `engine.ts`) : une CLI installée mais
- * jamais connectée échoue au premier envoi, et c'est ce message-là qu'il faut montrer.
+ * ⚠️ This module does NOT say whether the CLI is authenticated, only whether it exists and
+ * is executable. Auth is observed at use time (see `engine.ts`): a CLI installed but
+ * never connected fails on the first send, and that's the message to show.
  */
 import { accessSync, constants } from "node:fs";
 import { posix, win32 } from "node:path";
 
 export type SubscriptionCliId = "claude" | "codex";
 
-/** Le nom du binaire par CLI. Windows résout via `WINDOWS_EXTS`. */
+/** The binary name per CLI. Windows resolves via `WINDOWS_EXTS`. */
 const BIN_NAME: Record<SubscriptionCliId, string> = {
   claude: "claude",
   codex: "codex",
 };
 
-/** Sur Windows un binaire npm est un `.cmd`; `spawn` ne complète pas tout seul. */
+/** On Windows an npm binary is a `.cmd`; `spawn` doesn't complete it on its own. */
 const WINDOWS_EXTS = ["", ".cmd", ".exe", ".bat", ".ps1"] as const;
 
 /**
- * Racines d'installation connues, hors PATH. Ordre = priorité de sondage.
- * `~` est résolu par l'appelant (on prend `home` en entrée pour rester pur/testable).
+ * Known install roots, outside PATH. Order = probing priority.
+ * `~` is resolved by the caller (we take `home` as input to stay pure/testable).
  */
 /**
- * Les primitives de chemin de la plateforme CIBLE, pas celles de l'hôte. Sans ça la
- * fonction ment sur sa signature : elle prend `platform` en paramètre mais calculerait
- * avec la sémantique de la machine qui exécute — un `C:\\…` jugé « relatif » sous macOS
- * (donc écarté), et un `PATH` Windows découpé sur `:` au lieu de `;`, ce qui coupe
- * chaque entrée en deux à la lettre de lecteur.
+ * The path primitives of the TARGET platform, not the host's. Without that the
+ * function lies about its signature: it takes `platform` as a parameter but would compute
+ * with the executing machine's semantics — a `C:\\…` judged "relative" on macOS
+ * (so discarded), and a Windows `PATH` split on `:` instead of `;`, which cuts
+ * each entry in two at the drive letter.
  */
 function pathApi(platform: NodeJS.Platform) {
   return platform === "win32" ? win32 : posix;
@@ -56,9 +56,9 @@ function knownRoots(platform: NodeJS.Platform, home: string): string[] {
     ];
   }
   return [
-    join(home, ".local", "bin"), // claude (installeur officiel)
-    join(home, ".claude", "local"), // claude (install "local" historique)
-    "/opt/homebrew/bin", // Homebrew Apple Silicon — absent du PATH Finder
+    join(home, ".local", "bin"), // claude (official installer)
+    join(home, ".claude", "local"), // claude (historic "local" install)
+    "/opt/homebrew/bin", // Homebrew Apple Silicon — absent from the Finder PATH
     "/usr/local/bin", // Homebrew Intel + npm global
     join(home, ".npm-global", "bin"),
     join(home, ".volta", "bin"),
@@ -70,14 +70,14 @@ function knownRoots(platform: NodeJS.Platform, home: string): string[] {
 export interface CandidateOptions {
   platform: NodeJS.Platform;
   home: string;
-  /** Le `PATH` du process. Vide/absent est le cas NORMAL sous Finder, pas une erreur. */
+  /** The process's `PATH`. Empty/absent is the NORMAL case under the Finder, not an error. */
   path?: string;
 }
 
 /**
- * Les chemins absolus à sonder, dans l'ordre — PATH d'abord (si l'utilisateur a
- * surchargé son install, on la respecte), puis les racines connues. Pur : c'est ce que
- * `resolveCli.test.ts` épingle, sans toucher au vrai système de fichiers.
+ * The absolute paths to probe, in order — PATH first (if the user has
+ * overridden their install, we respect it), then the known roots. Pure: this is what
+ * `resolveCli.test.ts` pins, without touching the real filesystem.
  */
 export function candidatePaths(cli: SubscriptionCliId, opts: CandidateOptions): string[] {
   const { join, isAbsolute, delimiter } = pathApi(opts.platform);
@@ -91,7 +91,7 @@ export function candidatePaths(cli: SubscriptionCliId, opts: CandidateOptions): 
   const seen = new Set<string>();
   const out: string[] = [];
   for (const dir of dirs) {
-    if (!isAbsolute(dir)) continue; // un PATH relatif est un vecteur, pas une install
+    if (!isAbsolute(dir)) continue; // a relative PATH is an attack vector, not an install
     for (const ext of exts) {
       const full = join(dir, `${bin}${ext}`);
       if (seen.has(full)) continue;
@@ -102,7 +102,7 @@ export function candidatePaths(cli: SubscriptionCliId, opts: CandidateOptions): 
   return out;
 }
 
-/** Vrai si le chemin existe ET est exécutable. Isolé pour être stubbé en test. */
+/** True if the path exists AND is executable. Isolated so it can be stubbed in tests. */
 export type ExecutableProbe = (path: string) => boolean;
 
 export const defaultProbe: ExecutableProbe = (path) => {
@@ -115,8 +115,8 @@ export const defaultProbe: ExecutableProbe = (path) => {
 };
 
 /**
- * Le premier candidat exécutable, ou `null`. `null` = "CLI absente", un état NORMAL
- * qui doit produire une invite d'installation dans l'UI — jamais une erreur technique.
+ * The first executable candidate, or `null`. `null` = "CLI absent", a NORMAL state
+ * that should produce an install prompt in the UI — never a technical error.
  */
 export function resolveCli(
   cli: SubscriptionCliId,

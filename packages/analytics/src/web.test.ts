@@ -12,7 +12,7 @@ function wire(urlMode: "full" | "path", href: string) {
   const url = new URL(href);
   const store = new Map<string, string>();
   vi.stubGlobal("fetch", fetchFn);
-  vi.stubGlobal("navigator", {}); // ni Do-Not-Track ni GPC
+  vi.stubGlobal("navigator", {}); // neither Do-Not-Track nor GPC
   vi.stubGlobal("window", { location: { href: url.href, origin: url.origin, pathname: url.pathname } });
   vi.stubGlobal("localStorage", {
     getItem: (k: string) => store.get(k) ?? null,
@@ -29,7 +29,7 @@ function wire(urlMode: "full" | "path", href: string) {
   return { a, fetchFn };
 }
 
-/** Les propriétés effectivement POSTées, événement par événement. */
+/** The properties actually POSTed, event by event. */
 const sent = (fetchFn: ReturnType<typeof vi.fn>): Record<string, unknown>[] =>
   fetchFn.mock.calls.map((c) => JSON.parse((c[1] as RequestInit).body as string).properties);
 
@@ -108,7 +108,7 @@ describe("createWebAnalytics — la marche de nettoyage reste le point de passag
       source: "test",
       anonKey: "om_test_anon",
       urlMode: "full",
-      config: {}, // ni clé ni relais
+      config: {}, // neither key nor relay
     });
     a.configure();
     a.capturePageview("/");

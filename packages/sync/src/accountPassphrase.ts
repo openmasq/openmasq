@@ -1,36 +1,36 @@
 /**
- * La PHRASE E2E rangée PAR COMPTE, sur un magasin clé→valeur quelconque.
+ * The E2E PASSPHRASE stored PER ACCOUNT, on any key→value store.
  *
- * ══ POURQUOI CE MODULE EXISTE ══════════════════════════════════════════════════
+ * ══ WHY THIS MODULE EXISTS ══════════════════════════════════════════════════
  *
- * La phrase était rangée sous UNE clé par appareil sur les trois surfaces. Rien ne
- * l'effaçant au changement de compte, le compte suivant se retrouvait synchronisé
- * **avec la clé du précédent** : il n'avait rien demandé, et surtout il ne DÉTIENT pas
- * la clé qui chiffre ses propres coffres — quelqu'un d'autre l'a choisie et la connaît.
- * La promesse E2E (« personne d'autre que vous ») était fausse pour lui.
+ * The passphrase used to be stored under ONE key per device across the three surfaces.
+ * Nothing cleared it on account switch, so the next account ended up synced
+ * **with the previous one's key**: it had asked for nothing, and worse it does NOT HOLD
+ * the key that encrypts its own vaults — someone else chose it and knows it.
+ * The E2E promise (« no one but you ») was false for it.
  *
- * La politique tient en deux règles, et elles sont subtiles toutes les deux :
+ * The policy comes down to two rules, and both are subtle:
  *
- *  1. **On RANGE par compte, on n'EFFACE jamais au changement.** Il n'existe aucun
- *     séquestre : une phrase perdue orpheline définitivement les coffres déjà
- *     synchronisés de ce compte. Revenir sur le premier compte doit retrouver la sienne
- *     sans la retaper — c'est le rangement qui isole, pas la destruction.
- *  2. **L'ancienne valeur sans compte revient au PREMIER compte connecté**, une seule
- *     fois, puis un marqueur ferme la porte pour tous les autres et la clé héritée est
- *     supprimée. C'est son propriétaire dans l'immense majorité des cas, et c'est le seul
- *     qui perdrait quelque chose ; les suivants repartent sans phrase, donc sans synchro,
- *     ce qui est exactement l'état correct pour eux.
+ *  1. **We STORE per account, we never CLEAR on switch.** There is no
+ *     escrow: a lost passphrase orphans that account's already-synced
+ *     vaults for good. Coming back to the first account must recover its own
+ *     without retyping it — it's the storage that isolates, not destruction.
+ *  2. **The old account-less value goes to the FIRST connected account**, once
+ *     only, then a marker closes the door for everyone else and the inherited key is
+ *     removed. It's its owner in the vast majority of cases, and it's the only one
+ *     who would lose anything; the next ones start without a passphrase, hence without sync,
+ *     which is exactly the correct state for them.
  *
- * Il vit ICI parce que mobile et extension appliquent la MÊME politique sur deux magasins
- * différents (`@capacitor/preferences`, `chrome.storage.local`) : deux copies de ces deux
- * règles auraient divergé, et c'est le genre d'écart qui ne se voit qu'après coup. Le
- * bureau ne l'utilise pas — sa famille à lui est celle des secrets chiffrés du processus
- * principal (`accountSecretFile`, calquée sur `keys.ts`), et l'aligner sur celle-ci
- * l'aurait sorti de la seule dont il partage les risques.
+ * It lives HERE because mobile and the extension apply the SAME policy on two
+ * different stores (`@capacitor/preferences`, `chrome.storage.local`): two copies of these
+ * two rules would have diverged, and that's the kind of gap that only shows up after the
+ * fact. The desktop doesn't use it — its own family is the encrypted secrets of the main
+ * process (`accountSecretFile`, modeled on `keys.ts`), and aligning it with this one
+ * would have pulled it out of the only one whose risks it shares.
  */
 
-/** Le strict minimum qu'un magasin doit offrir. `get` peut rendre `undefined` : les deux
- *  implémentations le font, et l'imposer à `null` ferait un adaptateur chez chacune. */
+/** The strict minimum a store must offer. `get` may return `undefined`: both
+ *  implementations do, and forcing it to `null` would mean an adapter in each. */
 export interface PassphraseStore {
   get(key: string): Promise<string | null | undefined>;
   set(key: string, value: string): Promise<void>;
@@ -39,23 +39,23 @@ export interface PassphraseStore {
 
 export interface AccountPassphraseOptions {
   store: PassphraseStore;
-  /** L'ancienne clé, sans compte — celle qu'on adopte une fois puis qu'on supprime. */
+  /** The old key, account-less — the one we adopt once then remove. */
   legacyKey: string;
-  /** La clé du compte. Défaut : `<legacyKey>:<sub>`. */
+  /** The account's key. Default: `<legacyKey>:<sub>`. */
   scopedKey?: (accountId: string) => string;
-  /** Le marqueur d'adoption. Défaut : `<legacyKey>:adopted`. */
+  /** The adoption marker. Default: `<legacyKey>:adopted`. */
   markerKey?: string;
-  /** Le compte connecté (`sub`), ou `null`. */
+  /** The connected account (`sub`), or `null`. */
   accountId: () => Promise<string | null | undefined>;
 }
 
 export interface AccountPassphrase {
-  /** La phrase de CE compte. `null` déconnecté — donc synchro éteinte, ce qui est correct. */
+  /** This account's passphrase. `null` signed out — so sync off, which is correct. */
   get(): Promise<string | null>;
-  /** Poser la phrase. **Lève** sans compte : un « c'est enregistré » qui n'a rien
-   *  enregistré est le défaut qu'on corrige, pas un cas à avaler. */
+  /** Set the passphrase. **Throws** without an account: a « it's saved » that saved
+   *  nothing is the bug we're fixing, not a case to swallow. */
   set(passphrase: string): Promise<void>;
-  /** Éteindre la synchro pour CE compte. Les autres comptes gardent la leur. */
+  /** Turn off sync for THIS account. Other accounts keep theirs. */
   clear(): Promise<void>;
 }
 
@@ -64,16 +64,16 @@ export function accountPassphrase(opts: AccountPassphraseOptions): AccountPassph
   const marker = opts.markerKey ?? `${opts.legacyKey}:adopted`;
 
   /**
-   * L'adoption unique. ⚠️ Elle ne peut PAS s'exécuter sans compte : sans cela le premier
-   * lancement déconnecté supprimerait la clé héritée et la phrase serait perdue pour tout
-   * le monde. Et la clé héritée n'est retirée qu'APRÈS l'écriture réussie du casier du
-   * compte — l'ordre est le correctif, l'inverse perd la phrase si l'écriture échoue.
+   * The one-time adoption. ⚠️ It CANNOT run without an account: without that the first
+   * signed-out launch would remove the inherited key and the passphrase would be lost for
+   * everyone. And the inherited key is only removed AFTER the account's slot is
+   * successfully written — the order is the fix, the reverse loses the passphrase if the write fails.
    */
   async function adoptLegacy(accountId: string): Promise<string | null> {
-    if (await opts.store.get(marker)) return null; // déjà réclamée par un compte
+    if (await opts.store.get(marker)) return null; // already claimed by an account
     const legacy = await opts.store.get(opts.legacyKey);
     if (!legacy) {
-      await opts.store.set(marker, accountId); // rien à adopter — on ferme la porte
+      await opts.store.set(marker, accountId); // nothing to adopt — closing the door
       return null;
     }
     await opts.store.set(scoped(accountId), legacy);
@@ -94,17 +94,17 @@ export function accountPassphrase(opts: AccountPassphraseOptions): AccountPassph
       const id = await opts.accountId();
       if (!id) throw new Error("no account — refusing to store the sync passphrase");
       await opts.store.set(scoped(id), passphrase);
-      // Le compte a désormais SA phrase : l'héritée n'a plus lieu d'être adoptée par lui,
-      // et la laisser en place la donnerait au prochain compte.
+      // The account now has ITS OWN passphrase: the inherited one no longer has reason to be adopted by it,
+      // and leaving it in place would hand it to the next account.
       await opts.store.set(marker, id);
       await opts.store.remove(opts.legacyKey);
     },
     async clear() {
       const id = await opts.accountId();
-      if (!id) return; // rien à éteindre pour personne
+      if (!id) return; // nothing to turn off for anyone
       await opts.store.remove(scoped(id));
-      // On ferme aussi la porte de l'adoption : sans ça, éteindre la synchro puis
-      // recharger ferait ré-adopter l'ancienne phrase — la réactivation, à l'identique.
+      // We also close the adoption door: without that, turning off sync then
+      // reloading would re-adopt the old passphrase — reactivation, identically.
       await opts.store.set(marker, id);
       await opts.store.remove(opts.legacyKey);
     },

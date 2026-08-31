@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 /**
- * RÉGRESSION — la moitié STDIO n'avait pas de `onClose`.
+ * REGRESSION — the STDIO half had no `onClose`.
  *
- * Le distant (`http.ts`) signalait depuis longtemps la mort inattendue de son transport,
- * et le propriétaire évinçait le connecteur. `connectStdio` n'avait pas ce crochet : un
- * enfant qui meurt restait « connecté » pour toujours, et l'appelant continuait de lui
- * parler. C'est ce qui a produit 848 « Error: Not connected » sur Sentry en huit jours
- * pour un seul `@playwright/mcp` disparu (l'enfant stdio du navigateur agent).
+ * The remote side (`http.ts`) had long signaled the unexpected death of its transport,
+ * and the owner would evict the connector. `connectStdio` didn't have that hook: a
+ * child that dies stayed "connected" forever, and the caller kept
+ * talking to it. This is what produced 848 "Error: Not connected" on Sentry over eight days
+ * for a single vanished `@playwright/mcp` (the agent browser's stdio child).
  *
- * Le contrat en deux temps, ici épinglé : une mort INATTENDUE prévient, une fermeture
- * VOULUE se tait — sinon `close()` déclencherait la reconnexion qu'on vient d'annuler.
+ * The two-phase contract, pinned here: an UNEXPECTED death warns, a DELIBERATE
+ * closure stays silent — otherwise `close()` would trigger the reconnection we just canceled.
  */
 
 const h = vi.hoisted(() => {
@@ -28,8 +28,8 @@ const h = vi.hoisted(() => {
     async connect(_t: FakeTransport) {}
     async close() {
       this.closed += 1;
-      // Le SDK notifie la fermeture du transport, la nôtre comprise : c'est
-      // exactement pourquoi le drapeau `closing` existe.
+      // The SDK notifies the closing of the transport, ours included: that's
+      // exactly why the `closing` flag exists.
       this.onclose?.();
     }
   }
@@ -49,7 +49,7 @@ describe("connectStdio — la mort de l'enfant se signale", () => {
   it("appelle `onClose` avec l'id quand le transport tombe tout seul", async () => {
     const closed: string[] = [];
     await connectStdio({ id: "pw", command: "node", onClose: (id) => closed.push(id) });
-    // Le SDK signale la chute (l'enfant est sorti / a planté).
+    // The SDK signals the fall (the child exited / crashed).
     h.clients[0].onclose?.();
     expect(closed).toEqual(["pw"]);
   });
@@ -62,8 +62,8 @@ describe("connectStdio — la mort de l'enfant se signale", () => {
   });
 
   it("le crochet est posé AVANT `connect` — un enfant mort-né compte aussi", async () => {
-    // Si on le posait après, la mort survenue pendant le démarrage passerait inaperçue,
-    // et c'est précisément le cas d'un binaire manquant.
+    // If it were set afterward, a death occurring during startup would go unnoticed,
+    // and that's precisely the case of a missing binary.
     const closed: string[] = [];
     await connectStdio({ id: "x", command: "node", onClose: (id) => closed.push(id) });
     expect(h.clients[0].onclose).toBeTypeOf("function");

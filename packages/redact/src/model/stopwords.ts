@@ -25,8 +25,8 @@ const STOPWORDS = new Set<string>([
   "je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles",
   "me", "te", "se", "lui", "y", "en", "et", "ou", "mais", "donc", "or", "ni",
   "car", "que", "qui", "quoi", "dont", "où", "ne", "pas", "plus",
-  // Politesse abrégée — « Contact Jean-Pierre Morvan SVP » lisait « SVP » comme un
-  // patronyme (morvan est AUSSI un prénom, la paire semblait complète).
+  // Abbreviated politeness — "Contact Jean-Pierre Morvan SVP" read "SVP" as a
+  // surname (morvan is ALSO a first name, the pair looked complete).
   "svp", "stp",
   "pour", "par", "sur", "sous", "dans", "avec", "sans", "chez", "vers",
   "entre", "est", "sont", "être", "etre", "doit", "doivent", "devrait", "était",

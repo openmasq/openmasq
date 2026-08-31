@@ -1,27 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * RÉGRESSION — un serveur MCP mort était SIGNALÉ à chaque sondage, jamais retiré.
+ * REGRESSION — a dead MCP server was REPORTED on every poll, never evicted.
  *
- * `refreshRoutes` attrapait l'échec de `listTools`, posait le compteur d'outils à 0,
- * appelait `reportMainError`… et laissait le serveur dans `connected`. Le rafraîchissement
- * suivant le re-sondait donc, et le re-signalait. Mesuré sur Sentry le 12/08 : **848
- * événements « Error: Not connected » en huit jours pour UN enfant `@playwright/mcp`
- * disparu**, plus 481 sur une autre build — 93 % du volume du projet pour deux messages.
+ * `refreshRoutes` caught the `listTools` failure, set the tool count to 0,
+ * called `reportMainError`… and left the server in `connected`. The next refresh
+ * then re-polled it, and re-reported it. Measured on Sentry on 12/08: **848
+ * « Error: Not connected » events in eight days for ONE vanished `@playwright/mcp`
+ * child**, plus 481 on another build — 93 % of the project's volume for two messages.
  *
- * Ce que ces cas épinglent, et qu'un commentaire ne peut pas tenir :
- *  • un transport MORT évince, et n'est pas rapporté (la bannière « reconnexion
- *    nécessaire » est la surface qui le dit à l'utilisateur) ;
- *  • une VRAIE panne (spawn ENOENT, module introuvable — la régression d'empaquetage)
- *    est toujours rapportée, et le serveur n'est pas évincé sur ce motif ;
- *  • deux rafraîchissements après une mort ne produisent pas deux rapports.
+ * What these cases pin down, and what a comment can't hold:
+ *  • a DEAD transport is evicted, and is not reported (the « reconnection
+ *    needed » banner is the surface that tells the user) ;
+ *  • a REAL failure (spawn ENOENT, missing module — the packaging regression)
+ *    is always reported, and the server is not evicted for that reason ;
+ *  • two refreshes after a death do not produce two reports.
  */
 
 const { reports } = vi.hoisted(() => ({ reports: [] as { scope: string; code: string }[] }));
 
-// ⚠️ Les chemins de `vi.mock` se résolvent depuis CE fichier, pas depuis le module qui
-// importe : `registry.ts` vit dans `server/`, donc son `../../runtime/errorReport` s'écrit
-// `../runtime/errorReport` d'ici.
+// ⚠️ `vi.mock` paths resolve from THIS file, not from the module that
+// imports: `registry.ts` lives in `server/`, so its `../../runtime/errorReport` is written
+// `../runtime/errorReport` from here.
 vi.mock("electron", () => ({ app: { getPath: () => "/tmp", getVersion: () => "0" }, BrowserWindow: class {} }));
 vi.mock("./persist", () => ({ getServer: () => undefined }));
 vi.mock("../runtime/errorReport", () => ({
@@ -33,7 +33,7 @@ vi.mock("./browserTools", () => ({ BROWSER_TOOL_ALLOWLIST: new Set<string>() }))
 
 import { connected, needsReconnect, refreshRoutes, toolCounts } from "./server/registry";
 
-/** Un serveur dont `listTools` échoue toujours de la même façon. */
+/** A server whose `listTools` always fails the same way. */
 function failing(id: string, err: unknown) {
   const closed = { n: 0 };
   connected.set(id, {
@@ -61,10 +61,10 @@ describe("refreshRoutes — un connecteur mort est évincé, pas re-signalé", (
     await refreshRoutes();
     expect(connected.has("pw")).toBe(false);
     expect(reports).toEqual([]);
-    // Fermé au passage : l'enfant peut être mort côté transport sans que le client SDK
-    // ait relâché ses ressources.
+    // Closed along the way: the child can be dead on the transport side without the SDK
+    // client having released its resources.
     expect(closed.n).toBe(1);
-    // Et l'utilisateur l'apprend — c'est ce qui rend le silence de Sentry acceptable.
+    // And the user learns of it — that's what makes Sentry's silence acceptable.
     expect(needsReconnect.has("pw")).toBe(true);
   });
 
@@ -87,8 +87,8 @@ describe("refreshRoutes — un connecteur mort est évincé, pas re-signalé", (
     failing("fs", new Error("spawn npx ENOENT"));
     await refreshRoutes();
     expect(reports).toEqual([{ scope: "mcp", code: "list-tools" }]);
-    // Pas évincé : ce n'est pas un transport mort, c'est un serveur qui n'a jamais démarré
-    // correctement — le retirer effacerait la trace au lieu de la montrer.
+    // Not evicted: this isn't a dead transport, it's a server that never started
+    // correctly — removing it would erase the trace instead of showing it.
     expect(connected.has("fs")).toBe(true);
     expect(toolCounts.get("fs")).toBe(0);
   });

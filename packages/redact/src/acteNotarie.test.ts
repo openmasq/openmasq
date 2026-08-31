@@ -102,10 +102,10 @@ describe("deed vocables are generic terms (any detector's candidate is dropped)"
 });
 
 describe("« née X » — l'état civil survit et la famille garde UN faux", () => {
-  // Constat 13/08 (rejoué 15/08) : le détecteur peut coller « née » dans le span du nom.
-  // Sans dépouillement, « née » était traité comme un jeton de nom et recevait son
-  // propre faux : « née de La Roncheraye » → « sidonie de La Guilbaud » — l'état
-  // civil disparaissait et le modèle lisait une AUTRE personne. L'acte se contredisait.
+  // Observed 13/08 (replayed 15/08): the detector can glue « née » into the name's span.
+  // Without stripping, « née » was treated as a name token and got its
+  // own fake: « née de La Roncheraye » → « sidonie de La Guilbaud » — the civil
+  // status vanished and the model read a DIFFERENT person. The deed contradicted itself.
   const detect = (dict: Record<string, string>) => async (input: string) =>
     Object.entries(dict)
       .filter(([v]) => input.includes(v))
@@ -123,15 +123,15 @@ describe("« née X » — l'état civil survit et la famille garde UN faux", ()
         }),
       },
     );
-    // L'état civil reste VERBATIM sur le wire…
+    // The civil status stays VERBATIM on the wire…
     expect(text).toMatch(/née /);
-    // …le vrai nom n'y est plus…
+    // …the real name is no longer there…
     expect(text).not.toContain("Roncheraye");
-    // …et la mention « née » porte le MÊME nom de famille d'emprunt que le nom principal.
+    // …and the « née » mention carries the SAME borrowed surname as the main name.
     const famille = /Madame \S+ de La (\S+),/.exec(text)?.[1];
     expect(famille).toBeTruthy();
     expect(text).toContain(`née de La ${famille}`);
-    // Aucun faux n'a été frappé pour le mot « née » lui-même.
+    // No fake was minted for the word « née » itself.
     expect(Object.values(vault)).not.toContain("née");
   });
 });

@@ -13,22 +13,22 @@ const covered = (v: string): boolean => isGenericTerm(v) || isStopword(v) || isG
 describe("vocabulaire institutionnel du quotidien (audit)", () => {
   it("couvre les mots les plus fréquents de chaque domaine, toutes langues", () => {
     const words = [
-      // paie — FR/EN/DE/ES/IT/PT
+      // payroll — FR/EN/DE/ES/IT/PT
       "salarié", "convention collective", "net à payer", "congés payés", "RTT",
       "payslip", "Lohnabrechnung", "nómina", "busta paga", "folha de pagamento",
-      // bail
+      // lease
       "bailleur", "dépôt de garantie", "état des lieux", "taxe foncière",
       "landlord", "Nebenkosten", "arrendatario", "canone", "caução",
-      // santé
+      // health
       "médecin traitant", "carte vitale", "feuille de soins", "tiers payant",
       "practitioner", "Krankenkasse", "receta", "ricovero", "baixa médica",
-      // école
+      // school
       "élève", "rectorat", "scolarité", "CROUS",
       "scholarship", "Zeugnis", "matrícula", "pagella", "bolsa de estudos",
-      // greffe / société
+      // registry / company
       "greffe", "comptes annuels", "liasse fiscale", "commissaire aux comptes",
       "INPI", "BODACC", "Handelsregister", "registro mercantil", "commercialista",
-      // facture
+      // invoice
       "titulaire", "donneur d'ordre", "total TTC", "conditions de règlement",
       "account holder", "Kontoauszug", "domiciliación", "estratto conto",
       // administration
@@ -40,9 +40,9 @@ describe("vocabulaire institutionnel du quotidien (audit)", () => {
   });
 
   it("les enveloppes d'épargne sont des TYPES — jamais redacted (le bug « PEA »)", () => {
-    // « Trace un graphique des 5 ETF éligibles au PEA » : le NER taguait PEA/ETF ORG et
-    // les fakait en sigles inventés — le modèle traçait un graphique de rien. Le schéma
-    // est générique ; le NUMÉRO de compte, lui, reste couvert par ses propres règles.
+    // « Chart the 5 ETFs eligible for the PEA » : the NER tagged PEA/ETF as ORG and
+    // faked them into invented acronyms — the model charted nothing. The scheme
+    // is generic; the account NUMBER, though, stays covered by its own rules.
     for (const v of ["PEA", "PEL", "LDDS", "ETF", "SICAV", "SCPI", "assurance-vie", "compte-titres"]) {
       expect(covered(v), v).toBe(true);
     }

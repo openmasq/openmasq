@@ -20,9 +20,9 @@ export function registerKeysIpc(): void {
   // `null` is meaningful here (signed out), so nullable rather than optional.
   handle("keys:set-user", [nullable(str)], (_e, uid) => setKeysUser(uid));
   handle("keys:configured", [], () => configuredKeys());
-  // ⛔ Compte géré : aucune clé personnelle ne s'écrit. L'interface masque déjà la
-  // grille, mais un renderer XSS atteindrait cette IPC en premier — la règle 7 veut le
-  // refus ICI aussi. Effacer reste permis : retirer une clé ne peut que réduire la surface.
+  // ⛔ Managed account: no personal key gets written. The UI already hides the
+  // grid, but a renderer XSS would reach this IPC first — rule 7 wants the
+  // refusal HERE too. Clearing stays allowed: removing a key can only shrink the surface.
   handle("keys:set", [str, str], (_e, id, value) => {
     if (isByoKeysBlocked()) throw byoKeysBlockedError();
     return setKey(id, value);

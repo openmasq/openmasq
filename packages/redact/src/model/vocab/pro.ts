@@ -14,7 +14,7 @@
  * category-scoped — only the kind-of-service acronyms (`RER`, `TGV`, `TER`) are here.
  */
 export const PRO_TERMS: string[] = [
-  // ── Réunions & gouvernance — français ──────────────────────────────────────
+  // ── Meetings & governance — French ──────────────────────────────────────
   "réunion", "reunion", "réunions", "reunions", "ordre du jour", "compte rendu",
   "comptes rendus", "relevé de décisions", "releve de decisions", "verbatim",
   "visioconférence", "visioconference", "visio", "audioconférence",
@@ -31,18 +31,18 @@ export const PRO_TERMS: string[] = [
   "objectifs", "plan d'action", "prochaines étapes", "prochaines etapes",
   "arbitrage", "décision", "decision", "validation", "relance",
 
-  // ── Verbes de mise en relation — français ─────────────────────────────────
-  // Ils ouvrent la phrase JUSTE avant un téléphone ou un e-mail, donc ils arrivent
-  // capitalisés et le NER les lit comme un prénom : « Appelle le 06 12 34 56 78 » →
-  // « Appelle » remplacé par un prénom, et la phrase reçue par le modèle devient
-  // absurde. Un over-redaction coûte à CHAQUE message, un manque seulement quand la
-  // donnée est là. Aucun n'est un patronyme.
+  // ── Contact-initiating verbs — French ─────────────────────────────────
+  // They open the sentence JUST before a phone number or an e-mail, so they arrive
+  // capitalised and the NER reads them as a first name: « Appelle le 06 12 34 56 78 » →
+  // « Appelle » replaced by a first name, and the sentence the model receives becomes
+  // absurd. Over-redaction costs on EVERY message, a miss only when the
+  // data is actually there. None of them is a surname.
   "appelle", "appelez", "appeler", "rappelle", "rappelez", "rappeler", "joignable",
   "joindre", "contacte", "contactez", "contacter", "écris", "ecris", "écrivez",
   "ecrivez", "envoie", "envoyez", "réponds", "reponds", "répondez", "repondez",
   "demande", "demandez", "préviens", "previens", "prévenez", "prevenez",
 
-  // ── Commerce & marketing — français ────────────────────────────────────────
+  // ── Commerce & marketing — French ────────────────────────────────────────
   "prospect", "prospects", "prospection", "client", "cliente", "clientèle",
   "clientele", "fournisseur", "fournisseurs", "partenaire", "distributeur",
   "revendeur", "grossiste", "détaillant", "detaillant", "apporteur d'affaires",
@@ -64,7 +64,7 @@ export const PRO_TERMS: string[] = [
   "avoir commercial", "conditions générales de vente",
   "conditions generales de vente", "délai de livraison", "delai de livraison",
 
-  // ── Déplacements & mobilité — français ─────────────────────────────────────
+  // ── Travel & mobility — French ─────────────────────────────────────
   "déplacement", "deplacement", "déplacements", "deplacements", "trajet",
   "mission", "note de frais", "frais de déplacement", "frais de deplacement",
   "indemnité kilométrique", "indemnite kilometrique", "barème kilométrique",
@@ -74,8 +74,8 @@ export const PRO_TERMS: string[] = [
   "carte grise", "permis de conduire", "contrôle technique",
   "controle technique", "constat amiable", "malus", "bonus", "vétusté",
   "vetuste", "garantie décennale", "garantie decennale", "tous risques",
-  // Acronymes de TYPE de service (jamais une marque : SNCF/RATP sont dans
-  // `notorious.ts`, catégorie-scopés).
+  // Type-of-SERVICE acronyms (never a brand: SNCF/RATP are in
+  // `notorious.ts`, category-scoped).
   "rer", "tgv", "ter", "métro", "metro", "tramway", "autocar", "navette",
   "correspondance",
   "billet", "titre de transport", "réservation", "reservation", "embarquement",
@@ -99,8 +99,8 @@ export const PRO_TERMS: string[] = [
   "customer support", "customer success", "helpdesk", "service desk",
   "warranty claim", "purchase order", "delivery note", "shipping", "delivery",
   "parcel", "return", "refund", "terms and conditions", "lead time",
-  // « business » nu : membre d'un libellé bancaire (« Frais Revolut Business ») lu comme
-  // un NOM, il recevait un alias mot-à-mot qui réécrivait ensuite chaque « business ».
+  // Bare « business »: part of a bank statement label (« Frais Revolut Business ») read as
+  // a NAME, it used to get a word-for-word alias that then rewrote every « business ».
   "business",
   "business trip", "expense report", "mileage", "toll", "fuel", "carpooling",
   "car rental", "driving licence", "driving license", "license plate",

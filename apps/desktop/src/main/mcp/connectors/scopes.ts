@@ -4,9 +4,9 @@
  *
  * `run.ts` lists a tool only when its declared `scope` is covered by the
  * connection's scopes — a tool the token can't serve is never offered (the model
- * never learns it exists). C'est ce qui gère une connexion Gmail d'AVANT le
- * 30/07/2026 : elle n'a accordé que `gmail.send`, donc les outils de lecture
- * n'apparaissent qu'après reconnexion. The list that filter reads used to be the
+ * never learns it exists). This handles a Gmail connection from BEFORE
+ * 30/07/2026: it granted only `gmail.send`, so the read tools only appear
+ * after reconnecting. The list that filter reads used to be the
  * user is the one who answers the consent screen, and Google's granular consent
  * lets them untick a scope one by one (a later revocation from their account does
  * the same). We then listed a tool the token couldn't serve, and the failure

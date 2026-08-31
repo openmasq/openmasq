@@ -1,45 +1,45 @@
 /**
- * La recette CODEX du tour outillé : comment `codex exec` reçoit le pont MCP
- * (`toolsBridge.ts`) et lui seul. Le squelette du tour — refus, aplatissement, course
- * capture/fin — vit dans `toolsTurn.ts` (règle 9) ; les drapeaux d'isolement, eux,
- * restent dans `codexEngine.ts`, partagés avec le tour texte.
+ * The CODEX recipe for the tooled turn: how `codex exec` receives the MCP bridge
+ * (`toolsBridge.ts`) and only it. The turn's skeleton — refusal, flattening,
+ * capture/end race — lives in `toolsTurn.ts` (rule 9); the isolation flags, meanwhile,
+ * stay in `codexEngine.ts`, shared with the text turn.
  *
- * Tout ce qui suit est MESURÉ le 26/08/2026 sur la CLI 0.149.1 :
+ * Everything below was MEASURED on 26/08/2026 against CLI 0.149.1:
  *
- * - **La config MCP passe par `-c`, et SURVIT à `--ignore-user-config`** : ce drapeau
- *   n'écarte que le `config.toml` du poste, pas les overrides de la ligne de commande.
- *   Le pont est donc l'UNIQUE serveur MCP du tour — l'équivalent du `--strict-mcp-config`
- *   de claude, obtenu par construction plutôt que par un drapeau.
- * - **`default_tools_approval_mode="approve"`** : sans lui, l'appel part et MEURT sur
- *   « MCP tool call requires approval, but approval policy is never » — `codex exec` est
- *   non interactif, personne ne peut répondre à la demande. Approuver ici n'ouvre rien :
- *   le pont CAPTURE l'appel, il ne l'exécute jamais ; ce sont le coffre et la porte
- *   d'écriture de l'app qui décident, comme sur un modèle à clé. (`auto`, mesuré, ne
- *   suffit pas ; les autres valeurs sont `prompt` et `writes`.)
- * - **`enabled_tools=[…]` est une ALLOW-list** (règle 7) : seuls les outils de CE tour
- *   sont exposés, nommés un par un. Rien d'autre n'existe pour le modèle.
- * - **Le jeton passe par une VARIABLE D'ENVIRONNEMENT** (`bearer_token_env_var`), jamais
- *   en argv : la ligne de commande d'un process est lisible par tout process local
- *   (`ps`). L'environnement, lui, ne l'est que par le même compte — la même frontière
- *   que le fichier 0600 du côté claude.
+ * - **MCP config goes through `-c`, and SURVIVES `--ignore-user-config`**: that flag
+ *   only discards the machine's `config.toml`, not command-line overrides.
+ *   The bridge is therefore the turn's ONLY MCP server — the equivalent of claude's
+ *   `--strict-mcp-config`, obtained by construction rather than by a flag.
+ * - **`default_tools_approval_mode="approve"`**: without it, the call goes out and DIES on
+ *   "MCP tool call requires approval, but approval policy is never" — `codex exec` is
+ *   non-interactive, nobody can answer the request. Approving here opens nothing:
+ *   the bridge CAPTURES the call, it never executes it; it's the app's vault and write
+ *   gate that decide, same as on a key model. (`auto`, measured, is not
+ *   enough; the other values are `prompt` and `writes`.)
+ * - **`enabled_tools=[…]` is an ALLOW-list** (rule 7): only this turn's tools
+ *   are exposed, named one by one. Nothing else exists for the model.
+ * - **The token travels through an ENVIRONMENT VARIABLE** (`bearer_token_env_var`), never
+ *   in argv: a process's command line is readable by any local process
+ *   (`ps`). The environment, by contrast, is readable only by the same account — the same
+ *   boundary as the 0600 file on the claude side.
  *
- * ⚠️ La liste `CODEX_DISABLED_FEATURES` compte AUSSI pour ce tour : sans elle, mesuré, à
- * qui demande son Dropbox le modèle tente d'installer un connecteur codex au lieu
- * d'appeler l'outil du pont (l'accès sortirait alors du coffre — règle 11).
+ * ⚠️ The `CODEX_DISABLED_FEATURES` list ALSO matters for this turn: without it, measured,
+ * a model asked about its Dropbox tries to install a codex connector instead
+ * of calling the bridge's tool (access would then leave the vault — rule 11).
  */
 import { buildCodexArgs, codexPrompt } from "./codexEngine";
 import { interpretCodexEvent } from "./codexStream";
 import { TOOLS_SERVER_NAME } from "./toolsBridge";
 import type { ToolsSpawnInput, ToolsSpawnPlan } from "./toolsRecipe";
 
-/** La variable d'environnement où la CLI lit le jeton Bearer du pont. Jetable : elle ne
- *  vaut que pour CE process, ce tour, ce port. */
+/** The environment variable where the CLI reads the bridge's Bearer token. Disposable: it
+ *  only holds for THIS process, this turn, this port. */
 export const CODEX_TOOLS_TOKEN_ENV = "OPENMASQ_TOOLS_TOKEN";
 
 /**
- * L'override `-c` qui déclare le pont : une valeur TOML sur UNE ligne (la CLI parse le
- * `value` en TOML). Chaque chaîne est sérialisée en JSON — un nom d'outil ne peut donc
- * pas casser la table, ni en ouvrir une autre.
+ * The `-c` override that declares the bridge: a TOML value on ONE line (the CLI parses
+ * `value` as TOML). Every string is JSON-serialized — a tool name therefore cannot
+ * break the table, or open another one.
  */
 export function codexToolsServerConfig(url: string, toolNames: string[]): string {
   const table = [
@@ -54,8 +54,8 @@ export function codexToolsServerConfig(url: string, toolNames: string[]): string
 export const codexToolsRecipe = {
   label: "Codex",
   interpret: interpretCodexEvent,
-  // Rien à écrire sur le disque, donc rien à nettoyer : la config tient dans l'argv et
-  // le secret dans l'environnement de l'enfant.
+  // Nothing to write to disk, so nothing to clean up: the config lives in argv and
+  // the secret in the child's environment.
   prepare: async (input: ToolsSpawnInput): Promise<ToolsSpawnPlan> => ({
     args: buildCodexArgs({
       prompt: codexPrompt(input.system, input.prompt),

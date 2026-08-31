@@ -1,11 +1,11 @@
 import { hashString } from "./primitives";
 
-/** Le faux d'une MRZ (bande machine, `isMrzShaped`) : chiffres MÉLANGÉS comme
- *  `fakeDigits`, et les LETTRES aussi — elles portent le NOM, un faux qui les garde
- *  fuit l'identité qu'il prétend masquer (vécu : « IDFRASABOURDIN<<< » ressortait
- *  intact autour de chiffres neufs). Chevrons et ponctuation préservés (la structure
- *  ISO 9303 reste lisible) ; le préfixe type+pays (« IDFRA ») est GARDÉ : il dit
- *  « une CNI française » sans dire de qui. Déterministe à sel égal, comme les autres. */
+/** The fake of an MRZ (machine-readable zone, `isMrzShaped`): digits SHUFFLED like
+ *  `fakeDigits`, and the LETTERS too — they carry the NAME, a fake that keeps them
+ *  leaks the identity it claims to mask (observed: « IDFRASABOURDIN<<< » came back
+ *  intact around fresh digits). Chevrons and punctuation preserved (the ISO 9303
+ *  structure stays readable); the type+country prefix (« IDFRA ») is KEPT: it says
+ *  « a French national ID card » without saying whose. Deterministic at equal salt, like the others. */
 export function fakeMrz(value: string, salt: number): string {
   const h = hashString(value.replace(/[^A-Z0-9]/g, "")) + salt;
   const keep = /^ID[A-Z]{3}/.test(value) ? 5 : 0;

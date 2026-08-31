@@ -144,13 +144,13 @@ const createEvent: ConnectorTool = {
     if (!summary || !start || !end) {
       return { content: [{ type: "text", text: "summary, start et end sont requis." }], isError: true };
     }
-    // ⚠️ Deux échecs SILENCIEUX corrigés ici, tous deux du journal du 27/07/2026 :
-    //  1. le modèle a envoyé `"[\"Équipe produit\"]"` — un tableau JSON encodé en
-    //     CHAÎNE. `Array.isArray` répondait `false` et le champ était abandonné sans un
-    //     mot ; `stringList` accepte les trois formes (règle des `to`/`cc`/`bcc` Gmail) ;
-    //  2. « Équipe produit » n'est pas une adresse. Google rejette l'événement ENTIER
-    //     pour ça, donc les entrées non-adresses sont écartées — et DITES, sinon on
-    //     retombe sur l'amputation silencieuse qu'on vient de corriger.
+    // ⚠️ Two SILENT failures fixed here, both from the 27/07/2026 journal:
+    //  1. the model sent `"[\"Équipe produit\"]"` — a JSON array encoded as a
+    //     STRING. `Array.isArray` returned `false` and the field was dropped without a
+    //     word; `stringList` accepts all three forms (same rule as Gmail's `to`/`cc`/`bcc`);
+    //  2. "Équipe produit" is not an address. Google rejects the WHOLE event
+    //     over it, so non-address entries are discarded — and STATED, otherwise we
+    //     fall back to the silent amputation we just fixed.
     const asked = stringList(args.attendees);
     const emails = asked.filter((a) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a));
     const dropped = asked.filter((a) => !emails.includes(a));
@@ -177,11 +177,11 @@ export const googleCalendarConnector: Connector = {
   id: "google-calendar",
   name: "Google Agenda",
   auth: "pkce",
-  // `calendar.events` et PAS `auth/calendar` : les deux outils (lister, créer) n'ont
-  // besoin que des événements — le scope complet ajoutait ACL, réglages et suppression
-  // d'agendas qu'aucun outil n'utilise (minimisation, vérification Google/CASA).
-  // ⚠️ CETTE liste est celle que l'OAuth demande (`main/mcp/connectors/index.ts`) ; le
-  // catalogue en porte une copie d'affichage — `scopesParity.test.ts` les tient égales.
+  // `calendar.events` and NOT `auth/calendar`: the two tools (list, create) only
+  // need events — the full scope added ACL, settings and calendar deletion
+  // that no tool uses (minimization, Google/CASA verification).
+  // ⚠️ THIS list is the one OAuth requests (`main/mcp/connectors/index.ts`); the
+  // catalog carries a display copy of it — `scopesParity.test.ts` keeps them equal.
   scopes: {
     managed: ["https://www.googleapis.com/auth/calendar.events"],
     byo: ["https://www.googleapis.com/auth/calendar.events"],

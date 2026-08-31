@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createRequire } from "node:module";
 
-// Le shim se charge en CJS (c'est ce que `@huggingface/transformers` fait de lui), et il
-// résout de VRAIS moteurs à l'import. On ne teste donc pas le choix natif/WASM — il dépend de
-// la machine — mais l'enveloppe, qui est la partie où une erreur se paie en silence.
+// The shim loads as CJS (that's what `@huggingface/transformers` does with it), and it
+// resolves REAL engines at import time. So we don't test the native/WASM choice — it depends
+// on the machine — but the wrapper, which is the part where an error is paid for silently.
 const { envelopperWasm, nombreDeFils } = createRequire(import.meta.url)("./index.cjs") as {
   envelopperWasm: (impl: unknown, lire?: (p: string) => Uint8Array) => { create: (...a: unknown[]) => unknown };
   nombreDeFils: (coeurs: number, sharedArrayBuffer: boolean) => number;
@@ -16,8 +16,8 @@ const faux = () => {
 
 describe("repli WASM d'onnxruntime", () => {
   it("lit le fichier au lieu de passer un CHEMIN au WASM", async () => {
-    // Une chaîne serait comprise comme une URL À ALLER CHERCHER : le poids sha256-vérifié sur
-    // le disque serait ignoré au profit d'un téléchargement. C'est la ligne qui l'empêche.
+    // A string would be understood as a URL TO FETCH: the sha256-verified weight on
+    // disk would be ignored in favor of a download. This is the line that prevents it.
     const { impl, create } = faux();
     const lire = vi.fn(() => new Uint8Array([1, 2, 3]));
     await envelopperWasm(impl, lire).create("/chemin/model_quantized.onnx", {});
@@ -60,7 +60,7 @@ describe("repli WASM d'onnxruntime", () => {
 
 describe("nombre de fils du WASM", () => {
   it("cœurs − 1, plafonné à 4 — le fil principal reste réactif", () => {
-    expect(nombreDeFils(4, true)).toBe(3); // le mac mini Intel de la mesure d'origine
+    expect(nombreDeFils(4, true)).toBe(3); // the Intel mac mini from the original measurement
     expect(nombreDeFils(8, true)).toBe(4);
     expect(nombreDeFils(16, true)).toBe(4);
   });

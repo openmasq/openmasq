@@ -1,6 +1,6 @@
 import type { Detection } from "../../types";
-// La famille « zones libérées d'une catégorie désactivée » vit dans son propre fichier ;
-// ré-exportée d'ici pour que les appelants gardent UN point d'entrée de phase.
+// The « released zones of a disabled category » family lives in its own file;
+// re-exported from here so callers keep ONE phase entry point.
 export { disabledValueSpans } from "./disabledZones";
 import { RELEASABLE_FRAGMENT } from "./disabledZones";
 import { redactionCategory, URL_EXEMPT_KINDS } from "../../kinds";
@@ -49,9 +49,9 @@ export interface FilterCtx {
    *  candidate confined to one of them is dropped too, or turning a category off would
    *  shred its values instead of releasing them. Null/empty ⇒ gate off. */
   disabledSpans?: UrlSpans | null;
-  /** Périmètre de la dispense de notoriété (`../notorious.ts`) : `{commercial: true}` =
-   *  les marques commerciales aussi (niveaux Standard/Renforcé). Absent ⇒ dispense de
-   *  base seulement (personnalités, organismes publics, tickers, pays). */
+  /** Scope of the notoriety dispensation (`../notorious.ts`): `{commercial: true}` =
+   *  commercial brands too (Standard/Enhanced levels). Absent ⇒ base
+   *  dispensation only (public figures, public bodies, tickers, countries). */
   notoriety?: NotorietyOpts;
   /** The released VALUES themselves — the cheap pre-filter for the gate below: only a
    *  candidate that is a SUBSTRING of one of them can possibly sit inside its span, and
@@ -61,12 +61,12 @@ export interface FilterCtx {
 }
 
 /**
- * Le candidat n'est-il qu'une valeur FORCÉE habillée de mots génériques ?
- * (« Employeur de Camille Verlant » quand « Camille Verlant » est forcé par une fiche
- * Mémoire.) La valeur forcée doit y siéger à des FRONTIÈRES DE MOTS — « Camille Verlant »
- * dans « Camille Verlandet » ne compte pas — et chaque mot restant doit être un stopword
- * ou un terme générique. Tout doute ⇒ false : le candidat vit sa vie (fail closed — un
- * drop à tort enverrait le reste du span en clair).
+ * Is the candidate just a FORCED value dressed up in generic words?
+ * (« Employeur de Camille Verlant » when « Camille Verlant » is forced by a Memory
+ * card.) The forced value must sit there at WORD BOUNDARIES — « Camille Verlant »
+ * inside « Camille Verlandet » doesn't count — and every remaining word must be a stopword
+ * or a generic term. Any doubt ⇒ false: the candidate lives its own life (fail closed — a
+ * wrong drop would send the rest of the span in clear).
  */
 function dressesForcedValue(value: string, forcedValues: readonly string[]): boolean {
   for (const f of forcedValues) {
@@ -102,22 +102,22 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
     notoriety,
     input,
   } = ctx;
-  // Rogner AVANT de filtrer : chacune des portes ci-dessous compare des CHAÎNES
-  // (notoriété, keep, termes génériques), et une virgule collée les fait toutes manquer.
-  // Et sur un NOM, dépouiller le marqueur d'état civil collé par le détecteur
-  // (« née X », « épouse Y ») — `stripCivilStatusPrefix` dit ce que le garder coûtait.
+  // Trim BEFORE filtering: each of the gates below compares STRINGS
+  // (notoriety, keep, generic terms), and a glued comma makes them all miss.
+  // And on a NAME, strip the civil-status marker glued on by the detector
+  // (« née X », « épouse Y ») — `stripCivilStatusPrefix` explains what keeping it cost.
   const forcedValues = candidates.filter((c) => c.forced && c.value).map((c) => c.value);
   return candidates
     .map((c) => {
       let v = trimSpanEdges(c.value);
-      // Un code d'opération bancaire en tête (« VIR Rebour ») appartient au RELEVÉ, pas à
-      // l'entité : le garder donnait deux faux au même fournisseur (`spanEdges.ts`).
+      // A leading bank operation code (« VIR Rebour ») belongs to the STATEMENT, not
+      // to the entity: keeping it gave two fakes to the same supplier (`spanEdges.ts`).
       const cat0 = redactionCategory(c.category);
       if (cat0 === "name" || cat0 === "company") v = stripBankOpPrefix(v);
       if (redactionCategory(c.category) === "name") {
         v = stripCivilStatusPrefix(v);
-        // ⚠️ « Nom (adresse@exemple.fr) » : la parenthèse sort du span, sinon l'adresse
-        // RÉELLE voyage en clair à l'intérieur du faux (`spanEdges.ts` le raconte).
+        // ⚠️ « Nom (adresse@exemple.fr) »: the parenthesis is stripped from the span, else the
+        // REAL address travels in clear inside the fake (`spanEdges.ts` tells the story).
         v = stripTrailingEmailParen(v);
       }
       return v === c.value ? c : { ...c, value: v };
@@ -133,14 +133,14 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
     // (else it's dropped → sent in CLEAR = leak → its reverse corrupts the other value).
     if (!reFakeExisting && isExistingFake(c.value)) return false;
     if (c.forced) return true; // user-forced → skip the FP-prevention gates below
-    // Un span qui ne fait qu'HABILLER une valeur FORCÉE de mots génériques cède le pas.
-    // Le cas vécu (fiche Mémoire, 14/08) : « Employeur de Camille Verlant » réclamé en
-    // ORGANISATION par le gate contextuel — le span plus long l'emportait sur la valeur
-    // forcée par la fiche personne, qui recevait alors un SECOND faux, de type org : le
-    // modèle lisait deux entités là où il y en a une. Borné exprès : on ne cède que si
-    // le RESTE (valeur forcée retirée, aux frontières de mots) est entièrement générique
-    // — sinon le span porte du contenu à lui (« Rebour & Fils, employeur de X ») et le
-    // céder l'enverrait en CLAIR, ce qui serait l'inverse d'un correctif.
+    // A span that only DRESSES UP a FORCED value in generic words gives way.
+    // The real-life case (Memory card, 14/08): « Employeur de Camille Verlant » claimed as
+    // ORGANISATION by the contextual gate — the longer span was winning over the value
+    // forced by the person card, which then got a SECOND fake, of type org: the
+    // model was reading two entities where there is one. Deliberately bounded: we only give way if
+    // the REMAINDER (forced value removed, at word boundaries) is entirely generic
+    // — otherwise the span carries content of its own (« Rebour & Fils, employeur de X ») and
+    // giving way would send it out in CLEAR, which would be the opposite of a fix.
     if (dressesForcedValue(c.value, forcedValues)) return false;
     // Never PII on its own: a generic institutional / legal / document-type word (FR
     // "assemblée générale", "syndic"…), an identifier LABEL ("iban", "passeport"), a
@@ -160,10 +160,10 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
     // ticker, a COUNTRY), never the user's own data: faking it makes the model answer
     // about nobody. Category-SCOPED (a person named "Jordan" is not the country — see
     // `../notorious.ts`), and an org-MANDATED category still wins, like it does over `keep`.
-    // …SAUF quand le texte la rattache à celui qui écrit (« je travaille chez Google ») :
-    // la notoriété dit que l'entité est publique, jamais que la RELATION l'est. Voir
-    // `textContext.ts` — la porte ne couvre que le rattachement à la première personne,
-    // donc « Total a répondu à l'appel d'offres » reste en clair.
+    // …EXCEPT when the text ties it to the writer (« je travaille chez Google »):
+    // notoriety says the entity is public, never that the RELATIONSHIP is. See
+    // `textContext.ts` — the gate only covers first-person attachment,
+    // so « Total a répondu à l'appel d'offres » stays in clear.
     if (
       !(unrevealable?.size && unrevealable.has(cat)) &&
       isNotoriousEntity(c.value, cat, notoriety) &&
@@ -184,10 +184,10 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
       isProseGeoHomograph(c.value, input)
     )
       return false;
-    // Un segment d'IDENTIFIANT MACHINE (`CARD` dans `CARD_PAYMENT`) n'est pas un lieu :
-    // le faux (« METZ_PAYMENT », relevé bancaire réel) corrompt une énumération technique
-    // sans protéger personne. Même famille que le gate ci-dessus : LIEU seulement,
-    // occurrence-safe, et l'override org-mandaté garde la main.
+    // A MACHINE IDENTIFIER segment (`CARD` in `CARD_PAYMENT`) is not a place:
+    // the fake (« METZ_PAYMENT », a real bank statement) corrupts a technical enumeration
+    // without protecting anyone. Same family as the gate above: LOCATION only,
+    // occurrence-safe, and the org-mandated override keeps the upper hand.
     if (
       cat === "location" &&
       !(unrevealable?.size && unrevealable.has(cat)) &&
@@ -219,15 +219,15 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
       return false; // URL-only
     // Email-fragment gate: drop a non-email value confined to email addresses (reuses the
     // generic span-overlap check). Never drops the email itself (its category is "email").
-    // ⚠️ Le test est un CHEVAUCHEMENT, et il écartait aussi le SUR-ENSEMBLE : une chaîne
-    // de connexion (`postgres://user:pass@hôte:5432/base`) chevauche le span e-mail que
-    // son `pass@hôte` fabrique, donc elle était écartée ICI — et c'est le fragment
-    // e-mail, plus court, qui repartait faussé, laissant l'utilisateur, l'hôte et le
-    // port de la base EN CLAIR. Un sur-ensemble contient STRICTEMENT un span entier
-    // (DSN, `Nom <mail@x>`) et se juge sur sa propre catégorie. La borne est stricte
-    // exprès : une valeur ÉGALE au span — la même adresse re-détectée sous une autre
-    // étiquette (un champ « Contact : ») — reste un fragment, sinon elle ressort sous
-    // une catégorie que « E-mail désactivé » ne couvre pas.
+    // ⚠️ The test is an OVERLAP, and it was also excluding the SUPERSET: a connection
+    // string (`postgres://user:pass@hôte:5432/base`) overlaps the email span that
+    // its `pass@hôte` builds, so it was excluded HERE — and it's the shorter
+    // email fragment that went out faked instead, leaving the user, the host and the
+    // database port IN CLEAR. A superset STRICTLY contains an entire span
+    // (DSN, `Nom <mail@x>`) and is judged on its own category. The bound is strict
+    // on purpose: a value EQUAL to the span — the same address re-detected under another
+    // label (a « Contact : » field) — stays a fragment, else it comes back out under
+    // a category that « E-mail disabled » doesn't cover.
     if (
       emailSpans &&
       redactionCategory(c.category) !== "email" &&
@@ -243,22 +243,22 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
   });
 }
 
-/** Prose-geo categories: a région/département mentioned in PROSE. Emitted ungated by
+/** Prose-geo categories: a region/department mentioned in PROSE. Emitted ungated by
  *  `frGeo`/`usGeo`/`cjkGeo` because inside an ADDRESS they must be faked coherently. */
 const PROSE_GEO = new Set(["REGION", "DEPARTMENT"]);
 
 /**
- * ANCRAGE PERSONNEL du géo de prose : une région/un département SEULS ne sont pas une
- * donnée personnelle — « les 5 plus grandes villes de Normandie » est une question de
- * culture générale, et la redact fait dériver le modèle sur les villes du FAKE
- * (Dijon pour une fausse Bourgogne), une corruption IRRÉVERSIBLE (la dérivation n'est
- * pas une clé de vault). La règle produit : rien n'est redacted tant qu'aucune donnée
- * personnelle n'est présente. Donc REGION/DEPARTMENT ne survivent que si :
- *  - un AUTRE candidat (nom, adresse, commune, tél…) a survécu aux gates — le géo
- *    accompagne des données personnelles (une adresse, un formulaire) ; ou
- *  - le VAULT porte déjà des entrées — la conversation est déjà personnelle, et un
- *    géo cohérent avec les fakes existants doit le rester.
- * Un candidat `forced` n'est jamais droppé (l'utilisateur l'a demandé explicitement).
+ * PERSONAL ANCHOR for prose geo: a region/department ALONE is not
+ * personal data — « les 5 plus grandes villes de Normandie » is a general-knowledge
+ * question, and redacting it makes the model drift onto the FAKE's cities
+ * (Dijon for a fake Bourgogne), an IRREVERSIBLE corruption (the derivation isn't
+ * a vault key). The product rule: nothing is redacted as long as no personal
+ * data is present. So REGION/DEPARTMENT only survive if:
+ *  - ANOTHER candidate (name, address, commune, phone…) survived the gates — the geo
+ *    accompanies personal data (an address, a form); or
+ *  - the VAULT already carries entries — the conversation is already personal, and a
+ *    geo coherent with the existing fakes must stay that way.
+ * A `forced` candidate is never dropped (the user explicitly asked for it).
  */
 export function dropUnanchoredProseGeo(kept: Detection[], vaultEmpty: boolean): Detection[] {
   const anchored = !vaultEmpty || kept.some((c) => !PROSE_GEO.has(c.category) || c.forced);
@@ -274,11 +274,11 @@ export function dropUnanchoredProseGeo(kept: Detection[], vaultEmpty: boolean): 
  * elsewhere (a real name NOT in an email) is still caught.
  */
 export function deNest(kept: Detection[], input: string): Detection[] {
-  // Doublon de VALEUR exacte où l'un des candidats vient de l'heuristique générique de
-  // clés (`apikey`) et l'autre d'une règle SPÉCIFIQUE : la règle gagne, le doublon clé
-  // est retiré. Enregistrer les deux laissait la DERNIÈRE catégorie écraser l'affichage
-  // (« api token » sur un BIC pourtant typé `bic`, journal 02/08). Chirurgical : un
-  // doublon entre deux catégories non-génériques garde le comportement existant.
+  // Exact VALUE duplicate where one of the candidates comes from the generic key
+  // heuristic (`apikey`) and the other from a SPECIFIC rule: the rule wins, the key
+  // duplicate is removed. Recording both let the LAST category overwrite the display
+  // (« api token » on a BIC that was nonetheless typed `bic`, log 02/08). Surgical: a
+  // duplicate between two non-generic categories keeps the existing behaviour.
   const hasSpecific = new Set(
     kept.filter((c) => redactionCategory(c.category) !== "apikey").map((c) => c.value),
   );

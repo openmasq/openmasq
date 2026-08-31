@@ -4,17 +4,17 @@ import { describe, expect, it } from "vitest";
 import { bearerFetchJson } from "./fetchJson.js";
 
 /**
- * ⛔ Le doublon d'Outlook (18/08). Graph répond `202 Accepted` **sans corps** à
- * `POST /me/sendMail` ; `res.json()` y jetait « Unexpected end of JSON input ». L'outil
- * remontait donc en ÉCHEC alors que le mail était PARTI, le modèle a relancé le même appel
- * — un second mail — puis a annoncé à l'utilisateur que l'envoi n'avait pas pu se faire.
- * Un effet de bord réel présenté comme une panne est pire qu'une panne : il se répète.
+ * ⛔ The Outlook duplicate (18/08). Graph responds `202 Accepted` **with no body** to
+ * `POST /me/sendMail`; `res.json()` there threw "Unexpected end of JSON input". The tool
+ * therefore surfaced as a FAILURE while the mail had actually SENT, the model retried the same call
+ * — a second mail — then told the user the send hadn't been able to happen.
+ * A real side effect presented as a failure is worse than a failure: it repeats itself.
  *
- * La règle « un corps vide est un succès vide » vit dans DEUX `bearerFetchJson` : celui du
- * broker (ici) et celui du processus principal du bureau. Deux runtimes, deux copies — la
- * réponse de la règle 9 à une copie nécessaire est un TEST DE PARITÉ, jamais un commentaire
- * « à garder en phase ». Corriger un seul côté rouvrirait le défaut sur l'autre, et
- * personne ne le verrait : les deux chemins servent les mêmes connecteurs.
+ * The "an empty body is an empty success" rule lives in TWO `bearerFetchJson`s: the
+ * broker's (here) and the desktop's main process's. Two runtimes, two copies — rule 9's
+ * answer to a necessary copy is a PARITY TEST, never a "keep in sync"
+ * comment. Fixing only one side would reopen the defect on the other, and
+ * no one would see it: both paths serve the same connectors.
  */
 const DESKTOP_RUN = join(
   __dirname,
@@ -56,9 +56,9 @@ describe("bearerFetchJson (broker) — un corps vide est un succès vide", () =>
 describe("parité avec le processus principal du bureau", () => {
   it("l'autre `bearerFetchJson` traite AUSSI le corps vide au lieu de parser d'office", () => {
     const src = readFileSync(DESKTOP_RUN, "utf8");
-    // Ce qu'on épingle est le COMPORTEMENT, pas la formulation : le corps est lu en TEXTE,
-    // le vide court-circuite, et le parse est protégé. Un retour à `await res.json()` sec
-    // sur ce chemin fait tomber ce test.
+    // What we pin here is the BEHAVIOR, not the wording: the body is read as TEXT,
+    // the empty case short-circuits, and the parse is guarded. Reverting to a bare
+    // `await res.json()` on this path breaks this test.
     expect(src).toMatch(/const text = await res\.text\(\)/);
     expect(src).toMatch(/if \(!text\.trim\(\)\) return undefined as T/);
     expect(src).toMatch(/JSON\.parse\(text\)/);

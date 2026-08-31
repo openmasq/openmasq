@@ -26,14 +26,14 @@ interface DriveItem {
 const q = (s: string): string => s.replace(/'/g, "''");
 
 /**
- * Lister le contenu d'un dossier — construit ici, consommé DEUX fois : par l'outil
- * ci-dessous et par le panneau « Dossiers » de l'app (`main/cloudfs`).
+ * List a folder's contents — built here, consumed TWICE: by the tool
+ * below and by the app's "Folders" panel (`main/cloudfs`).
  */
 export function onedriveChildrenUrl(folderId: string | null): string {
   const path = folderId
     ? `/items/${encodeURIComponent(assertFileId(folderId))}/children`
     : "/root/children";
-  // Graph refuse un `$orderby` sur `folder` : le tri d'affichage est fait côté app.
+  // Graph refuses an `$orderby` on `folder`: display sorting is done app-side.
   return `${GRAPH}/me/drive${path}?$select=id,name,folder,lastModifiedDateTime&$top=200`;
 }
 

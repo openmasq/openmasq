@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { codexErrorMessage, codexUsage, interpretCodexEvent } from "./codexStream";
 
-// Formes MESURÉES le 26/08/2026 (captures réelles, codex-cli 0.149.1).
+// Shapes MEASURED on 26/08/2026 (real captures, codex-cli 0.149.1).
 describe("interpretCodexEvent", () => {
   it("thread.started → session", () => {
     expect(interpretCodexEvent({ type: "thread.started", thread_id: "01a03ec3" })).toEqual({

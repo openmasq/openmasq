@@ -23,9 +23,9 @@ import { handle, any, nullable, str } from "./handle";
  *    it clears the policy. It still closes every non-XSS bypass the renderer-only filter
  *    left open (custom-server re-add, a direct call-tool, a route the loop's filter missed).
  *    `../mcp/orgPolicy.ts` states that boundary; don't let it drift into a claim of proof.
- *  - `keys:set-org-byo-allowed` — même régime : un compte géré n'écrit ni n'utilise de clé
- *    personnelle (`../store/keysPolicy.ts`). Non vérifiable par main, mais elle ferme
- *    l'écriture directe par IPC et l'injection d'une clé stockée AVANT l'adhésion.
+ *  - `keys:set-org-byo-allowed` — same regime: a managed account neither writes nor uses a
+ *    personal key (`../store/keysPolicy.ts`). Not verifiable by main, but it closes
+ *    direct IPC writes and the injection of a key stored BEFORE joining.
  */
 export function registerPostureIpc(): void {
   handle("mcp:set-write-auto-approve", [any], (_e, enable) => setWriteAutoApprove(enable === true));

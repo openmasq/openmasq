@@ -20,12 +20,12 @@ export function useVaultSync(store: Store): void {
   const touchedAt = store.active?.updatedAt;
 
   // Heartbeat this device into the account's device list: on app open AND whenever the
-  // signed-in account (re)resolves. Le montage seul ne suffisait PAS : au tout premier
-  // lancement il court AVANT que la session existe (l'utilisateur se connecte APRÈS),
-  // le transport rend alors null sans erreur et plus rien ne réessayait avant le
-  // prochain redémarrage — le Mac fraîchement installé restait invisible dans
-  // « Appareils connectés », et sa synchro muette. On ré-inscrit au fil des évènements
-  // d'auth, dédupliqué par compte (TOKEN_REFRESHED ne re-poste pas).
+  // signed-in account (re)resolves. Mounting alone was NOT enough: on the very first
+  // launch it runs BEFORE the session exists (the user signs in AFTER),
+  // the transport then returns null with no error and nothing retried before the
+  // next restart — the freshly installed Mac stayed invisible in
+  // "Connected devices", its sync silent. We re-register on every auth event,
+  // deduped by account (TOKEN_REFRESHED doesn't re-post).
   useEffect(() => {
     let registeredUid: string | null = null;
     void registerDevice();

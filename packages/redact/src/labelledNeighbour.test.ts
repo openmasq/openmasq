@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import { pseudonymize } from "./index";
 
 /**
- * Le même défaut que `engine/contextFields.test.ts` épingle au niveau du DÉTECTEUR, mais vu
- * d'où il comptait : le FIL. Un champ étiqueté NOM avalait la valeur du champ voisin, et
- * cette valeur — téléphone, date de naissance, e-mail — partait EN CLAIR au modèle,
- * transportée à l'intérieur du faux (la clé de coffre était littéralement
+ * The same bug that `engine/contextFields.test.ts` pins at the DETECTOR level, but seen
+ * from where it actually mattered: the WIRE. A field labeled NAME swallowed the neighbouring
+ * field's value, and that value — phone, birth date, e-mail — went OUT IN CLEAR to the model,
+ * carried inside the fake (the vault key was literally
  * `"Aurèle Aubertin (06 12 34 56 78)"`).
  *
- * Ces cas restent ici parce que la coupe ne suffit pas : il faut aussi que le voisin, une
- * fois libéré, soit RÉELLEMENT attrapé par son propre détecteur et vaulté. Un test de
- * détecteur ne peut pas le dire.
+ * These cases stay here because the cut alone isn't enough: the neighbour, once
+ * freed, must also be ACTUALLY caught by its own detector and vaulted. A detector
+ * test can't tell you that.
  */
 const wire = async (t: string) => (await pseudonymize(t, { vault: {} })).text;
 
@@ -24,8 +24,8 @@ describe("FUITE — la valeur voisine d'un champ NOM (16/08/2026)", () => {
   });
 
   it("…et l'e-mail, quel que soit le séparateur", async () => {
-    // ⚠️ Le cas au tiret partait en `julien@exemple.hennequin` : le domaine de tête faisait
-    // illusion de redaction alors que la partie locale ET le domaine étaient en clair.
+    // ⚠️ The dash case went out as `julien@exemple.hennequin`: the leading domain gave the
+    // illusion of redaction while both the local part AND the domain were in clear.
     for (const sep of ["(", "- ", ""]) {
       const out = await wire(`Contact : Julien Sabourdin ${sep}julien@exemple.fr`);
       expect(out).not.toContain("julien@exemple");

@@ -91,9 +91,9 @@ describe("extractFromBytes — format dispatch", () => {
     const f = await extractFromBytes(enc("\x89PNG"), { name: "card.png" }, d);
     expect(f.error).toBeTruthy();
     expect(f.error).not.toMatch(/tesseract|app\.asar|Cannot find|imported from|\//);
-    // Le repli CONSTATE l'échec sans le diagnostiquer : une cause inconnue (ici un module
-    // manquant, ailleurs un plantage du binding) ne doit pas se présenter comme un verdict
-    // sur l'appareil (« OCR indisponible sur cet appareil » alors que les modèles sont là).
+    // The fallback ACKNOWLEDGES the failure without diagnosing it: an unknown cause (here a
+    // missing module, elsewhere a binding crash) must not present itself as a verdict
+    // on the device ("OCR unavailable on this device" when the models are actually there).
     expect(f.error).toMatch(/reconnaissance de texte a échoué/i);
     expect(f.error).not.toMatch(/indisponible sur cet appareil/i);
   });

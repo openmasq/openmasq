@@ -26,7 +26,7 @@ describe("read_file — un document n'est pas du texte brut", () => {
   });
 
   it("refuse une image ou une archive, sans promettre une extraction impossible", () => {
-    // Il n'y a rien à extraire : le message ne doit PAS renvoyer vers `read_document`.
+    // There's nothing to extract: the message must NOT point to `read_document`.
     const v = readVerdict("/a/photo.png", TEXT);
     expect(v.kind).toBe("opaque");
     expect(v.kind !== "text" && v.message).not.toContain("read_document");
@@ -40,7 +40,7 @@ describe("read_file — un document n'est pas du texte brut", () => {
   });
 
   it("se rabat sur les OCTETS quand l'extension ne dit rien", () => {
-    // Un NUL n'apparaît jamais dans de l'UTF-8 : c'est une preuve, pas une heuristique.
+    // A NUL never appears in UTF-8: it's proof, not a heuristic.
     expect(readVerdict("/a/mystere", BINARY).kind).toBe("opaque");
     expect(readVerdict("/a/mystere", TEXT).kind).toBe("text");
   });

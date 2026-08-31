@@ -79,8 +79,8 @@ export async function startBroker(): Promise<void> {
   // stdio), so no MessagePort protocol is needed — just run it and poll /healthz.
   child = utilityProcess.fork(entry, [], {
     serviceName: `${BRAND.slug}-broker`,
-    // Allowlist, jamais l'héritage : le broker est une closure TIERCE qui détient les
-    // jetons OAuth — l'env du shell de l'utilisateur ne le regarde pas (childEnv.ts).
+    // Allow-list, never inheritance: the broker is a THIRD-PARTY closure that holds
+    // OAuth tokens — the user's shell env has no business reaching it (childEnv.ts).
     env: minimalChildEnv({
       BROKER_FORCE_LISTEN: "1",
       PORT: String(port),
@@ -94,9 +94,9 @@ export async function startBroker(): Promise<void> {
   const proc = child;
   child.on("exit", (code) => {
     if (code) console.error(`[broker] exited with code ${code}`);
-    // Une mort POST-DÉMARRAGE inattendue (stopBroker détache `child` avant de tuer, la
-    // fermeture de l'app passe par `isAppQuitting`) n'était que console — donc invisible
-    // chez un utilisateur, alors que tous ses connecteurs broker meurent avec (audit 13/08).
+    // An unexpected POST-STARTUP death (stopBroker detaches `child` before killing, the
+    // app's shutdown goes through `isAppQuitting`) used to be console-only — so invisible
+    // for a user, even though all their broker connectors die with it (audit 13/08).
     if (child === proc && !isAppQuitting()) {
       reportMainError("mcp", `broker-exit-${code ?? "?"}`, new Error(`mcp-broker mort (code ${code})`));
     }

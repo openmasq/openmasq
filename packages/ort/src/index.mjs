@@ -1,6 +1,6 @@
-// Façade ESM — l'implémentation est dans `index.cjs`, et n'existe qu'une fois (règle 9).
-// `@huggingface/transformers` s'importe en ESM comme en CJS selon le bundle qui gagne ; les
-// deux entrées doivent donc exister, sans quoi le repli ne s'applique qu'à moitié.
+// ESM facade — the implementation is in `index.cjs`, and exists only once (rule 9).
+// `@huggingface/transformers` imports itself as ESM or CJS depending on which bundle wins; the
+// two entries must therefore both exist, without which the fallback only half applies.
 import { createRequire } from "node:module";
 
 const shim = createRequire(import.meta.url)("./index.cjs");

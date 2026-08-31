@@ -41,7 +41,7 @@ describe("pageImageSource — the halo may only claim what actually leaves", () 
 
   it("returns the image-sourced words by IDENTITY, so the halo can subtract them", () => {
     // A logo word is read (OCR) and framed as a zone, but its text is not in the wire:
-    // haloing it would say « envoyé, redacted » right where the frame says the opposite.
+    // haloing it would say « sent, redacted » right where the frame says the opposite.
     const logo = w("FRANCE", 60, 30);
     const src = pageImageSource({
       layerText: LAYER_TEXT,

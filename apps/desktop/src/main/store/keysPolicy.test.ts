@@ -10,8 +10,8 @@ afterEach(() => _resetKeysPolicy());
 
 describe("setOrgByoKeysAllowed", () => {
   it("ne bloque RIEN tant que rien n'a été publié — un compte solo garde ses clés", () => {
-    // Le renderer publie après son démarrage ; d'ici là, refuser priverait de leurs clés
-    // tous ceux qui n'ont pas d'organisation.
+    // The renderer publishes after its startup; refusing before that would deprive
+    // everyone without an organization of their keys.
     expect(isByoKeysBlocked()).toBe(false);
   });
 
@@ -24,7 +24,7 @@ describe("setOrgByoKeysAllowed", () => {
 
   it("efface la politique sur une valeur qui n'est pas un booléen, au lieu de la deviner", () => {
     setOrgByoKeysAllowed(false);
-    expect(setOrgByoKeysAllowed("false")).toBeNull(); // une CHAÎNE n'est pas une politique
+    expect(setOrgByoKeysAllowed("false")).toBeNull(); // a STRING is not a policy
     expect(isByoKeysBlocked()).toBe(false);
     setOrgByoKeysAllowed(false);
     expect(setOrgByoKeysAllowed(undefined)).toBeNull();
@@ -37,6 +37,6 @@ describe("byoKeysBlockedError", () => {
     const msg = byoKeysBlockedError().message;
     expect(msg).toMatch(/organisation/i);
     expect(msg).toMatch(/administrateur/i);
-    expect(msg).toMatch(/sans clé/i); // et ce qui marche quand même
+    expect(msg).toMatch(/sans clé/i); // and what still works
   });
 });

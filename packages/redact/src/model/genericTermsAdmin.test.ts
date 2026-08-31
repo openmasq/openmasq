@@ -172,14 +172,14 @@ describe("…and the real data in the same letter is still redacted", () => {
 });
 
 describe("vocabulaire PROTOCOLAIRE — un acronyme technique n'est jamais une entité", () => {
-  // Relevé sur un tour agentique réel : « MCP » a été coffré comme donnée sensible et
-  // remplacé par un jeton inventé de trois lettres. La substitution s'appliquant à TOUTE
-  // la conversation, chaque occurrence — y compris dans les résultats d'outils — a été
-  // réécrite. Le filtre générique est le point de passage commun à TOUTES les sources
-  // (règles, NER local, détecteur distant), donc c'est là que ça se ferme.
+  // Observed on a real agentic turn: « MCP » was vaulted as sensitive data and
+  // replaced by an invented three-letter token. The substitution applying to the WHOLE
+  // conversation, every occurrence — including in tool results — was
+  // rewritten. The generic filter is the choke point common to ALL sources
+  // (rules, local NER, remote detector), so that's where it gets closed off.
   it("couvre les protocoles et formats que le trafic agentique charrie en continu", () => {
-    // Les EXTENSIONS de fichier (pdf, docx…) n'y sont volontairement pas : le faker de
-    // chemins en a besoin comme extensions, et les lister cassait le faux de même nature.
+    // File EXTENSIONS (pdf, docx…) are deliberately NOT in it: the path
+    // faker needs them as extensions, and listing them broke the same-kind fake.
     for (const v of ["MCP", "mcp", "SSE", "OAuth", "SQL", "LLM", "OCR",
                      "webhook", "gRPC", "WebSocket", "connecteur", "protocole"]) {
       expect(isGenericTerm(v), v).toBe(true);
@@ -187,18 +187,18 @@ describe("vocabulaire PROTOCOLAIRE — un acronyme technique n'est jamais une en
   });
 
   it("et le POINT DE PASSAGE les écarte, quelle que soit la source qui les a détectés", () => {
-    // `filterCandidates` est traversé par les règles, le NER local ET le détecteur
-    // distant : épingler ici, plutôt que le seul vocabulaire, c'est épingler le
-    // comportement réel — le NER n'est pas chargeable dans un test unitaire.
+    // `filterCandidates` is crossed by the rules, the local NER AND the remote
+    // detector: pinning it here, rather than just the vocabulary, pins the
+    // actual behavior — the NER can't be loaded in a unit test.
     expect(surviving(["MCP", "SSE", "OAuth"], "company")).toEqual([]);
     expect(surviving(["MCP"], "sensitive")).toEqual([]);
-    // Une vraie entité dans le MÊME lot passe toujours : le filtre écarte, il ne coupe pas.
+    // A real entity in the SAME batch always passes: the filter drops, it doesn't cut across.
     expect(surviving(["MCP", "Karl Studio"], "company")).toEqual(["Karl Studio"]);
   });
 
   it("la discipline tient : un mot à double vie reste HORS de la liste", () => {
-    // Une entrée ici expédie le mot en clair pour toujours : un acronyme de 2-3 lettres
-    // qui se lit comme des initiales n'y entre pas, et un nom propre ordinaire encore moins.
+    // An entry here ships the word in clear forever: a 2-3 letter acronym
+    // that reads like initials doesn't go in it, and an ordinary proper name even less so.
     for (const v of ["ui", "ner", "Morvan", "Paris", "Vallon"]) {
       expect(isGenericTerm(v), v).toBe(false);
     }

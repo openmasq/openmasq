@@ -1,28 +1,28 @@
-/* Upload de PLUSIEURS documents, et JUGEMENT du redaction — sans aucun modèle de chat.
+/* Upload of SEVERAL documents, and JUDGMENT of the redaction — with no chat model at all.
  *
- * Tout ce qui produit le redaction est déjà sur la machine : docTR/Tesseract pour les
- * pixels, mBERT pour les noms et organisations, les règles déterministes pour l'IBAN, la
- * carte, l'IP. Ce test n'a donc rien à demander à personne — il joint les documents, laisse
- * l'app faire, et juge le résultat. Aucune clé d'API, aucun appel sortant, coût nul.
+ * Everything that produces the redaction is already on the machine: docTR/Tesseract for the
+ * pixels, mBERT for names and organizations, the deterministic rules for the IBAN, the
+ * card, the IP. This test therefore has nothing to ask anyone — it attaches the documents, lets
+ * the app do its thing, and judges the result. No API key, no outbound call, zero cost.
  *
- * Le destinataire de l'envoi est un FAUX endpoint OpenAI-compatible que le test lève sur
- * 127.0.0.1 (c'est exactement l'usage du provider `openai-compat` : Ollama, LM Studio). Ça
- * n'est pas une commodité de mise en scène — c'est ce qui permet de juger le **wire réel**,
- * celui que le pipeline construit après redaction, plutôt qu'un état intermédiaire du
- * renderer. Le serveur répond une complétion vide : ce qu'il RÉPOND n'a aucune importance,
- * ce qu'il REÇOIT est tout le sujet.
+ * The send's destination is a FAKE OpenAI-compatible endpoint that the test spins up on
+ * 127.0.0.1 (that's exactly the use of the `openai-compat` provider: Ollama, LM Studio). This
+ * isn't a staging convenience — it's what makes it possible to judge the **real wire**,
+ * the one the pipeline builds after redaction, rather than an intermediate state of the
+ * renderer. The server answers an empty completion: what it ANSWERS doesn't matter at all,
+ * what it RECEIVES is the whole point.
  *
- * Pourquoi plusieurs documents, et pas un de plus dans le spec existant : quatre formats =
- * quatre extracteurs (utf8, sheetjs, pdf.js, mammoth) plus l'OCR pour les images, qui
- * convergent vers UNE passe de redaction et UN vault. Trois choses ne sont vérifiables
- * qu'ici :
- *   1. chaque extracteur rend du texte — un PDF muet ressemble à un PDF sans PII ;
- *   2. la PII vue par le seul sheetjs (ou le seul OCR) est redacted comme les autres ;
- *   3. une valeur présente dans DEUX fichiers reçoit UN SEUL faux (atomicité du vault).
+ * Why several documents, and not one more in the existing spec: four formats =
+ * four extractors (utf8, sheetjs, pdf.js, mammoth) plus OCR for images, which
+ * converge into ONE redaction pass and ONE vault. Three things are only verifiable
+ * here:
+ *   1. each extractor renders text — a silent PDF looks like a PDF with no PII;
+ *   2. PII seen only by sheetjs (or only by OCR) is redacted like the others;
+ *   3. a value present in TWO files receives ONE SINGLE fake (vault atomicity).
  *
- * ⚠️ Ce spec exige les modèles bakés en local (`pnpm bake:ner`, `pnpm bake:doctr`) : hors
- * app packagée ils sont lus depuis `apps/desktop/build/`. Sans eux, le moteur `local`
- * échoue FERMÉ (c'est la règle) et le test le dit au lieu de passer en silence.
+ * ⚠️ This spec requires the locally baked models (`pnpm bake:ner`, `pnpm bake:doctr`): outside
+ * a packaged app they are read from `apps/desktop/build/`. Without them, the `local` engine
+ * fails CLOSED (that's the rule) and the test says so instead of silently passing.
  */
 import { test, expect } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
@@ -39,14 +39,14 @@ const NER_DIR = resolve(DESKTOP_DIR, "build/ner-models");
 const fixture = (name: string) => resolve(DESKTOP_DIR, "e2e/fixtures/pii", name);
 
 /**
- * Les fixtures jugées. `ocrOnly` marque celles dont la PII n'existe QUE dans les pixels :
- * c'est la seule raison d'avoir docTR dans la boucle, et sans elles « plusieurs documents »
- * ne veut dire que « plusieurs fichiers texte ».
+ * The judged fixtures. `ocrOnly` marks the ones whose PII exists ONLY in the pixels:
+ * that's the only reason to have docTR in the loop, and without them "several documents"
+ * would only mean "several text files".
  *
- * `names` est la vérité terrain que le déterministe ne peut PAS produire — c'est la barre de
- * rappel de mBERT, et elle est écrite à la main exprès. Le reste (emails, IBAN, cartes, IP…)
- * est recalculé à l'exécution depuis le fichier lui-même : enrichir une fixture étend
- * l'assertion sans toucher au test.
+ * `names` is the ground truth that the deterministic engine CANNOT produce — it's mBERT's
+ * recall bar, and it's written by hand on purpose. The rest (emails, IBAN, cards, IP…)
+ * is recomputed at runtime from the file itself: enriching a fixture extends
+ * the assertion without touching the test.
  */
 const DOCS: { file: string; names: string[]; ocrOnly?: boolean }[] = [
   { file: "customers.csv", names: [] },
@@ -56,26 +56,26 @@ const DOCS: { file: string; names: string[]; ocrOnly?: boolean }[] = [
 ];
 
 /**
- * Ce que l'app REMPLACERAIT dans ce fichier — l'oracle est sa propre fonction de décision
- * (`pseudonymize`), pas une liste réécrite à côté.
+ * What the app WOULD REPLACE in this file — the oracle is its own decision function
+ * (`pseudonymize`), not a list rewritten on the side.
  *
- * C'était `redact()` avec toutes les catégories, et c'était faux dans les deux sens : il
- * réclamait des valeurs que le produit ne masque pas volontairement (les fixtures utilisent
- * des domaines RÉSERVÉS — `example.com` — que le moteur dé-priorise pour éviter les faux
- * positifs), et il aurait raté ce que seules les catégories par défaut activent.
+ * It used to be `redact()` with every category, and it was wrong both ways: it
+ * demanded values the product doesn't deliberately mask (the fixtures use
+ * RESERVED domains — `example.com` — that the engine deprioritizes to avoid false
+ * positives), and it would have missed what only the default categories activate.
  *
- * Ce que ce test prouve n'est donc PAS le rappel du détecteur — c'est le travail du banc
- * (`packages/redact/bench`) et des tests unitaires. C'est que la décision du moteur ARRIVE
- * INTACTE sur le wire, à travers quatre extracteurs, un pliage multi-documents et un
- * chemin de réutilisation. Une divergence ici est un défaut de PIPELINE, pas de détection.
+ * What this test proves is therefore NOT the detector's recall — that's the job of the bench
+ * (`packages/redact/bench`) and the unit tests. It's that the engine's decision ARRIVES
+ * INTACT on the wire, through four extractors, a multi-document fold and a
+ * reuse path. A divergence here is a PIPELINE defect, not a detection one.
  */
 async function replacedValues(path: string): Promise<string[]> {
   const { text } = await extractBytes(new Uint8Array(readFileSync(path)), path);
   const body = (text ?? "").trim();
   if (!body) return [];
   const { matches } = await pseudonymize(body, { vault: {} });
-  // Les valeurs courtes apparaissent trivialement dans n'importe quel texte : leur absence
-  // du wire ne prouverait rien.
+  // Short values trivially appear in any text: their absence
+  // from the wire would prove nothing.
   return [...new Set(matches.map((m) => m.value))].filter((v) => v.length >= 8);
 }
 
@@ -86,10 +86,10 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
   );
 
   test("quatre formats en un envoi : tout extrait, tout redacted, un faux par valeur", async () => {
-    test.setTimeout(600_000); // 4 extractions (PDF/XLSX) + mBERT sur chaque document
+    test.setTimeout(600_000); // 4 extractions (PDF/XLSX) + mBERT on each document
 
     const paths = DOCS.map((d) => fixture(d.file));
-    // L'oracle, calculé AVANT de lancer l'app.
+    // The oracle, computed BEFORE launching the app.
     const expected = new Map<string, string[]>();
     for (const p of paths) expected.set(basename(p), await replacedValues(p));
     for (const [name, values] of expected) {
@@ -109,7 +109,7 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
         OPENMASQ_E2E: "1",
         OPENMASQ_USER_DATA_DIR: profile,
         OPENMASQ_E2E_WIRE_LOG: wireLog,
-        // Le picker natif ne s'automatise pas : le hook accepte plusieurs chemins « : ».
+        // The native picker can't be automated: the hook accepts multiple paths joined by ":".
         OPENMASQ_E2E_ATTACH: paths.join(":"),
       },
     });
@@ -117,8 +117,8 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
     await page.waitForLoadState("domcontentloaded");
 
     try {
-      // Session + réglages : moteur LOCAL (mBERT), modèle = l'endpoint bidon. Aucune clé
-      // de fournisseur n'est posée — rien ne peut partir ailleurs que sur 127.0.0.1.
+      // Session + settings: LOCAL engine (mBERT), model = the dummy endpoint. No
+      // provider key is set — nothing can go out anywhere but 127.0.0.1.
       await page.evaluate(
         ({ baseUrl, authKey }) => {
           localStorage.setItem(
@@ -143,18 +143,18 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
       await page.reload();
       await page.waitForSelector(".rail-btn, .side-nav-item", { timeout: 60_000 });
 
-      // ── Upload : un clic, quatre fichiers ────────────────────────────────────────
-      // Le libellé est la source du sélecteur (IconButton pose `aria-label`), pas une
-      // classe : renommer le bouton casse le test bruyamment, ce qui est le bon sens.
+      // ── Upload: one click, four files ────────────────────────────────────────
+      // The label is the selector's source (IconButton sets `aria-label`), not a
+      // class: renaming the button breaks the test loudly, which is the right call.
       await page.getByLabel("Joindre un fichier").click();
       await expect(page.locator(".attach-chip")).toHaveCount(DOCS.length, { timeout: 180_000 });
-      // Extraction ET redaction terminés, sans erreur : un chip en erreur, c'est un
-      // document qui partirait non redacted.
+      // Extraction AND redaction finished, with no error: a chip in error state means a
+      // document that would go out unredacted.
       await expect(page.locator(".attach-tile.loading")).toHaveCount(0, { timeout: 300_000 });
       await expect(page.locator(".attach-chip.err")).toHaveCount(0);
 
-      // Le composer refuse de soumettre tant que la détection PII tourne : on retente
-      // jusqu'à ce que le champ se vide, comme le harnais workflows.
+      // The composer refuses to submit while PII detection is running: we retry
+      // until the field empties, like the workflows harness.
       const input = page.locator(".composer-input");
       await input.click();
       await input.fill("Résume ces documents.");
@@ -165,8 +165,8 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
         submitted = ((await input.inputValue().catch(() => "")) || "").length === 0;
       }
       if (!submitted) {
-        // Dire POURQUOI plutôt que « rien n'est parti » : un modèle grisé (endpoint
-        // injoignable) et un redaction qui échoue produisent le même silence.
+        // Say WHY rather than "nothing went out": a greyed-out model (endpoint
+        // unreachable) and a failing redaction produce the same silence.
         const why = await page.locator(".msg.assistant, .composer-hint, .msg-answer.error").allInnerTexts();
         throw new Error(`le composer n'a jamais soumis — état à l'écran : ${why.join(" | ").slice(0, 400)}`);
       }
@@ -180,19 +180,19 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
         { timeout: 300_000 },
       );
 
-      // ── Le jugement porte sur ce qui a QUITTÉ la machine ─────────────────────────
+      // ── The judgment is about what LEFT the machine ─────────────────────────
       const wire = existsSync(wireLog) ? readFileSync(wireLog, "utf8") : "";
       const seen = wire + model.bodies.join("\n");
       expect(seen.length, "aucun wire capturé — l'envoi n'a pas eu lieu").toBeGreaterThan(0);
 
-      // Le jugement se fait PAR DOCUMENT, dans sa propre section du wire. Deux raisons :
-      //   • le vault n'est pas lisible depuis le test — `stripVaultForLocal` le retire du
-      //     miroir localStorage dès qu'un `host.db` existe (il appartient à la base
-      //     chiffrée), et c'est le comportement voulu, pas un manque ;
-      //   • le moteur mint des faux CRÉDIBLES : une fausse IP ressemble à une IP, donc un
-      //     faux minté pour le NDA peut être, par malchance, égal à une VRAIE valeur du
-      //     CSV. Cherchée dans tout le wire, la chaîne est ambiguë ; cherchée dans la
-      //     section du fichier dont elle vient, elle ne l'est plus.
+      // The judgment happens PER DOCUMENT, within its own section of the wire. Two reasons:
+      //   • the vault isn't readable from the test — `stripVaultForLocal` removes it from
+      //     the localStorage mirror as soon as a `host.db` exists (it belongs to the
+      //     encrypted DB), and that's the intended behavior, not a gap;
+      //   • the engine mints CREDIBLE fakes: a fake IP looks like an IP, so a
+      //     fake minted for the NDA can, by bad luck, equal a REAL value from the
+      //     CSV. Searched across the whole wire, the string is ambiguous; searched within
+      //     the section of the file it comes from, it no longer is.
       const sections = new Map<string, string>();
       for (let i = 0; i < DOCS.length; i++) {
         const head = `document-${i + 1}${extname(DOCS[i].file)}`;
@@ -207,19 +207,19 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
         "chaque document doit apparaître comme une section du wire",
       ).toHaveLength(DOCS.length);
 
-      // (1) FUITE : dans SA section, aucune valeur réelle du fichier ne doit subsister.
+      // (1) LEAK: in ITS section, no real value from the file must remain.
       for (const [name, values] of expected) {
         const section = sections.get(name) ?? "";
         for (const v of values) {
-          // `soft` : un juge doit rendre TOUTES ses conclusions d'un coup — s'arrêter à la
-          // première divergence masquerait les trois autres documents.
+          // `soft`: a judge must deliver ALL its findings at once — stopping at the
+          // first divergence would hide the other three documents.
           expect
             .soft(section, `${name} : « ${v} » est parti en clair dans sa propre section`)
             .not.toContain(v);
         }
       }
 
-      // (2) les noms propres déclarés (la barre de rappel de mBERT), même règle.
+      // (2) the declared proper names (mBERT's recall bar), same rule.
       for (const d of DOCS) {
         const section = sections.get(d.file) ?? "";
         for (const n of d.names) {
@@ -227,8 +227,8 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
         }
       }
 
-      // (3) les VRAIS noms de fichiers ne partent pas — un nom porte des références et des
-      //     patronymes qu'aucun détecteur ne rattrape (`safeName`).
+      // (3) the REAL file names don't go out — a name carries references and
+      //     surnames that no detector catches (`safeName`).
       for (const d of DOCS) {
         expect(seen, `le vrai nom « ${d.file} » ne doit pas partir`).not.toContain(d.file);
       }
@@ -237,8 +237,8 @@ test.describe("Documents multiples — redaction local, jugé sans modèle", () 
           `document-${i}${extname(DOCS[i - 1].file)}`,
         );
       }
-      // (4) chaque en-tête dit au modèle que le contenu est inline (sinon un modèle
-      //     outillé va CHERCHER `document-1.pdf` sur le disque et boucle).
+      // (4) each header tells the model the content is inline (otherwise a
+      //     tool-using model will LOOK FOR `document-1.pdf` on disk and loop).
       expect(
         seen.split(ATTACHMENT_INLINE_NOTE).length - 1,
         "chaque pièce jointe doit porter la note « contenu inline »",

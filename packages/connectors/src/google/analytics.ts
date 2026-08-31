@@ -55,10 +55,10 @@ const listProperties: ConnectorTool = {
 };
 
 const runReport: ConnectorTool = {
-  // ⚠️ `get_`, PAS `run_` : la boucle agentique classe sur le VERBE DE TÊTE du nom, et
-  // `run` y désigne une exécution — un rapport GA4 partait donc en ÉCRITURE (carte de
-  // confirmation à chaque rapport) et n'était jamais préchargé en parallèle. C'est une
-  // lecture ; le nom doit le dire. Épinglé par `toolNames.test.ts`.
+  // ⚠️ `get_`, NOT `run_`: the agentic loop classifies on the name's HEAD VERB, and
+  // `run` there designates an execution — a GA4 report thus went out as a WRITE (a
+  // confirmation card on every report) and was never preloaded in parallel. This is a
+  // read; the name must say so. Pinned by `toolNames.test.ts`.
   name: "get_report",
   description:
     "Exécuter un rapport GA4 sur une propriété. `metrics`/`dimensions` sont des noms d'API GA4 (ex. metric « activeUsers », dimension « date »).",

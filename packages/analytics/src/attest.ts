@@ -1,18 +1,18 @@
 /**
- * L'ATTESTATION DE BUILD posée sur les requêtes vers le relais — extraite de `sink.ts`
- * parce que deux chemins la partagent désormais (les événements et les drapeaux), et
- * qu'elle n'a rien à voir avec le transport lui-même.
+ * The BUILD ATTESTATION placed on requests to the relay — extracted from `sink.ts`
+ * because two paths now share it (events and flags), and it has
+ * nothing to do with the transport itself.
  *
- * `HMAC-SHA256(appKey, "<ts>.<nonce>")` via Web Crypto, ce qui évite toute bibliothèque
- * de crypto. ⚠️ **Anti-abus, jamais une identité** : ça authentifie le BUILD client,
- * pas un utilisateur — donc l'anonymat tient, et une requête part aussi bien déconnecté.
- * Le relais vérifie puis JETTE. Limite honnête : la clé est extractible d'un bundle
- * expédié, c'est un filtre à robots, pas un mur (la limite de débit est le vrai garde-fou).
- * Jamais sur le chemin PostHog direct.
+ * `HMAC-SHA256(appKey, "<ts>.<nonce>")` via Web Crypto, which avoids any crypto
+ * library. ⚠️ **Anti-abuse, never an identity**: it authenticates the client BUILD,
+ * not a user — so anonymity holds, and a request goes out just as well signed out.
+ * The relay verifies then DISCARDS it. Honest limit: the key is extractable from a
+ * shipped bundle, it's a bot filter, not a wall (rate limiting is the real safeguard).
+ * Never on the direct PostHog path.
  */
-// Seule dépendance du paquet : la maison de la marque — zéro dep elle-même (un JSON +
-// des helpers purs), donc la règle « browser globals only » tient dans le popup, le
-// content-script isolé et le renderer. Le relais vérifie ces NOMS d'en-têtes tels quels.
+// The package's only dependency: the brand's home — zero dep itself (a JSON +
+// pure helpers), so the "browser globals only" rule holds in the popup, the
+// isolated content-script and the renderer. The relay checks these header NAMES verbatim.
 import { BRAND } from "@openmasq/branding";
 
 /** Lowercase-hex of `bytes` random bytes (Web Crypto — a browser/Node global). */
@@ -30,8 +30,8 @@ export const hmacHex = async (key: string, msg: string): Promise<string> => {
   return Array.from(new Uint8Array(sig), (b) => b.toString(16).padStart(2, "0")).join("");
 };
 
-/** Les en-têtes d'attestation, ou `{}` sans clé (le relais accepte quand il n'est pas
- *  configuré — dev) ou si Web Crypto jette. Ne rejette jamais. */
+/** The attestation headers, or `{}` with no key (the relay accepts when it isn't
+ *  configured — dev) or if Web Crypto throws. Never rejects. */
 export async function attestHeaders(appKey: string | undefined): Promise<Record<string, string>> {
   if (!appKey) return {};
   try {

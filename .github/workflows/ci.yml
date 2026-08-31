@@ -1,14 +1,14 @@
 name: CI
 
-# Le retour sur PR et sur push vers une branche protégée : la vérification partagée
-# (`verify.yml` — build, typecheck, gates, suite unitaire), les deux gardes propres à ce
-# contexte (dérive FEATURES.md).
+# The feedback on PR and on push to a protected branch: the shared verification
+# (`verify.yml` — build, typecheck, gates, unit suite), the two guards specific to this
+# context (FEATURES.md drift).
 #
-# Ce dépôt ne DÉPLOIE plus rien : l'API, la passerelle, la console, le Worker de mises à
-# jour et les relais vivent dans le dépôt privé `infra` depuis le 31/08/2026, avec leurs
-# workflows (et le principe qui les chaînait en `needs: [ci]` : rien ne se déploie sans
-# un `verify` vert). Ici il reste la vérification, et la release desktop sur tag
-# (`release.yml`, qui garde son propre `verify`).
+# This repo no longer DEPLOYS anything: the API, the gateway, the console, the updates
+# Worker and the relays have lived in the private `infra` repo since 31/08/2026, with their
+# workflows (and the principle that chained them via `needs: [ci]`: nothing deploys without
+# a green `verify`). What remains here is verification, and the desktop release on tag
+# (`release.yml`, which keeps its own `verify`).
 on:
   pull_request:
     branches: [main, dev]
@@ -16,14 +16,14 @@ on:
     branches: [main, dev]
   workflow_dispatch:
 
-# ⚠️ `dorny/paths-filter` (job `changes`) lit la liste des fichiers modifiés PAR L'API
-# GitHub sur un événement `pull_request` — un `git diff` local ne lui suffit pas là. Sans
-# `pull-requests: read` il répond « Resource not accessible by integration » et le job
-# tombe en 20 s, entraînant tout ce qui en dépend. C'est resté invisible tant que ces
-# workflows n'ont tourné que sur des PUSH (où paths-filter diffe localement) : la
-# PREMIÈRE pull request les a tous fait échouer d'un coup.
-# Le reste est explicitement en lecture seule — moindre privilège, et le défaut du dépôt
-# ne décide plus à notre place.
+# ⚠️ `dorny/paths-filter` (the `changes` job) reads the list of modified files VIA THE
+# GitHub API on a `pull_request` event — a local `git diff` isn't enough there. Without
+# `pull-requests: read` it answers "Resource not accessible by integration" and the job
+# fails in 20 s, taking down everything depending on it. This stayed invisible as long as these
+# workflows only ran on PUSH (where paths-filter diffs locally): the
+# FIRST pull request made them all fail at once.
+# The rest is explicitly read-only — least privilege, and the repo's default
+# no longer decides in our place.
 permissions:
   contents: read
   pull-requests: read
@@ -33,23 +33,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Le filtre de chemins. Il gatait l'e2e backend et les déploiements serveur, partis
-  # dans le dépôt privé `infra` le 31/08/2026 ; il reste pour le prochain job qu'il gatera.
+  # The path filter. It used to gate the backend e2e and the server deployments, which left
+  # for the private `infra` repo on 31/08/2026; it stays for the next job it will gate.
   # The `ci` job itself stays UNGATED (it IS the required status check -
   # path-skipping a required check would leave a PR forever "waiting").
   changes:
     runs-on: ubuntu-latest
     outputs:
-      # Plus aucun job serveur ici : l'API, la passerelle, la console, le Worker et les
-      # relais vivent dans le dépôt privé `infra` depuis le 31/08/2026, avec leurs
-      # workflows. Le filtre reste en place pour le prochain job qu'il gatera.
+      # No more server job here: the API, the gateway, the console, the Worker and the
+      # relays have lived in the private `infra` repo since 31/08/2026, with their
+      # workflows. The filter stays in place for the next job it will gate.
       packages: ${{ steps.f.outputs.packages }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          # PR : dorny lit la liste des fichiers PAR L'API (pull-requests: read), le
-          # clone ne sert à rien de plus — profondeur 1. Push : il diffe localement,
-          # historique complet requis.
+          # PR: dorny reads the file list VIA THE API (pull-requests: read), the
+          # clone doesn't serve any further purpose — depth 1. Push: it diffs locally,
+          # full history required.
           fetch-depth: ${{ github.event_name == 'pull_request' && 1 || 0 }}
           persist-credentials: false
       - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
@@ -60,16 +60,16 @@ jobs:
               - 'packages/**'
               - 'pnpm-lock.yaml'
 
-  # La vérification elle-même. Le job garde l'identifiant `ci` : c'est le contexte que
-  # Terraform nomme dans `github_required_status_checks` (le jour où un token admin
-  # permettra de poser la protection de branche, il apparaîtra en `ci / verify`).
-  # ⚠️ TOUS les déploiements en dépendent (`needs: [ci]`).
-  # Le check-run que la protection de `main` EXIGE — contexte littéral « ci ». Un job qui
-  # appelle un workflow réutilisable ne publie que ses ENFANTS (« ci / verify »), jamais
-  # son propre nom : la promotion staging → main (PR #21) est restée BLOCKED avec TOUS
-  # les checks verts, parce qu'aucun check ne s'appelait « ci ». Ce job-verdict porte ce
-  # nom et synthétise : rouge si un job requis a échoué ou a été annulé ; un job SAUTÉ
-  # (chemins non touchés) compte comme bon — c'est le filtre `changes` qui l'a décidé.
+  # The verification itself. The job keeps the `ci` identifier: it's the context that
+  # Terraform names in `github_required_status_checks` (the day an admin token
+  # allows setting up branch protection, it will appear as `ci / verify`).
+  # ⚠️ ALL deployments depend on it (`needs: [ci]`).
+  # The check run that `main`'s protection REQUIRES — literal context "ci". A job that
+  # calls a reusable workflow only publishes its CHILDREN ("ci / verify"), never
+  # its own name: the staging → main promotion (PR #21) stayed BLOCKED with ALL
+  # checks green, because no check was named "ci". This verdict job carries that
+  # name and synthesizes: red if a required job failed or was cancelled; a SKIPPED job
+  # (paths not touched) counts as good — it's the `changes` filter that decided that.
   verdict:
     name: ci
     if: always()
@@ -94,11 +94,11 @@ jobs:
       POSTHOG_INGEST_KEY: ${{ secrets.POSTHOG_INGEST_KEY }}
       ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
 
-  # NUDGE de dérive FEATURES.md (règle 13) — non bloquant à dessein, et propre à ce
-  # contexte : il diffe contre une base que seul l'événement PR/push fournit, ce qui est
-  # exactement pourquoi il ne rejoint pas `verify.yml` (un déploiement sur tag n'a pas de
-  # base à differ). Il attrape ce que le cliquet ne peut pas — un commit qui change une UI
-  # porteuse de fonctionnalité sans toucher FEATURES.md dans le même diff.
+  # FEATURES.md drift NUDGE (rule 13) — non-blocking on purpose, and specific to this
+  # context: it diffs against a base that only the PR/push event supplies, which is
+  # exactly why it doesn't join `verify.yml` (a tag deployment has no
+  # base to diff against). It catches what the ratchet can't — a commit that changes a
+  # feature-carrying UI without touching FEATURES.md in the same diff.
   features-drift:
     runs-on: ubuntu-latest
     permissions:
@@ -108,9 +108,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      # PAS d'install ni de pnpm : le script n'importe que node:child_process et
-      # n'exécute que du git. `cache: pnpm` sans install ferait même échouer la
-      # sauvegarde du cache (le piège documenté dans audit.yml).
+      # NO install nor pnpm: the script only imports node:child_process and
+      # only runs git. `cache: pnpm` without an install would even make the
+      # cache save fail (the trap documented in audit.yml).
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 26

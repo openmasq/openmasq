@@ -86,7 +86,7 @@ describe("edit_document — le reste du paquet est intact", () => {
 
     const body = strFromU8(after["word/document.xml"]);
     expect(body).toContain("Montant : 1800");
-    // Le second paragraphe n'a pas bougé.
+    // The second paragraph hasn't moved.
     expect(body).toContain("<w:t>Signature</w:t>");
   });
 
@@ -95,7 +95,7 @@ describe("edit_document — le reste du paquet est intact", () => {
     await expect(
       DOCX_OPS.edit_document(grant, { path: file, oldText: "absent", newText: "x" }, write),
     ).rejects.toThrow(/introuvable/);
-    // Un refus ne touche pas le fichier.
+    // A refusal doesn't touch the file.
     expect([...readFileSync(file)]).toEqual([...before]);
   });
 });

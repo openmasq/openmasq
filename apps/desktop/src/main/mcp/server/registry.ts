@@ -75,8 +75,8 @@ export function getAuthChoiceAsker():
   return authChoiceAsker;
 }
 
-/** Retire un connecteur mort du jeu vif, SANS rebâtir les routes ni notifier — la moitié
- *  que `refreshRoutes` peut appeler depuis sa propre boucle sans se ré-entrer. */
+/** Evicts a dead connector from the live set, WITHOUT rebuilding routes or notifying — the half
+ *  that `refreshRoutes` can call from its own loop without re-entering. */
 function evictConnector(id: string): void {
   const server = connected.get(id);
   if (!server) return;
@@ -90,8 +90,8 @@ function evictConnector(id: string): void {
  *  process exited). Drop it from the connected set + routes so `refreshRoutes`/the
  *  agentic loop stop probing a corpse (the "Connection closed"/"Not connected" loop), and
  *  flag it for the reconnect banner. Guards on `connected.has` so an intentional close is
- *  a no-op. Câblé sur les DEUX transports : `connectRemote.ts` (HTTP) et `connect.ts`
- *  (stdio — l'enfant `@playwright/mcp` du navigateur agent). */
+ *  a no-op. Wired on BOTH transports: `connectRemote.ts` (HTTP) and `connect.ts`
+ *  (stdio — the agent browser's `@playwright/mcp` child). */
 export function handleConnectorClosed(id: string): void {
   if (!connected.has(id)) return;
   evictConnector(id);
@@ -102,28 +102,28 @@ export function handleConnectorClosed(id: string): void {
 /**
  * Re-list tools from every connected server, rebuilding the routing table.
  *
- * ⚠️ Un serveur dont `listTools` échoue sur un transport MORT est ÉVINCÉ, pas seulement
- * signalé. Avant, on posait son compteur à 0, on rapportait, et on le laissait dans
- * `connected` : le rafraîchissement suivant le re-sondait et le re-rapportait, donc une
- * seule mort produisait un rapport par tick, indéfiniment (848 événements Sentry en huit
- * jours pour UN enfant `@playwright/mcp` disparu). `onClose` couvre la mort qui s'annonce ;
- * ceci couvre celle qu'on découvre en appelant — et les deux mènent au même endroit.
+ * ⚠️ A server whose `listTools` fails on a DEAD transport is EVICTED, not just
+ * flagged. Before, we set its counter to 0, reported it, and left it in
+ * `connected`: the next refresh re-probed it and re-reported it, so a
+ * single death produced one report per tick, indefinitely (848 Sentry events in eight
+ * days for ONE vanished `@playwright/mcp` child). `onClose` covers the death that announces itself;
+ * this covers the one discovered by calling — and both lead to the same place.
  *
- * ⚠️ **La table se construit À CÔTÉ, puis bascule d'un coup.** Un `routes.clear()` en tête
- * la laissait VIDE pendant tous les `await listTools()` — un aller-retour réseau par
- * serveur connecté. Tout appel d'outil tombant dans cette fenêtre ne trouvait pas sa route
- * et mourait sur « Unknown MCP tool », alors que l'outil existait : mesuré le 15/08, trois
- * appels parallèles au MÊME outil, deux passés, un tué. Pire, deux rafraîchissements
- * concurrents se vidaient mutuellement la table qu'ils venaient de remplir. On ne publie
- * donc que le résultat COMPLET, et la bascule est synchrone (aucun `await` entre le vidage
- * et le remplissage) : un lecteur voit l'ancienne table ou la nouvelle, jamais un trou.
- * `routes` reste le MÊME objet — `callTool.ts` en tient la référence.
+ * ⚠️ **The table is built ON THE SIDE, then swaps all at once.** A `routes.clear()` up front
+ * left it EMPTY during every `await listTools()` — one network round trip per
+ * connected server. Any tool call landing in that window found no route
+ * and died on "Unknown MCP tool", even though the tool existed: measured on 08/15, three
+ * parallel calls to the SAME tool, two succeeded, one killed. Worse, two refreshes
+ * running concurrently mutually emptied the table they had just filled. So we only publish
+ * the COMPLETE result, and the swap is synchronous (no `await` between the clearing
+ * and the filling): a reader sees the old table or the new one, never a gap.
+ * `routes` stays the SAME object — `callTool.ts` holds the reference to it.
  */
 export async function refreshRoutes(): Promise<McpTool[]> {
   const next = new Map<string, { server: McpConnection; realName: string; annotations?: McpTool["annotations"] }>();
   const all: McpTool[] = [];
-  // Évincer PENDANT l'itération rappellerait `refreshRoutes` par `handleConnectorClosed` :
-  // on récolte, on tranche après la boucle.
+  // Evicting DURING iteration would recursively call `refreshRoutes` via `handleConnectorClosed`:
+  // we collect, then decide after the loop.
   const dead: string[] = [];
   for (const [id, server] of connected) {
     let tools: McpTool[];
@@ -147,13 +147,13 @@ export async function refreshRoutes(): Promise<McpTool[]> {
       all.push({ ...t, name, serverId: id });
     }
   }
-  // LA BASCULE — synchrone, sans `await` intercalé (voir l'en-tête).
+  // THE SWAP — synchronous, no `await` interleaved (see the header).
   routes.clear();
   for (const [name, route] of next) routes.set(name, route);
   if (dead.length) {
     for (const id of dead) evictConnector(id);
-    // La bannière « reconnexion nécessaire » est la surface qui DIT la panne à
-    // l'utilisateur — c'est elle qui rend le silence de Sentry acceptable.
+    // The "reconnect needed" banner is the surface that TELLS the user about the
+    // failure — it's what makes Sentry's silence acceptable.
     emitNeedsReconnect();
   }
   // Tell the renderer the live state moved (so a background reconnect surfaces).

@@ -107,23 +107,23 @@ const RE = new RegExp(
   "giu",
 );
 
-// L'honorifique COLLÉ par l'OCR — « MonsieurMaxime OZERAY », « MmeVIDALENC » : zéro
-// espace, et l'identité entière partait EN CLAIR pendant que les noms espacés du même
-// acte étaient masqués (bail scanné, 14/08). ⚠️ Une regex À PART, SANS le drapeau `i`,
-// et ce n'est pas un détail : sous `iu`, \p{Lu}/\p{Ll} se REPLIENT par casse, donc une
-// frontière « minuscule→MAJUSCULE » dans RE ne contraindrait rien (« FRAUEN » splittait
-// en FRAU+EN). Ici la casse est portée par l'alternance elle-même : titres en casse de
-// titre uniquement, suivis d'une MAJUSCULE — « monsieurthomas » et les pluriels
-// allemands tout-en-capitales ne peuvent pas matcher par construction.
+// The honorific GLUED by OCR — « MonsieurMaxime OZERAY », « MmeVIDALENC »: zero
+// space, and the whole identity went out IN CLEAR while the spaced names in the same
+// document were masked (scanned lease, 14/08). ⚠️ A SEPARATE regex, WITHOUT the `i`
+// flag, and that's not a detail: under `iu`, \p{Lu}/\p{Ll} FOLD by case, so a
+// « lowercase→UPPERCASE » boundary in RE would constrain nothing (« FRAUEN » split
+// into FRAU+EN). Here the casing is carried by the alternation itself: titles in TITLE
+// CASE only, followed by an UPPERCASE letter — « monsieurthomas » and the all-caps
+// German plurals can't match by construction.
 const GLUED_TITLES = [
   "Monsieur", "Madame", "Mademoiselle", "Mme", "Mlle",
   "Maître", "Maitre", "Docteur", "Professeur", "Mr", "Mrs", "Dr", "Prof",
 ];
 const RE_GLUED = new RegExp(
-  // Mêmes groupes que RE (1 = titre, 2 = inutilisé, 3 = capture) : la boucle est partagée.
+  // Same groups as RE (1 = title, 2 = unused, 3 = capture): the loop is shared.
   `(?<![\\p{L}.'’-])(${GLUED_TITLES.sort(byLengthDesc).join("|")})()` +
     `(?=\\p{Lu})(${TOKEN}(?:[^\\S\\r\\n]{1,2}${TOKEN}){0,4})`,
-  "gu", // JAMAIS `i` : c'est l'absence de repli de casse qui fait toute la précision.
+  "gu", // NEVER `i`: it's the absence of case folding that gives all the precision.
 );
 
 /** True when the word right before `idx` is a German determiner/adjective. */
@@ -160,9 +160,9 @@ export function detectHonorificNames(text: string): Detection[] {
   if (!text) return [];
   const out: Detection[] = [];
   const seen = new Set<string>();
-  // Deux passes, une boucle : la forme espacée, puis la forme COLLÉE par l'OCR
-  // (RE_GLUED — sa sûreté de casse est expliquée sur place). Chaque passe clone sa
-  // regex : RE/RE_GLUED sont partagées au module, leur lastIndex ne doit pas l'être.
+  // Two passes, one loop: the spaced form, then the form GLUED by OCR
+  // (RE_GLUED — its case safety is explained on the spot). Each pass clones its
+  // regex: RE/RE_GLUED are shared at module scope, their lastIndex must not be.
   for (const source of [RE, RE_GLUED]) {
   const re = new RegExp(source.source, source.flags);
   let m: RegExpExecArray | null;
@@ -235,13 +235,13 @@ export function detectHonorificNames(text: string): Detection[] {
     re.lastIndex = start + value.length;
     let at = start;
     if (source === RE_GLUED) {
-      // Forme COLLÉE : la valeur INCLUT le titre soudé (« MonsieurMaxime OZERAY »
-      // entier), et ce n'est pas un choix d'affichage. Le vault ne réécrit jamais un
-      // fragment à l'intérieur d'un mot (`isWordGlued` — l'invariant qui protège
-      // « email » de « eVoxa »), donc un « Maxime » émis seul serait DÉTECTÉ mais
-      // JAMAIS remplacé : l'identité repartait en clair, détection verte à l'appui.
-      // Le titre perdu dans le faux ne coûte rien (« Basile CAZENAVE » se lit) ; la
-      // restitution, elle, rend l'original soudé au caractère près.
+      // GLUED form: the value INCLUDES the fused title (the whole « MonsieurMaxime
+      // OZERAY »), and that's not a display choice. The vault never rewrites a
+      // fragment inside a word (`isWordGlued` — the invariant that protects
+      // « email » from « eVoxa »), so a « Maxime » emitted alone would be DETECTED but
+      // NEVER replaced: the identity went out in clear, with a green detection to show for it.
+      // The title lost in the fake costs nothing (« Basile CAZENAVE » reads fine); restitution,
+      // on the other hand, renders the original fused down to the character.
       value = text.slice(m.index, start + value.length);
       at = m.index;
     }

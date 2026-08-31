@@ -111,8 +111,8 @@ export const EDU_TERMS: string[] = [
   "título", "titulo", "expediente académico", "expediente academico",
   "matrícula", "matricula", "matriculación", "matriculacion", "examen",
   "convocatoria", "prueba", "nota", "notas", "calificación", "calificacion",
-  // « media » seul est écarté (marque ambiguë : « Media » comme ORG ne serait plus
-  // JAMAIS redacted — `orgAffixes.test.ts`). Les formes composées, elles, sont sûres.
+  // « media » alone is left out (ambiguous brand: « Media » as an ORG would never
+  // be redacted again — `orgAffixes.test.ts`). The compound forms, however, are safe.
   "aprobado", "suspenso", "notable", "sobresaliente", "beca",
   "nota media", "educación media", "educacion media", "enseñanza media",
   "ensenanza media",
@@ -144,7 +144,7 @@ export const EDU_TERMS: string[] = [
   "histórico escolar", "historico escolar", "boletim", "matrícula", "matricula",
   "inscrição", "inscricao", "disciplina", "semestre", "créditos", "creditos",
   "aula", "exame", "prova", "avaliação", "avaliacao", "nota", "notas", "média",
-  // idem : le repli sans accent « media » est une marque ambiguë, ses composés non.
+  // same here: the unaccented fallback « media » is an ambiguous brand, its compounds are not.
   "nota média", "nota media", "ensino médio", "ensino medio",
   "aprovado", "reprovado", "bolsa de estudo", "bolseiro", "bolsista",
   "propinas", "mensalidade", "aluno", "aluna", "estudante", "professor",

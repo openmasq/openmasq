@@ -35,7 +35,7 @@ describe("path category", () => {
   });
 
   it("does not match a path inside a URL, or ordinary slashes in prose", () => {
-    // `url` éteinte = le défaut produit ; le sujet est le chemin DANS l'URL.
+    // `url` OFF = default output; the subject is the path INSIDE the URL.
     expect(redact("voir https://example.com/Users/x pour info", { disabledKinds: ["url"] }).matches).toHaveLength(0);
     expect(redact("the and/or operator").matches).toHaveLength(0);
   });
@@ -118,10 +118,10 @@ describe("file & folder names (also `path`)", () => {
   });
 
   it("accents and parens do not break the run — the WHOLE filename is redacted (journal 01/08)", async () => {
-    // Un listing réel : « Provisoire_PENNYLANE_KARL_STUDIO_Bilan_détaillé_(2025_01_01_
-    // 2025_12_31).xlsx » partait INTÉGRALEMENT EN CLAIR — `\w` (ASCII) cassait le run à
-    // « détaillé » et la parenthèse l'arrêtait avant l'extension ; la variante sans
-    // parenthèses n'était redacted que PARTIELLEMENT (le seul « _2025 » final).
+    // A real listing: « Provisoire_PENNYLANE_KARL_STUDIO_Bilan_détaillé_(2025_01_01_
+    // 2025_12_31).xlsx » was leaving ENTIRELY IN CLEAR — `\w` (ASCII) broke the run at
+    // « détaillé » and the parenthesis stopped it before the extension; the variant with no
+    // parentheses was only PARTIALLY redacted (only the trailing « _2025 »).
     const leaks = [
       "Provisoire_PENNYLANE_KARL_STUDIO_Bilan_détaillé_(2025_01_01_2025_12_31).xlsx",
       "Provisoire_PENNYLANE_KARL_STUDIO_Bilan_détaillé_2025.xlsx",
@@ -189,28 +189,28 @@ describe("path segments are mapped CONSISTENTLY (structure preserved)", () => {
   it("laisse un segment GÉNÉRIQUE en clair, et ne cache que le distinctif", async () => {
     const vault: Vault = {};
     const { text } = await pseudonymize("/Users/juliensabourdin/Desktop/DOCS-perso", { vault });
-    // Le modèle garde la structure lisible — c'est ce sur quoi repose une question de
-    // système de fichiers (« quels documents ? », « remonte d'un dossier »).
+    // The model keeps a readable structure — that's what a filesystem question
+    // relies on (« what documents? », « go up one folder »).
     expect(text.startsWith("/Users/")).toBe(true);
     expect(text).toContain("/Desktop/");
-    // Et il ne voit RIEN de ce qui identifie.
+    // And it sees NOTHING that identifies.
     expect(text).not.toContain("juliensabourdin");
     expect(text).not.toContain("DOCS-perso");
   });
 
-  // RÉGRESSION : un segment générique était FAUSSÉ sans être vaulté — le pire des deux.
-  // Le modèle perdait tout indice sémantique ET le chemin devenait irréversible dès
-  // qu'il le RECOMPOSAIT au lieu de le renvoyer verbatim : `/Users/<faux>/xMxQrqR`
-  // se restaurait en `/Users/juliensabourdin/xMxQrqR`, un chemin qui n'existe pas,
-  // donc un outil de fichiers qui échoue ou répond sur le mauvais dossier.
+  // REGRESSION: a generic segment was FAKED without being vaulted — the worst of both.
+  // The model lost every semantic clue AND the path became irreversible as soon
+  // as it RECOMPOSED it instead of echoing it verbatim: `/Users/<fake>/xMxQrqR`
+  // restored to `/Users/juliensabourdin/xMxQrqR`, a path that doesn't exist,
+  // so a file tool that fails or answers on the wrong folder.
   it("un chemin RECOMPOSÉ (le dossier parent) se restaure en un chemin RÉEL", async () => {
     const vault: Vault = {};
     const real = "/Users/juliensabourdin/Desktop/DOCS-perso";
     const { text: fake } = await pseudonymize(real, { vault });
-    // Le modèle remonte d'un cran : ce préfixe n'a JAMAIS été vaulté entier.
+    // The model goes up one level: this prefix was NEVER vaulted whole.
     const parent = fake.slice(0, fake.lastIndexOf("/"));
     expect(unredact(parent, vault)).toBe("/Users/juliensabourdin/Desktop");
-    // …et redescendre dans un sous-dossier qu'il vient de lister marche aussi.
+    // …and going back down into a subfolder it just listed also works.
     expect(unredact(`${parent}/Desktop`, vault)).toBe("/Users/juliensabourdin/Desktop/Desktop");
   });
 

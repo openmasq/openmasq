@@ -26,10 +26,10 @@ describe("pseudonymize honours checksum gates (no timestamp/id over-redaction)",
   });
 
   it("leaves 13-digit epoch-ms file revisions in clear (Luhn/TNIN collisions — journal 01/08)", async () => {
-    // Les mtimes epoch-ms d'un `get_file_info` : ~1/10 passent Luhn (→ « card »), ~1/11 le
-    // mod-11 du TNIN thaï (→ « national_id ») — le redaction était SPORADIQUE et la
-    // révision corrompue pour le modèle. Les sept valeurs du journal, checksum-heureuses
-    // ou non, doivent toutes passer en clair.
+    // The epoch-ms mtimes from a `get_file_info`: ~1/10 pass Luhn (→ « card »), ~1/11 the
+    // Thai TNIN's mod-11 (→ « national_id ») — redaction was SPORADIC and the
+    // revision corrupted for the model. The seven values from the log, whether checksum-lucky
+    // or not, must all pass through in clear.
     const revisions = [
       "1767643960092", "1743153847365", "1767643942767", // passaient un checksum
       "1785234402000", "1767768773419", "1755166878716", "1785235021722",

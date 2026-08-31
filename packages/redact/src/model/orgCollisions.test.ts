@@ -6,22 +6,22 @@ import { FAKE_ORG, ORG_ROOTS, ORG_SUFFIXES } from "./fakes/pools";
 import { GENERIC_ORG_WORD, buildFakeFragments } from "./orgFragments";
 
 /**
- * Régression de l'audit « recoupage d'entreprises » : un document multi-sociétés
- * produisait « BRANTLEY Systems » / « Brantley Systems » / « Brantley Systems-2/-3/-4 »
- * pour CINQ sociétés réelles différentes — le vivier par longueur exacte n'offrait que
- * 1-3 candidats, tout cascadait dans le repli suffixé, et ce repli vérifiait `taken` en
- * case-sensitive sans consulter le garde-mots. Un modèle qui normalise la casse d'un
- * écho faisait alors restituer la MAUVAISE société par `unredact`.
+ * Regression from the "company cross-referencing" audit: a multi-company document
+ * produced « BRANTLEY Systems » / « Brantley Systems » / « Brantley Systems-2/-3/-4 »
+ * for FIVE different real companies — the exact-length pool only offered
+ * 1-3 candidates, everything cascaded into the suffixed fallback, and that fallback checked
+ * `taken` case-sensitively without consulting the word guard. A model normalizing the casing
+ * of an echo then made `unredact` restore the WRONG company.
  */
 
-/** Les mots distinctifs d'un fake (même pliage que `fakeWordIndex`). */
+/** The distinctive words of a fake (same folding as `fakeWordIndex`). */
 const fold = (w: string) => w.normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase();
 const distinctive = (fake: string): string[] =>
   (fake.match(/\p{L}[\p{L}\p{M}'’-]*/gu) ?? [])
     .map(fold)
     .filter((w) => w.length >= 3 && !GENERIC_ORG_WORD.has(w));
 
-/** Le doc de l'audit : 15 sociétés, dont 5 de même longueur (16 caractères). */
+/** The audit's doc: 15 companies, 5 of them the same length (16 characters). */
 const COMPANIES = [
   "Atelier Torbel", "Nexity Ouest", "Groupe Balmont", "Cabinet Verland", "Maison Delorme",
   "SCI Les Tilleuls", "Transports Bodin", "Menuiserie Priol", "Boulangerie Ruiz",
@@ -38,7 +38,7 @@ async function fakeDocument(companies: string[], salt: number): Promise<Vault> {
     forced: companies.map((value) => ({ value, category: "ORG" })),
   });
   for (const c of companies) expect(text, `${c} a fui dans le wire`).not.toContain(c);
-  expect(unredact(text, vault)).toBe(input); // réversible, toujours
+  expect(unredact(text, vault)).toBe(input); // reversible, always
   return vault;
 }
 
@@ -48,10 +48,10 @@ describe("collisions d'entreprises — un document, N sociétés", () => {
     const fakes = COMPANIES.map(
       (c) => Object.entries(vault).find(([, real]) => real === c)![0],
     );
-    // Plus jamais « Brantley Systems-2 » : le vivier combinatoire + la tolérance de
-    // longueur doivent servir 15 sociétés sans jamais atteindre le repli.
+    // Never again « Brantley Systems-2 »: the combinatorial pool + length
+    // tolerance must serve 15 companies without ever reaching the fallback.
     for (const f of fakes) expect(f, "repli suffixé atteint").not.toMatch(/-\d+$/);
-    // Aucune racine au service de deux identités (l'invariant du fakeWordIndex).
+    // No root serving two identities (the fakeWordIndex invariant).
     const seen = new Map<string, string>();
     for (let i = 0; i < fakes.length; i++) {
       for (const w of distinctive(fakes[i])) {
@@ -65,9 +65,9 @@ describe("collisions d'entreprises — un document, N sociétés", () => {
   });
 
   it("jamais deux fakes ne différant que par la CASSE pour deux réels distincts", async () => {
-    // « SCI Les Tilleuls » → « BRANTLEY Systems » pendant que « Transports Bodin » →
-    // « Brantley Systems » : un écho du modèle à la casse normalisée se un-redacted
-    // alors vers la MAUVAISE société. La paire ne doit plus pouvoir exister.
+    // « SCI Les Tilleuls » → « BRANTLEY Systems » while « Transports Bodin » →
+    // « Brantley Systems »: a model echo with normalized casing then un-redacts
+    // to the WRONG company. This pair must no longer be able to exist.
     for (const salt of [0, 42, 2 ** 30 + 7]) {
       const vault = await fakeDocument(COMPANIES, salt);
       const byLower = new Map<string, string>();
@@ -86,17 +86,17 @@ describe("collisions d'entreprises — un document, N sociétés", () => {
 
 describe("fakeOrg — le vivier et son exploration", () => {
   it("les 60 tentatives explorent réellement le vivier (pas 1-3 noms par longueur)", () => {
-    // Avant : pool par longueur exacte → h+101·a modulo 1-3 candidats, 60 essais pour
-    // ≤3 noms. La tolérance croissante doit en atteindre des dizaines.
+    // Before: exact-length pool → h+101·a modulo 1-3 candidates, 60 attempts for
+    // ≤3 names. Growing tolerance must reach dozens of them.
     const seen = new Set<string>();
     for (let a = 0; a < 60; a++) seen.add(fakeFor("ORG", "Cabinet Verland", a, undefined, 0));
     expect(seen.size).toBeGreaterThanOrEqual(25);
   });
 
   it("le salt fait varier le fake MÊME pour une longueur autrefois à candidat unique", () => {
-    // « Cabinet Verland » (15 car) recevait « Delvane Systems » dans 10 conversations
-    // sur 10 : un seul nom de 15 dans l'ancien vivier — le salt n'avait aucun effet,
-    // et le fake était une empreinte stable de la longueur du réel.
+    // « Cabinet Verland » (15 chars) used to receive « Delvane Systems » in 10 out of
+    // 10 conversations: a single 15-char name in the old pool — the salt had no effect,
+    // and the fake was a stable fingerprint of the real value's length.
     const seen = new Set<string>();
     for (let s = 0; s < 12; s++) seen.add(fakeFor("ORG", "Cabinet Verland", 0, undefined, s * 7919 + 13));
     expect(seen.size).toBeGreaterThanOrEqual(3);
@@ -112,9 +112,9 @@ describe("fakeOrg — le vivier et son exploration", () => {
 
 describe("le vivier combinatoire respecte ses deux contrats", () => {
   it("toute combinaison multi-mots FINIT par un suffixe que le garde anti-fragments reconnaît", () => {
-    // `buildFakeFragments` n'indexe un fake comme entreprise que s'il finit par un mot
-    // de GENERIC_ORG_WORD — un suffixe inconnu débrancherait silencieusement le garde
-    // anti « fake-of-a-fake » pour toutes ses combinaisons.
+    // `buildFakeFragments` only indexes a fake as a company if it ends with a word
+    // from GENERIC_ORG_WORD — an unknown suffix would silently disconnect the
+    // anti "fake-of-a-fake" guard for all its combinations.
     for (const suffix of ORG_SUFFIXES.filter(Boolean)) {
       const last = suffix.trim().split(/\s+/).pop()!.toLowerCase();
       expect(GENERIC_ORG_WORD.has(last), `suffixe « ${suffix} » inconnu d'orgFragments`).toBe(true);
@@ -125,7 +125,7 @@ describe("le vivier combinatoire respecte ses deux contrats", () => {
   });
 
   it("aucune racine n'évoque une marque célèbre, réelle ou fictive", () => {
-    // Même interdit que fakes.test.ts, appliqué aux RACINES (la source des 640 noms).
+    // Same ban as fakes.test.ts, applied to the ROOTS (the source of the 640 names).
     const FAMOUS = [
       "acme", "hooli", "globex", "initech", "soylent", "umbrella", "cyberdyne",
       "aperture", "tyrell", "oscorp", "wonka", "gringotts", "nakatomi", "stark",
@@ -135,9 +135,9 @@ describe("le vivier combinatoire respecte ses deux contrats", () => {
       const low = root.toLowerCase();
       for (const famous of FAMOUS) expect(low, root).not.toContain(famous);
     }
-    // Et une racine = UNE identité (fakeWordIndex) : pas de doublon de racine pliée.
+    // And one root = ONE identity (fakeWordIndex): no duplicate folded root.
     expect(new Set(ORG_ROOTS.map(fold)).size).toBe(ORG_ROOTS.length);
-    // L'ordre du vivier est porteur (pick = hash % length) : root-major, stable.
+    // The pool's order carries meaning (pick = hash % length): root-major, stable.
     expect(FAKE_ORG.length).toBe(ORG_ROOTS.length * ORG_SUFFIXES.length);
     expect(FAKE_ORG[0]).toBe(ORG_ROOTS[0]);
   });

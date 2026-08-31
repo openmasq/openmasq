@@ -13,12 +13,12 @@ const GLUED_PREFIX =
  *  noise, under-redacting a key is a breach. */
 export function isGluedProse(value: string): boolean {
   const v = value.trim();
-  // ⚠️ Une valeur SANS AUCUNE MINUSCULE n'est pas de la prose : l'OCR qui colle les mots
-  // rend « le20juin2024 », jamais « UNCRITMMXXX ». Le préfixe étant testé sans égard à la
-  // casse, la garde tirait sur tout code en capitales ouvrant par un mot-outil — « UN »CR…,
-  // « CE »PA…, « DE »812345678 — et le moteur, qui avait pourtant DÉTECTÉ la donnée,
-  // l'envoyait en clair sans rien signaler (fail-open : ni `matches`, ni `modelError`).
-  // Mesuré sur le banc : 3 valeurs sur 2 333, dont deux BIC et un numéro de TVA allemand.
+  // ⚠️ A value with NO LOWERCASE AT ALL is not prose: OCR gluing words together
+  // produces "le20juin2024", never "UNCRITMMXXX". Since the prefix is tested case-
+  // insensitively, the guard fired on any all-caps code opening with a function word — "UN"CR…,
+  // "CE"PA…, "DE"812345678 — and the engine, which had nonetheless DETECTED the value,
+  // sent it out in clear without signaling anything (fail-open: neither `matches` nor `modelError`).
+  // Measured on the bench: 3 values out of 2 333, including two BIC and one German VAT number.
   if (!/\p{Ll}/u.test(v)) return false;
   return v.length >= 10 && !/[\s\-_./@]/.test(v) && GLUED_PREFIX.test(v);
 }

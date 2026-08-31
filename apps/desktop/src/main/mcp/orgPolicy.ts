@@ -36,7 +36,7 @@ import { connectorIdFromInstance, findConnector } from "@openmasq/catalog/mcp";
  * platform path is server-side, in the gateway.
  */
 
-/** `null` = jamais publiée (porte ouverte) ; un Set = la politique (même vide). */
+/** `null` = never published (open gate); a Set = the policy (even when empty). */
 let allowed: Set<string> | null = null;
 /** Hosts of the ALLOWED connectors, so a service re-added as a CUSTOM server URL is
  *  recognised as permitted. A custom server carries no catalog id — the host is what it has. */
@@ -80,7 +80,7 @@ export function orgAllowedConnectors(): string[] | null {
  *  A CUSTOM server (`custom-<hex>`) carries no catalog id: it is judged by URL at add
  *  time (`isConnectorUrlBlocked`), so it is not refused here on id alone. */
 export function isConnectorBlocked(instanceId: string | undefined): boolean {
-  if (!allowed) return false; // politique inconnue ⇒ porte ouverte, délibérément
+  if (!allowed) return false; // policy unknown ⇒ open gate, deliberately
   if (!instanceId) return true;
   if (instanceId.startsWith("custom-")) return false;
   return !(allowed.has(instanceId) || allowed.has(connectorIdFromInstance(instanceId)));
@@ -91,7 +91,7 @@ export function isConnectorBlocked(instanceId: string | undefined): boolean {
  *  allow-list a URL matching no permitted connector is refused — including a service that
  *  is not in the catalogue at all, which is what a managed account should not be reaching. */
 export function isConnectorUrlBlocked(url: string | undefined): boolean {
-  if (!allowedHosts) return false; // politique inconnue ⇒ porte ouverte
+  if (!allowedHosts) return false; // policy unknown ⇒ open gate
   const host = hostOf(url);
   return !host || !allowedHosts.has(host);
 }

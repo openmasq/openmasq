@@ -125,19 +125,19 @@ describe("detectAddresses (multilingual street + postal)", () => {
   });
 
   /**
-   * ⚠️ LA DEMI-PROTECTION EST PIRE QUE RIEN — remonté le 11/08.
+   * ⚠️ HALF-PROTECTION IS WORSE THAN NONE — reported on 11/08.
    *
-   * La forme NUE `NNN-NNNN` du code postal japonais réclamait la queue de tout numéro
-   * nord-américain : « +1 (555) 123-4567 » ressortait « +1 (555) 864-2086 », indicatif
-   * régional en clair sous une valeur d'apparence redacted. Elle exige désormais un
-   * contexte japonais ; le marqueur 〒, lui, se suffit (il est distinctif).
+   * The BARE `NNN-NNNN` form of the Japanese postal code claimed the tail of any
+   * North-American number: « +1 (555) 123-4567 » came out as « +1 (555) 864-2086 », the
+   * area code left in clear under a value that looked redacted. It now requires a
+   * Japanese context; the 〒 marker, on its own, is enough (it's distinctive).
    */
   it("le code postal JP nu exige un contexte japonais — jamais la queue d'un téléphone", () => {
     expect(detectAddresses("Appelle le +1 (555) 123-4567 demain")).toEqual([]);
     expect(detectAddresses("Commande 123-4567 expédiée")).toEqual([]);
-    // Le marqueur reste distinctif sans aucun autre contexte…
+    // The marker stays distinctive with no other context at all…
     expect(cat("〒150-0041")["〒150-0041"]).toBe("POSTAL_CODE");
-    // …et la forme nue revient dès que le texte est japonais.
+    // …and the bare form comes back as soon as the text is Japanese.
     expect(cat("東京都渋谷区 150-0041")["150-0041"]).toBe("POSTAL_CODE");
   });
 });
@@ -156,11 +156,11 @@ describe("detectLabeledFields — CJK labels", () => {
 });
 
 describe("le saut de ligne dans une adresse : toléré ancré, refusé sinon", () => {
-  // Le jeu juridique (`bench/corpora/juridique.json`) l'a sorti sur un en-tête de jugement :
-  // « RCS Nanterre 775 384 225\ndomiciliée 4 avenue du Général Leclerc ». Les formes
-  // joignaient numéro/nom/type par `\s`, qui avale le retour à la ligne — la QUEUE du
-  // numéro RCS s'est soudée à la TÊTE de l'adresse en une fausse voie britannique. La
-  // valeur ainsi coffrée ne re-substitue proprement ni l'un ni l'autre.
+  // The legal corpus (`bench/corpora/juridique.json`) turned this up on a judgment header:
+  // « RCS Nanterre 775 384 225\ndomiciliée 4 avenue du Général Leclerc ». The forms
+  // joined number/name/type with `\s`, which swallows the line break — the TAIL of the
+  // RCS number fused to the HEAD of the address into a fake British street. The
+  // value vaulted that way can't cleanly re-substitute either one.
   const HEADER =
     "S.A.S. TECHNIVERT, RCS Nanterre 775 384 225\ndomiciliée 4 avenue du Général Leclerc, 92100 Boulogne";
 
@@ -174,9 +174,9 @@ describe("le saut de ligne dans une adresse : toléré ancré, refusé sinon", (
   });
 
   it("un retour ANCRÉ sur le mot-type est au contraire recouvré (scan OCR)", () => {
-    // La moitié complémentaire : là, le joint borde le mot « RUE » lui-même — rien ne peut
-    // s'y glisser, et un scan se coupe vraiment là. L'interdire coûtait une adresse réelle
-    // du corpus documentsFr (doc11-pv-ag-ocr).
+    // The complementary half: here, the join sits right at the word « RUE » itself — nothing
+    // can slip in there, and a scan really does break there. Forbidding it cost a real address
+    // from the documentsFr corpus (doc11-pv-ag-ocr).
     const values = detectAddresses("les copropriétaires de la Résidence 27\nRUE DES ORMEAUX convoqués").map(
       (d) => d.value,
     );
@@ -184,8 +184,8 @@ describe("le saut de ligne dans une adresse : toléré ancré, refusé sinon", (
   });
 
   it("mais un bloc postal garde le droit de se couper avant son CP", () => {
-    // L'interdiction porte sur le cœur (numéro ↔ nom ↔ type), pas sur la queue : une
-    // adresse d'en-tête passe légitimement à la ligne avant « CP Ville ».
+    // The ban is on the CORE (number ↔ name ↔ type), not on the tail: a
+    // header address legitimately breaks onto a new line before « CP Ville ».
     const values = detectAddresses("17 rue Gabriel Péri,\n92110 Clichy").map((d) => d.value);
     expect(values.some((v) => v.includes("92110 Clichy"))).toBe(true);
   });
@@ -193,15 +193,15 @@ describe("le saut de ligne dans une adresse : toléré ancré, refusé sinon", (
 
 describe("code postal océrisé — borné à ≥2 vrais chiffres", () => {
   it("« 6O00O BEAUVAIS » reste un lieu, code ET ville dans le MÊME span", () => {
-    // Un scan rend « 60000 » en « 6O00O » (O lu pour zéro, l/I pour un). Sans tolérance,
-    // le code survivait à côté d'une ville fakée — exactement la scission que le span
-    // conjoint CP+ville existe pour empêcher.
+    // A scan renders « 60000 » as « 6O00O » (O read for zero, l/I for one). Without tolerance,
+    // the code survived next to a faked city — exactly the split the joint
+    // postal-code+city span exists to prevent.
     const values = detectAddresses("3l bis rue des Casernes\n6O00O BEAUVAIS").map((d) => d.value);
     expect(values.some((v) => v.includes("6O00O") && v.includes("BEAUVAIS"))).toBe(true);
   });
 
   it("un mot capitalisé ne peut jamais ouvrir un lieu", () => {
-    // La borne (≥2 chiffres réels) est ce qui interdit à « OOlOO » de passer pour un code.
+    // The bound (≥2 real digits) is what stops « OOlOO » from passing for a code.
     expect(detectAddresses("OOlOO Beauvais")).toEqual([]);
   });
 });
@@ -222,10 +222,10 @@ describe("pseudonymize integration", () => {
 });
 
 describe("la queue « CP Ville » survit à la VIRGULE du formulaire (16/08/2026)", () => {
-  /** Mesuré sur un bail et un avenant RÉELS. Sans la virgule dans le séparateur, la queue
-   *  décrochait et le résultat était le pire des deux mondes : la RUE partait fausse
-   *  pendant que le code postal ET la ville restaient VRAIS — l'incohérence géographique
-   *  que cette queue existe pour empêcher, et une adresse reconstituable à un numéro près. */
+  /** Measured on a REAL lease and its REAL amendment. Without the comma in the separator, the tail
+   *  detached and the result was the worst of both worlds: the STREET went out fake
+   *  while the postal code AND the city stayed TRUE — the geographic incoherence
+   *  this tail exists to prevent, and an address reconstructible down to one digit. */
   it("« rue, CP, Ville » est UNE adresse, comme « rue, CP Ville »", async () => {
     for (const t of [
       "Adresse des locaux loués : 2 mail Camille du Gast, 92600, Asnières",
@@ -247,10 +247,10 @@ describe("la queue « CP Ville » survit à la VIRGULE du formulaire (16/08/2026
 });
 
 describe("FICHE « Problème de redaction (faux positif) » — 12/08/2026", () => {
-  /** Remonté par un utilisateur : « pour la ville de Strasbourg, l'app a redacted
-   *  "Strasbourg et je travaille" au lieu de "Strasbourg" ». Le connecteur « et » était
-   *  admis dans une course de ville ET pouvait la TERMINER — donc le faux effaçait le
-   *  « et » de la phrase, et le modèle recevait un texte mutilé. */
+  /** Reported by a user: « for the city of Strasbourg, the app redacted
+   *  "Strasbourg et je travaille" instead of "Strasbourg" ». The connector « et » was
+   *  admitted inside a city run AND could END it — so the fake erased the
+   *  « et » from the sentence, and the model received mutilated text. */
   it("la prose qui suit la ville n'est ni avalée ni effacée", async () => {
     const out = (await pseudonymize(
       "J'habite au 12 rue des Lilas, 67000 Strasbourg et je travaille dans le conseil.",
@@ -277,8 +277,8 @@ describe("FICHE « Problème de redaction (faux positif) » — 12/08/2026", () 
   });
 
   it("un champ « Adresse : » s'arrête aussi à la fin de l'adresse", async () => {
-    // Même dégât par l'autre route : la capture d'un champ étiqueté va jusqu'au bout de la
-    // ligne, donc la phrase entière partait dans le coffre.
+    // Same damage via the other route: a labeled field's capture runs to the end of the
+    // line, so the whole sentence went into the vault.
     const out = (await pseudonymize(
       "Adresse : 3 quai des Bateliers, 67000 Strasbourg et mon bureau est ailleurs",
       { vault: {} },

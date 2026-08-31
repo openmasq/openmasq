@@ -1,31 +1,31 @@
 /**
- * QUEL environnement cette instance ouvre — et où ce choix est écrit.
+ * WHICH environment this instance opens — and where that choice is written.
  *
- * ⚠️ **Le pointeur ne peut PAS vivre dans `updates.json`.** Celui-ci est dans `userData`,
- * dont le chemin dépend justement de l'environnement (`profile.ts`) : on ne peut pas lire
- * dans le dossier qu'on n'a pas encore choisi. Il vit donc dans le dossier `userData` de
- * BASE — le chemin nu, celui de la production — sous un nom à lui. Une seule ligne, aucun
- * secret, et la seule chose qu'un profil de staging écrit hors de chez lui.
+ * ⚠️ **The pointer CANNOT live in `updates.json`.** That file is in `userData`,
+ * whose path depends precisely on the environment (`profile.ts`): we can't read
+ * inside the folder we haven't chosen yet. So it lives in the BASE `userData`
+ * folder — the bare path, production's — under a name of its own. A single line, no
+ * secret, and the one thing a staging profile writes outside its own home.
  *
- * ⚠️ **Ce qui est persisté est un NOM, jamais une adresse** (`environments/` dit pourquoi)
- * — à UNE exception près, délibérée et bornée : la pile AUTO-HÉBERGÉE (`custom`), dont
- * les adresses vivent dans ce même fichier, mais qui n'est HONORÉE que dans un build qui
- * l'autorise (`OPENMASQ_ALLOW_CUSTOM_STACK=1`) et seulement si elles repassent la
- * validation à CHAQUE lecture (`environments/customStack.ts`). Un binaire officiel qui
- * trouve un pointeur `custom` ouvre la production ; un pointeur `custom` aux adresses
- * altérées aussi. Une valeur inconnue, un fichier illisible, un JSON cassé ⇒ la production.
- * Fail-closed a ici un sens précis : le défaut n'est pas « rien », c'est l'environnement du
- * binaire.
+ * ⚠️ **What is persisted is a NAME, never an address** (`environments/` says why)
+ * — with ONE deliberate and bounded exception: the SELF-HOSTED stack (`custom`), whose
+ * addresses live in this same file, but which is HONORED only in a build that
+ * allows it (`OPENMASQ_ALLOW_CUSTOM_STACK=1`) and only if they pass
+ * validation again on EVERY read (`environments/customStack.ts`). An official binary that
+ * finds a `custom` pointer opens production; a `custom` pointer with tampered
+ * addresses too. An unknown value, an unreadable file, broken JSON ⇒ production.
+ * Fail-closed has a precise meaning here: the default isn't "nothing", it's the binary's
+ * own environment.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DEFAULT_ENV, isEnvName, type EnvName } from "../environments";
 import { CUSTOM_STACK_ALLOWED, validateCustomStack, type CustomStack } from "../environments/customStack";
 
-/** Le fichier qui porte le choix, dans le `userData` de BASE. */
+/** The file that carries the choice, in the BASE `userData`. */
 export const ENV_POINTER_FILE = "environment.json";
 
-/** La part de `fs` dont ceci a besoin — injectée, pour que le module reste testable. */
+/** The part of `fs` this needs — injected, so the module stays testable. */
 export interface PointerIo {
   readFile(path: string): string;
   writeFile(path: string, contents: string): void;
@@ -36,22 +36,22 @@ const nodeIo: PointerIo = {
   writeFile: (p, c) => writeFileSync(p, c),
 };
 
-/** Ce que le pointeur dit, une fois relu et FILTRÉ : un environnement honorable, et la
- *  pile saisie si elle est valide — gardée même quand l'environnement courant est un
- *  autre, pour que l'écran puisse la pré-remplir et qu'on puisse y revenir. */
+/** What the pointer says, once read back and FILTERED: an honorable environment, and the
+ *  entered stack if it's valid — kept even when the current environment is a
+ *  different one, so the screen can pre-fill it and so it can be returned to. */
 export interface EnvPointer {
   env: EnvName;
   custom: CustomStack | null;
 }
 
 /**
- * Le pointeur, en entier.
+ * The pointer, in full.
  *
- * `fallback` répond tant qu'AUCUN choix n'a été écrit — et c'est TOUJOURS la production :
- * l'environnement ne se déduit plus du canal (contrat de l'artefact unique, voir
- * `../environments`). Sans pointeur, rien ne change pour personne.
+ * `fallback` answers as long as NO choice has been written — and it's ALWAYS production:
+ * the environment is no longer inferred from the channel (single-artifact contract, see
+ * `../environments`). With no pointer, nothing changes for anyone.
  *
- * `allowed` = le build honore-t-il une pile saisie ; injecté pour le test, cuit sinon.
+ * `allowed` = does the build honor an entered stack; injected for the test, baked otherwise.
  */
 export function readEnvPointerFull(
   baseUserData: string,
@@ -64,22 +64,22 @@ export function readEnvPointerFull(
       env?: unknown;
       custom?: unknown;
     };
-    // La pile n'est retenue que si elle repasse la validation ET que le build l'honore :
-    // une adresse écrite à la main dans le fichier n'est pas une adresse acceptée.
+    // The stack is kept only if it passes validation AGAIN AND the build honors it:
+    // an address hand-written into the file is not an accepted address.
     const verdict = allowed && raw?.custom ? validateCustomStack(raw.custom) : null;
     const custom = verdict?.ok ? verdict.stack : null;
     if (!isEnvName(raw?.env)) return { env: fallback, custom };
     if (raw.env === "custom") return { env: custom ? "custom" : fallback, custom };
     return { env: raw.env, custom };
   } catch {
-    // Fichier absent (le cas normal), illisible, ou JSON cassé — dans les trois cas le
-    // défaut sait où aller. On ne jette jamais ici : ceci tourne avant `whenReady`, et une
-    // exception y est un lancement mort sans fenêtre pour l'expliquer.
+    // File absent (the normal case), unreadable, or broken JSON — in all three cases the
+    // default knows where to go. Nothing is ever thrown here: this runs before `whenReady`, and an
+    // exception here is a dead launch with no window to explain it.
     return { env: fallback, custom: null };
   }
 }
 
-/** L'environnement choisi, seul — ce que le profil (`profile.ts`) a besoin de savoir. */
+/** The chosen environment alone — what the profile (`profile.ts`) needs to know. */
 export function readEnvPointer(
   baseUserData: string,
   fallback: EnvName = DEFAULT_ENV,
@@ -88,10 +88,10 @@ export function readEnvPointer(
   return readEnvPointerFull(baseUserData, fallback, io).env;
 }
 
-/** Écrire le choix. Best-effort : un disque plein ne doit pas tuer un lancement — au pire
- *  l'app rouvre son environnement précédent au prochain démarrage. `custom` est la pile
- *  saisie à CONSERVER (celle qu'on applique, ou celle déjà connue quand on bascule vers un
- *  environnement cuit) — `null` l'oublie. */
+/** Write the choice. Best-effort: a full disk must not kill a launch — at worst
+ *  the app reopens its previous environment on the next startup. `custom` is the entered
+ *  stack to KEEP (the one being applied, or the one already known when switching to a
+ *  baked environment) — `null` forgets it. */
 export function writeEnvPointer(
   baseUserData: string,
   env: EnvName,

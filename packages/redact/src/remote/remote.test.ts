@@ -61,15 +61,15 @@ describe("remoteRedact (client for apps/gateway)", () => {
 
 describe("remoteContractDowngrade — le handshake de contrat client↔serveur", () => {
   it("Strict (peopleNotoriety:false) ignoré par le serveur → une raison (fail-closed)", () => {
-    // Un serveur d'AVANT le handshake ne renvoie pas `honored` : même signal.
+    // A server from BEFORE the handshake doesn't return `honored`: same signal.
     expect(remoteContractDowngrade({ peopleNotoriety: false }, undefined)).toMatch(/Strict/);
-    // Un serveur à jour qui n'honore PAS ce champ (liste sans lui) : pareil.
+    // An up-to-date server that does NOT honour this field (absent from the list): same thing.
     expect(remoteContractDowngrade({ peopleNotoriety: false }, ["keep", "forced"])).toMatch(/Strict/);
   });
 
   it("contrat tenu, ou option non demandée → null (aucun blocage)", () => {
     expect(remoteContractDowngrade({ peopleNotoriety: false }, ["peopleNotoriety"])).toBeNull();
-    // Hors Strict, l'ignorance de ce champ n'est pas une fuite : rien à bloquer.
+    // Outside Strict, ignoring this field is not a leak: nothing to block.
     expect(remoteContractDowngrade({ peopleNotoriety: true }, undefined)).toBeNull();
     expect(remoteContractDowngrade({}, undefined)).toBeNull();
   });

@@ -272,10 +272,10 @@ describe("ocrFallbackBoxes — the scanned-page fallback of the PDF painter", ()
 });
 
 describe("pdfReplacements — coffre PARTAGÉ entre documents (15/08/2026)", () => {
-  /** Un allocateur minimal mais RÉALISTE : il réutilise le faux déjà attribué à une
-   *  valeur dans le coffre qu'on lui passe, et n'en mint un nouveau que sinon. */
-  // ⚠️ Le coffre partagé est le 3e paramètre de `RedactFn` (après `signal`), pas un objet
-  // d'options : c'est cette signature que `pdfReplacements` honore.
+  /** A minimal but REALISTIC allocator: it reuses the fake already assigned to a
+   *  value in the vault it's given, and only mints a new one otherwise. */
+  // ⚠️ The shared vault is `RedactFn`'s 3rd parameter (after `signal`), not an
+  // options object: this is the signature `pdfReplacements` honours.
   const redact: RedactFn = async (text, _signal, sharedVault) => {
     const vault = sharedVault ?? {};
     const matches: { value: string; placeholder: string; category: string }[] = [];
@@ -290,9 +290,9 @@ describe("pdfReplacements — coffre PARTAGÉ entre documents (15/08/2026)", () 
   };
 
   it("la MÊME personne, dans DEUX documents, garde UN seul faux", async () => {
-    // Le cas réel : l'extrait Kbis nomme le dirigeant, l'accord de principe nomme
-    // l'emprunteur. Sans coffre partagé, chacun minte le sien et le modèle voit deux
-    // personnes — il répondait « ces pièces ne désignent pas la même personne ».
+    // The real case: the Kbis extract names the director, the agreement in principle names
+    // the borrower. Without a shared vault, each mints its own and the model sees two
+    // people — it answered "these documents don't name the same person".
     const coffre: Record<string, string> = {};
     const p1 = await pdfReplacements("Président : Sabourdin Julien — Karl Studio", redact, { vault: coffre });
     const p2 = await pdfReplacements("Emprunteur : Sabourdin Julien", redact, { vault: coffre });

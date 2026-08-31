@@ -178,7 +178,7 @@ describe("redact ↔ unredact round-trip", () => {
   it("does NOT flag hexadecimal IDs (Notion page/view ids in a URL) as tokens", () => {
     const url =
       "https://app.notion.com/p/354d95933ece42d7850ff96243743181?v=2ad7f1ed404345df8169dd997a31ad2e";
-    // `url` éteinte = le défaut produit ; le sujet est l'id hexa DANS l'URL.
+    // `url` OFF = default output; the subject is the hex id INSIDE the URL.
     const { text, matches } = redact(`See ${url} for details.`, { vault: {}, disabledKinds: ["url"] });
     // The hex ids are not secrets → untouched, nothing redacted.
     expect(text).toContain("354d95933ece42d7850ff96243743181");
@@ -416,9 +416,9 @@ describe("pseudonymize: deconflict a user value colliding with an existing fake 
     expect(vault["évreux"]).toBe("amiens"); // the old entry is untouched — both coexist
     // BOTH threads reverse cleanly, no collision: the user's Évreux and the amiens thread.
     expect(unredact(text, vault)).toBe("actualités à évreux");
-    // « d'amiens », pas « de amiens » : le un-redaction répare l'élision autour d'une
-    // valeur restituée (`engine/elision.ts`). Ce que ce test prouve reste la
-    // déconfliction — les deux fils s'inversent, sans fuite ; l'article est correct en plus.
+    // « d'amiens », not « de amiens »: un-redaction repairs the elision around a
+    // restored value (`engine/elision.ts`). What this test proves remains
+    // deconfliction — both threads reverse, without a leak; the article is correct as a bonus.
     expect(unredact(`ville de évreux et de ${newFake}`, vault)).toBe("ville d'amiens et d'évreux");
   });
 
@@ -529,11 +529,11 @@ describe("pseudonymize: atomic NAME identity across tool-result rounds", () => {
     // Turn 2 — every separator-joined spelling must reuse THAT identity, keeping its own
     // separator + casing, and must reverse to the real value.
     for (const variant of ["Julien_Sabourdin", "julien.sabourdin", "julien-sabourdin"]) {
-      // ⚠️ Le slug est NU, sans schéma — et c'est délibéré. Le sujet est l'identité du
-      // NOM joint par séparateur ; l'envelopper dans une URL le fait dépendre de la
-      // catégorie `url`, qui va dans les deux sens et masque le sujet : ACTIVE elle
-      // réclame l'adresse entière, ÉTEINTE sa porte de suppression écarte tout candidat
-      // confiné dans l'URL. Un slug nu teste la même chose sans cette interaction.
+      // ⚠️ The slug is BARE, with no scheme — and that's deliberate. The subject is the
+      // identity of the separator-joined NAME; wrapping it in a URL makes it depend on the
+      // `url` category, which cuts both ways and masks the subject: ACTIVE it
+      // claims the whole address, OFF its suppression gate discards any candidate
+      // confined inside the URL. A bare slug tests the same thing without that interaction.
       const { text } = await pseudonymize(`page ${variant}`, {
         vault,
         detectLocal: async () => [{ value: variant, category: "NAME" }],

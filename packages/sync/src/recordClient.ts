@@ -52,16 +52,16 @@ export interface RecordSync {
   /** Integrations DIRECTORY sugar — the reserved scope. */
   pushIntegrations(records: SyncRecord[]): Promise<number>;
   pullIntegrations(since: number): Promise<PulledRecords>;
-  /** Userdata studio sugar (compétences / workflows / mémoire) — its scope. */
+  /** Userdata studio sugar (skills / workflows / memory) — its scope. */
   pushUserdata(records: SyncRecord[]): Promise<number>;
   pullUserdata(since: number): Promise<PulledRecords>;
   /** Coffre sugar (always-redacted terms) — its scope, extension-accessible. */
   pushCoffre(records: SyncRecord[]): Promise<number>;
   pullCoffre(since: number): Promise<PulledRecords>;
-  /** Oublier les portées « scellées » (voir `dekFor`) — à appeler quand la phrase secrète
-   *  de cet appareil CHANGE, puisque c'est le seul événement qui peut rendre une enveloppe
-   *  ouvrable. Sans lui le coupe-circuit tiendrait jusqu'au redémarrage, et une phrase
-   *  corrigée n'aurait aucun effet visible. */
+  /** Forget the "sealed" scopes (see `dekFor`) — to call when this device's passphrase
+   *  CHANGES, since that's the only event that can make an envelope
+   *  openable again. Without it the circuit-breaker would hold until restart, and a
+   *  corrected passphrase would have no visible effect. */
   resetKeys(): void;
   /** Passphrase change: re-wrap EVERY conversation's key envelope. Returns the
    *  conv ids that were re-wrapped (a conv the old passphrase can't open is
@@ -70,14 +70,14 @@ export interface RecordSync {
 }
 
 /**
- * Un échec CRYPTO — WebCrypto lève `OperationError` quand la clé n'ouvre pas le contenu,
- * c'est-à-dire quand la phrase de cet appareil ne correspond pas à l'enveloppe stockée.
- * Par opposition à un réseau coupé ou un 500, qui eux méritent un retour.
+ * A CRYPTO failure — WebCrypto throws `OperationError` when the key doesn't open the content,
+ * i.e. when this device's passphrase doesn't match the stored envelope.
+ * As opposed to a dropped network or a 500, which do deserve a retry.
  *
- * EXPORTÉ parce qu'il a deux lecteurs pour deux raisons différentes : ici pour cesser de
- * réessayer, et côté application pour cesser d'annoncer « tout va bien » (le témoin de
- * synchro n'observe que le HTTP, qui lui réussit). Deux copies auraient dérivé au premier
- * navigateur qui nomme l'erreur autrement.
+ * EXPORTED because it has two readers for two different reasons: here to stop
+ * retrying, and on the application side to stop announcing "all is well" (the
+ * sync indicator only observes HTTP, which succeeds). Two copies would have drifted at the first
+ * browser that names the error differently.
  */
 export function isCryptoFailure(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { name?: unknown }).name === "OperationError";
@@ -87,14 +87,14 @@ export function createRecordSync(opts: RecordSyncOptions): RecordSync {
   const { transport } = opts;
   const report = (scope: string, e: unknown) => opts.onError?.(scope, e);
 
-  /** Les portées dont on SAIT que la phrase de cet appareil n'ouvre pas l'enveloppe.
+  /** The scopes we KNOW this device's passphrase doesn't open the envelope for.
    *
-   *  Un échec de déchiffrement n'est pas un aléa : ni l'enveloppe stockée ni la phrase ne
-   *  changent d'elles-mêmes, donc le prochain essai échouera à l'identique. Sans ce
-   *  coupe-circuit chaque cycle re-tentait et re-signalait sans rien faire avancer — 24
-   *  rapports en quelques heures pour deux appareils, mesuré le 14/08 sur `@integrations`.
-   *  On s'arrête donc à la première fois, on le dit UNE fois, et on rouvre quand la phrase
-   *  change (`resetKeys`). Portée SESSION, rien n'est persisté : un redémarrage re-tente. */
+   *  A decryption failure isn't randomness: neither the stored envelope nor the passphrase
+   *  change on their own, so the next attempt will fail identically. Without this
+   *  circuit-breaker every cycle retried and re-reported without moving anything forward — 24
+   *  reports in a few hours for two devices, measured on 14/08 on `@integrations`.
+   *  So we stop at the first time, say it ONCE, and reopen when the passphrase
+   *  changes (`resetKeys`). SESSION-scoped, nothing is persisted: a restart retries. */
   const sealed = new Set<string>();
 
   /** Get-or-mint the conversation's DEK. Null → sync off / can't decrypt / scope sealed. */
@@ -114,8 +114,8 @@ export function createRecordSync(opts: RecordSyncOptions): RecordSync {
       }
       return await openConvKey(envelope, pass);
     } catch (e) {
-      // Scellé AVANT de rapporter : c'est ce qui fait qu'un rapport part une seule fois
-      // par portée et par session.
+      // Sealed BEFORE reporting: that's what makes a report go out only once
+      // per scope per session.
       if (isCryptoFailure(e)) sealed.add(convId);
       report(`dekFor(${convId})`, e);
       return null;

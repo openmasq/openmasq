@@ -1,6 +1,6 @@
-// L'env d'un enfant TIERS est une allowlist. Le cas qui justifie le fichier : l'app
-// lancée depuis un terminal hérite des secrets du shell, et `{ ...process.env }` les
-// retransmettait au broker et au serveur playwright-mcp — du code tiers.
+// A THIRD-PARTY child's env is an allowlist. The case that justifies this file: the app
+// launched from a terminal inherits the shell's secrets, and `{ ...process.env }` was
+// forwarding them to the broker and to the playwright-mcp server — third-party code.
 import { describe, expect, it } from "vitest";
 import { filterChildEnv } from "./childEnv";
 

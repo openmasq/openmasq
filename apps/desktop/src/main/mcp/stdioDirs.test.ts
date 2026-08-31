@@ -3,14 +3,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// NOTE: ce test vit dans `main/mcp/`, pas à côté de son module dans `main/mcp/server/` —
-// le `vitest.config.ts` racine liste `main/mcp/*.test.ts` et PAS le sous-dossier, donc un
-// test placé là ne tournerait jamais en CI.
+// NOTE: this test lives in `main/mcp/`, not next to its module in `main/mcp/server/` —
+// the root `vitest.config.ts` lists `main/mcp/*.test.ts` and NOT the subfolder, so a
+// test placed there would never run in CI.
 
-// ⚠️ Les chemins de `vi.mock` se résolvent depuis CE fichier, pas depuis le module testé.
-// `persist` et `registry` touchent Electron (safeStorage, connexions vivantes) : on les
-// remplace par des doubles. Le reste — `catalog.resolveParams`, la porte du sélecteur —
-// est le VRAI code, puisque c'est précisément ce qu'on vérifie.
+// ⚠️ `vi.mock` paths resolve from THIS file, not from the module under test.
+// `persist` and `registry` touch Electron (safeStorage, live connections): we
+// replace them with doubles. The rest — `catalog.resolveParams`, the picker gate —
+// is the REAL code, since that's precisely what we're verifying.
 const store = new Map<string, Record<string, unknown>>();
 vi.mock("./persist", () => ({
   getServer: (id: string) => store.get(id),
@@ -41,15 +41,15 @@ describe("mcpSetStdioDirs — ajouter/retirer un dossier sans déconnecter", () 
   });
 
   it("REFUSE un dossier que le sélecteur natif n'a pas rendu cette session", async () => {
-    // Le cœur de la porte (audit M-4). Sans elle, un renderer compromis — ou du contenu
-    // injecté dans le modèle qui atteindrait cette IPC — s'accorderait `/Users/<vous>`
-    // par un simple appel, sans que personne ne clique quoi que ce soit.
+    // The heart of the gate (audit M-4). Without it, a compromised renderer — or content
+    // injected into the model that reached this IPC — would grant itself `/Users/<you>`
+    // with a single call, without anyone clicking anything.
     const jamaisChoisi = dir();
     const reconnect = vi.fn();
     const info = await mcpSetStdioDirs(ID, "root", [granted, jamaisChoisi], reconnect);
     expect(info.error).toMatch(/non autorisé/);
     expect(reconnect).not.toHaveBeenCalled();
-    // Et rien n'est persisté : le périmètre reste celui d'avant.
+    // And nothing is persisted: the scope stays what it was before.
     expect(store.get(ID)?.params).toEqual({ root: [granted] });
   });
 
@@ -60,14 +60,14 @@ describe("mcpSetStdioDirs — ajouter/retirer un dossier sans déconnecter", () 
     const info = await mcpSetStdioDirs(ID, "root", [granted, second], reconnect);
     expect(info.error).toBeUndefined();
     expect(store.get(ID)?.params).toEqual({ root: [granted, second] });
-    // La connexion vivante doit repartir sur le nouveau périmètre — sinon le dossier
-    // ajouté n'est lisible qu'au prochain lancement.
+    // The live connection must restart on the new scope — otherwise the added
+    // folder is only readable on the next launch.
     expect(reconnect).toHaveBeenCalledWith(ID);
   });
 
   it("ne redemande PAS de re-choisir un dossier déjà accordé quand on en retire un autre", async () => {
-    // Un retrait ne doit pas coûter une re-sélection de tous les autres : c'est ce qui
-    // poussait à tout déconnecter, donc à ne jamais ajuster le périmètre.
+    // A removal shouldn't cost a re-selection of all the others: that's what was
+    // pushing people to disconnect everything, and so to never adjust the scope.
     const second = dir();
     notePickedDir(second);
     seed([granted, second]);

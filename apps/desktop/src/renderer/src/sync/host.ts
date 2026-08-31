@@ -15,15 +15,15 @@ import { BACKEND_URL, ENV_DISPLAY_NAME } from "../appEnv";
 
 export const syncHost: SyncHost = {
   enabled: SYNC_ENABLED,
-  // Le témoin (Réglages → Synchronisation) : l'environnement RÉSOLU — celui de la
-  // bascule, jamais déduit du canal — et le dernier échange vécu par cette session.
+  // The witness (Settings → Sync): the RESOLVED environment — the one from the
+  // switch, never inferred from the channel — and the last exchange this session has seen.
   async status() {
     const ex = getExchangeState();
     let backendHost = BACKEND_URL;
     try {
       backendHost = new URL(BACKEND_URL).host;
     } catch {
-      /* une URL de dev exotique s'affiche telle quelle */
+      /* an exotic dev URL is shown as-is */
     }
     return { env: ENV_DISPLAY_NAME, backendHost, ...ex };
   },
@@ -32,9 +32,9 @@ export const syncHost: SyncHost = {
   },
   async setPassphrase(passphrase) {
     await setSyncPassphrase(passphrase);
-    // Changer de phrase est le SEUL événement qui peut rendre ouvrable une enveloppe que
-    // le coupe-circuit avait scellée — sans cet oubli, corriger sa phrase ne produirait
-    // aucun effet avant un redémarrage.
+    // Changing the passphrase is the ONLY event that can make openable an envelope that
+    // the circuit-breaker had sealed — without this reset, fixing one's passphrase would
+    // produce no effect before a restart.
     recordSync()?.resetKeys();
     resetOrgKeys();
     await registerDevice();

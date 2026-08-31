@@ -43,14 +43,14 @@ export function startsWithVowelSound(value: string): boolean {
 const escape = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
- * ⚠️ L'EMPHASE MARKDOWN s'intercale entre l'article et la valeur, et c'est le cas COURANT,
- * pas le cas limite : le modèle met les noms en gras dans ses réponses. Mesuré le
- * 16/08/2026 — « à la tête d'**Karl Studio** » n'était pas réparé alors que la même phrase
- * sans gras l'était, donc la réparation ne servait précisément pas là où on la lit.
+ * ⚠️ MARKDOWN EMPHASIS slots in between the article and the value, and that's the COMMON
+ * case, not the edge case: the model bolds names in its replies. Measured on
+ * 16/08/2026 — « à la tête d'**Karl Studio** » was not repaired while the same sentence
+ * without bold was, so the repair precisely failed to work where it's actually read.
  *
- * Les marqueurs sont CAPTURÉS et ré-émis verbatim : la réparation touche l'article, jamais
- * le balisage. Ouvrants seulement (`**`/`_`/`*` avant la valeur) — le marqueur fermant est
- * après la valeur, hors du motif, donc rien à recoller.
+ * Markers are CAPTURED and re-emitted verbatim: the repair touches the article, never
+ * the markup. Opening markers only (`**`/`_`/`*` before the value) — the closing marker
+ * is after the value, outside the pattern, so nothing needs re-gluing.
  */
 const EMPH = `(\\*{1,3}|_{1,3})?`;
 

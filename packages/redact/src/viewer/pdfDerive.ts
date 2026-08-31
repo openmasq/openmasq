@@ -45,12 +45,12 @@ export async function pdfReplacements(
     /** The conversation's category override, forwarded to every `redact` call —
      *  absent when there is no conversation (e.g. the Library viewer). */
     convCategories?: Record<string, boolean>;
-    /** ⚠️ Le coffre PARTAGÉ de l'appelant (fake→réel), MUTÉ ici. Sans lui, chaque appel
-     *  alloue dans un coffre neuf : deux pièces jointes d'un même dossier donnaient DEUX
-     *  faux à la même personne, et le modèle concluait qu'elles désignaient des gens
-     *  différents (mesuré le 15/08/2026, Kbis + accord de principe réels). Le passer, c'est
-     *  garantir l'invariant « une valeur réelle → UN faux » au-delà d'un seul document.
-     *  Absent ⇒ comportement inchangé (un coffre par appel). */
+    /** ⚠️ The caller's SHARED vault (fake→real), MUTATED here. Without it, each call
+     *  allocates in a fresh vault: two attachments from the same folder gave TWO
+     *  fakes for the same person, and the model concluded they named different
+     *  people (measured 15/08/2026, real Kbis + real agreement in principle). Passing it
+     *  guarantees the invariant "one real value → ONE fake" beyond a single document.
+     *  Absent ⇒ unchanged behaviour (one vault per call). */
     vault?: Record<string, string>;
   },
 ): Promise<{ replacements: PdfReplacement[]; modelError?: string }> {
@@ -75,8 +75,8 @@ export async function pdfReplacements(
   // wired before this change): guarantee at the OUTPUT that two DIFFERENT reals never
   // share a fake — remap a colliding fake to a unique variant (still reversible: this
   // map is the single source for BOTH the paint and the persisted vault).
-  // Amorcé depuis le coffre partagé : la garde d'unicité doit connaître les paires DÉJÀ
-  // attribuées par une pièce précédente, sinon elle « dé-doublonnerait » un faux légitime.
+  // Seeded from the shared vault: the uniqueness guard must know the pairs ALREADY
+  // assigned by a previous piece, or it would "de-duplicate" a legitimate fake.
   const fakeToReal = new Map<string, string>(Object.entries(vault));
   const uniqueFake = (real: string, fake: string): string => {
     const owner = fakeToReal.get(fake);

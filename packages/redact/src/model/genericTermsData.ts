@@ -40,17 +40,17 @@ export const GENERIC_TERMS = new Set<string>([
   // introduces is caught by its own structured rule; a NER mis-tags a bare "IBAN" /
   // "RCS" header as an ORG). Separator-insensitive above, so "R.C.S"/"S.I.R.E.N" match.
   "iban", "bic", "swift", "rib", "rcs", "siren", "siret", "tva", "vat", "spi", "nir",
-  // Étiquettes de compte : mesurées comme faux positifs (« Mon login est arvio92 » →
-  // « login » redacted en prénom, arvio92 laissé en clair). Le label n'est jamais la
-  // donnée ; la valeur qui suit relève de sa propre règle.
+  // Account labels: measured as false positives (« Mon login est arvio92 » →
+  // « login » faked to a first name, arvio92 left in clear). The label is never the
+  // data; the value that follows falls under its own rule.
   "login", "logins", "pseudo", "pseudos", "pseudonyme", "identifiant", "identifiants",
   "username", "utilisateur", "utilisateurs", "nom d'utilisateur", "handle", "matricule",
   "urssaf", "insee", "ape", "naf", "kbis", "cerfa", "sepa", "bban", "uen",
-  // Pièces d'identité + étiquettes de compte manquantes, MESURÉES comme faux positifs
-  // (« Mon passeport est périmé » → « Mon Simon est périmé » ; idem CNI → prénom, sécu →
-  // prénom, gamertag → prénom). Même raison que la ligne au-dessus : le mot désigne le
-  // TYPE de pièce, jamais son titulaire. ⚠️ « signe » (jumeau ASCII de « signé ») est
-  // volontairement ABSENT — c'est un prénom scandinave, cf. la règle 2 de `vocab/index.ts`.
+  // ID documents + missing account labels, MEASURED as false positives
+  // (« Mon passeport est périmé » → « Mon Simon est périmé »; same for CNI → first name, sécu →
+  // first name, gamertag → first name). Same reason as the line above: the word designates the
+  // TYPE of document, never its holder. ⚠️ « signe » (ASCII twin of « signé ») is
+  // deliberately ABSENT — it's a Scandinavian first name, see rule 2 of `vocab/index.ts`.
   "passeport", "passeports", "passport", "cni", "sécu", "secu", "gamertag", "gamertags",
   // Legal / official DOCUMENT type words (FR + a few EN) — the KIND of a document,
   // never an identity. A payslip/contract's headings shouldn't be faked to a name/org.

@@ -1,6 +1,6 @@
-// Ouvre le pont IPC du SDK Sentry : le CSP du renderer n'autorise PAS Sentry comme
-// hôte, donc le renderer NE PEUT PAS émettre lui-même — il passe par main, qui détient
-// le DSN. Sous `contextIsolation` cet import est le seul moyen d'exposer le pont.
+// Opens the Sentry SDK's IPC bridge: the renderer's CSP does NOT allow Sentry as a
+// host, so the renderer CANNOT emit on its own — it goes through main, which holds
+// the DSN. Under `contextIsolation` this import is the only way to expose the bridge.
 import "@sentry/electron/preload";
 import { contextBridge } from "electron";
 import { chat } from "./api/chat";

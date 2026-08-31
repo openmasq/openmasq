@@ -7,8 +7,8 @@ import { createSink } from "./sink";
  * this ONCE (a module singleton) with its own event vocabulary + id source, then
  * re-exports `{ configureAnalytics, setAnalyticsConsent, captureEvent }`.
  *
- * Vit dans son propre module plutôt que dans le tonneau : `web.ts` s'en sert, et
- * l'importer depuis `index.ts` aurait fait un cycle tonneau ⇄ module.
+ * Lives in its own module rather than in the barrel: `web.ts` uses it, and
+ * importing it from `index.ts` would have created a barrel ⇄ module cycle.
  */
 export function createAnalytics<E extends { name: string }>(opts: {
   allowed: Record<string, readonly string[]>;
