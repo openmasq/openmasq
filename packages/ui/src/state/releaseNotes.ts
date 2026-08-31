@@ -1,3 +1,4 @@
+import type { Locale } from "@openmasq/i18n";
 import { useEffect } from "react";
 import { useHost } from "../host";
 import { useAppDispatch, useAppSelector } from "./redux";
@@ -102,17 +103,29 @@ export function noteForVersion(
 // redaction-marker colours). Maps to the `--hl-*` tokens via the `.rn-dot-<tone>` class.
 export const HL_TONES = ["pink", "amber", "sky", "lime", "mint", "violet"] as const;
 
-/** "2026-07-11T…" → "11 juillet 2026"; non-ISO / null returned as-is. */
-export function frenchDate(iso: string | null): string {
+/**
+ * "2026-07-11T…" → « 11 juillet 2026 » / "11 July 2026" ; non-ISO ou `null` rendu tel quel.
+ *
+ * `Intl.DateTimeFormat` plutôt qu'une table de mois : elle s'appelait `frenchDate` et
+ * portait les douze noms français en dur, donc une app en anglais datait ses versions en
+ * français. La date est construite en UTC — un ISO nu (`2026-07-11`) est minuit UTC, et
+ * l'afficher dans le fuseau local le reculait d'un jour à l'ouest de Greenwich.
+ */
+export function releaseDate(iso: string | null, locale: Locale): string {
   if (!iso) return "";
   const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!m) return iso;
-  const months = [
-    "janvier", "février", "mars", "avril", "mai", "juin",
-    "juillet", "août", "septembre", "octobre", "novembre", "décembre",
-  ];
-  const month = months[Number(m[2]) - 1];
-  return month ? `${Number(m[3])} ${month} ${m[1]}` : iso;
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  try {
+    return new Intl.DateTimeFormat(locale === "fr" ? "fr-FR" : "en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(d);
+  } catch {
+    return iso; // `Intl` indisponible (jamais dans Electron ni un navigateur) — jamais un vide
+  }
 }
 
 /** "Titre — bénéfice" → { title, body }; a plain string → { title }. */

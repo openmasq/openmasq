@@ -3,6 +3,7 @@ import { findModel } from "@openmasq/llm";
 import type { Conversation } from "../../../types";
 import { findModelAny } from "../../../prompt/models";
 import { ModalShell } from "../ModalShell";
+import { useT } from "../../../i18n";
 import { SearchIcon, PlusIcon, ModelLogo } from "../../../components/brand";
 import { groupConversationsByDate } from "../../../hooks/conversationGroups";
 import type { SettingsDestination } from "../../../pages/Settings/settingsIndex";
@@ -55,6 +56,7 @@ export function SearchModal({
   /** Open a stored file (in the shared side panel). Absent ⇒ no file rows. */
   onOpenFile?: (file: LibFile) => void;
 }) {
+  const t = useT();
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
 
@@ -152,7 +154,7 @@ export function SearchModal({
             setActive(0); // a new filter → highlight the top match
           }}
           onKeyDown={onKeyDown}
-          placeholder="Rechercher une section, une conversation, un fichier, un réglage…"
+          placeholder={t.modals.search.placeholder}
           className="search-input"
         />
         <span className="search-kbd">ESC</span>
@@ -166,7 +168,7 @@ export function SearchModal({
           className={`search-row search-row-new${activeIdx === 0 ? " is-active" : ""}`}
         >
           <PlusIcon size={16} />
-          <span className="search-row-title">Nouvelle conversation</span>
+          <span className="search-row-title">{t.modals.search.newChat}</span>
         </button>
 
         <SectionRows
@@ -182,7 +184,7 @@ export function SearchModal({
         />
 
         {nothing ? (
-          <div className="search-empty">Aucun résultat.</div>
+          <div className="search-empty">{t.modals.search.noResults}</div>
         ) : (
           groups.map((group) => (
             <div key={group.key}>

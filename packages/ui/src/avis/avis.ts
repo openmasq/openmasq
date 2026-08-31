@@ -55,19 +55,6 @@ export type FeedbackMood = "love" | "ok" | "meh";
 /** What kind of feedback it is. */
 export type FeedbackCategory = "idea" | "bug" | "love" | "other";
 
-export const FEEDBACK_MOODS: { id: FeedbackMood; glyph: string; label: string; tone: string }[] = [
-  // Glyphs are mono-font faces (the kit's), not emoji — Space Mono renders them.
-  { id: "love", glyph: "◕‿◕", label: "J'adore", tone: "lime" },
-  { id: "ok", glyph: "•‿•", label: "Correct", tone: "sky" },
-  { id: "meh", glyph: "•︵•", label: "Bof", tone: "amber" },
-];
-
-export const FEEDBACK_CATEGORIES: { id: FeedbackCategory; label: string }[] = [
-  { id: "idea", label: "Idée" },
-  { id: "bug", label: "Bug" },
-  { id: "love", label: "Compliment" },
-  { id: "other", label: "Autre" },
-];
 
 /**
  * The technical context, attached ONLY when the user leaves the toggle on.

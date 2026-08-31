@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ModalShell } from "./ModalShell";
 import { RefreshIcon, CopyIcon, CheckIcon } from "../../components/brand";
+import { useT } from "../../i18n";
 
 /**
  * Full detail of a send/tool error, opened from the compact error banner so the
@@ -17,6 +18,7 @@ export function ErrorDetailModal({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const t = useT();
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(detail);
@@ -30,12 +32,9 @@ export function ErrorDetailModal({
   return (
     <ModalShell onClose={onClose} width="600px" maxHeight="82vh">
       <div className="rrm-head">
-        <div className="cv-eyebrow rrm-eyebrow">ERREUR</div>
-        <h2 className="cv-display rrm-title">Détail de l'erreur</h2>
-        <p className="rrm-sub">
-          Le message brut du fournisseur / de l'outil. Il n'est pas ajouté à la
-          conversation.
-        </p>
+        <div className="cv-eyebrow rrm-eyebrow">{t.modals.error.eyebrow}</div>
+        <h2 className="cv-display rrm-title">{t.modals.error.title}</h2>
+        <p className="rrm-sub">{t.modals.error.sub}</p>
       </div>
 
       <div className="dbg-body-scroll">
@@ -45,7 +44,7 @@ export function ErrorDetailModal({
       <div className="confirm-footer">
         <button className="btn-ghost btn-inline" onClick={copy}>
           {copied ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
-          {copied ? "Copié" : "Copier"}
+          {copied ? t.modals.error.copied : t.modals.error.copy}
         </button>
         {onRetry && (
           <button
@@ -55,7 +54,7 @@ export function ErrorDetailModal({
               onRetry();
             }}
           >
-            <RefreshIcon size={14} /> Réessayer
+            <RefreshIcon size={14} /> {t.modals.error.retry}
           </button>
         )}
       </div>

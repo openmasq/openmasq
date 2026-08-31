@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useHost } from "../../host";
 import { ModalShell } from "./ModalShell";
+import { useT } from "../../i18n";
 
 type Choice = "account" | "anonymous";
 type Pending = { id: string; name: string; resolve: (choice: Choice) => void };
@@ -17,6 +18,7 @@ type Pending = { id: string; name: string; resolve: (choice: Choice) => void };
  * old dialog's cancel button), never blocking the connect.
  */
 export function McpAuthChoiceModal() {
+  const t = useT();
   const host = useHost();
   const [pending, setPending] = useState<Pending | null>(null);
   // Guards against a resolve firing twice (choose then unmount-close).
@@ -48,32 +50,25 @@ export function McpAuthChoiceModal() {
       {pending && (
         <ModalShell onClose={() => answer("anonymous")} width="480px">
           <div className="confirm-body">
-            <h2 className="cv-display confirm-title">Se connecter à {pending.name}</h2>
-            <p className="confirm-text">
-              {pending.name} peut être utilisé avec votre compte ou en accès anonyme. Vous pourrez
-              changer plus tard en le reconnectant.
-            </p>
+            <h2 className="cv-display confirm-title">{t.modals.mcpAuth.title(pending.name)}</h2>
+            <p className="confirm-text">{t.modals.mcpAuth.sub(pending.name)}</p>
           </div>
 
           <div className="sendmode-options">
             <button className="sendmode-opt sendmode-opt--accent" onClick={() => answer("account")}>
-              <span className="sendmode-opt-title">Se connecter avec mon compte</span>
-              <span className="sendmode-opt-desc">
-                Utilise vos crédits, quotas et accès — comme sur {pending.name}.
-              </span>
+              <span className="sendmode-opt-title">{t.modals.mcpAuth.withAccount}</span>
+              <span className="sendmode-opt-desc">{t.modals.mcpAuth.withAccountDesc(pending.name)}</span>
             </button>
 
             <button className="sendmode-opt" onClick={() => answer("anonymous")}>
-              <span className="sendmode-opt-title">Utiliser sans compte</span>
-              <span className="sendmode-opt-desc">
-                Accès anonyme, limité — aucun identifiant, quotas partagés.
-              </span>
+              <span className="sendmode-opt-title">{t.modals.mcpAuth.anonymous}</span>
+              <span className="sendmode-opt-desc">{t.modals.mcpAuth.anonymousDesc}</span>
             </button>
           </div>
 
           <div className="confirm-footer">
             <button className="btn-ghost" onClick={() => answer("anonymous")}>
-              Annuler
+              {t.modals.mcpAuth.cancel}
             </button>
           </div>
         </ModalShell>

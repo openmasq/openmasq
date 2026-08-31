@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import {
   buildFeedback,
@@ -6,11 +7,14 @@ import {
   debugJournalDraft,
   messageFeedbackDraft,
   EMPTY_FEEDBACK,
-  FEEDBACK_CATEGORIES,
-  FEEDBACK_MOODS,
+
   MAX_AVIS_JOURNAL,
   type FeedbackDraft,
 } from "./avis";
+import { feedbackCategories, feedbackMoods } from "./vocabulary";
+
+/* Les ids et l'ordre ne dépendent d'aucune langue — le catalogue français suffit. */
+const fr = getMessages("fr");
 
 const draft = (p: Partial<FeedbackDraft> = {}): FeedbackDraft => ({
   ...EMPTY_FEEDBACK,
@@ -143,8 +147,8 @@ describe("buildFeedback", () => {
 
 describe("vocabularies", () => {
   it("expose stable ids", () => {
-    expect(FEEDBACK_MOODS.map((m) => m.id)).toEqual(["love", "ok", "meh"]);
-    expect(FEEDBACK_CATEGORIES.map((c) => c.id)).toEqual(["idea", "bug", "love", "other"]);
+    expect(feedbackMoods(fr).map((m) => m.id)).toEqual(["love", "ok", "meh"]);
+    expect(feedbackCategories(fr).map((c) => c.id)).toEqual(["idea", "bug", "love", "other"]);
   });
 });
 

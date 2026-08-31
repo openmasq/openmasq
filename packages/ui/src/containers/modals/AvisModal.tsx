@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useT } from "../../i18n";
 import { ModalShell } from "./ModalShell";
 import { ModalTitle } from "./ModalTitle";
 import { Switch, CheckIcon, FeedbackIcon, ShieldIcon } from "../../components/brand";
@@ -11,11 +12,11 @@ import {
   carriesJournal,
   EMPTY_FEEDBACK,
   MAX_AVIS_MESSAGE,
-  FEEDBACK_CATEGORIES,
-  FEEDBACK_MOODS,
+
   type FeedbackContext,
   type FeedbackDraft,
 } from "../../avis/avis";
+import { feedbackCategories, feedbackMoods } from "../../avis/vocabulary";
 
 /**
  * "Votre avis" — the rail's feedback modal.
@@ -45,6 +46,7 @@ export function AvisModal({
    *  export exactly like the journal modal does; absent ⇒ app-level entries only. */
   convId?: string | null;
 }) {
+  const t = useT();
   const host = useHost();
   const [draft, setDraft] = useState<FeedbackDraft>(prefill ?? EMPTY_FEEDBACK);
   const [sent, setSent] = useState(false);
@@ -103,8 +105,8 @@ export function AvisModal({
           <FeedbackIcon size={22} />
         </span>
         <div className="om-avis-head-text">
-          <ModalTitle marker={false}>Votre avis</ModalTitle>
-          <div className="om-avis-sub">Dites-nous ce qui marche — ou ce qui coince. On lit tout.</div>
+          <ModalTitle marker={false}>{t.modals.avis.title}</ModalTitle>
+          <div className="om-avis-sub">{t.modals.avis.sub}</div>
         </div>
       </div>
 
@@ -113,14 +115,14 @@ export function AvisModal({
           <span className="om-avis-done-glyph">
             <CheckIcon size={30} />
           </span>
-          <div className="cv-display om-avis-done-title">Merci !</div>
+          <div className="cv-display om-avis-done-title">{t.modals.avis.thanks}</div>
           <p className="om-avis-done-text">
             {journal && draft.attachJournal !== false
-              ? "Message reçu, avec le journal de débogage — sans la table de correspondance, donc sans vos valeurs réelles."
-              : "Message reçu. Aucun contenu de vos conversations n'a été joint."}
+              ? t.modals.avis.thanksWithJournal
+              : t.modals.avis.thanksPlain}
           </p>
           <button type="button" className="btn-primary" onClick={onClose}>
-            Fermer
+            {t.modals.avis.close}
           </button>
         </div>
       ) : (
@@ -132,10 +134,11 @@ export function AvisModal({
                   send would still read as required, and the user would still pick one to
                   be safe: the friction we removed would just move into their head. */}
               <label className="cv-eyebrow">
-                Comment ça se passe ?{moodOptional && <span className="om-avis-optional"> · facultatif</span>}
+                {t.modals.avis.moodLabel}
+                {moodOptional && <span className="om-avis-optional">{t.modals.avis.optional}</span>}
               </label>
               <div className="om-avis-moods">
-                {FEEDBACK_MOODS.map((m) => {
+                {feedbackMoods(t).map((m) => {
                   const on = draft.mood === m.id;
                   return (
                     <button
@@ -156,9 +159,9 @@ export function AvisModal({
             </div>
 
             <div className="om-avis-field">
-              <label className="cv-eyebrow">Type de retour</label>
+              <label className="cv-eyebrow">{t.modals.avis.categoryLabel}</label>
               <div className="om-avis-cats">
-                {FEEDBACK_CATEGORIES.map((c) => (
+                {feedbackCategories(t).map((c) => (
                   <button
                     key={c.id}
                     type="button"
@@ -174,14 +177,14 @@ export function AvisModal({
 
             <div className="om-avis-field">
               <label className="cv-eyebrow" htmlFor="om-avis-msg">
-                Votre message
+                {t.modals.avis.messageLabel}
               </label>
               <textarea
                 id="om-avis-msg"
                 className="om-avis-textarea"
                 value={draft.message}
                 onChange={(e) => patch({ message: e.target.value })}
-                placeholder="Ce que vous aimez, ce qui vous a bloqué, ce qui manque…"
+                placeholder={t.modals.avis.messagePlaceholder}
                 rows={5}
                 maxLength={MAX_AVIS_MESSAGE}
                 autoFocus
@@ -191,11 +194,8 @@ export function AvisModal({
             <label className="om-avis-attach">
               <Switch checked={draft.attachContext} onChange={(v) => patch({ attachContext: v })} />
               <span>
-                <span className="om-avis-attach-title">Joindre le contexte technique</span>
-                <span className="om-avis-attach-sub">
-                  Version de l'app, écran actuel et identifiant d'installation. Jamais le
-                  contenu de vos conversations.
-                </span>
+                <span className="om-avis-attach-title">{t.modals.avis.attachContext}</span>
+                <span className="om-avis-attach-sub">{t.modals.avis.attachContextSub}</span>
               </span>
             </label>
 
@@ -212,7 +212,7 @@ export function AvisModal({
                     onChange={(v) => patch({ attachJournal: v })}
                   />
                   <span>
-                    <span className="om-avis-attach-title">Joindre le journal de débogage</span>
+                    <span className="om-avis-attach-title">{t.modals.avis.attachJournal}</span>
                     <span className="om-avis-attach-sub">
                       Le texte parti au modèle (déjà redacted), les outils et les erreurs — sans la
                       table de correspondance, donc aucune valeur réelle. Aperçu ci-dessous.

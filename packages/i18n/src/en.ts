@@ -11,6 +11,7 @@ import { chat, chrome, composer } from "./en/chrome";
 import { billing, common, nav } from "./en/common";
 import { language } from "./en/language";
 import { docViews, downloads, menus } from "./en/menus";
+import { modals } from "./en/modals";
 import { privacyLevels, redactTypes, webNav } from "./en/privacy";
 import { sections } from "./en/sections";
 import { settings } from "./en/settings";
@@ -57,6 +58,7 @@ export const en = {
   downloads,
   language,
   menus,
+  modals,
   nav,
   privacyLevels,
   redactTypes,

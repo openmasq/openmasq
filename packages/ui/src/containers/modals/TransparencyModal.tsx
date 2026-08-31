@@ -3,6 +3,7 @@ import { ModalShell } from "./ModalShell";
 import { EyeIcon, IconButton, ShieldIcon, XIcon } from "../../components/brand";
 import { transparencyPairs, type TransparencyPair } from "../../privacy/transparency";
 import { conversationProtectedCount } from "../../state/protectedCount";
+import { useT } from "../../i18n";
 import type { Conversation } from "../../types";
 
 /**
@@ -34,6 +35,7 @@ export function TransparencyModal({
   // de coffre — celui-ci porte les alias d'une même valeur, et ce panneau est justement
   // celui où le chiffre annoncé se compte à l'écran.
   const total = conversationProtectedCount(conversation);
+  const t = useT();
 
   return (
     <ModalShell onClose={onClose} width="880px" maxHeight="84vh">
@@ -42,23 +44,19 @@ export function TransparencyModal({
           <ShieldIcon size={18} />
         </span>
         <div className="rlog-head-text">
-          <div className="rlog-title">Ce que le modèle a vu</div>
+          <div className="rlog-title">{t.modals.transparency.title}</div>
           <div className="rlog-sub">
-            {total} information{total === 1 ? "" : "s"} remplacée{total === 1 ? "" : "s"} avant
-            d'atteindre {modelName ?? "le modèle"}. À gauche votre texte, à droite ce qui est parti.
+            {t.modals.transparency.sub(total, modelName ?? t.modals.transparency.theModel)}
           </div>
         </div>
-        <IconButton label="Fermer" size="sm" onClick={onClose}>
+        <IconButton label={t.modals.transparency.close} size="sm" onClick={onClose}>
           <XIcon size={18} />
         </IconButton>
       </div>
 
       <div className="rlog-body">
         {pairs.length === 0 ? (
-          <div className="rlog-empty">
-            Rien de sensible n'a été détecté dans cette conversation : le modèle a reçu vos
-            messages tels quels.
-          </div>
+          <div className="rlog-empty">{t.modals.transparency.empty}</div>
         ) : (
           <div className="tsp-list">
             {pairs.map((p) => (

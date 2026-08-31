@@ -30,6 +30,7 @@ import type { ChatMessages, ChromeMessages, ComposerMessages } from "./messages/
 import type { BillingMessages, CommonMessages, NavMessages } from "./messages/common";
 import type { LanguageMessages } from "./messages/language";
 import type { DocViewsMessages, DownloadsMessages, MenusMessages } from "./messages/menus";
+import type { ModalsMessages } from "./messages/modals";
 import type {
   PrivacyLevelsMessages,
   RedactTypesMessages,
@@ -87,6 +88,7 @@ export interface Messages {
   composer: ComposerMessages;
   cards: CardsMessages;
   menus: MenusMessages;
+  modals: ModalsMessages;
   privacyLevels: PrivacyLevelsMessages;
   redactTypes: RedactTypesMessages;
   downloads: DownloadsMessages;

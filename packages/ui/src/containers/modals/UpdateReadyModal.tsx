@@ -2,7 +2,8 @@ import { ModalShell } from "./ModalShell";
 import { ModalTitle } from "./ModalTitle";
 import { RefreshIcon } from "../../components/brand";
 import { ReleaseNoteBody } from "../../components/releaseNotes";
-import { frenchDate, type ReleaseNote } from "../../state/releaseNotes";
+import { releaseDate, type ReleaseNote } from "../../state/releaseNotes";
+import { useLocale, useT } from "../../i18n";
 import { BRAND } from "@openmasq/branding";
 
 /**
@@ -29,6 +30,8 @@ export function UpdateReadyModal({
   onClose: () => void;
   onInstall: () => void;
 }) {
+  const t = useT();
+  const { locale } = useLocale();
   return (
     <ModalShell onClose={onClose} width="min(560px, 94vw)" maxHeight="82vh">
       <div className="om-upd">
@@ -37,11 +40,11 @@ export function UpdateReadyModal({
             <RefreshIcon size={18} />
           </span>
           <div>
-            <div className="cv-eyebrow">MISE À JOUR PRÊTE</div>
+            <div className="cv-eyebrow">{t.modals.updateReady.eyebrow}</div>
             <ModalTitle>{note?.title || `${BRAND.name} ${version}`}</ModalTitle>
             <p className="om-upd-sub">
-              Version {version}
-              {note?.releaseDate ? ` · ${frenchDate(note.releaseDate)}` : ""}
+              {t.modals.updateReady.version(version)}
+              {note?.releaseDate ? ` · ${releaseDate(note.releaseDate, locale)}` : ""}
             </p>
           </div>
         </div>
@@ -52,18 +55,16 @@ export function UpdateReadyModal({
           ) : (
             // Pas de note publiée pour cette version : le dire, plutôt que d'ouvrir sur
             // un blanc qui se lit comme une panne de l'app.
-            <p className="om-upd-empty">
-              Les nouveautés de cette version ne sont pas encore publiées.
-            </p>
+            <p className="om-upd-empty">{t.modals.updateReady.noNote}</p>
           )}
         </div>
 
         <div className="om-upd-foot">
           <button type="button" className="btn-ghost" onClick={onClose}>
-            Plus tard
+            {t.modals.updateReady.later}
           </button>
           <button type="button" className="btn-primary" onClick={onInstall}>
-            Redémarrer maintenant
+            {t.modals.updateReady.restartNow}
           </button>
         </div>
       </div>
