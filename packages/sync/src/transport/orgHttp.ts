@@ -62,14 +62,14 @@ export function orgHttpTransport(opts: HttpTransportOptions): OrgScopeTransport 
 
   return {
     async getMyMemberKey(): Promise<MemberKeyEnvelope | null> {
-      const out = await call<{ key: MemberKeyEnvelope | null }>("/sync/member-keyss", {
+      const out = await call<{ key: MemberKeyEnvelope | null }>("/sync/member-key", {
         headers: await dev(),
       });
       return out?.key ?? null;
     },
 
     async putMemberKey(envelope, replace): Promise<MemberKeyEnvelope> {
-      const out = await call<{ key: MemberKeyEnvelope }>("/sync/member-keyss", {
+      const out = await call<{ key: MemberKeyEnvelope }>("/sync/member-key", {
         method: "PUT",
         body: JSON.stringify({ key: envelope, replace: !!replace }),
         headers: await dev(),
