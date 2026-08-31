@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   # The path filter. It used to gate the backend e2e and the server deployments, which left
-  # for the private `infra` repo on 31/08/2026; it stays for the next job it will gate.
+  # for the private `infra` repo on 31/08/2026; today it gates the corpus benches.
   # The `ci` job itself stays UNGATED (it IS the required status check -
   # path-skipping a required check would leave a PR forever "waiting").
   changes:
@@ -42,8 +42,9 @@ jobs:
     outputs:
       # No more server job here: the API, the gateway, the console, the Worker and the
       # relays have lived in the private `infra` repo since 31/08/2026, with their
-      # workflows. The filter stays in place for the next job it will gate.
+      # workflows.
       packages: ${{ steps.f.outputs.packages }}
+      corpus: ${{ steps.f.outputs.corpus }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -59,6 +60,15 @@ jobs:
             packages:
               - 'packages/**'
               - 'pnpm-lock.yaml'
+            # The recall benches only move when the ENGINE moves — the same scope the
+            # nightly pass in corpus.yml complements (a drift can also come from a
+            # dependency bump, which the nightly net catches).
+            corpus:
+              - 'packages/redact/**'
+              - 'packages/tesseract2/**'
+              - 'packages/ort/**'
+              - 'packages/catalog/**'
+              - '.github/workflows/corpus.yml'
 
   # The verification itself. The job keeps the `ci` identifier: it's the context that
   # Terraform names in `github_required_status_checks` (the day an admin token
@@ -93,6 +103,16 @@ jobs:
     secrets:
       POSTHOG_INGEST_KEY: ${{ secrets.POSTHOG_INGEST_KEY }}
       ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
+
+  # The corpus recall benches, when the diff touches the engine (see the `changes`
+  # filter). ⚠️ Deliberately ABSENT from `verdict.needs`: the benches MEASURE, they
+  # gate no deployment — the floors fail loudly on an engine regression, but a red
+  # bench must never leave a docs-only PR (or a release) waiting on a recall number.
+  # Same doctrine as the nightly pass in corpus.yml.
+  corpus:
+    needs: changes
+    if: needs.changes.outputs.corpus == 'true'
+    uses: ./.github/workflows/corpus.yml
 
   # FEATURES.md drift NUDGE (rule 13) — non-blocking on purpose, and specific to this
   # context: it diffs against a base that only the PR/push event supplies, which is
