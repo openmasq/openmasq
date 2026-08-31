@@ -150,15 +150,15 @@ export interface McpAgentParams {
   kinds?: Record<string, string>;
   secrets: string[];
   disabledKinds: string[];
-  /** Les domaines des intégrations CONNECTÉES (`send/redactKeep.ts` `connectedUrlHosts`) :
-   *  les sous-parties d'un lien qui pointe vers l'une d'elles restent en clair, y compris
-   *  sur le chemin clear-mode. Absent ⇒ aucune exemption. */
+  /** The domains of CONNECTED integrations (`send/redactKeep.ts` `connectedUrlHosts`):
+   *  the sub-parts of a link pointing to one of them stay in clear, including
+   *  on the clear-mode path. Absent ⇒ no exemption. */
   structuralUrlHosts?: string[];
   /** MCP connector ids the org disallows: their tools are stripped from this turn
    *  so a member can't invoke a blocked connector even if it's already connected.
    *  Ids are catalog ids (`gmail`, `notion`, `filesystem`); a live server's id may
    *  carry a `broker-`/`local-` prefix, which is normalised away before matching. */
-  /** Allow-list de connecteurs ; `undefined` = pas d'organisation. */
+  /** Connector allow-list; `undefined` = no organization. */
   allowedServerIds?: string[];
   /** Agent-browser hardening (prompt-injection damage limiters):
    *  - `browserReadOnly` strips the browser's interaction/mutation tools (click/
@@ -168,11 +168,11 @@ export interface McpAgentParams {
    *    unrestricted; the human URL bar is unaffected). */
   browserReadOnly?: boolean;
   browserAllowedDomains?: string[];
-  /** Les connecteurs auxquels l'utilisateur a SCOPÉ ce send (`Workflow.servers`).
-   *  Le routage garantit que leurs outils restent appelables même si le routeur — un
-   *  appel de modèle, donc faillible — ne les a pas retenus. C'est un ÉLARGISSEMENT de
-   *  l'offre, jamais une restriction : les gates d'écriture et le reste du catalogue
-   *  sont inchangés (un workflow scopé peut toujours appeler un autre connecteur). */
+  /** The connectors the user has SCOPED this send to (`Workflow.servers`).
+   *  Routing guarantees their tools stay callable even when the router — a
+   *  model call, hence fallible — didn't keep them. This is a WIDENING of
+   *  the offer, never a restriction: the write gates and the rest of the catalog
+   *  stay unchanged (a scoped workflow can still call another connector). */
   scopedConnectors?: string[];
   /** The app HAS a built-in web browser that can be enabled (`host.mcp.enableBrowser`),
    *  even if it isn't connected right now. When true, the loop never suggests a paid
@@ -393,9 +393,9 @@ async function selectTools(p: McpAgentParams, all: McpTool[], loopId?: string): 
     },
     p.convId,
   );
-  // Le verdict du routeur, gardé pour que le rattrapage ci-dessous s'AJOUTE à la ligne
-  // au lieu de l'écraser : « pick VIDE » puis « 2/296 » sans rien entre les deux était
-  // exactement l'illisibilité du journal du 27/07/2026.
+  // The router's verdict, kept so the rescue below ADDS to the line
+  // instead of overwriting it: « pick VIDE » then « 2/296 » with nothing in between was
+  // exactly the illegibility of the 27/07/2026 journal.
   let routeDetail = "";
   // Cooldown: a recent router failure (usually configuration — provider 401) skips
   // straight to the deterministic pare instead of burning a dead round-trip per send.
@@ -425,23 +425,23 @@ async function selectTools(p: McpAgentParams, all: McpTool[], loopId?: string): 
       ? `pick routeur : ${kept.length}/${all.length} — ${kept.slice(0, 12).map((t) => t.name).join(", ")}${kept.length > 12 ? "…" : ""}`
       : `pick routeur VIDE (0/${all.length}) — la boucle continue avec le catalogue + load_tools`;
     updateDebug(routePhase, { ok: true, detail: routeDetail });
-    // Un pick VIDE est un raté mesurable : le modèle repart sans aucun outil connecteur et
-    // doit passer par `load_tools`, soit deux tours d'attente pour l'utilisateur. Rien ne
-    // le comptait — d'où l'impossibilité de dire si le routeur vise juste (journal du
-    // 27/07/2026 : vide sur une demande qui NOMMAIT le connecteur).
+    // An EMPTY pick is a measurable miss: the model goes on with no connector tool at
+    // all and must go through `load_tools`, i.e. two turns of waiting for the user. Nothing
+    // counted it — hence the impossibility of telling whether the router aims true (27/07/2026
+    // journal: empty on a request that NAMED the connector).
     if (!kept.length) {
       captureEvent({ name: "tool_route_miss", kind: "empty", offered: 0, available: all.length, connector: "", provider: p.provider, model: p.modelId, loopId });
     }
   } catch (e) {
-    // STOP pendant l'appel du routeur — ni une panne, ni un modèle capricieux.
-    // `host.cancelTools(requestId)` aborte CE fetch (le routeur partage le `requestId`
-    // du tour), et ce `catch` le lisait comme « routeur en échec » : il armait le
-    // cooldown de 5 min — le routage restait dégradé pour les envois SUIVANTS —,
-    // comptait un `tool_route_miss` qui pollue la mesure du routeur, puis retombait sur
-    // le pare déterministe. La boucle repartait donc de plus belle : c'est ce qui faisait
-    // que Stop, cliqué pendant le routage, ne stoppait rien (journal du 11/08/2026 :
-    // onze `action:stop` puis un `tool_route_miss` et le tour qui continue).
-    // On rend la main tout de suite ; l'`aborted()` en tête de boucle finalise la bulle.
+    // STOP during the router call — neither a failure nor a capricious model.
+    // `host.cancelTools(requestId)` aborts THIS fetch (the router shares the turn's
+    // `requestId`), and this `catch` read it as "router failed": it armed the
+    // 5-min cooldown — routing stayed degraded for the FOLLOWING sends —,
+    // counted a `tool_route_miss` that pollutes the router's measurement, then fell back on
+    // the deterministic pare. The loop then started right back up: that's what made
+    // Stop, clicked during routing, stop nothing (11/08/2026 journal:
+    // eleven `action:stop` then a `tool_route_miss` and the turn continuing).
+    // We return control right away; the `aborted()` at the head of the loop finalizes the bubble.
     if (p.signal?.aborted || isAbortError(e)) {
       updateDebug(routePhase, { ok: false, detail: "routage interrompu (Stop)" });
       return [];
@@ -455,13 +455,13 @@ async function selectTools(p: McpAgentParams, all: McpTool[], loopId?: string): 
     routeDetail = `routeur en échec (${e instanceof Error ? e.message.slice(0, 120) : "?"}) → repli déterministe : ${kept.length}/${all.length} outils`;
     updateDebug(routePhase, { ok: false, detail: routeDetail });
   }
-  // Le routeur est un appel de modèle : il élague l'outil D'ENTRÉE dont la demande ne
-  // peut pas se passer (le navigateur sur une question d'actualité, l'énumération sur une
-  // question de fichiers). Les rattrapages — additifs, bornés, `load_tools` gardant le
-  // reste à portée — vivent dans `entryTools.ts`, avec leurs raisons.
+  // The router is a model call: it prunes the ENTRY tool that the request
+  // can't do without (the browser for a news question, enumeration for a
+  // files question). The rescues — additive, bounded, `load_tools` keeping the
+  // rest within reach — live in `entryTools.ts`, with their reasons.
   kept = rescueEntryTools(kept, all, userText);
-  // Rattrapages CONNECTEUR — le scopé (toujours) puis le nommé (pick vide seulement) ;
-  // raisons et bornes dans `connectorRescue.ts`.
+  // CONNECTOR rescues — the scoped one (always) then the named one (empty pick only);
+  // reasons and bounds in `connectorRescue.ts`.
   {
     const s = rescueScopedConnectors(kept, all, p.scopedConnectors ?? [], win);
     const n = rescueNamedConnectors(s.kept, all, userText, win);
@@ -473,12 +473,12 @@ async function selectTools(p: McpAgentParams, all: McpTool[], loopId?: string): 
       updateDebug(routePhase, { ok: true, detail: `${routeDetail} · rattrapage : ${parts.join(", ")}` });
   }
   if (estToolTokens(kept) > win * 0.85) {
-    // Le routeur peut légitimement TOUT retenir (« teste-les tous » → 296/296), et les seules
-    // définitions dépassent alors le contexte du modèle. Ce n'est pas une panne : c'est une
-    // limite de capacité, et le produit sait déjà la contourner — `fitToBudget` garde les
-    // schémas les moins verbeux, `load_tools` rend le reste accessible à la demande, et c'est
-    // exactement le chemin emprunté quand le routeur ÉCHOUE. Refuser le tour renvoyait
-    // l'utilisateur à « déconnecte des connecteurs » alors que l'app pouvait répondre.
+    // The router can legitimately keep EVERYTHING (« test them all » → 296/296), and the mere
+    // definitions then exceed the model's context. This is not a failure: it's a
+    // capacity limit, and the product already knows how to work around it — `fitToBudget` keeps
+    // the least verbose schemas, `load_tools` makes the rest accessible on demand, and it's
+    // exactly the path taken when the router FAILS. Refusing the turn sent
+    // the user back to "disconnect some connectors" when the app could have answered.
     const fitted = fitToBudget(kept, win, p.routingConfig?.catalog);
     if (fitted.length) {
       updateDebug(routePhase, {
@@ -489,8 +489,8 @@ async function selectTools(p: McpAgentParams, all: McpTool[], loopId?: string): 
       });
       return fitted;
     }
-    // Rien ne tient, même le schéma le plus court : là, c'est une vraie impasse et elle
-    // se dit (règle produit : une panne réelle est toujours montrée, jamais silencieuse).
+    // Nothing fits, not even the shortest schema: this time it's a genuine dead end and it
+    // says so (product rule: a real failure is always shown, never silent).
     const est = Math.round(estToolTokens(kept) / 1000);
     const ctx = Math.round(win / 1000);
     throw new Error(
@@ -570,8 +570,8 @@ const DEAD_END_RE =
 export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
   if (!p.host.mcp || !p.host.completeTools) return false;
   const mcp = p.host.mcp;
-  const loopId = globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`; // le funnel agentique (events.ts)
-  const loopT0 = Date.now(); // la durée wall-clock du résumé (3 tours en 20 s ≠ en 12 min)
+  const loopId = globalThis.crypto?.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`; // the agentic funnel (events.ts)
+  const loopT0 = Date.now(); // the summary's wall-clock duration (3 turns in 20s ≠ in 12min)
   // Every Debug-Log entry from this turn is stamped with the conversation, so the
   // journal is scoped per conversation (concurrent per-tab turns never interleave).
   const dbg = (e: Parameters<typeof pushDebug>[0]): string => pushDebug(e, p.convId);
@@ -623,7 +623,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
   // Deriving from a second un-redactor lets the card and the wire drift; `mcpAgent.test.ts`
   // pins the encoded case.
   const wireArg = (text: string): string => unredactArgs(text, p.vault);
-  // ── Redaction DYNAMIQUE du navigateur (clear-mode) ──────────────────────────── A governed
+  // ── DYNAMIC browser redaction (clear-mode) ──────────────────────────────────── A governed
   // web tool (integrated browser / catalog `search` connector — never a name-derived class)
   // whose call touches NO redacted data is reading PUBLIC content: its results reach the model
   // replay-only (`makeNavClearRedactor` — which itself escalates fail-closed on a Coffre hit /
@@ -634,8 +634,8 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
   // (the relaxation is only ever granted on an explicit "clean" verdict). Loop-level counters
   // for the `tool_loop_summary` analytics event (counts only).
   const loopStats = { toolCalls: 0, loadToolsUnknown: 0, navClear: 0, navEscalated: 0 };
-  // Une PORTE DÉTERMINISTE a refusé/bloqué un appel — dont le refus UTILISATEUR de la
-  // carte d'écriture, jusqu'ici sans aucune donnée (audit 13/08). Enums + noms seulement.
+  // A DETERMINISTIC GATE refused/blocked a call — including the USER'S decline of the
+  // write card, until now with no data at all (13/08 audit). Enums + names only.
   const gateBlocked = (kind: Extract<Parameters<typeof captureEvent>[0], { name: "tool_gate_blocked" }>["kind"], tool: string, connector: string) =>
     captureEvent({ name: "tool_gate_blocked", kind, tool, connector, provider: p.provider, model: p.modelId, loopId });
   const navClearRedactor = redactResult

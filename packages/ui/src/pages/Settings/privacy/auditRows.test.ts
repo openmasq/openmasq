@@ -41,9 +41,9 @@ describe("buildAuditGroups", () => {
     expect(groups.map((g) => g.at)).toEqual([99, 10]);
   });
 
-  // Le fait que la vue doit rendre visible : le sel est par conversation, donc la MÊME
-  // valeur réelle porte un remplaçant différent d'un fil à l'autre. Aplati, ça se lisait
-  // comme une incohérence ; groupé, c'est la garantie qui se voit.
+  // The fact the view must make visible: the salt is per conversation, so the SAME
+  // real value carries a different replacement from one thread to another. Flattened, this read
+  // like an inconsistency; grouped, it's the guarantee made visible.
   it("la même valeur réelle garde SON faux dans chaque conversation", () => {
     const groups = buildAuditGroups([
       conv({ id: "a", updatedAt: 2, redactionVault: { "Marc Rebour": "Julien Sabourdin" } }),
@@ -131,8 +131,8 @@ describe("filterAuditGroups", () => {
 });
 
 describe("takeAuditRows", () => {
-  // Le piège que ça évite : paginer les GROUPES ferait arriver une conversation à 500
-  // entrées d'un seul bloc, parce qu'elle tient sur un seul en-tête.
+  // The trap this avoids: paginating by GROUP would bring in a 500-entry
+  // conversation as a single block, because it sits under one header.
   it("compte les LIGNES, pas les groupes", () => {
     const out = takeAuditRows(groups, 1);
     expect(out).toHaveLength(1);

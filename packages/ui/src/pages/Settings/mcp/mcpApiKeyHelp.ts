@@ -23,7 +23,7 @@ export interface ApiKeyHelp {
   steps: readonly string[];
 }
 
-/** Les FAITS de la clé de chaque connecteur — où elle se règle, et où elle se prend. */
+/** The FACTS about each connector's key — where it's configured, and where it's obtained. */
 const API_KEY_SHAPE: Record<string, Omit<ApiKeyHelp, "keyLabel" | "steps">> = {
   exa: { keyIn: "query", param: "exaApiKey", keyUrl: "https://dashboard.exa.ai/api-keys" },
   tavily: { keyIn: "query", param: "tavilyApiKey", keyUrl: "https://app.tavily.com/home" },
@@ -31,7 +31,7 @@ const API_KEY_SHAPE: Record<string, Omit<ApiKeyHelp, "keyLabel" | "steps">> = {
 };
 
 /** The API-key help for a connector id, or undefined if none is documented. */
-/** La fiche complète — faits + copie dans la langue de `t`. */
+/** The complete record — facts + copy in `t`'s language. */
 export function apiKeyHelp(id: string, t: Messages): ApiKeyHelp | undefined {
   const shape = API_KEY_SHAPE[id];
   const copy = (
@@ -57,9 +57,9 @@ export function composeApiKeyUrl(
 }
 
 /**
- * Ce que l'hôte doit recevoir pour connecter un service à clé : l'adresse portant la clé
- * en paramètre, ou la clé nue (en-tête). La FORME suffit — pas de copie, donc pas de
- * langue : le connecteur dit où va sa clé, `useMcpConnectors` n'a plus à le savoir.
+ * What the host needs to receive to connect a key-based service: the URL carrying the key
+ * as a param, or the bare key (header). The SHAPE is enough — no copy, hence no
+ * language: the connector says where its key goes, `useMcpConnectors` no longer needs to know.
  */
 export function apiKeyConnectOpts(
   id: string,

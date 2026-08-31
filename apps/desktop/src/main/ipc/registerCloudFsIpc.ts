@@ -2,16 +2,16 @@ import { ipcMain } from "electron";
 import { cloudList, cloudSources } from "../cloudfs";
 
 /**
- * `cloudfs:*` — parcourir un stockage connecté (Drive, OneDrive, Dropbox) depuis le panneau
- * « Dossiers », en regard des dossiers locaux.
+ * `cloudfs:*` — browse a connected storage (Drive, OneDrive, Dropbox) from the "Folders"
+ * panel, alongside local folders.
  *
- * Le pourquoi et la posture de sécurité vivent avec le code qu'ils gouvernent :
- * `../cloudfs/index.ts`. Ici, deux règles de la maison seulement :
- *  - **une ENVELOPPE plutôt qu'un throw** : `ipcRenderer.invoke` transforme une erreur en
- *    « Error invoking remote method … », et le panneau doit montrer la vraie raison
- *    (« ce stockage n'est pas connecté ») ;
- *  - **aucun secret dans la réponse** : des noms de fichiers et des identifiants de
- *    fournisseur, jamais un jeton.
+ * The why and the security posture live with the code that governs them:
+ * `../cloudfs/index.ts`. Here, just two house rules:
+ *  - **an ENVELOPE rather than a throw**: `ipcRenderer.invoke` turns an error into
+ *    "Error invoking remote method …", and the panel must show the real reason
+ *    ("this storage isn't connected");
+ *  - **no secret in the response**: file names and provider
+ *    ids, never a token.
  */
 
 type Envelope = { ok: true; data: unknown } | { ok: false; error: string };
@@ -34,8 +34,8 @@ export function registerCloudFsIpc(): void {
     try {
       const { sourceId, folderId } = (arg ?? {}) as { sourceId?: unknown; folderId?: unknown };
       if (typeof sourceId !== "string") throw new Error("Source manquante.");
-      // `null` = la racine du compte. Tout le reste doit être une chaîne, validée plus bas
-      // avant d'entrer dans une URL de fournisseur ou dans l'argument d'un outil.
+      // `null` = the account root. Everything else must be a string, validated further down
+      // before entering a provider URL or a tool's argument.
       const folder = typeof folderId === "string" ? folderId : null;
       return { ok: true, data: await cloudList(sourceId, folder) };
     } catch (e) {

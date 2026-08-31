@@ -3,15 +3,15 @@ import { existsSync } from "node:fs";
 import { protocolAction } from "./deepLink";
 
 /**
- * S'annoncer (ou non) au système comme handler du schéma de deep-link de l'app.
+ * Register (or not) with the system as the handler for the app's deep-link scheme.
  *
- * Un module à part parce que l'enregistrement LaunchServices est PERSISTANT : il survit à
- * l'arrêt du processus, et une déclaration fantaisiste se paie longtemps après. La RÈGLE
- * (qui a le droit) est pure et testée dans `deepLink.ts` ; ici il ne reste que l'appel
- * Electron et la résolution du chemin d'app.
+ * A separate module because the LaunchServices registration is PERSISTENT: it survives
+ * process exit, and a bogus declaration is paid for long after. The RULE
+ * (who has the right) is pure and tested in `deepLink.ts`; what's left here is just the
+ * Electron call and resolving the app path.
  *
- * ⚠️ `app.getAppPath()` et jamais argv (« . » sous electron-vite dev, donc résolu contre le
- * cwd du LANCEUR) : même fait, même source qu'`appEntry.ts`.
+ * ⚠️ `app.getAppPath()` and never argv ("." under electron-vite dev, so resolved against the
+ * LAUNCHER's cwd): same fact, same source as `appEntry.ts`.
  */
 export function registerProtocolClient(scheme: string): void {
   const entry = process.defaultApp ? app.getAppPath() : null;
@@ -25,8 +25,8 @@ export function registerProtocolClient(scheme: string): void {
     if (devEntry) app.setAsDefaultProtocolClient(scheme, process.execPath, [devEntry]);
     else app.setAsDefaultProtocolClient(scheme);
   } else if (action === "unregister") {
-    // Répare la machine du développeur : l'enregistrement volé par un `pnpm dev` précédent
-    // (souvent celui d'un AUTRE worktree) est retiré au lancement suivant.
+    // Repairs the developer's machine: the registration stolen by a previous `pnpm dev`
+    // (often another worktree's) is removed on the next launch.
     app.removeAsDefaultProtocolClient(scheme);
   }
 }

@@ -27,8 +27,8 @@ export function McpTab({
 } = {}) {
   const t = useT();
   const host = useHost();
-  // L'objet entier est passé tel quel à `McpModals` (la pile de modales, partagée avec
-  // `ConnectorModalHost`) ; l'onglet ne destructure que ce que sa GRILLE affiche.
+  // The whole object is passed as-is to `McpModals` (the modal stack, shared with
+  // `ConnectorModalHost`); the tab only destructures what its GRID displays.
   const c = useMcpConnectors({ allowedMcpIds, requestedConnector });
   const {
     servers,
@@ -52,9 +52,9 @@ export function McpTab({
   // its OTHER devices (config only — no credential syncs; "Connecter" runs THIS
   // device's own OAuth/key flow via the existing connector modal). Hidden when
   // every remote entry is already connected here (matched by connector+label).
-  // ⚠️ AVANT le retour anticipé `!host.mcp` : un hook après un return conditionnel rend
-  // l'ordre des hooks dépendant du slot de plateforme — latent aujourd'hui (`host` est
-  // stable par plateforme), un crash le jour où il ne l'est plus (règles des hooks).
+  // ⚠️ BEFORE the early return `!host.mcp`: a hook after a conditional return makes
+  // hook order depend on the platform slot — latent today (`host` is
+  // stable per platform), a crash the day it no longer is (rules of hooks).
   const [remote, setRemote] = useState<
     { id: string; connectorId: string; name: string; label?: string }[]
   >([]);
@@ -177,8 +177,8 @@ export function McpTab({
 
         {nothing && <p className="mcp-empty">{t.mcpTab.noMatch(query)}</p>}
 
-        {/* La MÊME pile qu'ailleurs dans l'app (`ConnectorModalHost`) — une seule
-          implémentation du câblage connect/déconnect, pas deux copies (règle 9). */}
+        {/* The SAME stack as elsewhere in the app (`ConnectorModalHost`) — a single
+          implementation of the connect/disconnect wiring, not two copies (rule 9). */}
         <McpModals c={c} />
 
         <AnimatePresence>

@@ -1,11 +1,11 @@
 import type { Messages } from "@openmasq/i18n";
 
-/** Le nom lisible d'une plateforme d'appareil, dans la langue de `t`. */
+/** A device platform's readable name, in `t`'s language. */
 export function platformLabel(platform: string, t: Messages): string | undefined {
   return (t.syncTab.platforms as Record<string, string | undefined>)[platform];
 }
 
-/** « à l'instant » / « il y a 3 min » / « hier » — un instant relatif, court. */
+/** « à l'instant » / « il y a 3 min » / « hier » — a short, relative moment. */
 export function relTime(ts: number, t: Messages, now = Date.now()): string {
   const s = Math.max(0, Math.round((now - ts) / 1000));
   if (s < 60) return t.syncTab.justNow;

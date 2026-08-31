@@ -87,17 +87,17 @@ export function toolCatalog(tools: McpTool[], cfg: CatalogConfig = DEFAULT_CATAL
   /** What a connector CANNOT do here, when the catalog says so (`byoAdds`: the capability
    *  the user's own keys would unlock). Stated with the tools, because the absence of a
    *  tool does not read as a limit — the model treats a missing name as one it has not
-   *  learnt yet and invents it. Journal du 27/07/2026 : « gmail__list_messages » appelé
-   *  deux fois, y compris APRÈS que `load_tools` eut répondu « send_email » et rien d'autre;
-   *  faute de lecture, le modèle a fini par ENVOYER. */
+   *  learnt yet and invents it. Journal 27/07/2026: `gmail__list_messages` called
+   *  twice, including AFTER `load_tools` had answered `send_email` and nothing else —
+   *  for lack of reading it, the model ended up SENDING. */
   const limit = (connectorId: string): string => {
     const c = findConnector(connectorId);
     return c?.byoAdds ? `_(non disponible ici : ${c.byoAdds} — demande les clés de l'utilisateur)_` : "";
   };
   const block = (s: string, lines: string[]): string => {
     const l = limit(s);
-    // « Aucun autre » vaut pour TOUS les connecteurs : c'est la phrase qui coupe court à
-    // l'invention d'un nom plausible, et elle est vraie par construction.
+    // « Aucun autre » holds for EVERY connector: it's the phrase that cuts short
+    // inventing a plausible name, and it's true by construction.
     return `## ${s}${l ? ` ${l}` : ""}\n${lines.join("\n")}\n_(aucun autre outil sur ${s})_`;
   };
 
@@ -148,27 +148,27 @@ export const LOAD_TOOLS_DEF: ToolDef = {
 };
 
 /**
- * Le nom d'outil CANONIQUE, tel qu'il est annoncé — `browser_navigate` →
+ * The CANONICAL tool name, as advertised — `browser_navigate` →
  * `browser__browser_navigate`.
  *
- * ⚠️ Pourquoi ce n'est pas cosmétique. `RedactingMcpClient.callTool` TOLÈRE déjà qu'un
- * modèle laisse tomber le préfixe `${connecteur}__` : il route vers l'unique outil annoncé
- * dont le nom nu correspond, et l'appel réussit. Mais TOUTES les décisions de la boucle
- * sont keyées sur le nom que le MODÈLE a écrit — le connecteur, la politique de redaction
- * du résultat, `isGovernedWebTool`, `skipsArgExfilScan`, la clé d'idempotence. Un nom nu
- * les fait toutes se tromper de connecteur, en silence, sur un appel qui a pourtant abouti.
+ * ⚠️ Why this isn't cosmetic. `RedactingMcpClient.callTool` already TOLERATES a
+ * model dropping the `${connector}__` prefix: it routes to the one advertised tool
+ * whose bare name matches, and the call succeeds. But EVERY decision in the loop
+ * is keyed on the name the MODEL wrote — the connector, the result's redaction
+ * policy, `isGovernedWebTool`, `skipsArgExfilScan`, the idempotency key. A bare name
+ * makes all of them get the connector wrong, silently, on a call that nonetheless succeeded.
  *
- * Mesuré (journal du 27/07/2026) : le modèle appelle `browser_navigate` sans préfixe (le
- * navigateur n'était même pas dans l'offre — le routeur ne l'avait pas retenu et
- * `looksWebIntent` ne s'était pas déclenché sur « fait des recherches sur Vera »).
- * `isGovernedWebTool` répond alors `false`, donc PAS de mode clair : le moteur complet
- * tourne sur une page de résultats DuckDuckGo publique et vaulte 62 entités, dont « Vera »
- * — un mot qui était en CLAIR dans le message de l'utilisateur. Toute URL contenant ce mot
- * devient ensuite « porteuse de données de conversation » et l'exploration s'arrête net.
+ * Measured (27/07/2026 journal): the model calls `browser_navigate` with no prefix (the
+ * browser wasn't even in the offer — the router hadn't kept it and
+ * `looksWebIntent` hadn't triggered on « fait des recherches sur Vera »).
+ * `isGovernedWebTool` then answers `false`, so NO clear mode: the full engine
+ * runs on a public DuckDuckGo results page and vaults 62 entities, including « Vera »
+ * — a word that was in CLEAR in the user's message. Any URL containing that word
+ * then becomes « porteuse de données de conversation » and the exploration stops dead.
  *
- * La résolution est celle du client, à l'identique : un nom déjà annoncé est rendu tel
- * quel, sinon on n'accepte QU'UN candidat unique. Le nom du modèle ne CONFÈRE donc rien —
- * il ne fait que désigner une entrée de notre propre table (règle 7).
+ * Resolution is the client's, identically: a name already advertised is returned
+ * as-is, otherwise only a SINGLE candidate is accepted. The model's name therefore
+ * CONFERS nothing — it only designates an entry in our own table (rule 7).
  */
 export function canonicalToolName(name: string, advertised: Iterable<string>): string {
   const all = [...advertised];

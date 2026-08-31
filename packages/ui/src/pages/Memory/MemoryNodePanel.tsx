@@ -81,8 +81,8 @@ export function MemoryNodePanel({
             onChange={(e) => edit(card.id, { entity: e.target.value })}
             aria-label={t.lists.memory.panel.entity}
           />
-          {/* Où la fiche a SERVI — ce qui rend la valeur de la mémoire visible, et le
-              non-rappel surprenant diagnosticable au lieu d'invisible. */}
+          {/* WHERE the card served — this is what makes the memory's value visible, and
+              the surprising non-recall diagnosable instead of invisible. */}
           <span className="om-mem-usage">
             {usage && usage.convCount > 0
               ? `Rappelée dans ${usage.convCount} conversation${usage.convCount > 1 ? "s" : ""} · dernière le ${day(usage.lastAt)}`
@@ -114,9 +114,9 @@ export function MemoryNodePanel({
             placeholder={t.lists.memory.panel.factsPlaceholder}
             aria-label={t.lists.memory.panel.facts}
           />
-          {/* La borne, DITE — sans elle, celui qui écrit une fiche fleuve découvre la
-              compaction en perdant une phrase. Le seuil de 600 n'est pas re-déclaré :
-              il vient de la même constante que le maxLength. */}
+          {/* The limit, STATED — without it, someone writing a sprawling card discovers
+              compaction by losing a sentence. The 600 threshold isn't re-declared:
+              it comes from the same constant as maxLength. */}
           <span className="om-mem-limit">
             {card.facts.length}/{MAX_FACTS_CHARS} — une fiche se compacte : au-delà, la
             phrase la plus ancienne passe dans l'historique.
@@ -125,8 +125,8 @@ export function MemoryNodePanel({
             className="om-mem-input"
             value={aliases}
             onChange={(e) => {
-              // Même sémantique que les autres champs : commit à la frappe (les états
-              // intermédiaires « Jean,  » se replient d'eux-mêmes au parse suivant).
+              // Same semantics as the other fields: commit on keystroke (the intermediate
+              // « Jean,  » states fold back into shape on the next parse).
               setAliases(e.target.value);
               const list = e.target.value.split(",").map((a) => a.trim()).filter(Boolean);
               edit(card.id, { aliases: list.length ? list : undefined });
@@ -135,11 +135,11 @@ export function MemoryNodePanel({
             aria-label={t.lists.memory.panel.aliases}
           />
           {card.source === "auto" && <span className="om-skill-cat om-mem-auto-badge">{t.lists.memory.panel.autoNoted}</span>}
-          {/* L'historique de compaction : ce qu'une mise à jour a REMPLACÉ (deadline
-              changée, phrase évincée à saturation). Visible et rétablissable — une
-              consolidation qui écrase sa preuve en silence est le défaut mesuré des
-              mémoires d'agent, et « Rétablir » est symétrique (la version actuelle
-              repasse dans l'historique). */}
+          {/* The compaction history: what an update REPLACED (deadline
+              changed, sentence evicted at saturation). Visible and restorable — a
+              consolidation that silently overwrites its own evidence is the measured
+              default of agent memories, and « Rétablir » is symmetric (the current
+              version goes back into the history). */}
           {(card.factsLog?.length ?? 0) > 0 && (
             <div className="om-mem-history">
               <div className="cv-eyebrow">{t.lists.memory.panel.replaced}</div>

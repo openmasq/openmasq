@@ -1,21 +1,21 @@
 /**
- * `browserStealth.ts` SÉRIALISE `applyStealthPatches` (`.toString()`) et l'évalue dans le
- * MONDE PRINCIPAL de la page — un autre realm, où seul le TEXTE de la fonction arrive. Sa
- * source le dit en une ligne (« Self-contained — no closure refs »), et c'est un invariant
- * que rien ne vérifiait : une liaison de portée module qui entre dans le corps y devient un
- * identifiant inexistant, la fonction jette, et son propre `try/catch {}` avale l'erreur.
- * Les patches cessent de s'appliquer SANS UN MOT — c'est la forme la plus coûteuse de ce
- * bug, celle qu'aucun log ne signale.
+ * `browserStealth.ts` SERIALIZES `applyStealthPatches` (`.toString()`) and evaluates it in the
+ * page's MAIN WORLD — a different realm, where only the function's TEXT arrives. Its
+ * source states it in one line ("Self-contained — no closure refs"), and this is an invariant
+ * nothing was checking: a module-scope binding that enters the body becomes a
+ * nonexistent identifier there, the function throws, and its own `try/catch {}` swallows the error.
+ * The patches stop applying WITHOUT A WORD — that's the most expensive form of this
+ * bug, the one no log reports.
  *
- * Ce n'est pas théorique : activer `esbuild.keepNames` sur le preload fait injecter à
- * esbuild un `__name(fn, "…")` DANS le corps, dont l'assistant est de portée module.
- * Mesuré (`c(u,"applyStealthPatches")` dans le bundle) — d'où l'interdit dans
- * `electron.vite.config.ts`, dont CE test est la garde.
+ * This isn't theoretical: turning on `esbuild.keepNames` on the preload makes
+ * esbuild inject a `__name(fn, "…")` INTO the body, whose helper is module-scoped.
+ * Measured (`c(u,"applyStealthPatches")` in the bundle) — hence the ban in
+ * `electron.vite.config.ts`, which THIS test guards.
  *
- * On relit le bundle CONSTRUIT parce qu'un réglage vite est une intention et que seul
- * l'artefact est une preuve. Sans build, les cas se SAUTENT — `pnpm test` doit rester
- * gratuit et hors-build ; `verify.yml` lance `pnpm build` avant les tests, donc la CI les
- * exécute.
+ * We re-read the BUILT bundle because a vite setting is an intention and only
+ * the artifact is proof. Without a build, the cases get SKIPPED — `pnpm test` must stay
+ * free and out-of-build; `verify.yml` runs `pnpm build` before the tests, so CI
+ * runs them.
  */
 import { describe, it, expect } from "vitest";
 import { createContext, runInContext } from "node:vm";
@@ -32,9 +32,9 @@ function builtBundle(): string | null {
 }
 
 /**
- * La source RÉELLEMENT sérialisée : le bundle finit par ``(${X.toString()})()``, donc on
- * repart du nom minifié `X` et on borne sa déclaration en comptant les accolades. Passer
- * par le nom d'origine ne marcherait pas — la minification l'a effacé, c'est le sujet.
+ * The source that's ACTUALLY serialized: the bundle ends with ``(${X.toString()})()``, so we
+ * start from the minified name `X` and bound its declaration by counting braces. Going
+ * by the original name wouldn't work — minification erased it, that's the whole point.
  */
 function serializedSource(bundle: string): string {
   const m = /\(\$\{(\w+)\.toString\(\)\}\)\(\)/.exec(bundle);
@@ -64,10 +64,10 @@ describe("browserStealth — la fonction sérialisée dans la page", () => {
   it.skipIf(!bundle)("ne référence AUCUNE liaison de portée module", () => {
     const src = serializedSource(bundle!);
 
-    // Un contexte dont le global intercepte tout : `has` toujours vrai fait résoudre chaque
-    // identifiant nu sur le proxy, et `get` NOTE avant de rendre `undefined`. La lecture est
-    // donc enregistrée même quand le `try/catch` de la fonction avale ce qui suit — c'est
-    // précisément ce qui rend ce bug invisible en exécution réelle.
+    // A context whose global intercepts everything: `has` always true makes every
+    // bare identifier resolve on the proxy, and `get` RECORDS it before returning `undefined`. The read is
+    // thus logged even when the function's `try/catch` swallows what follows — this is
+    // precisely what makes this bug invisible in real execution.
     const seen = new Set<string>();
     const ctx = createContext(
       new Proxy(Object.create(null), {
@@ -81,12 +81,12 @@ describe("browserStealth — la fonction sérialisée dans la page", () => {
     try {
       runInContext(`(${src})()`, ctx);
     } catch {
-      /* la fonction échoue forcément sans un vrai DOM — seuls les ACCÈS nous intéressent */
+      /* the function is bound to fail without a real DOM — only the ACCESSES matter to us */
     }
 
-    // Un global de navigateur porte un nom long (`navigator`, `Object`, `WebGLRenderingContext`) ;
-    // une liaison de module rescapée d'un minifieur fait une ou deux lettres. C'est la
-    // séparation nette, et elle ne demande pas de tenir à jour une liste de globaux.
+    // A browser global carries a long name (`navigator`, `Object`, `WebGLRenderingContext`);
+    // a module binding that escaped a minifier is one or two letters. This is the
+    // clean separation, and it requires no list of globals to keep up to date.
     const leaked = [...seen].filter((n) => n.length <= 2);
     expect(leaked, `identifiant(s) de portée module dans le corps sérialisé : ${leaked.join(", ")}`).toEqual([]);
   });

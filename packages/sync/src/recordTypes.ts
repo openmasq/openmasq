@@ -72,7 +72,7 @@ export interface ConvKeyEnvelope {
  *  payload, landing in the destination device's keychain. */
 export const INTEGRATIONS_SCOPE = "@integrations";
 
-/** The user's AUTHORED studio data — compétences, workflows, mémoire — syncs as
+/** The user's AUTHORED studio data — skills, workflows, memory — syncs as
  *  records under this reserved scope (see `userdata.ts`). It is REAL user
  *  content (prompts, durable personal facts), so it rides the SAME E2E envelope
  *  as conversations: encrypted under the scope's DEK, server sees ciphertext

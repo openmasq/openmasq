@@ -2,21 +2,21 @@ import { BrandLoader } from "../../components/media/BrandLogo";
 import { useT } from "../../i18n";
 
 /**
- * La barre de progression du redaction d'un document AU MOMENT DE L'ENVOI — rendre les
- * pages d'un PDF redacted en images prend des secondes, et sans elle l'envoi paraissait
- * bloqué. Le geste qu'elle porte est « Annuler » : l'attente doit toujours avoir une
- * sortie.
+ * The progress bar for a document's redaction AT SEND TIME — rendering a
+ * redacted PDF's pages as images takes seconds, and without it the send looked
+ * stuck. The gesture it carries is « Annuler »: the wait must always have a
+ * way out.
  *
- * Elle vit à côté de `ChatView` plutôt que dedans (règle 1) : la page n'a pas à porter
- * une carte de progression en plus du reste.
+ * It lives beside `ChatView` rather than inside it (rule 1): the page shouldn't
+ * carry a progress card on top of everything else.
  */
 export interface DocPrepState {
-  /** `detect` = analyse (indéterminée) ; `render` = rendu page à page (mesurable). */
+  /** `detect` = analysis (indeterminate); `render` = page-by-page rendering (measurable). */
   phase: "detect" | "render";
   name: string;
   page: number;
   total: number;
-  /** Le rang du document dans un lot, quand il y en a plusieurs. */
+  /** The document's rank in a batch, when there are several. */
   idx: number;
   count: number;
 }
@@ -43,7 +43,7 @@ export function DocPrepCard({ state, onCancel }: { state: DocPrepState; onCancel
           <div className="docprep-bar">
             <div
               className={`docprep-bar-fill${phase === "detect" ? " indet" : ""}`}
-              // Largeur CALCULÉE à l'exécution — le cas où l'inline est la bonne réponse.
+              // Width COMPUTED at runtime — the case where inline is the right answer.
               style={phase === "render" ? { width: `${Math.round((page / total) * 100)}%` } : undefined}
             />
           </div>

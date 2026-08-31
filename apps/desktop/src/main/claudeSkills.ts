@@ -5,26 +5,26 @@ import { handle } from "./ipc/handle";
 import { getLiveFs } from "./fs/live";
 
 /**
- * « Importer mes compétences Claude » — l'ÉNUMÉRATION, côté privilégié.
+ * "Import my Claude skills" — the ENUMERATION, on the privileged side.
  *
- * ⚠️ Le renderer ne fournit AUCUN chemin. Ce module énumère des racines qu'il connaît
- * lui-même et ne lit qu'un fichier au nom fixe (`SKILL.md`) : ce n'est donc pas le
- * read-gate élargi (qui n'accorde un chemin que par le dialogue natif), c'est une
- * capacité ALLOW-listée d'une seule forme (règle 7). Un XSS du renderer peut appeler ce
- * canal autant qu'il veut : il en ressortira les mêmes SKILL.md, jamais un fichier choisi.
+ * ⚠️ The renderer supplies NO path. This module enumerates roots it knows
+ * itself and reads only a fixed-name file (`SKILL.md`): so this isn't the
+ * widened read-gate (which grants a path only via the native dialog), it's a
+ * single-shape ALLOW-listed capability (rule 7). A renderer XSS can call this
+ * channel as much as it wants: it will get back the same SKILL.md files, never a chosen file.
  *
- * Deux gisements, aucun nouveau droit :
- *  1. `~/.claude/skills/` — les compétences personnelles de Claude Code.
- *  2. `<dossier déjà accordé>/.claude/skills/` — celles d'un dépôt sur lequel on travaille.
- *     Ces dossiers ont déjà été accordés au connecteur Fichiers par le dialogue natif ;
- *     on ne s'en attribue aucun, on relit ceux que l'utilisateur a donnés.
+ * Two sources, no new right:
+ *  1. `~/.claude/skills/` — Claude Code's personal skills.
+ *  2. `<already-granted folder>/.claude/skills/` — those of a repo being worked on.
+ *     These folders were already granted to the Files connector via the native dialog;
+ *     none is claimed here, we re-read what the user already gave.
  *
- * ⛔ `~/.claude/plugins/**` est EXCLU : ce sont des compétences de plugins tiers qui
- * pilotent des outils de Claude Code — inutiles comme prompts, et les importer noierait
- * les siennes sous des dizaines d'entrées qu'il n'a pas écrites.
+ * ⛔ `~/.claude/plugins/**` is EXCLUDED: these are third-party plugin skills that
+ * drive Claude Code's own tools — useless as prompts, and importing them would drown
+ * the user's own under dozens of entries they didn't write.
  */
 
-/** Bornes : un dossier hostile ne doit ni saturer la mémoire ni geler l'énumération. */
+/** Bounds: a hostile folder must neither exhaust memory nor freeze enumeration. */
 const MAX_SKILLS = 200;
 const MAX_BYTES = 256 * 1024;
 const MAX_SIBLINGS = 50;
@@ -33,13 +33,13 @@ interface RawSkill {
   folder: string;
   text: string;
   siblings: string[];
-  /** D'où il vient — l'écran d'import le montre pour lever l'ambiguïté entre deux
-   *  compétences homonymes (personnelle vs celle du dépôt). */
+  /** Where it comes from — the import screen shows it to resolve the ambiguity between two
+   *  same-named skills (personal vs. the repo's). */
   from: "home" | "project";
 }
 
-/** Les fichiers du dossier autres que SKILL.md — juste leurs NOMS (jamais le contenu) :
- *  ils servent à dire « ce skill s'appuie sur N fichiers qui ne seront pas importés ». */
+/** The folder's files other than SKILL.md — just their NAMES (never the content):
+ *  they're used to say "this skill relies on N files that won't be imported". */
 function siblingNames(dir: string): string[] {
   try {
     return readdirSync(dir, { withFileTypes: true })
@@ -58,7 +58,7 @@ function scanRoot(root: string, from: RawSkill["from"], out: RawSkill[]): void {
       .filter((e) => e.isDirectory() && !e.name.startsWith("."))
       .map((e) => e.name);
   } catch {
-    return; // racine absente : ce gisement n'existe pas ici, ce n'est pas une erreur
+    return; // missing root: this source doesn't exist here, it's not an error
   }
   for (const folder of entries) {
     if (out.length >= MAX_SKILLS) return;
@@ -67,7 +67,7 @@ function scanRoot(root: string, from: RawSkill["from"], out: RawSkill[]): void {
       if (statSync(file).size > MAX_BYTES) continue;
       out.push({ folder, text: readFileSync(file, "utf8"), siblings: siblingNames(join(root, folder)), from });
     } catch {
-      /* pas de SKILL.md dans ce sous-dossier : ce n'est pas un skill, on passe */
+      /* no SKILL.md in this subfolder: not a skill, skip it */
     }
   }
 }
@@ -75,8 +75,8 @@ function scanRoot(root: string, from: RawSkill["from"], out: RawSkill[]): void {
 function listClaudeSkills(): RawSkill[] {
   const out: RawSkill[] = [];
   scanRoot(join(homedir(), ".claude", "skills"), "home", out);
-  // Les dossiers accordés au connecteur Fichiers : c'est là que vivent les compétences
-  // d'un dépôt. Rien n'est accordé ici — on relit ce qui l'a déjà été.
+  // The folders granted to the Files connector: that's where a repo's skills
+  // live. Nothing is granted here — we re-read what was already granted.
   for (const root of getLiveFs()?.roots ?? []) {
     if (out.length >= MAX_SKILLS) break;
     scanRoot(join(root, ".claude", "skills"), "project", out);

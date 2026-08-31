@@ -5,15 +5,15 @@ import { AuditRedactionView } from "./AuditRedactionView";
 import { EgressJournalCard } from "./EgressJournalCard";
 
 /**
- * L'onglet **Journal** — les deux moitiés de la même promesse, derrière UN sélecteur :
- * ce qui a été redacted (« Redaction ») et les adresses réellement contactées
+ * The **Journal** tab — both halves of the same promise, behind ONE selector:
+ * what has been redacted (« Redaction ») and the addresses actually contacted
  * (« Réseau »).
  *
- * ⚠️ Elles étaient EMPILÉES, le réseau sous le redaction. Or la table de redaction se
- * charge par pages de 40 sur une sentinelle d'`IntersectionObserver` : atteindre le bas
- * en rallonge la liste, indéfiniment. Le journal réseau était donc, littéralement,
- * inaccessible — présent dans le DOM, hors d'atteinte au défilement. Une vue à la fois,
- * et chacune est à un clic.
+ * ⚠️ They used to be STACKED, network under redaction. But the redaction table
+ * loads in pages of 40 on an `IntersectionObserver` sentinel: reaching the bottom
+ * lengthens the list, indefinitely. The network journal was therefore, literally,
+ * unreachable — present in the DOM, out of scrolling's reach. One view at a time,
+ * and each is one click away.
  */
 type View = "redaction" | "network";
 
@@ -26,8 +26,8 @@ export function AuditLogTab({
 }) {
   const t = useT();
   const [view, setView] = useState<View>("redaction");
-  // Le compteur du segment « Redaction » : ce que la vue affichera, calculé ici pour
-  // que l'étiquette ne mente pas avant même qu'on l'ouvre.
+  // The « Redaction » segment's counter: what the view will show, computed here so
+  // the label doesn't lie before it's even opened.
   const protectedTotal = useMemo(
     () => conversations.reduce((n, c) => n + Object.keys(c.redactionVault ?? {}).length, 0),
     [conversations],

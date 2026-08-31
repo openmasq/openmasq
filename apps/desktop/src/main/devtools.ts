@@ -1,30 +1,30 @@
 import * as electron from "electron";
 
 /**
- * Les DevTools n'existent PAS dans l'app empaquetée — sur aucune fenêtre.
+ * DevTools do NOT exist in the packaged app — on any window.
  *
- * Sans ce verrou ils étaient réellement atteignables : l'app ne pose aucun menu
- * applicatif, donc Electron livre son menu PAR DÉFAUT, « Toggle Developer Tools »
- * compris — un item de barre de menus, pas un raccourci de connaisseur. Ouverts sur la
- * fenêtre principale, ils donnent la console du renderer, c'est-à-dire `window.openmasq`
- * (la surface IPC entière) en accès interactif, plus le débogueur sur notre bundle.
+ * Without this lock they were actually reachable: the app sets no application
+ * menu, so Electron ships its DEFAULT menu, "Toggle Developer Tools"
+ * included — a menu-bar item, not an insider's shortcut. Opened on the
+ * main window, they give the renderer console, i.e. `window.openmasq`
+ * (the entire IPC surface) in interactive access, plus the debugger on our bundle.
  *
- * Ce que ça protège, et ce que ça ne protège pas : c'est un verrou d'INTROSPECTION À
- * CHAUD, le pendant côté Chromium des fusibles qui coupent déjà `--inspect` et
- * `NODE_OPTIONS` côté Node (`scripts/afterPack.cjs`). Le code au repos reste lisible
- * dans l'asar — ce n'est pas le sujet, et rien ici ne prétend l'empêcher.
+ * What this protects, and what it doesn't: it's a HOT-INTROSPECTION
+ * lock, the Chromium-side counterpart of the fuses that already cut `--inspect` and
+ * `NODE_OPTIONS` on the Node side (`scripts/afterPack.cjs`). Code at rest stays readable
+ * in the asar — that's not the point, and nothing here claims to prevent it.
  *
- * `devTools: false` rend `openDevTools()` ET l'item de menu inertes sur la fenêtre qui
- * le porte. La clé vaut par fenêtre, donc UNE maison et six spreads — une fenêtre créée
- * sans lui retomberait sur le défaut d'Electron (`true`) sans que rien ne rougisse.
+ * `devTools: false` makes `openDevTools()` AND the menu item inert on the window
+ * that carries it. The key applies per window, hence ONE home and six spreads — a window created
+ * without it would fall back to Electron's default (`true`) without anything failing loudly.
  *
- * En dev, tout reste ouvert : `index.ts` ouvre les DevTools au lancement, et le débogage
- * du navigateur agent en a besoin. ⚠️ Ne pas confondre avec le CDP de Playwright
- * (`--remote-debugging-*`) : les e2e pilotent l'app CONSTRUITE par ce canal-là, que cette
- * préférence ne touche pas.
+ * In dev, everything stays open: `index.ts` opens DevTools at launch, and debugging
+ * the agent browser needs it. ⚠️ Don't confuse this with Playwright's CDP
+ * (`--remote-debugging-*`): the e2e tests drive the BUILT app through that channel, which this
+ * preference doesn't touch.
  */
-// Import d'ESPACE DE NOMS, et pas `{ app }` : les tests unitaires mockent `electron`
-// PARTIELLEMENT, et vitest refuse un export nommé absent du mock À L'IMPORT — ce module
-// est tiré par leurs chaînes d'import. Via l'espace de noms, un mock sans `app` donne
-// `undefined` (donc « jamais empaqueté », la même réponse qu'en dev : DevTools permis).
+// NAMESPACE import, not `{ app }`: unit tests mock `electron`
+// PARTIALLY, and vitest refuses a named export absent from the mock AT IMPORT — this module
+// gets pulled in by their import chains. Via the namespace, a mock with no `app` gives
+// `undefined` (so "never packaged", the same answer as in dev: DevTools allowed).
 export const DEVTOOLS_PREF = Object.freeze({ devTools: !electron.app?.isPackaged });

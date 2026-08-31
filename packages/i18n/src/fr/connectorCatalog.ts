@@ -1,7 +1,7 @@
 /**
- * Tranche « connectorCatalog » du catalogue FR — la langue SOURCE. Générée depuis
- * `@openmasq/catalog` : la `desc` y reste (le modèle la lit), celle-ci est celle qu'on LIT.
- * `satisfies` par entrée.
+ * The FR catalogue's « connectorCatalog » slice — the SOURCE language. Generated from
+ * `@openmasq/catalog`: the `desc` stays there (the model reads it), this one is what people READ.
+ * `satisfies` per entry.
  */
 import type { Messages } from "../messages";
 

@@ -1,6 +1,6 @@
 /**
- * Tranche « redactionCatalog » du catalogue FR — la langue SOURCE. Générée depuis
- * `@openmasq/catalog/redaction` et `@openmasq/redact` (sections). `satisfies` par entrée.
+ * The FR catalogue's « redactionCatalog » slice — the SOURCE language. Generated from
+ * `@openmasq/catalog/redaction` et `@openmasq/redact` (sections). `satisfies` per entry.
  */
 import type { Messages } from "../messages";
 

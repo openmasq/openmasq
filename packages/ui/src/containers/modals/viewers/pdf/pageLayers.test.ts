@@ -74,20 +74,20 @@ describe("buildTextHaloLayer — la légende est l'interrupteur du halo", () => 
     const legend = p1.querySelector<HTMLButtonElement>(".pdfv-halolegend")!;
     expect(legend.tagName).toBe("BUTTON");
     expect(legend.getAttribute("aria-pressed")).toBe("true");
-    // ⚠️ L'état doit se LIRE : halo éteint, un bouton identique fait croire que rien n'a
-    // été reconnu — donc que rien ne sera redacted (conclusion tirée en parcours, 15/08).
+    // ⚠️ The state must be READABLE: halo off, an identical button would suggest nothing
+    // was recognized — hence that nothing will be redacted (conclusion drawn in a run-through, 15/08).
     expect(legend.textContent).toContain("Halo = texte reconnu");
     legend.click();
     expect(legend.textContent).toContain("Halo masqué");
-    // …et la phrase d'extinction rappelle que le redaction n'est pas concerné.
+    // …and the off-phrase reminds that redaction isn't affected.
     expect(legend.textContent).toMatch(/redacted quand même/);
     legend.click();
     expect(legend.textContent).toContain("Halo = texte reconnu");
     legend.click();
-    // La classe vit sur le PARENT des pages : p2 est masquée par le même sélecteur.
+    // The class lives on the pages' PARENT: p2 is hidden by the same selector.
     expect(wrap.classList.contains("pdfv-halo-off")).toBe(true);
     expect(legend.getAttribute("aria-pressed")).toBe("false");
-    // Un NOUVEAU viewer honore la préférence retenue, et le clic la rend réversible.
+    // A NEW viewer honors the stored preference, and the click makes it reversible.
     const wrap2 = document.createElement("div");
     document.body.appendChild(wrap2);
     const q = document.createElement("div");
@@ -99,16 +99,16 @@ describe("buildTextHaloLayer — la légende est l'interrupteur du halo", () => 
   });
 
   it("les recouvrements rendent l'UNION : bandes OPAQUES sous une opacité de GROUPE", () => {
-    // jsdom ne charge pas la feuille — on épingle la règle là où elle vit : deux bandes
-    // qui se recouvrent (lignes voisines, mot en double couche texte/OCR) ne doivent
-    // jamais rendre un lavis doublé plus foncé.
+    // jsdom doesn't load the stylesheet — the rule is pinned where it lives: two bands
+    // that overlap (neighbouring lines, a word doubled across text/OCR layers) must
+    // never render a doubled wash darker.
     const css = readFileSync("packages/ui/src/styles/viewers/textHalo.css", "utf8");
     const layer = css.slice(css.indexOf(".pdfv-texthalo {"));
     expect(layer.slice(0, layer.indexOf("}"))).toContain("opacity");
     const band = css.slice(css.indexOf(".pdfv-halo {"));
     expect(band.slice(0, band.indexOf("}"))).toContain("background: var(--brand)");
     expect(band.slice(0, band.indexOf("}"))).not.toContain("color-mix");
-    // Et la bascule a bien une règle qui masque la couche sans emporter la légende.
+    // And the toggle does have a rule that hides the layer without taking the legend along.
     expect(css).toContain(".pdfv-halo-off .pdfv-texthalo");
   });
 });
@@ -141,13 +141,13 @@ describe("buildRevealMarks", () => {
     expect(mark.tagName).toBe("BUTTON");
     expect(mark.dataset.real).toBe("Jean Rebour");
     expect(mark.dataset.docReveal).toBe("");
-    // Un bouton vide sans nom accessible n'annonçait RIEN au lecteur d'écran (audit).
+    // An empty button with no accessible name announced NOTHING to the screen reader (audit).
     expect(mark.getAttribute("aria-label")).toContain("inspecter");
-    // Inspecter ≠ révéler : la marque ne porte AUCUN toggle propre — le clic remonte à
-    // la carte partagée (`useMarkHover` délégué), dont « Unredact » est l'action.
-    // (Un listener direct ici a déjà envoyé une valeur en clair sur le geste
-    // d'exploration — c'est le bug que ce test ferme.)
-    mark.dispatchEvent(new MouseEvent("click", { bubbles: true })); // ne jette pas, ne bascule rien
+    // Inspect ≠ reveal: the mark carries NO toggle of its own — the click bubbles up to
+    // the shared card (`useMarkHover` delegated), whose « Unredact » is the action.
+    // (A direct listener here once sent a value in clear on the exploration
+    // gesture — that's the bug this test closes.)
+    mark.dispatchEvent(new MouseEvent("click", { bubbles: true })); // doesn't throw, doesn't toggle anything
   });
 
   it("is an inert span with a tooltip in the read-only viewer — no reveal affordance", () => {

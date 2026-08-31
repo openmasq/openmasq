@@ -1,27 +1,27 @@
 import type { McpTool } from "@openmasq/mcp";
 
 /**
- * Assainir un `required` DÉGÉNÉRÉ dans le schéma d'un outil MCP distant.
+ * Sanitize a DEGENERATE `required` in a remote MCP tool's schema.
  *
- * Le cas mesuré (journal du 13/08/2026, Intercom `search_conversations`) : le serveur
- * marque la quasi-totalité de ses ~45 propriétés « required ». Le modèle obéit et remplit
- * TOUT — `""`, `0`, `{">=", 0}` — le serveur traduit chaque champ fourni en clause de
- * requête, et l'API refuse (« composite query > 15 elements »). Six essais, six échecs :
- * irréparable de l'intérieur, parce que notre propre indice correctif (`argErrorHint`)
- * relit le même schéma et répète « (requis) » sur chaque champ.
+ * The measured case (journal 13/08/2026, Intercom `search_conversations`): the server
+ * marks nearly all of its ~45 properties "required". The model obeys and fills in
+ * EVERYTHING — `""`, `0`, `{">=", 0}` — the server turns each supplied field into a query
+ * clause, and the API refuses ("composite query > 15 elements"). Six attempts, six
+ * failures: unfixable from the inside, because our own corrective hint (`argErrorHint`)
+ * rereads the same schema and repeats "(required)" on every field.
  *
- * La règle : quand `required` couvre presque toutes les propriétés d'un objet qui en a
- * beaucoup, ce n'est pas une contrainte, c'est un bug de génération côté serveur — aucune
- * API de recherche n'exige 40 filtres. On retire alors la liste ENTIÈRE : le modèle ne
- * renseigne plus que les champs utiles, ce que tous ces serveurs acceptent. Un `required`
- * court et plausible (1-7 champs) n'est jamais touché.
+ * The rule: when `required` covers almost every property of an object that has many, that
+ * is not a constraint, it's a server-side generation bug — no search API demands 40
+ * filters. So we drop the ENTIRE list: the model then only fills in the useful fields,
+ * which every one of these servers accepts. A short, plausible `required` (1-7 fields)
+ * is never touched.
  *
- * Pur, récursif, et paresseux sur l'identité : un schéma sain ressort par la MÊME
- * référence, donc rien n'est recopié sur le chemin nominal.
+ * Pure, recursive, and identity-lazy: a healthy schema comes back as the SAME reference,
+ * so nothing is copied on the nominal path.
  */
 
-const DEGENERATE_MIN = 8; // en dessous, une liste required est toujours plausible
-const DEGENERATE_RATIO = 0.75; // au-delà de cette couverture des propriétés, c'est du bruit
+const DEGENERATE_MIN = 8; // below this, a required list is always plausible
+const DEGENERATE_RATIO = 0.75; // beyond this property coverage, it's noise
 
 type Obj = Record<string, unknown>;
 
@@ -66,8 +66,8 @@ function sanitizeNode(node: unknown): unknown {
   return out;
 }
 
-/** Le point d'entrée de la boucle : chaque outil au schéma dégénéré ressort avec un
- *  `inputSchema` assaini ; les autres ressortent par la même référence. */
+/** The loop's entry point: each tool with a degenerate schema comes back with a
+ *  sanitized `inputSchema`; the others come back by the same reference. */
 export function sanitizeToolSchemas(tools: McpTool[]): McpTool[] {
   let changed = false;
   const out = tools.map((t) => {

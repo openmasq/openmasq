@@ -40,7 +40,7 @@ export interface WorkflowOpts {
   /** Entity dictionary for the "IA locale" detector. Present ⇒ `redactEngine:"local"`
    *  unless `settings` says otherwise. */
   ner?: Record<string, string>;
-  /** Latence artificielle du NER (ms) — fenêtre pré-modèle testable (`stopEarly.test.ts`). */
+  /** Artificial NER latency (ms) — a testable pre-model window (`stopEarly.test.ts`). */
   nerDelayMs?: number;
   /** Scripted user at the write-confirm card. Default REFUSE (fail-closed). */
   approveWrites?: boolean | ((info: WriteConfirmInfo) => boolean);
@@ -159,8 +159,8 @@ export class WorkflowRun {
     if (final?.content && !final.pending) this.transcript.push({ t: "answer", text: final.content });
   }
 
-  /** Programme un Stop UTILISATEUR (le bouton du composer) pendant l'envoi en cours —
-   *  à appeler AVANT `await send(...)`, le timer presse le bouton au milieu du tour. */
+  /** Schedules a USER Stop (the composer's button) during the in-flight send —
+   *  call it BEFORE `await send(...)`; the timer presses the button mid-turn. */
   stopAfter(ms: number): void {
     setTimeout(() => this.store.stop(this.convId ?? undefined), ms);
   }

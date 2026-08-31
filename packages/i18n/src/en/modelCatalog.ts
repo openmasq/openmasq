@@ -1,5 +1,5 @@
 /**
- * Tranche « modelCatalog » du catalogue EN — traduit de la source (`../fr/modelCatalog.ts`).
+ * The EN catalogue's « modelCatalog » slice — translated from the source (`../fr/modelCatalog.ts`).
  */
 import type { Messages } from "../messages";
 import { modelCatalogA } from "./modelCatalogA";

@@ -2,21 +2,21 @@ import { hueForTone } from "@openmasq/redact";
 import type { PdfReplacement } from "@openmasq/redact/pdf-redact";
 
 /**
- * La carte de redaction STOCKÉE avec le fichier (l'extraction persistée) → les
- * `PdfReplacement[]` que les viewers peignent.
+ * The redaction map STORED with the file (the persisted extraction) → the
+ * `PdfReplacement[]` that the viewers paint.
  *
- * C'est la carte du DÉPÔT, figée au moment où le document est parti — la source qui rend
- * la Bibliothèque identique à la modale post-dépôt (mêmes éléments, mêmes teintes). Le
- * repli historique — reconstruire depuis le coffre de la CONVERSATION — sur-marquait :
- * le coffre accumule les valeurs de toute la conversation, et ses `kinds` viennent d'un
- * autre producteur, donc d'autres teintes. Il reste le repli des fichiers d'avant la
- * persistance de la carte.
+ * This is the DEPOSIT's map, frozen at the moment the document left — the source that keeps
+ * the Bibliothèque identical to the post-deposit modal (same elements, same tones). The
+ * historical fallback — rebuilding from the CONVERSATION vault — over-marked:
+ * the vault accumulates values from the whole conversation, and its `kinds` come from
+ * a different producer, so different tones. It remains the fallback for files from before
+ * the map's persistence.
  *
- * DÉFENSIF de bout en bout : le blob vient d'un JSON en base (une vieille ligne, une
- * autre version) — une entrée sans `real`/`fake` chaîne saute, et la teinte passe par
- * `hueForTone`, qui rend une teinte VALIDE pour n'importe quelle chaîne (une teinte
- * libre finirait en nom de classe CSS). Tri longueur décroissante, comme
- * `vaultReplacements` : une valeur ne doit pas être rognée par sa sous-chaîne.
+ * DEFENSIVE end to end: the blob comes from JSON in the database (an old row, a
+ * different version) — an entry without a string `real`/`fake` is skipped, and the tone goes through
+ * `hueForTone`, which returns a VALID tone for any string (a free-form
+ * tone would end up as a CSS class name). Sorted by decreasing length, like
+ * `vaultReplacements`: a value must not be truncated by its substring.
  */
 export function storedReplacements(raw: unknown): PdfReplacement[] | undefined {
   if (!Array.isArray(raw) || raw.length === 0) return undefined;
@@ -39,8 +39,8 @@ export function storedReplacements(raw: unknown): PdfReplacement[] | undefined {
   return out;
 }
 
-/** Le `original→catégorie` de la carte stockée — pour l'entête « N masqués » de la
- *  modale, qui sinon nommait les catégories de TOUTE la conversation. */
+/** The `original→category` of the stored map — for the modal's « N masqués » header,
+ *  which otherwise named the categories of the WHOLE conversation. */
 export function storedKinds(reps: PdfReplacement[] | undefined): Record<string, string> | undefined {
   if (!reps?.length) return undefined;
   const out: Record<string, string> = {};

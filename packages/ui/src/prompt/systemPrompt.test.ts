@@ -34,8 +34,8 @@ describe("datePreamble", () => {
 
 describe("LANGUAGE_GUIDANCE — la réflexion aussi est affichée", () => {
   it("gouverne la RÉPONSE et le RAISONNEMENT, pas seulement la réponse", () => {
-    // La règle ne parlait que de « la réponse » : le modèle répondait en français et
-    // raisonnait en anglais — sous « Réflexion », en pleine conversation française.
+    // The rule used to only talk about « la réponse » (the answer): the model answered in French and
+    // reasoned in English — under « Réflexion », in the middle of a French conversation.
     expect(LANGUAGE_GUIDANCE).toMatch(/LANGUE du message de l'utilisateur/);
     expect(LANGUAGE_GUIDANCE).toMatch(/thinking|chaîne de pensée/);
     expect(LANGUAGE_GUIDANCE).toMatch(/pas en anglais/);
@@ -46,9 +46,9 @@ describe("LANGUAGE_GUIDANCE — la réflexion aussi est affichée", () => {
   });
 
   it("le rappel dit la MÊME chose que la règle — sinon c'est une seconde source", () => {
-    // `LANGUAGE_REMINDER` est un écho volontaire (récence), pas une variante : les deux
-    // doivent gouverner la réponse ET la réflexion, et nommer l'anglais comme le travers
-    // à éviter. Le jour où l'une change sans l'autre, ce test tombe.
+    // `LANGUAGE_REMINDER` is a deliberate echo (recency), not a variant: both
+    // must govern the answer AND the reflection, and name English as the pitfall
+    // to avoid. The day one changes without the other, this test fails.
     for (const s of [LANGUAGE_GUIDANCE, LANGUAGE_REMINDER]) {
       expect(s).toMatch(/langue du message de l'utilisateur/i);
       expect(s).toMatch(/thinking|chaîne de pensée|réflexion/i);
@@ -57,9 +57,9 @@ describe("LANGUAGE_GUIDANCE — la réflexion aussi est affichée", () => {
   });
 
   it("sur un tour AGENTIQUE la règle finit le message système, elle n'y est pas juste présente", () => {
-    // Le vrai symptôme n'était pas une règle absente, c'était une règle ENSEVELIE :
-    // `withToolGuidance` append des milliers de caractères d'outillage derrière elle, et
-    // le modèle lit en dernier une page sur le navigateur. Ce test mesure la QUEUE.
+    // The real symptom wasn't a missing rule, it was a BURIED rule:
+    // `withToolGuidance` appends thousands of characters of tooling behind it, and
+    // the model reads a page about the browser last. This test measures the TAIL.
     const base = buildSystemContent((s) => ({ text: s }), undefined, false);
     const sys = String(
       withToolGuidance(
@@ -72,11 +72,11 @@ describe("LANGUAGE_GUIDANCE — la réflexion aussi est affichée", () => {
       )[0].content,
     );
 
-    // La règle de fond est toujours là (elle gouverne aussi le chemin non-agentique)…
+    // The base rule is always there (it also governs the non-agentic path)…
     expect(sys).toContain(LANGUAGE_GUIDANCE);
-    // …mais ce que le modèle lit EN DERNIER, avant le tour de l'utilisateur, c'est le rappel.
+    // …but what the model reads LAST, before the user's turn, is the reminder.
     expect(sys.trimEnd().endsWith(LANGUAGE_REMINDER)).toBe(true);
-    // Et la consigne d'outillage, elle, ne doit plus être le dernier mot.
+    // And the tooling instruction, for its part, must no longer be the last word.
     expect(sys.trimEnd().endsWith("BLOC SUGGEST")).toBe(false);
   });
 });
@@ -95,18 +95,18 @@ describe("DOCUMENT_GUIDANCE — la moitié design", () => {
   });
 
   it("interdit exactement ce que l'app dégrade — pas du goût, la grammaire rendue", () => {
-    // L'éditeur de la carte ne rend NI les titres de niveau 4+ NI les listes
-    // imbriquées (ils retombent en texte littéral) : les interdire au modèle est un
-    // fait de rendu, et le test tombe si l'instruction perd l'interdit.
+    // The card's editor renders NEITHER level-4+ headings NOR nested
+    // lists (they fall back to literal text): forbidding them to the model is a
+    // rendering fact, and the test fails if the instruction loses the prohibition.
     expect(DOCUMENT_GUIDANCE).toMatch(/niveau 4\+/);
     expect(DOCUMENT_GUIDANCE).toMatch(/liste imbriquée/);
     expect(DOCUMENT_GUIDANCE).toMatch(/tableau Markdown/);
   });
 
   it("demande la typographie française — dont l'espace que la micro-typo saura souder", () => {
-    // `microTypography.ts` ne fait que REMPLACER une espace existante par une
-    // insécable : si le modèle n'écrit pas l'espace avant « : ; ! ? », il n'y a rien
-    // à souder. L'instruction et le module forment une paire.
+    // `microTypography.ts` only REPLACES an existing space with a
+    // non-breaking one: if the model doesn't write the space before « : ; ! ? », there's nothing
+    // to fuse. The instruction and the module form a pair.
     expect(DOCUMENT_GUIDANCE).toMatch(/espace avant/i);
     expect(DOCUMENT_GUIDANCE).toContain("12 000");
   });
@@ -117,10 +117,10 @@ describe("DOCUMENT_GUIDANCE — la moitié design", () => {
 });
 
 /**
- * Ce que le modèle ne doit PAS pouvoir répondre à « est-ce que mes informations restent
- * chez moi ? ». Sans ancrage, il inventait trois garanties fausses (rien de partagé, rien
- * de conservé, sessions indépendantes) — la classe d'erreur la plus grave pour ce produit,
- * puisqu'elle trompe sur l'endroit où vont les données.
+ * What the model must NOT be able to answer to « est-ce que mes informations restent
+ * chez moi ? ». Without anchoring, it invented three false guarantees (nothing shared, nothing
+ * retained, independent sessions) — the most serious error class for this product,
+ * since it misleads about where the data goes.
  */
 describe("PRODUCT_GROUNDING — le flux réel, y compris ce qui PART", () => {
   it("dit que le reste du message va bien à un TIERS", () => {
@@ -144,9 +144,9 @@ describe("PRODUCT_GROUNDING — le flux réel, y compris ce qui PART", () => {
   });
 });
 
-// Le repli « écran Confidentialité » ne doit pas devenir le repli de TOUT ce que le modèle
-// ignore : mesuré, à « ça me coûte combien ? » il y renvoyait — un écran qui ne dit rien
-// des prix.
+// The « écran Confidentialité » fallback must not become the fallback for EVERYTHING the model
+// doesn't know: measured, asked « ça me coûte combien ? » it pointed there — a screen that says nothing
+// about prices.
 it("borne son repli à la CONFIDENTIALITÉ, pas à tout ce qu'il ignore", () => {
   expect(PRODUCT_GROUNDING).toMatch(/question SUR LA CONFIDENTIALITÉ dépasse ces faits/);
   expect(PRODUCT_GROUNDING).toMatch(/Sur les prix, les crédits, l'abonnement/);

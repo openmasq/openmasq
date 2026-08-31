@@ -4,10 +4,10 @@ import type { ViewMode } from "../../../hooks/useViewMode";
 
 import { useT } from "../../../i18n";
 /**
- * La barre au-dessus de la liste : catégories, import, affichage, recherche.
+ * The bar above the list: categories, import, view, search.
  *
- * Sortie de `CompetencesView` quand celle-ci a passé les 300 lignes (règle 1). Pure —
- * chaque geste est une prop, la page garde les écritures.
+ * Extracted from `CompetencesView` once it went past 300 lines (rule 1). Pure —
+ * each gesture is a prop, the page keeps the writes.
  */
 export function CompetenceFilters({
   chips,
@@ -28,8 +28,8 @@ export function CompetenceFilters({
   onQuery: (q: string) => void;
   view: ViewMode;
   onView: (m: ViewMode) => void;
-  /** Absent (aperçu web, pas de créneau disque) ⇒ pas de bouton : il promettrait une
-   *  lecture que la plateforme ne sait pas faire. */
+  /** Absent (web preview, no disk slot) ⇒ no button: it would promise a
+   *  read the platform can't perform. */
   onImport?: () => void;
 }) {
   const t = useT();
@@ -49,7 +49,7 @@ export function CompetenceFilters({
       ))}
       <span className="om-skill-spacer" />
       {onImport && (
-        // Deux clics : ouvrir, valider.
+        // Two clicks: open, confirm.
         <button
           type="button"
           className="om-skill-import"

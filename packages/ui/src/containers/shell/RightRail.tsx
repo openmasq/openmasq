@@ -31,26 +31,26 @@ import { useT } from "../../i18n";
  * only exists on `chats` + `library`: the other sections keep reaching the guide via ⌘K
  * (« aide ») and mobile via Réglages, which is why the guide stays shell-level.
  *
- * Une fois OUVERT, il montre les DEUX gisements empilés — les onglets web, puis les sources
- * de fichiers (`FolderTreePanel` : dossiers accordés et stockage connecté). Ils répondent à
- * la même question, « qu'est-ce que je peux ouvrir à côté de la conversation ? », donc les
- * rendre exclusifs cachait toujours la moitié de la réponse. Un seul ascenseur pour les
- * deux : deux dans 214 px sont deux fois trop.
+ * Once OPEN, it shows the TWO deposits stacked — the web tabs, then the file
+ * sources (`FolderTreePanel`: granted folders and connected storage). They answer
+ * the same question, "what can I open next to the conversation?", so
+ * making them exclusive always hid half the answer. A single scrollbar for the
+ * two: two in 214 px is twice too many.
  *
- * Trois choses restent délibérées :
- *  · le groupe des dossiers s'affiche dès que la PLATEFORME en est capable, y compris
- *    vide : sans dossier local ni cloud connecté, le panneau ne montrait rien du tout —
- *    or c'est cet utilisateur-là qu'il faut inviter, et les deux invitations (autoriser
- *    un dossier, connecter un stockage) vivent dedans. Seule une plateforme SANS le
- *    créneau (aperçu web, mobile) n'a rien à proposer et le masque ;
- *  · un arbre ne tient pas dans le rail de 44 px : celui-ci garde les onglets et un bouton
- *    qui OUVRE le panneau, plutôt qu'un ersatz tronqué ;
- *  · les DOCUMENTS ouverts ne vivent toujours pas ici — ils se commutent depuis la barre
- *    d'onglets du panneau (`PanelTabs`). Une source dont on part n'est pas une liste
- *    d'éléments ouverts.
+ * Three things remain deliberate:
+ *  · the folders group shows as soon as the PLATFORM is capable, including
+ *    empty: with no local folder and no cloud connected, the panel used to show nothing at all —
+ *    yet that is exactly the user who needs inviting, and both invitations (grant
+ *    a folder, connect a storage) live inside it. Only a platform WITHOUT the
+ *    slot (web preview, mobile) has nothing to offer and hides it;
+ *  · a tree doesn't fit in the 44 px rail: this one keeps the tabs and a button
+ *    that OPENS the panel, rather than a truncated stand-in;
+ *  · open DOCUMENTS still don't live here — they switch from the panel's
+ *    tab bar (`PanelTabs`). A source one opens FROM is not a list
+ *    of open items.
  */
 
-/** Une entrée de PIED, rendue soit en icône (rail étroit) soit en ligne libellée (vue large). */
+/** A FOOT entry, rendered either as an icon (narrow rail) or a labelled row (wide view). */
 interface FootItem {
   key: string;
   icon: JSX.Element;
@@ -101,10 +101,10 @@ export function RightRail({
   onNewBrowser: () => void;
   onSelectBrowserTab: (id: string) => void;
   onCloseBrowserTab: (id: string) => void;
-  /** Rouvrir l'annonce d'une mise à jour TÉLÉCHARGÉE — le bouton n'existe que
-   *  tant qu'une version attend un redémarrage (couple avec `updateVersion`). */
+  /** Reopen the announcement of a DOWNLOADED update — the button only exists
+   *  while a version is waiting for a restart (paired with `updateVersion`). */
   onOpenUpdate?: () => void;
-  /** La version prête, pour la NOMMER (« Redémarrer pour 0.5.1 »). */
+  /** The ready version, to NAME it ("Restart for 0.5.1"). */
   updateVersion?: string | null;
   /** Open « Aide » (the in-app guide). */
   onOpenGuide: () => void;
@@ -126,8 +126,8 @@ export function RightRail({
 }) {
   const t = useT();
   const [expanded, setExpanded] = useState(false);
-  // La CAPACITÉ de la plateforme, pas « y a-t-il déjà des dossiers » : le panneau doit
-  // s'afficher justement quand il n'y a rien, puisque c'est lui qui invite à en ajouter.
+  // The platform's CAPABILITY, not "are there already folders": the panel must
+  // show precisely when there is nothing, since it is the one that invites adding some.
   const hasFolders = useLocalFsCapable();
 
   const expandBtn = (
@@ -158,17 +158,17 @@ export function RightRail({
   const browserActive = (id: string) => browserOnScreen && id === activeBrowserTab;
 
   /**
-   * LE PIED — tout ce qui n'est pas un gisement, dans les DEUX largeurs.
+   * THE FOOT — everything that is NOT a deposit, in BOTH widths.
    *
-   * ⚠️ Il ne porte QUE les actions « demander à l'app » (+ la cloche Demandes). Les
-   * commandes du panneau (agrandir / fermer) ont été retirées : recliquer l'onglet
-   * ACTIF replie déjà, chaque élément a sa croix — n'en remettre une que si un geste
-   * devient inatteignable. Un seul tableau pour les deux rendus (icônes étroites /
-   * lignes libellées), sinon les libellés se perdaient d'un côté.
+   * ⚠️ It carries ONLY the "ask the app" actions (+ the Demandes bell). The
+   * panel's commands (expand / close) were removed: re-clicking the
+   * ACTIVE tab already collapses, every item has its own cross — only add one back if a
+   * gesture becomes unreachable. A single array for both renders (narrow icons /
+   * labelled rows), otherwise the labels would get lost on one side.
    */
   const askBtns: FootItem[] = [
-    // La mise à jour EN TÊTE du pied, seulement quand il y en a une — en dernier
-    // elle glissait sous le pli du rail étroit chez qui a aussi « Envoyer un avis ».
+    // The update FIRST in the foot, only when there is one — last
+    // it used to slide under the fold of the narrow rail for whoever also has « Envoyer un avis ».
     ...(onOpenUpdate && updateVersion
       ? [
           {
@@ -186,8 +186,8 @@ export function RightRail({
       : []),
   ];
 
-  // Un seul rendu paramétré (icône étroite / ligne large) : l'accent de la mise à
-  // jour doit être identique des deux côtés, deux blocs recopiés le perdraient.
+  // A single parameterized render (narrow icon / wide row): the update's accent
+  // must be identical on both sides, two copied blocks would lose it.
   const footBtn = (f: FootItem, wide: boolean) => (
     <button
       key={f.key}
@@ -228,12 +228,12 @@ export function RightRail({
           <span className="cv-eyebrow rr-title">{t.shell.rightRail.title}</span>
           {expandBtn}
         </div>
-        {/* UNE colonne, deux gisements empilés : les onglets web et les sources de
-            fichiers sont tous deux « ce qu'on peut ouvrir à côté de la conversation ».
-            Un sélecteur les rendait exclusifs — donc la moitié de la réponse était
-            toujours cachée, et il fallait un clic pour se rappeler ce qu'il y avait de
-            l'autre côté. Un seul défilement aussi : deux ascenseurs dans 214 px, c'est
-            deux fois trop. */}
+        {/* ONE column, two deposits stacked: the web tabs and the file
+            sources are both "what can be opened next to the conversation".
+            A switcher made them exclusive — so half the answer was
+            always hidden, and it took a click to remember what was on
+            the other side. A single scroll too: two scrollbars in 214 px is
+            twice too many. */}
         <div className="rr-body">
           <div className="rr-tree-group" title={t.shell.rightRail.browser}>
             <span className="rr-group-ico" aria-hidden="true">
@@ -274,8 +274,8 @@ export function RightRail({
     <aside className="right-rail" aria-label={t.shell.rightRail.ariaLabel}>
       {expandBtn}
       {newBrowserBtn}
-      {/* Un arbre ne tient pas dans 44 px : le rail étroit montre les onglets, et le
-          bouton d'ouverture au-dessus est ce qui mène aux dossiers. */}
+      {/* A tree doesn't fit in 44 px: the narrow rail shows the tabs, and the
+          button above is what leads to the folders. */}
       {hasFolders && (
         <button
           type="button"

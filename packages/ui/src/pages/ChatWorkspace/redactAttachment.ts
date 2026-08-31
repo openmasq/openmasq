@@ -31,9 +31,9 @@ export interface RedactAttachmentDeps {
   /** That conversation's category override — same precedence as the send. Absent
    *  before a conversation exists (first message). */
   convCategories?: Record<string, boolean>;
-  /** Le coffre PERSISTÉ de la conversation, pour amorcer son coffre de travail — voir
-   *  `attachmentVault.ts` : c'est ce qui donne UN seul faux à une même personne présente
-   *  dans DEUX pièces jointes. Absent ⇒ le coffre de travail démarre vide. */
+  /** The conversation's PERSISTED vault, to seed its working vault — see
+   *  `attachmentVault.ts`: this is what gives ONE fake to the same person present
+   *  in TWO attachments. Absent ⇒ the working vault starts empty. */
   convVault?: Record<string, string>;
 }
 
@@ -68,8 +68,8 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
       if (!ctrl.signal.aborted) updateAttachment(a.cid, { redactProgress: { done, total } });
     },
     convCategories,
-    // ⚠️ Le coffre de la CONVERSATION, partagé par toutes ses pièces : sans lui, deux
-    // documents du même dossier donnaient deux faux à la même personne (`attachmentVault.ts`).
+    // ⚠️ The CONVERSATION's vault, shared by all its attachments: without it, two
+    // documents from the same folder gave two fakes to the same person (`attachmentVault.ts`).
     vault: convId ? attachmentVault(convId, convVault) : undefined,
   })
     .then(({ replacements, modelError }) => {

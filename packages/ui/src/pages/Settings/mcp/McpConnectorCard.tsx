@@ -55,9 +55,9 @@ export function McpConnectorCard({ item, onOpen }: { item: McpItem; onOpen: () =
             )
           )}
         </span>
-        {/* Une panne REMPLACE la description — c'est voulu (on ne cache pas l'échec) —
-            mais dans la langue de l'utilisateur : le message brut du fournisseur ne lui
-            apprenait rien et effaçait ce qu'est le service (`connectorErrorText`). */}
+        {/* A failure REPLACES the description — that's deliberate (we don't hide the
+            failure) — but in the user's language: the provider's raw message taught
+            them nothing and erased what the service is (`connectorErrorText`). */}
         <span className={`mcp-card-desc ${item.error ? "error" : ""}`}>
           {item.error ? (connectorErrorText(item.error, t)?.text ?? item.error) : item.desc}
         </span>

@@ -14,7 +14,7 @@ describe("resolveEnvironment — l'environnement est TOUJOURS renseigné", () =>
   });
 
   it("un canal inconnu est reporté TEL QUEL", () => {
-    // Le ranger d'office dans « production » ferait chercher un bug dans le mauvais env.
+    // Forcing it into "production" would send you looking for a bug in the wrong env.
     expect(resolveEnvironment("desktop-canary")).toBe("desktop-canary");
   });
 });
@@ -33,9 +33,9 @@ describe("scrubText — les formes de données personnelles les plus probables",
   });
 
   it("une URL perd sa REQUÊTE — c'est là que voyage ce qu'on a cherché", () => {
-    // Le navigateur agent interroge le web avec la VRAIE valeur (règle 11) : l'URL
-    // complète d'un plantage de navigation dirait donc exactement ce que la règle
-    // protège partout ailleurs.
+    // The agent browser queries the web with the REAL value (rule 11): the
+    // full URL of a navigation crash would therefore say exactly what the rule
+    // protects everywhere else.
     expect(scrubText("nav failed https://duckduckgo.com/?q=Marie+Morvan+salaire")).toBe(
       "nav failed https://duckduckgo.com/",
     );
@@ -63,7 +63,7 @@ describe("scrubEvent — une liste d'AUTORISATION, pas d'exclusion (règle 7)", 
     level: "error",
     environment: "staging",
     release: "0.3.4",
-    // ── Tout ce qui suit porte du contenu et ne doit PAS ressortir ──
+    // ── Everything below carries content and must NOT come back out ──
     server_name: "MacBook-de-Marie",
     user: { email: "marie@exemple.fr", ip_address: "88.12.4.9" },
     request: { url: "https://exemple.fr/?q=secret", headers: { Cookie: "session=1" } },
@@ -101,7 +101,7 @@ describe("scrubEvent — une liste d'AUTORISATION, pas d'exclusion (règle 7)", 
     for (const k of ["server_name", "user", "request", "breadcrumbs", "contexts", "extra", "modules"]) {
       expect(out, `\`${k}\` ne doit pas survivre`).not.toHaveProperty(k);
     }
-    // La preuve qui compte : la sérialisation entière ne contient plus rien de réel.
+    // The proof that matters: the entire serialization no longer contains anything real.
     const wire = JSON.stringify(out);
     for (const leak of ["marie@exemple.fr", "88.12.4.9", "session=1", "MacBook", "sk-reel", "FR7630006000011234567890189", "le texte du message"]) {
       expect(wire, `« ${leak} » a fuité`).not.toContain(leak);
@@ -120,7 +120,7 @@ describe("scrubEvent — une liste d'AUTORISATION, pas d'exclusion (règle 7)", 
   });
 
   it("les variables locales et le CODE SOURCE des frames ne sortent jamais", () => {
-    // Les deux champs par lesquels une valeur réelle entre dans un rapport de plantage.
+    // The two fields through which a real value enters a crash report.
     const frame = (scrubEvent(richEvent())! as any).exception.values[0].stacktrace.frames[0];
     for (const k of ["vars", "context_line", "pre_context", "post_context"]) {
       expect(frame).not.toHaveProperty(k);
@@ -139,25 +139,25 @@ describe("scrubEvent — une liste d'AUTORISATION, pas d'exclusion (règle 7)", 
   });
 
   it("un CHAMP INCONNU du SDK ne passe pas — c'est tout l'intérêt de l'autorisation", () => {
-    // Une montée de version qui ajouterait un champ porteur de contenu n'a rien à
-    // re-neutraliser ici : il n'est simplement pas recopié.
+    // A version bump that added a field carrying content has nothing to
+    // re-neutralize here: it's simply not copied over.
     const out = scrubEvent({ ...richEvent(), futur_champ_du_sdk: "donnée réelle" })!;
     expect(JSON.stringify(out)).not.toContain("donnée réelle");
   });
 });
 
 /**
- * LA VERSION, et le fait que les deux processus disent la MÊME.
+ * THE VERSION, and the fact that both processes state the SAME one.
  *
- * Sentry rattache un rapport à une `release`. Le main lit `app.getVersion()` — la version
- * TIMBRÉE par electron-builder (`-c.extraMetadata.version`, donc `0.4.1-staging.123`) ;
- * le renderer lit le define `VITE_APP_VERSION`, figé au moment du bundle, c'est-à-dire
- * AVANT ce timbrage. Sans la variable d'env dans l'étape de build, il retombait sur le
- * `package.json` du dépôt (`0.4.1`) : une seule app envoyait donc deux releases, et
- * l'`app_version` de PostHog (même define) ne bougeait pas d'une mise à jour à l'autre.
+ * Sentry attaches a report to a `release`. Main reads `app.getVersion()` — the version
+ * STAMPED by electron-builder (`-c.extraMetadata.version`, so `0.4.1-staging.123`);
+ * the renderer reads the `VITE_APP_VERSION` define, frozen at bundle time, that is,
+ * BEFORE this stamping. Without the env variable in the build step, it fell back to the
+ * repo's `package.json` (`0.4.1`): a single app was thus sending two releases, and
+ * PostHog's `app_version` (same define) didn't move from one update to the next.
  *
- * Le test lit le WORKFLOW parce que c'est le seul endroit où la faute pouvait vivre —
- * le code, lui, était correct des deux côtés. Un commentaire n'aurait pas échoué en CI.
+ * The test reads the WORKFLOW because that's the only place the fault could live —
+ * the code, on both sides, was correct. A comment wouldn't have failed in CI.
  */
 describe("release.yml — le renderer est bâti avec la version qui sera EXPÉDIÉE", () => {
   const wf = readFileSync(
@@ -172,8 +172,8 @@ describe("release.yml — le renderer est bâti avec la version qui sera EXPÉDI
   });
 
   it("et c'est LA MÊME expression que celle timbrée par electron-builder", () => {
-    // Deux versions qui se ressemblent sans être liées, c'est le bug d'origine sous une
-    // autre forme : on exige l'égalité textuelle de la source, pas une valeur plausible.
+    // Two versions that look alike without being linked is the original bug in
+    // another form: we require textual equality of the source, not a plausible value.
     const bundle = wf.match(/VITE_APP_VERSION:\s*(\$\{\{[^}]+\}\})/)?.[1];
     const stamped = wf.match(/extraMetadata\.version=(\$\{\{[^}]+\}\})/)?.[1];
     expect(bundle).toBeTruthy();
@@ -182,11 +182,11 @@ describe("release.yml — le renderer est bâti avec la version qui sera EXPÉDI
 });
 
 /**
- * RÉGRESSION — Sentry n'avait aucun filtre de bruit d'exploitation, alors que le canal
- * `$exception` de PostHog en avait un depuis des semaines. Résultat mesuré le 12/08 :
- * 1590 des 1710 événements du projet (93 %) étaient DEUX messages de transport MCP,
- * exactement le taux que `packages/analytics` avait déjà constaté sur l'autre canal.
- * Le prédicat n'est pas recopié ici — c'est `isOperationalError`, importé.
+ * REGRESSION — Sentry had no operational-noise filter at all, while PostHog's
+ * `$exception` channel had had one for weeks. Result measured on 12/08:
+ * 1590 of the project's 1710 events (93%) were TWO MCP transport messages,
+ * exactly the rate `packages/analytics` had already found on the other channel.
+ * The predicate isn't copied here — it's `isOperationalError`, imported.
  */
 describe("sentryBeforeSend — le bruit d'exploitation n'est pas envoyé", () => {
   const evt = (type: string, value: string, extra: Record<string, unknown> = {}) => ({
@@ -208,8 +208,8 @@ describe("sentryBeforeSend — le bruit d'exploitation n'est pas envoyé", () =>
   });
 
   it("écarte un timeout réseau, y compris LOCALISÉ — Electron parle la langue de l'OS", () => {
-    // 66 rapports d'un timeout du feed de mise à jour, en français : les motifs anglais
-    // ne le voyaient pas, et « MCP error -32001: Request timed out » est son jumeau.
+    // 66 reports of an updates-feed timeout, in French: the English patterns
+    // didn't catch it, and "MCP error -32001: Request timed out" is its twin.
     expect(sentryBeforeSend(evt("Error", "running=0.6.0 ch=desktop-staging · La requête a expiré."))).toBeNull();
     expect(sentryBeforeSend(evt("McpError", "MCP error -32001: Request timed out"))).toBeNull();
   });
@@ -220,16 +220,16 @@ describe("sentryBeforeSend — le bruit d'exploitation n'est pas envoyé", () =>
     expect((out as { exception: { values: { value: string }[] } }).exception.values[0].value).toBe(
       "spawn npx ENOENT",
     );
-    // Le bundle amputé d'app-update.yml (la régression 0.6.0) DOIT passer : c'est une
-    // régression d'empaquetage, exactement la classe que ce filtre jure de préserver.
+    // The bundle missing app-update.yml (the 0.6.0 regression) MUST pass through: it's a
+    // packaging regression, exactly the class this filter swears to preserve.
     expect(
       sentryBeforeSend(evt("Error", "running=0.6.0 ch=desktop-staging · ENOENT: no such file or directory, open '/Applications/Acme.app/Contents/Resources/app-update.yml'")),
     ).not.toBeNull();
   });
 
   it("ne jette JAMAIS un plantage non rattrapé, même au texte « opérationnel »", () => {
-    // Trois façons dont un non-rattrapé se reconnaît, toutes couvertes : notre étiquette,
-    // le niveau du SDK, et son mécanisme. Un « fetch failed » non rattrapé EST un plantage.
+    // Three ways an uncaught crash is recognized, all covered: our tag,
+    // the SDK's level, and its mechanism. An uncaught "fetch failed" IS a crash.
     expect(sentryBeforeSend(evt("Error", "Not connected", { tags: { scope: "uncaught" } }))).not.toBeNull();
     expect(sentryBeforeSend(evt("Error", "fetch failed", { level: "fatal" }))).not.toBeNull();
     expect(
@@ -254,7 +254,7 @@ describe("sentryBeforeSend — le bruit d'exploitation n'est pas envoyé", () =>
       if (sentryBeforeSend(evt("Error", "spawn cap-test-unique ENOENT")) !== null) sent += 1;
     }
     expect(sent).toBe(5);
-    // Une signature DIFFÉRENTE repart de zéro — le cap est par panne, pas global.
+    // A DIFFERENT signature starts fresh — the cap is per-failure, not global.
     expect(sentryBeforeSend(evt("Error", "spawn autre-panne-unique ENOENT"))).not.toBeNull();
   });
 });
@@ -287,7 +287,7 @@ describe("scrubEvent — les ajouts diagnostics restent champ par champ (audit 1
     })! as Record<string, any>;
     expect(out.user).toEqual({ id: "3f2c1d8e-aaaa-bbbb-cccc-1234567890ab" });
     expect(JSON.stringify(out)).not.toContain("exemple.fr");
-    // Un id qui n'a pas la forme d'un identifiant borné ne passe pas.
+    // An id that doesn't have the shape of a bounded identifier doesn't pass.
     expect(scrubEvent({ ...base(), user: { id: "marie morvan <m@exemple.fr>" } })!).not.toHaveProperty("user");
   });
 
@@ -299,7 +299,7 @@ describe("scrubEvent — les ajouts diagnostics restent champ par champ (audit 1
   it("le fingerprint que NOUS posons ([scope, code]) sépare les issues synthétisées", () => {
     const out = scrubEvent({ ...base(), fingerprint: ["updates", "updater-404"] })! as Record<string, any>;
     expect(out.fingerprint).toEqual(["updates", "updater-404"]);
-    // Un fingerprint non-chaîne est écarté, jamais recopié tel quel.
+    // A non-string fingerprint is discarded, never copied over as is.
     expect(scrubEvent({ ...base(), fingerprint: [{ evil: 1 }] })!).not.toHaveProperty("fingerprint");
   });
 });

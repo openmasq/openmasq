@@ -5,9 +5,9 @@ import type { SyncStatusSnapshot } from "../../host";
 import { brandHost } from "@openmasq/branding";
 
 /**
- * La phrase du témoin de synchro. Deux mensonges possibles, chacun coûteux : dire
- * « réussi » pendant une panne (l'utilisateur croit ses données synchronisées), ou rester
- * rouge après la guérison (il apprend à ignorer le rouge — la leçon des encarts).
+ * The sync status indicator's sentence. Two possible lies, each costly: saying
+ * « réussi » during an outage (the user believes their data is synced), or staying
+ * red after recovery (they learn to ignore red — the lesson from banners).
  */
 const NOW = 1_000_000_000;
 const snap = (over: Partial<SyncStatusSnapshot>): SyncStatusSnapshot => ({
@@ -27,8 +27,8 @@ describe("syncStatusLine — le plus récent des deux événements dit le verdic
       snap({ lastOkAt: NOW - 600_000, lastErrorAt: NOW - 60_000, lastError: "HTTP 403" }), fr, NOW,
     );
     expect(tone).toBe("err");
-    // La raison est MONTRÉE : « HTTP 403 » (appareil révoqué) et « serveur injoignable »
-    // ne se diagnostiquent pas pareil, et c'est tout l'objet du témoin.
+    // The reason IS SHOWN: « HTTP 403 » (device revoked) and « serveur injoignable »
+    // aren't diagnosed the same way, and that's the whole point of the indicator.
     expect(text).toContain("HTTP 403");
   });
 
@@ -51,8 +51,8 @@ describe("syncStatusLine — le plus récent des deux événements dit le verdic
   });
 
   it("une panne DÉFINITIVE ne promet pas de se réparer seule — elle dit quoi faire", () => {
-    // Le déchiffrement impossible (la phrase n'ouvre pas l'enveloppe) : aucun réessai n'y
-    // changera rien, et « Réessaiera tout seul » ferait attendre une issue qui ne vient pas.
+    // Decryption impossible (the passphrase doesn't open the envelope): no retry will
+    // change anything, and « Réessaiera tout seul » would make it wait for an outcome that never comes.
     const out = syncStatusLine(
       snap({ lastErrorAt: NOW - 5_000, lastError: "la phrase secrète…", lastErrorFatal: true }), fr, NOW,
     );

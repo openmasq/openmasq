@@ -28,12 +28,12 @@ describe("wireTokenSummary", () => {
   });
 
   it("names the CACHED share of the input, and stays silent when there is none", () => {
-    // Sans cette part, une boucle agentique (tout l'historique renvoyé à chaque tour) se
-    // lit comme une entrée qui enfle, sans dire si le préfixe stable est réutilisé.
+    // Without this part, an agentic loop (the whole history sent back each turn)
+    // reads as an entry that swells, without saying whether the stable prefix is reused.
     const cached = wireTokenSummary({ ...base, inputTokens: 5000, outputTokens: 20, cachedInputTokens: 4000 });
     expect(cached).toMatch(/en cache/);
     expect(cached).toMatch(/4.000/);
-    // Un provider qui ne rapporte rien (openai-compat/local) n'invente pas un « 0 en cache ».
+    // A provider that reports nothing (openai-compat/local) doesn't invent a « 0 en cache ».
     expect(wireTokenSummary({ ...base, inputTokens: 5000, outputTokens: 20 })).not.toMatch(/en cache/);
     expect(wireTokenSummary({ ...base, inputTokens: 5000, outputTokens: 20, cachedInputTokens: 0 })).not.toMatch(/en cache/);
   });
@@ -73,8 +73,8 @@ describe("turn entries (les « échanges » par tour)", () => {
   });
 
   it("le tour-par-tour porte la part mise en cache — c'est là qu'on la voit monter", () => {
-    // Tour 1 : rien en cache (amorçage). Tour 2+ : le préfixe stable (système + schémas
-    // d'outils) est relu. C'est cette montée-là, ou son absence, qui arbitre la suite.
+    // Turn 1: nothing cached (priming). Turn 2+: the stable prefix (system + tool
+    // schemas) is re-read. It's this rise, or its absence, that decides the rest.
     expect(entryToText({ ...turn, turn: 1 })).not.toContain("en cache");
     expect(entryToText({ ...turn, inputTokens: 9000, cachedInputTokens: 8000 })).toContain("en cache");
   });
@@ -99,10 +99,10 @@ describe("turn entries (les « échanges » par tour)", () => {
 
   it("« sans mapping » : le GABARIT et le résumé remplacent la paire — la forme, jamais la valeur", () => {
     const t = entryToText(turn, { mapping: false });
-    // Le résumé par catégorie (étage A, dérivé des paires — comptes seulement)…
+    // The per-category summary (tier A, derived from the pairs — counts only)…
     expect(t).toContain("Redaction : 1 valeur");
-    // …et le gabarit de forme (étage B) : casse/longueur/séparateurs de l'ORIGINAL,
-    // sans qu'aucun de ses caractères ne survive.
+    // …and the shape template (tier B): case/length/separators of the ORIGINAL,
+    // with none of its characters surviving.
     expect(t).toContain("Louis Terral → Xxxx Xxxxxxx");
   });
 });
@@ -129,10 +129,10 @@ describe("journalExportFor — what an avis may attach", () => {
 
   it("scopes to ONE conversation — par LA règle, pas par une copie du prédicat", () => {
     // Same rule as the modal (`state/debugScope.ts` `isEntryVisibleIn`): a second tab's
-    // concurrent send must never ride along in a bug report about this one. Ce test
-    // acceptait « global » — cette fonction portait sa propre copie du prédicat, restée à
-    // la version d'avant le durcissement du 11/08, et l'avis emportait donc des entrées
-    // que la modale ne montrait déjà plus (règle 9 : la copie n'est jamais corrigée).
+    // concurrent send must never ride along in a bug report about this one. This test
+    // used to accept « global » — this function carried its own copy of the predicate, stuck at
+    // the version from before the 11/08 hardening, so the avis carried along entries
+    // the modal no longer showed (rule 9: the copy is never fixed).
     pushDebug({ type: "error", scope: "send", message: "ici" }, "c1");
     pushDebug({ type: "error", scope: "send", message: "ailleurs" }, "c2");
     pushDebug({ type: "error", scope: "app", message: "global" });
@@ -143,9 +143,9 @@ describe("journalExportFor — what an avis may attach", () => {
   });
 
   it("emporte le BROUILLON quand l'avis part d'un chat pas encore créé", () => {
-    // L'ancienne copie excluait `DRAFT_CONV` (`conv != null` et `!== convId`) : un rapport
-    // de bug sur un document déposé avant le premier envoi partait donc VIDE, précisément
-    // dans le cas où l'utilisateur a quelque chose à signaler.
+    // The old copy excluded `DRAFT_CONV` (`conv != null` and `!== convId`): a bug
+    // report about a document dropped before the first send used to leave EMPTY, precisely
+    // in the case where the user has something to report.
     pushDebug({ type: "tool", name: "document-redaction", ok: true, args: "devis.pdf" }, DRAFT_CONV);
     expect(journalExportFor(null)).toContain("devis.pdf");
     expect(journalExportFor("c1")).not.toContain("devis.pdf");

@@ -19,9 +19,9 @@ describe("buildSystemContent", () => {
     expect(buildSystemContent(up, undefined, true)).toContain(NUMBER_TOKEN_INSTRUCTION);
   });
 
-  /* Usage des Compétences fermé : on cesse de DEMANDER au modèle d'en proposer. Sans
-     ça, la porte fermée par l'avant se rouvre par le modèle — un bloc ```competence
-     rendu avec un bouton d'adoption vers une fonctionnalité retirée. */
+  /* Compétences usage closed: we stop ASKING the model to propose any. Without
+     this, the door closed at the front reopens through the model — a ```competence
+     block rendered with an adoption button pointing to a removed feature. */
   it("retire la consigne « fabrique une compétence » quand leur usage est fermé", () => {
     expect(buildSystemContent(up, undefined, false)).toContain("```competence");
     expect(buildSystemContent(up, undefined, false, { skills: false })).not.toContain(
@@ -109,8 +109,8 @@ describe("buildWireHistory", () => {
 
 describe("buildSystemContent — la règle de langue atteint les DEUX chemins", () => {
   it("est dans le message système partagé, donc aussi sous la boucle agentique", () => {
-    // La boucle AJOUTE sa guidance à ce même message : la porter ici la donne au flux
-    // simple comme au tour d'outils, en un seul exemplaire (règle 9).
+    // The loop ADDS its guidance to this same message: carrying it here gives it to the
+    // plain flow as much as to the tool-use turn, in a single copy (rule 9).
     const sys = buildSystemContent((t) => ({ text: t }) as never, undefined, false);
     expect(sys).toMatch(/LANGUE du message de l'utilisateur/);
     expect(sys).toMatch(/thinking|chaîne de pensée/);

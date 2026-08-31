@@ -31,9 +31,9 @@ export function SyncSection({ sync, onUpgrade }: { sync: SyncHost; onUpgrade?: (
   const [renaming, setRenaming] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   useEffect(() => {
-    // Rechargée au FOCUS aussi : la liste ne se chargeait qu'au montage, donc « je viens
-    // d'installer l'app sur l'autre Mac, je reviens ici » montrait l'ancienne liste tant
-    // qu'on ne rouvrait pas les Réglages.
+    // Reloaded on FOCUS too: the list only loaded on mount, so "I just installed
+    // the app on the other Mac, I'm coming back here" showed the old list until
+    // Settings was reopened.
     const refresh = () => void sync.listDevices().then(setDevices).catch(() => setDevices([]));
     refresh();
     window.addEventListener("focus", refresh);

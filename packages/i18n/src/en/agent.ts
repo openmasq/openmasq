@@ -1,7 +1,7 @@
 /**
- * Tranche « agent » du catalogue EN — traduit de la source (`../fr/agent.ts`).
+ * The EN catalogue's « agent » slice — translated from the source (`../fr/agent.ts`).
  *
- * `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat
+ * `satisfies` per entry: the compiler demands EXACTLY the contract's keys
  * (`../messages/agent.ts`), ni plus ni moins.
  */
 import type { Messages } from "../messages";

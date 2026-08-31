@@ -3,17 +3,17 @@ import { useMcpConnectors } from "./useMcpConnectors";
 import { McpModals } from "./McpModals";
 
 /**
- * La modale d'un connecteur ouverte AILLEURS que dans Réglages → Connecteurs : depuis
- * le panneau « Dossiers », la bannière de reconnexion, une carte d'intégration proposée
- * en conversation. Connecter Dropbox depuis la liste des sources ne fait plus quitter
- * l'écran pour y revenir — c'est la MÊME modale, avec le même flux OAuth, par-dessus là
- * où on était.
+ * A connector's modal opened FROM SOMEWHERE OTHER than Réglages → Connecteurs: from
+ * the "Dossiers" panel, the reconnect banner, an integration card suggested
+ * in a conversation. Connecting Dropbox from the sources list no longer leaves
+ * the screen to come back to it — it's the SAME modal, with the same OAuth flow, over wherever
+ * you were.
  *
- * `AppShell` ne le monte QUE pendant qu'un connecteur est demandé : le hook parle à
- * l'hôte au montage (`list()` + `byoCredGroups()`), et un hôte permanent ferait payer
- * ces appels à chaque démarrage pour une modale que la plupart des sessions n'ouvrent
- * jamais. Il se démonte de lui-même dès que la pile est refermée — `onClose` est ce qui
- * l'annonce à la coquille.
+ * `AppShell` only mounts it WHILE a connector is requested: the hook talks to
+ * the host on mount (`list()` + `byoCredGroups()`), and a permanent host would make
+ * every startup pay for those calls for a modal most sessions never open.
+ * It unmounts itself as soon as the stack is closed — `onClose` is what
+ * announces that to the shell.
  */
 export function ConnectorModalHost({
   connectorId,
@@ -22,7 +22,7 @@ export function ConnectorModalHost({
   onClose,
 }: {
   connectorId: string;
-  /** Re-demander le MÊME connecteur doit ré-ouvrir : le nonce est ce qui le dit. */
+  /** Re-requesting the SAME connector must re-open it: the nonce is what says so. */
   nonce: number;
   allowedMcpIds?: string[];
   onClose: () => void;
@@ -33,10 +33,10 @@ export function ConnectorModalHost({
   });
   const { openId, byoId, inspecting } = c;
 
-  // Refermer la dernière modale de la pile rend la main. Une étape intermédiaire
-  // (« Voir les outils », le formulaire de clés) ferme la modale de détail et en ouvre
-  // une autre — d'où les trois états testés ensemble plutôt que le seul `openId`, sinon
-  // l'hôte se démonterait au milieu du parcours en emportant l'inspecteur avec lui.
+  // Closing the last modal in the stack hands control back. An intermediate step
+  // ("Voir les outils", the keys form) closes the detail modal and opens
+  // another one — hence the three states tested together rather than just `openId`, otherwise
+  // the host would unmount mid-journey, taking the inspector down with it.
   const closed = !openId && !byoId && !inspecting;
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;

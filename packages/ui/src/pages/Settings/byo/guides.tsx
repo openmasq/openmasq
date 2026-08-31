@@ -71,8 +71,8 @@ export interface Guide {
   idPlaceholder: string;
 }
 
-/** Le tutoriel d'un connecteur, dans la langue de `t` — les liens et les valeurs à
- *  coller restent ici (des FAITS), chaque phrase vient du catalogue (`byo.*`). */
+/** A connector's tutorial, in `t`'s language — the links and the values to paste
+ *  stay here (FACTS), every sentence comes from the catalogue (`byo.*`). */
 export function guideFor(c: McpConnector, t: Messages): Guide {
   // `directAuth`: "device" = GitHub (client id only), "microsoft" = Microsoft Entra
   // PUBLIC client (client id only, PKCE), "pkce" = Google (id + secret).

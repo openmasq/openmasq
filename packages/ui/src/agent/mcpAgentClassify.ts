@@ -4,9 +4,9 @@ import { bareWithoutVendor, COMPOUND_WRITE, DESTRUCTIVE_VERB, READ_VERB } from "
 import { asksConsultNotAct } from "./readIntent";
 
 // Tool read-vs-write classification for the agentic MCP loop. Pure + unit-tested;
-// pulled out of `mcpAgent.ts` so the heuristics live in one small, testable place. Le
-// vocabulaire de verbes ET le classifieur écriture vivent dans `@openmasq/catalog/mcp`
-// (`writeVocabulary.ts`) — la même liste que le write-gate de main (règle 9).
+// pulled out of `mcpAgent.ts` so the heuristics live in one small, testable place. The
+// verb vocabulary AND the write classifier both live in `@openmasq/catalog/mcp`
+// (`writeVocabulary.ts`) — the same list main's write-gate uses (rule 9).
 
 /** Read-only vs MUTATING heuristic for a tool. A tool is a WRITE (→ user confirmation)
  *  when its bare name (after the `${server}__` prefix) signals a mutation — and when it
@@ -25,20 +25,19 @@ export function isWriteTool(
 }
 
 /**
- * La garde « consulter ≠ agir » : cette écriture doit-elle être refusée D'OFFICE parce que
- * le dernier message ne demandait qu'à REGARDER ? (Le refus est déterministe, quel que soit
- * le mode : en `standard` une écriture ordinaire n'ouvre aucune carte tant que la
- * conversation n'a pas touché le web — c'est ainsi qu'une demande de lecture avait créé un
- * vrai événement d'agenda.)
+ * The "consult ≠ act" guard: must this write be refused OUTRIGHT because the last
+ * message only asked to LOOK? (The refusal is deterministic whatever the mode: in
+ * `standard` an ordinary write opens no card at all as long as the conversation hasn't
+ * touched the web — that's how a read request had created a real calendar event.)
  *
- * Deux exemptions, pour des raisons opposées :
- * - le NAVIGATEUR — lire une page demande couramment de cliquer (cookies, pagination), et
- *   ses écritures ont déjà leurs propres gates ;
- * - l'écriture AMBIGUË — verdict porté par le seul `execute`/`run` contre un
- *   `readOnlyHint:true` déclaré (`execute-sql`). Elle reste une écriture, donc la carte de
- *   confirmation s'ouvre : on ne lève que le refus automatique, qui rendait l'unique outil
- *   capable de répondre inatteignable pour TOUTE demande de lecture (journal du 15/08 —
- *   « regarde l'activité », neuf tours, aucune réponse).
+ * Two exemptions, for opposite reasons:
+ * - the BROWSER — reading a page commonly requires clicking (cookies, pagination), and
+ *   its writes already have their own gates;
+ * - an AMBIGUOUS write — a verdict carried by `execute`/`run` alone against a declared
+ *   `readOnlyHint:true` (`execute-sql`). It stays a write, so the confirmation card still
+ *   opens: we only lift the automatic refusal, which made the one tool able to answer
+ *   unreachable for ANY read request (journal 15/08 — "look at the activity", nine
+ *   turns, no answer).
  */
 export function refusedAsConsultOnly(
   name: string,
@@ -72,18 +71,18 @@ export function isConfidentReadOnly(
   // prefetch even behind a read prefix (H-5): `get_and_purge` / `get_and_send_email` must
   // never be eagerly executed with real args.
   if (DESTRUCTIVE_VERB.test(bare) || COMPOUND_WRITE.test(bare)) return false;
-  // ⚠️ **Un outil de NAVIGATION n'est jamais « parallélisable en confiance »**, même quand
-  // il ne fait que lire. Le navigateur intégré est UN onglet et CDP est global au
-  // processus : deux `snapshot` concurrents autour d'une navigation ne décrivent aucune
-  // page en particulier, et « émets-les ensemble » est un mauvais conseil pour la même
-  // raison. Il était exclu par ACCIDENT de nommage (`browser_snapshot` ne commence pas par
-  // un verbe de lecture) — un accident que `bareWithoutVendor` supprime justement, et qui
-  // laissait déjà passer un `get_page` d'un navigateur tiers. Exclusion explicite, donc.
+  // ⚠️ **A NAVIGATION tool is never "confidently parallelisable"**, even when it only
+  // reads. The integrated browser is ONE tab and CDP is process-global: two concurrent
+  // `snapshot`s around a navigation describe no page in particular, and "emit them
+  // together" is bad advice for the same reason. It used to be excluded by a naming
+  // ACCIDENT (`browser_snapshot` doesn't start with a read verb) — an accident that
+  // `bareWithoutVendor` precisely removes, and which already let a third-party
+  // browser's `get_page` through. Hence an explicit exclusion.
   if (isWebBrowseTool(name)) return false;
   // Require a POSITIVE read-verb NAME to eagerly execute before the write gate. A bare
   // server `readOnlyHint:true` is NOT enough (audit H-5): a spoofed hint would pre-run
   // a mutation before any confirmation. The name is the trust anchor for the prefetch.
-  // Le nom du vendeur, quand il se répète, n'est pas la commande — voir `bareWithoutVendor`.
+  // The vendor's own name, when it repeats itself, is not the verb — see `bareWithoutVendor`.
   return READ_VERB.test(bareWithoutVendor(name).replace(/[_-]+/g, " "));
 }
 
@@ -108,7 +107,7 @@ export function isSearchTool(toolName: string): boolean {
   return isWebBrowseTool(toolName) || findConnector(connectorId)?.category === "search";
 }
 
-// ── « Rédige un email » ≠ « envoie un email » ─────────────────────────────────
+// ── "Draft an email" ≠ "send an email" ─────────────────────────────────
 /** Send-class COMMUNICATION tools (bare name): dispatching one TRANSMITS a message to
  *  a real recipient — the irreversible half of « rédige-moi un email ». Verb-prefix
  *  match (send_email, send_message, reply_to_thread, post_message…); a DRAFTING tool
@@ -177,46 +176,44 @@ export function isGovernedWebTool(toolName: string): boolean {
   return toolName === "web_fetch_many" || skipsArgExfilScan(toolName);
 }
 
-// ── Per-tool call cap: CHERCHER n'est pas MARTELER ───────────────────────────
+// ── Per-tool call cap: SEARCHING is not HAMMERING ───────────────────────────
 /**
- * Combien de fois le MÊME outil peut être appelé dans UN tour avant le garde-fou
- * aveugle-à-la-productivité (`MAX_SAME_TOOL` côté boucle).
+ * How many times the SAME tool may be called in ONE turn before the
+ * productivity-blind backstop kicks in (`MAX_SAME_TOOL` on the loop side).
  *
- * Le plafond plat mesurait un martèlement d'API (`execute_sql` / `run_python` /
- * `posthog__exec` à 9–15× sur les modèles faibles) — mais une RECHERCHE sur le web
- * est itérative par nature : une requête, trois pages qui ne répondent pas, une
- * requête plus précise, la page équipe. Chacun de ces appels est « productif » au
- * sens de la boucle (nouvelle URL, nouveau contenu), donc ni `STUCK_STOP` ni
- * `MAX_CONSECUTIVE_DEAD` ne se déclenchent : seul le plafond par outil coupait — et
- * il coupait au moment où le modèle venait de trouver l'organisation et ouvrait sa
- * page équipe (journal du 27/07). Un utilisateur lit ça comme une panne, alors que
- * le parcours était exactement le bon.
+ * The flat cap measured API hammering (`execute_sql` / `run_python` /
+ * `posthog__exec` at 9–15× on weak models) — but a web SEARCH is iterative by
+ * nature: one query, three pages that don't answer, a more precise query, the team
+ * page. Each of these calls is "productive" in the loop's sense (new URL, new
+ * content), so neither `STUCK_STOP` nor `MAX_CONSECUTIVE_DEAD` fires: only the
+ * per-tool cap cut — and it cut right as the model had just found the organisation
+ * and was opening its team page (journal 27/07). A user reads that as a failure,
+ * when the path taken was exactly the right one.
  *
- * Même raisonnement pour une LECTURE tout court (`readOnly` = annotation serveur
- * `readOnlyHint`, cf. `isConfidentReadOnly`) : dépouiller une boîte mail, c'est UN
- * `search_messages` puis N `get_message`, et N vaut ce que vaut la boîte. Le plafond
- * plat en refusait 12 sur 20 (journal du 03/08) — l'utilisateur lit « la revue s'arrête
- * au milieu », alors que les 20 lectures partaient EN PARALLÈLE dans le prefetch, en un
- * seul aller-retour de chat. Ce qui borne réellement un batch de lectures n'est pas leur
- * NOMBRE mais la place que leurs résultats prennent dans la fenêtre du modèle, et c'est
- * le budget de caractères côté boucle (`resultCharBudget`) qui le dit.
+ * Same reasoning for a plain READ (`readOnly` = server annotation `readOnlyHint`,
+ * cf. `isConfidentReadOnly`): clearing out a mailbox is ONE `search_messages` then N
+ * `get_message`, and N is whatever the mailbox holds. The flat cap refused 12 out of
+ * 20 (journal 03/08) — the user reads "the review stops halfway", when the 20 reads
+ * were going out IN PARALLEL in the prefetch, in a single chat round trip. What
+ * actually bounds a read batch isn't their COUNT but the room their results take up
+ * in the model's context window, and that's what the loop's char budget
+ * (`resultCharBudget`) says.
  *
- * ⚠️ Le relèvement ne vaut QUE pour une lecture : un outil sans annotation, ou qui
- * écrit, garde `MAX_SAME_TOOL`. C'est l'écriture martelée que ce garde-fou existe pour
- * arrêter, et une annotation absente se lit comme « peut écrire » (fail-closed).
+ * ⚠️ The raised cap applies ONLY to a read: a tool with no annotation, or that
+ * writes, keeps `MAX_SAME_TOOL`. It's hammered WRITES this backstop exists to stop,
+ * and a missing annotation reads as "can write" (fail-closed).
  *
- * ⚠️ Le plafond relevé va aux LECTURES web POSITIVEMENT ATTRIBUÉES uniquement
- * (`isGovernedWebTool` : notre navigateur intégré, un connecteur catalogué `search`,
- * notre `web_fetch_many` intercepté) — jamais un nom (`evil__browser_navigate` garde
- * le plafond ordinaire) — et JAMAIS aux primitives d'ACTION du navigateur
- * (clic/saisie/formulaire) : un modèle qui martèle `browser_click` est précisément
- * l'emballement que ce garde-fou existe pour arrêter. Les deux autres gardes
- * restent en place : un butinage stérile est toujours coupé à 5 appels non
- * productifs d'affilée.
+ * ⚠️ The raised cap goes to POSITIVELY ATTRIBUTED web READS only
+ * (`isGovernedWebTool`: our integrated browser, a catalog `search` connector, our
+ * intercepted `web_fetch_many`) — never a name (`evil__browser_navigate` keeps the
+ * ordinary cap) — and NEVER to the browser's ACTION primitives (click/type/submit): a
+ * model hammering `browser_click` is exactly the runaway this backstop exists to stop.
+ * The other two guards still apply: sterile foraging is always cut at 5 non-productive
+ * calls in a row.
  */
 export const MAX_SAME_TOOL = 8;
 export const MAX_SAME_WEB_READ = 20;
-/** Lecture positivement annotée : bornée par le CONTEXTE, pas par le compte. */
+/** A positively-annotated read: bounded by CONTEXT, not by count. */
 export const MAX_SAME_READ = 30;
 
 export function maxSameToolCalls(toolName: string, readOnly = false): number {
@@ -243,10 +240,10 @@ const WEB_INTENT_RE = new RegExp(
     "cherche[rz]? (sur|dans) (le web|internet|google)", "recherche web", "sur (le web|internet)",
     "navigue", "va sur (le site|https?)", "ouvre (le site|la page)", "\\bbrowse\\b",
     "search (the web|online|google)", "look (it|this|that) up", "google\\b",
-    // « fais des recherches sur X » — la formulation la PLUS explicite d'une demande de
-    // recherche, et elle ne déclenchait rien : le navigateur n'était pas offert, le modèle
-    // a deviné un nom d'outil et la boucle a mal attribué le connecteur (journal du
-    // 27/07/2026). Un faux positif ne coûte que deux schémas offerts.
+    // "fais des recherches sur X" (do some research on X) — the MOST explicit
+    // phrasing of a search request, and it triggered nothing: the browser wasn't
+    // offered, the model guessed a tool name and the loop mis-attributed the
+    // connector (journal 27/07/2026). A false positive only costs two offered schemas.
     "fai(s|t|tes)[- ]?(moi)?[ ]?(des|une)[ ]recherches?", "recherches? sur\\b",
     "renseigne[- ]?toi", "renseignez[- ]?vous", "documente[- ]?toi", "\\bfind out\\b",
     "research\\b", "look up\\b",
@@ -265,7 +262,7 @@ export function looksWebIntent(text: string): boolean {
 }
 
 
-// Les gardes de COMPORTEMENT vivent dans leurs propres fichiers (règle 1) — réexportées
-// ici pour que les importateurs n'apprennent jamais que le découpage a eu lieu.
+// The BEHAVIOUR guards live in their own files (rule 1) — re-exported here so
+// importers never learn that the split happened.
 export { isSendTool, asksDraftNotSend, DRAFT_NOT_SEND_STEER } from "./sendIntent";
 export { asksConsultNotAct, CONSULT_NOT_ACT_STEER } from "./readIntent";

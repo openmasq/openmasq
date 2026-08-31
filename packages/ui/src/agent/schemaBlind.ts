@@ -40,9 +40,9 @@ export function schemaBlindProblems(
   args: Record<string, unknown>,
 ): { problems: string[]; param?: string } {
   const problems: string[] = [];
-  // Le PREMIER paramètre fautif — du vocabulaire de schéma, jamais une valeur. Il part
-  // en télémétrie (`tool_error.param`) : savoir que tous les échecs d'un connecteur
-  // portent sur `filters` évite de rouvrir un journal par occurrence.
+  // The FIRST faulty parameter — schema vocabulary only, never a value. It goes into
+  // telemetry (`tool_error.param`): knowing that every failure of a connector lands on
+  // `filters` saves reopening a journal entry per occurrence.
   let param: string | undefined;
   const missing = missingRequired(schema, args);
   if (missing.length) {

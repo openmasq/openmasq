@@ -9,37 +9,37 @@ import { rebuiltUpdateConfigContent } from "./updateConfigContent";
 const { autoUpdater } = electronUpdater;
 
 /**
- * L'auto-réparation d'`app-update.yml` — la défense en profondeur du bundle.
+ * The auto-repair of `app-update.yml` — the bundle's defence in depth.
  *
- * electron-updater lit ce fichier même quand `setFeedURL` a remplacé l'URL (il y prend
- * `updaterCacheDirName`) : absent, CHAQUE vérification meurt en ENOENT et l'install ne
- * reçoit plus jamais rien. C'est arrivé — la 0.6.0 macOS est partie sans lui (pipeline
- * scindé `--dir`/`--prepackaged`), et ses utilisateurs doivent réinstaller à la main.
- * L'empaquetage est corrigé ET verrouillé (`scripts/afterPack.cjs`, l'assertion de
- * `mac-release.ts`) ; ce module couvre la CLASSE du défaut plutôt que l'instance : si
- * un futur pipeline relivre un bundle sans le fichier, l'app reconstruit l'équivalent
- * dans `userData` et pointe electron-updater dessus (`updateConfigPath`, setter public).
+ * electron-updater reads this file even when `setFeedURL` has replaced the URL (it takes
+ * `updaterCacheDirName` from it): absent, EVERY check dies with ENOENT and the install
+ * never receives anything again. It happened — 0.6.0 macOS shipped without it (a
+ * pipeline split into `--dir`/`--prepackaged`), and its users have to reinstall by hand.
+ * Packaging is fixed AND locked down (`scripts/afterPack.cjs`, the assertion in
+ * `mac-release.ts`); this module covers the CLASS of the bug rather than the instance: if
+ * a future pipeline ships a bundle without the file again, the app rebuilds the equivalent
+ * in `userData` and points electron-updater at it (`updateConfigPath`, a public setter).
  *
- * ⚠️ Se répare ET se SIGNALE, dans cet ordre d'importance : la réparation garde le parc
- * à jour, mais un bundle amputé est une régression d'empaquetage que quelqu'un doit
- * voir — d'où le rapport `updater-config-missing`, même quand la guérison réussit.
- * Écrire dans le bundle lui-même est exclu : il est signé, tout ajout casse le sceau.
+ * ⚠️ Repairs itself AND reports itself, in that order of importance: the repair keeps the
+ * fleet up to date, but an amputated bundle is a packaging regression someone must
+ * see — hence the `updater-config-missing` report, even when the healing succeeds.
+ * Writing into the bundle itself is out of the question: it's signed, any addition breaks the seal.
  */
 
 
 /**
- * À appeler AVANT le premier `checkForUpdates`. Rend le code de rapport à émettre
- * (`config-missing`) quand le bundle est amputé, `null` quand tout va bien — le rapport
- * lui-même reste chez l'appelant, qui détient l'injecteur de télémétrie.
+ * To call BEFORE the first `checkForUpdates`. Returns the report code to emit
+ * (`config-missing`) when the bundle is amputated, `null` when all is well — the report
+ * itself stays with the caller, who holds the telemetry injector.
  */
 export function ensureUpdateConfigFile(): { healed: boolean; detail: string } | null {
-  if (!app.isPackaged) return null; // en dev il n'y a pas de bundle, et pas de mise à jour
+  if (!app.isPackaged) return null; // in dev there's no bundle, and no update
   const bundled = join(process.resourcesPath, "app-update.yml");
   if (existsSync(bundled)) return null;
   const healed = join(app.getPath("userData"), "app-update.yml");
   try {
-    // L'URL du fichier n'est qu'un repli (`applyFeed` la remplace à chaque check) ;
-    // `updaterCacheDirName` est le champ qui compte, et il se dérive du nom produit.
+    // The file's URL is only a fallback (`applyFeed` replaces it on every check);
+    // `updaterCacheDirName` is the field that matters, and it derives from the product name.
     writeFileSync(
       healed,
       rebuiltUpdateConfigContent(feedBase(getConfig().channel || DEFAULT_CHANNEL), "latest", app.getName()),
@@ -47,7 +47,7 @@ export function ensureUpdateConfigFile(): { healed: boolean; detail: string } | 
     autoUpdater.updateConfigPath = healed;
     return { healed: true, detail: `app-update.yml absent du bundle — reconstruit dans userData` };
   } catch (err) {
-    // Même l'échec de la réparation se dit : l'install est alors réellement orpheline.
+    // Even the repair's failure is reported: the install is then genuinely orphaned.
     return {
       healed: false,
       detail: `app-update.yml absent du bundle et reconstruction impossible: ${err instanceof Error ? err.message : String(err)}`,

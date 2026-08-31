@@ -4,26 +4,26 @@ import { BrowserIcon } from "../../../components/brand";
 
 import { useT } from "../../../i18n";
 /**
- * Ce que le panneau montre À LA PLACE de la page quand le connecteur « browser » est
- * déconnecté : la raison, et le geste qui la lève.
+ * What the panel shows IN PLACE of the page when the "browser" connector is
+ * disconnected: the reason, and the gesture that lifts it.
  *
- * Avant, cet état affichait « Chargement du navigateur agent… » indéfiniment — un
- * mensonge (rien ne chargeait) doublé d'une impasse (aucun moyen de s'en sortir depuis
- * là ; il fallait deviner Réglages → Connecteurs).
+ * Before, this state displayed "Loading agent browser…" indefinitely — a
+ * lie (nothing was loading) compounded by a dead end (no way out from
+ * there; you had to guess Réglages → Connecteurs).
  *
- * ⚠️ Ce bouton n'est cliquable QUE parce que l'appelant a cessé de monter la fenêtre
- * native dans cet état (`BrowserPanel` ne passe alors pas de `browser` à
- * `useBrowserBounds`) : cette fenêtre est `alwaysOnTop` et n'a aucun ordre DOM, donc
- * tout ce qu'on dessine sous elle est invisible ET hors d'atteinte du pointeur.
+ * ⚠️ This button is only clickable BECAUSE the caller stopped mounting the
+ * native window in this state (`BrowserPanel` then passes no `browser` to
+ * `useBrowserBounds`): that window is `alwaysOnTop` and has no DOM order, so
+ * anything drawn under it is invisible AND out of the pointer's reach.
  */
 export function BrowserPlaceholder({
   hasBrowser,
   offline,
   onConnect,
 }: {
-  /** La plateforme A un navigateur agent (`host.browser`) — faux en aperçu web / mobile. */
+  /** The platform HAS an agent browser (`host.browser`) — false in a web/mobile aperçu. */
   hasBrowser: boolean;
-  /** Le connecteur MCP est déconnecté ET rattachable ici. */
+  /** The MCP connector is disconnected AND reconnectable here. */
   offline: boolean;
   onConnect: () => Promise<unknown>;
 }) {
@@ -50,8 +50,8 @@ function BrowserOffline({ onConnect }: { onConnect: () => Promise<unknown> }) {
         disabled={connecting}
         onClick={() => {
           setConnecting(true);
-          // Un échec REVIENT au même écran, bouton réarmé : la carte du connecteur
-          // (Réglages) reste le chemin qui explique pourquoi. Jamais de spinner figé.
+          // A failure RETURNS to the same screen, button re-armed: the connector card
+          // (Réglages) stays the path that explains why. Never a frozen spinner.
           void onConnect().finally(() => setConnecting(false));
         }}
       >

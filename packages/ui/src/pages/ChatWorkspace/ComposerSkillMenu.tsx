@@ -95,9 +95,9 @@ export function ComposerSkillMenu({
             onClick={() => onPick(c)}
             title={c.desc || c.name}
           >
-            {/* Celle qui pilote des connecteurs porte le glyphe des routines. UNE liste :
-                le champ `servers` distingue, jamais une seconde section (elle coupait le
-                curseur clavier en deux et faisait chercher au mauvais endroit). */}
+            {/* The one that drives connectors wears the routines glyph. ONE list:
+                the `servers` field distinguishes, never a second section (it split the
+                keyboard cursor in two and made you look in the wrong place). */}
             {c.servers?.length ? (
               <span className="composer-skill-action-ico composer-skill-wf-ico">
                 <WorkflowIcon size={14} />

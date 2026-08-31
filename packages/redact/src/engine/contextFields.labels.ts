@@ -8,16 +8,16 @@ export interface LabelGroup {
   category: string;
   terms: string[];
   /**
-   * Clés admises UNIQUEMENT dans la forme SÉRIALISÉE (`"postal_code": "59800"`), jamais
-   * en prose.
+   * Keys admitted ONLY in the SERIALISED form (`"postal_code": "59800"`), never
+   * in prose.
    *
-   * ⚠️ C'est le même arbitrage que le reste du fichier, mais rendu au CADRE plutôt qu'au
-   * mot : « CP » dans une phrase est ambigu — d'où son refus délibéré parmi les `terms` —
-   * alors que `"cp":"27200"` dans une charge JSON ne l'est pas. La paire clé/valeur
-   * QUOTÉE est elle-même la preuve : elle borne la capture exactement, donc aucune course
-   * gloutonne n'emporte le reste de l'enregistrement. Mesuré sur `corpora/toolResults.json` :
-   * POSTAL plafonnait à 67 % parce que le code postal d'un retour d'outil est TOUJOURS un
-   * champ isolé, jamais une prose.
+   * ⚠️ It's the same trade-off as the rest of the file, but rendered to the FRAME rather than the
+   * word: « CP » in a sentence is ambiguous — hence its deliberate refusal among the `terms` —
+   * while `"cp":"27200"` in a JSON payload is not. The QUOTED key/value
+   * pair is itself the proof: it bounds the capture exactly, so no greedy
+   * run carries off the rest of the record. Measured on `corpora/toolResults.json`:
+   * POSTAL capped at 67% because a tool result's postal code is ALWAYS an
+   * isolated field, never prose.
    */
   serialisedOnly?: string[];
 }
@@ -66,12 +66,12 @@ export const LABEL_GROUPS: LabelGroup[] = [
       "last name", "lastname", "family name", "surname", "contact", "nombre",
       "apellido", "nome", "cognome",
       "vorname", "nachname", "naam",
-      // Le vocabulaire de la PAIE et de la signature — la colonne d'un classeur RH, et
-      // le pied d'un acte. Mesuré le 16/08/2026 avec le NER dans la boucle : sur
-      // « Salarié: … », le détecteur étiqueté ne voyait RIEN (le libellé était absent
-      // d'ici), donc le NER tranchait seul le type — et sur des noms bretons il tranchait
-      // « Gwendal Kervoal » en VILLE et « Soizic Quéméner » en ORGANISATION. Constat
-      // parcours du 15/08, capture 054.
+      // The PAYROLL and signature vocabulary — a column in an HR spreadsheet, and
+      // the foot of a deed. Measured on 16/08/2026 with the NER in the loop: on
+      // « Salarié: … », the labeled detector saw NOTHING (the label was absent
+      // from here), so the NER decided the type alone — and on Breton names it decided
+      // « Gwendal Kervoal » was a CITY and « Soizic Quéméner » an ORGANISATION. User-journey
+      // finding from 15/08, capture 054.
       "salarié", "salarie", "employé", "employe", "collaborateur", "collaboratrice",
       "signataire", "employee", "staff member",
       // CJK: name
@@ -133,8 +133,8 @@ export const LABEL_GROUPS: LabelGroup[] = [
   },
   {
     category: "DOB",
-    // `nascita`, `data di nascita`, `nacimiento`, `nascimento` : les clés que les API
-    // italiennes, espagnoles et portugaises émettent.
+    // `nascita`, `data di nascita`, `nacimiento`, `nascimento`: the keys that Italian,
+    // Spanish and Portuguese APIs emit.
     serialisedOnly: ["nascita", "data di nascita", "nacimiento", "nascimento",
       "birth", "born", "date naissance"],
     terms: [
@@ -177,24 +177,24 @@ export const LABEL_GROUPS: LabelGroup[] = [
       "numéro rg", "n° rg",
       "numéro gestion", "numéro de gestion", "n° gestion", "n° de gestion", "numéro rcs", "n° rcs",
       "siren", "siret", "numéro siren", "numéro siret",
-      // L'idiome des JOURNAUX et des traces — `user_id=8842019`, `customer_id: 4471`. La
-      // branche en ligne comprend déjà le `=` non quoté ; ce qui manquait, c'est le mot.
-      // Mesuré le 16/08/2026 (persona support) : l'identifiant d'un client partait EN
-      // CLAIR au milieu d'une trace. Les graphies sont écrites À PLAT parce que la branche
-      // en ligne échappe le terme littéralement — la casse, elle, est déjà ignorée, donc
-      // « userId » tombe sous « userid ».
+      // The idiom of LOGS and traces — `user_id=8842019`, `customer_id: 4471`. The
+      // inline branch already understands the unquoted `=`; what was missing was the word.
+      // Measured on 16/08/2026 (support persona): a customer's identifier was going out IN
+      // CLEAR in the middle of a trace. The spellings are written FLAT because the
+      // inline branch escapes the term literally — casing, meanwhile, is already ignored, so
+      // « userId » falls under « userid ».
       "user_id", "userid", "customer_id", "customerid", "account_id", "accountid",
       "member_id", "memberid", "patient_id", "patientid",
-      // SCOLARITÉ — mesuré par `bench/auditFull.ts` : 4 des 11 manques de la catégorie
-      // ID sont un numéro d'étudiant dont le LIBELLÉ est présent dans le texte, en
-      // français, anglais, espagnol et portugais. Aucun n'a de somme de contrôle, donc
-      // le libellé est le seul ancrage possible (barre de précision, `CLAUDE.md`).
+      // SCHOOLING — measured by `bench/auditFull.ts`: 4 of the 11 misses in the
+      // ID category are a student number whose LABEL is present in the text, in
+      // French, English, Spanish and Portuguese. None has a checksum, so
+      // the label is the only possible anchor (precision bar, `CLAUDE.md`).
       "numéro étudiant", "numero etudiant", "numéro d'étudiant", "numero d'etudiant",
       "n° étudiant", "n° d'étudiant", "student number", "student id", "student no",
       "matriculation number", "número de matrícula", "numero de matricula",
       "matrícula", "matricula", "numero di matricola", "matricola",
       "matrikelnummer", "immatrikulationsnummer",
-      // PERMIS DE CONDUIRE — même cas : « Permis de conduire : 851135 ».
+      // DRIVING LICENCE — same case: « Permis de conduire : 851135 ».
       "permis de conduire", "numéro de permis", "numero de permis", "n° de permis",
       "driving licence", "driving license", "driver's license", "driver license",
       "licence number", "führerscheinnummer", "fuhrerscheinnummer",
@@ -207,18 +207,18 @@ export const LABEL_GROUPS: LabelGroup[] = [
     ],
   },
   {
-    // MOTS DE PASSE, CODES ET CLÉS. Le groupe manquait entièrement, et c'est le manque
-    // le plus grave de l'audit : un mot de passe n'a AUCUNE forme — « maison2026! » est
-    // indiscernable d'un mot ordinaire, « 4581 » de n'importe quel nombre. L'ancrage sur
-    // le libellé est donc le SEUL mécanisme possible pour cette catégorie.
+    // PASSWORDS, CODES AND KEYS. The group was ENTIRELY missing, and it's the
+    // most serious miss in the audit: a password has NO shape at all — « maison2026! » is
+    // indistinguishable from an ordinary word, « 4581 » from any number. Anchoring on
+    // the label is therefore the ONLY possible mechanism for this category.
     //
-    // ⚠️ Les composés sont explicites parce que le matcher EN LIGNE, contrairement à
-    // `labelOf`, ne tolère aucun qualificatif entre le terme et le deux-points :
-    // « Mdp wifi : … » n'est atteignable que si « mdp wifi » est listé tel quel.
+    // ⚠️ The compounds are explicit because the INLINE matcher, unlike
+    // `labelOf`, tolerates no qualifier between the term and the colon:
+    // « Mdp wifi : … » is only reachable if « mdp wifi » is listed as-is.
     category: "SECRET",
     terms: [
       "mot de passe", "mots de passe", "mdp", "mdp wifi", "mot de passe wifi",
-      // Composés OBSERVÉS (le matcher en ligne ne tolère aucun qualificatif libre).
+      // OBSERVED compounds (the inline matcher tolerates no free qualifier).
       "mot de passe applicatif", "mot de passe admin", "mot de passe administrateur",
       "code wifi", "clé wifi", "cle wifi", "clé wpa", "cle wpa", "clé de sécurité",
       "cle de securite", "code secret", "code confidentiel", "code d'accès",
@@ -247,8 +247,8 @@ export const LABEL_GROUPS: LabelGroup[] = [
   {
     category: "POSTAL_CODE",
     // Stripe `address.postal_code`, PayPal `postal_code`, Square `postal_code`,
-    // Airtable/Notion `CP`, Graph `postalCode` : le code postal d'une charge sérialisée
-    // n'a jamais de forme en prose.
+    // Airtable/Notion `CP`, Graph `postalCode`: a serialised payload's postal code
+    // never has a prose form.
     serialisedOnly: ["cp", "zip", "zipcode", "postal", "cap", "plz", "codpostal"],
     terms: [
       "code postal", "codigo postal", "código postal", "postal code", "postcode",

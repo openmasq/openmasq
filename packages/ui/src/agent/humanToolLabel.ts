@@ -36,10 +36,10 @@ export function baseConnector(prefix: string): string {
  * has no business guessing at a vocabulary we define.
  */
 export const INTERCEPTED: Record<string, string> = {
-  // ⚠️ « Analyse » seule sous-décrivait l'outil : il CALCULE, mais il TRACE aussi des
-  // graphiques et surtout il GÉNÈRE des fichiers (PDF/Excel/Word) qui sont remis à
-  // l'utilisateur — c'est la sortie qu'on voit, et aucun des trois anciens noms ne la
-  // nommait. Le libellé dit donc les deux bouts : ce qu'il fait, ce qui en sort.
+  // ⚠️ "Analyse" alone under-described the tool: it CALCULATES, but it also PLOTS
+  // graphs and above all it GENERATES files (PDF/Excel/Word) that are handed back to
+  // the user — that's the output people see, and none of the three former names
+  // named it. The label therefore says both ends: what it does, what comes out.
   run_python: "Analyse et génération de fichiers",
   web_fetch_many: "Lecture de pages web",
   load_tools: "Choix des outils",

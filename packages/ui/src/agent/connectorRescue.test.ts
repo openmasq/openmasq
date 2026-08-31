@@ -49,7 +49,7 @@ describe("rescueNamedConnectors — le rattrapage du pick vide", () => {
   });
 
   it("respecte le plafond de budget : un connecteur qui ne rentre pas est sauté, pas tronqué", () => {
-    // Une description énorme fait dépasser le plafond de 85 % d'une petite fenêtre.
+    // A huge description pushes past the 85% ceiling of a small window.
     const fat = Array.from({ length: 4 }, (_, i) =>
       ({ ...tool(`intercom__t${i}`), description: "x".repeat(4000) }) as McpTool,
     );

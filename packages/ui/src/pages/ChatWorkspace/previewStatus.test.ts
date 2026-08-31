@@ -2,23 +2,23 @@ import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import { previewStatus } from "./composerDetection";
 
-/* L'aperçu du composeur a deux couches : les règles déterministes, synchrones, puis le
-   NER ~1 s plus tard.
+/* The composer's preview has two layers: the deterministic, synchronous rules, then the
+   NER ~1s later.
 
-   Un bench manuel de 100 prompts a été conduit exactement dans cette fenêtre : neuf
-   entités bel et bien protégées à l'envoi (Acme, Kelm, Rebour & Associés, TechnipFMC…)
-   y ont été consignées comme des fuites, et le testeur a conclu que le redaction ne
-   fonctionnait pas. Aucune donnée n'était en danger ; c'est la CONFIANCE qui l'était.
+   A manual bench of 100 prompts was run exactly in this window: nine entities that were
+   in fact protected at send time (Acme, Kelm, Rebour & Associés, TechnipFMC…) were
+   logged there as leaks, and the tester concluded that redaction didn't
+   work. No data was at risk; it was TRUST that was.
 
-   Ce que ça impose ici : pendant l'analyse, cette pastille ne dit RIEN — ni un compte
-   partiel qui se lirait comme un total, ni un zéro. L'état « ça travaille » est porté par
-   le bouton d'envoi, sur exactement la même fenêtre (`busy = redacting || detecting`). */
+   What this imposes here: during the analysis, this pill says NOTHING — neither a
+   partial count that would read as a total, nor a zero. The "it's working" state is carried by
+   the send button, over exactly the same window (`busy = redacting || detecting`). */
 
 const fr = getMessages("fr");
 
 describe("previewStatus — l'aperçu ne promet que ce qu'il a calculé", () => {
   it("se tait tant qu'une couche travaille, même avec des valeurs déjà repérées", () => {
-    // Un compte partiel affiché ici se lirait comme le résultat final.
+    // A partial count shown here would read as the final result.
     expect(previewStatus(true, 2, true, fr)).toEqual({ kind: "none" });
     expect(previewStatus(true, 0, true, fr)).toEqual({ kind: "none" });
   });

@@ -1,13 +1,13 @@
 /**
- * L'onglet CONNECTEURS — la grille, la fiche d'un connecteur et ses corps (clé, compte
- * direct, local, navigateur, personnalisé), la confirmation d'écriture, la sécurité du
- * navigateur, la liste des outils.
+ * The CONNECTORS tab — the grid, a connector's card and its bodies (key, direct
+ * account, local, browser, custom), the write confirmation, the browser's
+ * security, the tool list.
  *
- * ⚠️ Règle 8 : « unredacted au dernier moment », « jamais envoyés au modèle », « vos
- * identifiants restent chiffrés sur votre appareil » sont des promesses sur le trajet
- * des données. Elles se traduisent au mot près.
+ * ⚠️ Rule 8: « unredacted au dernier moment », « jamais envoyés au modèle », « vos
+ * identifiants restent chiffrés sur votre appareil » are promises about where the data
+ * travels. They translate word for word.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
  */
 export interface McpTabMessages {
   eyebrow: string;
@@ -59,7 +59,7 @@ export interface McpTabMessages {
   myKeys: string;
   connectLimited: string;
   connectLimitedTip: (brand: string, adds: string) => string;
-  /** Corps « clé API » / distant. */
+  /** « API key » / remote body. */
   whereKey: string;
   getKey: string;
   urlPlaceholder: string;
@@ -74,14 +74,14 @@ export interface McpTabMessages {
   addDir: string;
   chooseDir: (label: string) => string;
   guide: string;
-  /** Navigateur intégré. */
+  /** Built-in browser. */
   browserBody: string;
   activating: string;
   activate: string;
   /** Rappel. */
   reconnectKeepsConfig: string;
   maskedAsEverywhere: string;
-  /** Connecteur personnalisé. */
+  /** Custom connector. */
   customTitle: string;
   customSub: string;
   customName: string;
@@ -98,27 +98,27 @@ export interface McpTabMessages {
   customWarnReal: { lead: string; strong: string; tail: string };
   customWarnReplies: string;
   customWarnFoot: string;
-  /** Confirmation des actions. */
+  /** Action confirmation. */
   confirmEyebrow: string;
   reinforced: string;
   reinforcedHint: (brand: string) => string;
   imposedByOrg: { strong: string; tail: string };
   autoApprove: string;
   autoApproveHint: string;
-  /** Sécurité du navigateur agent. */
+  /** Agent browser security. */
   browserSecurityEyebrow: string;
   readOnly: string;
   readOnlyHint: string;
   allowedDomains: string;
   allowedDomainsHint: string;
   allowedDomainsAria: string;
-  /** La liste des outils d'un connecteur. */
+  /** A connector's tool list. */
   loadingTools: string;
   noTools: string;
   toolsAvailable: (count: number) => string;
   collapseAll: string;
   expandAll: string;
-  /** Les échecs d'un connecteur, dits dans la langue de l'utilisateur. */
+  /** A connector's failures, said in the user's language. */
   errors: {
     apikey: string;
     unsupported: string;
@@ -126,7 +126,7 @@ export interface McpTabMessages {
     expired: string;
     network: string;
   };
-  /** Où trouver la clé des trois connecteurs à clé. */
+  /** Where to find the key of the three key-based connectors. */
   apiKeys: {
     exa: { label: string; steps: readonly string[] };
     tavily: { label: string; steps: readonly string[] };
@@ -174,7 +174,7 @@ export interface VersionsTabMessages {
   envProduction: string;
   envStaging: string;
   envCustom: string;
-  /** L'état de la mise à jour, avec sa taille éventuelle. */
+  /** The update's state, with its size when known. */
   status: {
     checking: string;
     available: (version: string) => string;
@@ -203,7 +203,7 @@ export interface ByoMessages {
   cancel: string;
   connecting: string;
   keepAndConnect: string;
-  /** Les verdicts du formulaire. */
+  /** The form's verdicts. */
   noSpaces: string;
   isApiKeyNotClientId: string;
   googleSuffix: string;
@@ -211,7 +211,7 @@ export interface ByoMessages {
   secretNoSpaces: string;
   secretIsClientId: string;
   secretPrefixWarn: string;
-  /** Les trois tutoriels : Microsoft Entra, GitHub, Google Cloud. */
+  /** The three tutorials: Microsoft Entra, GitHub, Google Cloud. */
   microsoft: {
     intro: string;
     note: string;

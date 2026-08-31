@@ -40,36 +40,36 @@ describe("ambient credential deny set", () => {
     }
   });
 
-  /* Le trou que ceci ferme : la liste ne portait AUCUN chemin Windows (le commentaire disait
-     « Windows-ish »), alors que `.ssh`/`.aws` y sont sous `%USERPROFILE%` et sont donc les
-     SEULES entrées qui s'y appliquaient. Sur un build Windows, un `~` accordé rendait lisibles
-     les cookies de tous les navigateurs, le Credential Manager, l'historique PowerShell — et
-     `Microsoft\Protect`, les clés maîtresses DPAPI qui déchiffrent tout le reste, y compris
-     les blobs safeStorage de l'app. Ces chemins n'ont pas d'équivalent relatif au home. */
+  /* The hole this closes: the list carried NO Windows path at all (the comment said
+     « Windows-ish »), while `.ssh`/`.aws` sit under `%USERPROFILE%` there and were thus the
+     ONLY entries that applied. On a Windows build, a granted `~` made readable
+     every browser's cookies, the Credential Manager, the PowerShell history — and
+     `Microsoft\Protect`, the DPAPI master keys that decrypt everything else, including
+     the app's own safeStorage blobs. These paths have no home-relative equivalent. */
   it("covers the WINDOWS credential stores that have no home-relative equivalent", () => {
     const roam = join(process.env.APPDATA || join(HOME, "AppData", "Roaming"));
     const local = join(process.env.LOCALAPPDATA || join(HOME, "AppData", "Local"));
     const dirs = ambientSecretDirs();
-    // Les clés maîtresses DPAPI d'abord — les lire vaut tous les autres secrets réunis.
+    // The DPAPI master keys first — reading them is worth all the other secrets combined.
     expect(dirs).toContain(join(roam, "Microsoft", "Protect"));
     expect(dirs).toContain(join(roam, "Microsoft", "Crypto"));
     expect(dirs).toContain(join(roam, "Microsoft", "Credentials"));
-    // Les profils de navigateurs, là où Windows les range vraiment.
+    // Browser profiles, where Windows actually stores them.
     expect(dirs).toContain(join(local, "Google", "Chrome", "User Data"));
     expect(dirs).toContain(join(local, "Microsoft", "Edge", "User Data"));
     expect(dirs).toContain(join(roam, "Mozilla", "Firefox"));
-    // Les stores CLI qui n'utilisent pas la disposition XDG sur Windows.
+    // The CLI stores that don't use the XDG layout on Windows.
     expect(dirs).toContain(join(roam, "gcloud"));
-    // L'équivalent Windows de `.bash_history`.
+    // The Windows equivalent of `.bash_history`.
     expect(ambientSecretFiles()).toContain(
       join(roam, "Microsoft", "Windows", "PowerShell", "PSReadLine", "ConsoleHost_history.txt"),
     );
   });
 
   it("Windows reuses the home-relative entries for .ssh/.aws (%USERPROFILE% IS home)", () => {
-    // Pourquoi le bloc Windows n'a pas à les redire : sur Windows `app.getPath("home")`
-    // vaut `%USERPROFILE%`, donc `h(".ssh")` désigne déjà `C:\Users\x\.ssh`. Les redoubler
-    // créerait la deuxième liste que la règle 9 interdit.
+    // Why the Windows block doesn't need to repeat them: on Windows `app.getPath("home")`
+    // equals `%USERPROFILE%`, so `h(".ssh")` already designates `C:\Users\x\.ssh`. Duplicating them
+    // would create the second list rule 9 forbids.
     expect(ambientSecretDirs()).toContain(join(HOME, ".ssh"));
     expect(ambientSecretDirs()).toContain(join(HOME, ".aws"));
   });
@@ -100,9 +100,9 @@ describe("fs-MCP deny-list (fsMcpDenyPaths) — the closed exfil hole", () => {
   });
 
   it("a grant over HOME BLOCKS the Windows DPAPI master keys and a browser cookie jar", () => {
-    // Les racines Windows sont épinglées SOUS le home temporaire, donc ce test vaut aussi
-    // bien sur un runner macOS que sur un runner Windows — la disposition testée est la
-    // vraie (`AppData\Roaming` / `AppData\Local`), seul l'ancrage est déterministe.
+    // The Windows roots are pinned UNDER the temp home, so this test holds just as
+    // well on a macOS runner as on a Windows runner — the layout under test is the
+    // real one (`AppData\Roaming` / `AppData\Local`), only the anchor is deterministic.
     vi.stubEnv("APPDATA", join(HOME, "AppData", "Roaming"));
     vi.stubEnv("LOCALAPPDATA", join(HOME, "AppData", "Local"));
     const dpapi = join(HOME, "AppData", "Roaming", "Microsoft", "Protect");

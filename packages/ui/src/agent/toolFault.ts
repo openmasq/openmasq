@@ -101,10 +101,10 @@ export function classifyToolError(text: string): ToolErrorReason {
 }
 
 /**
- * La FAMILLE d'un échec — l'axe de TRI que `classifyToolError` ne donne pas : son
- * `operational` mélange la clé expirée (l'utilisateur reconnecte), le quota (on attend)
- * et le 404 (on corrige le code). Même règle bilingue que lui, même sortie bornée —
- * la famille part en télémétrie, le texte jamais. `other` = rien de prouvable.
+ * The FAMILY of a failure — the SORT axis `classifyToolError` doesn't give: its
+ * `operational` mixes the expired key (the user reconnects), the quota (we wait)
+ * and the 404 (we fix the code). Same bilingual rule as it, same bounded output —
+ * the family goes into telemetry, the text never does. `other` = nothing provable.
  */
 export function classifyErrorFamily(text: string): import("../analytics").ToolErrorFamily {
   const t = text.toLowerCase();

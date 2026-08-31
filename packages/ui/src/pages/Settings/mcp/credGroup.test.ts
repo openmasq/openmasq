@@ -3,11 +3,11 @@ import { credGroupOf, isSharedCredGroup, groupPeers } from "./credGroup";
 import type { McpItem } from "./mcpItems";
 
 /**
- * L'invariant : **une autorisation Google est UNE, les connecteurs sont SEPT.** Elle
- * expire ou est révoquée d'un coup, donc ils tombent ensemble — mais `mcpReauthDirect`
- * (main) ne purge qu'UN id. Sans ces cas, on répare Gmail, on croit en avoir fini, et
- * Agenda est encore cassé au tour suivant, sans que rien ne l'ait dit (journal du
- * 11/08/2026 : `gmail__search_messages` refusé, « Reconnecter » ne menant qu'à Gmail).
+ * The invariant: **a Google authorization is ONE, the connectors are SEVEN.** It
+ * expires or is revoked all at once, so they fall together — but `mcpReauthDirect`
+ * (main) purges only ONE id. Without these cases, you fix Gmail, believe you're done, and
+ * Agenda is still broken next time, with nothing having said so (log entry from
+ * 11/08/2026: `gmail__search_messages` refused, « Reconnecter » leading only to Gmail).
  */
 const item = (id: string, name: string, connected: boolean): McpItem =>
   ({ id, serverId: id, name, desc: "", kind: "direct", connected }) as McpItem;
@@ -30,7 +30,7 @@ describe("credGroupOf", () => {
   it("laisse tout autre connecteur seul dans le sien", () => {
     expect(credGroupOf("slack")).toBe("slack");
     expect(credGroupOf("github")).toBe("github");
-    // ⚠️ « googlesomething » n'est PAS un service Google : le préfixe est `google-`.
+    // ⚠️ « googlesomething » is NOT a Google service: the prefix is `google-`.
     expect(credGroupOf("googlebot")).toBe("googlebot");
   });
 
@@ -49,7 +49,7 @@ describe("groupPeers — ce que la fiche doit nommer", () => {
   const items = [
     item("gmail", "Gmail", true),
     item("google-calendar", "Google Agenda", true),
-    item("google-drive", "Google Drive", false), // connu mais PAS connecté
+    item("google-drive", "Google Drive", false), // known but NOT connected
     item("slack", "Slack", true),
   ];
 
@@ -58,8 +58,8 @@ describe("groupPeers — ce que la fiche doit nommer", () => {
   });
 
   it("ne nomme pas un service que l'utilisateur n'a pas connecté", () => {
-    // Drive est dans le catalogue mais déconnecté : l'annoncer transformerait une
-    // réparation en catalogue de ce qu'on pourrait brancher.
+    // Drive is in the catalogue but disconnected: naming it would turn a
+    // repair into a catalogue of what could be connected.
     expect(groupPeers("gmail", items).map((p) => p.id)).not.toContain("google-drive");
   });
 

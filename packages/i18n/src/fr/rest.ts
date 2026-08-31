@@ -1,6 +1,6 @@
 /**
- * Tranche « rest » du catalogue FR — la langue SOURCE : connexion, partages
- * d'organisation, sélecteur de modèles, feuilles partagées.
+ * The FR catalogue's « rest » slice — the SOURCE language : connexion, partages
+ * organization shares, model picker, shared leaves.
  */
 import type { Messages } from "../messages";
 

@@ -14,21 +14,21 @@ import { makeGrant, type Grant } from "./grant";
  * would hand the model a primitive the user never asked it to have.
  */
 /**
- * Une extraction complète rendue à l'INTERFACE — texte ET géométrie OCR.
+ * A complete extraction rendered for the UI — text AND OCR geometry.
  *
- * ⚠️ **Sans `path`, délibérément.** Le renderer n'obtient jamais de chemin par ici : il
- * pourrait le repasser à `files:read`, dont la porte ne s'ouvre que pour un chemin accordé
- * par le sélecteur NATIF. Un XSS renderer lirait alors le disque au périmètre du connecteur
- * Fichiers. Les octets, eux, ne confèrent rien de neuf — l'utilisateur regarde déjà ce
- * fichier. `localFsExtract.test.ts` épingle l'absence du champ.
+ * ⚠️ **Deliberately without `path`.** The renderer never gets a path from here: it
+ * could pass it back to `files:read`, whose gate only opens for a path granted
+ * by the NATIVE picker. A renderer XSS would then read the disk at the Files
+ * connector's scope. The bytes themselves confer nothing new — the user is already looking at
+ * this file. `localFsExtract.test.ts` pins the field's absence.
  */
 interface UiExtractedDocument {
   name: string;
   kind: string;
   text: string;
   mime?: string;
-  /** Les mots reconnus et leurs boîtes en pixels — ce qui permet de PEINDRE le redaction
-   *  sur un scan. C'est le champ dont l'absence laissait un document local sans boîtes. */
+  /** The recognised words and their pixel boxes — what lets redaction be PAINTED
+   *  onto a scan. This is the field whose absence left a local document without boxes. */
   words?: unknown;
   ocrPages?: unknown;
   ocrText?: string;
@@ -42,16 +42,16 @@ export interface MainFsOps {
    *  in main because that pipeline does; the worker is plain Node with no OCR. */
   readDocument(path: string): Promise<string>;
   /**
-   * La MÊME extraction, rendue en OBJET pour l'interface au lieu d'être aplatie en prose.
+   * The SAME extraction, rendered as an OBJECT for the UI instead of flattened into prose.
    *
-   * `readDocument` compose une phrase pour le MODÈLE (« [nom · N caractères] »), ce qui est
-   * exactement ce qu'il ne faut pas donner à un aperçu : l'interface veut la géométrie, et
-   * une extraction vide est un fait à afficher, pas une erreur à relancer.
+   * `readDocument` composes a sentence for the MODEL (« [name · N characters] »), which is
+   * exactly what must NOT be given to a preview: the UI wants the geometry, and
+   * an empty extraction is a fact to display, not an error to retry.
    *
-   * Elle existe surtout pour que joindre un fichier local ne coûte QU'UN aller-retour :
-   * l'ancien chemin lisait les octets jusqu'au renderer, puis les renvoyait à main en
-   * base64 pour l'extraction — le fichier entier traversait l'IPC deux fois, et la
-   * géométrie était perdue en route.
+   * It exists mainly so attaching a local file costs only ONE round trip:
+   * the old path read the bytes up to the renderer, then sent them back to main as
+   * base64 for extraction — the whole file crossed the IPC twice, and the
+   * geometry was lost along the way.
    */
   extractDocument(path: string): Promise<UiExtractedDocument>;
   /** Send a file/folder to the OS trash. **Reversible by construction** — never `unlink`.
@@ -86,8 +86,8 @@ export function makeMainFsOps(roots: string[], deny: string[]): MainFsOps {
       const real = gate().resolve(path);
       const [x] = await extractPaths([real]);
       if (!x) throw new Error("ce document n'a pas pu être lu");
-      // `path` est retiré ICI, pas au-dessus : c'est le seul endroit qui le connaisse, et
-      // un champ qu'on oublie de retirer plus loin est un champ qui part.
+      // `path` is dropped HERE, not above: this is the only place that knows it, and
+      // a field one forgets to strip further down is a field that leaks out.
       const { path: _dropped, ...rest } = x;
       return rest;
     },

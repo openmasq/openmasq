@@ -149,8 +149,8 @@ export function useChatStore() {
   const [orgProfile, setOrgProfile] = useState<OrgProfileInfo | null>(null);
   const orgProfileRef = useRef<OrgProfileInfo | null>(null);
   orgProfileRef.current = orgProfile;
-  // Chargement + rafraîchissements (sign-in/out, focus fenêtre, backoff) : le
-  // détail vit dans `effects/useOrgProfile.ts` (extraction règle 1).
+  // Loading + refreshes (sign-in/out, window focus, backoff): the
+  // detail lives in `effects/useOrgProfile.ts` (extraction rule 1).
   useOrgProfile({ host, setOrgProfile, storageUidRef, userId });
 
   // Personal (individual, per-person) prepaid credit budget + subscription — for a SOLO
@@ -458,7 +458,7 @@ export function useChatStore() {
         );
         if (!userId) return; // signed out → no DB for this scope
         const data = await host.db.load().catch(dbLoadFailure);
-        if (cancelled || !data) return; // null => DB absente OU illisible (rapportée — dbReport.ts)
+        if (cancelled || !data) return; // null => DB absent OR unreadable (reported — dbReport.ts)
         dbActive.current = true;
       // Same fix on the DB copy: a message left `pending` = a stream cut off
       // by a prior reload/quit → mark it incomplete (not a frozen loader).
@@ -514,9 +514,9 @@ export function useChatStore() {
                     next = { ...next, competence: lm.competence };
                     changed = true;
                   }
-                  // L'ANCIEN tag « workflow » — même règle. On ne l'écrit plus, mais il
-                  // est dans l'historique déjà persisté : ne pas le rapatrier ici ferait
-                  // disparaître l'étiquette d'un tour ancien au premier chargement DB.
+                  // The OLD "workflow" tag — same rule. It is no longer written, but it
+                  // is in history already persisted: not bringing it back here would make
+                  // an old turn's label disappear on the first DB load.
                   if (!m.workflow && lm.workflow) {
                     next = { ...next, workflow: lm.workflow };
                     changed = true;
@@ -661,7 +661,7 @@ export function useChatStore() {
   // else their saved default, else the built-in default. This way the model
   // selected in a conversation carries over when opening a new one.
   const newChatModelRef = useRef(DEFAULT_MODEL_ID);
-  // Allow-list : un modèle non ouvert ne se reporte pas et ne devient pas le défaut.
+  // Allow-list: a model that isn't open never carries over and never becomes the default.
   const orgBlocks = (id: string | undefined): boolean =>
     !isModelAllowed(id, orgProfile?.allowedModelIds);
   newChatModelRef.current =
@@ -684,9 +684,9 @@ export function useChatStore() {
   // and the send's inline container explains the escapes. `preflightError` still
   // re-checks every send. Org-blocked models are absent here on purpose: they're
   // HIDDEN by `selectableModels`, not greyed.
-  // Les deux sondes de disponibilité (endpoint local, CLI Claude Code) + leurs
-  // miroirs ref pour `sendMessage` — extraites dans `effects/useAvailabilityProbes.ts`
-  // (le POURQUOI de chaque polarité fail-open/fail-closed y vit).
+  // The two availability probes (local endpoint, Claude Code CLI) + their
+  // ref mirrors for `sendMessage` — extracted into `effects/useAvailabilityProbes.ts`
+  // (the WHY of each fail-open/fail-closed polarity lives there).
   const { localEndpointReachable, localEndpointReachableRef } = useLocalEndpointProbe(
     host,
     settings.openaiCompatBaseUrl,
@@ -736,10 +736,10 @@ export function useChatStore() {
     registryVersion,
   ]);
 
-  /** Le ref d'abord, l'état ensuite : `conversationsRef` n'est réassigné qu'au RENDU, or
-   *  créer PUIS envoyer se fait dans UN SEUL gestionnaire (nouvel onglet, accueil) — le
-   *  ref en retard d'un battement faisait répondre l'envoi sur `DEFAULT_MODEL_ID`. Toute
-   *  création passe par ici ; `state/liveConversations.test.tsx` le prouve. */
+  /** The ref first, the state second: `conversationsRef` is only reassigned at RENDER, and
+   *  creating THEN sending happens in ONE SINGLE handler (new tab, home) — the
+   *  ref lagging by one beat made the send answer on `DEFAULT_MODEL_ID`. Every
+   *  creation goes through here; `state/liveConversations.test.tsx` proves it. */
   const addConversations = useCallback((fresh: Conversation[]) => {
     if (!fresh.length) return;
     conversationsRef.current = [...fresh, ...conversationsRef.current];
@@ -927,9 +927,9 @@ export function useChatStore() {
     [patchConversation],
   );
 
-  /** « Sans mémoire dans cette conversation » (modale de règles) : coupe l'injection,
-   *  l'outil de recherche en mémoire ET l'extraction silencieuse pour CETTE
-   *  conversation. Une demande explicite « retiens que… » reste honorée. */
+  /** « Sans mémoire dans cette conversation » (rules modal): cuts injection,
+   *  the memory-search tool AND the silent extraction for THIS
+   *  conversation. An explicit « retiens que… » request is still honoured. */
   const setConversationMemoryOff = useCallback(
     (id: string, off: boolean) => {
       patchConversation(id, (c) => ({ ...c, memoryOff: off || undefined, updatedAt: Date.now() }));
@@ -1220,12 +1220,12 @@ export function useChatStore() {
       };
       if (!text.trim()) return { matches: [], engine };
 
-      // `redactEngine` ne peut valoir ici que "local" ou "patterns" : `normalizeSettings`
-      // coerce les anciens moteurs "remote"/"model" vers "local" à chaque chargement (les
-      // sélecteurs ont été retirés du produit, et un blob ancien ne doit pas continuer à
-      // faire sortir la détection de la machine). Les branches distantes sont PURGÉES —
-      // ne pas les réintroduire ici : le moteur distant vivant est celui de la gateway,
-      // consommé par d'autres surfaces (audit 2026-08-10).
+      // `redactEngine` can here only be "local" or "patterns": `normalizeSettings`
+      // coerces the old "remote"/"model" engines to "local" on every load (the
+      // selectors were removed from the product, and an old blob must not keep
+      // sending detection off the machine). The remote branches are PURGED —
+      // do not reintroduce them here: the remote engine that lives on is the gateway's,
+      // consumed by other surfaces (audit 2026-08-10).
       const useLocal = engine === "local" && !!host.detectLocalPii;
       const useAiDetect = useLocal;
 
@@ -1240,8 +1240,8 @@ export function useChatStore() {
         orgProfileRef.current?.forcedCategories,
       );
       const disabledKinds = disabledKindsOf(effectivePreviewCategories);
-      // Même dispense de notoriété que l'envoi (dérivée du niveau) — sans elle, le
-      // preview surlignerait une marque ou une personnalité que l'envoi laissera en clair.
+      // Same notoriety exemption as the send (derived from the level) — without it, the
+      // preview would highlight a brand or a public figure that the send will leave in clear.
       const { commercial: commercialNotoriety, people: peopleNotoriety } = notorietyForLevel(
         levelOf(effectivePreviewCategories, orgProfileRef.current?.forcedCategories),
       );
@@ -1282,11 +1282,11 @@ export function useChatStore() {
     [],
   );
 
-  // L'ORCHESTRATION vit dans send/sendOrchestrator.ts (le plan de state/CLAUDE.md :
-  // « must move as a WHOLE »). Le sac de captures se construit ICI, dans le useCallback,
-  // avec les MÊMES dépendances : les valeurs vues par l'envoi sont celles du rendu qui a
-  // (re)créé le callback — sémantique de fermeture inchangée. `conversations` reste une
-  // dépendance sans entrer dans le sac : il ne sert qu'à RE-CRÉER le callback.
+  // The ORCHESTRATION lives in send/sendOrchestrator.ts (the plan from state/CLAUDE.md:
+  // « must move as a WHOLE »). The capture bag is built HERE, inside the useCallback,
+  // with the SAME dependencies: the values seen by the send are those of the render that
+  // (re)created the callback — closure semantics unchanged. `conversations` stays a
+  // dependency without entering the bag: it only serves to RE-CREATE the callback.
   const sendMessage = useCallback(
     (...args: Parameters<ReturnType<typeof createSendMessage>>) =>
       createSendMessage({
@@ -1312,9 +1312,9 @@ export function useChatStore() {
         claudeCliReadyRef,
         codexCliReadyRef,
       })(...args),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- la liste HISTORIQUE,
-    // conservée à l'identique : elle gouverne QUAND l'envoi re-capture, pas ce
-    // qu'il lit (les refs et setters sont stables, le corps est dans send/).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the HISTORICAL list,
+    // kept identical: it governs WHEN the send re-captures, not what
+    // it reads (refs and setters are stable, the body is in send/).
     [host, activeId, conversations, settings, keyConfigured, createConversation, patchConversation],
   );
 
@@ -1399,8 +1399,8 @@ export function useChatStore() {
       // instruction is already inside it, re-prefixing would duplicate it. WITHOUT one
       // (the payload was not recoverable), `retryTagPrompt` re-supplies the prompt —
       // snapshot first, else today's version — so the retry never sends the bare text.
-      // ⚠️ `competence ?? workflow` : rejouer un tour ANCIEN, envoyé du temps des deux
-      // listes, doit repartir avec son instruction — pas en texte nu.
+      // ⚠️ `competence ?? workflow`: replaying an OLD turn, sent back when there were two
+      // lists, must go out again with its instruction — not as bare text.
       const tag = user.competence ?? user.workflow;
       const compPromptRetry = tag
         ? retryTagPrompt(
@@ -1467,15 +1467,15 @@ export function useChatStore() {
      *  endpoint). The pickers grey these out; the send gate refuses them for the SAME
      *  reason (`send/modelAvailability.ts`). */
     unavailableModels,
-    // Pour Réglages → Modèles : l'état de détection de la CLI Claude Code (le réglage
-    // opt-in `claudeCliEnabled` vit dans `settings` comme les autres).
+    // For Réglages → Modèles: the Claude Code CLI detection state (the opt-in
+    // `claudeCliEnabled` setting lives in `settings` like the others).
     claudeCliDetected,
     codexCliDetected,
     conversations,
     /** True once the initial per-account load has settled (see the `loaded` state). */
     loaded,
-    /** Porte des canaux de SYNC — `dbWipeGuard.ts` : FAUX quand le chargement DB a
-     *  échoué (loaded reste vrai pour l'UI ; la sync, elle, doit rester fermée). */
+    /** Gates the SYNC channels — `dbWipeGuard.ts`: FALSE when the DB load has
+     *  failed (loaded stays true for the UI; sync, though, must stay closed). */
     syncReady: isSyncReady(loaded, !!host.db, dbActive.current),
     active,
     activeId,

@@ -23,7 +23,7 @@ interface Props {
   onSetApiKey: (id: string, value: string) => void | Promise<void>;
   onClearApiKey?: (id: string) => void | Promise<void>;
   /** OAuth PKCE « Connecter mon compte OpenRouter » (`state/connectOpenRouter.ts`).
-   *  Absent sur une plateforme sans ce flux ⇒ le bouton n'est pas dessiné. */
+   *  Absent on a platform without this flow ⇒ the button isn't drawn. */
   onConnectOpenRouter?: () => Promise<boolean>;
   /** Providers whose key is already stored — the Modèles tab's "clé enregistrée" chip. */
   keyConfigured?: ReadonlySet<string>;

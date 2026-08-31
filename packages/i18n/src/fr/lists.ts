@@ -1,5 +1,5 @@
 /**
- * Tranche « lists » du catalogue FR — la langue SOURCE : Compétences, Mémoire,
+ * The FR catalogue's « lists » slice — the SOURCE language: Compétences, Mémoire,
  * Bibliothèque, Coffre.
  */
 import type { Messages } from "../messages";

@@ -1,20 +1,20 @@
-# Le PARCOURS D'ARGENT nocturne — scripts/money-path-probe.mjs contre STAGING.
+# The nightly MONEY PATH — scripts/money-path-probe.mjs against STAGING.
 #
-# Ce que le canari (canary.yml) ne couvre pas : le canari sonde des surfaces SANS
-# auth ; celui-ci conduit le parcours authentifié complet — connexion Supabase
-# réelle, abonnement, crédits, et change-tier vers le palier COURANT (qui traverse
-# auth + base + LECTURE Stripe puis ressort `changed:false` sans rien modifier :
-# le chemin exact du 502 resté invisible deux jours le 07/08).
+# What the canary (canary.yml) doesn't cover: the canary probes surfaces WITHOUT
+# auth; this one runs the full authenticated path — real Supabase
+# login, subscription, credits, and change-tier to the CURRENT tier (which crosses
+# auth + database + Stripe READ then comes back `changed:false` without modifying anything:
+# the exact path of the 502 that stayed invisible for two days on 07/08).
 #
-# Nuit plutôt que la cadence du canari : le parcours consomme une connexion réelle et touche
-# Stripe (en lecture) — une fois par nuit suffit à borner la fenêtre d'un
-# incident à ~24 h au lieu de « quand quelqu'un tombe dessus ».
+# Nightly rather than the canary's cadence: the path consumes a real login and touches
+# Stripe (read-only) — once a night is enough to bound an incident's
+# window to ~24 h instead of "whenever someone stumbles onto it".
 #
-# Prérequis d'OPÉRATEUR (les deux secrets, non dérivables par Terraform) :
-#   MONEY_PATH_EMAIL / MONEY_PATH_PASSWORD — un compte de sonde dédié sur le
-#   Supabase du projet, idéalement porteur d'un abonnement Stripe TEST (staging
-#   tourne en mode test) pour que l'étape change-tier soit réellement exercée.
-#   Sans abonnement, la sonde passe mais le CRIE en warning à chaque run.
+# OPERATOR prerequisites (the two secrets, not derivable by Terraform):
+#   MONEY_PATH_EMAIL / MONEY_PATH_PASSWORD — a dedicated probe account on the
+#   project's Supabase, ideally carrying a TEST Stripe subscription (staging
+#   runs in test mode) so the change-tier step is actually exercised.
+#   Without a subscription, the probe passes but SHOUTS it as a warning on every run.
 name: Money path (staging)
 
 on:

@@ -6,12 +6,12 @@ import { mount } from "../../../testKit";
 import { StorageSources } from "./StorageSources";
 
 /**
- * Le groupe « Cloud » du panneau « Dossiers ».
+ * The « Cloud » group of the « Dossiers » panel.
  *
- * Ce qui vaut un test : un compte que l'app sait parcourir devient une RACINE (et cesse
- * d'être une ligne d'état — sinon il apparaîtrait deux fois), on ne lit rien tant qu'on ne
- * l'ouvre pas, on descend par l'ID du fournisseur, et un fichier distant ne prétend jamais
- * s'ouvrir dans le panneau : ses octets ne passent pas par cette voie.
+ * What's worth a test: an account the app can browse becomes a ROOT (and stops
+ * being a status row — otherwise it would appear twice), nothing is read until it's
+ * opened, we descend by the provider's ID, and a remote file never claims to
+ * open in the panel: its bytes don't pass through that route.
  */
 
 const wrap = (children: React.ReactNode) => <Provider store={store}>{children}</Provider>;
@@ -39,12 +39,12 @@ describe("StorageSources — le stockage connecté", () => {
     const asked: { kind: string; name: string; source?: string }[] = [];
     const panel = <StorageSources onAsk={(t) => asked.push({ kind: t.kind, name: t.name, source: t.source })} />;
     const m = await mount(panel, { host: { cloudFs }, wrap });
-    // Laisser `sources()` se résoudre : avant ça, le connecteur est encore une simple
-    // ligne d'état — c'est justement le repli quand rien n'est navigable.
+    // Let `sources()` resolve: before that, the connector is still a plain
+    // status row — that's exactly the fallback for when nothing is navigable.
     await m.rerender(panel);
     await m.rerender(panel);
 
-    // Le compte est une racine : rien n'est lu tant qu'on ne l'ouvre pas.
+    // The account is a root: nothing is read until it's opened.
     expect(listed).toEqual([]);
     console.log("SRC ROWS:", m.findAll(".rr-src").map((r) => r.className + " | " + r.textContent));
     const driveRoot = m.findAll(".rr-src").find((r) => r.textContent?.includes("Google Drive"))!;
@@ -55,15 +55,15 @@ describe("StorageSources — le stockage connecté", () => {
       expect.stringContaining("Devis.pdf"),
     ]);
 
-    // Descendre passe l'id du dossier, pas un chemin inventé.
+    // Descending passes the folder's id, not a made-up path.
     await m.click(m.findAll(".rr-tree-row").find((r) => r.textContent?.includes("Clients"))!);
     expect(listed).toEqual([null, "f1"]);
 
-    // Un fichier distant ne s'ouvre pas dans le panneau — ses octets ne passent pas par
-    // là. Le cliquer DEMANDE, ce que le modèle sait faire avec les outils du connecteur.
+    // A remote file doesn't open in the panel — its bytes don't pass
+    // through there. Clicking it ASKS, which the model can do with the connector's tools.
     await m.click(m.findAll(".rr-tree-row").find((r) => r.textContent?.includes("Devis.pdf"))!);
-    // La cible porte son ESPÈCE (fichier, pas dossier) et son service : c'est ce qui
-    // fait le tag de la conversation et la ligne de contexte du modèle.
+    // The target carries its KIND (file, not folder) and its service: that's what
+    // makes the conversation's tag and the model's context line.
     expect(asked).toEqual([{ kind: "file", name: "Devis.pdf", source: "Google Drive" }]);
     expect(store.getState().panel.items.some((i) => i.kind === "localfile")).toBe(false);
 

@@ -126,9 +126,9 @@ export function SpreadsheetViewer({
       // for a redaction mark, so the fill fell back to a near-invisible slate and the grid
       // looked un-highlighted: the CSV bug.
       const cls = isRevealed ? "fv-cell-revealed" : `redaction-mark hl-${seg.tone}`;
-      // Pas d'onClick : le clic ÉPINGLE la carte de révélation partagée (useMarkHover
-      // délégué) — inspecter ≠ révéler (audit 2026-08-10) ; « Unredact » vit
-      // dans la carte. `onReveal` ne sert plus que de signal d'éditabilité.
+      // No onClick: the click PINS the shared reveal card (useMarkHover
+      // delegated) — inspect ≠ reveal (audit 2026-08-10); « Unredact » lives
+      // in the card. `onReveal` now only serves as an editability signal.
       return onReveal ? (
         <button
           key={i}

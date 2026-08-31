@@ -1,13 +1,13 @@
 /**
- * Le CONTENU des onglets Paiement, Usage, Vos appareils, Organisation — et la modale
- * d'import. Le lexique de l'argent (paliers, CTA, crédits épuisés, erreurs Stripe) est dans
- * `common.ts` (`billing`) : plusieurs surfaces le rendent.
+ * The CONTENT of the Paiement, Usage, Vos appareils and Organisation tabs — and the
+ * import modal. The money lexicon (tiers, CTAs, credits exhausted, Stripe errors) is in
+ * `common.ts` (`billing`): several surfaces render it.
  *
- * ⚠️ Le mot du produit est « abonnement » — jamais forfait, formule ni offre
- * (`ui/src/help/money.test.ts` le vérifie sur la source). La traduction anglaise dit
- * « subscription », et ne réintroduit pas « plan » comme nom du produit.
+ * ⚠️ The product's word is « abonnement » — never forfait, formule or offre
+ * (`ui/src/help/money.test.ts` checks it against the source). The English translation says
+ * « subscription », and does not reintroduce « plan » as the product's name.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
  */
 export interface BillingTabMessages {
   close: string;
@@ -24,7 +24,7 @@ export interface BillingTabMessages {
   openPortal: string;
   stripeSecure: string;
   unavailableHere: string;
-  /** La carte d'un palier. */
+  /** A tier's card. */
   recommended: string;
   perMonth: string;
   noCredits: string;
@@ -40,7 +40,7 @@ export interface BillingTabMessages {
   upgradeBody: (name: string, price: string) => string;
   downgradeBody: (name: string, price: string) => string;
   confirmChange: string;
-  /** Membre d'organisation : facturé par siège. */
+  /** Organization member: billed per seat. */
   orgManaged: string;
   orgCovered: (orgName: string) => string;
   manageInAdmin: string;
@@ -55,10 +55,10 @@ export interface UsageTabMessages {
   filterAll: string;
   filterByo: string;
   filterSubscription: string;
-  /** La même option quand rien ne se vend (le défaut) : la voie se nomme par les modèles inclus. */
+  /** The same option when nothing is sold (the default): the route is named by the included models. */
   filterIncluded: string;
   rangeAria: string;
-  /** « 14 j » — le bouton d'une fenêtre. */
+  /** « 14 j » — a window's button. */
   days: (n: number) => string;
   kpiMessages: string;
   kpiTokens: string;
@@ -86,7 +86,7 @@ export interface UsageTabMessages {
   orgLabel: string;
   mySubscription: string;
   myAccount: string;
-  /** L'histogramme messages / jour par modèle. */
+  /** The messages-per-day-per-model histogram. */
   timelineTitle: (days: number) => string;
   timelineMeta: (max: number) => string;
   timelineEmpty: string;
@@ -113,7 +113,7 @@ export interface SyncTabMessages {
   rename: string;
   revoke: string;
   platforms: { desktop: string; extension: string; mobile: string; web: string };
-  /** La phrase secrète. */
+  /** The passphrase. */
   passTitle: string;
   passDesc: string;
   passActive: string;
@@ -128,7 +128,7 @@ export interface SyncTabMessages {
   change: string;
   disable: string;
   passOffline: string;
-  /** L'état. */
+  /** The state. */
   envEyebrow: string;
   envProduction: string;
   envStaging: string;

@@ -1,18 +1,18 @@
 /**
- * La PHRASE de présentation de chaque connecteur — le bloc « à propos » en tête de
- * `McpConnectorModal`. Une phrase concise : ce que fait l'entreprise ou le produit.
+ * Each connector's introduction SENTENCE — the « about » block at the top of
+ * `McpConnectorModal`. One concise sentence: what the company or the product does.
  *
- * L'ADRESSE officielle n'est pas ici : elle ne se traduit pas, et elle vit avec les ids
- * dans `ui/src/pages/Settings/mcp/mcpConnectorInfo.ts`. Ce sont ces deux tables ensemble
- * qui portent la parité : le fichier UI se déclare `Record<keyof ConnectorsMessages, …>`,
- * donc un connecteur présenté sans adresse — ou l'inverse — ne compile pas. Et
- * `mcpConnectorInfo.test.ts` vérifie l'autre bord, celui que le compilateur ne voit pas :
- * que chaque id existe bien au catalogue (`@openmasq/catalog/mcp`).
+ * The official ADDRESS is not here: it does not translate, and it lives with the ids
+ * in `ui/src/pages/Settings/mcp/mcpConnectorInfo.ts`. It is those two tables together
+ * that carry the parity: the UI file declares itself `Record<keyof ConnectorsMessages, …>`,
+ * so a connector introduced without an address — or the reverse — does not compile. And
+ * `mcpConnectorInfo.test.ts` checks the other edge, the one the compiler cannot see:
+ * that every id really exists in the catalogue (`@openmasq/catalog/mcp`).
  *
- * Un id ABSENT des deux ne rend simplement aucun bloc (le serveur `filesystem` local n'a
- * pas d'entreprise) : l'omission est une décision, pas un trou.
+ * An id ABSENT from both simply renders no block (the local `filesystem` server has
+ * no company): the omission is a decision, not a hole.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
  */
 export interface ConnectorsMessages {
   exa: string;

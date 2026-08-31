@@ -1,5 +1,5 @@
 /**
- * Tranche « versionsTab » du catalogue FR — la langue SOURCE : Versions — mises à jour, historique des builds, environnement.
+ * The FR catalogue's « versionsTab » slice — the SOURCE language: Versions — updates, build history, environment.
  */
 import type { Messages } from "../messages";
 

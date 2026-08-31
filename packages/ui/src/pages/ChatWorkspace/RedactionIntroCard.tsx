@@ -2,17 +2,17 @@ import { ArrowRightIcon, ShieldIcon, XIcon } from "../../components/brand";
 import { useT } from "../../i18n";
 
 /**
- * « Comprendre mon redaction » — le petit conteneur sous les premières réponses.
- * Quand il se montre (et pourquoi « Fermer pour toujours » est définitif) :
- * `privacy/redactionIntro.ts`. Il ouvre le chapitre redaction du guide — jamais une
- * seconde explication : le chapitre EST l'explication, ce conteneur n'est qu'une porte.
+ * « Comprendre mon redaction » — the small container under the first replies.
+ * When it shows (and why « Fermer pour toujours » is final):
+ * `privacy/redactionIntro.ts`. It opens the guide's redaction chapter — never a
+ * second explanation: the chapter IS the explanation, this container is only a door.
  *
- * Volontairement plus petit que les encarts voisins (`TransparencyCard`…) : c'est une
- * invitation récurrente jusqu'à fermeture, pas une annonce — une carte pleine qui
- * reviendrait à chaque conversation prendrait la place d'une réponse.
+ * Deliberately smaller than the neighboring inserts (`TransparencyCard`…): it's a
+ * recurring invitation until dismissed, not an announcement — a full card that
+ * came back every conversation would take the place of a reply.
  *
- * ⚠️ Le conteneur ENTIER est le bouton d'ouverture, la croix est un bouton DANS le
- * bouton : d'où le `stopPropagation` — fermer ne doit pas ouvrir ce qu'on ferme.
+ * ⚠️ The ENTIRE container is the opening button, the cross is a button INSIDE the
+ * button: hence the `stopPropagation` — closing must not open what's being closed.
  */
 export function RedactionIntroCard({
   onOpen,

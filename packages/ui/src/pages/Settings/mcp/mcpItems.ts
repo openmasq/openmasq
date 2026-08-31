@@ -66,8 +66,8 @@ export interface McpItem {
   accounts?: McpAccount[];
   /** local: the stdio catalog entry (command + env + path-grant fields). */
   entry?: McpCatalogEntry;
-  /** local CONNECTÉ : les dossiers déjà autorisés, par clé de paramètre — ce que la
-   *  carte affiche et édite sans passer par une déconnexion. */
+  /** local CONNECTED: the folders already granted, by param key — what the
+   *  card displays and edits without going through a disconnect. */
   params?: Record<string, string[]>;
   /** A server the USER added by URL — not vetted by the app. It gets its own section
    *  rather than a category group, so "what did I point this app at" is answerable at
@@ -100,7 +100,7 @@ export function buildMcpItems(opts: {
   /** Include the controllable-browser connector (only when the desktop host exposes
    *  `enableBrowser` — absent in the browser preview). */
   browserEnabled?: boolean;
-  /** La langue de l'appelant — nom + description viennent de `connectorCopy`. */
+  /** The caller's language — name + description come from `connectorCopy`. */
   t: Messages;
 }): McpItem[] {
   const { servers, catalog, directConnectors, isBlocked, credGroups, browserEnabled, t } = opts;

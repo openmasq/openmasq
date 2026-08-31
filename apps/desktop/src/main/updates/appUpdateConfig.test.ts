@@ -1,9 +1,9 @@
-// La PARITÉ des deux formes d'`app-update.yml` — la maison de build (scripts/, CJS) et la
-// reconstruction à l'exécution (appUpdateConfig.ts). Deux implémentations parce que deux
-// runtimes (un hook electron-builder ne s'importe pas depuis le bundle main) ; ce test est
-// ce qui les empêche de dériver (règle 9 : quand deux copies ne peuvent pas s'importer,
-// un test lit les DEUX). Il épingle aussi l'octet près la forme qu'electron-builder
-// génère sur le chemin normal — c'est elle que le pipeline scindé doit reproduire.
+// The PARITY of the two `app-update.yml` shapes — the build-time home (scripts/, CJS) and the
+// runtime reconstruction (appUpdateConfig.ts). Two implementations because two
+// runtimes (an electron-builder hook can't be imported from the main bundle); this test is
+// what keeps them from drifting apart (rule 9: when two copies can't import each other,
+// a test reads BOTH). It also pins the byte-for-byte shape that electron-builder
+// generates on the normal path — that's the one the split pipeline must reproduce.
 import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { rebuiltUpdateConfigContent } from "./updateConfigContent";
@@ -25,7 +25,7 @@ describe("app-update.yml — parité build ⇄ exécution", () => {
   });
 
   it("reproduit l'octet près la forme d'electron-builder (le chemin normal)", () => {
-    // Relevé sur un build du chemin non scindé — la référence que les deux copient.
+    // Captured from a build of the non-split path — the reference both copy.
     expect(appUpdateYmlContent({ provider: "generic", url: URL, channel: "latest" }, BRAND.name)).toBe(
       "provider: generic\n" +
         `url: ${URL}\n` +

@@ -1,36 +1,36 @@
-/* Documents générés (fence ```document) — génération + ÉDITION, contre la vraie API
-   OpenRouter (modèle gratuit par défaut → coût nul), sur le harnais de la suite
-   workflows (app buildée isolée, session seedée, moteur `patterns`, wire log).
+/* Generated documents (fence ```document) — generation + EDITING, against the real
+   OpenRouter API (free model by default → zero cost), on the workflows suite's
+   harness (isolated built app, seeded session, `patterns` engine, wire log).
 
-     OPENROUTER_API_KEY   requis (.env racine) — sinon la suite est skip (le test
-                          d'édition a besoin qu'un send PARTE pour capturer le wire).
-     E2E_MODEL            id du modèle (défaut : le gratuit de la suite workflows).
-     E2E_STRICT           "1" = assertions de CONFORMITÉ du modèle (le fence bien
-                          émis, l'email repris dans la lettre) — sinon seules les
-                          assertions déterministes (privacy) sont dures.
+     OPENROUTER_API_KEY   required (root .env) — otherwise the suite is skipped (the
+                          editing test needs a send to GO OUT to capture the wire).
+     E2E_MODEL            model id (default: the workflows suite's free one).
+     E2E_STRICT           "1" = model CONFORMANCE assertions (the fence properly
+                          emitted, the email carried over in the letter) — otherwise only the
+                          deterministic (privacy) assertions are hard.
 
-   Invariants TOUJOURS vérifiés (déterministes) :
-     1. ÉDITION (test A — le modèle n'a pas besoin de répondre) : une PII tapée À LA
-        MAIN dans l'éditeur de la carte document entre au VAULT à la sauvegarde
-        (`redactEditedText` — la carte la re-rend marquée), l'édition SURVIT à un
-        reload, et le tour suivant part avec l'édition dans l'historique MAIS SANS la
-        PII en clair (buildWireHistory rejoue le vault — c'est ce trou que la passe
-        d'édition ferme, épinglé ici de bout en bout).
-     2. GÉNÉRATION (test B) : le prompt qui demande une lettre porte un email réel ;
-        le wire ne le contient JAMAIS (moteur `patterns`), alors que l'app peut
-        l'afficher en clair côté utilisateur. */
+   Invariants ALWAYS checked (deterministic):
+     1. EDITING (test A — the model doesn't need to answer): a PII typed BY HAND
+        into the document card's editor enters the VAULT on save
+        (`redactEditedText` — the card re-renders it marked), the edit SURVIVES a
+        reload, and the next turn goes out with the edit in the history BUT WITHOUT the
+        PII in the clear (buildWireHistory replays the vault — this is the hole that the
+        editing pass closes, pinned here end to end).
+     2. GENERATION (test B): the prompt asking for a letter carries a real email;
+        the wire NEVER contains it (`patterns` engine), even though the app may
+        display it in the clear on the user's side. */
 
 import { test, expect } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
 import { KEY, MODEL, STRICT } from "./workflows/env";
 import { launchWorkflowApp, seedSession, selectModel, submitPrompt } from "./workflows/harness";
 
-/** PII que le test TAPE dans l'éditeur — ne doit jamais atteindre le wire. */
+/** PII that the test TYPES into the editor — must never reach the wire. */
 const TYPED_EMAIL = "marceline.brivet@exemple-test.fr";
-/** Marqueur inerte (pas une PII) ajouté par l'édition — DOIT atteindre le wire :
- *  c'est la preuve que l'édition est bien dans l'historique renvoyé au modèle. */
+/** Inert marker (not PII) added by the edit — MUST reach the wire:
+ *  it's the proof that the edit is indeed in the history sent back to the model. */
 const EDIT_MARKER = "SECTION-AJOUTEE-E2E";
-/** PII du prompt de génération (test B). */
+/** PII from the generation prompt (test B). */
 const PROMPT_EMAIL = "camille.vernay@exemple-corp.fr";
 
 const DOC_BODY = [
@@ -43,8 +43,8 @@ const DOC_BODY = [
   "Cordialement.",
 ].join("\n");
 
-/** La conversation seedée du test A : un échange déjà terminé dont la réponse
- *  contient le document — aucun appel modèle pour l'obtenir. */
+/** Test A's seeded conversation: an already-finished exchange whose answer
+ *  contains the document — no model call needed to get it. */
 function seededConversation() {
   const now = Date.now();
   return {
@@ -64,10 +64,10 @@ function seededConversation() {
   };
 }
 
-/** Attend que le wire log contienne une requête satisfaisant `has` — le send de CHAT
- *  n'est pas forcément la première ligne (le pré-appel « routeur d'outils » part
- *  avant et ne porte pas l'historique). Rend alors le log ENTIER (les assertions
- *  d'absence de PII balaient toutes les requêtes, routeur compris). */
+/** Waits until the wire log contains a request satisfying `has` — the CHAT send
+ *  isn't necessarily the first line (the "tool router" pre-call goes out
+ *  before it and doesn't carry the history). Then returns the ENTIRE log (the
+ *  PII-absence assertions sweep every request, router included). */
 async function waitForWire(path: string, has: string, timeoutMs = 120_000): Promise<string> {
   const start = Date.now();
   for (;;) {
@@ -93,7 +93,7 @@ test.describe(`Documents générés — ${MODEL}`, () => {
         "openmasq.activeId:u1": "e2e-doc-conv",
       });
 
-      // La conversation seedée s'ouvre (activeId) — sinon, la retrouver par son titre.
+      // The seeded conversation opens (activeId) — otherwise, find it back by its title.
       const card = page.locator(".md-document-card");
       if ((await card.count().catch(() => 0)) === 0) {
         await page.getByText("Attestation (e2e documents)").first().click().catch(() => {});
@@ -101,7 +101,7 @@ test.describe(`Documents générés — ${MODEL}`, () => {
       await expect(card).toBeVisible({ timeout: 20_000 });
       await expect(card).toContainText("Attestation de partenariat");
 
-      // Modifier → ajouter une PII neuve + le marqueur inerte → Enregistrer.
+      // Edit → add a new PII + the inert marker → Save.
       await card.getByRole("button", { name: /Modifier/ }).click();
       const editor = page.locator(".md-document-editor");
       await expect(editor).toBeVisible();
@@ -111,29 +111,29 @@ test.describe(`Documents générés — ${MODEL}`, () => {
       await expect(editor).toBeHidden({ timeout: 20_000 });
       await expect(card).toContainText(EDIT_MARKER);
 
-      // La passe de redaction d'édition a tourné : l'email tapé est MARQUÉ (il est
-      // au vault, rehypeRedact le retrouve) — pas du texte libre.
+      // The edit redaction pass has run: the typed email is MARKED (it's
+      // in the vault, rehypeRedact finds it) — not free text.
       await expect(card.locator("mark.redaction-mark", { hasText: TYPED_EMAIL })).toBeVisible({
         timeout: 10_000,
       });
 
-      // Tour suivant : l'historique (dont le document édité) part re-redacted.
+      // Next turn: the history (including the edited document) goes out re-redacted.
       await selectModel(page);
       await submitPrompt(page, "Améliore la formulation de ce document, sans changer les coordonnées.");
-      // Le send de chat (celui qui porte l'historique, donc le marqueur) est parti…
+      // The chat send (the one carrying the history, hence the marker) has gone out…
       const wire = await waitForWire(wireLog, EDIT_MARKER);
-      // …et sur TOUTES les requêtes du log, la PII tapée n'apparaît JAMAIS en clair.
+      // …and across ALL requests in the log, the typed PII NEVER appears in the clear.
       expect(wire).not.toContain(TYPED_EMAIL);
-      // (Pas d'attente de la réponse : l'invariant porte sur ce qui SORT, et un
-      // reload en plein stream est un cas géré — `clearStuckPending`.)
+      // (No waiting for the answer: the invariant is about what goes OUT, and a
+      // reload mid-stream is a handled case — `clearStuckPending`.)
 
-      // Persistance : l'édition survit à un reload de l'app. Le miroir localStorage
-      // est DEBOUNCÉ (700 ms) — attendre que le snapshot porte l'édition avant de
-      // recharger (point de synchro déterministe, pas un timeout arbitraire).
-      // ⚠️ Le CONTENU seulement : le VAULT est délibérément strippé du snapshot
-      // (F1/M3 — la DB chiffrée en est le propriétaire au repos), et ce profil e2e
-      // tourne sans DB (`OPENMASQ_DISABLE_DB`), donc le wire d'un send POST-reload
-      // n'est pas vérifiable ici — d'où l'ordre wire-d'abord ci-dessus.
+      // Persistence: the edit survives an app reload. The localStorage mirror
+      // is DEBOUNCED (700 ms) — wait for the snapshot to carry the edit before
+      // reloading (a deterministic sync point, not an arbitrary timeout).
+      // ⚠️ CONTENT only: the VAULT is deliberately stripped from the snapshot
+      // (F1/M3 — the encrypted DB owns it at rest), and this e2e profile
+      // runs without a DB (`OPENMASQ_DISABLE_DB`), so a POST-reload send's wire
+      // isn't verifiable here — hence the wire-first order above.
       await page.waitForFunction(
         (marker) => (localStorage.getItem("openmasq.conversations:u1") ?? "").includes(marker),
         EDIT_MARKER,
@@ -153,10 +153,10 @@ test.describe(`Documents générés — ${MODEL}`, () => {
     test.setTimeout(300_000);
     const { app, page, wireLog } = await launchWorkflowApp("doc-gen");
     try {
-      // Une conversation VIDE seedée avec le bon modèle : sur l'écran d'accueil le
-      // send crée la conversation avec le modèle PAR DÉFAUT (que le flux sign-in a
-      // remis d'usine) — le chip sélectionné n'y suffit pas. Même approche que le
-      // test A : l'état, pas l'UI, fixe le modèle ; `selectModel` reste en ceinture.
+      // An EMPTY conversation seeded with the right model: on the welcome screen the
+      // send creates the conversation with the DEFAULT model (which the sign-in flow
+      // reset to factory) — the selected chip alone isn't enough. Same approach as
+      // test A: the state, not the UI, sets the model; `selectModel` stays a belt-and-braces.
       const now = Date.now();
       await seedSession(page, {
         "openmasq.conversations:u1": JSON.stringify([
@@ -178,18 +178,18 @@ test.describe(`Documents générés — ${MODEL}`, () => {
           `Mon adresse e-mail de contact : ${PROMPT_EMAIL}. ` +
           `Réponds avec la lettre complète dans un bloc \`\`\`document (commence par un titre « # … »).`,
       );
-      // Invariant dur (privacy, déterministe — moteur `patterns`) : l'email réel ne
-      // quitte JAMAIS la machine, sur aucune requête (send + éventuels tours outils).
-      // Le send de chat est identifiable par la consigne du prompt (redacted, l'email
-      // en moins). Indépendant de la RÉPONSE — l'invariant porte sur ce qui SORT.
+      // Hard invariant (privacy, deterministic — `patterns` engine): the real email
+      // NEVER leaves the machine, on any request (send + any tool turns).
+      // The chat send is identifiable by the prompt's instruction (redacted, minus
+      // the email). Independent of the ANSWER — the invariant is about what goes OUT.
       const wire = await waitForWire(wireLog, "résiliation");
       expect(wire).not.toContain(PROMPT_EMAIL);
 
-      // Conformité modèle (souple hors E2E_STRICT : un petit gratuit peut ignorer la
-      // consigne de fence — changer E2E_MODEL pour l'exercer strictement). On attend
-      // la CARTE elle-même, pas la fin « propre » du tour (`awaitReply` exige la
-      // rangée d'actions, que ce parcours ne produit pas toujours) : la carte se
-      // rend dès que le fence streame.
+      // Model conformance (soft outside E2E_STRICT: a small free model may ignore the
+      // fence instruction — change E2E_MODEL to exercise it strictly). We wait for
+      // the CARD itself, not the turn's "clean" end (`awaitReply` requires the
+      // action row, which this path doesn't always produce): the card
+      // renders as soon as the fence streams.
       const card = page.locator(".md-document-card");
       const hasCard = await card
         .first()
@@ -198,7 +198,7 @@ test.describe(`Documents générés — ${MODEL}`, () => {
         .catch(() => false);
       if (STRICT) {
         expect(hasCard, "le modèle n'a pas émis de bloc ```document").toBe(true);
-        // Si le modèle a repris l'email (le fake) dans la lettre, l'app l'affiche RÉEL.
+        // If the model carried the email (the fake) into the letter, the app displays it as REAL.
         const inCard = (await card.first().innerText()).includes(PROMPT_EMAIL);
         test.info().annotations.push({
           type: "email-dans-la-carte",

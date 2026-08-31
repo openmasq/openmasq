@@ -17,35 +17,35 @@ import { panelOpenLocalFile, useAppDispatch } from "../../../state/redux";
 
 import { useT } from "../../../i18n";
 /**
- * « Dossiers » — les sources de fichiers, dans la barre de droite.
+ * « Dossiers » — the file sources, in the right-hand bar.
  *
- * Deux gisements qui répondent à la même question (« où est ce document ? ») et ne
- * diffèrent que par l'endroit où vivent les octets : les dossiers ACCORDÉS sur cette
- * machine, parcourus en arbre, et le STOCKAGE CONNECTÉ (Drive, OneDrive, Dropbox), dont
- * la ligne dit l'état et mène à son réglage.
+ * Two deposits answering the same question ("where is this document?") that differ
+ * only in where the bytes live: folders GRANTED on this machine, browsed as a tree,
+ * and CONNECTED STORAGE (Drive, OneDrive, Dropbox), whose row states the status and
+ * leads to its setting.
  *
- * ⚠️ Le stockage connecté ne se DÉPLIE pas, et c'est une limite, pas un oubli : ces
- * connecteurs n'exposent leurs fichiers que par des outils faits pour un modèle (de la
- * prose, un appel redacted, aucun listing typé) — c'est exactement la raison d'être de
- * `host.localFs` côté local. Les lister sans arbre dit la vérité ; un faux arbre
- * mentirait sur ce que l'app sait faire.
+ * ⚠️ Connected storage does NOT expand into a tree, and that's a limit, not an
+ * oversight: these connectors only expose their files through tools built for a model
+ * (prose, a redacted call, no typed listing) — which is exactly why `host.localFs`
+ * exists on the local side. Listing them without a tree tells the truth; a fake tree
+ * would lie about what the app can do.
  *
- * Ouvrir un fichier dispatche le MÊME `panelOpenLocalFile` que partout : il atterrit dans
- * LE panneau latéral partagé, relu du disque. Regarder n'est pas envoyer — la règle 11
- * gouverne ce que voit le MODÈLE ; le moment qui bascule est « Demander ».
+ * Opening a file dispatches the SAME `panelOpenLocalFile` as everywhere else: it lands
+ * in THE shared side panel, re-read from disk. Looking isn't sending — rule 11
+ * governs what the MODEL sees; the moment that flips is « Demander ».
  */
 export function FolderTreePanel({
   onManageFolders,
   onOpenConnector,
   onAskTarget,
 }: {
-  /** Ouvrir Réglages → Connecteurs sur le connecteur Filesystem. */
+  /** Open Réglages → Connecteurs on the Filesystem connector. */
   onManageFolders?: () => void;
-  /** Ouvrir Réglages → Connecteurs sur un connecteur de stockage. */
+  /** Open Réglages → Connecteurs on a storage connector. */
   onOpenConnector?: (connectorId: string) => void;
-  /** Démarrer une conversation À PROPOS d'une cible — stagée en TAG (dossier/fichier,
-   *  local/cloud), jamais en prose de brouillon ; le modèle a les outils du connecteur
-   *  pour aller la lire. Absent ⇒ l'action de survol n'est pas offerte. */
+  /** Start a conversation ABOUT a target — staged as a TAG (folder/file,
+   *  local/cloud), never as draft prose; the model has the connector's tools
+   *  to go read it. Absent ⇒ the hover action isn't offered. */
   onAskTarget?: (target: AskTarget) => void;
 }) {
   const t = useT();
@@ -57,16 +57,16 @@ export function FolderTreePanel({
 
   const mcp = host.mcp;
   const canAdd = !!mcp?.pickDir && !!mcp?.setDirs;
-  /* Un dossier NEUF ne peut venir que du sélecteur natif : l'hôte le vérifie côté
-     privilégié, le renderer ne peut pas s'attribuer un chemin.
-     Trois choses qu'un raccourci rate ici, et qui font un bouton « qui ne fait rien » :
-      · le serveur visé est `local-filesystem`, pas `filesystem` (`state/mcpIds.ts`) ;
-      · la LISTE part de ce que le serveur a réellement enregistré — `setDirs` remplace,
-        donc n'envoyer que le nouveau chemin révoquerait les autres en silence ;
-      · un refus revient dans `info.error`, il n'est PAS levé : sans le lire, l'échec
-        n'existe nulle part à l'écran ;
-      · et le connecteur peut ne pas être connecté du tout — c'est même l'état par défaut
-        d'une install fraîche, celui où ce bouton est le plus cliqué. */
+  /* A NEW folder can only come from the native picker: the host checks it on the
+     privileged side, the renderer cannot assign itself a path.
+     Three things a shortcut misses here, which make a button that "does nothing":
+      · the targeted server is `local-filesystem`, not `filesystem` (`state/mcpIds.ts`);
+      · the LIST starts from what the server actually has registered — `setDirs` replaces,
+        so sending only the new path would silently revoke the others;
+      · a refusal comes back in `info.error`, it is NOT thrown: without reading it, the
+        failure exists nowhere on screen;
+      · and the connector may not be connected at all — that's even the default state
+        of a fresh install, the one where this button gets clicked the most. */
   const addFolder = async () => {
     if (!mcp?.pickDir || !mcp.setDirs || adding) return;
     setAdding(true);
@@ -74,23 +74,23 @@ export function FolderTreePanel({
     try {
       const serverId = localServerId(FILESYSTEM_CONNECTOR_ID);
       const server = (await mcp.list()).find((s) => s.id === serverId);
-      // La clé du paramètre vient du serveur lui-même quand il existe ; sinon `root`,
-      // qui est ce que le catalogue de main déclare (`mcp/catalog.ts`) — et déjà le
-      // repli qu'utilisait ce fichier.
+      // The param key comes from the server itself when it exists; otherwise `root`,
+      // which is what main's catalog declares (`mcp/catalog.ts`) — and already the
+      // fallback this file used.
       const key = server ? (Object.keys(server.params ?? {})[0] ?? "root") : "root";
       const current = server ? (server.params?.[key] ?? tree.roots) : [];
 
-      // ⚠️ LE SÉLECTEUR D'ABORD, même connecteur absent. Le dossier n'est pas un réglage
-      // du connecteur : c'est l'AUTORISATION elle-même, et le serveur refuse d'être
-      // enregistré sans elle (« Dossiers autorisés requis » — `root` est requis). Tenter
-      // de l'installer à vide pour « réparer » avant de demander échoue donc toujours.
+      // ⚠️ THE PICKER FIRST, even with no connector. The folder isn't a connector
+      // setting: it IS the AUTHORIZATION itself, and the server refuses to be
+      // registered without it (« Dossiers autorisés requis » — `root` is required). Trying
+      // to install it empty to "fix" it before asking therefore always fails.
       const picked = await mcp.pickDir();
       if (!picked || current.includes(picked)) return;
 
-      // Connecteur absent ⇒ on l'installe AVEC le dossier qui vient d'être accordé, puis
-      // on le branche. L'utilisateur n'a rien à connecter lui-même : il a choisi un
-      // dossier, l'intégration se met en place derrière. Rien n'est autorisé au passage —
-      // la racine reste ce que le dialogue NATIF a renvoyé (`main/fs/CLAUDE.md`).
+      // Connector absent ⇒ install it WITH the folder that was just granted, then
+      // connect it. The user has nothing to connect themselves: they chose a
+      // folder, the integration sets itself up behind the scenes. Nothing is authorized
+      // along the way — the root stays what the NATIVE dialog returned (`main/fs/CLAUDE.md`).
       if (!server) {
         const added = await mcp.addStdio(FILESYSTEM_CONNECTOR_ID, {}, { [key]: [picked] });
         if (added?.error) {
@@ -102,7 +102,7 @@ export function FolderTreePanel({
         else tree.refresh();
         return;
       }
-      // Enregistré mais éteint : le rebrancher, sinon `setDirs` écrirait dans le vide.
+      // Registered but off: reconnect it, otherwise `setDirs` would write into the void.
       if (server.connected === false) {
         const started = await mcp.connect(serverId);
         if (started?.error) {
@@ -123,10 +123,10 @@ export function FolderTreePanel({
   return (
     <div className="rr-tree">
       <div className="rr-list rr-tree-list">
-        {/* Un GROUPE est marqué par son icône, pas par une phrase : à 214 px, deux
-            libellés de section coûtent une ligne chacun et disent ce que les deux
-            glyphes opposent déjà (le disque ici / le nuage plus bas). Le titre entier
-            reste dans l'infobulle et dans le nom accessible. */}
+        {/* A GROUP is marked by its icon, not by a sentence: at 214 px, two
+            section labels cost one line each and say what the two
+            glyphs already oppose (the disk here / the cloud below). The whole title
+            stays in the tooltip and in the accessible name. */}
         <div className="rr-tree-group" title={t.shell.folders.onThisDevice}>
           <span className="rr-group-ico" aria-hidden="true">
             <HardDriveIcon size={13} />
@@ -164,8 +164,8 @@ export function FolderTreePanel({
               failed={failed}
               onToggle={() => tree.toggle(entry.path)}
               onOpen={() => dispatch(panelOpenLocalFile({ path: entry.path, name: entry.name }))}
-              /* « Demander » n'est offert que sur un DOSSIER local (TreeRow) — un
-                 fichier local passe par les octets (`LocalFilePanel`). */
+              /* « Demander » is only offered on a local FOLDER (TreeRow) — a
+                 local file goes through the bytes (`LocalFilePanel`). */
               onAsk={(e) => onAskTarget?.({ kind: "folder", name: e.name, path: e.path })}
             />
           ),
@@ -182,9 +182,9 @@ export function FolderTreePanel({
             aria-busy={adding}
             onClick={() => void addFolder()}
           >
-            {/* Le « + » suffit sur une barre en pointillés : la forme dit « ajouter ici »
-                aussi bien que le mot. Pendant la sélection native, le glyphe pulse —
-                l'état ne prend pas de place, il en change. */}
+            {/* The "+" is enough on a dashed bar: the shape says "add here"
+                just as well as the word. During the native selection, the glyph pulses —
+                the state doesn't take up space, it changes it. */}
             <PlusIcon size={14} />
           </button>
         )}
@@ -192,7 +192,7 @@ export function FolderTreePanel({
         <StorageSources onOpenConnector={onOpenConnector} onAsk={onAskTarget} />
       </div>
 
-      {/* Un échec réel se dit : dossier retiré, disque débranché, autorisation révoquée. */}
+      {/* A real failure is stated: folder removed, disk unplugged, authorization revoked. */}
       {(tree.error || addError) && (
         <p className="rr-tree-error">
           {tree.error || addError}{" "}
@@ -206,8 +206,8 @@ export function FolderTreePanel({
   );
 }
 
-/** Une RACINE accordée : la ligne porte l'endroit d'où elle vient, que le seul nom de
- *  dossier ne dit pas (« Documents » — lequel ?). */
+/** A granted ROOT: the row carries where it comes from, which the folder
+ *  name alone doesn't say ("Documents" — which one?). */
 function SourceRow({
   entry,
   expanded,
@@ -220,8 +220,8 @@ function SourceRow({
   onToggle: () => void;
 }) {
   return (
-    /* Le chemin complet est dans l'infobulle, pas sous le nom : deux lignes par racine
-       doublaient la hauteur du groupe pour une information qu'on lit une fois. */
+    /* The full path is in the tooltip, not under the name: two lines per root
+       doubled the group's height for information read once. */
     <button type="button" className="rr-src" title={entry.path} onClick={onToggle}>
       <span className={`rr-tree-chev${expanded ? " open" : ""}`} aria-hidden="true">
         <ChevRightIcon size={11} />

@@ -23,7 +23,7 @@ describe("hasEstablishedAccount — l'accueil ne se rejoue pas sur le 2e apparei
 
   it("un palier gratuit CONNU n'établit rien : le vrai nouveau venu garde son accueil", () => {
     expect(hasEstablishedAccount({ personalSub: paid("free"), orgProfile: null })).toBe(false);
-    // Un tier absent se lit « free », pas « payant ».
+    // A missing tier reads as "free", not "paid".
     expect(
       hasEstablishedAccount({
         personalSub: { status: "free" } as unknown as BillingSubscription,

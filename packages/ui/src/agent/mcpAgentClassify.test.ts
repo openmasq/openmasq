@@ -13,7 +13,7 @@ import { classifyToolWrite } from "@openmasq/catalog/mcp";
 
 describe("isWriteTool — un seul classifieur, des deux côtés de la frontière (règle 9)", () => {
   it("délègue au classifieur du catalog — la MÊME fonction que le write-gate de main", () => {
-    // Pas un test de parité entre deux copies : il n'y a plus qu'une implémentation.
+    // Not a parity test between two copies: there is only one implementation left.
     for (const n of ["gmail__send_email", "linear__get_issue", "acme__frobnicate", "stripe__customers"]) {
       expect(isWriteTool(n), n).toBe(classifyToolWrite(n));
     }
@@ -26,9 +26,9 @@ describe("isWriteTool — un seul classifieur, des deux côtés de la frontière
   });
 
   it("⚠️ inconnu ⇒ ÉCRITURE (fail closed — l'UI répondait « lecture », l'audit A)", () => {
-    // Conséquence voulue : `readOnlyToolDefs()` (le rappel forcé de la boucle) ne
-    // proposera plus un outil au nom générique — un rappel forcé n'est pas un mandat
-    // pour agir.
+    // Intended consequence: `readOnlyToolDefs()` (the loop's forced retry) will no
+    // longer offer a tool with a generic name — a forced retry is not a mandate to
+    // act.
     for (const n of ["notion__notion-duplicate-page", "linear__issue", "stripe__customers"]) {
       expect(isWriteTool(n), n).toBe(true);
     }
@@ -58,7 +58,7 @@ describe("« rédiger » n'est pas « envoyer » — la garde déterministe", ()
     expect(asksDraftNotSend("Rédige un email de remerciement à nathan@hotmail.fr.")).toBe(true);
     expect(asksDraftNotSend("Écris-lui un mot pour la réunion")).toBe(true);
     expect(asksDraftNotSend("Envoie un email de remerciement à nathan@hotmail.fr.")).toBe(false);
-    // Les deux verbes ensemble : l'utilisateur a demandé l'envoi, la garde s'efface.
+    // Both verbs together: the user asked for the send, the guard steps aside.
     expect(asksDraftNotSend("Rédige un email et envoie-le à Nathan")).toBe(false);
     expect(asksDraftNotSend("")).toBe(false);
   });
@@ -66,8 +66,8 @@ describe("« rédiger » n'est pas « envoyer » — la garde déterministe", ()
 
 describe("une INTERDICTION d'envoyer contient le verbe « envoyer » — le piège", () => {
   it("« N'envoie rien » est respecté, pas lu comme un ordre d'envoi", () => {
-    // Le message RÉEL du journal du 27/07/2026 : la garde l'a lu comme une demande
-    // d'envoi (« envoie » y figure), et l'e-mail est parti contre la consigne.
+    // The REAL message from the 27/07/2026 journal: the guard read it as a send
+    // request ("envoie" appears in it), and the email went out against the instruction.
     const reel =
       "Passe en revue mes e-mails reçus depuis hier 18 h.\n\n3. Pour les trois plus " +
       "urgents, propose un brouillon de réponse.\n\nN'envoie rien : montre-moi d'abord.";
@@ -75,7 +75,7 @@ describe("une INTERDICTION d'envoyer contient le verbe « envoyer » — le piè
   });
 
   it("couvre les formes courantes de l'interdiction, sans verbe de rédaction requis", () => {
-    // Dire « ne rien envoyer » suffit : aucune raison d'exiger en plus un « rédige ».
+    // Saying "send nothing" is enough: no reason to also require a "draft" verb.
     for (const t of [
       "N'envoie rien",
       "N’envoie pas ce mail",
@@ -95,9 +95,9 @@ describe("une INTERDICTION d'envoyer contient le verbe « envoyer » — le piè
 });
 
 describe("looksWebIntent — « fais des recherches sur X »", () => {
-  // Journal du 27/07/2026 : la formulation la plus explicite d'une demande de recherche
-  // ne déclenchait rien. Le navigateur n'était donc pas offert, le modèle a deviné un nom
-  // d'outil, et la boucle a mal attribué le connecteur qui en découle.
+  // Journal 27/07/2026: the most explicit phrasing of a search request triggered
+  // nothing. The browser was therefore not offered, the model guessed a tool name,
+  // and the loop mis-attributed the resulting connector.
   it.each([
     "fait des recherches sur Vera et ses membres",
     "fais des recherches sur cette entreprise",
@@ -129,16 +129,16 @@ describe("plafond par outil — chercher n'est pas marteler", () => {
     }
   });
 
-  // Un modèle qui martèle un clic est exactement l'emballement que ce garde-fou
-  // existe pour arrêter — le relèvement ne vaut que pour la LECTURE.
+  // A model hammering a click is exactly the runaway this backstop exists to
+  // stop — the raised cap applies only to READS.
   it("ne relève PAS le plafond des primitives d'action du navigateur", () => {
     for (const t of ["browser__browser_click", "browser__browser_type", "browser__browser_fill_form"]) {
       expect(maxSameToolCalls(t), t).toBe(MAX_SAME_TOOL);
     }
   });
 
-  // Le nom ne confère pas la capacité : un serveur hostile qui appelle son outil
-  // `browser_navigate` n'achète pas 20 appels (même barre que le clear-mode).
+  // The name doesn't confer the capability: a hostile server calling its tool
+  // `browser_navigate` doesn't buy 20 calls (same bar as clear-mode).
   it("n'accorde le plafond relevé qu'à une ATTRIBUTION, jamais à un nom", () => {
     expect(maxSameToolCalls("evil__browser_navigate")).toBe(MAX_SAME_TOOL);
   });
@@ -146,8 +146,8 @@ describe("plafond par outil — chercher n'est pas marteler", () => {
 
 describe("isConfidentReadOnly — le nom du VENDEUR n'est pas la commande", () => {
   it("un serveur qui répète son nom dans chaque outil est enfin lu comme une lecture", () => {
-    // Notion et Slack préfixent tous leurs outils de leur propre nom ; le client
-    // re-préfixe. Le verbe se retrouvait derrière une marque et rien ne se parallélisait.
+    // Notion and Slack prefix all their tools with their own name; the client
+    // re-prefixes. The verb ended up hidden behind a brand and nothing got parallelised.
     for (const n of [
       "notion__notion-fetch",
       "notion__notion-search",
@@ -163,16 +163,16 @@ describe("isConfidentReadOnly — le nom du VENDEUR n'est pas la commande", () =
   });
 
   it("le retrait ne mord que sur le vendeur RÉPÉTÉ, jamais sur la commande", () => {
-    // `gmail__get_message` ne commence pas par « gmail » côté nom nu : rien à retirer.
+    // `gmail__get_message` doesn't start with "gmail" on the bare-name side: nothing to strip.
     expect(isConfidentReadOnly("gmail__get_message")).toBe(true);
-    // Un nom nu qui commence par autre chose reste intact — et donc refusé.
+    // A bare name starting with something else stays intact — and so refused.
     expect(isConfidentReadOnly("stripe__api_read")).toBe(false);
     expect(isConfidentReadOnly("posthog__exec")).toBe(false);
   });
 
   it("⚠️ retirer le vendeur ne doit ouvrir AUCUNE écriture", () => {
-    // Le piège exact du correctif : `browser_check` COCHE une case. Une fois « browser »
-    // retiré il devient `check`, un verbe de lecture — il doit rester refusé.
+    // The exact trap the fix addresses: `browser_check` CHECKS a checkbox. Once "browser"
+    // is stripped it becomes `check`, a read verb — it must stay refused.
     expect(isConfidentReadOnly("browser__browser_check")).toBe(false);
     expect(isConfidentReadOnly("notion__notion-delete-page")).toBe(false);
     expect(isConfidentReadOnly("slack__slack_send_message")).toBe(false);
@@ -182,9 +182,9 @@ describe("isConfidentReadOnly — le nom du VENDEUR n'est pas la commande", () =
 
 describe("isConfidentReadOnly — le navigateur ne se parallélise jamais", () => {
   it("un onglet unique : même une LECTURE de page est refusée au préchargement", () => {
-    // CDP est global au processus et il n'y a qu'un onglet : deux `snapshot` concurrents
-    // autour d'une navigation ne décrivent aucune page en particulier. Et « émets-les
-    // ensemble » (batchReads, même prédicat) est un mauvais conseil pour la même raison.
+    // CDP is process-global and there is only one tab: two concurrent `snapshot`s
+    // around a navigation describe no page in particular. And "emit them together"
+    // (batchReads, same predicate) is bad advice for the same reason.
     for (const n of [
       "browser__browser_snapshot",
       "browser__browser_take_screenshot",
@@ -195,7 +195,7 @@ describe("isConfidentReadOnly — le navigateur ne se parallélise jamais", () =
   });
 
   it("un navigateur TIERS suit la même convention, donc la même exclusion", () => {
-    // L'exclusion tenait à un accident de nommage ; elle est désormais explicite.
+    // The exclusion used to hinge on a naming accident; it is now explicit.
     expect(isConfidentReadOnly("playwright__browser_get_page")).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
 /**
- * Tranche « connectors » du catalogue EN — traduit de la source (`../fr/connectors.ts`).
+ * The EN catalogue's « connectors » slice — translated from the source (`../fr/connectors.ts`).
  *
- * `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat
+ * `satisfies` per entry: the compiler demands EXACTLY the contract's keys
  * (`../messages/connectors.ts`), ni plus ni moins.
  */
 import type { Messages } from "../messages";

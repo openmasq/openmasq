@@ -1,5 +1,5 @@
 /**
- * Tranche « byo » du catalogue EN : « Mes clés » — le formulaire BYO et ses trois tutoriels.
+ * The EN catalogue's « byo » slice: « Mes clés » — the BYO form and its three tutorials.
  */
 import type { Messages } from "../messages";
 

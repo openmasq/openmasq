@@ -1,7 +1,7 @@
-/** Formats dont l'app sait extraire du VRAI texte (PDF/OCR, OOXML) — le travail de
- *  `read_document`. UNE liste, partagée avec le routage de main (règle 9) : les deux
- *  répondent à la même question, et une copie qui dérive rendrait le refus du worker et le
- *  repli d'extraction incohérents. */
+/** Formats the app can extract REAL text from (PDF/OCR, OOXML) — the job of
+ *  `read_document`. ONE list, shared with main's routing (rule 9): both
+ *  answer the same question, and a copy that drifted would make the worker's refusal and the
+ *  extraction fallback inconsistent. */
 import { EXTRACTABLE as DOCUMENT } from "./readRoute";
 import { BRAND } from "@openmasq/branding";
 
@@ -18,11 +18,11 @@ import { BRAND } from "@openmasq/branding";
  * The fix is fail-closed and cheap: a document format is REFUSED by `read_file`, with a
  * message naming the tool that does work. Reading a PDF as text is never what anyone meant.
  *
- * ⚠️ Ce refus est désormais un BACKSTOP sur la surface outil : MAIN route un `read_file`
- * lancé sur un document vers l'extraction avant que le worker ne le voie (`readRoute.ts`,
- * qui dit pourquoi — un modèle faible rejouait le même appel jusqu'au cap de la boucle).
- * On le garde entier : il est la garde du worker si un appelant contourne ce routage, et
- * il reste le SEUL verdict pour ce qui n'a rien à extraire (image, archive, exécutable).
+ * ⚠️ This refusal is now a BACKSTOP on the tool surface: MAIN routes a `read_file`
+ * launched on a document to extraction before the worker ever sees it (`readRoute.ts`,
+ * which says why — a weak model kept replaying the same call until the loop's cap).
+ * We keep it whole: it is the worker's guard if a caller bypasses this routing, and
+ * it remains the ONLY verdict for what has nothing to extract (image, archive, executable).
  */
 
 /** Formats with no text to extract at all. */

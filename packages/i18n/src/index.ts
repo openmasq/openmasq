@@ -1,6 +1,6 @@
-// @openmasq/i18n — le catalogue de traduction TYPÉ, sans React, sans bibliothèque.
-// La couche React (provider + `useT`) vit dans `@openmasq/ui` : ce package reste
-// importable par `main`, `emails` et le backend, qui n'ont pas de React.
+// @openmasq/i18n — the TYPED translation catalogue, no React, no library.
+// The React layer (provider + `useT`) lives in `@openmasq/ui`: this package stays
+// importable by `main`, `emails` and the backend, which have no React.
 export type {
   Messages,
   SettingsTab,

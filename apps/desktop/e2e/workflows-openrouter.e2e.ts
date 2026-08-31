@@ -1,36 +1,36 @@
-/* Workflows agentiques contre la VRAIE API OpenRouter (clé réelle, modèle gratuit par
-   défaut → coût nul). Chaque test émule un usage réel : l'utilisateur tape un prompt
-   « workflow » (email, agenda, CRM…) et l'app déroule sa réalité — offre d'outils,
-   tool-calls du modèle, un-redaction des args vers le connecteur, re-redaction des
-   résultats, gate d'écriture main — ou son REPLI quand le modèle ne sait pas appeler
-   d'outils.
+/* Agentic workflows against the REAL OpenRouter API (real key, free model by
+   default → zero cost). Each test emulates real usage: the user types a
+   "workflow" prompt (email, calendar, CRM…) and the app runs its reality — tool
+   offering, model tool-calls, arg de-redaction toward the connector, re-redaction of
+   results, main's write gate — or its FALLBACK when the model can't call
+   tools.
 
-   Paramètres (env) :
-     OPENROUTER_API_KEY   requis (.env racine) — sinon toute la suite est skip.
-     E2E_MODEL            id du modèle (défaut: google/gemma-4-26b-a4b-it:free —
-                          « Gemma 4 26B A4B (gratuit) »). ⚠️ Les Gemma d'OpenRouter
-                          sont `noTools` (400 sur toute requête `tools`) : avec le
-                          défaut, la suite vérifie le REPLI sans connecteurs — c'est
-                          la réalité d'un utilisateur sur ce modèle. Pour exercer les
-                          tool-calls, passer un gratuit tools-capable, p.ex.
+   Parameters (env):
+     OPENROUTER_API_KEY   required (root .env) — otherwise the whole suite is skipped.
+     E2E_MODEL            model id (default: google/gemma-4-26b-a4b-it:free —
+                          "Gemma 4 26B A4B (free)"). ⚠️ OpenRouter's Gemma models
+                          are `noTools` (400 on any `tools` request): with the
+                          default, the suite verifies the FALLBACK with no connectors — that's
+                          the reality of a user on this model. To exercise
+                          tool-calls, pass a free tools-capable one, e.g.
                           E2E_MODEL="openai/gpt-oss-20b:free".
-     E2E_TOOL_FIXTURES    "0" = mode SANS fixtures (aucun connecteur — réalité d'un
-                          compte qui n'a rien connecté). Défaut : fixtures actives
-                          (e2e/fixtures/mcp/workflows.json via le hook main
+     E2E_TOOL_FIXTURES    "0" = mode WITHOUT fixtures (no connector — the reality of an
+                          account that has connected nothing). Default: fixtures active
+                          (e2e/fixtures/mcp/workflows.json via the main hook
                           OPENMASQ_E2E_MCP_FIXTURES).
-     E2E_PARALLEL         "1" = tests en parallèle (un app/profil par test).
-     E2E_STRICT           "1" = assertions de CONTENU (soft) sur la réponse — sinon
-                          seules les assertions déterministes (privacy, tool-calls,
-                          gate) s'appliquent, les petits modèles gratuits reformulant
-                          trop librement pour pinner le texte.
+     E2E_PARALLEL         "1" = tests in parallel (one app/profile per test).
+     E2E_STRICT           "1" = CONTENT assertions (soft) on the answer — otherwise
+                          only the deterministic assertions (privacy, tool-calls,
+                          gate) apply, small free models rephrasing
+                          too freely to pin the text.
 
-   Invariants TOUJOURS vérifiés (déterministes) :
-     1. Le wire (chat:start + tours d'outils) ne contient JAMAIS la PII des fixtures
-        ni l'email tapé par l'utilisateur — seulement des fakes (moteur `patterns`).
-     2. Un outil d'écriture n'est exécuté qu'après approbation sur la fenêtre main
-        non-spoofable (le test clique « Autoriser » comme un humain).
-     3. Rule 11 : l'argument sortant atteint le connecteur EN CLAIR (le tool-call log
-        des fixtures enregistre le vrai destinataire, pas le fake). */
+   Invariants ALWAYS checked (deterministic):
+     1. The wire (chat:start + tool turns) NEVER contains the fixtures' PII
+        nor the email typed by the user — only fakes (`patterns` engine).
+     2. A write tool only executes after approval on the non-spoofable main
+        window (the test clicks "Allow" like a human).
+     3. Rule 11: the outgoing argument reaches the connector IN THE CLEAR (the fixtures'
+        tool-call log records the real recipient, not the fake). */
 
 import { test, expect } from "@playwright/test";
 import { readFileSync, existsSync, rmSync } from "node:fs";
@@ -48,12 +48,12 @@ import {
   readJsonl,
 } from "./workflows/harness";
 
-// Le parallélisme est piloté par la CONFIG (playwright.config.ts: E2E_PARALLEL=1 →
-// fullyParallel + N workers) — chaque test lance son app/profil isolé, donc sûr.
+// Parallelism is driven by the CONFIG (playwright.config.ts: E2E_PARALLEL=1 →
+// fullyParallel + N workers) — each test launches its own isolated app/profile, so it's safe.
 test.describe(`Workflows OpenRouter — ${MODEL} — ${FIXTURES ? "avec" : "sans"} fixtures`, () => {
   test.skip(!KEY, "OPENROUTER_API_KEY absent du .env racine — suite live skippée");
 
-  // Les modèles livrés ne rejoignent la suite que sous E2E_TEMPLATES=1 (coût).
+  // Shipped models only join the suite under E2E_TEMPLATES=1 (cost).
   for (const wf of [...WORKFLOWS, ...(TEMPLATES ? TEMPLATE_WORKFLOWS : [])]) {
     test(wf.id, async () => {
       test.setTimeout(300_000);
@@ -63,13 +63,13 @@ test.describe(`Workflows OpenRouter — ${MODEL} — ${FIXTURES ? "avec" : "sans
         await seedSession(page);
         if (FIXTURES) await waitForFixtureTools(page);
         await selectModel(page);
-        // Pas de clic « nouvelle conversation » : au boot l'app est déjà sur l'écran
-        // d'accueil d'une conversation vide, dont le composer est CELUI de l'accueil
-        // (`.welcome-composer` — l'overlay intercepte les clics sur `.btn-new`).
+        // No "new conversation" click: on boot the app is already on the
+        // welcome screen of an empty conversation, whose composer IS the welcome one
+        // (`.welcome-composer` — the overlay intercepts clicks on `.btn-new`).
         await submitPrompt(page, wf.prompt);
         let { text: answer, errored } = await awaitReply(page, 240_000);
-        // Réalité des modèles :free — une réponse VIDE arrive (surcharge). L'app pose
-        // un bouton « Réessayer » ; un humain clique. Une seule relance.
+        // Reality of :free models — an EMPTY answer arrives (overload). The app shows
+        // a "Retry" button; a human clicks it. Only one retry.
         if (errored && /aucune réponse/i.test(answer)) {
           const retry = page.getByRole("button", { name: /Réessayer/i }).first();
           if (await retry.count().catch(() => 0)) {
@@ -83,26 +83,26 @@ test.describe(`Workflows OpenRouter — ${MODEL} — ${FIXTURES ? "avec" : "sans
         const wire = existsSync(wireLog) ? readFileSync(wireLog, "utf8") : "";
         const calls = readJsonl<{ server: string; tool: string; arguments: Record<string, unknown> }>(callLog);
 
-        // ── (1) privacy: aucune PII (fixtures OU tapée) sur AUCUN wire ──
+        // ── (1) privacy: no PII (fixtures OR typed) on ANY wire ──
         for (const v of [...FIXTURE_PII, REAL_TO]) {
           expect(wire, `PII en clair sur le wire: ${v}`).not.toContain(v);
         }
 
-        // La capacité tool-calling est décidée par l'APP sur le catalogue DYNAMIQUE
-        // OpenRouter (`supported_parameters`), qui peut contredire le registre statique
-        // (les Gemma y sont marqués noTools, mais le live les déclare capables). On
-        // assert donc les invariants du chemin qui s'est RÉELLEMENT produit ; le
-        // statique ne sert qu'à exiger des tool-calls quand il les promet.
+        // Tool-calling capability is decided by the APP on OpenRouter's DYNAMIC
+        // catalog (`supported_parameters`), which can contradict the static registry
+        // (Gemma models are marked noTools there, but the live catalog declares them capable). So we
+        // assert the invariants of the path that ACTUALLY occurred; the
+        // static registry only serves to require tool-calls when it promises them.
         if (FIXTURES && (calls.length > 0 || MODEL_HAS_TOOLS)) {
-          // ── (2) le modèle a réellement utilisé les connecteurs ──
+          // ── (2) the model actually used the connectors ──
           expect(
             calls.length,
             `aucun tool-call — le modèle ${MODEL} n'a appelé aucun outil`,
           ).toBeGreaterThan(0);
           if (wf.servers.length === 0) {
-            // Prompt sans outil (rédaction, extraction d'un collage) : la réalité attendue
-            // est un flux simple. Un appel d'outil ici serait un modèle qui part chercher
-            // dans les données de l'utilisateur ce qu'on ne lui a pas demandé.
+            // Tool-less prompt (drafting, extracting a paste): the expected reality
+            // is a simple flow. A tool call here would be a model going to fetch
+            // in the user's data something it wasn't asked for.
             expect
               .soft(calls, `${wf.id} : aucun outil ne devrait être appelé`)
               .toHaveLength(0);
@@ -115,8 +115,8 @@ test.describe(`Workflows OpenRouter — ${MODEL} — ${FIXTURES ? "avec" : "sans
               .toBe(true);
           }
 
-          // ── (3) une écriture n'atteint le connecteur qu'après approbation ──
-          // (les noms suivent les VRAIS outils — voir fixtures/mcp/workflows.json)
+          // ── (3) a write only reaches the connector after approval ──
+          // (the names follow the REAL tools — see fixtures/mcp/workflows.json)
           const wroteTools = calls.filter((c) =>
             ["send_email", "create_draft", "create_event", "create-note", "asana_create_task"].includes(
               c.tool,
@@ -127,10 +127,10 @@ test.describe(`Workflows OpenRouter — ${MODEL} — ${FIXTURES ? "avec" : "sans
               approver.approvedCount(),
               "un outil d'écriture a tourné sans aucune confirmation cliquée",
             ).toBeGreaterThan(0);
-            // …et sur la BONNE surface. Le sens qui compte est celui-ci : une écriture
-            // classée risquée ne doit JAMAIS pouvoir se confirmer depuis la carte du
-            // renderer, qu'une XSS pourrait cliquer. L'inverse (un geste local qui ouvre
-            // une fenêtre système) n'est qu'une nuisance, donc l'assertion est asymétrique.
+            // …and on the RIGHT surface. The direction that matters is this one: a write
+            // classified as risky must NEVER be confirmable from the renderer's
+            // card, which an XSS could click. The reverse (a local gesture that opens
+            // a system window) is only a nuisance, so the assertion is asymmetric.
             if (wf.write === "system") {
               expect(
                 approver.systemCount(),
@@ -150,7 +150,7 @@ test.describe(`Workflows OpenRouter — ${MODEL} — ${FIXTURES ? "avec" : "sans
             }
           }
 
-          // ── (4) règle 11 : l'arg sortant est le RÉEL, pas le fake ──
+          // ── (4) rule 11: the outgoing arg is the REAL one, not the fake ──
           const sent = calls.find((c) => c.tool === "send_email");
           if (wf.id === "send-email" && sent) {
             expect(String(sent.arguments.to), "le connecteur doit recevoir le VRAI destinataire").toBe(REAL_TO);
@@ -160,15 +160,15 @@ test.describe(`Workflows OpenRouter — ${MODEL} — ${FIXTURES ? "avec" : "sans
             for (const h of wf.contentHints) expect.soft(answer, `contenu attendu: ${h}`).toMatch(h);
           }
         } else {
-          // Modèle noTools (défaut Gemma) OU mode sans fixtures : la réalité est un
-          // repli en flux simple — AUCUN outil ne doit avoir été appelé.
+          // noTools model (Gemma default) OR no-fixtures mode: the reality is a
+          // simple-flow fallback — NO tool should have been called.
           expect(calls.length, "aucun tool-call attendu dans ce mode").toBe(0);
         }
       } finally {
         await approver.stop();
         await app.close().catch(() => {});
         rmSync(profile, { recursive: true, force: true });
-        // Les logs (PII de test) restent dans tmpdir pour debug d'un échec ; l'OS les purge.
+        // The logs (test PII) stay in tmpdir for debugging a failure; the OS purges them.
       }
     });
   }

@@ -1,24 +1,24 @@
 /**
- * Le contrat de la tranche « lists » — les quatre écrans où l'on RANGE ce qu'on écrit :
+ * The « lists » slice contract — the four screens where one FILES what one writes:
  * Compétences, Mémoire, Bibliothèque, Coffre.
  *
- * Ils se ressemblent exprès (même squelette de page, même état vide, même filtre), donc
- * leur copie vit ensemble : c'est ce qui permet de voir d'un coup d'œil qu'ils se
- * répondent. Le NOM de chaque section et sa phrase d'aide restent dans `sections` — la
- * navigation les dit déjà.
+ * They resemble one another on purpose (same page skeleton, same empty state, same filter), so
+ * their copy lives together: that is what makes it visible at a glance that they
+ * answer one another. Each section's NAME and its help sentence stay in `sections` — the
+ * navigation says them already.
  */
 
-/** L'état vide d'un écran : ce qu'il est, puis le geste qui le remplit. */
+/** A screen's empty state: what it is, then the gesture that fills it. */
 export interface EmptyStateCopy {
   title: string;
   body: string;
   points: readonly string[];
-  /** Absent quand l'écran ne se remplit pas d'ici (la Bibliothèque se remplit en
-   *  conversant) : promettre un geste que la page n'offre pas serait pire que rien. */
+  /** Absent when the screen is not filled from here (the Bibliothèque fills up while
+   *  conversing): promising a gesture the page does not offer would be worse than nothing. */
   cta?: string;
 }
 
-/** L'état « votre filtre ne rend rien » — le même partout, avec sa sortie. */
+/** The « your filter returns nothing » state — the same everywhere, with its way out. */
 export interface NoMatchCopy {
   search: string;
   category: string;
@@ -28,14 +28,14 @@ export interface NoMatchCopy {
 }
 
 export interface ListsMessages {
-  /** Ce que les quatre partagent. */
+  /** What the four share. */
   loading: string;
-  /** Le « tout » d'un filtre — masculin/féminin selon la liste, d'où deux clés. */
+  /** A filter's « all » — masculine/feminine depending on the list, hence two keys. */
   allFeminine: string;
   allMasculine: string;
-  /** Les onglets de catégorie de la Bibliothèque. */
+  /** The Bibliothèque's category tabs. */
   libraryTabs: { all: string; image: string; document: string; sheet: string; audio: string };
-  /** Les catégories d'une compétence, et le « toutes » du filtre. */
+  /** A skill's categories, and the filter's « toutes ». */
   competenceCategories: {
     all: string;
     redaction: string;
@@ -45,7 +45,7 @@ export interface ListsMessages {
     support: string;
     routine: string;
   };
-  /** Les boutons de mise en forme de l'éditeur d'instruction. */
+  /** The formatting buttons of the instruction editor. */
   marks: { bold: string; italic: string; heading: string; quote: string; bullet: string; ordered: string; code: string };
   competences: {
     empty: EmptyStateCopy;
@@ -58,7 +58,7 @@ export interface ListsMessages {
     formatting: string;
     presets: string;
     undo: string;
-    /** La carte et la rangée. */
+    /** The card and the row. */
     editAria: (name: string) => string;
     pin: string;
     unpin: string;
@@ -96,7 +96,7 @@ export interface ListsMessages {
       previewEmpty: string;
       placeholder: string;
     };
-    /** Le choix des connecteurs. */
+    /** The connector choice. */
     picker: { note: string; connectedDot: string };
   };
 
@@ -114,17 +114,17 @@ export interface ListsMessages {
     removeTip: string;
     removeAria: (entity: string) => string;
     graphAria: (count: number) => string;
-    /** Les deux nœuds que le graphe dessine lui-même. */
+    /** The two nodes the graph draws itself. */
     coreNode: string;
     profileNode: string;
-    /** Les quatre catégories d'une fiche. */
+    /** A card's four categories. */
     categories: { personne: string; organisation: string; projet: string; autre: string };
     hubDesc: (category: string) => string;
     onlyShow: (category: string) => string;
     clearFilter: string;
-    /** La légende des traits du graphe. */
+    /** The legend of the graph's edges. */
     legend: { category: string; mention: string; mentionTip: string; sameTopic: string; sameTopicTip: string };
-    /** Le panneau d'une fiche. */
+    /** A card's panel. */
     panel: {
       aria: string;
       close: string;
@@ -142,7 +142,7 @@ export interface ListsMessages {
       delete: string;
     };
     profile: { title: string; edit: string; editTip: string; placeholder: string; aria: string };
-    /** Les deux bandeaux : le doublon proposé, et la suppression annulable. */
+    /** The two banners: the proposed duplicate, and the undoable deletion. */
     mergeSemantic: string;
     merge: string;
     dismiss: string;
@@ -192,7 +192,7 @@ export interface ListsMessages {
       note: string;
       notePlaceholder: string;
     };
-    /** La fenêtre des occurrences. */
+    /** The occurrences window. */
     uses: {
       title: string;
       summary: (times: number, conversations: number) => string;

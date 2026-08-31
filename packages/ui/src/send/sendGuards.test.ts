@@ -41,13 +41,13 @@ describe("pickAttachmentMetas (audit M1)", () => {
   });
 
   it("un nom générique court ne matche plus tout (audit 2026-08-10 — « e » attachait la conversation)", () => {
-    // `w.includes(n)` et le substring sans plancher rendaient « attacher tout »
-    // atteignable par un nom d'une lettre — le repli que M1 avait pourtant fermé.
+    // `w.includes(n)` and the substring match without a floor made "attach everything"
+    // reachable by a one-letter name — the very fallback that M1 had closed.
     expect(pickAttachmentMetas(metas, ["e"])).toEqual([]);
     expect(pickAttachmentMetas(metas, ["p"])).toEqual([]);
-    // Le nom stocké contenu dans une PHRASE demandée ne matche plus non plus…
+    // A stored name contained within a requested PHRASE no longer matches either…
     expect(matchesAttachmentName("a.txt", ["attache a.txt s'il te plaît"])).toBe(false);
-    // … mais l'exact (avec ou sans extension) et le radical ≥ 6 restent servis.
+    // … but the exact match (with or without extension) and the ≥ 6-char stem are still served.
     expect(matchesAttachmentName("rapport-final.pdf", ["rapport-final"])).toBe(true);
     expect(pickAttachmentMetas(metas, ["budget"]).map((m) => m.id)).toEqual(["2"]);
   });

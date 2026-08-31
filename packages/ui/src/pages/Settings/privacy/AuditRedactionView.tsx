@@ -20,17 +20,17 @@ import {
 import { BRAND } from "@openmasq/branding";
 import { privacyKindLabel } from "../../../help/catalogCopy";
 
-// Le journal de redaction détaillé : chaque valeur que le moteur a protégée, reconstruite
-// depuis le `redactionVault` persisté (faux→réel) et `redactionKinds` (réel→catégorie). Il
-// montre ce qui est SORTI (le faux) à côté de ce qu'il remplaçait — le compte rendu
-// honnête et relisible du redaction réversible. Local, il ne quitte jamais la machine.
+// The detailed redaction journal: every value the engine protected, rebuilt
+// from the persisted `redactionVault` (fake→real) and `redactionKinds` (real→category). It
+// shows what went OUT (the fake) next to what it replaced — the honest and
+// re-readable account of reversible redaction. Local, it never leaves the machine.
 //
-// ⚠️ Il se lit PAR CONVERSATION parce que le coffre l'est : le pourquoi, avec les données
-// (`auditRows.ts`). Ici, une seule conséquence de rendu — l'en-tête de groupe porte le
-// titre, le compte et la date ; la ligne ne porte plus que la valeur.
+// ⚠️ It reads PER CONVERSATION because the vault is: the why, with the data
+// (`auditRows.ts`). Here, a single rendering consequence — the group header carries the
+// title, the count and the date; the row now only carries the value.
 
-// La liste peut tenir des milliers d'entrées : elle est rendue par PAGES, via une sentinelle
-// de défilement (IntersectionObserver), jamais d'un bloc.
+// The list can hold thousands of entries: it is rendered in PAGES, via a scroll
+// sentinel (IntersectionObserver), never in one block.
 const PAGE_SIZE = 40;
 const KIND_META = new Map(PRIVACY_KINDS.map((k) => [k.key, k]));
 
@@ -48,11 +48,11 @@ export function AuditRedactionView({
 }) {
   const t = useT();
   const [q, setQ] = useState("");
-  // Même contrôle que les vues d'usage : deux graphes du même produit réglés différemment font douter de ce qu'on lit.
+  // Same control as the usage views: two graphs of the same product set differently make you doubt what you're reading.
   const [auditDays, setAuditDays] = useState<UsageRangeDays>(DEFAULT_RANGE);
   const [cat, setCat] = useState<string | null>(null);
-  // La valeur réelle est masquée dans la table (regard par-dessus l'épaule) ; ceci est la
-  // ligne que l'utilisateur a cliquée pour la révéler. `null` = rien de révélé.
+  // The real value is masked in the table (shoulder-surfing); this is the
+  // row the user clicked to reveal it. `null` = nothing revealed.
   const [reveal, setReveal] = useState<{ row: AuditRow; convTitle: string; at: number } | null>(null);
 
   const groups = useMemo(() => buildAuditGroups(conversations), [conversations]);
@@ -63,8 +63,8 @@ export function AuditRedactionView({
 
   const meta = (k: string) => KIND_META.get(k);
 
-  // Export CSV local et réel des lignes filtrées — un Blob, aucun serveur (l'audit est
-  // sur l'appareil). BOM pour qu'Excel lise l'UTF-8 ; fins de ligne CRLF.
+  // Real local CSV export of the filtered rows — a Blob, no server (the audit is
+  // on the device). BOM so Excel reads UTF-8; CRLF line endings.
   const exportCsv = () => {
     if (filteredCount === 0) return;
     const head = ["Type", "Valeur réelle", "Remplacée par", "Conversation", "Quand"];
@@ -87,8 +87,8 @@ export function AuditRedactionView({
     URL.revokeObjectURL(url);
   };
 
-  // Rendu progressif : `limit` VALEURS, une page de plus quand la sentinelle du bas entre
-  // dans le champ. Retour à une page dès que le filtre change.
+  // Progressive rendering: `limit` VALUES, one more page when the bottom sentinel enters
+  // the viewport. Back to one page as soon as the filter changes.
   const [limit, setLimit] = useState(PAGE_SIZE);
   useEffect(() => {
     setLimit(PAGE_SIZE);
@@ -145,7 +145,7 @@ export function AuditRedactionView({
         </div>
       ) : (
         <>
-          {/* Redactions/jour par catégorie — même graphe que l'onglet Usage, et sa commande de fenêtre au-dessus. */}
+          {/* Redactions/day by category — same graph as the Usage tab, and its window control above. */}
           <div className="usage-filters"><UsageRange value={auditDays} onChange={setAuditDays} /></div>
           <AuditTimeline
             entries={groups.flatMap((g) => g.rows.map((r) => ({ at: g.at, kind: r.kind })))}
@@ -184,9 +184,9 @@ export function AuditRedactionView({
 
           {shown.map((g) => (
             <div key={g.convId} className="settings-card audit-list">
-              {/* L'en-tête PORTE la conversation : titre, compte et date. Répétés sur chaque
-                  ligne, le titre encombrait et la date promettait l'heure d'UNE valeur — que
-                  le coffre n'enregistre pas. */}
+              {/* The header CARRIES the conversation: title, count and date. Repeated on each
+                  row, the title cluttered and the date promised the time of ONE value — which
+                  the vault doesn't record. */}
               <div className="audit-group">
                 {onOpenMessage ? (
                   <button
@@ -223,9 +223,9 @@ export function AuditRedactionView({
                       <span className="audit-type-dot" style={{ background: m?.fg }} />
                       {privacyKindLabel(r.kind, t)}
                     </span>
-                    {/* Valeur réelle MASQUÉE par défaut (aucun `title` qui la fuite) ; le clic
-                        la révèle dans une modale. Masque de longueur fixe, pour ne pas livrer
-                        non plus la longueur. */}
+                    {/* Real value MASKED by default (no `title` that leaks it); the click
+                        reveals it in a modal. Fixed-length mask, so as not to give away
+                        the length either. */}
                     <button
                       type="button"
                       className="audit-orig audit-reveal-btn"
@@ -237,8 +237,8 @@ export function AuditRedactionView({
                       <EyeIcon size={13} />
                     </button>
                     <span className="audit-fake" title={r.fake}>{r.fake}</span>
-                    {/* Une FLÈCHE, pas une phrase : répétée à chaque ligne, « Aller au
-                        message » criait plus fort que les valeurs qu'on vient lire. */}
+                    {/* An ARROW, not a sentence: repeated on every row, « Aller au
+                        message » shouted louder than the values you came to read. */}
                     {onOpenMessage && r.msgId ? (
                       <button
                         type="button"

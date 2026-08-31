@@ -48,8 +48,8 @@ export function statusLine(status: UpdateStatus, t: Messages): { text: string; t
   }
 }
 
-/** Le nom d'un environnement CUIT. La pile auto-hébergée a le sien dans le catalogue
- *  (`t.selfHost.envLabel`) — ici un repli neutre, jamais « Staging » pour ce qui n'en est pas. */
+/** A BAKED-IN environment's name. The self-hosted stack has its own in the catalogue
+ *  (`t.selfHost.envLabel`) — here a neutral fallback, never « Staging » for what isn't. */
 export const envLabel = (env: string, t: Messages): string =>
   env === "production"
     ? t.versionsTab.envProduction

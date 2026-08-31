@@ -1,10 +1,10 @@
 /**
- * Le catalogue FRANÇAIS — la langue SOURCE (le code est écrit en français, et les
- * messages les plus travaillés — refus, `redact` — s'écrivent d'abord ici).
+ * The FRENCH catalogue — the SOURCE language (the code is written in French, and the
+ * most worked-on messages — refusals, `redact` — are written here first).
  *
- * COMPOSÉ de tranches par surface (`fr/`) pour tenir le cap 300 LOC (règle 1) —
- * même forme que `packages/emails/i18n/`. `satisfies Messages` valide l'ensemble ; chaque
- * tranche se valide déjà pour sa part, donc une clé oubliée nomme SA tranche.
+ * COMPOSED of per-surface slices (`fr/`) to hold the 300-LOC cap (rule 1) —
+ * same shape as `packages/emails/i18n/`. `satisfies Messages` validates the whole; each
+ * slice already validates its own part, so a forgotten key names ITS slice.
  */
 import type { Messages } from "./messages";
 import { agent } from "./fr/agent";

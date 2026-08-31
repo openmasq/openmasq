@@ -1,7 +1,7 @@
 import { BRAND } from "@openmasq/branding";
 import type { ToolDef } from "@openmasq/llm";
-// Préfixe des helpers Python définis par le préambule du runtime (apps/desktop) —
-// des noms RUNTIME côté sandbox, donc dérivés de la marque, jamais littéraux ici.
+// Prefix of the Python helpers defined by the runtime's preamble (apps/desktop) —
+// RUNTIME names on the sandbox side, so derived from the brand, never literal here.
 const PY = BRAND.slug;
 
 
@@ -41,11 +41,11 @@ export const MEMORY_SEARCH_DEF: ToolDef = {
     "outil quand la demande fait référence à quelque chose que l'utilisateur suppose connu " +
     "(un client, un projet, une habitude) et que le contexte ne le contient pas. Mets dans " +
     "`query` les noms tels qu'ils apparaissent dans la conversation. " +
-    // ⚠️ Sans cette phrase le modèle ne voit qu'un outil de LECTURE, en conclut qu'il ne peut
-    // pas retenir, et le dit : « Je n'ai pas d'outil pour enregistrer en mémoire » — puis
-    // propose Notion. C'est faux ET décourageant : l'app A retenu, hors de la boucle. Un outil
-    // d'écriture serait le mauvais correctif (le modèle ne voit que des faux, la mémoire est
-    // stockée en RÉEL) ; ce qu'il lui faut, c'est savoir que ce n'est pas son travail.
+    // ⚠️ Without this sentence the model sees only a READ tool, concludes it can't
+    // remember, and says so: "I have no tool to save to memory" — then proposes Notion.
+    // That's false AND discouraging: the app HAS remembered, outside the loop. A write
+    // tool would be the wrong fix (the model only ever sees fakes, memory is stored in
+    // REAL values); what it needs is to know this isn't its job.
     "ÉCRIRE en mémoire n'est PAS ton travail et ne demande aucun outil : l'application " +
     "enregistre elle-même, automatiquement, quand l'utilisateur demande de retenir quelque " +
     "chose (« retiens ça », « note-le en mémoire », « mémorise »). N'affirme donc JAMAIS que " +

@@ -1,22 +1,22 @@
 /**
- * La COPIE des catalogues techniques — ce que l'interface LIT sur un connecteur, une
- * catégorie de redaction, un modèle — séparée des FAITS que ces catalogues portent.
+ * The COPY of the technical catalogues — what the interface READS on a connector, a
+ * redaction category, a model — separated from the FACTS those catalogues carry.
  *
- * `@openmasq/catalog`, `@openmasq/redact` et `@openmasq/llm` n'ont pas React et ne
- * dépendent pas d'un catalogue de langue : ils gardent les ids, les tokens, les
- * transports, les scopes, les prix. Le connecteur garde aussi sa `desc` française, parce
- * qu'elle est lue par le MODÈLE (`suggest_integrations` y cherche « envoyer ») — c'est de
- * la prose model-facing, hors périmètre. Ici, la version que l'utilisateur lit.
+ * `@openmasq/catalog`, `@openmasq/redact` and `@openmasq/llm` have no React and do not
+ * depend on a language catalogue: they keep the ids, the tokens, the
+ * transports, the scopes, the prices. The connector also keeps its French `desc`, because
+ * the MODEL reads it (`suggest_integrations` looks for « envoyer » in it) — that is
+ * model-facing prose, out of scope. Here, the version the user reads.
  *
- * ⚠️ Aucun compilateur ne relie ces clés aux ids des paquets : les tests de parité
- * (`ui/src/privacy/catalogCopy.test.ts`) lisent les deux listes et refusent qu'elles
- * divergent — un id sans copie tomberait sinon en français au milieu d'une interface
- * anglaise, sans rien casser.
+ * ⚠️ No compiler ties these keys to the packages' ids: the parity tests
+ * (`ui/src/privacy/catalogCopy.test.ts`) read both lists and refuse to let them
+ * diverge — an id with no copy would otherwise fall back to French in the middle of an
+ * English interface, without breaking anything.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
  */
 export interface ConnectorCopy {
-  /** Le nom, seulement quand il se traduit (« Google Agenda » / « Google Calendar »). */
+  /** The name, only when it translates (« Google Agenda » / « Google Calendar »). */
   name?: string;
   desc: string;
 }
@@ -35,7 +35,7 @@ export interface ConnectorCatalogMessages {
     ai: string;
     other: string;
   };
-  /** La pastille d'authentification : ce que l'utilisateur devra fournir. */
+  /** The authentication chip: what the user will have to supply. */
   auth: {
     builtin: { label: string; title: string };
     directFull: string;
@@ -62,16 +62,16 @@ export interface RedactionCategoryCopy {
 
 export interface RedactionCatalogMessages {
   categories: Record<string, RedactionCategoryCopy>;
-  /** Les SECTIONS du moteur sont des clés françaises (`REDACTION_SECTIONS`) : leur nom lu. */
+  /** The engine's SECTIONS are French keys (`REDACTION_SECTIONS`): their read name. */
   sections: Record<string, string>;
-  /** Les libellés COURTS du rapport de confidentialité (une carte par type). */
+  /** The SHORT labels of the privacy report (one card per type). */
   kinds: Record<string, string>;
-  /** Le modal des règles : ce qui entoure les puces. */
+  /** The rules modal: what surrounds the chips. */
   lockedByOrg: string;
   modified: string;
   detailAria: (label: string) => string;
   detailTip: string;
-  /** Le mot qu'on emploie quand on ne SAIT pas ce qu'une valeur est. */
+  /** The word we use when we do NOT know what a value is. */
   neutralKind: string;
   allOn: string;
   allOff: string;
@@ -85,7 +85,7 @@ export interface ModelCopy {
 }
 
 export interface ModelCatalogMessages {
-  /** Les pastilles de capacité, par id (`@openmasq/llm` `MODEL_TAGS`). */
+  /** The capability chips, by id (`@openmasq/llm` `MODEL_TAGS`). */
   tags: {
     reasoning: string;
     code: string;
@@ -97,6 +97,6 @@ export interface ModelCatalogMessages {
     agent: string;
   };
   models: Record<string, ModelCopy>;
-  /** Un id inconnu du catalogue tombe sur une famille (`@openmasq/llm` `fallbackMeta`). */
+  /** An id unknown to the catalogue falls back to a family (`@openmasq/llm` `fallbackMeta`). */
   fallback: { premium: ModelCopy; light: ModelCopy; generic: ModelCopy };
 }

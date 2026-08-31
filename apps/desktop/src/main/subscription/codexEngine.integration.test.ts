@@ -1,13 +1,13 @@
-// Test d'INTÉGRATION : il lance la vraie CLI Codex, consomme le vrai abonnement
-// ChatGPT et suppose la connexion déjà faite (`codex login`). Il ne tourne donc QUE
-// sur demande explicite :
+// INTEGRATION test: it launches the real Codex CLI, consumes the real ChatGPT
+// subscription, and assumes the connection is already made (`codex login`). It therefore
+// only runs on explicit request:
 //
 //   OPENMASQ_TEST_SUBSCRIPTION_CODEX=1 npx vitest run apps/desktop/src/main/subscription/codexEngine.integration.test.ts
 //
-// Ce qu'il prouve, et qu'aucun test pur ne peut prouver : (1) `--ignore-user-config`
-// n'empêche PAS l'auth par abonnement (le pari de l'isolement) ; (2) le flux JSONL
-// réel colle aux formes mesurées ; (3) `--disable shell_tool` retire vraiment
-// l'exécution de commandes ; (4) `-s read-only` n'écrit rien dans le cwd.
+// What it proves, and that no pure test can prove: (1) `--ignore-user-config`
+// does NOT prevent subscription auth (the isolation bet); (2) the real JSONL
+// flow matches the measured shapes; (3) `--disable shell_tool` really removes
+// command execution; (4) `-s read-only` writes nothing to the cwd.
 import { tmpdir } from "node:os";
 import { mkdtempSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -63,9 +63,9 @@ describe.skipIf(!enabled)("streamCodexSubscription (CLI réelle)", () => {
         cwd,
       }),
     );
-    // Le cwd reste VIDE : ni écriture (sandbox), ni artefact de session (--ephemeral).
+    // The cwd stays EMPTY: no write (sandbox), no session artifact (--ephemeral).
     expect(readdirSync(cwd)).toEqual([]);
-    // Et la CLI dit qu'elle ne peut pas — `shell_tool` coupé, pas de silence trompeur.
+    // And the CLI says it can't — `shell_tool` cut off, no misleading silence.
     expect(text.length).toBeGreaterThan(0);
   }, 300_000);
 

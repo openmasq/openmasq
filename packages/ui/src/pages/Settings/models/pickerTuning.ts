@@ -3,11 +3,11 @@ import { PROVIDER_ORDER } from "../../../components/ModelSelector/providers";
 
 /** A vendor family earns a chip once it has this many models — below it the
  *  chip row would fill with one-off vendors; the long tail stays searchable.
- *  ⚠️ Le seuil était à 3 : sur les ~400 modèles du catalogue OpenRouter, cela faisait
- *  VINGT pastilles sur quatre lignes avant même la liste — la barre censée dégonfler
- *  l'écran l'encombrait plus que le reste (remonté le 11/08). À 10, il reste les
- *  familles qu'on cherche vraiment ; les autres se trouvent par la recherche, qui scanne
- *  aussi l'identifiant. */
+ *  ⚠️ The threshold used to be 3: on OpenRouter's ~400-model catalogue, that made for
+ *  TWENTY chips across four rows before the list even started — the bar meant to declutter
+ *  the screen cluttered it more than anything else (reported 11/08). At 10, what's left are the
+ *  families people actually look for; the rest are found through search, which also scans
+ *  the id. */
 export const FAMILY_CHIP_MIN = 10;
 
 /** Order the default-model picker groups. The chat picker's `PROVIDER_ORDER` is the

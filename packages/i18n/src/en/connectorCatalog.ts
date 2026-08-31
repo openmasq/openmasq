@@ -1,6 +1,6 @@
 /**
- * Tranche « connectorCatalog » du catalogue EN — traduit de la source (`../fr/connectorCatalog.ts`).
- * `satisfies` par entrée.
+ * The EN catalogue's « connectorCatalog » slice — translated from the source (`../fr/connectorCatalog.ts`).
+ * `satisfies` per entry.
  */
 import type { Messages } from "../messages";
 

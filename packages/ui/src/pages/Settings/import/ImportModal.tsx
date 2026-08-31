@@ -29,8 +29,8 @@ export function ImportModal({
 }: {
   defaultModelId: string;
   disabledKinds: string[];
-  /** Le réglage « le modèle ne voit que des jetons » : le coffre de ces conversations est
-   *  constitué à l'import, donc le mode y est figé une fois pour toutes. */
+  /** The "the model only ever sees tokens" setting: these conversations' vault is
+   *  built at import time, so the mode is frozen there once and for all. */
   wireTokens?: boolean;
   onImport: (convs: Conversation[]) => ImportOutcome;
   onClose: () => void;

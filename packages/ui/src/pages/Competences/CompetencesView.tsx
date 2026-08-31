@@ -68,8 +68,8 @@ export function CompetencesView({
   onTogglePin: (id: string) => void;
   /** Insert into the composer + switch to the chat. */
   onUse: (c: Competence) => void;
-  /** Ranger un lot importé. Le tri va des DEUX côtés (l'import range certains skills en
-   *  workflow), donc il appartient au conteneur qui tient les deux listes — pas à l'écran. */
+  /** File an imported batch away. The sort goes BOTH ways (the import files some skills as
+   *  routines), so it belongs to the container holding both lists — not to the screen. */
   onImport?: (items: SkillImportChoice[]) => void;
   /** Deep-link: open THIS compétence's editor on arrival. The `n` nonce re-opens
    *  the same id twice; a deleted compétence is silently ignored. */
@@ -131,8 +131,8 @@ export function CompetencesView({
   );
 
   const save = (d: CompetenceDraft) => {
-    // `servers` part TOUJOURS, y compris vide : le vider est une modification comme une
-    // autre (« cette routine ne pilote plus rien »), et l'omettre la rendrait impossible.
+    // `servers` is sent ALWAYS, empty included: clearing it is a change like any
+    // other ("this routine no longer drives anything"), and omitting it would make that impossible.
     if (d.id)
       onUpdate(d.id, {
         name: d.name.trim(),
@@ -214,8 +214,8 @@ export function CompetencesView({
                   onClick={() => setDraft(EMPTY_DRAFT)}
                 />
               ) : (
-                // La création reste une RANGÉE : retirer la carte sans la remplacer
-                // supprimerait le seul chemin vers « nouvelle » de cet écran.
+                // Creation stays a ROW: removing the card without replacing it
+                // would remove this screen's only path to « nouvelle ».
                 <button type="button" className="om-row om-row-create" onClick={() => setDraft(EMPTY_DRAFT)}>
                   <span className="om-row-mark">
                     <PlusIcon size={15} />

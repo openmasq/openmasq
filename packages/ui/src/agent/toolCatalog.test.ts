@@ -215,10 +215,10 @@ describe("argErrorHint", () => {
 
 describe("le catalogue dit ce qu'un connecteur NE PEUT PAS faire", () => {
   it("Gmail ne porte PLUS la note « clés de l'utilisateur » (1-clic plein depuis le 30/07/2026)", () => {
-    // Le 1-clic couvre lecture + envoi : conseiller « les clés de l'utilisateur » serait
-    // désormais un FAUX conseil (une connexion d'avant le 30/07 n'a besoin que d'une
-    // RECONNEXION). La garde contre l'invention d'outils reste la phrase de clôture
-    // « aucun autre outil » — épinglée par le test suivant — vraie par construction.
+    // The 1-click covers read + send: advising « les clés de l'utilisateur » would
+    // now be FALSE advice (a connection from before 30/07 only needs a
+    // RECONNECTION). The guard against invented tools remains the closing phrase
+    // « aucun autre outil » — pinned by the next test — true by construction.
     const out = toolCatalog([
       { name: "gmail__send_email", description: "Envoyer un email", inputSchema: {}, serverId: "ipc" },
     ] as never);
@@ -249,8 +249,8 @@ describe("canonicalToolName — un nom nu ne doit pas faire mentir les politique
     expect(canonicalToolName("github__search_repos", advertised)).toBe("github__search_repos");
   });
 
-  // Les outils INTERCEPTÉS n'ont pas de préfixe et ne doivent jamais être recalés — ils
-  // sont d'ailleurs traités avant, mais la fonction doit être sûre isolément.
+  // INTERCEPTED tools have no prefix and must never be recast — they're
+  // actually handled earlier, but the function must be safe in isolation.
   it.each(["load_tools", "run_python", "memory_search", "web_fetch_many", "suggest_integrations"])(
     "ne touche pas à l'outil interne %s",
     (n) => {
@@ -258,8 +258,8 @@ describe("canonicalToolName — un nom nu ne doit pas faire mentir les politique
     },
   );
 
-  // ⚠️ Le nom du modèle ne CONFÈRE rien : il ne peut que DÉSIGNER une entrée de notre
-  // propre table annoncée. Ambigu ⇒ on ne choisit pas (le client échouera, et c'est bien).
+  // ⚠️ The model's name CONFERS nothing: it can only DESIGNATE an entry in our own
+  // advertised table. Ambiguous ⇒ we don't choose (the client will fail, and that's fine).
   it("refuse de choisir quand deux connecteurs exposent le même nom nu", () => {
     const two = ["gmail__send_email", "microsoft-outlook__send_email"];
     expect(canonicalToolName("send_email", two)).toBe("send_email");
@@ -270,8 +270,8 @@ describe("canonicalToolName — un nom nu ne doit pas faire mentir les politique
     expect(canonicalToolName("inexistant", advertised)).toBe("inexistant");
   });
 
-  // Un suffixe n'est pas une frontière de connecteur : `navigate` ne doit pas capturer
-  // `browser__browser_navigate` sous prétexte que le nom se termine pareil.
+  // A suffix is not a connector boundary: `navigate` must not capture
+  // `browser__browser_navigate` just because the name ends the same way.
   it("ne matche que sur la frontière `__`, pas sur une fin de chaîne quelconque", () => {
     expect(canonicalToolName("navigate", advertised)).toBe("navigate");
   });

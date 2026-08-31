@@ -133,10 +133,10 @@ export function UpdatesSection() {
     />
   );
 
-  // Ce que cette page raconte dépend de À QUI elle parle : `versionsView.ts` décide,
-  // ici on rend. Sur une build de production, « quelle version, quel canal, quel
-  // historique » ne répond à aucune question que l'utilisateur se pose — l'app se met à
-  // jour seule. Le détail reste entier sur staging et pour un appareil privilégié.
+  // What this page tells depends on WHO it's talking to: `versionsView.ts` decides,
+  // here we render. On a production build, « which version, which channel, which
+  // history » answers no question the user is asking — the app updates itself.
+  // The full detail stays on staging and for a privileged device.
   const view = versionsView(status, {
     current,
     channels: allChannels,
@@ -152,12 +152,12 @@ export function UpdatesSection() {
             <CheckIcon size={14} /> {t.versionsTab.upToDate(BRAND.name)}
           </p>
         ) : (
-          // L'updater travaille ou a échoué : c'est LUI qui parle, jamais « à jour ».
+          // The updater is working or has failed: IT is the one talking, never « à jour ».
           <p className={`ver-sub ${statusLine(status!, t).tone}`}>{statusLine(status!, t).text}</p>
         )}
         <InstalledCard current={null} status={status} check={check} install={install} />
-        {/* La vue technique attache une note SOUS chaque build ; ici il n'y a pas de build à
-            lister — mais la question « qu'est-ce qui a changé ? » reste la même. */}
+        {/* The technical view attaches a note UNDER each build; here there's no build to
+            list — but the question « qu'est-ce qui a changé ? » stays the same. */}
         <PublishedNotes />
       </section>
     );
@@ -200,9 +200,9 @@ export function UpdatesSection() {
 
       {history}
 
-      {/* Le journal de mise à jour : la seule trace de la vraie raison d'un
-          `quitAndInstall` raté vivait dans un fichier qu'aucune UI n'atteignait
-          (audit 13/08). Chemin fixe côté main ; absent (préversion web) ⇒ rien. */}
+      {/* The update log: the only trace of the real reason behind a failed
+          `quitAndInstall` used to live in a file no UI could reach
+          (audit 13/08). Fixed path on the main side; absent (web preview) ⇒ nothing. */}
       {host.updates?.revealLog && (
         <div className="ver-note ver-note-after">
           <button

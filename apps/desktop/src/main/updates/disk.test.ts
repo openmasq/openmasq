@@ -39,8 +39,8 @@ describe("humanizeUpdateError — failure taxonomy (drives the PostHog code)", (
 });
 
 describe("totalUpdateSize — ce que CETTE machine va télécharger", () => {
-  // Le manifeste que sert le feed depuis que mac livre deux arches : quatre entrées, dont
-  // une seule sera téléchargée. (Tailles réelles de 0.5.0-staging.149.)
+  // The manifest the feed serves since mac ships two arches: four entries, of which
+  // only one will be downloaded. (Real sizes from 0.5.0-staging.149.)
   const info = {
     version: "0.5.0-staging.149",
     files: [
@@ -51,21 +51,21 @@ describe("totalUpdateSize — ce que CETTE machine va télécharger", () => {
     ],
   };
 
-  // ⚠️ LA RÉGRESSION QUI A BLOQUÉ UNE MISE À JOUR. En additionnant `files`, le pré-vol
-  // annonçait 2,9 Go et exigeait 6,4 Go d'espace ; la machine en téléchargeait 0,72 et
-  // avait 3,9 Go libres. Un garde fail-closed qui se trompe d'un facteur trois n'empêche
-  // plus un échec : il empêche la mise à jour.
+  // ⚠️ THE REGRESSION THAT BLOCKED AN UPDATE. By summing `files`, the pre-flight
+  // announced 2.9 GB and required 6.4 GB of space; the machine was downloading 0.72 and
+  // had 3.9 GB free. A fail-closed guard that's off by a factor of three no longer
+  // prevents a failure: it prevents the update.
   it("pèse le seul fichier que cette machine téléchargera", () => {
-    expect(totalUpdateSize(info, true)).toBe(719430145); // Apple Silicon → le zip arm64
-    expect(totalUpdateSize(info, false)).toBe(741430719); // Intel → le zip sans arche
-    // Et surtout : plus jamais la somme des quatre.
+    expect(totalUpdateSize(info, true)).toBe(719430145); // Apple Silicon → the arm64 zip
+    expect(totalUpdateSize(info, false)).toBe(741430719); // Intel → the arch-less zip
+    // And above all: never again the sum of the four.
     expect(totalUpdateSize(info, true)).toBeLessThan(1e9);
     expect(Math.ceil(totalUpdateSize(info, true) * APPLY_SPACE_FACTOR)).toBeLessThan(2.6e9);
   });
 
   it("ignore le .dmg — Squirrel.Mac applique le .zip", () => {
     const dmgOnly = { files: [{ url: "Acme-1.0.0-arm64.dmg", size: 900 }] };
-    // Aucun zip : on majore avec ce qui est annoncé plutôt que de rendre 0 (garde muet).
+    // No zip: we upper-bound with what's advertised rather than return 0 (a silent guard).
     expect(totalUpdateSize(dmgOnly, true)).toBe(900);
   });
 
@@ -79,11 +79,11 @@ describe("totalUpdateSize — ce que CETTE machine va télécharger", () => {
     expect(totalUpdateSize(undefined, true)).toBe(0);
   });
 
-  // PARITÉ avec la source de vérité. Notre sélection recopie la règle d'electron-updater
-  // (`MacUpdater.filterFilesForArch` : « le nom contient-il arm64 »). Les deux ne peuvent pas
-  // s'importer l'une l'autre sans charger tout electron, donc ce test LIT le module installé :
-  // une montée de version qui changerait la règle échoue ici, au lieu de nous faire peser un
-  // fichier que le client ne téléchargera pas.
+  // PARITY with the source of truth. Our selection copies electron-updater's rule
+  // (`MacUpdater.filterFilesForArch`: « does the name contain arm64 »). Neither can
+  // import the other without loading all of electron, so this test READS the installed module:
+  // a version bump that changed the rule fails here, instead of making us weigh a
+  // file the client won't download.
   it("garde la même définition d'arche qu'electron-updater", () => {
     const req = createRequire(import.meta.url);
     const src = readFileSync(req.resolve("electron-updater/out/MacUpdater.js"), "utf8");
@@ -92,10 +92,10 @@ describe("totalUpdateSize — ce que CETTE machine va télécharger", () => {
   });
 });
 
-// Un timeout réseau ne doit pas se déguiser en panne inconnue : macOS localise ses
-// erreurs, donc un Mac français dit « La requête a expiré. » — cinq remontées en
-// `updater-generic`, avec « La mise à jour a échoué » affiché à la place du seul conseil
-// utile. Le code (`ETIMEDOUT`) et les formulations localisées comptent autant que le texte.
+// A network timeout must not disguise itself as an unknown failure: macOS localises its
+// errors, so a French Mac says « La requête a expiré. » — five reports under
+// `updater-generic`, with « La mise à jour a échoué » shown instead of the one useful piece
+// of advice. The code (`ETIMEDOUT`) and the localised wordings count as much as the text.
 describe("humanizeUpdateError — un réseau qui lâche reste un réseau qui lâche", () => {
   it("reconnaît le timeout localisé de macOS", () => {
     const { code, message } = humanizeUpdateError(new Error("La requête a expiré."));
@@ -112,9 +112,9 @@ describe("humanizeUpdateError — un réseau qui lâche reste un réseau qui lâ
     expect(humanizeUpdateError(new Error("ditto: No space left on device")).code).toBe("no_space");
   });
 
-  // Le cas mesuré en prod (5 utilisateurs, 27 fois) : l'app tourne depuis le .dmg. Ce
-  // n'est pas un bug — le message doit dire de la DÉPLACER, pas de « réessayer », et
-  // `index.ts` ne le remonte PAS en exception (skip sur ce code).
+  // The case measured in prod (5 users, 27 times): the app is running from the .dmg. This
+  // isn't a bug — the message must say to MOVE it, not to « retry », and
+  // `index.ts` does NOT surface it as an exception (skipped on that code).
   it("classe le volume en lecture seule à part, avec la bonne action", () => {
     const real =
       "Cannot update while running on a read-only volume. The application is on a read-only volume. " +
@@ -122,6 +122,6 @@ describe("humanizeUpdateError — un réseau qui lâche reste un réseau qui lâ
     const { code, message } = humanizeUpdateError(new Error(real));
     expect(code).toBe("read_only_volume");
     expect(message).toMatch(/Applications/);
-    expect(message).not.toMatch(/[Rr]éessayez plus tard/); // surtout PAS le conseil générique
+    expect(message).not.toMatch(/[Rr]éessayez plus tard/); // especially NOT the generic advice
   });
 });

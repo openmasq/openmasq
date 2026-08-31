@@ -1,7 +1,7 @@
 /**
- * Tranche « modals » du catalogue FR — la langue SOURCE.
+ * The FR catalogue's « modals » slice — the SOURCE language.
  *
- * `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat
+ * `satisfies` per entry: the compiler demands EXACTLY the contract's keys
  * (`../messages/modals.ts`), ni plus ni moins.
  */
 import type { Messages } from "../messages";

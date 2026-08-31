@@ -1,5 +1,5 @@
 /**
- * Tranche « mcpTab » du catalogue EN : Connecteurs (MCP) — la grille, la fiche, les comptes, les clés.
+ * The EN catalogue's « mcpTab » slice: Connectors (MCP) — the grid, the card, the accounts, the keys.
  */
 import type { Messages } from "../messages";
 

@@ -202,8 +202,8 @@ export async function connectorConnect(
   // What this connection may actually do — read from the TOKEN when the server told
   // us (granular consent can narrow what we asked for), else the credential mode's
   // requested list. `run.ts` lists only the tools those scopes cover, so a tool the
-  // token can't serve is never offered to the model at all (e.g. Gmail 1-clic en mode
-  // intégré grants send only → search/list are hidden). Read AFTER `login`, so a first
+  // token can't serve is never offered to the model at all (e.g. Gmail 1-clic in built-in
+  // mode grants send only → search/list are hidden). Read AFTER `login`, so a first
   // connect sees the scopes it just recorded. See `./scopes.ts`.
   const grantedScopes = effectiveScopes(
     loadToken(spec.id)?.scopes,
@@ -220,13 +220,13 @@ export async function connectorConnect(
 }
 
 /**
- * Un GET JSON authentifié pour une instance de connecteur direct DÉJÀ connectée — le même
- * chemin de jeton (rafraîchissement compris) et le même plancher SSRF que les outils, sans
- * passer par un outil fait pour un modèle.
+ * An authenticated JSON GET for an ALREADY-connected desktop-direct connector instance — the
+ * same token path (refresh included) and the same SSRF floor as the tools, without
+ * going through a tool built for a model.
  *
- * C'est ce qui permet au panneau « Dossiers » de lister un Drive : une liste typée là où
- * l'outil rend de la prose. Le jeton ne sort pas d'ici, et l'appelant ne choisit que
- * l'URL — qu'il construit lui-même à partir d'un id validé (`cloudfs/providers.ts`).
+ * This is what lets the « Dossiers » panel list a Drive: a typed list where
+ * the tool renders prose. The token never leaves here, and the caller only chooses
+ * the URL — which it builds itself from a validated id (`cloudfs/providers.ts`).
  */
 export async function directFetchJson<T>(specId: string, url: string): Promise<T> {
   const spec = getServer(specId);

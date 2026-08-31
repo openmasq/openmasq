@@ -25,9 +25,9 @@ export function MarkKeepMenu({
   y: number;
   value: string;
   hue: string;
-  /** « À vérifier » : détection à source unique et signal faible — le popover le DIT,
-   *  pour que « Garder en clair » soit un choix éclairé. Le redaction, lui, ne change
-   *  pas : la valeur part masquée tant que l'utilisateur ne décide pas l'inverse. */
+  /** « À vérifier »: single-source detection with a weak signal — the popover SAYS
+   *  so, so that « Garder en clair » is an informed choice. The redaction itself doesn't
+   *  change: the value goes out masked until the user decides otherwise. */
   uncertain?: boolean;
   onKeep: () => void;
   onClose: () => void;

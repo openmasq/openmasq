@@ -1,46 +1,46 @@
 /**
- * La LANGUE : l'union des locales, le catalogue par langue, et la résolution d'une
- * chaîne quelconque (`app.getLocale()` → « fr-FR », `navigator.language` → « en-GB »)
- * vers une locale que l'app connaît. Pur, sans React, sans I/O — importable par le
- * renderer, par `main`, par `emails`, par le backend.
+ * The LANGUAGE: the union of locales, the catalogue per language, and the resolution of an
+ * arbitrary string (`app.getLocale()` → « fr-FR », `navigator.language` → « en-GB »)
+ * to a locale the app knows. Pure, no React, no I/O — importable by the
+ * renderer, by `main`, by `emails`, by the backend.
  *
- * ## Ajouter une langue
+ * ## Adding a language
  *
- * Un nouveau `xx.ts` qui `satisfies Messages`, sa clé ajoutée à `Locale` ET à `MESSAGES`.
- * Le compilateur exige alors chaque clé du contrat (`messages.ts`) : la porte est
- * ouverte, et une langue incomplète ne compile pas. `LOCALES` en découle, donc tout ce
- * qui itère les langues (un sélecteur, un test de complétude) les voit toutes sans
- * seconde liste (règle 9).
+ * A new `xx.ts` that `satisfies Messages`, its key added to `Locale` AND to `MESSAGES`.
+ * The compiler then demands every key of the contract (`messages.ts`): the door is
+ * open, and an incomplete language does not compile. `LOCALES` derives from it, so everything
+ * that iterates the languages (a picker, a completeness test) sees them all with no
+ * second list (rule 9).
  */
 import type { Messages } from "./messages";
 import { fr } from "./fr";
 import { en } from "./en";
 
-/** Les langues livrées. Étendre = ajouter un membre ici ET une entrée à `MESSAGES`. */
+/** The shipped languages. Extending = adding a member here AND an entry to `MESSAGES`. */
 export type Locale = "fr" | "en";
 
-/** Le catalogue par langue — la SEULE table. `LOCALES` et `getMessages` en dérivent, donc
- *  une langue ajoutée ici est partout à la fois. */
+/** The catalogue per language — the ONLY table. `LOCALES` and `getMessages` derive from it, so
+ *  a language added here is everywhere at once. */
 export const MESSAGES: Record<Locale, Messages> = { fr, en };
 
-/** Toutes les locales livrées, dans l'ordre d'affichage (source = français). */
+/** Every shipped locale, in display order (source = French). */
 export const LOCALES = Object.keys(MESSAGES) as Locale[];
 
-/** La langue par défaut : le français, langue source du produit. C'est aussi le repli
- *  ultime quand rien n'a pu être résolu (fail-safe, jamais un écran vide). */
+/** The default language: French, the product's source language. It is also the ultimate
+ *  fallback when nothing could be resolved (fail-safe, never a blank screen). */
 export const DEFAULT_LOCALE: Locale = "fr";
 
-/** Vrai si `x` est une locale livrée. */
+/** True if `x` is a shipped locale. */
 export function isLocale(x: unknown): x is Locale {
   return typeof x === "string" && (LOCALES as string[]).includes(x);
 }
 
 /**
- * Ramène une étiquette de langue quelconque à une locale livrée, ou `null` si aucune ne
- * correspond (le caller choisit alors son repli — souvent `DEFAULT_LOCALE`). On lit la
- * SOUS-ÉTIQUETTE primaire (« en-GB » → « en », « fr_CA » → « fr »), insensible à la
- * casse, tolérante au `_` comme au `-`. `null` plutôt qu'un défaut caché : le repli est
- * une décision du caller, pas un silence de cette fonction.
+ * Reduces an arbitrary language tag to a shipped locale, or `null` if none
+ * matches (the caller then picks its fallback — often `DEFAULT_LOCALE`). We read the
+ * primary SUBTAG (« en-GB » → « en », « fr_CA » → « fr »), case-insensitive,
+ * tolerant of `_` as of `-`. `null` rather than a hidden default: the fallback is
+ * the caller's decision, not this function's silence.
  */
 export function resolveLocale(tag: string | null | undefined): Locale | null {
   if (!tag) return null;
@@ -48,7 +48,7 @@ export function resolveLocale(tag: string | null | undefined): Locale | null {
   return isLocale(primary) ? primary : null;
 }
 
-/** Le catalogue d'une locale. Une locale hors union retombe sur le défaut (fail-safe). */
+/** A locale's catalogue. A locale outside the union falls back to the default (fail-safe). */
 export function getMessages(locale: Locale): Messages {
   return MESSAGES[locale] ?? MESSAGES[DEFAULT_LOCALE];
 }

@@ -2,42 +2,42 @@ import { connectorIdFromInstance } from "@openmasq/catalog/mcp";
 import type { McpItem } from "./mcpItems";
 
 /**
- * Le GROUPE d'identifiants d'un connecteur — c'est-à-dire ce qui tombe ENSEMBLE.
+ * The GROUP of a connector's credentials — i.e. what falls together.
  *
- * Les connecteurs Google (Gmail, Agenda, Drive, Docs, Sheets, Tasks, Analytics) partagent
- * UN SEUL client OAuth « Desktop app », donc une seule autorisation côté Google. Ils
- * partagent le groupe « google » et se prêtent leurs clés ; tout autre connecteur est son
- * propre groupe.
+ * Google connectors (Gmail, Agenda, Drive, Docs, Sheets, Tasks, Analytics) share
+ * ONE SINGLE "Desktop app" OAuth client, so a single authorization on Google's side. They
+ * share the "google" group and lend each other their keys; every other connector is its
+ * own group.
  *
- * ⚠️ **La panne est de groupe, la réparation ne l'est pas.** `mcpReauthDirect` (main)
- * purge et re-consent UN id : `clearToken(id)` puis `connectServer(id)`. Quand
- * l'autorisation Google expire ou est révoquée, les sept connecteurs tombent ensemble,
- * mais reconnecter Gmail ne remet à neuf que Gmail — Agenda et Drive restent cassés, et
- * rien ne le disait. D'où `groupPeers` : la fiche NOMME les autres et propose de les
- * reconnecter aussi.
+ * ⚠️ **The failure is group-wide, the repair is not.** `mcpReauthDirect` (main)
+ * purges and re-consents ONE id: `clearToken(id)` then `connectServer(id)`. When
+ * Google authorization expires or is revoked, the seven connectors fall together,
+ * but reconnecting Gmail only refreshes Gmail — Agenda and Drive stay broken, and
+ * nothing said so. Hence `groupPeers`: the card NAMES the others and offers to
+ * reconnect them too.
  *
- * Pourquoi ne pas tout re-consentir d'un geste (l'autre option envisagée) : Google
- * demanderait alors le consentement pour l'UNION des scopes des sept services, sur des
- * scopes RESTRICTED. Réparer son courrier ne doit pas exiger d'accorder Drive.
+ * Why not re-consent everything in one gesture (the other option considered): Google
+ * would then ask for consent for the UNION of the seven services' scopes, over
+ * RESTRICTED scopes. Fixing your mail should not require granting Drive.
  */
 export function credGroupOf(id: string): string {
   const connectorId = connectorIdFromInstance(id);
   return /^(gmail|google-)/.test(connectorId) ? "google" : connectorId;
 }
 
-/** Vrai quand le groupe peut contenir PLUSIEURS connecteurs (aujourd'hui : Google seul).
- *  Un groupe d'un seul connecteur n'a rien à annoncer. */
+/** True when the group can contain SEVERAL connectors (today: Google only).
+ *  A single-connector group has nothing to announce. */
 export function isSharedCredGroup(id: string): boolean {
   return credGroupOf(id) !== connectorIdFromInstance(id);
 }
 
 /**
- * Les AUTRES connecteurs du même groupe d'identifiants, parmi ceux que l'utilisateur a
- * réellement connectés — ce sont eux que la même autorisation a fait tomber.
+ * The OTHER connectors in the same credential group, among those the user has
+ * actually connected — these are the ones the same authorization took down.
  *
- * Bornée à ce qui est CONNECTÉ : nommer un service que l'utilisateur n'utilise pas
- * transformerait une réparation en catalogue. Et l'ordre suit `items`, donc l'ordre du
- * catalogue, pour que la phrase soit stable d'une ouverture à l'autre.
+ * Bounded to what is CONNECTED: naming a service the user doesn't use
+ * would turn a repair into a catalogue. And the order follows `items`, i.e. the
+ * catalogue's order, so the sentence stays stable from one opening to the next.
  */
 export function groupPeers(id: string, items: readonly McpItem[]): McpItem[] {
   const connectorId = connectorIdFromInstance(id);

@@ -1,6 +1,6 @@
 /**
  * The org-SHARE channel's client — propose / decide / read shares of the org
- * Coffre + compétences, E2E to each share's AUDIENCE (org / team / person —
+ * Coffre + skills, E2E to each share's AUDIENCE (org / team / person —
  * see `orgCrypto.ts` for the model, `orgTypes.ts` for the approval shapes).
  * Same philosophy as `recordClient`: BEST-EFFORT everywhere (no passphrase /
  * signed out / network down / not admitted → no-op or empty, never a throw

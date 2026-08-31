@@ -6,10 +6,10 @@ import { AttachmentChips } from "./AttachmentChips";
 import type { Attachment } from "./Composer";
 
 /**
- * Régression (constat 15/08) : le chip d'une pièce jointe était un `span` cliquable sans
- * rôle ni nom accessible — la SEULE porte vers l'aperçu (donc vers la vérification de ce
- * qui sera masqué avant l'envoi) ne s'ouvrait qu'à la souris, et l'arbre d'accessibilité
- * ne l'exposait pas du tout dès deux pièces.
+ * Regression (noted 15/08): an attachment's chip was a clickable `span` with no
+ * role or accessible name — the ONLY door to the preview (hence to checking what
+ * will be masked before sending) only opened with the mouse, and the accessibility tree
+ * didn't expose it at all once there were two attachments.
  */
 
 const piece = (over: Partial<Attachment> = {}): Attachment => ({

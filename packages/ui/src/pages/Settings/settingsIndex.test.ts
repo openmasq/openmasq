@@ -9,9 +9,9 @@ import {
   type SettingsTabId,
 } from "./settingsIndex";
 
-/** Les requêtes ci-dessous sont écrites en FRANÇAIS : ce sont des cas de recherche, pas de
- *  la copie. Ce qui doit tenir dans les deux langues — la couverture des onglets, l'unicité
- *  des ids, le fait que chaque réglage indexé vise un onglet réel — boucle sur `LOCALES`. */
+/** The queries below are written in FRENCH: they are search cases, not
+ *  copy. What must hold in both languages — tab coverage, id uniqueness,
+ *  the fact that every indexed setting targets a real tab — loops over `LOCALES`. */
 const fr = getMessages("fr");
 
 describe("settingsMeta", () => {
@@ -30,8 +30,8 @@ describe("settingsMeta", () => {
   });
 
   it.each(LOCALES)("[%s] aucun onglet ne sort sans étiquette ni phrase", (locale) => {
-    // Une traduction manquante ne casse pas la compilation si la clé existe et vaut « » :
-    // c'est ici qu'on l'attrape, sur la surface la plus visible des réglages.
+    // A missing translation doesn't break the build if the key exists and equals « »:
+    // this is where we catch it, on the most visible surface of the settings.
     for (const d of settingsDestinations(getMessages(locale))) {
       expect(d.label.trim(), d.id).not.toBe("");
       expect(d.title.trim(), d.id).not.toBe("");
@@ -115,9 +115,9 @@ describe("searchSettings", () => {
 });
 
 describe("tabAvailable — un onglet n'existe que si sa capacité existe", () => {
-  // Un build sans backend n'a ni facturation, ni synchro, ni organisation
-  // (`SELF_HOSTING.md`) : ces onglets ne s'affichent pas VIDES, ils n'existent pas. La
-  // règle vit ici parce que le rail des réglages ET la palette ⌘K la lisent tous les deux.
+  // A build with no backend has neither billing, nor sync, nor organization
+  // (`SELF_HOSTING.md`): these tabs don't show up EMPTY, they don't exist. The
+  // rule lives here because both the settings rail AND the ⌘K palette read it.
   const NONE = { org: false, sync: false, browser: false, billing: false };
   const ALL = { org: true, sync: true, browser: true, billing: true };
 

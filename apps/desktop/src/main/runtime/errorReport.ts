@@ -20,16 +20,16 @@ let getWin: (() => BrowserWindow | null) | null = null;
 /** Wire the window getter + install process-level catch-alls. Call once in `whenReady`. */
 export function installErrorReporting(win: () => BrowserWindow | null): void {
   getWin = win;
-  // Un id ANONYME stable (UUID persisté dans userData, aucun lien avec le compte) : c'est
-  // ce qui distingue « 500 événements = 500 postes » de « un poste en boucle ». Seul
-  // `user.id` traverse l'allow-list (`sentry/policy.ts`) — jamais d'IP, jamais d'email.
+  // A stable ANONYMOUS id (UUID persisted in userData, no link to the account): this is
+  // what distinguishes « 500 events = 500 machines » from « one machine looping ». Only
+  // `user.id` crosses the allow-list (`sentry/policy.ts`) — never an IP, never an email.
   try {
     const p = join(app.getPath("userData"), "telemetry-id");
     let id = "";
     try {
       id = readFileSync(p, "utf8").trim();
     } catch {
-      /* première fois */
+      /* first time */
     }
     if (!/^[0-9a-f-]{36}$/.test(id)) {
       id = randomUUID();
@@ -37,14 +37,14 @@ export function installErrorReporting(win: () => BrowserWindow | null): void {
     }
     Sentry.setUser({ id });
   } catch {
-    /* le rapport d'erreur ne crée jamais d'erreur */
+    /* error reporting never creates an error */
   }
   // Report but DON'T exit — a background main error shouldn't hard-crash the user's
   // app; Electron keeps the window alive. (Standard desktop crash-reporting posture.)
-  // ⚠️ Pont renderer SEULEMENT : les intégrations SDK `onUncaughtException`/
-  // `onUnhandledRejection` (`sentry/main.ts`) capturent DÉJÀ ces mêmes erreurs vers
-  // Sentry, avec le bon `mechanism.handled:false` — les re-capturer ici comptait chaque
-  // crash DEUX fois, dont une copie marquée « handled » (audit observabilité 13/08).
+  // ⚠️ RENDERER bridge ONLY: the SDK integrations `onUncaughtException`/
+  // `onUnhandledRejection` (`sentry/main.ts`) ALREADY capture these same errors to
+  // Sentry, with the correct `mechanism.handled:false` — re-capturing them here counted every
+  // crash TWICE, one copy marked « handled » (observability audit 13/08).
   process.on("uncaughtException", (err) => bridgeMainError("uncaught", "main-exception", err));
   process.on("unhandledRejection", (reason) => bridgeMainError("uncaught", "main-rejection", reason));
 }
@@ -53,23 +53,23 @@ export function installErrorReporting(win: () => BrowserWindow | null): void {
  *  never throws (error reporting must not create errors). */
 export function reportMainError(scope: string, code: string, err: unknown): void {
   try {
-    // Sentry D'ABORD, et hors de la condition « une fenêtre existe ». Ce pont-ci
-    // ABANDONNE tout rapport quand il n'y a pas de renderer — avant la création de la
-    // fenêtre, ou pendant `quitAndInstall` : deux moments où une panne est justement
-    // difficile à reproduire. Sentry, lui, n'a pas besoin du renderer.
-    // Ce que l'événement emporte est décidé par `sentry/policy.ts`, pas ici.
-    // `fingerprint: [scope, code]` : nos erreurs SYNTHÉTISÉES (updater, broker…) partagent
-    // toutes la même pile de construction, et Sentry groupe d'abord par pile — sans le
-    // fingerprint, `updater-404` et `updater-no_space` fusionnaient en UNE issue.
+    // Sentry FIRST, and outside the « a window exists » condition. This bridge
+    // DROPS every report when there's no renderer — before the window is created,
+    // or during `quitAndInstall`: the two moments a failure is precisely
+    // hard to reproduce. Sentry itself doesn't need the renderer.
+    // What the event carries is decided by `sentry/policy.ts`, not here.
+    // `fingerprint: [scope, code]`: our SYNTHESIZED errors (updater, broker…) share
+    // the same construction stack, and Sentry groups by stack first — without the
+    // fingerprint, `updater-404` and `updater-no_space` merged into ONE issue.
     Sentry.captureException(err, { tags: { scope, code }, fingerprint: [scope, code] });
   } catch {
-    /* le rapport d'erreur ne crée jamais d'erreur */
+    /* error reporting never creates an error */
   }
   bridgeMainError(scope, code, err);
 }
 
-/** Le pont renderer seul (`app:error`) — pour l'uncaught, dont Sentry est déjà saisi
- *  par les intégrations SDK. Best-effort ; sans fenêtre, le rapport est abandonné. */
+/** The renderer bridge alone (`app:error`) — for the uncaught case, already captured by Sentry
+ *  via the SDK integrations. Best-effort; with no window, the report is dropped. */
 function bridgeMainError(scope: string, code: string, err: unknown): void {
   try {
     const w = getWin?.();

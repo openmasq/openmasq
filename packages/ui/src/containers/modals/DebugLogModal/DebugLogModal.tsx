@@ -12,7 +12,7 @@ import { Row } from "./parts";
 
 import { useT } from "../../../i18n";
 type Filter = "all" | "phase" | "wire" | "turn" | "tool" | "error";
-/** L'ordre des filtres ; leurs mots viennent du catalogue (`modals.debug.tabs`). */
+/** The order of the filters; their words come from the catalogue (`modals.debug.tabs`). */
 const TAB_IDS: readonly Filter[] = ["all", "phase", "wire", "turn", "tool", "error"];
 
 /**
@@ -32,10 +32,10 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
   const [copied, setCopied] = useState<"" | "full" | "nomap">("");
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  // Scope to THIS conversation — la règle vit dans `state/debugScope.ts`
-  // (`isEntryVisibleIn`, testée là-bas) : ses entrées + les événements d'app, plus le
-  // BROUILLON quand ce panneau s'ouvre sur un chat pas encore créé — et une entrée non
-  // attribuée portant des valeurs réelles n'apparaît NULLE part. Each entry was stamped
+  // Scope to THIS conversation — the rule lives in `state/debugScope.ts`
+  // (`isEntryVisibleIn`, tested there): its entries + the app events, plus the
+  // DRAFT when this panel opens on a chat not yet created — and an unattributed
+  // entry carrying real values appears NOWHERE. Each entry was stamped
   // at emit time, so the split is exact even for interleaved turns.
   const convEntries = useMemo(
     () => entries.filter((e: DebugEntry) => isEntryVisibleIn(e, convId)),
@@ -50,7 +50,7 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
     [convEntries, filter, query],
   );
 
-  // Two exports: the full one (mapping redacted→ORIGINAL inclus — real values, for the
+  // Two exports: the full one (mapping redacted→ORIGINAL included — real values, for the
   // user's own eyes) and the « sans mapping » one, safe to PASTE elsewhere: it strips
   // every reversal pair, so what remains is the wire form that already left the machine.
   const copy = async (mode: "full" | "nomap") => {
@@ -70,10 +70,10 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
       <div className="rrm-head">
         <div className="cv-eyebrow rrm-eyebrow">{t.modals.debug.eyebrow}</div>
         <h2 className="cv-display rrm-title">{t.modals.debug.title}</h2>
-        {/* Le détail de ce que contient le journal était une phrase de quatre lignes qui
-            RÉÉNUMÉRAIT les filtres juste en dessous (Wire, Échanges, Outils, Erreurs).
-            Ce qu'elle disait et que rien d'autre ne dit : c'est le RÉEL, et c'est scopé à
-            cette conversation. */}
+        {/* The detail of what the log contains used to be a four-line sentence that
+            RE-ENUMERATED the filters just below (Wire, Échanges, Outils, Erreurs).
+            What it said that nothing else says: it's the REAL thing, and it's scoped to
+            this conversation. */}
         <p className="rrm-sub">
           {t.modals.debug.subLead}
           <strong>{t.modals.debug.thisConversation}</strong>
@@ -105,10 +105,10 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
             </button>
           ))}
         </div>
-        {/* UNE ligne pour toutes les actions. Les libellés portent ce que le bouton
-            EMPORTE — « réel » vs « sans mapping » est une différence de confidentialité,
-            pas de format —, et le reste (ce que ça copie exactement, ce que ça envoie)
-            vit dans l'infobulle plutôt que sur une deuxième ligne. */}
+        {/* ONE line for all the actions. The labels carry what the button
+            CARRIES AWAY — « réel » vs « sans mapping » is a confidentiality difference,
+            not a format one —, and the rest (what exactly it copies, what it sends)
+            lives in the tooltip rather than on a second line. */}
         <div className="dbg-actions">
           <button
             className="dbg-action"
@@ -126,8 +126,8 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
             {copied === "nomap" ? <CheckIcon size={13} /> : <CopyIcon size={13} />}
             {copied === "nomap" ? t.modals.debug.copied : t.modals.debug.copyNoMap}
           </button>
-          {/* Vider ne touche QUE cette conversation (`convId ?? undefined` → tout quand
-              aucune n'est ciblée) : jamais l'activité d'un autre onglet. */}
+          {/* Clear touches ONLY this conversation (`convId ?? undefined` → everything when
+              none is targeted): never another tab's activity. */}
           <button
             className="dbg-action"
             title={t.modals.debug.clearTip}

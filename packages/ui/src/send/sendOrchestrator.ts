@@ -96,15 +96,15 @@ import {
 import { isNerWarmed, markNerWarmed } from "../state/nerWarm";
 import { BRAND } from "@openmasq/branding";
 
-// Les trois constantes MODULE que seul l'envoi consommait — déménagées avec lui.
-// La consigne du NARRATEUR d'outil (la phrase « Je recherche… » du chargeur).
+// The three MODULE constants only the send consumed — moved along with it.
+// The tool NARRATOR's instruction (the "Searching…" phrase from the loader).
 const TOOL_SUMMARY_TIMEOUT_MS = 6000;
 
 /**
- * TOUT ce que l'envoi capture du composant `useChatStore` — la carte que la
- * fermeture cachait. Une entrée par valeur/ref/setter ; les aides PURES, elles,
- * s'importent normalement. Le store construit ce sac dans son useCallback avec
- * les MÊMES dépendances qu'avant : sémantique de capture inchangée.
+ * EVERYTHING the send captures from the `useChatStore` component — the map the
+ * closure was hiding. One entry per value/ref/setter; the PURE helpers, though,
+ * import normally. The store builds this bag in its useCallback with the SAME
+ * dependencies as before: unchanged capture semantics.
  */
 export interface SendMessageDeps {
   host: Host;
@@ -125,12 +125,12 @@ export interface SendMessageDeps {
   personalCreditsRef: React.MutableRefObject<CreditBalance | null>;
   keepListRef: React.MutableRefObject<string[]>;
   localEndpointReachableRef: React.MutableRefObject<boolean | null>;
-  /** `claude-cli` prêt (réglage ON + CLI détectée) — miroir ref, mêmes raisons. */
+  /** `claude-cli` ready (setting ON + CLI detected) — ref mirror, same reasons. */
   claudeCliReadyRef: React.MutableRefObject<boolean | null>;
-  /** Idem `codex-cli`. */
+  /** Same for `codex-cli`. */
   codexCliReadyRef: React.MutableRefObject<boolean | null>;
-  /** Le catalogue de la LANGUE D'INTERFACE : les phrases d'échec persistées sur la bulle,
-   *  et la consigne de résumé d'outil — dont la SORTIE s'affiche dans la chrome. */
+  /** The INTERFACE-LANGUAGE catalogue: the failure phrases persisted on the bubble,
+   *  and the tool-summary instruction — whose OUTPUT shows in the chrome. */
   t: Messages;
 }
 
@@ -219,10 +219,10 @@ export function createSendMessage(d: SendMessageDeps) {
         // typed text — it is part of `modelText`, never appended past the engine.
         // `prompt` is absent on a RETRY: the instruction already rides `resendWire`
         // (the prior turn's `modelContent`), so re-prefixing it would send it twice.
-        // `servers` (quand elle en porte) ajoute au prefix la ligne de consigne qui
-        // NOMME les connecteurs, et ÉLARGIT la portée d'outils du tour — c'est la seule
-        // différence de comportement qui restait entre une compétence et un « workflow »,
-        // et c'est maintenant un champ, pas une seconde option d'envoi.
+        // `servers` (when it carries any) appends to the prefix the instruction line that
+        // NAMES the connectors, and WIDENS the turn's tool scope — this was the last
+        // behavioural difference remaining between a compétence and a "workflow", and
+        // it is now a field, not a second send option.
         competence?: { id: string; name: string; prompt?: string; servers?: string[] };
         // The folder/file this send is ABOUT (« Demander » in the right rail) — staged
         // EXACTLY like a compétence (a tag, never draft text). Its `prompt` (the context
@@ -271,10 +271,10 @@ export function createSendMessage(d: SendMessageDeps) {
       // A COMPÉTENCE rides the model payload the same way: the user picked a template,
       // so the instruction leads and what they typed reads as its input. It is NOT put
       // in `text`, so the bubble shows a tag instead of the whole prompt.
-      // ⚠️ Le prefix passe par `competenceLaunchText`, JAMAIS par le prompt nu : c'est lui
-      // qui ajoute la ligne nommant les connecteurs et celle des `{accolades}` à
-      // renseigner. Sans `servers` ni accolades il rend le prompt tel quel — donc une
-      // compétence de prose part exactement comme avant.
+      // ⚠️ The prefix goes through `competenceLaunchText`, NEVER the bare prompt: it is
+      // what adds the line naming the connectors and the one for `{braces}` to
+      // fill in. With no `servers` and no braces it renders the prompt as-is — so a
+      // prose compétence goes out exactly as before.
       const compPrompt = opts?.competence?.prompt?.trim();
       const compPrefix = compPrompt
         ? `${competenceLaunchText({ prompt: compPrompt, servers: opts?.competence?.servers ?? [] })}\n\n`
@@ -292,9 +292,9 @@ export function createSendMessage(d: SendMessageDeps) {
       let convId = opts?.convId ?? activeId;
       if (!convId) {
         convId = createConversation();
-        // Ce premier envoi MATÉRIALISE la conversation : les entrées de journal du
-        // BROUILLON (OCR/redaction des fichiers déposés avant d'envoyer — `ocrDebug.ts`)
-        // lui appartiennent. Re-clé ici, au point unique de création.
+        // This first send MATERIALISES the conversation: the DRAFT's log entries
+        // (OCR/redaction of files dropped before sending — `ocrDebug.ts`)
+        // belong to it. Re-keyed here, at the single creation point.
         adoptDraftDebug(convId);
       }
       // Every Debug-Log entry from this send is stamped with the conversation, so the
@@ -310,10 +310,10 @@ export function createSendMessage(d: SendMessageDeps) {
       const conv =
         conversationsRef.current.find((c) => c.id === convId) ?? newConversation(DEFAULT_MODEL_ID);
       // `opts.modelId` lets a caller send with a just-switched model without racing
-      // the persisted state. Mode AUTO : le sentinel est résolu ICI, à chaque envoi,
-      // par `send/autoRoute.ts` (pur + testé) — signaux locaux, candidats bornés par
-      // le MÊME `modelUnavailableReason` que la barrière (règle 9, revérifié plus bas),
-      // et `autoPick.billing` stampé sur la bulle : l'escalade métrée est EXPLICITE.
+      // the persisted state. AUTO mode: the sentinel is resolved HERE, on every send,
+      // by `send/autoRoute.ts` (pure + tested) — local signals, candidates bounded by
+      // the SAME `modelUnavailableReason` as the gate (rule 9, re-checked further below),
+      // and `autoPick.billing` stamped on the bubble: the metered escalation is EXPLICIT.
       const requestedModelId = opts?.modelId ?? conv.modelId;
       const autoPick = isAutoModelId(requestedModelId)
         ? resolveAutoModel(
@@ -412,7 +412,7 @@ export function createSendMessage(d: SendMessageDeps) {
         // Pin the answering model so its logo/name stay on this reply even after
         // the user switches the conversation's model.
         model: model.id,
-        // Mode AUTO : la facturation du choix routé — l'escalade métrée est dite.
+        // AUTO mode: the billing of the routed choice — the metered escalation is stated.
         ...(autoPick ? { autoRouted: autoPick.billing } : {}),
       };
 
@@ -426,18 +426,18 @@ export function createSendMessage(d: SendMessageDeps) {
         updatedAt: Date.now(),
       }));
 
-      // STOP dès la première seconde. La bulle `pending` ci-dessus AFFICHE le bouton
-      // Stop immédiatement, mais le stream et la boucle outils ne posent leur
-      // annulation dans `cancelRef` que bien plus tard — tout Stop cliqué pendant les
-      // phases de redaction/mémoire/couches (jusqu'à ~45 s de « réflexion » apparente
-      // sur le moteur distant) était un NO-OP silencieux. Ce contrôleur couvre la
-      // fenêtre : `stop()` l'aborte, les fetches de redaction distant reçoivent son
-      // signal, et chaque frontière de phase passe par `stoppedEarly()`. Les chemins
-      // stream/outils REMPLACENT ensuite cette entrée par la leur (relève de phase).
+      // STOP from the very first second. The `pending` bubble above SHOWS the Stop
+      // button immediately, but the stream and the tool loop only set their own
+      // cancellation into `cancelRef` much later — any Stop clicked during the
+      // redaction/memory/layers phases (up to ~45s of apparent "thinking" on the
+      // remote engine) was a silent NO-OP. This controller covers that window:
+      // `stop()` aborts it, the remote-redaction fetches receive its signal, and
+      // every phase boundary goes through `stoppedEarly()`. The stream/tool paths
+      // then REPLACE this entry with their own (phase handoff).
       const sendAbort = new AbortController();
       cancelRef.current.set(convId, () => sendAbort.abort());
-      /** Vrai si l'utilisateur a stoppé pendant une phase pré-modèle — résout alors la
-       *  bulle (honnête : rien n'est encore parti au MODÈLE) et signale d'abandonner. */
+      /** True if the user stopped during a pre-model phase — then resolves the
+       *  bubble (honest: nothing has gone to the MODEL yet) and signals to abandon. */
       const stoppedEarly = (): boolean => {
         if (!sendAbort.signal.aborted) return false;
         patchConversation(convId!, (c) => ({
@@ -465,9 +465,9 @@ export function createSendMessage(d: SendMessageDeps) {
       // refusal (the 5 s token fetch) resolves a bubble the user is already looking at
       // instead of materialising a second copy of their message.
       const failTurn = (errorText: string, errorAction?: Message["errorAction"]) => {
-        // Le journal AUSSI : préflight (org/crédits/clé), jeton plateforme, salt — un
-        // envoi refusé ici ne laissait AUCUNE entrée, et « envoi bloqué : plus de
-        // crédits » se déboguait sur un journal entièrement vide (audit 13/08).
+        // The log ALSO: preflight (org/credits/key), platform token, salt — a
+        // send refused here left NO entry at all, and "send blocked: no more
+        // credits" was debugged against an entirely empty log (audit 13/08).
         dbg({ type: "error", scope: "preflight", message: errorText });
         patchConversation(convId!, (c) => ({
           ...c,
@@ -552,12 +552,12 @@ export function createSendMessage(d: SendMessageDeps) {
       // keep the originals locally and restore them in the reply. A per-
       // conversation vault keeps mappings stable and reversible across turns.
       //
-      // `redactEngine` ne peut valoir ici que "local" ou "patterns" : `normalizeSettings`
-      // coerce "remote"/"model" vers "local" à chaque chargement (les sélecteurs ont été
-      // retirés du produit — un blob ancien ne doit pas continuer à faire sortir la
-      // détection de la machine). Les branches "remote"/"model" de ce callback (~200 LOC
-      // de code inatteignable relu à chaque modification) sont PURGÉES (audit 2026-08-10) ;
-      // le moteur distant vivant est l'endpoint de la gateway, pas ce chemin.
+      // `redactEngine` can only ever be "local" or "patterns" here: `normalizeSettings`
+      // coerces "remote"/"model" to "local" on every load (the selectors were
+      // removed from the product — an old blob must not keep sending detection
+      // outside the machine). The "remote"/"model" branches of this callback (~200 LOC
+      // of unreachable code re-read on every change) are PURGED (audit 2026-08-10);
+      // the live remote engine is the gateway endpoint, not this path.
       //
       // "local" engine: LLM-free, 100% offline free-form PII via GLiNER, run
       // in-process by the host (desktop main). No network, no completion call.
@@ -592,11 +592,11 @@ export function createSendMessage(d: SendMessageDeps) {
       }
       const redactionSalt =
         conv.redactionSalt ?? ((globalThis.crypto.getRandomValues(new Uint32Array(1))[0] & 0x7fffffff) || 1);
-      // Ce que le MODÈLE voit : un faux vraisemblable (défaut) ou un marqueur `[PERSON1]`.
-      // Comme le salt, le mode est épinglé sur la CONVERSATION au premier redaction et le
-      // réglage global ne décide plus après : bascule à mi-parcours, l'historique renvoyé
-      // au modèle mélangerait les deux formes pour les mêmes personnes (réversible des deux
-      // côtés, mais illisible pour lui). Persisté avec le salt, dans le même blob.
+      // What the MODEL sees: a believable fake (default) or a `[PERSON1]`-style marker.
+      // Like the salt, the mode is pinned on the CONVERSATION at the first redaction and the
+      // global setting no longer decides afterwards: switching mid-way, the history replayed
+      // to the model would mix both forms for the same people (reversible on both
+      // sides, but unreadable for it). Persisted with the salt, in the same blob.
       const redactionMode: "fake" | "token" =
         conv.redactionMode ?? (settings.redactWireTokens ? "token" : "fake");
       // A file sent as redacted IMAGES isn't folded into the wire text, so its
@@ -654,8 +654,8 @@ export function createSendMessage(d: SendMessageDeps) {
                 result: `${Math.round(performance.now() - t0)} ms`,
                 error: e instanceof Error ? e.message : String(e),
               });
-              // L'ÉCHEC contribue à la distribution (le timeout est le pire cas de
-              // latence, et il n'était jamais compté — audit 13/08). Cause bornée.
+              // The FAILURE contributes to the distribution (the timeout is the worst
+              // latency case, and it was never counted — audit 13/08). Bounded cause.
               captureEvent({ name: "redaction_timing", engine: "model", model: redactModelId, ms: performance.now() - t0, ok: false, reason: redactionFailReason(e) });
               throw e;
             }
@@ -712,11 +712,11 @@ export function createSendMessage(d: SendMessageDeps) {
         orgProfileRef.current?.forcedCategories,
       );
       const disabledKinds = disabledKindsOf(effectiveCategories);
-      // Dispense de notoriété, dérivée du NIVEAU effectif de CETTE conversation (mêmes
-      // catégories que ci-dessus) : tout niveau sauf Strict laisse les grandes marques
-      // (intégrations MCP comprises) ET les personnalités en clair ; Strict redacted
-      // les deux (`privacy/privacyLevel.ts` est la politique). Figée à l'entrée de
-      // l'envoi, comme `disabledKinds` — elle gouverne aussi les résultats d'outils.
+      // Notoriety dispensation, derived from THIS conversation's effective LEVEL (same
+      // categories as above): every level except Strict leaves big brands
+      // (MCP integrations included) AND famous people in clear; Strict redacted
+      // both (`privacy/privacyLevel.ts` is the policy). Frozen at send entry,
+      // like `disabledKinds` — it also governs tool results.
       const { commercial: commercialNotoriety, people: peopleNotoriety } = notorietyForLevel(
         levelOf(effectiveCategories, orgProfileRef.current?.forcedCategories),
       );
@@ -730,7 +730,7 @@ export function createSendMessage(d: SendMessageDeps) {
       // their values are reversible; but conversation kinds are derived from a MESSAGE's
       // `redactedSpans`, and a memory/layer value belongs to no message. It therefore had
       // no category anywhere and every consumer fell back to « sensitive » — the reported
-      // bug: a person named only in the mémoire was filed as généric INFO, not as a person
+      // bug: a person named only in the mémoire was filed as generic INFO, not as a person
       // (and painted with the fallback hue). Collected here, folded into `turnKinds` and
       // persisted into `redactionKinds` below, exactly like the user pass's spans.
       const extraKinds: Record<string, string> = {};
@@ -771,8 +771,8 @@ export function createSendMessage(d: SendMessageDeps) {
         (useAiDetect && redactNumbersOn(settings)) ||
         Object.keys(vault).some((k) => /^n\d+$/.test(k));
       // Restore the originals in the user's copy — the other half of the reversible
-      // round-trip, unconditional (the vault is the product). `unredactReply` répare
-      // aussi un fake MUTÉ par le modèle — AFFICHAGE seulement, jamais les args.
+      // round-trip, unconditional (the vault is the product). `unredactReply` also repairs
+      // a fake MUTATED by the model — DISPLAY only, never the args.
       const fromWire = (s: string) =>
         numberMode() ? unredactReply(computeTokenFormulas(s, vault), vault) : unredactReply(s, vault);
       // URL/args-aware un-redactor for the write-confirmation DISPLAY: a fake in a URL
@@ -830,8 +830,8 @@ export function createSendMessage(d: SendMessageDeps) {
       // — no detector needed). Fail-closed = SKIP the injection (nothing egresses);
       // memory is an enhancement, never worth a leak.
       let memoryWire = "";
-      // « Sans mémoire dans cette conversation » : la sélection n'est même pas calculée
-      // — rien n'entre, et aucune légende (utilisée/écartée) ne s'affiche ici.
+      // "Sans mémoire dans cette conversation": the selection isn't even computed
+      // — nothing goes in, and no legend (used/skipped) is shown here.
       const memSel = conv.memoryOff
         ? { profile: undefined, cards: [], block: "", skipped: [] }
         : selectMemory({
@@ -839,20 +839,20 @@ export function createSendMessage(d: SendMessageDeps) {
             convValues: [...Object.values(vault), ...Object.keys(convKinds)],
             memory: settings.memoire,
           });
-      // Le forced mémoire, MOINS ce que la notoriété du niveau épargne : un alias
-      // « google » forcé mintait un faux que le vault réappliquait au prompt entier
-      // (« Ostrel Drive ») — voir filterNotoriousFromForced. En Strict, rien ne sort.
+      // The memory forced-list, MINUS what the level's notoriety spares: a forced
+      // "google" alias used to mint a fake that the vault reapplied to the whole prompt
+      // ("Ostrel Drive") — see filterNotoriousFromForced. In Strict, nothing gets out.
       const memForced = filterNotoriousFromForced(memoryForcedForBlock(memSel, settings.memoire), {
         commercial: commercialNotoriety,
         people: peopleNotoriety,
       });
       if (memSel.block) {
         try {
-          // ⚠️ Le moteur LOCAL (le seul livré : `storePersistence` force remote|model
-          // → local, et les branches distantes de ce callback sont purgées) ne
-          // s'aborte pas en vol — la course contre Stop + timeout est ce qui rend la
-          // bulle arrêtable ici (le fix « bouton Stop mort », voir
-          // `raceRedactionWork`). Idem pour les deux passes locales suivantes.
+          // ⚠️ The LOCAL engine (the only one shipped: `storePersistence` forces remote|model
+          // → local, and the remote branches of this callback are purged) does NOT
+          // abort in flight — the race against Stop + timeout is what makes the
+          // bubble stoppable here (the "dead Stop button" fix, see
+          // `raceRedactionWork`). Same for the two local passes that follow.
           const mres = await raceRedactionWork(
             pseudonymize(memSel.block, {
               vault,
@@ -879,9 +879,9 @@ export function createSendMessage(d: SendMessageDeps) {
           }
         } catch (e) {
           memoryWire = ""; // skip on any failure — never inject un-redacted
-          // …mais l'échec SE DIT : le journal ne montrait la passe mémoire que quand
-          // elle réussissait — « pourquoi tu ne te souviens pas de X ? » produisait un
-          // journal où l'étape n'existe pas (audit 13/08). Fail-closed inchangé.
+          // …but the failure IS SAID: the log used to show the memory pass only when
+          // it succeeded — "pourquoi tu ne te souviens pas de X ?" produced a
+          // log where the step doesn't exist (audit 13/08). Fail-closed unchanged.
           dbg({
             type: "tool",
             name: "mémoire · injection",
@@ -890,7 +890,7 @@ export function createSendMessage(d: SendMessageDeps) {
           });
         }
       }
-      if (stoppedEarly()) return; // Stop cliqué pendant la passe mémoire
+      if (stoppedEarly()) return; // Stop clicked during the memory pass
 
       let userWire: { text: string; matches: unknown[]; modelError?: string };
       // FAIL-CLOSED: if the "remote" engine was requested but the model pass did
@@ -907,7 +907,7 @@ export function createSendMessage(d: SendMessageDeps) {
         // Separate error-tracking channel (anonymised): a blocked send is a
         // user-facing failure worth catching early, not a product event.
         captureError({ scope: "redaction", code: "fail-closed", message: reason });
-        // L'annulation précoce de CET envoi n'a plus d'objet (le tour est résolu).
+        // THIS send's early cancellation no longer has a purpose (the turn is resolved).
         cancelRef.current.delete(convId!);
         // Persist the block INLINE on the assistant bubble (keeps the user's
         // message, survives reload, offers Réessayer) instead of dropping the turn
@@ -995,14 +995,14 @@ export function createSendMessage(d: SendMessageDeps) {
             result: `${layersBlock.length} car. détectés (OCR/hybride)`,
           });
         } catch (e) {
-          // Un Stop pendant la passe aborte le fetch → l'AbortError arrive ICI :
-          // c'est l'utilisateur, pas une panne — résoudre en « interrompu », jamais
-          // en erreur fail-closed.
+          // A Stop during the pass aborts the fetch → the AbortError arrives HERE:
+          // it's the user, not an outage — resolve as "interrupted", never
+          // as a fail-closed error.
           if (stoppedEarly()) return;
           return failClosed(e instanceof Error ? e.message : String(e));
         }
       }
-      if (stoppedEarly()) return; // Stop cliqué pendant les couches document
+      if (stoppedEarly()) return; // Stop clicked during the document layers
 
       try {
         userWire = await raceRedactionWork(
@@ -1021,7 +1021,7 @@ export function createSendMessage(d: SendMessageDeps) {
           { signal: sendAbort.signal, timeoutMs: redactTimeoutMs(modelText) },
         );
       } catch (e) {
-        if (stoppedEarly()) return; // Stop pendant la détection locale — pas une panne
+        if (stoppedEarly()) return; // Stop during local detection — not an outage
         return failClosed(e instanceof Error ? e.message : String(e));
       }
       // FAIL CLOSED (audit M-10): the user chose an AI redaction engine for the
@@ -1037,7 +1037,7 @@ export function createSendMessage(d: SendMessageDeps) {
       // (send/reusedDocsWire.ts): each rep is added as a preview/audit `match` and its
       // real value is redacted to its fake in the appended text.
       userWire = appendReusedDocsWire(userWire, reuseParts, vault, wireExclude);
-      if (stoppedEarly()) return; // Stop cliqué pendant le redaction du message
+      if (stoppedEarly()) return; // Stop clicked during the message's redaction
 
       // PRE-SEND PREVIEW: let the user review the EXACT redacted wire and un-redact
       // spans before anything leaves the machine. Gated on the review hook (ChatView)
@@ -1065,10 +1065,10 @@ export function createSendMessage(d: SendMessageDeps) {
         }
       }
 
-      // L'entrée `wire` du journal part TOUJOURS (collecte permanente — un retour
-      // « Votre avis » doit pouvoir l'embarquer sans réglage préalable) ; seule la
-      // trace console colorisée reste derrière « Journal technique détaillé ». L'id
-      // sert à patcher le coût en tokens quand le modèle répond.
+      // The log's `wire` entry ALWAYS goes out (permanent collection — a "Votre
+      // avis" report must be able to embed it with no prior setting); only the
+      // colourised console trace stays behind "Journal technique détaillé". The id
+      // is used to patch the token cost in once the model replies.
       const wireDebugId = logWireMessage(
         { model: model.id, text: userWire.text, vault, kinds: convKinds, convId },
         { toConsole: !!settings.debugLog },
@@ -1101,7 +1101,7 @@ export function createSendMessage(d: SendMessageDeps) {
         textLength: text.length,
         matchCount: userWire.matches.length,
         useAiDetect,
-        useRemote: false, // moteur distant purgé du send (normalizeSettings force local)
+        useRemote: false, // remote engine purged from the send (normalizeSettings forces local)
         modelError: !!userWire.modelError,
         spanKinds: redactedSpans.map((s) => s.kind),
       })) {
@@ -1125,9 +1125,9 @@ export function createSendMessage(d: SendMessageDeps) {
                 memoryUsed: memoryWire
                   ? [...(memSel.profile ? ["profile"] : []), ...memSel.cards.map((mc) => mc.id)]
                   : undefined,
-                // Les quasi-ratés du rappel (budget saturé, homographe ignoré) — le
-                // non-rappel SURPRENANT devient diagnosticable ; ids + code de raison
-                // uniquement, jamais de contenu (le régime de memoryUsed).
+                // The recall's near-misses (budget saturated, homograph ignored) — a
+                // SURPRISING non-recall becomes diagnosable; ids + reason code
+                // only, never content (the same regime as memoryUsed).
                 memorySkipped: memSel.skipped.length ? memSel.skipped : undefined,
                 // Keep the model payload on the message so later turns re-send the
                 // document / plot directive / compétence prompt (rebuilt via the vault).
@@ -1141,11 +1141,11 @@ export function createSendMessage(d: SendMessageDeps) {
                 plotTag: forcePython ? "graphique" : undefined,
                 // The compétence tag on the sent bubble. `prompt` is the SNAPSHOT that
                 // actually went out — the compétence may be edited/deleted later.
-                // `servers` (connector ids) est gardé pour que le tag montre les
-                // connecteurs que la consigne a nommés, ET pour que la portée d'outils du
-                // tour SUIVANT puisse s'y reprendre (`activeCompetenceScope`).
-                // ⚠️ On n'écrit JAMAIS `message.workflow` : c'est l'ancienne forme, lue
-                // seulement (`@openmasq/schema`).
+                // `servers` (connector ids) is kept so the tag shows the
+                // connectors the instruction named, AND so the FOLLOWING turn's tool
+                // scope can pick it back up (`activeCompetenceScope`).
+                // ⚠️ `message.workflow` is NEVER written: it is the old shape, read
+                // only (`@openmasq/schema`).
                 competence: opts?.competence
                   ? {
                       id: opts.competence.id,

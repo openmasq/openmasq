@@ -1,9 +1,9 @@
 /**
  * The ENGLISH catalogue — a translation of the French source (`fr.ts`).
  *
- * COMPOSÉ de tranches par surface (`en/`) pour tenir le cap 300 LOC (règle 1) —
- * même forme que `packages/emails/i18n/`. `satisfies Messages` valide l'ensemble ; chaque
- * tranche se valide déjà pour sa part, donc une clé oubliée nomme SA tranche.
+ * COMPOSED of per-surface slices (`en/`) to hold the 300-LOC cap (rule 1) —
+ * same shape as `packages/emails/i18n/`. `satisfies Messages` validates the whole; each
+ * slice already validates its own part, so a forgotten key names ITS slice.
  */
 import type { Messages } from "./messages";
 import { agent } from "./en/agent";

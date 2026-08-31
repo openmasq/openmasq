@@ -41,8 +41,8 @@ afterEach(() => {
 describe("shouldCheck — the gate", () => {
   const gate = { busy: false, downloaded: false };
 
-  // Plus aucune PRÉFÉRENCE dans la porte : la mise à jour est toujours automatique, donc
-  // seule une opération en cours ou un build déjà posé peut retenir un tick.
+  // No more PREFERENCE in the gate: the update is always automatic, so
+  // only an operation in flight or a build already staged can hold back a tick.
   it("checks when nothing is in flight", () => {
     expect(shouldCheck(gate)).toBe(true);
   });
@@ -63,8 +63,8 @@ describe("startUpdateChecks", () => {
     expect(checks()).toBe(3);
   });
 
-  // Le pendant du réglage supprimé : plus RIEN ne peut éteindre la boucle. Sans ce test,
-  // une porte rebranchée « juste pour le staging » repasserait sans que rien ne rougisse.
+  // The counterpart of the removed setting: NOTHING can turn off the loop anymore. Without this test,
+  // a gate rewired "just for staging" would slip back in without anything turning red.
   it("continue de vérifier — aucun réglage ne peut plus arrêter la boucle", () => {
     vi.useFakeTimers();
     start();
@@ -112,19 +112,19 @@ describe("startUpdateChecks", () => {
     expect(checks()).toBe(2);
   });
 
-  // Le pendant du « terminal » : une pose qui ÉCHOUE ne l'est plus. Sans ça, l'appareil
-  // restait sur l'ancienne version jusqu'au prochain lancement — le symptôme rapporté :
-  // « mise à jour bloquée sur certains appareils » (ditto/lstat sur 0.4.1-staging).
+  // The counterpart of "terminal": a staging that FAILS is no longer terminal. Without this, the device
+  // stayed on the old version until the next launch — the reported symptom:
+  // "update stuck on some devices" (ditto/lstat on 0.4.1-staging).
   it("ré-ouvre la boucle quand le build posé échoue à s'appliquer", () => {
     vi.useFakeTimers();
     start();
     fire("update-downloaded");
     vi.advanceTimersByTime(5000);
-    expect(checks()).toBe(1); // terminal : rien ne bouge
+    expect(checks()).toBe(1); // terminal: nothing moves
 
-    fire("error"); // ShipIt/ditto n'a pas pu appliquer
+    fire("error"); // ShipIt/ditto could not apply
     vi.advanceTimersByTime(1000);
-    expect(checks()).toBe(2); // la boucle est repartie, le build sera re-téléchargé
+    expect(checks()).toBe(2); // the loop is going again, the build will be re-downloaded
   });
 
   it("stops for good once a build is downloaded — ShipIt has it, re-checking only churns", () => {
@@ -140,14 +140,14 @@ it("re-checks every 15 min — the delay a rollback takes to reach a running ins
   expect(CHECK_INTERVAL_MS).toBe(15 * 60 * 1000);
 });
 
-// Une mise à jour qui échoue arrivait DEUX fois dans PostHog : le code + le contexte par
-// l'évènement `error`, puis un `uncaught/main-rejection` anonyme, parce qu'electron-updater
-// re-jette après avoir émis l'évènement et que personne ne tient cette promesse.
+// A failed update was arriving TWICE in PostHog: the code + context via
+// the `error` event, then an anonymous `uncaught/main-rejection`, because electron-updater
+// re-throws after emitting the event and nobody holds onto this promise.
 describe("ownDownloadPromise", () => {
   it("tient la promesse de téléchargement — aucune rejection ne s'échappe", async () => {
     const rejected = Promise.reject(new Error("ditto: Could not lstat"));
     ownDownloadPromise({ downloadPromise: rejected });
-    // Si elle n'était pas tenue, Node la signalerait en `unhandledRejection` au tick suivant.
+    // If it weren't held, Node would report it as `unhandledRejection` on the next tick.
     await expect(rejected.catch(() => "owned")).resolves.toBe("owned");
   });
 

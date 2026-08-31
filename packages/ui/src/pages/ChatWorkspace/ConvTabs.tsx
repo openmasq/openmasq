@@ -63,7 +63,7 @@ export function ConvTabs({
     openT.current = closeT.current = null;
   };
   useEffect(() => {
-    return clearTimers; // cleanup au démontage, retourné EXPRÈS
+    return clearTimers; // cleanup on unmount, returned ON PURPOSE
   }, []);
   const scheduleOpen = (id: string, el: HTMLElement) => {
     if (!canSplit) return;
@@ -125,7 +125,7 @@ export function ConvTabs({
   return (
     <div className="conv-tabs" role="tablist">
       <div className="conv-tabs-scroll" ref={scrollRef}>
-        {/* `tab`, pas `t` : dans ce composant `t` est le catalogue de traduction. */}
+        {/* `tab`, not `t`: in this component `t` is the translation catalogue. */}
         {tabs.map((tab, i) => {
           const on = tab.id === activeId;
           return (

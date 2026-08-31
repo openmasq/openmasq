@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-// ⚠️ Le helper vit dans `server/`, que le vitest `include` NE couvre PAS — le test
-// doit donc rester dans `mcp/` et importer le sous-chemin (même piège que
-// `customServer.test.ts`). Un test placé dans `server/` ne tournerait jamais.
+// ⚠️ The helper lives in `server/`, which the vitest `include` does NOT cover — the test
+// must therefore stay in `mcp/` and import the subpath (the same trap as
+// `customServer.test.ts`). A test placed in `server/` would never run.
 import { isTransientConnectError, reconnectRemoteWithRetry } from "./server/reconnectRetry";
 import type { McpServerInfo } from "./server/types";
 
@@ -22,11 +22,11 @@ describe("isTransientConnectError", () => {
     expect(isTransientConnectError("URL refusée (hôte interne)")).toBe(false);
   });
   it("une autorisation MORTE, dans la langue des fournisseurs (journal du 15/08)", () => {
-    // La liste ne portait que NOS formulations : chacune de celles-ci était retentée
-    // 3 fois + backoff à chaque démarrage, sans la moindre chance d'aboutir.
+    // The list only carried OUR wordings: each of these was retried
+    // 3 times + backoff on every startup, with no chance whatsoever of succeeding.
     for (const m of [
-      "Refresh token is invalid.", // Vercel — le cas rapporté
-      "invalid_grant", // le code standard OAuth2
+      "Refresh token is invalid.", // Vercel — the reported case
+      "invalid_grant", // the standard OAuth2 code
       "Token has been expired or revoked.", // Google
       "The refresh token is invalid or expired",
       "401 Unauthorized",
@@ -64,7 +64,7 @@ describe("reconnectRemoteWithRetry", () => {
       n++;
       if (n < 3) return info({ error: "fetch failed" }); // 2 timeouts…
       live = true;
-      return info({ connected: true }); // …puis ça passe
+      return info({ connected: true }); // …then it goes through
     });
     await reconnectRemoteWithRetry(connectOnce, () => live, { baseDelayMs: 1 });
     expect(connectOnce).toHaveBeenCalledTimes(3);
@@ -81,22 +81,22 @@ describe("reconnectRemoteWithRetry", () => {
     const connectOnce = vi.fn(async () => info({ error: "socket hang up" }));
     await expect(
       reconnectRemoteWithRetry(connectOnce, () => false, { tries: 3, baseDelayMs: 1 }),
-    ).resolves.toBeTruthy(); // ne throw pas — et rend le dernier verdict (ci-dessous)
+    ).resolves.toBeTruthy(); // doesn't throw — and returns the last verdict (below)
     expect(connectOnce).toHaveBeenCalledTimes(3);
   });
 
   it("REND le dernier verdict — sans lui, une autorisation morte au démarrage n'était visible NULLE PART", async () => {
-    // `infoFor` ne porte pas l'erreur, donc `mcp:list` non plus : c'est cette valeur de
-    // retour qui permet à `mcpReconnectStored` d'inscrire le connecteur à la bannière.
+    // `infoFor` doesn't carry the error, so neither does `mcp:list`: it's this return
+    // value that lets `mcpReconnectStored` flag the connector on the banner.
     const mort = await reconnectRemoteWithRetry(
       async () => info({ error: "Refresh token is invalid." }),
       () => false,
       { baseDelayMs: 1 },
     );
     expect(mort?.error).toBe("Refresh token is invalid.");
-    expect(isTransientConnectError(mort?.error)).toBe(false); // ⇒ la bannière s'allume
+    expect(isTransientConnectError(mort?.error)).toBe(false); // ⇒ the banner lights up
 
-    // Un succès rend aussi son info, sans erreur — rien à signaler.
+    // A success also returns its info, with no error — nothing to flag.
     const ok = await reconnectRemoteWithRetry(async () => info({ connected: true }), () => true, { baseDelayMs: 1 });
     expect(ok?.error).toBeUndefined();
   });

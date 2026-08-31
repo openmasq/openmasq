@@ -58,15 +58,15 @@ let linkPreviewsEnabled = false;
  * throughout: an ungranted path, an unobserved fetch host, and a not-opted-in preview
  * are each refused, never silently allowed.
  */
-// Progression OCR → renderer : la charge porte le NOM (attribution des extractions
-// concurrentes) ; best-effort. Exporté : `filesExtractIpc.ts` relaie la même progression.
+// OCR progress → renderer: the payload carries the NAME (attribution of concurrent
+// extractions); best-effort. Exported: `filesExtractIpc.ts` relays the same progress.
 export const progressTo =
   (sender: Electron.WebContents): OcrProgressFn =>
   (name, page, pages) => {
     try {
       if (!sender.isDestroyed()) sender.send("files:ocr-progress", { name, page, pages });
     } catch {
-      /* affichage seulement */
+      /* display only */
     }
   };
 
@@ -225,7 +225,7 @@ export function registerFilesIpc(): void {
       ocrText?: string;
       words?: unknown;
       ocr?: unknown;
-      /** La carte de redaction du dépôt — persistée telle quelle (JSON chiffré). */
+      /** The file's redaction map — persisted as-is (encrypted JSON). */
       redactions?: unknown;
     };
   };

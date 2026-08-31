@@ -46,7 +46,7 @@ function apiKey(): string {
     const env = readFileSync(resolve(ROOT, "apps/desktop/.env"), "utf8");
     const m = /^OPENROUTER_API_KEY=(.+)$/m.exec(env);
     if (m) return m[1].trim().replace(/^"|"$/g, "");
-  } catch { /* absent → la suite se skip et on le dira */ }
+  } catch { /* absent → the suite will skip itself and we'll say so */ }
   return "";
 }
 
@@ -88,8 +88,8 @@ function runSuite(cell: Cell, key: string): Promise<{ cell: Cell; reports: strin
 }
 
 /** Aggregates the metrics of a cell's reports (sum of the shards). p50/p95 of the
- *  1er appel ne se SOMMENT pas — chaque shard n'a sa propre distribution que sur SA
- *  part du catalogue, donc on garde le PIRE shard (max) : conservateur, jamais
+ *  first call are NOT summed — each shard only has its own distribution over ITS
+ *  share of the catalog, so we keep the WORST shard (max): conservative, never
  *  optimistic about the reported latency. */
 function aggregate(paths: string[]): Metrics {
   const t: Metrics = { ok: 0, runs: 0, calls: 0, turns: 0, up: 0, cached: 0, down: 0, secs: 0, p50: 0, p95: 0 };

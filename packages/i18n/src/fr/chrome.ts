@@ -1,9 +1,9 @@
 /**
- * Tranche « chrome » du catalogue FR — la langue SOURCE.
+ * The FR catalogue's « chrome » slice — the SOURCE language.
  *
- * `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat
- * (`../messages/chrome.ts`), ni plus ni moins, tranche par tranche — donc une clé
- * oubliée nomme SA tranche plutôt que le catalogue entier.
+ * `satisfies` per entry: the compiler demands EXACTLY the contract's keys
+ * (`../messages/chrome.ts`), no more and no less, slice by slice — so a forgotten
+ * key names ITS slice rather than the whole catalogue.
  */
 import type { Messages } from "../messages";
 

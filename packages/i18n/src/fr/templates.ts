@@ -1,6 +1,6 @@
 /**
- * Tranche « templates » du catalogue FR — la langue SOURCE : les routines et compétences
- * proposées au départ. Le `prompt` pré-remplit le message : il se lit et s'édite.
+ * The FR catalogue's « templates » slice — the SOURCE language: the routines and skills
+ * offered at the start. The `prompt` pre-fills the message: it is read and edited.
  */
 import type { Messages } from "../messages";
 

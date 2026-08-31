@@ -1,7 +1,7 @@
 /**
- * Tranche « availability » du catalogue EN — traduit de la source (`../fr/availability.ts`).
+ * The EN catalogue's « availability » slice — translated from the source (`../fr/availability.ts`).
  * ⚠️ Un build qui ne vend rien ne doit dire ni « subscription » ni « credits » : voir le
- * contrat. `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat.
+ * contract. `satisfies` per entry: the compiler demands EXACTLY the contract's keys.
  */
 import type { Messages } from "../messages";
 

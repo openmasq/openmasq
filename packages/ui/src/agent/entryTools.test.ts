@@ -38,10 +38,10 @@ describe("routerSawFiles — l'évidence vient du routeur, pas d'une seconde heu
 });
 
 describe("rescueEntryTools", () => {
-  // LA régression (trace du 01/08/2026) : le routeur avait gardé `search_files` SEUL. Le
-  // modèle ne pouvait donc qu'apparier une sous-chaîne devinée — il a deviné « fiscal »,
-  // n'a rien trouvé, et a conclu qu'aucun document fiscal n'existait. Il lui manquait de
-  // quoi ÉNUMÉRER et de quoi demander PAR LE SENS.
+  // THE regression (trace 01/08/2026): the router had kept `search_files` ALONE. The
+  // model could then only match a guessed substring — it guessed "fiscal", found
+  // nothing, and concluded no fiscal document existed. It lacked a way to ENUMERATE
+  // and a way to ask BY MEANING.
   it("complète un pick qui n'a gardé que search_files", () => {
     const out = rescueEntryTools([t("local-filesystem__search_files")], ALL, "liste les documents fiscaux");
     expect(out.map((x) => x.name)).toEqual([

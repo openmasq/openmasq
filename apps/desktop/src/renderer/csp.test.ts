@@ -7,20 +7,20 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 /**
- * La CSP du renderer est une ALLOW-list d'egress (règle 7), et rien à la compilation ne la
- * relie aux origines que le code appelle vraiment. Les deux dérivent donc en silence, dans
- * les deux sens, et aucun des deux sens ne se voit avant l'exécution :
- *   • retirer une origine encore appelée → un `fetch` bloqué, visible seulement à l'usage ;
- *   • garder une origine que plus personne n'appelle → l'allow-list s'élargit toute seule.
- * Ce fichier attache l'une à l'autre. Il a été écrit en migrant l'origine du backend de
- * l'ancien domaine (`tchin.co`) vers le domaine actuel : la CSP autorisait les deux, et rien
- * n'aurait signalé qu'on avait oublié d'en retirer une — ni qu'on avait retiré la mauvaise.
+ * The renderer's CSP is an egress ALLOW-list (rule 7), and nothing at compile time
+ * links it to the origins the code actually calls. So the two drift apart silently, in
+ * both directions, and neither direction shows up before runtime:
+ *   • removing an origin still called → a blocked `fetch`, visible only in use;
+ *   • keeping an origin nobody calls anymore → the allow-list widens on its own.
+ * This file ties the two together. It was written while migrating the backend's origin from
+ * the old domain (`tchin.co`) to the current one: the CSP allowed both, and nothing
+ * would have flagged that one had been left off — nor that the wrong one had been removed.
  */
 const ICI = new URL(".", import.meta.url).pathname;
-// La MÊME substitution que le plugin `brandIndexHtml` d'electron.vite.config.ts : on
-// vérifie la CSP telle que le bundle la sert, jetons de marque résolus. Le jeton
-// Supabase est résolu depuis la MÊME table que le code appelle (`ENVIRONMENTS`, qui lit
-// l'env de build) — vide ⇒ aucun hôte Supabase autorisé, et rien à appeler non plus.
+// The SAME substitution as electron.vite.config.ts's `brandIndexHtml` plugin: we
+// verify the CSP as the bundle serves it, brand tokens resolved. The Supabase
+// token is resolved from the SAME table the code calls (`ENVIRONMENTS`, which reads
+// the build env) — empty ⇒ no Supabase host allowed, and nothing to call either.
 const HTML = readFileSync(join(ICI, "index.html"), "utf8")
   .replaceAll("%BRAND_NAME%", BRAND.name)
   .replaceAll("%BRAND_DOMAIN%", BRAND.domain)
@@ -33,7 +33,7 @@ const connectSrc = (() => {
   return bloc[1].trim().split(/\s+/);
 })();
 
-/** `https://*.<domaine>` couvre `https://app.<domaine>` — un joker ne vaut qu'un label. */
+/** `https://*.<domain>` covers `https://app.<domain>` — a wildcard is only worth one label. */
 function autorisee(origine: string): boolean {
   return connectSrc.some((motif) => {
     if (motif === origine) return true;
@@ -51,15 +51,15 @@ function fichiersSources(dir: string): string[] {
   });
 }
 
-/** Les origines que le renderer appelle : celles encore écrites EN DUR dans les sources,
- *  PLUS celles que le code DÉRIVE de la marque à l'exécution (`src/environments` +
- *  le relais analytics d'`appEnv.ts`) — depuis la règle 9, ce sont elles la vraie liste. */
+/** The origins the renderer calls: the ones still HARDCODED in the sources,
+ *  PLUS the ones the code DERIVES from the brand at runtime (`src/environments` +
+ *  the analytics relay from `appEnv.ts`) — since rule 9, these are the real list. */
 const derivees = [
   ...Object.values(ENVIRONMENTS).flatMap((e) => [e.backend, e.admin, e.supabaseUrl, e.redactFn]),
   brandUrl("analytics"),
 ]
-  // `supabaseUrl` peut être VIDE (projet non fourni au build) : rien à dériver, et la
-  // CSP n'a alors pas non plus l'entrée — les deux côtés restent attachés.
+  // `supabaseUrl` can be EMPTY (project not supplied at build time): nothing to derive, and the
+  // CSP then has no entry either — the two sides stay tied together.
   .filter(Boolean)
   .map((u) => new URL(u).origin);
 const origines = [
@@ -71,21 +71,21 @@ const origines = [
     ),
     ...derivees,
   ]),
-  // `.invalid` est un TLD RÉSERVÉ (RFC 2606) : par définition injoignable, jamais une
-  // origine à autoriser — c'est la sentinelle d'`auth.ts` quand aucun projet Supabase
-  // n'est fourni au build (l'app tourne alors sans comptes, le client n'est pas appelé).
+  // `.invalid` is a RESERVED TLD (RFC 2606): unreachable by definition, never an
+  // origin to allow — it's `auth.ts`'s sentinel when no Supabase project
+  // is supplied at build time (the app then runs without accounts, the client isn't called).
 ].filter((o) => !o.endsWith(".invalid"));
 
 describe("CSP du renderer", () => {
   it("autorise chaque origine que le code appelle en dur", () => {
-    expect(origines.length).toBeGreaterThan(0); // sinon le test passerait à vide
+    expect(origines.length).toBeGreaterThan(0); // otherwise the test would pass vacuously
     expect(origines.filter((o) => !autorisee(o))).toEqual([]);
   });
 
   it("ne garde aucune origine héritée : l'app est entièrement sur le domaine de la marque", () => {
-    // L'ancien domaine est DÉTACHÉ (plus aucun hôte `tchin.co` ne sert). Rien ne doit
-    // donc le viser ni l'autoriser : une allow-list qui garde une entrée morte s'élargit
-    // pour rien, et le jour où la ligne revient, c'est ici qu'elle se voit.
+    // The old domain is DETACHED (no `tchin.co` host serves anything anymore). Nothing should
+    // therefore target it or allow it: an allow-list that keeps a dead entry widens
+    // for nothing, and the day the line comes back, this is where it shows.
     expect(connectSrc.filter((m) => m.includes("tchin.co"))).toEqual([]);
     expect(origines.filter((o) => o.includes("tchin.co"))).toEqual([]);
   });

@@ -123,8 +123,8 @@ function Row({
           <CheckIcon size={13} /> {t.lists.memory.confirm}
         </button>
       )}
-      {/* La corbeille sur TOUTES les lignes, pas seulement « À revoir » : supprimer
-          exigeait d'ouvrir le panneau et d'aller chercher son pied. Annulable (toast). */}
+      {/* The trash icon on ALL rows, not just « À revoir »: deleting used to
+          require opening the panel and hunting for its footer. Undoable (toast). */}
       {onRemove && (
         <button
           type="button"

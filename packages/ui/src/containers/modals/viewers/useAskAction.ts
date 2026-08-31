@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 
-/** Ce que le bouton « Demander » montre à l'instant présent. */
+/** What the « Demander » button shows at the present instant. */
 export type AskState = "idle" | "pending" | "failed";
 
 export const ASK_LABEL: Record<AskState, string> = {
@@ -10,28 +10,28 @@ export const ASK_LABEL: Record<AskState, string> = {
 };
 
 /**
- * L'attente du geste « Demander », parce qu'elle est REELLE et qu'elle ne se voyait pas.
+ * The wait for the « Demander » gesture, because it is REAL and it wasn't visible.
  *
- * Joindre un fichier local, c'est lire ses octets ET l'extraire (OCR compris) : sur un scan
- * de plusieurs pages, plusieurs secondes. Le bouton ne changeait pas d'état pendant ce
- * temps, et l'échec partait dans un `catch` vide — l'utilisateur cliquait, rien ne bougeait,
- * et il recliquait, ce qui relançait l'extraction en parallèle.
+ * Attaching a local file means reading its bytes AND extracting it (OCR included): on a
+ * multi-page scan, several seconds. The button didn't change state during that
+ * time, and the failure was swallowed by an empty `catch` — the user clicked, nothing moved,
+ * and they clicked again, which restarted the extraction in parallel.
  *
- * Deux règles, et elles tiennent l'une à l'autre :
- *  · **un seul geste à la fois** — pendant l'attente, le bouton est inerte, donc un
- *    double-clic ne peut pas doubler le travail ni joindre le fichier deux fois ;
- *  · **une panne se dit** — l'échec reste affiché sur le bouton jusqu'au prochain clic,
- *    plutôt que d'être avalé. Un « réessayer » honnête vaut mieux qu'un silence.
+ * Two rules, and they hold each other up:
+ *  · **only one gesture at a time** — during the wait, the button is inert, so a
+ *    double-click can't double the work nor attach the file twice;
+ *  · **a failure is said out loud** — the failure stays shown on the button until the next click,
+ *    rather than being swallowed. An honest « retry » beats silence.
  *
- * Le handler peut rendre `void` (geste synchrone, rien ne change) ou une promesse ; c'est
- * ce qui permet au visualiseur d'ignorer complètement la question.
+ * The handler may return `void` (synchronous gesture, nothing changes) or a promise; that's
+ * what lets the viewer completely ignore the question.
  */
 export function useAskAction(onAsk?: () => void | Promise<unknown>): {
   state: AskState;
   run: () => void;
 } {
   const [state, setState] = useState<AskState>("idle");
-  // Un ref, pas l'état : deux clics dans le même rendu liraient la même valeur périmée.
+  // A ref, not state: two clicks in the same render would read the same stale value.
   const busy = useRef(false);
 
   const run = useCallback(() => {
@@ -43,7 +43,7 @@ export function useAskAction(onAsk?: () => void | Promise<unknown>): {
       setState("failed");
       return;
     }
-    if (!(result instanceof Promise)) return; // geste synchrone : rien à attendre
+    if (!(result instanceof Promise)) return; // synchronous gesture: nothing to wait for
     busy.current = true;
     setState("pending");
     void result.then(

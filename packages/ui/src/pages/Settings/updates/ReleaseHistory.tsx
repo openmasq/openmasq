@@ -14,16 +14,16 @@ import { useT } from "../../../i18n";
 // `UpdatesSection` to keep both files under the 300-LOC limit.
 
 /** Build a `version → ReleaseNote` lookup that tolerates the build's pre-release
- *  suffix (the Contentful note is keyed on the base X.Y.Z). La règle « une note par
- *  version, la plus récente » est `latestPerVersion` — partagée avec l'historique de
- *  l'aide, qui l'applique à la même liste (règle 9). */
+ *  suffix (the Contentful note is keyed on the base X.Y.Z). The rule « one note per
+ *  version, the most recent » is `latestPerVersion` — shared with the help
+ *  center's history, which applies it to the same list (rule 9). */
 export function noteLookup(notes: ReleaseNote[]): (version: string) => ReleaseNote | undefined {
   const byBase = new Map(latestPerVersion(notes).map((n) => [baseVersion(n.version), n]));
   return (version: string) => byBase.get(baseVersion(version));
 }
-// ⚠️ Le point-à-point est `state/releaseNotes.ts` `noteForVersion` (même règle, une seule
-// maison) ; ce lookup-ci ne survit que parce qu'il PRÉ-INDEXE pour une liste entière —
-// appeler le premier par ligne re-trierait les notes à chaque rendu de l'historique.
+// ⚠️ The point-to-point version is `state/releaseNotes.ts` `noteForVersion` (same rule, one
+// home); this lookup survives only because it PRE-INDEXES for an entire list —
+// calling the former per row would re-sort the notes on every render of the history.
 
 // Release lifecycle → the coloured state pill next to the version (mirrors the DS
 // VersionsSection): the running build is "Installée", a newer published build

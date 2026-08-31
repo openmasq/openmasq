@@ -13,13 +13,13 @@ const NER = { "Karl Studio": "company", "Jean Vannec": "name" };
 /** The first e-mail-shaped token visible anywhere in the model's inbox (a FAKE). */
 function emailIn(req: MockRequest): string {
   for (const m of req.messages) {
-    // Unicode, pas \w : le faussaire tire des prénoms français dans la partie locale
-    // (léa@…, zoé@…, inès@…) et l'ASCII n'en attrapait que la queue — « a@outlook.com »,
-    // dont le domaine se dé-redact ensuite seul — ou rien du tout (le repli). C'était
-    // LE flake de wf2-incident-issue-comm : le salt par conversation rend le tirage du
-    // prénom aléatoire, donc l'échec n'arrivait qu'un run sur quelques-uns.
+    // Unicode, not \w: the faker draws French first names in the local part
+    // (léa@…, zoé@…, inès@…) and ASCII only caught the tail of it — « a@outlook.com »,
+    // whose domain then got un-redacted on its own — or nothing at all (the fallback). This was
+    // THE flake in wf2-incident-issue-comm: the per-conversation salt makes the first-name
+    // draw random, so the failure only happened on one run out of several.
     const hit = /[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.\p{L}{2,}/u.exec(String(m.content ?? ""));
-    if (hit) return hit[0].replace(/\.$/, ""); // pas le point final d'une phrase
+    if (hit) return hit[0].replace(/\.$/, ""); // not a sentence's trailing period
   }
   return "inconnu@exemple.fr";
 }

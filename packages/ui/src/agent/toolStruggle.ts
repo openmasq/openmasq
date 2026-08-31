@@ -26,14 +26,14 @@ export interface ToolStruggle {
 }
 
 /**
- * **Le connecteur fautif se lit du NOM de l'outil, jamais de `serverId`.** Le client MCP
- * n'a qu'UNE connexion et réécrit chaque `serverId` en son id de transport (« ipc ») —
- * la légende annonçait donc « Ipc a refusé l'appel… » et le bouton « Reconnecter »
- * ouvrait la fiche d'un connecteur qui n'existe pas. Le nom porte l'identité (le même
- * pin que `connectorIdsFromTools`), et le suffixe multi-compte tombe avec
- * `baseConnector` : c'est la FICHE qu'on ouvre, pas un compte en particulier.
+ * **The faulty connector is read from the tool's NAME, never from `serverId`.** The MCP
+ * client has only ONE connection and rewrites every `serverId` to its transport id (« ipc »)
+ * — so the caption used to announce « Ipc a refusé l'appel… » and the « Reconnecter »
+ * button opened the card of a connector that doesn't exist. The name carries the identity
+ * (the same pin as `connectorIdsFromTools`), and the multi-account suffix falls away with
+ * `baseConnector`: it's the CARD we open, not one particular account.
  *
- * `fallback` sert aux noms nus (nos outils interceptés) : eux n'ont pas de préfixe.
+ * `fallback` serves bare names (our intercepted tools): they have no prefix.
  */
 export function connectorOfTool(tool: string, fallback: string): string {
   const i = tool.indexOf("__");
@@ -78,8 +78,8 @@ export function makeStruggleReporter(p: {
       name: "tool_struggle",
       server,
       tool: eventTool,
-      // La moitié actionnable : COMMENT le modèle a peiné — calculée depuis toujours
-      // pour l'UI, jamais transmise (audit 13/08).
+      // The actionable half: HOW the model struggled — always computed
+      // for the UI, never transmitted (13/08 audit).
       kind,
       provider: p.provider,
       model: p.modelId,

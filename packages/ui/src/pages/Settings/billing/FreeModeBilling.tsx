@@ -5,13 +5,13 @@ import { useLocale, useT } from "../../../i18n/I18nProvider";
 import { formatCents } from "../../../state/billing";
 
 /**
- * L'onglet Paiement en MODE GRATUIT (`BillingSubscription.freeMode`) : ce déploiement ne
- * vend rien et ne plafonne rien, donc ni grille d'offres, ni portail Stripe, ni jauge
- * « restants sur ». Une seule carte qui dit ce qui est vrai, et la consommation du mois
- * pour qui veut la voir — une mesure, pas un solde.
+ * The Payment tab in FREE MODE (`BillingSubscription.freeMode`): this deployment sells
+ * nothing and caps nothing, so no plan grid, no Stripe portal, no « remaining out of »
+ * gauge. A single card stating what's true, and the month's usage
+ * for whoever wants to see it — a measurement, not a balance.
  *
- * La copie vient du catalogue (`t.billing.*`) : cet écran est neuf, et le cliquet i18n
- * refuse à un fichier neuf toute copie française en dur — c'est exactement son rôle.
+ * The copy comes from the catalogue (`t.billing.*`): this screen is new, and the i18n ratchet
+ * refuses a new file any hardcoded French copy — that is exactly its purpose.
  */
 export function FreeModeBilling({ credits }: { credits: CreditBalance | null }) {
   const t = useT();

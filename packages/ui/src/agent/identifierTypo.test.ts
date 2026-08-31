@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { opaqueIdsIn, nearestIdentifier, identifierTypoHint } from "./identifierTypo";
 
-// Le cas réel (journal du 04/08/2026) : `gmail__messages_list` a rendu ces identifiants,
-// le modèle en a retapé cinq de travers dans les `get_message` qui ont suivi.
+// The real case (journal 04/08/2026): `gmail__messages_list` gave back these identifiers,
+// the model mis-retyped five of them in the `get_message` calls that followed.
 const REELS = [
   "19fcca18e19a1ffa",
   "19fc78f80fd31ba0",
@@ -24,13 +24,13 @@ describe("nearestIdentifier", () => {
   });
 
   it("se tait quand l'identifiant existe TEL QUEL — la panne est alors ailleurs", () => {
-    // Un « not found » sur un identifiant exact veut dire autre chose (droits, message
-    // supprimé) : suggérer une correction enverrait le modèle réparer ce qui n'est pas cassé.
+    // A "not found" on an exact identifier means something else (permissions, deleted
+    // message): suggesting a correction would send the model to fix what isn't broken.
     expect(nearestIdentifier("19fc78f80fd31ba0", REELS)).toBeUndefined();
   });
 
   it("se tait sur une AMBIGUÏTÉ — deux candidats à la même distance", () => {
-    // Une correction inventée coûte plus cher que l'erreur d'origine : elle est crédible.
+    // An invented correction costs more than the original error: it's credible.
     expect(nearestIdentifier("19fc2539c9162210", ["19fc2539c9162211", "19fc2539c9162212"])).toBeUndefined();
   });
 
@@ -63,7 +63,7 @@ describe("identifierTypoHint", () => {
   });
 
   it("rend une chaîne VIDE quand il n'y a rien de sûr à dire", () => {
-    // Rien à coller au résultat ⇒ le message d'erreur du connecteur reste tel quel.
+    // Nothing safe to append to the result ⇒ the connector's error message stays as-is.
     expect(identifierTypoHint({ id: "19fc78f80fd31ba0" }, REELS)).toBe("");
     expect(identifierTypoHint({ query: "factures 2026" }, REELS)).toBe("");
     expect(identifierTypoHint({ limit: 10 }, REELS)).toBe("");

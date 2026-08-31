@@ -96,8 +96,8 @@ export function AttachmentPreviewModal({
   stale?: boolean;
   /** Redaction is currently (re-)running for this file. */
   redacting?: boolean;
-  /** Passe de dépôt ÉCHOUÉE (audit) : l'en-tête + les vues le disent — non threadé,
-   *  un échec se lisait « aucune valeur détectée » sous un bouclier. */
+  /** FAILED drop-time pass (audit): the header + the views say so — not threaded,
+   *  a failure used to read as "no value detected" under a shield. */
   redactError?: string;
   /** Chunk progress of the in-flight pass (the chip's bar) — shown in the subtitle. */
   redactProgress?: { done: number; total: number };
@@ -184,7 +184,7 @@ export function AttachmentPreviewModal({
   /** The scanned image's NATURAL raster size (the OCR boxes' space) — set by the
    *  paint effect, read by the canvas click hit-test. */
   const imageNaturalRef = useRef<{ w: number; h: number } | null>(null);
-  /** Reveal-marks de l'image = le MÊME builder que les pages PDF (rule 9 ; inspecter ≠ révéler). */
+  /** Reveal-marks for the image = the SAME builder as the PDF pages (rule 9; inspecting ≠ revealing). */
   const buildImageMarks = (boxes: Parameters<typeof buildRevealMarks>[1]) => {
     const wrap = imgWrapRef.current;
     const nat = imageNaturalRef.current;
@@ -226,10 +226,10 @@ export function AttachmentPreviewModal({
   // restriction never applies), same approach as the post-send FileViewerModal.
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // La grille REDACTED d'un tableur, quand elle est possible — `previewViews.ts` dit pourquoi.
+  // The REDACTED grid of a spreadsheet, when possible — `previewViews.ts` says why.
   const redactedGrid = redactedGridReady(isSheet && !!bytes && bytes !== "error", !!displayReplacements);
-  // La COUPE d'envoi, mappée sur les LIGNES de la grille — le pourquoi (et la note
-  // générique du XLSX, faute de mapping sûr) : `doc/sheetCut.ts`.
+  // The send CUT, mapped onto the grid's ROWS — the why (and the
+  // generic XLSX note, for lack of a safe mapping): `doc/sheetCut.ts`.
   const sheetCutRow = useMemo(
     () => sheetSendCutRow(file.name, file.text.length, bytes, isCsv),
     [file.name, file.text.length, bytes, isCsv],
@@ -311,7 +311,7 @@ export function AttachmentPreviewModal({
         const cv = canvasRef.current;
         const nat = imageNaturalRef.current;
         if (!alive || !wrap || !nat) return;
-        // Halo des zones que l'OCR a LUES — même sémantique que les pages PDF.
+        // Halo over the zones the OCR READ — same semantics as the PDF pages.
         if (imageWords.length) buildTextHaloLayer(wrap, imageWords, nat.w, nat.h, true, t);
         // Word-processor-style pick over the scan (same shared core as the PDF
         // pages): raster-space words, natural dims as the coordinate space.
@@ -332,14 +332,14 @@ export function AttachmentPreviewModal({
     };
   }, [view, bytes, file.mime, file.words, displayReplacements, revealed, imageWords, onForceRedact]);
 
-  // La COUPE d'envoi, matérialisée : « Redacted » s'arrête OÙ l'envoi tronque — la MÊME
-  // coupe (`clipFileText`, frontière de ligne, règle 9), donc la dernière ligne montrée
-  // est ENTIÈRE, jamais une valeur tranchée. Original / Texte de l'image restent entières.
+  // The send CUT, made concrete: « Redacted » stops WHERE the send truncates — the SAME
+  // cut (`clipFileText`, line boundary, rule 9), so the last line shown
+  // is WHOLE, never a sliced value. Original / Texte de l'image stay whole.
   const wireText = clipFileText(file.text, MAX_FILE_CHARS);
   const wireCutChars = file.text.length - wireText.length;
 
-  // Le texte redacted SANS relancer le modèle — la règle (plus long d'abord, frontières
-  // de mots, null = repli asynchrone) vit dans `doc/redactedPreview.ts`.
+  // The redacted text WITHOUT re-running the model — the rule (longest first, word
+  // boundaries, null = async fallback) lives in `doc/redactedPreview.ts`.
   const redactedPreview = useMemo(
     () => redactedFromReplacements(wireText, displayReplacements),
     [wireText, displayReplacements],
@@ -352,9 +352,9 @@ export function AttachmentPreviewModal({
   useEffect(() => {
     if (redactedPreview !== null) return; // deterministic path — no re-run
     if (view !== "redacted" || redacted !== null || redactedErr !== null || !file.text) return;
-    // Passe de dépôt en cours → pas de 2e détection concurrente (audit) : ses
-    // `replacements` arrivent et prennent le pas. Et borné à la coupe d'envoi
-    // (`wireText`) — ce chemin tournait sur le texte entier, le gel du renderer.
+    // Drop pass in progress → no 2nd concurrent detection (audit): its
+    // `replacements` arrive and take precedence. And bounded to the send cut
+    // (`wireText`) — this path used to run on the whole text, freezing the renderer.
     if (redacting) return;
     let alive = true;
     redact(wireText, undefined, undefined, convCategories)
@@ -394,8 +394,8 @@ export function AttachmentPreviewModal({
     [textView, view, wireText, displayReplacements, revealed, onRevealChange, redactedPreview, redacted],
   );
   const search = useDocSearch(chunks);
-  // La ligne d'en-tête, à TROIS états de premier rang (en cours / échec / compte
-  // PROUVÉ) — le pourquoi vit sur `previewStatus` (doc/docSummary.ts), testé.
+  // The header row, with THREE top-level states (in progress / failed / count
+  // PROVEN) — the why lives on `previewStatus` (doc/docSummary.ts), tested.
   const status = useMemo(
     () => previewStatus({ redacting, redactProgress, redactError, replacements: file.replacements }, t),
     [redacting, redactProgress, redactError, file.replacements, t],
@@ -460,8 +460,8 @@ export function AttachmentPreviewModal({
                 Confidentialité, which a viewer leaf must not import up into (rule 9). */}
           </div>
         )}
-        {/* Passe ÉCHOUÉE : chaque vue le dit — sinon « Pages redacted » peignait sans
-            rien masquer. L'envoi est déjà bloqué (`submit()`) : affichage, pas fuite. */}
+        {/* FAILED pass: every view says so — otherwise « Pages redacted » painted with
+            nothing masked. The send is already blocked (`submit()`): display, not a leak. */}
         {!!redactError && !redacting && (
           <div className="fv-redact-fail" role="alert">
             <ShieldIcon size={12} />
@@ -565,7 +565,7 @@ export function AttachmentPreviewModal({
         ) : redactedGrid ? (
           sheet(true)
         ) : file.text && redactedPreview === null && redacted === null ? (
-          // Pas encore calculable (passe/repli en vol) : squelette — jamais l'original en douce.
+          // Not yet computable (pass/fallback in flight): skeleton — never sneak in the original.
           <FileSkeleton variant="doc" />
         ) : file.text ? (
           // "Redacted" — the redacted document text with in-document search
@@ -643,15 +643,15 @@ export function AttachmentPreviewModal({
       {wordPick && onForceRedact && (
         <SelectionMenu
           x={wordPick.x} y={wordPick.y}
-          onClose={closeWordPick} /* Échap — le clic extérieur vit dans l'effet `away` ci-dessus */
-          origin="document" /* la télémétrie distingue la PJ d'une sélection de chat */ expanded
+          onClose={closeWordPick} /* Escape — the outside click lives in the `away` effect above */
+          origin="document" /* telemetry distinguishes the attachment from a chat selection */ expanded
           label={`Redact « ${
             wordPick.value.length > 42 ? `${wordPick.value.slice(0, 40)}…` : wordPick.value
           } »`}
           note={
-            // A run absent from the PRIMARY text is image-baked (logo, tampon) :
+            // A run absent from the PRIMARY text is image-baked (logo, stamp):
             // it is NOT part of the text sent to the model. Redact stays
-            // useful (peint sur l'image si le document part en pixels) — inform,
+            // useful (paints onto the image if the document leaves as pixels) — inform,
             // don't forbid.
             occursFlexibly(file.text ?? "", wordPick.value)
               ? undefined

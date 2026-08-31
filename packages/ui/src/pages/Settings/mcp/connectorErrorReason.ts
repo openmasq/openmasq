@@ -1,10 +1,10 @@
 import type { TrackEvent } from "../../../analytics";
 
 /**
- * Cause BORNÉE d'un échec de connexion d'un connecteur — l'enum `ConnectorErrorReason`
- * existait depuis le début et 17 sites d'appel codaient tous `"unknown"` (audit 13/08) :
- * l'événement disait « un connecteur a échoué » et rien d'autre. Dérivée du message
- * d'erreur (jamais transmis lui-même — enum seule).
+ * BOUNDED cause of a connector's connection failure — the `ConnectorErrorReason` enum
+ * had existed from the start and 17 call sites all hardcoded `"unknown"` (audit 13/08):
+ * the event said « a connector failed » and nothing else. Derived from the error
+ * message (never sent itself — enum only).
  */
 export function connectorErrorReason(
   e: unknown,

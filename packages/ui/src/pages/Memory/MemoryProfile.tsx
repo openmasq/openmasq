@@ -44,8 +44,8 @@ export function MemoryProfile({
         )}
       </div>
       {draft === null ? (
-        // Clic-pour-modifier — le même contrat que la carte document du chat : le texte
-        // EST l'affordance ; une sélection en cours (copie) avale le clic.
+        // Click-to-edit — the same contract as the chat's document card: the text
+        // IS the affordance; a selection in progress (copy) swallows the click.
         <p
           className="om-skill-desc om-mem-profile-text"
           title={t.lists.memory.profile.editTip}
@@ -69,8 +69,8 @@ export function MemoryProfile({
             placeholder={t.lists.memory.profile.placeholder}
             aria-label={t.lists.memory.profile.aria}
           />
-          {/* La borne, dite : le profil accompagne CHAQUE envoi, sa taille est un
-              budget — pas un champ libre qui se tronque en silence. */}
+          {/* The limit, stated: the profile rides with EVERY send, its size is a
+              budget — not a free-text field that silently truncates. */}
           <span className="om-mem-limit">
             {draft.length}/{MAX_PROFILE_CHARS} — le profil accompagne chaque envoi ;
             court, il laisse la place aux fiches.

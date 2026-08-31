@@ -37,11 +37,11 @@ describe("redactEditedText — la passe de redaction à la SAUVEGARDE d'une édi
       [],
     );
     const vault = patch.redactionVault ?? {};
-    // L'entrée existante est conservée telle quelle (même fake), la nouvelle s'ajoute.
+    // The existing entry is kept as-is (same fake), the new one is added.
     expect(vault["fake@x.fr"]).toBe("deja.la@exemple.fr");
     expect(Object.values(vault).filter((v) => v === "deja.la@exemple.fr")).toHaveLength(1);
     expect(Object.values(vault)).toContain("nouveau.venu@exemple.fr");
-    expect(patch.redactionSalt).toBe(42); // le salt de la conversation est réutilisé
+    expect(patch.redactionSalt).toBe(42); // the conversation's salt is reused
   });
 
   it("respecte les catégories désactivées", async () => {

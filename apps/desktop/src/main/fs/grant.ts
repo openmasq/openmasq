@@ -92,13 +92,13 @@ export function makeGrant(rawRoots: string[], rawDeny: string[] = []): Grant {
 
     // Must sit under a granted root AND not under any denied subtree.
     if (!roots.some((r) => isWithin(r, real))) {
-      // ⚠️ Le refus NOMME les racines et dit quoi faire. Le modèle ne peut pas recopier un
-      // chemin autorisé : les résultats d'outils lui reviennent redacted segment par
-      // segment, donc il REMONTE vers un ancêtre qu'il sait écrire (`~/Desktop`, puis `~`)
-      // — hors périmètre, refusé, trois fois, et la boucle abandonne en annonçant « aucun
-      // résultat » sur des dossiers pleins (mesuré 15/08). Ne divulgue RIEN de neuf :
-      // `list_allowed_directories` rend déjà ces mêmes racines au même modèle. Même
-      // remède que le refus de domaine deviné, qui oriente vers une recherche.
+      // ⚠️ The refusal NAMES the roots and says what to do. The model cannot copy an
+      // authorized path: tool results come back to it redacted segment by
+      // segment, so it CLIMBS toward an ancestor it knows it can write (`~/Desktop`, then `~`)
+      // — out of scope, refused, three times, and the loop gives up announcing « no
+      // results » on folders that are full (measured 15/08). Discloses NOTHING new:
+      // `list_allowed_directories` already returns these same roots to the same model. Same
+      // remedy as the refusal for a guessed domain, which steers toward a search.
       throw new Error(
         `accès refusé (hors des dossiers autorisés) : ${target}. ` +
           `Dossiers autorisés : ${roots.join(", ")}. ` +

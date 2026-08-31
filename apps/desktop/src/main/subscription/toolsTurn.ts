@@ -1,21 +1,21 @@
 /**
- * Le tour OUTILLÉ de l'abonnement : la primitive `completeTools` servie par la CLI de
- * l'utilisateur — même contrat que `completeWithTools` (@openmasq/llm), pour que la
- * boucle agentique de OpenMasq pilote ce chemin EXACTEMENT comme un modèle API.
+ * The subscription's TOOLED turn: the `completeTools` primitive served by the user's
+ * CLI — same contract as `completeWithTools` (@openmasq/llm), so that OpenMasq's
+ * agentic loop drives this path EXACTLY like an API model.
  *
- * Principe (boucle inversée) : la CLI reçoit le catalogue d'outils du tour via le pont
- * MCP (`toolsBridge`), mais le pont n'EXÉCUTE rien — il capture le premier appel et ce
- * tour tue la CLI aussitôt, rendant `{toolCalls}` à la boucle. Celle-ci un-redacted,
- * passe la porte d'écriture, exécute, re-redacted — comme toujours — puis re-soumet
- * l'historique complet ici. Sans état, comme tous les autres providers : la session CLI
- * est jetable, OpenMasq reste la source de vérité de sa conversation.
+ * Principle (inverted loop): the CLI receives the turn's tool catalogue via the
+ * MCP bridge (`toolsBridge`), but the bridge EXECUTES nothing — it captures the first call and this
+ * turn kills the CLI immediately, returning `{toolCalls}` to the loop. It un-redacts,
+ * passes the write gate, executes, re-redacts — as always — then re-submits
+ * the whole history here. Stateless, like every other provider: the CLI session
+ * is disposable, OpenMasq remains the source of truth for its conversation.
  *
- * CE fichier est le SQUELETTE, une seule fois pour toutes les CLI (règle 9) : refus
- * fail-closed, aplatissement, pont, course « capture ⇄ fin de flux », nettoyage. Ce qui
- * varie d'une CLI à l'autre — les drapeaux, la façon de lui donner le pont et son jeton,
- * l'interpréteur d'événements — est une RECETTE, et rien d'autre :
- * `claudeToolsTurn.ts` (fichier de config 0600) et `codexToolsTurn.ts` (override `-c` +
- * variable d'environnement). Une 3ᵉ CLI n'ajoute qu'une recette.
+ * THIS file is the SKELETON, once for all CLIs (rule 9): fail-closed
+ * refusal, flattening, bridge, the "capture ⇄ end of stream" race, cleanup. What
+ * varies from one CLI to another — the flags, how to hand it the bridge and its token,
+ * the event interpreter — is a RECIPE, and nothing else:
+ * `claudeToolsTurn.ts` (0600 config file) and `codexToolsTurn.ts` (`-c` override +
+ * environment variable). A 3rd CLI only adds a recipe.
  */
 import { randomUUID } from "node:crypto";
 import type { ChatMessage, CompleteToolsResult, StreamDone, ToolDef } from "@openmasq/llm";
@@ -27,13 +27,13 @@ import { streamCliProcess } from "./spawnStream";
 import { startToolsBridge, type CapturedToolCall } from "./toolsBridge";
 import type { ToolsCliRecipe, ToolsSpawnPlan } from "./toolsRecipe";
 
-/** Une CLI d'abonnement = une recette. L'absence de `cli` vaut `claude` (l'historique). */
+/** A subscription CLI = a recipe. The absence of `cli` means `claude` (history). */
 const RECIPES: Record<NonNullable<SubscriptionTurnEnv["cli"]>, ToolsCliRecipe> = {
   claude: claudeToolsRecipe,
   codex: codexToolsRecipe,
 };
 
-/** Un tour outillé qui ne rend rien en 5 min est mort, pas lent — on tue (fail closed). */
+/** A tooled turn that returns nothing in 5 min is dead, not slow — we kill it (fail closed). */
 const TURN_TIMEOUT_MS = 300_000;
 
 export interface SubscriptionToolsTurnOptions {
@@ -46,10 +46,10 @@ export interface SubscriptionToolsTurnOptions {
 }
 
 /**
- * L'historique d'outils, rendu LISIBLE dans le transcript aplati : le modèle CLI doit
- * voir ses appels passés et leurs résultats (redacted) comme un modèle API les voit
- * dans `messages`. Un tour assistant réduit à des `toolCalls` sans texte serait sinon
- * ÉCARTÉ par l'aplatisseur (bloc vide) — le modèle rappellerait le même outil en boucle.
+ * The tool history, made READABLE in the flattened transcript: the CLI model must
+ * see its past calls and their (redacted) results the way an API model sees them
+ * in `messages`. An assistant turn reduced to `toolCalls` with no text would otherwise be
+ * DROPPED by the flattener (empty block) — the model would call the same tool again in a loop.
  */
 export function renderToolHistory(messages: ChatMessage[]): ChatMessage[] {
   return messages.map((m) => {
@@ -62,8 +62,8 @@ export function renderToolHistory(messages: ChatMessage[]): ChatMessage[] {
 }
 
 /**
- * Un tour `completeTools` sur l'abonnement. Refus AVANT tout spawn (mêmes messages que
- * le tour simple) ; capture ⇒ `{toolCalls}` ; fin de flux sans appel ⇒ `{text}`.
+ * A `completeTools` turn on the subscription. Refusal BEFORE any spawn (same messages as
+ * the plain turn); capture ⇒ `{toolCalls}`; end of stream with no call ⇒ `{text}`.
  */
 export async function completeSubscriptionTools(
   env: SubscriptionTurnEnv,
@@ -90,7 +90,7 @@ export async function completeSubscriptionTools(
       modelId: opts.modelId,
     });
   } catch (err) {
-    bridge.close(); // une recette qui échoue ne laisse pas un port ouvert derrière elle
+    bridge.close(); // a recipe that fails doesn't leave a port open behind it
     throw err;
   }
 
@@ -129,8 +129,8 @@ export async function completeSubscriptionTools(
 
     if (outcome.kind === "call") {
       captured = outcome.call;
-      controller.abort(); // la CLI attend un résultat qui ne viendra pas : on tue.
-      await run.catch(() => {}); // sa mort est VOULUE — pas une erreur à remonter
+      controller.abort(); // the CLI is waiting for a result that will never come: we kill it.
+      await run.catch(() => {}); // its death is INTENTIONAL — not an error to report
       return {
         text,
         toolCalls: [{ id: `cli_${randomUUID()}`, name: captured.name, arguments: captured.arguments }],

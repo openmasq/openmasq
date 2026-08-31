@@ -3,9 +3,9 @@ import { mkdtempSync, existsSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-// Un `userData` jetable. Même montage que `keys.test.ts` (dont ce magasin copie le
-// squelette) : `encAvailable` reste faux, donc on exerce le repli base64 en clair — ce qui
-// permet d'INSPECTER le fichier produit, et de vérifier que l'ancien a bien disparu.
+// A disposable `userData`. Same setup as `keys.test.ts` (whose skeleton this store
+// copies): `encAvailable` stays false, so we exercise the plain-base64 fallback — which
+// lets us INSPECT the produced file, and verify that the old one has indeed disappeared.
 const USERDATA = mkdtempSync(join(tmpdir(), "openmasq-syncpass-test-"));
 let encAvailable = false;
 vi.mock("electron", () => ({
@@ -37,9 +37,9 @@ beforeEach(() => {
 });
 
 /**
- * Le défaut que ce fichier ferme : la phrase E2E était à portée APPAREIL. Changer de compte
- * laissait la synchro armée avec la clé du précédent — le compte B poussait ses coffres,
- * sans l'avoir demandé, chiffrés par une clé que A a choisie et connaît.
+ * The bug this file closes: the E2E passphrase was scoped to the DEVICE. Switching accounts
+ * left sync armed with the previous key — account B would push its vaults,
+ * without having asked for it, encrypted with a key A chose and knows.
  */
 describe("la phrase de synchro est PAR COMPTE", () => {
   it("B ne lit jamais la phrase de A", () => {
@@ -69,9 +69,9 @@ describe("la phrase de synchro est PAR COMPTE", () => {
     expect(getSyncPass()).toBe("phrase-de-a");
   });
 
-  /* Déconnecté, rien ne doit atterrir sur le disque sous un nom que le compte suivant
-     hériterait — et poser LÈVE, parce qu'un « enregistré » qui n'a rien enregistré est
-     exactement le silence qu'on corrige par ailleurs. */
+  /* Logged out, nothing should land on disk under a name the next account
+     would inherit — and setting THROWS, because a "saved" that saved nothing is
+     exactly the silence we're fixing elsewhere. */
   it("déconnecté : rien à lire, et poser lève au lieu de faire semblant", () => {
     expect(getSyncPass()).toBeNull();
     expect(() => setSyncPass("x")).toThrow(/no account/);
@@ -79,7 +79,7 @@ describe("la phrase de synchro est PAR COMPTE", () => {
 
   it("un uid entièrement illégal vaut DÉCONNECTÉ, jamais un chemin dérivé", () => {
     setSyncPassUser("../../evil");
-    expect(() => setSyncPass("x")).not.toThrow(); // « evil » survit à l'assainissement
+    expect(() => setSyncPass("x")).not.toThrow(); // "evil" survives sanitization
     setSyncPassUser("...");
     expect(getSyncPass()).toBeNull();
     expect(() => setSyncPass("x")).toThrow(/no account/);
@@ -91,15 +91,15 @@ describe("l'ancien fichier partagé", () => {
     writeFileSync(legacy(), b64("ancienne"), { mode: 0o600 });
     setSyncPassUser("A");
     expect(getSyncPass()).toBe("ancienne");
-    // Le secret partagé ne traîne plus : c'est ce qui empêche un autre compte de le lire.
+    // The shared secret no longer lingers: that's what stops another account from reading it.
     expect(existsSync(legacy())).toBe(false);
     setSyncPassUser("B");
     expect(getSyncPass()).toBeNull();
   });
 
-  /* Sans compte résolu, l'adoption ne doit PAS courir : elle supprimerait le fichier, et
-     une phrase perdue orpheline définitivement les coffres déjà synchronisés (aucun
-     séquestre). Elle attend la première connexion. */
+  /* With no account resolved, adoption must NOT run: it would delete the file, and
+     a lost passphrase permanently orphans the vaults already synced (no
+     escrow). It waits for the first sign-in. */
   it("déconnecté, il est PRÉSERVÉ pour la prochaine connexion", () => {
     writeFileSync(legacy(), b64("ancienne"), { mode: 0o600 });
     setSyncPassUser(null);

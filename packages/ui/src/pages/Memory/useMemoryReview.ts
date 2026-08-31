@@ -39,7 +39,7 @@ export function useMemoryReview(
     setDismissed((d) => new Set([...d, pairKey(s.keepId, s.dropId)]));
   const reviewCount = freshIds.size + mergeHints.length;
 
-  // « Confirmer » : lu et approuvé tel quel — la fiche sort de la boîte, rien d'autre.
+  // « Confirmer »: read and approved as-is — the card leaves the inbox, nothing else.
   const confirmCard = (id: string) => ops.onUpdate(id, { reviewedAt: Date.now() });
 
   // Delete with a net: gone immediately, restorable while the toast lives.

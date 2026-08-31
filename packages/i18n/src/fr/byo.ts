@@ -1,5 +1,5 @@
 /**
- * Tranche « byo » du catalogue FR — la langue SOURCE : « Mes clés » — le formulaire BYO et ses trois tutoriels.
+ * The FR catalogue's « byo » slice — the SOURCE language: « Mes clés » — the BYO form and its three tutorials.
  */
 import type { Messages } from "../messages";
 

@@ -35,17 +35,17 @@ export interface SlashPlacement {
 export function placeSlashPalette(spaceAbove: number, spaceBelow: number): SlashPlacement {
   const above = Math.max(0, spaceAbove - EDGE);
   const below = Math.max(0, spaceBelow - EDGE);
-  // 1. La place au-dessus suffit à la carte entière → on ne bouge pas.
+  // 1. The room above is enough for the whole card → we don't move.
   if (above >= SLASH_MAX) return { below: false, maxHeight: SLASH_MAX };
-  // 2. Basculer n'a de sens que si ça ACHÈTE la carte entière. Sans ce seuil, la palette
-  //    changeait de côté pour vingt pixels — un menu qui saute entre deux frappes coûte
-  //    plus à l'utilisateur que quelques lignes de moins.
+  // 2. Switching sides only makes sense if it BUYS the whole card. Without this threshold,
+  //    the palette would switch sides for twenty pixels — a menu that jumps between two
+  //    keystrokes costs the user more than a few fewer lines.
   if (below >= SLASH_MAX && below > above) return { below: true, maxHeight: SLASH_MAX };
-  // 3. Au-dessus reste utilisable → on reste du côté du curseur, plus court.
+  // 3. Above stays usable → we stay on the cursor's side, shorter.
   if (above >= SLASH_MIN_USEFUL) return { below: false, maxHeight: Math.min(SLASH_MAX, above) };
-  // 4. Le dessus ne montre plus qu'une ou deux lignes : le dessous, s'il est meilleur.
+  // 4. Above shows only one or two lines now: below, if it's better.
   if (below > above) return { below: true, maxHeight: Math.min(SLASH_MAX, below) };
-  // 5. Aucun côté n'est confortable : on garde celui du curseur, serré. JAMAIS zéro — une
-  //    palette vide se lirait « aucune compétence », ce qui est une autre affirmation, fausse.
+  // 5. Neither side is comfortable: we keep the cursor's side, tight. NEVER zero — an
+  //    empty palette would read as « aucune compétence », which is a different, false claim.
   return { below: false, maxHeight: Math.max(80, Math.min(SLASH_MAX, above)) };
 }

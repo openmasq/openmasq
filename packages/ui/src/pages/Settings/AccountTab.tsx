@@ -146,11 +146,11 @@ export function AccountTab({
         </section>
       )}
 
-      {/* `host.billing` n'existe que dans un build qui VEND des abonnements
-          (`OPENMASQ_BILLING=1` — éteint par défaut) : sans lui il n'y a PAS d'abonnement à
-          utiliser, et l'interrupteur n'offrirait qu'un aiguillage vers une vente qui
-          n'existe pas. Absent, donc — les modèles inclus se servent sur le compte, et vos
-          propres clés passent devant dès qu'elles existent (`send/routing.ts`). */}
+      {/* `host.billing` only exists in a build that SELLS subscriptions
+          (`OPENMASQ_BILLING=1` — off by default): without it there is NO subscription to
+          use, and the switch would only offer a redirect to a sale that
+          doesn't exist. Absent, then — included models are served on the account, and your
+          own keys take precedence as soon as they exist (`send/routing.ts`). */}
       {host.billing && (
         <section className="settings-section">
           <div className="cv-eyebrow">{t.accountTab.billingEyebrow}</div>
@@ -173,8 +173,8 @@ export function AccountTab({
 
       <AppearanceSection draft={draft} setDraft={setDraft} />
 
-      {/* Le créneau absent (aperçu web, mobile) ⇒ pas d'interrupteur : un réglage qui
-          promet une bannière que la plateforme ne sait pas dessiner est un mensonge. */}
+      {/* The slot absent (web preview, mobile) ⇒ no switch: a setting that
+          promises a banner the platform can't draw is a lie. */}
       {host.notify && (
         <section className="settings-section">
           <div className="cv-eyebrow">{t.accountTab.notifEyebrow}</div>

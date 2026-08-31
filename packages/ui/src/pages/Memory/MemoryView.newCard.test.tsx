@@ -7,10 +7,10 @@ import { useMemoryStore } from "../../state/useMemory";
 import type { Settings } from "../../types";
 
 /**
- * Le bouton « Nouvelle fiche » CÂBLÉ sur la vraie CRUD — nettoyage automatique compris.
- * Le placeholder portait un nom FIXE : `autoCleanMemory` refondait la deuxième fiche
- * dans la première (même clé, même catégorie) à l'instant de sa création, donc à partir
- * du deuxième clic le bouton ne faisait plus rien du tout.
+ * The « Nouvelle fiche » button WIRED to the real CRUD — automatic cleanup included.
+ * The placeholder carried a FIXED name: `autoCleanMemory` merged the second card
+ * into the first (same key, same category) the instant it was created, so from
+ * the second click onward the button did nothing at all.
  */
 function Harness({ seen }: { seen: { entities: string[] } }) {
   const [settings, setSettings] = useState<Settings>({} as Settings);

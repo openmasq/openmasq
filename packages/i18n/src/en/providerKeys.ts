@@ -1,7 +1,7 @@
 /**
- * Tranche « providerKeys » du catalogue EN — traduit de la source (`../fr/providerKeys.ts`).
+ * The EN catalogue's « providerKeys » slice — translated from the source (`../fr/providerKeys.ts`).
  *
- * `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat
+ * `satisfies` per entry: the compiler demands EXACTLY the contract's keys
  * (`../messages/providerKeys.ts`), ni plus ni moins.
  */
 import type { Messages } from "../messages";

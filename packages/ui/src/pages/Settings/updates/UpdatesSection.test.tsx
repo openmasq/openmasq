@@ -13,13 +13,13 @@ import { mount } from "../../../testKit";
 import type { Host } from "../../../host";
 
 /**
- * LE MENU VERSIONS DIT CE QUI A CHANGÉ — même quand il n'a aucune build à lister.
+ * THE VERSIONS MENU SAYS WHAT CHANGED — even when it has no build to list.
  *
- * L'historique des BUILDS (installer, épingler, revenir) n'est rendu que sur une build de
- * staging ou pour un appareil privilégié : partout ailleurs la page se réduisait à « L'app
- * est à jour », sans une seule version ni une ligne de nouveautés. Or c'est ce que cet écran
- * promet. On épingle donc les deux moitiés de la règle, parce que l'une sans l'autre est
- * soit une page muette, soit la même liste écrite deux fois.
+ * The BUILD history (install, pin, revert) is rendered only on a staging build or for a
+ * privileged device: everywhere else the page used to reduce to "The app is up to date",
+ * with not a single version nor a line of what's new. Yet that is what this screen
+ * promises. So both halves of the rule are pinned, because one without the other is
+ * either a mute page, or the same list written twice.
  */
 
 const NOTES = [
@@ -33,7 +33,7 @@ const NOTES = [
   { version: "0.4.2", releaseDate: "2026-08-05", title: "Le redaction voit plus large", body: "", highlights: [] },
 ];
 
-/** Un hôte de BUREAU minimal : la section entière est masquée sans `host.updates`. */
+/** A minimal DESKTOP host: the whole section is hidden without `host.updates`. */
 const updatesHost = (): Partial<Host> => ({
   releaseNotesUrl: "https://exemple.test/release-notes",
   updates: {
@@ -52,8 +52,8 @@ const render = (host: Partial<Host> = updatesHost()) =>
     wrap: (children: ReactNode) => <Provider store={store}>{children}</Provider>,
   });
 
-/** Le cache tel qu'il est chez un compte ordinaire : build de production, aucun droit
- *  d'épingler, aucune vue inter-environnements → la vue NON technique. */
+/** The cache as it is for an ordinary account: production build, no right
+ *  to pin, no cross-environment view → the NON-technical view. */
 const ordinaryDevice = () => {
   store.dispatch(
     setUpdatesCache({
@@ -79,9 +79,9 @@ describe("Réglages → Versions — l'historique publié", () => {
 
     expect(ui.findAll(".rn-version").map((v) => v.textContent)).toEqual(["0.5.0", "0.4.2"]);
     expect(ui.find(".rn-title").textContent).toBe("La console change de peau");
-    // Le CONTENU Contentful, pas seulement le numéro : la puce de la note est rendue.
+    // The Contentful CONTENT, not just the number: the note's bullet is rendered.
     expect(ui.find(".ver-rellist").textContent).toContain("un onglet dans l'aide");
-    // La date est écrite en français, jamais l'ISO brut.
+    // The date is written in French, never the raw ISO.
     expect(ui.find(".rn-date").textContent).toBe("11 août 2026");
 
     await ui.unmount();
@@ -99,7 +99,7 @@ describe("Réglages → Versions — l'historique publié", () => {
   it("sans source de notes (aperçu, relais coupé), aucune section vide n'apparaît", async () => {
     ordinaryDevice();
     store.dispatch(setReleaseNotesCache(NOTES));
-    const ui = await render({ updates: updatesHost().updates }); // pas de `releaseNotesUrl`
+    const ui = await render({ updates: updatesHost().updates }); // no `releaseNotesUrl`
 
     expect(ui.maybe(".rn-list")).toBeNull();
     expect(ui.maybe(".ver-empty")).toBeNull();
@@ -107,8 +107,8 @@ describe("Réglages → Versions — l'historique publié", () => {
   });
 
   it("sur un appareil privilégié la liste publiée ne DOUBLE pas l'historique des builds", async () => {
-    // Vue technique : chaque build porte déjà sa note sous sa ligne. Réafficher la liste
-    // publiée en dessous écrirait deux fois les mêmes nouveautés sur le même écran.
+    // Technical view: each build already carries its note below its row. Re-showing the
+    // published list underneath would write the same updates twice on the same screen.
     store.dispatch(
       setUpdatesCache({
         current: { version: "0.5.0", channel: "desktop-production" } as never,
@@ -123,7 +123,7 @@ describe("Réglages → Versions — l'historique publié", () => {
     const ui = await render();
 
     expect(ui.maybe(".rn-list")).toBeNull();
-    // …mais la note EST là, attachée à la build (le rendu partagé `ver-rellist`).
+    // …but the note IS there, attached to the build (the shared `ver-rellist` render).
     expect(ui.find(".ver-rellist").textContent).toContain("un onglet dans l'aide");
     await ui.unmount();
   });

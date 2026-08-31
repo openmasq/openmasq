@@ -14,6 +14,7 @@ import { filterEgress, groupEgress, summarise } from "./egressJournal";
 // sole writer, so nothing here can author or erase a row. Absent host slot ⇒ the card is
 // not drawn (browser preview makes no outbound calls on the user's behalf).
 
+
 const LIMIT = 500;
 
 export function EgressJournalCard() {
@@ -106,8 +107,8 @@ export function EgressJournalCard() {
                     <div className="egress-sources">{g.sources.join(" · ")}</div>
                   </div>
                   <div className="egress-meta">
-                    {/* Règle 12 : la teinte voyage avec son encre (`.hl-red` → `--mk` /
-                        `--mk-ink`), donc elle s'inverse avec les quatre thèmes. */}
+                    {/* Rule 12: the tint travels with its ink (`.hl-red` → `--mk` /
+                        `--mk-ink`), so it inverts along with the four themes. */}
                     {g.refused > 0 ? (
                       <span
                         className="hl-red egress-refused"

@@ -41,14 +41,14 @@ export function platformTokenFailure(
   }
   if (p.freeModel) {
     return {
-      // « ne demande que votre compte » compte ici : sans ça, une session expirée se
-      // lit comme un mur payant sur un modèle gratuit.
+      // « ne demande que votre compte » matters here: without it, an expired session
+      // reads like a paywall on a free model.
       text: `Reconnectez-vous pour continuer — ce modèle gratuit ne demande que votre compte ${BRAND.name}.`,
     };
   }
   const tier = knownTier(p.personalSub);
-  // Palier inconnu — ou build qui ne VEND rien (`subscriptionsSold`, le défaut) : il n'y a
-  // alors ni palier à nommer ni abonnement à proposer, seulement une session à rouvrir.
+  // Unknown tier — or a build that SELLS nothing (`subscriptionsSold`, the default): there
+  // is then no tier to name and no subscription to offer, only a session to reopen.
   if (tier === null || !subscriptionsSold()) {
     return {
       text: `Ce modèle passe par votre compte ${BRAND.name}. Votre session n'est plus connectée. Reconnectez-vous.`,

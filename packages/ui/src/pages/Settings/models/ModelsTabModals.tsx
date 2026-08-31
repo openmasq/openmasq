@@ -26,10 +26,10 @@ export function ModelsTabModals({
   keyProvider: ProviderId | null;
   onCloseKey: () => void;
   onSetApiKey: (id: string, value: string) => void | Promise<void>;
-  /** Retirer la clé d'un fournisseur. Absent ⇒ la modale n'offre pas le retrait. */
+  /** Remove a provider's key. Absent ⇒ the modal doesn't offer removal. */
   onClearApiKey?: (id: string) => void | Promise<void>;
-  /** Les fournisseurs qui ont DÉJÀ une clé : la modale doit dire lequel des deux cas
-   *  elle est en train de jouer (ajouter / remplacer). */
+  /** The providers that ALREADY have a key: the modal must say which of the two cases
+   *  it's currently playing (add / replace). */
   keyConfigured?: ReadonlySet<string>;
   /** OAuth PKCE — offered INSIDE the key modal, for the provider that has it. */
   onConnectOpenRouter?: () => Promise<boolean>;

@@ -1,6 +1,6 @@
 /**
- * Tranche « conversation » du catalogue FR — la langue SOURCE : l'écran de la
- * conversation, son navigateur agent, et tout ce qui borde un message.
+ * The FR catalogue's « conversation » slice — the SOURCE language: the
+ * conversation screen, its agent browser, and everything bordering a message.
  */
 import type { Messages } from "../messages";
 

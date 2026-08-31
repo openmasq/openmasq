@@ -36,7 +36,7 @@ export interface RouteToolsParams {
   /** Overrides `routeDescMaxChars` (default 140). Only the eval bench sweeps this
    *  (`evals/strategies.ts`) — production never overrides it. */
   cfg?: RoutingConfig;
-  /** L'id de la boucle appelante — relie les sauvetages au reste du funnel agentique. */
+  /** The id of the calling loop — links the rescues to the rest of the agentic funnel. */
   loopId?: string;
 }
 
@@ -114,22 +114,22 @@ export async function routeTools(p: RouteToolsParams): Promise<Set<string>> {
     toolChoice: "required",
   });
 
-  // ILLISIBLE ≠ « aucun outil requis ». Un JSON difforme du modèle routeur (`argsError`),
-  // une réponse sans appel, ou un `tool_names` qui n'est pas une liste se lisaient tous
-  // comme un pick vide LÉGITIME — le modèle repartait sans un seul outil connecteur et
-  // improvisait à l'aveugle (mesuré : 85 picks vides/30 j, tous modèles). Seule une liste
-  // `[]` EXPLICITE vaut « aucun outil » ; l'illisible REMONTE, typé, pour que l'appelant
-  // choisisse son repli (garde-tout si ça rentre) SANS armer le cooldown de configuration.
+  // UNREADABLE ≠ "no tool required". A malformed JSON from the router model (`argsError`),
+  // a response with no call, or a `tool_names` that isn't a list all used to read as a
+  // LEGITIMATE empty pick — the model went on with zero connector tools and
+  // improvised blindly (measured: 85 empty picks/30 days, all models). Only an EXPLICIT
+  // `[]` list means "no tool"; the unreadable case is SURFACED, typed, so the caller
+  // can choose its fallback (keep-all-if-it-fits) WITHOUT arming the configuration cooldown.
   const call = res.toolCalls.find((c) => c.name === "select_tools") ?? res.toolCalls[0];
   if (!call) throw new RouterUnreadableError("réponse sans appel select_tools");
   if (call.argsError) throw new RouterUnreadableError(`arguments illisibles : ${call.argsError}`);
   const picked = call.arguments?.tool_names;
   if (!Array.isArray(picked)) throw new RouterUnreadableError("tool_names absent ou non-liste");
 
-  // Deux sauvetages sur les noms retenus, AVANT de jeter : le nom NU (`search_conversations`
-  // sans préfixe — même résolution que le dispatch, un candidat unique ou rien), et le pick
-  // au niveau CONNECTEUR (« intercom » — le routeur répond parfois par le service entier).
-  // L'intersection exacte silencieuse jetait les deux, et un pick pourtant juste devenait vide.
+  // Two rescues on the retained names, BEFORE discarding: the BARE name (`search_conversations`
+  // with no prefix — same resolution as the dispatch, a single candidate or none), and the
+  // CONNECTOR-level pick (« intercom » — the router sometimes answers with the whole service).
+  // The silent exact intersection used to drop both, and an otherwise correct pick went empty.
   const byPrefix = new Map<string, string[]>();
   for (const n of real) {
     const i = n.indexOf("__");
@@ -165,8 +165,8 @@ export async function routeTools(p: RouteToolsParams): Promise<Set<string>> {
   return keep;
 }
 
-/** La réponse du routeur n'a pas pu être LUE — à distinguer d'un pick vide (légitime) et
- *  d'un échec transport/configuration (qui, lui, arme le cooldown). */
+/** The router's response could NOT be READ — distinct from an empty pick (legitimate) and
+ *  from a transport/configuration failure (which DOES arm the cooldown). */
 export class RouterUnreadableError extends Error {}
 
 // ── Router cooldown ──────────────────────────────────────────────────────────

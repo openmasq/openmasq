@@ -54,8 +54,8 @@ export function UsageTab({
   // Billing-path filter — re-derives every message/token/model figure below. The
   // credit balances (server-metered, real) are unaffected.
   const [billed, setBilled] = useState<BilledFilter>("all");
-  // La fenêtre est un FILTRE au même titre que la voie de facturation : les deux se
-  // tiennent sur la même rangée, au-dessus des graphes, et chaque panneau la relit.
+  // The window is a FILTER on the same footing as the billing path: the two sit
+  // on the same row, above the graphs, and each panel reads it back.
   const [days, setDays] = useState<UsageRangeDays>(DEFAULT_RANGE);
 
   const rows = useMemo(() => usageByModel(conversations, billed), [conversations, billed]);
@@ -71,8 +71,8 @@ export function UsageTab({
   );
   const maxTotal = useMemo(() => Math.max(1, ...rows.map((r) => r.total)), [rows]);
   const daily = useMemo(() => dailyActivityCounts(conversations, days), [conversations, days]);
-  // La MÊME source de couleurs que la timeline : la pastille d'une ligne et son aplat
-  // dans la barre doivent être la même chose, sinon les deux panneaux se contredisent.
+  // The SAME color source as the timeline: a line's dot and its fill
+  // in the bar must be the same thing, otherwise the two panels contradict each other.
   const colorOf = useMemo(() => {
     const { days: st, models } = dailyModelMessages(conversations, days, billed);
     return seriesColors(buildSeries(st, models));
@@ -111,9 +111,9 @@ export function UsageTab({
         <div className="usage-kpis">
           {kpi(t.usageTab.kpiMessages, totals.messages.toLocaleString(t.common.intlTag), filterSub)}
           {kpi(t.usageTab.kpiTokens, formatTokens(totals.total), t.usageTab.kpiTokensSub)}
-          {/* Sans budget mesuré ET sans rien à vendre (le défaut), une carte « Crédits — aucun
-              abonnement » parlerait d'un produit qui n'existe pas : elle n'apparaît que
-              lorsqu'un solde existe (budget d'organisation) ou qu'un build vend. */}
+          {/* With no measured budget AND nothing to sell (the default), a « Crédits — aucun
+              abonnement » card would talk about a product that doesn't exist: it only
+              appears when a balance exists (an organization budget) or a build sells. */}
           {(creditBal || subscriptionsSold()) &&
             kpi(
               t.usageTab.kpiCredits,
@@ -140,9 +140,9 @@ export function UsageTab({
             {/* The kit labels this "messages / jour, par modèle" over per-model stacked
                 bars. The persisted schema has no per-message timestamp, so the only
                 honest daily signal is conversations touched — say exactly that. */}
-            {/* Le MAX est écrit : sans axe des ordonnées, une hauteur ne veut rien dire
-                toute seule, et une infobulle « améliore, elle ne conditionne pas » — la
-                valeur haute doit être lisible sans survoler. */}
+            {/* The MAX is written out: with no y-axis, a height means nothing on
+                its own, and a tooltip "improves, it doesn't gate" — the
+                high value must be readable without hovering. */}
             <span className="usage-panel-meta">
               {t.usageTab.activityMeta(maxDaily)}
             </span>
@@ -154,10 +154,10 @@ export function UsageTab({
             {daily.map((v, i) => {
               const label = t.usageTab.dayLabel(days - 1 - i, v);
               return (
-                /* La CIBLE de survol est la colonne entière, pas la barre : à 6 messages
-                   sur 14 jours une barre fait 3 px de haut, et le jour à zéro n'a rien à
-                   viser du tout. Focalisable pour que le clavier obtienne la même valeur
-                   que la souris (`TooltipLayer` écoute aussi `focusin`). */
+                /* The hover TARGET is the whole column, not the bar: at 6 messages
+                   over 14 days a bar is 3px tall, and the zero day has nothing to
+                   aim at at all. Focusable so the keyboard gets the same value
+                   as the mouse (`TooltipLayer` also listens for `focusin`). */
                 <div
                   key={i}
                   className="usage-bar-col"
@@ -175,8 +175,8 @@ export function UsageTab({
               );
             })}
           </div>
-          {/* Deux ancres suffisent à situer la fenêtre — un axe complet à 90 jours
-              serait illisible, et à 7 il serait redondant. */}
+          {/* Two anchors are enough to place the window — a full axis at 90 days
+              would be unreadable, and at 7 it would be redundant. */}
           <div className="usage-axis">
             <span>J-{days - 1}</span>
             <span>J</span>
@@ -200,14 +200,14 @@ export function UsageTab({
                 const pct = Math.round((r.total / maxTotal) * 100);
                 return (
                   <div className="usage-mrow" key={r.model}>
-                    {/* couleur issue de la donnée → l'exception inline assumée */}
+                    {/* color derived from data → the accepted inline exception */}
                     <span className="usage-dot" style={{ background: colorOf.get(r.model) ?? "var(--chart-other)" }} />
                     <div className="usage-mname">
                       <div className="usage-mname-name">{r.label}</div>
                       <div className="usage-mname-vendor">{vendor}</div>
                     </div>
                     <div className="usage-mbar">
-                      {/* largeur + couleur issues de la donnée → inline assumé */}
+                      {/* width + color derived from data → inline accepted */}
                       <div className="usage-mbar-fill" style={{ width: pct + "%", background: colorOf.get(r.model) ?? "var(--chart-other)" }} />
                     </div>
                     <span className="usage-mmsgs">{t.usageTab.msgs(r.messages.toLocaleString(t.common.intlTag))}</span>

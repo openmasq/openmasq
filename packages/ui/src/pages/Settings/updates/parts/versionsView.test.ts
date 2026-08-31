@@ -13,8 +13,8 @@ describe("page Versions — ce qu'on montre, et à qui", () => {
   });
 
   it("⚠️ ne dit PAS « à jour » pendant que l'updater travaille — ni s'il a échoué", () => {
-    // « à jour » est une affirmation. Elle rassurerait pendant un téléchargement, et
-    // mentirait après une erreur.
+    // « à jour » is a claim. It would reassure during a download, and
+    // would lie after an error.
     for (const s of ["checking", "available", "downloading", "downloaded", "error"] as const)
       expect(versionsView(st(s), { current: prod }), s).toEqual({ kind: "busy" });
   });
@@ -29,9 +29,9 @@ describe("page Versions — ce qu'on montre, et à qui", () => {
   });
 
   it("l'environnement PUBLIÉ tranche avant le nom du canal", () => {
-    // Un canal nommé sans « staging » mais publié en staging reste technique.
+    // A channel named without « staging » but published on staging stays technical.
     expect(isStagingBuild({ channel: "desktop-canary" }, [{ channel: "desktop-canary", env: "staging" }])).toBe(true);
-    // …et l'inverse : un nom trompeur ne suffit pas si l'env publié dit production.
+    // …and the reverse: a misleading name isn't enough if the published env says production.
     expect(isStagingBuild({ channel: "desktop-beta" }, [{ channel: "desktop-beta", env: "production" }])).toBe(false);
   });
 

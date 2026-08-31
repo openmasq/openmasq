@@ -8,7 +8,7 @@
  * failed to install correctly", one red file out of 647 — and two minutes later ANOTHER file
  * importing the same module went green. So it was not a broken test but a RACE, arbitrated
  * by luck alone, which no local `pnpm test`
- * ne pouvait montrer.
+ * could show.
  *
  * The alias (`vitest.config.ts`) removes the race by removing its cause: nothing in the
  * suite resolves the real package any more, hence no network, and local and CI see exactly

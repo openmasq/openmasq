@@ -1,6 +1,6 @@
 /**
- * Tranche « settingsMore » du catalogue FR — la langue SOURCE (Paiement, Usage, Vos
- * appareils, Organisation, Import). `satisfies` par entrée.
+ * The FR catalogue's « settingsMore » slice — the SOURCE language (Paiement, Usage, Vos
+ * appareils, Organisation, Import). `satisfies` per entry.
  */
 import type { Messages } from "../messages";
 

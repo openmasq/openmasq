@@ -49,8 +49,8 @@ describe("askPageDraft — ce qu'amorce « Demander »", () => {
   });
 
   it("retombe sur l'URL quand le titre manque ou n'est que du blanc", () => {
-    // Une page en cours de chargement n'a pas encore de titre ; des chevrons vides
-    // donneraient « À propos de la page «  » ».
+    // A page still loading has no title yet; empty chevrons
+    // would give « À propos de la page «  » ».
     for (const title of [undefined, "", "   "])
       expect(askPageDraft({ url: "https://acme.co/x", title })).toContain("« https://acme.co/x »");
   });

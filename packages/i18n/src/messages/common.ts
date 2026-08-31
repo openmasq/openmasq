@@ -1,20 +1,20 @@
 /**
- * Les mots que TOUT rend : verbes d'action, navigation principale, facturation.
+ * The words EVERYTHING renders: action verbs, main navigation, billing.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
- * Le découpage tient le cap 300 LOC (règle 1) — même forme que `packages/emails/i18n/`.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
+ * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
  */
 
-/** Verbes et mots d'action réutilisés partout — la première chose à ne pas dupliquer. */
+/** Verbs and action words reused everywhere — the first thing not to duplicate. */
 export interface CommonMessages {
   /**
-   * La BALISE `Intl` de cette langue — « fr-FR », « en-GB ».
+   * This language's `Intl` TAG — « fr-FR », « en-GB ».
    *
-   * Elle vit dans le catalogue pour que `t` suffise à tout formater : un formateur qui
-   * réclamerait en plus la `Locale` obligerait chaque appelant à porter les deux, et
-   * c'est exactement là qu'on finit par en oublier un. Régionale EXPRÈS — « fr » n'est
-   * pas une balise de région, et `toLocaleString("fr")` ne groupe pas les milliers ni
-   * n'écrit l'heure comme « fr-FR ».
+   * It lives in the catalogue so that `t` is enough to format anything: a formatter that
+   * also demanded the `Locale` would force every caller to carry both, and
+   * that is exactly where one ends up forgotten. Regional ON PURPOSE — « fr » is
+   * not a region tag, and `toLocaleString("fr")` groups no thousands and does not
+   * write the time the way « fr-FR » does.
    */
   intlTag: string;
   cancel: string;
@@ -24,17 +24,17 @@ export interface CommonMessages {
   delete: string;
   confirm: string;
   loading: string;
-  /** Un compte-rendu générique d'erreur, quand rien de plus précis n'est connu. */
+  /** A generic error report, when nothing more precise is known. */
   genericError: string;
 }
 
-/** La navigation principale — le Rail de bureau ET la barre mobile (`BottomNav`) lisent
- *  ces mêmes libellés (règle 9 : une navigation, une source). */
+/** The main navigation — the desktop Rail AND the mobile bar (`BottomNav`) read
+ *  these same labels (rule 9: one navigation, one source). */
 export interface NavMessages {
-  /** Étiquette du lecteur d'écran sur l'élément `<nav>`. */
+  /** Screen-reader label on the `<nav>` element. */
   ariaLabel: string;
   chats: string;
-  /** Volontairement court (barre mobile) — « Compét. », « Skills ». */
+  /** Deliberately short (mobile bar) — « Compét. », « Skills ». */
   competences: string;
   memory: string;
   vault: string;
@@ -42,9 +42,9 @@ export interface NavMessages {
   settings: string;
 }
 
-/** Facturation / crédits. Les MONTANTS ne sont PAS ici : `Intl.NumberFormat` les rend
- *  selon la locale (`billing.ts` `formatCents`). Ici seulement la prose. */
-/** Un palier d'abonnement tel que la grille le montre. Prix et crédits viennent du code. */
+/** Billing / credits. The AMOUNTS are NOT here: `Intl.NumberFormat` renders them
+ *  per locale (`billing.ts` `formatCents`). Only the prose lives here. */
+/** A subscription tier as the grid shows it. Price and credits come from the code. */
 export interface PlanTierCopy {
   name: string;
   tag?: string;
@@ -52,10 +52,10 @@ export interface PlanTierCopy {
 }
 
 export interface BillingMessages {
-  /** Les deux CTA : pas d'abonnement encore, ou un plus grand. */
+  /** The two CTAs: no subscription yet, or a bigger one. */
   ctaSee: string;
   ctaUpgrade: string;
-  /** Ce qu'on lit quand l'usage inclus du mois est épuisé — deux surfaces le rendent. */
+  /** What one reads when the month's included usage runs out — two surfaces render it. */
   exhaustedTitle: string;
   exhaustedBody: string;
   tiers: { free: PlanTierCopy; solo: PlanTierCopy; team: PlanTierCopy };
@@ -72,16 +72,16 @@ export interface BillingMessages {
     serverDown: string;
     generic: string;
   };
-  /** Échec d'ouverture de la page de paiement Stripe. */
+  /** Failure to open the Stripe payment page. */
   checkoutOpenFailed: string;
-  /** Le MODE GRATUIT du déploiement (`OPENMASQ_FREE_MODE`) : l'onglet Paiement n'a plus
-   *  d'offre à montrer — tout est inclus. Titre, explication, et la ligne de la jauge qui
-   *  ne peut plus dire « restants sur ». */
+  /** The deployment's FREE MODE (`OPENMASQ_FREE_MODE`): the Paiement tab no longer has
+   *  an offer to show — everything is included. Title, explanation, and the gauge line that
+   *  can no longer say « restants sur ». */
   freeModeEyebrow: string;
   freeModeTitle: string;
   freeModeBody: (brand: string) => string;
-  /** « 1,20 € utilisés ce mois-ci · sans limite » — le montant vient d'`Intl`. */
+  /** « 1,20 € utilisés ce mois-ci · sans limite » — the amount comes from `Intl`. */
   freeModeUsed: (amount: string) => string;
-  /** Le libellé du palier synthétique servi en mode gratuit (`tierLabel`). */
+  /** The label of the synthetic tier served in free mode (`tierLabel`). */
   unlimitedTier: string;
 }

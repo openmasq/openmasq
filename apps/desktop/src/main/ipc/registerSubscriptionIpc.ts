@@ -2,14 +2,14 @@ import { handle } from "./handle";
 import { claudeCliPath, subscriptionCliPath } from "../subscription/desktop";
 
 /**
- * La famille ABONNEMENT — aujourd'hui une seule question : « la CLI Claude Code
- * est-elle installée ici ? ». C'est ce qui fait apparaître (ou pas) le modèle
- * `claude-cli` dans les sélecteurs.
+ * The SUBSCRIPTION family — today just one question: « is the Claude Code CLI
+ * installed here? ». This is what makes the model `claude-cli` appear (or not)
+ * in the pickers.
  *
- * Le renderer ne reçoit qu'un BOOLÉEN : jamais le chemin du binaire (aucune raison
- * de lui décrire le disque), et la sonde ne SPAWN rien — quelques `access()` sur
- * des racines connues (`resolveCli`). L'auth, elle, se constate à l'usage : une CLI
- * installée mais jamais connectée échoue au premier envoi, avec son message.
+ * The renderer only ever receives a BOOLEAN: never the binary's path (no reason
+ * to describe the disk to it), and the probe SPAWNS nothing — a few `access()` calls on
+ * known roots (`resolveCli`). Auth itself is only observed in use: a CLI
+ * installed but never connected fails on the first send, with its own message.
  */
 export function registerSubscriptionIpc(): void {
   handle("subscription:cli-available", [], () => claudeCliPath() !== null);

@@ -46,10 +46,10 @@ async function renderSheet(
   });
   // parse() lazy-imports `xlsx` (a real module load — macrotasks, not just
   // microtasks) then setState — poll on real ticks until the grid mounts.
-  // ⚠️ Le budget est une VRAIE seconde de mur, pas un temps simulé : sous la charge de
-  // la suite complète (~600 fichiers en parallèle), 100 × 10 ms ne suffisait plus et le
-  // test tombait « grid never mounted » alors qu'il passe seul. 4 s ne ralentit rien
-  // (la boucle sort dès que la grille monte), et supprime le faux rouge.
+  // ⚠️ The budget is a REAL wall-clock second, not simulated time: under the load of
+  // the full suite (~600 files in parallel), 100 × 10 ms stopped being enough and the
+  // test would fail « grid never mounted » even though it passes alone. 4 s doesn't slow
+  // anything down (the loop exits as soon as the grid mounts), and removes the false red.
   let grid: HTMLTableElement | null = null;
   for (let i = 0; i < 400 && !grid; i++) {
     await act(async () => {
@@ -100,7 +100,7 @@ describe("SpreadsheetViewer — un CSV redacted est SURLIGNÉ", () => {
     expect(marks.length, "aucune marque dans la grille CSV").toBeGreaterThan(0);
     const m = marks.find((x) => x.textContent === "Augustin Vaudel")!;
     expect(m, "la valeur réelle n'est pas marquée").toBeTruthy();
-    // La teinte arrive par `.hl-<hue>` ; un `tone-<hue>` ne mappe rien pour une marque.
+    // The tone arrives via `.hl-<hue>`; a `tone-<hue>` maps nothing for a mark.
     expect(m.classList.contains("hl-sky")).toBe(true);
     expect([...m.classList].some((c) => c.startsWith("tone-"))).toBe(false);
   });
@@ -115,17 +115,17 @@ describe("SpreadsheetViewer — un CSV redacted est SURLIGNÉ", () => {
 });
 
 /**
- * La COUPE d'envoi, matérialisée dans la grille : sur un gros CSV, seules les lignes
- * dans la borne sont détectées ET envoyées — les suivantes ne quittent jamais la
- * machine. Sans ce rendu, elles s'affichaient en clair dans la lecture redacted et
- * se lisaient comme « parties non redacted » (le bug rapporté du 27/08).
+ * The send CUT, made visible in the grid: on a big CSV, only the rows
+ * within the bound are detected AND sent — the rest never leave the
+ * machine. Without this rendering, they used to show in clear in the redacted view and
+ * read as « unredacted parts » (the bug reported on 27/08).
  */
 describe("SpreadsheetViewer — la coupe d'envoi est visible, jamais mensongère", () => {
   it("grise les lignes au-delà de `cutRow` et l'explique en toutes lettres", async () => {
-    // 10 : la frontière tombe DANS la première fenêtre virtualisée (le jsdom n'en
-    // monte qu'une trentaine), pour voir les deux côtés à la fois.
+    // 10: the boundary falls WITHIN the first virtualised window (jsdom only
+    // mounts about thirty), so both sides are visible at once.
     const el = await renderSheet({ cutRow: 10 });
-    // Lignes visibles (virtualisées) : celles dont le numéro dépasse la coupe sont grisées.
+    // Visible (virtualised) rows: those whose number is past the cut are greyed out.
     const rows = [...el.querySelectorAll("tbody tr:not(.fv-spacer)")];
     const sent = rows.filter((r) => !r.classList.contains("fv-row-unsent"));
     const unsent = rows.filter((r) => r.classList.contains("fv-row-unsent"));
@@ -139,7 +139,7 @@ describe("SpreadsheetViewer — la coupe d'envoi est visible, jamais mensongère
       const num = Number(r.querySelector(".fv-grid-rowhead")?.textContent);
       expect(num).toBeGreaterThan(10);
     }
-    // La note dit ce que le grisé veut dire — ne part pas ≠ parti en clair.
+    // The note says what the grey-out means — doesn't leave ≠ left in clear.
     expect(el.querySelector(".fv-cut-note")?.textContent).toContain("lignes 1 à 10");
     expect(el.querySelector(".fv-cut-note")?.textContent).toContain("ne quittent jamais la machine");
   });

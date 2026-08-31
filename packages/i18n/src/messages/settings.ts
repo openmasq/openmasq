@@ -1,49 +1,49 @@
 /**
- * Les RÉGLAGES — leurs onglets, leurs entrées atteignables au ⌘K, leurs groupes mobiles.
+ * The SETTINGS — their tabs, their ⌘K-reachable entries, their mobile groups.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
- * Le découpage tient le cap 300 LOC (règle 1) — même forme que `packages/emails/i18n/`.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
+ * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
  */
 
-/** L'étiquette du rail, le titre du panneau, la phrase d'une ligne ⌘K, et les mots qu'on
- *  tape pour tomber dessus — un onglet de réglages se nomme ici, une seule fois. */
+/** The rail label, the panel title, a ⌘K row's sentence, and the words one types
+ *  to land on it — a settings tab is named here, once. */
 export interface SettingsTab {
   label: string;
   title: string;
-  /** Une FONCTION, comme toute entrée à variable (cf. l'en-tête) : un seul onglet nomme
-   *  la marque aujourd'hui, mais un `sub` sur deux formes ferait deux façons de le lire
+  /** A FUNCTION, like every entry with a variable (see the header): only one tab names
+   *  the brand today, but a `sub` in two shapes would make two ways of reading it
    *  au moment de l'assemblage. */
   sub: (brand: string) => string;
   kw: string;
 }
 
-/** Un réglage individuel atteignable au ⌘K : ce qu'il s'appelle, et ce qu'on tape. */
+/** An individual setting reachable from ⌘K: what it is called, and what one types. */
 export interface SettingsEntry {
   label: string;
   kw: string;
 }
 
-/** Les RÉGLAGES. « Apparence » y entre la première parce que c'est la section qui
- *  porte le sélecteur de langue : la laisser en français en dur aurait rendu la seule
- *  section qu'un anglophone doit atteindre illisible pour lui. */
+/** The SETTINGS. « Apparence » comes first because it is the section that
+ *  carries the language picker: leaving it hard-coded in French would have made the one
+ *  section an English speaker must reach unreadable to them. */
 export interface SettingsMessages {
   appearance: {
-    /** L'intitulé de la section. */
+    /** The section's heading. */
     title: string;
-    /** Le commutateur de fond sombre : son titre, puis ce qu'il fait. */
+    /** The dark-background switch: its title, then what it does. */
     darkModeLabel: string;
     darkModeHint: string;
   };
 
   /**
-   * UN ONGLET des réglages, nommé une seule fois pour ses TROIS surfaces : le rail des
-   * réglages (`label`, court), l'en-tête du panneau (`title`, souvent plus long — « MCP »
-   * devient « Serveurs MCP »), et la ligne du ⌘K (`title` + `sub`).
+   * ONE settings tab, named once for its THREE surfaces: the settings rail
+   * (`label`, short), the panel header (`title`, often longer — « MCP »
+   * becomes « Serveurs MCP »), and the ⌘K row (`title` + `sub`).
    *
-   * `kw` = ce qu'on TAPE et qui n'est ni dans l'étiquette ni dans la phrase (« facture »,
-   * « changelog », « sso »). Des mots séparés par des espaces, en minuscules, et SANS
-   * accents là où l'utilisateur tapera sans — la recherche replie les accents des deux
-   * côtés, mais un mot déjà replié coûte moins cher à relire.
+   * `kw` = what one TYPES that is neither in the label nor in the sentence (« facture »,
+   * « changelog », « sso »). Space-separated words, lowercase, and WITHOUT
+   * accents where the user will type without them — the search folds accents on both
+   * sides, but an already-folded word costs less to re-read.
    */
   tabs: {
     account: SettingsTab;
@@ -60,9 +60,9 @@ export interface SettingsMessages {
   };
 
   /**
-   * Les réglages INDIVIDUELS que la palette sait atteindre — on cherche « mode sombre »,
-   * pas l'onglet qui le contient. Liste tenue à la main EXPRÈS : une ligne par catégorie
-   * de redaction enterrerait les quatre choses qu'on cherche vraiment.
+   * The INDIVIDUAL settings the palette can reach — one hunts for « mode sombre »,
+   * not for the tab that contains it. A hand-kept list ON PURPOSE: one row per redaction
+   * category would bury the four things people actually look for.
    */
   entries: {
     darkMode: SettingsEntry;
@@ -85,10 +85,10 @@ export interface SettingsMessages {
   };
 
   /**
-   * Les EN-TÊTES de groupe de l'écran Réglages du téléphone. Dix lignes à plat font un
-   * mur sur un mobile ; le rail de bureau s'en passe (l'étiquette est à côté de son
-   * icône). `other` est le filet : un onglet qu'aucun groupe ne réclame y atterrit
-   * plutôt que de disparaître.
+   * The group HEADERS of the phone's Settings screen. Ten flat rows make a
+   * wall on a mobile; the desktop rail does without them (the label sits beside its
+   * icon). `other` is the net: a tab no group claims lands there
+   * rather than disappearing.
    */
   groups: {
     account: string;
@@ -100,6 +100,6 @@ export interface SettingsMessages {
     other: string;
   };
 
-  /** La provenance d'une ligne de réglage dans la palette : « Dans « Compte » ». */
+  /** Where a settings row in the palette comes from: « Dans « Compte » ». */
   inTab: (tabTitle: string) => string;
 }

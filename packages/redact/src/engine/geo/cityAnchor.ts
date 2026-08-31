@@ -1,27 +1,27 @@
-// L'ANCRAGE PAR VILLE — une ville réelle reçoit UN lieu faux, partout.
+// CITY ANCHORING — a real city gets ONE fake place, everywhere.
 //
-// Le défaut mesuré (`bench/tokensVsFakes.md`, le plus coûteux du banc) : la même ville
-// écrite dans deux adresses distinctes recevait deux lieux faux différents — « Bordeaux »
-// devenait Amiens dans un bloc et Carcassonne dans l'autre, et « ces deux adresses
-// sont-elles dans la même région ? » basculait de oui à non. Deux causes : `fakeGeo` choisit
-// son lieu par hachage de la VALEUR ENTIÈRE (deux rues différentes à Bordeaux hachent
-// différemment), et `resolveGeoBlocks` imposait l'unicité des faux entre blocs même pour la
-// MÊME valeur réelle.
+// The measured bug (`bench/tokensVsFakes.md`, the most costly on the bench): the same city
+// written in two separate addresses got two different fake places — « Bordeaux »
+// became Amiens in one block and Carcassonne in the other, and « are these two addresses
+// in the same region? » flipped from yes to no. Two causes: `fakeGeo` picks
+// its place by hashing the WHOLE VALUE (two different streets in Bordeaux hash
+// differently), and `resolveGeoBlocks` was enforcing fake uniqueness across blocks even for
+// the SAME real value.
 //
-// Ce module tient la table `ville réelle → lieu faux` d'un appel, semée depuis le COFFRE
-// pour tenir aussi d'un envoi à l'autre. La règle de réversibilité est RAFFINÉE, jamais
-// affaiblie : deux villes réelles distinctes gardent deux faux distincts (`usedCities`
-// l'interdit dans les deux sens) ; seule la même ville réelle partage son faux.
+// This module keeps the `real city → fake place` table for one call, seeded from the VAULT
+// so it also holds across separate sends. The reversibility rule is REFINED, never
+// weakened: two distinct real cities keep two distinct fakes (`usedCities`
+// forbids it both ways); only the same real city shares its fake.
 //
-// Aucune importation depuis `./index` (qui nous importe) : le pool et le re-tirage arrivent
-// en paramètres. État EXPLICITE par appel de `pseudonymize`, jamais au niveau du module —
-// deux conversations ne partagent rien.
+// No import from `./index` (which imports us): the pool and the re-draw arrive
+// as parameters. EXPLICIT state per `pseudonymize` call, never at the module level —
+// two conversations share nothing.
 import type { GeoPlace, ISO2 } from "./types";
 
 export interface GeoAnchors {
-  /** `"FR|bordeaux"` → le lieu faux servi pour cette ville réelle. */
+  /** `"FR|bordeaux"` → the fake place served for this real city. */
   byCity: Map<string, GeoPlace>;
-  /** `cityLower` du FAUX → clé réelle servie — l'anti-collision dans l'autre sens. */
+  /** `cityLower` of the FAKE → real key served — the anti-collision in the other direction. */
   usedCities: Map<string, string>;
 }
 
@@ -31,22 +31,22 @@ export function createGeoAnchors(): GeoAnchors {
 
 const keyOf = (c: ISO2, city: string): string => `${c}|${city.trim().toLowerCase()}`;
 
-/** Relances pendant lesquelles l'ancre tient bon avant de céder à l'anti-collision. */
+/** Retries during which the anchor holds firm before giving way to anti-collision. */
 const HOLD = 8;
 
 /**
- * Le lieu pour `realCity` : l'ancre si elle existe, sinon `fallback` — re-tiré via
- * `repick(i)` tant que sa ville sert déjà une AUTRE ville réelle — puis mémorisé.
- * Sans `anchors` (appel hors conversation, tests unitaires du faux seul) : `fallback` tel
- * quel, comportement d'avant.
+ * The place for `realCity`: the anchor if it exists, else `fallback` — re-drawn via
+ * `repick(i)` as long as its city already serves ANOTHER real city — then remembered.
+ * Without `anchors` (a call outside a conversation, the fake's own unit tests): `fallback`
+ * as-is, same as before.
  *
- * ⚠️ `attempt` est la moitié qui rend l'ancre COMPATIBLE avec l'allocateur. La première
- * version enregistrait au tirage et rendait toujours l'ancre : un candidat refusé en amont
- * (`avoid` — le faux égalait un mot déjà tapé dans la conversation) revenait donc à
- * l'IDENTIQUE à chaque relance, épuisait les 60 essais, et le repli « best-effort » ignorait
- * `avoid` : le root-fix des collisions de conversation était défait. À `attempt > 0`,
- * l'ancre AVANCE (et est ré-enregistrée) au lieu d'être rendue telle quelle — la cohérence
- * cède le pas à l'anti-collision, jamais l'inverse.
+ * ⚠️ `attempt` is the half that makes the anchor COMPATIBLE with the allocator. The first
+ * version recorded on the draw and always returned the anchor: a candidate rejected upstream
+ * (`avoid` — the fake equaled a word already typed in the conversation) therefore came back
+ * IDENTICAL on every retry, exhausted the 60 attempts, and the "best-effort" fallback ignored
+ * `avoid`: the root-fix for conversation collisions was undone. At `attempt > 0`,
+ * the anchor MOVES ON (and is re-recorded) instead of being returned as-is — coherence
+ * gives way to anti-collision, never the reverse.
  */
 export function anchorPlace(
   anchors: GeoAnchors | undefined,
@@ -59,10 +59,10 @@ export function anchorPlace(
   if (!anchors || !realCity?.trim()) return fallback;
   const key = keyOf(c, realCity);
   const hit = anchors.byCity.get(key);
-  // L'ancre TIENT pendant les premières tentatives : la rue, elle, varie déjà avec `h`,
-  // donc un rejet de candidat (mot de rue en collision) se résout SANS bouger la ville.
-  // Elle ne cède qu'après HOLD relances — le cas où c'est la ville MÊME qui est refusée
-  // (un faux égal à un mot de la conversation, le root-fix `avoid`).
+  // The anchor HOLDS during the first attempts: the street, itself, already varies with `h`,
+  // so a candidate rejection (a colliding street word) resolves WITHOUT moving the city.
+  // It only gives way after HOLD retries — the case where it's the city ITSELF that's rejected
+  // (a fake equal to a word from the conversation, the `avoid` root-fix).
   if (hit && attempt < HOLD) return hit;
   let place = attempt > 0 && repick ? repick(attempt * 41) : fallback;
   if (repick) {
@@ -80,10 +80,10 @@ export function anchorPlace(
   return place;
 }
 
-/** La ville « lâche » d'une valeur du coffre, pour le SEMIS uniquement : la queue après un
- *  code postal (« …, 33000 Bordeaux », CEDEX retiré), ou la valeur entière si elle est un
- *  nom nu (sans chiffre, ≤ 3 mots). Prudente exprès — un raté ne coûte que l'absence
- *  d'ancre (le statu quo), jamais une substitution fausse. */
+/** The "loose" city of a vault value, for SEEDING only: the tail after a
+ *  postal code (« …, 33000 Bordeaux », CEDEX stripped), or the whole value if it's a
+ *  bare name (no digit, ≤ 3 words). Deliberately cautious — a miss only costs the absence
+ *  of an anchor (the status quo), never a wrong substitution. */
 export function extractCityLoose(value: string): string | null {
   const v = value.replace(/\bCEDEX\b\s*\d*\s*$/iu, "").trim();
   const tail = v.match(/\b\d{4,5}\s+(\p{L}[\p{L}\s'’-]{1,40})$/u)?.[1];
@@ -93,10 +93,10 @@ export function extractCityLoose(value: string): string | null {
 }
 
 /**
- * Sème les ancres depuis le COFFRE, pour que la cohérence tienne d'un envoi à l'autre.
- * Une entrée n'est retenue que si son côté FAUX nomme une ville du pool (c'est la preuve
- * qu'elle est géographique — un faux nom de personne n'y correspond jamais) et si son côté
- * réel livre une ville extractible.
+ * Seeds the anchors from the VAULT, so coherence holds across separate sends.
+ * An entry is only kept if its FAKE side names a city from the pool (that's the proof
+ * it's geographic — a fake person's name never matches it) and if its
+ * real side yields an extractable city.
  */
 export function seedGeoAnchors(
   anchors: GeoAnchors,

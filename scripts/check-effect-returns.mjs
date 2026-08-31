@@ -1,5 +1,5 @@
 // The ANTI-"destroy is not a function" gate — the class of bug it forbids:
-// un `useEffect(() => expr)` en ARROW CONCISE retourne `expr` comme fonction de
+// a `useEffect(() => expr)` in CONCISE ARROW form returns `expr` as the
 // cleanup. If `expr` one day starts returning something other than a function, React
 // calls it on unmount and the WHOLE app lands on the ErrorBoundary. This is not
 // theoretical: Chromium changed `scrollIntoView` to return a PROMISE, and

@@ -22,9 +22,9 @@ export function useMcpConnectors({
 }) {
   const host = useHost();
   const t = useT();
-  // La décision vit dans `privacy/orgAllowList.ts` — l'agent la prend aussi, et les
-  // deux normalisations d'id avaient divergé (les instances multi-comptes manquaient
-  // ici, donc un connecteur refusé se déverrouillait avec un second compte).
+  // The decision lives in `privacy/orgAllowList.ts` — the agent makes it too, and the
+  // two id normalizations had diverged (multi-account instances were missing here, so
+  // a blocked connector would unlock with a second account).
   const isBlocked = useCallback(
     (id: string): boolean => !isConnectorAllowed(id, allowedMcpIds),
     [allowedMcpIds],
@@ -74,7 +74,7 @@ export function useMcpConnectors({
   // which finishes AFTER this first fetch, so an actually-reconnected connector
   // would otherwise keep showing as disconnected until the tab is reopened.
   useEffect(() => {
-    return host.mcp?.onChanged?.(refresh); // l'unsubscribe, retourné EXPRÈS
+    return host.mcp?.onChanged?.(refresh); // the unsubscribe, returned ON PURPOSE
   }, [host, refresh]);
   // Capture the authorize URL main emits during an interactive connect.
   useEffect(
@@ -279,9 +279,9 @@ export function useMcpConnectors({
   );
 
   /**
-   * Remplacer les dossiers autorisés d'un serveur local CONNECTÉ. Renvoie le message
-   * d'erreur de l'hôte, ou `undefined` — la carte l'affiche telle quelle : une révocation
-   * refusée doit se voir, pas disparaître.
+   * Replace the allowed folders of a CONNECTED local server. Returns the host's
+   * error message, or `undefined` — the card displays it as-is: a refused
+   * revocation must be visible, not disappear.
    */
   const setDirs = useCallback(
     async (serverId: string, key: string, dirs: string[]): Promise<string | undefined> => {
@@ -289,8 +289,8 @@ export function useMcpConnectors({
       setBusyFor(serverId, true);
       try {
         const info = await host.mcp.setDirs(serverId, key, dirs);
-        // `applyInfo` remplacerait l'entrée ET émettrait un `connector_connect` : ce n'est
-        // pas une connexion. On rafraîchit la liste, qui porte déjà les nouveaux dossiers.
+        // `applyInfo` would replace the entry AND emit a `connector_connect`: this isn't
+        // a connection. We refresh the list, which already carries the new folders.
         refresh();
         return info.error;
       } catch (e) {

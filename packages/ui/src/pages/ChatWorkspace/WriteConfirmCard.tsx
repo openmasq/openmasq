@@ -47,10 +47,10 @@ export function WriteConfirmCard({
   const { lines, context, json } = describeWriteArgs(args);
   const t = useT();
   const copy = writeConfirmCopy(reason, server, navHostOf(args), t);
-  // Neutre par défaut : une confirmation n'a pas à crier pour être lue, et la teinte
-  // pleine la faisait ressembler à une marque de redaction. Elle ne prend une couleur
-  // que quand elle a quelque chose à SIGNALER — la boucle a levé un signal d'exfiltration
-  // — et c'est alors l'ambre SÉMANTIQUE, pas la teinte de surlignage.
+  // Neutral by default: a confirmation doesn't need to shout to be read, and the
+  // solid tint made it look like a redaction mark. It only takes on a color
+  // when it has something to FLAG — the loop raised an exfiltration signal
+  // — and then it's the SEMANTIC amber, not the highlight tint.
   const flagged = flags.length > 0;
 
   return (
@@ -75,10 +75,10 @@ export function WriteConfirmCard({
           <button className="btn-ghost btn-inline" onClick={() => onDecision(false, false)}>
             {t.cards.writeConfirm.cancel}
           </button>
-          {/* La CTA de la marque, pas le rouge du danger : ce bouton AUTORISE ce que
-              l'utilisateur a demandé. Le rouge se réserve au destructif (`ConfirmDialog`
-              `danger`, la suppression d'une conversation) — l'étaler ici en faisait la
-              couleur ordinaire du oui, donc plus un signal. */}
+          {/* The brand's CTA, not the danger red: this button AUTHORIZES what the
+              user asked for. Red is reserved for the destructive (`ConfirmDialog`
+              `danger`, deleting a conversation) — spreading it here made it the
+              ordinary color of yes, so no longer a signal. */}
           <button className="btn-primary btn-inline" onClick={() => onDecision(true, remember)}>
             <CheckIcon size={14} /> {copy.confirm}
           </button>

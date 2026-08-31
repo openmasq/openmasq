@@ -19,7 +19,7 @@ const catLabel = (key: string): string =>
 export function OrgSection({ org }: { org: OrgProfileInfo }) {
   const host = useHost();
   const t = useT();
-  // Rôle et plan : des clés serveur, nommées dans la langue de l'interface.
+  // Role and plan: server keys, named in the interface's language.
   const roles: Record<string, string> = {
     owner: t.orgTab.roleOwner,
     admin: t.orgTab.roleAdmin,

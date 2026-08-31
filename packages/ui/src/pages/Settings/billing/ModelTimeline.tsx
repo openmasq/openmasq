@@ -6,24 +6,24 @@ import { dailyModelMessages } from "./usageActivity";
 import { OTHER_ID, buildSeries, dayCount } from "./usageSeries";
 
 import { useT } from "../../../i18n";
-/** Le nom affiché d'une série : le libellé du registre, ou « Autres » pour le seau. */
+/** The displayed name of a series: the registry's label, or "Autres" for the bucket. */
 const seriesLabel = (id: string, other: string): string =>
   id === OTHER_ID ? other : findModelAny(id)?.label ?? id;
 
 /**
- * Barres empilées — messages/jour, une couleur PAR MODÈLE.
+ * Stacked bars — messages/day, one color PER MODEL.
  *
- * ⚠️ Les couleurs viennent de la rampe catégorielle `--chart-*`, jamais des `--hl-*`.
- * Les teintes de redaction sont des fonds de surligneur : mesurées 1,3–2,5:1 sur une
- * carte blanche, elles échouent comme séries. Et elles coloraient par FOURNISSEUR — deux
- * modèles OpenAI portaient donc le même aplat, ce qui rendait la question « lequel ai-je
- * le plus utilisé ? » sans réponse. `usageSeries.ts` nomme les cinq premiers et replie le
- * reste dans « Autres ».
+ * ⚠️ Colors come from the categorical `--chart-*` ramp, never from the `--hl-*` ones.
+ * Redaction tints are highlighter backgrounds: measured at 1.3–2.5:1 on a
+ * white card, they fail as series. And they colored by PROVIDER — two
+ * OpenAI models therefore wore the same flat tone, which left the question "which one did I
+ * use most?" unanswered. `usageSeries.ts` names the first five and folds the
+ * rest into "Autres".
  *
- * ⚠️ Le filet de 2 px entre segments n'est pas un ornement. La séparation CVD la plus
- * faible de la rampe claire tombe à 7,2 (tritan), ce que la référence dataviz n'autorise
- * qu'avec un encodage SECONDAIRE — l'écart et la légende sont cet encodage. Le retirer
- * rend deux séries voisines confondues pour une partie des lecteurs.
+ * ⚠️ The 2px hairline between segments is not an ornament. The weakest CVD
+ * separation of the light ramp falls to 7.2 (tritan), which the dataviz reference only
+ * allows with a SECONDARY encoding — the gap and the legend are that encoding. Removing it
+ * makes two neighboring series indistinguishable for some readers.
  */
 export function ModelTimeline({
   conversations,
@@ -50,8 +50,8 @@ export function ModelTimeline({
     <div className="usage-panel">
       <div className="usage-panel-head">
         <h3 className="usage-panel-title">{t.usageTab.timelineTitle(days)}</h3>
-        {/* Le MAX est écrit : sans axe des ordonnées, une hauteur seule ne dit rien, et
-            l'infobulle doit AJOUTER une lecture, pas en conditionner une. */}
+        {/* The MAX is written out: without a y-axis, a height alone says nothing, and
+            the tooltip must ADD a reading, not condition one. */}
         <span className="usage-panel-meta">
           {t.usageTab.timelineMeta(maxDay)}
         </span>
@@ -63,9 +63,9 @@ export function ModelTimeline({
         <>
           <div className="usage-stack" role="group" aria-label={t.usageTab.timelineAria}>
             {stack.map((d, i) => {
-              // Le survol dit QUI, pas seulement combien : une barre empilée sans
-              // infobulle oblige à faire l'aller-retour vers la légende pour chaque
-              // segment. Jour le plus ancien à gauche ; un jour vide le dit aussi.
+              // The hover says WHO, not just how many: a stacked bar with no
+              // tooltip forces a back-and-forth to the legend for every
+              // segment. Oldest day on the left; an empty day says so too.
               const day = `J-${days - 1 - i}`;
               const lines = series
                 .map((s) => ({ s, n: dayCount(d, s, named) }))
@@ -73,9 +73,9 @@ export function ModelTimeline({
                 .map((x) => `${seriesLabel(x.s.id, t.usageTab.other)} : ${x.n}`);
               const label = lines.length ? [day, ...lines].join("\n") : `${day} · aucun message`;
               return (
-                /* La cible est la COLONNE, pas la barre : à un message par jour la barre
-                   fait quelques pixels, et un jour vide n'a rien à viser. Focalisable —
-                   le clavier lit la même chose que la souris (`TooltipLayer`/`focusin`). */
+                /* The target is the COLUMN, not the bar: at one message a day the bar
+                   is a few pixels, and an empty day has nothing to aim at. Focusable —
+                   the keyboard reads the same thing as the mouse (`TooltipLayer`/`focusin`). */
                 <div
                   key={i}
                   className="usage-stack-col"
@@ -86,7 +86,7 @@ export function ModelTimeline({
                 >
                   <div
                     className="usage-stack-bar"
-                    // hauteur issue de la donnée → l'exception inline assumée
+                    // height derived from the data → the inline exception is accepted
                     style={{ height: `${(d.total / maxDay) * 100}%` }}
                   >
                     {series.map((s) => {

@@ -5,8 +5,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 vi.mock("electron", () => ({
   utilityProcess: { fork: () => ({ on: () => {}, postMessage: () => {}, kill: () => {} }) },
   shell: { trashItem: async () => {}, openPath: async () => "" },
-  // `on` : `runtime/quitState.ts` (importé par fs/connection) enregistre `before-quit`
-  // au chargement du module — le mock doit l'accepter comme le vrai `app`.
+  // `on`: `runtime/quitState.ts` (imported by fs/connection) registers `before-quit`
+  // on module load — the mock must accept it like the real `app`.
   app: { getPath: () => "/tmp/openmasq-test-userdata", on: () => {} },
 }));
 
@@ -35,15 +35,15 @@ describe("la poignée vivante porte le périmètre COURANT", () => {
     setLiveFs(conn(["/a"]));
     expect([...getLiveFs()!.roots]).toEqual(["/a"]);
 
-    // Ce que fait `mcp:set-dirs` : on détruit, puis on refait avec le nouveau périmètre.
+    // What `mcp:set-dirs` does: destroy, then rebuild with the new perimeter.
     setLiveFs(conn(["/a", "/b"]));
     expect([...getLiveFs()!.roots]).toEqual(["/a", "/b"]);
   });
 
   it("fermer l'ANCIENNE connexion n'efface pas la nouvelle", () => {
-    // L'ordre destruction/reconstruction n'est pas garanti d'un bout à l'autre : si la
-    // fermeture de l'ancienne arrive APRÈS l'installation de la nouvelle, effacer sans
-    // condition rendrait le navigateur de dossiers et le modèle aveugles, sans erreur.
+    // The destroy/rebuild order isn't guaranteed end to end: if the
+    // old one's close arrives AFTER the new one is installed, an unconditional clear
+    // would leave the folder browser and the model blind, with no error.
     const old = conn(["/a"]);
     setLiveFs(old);
     const fresh = conn(["/a", "/b"]);
@@ -59,7 +59,7 @@ describe("la poignée vivante porte le périmètre COURANT", () => {
     const only = conn(["/a"]);
     setLiveFs(only);
     clearLiveFs(only);
-    // Absent = « pas de dossier à parcourir ». Une poignée périmée, elle, mentirait.
+    // Absent = "no folder to browse". A stale handle, on the other hand, would lie.
     expect(getLiveFs()).toBeNull();
   });
 });

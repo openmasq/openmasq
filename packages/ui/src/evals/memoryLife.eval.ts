@@ -8,9 +8,9 @@ import { runMemoryLife } from "./memoryLife";
 import { MEMORY_LIFE } from "./memoryScenarios";
 import { MEMORY_TANGLE } from "./memoryScenarios2";
 
-// LA MÉMOIRE contre un modèle VIVANT : le même cycle de vie 8-phases que le test mock,
-// mais l'agent ET l'extracteur sont le vrai modèle. Diagnostic payant (`pnpm eval`),
-// jamais un gate CI — la satisfiabilité est prouvée gratuitement par memoryLife.test.ts.
+// MÉMOIRE against a LIVE model: the same 8-phase lifecycle as the mock test,
+// but the agent AND the extractor are the real model. A paid diagnostic (`pnpm eval`),
+// never a CI gate — satisfiability is proven for free by memoryLife.test.ts.
 const KEY = process.env.OPENMASQ_EVAL_API_KEY || process.env.ZEN_API_KEY;
 const PROVIDER = (process.env.OPENMASQ_EVAL_PROVIDER || "openrouter") as ProviderId;
 const MODEL_ID = process.env.OPENMASQ_EVAL_MODEL || "poolside/laguna-s-2.1:free";
@@ -24,14 +24,14 @@ describe.skipIf(!KEY || (ONLY !== undefined && !"memoire".startsWith(ONLY)))(
     it(
       SC.name,
       async () => {
-        // Miroir du catalogue dynamique LIVE de l'app (voir scenarios/evalSuite.ts) :
-        // sans lui, un slug OpenRouter inconnu du registre statique part en flux simple.
+        // Mirrors the app's LIVE dynamic catalog (see scenarios/evalSuite.ts):
+        // without it, an OpenRouter slug unknown to the static registry falls back to a plain stream.
         if (PROVIDER === "openrouter") {
           setDynamicModels("openrouter", [{ id: MODEL_ID, label: MODEL_ID, provider: "openrouter", tools: true }]);
         }
         const res = await runMemoryLife(SC, {
           model: { provider: PROVIDER, modelId: MODEL_ID, apiKey: KEY, baseUrl: BASE_URL },
-          softFail: true, // chaque phase est mesurée même après une rouge
+          softFail: true, // each phase is measured even after a red one
         });
         const ok = res.rows.filter((r) => r.ok).length;
         const slug = MODEL_ID.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "");

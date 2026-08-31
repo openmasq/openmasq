@@ -34,11 +34,11 @@ export function redactEngineSig(
   // Include the CATEGORY toggles + numbers: a category change redacts a DIFFERENT set,
   // so a file redacted before it is stale (the chip offers "reredact") AND the send
   // won't reuse its now-outdated map — it re-detects instead.
-  // Le MODE (faux vraisemblable ⇄ marqueur `[PERSON1]`) change la forme même des
-  // substituts, donc un fichier redacted dans l'autre mode est périmé : sans lui, la
-  // RÉUSE de sa carte enverrait des faux au milieu d'une conversation en jetons — pas une
-  // fuite (tout reste coffré), mais le modèle lirait deux vocabulaires pour une seule
-  // conversation. Même raison que les catégories : réutiliser, c'est figer.
+  // The MODE (plausible fake ⇄ `[PERSON1]` marker) changes the very shape of the
+  // substitutes, so a file redacted in the other mode is stale: without it, REUSING
+  // its map would send fakes in the middle of a token-mode conversation — not a
+  // leak (everything stays vaulted), but the model would read two vocabularies for a
+  // single conversation. Same reason as the categories: reusing means freezing.
   // The conversation override is spread ON TOP of the global categories, same
   // precedence as `effectiveRedactCategories` — a conv-off category must change the
   // signature exactly like a globally-off one does above.

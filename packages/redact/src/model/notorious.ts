@@ -34,8 +34,8 @@ export { NOTORIOUS_PEOPLE, NOTORIOUS_COMMERCIAL_ORGS } from "./notoriousData";
 
 const PEOPLE_SET = new Set(PEOPLE.map(norm));
 const ORGS_SET = new Set([...ORGS, ...TICKERS].map(norm));
-// La dispense commerciale opt-in — un set SÉPARÉ, jamais fusionné dans ORGS_SET : la
-// fusion serait le retour silencieux de la dispense inconditionnelle du 27/07.
+// The opt-in commercial dispensation — a SEPARATE set, never merged into ORGS_SET: the
+// merge would be the silent return of the unconditional dispensation from 27/07.
 const COMMERCIAL_SET = new Set(COMMERCIAL_ORGS.map(norm));
 // Tickers are checked CASE-SENSITIVELY (the raw ALL-CAPS symbols) for the
 // category-independent branch below.
@@ -47,25 +47,25 @@ const leadWords = (value: string): [string, string] => {
   return [w[0] ?? "", w.slice(0, 2).join(" ")];
 };
 
-/** Contexte optionnel de la dispense, passé par l'app selon le NIVEAU de protection
- *  (la politique : `@openmasq/ui` `privacy/privacyLevel.ts` — tout sauf Strict).
- *  - `commercial: true` (OPT-IN, défaut faux) = les MARQUES commerciales — intégrations
- *    MCP de l'app comprises — rejoignent la dispense, category-scoped comme le reste.
- *  - `people: false` (OPT-OUT, défaut vrai) = le niveau Strict : les PERSONNALITÉS
- *    aussi sont redacted. Les pays et tickers restent dispensés (un pays redacted
- *    fait dériver le modèle sur la géographie d'un autre). */
+/** Optional dispensation context, passed by the app according to the protection LEVEL
+ *  (the policy: `@openmasq/ui` `privacy/privacyLevel.ts` — everything except Strict).
+ *  - `commercial: true` (OPT-IN, default false) = commercial BRANDS — including the app's
+ *    MCP integrations — join the dispensation, category-scoped like the rest.
+ *  - `people: false` (OPT-OUT, default true) = the Strict level: PUBLIC FIGURES
+ *    also get redacted. Countries and tickers stay dispensed (a redacted country
+ *    makes the model drift onto another one's geography). */
 export interface NotorietyOpts {
   commercial?: boolean;
   people?: boolean;
   /**
-   * Autoriser la dispense de FORME (la grammaire des noms de modèles) ? Vrai par défaut.
+   * Allow the SHAPE dispensation (the model-name grammar)? True by default.
    *
-   * ⚠️ Le gate de FRAGMENT (`pseudonymize/textContext.ts`) la met à FAUX, et c'est une
-   * garde, pas une optimisation : il recompose « valeur + voisin » pour rattraper un
-   * fragment d'entité notoire (« emploi » à côté de « Pôle »). Une liste fermée s'y
-   * prête ; une GRAMMAIRE productive, non — « madame Claude 3 fois cette semaine »
-   * recomposait « Claude 3 », un vrai nom de modèle, et faisait partir en clair l'un des
-   * prénoms français les plus répandus (audit 13/08, épinglé par `modelNames.test.ts`).
+   * ⚠️ The FRAGMENT gate (`pseudonymize/textContext.ts`) sets it to FALSE, and it's a
+   * safeguard, not an optimization: it recomposes "value + neighbour" to catch a
+   * fragment of a notorious entity (« emploi » next to « Pôle »). A closed list lends
+   * itself to that; a productive GRAMMAR does not — « madame Claude 3 fois cette semaine »
+   * was recomposing « Claude 3 », a real model name, and was sending one of the
+   * most common French first names out in clear (audit 13/08, pinned by `modelNames.test.ts`).
    */
   shape?: boolean;
 }
@@ -76,10 +76,10 @@ export interface NotorietyOpts {
  * issuer / index / ticker for "company", a country for "location". Anything else —
  * including these same strings under ANOTHER category — is not spared.
  */
-/** « HSBC FRANCE », « Google France », « Amazon Belgique » : la filiale nationale = la
- *  marque + un PAYS en queue. Aucune liste ne peut énumérer chaque déclinaison — quand
- *  la valeur multi-mots ne matche pas telle quelle, on réessaie SANS le pays final
- *  (journal 02/08 : « HSBC FRANCE » redacted en personne, « FRANCE » aliasé partout). */
+/** « HSBC FRANCE », « Google France », « Amazon Belgique »: the national subsidiary = the
+ *  brand + a trailing COUNTRY. No list can enumerate every declension — when
+ *  the multi-word value doesn't match as-is, we retry WITHOUT the trailing country
+ *  (log 02/08: « HSBC FRANCE » redacted as a person, « FRANCE » aliased everywhere). */
 function withoutTrailingCountry(s: string): string | null {
   const words = s.trim().split(/\s+/);
   if (words.length < 2) return null;
@@ -87,25 +87,25 @@ function withoutTrailingCountry(s: string): string | null {
 }
 
 /**
- * La même valeur SANS sa forme juridique — « Ovh Sas », « GitHub Inc », « Github, Inc. ».
+ * The same value WITHOUT its legal form — « Ovh Sas », « GitHub Inc », « Github, Inc. ».
  *
- * ⚠️ C'est un LIBELLÉ BANCAIRE qui l'a imposé (constat parcours du 15/08/2026, relevé
- * réel) : en Renforcé, « Ovh Sas » et « Github, Inc. » étaient REDACTED alors que la
- * politique les dispense — le suffixe juridique ratait la dispense — pendant qu'un vrai
- * client, lui, partait en clair. L'inverse de l'intention : les marques mondiales masquées,
- * la PME identifiable en clair.
+ * ⚠️ It was a BANK STATEMENT LABEL that forced this (user-journey finding from 15/08/2026, a
+ * real statement): in Enhanced, « Ovh Sas » and « Github, Inc. » were being REDACTED even though
+ * the policy dispenses them — the legal suffix was missing the dispensation — while a real
+ * customer, itself, was going out in clear. The opposite of the intent: the world brands masked,
+ * the identifiable SMB in clear.
  *
- * ⚠️ Sens FAIL-OPEN, donc borné : la forme juridique n'a jamais été le discriminant
- * (n'importe qui dépose « Orange SARL »), et le risque existe DÉJÀ pour la même raison sans
- * suffixe — une société réellement nommée « Orange » est dispensée aujourd'hui. On étend
- * une exposition acceptée, on n'en crée pas une nouvelle. Ce qui n'est PAS dispensé le
- * reste : « Karl Studio SAS » et « Apple Consulting » (mesurés). Même forme que
- * `withoutTrailingCountry` juste au-dessus, et `stripOrgAffixes` est l'unique implémentation
- * du vocabulaire des formes juridiques (règle 9).
+ * ⚠️ FAIL-OPEN direction, so bounded: the legal form was never the discriminant
+ * (anyone can register "Orange SARL"), and the risk ALREADY exists for the same reason without
+ * the suffix — a company genuinely named "Orange" is dispensed today. We're extending
+ * an accepted exposure, not creating a new one. What is NOT dispensed
+ * stays that way: « Karl Studio SAS » and « Apple Consulting » (measured). Same shape as
+ * `withoutTrailingCountry` just above, and `stripOrgAffixes` is the sole implementation
+ * of the legal-form vocabulary (rule 9).
  */
 function withoutLegalForm(s: string): string | null {
-  // La ponctuation de bord d'abord : « Github, Inc. » n'élaguait pas, le « , » collé au
-  // premier mot empêchait l'appariement du suffixe.
+  // Edge punctuation first: « Github, Inc. » wasn't trimming, the « , » glued to the
+  // first word was preventing the suffix from matching.
   const clean = s.trim().replace(/[,;.]+\s*$/u, "").replace(/,\s+/g, " ");
   const core = stripOrgAffixes(clean).trim();
   return core && core !== clean ? core : null;
@@ -132,12 +132,12 @@ export function isNotoriousEntity(value: string, coarseCategory: string, opts?: 
   if (coarseCategory === "email") return isNotoriousServiceEmail(v, opts);
   if (coarseCategory === "location") return isCountry(v) || isStateInstitution(v);
   if (coarseCategory === "name") {
-    // `people: false` = le niveau Strict — les personnalités redeviennent redacted.
+    // `people: false` = the Strict level — public figures become redacted again.
     if (opts?.people !== false && PEOPLE_SET.has(norm(v))) return true;
-    // Un NOM DE MODÈLE étiqueté personne (« Claude Sonnet 4.6 », « GPT-4o ») est le
-    // produit mal-lu — même logique que l'org mal-lu plus bas, et comme elle, JAMAIS
-    // pour un mot nu sans chiffre : « Claude »/« Gemini » seuls restent des prénoms
-    // protégés (audit 13/08 — la dispense est de forme, la protection de personne).
+    // A MODEL NAME tagged as a person (« Claude Sonnet 4.6 », « GPT-4o ») is the
+    // product mis-read — same logic as the mis-read org below, and like it, NEVER
+    // for a bare word with no digit: « Claude »/« Gemini » alone stay protected
+    // first names (audit 13/08 — the dispensation is of shape, the protection of person).
     if (
       opts?.shape !== false &&
       (/\s/.test(v) || /\d/.test(v)) &&
@@ -164,9 +164,9 @@ export function isNotoriousEntity(value: string, coarseCategory: string, opts?: 
     // names, and a person keeps their protection.
     if (isCountry(v)) return true;
     if (isStateInstitution(v)) return true;
-    // Les noms de MODÈLES D'IA par leur FORME (famille + version/variante) — aucune
-    // liste ne suit un catalogue vivant. Insensible au niveau, comme ORGS : redact
-    // « GPT-5.5 » rend l'app incapable de parler de ses propres modèles.
+    // AI MODEL names by their SHAPE (family + version/variant) — no
+    // list can keep up with a living catalog. Level-insensitive, like ORGS: redacting
+    // « GPT-5.5 » makes the app unable to talk about its own models.
     if (opts?.shape !== false && isAiModelName(v)) return true;
     if (ORGS_SET.has(norm(v))) return true;
     if (opts?.commercial === true && COMMERCIAL_SET.has(norm(v))) return true;

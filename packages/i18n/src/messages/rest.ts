@@ -1,16 +1,16 @@
 /**
- * Le contrat des dernières surfaces : la connexion, les PARTAGES d'organisation, le
- * sélecteur de modèles (le menu du chat et la grille des Réglages, qui disent les mêmes
- * choses), et les feuilles partagées qui portaient encore leurs mots en dur.
+ * The contract of the last surfaces: sign-in, the organization SHARES, the
+ * model picker (the chat menu and the Settings grid, which say the same
+ * things), and the shared leaves that still carried their words hard-coded.
  *
- * Une tranche « le reste » n'est pas un fourre-tout de principe : c'est ce qui restait
- * quand chaque écran a eu la sienne, et chacun de ces blocs est trop petit pour un
- * namespace à lui — les regrouper ici les rend RELISIBLES d'un coup d'œil.
+ * A « the rest » slice is not a catch-all on principle: it is what was left
+ * once every screen had its own, and each of these blocks is too small for a
+ * namespace of its own — grouping them here makes them RE-READABLE at a glance.
  */
 
 export interface LoginMessages {
-  /** Le titre par DÉFAUT — `apps/web` en pose un autre sur sa page d'invitation, où la
-   *  connexion n'est pas un retour mais une arrivée. */
+  /** The DEFAULT title — `apps/web` sets another on its invitation page, where
+   *  signing in is not a return but an arrival. */
   heading: string;
   subheading: string;
   checkYourEmail: string;
@@ -33,7 +33,7 @@ export interface LoginMessages {
 }
 
 export interface OrgSharesMessages {
-  /** La cloche du rail droit, et ce qu'elle ouvre. */
+  /** The right rail's bell, and what it opens. */
   requests: string;
   requestsCount: (count: number) => string;
   requestsShort: string;
@@ -64,13 +64,13 @@ export interface OrgSharesMessages {
     clean: string;
     send: string;
   };
-  /** Les PORTÉES : ce que « personnel / équipe / organisation » veut dire. */
+  /** The SCOPES: what « personnel / équipe / organisation » means. */
   scopes: {
     org: { label: string; short: string; note: string };
     team: { label: string; short: string; note: string };
     personal: { label: string; short: string; note: string };
   };
-  /** Les CIBLES d'un partage, et comment chacune s'approuve. */
+  /** A share's TARGETS, and how each one is approved. */
   targets: {
     person: { label: string; desc: string; approval: string };
     team: { label: string; desc: string; approval: string };
@@ -97,22 +97,22 @@ export interface ModelPickerMessages {
   setDefault: string;
   addFavorite: string;
   removeFavorite: string;
-  /** La grille des Réglages. */
+  /** The Settings grid. */
   defaultSummaryTip: string;
   defaultSummaryLabel: string;
   keySaved: string;
   included: string;
   addKey: string;
-  /** Le modèle qui tourne sur votre machine. */
+  /** The model running on your machine. */
   local: { eyebrow: string; note: string; label: string };
-  /** Les deux CLI d'abonnement — même forme, deux fournisseurs. */
+  /** The two subscription CLIs — same shape, two providers. */
   cli: {
     claude: { title: string; note: string; rowTitle: string; onDesc: string; missingDesc: string };
     codex: { title: string; note: string; rowTitle: string; onDesc: string; missingDesc: string };
   };
 }
 
-/** Les feuilles partagées : ce qu'elles disent et que personne d'autre ne dit. */
+/** The shared leaves: what they say that nobody else says. */
 export interface LeavesMessages {
   analytics: {
     privacyTitle: string;
@@ -132,7 +132,7 @@ export interface LeavesMessages {
   freeModelsNotice: string;
   viewGrid: string;
   viewList: string;
-  /** Les cinq contrôles nus des feuilles : ils n'ont qu'un nom accessible. */
+  /** The leaves' five bare controls: they have nothing but an accessible name. */
   hide: string;
   display: string;
   resize: string;

@@ -1,20 +1,20 @@
 version: 2
 
-# Mises à jour de dépendances proposées en PR. Le rôle est de rendre la dette VISIBLE
-# et datée ; ce qui décide de bloquer ou non reste `scripts/audit-gate.mjs`, qui trie par
-# SURFACE (livrée/servie vs outillage) plutôt que par sévérité brute.
+# Dependency updates proposed as PRs. The role is to make the debt VISIBLE
+# and dated; what decides whether to block or not remains `scripts/audit-gate.mjs`, which sorts by
+# SURFACE (shipped/served vs tooling) rather than by raw severity.
 #
-# ⚠️ Ceci ne contourne PAS `minimumReleaseAge` (3 jours, `pnpm-workspace.yaml`) : Dependabot
-# ouvre la PR, mais c'est `pnpm install` qui résout, et il refusera une version publiée le
-# jour même. Une PR peut donc rester rouge quelques jours — c'est le comportement voulu,
-# pas une panne : la fenêtre de trois jours est précisément ce qui rattrape un jeton de
-# mainteneur volé.
+# ⚠️ This does NOT bypass `minimumReleaseAge` (3 days, `pnpm-workspace.yaml`): Dependabot
+# opens the PR, but it's `pnpm install` that resolves, and it will refuse a version published
+# that same day. A PR can therefore stay red for a few days — this is the intended behavior,
+# not a failure: the three-day window is precisely what catches a stolen maintainer
+# token.
 
 updates:
-  # ── Actions GitHub ────────────────────────────────────────────────────────────
-  # Prioritaire, et pas par habitude : une action s'exécute avec les secrets du job
-  # (certificats de signature, jetons Vercel/Neon/Cloudflare). `pnpm check:actions` impose
-  # déjà un SHA de commit — Dependakit propose donc un NOUVEAU SHA, jamais un tag mouvant.
+  # ── GitHub Actions ────────────────────────────────────────────────────────────
+  # Prioritized, and not out of habit: an action runs with the job's secrets
+  # (signing certificates, Vercel/Neon/Cloudflare tokens). `pnpm check:actions` already
+  # requires a commit SHA — Dependakit therefore proposes a NEW SHA, never a moving tag.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -22,12 +22,12 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     commit-message:
-      # La directive dure des Conventions : anglais, `type(scope):`, aucune trace d'outil.
+      # The Conventions' hard rule: English, `type(scope):`, no trace of a tool.
       prefix: "chore(ci)"
 
   # ── npm ───────────────────────────────────────────────────────────────────────
-  # UNE entrée pour tout le monorepo : pnpm résout depuis le lockfile RACINE, donc une
-  # entrée par workspace produirait des PR qui se marchent dessus sur le même fichier.
+  # ONE entry for the whole monorepo: pnpm resolves from the ROOT lockfile, so an
+  # entry per workspace would produce PRs stepping on each other over the same file.
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -38,9 +38,9 @@ updates:
     commit-message:
       prefix: "chore(deps)"
     groups:
-      # Groupé, sinon le bruit noie le signal : ~40 avis ouverts aujourd'hui, dont la
-      # grande majorité dans l'outillage de build. Une PR par groupe se relit ; quarante
-      # PR isolées ne se relisent pas, et c'est ainsi qu'on cesse de regarder.
+      # Grouped, otherwise the noise drowns the signal: ~40 open advisories today, most
+      # of them in the build tooling. One PR per group gets reviewed; forty
+      # isolated PRs don't get reviewed, and that's how you stop looking.
       dev-tooling:
         patterns:
           - "@types/*"
@@ -60,9 +60,9 @@ updates:
           - "jest"
           - "wrangler"
         update-types: [minor, patch]
-      # Les correctifs sur une surface LIVRÉE ou SERVIE arrivent seuls : ce sont ceux que
-      # `audit:gate` retiendrait, et un correctif de sécurité ne se relit pas noyé dans
-      # trente bumps d'outillage.
+      # Patches on a SHIPPED or SERVED surface arrive alone: these are the ones
+      # `audit:gate` would flag, and a security patch doesn't get reviewed when drowned in
+      # thirty tooling bumps.
       runtime-patches:
         patterns: ["*"]
         exclude-patterns:

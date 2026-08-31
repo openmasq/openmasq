@@ -1,5 +1,5 @@
 /**
- * Tranche « mcpTab » du catalogue FR — la langue SOURCE : Connecteurs (MCP) — la grille, la fiche, les comptes, les clés.
+ * The FR catalogue's « mcpTab » slice — the SOURCE language: Connectors (MCP) — the grid, the card, the accounts, the keys.
  */
 import type { Messages } from "../messages";
 

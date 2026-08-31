@@ -1,6 +1,6 @@
 import type { SetCustomStackResult } from "../../../../host";
 
-/** Les clés de refus que le catalogue sait dire (`t.selfHost.refusal`). */
+/** The refusal keys the catalogue knows how to phrase (`t.selfHost.refusal`). */
 export type CustomStackRefusalKey =
   | "backend_required"
   | "not_absolute"
@@ -28,10 +28,10 @@ const KNOWN = new Set<string>([
 ]);
 
 /**
- * Le vocabulaire de refus du processus privilégié → la clé de la phrase à montrer.
- * Pur et testé : un refus `invalid` porte la raison de VALIDATION dans `detail`
- * (`validateCustomStack`), les autres sont eux-mêmes leur raison ; l'inconnu (un `null`
- * sur une exception, un preload d'avant) tombe sur la phrase générique — jamais un silence.
+ * The privileged process's refusal vocabulary → the key of the phrase to show.
+ * Pure and tested: an `invalid` refusal carries the VALIDATION reason in `detail`
+ * (`validateCustomStack`), the others are their own reason; the unknown case (a `null`
+ * on an exception, an older preload) falls to the generic phrase — never silence.
  */
 export function customStackRefusalKey(r: SetCustomStackResult | null | undefined): CustomStackRefusalKey {
   if (!r || r.ok) return "generic";

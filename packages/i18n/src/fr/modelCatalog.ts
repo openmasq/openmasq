@@ -1,7 +1,7 @@
 /**
- * Tranche « modelCatalog » du catalogue FR — la langue SOURCE. Les fiches sont en deux
- * moitiés (`modelCatalogA`, `modelCatalogB`) pour tenir le cap 300 LOC ; ce fichier les
- * assemble et porte les pastilles de capacité.
+ * The FR catalogue's « modelCatalog » slice — the SOURCE language. Les fiches sont en deux
+ * halves (`modelCatalogA`, `modelCatalogB`) to hold the 300-LOC cap; this file assembles
+ * them and carries the capability chips.
  */
 import type { Messages } from "../messages";
 import { modelCatalogA } from "./modelCatalogA";

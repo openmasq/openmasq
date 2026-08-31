@@ -1,6 +1,6 @@
 /**
- * Tranche « shell » du catalogue FR — la langue SOURCE : le rail droit, les onglets de
- * panneau, l'arbre des dossiers et les écrans du téléphone.
+ * The FR catalogue's « shell » slice — the SOURCE language : le rail droit, les onglets de
+ * panel tabs, the folder tree and the phone screens.
  */
 import type { Messages } from "../messages";
 

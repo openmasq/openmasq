@@ -11,18 +11,18 @@ describe("connectorsForRequest — proposer sans attendre le modèle", () => {
   const candidates = pick("gmail", "google-calendar", "notion", "stripe", "github");
 
   it("un DOCUMENT plié ne propose rien : la boucle lit la partie TAPÉE seule (typedPartOfWire)", () => {
-    // Le tour signalé (13/08) : « résume ce document » sur un courrier → cartes Square
-    // (un mot d'adresse DU document) et Filesystem (le mot « filesystem »… de NOTRE
-    // propre note interne, glissée sous chaque en-tête de pièce jointe).
+    // The reported turn (13/08): "résume ce document" on a letter → Square cards
+    // (an address word FROM the document) and Filesystem (the word "filesystem"… from OUR
+    // own internal note, slipped under every attachment header).
     const docCandidates = pick("square", "filesystem");
     const wire =
       "résume ce document\n\n=== Attached file: document-1.pdf ===\n" +
       `${ATTACHMENT_INLINE_NOTE}\nRendez-vous au 3 Square des Peupliers pour votre dossier.`;
-    // Le message wire ENTIER matcherait les deux — c'est le bug d'origine…
+    // The WHOLE wire message would match both — that's the original bug…
     expect(ids(connectorsForRequest(wire, docCandidates))).toEqual(["square", "filesystem"]);
-    // …la partie tapée, elle, ne propose rien : c'est elle que la boucle lit désormais.
+    // …the typed part, though, proposes nothing: it's what the loop now reads.
     expect(connectorsForRequest(typedPartOfWire(wire), docCandidates)).toEqual([]);
-    // Et nommer le service DANS ce qu'on tape propose toujours.
+    // And naming the service IN what's typed still proposes.
     expect(ids(connectorsForRequest(typedPartOfWire(`va voir sur Square\n\n=== Attached file: d.pdf ===\nx`), docCandidates))).toEqual(["square"]);
   });
 
@@ -32,7 +32,7 @@ describe("connectorsForRequest — proposer sans attendre le modèle", () => {
   });
 
   it("…et par les mots que les gens tapent vraiment", () => {
-    // Le tour signalé : « Revue de ma boîte mail » — l'utilisateur n'écrit jamais « Gmail ».
+    // The reported turn: "Revue de ma boîte mail" — the user never writes "Gmail".
     expect(ids(connectorsForRequest("Revue de ma boîte mail", candidates))).toEqual(["gmail"]);
     expect(ids(connectorsForRequest("qu'est-ce que j'ai à l'agenda ?", candidates))).toEqual([
       "google-calendar",
@@ -40,7 +40,7 @@ describe("connectorsForRequest — proposer sans attendre le modèle", () => {
   });
 
   it("un nom générique ne compte que SOUS POSSESSIF — sinon on parle du sujet, pas du service", () => {
-    // Le tour signalé le 11/08, mot pour mot : aucune carte Gmail ici.
+    // The turn reported on 11/08, word for word: no Gmail card here.
     expect(
       connectorsForRequest(
         "Je me suis créé un compte Loops et je vais envoyer des emails product à un peu " +
@@ -48,11 +48,11 @@ describe("connectorsForRequest — proposer sans attendre le modèle", () => {
         candidates,
       ),
     ).toEqual([]);
-    // Les tournures où le service EST celui de l'utilisateur restent proposées.
+    // Phrasings where the service IS the user's own stay proposed.
     expect(ids(connectorsForRequest("trie mes mails de la semaine", candidates))).toEqual(["gmail"]);
     expect(ids(connectorsForRequest("ma messagerie déborde, fais le ménage", candidates))).toEqual(["gmail"]);
     expect(ids(connectorsForRequest("résume mes e-mails d'hier", candidates))).toEqual(["gmail"]);
-    // …et parler d'e-mails en général, jamais.
+    // …and talking about e-mails in general, never.
     expect(connectorsForRequest("quel est le meilleur outil d'emailing ?", candidates)).toEqual([]);
     expect(connectorsForRequest("on s'est parlé par mail hier", candidates)).toEqual([]);
   });
@@ -63,24 +63,24 @@ describe("connectorsForRequest — proposer sans attendre le modèle", () => {
   });
 
   it("ne propose RIEN sur une coïncidence de sous-chaîne", () => {
-    // Une carte proposée par hasard apprend à l'utilisateur à ignorer les cartes.
+    // A card proposed by coincidence teaches the user to ignore cards.
     expect(connectorsForRequest("prépare un mailing pour la campagne", candidates)).toEqual([]);
     expect(connectorsForRequest("c'est une distinction notionnelle", candidates)).toEqual([]);
     expect(connectorsForRequest("", candidates)).toEqual([]);
   });
 
   it("ne propose que parmi les candidats — donc jamais un connecteur DÉJÀ branché", () => {
-    // `suggestCandidates` = les non connectés ; Gmail absent de la liste = rien à proposer.
+    // `suggestCandidates` = the not-connected ones; Gmail absent from the list = nothing to propose.
     expect(connectorsForRequest("ma boîte mail", pick("notion", "stripe"))).toEqual([]);
   });
 
   it("un BESOIN déjà servi ne propose pas un second fournisseur", () => {
-    // Le tour signalé : Gmail branché, « revue de ma boîte mail » — Outlook partage les
-    // mêmes alias génériques et se faisait proposer sous une réponse qui venait de lire
-    // la boîte Gmail.
+    // The reported turn: Gmail connected, "revue de ma boîte mail" — Outlook shares the
+    // same generic aliases and was getting proposed right under an answer that had just
+    // read the Gmail inbox.
     const notConnected = pick("microsoft-outlook", "notion");
     expect(connectorsForRequest("Revue de ma boîte mail", notConnected, pick("gmail"))).toEqual([]);
-    // …et sans Gmail branché, la carte revient : c'est bien la couverture qui décide.
+    // …and without Gmail connected, the card comes back: coverage is indeed what decides.
     expect(ids(connectorsForRequest("Revue de ma boîte mail", notConnected))).toEqual([
       "microsoft-outlook",
     ]);
@@ -93,7 +93,7 @@ describe("connectorsForRequest — proposer sans attendre le modèle", () => {
   });
 
   it("la couverture est par BESOIN, pas globale", () => {
-    // Gmail branché ne dispense pas de proposer l'agenda.
+    // Gmail being connected doesn't excuse proposing the calendar.
     expect(
       ids(connectorsForRequest("qu'est-ce que j'ai à l'agenda ?", pick("google-calendar"), pick("gmail"))),
     ).toEqual(["google-calendar"]);

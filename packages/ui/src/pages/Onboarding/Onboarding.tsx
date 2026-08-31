@@ -49,8 +49,8 @@ interface Props {
 
 export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpenRouter, keyConfigured }: Props) {
   const t = useT();
-  // Ce build a-t-il un service hébergé (passerelle + comptes) ? Il décide de ce que ce
-  // parcours peut PROMETTRE — `send/platformAccess.ts`.
+  // Does THIS build have a hosted service (gateway + accounts)? It decides what this
+  // journey can PROMISE — `send/platformAccess.ts`.
   const served = platformAccessServed();
   const [step, setStep] = useState(0);
   const [rules, setRules] = useState(false);
@@ -61,9 +61,9 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
     captureEvent({ name: "onboarding", step: "done" });
     onChange({ ...settings, onboarded: true });
   }
-  /* « Passer » se mesure AUSSI, et avec l'écran où on l'a cliqué : sans ça, le seul
-     parcours qu'on voudrait comprendre — celui qui abandonne — est invisible, et
-     « done » seul laisse croire que tout le monde va au bout. */
+  /* « Passer » is measured TOO, and with the screen it was clicked from: without that, the
+     one journey worth understanding — the one that abandons — is invisible, and
+     "done" alone would suggest everyone makes it to the end. */
   function skip() {
     captureEvent({ name: "onboarding", step: rules ? "skip:regler" : `skip:${step + 1}` });
     onDone();
@@ -147,9 +147,9 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                 <div className="cv-eyebrow ob-eyebrow">{t.onboarding.places.eyebrow}</div>
                 <h1 className="cv-display ob-title">{t.onboarding.places.title}</h1>
                 <p className="ob-sub">{t.onboarding.places.sub}</p>
-                {/* UNE ligne par endroit, pas le paragraphe du guide : six paragraphes
-                    à la deuxième page d'un premier lancement, ça se saute. La phrase
-                    longue existe toujours — dans « Aide », quand on la cherche. */}
+                {/* ONE line per place, not the guide's paragraph: six paragraphs
+                    on the second page of a first launch get skipped. The long
+                    sentence still exists — in « Aide », when you look for it. */}
                 <dl className="ob-sections">
                   {sectionGuides(t).map((s) => (
                     <div key={s.id} className="ob-section">
@@ -162,9 +162,9 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
             ) : step === 2 ? (
               <>
                 <div className="cv-eyebrow ob-eyebrow">{t.onboarding.access.eyebrow}</div>
-                {/* Sans service hébergé (`send/platformAccess.ts`), il n'y a pas de compte
-                    à proposer ; avec, mais sans rien à VENDRE (le défaut), le choix est
-                    « votre compte ou votre clé » — jamais un abonnement qui n'existe pas. */}
+                {/* Without a hosted service (`send/platformAccess.ts`), there is no account
+                    to offer; with one, but nothing to SELL (the default), the choice is
+                    "your account or your key" — never a subscription that doesn't exist. */}
                 <h1 className="cv-display ob-title">
                   {!served
                     ? t.onboarding.access.titleUnserved
@@ -176,7 +176,7 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                   {served ? t.onboarding.access.subServed : t.onboarding.access.subUnserved}
                 </p>
                 <KeyChoice
-                  // `?? null` : rien n'est coché tant que rien n'a été choisi.
+                  // `?? null`: nothing is checked until something has been chosen.
                   mode={settings.billingMode ?? null}
                   onMode={(m) => onChange({ ...settings, billingMode: m })}
                   onSaveKey={onSaveKey}
@@ -188,14 +188,14 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
               <>
                 <div className="cv-eyebrow ob-eyebrow">{t.onboarding.ready.eyebrow}</div>
                 <h1 className="cv-display ob-title">{t.onboarding.ready.title}</h1>
-                {/* Ce que l'étape précédente laisse en suspens : le redaction ne dépend
-                    d'AUCUN des deux accès, et « Passer » ne coupe rien. La deuxième
-                    phrase est ce qui rend la première vérifiable — un modèle gratuit est
-                    sélectionné d'office (`prompt/models.ts` DEFAULT_MODEL_ID), donc une
-                    installation neuve écrit sans clé et sans abonnement. */}
+                {/* What the previous step leaves in suspense: redaction depends on
+                    NEITHER of the two access paths, and « Passer » cuts nothing off. The
+                    second sentence is what makes the first verifiable — a free model is
+                    selected by default (`prompt/models.ts` DEFAULT_MODEL_ID), so a fresh
+                    install writes with no key and no subscription. */}
                 <p className="ob-sub">
-                  {/* Sans service hébergé, aucun modèle n'est joignable tant qu'un accès
-                      n'est pas branché : le dire, plutôt que promettre un modèle prêt. */}
+                  {/* Without a hosted service, no model is reachable until an access path
+                      is wired up: say so, rather than promise a model that's ready. */}
                   {served
                     ? t.onboarding.ready.subServed(BRAND.name)
                     : t.onboarding.ready.subUnserved}

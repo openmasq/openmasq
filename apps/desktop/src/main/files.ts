@@ -7,11 +7,11 @@ import {
 
 /**
  * File attachments for the desktop app. The text extraction + document
- * redaction lives in @openmasq/redact (shared, unit-tested) — exécutée dans le
- * WORKER d'extraction (`ocr/extractClient.ts`) : dans main, la boucle par page d'un
- * scan bloquait l'IPC par rafales de ~1 s (mesuré 13/08). This module owns the
+ * redaction lives in @openmasq/redact (shared, unit-tested) — run in the
+ * extraction WORKER (`ocr/extractClient.ts`): in main, the per-page loop of a
+ * scan blocked IPC in ~1 s bursts (measured 13/08). This module owns the
  * Electron-specific bits — the native file picker and batch extraction over chosen
- * paths — et le worker hérite du contrat best-effort (un échec rend `{error}`).
+ * paths — and the worker inherits the best-effort contract (a failure returns `{error}`).
  */
 
 export type { ExtractedFile };
@@ -38,8 +38,8 @@ const MIME: Record<string, string> = {
 const mimeFor = (name: string): string =>
   MIME[name.slice(name.lastIndexOf(".") + 1).toLowerCase()] ?? "application/octet-stream";
 
-/** Progression OCR par fichier : `(nom, pagesLues, pagesTotal)` — relayée par l'IPC
- *  vers le renderer (la chip d'attachement affiche « OCR… page x/y »). */
+/** Per-file OCR progress: `(name, pagesRead, pagesTotal)` — relayed over IPC
+ *  to the renderer (the attachment chip displays « OCR… page x/y »). */
 export type OcrProgressFn = (name: string, page: number, pages: number) => void;
 
 /** Extract + tag each result with its source `path` and `mime`, so the renderer
@@ -74,7 +74,7 @@ export async function pickAndExtract(onProgress?: OcrProgressFn): Promise<Extrac
 export async function extractPaths(
   paths: string[],
   onProgress?: OcrProgressFn,
-  /** « Lire tout » (chip d'une pièce jointe tronquée) : OCR sans plafond de pages. */
+  /** « Read all » (chip on a truncated attachment): OCR with no page cap. */
   ocrAllPages?: boolean,
 ): Promise<ExtractedFile[]> {
   return Promise.all(paths.map((p) => extractTagged(p, onProgress, ocrAllPages)));

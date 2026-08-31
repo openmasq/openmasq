@@ -1,19 +1,19 @@
 import { useT } from "../../../i18n";
-/** Les fenêtres offertes. 14 reste le défaut — c'est ce que les panneaux montraient
- *  avant d'être réglables, et changer le défaut aurait modifié tous les chiffres sans
- *  que personne ne l'ait demandé. 90 est le plafond : au-delà, une barre par jour
- *  devient un trait d'un pixel et le graphe cesse de se lire. */
+/** The offered windows. 14 stays the default — it's what the panels used to show
+ *  before they became adjustable, and changing the default would have changed every
+ *  figure without anyone asking for it. 90 is the ceiling: beyond that, a bar per day
+ *  becomes a one-pixel line and the graph stops being readable. */
 const RANGES = [7, 14, 30, 90] as const;
 export type UsageRangeDays = (typeof RANGES)[number];
 export const DEFAULT_RANGE: UsageRangeDays = 14;
 
 /**
- * La fenêtre d'observation des panneaux d'usage — 7 / 14 / 30 / 90 jours.
+ * The usage panels' observation window — 7 / 14 / 30 / 90 days.
  *
- * Présentation seule : le parent détient la valeur et re-dérive chaque chiffre. Même
- * contrôle segmenté que `UsageFilter`, et posé sur LA MÊME LIGNE que lui : les filtres
- * d'un tableau de bord se tiennent en une rangée au-dessus des graphes, pas dispersés
- * dans les en-têtes de panneaux — sinon on cherche lequel agit sur quoi.
+ * Presentation only: the parent holds the value and re-derives every figure. Same
+ * segmented control as `UsageFilter`, and placed on THE SAME ROW as it: a dashboard's
+ * filters belong in one row above the graphs, not scattered across panel
+ * headers — otherwise you go hunting for which one acts on what.
  */
 export function UsageRange({
   value,

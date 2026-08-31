@@ -14,21 +14,21 @@ packages:
 # patch can still be taken with `pnpm add <pkg>@<version> --config.minimumReleaseAge=0`.
 minimumReleaseAge: 4320 # minutes = 3 days
 
-# ⛔ AUCUN paquet n'exécute de script d'installation. pnpm 10 les bloque déjà par défaut ;
-# la liste VIDE en fait une décision écrite plutôt qu'un effet de bord, parce que les deux
-# noms qui s'y trouvaient ne tenaient ni l'un ni l'autre :
+# ⛔ NO package runs an install script. pnpm 10 already blocks them by default;
+# the EMPTY list makes it a written decision rather than a side effect, because the two
+# names that used to be in it held up neither one:
 #
-#  • `electron` y était « pour télécharger son binaire ». FAUX, et depuis longtemps : il n'a
-#    plus AUCUN script (`scripts` absent de son package.json), il télécharge paresseusement
-#    au premier `require`. La ligne n'autorisait donc rien du tout, pendant que son
-#    commentaire faisait croire le contraire — c'est ce qui a gardé le trou invisible
-#    jusqu'au 12/08 (`scripts/vitest.electron-stub.ts` raconte la panne). Le seul vrai filet
-#    est l'étape « Ensure Electron binary » de `release.yml`, où l'app est réellement lancée.
-#  • `esbuild` en a un, lui — et il est bloqué depuis toujours sans que rien n'en souffre
-#    (ses binaires viennent des paquets optionnels par plateforme). L'autoriser rouvrirait un
-#    accès réseau à l'install pour un besoin que rien ne démontre.
+#  • `electron` was there "to download its binary". FALSE, and for a long time: it no
+#    longer has ANY script (`scripts` absent from its package.json), it lazily downloads
+#    on the first `require`. The line therefore authorized nothing at all, while its
+#    comment made you believe the opposite — that's what kept the hole invisible
+#    until 12/08 (`scripts/vitest.electron-stub.ts` tells the story of the failure). The only real safety net
+#    is `release.yml`'s "Ensure Electron binary" step, where the app is actually launched.
+#  • `esbuild` does have one — and it has always been blocked with nothing suffering for it
+#    (its binaries come from the per-platform optional packages). Allowing it would reopen
+#    network access at install time for a need nothing demonstrates.
 #
-# ⚠️ La même clé vivait AUSSI dans `package.json`, et c'est celle-là que pnpm 10 lisait : elle
-# masquait ce fichier, si bien qu'`esbuild` était ignoré alors qu'il est listé ici (visible
-# dans « Ignored build scripts » de chaque install de CI). Un seul foyer désormais : ici.
+# ⚠️ The same key ALSO lived in `package.json`, and that's the one pnpm 10 was reading: it
+# shadowed this file, so `esbuild` was ignored even though it's listed here (visible
+# in every CI install's "Ignored build scripts"). Only one home now: here.
 onlyBuiltDependencies: []

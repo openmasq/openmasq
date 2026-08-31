@@ -5,13 +5,13 @@ import type { CustomStack } from "../../../../host";
 import { useT } from "../../../../i18n/I18nProvider";
 import { customStackRefusalKey } from "./customStackView";
 
-// La carte PILE AUTO-HÉBERGÉE du tab Versions — présente SEULEMENT quand le build honore
-// une pile saisie (`host.env.customStack`, absent du binaire officiel). Quatre champs, un
-// bouton. L'écran ne décide de rien : la validation se rejoue dans le processus
-// privilégié, qui ouvre une boîte de dialogue NATIVE avant d'écrire, puis redémarre l'app
-// dans un profil séparé. Un refus est montré tel quel, jamais un silence.
+// The SELF-HOSTED STACK card in the Versions tab — present ONLY when the build honors
+// an entered stack (`host.env.customStack`, absent from the official binary). Four fields, one
+// button. The screen decides nothing: validation replays in the
+// privileged process, which opens a NATIVE dialog before writing, then restarts the app
+// in a separate profile. A refusal is shown as-is, never silently.
 //
-// Toute la copie vient du catalogue (`t.selfHost.*`) : fichier neuf, cliquet i18n.
+// All copy comes from the catalogue (`t.selfHost.*`): new file, i18n ratchet.
 
 const EMPTY: CustomStack = { backend: "", gateway: "", supabaseUrl: "", supabaseAnonKey: "" };
 
@@ -32,7 +32,7 @@ export function CustomStackCard() {
     setBusy(true);
     setErr(null);
     const r = await stackHost.set(form).catch(() => null);
-    // ok ⇒ l'app redémarre : rien à rendre. Tout le reste se dit.
+    // ok ⇒ the app restarts: nothing to render. Everything else speaks for itself.
     if (!r || !r.ok) {
       setErr(t.selfHost.refusal[customStackRefusalKey(r)]);
       setBusy(false);

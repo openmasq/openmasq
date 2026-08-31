@@ -1,17 +1,17 @@
 /**
- * La prose que la BOUCLE AGENTIQUE adresse au modèle et dont la SORTIE est lue par
+ * The prose the AGENTIC LOOP addresses to the model and whose OUTPUT is read by
  * l'utilisateur.
  *
- * ⚠️ C'est la seule prose model-facing qui entre dans ce catalogue, et la raison est
- * précise : le reste (`send/inboundScreen.ts`, `agent/`, `prompt/`) suit la langue de la
- * CONVERSATION, où la traduire serait un contresens — mais ici la phrase produite
- * s'affiche dans la CHROME, pendant l'attente, à côté d'étiquettes qui suivent
- * l'interface. Demander une phrase française sous une interface anglaise donnait une
- * ligne française au milieu de l'anglais.
+ * ⚠️ It is the only model-facing prose that enters this catalogue, and the reason is
+ * precise: the rest (`send/inboundScreen.ts`, `agent/`, `prompt/`) follows the
+ * CONVERSATION's language, where translating it would be a contradiction — but here the
+ * sentence produced is displayed in the CHROME, during the wait, next to labels that follow
+ * the interface. Asking for a French sentence under an English interface produced a
+ * French line in the middle of the English.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
  */
 export interface AgentMessages {
-  /** La consigne qui fait résumer un appel d'outil en une ligne montrable. */
+  /** The instruction that summarises a tool call into one showable line. */
   toolIntentSystem: string;
 }

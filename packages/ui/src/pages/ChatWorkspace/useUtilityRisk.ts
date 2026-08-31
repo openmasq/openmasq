@@ -11,13 +11,13 @@ import {
 import { competencePromptCats, type Cat } from "./composerDetection";
 
 /**
- * L'avertissement d'utilité du composeur, pelé de `Composer.tsx` (gelé) en hook —
- * la direction que la doc du dossier prescrit. Règles, rationale et tests :
- * `utilityRisk.ts`. Trois sources nourrissent le risque — le BROUILLON (les trois
- * couches de détection), les PIÈCES JOINTES (`attachmentCats`) et le prompt de la
- * COMPÉTENCE mise en scène (`competencePromptCats`) — parce que la donnée dont la
- * réponse dépend vit bien plus souvent dans un document ou une compétence que dans
- * le texte tapé.
+ * The composer's utility warning, peeled off `Composer.tsx` (frozen) into a hook —
+ * the direction the folder's doc prescribes. Rules, rationale and tests:
+ * `utilityRisk.ts`. Three sources feed the risk — the DRAFT (the three
+ * detection layers), the ATTACHMENTS (`attachmentCats`) and the staged
+ * COMPÉTENCE's prompt (`competencePromptCats`) — because the data the
+ * reply depends on lives far more often in a document or a compétence than in
+ * the typed text.
  */
 export function useUtilityRisk(p: {
   input: string;
@@ -34,9 +34,9 @@ export function useUtilityRisk(p: {
   risk: UtilityRisk | null;
   dismissed: UtilityRiskKind | null;
   dismiss: (k: UtilityRiskKind) => void;
-  /** Le geste « Garder en clair » : brouillon → keep ; pièce jointe → `reveal`. */
+  /** The « Garder en clair » gesture: draft → keep; attachment → `reveal`. */
   keepInClear: (risk: UtilityRisk) => void;
-  /** Les valeurs du prompt de la compétence — le compteur « N à redact » les compte. */
+  /** The values from the compétence's prompt — the « N à redact » counter counts them. */
   competenceCats: Cat[];
 } {
   const [dismissed, setDismissed] = useState<UtilityRiskKind | null>(null);
@@ -53,12 +53,12 @@ export function useUtilityRisk(p: {
   );
   const risk = useMemo(() => {
     if (!p.input.trim()) return null;
-    const r = utilityRisk(p.input, riskCats); // déjà tout révélé ⇒ rien à dire
+    const r = utilityRisk(p.input, riskCats); // already all revealed ⇒ nothing to say
     if (r && riskValues(r, riskCats).every((v) => p.keepSet.has(v))) return null;
     return r;
   }, [p.input, riskCats, p.keepSet]);
   useEffect(() => {
-    if (!p.input) setDismissed(null); // un brouillon vidé ré-arme (nouvel envoi, nouveau contexte)
+    if (!p.input) setDismissed(null); // an emptied draft re-arms (new send, new context)
   }, [p.input]);
   const keepInClear = (r: UtilityRisk) => {
     const values = riskValues(r, riskCats);

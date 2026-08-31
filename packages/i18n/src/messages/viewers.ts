@@ -1,14 +1,14 @@
 /**
- * Le contrat de la tranche « viewers » — les visionneuses de documents : l'aperçu d'une
- * pièce jointe avant l'envoi, le lecteur de la Bibliothèque, et leurs vues (PDF, tableur,
- * texte redacted).
+ * The « viewers » slice contract — the document viewers: the preview of an
+ * attachment before sending, the Bibliothèque's reader, and their views (PDF, spreadsheet,
+ * redacted text).
  *
- * Le VOCABULAIRE des vues (« Redacted », « Original », « OCR ») vit dans `docViews` :
- * c'est le menu qui les choisit, et il existait avant ces écrans.
+ * The views' VOCABULARY (« Redacted », « Original », « OCR ») lives in `docViews`:
+ * the menu is what chooses them, and it existed before these screens.
  */
 
 export interface ViewersMessages {
-  /** Le cadre commun : en-tête, fermeture, états de chargement et d'échec. */
+  /** The shared frame: header, close, loading and failure states. */
   eyebrow: string;
   close: string;
   closeTip: string;
@@ -18,7 +18,7 @@ export interface ViewersMessages {
   staleChip: string;
   rerunning: string;
   rerun: string;
-  /** Les échecs, un par format — dire lequel évite « ça ne marche pas ». */
+  /** The failures, one per format — saying which one avoids « ça ne marche pas ». */
   unreadableFile: string;
   fileNotFound: string;
   unreadableDocument: string;
@@ -28,27 +28,27 @@ export interface ViewersMessages {
   openFile: string;
   openExternal: string;
   noTextExtracted: string;
-  /** Le document partagé au modèle, et le va-et-vient réel ⇄ redacted. */
+  /** The document shared with the model, and the real ⇄ redacted round trip. */
   sharedVersion: string;
   documentTab: string;
   redactedToggle: string;
-  /** Ce qu'on garde en clair, à la main. */
+  /** What one keeps in clear, by hand. */
   keptClearTip: string;
   reRedactAll: string;
   selectToRedact: string;
   missedValueLead: string;
   missedValueTail: string;
-  /** Une marque, dans un document ou une cellule. */
+  /** A mark, in a document or a cell. */
   markAria: (kind: string, kept: boolean) => string;
   cellAria: (kept: boolean) => string;
-  /** La recherche dans le texte. */
+  /** Searching within the text. */
   search: {
     placeholder: string;
     previous: string;
     next: string;
     clear: string;
   };
-  /** Le PDF : zoom, halo, et ce que l'image porte que le texte n'a pas. */
+  /** The PDF: zoom, halo, and what the image carries that the text does not. */
   pdf: {
     unavailable: string;
     noPages: string;
@@ -63,7 +63,7 @@ export interface ViewersMessages {
     imageZones: (pages: string) => string;
     imagePages: (count: number) => string;
   };
-  /** Le sous-titre de l'aperçu : ce que le redaction a fait à CE document. */
+  /** The preview's subtitle: what the redaction did to THIS document. */
   summary: {
     redacting: string;
     redactingProgress: (done: number, total: number) => string;
@@ -73,6 +73,6 @@ export interface ViewersMessages {
     protected: (count: number) => string;
     byKind: (count: number, kind: string) => string;
   };
-  /** Le tableur : ce que l'envoi tronque. */
+  /** The spreadsheet: what the send truncates. */
   sheetCut: string;
 }

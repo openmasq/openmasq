@@ -2,24 +2,24 @@ import type { ExtractedFile } from "../../host/files";
 import { pushDebug } from "../../state/debug";
 
 /**
- * Trace au Journal de débogage COMMENT le texte d'un document a été obtenu (couche texte
- * PDF, docTR, Tesseract, hybride) + le temps mesuré. No-op quand le fichier n'a pas eu
- * besoin d'OCR, ou quand la capture est éteinte (`pushDebug` s'en charge).
+ * Traces to the debug Log HOW a document's text was obtained (PDF text layer,
+ * docTR, Tesseract, hybrid) + the measured time. No-op when the file needed no
+ * OCR, or when capture is off (`pushDebug` handles that).
  *
- * ⚠️ `convId` est OBLIGATOIRE, et « pas encore de conversation » n'est pas « pas de
- * conversation » : une entrée émise sans `conv` est un événement d'APP — montrée dans
- * TOUTES les conversations, pour toujours (l'anneau est persisté). C'est exactement ce qui
- * arrivait : l'OCR et le redaction d'un document déposé sur un chat neuf hantaient le
- * journal de chaque conversation (11/08/2026). L'appelant résout donc sa cible : l'id
- * NOMMÉ par « Demander » (la conversation cible n'est pas celle à l'écran), sinon la
- * conversation ouverte, sinon `DRAFT_CONV` — que le premier envoi adopte
+ * ⚠️ `convId` is MANDATORY, and "not yet a conversation" is not "no
+ * conversation": an entry emitted with no `conv` is an APP event — shown in
+ * EVERY conversation, forever (the ring is persisted). That is exactly what was
+ * happening: the OCR and redaction of a document dropped on a fresh chat haunted the
+ * log of every conversation (11/08/2026). The caller therefore resolves its target: the id
+ * NAMED by « Demander » (the target conversation isn't the one on screen), otherwise the
+ * open conversation, otherwise `DRAFT_CONV` — which the first send adopts
  * (`sendOrchestrator` → `adoptDraftDebug`).
  */
 export function logOcrDebug(f: ExtractedFile, convId: string): void {
-  // Un ÉCHEC d'extraction porte enfin sa cause brute au journal : l'UI garde la phrase
-  // allow-listée (`cleanErr`), le journal — la seule surface de diagnostic — reçoit
-  // `rawCause` (« l'OCR ne marche pas sur mon Mac » : un paquet natif manquant et un PDF
-  // corrompu n'étaient qu'une même phrase, audit 13/08).
+  // An extraction FAILURE finally carries its raw cause to the log: the UI keeps the
+  // allow-listed phrase (`cleanErr`), the log — the only diagnostic surface — gets
+  // `rawCause` ("OCR doesn't work on my Mac": a missing native package and a corrupt
+  // PDF were the same phrase, audit 13/08).
   if (f.error) {
     pushDebug(
       { type: "tool", name: "Extraction · échec", ok: false, args: f.name, error: f.rawCause ?? f.error },

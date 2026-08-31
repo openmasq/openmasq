@@ -1,13 +1,13 @@
 /**
- * L'AIGUILLAGE du tour outillé, tenu hors de `main/index.ts` (règle 1 : ce fichier est
- * un plafond gelé, et un branchement de plus l'aurait creusé) et rangé avec la famille
- * qu'il sert (règle 2).
+ * The tooled-turn SWITCHBOARD, kept out of `main/index.ts` (rule 1: this file is
+ * a frozen ceiling, and one more wiring would have dug it deeper) and stored with the family
+ * it serves (rule 2).
  *
- * Une seule question : ce fournisseur est-il servi par une CLI d'abonnement ? Si oui,
- * le tour outillé lui répond avec le contrat de `completeWithTools` ; sinon `null`, et
- * l'appelant reprend son chemin normal (clé + egress). La question a UNE maison,
- * `subscriptionCliFor` (règle 9) — la même que celle du tour texte : les deux CLI
- * branchées portent le pont d'outils, il n'y a donc pas de seconde liste à tenir.
+ * A single question: is this provider served by a subscription CLI? If so,
+ * the tooled turn answers it with the `completeWithTools` contract; otherwise `null`, and
+ * the caller resumes its normal path (key + egress). The question has ONE home,
+ * `subscriptionCliFor` (rule 9) — the same one as the text turn: the two wired-up
+ * CLIs carry the tools bridge, so there's no second list to maintain.
  */
 import type { ChatMessage, CompleteToolsResult, ToolDef } from "@openmasq/llm";
 import { subscriptionCliFor, subscriptionTurnEnv } from "./desktop";
@@ -22,16 +22,16 @@ export interface SubscriptionToolsRequest {
 
 export interface SubscriptionToolsHooks {
   signal: AbortSignal;
-  /** Texte de l'assistant au fil de l'eau (chemin streamé). */
+  /** Assistant text as it streams in (streamed path). */
   onDelta?: (text: string) => void;
   onReasoning?: (delta: string) => void;
 }
 
 /**
- * Le tour outillé de l'abonnement, ou `null` si ce fournisseur n'en est pas un.
- * La boucle agentique appelante ne voit aucune différence avec un modèle à clé : le
- * pont MCP CAPTURE l'appel d'outil (`toolsBridge.ts`), il ne l'exécute jamais — donc
- * le coffre et la porte d'écriture restent ceux de l'app.
+ * The subscription's tooled turn, or `null` if this provider isn't one.
+ * The calling agentic loop sees no difference from a key-based model: the
+ * MCP bridge CAPTURES the tool call (`toolsBridge.ts`), it never executes it — so
+ * the vault and the write gate remain the app's own.
  */
 export function subscriptionToolsRoute(
   req: SubscriptionToolsRequest,

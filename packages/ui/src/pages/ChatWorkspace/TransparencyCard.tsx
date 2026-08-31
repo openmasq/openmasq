@@ -3,22 +3,22 @@ import { ArrowRightIcon, EyeIcon, ShieldIcon } from "../../components/brand";
 import { useT } from "../../i18n";
 
 /**
- * L'encart de TRANSPARENCE — montré UNE FOIS, après la première réponse d'une
- * conversation qui a réellement protégé quelque chose.
+ * The TRANSPARENCY card — shown ONCE, after the first reply of a
+ * conversation that actually protected something.
  *
- * Audit du 27/07 : le produit tenait sa promesse sans jamais proposer de la vérifier.
- * Le survol d'une marque et la ligne sous chaque message existaient déjà, mais il faut
- * savoir qu'ils existent ; le comparatif entier, lui, vivait dans un journal réservé à
- * l'équipe. Cet encart est le seul moment où le produit dit « allez voir », et il le dit
- * quand la preuve vient d'être produite.
+ * Audit of 27/07: the product kept its promise without ever offering to verify it.
+ * Hovering a brand and the line under each message already existed, but you have to
+ * know they exist; the full comparison, meanwhile, lived in a log reserved for
+ * the team. This card is the only moment where the product says "go see", and it says it
+ * right when the proof was just produced.
  *
- * ⚠️ Il ne revient jamais (`Settings.transparencySeen`). Un bandeau de réassurance qui
- * se répète cesse d'être lu, et devient le bruit dont l'utilisateur apprend à se
- * débarrasser — l'inverse de ce qu'il vient chercher. Ensuite, la ligne sous chaque
- * message suffit, et le comparatif reste dans le menu ⋯ de la conversation.
+ * ⚠️ It never comes back (`Settings.transparencySeen`). A reassurance banner that
+ * repeats itself stops being read, and becomes the noise the user learns to
+ * get rid of — the opposite of what they came for. After that, the line under each
+ * message is enough, and the comparison stays in the conversation's ⋯ menu.
  *
- * Il compose `AgentCard` comme les autres conteneurs in-chat : une famille, pas une
- * boîte de plus (voir `components/CLAUDE.md`).
+ * It composes `AgentCard` like the other in-chat containers: a family, not one more
+ * box (see `components/CLAUDE.md`).
  */
 export function TransparencyCard({
   count,
@@ -26,7 +26,7 @@ export function TransparencyCard({
   onOpen,
   onDismiss,
 }: {
-  /** Nombre de valeurs distinctes protégées dans cette conversation. */
+  /** Number of distinct values protected in this conversation. */
   count: number;
   modelName?: string;
   onOpen: () => void;

@@ -6,14 +6,14 @@ import { useUpdates } from "../useUpdates";
 import { envLabel } from "./updateStatus";
 import { envSwitchOffered, otherEnv, switchRefusalText } from "./envView";
 
-// La carte ENVIRONNEMENT du tab Versions : quel environnement cette instance a résolu
-// (production/staging), et — pour un compte testeur, un appareil privilégié, ou toute
-// app déjà sur staging — le bouton pour basculer. La build est la même des deux côtés ;
-// basculer réécrit le pointeur local et redémarre l'app.
+// The ENVIRONMENT card of the Versions tab: which environment this instance resolved
+// (production/staging), and — for a tester account, a privileged device, or any app
+// already on staging — the button to switch. The build is the same on both sides;
+// switching rewrites the local pointer and restarts the app.
 //
-// La visibilité est de l'UX (`envView.ts`) : la VRAIE porte revit dans le processus
-// privilégié à chaque demande (allow-list de noms + permission serveur, fail-closed), et
-// un refus est montré tel quel — jamais un silence.
+// Visibility is UX (`envView.ts`): the REAL gate lives again in the privileged
+// process on every request (name allow-list + server permission, fail-closed), and
+// a refusal is shown as-is — never a silence.
 
 export function EnvCard() {
   const host = useHost();
@@ -27,7 +27,7 @@ export function EnvCard() {
   useEffect(() => {
     if (!env) return;
     let live = true;
-    // Affichage seulement, fail-closed : sans réponse, la proposition n'apparaît pas.
+    // Display only, fail-closed: with no response, the offer doesn't appear.
     env
       .stagingTester()
       .then((v) => {
@@ -43,7 +43,7 @@ export function EnvCard() {
   if (!envSwitchOffered({ env: env.name, stagingTester: tester, crossEnv })) return null;
 
   const target = otherEnv(env.name);
-  // La pile auto-hébergée a son nom dans le catalogue ; les environnements cuits, le leur.
+  // The self-hosted stack has its name in the catalogue; the baked environments, theirs.
   const currentLabel = env.name === "custom" ? t.selfHost.envLabel : envLabel(env.name, t);
   const description =
     env.name === "custom"
@@ -57,7 +57,7 @@ export function EnvCard() {
     setBusy(true);
     setErr(null);
     const r = await env.switchTo(target).catch(() => null);
-    // ok:true ⇒ l'app redémarre : rien à rendre. Tout le reste se dit.
+    // ok:true ⇒ the app restarts: nothing to render. Everything else gets said.
     if (!r || !r.ok) {
       setErr(switchRefusalText(r?.reason, t));
       setBusy(false);

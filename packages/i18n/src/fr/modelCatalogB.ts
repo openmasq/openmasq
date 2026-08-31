@@ -1,6 +1,6 @@
 /**
- * Tranche « modelCatalogB » du catalogue FR — la langue SOURCE. Ce que la fiche d'un modèle
- * dit de lui ; les faits (profil, prix, contexte) restent dans `@openmasq/llm`.
+ * The FR catalogue's « modelCatalogB » slice — the SOURCE language. What a model's card
+ * says about it; the facts (profile, price, context) stay in `@openmasq/llm`.
  */
 import type { Messages } from "../messages";
 

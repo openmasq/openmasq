@@ -1,7 +1,7 @@
 /**
- * Tranche « redactionCatalog » du catalogue EN — traduit de la source (`../fr/redactionCatalog.ts`).
- * ⚠️ `detail` et `impact` disent ce qui est masqué et ce que ça coûte à la réponse (règle 8) :
- * traduits au mot près. `satisfies` par entrée.
+ * The EN catalogue's « redactionCatalog » slice — translated from the source (`../fr/redactionCatalog.ts`).
+ * ⚠️ `detail` and `impact` say what is masked and what it costs the reply (rule 8):
+ * translated word for word. `satisfies` per entry.
  */
 import type { Messages } from "../messages";
 

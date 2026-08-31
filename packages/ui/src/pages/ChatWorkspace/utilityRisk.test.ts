@@ -3,12 +3,12 @@ import { utilityRisk, riskValues, attachmentCats } from "./utilityRisk";
 import type { Cat } from "./composerDetection";
 
 /**
- * L'avertissement d'utilité : la RÉPONSE va dépendre d'une donnée redacted.
+ * The utility warning: the REPLY will depend on redacted data.
  *
- * L'invariant central est la règle des DEUX conditions — motif de question ET donnée
- * redacted de la catégorie — parce qu'un avertissement qui parle trop apprend à cliquer
- * sans lire (la leçon écrite du gate d'écriture, `writeConfirm.ts`). Les risques et leurs
- * chiffres : `packages/redact/bench/RAPPORT-risques-utilite-2026-07.md`.
+ * The central invariant is the rule of TWO conditions — question motif AND redacted
+ * data of the category — because a warning that talks too much teaches clicking
+ * without reading (the written lesson of the write gate, `writeConfirm.ts`). The risks and
+ * their figures: `packages/redact/bench/RAPPORT-risques-utilite-2026-07.md`.
  */
 const dob: Cat = { value: "12/03/1994", cat: "dob" };
 const company: Cat = { value: "Karl Studio", cat: "company" };
@@ -35,7 +35,7 @@ describe("utilityRisk — les deux conditions, ou rien", () => {
   });
 
   it("le MOTIF seul ne suffit pas — sans donnée de la catégorie, rien", () => {
-    // Une question d'âge sans date redacted est une question ordinaire.
+    // An age question with no redacted date is an ordinary question.
     expect(utilityRisk("Quel âge a Louis XIV à son sacre ?", [name])).toBeNull();
     expect(utilityRisk("Que fait une entreprise de conseil, en général ?", [dob])).toBeNull();
   });
@@ -65,9 +65,9 @@ describe("utilityRisk — les deux conditions, ou rien", () => {
 });
 
 describe("attachmentCats — les pièces jointes nourrissent l'avertissement", () => {
-  // Le cas vécu (15/08, parcours santé) : la date de naissance vit dans le DOCUMENT,
-  // pas dans le brouillon — substitut né en 1948 pour une patiente de 57 ans, réponse
-  // calibrée « personne âgée » sans que rien ne prévienne.
+  // The real case (15/08, health scenario): the date of birth lives in the DOCUMENT,
+  // not in the draft — a substitute born in 1948 for a 57-year-old patient, a reply
+  // calibrated for « personne âgée » with nothing warning about it.
   const dossier = {
     replacements: [
       { real: "14/11/1968", fake: "13/12/1948", kind: "dob" },

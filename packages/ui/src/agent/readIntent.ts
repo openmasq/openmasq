@@ -1,69 +1,69 @@
-// La garde « CONSULTER ≠ AGIR », sœur de « RÉDIGER ≠ ENVOYER » (`sendIntent.ts`) et
-// extraite pour la même raison (règle 1 : `mcpAgentClassify.ts` reste sous le plafond).
+// The "CONSULT ≠ ACT" guard, sibling of "DRAFT ≠ SEND" (`sendIntent.ts`) and
+// extracted for the same reason (rule 1: `mcpAgentClassify.ts` stays under the cap).
 
 /**
- * « CONSULTER » n'est pas « AGIR » — la garde déterministe.
+ * "CONSULTING" is not "ACTING" — the deterministic guard.
  *
- * Journal du 27/07/2026 : « Prépare ma journée : mes rendez-vous dans l'ordre, avec les
- * participants et le lieu. » Le modèle n'a JAMAIS lu l'agenda — il a appelé
- * `google-calendar__create_event` et posé dans l'agenda réel un événement inventé de
- * bout en bout, participants et salle compris.
+ * Journal from 27/07/2026: "Prepare my day: my appointments in order, with the
+ * participants and location." The model NEVER read the calendar — it called
+ * `google-calendar__create_event` and put a fully invented event, participants and
+ * room included, into the REAL calendar.
  *
- * Ce n'est pas rattrapé par la confirmation : en mode `standard` (le défaut),
- * `CONFIRMATION_POLICY` ne fait apparaître AUCUNE carte pour une écriture ordinaire tant
- * que la conversation n'a pas touché le web — la création part sans que rien ne
- * s'affiche. Le prompt système interdit déjà d'agir sans qu'on le demande, mais un
- * prompt est une prière : la boucle refuse donc ELLE-MÊME toute écriture quand le
- * DERNIER message utilisateur ne demandait qu'à consulter.
+ * Confirmation doesn't catch this: in `standard` mode (the default),
+ * `CONFIRMATION_POLICY` shows NO card at all for an ordinary write as long as the
+ * conversation hasn't touched the web — the creation goes out with nothing shown.
+ * The system prompt already forbids acting without being asked, but a prompt is a
+ * prayer: the loop therefore refuses ANY write ITSELF when the LAST user message only
+ * asked to consult.
  *
- * ## Le sens des faux positifs — c'est ce qui rend les listes ci-dessous asymétriques
+ * ## What false positives mean — this is what makes the lists below asymmetric
  *
- * Un verbe d'ACTION oublié SUR-BLOQUE (une écriture légitime est refusée, l'utilisateur
- * doit la redemander). Un verbe d'action de trop DÉSACTIVE la garde, c'est-à-dire rend
- * le comportement actuel. La liste d'ACTION est donc volontairement GÉNÉREUSE — c'est
- * le côté sûr — et la liste de CONSULTATION plus mesurée : l'y manquer ne coûte, là
- * aussi, que le comportement actuel.
+ * A missed ACTION verb OVER-BLOCKS (a legitimate write is refused, the user has to
+ * ask again). One extra action verb DISABLES the guard, i.e. restores current
+ * behaviour. The ACTION list is therefore deliberately GENEROUS — that's the safe
+ * side — and the CONSULT list more measured: missing one there only costs, likewise,
+ * current behaviour.
  */
 
-// ⚠️ Frontières en lookaround Unicode, jamais `\b` (ASCII) — définition partagée.
+// ⚠️ Boundaries via Unicode lookaround, never `\b` (ASCII) — shared definition.
 import { EDGE_L, EDGE_R } from "../send/wordEdges";
 
 /**
- * Tout ce qui MODIFIE quelque chose chez l'utilisateur ou chez un tiers. Généreuse par
- * construction (voir l'en-tête) : les radicaux couvrent impératif, infinitif et 2ᵉ
- * personne du pluriel d'un coup (`cr[ée]e[rz]?` → crée / créer / créez).
+ * Everything that MODIFIES something for the user or for a third party. Generous by
+ * construction (see the header): the stems cover imperative, infinitive and 2nd
+ * person plural at once (`cr[ée]e[rz]?` → crée / créer / créez).
  */
 const ACT_VERB = new RegExp(
   `${EDGE_L}(?:` +
-    // créer / ajouter
+    // create / add
     `cr[ée]e[rz]?|cr[ée]ation|ajoute[rz]?|ajouter|ins[èe]re[rz]?|ins[ée]rer|` +
-    // agenda
+    // calendar
     `planifie[rz]?|planifier|programme[rz]?|programmer|r[ée]serve[rz]?|r[ée]server|` +
     `bloque[rz]?|bloquer|invite[rz]?|inviter|convie[rz]?|convier|reporte[rz]?|reporter|` +
-    // modifier / supprimer. `mets à jour` est une locution : sans elle, « … puis mets à
-    // jour l'item monday en Payé » se lisait comme une simple consultation et l'écriture
-    // finale était refusée (scénario `wf2-facturation-croisee`).
+    // modify / delete. `mets à jour` is a set phrase: without it, "… then update the
+    // monday item to Paid" read as a plain consultation and the final write was
+    // refused (scenario `wf2-facturation-croisee`).
     `modifie[rz]?|modifier|change[rz]?|changer|[ée]dite[rz]?|[ée]diter|` +
     `mets?[ ][àa][ ]jour|mettre[ ][àa][ ]jour|mettez[ ][àa][ ]jour|mise[ ][àa][ ]jour|` +
     `bascule[rz]?|basculer|` +
-    // ouvrir/signaler : « ouvre une issue », « préviens le canal » sont des créations,
-    // pas des lectures (scénario `wf2-incident-monitoring`).
+    // open/report: "open an issue", "notify the channel" are creations, not reads
+    // (scenario `wf2-incident-monitoring`).
     `ouvre[rz]?|ouvrir|pr[ée]viens|pr[ée]venir|pr[ée]venez|signale[rz]?|signaler|` +
     `d[ée]clare[rz]?|d[ée]clarer|commente[rz]?|commenter|lance[rz]?|lancer|notant|` +
     `renomme[rz]?|renommer|remplace[rz]?|remplacer|corrige[rz]?|corriger|` +
     `supprime[rz]?|supprimer|efface[rz]?|effacer|retire[rz]?|retirer|` +
     `annule[rz]?|annuler|archive[rz]?|archiver|ferme[rz]?|fermer|cl[ôo]ture[rz]?|` +
-    // faire partir
+    // send out
     `envoie[sz]?|envoyer|envoyez|transmets|transmettez|transmettre|` +
     `exp[ée]die[rz]?|exp[ée]dier|poste[rz]?|poster|publie[rz]?|publier|` +
     `partage[rz]?|partager|diffuse[rz]?|diffuser|r[ée]ponds|r[ée]pondre|r[ée]pondez|` +
-    // écrire quelque part
+    // write somewhere
     `enregistre[rz]?|enregistrer|sauvegarde[rz]?|sauvegarder|d[ée]pose[rz]?|d[ée]poser|` +
     `[ée]cris|[ée]crire|[ée]crivez|r[ée]dige[rz]?|r[ée]diger|` +
     `t[ée]l[ée]verse[rz]?|t[ée]l[ée]verser|importe[rz]?|importer|` +
-    // assigner / marquer
+    // assign / mark
     `assigne[rz]?|assigner|attribue[rz]?|attribuer|coche[rz]?|cocher|marque[rz]?|marquer|` +
-    // navigateur : agir sur une page
+    // browser: act on a page
     `clique[rz]?|cliquer|remplis|remplir|remplissez|valide[rz]?|valider|soumets|soumettre|` +
     // EN
     `create|add|insert|schedule|book|invite|move|reschedule|update|modify|change|rename|` +
@@ -74,15 +74,16 @@ const ACT_VERB = new RegExp(
 );
 
 /**
- * « Déplacer » / « décaler », séparés du bloc ci-dessus pour UNE raison : ils sont les
- * seuls verbes d'action de la liste dont l'emploi RÉFLÉCHI décrit l'utilisateur au lieu
- * d'instruire l'assistant. « Ce qui ne me laisse pas le temps de me déplacer » — la
- * phrase exacte du journal du 27/07/2026 — décrit un trajet, pas un événement à bouger,
- * et lisait toute la demande comme un ordre d'agir.
+ * "Déplacer" / "décaler" (move/shift), separated from the block above for ONE reason:
+ * they are the only action verbs in the list whose REFLEXIVE use describes the user
+ * instead of instructing the assistant. "Ce qui ne me laisse pas le temps de me
+ * déplacer" (which leaves me no time to get there) — the exact phrase from the journal
+ * of 27/07/2026 — describes a trip, not an event to move, and read the whole request
+ * as an order to act.
  *
- * La restriction est volontairement limitée à ces deux verbes : l'appliquer à tout le
- * bloc retournerait la garde contre elle-même sur « peux-tu me créer un événement »,
- * où le pronom est un objet indirect parfaitement ordinaire.
+ * The restriction is deliberately limited to these two verbs: applying it to the whole
+ * block would turn the guard against itself on "peux-tu me créer un événement" (can
+ * you create an event for me), where the pronoun is a perfectly ordinary indirect object.
  */
 const ACT_MOVE = new RegExp(
   `${EDGE_L}(?<!(?:me|te|se|s['’])[ ])(?:d[ée]place[rz]?|d[ée]placer|d[ée]cale[rz]?|d[ée]caler)${EDGE_R}`,
@@ -90,17 +91,17 @@ const ACT_MOVE = new RegExp(
 );
 
 /**
- * Une INTERDICTION explicite d'agir. Elle est traitée EN PREMIER et elle est
- * SUFFISANTE : « Lecture seule : ne crée, ne modifie et n'envoie rien. » contient trois
- * verbes d'action, donc sans ce passage préalable la demande se lirait comme un ordre
- * d'agir — exactement le retournement corrigé dans `sendIntent.ts` pour « n'envoie
- * rien ». Nos propres modèles de workflow écrivent cette phrase (`suggestions/
- * routineTemplates.ts`, `routineGeneric.ts`), donc le cas est la règle, pas l'exception.
+ * An explicit PROHIBITION on acting. It is handled FIRST and it is SUFFICIENT:
+ * "Read only: don't create, don't modify and don't send anything." contains three
+ * action verbs, so without this preliminary pass the request would read as an order
+ * to act — exactly the reversal fixed in `sendIntent.ts` for "send nothing". Our own
+ * workflow templates write this phrase (`suggestions/routineTemplates.ts`,
+ * `routineGeneric.ts`), so the case is the rule, not the exception.
  */
 const NO_ACT = new RegExp(
   `${EDGE_L}(?:` +
     `lecture[ ]seule|consultation[ ]seule|read[- ]only|` +
-    // « ne crée rien », « n'écris rien », « ne modifie rien », « ne rien créer »…
+    // "ne crée rien", "n'écris rien", "ne modifie rien", "ne rien créer"…
     `n['’ ]?(?:e[ ]?)?(?:le[ ]?|la[ ]?|les[ ]?|lui[ ]?|y[ ]?)?(?:cr[ée]e|[ée]cris|modifie|` +
     `supprime|envoie|ajoute|publie|poste|partage|enregistre|d[ée]place|annule|r[ée]serve)|` +
     `ne[ ]rien[ ](?:cr[ée]er|[ée]crire|modifier|supprimer|envoyer|ajouter|publier|changer)|` +
@@ -114,9 +115,9 @@ const NO_ACT = new RegExp(
 );
 
 /**
- * Ce qui demande de REGARDER. Verbes ET tournures : « Prépare ma journée » n'a aucun
- * verbe de consultation, c'est la SUITE (« Mes rendez-vous dans l'ordre… ») qui dit que
- * la demande est une lecture — d'où les groupes nominaux.
+ * What asks to LOOK. Verbs AND phrasings: "Prepare my day" has no consult verb at all,
+ * it's the FOLLOW-UP ("my appointments in order…") that says the request is a read —
+ * hence the noun groups.
  */
 const CONSULT = new RegExp(
   `(?:${EDGE_L}(?:` +
@@ -132,7 +133,7 @@ const CONSULT = new RegExp(
     `list|show|display|summari[sz]e|tell[ ]me|give[ ]me|which|how[ ]many|` +
     `find|check|review|read|compare|analy[sz]e` +
     `)${EDGE_R})` +
-    // Tournures : la demande de lecture qui ne porte pas de verbe de lecture.
+    // Phrasings: a read request that carries no read verb.
     `|(?:qu['’ ]?est-ce[ ]que[ ]j['’]ai|qu['’]ai-je|ce[ ]que[ ]j['’]ai|` +
     `fais[ ]le[ ]point|faire[ ]le[ ]point|point[ ]sur|passe[ ]en[ ]revue|revue[ ]de[ ]` +
     `|o[ùu][ ]en[ ](?:est|sont|suis)|` +
@@ -145,48 +146,49 @@ const CONSULT = new RegExp(
 );
 
 /**
- * « Lecture seule » et ses variantes : un marqueur qui gouverne le MESSAGE ENTIER, pas une
- * clause. Il reste absolu — c'est la tournure qu'écrivent nos propres modèles de workflow
- * quand l'utilisateur ne veut RIEN qui agisse.
+ * "Read only" and its variants: a marker that governs the WHOLE MESSAGE, not one
+ * clause. It stays absolute — it's the phrasing our own workflow templates write
+ * when the user wants NOTHING that acts.
  */
 const READ_ONLY_GLOBAL = /lecture[ ]seule|consultation[ ]seule|read[- ]only/iu;
 
-/** La clause interdictrice, du mot d'interdiction jusqu'à la fin de sa proposition. La
- *  borne inclut « : » et « — » parce qu'une interdiction s'y termine couramment (« n'envoie
- *  rien : montre-moi d'abord »), et elle emporte les verbes COORDONNÉS de la même clause
- *  (« do not create or modify anything ») — sans quoi le second verbe se relirait comme une
- *  demande d'agir, ce qui est exactement le retournement que la règle 1 évite. */
+/** The prohibiting clause, from the prohibition word to the end of its own clause. The
+ *  boundary includes ":" and "—" because a prohibition commonly ends there ("don't send
+ *  anything: show me first"), and it carries along the verbs COORDINATED in the same
+ *  clause ("do not create or modify anything") — without which the second verb would
+ *  re-read as an order to act, exactly the reversal rule 1 avoids. */
 const PROHIBITION_CLAUSE = new RegExp(`(?:${NO_ACT.source})[^.;:\\n—]*`, "giu");
 
-/** Le message, ses clauses interdictrices ôtées. */
+/** The message, with its prohibiting clauses stripped out. */
 function stripProhibitionClauses(text: string): string {
   return text.replace(PROHIBITION_CLAUSE, " ");
 }
 
 /**
- * La demande se limite-t-elle à CONSULTER ?
+ * Does the request only ask to CONSULT?
  *
- * Trois cas, dans cet ordre — l'ordre EST la règle, comme pour `asksDraftNotSend` :
- *  1. une interdiction explicite d'agir ⇒ oui, quoi qu'il y ait d'autre dans le message
- *     (« ne crée, ne modifie et n'envoie rien » contient trois verbes d'action) ;
- *  2. sinon, un verbe d'action ⇒ non (sur-bloquer un « crée » explicite serait aussi
- *     grave que laisser passer la création fantôme) ;
- *  3. sinon, une demande de consultation ⇒ oui.
+ * Three cases, in this order — the order IS the rule, as for `asksDraftNotSend`:
+ *  1. an explicit prohibition on acting ⇒ yes, whatever else is in the message
+ *     ("don't create, don't modify and don't send anything" contains three action
+ *     verbs);
+ *  2. otherwise, an action verb ⇒ no (over-blocking an explicit "create" would be as
+ *     serious as letting the phantom creation through);
+ *  3. otherwise, a consult request ⇒ yes.
  *
- * Rien de reconnu ⇒ `false` : l'inconnu garde le comportement actuel, la garde
- * n'ajoute jamais de blocage sur une demande qu'elle ne comprend pas.
+ * Nothing recognised ⇒ `false`: the unknown keeps current behaviour, the guard never
+ * adds a block on a request it doesn't understand.
  */
 export function asksConsultNotAct(text: string | undefined | null): boolean {
   if (!text) return false;
-  // Un marqueur GLOBAL gouverne tout le message, quoi qu'il contienne d'autre.
+  // A GLOBAL marker governs the whole message, whatever else it contains.
   if (READ_ONLY_GLOBAL.test(text)) return true;
   if (NO_ACT.test(text)) {
-    // ⚠️ Une interdiction n'annule que SA CLAUSE, pas la demande qui la précède. « Crée une
-    // page… NE MODIFIE AUCUNE PAGE EXISTANTE » borne le périmètre, elle ne renonce pas à la
-    // création — et la lire comme un renoncement refusait l'écriture À CAUSE de la prudence
-    // de l'utilisateur (mesuré le 15/08/2026 : Notion, refus, « demande de consulter »).
-    // On retire donc la clause interdictrice et on redemande au reste s'il commande une
-    // action ; s'il n'en commande aucune, on retombe exactement sur l'ancien verdict.
+    // ⚠️ A prohibition cancels only ITS CLAUSE, not the request preceding it. "Create a
+    // page… DON'T MODIFY ANY EXISTING PAGE" bounds the scope, it doesn't give up the
+    // creation — and reading it as a waiver refused the write BECAUSE OF the user's own
+    // caution (measured 15/08/2026: Notion, refusal, "consult request").
+    // So we strip the prohibiting clause and ask the rest again whether it commands an
+    // action; if it commands none, we fall back exactly to the old verdict.
     const reste = stripProhibitionClauses(text);
     if (ACT_VERB.test(reste) || ACT_MOVE.test(reste)) return false;
     return true;
@@ -195,7 +197,7 @@ export function asksConsultNotAct(text: string | undefined | null): boolean {
   return CONSULT.test(text);
 }
 
-/** Ce que le modèle reçoit à la place du résultat : la consigne, pas une erreur. */
+/** What the model receives instead of the result: the instruction, not an error. */
 export const CONSULT_NOT_ACT_STEER =
   "Action REFUSÉE : l'utilisateur a demandé de CONSULTER, pas de MODIFIER. Rien n'a été " +
   "créé, modifié ni supprimé. Utilise les outils de LECTURE pour aller chercher " +

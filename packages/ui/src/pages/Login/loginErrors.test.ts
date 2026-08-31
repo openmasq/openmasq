@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 import { friendlyError } from "./loginErrors";
 
 /**
- * Ce que ces cas tiennent : l'écran de connexion ne renvoie jamais quelqu'un dans le mur
- * en anglais quand la cause est connue, et ne se TAIT jamais quand elle ne l'est pas.
+ * What these cases pin: the login screen never leaves someone stuck
+ * in English when the cause is known, and never stays SILENT when it isn't.
  */
 describe("friendlyError — ce que l'écran de connexion montre d'un refus", () => {
   it("nomme le cas « inscriptions fermées » — sa cause est l'ADRESSE, pas une panne", () => {
-    // Les deux formulations de GoTrue : verrou d'instance, puis verrou du fournisseur.
+    // GoTrue's two phrasings: instance-level lock, then provider-level lock.
     for (const raw of ["Signups not allowed for this instance", "Email signups are disabled"]) {
       const out = friendlyError(raw);
-      expect(out).not.toBe(raw); // plus jamais l'anglais brut sur un écran français
+      expect(out).not.toBe(raw); // never raw English on a French screen again
       expect(out).toMatch(/adresse/i);
       expect(out).toMatch(/inscriptions sont fermées/i);
     }
@@ -33,7 +33,7 @@ describe("friendlyError — ce que l'écran de connexion montre d'un refus", () 
   });
 
   it("vouvoie, comme tout le reste de l'écran", () => {
-    // Le tutoiement de deux messages détonnait avec « Connectez-vous », « votre e-mail ».
+    // The informal "tu" form in two messages clashed with « Connectez-vous », « votre e-mail ».
     for (const raw of ["", "Failed to fetch", "Email rate limit exceeded"]) {
       expect(friendlyError(raw)).not.toMatch(/\b(ta|tu|ton)\b|réessaie\b|Vérifie\b|Patiente\b/);
     }

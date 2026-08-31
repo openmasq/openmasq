@@ -25,8 +25,8 @@ function deps(over: Partial<DeferredAttachDeps> = {}): DeferredAttachDeps & {
 
 describe("stageDeferredFile — le chip paraît AVANT le contenu", () => {
   it("pose le chip avant le premier await, pas après", async () => {
-    // La régression que ce module existe pour empêcher : attendre lecture + OCR avant de
-    // montrer quoi que ce soit. L'utilisateur cliquait, et l'app avait l'air figée.
+    // The regression this module exists to prevent: waiting for read + OCR before
+    // showing anything at all. The user would click, and the app looked frozen.
     const d = deps();
     let resolve!: (f: ExtractedFile) => void;
     const p = stageDeferredFile(
@@ -34,7 +34,7 @@ describe("stageDeferredFile — le chip paraît AVANT le contenu", () => {
       "conv1",
       d,
     );
-    expect(d.staged).toHaveLength(1); // déjà posé, alors que `load` n'a pas rendu
+    expect(d.staged).toHaveLength(1); // already placed, even though `load` hasn't resolved
     expect(d.staged[0][0].extracting).toBe(true);
     expect(d.staged[0][0].name).toBe("scan.pdf");
     expect(d.patches).toHaveLength(0);
@@ -44,8 +44,8 @@ describe("stageDeferredFile — le chip paraît AVANT le contenu", () => {
   });
 
   it("le contenu arrive, et `extracting` tombe en MÊME temps que `redacting` monte", async () => {
-    // Deux correctifs séparés laissaient le chip une frame sans aucun état, ce qui se lit
-    // comme un échec — et sur un fichier volumineux la frame se voit.
+    // Two separate patches left the chip with no state for one frame, which reads
+    // as a failure — and on a large file that frame is visible.
     const d = deps();
     await stageDeferredFile({ name: "scan.pdf", load: async () => FILE }, "conv1", d);
     const [cid, patch, conv] = d.patches[0];
@@ -69,8 +69,8 @@ describe("stageDeferredFile — le chip paraît AVANT le contenu", () => {
   });
 
   it("un ÉCHEC laisse le chip, marqué — il ne le fait pas disparaître", async () => {
-    // Le retirer serait plus propre à l'œil et malhonnête : le fichier a été demandé, et un
-    // chip fautif se réessaie là où une disparition ne laisse rien à comprendre.
+    // Removing it would look cleaner and be dishonest: the file was requested, and a
+    // faulty chip can be retried where a disappearance leaves nothing to understand.
     const d = deps();
     await stageDeferredFile(
       { name: "cassé.pdf", load: () => Promise.reject(new Error("illisible")) },
@@ -84,8 +84,8 @@ describe("stageDeferredFile — le chip paraît AVANT le contenu", () => {
   });
 
   it("corrige DU MÊME CÔTÉ que la pose — l'id de conversation est rendu tel quel", async () => {
-    // Un correctif local sur un chip parqué dans le magasin ne trouve rien, et le laisserait
-    // « en cours » pour toujours.
+    // A local patch on a chip parked in the store finds nothing, and would leave it
+    // « en cours » forever.
     const d = deps();
     await stageDeferredFile({ name: "a.pdf", load: async () => FILE }, "autre-conv", d);
     expect(d.patches[0][2]).toBe("autre-conv");
@@ -96,7 +96,7 @@ describe("placeholderFor", () => {
   it("nomme le fichier et n'invente aucun contenu", () => {
     const ph = placeholderFor({ name: "a.pdf", mime: "application/pdf", load: async () => FILE }, "c");
     expect(ph).toMatchObject({ name: "a.pdf", mime: "application/pdf", text: "", chars: 0, extracting: true });
-    expect(ph.redactPreview).toBe(0); // un compteur inventé mentirait sur ce qui est protégé
+    expect(ph.redactPreview).toBe(0); // a made-up counter would lie about what's protected
   });
 
   it("sans mime connu, le champ est ABSENT plutôt que vide", () => {

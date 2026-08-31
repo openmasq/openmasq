@@ -29,9 +29,9 @@ function conv(messages: any[]) {
 }
 
 describe("garde anti-effacement — un squelette n'écrase jamais des messages stockés", () => {
-  // La perte du 13/08 : une conversation SANS messages (état pas encore hydraté, convMeta
-  // de sync appliqué avant le chargement) passée au miroir exécutait
-  // `DELETE FROM messages WHERE conversation_id = ?` — et détruisait le seul exemplaire.
+  // The 13/08 data loss: a conversation WITHOUT messages (state not yet hydrated, sync
+  // convMeta applied before load) passed to the mirror executed
+  // `DELETE FROM messages WHERE conversation_id = ?` — and destroyed the only copy.
   const full = () =>
     conv([
       { id: "m1", role: "user", content: "question sensible" },
@@ -44,15 +44,15 @@ describe("garde anti-effacement — un squelette n'écrase jamais des messages s
       redactionVault: { FAUX1: "vrai1" },
       redactionSalt: 42,
     } as any);
-    // Le squelette : même id, zéro message, aucun coffre, aucun sel.
+    // The skeleton: same id, zero messages, no vault, no salt.
     await dbSaveConversation({ ...conv([]), title: "Titre re-synchronisé" } as any);
 
     const c = (await dbLoad())!.conversations[0];
     expect(c.messages.map((m: any) => m.id)).toEqual(["m1", "m2"]);
-    // Le coffre ET le sel survivent — un squelette n'a ni l'un ni l'autre.
+    // The vault AND the salt survive — a skeleton has neither.
     expect(c.redactionVault).toEqual({ FAUX1: "vrai1" });
     expect(c.redactionSalt).toBe(42);
-    // La méta, elle, s'applique (c'est ce qu'un convMeta transporte réellement).
+    // The meta, though, does apply (that's what a convMeta actually carries).
     expect(c.title).toBe("Titre re-synchronisé");
   });
 
@@ -146,7 +146,7 @@ describe("dbSaveConversation → dbLoad round-trip", () => {
 
     const msgs = (await dbLoad())!.conversations[0].messages;
     expect(msgs[1].autoRouted).toBe("metered");
-    // A manually-picked turn keeps no field behind — absent means « choisi par vous ».
+    // A manually-picked turn keeps no field behind — absent means "chosen by you".
     expect(msgs[0].autoRouted).toBeUndefined();
   });
 

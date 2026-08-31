@@ -1,16 +1,16 @@
 import type { Settings } from "../types";
 
 /**
- * Le redaction des NOMBRES, retiré du produit.
+ * Redaction of NUMBERS, removed from the product.
  *
- * Le réglage « Masquer aussi les nombres » a disparu de toutes les surfaces. Le champ, lui,
- * survit dans les blobs déjà persistés — et un compte qui l'avait activé continuerait à
- * jetoniser chaque nombre indéfiniment, sans plus aucun moyen de l'éteindre : un réglage
- * sans interrupteur est un piège, pas une fonctionnalité.
+ * The « Masquer aussi les nombres » setting has disappeared from every surface. The field
+ * itself survives in already-persisted blobs — and an account that had turned it on would
+ * keep tokenizing every number indefinitely, with no way left to turn it off: a setting
+ * with no switch is a trap, not a feature.
  *
- * Une seule lecture, ici, pour que la neutralisation ne puisse pas être contournée par un
- * appelant qui lirait `settings.redactNumbers` directement (règle 9 : un fait partagé a UN
- * domicile). Le jour où le redaction des nombres revient, il revient par cette fonction.
+ * A single read, here, so the neutralization cannot be bypassed by a caller
+ * reading `settings.redactNumbers` directly (rule 9: a shared fact has ONE
+ * home). The day number redaction comes back, it comes back through this function.
  */
 export function redactNumbersOn(_settings: Pick<Settings, "redactNumbers"> | undefined): boolean {
   return false;

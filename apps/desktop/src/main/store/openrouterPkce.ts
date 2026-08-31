@@ -6,7 +6,7 @@ import type { ProviderId } from "@openmasq/llm";
 import { BRAND } from "@openmasq/branding";
 
 /**
- * « Connecter mon compte OpenRouter » — OAuth PKCE, run ENTIRELY in main.
+ * "Connect my OpenRouter account" — OAuth PKCE, run ENTIRELY in main.
  *
  * Why it lives in `store/`: it MINTS a provider key and writes it to the encrypted
  * keychain, so it belongs to the secrets family (root rule 10 — the flow sits next to
@@ -33,17 +33,17 @@ const EXCHANGE_URL = "https://openrouter.ai/api/v1/auth/keys";
 /**
  * Where OpenRouter sends the user back.
  *
- * PRIMARY : une BOUCLE LOCALE `http://127.0.0.1:<port éphémère>/callback` (RFC 8252, le
- * retour recommandé pour une app native). Le deep link du scheme custom était le maillon qui
- * cassait : LaunchServices ne route un scheme custom que vers UNE application — avec une
- * app installée à côté de l'instance de dev (ou l'inverse), le retour partait dans
- * l'autre app et le flux attendait pour rien (journal 02/08). Le socket loopback, lui,
- * appartient à CE processus : pas de course d'enregistrement, pas d'interception par une
- * app tierce (déjà mieux que le scheme, que n'importe qui peut enregistrer) — et PKCE
- * reste la ceinture : un code intercepté est inutile sans le verifier en mémoire.
+ * PRIMARY: a LOCAL LOOP `http://127.0.0.1:<ephemeral port>/callback` (RFC 8252, the
+ * recommended return for a native app). The custom scheme deep link was the weak link that
+ * broke: LaunchServices only routes a custom scheme to ONE application — with an
+ * app installed alongside the dev instance (or the reverse), the return went to
+ * the other app and the flow waited for nothing (log 02/08). The loopback socket, meanwhile,
+ * belongs to THIS process: no registration race, no interception by a
+ * third-party app (already better than the scheme, which anyone can register) — and PKCE
+ * remains the belt: an intercepted code is useless without the verifier in memory.
  *
- * FALLBACK : si le port ne s'ouvre pas, l'ancien deep link reprend — comportement
- * d'avant, rien ne régresse.
+ * FALLBACK: if the port doesn't open, the old deep link takes over — same
+ * behaviour as before, nothing regresses.
  */
 export const CALLBACK_URL = `${BRAND.protocol}://openrouter/callback`;
 const LOOPBACK_HOST = "127.0.0.1";
@@ -100,7 +100,7 @@ export function codeFromCallback(url: string): string | null {
   }
 }
 
-/** The single in-flight flow. One at a time on purpose: a second « Connecter » click
+/** The single in-flight flow. One at a time on purpose: a second "Connect" click
  *  must not leave two verifiers alive, either of which a stray callback could complete.
  *  `server` = the loopback listener of THIS flow (absent on the deep-link fallback);
  *  it lives exactly as long as the flow. */
@@ -114,8 +114,8 @@ function abandon(): void {
   p?.settle(false);
 }
 
-/** Monotonic flow generation : le listen étant asynchrone, seul le DERNIER `begin`
- *  a le droit de poser son flow — un launch d'une génération dépassée se ferme. */
+/** Monotonic flow generation: since listen is asynchronous, only the LATEST `begin`
+ *  has the right to set its flow — a launch from an outdated generation closes itself. */
 let flowSeq = 0;
 
 /** Test seam: forget any in-flight flow — settled false, loopback listener freed. */
@@ -164,8 +164,8 @@ export function beginOpenRouterConnect(): Promise<boolean> {
     }, FLOW_TTL_MS);
     const launch = (callbackUrl: string, server?: Server) => {
       if (done || gen !== flowSeq) {
-        // Réglé (Stop/TTL) ou SUPERSÉDÉ par un `begin` plus récent : ce launch n'a
-        // plus le droit de poser un flow ni d'ouvrir le navigateur.
+        // Settled (Stop/TTL) or SUPERSEDED by a more recent `begin`: this launch no
+        // longer has the right to set a flow or open the browser.
         server?.close();
         settle(false);
         return;
@@ -175,7 +175,7 @@ export function beginOpenRouterConnect(): Promise<boolean> {
         settle(false);
         return;
       }
-      abandon(); // un-seul-verifier : tout flow encore posé est plus vieux que nous
+      abandon(); // one-verifier-only: any flow still set is older than us
       pending = { verifier, at: Date.now(), settle, server };
     };
     const server = createServer((req, res) => {

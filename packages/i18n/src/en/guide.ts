@@ -1,11 +1,11 @@
 /**
- * Tranche « guide » du catalogue EN — traduit de la source (`../fr/guide.ts`).
+ * The EN catalogue's « guide » slice — translated from the source (`../fr/guide.ts`).
  *
- * ⚠️ Chaque affirmation est une PROMESSE sur l'endroit où vont les données (règle 8) :
- * elle se traduit au mot près, ni adoucie ni durcie. `ui/src/help/guide.test.ts` la
- * revérifie contre les vrais défauts, dans cette langue comme dans l'autre.
+ * ⚠️ Every assertion is a PROMISE about where the data goes (rule 8):
+ * it translates word for word, neither softened nor hardened. `ui/src/help/guide.test.ts`
+ * re-checks it against the real defaults, in this language as in the other.
  *
- * `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat
+ * `satisfies` per entry: the compiler demands EXACTLY the contract's keys
  * (`../messages/guide.ts`), ni plus ni moins.
  */
 import type { Messages } from "../messages";

@@ -1,13 +1,13 @@
 /**
- * Le contrat des MODÈLES de départ — les routines et les compétences que l'app propose
- * quand la liste est vide.
+ * The starter TEMPLATES contract — the routines and skills the app offers
+ * when the list is empty.
  *
- * Leur `prompt` PRÉ-REMPLIT le message de la personne : il n'est donc pas de la prose
- * pour le modèle (qui, elle, suit la langue de la conversation et reste hors catalogue),
- * mais du texte qu'elle va lire, éditer et envoyer. Il se traduit comme le reste.
+ * Their `prompt` PRE-FILLS the person's message: it is therefore not prose
+ * for the model (which follows the conversation's language and stays out of the catalogue),
+ * but text they will read, edit and send. It translates like the rest.
  *
- * La STRUCTURE reste au code (`suggestions/`) : l'id, l'ordre, les connecteurs de chaque
- * routine, la catégorie de chaque compétence. Ici, uniquement les mots.
+ * The STRUCTURE stays in the code (`suggestions/`): the id, the order, each routine's
+ * connectors, each skill's category. Here, only the words.
  */
 
 export interface TemplateCopy {
@@ -17,11 +17,11 @@ export interface TemplateCopy {
 }
 
 export interface TemplatesMessages {
-  /** Une routine par id du catalogue `ROUTINE_SUGGESTIONS`. */
+  /** One routine per id of the `ROUTINE_SUGGESTIONS` catalogue. */
   routines: Record<string, TemplateCopy>;
-  /** Une compétence par id du catalogue `COMPETENCE_SUGGESTIONS`. */
+  /** One skill per id of the `COMPETENCE_SUGGESTIONS` catalogue. */
   competences: Record<string, TemplateCopy>;
-  /** L'idée CONSTRUITE pour un connecteur que la liste curatée ne couvre pas. */
+  /** The idea BUILT for a connector the curated list does not cover. */
   generic: {
     name: (service: string) => string;
     desc: (what: string) => string;

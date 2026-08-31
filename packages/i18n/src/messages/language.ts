@@ -1,20 +1,20 @@
 /**
- * La langue elle-même — le sélecteur des Réglages et ses options.
+ * The language itself — the Settings picker and its options.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
- * Le découpage tient le cap 300 LOC (règle 1) — même forme que `packages/emails/i18n/`.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
+ * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
  */
 
-/** La langue elle-même — le sélecteur des Réglages (onglet « Compte », section
- *  Apparence) et ses options. C'est la SEULE surface qui doit rester lisible pour
- *  quelqu'un qui ne comprend PAS la langue affichée : d'où les endonymes ci-dessous, et
- *  une aide qui dit jusqu'où le choix porte. */
+/** The language itself — the Settings picker (« Compte » tab, Apparence
+ *  section) and its options. It is the ONLY surface that must stay readable to
+ *  someone who does NOT understand the displayed language: hence the endonyms below, and
+ *  a hint that says how far the choice reaches. */
 export interface LanguageMessages {
-  /** Titre du réglage de langue. */
+  /** Title of the language setting. */
   label: string;
-  /** Sous-titre : ce que le choix change — et ce qu'il ne change pas. */
+  /** Subtitle: what the choice changes — and what it does not. */
   hint: string;
-  /** Nom de CHAQUE langue, rendu dans SA propre langue (« Français », « English ») —
-   *  un endonyme, jamais traduit, donc identique dans tous les catalogues. */
+  /** The name of EACH language, rendered in ITS own language (« Français », « English ») —
+   *  an endonym, never translated, hence identical in every catalogue. */
   names: { fr: string; en: string };
 }

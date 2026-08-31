@@ -1,6 +1,6 @@
 /**
- * Tranche « settingsMore » du catalogue EN — traduit de la source (`../fr/settingsMore.ts`).
- * `satisfies` par entrée.
+ * The EN catalogue's « settingsMore » slice — translated from the source (`../fr/settingsMore.ts`).
+ * `satisfies` per entry.
  */
 import type { Messages } from "../messages";
 

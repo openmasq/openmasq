@@ -4,20 +4,20 @@ import type { SyncHost } from "../../host";
 
 import { useT } from "../../i18n";
 /**
- * La carte de la PHRASE E2E — poser, changer, désactiver. Sortie de `SyncSection` quand
- * celle-ci a passé les 300 lignes (règle 1) : la phrase et la liste des appareils sont deux
- * concerns qui ne partagent aucun état, la coupe était donc déjà écrite dans le fichier.
+ * The E2E PASSPHRASE card — set, change, disable. Pulled out of `SyncSection` when
+ * that one crossed 300 lines (rule 1): the passphrase and the device list are two
+ * concerns sharing no state, so the cut was already written into the file.
  *
- * ⚠️ **On RELIT l'hôte après chaque geste au lieu de supposer qu'il a réussi.** L'ancienne
- * version affichait « désactivée » sur son propre optimisme : quand l'effacement échouait,
- * l'interface l'annonçait quand même, le fichier chiffré restait, et la phrase réapparaissait
- * au rechargement — une synchro qu'on croit éteinte et qui tourne toujours. C'est le pire des
- * deux états, et c'est le symptôme par lequel le défaut d'association au compte s'est
- * manifesté. Un geste qui n'a pas pris se DIT (`failure`).
+ * ⚠️ **We RE-READ the host after every action instead of assuming it succeeded.** The old
+ * version showed "disabled" on its own optimism: when clearing failed,
+ * the UI announced it anyway, the encrypted file stayed, and the passphrase reappeared
+ * on reload — a sync you believe is off but that is still running. That's the worst of
+ * both states, and it's the symptom through which the account-association bug
+ * manifested. An action that didn't take gets SAID (`failure`).
  *
- * La phrase est rangée PAR COMPTE côté hôte (`main/store/syncPass.ts` sur le bureau,
- * `@openmasq/sync` `accountPassphrase` ailleurs) : cette carte n'a donc rien à faire du
- * changement de compte, elle relit simplement ce que l'hôte rend pour le compte courant.
+ * The passphrase is stored PER ACCOUNT on the host side (`main/store/syncPass.ts` on
+ * desktop, `@openmasq/sync` `accountPassphrase` elsewhere): so this card has nothing to do about
+ * account switching, it simply re-reads what the host returns for the current account.
  */
 export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
   const [pass, setPass] = useState<string | null>(null);
@@ -25,10 +25,10 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState(false);
-  /** « mismatch » = la phrase posée n'ouvre pas les clés déjà synchronisées (une autre
-   *  phrase règne sur le serveur) — dit tout de suite, au lieu d'une synchro morte. */
+  /** "mismatch" = the passphrase set doesn't open the already-synced keys (another
+   *  passphrase rules on the server) — said right away, instead of a dead sync. */
   const [passMismatch, setPassMismatch] = useState(false);
-  /** Un geste qui a ÉCHOUÉ — voir l'en-tête : le silence était le vrai défaut. */
+  /** An action that FAILED — see the header: silence was the real bug. */
   const [failure, setFailure] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,8 +48,8 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
     try {
       const phrase = draft.trim();
       await sync.setPassphrase(phrase);
-      // On RELIT plutôt que de supposer : ce qui compte est ce que l'hôte a réellement
-      // rangé, pas ce qu'on vient de lui demander.
+      // We RE-READ rather than assume: what matters is what the host actually
+      // stored, not what we just asked it to.
       const stored = await sync.getPassphrase();
       setPass(stored);
       if (!stored) {
@@ -58,9 +58,9 @@ export function SyncPassphraseCard({ sync }: { sync: SyncHost }) {
       }
       setDraft("");
       setEditing(false);
-      // La phrase est posée quoi qu'il arrive (une phrase volontairement neuve est
-      // légitime) — mais si le serveur porte des enveloppes qu'elle n'ouvre pas, on le
-      // DIT maintenant plutôt que de laisser chaque canal se sceller en silence.
+      // The passphrase is set no matter what (a deliberately new passphrase is
+      // legitimate) — but if the server holds envelopes it doesn't open, we
+      // SAY so now rather than let each channel seal itself in silence.
       setPassMismatch((await sync.verifyPassphrase?.(phrase)) === "mismatch");
     } catch {
       setFailure(t.syncTab.passSaveFailed);

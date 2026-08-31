@@ -12,20 +12,20 @@ name: audit
 # to the branch-protection required checks (Terraform-managed
 # required_status_checks, outside this repo) to make it blocking.
 on:
-  # NI sur push NI sur pull_request : ce gate ne déploie rien, n'est pas un check requis,
-  # et il est ROUGE sur de la dette connue (voir ci-dessus) — un run par PR ajoutait donc
-  # 25 échecs sur 300 runs qui n'apprenaient rien à personne et noyaient les vrais rouges.
-  # Les avis de sécurité sont de toute façon TEMPORELS (une CVE arrive sans changement de
-  # code) : le cron hebdomadaire suit la dette mieux qu'un run par commit, et le workflow
-  # reste lançable à la main avant un changement de dépendances.
-  # ⚠️ Le jour où il passe au vert et devient un check requis (branch protection,
-  # côté Terraform), lui REMETTRE `pull_request: branches: [main, dev]` — un
-  # check requis qui ne se déclenche jamais bloque toutes les PR.
+  # NEITHER on push NOR on pull_request: this gate deploys nothing, isn't a required check,
+  # and it's RED on known debt (see above) — a run per PR was therefore adding
+  # 25 failures out of 300 runs that taught nobody anything and drowned the real reds.
+  # Security advisories are TIME-BASED anyway (a CVE arrives with no code
+  # change): the weekly cron tracks the debt better than a run per commit, and the workflow
+  # stays launchable by hand before a dependency change.
+  # ⚠️ The day it turns green and becomes a required check (branch protection,
+  # on the Terraform side), PUT BACK `pull_request: branches: [main, dev]` on it — a
+  # required check that never triggers blocks every PR.
   schedule:
     - cron: "0 6 * * 1" # Mondays 06:00 UTC
   workflow_dispatch:
 
-# Lecture seule : le gate lit le lockfile et le registre npm, il n'écrit rien via
+# Read-only: the gate reads the lockfile and the npm registry, it writes nothing via
 # GITHUB_TOKEN.
 permissions:
   contents: read

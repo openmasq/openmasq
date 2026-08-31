@@ -1,22 +1,22 @@
 import { expect, type Page } from "@playwright/test";
 
 /*
- * Le LABORATOIRE : N tours agentiques CONCURRENTS dans UNE app lancée.
+ * The LAB: N CONCURRENT agentic turns in ONE launched app.
  *
- * Le coût d'un test « connecteurs réels » se répartit en trois : le démarrage de
- * l'app (~30 s), la reconnexion des connecteurs, et les tours de modèle (les
- * minutes). Un test = une app payait le premier deux fois pour rien et sérialisait
- * le troisième. Ici : UNE app, N conversations lancées ensemble, on attend le lot.
- * Le temps du lot ≈ le tour le plus lent, pas leur somme.
+ * The cost of a "real connectors" test splits into three: app startup
+ * (~30 s), reconnecting the connectors, and model turns (the
+ * minutes). One test = one app paid the first cost twice for nothing and serialized
+ * the third. Here: ONE app, N conversations launched together, we wait for the batch.
+ * The batch's time ≈ the slowest turn, not their sum.
  *
- * Ce qui est exécuté reste le PROCESSUS EXACT de l'app : `sendMessage` du store →
- * redaction → wire → `mcpAgent` → vrais connecteurs MCP → les deux gates. Le pont
- * ne substitue que la réponse des cartes de confirmation (voir `e2eBridge.tsx`).
+ * What runs is still the app's EXACT PROCESS: the store's `sendMessage` →
+ * redaction → wire → `mcpAgent` → real MCP connectors → both gates. The bridge
+ * only substitutes the confirmation cards' answer (see `e2eBridge.tsx`).
  */
 
-/** Le contrat du pont, redéclaré ici : le spec et le renderer ne partagent pas de
- *  tsconfig. Il doit rester le miroir de `src/renderer/src/e2eBridge.tsx` — une
- *  dérive se voit tout de suite (le pont est le SEUL consommateur). */
+/** The bridge's contract, redeclared here: the spec and the renderer don't share a
+ *  tsconfig. It must stay the mirror of `src/renderer/src/e2eBridge.tsx` — a
+ *  drift shows up immediately (the bridge is the ONLY consumer). */
 interface E2eTurnSnapshot {
   convId: string;
   done: boolean;
@@ -53,16 +53,16 @@ export interface LabPrompt {
   id: string;
   prompt: string;
   /**
-   * Autoriser les écritures de CE tour. **Absent = REFUSÉES** — un banc qui tourne sur
-   * les VRAIS comptes approuve par exception, jamais par défaut.
+   * Allow THIS turn's writes. **Absent = REFUSED** — a bench that runs against
+   * REAL accounts approves by exception, never by default.
    *
-   * Le défaut inverse a coûté exactement ce qu'il promettait : sur `prep-journee`, un
-   * scénario annoté « Lecture seule », le modèle a créé un événement inventé dans
-   * l'agenda réel — approuvé sans que personne ne l'ait demandé, et compté comme un
-   * succès (journal du 27/07/2026). Un scénario qui VEUT écrire le déclare.
+   * The reverse default cost exactly what it promised: on `prep-journee`, a
+   * scenario annotated "Read only", the model created an invented event in the
+   * real calendar — approved without anyone having asked, and counted as a
+   * success (27/07/2026 log). A scenario that WANTS to write declares it.
    */
   approveWrites?: boolean;
-  /** Modèle de CE tour — comparer deux modèles dans un même lot. */
+  /** THIS turn's model — compare two models within the same batch. */
   modelId?: string;
 }
 
@@ -73,24 +73,24 @@ export interface LabResult extends LabPrompt {
   error: boolean;
   errorText: string;
   text: string;
-  /** Les outils réellement appelés, dans l'ordre — la matière du diagnostic. */
+  /** The tools actually called, in order — the diagnostic's raw material. */
   tools: string[];
-  /** La boucle a-t-elle été COUPÉE par le plafond d'appels ? (le symptôme n°1 :
-   *  le modèle rejoue le même outil au lieu de changer d'approche). */
+  /** Was the loop CUT OFF by the call cap? (symptom #1:
+   *  the model replays the same tool instead of changing approach). */
   loopStopped: boolean;
-  /** Le plus grand nombre de fois qu'UN même outil a été appelé dans ce tour —
-   *  la métrique de qualité de guidance : elle doit BAISSER quand on l'améliore. */
+  /** The largest number of times ONE same tool was called in this turn —
+   *  the guidance-quality metric: it must GO DOWN as it's improved. */
   maxRepeat: number;
-  /** Noms d'outils / termes techniques redacted PAR ERREUR dans les résultats de
-   *  découverte (`execute-sql → jade-tom`). Non vide = la boucle est (au moins en
-   *  partie) INDUITE PAR LE REDACTION, pas une faiblesse du modèle — la distinction
-   *  qui rend le chiffre de fiabilité interprétable. */
+  /** Tool names / technical terms redacted BY MISTAKE in discovery
+   *  results (`execute-sql → jade-tom`). Non-empty = the loop is (at least in
+   *  part) INDUCED BY REDACTION, not a model weakness — the distinction
+   *  that makes the reliability figure interpretable. */
   toolRedactions: { fake: string; real: string }[];
   ms: number;
 }
 
-/** L'app annonce elle-même l'interruption dans la réponse — s'appuyer sur son
- *  texte (et non deviner) garde le test aligné sur `mcpAgentGuidance`. */
+/** The app itself announces the interruption in its answer — relying on its
+ *  text (rather than guessing) keeps the test aligned with `mcpAgentGuidance`. */
 const LOOP_STOPPED = /Boucle d'outils interrompue/i;
 
 const maxRepeatOf = (tools: string[]): number => {
@@ -99,15 +99,15 @@ const maxRepeatOf = (tools: string[]): number => {
   return Math.max(0, ...n.values());
 };
 
-/** Le pont est monté de façon asynchrone (drapeau demandé à main) — l'attendre. */
+/** The bridge mounts asynchronously (flag requested from main) — wait for it. */
 export async function waitForBridge(page: Page): Promise<void> {
   await page.waitForFunction(() => !!window.__openmasqE2E, null, { timeout: 30_000 });
 }
 
 /**
- * Lance tous les prompts d'un coup, puis attend que chacun soit terminé.
- * `timeoutMs` s'applique au LOT (un tour bloqué n'immobilise pas les autres — il
- * ressort `timedOut`, ce qui EST le symptôme qu'on cherche à mesurer).
+ * Launches all the prompts at once, then waits until each one is done.
+ * `timeoutMs` applies to the BATCH (a stuck turn doesn't block the others — it
+ * comes back `timedOut`, which IS the symptom we're trying to measure).
  */
 export async function runLab(
   page: Page,
@@ -116,9 +116,9 @@ export async function runLab(
 ): Promise<LabResult[]> {
   const timeoutMs = opts.timeoutMs ?? 300_000;
   await waitForBridge(page);
-  // Le catalogue OpenRouter DYNAMIQUE est fusionné au montage : sans cette
-  // attente, un slug dynamique n'est pas résolvable et le send part sur le
-  // modèle d'usine (401 avec notre session factice).
+  // The DYNAMIC OpenRouter catalog is merged in on mount: without this
+  // wait, a dynamic slug isn't resolvable and the send goes out on the
+  // factory model (401 with our dummy session).
   await page.waitForFunction((id) => window.__openmasqE2E!.modelReady(id), opts.modelId, {
     timeout: 60_000,
   });
@@ -146,7 +146,7 @@ export async function runLab(
     await page.waitForTimeout(2_000);
   }
 
-  // Les redactions de NOMS D'OUTILS par conversation (le journal de débogage).
+  // The TOOL NAME redactions per conversation (the debug journal).
   const toolReds = await page.evaluate(
     (ids) => Object.fromEntries(ids.map((c) => [c, window.__openmasqE2E!.toolNameRedactions(c)])),
     started.map((s) => s.convId),
@@ -172,19 +172,19 @@ export async function runLab(
   });
 }
 
-/** Vider le journal du bench dans un fichier (pour l'autopsie d'un workflow qui
- *  boucle) — le journal COMPLET, avec les correspondances redacted↔original. */
+/** Dump the bench's journal to a file (for the autopsy of a workflow that
+ *  loops) — the FULL journal, with the redacted↔original correspondences. */
 export async function dumpJournal(page: Page, convId: string): Promise<unknown[]> {
   return page.evaluate((c) => window.__openmasqE2E!.journal(c), convId);
 }
 
-/** Les confirmations d'écriture demandées par la boucle, tous tours confondus —
- *  `2×` sur un même outil dans une même conversation EST le double-envoi. */
+/** The write confirmations requested by the loop, across all turns —
+ *  `2×` on the same tool within the same conversation IS the double-send. */
 export async function labConfirms(page: Page) {
   return page.evaluate(() => window.__openmasqE2E!.confirms());
 }
 
-/** Un rapport compact, lisible d'un coup d'œil dans la sortie Playwright. */
+/** A compact report, readable at a glance in Playwright's output. */
 export function labReport(results: LabResult[]): string {
   return results
     .map((r) => {
@@ -192,7 +192,7 @@ export function labReport(results: LabResult[]): string {
       const tools = r.tools.length
         ? ` · ${r.tools.length} appel(s) [max ${r.maxRepeat}× le même]: ${[...new Set(r.tools)].join(", ")}`
         : " · aucun outil";
-      // Le drapeau qui rend la boucle interprétable : redaction OU modèle.
+      // The flag that makes the loop interpretable: redaction OR model.
       const redact = r.toolRedactions.length
         ? `\n    ⚠️ NOMS D'OUTILS REDACTED (cause probable de boucle) : ${r.toolRedactions
             .slice(0, 6)
@@ -206,15 +206,15 @@ export function labReport(results: LabResult[]): string {
 }
 
 /**
- * Les actions VERS L'EXTÉRIEUR (envoyer, créer, publier) confirmées au plus une
- * fois par conversation — l'assertion anti-double-envoi.
+ * OUTWARD actions (send, create, publish) confirmed at most once
+ * per conversation — the anti-double-send assertion.
  *
- * ⚠️ Volontairement restreinte à ces outils-là : le gate d'écriture est fail-closed
- * (« inconnu ⇒ écriture »), donc un outil de LECTURE non classé — `posthog__exec`,
- * mesuré 7× — demande confirmation lui aussi. Compter toute confirmation répétée
- * comme un double-envoi confondrait « le modèle boucle » (qualité, mesurée par
- * `maxRepeat`) avec « l'utilisateur a envoyé deux fois » (sécurité). Deux symptômes,
- * deux verdicts.
+ * ⚠️ Deliberately restricted to those tools: the write gate is fail-closed
+ * ("unknown ⇒ write"), so an unclassified READ tool — `posthog__exec`,
+ * measured 7× — also asks for confirmation. Counting every repeated confirmation
+ * as a double-send would conflate "the model is looping" (quality, measured by
+ * `maxRepeat`) with "the user sent it twice" (security). Two symptoms,
+ * two verdicts.
  */
 export const OUTWARD_TOOLS = /^(slack|gmail|linear|google-calendar|notion)__/;
 
@@ -229,8 +229,8 @@ export function expectNoDoubleOutwardAction(
   expect(doubled, `action sortante exécutée plusieurs fois : ${doubled.join(", ")}`).toEqual([]);
 }
 
-/** Le RÉSUMÉ de fiabilité du lot — ce qu'on regarde baisser en itérant sur la
- *  guidance : tours coupés par le plafond, et pire répétition d'un même outil. */
+/** The batch's reliability SUMMARY — what we watch go down as we iterate on
+ *  the guidance: turns cut off by the cap, and the worst repeat of a same tool. */
 export function labReliability(results: LabResult[]): {
   looped: string[];
   worstRepeat: { id: string; n: number } | null;
@@ -240,8 +240,8 @@ export function labReliability(results: LabResult[]): {
   return { looped, worstRepeat: worst ? { id: worst.id, n: worst.maxRepeat } : null };
 }
 
-/** Un tour en ERREUR est un échec du lot — sinon un 401 passe pour un succès
- *  (mesuré : trois tours « erreur » en 4 s laissaient le test vert). */
+/** A turn in ERROR is a batch failure — otherwise a 401 passes for a success
+ *  (measured: three "error" turns in 4 s left the test green). */
 export function expectNoErrors(results: LabResult[]): void {
   const bad = results.filter((r) => r.error);
   expect(
@@ -250,8 +250,8 @@ export function expectNoErrors(results: LabResult[]): void {
   ).toEqual([]);
 }
 
-/** Aucun tour ne doit rester bloqué : c'est l'incident `errorbrowser.md` (routeur
- *  vide → boucle qui n'aboutit pas), et le premier symptôme d'une guidance ratée. */
+/** No turn should stay stuck: that's the `errorbrowser.md` incident (empty
+ *  router → a loop that never resolves), and the first symptom of failed guidance. */
 export function expectAllCompleted(results: LabResult[]): void {
   const stuck = results.filter((r) => r.timedOut).map((r) => r.id);
   expect(stuck, `tours jamais terminés : ${stuck.join(", ")}`).toEqual([]);

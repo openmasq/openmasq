@@ -1,47 +1,47 @@
 /**
- * LE PREMIER LANCEMENT — quatre écrans, plus le repli « régler finement ».
+ * THE FIRST LAUNCH — four screens, plus the « régler finement » fallback.
  *
- * ⚠️ C'est la seule surface qu'un anglophone rencontre AVANT d'avoir pu changer de langue :
- * le sélecteur vit dans les Réglages, derrière cet écran. Une phrase laissée en français
- * ici n'est pas une imperfection, c'est la première impression du produit pour quelqu'un
- * qui ne la lit pas.
+ * ⚠️ It is the only surface an English speaker meets BEFORE being able to change language:
+ * the picker lives in the Settings, behind this screen. A sentence left in French
+ * here is not an imperfection, it is the product's first impression for someone
+ * who cannot read it.
  *
- * ⚠️ Règle 8 : les deux promesses de COMPORTEMENT du premier écran (les personnalités ne
- * sont jamais masquées ; on propose de révéler avant une recherche web) sont vraies du
- * moteur et épinglées par `demo.test.ts`. Elles existent pour éviter qu'on baisse la
- * protection au premier ratage — les traduire à la légère, c'est reprendre ce qu'elles
- * empêchent.
+ * ⚠️ Rule 8: the first screen's two BEHAVIOUR promises (famous people are never
+ * masked; we offer to reveal before a web search) are true of the
+ * engine and pinned by `demo.test.ts`. They exist to stop people lowering
+ * the protection on the first miss — translating them carelessly takes back what they
+ * prevent.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
  */
 export interface OnboardingMessages {
-  /** Les commandes de pied, présentes à chaque écran. */
+  /** The footer controls, present on every screen. */
   skip: string;
   back: string;
   next: string;
   start: string;
 
-  /** Écran 0 — ce que le redaction FAIT, démontré plutôt qu'affirmé. */
+  /** Screen 0 — what redaction DOES, demonstrated rather than asserted. */
   redaction: {
     eyebrow: string;
     titleLead: string;
     titleHighlight: string;
     sub: (brand: string) => string;
-    /** Les deux promesses de comportement — cf. l'avertissement ci-dessus. */
+    /** The two behaviour promises — see the warning above. */
     notoriety: { lead: string; strong: string; tail: string };
     webReveal: { lead: (brand: string) => string; strong: string; tail: string };
   };
 
-  /** Écran 1 — les endroits où l'on travaille. Les noms viennent de `sections`. */
+  /** Screen 1 — the places where one works. The names come from `sections`. */
   places: {
     eyebrow: string;
     title: string;
     sub: string;
   };
 
-  /** Écran 2 — l'accès aux modèles. Le titre CHANGE selon ce que ce build sert : un
-   *  abonnement (`titleServed`), des modèles inclus sans rien vendre (`titleIncluded`,
-   *  le défaut), ou rien du tout (`titleUnserved`). */
+  /** Screen 2 — model access. The title CHANGES with what this build serves: a
+   *  subscription (`titleServed`), included models with nothing for sale (`titleIncluded`,
+   *  the default), or nothing at all (`titleUnserved`). */
   access: {
     eyebrow: string;
     titleServed: string;
@@ -51,8 +51,8 @@ export interface OnboardingMessages {
     subUnserved: string;
   };
 
-  /** Écran 3 — « c'est prêt ». La 2ᵉ phrase rend la 1ʳᵉ vérifiable : un modèle gratuit est
-   *  sélectionné d'office, donc une installation neuve écrit sans clé ni abonnement. */
+  /** Screen 3 — « c'est prêt ». The 2nd sentence makes the 1st verifiable: a free model is
+   *  selected by default, so a fresh install writes with no key and no subscription. */
   ready: {
     eyebrow: string;
     title: string;
@@ -64,20 +64,20 @@ export interface OnboardingMessages {
     tuneRedaction: string;
   };
 
-  /** Le repli « régler finement », qui rend la même matrice que les Réglages. */
+  /** The « régler finement » fallback, which renders the same matrix as the Settings. */
   tune: {
     eyebrow: string;
     title: string;
     sub: string;
   };
 
-  /** Le choix d'ACCÈS : le compte (abonnement, ou modèles inclus sans rien vendre —
-   *  `included`, le défaut), ou sa propre clé. */
+  /** The ACCESS choice: the account (a subscription, or included models with nothing
+   *  for sale — `included`, the default), or one's own key. */
   keyChoice: {
     subscription: { title: (brand: string) => string; sub: string };
     included: { sub: string };
     ownKey: { title: string; sub: string };
-    /** L'étiquette portée par l'option et par le fournisseur recommandés. */
+    /** The tag carried by the recommended option and the recommended provider. */
     recommended: string;
     savedKey: (provider: string) => string;
     connect: string;
@@ -92,7 +92,7 @@ export interface OnboardingMessages {
     errorSaveFailed: string;
   };
 
-  /** Le formulaire de clé : les étapes du fournisseur, puis le champ. */
+  /** The key form: the provider's steps, then the field. */
   keySteps: {
     markDone: string;
     openHost: (host: string) => string;

@@ -1,18 +1,18 @@
 /**
- * La CSP du renderer, ÉLARGIE aux origines de la pile auto-hébergée — au chargement, par
- * main, et seulement en environnement `custom`.
+ * The renderer's CSP, WIDENED to the self-hosted stack's origins — at load time, by
+ * main, and only in the `custom` environment.
  *
- * La CSP d'`index.html` est une balise `<meta>` STATIQUE (`src/renderer/index.html`) : elle
- * n'autorise que `'self'`, le Supabase cuit et `https://*.<domaine de la marque>`. Une
- * meta-CSP ne se DESSERRE pas par un en-tête (les deux s'appliquent, la plus stricte gagne),
- * donc une pile sur un autre domaine serait bloquée même acceptée par main. La seule façon
- * honnête de l'élargir est de servir un `index.html` dont le `connect-src` porte EN PLUS les
- * origines déclarées — exactement celles-là, jamais un joker (`customCspOrigins`).
+ * `index.html`'s CSP is a STATIC `<meta>` tag (`src/renderer/index.html`): it
+ * only allows `'self'`, the baked Supabase and `https://*.<brand domain>`. A
+ * meta-CSP cannot be LOOSENED by a header (both apply, the stricter one wins),
+ * so a stack on another domain would be blocked even if accepted by main. The only
+ * honest way to widen it is to serve an `index.html` whose `connect-src` carries the
+ * declared origins IN ADDITION — exactly those, never a wildcard (`customCspOrigins`).
  *
- * Mécanisme : on intercepte le schéma `file:` de la session par défaut (`protocol.handle`),
- * on ne réécrit QUE le fichier `index.html` du renderer, et tout le reste repart au
- * gestionnaire natif (`net.fetch` + `bypassCustomProtocolHandlers`). L'origine du renderer
- * ne change pas, le preload non plus. Doit tourner après `whenReady`, avant `loadFile`.
+ * Mechanism: we intercept the default session's `file:` scheme (`protocol.handle`),
+ * we rewrite ONLY the renderer's `index.html` file, and everything else goes back to the
+ * native handler (`net.fetch` + `bypassCustomProtocolHandlers`). The renderer's origin
+ * doesn't change, nor does the preload's. Must run after `whenReady`, before `loadFile`.
  */
 import { protocol, net } from "electron";
 import { readFile } from "node:fs/promises";
@@ -26,7 +26,7 @@ export function installCustomStackCsp(stack: CustomStack, rendererIndexHtml: str
   if (origins.length === 0) return;
   const indexUrl = pathToFileURL(rendererIndexHtml).href;
   protocol.handle("file", async (request) => {
-    // Comparé SANS la requête ni le fragment : `loadFile` peut en ajouter, le fichier est le même.
+    // Compared WITHOUT the query or the fragment: `loadFile` can add one, the file is the same.
     const url = request.url.split(/[?#]/, 1)[0];
     if (url !== indexUrl) return net.fetch(request, { bypassCustomProtocolHandlers: true });
     const html = await readFile(rendererIndexHtml, "utf8");
@@ -36,9 +36,9 @@ export function installCustomStackCsp(stack: CustomStack, rendererIndexHtml: str
   });
 }
 
-/** Le branchement depuis `index.ts`, en une ligne : rien à faire hors de l'environnement
- *  `custom`, et rien non plus si le pointeur ne porte plus de pile valide (`environment.ts`
- *  relit et REVALIDE — une pile altérée sur le disque n'élargit rien). */
+/** The wiring from `index.ts`, in one line: nothing to do outside the `custom`
+ *  environment, and nothing either if the pointer no longer carries a valid stack
+ *  (`environment.ts` re-reads and REVALIDATES — a stack tampered with on disk widens nothing). */
 export function installCustomStackCspFor(profile: { env: EnvName; baseUserData: string }, rendererIndexHtml: string): void {
   if (profile.env !== "custom") return;
   const { custom } = readEnvPointerFull(profile.baseUserData);

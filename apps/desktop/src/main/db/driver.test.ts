@@ -1,16 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
-// Le module tire `electron` et le pont d'erreurs pour SURFACER l'échec ; le prédicat, lui,
-// est pur. On coupe les deux plutôt que de le déplacer dans un fichier de plus.
+// The module pulls in `electron` and the error bridge to SURFACE the failure; the predicate
+// itself is pure. We cut both rather than move it into yet another file.
 vi.mock("electron", () => ({ app: { quit: () => {} }, dialog: { showErrorBox: () => {} } }));
 vi.mock("../runtime/errorReport", () => ({ reportMainError: () => {} }));
 
 import { isNativeLoadFailure } from "./driver";
 
-// Un chargement natif impossible tue le processus AVANT Sentry quand il se fait en tête de
-// module — c'est ce qui est arrivé sur la première installation Windows réelle : dialogue
-// Electron brut, zéro évènement. Ce prédicat est ce qui sépare « ce binaire ne peut pas
-// tourner sur cette machine » (terminal, à expliquer) d'une erreur de base ordinaire.
+// A native load failure kills the process BEFORE Sentry when it happens at the
+// top of a module — that's what happened on the first real Windows install: a raw
+// Electron dialog, zero event. This predicate is what separates "this binary can't
+// run on this machine" (terminal, to be explained) from an ordinary DB error.
 
 describe("isNativeLoadFailure", () => {
   it("reconnaît le code que Node pose sur un dlopen refusé", () => {
@@ -21,8 +21,8 @@ describe("isNativeLoadFailure", () => {
   });
 
   it("reconnaît le message même sans code — Windows le TRADUIT", () => {
-    // Le vrai message vu sur la machine de test était en français : se fier au texte
-    // anglais seul ne verrait rien hors des machines en anglais.
+    // The real message seen on the test machine was in French: relying on the
+    // English text alone would see nothing outside English-language machines.
     expect(
       isNativeLoadFailure(new Error("\\\\?\\C:\\…\\index.node: Le module spécifié est introuvable.")),
     ).toBe(true);

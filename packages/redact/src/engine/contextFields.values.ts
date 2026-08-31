@@ -1,9 +1,9 @@
-// La VALEUR d'un champ étiqueté : la nettoyer, la borner, et décider si c'en est une.
+// The VALUE of a labeled field: clean it, bound it, and decide whether it is one.
 //
-// Toutes les passes de `contextFields.ts` (en ligne, verticale, sérialisée) et la passe des
-// BLOCS détachés (`labelBlocks.ts`) traversent ces trois fonctions — c'est l'unique copie
-// de la garde (règle 9). Les tenir ensemble, hors du fichier des MOTIFS, garde la surface
-// lisible : ici on décide ce qu'une valeur EST, là-bas où elle commence.
+// Every pass in `contextFields.ts` (inline, vertical, serialised) and the detached
+// BLOCKS pass (`labelBlocks.ts`) go through these three functions — it's the single copy
+// of the gate (rule 9). Keeping them together, outside the PATTERNS file, keeps the surface
+// legible: here we decide what a value IS, there where it starts.
 import { isStopword, isGenericTerm, isGenericCompound, stripOrgAffixes } from "../model/detect";
 import { trimAddressTail } from "./addresses";
 
@@ -30,11 +30,11 @@ export function cleanValue(raw: string): string {
   // ` | ` column separator used by the tabular (CSV/XLSX) header-annotation
   // (`documents/tabular.ts`) — so a `nom: Rebour | ville: Lyon` row yields just
   // "Rebour" for the `nom` field, not the whole rest of the line.
-  // …et le TIRET CADRATIN entouré d'espaces, séparateur de champ de tous les formulaires
-  // d'une ligne (« Numéro étudiant : 22104877 — Né le 2 février 2003 »). Sans lui, la
-  // capture gloutonne emportait le champ suivant, et le faux réécrivait la date de
-  // naissance en même temps que l'identifiant. Le trait d'union SIMPLE est exclu : il vit
-  // à l'intérieur des noms et des adresses (« Saint-Ouen », « 12-14 rue »).
+  // …and the EM-DASH surrounded by spaces, the field separator of every one-line
+  // form (« Numéro étudiant : 22104877 — Né le 2 février 2003 »). Without it, the
+  // greedy capture would carry off the next field, and the fake would rewrite the birth
+  // date at the same time as the identifier. The SIMPLE hyphen is excluded: it lives
+  // inside names and addresses (« Saint-Ouen », « 12-14 rue »).
   let v = raw.split(/\t|　|\s{2,}|\s\|\s|\s[—–]\s/u)[0] ?? raw;
   // Next field: a short token (Latin word OR CJK run) immediately before a colon —
   // INCLUDING the "N° xxx :" label form ("Nom et prénom : REBOUR Jean N° sécu :
@@ -61,31 +61,31 @@ export function cleanValue(raw: string): string {
 const LEAD_HONORIFIC = /^(?:m\.|mme\.?|mlle\.?|mr\.?|mrs\.?|ms\.?|dr\.?|monsieur|madame|mademoiselle|docteur|ma[îi]tre|me)[^\S\r\n]+/iu;
 
 /**
- * ⚠️ FUITE — la virgule n'était pas la seule frontière, et les autres laissaient partir la
- * valeur du champ voisin EN CLAIR (mesuré le 16/08/2026) :
+ * ⚠️ LEAK — the comma wasn't the only boundary, and the others let the
+ * neighbouring field's value go out IN CLEAR (measured on 16/08/2026):
  *
- * | Entrée | Ce qui partait |
+ * | Input | What went out |
  * |---|---|
- * | `Contact : Julien Sabourdin (06 12 34 56 78)` | le téléphone, en clair |
- * | `Gérant : Julien Sabourdin (né le 12/03/1984)` | la date de naissance, en clair |
- * | `Contact : Julien Sabourdin - julien@exemple.fr` | l'e-mail, en clair |
+ * | `Contact : Julien Sabourdin (06 12 34 56 78)` | the phone number, in clear |
+ * | `Gérant : Julien Sabourdin (né le 12/03/1984)` | the birth date, in clear |
+ * | `Contact : Julien Sabourdin - julien@exemple.fr` | the email, in clear |
  *
- * La mécanique, visible dans le coffre : la clé était `"Aurèle Aubertin (06 12 34 56 78)"`
- * — le VRAI téléphone à l'intérieur du FAUX. Le champ étiqueté capturait la ligne entière
- * comme UNE valeur NOM ; le candidat téléphone imbriqué était alors écarté par le de-nest
- * (`model/pseudonymize/filter.ts`, à raison : toutes ses occurrences sont dans un candidat
- * plus long) ; et le générateur de faux d'un NOM ne réécrit QUE les mots de nom — chiffres
- * et adresses passent au travers.
+ * The mechanics, visible in the vault: the key was `"Aurèle Aubertin (06 12 34 56 78)"`
+ * — the REAL phone number inside the FAKE. The labeled field was capturing the whole line
+ * as ONE NAME value; the nested phone candidate was then dropped by the de-nest
+ * (`model/pseudonymize/filter.ts`, rightly: all its occurrences sit inside a longer
+ * candidate); and a NAME's fake generator rewrites ONLY name words — digits
+ * and addresses pass right through.
  *
- * Trois frontières s'ajoutent donc à la virgule, chacune impossible dans un nom de
- * personne : une PARENTHÈSE ouvrante, un TIRET ENTOURÉ D'ESPACES (« Jean-Pierre » et
- * « Saint-Ouen » n'en portent pas — c'est le tiret SIMPLE qui vit dans les noms, jamais
- * l'espacé), et un jeton portant un `@` ou une course de 2+ chiffres.
+ * Three boundaries are therefore added to the comma, each impossible in a person's
+ * name: an opening PARENTHESIS, a SPACE-SURROUNDED DASH (« Jean-Pierre » and
+ * « Saint-Ouen » don't carry one — it's the SIMPLE hyphen that lives in names, never
+ * the spaced one), and a token carrying an `@` or a run of 2+ digits.
  *
- * Ce n'est pas une perte de couverture : ce qui est coupé retombe sous ses PROPRES
- * détecteurs (téléphone, DOB, e-mail, identifiant), qui ne pouvaient pas le voir tant qu'il
- * était imbriqué. Même raisonnement, et mêmes bénéfices, que la coupe à la virgule.
- * Épinglé dans `contextFields.test.ts` + `../labelledNeighbour.test.ts` (le FIL).
+ * This isn't a coverage loss: what gets cut falls back under its OWN
+ * detectors (phone, DOB, email, identifier), which couldn't see it while it was
+ * nested. Same reasoning, and same benefits, as the comma cut.
+ * Pinned in `contextFields.test.ts` + `../labelledNeighbour.test.ts` (the WIRE).
  */
 const NAME_FIELD_END = /[(（[]|\s[-–—]\s|\S*@|\d{2}/u;
 
@@ -93,7 +93,7 @@ function trimNameValue(v: string): string {
   const head = v.split(",")[0];
   const cut = head.search(NAME_FIELD_END);
   const kept = cut > 0 ? head.slice(0, cut) : head;
-  // La coupe laisse un séparateur pendant (« REBOUR (» → « REBOUR »).
+  // The cut leaves a dangling separator (« REBOUR (» → « REBOUR »).
   return kept.replace(LEAD_HONORIFIC, "").replace(/[\s(（[\-–—]+$/u, "").trim();
 }
 
@@ -108,18 +108,18 @@ export function acceptFieldValue(
   let value = raw;
   if (groupCategory === "ORG") value = stripOrgAffixes(value);
   if (groupCategory === "NAME") value = trimNameValue(value);
-  // Une valeur d'ADRESSE s'arrête à la fin de l'adresse. La capture d'un champ étiqueté va
-  // jusqu'au bout de la ligne : sans ça, « Adresse : 3 quai des Bateliers, 67000 Strasbourg
-  // et mon bureau est ailleurs » partait EN ENTIER dans le coffre, et le modèle recevait un
-  // faux d'adresse à la place de la fin de la phrase. Même coupe que le détecteur
-  // d'adresses, pas une seconde (règle 9).
+  // An ADDRESS value stops at the end of the address. A labeled field's capture goes
+  // to the end of the line: without this, « Adresse : 3 quai des Bateliers, 67000 Strasbourg
+  // et mon bureau est ailleurs » went out WHOLE into the vault, and the model received an
+  // address fake in place of the rest of the sentence. Same cut as the address
+  // detector, not a second one (rule 9).
   if (groupCategory === "ADDRESS") value = trimAddressTail(value);
-  // …et un IDENTIFIANT s'arrête à la VIRGULE, pour la même raison que le NOM s'arrête à la
-  // sienne : la capture d'un champ étiqueté va jusqu'au bout de la ligne. Mesuré le
-  // 16/08/2026 en ajoutant les libellés de journaux — « user_id=8842019, ip 192.0.2.44 »
-  // devenait UNE valeur d'identifiant, et le faiseur de chiffres réécrivait l'IP à
-  // l'intérieur… en « 944.9.8.74 », une adresse qui n'existe pas. Un identifiant ne porte
-  // jamais de virgule ; ce qui la suit est un autre champ, et il a son propre détecteur.
+  // …and an IDENTIFIER stops at the COMMA, for the same reason the NAME stops at
+  // its own: a labeled field's capture goes to the end of the line. Measured on
+  // 16/08/2026 when adding log-style labels — « user_id=8842019, ip 192.0.2.44 »
+  // was becoming ONE identifier value, and the number-faker was rewriting the IP
+  // inside it… as « 944.9.8.74 », an address that doesn't exist. An identifier never
+  // carries a comma; what follows it is another field, and it has its own detector.
   if (groupCategory === "ID") value = value.split(/[,;]/)[0].trim();
   if (value.length < 2) return null;
   if (!/[\p{L}\p{N}]/u.test(value)) return null; // must carry a letter or digit

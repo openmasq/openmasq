@@ -11,10 +11,10 @@ const TOOLS: ToolDef[] = [
 ];
 
 /**
- * Une fausse CLI : un vrai exécutable (sh → node absolu, aucun PATH requis) qui fait ce
- * que fait la vraie — lire `--mcp-config`, appeler le pont — sans abonnement ni réseau.
- * `argvDump` épingle la ligne de commande VUE par l'enfant : c'est là que vivent les
- * assertions de frontière (jeton hors argv, drapeaux d'isolement).
+ * A fake CLI: a real executable (sh → absolute node, no PATH required) that does what
+ * the real one does — read `--mcp-config`, call the bridge — with no subscription or network.
+ * `argvDump` pins down the command line the child SAW: that's where the
+ * boundary assertions live (token outside argv, isolation flags).
  */
 function fakeCli(dir: string, body: string): { binPath: string; argvDump: string } {
   const argvDump = join(dir, "argv.json");
@@ -55,13 +55,13 @@ describe("completeSubscriptionTools — la primitive completeTools sur la CLI", 
     expect(r.stopReason).toBe("tool_calls");
     expect(r.toolCalls).toHaveLength(1);
     expect(r.toolCalls[0].name).toBe("recherche");
-    // Les arguments restent REDACTED tels que le modèle les a émis : le un-redaction
-    // appartient à la boucle (règle 11), jamais à ce chemin.
+    // The arguments stay REDACTED exactly as the model emitted them: de-redaction
+    // belongs to the loop (rule 11), never to this path.
     expect(r.toolCalls[0].arguments).toEqual({ q: "PERSONNE_1" });
 
     const argv: string[] = JSON.parse(readFileSync(argvDump, "utf8"));
-    // ⚠️ Frontière : le jeton du pont ne passe JAMAIS en argv (lisible via ps) ; et le
-    // remplacement de --safe-mode (qui coupe MCP, mesuré) est bien l'allow-list stricte.
+    // ⚠️ Boundary: the bridge's token NEVER passes through argv (readable via ps); and the
+    // replacement for --safe-mode (which cuts MCP, measured) is indeed the strict allow-list.
     expect(argv.join(" ")).not.toMatch(/[0-9a-f]{48}/);
     expect(argv).not.toContain("--safe-mode");
     expect(argv).toContain("--strict-mcp-config");
@@ -131,9 +131,9 @@ describe("buildToolsArgs", () => {
     expect(args[args.indexOf("--allowedTools") + 1]).toBe("mcp__openmasq__a,mcp__openmasq__b__c");
   });
 
-  // Le périmètre du tour outillé est le PONT et rien d'autre : `--tools ""` retire les
-  // outils intégrés de la CLI, et les outils MCP y survivent (mesuré). `--allowedTools`
-  // ne borne pas le périmètre — il ne peut donc pas tenir cette place (règle 7).
+  // The tooled turn's perimeter is the BRIDGE and nothing else: `--tools ""` removes the
+  // CLI's built-in tools, and MCP tools survive it (measured). `--allowedTools`
+  // doesn't bound the perimeter — so it cannot hold this place (rule 7).
   it("borne le périmètre par ALLOW-LIST : aucun outil intégré, le pont reste (--tools \"\")", () => {
     const args = buildToolsArgs({
       prompt: "p",

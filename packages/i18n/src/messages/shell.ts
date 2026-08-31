@@ -1,14 +1,14 @@
 /**
- * Le contrat de la tranche « shell » — le cadre autour de la conversation : le rail
- * droit (onglets web + dossiers), les onglets de panneau, et les écrans du TÉLÉPHONE.
+ * The « shell » slice contract — the frame around the conversation: the right
+ * rail (web tabs + folders), the panel tabs, and the PHONE screens.
  *
- * Le mobile a ses propres écrans (`containers/shell/mobile/`) mais pas son propre
- * vocabulaire : quand une phrase existe déjà côté bureau (`chrome`, `sections`,
- * `common`), elle est LUE là-bas — ce qui vit ici n'existe que sur ces surfaces.
+ * Mobile has its own screens (`containers/shell/mobile/`) but not its own
+ * vocabulary: when a sentence already exists on the desktop side (`chrome`, `sections`,
+ * `common`), it is READ from there — what lives here exists only on these surfaces.
  */
 
 export interface ShellMessages {
-  /** Le rail droit, replié comme déplié. */
+  /** The right rail, collapsed as well as expanded. */
   rightRail: {
     ariaLabel: string;
     title: string;
@@ -20,19 +20,19 @@ export interface ShellMessages {
     noTabs: string;
     foldersTip: string;
     folders: string;
-    /** Une pastille d'onglet : replier celui qui est ouvert, fermer, piloté. */
+    /** A tab chip: collapse the open one, close, driven. */
     collapseItem: (label: string) => string;
     closeItem: (label: string) => string;
     driven: string;
   };
-  /** Les onglets de documents au-dessus d'un panneau. */
+  /** The document tabs above a panel. */
   panelTabs: {
     sidePanel: string;
     closeTab: string;
     openFile: string;
     openFileTip: string;
   };
-  /** L'arbre des dossiers autorisés et du stockage connecté. */
+  /** The tree of granted folders and connected storage. */
   folders: {
     onThisDevice: string;
     local: string;
@@ -47,7 +47,7 @@ export interface ShellMessages {
     ask: string;
     sourceLabel: (service: string, account: string) => string;
   };
-  /** Les écrans du téléphone — ce qu'ils sont seuls à dire. */
+  /** The phone screens — what only they say. */
   mobile: {
     accountAndSettings: string;
     searchConversation: string;

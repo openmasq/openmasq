@@ -2,55 +2,55 @@ import { BRAND } from "@openmasq/branding";
 import type { LabPrompt } from "./lab";
 
 /*
- * LE CATALOGUE D'ÉVALUATION — ce sur quoi la fiabilité agentique se mesure.
+ * THE EVALUATION CATALOG — what agentic reliability is measured against.
  *
- * Deux familles, volontairement séparées :
- *  • SIMPLE  — une intention, un connecteur. Sert de PLANCHER : si un modèle échoue
- *              là, rien d'autre ne compte.
- *  • COMPLEXE — plusieurs connecteurs ET un CHAÎNAGE : la sortie d'un outil est
- *              l'entrée du suivant (une erreur Sentry devient un ticket, un chiffre
- *              Stripe devient un e-mail). C'est là que les boucles agentiques
- *              cassent en vrai, et donc là que la guidance se juge.
+ * Two families, deliberately separated:
+ *  • SIMPLE  — one intent, one connector. Serves as the FLOOR: if a model fails
+ *              there, nothing else matters.
+ *  • COMPLEX — several connectors AND CHAINING: one tool's output is
+ *              the next one's input (a Sentry error becomes a ticket, a
+ *              Stripe figure becomes an email). That's where agentic loops
+ *              really break, and so that's where the guidance is judged.
  *
- * Chaque groupe déclare ses connecteurs : un groupe = une app = un catalogue
- * d'outils court. Le même catalogue sert AUX DEUX BANCS — fixtures (gratuit,
- * déterministe) et e2e (vrais serveurs) — pour que les chiffres soient comparables.
+ * Each group declares its connectors: one group = one app = one short
+ * tool catalog. The same catalog serves BOTH BENCHES — fixtures (free,
+ * deterministic) and e2e (real servers) — so the numbers are comparable.
  *
- * ⚠️ LES CONNECTEURS DÉCLARÉS DOIVENT ÊTRE RÉELLEMENT BRANCHÉS. Une entrée OAuth
- * dans le store ne prouve rien : Tavily, Stripe et Attio en avaient une et ne se
- * connectaient pas — les groupes qui les citaient tournaient sans eux et
- * produisaient des chiffres qui ne mesuraient rien (un « aucun outil appelé » a
- * même été pris pour un échec de routage alors que le service était absent).
- * `assertConnectorsAvailable` échoue désormais bruyamment ; ce catalogue ne cite
- * que des services vérifiés connectés sur le compte dev.
+ * ⚠️ DECLARED CONNECTORS MUST ACTUALLY BE CONNECTED. An OAuth entry
+ * in the store proves nothing: Tavily, Stripe and Attio each had one and weren't
+ * connecting — the groups that cited them ran without them and
+ * produced numbers that measured nothing (a "no tool called" outcome was
+ * even mistaken for a routing failure when the service was simply absent).
+ * `assertConnectorsAvailable` now fails loudly; this catalog only cites
+ * services verified connected on the dev account.
  *
- * ⚠️ LES ÉCRITURES SE DÉCLARENT. `approveWrites` vaut `false` par défaut (`lab.ts`) :
- * seul un prompt dont l'écriture EST l'objet de la mesure porte `approveWrites: true`.
- * L'inverse — approuver sauf mention contraire — a laissé le modèle poser un événement
- * inventé dans l'agenda RÉEL sur `prep-journee`, un scénario pourtant annoté « Lecture
- * seule », et le banc l'a compté comme un succès (journal du 27/07/2026).
+ * ⚠️ WRITES DECLARE THEMSELVES. `approveWrites` defaults to `false` (`lab.ts`):
+ * only a prompt whose write IS the point being measured carries `approveWrites: true`.
+ * The reverse — approve unless stated otherwise — let the model post an
+ * invented event to the REAL calendar on `prep-journee`, a scenario nonetheless annotated "Read
+ * only", and the bench counted it as a success (27/07/2026 log).
  *
- * ⚠️ NEON EST EN LECTURE SEULE, sans exception : `approveWrites: false` reste écrit
- * explicitement sur tout prompt qui l'approche — redondant avec le défaut, et c'est
- * voulu : la contrainte doit se lire sur le prompt, pas se déduire d'une absence.
+ * ⚠️ NEON IS READ-ONLY, no exceptions: `approveWrites: false` stays written
+ * explicitly on every prompt that approaches it — redundant with the default, and that's
+ * deliberate: the constraint must be readable on the prompt, not inferred from an absence.
  */
 
-/** L'unique destinataire autorisé pour un envoi de test — l'adresse de support de la
- *  marque (`branding.json`), jamais un littéral qui survivrait à un changement de zone. */
+/** The only recipient allowed for a test send — the brand's support
+ *  address (`branding.json`), never a literal that would survive a zone change. */
 export const TEST_RECIPIENT = BRAND.supportEmail;
 
 export interface EvalGroup {
   id: string;
-  /** Les SEULS connecteurs reconnectés (`OPENMASQ_E2E_MCP_ONLY`) / servis en fixtures. */
+  /** The ONLY connectors reconnected (`OPENMASQ_E2E_MCP_ONLY`) / served as fixtures. */
   connectors: string[];
-  /** Préfixe d'outil attendu avant d'envoyer — point de synchro déterministe. */
+  /** Expected tool prefix before sending — a deterministic sync point. */
   needsTool: string;
-  /** `complexe` = chaînage multi-connecteurs (le cœur du bench). */
+  /** `complexe` = multi-connector chaining (the heart of the bench). */
   family: "simple" | "complexe";
   prompts: LabPrompt[];
 }
 
-/* ── FAMILLE SIMPLE : le plancher ───────────────────────────────────────────── */
+/* ── SIMPLE FAMILY: the floor ───────────────────────────────────────────── */
 
 const SIMPLE: EvalGroup[] = [
   {
@@ -65,7 +65,7 @@ const SIMPLE: EvalGroup[] = [
         prompt:
           `Envoie un e-mail à ${TEST_RECIPIENT} avec pour objet « [test e2e] Point hebdo » ` +
           `et un corps court qui propose un point de 30 minutes jeudi prochain.`,
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
@@ -80,7 +80,7 @@ const SIMPLE: EvalGroup[] = [
       {
         id: "rdv-create",
         prompt: "Crée dans mon agenda un événement « [test e2e] Revue produit » jeudi prochain de 14h à 14h30.",
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
@@ -106,20 +106,20 @@ const SIMPLE: EvalGroup[] = [
       {
         id: "doc-create",
         prompt: "Rédige une note de cadrage produit en 5 points et enregistre-la dans un Google Doc « [test e2e] Cadrage ».",
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
   },
 ];
 
-/* ── FAMILLE COMPLEXE : le chaînage multi-outils ────────────────────────────── */
+/* ── COMPLEX FAMILY: multi-tool chaining ────────────────────────────── */
 
 const COMPLEXE: EvalGroup[] = [
   {
-    // La chaîne d'incident, celle du dossier `tofix/` : constater → tracer →
-    // prévenir. Trois connecteurs, DEUX écritures sortantes, et un passage de
-    // données (l'id de l'erreur doit se retrouver dans le ticket puis le message).
+    // The incident chain, the one from the `tofix/` folder: notice → trace →
+    // prevent. Three connectors, TWO outbound writes, and a data
+    // hand-off (the error id must show up in the ticket then the message).
     id: "incident",
     family: "complexe",
     connectors: ["sentry", "linear", "slack"],
@@ -131,15 +131,15 @@ const COMPLEXE: EvalGroup[] = [
           "Identifie l'erreur la plus fréquente sur Sentry, crée un ticket Linear pour la corriger " +
           "(titre préfixé « [test e2e] », description reprenant le nombre d'occurrences), " +
           "puis poste sur Slack un message court annonçant le ticket créé (préfixe « [test e2e] »).",
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
   },
   {
-    // Le croisement de DEUX sources hétérogènes (usage produit vs santé technique)
-    // puis une synthèse écrite. Teste la capacité à ne PAS boucler sur une source
-    // quand l'autre suffit, et à produire un livrable.
+    // The crossing of TWO heterogeneous sources (product usage vs technical health)
+    // followed by a written summary. Tests the ability to NOT loop on one source
+    // when the other suffices, and to produce a deliverable.
     id: "revue",
     family: "complexe",
     connectors: ["posthog", "sentry", "google-docs"],
@@ -151,15 +151,15 @@ const COMPLEXE: EvalGroup[] = [
           "Compare l'utilisation du produit (PostHog) et les erreurs (Sentry) de la semaine, " +
           "dégage 3 constats, puis enregistre la synthèse dans un Google Doc intitulé " +
           "« [test e2e] Revue hebdo produit ».",
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
   },
   {
-    // Facturation → relance : le chemin le plus chargé en PII (un paiement échoué
-    // porte le nom ET l'e-mail d'un client). L'e-mail doit partir vers l'adresse de
-    // test, JAMAIS vers le client trouvé dans l'outil — c'est l'assertion clé.
+    // Billing → follow-up: the path most loaded with PII (a failed payment
+    // carries the name AND the email of a customer). The email must go out to the
+    // test address, NEVER to the customer found in the tool — that's the key assertion.
     id: "facturation",
     family: "complexe",
     connectors: ["supabase", "gmail"],
@@ -171,15 +171,15 @@ const COMPLEXE: EvalGroup[] = [
           "Interroge la base Supabase pour trouver les comptes dont l'abonnement a expiré, " +
           `puis envoie à ${TEST_RECIPIENT} un e-mail « [test e2e] Comptes à relancer » ` +
           "résumant combien ils sont et depuis quand.",
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
   },
   {
-    // Le fan-out : trois sources lues en parallèle pour UNE réponse de synthèse.
-    // Lecture seule — mesure la largeur (a-t-il consulté les trois ?) plus que la
-    // profondeur, et pénalise les modèles qui s'enferment sur une seule source.
+    // The fan-out: three sources read in parallel for ONE summary answer.
+    // Read-only — measures breadth (did it consult all three?) more than
+    // depth, and penalizes models that lock onto a single source.
     id: "journee",
     family: "complexe",
     connectors: ["google-calendar", "gmail", "linear"],
@@ -194,8 +194,8 @@ const COMPLEXE: EvalGroup[] = [
     ],
   },
   {
-    // Veille → livrable → diffusion. Trois connecteurs, deux écritures, et une
-    // dépendance stricte : le lien du Doc doit apparaître dans le message Slack.
+    // Watch → deliverable → distribution. Three connectors, two writes, and a
+    // strict dependency: the Doc's link must appear in the Slack message.
     id: "veille",
     family: "complexe",
     connectors: ["notion", "google-docs", "slack"],
@@ -207,17 +207,17 @@ const COMPLEXE: EvalGroup[] = [
           "Reprends mes notes Notion, fais-en une synthèse dans un Google Doc " +
           "« [test e2e] Synthèse notes », puis poste sur Slack un message « [test e2e] » " +
           "avec le lien du document.",
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
   },
   {
-    // ⚠️ NEON EN LECTURE SEULE. Le croisement base ↔ facturation est le pire cas
-    // de PRIVACY du produit : les deux outils rendent de vraies adresses, qui
-    // doivent repartir REDACTED au modèle. Le livrable est LOCAL (run_python),
-    // jamais une écriture en base — `approveWrites: false` est désormais le défaut,
-    // et reste écrit ici pour que la contrainte se lise sur le prompt.
+    // ⚠️ NEON READ-ONLY. The database ↔ billing crossing is the product's worst
+    // PRIVACY case: both tools return real addresses, which
+    // must go back to the model REDACTED. The deliverable is LOCAL (run_python),
+    // never a DB write — `approveWrites: false` is now the default,
+    // and stays written here so the constraint reads on the prompt.
     id: "donnees",
     family: "complexe",
     connectors: ["neon", "supabase"],
@@ -235,8 +235,8 @@ const COMPLEXE: EvalGroup[] = [
     ],
   },
   {
-    // CRM → agenda → e-mail : la chaîne commerciale, trois connecteurs et une
-    // écriture. Teste la reprise d'un contexte lu (le prospect) dans un livrable.
+    // CRM → calendar → email: the sales chain, three connectors and one
+    // write. Tests carrying a read context (the prospect) into a deliverable.
     id: "crm",
     family: "complexe",
     connectors: ["airtable", "google-calendar", "gmail"],
@@ -248,14 +248,14 @@ const COMPLEXE: EvalGroup[] = [
           "Regarde mes prospects dans Airtable, choisis celui à relancer, " +
           "vérifie un créneau libre dans mon agenda cette semaine, " +
           `et envoie la proposition de créneau à ${TEST_RECIPIENT} (objet préfixé « [test e2e] »).`,
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
   },
   {
-    // Chiffres → tableur : la sortie doit être STRUCTURÉE (pas de prose), ce qui
-    // piège les modèles qui répondent au lieu d'appeler l'outil d'écriture.
+    // Figures → spreadsheet: the output must be STRUCTURED (no prose), which
+    // traps models that answer instead of calling the write tool.
     id: "tableur",
     family: "complexe",
     connectors: ["supabase", "google-sheets"],
@@ -266,7 +266,7 @@ const COMPLEXE: EvalGroup[] = [
         prompt:
           "Récupère les comptes créés récemment dans Supabase, compte-les par plan, " +
           "et dépose le détail dans une Google Sheet intitulée « [test e2e] Paiements du mois ».",
-        // Écriture VOULUE : ce scénario la mesure, donc il l'autorise.
+        // INTENDED write: this scenario measures it, so it allows it.
         approveWrites: true,
       },
     ],
@@ -275,7 +275,7 @@ const COMPLEXE: EvalGroup[] = [
 
 export const EVAL_GROUPS: EvalGroup[] = [...SIMPLE, ...COMPLEXE];
 
-/** Sélection par famille / id, via `E2E_EVAL_FAMILY` + `E2E_EVAL_ONLY`. */
+/** Selection by family / id, via `E2E_EVAL_FAMILY` + `E2E_EVAL_ONLY`. */
 export function selectGroups(family?: string, only?: string): EvalGroup[] {
   return EVAL_GROUPS.filter(
     (g) => (!family || g.family === family) && (!only || only.split(",").includes(g.id)),

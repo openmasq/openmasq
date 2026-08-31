@@ -91,7 +91,7 @@ export function providerGroupStatus(p: {
                   title: st.viaSubscriptionTip(BRAND.name, label),
                 }
               : {
-                  // Même chose sans rien à vendre (le défaut) : la voie incluse est le compte.
+                  // Same thing with nothing to sell (the default): the included path is the account.
                   text: st.keyOrAccount,
                   check: false,
                   blocked: false,

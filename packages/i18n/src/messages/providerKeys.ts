@@ -1,22 +1,22 @@
 /**
- * « Où trouver votre clé API », par FOURNISSEUR — le tutoriel détaillé d'`ApiKeyModal` et
- * de l'étape clé du premier lancement.
+ * « Where to find your API key », by PROVIDER — the detailed tutorial of `ApiKeyModal` and
+ * of the first launch's key step.
  *
- * ⚠️ Ce qui n'est PAS ici, et ne doit pas y entrer : l'ADRESSE de la page officielle, le
- * PRÉFIXE de la clé et son gabarit. Ce sont des faits sur le fournisseur, pas de la copie —
- * `ui/src/containers/modals/providerKeyHelp.ts` les garde, et c'est lui qui décide du
- * verdict au collage. Traduire un préfixe n'aurait aucun sens ; le déplacer ici en ferait
- * une chaîne qu'une relecture peut « corriger ».
+ * ⚠️ What is NOT here, and must not enter: the official page's ADDRESS, the key's
+ * PREFIX and its shape. Those are facts about the provider, not copy —
+ * `ui/src/containers/modals/providerKeyHelp.ts` keeps them, and it is what decides the
+ * verdict on paste. Translating a prefix would make no sense; moving it here would make it
+ * a string a proofreading pass could « correct ».
  *
- * ⚠️ Règle 8 : la `note` de DeepSeek dit où les messages transitent. C'est une information
- * de juridiction, pas un argument commercial — elle se traduit comme telle.
+ * ⚠️ Rule 8: DeepSeek's `note` says where the messages travel. That is jurisdiction
+ * information, not a sales argument — it translates as such.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
  */
 export interface ProviderKeyCopy {
-  /** Les étapes, dans l'ordre. */
+  /** The steps, in order. */
   steps: readonly string[];
-  /** Une ligne sur le coût, la facturation ou l'hébergement. */
+  /** One line about cost, billing or hosting. */
   note: string;
 }
 
@@ -27,8 +27,8 @@ export interface ProviderKeysMessages {
   mistral: ProviderKeyCopy;
   deepseek: ProviderKeyCopy;
   openrouter: ProviderKeyCopy;
-  /** Le verdict au COLLAGE — documentation, jamais un blocage : un préfixe renommé
-   *  transformerait un refus en cul-de-sac, et une mauvaise clé échoue de toute façon
+  /** The verdict on PASTE — documentation, never a block: a renamed prefix
+   *  would turn a refusal into a dead end, and a bad key fails anyway
    *  bruyamment au premier envoi. */
   wrongPrefix: (provider: string, prefix: string) => string;
   tooShort: string;

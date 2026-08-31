@@ -13,7 +13,7 @@ const SCHEMA = {
 
 describe("schemaBlindProblems — l'appel aveugle ne part que s'il est prouvable-valide", () => {
   it("le cas EXACT du journal du 06/08 : JSON-chaîne avec une accolade en trop → rejeté", () => {
-    // Ce que le modèle a réellement émis vers intercom__search_conversations.
+    // What the model actually emitted toward intercom__search_conversations.
     const { problems, param } = schemaBlindProblems(
       { type: "object", properties: { filters: { type: "string" } } },
       { filters: '{"from": 1767225600, "to": 1772563200, "type": "conversation"}}' },
@@ -21,7 +21,7 @@ describe("schemaBlindProblems — l'appel aveugle ne part que s'il est prouvable
     expect(problems).toHaveLength(1);
     expect(problems[0]).toContain("filters");
     expect(problems[0]).toContain("ne se parse pas");
-    expect(param).toBe("filters"); // le paramètre fautif part en télémétrie, jamais sa valeur
+    expect(param).toBe("filters"); // the faulty parameter goes into telemetry, never its value
   });
 
   it("des args qui respectent le schéma → aucun problème, l'appel part (pas de régression du chemin qui marchait)", () => {
@@ -55,7 +55,7 @@ describe("schemaBlindProblems — l'appel aveugle ne part que s'il est prouvable
 
   it("une propriété déclarée OBJET reste l'affaire du validateur de types, pas du parseur de chaînes", () => {
     const s = { type: "object", properties: { filters: { type: "object" } } };
-    // Chaîne là où un objet est déclaré → violation de type (1 problème), pas un double signalement.
+    // A string where an object is declared → type violation (1 problem), not double-flagged.
     expect(schemaBlindProblems(s, { filters: '{"a": 1}}' }).problems).toHaveLength(1);
   });
 
@@ -65,8 +65,8 @@ describe("schemaBlindProblems — l'appel aveugle ne part que s'il est prouvable
   });
 
   it("un argument non déclaré mais JSON-cassé est quand même signalé (le schéma ne le couvre pas, la chaîne si)", () => {
-    // `filters` absent du schéma : beaucoup de serveurs tolèrent l'extra — mais s'il est
-    // JSON-difforme, il ne peut qu'échouer côté serveur ; autant le dire sans l'envoyer.
+    // `filters` absent from the schema: many servers tolerate the extra — but if it's
+    // malformed JSON, it can only fail server-side; may as well say so without sending it.
     const s = { type: "object", properties: {} };
     expect(schemaBlindProblems(s, { filters: '[{"a": 1}' }).problems).toHaveLength(1);
   });

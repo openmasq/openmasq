@@ -41,7 +41,7 @@ function stubFetch(status: number, body: string) {
 
 const call = () => ({ id: "1", name: "list_events", arguments: {} });
 
-/** Un connecteur dont l'outil IGNORE le retour — la forme d'une ÉCRITURE (`sendMail`). */
+/** A connector whose tool IGNORES the return — the shape of a WRITE (`sendMail`). */
 function writeConn(): Connector {
   return {
     id: "microsoft-outlook",
@@ -65,11 +65,11 @@ function writeConn(): Connector {
 afterEach(() => vi.unstubAllGlobals());
 
 /**
- * ⛔ La régression du 18/08 (Outlook). Graph répond `202 Accepted` SANS corps à
- * `POST /me/sendMail` : `res.json()` jetait « Unexpected end of JSON input », l'outil
- * remontait en ÉCHEC alors que le mail était PARTI, le modèle a relancé le même appel
- * — donc un second mail — puis a annoncé que l'envoi n'avait pas pu se faire. Un effet
- * de bord réel présenté comme une panne est pire qu'une panne : il se répète.
+ * ⛔ The 18/08 regression (Outlook). Graph responds `202 Accepted` with NO body to
+ * `POST /me/sendMail`: `res.json()` threw "Unexpected end of JSON input", the tool
+ * surfaced as a FAILURE even though the mail had gone OUT, the model retried the same call
+ * — so a second mail — then announced that the send couldn't go through. A real side
+ * effect presented as a failure is worse than a failure: it repeats itself.
  */
 describe("bearerFetchJson — un corps vide est un succès vide", () => {
   const send = () => ({ id: "1", name: "send_email", arguments: {} });
@@ -101,7 +101,7 @@ describe("bearerFetchJson — un corps vide est un succès vide", () => {
   });
 
   it("un 2xx au corps ILLISIBLE reste une erreur, mais NOMMÉE", async () => {
-    // Un `SyntaxError` nu ne se relie à rien ; celle-ci dit que l'appel a abouti.
+    // A bare `SyntaxError` connects to nothing; this one says the call succeeded.
     stubFetch(200, "<html>oops</html>");
     const c = makeConnectorConnection({
       id: "microsoft-outlook",
@@ -152,9 +152,9 @@ describe("makeConnectorConnection — a failure the user can act on", () => {
   });
 
   it("un 401 SANS indice du connecteur dit quand même quoi faire, et à qui", async () => {
-    // ⛔ La régression du 15/08 (GitHub) : sans indice déclaré, un jeton refusé sortait en
-    // « Upstream request failed (401) ». Le modèle ne pouvait que le répéter, la connexion
-    // restait affichée comme valide, et « Réessayer » relançait un tour perdu d'avance.
+    // ⛔ The 15/08 regression (GitHub): with no hint declared, a refused token came out as
+    // "Upstream request failed (401)". The model could only repeat it, the connection
+    // stayed shown as valid, and "Retry" would relaunch a turn that was lost from the start.
     stubFetch(401, BODY_401);
     const c = makeConnectorConnection({
       id: "google-calendar",
@@ -163,14 +163,14 @@ describe("makeConnectorConnection — a failure the user can act on", () => {
       grantedScopes: [],
     });
     const text = (await c.callTool(call())).content[0] as { text: string };
-    expect(text.text).toContain("Google Agenda"); // QUI
-    expect(text.text).toMatch(/reconnecter/i); // QUOI FAIRE
-    expect(text.text).toMatch(/Réglages → Connecteurs/); // OÙ
-    expect(text.text).toMatch(/pas en boucle/i); // et l'ordre de ne pas boucler
+    expect(text.text).toContain("Google Agenda"); // WHO
+    expect(text.text).toMatch(/reconnecter/i); // WHAT TO DO
+    expect(text.text).toMatch(/Réglages → Connecteurs/); // WHERE
+    expect(text.text).toMatch(/pas en boucle/i); // and the instruction not to loop
   });
 
   it("les autres statuts gardent le message normalisé", async () => {
-    // Un 500 est une panne passagère : « réessayez » y est vrai, contrairement au 401.
+    // A 500 is a transient failure: "retry" is true there, unlike for a 401.
     stubFetch(500, JSON.stringify({ error: { code: 500, message: "boom" } }));
     const c = makeConnectorConnection({
       id: "google-calendar",

@@ -17,12 +17,12 @@ export const media = {
 };
 
 /**
- * Notification SYSTÈME quand une réponse arrive hors du champ de vision. Main la poste
- * (le renderer n'a pas de fenêtre à focaliser) ; au clic il montre et focalise la fenêtre
- * PUIS renvoie l'id du fil ici, pour que l'app l'ouvre.
+ * SYSTEM notification when a reply arrives out of view. Main posts it
+ * (the renderer has no window to focus); on click it shows and focuses the window
+ * THEN sends the thread id back here, so the app can open it.
  *
- * ⚠️ Rien du contenu ne transite : `title`/`body` sont composés côté renderer sans texte
- * de conversation (`state/replyNotice.ts`) et l'id ne s'affiche jamais.
+ * ⚠️ No content ever transits: `title`/`body` are composed on the renderer side with no
+ * conversation text (`state/replyNotice.ts`) and the id is never displayed.
  */
 export const notify = {
   supported: (): Promise<boolean> => ipcRenderer.invoke("notify:supported"),
@@ -36,8 +36,8 @@ export const notify = {
   },
 };
 
-/** Les compétences Claude Code de cette machine. Le renderer ne passe AUCUN chemin :
- *  main énumère ses propres racines et ne lit que des `SKILL.md`. */
+/** This machine's Claude Code skills. The renderer passes NO path at all:
+ *  main enumerates its own roots and reads only `SKILL.md` files. */
 export const claudeSkills = {
   list: (): Promise<{ folder: string; text: string; siblings: string[]; from: "home" | "project" }[]> =>
     ipcRenderer.invoke("claude-skills:list"),
@@ -191,10 +191,10 @@ export const updates = {
     ipcRenderer.on("updates:status", handler);
     return () => ipcRenderer.removeListener("updates:status", handler);
   },
-  /** La sonde de QUIESCENCE de l'auto-installation (`updates/autoInstall.ts`) : main
-   *  demande « es-tu occupé ? » au moment de décider un redémarrage automatique ; le
-   *  renderer répond par `replyQuiescence`. Pas de réponse ⇒ main lit « occupé »
-   *  (fail-closed), donc un préload non redémarré dégrade en « jamais d'auto-install ». */
+  /** The auto-install QUIESCENCE probe (`updates/autoInstall.ts`): main
+   *  asks "are you busy?" at the moment it decides on an automatic restart; the
+   *  renderer answers via `replyQuiescence`. No reply ⇒ main reads "busy"
+   *  (fail-closed), so a non-restarted preload degrades to "never auto-install". */
   onQuiescenceAsk: (cb: (askId: string) => void): (() => void) => {
     const handler = (_e: IpcRendererEvent, askId: string) => cb(askId);
     ipcRenderer.on("updates:quiescence", handler);
@@ -206,12 +206,12 @@ export const updates = {
 };
 
 /** Build/runtime flags surfaced to the renderer. */
-/** L'environnement résolu, tel que main le remet au renderer. Les types vivent ici (le
- *  preload est le contrat) plutôt qu'importés de main : il ne dépend que d'`electron`. */
+/** The resolved environment, as main hands it back to the renderer. The types live here (the
+ *  preload is the contract) rather than imported from main: it only depends on `electron`. */
 export type EnvName = "production" | "staging" | "custom";
 
-/** La pile AUTO-HÉBERGÉE saisie par l'utilisateur — des adresses publiques et une clé
- *  PUBLIABLE, rien de secret. N'existe que dans un build qui l'honore. */
+/** The SELF-HOSTED stack entered by the user — public addresses and a
+ *  PUBLISHABLE key, nothing secret. Only exists in a build that honors it. */
 export interface CustomStack {
   backend: string;
   gateway: string;
@@ -226,9 +226,9 @@ export interface ResolvedEnv {
   supabaseUrl: string;
   supabaseAnonKey: string;
   redactFn: string;
-  /** Ce build honore-t-il une pile saisie (`OPENMASQ_ALLOW_CUSTOM_STACK=1`) ? */
+  /** Does this build honor an entered stack (`OPENMASQ_ALLOW_CUSTOM_STACK=1`)? */
   customStackAllowed: boolean;
-  /** La pile déjà connue du pointeur, pour pré-remplir l'écran — `null` sans. */
+  /** The stack already known from the pointer, to pre-fill the screen — `null` without. */
   customStack: CustomStack | null;
 }
 
@@ -240,7 +240,7 @@ export type EnvSwitchResult =
       env: EnvName;
     };
 
-/** Verdict de l'écriture d'une pile saisie — décidée en MAIN (validation + boîte native). */
+/** Verdict of writing an entered stack — decided in MAIN (validation + native dialog). */
 export type SetCustomStackResult =
   | { ok: true; relaunching: true }
   | { ok: false; reason: "custom_not_allowed" | "invalid" | "declined" | "write_failed"; field?: keyof CustomStack; detail?: string };
@@ -256,13 +256,13 @@ export const env = {
    *  not reliably available in a sandboxed preload. */
   disableCfWatchdog: false,
   /**
-   * L'environnement RÉSOLU de cette instance (nom + adresses publiques), lu en
-   * **synchrone**. Le renderer en a besoin au chargement de `appEnv.ts`, avant que
-   * `auth.ts` ne construise le client Supabase — un `invoke` arriverait trop tard.
-   * Un seul échange, au tout début du boot. Rien de secret n'y transite.
+   * The RESOLVED environment of this instance (name + public addresses), read
+   * **synchronously**. The renderer needs it when `appEnv.ts` loads, before
+   * `auth.ts` builds the Supabase client — an `invoke` would arrive too late.
+   * A single exchange, at the very start of boot. Nothing secret transits here.
    *
-   * `null` quand main n'a pas encore branché la famille (un preload non redémarré en
-   * dev) : l'appelant retombe alors sur les valeurs bakées, comme avant.
+   * `null` when main hasn't wired up the namespace yet (a non-restarted preload in
+   * dev): the caller then falls back to the baked values, as before.
    */
   resolved: (): ResolvedEnv | null => {
     try {
@@ -271,19 +271,19 @@ export const env = {
       return null;
     }
   },
-  /** Demander la bascule d'environnement. La décision est prise et vérifiée en MAIN
-   *  (allow-list + permission serveur, fail-closed) — ceci ne fait que la demander.
-   *  `token` est le jeton Supabase du compte : main le porte au backend de production,
-   *  qui répond pour CE compte (drapeau `staging_tester`) ; sans lui, seul le
-   *  dépannage par machine (`allow_self_pin`) peut autoriser. */
+  /** Request the environment switch. The decision is made and verified in MAIN
+   *  (allow-list + server permission, fail-closed) — this only requests it.
+   *  `token` is the account's Supabase token: main carries it to the production backend,
+   *  which answers for THIS account (`staging_tester` flag); without it, only
+   *  per-machine troubleshooting (`allow_self_pin`) can authorize it. */
   switchTo: (env: string, token?: string): Promise<EnvSwitchResult> =>
     ipcRenderer.invoke("env:switch", { env, token }),
-  /** Écrire une pile AUTO-HÉBERGÉE et basculer dessus. Tout se décide en main : la
-   *  validation (https, pas d'identifiants, couple Supabase), puis une boîte de dialogue
-   *  NATIVE que seul un humain peut cliquer. Le handler n'existe que dans un build qui
-   *  l'honore — ailleurs l'appel échoue, et c'est le bon comportement. */
+  /** Write a SELF-HOSTED stack and switch to it. Everything is decided in main: the
+   *  validation (https, no credentials, Supabase pair), then a NATIVE dialog
+   *  box only a human can click. The handler only exists in a build that
+   *  honors it — elsewhere the call fails, and that's the correct behavior. */
   setCustomStack: (stack: CustomStack): Promise<SetCustomStackResult> =>
     ipcRenderer.invoke("env:set-custom-stack", stack),
-  /** Oublier la pile saisie et revenir à l'environnement par défaut (boîte native aussi). */
+  /** Forget the entered stack and revert to the default environment (native dialog too). */
   forgetCustomStack: (): Promise<SetCustomStackResult> => ipcRenderer.invoke("env:forget-custom-stack"),
 };

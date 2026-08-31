@@ -45,9 +45,9 @@ export function PdfRedactedViewer({
    *  the SCANNED-page fallback: without it a scan renders with ZERO redaction
    *  boxes (no pdf.js text layer to correlate on) even though OCR succeeded. */
   ocrPages?: import("@openmasq/redact/pdf-redact").RenderRedactedPdfOptions["ocrPages"];
-  /** Halo léger sur les zones où du TEXTE a été lu (couche texte + mots OCR) — ce qui,
-   *  redacted, part vers le modèle ; le reste de la page n'a pas été lu. Active la
-   *  collecte des mots du peintre (un `measureText` par mot). */
+  /** Light halo over the zones where TEXT was read (text layer + OCR words) — which,
+   *  redacted, goes to the model; the rest of the page wasn't read. Enables the
+   *  painter's word collection (one `measureText` per word). */
   showTextHalo?: boolean;
   /** Conversation vault (fake→original) of an already-sent file. When set (and no
    *  explicit `replacements`), the redacted overlay is rebuilt from it — EXACTLY
@@ -77,7 +77,7 @@ export function PdfRedactedViewer({
   onRevealRef.current = onReveal;
   const onWordPickRef = useRef(onWordPick);
   onWordPickRef.current = onWordPick;
-  // Le halo consomme la même collecte de mots que le picker « Redact “mot” ».
+  // The halo consumes the same word collection as the « Redact “mot” » picker.
   const wantWords = !!onWordPick || !!showTextHalo;
   // Incremental reveal: the heavy render runs ONCE (per document/replacements);
   // a reveal toggle only calls each page's `applyReveal` + rebuilds its marks —
@@ -189,10 +189,10 @@ export function PdfRedactedViewer({
               onPick: (value, x, y, release) => onWordPickRef.current?.(value, x, y, release),
             });
           }
-          // Halo d'abord (le contexte le plus bas), puis zones, puis marques.
-          // Légende sur la PREMIÈRE page seulement — une par page serait du bruit.
-          // `wireWords`, jamais `words` : un mot pris dans l'image (logo, tampon) est lu
-          // et encadré, mais son texte ne part pas — un halo dessus contredirait le cadre.
+          // Halo first (the lowest context), then zones, then marks.
+          // Legend on the FIRST page only — one per page would be noise.
+          // `wireWords`, never `words`: a word picked from the image (logo, stamp) is read
+          // and outlined, but its text doesn't leave — a halo over it would contradict the outline.
           if (showTextHalo && pg.wireWords.length) buildTextHaloLayer(pageEl, pg.wireWords, cssW, cssH, pageIndex === 0, t);
           // Before the marks, so a redaction box always paints OVER a zone outline.
           const marked = buildImageZoneLayer(pageEl, pg, cssW, cssH);

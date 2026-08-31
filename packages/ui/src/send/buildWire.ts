@@ -16,12 +16,12 @@ export type ToWire = (s: string) => { text: string };
  *  (redacted) custom system prompt + the number-token instruction when numbers are
  *  tokenised. Blank-line joined; empty parts dropped.
  *
- *  ⚠️ `skills` (défaut : vrai) retire `SKILL_GUIDANCE` quand l'usage des Compétences est
- *  fermé (`state/featureAccess.ts`). Ce n'est pas cosmétique : c'est CETTE consigne qui
- *  demande au modèle d'émettre un bloc ```competence. La laisser passer laisserait le
- *  modèle proposer des compétences que `SkillCard` affiche avec un bouton d'adoption
- *  menant à une fonctionnalité retirée — la porte fermée par l'avant, rouverte par le
- *  modèle. */
+ *  ⚠️ `skills` (default: true) removes `SKILL_GUIDANCE` when Compétences usage is
+ *  closed (`state/featureAccess.ts`). This isn't cosmetic: it is THIS instruction that
+ *  asks the model to emit a ```competence block. Letting it through would let the
+ *  model propose compétences that `SkillCard` displays with an adoption button
+ *  leading to a removed feature — the door closed at the front, reopened by the
+ *  model. */
 export function buildSystemContent(
   toWire: ToWire,
   systemPrompt: string | undefined,

@@ -6,17 +6,17 @@ import { CreditsExhaustedError, MissingApiKeyError, RateLimitError } from "./cla
 import { BRAND } from "@openmasq/branding";
 import { subscriptionsSold } from "../../send/platformAccess";
 
-// ── Règles de rédaction des messages utilisateur (ce fichier est leur foyer) ──
-// 1. UN message = UN geste. Les alternatives sont des BOUTONS (CTA de la carte,
-//    sélecteur de modèle) — les réénumérer en prose fait cinq lignes pour trois
-//    clics visibles, et c'est le tic d'écriture le plus machinal du corpus.
-// 2. Un tiret cadratin par message MAXIMUM ; sinon, un point. La structure
-//    « affirmation — précision » répétée partout est une signature, pas un style.
-// 3. Aucun mot que l'utilisateur n'emploierait pas : « interface », « moteur »,
-//    « plateforme », « wire » restent dans le code. Nommer les choses de SON monde
-//    (« votre compte OpenAI », pas « le compte de votre clé chez le fournisseur »).
-// Les promesses de confidentialité (« rien n'est parti ») sont un choix produit :
-// elles restent — dites une fois, sans la démonstration en « donc ».
+// ── Rules for writing user-facing messages (this file is their home) ──
+// 1. ONE message = ONE action. Alternatives are BUTTONS (the card's CTA,
+//    the model selector) — re-listing them in prose makes five lines for three
+//    visible clicks, and it's the corpus's most mechanical writing tic.
+// 2. One em dash per message MAXIMUM; otherwise, a period. The
+//    « affirmation — précision » structure repeated everywhere is a signature, not a style.
+// 3. No word the user wouldn't use: « interface », « moteur »,
+//    « plateforme », « wire » stay in the code. Name things in THEIR world
+//    (« votre compte OpenAI », not « le compte de votre clé chez le fournisseur »).
+// Privacy promises (« rien n'est parti ») are a product choice:
+// they stay — said once, without the « donc » demonstration.
 
 /**
  * Best-effort detection of a rate-limit error. The typed class is LOST across the
@@ -29,13 +29,13 @@ export function isRateLimitError(err: unknown): boolean {
   return /\b429\b/.test(m) || /rate[\s_-]?limit/i.test(m);
 }
 
-/** Une clé refusée par le fournisseur — présente mais fausse (faute de frappe,
- *  révocation, rotation). Le préflight ne couvre que la clé ABSENTE ; ce cas-ci
- *  traversait jusqu'au 401 du fournisseur et s'affichait en JSON anglais brut.
- *  Chaînes stables des trois gros : OpenAI (`invalid_api_key` / "Incorrect API key"),
+/** A key refused by the provider — present but wrong (typo,
+ *  revocation, rotation). Preflight only covers the ABSENT key; this case
+ *  used to fall through to the provider's 401 and display as raw English JSON.
+ *  Stable strings from the big three: OpenAI (`invalid_api_key` / "Incorrect API key"),
  *  Anthropic (`authentication_error` / "invalid x-api-key"), Google ("API key not
- *  valid"). Volontairement PAS un `\b401\b` nu : un 401 peut aussi être la session
- *  l'app sur le chemin plateforme, qui a son propre message. */
+ *  valid"). Deliberately NOT a bare `\b401\b`: a 401 can also be the app's
+ *  session on the platform path, which has its own message. */
 const INVALID_KEY = /invalid_api_key|incorrect api key|invalid x-api-key|authentication_error|api key not valid/i;
 
 /**
@@ -68,8 +68,8 @@ export function humanizeSendError(
   const chez = name ? e.atProvider(name) : e.theProvider;
   if (/CREDITS_EXHAUSTED/.test(m)) return new CreditsExhaustedError(opts?.personal ?? false).message;
   if (/CREDITS_UNVERIFIABLE/.test(m)) {
-    // Fail-closed volontaire de la passerelle (solde illisible ≠ solde à zéro) : la
-    // cause est transitoire, et « rien n'est parti » est la première question.
+    // Deliberate fail-closed by the gateway (unreadable balance ≠ zero balance): the
+    // cause is transient, and « rien n'est parti » is the first question.
     return e.creditsUnverifiable;
   }
   if (/MODEL_NOT_ALLOWED/.test(m)) {
@@ -81,13 +81,13 @@ export function humanizeSendError(
     // so don't promise « temporaire » : offer the model switch as the way out.
     return e.upstreamUnavailable(BRAND.name);
   }
-  // AVANT le 429 : l'insufficient_quota d'OpenAI EST un 429, et la branche rafale lui
-  // répondait « patientez quelques secondes » — faux sur la cause (pas une rafale), le
-  // remède (seul un paiement le débloque) et la temporalité. Le 400 « credit balance is
-  // too low » d'Anthropic, lui, tombait jusqu'au JSON brut. Même parse que la politique
-  // de retry (`@openmasq/llm`), qui échoue vite sur ce cas pour la même raison.
+  // BEFORE the 429: OpenAI's insufficient_quota IS a 429, and the burst branch used to
+  // answer it with « patientez quelques secondes » — wrong about the cause (not a burst), the
+  // remedy (only a payment unblocks it) and the timing. Anthropic's 400 « credit balance is
+  // too low », meanwhile, used to fall through to the raw JSON. Same parse as the
+  // retry policy (`@openmasq/llm`), which fails fast on this case for the same reason.
   if (providerCreditsExhausted(m)) {
-    // L'acteur nommé, un geste, pas de périphrase. Le CTA clé est un BOUTON
+    // The actor named, one action, no periphrasis. The key CTA is a BUTTON
     // (`sendErrorAction` → missing_key).
     return name ? e.providerCreditsNamed(name) : e.providerCredits;
   }
@@ -100,36 +100,36 @@ export function humanizeSendError(
   if (/\b429\b/.test(m) || /rate[\s_-]?limit/i.test(m)) {
     const rl = rateLimitInfo(m);
     if (!rl.daily) {
-      // « quelques secondes » n'est dit que quand on ne sait pas mieux : la passerelle
-      // met sa fenêtre (`retryAfterMs`) dans le corps, autant la citer.
+      // « quelques secondes » is only said when nothing better is known: the gateway
+      // puts its window (`retryAfterMs`) in the body, so cite it.
       const wait = rl.retryAfterMs ? formatWait(rl.retryAfterMs, t) : e.someSeconds;
       return e.rateBurst(wait);
     }
-    // Le TEXTE porte la cause et l'heure de reprise — « Ça repart demain à 2 h » dit
-    // déjà que réessayer avant est inutile. Les issues sont des BOUTONS (l'abonnement
-    // en CTA, le sélecteur de modèle sous le message) : pas d'énumération en prose.
-    // « gratuites » seulement quand le CORPS le dit (`rl.free`) : périodique n'implique
-    // pas gratuit, et un palier journalier sur clé PAYANTE l'affichait à qui paie.
+    // The TEXT carries the cause and the resume time — « Ça repart demain à 2 h » already
+    // says that retrying before then is pointless. The alternatives are BUTTONS (the subscription
+    // as a CTA, the model selector under the message): no prose enumeration.
+    // « gratuites » only when the BODY says so (`rl.free`): periodic doesn't imply
+    // free, and a daily tier on a PAYING key used to show it to someone who pays.
     const when = rl.resetAt ? e.resetsAt(formatReset(rl.resetAt, t)) : "";
     if (rl.free) {
-      // Les sources gratuites connues sont journalières (free-models-per-day…), donc
-      // « du jour » est exact ici — il ne l'est pas pour un quota périodique quelconque.
+      // The known free sources are daily (free-models-per-day…), so
+      // « du jour » is accurate here — it isn't for just any periodic quota.
       const cap = rl.limit ? e.freeCap(rl.limit.toLocaleString(t.common.intlTag)) : e.freeCapPlain;
       return e.dailyExhausted(cap, when);
     }
     return e.quotaExhausted(chez, when);
   }
   if (/MODEL_STALL/.test(m)) {
-    // La CAUSE la plus fréquente reste dite — sans elle, « pas de réponse » n'oriente
-    // vers aucun geste.
+    // The most FREQUENT cause is still stated — without it, « pas de réponse » points
+    // toward no action.
     return e.modelStall;
   }
   return null;
 }
 
-/** « ~30 s » / « ~1 min » — une attente annoncée par le refuseur, dite en unités
- *  qu'on lit d'un coup d'œil. Arrondi vers le haut : promettre moins que la fenêtre
- *  ferait rebuter le « Réessayer » une seconde trop tôt. */
+/** « ~30 s » / « ~1 min » — a wait announced by the refuser, said in units
+ *  read at a glance. Rounded UP: promising less than the window
+ *  would make « Réessayer » bounce back a second too early. */
 function formatWait(ms: number, t: Messages): string {
   const s = Math.ceil(ms / 1000);
   if (s < 60) return t.errors.waitSeconds(s);
@@ -169,15 +169,15 @@ export function cleanErrorText(raw: string): string {
 /**
  * Map a send failure to a BOUNDED analytics reason code (never the raw text).
  *
- * Vit ici et non dans une vue : la boucle agentique en a besoin elle aussi, et c'est
- * là que les 17 % de runs qui meurent au premier tour deviennent lisibles. Une seconde
- * copie côté agent aurait dérivé de celle-ci (règle 9).
+ * Lives here and not in a view: the agentic loop needs it too, and this is
+ * where the 17% of runs that die on the first turn become legible. A second
+ * copy on the agent side would have drifted from this one (rule 9).
  */
 export function sendErrorReason(e: unknown): SendErrorReason {
   if (e instanceof MissingApiKeyError) return "missing_key";
-  // Avant le 429 : l'insufficient_quota d'OpenAI porte un 429 mais n'est PAS une
-  // limite de débit — compté `rate_limit`, il gonflait la mauvaise colonne ; le 400
-  // d'Anthropic, lui, se comptait `bad_request` pour un problème de facturation.
+  // Before the 429: OpenAI's insufficient_quota carries a 429 but is NOT a
+  // rate limit — counted as `rate_limit`, it inflated the wrong column; Anthropic's
+  // 400, meanwhile, used to count as `bad_request` for a billing problem.
   const rawText = e instanceof Error ? e.message : String(e);
   if (providerCreditsExhausted(rawText)) return "provider_credits";
   if (e instanceof RateLimitError || isRateLimitError(e)) return "rate_limit";
@@ -194,20 +194,20 @@ export function sendErrorReason(e: unknown): SendErrorReason {
 }
 
 /**
- * Le BOUTON à offrir sous un envoi échoué, déduit du texte brut du fournisseur.
+ * The BUTTON to offer under a failed send, inferred from the provider's raw text.
  *
- * Une seule maison : le chemin simple et la boucle agentique échouent dans deux fonctions
- * différentes de `store.ts`, et c'est exactement ainsi qu'une des deux se retrouve sans
- * issue proposée. `undefined` = rien à proposer (« Réessayer » suffit).
+ * One single home: the simple path and the agentic loop fail in two different
+ * functions of `store.ts`, and that is exactly how one of the two ends up with no
+ * alternative offered. `undefined` = nothing to offer (« Réessayer » is enough).
  *
- * `provider` — le fournisseur du modèle en cours, quand l'appelant le connaît : une clé
- * refusée ou un compte fournisseur à sec s'offrent la modale de clé (`missing_key`, la
- * plomberie existante — saisir une autre clé puis régénérer en place). Sans lui, texte
- * seul : un CTA clé sans fournisseur n'ouvrirait rien.
+ * `provider` — the provider of the model in flight, when the caller knows it: a refused
+ * key or an empty provider account get offered the key modal (`missing_key`, the
+ * existing plumbing — enter another key then regenerate in place). Without it, text
+ * only: a key CTA with no provider wouldn't open anything.
  *
- * ⚠️ Le quota PÉRIODIQUE reste le seul à recevoir l'abonnement. Une rafale de 429 se
- * résout d'elle-même en quelques secondes : y coller « prenez un abonnement » vendrait
- * une solution à un problème qui n'existe déjà plus.
+ * ⚠️ The PERIODIC quota is the only one to get the subscription offer. A burst of 429s
+ * resolves itself within a few seconds: sticking « prenez un abonnement » on it would sell
+ * a solution to a problem that no longer exists.
  */
 export function sendErrorAction(raw: string, provider?: ProviderId): Message["errorAction"] | undefined {
   const m = raw || "";
@@ -215,7 +215,7 @@ export function sendErrorAction(raw: string, provider?: ProviderId): Message["er
     return { kind: "missing_key", provider, label: PROVIDERS[provider]?.label ?? provider };
   }
   if (!/\b429\b/.test(m) && !/rate[\s_-]?limit/i.test(m)) return undefined;
-  // Et seulement dans un build qui VEND (`subscriptionsSold`, éteint par défaut) : sans
-  // abonnement à prendre, un quota journalier épuisé n'a d'autre issue que d'attendre.
+  // And only in a build that SELLS (`subscriptionsSold`, off by default): with no
+  // subscription to take, an exhausted daily quota has no other way out than waiting.
   return rateLimitInfo(m).daily && subscriptionsSold() ? { kind: "upgrade_plan" } : undefined;
 }

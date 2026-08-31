@@ -38,20 +38,20 @@ describe("asksConsultNotAct — « consulter » n'est pas « agir »", () => {
     "Identifie l'erreur la plus fréquente sur Sentry et crée un ticket Linear.",
     "Reprends mes notes Notion, fais-en une synthèse dans un Doc, puis poste sur Slack.",
     "Schedule a 30-minute call with Alex on Thursday.",
-    // Les deux sur-blocages relevés par les scénarios d'éval : une locution (« mets à
-    // jour ») et deux verbes de création qui n'en ont pas l'air (« ouvre une issue »,
-    // « préviens le canal »). Un verbe d'action manquant SUR-BLOQUE — c'est le seul
-    // sens dans lequel cette liste peut se tromper à l'usage.
+    // The two over-blockings caught by the eval scenarios: a set phrase ("mets à
+    // jour") and two creation verbs that don't look like one ("ouvre une issue",
+    // "préviens le canal"). A missing action verb OVER-BLOCKS — that's the only
+    // direction in which this list can go wrong in practice.
     "Vérifie si le paiement est passé, puis mets à jour l'item « Atelier Torbel » en « Payé ».",
     "Regarde s'il y a une erreur fréquente dans Sentry ; si oui, ouvre une issue GitHub, puis préviens le canal Incidents.",
   ])("action demandée — la garde ne bloque pas : %s", (t) => {
     expect(asksConsultNotAct(t)).toBe(false);
   });
 
-  // ⚠️ L'ORDRE des règles : ces phrases CONTIENNENT des verbes d'action et seraient
-  // lues comme des ordres d'agir sans le passage préalable sur l'interdiction. C'est le
-  // retournement déjà corrigé pour « n'envoie rien » dans `sendIntent.ts` — et nos
-  // propres modèles de workflow écrivent exactement ces phrases.
+  // ⚠️ The ORDER of the rules: these sentences CONTAIN action verbs and would be
+  // read as orders to act without the preliminary pass on the prohibition. This is the
+  // reversal already fixed for "n'envoie rien" in `sendIntent.ts` — and our own
+  // workflow templates write exactly these sentences.
   it.each([
     "Cherche dans mon espace Notion ce qui concerne la facturation.\n\nNe modifie rien : lecture seule.",
     "Fais le point sur mes paiements depuis mars.\n\nConsultation seule : ne crée, ne rembourse et n'annule rien.",
@@ -63,9 +63,9 @@ describe("asksConsultNotAct — « consulter » n'est pas « agir »", () => {
     expect(asksConsultNotAct(t)).toBe(true);
   });
 
-  // ⚠️ RESTRICTION DE PÉRIMÈTRE ≠ RENONCEMENT. Mesuré le 15/08/2026 sur l'écriture Notion :
-  // « Crée une page… Ne modifie aucune page existante. » était refusé — la prudence de
-  // l'utilisateur retournée contre lui, avec un message l'invitant à « consulter ».
+  // ⚠️ SCOPE RESTRICTION ≠ WAIVER. Measured 15/08/2026 on the Notion write:
+  // "Crée une page… Ne modifie aucune page existante." was refused — the user's own
+  // caution turned against them, with a message inviting them to "consult".
   it.each([
     "Crée une page Notion intitulée « Essai ». Ne modifie aucune page existante.",
     "Crée une page Notion intitulée « Essai ». Ne supprime rien.",
@@ -82,7 +82,7 @@ describe("asksConsultNotAct — « consulter » n'est pas « agir »", () => {
   });
 
   it("un marqueur GLOBAL gouverne tout le message, même avec un verbe d'action", () => {
-    // La tournure qu'écrivent nos propres modèles de workflow : elle doit rester absolue.
+    // The phrasing our own workflow templates write: it must stay absolute.
     expect(asksConsultNotAct("Lecture seule : crée un récapitulatif dans la conversation.")).toBe(true);
     expect(asksConsultNotAct("Consultation seule : ajoute un commentaire si besoin.")).toBe(true);
     expect(asksConsultNotAct("Read-only: create a summary here.")).toBe(true);
@@ -96,19 +96,19 @@ describe("asksConsultNotAct — « consulter » n'est pas « agir »", () => {
   });
 
   it("les frontières sont Unicode : un verbe accenté en tête de phrase compte", () => {
-    // `\b` est ASCII : sans lookaround Unicode, « Écris » n'ouvre aucune frontière.
+    // `\b` is ASCII: without Unicode lookaround, "Écris" opens no boundary.
     expect(asksConsultNotAct("Écris un compte rendu de la réunion.")).toBe(false);
   });
 
   it("« me déplacer » décrit un trajet, pas un événement à bouger", () => {
-    // Le mot exact qui, dans le journal, faisait lire toute la demande comme un ordre.
+    // The exact wording that, in the journal, made the whole request read as an order.
     expect(asksConsultNotAct("Montre-moi ce qui ne me laisse pas le temps de me déplacer.")).toBe(true);
-    // Mais l'emploi transitif reste une action.
+    // But the transitive use is still an action.
     expect(asksConsultNotAct("Déplace ma réunion de 14h à 16h.")).toBe(false);
   });
 
   it("ne se déclenche pas sur un mot plus long qui contient un verbe", () => {
-    // « listing » contient « list » ; « créature » contient « créa ».
+    // "listing" contains "list"; "créature" contains "créa".
     expect(asksConsultNotAct("Parle-moi du listing des créatures marines.")).toBe(false);
   });
 });

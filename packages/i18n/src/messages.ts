@@ -1,29 +1,29 @@
 /**
- * LE CONTRAT de traduction — l'interface que CHAQUE langue implémente.
+ * THE translation CONTRACT — the interface EVERY language implements.
  *
- * C'est le cœur du choix « catalogue typé, aucune bibliothèque » (cf. `CLAUDE.md`) : une
- * clé manquante ou en trop dans `fr.ts`/`en.ts` est une erreur `tsc`, pas un repli
- * silencieux à l'exécution. Aucun parseur ICU, aucun chargeur runtime dans un produit
- * dont la posture est « rien de non vérifié ne s'exécute » — l'interpolation et les
- * pluriels sont des FONCTIONS TypeScript typées, et les nombres/dates/monnaies passent
- * par `Intl` (présent dans Electron et tout navigateur).
+ * This is the heart of the « typed catalogue, no library » choice (see `CLAUDE.md`): a
+ * key missing from or extra in `fr.ts`/`en.ts` is a `tsc` error, not a silent
+ * runtime fallback. No ICU parser, no runtime loader in a product
+ * whose posture is « nothing unverified runs » — interpolation and
+ * plurals are typed TypeScript FUNCTIONS, and numbers/dates/currencies go
+ * through `Intl` (present in Electron and every browser).
  *
- * ## Comment ajouter une clé
+ * ## How to add a key
  *
- * 1. l'ajouter dans la TRANCHE qui la porte (`messages/`) ;
- * 2. `tsc` casse sur `fr/` ET `en/` tant que les deux ne l'ont pas — c'est voulu ;
- * 3. une entrée à variable est une fonction `(x) => string`, jamais un gabarit à trous.
+ * 1. add it to the SLICE that carries it (`messages/`);
+ * 2. `tsc` breaks on `fr/` AND `en/` until both have it — that is the point;
+ * 3. an entry with a variable is a `(x) => string` function, never a template with holes.
  *
- * ## Comment ajouter une LANGUE
+ * ## How to add a LANGUAGE
  *
- * Un dossier `xx/` dont l'assemblage `satisfies Messages`, ajouté à `MESSAGES` dans
- * `locale.ts` et à l'union `Locale`. Le compilateur exige alors chaque clé : la porte est
- * ouverte, et elle refuse une langue incomplète.
+ * An `xx/` folder whose assembly `satisfies Messages`, added to `MESSAGES` in
+ * `locale.ts` and to the `Locale` union. The compiler then demands every key: the door
+ * is open, and it refuses an incomplete language.
  *
- * Les namespaces suivent les SURFACES, pas les fichiers — un même mot rendu à deux
- * endroits a une seule entrée (règle 9 appliquée à la copie). Ce fichier reste la SEULE
- * liste des namespaces ; les tranches de `messages/` n'existent que pour tenir le cap
- * 300 LOC (règle 1), comme `packages/emails/i18n/`.
+ * Namespaces follow SURFACES, not files — one word rendered in two
+ * places has a single entry (rule 9 applied to copy). This file stays the ONLY
+ * list of namespaces; the slices under `messages/` exist only to hold the
+ * 300-LOC cap (rule 1), like `packages/emails/i18n/`.
  */
 import type { AgentMessages } from "./messages/agent";
 import type { AvailabilityMessages } from "./messages/availability";
@@ -88,11 +88,11 @@ export interface Messages {
   common: CommonMessages;
   nav: NavMessages;
   billing: BillingMessages;
-  /** La PILE AUTO-HÉBERGÉE (Réglages → Versions) — présente seulement dans un build qui
-   *  l'honore. La carte, ses quatre champs, ses refus (nommés par le processus privilégié,
-   *  jamais inventés ici). */
+  /** The SELF-HOSTED STACK (Réglages → Versions) — present only in a build that
+   *  honours it. The card, its four fields, its refusals (named by the privileged process,
+   *  never invented here). */
   selfHost: {
-    /** Le nom de l'environnement `custom` là où production/staging ont le leur. */
+    /** The name of the `custom` environment where production/staging have theirs. */
     envLabel: string;
     envDescription: string;
     eyebrow: string;
@@ -106,7 +106,7 @@ export interface Messages {
     apply: string;
     applying: string;
     forget: string;
-    /** « Actuellement : api.example.org » — la pile déjà écrite, sous la carte. */
+    /** « Actuellement : api.example.org » — the stack already written, under the card. */
     current: (host: string) => string;
     refusal: {
       backend_required: string;

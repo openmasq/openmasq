@@ -1,107 +1,107 @@
 /**
- * La CHROME de l'app — le bandeau de gauche, l'écran de conversation, le composeur.
+ * The app's CHROME — the left bar, the conversation screen, the composer.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
- * Le découpage tient le cap 300 LOC (règle 1) — même forme que `packages/emails/i18n/`.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
+ * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
  */
 
 /**
- * La CHROME de gauche — le rail replié ET la barre latérale déployée. Les deux montrent
- * les mêmes commandes à deux tailles, donc les mêmes mots : un rail qui dirait
- * « Nouveau » quand la barre dit « Nouvelle conversation » serait deux produits.
+ * The LEFT chrome — the collapsed rail AND the expanded sidebar. Both show
+ * the same commands at two sizes, hence the same words: a rail saying
+ * « Nouveau » where the bar says « Nouvelle conversation » would be two products.
  *
- * Beaucoup de ces entrées sortent DEUX fois sur le même bouton — en infobulle et en
- * `aria-label`. C'est voulu : l'infobulle est visuelle, l'étiquette est lue. Une seule
- * clé pour les deux, sinon elles divergent.
+ * Many of these entries render TWICE on the same button — as a tooltip and as an
+ * `aria-label`. That is deliberate: the tooltip is visual, the label is read. One
+ * key for both, or they drift apart.
  */
 export interface ChromeMessages {
   expandSidebar: string;
   newChat: string;
   search: string;
-  /** L'infobulle, qui ajoute le raccourci — « Rechercher (⌘K) ». */
+  /** The tooltip, which adds the shortcut — « Rechercher (⌘K) ». */
   searchShortcut: string;
-  /** Remplace l'infobulle de la Mémoire quand l'extraction de fond a noté du neuf. */
+  /** Replaces the Mémoire tooltip when the background extraction noted something new. */
   memoryFresh: string;
-  /** Le bouclier : « 12 élément(s) protégé(s) — rapport de confidentialité ». */
+  /** The shield: « 12 élément(s) protégé(s) — rapport de confidentialité ». */
   privacyReportTip: (protectedCount: number) => string;
   privacyReport: string;
   account: string;
-  /** La liste des conversations : son étiquette lue, et ce qu'elle dit quand elle est vide. */
+  /** The conversation list: its read label, and what it says when empty. */
   conversations: string;
   noConversations: string;
   /** La carte de compte en pied de barre — nom de repli, sous-titre, pastille. */
   you: string;
   privateSpace: string;
   private: string;
-  /** L'épingle d'une compétence qui pilote des connecteurs. */
+  /** The pin of a skill that drives connectors. */
   launchPinned: (what: string) => string;
-  /** La seule action de ligne qui demande d'abord : elle détruit AUSSI le coffre.
-   *  Deux entrées, deux grammaires — l'ACTION est un impératif au menu, la QUESTION est
-   *  le titre du dialogue. Dériver l'une de l'autre en retirant le « ? » marche en
-   *  français et se casse à la première langue qui ponctue autrement. */
+  /** The only row action that asks first: it ALSO destroys the vault.
+   *  Two entries, two grammars — the ACTION is an imperative in the menu, the QUESTION
+   *  is the dialog title. Deriving one from the other by dropping the « ? » works in
+   *  French and breaks on the first language that punctuates differently. */
   deleteConversationAction: string;
   deleteConversation: string;
   deleteConversationBody: (title: string) => string;
-  /** Le titre de repli d'une conversation qui n'en a pas encore. */
+  /** The fallback title of a conversation that has none yet. */
   untitledConversation: string;
-  /** Les tranches de temps de la liste des conversations. */
+  /** The time buckets of the conversation list. */
   groups: { today: string; yesterday: string; last7: string; last30: string };
-  /** L'heure relative d'une ligne de conversation — le reste est de l'`Intl`. */
+  /** The relative time on a conversation row — the rest is `Intl`. */
   justNow: string;
-  /** Le pied du rail droit. */
+  /** The right rail's footer. */
   help: string;
   helpTip: (brand: string) => string;
   sendFeedback: string;
-  /** Les trois familles d'une note de version. */
+  /** The three families of a release note. */
   releaseKinds: { feat: string; imp: string; fix: string };
 }
 
 /**
- * L'écran de CONVERSATION — sa barre d'onglets, son menu « ⋯ », les actions d'une ligne
- * de la liste. Tout ce qui borde le fil sans en faire partie.
+ * The CONVERSATION screen — its tab bar, its « ⋯ » menu, the actions on a row
+ * of the list. Everything that borders the thread without being part of it.
  *
- * La SUPPRESSION n'est pas ici : elle vit dans `chrome`, parce que le même acte se
- * demande depuis deux endroits (la ligne de la barre latérale, le menu de l'en-tête) et
- * que les deux dialogues avaient déjà divergé — l'un promettait « définitivement »,
- * l'autre « de cet appareil ».
+ * DELETION is not here: it lives in `chrome`, because the same act is asked for
+ * from two places (the sidebar row, the header menu) and the two dialogs had
+ * already drifted — one promised « définitivement »,
+ * the other « de cet appareil ».
  */
 export interface ChatMessages {
   backToConversations: string;
   toggleSidebar: string;
-  /** Le bouton « ⋯ » de la barre du haut. */
+  /** The « ⋯ » button of the top bar. */
   more: string;
-  /** Le « ⋯ » d'une ligne de la liste, et ce qu'il ouvre. */
+  /** The « ⋯ » of a list row, and what it opens. */
   rowActions: string;
   rename: string;
   renameConversation: string;
-  /** La pastille tournante d'un onglet dont la réponse arrive. */
+  /** The spinning pill of a tab whose reply is arriving. */
   generating: string;
   closeTab: string;
-  /** Des onglets sortis du champ : l'infobulle explique, l'étiquette lue compte. */
+  /** Tabs scrolled out of view: the tooltip explains, the read label counts. */
   hiddenTabsTip: (count: number) => string;
   hiddenTabs: (count: number) => string;
   splitScreen: string;
   splitLeft: string;
   splitRight: string;
-  /** L'entrée du menu qui mène aux règles de redaction, avec son compteur. */
+  /** The menu entry leading to the redaction rules, with its counter. */
   redactionSummary: (protectedCount: number) => string;
   seeWhatTheModelSaw: string;
   debugLog: string;
 }
 
-/** Le COMPOSEUR — la zone de saisie et ses commandes. */
+/** The COMPOSER — the input area and its controls. */
 export interface ComposerMessages {
   redactLevel: string;
   currentLevel: string;
-  /** L'étiquette lue du sélecteur de niveau des Réglages. */
+  /** The read label of the Settings level picker. */
   protectionLevel: string;
 
-  /** L'invitation de la zone de saisie. Elle ne REDIT pas la promesse de redaction : le
-   *  sous-titre d'accueil la fait une fois, et dans un fil ce sont les marques sur ce
-   *  qu'on tape qui la démontrent. */
+  /** The input area's prompt. It does NOT REPEAT the redaction promise: the
+   *  home subtitle makes it once, and inside a thread the marks on what you type
+   *  are what demonstrate it. */
   placeholder: (brand: string) => string;
 
-  /** La ligne d'intention au-dessus de la saisie : compétence choisie, blancs à combler,
+  /** The intent line above the input: chosen skill, blanks to fill,
    *  et l'indice « ceci sera retenu ». */
   editSkill: string;
   slotsToFill: string;
@@ -109,8 +109,8 @@ export interface ComposerMessages {
   memoryHint: string;
   memoryHintTip: string;
 
-  /** L'avertissement d'UTILITÉ — redact ceci risque de fausser la réponse. Ses deux
-   *  issues : envoyer en clair pour ce message, ou masquer l'avis. */
+  /** The USEFULNESS warning — redacting this risks skewing the reply. Its two
+   *  ways out: send in clear for this message, or hide the notice. */
   keepInClearTip: string;
   dismissWarning: string;
 
@@ -118,14 +118,14 @@ export interface ComposerMessages {
   attachFile: string;
   stop: string;
   send: string;
-  /** Le bouton d'envoi MORPHE : envoyer → redaction → redacted. Trois états, trois mots. */
+  /** The send button MORPHS: send → redacting → redacted. Three states, three words. */
   redacting: string;
   redactingAria: string;
   redacted: string;
 
-  /** Les pastilles de DÉTECTION sous la saisie — chacune bascule « redacted ⇄ en clair ». */
+  /** The DETECTION chips under the input — each toggles « redacted ⇄ en clair ». */
   detect: {
-    /** L'analyse approfondie a ABANDONNÉ : le dire, et dire que l'envoi la refait. */
+    /** The deep analysis GAVE UP: say so, and say the send redoes it. */
     partialNone: string;
     partialNoneHint: string;
     partialCount: (count: number) => string;
@@ -133,7 +133,7 @@ export interface ComposerMessages {
     reMask: string;
     uncertain: string;
     keepInClear: string;
-    /** Le mot porté par une détection incertaine, à même la pastille. */
+    /** The word an uncertain detection carries, on the chip itself. */
     toVerify: string;
     showAll: string;
     more: (count: number) => string;
@@ -141,32 +141,32 @@ export interface ComposerMessages {
     collapse: string;
   };
 
-  /** Le brouillon LONG, replié en carte : on l'édite dans une modale. */
+  /** The LONG draft, folded into a card: it is edited in a modal. */
   longText: {
     openTip: string;
-    /** Les nombres passent par `Intl` DANS le catalogue — chaque langue connaît la sienne. */
+    /** Numbers go through `Intl` INSIDE the catalogue — each language knows its own. */
     summary: (chars: number, lines: number) => string;
     edit: string;
   };
 
-  /** La modale d'édition du texte long. */
+  /** The long-text editing modal. */
   modal: {
     title: string;
     sub: string;
     tabEdit: string;
     tabPreview: string;
     toMask: (count: number) => string;
-    /** Au-delà d'un seuil le surlignage en direct se suspend — la protection, elle, non. */
+    /** Past a threshold the live highlighting pauses — the protection does not. */
     mirrorOff: (maxChars: number) => string;
     done: string;
   };
 
-  /** Les PIÈCES JOINTES en attente d'envoi. */
+  /** The ATTACHMENTS waiting to be sent. */
   attachments: {
     open: string;
     processing: string;
     redacting: string;
-    /** « 🛡 3 valeurs » — l'unité compte sur une pastille aussi petite. */
+    /** « 🛡 3 valeurs » — the unit matters on a chip that small. */
     values: (count: number) => string;
     readAllPages: (total: number) => string;
     readAllPagesTip: (read: number) => string;
@@ -176,7 +176,7 @@ export interface ComposerMessages {
     remove: string;
   };
 
-  /** Le DÉPÔT de fichiers sur la fenêtre. */
+  /** The file DROP onto the window. */
   drop: {
     title: string;
     sub: string;

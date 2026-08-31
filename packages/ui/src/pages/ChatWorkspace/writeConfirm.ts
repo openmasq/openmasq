@@ -90,7 +90,7 @@ export function writeConfirmDecision(p: {
   exfilFlags: number;
   attachments: number;
   searchToolCalls: number;
-  /** CE call fait-il partir un e-mail / un message ? Voir le plancher `send-floor`. */
+  /** Does THIS call send out an email / a message? See the `send-floor` floor. */
   sends?: boolean;
   confirmationsShown: number;
   mainWriteGate: boolean;
@@ -265,8 +265,8 @@ export function writeConfirmCopy(
   t: Messages,
 ): WriteConfirmCopy {
   const c = t.cards.writeConfirm;
-  // LA phrase la plus lourde des trois cartes : ce qui s'affiche est la VRAIE donnée.
-  // Une seule entrée, partagée — trois formulations en feraient trois promesses.
+  // THE heaviest phrase of the three cards: what is shown is the REAL data.
+  // A single entry, shared — three formulations would make three promises.
   const note = c.note;
   switch (reason) {
     case "nav-exfil":

@@ -55,10 +55,10 @@ export function isNotoriousFragment(
   // A multi-word value is already tested whole by the caller; only a fragment can gain
   // notoriety from its neighbour, and a 1-2 char one is too weak a hook to trust.
   if (value.trim().length < 3) return false;
-  // ⚠️ `shape: false` — la dispense de FORME (grammaire des noms de modèles) est exclue
-  // de la recomposition. Voir `NotorietyOpts.shape` : « madame Claude 3 fois » se
-  // recomposait en « Claude 3 » et libérait le prénom. Ce gate ne vaut que contre des
-  // entités NOMMÉES dans une liste fermée, jamais contre une grammaire productive.
+  // ⚠️ `shape: false` — the SHAPE dispensation (model-name grammar) is excluded
+  // from the recomposition. See `NotorietyOpts.shape`: « madame Claude 3 fois » was
+  // recomposing into « Claude 3 » and freeing the first name. This gate only holds against
+  // entities NAMED in a closed list, never against a productive grammar.
   const opts = { ...notoriety, shape: false };
   for (const { before, after } of occurrences(value, input)) {
     if (before && isNotoriousEntity(`${before} ${value}`, cat, opts)) return true;
@@ -125,20 +125,20 @@ export function isProseGeoHomograph(value: string, input: string): boolean {
 }
 
 /**
- * True quand un candidat LIEU ne vit QUE comme segment d'identifiant machine
- * MAJUSCULES_SOUDÉES. Un export bancaire réel porte `Type: CARD_PAYMENT` ; le détecteur
- * y lisait un lieu et la colonne repartait `METZ_PAYMENT` — une ville inventée dans une
- * énumération technique, que le modèle prend pour un type de transaction inexistant.
- * Un segment d'identifiant n'est pas une mention de lieu : le faux corrompt une donnée
- * STRUCTURÉE et n'abrite personne.
+ * True when a PLACE candidate only lives as a SNAKE_CASED machine-identifier
+ * segment. A real bank export carries `Type: CARD_PAYMENT`; the detector
+ * read it as a place and the column went out as `METZ_PAYMENT` — an invented city inside a
+ * technical enumeration, which the model takes for a transaction type that doesn't exist.
+ * An identifier segment is not a place mention: the fake corrupts STRUCTURED
+ * data and shelters no one.
  *
- * Borné exprès (FP-prevention : ne peut que laisser passer en clair) :
- * - l'appelant ne le sert que pour la catégorie LIEU — un NOM dans une référence de
- *   virement (`SALAIRE_REBOUR_08`) reste redacted ;
- * - la valeur doit être un token MAJUSCULES/chiffres d'un seul tenant ;
- * - CHAQUE occurrence doit être soudée par `_` à un autre segment MAJUSCULES ; une
- *   occurrence libre ailleurs, une voisine ambiguë (collée sans `_`, casse mixte) ou
- *   zéro occurrence ⇒ aucune preuve ⇒ on garde le candidat (fail closed).
+ * Deliberately bounded (FP-prevention: can only let something through in clear):
+ * - the caller only serves it for the PLACE category — a NAME in a transfer
+ *   reference (`SALAIRE_REBOUR_08`) stays redacted;
+ * - the value must be a single UPPERCASE/digit token;
+ * - EVERY occurrence must be `_`-fused to another UPPERCASE segment; a
+ *   free occurrence elsewhere, an ambiguous neighbour (glued without `_`, mixed case) or
+ *   zero occurrences ⇒ no evidence ⇒ keep the candidate (fail closed).
  */
 export function isMachineTokenGeo(value: string, input: string): boolean {
   const v = value.trim();
@@ -147,40 +147,40 @@ export function isMachineTokenGeo(value: string, input: string): boolean {
   for (let i = input.indexOf(v); i >= 0; i = input.indexOf(v, i + 1)) {
     const prev = input[i - 1] ?? "";
     const next = input[i + v.length] ?? "";
-    // Collée à d'autres capitales SANS « _ » : ce n'est pas une occurrence du token
-    // (`CARDIO…`) — ambigu, donc on garde le candidat.
+    // Glued to other uppercase letters WITHOUT a « _ »: this isn't an occurrence of the token
+    // (`CARDIO…`) — ambiguous, so we keep the candidate.
     if (/[A-Z0-9]/.test(prev) || /[A-Z0-9]/.test(next)) return false;
     const snakeLeft = prev === "_" && /[A-Z0-9]/.test(input[i - 2] ?? "");
     const snakeRight = next === "_" && /[A-Z0-9]/.test(input[i + v.length + 1] ?? "");
-    if (!snakeLeft && !snakeRight) return false; // occurrence libre → vraie mention possible
+    if (!snakeLeft && !snakeRight) return false; // free occurrence → a real mention is possible
     embedded = true;
   }
   return embedded;
 }
 
 /**
- * Expressions qui RATTACHENT une entité à la personne qui écrit. Leur présence juste
- * avant la valeur retire la dispense de notoriété.
+ * Expressions that TIE an entity to the person writing. Their presence right
+ * before the value removes the notoriety dispensation.
  *
- * Pourquoi : « Google » est de notoriété publique, mais dans « je travaille chez Google »
- * la donnée n'est pas Google — c'est **l'employeur de l'utilisateur**. La notoriété
- * répond « tout le monde connaît cette entreprise » ; elle ne répond pas « tout le monde
- * sait que TU y travailles ». Un bench manuel a relevé exactement ces phrases, et il
- * avait raison sur le fond même s'il comptait comme échecs onze dispenses volontaires.
+ * Why: « Google » is public knowledge, but in « je travaille chez Google »
+ * the data isn't Google — it's **the user's employer**. Notoriety
+ * answers "everyone knows this company"; it doesn't answer "everyone
+ * knows YOU work there". A manual bench flagged exactly these sentences, and it
+ * was right on the substance even though it counted eleven deliberate dispensations as failures.
  *
- * Ne couvre QUE le rattachement à la première personne (ou au « nous » de l'entreprise) :
- * « Total a répondu à l'appel d'offres » reste en clair, parce que Total y est un tiers.
+ * Covers ONLY first-person attachment (or the company's "nous"):
+ * « Total a répondu à l'appel d'offres » stays in clear, because Total is a third party there.
  */
 const SELF_BOUND =
   /(?:je travaille (?:chez|pour|à)|je bosse (?:chez|pour)|je suis (?:salarié|salariée|employé|employée|stagiaire|associé|associée)\s+(?:chez|de|d[eu]|à)|mon (?:entreprise|employeur|client|fournisseur|cabinet|agence|école|université|banque|assurance|patron)|ma (?:société|boîte|boite|banque|mutuelle|école|ecole|agence|clinique)|notre (?:client|fournisseur|entreprise|société|societe|partenaire|prestataire|banque)|nos clients|mes clients|i work (?:at|for)|my (?:employer|company|firm|client|bank|school|university)|our (?:client|company|supplier|partner|bank))\b[^.!?;\n]{0,40}$/iu;
 
 /**
- * True quand la valeur est présentée comme APPARTENANT à celui qui écrit — employeur,
- * client, banque, école. La notoriété cède alors : la célébrité de l'entité ne rend pas
- * publique la relation que l'utilisateur entretient avec elle.
+ * True when the value is presented as BELONGING to the writer — employer,
+ * client, bank, school. Notoriety then gives way: the entity's fame doesn't make
+ * the user's relationship with it public.
  *
- * Il suffit d'UNE occurrence rattachée : citer son employeur une fois puis en reparler
- * ailleurs dans le message ne le rend pas public rétroactivement.
+ * ONE tied occurrence is enough: naming your employer once then mentioning it
+ * again elsewhere in the message doesn't make it public retroactively.
  */
 export function isSelfBoundEntity(value: string, input: string): boolean {
   const v = value.trim();

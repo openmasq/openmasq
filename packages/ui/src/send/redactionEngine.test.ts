@@ -65,10 +65,10 @@ describe("makeRedactFn", () => {
     expect(r.text).toContain("jean@example.com");
   });
 
-  // Audit 2026-08-10 : le Coffre suit ce chemin comme il suit l'envoi. Sans `forced`,
-  // l'aperçu « Ce qui quittera la machine » montrait un terme du Coffre EN CLAIR alors
-  // que l'envoi le masque — et la passe de dépôt (même chemin) laissait ses
-  // `replacements` sans lui.
+  // Audit 2026-08-10: the Coffre follows this path just like it follows the send. Without `forced`,
+  // the aperçu « Ce qui quittera la machine » showed a Coffre term IN CLEAR even
+  // though the send masks it — and the drop pass (same path) left its
+  // `replacements` without it.
   it("a COFFRE term is masked (forced), even under the regex engine", async () => {
     const redact = makeRedactFn(
       host,
@@ -76,7 +76,7 @@ describe("makeRedactFn", () => {
     );
     const r = await redact("le dossier Projet-Basilic avance bien");
     expect(r.text).not.toContain("Projet-Basilic");
-    // Réversible : la paire est bien dans le vault fourni.
+    // Reversible: the pair is indeed in the provided vault.
     const vault: Record<string, string> = {};
     const r2 = await redact("le dossier Projet-Basilic avance bien", undefined, vault);
     expect(r2.text).not.toContain("Projet-Basilic");

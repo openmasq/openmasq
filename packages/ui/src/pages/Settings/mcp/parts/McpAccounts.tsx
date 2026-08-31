@@ -25,7 +25,7 @@ export function McpAccounts({
 }: {
   item: McpItem;
   busy: boolean;
-  /** Les autres connecteurs connectés que la MÊME autorisation fait tomber. */
+  /** The other connected connectors that the SAME authorization brings down. */
   peers?: McpItem[];
   onOpenPeer?: (connectorId: string) => void;
   onInspect: (serverId: string) => void;
@@ -47,13 +47,13 @@ export function McpAccounts({
   return (
     <>
       {item.kind === "direct" && <p className="mcp-modal-note">{t.mcpTab.reconnectHint}</p>}
-      {/* ⚠️ La panne est de GROUPE, la réparation ne l'est pas : les connecteurs Google
-          partagent une seule autorisation, donc ils tombent ensemble, mais « Reconnecter »
-          ne remet à neuf que celui-ci (`mcpReauthDirect` purge UN id). Sans cette ligne,
-          l'utilisateur répare Gmail, croit en avoir fini, et retrouve Agenda cassé au tour
-          suivant. On les NOMME et on y mène — plutôt que de tout re-consentir d'un geste,
-          ce qui élargirait l'écran de consentement Google à l'union des scopes
-          (`credGroup.ts`). */}
+      {/* ⚠️ The failure is at the GROUP level, the repair is not: the Google connectors
+          share a single authorization, so they fall together, but « Reconnecter »
+          only refreshes this one (`mcpReauthDirect` purges ONE id). Without this line,
+          the user fixes Gmail, thinks they're done, and finds Agenda broken on the next
+          turn. We NAME the others and lead there — rather than re-consenting everything
+          in one gesture, which would widen the Google consent screen to the union of
+          scopes (`credGroup.ts`). */}
       {!!peers?.length && (
         <p className="mcp-modal-note mcp-note-flow">
           {t.mcpTab.sharedAuthLead}

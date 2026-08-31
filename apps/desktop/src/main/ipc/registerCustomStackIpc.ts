@@ -5,25 +5,25 @@ import { relaunchSafely } from "../updates/install";
 import { handle, obj } from "./handle";
 
 /**
- * `env:set-custom-stack` — écrire une pile AUTO-HÉBERGÉE et basculer dessus.
+ * `env:set-custom-stack` — write a SELF-HOSTED stack and switch to it.
  *
- * ⚠️ Une frontière de confiance (règle 7), à trois dents dans cet ordre :
+ * ⚠️ A trust boundary (rule 7), with three teeth in this order:
  *
- * 1. **Le build doit l'honorer.** Sans `OPENMASQ_ALLOW_CUSTOM_STACK=1`, le canal n'est pas
- *    branché du tout — un binaire officiel n'a pas ce handler, il n'a rien à refuser.
- * 2. **La validation se rejoue ICI**, pas seulement dans l'écran (`validateCustomStack` :
- *    https, pas d'identifiants, couple Supabase). Un renderer est de l'UX.
- * 3. **Une confirmation NATIVE** (`dialog.showMessageBox`, modale sur la fenêtre) nomme
- *    les hôtes et attend un clic humain — qu'un renderer compromis ne peut pas produire.
+ * 1. **The build must honor it.** Without `OPENMASQ_ALLOW_CUSTOM_STACK=1`, the channel isn't
+ *    wired up at all — an official binary doesn't have this handler, it has nothing to refuse.
+ * 2. **Validation is replayed HERE**, not only in the screen (`validateCustomStack`:
+ *    https, no credentials, Supabase pair). A renderer is UX.
+ * 3. **A NATIVE confirmation** (`dialog.showMessageBox`, modal on the window) names
+ *    the hosts and waits for a human click — which a compromised renderer can't produce.
  *
- * Ce qui suit un « oui » : le pointeur passe à `custom` avec la pile, et l'app redémarre
- * dans SON profil `(Custom)` (`profile.ts`) — jamais dans celui de la production.
+ * What follows a "yes": the pointer switches to `custom` with the stack, and the app restarts
+ * in ITS OWN `(Custom)` profile (`profile.ts`) — never in production's.
  */
 export type SetCustomStackResult =
   | { ok: true; relaunching: true }
   | { ok: false; reason: "custom_not_allowed" | "invalid" | "declined" | "write_failed"; field?: keyof CustomStack; detail?: string };
 
-/** Le texte de la boîte native, pur — testable et le même à chaque fois. */
+/** The native box's text, pure — testable and the same every time. */
 export function customStackConfirmText(stack: CustomStack): { message: string; detail: string } {
   const host = (u: string) => {
     try {
@@ -63,8 +63,8 @@ export function registerCustomStackIpc(args: { baseUserData: string; window: () 
     });
     return { ok: true, relaunching: true };
   });
-  // Oublier la pile : le pointeur repasse à la production SANS pile, l'app redémarre.
-  // Même boîte native — retirer une adresse est une décision, pas un réglage.
+  // Forgetting the stack: the pointer goes back to production WITHOUT a stack, the app restarts.
+  // Same native box — removing an address is a decision, not a setting.
   handle("env:forget-custom-stack", [], async (): Promise<SetCustomStackResult> => {
     const win = args.window();
     const opts = {

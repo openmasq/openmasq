@@ -22,7 +22,7 @@ export function AttachmentChips({
   /** Current redaction engine signature — a chip redacted with another shows « reredact ». */
   currentRedactSig?: string;
   onRetry?: (cid: string) => void;
-  /** « Lire tout » — relire un PDF dont l'OCR s'est arrêté au plafond (`ocrShortfall`). */
+  /** « Lire tout » — re-read a PDF whose OCR stopped at the cap (`ocrShortfall`). */
   onOcrAll?: (cid: string) => void;
   onRemove: (index: number) => void;
   onOpen: (cid: string) => void;
@@ -36,9 +36,9 @@ export function AttachmentChips({
         const engineChanged =
           !!a.redactEngineSig && !!currentRedactSig && a.redactEngineSig !== currentRedactSig;
         const showRerun = !a.redacting && !!onRetry && (!!a.redactError || engineChanged);
-        // OCR arrêté au plafond : le chip le DIT toujours ; le geste « Lire tout »
-        // n'apparaît que si l'hôte sait relire (extractAll) et que le fichier a un
-        // chemin (un déposé sans chemin garde le marqueur dans son texte).
+        // OCR stopped at the cap: the chip ALWAYS says so; the « Lire tout »
+        // gesture only appears if the host knows how to re-read (extractAll) and the
+        // file has a path (a dropped one with no path keeps the marker in its text).
         const shortfall = !a.redacting && ocrShortfall(a);
         const showOcrAll = !!shortfall && !!onOcrAll && !!a.path;
         // An image stays viewable even when text OCR failed (the picture itself is
@@ -50,11 +50,11 @@ export function AttachmentChips({
           !a.redacting && !a.extracting && (a.kind === "image" ? !!a.path || !!a.data : !a.error);
         const open = () => openable && onOpen(a.cid);
         return (
-          // ⚠️ Un `span` cliquable est INVISIBLE au clavier et au lecteur d'écran : la
-          // seule porte vers l'aperçu — donc vers la vérification de ce qui sera masqué
-          // avant l'envoi — ne s'ouvrait qu'à la souris (constat 15/08). Pas un vrai
-          // <button> : le chip CONTIENT des boutons (relire, reredact, retirer), et
-          // les imbriquer est invalide. Donc le trio role/tabIndex/clavier, à la main.
+          // ⚠️ A clickable `span` is INVISIBLE to the keyboard and screen reader: the
+          // only door to the preview — hence to checking what will be masked
+          // before sending — only opened with the mouse (finding, 15/08). Not a real
+          // <button>: the chip CONTAINS buttons (re-read, re-redact, remove), and
+          // nesting them is invalid. Hence the role/tabIndex/keyboard trio, done by hand.
           <span
             key={i}
             role="button"
@@ -76,7 +76,7 @@ export function AttachmentChips({
             onClick={open}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault(); // l'espace ne doit pas défiler la page
+                e.preventDefault(); // space must not scroll the page
                 open();
               }
             }}
@@ -102,8 +102,8 @@ export function AttachmentChips({
                   ? a.error
                   : a.extracting
                     ? a.extractProgress && a.extractProgress.total > 1
-                      ? // OCR paginé : dire la page en cours vaut mieux qu'un pourcentage
-                        // (l'utilisateur voit son document, il pense en pages).
+                      ? // Paginated OCR: stating the current page beats a percentage
+                        // (the user sees their document, they think in pages).
                         `📄 OCR… page ${Math.min(a.extractProgress.done + 1, a.extractProgress.total)}/${a.extractProgress.total}`
                       : a.extractProgress
                         ? "📄 lecture de l'image…"

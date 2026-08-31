@@ -66,22 +66,22 @@ export function mcpAddStdio(
 }
 
 /**
- * Change the granted DIRECTORIES of an already-connected local server — « Ajouter un
- * dossier » / « Retirer » sur la carte du connecteur, sans le déconnecter.
+ * Change the granted DIRECTORIES of an already-connected local server — "Add a
+ * folder" / "Remove" on the connector's card, without disconnecting it.
  *
- * Pourquoi ça existe : la liste des dossiers ne se composait qu'à la CONNEXION. Pour en
- * ajouter un, il fallait déconnecter le connecteur et re-accorder tous les autres —
- * une révocation complète pour une addition, ce que personne ne fait volontiers. Le
- * chemin passe donc par les mêmes portes, exactement :
+ * Why this exists: the folder list was only assembled at CONNECT time. To add
+ * one, you had to disconnect the connector and re-grant all the others —
+ * a full revocation for one addition, which nobody does willingly. The
+ * path therefore goes through the exact same gates:
  *
- *  - un dossier AJOUTÉ doit venir du sélecteur natif de CETTE session (`isPickedDir`,
- *    audit M-4) — un renderer compromis ne peut pas s'accorder `/Users/<vous>` ;
- *  - un dossier CONSERVÉ (déjà dans le spec) n'a pas à être re-choisi : il a été accordé
- *    une fois, et le redemander à chaque édition pousserait à tout ré-accorder en bloc ;
- *  - `resolveParams` revalide tout en main (absolu, dossier existant) ;
- *  - la connexion vivante est RECONSTRUITE derrière (`reconnect`), sinon un dossier
- *    retiré resterait lisible par le modèle jusqu'au prochain lancement — un retrait qui
- *    ne retire rien est pire que pas de bouton du tout.
+ *  - an ADDED folder must come from THIS session's native picker (`isPickedDir`,
+ *    audit M-4) — a compromised renderer can't grant itself `/Users/<you>`;
+ *  - a KEPT folder (already in the spec) doesn't need to be re-chosen: it was granted
+ *    once, and asking again on every edit would push toward re-granting everything at once;
+ *  - `resolveParams` re-validates everything in main (absolute, existing folder);
+ *  - the live connection is REBUILT behind it (`reconnect`), otherwise a removed
+ *    folder would stay readable by the model until the next launch — a removal that
+ *    removes nothing is worse than no button at all.
  */
 export async function mcpSetStdioDirs(
   id: string,
@@ -104,7 +104,7 @@ export async function mcpSetStdioDirs(
   );
   const next = [...new Set(dirs.map((d) => String(d).trim()).filter(Boolean))];
   for (const dir of next) {
-    if (previous.has(resolve(dir))) continue; // déjà accordé : rien de nouveau à consentir
+    if (previous.has(resolve(dir))) continue; // already granted: nothing new to consent to
     if (!isPickedDir(dir)) return err(`${field.label} : dossier non autorisé — sélectionnez-le via le bouton`);
   }
   if (field.required && next.length === 0) return err(`${field.label} : au moins un dossier est requis`);
@@ -114,13 +114,13 @@ export async function mcpSetStdioDirs(
   if (errors.length) return err(errors.join(", "));
 
   addServer({ ...spec, params });
-  // La reconnexion est injectée par l'appelant pour garder ce module hors du graphe de
-  // `connect.ts` — l'ordre compte : le spec persisté d'abord, la connexion vivante
-  // ensuite, sinon un échec de reconnexion laisserait l'ancien périmètre.
+  // Reconnection is injected by the caller to keep this module out of `connect.ts`'s
+  // graph — order matters: the persisted spec first, the live connection
+  // next, otherwise a failed reconnect would leave the old perimeter in place.
   //
-  // ⚠️ CONTRAT : `reconnect` doit DÉTRUIRE la connexion vivante avant de la refaire. Un
-  // `mcpConnect` seul ne fait rien sur un connecteur déjà connecté, et le worker
-  // filesystem ne relit ses racines qu'au fork — le nouveau dossier resterait invisible.
+  // ⚠️ CONTRACT: `reconnect` must DESTROY the live connection before redoing it. A
+  // plain `mcpConnect` does nothing on an already-connected connector, and the
+  // filesystem worker only re-reads its roots on fork — the new folder would stay invisible.
   await reconnect(id);
   return infoFor(getServer(id) ?? { ...spec, params });
 }

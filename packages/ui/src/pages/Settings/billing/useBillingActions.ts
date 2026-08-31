@@ -39,8 +39,8 @@ export function useBillingActions(
     try {
       await fn();
     } catch (e) {
-      // Un `BillingApiError` porte statut + code : la phrase se choisit ICI, dans la langue
-      // de l'interface. Toute autre erreur garde son message ; sans message, le générique.
+      // A `BillingApiError` carries status + code: the phrase is chosen HERE, in the
+      // UI's language. Any other error keeps its own message; with no message, the generic one.
       setError(
         e instanceof BillingApiError
           ? billingErrorMessage(e.status, t, e.code)
@@ -83,8 +83,8 @@ export function useBillingActions(
     return run("portal", () => billing.openPortal());
   }, [billing, run]);
 
-  // Mode TESTEUR : ni Stripe ni navigateur — le palier est posé côté serveur, qui relit
-  // l'interrupteur global lui-même. `"free"` est le RETRAIT (testable dans les deux sens).
+  // TESTER mode: neither Stripe nor a browser — the tier is set server-side, which reads
+  // the global switch itself. `"free"` is the WITHDRAWAL (testable in both directions).
   const selfGrant = useCallback(
     (tier: string) => {
       if (!billing) return;

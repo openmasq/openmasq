@@ -1,5 +1,5 @@
 /**
- * Tranche « versionsTab » du catalogue EN : Versions — mises à jour, historique des builds, environnement.
+ * The EN catalogue's « versionsTab » slice: Versions — updates, build history, environment.
  */
 import type { Messages } from "../messages";
 

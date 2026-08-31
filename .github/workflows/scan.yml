@@ -1,14 +1,14 @@
 name: scan
 
-# Analyse STATIQUE du dépôt lui-même — ce que ni les tests ni le typecheck ne voient :
-# un secret commité, et une classe de vulnérabilité dans le code.
+# STATIC analysis of the repo itself — what neither tests nor typecheck see:
+# a committed secret, and a class of vulnerability in the code.
 #
-# Séparé de `verify.yml` À DESSEIN. `verify` répond « ce changement casse-t-il quelque
-# chose ? » et doit rester rapide, parce que chaque PR l'attend. Ces deux analyses-ci
-# répondent « le dépôt porte-t-il quelque chose qui ne devrait pas y être ? » — une
-# question largement TEMPORELLE (une règle de détection s'améliore sans que le code
-# bouge) et bien plus lente. D'où : la porte à secrets sur chaque PR et chaque push
-# (rapide, et un secret ne doit jamais franchir une PR), CodeQL en hebdomadaire.
+# Separate from `verify.yml` ON PURPOSE. `verify` answers "does this change break
+# something?" and must stay fast, because every PR waits on it. These two analyses
+# answer "does the repo carry something that shouldn't be there?" — a
+# largely TIME-BASED question (a detection rule improves without the code
+# moving) and much slower. Hence: the secrets gate on every PR and every push
+# (fast, and a secret must never get through a PR), CodeQL weekly.
 
 on:
   push:
@@ -28,20 +28,20 @@ concurrency:
 
 jobs:
   # ── Secrets ────────────────────────────────────────────────────────────────────
-  # `.gitleaks.toml` existait avec son allow-list soigneusement écrite et sa phrase « un
-  # hit HORS de ces chemins est un vrai finding » — mais RIEN ne lançait gitleaks. La
-  # configuration d'un scanner qu'on n'exécute pas donne l'impression d'un garde-fou qui
-  # n'existe pas ; ce job la rend vraie.
+  # `.gitleaks.toml` existed with its carefully written allow-list and its line "a
+  # hit OUTSIDE these paths is a real finding" — but NOTHING ran gitleaks. The
+  # configuration of a scanner that isn't run gives the impression of a guard rail that
+  # doesn't exist; this job makes it real.
   #
-  # ⚠️ L'allow-list n'est pas du laxisme : le produit EST un moteur de redaction, donc ses
-  # fixtures contiennent nécessairement des chaînes en FORME de secret (`sk-live-DEADBEEF…`,
-  # `AKIA…`, des JWT). Elles sont cantonnées aux chemins que `.gitleaks.toml` énumère.
+  # ⚠️ The allow-list isn't laxity: the product IS a redaction engine, so its
+  # fixtures necessarily contain strings SHAPED like a secret (`sk-live-DEADBEEF…`,
+  # `AKIA…`, JWTs). They are confined to the paths `.gitleaks.toml` enumerates.
   #
-  # ⚠️ Binaire OFFICIEL épinglé par sha256, pas une action tierce — pour deux raisons.
-  # D'abord la règle 7 : rien ne s'exécute ici sans empreinte vérifiée, et l'origine est
-  # celle de l'auteur (`gitleaks/gitleaks` releases), jamais un ré-empaquetage. Ensuite
-  # `gitleaks/gitleaks-action` demande une licence aux ORGANISATIONS : un job qui répond
-  # 402 six mois plus tard est un garde-fou qui s'éteint tout seul.
+  # ⚠️ OFFICIAL binary pinned by sha256, not a third-party action — for two reasons.
+  # First, rule 7: nothing runs here without a verified fingerprint, and the origin is
+  # the author's (`gitleaks/gitleaks` releases), never a repackaging. Second,
+  # `gitleaks/gitleaks-action` requires a license for ORGANIZATIONS: a job that answers
+  # 402 six months later is a guard rail that turns itself off.
   secrets:
     runs-on: ubuntu-latest
     env:
@@ -50,9 +50,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          # Historique complet : sur un dépôt à commit unique c'est bon marché, et le jour
-          # où l'historique s'allonge le scan doit le couvrir en entier — un secret retiré
-          # de l'arbre reste lisible dans le commit qui l'a introduit.
+          # Full history: on a single-commit repo this is cheap, and the day
+          # the history grows longer the scan must cover all of it — a secret removed
+          # from the tree stays readable in the commit that introduced it.
           fetch-depth: 0
           persist-credentials: false
 
@@ -66,26 +66,26 @@ jobs:
           tar -xzf "$f" gitleaks
           ./gitleaks version
 
-      # `detect` lit l'HISTORIQUE (chaque commit), `--redact` empêche la valeur trouvée
-      # d'atterrir dans un log public : on veut savoir OÙ, jamais QUOI.
+      # `detect` reads the HISTORY (every commit), `--redact` prevents the found value
+      # from landing in a public log: we want to know WHERE, never WHAT.
       - name: Scan history
         run: ./gitleaks detect --source . --config .gitleaks.toml --redact --verbose
 
   # ── Code ───────────────────────────────────────────────────────────────────────
-  # CodeQL sur le TypeScript. Ce qu'il attrape et que le typecheck ne voit pas : des flux
-  # source→sink (une entrée non fiable qui atteint un `exec`, un chemin, une requête).
-  # Le dépôt en a peu par construction — les frontières sont gardées à la main et
-  # documentées — mais « peu » se vérifie, il ne se déclare pas.
+  # CodeQL on TypeScript. What it catches that the typecheck doesn't see: source→sink
+  # flows (untrusted input reaching an `exec`, a path, a query).
+  # The repo has few of these by construction — the boundaries are guarded by hand and
+  # documented — but "few" is verified, not declared.
   codeql:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write # publier les alertes dans l'onglet Security
-      # ⚠️ `actions: read` n'est pas décoratif : l'action `analyze` interroge
-      # `GET /repos/{o}/{r}/actions/runs/{id}` pour attacher le SARIF au bon run. Sans lui
-      # elle échoue en « Resource not accessible by integration » APRÈS avoir tout analysé
-      # — dix minutes de calcul jetées à la dernière étape, et un message qui ne nomme pas
-      # la permission manquante. Requis sur un dépôt PRIVÉ ; inoffensif une fois public.
+      # ⚠️ `actions: read` isn't decorative: the `analyze` action queries
+      # `GET /repos/{o}/{r}/actions/runs/{id}` to attach the SARIF to the right run. Without it
+      # it fails with "Resource not accessible by integration" AFTER analyzing everything
+      # — ten minutes of compute thrown away at the last step, and a message that doesn't name
+      # the missing permission. Required on a PRIVATE repo; harmless once public.
       actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -95,6 +95,6 @@ jobs:
         with:
           languages: javascript-typescript
           queries: security-extended
-      # Pas de build : l'extracteur JS/TS lit les sources telles quelles. Un `pnpm install`
-      # ici n'ajouterait que des minutes et du code tiers à analyser.
+      # No build: the JS/TS extractor reads the sources as-is. A `pnpm install`
+      # here would only add minutes and third-party code to analyze.
       - uses: github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28 # v4.37.8

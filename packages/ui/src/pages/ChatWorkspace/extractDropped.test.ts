@@ -85,8 +85,8 @@ describe("extractDroppedFiles — bytes, never a path", () => {
 
 describe("la route bytes rend la même RICHESSE que la route chemin", () => {
   it("`words`/`ocrText`/`ocr` voyagent avec le texte — le redacted d'une image déposée est peignable", async () => {
-    // Vécu (14/08, CNI déposée) : l'IPC jetait tout sauf le texte, donc l'aperçu ne
-    // pouvait pas peindre l'image REDACTED — l'ORIGINALE s'ouvrait, zéro boîte.
+    // Lived (14/08, ID card dropped): the IPC discarded everything but the text, so the preview
+    // couldn't paint the REDACTED image — the ORIGINAL opened instead, zero boxes.
     const words = [{ text: "CORBŒLET", x0: 1, y0: 2, x1: 30, y1: 12 }];
     const d = deps({
       extractBytes: vi.fn(async () => ({ text: "t", words, ocrText: "brut", ocr: { engine: "tesseract", ms: 12 } })),
@@ -100,12 +100,12 @@ describe("la route bytes rend la même RICHESSE que la route chemin", () => {
 
 describe("deferDroppedFile — la forme différée du drop", () => {
   it("mappe la progression {page,pages}→{done,total} et FILTRE sur le nom du fichier", async () => {
-    // Le canal `files:ocr-progress` est global : une extraction concurrente (un autre
-    // drop, un fichier d'outil MCP) émet dessus aussi — ses pages ne sont pas les nôtres.
+    // The `files:ocr-progress` channel is global: a concurrent extraction (another
+    // drop, an MCP tool file) emits on it too — its pages aren't ours.
     const d = deps({
       extractBytes: vi.fn(
         async (_b: string, name: string, _m?: string, onP?: (p: OcrProgress) => void) => {
-          onP?.({ name: "autre.pdf", page: 1, pages: 5 }); // concurrent → filtré
+          onP?.({ name: "autre.pdf", page: 1, pages: 5 }); // concurrent → filtered
           onP?.({ name, page: 2, pages: 3 });
           return { text: "ok" };
         },

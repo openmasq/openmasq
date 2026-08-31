@@ -3,17 +3,17 @@ import type { RedactLevelApi } from "./ComposerRedactMenu";
 import type { Conversation, Settings } from "../../types";
 
 /**
- * Ce que le bouton « niveau » du composeur peut lire et écrire — PUR, donc testable sans
- * monter un écran, et hors de `ChatView` (déjà en dette de taille).
+ * What the composer's « niveau » button can read and write — PURE, so testable without
+ * mounting a screen, and out of `ChatView` (already in size debt).
  *
- * ⚠️ Les DEUX écritures sont celles de la modale des règles, pas des nouvelles : la portée
- * « cette conversation » écrit la surcharge du fil, « toujours » écrit les réglages. Un
- * second chemin d'application aurait fini par diverger de celui du menu ⋯ et de Réglages →
- * Confidentialité — « appliquer un niveau » ne veut rien dire de plus ici (règle 9).
+ * ⚠️ The TWO writes are the same ones as the rules modal, not new ones: the
+ * « cette conversation » scope writes the thread's override, « toujours » writes the
+ * settings. A second application path would have ended up diverging from the ⋯ menu's
+ * and Réglages → Confidentialité's — "applying a level" means nothing more here (rule 9).
  *
- * Le niveau MONTRÉ est l'effectif de la conversation ouverte (global ⊕ surcharge), avec les
- * catégories imposées par l'organisation EXCLUES de la comparaison : elles sont actives quoi
- * qu'il arrive, et les compter afficherait « Sur mesure » à un membre qui n'a rien touché.
+ * The level SHOWN is the open conversation's effective one (global ⊕ override), with the
+ * categories mandated by the organization EXCLUDED from the comparison: they are active no
+ * matter what, and counting them would show « Sur mesure » to a member who touched nothing.
  */
 export function buildRedactLevelApi(input: {
   settings?: Settings;
@@ -30,12 +30,12 @@ export function buildRedactLevelApi(input: {
   );
   return {
     level,
-    // Le glyphe du bouton porte le niveau EN COURS — `levelBars` sait qu'un « Sur mesure »
-    // ne revendique aucun palier et se déduit de ce qui est réellement actif.
+    // The button's glyph carries the CURRENT level — `levelBars` knows that a « Sur mesure »
+    // claims no tier and is derived from what is actually active.
     bars: levelBars(level, settings.redactCategories, forcedCategories),
-    // Le clic pose le niveau sur LA CONVERSATION — le périmètre le moins surprenant depuis
-    // une barre de saisie. Sans conversation (premier message) il n'y a rien à surcharger :
-    // c'est alors le défaut qui reçoit, sinon le geste ne ferait rien du tout.
+    // The click sets the level on THE CONVERSATION — the least surprising scope from
+    // an input bar. Without a conversation (first message) there is nothing to override:
+    // the default then receives it, otherwise the gesture would do nothing at all.
     onApplyConversation:
       conversation && onChangeConversation
         ? (l: Exclude<PrivacyLevel, "custom">) =>

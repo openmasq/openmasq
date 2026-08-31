@@ -1,28 +1,28 @@
 /**
- * LE GUIDE en app — l'application qui s'explique elle-même.
+ * THE in-app GUIDE — the application explaining itself.
  *
- * ⚠️ Règle 8, à son maximum : chaque affirmation ici est une PROMESSE sur l'endroit où
- * vont les données de quelqu'un. Une phrase qui sur-vend la protection est un bug de
- * confiance, pas une coquille — et une traduction qui l'adoucit ou la durcit en est un
- * aussi. Celles qui pourraient devenir fausses en silence sont épinglées par
- * `ui/src/help/guide.test.ts` contre les vrais défauts, dans CHAQUE langue.
+ * ⚠️ Rule 8, at its peak: every assertion here is a PROMISE about where
+ * someone's data goes. A sentence that over-sells the protection is a trust
+ * bug, not a typo — and a translation that softens or hardens it is one
+ * too. The ones that could silently become false are pinned by
+ * `ui/src/help/guide.test.ts` against the real defaults, in EVERY language.
  *
- * ⚠️ Écrit sous les règles de la documentation publique : langue courante, pour
+ * ⚠️ Written under the public documentation's rules: plain language, for
  * l'utilisateur final. Aucun chemin de fichier, aucun nom de paquet, aucune architecture
- * interne, aucun sigle que l'interface ne développe jamais.
+ * internal, no acronym the interface never expands.
  *
- * Les chapitres de SECTION ne sont pas ici : ils se rendent depuis `sections` (une seule
- * maison), donc le guide ne peut pas s'écarter de la nav et des pages.
+ * The SECTION chapters are not here: they are rendered from `sections` (one single
+ * home), so the guide cannot drift from the nav and the pages.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
  */
 export interface GuideChapterCopy {
   title: (brand: string) => string;
-  /** Le paragraphe d'ouverture — ce que c'est, en deux ou trois phrases. */
+  /** The opening paragraph — what it is, in two or three sentences. */
   lead: (brand: string) => string;
   /** Des points pratiques, courts. */
   points?: readonly ((brand: string) => string)[];
-  /** Terme → définition, pour le chapitre lexique. */
+  /** Term → definition, for the glossary chapter. */
   terms?: readonly { term: (brand: string) => string; def: (brand: string) => string }[];
 }
 

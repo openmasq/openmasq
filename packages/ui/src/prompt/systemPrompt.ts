@@ -25,10 +25,10 @@ export const DOCUMENT_GUIDANCE =
   "en Markdown (commence par un titre « # … »), puis une ligne ``` de fermeture. " +
   "N'utilise ce bloc QUE pour un véritable document à livrer — jamais pour une " +
   "réponse conversationnelle courante, une explication brève, ni du code. " +
-  // La moitié DESIGN de l'instruction — l'équivalent du skill artifact-design de
-  // Claude : ce que le document doit être avant d'être écrit. Bornée à ce que l'app
-  // REND (rendu carte + exports PDF/DOCX) : les interdits ne sont pas du goût, ce
-  // sont les constructions qui dégradent en texte littéral dans l'éditeur.
+  // The DESIGN half of the instruction — the equivalent of Claude's artifact-design
+  // skill: what the document should be before it's written. Bounded by what the app
+  // RENDERS (card render + PDF/DOCX exports): the prohibitions aren't about taste, they
+  // are the constructs that degrade into literal text in the editor.
   "Conçois-le comme un document, pas comme une réponse : " +
   "une LETTRE porte lieu et date, l'objet, une formule d'appel, des paragraphes " +
   "courts, une formule de politesse et un bloc signature ; un RAPPORT ou un " +
@@ -42,17 +42,17 @@ export const DOCUMENT_GUIDANCE =
   "guillemets « et », nombres groupés par milliers (12 000).";
 
 /**
- * Fabriquer une COMPÉTENCE ou un WORKFLOW pour l'utilisateur. Le bloc rendu porte un
- * bouton qui l'ajoute à sa liste en un clic (`components/markdown/blocks/SkillCard.tsx`) —
- * sans lui, le modèle rendait du Markdown que l'utilisateur devait recopier à la main
- * dans la page Compétences.
+ * Build a SKILL or a WORKFLOW for the user. The rendered block carries a
+ * button that adds it to their list in one click (`components/markdown/blocks/SkillCard.tsx`) —
+ * without it, the model returned Markdown the user had to copy by hand
+ * into the Compétences page.
  *
- * ⚠️ Le choix du rail se fait par la BALISE, et il est dicté par les connecteurs : un
- * prompt réutilisable seul est une compétence, un prompt qui pilote des services
- * connectés est un workflow. C'est la seule distinction que l'utilisateur perçoit, donc
- * c'est la seule qu'on demande au modèle de faire. `proposedSkill.ts` valide ensuite la
- * catégorie et les connecteurs contre le catalogue : un id inventé est écarté, jamais
- * inscrit dans les données de l'app.
+ * ⚠️ The choice of rail is made by the TAG, and it is dictated by the connectors: a
+ * standalone reusable prompt is a skill, a prompt that drives connected
+ * services is a workflow. That's the only distinction the user perceives, so
+ * it's the only one we ask the model to make. `proposedSkill.ts` then validates the
+ * category and connectors against the catalog: a made-up id is discarded, never
+ * written into the app's data.
  */
 export const SKILL_GUIDANCE =
   "Quand l'utilisateur te demande de CRÉER une compétence, un workflow, un « skill » ou " +
@@ -83,24 +83,24 @@ export const SKILL_GUIDANCE =
  * cannot compel. It does apply to the providers that stream raw chain-of-thought.
  */
 /**
- * CE QUE LE MODÈLE EST, ET OÙ IL TOURNE — l'ancrage qui manquait.
+ * WHAT THE MODEL IS, AND WHERE IT RUNS — the anchoring that was missing.
  *
- * Sans lui, le modèle est un assistant générique qui n'a jamais entendu parler du produit.
- * Interrogé sur la confidentialité — « est-ce que mes informations restent bien chez
- * moi ? », la question que pose n'importe qui le premier jour — il répond depuis ses
- * apriori et INVENTE des garanties. Mesuré : « aucune information échangée ici n'est
+ * Without it, the model is a generic assistant that has never heard of the product.
+ * Asked about privacy — « est-ce que mes informations restent bien chez
+ * moi ? », the question anyone asks on day one — it answers from its own
+ * priors and INVENTS guarantees. Measured: « aucune information échangée ici n'est
  * stockée de manière permanente ou partagée avec des tiers. Chaque session est
- * indépendante. » Les trois clauses sont fausses ici : le message est à cet instant même
- * traité par un fournisseur TIERS, les conversations sont persistées sur la machine, et la
- * Mémoire retient d'une conversation à l'autre.
+ * indépendante. » All three claims are false here: the message is at this very moment
+ * being processed by a THIRD-PARTY provider, conversations are persisted on the machine, and
+ * Mémoire retains information from one conversation to another.
  *
- * ⚠️ C'est la pire classe d'erreur que ce produit puisse commettre. Sur-promettre la
- * protection trompe quelqu'un sur l'endroit où vont ses données — exactement ce que la
- * règle 8 interdit à la documentation, et il n'y a aucune raison que l'app s'y autorise
- * quand c'est elle qu'on interroge.
+ * ⚠️ This is the worst class of error this product can make. Over-promising
+ * protection misleads someone about where their data goes — exactly what
+ * rule 8 forbids the documentation, and there is no reason the app should be allowed to
+ * when it's the one being asked.
  *
- * Le texte ci-dessous ne DÉFEND pas le produit : il énonce le flux réel, y compris ce
- * qui part. Un modèle qui n'invente rien vaut mieux qu'un modèle qui rassure.
+ * The text below does NOT defend the product: it states the real flow, including what
+ * leaves. A model that invents nothing is worth more than a model that reassures.
  */
 export const PRODUCT_GROUNDING =
   `CONTEXTE — tu réponds à l'intérieur de ${BRAND.name}, une application de bureau. Si on ` +
@@ -117,9 +117,9 @@ export const PRODUCT_GROUNDING =
   "· Tu ne connais NI les réglages de cette personne, NI ce qui a été redacted dans son " +
   "message. Si une question SUR LA CONFIDENTIALITÉ dépasse ces faits, dis-le et renvoie " +
   "vers l'écran « Confidentialité » de l'application.\n" +
-  // ⚠️ Cette dernière ligne existe parce que la précédente a débordé, mesuré : à « ça me
-  // coûte combien tout ça ? », le modèle renvoyait vers l'écran « Confidentialité ». Un
-  // repli nommé une seule fois devient le repli de TOUT ce que le modèle ignore.
+  // ⚠️ This last line exists because the previous one overflowed, measured: asked « ça me
+  // coûte combien tout ça ? », the model pointed to the « Confidentialité » screen. A
+  // fallback named once becomes the fallback for EVERYTHING the model doesn't know.
   "· Ce bloc ne parle QUE de confidentialité. Sur les prix, les crédits, l'abonnement ou " +
   "n'importe quel autre sujet, tu n'en sais pas plus qu'ailleurs : ne renvoie PAS vers " +
   "l'écran « Confidentialité », qui n'en dit rien.";
@@ -132,23 +132,23 @@ export const LANGUAGE_GUIDANCE =
   "l'utilisateur dans l'application, alors rédige-le dans sa langue, pas en anglais.";
 
 /**
- * La MÊME règle, redite en dernier — la seule répétition volontaire de ce fichier.
+ * The SAME rule, restated last — the one deliberate repetition in this file.
  *
- * Sur un tour agentique, `agent/mcpAgentGuidance.ts` `withToolGuidance` APPEND ses
- * consignes d'outils au message système : mesuré, la règle ci-dessus tombe alors à 7 %
- * du haut, avec ~13 500 caractères d'outillage derrière elle. Ce qu'un petit modèle lit
- * juste avant le tour de l'utilisateur, c'est donc une page sur le navigateur — pas la
- * langue. D'où ce rappel en queue de message, là où la récence porte.
+ * On an agentic turn, `agent/mcpAgentGuidance.ts` `withToolGuidance` APPENDS its
+ * tool guidance to the system message: measured, the rule above then falls to 7%
+ * from the top, with ~13,500 characters of tooling behind it. What a small model reads
+ * right before the user's turn is therefore a page about the browser — not the
+ * language. Hence this reminder at the tail of the message, where recency carries weight.
  *
- * ⚠️ Ce n'est pas une seconde source (règle 9) : la règle qui fait foi reste
- * `LANGUAGE_GUIDANCE`, ceci en est l'écho court, dans le MÊME fichier, et
- * `systemPrompt.test.ts` épingle que les deux disent la même chose et que celui-ci
- * finit le message. Le jour où la règle change, le test tombe.
+ * ⚠️ This is not a second source (rule 9): the rule that holds authority stays
+ * `LANGUAGE_GUIDANCE`, this is its short echo, in the SAME file, and
+ * `systemPrompt.test.ts` pins that the two say the same thing and that this one
+ * ends the message. The day the rule changes, the test fails.
  *
- * Plafond, dit parce qu'il est réel : la langue d'une chaîne de pensée n'est PAS
- * pilotable de façon fiable — beaucoup de modèles sont entraînés à penser en anglais,
- * et un palier gratuit suit moins bien la consigne. Ceci améliore les chances ; ça ne
- * garantit rien.
+ * Ceiling, stated because it is real: the language of a chain of thought is NOT
+ * reliably steerable — many models are trained to think in English,
+ * and a free tier follows the instruction less well. This improves the odds; it
+ * guarantees nothing.
  */
 export const LANGUAGE_REMINDER =
   "RAPPEL FINAL, prioritaire sur tout ce qui précède : rédige ta réponse ET ta réflexion " +

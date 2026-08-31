@@ -19,12 +19,12 @@ export { SEARCH_FLEET, DEV_FLEET } from "./fleet3";
 export { BUSINESS_FLEET } from "./fleet4";
 export { directFleet, directFixtureGaps } from "./direct";
 
-/** La flotte ENTIÈRE (mode `OPENMASQ_EVAL_SERVERS=all` + le test de parité de
- *  couverture) — un serveur PAR connecteur du catalogue, dédupliqué par id, priorité :
- *  serveurs manuels (les scénarios y réfèrent) > flotte direct GÉNÉRÉE
- *  (`@openmasq/connectors`, fidèle par construction) > transcriptions remote. La vue
- *  Stripe retenue est `STRIPE_PAYMENTS`; le duo générique `STRIPE` de saas.ts reste
- *  disponible aux scénarios qui le déclarent. */
+/** The ENTIRE fleet (mode `OPENMASQ_EVAL_SERVERS=all` + the coverage parity
+ *  test) — one server PER catalog connector, deduplicated by id, priority:
+ *  manual servers (scenarios reference them) > GENERATED direct fleet
+ *  (`@openmasq/connectors`, faithful by construction) > remote transcripts. The
+ *  Stripe view kept is `STRIPE_PAYMENTS`; the generic `STRIPE` pair from saas.ts remains
+ *  available to scenarios that declare it. */
 export const ALL_FLEET: FakeServer[] = (() => {
   const out = new Map<string, FakeServer>();
   const layers: FakeServer[][] = [

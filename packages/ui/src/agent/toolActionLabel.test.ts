@@ -7,10 +7,10 @@ describe("toolActionLabel", () => {
     expect(toolActionLabel("run_python", 0)).toBe("Analyse et génération de fichiers…");
   });
 
-  // ⚠️ Les exemples sont des LECTURES à dessein. Ils étaient des écritures
-  // (`send_email`, `create_issue`, `send_message`) et figeaient le défaut : la phrase
-  // de lecture s'affichait pendant un envoi. `toolLabelParity.test.ts` tient l'autre
-  // moitié — qu'une écriture ne puisse plus jamais l'emprunter.
+  // ⚠️ The examples are READS on purpose. They used to be writes
+  // (`send_email`, `create_issue`, `send_message`) and froze in the bug: the read
+  // phrase showed while a send was in flight. `toolLabelParity.test.ts` holds the other
+  // half — that a write can never borrow it again.
   it("gives well-known connectors a fun, contextual verb (on a READ)", () => {
     expect(toolActionLabel("gmail__search_messages", 80)).toBe("Fouille de la boîte mail… (80 car.)");
     expect(toolActionLabel("linear__list_issues")).toBe("Tri des tickets Linear…");

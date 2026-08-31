@@ -49,9 +49,9 @@ describe("humanToolLabel", () => {
   });
 
   it("names the app's OWN tools — the generic walk mangled every one of them", () => {
-    // Rapportés le 02/08/2026 : « Lecture · many » (le marqueur de lot lu comme l'objet),
-    // « load » ("tools" est du bruit partout ailleurs, donc retiré, verbe nu restant),
-    // « Recherche · memory », « suggest integrations » brut.
+    // Reported on 02/08/2026: "Lecture · many" (the batch marker read as the object),
+    // "load" ("tools" is noise everywhere else, so stripped, leaving a bare verb),
+    // "Recherche · memory", raw "suggest integrations".
     expect(humanToolLabel("python", "run_python")).toBe("Analyse et génération de fichiers");
     expect(humanToolLabel("web", "web_fetch_many")).toBe("Lecture de pages web");
     expect(humanToolLabel("mcp", "load_tools")).toBe("Choix des outils");
@@ -60,8 +60,8 @@ describe("humanToolLabel", () => {
   });
 
   it("les nomme quel que soit le serveur sous lequel la trace les a rangés", () => {
-    // `web_fetch_many` est enregistré sous « web », `run_python` sous « python », et un
-    // repli sur « mcp » existe : le nom de l'outil suffit, il est à nous.
+    // `web_fetch_many` is registered under "web", `run_python` under "python", and a
+    // fallback to "mcp" exists: the tool's name is enough, it's ours.
     expect(humanToolLabel("mcp", "web_fetch_many")).toBe("Lecture de pages web");
     expect(humanToolLabel("", "run_python")).toBe("Analyse et génération de fichiers");
   });

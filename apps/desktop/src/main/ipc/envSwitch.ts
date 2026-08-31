@@ -1,19 +1,19 @@
 /**
- * La DÉCISION de la bascule d'environnement, et la charge que le renderer reçoit — sans
- * Electron, sans disque, sans réseau.
+ * The environment-switch DECISION, and the payload the renderer receives — without
+ * Electron, without disk, without network.
  *
- * Séparée du branchement (`registerEnvIpc.ts`) pour une raison mécanique autant que de
- * principe : celui-ci tire `updates/channel` pour la permission serveur, donc
- * `electron-updater`, qui ne se charge pas hors d'Electron. Une porte qui ne peut pas être
- * testée finit par n'être vérifiée que de tête.
+ * Separated from the wiring (`registerEnvIpc.ts`) for a reason as mechanical as it is
+ * of principle: the latter pulls in `updates/channel` for the server permission, hence
+ * `electron-updater`, which doesn't load outside Electron. A gate that can't be
+ * tested ends up being verified only in one's head.
  */
 import { ENVIRONMENTS, isBuiltEnvName, isEnvName, type EnvName, type EnvUrls } from "../../environments";
 import { CUSTOM_STACK_ALLOWED, customEnvUrls, type CustomStack } from "../../environments/customStack";
 
-/** L'état que le renderer lit AU CHARGEMENT, en synchrone : il en a besoin avant de créer
- *  le client Supabase, donc avant tout aller-retour asynchrone. Rien de secret ici —
- *  un nom, des adresses publiques, et la pile saisie (des adresses publiques et une clé
- *  PUBLIABLE) pour pré-remplir l'écran. */
+/** The state the renderer reads AT LOAD, synchronously: it needs it before creating
+ *  the Supabase client, i.e. before any asynchronous round trip. Nothing secret here —
+ *  a name, public addresses, and the entered stack (public addresses and a
+ *  PUBLISHABLE key) to pre-fill the screen. */
 export interface ResolvedEnv {
   name: EnvName;
   backend: string;
@@ -21,17 +21,17 @@ export interface ResolvedEnv {
   supabaseUrl: string;
   supabaseAnonKey: string;
   redactFn: string;
-  /** Ce build honore-t-il une pile saisie ? Cuit au build (`OPENMASQ_ALLOW_CUSTOM_STACK`). */
+  /** Does this build honor an entered stack? Baked at build time (`OPENMASQ_ALLOW_CUSTOM_STACK`). */
   customStackAllowed: boolean;
-  /** La pile saisie connue du pointeur — `null` sans, ou dans un build qui ne l'honore pas. */
+  /** The entered stack known to the pointer — `null` without one, or in a build that doesn't honor it. */
   customStack: CustomStack | null;
 }
 
 const EMPTY: EnvUrls = { backend: "", admin: "", supabaseUrl: "", supabaseAnonKey: "", redactFn: "" };
 
-/** Les adresses d'un environnement — cuites pour production/staging, saisies pour custom.
- *  Un `custom` sans pile est VIDE, jamais un repli sur la production : ce serait
- *  précisément parler à un backend que l'utilisateur n'a pas choisi. */
+/** An environment's addresses — baked for production/staging, entered for custom.
+ *  A `custom` with no stack is EMPTY, never a fallback to production: that would be
+ *  precisely talking to a backend the user hasn't chosen. */
 export function envUrls(name: EnvName, custom: CustomStack | null): EnvUrls {
   if (isBuiltEnvName(name)) return ENVIRONMENTS[name];
   return custom ? customEnvUrls(custom) : EMPTY;
@@ -60,13 +60,13 @@ export type EnvChangeVerdict =
   | { kind: "allow" | "needs-permission"; env: EnvName };
 
 /**
- * La décision PURE de la bascule, hors Electron et hors disque — c'est elle qu'on épingle.
- * `allowed` est la permission serveur, déjà résolue par l'appelant (et déjà fail-closed).
+ * The PURE decision behind the switch, outside Electron and outside disk — this is what we pin.
+ * `allowed` is the server permission, already resolved by the caller (and already fail-closed).
  *
- * Vers `custom` : pas de permission serveur (la pile est celle de l'utilisateur, il n'y a
- * personne d'autre à qui la demander), mais DEUX conditions structurelles — le build
- * l'honore, et une pile valide est déjà écrite (par `env:set-custom-stack`, qui a passé
- * la boîte native). Le retour à la production est toujours permis, d'où qu'on vienne.
+ * Toward `custom`: no server permission (the stack is the user's own, there's
+ * no one else to ask), but TWO structural conditions — the build
+ * honors it, and a valid stack is already written (by `env:set-custom-stack`, which passed
+ * the native dialog). Returning to production is always permitted, wherever you come from.
  */
 export function classifyEnvChange(args: {
   wanted: unknown;

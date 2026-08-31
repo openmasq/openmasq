@@ -100,10 +100,10 @@ export function coffreOccurrences(term: CoffreTerm, conversations: Conversation[
       if (n > 0 && !msgId) msgId = m.id; // first in-clear hit = the scroll anchor
       count += n;
     }
-    // Comparaison INSENSIBLE À LA CASSE, comme tout le reste du Coffre (`coffreHasValue`,
-    // `countOccurrences`, la liste `forced` de l'envoi) : le moteur redacted « ACME2024 »
-    // écrit « acme2024 » et vaulte la casse RÉELLE du texte, donc un `===` sur la casse
-    // saisie déclarait « 0 conversation » pour un terme pourtant masqué partout.
+    // CASE-INSENSITIVE comparison, like everything else in the Coffre (`coffreHasValue`,
+    // `countOccurrences`, the send's `forced` list): the engine redacts « ACME2024 »
+    // written as « acme2024 » and vaults the text's ACTUAL case, so a `===` on the
+    // entered case reported « 0 conversations » for a term that was nonetheless masked everywhere.
     const inVault = c.redactionVault
       ? Object.values(c.redactionVault).some((v) => v.trim().toLowerCase() === valueLc)
       : false;

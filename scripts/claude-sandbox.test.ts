@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { homedir, platform, tmpdir } from "node:os";
 
 // The seatbelt profile of `pnpm claude:sandbox`. The trap that cost a whole session:
-// un `deny file-read* (subpath "/Users")` rend inatteignable ce qu'il AUTORISE par ailleurs,
+// a `deny file-read* (subpath "/Users")` makes unreachable what it ALLOWS elsewhere,
 // because realpath(3) — which Node applies to every entry point — lstats EACH component of
 // the path. The symptom comes out as `EPERM … lstat '/Users'` on a file that IS in the
 // repository, and reads like a broken tool. Hence these tests: they judge the profile that is
@@ -33,7 +33,7 @@ const MAC = platform() === "darwin";
 describe.skipIf(!MAC)("claude-sandbox — le profil seatbelt", () => {
   const profile = join(mkdtempSync(join(tmpdir(), "openmasq-sb-")), "profil.sb");
   // ⚠️ `describe.skipIf` only skips the TESTS: the `describe` body is evaluated at
-  // COLLECTE, quoi qu'il arrive. Sans cette condition, `--print-profile` partait sur le
+  // COLLECTION time, no matter what. Without this condition, `--print-profile` used to run on the
   // CI's Linux runner — where the script refuses to run (seatbelt, `sandbox-exec` and the
   // `claude` binary are macOS facts) — and the suite FAILED at collection instead of being
   // skipped: the whole CI red, for a test that was not meant to apply there.

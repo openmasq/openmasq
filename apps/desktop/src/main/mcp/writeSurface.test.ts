@@ -3,11 +3,11 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // The real confirmation opens a BrowserWindow; the impl is injected instead, so electron
 // only needs to RESOLVE. Same harness as `writeConfirmWindow.test.ts`.
 vi.mock("electron", () => ({ BrowserWindow: class {}, app: { on: () => {} } }));
-// Ce test atteint `runtime/errorReport.ts`, qui importe RÉELLEMENT `@sentry/electron/main`
-// depuis que le rapport de plantage existe. Le vrai module charge `electron` et y attend
-// `app`, que l'environnement `node` de vitest ne fournit pas — le fichier ne se chargeait
-// donc plus du tout. On mocke Sentry plutôt que d'étoffer le mock d'electron : ce test ne
-// dit rien de la télémétrie, et l'étoffer reviendrait à réimplémenter electron ici.
+// This test reaches `runtime/errorReport.ts`, which REALLY imports `@sentry/electron/main`
+// ever since crash reporting exists. The real module loads `electron` and expects
+// `app` there, which vitest's `node` environment doesn't provide — so the file
+// stopped loading entirely. We mock Sentry rather than fleshing out the electron mock: this
+// test says nothing about telemetry, and fleshing it out would mean reimplementing electron here.
 vi.mock("@sentry/electron/main", () => ({ captureException: vi.fn(), init: vi.fn() }));
 
 import { __setWriteConfirmImpl, __resetWriteConfirmImpl, setWriteAutoApprove } from "./writeConfirmWindow";

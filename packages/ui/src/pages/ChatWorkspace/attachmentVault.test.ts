@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { attachmentVault, forgetAttachmentVault } from "./attachmentVault";
 
 /**
- * L'invariant que ce module rend possible : DEUX pièces jointes d'une même conversation
- * partagent un coffre, donc une même personne n'y reçoit qu'UN faux. Mesuré cassé le
- * 15/08/2026 sur deux pièces réelles (Kbis + accord de principe) — le modèle en concluait
- * qu'elles désignaient des gens différents.
+ * The invariant this module makes possible: TWO attachments in the same conversation
+ * share one vault, so the same person only ever gets ONE fake in it. Measured broken on
+ * 15/08/2026 on two real documents (Kbis + letter of intent) — the model concluded
+ * they referred to different people.
  */
 describe("coffre de travail des pièces jointes", () => {
   beforeEach(() => {
@@ -15,7 +15,7 @@ describe("coffre de travail des pièces jointes", () => {
   it("deux pièces de la MÊME conversation partagent le même objet", () => {
     const a = attachmentVault("c1");
     const b = attachmentVault("c1");
-    expect(b).toBe(a); // même référence : ce que la 1re pièce alloue, la 2e le voit
+    expect(b).toBe(a); // same reference: what the 1st document allocates, the 2nd sees
     a["Anselme Sauvestre"] = "Sabourdin Julien";
     expect(attachmentVault("c1")["Anselme Sauvestre"]).toBe("Sabourdin Julien");
   });
@@ -29,7 +29,7 @@ describe("coffre de travail des pièces jointes", () => {
     const v = attachmentVault("c1", { "Faux Ancien": "Réel Ancien" });
     expect(v["Faux Ancien"]).toBe("Réel Ancien");
     v["Faux Neuf"] = "Réel Neuf";
-    // Une amorce plus tardive ne doit pas écraser ce que le tour a déjà attribué.
+    // A later seed must not overwrite what the turn has already assigned.
     const again = attachmentVault("c1", { "Faux Ancien": "AUTRE" });
     expect(again["Faux Neuf"]).toBe("Réel Neuf");
     expect(again["Faux Ancien"]).toBe("Réel Ancien");
@@ -46,7 +46,7 @@ describe("coffre de travail des pièces jointes", () => {
     const premier = attachmentVault("conv-0");
     premier["marqueur"] = "présent";
     for (let i = 1; i <= 30; i++) attachmentVault(`conv-${i}`);
-    // Le plus ancien a été évincé — on en repart proprement, jamais sur le même objet.
+    // The oldest one was evicted — we start fresh cleanly, never on the same object.
     expect(attachmentVault("conv-0")["marqueur"]).toBeUndefined();
   });
 });

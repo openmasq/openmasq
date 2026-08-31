@@ -24,7 +24,7 @@ on:
           - draft
           - send
 
-# Moindre privilège (cf. release.yml) : checkout seul ; Resend a sa clé.
+# Least privilege (cf. release.yml): checkout only; Resend has its own key.
 permissions:
   contents: read
 
@@ -53,7 +53,7 @@ jobs:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      # Le domaine se lit dans packages/branding/branding.json (règle 9), pas en littéral.
+      # The domain is read from packages/branding/branding.json (rule 9), not as a literal.
       - name: Resolve brand domain (packages/branding/branding.json)
         id: brand
         run: echo "domain=$(node -p "require('./packages/branding/branding.json').domain")" >> "$GITHUB_OUTPUT"

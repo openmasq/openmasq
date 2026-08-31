@@ -25,25 +25,25 @@ import { useFeatureFlags } from "../../state/featureFlags";
  * threaded through a shared component.
  */
 export function AppShell({ store, variant }: { store: ChatStore; variant?: "mobile" }) {
-  // Les PORTES gouvernables (Mémoire / Bibliothèque / Compétences) : le cache s'applique
-  // dès la première frame, le relais raffraîchit derrière. Monté ICI plutôt que dans
-  // chaque app hôte — c'est la coquille qui rend les sections. `state/featureFlags.ts`.
+  // The governable GATES (Mémoire / Bibliothèque / Compétences): the cache applies
+  // from the first frame, the relay refreshes behind it. Mounted HERE rather than in
+  // each host app — it's the shell that renders the sections. `state/featureFlags.ts`.
   useFeatureFlags();
-  // Sonde de QUIESCENCE de l'auto-installation des mises à jour : main demande « es-tu
-  // occupé ? » avant de redémarrer tout seul (app en arrière-plan/inactive, build
-  // téléchargé). Ici parce que la coquille voit tout ce qui compte : envoi en vol,
-  // brouillons. No-op quand le Host n'expose pas la sonde (aperçu web, mobile).
+  // QUIESCENCE probe for auto-installing updates: main asks « are you
+  // busy? » before restarting on its own (app in background/inactive, build
+  // downloaded). Here because the shell sees everything that matters: a send in
+  // flight, drafts. No-op when the Host doesn't expose the probe (web preview, mobile).
   useUpdateQuiescence({
     host: useHost(),
     isStreaming: store.isStreaming,
     conversations: store.conversations,
     getDraft: store.getDraft,
   });
-  // La modale d'un connecteur s'ouvre depuis N'IMPORTE OÙ (panneau « Dossiers »,
-  // bannière de reconnexion, carte d'intégration en conversation) : la coquille tient la
-  // demande, `containers/providers/connectors` en est le canal, et l'implémentation
-  // reste celle des Réglages. Le nonce fait ré-ouvrir le MÊME connecteur après
-  // fermeture. Monté seulement pendant la demande — voir `ConnectorModalHost`.
+  // A connector's modal opens from ANYWHERE (« Dossiers » panel,
+  // reconnection banner, integration card in a conversation): the shell holds the
+  // request, `containers/providers/connectors` is its channel, and the implementation
+  // stays the Réglages' own. The nonce makes the SAME connector re-open after
+  // closing. Mounted only during the request — see `ConnectorModalHost`.
   const [connector, setConnector] = useState<{ id: string; n: number } | null>(null);
   const openConnector = useCallback(
     (id: string) => setConnector((c) => ({ id, n: (c?.n ?? 0) + 1 })),

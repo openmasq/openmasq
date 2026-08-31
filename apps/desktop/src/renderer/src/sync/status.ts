@@ -1,36 +1,36 @@
 /**
- * Le TÉMOIN de la synchro — ce que « ça marche » veut dire, enregistré au seul endroit
- * qui le sait : le fetch du transport.
+ * The sync WITNESS — what "it works" means, recorded in the one place
+ * that knows it: the transport's fetch.
  *
- * La synchro est best-effort par contrat (pas de phrase ⇒ no-op, serveur mort ⇒ silence),
- * et c'est le bon contrat pour ne jamais casser un envoi — mais il rend une panne
- * INVISIBLE : « les deux apps semblent ne pas se synchroniser » sans le moindre indice,
- * alors qu'en dessous chaque appel échouait vers une API qui répond 500. Ce module
- * n'ajoute aucun comportement : il OBSERVE, et Réglages → Synchronisation le montre.
+ * Sync is best-effort by contract (no passphrase ⇒ no-op, dead server ⇒ silence),
+ * and that's the right contract to never break a send — but it makes a failure
+ * INVISIBLE: "both apps seem to not be syncing" with no clue whatsoever,
+ * while underneath every call was failing against an API answering 500. This module
+ * adds no behavior at all: it OBSERVES, and Settings → Sync shows it.
  *
- * ⚠️ Un 4xx est un ÉCHEC, pas un échange : 401 (jeton), 403 (appareil révoqué — la
- * pierre tombale), 503 (secret d'appareil absent côté serveur) sont précisément les
- * pannes que le témoin existe pour montrer. « Le réseau marche » n'est pas « la synchro
- * marche ». Session seulement, pas de persistance : le témoin dit ce que CETTE session
- * a vécu — « aucun échange depuis le lancement » est une information, pas un manque.
+ * ⚠️ A 4xx is a FAILURE, not an exchange: 401 (token), 403 (revoked device — the
+ * tombstone), 503 (device secret missing server-side) are precisely the
+ * failures the witness exists to show. "The network works" isn't "sync
+ * works". Session only, no persistence: the witness states what THIS session
+ * has experienced — "no exchange since launch" is information, not a gap.
  *
- * ⚠️ **Et le transport ne voit pas tout.** Une panne de DÉCHIFFREMENT (la phrase de cet
- * appareil n'ouvre pas l'enveloppe de clé) laisse chaque requête HTTP réussir : le témoin
- * annonçait donc « dernier échange réussi » sur une synchro complètement morte — c'est
- * exactement le trou qu'il existait pour fermer (mesuré le 14/08 sur `@integrations`).
- * `recordCryptoFailure` est l'autre entrée, alimentée par le `onError` du client, et elle
- * est FATALE : réessayer ne peut pas la réparer, alors la phrase affichée ne doit pas
- * promettre le contraire.
+ * ⚠️ **And the transport doesn't see everything.** A DECRYPTION failure (this
+ * device's passphrase doesn't open the key envelope) lets every HTTP request succeed: the witness
+ * would then announce "last exchange succeeded" on a completely dead sync — that's
+ * exactly the hole it existed to close (measured on 14/08 on `@integrations`).
+ * `recordCryptoFailure` is the other entry point, fed by the client's `onError`, and it's
+ * FATAL: retrying can't fix it, so the displayed message must not
+ * promise otherwise.
  */
 
 export interface SyncExchangeState {
   lastOkAt: number | null;
   lastErrorAt: number | null;
-  /** Une raison COURTE et humaine (« HTTP 403 », « injoignable ») — jamais un corps de
-   *  réponse, qui pourrait porter des données. */
+  /** A SHORT, human reason ("HTTP 403", "unreachable") — never a response
+   *  body, which could carry data. */
   lastError: string | null;
-  /** La panne ne se réparera pas toute seule : un humain doit agir (corriger la phrase
-   *  secrète). Ce qui change la PHRASE affichée, pas seulement sa couleur. */
+  /** The failure won't fix itself: a human must act (correct the passphrase).
+   *  This changes the displayed MESSAGE, not just its color. */
   lastErrorFatal: boolean;
 }
 
@@ -45,7 +45,7 @@ export function getExchangeState(): SyncExchangeState {
   return { ...state };
 }
 
-/** Tests uniquement. */
+/** Tests only. */
 export function resetExchangeState(): void {
   state.lastOkAt = null;
   state.lastErrorAt = null;
@@ -53,7 +53,7 @@ export function resetExchangeState(): void {
   state.lastErrorFatal = false;
 }
 
-/** La classification PURE d'une issue d'appel — épinglée par `status.test.ts`. */
+/** The PURE classification of a call outcome — pinned by `status.test.ts`. */
 export function classifyOutcome(
   outcome: { ok: true } | { ok: false; status: number } | { ok: false; network: true },
 ): { ok: boolean; reason: string | null } {
@@ -65,7 +65,7 @@ export function classifyOutcome(
 export function recordExchange(ok: boolean, reason: string | null, now = Date.now()): void {
   if (ok) {
     state.lastOkAt = now;
-    // Un échange qui passe lève le caractère fatal : la phrase a pu être corrigée entre-temps.
+    // A successful exchange lifts the fatal flag: the passphrase may have been corrected in the meantime.
     state.lastErrorFatal = false;
   } else {
     state.lastErrorAt = now;
@@ -75,9 +75,9 @@ export function recordExchange(ok: boolean, reason: string | null, now = Date.no
 }
 
 /**
- * La panne que le transport ne peut PAS voir : les octets arrivent, la clé ne les ouvre
- * pas. Marquée fatale — c'est ce qui empêche l'écran de promettre « réessaiera tout seul »
- * sur quelque chose qu'aucun essai ne réparera.
+ * The failure the transport can NOT see: the bytes arrive, the key doesn't open
+ * them. Marked fatal — this is what stops the screen from promising "will retry on its own"
+ * for something no retry will fix.
  */
 export function recordCryptoFailure(reason: string, now = Date.now()): void {
   state.lastErrorAt = now;
@@ -86,8 +86,8 @@ export function recordCryptoFailure(reason: string, now = Date.now()): void {
 }
 
 /**
- * Enrobe le fetch du transport : chaque appel de synchro nourrit le témoin, la réponse
- * repart INTACTE — l'appelant garde son contrat, erreurs comprises.
+ * Wraps the transport's fetch: every sync call feeds the witness, the response
+ * goes back out INTACT — the caller keeps its contract, errors included.
  */
 export function withExchangeWitness(
   fetchImpl: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>,

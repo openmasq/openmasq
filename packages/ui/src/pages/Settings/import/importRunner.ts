@@ -26,8 +26,8 @@ export async function runImport(opts: {
   provider: ImportProvider;
   modelId: string;
   disabledKinds: string[];
-  /** Ce que verra le modèle pour ces conversations (leur coffre est constitué à l'import,
-   *  donc le mode y est figé). Absent ⇒ faux vraisemblables. */
+  /** What the model will see for these conversations (their vault is built at import
+   *  time, so the mode is frozen there). Absent ⇒ plausible fakes. */
   mode?: "fake" | "token";
   onProgress?: ImportProgress;
 }): Promise<Conversation[]> {

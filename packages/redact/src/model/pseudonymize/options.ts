@@ -14,20 +14,20 @@ export interface PseudonymizeOptions {
   /** Vault (token -> original), mutated in place. Pass the conversation vault. */
   vault?: Vault;
   /**
-   * QUE VOIT LE MODÈLE à la place d'une valeur sensible.
+   * WHAT THE MODEL SEES in place of a sensitive value.
    *
-   * - `"fake"` (défaut) — un faux vraisemblable de même nature (« Marc Charvet »,
-   *   un IBAN qui passe son propre mod-97). Le texte reste du texte : le modèle
-   *   accorde, décline, rédige, et raisonne sur des valeurs qui ont la forme des vraies.
-   * - `"token"` — un marqueur opaque (`[PERSON1]`, `[IBAN2]`). Rien de la valeur ne
-   *   subsiste, pas même sa vraisemblance : c'est le mode le plus sobre en fuite
-   *   RÉSIDUELLE (un faux nom reste un nom, un faux code postal reste une région),
-   *   au prix de la qualité de la réponse — voir `bench/tokensVsFakes.md`.
+   * - `"fake"` (default) — a believable fake of the same nature (« Marc Charvet »,
+   *   an IBAN that passes its own mod-97). The text stays text: the model
+   *   agrees, declines, drafts and reasons over values that have the shape of real ones.
+   * - `"token"` — an opaque marker (`[PERSON1]`, `[IBAN2]`). Nothing of the value
+   *   survives, not even its plausibility: it's the mode with the least RESIDUAL
+   *   leak (a fake name stays a name, a fake postal code stays a region),
+   *   at the cost of reply quality — see `bench/tokensVsFakes.md`.
    *
-   * Réversible dans les deux cas, par le MÊME coffre : seule la forme de la clé change.
-   * Le mode est une propriété de la CONVERSATION, pas du réglage courant — le basculer
-   * en cours de route laisserait un coffre moitié faux moitié jetons, donc un historique
-   * où le modèle voit les deux (réversible, mais incohérent).
+   * Reversible in both cases, through the SAME vault: only the key's form changes.
+   * The mode is a property of the CONVERSATION, not of the current setting — toggling it
+   * mid-stream would leave a vault half fakes, half tokens, hence a history
+   * where the model sees both (reversible, but incoherent).
    */
   mode?: "fake" | "token";
   /** Exact strings to always replace (e.g. saved API keys). */
@@ -106,20 +106,20 @@ export interface PseudonymizeOptions {
    */
   reFakeExisting?: boolean;
   /**
-   * Élargit la dispense de notoriété aux MARQUES commerciales (Google, LVMH, BNP
-   * Paribas, et TOUTES les intégrations MCP de l'app — `NOTORIOUS_COMMERCIAL_ORGS`).
-   * L'app le passe selon le NIVEAU de protection : tout niveau sauf Strict
-   * (`@openmasq/ui` `privacy/privacyLevel.ts` est la politique). Category-scoped
-   * comme toute la dispense (un particulier nommé Hermès/Leclerc reste protégé) et la
-   * porte « je travaille chez Google » (`isSelfBoundEntity`) continue de l'emporter.
-   * Absent/false = comportement du 27/07/2026 : marques redacted.
+   * Widens the notoriety exemption to COMMERCIAL brands (Google, LVMH, BNP
+   * Paribas, and ALL of the app's MCP integrations — `NOTORIOUS_COMMERCIAL_ORGS`).
+   * The app passes it based on the protection LEVEL: every level except Strict
+   * (`@openmasq/ui` `privacy/privacyLevel.ts` is the policy). Category-scoped
+   * like the whole exemption (a private individual named Hermès/Leclerc stays protected) and the
+   * « je travaille chez Google » gate (`isSelfBoundEntity`) still wins over it.
+   * Absent/false = the 27/07/2026 behaviour: brands redacted.
    */
   commercialNotoriety?: boolean;
   /**
-   * OPT-OUT de la dispense des PERSONNALITÉS (`NOTORIOUS_PEOPLE`) — défaut TRUE
-   * (dispensées : le comportement historique de tout consommateur qui ne passe rien).
-   * Le niveau Strict passe `false` : les personnalités y sont redacted comme le
-   * reste. Pays et tickers restent dispensés quel que soit ce flag.
+   * OPT-OUT of the PERSONALITIES exemption (`NOTORIOUS_PEOPLE`) — default TRUE
+   * (exempt: the historical behaviour of any consumer that passes nothing).
+   * The Strict level passes `false`: personalities are then redacted like the
+   * rest. Countries and tickers stay exempt regardless of this flag.
    */
   peopleNotoriety?: boolean;
   /**

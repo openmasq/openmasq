@@ -27,8 +27,8 @@ describe("envView — à qui la bascule d'environnement est proposée", () => {
   });
 
   it("chaque refus du main a une phrase, et l'inconnu aussi", () => {
-    // Le refus nomme l'ENVIRONNEMENT, jamais le canal bêta : deux axes indépendants
-    // (artefact unique), et les confondre envoie chercher le mauvais droit.
+    // The refusal names the ENVIRONMENT, never the beta channel: two independent axes
+    // (a single artifact), and conflating them sends the user hunting for the wrong right.
     expect(switchRefusalText("not_privileged", fr)).toMatch(/environnement de test/);
     expect(switchRefusalText("not_privileged", fr)).not.toMatch(/bêta/);
     expect(switchRefusalText("write_failed", fr)).toMatch(/rien n'a changé/);

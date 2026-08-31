@@ -1,37 +1,37 @@
 /**
- * LE COFFRE DE TRAVAIL D'UNE CONVERSATION, pour le redaction AU DÉPÔT des pièces jointes.
+ * THE WORKING VAULT OF A CONVERSATION, for redaction AT ATTACHMENT DROP TIME.
  *
- * LE DÉFAUT QU'IL FERME (mesuré le 15/08/2026, deux pièces RÉELLES d'un même dossier —
- * extrait Kbis + accord de principe de crédit, jointes à la même conversation) : chaque
- * pièce était redacted dans un coffre NEUF, donc la même personne recevait **deux faux
- * différents**. Le modèle, ne voyant que deux inconnus, répondait « NON, ces pièces ne
- * désignent pas la même personne » — et l'écran affichait deux fois le même nom en
- * affirmant qu'ils diffèrent. Sur un dossier de financement, c'est une conclusion FAUSSE
- * sur laquelle quelqu'un peut agir.
+ * THE DEFAULT IT CLOSES (measured on 15/08/2026, two REAL documents from the same file —
+ * a Kbis extract + a credit agreement in principle, attached to the same conversation): each
+ * document was redacted into a NEW vault, so the same person received **two different
+ * fakes**. The model, seeing only two strangers, replied "NO, these documents do not
+ * designate the same person" — and the screen showed the same name twice while
+ * asserting they differ. On a financing file, that is a FALSE conclusion
+ * someone can act on.
  *
- * L'invariant du moteur est « une valeur réelle → UN faux, à l'échelle de la
- * conversation » ; il ne pouvait pas tenir, puisque rien ne montrait les deux pièces au
- * même allocateur. Ce module est ce qui les lui montre.
+ * The engine's invariant is "one real value → ONE fake, at the conversation's
+ * scale"; it could not hold, since nothing showed the two documents to the
+ * same allocator. This module is what shows them to it.
  *
- * ⚠️ Éphémère, comme les listes d'autorisation du gate d'écriture : il vit dans le module,
- * survit à un remontage de `ChatView`, meurt avec l'app. Il n'est PAS la mémoire du
- * redaction — c'est le coffre PERSISTÉ de la conversation qui l'est (et qui sert à
- * un-redact). On s'amorce d'ailleurs sur LUI quand il existe, pour qu'une pièce déposée
- * au tour 3 reprenne les faux des tours précédents.
+ * ⚠️ Ephemeral, like the write gate's allow-lists: it lives in the module,
+ * survives a `ChatView` remount, dies with the app. It is NOT redaction's
+ * memory — that is the conversation's PERSISTED vault (and that's what's used
+ * to un-redact). It is in fact seeded from THAT one when it exists, so a document dropped
+ * at turn 3 picks up the fakes from previous turns.
  */
 
-/** Conversation → coffre de travail (fake→réel), muté par chaque passe de dépôt. */
+/** Conversation → working vault (fake→real), mutated by each drop pass. */
 const vaults = new Map<string, Record<string, string>>();
-/** Borne : un coffre par conversation, et on n'en garde qu'un nombre raisonnable — une
- *  session longue ouvre des dizaines de conversations, et rien ici ne doit croître sans
- *  fin. L'éviction ne perd qu'une COHÉRENCE de dépôt, jamais une donnée : le coffre
- *  persisté reste la source du un-redaction. */
+/** Bound: one vault per conversation, and only a reasonable number are kept — a
+ *  long session opens dozens of conversations, and nothing here should grow without
+ *  end. Eviction only loses drop-time COHERENCE, never data: the persisted
+ *  vault remains the source of un-redaction. */
 const MAX_CONVERSATIONS = 24;
 
 /**
- * Le coffre de travail de `convId`, créé au besoin — amorcé par `seed` (le coffre persisté
- * de la conversation) la PREMIÈRE fois seulement : une fois qu'il vit, c'est lui qui porte
- * les attributions du tour en cours.
+ * The working vault of `convId`, created as needed — seeded by `seed` (the conversation's
+ * persisted vault) the FIRST time only: once it lives, it is what carries
+ * the current turn's attributions.
  */
 export function attachmentVault(
   convId: string,
@@ -42,14 +42,14 @@ export function attachmentVault(
   const fresh: Record<string, string> = { ...(seed ?? {}) };
   vaults.set(convId, fresh);
   if (vaults.size > MAX_CONVERSATIONS) {
-    // Map itère dans l'ordre d'insertion : la plus ancienne sort.
+    // Map iterates in insertion order: the oldest one comes out.
     const oldest = vaults.keys().next().value;
     if (oldest !== undefined) vaults.delete(oldest);
   }
   return fresh;
 }
 
-/** Oublier une conversation (test, ou brouillon adopté sous un autre id). */
+/** Forget a conversation (test, or a draft adopted under another id). */
 export function forgetAttachmentVault(convId: string): void {
   vaults.delete(convId);
 }

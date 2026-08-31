@@ -1,25 +1,25 @@
 import { isStopword } from "@openmasq/redact";
 
 /**
- * Le CLASSEMENT de `find_files`, pur et testable — l'appariement sémantique tourne
- * sur l'appareil, jamais dans le modèle.
+ * The RANKING for `find_files`, pure and testable — the semantic matching runs
+ * on-device, never in the model.
  *
- * Pourquoi ici plutôt que côté modèle : le modèle ne voit QUE des chemins faux
- * (`@openmasq/redact` `model/paths.ts`), donc il ne peut pas choisir un fichier sur
- * son nom. Mais ce n'est pas la vraie raison — même en clair, il devait deviner une
- * SOUS-CHAÎNE (`search_files`), et « documents fiscaux » ne partage aucun mot avec
- * « Dépôt des comptes annuels … INPI … ». La machine, elle, voit les deux côtés en
- * clair : la requête est un-redacted avant l'appel (règle 11) et les noms sont sur
- * le disque. C'est donc ELLE qui doit apparier. Même montage que `memory_search`.
+ * Why here rather than model-side: the model sees ONLY fake paths
+ * (`@openmasq/redact` `model/paths.ts`), so it can't pick a file by its
+ * name. But that's not the real reason — even in the clear, it would have to guess a
+ * SUBSTRING (`search_files`), and « documents fiscaux » shares no word with
+ * « Dépôt des comptes annuels … INPI … ». The machine, on the other hand, sees both sides in
+ * the clear: the query is de-redacted before the call (rule 11) and the names are on
+ * disk. So IT is the one that must match. Same setup as `memory_search`.
  *
- * Deux étages, et le lexical n'est PAS un simple dégradé du sémantique :
- *  1. LEXICAL — un nom qui contient vraiment le mot cherché doit gagner, toujours.
- *  2. SÉMANTIQUE — le cosinus e5, qui seul rattrape un vocabulaire différent.
+ * Two tiers, and lexical is NOT simply a degraded fallback of semantic:
+ *  1. LEXICAL — a name that genuinely contains the sought word must always win.
+ *  2. SEMANTIC — the e5 cosine, the only thing that catches a different vocabulary.
  *
- * ⚠️ **Le cosinus e5 ne se lit qu'en RELATIF.** Sa ligne de base entre textes sans
- * rapport vaut ~0.85 sur l'export q8 livré (mesuré, cf. `../embed/knn.ts`), donc un
- * plancher absolu ne veut rien dire et un « 0.87 » n'est pas une pertinence. On
- * renormalise DANS le lot de candidats : seul l'ordre est porteur.
+ * ⚠️ **The e5 cosine can only be read in RELATIVE terms.** Its baseline between unrelated
+ * texts sits at ~0.85 on the shipped q8 export (measured, cf. `../embed/knn.ts`), so an
+ * absolute floor means nothing and a « 0.87 » is not relevance. We
+ * renormalize WITHIN the batch of candidates: only the order carries signal.
  */
 
 export interface FindCandidate {

@@ -35,9 +35,9 @@ export function ModelCard({
   onPick: (id: string) => void;
   /** Open the « Modèles gratuits » explainer (badge click). */
   onAccessInfo?: (focus: "free" | "credits" | "key", providerLabel?: string) => void;
-  /** Ce modèle est-il un favori (liste courte du sélecteur) ? */
+  /** Is this model a favorite (the picker's short list)? */
   favorite?: boolean;
-  /** Épingler/retirer des favoris. Absent ⇒ pas d'étoile. */
+  /** Pin/remove from favorites. Absent ⇒ no star. */
   onToggleFavorite?: (id: string) => void;
 }) {
   const t = useT();
@@ -91,8 +91,8 @@ export function ModelCard({
         </div>
       </div>
       {onToggleFavorite && (
-        /* La carte est un <button> — role=button span + stopPropagation, pour épingler
-           sans faire de ce modèle le modèle PAR DÉFAUT (le clic de la carte). */
+        /* The card is a <button> — role=button span + stopPropagation, to pin
+           without making this model the DEFAULT model (the card's click). */
         <span
           className={`model-fav${favorite ? " on" : ""}`}
           role="button"

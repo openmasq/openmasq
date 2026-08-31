@@ -1,55 +1,55 @@
 /**
- * Le REDACTION tel qu'on le montre : niveaux, types de donnée, carte de recherche web.
+ * REDACTION as it is shown: levels, data types, the web-search card.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
- * Le découpage tient le cap 300 LOC (règle 1) — même forme que `packages/emails/i18n/`.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
+ * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
  */
 
 /**
- * LE CONTRAT de traduction — l'interface que CHAQUE langue implémente.
+ * THE translation CONTRACT — the interface EVERY language implements.
  *
- * C'est le cœur du choix « catalogue typé, aucune bibliothèque » (cf. `CLAUDE.md`) : une
- * clé manquante ou en trop dans `fr.ts`/`en.ts` est une erreur `tsc`, pas un repli
- * silencieux à l'exécution. Aucun parseur ICU, aucun chargeur runtime dans un produit
- * dont la posture est « rien de non vérifié ne s'exécute » — l'interpolation et les
- * pluriels sont des FONCTIONS TypeScript typées, et les nombres/dates/monnaies passent
- * par `Intl` (présent dans Electron et tout navigateur).
+ * This is the heart of the « typed catalogue, no library » choice (see `CLAUDE.md`): a
+ * key missing from or extra in `fr.ts`/`en.ts` is a `tsc` error, not a silent runtime
+ * fallback. No ICU parser, no runtime loader in a product
+ * whose posture is « nothing unverified runs » — interpolation and
+ * plurals are typed TypeScript FUNCTIONS, and numbers/dates/currencies go
+ * through `Intl` (present in Electron and every browser).
  *
- * ## Comment ajouter une clé
+ * ## How to add a key
  *
- * 1. l'ajouter ICI (dans le bon namespace) ;
- * 2. `tsc` casse sur `fr.ts` ET `en.ts` tant que les deux ne l'ont pas — c'est voulu ;
- * 3. une entrée à variable est une fonction `(x) => string`, jamais un gabarit à trous.
+ * 1. add it HERE (in the right namespace);
+ * 2. `tsc` breaks on `fr.ts` AND `en.ts` until both have it — that is the point;
+ * 3. an entry with a variable is a `(x) => string` function, never a template with holes.
  *
- * ## Comment ajouter une LANGUE
+ * ## How to add a LANGUAGE
  *
- * Un nouveau fichier `xx.ts` qui `satisfies Messages`, ajouté à `MESSAGES` dans
- * `locale.ts` et à l'union `Locale`. Le compilateur exige alors chaque clé : la porte est
- * ouverte, et elle refuse une langue incomplète.
+ * A new `xx.ts` that `satisfies Messages`, added to `MESSAGES` in
+ * `locale.ts` and to the `Locale` union. The compiler then demands every key: the door
+ * is open, and it refuses an incomplete language.
  *
- * Les namespaces suivent les SURFACES, pas les fichiers — un même mot rendu à deux
- * endroits a une seule entrée (règle 9 appliquée à la copie).
+ * Namespaces follow SURFACES, not files — one word rendered in two
+ * places has a single entry (rule 9 applied to copy).
  */
-/** Un niveau de protection, dans ses trois registres (voir `privacyLevels`). */
+/** A protection level, in its three registers (see `privacyLevels`). */
 export interface PrivacyLevelCopy {
   label: string;
-  /** À quoi le niveau SERT — le registre des Réglages. */
+  /** What the level is FOR — the Settings register. */
   desc: string;
-  /** Ce que le niveau COUVRE — le registre court du menu du composeur. */
+  /** What the level COVERS — the composer menu's short register. */
   short: (brand: string) => string;
-  /** Ce qu'il laisse lisible, ou ce que sa protection peut fausser. */
+  /** What it leaves readable, or what its protection may skew. */
   tradeoff: string;
 }
 
 /**
- * Le NIVEAU DE PROTECTION, dans ses trois registres. Ils ne se remplacent pas :
- * `desc` + `tradeoff` servent les Réglages, où la décision se prend en connaissance de
- * cause ; `short` sert le menu du composeur, où elle se prend en passant, et dit ce qui
- * EST masqué plutôt que l'usage auquel le niveau convient.
+ * The PROTECTION LEVEL, in its three registers. They do not replace one another:
+ * `desc` + `tradeoff` serve the Settings, where the decision is made knowingly;
+ * `short` serves the composer menu, where it is made in passing, and says what IS
+ * masked rather than the use the level suits.
  *
- * ⚠️ `tradeoff` n'est pas décoratif : sur-vendre la fiabilité serait le même bug de
- * confiance que sur-vendre la protection (règle 8). Le traduire, c'est traduire une
- * promesse — pas une étiquette.
+ * ⚠️ `tradeoff` is not decorative: over-selling reliability would be the same trust
+ * bug as over-selling protection (rule 8). Translating it means translating a
+ * promise — not a label.
  */
 export interface PrivacyLevelsMessages {
   standard: PrivacyLevelCopy;
@@ -58,11 +58,11 @@ export interface PrivacyLevelsMessages {
 }
 
 /**
- * Les TYPES de donnée du redaction manuel. Les clés sont celles de `REDACT_TYPES`
- * (`@openmasq/redact`), qui garde le `token` du moteur — la MAISON du vocabulaire
- * technique reste là-bas, seule l'étiquette lue vient ici.
- * `redactTypes.parity.test.ts` lit les deux et échoue si l'une des listes bouge sans
- * l'autre : deux paquets ne peuvent pas s'imposer une clé par le compilateur.
+ * The manual redaction's data TYPES. The keys are those of `REDACT_TYPES`
+ * (`@openmasq/redact`), which keeps the engine's `token` — the HOME of the technical
+ * vocabulary stays there, only the read label comes here.
+ * `redactTypes.parity.test.ts` reads both and fails if one list moves without
+ * the other: two packages cannot force a key on each other through the compiler.
  */
 export interface RedactTypesMessages {
   name: string;
@@ -82,22 +82,22 @@ export interface RedactTypesMessages {
 }
 
 /**
- * La carte qui INTERROMPT la boucle agentique avant sa première recherche web, pour
- * proposer un niveau plus généreux le temps d'un message.
+ * The card that INTERRUPTS the agentic loop before its first web search, to
+ * offer a more generous level for the length of one message.
  *
- * ⚠️ Règle 8 : chaque phrase ici est une PROMESSE sur ce qui quitte la machine. « Ce
- * message seulement » borne la portée, et la dernière phrase dit que la requête part de
- * toute façon avec la vraie valeur (règle 11). Traduire à la légère l'une ou l'autre,
- * c'est mentir sur le produit — pas se tromper d'étiquette.
+ * ⚠️ Rule 8: every sentence here is a PROMISE about what leaves the machine. « Ce
+ * message seulement » bounds the scope, and the last sentence says the request goes out
+ * with the real value anyway (rule 11). Translating either one carelessly
+ * is lying about the product — not mislabelling it.
  */
 export interface WebNavMessages {
   ariaLabel: string;
   eyebrow: string;
-  /** La PORTÉE, tenue courte : la ligne est coupée à l'ellipse par son conteneur. */
+  /** The SCOPE, kept short: the line is ellipsised by its container. */
   thisMessageOnly: string;
   keepMasking: string;
   switchTo: (level: string) => string;
   title: (level: string) => string;
-  /** Suit le `tradeoff` du niveau : ce qui reste masqué, et ce que la requête emporte. */
+  /** Follows the level's `tradeoff`: what stays masked, and what the request carries. */
   rest: string;
 }

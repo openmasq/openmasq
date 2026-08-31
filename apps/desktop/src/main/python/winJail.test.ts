@@ -3,11 +3,11 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-/* Le côté TypeScript du bac à sable Windows. Le binaire lui-même (`native/win-jail/`) ne
-   peut être exercé que sur un runner Windows — c'est le travail de `release-windows.yml`,
-   qui lance un vrai lanceur de jail contre un fichier témoin et EXIGE que la lecture
-   échoue. Ici on épingle ce qui est décidable sans Windows, et qui est précisément ce
-   qu'une régression casserait en silence : la porte fail-closed, et la forme de l'argv. */
+/* The TypeScript side of the Windows sandbox. The binary itself (`native/win-jail/`) can
+   only be exercised on a Windows runner — that's the job of `release-windows.yml`,
+   which runs a real jail launcher against a canary file and REQUIRES the read to
+   fail. Here we pin what's decidable without Windows, and which is precisely what
+   a regression would break silently: the fail-closed gate, and the shape of the argv. */
 
 const USERDATA = mkdtempSync(join(tmpdir(), "openmasq-ud-"));
 const RESOURCES = mkdtempSync(join(tmpdir(), "openmasq-res-"));
@@ -50,16 +50,16 @@ afterAll(() => {
 
 describe("jailAvailability on win32 — fail closed", () => {
   it("is 'none' when the launcher is MISSING, so runPython refuses", () => {
-    // LA propriété. Un bundle Windows amputé de son lanceur ne doit pas « se rabattre »
-    // sur une exécution nue : c'est du code un-redacted, il porte les vraies données de
-    // l'utilisateur. Une dégradation silencieuse ici est une fuite, pas un moindre mal.
+    // THE property. A Windows bundle amputated of its launcher must not « fall back »
+    // to an unconfined run: this is de-redacted code, it carries the user's real
+    // data. A silent degradation here is a leak, not a lesser evil.
     rmSync(EXE, { force: true });
     setPlatform("win32");
     expect(jailAvailability()).toBe("none");
   });
 
   it("is 'appcontainer' once the launcher is bundled", () => {
-    writeFileSync(EXE, "MZ"); // le contenu est indifférent : seule la présence est testée
+    writeFileSync(EXE, "MZ"); // the content doesn't matter: only presence is tested
     setPlatform("win32");
     expect(winJailExe()).toBe(EXE);
     expect(jailAvailability()).toBe("appcontainer");
@@ -91,27 +91,27 @@ describe("the win32 argv", () => {
     const { args } = build();
     const grantsOf = (flag: string): string[] =>
       args.flatMap((a, i) => (a === flag ? [args[i + 1] as string] : []));
-    // Deux dirnames au-dessus de l'interpréteur : la racine du runtime, qui porte aussi
-    // la stdlib, les wheels et les polices. Une seule concession, pas quatre.
+    // Two dirnames above the interpreter: the runtime root, which also carries
+    // the stdlib, the wheels and the fonts. One single concession, not four.
     expect(grantsOf("--allow-read")).toEqual([join("C:\\", "rt")]);
     expect(grantsOf("--allow-write")).toEqual(["C:\\scratch", MPL]);
   });
 
   it("passes NO secret path — the deny-list is not the mechanism here", () => {
-    // Le contraste avec seatbelt/bwrap, et la raison pour laquelle ce jail est plus
-    // strict : ils partent de « tout est lisible » et soustraient les secrets qu'on a
-    // pensé à nommer, donc leur argv porte toute la deny-list. Un AppContainer part de
-    // RIEN. Voir un `userData` réapparaître ici signalerait qu'on a recopié le modèle
-    // du deny-list — et qu'oublier une entrée redeviendrait une fuite silencieuse.
+    // The contrast with seatbelt/bwrap, and the reason this jail is more
+    // strict: they start from « everything is readable » and subtract the secrets
+    // that were thought to name, so their argv carries the whole deny-list. An AppContainer starts from
+    // NOTHING. Seeing a `userData` reappear here would signal that the deny-list
+    // model was copied — and that forgetting an entry would again become a silent leak.
     const { args } = build();
     expect(args).not.toContain(USERDATA);
     expect(args.some((a) => a.includes("/home/acme"))).toBe(false);
   });
 
   it("mentions no proxy port — an AppContainer with no capability has NO socket at all", () => {
-    // `noNetwork()` vaut inconditionnellement true sur win32, et aucune variable
-    // d'environnement n'y revient : il n'y a rien à rouvrir côté TypeScript, la capacité
-    // réseau se donne à la création du processus. Le port ne doit donc jamais fuiter ici.
+    // `noNetwork()` is unconditionally true on win32, and no environment
+    // variable comes back from it: there's nothing to reopen on the TypeScript side, the
+    // network capability is granted at process creation. So the port must never leak here.
     const { args } = build();
     expect(args.join(" ")).not.toContain("4242");
   });

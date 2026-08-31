@@ -48,10 +48,10 @@ describe("routeTools", () => {
     expect(keep.size).toBe(0);
   });
 
-  // ⚠️ Comportement RENVERSÉ (06/08/2026) : « non-array/missing → empty set » confondait
-  // une réponse ILLISIBLE avec « aucun outil requis ». Un pick vide déguisé envoyait le
-  // modèle improviser sans outils (85 picks vides/30 j mesurés, toutes causes confondues) ;
-  // l'illisible remonte désormais TYPÉ pour que l'appelant garde tout si ça rentre.
+  // ⚠️ REVERSED behaviour (06/08/2026): "non-array/missing → empty set" used to conflate
+  // an UNREADABLE response with "no tool required". A disguised empty pick sent the
+  // model off improvising with no tools (85 empty picks/30 days measured, all causes combined);
+  // the unreadable case now surfaces TYPED so the caller keeps everything if it fits.
   it("tool_names manquant/non-liste → RouterUnreadableError, jamais un faux « aucun outil »", async () => {
     await expect(routeTools({ ...BASE, tools: TOOLS, userText: "x", complete: completeWith(undefined) }))
       .rejects.toBeInstanceOf(RouterUnreadableError);
@@ -125,13 +125,13 @@ describe("needsRouting", () => {
 describe("router cooldown (échec mémorisé, TTL)", () => {
   it("un échec active la pause ; le TTL l'expire ; un succès l'annule", async () => {
     const { routerCooldownActive, noteRouterFailure, noteRouterSuccess } = await import("./toolRouter");
-    noteRouterSuccess(); // état propre
+    noteRouterSuccess(); // clean state
     expect(routerCooldownActive(1_000)).toBe(false);
     noteRouterFailure(1_000);
-    expect(routerCooldownActive(1_000 + 1)).toBe(true); // en pause
-    expect(routerCooldownActive(1_000 + 5 * 60_000 + 1)).toBe(false); // TTL expiré
+    expect(routerCooldownActive(1_000 + 1)).toBe(true); // on pause
+    expect(routerCooldownActive(1_000 + 5 * 60_000 + 1)).toBe(false); // TTL expired
     noteRouterFailure(2_000);
     noteRouterSuccess();
-    expect(routerCooldownActive(2_000 + 1)).toBe(false); // succès = reset immédiat
+    expect(routerCooldownActive(2_000 + 1)).toBe(false); // success = immediate reset
   });
 });

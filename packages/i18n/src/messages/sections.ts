@@ -1,25 +1,25 @@
 /**
- * Le vocabulaire des sections de contenu, assemblé par `ui/src/help/sections.ts`.
+ * The vocabulary of the content sections, assembled by `ui/src/help/sections.ts`.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
- * Le découpage tient le cap 300 LOC (règle 1) — même forme que `packages/emails/i18n/`.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
+ * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
  */
 
 /**
- * Le VOCABULAIRE des sections de contenu — étiquette, infobulle du rail, sous-titre de
- * page, paragraphe du guide, et les mots qu'on TAPE pour les trouver au ⌘K. Cinq
- * chaînes qui décrivent la même chose à la même personne : elles vivent ensemble
- * (règle 9), et `ui/src/help/sections.ts` les assemble.
+ * The content sections' VOCABULARY — label, rail tooltip, page subtitle,
+ * guide paragraph, and the words one TYPES to find them from ⌘K. Five
+ * strings describing the same thing to the same person: they live together
+ * (rule 9), and `ui/src/help/sections.ts` assembles them.
  *
- * ⚠️ `tip` suit la forme « Étiquette — ce à quoi ça sert » DANS CHAQUE LANGUE. Le
- * premier lancement en dérive sa phrase courte en coupant au tiret CADRATIN
- * (`sectionOneLiner`), et `sections.test.ts` l'épingle : un tiret simple, ou un `tip`
- * qui ne commence pas par son étiquette, casse le test — pas l'affichage, ce qui serait
+ * ⚠️ `tip` follows the « Label — what it is for » shape IN EVERY LANGUAGE. The
+ * first launch derives its short sentence from it by cutting at the EM DASH
+ * (`sectionOneLiner`), and `sections.test.ts` pins it: a plain hyphen, or a `tip`
+ * that does not start with its label, breaks the test — not the display, which would be
  * pire.
  *
- * ⚠️ `keywords` n'est pas de la prose : c'est une liste de mots séparés par des espaces,
- * repliée sans accents avant comparaison. On y met les vraies alternatives (le mot de
- * l'autre langue, la chose que ça contient), jamais un thésaurus.
+ * ⚠️ `keywords` is not prose: it is a space-separated list of words,
+ * folded without accents before comparison. Put the real alternatives in it (the other
+ * language's word, the thing it contains), never a thesaurus.
  */
 export interface SectionsMessages {
   chats: { label: string; tip: string; guide: (brand: string) => string; keywords: string };
@@ -39,7 +39,7 @@ export interface SectionsMessages {
     guide: (brand: string) => string;
     keywords: string;
   };
-  /** La pseudo-destination « Aide » du ⌘K — pas une section, mais elle se cherche dans
-   *  la même liste et doit donc se traduire avec elle. */
+  /** The ⌘K's pseudo-destination « Aide » — not a section, but it is searched from
+   *  the same list and must therefore be translated with it. */
   helpEntry: { title: (brand: string) => string; sub: (brand: string) => string; keywords: string };
 }

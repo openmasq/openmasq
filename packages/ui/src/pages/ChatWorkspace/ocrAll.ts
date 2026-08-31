@@ -5,18 +5,18 @@ import { ocrShortfall } from "./ocrShortfall";
 export { ocrShortfall };
 
 /**
- * « Lire tout » — ré-extraire une pièce jointe dont l'OCR s'est arrêté au plafond,
- * cette fois SANS plafond. Même chorégraphie que l'extraction initiale
- * (`deferredAttach`) : `extracting` + progression pendant, puis le résultat remplace et
- * le redaction reprend — un chemin qui divergerait rendrait le second passage moins
- * honnête que le premier. Extrait de `ChatView` (cap LOC) ; les dépendances sont
- * injectées, donc testable sans le hub.
+ * « Lire tout » — re-extract an attachment whose OCR stopped at the cap,
+ * this time WITHOUT a cap. Same choreography as the initial extraction
+ * (`deferredAttach`): `extracting` + progress during, then the result replaces and
+ * redaction resumes — a path that diverged would make the second pass less
+ * honest than the first. Extracted from `ChatView` (LOC cap); the dependencies
+ * are injected, so testable without the hub.
  */
 export interface OcrAllDeps {
   files: Pick<FilesHost, "extractAll">;
   patch(cid: string, patch: Partial<Attachment>): void;
   countMatches(text: string): number;
-  /** Journal + re-redaction — le `onExtracted` de l'extraction initiale. */
+  /** Journal + re-redaction — the initial extraction's `onExtracted`. */
   onExtracted(file: ExtractedFile, attachment: Attachment): void;
 }
 
@@ -31,7 +31,7 @@ export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise
     if (!out[0]) throw new Error("extraction vide");
     file = out[0];
   } catch {
-    // L'échec LAISSE l'ancien texte (10 pages lues valent mieux que zéro) et le dit.
+    // Failure LEAVES the old text (10 pages read beats zero) and says so.
     deps.patch(a.cid, { extracting: false, extractProgress: undefined, error: "relecture échouée" });
     return;
   }

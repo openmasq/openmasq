@@ -1,26 +1,26 @@
 /**
- * Les MENUS contextuels et les listes qu'ils présentent.
+ * The context MENUS and the lists they present.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
- * Le découpage tient le cap 300 LOC (règle 1) — même forme que `packages/emails/i18n/`.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
+ * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
  */
 
-/** Un format de téléchargement : son nom, et ce qu'on obtient. */
+/** A download format: its name, and what one gets. */
 export interface DownloadFormatCopy {
   label: string;
   hint: string;
 }
 
 /**
- * Les MENUS contextuels — sélection de texte, lien, compétences du composeur, vues d'un
- * document, formats de téléchargement, marque à garder en clair, ⋯ de la Mémoire.
+ * The context MENUS — text selection, link, composer skills, a document's
+ * views, download formats, a mark to keep in clear, the Mémoire's ⋯.
  *
- * Ils partagent une propriété qui décide de leur rédaction : on les ouvre EN PASSANT,
- * au-dessus de ce qu'on est en train de lire. D'où des étiquettes d'un ou deux mots, et
- * l'explication reportée dans le `title`/`hint` — jamais l'inverse.
+ * They share one property that decides how they are written: they are opened IN PASSING,
+ * on top of what one is reading. Hence one- or two-word labels, and
+ * the explanation deferred to the `title`/`hint` — never the other way round.
  */
 export interface MenusMessages {
-  /** Le menu qui suit une sélection de texte : redact, préciser, retenir. */
+  /** The menu that follows a text selection: redact, quote, remember. */
   selection: {
     ariaLabel: string;
     redact: string;
@@ -30,26 +30,26 @@ export interface MenusMessages {
     remember: string;
     rememberTip: (brand: string) => string;
     rememberAria: string;
-    /** Le sous-menu des types, et la portée que le redaction doit couvrir. */
+    /** The type submenu, and the scope the redaction must cover. */
     scopeAria: string;
     scopeConversation: string;
     scopeVault: string;
     typeEyebrow: string;
   };
-  /** Ouvrir un lien : dedans (navigateur piloté) ou dehors (celui du système). */
+  /** Opening a link: inside (the driven browser) or outside (the system one). */
   link: {
     ariaLabel: string;
     integratedBrowser: string;
     externalBrowser: string;
   };
-  /** Le « / » du composeur. */
+  /** The composer's « / ». */
   skills: {
     actions: string;
     competences: string;
     empty: string;
     create: string;
   };
-  /** Les couches d'un document ouvert, et le bouton qui les change. */
+  /** The layers of an open document, and the button that switches them. */
   docView: {
     changeAria: string;
     listAria: string;
@@ -58,13 +58,13 @@ export interface MenusMessages {
   download: {
     ariaLabel: string;
   };
-  /** Une marque qu'on décide de NE PAS redact pour cet envoi. */
+  /** A mark one decides NOT to redact for this send. */
   markKeep: {
     keep: string;
     keepTip: string;
     uncertain: (brand: string) => string;
   };
-  /** Le ⋯ d'une page — aujourd'hui la seule Mémoire. */
+  /** A page's ⋯ — today only the Mémoire's. */
   page: {
     moreActions: string;
     exportMemory: string;
@@ -72,7 +72,7 @@ export interface MenusMessages {
   };
 }
 
-/** Les formats du menu « Télécharger » d'un document produit par une réponse. */
+/** The formats of the « Télécharger » menu of a document produced by a reply. */
 export interface DownloadsMessages {
   pdf: DownloadFormatCopy;
   docx: DownloadFormatCopy;
@@ -80,7 +80,7 @@ export interface DownloadsMessages {
   txt: DownloadFormatCopy;
 }
 
-/** Les COUCHES d'un document ouvert : ce qu'on regarde, et ce que cette couche montre. */
+/** The LAYERS of an open document: what one is looking at, and what that layer shows. */
 export interface DocViewsMessages {
   image: string;
   pdfRedacted: string;

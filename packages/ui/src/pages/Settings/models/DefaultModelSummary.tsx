@@ -4,23 +4,23 @@ import { modelDisplay } from "../../../prompt/models";
 
 import { useT } from "../../../i18n";
 /**
- * CE QUI RÉPOND QUAND ON OUVRE UNE CONVERSATION — nommé en haut de l'écran.
+ * WHAT ANSWERS WHEN A CONVERSATION IS OPENED — named at the top of the screen.
  *
- * Le réglage de cette page est UN choix, mais son résultat n'était lisible nulle part :
- * il fallait parcourir les ~400 cartes et repérer celle qui portait une coche (remonté
- * le 11/08). Un réglage dont on ne peut pas lire la valeur n'est pas réglable.
+ * This page's setting is ONE choice, but its result was readable nowhere:
+ * you had to scroll through ~400 cards and spot the one with a checkmark (reported
+ * on 11/08). A setting whose value you cannot read is not a setting.
  *
- * La ligne est un BOUTON, et son seul geste montre la fiche du modèle dans le panneau de
- * droite — jamais changer le défaut : on ne modifie pas un réglage en cliquant sur son
- * énoncé. Absente quand aucun modèle ne correspond (compte sans accès), plutôt qu'un
- * vide qui se lirait comme une panne.
+ * The row is a BUTTON, and its only gesture shows the model's card in the right
+ * panel — never changing the default: you don't change a setting by clicking its
+ * statement. Absent when no model matches (an account with no access), rather than an
+ * empty state that would read as a failure.
  */
 export function DefaultModelSummary({
   model,
   onPreview,
 }: {
   model: ModelInfo | undefined;
-  /** Afficher la fiche de ce modèle dans le panneau de détail. */
+  /** Show this model's card in the detail panel. */
   onPreview: (id: string) => void;
 }) {
   const t = useT();

@@ -42,8 +42,8 @@ describe("preflightError", () => {
   });
 
   it("blocks EVERY model when the org has opened none — an empty allow-list is a policy", () => {
-    // La régression que la bascule règle 7 doit tenir : sous liste de refus, « rien de
-    // listé » voulait dire « tout est permis ». C'est l'inverse maintenant.
+    // The regression the rule 7 flip must hold: under a deny-list, « nothing
+    // listed » used to mean « everything is allowed ». It's the reverse now.
     const r = preflightError(base({ orgProfile: org({ allowedModelIds: [] }) }));
     expect(r?.text).toBeTruthy();
   });
@@ -99,8 +99,8 @@ describe("preflightError", () => {
   });
 
   it("un membre d'ORG à budget épuisé garde son geste : le bouton « votre clé » (journal 02/08)", () => {
-    // Le budget est géré par l'admin (pas d'upsell), mais « utilisez votre propre
-    // clé » était un texte mort sans bouton — la carte n'offrait aucune issue.
+    // The budget is managed by the admin (no upsell), but « use your own
+    // key » was dead text with no button — the card offered no way out.
     const r = preflightError(
       base({
         provider: "openrouter",
@@ -119,12 +119,12 @@ describe("preflightError", () => {
       hasBilling: false,
       personalCredits: { blocked: true } as PreflightInput["personalCredits"],
     });
-    // Par défaut rien ne se vend : ni « crédits » ni « abonnement », la clé reste l'issue.
+    // By default nothing is sold: neither « credits » nor « subscription », the key remains the way out.
     const dflt = preflightError(input);
     expect(dflt?.text).toMatch(/^Ce modèle n'est pas disponible/);
     expect(dflt?.text).not.toMatch(/abonnement|crédits/i);
     expect(dflt?.action?.kind).toBe("missing_key");
-    // Dans un build qui VEND, la formulation « crédits » est de retour.
+    // In a build that SELLS, the « credits » wording is back.
     configurePlatformAccess({ served: true, sold: true });
     const r = preflightError(input);
     expect(r?.text).toMatch(/^Crédits épuisés/);

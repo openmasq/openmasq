@@ -9,7 +9,7 @@ const tool = (inputSchema: Record<string, unknown>): McpTool => ({
   serverId: "ipc",
 });
 
-/** Un schéma à la Intercom : n propriétés, toutes requises. */
+/** An Intercom-style schema: n properties, all required. */
 const allRequired = (n: number): Record<string, unknown> => {
   const properties: Record<string, unknown> = {};
   for (let i = 0; i < n; i++) properties[`f${i}`] = { type: "string" };
@@ -63,7 +63,7 @@ describe("schemaSanity — le required dégénéré d'un serveur MCP distant", (
     const props = t.inputSchema.properties as Record<string, Record<string, unknown>>;
     expect(props.filter.required).toBeUndefined();
     expect(props.window.required).toEqual(["operator", "value"]);
-    // Le required PLAUSIBLE de la racine (1 champ) survit.
+    // The root's PLAUSIBLE required (1 field) survives.
     expect(t.inputSchema.required).toEqual(["filter"]);
   });
 

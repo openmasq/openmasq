@@ -1,27 +1,27 @@
 /**
- * Les CARTES du fil de conversation — celles qui s'insèrent entre les messages, et les
- * deux modales qui les prolongent.
+ * The conversation thread's CARDS — those that slot in between messages, and the
+ * two modals that extend them.
  *
- * ⚠️ Règle 8 : la moitié de ces phrases sont des PROMESSES sur ce qui quitte la machine
+ * ⚠️ Rule 8: half of these sentences are PROMISES about what leaves the machine
  * (« seule la version redacted part », « c'est exactement ce qui partira », « envoyé en
- * clair »). Les traduire, c'est traduire l'engagement du produit, pas une étiquette — une
- * carte qui sur-vend la protection est un bug de confiance, une qui la sous-vend fait
- * renoncer à une fonctionnalité sans raison.
+ * clair »). Translating them means translating the product's commitment, not a label — a
+ * card that over-sells the protection is a trust bug, one that under-sells it makes
+ * people give up a feature for no reason.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
- * Le découpage tient le cap 300 LOC (règle 1) — même forme que `packages/emails/i18n/`.
+ * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
+ * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
  */
 export interface CardsMessages {
-  /** L'écran d'accueil d'un fil vide. */
+  /** The home screen of an empty thread. */
   welcome: {
-    /** La CLAIM de confidentialité, tenue à UNE ligne : elle ne nomme que ce que les
-     *  catégories PAR DÉFAUT attrapent réellement. Si le défaut change, la phrase change. */
+    /** The privacy CLAIM, held to ONE line: it names only what the DEFAULT
+     *  categories actually catch. If the default changes, the sentence changes. */
     subtitle: string;
     seeExamples: string;
     seeOthers: string;
   };
 
-  /** « Voir ce que le modèle a vu » — proposée une fois, après un tour protégé. */
+  /** « Voir ce que le modèle a vu » — offered once, after a protected turn. */
   transparency: {
     ariaLabel: string;
     eyebrow: string;
@@ -29,12 +29,12 @@ export interface CardsMessages {
     later: string;
     open: string;
     title: (count: number) => string;
-    /** Le nom du modèle quand on l'a ; sinon « Le modèle ». */
+    /** The model's name when we have it; otherwise « Le modèle ». */
     theModel: string;
     desc: (modelName: string) => string;
   };
 
-  /** L'offre d'activer la mémoire automatique, quand un fil porte des faits durables. */
+  /** The offer to turn on automatic memory, when a thread carries durable facts. */
   memoryProposal: {
     eyebrow: string;
     note: string;
@@ -44,7 +44,7 @@ export interface CardsMessages {
     desc: (brand: string) => string;
   };
 
-  /** Le rappel « comprendre mon redaction », fermable pour de bon. */
+  /** The « comprendre mon redaction » reminder, dismissible for good. */
   redactionIntro: {
     ariaLabel: string;
     title: string;
@@ -53,7 +53,7 @@ export interface CardsMessages {
     close: string;
   };
 
-  /** Les bandeaux du fil. */
+  /** The thread's banners. */
   banners: {
     attachmentIgnored: string;
   };
@@ -63,8 +63,8 @@ export interface CardsMessages {
     title: string;
     question: (fileCount: number) => string;
     textOption: string;
-    /** Le compte arrive DÉJÀ formaté par l'appelant (`tokenLabel`) — on ne le reformate
-     *  pas ici, sous peine de compter deux fois la locale. */
+    /** The count arrives ALREADY formatted by the caller (`tokenLabel`) — we do not
+     *  reformat it here, on pain of applying the locale twice. */
     textTokens: (tokens: string) => string;
     textDesc: string;
     fileOption: string;
@@ -78,9 +78,9 @@ export interface CardsMessages {
   };
 
   /**
-   * La carte qui BLOQUE une action d'écriture le temps d'un clic. Trois raisons, trois
-   * formulations — et une note commune, qui est la phrase la plus lourde de l'écran :
-   * ce qui est affiché est la VRAIE donnée, pas un pseudonyme.
+   * The card that BLOCKS a write action for the length of one click. Three reasons, three
+   * wordings — and one shared note, which is the heaviest sentence on the screen:
+   * what is displayed is the REAL data, not a pseudonym.
    */
   writeConfirm: {
     ariaLabel: string;

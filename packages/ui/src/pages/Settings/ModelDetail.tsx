@@ -85,10 +85,10 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
 
       {price && (
         <div className="model-detail-section">
-          {/* ⚠️ L'UNITÉ est dans le titre de la section, pas en note de bas de bloc :
-              « Vos messages 2,5 $ » se lisait comme le prix d'un message (remonté le
-              11/08). Un tarif que l'on peut lire comme mille fois trop cher n'est pas
-              une information, c'est un repoussoir. */}
+          {/* ⚠️ The UNIT is in the section title, not as a footnote under the block:
+              « Vos messages 2,5 $ » read as the price of ONE message (reported on
+              11/08). A rate that can be read as a thousand times too expensive isn't
+              information, it's a deterrent. */}
           <div className="cv-eyebrow">{t.modelsTab.detail.priceEyebrow}</div>
           {free ? (
             <p className="model-detail-price">

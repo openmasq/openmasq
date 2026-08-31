@@ -1,14 +1,14 @@
 /**
- * Le contrat de la tranche « conversation » — l'écran de la conversation lui-même : le
- * navigateur agent qui s'ouvre à côté, l'aperçu d'artefact, les amorces de l'accueil, et
- * tout ce qui borde un message (légendes de mémoire, actions, avis de redaction).
+ * The « conversation » slice contract — the conversation screen itself: the
+ * agent browser that opens beside it, the artifact preview, the home starters, and
+ * everything that borders a message (memory captions, actions, redaction notices).
  *
- * Le COMPOSEUR a le sien (`composer`) et les onglets aussi (`chat`) : ils existaient
- * avant cet écran. Ce qui vit ici est ce que personne d'autre ne dit.
+ * The COMPOSER has its own (`composer`) and so do the tabs (`chat`): they existed
+ * before this screen. What lives here is what nobody else says.
  */
 
 export interface ConversationMessages {
-  /** L'accueil d'une conversation vide. */
+  /** The home of an empty conversation. */
   greeting: { morning: string; afternoon: string; evening: string };
   starters: {
     noSetup: string;
@@ -20,10 +20,10 @@ export interface ConversationMessages {
     connectTip: (connector: string, prompt: string) => string;
   };
 
-  /** L'aperçu d'un fichier produit par le modèle. */
+  /** The preview of a file produced by the model. */
   artifact: { pane: string; copy: string; copied: string; close: string };
 
-  /** Le navigateur agent, dans son panneau. */
+  /** The agent browser, in its panel. */
   browser: {
     pane: string;
     bookmarks: string;
@@ -46,26 +46,26 @@ export interface ConversationMessages {
     close: string;
   };
 
-  /** Le redimensionnement, la préparation d'un document, l'organisation suspendue. */
+  /** Resizing, preparing a document, the suspended organization. */
   resizePanel: string;
   suspendedTitle: string;
   suspendedBody: string;
   docPrep: { analysing: string; redacting: string; page: (page: number, total: number) => string; pages: (total: number) => string; ofCount: (idx: number, count: number) => string };
   chooseFolder: string;
-  /** Le refus d'un dossier déposé, dit par l'hôte ou par nous. */
+  /** The refusal of a dropped folder, said by the host or by us. */
   folderPickFailed: string;
   folderGrantFailed: string;
-  /** L'entrée « /… » du composeur. */
+  /** The composer's « /… » entry. */
   slashRemember: { label: string; desc: string };
   opening: string;
   memoryToast: string;
-  /** L'étiquette du geste « Préciser » — la citation qu'on vient de coller. */
+  /** The « Préciser » gesture's label — the quote just pasted. */
   clarify: string;
 
-  /** La carte de confirmation d'écriture (le reste vit dans `cards`). */
+  /** The write-confirmation card (the rest lives in `cards`). */
   writeConfirm: { targetTip: (server: string, tool: string) => string; alsoOtherChats: string };
 
-  /** L'étiquette de compétence sous un message. */
+  /** The skill label under a message. */
   competenceTag: {
     show: string;
     hide: string;
@@ -74,7 +74,7 @@ export interface ConversationMessages {
     unavailable: string;
   };
 
-  /** Les légendes de mémoire, sous un envoi. */
+  /** The memory captions, under a send. */
   memory: {
     usedTip: string;
     used: (labels: string) => string;
@@ -96,10 +96,10 @@ export interface ConversationMessages {
     undoTip: string;
   };
 
-  /** La rangée d'actions sous une réponse. */
+  /** The action row under a reply. */
   actions: { regenerate: string; fork: string; feedback: string };
 
-  /** Ce qui borde une bulle. */
+  /** What borders a bubble. */
   bubble: {
     openAttachment: (name: string) => string;
     plotTip: string;
@@ -114,7 +114,7 @@ export interface ConversationMessages {
     reasoning: string;
   };
 
-  /** La carte au survol d'une marque de redaction. */
+  /** The card shown when hovering a redaction mark. */
   mark: {
     realValue: string;
     seenByModel: string;
@@ -130,7 +130,7 @@ export interface ConversationMessages {
     sheetLabel: string;
   };
 
-  /** Quand un outil s'est mal passé — dit avec le geste qui répare. */
+  /** When a tool went wrong — said with the gesture that repairs it. */
   struggle: {
     unknownTool: (connector: string, action: string) => string;
     ownKeysHint: string;

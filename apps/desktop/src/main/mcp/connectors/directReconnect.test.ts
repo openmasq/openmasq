@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * RÉGRESSION — un connecteur DIRECT dont le fournisseur refuse le jeton (401) restait
- * affiché vert, et le bandeau « reconnexion nécessaire » ne se levait jamais.
+ * REGRESSION — a DIRECT connector whose provider refuses the token (401) stayed
+ * displayed green, and the « reconnection needed » banner never came up.
  *
- * Le signal existait, mais il venait du TRANSPORT : un connecteur distant qui tombe fait
- * fermer sa socket, ce qui marque `needsReconnect`. Un connecteur direct tourne EN
- * PROCESSUS — rien ne tombe, donc rien ne signalait. L'utilisateur ne voyait qu'un outil
- * qui échoue (constaté le 15/08 sur GitHub : jeton de device flow révoqué), et le modèle
- * ne pouvait que répéter l'échec.
+ * The signal existed, but it came from the TRANSPORT: a remote connector that drops
+ * closes its socket, which flags `needsReconnect`. A direct connector runs IN
+ * PROCESS — nothing drops, so nothing signalled. The user only saw a tool
+ * that fails (observed on 15/08 on GitHub: a revoked device-flow token), and the model
+ * could only repeat the failure.
  *
- * Deux moitiés, et la seconde compte autant : le 401 LÈVE le drapeau, un appel qui passe
- * le BAISSE. Sans ça le bandeau resterait allumé après une reconnexion réussie, puisque le
- * connecteur direct ne repasse pas par le chemin de reconnexion du transport distant.
+ * Two halves, and the second counts just as much: the 401 RAISES the flag, a call that
+ * succeeds LOWERS it. Without that the banner would stay lit after a successful
+ * reconnection, since the direct connector doesn't go through the remote transport's reconnection path.
  */
 
 vi.mock("electron", () => ({
@@ -22,13 +22,13 @@ vi.mock("electron", () => ({
 vi.mock("../server/persist", () => ({ getServer: () => ({ id: "github", name: "GitHub" }) }));
 vi.mock("../../runtime/errorReport", () => ({ reportMainError: () => {} }));
 vi.mock("../server/browserTools", () => ({ BROWSER_TOOL_ALLOWLIST: new Set<string>() }));
-// Le plancher SSRF n'est pas le sujet ici — et il ferait une VRAIE résolution DNS.
+// The SSRF floor is not the point here — and it would do a REAL DNS resolution.
 vi.mock("../../net/net", () => ({ assertPublicUrl: () => Promise.resolve() }));
 
 import { makeConnectorConnection } from "./run";
 import { emitNeedsReconnect, needsReconnect } from "../server/registry";
 
-/** Un connecteur direct à un seul outil, qui appelle l'API du fournisseur. */
+/** A direct connector with a single tool, calling the provider's API. */
 function github() {
   return makeConnectorConnection({
     id: "github",
@@ -71,7 +71,7 @@ describe("connecteur DIRECT — le 401 lève le bandeau de reconnexion", () => {
     const res = await github().callTool({ name: "list_prs", arguments: {} });
     expect(needsReconnect.has("github")).toBe(true);
     expect(res.isError).toBe(true);
-    // Le message reste celui qui dit QUOI FAIRE — le drapeau ne le remplace pas.
+    // The message stays the one that says WHAT TO DO — the flag doesn't replace it.
     expect(JSON.stringify(res.content)).toContain("Réglages → Connecteurs");
   });
 
@@ -85,8 +85,8 @@ describe("connecteur DIRECT — le 401 lève le bandeau de reconnexion", () => {
   });
 
   it("⚠️ un 403 ne le lève PAS — c'est un droit manquant, pas un jeton mort", async () => {
-    // Envoyer l'utilisateur reconnecter pour un scope absent lui fait refaire un tour qui
-    // ne corrige rien.
+    // Sending the user to reconnect for a missing scope makes them go through a step that
+    // fixes nothing.
     respond(403);
     const res = await github().callTool({ name: "list_prs", arguments: {} });
     expect(res.isError).toBe(true);

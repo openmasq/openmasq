@@ -36,10 +36,10 @@ describe("résolution de locale", () => {
   });
 });
 
-// La complétude — l'invariant que « entièrement traduite » désigne. `satisfies Messages`
-// tient déjà les clés au compilateur ; ce test tient les VALEURS : aucune entrée vide, et
-// aucune langue qui aurait la forme sans le fond. Il compare la FORME de chaque catalogue
-// à celle du français (la source), récursivement.
+// Completeness — the invariant « fully translated » names. `satisfies Messages`
+// already holds the keys for the compiler; this test holds the VALUES: no empty entry, and
+// no language with the shape but not the substance. It compares each catalogue's SHAPE
+// with the French one (the source), recursively.
 describe("complétude des catalogues (chaque langue livrée est entière)", () => {
   const shape = (o: unknown): string[] => {
     const out: string[] = [];
@@ -68,10 +68,10 @@ describe("complétude des catalogues (chaque langue livrée est entière)", () =
         if (typeof v === "string") {
           if (!v.trim()) empties.push(path);
         } else if (typeof v === "function") {
-          // Une entrée à variable : on l'appelle avec un échantillon pour la voir rendre.
-          // AUTANT d'arguments qu'elle en déclare — une entrée à deux trous (« N caractères
-          // · N lignes ») recevait sinon `undefined` en second, et le catalogue jetait
-          // depuis le test censé le vérifier.
+          // An entry with a variable: we call it with a sample to see it render.
+          // AS MANY arguments as it declares — an entry with two holes (« N caractères
+          // · N lignes ») otherwise received `undefined` as the second, and the catalogue threw
+          // from the very test meant to check it.
           const sample = Array.from({ length: Math.max(1, v.length) }, () => 1);
           const out = (v as (...a: unknown[]) => unknown)(...sample);
           if (typeof out === "string" && !out.trim()) empties.push(path);

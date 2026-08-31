@@ -20,7 +20,7 @@ describe("hardTaskAsk — verbes experts, par langue", () => {
     hard("Négocie-moi une meilleure clause de sortie");
     hard("Élabore une stratégie de lancement");
     hard("Résous ce système d'équations");
-    hard("resous ce probleme"); // sans accents : le clavier mobile
+    hard("resous ce probleme"); // without accents: mobile keyboard
   });
   it("anglais (flexions -ing/-ed/-s comprises)", () => {
     hard("Prove that the algorithm halts");
@@ -99,7 +99,7 @@ describe("isMultiStepAsk — consignes en plusieurs étapes", () => {
     expect(isMultiStepAsk("First read the file, then extract the totals, finally build a summary")).toBe(true);
   });
   it("un connecteur isolé ne coûte pas des crédits", () => {
-    // « d'abord » d'itinéraire, pas d'étapes de travail.
+    // « d'abord » as an itinerary word, not a work step.
     notHard("je passe d'abord au bureau, tu peux me rappeler l'adresse ?");
     notHard("et puis voilà, qu'en penses-tu ?");
   });
@@ -121,11 +121,11 @@ describe("lightTaskAsk — transformations de surface, par langue", () => {
     light("proofread my paragraph");
   });
   it("espagnol / allemand / italien / portugais", () => {
-    light("Resume este artículo en dos frases"); // « resume » gardé par le déterminant
+    light("Resume este artículo en dos frases"); // « resume » kept because of the determiner
     light("Traducir al inglés, por favor");
     light("Parafrasea este párrafo");
     light("Übersetze diesen Absatz ins Englische");
-    light("Fasse diesen Artikel bitte kurz zusammen"); // particule séparée
+    light("Fasse diesen Artikel bitte kurz zusammen"); // separated particle
     light("Schreib eine Zusammenfassung davon");
     light("Riassumi questo testo");
     light("Traduci in francese");
@@ -144,10 +144,10 @@ describe("les pièges — l'asymétrie est la règle", () => {
   it("« corrige » seul n'est PAS léger (un bug se corrige aussi), et bug est LOURD", () => {
     notLight("corrige ce bug de calcul");
     hard("corrige ce bug de calcul");
-    // « formule DE CALCUL » et pas « formule » nue : le garde-fou du lexique de l'argent
-    // (help/money.test.ts) réserve « formule » au sens monétaire retiré, et n'exempte que
-    // les tournures non ambiguës. Ni « calcul » ni « taux » n'est un déclencheur du lexique
-    // d'intention, donc ce que ce cas teste — « corrige » seul n'est pas léger — est intact.
+    // « formule DE CALCUL » and not bare « formule »: the money-lexicon guardrail
+    // (help/money.test.ts) reserves « formule » for the removed monetary sense, and exempts only
+    // unambiguous phrasings. Neither « calcul » nor « taux » is a trigger of the intent
+    // lexicon, so what this case tests — « corrige » alone is not light — stays intact.
     notLight("corrige la formule de calcul du taux");
   });
   it("le LOURD gagne toujours sur le léger", () => {
@@ -159,9 +159,9 @@ describe("les pièges — l'asymétrie est la règle", () => {
     notLight("resume the meeting where we left off");
   });
   it("les ambigus sont SORTIS de la liste lourde — délibérément", () => {
-    notHard("développe un peu ce point"); // FR développer = étoffer
+    notHard("développe un peu ce point"); // FR développer = to flesh out
     notHard("design a birthday card"); // design ≠ architecture
-    notHard("löse mein Abo bitte"); // DE lösen ≠ résoudre ici
+    notHard("löse mein Abo bitte"); // DE lösen ≠ to solve, here
     notHard("j'aimerais améliorer mon anglais"); // « improve » ⊄ « prove »
   });
   it("rien de reconnu ⇒ ni lourd ni léger (les signaux structurels décident)", () => {

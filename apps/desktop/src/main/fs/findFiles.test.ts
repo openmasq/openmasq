@@ -45,9 +45,9 @@ describe("rankFindResults, embedder ABSENT", () => {
   });
 
   it("ne prétend RIEN quand aucun mot ne correspond", async () => {
-    // La demande exacte de la trace. Sans embedder, aucun mot n'est commun : le résultat
-    // doit dire qu'il n'a rien trouvé ET pourquoi, jamais renvoyer une liste au hasard
-    // que le modèle présenterait comme « vos documents fiscaux ».
+    // The exact request from the trace. Without an embedder, no word is shared: the result
+    // must say it found nothing AND why, never return a random list
+    // that the model would present as "your tax documents".
     const out = await rankFindResults(LISTING, "les documents fiscaux");
     expect(out).toMatch(/Aucun nom de fichier ne correspond/);
     expect(out).not.toContain("/d/");
@@ -63,17 +63,17 @@ describe("rankFindResults, embedder ABSENT", () => {
     expect(await rankFindResults("", "comptes")).toBe("(aucun fichier dans ce périmètre)");
   });
 
-  // Le modèle ne voit que des chemins FAUX : il ne peut pas vérifier qu'un résultat
-  // correspond. Le résultat doit donc porter cette limite, sinon il affirme à sa place.
+  // The model only sees FAKE paths: it cannot verify that a result
+  // matches. The result must therefore carry this limitation, or it asserts in its place.
   it("présente un CLASSEMENT, jamais une liste vérifiée", async () => {
     const out = await rankFindResults(LISTING, "comptes annuels");
     expect(out).toMatch(/pas\s+une liste vérifiée/);
   });
 
-  // …mais cette limite ne doit PAS pousser au fan-out : « ouvre un fichier pour
-  // confirmer » a fait vérifier les 11 fichiers un par un sur une simple demande de
-  // LISTE (journal 01/08 — 11 get_file_info, tour avorté au cap). La consigne dit
-  // désormais : lister ⇒ répondre avec la liste ; ouvrir ⇒ seulement pour le CONTENU.
+  // …but this limitation must NOT push toward fan-out: « ouvre un fichier pour
+  // confirmer » made it verify the 11 files one by one on a simple LIST
+  // request (log 01/08 — 11 get_file_info, turn aborted at the cap). The instruction now
+  // says: list ⇒ answer with the list; open ⇒ only for the CONTENT.
   it("dit de répondre avec la liste SANS ouvrir de fichier (l'ouverture = contenu seulement)", async () => {
     const out = await rankFindResults(LISTING, "comptes annuels");
     expect(out).toMatch(/n'ouvre AUCUN fichier/);

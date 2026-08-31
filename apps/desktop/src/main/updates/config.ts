@@ -7,25 +7,25 @@ import electronUpdater from "electron-updater";
 // electron-updater is CommonJS; destructure after a default import.
 const { autoUpdater } = electronUpdater;
 
-// Le main est CJS (il utilise `__dirname`), donc pas d'`import.meta` : l'adresse arrive
-// par un define d'electron-vite. ⚠️ **Aucun défaut committé** — même règle que les
-// autres services (`src/environments/index.ts`) : un dépôt public dont le build
-// retomberait sur le flux de la marque ferait se mettre à jour chaque fork AVEC LE
-// BINAIRE DE QUELQU'UN D'AUTRE, signé par quelqu'un d'autre. Vide ⇒ pas de mises à
-// jour automatiques du tout (`UPDATES_CONFIGURED`), et l'app le dit plutôt que de
-// sonder dans le vide.
+// Main is CJS (it uses `__dirname`), so no `import.meta`: the address arrives
+// via an electron-vite define. ⚠️ **No committed default** — same rule as the
+// other services (`src/environments/index.ts`): a public repo whose build
+// fell back to the brand's feed would make every fork update WITH
+// SOMEONE ELSE'S BINARY, signed by someone else. Empty ⇒ no automatic
+// updates at all (`UPDATES_CONFIGURED`), and the app says so rather than
+// probing into the void.
 export const UPDATES_URL = (process.env.VITE_UPDATES_URL || "").replace(/\/+$/, "");
 
-/** Ce build a-t-il un flux de mises à jour ? Vide = non, et c'est un état NORMAL
- *  (build local, fork auto-hébergé) — jamais une erreur à rapporter. */
+/** Does this build have an update feed? Empty = no, and that's a NORMAL state
+ *  (local build, self-hosted fork) — never an error to report. */
 export const UPDATES_CONFIGURED = !!UPDATES_URL;
 
-// Le canal baké au build (define d'electron.vite.config.ts) : le DÉFAUT du premier
-// lancement, rien d'autre. La CI cuit `desktop-stable` dans TOUT build publié par tag —
-// la promotion copie les octets, donc ce littéral voyage avec eux, et `desktop-beta` cuit
-// enrôlait chaque install neuve du .dmg de la landing dans la bêta (14/08). Être en bêta
-// est un ACTE : `allow_self_pin` + la bascule in-app, persistée ici — et un `updates.json`
-// existant gagne toujours sur le baké.
+// The channel baked at build time (electron.vite.config.ts define): the DEFAULT for the first
+// launch, nothing else. CI bakes `desktop-stable` into EVERY build published by tag —
+// promotion copies the bytes, so this literal travels with them, and a baked `desktop-beta`
+// enrolled every fresh install from the landing page's .dmg into beta (08/14). Being in beta
+// is an ACT: `allow_self_pin` + the in-app switch, persisted here — and an existing
+// `updates.json` always wins over the baked value.
 export const DEFAULT_CHANNEL = process.env.VITE_UPDATES_CHANNEL || "desktop-production";
 
 // Channels that predate the env-bound model (desktop-staging/desktop-production).
@@ -34,12 +34,12 @@ export const DEFAULT_CHANNEL = process.env.VITE_UPDATES_CHANNEL || "desktop-prod
 // it as stale and migrate the install to this build's environment channel.
 const LEGACY_CHANNELS = new Set(["latest"]);
 
-// ⛔ PAS de préférence `autoUpdate` ici, et ce n'est pas un oubli. La mise à jour est
-// TOUJOURS automatique : le seul usage du réglage qu'on offrait était de rester sur une
-// version ancienne, c'est-à-dire de garder des défauts déjà corrigés — ceux du redaction
-// compris, sur le chemin de chaque envoi. Une clé `autoUpdate` restée dans un `updates.json`
-// d'avant est simplement ignorée (elle n'est plus relue) : rien à migrer, et l'install qui
-// l'avait à `false` repart automatique au prochain lancement.
+// ⛔ NO `autoUpdate` preference here, and this is not an oversight. Updates are
+// ALWAYS automatic: the only use of the setting we used to offer was staying on an
+// old version, i.e. keeping defaults that were already fixed — the redaction ones
+// included, on the path of every send. An `autoUpdate` key left over in a previous
+// `updates.json` is simply ignored (it's no longer read): nothing to migrate, and the install that
+// had it set to `false` goes back to automatic on the next launch.
 export interface UpdatesConfig {
   channel: string;
   // Stable per-install id (the desktop analogue of a localStorage device id).

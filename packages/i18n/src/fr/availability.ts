@@ -1,6 +1,6 @@
 /**
- * Tranche « availability » du catalogue FR — la langue SOURCE.
- * `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat.
+ * The FR catalogue's « availability » slice — the SOURCE language.
+ * `satisfies` per entry: the compiler demands EXACTLY the contract's keys.
  */
 import type { Messages } from "../messages";
 

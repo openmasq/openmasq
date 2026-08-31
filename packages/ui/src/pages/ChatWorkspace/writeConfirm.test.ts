@@ -36,7 +36,7 @@ describe("writeConfirmDecision — the policy-driven card decision", () => {
   it("standard : après une recherche internet, UNE carte — puis plus rien", () => {
     expect(writeConfirmDecision({ ...base, mode: "standard", searchToolCalls: 1 })).toEqual({
       decision: "card",
-      floor: false, // la carte post-recherche n'est PAS un plancher : « Autoriser » l'exempte
+      floor: false, // the post-search card is NOT a floor: « Autoriser » exempts it
     });
     expect(
       writeConfirmDecision({ ...base, mode: "standard", searchToolCalls: 1, confirmationsShown: 1 })
@@ -95,14 +95,14 @@ describe("applyWriteAllowLists — un « Autoriser » n'exempte JAMAIS un planch
   };
 
   it("RÉGRESSION : deux send_email après « Autoriser », le 2e avec pièce jointe ⇒ les DEUX passent par la carte", () => {
-    // L'ordre était le bug : ChatView testait les allow-lists AVANT la politique, donc
-    // après un « Autoriser » sur le premier envoi, le deuxième — pièce jointe comprise —
-    // partait sans carte, alors que `send-floor` déclare « chaque envoi se confirme, y
-    // compris le deuxième ».
+    // The order was the bug: ChatView tested the allow-lists BEFORE the policy, so
+    // after an « Autoriser » on the first send, the second — attachment included —
+    // went out without a card, even though `send-floor` declares « every send confirms,
+    // including the second ».
     const first = writeConfirmDecision({ ...base, mode: "standard", sends: true });
-    expect(applyWriteAllowLists(first, false)).toBe("card"); // rien d'autorisé encore
-    // L'utilisateur clique « Autoriser » ⇒ l'outil entre dans l'allow-list de la
-    // conversation. Deuxième envoi, MÊME outil, cette fois avec une pièce jointe :
+    expect(applyWriteAllowLists(first, false)).toBe("card"); // nothing authorized yet
+    // The user clicks « Autoriser » ⇒ the tool enters the conversation's
+    // allow-list. Second send, SAME tool, this time with an attachment:
     const second = writeConfirmDecision({
       ...base,
       mode: "standard",
@@ -110,7 +110,7 @@ describe("applyWriteAllowLists — un « Autoriser » n'exempte JAMAIS un planch
       attachments: 1,
       confirmationsShown: 1,
     });
-    expect(applyWriteAllowLists(second, true)).toBe("card"); // le plancher tient
+    expect(applyWriteAllowLists(second, true)).toBe("card"); // the floor holds
   });
 
   it("« Autoriser » continue d'exempter une écriture ORDINAIRE répétée (non-plancher)", () => {
@@ -119,15 +119,15 @@ describe("applyWriteAllowLists — un « Autoriser » n'exempte JAMAIS un planch
       mode: "standard",
       tool: "notion__update_page",
       server: "notion",
-      searchToolCalls: 1, // conversation exposée au web ⇒ la carte post-recherche matcherait
+      searchToolCalls: 1, // conversation exposed to the web ⇒ the post-search card would match
     });
     expect(ordinary.decision).toBe("card");
-    expect(applyWriteAllowLists(ordinary, true)).toBe("auto"); // la promesse du clic tient aussi
+    expect(applyWriteAllowLists(ordinary, true)).toBe("auto"); // the click's promise holds too
   });
 
   it("l'auto-approbation globale de session est bornée pareil : les planchers redemandent", () => {
     const send = writeConfirmDecision({ ...base, mode: "standard", sends: true });
-    // `allowedByUser` couvre les trois listes, le toggle global compris.
+    // `allowedByUser` covers all three lists, including the global toggle.
     expect(applyWriteAllowLists(send, true)).toBe("card");
   });
 

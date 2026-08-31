@@ -1,7 +1,7 @@
 /**
  * The folder/file a question is ABOUT — staged when the user clicks « Demander » on a
  * granted local folder or a connected-storage entry (Drive/OneDrive/Dropbox), and
- * persisted on the user message (`Message.askTarget`) exactly like a compétence tag.
+ * persisted on the user message (`Message.askTarget`) exactly like a skill tag.
  * Nothing is attached: the model reads the target with the connector's tools; this tag
  * is what tells it (and the user) WHAT the question refers to, instead of a bare name
  * it can only guess at ("patrons" read as a concept, not as the clicked Dropbox folder).
