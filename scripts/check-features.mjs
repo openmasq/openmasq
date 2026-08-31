@@ -44,17 +44,44 @@ const matchAll = (src, re, group = 1) => [...src.matchAll(re)].map((m) => m[grou
 const anchors = [];
 const anchor = (kind, value, origin) => anchors.push({ kind, value, origin });
 
-// The navigation sections (their vocabulary is already single-sourced).
+/**
+ * ⚠️ La STRUCTURE et les MOTS ne vivent plus dans le même fichier : `help/sections.ts` et
+ * `Settings/settingsIndex.ts` gardent les ids et leur ORDRE, la copie est partie dans
+ * `@openmasq/i18n` (français = la langue source, et celle que FEATURES.md écrit). On lit
+ * donc les deux — sinon ce garde-fou compte 0 et croit à une dérive.
+ */
 const sections = read("packages/ui/src/help/sections.ts");
-for (const label of matchAll(sections, /^\s{4}label: "([^"]+)"/gm))
-  anchor("section", label, "packages/ui/src/help/sections.ts");
-
-// The settings tabs + every setting indexed for ⌘K.
 const settings = read("packages/ui/src/pages/Settings/settingsIndex.ts");
-for (const label of matchAll(settings, /^\s{4}label: "([^"]+)"/gm))
-  anchor("settings tab", label, "packages/ui/src/pages/Settings/settingsIndex.ts");
-for (const label of matchAll(settings, /\{ tab: "[a-z]+", label: "([^"]+)"/g))
-  anchor("setting", label, "packages/ui/src/pages/Settings/settingsIndex.ts");
+const frSections = read("packages/i18n/src/fr/sections.ts");
+const frSettings = read("packages/i18n/src/fr/settings.ts");
+/** Les deux moitiés du catalogue des réglages : les ONGLETS, puis les RÉGLAGES eux-mêmes. */
+const settingsTabsCopy = frSettings.slice(frSettings.indexOf("  tabs: {"), frSettings.indexOf("  entries: {"));
+const settingsEntriesCopy = frSettings.slice(frSettings.indexOf("  entries: {"));
+
+for (const label of matchAll(frSections, /^\s{4}label: "([^"]+)"/gm))
+  anchor("section", label, "packages/i18n/src/fr/sections.ts");
+for (const label of matchAll(settingsTabsCopy, /^\s{6}label: "([^"]+)"/gm))
+  anchor("settings tab", label, "packages/i18n/src/fr/settings.ts");
+for (const label of matchAll(settingsEntriesCopy, /^\s{6}label: "([^"]+)"/gm))
+  anchor("setting", label, "packages/i18n/src/fr/settings.ts");
+
+/**
+ * Un motif qui ne matche plus rend ce fichier MUET : il ne dirait plus « telle section
+ * manque au doc », il dirait seulement que le compte a changé — le symptôme de loin le
+ * plus difficile à lire (mesuré : la migration i18n l'a fait tomber à 0 anchor de section
+ * ET d'onglet, et le message parlait de compteurs). Une source vide est donc une PANNE
+ * DU GARDE-FOU, pas une dérive du produit, et elle se dit comme telle.
+ */
+for (const [kind, n] of [
+  ["section", matchAll(frSections, /^\s{4}label: "/gm).length],
+  ["settings tab", matchAll(settingsTabsCopy, /^\s{6}label: "/gm).length],
+  ["setting", matchAll(settingsEntriesCopy, /^\s{6}label: "/gm).length],
+])
+  if (n === 0)
+    fail(
+      `no ${kind} found in @openmasq/i18n — this checker's PATTERN is stale, not the doc: ` +
+        `fix scripts/check-features.mjs before trusting any count below`,
+    );
 
 // A screen = a folder of `pages/`. Adding one without its line is the typical miss.
 for (const d of readdirSync(join(root, "packages/ui/src/pages"), { withFileTypes: true }))
@@ -82,8 +109,12 @@ for (const tok of matchAll(doc, /`([^`\n]+)`/g)) {
 /** Counters are written `<!-- n:key -->42`, hence verifiable to the line. A number in
  *  prose would be unverifiable, and that is exactly what rots first. */
 const counters = {
-  sections: () => matchAll(sections, /^\s{4}id: "/gm).length,
-  "onglets-reglages": () => matchAll(settings, /^\s{4}id: "/gm).length,
+  // L'ORDRE de navigation et l'ordre des onglets sont de la structure : ils restent dans
+  // le code, et c'est LUI qui fait foi pour un compte.
+  sections: () => matchAll(sections, /\bid: "[a-z]+"/g).length,
+  "onglets-reglages": () =>
+    matchAll(settings.slice(settings.indexOf("const TAB_ORDER"), settings.indexOf("as const satisfies")), /^\s{2}"/gm)
+      .length,
   ecrans: () =>
     readdirSync(join(root, "packages/ui/src/pages"), { withFileTypes: true }).filter((d) => d.isDirectory()).length,
   "categories-redaction": () =>
