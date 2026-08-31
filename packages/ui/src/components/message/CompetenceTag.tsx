@@ -5,6 +5,7 @@ import { useOpenCompetence } from "../../competences/competenceOpen";
 import { competenceServerMeta } from "../../competences/launch";
 import type { Message } from "../../types";
 
+import { useT } from "../../i18n";
 /**
  * The compétence tag on a SENT user bubble. The prompt rode the model payload, not the
  * message text (see `schema`'s `Message.competence`), so this is the only trace of it —
@@ -33,6 +34,7 @@ export function CompetenceTag({
   vault?: Record<string, string>;
   kinds?: Record<string, string>;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const openCompetence = useOpenCompetence();
   const servers = (competence.servers ?? []).map(competenceServerMeta);
@@ -44,7 +46,7 @@ export function CompetenceTag({
         className="msg-tag msg-comp-btn"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        title={open ? "Masquer l'instruction envoyée" : "Voir l'instruction envoyée au modèle"}
+        title={open ? t.conversation.competenceTag.hide : t.conversation.competenceTag.show}
       >
         {servers.length > 0 ? <WorkflowIcon size={12} /> : <SparklesIcon size={12} />}
         <span>{competence.name}</span>
@@ -65,7 +67,7 @@ export function CompetenceTag({
       {open && (
         <div className="msg-comp-body">
           <div className="msg-comp-head">
-            <span className="cv-eyebrow">Instruction envoyée au modèle</span>
+            <span className="cv-eyebrow">{t.conversation.competenceTag.promptEyebrow}</span>
             {/* Only offered when the shell wired the provider AND we can still resolve
                 the compétence — a deleted one leaves the snapshot readable, not a dead link. */}
             {openCompetence && (
@@ -75,7 +77,7 @@ export function CompetenceTag({
                 onClick={() => openCompetence(competence.id)}
               >
                 <EditIcon size={12} />
-                Éditer
+                {t.conversation.competenceTag.edit}
               </button>
             )}
           </div>
@@ -87,7 +89,7 @@ export function CompetenceTag({
             // The prompt lives in the encrypted DB (it is real user text, stripped from
             // the plaintext copy — `send/sendGuards.ts`). Absent = it hasn't loaded, or
             // this message predates the field. Say so rather than imply it was empty.
-            <div className="msg-comp-empty">Instruction indisponible pour ce message.</div>
+            <div className="msg-comp-empty">{t.conversation.competenceTag.unavailable}</div>
           )}
         </div>
       )}

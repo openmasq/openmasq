@@ -4,6 +4,7 @@ import { SearchEngineLogo } from "../../../components/media/SearchEngineLogo";
 import { ChevDownIcon, CheckIcon } from "../../../components/brand";
 import { blockAgentOverlay, unblockAgentOverlay } from "../../../hooks/modalGate";
 
+import { useT } from "../../../i18n";
 /**
  * The search-engine picker that sits at the right of the browser tab strip. Shows
  * the CURRENT engine's logo; clicking opens a dropdown to switch it. The choice is
@@ -18,6 +19,7 @@ export function SearchEngineMenu({
   value: string | undefined;
   onChange: (id: string) => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +57,7 @@ export function SearchEngineMenu({
         className="vb-engine-btn"
         aria-haspopup="menu"
         aria-expanded={open}
-        title="Moteur de recherche"
+        title={t.conversation.browser.searchEngine}
         onClick={() => setOpen((o) => !o)}
       >
         <SearchEngineLogo id={value} size={15} />
@@ -63,7 +65,7 @@ export function SearchEngineMenu({
       </button>
       {open && (
         <div className="vb-engine-menu" role="menu">
-          <div className="vb-engine-menu-head">Moteur de recherche</div>
+          <div className="vb-engine-menu-head">{t.conversation.browser.searchEngine}</div>
           {SEARCH_ENGINES.map((e) => {
             const on = e.id === (value ?? SEARCH_ENGINES[0].id);
             return (

@@ -8,6 +8,7 @@ import {
 } from "../../../components/brand";
 import { SearchEngineMenu } from "./SearchEngineMenu";
 
+import { useT } from "../../../i18n";
 /**
  * The browser panel's CHROME — the single nav/URL bar (the web TABS live in the
  * right rail, not here) — split out of `BrowserPanel` (rule 1): pure
@@ -50,6 +51,7 @@ export function VbBar({
   onSearchEngineChange?: (id: string) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onGo();
@@ -65,8 +67,8 @@ export function VbBar({
           <>
             <button
               className="vb-btn"
-              aria-label="Précédent"
-              title="Précédent"
+              aria-label={t.conversation.browser.back}
+              title={t.conversation.browser.back}
               disabled={!active?.canGoBack}
               onClick={onBack}
             >
@@ -74,8 +76,8 @@ export function VbBar({
             </button>
             <button
               className="vb-btn"
-              aria-label="Suivant"
-              title="Suivant"
+              aria-label={t.conversation.browser.forward}
+              title={t.conversation.browser.forward}
               disabled={!active?.canGoForward}
               onClick={onForward}
             >
@@ -85,8 +87,8 @@ export function VbBar({
         )}
         <button
           className="vb-btn"
-          aria-label="Recharger"
-          title="Recharger"
+          aria-label={t.conversation.browser.reload}
+          title={t.conversation.browser.reload}
           disabled={!active?.url}
           onClick={onReload}
         >
@@ -102,12 +104,12 @@ export function VbBar({
           value={input}
           onChange={(e) => onInput(e.target.value)}
           spellCheck={false}
-          placeholder="Rechercher ou saisir une adresse"
-          aria-label="Adresse ou recherche"
+          placeholder={t.conversation.browser.urlPlaceholder}
+          aria-label={t.conversation.browser.urlAria}
         />
       </form>
       {onSearchEngineChange && <SearchEngineMenu value={searchEngine} onChange={onSearchEngineChange} />}
-      <button className="vb-btn" aria-label="Fermer le navigateur" title="Fermer" onClick={onClose}>
+      <button className="vb-btn" aria-label={t.conversation.browser.closeBrowser} title={t.conversation.browser.close} onClick={onClose}>
         <XIcon size={15} />
       </button>
     </div>

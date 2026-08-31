@@ -5,6 +5,7 @@ import { useOpenConnector } from "../../containers/providers/connectors";
 import { humanToolLabel } from "../../agent/humanToolLabel";
 import { connectorOfTool, type ToolStruggle } from "../../agent/toolStruggle";
 
+import { useT } from "../../i18n";
 /**
  * The caption under a turn whose tool calls went wrong — and its ONE job is to name
  * the right culprit, because each cause needs a different move from the user.
@@ -43,6 +44,7 @@ export function ToolStruggleNotice({
   struggle: ToolStruggle;
   modelName?: string;
 }) {
+  const t = useT();
   const who = modelName ?? "Ce modèle";
   const openConnector = useOpenConnector();
   // ⚠️ Le connecteur vient du NOM de l'outil (`connectorOfTool`), pas de `struggle.server`
@@ -67,50 +69,32 @@ export function ToolStruggleNotice({
       <span className="flex-min">
         {struggle.kind === "unknown_tool" ? (
           <>
-            {connector} ne sait pas faire «&nbsp;{action}&nbsp;» — cette action n&apos;existe pas
-            dans le connecteur.{" "}
-            {canOpen ? (
-              <>Certaines ne s&apos;activent qu&apos;avec vos propres clés d&apos;accès.</>
-            ) : (
-              <>
-                Ouvrez sa fiche dans Réglages → Connecteurs&nbsp;: certaines ne s&apos;activent
-                qu&apos;avec vos propres clés d&apos;accès.
-              </>
-            )}
+            {t.conversation.struggle.unknownTool(connector, action)}{" "}
+            {canOpen
+              ? t.conversation.struggle.ownKeysHint
+              : t.conversation.struggle.ownKeysHintWithPath}
           </>
         ) : struggle.kind === "connector_error" ? (
           <>
-            {connector} a refusé l&apos;action «&nbsp;{action}&nbsp;». Le modèle n&apos;y est pour
-            rien&nbsp;: en changer ne changerait rien. Le plus souvent, l&apos;accès au compte a
-            expiré —{" "}
-            {canOpen ? (
-              <>reconnectez-le, puis relancez votre demande.</>
-            ) : (
-              <>reconnectez-le dans Réglages → Connecteurs, puis relancez votre demande.</>
-            )}
+            {t.conversation.struggle.connectorError(connector, action)}{" "}
+            {canOpen
+              ? t.conversation.struggle.reconnect
+              : t.conversation.struggle.reconnectWithPath}
           </>
         ) : struggle.kind === "no_tool_used" ? (
-          <>
-            {who} a répondu sans se servir de vos connecteurs. Un modèle plus à l&apos;aise avec
-            les outils (Claude, par exemple) s&apos;en sert mieux&nbsp;: changez de modèle sous le
-            message, puis relancez.
-          </>
+          t.conversation.struggle.noToolUsed(who)
         ) : (
-          <>
-            {who} n&apos;a pas réussi à formuler l&apos;action «&nbsp;{action}&nbsp;». Un modèle
-            plus à l&apos;aise avec les outils (Claude, par exemple) y parvient souvent&nbsp;:
-            changez de modèle sous le message.
-          </>
+          t.conversation.struggle.badCall(who, action)
         )}
       </span>
       {canOpen && (
         <button
           type="button"
           className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] border border-border-default bg-surface-card text-body text-xs font-semibold cursor-pointer hover:bg-surface-hover transition-colors"
-          title={`Ouvrir la fiche ${connector} pour reconnecter le compte`}
+          title={t.conversation.struggle.reconnectTip(connector)}
           onClick={() => openConnector?.(connectorId)}
         >
-          <RefreshIcon size={12} /> Reconnecter
+          <RefreshIcon size={12} /> {t.conversation.struggle.reconnectCta}
         </button>
       )}
     </div>

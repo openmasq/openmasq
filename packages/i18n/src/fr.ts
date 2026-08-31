@@ -28,6 +28,7 @@ import { onboarding } from "./fr/onboarding";
 import { providerKeys } from "./fr/providerKeys";
 import { privacyLevels, redactTypes, webNav } from "./fr/privacy";
 import { sections } from "./fr/sections";
+import { conversation } from "./fr/conversation";
 import { shell } from "./fr/shell";
 import { viewers } from "./fr/viewers";
 import { settings } from "./fr/settings";
@@ -72,6 +73,7 @@ export const fr = {
   cards,
   chat,
   chrome,
+  conversation,
   shell,
   viewers,
   common,

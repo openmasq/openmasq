@@ -2,6 +2,7 @@ import { BRAND } from "@openmasq/branding";
 import { useState } from "react";
 import { BrowserIcon } from "../../../components/brand";
 
+import { useT } from "../../../i18n";
 /**
  * Ce que le panneau montre À LA PLACE de la page quand le connecteur « browser » est
  * déconnecté : la raison, et le geste qui la lève.
@@ -26,20 +27,22 @@ export function BrowserPlaceholder({
   offline: boolean;
   onConnect: () => Promise<unknown>;
 }) {
+  const t = useT();
   if (!hasBrowser)
-    return <div className="vb-empty">Navigateur agent indisponible sur cette plateforme.</div>;
-  if (!offline) return <div className="vb-empty vb-empty-behind">Chargement du navigateur agent…</div>;
+    return <div className="vb-empty">{t.conversation.browser.unavailable}</div>;
+  if (!offline) return <div className="vb-empty vb-empty-behind">{t.conversation.browser.loading}</div>;
   return <BrowserOffline onConnect={onConnect} />;
 }
 
 function BrowserOffline({ onConnect }: { onConnect: () => Promise<unknown> }) {
+  const t = useT();
   const [connecting, setConnecting] = useState(false);
   return (
     <div className="vb-empty vb-offline">
       <BrowserIcon size={26} />
-      <p className="vb-offline-title">Le navigateur n'est pas connecté.</p>
+      <p className="vb-offline-title">{t.conversation.browser.offlineTitle}</p>
       <p className="vb-offline-sub">
-        Activez-le pour consulter le web ici, et laisser {BRAND.name} y chercher pour vous.
+        {t.conversation.browser.offlineSub(BRAND.name)}
       </p>
       <button
         type="button"
@@ -52,7 +55,7 @@ function BrowserOffline({ onConnect }: { onConnect: () => Promise<unknown> }) {
           void onConnect().finally(() => setConnecting(false));
         }}
       >
-        {connecting ? "Activation…" : "Activer le navigateur"}
+        {connecting ? t.conversation.browser.activating : t.conversation.browser.activate}
       </button>
     </div>
   );

@@ -30,7 +30,7 @@ export function MessageNotices({
       {message.autoRouted && (
         <div
           className="shield-caption"
-          title="Mode Auto : le modèle de cette réponse a été choisi automatiquement selon la tâche."
+          title={t.conversation.bubble.autoRoutedTip}
         >
           <ZapIcon size={12} />
           <span className="flex-min">{autoRouteCaption(message.autoRouted, modelName)}</span>
@@ -40,7 +40,7 @@ export function MessageNotices({
         <ToolStruggleNotice struggle={message.toolStruggle} modelName={modelName} />
       )}
       {quota && (
-        <div className="shield-caption warn" title="Quota du fournisseur de ce modèle">
+        <div className="shield-caption warn" title={t.conversation.bubble.quotaTip}>
           <ShieldIcon size={12} />
           <span className="flex-min">{quota}</span>
         </div>

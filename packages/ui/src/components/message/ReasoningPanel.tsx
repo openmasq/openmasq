@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevDownIcon } from "../brand";
 
+import { useT } from "../../i18n";
 /**
  * The model's REFLECTION, once it is no longer the only thing on screen.
  *
@@ -22,6 +23,7 @@ import { ChevDownIcon } from "../brand";
  * headings and code blocks that compete with the reply.
  */
 export function ReasoningPanel({ text }: { text: string }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   return (
     <div className={`om-reflect${open ? " is-open" : ""}`}>
@@ -32,7 +34,7 @@ export function ReasoningPanel({ text }: { text: string }) {
         aria-expanded={open}
       >
         <ChevDownIcon size={12} />
-        <span>Réflexion</span>
+        <span>{t.conversation.bubble.reasoning}</span>
       </button>
       {open && <div className="om-reflect-body">{text}</div>}
     </div>

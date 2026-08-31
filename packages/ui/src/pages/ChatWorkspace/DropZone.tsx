@@ -186,7 +186,7 @@ export function DropZone({
               disabled={granting}
               onClick={() => void acceptOffer()}
             >
-              {granting ? "Ouverture…" : "Choisir le dossier"}
+              {granting ? t.conversation.opening : t.conversation.chooseFolder}
             </button>
           </div>
         </div>

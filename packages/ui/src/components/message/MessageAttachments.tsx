@@ -1,6 +1,7 @@
 import { DownloadIcon, ShieldIcon } from "../brand";
 import { BRAND } from "@openmasq/branding";
 
+import { useT } from "../../i18n";
 /**
  * File CARDS under a message (kit `MessageFileCard`) — user attachments AND files a
  * tool/run_python returned, stored in the local `files` table. Clicking one opens the
@@ -24,13 +25,14 @@ export function MessageAttachments({
   /** Files PRODUCED for the user this turn (assistant side) — the kit's eyebrow. */
   generated?: boolean;
 }) {
+  const t = useT();
   if (!attachments?.length) return null;
   return (
     <div className="msg-attachments">
       {attachments.map((a, i) => {
         const ext = (a.name.split(".").pop() || a.kind).toUpperCase().slice(0, 4);
         return (
-          <button className="msg-filecard" key={i} title={`Consulter ${a.name}`} onClick={() => onOpen(a.name)}>
+          <button className="msg-filecard" key={i} title={t.conversation.bubble.openAttachment(a.name)} onClick={() => onOpen(a.name)}>
             <span className={`msg-filecard-ext${ext.length > 3 ? " long" : ""}`} aria-hidden="true">
               {ext}
             </span>

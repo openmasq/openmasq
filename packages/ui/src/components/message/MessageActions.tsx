@@ -13,6 +13,7 @@ import { journalExportFor } from "../../containers/modals/DebugLogModal/entryTex
 import { copyText } from "../../hooks/clipboard";
 import { captureEvent } from "../../analytics";
 
+import { useT } from "../../i18n";
 /** Message ids whose avis glyph has already done its one-off pulse. Module-level and
  *  deliberately session-scoped: it holds ids, the message list is VIRTUALISED (a
  *  bubble re-mounts every time it scrolls back into view), and a per-conversation
@@ -43,6 +44,7 @@ export function MessageActions({
   onRegenerate?: (assistantId: string) => void;
   onFork?: (messageId: string) => void;
 }) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   // Absent without `host.avis` (nowhere to send it) — same contract as every other
   // report affordance in the app.
@@ -73,7 +75,7 @@ export function MessageActions({
       {onRegenerate && (
         <IconButton
           size="sm"
-          label="Régénérer"
+          label={t.conversation.actions.regenerate}
           onClick={() => {
             captureEvent({ name: "regenerate" });
             onRegenerate(messageId);
@@ -85,7 +87,7 @@ export function MessageActions({
       {onFork && (
         <IconButton
           size="sm"
-          label="Dupliquer la conversation à partir d'ici"
+          label={t.conversation.actions.fork}
           onClick={() => onFork(messageId)}
         >
           <ForkIcon size={16} />
@@ -99,7 +101,7 @@ export function MessageActions({
         <IconButton
           size="sm"
           className={pulseRef.current ? "msg-action-pulse" : undefined}
-          label="Donner un avis sur cette réponse"
+          label={t.conversation.actions.feedback}
           onClick={() => {
             openAvis(messageFeedbackDraft(journalExportFor(conversationId)));
             captureEvent({ name: "avis_from_message" });

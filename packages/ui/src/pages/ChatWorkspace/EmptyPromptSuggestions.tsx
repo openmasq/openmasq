@@ -7,6 +7,7 @@ import { pickStarters, type PickedStarter } from "./starters";
 import { useFeatureAccess } from "../../state/featureAccess";
 import type { ReactNode } from "react";
 
+import { useT } from "../../i18n";
 /**
  * The empty-thread prompt starters — TWO rows of four.
  *
@@ -41,6 +42,7 @@ function StarterCard({
   starter: PickedStarter;
   onPick: (prompt: string) => void;
 }) {
+  const t = useT();
   const connector = starter.connectorId ? findConnector(starter.connectorId) : undefined;
   return (
     <button
@@ -49,8 +51,8 @@ function StarterCard({
       // L'invite ENTIÈRE est ici : la carte n'en montre qu'une ligne (la hauteur est
       // l'écran d'accueil lui-même), l'infobulle de marque rend le reste au survol —
       // précédée de la catégorie, qui n'est plus écrite sur la carte.
-      title={`${connector?.name ?? starter.cat} — ${starter.prompt}`}
-      aria-label={`${connector?.name ?? starter.cat} : ${starter.prompt}`}
+      title={t.conversation.starters.cardTip(connector?.name ?? starter.cat, starter.prompt)}
+      aria-label={t.conversation.starters.cardAria(connector?.name ?? starter.cat, starter.prompt)}
       onClick={() => onPick(starter.prompt)}
     >
       {/* UNE ligne, et la CATÉGORIE n'y est plus écrite : empilée, la carte faisait 78 px
@@ -82,13 +84,14 @@ function ConnectChip({
   starter: PickedStarter;
   onConnect: (connectorId: string) => void;
 }) {
+  const t = useT();
   const connector = starter.connectorId ? findConnector(starter.connectorId) : undefined;
   if (!connector) return null;
   return (
     <button
       type="button"
       className="om-starter-chip"
-      title={`Connecter ${connector.name} — ${starter.prompt}`}
+      title={t.conversation.starters.connectTip(connector.name, starter.prompt)}
       onClick={() => onConnect(connector.id)}
     >
       <McpTile id={connector.id} name={connector.name} tone={connector.tone ?? "mint"} sm />
@@ -109,6 +112,7 @@ export function EmptyPromptSuggestions({
   /** « Ne plus proposer » — absent ⇒ the cards cannot be dismissed. */
   onDismiss?: () => void;
 }) {
+  const t = useT();
   // Live: connecting a service in Réglages re-picks the cards on the way back, with no
   // reload. Absent host.mcp (web preview) ⇒ empty, so every integration card is an offer.
   const access = useFeatureAccess();
@@ -129,15 +133,15 @@ export function EmptyPromptSuggestions({
   );
   return (
     <div className="om-starters-wrap">
-      <div className="cv-eyebrow om-starters-title">Sans rien configurer</div>
+      <div className="cv-eyebrow om-starters-title">{t.conversation.starters.noSetup}</div>
       {row(universal)}
       {(live.length > 0 || offers.length > 0) && (
         <>
-          <div className="cv-eyebrow om-starters-title">Avec vos services</div>
+          <div className="cv-eyebrow om-starters-title">{t.conversation.starters.withServices}</div>
           {live.length > 0 && row(live)}
           {offers.length > 0 && (
             <div className="om-starter-chips">
-              <span className="om-starter-chips-lead">Ou connectez</span>
+              <span className="om-starter-chips-lead">{t.conversation.starters.orConnect}</span>
               {offers.map((s) => (
                 <ConnectChip key={s.id} starter={s} onConnect={openConnector!} />
               ))}
@@ -146,7 +150,7 @@ export function EmptyPromptSuggestions({
                   la ligne, là où l'on vient de constater que le sien n'y est pas. */}
               {onSeeAll && (
                 <button type="button" className="om-starter-chip more" onClick={onSeeAll}>
-                  Voir les autres
+                  {t.conversation.starters.seeOthers}
                 </button>
               )}
             </div>

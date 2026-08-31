@@ -36,6 +36,7 @@ import { MessageImages, loadStoredImageFull } from "../media/MessageImage";
 import { findStoredFile } from "../../state/storedFiles";
 import { breakdown } from "./messageBreakdown";
 
+import { useT } from "../../i18n";
 interface Props {
   message: Message;
   /** Provider/name of the model this conversation talks to (for the gutter logo). */
@@ -158,6 +159,7 @@ function MessageBubbleImpl({
   highlight,
   linkPreviews,
 }: Props) {
+  const t = useT();
   const host = useHost();
   // Values suspended (revealed) for this conversation — marks render dimmed + click re-redacted.
   const revealedSet = useMemo(
@@ -227,9 +229,9 @@ function MessageBubbleImpl({
       <div className={`msg user${highlight ? " msg-flash" : ""}`} data-mid={message.id} ref={rootRef}>
         {hoverCard}
         {message.plotTag === "graphique" && (
-          <div className="msg-tag tone-lime" title="Génération d'un graphique (run_python)">
+          <div className="msg-tag tone-lime" title={t.conversation.bubble.plotTip}>
             <ActivityIcon size={12} />
-            <span>Graphique</span>
+            <span>{t.conversation.bubble.plot}</span>
           </div>
         )}
         {message.askTarget && <AskTargetTag target={message.askTarget} />}
@@ -258,7 +260,7 @@ function MessageBubbleImpl({
         {message.memoryUsed && <MemoryUsedCaption ids={message.memoryUsed} />}
         {message.memorySkipped && <MemorySkippedCaption skipped={message.memorySkipped} />}
         {message.redactionFailed && (
-          <div className="shield-caption warn" title="Le modèle de redaction a échoué pour ce message">
+          <div className="shield-caption warn" title={t.conversation.bubble.redactionFailedTip}>
             <ShieldIcon size={13} />
             <span className="flex-min">{message.redactionFailed}</span>
           </div>
@@ -266,14 +268,13 @@ function MessageBubbleImpl({
         {!!message.redactions && (
           <div
             className="shield-caption spade-corners"
-            title="Remplacé par des marqueurs avant que le modèle ne le voie, restauré dans sa réponse"
+            title={t.conversation.bubble.redactedTip}
           >
             <ShieldIcon size={13} />
             <span>
-              {message.redactions} élément{message.redactions === 1 ? "" : "s"}{" "}
-              redacted{message.redactions === 1 ? "" : "s"} avant {modelName ?? "le modèle"}
+              {t.conversation.bubble.redacted(message.redactions, modelName ?? t.modals.transparency.theModel)}
               {message.redactedSpans?.length
-                ? ` — ${breakdown(message.redactedSpans)}`
+                ? t.conversation.bubble.breakdownSuffix(breakdown(message.redactedSpans))
                 : ""}
             </span>
           </div>
@@ -412,8 +413,7 @@ function MessageBubbleImpl({
           !message.incomplete && (
             <div className="flex items-center gap-3 flex-wrap mt-1.5 px-3.5 py-3 rounded-[var(--radius-md)] border border-border-default bg-surface-hover">
               <span className="flex-1 min-w-0 text-sm text-muted leading-snug">
-                Une étape du flux d'outils a échoué. Réessayer relance le flux (les étapes
-                réussies sont rejouées ; chaque écriture redemande confirmation).
+                {t.conversation.bubble.toolFlowFailed}
               </span>
               {onRegenerate && (
                 <button

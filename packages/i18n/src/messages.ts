@@ -50,6 +50,7 @@ import type {
 } from "./messages/privacy";
 import type { ProviderKeysMessages } from "./messages/providerKeys";
 import type { SectionsMessages } from "./messages/sections";
+import type { ConversationMessages } from "./messages/conversation";
 import type { ShellMessages } from "./messages/shell";
 import type { ViewersMessages } from "./messages/viewers";
 import type { SettingsMessages } from "./messages/settings";
@@ -117,6 +118,7 @@ export interface Messages {
   shell: ShellMessages;
   sections: SectionsMessages;
   chat: ChatMessages;
+  conversation: ConversationMessages;
   webNav: WebNavMessages;
   composer: ComposerMessages;
   cards: CardsMessages;

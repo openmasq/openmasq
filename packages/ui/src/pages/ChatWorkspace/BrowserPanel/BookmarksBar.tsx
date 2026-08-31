@@ -1,5 +1,6 @@
 import { sameUrl, type BrowserBookmark } from "./browserTarget";
 
+import { useT } from "../../../i18n";
 /**
  * The browser's BOOKMARKS row (kit `om-vb-marks`): one pill per starred page,
  * under the viewport. Pure — the panel owns the list (it rides
@@ -15,9 +16,10 @@ export function BookmarksBar({
   currentUrl: string;
   onOpen: (url: string) => void;
 }) {
+  const t = useT();
   if (bookmarks.length === 0) return null;
   return (
-    <div className="vb-marks" role="toolbar" aria-label="Favoris">
+    <div className="vb-marks" role="toolbar" aria-label={t.conversation.browser.bookmarks}>
       {bookmarks.map((b) => (
         <button
           key={b.url}

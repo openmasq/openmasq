@@ -5,6 +5,7 @@ import { CsvTableView } from "../../../components/markdown/blocks/CsvTableView";
 import { SyntaxHighlight } from "../../../components/markdown/blocks/SyntaxHighlight";
 import type { Artifact } from "../../../containers/providers/artifact";
 
+import { useT } from "../../../i18n";
 /** Small `</>` code glyph (no matching icon in brand.tsx). */
 function CodeGlyph({ size = 15 }: { size?: number }) {
   return (
@@ -22,6 +23,7 @@ function CodeGlyph({ size = 15 }: { size?: number }) {
  * mutually exclusive with the browser (AppShell closes one when the other opens).
  */
 export function ArtifactPanel({ artifact, onClose }: { artifact: Artifact; onClose: () => void }) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   const table = artifact.kind === "csv" ? parseCsvText(artifact.text) : null;
 
@@ -36,7 +38,7 @@ export function ArtifactPanel({ artifact, onClose }: { artifact: Artifact; onClo
   };
 
   return (
-    <div className="artifact-pane" aria-label="Aperçu du fichier">
+    <div className="artifact-pane" aria-label={t.conversation.artifact.pane}>
       <div className="artifact-head">
         <span className="artifact-glyph">
           {artifact.kind === "csv" ? <GridIcon size={15} /> : <CodeGlyph />}
@@ -47,10 +49,10 @@ export function ArtifactPanel({ artifact, onClose }: { artifact: Artifact; onClo
           </div>
           <div className="artifact-sub">{artifact.lang.toUpperCase()}</div>
         </div>
-        <button type="button" className="artifact-btn" onClick={copy} title="Copier">
-          {copied ? "Copié" : <CopyIcon size={15} />}
+        <button type="button" className="artifact-btn" onClick={copy} title={t.conversation.artifact.copy}>
+          {copied ? t.conversation.artifact.copied : <CopyIcon size={15} />}
         </button>
-        <button type="button" className="artifact-btn" onClick={onClose} aria-label="Fermer" title="Fermer">
+        <button type="button" className="artifact-btn" onClick={onClose} aria-label={t.conversation.artifact.close} title={t.conversation.artifact.close}>
           <XIcon size={15} />
         </button>
       </div>

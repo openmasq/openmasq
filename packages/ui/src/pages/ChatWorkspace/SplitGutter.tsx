@@ -1,6 +1,7 @@
 import { useRef, type PointerEvent as ReactPointerEvent, type RefObject } from "react";
 import { blockAgentOverlay, unblockAgentOverlay } from "../../hooks/modalGate";
 
+import { useT } from "../../i18n";
 // A draggable vertical divider between the chat pane and the right (browser / artifact)
 // pane. Dragging updates the split ratio = the fraction of the split the RIGHT pane
 // occupies, clamped so neither side collapses. The agent browser's native overlay is
@@ -21,6 +22,7 @@ export function SplitGutter({
   /** Called with the right pane's new width fraction (0.25–0.75) as the user drags. */
   onRatio: (rightFraction: number) => void;
 }) {
+  const t = useT();
   const dragging = useRef(false);
 
   const onPointerDown = (e: ReactPointerEvent) => {
@@ -52,7 +54,7 @@ export function SplitGutter({
       className="chat-gutter"
       role="separator"
       aria-orientation="vertical"
-      aria-label="Redimensionner le panneau"
+      aria-label={t.conversation.resizePanel}
       onPointerDown={onPointerDown}
     >
       <span className="chat-gutter-grip" aria-hidden />

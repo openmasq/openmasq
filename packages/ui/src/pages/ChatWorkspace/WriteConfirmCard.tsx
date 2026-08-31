@@ -112,7 +112,7 @@ export function WriteConfirmCard({
       <div className="agent-card-box">
         <div className="agent-card-box-target">
           <span className="agent-card-box-target-label">{t.cards.writeConfirm.target}</span>
-          <span className="agent-card-box-target-val" title={`${server} · ${tool}`}>
+          <span className="agent-card-box-target-val" title={t.conversation.writeConfirm.targetTip(server, tool)}>
             {server} · {humanToolLabel(server, tool)} ({tool})
           </span>
         </div>
@@ -160,7 +160,7 @@ export function WriteConfirmCard({
             checked={remember}
             onChange={(e) => setRemember(e.target.checked)}
           />
-          <span>Aussi dans mes autres conversations (jusqu'à la fermeture de l'app)</span>
+          <span>{t.conversation.writeConfirm.alsoOtherChats}</span>
         </label>
       </div>
     </AgentCard>

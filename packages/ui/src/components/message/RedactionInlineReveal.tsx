@@ -140,15 +140,15 @@ export function RedactionInlineReveal({
     <>
       <span className="rmark-pop-value" title={valueTitle}>
         <span className="rmark-pop-eyebrow">
-          {label} · {show === "real" ? "valeur réelle" : "vu par le modèle"}
+          {label} · {show === "real" ? t.conversation.mark.realValue : t.conversation.mark.seenByModel}
         </span>
         <span className="rmark-pop-val">
           {(show === "real" ? hov.real : displayTokens?.get(hov.real) ?? hov.fake) || "—"}
         </span>
       </span>
       {readOnly ? null : forced ? (
-        <span className="rmark-pop-btn locked" title="Imposé par l'organisation">
-          🔒 Imposé par l'organisation
+        <span className="rmark-pop-btn locked" title={t.conversation.mark.orgForced}>
+          🔒 {t.conversation.mark.orgForced}
         </span>
       ) : (
         <>
@@ -158,7 +158,7 @@ export function RedactionInlineReveal({
             onClick={toggleOne}
             title={isRevealed ? reRedactTitle : revealTitle}
           >
-            <EyeIcon size={14} /> {isRevealed ? "Reredact" : "Unredact"}
+            <EyeIcon size={14} /> {isRevealed ? t.conversation.mark.reRedact : t.conversation.mark.reveal}
           </button>
           {hov.kind && (
             <button
@@ -168,7 +168,7 @@ export function RedactionInlineReveal({
               title={isRevealed ? reRedactTitle : revealTitle}
             >
               <LayersIcon size={14} />{" "}
-              {isRevealed ? "Reredact la catégorie" : "Unredact la catégorie"}
+              {isRevealed ? t.conversation.mark.reRedactKind : t.conversation.mark.revealKind}
             </button>
           )}
         </>
@@ -181,9 +181,9 @@ export function RedactionInlineReveal({
             onDelete(hov.real);
             close();
           }}
-          title="Retirer entièrement ce redaction — la valeur restera visible et partira en clair"
+          title={t.conversation.mark.deleteTip}
         >
-          <TrashIcon size={14} /> Supprimer le redaction
+          <TrashIcon size={14} /> {t.conversation.mark.delete}
         </button>
       )}
       {onReport && (
@@ -194,9 +194,9 @@ export function RedactionInlineReveal({
             onReport(hov.kind);
             close();
           }}
-          title="Ouvre « Votre avis » prérempli — n'y collez jamais la valeur réelle"
+          title={t.conversation.mark.reportTip}
         >
-          <FeedbackIcon size={14} /> Signaler une erreur
+          <FeedbackIcon size={14} /> {t.conversation.mark.report}
         </button>
       )}
     </>
@@ -204,7 +204,7 @@ export function RedactionInlineReveal({
 
   if (sheetMode.current) {
     return (
-      <BottomSheet open={sheetOpen} onClose={close} maxH="auto" label="Redaction">
+      <BottomSheet open={sheetOpen} onClose={close} maxH="auto" label={t.conversation.mark.sheetLabel}>
         <div className={`rmark-pop rmark-sheet hl-${hov.tone}`}>{content}</div>
       </BottomSheet>
     );

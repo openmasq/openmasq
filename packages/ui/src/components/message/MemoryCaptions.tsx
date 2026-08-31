@@ -2,6 +2,7 @@ import { MemoryIcon } from "../brand";
 import { useMemoryUi } from "../../memory/memoryUi";
 import type { Message } from "../../types";
 
+import { useT } from "../../i18n";
 /**
  * The MÉMOIRE captions under a bubble — the feature's visibility in the chat.
  * Both consume `useMemoryUi` HERE (not in MessageBubble) on purpose: a context
@@ -12,6 +13,7 @@ import type { Message } from "../../types";
 /** « Mémoire utilisée » on a USER message: which souvenirs rode this send
  *  (redacted). Ids resolve against the LIVE store — a deleted card drops out. */
 export function MemoryUsedCaption({ ids }: { ids: string[] }) {
+  const t = useT();
   const mem = useMemoryUi();
   if (!mem) return null;
   const items = mem.resolve(ids);
@@ -20,11 +22,11 @@ export function MemoryUsedCaption({ ids }: { ids: string[] }) {
   return (
     <div
       className="shield-caption"
-      title="Souvenirs injectés avec cet envoi, redacted comme le reste — cliquez pour ouvrir la Mémoire"
+      title={t.conversation.memory.usedTip}
     >
       <MemoryIcon size={13} />
       <button type="button" className="caption-link" onClick={() => mem.open(firstCard?.id)}>
-        Mémoire utilisée — {items.map((i) => i.label).join(" · ")}
+        {t.conversation.memory.used(items.map((i) => i.label).join(" · "))}
       </button>
     </div>
   );
@@ -38,6 +40,7 @@ export function MemoryUsedCaption({ ids }: { ids: string[] }) {
  *  apprendrait à l'ignorer. Le message porte des ids opaques ; les noms se résolvent
  *  ici, contre le store vivant. */
 export function MemorySkippedCaption({ skipped }: { skipped: { id: string; reason: string }[] }) {
+  const t = useT();
   const mem = useMemoryUi();
   if (!mem) return null;
   const byId = new Map(skipped.map((s) => [s.id, s.reason]));
@@ -48,20 +51,20 @@ export function MemorySkippedCaption({ skipped }: { skipped: { id: string; reaso
   const parts: string[] = [];
   if (homographe.length)
     parts.push(
-      `${homographe.map((i) => i.label).join(", ")} non injectée${homographe.length > 1 ? "s" : ""} — nom trop courant seul, écrivez-le en entier`,
+      t.conversation.memory.homographs(homographe.map((i) => i.label).join(", "), homographe.length),
     );
   if (budget.length)
     parts.push(
-      `${budget.length} fiche${budget.length > 1 ? "s" : ""} écartée${budget.length > 1 ? "s" : ""} faute de place`,
+      t.conversation.memory.budget(budget.length),
     );
   return (
     <div
       className="shield-caption"
-      title="Ces souvenirs correspondaient mais ne sont pas partis avec cet envoi — cliquez pour ouvrir la fiche"
+      title={t.conversation.memory.skippedTip}
     >
       <MemoryIcon size={13} />
       <button type="button" className="caption-link" onClick={() => mem.open(items[0]?.id)}>
-        Mémoire : {parts.join(" · ")}
+        {t.conversation.memory.skipped(parts.join(" · "))}
       </button>
     </div>
   );
@@ -72,15 +75,16 @@ export function MemorySkippedCaption({ skipped }: { skipped: { id: string; reaso
  *  cards are gone (annulé here or deleted on the page) the caption says so, instead
  *  of keeping a stale claim. */
 export function MemoryNotedCaption({ message }: { message: Message }) {
+  const t = useT();
   const mem = useMemoryUi();
   // Extraction en vol (« retiens que… » reçu, appel modèle en cours) : le dire tout de
   // suite — les secondes que prend l'extraction se lisaient comme une fonctionnalité
   // morte. Remplacé par le résultat (`memoryNoted`/`memoryNotedFailed`) quand il tombe.
   if (message.memoryNotedPending && typeof message.memoryNoted !== "number") {
     return (
-      <div className="shield-caption" title="Extraction en cours — le résultat s'affichera ici">
+      <div className="shield-caption" title={t.conversation.memory.pendingTip}>
         <MemoryIcon size={13} />
-        <span className="flex-min">Mise en mémoire…</span>
+        <span className="flex-min">{t.conversation.memory.pending}</span>
       </div>
     );
   }
@@ -91,10 +95,10 @@ export function MemoryNotedCaption({ message }: { message: Message }) {
     return (
       <div
         className="shield-caption"
-        title="Mise en mémoire impossible : rien n'a été enregistré. Redemandez « retiens… » pour réessayer."
+        title={t.conversation.memory.failedTip}
       >
         <MemoryIcon size={13} />
-        <span className="flex-min">Mise en mémoire échouée — rien n'a été noté, réessayez</span>
+        <span className="flex-min">{t.conversation.memory.failed}</span>
       </div>
     );
   }
@@ -111,20 +115,20 @@ export function MemoryNotedCaption({ message }: { message: Message }) {
   const updated = mem ? mem.resolve(message.memoryUpdatedIds ?? []).filter((i) => i.id !== "profile") : [];
   const undone = n > 0 && ids.some((id) => id !== "profile") && live.length === 0 && updated.length === 0;
   const updSuffix = updated.length
-    ? ` · ${updated.length === 1 ? "1 fiche mise à jour" : `${updated.length} fiches mises à jour`}`
+    ? t.conversation.memory.updatedSuffix(updated.length)
     : "";
   const label =
     n === 0
       ? hasProfile
-        ? "Préférence enregistrée en mémoire"
-        : "Rien de durable à retenir en mémoire"
+        ? t.conversation.memory.preferenceSaved
+        : t.conversation.memory.nothingDurable
       : undone
-        ? "Souvenir retiré de la mémoire"
-        : `${n === 1 ? "1 fait noté" : `${n} faits notés`}${hasProfile ? " + profil" : ""}${updSuffix} en mémoire`;
+        ? t.conversation.memory.undone
+        : t.conversation.memory.noted(n, hasProfile, updSuffix);
   return (
     <div
       className="shield-caption"
-      title="Mémoire locale (page Mémoire) — demande explicite de retenir"
+      title={t.conversation.memory.notedTip}
     >
       <MemoryIcon size={13} />
       {mem && (n > 0 || hasProfile) && !undone ? (
@@ -138,10 +142,10 @@ export function MemoryNotedCaption({ message }: { message: Message }) {
         <button
           type="button"
           className="caption-undo"
-          title="Retirer de la mémoire ce que cette demande a créé"
+          title={t.conversation.memory.undoTip}
           onClick={() => mem.forget(live.map((i) => i.id))}
         >
-          Annuler
+          {t.conversation.memory.undo}
         </button>
       )}
     </div>

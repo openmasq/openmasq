@@ -60,7 +60,6 @@ import { MAX_REDACT_CHARS, redactAttachment } from "./redactAttachment";
 import { stageDeferredFile } from "./deferredAttach";
 import { makeStaging } from "./attachmentStaging";
 import { isDeferredFile, type DeferredFile } from "../../state/deferredFile";
-import { BrandLoader } from "../../components/media/BrandLogo";
 import { ChatHeader } from "./ChatHeader";
 import { ConversationTokens } from "./ConversationTokens";
 import { Composer, type Attachment } from "./Composer";
@@ -82,6 +81,8 @@ import { useAppDispatch, setMemoryFresh } from "../../state/redux";
 import { useChatGates } from "./chatGates";
 import { buildRedactLevelApi } from "./redactLevelApi";
 import type { MemoryCard } from "../../types";
+import { useT } from "../../i18n";
+import { DocPrepCard, type DocPrepState } from "./DocPrepCard";
 
 /** Pull the HTTP status out of a provider error message (`… request failed (400): …`)
  *  so send_error carries the concrete code — safe metadata, never the raw body. */
@@ -332,6 +333,7 @@ export function ChatView({
   scrollTarget,
   onScrolled,
 }: Props) {
+  const t = useT();
   const host = useHost();
   // A generated document's PDF is typeset by the platform (real brand fonts, tables,
   // Unicode) when the slot exists — `components/` must not read the host itself, so the
@@ -432,14 +434,7 @@ export function ChatView({
   // Send-time document redaction progress (rendering the redacted PDF pages to
   // images before the send) — so a big file isn't an opaque wait, and can be
   // cancelled. Null when no document is being prepared.
-  const [docPrep, setDocPrep] = useState<{
-    name: string;
-    phase: "detect" | "render";
-    page: number;
-    total: number;
-    idx: number;
-    count: number;
-  } | null>(null);
+  const [docPrep, setDocPrep] = useState<DocPrepState | null>(null);
   const docPrepCtrl = useRef<AbortController | null>(null);
   // Per-attachment redaction controllers, so a LONG document redaction (remote
   // GPT-OSS / local NER) can be CANCELLED — removing the chip aborts it.
@@ -1480,7 +1475,7 @@ export function ChatView({
   const protectedCount = conversation ? conversationProtectedCount(conversation) : 0;
 
   // "Bonsoir Julien" — append the first name when we have one; nameless otherwise.
-  const greeting = timeGreeting(new Date().getHours()) + (userName ? ` ${userName}` : "");
+  const greeting = timeGreeting(new Date().getHours(), t) + (userName ? ` ${userName}` : "");
 
   // ONE composer, rendered in ONE of two spots (home welcome vs docked bottom) — see
   // the two call sites below. Extracted so both share identical send wiring.
@@ -1832,7 +1827,7 @@ export function ChatView({
           style={{ left: memToast.x, top: memToast.y }}
         >
           <MemoryIcon size={14} />
-          <span>Noté en mémoire</span>
+          <span>{t.conversation.memoryToast}</span>
         </div>
       )}
 
@@ -1841,8 +1836,8 @@ export function ChatView({
       {orgProfile?.status === "suspended" && (
         <Banner
           tone="warning"
-          title="Accès suspendu par votre organisation"
-          message="L'envoi est bloqué. Contactez l'administrateur de votre organisation."
+          title={t.conversation.suspendedTitle}
+          message={t.conversation.suspendedBody}
         />
       )}
       <ChatBanners
@@ -1918,46 +1913,8 @@ export function ChatView({
         )}
       </AnimatePresence>
 
-      {/* Send-time document redaction progress + cancel (rendering redacted PDF
-          pages to images before the send). Same page-by-page core as the viewer. */}
-      {docPrep && (
-        <div className="docprep" role="status" aria-live="polite">
-          <BrandLoader size={30} mono />
-          <div className="docprep-info flex-min">
-            <div className="docprep-title">
-              {docPrep.phase === "detect" ? "Analyse du document…" : "Redaction du document…"}
-              {docPrep.count > 1 ? ` (${docPrep.idx}/${docPrep.count})` : ""}
-            </div>
-            <div className="docprep-note">
-              {docPrep.name}
-              {docPrep.total > 0
-                ? docPrep.phase === "render"
-                  ? ` · page ${docPrep.page} / ${docPrep.total}`
-                  : ` · ${docPrep.total} page${docPrep.total > 1 ? "s" : ""}`
-                : ""}
-            </div>
-            {docPrep.total > 0 && (
-              <div className="docprep-bar">
-                <div
-                  className={`docprep-bar-fill${docPrep.phase === "detect" ? " indet" : ""}`}
-                  style={
-                    docPrep.phase === "render"
-                      ? { width: `${Math.round((docPrep.page / docPrep.total) * 100)}%` }
-                      : undefined
-                  }
-                />
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            className="docprep-cancel"
-            onClick={() => docPrepCtrl.current?.abort()}
-          >
-            Annuler
-          </button>
-        </div>
-      )}
+      {/* La barre de redaction d'un document au moment de l'envoi — sa carte vit à côté. */}
+      {docPrep && <DocPrepCard state={docPrep} onCancel={() => docPrepCtrl.current?.abort()} />}
     </main>
     </DropZone>
   );

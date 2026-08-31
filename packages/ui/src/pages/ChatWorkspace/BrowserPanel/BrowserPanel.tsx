@@ -13,6 +13,7 @@ import {
 } from "./browserTarget";
 import { useBrowserBounds } from "./useBrowserBounds";
 
+import { useT } from "../../../i18n";
 /** A request to open a URL in the panel (from a clicked conversation link). The nonce
  *  makes re-opening the SAME url fire again (a plain url prop wouldn't re-trigger). */
 export interface BrowserNavRequest {
@@ -85,6 +86,7 @@ export function BrowserPanel({
   embedded?: boolean;
   overlayActive?: boolean;
 }) {
+  const t = useT();
   const host = useHost();
   const viewportRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -218,7 +220,7 @@ export function BrowserPanel({
   }, [navRequest?.nonce]);
 
   return (
-    <div className={`browser-pane${embedded ? " embedded" : ""}`} aria-label="Navigateur agent">
+    <div className={`browser-pane${embedded ? " embedded" : ""}`} aria-label={t.conversation.browser.pane}>
       {/* NO tab strip: the RIGHT RAIL is the browser's tab surface (kit) — one
           rail entry per real web tab. The bar keeps the whole chrome. */}
       <VbBar
@@ -282,15 +284,14 @@ export function BrowserPanel({
           <button
             type="button"
             className="vb-ask"
-            title="Poser une question sur cette page"
+            title={t.conversation.browser.askAboutPage}
             onClick={() => onAsk(askPageDraft({ url: active.url, title: active.title }))}
           >
-            <MessageIcon size={13} /> Demander à propos de cette page
+            <MessageIcon size={13} /> {t.conversation.browser.askAboutPageLabel}
           </button>
         ) : (
           <>
-            <ShieldIcon size={13} />
-            <span>Navigateur intégré</span>
+            <ShieldIcon size={13} /> <span>{t.conversation.browser.embedded}</span>
           </>
         )}
       </div>
