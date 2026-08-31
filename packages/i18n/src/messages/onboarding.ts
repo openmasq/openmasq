@@ -39,10 +39,13 @@ export interface OnboardingMessages {
     sub: string;
   };
 
-  /** Écran 2 — l'accès aux modèles. Le titre CHANGE selon que ce build sert un abonnement. */
+  /** Écran 2 — l'accès aux modèles. Le titre CHANGE selon ce que ce build sert : un
+   *  abonnement (`titleServed`), des modèles inclus sans rien vendre (`titleIncluded`,
+   *  le défaut), ou rien du tout (`titleUnserved`). */
   access: {
     eyebrow: string;
     titleServed: string;
+    titleIncluded: string;
     titleUnserved: string;
     subServed: string;
     subUnserved: string;
@@ -68,9 +71,11 @@ export interface OnboardingMessages {
     sub: string;
   };
 
-  /** Le choix d'ACCÈS : abonnement, ou sa propre clé. */
+  /** Le choix d'ACCÈS : le compte (abonnement, ou modèles inclus sans rien vendre —
+   *  `included`, le défaut), ou sa propre clé. */
   keyChoice: {
     subscription: { title: (brand: string) => string; sub: string };
+    included: { sub: string };
     ownKey: { title: string; sub: string };
     /** L'étiquette portée par l'option et par le fournisseur recommandés. */
     recommended: string;

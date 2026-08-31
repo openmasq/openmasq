@@ -9,6 +9,7 @@ import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host
 import { hardTaskAsk, lightTaskAsk } from "./autoTaskIntent";
 import { modelUnavailableReason } from "./modelAvailability";
 import { resolveEffectivePlatform } from "./routing";
+import { subscriptionsSold } from "./platformAccess";
 
 /**
  * Le mode AUTO : `conversation.modelId` peut valoir ce sentinel au lieu d'un id de
@@ -216,7 +217,11 @@ export function autoRouteCaption(billing: AutoBilling, modelName?: string): stri
   const name = modelName ?? "Modèle";
   switch (billing) {
     case "metered":
-      return `${name} — choisi automatiquement · via votre abonnement (crédits)`;
+      // « abonnement (crédits) » n'existe que dans un build qui vend ; sinon l'envoi est
+      // parti sur le compte de l'utilisateur, et c'est ce qu'on dit.
+      return subscriptionsSold()
+        ? `${name} — choisi automatiquement · via votre abonnement (crédits)`
+        : `${name} — choisi automatiquement · inclus avec votre compte`;
     case "byo":
       return `${name} — choisi automatiquement · via votre clé API`;
     case "free":

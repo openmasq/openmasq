@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
+import { configurePlatformAccess } from "./platformAccess";
 import { isFreeModel, supportsTools, findModel } from "@openmasq/llm";
 import type { BillingSubscription, CreditBalance } from "../host";
 import { selectableModels } from "../prompt/models";
@@ -183,7 +184,16 @@ describe("resolveAutoModel — le côté sûr", () => {
 });
 
 describe("autoRouteCaption — la légende est une promesse d'argent", () => {
-  it("ne dit « via votre abonnement » QUE sur un envoi métré", async () => {
+  afterEach(() => configurePlatformAccess({ served: true }));
+
+  it("par défaut (rien à vendre), un envoi métré est parti sur le COMPTE — jamais un abonnement", async () => {
+    const { autoRouteCaption } = await import("./autoRoute");
+    expect(autoRouteCaption("metered", "GLM-5.2")).toContain("inclus avec votre compte");
+    expect(autoRouteCaption("metered", "GLM-5.2")).not.toContain("abonnement");
+  });
+
+  it("ne dit « via votre abonnement » QUE sur un envoi métré, dans un build qui VEND", async () => {
+    configurePlatformAccess({ served: true, sold: true });
     const { autoRouteCaption } = await import("./autoRoute");
     expect(autoRouteCaption("metered", "GLM-5.2")).toContain("via votre abonnement");
     expect(autoRouteCaption("byo", "GPT-5.5")).not.toContain("abonnement");

@@ -2,6 +2,7 @@ import type { Message } from "../types";
 import { knownTier } from "../state/billing";
 import type { PlatformTokenResult } from "./tokenFetch";
 import { BRAND } from "@openmasq/branding";
+import { subscriptionsSold } from "./platformAccess";
 
 /**
  * The copy shown when a PLATFORM send can't get its JWT — pure, because every branch
@@ -46,7 +47,9 @@ export function platformTokenFailure(
     };
   }
   const tier = knownTier(p.personalSub);
-  if (tier === null) {
+  // Palier inconnu — ou build qui ne VEND rien (`subscriptionsSold`, le défaut) : il n'y a
+  // alors ni palier à nommer ni abonnement à proposer, seulement une session à rouvrir.
+  if (tier === null || !subscriptionsSold()) {
     return {
       text: `Ce modèle passe par votre compte ${BRAND.name}. Votre session n'est plus connectée. Reconnectez-vous.`,
     };

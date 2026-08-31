@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { configurePlatformAccess } from "./platformAccess";
 import { platformTokenFailure } from "./platformTokenMessage";
 import { BRAND } from "@openmasq/branding";
 
@@ -9,6 +10,18 @@ const paying = { tier: "solo" };
 const free = { tier: "free" };
 
 describe("platformTokenFailure — the copy states only what is TRUE", () => {
+  afterEach(() => configurePlatformAccess({ served: true }));
+
+  it("by default (nothing sold), a signed-out send on ANY known tier says account + reconnect, no CTA", () => {
+    for (const personalSub of [paying, free]) {
+      const out = platformTokenFailure(none, { freeModel: false, personalSub });
+      expect(out.text).toMatch(new RegExp(`compte ${BRAND.name}`));
+      expect(out.text).toMatch(/Reconnectez-vous/);
+      expect(out.text).not.toMatch(/abonnement/i);
+      expect(out.action).toBeUndefined();
+    }
+  });
+
   it("an outage (timeout OR fast error) never mentions the account or a plan", () => {
     // The reported bug: auth server unreachable, subscription active — the user was
     // told « prenez un abonnement ». An outage says outage, whatever the model or plan.
@@ -25,6 +38,7 @@ describe("platformTokenFailure — the copy states only what is TRUE", () => {
   });
 
   it("signed out + a KNOWN paying tier: reconnect, never « prenez un abonnement »", () => {
+    configurePlatformAccess({ served: true, sold: true });
     const out = platformTokenFailure(none, { freeModel: false, personalSub: paying });
     expect(out.text).toMatch(new RegExp(`abonnement ${BRAND.name} couvre ce modèle`));
     expect(out.text).toMatch(/Reconnectez-vous/);
@@ -51,7 +65,8 @@ describe("platformTokenFailure — the copy states only what is TRUE", () => {
     }
   });
 
-  it("signed out on a KNOWN free tier: the subscription pitch + CTA — the one true case", () => {
+  it("signed out on a KNOWN free tier: the subscription pitch + CTA — the one true case (a build that SELLS)", () => {
+    configurePlatformAccess({ served: true, sold: true });
     const out = platformTokenFailure(none, { freeModel: false, personalSub: free });
     expect(out.text).toMatch(/prenez un abonnement/);
     expect(out.action).toEqual({ kind: "upgrade_plan" });

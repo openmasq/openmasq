@@ -39,6 +39,7 @@ export const onboarding = {
   access: {
     eyebrow: "ACCÈS AUX MODÈLES",
     titleServed: "Abonnement, ou votre clé",
+    titleIncluded: "Votre compte, ou votre clé",
     titleUnserved: "Votre clé, ou un modèle local",
     subServed:
       "Vous changerez d'avis quand vous voudrez. Dans les deux cas, le redaction s'applique avant chaque envoi.",
@@ -50,7 +51,7 @@ export const onboarding = {
     title: "La protection, elle, est déjà active",
     eyebrow: "C'EST PRÊT",
     subServed: (brand) =>
-      `Elle ne dépend ni d'un abonnement ni d'une clé : dès votre premier message, le redaction s'applique. Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand}.`,
+      `Elle ne dépend d'aucune clé : dès votre premier message, le redaction s'applique. Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand}.`,
     subUnserved:
       "Elle ne dépend d'aucun compte : dès votre premier message, le redaction s'applique. Il ne manque qu'un accès à un modèle — une clé, un serveur local, ou votre CLI.",
     modelHint:
@@ -78,6 +79,9 @@ export const onboarding = {
     subscription: {
       title: (brand) => `Mon compte ${brand}`,
       sub: "Aucune clé à gérer : les modèles puisent dans les crédits de votre abonnement.",
+    },
+    included: {
+      sub: "Aucune clé à gérer : les modèles inclus sont servis sur votre compte, hébergés en France pour la plupart.",
     },
     ownKey: {
       title: "Ma propre clé API",

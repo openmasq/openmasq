@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { configurePlatformAccess } from "../../send/platformAccess";
 import { ModelRow } from "./ModelRow";
 import type { ModelInfo } from "@openmasq/llm";
 
@@ -51,7 +52,31 @@ describe("ModelRow — la pastille d'indisponibilité explique quoi faire", () =
     await unmount();
   });
 
-  it("« Abonnement requis » annonce la route CRÉDITS", async () => {
+  afterEach(() => configurePlatformAccess({ served: true }));
+
+  it("par défaut (rien à vendre), la pastille dit « Indisponible » et ouvre la même explication", async () => {
+    const calls: string[] = [];
+    const { el, unmount } = await render(
+      React.createElement(ModelRow, {
+        model: MODEL,
+        selected: false,
+        focused: false,
+        reason: "no_credits",
+        onChoose: () => {},
+        onHover: () => {},
+        onAccessInfo: (focus) => calls.push(focus),
+      }),
+    );
+    const chip = el.querySelector<HTMLElement>(".model-unavailable")!;
+    expect(chip.textContent).toContain("Indisponible");
+    expect(chip.textContent).not.toContain("Abonnement");
+    await act(async () => chip.click());
+    expect(calls).toEqual(["credits"]);
+    await unmount();
+  });
+
+  it("« Abonnement requis » annonce la route CRÉDITS — dans un build qui VEND", async () => {
+    configurePlatformAccess({ served: true, sold: true });
     const calls: string[] = [];
     const { el, unmount } = await render(
       React.createElement(ModelRow, {

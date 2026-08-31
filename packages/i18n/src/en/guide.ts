@@ -35,30 +35,30 @@ export const guide = {
     points: [
       () => "The model's name sits under the message box — click it to switch.",
       (brand) =>
-        `Some models need your own key or a subscription: ${brand} tells you at send time, and offers you either.`,
+        `Some models need your own key: ${brand} tells you at send time, and offers to set it up.`,
       () =>
         "Type / in the message box to find your skills, your workflows and “remember that…”.",
     ],
   },
   models: {
-    title: () => "Free models, a subscription, your key",
+    title: () => "Included models, or your key",
     lead: (brand) =>
-      `There are three ways to reach a model, and you can mix them. A model marked free is used with your account, with nothing to pay and nothing to set up — that is the starting point. The others go either through a ${brand} subscription, or through your own key at the provider.`,
+      `There are two ways to reach a model, and you can mix them. The included models are used with your ${brand} account, with nothing to pay and nothing to set up — a free model is the starting point. The others go through your own key at the provider.`,
     terms: [
       {
         term: () => "Free",
         def: (brand) =>
-          `Included with your ${brand} account, with no subscription and no key. Usage is limited: throughput and availability depend on the provider.`,
+          `Included with your ${brand} account, with no key. Usage is limited: throughput and availability depend on the provider.`,
       },
       {
-        term: (brand) => `With a ${brand} subscription`,
+        term: (brand) => `Included with your ${brand} account`,
         def: (brand) =>
-          `The models ${brand} provides, with no key to manage — your monthly credits pay for the usage.`,
+          `The models ${brand} provides — most of them hosted in France — with no key to manage.`,
       },
       {
         term: () => "With your own key",
-        def: (brand) =>
-          `You plug in your OpenAI, Anthropic, Mistral… key: your provider bills you, and your ${brand} credits stay untouched. The protection is exactly the same.`,
+        def: () =>
+          `You plug in your OpenAI, Anthropic, Mistral… key: your provider bills you. The protection is exactly the same.`,
       },
     ],
     points: [

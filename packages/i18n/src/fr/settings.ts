@@ -89,7 +89,7 @@ export const settings = {
     },
     messageBilling: {
       label: "Facturation des messages",
-      kw: "abonnement credits cle byo propre compte payer",
+      kw: "abonnement credits cle byo propre compte payer inclus",
     },
     notifyOnReply: {
       label: "Prévenir quand une réponse arrive",

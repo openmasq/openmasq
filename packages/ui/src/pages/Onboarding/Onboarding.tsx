@@ -9,7 +9,7 @@ import { sectionGuides, sectionOneLiner } from "../../help";
 import { useT } from "../../i18n";
 import { RedactionDemo } from "../../components/RedactionDemo";
 import { KeyChoice } from "./KeyChoice";
-import { platformAccessServed } from "../../send/platformAccess";
+import { platformAccessServed, subscriptionsSold } from "../../send/platformAccess";
 
 /* redact — first-run onboarding.
    FOUR steps: what the app does (shown, not configured), where things live, how you
@@ -162,10 +162,15 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
             ) : step === 2 ? (
               <>
                 <div className="cv-eyebrow ob-eyebrow">{t.onboarding.access.eyebrow}</div>
-                {/* Sans service hébergé (`send/platformAccess.ts`), il n'y a pas d'abonnement
-                    à proposer : le titre ne pose plus un choix qui n'existe pas. */}
+                {/* Sans service hébergé (`send/platformAccess.ts`), il n'y a pas de compte
+                    à proposer ; avec, mais sans rien à VENDRE (le défaut), le choix est
+                    « votre compte ou votre clé » — jamais un abonnement qui n'existe pas. */}
                 <h1 className="cv-display ob-title">
-                  {served ? t.onboarding.access.titleServed : t.onboarding.access.titleUnserved}
+                  {!served
+                    ? t.onboarding.access.titleUnserved
+                    : subscriptionsSold()
+                      ? t.onboarding.access.titleServed
+                      : t.onboarding.access.titleIncluded}
                 </h1>
                 <p className="ob-sub">
                   {served ? t.onboarding.access.subServed : t.onboarding.access.subUnserved}

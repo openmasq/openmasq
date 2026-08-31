@@ -4,6 +4,7 @@ import type { Message } from "../../types";
 import { PROVIDERS, providerCreditsExhausted, rateLimitInfo, type ProviderId } from "@openmasq/llm";
 import { CreditsExhaustedError, MissingApiKeyError, RateLimitError } from "./classes";
 import { BRAND } from "@openmasq/branding";
+import { subscriptionsSold } from "../../send/platformAccess";
 
 // ── Règles de rédaction des messages utilisateur (ce fichier est leur foyer) ──
 // 1. UN message = UN geste. Les alternatives sont des BOUTONS (CTA de la carte,
@@ -214,5 +215,7 @@ export function sendErrorAction(raw: string, provider?: ProviderId): Message["er
     return { kind: "missing_key", provider, label: PROVIDERS[provider]?.label ?? provider };
   }
   if (!/\b429\b/.test(m) && !/rate[\s_-]?limit/i.test(m)) return undefined;
-  return rateLimitInfo(m).daily ? { kind: "upgrade_plan" } : undefined;
+  // Et seulement dans un build qui VEND (`subscriptionsSold`, éteint par défaut) : sans
+  // abonnement à prendre, un quota journalier épuisé n'a d'autre issue que d'attendre.
+  return rateLimitInfo(m).daily && subscriptionsSold() ? { kind: "upgrade_plan" } : undefined;
 }

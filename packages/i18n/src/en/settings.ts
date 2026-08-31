@@ -89,7 +89,7 @@ export const settings = {
     },
     messageBilling: {
       label: "How messages are billed",
-      kw: "subscription credits key byo own account pay",
+      kw: "subscription credits key byo own account pay included",
     },
     notifyOnReply: {
       label: "Notify me when a reply arrives",

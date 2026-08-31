@@ -1,5 +1,6 @@
 import { getMessages } from "@openmasq/i18n";
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
+import { configurePlatformAccess } from "../send/platformAccess";
 import { humanizeSendError, cleanErrorText, sendErrorAction, sendErrorReason } from "./errors";
 
 /* Les classes d'erreur et leurs gestes ne dépendent pas de la langue ; le catalogue
@@ -7,6 +8,8 @@ import { humanizeSendError, cleanErrorText, sendErrorAction, sendErrorReason } f
 const t = getMessages("fr");
 
 describe("humanizeSendError", () => {
+  afterEach(() => configurePlatformAccess({ served: true }));
+
   it("maps the raw 402 CREDITS_EXHAUSTED tool-loop error to a readable FR message", () => {
     const raw =
       `Error invoking remote method 'chat:complete-tools': Error: scaleway tools request failed (402): {"error":"CREDITS_EXHAUSTED"}`;
@@ -102,8 +105,14 @@ describe("sendErrorAction — le bouton sous un envoi échoué", () => {
   const daily =
     'openrouter tools request failed (429): {"error":{"message":"Rate limit exceeded: free-models-per-day","metadata":{"limit_source":"openrouter_free_tier_daily"}}}';
 
-  it("propose l'abonnement quand le quota PÉRIODIQUE est épuisé", () => {
+  it("propose l'abonnement quand le quota PÉRIODIQUE est épuisé — dans un build qui VEND", () => {
+    configurePlatformAccess({ served: true, sold: true });
     expect(sendErrorAction(daily)).toEqual({ kind: "upgrade_plan" });
+    configurePlatformAccess({ served: true });
+  });
+
+  it("ne propose RIEN par défaut : sans abonnement à prendre, un quota journalier s'attend", () => {
+    expect(sendErrorAction(daily)).toBeUndefined();
   });
 
   // Une rafale se résout d'elle-même en quelques secondes : y coller « prenez un
@@ -184,8 +193,13 @@ describe("humanizeSendError — les codes passerelle restants", () => {
 
   it("CREDITS_EXHAUSTED se décline selon le compte — perso n'a pas d'organisation", () => {
     const raw = 'scaleway tools request failed (402): {"error":"CREDITS_EXHAUSTED"}';
+    // Par défaut rien ne se vend : le compte perso n'entend ni « organisation » ni « abonnement ».
+    expect(humanizeSendError(raw, t, { personal: true })).not.toMatch(/organisation|abonnement|crédits/i);
+    expect(humanizeSendError(raw, t, { personal: true })).toMatch(/votre propre clé/);
+    configurePlatformAccess({ served: true, sold: true });
     expect(humanizeSendError(raw, t, { personal: true })).not.toMatch(/organisation/);
     expect(humanizeSendError(raw, t, { personal: true })).toMatch(/abonnement supérieur/);
+    configurePlatformAccess({ served: true });
     expect(humanizeSendError(raw, t, { personal: false })).toMatch(/organisation/);
     // Défaut inchangé (compatibilité) : la formulation org.
     expect(humanizeSendError(raw, t)).toMatch(/organisation/);

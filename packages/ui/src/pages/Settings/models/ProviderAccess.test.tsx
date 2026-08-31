@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { configurePlatformAccess } from "../../../send/platformAccess";
 import { ProviderAccess } from "./ProviderAccess";
 import { mount } from "../../../testKit";
 
@@ -35,7 +36,17 @@ describe("ProviderAccess — des cartes cliquables, une par fournisseur", () => 
     await ui.unmount();
   });
 
-  it("l'abonnement est proposé UNE fois sous la grille, jamais sur une carte", async () => {
+  afterEach(() => configurePlatformAccess({ served: true }));
+
+  it("par défaut (rien à vendre), aucune note d'abonnement sous la grille — même sans abonnement", async () => {
+    const ui = await render();
+    expect(ui.maybe(".provider-grid-note")).toBeNull();
+    for (const c of ui.findAll(".provider-card")) expect(c.textContent).not.toContain("abonnement");
+    await ui.unmount();
+  });
+
+  it("l'abonnement est proposé UNE fois sous la grille, jamais sur une carte — dans un build qui VEND", async () => {
+    configurePlatformAccess({ served: true, sold: true });
     const ui = await render();
     expect(ui.findAll(".provider-grid-note")).toHaveLength(1);
     for (const c of ui.findAll(".provider-card")) expect(c.textContent).not.toContain("abonnement");

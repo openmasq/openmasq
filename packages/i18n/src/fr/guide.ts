@@ -26,29 +26,29 @@ export const guide = {
       (brand) => `Il n'y a rien à configurer. Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand} : écrivez, envoyez. Les exemples proposés sur l'écran d'accueil partent en un clic si vous voulez juste voir à quoi ça ressemble.`,
     points: [
       () => "Le nom du modèle est sous la zone de saisie — cliquez-le pour en changer.",
-      (brand) => `Certains modèles demandent votre propre clé ou un abonnement : ${brand} vous le dit au moment de l'envoi, et vous propose l'une ou l'autre.`,
+      (brand) => `Certains modèles demandent votre propre clé : ${brand} vous le dit au moment de l'envoi, et vous propose de la renseigner.`,
       () => "Tapez / dans la zone de message pour retrouver vos compétences, vos workflows et « retiens que… ».",
     ],
   },
   models: {
-    title: () => "Modèles gratuits, abonnement, votre clé",
+    title: () => "Modèles inclus, ou votre clé",
     lead:
-      (brand) => `Il y a trois façons d'atteindre un modèle, et vous pouvez les mélanger. Un modèle marqué gratuit s'utilise avec votre compte, sans rien payer ni configurer — c'est le point de départ. Les autres passent soit par un abonnement ${brand}, soit par votre propre clé chez le fournisseur.`,
+      (brand) => `Il y a deux façons d'atteindre un modèle, et vous pouvez les mélanger. Les modèles inclus s'utilisent avec votre compte ${brand}, sans rien payer ni configurer — un modèle gratuit est le point de départ. Les autres passent par votre propre clé chez le fournisseur.`,
     terms: [
       {
         term: () => "Gratuit",
         def: (brand) =>
-          `Inclus avec votre compte ${brand}, sans abonnement et sans clé. L'usage est limité : le débit et la disponibilité dépendent du fournisseur.`,
+          `Inclus avec votre compte ${brand}, sans clé. L'usage est limité : le débit et la disponibilité dépendent du fournisseur.`,
       },
       {
-        term: (brand) => `Avec un abonnement ${brand}`,
+        term: (brand) => `Inclus avec votre compte ${brand}`,
         def: (brand) =>
-          `Les modèles que ${brand} fournit, sans aucune clé à gérer — vos crédits mensuels paient l'usage.`,
+          `Les modèles que ${brand} fournit — hébergés en France pour la plupart — sans aucune clé à gérer.`,
       },
       {
         term: () => "Avec votre propre clé",
-        def: (brand) =>
-          `Vous branchez votre clé OpenAI, Anthropic, Mistral… : c'est votre fournisseur qui vous facture, vos crédits ${brand} ne bougent pas. La protection est exactement la même.`,
+        def: () =>
+          `Vous branchez votre clé OpenAI, Anthropic, Mistral… : c'est votre fournisseur qui vous facture. La protection est exactement la même.`,
       },
     ],
     points: [

@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect } from "vitest";
+import { configurePlatformAccess } from "./platformAccess";
 import { preflightError, type PreflightInput } from "./preflight";
 import type { OrgProfileInfo } from "../host";
 
@@ -23,6 +24,8 @@ const org = (o: Partial<OrgProfileInfo>): OrgProfileInfo =>
   ({ status: "active", allowedModelIds: ["claude-x", "gpt-5.5"], allowedMcpIds: [], byoKeysAllowed: false, ...o }) as OrgProfileInfo;
 
 describe("preflightError", () => {
+  afterEach(() => configurePlatformAccess({ served: true }));
+
   it("passes a BYO send with a configured key (null)", () => {
     expect(preflightError(base())).toBeNull();
   });
@@ -110,15 +113,22 @@ describe("preflightError", () => {
   });
 
   it("un compte SANS facturation à crédits bloqués reçoit aussi le CTA clé", () => {
-    const r = preflightError(
-      base({
-        provider: "openrouter",
-        effectivePlatform: true,
-        hasBilling: false,
-        personalCredits: { blocked: true } as PreflightInput["personalCredits"],
-      }),
-    );
+    const input = base({
+      provider: "openrouter",
+      effectivePlatform: true,
+      hasBilling: false,
+      personalCredits: { blocked: true } as PreflightInput["personalCredits"],
+    });
+    // Par défaut rien ne se vend : ni « crédits » ni « abonnement », la clé reste l'issue.
+    const dflt = preflightError(input);
+    expect(dflt?.text).toMatch(/^Ce modèle n'est pas disponible/);
+    expect(dflt?.text).not.toMatch(/abonnement|crédits/i);
+    expect(dflt?.action?.kind).toBe("missing_key");
+    // Dans un build qui VEND, la formulation « crédits » est de retour.
+    configurePlatformAccess({ served: true, sold: true });
+    const r = preflightError(input);
     expect(r?.text).toMatch(/^Crédits épuisés/);
     expect(r?.action?.kind).toBe("missing_key");
+    configurePlatformAccess({ served: true });
   });
 });

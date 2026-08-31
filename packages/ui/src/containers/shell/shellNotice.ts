@@ -1,6 +1,7 @@
 import type { BannerTone } from "../../components/feedback/bannerTones";
 import type { McpReconnectItem } from "../../hooks/useMcpReconnect";
 import { BRAND } from "@openmasq/branding";
+import { subscriptionsSold } from "../../send/platformAccess";
 
 /**
  * Ce que le shell annonce en permanence, et dans quel ORDRE — pur, donc testable.
@@ -60,8 +61,9 @@ export function pickShellNotice(input: {
       kind: "access",
       tone: "info",
       title: "Vous utilisez les modèles gratuits",
-      message:
-        `Pour ouvrir tout le catalogue : un abonnement ${BRAND.name}, ou votre propre clé chez un fournisseur.`,
+      message: subscriptionsSold()
+        ? `Pour ouvrir tout le catalogue : un abonnement ${BRAND.name}, ou votre propre clé chez un fournisseur.`
+        : "Pour ouvrir tout le catalogue : votre propre clé chez un fournisseur.",
       actionLabel: "Voir mes accès",
       dismissible: true,
     };

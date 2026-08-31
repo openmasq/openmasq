@@ -1,5 +1,6 @@
 import type { ProviderId } from "@openmasq/llm";
 import { classifyRedactFailure } from "../../send/redactFailure";
+import { subscriptionsSold } from "../../send/platformAccess";
 
 /**
  * Thrown by the send pipeline when the chosen model's provider has no API key
@@ -82,9 +83,15 @@ export class CreditsExhaustedError extends Error {
       // QUI peut débloquer change avec le compte : sur un compte perso c'est vous, dans
       // une organisation c'est l'admin. C'est la seule chose que ces deux phrases doivent
       // encore distinguer.
+      // Et sur un compte perso d'un build qui ne VEND rien (`subscriptionsSold`, le
+      // défaut), « abonnement supérieur » et « crédits » n'existent pas : le modèle n'est
+      // pas ouvert sur ce compte, la clé est l'issue.
       personal
-        ? "Crédits épuisés. Passez à un abonnement supérieur, utilisez votre propre clé, " +
+        ? subscriptionsSold()
+          ? "Crédits épuisés. Passez à un abonnement supérieur, utilisez votre propre clé, " +
             "ou attendez le renouvellement."
+          : "Ce modèle n'est pas disponible sur votre compte pour le moment. Utilisez votre " +
+            "propre clé, ou choisissez un autre modèle."
         : "Crédits épuisés : le budget de votre organisation est atteint. Utilisez votre " +
             "propre clé, ou attendez le renouvellement.",
     );

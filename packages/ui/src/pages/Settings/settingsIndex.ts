@@ -135,7 +135,8 @@ export interface SettingsCapabilities {
   sync: boolean;
   /** `host.browser` : le navigateur intégré (plateforme, pas réseau). */
   browser: boolean;
-  /** `host.billing` : Paiement — abonnement, crédits, portail Stripe. */
+  /** `host.billing` : Paiement — abonnement, crédits, portail Stripe. Branché seulement
+   *  dans un build qui VEND (`OPENMASQ_BILLING=1`) ; absent par défaut. */
   billing: boolean;
 }
 

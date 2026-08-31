@@ -39,6 +39,7 @@ export const onboarding = {
   access: {
     eyebrow: "MODEL ACCESS",
     titleServed: "A subscription, or your key",
+    titleIncluded: "Your account, or your key",
     titleUnserved: "Your key, or a local model",
     subServed:
       "You can change your mind whenever you like. Either way, masking applies before every send.",
@@ -50,7 +51,7 @@ export const onboarding = {
     title: "The protection is already on",
     eyebrow: "YOU'RE SET",
     subServed: (brand) =>
-      `It depends on neither a subscription nor a key: from your very first message, masking applies. A free model is already selected and works with your ${brand} account.`,
+      `It depends on no key: from your very first message, masking applies. A free model is already selected and works with your ${brand} account.`,
     subUnserved:
       "It depends on no account: from your very first message, masking applies. All that is missing is access to a model — a key, a local server, or your CLI.",
     modelHint:
@@ -78,6 +79,9 @@ export const onboarding = {
     subscription: {
       title: (brand) => `My ${brand} account`,
       sub: "No key to manage: the models draw on your subscription's credits.",
+    },
+    included: {
+      sub: "No key to manage: the included models are served on your account, most of them hosted in France.",
     },
     ownKey: {
       title: "My own API key",

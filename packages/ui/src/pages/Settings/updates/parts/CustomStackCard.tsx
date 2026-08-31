@@ -25,7 +25,7 @@ export function CustomStackCard() {
 
   if (!stackHost) return null;
 
-  const set = (k: keyof CustomStack) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (k: keyof CustomStack) => (e: { target: { value: string } }) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const onApply = async () => {

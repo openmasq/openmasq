@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { CheckIcon } from "../../components/brand";
 import { KeySteps } from "./KeySteps";
-import { platformAccessServed } from "../../send/platformAccess";
+import { platformAccessServed, subscriptionsSold } from "../../send/platformAccess";
 
 /** The providers the onboarding offers a key slot for — OpenRouter first (one key,
  *  every model), then the majors. Labels/key URLs come from the single-source
@@ -147,7 +147,9 @@ export function KeyChoice({
         option(
           "subscription",
           t.onboarding.keyChoice.subscription.title(BRAND.name),
-          t.onboarding.keyChoice.subscription.sub,
+          // Sans rien à vendre (le défaut), la carte dit ce que le compte inclut — pas des
+          // crédits d'abonnement qu'aucun compte n'a.
+          subscriptionsSold() ? t.onboarding.keyChoice.subscription.sub : t.onboarding.keyChoice.included.sub,
         )}
       {/* La voie RECOMMANDÉE, et la seule à ne rien coûter : une clé OpenRouter atteint tous
           les modèles — les gratuits compris, sur le quota du compte de l'utilisateur, jamais
