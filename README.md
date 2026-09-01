@@ -3,6 +3,16 @@
 **A multi-model desktop chat app that redacts sensitive data before it leaves your
 machine — and puts it back in the reply.**
 
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)](#getting-started)
+[![Redaction](https://img.shields.io/badge/redaction-on--device-green)](#whats-in-the-box)
+
+![The audit log: eight values masked before they reached a model, restored only in your copy](docs/img/audit.webp)
+
+> **No binary is published yet.** You build it from source — two commands, see
+> [Getting started](#getting-started). The interface ships in French and English; the
+> screenshots here are the French one.
+
 The model never sees the real thing. Values the engine detects are replaced with
 believable substitutes before any network call; the reply is restored locally from a
 per-conversation vault, so the conversation reads naturally on your side.
@@ -55,6 +65,22 @@ gateway; that service is not part of this build — see *Running it* below.)
 The exhaustive, screen-by-screen inventory lives in [`FEATURES.md`](FEATURES.md).
 
 ---
+
+<details>
+<summary><b>More screenshots</b> — what is protected, and what the app can reach</summary>
+
+**Settings → Privacy.** Seventeen categories, three protection levels. What the *model*
+sees is decided here, and nothing else: a connected service still receives the real value.
+
+![The privacy settings: seventeen categories grouped by family, and the three protection levels](docs/img/regles.webp)
+
+**Settings → Connectors.** Fifty-six MCP connectors, each connected on your own account.
+Their arguments leave un-redacted — a search for a substitute finds nobody — and their
+results come back redacted through the same vault.
+
+![The connectors screen: fifty-six MCP connectors, none connected](docs/img/connecteurs.webp)
+
+</details>
 
 ## Repository layout
 
