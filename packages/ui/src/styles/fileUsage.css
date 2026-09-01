@@ -89,5 +89,5 @@
   color: var(--text-faint);
 }
 .om-usage-row:hover .om-usage-chev {
-  color: var(--brand);
+  color: var(--brand-text);
 }

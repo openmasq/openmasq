@@ -155,7 +155,7 @@
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--brand);
+  color: var(--brand-text);
   transition: color 0.16s;
 }
 .mcp-card-cta.on {
@@ -163,7 +163,7 @@
 }
 .mcp-card:hover .mcp-card-cta,
 .mcp-card:focus-visible .mcp-card-cta {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 
@@ -192,7 +192,7 @@
   font-size: 9px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--brand);
+  color: var(--brand-text);
   background: color-mix(in oklch, var(--brand) 12%, var(--surface-card));
   border: 1px solid var(--border-subtle);
   border-radius: 3px;
@@ -212,7 +212,8 @@
 }
 .mcp-auth-badge.auth-apikey,
 .mcp-auth-badge.auth-broker {
-  color: var(--hl-amber);
+  /* The amber pastel is a FILL colour: as 10.5px text on white it measures 1.7:1. */
+  color: var(--amber-text, var(--hl-amber));
 }
 /* The same tag as a bordered pill in the modal head. */
 .mcp-auth-pill {

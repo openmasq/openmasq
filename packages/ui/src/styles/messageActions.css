@@ -28,7 +28,7 @@
     transform: scale(1);
   }
   35% {
-    color: var(--brand);
+    color: var(--brand-text);
     transform: scale(1.18);
   }
   100% {
@@ -49,7 +49,7 @@
     color: var(--text-muted);
   }
   35% {
-    color: var(--brand);
+    color: var(--brand-text);
   }
 }
 @media (prefers-reduced-motion: reduce) {

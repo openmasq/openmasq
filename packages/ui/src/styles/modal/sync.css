@@ -244,6 +244,6 @@
 .sync-status-line {
   font-size: 13px;
 }
-.sync-status-line.is-ok { color: var(--brand); }
+.sync-status-line.is-ok { color: var(--brand-text); }
 .sync-status-line.is-muted { color: var(--text-muted); }
 .sync-status-line.is-err { color: var(--red-500); }

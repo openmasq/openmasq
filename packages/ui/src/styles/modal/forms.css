@@ -128,7 +128,7 @@
 }
 /* Inline deep-link inside a step — brand-coloured, wraps as one unit with its ↗. */
 .byo-link {
-  color: var(--brand);
+  color: var(--brand-text);
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;

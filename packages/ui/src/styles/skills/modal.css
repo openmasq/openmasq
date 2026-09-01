@@ -124,7 +124,7 @@
 .om-skill-preview-btn.on {
   border-color: var(--brand);
   background: color-mix(in oklch, var(--brand) 12%, var(--surface-card));
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* Markdown toolbar. Buttons are square + mono so B/I/H read as marks, not prose. */
 .om-skill-toolbar {

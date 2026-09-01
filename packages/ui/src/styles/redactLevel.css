@@ -90,7 +90,7 @@
 }
 .crm-level-check {
   display: inline-flex;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .crm-level-desc {
   font-size: var(--text-xs);

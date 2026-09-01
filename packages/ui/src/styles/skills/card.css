@@ -90,12 +90,12 @@
   transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
 }
 .om-skill-pin:hover {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .om-skill-pin.on {
   border-color: var(--brand);
   background: var(--surface-sunken);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 /* flex:1 — the body takes the slack so name + description stay TOP-aligned across a
@@ -157,7 +157,7 @@
   transition: color 160ms var(--ease-out);
 }
 .om-skill-use:hover {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .om-skill-use.danger {
   color: var(--danger, #d64550);

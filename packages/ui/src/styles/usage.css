@@ -285,5 +285,5 @@
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--brand);
+  color: var(--brand-text);
 }

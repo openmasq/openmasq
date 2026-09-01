@@ -74,7 +74,7 @@
   color: var(--text-muted);
 }
 .bottom-nav-btn.active {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .bottom-nav-label {
   font-size: 10.5px;
@@ -221,7 +221,7 @@
   gap: 3px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* New-chat FAB (kit: bottom-right, above the tab bar). Same CTA language as
    `.send-btn` — the app's brand button, not the kit's hard-coded forest/lime. */

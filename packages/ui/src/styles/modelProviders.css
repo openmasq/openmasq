@@ -76,7 +76,7 @@
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .source-chip-dot {
   width: 6px;

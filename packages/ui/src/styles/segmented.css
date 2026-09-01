@@ -48,6 +48,10 @@
   font-size: 10.5px;
   opacity: 0.75;
 }
+/* On the brand fill the counter is 10.5px text: full ink, or it measures 3.5:1. */
+.om-seg-btn.on .om-seg-n {
+  opacity: 1;
+}
 
 /* The segmented control AS a setting row control (`.toggle-row`, the language in
    « Apparence »). The `align-self: flex-start` above targets the COLUMN case — direct child

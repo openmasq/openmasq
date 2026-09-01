@@ -660,7 +660,7 @@ button {
 }
 .settings-rail-back:hover {
   background: color-mix(in oklch, var(--brand) 12%, transparent);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .settings-rail-back:active {
   transform: scale(0.94);
@@ -710,7 +710,7 @@ button {
 }
 .settings-rail-btn.active {
   background: color-mix(in oklch, var(--brand) 12%, transparent);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .settings-rail-btn.active::before {
   content: "";
@@ -1037,7 +1037,7 @@ button {
 /* The "Nouvelle conversation" action at the top of the ⌘K palette: brand-tinted
    glyph + a divider separating it from the dated conversation groups below. */
 .search-row-new {
-  color: var(--brand);
+  color: var(--brand-text);
   margin-bottom: 6px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border-subtle);
@@ -1277,7 +1277,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  color: var(--brand);
+  color: var(--brand-text);
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: 3px;
@@ -2055,7 +2055,7 @@ body.resizing-split {
 }
 .vb-engine-item-check {
   display: inline-flex;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 /* Settings → Navigateur: the default-search-engine picker grid. */
@@ -2101,7 +2101,7 @@ body.resizing-split {
 }
 .browser-engine-check {
   display: inline-flex;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* Drive halo — the "the model is driving" glow. The native agent window has NO DOM
    z-order, so the halo can't be a DOM element here; it is a MAIN-owned transparent,
@@ -2139,7 +2139,7 @@ body.resizing-split {
   cursor: default;
 }
 .vb-star.on {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* Live page-load progress — the kit's 2px brand sweep, LOOPING while the real
    page loads (the kit's one-shot was a mock's fixed 550ms). */
@@ -2307,7 +2307,7 @@ body.resizing-split {
   transition: color var(--dur-fast) var(--ease-out);
 }
 .vb-ask:hover {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 /* Stack the split vertically on narrow widths (browser under the chat). */
@@ -2469,7 +2469,7 @@ body.resizing-split {
   color: var(--text-strong);
 }
 .header-menu-item:hover svg {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* Set the destructive action apart with a hairline divider above it. */
 .header-menu-item.danger {
@@ -2664,13 +2664,13 @@ body.resizing-split {
   border-radius: var(--radius-pill, 999px);
   border: 1px solid var(--hl-lime);
   background: var(--surface-hover);
-  color: var(--brand);
+  color: var(--brand-text);
   font-size: 11.5px;
   font-weight: 600;
 }
 .msg-tag svg {
   flex-shrink: 0;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* The « Demander » target tag (folder/file the question was about) — neutral hairline:
    a SUBJECT, not the lime run_python intent nor a redaction hue. */
@@ -3182,7 +3182,7 @@ body.resizing-split {
    glyph + a small pulsing brand dot in the corner, so the user notices without the
    panel auto-opening. */
 .icon-btn.busy {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .icon-btn-dot {
   position: absolute;
@@ -3811,7 +3811,7 @@ body.resizing-split {
 }
 .fv-viewmenu-check {
   flex-shrink: 0;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* Phone: the menu is wider than the corner it hangs from, so cap it to the panel. */
 @media (max-width: 420px) {
@@ -4027,7 +4027,7 @@ body.resizing-split {
   background: none;
   padding: 0;
   font: inherit;
-  color: var(--brand);
+  color: var(--brand-text);
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
@@ -4151,7 +4151,7 @@ body.resizing-split {
   gap: 6px;
 }
 .fv-seg-masked svg {
-  color: var(--brand);
+  color: var(--brand-text);
   flex-shrink: 0;
 }
 /* Extracted document text is rendered as DOCUMENT PAGES (`DocText`) so it READS like a
@@ -5210,7 +5210,7 @@ body.resizing-split {
 .sel-redact-redact:hover,
 .sel-redact-preciser:hover,
 .sel-retenir:hover {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .sel-redact-types {
   display: flex;
@@ -5312,10 +5312,10 @@ body.resizing-split {
 }
 .composer-tag.tone-lime {
   border-color: var(--hl-lime);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .composer-tag.tone-lime svg {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .composer-tag.tone-forest svg {
   color: var(--text-muted);
@@ -5803,7 +5803,7 @@ body.resizing-split {
   border: 1px solid var(--border-subtle);
 }
 .model-key-status.on {
-  color: var(--brand);
+  color: var(--brand-text);
   background: var(--hl-lime-soft, var(--surface-sunken));
   border-color: color-mix(in srgb, var(--brand) 40%, transparent);
 }
@@ -6037,7 +6037,7 @@ body.resizing-split {
   line-height: 1.35;
 }
 .model-option .check {
-  color: var(--brand);
+  color: var(--brand-text);
   margin-top: 3px;
 }
 
@@ -6050,7 +6050,7 @@ body.resizing-split {
   border: none;
   padding: 0;
   border-radius: var(--radius-pill);
-  background: var(--warm-300);
+  background: var(--switch-off, var(--warm-300));
   cursor: pointer;
   transition: background var(--dur-base) var(--ease-out);
 }
@@ -7372,7 +7372,7 @@ button.sendmode-opt:hover {
    with it rather than stay behind as dead CSS. The three cards wear the same
    neutral hairline, and it's the fill that says which one is chosen. */
 .privacy-level-name { font-weight: 600; font-size: var(--text-md); }
-.privacy-level-check { margin-left: auto; color: var(--brand); display: inline-flex; }
+.privacy-level-check { margin-left: auto; color: var(--brand-text); display: inline-flex; }
 .privacy-level-desc {
   font-size: var(--text-sm);
   color: var(--text-muted);
@@ -7403,7 +7403,7 @@ button.sendmode-opt:hover {
   padding: 0;
   background: none;
   border: none;
-  color: var(--brand);
+  color: var(--brand-text);
   font-size: var(--text-sm);
   cursor: pointer;
 }
@@ -7916,7 +7916,7 @@ button.sendmode-opt:hover {
 }
 .audit-goto:hover {
   background: var(--surface-hover);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .audit-cols {
   padding: 10px 18px;
@@ -7984,7 +7984,7 @@ button.sendmode-opt:hover {
   background: none;
   text-align: left;
   cursor: pointer;
-  color: var(--brand);
+  color: var(--brand-text);
   font: inherit;
 }
 .audit-conv-link:hover {
@@ -8014,7 +8014,7 @@ button.sendmode-opt:hover {
   transition: opacity 0.12s;
 }
 .audit-reveal-btn:hover {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .audit-reveal-btn:hover svg {
   opacity: 1;
@@ -10558,7 +10558,7 @@ button.sendmode-opt:hover {
   height: 34px;
   border-radius: var(--radius-md, 9px);
   background: var(--surface-sunken);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .md-artifact-chip.kind-code .md-artifact-glyph {
   color: var(--hl-violet, var(--brand));
@@ -10619,7 +10619,7 @@ button.sendmode-opt:hover {
   height: 28px;
   border-radius: var(--radius-md, 8px);
   background: var(--surface-sunken);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .artifact-title-wrap {
   flex: 1;
@@ -11011,7 +11011,7 @@ button.sendmode-opt:hover {
   line-height: 1;
 }
 .attach-chip .attach-retry:hover {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 /* ═══════════════════════ SPADE skin — chat-app kit ════════════════════════
@@ -11201,6 +11201,17 @@ button.sendmode-opt:hover {
   --brand-active: var(--forest-900);
   --brand-contrast: var(--lime);
   --brand-tint: var(--lime-soft);
+  /* Accessibility tokens (measured 2026-09-01, WCAG 2.2):
+     --brand-text    the accent as TEXT — the brand fill colour is not always readable as
+                     text on the theme's ground; dark themes lift it.
+     --border-control the boundary of a control (input, chip, outline button): 3:1
+                     against the ground (1.4.11), where --border-default is a hairline.
+     --switch-off    the OFF track of a toggle, 3:1 on the ground.
+     --amber-text    the "needs setup" amber as text: 5.5:1 on white, the pastel on dark. */
+  --brand-text: var(--brand);
+  --border-control: rgba(10, 12, 30, 0.5);
+  --switch-off: #8a8fa8;
+  --amber-text: #9a5a00;
   /* Ink for the light-lime chrome that sits ON a `--brand` fill (the « gratuit » badge,
      the selected price chip, a markdown table header, the version tile). Light + BOTH
      blue themes keep that lime on purpose; the dark-GREEN theme MUST flip it, because
@@ -11646,6 +11657,10 @@ body {
   --brand-active: #a9e15a;
   --brand-soft: #28381a;
   --brand-tint: #28381a; /* otherwise it inherits the light `--lime-soft` from `:root` */
+  --brand-text: var(--brand);
+  --border-control: rgba(216, 235, 176, 0.45);
+  --switch-off: var(--warm-300);
+  --amber-text: #ffb85c;
   --lime: #11160b;
   --lime-bright: #b8e635;
   --green-soft: #28381a;
@@ -11688,16 +11703,23 @@ body {
   --surface-shell: #0a0b0e;
   /* Primary = the same #3939FA blue as the (default) blue theme. On the dark
      surface the hover LIGHTENS (not darkens) so it still reads; ink on it is white. */
-  --brand: #3939fa;
-  --brand-hover: #4a4aff;
-  --brand-active: #2d2de6;
+  /* Measured: #3939FA on this ground is 2.6:1 — under the 3:1 a button fill needs to be
+     seen (1.4.11) — so the dark fill is one step lighter (3.3:1; white on it 5.2:1), and
+     the accent used as TEXT is the periwinkle (6.9:1). The brand hue is unchanged. */
+  --brand: #5252ff;
+  --brand-hover: #6262ff;
+  --brand-active: #4747ff;
   --brand-contrast: #ffffff;
   --brand-soft: #1c1c4a;
   --brand-tint: #1c1c4a; /* same: the soft fill follows the GROUND, not the light skeleton */
+  --brand-text: #8a9bff;
+  --border-control: rgba(208, 212, 235, 0.45);
+  --switch-off: var(--warm-300);
+  --amber-text: #ffb85c;
   --lime: #11160b;
   /* `--ink-on-brand` tracks `--lime`, which is near-black here — unreadable on the BLUE
-     fill. Pin the light lime, exactly like `.btn-primary` below. */
-  --ink-on-brand: #c7f08a;
+     fill. White: 5.2:1 on the #5252ff fill (the light lime measured 4.1:1 on it). */
+  --ink-on-brand: #ffffff;
   --lime-bright: #b8e635;
   --green-soft: #28381a;
   --green-ink: #b8e635;
@@ -11745,6 +11767,10 @@ body {
   --brand-active: #2222c0;
   --brand-contrast: #ffffff;
   --brand-tint: #e7e7ff;
+  --brand-text: #3939fa;
+  --border-control: rgba(10, 12, 30, 0.5);
+  --switch-off: #8a8fa8;
+  --amber-text: #9a5a00;
   --border-focus: #3939fa;
   --focus-ring: color-mix(in oklch, #3939fa 38%, transparent);
   /* Links carry the blue accent (were green); the SELECTED row stays a neutral grey
@@ -12014,7 +12040,7 @@ select:focus-visible {
 }
 .dbg-tag.dbg-wire {
   background: var(--brand-soft);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .dbg-tag.dbg-tool { /* paired inks --pearl-*-ink, never --text-* (frozenInk); sky didn't exist → azure */
   background: var(--pearl-azure-soft);
@@ -12144,3 +12170,22 @@ select:focus-visible {
   color: var(--text-faint);
 }
 
+
+/* ================================================ Control boundaries (a11y) ==== */
+/* WCAG 1.4.11: the boundary of a control must reach 3:1 against what surrounds it.
+   `--border-default` is a hairline meant for dividers (1.4–1.6:1 measured); controls take
+   `--border-control` instead. Selected states (`.on`) keep their own fill/border. */
+html .btn-ghost,
+html .om-vault-occ,
+html .om-vault-search-input,
+html .om-mem-input,
+html .om-starter-chip,
+html .model-gear,
+html .rrm-master,
+.om-vault-chip:not(.on),
+.om-skill-chip:not(.on),
+.model-price-chip:not(.on),
+.source-chip:not(.on),
+.audit-chip:not(.on) {
+  border-color: var(--border-control);
+}

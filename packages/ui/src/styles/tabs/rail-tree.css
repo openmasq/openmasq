@@ -100,7 +100,7 @@
   background: var(--brand);
 }
 .rr-src-cta {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 /* ── The tree ────────────────────────────────────────────────────────── */

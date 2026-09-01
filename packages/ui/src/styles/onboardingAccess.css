@@ -103,7 +103,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .ob-access-row {
   display: flex;

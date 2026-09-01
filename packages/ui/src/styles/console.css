@@ -101,7 +101,7 @@
 .om-console-rbtn:hover { background: var(--surface-hover); color: var(--text-strong); }
 .om-console-rbtn[data-on="1"] {
   background: color-mix(in oklch, var(--brand) 12%, transparent);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* The active marker sits on the rail's outer edge, so the eye can find the
    current group without reading any label. */
@@ -157,7 +157,7 @@
 .om-console .om-console-pbtn { color: var(--text-body); }
 .om-console .om-console-pbtn:hover,
 .om-console .om-console-pbtn[data-on="1"] { color: var(--text-strong); }
-.om-console-pbtn[data-on="1"] .om-console-pico { color: var(--brand); }
+.om-console-pbtn[data-on="1"] .om-console-pico { color: var(--brand-text); }
 .om-console-pn {
   margin-left: auto; flex-shrink: 0;
   font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint);

@@ -125,7 +125,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
   background: var(--surface-sunken);
-  color: var(--brand);
+  color: var(--brand-text);
 }
 .mlib-row-shield-n {
   font-family: var(--font-mono);

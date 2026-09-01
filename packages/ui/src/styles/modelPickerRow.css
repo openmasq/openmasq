@@ -23,13 +23,13 @@
 .model-fav:hover,
 .model-fav:focus-visible {
   opacity: 1;
-  color: var(--brand);
+  color: var(--brand-text);
   background: var(--surface-hover);
   outline: none;
 }
 .model-fav.on {
   opacity: 1;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 /* The DEFAULT MODEL marker (house). Same template as the star, to its left:
@@ -50,13 +50,13 @@
 .model-default:hover,
 .model-default:focus-visible {
   opacity: 1;
-  color: var(--brand);
+  color: var(--brand-text);
   background: var(--surface-hover);
   outline: none;
 }
 .model-default.on {
   opacity: 1;
-  color: var(--brand);
+  color: var(--brand-text);
   cursor: default; /* it's ALREADY the default: informative, not an action */
 }
 .model-default.on:hover {

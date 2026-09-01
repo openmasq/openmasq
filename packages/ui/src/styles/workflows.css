@@ -45,7 +45,7 @@
 }
 .om-wf-pick-check {
   display: inline-flex;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 /* "Toutes les intégrations" — the permissive default (no scope). Reads as a

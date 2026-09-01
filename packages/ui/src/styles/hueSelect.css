@@ -28,7 +28,7 @@
   font-family: var(--font-display);
   font-size: 11px;
   line-height: 1;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 /* `neutral` HueSelect (Compétences): monochrome tile — no category hue. */
 .om-hue-glyph.neutral {
@@ -111,7 +111,7 @@
   flex: 1;
 }
 .om-hue-select-check {
-  color: var(--brand);
+  color: var(--brand-text);
   display: inline-flex;
   flex-shrink: 0;
 }

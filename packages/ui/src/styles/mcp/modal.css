@@ -52,7 +52,7 @@
 
 .mcp-peer-link {
   font: inherit;
-  color: var(--brand);
+  color: var(--brand-text);
   background: none;
   border: 0;
   padding: 0;
