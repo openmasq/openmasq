@@ -100,6 +100,7 @@ export async function dbLoad(): Promise<{
       revealedValues?: string[];
       forcedRedactions?: { value: string; category: string }[];
       redactionSalt?: number;
+      redactionKey?: string;
       redactionMode?: "fake" | "token";
       memoryWatermark?: number;
     } = {};
@@ -126,6 +127,7 @@ export async function dbLoad(): Promise<{
       revealedValues: redaction.revealedValues?.length ? redaction.revealedValues : undefined,
       forcedRedactions: redaction.forcedRedactions?.length ? redaction.forcedRedactions : undefined,
       redactionSalt: typeof redaction.redactionSalt === "number" ? redaction.redactionSalt : undefined,
+      redactionKey: typeof redaction.redactionKey === "string" ? redaction.redactionKey : undefined,
       // The redaction mode (fakes ⇄ markers) is pinned on the conversation: without it
       // on reload, a conversation in tokens would revert to fakes on the next turn.
       redactionMode: redaction.redactionMode === "token" ? "token" : undefined,

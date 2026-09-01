@@ -135,4 +135,17 @@ export interface PseudonymizeOptions {
    * and just receives the number. Pinned by `src/model/salt.test.ts`.
    */
   salt?: number;
+  /**
+   * PER-CONVERSATION KEY (32 bytes, hex) for the value→fake mapping — what `salt` should
+   * have been. With it every seed is `HMAC-SHA256(key, category ‖ value)`: a known
+   * (value, fake) pair reveals nothing about any other value, which an additive shift over
+   * a public hash cannot claim. Absent ⇒ the legacy salted mapping, unchanged, so a
+   * conversation minted before keys keeps every fake it already has (the vault holds them;
+   * only NEW values use the new construction).
+   *
+   * The app mints it with a CSPRNG and persists it on `Conversation.redactionKey`; the
+   * engine stays pure and just receives the string. Pinned by
+   * `src/model/fakes/keyedMapping.test.ts`.
+   */
+  key?: string;
 }

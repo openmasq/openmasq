@@ -66,6 +66,7 @@ export interface DbConversation {
   /** Per-conversation fake-mapping salt (secret) — persisted inside `redaction_config`,
    *  so it is owned by the encrypted DB, never a plaintext column. */
   redactionSalt?: number;
+  redactionKey?: string;
   /** What the model sees for THIS conversation: plausible fakes (default) or
    *  `[PERSON1]` markers. Pinned at its first redaction, so persisted with the salt. */
   redactionMode?: "fake" | "token";

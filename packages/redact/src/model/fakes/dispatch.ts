@@ -3,7 +3,7 @@ import { fakeGeo, type GeoAnchors } from "../../engine/geo/index";
 import { fakeAddressComplement } from "../../engine/addressComplement";
 import { fakeBitcoinLegacyAddress } from "../../engine/validators/base58check";
 import { FAKE_LAST, firstNamePool } from "./pools";
-import { hashString, pick, rehash, fakeToken, fakeDigits, fakeHandle } from "./primitives";
+import { hashString, pick, rehash, fakeToken, fakeDigits, fakeHandle, seedFrom } from "./primitives";
 import { isMrzShaped } from "../../kinds";
 import { fakeMrz } from "./mrz";
 import { fakeCity, fakeOrg, fakePostal, fakeDate, fakeIp, fakeEmail, fakePhone, fakeCard, fakeIban} from "./entities";
@@ -36,8 +36,12 @@ export function fakeFor(
   // of the module — two conversations share nothing. Absent (unit tests of a single
   // fake) ⇒ previous behaviour.
   geoAnchors?: GeoAnchors,
+  // The per-conversation KEY, when the conversation has one. With it every seed below
+  // becomes `HMAC(key, …)` instead of a public hash shifted by an additive salt, so one
+  // known (value, fake) pair no longer yields the shift — and with it every other value.
+  convKey?: Uint8Array,
 ): string {
-  const h = hashString(value) + salt + attempt * 101;
+  const h = seedFrom(convKey, `e:${category}:${attempt}`, value, hashString(value) + salt + attempt * 101);
   // For the kinds whose helper RE-HASHES `value` internally off its second arg (it is that
   // helper's own salt), fold the conversation salt into the attempt so those shift too —
   // salting `h` above does not reach them.
@@ -45,11 +49,11 @@ export function fakeFor(
   switch (category) {
     case "URL":
       // Without this case, a URL would get a NAME-shaped fake — « allez sur Marc Charvet ».
-      return fakeUrl(value, a);
+      return fakeUrl(value, a, convKey);
     case "IP":
       // In-range octets (0-255) / hex hextets — a VALID fake IP, not `fakeDigits`'s
       // char-for-char swap that could emit octet 313.
-      return fakeIp(value, a);
+      return fakeIp(value, a, convKey);
     case "TOKEN":
     case "APIKEY":
     case "KEY":
@@ -118,7 +122,7 @@ export function fakeFor(
     case "FOLDER":
       // Per-segment + deterministic (see fakePath): pass the raw attempt, NOT the
       // whole-path hash `h`, so a shared segment maps identically across paths.
-      return fakePath(value, a);
+      return fakePath(value, a, convKey);
     case "ORG":
     case "COMPANY":
     case "EMPLOYER":
@@ -171,32 +175,32 @@ export function fakeFor(
     case "PHONE":
       // Country code + national class preserved, subscriber digits swapped — a fake
       // that stops LOOKING like a phone invites the model to "correct" it.
-      return fakePhone(value, a);
+      return fakePhone(value, a, convKey);
     case "ID":
     case "NATIONAL_ID":
     case "COMPANY_ID":
     case "BANK_ROUTE":
       // An MRZ first: its LETTERS carry the name — `fakeDigits`'s digits-only
       // scramble would keep them (a leak). Predicate shared with the rule (kinds.ts).
-      if (isMrzShaped(value)) return fakeMrz(value, a);
+      if (isMrzShaped(value)) return fakeMrz(value, a, convKey);
       // A CHECKSUMMED id (NIR, SIREN/SIRET, TVA, RIB, CPF, ABN…) gets a fake
       // that passes the SAME checksum (fakes/checksummed) — the fakeCard/
       // fakeIban rationale generalised: a fake failing its own validator is
       // visible to any validating tool and invites the model to "correct" it.
       // No scheme recognised → the plain same-shape swap, as before.
-      return fakeValidId(category, value, a) ?? fakeDigits(value, a);
+      return fakeValidId(category, value, a, convKey) ?? fakeDigits(value, a, convKey);
     case "CARD":
       // Same shape AND a passing Luhn — a fake that fails its own checksum is visible
       // to any validating tool and invites the model to "correct" it.
-      return fakeCard(value, a);
+      return fakeCard(value, a, convKey);
     case "IBAN":
       // Country code kept, digits swapped, mod-97 key recomputed — same rationale.
-      return fakeIban(value, a);
+      return fakeIban(value, a, convKey);
     default: {
       // An LLM/NER tag that MEANS an id family ("SSN", "SIRET", "PASSPORT"…)
       // still deserves a checksum-valid fake; fakeValidId gates on the mapped
       // category itself, so a quantity/date/health number never enters it.
-      if (/\d/.test(value)) return fakeValidId(category, value, a) ?? fakeDigits(value, a);
+      if (/\d/.test(value)) return fakeValidId(category, value, a, convKey) ?? fakeDigits(value, a, convKey);
       // Word count mirrors the real value (see the NAME case: separator replication).
       const words = value.trim().split(/\s+/);
       const first = pick(firstNamePool(words[0] || value), h);

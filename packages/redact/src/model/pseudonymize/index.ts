@@ -1,3 +1,4 @@
+import { keyFromHex } from "../fakes/prf";
 // Pseudonymisation: a stronger privacy mode for the model engine. Instead of
 // conspicuous `[REDACTED_…]` placeholders, each sensitive span is swapped for
 // believable fake data of the same kind (see ../fakes). Standalone numbers that
@@ -176,6 +177,7 @@ export async function pseudonymize(
     allocateEntities(entityCandidates, {
       vault, reverse, taken, entityValues, entityCanon, record, input, geoFakes, geoAnchors,
       resolveFakeCI, resolveEntityFakeCI, collidesAvoid, salt: options.salt ?? 0,
+      convKey: keyFromHex(options.key),
       notorietyCommercial: options.commercialNotoriety === true,
     });
   }

@@ -1,4 +1,4 @@
-import { hashString, fakeHandle } from "./primitives";
+import { hashString, fakeHandle, seedFrom } from "./primitives";
 
 /**
  * A same-kind fake for a whole URL: the SHAPE is preserved (scheme, host depth, path
@@ -16,8 +16,8 @@ import { hashString, fakeHandle } from "./primitives";
  * ⚠️ The fake is never FETCHED: under root rule 11 the outside always receives the REAL
  * value, so a fake host that happened to resolve is still never contacted.
  */
-export function fakeUrl(value: string, salt: number): string {
-  const h = hashString(value) + salt;
+export function fakeUrl(value: string, salt: number, convKey?: Uint8Array): string {
+  const h = seedFrom(convKey, `url:${salt}`, value, hashString(value) + salt);
   let i = 0;
   return value.replace(
     /(^[a-z][\w+.-]*:\/\/)|(\?|&)([\w.-]+)(=)|([A-Za-z0-9][A-Za-z0-9-]*)/g,

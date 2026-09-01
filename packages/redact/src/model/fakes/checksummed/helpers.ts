@@ -6,15 +6,20 @@
 // its check positions against the ENGINE's validator itself, so the generator
 // can never drift from what detection considers valid (rule 9: the checksum
 // algorithm keeps ONE home, `engine/validators`).
-import { hashString } from "../primitives";
+import { hashString, seedFrom } from "../primitives";
 
 export type Rng = (n: number) => number;
 
 /** Deterministic LCG seeded on the COMPACT value (alnum only) + salt — the
  *  fakeDigits doctrine: the same id under any spacing/grouping yields the same
  *  fake, re-laid under each spelling's own separators. */
-export function rngFor(compact: string, salt: number): Rng {
-  let h = (hashString(compact) + salt) >>> 0 || 1;
+export function rngFor(
+  compact: string,
+  salt: number,
+  convKey?: Uint8Array,
+  attempt = 0,
+): Rng {
+  let h = seedFrom(convKey, `cksum:${salt}:${attempt}`, compact, (hashString(compact) + salt) >>> 0) || 1;
   return (n: number) => {
     h = (Math.imul(h, 1103515245) + 12345) >>> 0;
     return h % n;

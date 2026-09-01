@@ -14,6 +14,13 @@ import type { Conversation } from "../types";
  */
 
 /** Same 31-bit CSPRNG mint as the send pipeline's first-redaction path. */
+/** 32 CSPRNG bytes, hex — the per-conversation key the fake generators draw from. */
+function mintKey(): string {
+  return Array.from(globalThis.crypto.getRandomValues(new Uint8Array(32)), (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
 function mintSalt(): number {
   return ((globalThis.crypto?.getRandomValues(new Uint32Array(1))[0] ?? 1) & 0x7fffffff) || 1;
 }
@@ -27,6 +34,7 @@ export async function redactImported(
   const vault: Record<string, string> = {};
   const kinds: Record<string, string> = {};
   const salt = mintSalt();
+  const key = mintKey();
   for (const m of conv.messages) {
     // Sequential on purpose: the vault must accumulate so a value repeated across
     // turns keeps ONE fake (same invariant as the live send path).
@@ -34,6 +42,7 @@ export async function redactImported(
       vault,
       kinds,
       salt,
+      key,
       mode: opts.mode ?? "fake",
       numbers: false,
       disabledKinds: opts.disabledKinds,
@@ -49,6 +58,7 @@ export async function redactImported(
     redactionVault: vault,
     redactionKinds: kinds,
     redactionSalt: salt,
+    redactionKey: key,
     redactionMode: opts.mode ?? "fake",
   };
 }

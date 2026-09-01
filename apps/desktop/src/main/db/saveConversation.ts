@@ -17,6 +17,7 @@ function redactionConfigJson(conv: DbConversation): string | null {
   // The per-conversation fake-mapping salt (secret) rides the redaction config blob, so it
   // is owned by the encrypted DB — never a plaintext column, never lost on the DB-wins merge.
   if (typeof conv.redactionSalt === "number") cfg.redactionSalt = conv.redactionSalt;
+  if (typeof conv.redactionKey === "string") cfg.redactionKey = conv.redactionKey;
   if (conv.redactionMode === "token") cfg.redactionMode = conv.redactionMode;
   if (typeof conv.memoryWatermark === "number") cfg.memoryWatermark = conv.memoryWatermark;
   return Object.keys(cfg).length ? JSON.stringify(cfg) : null;

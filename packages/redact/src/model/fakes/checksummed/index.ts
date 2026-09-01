@@ -55,7 +55,12 @@ export function matchScheme(category: string, value: string): string | null {
  * caller's combined attempt+conversation salt (the `fakeDigits` contract).
  * Deterministic per (digits-of-value, salt); guaranteed ≠ the original.
  */
-export function fakeValidId(category: string, value: string, salt: number): string | null {
+export function fakeValidId(
+  category: string,
+  value: string,
+  salt: number,
+  convKey?: Uint8Array,
+): string | null {
   // Only the id families — a quantity/date/health number must keep the plain
   // digit-swap path (categories are already split upstream in the dispatch).
   const fam = FAMILIES[redactionCategory(category)];
@@ -70,7 +75,7 @@ export function fakeValidId(category: string, value: string, salt: number): stri
   // A drawn body can admit no valid check (mod-11 bodies) or land on the
   // original — retry on a shifted seed; the loop is bounded and pure.
   for (let t = 0; t < 12; t++) {
-    const fake = scheme.fake(canon, rngFor(canon, salt + t * 1013));
+    const fake = scheme.fake(canon, rngFor(canon, salt + t * 1013, convKey, t));
     if (fake && fake !== canon && fake.length === canon.length && scheme.is(fake)) {
       return relayId(value, fake);
     }

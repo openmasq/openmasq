@@ -81,6 +81,8 @@ export function stripVaultForLocal(c: Conversation): Conversation {
   // fakes, it inverts the mapping by dictionary. It lives in the encrypted DB with the
   // vault, never in the plaintext localStorage mirror.
   delete rest.redactionSalt;
+  // The key is the same material, and more of it: it IS the mapping.
+  delete rest.redactionKey;
   delete rest.forcedRedactions;
   delete rest.fileRedactions;
   if (hasModelContent || hasSpans || hasSkillPrompt || hasWorkflowPrompt || hasReasoning) {

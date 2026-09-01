@@ -1,4 +1,4 @@
-import { hashString, fakeToken } from "./primitives";
+import { hashString, fakeToken, seedFrom } from "./primitives";
 import { isStopword } from "../stopwords";
 import { isCountry } from "../../engine/geo/countries";
 import { isNotoriousEntity } from "../notorious";
@@ -25,7 +25,7 @@ import { isNotoriousEntity } from "../notorious";
  * back with that segment still scrambled (`/Users/julien/xMxQrqR`), i.e. a path that
  * does not exist. Pinned by `../../__cases__/paths.test.ts`.
  */
-export function fakePath(value: string, attempt = 0): string {
+export function fakePath(value: string, attempt = 0, convKey?: Uint8Array): string {
   const { head, ext, parts } = splitPath(value);
   // Nothing distinctive to hide (a path made only of common folder words) ⇒ fake
   // everything as before, so the candidate can never come out EQUAL to the real
@@ -109,6 +109,7 @@ export function splitPath(value: string): { head: string; ext: string; parts: st
  *  so the SAME segment in a different casing (`Julien` vs `julien` on a case-insensitive
  *  filesystem) yields the SAME fake — one identity, so an agent still sees two references
  *  as the same file/folder instead of two unrelated fake paths. */
-export function fakePathSegment(seg: string, attempt = 0): string {
-  return fakeToken(seg, (hashString(seg.toLowerCase()) + attempt * 7919) >>> 0);
+export function fakePathSegment(seg: string, attempt = 0, convKey?: Uint8Array): string {
+  const norm = seg.toLowerCase();
+  return fakeToken(seg, seedFrom(convKey, `path:${attempt}`, norm, (hashString(norm) + attempt * 7919) >>> 0));
 }

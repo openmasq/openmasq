@@ -40,6 +40,21 @@ export interface Conversation {
    */
   redactionSalt?: number;
   /**
+   * PER-CONVERSATION KEY (32 CSPRNG bytes, hex) for the value→fake mapping — what
+   * `redactionSalt` should have been. Every seed becomes `HMAC-SHA256(key, category ‖
+   * value)`, so a known (value, fake) pair reveals nothing about any other value, which
+   * an additive shift over a public hash could never claim.
+   *
+   * Minted on the first redacting send and then fixed, exactly like the salt. A
+   * conversation that predates it keeps its salt AND gets a key: its already-vaulted
+   * values keep their fakes (the vault holds them), only NEW values use the key — so
+   * nothing has to be migrated and no reversibility is lost.
+   *
+   * At rest it is treated like the vault: encrypted DB only, stripped from the plaintext
+   * localStorage mirror (`send/sendGuards.ts`).
+   */
+  redactionKey?: string;
+  /**
    * WHAT THE MODEL SEES instead of a sensitive value, PINNED on the conversation:
    * `"fake"` (default) a plausible fake, `"token"` an opaque marker (`[PERSON1]`).
    * The global setting only decides at the CREATION of the first redaction; after that

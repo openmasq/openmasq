@@ -32,7 +32,7 @@ export interface AllocateCtx {
   resolveEntityFakeCI: (real: string) => string | undefined;
   collidesAvoid: (c: string) => boolean;
   /** Per-conversation secret shift for the value→fake mapping (0 = legacy deterministic). */
-  salt: number;
+  salt: number; convKey?: Uint8Array;
   notorietyCommercial?: boolean; // commercial notoriety: email fakes KEEP a notorious domain
 }
 
@@ -46,7 +46,7 @@ export interface AllocateCtx {
 export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void {
   const {
     vault, reverse, taken, entityValues, entityCanon, record, input, geoFakes, geoAnchors,
-    resolveFakeCI, resolveEntityFakeCI, collidesAvoid, salt,
+    resolveFakeCI, resolveEntityFakeCI, collidesAvoid, salt, convKey,
   } = ctx;
   // No word may serve two identities (see fakeWordIndex.ts — the «Ajaccio»/«Rouen»/«hugo»
   // incident): seeded from the fakes already in the vault (a PREVIOUS pass on the same
@@ -198,13 +198,13 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
           const seed = resolveEntityFakeCI(value);
           if (seed !== undefined && accept(recaseLike(seed, value))) base = seed;
           for (let b = 0; base === undefined && b < 60; b++) {
-            const cand = fakeFor(category, value, b, country, salt, geoAnchors);
+            const cand = fakeFor(category, value, b, country, salt, geoAnchors, convKey);
             if (accept(recaseLike(cand, value))) base = cand;
           }
           if (base !== undefined) entityCanon.set(entityKeyStr, base);
         }
-        candidate = base !== undefined ? recaseLike(base, value) : fakeFor(category, value, a, country, salt, geoAnchors);
-      } else candidate = fakeFor(category, value, a, country, salt, geoAnchors);
+        candidate = base !== undefined ? recaseLike(base, value) : fakeFor(category, value, a, country, salt, geoAnchors, convKey);
+      } else candidate = fakeFor(category, value, a, country, salt, geoAnchors, convKey);
       if (accept(candidate)) {
         fake = candidate;
         if (isPath) pathPairs = buildFakePath(value, a, salt).pairs;
@@ -226,7 +226,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       // on an off-shape input (fakeDigits on a digitless "phone"), and emitting THAT
       // ships the real value verbatim inside its own "fake".
       for (let k = 0; !fake && k < 40; k++) {
-        const raw = fakeFor(category, value, k, country, salt, geoAnchors);
+        const raw = fakeFor(category, value, k, country, salt, geoAnchors, convKey);
         if (!raw || raw.toLowerCase().includes(value.toLowerCase())) continue;
         if (!taken.has(raw) && raw !== value && !input.includes(raw) && !fakeIndex.clashes(raw, value)) {
           fake = raw;

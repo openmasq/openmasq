@@ -95,6 +95,7 @@ import {
 } from "../state/storePersistence";
 import { isNerWarmed, markNerWarmed } from "../state/redaction/nerWarm";
 import { BRAND } from "@openmasq/branding";
+import { mintRedactionKey } from "./redactionKey";
 
 // The three MODULE constants only the send consumed — moved along with it.
 // The tool NARRATOR's instruction (the "Searching…" phrase from the loader).
@@ -590,13 +591,17 @@ export function createSendMessage(d: SendMessageDeps) {
       // the optimistic bubble is already on screen, and unwinding without resolving it
       // would leave the turn spinning forever; the throw then unwinds the rest of the
       // send (ChatView treats a thrown send as already-handled, no banner).
-      if (conv.redactionSalt == null && typeof globalThis.crypto?.getRandomValues !== "function") {
-        const reason = "générateur aléatoire indisponible (salt de redaction)";
+      const needsMint = conv.redactionSalt == null || conv.redactionKey == null;
+      if (needsMint && typeof globalThis.crypto?.getRandomValues !== "function") {
+        const reason = "générateur aléatoire indisponible (clé de redaction)";
         failTurn(new RedactionUnavailableError(reason).message);
         throw new RedactionUnavailableError(reason);
       }
       const redactionSalt =
         conv.redactionSalt ?? ((globalThis.crypto.getRandomValues(new Uint32Array(1))[0] & 0x7fffffff) || 1);
+      // The KEY the generators draw from. Minted now for a conversation that predates it:
+      // the vault holds the fakes already seen, so only NEW values take the keyed path.
+      const redactionKey = conv.redactionKey ?? mintRedactionKey();
       // What the MODEL sees: a believable fake (default) or a `[PERSON1]`-style marker.
       // Like the salt, the mode is pinned on the CONVERSATION at the first redaction and the
       // global setting no longer decides afterwards: switching mid-way, the history replayed
@@ -821,7 +826,7 @@ export function createSendMessage(d: SendMessageDeps) {
       const engineCtx = buildSendEngineContext({
         disabledKinds, keep: keepList, connected: keepListRef.current,
         unrevealableCategories: orgProfileRef.current?.forcedCategories,
-        avoid: avoidList, kinds: convKinds, salt: redactionSalt,
+        avoid: avoidList, kinds: convKinds, salt: redactionSalt, key: redactionKey,
         mode: redactionMode, commercialNotoriety, peopleNotoriety,
       });
       // MÉMOIRE — cross-conversation durable facts. Runs BEFORE the user-message pass
@@ -1169,6 +1174,7 @@ export function createSendMessage(d: SendMessageDeps) {
         ),
         redactionVault: vault,
         redactionSalt,
+        redactionKey,
         redactionMode,
         // Persist each redacted value's FINE category into the conversation-level
         // map too — not just onto the message. The Audit tab + privacy breakdown
@@ -1901,6 +1907,7 @@ export function createSendMessage(d: SendMessageDeps) {
                 ...c,
                 redactionVault: { ...vault },
                 redactionSalt,
+                redactionKey,
                 redactionMode,
                 redactionKinds: { ...c.redactionKinds, ...toolKinds },
                 messages: c.messages.map((m) =>
@@ -2031,6 +2038,7 @@ export function createSendMessage(d: SendMessageDeps) {
               ...c,
               redactionVault: { ...vault },
               redactionSalt,
+              redactionKey,
               redactionMode,
               // Persist the categories learned from tool-result/document redaction so
               // those values get their per-type colour (not the red fallback).
@@ -2053,6 +2061,7 @@ export function createSendMessage(d: SendMessageDeps) {
               ...c,
               redactionVault: { ...vault },
               redactionSalt,
+              redactionKey,
               redactionMode,
               redactionKinds: { ...c.redactionKinds, ...toolKinds },
               updatedAt: Date.now(),

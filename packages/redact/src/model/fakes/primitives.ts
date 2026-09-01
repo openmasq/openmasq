@@ -1,3 +1,4 @@
+import { prfSeed } from "./prf";
 // Low-level deterministic string generators shared by the entity/path/dispatch fakers.
 // All are pure functions of the value (stable within a run). A fake preserves LENGTH and
 // layout by construction — that is the point of `fitLen` — so it leaks the value's SHAPE.
@@ -8,6 +9,27 @@ export function hashString(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0;
   return Math.abs(h);
+}
+
+/**
+ * The seed a generator draws from, keyed when the conversation has a key.
+ *
+ * With a key the seed is `HMAC(key, tag ‖ normalized)`: unpredictable without the key, so
+ * one known (value, fake) pair says nothing about any other value. Without one it is the
+ * LEGACY expression, byte for byte — the caller passes it in, so a conversation minted
+ * before keys keeps every fake it already has.
+ *
+ * `normalized` is the generator's OWN normal form (digits only, compact id, lowercased
+ * segment…). That is what makes one number written two ways keep one fake, and it must
+ * stay the generator's business: only it knows which differences are spelling.
+ */
+export function seedFrom(
+  key: Uint8Array | undefined,
+  tag: string,
+  normalized: string,
+  legacy: number,
+): number {
+  return key ? prfSeed(key, tag, normalized) : legacy;
 }
 
 export function pick<T>(arr: T[], n: number): T {
@@ -32,7 +54,7 @@ export function rehash(h: number): number {
 }
 
 /** Replace each digit of `value` with a deterministic different one, keeping shape. */
-export function fakeDigits(value: string, salt: number): string {
+export function fakeDigits(value: string, salt: number, convKey?: Uint8Array): string {
   // A WRAPPED value (the spaced rules tolerate one mid-value line break) must NOT
   // mirror its newline into the FAKE: a model normalises line breaks when echoing,
   // and a reformatted fake no longer reverse-maps — so the fake is laid out
@@ -48,7 +70,10 @@ export function fakeDigits(value: string, salt: number): string {
   // FULLWIDTH digits (０-９, CJK documents) swap within their own width class — an
   // ASCII digit in a fullwidth id would read broken AND the identity pass-through
   // guard would otherwise kick the value to the neutral fallback.
-  const h = hashString(flat.replace(/[^\d０-９]/g, "").replace(/[０-９]/g, (c) => String(c.charCodeAt(0) - 0xff10))) + salt;
+  const digitsOnly = flat
+    .replace(/[^\d０-９]/g, "")
+    .replace(/[０-９]/g, (c) => String(c.charCodeAt(0) - 0xff10));
+  const h = seedFrom(convKey, `digits:${salt}`, digitsOnly, hashString(digitsOnly) + salt);
   let i = 0;
   return flat.replace(/[\d０-９]/g, (d) => {
     const full = d >= "０";

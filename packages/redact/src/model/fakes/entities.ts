@@ -7,7 +7,7 @@ import {
   firstNamePool,
   type FakePlace,
 } from "./pools";
-import { hashString, pick, rehash, fitLen, fakeToken, fakeDigits, luhnCheckDigit, mod97 } from "./primitives";
+import { hashString, pick, rehash, fitLen, fakeToken, fakeDigits, luhnCheckDigit, mod97, seedFrom } from "./primitives";
 import { ribKey } from "./checksummed/index";
 
 /** A real city name, preferring one of the SAME length as the original (no padding).
@@ -148,8 +148,8 @@ export function fakeDate(value: string, category: string, seed: number): string 
  * swapped digits independently and produced OUT-OF-RANGE octets (`127` → `313`,
  * `973`) — an obviously broken "IP" that also leaked that the original was one.
  */
-export function fakeIp(value: string, salt: number): string {
-  const h = hashString(value) + salt;
+export function fakeIp(value: string, salt: number, convKey?: Uint8Array): string {
+  const h = seedFrom(convKey, `ip:${salt}`, value, hashString(value) + salt);
   if (value.includes(":")) {
     let i = 0;
     return value.replace(/[0-9A-Fa-f]+/g, (grp) =>
@@ -166,7 +166,6 @@ export function fakeIp(value: string, salt: number): string {
     const min = width >= 3 ? 100 : width === 2 ? 10 : first ? 1 : 0;
     const max = width >= 3 ? (first ? 223 : 255) : width === 2 ? 99 : 9;
     const span = max - min + 1;
-    // Seed + position only — never the real octet (`fakeDigits` says why).
     let n = min + (rehash(h ^ Math.imul(i++ + 1, 0x85ebca6b)) % span);
     if (n === Number(oct)) n = min + ((n - min + 1) % span); // guarantee it differs
     if (first && n === 127) n = 128; // loopback
@@ -180,8 +179,8 @@ export function fakeIp(value: string, salt: number): string {
  * tool/agent that validates — and invites a model to "correct" it, which breaks
  * reversibility. Layout/separators preserved; guaranteed to differ from the original.
  */
-export function fakeCard(value: string, salt: number): string {
-  const swapped = fakeDigits(value, salt);
+export function fakeCard(value: string, salt: number, convKey?: Uint8Array): string {
+  const swapped = fakeDigits(value, salt, convKey);
   const digits = swapped.replace(/\D/g, "");
   if (digits.length < 12) return swapped; // not PAN-shaped — leave the plain swap
   // Keep the MII (first digit): the NETWORK is a derived attribute like a
@@ -205,13 +204,14 @@ export function fakeCard(value: string, salt: number): string {
  * then the two check digits are recomputed so mod-97 passes. Same rationale as
  * `fakeCard`; layout/spacing preserved.
  */
-export function fakeIban(value: string, salt: number): string {
+export function fakeIban(value: string, salt: number, convKey?: Uint8Array): string {
   const compact = value.replace(/\s/g, "");
   if (!/^[A-Za-z]{2}\d{2}[A-Za-z0-9]{8,}$/.test(compact)) return fakeDigits(value, salt);
   const cc = compact.slice(0, 2).toUpperCase();
   // Swap the BBAN's digits with fakeDigits' own mixing (digits-only seed).
   const bbanReal = compact.slice(4);
-  const h = hashString(bbanReal.replace(/\D/g, "")) + salt;
+  const bbanD = bbanReal.replace(/\D/g, "");
+  const h = seedFrom(convKey, `iban:${salt}`, bbanD, hashString(bbanD) + salt);
   let i = 0;
   let bban = bbanReal.replace(/\d/g, (d) => String((h + i++ * 7 + Number(d) + 3) % 10));
   if (bban === bbanReal) bban = bbanReal.replace(/\d/, (d) => String((Number(d) + 1) % 10));
@@ -247,7 +247,7 @@ export function fakeIban(value: string, salt: number): string {
  * Guaranteed to differ from the original. Shapes with no recognisable prefix fall back
  * to the plain digit swap — nothing leaks either way.
  */
-export function fakePhone(value: string, salt: number): string {
+export function fakePhone(value: string, salt: number, convKey?: Uint8Array): string {
   const digits = value.replace(/\D/g, "");
   // How many leading DIGITS to preserve: +CC / 00CC keeps the country code plus the
   // first national digit; a national 0X keeps the two-digit class. Else nothing.
@@ -259,7 +259,7 @@ export function fakePhone(value: string, salt: number): string {
   if (keep >= digits.length) return fakeDigits(value, salt); // degenerate — swap all
   // Mix the subscriber part exactly like fakeDigits (same seed recipe: digits-only +
   // salt), then re-lay the digits under the ORIGINAL layout, preserved verbatim.
-  const h = hashString(digits) + salt;
+  const h = seedFrom(convKey, `phone:${salt}`, digits, hashString(digits) + salt);
   let i = 0;
   let n = 0;
   let out = value.replace(/[ \t]*\r?\n[ \t]*/g, " ").replace(/\d/g, (d) => {

@@ -34,6 +34,8 @@ export interface SendEngineContext {
   avoid?: string[];
   kinds: Record<string, string>;
   salt: number;
+  /** Per-conversation key (hex) for the value→fake mapping. See `Conversation.redactionKey`. */
+  key?: string;
   mode: "fake" | "token";
   commercialNotoriety: boolean;
   peopleNotoriety: boolean;
