@@ -3,6 +3,7 @@ import { mkdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import { launchApp } from "./helpers";
 import { supabaseAuthStorageKey } from "./supabaseAuthKey";
+import { stubSupabaseAuth } from "./supabaseStub";
 
 /**
  * SMOKE test for changing models — the most frequent gesture after "send", and the
@@ -28,6 +29,11 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
     if (m.type() === "error" && /ErrorBoundary|is not a function/.test(m.text()))
       errors.push(m.text().slice(0, 400));
   });
+  // Le réseau Supabase est neutralisé AVANT le semis + le reload : sur un build
+  // CONFIGURÉ (release.yml), supabase-js rafraîchirait le jeton "fake" contre le vrai
+  // projet, recevrait un refus et purgerait la session — écran de connexion, et le
+  // bouton attendu plus bas n'existe jamais (`supabaseStub.ts` raconte la panne).
+  await stubSupabaseAuth(page);
   await page.evaluate((authKey) => {
     const future = Math.floor(Date.now() / 1000) + 3600;
     localStorage.setItem(authKey, JSON.stringify({
