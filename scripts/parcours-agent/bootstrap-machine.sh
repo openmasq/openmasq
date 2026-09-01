@@ -1,22 +1,22 @@
 #!/bin/bash
-# Prépare une machine macOS NUE à héberger le parcours-agent, et rien d'autre.
+# Prepares a BARE macOS machine to host the parcours-agent, and nothing else.
 #
-# Idempotent : on peut le relancer. Il ne suppose ni Homebrew, ni Xcode, ni Node — c'est le
-# point : la machine cible est un Mac de bureau ordinaire, laissé allumé et connecté.
+# Idempotent: it can be re-run. It assumes neither Homebrew, nor Xcode, nor Node — that is
+# the point: the target machine is an ordinary desktop Mac, left on and connected.
 #
-# ⚠️ Il exige une session graphique OUVERTE (l'agent pilote une vraie fenêtre Electron) et
-# le mot de passe de l'utilisateur pour les Command Line Tools. Il n'écrit AUCUN secret :
-# le jeton GitHub et les identifiants Claude Code s'installent depuis la machine de dev,
-# par un tube ssh, jamais par ce script (voir le README à côté).
+# ⚠️ It requires an OPEN graphical session (the agent drives a real Electron window) and the
+# user's password for the Command Line Tools. It writes NO secret: the GitHub token and the
+# Claude Code credentials are installed from the dev machine, through an ssh pipe, never by
+# this script (see the README next to it).
 set -euo pipefail
 
 DEPOT="${OPENMASQ_REPO:-$HOME/openmasq/redact}"
-NODE_V="${OPENMASQ_NODE_VERSION:-v22.23.2}"   # macOS 12 : Node 24+ ne s'y installe pas
+NODE_V="${OPENMASQ_NODE_VERSION:-v22.23.2}"   # macOS 12: Node 24+ will not install on it
 etape() { printf '\n\033[1m▸ %s\033[0m\n' "$*"; }
 
 etape "Command Line Tools (git, clang, python3 — tout en dépend)"
 if ! /usr/bin/xcrun --version >/dev/null 2>&1; then
-  # La ruse Apple : ce fichier fait apparaître les CLT dans `softwareupdate -l`.
+  # The Apple trick: this file makes the CLT appear in `softwareupdate -l`.
   sudo touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
   LABEL=$(softwareupdate -l 2>/dev/null | grep -o 'Command Line Tools for Xcode-[0-9.]*' | tail -1)
   [ -n "$LABEL" ] || { echo "aucun paquet CLT proposé — installer Xcode à la main"; exit 1; }
@@ -33,9 +33,9 @@ if [ "$($HOME/.local/node/bin/node -v 2>/dev/null)" != "$NODE_V" ]; then
   rm -rf "$HOME/.local/node" && tar -xzf /tmp/node.tgz -C "$HOME/.local"
   mv "$HOME/.local/node-$NODE_V-darwin-$ARCH" "$HOME/.local/node" && rm -f /tmp/node.tgz
 fi
-# `.zshrc`/`.bashrc` AUTANT que les profils de connexion : `ssh <machine> 'pnpm …'` ouvre un
-# shell NON-login, qui ne lit QUE le rc — sans lui la machine répond « pnpm: command not
-# found » alors que pnpm est installé, et rien dans le message ne désigne le PATH.
+# `.zshrc`/`.bashrc` AS MUCH as the login profiles: `ssh <machine> 'pnpm …'` opens a
+# NON-login shell, which reads ONLY the rc — without it the machine answers « pnpm: command
+# not found » while pnpm is installed, and nothing in the message points at the PATH.
 for RC in "$HOME/.zprofile" "$HOME/.profile" "$HOME/.zshrc" "$HOME/.bashrc"; do
   grep -q '.local/node/bin' "$RC" 2>/dev/null ||
     printf '%s\n' 'case ":$PATH:" in *":$HOME/.local/node/bin:"*) ;; *)' \
@@ -51,14 +51,14 @@ mkdir -p "$(dirname "$DEPOT")"
 cd "$DEPOT" && git fetch origin && git checkout staging && git pull --ff-only
 
 etape "Dépendances"
-# ⚠️ Ne JAMAIS toucher au `.npmrc` du dépôt : il est SUIVI et porte `node-linker=hoisted`,
-# dont tout dépend. Aucun paquet ne déclare `@types/node` — ils le résolvent par le
-# hissage — donc sans lui le build des `dist/` casse sur « Cannot find name 'process' »,
-# à un endroit qui ne ressemble pas du tout à sa cause.
+# ⚠️ NEVER touch the repo's `.npmrc`: it is TRACKED and carries `node-linker=hoisted`, on
+# which everything depends. No package declares `@types/node` — they resolve it through the
+# hoisting — so without it the `dist/` build breaks on « Cannot find name 'process' », in a
+# place that looks nothing like its cause.
 pnpm install --frozen-lockfile
-# Le script d'install d'Electron ne rejoue pas quand le paquet est déjà dans le magasin :
-# on le force, sinon `dist/Electron.app` manque et le pilote échoue au lancement — sans que
-# `pnpm install` ait signalé quoi que ce soit.
+# Electron's install script does not replay when the package is already in the store: we
+# force it, otherwise `dist/Electron.app` is missing and the driver fails at launch — with
+# `pnpm install` having signalled nothing at all.
 [ -d node_modules/electron/dist ] || node node_modules/electron/install.js
 
 etape "Build de l'app (les paquets d'abord — le build d'app consomme leur dist/)"
@@ -68,9 +68,8 @@ test -f apps/desktop/out/main/index.js
 etape "Claude Code + GitHub CLI"
 command -v claude >/dev/null || npm i -g @anthropic-ai/claude-code
 claude --version
-# `gh` depuis les releases OFFICIELLES du projet (jamais un miroir) : sans lui l'agent
-# corrige et commite, puis n'a aucun moyen de rendre la PR — le travail reste sur une
-# branche que personne ne regarde.
+# `gh` from the project's OFFICIAL releases (never a mirror): without it the agent fixes and
+# commits, then has no way to hand back the PR — the work stays on a branch nobody looks at.
 if ! command -v gh >/dev/null; then
   ARCHGH=$([ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64)
   V=$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest | grep -m1 '"tag_name"' | sed 's/.*: *"v\([^"]*\)".*/\1/')
@@ -81,12 +80,12 @@ fi
 gh --version | head -1
 
 etape "tmux (console attachable de la session)"
-# `run.sh` fait tourner la session DANS tmux pour qu'on puisse s'y brancher pendant qu'elle
-# travaille. macOS ne le fournit pas et cette machine n'a ni Homebrew ni sudo : on le
-# construit depuis les tarballs OFFICIELS des deux projets, sha256 épinglés (règle 7).
-# ⚠️ Deux pièges qui ont coûté du temps : un `configure` avorté salit l'arbre de libevent
-# (« EVENT__VERSION undeclared ») — d'où la ré-extraction systématique ; et tmux ≥ 3.4
-# REFUSE de configurer sans `--enable-utf8proc` ou `--disable-utf8proc` explicite.
+# `run.sh` runs the session IN tmux so that one can plug into it while it works. macOS does
+# not ship it and this machine has neither Homebrew nor sudo: we build it from the two
+# projects' OFFICIAL tarballs, sha256 pinned (rule 7).
+# ⚠️ Two traps that cost time: an aborted `configure` dirties the libevent tree
+# (« EVENT__VERSION undeclared ») — hence the systematic re-extraction; and tmux ≥ 3.4
+# REFUSES to configure without an explicit `--enable-utf8proc` or `--disable-utf8proc`.
 if ! command -v tmux >/dev/null; then
   LIBEVENT_SHA=92e6de1be9ec176428fd2367677e61ceffc2ee1cb119035037a27d346b0403bb
   TMUX_SHA=16216bd0877170dfcc64157085ba9013610b12b082548c7c9542cc0103198951

@@ -283,11 +283,11 @@ function writeHost() {
 }
 
 describe("runMcpAgentLoop — « Rédige un email » n'ENVOIE jamais (comportement, journal 2026-07-26)", () => {
-  // Le scénario réel : l'utilisateur demande « Rédige un email de remerciement à
-  // nathan@hotmail.fr. », le modèle (faible) appelle gmail__send_email au lieu de
-  // présenter un brouillon — et en mode de confirmation `standard` (aucune carte
-  // tant que la conversation n'a pas touché le web), l'email PARTAIT sur-le-champ.
-  // La boucle doit refuser l'envoi DÉTERMINISTIQUEMENT, quel que soit le mode.
+  // The real scenario: the user asks « Rédige un email de remerciement à
+  // nathan@hotmail.fr. », the (weak) model calls gmail__send_email instead of
+  // presenting a draft — and in the `standard` confirmation mode (no card as long as
+  // the conversation has not touched the web), the email LEFT on the spot.
+  // The loop must refuse the send DETERMINISTICALLY, whatever the mode.
   function gmailHost() {
     const callTool = vi.fn(async () => ({ content: [{ type: "text" as const, text: "Email envoyé" }] }));
     const turns: CompleteToolsResult[] = [
@@ -334,8 +334,8 @@ describe("runMcpAgentLoop — « Rédige un email » n'ENVOIE jamais (comporteme
     const { host, callTool, completeTools } = gmailHost();
     const handled = await runMcpAgentLoop(params(host, "Rédige un email de remerciement à nathan@hotmail.fr."));
     expect(handled).toBe(true);
-    expect(callTool).not.toHaveBeenCalled(); // l'email n'est JAMAIS parti
-    // Le tour suivant du modèle reçoit le steer à la place du résultat d'envoi.
+    expect(callTool).not.toHaveBeenCalled(); // the email NEVER went out
+    // The model's next turn receives the steer in place of the send result.
     const secondPayload = (completeTools.mock.calls.at(-1) as unknown[])[0] as { messages: { role: string; toolCallId?: string; content: string }[] };
     const toolMsg = secondPayload.messages.find((m) => m.role === "tool" && m.toolCallId === "g1");
     expect(toolMsg?.content).toContain("RÉDIGER");
@@ -351,12 +351,12 @@ describe("runMcpAgentLoop — « Rédige un email » n'ENVOIE jamais (comporteme
 });
 
 describe("runMcpAgentLoop — « Prépare ma journée » ne CRÉE jamais (comportement, journal 2026-07-27)", () => {
-  // Le scénario réel : l'utilisateur lance le workflow « Préparer ma journée » (une
-  // demande de LECTURE : « Mes rendez-vous dans l'ordre, avec les participants et le
-  // lieu »), et le modèle — sans avoir lu l'agenda une seule fois — appelle
-  // `create_event` et pose dans l'agenda RÉEL un événement inventé de bout en bout.
-  // En mode `standard` (le défaut) aucune carte ne s'ouvre pour une écriture ordinaire
-  // tant que la conversation n'a pas touché le web : la création partait en silence.
+  // The real scenario: the user launches the « Préparer ma journée » workflow (a READ
+  // request: « Mes rendez-vous dans l'ordre, avec les participants et le lieu »), and
+  // the model — without having read the calendar once — calls `create_event` and puts
+  // an event invented from end to end into the REAL calendar.
+  // In `standard` mode (the default) no card opens for an ordinary write as long as the
+  // conversation has not touched the web: the creation went out in silence.
   const READ_ONLY_ASK =
     "Prépare ma journée du 27 juillet.\n\n" +
     "1. Mes rendez-vous dans l'ordre, avec les participants et le lieu.\n" +
@@ -446,10 +446,10 @@ describe("runMcpAgentLoop — « Prépare ma journée » ne CRÉE jamais (compor
     expect(callTool).toHaveBeenCalledTimes(1);
   });
 
-  /* Journal du 15/08 : « regarde sur posthog l'activité récente ». `execute-sql` porte
-     « execute » (WRITE_VERB) et ce test PRÉCÈDE l'annotation dans le classifieur — il
-     était donc refusé d'office, et l'unique outil capable de répondre devenait
-     inatteignable pour TOUTE demande de lecture. Neuf tours, ~170 000 jetons, rien. */
+  /* Log of 15/08: « regarde sur posthog l'activité récente ». `execute-sql` carries
+     « execute » (WRITE_VERB) and this test PRECEDES the annotation in the classifier — it
+     was therefore refused outright, and the only tool able to answer became unreachable
+     for ANY read request. Nine turns, ~170,000 tokens, nothing. */
   function sqlHost() {
     const callTool = vi.fn(async () => ({ content: [{ type: "text" as const, text: "1200 app_open" }] }));
     const turns: CompleteToolsResult[] = [
@@ -541,9 +541,9 @@ describe("runMcpAgentLoop — code interpreter (run_python)", () => {
   });
 
   it("onPythonScript reçoit le code WIRE (pré-fromWire) sur un run RÉUSSI — jamais sur un échec", async () => {
-    // Le script conservé doit rester en forme WIRE (fakes) : c'est lui qui est rejoué
-    // dans l'historique modèle (`Message.pythonScript`) — la version UN-redacted ne
-    // sort du chemin sandbox que via le seed `analyse.py` (dérivé côté store).
+    // The kept script must stay in WIRE form (fakes): it is what gets replayed in the
+    // model history (`Message.pythonScript`) — the UN-redacted version only leaves the
+    // sandbox path through the `analyse.py` seed (derived on the store side).
     const { host } = pyHost();
     const runPython = vi.fn(async () => ({ ok: true, stdout: "ok", stderr: "", images: [], files: [] }));
     const onPythonScript = vi.fn();
@@ -565,12 +565,12 @@ describe("runMcpAgentLoop — code interpreter (run_python)", () => {
       onPythonScript: onPythonScriptFail,
       redactResult: async (t: string) => t,
     });
-    expect(onPythonScriptFail).not.toHaveBeenCalled(); // un script en échec n'est pas une base de travail
+    expect(onPythonScriptFail).not.toHaveBeenCalled(); // a failed script is no basis to work from
   });
 
   it("un `code` VIDE ne s'exécute pas : erreur explicite au modèle, sandbox jamais appelée", async () => {
-    // Mesuré en éval (ling) : `run_python({})` émis en boucle — exécuter du vide
-    // renvoyait un succès muet que le modèle ré-émettait (5 tours perdus).
+    // Measured in eval (ling): `run_python({})` emitted in a loop — running nothing
+    // returned a silent success that the model re-emitted (5 turns lost).
     const turns: CompleteToolsResult[] = [
       { text: "", toolCalls: [{ id: "p1", name: "run_python", arguments: {} }], stopReason: "tool_calls" },
       { text: "compris, voici le script complet", toolCalls: [], stopReason: "stop" },
@@ -581,7 +581,7 @@ describe("runMcpAgentLoop — code interpreter (run_python)", () => {
     const handled = await runMcpAgentLoop({ ...base(host), runPython, redactResult: async (t: string) => t });
     expect(handled).toBe(true);
     expect(runPython).not.toHaveBeenCalled();
-    // Le résultat d'outil renvoyé au modèle nomme le problème + la consigne (script ENTIER).
+    // The tool result handed back to the model names the problem + the instruction (WHOLE script).
     const second = (completeTools.mock.calls as unknown[][])[1]?.[0] as { messages: { role: string; content?: string }[] } | undefined;
     const toolLeg = second?.messages.find((m) => m.role === "tool");
     expect(String(toolLeg?.content)).toMatch(/`code` est manquant ou vide/);
@@ -704,16 +704,15 @@ describe("runMcpAgentLoop — code interpreter (run_python)", () => {
 });
 
 /**
- * ⛔ Le doublon d'Outlook (18/08). `send_email` a rendu « Unexpected end of JSON input »
- * — un `202 Accepted` VIDE de Graph, donc un mail DÉJÀ PARTI. La boucle a relancé le même
- * appel, un SECOND mail est parti, puis l'utilisateur a été informé que l'envoi avait
- * échoué. La cause est corrigée à la racine (`connectors/run.ts`), mais elle reviendra
- * sous une autre forme — un délai d'attente, une coupure après la requête — et un doublon
- * d'envoi ou de paiement ne se rattrape pas.
+ * ⛔ The Outlook duplicate (18/08). `send_email` returned « Unexpected end of JSON input »
+ * — an EMPTY `202 Accepted` from Graph, so a mail ALREADY SENT. The loop retried the same
+ * call, a SECOND mail went out, then the user was told the send had failed. The cause is
+ * fixed at the root (`connectors/run.ts`), but it will come back in another form — a
+ * timeout, a cut after the request — and a duplicated send or payment cannot be undone.
  *
- * L'invariant : dès le PREMIER échec d'une ÉCRITURE, le résultat rendu au modèle lui dit
- * que l'échec ne prouve rien et qu'il ne doit pas rejouer. Une LECTURE, elle, se rejoue
- * sans risque — la note générique « déjà renvoyé 2 fois » lui suffit.
+ * The invariant: from the FIRST failure of a WRITE, the result handed to the model tells
+ * it that the failure proves nothing and that it must not replay. A READ, on the other
+ * hand, replays without risk — the generic note « déjà renvoyé 2 fois » is enough for it.
  */
 describe("runMcpAgentLoop — une écriture qui échoue ne se rejoue pas", () => {
   function failingHost(toolName: string, description: string) {
@@ -1121,12 +1120,12 @@ describe("runMcpAgentLoop — live-derived operation fallback", () => {
 
 describe("exhaustionMessage — une PANNE d'outil n'accuse pas le modèle", () => {
   /**
-   * Journal du 04/08 : `gmail__get_message` a échoué douze fois (404 notFound) sur des
-   * identifiants DIFFÉRENTS, et l'utilisateur a lu « le modèle relançait le même appel
-   * au lieu de changer d'approche », suivi de « essayez un modèle plus capable » et
-   * « vérifiez que le connecteur expose bien l'action ». Les trois étaient faux : le
-   * modèle avait varié ses appels, le connecteur exposait l'action (d'autres appels ont
-   * abouti), et aucun modèle ne répare un 404.
+   * Log of 04/08: `gmail__get_message` failed twelve times (404 notFound) on DIFFERENT
+   * identifiers, and the user read « le modèle relançait le même appel au lieu de
+   * changer d'approche », followed by « essayez un modèle plus capable » and « vérifiez
+   * que le connecteur expose bien l'action ». All three were false: the model had varied
+   * its calls, the connector did expose the action (other calls succeeded), and no model
+   * repairs a 404.
    */
   const base = {
     callCounts: new Map([["gmail__get_message", 12]]),
@@ -1149,7 +1148,7 @@ describe("exhaustionMessage — une PANNE d'outil n'accuse pas le modèle", () =
     expect(msg).toContain("sur des entrées différentes");
     expect(msg).toContain("c'est l'outil qui ne répond pas");
     expect(msg).toContain("404");
-    // Les trois conseils faux ont disparu.
+    // The three false pieces of advice are gone.
     expect(msg).not.toContain("relançait le même appel");
     expect(msg).not.toContain("modèle plus capable");
     expect(msg).not.toContain("expose bien l'action");
@@ -1187,8 +1186,8 @@ describe("exhaustionMessage", () => {
       succeeded: new Set(["stripe__stripe_api_search"]),
     });
     expect(msg).toContain("Limite d'appels d'outils atteinte (8 tours, 7 appels)");
-    // L'outil est NOMMÉ, mais dans la langue du produit : `stripe__stripe_api_search`
-    // ne désigne rien pour qui lit ce message (13/08).
+    // The tool is NAMED, but in the product's language: `stripe__stripe_api_search`
+    // designates nothing to whoever reads this message (13/08).
     expect(msg).toContain("(Stripe)");
     expect(msg).not.toContain("stripe__stripe_api_search");
     expect(msg).toMatch(/6 fois/); // repeats(5) + 1
@@ -1229,8 +1228,8 @@ describe("exhaustionMessage", () => {
     expect(msg).toContain("sans converger");
   });
 
-  // Une recherche web qui n'aboutit pas n'est pas une panne du modèle : le parcours
-  // était le bon. « Changez de modèle » y est un mauvais conseil.
+  // A web search that does not get there is not a model failure: the path was the right
+  // one. « Changez de modèle » is bad advice there.
   it("dit qu'une RECHERCHE s'est arrêtée, sans accuser le modèle ni suggérer d'en changer", () => {
     const msg = exhaustionMessage({
       ...base,
@@ -1253,10 +1252,10 @@ describe("exhaustionMessage", () => {
       succeeded: new Set(["posthog__exec"]),
       hammered: { tool: "posthog__exec", web: false },
     });
-    // Nommé — dans la langue du produit, jamais en `snake_case` (13/08).
+    // Named — in the product's language, never in `snake_case` (13/08).
     expect(msg).toContain("8 appels à **Exécution** (PostHog)");
     expect(msg).not.toContain("posthog__exec");
-    expect(msg).toContain("modèle plus capable"); // le conseil habituel reste
+    expect(msg).toContain("modèle plus capable"); // the usual advice stays
   });
 });
 
@@ -1435,9 +1434,9 @@ describe("runMcpAgentLoop", () => {
     // still stops despite every call being "productive". ⚠️ The tool is deliberately
     // an UNKNOWN-intent one (`exec`, not `search`): the measured hammer was
     // `execute_sql`/`run_python`, and a positively-read tool now has its own, higher
-    // cap (see the batch-of-reads case below). Depuis le défaut fail-closed (inconnu ⇒
-    // écriture, audit 2026-08-10), un tel outil CONFIRME et exige une demande d'AGIR —
-    // le scénario devient donc une écriture approuvée, et le cap doit tenir pareil.
+    // cap (see the batch-of-reads case below). Since the fail-closed default (unknown ⇒
+    // write, audit 2026-08-10), such a tool CONFIRMS and requires a request to ACT — the
+    // scenario therefore becomes an approved write, and the cap must hold just the same.
     const { host, callTool } = fakeHost(turns, "3 messages trouvés (page suivante disponible)", "posthog__exec");
     const shown: string[] = [];
     const handled = await runMcpAgentLoop({
@@ -1457,10 +1456,10 @@ describe("runMcpAgentLoop", () => {
   });
 
   it("un BATCH de lectures distinctes au-delà du cap ne tue PAS le tour (refus doux, puis réponse)", async () => {
-    // Journal 01/08 : 11 `get_file_info` distincts émis dans UNE seule réponse ; l'ancien
-    // backstop avortait le tour ENTIER au 9e appel (« ⚠️ Limite atteinte ») alors que les
-    // 8 premiers résultats suffisaient à répondre. Désormais : 8 dispatchés, les suivants
-    // refusés avec la consigne de conclure, et la réponse suivante est livrée normalement.
+    // Log 01/08: 11 distinct `get_file_info` emitted in ONE answer; the old backstop
+    // aborted the WHOLE turn on the 9th call (« ⚠️ Limite atteinte ») while the first 8
+    // results were enough to answer. Now: 8 dispatched, the following ones refused with
+    // the instruction to conclude, and the next answer is delivered normally.
     const batch: CompleteToolsResult = {
       text: "",
       toolCalls: Array.from({ length: 11 }, (_, i) => ({
@@ -1473,8 +1472,8 @@ describe("runMcpAgentLoop", () => {
     const done: CompleteToolsResult = { text: "Voici la liste complète.", toolCalls: [], stopReason: "stop" };
     const { host, callTool, seen } = fakeHost([batch, done], "3 messages trouvés", "posthog__exec");
     const shown: string[] = [];
-    // Même bascule que le test au-dessus : `exec` est désormais une écriture (défaut
-    // fail-closed) — approuvée ici, car ce test épingle le refus DOUX au-delà du cap.
+    // Same switch as the test above: `exec` is now a write (fail-closed default) —
+    // approved here, because this test pins the SOFT refusal beyond the cap.
     const handled = await runMcpAgentLoop({
       host, provider: "openai", modelId: "gpt-4o",
       history: [{ role: "user", content: "exécute la requête sur chaque page et mets à jour le rapport" }],
@@ -1485,20 +1484,20 @@ describe("runMcpAgentLoop", () => {
       confirmWrite: async () => true,
     });
     expect(handled).toBe(true);
-    expect(callTool).toHaveBeenCalledTimes(8); // le cap est dispatché, pas dépassé
+    expect(callTool).toHaveBeenCalledTimes(8); // the cap is dispatched, not exceeded
     const final = shown.join("\n");
     expect(final).toContain("Voici la liste complète.");
-    expect(final).not.toContain("Limite atteinte"); // plus d'avortement ⚠️ sur un batch
-    // Chaque appel refusé a renvoyé au MODÈLE la consigne de conclure.
+    expect(final).not.toContain("Limite atteinte"); // no more ⚠️ abort on a batch
+    // Each refused call handed the MODEL the instruction to conclude.
     const lastPayload = JSON.stringify(seen.at(-1)?.messages ?? []);
     expect(lastPayload).toContain("Limite d'appels atteinte pour `posthog__exec`");
   });
 
   it("un batch de LECTURES part en entier — c'est le contexte qui borne, pas le compte", async () => {
-    // Journal du 03/08 : « revue de ma boîte mail » → 1 recherche puis 20 `get_message`
-    // dans UNE seule réponse. Le plafond plat en refusait 12, et l'utilisateur lisait
-    // « la revue s'arrête au milieu ». Les 20 sont des lectures positivement annotées,
-    // pré-chargées EN PARALLÈLE : un seul aller-retour de chat, aucun refus.
+    // Log of 03/08: « revue de ma boîte mail » → 1 search then 20 `get_message` in ONE
+    // answer. The flat ceiling refused 12 of them, and the user read « la revue s'arrête
+    // au milieu ». The 20 are positively annotated reads, pre-loaded IN PARALLEL: a
+    // single chat round-trip, no refusal.
     const batch: CompleteToolsResult = {
       text: "",
       toolCalls: Array.from({ length: 20 }, (_, i) => ({
@@ -1526,10 +1525,10 @@ describe("runMcpAgentLoop", () => {
   });
 
   it("…mais le VOLUME des résultats, lui, coupe — sinon le tour meurt en 400", async () => {
-    // Le plafond de lecture relevé ne vaut que parce qu'un second garde-fou compte ce
-    // qui entre vraiment dans la fenêtre : 20 en-têtes tiennent, 20 pièces jointes non.
-    // Sans ce budget on échangerait un tour coupé trop tôt contre un « context length
-    // exceeded », qui coûte le tour ENTIER au lieu de sa fin.
+    // The raised read ceiling only holds because a second guard counts what really
+    // enters the window: 20 headers fit, 20 attachments do not. Without that budget we
+    // would trade a turn cut too early for a « context length exceeded », which costs
+    // the WHOLE turn instead of its end.
     const batch: CompleteToolsResult = {
       text: "",
       toolCalls: Array.from({ length: 25 }, (_, i) => ({
@@ -1540,9 +1539,9 @@ describe("runMcpAgentLoop", () => {
       stopReason: "tool_calls",
     };
     const done: CompleteToolsResult = { text: "Réponse partielle.", toolCalls: [], stopReason: "stop" };
-    // gpt-4o = 128k tokens ⇒ budget ≈ 256 000 caractères ; une vague de 10 × 60 000 le
-    // dépasse déjà, donc la seconde vague ne part pas et les 15 restants sont refusés.
-    const huge = "objet facture ".repeat(4300); // ~60 000 car.
+    // gpt-4o = 128k tokens ⇒ budget ≈ 256,000 characters; a wave of 10 × 60,000 already
+    // exceeds it, so the second wave does not go out and the remaining 15 are refused.
+    const huge = "objet facture ".repeat(4300); // ~60,000 chars.
     const { host, callTool, seen } = fakeHost([batch, done], huge, "gmail__get_message");
     const shown: string[] = [];
     const handled = await runMcpAgentLoop({
@@ -1554,18 +1553,18 @@ describe("runMcpAgentLoop", () => {
       onToolCall: () => {},
     });
     expect(handled).toBe(true);
-    // Coupé par le volume, bien avant le plafond de lecture (30) : une seule vague part.
+    // Cut by volume, well before the read ceiling (30): a single wave goes out.
     expect(callTool.mock.calls.length).toBeGreaterThan(0);
     expect(callTool.mock.calls.length).toBeLessThanOrEqual(10);
-    // …et le modèle a reçu la consigne de conclure, pas un tour avorté.
+    // …and the model received the instruction to conclude, not an aborted turn.
     expect(JSON.stringify(seen.at(-1)?.messages ?? [])).toContain("Volume de résultats maximal atteint");
     expect(shown.join("\n")).toContain("Réponse partielle.");
   });
 
-  // Le pendant du test précédent : CHERCHER n'est pas MARTELER. Une recherche web
-  // ouvre des pages successives, chacune « productive » (nouvelle URL, nouveau
-  // contenu) — le plafond plat de 8 coupait un parcours parfaitement normal, au
-  // moment où le modèle venait de trouver la bonne piste (journal du 27/07).
+  // The counterpart of the previous test: SEARCHING is not HAMMERING. A web search
+  // opens successive pages, each one « productive » (new URL, new content) — the flat
+  // ceiling of 8 cut a perfectly normal path, at the very moment the model had just
+  // found the right lead (log of 27/07).
   it("laisse une RECHERCHE web aller bien au-delà du plafond des outils ordinaires", async () => {
     const nav = (id: string, n: number): CompleteToolsResult => ({
       text: "",
@@ -1601,11 +1600,11 @@ describe("runMcpAgentLoop", () => {
       onText: (c, pending) => { if (!pending) shown.push(c); },
       onToolCall: () => {},
     });
-    // 20 = MAX_SAME_WEB_READ. Le point du test est le CONTRASTE avec 8 : un butinage
-    // stérile reste coupé par les deux autres gardes (résultats identiques, série
-    // morte), qui ne s'appliquent pas ici puisque chaque page est différente.
+    // 20 = MAX_SAME_WEB_READ. The point of the test is the CONTRAST with 8: sterile
+    // grazing is still cut by the two other guards (identical results, dead streak),
+    // which do not apply here since every page is different.
     expect(callTool).toHaveBeenCalledTimes(20);
-    // Et le message dit ce qui s'est passé, sans envoyer l'utilisateur changer de modèle.
+    // And the message says what happened, without sending the user off to change model.
     expect(shown.join("\n")).toContain("20 pages consultées");
     expect(shown.join("\n")).not.toMatch(/modèle plus capable/);
   });
@@ -1721,20 +1720,20 @@ describe("runMcpAgentLoop", () => {
   });
 
   it("une réponse FABRIQUÉE sans outil, quand la demande NOMME le connecteur, force la même relance", async () => {
-    // Le journal du 13/08 : « quels sont les utilisateurs d'intercom ? » → tableau de
-    // noms/emails/téléphones INVENTÉS, zéro appel d'outil — lu comme une fuite de
-    // redaction par l'utilisateur alors que rien n'était réel. Aucune tournure de refus,
-    // donc `looksLikeRefusal` ne mordait pas : c'est le connecteur NOMMÉ + zéro appel qui
-    // doit suffire à déclencher la relance forcée (lecture seule, opportuniste).
+    // The log of 13/08: « quels sont les utilisateurs d'intercom ? » → a table of
+    // INVENTED names/emails/phone numbers, zero tool calls — read as a redaction leak
+    // by the user when nothing was real. No refusal phrasing, so `looksLikeRefusal` did
+    // not bite: it is the NAMED connector + zero calls that must be enough to trigger
+    // the forced retry (read-only, opportunistic).
     const { host, completeTools, callTool, seen } = fakeHost(
       [
-        // Tour 1 : réponse confiante, données inventées, AUCUN appel — pas un refus.
+        // Turn 1: confident answer, invented data, NO call — not a refusal.
         {
           text: "Voici vos utilisateurs : Alice (alice@company.com), Bob (bob@example.com).",
           toolCalls: [],
           stopReason: "stop",
         },
-        // Relance forcée : l'appel réel sort.
+        // Forced retry: the real call goes out.
         {
           text: "",
           toolCalls: [{ id: "c1", name: "gmail__search", arguments: { q: "users" } }],
@@ -1763,10 +1762,10 @@ describe("runMcpAgentLoop", () => {
   });
 
   it("blames the CONNECTOR, not the model, when the refused call matched the schema", async () => {
-    // Le tour signalé (02/08/2026) : `google-calendar__list_events {"limit":10}` — un
-    // appel CONFORME (l'outil ne déclare aucun argument requis) — a reçu un 400. L'app
-    // affichait « le modèle a eu du mal (arguments invalides) » et conseillait Claude,
-    // qui aurait envoyé exactement le même appel au même refus.
+    // The reported turn (02/08/2026): `google-calendar__list_events {"limit":10}` — a
+    // CONFORMING call (the tool declares no required argument) — received a 400. The app
+    // displayed « le modèle a eu du mal (arguments invalides) » and advised Claude,
+    // which would have sent exactly the same call to the same refusal.
     const completeTools = vi.fn(async () => ({
       text: "",
       toolCalls: [
@@ -2094,13 +2093,13 @@ describe("runMcpAgentLoop", () => {
         onText: () => {},
         onToolCall: () => {},
       });
-      done.catch(() => {}); // évite l'unhandled pendant l'avance des timers
-      // Deux budgets (l'appel + son unique retry-stall soft) avant l'échec définitif.
+      done.catch(() => {}); // avoids the unhandled rejection while the timers advance
+      // Two budgets (the call + its single soft retry-stall) before the definitive failure.
       await vi.advanceTimersByTimeAsync(250_000);
-      // Sans le budget dur ceci PEND pour toujours ; avec, le stall est classé et
-      // remonte au store, qui l'humanise en bulle d'erreur (humanizeSendError).
+      // Without the hard budget this HANGS forever; with it, the stall is classified and
+      // reaches the store, which humanises it into an error bubble (humanizeSendError).
       await expect(done).rejects.toThrow(/MODEL_STALL/);
-      expect(completeTools).toHaveBeenCalledTimes(2); // l'appel + UN retry
+      expect(completeTools).toHaveBeenCalledTimes(2); // the call + ONE retry
     } finally {
       vi.useRealTimers();
     }
@@ -2252,9 +2251,9 @@ describe("runMcpAgentLoop", () => {
   });
 
   it("empty routing still ENTERS the loop with the catalog (not a fall-through)", async () => {
-    // Le texte ne nomme AUCUN connecteur — sinon le rattrapage par nom (test plus bas)
-    // chargerait les schémas et ce test mesurerait autre chose que son objet : un pick
-    // vide n'est jamais un fall-through, la boucle tourne avec catalogue + load_tools.
+    // The text names NO connector — otherwise the by-name catch-up (test below) would
+    // load the schemas and this test would measure something other than its subject: an
+    // empty pick is never a fall-through, the loop runs with catalogue + load_tools.
     const { host, completeTools, seen } = fakeHostMany(30, [routerPick([]), { text: "Je peux gérer tes sites…", toolCalls: [], stopReason: "stop" }]);
     const handled = await runMcpAgentLoop({ ...base(host), history: [{ role: "user", content: "que peux-tu faire, concrètement ?" }] });
     expect(handled).toBe(true);
@@ -2264,9 +2263,9 @@ describe("runMcpAgentLoop", () => {
     expect(main.tools?.map((t) => t.name)).toEqual(["load_tools"]); // no schema loaded, load_tools offered
   });
 
-  // Journal du 27/07/2026 : un workflow scopé à Google Agenda, « pick routeur VIDE
-  // (0/296) », et le modèle repart sans un seul outil d'agenda — il finira par inventer
-  // une écriture faute d'avoir pu lire. Le scope DÉCLARÉ rattrape le routeur.
+  // Log of 27/07/2026: a workflow scoped to Google Calendar, « pick routeur VIDE
+  // (0/296) », and the model sets off without a single calendar tool — it ends up
+  // inventing a write for lack of being able to read. The DECLARED scope catches the router.
   it("un pick VIDE n'enlève pas les outils du connecteur SCOPÉ par le workflow", async () => {
     const { host, seen } = fakeHostMany(30, [routerPick([]), { text: "voici", toolCalls: [], stopReason: "stop" }]);
     await runMcpAgentLoop({
@@ -2289,16 +2288,16 @@ describe("runMcpAgentLoop", () => {
     };
     const { host, seen } = fakeHostMany(30, [unreadable, { text: "voici", toolCalls: [], stopReason: "stop" }]);
     await runMcpAgentLoop({ ...base(host), history: [{ role: "user", content: "mes pages" }] });
-    // Garde-tout : les 30 schémas rentrent, tous offerts — pas un pick vide déguisé.
+    // Catch-all: the 30 schemas fit, all offered — not a disguised empty pick.
     expect(seen[1].tools?.some((t) => t.name === "webflow__t29")).toBe(true);
-    // Une seule réponse difforme ≠ une configuration cassée : le routage suivant a lieu.
+    // One malformed answer ≠ a broken configuration: the next routing does happen.
     expect(routerCooldownActive(Date.now())).toBe(false);
   });
 
-  // Journal du 06/08/2026 : « Voice intercom : compare tous les tickets… » — pick routeur
-  // VIDE (0/115), puis le modèle appelle `intercom__search_conversations` lu au catalogue,
-  // avec des args inventés. Le rattrapage par NOM ferme la première moitié : pick vide +
-  // connecteur connecté nommé dans le texte ⇒ ses schémas sont chargés d'office.
+  // Log of 06/08/2026: « Voice intercom : compare tous les tickets… » — an EMPTY router
+  // pick (0/115), then the model calls `intercom__search_conversations` read from the
+  // catalogue, with invented args. The by-NAME catch-up closes the first half: empty pick
+  // + a connected connector named in the text ⇒ its schemas are loaded outright.
   it("pick VIDE + connecteur NOMMÉ dans la demande → ses outils sont offerts quand même", async () => {
     const { host, seen } = fakeHostMany(30, [routerPick([]), { text: "voici", toolCalls: [], stopReason: "stop" }]);
     await runMcpAgentLoop({ ...base(host), history: [{ role: "user", content: "liste mes pages webflow" }] });
@@ -2315,9 +2314,9 @@ describe("runMcpAgentLoop", () => {
     expect(offered).not.toContain("webflow__t9");
   });
 
-  // La seconde moitié du même journal : l'appel AVEUGLE au schéma. L'outil existe, son
-  // schéma n'a pas été chargé, les args sont inventés — une violation PROUVABLE se
-  // rejette sans toucher le serveur, et le schéma devient offert au tour suivant.
+  // The second half of the same log: the BLIND call to the schema. The tool exists, its
+  // schema was not loaded, the args are invented — a PROVABLE violation is rejected
+  // without touching the server, and the schema becomes offered on the next turn.
   it("appel aveugle au schéma avec du JSON-chaîne difforme → rejeté SANS toucher le serveur, schéma offert ensuite", async () => {
     const { host, callTool, seen } = fakeHostMany(30, [
       routerPick(["webflow__t0"]),
@@ -2350,11 +2349,11 @@ describe("runMcpAgentLoop", () => {
     expect(callTool).toHaveBeenCalledOnce();
   });
 
-  // Deux propriétés d'un coup, et la seconde est celle qui a mis le doigt sur un vrai
-  // trou : le blocage d'organisation se lisait sur `serverId`, que
-  // `RedactingMcpClient.listTools` réécrit avec l'id de la CONNEXION — « ipc » pour tous
-  // les outils, puisque la boucle n'en a qu'une. Le filtre ne bloquait donc RIEN. Il se
-  // lit maintenant sur le préfixe du nom, que main namespace.
+  // Two properties at once, and the second is the one that put a finger on a real hole:
+  // the organisation block was read from `serverId`, which `RedactingMcpClient.listTools`
+  // rewrites with the CONNECTION's id — « ipc » for every tool, since the loop has only
+  // one. The filter therefore blocked NOTHING. It now reads the prefix of the name, which
+  // main namespaces.
   it("bloque un connecteur interdit par l'organisation, et le rattrapage de scope ne le ressuscite pas", async () => {
     const seen: Payload[] = [];
     const completeTools = vi.fn(async (payload: Payload) => {
@@ -2365,8 +2364,8 @@ describe("runMcpAgentLoop", () => {
         ) ?? { text: "", toolCalls: [], stopReason: "stop" as const }
       );
     });
-    // Deux connecteurs, dont UN bloqué — sinon le set filtré est vide, la boucle ne
-    // démarre pas et l'assertion passerait sans rien vérifier.
+    // Two connectors, ONE of them blocked — otherwise the filtered set is empty, the loop
+    // does not start and the assertion would pass without checking anything.
     const listTools = async () => [
       ...Array.from({ length: 20 }, (_, i) => ({
         name: `webflow__t${i}`,
@@ -2399,15 +2398,15 @@ describe("runMcpAgentLoop", () => {
   });
 
   it("un pick VIDE sans connecteur nommé reste vide — le rattrapage exige le NOM, jamais une devinette", async () => {
-    // ⚠️ DÉCISION RENVERSÉE (06/08/2026), en connaissance de l'épingle précédente. L'ancien
-    // test interdisait TOUT rattrapage textuel, au motif qu'une question de capacité nomme
-    // sans vouloir appeler. Mesuré depuis : 85 picks vides/30 j, tous modèles, et sur pick
-    // vide un modèle faible ne fait pas `load_tools` — il lit le nom au catalogue et appelle
-    // À L'AVEUGLE avec des args inventés (journal du 06/08 : intercom, 3 allers-retours
-    // perdus). Sur un pick vide il n'y a AUCUN routage réussi à protéger ; le coût résiduel
-    // (une question de capacité nommant un connecteur paie ses schémas) est borné et le
-    // gain est mesurable (`tool_route_rescue`). La retenue qui SURVIT, épinglée ici : un
-    // texte qui ne nomme aucun connecteur connecté n'en charge aucun.
+    // ⚠️ DECISION REVERSED (06/08/2026), knowing the previous pin. The old test forbade
+    // ANY textual catch-up, on the grounds that a capability question names without
+    // wanting to call. Measured since: 85 empty picks/30 days, every model, and on an
+    // empty pick a weak model does not call `load_tools` — it reads the name from the
+    // catalogue and calls BLIND with invented args (log of 06/08: intercom, 3 round-trips
+    // lost). On an empty pick there is NO successful routing to protect; the residual cost
+    // (a capability question naming a connector pays for its schemas) is bounded and the
+    // gain is measurable (`tool_route_rescue`). The restraint that SURVIVES, pinned here:
+    // a text that names no connected connector loads none.
     const { host, seen } = fakeHostMany(30, [routerPick([]), { text: "je peux…", toolCalls: [], stopReason: "stop" }]);
     await runMcpAgentLoop({ ...base(host), history: [{ role: "user", content: "compare mes tickets du trimestre" }] });
     expect(seen[1].tools?.map((t) => t.name)).toEqual(["load_tools"]);
@@ -2802,10 +2801,10 @@ describe("runMcpAgentLoop — the outside gets the REAL value (rule 11)", () => 
         callTool,
       },
     } as unknown as Host;
-    // ⚠️ L'intention porte un verbe d'ENVOI explicite : le prompt générique du bloc
-    // (« cherche des infos ») est une demande de CONSULTATION, que la garde
-    // « consulter ≠ agir » refuse — à raison. Ce test-ci porte sur l'un-redaction
-    // (règle 11), donc il lui faut une demande qui autorise réellement l'envoi.
+    // ⚠️ The intent carries an explicit SEND verb: the block's generic prompt
+    // (« cherche des infos ») is a CONSULTATION request, which the « consulter ≠ agir »
+    // guard refuses — rightly. This test is about un-redaction (rule 11), so it needs a
+    // request that really authorises the send.
     await runMcpAgentLoop({
       ...base(host, []),
       history: [{ role: "user" as const, content: "envoie un email à Norvik Group" }],
@@ -3042,10 +3041,10 @@ describe("runMcpAgentLoop — a hostile page must not turn a fake back into real
         callTool,
       },
     } as unknown as Host;
-    // ⚠️ L'intention porte un verbe d'ENVOI explicite : le prompt générique du bloc
-    // (« cherche des infos ») est une demande de CONSULTATION, que la garde
-    // « consulter ≠ agir » refuse — à raison. Ce test-ci porte sur l'un-redaction
-    // (règle 11), donc il lui faut une demande qui autorise réellement l'envoi.
+    // ⚠️ The intent carries an explicit SEND verb: the block's generic prompt
+    // (« cherche des infos ») is a CONSULTATION request, which the « consulter ≠ agir »
+    // guard refuses — rightly. This test is about un-redaction (rule 11), so it needs a
+    // request that really authorises the send.
     await runMcpAgentLoop({
       ...base(host, []),
       history: [{ role: "user" as const, content: "envoie un email à Norvik Group" }],
@@ -3056,16 +3055,16 @@ describe("runMcpAgentLoop — a hostile page must not turn a fake back into real
 });
 
 describe("le rappel FORCÉ ne peut pas fabriquer un effet de bord", () => {
-  // Journal du 27/07/2026 : l'utilisatrice demande « de ton compte agenda, à quel
-  // compte ? ». Le modèle répond en prose (« je n'ai pas accès… »), la boucle lit un
-  // refus et le re-interroge avec tool_choice=required — contraint d'appeler quelque
-  // chose, il appelle `create_event` et un événement est créé dans l'agenda RÉEL.
+  // Log of 27/07/2026: the user asks « de ton compte agenda, à quel compte ? ». The
+  // model answers in prose (« je n'ai pas accès… »), the loop reads a refusal and
+  // re-queries it with tool_choice=required — forced to call something, it calls
+  // `create_event`, and an event is created in the REAL calendar.
   function host(tools: { name: string; description: string }[]) {
     const callTool = vi.fn(async () => ({ content: [{ type: "text" as const, text: "ok" }] }));
     const seen: (string[] | undefined)[] = [];
     const completeTools = vi.fn(async (o: { tools?: { name: string }[]; toolChoice?: string }) => {
       if (o.toolChoice === "required") seen.push(o.tools?.map((t) => t.name));
-      // Toujours une prose de refus : la boucle tentera son rappel forcé.
+      // Always a refusal in prose: the loop will attempt its forced retry.
       return { text: "Je n'ai pas accès à cela, je ne peux pas le faire.", toolCalls: [], stopReason: "stop" as const };
     });
     const h = {
@@ -3105,7 +3104,7 @@ describe("le rappel FORCÉ ne peut pas fabriquer un effet de bord", () => {
   });
 
   it("ne force PAS du tout quand il ne reste que des écritures", async () => {
-    // Forcer alors que le seul choix possible écrit, c'est fabriquer l'effet de bord.
+    // Forcing when the only possible choice writes is manufacturing the side effect.
     const { host: h, forcedOffers, callTool } = host([
       { name: "google-calendar__create_event", description: "Créer un événement" },
     ]);
@@ -3116,20 +3115,19 @@ describe("le rappel FORCÉ ne peut pas fabriquer un effet de bord", () => {
 });
 
 describe("runMcpAgentLoop — une LECTURE ne demande jamais confirmation", () => {
-  /* Décision produit du 03/08 : seule une ÉCRITURE peut interrompre l'utilisateur. La
-     barrière H-4 confirmait quand les args d'une lecture ENGLOBAIENT une valeur du coffre
-     — c'est-à-dire sur le cas normal (« recherche Entreprise Zorvia » englobe « Zorvia »),
-     et une carte qui s'ouvre sur le travail ordinaire apprend à cliquer sans lire, ce qui
-     se paie ensuite sur la carte d'écriture. Le scan tourne encore : il TRACE, il ne
-     bloque plus. Ce qui confirme toujours : l'écriture, une pièce jointe, et une
-     NAVIGATION dont l'URL porte des données réelles (là, la destination est choisie par
-     le modèle). */
-  const SUSPICIOUS_REF = "ref zzqx-fake-42 suite"; // embarque la clé de coffre « zzqx-fake-42 »
+  /* Product decision of 03/08: only a WRITE may interrupt the user. The H-4 barrier
+     confirmed when a read's args ENCLOSED a vault value — that is, on the normal case
+     (« recherche Entreprise Zorvia » encloses « Zorvia »), and a card that opens on
+     ordinary work teaches people to click without reading, which is then paid for on the
+     write card. The scan still runs: it TRACES, it no longer blocks. What still confirms:
+     a write, an attachment, and a NAVIGATION whose URL carries real data (there, the
+     destination is chosen by the model). */
+  const SUSPICIOUS_REF = "ref zzqx-fake-42 suite"; // carries the vault key « zzqx-fake-42 »
   const TOOLS = [
-    // `read_ref`, pas `open_ref` : depuis le défaut fail-closed (inconnu ⇒ écriture,
-    // audit 2026-08-10), « open » n'est plus une preuve de lecture (`open_ticket` crée).
-    // Ces tests épinglent « une LECTURE ne demande jamais confirmation » — la fixture
-    // doit donc être une lecture PROUVÉE par son verbe de tête.
+    // `read_ref`, not `open_ref`: since the fail-closed default (unknown ⇒ write, audit
+    // 2026-08-10), « open » is no longer proof of a read (`open_ticket` creates).
+    // These tests pin « a READ never asks for confirmation » — the fixture must therefore
+    // be a read PROVEN by its leading verb.
     { name: "fs__list_refs", description: "", inputSchema: {}, serverId: "ipc" },
     { name: "fs__read_ref", description: "", inputSchema: {}, serverId: "ipc" },
     { name: "fs__delete_ref", description: "", inputSchema: {}, serverId: "ipc" },
@@ -3183,7 +3181,7 @@ describe("runMcpAgentLoop — une LECTURE ne demande jamais confirmation", () =>
   });
 
   it("…mais une ÉCRITURE aux mêmes arguments confirme toujours", async () => {
-    // La règle n'est pas « plus jamais de carte » : c'est « seule l'écriture en ouvre une ».
+    // The rule is not "never a card again": it is "only a write opens one".
     const turns: CompleteToolsResult[] = [
       { text: "", toolCalls: [{ id: "c1", name: "fs__delete_ref", arguments: { ref: SUSPICIOUS_REF } }], stopReason: "tool_calls" },
     ];
@@ -3225,11 +3223,11 @@ describe("runMcpAgentLoop — une LECTURE ne demande jamais confirmation", () =>
 });
 
 describe("runMcpAgentLoop — la série morte compte des RÉPONSES, jamais des appels", () => {
-  /* Journal 02/08 : 7 `read_file` émis dans UNE réponse ont tous reçu la redirection
-     « utilise read_document » (5 erreurs consécutives) et MAX_CONSECUTIVE_DEAD a tué le
-     tour AVANT que le modèle ait pu lire le feedback — la réponse suivante aurait
-     enchaîné sur read_document. Un batch d'erreurs = UNE frappe ; la série ne condamne
-     que des réponses successives sans avancée. */
+  /* Log 02/08: 7 `read_file` emitted in ONE answer all received the « utilise
+     read_document » redirection (5 consecutive errors) and MAX_CONSECUTIVE_DEAD killed
+     the turn BEFORE the model could read the feedback — the next answer would have moved
+     on to read_document. A batch of errors = ONE strike; the streak only condemns
+     successive answers with no progress. */
   const failHost = (turns: CompleteToolsResult[]) => {
     const completeTools = vi.fn(async () => turns.shift() ?? { text: "fini", toolCalls: [], stopReason: "stop" as const });
     const callTool = vi.fn(async (call: { arguments?: unknown }) => {
@@ -3254,9 +3252,9 @@ describe("runMcpAgentLoop — la série morte compte des RÉPONSES, jamais des a
     history: [{ role: "user" as const, content: "lis mes fichiers" }],
     vault: {} as Vault, secrets: [], disabledKinds: [],
     fromWire: (s: string) => s,
-    // Sans redacteur, une erreur JETÉE se replie sur « Tool error (détails masqués). »
-    // IDENTIQUE pour tous — et c'est STUCK_STOP qui tirerait, pas la série morte. Le
-    // desktop câble toujours redactResult ; le test reproduit des erreurs DISTINCTES.
+    // Without a redactor, a THROWN error falls back to « Tool error (détails masqués). »
+    // IDENTICAL for all — and STUCK_STOP would fire, not the dead streak. The desktop
+    // always wires redactResult; the test reproduces DISTINCT errors.
     redactResult: async (t: string) => t,
     onText: () => {},
     onToolCall: () => {},
@@ -3298,10 +3296,10 @@ describe("runMcpAgentLoop — la série morte compte des RÉPONSES, jamais des a
 });
 
 describe("écriture dispatchée sans réponse — l'issue INCONNUE est scellée (audit 2026-08-10)", () => {
-  // Le scénario que `turnCheckpoint.ts` déclare couvrir mais qui ne l'était que pour un
-  // crash processus : un Stop utilisateur (ou un timeout d'outil) pendant une écriture
-  // DÉJÀ dispatchée. L'e-mail est peut-être parti ; un transcript où l'appel « n'a pas
-  // eu lieu » fait ré-émettre l'écriture au retry. Deux jambes : le scellé + le checkpoint.
+  // The scenario `turnCheckpoint.ts` claims to cover but which was only covered for a
+  // process crash: a user Stop (or a tool timeout) during an ALREADY dispatched write.
+  // The e-mail may have gone out; a transcript where the call « n'a pas eu lieu » makes
+  // the write be re-emitted on the retry. Two legs: the seal + the checkpoint.
   const params = (host: Host) => ({
     host,
     provider: "openai" as const,
@@ -3332,10 +3330,10 @@ describe("écriture dispatchée sans réponse — l'issue INCONNUE est scellée 
       onResumeTranscript: (t: ChatMessage[]) => checkpoints.push(t),
     });
     expect(handled).toBe(true);
-    // Le checkpoint est POSÉ (avant, un Stop sortait sans checkpointer du tout) …
+    // The checkpoint IS laid (before, a Stop exited without checkpointing at all) …
     expect(checkpoints.length).toBeGreaterThan(0);
     const last = checkpoints.at(-1)!;
-    // … et l'appel dispatché y est scellé « issue inconnue », à sa place dans le transcript.
+    // … and the dispatched call is sealed there as « issue inconnue », in its place in the transcript.
     const sealed = last.find((m) => m.role === "tool" && m.toolCallId === "w1");
     expect(sealed?.content).toBe(INTERRUPTED_TOOL_RESULT);
     expect(sealed?.content).toContain("PEUT-ÊTRE abouti");
@@ -3353,8 +3351,8 @@ describe("écriture dispatchée sans réponse — l'issue INCONNUE est scellée 
       turnId: "turn-1",
     });
     expect(handled).toBe(true);
-    // Le tour continue (pas un Stop) : la réponse modèle suivante reçoit le résultat
-    // d'outil — qui doit interdire la ré-émission, pas annoncer « Délai dépassé » sec.
+    // The turn continues (not a Stop): the next model answer receives the tool result —
+    // which must forbid re-emission, not just announce « Délai dépassé » flatly.
     const second = (completeTools.mock.calls.at(-1) as unknown[])[0] as {
       messages: { role: string; toolCallId?: string; content: string }[];
     };
@@ -3364,8 +3362,8 @@ describe("écriture dispatchée sans réponse — l'issue INCONNUE est scellée 
   });
 
   it("un timeout de LECTURE garde l'erreur ordinaire — seule une écriture porte l'issue inconnue", async () => {
-    // Une lecture relancée est sans risque ; le message « ne relance pas » serait un
-    // sur-blocage. Le garde est `idemKey` (écriture identifiée), pas le type d'erreur.
+    // A replayed read is riskless; the « ne relance pas » message would be over-blocking.
+    // The guard is `idemKey` (an identified write), not the error type.
     const callTool = vi.fn(() => Promise.reject(new ToolTimeoutError("gmail_search", 120_000)));
     const turns: CompleteToolsResult[] = [
       {
@@ -3396,13 +3394,13 @@ describe("écriture dispatchée sans réponse — l'issue INCONNUE est scellée 
 });
 
 describe("resolveOperation — les sondes passent par le client redacting (audit 2026-08-10)", () => {
-  // Avant : `resolveOperation` appelait `p.host.mcp.callTool` DIRECTEMENT — le seul
-  // chemin sortant sans les deux jambes de la règle 11. Un faux posé par le modèle
-  // dans `resource` partait tel quel au vrai serveur, et la sortie du serveur était
-  // réinjectée verbatim dans le message modèle. Les sondes passent désormais par le
-  // même client que tout appel sortant : un-redaction des args, résultat re-redacted.
+  // Before: `resolveOperation` called `p.host.mcp.callTool` DIRECTLY — the only outgoing
+  // path without the two legs of rule 11. A fake laid down by the model in `resource`
+  // left as-is for the real server, and the server's output was re-injected verbatim
+  // into the model message. The probes now go through the same client as any outgoing
+  // call: args un-redacted, result re-redacted.
   it("une sonde de découverte part UN-redacted — jamais le faux vers le vrai serveur", async () => {
-    const VAULT: Vault = { "Oslen Group": "Karl Studio" }; // fake → réel
+    const VAULT: Vault = { "Oslen Group": "Karl Studio" }; // fake → real
     const discovery = [
       "## PostCustomersCustomer",
       "POST /v1/customers/{customer}",
@@ -3422,7 +3420,7 @@ describe("resolveOperation — les sondes passent par le client redacting (audit
           {
             id: "s1",
             name: "stripe__stripe_api_search",
-            // Args WIRE : le modèle ne connaît que le FAUX.
+            // WIRE args: the model only knows the FAKE.
             arguments: { intent: "update customer name", resource: "Oslen Group" },
           },
         ],
@@ -3454,14 +3452,14 @@ describe("resolveOperation — les sondes passent par le client redacting (audit
       onText: () => {},
       onToolCall: () => {},
     });
-    // Le resolver a bien sondé (au moins un appel après celui du modèle) …
+    // The resolver did probe (at least one call after the model's) …
     expect(callTool.mock.calls.length).toBeGreaterThan(1);
-    // … et CHAQUE sonde porte la VRAIE valeur, pas le faux (leg sortant de la règle 11).
+    // … and EVERY probe carries the REAL value, not the fake (rule 11's outgoing leg).
     const probes = callTool.mock.calls.slice(1) as unknown as Array<[{ arguments: Record<string, unknown> }]>;
     for (const [probe] of probes) {
       expect(probe.arguments.resource).toBe("Karl Studio");
     }
-    // L'opération dérivée est rendue au modèle (le fallback fonctionne toujours).
+    // The derived operation is handed back to the model (the fallback still works).
     const second = (completeTools.mock.calls.at(-1) as unknown[])[0] as {
       messages: { role: string; toolCallId?: string; content: string }[];
     };
@@ -3471,19 +3469,19 @@ describe("resolveOperation — les sondes passent par le client redacting (audit
 });
 
 describe("runMcpAgentLoop — Stop pendant le ROUTAGE des outils", () => {
-  // Le routage (`selectTools`) est un appel de MODÈLE et il PRÉCÈDE la boucle : sur un gros
-  // catalogue, il dure. Son fetch partage le `requestId` du tour, donc Stop →
-  // `host.cancelTools(requestId)` l'aborte — mais son `catch` lisait cet abandon comme
+  // Routing (`selectTools`) is a MODEL call and it PRECEDES the loop: on a large
+  // catalogue, it takes time. Its fetch shares the turn's `requestId`, so Stop →
+  // `host.cancelTools(requestId)` aborts it — but its `catch` read that abort as
   // « routeur en échec ».
   //
-  // ⚠️ Les deux cas ci-dessous ne sont PAS de même nature, et les confondre ferait croire
-  // le second acquis : le premier PASSAIT déjà avant le correctif (l'`aborted()` en tête de
-  // boucle rattrapait le tour), c'est une CARACTÉRISATION — il pinne que le tour se termine
-  // sans repartir sur un appel de modèle. Seul le second est une RÉGRESSION : lui échoue
-  // sans le correctif.
+  // ⚠️ The two cases below are NOT of the same nature, and confusing them would make the
+  // second look settled: the first already PASSED before the fix (the `aborted()` at the
+  // top of the loop caught the turn), it is a CHARACTERISATION — it pins that the turn
+  // ends without setting off on another model call. Only the second is a REGRESSION: it
+  // fails without the fix.
   function abortingRouterHost(controller: AbortController) {
-    // >24 outils, sinon `needsRouting` envoie le catalogue entier et il n'y a pas de
-    // pré-passe de routage à interrompre.
+    // >24 tools, otherwise `needsRouting` sends the whole catalogue and there is no
+    // routing pre-pass to interrupt.
     const tools = Array.from({ length: 30 }, (_, i) => ({
       name: `crm__tool_${i}`,
       description: `Outil CRM ${i}`,
@@ -3492,7 +3490,7 @@ describe("runMcpAgentLoop — Stop pendant le ROUTAGE des outils", () => {
     }));
     const completeTools = vi.fn(async (payload: { tools?: { name: string }[] }) => {
       if (payload?.tools?.some((t) => t.name === "select_tools")) {
-        // Ce que fait le vrai chemin : Stop → main aborte le fetch du routeur.
+        // What the real path does: Stop → main aborts the router's fetch.
         controller.abort();
         throw new DOMException("Aborted", "AbortError");
       }
@@ -3530,21 +3528,21 @@ describe("runMcpAgentLoop — Stop pendant le ROUTAGE des outils", () => {
     });
 
     expect(handled).toBe(true);
-    // LE dégât visible : après le routage avorté, plus AUCUN appel de modèle. Avant le
-    // correctif, le pare déterministe relançait la boucle et le tour se poursuivait.
+    // THE visible damage: after the aborted routing, NO model call at all. Before the
+    // fix, the deterministic guard restarted the loop and the turn carried on.
     expect(completeTools).toHaveBeenCalledTimes(1);
     expect(texts.join(" ")).toContain("Interrompu");
   });
 
   it("n'arme PAS le cooldown de 5 min du routeur", async () => {
-    noteRouterSuccess(); // état propre : un test voisin a pu l'armer
+    noteRouterSuccess(); // clean state: a neighbouring test may have armed it
     const controller = new AbortController();
     const { host } = abortingRouterHost(controller);
 
     await runMcpAgentLoop({ ...params(host), signal: controller.signal, onText: () => {} });
 
-    // Un Stop n'est pas une panne de configuration. L'assimiler à une panne faisait payer
-    // les envois SUIVANTS — cinq minutes de routage dégradé — pour un geste de l'utilisateur.
+    // A Stop is not a configuration failure. Treating it as one made the FOLLOWING sends
+    // pay — five minutes of degraded routing — for a gesture of the user's.
     expect(routerCooldownActive(Date.now())).toBe(false);
   });
 });
