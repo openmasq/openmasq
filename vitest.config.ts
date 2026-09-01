@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
-import { workspaceSrcAlias, CORPUS_TESTS, NO_ISOLATE_UNSAFE_TESTS } from "./scripts/vitest.workspaceAlias";
+import { workspaceSrcAlias, CORPUS_TESTS, NO_ISOLATE_UNSAFE_TESTS } from "./scripts/vitest/vitest.workspaceAlias";
 
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
@@ -31,7 +31,7 @@ const unit = defineConfig({
       // The stub makes local and CI identical, and network-free.
       // `vi.mock("electron", …)` (21 files) wins over this alias: a test that needs
       // a behavior declares it, as before.
-      { find: /^electron$/, replacement: here("./scripts/vitest.electron-stub.ts") },
+      { find: /^electron$/, replacement: here("./scripts/vitest/vitest.electron-stub.ts") },
       // ⚠️ Mandatory companion of the alias above. `@sentry/electron` imports `electron`
       // INTERNALLY; externalized (default), this import goes through NODE's resolver,
       // which ignores aliases → the real package, CommonJS module, "does not provide
@@ -39,7 +39,7 @@ const unit = defineConfig({
       // reads `process.versions.electron` (absent outside Electron) and throws. So the
       // same remedy as for electron: a stub, and a test that needs a behavior
       // declares it via `vi.mock`. Symptom of the next package in this situation: this SyntaxError.
-      { find: /^@sentry\/electron\/(main|renderer)$/, replacement: here("./scripts/vitest.sentry-electron-stub.ts") },
+      { find: /^@sentry\/electron\/(main|renderer)$/, replacement: here("./scripts/vitest/vitest.sentry-electron-stub.ts") },
       ...workspaceSrcAlias,
     ],
   },
@@ -79,7 +79,7 @@ const unit = defineConfig({
     ],
     // Node ≥26 ships stub `localStorage`/`sessionStorage` globals that mask jsdom's —
     // the shim (no-op outside jsdom files) grafts real Storage back. See the file header.
-    setupFiles: ["./scripts/vitest.webstorage-setup.ts"],
+    setupFiles: ["./scripts/vitest/vitest.webstorage-setup.ts"],
     // ⚠️ A test file this list does not match is SILENTLY never run — worse than no
     // test, because the suite still reports green. So every entry is a `**` glob over
     // a whole source tree, and a new subfolder needs no edit here. The ONE narrow
@@ -148,7 +148,7 @@ const unit = defineConfig({
       // can read and write (`claude-sandbox.sh` — `claude:sandbox`'s seatbelt profile),
       // and a wrong sandbox rule reads as a tool failure, not as a
       // rule bug — exactly what a test must catch in our place.
-      "scripts/*.test.{ts,tsx}",
+      "scripts/**/*.test.{ts,tsx}",
     ],
     passWithNoTests: false,
   },

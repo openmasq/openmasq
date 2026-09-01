@@ -8,7 +8,7 @@
 // included, and knows string literals, templates and regexes) and require the SAME
 // token sequence. For CSS/YAML, compare the non-comment lines instead.
 //
-//   node scripts/check-comments-only.mjs [<ref>]     (default: HEAD)
+//   node scripts/checks/check-comments-only.mjs [<ref>]     (default: HEAD)
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import ts from "typescript";

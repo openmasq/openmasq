@@ -22,11 +22,11 @@ import { join, dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const require = createRequire(import.meta.url);
 // The SAME table `afterPack.cjs` applies at build time: a second list here would drift
 // from the first with nothing to say so (rule 9).
-const { findPackagingViolations, formatViolations } = require("../apps/desktop/scripts/packageContents.cjs");
+const { findPackagingViolations, formatViolations } = require("../../apps/desktop/scripts/packageContents.cjs");
 const { listPackage } = require("@electron/asar");
 const requireAll = process.argv.includes("--require-all");
 

@@ -14,7 +14,7 @@ import { FIRST_NAMES } from "../engine/names/firstNames.data";
  * the one property that a same-shape substitution silently destroys.
  *
  * These names are therefore NOT test personas and must never be rotated — they are the
- * lexicon itself, like a dictionary. `scripts/check-pii.mjs` states the same rule from the
+ * lexicon itself, like a dictionary. `scripts/checks/check-pii.mjs` states the same rule from the
  * other side: a bare first name is a dictionary word, never an identity.
  */
 

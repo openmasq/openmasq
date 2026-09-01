@@ -30,12 +30,12 @@
 #   but it is not airtightness. Airtightness needs the network layer: loopback
 #   only + a CONNECT proxy outside the sandbox whose list excludes GitHub.
 #
-# Usage:  ./scripts/claude-sandbox.sh [args passed to claude…]
-#         ./scripts/claude-sandbox.sh --print-profile   # inspect the profile
+# Usage:  ./scripts/tooling/claude-sandbox.sh [args passed to claude…]
+#         ./scripts/tooling/claude-sandbox.sh --print-profile   # inspect the profile
 #
 # Widening it occasionally, without touching the script:
-#   CLAUDE_SANDBOX_READ="$HOME/.config/gh"  ./scripts/claude-sandbox.sh
-#   CLAUDE_SANDBOX_WRITE="/allowed/path"    ./scripts/claude-sandbox.sh
+#   CLAUDE_SANDBOX_READ="$HOME/.config/gh"  ./scripts/tooling/claude-sandbox.sh
+#   CLAUDE_SANDBOX_WRITE="/allowed/path"    ./scripts/tooling/claude-sandbox.sh
 # (lists separated by ':', like a PATH)
 
 set -euo pipefail
@@ -47,7 +47,7 @@ CLAUDE_BIN="$(command -v claude || true)"
 [[ -n "$CLAUDE_BIN" ]] || { echo "claude-sandbox: 'claude' not found in PATH." >&2; exit 1; }
 
 # REAL paths (seatbelt reasons on /private/…, not on the /var, /tmp links).
-PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 HOME_DIR="$(cd "$HOME" && pwd -P)"
 TMP_ROOT="$(dirname "$(cd "${TMPDIR:-/tmp}" && pwd -P)")"   # /private/var/folders/xx/yyy
 HOME_RE="$(printf '%s' "$HOME_DIR" | sed 's/[][^$.*+?(){}|\\\/]/\\&/g')"

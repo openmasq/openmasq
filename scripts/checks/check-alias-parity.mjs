@@ -2,7 +2,7 @@
 // The workspace-package → SOURCE resolution table exists in two runtimes that cannot
 // import each other:
 //
-//   • `scripts/vitest.workspaceAlias.ts` — a TS module, imported by vitest AND by
+//   • `scripts/vitest/vitest.workspaceAlias.ts` — a TS module, imported by vitest AND by
 //     `apps/desktop/electron.vite.config.ts` (dev-serve). One object, no copy.
 //   • `apps/desktop/tsconfig.json` `paths` — JSON, read by `tsc`. It CANNOT import the
 //     module above, so it is a genuine second copy.
@@ -16,11 +16,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, join, posix } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
+const root = join(here, "../..");
 
 /** Parse the `{ find: /^…$/, replacement: r("…") }` entries out of the TS module. */
 function fromAliasModule() {
-  const src = readFileSync(join(here, "vitest.workspaceAlias.ts"), "utf8");
+  const src = readFileSync(join(here, "../vitest/vitest.workspaceAlias.ts"), "utf8");
   const out = new Map();
   for (const m of src.matchAll(/find:\s*\/\^(.+?)\$\/,\s*replacement:\s*r\("([^"]+)"\)/g)) {
     // Un-escape the regex source (`\/` → `/`, `\.` → `.`) back to the plain specifier.
@@ -58,7 +58,7 @@ for (const [spec, target] of alias) {
 }
 for (const spec of ts.keys()) {
   if (!alias.has(spec)) {
-    problems.push(`missing from scripts/vitest.workspaceAlias.ts: "${spec}"`);
+    problems.push(`missing from scripts/vitest/vitest.workspaceAlias.ts: "${spec}"`);
   }
 }
 
@@ -68,7 +68,7 @@ if (problems.length) {
   console.error(
     `\n  Both must map the same specifiers to the same source entry, or a package resolves\n` +
       `  to src in one tool and dist in another. Add a new package's \`exports\` subpath to\n` +
-      `  BOTH scripts/vitest.workspaceAlias.ts and apps/desktop/tsconfig.json \`paths\`.\n`,
+      `  BOTH scripts/vitest/vitest.workspaceAlias.ts and apps/desktop/tsconfig.json \`paths\`.\n`,
   );
   process.exit(1);
 }

@@ -42,6 +42,6 @@ if (over.length) {
   console.error(`✗ ${over.length} STAGED file(s) above the ${CAP}-line cap (rule 1):`);
   for (const { f, lines } of over) console.error(`    ${String(lines).padStart(5)}  ${f}`);
   console.error("  Split before committing (folder + barrel), or add to the allowlist");
-  console.error("  via `node scripts/check-file-size.mjs --update`, saying why.");
+  console.error("  via `node scripts/checks/check-file-size.mjs --update`, saying why.");
   process.exit(1);
 }

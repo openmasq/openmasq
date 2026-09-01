@@ -3,8 +3,8 @@
   "workspaces": {
     ".": {
       "entry": [
-        "scripts/*.mjs",
-        "scripts/*.ts"
+        "scripts/**/*.mjs",
+        "scripts/**/*.ts"
       ],
       "project": [
         "scripts/**/*.{ts,mjs}"

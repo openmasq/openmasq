@@ -3,14 +3,14 @@
 // nobody requires — on 230k LOC it currently finds a LOT, and a gate that is red on day
 // one is a gate everyone learns to skip. So this follows the same contract as
 // check-file-size / check-dup: the current count per category is FROZEN in
-// scripts/knip-baseline.json, and the build fails only when a category GROWS.
+// scripts/checks/knip-baseline.json, and the build fails only when a category GROWS.
 //
 // What it buys: dead code stops accumulating. What it does not: it will not clean what is
 // already there. Pay a line of backlog down by deleting, then `--update` to re-freeze —
 // the baseline may only shrink.
 //
-//   node scripts/check-knip.mjs            # or: pnpm check:knip
-//   node scripts/check-knip.mjs --update   # re-freeze after a cleanup (or a config change)
+//   node scripts/checks/check-knip.mjs            # or: pnpm check:knip
+//   node scripts/checks/check-knip.mjs --update   # re-freeze after a cleanup (or a config change)
 //
 // Note: knip's per-category counts, not its identifier lists, are what is frozen. Swapping
 // one dead export for another slips through; the point is the trend, not a proof.
@@ -41,8 +41,8 @@ const CATEGORIES = [
 
 const run = spawnSync(
   "node",
-  [join(here, "../node_modules/knip/bin/knip.js"), "--no-progress", "--no-config-hints", "--reporter", "json"],
-  { cwd: join(here, ".."), encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+  [join(here, "../../node_modules/knip/bin/knip.js"), "--no-progress", "--no-config-hints", "--reporter", "json"],
+  { cwd: join(here, "../.."), encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
 );
 
 // knip exits non-zero when it finds anything, which is the normal state here. Only a
@@ -71,7 +71,7 @@ let baseline;
 try {
   baseline = JSON.parse(readFileSync(baselinePath, "utf8"));
 } catch {
-  console.error(`\n✗ Missing scripts/knip-baseline.json — run \`pnpm check:knip --update\` once to create it.\n`);
+  console.error(`\n✗ Missing scripts/checks/knip-baseline.json — run \`pnpm check:knip --update\` once to create it.\n`);
   process.exit(1);
 }
 

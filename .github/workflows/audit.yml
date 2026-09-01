@@ -2,7 +2,7 @@ name: audit
 
 # Dependency-audit GATE. Runs `pnpm audit` and fails ONLY on high/critical
 # advisories that reach a SHIPPED or internet-facing surface (see
-# scripts/audit-gate.mjs — SERVED_WORKSPACES + the dev-tool denylist). Dev/build/
+# scripts/checks/audit-gate.mjs — SERVED_WORKSPACES + the dev-tool denylist). Dev/build/
 # test tooling (electron-builder, vitest, wrangler, vite, react-email's Next, …)
 # is reported but never fails the build, so the signal isn't drowned by noise.
 #
@@ -53,4 +53,4 @@ jobs:
       # `pnpm audit` resolves from the lockfile + the registry; no install/build
       # needed, so this stays fast and independent of the main `ci` job.
       - name: Dependency audit gate
-        run: node scripts/audit-gate.mjs
+        run: node scripts/checks/audit-gate.mjs

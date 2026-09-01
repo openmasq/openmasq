@@ -14,7 +14,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const dir = join(root, ".github/workflows");
 
 /** `uses:` values that are NOT third-party code: a local composite action (`./…`) and a

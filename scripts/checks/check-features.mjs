@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
+const root = join(here, "../..");
 const DOC = "FEATURES.md";
 const docPath = join(root, DOC);
 
@@ -80,7 +80,7 @@ for (const [kind, n] of [
   if (n === 0)
     fail(
       `no ${kind} found in @openmasq/i18n — this checker's PATTERN is stale, not the doc: ` +
-        `fix scripts/check-features.mjs before trusting any count below`,
+        `fix scripts/checks/check-features.mjs before trusting any count below`,
     );
 
 // A screen = a folder of `pages/`. Adding one without its line is the typical miss.

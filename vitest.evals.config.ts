@@ -27,8 +27,8 @@ export default defineConfig({
     environment: "node",
     include: ["packages/**/src/**/*.eval.ts"],
     // Same Node ≥26 web-storage shim as the unit config — the eval scenarios run the
-    // jsdom store harness too. See scripts/vitest.webstorage-setup.ts.
-    setupFiles: ["./scripts/vitest.webstorage-setup.ts"],
+    // jsdom store harness too. See scripts/vitest/vitest.webstorage-setup.ts.
+    setupFiles: ["./scripts/vitest/vitest.webstorage-setup.ts"],
     // Real API calls: a turn is several round-trips, and a scenario scores N of them.
     testTimeout: 120_000,
     hookTimeout: 60_000,

@@ -44,7 +44,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
+const root = join(here, "../..");
 const allowlistPath = join(here, "i18n-allowlist.json");
 
 /** The properties whose value is READ by someone — the list is deliberately

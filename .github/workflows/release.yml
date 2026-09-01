@@ -292,7 +292,7 @@ jobs:
       # — here e2e:boot's `_electron.launch` — triggers a synchronous 295 MB download
       # RIGHT IN THE MIDDLE OF A TEST: stdout inherited in the Playwright worker's pipes, run stuck on
       # "Downloading Electron binary..." (run 30538725006, killed by hand). On 12/08 the
-      # UNIT suite worked around it differently (`scripts/vitest.electron-stub.ts`).
+      # UNIT suite worked around it differently (`scripts/vitest/vitest.electron-stub.ts`).
       # ⚠️ No pnpm config covers this case, contrary to what this block used to say:
       # `onlyBuiltDependencies` only allows a script, and there isn't one — a fresh dev
       # machine doesn't have the binary either. THIS step is the only safety net, and it is
@@ -377,7 +377,7 @@ jobs:
 
       # SOURCEMAPS → Sentry. The bundles are minified and their maps produced in
       # `hidden` mode (never referenced, excluded from the app by electron-builder — the guard:
-      # scripts/check-shipped-bundles.mjs). Without this upload, every frame kept by
+      # scripts/checks/check-shipped-bundles.mjs). Without this upload, every frame kept by
       # sentry/policy.ts resolves to `index.js:1:184232` and grouping breaks on every
       # release (observability audit 13/08). Step SKIPPED without the secret: a release
       # must never fail over symbolication.

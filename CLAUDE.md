@@ -23,7 +23,7 @@ browser extension) live outside this repo.
 
 1. **Never let a file exceed 300 LOC.** Split before you cross it (`.ts/.tsx/.css`).
    **Enforced**: `pnpm check:loc` (CI), TWO teeth — a NEW over-cap file fails, and a file
-   frozen in `scripts/file-size-allowlist.json` fails if it GROWS past its frozen size.
+   frozen in `scripts/checks/file-size-allowlist.json` fails if it GROWS past its frozen size.
    A backlog **in the tool**, not only in this sentence: adding to a listed file means
    splitting it. Deliberate growth: `--update --allow-growth` + the reason in the commit.
 2. **Split into folders cleverly.** Prefer a feature folder with an `index.ts` barrel over a
@@ -91,7 +91,7 @@ browser extension) live outside this repo.
 9. **One home per fact AND per behaviour — a "keep in sync" comment is a bug, not a safeguard.**
    **Enforced**: `pnpm check:dup` (CI) fails on any app importing out of a SIBLING app, and on a
    NEW sync-marker comment with no test named within 4 lines; backlog frozen in
-   `scripts/dup-allowlist.json` (may only shrink). A **fact** used by two workspaces (a billing
+   `scripts/checks/dup-allowlist.json` (may only shrink). A **fact** used by two workspaces (a billing
    tier, a credit amount, an RBAC key, an API shape, a wire field) lives in ONE package and is
    IMPORTED: governable lists → `packages/catalog`; billing/credits → `packages/credits`;
    cross-app API shapes → types-only (`packages/schema`); provider bytes → `@openmasq/llm/wire`.
@@ -188,10 +188,10 @@ Visual reference: the design source lives OUTSIDE this repo — tokens land in `
 - **Do NOT code then test in a loop.** `pnpm test:changed` after each burst of edits — it walks the graph up from what git sees changed (touching `package.json`/`vitest.config.ts` drops it back to the full run, which is correct); `pnpm test:related <files>` to target — **no `--`**, pnpm swallows it. A burst on the redact ENGINE pulls ~216 files (~31 s: the coupling) — for THAT loop, `pnpm test:redact` (~4 s, scoped `--no-isolate`, its limits commented in `vitest.config.ts`). Full run before pushing.
   ⚠️ **`test:watch` NEVER re-triggers outside an interactive terminal** (measured): in the
   background it gives one run, then a silence that reads as green.
-- **turbo caches `build`/`typecheck`, NEVER the tests — on purpose**: one root vitest process reuses its workers (`forks`→`threads` = 370 s→85 s), where twenty turbo tasks would pay for collection twenty times. What makes its cache useful is commented key by key in `turbo.json` — the `inputs` (without which the `CLAUDE.md` rule 5 mandates rebuilt everything downstream) and the `outputs` (miss one and the task can't be restored). The turbo cache lives OUTSIDE the tree (it survives a re-clone): `scripts/turbo.mjs`.
+- **turbo caches `build`/`typecheck`, NEVER the tests — on purpose**: one root vitest process reuses its workers (`forks`→`threads` = 370 s→85 s), where twenty turbo tasks would pay for collection twenty times. What makes its cache useful is commented key by key in `turbo.json` — the `inputs` (without which the `CLAUDE.md` rule 5 mandates rebuilt everything downstream) and the `outputs` (miss one and the task can't be restored). The turbo cache lives OUTSIDE the tree (it survives a re-clone): `scripts/tooling/turbo.mjs`.
 - **Only the app BUILD consumes the packages' `dist/`** — rebuild before it
   (`pnpm --filter @openmasq/<pkg> build`); tests and `dev` resolve `src`
-  (`scripts/vitest.workspaceAlias.ts`, tsconfig copy held by `pnpm check:alias`). ⚠️ A
+  (`scripts/vitest/vitest.workspaceAlias.ts`, tsconfig copy held by `pnpm check:alias`). ⚠️ A
   PACKAGE's `typecheck`, however, reads `dist/*.d.ts` (only `apps/desktop` aliases to `src`).
 - Build: `cd apps/desktop && npx electron-vite build`. ⚠️ **CI's contract is `.github/workflows/verify.yml`, NOT `pnpm verify`** — it also runs `pnpm build`. Before a push that triggers a release, replay ITS list: trusting the script that carries the name put `dev` in the red twice in a row. ⚠️ And **`pnpm.supportedArchitectures` must keep `linux`**: it decides which OPTIONAL native binaries get installed, so restricting it to darwin+win32 for desktop packaging deprives esbuild and rollup of theirs on an Ubuntu runner and kills EVERY CI build — invisible locally, where everything compiles.
 - **Tailwind v4** is imported in `styles.css` as **utilities + theme ONLY (no preflight)**, so the app's own reset keeps the upper hand. Tokens + the FOUR themes that re-point them (`[data-theme="dark"|"blue"|"blue-dark"]`, light = none) live there too.

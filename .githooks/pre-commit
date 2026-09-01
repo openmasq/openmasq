@@ -1,6 +1,6 @@
 #!/bin/sh
 # Pre-commit: the FAST gates, scoped to what THIS commit stages — never the WIP of the
-# other sessions in the tree (see scripts/check-staged-loc.mjs). CI keeps the full gates.
+# other sessions in the tree (see scripts/checks/check-staged-loc.mjs). CI keeps the full gates.
 # Bypass knowingly: `git commit --no-verify`.
 set -e
 
@@ -18,11 +18,11 @@ set -e
 # their direct commits. The remaining discipline is in the root CLAUDE.md: commit only
 # YOUR files, gates green before pushing.)
 
-node scripts/check-staged-loc.mjs
+node scripts/checks/check-staged-loc.mjs
 
 # Retired names: the tree is scanned whole (it is one git grep — fast), the message by
 # the commit-msg hook next door.
-node scripts/check-brand.mjs
+node scripts/checks/check-brand.mjs
 
 # Lint (Biome) on the STAGED files only — like the LOC cap above, we look at what THIS
 # commit brings, never at the other sessions' WIP. We LINT (no format check): a

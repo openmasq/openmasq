@@ -1,5 +1,5 @@
 import { defineConfig } from "vitest/config";
-import { workspaceSrcAlias, CORPUS_TESTS } from "./scripts/vitest.workspaceAlias";
+import { workspaceSrcAlias, CORPUS_TESTS } from "./scripts/vitest/vitest.workspaceAlias";
 
 /**
  * The corpus BENCHES — `pnpm test:corpus`. Recall/precision of the redaction engine on
@@ -12,7 +12,7 @@ export default defineConfig({
   resolve: { alias: workspaceSrcAlias },
   test: {
     environment: "node",
-    setupFiles: ["./scripts/vitest.webstorage-setup.ts"],
+    setupFiles: ["./scripts/vitest/vitest.webstorage-setup.ts"],
     include: CORPUS_TESTS,
     testTimeout: 120_000,
     passWithNoTests: false,

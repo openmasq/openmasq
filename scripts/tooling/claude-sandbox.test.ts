@@ -15,7 +15,7 @@ import { homedir, platform, tmpdir } from "node:os";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(HERE, "claude-sandbox.sh");
-const PROJECT = dirname(HERE);
+const PROJECT = dirname(dirname(HERE)); // scripts/tooling → repo root
 const HOME = homedir();
 
 const printProfile = (env: NodeJS.ProcessEnv = {}) =>

@@ -22,7 +22,7 @@
 // plumbing.
 import { execSync } from "node:child_process";
 
-const root = new URL("..", import.meta.url).pathname;
+const root = new URL("../..", import.meta.url).pathname;
 const run = (cmd) => execSync(cmd, { cwd: root, encoding: "utf8" }).trim();
 
 // Directories that are FEATURES.md's actual subject matter — a change here is either a

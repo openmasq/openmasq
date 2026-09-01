@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { workspaceSrcAlias } from "../../scripts/vitest.workspaceAlias";
+import { workspaceSrcAlias } from "../../scripts/vitest/vitest.workspaceAlias";
 import { brandIndexHtml } from "./scripts/brandIndexHtml";
 import { mainDefines, rendererDefines } from "./scripts/buildDefines";
 
@@ -16,9 +16,9 @@ import { mainDefines, rendererDefines } from "./scripts/buildDefines";
  * so HMR silently shows stale code and the loop is ~30 s instead of instant.
  *
  * The alias table is the SAME object the test runner uses
- * (`scripts/vitest.workspaceAlias.ts`) — one table, or dev and the tests would resolve
+ * (`scripts/vitest/vitest.workspaceAlias.ts`) — one table, or dev and the tests would resolve
  * differently (rule 9). The third copy, `apps/desktop/tsconfig.json` `paths`, cannot
- * import a `.ts` module; it is held by `scripts/check-alias-parity.mjs`.
+ * import a `.ts` module; it is held by `scripts/checks/check-alias-parity.mjs`.
  */
 function workspaceSrcInDev() {
   return {
@@ -45,7 +45,7 @@ function workspaceSrcInDev() {
  * every release — audit 13/08). What guarantees they don't SHIP to
  * the user: `electron-builder.yml` excludes the `.map` files from the app's `out`
  * folder (pattern "!out/⋯.map", two stars — written this way here because the real
- * sequence would close THIS comment), and `scripts/check-shipped-bundles.mjs` VERIFIES
+ * sequence would close THIS comment), and `scripts/checks/check-shipped-bundles.mjs` VERIFIES
  * this exclusion: a map in `out/` is an upload artifact; a map in the `.app`
  * would be delivering the explanation.
  */
@@ -148,7 +148,7 @@ export default defineConfig({
     // native binary, a file-path worker, a lazily-`import()`ed asset tree). Anything else
     // goes in devDependencies and gets bundled. If you must ship one external, check that
     // the flattened tree satisfies its whole closure — `pnpm check:pkgtree` (see
-    // `scripts/check-packaged-tree.mjs`) does exactly that against a built app.
+    // `scripts/checks/check-packaged-tree.mjs`) does exactly that against a built app.
     plugins: [
       workspaceSrcInDev(),
       externalizeDepsPlugin({

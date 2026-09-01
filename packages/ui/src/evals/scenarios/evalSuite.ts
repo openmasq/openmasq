@@ -12,7 +12,7 @@
 //
 // Strategy axis (OPENMASQ_EVAL_STRATEGY, default "current"): which set of prompt/tool-
 // catalogue reduction thresholds is applied (`evals/strategies.ts`) — orthogonal
-// to the server mode, crossed by `scripts/bench-agentic.ts --strategies`.
+// to the server mode, crossed by `scripts/tooling/bench-agentic.ts --strategies`.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterAll, describe, it } from "vitest";

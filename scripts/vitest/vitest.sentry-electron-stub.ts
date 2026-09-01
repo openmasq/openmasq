@@ -14,7 +14,7 @@
 const boom = (name: string) => (): never => {
   throw new Error(
     `@sentry/electron.${name} — the unit suite has NO Sentry (stub: ` +
-      `scripts/vitest.sentry-electron-stub.ts). Declare what this test needs:\n` +
+      `scripts/vitest/vitest.sentry-electron-stub.ts). Declare what this test needs:\n` +
       `  vi.mock("@sentry/electron/main", () => ({ ${name}: vi.fn() }));`,
   );
 };

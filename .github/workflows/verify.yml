@@ -56,7 +56,7 @@ jobs:
           cache: pnpm
 
       # Turbo cache between runs. `pnpm build`/`typecheck` go through
-      # scripts/turbo.mjs, whose default is this path; turbo's keys hash the
+      # scripts/tooling/turbo.mjs, whose default is this path; turbo's keys hash the
       # CONTENT (package + task + files + deps), never the path or the branch, so
       # any recently restored cache is valid — turbo only replays what has
       # changed. Measured cold: Build 278 s + Typecheck 181 s; a run that touches

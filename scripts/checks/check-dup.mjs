@@ -17,7 +17,7 @@
 // A is ratcheted through dup-allowlist.json (frozen backlog, may only shrink — same
 // contract as check:loc). B has no allowlist: move the shared thing into packages/.
 //
-// Run `node scripts/check-dup.mjs --update` to regenerate the allowlist after an
+// Run `node scripts/checks/check-dup.mjs --update` to regenerate the allowlist after an
 // intentional, reviewed change.
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -25,7 +25,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
+const root = join(here, "../..");
 const allowlistPath = join(here, "dup-allowlist.json");
 
 // The phrasings that announce a second copy. Deliberately narrow: these are claims

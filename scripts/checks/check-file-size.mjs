@@ -27,10 +27,10 @@ import { inLocScope } from "./locScope.mjs";
 
 const LIMIT = 300;
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
+const root = join(here, "../..");
 const allowlistPath = join(here, "file-size-allowlist.json");
 
-// The glob below only PRE-filters; the authoritative scope is `scripts/locScope.mjs`,
+// The glob below only PRE-filters; the authoritative scope is `scripts/checks/locScope.mjs`,
 // shared with the pre-commit gate — that is the one applied.
 function trackedSourceFiles() {
   const out = execSync(

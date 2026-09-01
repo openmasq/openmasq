@@ -12,14 +12,14 @@
  * it — the gate would be the leak. So we compare fingerprints: the file never says WHO it
  * protects, only that something known has reappeared.
  *
- * Adding a term: `node scripts/check-pii.mjs --hash "the value"`, then paste the
+ * Adding a term: `node scripts/checks/check-pii.mjs --hash "the value"`, then paste the
  * fingerprint below with a comment stating the CATEGORY, never the value.
  *
  * What the gate does NOT do: ban a bare first name. « thomas » and « numa » are first names
  * from the `firstNames.data.ts` lexicon and must stay there — it is the identity (surname,
  * glued form, company bigram, identifier) that is forbidden, not a dictionary word.
  *
- *   node scripts/check-pii.mjs        # ou: pnpm check:pii
+ *   node scripts/checks/check-pii.mjs        # ou: pnpm check:pii
  *
  * Exit codes: 0 = clean; 1 = a real identity has reappeared.
  */
@@ -82,7 +82,7 @@ const digest = (s) => createHash("sha256").update(fold(s)).digest("hex").slice(0
 if (process.argv[2] === "--hash") {
   const value = process.argv[3];
   if (!value) {
-    console.error("usage: node scripts/check-pii.mjs --hash \"the value\"");
+    console.error("usage: node scripts/checks/check-pii.mjs --hash \"the value\"");
     process.exit(2);
   }
   console.log(digest(value));
@@ -90,7 +90,7 @@ if (process.argv[2] === "--hash") {
 }
 
 // The gate itself contains fingerprints, never values — nothing to look for in it.
-const SELF = "scripts/check-pii.mjs";
+const SELF = "scripts/checks/check-pii.mjs";
 const BINARY = /\.(png|jpe?g|gif|webp|ico|icns|pdf|docx?|xlsx?|zip|woff2?|ttf|otf|wasm|onnx|node|dylib|so|dll|exe|traineddata|mp[34]|mov)$/i;
 const MAX_BYTES = 4_000_000;
 

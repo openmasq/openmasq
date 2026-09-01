@@ -38,7 +38,7 @@ const STRATEGIES = (flag("strategies") ?? "current").split(",").map((s) => s.tri
 const RUNS = flag("runs") ?? "2";
 const ONLY = flag("only") ?? "wf";
 const REAL = ARGV.includes("--real");
-const ROOT = resolve(__dirname, "..");
+const ROOT = resolve(__dirname, "../..");
 
 function apiKey(): string {
   if (process.env.OPENROUTER_API_KEY) return process.env.OPENROUTER_API_KEY;

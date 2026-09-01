@@ -60,7 +60,7 @@ import { createRequire, isBuiltin } from "node:module";
 import satisfies from "semver/functions/satisfies.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
+const root = join(here, "../..");
 const allowlistPath = join(here, "packaged-tree-allowlist.json");
 const update = process.argv.includes("--update");
 const req = createRequire(import.meta.url);
@@ -71,7 +71,7 @@ const req = createRequire(import.meta.url);
 // names those dirs per target+arch (`mac-arm64/`, `win-unpacked/`, `win-arm64-unpacked/`…),
 // so we walk them all and try each layout rather than guessing the dir name. The macOS
 // bundle is named after the product, which has ONE home: the branding JSON (rule 9).
-const BRAND = JSON.parse(readFileSync(new URL("../packages/branding/branding.json", import.meta.url)));
+const BRAND = JSON.parse(readFileSync(new URL("../../packages/branding/branding.json", import.meta.url)));
 const TREE_LAYOUTS = [
   `${BRAND.name}.app/Contents/Resources/app.asar.unpacked/node_modules`, // macOS
   "resources/app.asar.unpacked/node_modules", // Windows / Linux
@@ -483,7 +483,7 @@ if (newBacklog.length) {
     console.error(`\n✘ ${dormant.length} NEW dormant finding(s) (shipped, but nothing loads them):\n`);
     for (const k of dormant) console.error(`  ${k}`);
   }
-  console.error("\nIf they are genuinely tolerable: node scripts/check-packaged-tree.mjs --update\n");
+  console.error("\nIf they are genuinely tolerable: node scripts/checks/check-packaged-tree.mjs --update\n");
 }
 
 if (blocking.length || newBacklog.length) process.exit(1);

@@ -19,7 +19,7 @@
     // typecheck against dist reports the state of the last `pnpm build`, not the code
     // in front of you: a cross-package edit shows phantom errors until you rebuild by
     // hand, and — worse — a signature you just changed still typechecks green. Mirrors
-    // `scripts/vitest.workspaceAlias.ts`, which does the same for the test runner, and
+    // `scripts/vitest/vitest.workspaceAlias.ts`, which does the same for the test runner, and
     // for the same reason. A new subpath in a package's `exports` belongs in BOTH.
     "paths": {
       "@renderer/*": ["src/renderer/src/*"],

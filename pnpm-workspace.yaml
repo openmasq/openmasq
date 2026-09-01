@@ -22,7 +22,7 @@ minimumReleaseAge: 4320 # minutes = 3 days
 #    longer has ANY script (`scripts` absent from its package.json), it lazily downloads
 #    on the first `require`. The line therefore authorized nothing at all, while its
 #    comment made you believe the opposite — that's what kept the hole invisible
-#    until 12/08 (`scripts/vitest.electron-stub.ts` tells the story of the failure). The only real safety net
+#    until 12/08 (`scripts/vitest/vitest.electron-stub.ts` tells the story of the failure). The only real safety net
 #    is `release.yml`'s "Ensure Electron binary" step, where the app is actually launched.
 #  • `esbuild` does have one — and it has always been blocked with nothing suffering for it
 #    (its binaries come from the per-platform optional packages). Allowing it would reopen

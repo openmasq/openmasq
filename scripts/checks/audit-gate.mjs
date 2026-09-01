@@ -14,7 +14,7 @@
  * Rationale + the full triage live in the dependency-audit report. Re-tune the two
  * lists below as the topology changes. Runs `pnpm audit --json` itself.
  *
- *   node scripts/audit-gate.mjs        # or: pnpm audit:gate
+ *   node scripts/checks/audit-gate.mjs        # or: pnpm audit:gate
  *
  * Exit codes: 0 = clean (or an infra/parse failure — we fail OPEN on registry
  * flake so a network hiccup never blocks every PR); 1 = real gated findings.
@@ -118,7 +118,7 @@ function main() {
     if (g.url) console.log(`     ${g.url}`);
     console.log("");
   }
-  console.log(`Gate FAILED: ${gated.length} finding(s) on a shipped/served surface. Update the dep, or (if a false positive) tune scripts/audit-gate.mjs.`);
+  console.log(`Gate FAILED: ${gated.length} finding(s) on a shipped/served surface. Update the dep, or (if a false positive) tune scripts/checks/audit-gate.mjs.`);
   process.exit(1);
 }
 

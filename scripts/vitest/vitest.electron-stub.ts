@@ -25,7 +25,7 @@ function absent(name: string): unknown {
   const boom = (prop: string): never => {
     throw new Error(
       `electron.${name}.${prop} — the unit suite has NO Electron (stub: ` +
-        `scripts/vitest.electron-stub.ts). Declare what this test needs:\n` +
+        `scripts/vitest/vitest.electron-stub.ts). Declare what this test needs:\n` +
         `  vi.mock("electron", () => ({ ${name}: { ${prop}: vi.fn() } }));`,
     );
   };

@@ -8,7 +8,7 @@ the recall benches in `../../bench/corpora/`.
 
 Two kinds, never mixed: a **unit case** runs in `pnpm test` (free, seconds); a **recall bench**
 (`*.recall.test.ts`, `benchReplay`, `benchFixes`) measures recall/precision on a corpus and
-runs in `pnpm test:corpus` — `scripts/vitest.workspaceAlias.ts` (`CORPUS_TESTS`) is the one
+runs in `pnpm test:corpus` — `scripts/vitest/vitest.workspaceAlias.ts` (`CORPUS_TESTS`) is the one
 list that decides which is which.
 
 Adding a case: name it after the document family in English, say in its header what it

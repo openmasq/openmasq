@@ -36,7 +36,7 @@ export function useCloudTree(active: boolean) {
   useEffect(() => {
     // EXPLICIT `return`: it's the unsubscribe. In a concise arrow, the implicit
     // return accidentally becomes React's cleanup — and the day the API's return
-    // type changes, it lands on the ErrorBoundary (`scripts/check-effect-returns.mjs`).
+    // type changes, it lands on the ErrorBoundary (`scripts/checks/check-effect-returns.mjs`).
     return host.mcp?.onChanged?.(() => setTick((n) => n + 1));
   }, [host.mcp]);
 

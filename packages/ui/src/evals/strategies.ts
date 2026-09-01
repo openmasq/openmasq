@@ -1,5 +1,5 @@
 // Named prompt-size STRATEGIES for the bench's strategy axis (`OPENMASQ_EVAL_STRATEGY`,
-// `scripts/bench-agentic.ts --strategies`). Each is a `{ routing, catalog }` pair in the
+// `scripts/tooling/bench-agentic.ts --strategies`). Each is a `{ routing, catalog }` pair in the
 // exact shape `McpAgentParams.routingConfig` expects — swept against the REAL scenario
 // catalog (real tool schemas, real models) to compare latency vs. conformance. `current`
 // reproduces today's production defaults EXACTLY; it exists so a diff against it always

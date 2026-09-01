@@ -11,7 +11,7 @@
 // crowds out the code it describes and stops being read. Known offenders are frozen in
 // claude-md-allowlist.json — a shrinking backlog, same contract as check-file-size.mjs.
 //
-// Run `node scripts/check-docs.mjs --update` to re-freeze the size allowlist after an
+// Run `node scripts/checks/check-docs.mjs --update` to re-freeze the size allowlist after an
 // intentional, reviewed split.
 import { execSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -25,7 +25,7 @@ import { dirname, join, relative } from "node:path";
  *  code — those load on demand, only when Claude reads files in that folder. */
 const LINE_LIMIT = 200;
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
+const root = join(here, "../..");
 const allowlistPath = join(here, "claude-md-allowlist.json");
 
 /** Prefixes that make a backticked token look like a path INTO this repo. `scripts/` and

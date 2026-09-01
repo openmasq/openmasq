@@ -1,7 +1,7 @@
 version: 2
 
 # Dependency updates proposed as PRs. The role is to make the debt VISIBLE
-# and dated; what decides whether to block or not remains `scripts/audit-gate.mjs`, which sorts by
+# and dated; what decides whether to block or not remains `scripts/checks/audit-gate.mjs`, which sorts by
 # SURFACE (shipped/served vs tooling) rather than by raw severity.
 #
 # ⚠️ This does NOT bypass `minimumReleaseAge` (3 days, `pnpm-workspace.yaml`): Dependabot

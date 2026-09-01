@@ -14,7 +14,7 @@ import { dirname, join } from "node:path";
 import picomatch from "picomatch";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = join(here, "..");
+const root = join(here, "../..");
 
 /**
  * Test files that legitimately do NOT run under the root vitest config. Each needs a
