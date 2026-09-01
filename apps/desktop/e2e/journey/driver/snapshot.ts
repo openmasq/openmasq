@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { EXPR_DIGEST, appel } from "./inPage";
+import { EXPR_DIGEST, call } from "./inPage";
 
 export interface Snapshot {
   /** The current section, as the rail marks it active. */
@@ -30,6 +30,6 @@ export interface Snapshot {
  * the user reads, and which breaks loudly when a button is renamed. The page's code
  * is a string — why: `inPage.ts`.
  */
-export async function snapshot(page: Page, limiteMessages = 6): Promise<Snapshot> {
-  return page.evaluate(appel(EXPR_DIGEST, limiteMessages)) as Promise<Snapshot>;
+export async function snapshot(page: Page, messageLimit = 6): Promise<Snapshot> {
+  return page.evaluate(call(EXPR_DIGEST, messageLimit)) as Promise<Snapshot>;
 }

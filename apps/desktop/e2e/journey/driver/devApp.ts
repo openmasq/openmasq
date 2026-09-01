@@ -2,7 +2,7 @@ import { chromium, type Browser, type Page } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { resolve } from "node:path";
 import { DESKTOP_DIR, MAIN_LOG } from "./paths";
-import { suivreLog } from "./suivreLog";
+import { tailLog } from "./tailLog";
 import { BRAND } from "@openmasq/branding";
 
 /**
@@ -32,7 +32,7 @@ export interface DevApp {
   /** What the main process writes (`[mcp:raw]` on stdout, exceptions on stderr).
    *  Replays what was written BEFORE the subscription: startup talks while the
    *  driver is still waiting for the CDP port. */
-  onLog: (noter: (d: unknown) => void) => void;
+  onLog: (note: (d: unknown) => void) => void;
   close: () => Promise<void>;
 }
 
@@ -50,9 +50,9 @@ const CDP_PORT = 9333;
 /** The first startup compiles main + preload: it's slow, but it's still dev. */
 const READY_TIMEOUT_MS = 180_000;
 
-const dors = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function attendCdp(port: number, finAt: number, mort: () => string | null): Promise<string> {
+async function waitForCdp(port: number, endAt: number, dead: () => string | null): Promise<string> {
   for (;;) {
     try {
       const r = await fetch(`http://127.0.0.1:${port}/json/version`);
@@ -62,10 +62,10 @@ async function attendCdp(port: number, finAt: number, mort: () => string | null)
     }
     // A child already dead will never open the port: waiting the full 180 s only
     // moves the operator further from the cause, which was just written to stderr.
-    const fin = mort();
-    if (fin) throw new Error(`l'app s'est arrêtée avant d'ouvrir son port CDP (${fin})`);
-    if (Date.now() > finAt) throw new Error("electron-vite dev n'a pas ouvert son port CDP");
-    await dors(500);
+    const end = dead();
+    if (end) throw new Error(`l'app s'est arrêtée avant d'ouvrir son port CDP (${end})`);
+    if (Date.now() > endAt) throw new Error("electron-vite dev n'a pas ouvert son port CDP");
+    await sleep(500);
   }
 }
 
@@ -79,22 +79,22 @@ async function attendCdp(port: number, finAt: number, mort: () => string | null)
  * the form Chromium NORMALIZES to) never matched: the driver would wait 180 s
  * then announce "no app window" in front of a perfectly open app.
  */
-const ORIGINE_APP = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)|file:\/\/)/;
+const APP_ORIGIN = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)|file:\/\/)/;
 
-async function attendPage(navigateur: Browser, finAt: number): Promise<Page> {
+async function waitForPage(browser: Browser, endAt: number): Promise<Page> {
   for (;;) {
-    for (const ctx of navigateur.contexts()) {
+    for (const ctx of browser.contexts()) {
       for (const p of ctx.pages()) {
-        if (ORIGINE_APP.test(p.url())) return p;
+        if (APP_ORIGIN.test(p.url())) return p;
       }
     }
-    if (Date.now() > finAt) throw new Error("aucune fenêtre d'app (serveur de dév ou file://)");
-    await dors(500);
+    if (Date.now() > endAt) throw new Error("aucune fenêtre d'app (serveur de dév ou file://)");
+    await sleep(500);
   }
 }
 
 /** Does the CDP port answer ALREADY? A single attempt — we don't want to wait here. */
-async function portOuvert(port: number): Promise<boolean> {
+async function portOpen(port: number): Promise<boolean> {
   try {
     const r = await fetch(`http://127.0.0.1:${port}/json/version`, {
       signal: AbortSignal.timeout(1500),
@@ -117,20 +117,20 @@ async function portOuvert(port: number): Promise<boolean> {
  *
  * What attached mode costs, and what you need to know: the driver holds no pipe, so
  * the main process's output (`[mcp:raw]`, exceptions) only reaches it through
- * `.parcours/main.log` — hence the redirection in the launch command. And `close()`
+ * `.journey/main.log` — hence the redirection in the launch command. And `close()`
  * kills NOTHING: we don't close someone else's app.
  */
-async function attacher(): Promise<DevApp> {
-  const navigateur = await chromium.connectOverCDP(`http://127.0.0.1:${CDP_PORT}`);
-  const page = await attendPage(navigateur, Date.now() + 30_000);
-  const arrets: Array<() => void> = [];
+async function attachFile(): Promise<DevApp> {
+  const browser = await chromium.connectOverCDP(`http://127.0.0.1:${CDP_PORT}`);
+  const page = await waitForPage(browser, Date.now() + 30_000);
+  const stops: Array<() => void> = [];
   return {
     page,
     attache: true,
-    onLog: (noter) => arrets.push(suivreLog(MAIN_LOG, noter)),
+    onLog: (note) => stops.push(tailLog(MAIN_LOG, note)),
     close: async () => {
-      for (const a of arrets) a();
-      await navigateur.close().catch(() => {});
+      for (const a of stops) a();
+      await browser.close().catch(() => {});
     },
   };
 }
@@ -146,12 +146,12 @@ export async function startDevApp(
   // An app is already there on the port: attach to it. Spawning on top would give a second
   // Electron that fails on the taken port — and that has already led to diagnosing "port
   // in use" where the cause was something else entirely.
-  if (await portOuvert(CDP_PORT)) return attacher();
+  if (await portOpen(CDP_PORT)) return attachFile();
   const [bin, args] =
     mode === "installed"
       ? [INSTALLED_BIN, [`--remote-debugging-port=${CDP_PORT}`]]
       : [BIN, ["dev", `--remoteDebuggingPort=${CDP_PORT}`]];
-  const enfant: ChildProcess = spawn(bin, args, {
+  const child: ChildProcess = spawn(bin, args, {
     cwd: DESKTOP_DIR,
     env: { ...env, ...(mode === "installed" ? {} : { NODE_ENV: "development" }) },
     // SEPARATE process group: `electron-vite` launches Electron as a CHILD, so killing
@@ -165,51 +165,51 @@ export async function startDevApp(
   // "socket hang up" and looked for the cause in the wrong place. With nobody reading the
   // pipes, they'd also fill up until blocking the child.
   const tail: string[] = [];
-  const abonnes: Array<(d: unknown) => void> = [];
-  const capter = (d: unknown) => {
+  const subscribers: Array<(d: unknown) => void> = [];
+  const captureOutput = (d: unknown) => {
     for (const l of String(d).split("\n")) if (l.trim()) tail.push(l.trimEnd());
     if (tail.length > TAIL_LINES) tail.splice(0, tail.length - TAIL_LINES);
-    for (const noter of abonnes) noter(d);
+    for (const note of subscribers) note(d);
   };
-  enfant.stdout?.on("data", capter);
-  enfant.stderr?.on("data", capter);
-  let mort: string | null = null;
-  enfant.on("exit", (code, signal) => {
-    mort = signal ? `signal ${signal}` : `code ${code}`;
+  child.stdout?.on("data", captureOutput);
+  child.stderr?.on("data", captureOutput);
+  let dead: string | null = null;
+  child.on("exit", (code, signal) => {
+    dead = signal ? `signal ${signal}` : `code ${code}`;
   });
 
-  const finAt = Date.now() + READY_TIMEOUT_MS;
+  const endAt = Date.now() + READY_TIMEOUT_MS;
   let page: Page;
-  let navigateur: Browser | null = null;
+  let browser: Browser | null = null;
   try {
-    navigateur = await chromium.connectOverCDP(await attendCdp(CDP_PORT, finAt, () => mort));
-    page = await attendPage(navigateur, finAt);
+    browser = await chromium.connectOverCDP(await waitForCdp(CDP_PORT, endAt, () => dead));
+    page = await waitForPage(browser, endAt);
   } catch (e) {
     // Kill the group: a child left alive keeps the CDP port, and the next attempt
     // fails "differently" — which leads to diagnosing a port-in-use issue instead of the
     // real cause.
-    await navigateur?.close().catch(() => {});
+    await browser?.close().catch(() => {});
     try {
-      if (enfant.pid) process.kill(-enfant.pid, "SIGTERM");
+      if (child.pid) process.kill(-child.pid, "SIGTERM");
     } catch {
       /* already dead */
     }
-    const sortie = tail.length ? `\n--- dernières lignes de ${bin} ---\n${tail.join("\n")}` : "";
-    throw new Error(`${e instanceof Error ? e.message : String(e)}${sortie}`);
+    const output = tail.length ? `\n--- dernières lignes de ${bin} ---\n${tail.join("\n")}` : "";
+    throw new Error(`${e instanceof Error ? e.message : String(e)}${output}`);
   }
   return {
     page,
     attache: false,
-    onLog: (noter) => {
-      for (const l of tail) noter(l);
-      abonnes.push(noter);
+    onLog: (note) => {
+      for (const l of tail) note(l);
+      subscribers.push(note);
     },
     close: async () => {
       // Detach BEFORE killing: closing the CDP browser doesn't close the app, and killing
       // the app while Playwright is talking to it produces an error that masks the real one.
-      await navigateur?.close().catch(() => {});
+      await browser?.close().catch(() => {});
       try {
-        if (enfant.pid) process.kill(-enfant.pid, "SIGTERM");
+        if (child.pid) process.kill(-child.pid, "SIGTERM");
       } catch {
         /* already dead */
       }

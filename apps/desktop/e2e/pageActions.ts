@@ -6,7 +6,7 @@ import type { Page } from "@playwright/test";
  *
  * ⚠️ This module is deliberately free of any path resolution, and that's its
  * reason for being: `helpers.ts` must stay in `__dirname` (Playwright turns specs into CJS,
- * where `import.meta` breaks) while the `parcours/` driver runs in ESM under tsx, where
+ * where `import.meta` breaks) while the `journey/` driver runs in ESM under tsx, where
  * `__dirname` is what doesn't exist. Only one of these two worlds can import `helpers.ts`.
  * The gestures themselves are the same on both sides — so they live here, imported by
  * both (rule 9: one behavior, one home), and `helpers.ts` re-exports them so that

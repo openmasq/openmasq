@@ -77,12 +77,12 @@ export interface AppSession {
  * Either way we arm the two journals that make the promise verifiable:
  * `OPENMASQ_E2E_WIRE_LOG` (what each provider call carries) and `OPENMASQ_MCP_RAW_LOG`
  * (the REAL, un-redacted arguments each tool receives). They contain real
- * PII: they live in `.parcours/`, git-ignored, and are never copied anywhere.
+ * PII: they live in `.journey/`, git-ignored, and are never copied anywhere.
  */
 export async function startApp(opts: StartOptions = {}): Promise<AppSession> {
-  const reel = opts.profil === "reel";
-  const model = opts.model === "real" || reel ? null : await startFakeModel();
-  if (!reel && opts.fresh !== false) rmSync(PROFILE, { recursive: true, force: true });
+  const isReal = opts.profil === "reel";
+  const model = opts.model === "real" || isReal ? null : await startFakeModel();
+  if (!isReal && opts.fresh !== false) rmSync(PROFILE, { recursive: true, force: true });
   const errors: string[] = [];
   const mainLog: string[] = [];
 
@@ -95,7 +95,7 @@ export async function startApp(opts: StartOptions = {}): Promise<AppSession> {
     OPENMASQ_E2E_WIRE_LOG: WIRE_LOG,
     OPENMASQ_MCP_RAW_LOG: "1",
   };
-  if (!reel) {
+  if (!isReal) {
     env.OPENMASQ_E2E = "1";
     env.OPENMASQ_DISABLE_DB = "1";
     env.OPENMASQ_USER_DATA_DIR = PROFILE;
@@ -107,17 +107,17 @@ export async function startApp(opts: StartOptions = {}): Promise<AppSession> {
   if (opts.attach?.length) env.OPENMASQ_E2E_ATTACH = opts.attach.join(":");
   if (opts.grantDir) env.OPENMASQ_E2E_PICK_DIR = opts.grantDir;
 
-  const noter = (d: unknown) => mainLog.push(String(d).trimEnd());
+  const note = (d: unknown) => mainLog.push(String(d).trimEnd());
   // The REAL profile wants the DEV app: it's the only path to the local environment
   // (`devApp.ts` says why a build can't be re-pointed there). The disposable profile
   // keeps the bundle — it talks to no one, and launches without compiling.
-  const mode = opts.mode ?? (reel ? "dev" : "build");
+  const mode = opts.mode ?? (isReal ? "dev" : "build");
   const dev = mode === "dev" || mode === "installed" ? await startDevApp(env, mode) : null;
   const app = dev ? null : await electron.launch({ args: [DESKTOP_DIR], cwd: DESKTOP_DIR, env });
-  if (dev) dev.onLog(noter);
+  if (dev) dev.onLog(note);
   else if (app) {
-    app.process().stdout?.on("data", noter);
-    app.process().stderr?.on("data", noter);
+    app.process().stdout?.on("data", note);
+    app.process().stderr?.on("data", note);
   }
   const page = dev ? dev.page : await app!.firstWindow();
   await page.waitForLoadState("domcontentloaded");
@@ -126,7 +126,7 @@ export async function startApp(opts: StartOptions = {}): Promise<AppSession> {
     if (m.type() === "error") errors.push(`console.error: ${m.text()}`);
   });
 
-  if (!reel) {
+  if (!isReal) {
     // ⚠️ The model is carried by the CONVERSATION, not just by `defaultModelId`: without
     // a pre-seeded conversation the app creates one on the product's default model and
     // the send goes out over the network — a send we thought was local.

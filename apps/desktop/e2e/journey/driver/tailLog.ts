@@ -12,50 +12,50 @@ import { existsSync, openSync, readSync, closeSync, statSync } from "node:fs";
  * would conclude a tool was never called.
  *
  * Hence the attached-mode convention: the app launches redirecting its output into
- * `.parcours/main.log`, and that's the file we follow.
+ * `.journey/main.log`, and that's the file we follow.
  */
-const INTERVALLE_MS = 400;
+const INTERVAL_MS = 400;
 
-export function suivreLog(chemin: string, noter: (ligne: string) => void): () => void {
+export function tailLog(filePath: string, note: (line: string) => void): () => void {
   // From the START of the file, not from now: what the app said on startup
   // (native modules, mounted connectors, first errors) is what explains the rest.
-  let lu = 0;
-  let reste = "";
-  let vivant = true;
+  let readCount = 0;
+  let rest = "";
+  let alive = true;
 
-  const avaler = () => {
-    if (!vivant || !existsSync(chemin)) return;
-    let taille: number;
+  const swallow = () => {
+    if (!alive || !existsSync(filePath)) return;
+    let fileSize: number;
     try {
-      taille = statSync(chemin).size;
+      fileSize = statSync(filePath).size;
     } catch {
       return;
     }
     // TRUNCATED file (app relaunched into the same log): start over from zero rather than
     // reading at an offset that no longer exists — otherwise following goes silent for good.
-    if (taille < lu) {
-      lu = 0;
-      reste = "";
+    if (fileSize < readCount) {
+      readCount = 0;
+      rest = "";
     }
-    if (taille === lu) return;
-    const fd = openSync(chemin, "r");
+    if (fileSize === readCount) return;
+    const fd = openSync(filePath, "r");
     try {
-      const tampon = Buffer.alloc(taille - lu);
-      const n = readSync(fd, tampon, 0, tampon.length, lu);
-      lu += n;
-      const lignes = (reste + tampon.subarray(0, n).toString("utf8")).split("\n");
-      reste = lignes.pop() ?? "";
-      for (const l of lignes) if (l.trim()) noter(l);
+      const buffer = Buffer.alloc(fileSize - readCount);
+      const n = readSync(fd, buffer, 0, buffer.length, readCount);
+      readCount += n;
+      const lines = (rest + buffer.subarray(0, n).toString("utf8")).split("\n");
+      rest = lines.pop() ?? "";
+      for (const l of lines) if (l.trim()) note(l);
     } finally {
       closeSync(fd);
     }
   };
 
-  avaler();
-  const t = setInterval(avaler, INTERVALLE_MS);
+  swallow();
+  const t = setInterval(swallow, INTERVAL_MS);
   t.unref?.();
   return () => {
-    vivant = false;
+    alive = false;
     clearInterval(t);
   };
 }

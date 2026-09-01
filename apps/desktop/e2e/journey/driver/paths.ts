@@ -12,12 +12,12 @@ export const DESKTOP_DIR = resolve(HERE, "../../..");
  * disposable profile, socket. A single folder, git-ignored, that can be erased without a
  * second thought — and that the skill knows to cite to the agent without guessing.
  */
-export const RUN_DIR = resolve(DESKTOP_DIR, "e2e/.parcours");
+export const RUN_DIR = resolve(DESKTOP_DIR, "e2e/.journey");
 export const SOCK = resolve(RUN_DIR, "daemon.sock");
 export const SHOTS = resolve(RUN_DIR, "captures");
 export const PROFILE = resolve(RUN_DIR, "profil");
 /** The logbook: one JSON line per command, it's the trace the agent re-reads. */
-export const JOURNAL = resolve(RUN_DIR, "journal.jsonl");
+export const LOG_FILE = resolve(RUN_DIR, "journal.jsonl");
 /** The driver's own log (stdout/stderr of the daemon) — to understand a dead daemon. */
 export const DAEMON_LOG = resolve(RUN_DIR, "daemon.log");
 /**

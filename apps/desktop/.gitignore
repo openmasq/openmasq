@@ -26,6 +26,6 @@ build/doctr-models/
 # Baked Mémoire embedding model — bundled via `scripts/bake-embed-models.ts`; never source.
 build/embed-models/
 
-# Le pilote de parcours : captures, journal, wire, appels d'outils, profil jetable.
+# The journey driver : captures, journal, wire, appels d'outils, profil jetable.
 # Contient de la PII de test et des chemins de machine — jamais commité.
-e2e/.parcours/
+e2e/.journey/

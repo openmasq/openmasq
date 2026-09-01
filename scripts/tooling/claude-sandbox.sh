@@ -126,7 +126,7 @@ $(extras "${CLAUDE_SANDBOX_READ:-}")
   (subpath "/private/tmp")
   (subpath "/private/var/tmp")
   (subpath "$HOME_DIR/.claude")               ; history, shell snapshots, todos
-  (subpath "$HOME_DIR/.openmasq-agent")      ; parcours-agent §7: reporting back
+  (subpath "$HOME_DIR/.openmasq-agent")      ; parcours-agent (infra repo) §7: reporting back
   (regex #"^$HOME_RE/\\.claude\\.json")       ; + .claude.json.backup / .tmp
   (subpath "$HOME_DIR/.cache")
   (subpath "$HOME_DIR/.npm")

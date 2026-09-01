@@ -18,7 +18,7 @@
  * you get back `undefined`, hence an empty digest, hence an agent that believes the screen is empty. We
  * therefore call it ourselves, serializing the argument into the source.
  */
-export const appel = (expr: string, arg?: unknown): string =>
+export const call = (expr: string, arg?: unknown): string =>
   `(${expr})(${arg === undefined ? "" : JSON.stringify(arg)})`;
 
 const PRELUDE = `
@@ -86,7 +86,7 @@ export const EXPR_DIGEST = `(limite) => {
 }`;
 
 /** Marks the nth element named `nom`. Argument: `{nom, n, HIT}`. Returns `true` if it exists. */
-export const EXPR_MARQUER = `(a) => {
+export const EXPR_MARK = `(a) => {
   ${PRELUDE}
   document.querySelectorAll("[" + a.HIT + "]").forEach((e) => e.removeAttribute(a.HIT));
   let vus = 0;
@@ -100,7 +100,7 @@ export const EXPR_MARQUER = `(a) => {
 }`;
 
 /** Removes the marker. Argument: the attribute's name. */
-export const EXPR_DEMARQUER = `(h) => document.querySelectorAll("[" + h + "]").forEach((e) => e.removeAttribute(h))`;
+export const EXPR_UNMARK = `(h) => document.querySelectorAll("[" + h + "]").forEach((e) => e.removeAttribute(h))`;
 
 /**
  * The profile's service state: is real mode ACTUALLY available?
@@ -109,7 +109,7 @@ export const EXPR_DEMARQUER = `(h) => document.querySelectorAll("[" + h + "]").f
  * sign-in screen and an empty screen look alike, and "I think I'm signed in" has produced
  * reports that made a real path look like a simulated run.
  */
-export const EXPR_SANTE = `async () => {
+export const EXPR_HEALTH = `async () => {
   const cle = Object.keys(localStorage).find((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
   let compte = null;
   try { compte = cle ? (JSON.parse(localStorage.getItem(cle) || "{}").user || {}).email || null : null; } catch (e) {}

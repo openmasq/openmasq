@@ -1,9 +1,9 @@
 import type { Page } from "@playwright/test";
 import { awaitReply } from "../../pageActions";
-import { EXPR_DEMARQUER, EXPR_MARQUER, appel } from "./inPage";
+import { EXPR_UNMARK, EXPR_MARK, call } from "./inPage";
 
 /** The temporary marker set on the targeted element, for the duration of a real Playwright click. */
-const HIT = "data-parcours-hit";
+const HIT = "data-journey-hit";
 
 /**
  * Clicks by ACCESSIBLE NAME — the digest's vocabulary, so what the agent reads.
@@ -13,32 +13,32 @@ const HIT = "data-parcours-hit";
  * event queue (hover, focus, scroll-into-view) and would let through buttons a human
  * couldn't have reached: a lying green, exactly what an agent must never produce.
  */
-export async function cliquer(page: Page, nom: string, n = 1): Promise<void> {
-  const trouve = (await page.evaluate(appel(EXPR_MARQUER, { nom, n, HIT }))) as boolean;
-  if (!trouve) {
+export async function clickByName(page: Page, name: string, n = 1): Promise<void> {
+  const found = (await page.evaluate(call(EXPR_MARK, { name, n, HIT }))) as boolean;
+  if (!found) {
     throw new Error(
-      `aucun élément cliquable nommé « ${nom} »${n > 1 ? ` (n°${n})` : ""} — relire le digest`,
+      `aucun élément cliquable nommé « ${name} »${n > 1 ? ` (n°${n})` : ""} — relire le digest`,
     );
   }
   await page.locator(`[${HIT}]`).click({ timeout: 15_000 });
-  await page.evaluate(appel(EXPR_DEMARQUER, HIT));
+  await page.evaluate(call(EXPR_UNMARK, HIT));
 }
 
 /** Writes into the composer (or into a named field), without sending. */
-export async function ecrire(page: Page, texte: string, champ?: string): Promise<void> {
-  const cible = champ
-    ? page.getByLabel(champ).first().or(page.getByPlaceholder(champ).first())
+export async function typeText(page: Page, inputText: string, field?: string): Promise<void> {
+  const target = field
+    ? page.getByLabel(field).first().or(page.getByPlaceholder(field).first())
     : page.locator(".composer-input");
-  await cible.click({ timeout: 15_000 });
-  await cible.fill(texte);
+  await target.click({ timeout: 15_000 });
+  await target.fill(inputText);
 }
 
 /** One keystroke, on whatever has focus. */
-export async function toucher(page: Page, touche: string): Promise<void> {
-  await page.keyboard.press(touche);
+export async function pressKey(page: Page, keyName: string): Promise<void> {
+  await page.keyboard.press(keyName);
 }
 
-export interface Reponse {
+export interface Reply {
   reponse: string;
   ms: number;
   enErreur: boolean;
@@ -52,7 +52,7 @@ export interface Reponse {
  * a day. Also returns what the app had ANNOUNCED as to-be-redacted — without which judging
  * "was the promise kept" would require replaying the scene.
  */
-export async function demander(page: Page, prompt: string, timeoutMs = 180_000): Promise<Reponse> {
+export async function askModel(page: Page, prompt: string, timeoutMs = 180_000): Promise<Reply> {
   const input = page.locator(".composer-input");
   await input.click({ timeout: 30_000 });
   await input.fill(prompt);
@@ -72,6 +72,6 @@ export async function demander(page: Page, prompt: string, timeoutMs = 180_000):
 
   await input.press("Enter");
   const { text, ms, errored } = await awaitReply(page, timeoutMs);
-  const surlignages = await page.locator(".msg.user").last().locator("mark.redaction-mark").count();
-  return { reponse: text, ms, enErreur: errored, toRedact, surlignages };
+  const highlights = await page.locator(".msg.user").last().locator("mark.redaction-mark").count();
+  return { reponse: text, ms, enErreur: errored, toRedact, surlignages: highlights };
 }

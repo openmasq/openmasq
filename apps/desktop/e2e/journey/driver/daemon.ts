@@ -1,6 +1,6 @@
 import { createServer } from "node:net";
 import { existsSync, unlinkSync } from "node:fs";
-import { executer, estArret, type Requete } from "./commands";
+import { execute, isStop, type Request } from "./commands";
 import { SOCK, ensureRunDir } from "./paths";
 
 /**
@@ -18,29 +18,29 @@ async function main(): Promise<void> {
   ensureRunDir();
   if (existsSync(SOCK)) unlinkSync(SOCK);
 
-  const serveur = createServer((sock) => {
-    let tampon = "";
+  const server = createServer((sock) => {
+    let buffer = "";
     sock.on("data", async (chunk) => {
-      tampon += chunk.toString();
+      buffer += chunk.toString();
       // One request = one JSON line. The buffer exists because TCP/unix splits wherever it wants.
       let i: number;
-      while ((i = tampon.indexOf("\n")) >= 0) {
-        const ligne = tampon.slice(0, i).trim();
-        tampon = tampon.slice(i + 1);
-        if (!ligne) continue;
-        let rep: Record<string, unknown>;
+      while ((i = buffer.indexOf("\n")) >= 0) {
+        const line = buffer.slice(0, i).trim();
+        buffer = buffer.slice(i + 1);
+        if (!line) continue;
+        let resp: Record<string, unknown>;
         let cmd = "";
         try {
-          const req = JSON.parse(ligne) as Requete;
+          const req = JSON.parse(line) as Request;
           cmd = req.cmd;
-          rep = await executer(req);
+          resp = await execute(req);
         } catch (err) {
-          rep = { ok: false, erreur: err instanceof Error ? err.message : String(err) };
+          resp = { ok: false, erreur: err instanceof Error ? err.message : String(err) };
         }
-        sock.write(JSON.stringify(rep) + "\n");
-        if (estArret(cmd)) {
+        sock.write(JSON.stringify(resp) + "\n");
+        if (isStop(cmd)) {
           sock.end();
-          serveur.close();
+          server.close();
           process.exit(0);
         }
       }
@@ -50,15 +50,15 @@ async function main(): Promise<void> {
     });
   });
 
-  serveur.listen(SOCK, () => process.stdout.write(`pilote prêt: ${SOCK}\n`));
+  server.listen(SOCK, () => process.stdout.write(`pilote prêt: ${SOCK}\n`));
 
-  const fermer = async () => {
-    await executer({ cmd: "stop" }).catch(() => {});
+  const closeSession = async () => {
+    await execute({ cmd: "stop" }).catch(() => {});
     if (existsSync(SOCK)) unlinkSync(SOCK);
     process.exit(0);
   };
-  process.on("SIGINT", fermer);
-  process.on("SIGTERM", fermer);
+  process.on("SIGINT", closeSession);
+  process.on("SIGTERM", closeSession);
 }
 
 main().catch((err) => {

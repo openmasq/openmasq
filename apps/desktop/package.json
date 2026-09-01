@@ -34,7 +34,7 @@
     "e2e:lab": "npm run build && node ../../node_modules/@playwright/test/cli.js test workflows-lab.e2e.ts",
     "e2e:evals": "npm run build && node ../../node_modules/@playwright/test/cli.js test evals.e2e.ts",
     "e2e:live": "npm run build && node ../../node_modules/@playwright/test/cli.js test live-file.e2e.ts",
-    "drive": "tsx e2e/parcours/driver/client.ts",
+    "drive": "tsx e2e/journey/driver/client.ts",
     "bake:vcruntime": "tsx scripts/bake-vcruntime.ts",
     "bake:runtimes": "tsx scripts/bake-runtimes.ts",
     "print:triples": "tsx scripts/print-shipped-triples.ts"

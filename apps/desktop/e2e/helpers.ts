@@ -35,7 +35,7 @@ export async function userDataPath(app: ElectronApplication): Promise<string> {
   return app.evaluate(({ app }) => app.getPath("userData"));
 }
 
-// The gestures on an open page live in `pageActions.ts` — the `parcours/`
+// The gestures on an open page live in `pageActions.ts` — the `journey/`
 // driver runs in ESM and cannot import THIS file (`__dirname`).
 // Re-exported here so existing specs don't have to change anything.
 export {
