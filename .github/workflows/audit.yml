@@ -46,7 +46,7 @@ jobs:
       # the pnpm store dir never exists and setup-node's post-run cache-save step
       # fails the job with "Path Validation Error … do(es) not exist". The gate
       # only reads the lockfile + registry, so there's nothing to cache anyway.
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 26
 
