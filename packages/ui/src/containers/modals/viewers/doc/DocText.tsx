@@ -119,7 +119,7 @@ function renderPage(
       );
     // No onClick: inspect ≠ reveal (audit 2026-08-10). The click (and Enter — the
     // button is the KEYBOARD path) PINS the shared reveal card
-    // (`useMarkHover` delegated on the container); « Unredact » is the card's
+    // (`useMarkHover` delegated on the container); « Démasquer » is the card's
     // explicit action, never the exploration gesture itself.
     return (
       <button

@@ -208,7 +208,7 @@ describe("the Coffre outranks the automatic connector keep-list", () => {
 /**
  * THE COFFRE IS CASE-INSENSITIVE — end to end.
  *
- * Its promise is « toujours redacted, quelle que soit la source ». Case is not part
+ * Its promise is « toujours masqué, quelle que soit la source ». Case is not part
  * of a value's identity: a term entered as « ACME2024 » must mask
  * « acme2024 » just like « Acme2024 ». Most of the path already did; two spots
  * didn't, and both only showed up on values that
@@ -262,7 +262,7 @@ describe("le Coffre est insensible à la casse", () => {
   });
 });
 
-describe("coffre d'organisation — même contrat « toujours redacted »", () => {
+describe("coffre d'organisation — même contrat « toujours masqué »", () => {
   // Rule 11: a term imposed by the organization is forced on EVERY send,
   // exactly like a personal term. `combinedCoffre` is the sole merge
   // point — the send's callers go through it (sendOrchestrator,

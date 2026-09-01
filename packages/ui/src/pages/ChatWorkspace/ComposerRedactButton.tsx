@@ -5,7 +5,7 @@ import { usePopover } from "../../hooks/usePopover";
 import { ComposerRedactMenu, type RedactLevelApi } from "./ComposerRedactMenu";
 
 /**
- * The action row's « niveau de redaction » button, and its popover.
+ * The action row's « niveau de masquage » button, and its popover.
  *
  * Kept apart from `Composer` (already in size debt) because it is a whole control —
  * trigger, anchoring, portal — and it needs nothing but its api.

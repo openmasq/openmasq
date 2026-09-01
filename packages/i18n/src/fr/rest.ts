@@ -54,7 +54,7 @@ export const orgShares = {
     previewOther: "Ce qui sera partagé",
     termNote:
       "Le terme et son substitut deviennent communs avec les destinataires : ce nom sera masqué de la même façon dans vos conversations.",
-    redactedNote: (n) => `${n} élément${n > 1 ? "s" : ""} redacted${n > 1 ? "s" : ""}`,
+    redactedNote: (n) => `${n} élément${n > 1 ? "s" : ""} masqué${n > 1 ? "s" : ""}`,
     redactedTail: " avant le partage — le texte ci-dessus est exactement ce que verront les autres.",
     clean: "Aucune donnée sensible détectée dans ce contenu.",
     send: "Envoyer la demande",
@@ -124,7 +124,7 @@ export const modelPicker = {
   cli: {
     claude: {
       title: "Votre abonnement Claude",
-      note: "Si vous avez un abonnement Claude et la CLI Claude Code installée, vos conversations peuvent passer par elle — sans clé API. Le redaction s'applique comme partout : le modèle ne voit que des données remplacées.",
+      note: "Si vous avez un abonnement Claude et la CLI Claude Code installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées.",
       rowTitle: "Utiliser ma CLI Claude Code",
       onDesc:
         "Ajoute « Claude Code » à la liste des modèles. Chaque envoi consomme votre abonnement Claude personnel.",
@@ -133,7 +133,7 @@ export const modelPicker = {
     },
     codex: {
       title: "Votre abonnement ChatGPT",
-      note: "Si vous avez un abonnement ChatGPT et la CLI Codex installée, vos conversations peuvent passer par elle — sans clé API. Le redaction s'applique comme partout : le modèle ne voit que des données remplacées.",
+      note: "Si vous avez un abonnement ChatGPT et la CLI Codex installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées.",
       rowTitle: "Utiliser ma CLI Codex",
       onDesc:
         "Ajoute « GPT Codex » à la liste des modèles. Chaque envoi consomme votre abonnement ChatGPT personnel.",
@@ -142,7 +142,7 @@ export const modelPicker = {
     },
     antigravity: {
       title: "Votre abonnement Google Antigravity",
-      note: "Si vous avez un abonnement Antigravity et sa CLI « agy » installée, vos conversations peuvent passer par elle — sans clé API. Le redaction s'applique comme partout : le modèle ne voit que des données remplacées. ⚠️ Ce chemin passe par un logiciel tiers, ce que les conditions d'Antigravity ne prévoient pas : le risque porte sur votre compte Google.",
+      note: "Si vous avez un abonnement Antigravity et sa CLI « agy » installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées. ⚠️ Ce chemin passe par un logiciel tiers, ce que les conditions d'Antigravity ne prévoient pas : le risque porte sur votre compte Google.",
       rowTitle: "Utiliser ma CLI Antigravity",
       onDesc:
         "Ajoute « Antigravity » à la liste des modèles. Chaque envoi consomme votre abonnement Google personnel, et les connecteurs de l'app n'y sont pas offerts (sa CLI ne peut pas les porter).",

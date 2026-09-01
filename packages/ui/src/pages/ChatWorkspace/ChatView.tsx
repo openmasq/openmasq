@@ -205,7 +205,7 @@ interface Props {
   settings?: Settings;
   onChangeSettings?: (s: Settings) => void;
   /** Opens the guide (Aide) on a chapter — carried by the shell. Absent (aperçu, test) ⇒
-   *  the « Comprendre mon redaction » container doesn't render: a door with no room
+   *  the « Comprendre mon masquage » container doesn't render: a door with no room
    *  behind it is worse than no door at all. */
   onOpenGuideChapter?: (id: string) => void;
   /** Per-conversation redaction category override (sparse). */
@@ -339,7 +339,7 @@ export function ChatView({
   // Unicode) when the slot exists — `components/` must not read the host itself, so the
   // capability is threaded down. Absent ⇒ the card's own pdf-lib exporter.
   const renderPdf = host.pdf ? (doc: PdfDocument) => host.pdf!.renderHtml(doc) : undefined;
-  // « Signaler un redaction incorrect » on a mark's popover → « Votre avis »
+  // « Signaler un masquage incorrect » on a mark's popover → « Votre avis »
   // prefilled (category bug + surface phrasing; the KIND label only, never the value).
   // No `host.avis` ⇒ `openAvis` undefined ⇒ the popover hides the report row.
   const { openAvis } = useAvisOpen();
@@ -353,9 +353,9 @@ export function ChatView({
    * send uses (`send/redactionOptions.ts`) — global defaults ⊕ this conversation's sparse
    * override ⊕ the org's mandated categories ⊕ retired ones off.
    *
-   * ⚠️ This is what makes « Règles de redaction » visible in the composer at all. The
+   * ⚠️ This is what makes « Règles de masquage » visible in the composer at all. The
    * live preview used to run its regex layer with NO rules, so a category the user had
-   * switched off still lit up and still counted in « N à redact » — and on the
+   * switched off still lit up and still counted in « N à masquer » — and on the
    * `patterns` engine that layer is the only one there is. `key` changes whenever the
    * policy does, which is what re-runs the detection on a rule toggle instead of leaving
    * the previous analysis on screen until the next keystroke.
@@ -934,7 +934,7 @@ export function ChatView({
       // tokens are restored in the folded file text; everything else stays redacted.
       // (Files sent as IMAGES aren't folded, so their reveal is handled at paint
       // time in `sendAsImage`; this only reaches text-folded files.)
-      // Case-INSENSITIVE: a value the user un-redact ("france") must be restored
+      // Case-INSENSITIVE: a value the user un-redacted ("france") must be restored
       // whatever casing the wire span carries ("France"/"FRANCE") — the engine's
       // `isKept` matches case-insensitively, so `reviewWire`'s restore must too.
       const keptLower = new Set(

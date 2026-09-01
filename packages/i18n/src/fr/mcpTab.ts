@@ -66,7 +66,7 @@ export const mcpTab = {
   chooseDir: (label) => `${label} : choisir…`,
   guide: "guide ↗",
   browserBody:
-    "Le navigateur s'ouvre dans une fenêtre dédiée que vous pouvez surveiller. Le modèle n'en voit que le texte redacted et chaque action (clic, saisie, navigation) vous est confirmée.",
+    "Le navigateur s'ouvre dans une fenêtre dédiée que vous pouvez surveiller. Le modèle n'en voit que le texte masqué et chaque action (clic, saisie, navigation) vous est confirmée.",
   activating: "Activation…",
   activate: "Activer",
   reconnectKeepsConfig:
@@ -89,7 +89,7 @@ export const mcpTab = {
   customWarnReal: {
     lead: "Il reçoit ",
     strong: "vos données réelles",
-    tail: " : pour qu'un outil agisse vraiment, ce qui lui est envoyé est unredacted au dernier moment.",
+    tail: " : pour qu'un outil agisse vraiment, ce qui lui est envoyé est démasqué au dernier moment.",
   },
   customWarnReplies:
     "Ses réponses reviennent dans la conversation, et le modèle s'en sert : un service malveillant peut chercher à le manipuler.",

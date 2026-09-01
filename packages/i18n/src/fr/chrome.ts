@@ -54,13 +54,13 @@ export const chat = {
   splitScreen: "Diviser l'écran",
   splitLeft: "À gauche",
   splitRight: "À droite",
-  redactionSummary: (n) => `Redaction · ${n} protégé${n === 1 ? "" : "s"}`,
+  redactionSummary: (n) => `Masquage · ${n} protégé${n === 1 ? "" : "s"}`,
   seeWhatTheModelSaw: "Voir ce que le modèle a vu",
   debugLog: "Journal de débogage",
 } satisfies Messages["chat"];
 
 export const composer = {
-  redactLevel: "Niveau de redaction",
+  redactLevel: "Niveau de masquage",
   currentLevel: "Niveau actuel",
   protectionLevel: "Niveau de protection",
 
@@ -81,20 +81,20 @@ export const composer = {
   attachFile: "Joindre un fichier",
   stop: "Arrêter",
   send: "Envoyer",
-  redacting: "Redaction",
-  redactingAria: "Redaction en cours",
-  redacted: "Redacted",
+  redacting: "Masquage",
+  redactingAria: "Masquage en cours",
+  redacted: "Masqué",
 
   detect: {
     partialNone: "analyse incomplète",
     partialNoneHint:
       "L'analyse approfondie n'a pas pu finir sur ce texte. L'envoi la refait entièrement — rien ne part sans être analysé.",
-    partialCount: (n) => `au moins ${n} à redact`,
+    partialCount: (n) => `au moins ${n} à masquer`,
     partialCountHint:
       "Le décompte est partiel : l'analyse approfondie n'a pas pu finir sur un texte de cette taille. L'envoi la refait entièrement, avec plus de temps — il y aura donc au moins ce nombre.",
-    reMask: "Redact à nouveau cet élément",
-    uncertain: "Détection incertaine — redacted par défaut. Cliquez pour garder en clair.",
-    keepInClear: "Garder en clair (ne PAS redact) — envoyé tel quel au modèle",
+    reMask: "Masquer à nouveau cet élément",
+    uncertain: "Détection incertaine — masqué par défaut. Cliquez pour garder en clair.",
+    keepInClear: "Garder en clair (ne PAS masquer) — envoyé tel quel au modèle",
     toVerify: "à vérifier",
     showAll: "Afficher toutes les détections",
     more: (n) => `+${n} autres`,
@@ -111,10 +111,10 @@ export const composer = {
 
   modal: {
     title: "Éditer le message",
-    sub: "Le texte long s'édite ici — le redaction reste visible en direct ; l'envoi se fait depuis la zone de saisie.",
+    sub: "Le texte long s'édite ici — le masquage reste visible en direct ; l'envoi se fait depuis la zone de saisie.",
     tabEdit: "Éditer",
     tabPreview: "Aperçu",
-    toMask: (n) => `${n} à redact`,
+    toMask: (n) => `${n} à masquer`,
     mirrorOff: (max) =>
       `Surlignage en direct suspendu au-delà de ${max.toLocaleString("fr-FR")} caractères (pour garder la frappe fluide) — la détection et la protection à l'envoi restent inchangées, les étiquettes ci-dessous restent actives.`,
     done: "Terminé",
@@ -123,14 +123,14 @@ export const composer = {
   attachments: {
     open: "consulter le fichier",
     processing: "fichier en cours de traitement",
-    redacting: "Redaction en cours…",
+    redacting: "Masquage en cours…",
     values: (n) => `🛡 ${n} valeur${n > 1 ? "s" : ""}`,
     readAllPages: (total) => `Lire les ${total} pages`,
     readAllPagesTip: (read) =>
-      `Seules les ${read} premières pages ont été lues (et donc redacted). Relire le document en entier — quelques secondes par page.`,
-    retryRedaction: "Réessayer le redaction",
-    reRedact: "Reredact",
-    reRedactTip: "Reredact (moteur de redaction modifié)",
+      `Seules les ${read} premières pages ont été lues (et donc masquées). Relire le document en entier — quelques secondes par page.`,
+    retryRedaction: "Réessayer le masquage",
+    reRedact: "Remasquer",
+    reRedactTip: "Remasquer (moteur de masquage modifié)",
     remove: "Supprimer",
   },
 

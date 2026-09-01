@@ -15,7 +15,7 @@ import { useLiveFile } from "./useLiveFile";
  *
  * Only the byte SOURCE differs: a stored file comes from the encrypted DB, this one is
  * read from disk through the connector's grant on every open, so what you see is what is
- * on disk right now. There is no « Redacted » tab, and that is honest rather than a
+ * on disk right now. There is no « Masqué » tab, and that is honest rather than a
  * missing feature: nothing has been masked, because this file has not been sent anywhere.
  * « Demander » is the moment it would be — and it goes through the normal send pipeline.
  */
@@ -59,7 +59,7 @@ export function LocalFilePanel({
       // The REAL file, immediately: nothing has been masked since nothing has been sent
       // (the header's promise above + `folders/CLAUDE.md`). Without this, a local
       // PDF used to pay for a FULL NER pass before the first pixel.
-      redacted={false}
+      redactedView={false}
       onOpenExternal={fs ? () => void fs.open(path).catch(() => {}) : undefined}
       // Where it really lives — the user is looking at their own folder, not a copy.
       storageLabel={folder ? `dans ${baseName(folder)}` : "sur votre disque"}

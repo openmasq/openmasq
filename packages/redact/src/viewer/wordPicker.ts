@@ -3,7 +3,7 @@
 // editor over the pixels: hover pre-highlights the word under the cursor, a
 // CLICK picks that word, a DRAG selects a contiguous RUN of words (reading
 // order = the words array), and the picked run keeps a locked highlight until
-// the consumer's «Redact» menu releases it. Pure DOM (no React); the pure
+// the consumer's «Masquer» menu releases it. Pure DOM (no React); the pure
 // range/value helpers are unit-tested separately.
 import { wordAtPoint, cleanWord, type PageWord } from "./pageWords";
 
@@ -32,7 +32,7 @@ export interface WordPickerOptions {
   /** CSS selector of elements that own their own click (the redacted marks). */
   ignore?: string;
   /** A word (single click) or word RUN (drag) was picked. `release` drops the
-   *  locked highlight — call it when the «Redact» menu closes or picks. */
+   *  locked highlight — call it when the «Masquer» menu closes or picks. */
   onPick: (value: string, x: number, y: number, release: () => void) => void;
 }
 

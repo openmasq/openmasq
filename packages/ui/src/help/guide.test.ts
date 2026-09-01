@@ -107,7 +107,7 @@ describe("le guide décrit l'app RÉELLE", () => {
   });
 
   it.each([
-    ["fr", /redact/i],
+    ["fr", /masqu/i],
     ["en", /mask/i],
   ] as const)("[%s] le mot du produit est DÉFINI, pas seulement employé", (locale, word) => {
     const chapters = guideChapters(getMessages(locale));

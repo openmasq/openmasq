@@ -51,6 +51,6 @@ export const BUSINESS_FLEET: FakeServer[] = [
     { name: "query_chart", description: "Lire un graphique/une métrique Amplitude.", inputSchema: { type: "object", properties: { chart: str("Nom du chart") }, required: ["chart"] }, result: "Rétention J7 : 34 % (+2 pts sur 30 jours)." },
   ]),
   one("posthog", [
-    { name: "insights-get-all", description: "Lister/lire les insights PostHog du projet.", inputSchema: { type: "object", properties: { search: str("Filtre, optionnel") } }, result: "« Activation onboarding » : 61 % (+4 pts) · « Envois redacted/jour » : 8 412." },
+    { name: "insights-get-all", description: "Lister/lire les insights PostHog du projet.", inputSchema: { type: "object", properties: { search: str("Filtre, optionnel") } }, result: "« Activation onboarding » : 61 % (+4 pts) · « Envois masqués/jour » : 8 412." },
   ]),
 ];

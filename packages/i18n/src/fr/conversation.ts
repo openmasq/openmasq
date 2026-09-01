@@ -46,7 +46,7 @@ export const conversation = {
   suspendedBody: "L'envoi est bloqué. Contactez l'administrateur de votre organisation.",
   docPrep: {
     analysing: "Analyse du document…",
-    redacting: "Redaction du document…",
+    redacting: "Masquage du document…",
     page: (page, total) => ` · page ${page} / ${total}`,
     pages: (total) => ` · ${total} page${total > 1 ? "s" : ""}`,
     ofCount: (idx, count) => ` (${idx}/${count})`,
@@ -77,7 +77,7 @@ export const conversation = {
 
   memory: {
     usedTip:
-      "Souvenirs injectés avec cet envoi, redacted comme le reste — cliquez pour ouvrir la Mémoire",
+      "Souvenirs injectés avec cet envoi, masqués comme le reste — cliquez pour ouvrir la Mémoire",
     used: (labels) => `Mémoire utilisée — ${labels}`,
     skippedTip:
       "Ces souvenirs correspondaient mais ne sont pas partis avec cet envoi — cliquez pour ouvrir la fiche",
@@ -111,11 +111,11 @@ export const conversation = {
     openAttachment: (name) => `Consulter ${name}`,
     plotTip: "Génération d'un graphique (run_python)",
     plot: "Graphique",
-    redactionFailedTip: "Le modèle de redaction a échoué pour ce message",
+    redactionFailedTip: "Le modèle de masquage a échoué pour ce message",
     redactedTip:
       "Remplacé par des marqueurs avant que le modèle ne le voie, restauré dans sa réponse",
     redacted: (n, modelName) =>
-      `${n} élément${n === 1 ? "" : "s"} redacted${n === 1 ? "" : "s"} avant ${modelName}`,
+      `${n} élément${n === 1 ? "" : "s"} masqué${n === 1 ? "" : "s"} avant ${modelName}`,
     breakdownSuffix: (breakdown) => ` — ${breakdown}`,
     toolFlowFailed:
       "Une étape du flux d'outils a échoué. Réessayer relance le flux (les étapes réussies sont rejouées ; chaque écriture redemande confirmation).",
@@ -129,16 +129,16 @@ export const conversation = {
     realValue: "valeur réelle",
     seenByModel: "vu par le modèle",
     orgForced: "Imposé par l'organisation",
-    reveal: "Unredact",
-    reRedact: "Reredact",
-    revealKind: "Unredact la catégorie",
-    reRedactKind: "Reredact la catégorie",
+    reveal: "Démasquer",
+    reRedact: "Remasquer",
+    revealKind: "Démasquer la catégorie",
+    reRedactKind: "Remasquer la catégorie",
     deleteTip:
-      "Retirer entièrement ce redaction — la valeur restera visible et partira en clair",
-    delete: "Supprimer le redaction",
+      "Retirer entièrement ce masquage — la valeur restera visible et partira en clair",
+    delete: "Supprimer le masquage",
     reportTip: "Ouvre « Votre avis » prérempli — n'y collez jamais la valeur réelle",
     report: "Signaler une erreur",
-    sheetLabel: "Redaction",
+    sheetLabel: "Masquage",
   },
 
   struggle: {

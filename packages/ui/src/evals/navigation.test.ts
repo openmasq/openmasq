@@ -31,7 +31,7 @@ describe("the pre-search reveal card (what the MODEL may see)", () => {
   it("appears once, with exactly the enabled offerable categories", async () => {
     // The queries CARRY the fake (what a model researching the masked company writes):
     // a query touching no redacted data would now — by design — skip the card entirely
-    // (clear-mode, pinned in « redaction dynamique » below).
+    // (clear-mode, pinned in « masquage dynamique » below).
     m = await mockModel([
       (req) => calls({ name: "browser__browser_navigate", args: { url: `https://www.google.com/search?q=${encodeURIComponent(fakeCompanyIn(req))}` } }),
       (req) => calls({ name: "browser__browser_navigate", args: { url: `https://www.google.com/search?q=${encodeURIComponent(fakeCompanyIn(req) + " avis")}` } }),

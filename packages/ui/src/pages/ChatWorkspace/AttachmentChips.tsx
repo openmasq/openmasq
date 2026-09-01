@@ -19,7 +19,7 @@ export function AttachmentChips({
   onOpen,
 }: {
   attachments: Attachment[];
-  /** Current redaction engine signature — a chip redacted with another shows « reredact ». */
+  /** Current redaction engine signature — a chip redacted with another shows « remasquer ». */
   currentRedactSig?: string;
   onRetry?: (cid: string) => void;
   /** « Lire tout » — re-read a PDF whose OCR stopped at the cap (`ocrShortfall`). */

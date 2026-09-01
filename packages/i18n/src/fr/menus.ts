@@ -10,15 +10,15 @@ import type { Messages } from "../messages";
 export const menus = {
   selection: {
     ariaLabel: "Actions sur la sélection",
-    redact: "Redact",
-    redactTip: "Redact la sélection",
+    redact: "Masquer",
+    redactTip: "Masquer la sélection",
     clarify: "Préciser",
     clarifyTip: "Demander des précisions",
     remember: "Retenir",
     rememberTip: (brand) =>
       `Retenir dans la Mémoire — ${brand} s'en souviendra dans vos prochaines conversations`,
     rememberAria: "Retenir dans la Mémoire",
-    scopeAria: "Portée du redaction",
+    scopeAria: "Portée du masquage",
     scopeConversation: "Cette conversation",
     scopeVault: "Coffre (toujours)",
     typeEyebrow: "Type de donnée",
@@ -44,7 +44,7 @@ export const menus = {
   },
   markKeep: {
     keep: "Garder en clair",
-    keepTip: "Ne PAS redact cet élément pour cet envoi — il partira tel quel au modèle",
+    keepTip: "Ne PAS masquer cet élément pour cet envoi — il partira tel quel au modèle",
     uncertain: (brand) => `Détection à vérifier — ${brand} n'est pas sûr`,
   },
   page: {
@@ -63,15 +63,15 @@ export const downloads = {
 
 export const docViews = {
   image: "Image",
-  pdfRedacted: "Pages redacted",
+  pdfRedacted: "Pages masquées",
   pdfRedactedHint: "Les pages, fausses valeurs peintes dessus",
   sheet: "Feuille",
   presentation: "Présentation",
   document: "Document",
   rendered: "Rendu",
   original: "Original",
-  originalHint: "Le fichier tel quel, avant redaction",
-  redacted: "Redacted",
+  originalHint: "Le fichier tel quel, avant masquage",
+  redacted: "Masqué",
   redactedHint: "Ce qui quittera la machine",
   ocr: "Texte de l'image",
   ocrHint: "Ce que disent les pixels de la page",

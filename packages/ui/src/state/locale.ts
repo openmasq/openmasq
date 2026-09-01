@@ -1,5 +1,4 @@
 import { DEFAULT_LOCALE, resolveLocale, type Locale } from "@openmasq/i18n";
-import { migrateLegacyLocalStorage } from "./legacyStorage";
 
 /**
  * The LANGUAGE — a DEVICE preference, exactly like the THEME (`theme.ts`), and for
@@ -19,7 +18,6 @@ export const LOCALE_KEY = "openmasq.language";
 
 /** The language recorded on THIS device, or `null` if never set. */
 export function loadDeviceLocale(): Locale | null {
-  migrateLegacyLocalStorage(); // aligned with `theme.ts` — the pre-rename keys
   try {
     return resolveLocale(localStorage.getItem(LOCALE_KEY));
   } catch {

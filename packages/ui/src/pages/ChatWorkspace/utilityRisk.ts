@@ -111,7 +111,7 @@ export interface RevealableAttachment extends RiskAttachment {
 /**
  * What « Garder en clair » must do with a risk's values: the DRAFT's values
  * go through the existing keep; an ATTACHMENT's values go through the file's
- * `reveal` list — the same action as « Unredact » in the aperçu. Rendered as
+ * `reveal` list — the same action as « Démasquer » in the aperçu. Rendered as
  * a plan (cid → new list) to stay pure and testable.
  */
 export function revealPlan(

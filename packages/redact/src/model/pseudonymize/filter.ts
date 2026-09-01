@@ -145,7 +145,7 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
     // Never PII on its own: a generic institutional / legal / document-type word (FR
     // "assemblée générale", "syndic"…), an identifier LABEL ("iban", "passeport"), a
     // compound whose every word is generic ("read-data-schema" — MCP tool metadata,
-    // whose per-word aliases redact every "data"/"query" in the conversation), or
+    // whose per-word aliases redacted every "data"/"query" in the conversation), or
     // one of those behind an article. ONE predicate, shared with `../detect.ts` — the
     // three call sites had drifted apart (see `isNonPiiTerm`). This is the choke point,
     // so dropping here protects the DETERMINISTIC detectors too.

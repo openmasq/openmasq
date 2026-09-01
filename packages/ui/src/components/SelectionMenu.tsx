@@ -52,9 +52,9 @@ export function SelectionMenu({
    *  local, deterministic, no model call. A message selection offers it. */
   onRetenir?: () => void;
   /** Title shown over the type grid instead of the generic eyebrow — the
-   *  click-a-word flow passes «Redact “mot”» so the target is unambiguous. */
+   *  click-a-word flow passes «Masquer “mot”» so the target is unambiguous. */
   label?: string;
-  /** Open DIRECTLY on the type grid (skip the stage-1 «Redact» button) — for a
+  /** Open DIRECTLY on the type grid (skip the stage-1 «Masquer» button) — for a
    *  caller whose gesture already means "redact this" (a canvas word click). */
   expanded?: boolean;
   /** Small informational line under the title (e.g. «zone image, non envoyée»). */
@@ -185,7 +185,7 @@ export function SelectionMenu({
               role="menuitem"
               className="sel-menu-btn sel-retenir"
               /* Says WHAT it does, not how it is protected. The old wording led with
-                 « redacted avant chaque envoi » — the Coffre's promise — so users read
+                 « masqué avant chaque envoi » — the Coffre's promise — so users read
                  this as a second Coffre. The Mémoire is the reuse feature: it carries
                  what you tell it into your NEXT conversations. */
               title={t.menus.selection.rememberTip(BRAND.name)}

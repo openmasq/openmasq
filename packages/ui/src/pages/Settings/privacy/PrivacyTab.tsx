@@ -13,7 +13,7 @@ import { activeCount, categoriesForLevel, levelOf, TOTAL_CATEGORIES } from "../.
  * « Confidentialité » — the product's own subject, on its own page.
  *
  * It used to be three headings deep inside « Compte » (« Votre confidentialité »,
- * « Confidentialité & redaction », « Confidentialité »), between a sign-out button and a
+ * « Confidentialité & masquage », « Confidentialité »), between a sign-out button and a
  * developer toggle, with the seventeen-category matrix always unfolded. Here the page is
  * one decision (the level), then the proof (what has been protected), then the display
  * options — the matrix staying unfolded under the levels, as their detail.

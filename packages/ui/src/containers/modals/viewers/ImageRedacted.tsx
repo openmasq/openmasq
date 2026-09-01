@@ -11,7 +11,7 @@ import type { PdfReplacement } from "@openmasq/redact/pdf-redact";
  *
  * FAITHFUL fallback: if the painting fails (font, format, canvas OOM), we show
  * the ORIGINAL — never a blank screen — and that's acceptable here only because
- * the tab is called « Redacted » on the modal side, not because the failure would be rare.
+ * the tab is called « Masqué » on the modal side, not because the failure would be rare.
  */
 export function ImageRedacted({
   bytes,

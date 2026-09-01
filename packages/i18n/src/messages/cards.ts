@@ -3,7 +3,7 @@
  * two modals that extend them.
  *
  * ⚠️ Rule 8: half of these sentences are PROMISES about what leaves the machine
- * (« seule la version redacted part », « c'est exactement ce qui partira », « envoyé en
+ * (« seule la version masquée part », « c'est exactement ce qui partira », « envoyé en
  * clair »). Translating them means translating the product's commitment, not a label — a
  * card that over-sells the protection is a trust bug, one that under-sells it makes
  * people give up a feature for no reason.
@@ -44,7 +44,7 @@ export interface CardsMessages {
     desc: (brand: string) => string;
   };
 
-  /** The « comprendre mon redaction » reminder, dismissible for good. */
+  /** The « comprendre mon masquage » reminder, dismissible for good. */
   redactionIntro: {
     ariaLabel: string;
     title: string;

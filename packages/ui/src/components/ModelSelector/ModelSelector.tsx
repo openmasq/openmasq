@@ -135,7 +135,7 @@ export function ModelSelector({ value, onChange, disabled, allowedModelIds, unav
         )}
         {/* Wrapped, not a bare text node: as a flex item a bare node keeps
             `min-width:auto`, so the chip could never yield width and the composer row
-            overflowed sideways whenever the send button morphed (« Redaction »). */}
+            overflowed sideways whenever the send button morphed (« Masquage »). */}
         <span className="model-chip-label">{auto ? AUTO_MODEL_LABEL : current.label}</span>
         {!auto && <CountryFlag host={PROVIDERS[current.provider].hostCountry} size={12} />}
         <span className="chev">

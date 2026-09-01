@@ -3,7 +3,7 @@
  * attachment before sending, the Bibliothèque's reader, and their views (PDF, spreadsheet,
  * redacted text).
  *
- * The views' VOCABULARY (« Redacted », « Original », « OCR ») lives in `docViews`:
+ * The views' VOCABULARY (« Masqué », « Original », « OCR ») lives in `docViews`:
  * the menu is what chooses them, and it existed before these screens.
  */
 

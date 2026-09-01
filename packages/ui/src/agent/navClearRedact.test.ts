@@ -72,7 +72,7 @@ describe("makeNavClearRedactor", () => {
   });
 
   // ⚠️ Case is NOT part of a Coffre value's identity — its promise is
-  // « always redacted ». The test above didn't prove it: « Projet Antigone » goes
+  // « always masqué ». The test above didn't prove it: « Projet Antigone » goes
   // through `variantOccurrences`'s FUZZY path, already case-insensitive. The fallback —
   // the only path for a value carrying a DIGIT or an acronym under 4 letters, exactly
   // the shape of a project name — compared in EXACT case: the page reached the

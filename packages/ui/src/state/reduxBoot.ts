@@ -7,7 +7,6 @@ import {
   type WorkspaceLayout,
 } from "../workspace/layout";
 import { BRAND } from "@openmasq/branding";
-import { migrateLegacyLocalStorage } from "./legacyStorage";
 
 /**
  * Boot restore for the redux `ui` slice: which SECTION the app reopens on, and the
@@ -36,7 +35,6 @@ const SECTIONS: Section[] = [
 ];
 
 export function readInitialSection(): Section {
-  migrateLegacyLocalStorage(); // the keys from before the rename — one pass, then no-op
   try {
     const s = localStorage.getItem(SECTION_KEY) as Section | null;
     // « workflows » used to be a section; it merged into « competences ». A
@@ -57,7 +55,6 @@ export function readInitialSection(): Section {
  * the account's actually-loaded conversations.
  */
 export function initialLayout(): WorkspaceLayout {
-  migrateLegacyLocalStorage();
   try {
     const saved = deserializeLayout(localStorage.getItem(WORKSPACE_KEY));
     if (saved) return saved;

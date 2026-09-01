@@ -119,7 +119,7 @@ export function detectLabeledFields(text: string): Detection[] {
       // two labels: the first's "value" is the second label) — a value carrying a colon
       // reads as another field, not a value. The generic deny-list does NOT cover this:
       // « Prénom » is a form word, not an institutional noun, so a two-line label stack
-      // vaulted the word "Prénom" as a person and then redact every later occurrence
+      // vaulted the word "Prénom" as a person and then redacted every later occurrence
       // of it. `labelOf` is the same test the BLOCK pass uses (one vocabulary, one rule).
       if (/[:：]/.test(rawV) || labelOf(rawV)) continue;
       const okv = acceptFieldValue(rawV, group.category);

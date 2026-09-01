@@ -1,7 +1,7 @@
 import type { Conversation } from "../types";
 
 /**
- * « Comprendre mon redaction » — the small container under the FIRST answers, which
+ * « Comprendre mon masquage » — the small container under the FIRST answers, which
  * opens the redaction chapter of the guide (`help/guide.ts`, chapter `protection`).
  *
  * What it covers that the transparency card does NOT: the subtleties that stay invisible
@@ -13,7 +13,7 @@ import type { Conversation } from "../types";
  * Two decisions, and their reasons:
  *
  *  - **It waits for the first answer to ARRIVE.** Before that nothing has left: offering
- *    to « expliquer mon redaction » points at nothing yet, and the welcome screen already
+ *    to « expliquer mon masquage » points at nothing yet, and the welcome screen already
  *    has its onboarding.
  *  - **« Fermer pour toujours » is global and final** (`Settings.redactionIntroSeen`,
  *    never a component state — otherwise it comes back on the next mount, the lesson of

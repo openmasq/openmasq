@@ -161,9 +161,9 @@ export const lists = {
 
   library: {
     empty: {
-      title: "Vos fichiers, redacted et rangés.",
-      body: "Tout fichier partagé dans une conversation atterrit ici, déjà redacted. Glissez-en un dans la zone de message pour commencer.",
-      points: ["Images", "Documents", "Redaction auto"],
+      title: "Vos fichiers, masqués et rangés.",
+      body: "Tout fichier partagé dans une conversation atterrit ici, déjà masqué. Glissez-en un dans la zone de message pour commencer.",
+      points: ["Images", "Documents", "Masquage auto"],
     },
     noMatch: {
       search: "Recherche",
@@ -179,7 +179,7 @@ export const lists = {
     deleteCount: (n) => `Supprimer${n ? ` (${n})` : ""}`,
     deleteTitle: (n) => `Supprimer ${n} fichier${n === 1 ? "" : "s"} ?`,
     deleteBody: (n) =>
-      `${n === 1 ? "Ce fichier sera" : "Ces fichiers seront"} définitivement supprimé${n === 1 ? "" : "s"} de la bibliothèque (fichier original + version redacted). Cette action est irréversible.`,
+      `${n === 1 ? "Ce fichier sera" : "Ces fichiers seront"} définitivement supprimé${n === 1 ? "" : "s"} de la bibliothèque (fichier original + version masquée). Cette action est irréversible.`,
     preview: "Aperçu",
     openExternal: "Ouvrir dans l'app externe",
     openInApp: "Ouvrir dans l'application",
@@ -191,7 +191,7 @@ export const lists = {
 
   vault: {
     empty: {
-      title: "Vos termes, toujours redacted.",
+      title: "Vos termes, toujours masqués.",
       body: "Les mots à masquer partout : noms de code, comptes, identifiants. Ajoutés une fois, remplacés à chaque envoi.",
       points: ["Appliqué à tous les modèles", "Utilisations comptées", "Rangé par catégorie"],
       cta: "Ajouter un premier terme",
@@ -215,7 +215,7 @@ export const lists = {
     add: {
       title: "Ajouter au coffre",
       sub: "Ce terme sera masqué avant chaque envoi, quel que soit le modèle.",
-      term: "Terme à redact",
+      term: "Terme à masquer",
       termPlaceholder: "ex. Projet Northwind, FR76 3000…",
       type: "Type de donnée",
       note: "Note (optionnel)",
@@ -224,8 +224,8 @@ export const lists = {
     uses: {
       title: "Occurrences",
       summary: (times, convs) =>
-        `Redacted ${times} fois dans ${convs} conversation${convs > 1 ? "s" : ""}.`,
-      none: "Ce terme n'a encore été redacted nulle part.",
+        `Masqué ${times} fois dans ${convs} conversation${convs > 1 ? "s" : ""}.`,
+      none: "Ce terme n'a encore été masqué nulle part.",
       openConversation: "Ouvrir la conversation",
     },
   },

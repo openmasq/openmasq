@@ -1,0 +1,10 @@
+#!/bin/sh
+# A retired name must not enter history through a commit MESSAGE either: the tree is
+# gated by check:brand, this is the same gate on the text of THIS commit. Assembled so
+# this file is not itself an occurrence. Bypass knowingly: `git commit --no-verify`.
+for needle in "proxy""chat" "kav""iar" "cav""iar" "openr""edact"; do
+  if grep -qi "$needle" "$1"; then
+    echo "commit-msg: a retired name appears in the message ($needle) — reword it." >&2
+    exit 1
+  fi
+done

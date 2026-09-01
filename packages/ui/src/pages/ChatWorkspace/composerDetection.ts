@@ -123,7 +123,7 @@ export const LONG_TEXT_THRESHOLD = 4000;
 /** Above this many characters the live highlight MIRROR turns off (the modal editor
  *  becomes a plain fast textarea): repainting thousands of segment spans per keystroke
  *  lags typing long before the textarea itself does. Detection keeps running — the
- *  chips, the « N à redact » counter and the SEND-time guarantee are unchanged;
+ *  chips, the « N à masquer » counter and the SEND-time guarantee are unchanged;
  *  only the in-place colouring pauses, and returns below the threshold. */
 export const MIRROR_MAX_CHARS = 30000;
 

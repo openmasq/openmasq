@@ -121,7 +121,7 @@
   box-shadow: var(--shadow-md);
 }
 /* The FORMAT in mono, in a muted tile — what the card has to say first.
-   In place of a drawn « document redacted » thumbnail: it never rendered the
+   In place of a drawn « document masqué » thumbnail: it never rendered the
    real file (it couldn't — 60 px), and it wore an `--hl-*` tint, meaning
    the redaction's language, on a card that masks nothing. */
 .msg-filecard-ext {

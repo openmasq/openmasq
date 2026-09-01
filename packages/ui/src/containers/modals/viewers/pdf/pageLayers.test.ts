@@ -31,7 +31,7 @@ describe("buildImageZoneLayer", () => {
     expect(outlines[0]!.style.width.endsWith("%")).toBe(true);
   });
 
-  it("never intercepts the click that opens «Redact»", () => {
+  it("never intercepts the click that opens «Masquer»", () => {
     // The canvas word-picker hit-tests UNDERNEATH this layer, so a logo must stay
     // clickable — it is exactly the zone a user wants to act on. jsdom loads no
     // stylesheet, so assert the rule where it lives.
@@ -80,7 +80,7 @@ describe("buildTextHaloLayer — la légende est l'interrupteur du halo", () => 
     legend.click();
     expect(legend.textContent).toContain("Halo masqué");
     // …and the off-phrase reminds that redaction isn't affected.
-    expect(legend.textContent).toMatch(/redacted quand même/);
+    expect(legend.textContent).toMatch(/masqué quand même/);
     legend.click();
     expect(legend.textContent).toContain("Halo = texte reconnu");
     legend.click();
@@ -144,7 +144,7 @@ describe("buildRevealMarks", () => {
     // An empty button with no accessible name announced NOTHING to the screen reader (audit).
     expect(mark.getAttribute("aria-label")).toContain("inspecter");
     // Inspect ≠ reveal: the mark carries NO toggle of its own — the click bubbles up to
-    // the shared card (`useMarkHover` delegated), whose « Unredact » is the action.
+    // the shared card (`useMarkHover` delegated), whose « Démasquer » is the action.
     // (A direct listener here once sent a value in clear on the exploration
     // gesture — that's the bug this test closes.)
     mark.dispatchEvent(new MouseEvent("click", { bubbles: true })); // doesn't throw, doesn't toggle anything

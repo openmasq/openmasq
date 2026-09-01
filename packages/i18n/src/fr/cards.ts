@@ -9,7 +9,7 @@ import type { Messages } from "../messages";
 export const cards = {
   welcome: {
     subtitle:
-      "Écrivez librement : noms, e-mails et numéros sont redacted avant d'atteindre le modèle.",
+      "Écrivez librement : noms, e-mails et numéros sont masqués avant d'atteindre le modèle.",
     seeExamples: "Voir des exemples",
     seeOthers: "Voir les autres",
   },
@@ -28,17 +28,17 @@ export const cards = {
 
   memoryProposal: {
     eyebrow: "Mémoire",
-    note: "Local · chiffré · toujours redacted avant d'atteindre un modèle",
+    note: "Local · chiffré · toujours masqué avant d'atteindre un modèle",
     decline: "Non merci",
     activate: "Activer",
     title: (brand) => `${brand} peut retenir l'essentiel`,
     desc: (brand) =>
-      `Cette conversation contient des faits durables. Avec la mémoire automatique, ${brand} note seul vos clients, projets et préférences — à partir du texte déjà redacted, rien de nouveau ne quitte votre machine — et les rappelle dans chaque conversation utile. Vous pouvez aussi dire « retiens que… » à tout moment.`,
+      `Cette conversation contient des faits durables. Avec la mémoire automatique, ${brand} note seul vos clients, projets et préférences — à partir du texte déjà masqué, rien de nouveau ne quitte votre machine — et les rappelle dans chaque conversation utile. Vous pouvez aussi dire « retiens que… » à tout moment.`,
   },
 
   redactionIntro: {
-    ariaLabel: "Comprendre mon redaction",
-    title: "Comprendre mon redaction",
+    ariaLabel: "Comprendre mon masquage",
+    title: "Comprendre mon masquage",
     sub: "Ce qui est masqué, ce qui reste en clair, et pourquoi le compteur peut rester à zéro",
     closeTip: "Fermer pour toujours — le chapitre reste dans l'Aide",
     close: "Fermer pour toujours",
@@ -51,11 +51,11 @@ export const cards = {
   sendMode: {
     title: "Envoyer le document",
     question: (n) =>
-      `Comment envoyer ${n === 1 ? "ce document" : `ces ${n} documents`} au modèle ? Dans les deux cas, seule la version redacted part.`,
+      `Comment envoyer ${n === 1 ? "ce document" : `ces ${n} documents`} au modèle ? Dans les deux cas, seule la version masquée part.`,
     textOption: "Texte extrait",
     textTokens: (tokens) => `≈ ${tokens} tokens de texte`,
-    textDesc: "Le texte du document, redacted — rapide et léger, sans la mise en page.",
-    fileOption: "Document redacted (fichier)",
+    textDesc: "Le texte du document, masqué — rapide et léger, sans la mise en page.",
+    fileOption: "Document masqué (fichier)",
     computing: "calcul…",
     approx: (size) => `≈ ${size}`,
     fileDesc: "Les pages redactées en images — garde la mise en page, les tableaux, la structure.",
@@ -85,7 +85,7 @@ export const cards = {
       eyebrow: "Confirmation requise",
       title: "Envoyer ces fichiers ?",
       desc: (server) =>
-        `Cet envoi via ${server} emporte vos fichiers réels, dans leur version non redacted.`,
+        `Cet envoi via ${server} emporte vos fichiers réels, dans leur version non masquée.`,
       confirm: "Envoyer",
     },
     action: {

@@ -26,7 +26,7 @@ export function toolResultKeep(
     vaultValues: string[];
     /** The USER turns of THIS send's wire (post-redaction) — `wireClearKeep`'s source. */
     wireUserTexts: readonly string[];
-    /** Coffre/forced values + extra secrets — their « toujours redacted » contract wins. */
+    /** Coffre/forced values + extra secrets — their « toujours masqué » contract wins. */
     protectedValues: string[];
   },
 ): string[] {
@@ -74,7 +74,7 @@ const WORD = /[\p{L}\p{N}]+(?:[@._'’-][\p{L}\p{N}]+)*/gu;
  * - A gram touching a PROTECTED value (vault REAL, Coffre/forced, extra secret) is dropped
  *   in BOTH inclusion directions, fail-closed: a vault real never rides the wire in clear
  *   (the replay fakes it), so dropping costs nothing; a Coffre value's contract
- *   (« toujours redacted, quelle que soit la source ») outranks coherence.
+ *   (« toujours masqué, quelle que soit la source ») outranks coherence.
  * - Over-dropping only costs coherence, never privacy — every guard errs that way.
  */
 export function wireClearKeep(

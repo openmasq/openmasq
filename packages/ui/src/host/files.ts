@@ -260,7 +260,7 @@ export interface FilesHost {
     /** Whether the BYTES were rewritten in place. False for a blocked format (PDF,
      *  image): the stored copy keeps the original bytes — encrypted at rest, with the
      *  send's own redaction untouched. `spans` is then empty BY DESIGN, and a caller
-     *  reporting it as « 0 redacted » says the opposite of what happened. Absent on a
+     *  reporting it as « 0 masqués » says the opposite of what happened. Absent on a
      *  host that predates this field ⇒ treat as unknown, never as a failure. */
     redacted?: boolean;
   }>;

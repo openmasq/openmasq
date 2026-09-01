@@ -3,7 +3,7 @@
  * account, local, browser, custom), the write confirmation, the browser's
  * security, the tool list.
  *
- * ⚠️ Rule 8: « unredacted au dernier moment », « jamais envoyés au modèle », « vos
+ * ⚠️ Rule 8: « démasqué au dernier moment », « jamais envoyés au modèle », « vos
  * identifiants restent chiffrés sur votre appareil » are promises about where the data
  * travels. They translate word for word.
  *

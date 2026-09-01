@@ -4622,7 +4622,7 @@ body.resizing-split {
 }
 /* Click-to-redact pre-highlight: the word under the cursor gets a light amber
    wash on hover; the CLICKED word locks a second (lime) tone while its
-   «Redact» type picker is open. Pure overlay — never intercepts the pointer. */
+   «Masquer» type picker is open. Pure overlay — never intercepts the pointer. */
 .pdfv-wordhl {
   position: absolute;
   pointer-events: none;
@@ -4647,7 +4647,7 @@ body.resizing-split {
   inset: 0;
   pointer-events: none;
 }
-/* Info line in the «Redact» picker («zone image, non envoyée…»). */
+/* Info line in the «Masquer» picker («zone image, non envoyée…»). */
 .sel-redact-note {
   display: block;
   max-width: 240px;
@@ -5415,7 +5415,7 @@ body.resizing-split {
   gap: 8px;
   margin-top: 8px;
   /* The row must be able to go NARROWER than its content's natural width. The send
-     button morphs from a 36px circle to a « ⟳ Redaction » pill while redaction runs;
+     button morphs from a 36px circle to a « ⟳ Masquage » pill while redaction runs;
      `.flex-spacer` absorbs that down to 0, and past that SOMETHING has to yield or the
      row overflows sideways (a slight horizontal scroll, visible only during redaction,
      and only on a narrow composer — split pane, browser panel open). The model chip is
@@ -5432,7 +5432,7 @@ body.resizing-split {
 .composer-row > .send-btn {
   flex-shrink: 0;
 }
-/* The « N à redact » pill is the second thing to give, and it CLIPS rather than
+/* The « N à masquer » pill is the second thing to give, and it CLIPS rather than
    spilling — the same failure the send button had, one element further left. */
 .composer-row > .protected-pill {
   flex-shrink: 1;
@@ -5465,7 +5465,7 @@ body.resizing-split {
      `layout` animates the width). */
   border-radius: 18px;
   /* ⚠️ The morph is a PROJECTION: framer sets the final box immediately and fakes the
-     old one with a scaleX — so leaving « Redaction » puts a 36px box under a ×3.9
+     old one with a scaleX — so leaving « Masquage » puts a 36px box under a ×3.9
      scale. A transform contributes to scrollable overflow, and with the default
      centred origin half of that width lands PAST the composer's right edge: a
      horizontal scroll for the length of the animation, at both ends of a redaction,
@@ -6228,7 +6228,7 @@ body.resizing-split {
 /* Un-redacted (« suspended ») = the redaction DISAPPEARS: the value goes back to plain
    text. Never struck through nor faded — a strikethrough reads as « deleted » whereas
    the item, itself, goes out in clear; removing the mark IS the honest display. The element
-   stays interactive: hover → « Reredact », and the chips / the log keep the
+   stays interactive: hover → « Remasquer », and the chips / the log keep the
    overview of what's revealed. */
 .redaction-mark.suspended {
   background-image: none;

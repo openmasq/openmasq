@@ -131,7 +131,7 @@ export const TOKEN_DOTS = "•••";
  * ⚠️ Canvas only. The selectable views must keep the distinct token per value —
  * `realFromRedactedSelection` maps a selected span back to its real value BY that
  * string, so painting every span the same would map them all to one value, and that
- * feeds « Redact ce mot ». Pinned by `paintBox.test.ts`.
+ * feeds « Masquer ce mot ». Pinned by `paintBox.test.ts`.
  */
 export function boxLabel(fake: string): string {
   return /^\[[A-Z][A-Z0-9_]*\]$/.test(fake) ? TOKEN_DOTS : fake;

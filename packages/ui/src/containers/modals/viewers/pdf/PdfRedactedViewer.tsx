@@ -63,7 +63,7 @@ export function PdfRedactedViewer({
    *  When set, each region is a clickable "reveal / re-redact" button. */
   onReveal?: (real: string) => void;
   /** Click a WORD of the canvas (outside the redacted marks) → the consumer opens
-   *  its «Redact “mot”» type picker anchored at the viewport coords. Enables the
+   *  its «Masquer “mot”» type picker anchored at the viewport coords. Enables the
    *  painter's word-geometry collection (text layer + OCR words of a scan). The
    *  clicked word keeps a LOCKED pre-highlight until the consumer calls `release`
    *  (menu closed or type picked). */
@@ -77,7 +77,7 @@ export function PdfRedactedViewer({
   onRevealRef.current = onReveal;
   const onWordPickRef = useRef(onWordPick);
   onWordPickRef.current = onWordPick;
-  // The halo consumes the same word collection as the « Redact “mot” » picker.
+  // The halo consumes the same word collection as the « Masquer “mot” » picker.
   const wantWords = !!onWordPick || !!showTextHalo;
   // Incremental reveal: the heavy render runs ONCE (per document/replacements);
   // a reveal toggle only calls each page's `applyReveal` + rebuilds its marks —
@@ -178,7 +178,7 @@ export function PdfRedactedViewer({
           if (pg.words.length) {
             // Word-processor-style interaction over the canvas: hover pre-highlight,
             // click = one word, DRAG = a contiguous run of words; the picked run
-            // stays locked until the «Redact» menu releases it. Shared core
+            // stays locked until the «Masquer» menu releases it. Shared core
             // (`attachWordPicker`) — same behaviour as the scanned-image view.
             attachWordPicker({
               container: pageEl,

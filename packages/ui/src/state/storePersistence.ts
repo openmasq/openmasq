@@ -7,7 +7,6 @@ import { PROVIDERS } from "@openmasq/llm";
 import { resolveLocale } from "@openmasq/i18n";
 import { CATEGORY_DEFAULTS } from "@openmasq/catalog/redaction";
 import { migrateRedactCategories } from "./settingsMigrations";
-import { migrateLegacyLocalStorage } from "./legacyStorage";
 import { DEFAULT_MODEL_ID } from "../prompt/models";
 import type { Conversation, Settings } from "../types";
 import { blueAccent } from "./theme";
@@ -168,7 +167,6 @@ export function uid(): string {
 }
 
 export function load<T>(key: string, fallback: T): T {
-  migrateLegacyLocalStorage(); // the keys from before the rename — one pass, then a no-op
   try {
     const raw = localStorage.getItem(key);
     return raw ? (JSON.parse(raw) as T) : fallback;

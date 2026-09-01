@@ -77,7 +77,7 @@ export const REAL_SCENARIOS: Scenario[] = [
   // 4. REDACTED ENTITY — rule 11 on the LIVE web: the model only holds the
   //    fake, the outgoing query must carry the REAL value.
   webScenario(
-    "real-web-entite-redact",
+    "real-web-entite-redacted",
     "Cherche sur le web des informations sur l'agence « Karl Studio » et résume ce que tu trouves en une phrase.",
     /./,
     "C'est une agence de design normande.",

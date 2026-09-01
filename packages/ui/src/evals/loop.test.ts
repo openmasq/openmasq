@@ -25,7 +25,7 @@ describe("loop harness wiring (mock model — free, deterministic)", () => {
         apiKey: "mock-key", baseUrl: m.url,
       });
       const reals = Object.values(vault);
-      expect(reals).toContain("contact@karl-studio.fr");          // the engine redact it
+      expect(reals).toContain("contact@karl-studio.fr");          // the engine redacted it
       expect(wirePrompt).not.toContain("contact@karl-studio.fr");  // the model got a fake
       expect(transcript.leaked(reals)).toEqual([]);                // …and never saw the real
       expect(transcript.dispatched()).toEqual(["gmail__search_messages"]);

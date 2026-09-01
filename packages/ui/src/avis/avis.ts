@@ -136,7 +136,7 @@ export const EMPTY_FEEDBACK: FeedbackDraft = {
 export type RedactionProblemSurface = "message" | "reponse" | "document";
 
 /**
- * Draft prefilled by the « Signaler un redaction incorrect » affordance (the
+ * Draft prefilled by the « Signaler un masquage incorrect » affordance (the
  * redaction-mark popover / the document viewers). PRIVACY: `kindLabel` is the mark's
  * CATEGORY word ("e-mail", "nom"…) — a vocabulary term, never the value — and the
  * template explicitly tells the user not to paste the real value. `mood` stays null

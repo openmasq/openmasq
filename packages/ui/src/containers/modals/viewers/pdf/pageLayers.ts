@@ -1,7 +1,6 @@
 import type { Messages } from "@openmasq/i18n";
 import type { ImageZone, RedactBox, RenderedPage } from "@openmasq/redact/pdf-redact";
 import { haloRegions, type HaloBox } from "./textHalo";
-import { migrateLegacyLocalStorage } from "../../../../state/legacyStorage";
 
 /**
  * The DOM overlays a rendered PDF page wears, built imperatively because the page
@@ -29,7 +28,6 @@ const BLEED = 4;
  */
 const HALO_OFF_KEY = "openmasq.haloOff";
 const haloOff = (): boolean => {
-  migrateLegacyLocalStorage(); // the keys from before the rename — one pass, then a no-op
   try {
     return localStorage.getItem(HALO_OFF_KEY) === "1";
   } catch {
@@ -113,7 +111,7 @@ export function buildTextHaloLayer(
  *
  * `interactive` ⇒ the marks are BUTTONS carrying `data-doc-reveal` (the before-send
  * preview): click/Entrée PINS the shared reveal card (`useMarkHover`, delegated on the
- * modal body) — « Unredact » is the card's explicit action, never the exploration
+ * modal body) — « Démasquer » is the card's explicit action, never the exploration
  * gesture itself (audit 2026-08-10). Not interactive ⇒ spans with a native tooltip.
  */
 export function buildRevealMarks(
@@ -162,7 +160,7 @@ export function buildRevealMarks(
  *
  * Plain DOM (the viewer builds its overlays imperatively over a canvas), % offsets so
  * the outlines track the responsive page, and `pointer-events: none` on the layer:
- * clicking a logo must still open the «Redact» picker, which hit-tests the canvas.
+ * clicking a logo must still open the «Masquer» picker, which hit-tests the canvas.
  *
  * Returns what it marked so the caller can decide whether to explain the code at all.
  */

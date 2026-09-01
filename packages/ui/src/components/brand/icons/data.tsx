@@ -206,7 +206,7 @@ export const HouseIcon = (p: { size?: number; filled?: boolean }) => (
  * is actually active.
  *
  * What this glyph is NOT, and why: not the SHIELD, even though that's the vocabulary of
- * redaction — it lives two pixels away on the « N à redact » pill, and two
+ * redaction — it lives two pixels away on the « N à masquer » pill, and two
  * shields in the same row no longer distinguish the counter from the setting; not the round
  * GAUGE, already the context window in the neighboring model row.
  */

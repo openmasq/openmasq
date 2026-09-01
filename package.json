@@ -36,7 +36,7 @@
     "check:actions": "node scripts/check-actions-pinned.mjs",
     "check:shipped": "node scripts/check-shipped-bundles.mjs",
     "check:shipped:all": "node scripts/check-shipped-bundles.mjs --require-all",
-    "verify": "pnpm -r --if-present typecheck && pnpm test && pnpm check:lint && pnpm check:loc && pnpm check:docs && pnpm check:tests && pnpm check:alias && pnpm check:dup && pnpm check:features && pnpm check:i18n && pnpm check:pkgtree && pnpm check:actions && pnpm check:knip && pnpm check:effects && pnpm check:shipped && pnpm check:pii",
+    "verify": "pnpm check:brand && pnpm -r --if-present typecheck && pnpm test && pnpm check:lint && pnpm check:loc && pnpm check:docs && pnpm check:tests && pnpm check:alias && pnpm check:dup && pnpm check:features && pnpm check:i18n && pnpm check:pkgtree && pnpm check:actions && pnpm check:knip && pnpm check:effects && pnpm check:shipped && pnpm check:pii",
     "prepare": "git config core.hooksPath .githooks || true",
     "check:knip": "node scripts/check-knip.mjs",
     "check:pii": "node scripts/check-pii.mjs",

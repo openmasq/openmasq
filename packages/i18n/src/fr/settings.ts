@@ -18,13 +18,13 @@ export const settings = {
       label: "Compte",
       title: "Compte",
       sub: () => "Votre identité sur cet appareil, l'apparence et vos données.",
-      kw: "profil nom email adresse thème sombre dark mode clé api key redaction règles catégories modèle défaut préférences déconnexion langue",
+      kw: "profil nom email adresse thème sombre dark mode clé api key masquage règles catégories modèle défaut préférences déconnexion langue",
     },
     privacy: {
       label: "Confidentialité",
       title: "Confidentialité",
       sub: (brand) => `Ce que ${brand} protège avant qu'un modèle ne le reçoive.`,
-      kw: "redaction confidentialite privacy protection categories regles niveau standard strict sur mesure jetons pseudonymes rapport donnees protegees",
+      kw: "masquage confidentialite privacy protection categories regles niveau standard strict sur mesure jetons pseudonymes rapport donnees protegees",
     },
     models: {
       label: "Modèles",
@@ -47,7 +47,7 @@ export const settings = {
     audit: {
       label: "Journal",
       title: "Journal d'audit",
-      sub: () => "L'historique du redaction, filtrable et recherchable.",
+      sub: () => "L'historique du masquage, filtrable et recherchable.",
       kw: "log historique sécurité traçabilité rédaction masquage export",
     },
     usage: {
@@ -106,7 +106,7 @@ export const settings = {
     linkPreviews: { label: "Aperçus de liens", kw: "lien preview vignette apercu url ip" },
     protectionLevel: {
       label: "Niveau de protection",
-      kw: "niveau standard strict sur mesure categories regles redaction",
+      kw: "niveau standard strict sur mesure categories regles masquage",
     },
     showTokens: {
       label: "Afficher des jetons plutôt que des pseudonymes",

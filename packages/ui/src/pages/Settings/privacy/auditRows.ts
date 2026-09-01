@@ -43,7 +43,7 @@ export function buildAuditGroups(conversations: readonly Conversation[]): AuditG
   for (const c of conversations) {
     const index = conversationKindIndex(c);
     const rows: AuditRow[] = [];
-    // Same definition as the shield and the « tout ce qui a été redacted » card, so that
+    // Same definition as the shield and the « tout ce qui a été masqué » card, so that
     // this tab's count can never diverge from theirs.
     for (const [fake, original] of protectedEntries(c)) {
       // The real value appears as-is in a message's displayed `content` (or

@@ -120,7 +120,7 @@ export const syncTab = {
   passActive: "Active",
   passUnset: "Non définie",
   passNote: {
-    lead: "Vos données redacted sont chiffrées de bout en bout avec cette phrase ",
+    lead: "Vos données masquées sont chiffrées de bout en bout avec cette phrase ",
     before: "avant",
     mid: " d'être synchronisées — elle ne quitte jamais vos appareils et nous ne pouvons pas la récupérer. Saisissez la ",
     same: "même",
@@ -173,7 +173,7 @@ export const orgTab = {
   active: "ACTIVES",
   adminConsole: "Console d'administration",
   adminConsoleHint: "Gérer les membres, l'usage et la sécurité",
-  minimalNote: (org) => `Le redaction minimal est imposé par ${org} et ne peut être désactivé.`,
+  minimalNote: (org) => `Le masquage minimal est imposé par ${org} et ne peut être désactivé.`,
 } satisfies Messages["orgTab"];
 
 export const importModal = {
@@ -188,8 +188,8 @@ export const importModal = {
   geminiSoon: "Gemini · bientôt",
   choose: (provider) => `Choisir le fichier d'export ${provider}…`,
   maskedNote:
-    "Les valeurs sensibles détectées sont redacted dès l'import : si vous poursuivez un fil ici, son historique part masqué.",
-  redacting: (done, total) => `Redaction des conversations… ${done} / ${total}`,
+    "Les valeurs sensibles détectées sont masquées dès l'import : si vous poursuivez un fil ici, son historique part masqué.",
+  redacting: (done, total) => `Masquage des conversations… ${done} / ${total}`,
   reading: "Lecture de l'export…",
   imported: (n) => `${n.toLocaleString("fr-FR")} conversation${n === 1 ? "" : "s"} importée${n === 1 ? "" : "s"}`,
   skipped: (n) => ` · ${n.toLocaleString("fr-FR")} déjà présente${n === 1 ? "" : "s"} (ignorée${n === 1 ? "" : "s"})`,

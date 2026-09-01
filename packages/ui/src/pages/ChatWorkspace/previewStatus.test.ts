@@ -24,7 +24,7 @@ describe("previewStatus — l'aperçu ne promet que ce qu'il a calculé", () => 
   });
 
   it("n'affiche le total qu'une fois les deux couches revenues", () => {
-    expect(previewStatus(false, 3, true, fr)).toEqual({ kind: "count", label: "3 à redact" });
+    expect(previewStatus(false, 3, true, fr)).toEqual({ kind: "count", label: "3 à masquer" });
   });
 
   it("le zéro acquis est muet", () => {

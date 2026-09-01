@@ -5,7 +5,7 @@ import { redactionCategory } from "@openmasq/redact";
  * The user-facing name of a redaction kind, in the reader's language.
  *
  * A mark carries its kind as the engine's own key (`company`, `national_id`) — the
- * vocabulary of the code, not of the product. Rendering it raw put « Unredact tous les
+ * vocabulary of the code, not of the product. Rendering it raw put « Démasquer tous les
  * « company » » in a French interface. The words live in `@openmasq/i18n`
  * (`redactionCatalog.categories`, one home shared with the rules screen), so this only
  * resolves against them — the CATEGORY set still comes from `@openmasq/catalog`.

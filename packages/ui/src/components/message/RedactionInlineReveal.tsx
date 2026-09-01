@@ -13,7 +13,7 @@ const DEFAULT_MARK_SEL = ".redaction-mark[data-real]";
 /**
  * The kit's redaction POPOVER (`RedactionPill` menu): hovering a redacted mark opens
  * a small tone-bordered card — a tinted header naming the data type + the COUNTERPART
- * value, then one action per scope: « Unredact » (this mark) and « Unredact la
+ * value, then one action per scope: « Démasquer » (this mark) and « Démasquer la
  * catégorie » (every mark of that kind in this container). The rows never repeat the
  * type or the value: the header two lines above already carries both, and the tooltips
  * hold the precision. It flips BELOW the mark near
@@ -74,16 +74,16 @@ export function RedactionInlineReveal({
   /** Action tooltips for the two toggle directions. */
   revealTitle?: string;
   reRedactTitle?: string;
-  /** « Signaler un redaction incorrect » — opens « Votre avis » prefilled (the caller
+  /** « Signaler un masquage incorrect » — opens « Votre avis » prefilled (the caller
    *  binds the surface + opener). Receives the mark's KIND label only (a vocabulary
    *  word, never the value). Offered even in `readOnly` mode: reporting is not a
    *  reveal action. Absent ⇒ no report row. */
   onReport?: (kindLabel: string) => void;
-  /** « Supprimer ce redaction » — DELETE the element entirely (a false positive):
+  /** « Supprimer ce masquage » — DELETE the element entirely (a false positive):
    *  no mark, no tag, the value stays visible and leaves in clear. A reveal is a
    *  SUSPENSION instead: the mark renders as plain text too (unredacted = the
    *  redaction disappears, never a strikethrough) but stays hoverable to
-   *  « Reredact », and the vault mapping survives for the way back. */
+   *  « Remasquer », and the vault mapping survives for the way back. */
   onDelete?: (value: string) => void;
   /** Jetons display (`redactTokenDisplay`, ON by default): real value → `[PERSON1]`-style
    *  token. When present and `show:"fake"`, the header shows the TOKEN instead of the raw
@@ -133,7 +133,7 @@ export function RedactionInlineReveal({
   };
 
   // The label in the READER's language, never the engine key: the card used to read
-  // « Unredact tous les « company » » in an otherwise French interface (`kindLabel.ts`).
+  // « Démasquer tous les « company » » in an otherwise French interface (`kindLabel.ts`).
   const label = kindLabel(hov.kind, t);
   // The card + actions — ONE content tree, two presentations (popover / sheet).
   const content = (

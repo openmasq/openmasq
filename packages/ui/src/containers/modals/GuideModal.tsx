@@ -23,7 +23,7 @@ export function GuideModal({
   initialChapter,
 }: {
   onClose: () => void;
-  /** Open on THIS chapter (e.g. `protection` from « Comprendre mon redaction »).
+  /** Open on THIS chapter (e.g. `protection` from « Comprendre mon masquage »).
    *  Explicit rather than « the first one »: the guide's order is editorial, a caller
    *  relying on it would break at the first reordering. */
   initialChapter?: string;

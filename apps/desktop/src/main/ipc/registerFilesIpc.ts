@@ -282,7 +282,7 @@ export function registerFilesIpc(): void {
       extraction: p.extraction,
     });
     // `redacted` = were the BYTES rewritten (see the host type: for a PDF the in-place
-    // pass throws by design, so an empty `spans` is NOT « rien de redacted »).
+    // pass throws by design, so an empty `spans` is NOT « rien de masqué »).
     return { vault, kinds, spans, redacted }; // merged into the conversation + log
   });
 }

@@ -27,7 +27,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src 'self' %SUPABASE_CSP% https://eu.i.posthog.com https://*.%BRAND_DOMAIN%; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://images.openai.com https://*.oaiusercontent.com https://*.oaistatic.com https://claude.ai https://*.anthropic.com https://*.googleusercontent.com https://*.gstatic.com https://*.google.com https://*.mistral.ai https://*.deepseek.com; script-src 'self' 'sha256-igqYf/dVveStC2w8LNtoGyKkph3y1zS0YxplBM/qlqg='; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+      content="default-src 'self'; connect-src 'self' %SUPABASE_CSP% https://eu.i.posthog.com https://*.%BRAND_DOMAIN%; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://images.openai.com https://*.oaiusercontent.com https://*.oaistatic.com https://claude.ai https://*.anthropic.com https://*.googleusercontent.com https://*.gstatic.com https://*.google.com https://*.mistral.ai https://*.deepseek.com; script-src 'self' 'sha256-JIDSUeE3AdkANm1xvp3OeApcGbvK6eDv8TzbSSW3iOM='; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>%BRAND_NAME%</title>
@@ -75,16 +75,13 @@
          green→blue flash. Runs synchronously in <head> (NOT deferred like the bundle).
          ⚠️ CSP-gated by a sha256 hash in the script-src above: if you edit this script,
          recompute the hash or it is BLOCKED and the flash returns. Mirrors
-         `applyPersistedTheme` (@openmasq/ui `state/theme.ts`) — mêmes clés, même ordre,
-         et la MÊME traduction : l'accent vert n'est plus une option, donc un thème
-         « light »/« dark » enregistré par une version antérieure devient son jumeau
-         indigo ICI AUSSI. Sans ça, la première image serait verte avant que React ne
-         coerce — le flash que ce script existe précisément pour éviter. La clé APPAREIL
-         gagne ; le blob de réglages est le repli d'avant `openmasq.theme`. Chaque clé se
-         tente AUSSI sous l'ancien préfixe (renommage du 24/08/2026) : ce script court
-         AVANT le bundle, donc avant `legacyStorage.ts` qui migre ces clés — sans le
-         repli, la première image d'un parc migré flasherait au mauvais thème. -->
-    <script>try{var t=localStorage.getItem("openmasq.theme")||localStorage.getItem("openmasq.theme")||JSON.parse(localStorage.getItem("openmasq.settings")||localStorage.getItem("openmasq.settings")||"{}").theme;document.documentElement.setAttribute("data-theme",t==="dark"||t==="blue-dark"?"blue-dark":"blue")}catch(e){}</script>
+         `applyPersistedTheme` (@openmasq/ui `state/theme.ts`) — same keys, same order, and
+         the SAME translation: the green accent is no longer an option, so a « light »/« dark »
+         theme saved by an earlier version becomes its indigo twin HERE TOO. Without that, the
+         first frame would be green before React coerces — the very flash this script exists
+         to avoid. The DEVICE key wins; the settings blob is the fallback from before
+         `openmasq.theme`. -->
+    <script>try{var t=localStorage.getItem("openmasq.theme")||JSON.parse(localStorage.getItem("openmasq.settings")||"{}").theme;document.documentElement.setAttribute("data-theme",t==="dark"||t==="blue-dark"?"blue-dark":"blue")}catch(e){}</script>
   </head>
   <body>
     <!-- Brand mark inlined so it needs no font/asset and paints instantly — the ring +

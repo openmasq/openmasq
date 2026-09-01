@@ -13,10 +13,10 @@ import { makeToggleKeep,
   previewStatus, type Cat, type Item } from "./composerDetection";
 
 /**
- * ⚠️ REGRESSION — « Règles de redaction » had no effect on the composer.
+ * ⚠️ REGRESSION — « Règles de masquage » had no effect on the composer.
  *
  * `detectRegex` called `redact` with no options, so a category the user had switched
- * off still highlighted, still produced a chip, and still counted in « N à redact ».
+ * off still highlighted, still produced a chip, and still counted in « N à masquer ».
  * On the `patterns` engine this is the ONLY detection layer (`ChatView` passes no
  * `onDetectPii` there), so the rules looked entirely inert. The SEND always honoured
  * them — it was the preview that lied, on the surface whose whole purpose is trust.
@@ -131,7 +131,7 @@ describe("buildDetection", () => {
   it("un même terme revendiqué sous DEUX catégories rend UNE pastille — la première gagne", () => {
     // Experienced (lawyer flow 13/08): "Projet Ambre" in the Coffre (alias, merged
     // first) AND reclassified "company" by the model layer → two chips of different
-    // hues + "2 à redact" over ONE protected term, while the thread
+    // hues + "2 à masquer" over ONE protected term, while the thread
     // itself only allocated ONE fake. An entity's identity IS its dedup key;
     // the first claim's category fixes the hue.
     const text = "Le dossier Projet Ambre avance ; archive Projet Ambre.";
@@ -249,7 +249,7 @@ describe("makeToggleKeep — le geste « garder en clair » est un signal de fau
 
 describe("competencePromptCats — le prompt d'une compétence nourrit le compteur", () => {
   // Experienced 15/08 (path G): a compétence carrying the firm's contact details — SIRET,
-  // email, phone — was staged, the composer announced "1 à redact"
+  // email, phone — was staged, the composer announced "1 à masquer"
   // when 8 went out masked. The prompt goes out in modelText: the counter must say so.
   const PROMPT =
     "Tu écris au nom du cabinet. Contact : farid.sellam@tarvelone-expertise.fr, 02 98 44 17 62.";
@@ -294,26 +294,26 @@ describe("competenceExtraCount — dédupliqué contre le brouillon", () => {
 
 describe("previewStatus — FINI vs ABANDONNÉ (document long, 15/08)", () => {
   // Measured: 41 872 characters ⇒ the semantic layer gives up, `detecting`
-  // falls back to false, and "321 à redact" displayed as a TOTAL when it only
+  // falls back to false, and "321 à masquer" displayed as a TOTAL when it only
   // carried the rules (emails + phones + SIREN) — neither the firm's address nor
   // people's names, though detected on the same text when short.
   it("analyse complète ⇒ un compte ferme, sans explication à donner", () => {
     const s = previewStatus(false, 321, true, fr);
-    expect(s).toEqual({ kind: "count", label: "321 à redact" });
+    expect(s).toEqual({ kind: "count", label: "321 à masquer" });
   });
 
   it("analyse ABANDONNÉE ⇒ « au moins N », marqué partiel, avec l'explication", () => {
     const s = previewStatus(false, 321, true, fr, true);
     expect(s.kind).toBe("count");
     if (s.kind !== "count") return;
-    expect(s.label).toBe("au moins 321 à redact");
+    expect(s.label).toBe("au moins 321 à masquer");
     expect(s.partial).toBe(true);
     // The explanation must REASSURE about what matters: the send re-analyzes everything.
     expect(s.hint).toMatch(/envoi la refait/i);
   });
 
   it("abandon SANS aucune détection ⇒ on le dit, on ne se tait pas", () => {
-    // Staying silent would read as "rien à redact" on a document that hasn't finished being read.
+    // Staying silent would read as "rien à masquer" on a document that hasn't finished being read.
     const s = previewStatus(false, 0, true, fr, true);
     expect(s.kind).toBe("count");
     if (s.kind !== "count") return;

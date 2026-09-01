@@ -4,7 +4,7 @@ import { kindLabel } from "../../../../components/message/kindLabel";
 /**
  * What the preview's subtitle says about a document's redaction.
  *
- * The old line read « 10 à redact » — a FUTURE tense over a view that already shows the
+ * The old line read « 10 à masquer » — a FUTURE tense over a view that already shows the
  * result, on the one screen the user opens to check what will leave the machine. It also
  * gave a bare number with no way to see what the ten values WERE without hovering each
  * mark, which does not scale past a page.

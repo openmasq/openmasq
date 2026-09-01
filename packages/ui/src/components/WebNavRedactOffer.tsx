@@ -69,7 +69,7 @@ export function WebNavRedactOffer({
             {/* ⚠️ SHORT out of necessity: `.agent-card-note` is a single line clipped at
                 the ellipsis, and two wide buttons leave it little room. Yet it's THE
                 sentence that makes a generous default honest — truncated, it's worth nothing.
-                The detail (« le suivant repart redacted ») used to live here and got
+                The detail (« le suivant repart masqué ») used to live here and got
                 cut off; only the scope fits. */}
             <span>{t.webNav.thisMessageOnly}</span>
           </span>

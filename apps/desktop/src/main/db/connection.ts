@@ -94,10 +94,9 @@ export async function setDbUser(userId: string | null): Promise<void> {
 async function maybeAdoptLegacyDb(accountFile: string): Promise<void> {
   const userData = app.getPath("userData");
   const marker = join(userData, `.${BRAND.slug}-legacy-db-adopted`);
-  // BOTH names are tried: the pre-isolation install base wrote its file under the OLD
-  // codename of the repo (renamed on 24/08/2026 — the rename didn't touch
-  // disks), and "openmasq.db" covers the current name. Named exception in `check:brand`.
-  const legacy = ["openmasq.db", "openmasq.db"]
+  // The pre-isolation install base wrote ONE shared file under the product name; an
+  // account file adopts it once, then the marker keeps this from ever running again.
+  const legacy = ["openmasq.db"]
     .map((name) => join(userData, name))
     .find((p) => existsSync(p));
   try {

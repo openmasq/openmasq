@@ -955,7 +955,7 @@ export function createSendMessage(d: SendMessageDeps) {
       // Connected-integration names (Stripe, Canva…) the chat model needs
       // verbatim — allow-listed so redaction never redacted a tool/connector
       // name (which would make the model fail to recognise its own tools).
-      // `keep` = connected-integration names + the values the user un-redact for
+      // `keep` = connected-integration names + the values the user un-redacted for
       // THIS conversation (suspendre/supprimer) + the per-message values the user
       // deselected in the composer chips (`opts.keepValues`) → they're never redacted
       // this send (case-insensitive), so a false-positive like "redonne" stays clear.

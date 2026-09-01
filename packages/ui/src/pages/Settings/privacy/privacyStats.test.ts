@@ -95,7 +95,7 @@ describe("kindOf resolves the per-word / casing vault ALIAS fragments", () => {
 // The number the user compares across screens. The sidebar shield (Rail), the chat
 // header, the mobile thread badge and this card all read `state/protectedCount.ts`;
 // the card's total must therefore BE that number, for any conversation set.
-describe("parity — the shield's count IS the « tout ce qui a été redacted » total", () => {
+describe("parity — the shield's count IS the « tout ce qui a été masqué » total", () => {
   const set = [
     conv(),
     conv({

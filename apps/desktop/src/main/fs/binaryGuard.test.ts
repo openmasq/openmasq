@@ -7,7 +7,7 @@ const BINARY = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x00, 0x01, 0x02]);
 /**
  * The failure this guards, observed in the field: « fais un résumé de tous les documents »
  * → the model called `read_file` on a PDF → 16 000 characters of mojibake, 4.5 s of local
- * NER spent redact garbage, 52 000 characters of noise in the prompt. Nothing
+ * NER spent redacting garbage, 52 000 characters of noise in the prompt. Nothing
  * errored; the answer was simply impossible and the user paid the latency and the tokens.
  *
  * A refusal that NAMES the working tool is worth more than any amount of bytes.

@@ -243,7 +243,7 @@ export function isRealIp(match: string): boolean {
  * (`…_HOST=`, `…_ENDPOINT=`, `…_PROJECT=`) must not redact it.
  *
  * The rule fires on the KEY's suffix, which is the right signal for a secret but says
- * nothing about the value: `DATABASE_HOST=localhost` redact « localhost », and the
+ * nothing about the value: `DATABASE_HOST=localhost` redacted « localhost », and the
  * model then reasons on a fake hostname in config it was asked to debug. Same rationale
  * as the `REGION` suffix already carved out of that rule — a closed list of values, never
  * a shape heuristic, so a real secret can never fall in by accident. Audit R2.

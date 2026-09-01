@@ -158,7 +158,7 @@ export const TOOL_OPS: Record<string, ToolOp> = {
     const st = await stat(p);
     if (!st.isFile()) throw new Error("ce chemin n'est pas un fichier");
     // A PDF read as utf8 returns mojibake, and nothing errors: the model gets tens of
-    // thousands of unusable characters, after seconds of local NER spent redact
+    // thousands of unusable characters, after seconds of local NER spent redacting
     // them. Refuse, and NAME the tool that works (`binaryGuard.ts`).
     const verdict = readVerdict(p, await headBytes(p));
     if (verdict.kind !== "text") throw new Error(verdict.message);

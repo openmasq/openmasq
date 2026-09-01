@@ -238,7 +238,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
         // and the span is vaulted + recorded below so it stays reversible. The neutral
         // base is constant-case and carries no other identity's root, so the twins
         // guarded above cannot reappear; `clashes` is deliberately NOT consulted here
-        // (each earlier «redacted-N» would flag the shared word forever — no free
+        // (each earlier «masqué-N» would flag the shared word forever — no free
         // candidate would exist and the loop would never terminate).
         const base = "redacted"; // then suffixed until free
         let n = 2;

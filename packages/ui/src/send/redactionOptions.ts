@@ -104,7 +104,7 @@ export function convKindsFromSpans(
 ): Record<string, string> {
   // The conversation-level map FIRST: it holds the categories of values that belong to no
   // message — a person named only in the injected mémoire, a document-layer (OCR) value, a
-  // manual « Redact ». Reading spans alone left those untyped, so every consumer fell
+  // manual « Masquer ». Reading spans alone left those untyped, so every consumer fell
   // back to « sensitive » (generic info) on the next turn even after the pass that found
   // them had recorded their category. A message's own span still wins: it is the more
   // specific evidence, and it is what the user actually typed.

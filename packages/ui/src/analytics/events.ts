@@ -84,7 +84,7 @@ export type TrackEvent =
   | { name: "redaction_applied"; count: number; kinds: string[] }
   // The user's CORRECTIONS — the engine's ground truth, by category and NEVER by
   // value. « Garder en clair » = the engine over-detected (false positive);
-  // manual « Redact » / adding to the Coffre from a selection = it missed (false
+  // manual « Masquer » / adding to the Coffre from a selection = it missed (false
   // negative). This is the real-usage precision/recall curve, the one no corpus
   // gives — and the tie-breaker for an « X isn't detected » board card.
   | { name: "redaction_kept"; kind: string }

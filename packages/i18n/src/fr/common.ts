@@ -40,7 +40,7 @@ export const billing = {
       name: "Gratuit",
       tag: "Dès l'inscription",
       feats: [
-        (brand) => `Redaction géré par ${brand}`,
+        (brand) => `Masquage géré par ${brand}`,
         () => "Modèles essentiels",
         () => "1 appareil",
         () => "Historique 30 jours",
@@ -59,7 +59,7 @@ export const billing = {
       name: "Team",
       feats: [
         () => "Tout Solo, pour chaque membre, plus :",
-        () => "Règles de redaction imposées",
+        () => "Règles de masquage imposées",
         () => "Modèles et connecteurs autorisés",
         () => "Facture unique et journal d'audit",
       ],

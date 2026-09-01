@@ -37,15 +37,15 @@ the most recent section **at the top**.
 ---
 
 ## 0.8.0 — 2026-08-20
-> Le niveau de redaction se règle désormais là où vous écrivez, message par message.
+> Le niveau de masquage se règle désormais là où vous écrivez, message par message.
 
 ### Nouveautés
-- **Le niveau de redaction, depuis la barre de saisie** — un clic le pose pour le message en cours, et le glyphe montre d'un coup d'œil ce qui sera masqué.
+- **Le niveau de masquage, depuis la barre de saisie** — un clic le pose pour le message en cours, et le glyphe montre d'un coup d'œil ce qui sera masqué.
 - **Un sélecteur de modèles qui se lit** — trois blocs titrés, les variantes techniques en moins, et l'offre gratuite enfin nommée.
 - **Fermer à distance Mémoire, Bibliothèque et Compétences** — une organisation décide des espaces ouverts à ses membres, sans passer par chaque poste.
 
 ### Améliorations & corrections
-- Le redaction reconnaît de nouveaux formats d'identifiants, en espagnol et en allemand.
+- Le masquage reconnaît de nouveaux formats d'identifiants, en espagnol et en allemand.
 - Les pièces jointes d'un même dossier partagent une seule table de correspondance.
 - Un connecteur dit ce qui le bloque et ce qu'il faut faire pour le rétablir.
 - L'aperçu avant envoi distingue mieux deux identités proches.
@@ -57,7 +57,7 @@ the most recent section **at the top**.
 > fichier d'origine.
 
 ### Nouveautés
-- **L'aperçu montre d'abord la version redacted** — quel que soit le format, la
+- **L'aperçu montre d'abord la version masquée** — quel que soit le format, la
   vérification avant envoi s'ouvre sur ce qui quittera la machine ; l'original reste à
   un clic.
 - **La phrase de synchronisation se vérifie à la saisie** — si elle n'ouvre pas les clés
@@ -72,7 +72,7 @@ the most recent section **at the top**.
   comprise.
 - Le nom d'un fichier joint est restitué dans la réponse.
 - Refuser une écriture n'est plus présenté comme un échec.
-- Le redaction distingue mieux les mentions d'état civil et les termes juridiques des
+- Le masquage distingue mieux les mentions d'état civil et les termes juridiques des
   noms propres.
 - La synchronisation attend que vos données soient chargées avant de démarrer.
 
@@ -95,29 +95,29 @@ the most recent section **at the top**.
 ---
 
 ## 0.7.4 — 2026-08-14
-> Vos documents s'ouvrent redacted, et un interrupteur montre l'original quand
+> Vos documents s'ouvrent masqués, et un interrupteur montre l'original quand
 > vous le décidez.
 
 ### Nouveautés
-- **Redacted ⇄ Original, d'un geste** — la visionneuse ouvre toujours sur la version
+- **Masqué ⇄ Original, d'un geste** — la visionneuse ouvre toujours sur la version
   masquée ; l'interrupteur révèle l'original le temps que vous le regardez.
 
 ### Améliorations & corrections
 - Un document rouvert depuis la Bibliothèque montre le masquage tel qu'il était à l'envoi.
-- Une image scannée se relit redacted, boîtes comprises.
+- Une image scannée se relit masquée, boîtes comprises.
 - Les catégories annoncées sous un document sont celles de ce document.
 
 ## 0.7.3 — 2026-08-14
-> L'aperçu d'un document déposé montre d'emblée sa version redacted, et la lecture
+> L'aperçu d'un document déposé montre d'emblée sa version masquée, et la lecture
 > des documents scannés va plus loin.
 
 ### Nouveautés
-- **L'aperçu s'ouvre sur le redacted** — déposez un document dans la conversation :
+- **L'aperçu s'ouvre sur le masqué** — déposez un document dans la conversation :
   la première vue est celle qui montre ce qui est masqué, boîtes et halo compris.
 
 ### Améliorations & corrections
 - La lecture d'une pièce d'identité scannée est plus complète, et mieux protégée.
-- Le redaction reconnaît des mentions que la numérisation déforme.
+- Le masquage reconnaît des mentions que la numérisation déforme.
 - La liste des modèles se lit d'un coup d'œil : prix, contexte et débit en un signe.
 - La synchronisation entre appareils gagne en fiabilité.
 
@@ -133,7 +133,7 @@ the most recent section **at the top**.
 ### Améliorations & corrections
 - L'application se met à jour plus sûrement.
 - La console d'administration gagne en clarté.
-- Le redaction imposé par une organisation tient même hors connexion.
+- Le masquage imposé par une organisation tient même hors connexion.
 
 ## 0.7.0 — 2026-08-14
 > Un long document se lit en entier si vous le demandez, l'aperçu montre exactement ce
@@ -149,10 +149,10 @@ the most recent section **at the top**.
 
 ### Améliorations & corrections
 - L'application reste réactive pendant la lecture d'un scan, même long.
-- L'aperçu d'un document distingue d'un halo net le texte qui part, redacted, au modèle
+- L'aperçu d'un document distingue d'un halo net le texte qui part, masqué, au modèle
   de ce qui reste dans l'image (logo, tampon, cachet).
 - Une fiche Mémoire se supprime depuis la liste, sans ouvrir son panneau.
-- Le redaction distingue mieux une donnée personnelle d'un nom de produit ou d'outil,
+- Le masquage distingue mieux une donnée personnelle d'un nom de produit ou d'outil,
   et reconnaît les numéros de TVA intracommunautaire.
 - Quand un connecteur refuse une action, le message dit lequel et propose de le
   reconnecter.
@@ -191,9 +191,9 @@ the most recent section **at the top**.
   qui vient de le signaler.
 
 ### Améliorations & corrections
-- Le redaction reconnaît de nouveaux formats de données sensibles.
+- Le masquage reconnaît de nouveaux formats de données sensibles.
 - Le compteur d'informations protégées gagne en précision.
-- L'aperçu d'un document rend compte plus fidèlement de son redaction.
+- L'aperçu d'un document rend compte plus fidèlement de son masquage.
 - La liste des conversations et les menus s'utilisent au clavier.
 - Les chiffres du sélecteur de modèles portent leur unité.
 - En thème sombre, plusieurs éléments regagnent en lisibilité.
@@ -245,9 +245,9 @@ the most recent section **at the top**.
 - L'accueil s'ouvre sur un bonjour, avec des amorces qui parlent des services que vous avez
   réellement connectés.
 - La Bibliothèque, les Compétences et les Workflows se regardent en grille ou en liste, une
-  conversation se renomme depuis sa ligne, et le journal du redaction se lit conversation
+  conversation se renomme depuis sa ligne, et le journal du masquage se lit conversation
   par conversation — comme la table de correspondance l'est déjà.
-- Quatre corrections de redaction : « lundi » n'est plus pris pour un nom de personne, un
+- Quatre corrections de masquage : « lundi » n'est plus pris pour un nom de personne, un
   lien vers un service connecté garde sa vraie adresse, une adresse de document n'est plus
   rangée parmi les clés et secrets, et un faux nom complet se tire dans un vivier bien plus
   large.
@@ -257,7 +257,7 @@ the most recent section **at the top**.
 
 ## 0.3.4 — 2026-08-02
 > Choisir un modèle ne demande plus de choisir un fournisseur, vos fichiers se retrouvent
-> par ce qu'ils sont, vos documents s'écrivent dans l'app — et le redaction dit désormais
+> par ce qu'ils sont, vos documents s'écrivent dans l'app — et le masquage dit désormais
 > ce dont il n'est pas sûr.
 
 ### Nouveautés
@@ -269,7 +269,7 @@ the most recent section **at the top**.
   ni passer par le markdown : titres, listes, citations et blocs de code gardent leur
   forme à l'enregistrement. Un clic sur un lien reste un clic sur un lien, et une
   sélection reste copiable.
-- **« À vérifier » : le redaction annonce ses doutes** — quand un élément détecté n'est
+- **« À vérifier » : le masquage annonce ses doutes** — quand un élément détecté n'est
   pas certain, il est signalé comme tel dans le récapitulatif d'avant-envoi. Vous voyez
   ce qui est solide et ce qui mérite un œil, au lieu d'un verdict uniforme.
 - **Retrouvez un fichier par ce qu'il est** — « les documents fiscaux », « le bail de
@@ -288,7 +288,7 @@ de changer de modèle que quand cela peut réellement aider ; une erreur d'API G
 maintenant quoi faire, sur tous les outils. La Mémoire se range en la traitant, et
 sélectionner une fiche rapproche la vue sur son voisinage.
 
-Côté redaction, la détection s'élargit nettement — environ 15 000 prénoms supplémentaires
+Côté masquage, la détection s'élargit nettement — environ 15 000 prénoms supplémentaires
 — et plusieurs sur-masquages mesurés sur de vrais documents sont corrigés : un horodatage
 n'est plus pris pour un numéro de carte, une date de relevé bancaire pour un téléphone, un
 pied de facture pour un nom de personne. À l'inverse, trois fuites réelles sont refermées,
@@ -300,7 +300,7 @@ réellement appliqué, un CSV est correctement surligné, les valeurs masquées 
 tronquées dans les documents scannés, et l'application est allégée de 346 Mo.
 
 ## 0.3.3 — 2026-07-30
-> Une mémoire qui se relit, se corrige et se comprend, un redaction honnête sur ses
+> Une mémoire qui se relit, se corrige et se comprend, un masquage honnête sur ses
 > limites, et vos dossiers modifiables directement dans l'app.
 
 ### Nouveautés
@@ -326,11 +326,11 @@ tronquées dans les documents scannés, et l'application est allégée de 346 Mo
   dossier sans tout ré-autoriser. L'assistant corrige un passage d'un document Word
   sans réécrire le reste.
 - **Voyez ce que le modèle a vu** — la vue côte à côte montre votre message et sa
-  version redacted telle qu'elle est partie, et unredact un élément le rend à
+  version masquée telle qu'elle est partie, et démasquer un élément le rend à
   son texte normal au lieu de le barrer.
 
 ### Améliorations & corrections
-Le redaction gagne sur tous les fronts : les dates d'actes (bail, embauche, mariage)
+Le masquage gagne sur tous les fronts : les dates d'actes (bail, embauche, mariage)
 sont protégées comme les personnes qu'elles rattachent, les BIC entre guillemets ou
 parenthèses et les chaînes de connexion ne partent plus en clair, la même ville reçoit
 le même lieu d'emprunt partout (les questions « même région ? » restent justes), et
@@ -340,13 +340,13 @@ l'application couvrent désormais 100 % des capacités Google. Côté stabilité
 modèle ne peut plus faire tomber l'app, le lancement est vérifié par de nouveaux
 tests automatiques avant chaque publication, et la page Versions dit simplement
 que l'application est à jour.
-> Vos prompts réutilisables à portée de « / », un redaction plus fin et plus sûr, et
+> Vos prompts réutilisables à portée de « / », un masquage plus fin et plus sûr, et
 > un agent qui garde le fil du début à la fin.
 
 ### Nouveautés
 - **Compétences** — enregistrez vos prompts réutilisables et glissez-en un dans la
   conversation d'un simple « / ». Leur contenu reste sur votre machine.
-- **Moins de masquage inutile** — l'application ne redacted plus les personnalités, marques
+- **Moins de masquage inutile** — l'application ne masque plus les personnalités, marques
   et lieux publics célèbres cités comme tels : vos échanges restent lisibles.
 - **Un faux propre à chaque conversation** — les valeurs de substitution sont désormais
   uniques à chaque discussion, ce qui les rend bien plus difficiles à ré-identifier.
@@ -357,25 +357,25 @@ que l'application est à jour.
 ### Améliorations & corrections
 Protection des noms et entreprises active par défaut, choix du moteur de recherche pour
 l'agent, catalogue de connecteurs enrichi (nouveaux services, descriptions et logos),
-écran des règles de redaction plus lisible avec une couleur par famille, catégories
+écran des règles de masquage plus lisible avec une couleur par famille, catégories
 simplifiées, et l'aperçu d'un document qui indique les catégories laissées de côté. De
 nombreux raffinements visuels (onglets, barre du haut, écran de démarrage, états vides
 des sections) et des corrections — le bouton de fermeture des fenêtres, le forçage d'un
-redaction depuis un message, et l'ouverture de la palette « ⌘K » depuis les Réglages.
+masquage depuis un message, et l'ouverture de la palette « ⌘K » depuis les Réglages.
 
 ## 0.3.1 — 2026-07-09
 > Un premier contact plus clair, vos connecteurs MCP au même endroit, et un
-> redaction encore plus fiable.
+> masquage encore plus fiable.
 
 ### Nouveautés
 - **Onboarding repensé** — un parcours guidé qui met en place vos catégories à
-  redact et votre premier modèle en quelques secondes.
+  masquer et votre premier modèle en quelques secondes.
 - **Onglet MCP** — connectez et gérez tous vos connecteurs (Gmail, Drive, Notion…)
-  depuis un seul écran, chaque appel d'outil restant redacted.
+  depuis un seul écran, chaque appel d'outil restant masqué.
 - **OpenCode Zen** — une nouvelle plateforme de modèles disponible, avec les
   métadonnées de chaque modèle pour bien choisir.
 
 ### Améliorations & corrections
-Modales de redaction refondues, polices embarquées en local (hors-ligne, sans
-Google Fonts), déverrouillage des états « vu » bloqués, et un redaction plus
+Modales de masquage refondues, polices embarquées en local (hors-ligne, sans
+Google Fonts), déverrouillage des états « vu » bloqués, et un masquage plus
 robuste sur les longs messages.

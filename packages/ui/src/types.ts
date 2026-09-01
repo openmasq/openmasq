@@ -262,7 +262,7 @@ export interface Settings {
   /** « voyez ce que le modèle a vu » card already shown (`privacy/transparency.ts`). */
   transparencySeen?: boolean;
   memoryProposalSeen?: boolean;
-  /** « Comprendre mon redaction » closed for good (`privacy/redactionIntro.ts`).
+  /** « Comprendre mon masquage » closed for good (`privacy/redactionIntro.ts`).
    *  The knowledge stays reachable: the same chapter lives in Aide → guide. */
   redactionIntroSeen?: boolean;
   /**

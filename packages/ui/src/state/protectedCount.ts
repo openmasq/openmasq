@@ -4,7 +4,7 @@ import type { Conversation } from "../types";
 /**
  * "How many values did the app protect" — the ONE definition every surface that shows
  * that number must use (rule 9): the sidebar shield, the chat header, the mobile
- * thread badge, the Réglages → Confidentialité « tout ce qui a été redacted » card,
+ * thread badge, the Réglages → Confidentialité « tout ce qui a été masqué » card,
  * the Transparence insert and its comparison, and the Journal tab. The user compares them
  * side by side, so a second formula reads as a bug about their data, not as a nuance.
  *

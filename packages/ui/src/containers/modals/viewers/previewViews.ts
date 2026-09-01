@@ -78,7 +78,7 @@ export function previewShape(file: PreviewFile): PreviewShape {
  * values; there was no reason for the other formats to do the opposite.
  *
  * The original stays ONE click away, announced for what it is (« Le fichier tel quel, avant
- * redaction ») — re-reading "did it mask what it shouldn't have?" remains possible, but
+ * masquage ») — re-reading "did it mask what it shouldn't have?" remains possible, but
  * it is no longer what you see first.
  */
 export function initialView(s: PreviewShape, file: PreviewFile): DocView {
@@ -87,7 +87,7 @@ export function initialView(s: PreviewShape, file: PreviewFile): DocView {
   if (s.isImage && s.hasBytes) return "image";
   if (s.isPdf && s.hasBytes) return "pdf";
   // Everywhere else: the redacted layer, as soon as there's something to show. Conditioned on
-  // `file.text` because `previewViews` only offers « Redacted » under that condition — opening
+  // `file.text` because `previewViews` only offers « Masqué » under that condition — opening
   // on a view absent from the menu would give a screen nothing points to.
   if (file.text) return "redacted";
   // With no extracted text, there is no redacted layer: show the document.
@@ -128,11 +128,11 @@ export function previewViews(s: PreviewShape, file: PreviewFile, t: Messages): D
 }
 
 /**
- * Can a spreadsheet's « Redacted » view be a GRID, or does it need the text layer?
+ * Can a spreadsheet's « Masqué » view be a GRID, or does it need the text layer?
  *
  * ⚠️ A grid is only redacted if there's something to redact it with. With no replacements
  * (redaction not yet delivered, pass still in flight), the "fake values" render has nothing to
- * substitute: it shows the REAL values under the « Redacted » label. That was
+ * substitute: it shows the REAL values under the « Masqué » label. That was
  * tolerable while this view took a click to reach; since it's the one that OPENS,
  * the case became common. With no replacements we therefore fall back to the text layer, which
  * knows how to wait (skeleton) then re-run a pass — never the original on the sly.

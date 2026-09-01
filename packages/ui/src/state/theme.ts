@@ -1,6 +1,5 @@
 import type { Settings } from "../types";
 import { load, SETTINGS_KEY, DEFAULT_SETTINGS } from "./storePersistence";
-import { migrateLegacyLocalStorage } from "./legacyStorage";
 
 /**
  * The THEME — a DEVICE preference, not an account one, with a single choosable axis.
@@ -39,7 +38,6 @@ export function blueAccent(theme: ThemeName | undefined): ThemeName {
 
 /** The theme last applied on THIS device, or undefined when never recorded. */
 export function loadDeviceTheme(): ThemeName | undefined {
-  migrateLegacyLocalStorage(); // first reader at boot — the keys from before the rename
   try {
     const t = localStorage.getItem(THEME_KEY);
     return isTheme(t) ? blueAccent(t) : undefined;

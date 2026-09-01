@@ -39,7 +39,7 @@ export function FileViewerModal({
   loadFile,
   onOpenExternal,
   storageLabel = "stocké localement",
-  redacted = true,
+  redactedView = true,
 }: {
   id: string;
   name: string;
@@ -76,9 +76,9 @@ export function FileViewerModal({
    *  lie twice over: nothing was masked because nothing left the machine, and deriving
    *  the overlay live means a FULL NER pass over the document BEFORE the first paint —
    *  seconds of blank skeleton on open (the reported « lent comme s'il était
-   *  redacted »). Default `true`: a STORED file's redacted view is the product. */
+   *  masqué »). Default `true`: a STORED file's redacted view is the product. */
   /** INITIAL state of the Redacted ⇄ Original toggle (default: redacted). */
-  redacted?: boolean;
+  redactedView?: boolean;
 }) {
   const t = useT();
   const host = useHost();
@@ -90,7 +90,7 @@ export function FileViewerModal({
   // row, not a tab — the same gesture for PDF, image, spreadsheet and text. ALWAYS
   // opens on the redacted (the safe version to have on screen); showing the original
   // is a deliberate click, which doesn't survive reopening.
-  const [showRedacted, setShowRedacted] = useState(redacted);
+  const [showRedacted, setShowRedacted] = useState(redactedView);
 
   const kind = kindOf(mime, name);
   // Attaching a local file takes seconds (read + OCR): `useAskAction` makes

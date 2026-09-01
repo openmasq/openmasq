@@ -20,6 +20,10 @@ set -e
 
 node scripts/check-staged-loc.mjs
 
+# Retired names: the tree is scanned whole (it is one git grep — fast), the message by
+# the commit-msg hook next door.
+node scripts/check-brand.mjs
+
 # Lint (Biome) on the STAGED files only — like the LOC cap above, we look at what THIS
 # commit brings, never at the other sessions' WIP. We LINT (no format check): a
 # retroactive format would inflate the dense existing code past the 300-line cap

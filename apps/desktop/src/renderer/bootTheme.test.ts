@@ -26,15 +26,6 @@ describe("boot theme script", () => {
     expect(blobAt).toBeGreaterThan(deviceAt);
   });
 
-  it("replie chaque clé sur l'ANCIEN préfixe (parc d'avant le renommage du 24/08/2026)", () => {
-    // This script runs BEFORE the bundle, so before the `legacyStorage.ts` pass — it must
-    // fall back on its own, otherwise the first frame of a migrated fleet flashes the wrong theme.
-    // (Prefix assembled so as not to be the only "occurrence" `check:brand` would see.)
-    const OLD = ["proxy", "chat"].join("");
-    expect(script.indexOf(`"${OLD}.theme"`)).toBeGreaterThan(script.indexOf('"openmasq.theme"'));
-    expect(script.indexOf(`"${OLD}.settings"`)).toBeGreaterThan(script.indexOf('"openmasq.settings"'));
-  });
-
   it("ne peint QUE de l'indigo — un thème vert enregistré devient son jumeau", () => {
     // The accent is no longer a choice (`state/theme.ts` `blueAccent`). This script must do
     // the SAME translation, otherwise the first frame is green before React coerces:

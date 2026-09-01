@@ -13,11 +13,11 @@ export const onboarding = {
   start: "Commencer",
 
   redaction: {
-    eyebrow: "REDACTION",
+    eyebrow: "MASQUAGE",
     titleLead: "Écrivez",
     titleHighlight: "librement",
     sub: (brand) =>
-      `Avant qu'un message ne parte, ${brand} repère les données sensibles et les remplace par de fausses valeurs. Le modèle ne travaille que sur celles-ci — vous, vous continuez de voir les vraies. C'est ce remplacement qu'on appelle le redaction.`,
+      `Avant qu'un message ne parte, ${brand} repère les données sensibles et les remplace par de fausses valeurs. Le modèle ne travaille que sur celles-ci — vous, vous continuez de voir les vraies. C'est ce remplacement qu'on appelle le masquage.`,
     notoriety: {
       lead: "Les personnalités, grandes marques et pays ne sont ",
       strong: "jamais masqués",
@@ -42,18 +42,18 @@ export const onboarding = {
     titleIncluded: "Votre compte, ou votre clé",
     titleUnserved: "Votre clé, ou un modèle local",
     subServed:
-      "Vous changerez d'avis quand vous voudrez. Dans les deux cas, le redaction s'applique avant chaque envoi.",
+      "Vous changerez d'avis quand vous voudrez. Dans les deux cas, le masquage s'applique avant chaque envoi.",
     subUnserved:
-      "Une clé, un modèle qui tourne sur votre machine, ou votre abonnement Claude Code / Codex — le redaction s'applique avant chaque envoi, quel que soit le chemin.",
+      "Une clé, un modèle qui tourne sur votre machine, ou votre abonnement Claude Code / Codex — le masquage s'applique avant chaque envoi, quel que soit le chemin.",
   },
 
   ready: {
     title: "La protection, elle, est déjà active",
     eyebrow: "C'EST PRÊT",
     subServed: (brand) =>
-      `Elle ne dépend d'aucune clé : dès votre premier message, le redaction s'applique. Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand}.`,
+      `Elle ne dépend d'aucune clé : dès votre premier message, le masquage s'applique. Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand}.`,
     subUnserved:
-      "Elle ne dépend d'aucun compte : dès votre premier message, le redaction s'applique. Il ne manque qu'un accès à un modèle — une clé, un serveur local, ou votre CLI.",
+      "Elle ne dépend d'aucun compte : dès votre premier message, le masquage s'applique. Il ne manque qu'un accès à un modèle — une clé, un serveur local, ou votre CLI.",
     modelHint:
       "Le nom du modèle est sous la zone de saisie — cliquez-le pour en changer, ou pour brancher un accès si vous avez passé l'étape.",
     slashHint: {
@@ -66,11 +66,11 @@ export const onboarding = {
       strong: "Aide",
       tail: ", en bas de la barre de droite, reprend tout ça — la démonstration comprise.",
     },
-    tuneRedaction: "Régler finement le redaction",
+    tuneRedaction: "Régler finement le masquage",
   },
 
   tune: {
-    eyebrow: "REDACTION",
+    eyebrow: "MASQUAGE",
     title: "Régler finement",
     sub: "Ces réglages sont déjà bons par défaut. Vous les retrouverez à tout moment dans Réglages → Compte.",
   },

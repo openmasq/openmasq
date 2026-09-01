@@ -84,7 +84,7 @@ interface Props {
    *  When present, redaction marks in this message become click-to-suspend. */
   onReveal?: (value: string, mode: "suspend" | "delete") => boolean;
   onReRedact?: (value: string) => void;
-  /** « Signaler un redaction incorrect » on a mark's popover — opens « Votre avis »
+  /** « Signaler un masquage incorrect » on a mark's popover — opens « Votre avis »
    *  prefilled. The bubble derives the surface from its own role (user message vs
    *  reply); `kindLabel` is the mark's category word, never the value. */
   onReportRedaction?: (surface: "message" | "reponse", kindLabel: string) => void;

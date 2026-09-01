@@ -80,11 +80,11 @@ export const modals = {
     inMessage: "dans un message",
     problemKind: (kind) => ` (type : ${kind})`,
     problemBody: (where, kind) =>
-      `Redaction incorrect${kind} ${where}.\nCe qui n'allait pas (sans coller la valeur réelle) : `,
+      `Masquage incorrect${kind} ${where}.\nCe qui n'allait pas (sans coller la valeur réelle) : `,
     journalDraft: "Rapport depuis le journal de débogage.\nCe qui n'allait pas : ",
     replyDraft: "À propos de cette réponse : ",
     attachJournalSub:
-      "Le texte parti au modèle (déjà redacted), les outils et les erreurs — sans la table de correspondance, donc aucune valeur réelle. Aperçu ci-dessous.",
+      "Le texte parti au modèle (déjà masqué), les outils et les erreurs — sans la table de correspondance, donc aucune valeur réelle. Aperçu ci-dessous.",
     confidential: "Confidentiel",
     moods: { love: "J'adore", ok: "Correct", meh: "Bof" },
     categories: { idea: "Idée", bug: "Bug", love: "Compliment", other: "Autre" },
@@ -116,13 +116,13 @@ export const modals = {
     subLead: "Ce qui a réellement été envoyé et reçu pour ",
     thisConversation: "cette conversation",
     subCount: (n) => ` — ${n} entrée${n > 1 ? "s" : ""}.`,
-    searchPlaceholder: "Rechercher (valeur réelle ou redacted, outil, erreur…)",
+    searchPlaceholder: "Rechercher (valeur réelle ou masquée, outil, erreur…)",
     clearSearch: "Effacer",
     copyFullTip:
-      "Copie le journal complet, mapping redacted → original inclus (valeurs réelles — pour vos yeux)",
+      "Copie le journal complet, mapping masqué → original inclus (valeurs réelles — pour vos yeux)",
     copyFull: "Copier (réel)",
     copyNoMapTip:
-      "Copie le journal SANS le mapping redacted → original (aucune valeur réelle) — sûr à partager",
+      "Copie le journal SANS le mapping masqué → original (aucune valeur réelle) — sûr à partager",
     copyNoMap: "Sans mapping",
     copied: "Copié",
     clearTip: "Vider le journal de cette conversation",
@@ -180,9 +180,9 @@ export const modals = {
   },
 
   redactionRules: {
-    eyebrow: "REDACTION",
+    eyebrow: "MASQUAGE",
     titleLead: "Règles de ",
-    titleHighlight: "redaction",
+    titleHighlight: "masquage",
     sub: "Les catégories activées sont retirées de vos messages avant qu'un modèle ne les voie.",
     thisConversation: "Cette conversation",
     byDefault: "Par défaut",

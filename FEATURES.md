@@ -61,8 +61,8 @@ the send, the model only ever sees the masked version, and the reply comes back 
 real values put back in place.
 
 ### Redaction on send
-**Access**: automatic, on every send. Visible in the send button (« Redaction » →
-« Redacted »), in the composer's highlights, and in the « N à redact » pill.
+**Access**: automatic, on every send. Visible in the send button (« Masquage » →
+« Masqué »), in the composer's highlights, and in the « N à masquer » pill.
 
 **What it makes possible.** Writing to a model with your real information — the client's
 name, their IBAN, the site address, the medical file — without any of those values leaving
@@ -96,7 +96,7 @@ a real city — the model reasons correctly, on values that are not yours.
 ### The 17 categories, and the protection level
 **Access**: Réglages → **Confidentialité** → « **Niveau de protection** » (Standard /
 Strict / Sur mesure), then the expandable matrix.
-Also per conversation: ⋯ in the chat header → « Redaction · N protégés ».
+Also per conversation: ⋯ in the chat header → « Masquage · N protégés ».
 And **from the composer**: the "level" button in the action row opens the same three levels,
 right where one notices that a send masks too much — or too little. Its glyph keeps three
 strokes and bolds as many as the current level (1 · 2 · 3); each card its own. One click sets
@@ -149,7 +149,7 @@ opens in one click from any reply.
 
 - [x] Message-by-message comparison, your text ⇄ the text that left — `packages/ui/src/privacy/transparency.ts`
 - [x] Recomputed on demand from the vault (no separate copy that could lie)
-- [x] **« Comprendre mon redaction »** — a small container under the first replies opens the guide's redaction chapter (public figures left in the clear, a zero counter on a conversation with no personal data, Coffre for code names); « Fermer pour toujours » (`Settings.redactionIntroSeen`), the chapter staying in Aide; never stacked with the transparency card — `packages/ui/src/privacy/redactionIntro.ts`, `packages/ui/src/pages/ChatWorkspace/RedactionIntroCard.tsx`
+- [x] **« Comprendre mon masquage »** — a small container under the first replies opens the guide's redaction chapter (public figures left in the clear, a zero counter on a conversation with no personal data, Coffre for code names); « Fermer pour toujours » (`Settings.redactionIntroSeen`), the chapter staying in Aide; never stacked with the transparency card — `packages/ui/src/privacy/redactionIntro.ts`, `packages/ui/src/pages/ChatWorkspace/RedactionIntroCard.tsx`
 - [x] Global audit log, filterable and searchable — Réglages → **Journal** (the per-conversation log, an impoverished view of the same vault, was removed)
 - [x] Technical **debug log**, turn by turn, **persistent** (⋯ → « Journal de débogage », visible when « Journal technique détaillé » is on) — `packages/ui/src/containers/modals/DebugLogModal/`
 - [x] Copy an exchange **without** the mapping table (the text that left, alone)
@@ -177,7 +177,7 @@ for a closing formula, an IBAN's country, a number's class), markers 2 out of 10
 mode is an informed choice, not a hidden default — and it is pinned to the conversation so
 that switching does not mix the two vocabularies.
 
-- [x] The first changes what **you** see (the « Redacted » views of documents)
+- [x] The first changes what **you** see (the « Masqué » views of documents)
 - [x] The second changes what **leaves** — and is paid for in answer quality (measured)
 - [x] The send mode is pinned to the conversation, not re-read midway
 - [ ] Switching an already-started conversation to the other mode — deliberately impossible
@@ -382,7 +382,7 @@ the conversation.
 without it, a single false detection on a frequent word would make the conversation
 unreadable, and a single miss would force everything to be rewritten elsewhere.
 
-- [x] « Redact » a chosen value, with its type — `packages/ui/src/components/SelectionMenu.tsx`
+- [x] « Masquer » a chosen value, with its type — `packages/ui/src/components/SelectionMenu.tsx`
 - [x] « Garder en clair » a detected value (click on the highlight, or the pill)
 - [x] « Préciser »: quote a passage of the reply into the composer
 - [x] Copy / regenerate / edit a message

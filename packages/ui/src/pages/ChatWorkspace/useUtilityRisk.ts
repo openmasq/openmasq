@@ -36,7 +36,7 @@ export function useUtilityRisk(p: {
   dismiss: (k: UtilityRiskKind) => void;
   /** The « Garder en clair » gesture: draft → keep; attachment → `reveal`. */
   keepInClear: (risk: UtilityRisk) => void;
-  /** The values from the compétence's prompt — the « N à redact » counter counts them. */
+  /** The values from the compétence's prompt — the « N à masquer » counter counts them. */
   competenceCats: Cat[];
 } {
   const [dismissed, setDismissed] = useState<UtilityRiskKind | null>(null);

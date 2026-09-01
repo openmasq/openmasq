@@ -94,7 +94,7 @@ export function useMarkHover(containerRef: RefObject<HTMLElement | null>, select
     // the only KEYBOARD path to the card) PINS the card — same actions as
     // hover — instead of toggling the reveal. The exploration gesture (« qu'y a-t-il
     // dessous ? ») must never be the one that changes what leaves the machine;
-    // « Unredact » is the card's explicit action. `stopPropagation` neutralizes
+    // « Démasquer » is the card's explicit action. `stopPropagation` neutralizes
     // any residual onClick from a mark (parity with the mobile branch above).
     const onClick = (e: Event) => {
       const mark = (e.target as HTMLElement).closest?.(selector) as HTMLElement | null;

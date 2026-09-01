@@ -10,7 +10,7 @@ export const guide = {
   protection: {
     title: (brand) => `Ce que ${brand} fait pour vous`,
     lead:
-      (brand) => `Vous écrivez normalement. Avant que votre message ne parte, ${brand} repère les données sensibles — noms, e-mails, téléphones, adresses, numéros de compte — et les remplace par de fausses valeurs. Le modèle ne travaille que sur ces fausses valeurs ; vous, vous continuez de voir les vraies, dans votre message comme dans la réponse. C'est ce remplacement qu'on appelle le redaction, comme les passages noircis d'un document officiel.`,
+      (brand) => `Vous écrivez normalement. Avant que votre message ne parte, ${brand} repère les données sensibles — noms, e-mails, téléphones, adresses, numéros de compte — et les remplace par de fausses valeurs. Le modèle ne travaille que sur ces fausses valeurs ; vous, vous continuez de voir les vraies, dans votre message comme dans la réponse. C'est ce remplacement qu'on appelle le masquage, comme les passages noircis d'un document officiel.`,
     points: [
       () => "Le repérage s'exécute sur votre machine, avant tout envoi — rien ne part pour être analysé.",
       () => "Sous chaque message envoyé, une petite mention indique combien d'éléments ont été protégés.",
@@ -68,7 +68,7 @@ export const guide = {
       () => "Quelques termes reviennent souvent dans l'app. Les voici, une fois pour toutes.",
     terms: [
       {
-        term: () => "Redact",
+        term: () => "Masquer",
         def: () =>
           "Remplacer une donnée sensible par une fausse valeur avant l'envoi — et rétablir la vraie à l'arrivée.",
       },
@@ -100,9 +100,9 @@ export const guide = {
   data: {
     title: () => "Où vont vos données",
     lead:
-      () => "Vos conversations, vos fichiers, votre coffre et votre mémoire restent sur votre machine, chiffrés. Ce qui part vers un modèle, ce sont vos messages une fois redacted — et rien d'autre.",
+      () => "Vos conversations, vos fichiers, votre coffre et votre mémoire restent sur votre machine, chiffrés. Ce qui part vers un modèle, ce sont vos messages une fois masqués — et rien d'autre.",
     points: [
-      () => "La mémoire ne passe par aucun serveur pour « se souvenir » : elle est locale, et repart redacted à chaque envoi.",
+      () => "La mémoire ne passe par aucun serveur pour « se souvenir » : elle est locale, et repart masquée à chaque envoi.",
       () => "Le bouclier, en bas de la barre de gauche, ouvre le rapport de confidentialité : tout ce qui a été protégé, catégorie par catégorie.",
       () => "Les statistiques d'usage sont anonymes, ne contiennent jamais vos messages, et se refusent dans Réglages.",
     ],

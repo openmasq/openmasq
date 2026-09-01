@@ -6,7 +6,7 @@ import { EgressJournalCard } from "./EgressJournalCard";
 
 /**
  * The **Journal** tab — both halves of the same promise, behind ONE selector:
- * what has been redacted (« Redaction ») and the addresses actually contacted
+ * what has been redacted (« Masquage ») and the addresses actually contacted
  * (« Réseau »).
  *
  * ⚠️ They used to be STACKED, network under redaction. But the redaction table
@@ -26,7 +26,7 @@ export function AuditLogTab({
 }) {
   const t = useT();
   const [view, setView] = useState<View>("redaction");
-  // The « Redaction » segment's counter: what the view will show, computed here so
+  // The « Masquage » segment's counter: what the view will show, computed here so
   // the label doesn't lie before it's even opened.
   const protectedTotal = useMemo(
     () => conversations.reduce((n, c) => n + Object.keys(c.redactionVault ?? {}).length, 0),

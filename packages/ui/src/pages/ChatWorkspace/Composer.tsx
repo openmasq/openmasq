@@ -546,7 +546,7 @@ export function Composer({
   // The live "N à redact" count — from the MERGED detection (regex + NER/model +
   // forced), i.e. the same source as the chips and the highlight, minus the values the
   // user chose to keep in clear. The `previewCount` prop is the regex-only synchronous
-  // count: using it here made the pill say « 1 à redact » while three chips showed —
+  // count: using it here made the pill say « 1 à masquer » while three chips showed —
   // the same under-count the attachment chip had before `redactAttachment` re-stamped it.
   // …PLUS the staged COMPÉTENCE's prompt: it goes out in modelText, so it counts.
   const liveCount =

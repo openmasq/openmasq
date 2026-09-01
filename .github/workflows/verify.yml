@@ -165,6 +165,11 @@ jobs:
       - name: PII ratchet
         run: pnpm check:pii
 
+      # Retired names never come back — in the tree OR in a commit message. Blocking, for
+      # the same reason as the PII ratchet: one occurrence published is already too many.
+      - name: Retired-name guard
+        run: pnpm check:brand
+
       # What ships to the user must not explain the code it contains: neither
       # a sourcemap (it renders the original TypeScript verbatim), nor a plain bundle. The
       # gate re-reads the BUILT artifacts, so it comes after `pnpm build` — and

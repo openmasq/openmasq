@@ -79,7 +79,7 @@
   .om-mini-fill { animation: none; }
 }
 
-/* ── « Comprendre mon redaction » — the small container under the first replies ──
+/* ── « Comprendre mon masquage » — the small container under the first replies ──
    (RedactionIntroCard; when it shows: privacy/redactionIntro.ts). A ROW,
    not a card: it comes back on every conversation until « Fermer pour toujours »,
    so it must cost less attention than a reply. */

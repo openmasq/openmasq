@@ -53,8 +53,8 @@ export const webNav = {
   ariaLabel: "Navigation web — niveau de protection pour cette recherche",
   eyebrow: "Navigation web",
   thisMessageOnly: "Ce message seulement.",
-  keepMasking: "Garder le redaction",
+  keepMasking: "Garder le masquage",
   switchTo: (level) => `Passer en ${level}`,
   title: (level) => `Chercher sur le web en protection ${level} ?`,
-  rest: "Tout le reste demeure redacted, et votre requête part de toute façon avec la vraie valeur.",
+  rest: "Tout le reste demeure masqué, et votre requête part de toute façon avec la vraie valeur.",
 } satisfies Messages["webNav"];

@@ -123,7 +123,7 @@ export interface ComposerMessages {
   redactingAria: string;
   redacted: string;
 
-  /** The DETECTION chips under the input — each toggles « redacted ⇄ en clair ». */
+  /** The DETECTION chips under the input — each toggles « masqué ⇄ en clair ». */
   detect: {
     /** The deep analysis GAVE UP: say so, and say the send redoes it. */
     partialNone: string;

@@ -246,7 +246,7 @@ describe("la queue « CP Ville » survit à la VIRGULE du formulaire (16/08/2026
   });
 });
 
-describe("FICHE « Problème de redaction (faux positif) » — 12/08/2026", () => {
+describe("FICHE « Problème de masquage (faux positif) » — 12/08/2026", () => {
   /** Reported by a user: « for the city of Strasbourg, the app redacted
    *  "Strasbourg et je travaille" instead of "Strasbourg" ». The connector « et » was
    *  admitted inside a city run AND could END it — so the fake erased the

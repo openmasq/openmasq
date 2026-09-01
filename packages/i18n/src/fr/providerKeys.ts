@@ -50,7 +50,7 @@ export const providerKeys = {
       "Cliquez « Create new API key », puis copiez-la (elle commence par sk-).",
       "Collez-la ci-dessous.",
     ],
-    note: "Hébergé en Chine : vos messages (déjà redacted) y transitent. Ajoutez des crédits au compte pour l'utiliser.",
+    note: "Hébergé en Chine : vos messages (déjà masqués) y transitent. Ajoutez des crédits au compte pour l'utiliser.",
   },
   openrouter: {
     steps: [

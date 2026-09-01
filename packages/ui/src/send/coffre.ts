@@ -28,7 +28,7 @@ export function makeCoffreTerm(value: string, token: string, note?: string): Cof
 }
 
 /** Personal Coffre ⊕ the ORG Coffre — the enforcement set every consumer must
- *  use (rule 11: an org-mandated term is « toujours redacted » exactly like a
+ *  use (rule 11: an org-mandated term is « toujours masqué » exactly like a
  *  personal one; forgetting the org half here would ship it in clear). One
  *  home, so a new call site can't merge only one of the two. */
 export function combinedCoffre(

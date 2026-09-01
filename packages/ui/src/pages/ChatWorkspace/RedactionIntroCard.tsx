@@ -2,7 +2,7 @@ import { ArrowRightIcon, ShieldIcon, XIcon } from "../../components/brand";
 import { useT } from "../../i18n";
 
 /**
- * « Comprendre mon redaction » — the small container under the first replies.
+ * « Comprendre mon masquage » — the small container under the first replies.
  * When it shows (and why « Fermer pour toujours » is final):
  * `privacy/redactionIntro.ts`. It opens the guide's redaction chapter — never a
  * second explanation: the chapter IS the explanation, this container is only a door.

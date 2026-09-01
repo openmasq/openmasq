@@ -6,7 +6,7 @@ import { useT } from "../../../i18n";
  * A spreadsheet, in the preview's TWO readings — and it stays a spreadsheet in both.
  *
  * « Feuille » is the file as it is: the « Original » role every other format gets from
- * its text layer and a sheet never had. « Redacted » is the same grid showing the FAKE
+ * its text layer and a sheet never had. « Masqué » is the same grid showing the FAKE
  * each cell will carry. Rendering what leaves the machine as a wall of lines asked the
  * user to proof-read a table they could no longer read as one — in a sheet the columns
  * ARE the meaning.

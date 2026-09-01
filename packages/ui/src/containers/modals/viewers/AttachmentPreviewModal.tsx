@@ -126,7 +126,7 @@ export function AttachmentPreviewModal({
   convCategories?: Record<string, boolean>;
 }) {
   const host = useHost();
-  // « Signaler un redaction incorrect » on a mark — the before-send preview is where
+  // « Signaler un masquage incorrect » on a mark — the before-send preview is where
   // a bad DOCUMENT redaction is first visible.
   const { openAvis } = useAvisOpen();
   // Body root for the hover-reveal delegation (same mechanism as chat bubbles) — it
@@ -149,7 +149,7 @@ export function AttachmentPreviewModal({
   const t = useT();
   const { sel, onMouseUp, clear } = useTextSelection(bodyRef);
   // Click-a-word on a CANVAS view (PDF page or scanned image): the clicked word +
-  // the viewport anchor for the «Redact “mot”» type picker. Dismissed by any
+  // the viewport anchor for the «Masquer “mot”» type picker. Dismissed by any
   // interaction outside the menu.
   const [wordPick, setWordPick] = useState<{ value: string; x: number; y: number } | null>(null);
   /** Drops the viewer's LOCKED pre-highlight when the picker closes (dismiss or pick). */
@@ -332,7 +332,7 @@ export function AttachmentPreviewModal({
     };
   }, [view, bytes, file.mime, file.words, displayReplacements, revealed, imageWords, onForceRedact]);
 
-  // The send CUT, made concrete: « Redacted » stops WHERE the send truncates — the SAME
+  // The send CUT, made concrete: « Masqué » stops WHERE the send truncates — the SAME
   // cut (`clipFileText`, line boundary, rule 9), so the last line shown
   // is WHOLE, never a sliced value. Original / Texte de l'image stay whole.
   const wireText = clipFileText(file.text, MAX_FILE_CHARS);
@@ -460,7 +460,7 @@ export function AttachmentPreviewModal({
                 Confidentialité, which a viewer leaf must not import up into (rule 9). */}
           </div>
         )}
-        {/* FAILED pass: every view says so — otherwise « Pages redacted » painted with
+        {/* FAILED pass: every view says so — otherwise « Pages masquées » painted with
             nothing masked. The send is already blocked (`submit()`): display, not a leak. */}
         {!!redactError && !redacting && (
           <div className="fv-redact-fail" role="alert">

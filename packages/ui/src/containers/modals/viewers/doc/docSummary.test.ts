@@ -42,23 +42,23 @@ describe("docSummary — the subtitle states what IS, not what will be", () => {
 describe("previewStatus — « aucune valeur détectée » n'est jamais qu'une PREUVE (audit 2026-08-10)", () => {
   it("une passe EN COURS le dit (avec sa progression), au lieu de « rien détecté »", () => {
     const s = previewStatus({ redacting: true, redactProgress: { done: 3, total: 8 }, replacements: undefined }, fr);
-    expect(s.label).toBe("redaction en cours… (3/8)");
+    expect(s.label).toBe("masquage en cours… (3/8)");
     expect(s.pending).toBe(true);
     // Single chunk: no "(1/1)" counter that says nothing.
     expect(previewStatus({ redacting: true, redactProgress: { done: 0, total: 1 }, replacements: undefined }, fr).label)
-      .toBe("redaction en cours…");
+      .toBe("masquage en cours…");
   });
 
   it("une passe ÉCHOUÉE le dit — le mensonge rassurant est l'exact bug d'origine", () => {
     const s = previewStatus({ redactError: "détection locale échouée", replacements: undefined }, fr);
-    expect(s.label).toBe("échec du redaction");
+    expect(s.label).toBe("échec du masquage");
     expect(s.failed).toBe(true);
     expect(s.detail).toBe("détection locale échouée");
   });
 
   it("un redaction jamais THREADÉ ici ne prétend pas « rien détecté »", () => {
     const s = previewStatus({ replacements: undefined }, fr);
-    expect(s.label).toBe("redaction non vérifié ici");
+    expect(s.label).toBe("masquage non vérifié ici");
     expect(s.pending).toBe(true);
   });
 

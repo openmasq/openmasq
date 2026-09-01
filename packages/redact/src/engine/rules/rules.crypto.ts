@@ -14,7 +14,7 @@ import { isBitcoinLegacyAddress } from "../validators/base58check";
 // a browsed page starts with those too — so those are CONTEXT-GATED (fire only with a
 // wallet/chain keyword nearby). base58 = `[1-9A-HJ-NP-Za-km-z]`.
 //
-// ⚠️ Bitcoin's LEGACY branch was the counter-example, and it cost: bare, it redact every
+// ⚠️ Bitcoin's LEGACY branch was the counter-example, and it cost: bare, it redacted every
 // base58 id of 26-34 chars starting with 1 or 3 — a Notion page id among them, and INSIDE
 // URLs at that (`crypto` → `secret`, which the URL guard exempts). `validators/base58check.ts`
 // now qualifies it. That file is also the answer to the old note here that a real base58check

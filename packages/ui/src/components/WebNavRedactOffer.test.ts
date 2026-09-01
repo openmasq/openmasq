@@ -75,7 +75,7 @@ describe("WebNavRedactOffer — la décision se prend ici, à chaque recherche",
     await unmount();
   });
 
-  it("« Garder le redaction » ne révèle RIEN", async () => {
+  it("« Garder le masquage » ne révèle RIEN", async () => {
     const { el, decided, unmount } = await render(["name", "company"]);
     const keep = [...el.querySelectorAll<HTMLElement>("button")].find((b) =>
       b.textContent?.includes("Garder"),

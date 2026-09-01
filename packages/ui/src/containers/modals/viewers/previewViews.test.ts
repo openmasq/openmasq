@@ -36,7 +36,7 @@ describe("un CSV s'ouvre sur ce qui PART, pas sur ce qu'on a déposé", () => {
   it("« Feuille » reste offerte, annoncée pour ce qu'elle est", () => {
     const v = previewViews(previewShape(csv()), csv(), t);
     expect(v.map((x) => x.id)).toContain("rich");
-    expect(v.find((x) => x.id === "rich")?.hint).toMatch(/avant redaction/);
+    expect(v.find((x) => x.id === "rich")?.hint).toMatch(/avant masquage/);
   });
 
   it("sans texte extrait, on n'ouvre pas une vue que le menu n'offre pas", () => {
@@ -121,7 +121,7 @@ describe("previewViews — les couches de texte", () => {
     // redacted layer is a grid too now, not a wall of lines anymore.
     const f = file({ data: "QUJD" });
     const [rich, cav] = previewViews(previewShape(f), f, t);
-    expect(rich.hint).toBe("Le fichier tel quel, avant redaction");
+    expect(rich.hint).toBe("Le fichier tel quel, avant masquage");
     // And the redacted layer is no longer called "text": for a spreadsheet, it's a table.
     expect(cav.hint).toBe("Ce qui quittera la machine");
     expect(cav.shield).toBe(true);
@@ -153,7 +153,7 @@ describe("previewViews — les couches de texte", () => {
 describe("redactedGridReady — la grille ne ment pas sur ce qu'elle montre", () => {
   it("sans remplacements, pas de grille : la couche texte sait attendre", () => {
     // ⛔ The trap this default opening made common: `renderFake` with nothing to
-    // substitute shows the REAL values under the « Redacted » label.
+    // substitute shows the REAL values under the « Masqué » label.
     expect(redactedGridReady(true, false)).toBe(false);
   });
 
