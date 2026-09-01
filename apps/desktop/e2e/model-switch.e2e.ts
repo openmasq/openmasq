@@ -42,6 +42,12 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
     }));
     // BOTH settings keys — the global one AND the account-scoped one (`:u1`), like the
     // workflows harness: without the scoped one, the app can fall back to onboarding/login.
+    // PIN the language. It is a DEVICE preference read BEFORE the first paint
+    // (`state/settings/locale.ts`), and with no value it follows the HOST — a GitHub
+    // macOS runner is en_US, so the shell rendered in English while this test asserts
+    // French labels ("New conversation" vs "Nouvelle conversation"). Asserting on a
+    // translated string is only sound once the language is decided by the test.
+    localStorage.setItem("openmasq.language", "fr");
     const s = JSON.stringify({ onboarded: true, redactRulesSeen: true, redactEngine: "patterns", defaultModelId: "auto" });
     for (const k of ["openmasq.settings", "openmasq.settings:u1"]) localStorage.setItem(k, s);
   }, supabaseAuthStorageKey());
