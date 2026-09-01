@@ -3,6 +3,7 @@ import { mkdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 import { launchApp } from "./helpers";
 import { supabaseAuthStorageKey } from "./supabaseAuthKey";
+import { stubSupabaseAuth } from "./supabaseStub";
 
 /**
  * SMOKE test for changing models — the most frequent gesture after "send", and the
@@ -28,6 +29,11 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
     if (m.type() === "error" && /ErrorBoundary|is not a function/.test(m.text()))
       errors.push(m.text().slice(0, 400));
   });
+  // Le réseau Supabase est neutralisé AVANT le semis + le reload : sur un build
+  // CONFIGURÉ (release.yml), supabase-js rafraîchirait le jeton "fake" contre le vrai
+  // projet, recevrait un refus et purgerait la session — écran de connexion, et le
+  // bouton attendu plus bas n'existe jamais (`supabaseStub.ts` raconte la panne).
+  await stubSupabaseAuth(page);
   await page.evaluate((authKey) => {
     const future = Math.floor(Date.now() / 1000) + 3600;
     localStorage.setItem(authKey, JSON.stringify({
@@ -36,6 +42,12 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
     }));
     // BOTH settings keys — the global one AND the account-scoped one (`:u1`), like the
     // workflows harness: without the scoped one, the app can fall back to onboarding/login.
+    // PIN the language. It is a DEVICE preference read BEFORE the first paint
+    // (`state/settings/locale.ts`), and with no value it follows the HOST — a GitHub
+    // macOS runner is en_US, so the shell rendered in English while this test asserts
+    // French labels ("New conversation" vs "Nouvelle conversation"). Asserting on a
+    // translated string is only sound once the language is decided by the test.
+    localStorage.setItem("openmasq.language", "fr");
     const s = JSON.stringify({ onboarded: true, redactRulesSeen: true, redactEngine: "patterns", defaultModelId: "auto" });
     for (const k of ["openmasq.settings", "openmasq.settings:u1"]) localStorage.setItem(k, s);
   }, supabaseAuthStorageKey());
@@ -52,7 +64,18 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
   // can only designate the actually active button, whatever the dock's state.
   // (The old selector also looked for "Nouveau chat", a label that no longer exists
   // anywhere: it only held up by its fallback, and the fallback targeted the wrong button.)
-  await page.getByRole("button", { name: "Nouvelle conversation" }).first().click();
+  // Make a miss SPEAK: a bare timeout says "waiting for button X" and nothing about what
+  // WAS on screen, which cost two blind CI rounds. On failure, name the buttons actually
+  // reachable — a login screen and a broken shell then read differently at a glance.
+  const newChat = page.getByRole("button", { name: "Nouvelle conversation" }).first();
+  try {
+    await newChat.click({ timeout: 20_000 });
+  } catch (e) {
+    const names = await page.getByRole("button").evaluateAll((els) =>
+      els.map((el) => (el.getAttribute("aria-label") || el.textContent || "").trim()).filter(Boolean).slice(0, 25),
+    );
+    throw new Error(`"Nouvelle conversation" introuvable. Boutons visibles: ${JSON.stringify(names)} — ${String(e).slice(0, 200)}`);
+  }
   await new Promise((r) => setTimeout(r, 1000));
 
   // Two full changes: the finder's effect cleanup runs on EVERY
