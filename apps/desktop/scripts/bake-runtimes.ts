@@ -23,7 +23,7 @@ const passthrough = process.argv.slice(2); // `--force` in particular
 // work around on Windows, and no dependency on a package this app doesn't declare.
 const relance = [...process.execArgv, join(HERE, "bake-python-runtime.ts"), ...passthrough];
 
-console.log(`[bake:runtimes] ${triples.length} triple(s) à baker : ${triples.join(", ")}`);
+console.log(`[bake:runtimes] ${triples.length} triple(s) to bake: ${triples.join(", ")}`);
 
 for (const target of triples) {
   const r = spawnSync(process.execPath, relance, {
@@ -33,7 +33,7 @@ for (const target of triples) {
   if (r.status !== 0) {
     // No "let's continue with the others": a missing runtime makes an app that installs
     // and whose Python execution doesn't work. Better to stop here than discover it there.
-    console.error(`[bake:runtimes] échec sur ${target} → exit ${r.status}`);
+    console.error(`[bake:runtimes] failed on ${target} → exit ${r.status}`);
     process.exit(r.status ?? 1);
   }
 }

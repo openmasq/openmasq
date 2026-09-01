@@ -119,7 +119,7 @@ async function main(version: string): Promise<void> {
   console.log(`[mac-release] ${arches.length} arche(s) : ${arches.join(", ")} — version ${version}`);
 
   // ── 1. package + sign, WITHOUT notarizing ────────────────────────────────────────────
-  console.log("[mac-release] 1/5 empaquetage + signature (notarisation désactivée)");
+  console.log("[mac-release] 1/5 package + sign (notarization disabled)");
   for (const arch of arches) {
     await eb([
       "--dir",
@@ -148,7 +148,7 @@ async function main(version: string): Promise<void> {
   }
 
   // ── 2. notarize BOTH in parallel ────────────────────────────────────────────────
-  console.log("[mac-release] 2/5 notarisation des deux arches EN PARALLÈLE (l'attente est d'Apple)");
+  console.log("[mac-release] 2/5 notarize both arches IN PARALLEL (the wait is Apple's)");
   const started = Date.now();
   const submissions = arches.map(async (arch) => {
     const app = apps.get(arch)!;
@@ -168,7 +168,7 @@ async function main(version: string): Promise<void> {
       "--team-id",
       creds.team,
     ]);
-    console.log(`[mac-release]   ${arch} : notarisé`);
+    console.log(`[mac-release]   ${arch}: notarized`);
   });
   // ⚠️ `allSettled`, not `all`: with `all`, the first arch to fail would exit the
   // process while the other submission is still running, and we'd lose the diagnosis of
@@ -177,10 +177,10 @@ async function main(version: string): Promise<void> {
   const results = await Promise.allSettled(submissions);
   const failed = results.flatMap((r, i) => (r.status === "rejected" ? [`${arches[i]} : ${r.reason}`] : []));
   if (failed.length > 0) {
-    console.error(`mac-release: notarisation en échec —\n  ${failed.join("\n  ")}`);
+    console.error(`mac-release: notarization failed —\n  ${failed.join("\n  ")}`);
     process.exit(1);
   }
-  console.log(`[mac-release]   les deux notarisations ont pris ${Math.round((Date.now() - started) / 1000)} s AU TOTAL`);
+  console.log(`[mac-release]   both notarizations took ${Math.round((Date.now() - started) / 1000)}s TOTAL`);
 
   // ── 3. staple BEFORE building anything at all ────────────────────────────────────────────
   console.log("[mac-release] 3/5 agrafage des tickets");

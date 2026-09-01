@@ -207,7 +207,7 @@ jobs:
             if [ -f "release/win-unpacked/$dll" ]; then
               printf '  ✓ %-22s %s\n' "$dll" "$(du -h "release/win-unpacked/$dll" | cut -f1)"
             else
-              echo "::error::$dll ABSENT de release/win-unpacked — l'app ne démarrera pas sur une machine sans le redistribuable"
+              echo "::error::$dll MISSING from release/win-unpacked — the app will not start on a machine without the redistributable"
               missing=1
             fi
           done

@@ -242,7 +242,7 @@ jobs:
           [ "${{ steps.knip.outcome }}" = "failure" ] && failed="$failed check:knip"
           [ "${{ steps.i18n.outcome }}" = "failure" ] && failed="$failed check:i18n"
           if [ -n "$failed" ]; then
-            echo "::warning::Dette d'hygiène en hausse (non bloquant) :$failed — à corriger dans la foulée."
+            echo "::warning::Hygiene debt increased (non-blocking):$failed — fix it in the same pass."
             exit 1
           fi
           echo "hygiène ✓"

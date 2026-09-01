@@ -13,7 +13,7 @@ pointing them at your own, and understanding what each absence costs.
 
 ## 1. The default: what a build from these sources reaches
 
-A **non-dev** build fills five variables it was not given, from
+A build fills six variables (five services) it was not given, from
 `apps/desktop/scripts/publicServices.ts`:
 
 | Variable | Service | Why it is public |
@@ -23,6 +23,7 @@ A **non-dev** build fills five variables it was not given, from
 | `OPENMASQ_AUTH_URL` | Slack token relay | Slack forbids the code→token exchange on-device |
 | `VITE_ANALYTICS_RELAY_URL` | Anonymous counters, release notes, `hide-*` flags | Behind an explicit consent |
 | `OPENMASQ_SENTRY_DSN` | Crash reports | A DSN only lets a client *send* to one project |
+| `VITE_UPDATES_URL` | The feed a packaged build checks for new versions | Public URL; the artifacts it serves are signed |
 
 **`pnpm dev` applies them too** — a developer's instance runs against the same public
 services as an installed app, stamped `env:"development"`. A local stack is an explicit
@@ -46,6 +47,7 @@ VITE_ANALYTICS_RELAY_URL= \
 OPENMASQ_SENTRY_DSN= \
 OPENMASQ_SUPABASE_URL= \
 OPENMASQ_SUPABASE_PUBLISHABLE_KEY= \
+VITE_UPDATES_URL= \
 pnpm --filter @openmasq/desktop build
 ```
 

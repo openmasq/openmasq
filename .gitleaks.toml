@@ -14,6 +14,13 @@ paths = [
   '''packages/redact/src/__fixtures__/.*''',
   '''.*\.test\.tsx?$''',
   '''apps/backend/docker-compose\.yml''',
+  # The redaction engine's regression corpus and external benchmark: annotated SYNTHETIC
+  # PII by definition (that is what the engine is measured against). Every value here is
+  # invented — a real one would be a fixture bug, caught by `check:pii`, not a leak. Scoped
+  # to `bench/` so it also covers the corpus's earlier French filenames, still in history
+  # (gitleaks reads every commit): a path allowlist keyed only on today's names would not
+  # silence `categoriesMinces.json` / `categoriesRares.json`.
+  '''packages/redact/bench/.*''',
   # The integrity FINGERPRINTS of the model weights — the exact opposite of a secret: they
   # exist so a substituted byte never reaches onnxruntime (rule 7). The content of these
   # two files is a table of URLs and sha256s, nothing else. Scoped to the FILE rather than

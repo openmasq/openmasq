@@ -91,9 +91,9 @@ jobs:
         run: |
           set -euo pipefail
           results='${{ toJSON(needs.*.result) }}'
-          echo "résultats: $results"
+          echo "results: $results"
           if echo "$results" | grep -qE '"(failure|cancelled)"'; then
-            echo "::error::Un job requis a échoué ou a été annulé."
+            echo "::error::A required job failed or was cancelled."
             exit 1
           fi
           echo "ci ✓"

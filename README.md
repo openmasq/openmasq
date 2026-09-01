@@ -90,24 +90,31 @@ pnpm install
 pnpm dev          # builds the packages, then launches the Electron app
 ```
 
+> **Working on redaction?** The on-device NER and OCR models are not part of `dev` or
+> `build` — run `pnpm --filter @openmasq/desktop bake` once to fetch them. Without it the
+> app runs, but detection falls back to the pattern rules **with no warning**, so you'd be
+> testing the regex floor rather than the model. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 Then open **⚙ Settings** and paste a provider key (OpenAI, Anthropic, Google, Mistral,
 DeepSeek, OpenRouter, or any OpenAI-compatible endpoint — Ollama, LM Studio, vLLM), or
 point the app at a local model. Your Claude Code / Codex CLI subscription works too.
 
 **This build has no backend.** No billing, no sync, no organizations, no included
-models, no auto-update: those services no longer exist, and the app runs on your
-machine — your keys, a local model, or a CLI subscription. Redaction is on-device.
+models: those services no longer exist, and the app runs on your machine — your keys,
+a local model, or a CLI subscription. Redaction is on-device.
 
-**Four small services stay hosted by the brand, and a build from these sources
+**Five small services stay hosted by the brand, and a build from these sources
 reaches them by default** (`apps/desktop/scripts/publicServices.ts`): sign-in (a
 Supabase project — magic link or Google; the account only identifies you, nothing sits
 behind it), the Slack relay (the code→token exchange Slack forbids on-device), the
 analytics relay (anonymous counters behind an explicit consent, plus the release notes
-the app displays) and crash reports (Sentry — an allow-list of a few machine fields,
-never a message, a key or a vault value: `apps/desktop/src/sentry/policy.ts`). Their
-code is not in this repository. Each is one variable, and a variable set **empty** at
-build time (`OPENMASQ_SENTRY_DSN=`) opts out of it. `pnpm dev` applies them too — no
-local value by default.
+the app displays), crash reports (Sentry — an allow-list of a few machine fields,
+never a message, a key or a vault value: `apps/desktop/src/sentry/policy.ts`) and the
+update feed (where a packaged build checks for new versions). Their code is not in this
+repository. Each is one variable, and a variable set **empty** at build time
+(`OPENMASQ_SENTRY_DSN=`, `VITE_UPDATES_URL=`) opts out of it — a fork that ships under
+its own identity should empty the feed so it never updates itself with the brand's
+signed binary (`SELF_HOSTING.md`). `pnpm dev` applies them too.
 
 Running a local stack is an explicit choice: the overrides go in a gitignored
 `apps/desktop/.env.development.local`, and the committed `.env.development` documents
@@ -136,7 +143,9 @@ in step with the product (`check:features`), and every GitHub Action pinned to a
 SHA (`check:actions`). They run in CI; `pnpm verify` runs them locally.
 
 `CLAUDE.md` at the root is the map — the invariants, the traps, and where each thing
-lives. Every app and package has its own, loaded on demand when you work in that folder.
+lives. Each app and package also has a nested `CLAUDE.md` used by the maintainers as a
+working guide; those are kept out of the published tree (`.gitignore`) — the code and
+its tests are the contract here, not the notes.
 Read the root one before a first change.
 
 ---

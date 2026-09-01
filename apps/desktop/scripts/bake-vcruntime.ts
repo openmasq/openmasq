@@ -97,13 +97,13 @@ function versionFromPath(p: string): string {
 
 async function main(): Promise<void> {
   if (process.platform !== "win32") {
-    log("hôte non-Windows — SAUTÉ (la source n'existe que là).");
+    log("non-Windows host — SKIPPED (the source only exists there).");
     log("La garde fail-closed est au runtime : src/main/db/driver.ts.");
     return;
   }
 
   const vs = vsInstallPath();
-  if (!vs) throw new Error("Visual Studio introuvable (vswhere) — pas de dossier Redist à lire");
+  if (!vs) throw new Error("Visual Studio not found (vswhere) — no Redist folder to read");
   const redistRoot = join(vs, "VC", "Redist", "MSVC");
   log(`source : ${redistRoot}`);
 
@@ -132,11 +132,11 @@ async function main(): Promise<void> {
       version: versionFromPath(hit),
     };
     await writeFile(join(OUT, want), bytes);
-    log(`${want} — ${(bytes.length / 1024).toFixed(0)} Ko (redist ${record[want].version})`);
+    log(`${want} — ${(bytes.length / 1024).toFixed(0)} KB (redist ${record[want].version})`);
   }
 
   if (missing.length > 0) {
-    console.error(`\n[bake:vcruntime] introuvables : ${missing.join(", ")}`);
+    console.error(`\n[bake:vcruntime] missing: ${missing.join(", ")}`);
     console.error(`[bake:vcruntime] ${all.length} fichiers vus sous le Redist, échantillon :`);
     for (const f of all.slice(0, 30)) console.error(`    ${f.slice(redistRoot.length + 1)}`);
     throw new Error(`DLL manquantes dans le Redist de Visual Studio : ${missing.join(", ")}`);

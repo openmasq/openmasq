@@ -64,16 +64,26 @@ INSEE — Fichier des prénoms (2025)
   Generator: packages/redact/scripts/gen-firstnames-insee.ts
   Derived table: packages/redact/src/engine/names/firstNames.insee.data.ts
 
-GeoNames postal-code data
-  https://www.geonames.org — licensed under Creative Commons Attribution 4.0
-  International (CC BY 4.0). Attribution is required in redistribution.
-  Generator: packages/redact/scripts/gen-places.ts
-  Derived tables: packages/redact/src/engine/geo/places.*.ts
+GeoNames postal-code data — https://www.geonames.org, CC BY 4.0
+  Credited for the OPTIONAL generator `packages/redact/scripts/gen-places.ts`, which reads
+  a GeoNames postal dump. The place tables SHIPPED in the engine
+  (`packages/redact/src/engine/geo/places.*.ts`) are hand-written seed data, not GeoNames
+  output — so no GeoNames-derived data is redistributed today. The attribution stands for
+  anyone who runs the generator.
 
-presidio-research benchmark corpus
-  From the data-privacy-stack/presidio-research project, redistributed here to
-  compare detection coverage against a published baseline. Licensed under the MIT
-  License. packages/redact/bench/external/presidio-research.benchcase.json
+Microsoft Presidio — https://github.com/microsoft/presidio, MIT License
+  Copyright (c) Microsoft Corporation.
+  Portions of the detection engine are a TypeScript port of Presidio (via `presidio-ts`),
+  adapted to this engine's own span/rule shapes. MIT requires the notice above to travel
+  with them. Ported files:
+    packages/redact/src/local/chunker.ts (presidio_analyzer/chunkers)
+    packages/redact/src/engine/rules/rules.ts
+    packages/redact/src/engine/rules/rules.international.ts
+    packages/redact/src/engine/rules/rules.international.{us,europe,apac}.ts
+    packages/redact/src/engine/validators/validators.international.ts
+  presidio-research benchmark corpus — a fork at data-privacy-stack/presidio-research,
+  redistributed to score detection against a published baseline. MIT License.
+    packages/redact/bench/external/presidio-research.benchcase.json
 
 --------------------------------------------------------------------------------
 Dependencies
