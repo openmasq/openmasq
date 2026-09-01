@@ -53,7 +53,7 @@ jobs:
           # full history required.
           fetch-depth: ${{ github.event_name == 'pull_request' && 1 || 0 }}
           persist-credentials: false
-      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v3
         id: f
         with:
           filters: |
@@ -130,7 +130,7 @@ jobs:
       # NO install nor pnpm: the script only imports node:child_process and
       # only runs git. `cache: pnpm` without an install would even make the
       # cache save fail (the trap documented in audit.yml).
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 26
       - name: Master-file drift nudge

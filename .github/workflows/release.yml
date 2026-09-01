@@ -285,7 +285,7 @@ jobs:
       # don't also set `version:` here (action-setup@v4 errors on a duplicate).
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 26
           cache: pnpm
@@ -430,7 +430,7 @@ jobs:
       # extraResources so the app needs ZERO network fetch on first use. Cached on the
       # runtime signature (CPython+wheels) + NER model set, so a re-run skips the download.
       - name: Cache baked Python runtime + NER models
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             apps/desktop/build/python-runtime
@@ -653,7 +653,7 @@ jobs:
       # used to do, and what a fork without signing secrets gets from a tag.
       - name: Upload the unpublished build to the run (not to a channel)
         if: ${{ env.PUBLISH != '1' }}
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ steps.brand.outputs.slug }}-${{ matrix.platform }}-unpublished-${{ needs.meta.outputs.version }}
           path: |
@@ -684,7 +684,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 26
           cache: pnpm
