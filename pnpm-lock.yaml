@@ -41,31 +41,6 @@ importers:
         specifier: ^3.2.6
         version: 3.2.7(@types/debug@4.1.12)(@types/node@24.13.3)(jsdom@25.0.1)(lightningcss@1.32.0)
 
-  apps/api:
-    dependencies:
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.29.0
-        version: 1.29.0(zod@4.4.3)
-      express:
-        specifier: ^5.2.1
-        version: 5.2.1
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-    devDependencies:
-      '@types/express':
-        specifier: ^5.0.0
-        version: 5.0.6
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.20.0
-      tsx:
-        specifier: ^4.19.0
-        version: 4.22.4
-      typescript:
-        specifier: ^5.6.3
-        version: 5.9.3
-
   apps/desktop:
     dependencies:
       '@huggingface/transformers':
@@ -219,6 +194,31 @@ importers:
       vite:
         specifier: ^5.4.2
         version: 5.4.21(@types/node@24.13.3)(lightningcss@1.32.0)
+
+  apps/mcp-broker:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.29.0
+        version: 1.29.0(zod@4.4.3)
+      express:
+        specifier: ^5.2.1
+        version: 5.2.1
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@types/express':
+        specifier: ^5.0.0
+        version: 5.0.6
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.0
+      tsx:
+        specifier: ^4.19.0
+        version: 4.22.4
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
 
   packages/analytics:
     dependencies:

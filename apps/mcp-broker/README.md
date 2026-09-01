@@ -1,4 +1,4 @@
-# @openmasq/api — MCP broker
+# @openmasq/mcp-broker — MCP broker
 
 An Express MCP **broker**: it hosts a Streamable-HTTP **MCP server per platform**
 (Gmail, Slack, GitHub, + a credential-free **demo**) and is its own **OAuth 2.1
@@ -16,10 +16,10 @@ desktop ──Bearer brokerToken──▶ broker /<platform>/mcp ──provider 
 ## Run
 
 ```bash
-pnpm --filter @openmasq/api dev      # tsx watch (http://localhost:8787)
-pnpm --filter @openmasq/api build    # tsc → dist/
-pnpm --filter @openmasq/api start     # node dist/index.js
-pnpm --filter @openmasq/api smoke     # end-to-end demo flow, no creds
+pnpm --filter @openmasq/mcp-broker dev      # tsx watch (http://localhost:8787)
+pnpm --filter @openmasq/mcp-broker build    # tsc → dist/
+pnpm --filter @openmasq/mcp-broker start     # node dist/index.js
+pnpm --filter @openmasq/mcp-broker smoke     # end-to-end demo flow, no creds
 ```
 
 Copy `.env.example` → `.env`. The **demo** platform needs nothing. Real platforms

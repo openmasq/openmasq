@@ -105,7 +105,7 @@ const unit = defineConfig({
       // ONNX engine goes into which .app, and getting it wrong there only shows up in use.
       "apps/desktop/scripts/**/*.test.{ts,tsx}",
       // MCP broker OAuth primitives (PKCE, redirect_uri, token store).
-      "apps/api/src/**/*.test.{ts,tsx}",
+      "apps/mcp-broker/src/**/*.test.{ts,tsx}",
       // Scaleway redaction function: GPT-OSS detection (mocked fetch) + handler.
       // Scaleway analytics-fn: supertest e2e over the Express app (relay + release-notes).
       // The admin console: its PURE view logic (the Overview's pivot —

@@ -9,7 +9,7 @@ import { BRAND } from "@openmasq/branding";
 
 
 /**
- * Runs the `@openmasq/api` MCP broker as a local **sidecar** (loopback only).
+ * Runs the `@openmasq/mcp-broker` MCP broker as a local **sidecar** (loopback only).
  * The broker hosts per-platform MCP servers + its OAuth AS with the app's shared
  * provider keys; each user's upstream tokens stay on this machine, encrypted in
  * `${userData}/broker`. The renderer connects to `${url}/<platform>/mcp` through
@@ -32,8 +32,8 @@ let state: BrokerState | undefined;
 function brokerEntry(): string | undefined {
   const override = process.env.OPENMASQ_BROKER_ENTRY;
   if (override) return existsSync(override) ? override : undefined;
-  // dev: app path is apps/desktop → ../../apps/api/dist/index.js
-  const dev = join(app.getAppPath(), "..", "..", "apps", "api", "dist", "index.js");
+  // dev: app path is apps/desktop → ../../apps/mcp-broker/dist/index.js
+  const dev = join(app.getAppPath(), "..", "..", "apps", "mcp-broker", "dist", "index.js");
   return existsSync(dev) ? dev : undefined;
 }
 
@@ -67,7 +67,7 @@ export async function startBroker(): Promise<void> {
   if (child) return;
   const entry = brokerEntry();
   if (!entry) {
-    console.warn("[broker] build not found — run `pnpm --filter @openmasq/api build`. Skipping sidecar.");
+    console.warn("[broker] build not found — run `pnpm --filter @openmasq/mcp-broker build`. Skipping sidecar.");
     return;
   }
   const port = await freePort();

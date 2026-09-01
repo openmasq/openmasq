@@ -5,13 +5,13 @@
  * Historically the catalog was split across three registries with no common type:
  *   • remote HTTP+OAuth (DCR one-click) presets — `packages/ui/.../mcpPresets.ts`
  *   • local stdio allowlist                     — `apps/desktop/.../mcp/catalog.ts`
- *   • broker sidecar platforms                  — `apps/api/.../platforms/registry.ts`
+ *   • broker sidecar platforms                  — `apps/mcp-broker/.../platforms/registry.ts`
  * This module owns ONE list that absorbs all three behind a single `transport`
  * discriminator, so the admin can govern access to the same ids the desktop uses.
  *
  * NOTE: the runnable command/args of stdio servers and the OAuth upstream creds of
  * broker platforms deliberately DO NOT live here — those stay secret in
- * desktop-main / apps/api respectively. This catalog carries display metadata only.
+ * desktop-main / apps/mcp-broker respectively. This catalog carries display metadata only.
  *
  * Split by concern (hard rule 2): `types` (the discriminated shapes), `categories`
  * (the canonical category vocabulary + grouping), `connectors/{remote,stdio,broker,

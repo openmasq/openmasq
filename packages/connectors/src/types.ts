@@ -1,7 +1,7 @@
 /**
  * Transport-agnostic connector tool definitions. A "connector" is a set of tools
  * that call a provider's REST API with an access token — the SAME idea the broker
- * platforms used (`apps/api/src/platforms/*`), but pure and provider-neutral so the
+ * platforms used (`apps/mcp-broker/src/platforms/*`), but pure and provider-neutral so the
  * desktop can run them IN-PROCESS (desktop-direct, no broker/server). The desktop
  * adapter (`apps/desktop/.../mcp/connectors/run.ts`) wraps each tool as an
  * `McpConnection`, so tool output still flows through the renderer's redaction.

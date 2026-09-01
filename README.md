@@ -59,20 +59,16 @@ The exhaustive, screen-by-screen inventory lives in [`FEATURES.md`](FEATURES.md)
 apps/
   desktop/       Electron app — the product. main (IPC, DB, MCP, streaming) ·
                  preload (contextBridge → window.openmasq) · renderer · e2e
-  web/           React SPA: preview harness + the organization admin console
-  backend/       Remote API (Express/Knex/Postgres/Supabase JWT/Stripe)
-  gateway/       Inference gateway (proxy + credit metering) and the server-side
-                 redaction endpoint — same engine, same vault, still reversible
-  api/           MCP broker + OAuth AS — a LOCAL sidecar the desktop spawns
-  auth/          OAuth-only function for flows that can't run on-device
-  analytics-fn/  Edge relay → PostHog · updates/ Cloudflare Worker update feed
+  mcp-broker/    MCP broker + OAuth AS — a LOCAL sidecar the desktop spawns
+                 (not the backend: the server side lives in a separate repository)
 packages/
   redact/        The redaction engine (pure, unit-tested)
   ui/            All React UI + store + design system (4 themes)
   llm/           Provider clients, model registry, SSE, tool-calling
   mcp/           Redacting MCP client · connectors/ on-device-OAuth MCP tools
   catalog/       Single-source governable lists (models, connectors, categories)
-  credits/ schema/ sync/ emails/ branding/ analytics/
+  i18n/          Typed message catalogue (fr source + en)
+  credits/ schema/ sync/ branding/ analytics/
   tesseract2/    Vendored hardened OCR (worker_threads + WASM) · ort/ · vendor/xlsx/
 ```
 

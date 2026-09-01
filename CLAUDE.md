@@ -141,7 +141,7 @@ browser extension) live outside this repo.
 apps/
   desktop/     Electron app (the product): src/main (IPC, DB, MCP, streaming) · src/preload
                (contextBridge → window.openmasq) · src/renderer · e2e/ (real OpenAI API)
-  api/         MCP broker + OAuth AS (Google/Slack/GitHub) — a LOCAL sidecar the desktop spawns
+  mcp-broker/  MCP broker + OAuth AS (Google/Slack/GitHub) — a LOCAL sidecar the desktop spawns
   (the SERVER side — API, gateway, admin console, update feed, relays, e-mail templates —
    moved to the private `infra` repository on 2026-08-31; this repo builds and runs with none of it)
 packages/

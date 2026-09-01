@@ -28,7 +28,7 @@ import { spawnSync } from "node:child_process";
  *  set never needed to name it. */
 const SERVED_WORKSPACES = new Set([
   "apps/desktop", // Electron app shipped to users
-  "apps/api", // MCP broker sidecar (runs on the user's machine)
+  "apps/mcp-broker", // MCP broker sidecar (runs on the user's machine)
 ]);
 
 /** Direct deps that are build/test/CI tooling — a vuln here never ships in a

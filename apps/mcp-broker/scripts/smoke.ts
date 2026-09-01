@@ -1,7 +1,7 @@
 /**
  * End-to-end smoke test of the `demo` platform with NO external credentials.
  * Drives the full OAuth flow by hand (DCR → authorize → token), then connects a
- * real MCP client and calls a tool. Run: `pnpm --filter @openmasq/api smoke`.
+ * real MCP client and calls a tool. Run: `pnpm --filter @openmasq/mcp-broker smoke`.
  */
 import { randomBytes } from "node:crypto";
 

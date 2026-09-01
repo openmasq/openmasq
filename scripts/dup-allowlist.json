@@ -1,5 +1,5 @@
 {
-  "apps/api/src/oauth/redirectUri.ts::* port. Everything else must match a registered URI EXACTLY (no prefix tricks).": "* port. Everything else must match a registered URI EXACTLY (no prefix tricks).",
+  "apps/mcp-broker/src/oauth/redirectUri.ts::* port. Everything else must match a registered URI EXACTLY (no prefix tricks).": "* port. Everything else must match a registered URI EXACTLY (no prefix tricks).",
   "apps/desktop/src/main/db/schema.ts::/** Embedding dimension. Must match your embedding model (OpenAI 3-small = 1536). */": "/** Embedding dimension. Must match your embedding model (OpenAI 3-small = 1536). */",
   "apps/desktop/src/main/mcp/browser/agentMain.ts::// a mismatch between any of these is itself a bot tell, so they must agree.": "// a mismatch between any of these is itself a bot tell, so they must agree.",
   "apps/desktop/src/main/mcp/connectors/index.ts::* prefixes (kept in sync with `credGroupOf`'s `/^(gmail|google-)/`). */": "*  prefixes (kept in sync with `credGroupOf`'s `/^(gmail|google-)/`). */",
