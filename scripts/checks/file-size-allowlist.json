@@ -1,7 +1,7 @@
 {
   "packages/ui/src/styles.css": 12146,
   "packages/ui/src/agent/mcpAgent.ts": 2663,
-  "packages/ui/src/send/sendOrchestrator.ts": 2351,
+  "packages/ui/src/send/sendOrchestrator.ts": 2354,
   "packages/ui/src/pages/ChatWorkspace/ChatView.tsx": 1921,
   "packages/ui/src/state/store.ts": 1543,
   "packages/ui/src/pages/ChatWorkspace/Composer.tsx": 966,
@@ -16,7 +16,7 @@
   "packages/ui/src/agent/toolCatalog.ts": 428,
   "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 383,
   "packages/llm/src/tools/openai.ts": 357,
-  "apps/desktop/src/main/mcp/persist.ts": 340,
+  "apps/desktop/src/main/mcp/persist.ts": 342,
   "packages/ui/src/pages/Settings/models/ModelsTab.tsx": 309,
   "packages/redact/src/engine/rules/rules.france.ts": 305
 }

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { encryptionAvailable } from "./safeStore";
 import { safeUid } from "./keys";
 import { BRAND } from "@openmasq/branding";
+import { assertPlaintextAllowed } from "./atRestPolicy";
 
 /**
  * ONE sync-at-rest secret, encrypted — the skeleton the passphrase and the device
@@ -43,7 +44,8 @@ export function secretFile(name: string, label: string): SecretFile {
       try {
         const enc = encryptionAvailable()
           ? safeStorage.encryptString(v).toString("base64")
-          : (console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
+          : (assertPlaintextAllowed(label),
+            console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
             Buffer.from(v, "utf8").toString("base64"));
         writeFileSync(path(), enc, { mode: 0o600 });
       } catch (err) {
@@ -146,7 +148,8 @@ export function accountSecretFile(name: string, label: string): AccountSecretFil
         mkdirSync(accountsDir(), { recursive: true });
         const enc = encryptionAvailable()
           ? safeStorage.encryptString(v).toString("base64")
-          : (console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
+          : (assertPlaintextAllowed(label),
+            console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
             Buffer.from(v, "utf8").toString("base64"));
         writeFileSync(p, enc, { mode: 0o600 });
       } catch (err) {

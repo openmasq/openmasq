@@ -192,6 +192,14 @@ this list is the consolidated view.
 - On sync, the account token can register fresh devices; a per-device scoped token is
   follow-up work. The browser extension (maintained outside this repo) is push-only by server-enforced capability, with one
   deliberate read exception for the Coffre, which it must pull in order to enforce it.
+- Three main-process channels fetch a URL the renderer chose — the model call itself
+  (`chat:*`), the batch page reader (`web:fetch-many`) and the embeddings endpoint. Each is
+  constrained to public hosts by the SSRF guard, and none is constrained to hosts the app
+  observed in received content. Script execution in the renderer can therefore send data to
+  a public host of its choosing. The first is the model call, so it cannot be closed without
+  main knowing the gateway origin; the other two are accepted alongside it, because closing
+  them would refuse a URL the user typed and a self-hosted embedder while leaving the
+  attacker the first.
 - The egress journal is best-effort evidence: it is flushed on a short debounce and on quit,
   so a hard kill loses the last seconds. Nothing depends on it.
 

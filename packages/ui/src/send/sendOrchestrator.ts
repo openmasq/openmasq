@@ -567,7 +567,10 @@ export function createSendMessage(d: SendMessageDeps) {
       //
       // "local" engine: LLM-free, 100% offline free-form PII via GLiNER, run
       // in-process by the host (desktop main). No network, no completion call.
-      const useLocal = settings.redactEngine === "local" && !!host.detectLocalPii;
+      // ⚠️ The HOST's capability decides, never the persisted preference: a stale "patterns"
+      // (the selector is gone) would pin that user to the regex floor for good, unwarned and
+      // with no UI to find. A host without a detector is unchanged.
+      const useLocal = !!host.detectLocalPii;
       // An AI-grade free-form detector ran — gates the numbers toggle, the
       // fail-closed warning, and analytics.
       const useAiDetect = useLocal;

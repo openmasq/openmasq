@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import type { StoredOAuthState } from "@openmasq/mcp/transport"; import { BRAND } from "@openmasq/branding"; import type { CredMode } from "./credMode";
 import { encryptionAvailable } from "../store/safeStore";
 import { withCatalogUrl } from "./presetUrl";
+import { assertPlaintextAllowed } from "../store/atRestPolicy";
 
 /**
  * Durable storage for MCP connectors, in `${userData}/mcp.json`. Server specs are
@@ -218,6 +219,7 @@ function encrypt(value: unknown): string {
   if (encryptionAvailable()) {
     return safeStorage.encryptString(json).toString("base64");
   }
+  assertPlaintextAllowed("MCP connector credentials");
   console.warn("[mcp] safeStorage unavailable — storing credentials unencrypted");
   return Buffer.from(json, "utf8").toString("base64");
 }

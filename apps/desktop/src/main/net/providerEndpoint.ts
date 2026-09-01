@@ -46,6 +46,16 @@ import { isLocalOrPrivateEndpoint } from "./providerHostPolicy";
  * that needs main to know the gateway origin itself — i.e. baking `VITE_REDACT_FN_URL` into
  * the main bundle's `define` (and into turbo's cache key, cf. `c50a0a66`) and comparing
  * origins here. That is a build-config change, so it is deliberately NOT in this one.
+ * Two sibling channels share that residual and are named here so the inventory is complete
+ * rather than implied: `web:fetch-many` (`net/webIpc.ts`) and `embeddings:index`/`:search`
+ * (`ipc/registerDataIpc.ts`) also let a renderer choose a public host — the first a list of
+ * page URLs, the second an OpenAI-compatible `baseUrl`. Both go through `safeFetch`, so an
+ * internal address is refused; neither consults `fetchAllow`'s observed-host set, so a public
+ * one is not. They are ACCEPTED, for the same reason the platform path above is: an attacker
+ * who can call them already has this channel, which carries more with less. Constraining
+ * them would cost real function — the first would refuse a URL the user typed rather than
+ * received (`fetchAllow` deliberately does not seed from outgoing text), the second would
+ * refuse a self-hosted embedder — for no capability the attacker loses.
  * Likewise, the host check is a literal/`localhost` classification with no DNS resolution:
  * it is on the hot send path, and the gateway is a fixed host. A name resolving to a private
  * address is not caught here — `assertPublicUrl` is the tool if that ever becomes reachable.

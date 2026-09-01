@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, unlin
 import { join } from "node:path";
 import { decodeEncryptedBlob, encryptionAvailable } from "./safeStore";
 import { BRAND } from "@openmasq/branding";
+import { assertPlaintextAllowed } from "./atRestPolicy";
 
 /**
  * Encrypted at-rest store for provider API keys. Keyed by id (a `ProviderId`, or the
@@ -84,7 +85,8 @@ function write(map: KeyMap): void {
     const json = JSON.stringify(map);
     const enc = encryptionAvailable()
       ? safeStorage.encryptString(json).toString("base64")
-      : (console.warn("[keys] safeStorage unavailable — storing API keys unencrypted"),
+      : (assertPlaintextAllowed("provider API keys"),
+        console.warn("[keys] safeStorage unavailable — storing API keys unencrypted"),
         Buffer.from(json, "utf8").toString("base64"));
     writeFileSync(path, enc, { mode: 0o600 });
   } catch (err) {
