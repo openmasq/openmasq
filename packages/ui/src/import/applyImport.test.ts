@@ -34,10 +34,10 @@ describe("applySkillImport", () => {
   });
 
   /**
-   * L'ancien bug, désormais impossible : il y avait DEUX listes d'arrivée, chaque écran
-   * ne comparait qu'à la sienne, et une routine importée depuis « Compétences » pouvait
-   * naître homonyme d'une routine existante — alors que le nom est ce par quoi on la
-   * retrouve. Une seule liste ⇒ un seul jeu de noms pris, quel que soit le côté.
+   * The old bug, now impossible: there were TWO destination lists, each screen compared
+   * only against its own, and a routine imported from « Compétences » could be born a
+   * homonym of an existing routine — while the name is how one finds it again. A single
+   * list ⇒ a single set of taken names, whichever side.
    */
   it("un nom pris l'est pour tout le monde, routine ou non", () => {
     const c = collect(["Revue de PR"]);
@@ -51,8 +51,8 @@ describe("applySkillImport", () => {
     expect(c.added.map((a) => a.name)).toEqual(["Notes", "Notes (2)"]);
   });
 
-  // Une plateforme sans destinataire (le créneau est optionnel) ignore l'entrée plutôt
-  // que de la ranger n'importe où.
+  // A platform with no destination (the slot is optional) ignores the entry rather than
+  // filing it just anywhere.
   it("sans destinataire, l'entrée est ignorée", () => {
     const added: string[] = [];
     applySkillImport([item("Revue", true)], { competenceNames: [] });

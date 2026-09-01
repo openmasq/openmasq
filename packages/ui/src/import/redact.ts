@@ -20,8 +20,8 @@ function mintSalt(): number {
 
 export async function redactImported(
   conv: Conversation,
-  /** `mode` : ce que verra le modèle quand cette conversation importée repartira vers lui
-   *  (le coffre est constitué ICI, donc le mode est figé ICI — comme le salt). */
+  /** `mode`: what the model will see when this imported conversation goes back to it
+   *  (the vault is built HERE, so the mode is frozen HERE — like the salt). */
   opts: { disabledKinds: string[]; mode?: "fake" | "token" },
 ): Promise<Conversation> {
   const vault: Record<string, string> = {};

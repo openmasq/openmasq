@@ -9,7 +9,7 @@ import { useT } from "../../i18n";
  * otherwise blur the textarea first, dropping the selection the mark is supposed to
  * wrap — the toolbar would format nothing.
  */
-/** Le GLYPHE de chaque bouton (il ne se traduit pas) ; son nom vient du catalogue. */
+/** The GLYPH of each button (it is not translated); its name comes from the catalogue. */
 const MARKS: { id: PromptMark; label: string; cls?: string }[] = [
   { id: "bold", label: "B", cls: "b" },
   { id: "italic", label: "I", cls: "i" },

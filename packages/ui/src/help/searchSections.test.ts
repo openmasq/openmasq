@@ -5,8 +5,8 @@ import { sectionGuides } from "./sections";
 
 /** ⌘K is the "I don't know where things are" tool. These pin that it answers on the
  *  words a lost user actually types — which is exactly what it used to miss. And it must
- *  do so in BOTH languages: une palette qui ne répond qu'au français est, pour un
- *  anglophone, exactement la panne d'origine. */
+ *  do so in BOTH languages: a palette that answers only in French is, for an English
+ *  speaker, exactly the original failure. */
 const fr = getMessages("fr");
 const en = getMessages("en");
 

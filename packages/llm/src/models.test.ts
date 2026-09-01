@@ -92,10 +92,10 @@ describe("setDynamicModels change signal", () => {
 
 describe("les CLI d'abonnement et l'aiguillage des outils", () => {
   it("`antigravity-cli` est marqué SANS outils — c'est ce qui garde l'envoi hors du chemin outillé", async () => {
-    // Sa CLI ne peut pas porter le pont MCP de l'app (mesuré,
-    // `apps/desktop/src/main/subscription/antigravityEngine.ts`), donc le tour outillé le
-    // refuse. Sans ce drapeau, la boucle agentique l'y envoyait quand même et retombait
-    // sur le client à clé, qui ne connaît pas ce fournisseur : « Unknown provider ».
+    // Its CLI cannot carry the app's MCP bridge (measured,
+    // `apps/desktop/src/main/subscription/antigravityEngine.ts`), so the tooled turn
+    // refuses it. Without this flag the agent loop sent it there anyway and fell back on
+    // the key-based client, which does not know this provider: « Unknown provider ».
     const { supportsTools } = await import("./models/capabilities.js");
     expect(supportsTools("antigravity-cli")).toBe(false);
     // Les deux autres CLI, elles, portent bien le pont.

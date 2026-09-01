@@ -98,7 +98,7 @@ export const MODEL_META: Record<string, ModelMeta> = {
   // The ChatGPT subscription via the Codex CLI — same logic as claude-cli (`cost: 5` =
   // already paid for by the subscription, not "free").
   "codex-cli": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG], false),
-  // L'abonnement Antigravity : même logique (`cost: 5` = pas de facturation au token ici).
+  // The Antigravity subscription: same logic (`cost: 5` = no per-token billing here).
   "antigravity-cli": m([5, 4, 4, 5, 1], [RAIS, CODE, LONG], false),
   "claude-cli-haiku": m([3, 3, 5, 5, 1], [CODE, LONG], false),
   "claude-haiku-4-5": m([3, 4, 5, 4, 5], [FAST, VISION], false),

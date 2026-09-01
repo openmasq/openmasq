@@ -83,9 +83,9 @@ describe("debug log — le brouillon (chat pas encore créé)", () => {
 
   it("une entrée du brouillon ne s'affiche JAMAIS dans une autre conversation", () => {
     pushDebug({ type: "tool", name: "document-redaction", ok: true }, DRAFT_CONV);
-    // La vue d'une conversation existante : le brouillon n'y est pas.
+    // The view of an existing conversation: the draft is not there.
     expect(getDebugLog().filter((e) => isEntryVisibleIn(e, "c1"))).toHaveLength(0);
-    // La vue d'un chat neuf (pas d'id) : il y est.
+    // The view of a fresh chat (no id): it is there.
     expect(getDebugLog().filter((e) => isEntryVisibleIn(e, null))).toHaveLength(1);
   });
 

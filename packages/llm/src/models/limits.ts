@@ -34,7 +34,7 @@ export const MODEL_CONTEXT: Record<string, number> = {
   // ChatGPT subscription via the Codex CLI: the window is that of the model the
   // account serves; 400K is the floor of the GPT-5.x range, never a promise beyond it.
   "codex-cli": 400_000,
-  // Antigravity sert Gemini 3.x par défaut — fenêtre annoncée par Google pour cette famille.
+  // Antigravity serves Gemini 3.x by default — the window Google announces for that family.
   "antigravity-cli": 1_000_000,
   // Google Gemini — 3.1 Pro is a 2M-token model (official); the Flash/Flash-Lite
   // tiers are 1M.

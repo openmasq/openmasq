@@ -17,8 +17,8 @@ describe("isConnectorAllowed", () => {
   });
 
   it("matches a multi-account instance id back to its connector", () => {
-    // La divergence historique : les réglages ignoraient ce cas, donc un connecteur
-    // refusé se déverrouillait dès qu'il portait un second compte.
+    // The historical divergence: the settings ignored this case, so a refused connector
+    // unlocked itself as soon as it carried a second account.
     expect(isConnectorAllowed("gmail--a1b2", ["gmail"])).toBe(true);
     expect(isConnectorAllowed("broker-gmail--a1b2", ["gmail"])).toBe(true);
   });

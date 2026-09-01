@@ -3,17 +3,17 @@ import { getMessages, LOCALES } from "@openmasq/i18n";
 import { sectionGuides, sectionOneLiner } from "./sections";
 
 /**
- * Le vocabulaire des sections, DANS CHAQUE LANGUE.
+ * The vocabulary of the sections, IN EVERY LANGUAGE.
  *
- * `sectionOneLiner` DÉRIVE du `tip` au lieu d'ajouter une troisième formulation de la même
- * chose — ce qui n'est vrai que tant que le `tip` garde sa forme « Étiquette — ce à quoi
- * ça sert ». C'est donc cette convention qu'on épingle : sans elle, le premier lancement
- * afficherait « Conversations · Conversations — vos échanges… », et rien ne dirait que le
- * fautif est une entrée du catalogue.
+ * `sectionOneLiner` DERIVES from the `tip` instead of adding a third wording of the same
+ * thing — which only holds as long as the `tip` keeps its « Étiquette — ce à quoi ça sert »
+ * shape. So that convention is what we pin: without it, first launch would show
+ * « Conversations · Conversations — vos échanges… », and nothing would say the culprit is
+ * a catalogue entry.
  *
- * ⚠️ La boucle sur `LOCALES` n'est pas une politesse : une traduction est le moment exact
- * où une convention de FORME se perd (un tiret simple à la place du cadratin, une étiquette
- * qu'on ne remet pas en tête). Une langue ajoutée entre ici sans qu'on y pense.
+ * ⚠️ The loop over `LOCALES` is not a politeness: a translation is the exact moment when a
+ * convention of FORM is lost (a simple hyphen instead of the em dash, a label that is not
+ * put back in front). A language added later comes through here without anyone thinking of it.
  */
 
 describe("sectionOneLiner", () => {
@@ -46,9 +46,9 @@ describe("sectionOneLiner", () => {
   );
 
   it.each(LOCALES)("[%s] les mots-clés ⌘K nomment la section dans l'AUTRE langue", (locale) => {
-    // Le point des `keywords` : un francophone tape « coffre-fort », un anglophone « vault ».
-    // Chaque liste porte donc le mot de l'autre langue, sinon la moitié des utilisateurs
-    // d'une app bilingue ne trouve rien.
+    // The point of `keywords`: a French speaker types « coffre-fort », an English speaker
+    // « vault ». Each list therefore carries the other language's word, otherwise half the
+    // users of a bilingual app find nothing.
     for (const s of sectionGuides(getMessages(locale))) {
       expect(s.keywords.trim().length, s.id).toBeGreaterThan(10);
     }

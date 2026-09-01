@@ -17,9 +17,9 @@ export interface CompetenceSuggestion extends SuggestionBase {
  * for their work. Pinned by `suggestions.test.ts` (the OFFERED set, not just the
  * catalog, must cover every category).
  *
- * ⚠️ Les MOTS vivent dans `@openmasq/i18n` (`templates.competences`) — l'invite pré-remplit
- * le message, donc elle se lit dans la langue de la personne. Ici : l'id, l'ordre, la
- * catégorie.
+ * ⚠️ The WORDS live in `@openmasq/i18n` (`templates.competences`) — the prompt pre-fills
+ * the message, so it is read in the person's language. Here: the id, the order, the
+ * category.
  *
  * Two rules the copy follows, and they are not decoration:
  *  - the instruction ends on the LABEL of what the user must paste (« Texte : »),
@@ -29,7 +29,7 @@ export interface CompetenceSuggestion extends SuggestionBase {
  *    template is a starting point the user edits, and a confident hallucination
  *    is the one thing they will not catch.
  */
-/** L'ordre est celui de la STRIP, et les cinq catégories y sont ENTRELACÉES (voir ci-dessus). */
+/** The order is the STRIP's, and the five categories are INTERLEAVED in it (see above). */
 const COMPETENCE_SHAPE: readonly { id: string; cat: CompetenceCategoryId }[] = [
   { id: "reponse-email", cat: "redaction" },
   { id: "resume-document", cat: "analyse" },

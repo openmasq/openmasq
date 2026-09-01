@@ -16,16 +16,16 @@ import { useT } from "../../i18n";
 const KIND_ICON = { document: BookIcon, sheet: GridIcon, audio: MicIcon } as const;
 
 /**
- * Le même fichier que `FileCard`, en RANGÉE.
+ * The same file as `FileCard`, as a ROW.
  *
- * Deux composants et non un `mode` dans la carte : une carte et une rangée ne partagent
- * ni leur grille, ni ce qu'elles montrent (la rangée gagne la date et l'extension en
- * clair, elle perd la grande vignette). Un seul fichier avec deux branches se serait
- * transformé en deux composants mal séparés dans le même fichier.
+ * Two components and not a `mode` on the card: a card and a row share neither their grid
+ * nor what they show (the row gains the date and the extension in the clear, it loses the
+ * large thumbnail). A single file with two branches would have turned into two badly
+ * separated components in the same file.
  *
- * Ce qu'elles partagent RÉELLEMENT vit ailleurs, une seule fois : la forme des données
- * (`LibCardFile`), la vignette paresseuse (`useFileThumb` + `useInView` — une rangée hors
- * écran ne lit rien en base non plus) et le vocabulaire des catégories.
+ * What they REALLY share lives elsewhere, once: the data shape (`LibCardFile`), the lazy
+ * thumbnail (`useFileThumb` + `useInView` — an off-screen row reads nothing from the
+ * database either) and the vocabulary of the categories.
  */
 export function FileRow({
   file,

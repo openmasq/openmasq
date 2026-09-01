@@ -131,13 +131,13 @@ export async function fireWindow(type: string): Promise<void> {
   });
 }
 
-/** Sortir du champ — le geste qui VALIDE un `onBlur` (un textarea de réglage qui
- *  n'enregistre qu'en le quittant, par exemple).
+/** Leave the field — the gesture that COMMITS an `onBlur` (a settings textarea that only
+ *  saves when leaving it, for instance).
  *
- *  ⚠️ React délègue `onBlur` à l'événement natif **`focusout`**, qui BULLE, et non au
- *  `blur` natif, qui ne bulle pas et n'atteint donc jamais le délégué. Un test qui
- *  dispatche `blur` ne déclenche rien, ne casse pas, et passe pour de mauvaises raisons —
- *  il affirme le contraire du contrat qu'il croit vérifier. */
+ *  ⚠️ React delegates `onBlur` to the native **`focusout`** event, which BUBBLES, and not
+ *  to the native `blur`, which does not bubble and therefore never reaches the delegate. A
+ *  test that dispatches `blur` triggers nothing, breaks nothing, and passes for the wrong
+ *  reasons — it asserts the opposite of the contract it believes it is checking. */
 export async function blur(node: Element): Promise<void> {
   await act(async () => {
     node.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));

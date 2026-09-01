@@ -109,7 +109,7 @@ describe("scopePreflight — ce qu'un workflow DÉCLARE et qui manque", () => {
   it("nomme les manquants sans rien deviner", () => {
     const r = scopePreflight(["gmail", "notion"], new Set(["notion"]));
     expect(r.missing).toEqual(["gmail"]);
-    // Notion répond encore → la routine peut faire une partie du travail.
+    // Notion still answers → the routine can do part of the work.
     expect(r.unusable).toBe(false);
   });
 

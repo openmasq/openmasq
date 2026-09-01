@@ -60,7 +60,7 @@ export async function dispatchInWaves<C, R>(opts: {
   calls: readonly C[];
   dispatch: (call: C) => Promise<R>;
   budget: number;
-  /** Volume déjà présent dans l'historique, relu à chaque vague. */
+  /** Volume already present in the history, re-read on every wave. */
   used: () => number;
   wave?: number;
 }): Promise<void> {

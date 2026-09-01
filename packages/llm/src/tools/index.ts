@@ -100,10 +100,10 @@ export async function completeWithTools(
     case "anthropic-session":
     case "claude-cli":
     case "codex-cli":
-    // ⚠️ `antigravity-cli` n'a PAS de tour outillé du tout (sa CLI ne peut pas porter le
-    // pont MCP — mesuré). Le catalogue le marque `noTools`, donc la boucle agentique ne
-    // le choisit jamais ; ce cas-ci est le filet, et il doit nommer la vraie raison
-    // plutôt que « Unknown provider ».
+    // ⚠️ `antigravity-cli` has NO tooled turn at all (its CLI cannot carry the MCP bridge
+    // — measured). The catalogue marks it `noTools`, so the agent loop never picks it;
+    // this case is the net, and it has to name the real reason rather than
+    // « Unknown provider ».
     case "antigravity-cli":
       // claude-cli included, and it is a GUARD, not the path: the desktop branches to its
       // own subscription engine before this call (`main/index.ts`), because a CLI turn has

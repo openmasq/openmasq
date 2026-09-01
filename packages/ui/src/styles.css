@@ -7338,10 +7338,10 @@ button.sendmode-opt:hover {
   padding: 14px 16px;
   text-align: left;
   background: var(--surface-card);
-  /* `--border-default`, PAS `--border-subtle` que la peau sans bordure rend transparent
-     (même piège que `.settings-card`, qui le documente) : sans contour visible, une carte
-     non sélectionnée ne se lit plus comme une carte. C'est le seul filet des trois — la
-     sélection se dit par le FOND, pas par une couleur de contour. */
+  /* `--border-default`, NOT `--border-subtle`, which the borderless skin renders
+   * transparent (the same trap as `.settings-card`, which documents it): with no visible
+   * outline, an unselected card no longer reads as a card. It is the only net of the
+   * three — selection is said by the BACKGROUND, not by an outline colour. */
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   cursor: pointer;

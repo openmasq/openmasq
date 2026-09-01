@@ -51,7 +51,7 @@ export function ownKeysNeeded(s: Pick<RoutineSuggestion, "servers">, t: Messages
 }
 
 /**
- * The templates to offer beside `existing` (les compétences que la personne a déjà), the
+ * The templates to offer beside `existing` (the skills the person already has), the
  * ones whose connectors are actually CONNECTED first — a routine you can
  * launch today is worth more than one that starts with a connection screen.
  * No `connected` ⇒ plain catalog order (see the order note above: that is

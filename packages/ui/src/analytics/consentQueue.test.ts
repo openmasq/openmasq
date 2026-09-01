@@ -4,18 +4,18 @@ import { createSink } from "@openmasq/analytics";
 const flush = (): Promise<unknown> => new Promise((r) => setTimeout(r, 0));
 
 /**
- * Le bug que ceci épingle : `app_open` est dispatché AU MONTAGE, la décision de
- * consentement arrive avec les réglages (un effet plus tard). Tout ce qui partait avant
- * était jeté en silence — PostHog n'a JAMAIS reçu un seul `app_open` de production,
- * pendant que le dev en voyait des milliers (StrictMode y rejoue l'effet APRÈS la
- * décision). Sans event d'entrée, ni activation ni rétention ne sont calculables.
+ * The bug this pins: `app_open` is dispatched ON MOUNT, the consent decision arrives with
+ * the settings (an effect later). Everything that left before was dropped in silence —
+ * PostHog NEVER received a single production `app_open`, while dev saw thousands of them
+ * (StrictMode replays the effect there AFTER the decision). With no entry event, neither
+ * activation nor retention can be computed.
  *
- * L'invariant qui rend l'attente acceptable : RIEN ne part avant la décision.
+ * The invariant that makes the wait acceptable: NOTHING leaves before the decision.
  */
 function wire() {
   const fetchFn = vi.fn(async () => ({ ok: true }));
   vi.stubGlobal("fetch", fetchFn);
-  vi.stubGlobal("navigator", {}); // pas de Do-Not-Track / GPC
+  vi.stubGlobal("navigator", {}); // no Do-Not-Track / GPC
   const s = createSink({ getAnonId: () => "anon-x", defaultSource: "test" });
   s.configureAnalytics({ key: "phc_test", apiHost: "https://eu.i.posthog.com" });
   return { s, fetchFn };

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Adaptateur : `synth_dataset_v2.json` de presidio-research (format InputSample) vers le
- * format BenchCase du banc maison — pour rejouer NOTRE métrique sur LEURS données.
+ * Adapter: presidio-research's `synth_dataset_v2.json` (InputSample format) to the home
+ * bench's BenchCase format — to replay OUR metric on THEIR data.
  *
- * Le mapping de taxonomies est l'endroit où les comparaisons meurent : le voici, entier
- * et assumé. Trois types sont EXCLUS parce qu'ils sont hors du périmètre produit du
- * moteur (il ne redacted ni les civilités, ni l'âge, ni la nationalité/religion) :
- * TITLE, AGE, NRP. Le RAPPORT-presidio historique faisait la même exclusion en sens
- * inverse (ligne « sans DATE_TIME/NRP »). Tout le reste est conservé.
+ * The taxonomy mapping is where comparisons die: here it is, whole and owned. Three types
+ * are EXCLUDED because they fall outside the engine's product scope (it redacts neither
+ * titles, nor age, nor nationality/religion): TITLE, AGE, NRP. The historical presidio
+ * REPORT made the same exclusion the other way round (the « sans DATE_TIME/NRP » line).
+ * Everything else is kept.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";

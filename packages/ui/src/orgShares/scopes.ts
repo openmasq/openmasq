@@ -23,7 +23,7 @@ export interface ScopeMeta {
   note: string;
 }
 
-/** L'ordre est celui de la PORTÉE, du plus large au plus étroit ; la teinte est fixe. */
+/** The order is that of the SCOPE, from broadest to narrowest; the hue is fixed. */
 const SCOPE_SHAPE: readonly { id: ItemScope; tone: string }[] = [
   { id: "org", tone: "violet" },
   { id: "team", tone: "sky" },

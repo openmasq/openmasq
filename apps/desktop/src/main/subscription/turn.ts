@@ -83,8 +83,8 @@ export async function* streamSubscriptionTurn(
     });
   }
 
-  // Antigravity : même forme que codex (pas de champ système, le prompt porte tout),
-  // et AUCUN `--model` — l'abonnement sert son modèle par défaut (`antigravityEngine.ts`).
+  // Antigravity: same shape as codex (no system field, the prompt carries everything),
+  // and NO `--model` — the subscription serves its default model (`antigravityEngine.ts`).
   if (env.cli === "antigravity") {
     return yield* streamAntigravitySubscription({
       binPath: env.binPath,

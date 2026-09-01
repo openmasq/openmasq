@@ -57,10 +57,9 @@ describe.skipIf(!enabled)("streamAntigravitySubscription (CLI réelle)", () => {
     const bin = agyPath();
     if (!bin) return ctx.skip();
     const cwd = mkdtempSync(join(tmpdir(), "openmasq-agy-"));
-    // Le refus vient du mode headless (aucune permission accordée dans NOTRE dossier de
-    // données) : soit le modèle l'annonce en prose, soit le tour finit vide et le flux
-    // rend l'erreur expliquée. Les deux sont acceptables ; ce qui ne l'est pas, c'est
-    // qu'un fichier apparaisse.
+    // The refusal comes from headless mode (no permission granted in OUR data folder):
+    // either the model announces it in prose, or the turn ends empty and the stream
+    // renders the explained error. Both are acceptable; what is not is a file appearing.
     await drain(
       streamAntigravitySubscription({
         binPath: bin,

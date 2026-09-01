@@ -252,7 +252,7 @@ describe("les boutons pleins de marque — l'encre qui GAGNE bascule avec le fon
 
   for (const sel of BRAND_BUTTONS) {
     it(`\`${sel}\` : la DERNIÈRE déclaration de couleur est un jeton inversant`, () => {
-      // La dernière gagne, à spécificité égale — c'est exactement ce qui a mordu.
+      // The last one wins, at equal specificity — that is exactly what bit.
       const decls = blocksFor(sel)
         .map((b) => b.match(/(?:^|;)\s*color\s*:\s*([^;]+)/)?.[1]?.trim())
         .filter(Boolean) as string[];
@@ -266,9 +266,9 @@ describe("les boutons pleins de marque — l'encre qui GAGNE bascule avec le fon
   }
 
   it("le fond DOUX de la marque porte l'encre forte dans les quatre thèmes", () => {
-    // `--brand-tint` est le survol de la carte « create » (compétences/workflows), dont le
-    // libellé est `--text-strong`. Le jeton n'existait que sur les thèmes CLAIRS : les
-    // sombres héritaient d'un pastel citron, sous un texte quasi-blanc.
+    // `--brand-tint` is the hover of the « create » card (skills/workflows), whose label
+    // is `--text-strong`. The token existed only on the LIGHT themes: the dark ones
+    // inherited a lemon pastel, under near-white text.
     for (const [themeName, theme] of Object.entries(THEMES)) {
       const fg = resolve("--text-strong", theme);
       const bg = resolve("--brand-tint", theme);

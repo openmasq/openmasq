@@ -7,9 +7,9 @@ import { missingRequired, argsMatchSchema } from "./toolFault";
  *
  * Awareness ≠ callability was the design, but dispatch resolves any real name — so a
  * blind call used to reach the user's authenticated account carrying arguments the
- * model INVENTED (journal du 06/08/2026 : `intercom__search_conversations` appelé au
- * tour 1 sans schéma, un paramètre `filters` inventé, du JSON-dans-une-chaîne avec une
- * accolade en trop, trois allers-retours serveur perdus). This guard answers one
+ * model INVENTED (log of 06/08/2026: `intercom__search_conversations` called on turn 1
+ * with no schema, an invented `filters` parameter, JSON-in-a-string with one brace too
+ * many, three server round-trips lost). This guard answers one
  * question BEFORE the server is hit: do the invented args provably violate the schema
  * we hold in `fullByName`?
  *

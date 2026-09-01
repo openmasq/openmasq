@@ -7,7 +7,6 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
  * It pushed the `installId` (`adoptStableId`) from the renderer's startup, in parallel,
  * and bet that the sink's queue would outlast the IPC round-trip. Two ways to lose that
  * bet, both ENGRAVED since adoption never overwrites an id already set:
- * l'adoption n'écrase jamais un id déjà posé :
  *   • the queue leaves first → a random `anon-…` is persisted;
  *   • `updates.current()` fails or does not exist → same.
  * The install could then NEVER become stable again. Measured in PostHog on 12/08:

@@ -7,14 +7,14 @@ import {
 import { buildAntigravityArgs, ANTIGRAVITY_APP_DATA_DIR } from "./antigravityEngine";
 
 /**
- * Les évènements ci-dessous sont des CAPTURES RÉELLES de la CLI 1.1.21 (31/08/2026),
- * réduites au strict nécessaire. Ce que ces cas tiennent :
- *  1. tous les `text_delta` sont des INCRÉMENTS — celui de l'évènement `DONE` compris.
- *     En sauter un tronque la réponse ; les lire deux fois la double ;
- *  2. un tour `SUCCESS` mais VIDE (le modèle a tenté un outil local, refusé en headless)
- *     devient une erreur EXPLIQUÉE, jamais une bulle vide ;
- *  3. les drapeaux d'isolement partent bien — surtout PAS `--dangerously-skip-permissions`,
- *     qui rendrait la machine de l'utilisateur au modèle.
+ * The events below are REAL CAPTURES from CLI 1.1.21 (31/08/2026), reduced to the strict
+ * minimum. What these cases hold:
+ *  1. every `text_delta` is an INCREMENT — including the one on the `DONE` event.
+ *     Skipping one truncates the answer; reading them twice doubles it;
+ *  2. a `SUCCESS` but EMPTY turn (the model tried a local tool, refused in headless)
+ *     becomes an EXPLAINED error, never an empty bubble;
+ *  3. the isolation flags do go out — above all NOT `--dangerously-skip-permissions`,
+ *     which would hand the user's machine to the model.
  */
 const step = (over: Record<string, unknown>) => ({
   event: "step_update",
@@ -102,8 +102,8 @@ describe("buildAntigravityArgs — l'isolement est dans les drapeaux", () => {
   });
 
   it("isole les réglages ET l'historique dans un dossier de données à nous", () => {
-    // Le drapeau n'accepte qu'un chemin RELATIF (mesuré) : le passer absolu fait
-    // refuser le démarrage (« must not be absolute »).
+    // The flag only accepts a RELATIVE path (measured): passing it absolute makes the
+    // start-up refuse (« must not be absolute »).
     expect(args).toContain(`--app_data_dir=${ANTIGRAVITY_APP_DATA_DIR}`);
     expect(ANTIGRAVITY_APP_DATA_DIR.startsWith("/")).toBe(false);
   });

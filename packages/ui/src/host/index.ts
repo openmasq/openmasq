@@ -150,9 +150,9 @@ export interface Host {
   /** Optional organization authorization (membership/role + allowed-models &
    *  mandated-redaction policy). Absent = no org concept (solo app). */
   org?: OrgHost;
-  /** Optional org SHARES (coffre/compétences vers l'org, une équipe ou une
-   *  personne, derrière une approbation). Absent ⇒ pas de bouton « Partager »
-   *  ni de boîte d'approbation — les miroirs restent en lecture. */
+  /** Optional org SHARES (vault/skills toward the org, a team or a person, behind an
+   *  approval). Absent ⇒ no « Partager » button and no approval box — the mirrors stay
+   *  read-only. */
   orgShares?: OrgSharesHost;
   /** Optional individual (per-person) billing — subscription + prepaid credits +
    *  checkout/portal. Absent = no personal billing UI (e.g. browser preview). */

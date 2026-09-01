@@ -18,7 +18,7 @@ import { findModelAny } from "../prompt/models";
  *  test fail until the guide learns about it. */
 const NAVIGABLE = ["chats", "library", "competences", "memory", "vault"] as const;
 
-/** Toute la prose d'une langue, mise bout à bout — ce qu'un utilisateur LIT. */
+/** All of a language's prose, end to end — what a user READS. */
 const proseOf = (locale: Parameters<typeof getMessages>[0]) =>
   guideChapters(getMessages(locale))
     .flatMap((c) => [
@@ -59,7 +59,7 @@ describe("le guide décrit l'app RÉELLE", () => {
       for (const id of ["library", "competences", "memory", "vault"] as const) {
         expect(sectionSubtitle(id, t), id).not.toBe("");
       }
-      // `chats` n'a pas d'en-tête : ne jamais inventer une phrase que rien n'affiche.
+      // `chats` has no header: never invent a sentence that nothing displays.
       expect(sectionGuide("chats", t)?.subtitle).toBeUndefined();
       expect(sectionGuide("settings", t)).toBeUndefined();
     },
@@ -90,16 +90,16 @@ describe("le guide décrit l'app RÉELLE", () => {
 
   it.each(LOCALES)("[%s] aucun terme d'IMPLÉMENTATION devant l'utilisateur", (locale) => {
     const prose = proseOf(locale);
-    // Ceux-ci ne sont d'aucune langue : ce sont des noms de nos entrailles (règle 8).
+    // These belong to no language: they are names from our innards (rule 8).
     for (const banned of ["MCP", "packages/", "IPC", "localStorage"]) {
       expect(prose, `terme technique dans le guide : ${banned}`).not.toContain(banned);
     }
   });
 
   it("le guide FRANÇAIS n'emprunte pas le vocabulaire anglais du code", () => {
-    // « vault » et « API » sont justes en anglais et faux en français : la liste est donc
-    // par langue, pas commune. Une liste unique interdirait à la version anglaise d'écrire
-    // « The vault », qui est précisément le mot de son lexique.
+    // « vault » and « API » are right in English and wrong in French: the list is therefore
+    // per language, not shared. A single list would forbid the English version from writing
+    // « The vault », which is precisely the word of its lexicon.
     const prose = proseOf("fr");
     for (const banned of ["vault", "API", "redaction."]) {
       expect(prose, `anglicisme ou coquille dans le guide FR : ${banned}`).not.toContain(banned);

@@ -7,9 +7,9 @@ import type { Attachment } from "./Composer";
  * doc lists as debt to shed (`Composer` is over the LOC cap; new weight lands beside
  * it). Pure pass-through: every decision stays with the caller's callbacks.
  *
- * `key={preview.cid}` : deux aperçus consécutifs pendant l'animation de sortie ne
- * doivent jamais partager l'état (vue, octets) — sans clé, AnimatePresence réutilise
- * l'enfant implicite (audit 2026-08-10).
+ * `key={preview.cid}`: two consecutive previews during the exit animation must never
+ * share state (view, bytes) — without a key, AnimatePresence reuses the implicit child
+ * (audit 2026-08-10).
  */
 export function AttachmentPreviewHost({
   preview,

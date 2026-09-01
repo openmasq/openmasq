@@ -150,11 +150,11 @@ export interface PickedStarters {
  * connector is Outlook gets two cards wearing one logo, which reads as a bug and spends
  * half the row on one service.
  *
- * `memoryOpen` (défaut : vrai) retire l'amorce « Retiens que… » quand l'accès à la Mémoire
- * est fermé — c'est une amorce PÉDAGOGIQUE, dont toute la fin est la légende cliquable qui
- * mène au graphe : sans cet écran elle enseigne un geste qui ne se voit nulle part. Injecté
- * pour que ce module reste pur (`starters.test.ts` n'a aucun état global à remettre à zéro),
- * et la rangée reste PLEINE — il y a exactement une amorce universelle de rab.
+ * `memoryOpen` (default: true) removes the « Retiens que… » starter when access to Memory
+ * is closed — it is a TEACHING starter whose whole ending is the clickable caption leading
+ * to the graph: without that screen it teaches a gesture visible nowhere. Injected so this
+ * module stays pure (`starters.test.ts` has no global state to reset), and the row stays
+ * FULL — there is exactly one spare universal starter.
  */
 export function pickStarters(
   connectedIds: readonly string[],

@@ -5,8 +5,8 @@ import { useHost } from "../../../host";
 /**
  * The set of catalog-connector ids that currently have at least one CONNECTED
  * account, folded from live `host.mcp.list()` (instance ids → their connector).
- * Read-only : l'éditeur de compétence montre un repère « connecté », pour qu'on sache
- * quelles intégrations une compétence à connecteurs peut réellement atteindre maintenant.
+ * Read-only: the skill editor shows a « connecté » marker, so that one knows which
+ * integrations a connector-bearing skill can actually reach right now.
  *
  * Re-queries on `onChanged` — the silent startup reconnect lands AFTER the first
  * fetch, so a genuinely reconnected connector would otherwise read as offline

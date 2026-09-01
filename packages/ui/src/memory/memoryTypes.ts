@@ -18,11 +18,11 @@ export interface MemoryCard {
   cat: MemoryCategory;
   /** Freeform durable facts (bounded — the card COMPACTS over time, it never grows). */
   facts: string;
-  /** Ce que la compaction a RETIRÉ de `facts` — la phrase qu'une mise à jour
-   *  d'attribut a remplacée, ou celle que la saturation a évincée. Une consolidation
-   *  qui écrase sa preuve en silence est le mode d'échec mesuré des mémoires d'agent :
-   *  l'historique rend la mise à jour visible (panneau) et rétablissable. Borné
-   *  (`MAX_FACT_LOG`), plus récent d'abord. Même régime au repos que `facts`. */
+  /** What compaction REMOVED from `facts` — the sentence an attribute update replaced,
+   *  or the one saturation evicted. A consolidation that overwrites its evidence in
+   *  silence is the measured failure mode of agent memories: the history makes the update
+   *  visible (panel) and restorable. Bounded (`MAX_FACT_LOG`), most recent first. Same
+   *  regime at rest as `facts`. */
   factsLog?: { at: number; prev: string }[];
   /** Provenance: "auto" = written by the extraction (badge + easy cleanup); absent =
    *  user-authored. */

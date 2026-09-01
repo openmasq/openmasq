@@ -14,9 +14,9 @@ import { routineSuggestions, templateServersOf } from "./routineTemplates";
 export function fillTemplate(
   id: string,
   values: Record<string, string>,
-  /** Les `{accolades}` sont NOMMÉES dans la langue source, et les scénarios les
-   *  remplissent par ce nom — d'où le repli sur elle plutôt que sur la langue de
-   *  l'appareil, qui rendrait le remplissage dépendant d'un réglage. */
+  /** The `{braces}` are NAMED in the source language, and the scenarios fill them by that
+   *  name — hence the fallback to it rather than to the device's language, which would
+   *  make the filling depend on a setting. */
   t: Messages = getMessages(DEFAULT_LOCALE),
 ): string {
   const tpl = routineSuggestions(t).find((s) => s.id === id);

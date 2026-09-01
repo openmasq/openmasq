@@ -93,8 +93,8 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
   },
   "antigravity-cli": {
     id: "antigravity-cli",
-    // L'abonnement Google Antigravity de l'utilisateur, via sa CLI `agy` installée et
-    // déjà connectée. Keyless par nature : l'auth vit dans la CLI, jamais ici.
+    // The user's Google Antigravity subscription, through their installed `agy` CLI,
+    // already signed in. Keyless by nature: the auth lives in the CLI, never here.
     label: "Antigravity",
     keyless: true,
     hostCountry: { code: "US", label: "Hébergé aux États-Unis" },

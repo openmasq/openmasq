@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { connectorErrorText } from "./connectorErrorText";
 
 /**
- * Journal du 15/08 : la fiche Vercel affichait « Refresh token is invalid. » — de l'anglais
- * brut, à la place de la description du service, sans dire quoi faire, sur l'écran même où
- * la réparation tient en un clic.
+ * Log of 15/08: the Vercel card displayed « Refresh token is invalid. » — raw English, in
+ * place of the service's description, without saying what to do, on the very screen where
+ * the repair is one click away.
  */
 
 const fr = getMessages("fr");

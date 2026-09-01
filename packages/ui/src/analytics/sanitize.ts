@@ -7,10 +7,10 @@ import type { EventName, TrackEvent } from "./events";
  * dropped before it can reach a sink. If you add a field to an event in
  * events.ts, add its key here too or it will be silently stripped.
  */
-// Exporté `as const` pour le test de PARITÉ (`sanitize.parity.test.ts`) : chaque champ
-// déclaré par le vocabulaire doit être listé ici, et inversement — au niveau TYPE, donc
-// une dérive est un typecheck rouge qui NOMME la clé (la classe de bug « loopId retiré
-// sans un mot » de l'audit 13/08 ne peut plus se reproduire).
+// Exported `as const` for the PARITY test (`sanitize.parity.test.ts`): every field declared
+// by the vocabulary is listed here, and the reverse holds too — at the TYPE level, so a
+// drift is a red typecheck that NAMES the key (the « loopId retiré sans un mot » class of
+// bug from the 13/08 audit can no longer happen).
 export const ALLOWED = {
   app_open: [],
   section_change: ["section"],
@@ -47,10 +47,10 @@ export const ALLOWED = {
   tool_loop_summary: [
     "provider", "model", "turns", "toolCalls", "ms",
     "routerOffered", "routerTotal", "loadToolsUnknown", "navClear", "navEscalated", "outcome", "reason",
-    // ⚠️ `loopId` manquait ICI alors que le vocabulaire le déclare — le walk le retirait
-    // SANS UN MOT et le résumé d'une session laborieuse ne se joignait plus à ses propres
-    // tool_called/tool_error (audit 13/08). `sanitize.parity.test.ts` rend cette classe
-    // de dérive impossible désormais.
+    // ⚠️ `loopId` was missing HERE while the vocabulary declares it — the walk stripped it
+    // WITHOUT A WORD and a laborious session's summary no longer joined its own
+    // tool_called/tool_error (audit 13/08). `sanitize.parity.test.ts` now makes this class
+    // of drift impossible.
     "loopId",
   ],
   run_python_failed: ["reason", "ms", "loopId"],

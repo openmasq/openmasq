@@ -3,13 +3,13 @@ import { MODELS } from "@openmasq/llm";
 import { isNotoriousEntity } from "@openmasq/redact";
 
 /**
- * PARITÉ registre de modèles ⇄ dispense de notoriété (le pendant de
- * `notorietyCatalogParity.test.ts` pour les connecteurs). Les deux paquets ne peuvent
- * pas s'importer (redact reste pur), donc c'est un TEST qui lit les deux : chaque
- * étiquette du catalogue doit partir EN CLAIR vers le modèle, à tous les niveaux —
- * redact « GPT-5.5 » rend l'app incapable de parler de ses propres modèles.
- * Un modèle ajouté demain qui ne passe pas la grammaire (`modelNames.ts`) échoue ICI,
- * pas dans une conversation d'utilisateur.
+ * PARITY model registry ⇄ notoriety exemption (the counterpart of
+ * `notorietyCatalogParity.test.ts` for the connectors). The two packages cannot import
+ * each other (redact stays pure), so a TEST reads both: every catalogue label has to
+ * leave IN THE CLEAR toward the model, at every level — redacting « GPT-5.5 » makes the
+ * app unable to talk about its own models.
+ * A model added tomorrow that does not pass the grammar (`modelNames.ts`) fails HERE,
+ * not in a user's conversation.
  */
 describe("parité modèles ⇄ notoriété", () => {
   const std = { commercial: true, people: true };

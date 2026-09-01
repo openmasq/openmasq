@@ -91,7 +91,7 @@ describe("ProviderAccess — deux voies, des pastilles cliquables", () => {
         claudeCliEnabled
         onClaudeCliEnabled={() => {}}
         onAntigravityCliEnabled={() => {}}
-        // Codex : le réglage est branché mais l'hôte ne sait pas sonder ⇒ pas de pastille.
+        // Codex: the setting is wired but the host cannot probe ⇒ no chip.
         onCodexCliEnabled={() => {}}
       />,
       {

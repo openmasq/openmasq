@@ -11,14 +11,14 @@
  *  nothing reads as a dead feature. One list per language, joined below; both
  *  apostrophes (' ’) and common accentless spellings are accepted where they occur. */
 const EXPLICIT_PHRASES: string[] = [
-  // Français
+  // French
   "retiens?", "souviens[- ]toi", "note (?:que|bien)", "à l['’]avenir", "dorénavant",
   "désormais", "je préfère", "ma préférence", "n['’]oublie pas",
-  // …et les formulations DIRECTES, qui manquaient : la liste ne connaissait que
-  // « retiens / note que », si bien que « note les en mémoire », « garde ça en mémoire »
-  // et même « mémorise ça » — la façon la plus littérale de le demander — ne déclenchaient
-  // rien. Le complément d'objet est optionnel partout : on demande « mémorise » aussi
-  // souvent que « mémorise ça ».
+  // …and the DIRECT phrasings, which were missing: the list only knew
+  // « retiens / note que », so that « note les en mémoire », « garde ça en mémoire »
+  // and even « mémorise ça » — the most literal way to ask — triggered nothing.
+  // The object is optional everywhere: people say « mémorise » as often as
+  // « mémorise ça ».
   "m[ée]morise[rz]?", "garde[rz]? (?:[çc]a |cela |ceci )?en m[ée]moire",
   "note[- ](?:le|la|les|[çc]a|cela|ceci)", "enregistre[rz]? (?:[çc]a|cela|ceci)",
   "ajoute[rz]? (?:[çc]a |cela |ceci )?(?:à|en|dans) (?:ta |la )?m[ée]moire",
