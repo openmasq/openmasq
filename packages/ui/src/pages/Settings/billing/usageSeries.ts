@@ -77,7 +77,7 @@ export function dayCount(day: ModelDay, s: Series, named: ReadonlySet<string>): 
 }
 
 /**
- * `model id → color token`, for any surface that must AGREE with the
+ * `model id → color token`, for every surface painted alongside the
  * chart — the "Usage par modèle" list below it, first of all. Two neighboring panels
  * that paint the same model in two different colors are worse than a single panel.
  * A model outside the top 5 renders as neutral, exactly like its share in the bar.

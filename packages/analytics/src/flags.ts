@@ -36,7 +36,7 @@ export async function fetchRelayFlags(
   if (!cfg?.relayUrl) return null;
   try {
     // `new URL("flags", ".../e")` replaces the LAST segment: ".../e" → ".../flags".
-    // A single environment variable to keep in sync, not two.
+    // So there is ONE environment variable, not two that could drift apart.
     const url = new URL("flags", cfg.relayUrl).toString();
     const res = await fetch(url, {
       method: "POST",

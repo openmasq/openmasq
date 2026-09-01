@@ -10,7 +10,7 @@ import { isStopword } from "@openmasq/redact";
  * SUBSTRING (`search_files`), and « documents fiscaux » shares no word with
  * « Dépôt des comptes annuels … INPI … ». The machine, on the other hand, sees both sides in
  * the clear: the query is de-redacted before the call (rule 11) and the names are on
- * disk. So IT is the one that must match. Same setup as `memory_search`.
+ * disk. So IT is the side that can do the matching. Same setup as `memory_search`.
  *
  * Two tiers, and lexical is NOT simply a degraded fallback of semantic:
  *  1. LEXICAL — a name that genuinely contains the sought word must always win.
