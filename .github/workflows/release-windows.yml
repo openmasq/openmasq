@@ -78,6 +78,8 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       # BEFORE the install: npm/pnpm already write deep paths. The MAX_PATH cap
       # (260 characters) is THE Windows packaging trap — `asarUnpack: **/node_modules/**`

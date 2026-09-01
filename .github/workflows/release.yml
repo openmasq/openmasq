@@ -115,6 +115,8 @@ jobs:
       version: ${{ steps.m.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       # Decide env / channel / baked URLs / version from the trigger (see header).
       # ⚠️ ONLY a `v*` tag gives production — the `else` catches EVERYTHING else
       # (`staging-v*`, a manual launch from any ref) and falls back to
@@ -226,8 +228,28 @@ jobs:
       # Same mechanism for the sourcemaps upload: `if:` cannot read `secrets`
       # (the workflow does not LOAD), the job's env can. Empty ⇒ the step is skipped.
       SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      # The other credentials travel as DECISIONS, not as values: a job-level env is visible
+      # to every step, `pnpm install`'s ~2,000 packages included, and the R2 keys or the
+      # Apple certificate have no business there. Each step that needs the value reads
+      # `secrets.*` in its OWN env; the `if:` reads the flag. Empty ⇒ the step is SKIPPED
+      # with a named notice, never a raw auth error forty minutes in. This is what lets a
+      # fork with NO secret configured run a tag build to the end: it gets the unsigned
+      # artifact on the run (`PUBLISH` below decides), nothing reaches a channel.
+      HAS_R2: ${{ secrets.R2_ACCESS_KEY_ID != '' && '1' || '' }}
+      HAS_APPLE: ${{ matrix.platform == 'mac' && secrets.MAC_CSC_LINK != '' && secrets.APPLE_ID != '' && '1' || '' }}
+      # ⛔ THE SIGNATURE BARRIER, decided ONCE: a build goes on a channel only if it is signed
+      # for its platform AND the publish credentials exist. Unsigned mac, unsigned Windows,
+      # no updates token, no R2: the build is kept on the run instead (see the two steps at
+      # the end of the job). Never publish on one condition and upload-to-run on another —
+      # the two steps must be exact complements, and this flag is the one home of that.
+      PUBLISH: ${{ secrets.UPDATES_ADMIN_TOKEN != '' && secrets.R2_ACCESS_KEY_ID != '' && ((matrix.platform == 'mac' && secrets.MAC_CSC_LINK != '' && secrets.APPLE_ID != '') || (matrix.platform == 'win' && secrets.WIN_CSC_LINK != '')) && '1' || '' }}
+      # The Cloudflare account behind the R2 bucket — ONE home in this file (rule 9), a
+      # fork points it at its own account through the repository variable.
+      R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID || '39336bdea04ecbc7b2a906744205245b' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       # BRAND values (R2 bucket, model org, updates domain) have
       # only ONE home: packages/branding/branding.json (rule 9). Resolved here for the whole
@@ -416,10 +438,12 @@ jobs:
       # FAILURE = RED BUILD, on purpose: the bake's fail-soft skip shipped EVERY
       # version since July without semantic Memory, without anyone noticing —
       # in CI, shipping without the embedder becomes a decision again, not an accident.
+      # WITHOUT R2 credentials (a fork), the step is skipped and the next one SAYS what
+      # the build will lack — a warning on the run, not a silent absence.
       - name: Fetch the vendored e5 embedder export (our R2)
+        if: ${{ env.HAS_R2 == '1' }}
         shell: bash
         env:
-          R2_ACCOUNT_ID: 39336bdea04ecbc7b2a906744205245b
           R2_BUCKET: ${{ steps.brand.outputs.slug }}-updates
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -432,6 +456,9 @@ jobs:
             --endpoint-url "https://${R2_ACCOUNT_ID}.eu.r2.cloudflarestorage.com"
           test -f "$DEST/onnx/model_quantized.onnx"
           echo "OPENMASQ_E5_SRC=$DEST" >> "$GITHUB_ENV"
+      - name: No R2 credentials — the embedder is not fetched
+        if: ${{ env.HAS_R2 != '1' }}
+        run: echo "::warning::R2_ACCESS_KEY_ID is not configured — the e5 embedder is not fetched, and \`pnpm bake\` will skip it (bake-embed-models.ts). This build ships WITHOUT semantic Memory."
       - name: Bake bundled runtime + NER models (+ the jail launcher on Windows)
         working-directory: apps/desktop
         # `pnpm bake` bakes EVERY arch this platform ships (`bake-runtimes.ts`
@@ -461,9 +488,9 @@ jobs:
       # this cannot break a running app. Idempotent: skips when this signature's archive
       # already exists on R2 (the name changes only when the runtime spec changes).
       - name: Upload baked Python runtime archive to R2 (decoupled engine)
+        if: ${{ env.HAS_R2 == '1' }}
         working-directory: apps/desktop
         env:
-          R2_ACCOUNT_ID: 39336bdea04ecbc7b2a906744205245b
           R2_BUCKET: ${{ steps.brand.outputs.slug }}-updates
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -527,6 +554,11 @@ jobs:
         # The EMFILE preamble is specific to macOS (`sudo sysctl` doesn't exist elsewhere), so
         # it is conditioned rather than removed: the mac path stays line for line what
         # it was. On Windows the equivalent cap is MAX_PATH, already lifted above.
+        # ⚠️ Without the Apple credentials (`HAS_APPLE` empty — a fork, or a rotated
+        # secret) the mac leg takes the Windows-style path: `pnpm run eb`, NO identity
+        # lookup, NO notarization. `mac-release.ts` would otherwise stop before packaging
+        # (it requires the credentials up front, on purpose). The result is an UNSIGNED
+        # app that installs with a Gatekeeper warning — kept on the run, never published.
         run: |
           if [ "${{ matrix.platform }}" = "mac" ]; then
             sudo sysctl -w kern.maxfiles=1048576 kern.maxfilesperproc=1048576 >/dev/null 2>&1 || true
@@ -539,7 +571,12 @@ jobs:
             # TOGETHER, the signing stays sequential. It too goes through `pnpm run eb`
             # for each packaging step, so `eb.mjs`'s guards are intact, and it prints
             # the time actually spent at Apple's (that measurement will tell what it's worth).
-            pnpm exec tsx scripts/mac-release.ts "${{ needs.meta.outputs.version }}"
+            if [ "$HAS_APPLE" = "1" ]; then
+              pnpm exec tsx scripts/mac-release.ts "${{ needs.meta.outputs.version }}"
+            else
+              echo "::warning::MAC_CSC_LINK / APPLE_ID are not configured — packaging an UNSIGNED, non-notarized mac build."
+              CSC_IDENTITY_AUTO_DISCOVERY=false pnpm run eb --publish never -c.mac.notarize=false -c.extraMetadata.version=${{ needs.meta.outputs.version }}
+            fi
           else
             pnpm run eb --publish never -c.extraMetadata.version=${{ needs.meta.outputs.version }}
           fi
@@ -587,12 +624,11 @@ jobs:
       # exists, publishing turns itself on — without this guard, it's the opposite that
       # would have happened silently.
       - name: Publish desktop release (R2 + register with updates Worker)
-        if: ${{ matrix.platform != 'win' || env.WIN_CSC_LINK != '' }}
+        if: ${{ env.PUBLISH == '1' }}
         run: bash apps/desktop/scripts/publish-desktop.sh --release-dir apps/desktop/release --channel ${{ needs.meta.outputs.storage_channel }}
         env:
           UPDATES_URL: ${{ vars.UPDATES_URL || format('https://updates.{0}', steps.brand.outputs.domain) }}
           UPDATES_ADMIN_TOKEN: ${{ secrets.UPDATES_ADMIN_TOKEN }}
-          R2_ACCOUNT_ID: 39336bdea04ecbc7b2a906744205245b
           R2_BUCKET: ${{ steps.brand.outputs.slug }}-updates
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
@@ -601,19 +637,21 @@ jobs:
           AWS_REQUEST_CHECKSUM_CALCULATION: when_required
           AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
 
-      # The counterpart of the guard above: the unsigned Windows installer EXISTS (it was
-      # built, launched, verified), it simply doesn't go on a channel. It stays
-      # retrievable on the run for a manual install — that's what
-      # `release-windows.yml` used to do, and that capability must not be lost by gaining the matrix.
-      - name: Upload the UNSIGNED Windows installer to the run (not to a channel)
-        if: ${{ matrix.platform == 'win' && env.WIN_CSC_LINK == '' }}
+      # The exact complement of the guard above: a build that is NOT published EXISTS (it
+      # was built, launched, verified), it simply doesn't go on a channel. It stays
+      # retrievable on the run for a manual install — that's what `release-windows.yml`
+      # used to do, and what a fork without signing secrets gets from a tag.
+      - name: Upload the unpublished build to the run (not to a channel)
+        if: ${{ env.PUBLISH != '1' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: ${{ steps.brand.outputs.slug }}-windows-unsigned-${{ needs.meta.outputs.version }}
+          name: ${{ steps.brand.outputs.slug }}-${{ matrix.platform }}-unpublished-${{ needs.meta.outputs.version }}
           path: |
             apps/desktop/release/*.exe
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.zip
             apps/desktop/release/*.blockmap
-            apps/desktop/release/latest.yml
+            apps/desktop/release/latest*.yml
           retention-days: 7
           if-no-files-found: error
 
@@ -633,6 +671,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -668,22 +708,7 @@ jobs:
           echo "prune HTTP $code"; cat /tmp/desktop-prune.out || true; echo
           if [ "$code" != "200" ]; then echo "::warning::desktop prune failed (HTTP $code) - skipping"; fi
 
-      # PRODUCTION only: prepare the release-notes announcement. Reads the published
-      # version's section from RELEASE_NOTES.md, renders the ReleaseNotes email, and
-      # creates a Resend Marketing broadcast DRAFT (does NOT send) - a human reviews
-      # and sends it from the Resend dashboard. No-op when the version has no section
-      # or the Resend secrets are unset; never fails the release (the script exits 0).
-      - name: Prepare release-notes email (Resend broadcast draft)
-        if: ${{ needs.meta.outputs.env == 'production' }}
-        run: pnpm --filter @openmasq/emails release:broadcast -- --version ${{ needs.meta.outputs.version }}
-        env:
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
-          # Unset ⇒ the shared default in packages/emails/lib/sender.ts applies (rule 9:
-          # the sender lives in ONE place, not re-typed per workflow).
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          # The landing lives in its own repository (`openmask-sites`) and its routes are
-          # French; the old `/download` and `/releases` still redirect there, for the
-          # e-mails already sent. The defaults in packages/emails say the same thing.
-          LANDING_DOWNLOAD_URL: https://landing.${{ steps.brand.outputs.domain }}/telecharger
-          LANDING_NOTES_URL: https://landing.${{ steps.brand.outputs.domain }}/nouveautes
+      # The release-notes e-mail is NOT prepared here any more: `@openmasq/emails` left with
+      # the server side (the private `infra` repository, 2026-08-31) and so did the
+      # workflow that drafts and sends it (`release-notes-email.yml`, there). This
+      # repository publishes the BUILD; announcing it is the operator's step, over there.

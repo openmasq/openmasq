@@ -1,39 +1,36 @@
-# Relecture obligatoire sur ce que personne ne devrait changer seul.
+# Mandatory review on what nobody should change alone.
 #
-# Ce fichier n'a d'effet que si la protection de branche de `main` exige la revue des
-# propriétaires — sans quoi il n'est qu'une suggestion. Il liste donc UNIQUEMENT les
-# chemins où une erreur ne se voit pas en relecture ordinaire : une frontière de
-# confiance, la chaîne de livraison, ou une promesse faite à l'utilisateur.
+# This file only has an effect if `main`'s branch protection requires owner review —
+# otherwise it is a suggestion. So it lists ONLY the paths where a mistake does not show
+# in an ordinary review: a trust boundary, the delivery chain, or a promise made to the
+# user.
 
-# Défaut.
+# Default.
 *                                   @tgaudibert
 
-# ── Le moteur de redaction ────────────────────────────────────────────────────
-# Ce qui décide de ce qui part en clair. Une règle affaiblie ne casse aucun test qu'on
-# n'a pas déjà écrit — c'est exactement ce qui rend la relecture indispensable.
+# ── The redaction engine ──────────────────────────────────────────────────────
+# What decides what leaves in the clear. A weakened rule breaks no test that was not
+# already written — which is exactly what makes the review indispensable.
 /packages/redact/                   @tgaudibert
 
-# ── Les frontières du processus privilégié ─────────────────────────────────────
-# IPC, egress, secrets au repos, portes MCP, navigateur agent, bac à sable Python.
+# ── The privileged process's boundaries ───────────────────────────────────────
+# IPC, egress, secrets at rest, MCP gates, agent browser, Python sandbox — and the
+# loopback OAuth broker the desktop spawns.
 /apps/desktop/src/main/             @tgaudibert
 /apps/desktop/src/preload/          @tgaudibert
+/apps/mcp-broker/src/oauth/         @tgaudibert
 
-# ── L'autorité côté serveur ────────────────────────────────────────────────────
-# Identité, RBAC, comptage des crédits : ce qui ne doit jamais croire le client.
-/apps/backend/src/features/admin/   @tgaudibert
-/apps/gateway/src/                  @tgaudibert
-
-# ── La chaîne de livraison ─────────────────────────────────────────────────────
-# Ces fichiers s'exécutent avec les secrets du dépôt, ou décident de ce qui est
-# expédié. `pnpm check:actions` impose déjà le SHA ; la revue couvre le reste.
+# ── The delivery chain ────────────────────────────────────────────────────────
+# These files run with the repository's secrets, or decide what ships.
+# `pnpm check:actions` already requires the SHA; review covers the rest.
 /.github/                           @tgaudibert
 /scripts/                           @tgaudibert
 /pnpm-workspace.yaml                @tgaudibert
 /pnpm-lock.yaml                     @tgaudibert
 
-# ── Les promesses écrites ──────────────────────────────────────────────────────
-# SECURITY.md est lu par quelqu'un qui décide s'il fait confiance au produit ; une
-# phrase qui vieillit mal y coûte plus qu'un bug. Même chose pour les règles dures.
+# ── The written promises ──────────────────────────────────────────────────────
+# SECURITY.md is read by someone deciding whether to trust the product; a sentence that
+# ages badly costs more than a bug there. Same for the hard rules.
 /SECURITY.md                        @tgaudibert
 /CLAUDE.md                          @tgaudibert
 /README.md                          @tgaudibert
