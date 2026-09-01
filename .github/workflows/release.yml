@@ -235,7 +235,7 @@ jobs:
       # with a named notice, never a raw auth error forty minutes in. This is what lets a
       # fork with NO secret configured run a tag build to the end: it gets the unsigned
       # artifact on the run (`PUBLISH` below decides), nothing reaches a channel.
-      HAS_R2: ${{ secrets.R2_ACCESS_KEY_ID != '' && '1' || '' }}
+      HAS_R2: ${{ secrets.R2_ACCESS_KEY_ID != '' && vars.R2_ACCOUNT_ID != '' && '1' || '' }}
       HAS_APPLE: ${{ matrix.platform == 'mac' && secrets.MAC_CSC_LINK != '' && secrets.APPLE_ID != '' && '1' || '' }}
       # ⛔ THE SIGNATURE BARRIER, decided ONCE: a build goes on a channel only if it is signed
       # for its platform AND the publish credentials exist. Unsigned mac, unsigned Windows,
@@ -245,7 +245,12 @@ jobs:
       PUBLISH: ${{ secrets.UPDATES_ADMIN_TOKEN != '' && secrets.R2_ACCESS_KEY_ID != '' && ((matrix.platform == 'mac' && secrets.MAC_CSC_LINK != '' && secrets.APPLE_ID != '') || (matrix.platform == 'win' && secrets.WIN_CSC_LINK != '')) && '1' || '' }}
       # The Cloudflare account behind the R2 bucket — ONE home in this file (rule 9), a
       # fork points it at its own account through the repository variable.
-      R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID || '39336bdea04ecbc7b2a906744205245b' }}
+      # ⚠️ NO committed default. A hardcoded account id silently routes a fork's — or a
+      # migrated project's — traffic to SOMEONE ELSE'S bucket: after the account move it
+      # pointed the CI at the abandoned account and every fetch came back AccessDenied,
+      # which reads like a credentials problem and is not. Absent ⇒ HAS_R2 is off and the
+      # R2 steps skip loudly (same rule as `scripts/buildDefines.ts`).
+      R2_ACCOUNT_ID: ${{ vars.R2_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
