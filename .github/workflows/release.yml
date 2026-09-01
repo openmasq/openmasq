@@ -411,6 +411,13 @@ jobs:
       # No model called, no network needed.
       - name: Model-switch smoke
         working-directory: apps/desktop
+        # The SAME project the app was BUILT against: `e2e/supabaseAuthKey.ts` derives the
+        # localStorage key from it (`sb-<ref>-auth-token`). Without it here the test seeds
+        # `sb-local-auth-token` while the built app reads the real ref — the session lands
+        # in a key nobody reads, the app shows the login screen, and the test waits 30s for
+        # a button that cannot exist. Invisible until the variable existed at all.
+        env:
+          OPENMASQ_SUPABASE_URL: ${{ vars.OPENMASQ_SUPABASE_URL }}
         run: pnpm run e2e:models
 
       # Bake the BUNDLED, pruned Python runtime (sha256-pinned CPython + wheels) and the

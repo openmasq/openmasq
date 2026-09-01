@@ -58,7 +58,18 @@ test("changer deux fois de modèle dans une conversation ne jette jamais", async
   // can only designate the actually active button, whatever the dock's state.
   // (The old selector also looked for "Nouveau chat", a label that no longer exists
   // anywhere: it only held up by its fallback, and the fallback targeted the wrong button.)
-  await page.getByRole("button", { name: "Nouvelle conversation" }).first().click();
+  // Make a miss SPEAK: a bare timeout says "waiting for button X" and nothing about what
+  // WAS on screen, which cost two blind CI rounds. On failure, name the buttons actually
+  // reachable — a login screen and a broken shell then read differently at a glance.
+  const newChat = page.getByRole("button", { name: "Nouvelle conversation" }).first();
+  try {
+    await newChat.click({ timeout: 20_000 });
+  } catch (e) {
+    const names = await page.getByRole("button").evaluateAll((els) =>
+      els.map((el) => (el.getAttribute("aria-label") || el.textContent || "").trim()).filter(Boolean).slice(0, 25),
+    );
+    throw new Error(`"Nouvelle conversation" introuvable. Boutons visibles: ${JSON.stringify(names)} — ${String(e).slice(0, 200)}`);
+  }
   await new Promise((r) => setTimeout(r, 1000));
 
   // Two full changes: the finder's effect cleanup runs on EVERY
