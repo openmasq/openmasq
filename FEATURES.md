@@ -307,6 +307,13 @@ re-reading an old conversation means knowing who wrote what.
       dir grants is that server's (`mcp(openmasq/*)`) — the user's own configuration is
       never written — `apps/desktop/src/main/subscription/antigravityEngine.ts`,
       `apps/desktop/src/main/subscription/antigravityToolsTurn.ts`
+- [x] **The agent's account card** — opening an agent's chip shows what ITS CLI says
+      about the account, read by spawning the CLI (never its credentials): Codex's plan,
+      quota window (% used, reset time) and live model list via `codex app-server`;
+      Antigravity's live model list via `agy models`; Claude's quota as announced during
+      the last send (`rate_limit_event`), remembered — that CLI exposes nothing to ask —
+      `apps/desktop/src/main/subscription/account.ts`,
+      `packages/ui/src/pages/Settings/models/AgentAccountCard.tsx`
 - [x] OpenRouter catalogue fetched live
 - [x] The model that answered stays stamped on the reply
 - [ ] **« Auto » mode** — REMOVED from the picker: neither view offers it any more. The

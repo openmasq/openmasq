@@ -1,6 +1,7 @@
 import { ModalShell } from "../../../containers/modals";
 import { Switch } from "../../../components/brand";
 import { useT } from "../../../i18n";
+import { AgentAccountCard, type AgentCli } from "./AgentAccountCard";
 
 /** The copy of ONE agent, as it lives in `@openmasq/i18n` (`modelPicker.cli.*`). */
 export interface AgentCopy {
@@ -22,15 +23,22 @@ export interface AgentCopy {
  * binary, never a spawn): authentication itself is only observable on the first send.
  * Hence `missingDesc` when the CLI is absent: the setting can be turned on, it will be of
  * no use until the tool is installed AND signed in.
+ *
+ * Under the switch, the ACCOUNT card (`AgentAccountCard`): what the CLI itself says
+ * about its plan, quota and models — only when the binary is present, since asking an
+ * absent CLI would only produce the « did not answer » line.
  */
 export function AgentAccessModal({
   copy,
+  cli,
   detected,
   enabled,
   onEnabled,
   onClose,
 }: {
   copy: AgentCopy;
+  /** Which CLI this agent is — the account card asks it by name. */
+  cli: AgentCli;
   /** `false` = binary absent from this machine, `null` = not (yet) probed. */
   detected: boolean | null;
   enabled: boolean;
@@ -54,6 +62,7 @@ export function AgentAccessModal({
           <Switch checked={enabled} onChange={onEnabled} />
         </div>
       </div>
+      {detected !== false && <AgentAccountCard cli={cli} />}
       <div className="confirm-footer">
         <span className="akm-foot-spacer" />
         <button className="btn-primary btn-inline" onClick={onClose}>

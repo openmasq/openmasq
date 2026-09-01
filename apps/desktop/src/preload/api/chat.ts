@@ -1,5 +1,5 @@
 import { ipcRenderer, type IpcRendererEvent } from "electron";
-import type { CompleteToolsResult, StreamDone } from "@openmasq/llm";
+import type { CompleteToolsResult, StreamDone, SubscriptionAccount } from "@openmasq/llm";
 import type { Detection } from "@openmasq/redact";
 import type {
   StartChatPayload,
@@ -81,6 +81,12 @@ export const chat = {
   /** Same probe for the Antigravity CLI (`agy`) — a boolean, never a path. */
   probeAntigravityCli(): Promise<boolean> {
     return ipcRenderer.invoke("subscription:antigravity-available");
+  },
+
+  /** What a subscription CLI says about its own account (plan, quota, models) — read
+   *  from the CLI, never from its credentials. `null` = absent or silent (normal). */
+  readSubscriptionAccount(cli: "claude" | "codex" | "antigravity"): Promise<SubscriptionAccount | null> {
+    return ipcRenderer.invoke("subscription:account", cli);
   },
 
   /** Non-streaming agentic completion with tool-calling (drives MCP). */

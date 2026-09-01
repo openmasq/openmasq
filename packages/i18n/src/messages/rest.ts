@@ -116,6 +116,27 @@ export interface ModelPickerMessages {
       onDesc: string;
       missingDesc: string;
     };
+    /** The account card inside an agent's opt-in: what its CLI says about itself. */
+    account: {
+      title: string;
+      loading: string;
+      unavailable: string;
+      plan: (plan: string) => string;
+      /** `windowOf` turns the CLI's minutes into « 5 h » / « 30 j ». */
+      windowOf: (minutes: number) => string;
+      quotaUsed: (percent: number, window: string) => string;
+      resets: (date: string) => string;
+      statusOk: string;
+      statusWarning: string;
+      statusExhausted: string;
+      windowName: (window: string) => string;
+      lastTurn: string;
+      claudeNoData: string;
+      modelsTitle: string;
+      defaultTag: string;
+      noModels: string;
+      noQuota: string;
+    };
   };
 }
 

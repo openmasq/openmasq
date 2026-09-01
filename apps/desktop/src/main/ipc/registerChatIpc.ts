@@ -7,6 +7,7 @@ import { noteFetchHostsFromText } from "../net/fetchAllow";
 import { decideProviderEndpoint } from "../net/providerEndpoint";
 import { getKey, scrubKeys } from "../store/keys";
 import { isByoKeysBlocked } from "../store/keysPolicy";
+import { noteClaudeRateLimit } from "../subscription/account";
 import { subscriptionCliFor, subscriptionTurnEnv } from "../subscription/desktop";
 import { subscriptionToolsRoute } from "../subscription/toolsRoute";
 import { streamSubscriptionTurn } from "../subscription/turn";
@@ -95,6 +96,9 @@ export function registerChatHandlers(): () => boolean {
           modelId: options.model,
           signal: controller.signal,
           onReasoning,
+          // The subscription quota rides the turn (claude): remembered, not streamed —
+          // Réglages → Modèles reads it back through `subscription:account`.
+          onRateLimit: noteClaudeRateLimit,
         })
         : streamChat({ ...withKey(options), signal: controller.signal, onReasoning });
       let r = await it.next();

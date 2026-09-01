@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { CompleteToolsResult } from "@openmasq/llm";
+import type { CompleteToolsResult, SubscriptionAccount } from "@openmasq/llm";
 import type { Detection } from "@openmasq/redact";
 import type {
   StartChatPayload,
@@ -110,6 +110,12 @@ export interface Host {
   /** Même sonde pour la CLI Antigravity `agy` (fournisseur `antigravity-cli` —
    *  l'abonnement Google de l'utilisateur). Mêmes règles fail-closed. */
   probeAntigravityCli?(): Promise<boolean>;
+  /**
+   * What a subscription CLI says about ITS account — plan, quota windows, models — read
+   * by spawning the CLI (never its credentials). `null` = absent or silent, a NORMAL
+   * state. Optional: a host that can't spawn simply shows no account card.
+   */
+  readSubscriptionAccount?(cli: "claude" | "codex" | "antigravity"): Promise<SubscriptionAccount | null>;
   /** Non-streaming agentic completion with tools (drives MCP). */
   completeTools?(payload: CompleteToolsPayload): Promise<CompleteToolsResult>;
   /**

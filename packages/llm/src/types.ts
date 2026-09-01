@@ -235,3 +235,29 @@ export interface StreamChatOptions {
    *  {@link CompleteToolsOptions.onReasoning}: same contract, same double role. */
   onReasoning?: (delta: string) => void;
 }
+
+/**
+ * What a subscription CLI can say about ITS OWN account, when asked — never through a
+ * token of ours (the desktop only spawns the CLI and reads its answer). Each CLI fills
+ * what it exposes and nothing more: codex its plan, quota windows and models; antigravity
+ * its models; claude only the quota it announced during the LAST turn (`source`).
+ */
+export interface SubscriptionQuota {
+  /** The window as the CLI names it (`primary`/`secondary`, `five_hour`/`weekly`). */
+  window: string;
+  usedPercent?: number;
+  windowMinutes?: number;
+  /** Epoch MILLISECONDS (the CLIs report seconds; normalised here). */
+  resetsAt?: number;
+  /** `allowed` · `allowed_warning` · `rejected` — claude's vocabulary, kept as-is. */
+  status?: string;
+}
+export interface SubscriptionAccount {
+  cli: "claude" | "codex" | "antigravity";
+  plan?: string;
+  quotas: SubscriptionQuota[];
+  models: { id: string; label: string; isDefault?: boolean }[];
+  /** `live` = asked now · `lastTurn` = remembered from the last send (claude). */
+  source: "live" | "lastTurn";
+  observedAt: number;
+}

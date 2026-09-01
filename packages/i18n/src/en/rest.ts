@@ -148,6 +148,25 @@ export const modelPicker = {
       missingDesc:
         "CLI not found on this machine: install Antigravity, connect it to your Google account, then come back here.",
     },
+    account: {
+      title: "Your account",
+      loading: "Reading the account…",
+      unavailable: "The CLI did not answer — is it signed in?",
+      plan: (plan) => `Plan: ${plan}`,
+      windowOf: (minutes) => (minutes >= 1440 ? `${Math.round(minutes / 1440)} d` : `${Math.round(minutes / 60)} h`),
+      quotaUsed: (percent, window) => `${percent}% of the ${window} window used`,
+      resets: (date) => `resets ${date}`,
+      statusOk: "Quota available",
+      statusWarning: "Quota nearly reached",
+      statusExhausted: "Quota exhausted",
+      windowName: (window) => (window === "five_hour" ? "5-hour window" : window === "weekly" ? "weekly window" : window),
+      lastTurn: "As of the last send",
+      claudeNoData: "The quota shows after a first send: this CLI only reports it during a turn.",
+      modelsTitle: "Account models",
+      defaultTag: "default",
+      noModels: "List not provided by this CLI.",
+      noQuota: "Quota not exposed by this CLI.",
+    },
   },
 } satisfies Messages["modelPicker"];
 

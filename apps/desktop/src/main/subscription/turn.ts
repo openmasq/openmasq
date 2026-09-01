@@ -34,6 +34,9 @@ export interface SubscriptionTurnOptions {
   modelId?: string;
   signal?: AbortSignal;
   onReasoning?: (delta: string) => void;
+  /** Claude's subscription quota, announced DURING the turn (`rate_limit_event`) — the only
+   *  way that CLI gives it; remembered by `account.ts` for Réglages → Modèles. */
+  onRateLimit?: (info: { status: string; resetsAt?: number; windowType?: string }) => void;
 }
 
 /**
@@ -103,5 +106,6 @@ export async function* streamSubscriptionTurn(
     cwd: env.cwd,
     signal: opts.signal,
     onReasoning: opts.onReasoning,
+    onRateLimit: opts.onRateLimit,
   });
 }

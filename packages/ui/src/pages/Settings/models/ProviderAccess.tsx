@@ -8,6 +8,7 @@ import { subscriptionsSold } from "../../../send/platformAccess";
 import { useHost } from "../../../host";
 import { useCliDetected } from "../../../state/effects/useAvailabilityProbes";
 import { AgentAccessModal, type AgentCopy } from "./AgentAccessModal";
+import type { AgentCli } from "./AgentAccountCard";
 
 import { useT } from "../../../i18n";
 /**
@@ -87,6 +88,8 @@ export function ProviderAccess({
 
   interface Agent {
     pid: ProviderId;
+    /** The CLI behind the provider — what the account card asks. */
+    cli: AgentCli;
     copy: AgentCopy;
     detected: boolean | null;
     enabled: boolean;
@@ -96,6 +99,7 @@ export function ProviderAccess({
   if (host.probeClaudeCli && onClaudeCliEnabled)
     agents.push({
       pid: "claude-cli",
+      cli: "claude",
       copy: t.modelPicker.cli.claude,
       detected: claudeDetected,
       enabled: !!claudeCliEnabled,
@@ -104,6 +108,7 @@ export function ProviderAccess({
   if (host.probeCodexCli && onCodexCliEnabled)
     agents.push({
       pid: "codex-cli",
+      cli: "codex",
       copy: t.modelPicker.cli.codex,
       detected: codexDetected,
       enabled: !!codexCliEnabled,
@@ -112,6 +117,7 @@ export function ProviderAccess({
   if (host.probeAntigravityCli && onAntigravityCliEnabled)
     agents.push({
       pid: "antigravity-cli",
+      cli: "antigravity",
       copy: t.modelPicker.cli.antigravity,
       detected: antigravityDetected,
       enabled: !!antigravityCliEnabled,
@@ -216,6 +222,7 @@ export function ProviderAccess({
         {open && (
           <AgentAccessModal
             copy={open.copy}
+            cli={open.cli}
             detected={open.detected}
             enabled={open.enabled}
             onEnabled={open.onEnabled}
