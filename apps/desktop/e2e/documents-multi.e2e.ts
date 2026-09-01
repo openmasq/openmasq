@@ -36,7 +36,11 @@ import { supabaseAuthStorageKey } from "./supabaseAuthKey";
 
 const DESKTOP_DIR = process.cwd();
 const NER_DIR = resolve(DESKTOP_DIR, "build/ner-models");
-const fixture = (name: string) => resolve(DESKTOP_DIR, "e2e/fixtures/pii", name);
+// ONE home for the PII fixtures: `packages/redact/src/__fixtures__`. They used to be
+// copied here too, and the copies had already drifted from their originals — which is
+// the whole failure mode of a duplicated fixture: two suites believe they exercise the
+// same document and no longer do.
+const fixture = (name: string) => resolve(DESKTOP_DIR, "../../packages/redact/src/__fixtures__", name);
 
 /**
  * The judged fixtures. `ocrOnly` marks the ones whose PII exists ONLY in the pixels:

@@ -25,7 +25,7 @@ loadEnv({ path: resolve(process.cwd(), "../../.env") });
 
 const KEY = process.env.OPENAI_API_KEY;
 const MODEL = "gpt-4o-mini";
-const CSV_PATH = resolve(process.cwd(), "e2e/fixtures/pii/customers.csv");
+const CSV_PATH = resolve(process.cwd(), "../../packages/redact/src/__fixtures__/customers.csv");
 const EMAIL_RE = /[\w.+-]+@[\w.-]+\.\w+/g;
 const IPV4_RE = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
 

@@ -8,7 +8,10 @@ import { dirname, resolve, extname } from "node:path";
 import { extractBytes } from "@openmasq/redact/documents";
 import { redact } from "@openmasq/redact";
 
-const dir = resolve(dirname(fileURLToPath(import.meta.url)), "pii");
+const dir = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  "../../../../packages/redact/src/__fixtures__",
+);
 // Images need OCR (tesseract) — skip them in this text-only sanity check.
 const IMAGE = new Set([".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".gif"]);
 

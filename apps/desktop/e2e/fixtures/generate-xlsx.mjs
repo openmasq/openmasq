@@ -32,6 +32,7 @@ XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(employees), "Employees"
 XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(payroll), "Payroll");
 XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cards), "Corporate Cards");
 
-const out = resolve(here, "pii/payroll.xlsx");
+// Writes into the ONE fixture home, not a copy beside this script.
+const out = resolve(here, "../../../../packages/redact/src/__fixtures__/payroll.xlsx");
 XLSX.writeFile(wb, out);
 console.log("wrote", out, "(3 sheets)");
