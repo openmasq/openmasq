@@ -16,13 +16,23 @@ Docker: the app runs on its own.
 ```bash
 pnpm install
 pnpm dev                     # builds the packages, then launches the Electron app
+
+# On-device models — NOT part of `dev` or `build`, and worth knowing about:
+pnpm --filter @openmasq/desktop bake   # CPython, NER weights, OCR data, embeddings
 ```
+
+⚠️ **Without `bake`, local NER and OCR are unavailable and redaction falls back to the
+deterministic pattern rules.** The app still runs, and nothing warns you — so if you are
+touching detection, run `bake` first or you will be measuring the regex floor rather than
+the product. Each asset is sha256-pinned; a source that cannot be reached skips with a
+warning (except the NER weights, which fail the bake rather than ship an empty model).
+
 
 Dev talks to **local** services only (the convention is committed in
 `apps/desktop/.env.development`). The app runs with no backend at all: paste a provider
-key or point it at a local model. The server side (accounts, API, gateway, admin
-console, update feed) lives in a separate, private repository and is not needed to
-work on anything in this one.
+key or point it at a local model. A NON-dev build reaches four hosted services by
+default — sign-in, the Slack relay, the analytics relay, Sentry
+(`apps/desktop/scripts/publicServices.ts`); set the variable empty to build without one.
 
 ## The working loop
 
@@ -83,7 +93,7 @@ Read it before a first change: it is short, and it is the map.
   "none").
 - **A security fix is never described**: say what the code guarantees NOW, never what was
   exposed nor since when (see `SECURITY.md`).
-- Flow: **fork → branch → PR against `main`**. Nobody pushes directly. Rebase merges, never
+- Flow: **fork → branch → PR against `dev`** (the default branch; `main` is the release line). Nobody pushes directly. Rebase merges, never
   a merge commit.
 
 ## Security

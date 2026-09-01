@@ -1,27 +1,27 @@
 ---
 name: Bug report
-about: Un comportement incorrect et reproductible
+about: Incorrect, reproducible behaviour
 title: "bug: "
 labels: bug
 ---
 
-<!-- ⚠️ PAS une faille de sécurité. Une vulnérabilité se signale en privé —
-     voir SECURITY.md, jamais dans une issue publique. -->
+<!-- ⚠️ NOT for a security flaw. Report a vulnerability privately — see SECURITY.md,
+     never in a public issue. -->
 
-## Ce qui se passe
+## What happens
 
-<!-- Le comportement observé, et celui attendu. -->
+<!-- The behaviour you observed, and the one you expected. -->
 
 ## Reproduction
 
-<!-- Étapes minimales. La plus petite repro que vous puissiez fournir sans données réelles. -->
+<!-- Minimal steps. The smallest repro you can give without real data. -->
 
-## Contexte
+## Context
 
-- Version / commit :
-- Plateforme (OS, packagé ou `pnpm dev`) :
-- Modèle / connecteur en jeu, si pertinent :
+- Version / commit:
+- Platform (OS, packaged or `pnpm dev`):
+- Model / connector involved, if relevant:
 
 ## Logs
 
-<!-- Sans PII : pas de valeur de coffre, pas de clé, pas de contenu de conversation réel. -->
+<!-- No PII: no vault value, no key, no real conversation content. -->

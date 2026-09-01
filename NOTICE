@@ -24,24 +24,56 @@ vendor/xlsx
 Fetched at build time, shipped inside the packaged application
 --------------------------------------------------------------------------------
 
-These assets are not stored in this repository. They are downloaded from their
-vendor's canonical origin at build time, pinned by sha256 or commit, and bundled
-into the desktop application. Each carries its own licence, and the script that
-fetches it names the origin it must come from:
+These assets are not stored in this repository. They are pinned by sha256 or by
+commit and bundled into the desktop application; the script that obtains each one
+names the origin it must come from. Most are fetched from the vendor's canonical
+origin — two are not, and are marked as such:
 
   Tesseract language data (tesseract-ocr/tessdata_fast), Apache License 2.0
-      apps/desktop/scripts/bake-tesseract-langs.ts
-  docTR text-detection and recognition models (Mindee), Apache License 2.0
-      apps/desktop/scripts/bake-doctr-models.ts
-  Multilingual NER weights (a Hugging Face re-export of mBERT), Apache License 2.0
+      Vendor origin. apps/desktop/scripts/bake-tesseract-langs.ts
+  Multilingual NER weights, Apache License 2.0
+      A community re-export on Hugging Face of Davlan's mBERT NER model, taken at a
+      pinned commit; integrity comes from the sha256 pin, not from the host.
       apps/desktop/scripts/bake-ner-models.ts
-  On-device embedding models
-      apps/desktop/scripts/bake-embed-models.ts
   A CPython runtime and the wheels of the sandboxed interpreter
+      Vendor origin (astral-sh/python-build-standalone, PyPI).
       apps/desktop/scripts/bake-python-runtime.ts
+  docTR text-detection and recognition models, Apache License 2.0
+      NOT a vendor download: a FIRST-PARTY ONNX export of Mindee's official
+      pretrained weights, produced with docTR's own `export_model_to_onnx`.
+      apps/desktop/scripts/bake-doctr-models.ts
+  On-device embedding model — intfloat/multilingual-e5-small, MIT License
+      NOT a vendor download: a first-party ONNX export and quantization of the
+      published weights. No public upstream serves these exact bytes.
+      apps/desktop/scripts/bake-embed-models.ts
 
 A copy of this file and of the Apache License 2.0 ships inside the packaged
 application, under its resources directory.
+
+--------------------------------------------------------------------------------
+Derived data included in this repository
+--------------------------------------------------------------------------------
+
+The redaction engine ships lookup tables generated from public datasets. The
+generator names its source; the derived table is what is redistributed.
+
+INSEE — Fichier des prénoms (2025)
+  Institut national de la statistique et des études économiques (INSEE).
+  Licence Ouverte / Open Licence 2.0 (Etalab), which requires that the source and
+  the date of its last update be mentioned wherever the derived data travels.
+  Generator: packages/redact/scripts/gen-firstnames-insee.ts
+  Derived table: packages/redact/src/engine/names/firstNames.insee.data.ts
+
+GeoNames postal-code data
+  https://www.geonames.org — licensed under Creative Commons Attribution 4.0
+  International (CC BY 4.0). Attribution is required in redistribution.
+  Generator: packages/redact/scripts/gen-places.ts
+  Derived tables: packages/redact/src/engine/geo/places.*.ts
+
+presidio-research benchmark corpus
+  From the data-privacy-stack/presidio-research project, redistributed here to
+  compare detection coverage against a published baseline. Licensed under the MIT
+  License. packages/redact/bench/external/presidio-research.benchcase.json
 
 --------------------------------------------------------------------------------
 Dependencies

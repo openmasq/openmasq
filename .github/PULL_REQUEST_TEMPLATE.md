@@ -1,21 +1,21 @@
-<!-- Une PR = UNE intention. Cible ≤ 400 lignes de diff ; au-delà, PR empilées. -->
-<!-- Titre : conventional commit en anglais — `type(scope): observable effect`. -->
-<!-- Le détail des conventions : CONTRIBUTING.md. -->
+<!-- One PR = ONE intent. Aim for ≤ 400 lines of diff; beyond that, stack PRs. -->
+<!-- Title: conventional commit, in English — `type(scope): observable effect`. -->
+<!-- The conventions in full: CONTRIBUTING.md. -->
 
-## Quoi / pourquoi
+## What / why
 
-<!-- 2-3 phrases : l'intention, pas le diff paraphrasé. -->
+<!-- 2-3 sentences: the intent, not the diff paraphrased. -->
 
-## Vérifié
+## Verified
 
-<!-- Les gates réellement passées — cocher UNIQUEMENT ce qui a tourné. -->
+<!-- The gates that actually ran — tick ONLY what you ran. -->
 
 - [ ] `pnpm test`
-- [ ] `npx tsc --noEmit` (packages touchés rebuildés depuis `dist/`)
-- [ ] `pnpm check:lint` (ou `pnpm verify` en entier)
-- [ ] Build de l'app (si le diff touche desktop/web/backend)
-- [ ] `FEATURES.md` à jour (si écran/onglet/réglage/modale ajouté ou retiré — règle 13)
+- [ ] `npx tsc --noEmit` (touched packages rebuilt from `dist/`)
+- [ ] `pnpm check:lint` (or the whole `pnpm verify`)
+- [ ] App build (if the diff touches desktop)
+- [ ] `FEATURES.md` updated (if a screen/tab/setting/modal was added or removed — rule 13)
 
-## Résiduels
+## Residuals
 
-<!-- Ce que la PR ne couvre PAS et qui reste ouvert. Sinon écrire : aucun. -->
+<!-- What this PR does NOT cover and leaves open. Otherwise write: none. -->

@@ -12,9 +12,9 @@ name: scan
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
-    branches: [main]
+    branches: [main, dev]
   schedule:
     - cron: "0 5 * * 1" # lundi 05:00 UTC
   workflow_dispatch:

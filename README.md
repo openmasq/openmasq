@@ -22,8 +22,9 @@ Identities are swapped; **figures stay real by default**, so a model can still c
 with them. The vault is stable across turns — the same value always maps to the same
 substitute, which is what makes the reply reversible.
 
-Models are reached either with **your own API keys**, or on **the app's key** through the
-hosted gateway (metered on credits). Both paths cross the same redaction boundary.
+Models are reached with **your own API keys**, a local model, or a Claude Code / Codex CLI
+subscription. (The code also supports reaching them on the app's key through a metered
+gateway; that service is not part of this build — see *Running it* below.)
 
 > **The redaction boundary governs what the *model* sees, and nothing else.** Connected
 > services — a mailbox, a calendar, a search — receive the **real** value, because a
@@ -46,8 +47,10 @@ hosted gateway (metered on credits). Both paths cross the same redaction boundar
 - **A Python sandbox** — model-generated code runs against de-redacted data under an OS
   jail, out of the privileged process.
 - **Cross-device sync** — end-to-end encrypted; the server stores ciphertext only.
+  *(Client code only in this build: it needs a backend, which is not part of it.)*
 - **Organizations** — an admin console with RBAC, an audit log, mandated redaction
   categories and a confirmation-posture floor.
+  *(Client code only in this build, same reason.)*
 
 The exhaustive, screen-by-screen inventory lives in [`FEATURES.md`](FEATURES.md).
 
@@ -91,17 +94,20 @@ Then open **⚙ Settings** and paste a provider key (OpenAI, Anthropic, Google, 
 DeepSeek, OpenRouter, or any OpenAI-compatible endpoint — Ollama, LM Studio, vLLM), or
 point the app at a local model. Your Claude Code / Codex CLI subscription works too.
 
-**This build has no backend, and needs none.** No accounts, no billing, no sync, no
-telemetry, no auto-update: every first-party service is supplied at build time and
-absent by default, so the app runs entirely on your machine. Redaction is on-device
-either way.
+**This build has no backend.** No billing, no sync, no organizations, no included
+models, no auto-update: those services no longer exist, and the app runs on your
+machine — your keys, a local model, or a CLI subscription. Redaction is on-device.
 
-**The server side is not in this repository.** Accounts, the API, the inference
-gateway, the admin console and the update feed are services the brand runs; their
-code will be published separately once it is ready to be run by someone else. Until
-then, an app built from this repository talks to nobody but the model provider you
-point it at — the variables that connect it to a stack are documented in
-`apps/desktop/scripts/buildDefines.ts`.
+**Four small services stay hosted by the brand, and a build from these sources
+reaches them by default** (`apps/desktop/scripts/publicServices.ts`): sign-in (a
+Supabase project — magic link or Google; the account only identifies you, nothing sits
+behind it), the Slack relay (the code→token exchange Slack forbids on-device), the
+analytics relay (anonymous counters behind an explicit consent, plus the release notes
+the app displays) and crash reports (Sentry — an allow-list of a few machine fields,
+never a message, a key or a vault value: `apps/desktop/src/sentry/policy.ts`). Their
+code is not in this repository. Each is one variable, and a variable set **empty** at
+build time (`OPENMASQ_SENTRY_DSN=`) opts out of it; `pnpm dev` never applies them and
+talks to local services only.
 
 `pnpm dev` talks to **local** services only; the dev defaults and the ports are
 documented in `apps/desktop/.env.development`, which is committed on purpose.

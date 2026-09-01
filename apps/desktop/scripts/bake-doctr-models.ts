@@ -18,6 +18,7 @@
  *
  * Run: `pnpm --filter @openmasq/desktop bake:doctr` (part of `pnpm bake`). Idempotent.
  */
+import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
@@ -33,6 +34,17 @@ const log = (m: string): void => console.log(`[bake:doctr] ${m}`);
 const sha256 = (b: Uint8Array): string => createHash("sha256").update(b).digest("hex");
 
 async function main(): Promise<void> {
+  // ⚠️ A MISSING source SKIPS (loud warning) rather than failing the build, exactly like
+  // `bake:embed`: docTR gates OCR QUALITY on Latin scripts, and the runtime already treats
+  // its absence as a fallback rather than an error (`ocrAssets.ts`: « bake not run ⇒
+  // Tesseract-only (no failure) »). Failing here made `pnpm bake` — and therefore `dist`
+  // and `release` — unreachable for anyone without the export, which is everyone cloning
+  // this repository. A HASH MISMATCH still fails hard: that is the integrity claim.
+  if (!existsSync(SRC)) {
+    log(`⚠️ no export at ${SRC} — SKIPPING. Latin-script OCR falls back to Tesseract in this`);
+    log("   build. Set OPENMASQ_DOCTR_SRC to a pinned export to include the docTR models.");
+    return;
+  }
   await mkdir(OUT, { recursive: true });
   const manifest: Record<string, string> = {};
   for (const file of DOCTR_MODEL_FILES) {

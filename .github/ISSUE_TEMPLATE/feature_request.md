@@ -1,18 +1,18 @@
 ---
 name: Feature request
-about: Proposer une fonctionnalité ou une amélioration
+about: Propose a feature or an improvement
 title: "feat: "
 labels: enhancement
 ---
 
-## Le besoin
+## The need
 
-<!-- Le problème que ça résout, du point de vue de l'utilisateur — pas la solution d'abord. -->
+<!-- The problem it solves, from the user's point of view — not the solution first. -->
 
-## La proposition
+## The proposal
 
-<!-- Ce que vous imaginez. Une esquisse suffit. -->
+<!-- What you have in mind. A sketch is enough. -->
 
-## Alternatives / contexte
+## Alternatives / context
 
-<!-- Ce que vous avez envisagé, ou pourquoi les contournements actuels ne suffisent pas. -->
+<!-- What you considered, or why the current workarounds fall short. -->

@@ -6,7 +6,7 @@
   "description": "Desktop chat app for talking to multiple LLM models",
   "packageManager": "pnpm@10.17.0",
   "scripts": {
-    "dev": "node scripts/tooling/turbo.mjs run dev --filter=!@openmasq/updates",
+    "dev": "node scripts/tooling/turbo.mjs run dev",
     "build": "node scripts/tooling/turbo.mjs run build",
     "typecheck": "node scripts/tooling/turbo.mjs run typecheck",
     "lint": "node scripts/tooling/turbo.mjs run lint",
