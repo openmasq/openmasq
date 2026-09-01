@@ -369,8 +369,6 @@ jobs:
           # App-attestation HMAC key: the client signs each relay POST with it so the
           # relay can reject traffic that is not from an official build (anti-abuse,
           # non-identity). Empty
-          # value => no attestation header (a relay with ANALYTICS_APP_KEYS set 401s).
-          VITE_ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
           # (NO Vercel bypass: the single artifact would ship it to everyone — the
           # `assertNoBakedBypass` guard in electron.vite.config.ts fails any CI build
           # that carries one.)

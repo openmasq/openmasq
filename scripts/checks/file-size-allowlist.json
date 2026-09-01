@@ -8,7 +8,7 @@
   "packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx": 711,
   "apps/desktop/src/main/mcp/browser/agentMain.ts": 665,
   "packages/ui/src/components/message/MessageBubble.tsx": 549,
-  "apps/desktop/src/renderer/src/main.tsx": 536,
+  "apps/desktop/src/renderer/src/main.tsx": 537,
   "apps/desktop/src/main/mcp/browser/process.ts": 533,
   "apps/desktop/src/main/python/sandbox.ts": 528,
   "apps/desktop/src/renderer/src/auth.ts": 521,

@@ -1,4 +1,3 @@
-import { attestHeaders } from "./attest";
 
 /**
  * Reading access FLAGS on the relay — outside `sink.ts` because this is
@@ -19,13 +18,26 @@ import { attestHeaders } from "./attest";
  */
 export interface FlagFetchConfig {
   relayUrl?: string;
-  appKey?: string;
+  getAuthToken?: () => Promise<string | null>;
   source?: string;
   env?: string;
   /** The TARGETED environment (see `types.ts` `ConfigureOptions.runtimeEnv`) — the only
    *  axis on which a "staging only" targeting tells the truth. */
   runtimeEnv?: string;
   appVersion?: string;
+}
+
+/** L'en-tête d'authentification du relais : la session Supabase de l'appelant.
+ *  Hors session (ou si le fournisseur échoue) → aucun en-tête, et le relais refuse.
+ *  ⚠️ Type de retour EXPLICITE : sans lui, TypeScript infère une union
+ *  `{ Authorization?: undefined }` que `HeadersInit` refuse (TS2769). */
+async function authHeaders(cfg: FlagFetchConfig): Promise<Record<string, string>> {
+  try {
+    const token = await cfg.getAuthToken?.();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
 }
 
 export async function fetchRelayFlags(
@@ -40,7 +52,7 @@ export async function fetchRelayFlags(
     const url = new URL("flags", cfg.relayUrl).toString();
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await attestHeaders(cfg.appKey)) },
+      headers: { "Content-Type": "application/json", ...(await authHeaders(cfg)) },
       body: JSON.stringify({
         distinct_id: distinctId,
         source: cfg.source,

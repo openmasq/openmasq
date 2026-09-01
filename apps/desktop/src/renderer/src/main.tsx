@@ -32,7 +32,6 @@ import { feedbackHost } from "./feedback";
 // and that's where the runtime environment switch will go through (see `./appEnv`).
 import {
   ADMIN_URL,
-  ANALYTICS_APP_KEY,
   ANALYTICS_DEBUG,
   ANALYTICS_RELAY_URL,
   BACKEND_CONFIGURED,
@@ -67,10 +66,9 @@ configurePlatformAccess({
 configureAnalytics({
   relayUrl: ANALYTICS_RELAY_URL,
   source: "desktop",
-  // Attest the RELAY request with the build's HMAC key (anti-abuse only, NOT identity: the
-  // relay verifies it's an official build of the app then discards it, so events stay anonymous
-  // and go out logged-out too). No key (dev) ⇒ no header, the relay accepts it.
-  appKey: ANALYTICS_APP_KEY,
+  // La session Supabase authentifie la requête vers le relais — PARESSEUSE, et ce qu'elle
+  // coûte hors session : `@openmasq/analytics` types.ts, `getAuthToken`.
+  getAuthToken: () => authHost.getAccessToken?.() ?? Promise.resolve(null),
   // Stamps env + version on every event (`./appEnv` explains the derivation, and why
   // "empty" does NOT mean production). ⚠️ `runtimeEnv` is the SECOND axis, stamped nowhere
   // else: reserved for FLAGS, because a prod binary switched to staging stays
