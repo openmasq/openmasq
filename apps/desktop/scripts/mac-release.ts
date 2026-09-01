@@ -31,7 +31,8 @@
  * exits without running anything — how to review this file without paying for a 40-minute build.
  */
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, renameSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { composeManifests } from "@openmasq/updates-manifest";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { shippedTriples, type EbConfigShape } from "./shippedTriples";
@@ -213,15 +214,17 @@ async function main(version: string): Promise<void> {
   }
 
   // ── 5. a single manifest ──────────────────────────────────────────────────────────────
-  // The merge is done by `apps/updates`, which owns the format and already implements it
-  // to SERVE legs published separately (`src/lib/desktopArch.ts`). A second
-  // implementation here would be exactly the duplicate rule 9 forbids; so we call
-  // its own, via CLI — there's no app-to-app import.
+  // Le format des manifestes a UNE maison, `@openmasq/updates-manifest`, partagée avec le
+  // serveur du flux qui recompose les legs publiés séparément — une seconde
+  // implémentation ici serait exactement le doublon que la règle 9 interdit. Elle vivait
+  // dans `apps/updates` et s'atteignait par CLI (une app n'importe pas sa sœur) ; le
+  // split d'août 2026 a mis cette app dans un AUTRE dépôt et le chemin a disparu, d'où
+  // le paquet — placé du côté CONSOMMÉ, le seul que les deux dépôts peuvent atteindre.
   console.log("[mac-release] 5/5 fusion des manifestes");
-  await run(
-    "pnpm",
-    ["exec", "tsx", "apps/updates/scripts/merge-desktop-manifests.ts", "--out", join(RELEASE, "latest-mac.yml"), ...manifests],
-    { cwd: ROOT },
+  writeFileSync(
+    join(RELEASE, "latest-mac.yml"),
+    composeManifests(manifests.map((m) => readFileSync(m, "utf8"))),
+    "utf8",
   );
   console.log("[mac-release] terminé.");
 }
