@@ -18,10 +18,10 @@
 [data-theme="blue-dark"] .om-empty[data-tone="lime"],
 [data-theme="blue-dark"] .om-empty-point[data-tone="lime"] { --es-hue: #9a9aff; --es-ink: #0b0b0f; }
 
-/* Fond PLEIN. Les hachures en diagonale qui vivaient ici sont parties : elles passaient
-   sous le seul paragraphe que cet écran existe pour faire lire, et les thèmes sombres
-   devaient déjà les éteindre pour rester lisibles — une texture qu'il faut retirer dans
-   la moitié des thèmes est un ornement, pas une signature. Le kit les dessine encore. */
+/* SOLID fill. The diagonal hatching that lived here is gone: it ran
+   under the one paragraph this screen exists to get read, and the dark themes
+   already had to turn it off to stay legible — a texture that has to be removed in
+   half the themes is an ornament, not a signature. The kit still draws it. */
 .om-empty {
   display: flex;
   flex-direction: column;

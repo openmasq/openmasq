@@ -24,9 +24,9 @@
 @import "./versions/chrome.css";
 @import "./versions/history.css";
 
-/* « L'app est à jour » — la page Versions telle qu'un utilisateur la voit sur une build
-   de production : une phrase, pas un tableau de bord. Le détail technique (version,
-   canal, historique, bascule d'environnement) reste sur staging. */
+/* « L'app est à jour » — the Versions page as a user sees it on a production
+   build: one sentence, not a dashboard. The technical detail (version,
+   channel, history, environment toggle) stays on staging. */
 .ver-uptodate {
   display: flex;
   gap: 8px;
@@ -39,11 +39,11 @@
   color: var(--green-ink, var(--brand));
 }
 
-/* Le bouton « une mise à jour attend », au pied du rail droit. Il n'existe que tant
-   qu'une version est téléchargée, donc il a le droit de se voir : c'est la seule entrée
-   de ce pied qui périme, et la manquer coûte un redémarrage remis à plus tard
-   indéfiniment. L'encre passe par le token qui s'inverse avec la marque (règle 12) —
-   le vert forêt de trois thèmes et le lime clair du quatrième sont le même jeton. */
+/* The « une mise à jour attend » button, at the foot of the right rail. It only exists as
+   long as a version is downloaded, so it has earned the right to show: it's the only entry
+   in this footer that expires, and missing it costs a restart put off
+   indefinitely. The ink goes through the token that inverts with the brand (rule 12) —
+   the forest green of three themes and the light lime of the fourth are the same token. */
 .rr-upd {
   background: var(--brand);
   color: var(--ink-on-brand);
@@ -58,9 +58,9 @@
 }
 
 /* ─ « Une nouvelle version est prête » (containers/modals/UpdateReadyModal.tsx) ────────
-   Ce que le système annonçait dans une boîte nue. Le CORPS de la note est rendu par le
-   composant partagé (`.ver-rel*`), donc rien de sa mise en forme ne vit ici : seulement
-   l'en-tête, l'ascenseur et le pied. */
+   What the system used to announce in a bare box. The BODY of the note is rendered by the
+   shared component (`.ver-rel*`), so none of its formatting lives here: only
+   the header, the scrollbar and the footer. */
 .om-upd {
   display: flex;
   flex-direction: column;
@@ -91,8 +91,8 @@
   font-size: var(--text-xs);
   color: var(--text-faint);
 }
-/* Le seul ascenseur de la fenêtre : une note à vingt puces ne doit pas pousser le pied —
-   et donc « Redémarrer maintenant » — sous la ligne de flottaison. */
+/* The window's only scrollbar: a note with twenty bullets must not push the footer —
+   and therefore « Redémarrer maintenant » — below the fold. */
 .om-upd-body {
   padding: 16px 26px 20px;
   overflow-y: auto;

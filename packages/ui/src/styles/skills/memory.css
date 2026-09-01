@@ -38,7 +38,7 @@
 .om-mem-auto-badge {
   color: var(--brand);
 }
-/* La borne d'un champ borné, dite sous lui (fiche 600, profil 1200). */
+/* The cap of a capped field, stated under it (card 600, profile 1200). */
 .om-mem-limit {
   font-family: var(--font-mono);
   font-size: var(--text-2xs, 10px);
@@ -46,23 +46,23 @@
   line-height: 1.5;
 }
 
-/* « À revoir » — la boîte de réception du mode silencieux : un accent d'attention
-   tant qu'il reste quelque chose à traiter (le chip disparaît à zéro, il ne
-   s'éteint pas — traiter est ce qui le vide). */
+/* « À revoir » — the silent mode's inbox: an attention accent
+   as long as something remains to process (the chip disappears at zero, it doesn't
+   fade out — processing is what empties it). */
 .om-mem-fresh {
   border-color: var(--brand);
   color: var(--brand);
   font-weight: 600;
 }
 
-/* Où la fiche a servi — la ligne d'usage sous le nom, dans le panneau. */
+/* Where the card has been used — the usage line under the name, in the panel. */
 .om-mem-usage {
   font-size: var(--text-xs);
   color: var(--text-muted);
   line-height: 1.5;
 }
 
-/* Le profil se modifie d'un clic sur son texte (même contrat que la carte document). */
+/* The profile is edited with a click on its text (same contract as the document card). */
 .om-mem-profile-text {
   cursor: text;
   border-radius: var(--radius-sm);
@@ -72,8 +72,8 @@
   background: var(--surface-sunken);
 }
 
-/* Le filet de la suppression : un toast bas de page, quelques secondes, « Annuler »
-   réinsère la fiche telle quelle. */
+/* The safety net for deletion: a bottom-of-page toast, a few seconds, « Annuler »
+   reinserts the card as it was. */
 .om-mem-undo {
   position: fixed;
   bottom: 22px;
@@ -95,17 +95,17 @@
   color: var(--text-strong);
 }
 
-/* ── Recherche + vue LISTE (le graphe fait comprendre, la liste fait trouver) ── */
+/* ── Search + LIST view (the graph makes you understand, the list makes you find) ── */
 .om-mem-toolbar {
   margin-bottom: 10px;
 }
 .om-mem-search {
   max-width: 340px;
 }
-/* Liste + panneau côte à côte. PAS d'absolu ici : le panneau absolu s'étirait sur toute
-   la hauteur de la LISTE (des milliers de px à 50+ fiches), et son pied — le bouton
-   Supprimer — partait hors écran. En flex, la liste garde sa hauteur, le panneau la
-   sienne (bornée + collante, voir memoryStage.css). */
+/* List + panel side by side. NO absolute here: the absolute panel stretched over the
+   whole LIST height (thousands of px at 50+ cards), and its footer — the
+   Supprimer button — went off-screen. In flex, the list keeps its height, the panel
+   its own (capped + sticky, see memoryStage.css). */
 .om-mem-listwrap {
   position: relative;
   display: flex;
@@ -121,15 +121,15 @@
   min-width: 0;
 }
 @media (max-width: 760px) {
-  /* Colonne étroite : le panneau passe AU-DESSUS de la liste (l'ordre DOM le mettrait
-     dessous, loin de la ligne qu'on vient de cliquer). */
+  /* Narrow column: the panel goes ABOVE the list (DOM order would put it
+     below, far from the row just clicked). */
   .om-mem-listwrap {
     flex-direction: column-reverse;
   }
 }
-/* Une ligne = un CONTENEUR (div) : le corps cliquable `.om-mem-row-main` ouvre le
-   panneau, et une ligne « à revoir » porte ses gestes de traitement à côté —
-   Confirmer / Supprimer — sans imbriquer de boutons. */
+/* A row = a CONTAINER (div): the clickable body `.om-mem-row-main` opens the
+   panel, and a « à revoir » row carries its processing actions beside it —
+   Confirmer / Supprimer — without nesting buttons. */
 .om-mem-row {
   display: flex;
   gap: 8px;
@@ -181,7 +181,7 @@
 .om-mem-row-act.danger {
   color: var(--danger, #b3261e);
 }
-/* Groupement par catégorie (bascule de la barre d'outils). */
+/* Grouping by category (toolbar toggle). */
 .om-mem-group {
   display: flex;
   flex-direction: column;
@@ -228,7 +228,7 @@
   padding: 18px 4px;
 }
 
-/* L'historique de compaction d'une fiche : ce qu'une mise à jour a remplacé. */
+/* A card's compaction history: what an update replaced. */
 .om-mem-history {
   display: flex;
   flex-direction: column;

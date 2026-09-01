@@ -4,9 +4,9 @@ import { isExplicitMemoryAsk } from "./extractExplicit";
 import { appendToProfile } from "./profile";
 import { looksLikeSecret, type ExtractedFact, type Extraction } from "./extractParse";
 
-// Le contrat prompt/parse de l'extracteur vit dans `extractParse.ts`, la fusion dans le
-// store dans `mergeExtraction.ts` (règle 1) — ré-exportés ici pour que les imports
-// existants ne bougent pas.
+// The extractor's prompt/parse contract lives in `extractParse.ts`, the merge into the
+// store in `mergeExtraction.ts` (rule 1) — re-exported here so that existing imports
+// do not move.
 export { mergeExtraction } from "./mergeExtraction";
 export {
   extractionPrompt,
@@ -100,11 +100,11 @@ export function resolveExtraction(
   /** Present in what the MODEL read, absent from the real text ⇒ an unresolved fake. */
   const fromWireOnly = (s: string): boolean =>
     !!normWire && keyInText(normWire, normalizeMem(s)) && !anchoredIn(s);
-  // Un extracteur vivant recopie l'entité AVEC son élision/article de la phrase
-  // (« d'Atelier Torbel », « chez Karl Studio ») — une surface différente qui crée un
-  // DOUBLON de carte. La forme nue est préférée quand elle s'ancre aussi — mais
-  // JAMAIS pour une personne : « de Vinci », « De Gaulle » sont des PARTICULES du
-  // nom, pas des élisions de phrase.
+  // A live extractor copies the entity back WITH the sentence's elision/article
+  // (« d'Atelier Torbel », « chez Karl Studio ») — a different surface, which creates a
+  // DUPLICATE card. The bare form is preferred when it anchors too — but NEVER for a
+  // person: « de Vinci », « De Gaulle » are PARTICLES of the name, not sentence
+  // elisions.
   const stripElision = (s: string, cat: string): string => {
     if (cat === "personne") return s;
     const bare = s.replace(/^(?:[dl]['’]\s*|de\s+la\s+|de\s+|du\s+|des\s+|chez\s+)/i, "").trim();
@@ -119,10 +119,10 @@ export function resolveExtraction(
     }))
     .flatMap((f) => {
       if (looksLikeSecret(f.fact) || looksLikeSecret(f.entity)) return [];
-      // Une entité-PHRASE (« Atelier Torbel s'appelle Ondine ») passe l'ancrage verbatim
-      // (elle est copiée du texte !) mais n'est pas un NOM : une carte-fragment ne se
-      // rappellera jamais proprement et DOUBLONNE les vraies cartes. Un verbe de
-      // clause ou une entité trop longue la trahissent.
+      // A SENTENCE-entity (« Atelier Torbel s'appelle Ondine ») passes the verbatim anchor
+      // (its words are lifted straight from the text!) but is not a NAME: a fragment-card
+      // will never recall cleanly and DUPLICATES the real cards. A clause verb, or an
+      // over-long entity, gives it away.
       if (
         /\b(?:s['’]appelle|se nomme|qui est|c['’]est|travaille|habite|g[èe]re|paie|dirige)\b/i.test(f.entity) ||
         f.entity.split(/\s+/).length > 5
@@ -138,9 +138,9 @@ export function resolveExtraction(
       if (!opts?.allowNotes && generic(f.entity)) return [];
       // The alias passes the SAME verbatim anchor as the entity — an invented alias
       // would poison the recall pass — and is dropped alone, never the whole fact.
-      // Un alias MONO-MOT homographe (« Claire ») est refusé aussi : posé sur l'une
-      // des deux Claires, il fait matcher sa carte en tier whole-key sur CHAQUE
-      // occurrence du prénom — le débordement exact que la deny-list des tokens évite.
+      // A single-WORD homograph alias (« Claire ») is refused too: set on one of the two
+      // Claires, it makes its card match in the whole-key tier on EVERY occurrence of the
+      // first name — the exact overflow the token deny-list avoids.
       const alias =
         f.alias &&
         !looksLikeSecret(f.alias) &&

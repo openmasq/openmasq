@@ -1,25 +1,25 @@
 import type { Conversation } from "../types";
 
 /**
- * « Comprendre mon redaction » — le petit conteneur sous les PREMIÈRES réponses, qui
- * ouvre le chapitre redaction du guide (`help/guide.ts`, chapitre `protection`).
+ * « Comprendre mon redaction » — the small container under the FIRST answers, which
+ * opens the redaction chapter of the guide (`help/guide.ts`, chapter `protection`).
  *
- * Ce qu'il couvre que l'encart de transparence ne couvre PAS : les subtilités qui ne se
- * voient pas dans une conversation donnée — les personnalités publiques laissées en
- * clair, le compteur à zéro d'une conversation SANS donnée personnelle (le cas où
- * l'encart de transparence, précisément, ne se montre jamais), le Coffre pour les noms
- * de code. L'encart de transparence montre une preuve ; celui-ci apprend les règles.
+ * What it covers that the transparency card does NOT: the subtleties that stay invisible
+ * in a given conversation — public figures left in the clear, the counter at zero for a
+ * conversation WITHOUT any personal data (precisely the case where the transparency card
+ * never shows itself), the Vault for code names. The transparency card shows a proof;
+ * this one teaches the rules.
  *
- * Deux décisions, et leurs raisons :
+ * Two decisions, and their reasons:
  *
- *  - **Il attend la première réponse ARRIVÉE.** Avant elle, rien n'est parti : proposer
- *    d'« expliquer mon redaction » ne désigne encore rien, et l'écran d'accueil a déjà
- *    son onboarding.
- *  - **« Fermer pour toujours » est global et définitif** (`Settings.redactionIntroSeen`,
- *    jamais un état de composant — sinon il revient au prochain montage, la leçon des
- *    encarts voisins). Définitif parce que ce savoir reste atteignable ailleurs : le
- *    MÊME chapitre vit dans Aide. Un rappel qui reviendrait « au cas où » est le bruit
- *    dont l'utilisateur apprend à se débarrasser.
+ *  - **It waits for the first answer to ARRIVE.** Before that nothing has left: offering
+ *    to « expliquer mon redaction » points at nothing yet, and the welcome screen already
+ *    has its onboarding.
+ *  - **« Fermer pour toujours » is global and final** (`Settings.redactionIntroSeen`,
+ *    never a component state — otherwise it comes back on the next mount, the lesson of
+ *    the neighbouring cards). Final because this knowledge stays reachable elsewhere: the
+ *    SAME chapter lives in Help. A reminder coming back « au cas où » is the noise the
+ *    user learns to get rid of.
  */
 export function shouldShowRedactionIntro(
   conv: Conversation | null | undefined,

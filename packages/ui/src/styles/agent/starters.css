@@ -15,8 +15,8 @@
     grid-template-columns: 1fr;
   }
 }
-/* UNE ligne : tuile · étiquette · invite. La version empilée faisait 78 px par carte,
-   donc 538 px de bloc — l'accueil débordait. */
+/* ONE row: tile · label · prompt. The stacked version was 78 px per card,
+   so 538 px of block — the home screen overflowed. */
 .om-starter {
   text-align: left;
   display: flex;
@@ -27,7 +27,7 @@
   border: 1px solid var(--border-subtle);
   background: var(--surface-card);
   cursor: pointer;
-  /* Voir `.om-starter-prompt` : sans ce zéro, la carte impose sa phrase comme largeur. */
+  /* See `.om-starter-prompt`: without this zero, the card imposes its sentence as width. */
   min-width: 0;
   transition: transform 0.12s var(--ease-out), border-color 0.12s, box-shadow 0.12s;
 }
@@ -44,9 +44,9 @@
     transform: none;
   }
 }
-/* Le glyphe porte la catégorie à lui seul (le LOGO pour un service) : écrite à côté de
-   l'invite, l'étiquette prenait la moitié d'une carte de ~270 px et il ne restait plus que
-   « Rédige un email de… ». Elle vit maintenant dans l'infobulle et le nom accessible. */
+/* The glyph carries the category alone (the LOGO for a service): written beside
+   the prompt, the label took up half of a ~270 px card and left only
+   « Rédige un email de… ». It now lives in the tooltip and the accessible name. */
 .om-starter-tile {
   width: 22px;
   height: 22px;
@@ -59,14 +59,14 @@
   justify-content: center;
   flex-shrink: 0;
 }
-/* UNE ligne, coupée. L'invite entière reste lisible au survol — elle est sur `title`,
-   donc rendue par l'infobulle de marque.
-   ⚠️ Le plafond se met sur la HAUTEUR (une ligne de boîte), jamais sur `white-space:
-   nowrap` : une ligne insécable donne à la carte une largeur minimale égale à sa phrase,
-   la colonne `1fr` refuse alors de rétrécir, et c'est TOUT l'accueil qui défile
-   horizontalement (mesuré : 911 px de contenu dans 560). Le `min-width: 0` ci-dessous est
-   l'autre moitié de la même règle — sans lui, la taille minimale automatique d'un élément
-   de grille reste celle de son contenu. `starters.overflow.test.ts` épingle les deux. */
+/* ONE row, clipped. The full prompt stays readable on hover — it's on `title`,
+   so rendered by the brand tooltip.
+   ⚠️ The cap goes on the HEIGHT (one box line), never on `white-space:
+   nowrap`: an unbreakable line gives the card a minimum width equal to its sentence,
+   the `1fr` column then refuses to shrink, and it's the WHOLE home screen that scrolls
+   horizontally (measured: 911 px of content in 560). The `min-width: 0` below is
+   the other half of the same rule — without it, a grid item's automatic minimum
+   size stays that of its content. `starters.overflow.test.ts` pins both. */
 .om-starter-prompt {
   font-size: var(--text-sm);
   color: var(--text-body);
@@ -114,17 +114,17 @@
   background: var(--hl-amber);
 }
 
-/* ── Deux rangées titrées ────────────────────────────────────────────────────
-   « Sans rien configurer » et « Avec vos services » : un débutant et quelqu'un qui a
-   branché cinq services ne cherchent pas la même chose, et aucun des deux ne devrait
-   avoir à deviner que l'autre moitié existe. D'où deux rangées visibles, pas un
-   basculeur. */
-/* ⚠️ La COLONNE est bornée à la largeur des cartes, et c'est ce qui tient le centrage.
-   `.welcome` centre ses enfants, donc la largeur de ce bloc est celle de son plus large
-   enfant : une rangée de puces plus longue que 560 px élargissait le bloc entier, la
-   grille (bornée, elle) se retrouvait collée à gauche et « Ne plus proposer » — aligné à
-   droite — partait au-delà des cartes. Une seule largeur pour tous les enfants, et la
-   rangée de puces passe à la ligne au lieu de déplacer le reste. */
+/* ── Two titled rows ────────────────────────────────────────────────────────
+   « Sans rien configurer » and « Avec vos services »: a beginner and someone who has
+   connected five services aren't looking for the same thing, and neither should
+   have to guess that the other half exists. Hence two visible rows, not a
+   toggle. */
+/* ⚠️ The COLUMN is capped at the cards' width, and that's what holds the centering.
+   `.welcome` centers its children, so this block's width is that of its widest
+   child: a chip row longer than 560 px widened the whole block, the
+   grid (capped, itself) ended up stuck to the left and « Ne plus proposer » — right-aligned —
+   went past the cards. One single width for all children, and the
+   chip row wraps instead of moving the rest. */
 .om-starters-wrap {
   display: flex;
   flex-direction: column;
@@ -137,9 +137,9 @@
   color: var(--text-faint);
 }
 
-/* « Ne plus proposer » et son retour. Discrets tous les deux : ce sont des réglages de
-   confort, pas des actions de l'écran. Alignés à droite pour ne pas concurrencer la
-   première carte du regard. */
+/* « Ne plus proposer » and its way back. Both discreet: they're comfort
+   settings, not screen actions. Right-aligned so as not to compete with the
+   first card for the eye. */
 .om-starters-off,
 .om-starters-back {
   align-self: flex-end;
@@ -162,16 +162,16 @@
   background: var(--surface-hover);
   color: var(--text-body);
 }
-/* Le retour est SEUL sur l'écran (les cartes sont masquées) : centré, il se lit comme
-   une invitation plutôt que comme un résidu collé dans un coin. */
+/* The way back is ALONE on the screen (the cards are hidden): centered, it reads as
+   an invitation rather than as a leftover stuck in a corner. */
 .om-starters-back {
   align-self: center;
 }
 
-/* ── Les services NON connectés : une ligne de puces ─────────────────────────
-   Quatre cartes répétant « Connecter pour l'essayer sur vos données » disaient une seule
-   chose quatre fois et prenaient la moitié de l'accueil. Une puce porte le logo, le nom,
-   et rien d'autre — le reste est dans l'infobulle. */
+/* ── The services NOT connected: a row of chips ─────────────────────────
+   Four cards repeating « Connecter pour l'essayer sur vos données » said one
+   thing four times and took up half the home screen. A chip carries the logo, the name,
+   and nothing else — the rest is in the tooltip. */
 .om-starter-chips {
   display: flex;
   flex-wrap: wrap;
@@ -198,17 +198,17 @@
   color: var(--text-muted);
   transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
-/* Pointillés au repos — le vocabulaire « pas encore là » du produit. Ils deviennent
-   pleins au survol : la puce se propose, elle n'est pas désactivée. */
+/* Dashed at rest — the product's « not there yet » vocabulary. They become
+   solid on hover: the chip offers itself, it isn't disabled. */
 .om-starter-chip:hover {
   border-style: solid;
   border-color: var(--brand);
   color: var(--text-strong);
 }
-/* « Voir les autres » n'est PAS une cinquième puce : elle ne nomme aucun service, elle
-   ouvre le catalogue. Sans contour, elle se lit comme la porte au bout de la rangée —
-   et quand la rangée passe à la ligne, un lien discret vaut mieux qu'une puce orpheline
-   qui promettrait un service de plus. */
+/* « Voir les autres » is NOT a fifth chip: it names no service, it
+   opens the catalogue. With no outline, it reads as the door at the end of the row —
+   and when the row wraps, a discreet link is better than an orphan chip
+   that would promise one more service. */
 .om-starter-chip.more {
   padding-left: 9px;
   border: none;

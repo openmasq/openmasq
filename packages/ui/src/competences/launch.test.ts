@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { activeCompetenceScope, cappedSlots, competenceLaunchText, drivesTools, promptSlots } from "./launch";
 
 /**
- * LA SEULE RÈGLE DE COMPORTEMENT QUI RESTE DE LA FUSION :
+ * THE ONLY BEHAVIOURAL RULE LEFT FROM THE MERGE:
  *
- * > une compétence qui nomme des connecteurs les utilise ; sans `servers`, rien ne change.
+ * > a skill that names connectors uses them; without `servers`, nothing changes.
  *
- * C'est ce qui a permis de supprimer une liste entière sans rien perdre, donc c'est ce
- * qu'il faut épingler des deux côtés : que le champ FASSE quelque chose quand il est là,
- * et qu'il ne fasse RIEN quand il n'y est pas.
+ * That is what allowed a whole list to be deleted without losing anything, so that is
+ * what must be pinned on both sides: that the field DOES something when it is there,
+ * and that it does NOTHING when it is not.
  */
 
 describe("competenceLaunchText", () => {
@@ -75,10 +75,10 @@ describe("activeCompetenceScope", () => {
   });
 
   /**
-   * ⚠️ Le tour de rattrapage : une routine qui pose une question de clarification y répond
-   * au tour SUIVANT, qui ne porte aucune compétence. Sans cette reprise, le routeur
-   * élaguait le connecteur que la routine nomme — et le modèle se retrouvait sans outil au
-   * tour exact qui en avait besoin (journal du 02/08/2026).
+   * ⚠️ The catch-up turn: a routine that asks a clarifying question gets its answer on the
+   * NEXT turn, which carries no skill. Without this resumption, the router pruned the
+   * connector the routine names — and the model found itself with no tool on the exact
+   * turn that needed one (log of 02/08/2026).
    */
   it("survit à un tour nu", () => {
     expect(
@@ -87,9 +87,9 @@ describe("activeCompetenceScope", () => {
   });
 
   /**
-   * ⚠️ Le contrat de l'HISTORIQUE : tout ce qui a été envoyé avant la fusion porte
-   * `message.workflow`. Ne lire que la forme neuve casserait la reprise de portée de
-   * toutes les conversations existantes.
+   * ⚠️ The HISTORY contract: everything sent before the merge carries `message.workflow`.
+   * Reading only the new shape would break the scope resumption of every existing
+   * conversation.
    */
   it("lit l'ANCIEN tag `workflow` aussi bien que le neuf", () => {
     expect(activeCompetenceScope([user({ workflow: { servers: ["gmail"] } })])).toEqual(["gmail"]);

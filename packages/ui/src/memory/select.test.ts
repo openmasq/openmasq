@@ -117,9 +117,9 @@ describe("selection — mention beats conversation-presence beats nothing", () =
   });
 
   it("une carte trop grosse pour le budget restant est SAUTÉE, jamais la file coupée", () => {
-    // Même score, même récence à la milliseconde près : l'énorme carte passe en tête
-    // (créée en second ⇒ updatedAt ≥). Elle dépasse le budget à elle seule ; les deux
-    // petites derrière tiennent et doivent y être — un break les perdait toutes.
+    // Same score, same recency down to the millisecond: the huge card comes first
+    // (created second ⇒ updatedAt ≥). It blows the budget on its own; the two small ones
+    // behind it fit and must be there — a break lost them all.
     const small1 = card({ entity: "Petit Client SA", facts: "Un fait court.", cat: "organisation" });
     const huge = card({ entity: "Énorme Dossier SA", facts: "détails ".repeat(70), cat: "organisation" });
     const small2 = card({ entity: "Autre Client SA", facts: "Un autre fait.", cat: "organisation" });
@@ -148,9 +148,9 @@ describe("le non-rappel SURPRENANT est diagnostiqué — jamais le silence norma
     const m: MemoryData = { cards: [pm] };
     const sel = selectMemory({ text: "appelle pierre demain matin", convValues: [], memory: m });
     expect(sel.cards).toEqual([]);
-    expect(sel.block).toBe(""); // rien n'est injecté…
-    expect(sel.skipped).toEqual([{ id: pm.id, reason: "homographe" }]); // …mais c'est dit
-    // Le nom ENTIER, lui, part normalement — et sans diagnostic parasite.
+    expect(sel.block).toBe(""); // nothing is injected…
+    expect(sel.skipped).toEqual([{ id: pm.id, reason: "homographe" }]); // …but it is said
+    // The WHOLE name, itself, goes out normally — and with no stray diagnostic.
     const full = selectMemory({ text: "rappelle pierre marché", convValues: [], memory: m });
     expect(full.cards).toHaveLength(1);
     expect(full.skipped).toEqual([]);
@@ -175,10 +175,10 @@ describe("the injection is protectable WITHOUT a detector", () => {
   });
 
   it("une entité/alias qui est un MOT DU LEXIQUE n'est jamais forcée — le bug « ashcombe »", () => {
-    // Journal 01/08 : une extraction ratée avait rangé « dossiers » comme organisation ;
-    // forcé, il a mint dossiers→ashcombe et le message d'erreur du connecteur est arrivé
-    // au modèle en « hors des ashcombe autorisés ». Un mot du lexique courant n'est pas
-    // du PII connu — il ne doit JAMAIS entrer au coffre via le forced mémoire.
+    // Log 01/08: a failed extraction had filed « dossiers » as an organisation;
+    // forced, it minted dossiers→ashcombe and the connector's error message reached the
+    // model as « hors des ashcombe autorisés ». A word of the common lexicon is not
+    // known PII — it must NEVER enter the vault through the memory forced list.
     const data: MemoryData = {
       profile: "",
       cards: [
@@ -194,9 +194,9 @@ describe("the injection is protectable WITHOUT a detector", () => {
   });
 
   it("une entité FRAGMENT DE PHRASE (fiche corrompue existante) ne mint jamais de faux", () => {
-    // Journal 02/08 : une fiche héritée « Les deux fichiers sont des… » (organisation)
-    // devenait « Brightpath capitalshojojkxm » à chaque injection. Le garde d'extraction
-    // empêche les nouvelles ; ce garde-ci neutralise celles déjà stockées.
+    // Log 02/08: an inherited card « Les deux fichiers sont des… » (organisation)
+    // became « Brightpath capitalshojojkxm » on every injection. The extraction guard
+    // stops the new ones; this guard neutralises those already stored.
     const data: MemoryData = {
       profile: "",
       cards: [
@@ -211,14 +211,14 @@ describe("the injection is protectable WITHOUT a detector", () => {
   });
 
   it("filterNotoriousFromForced retire une MARQUE notoire (alias fournisseur) quand le niveau l'épargne — le bug « Ostrel Drive »", () => {
-    // Le journal du 30/07 : la fiche Karl Studio portait « google » (fournisseur) en
-    // alias ; forcé, il mintait google→ostrel malgré la dispense de notoriété du
-    // niveau, et le vault réécrivait le prompt entier — « Ostrel Drive », connecteur
-    // introuvable pour le modèle.
+    // The log of 30/07: the Karl Studio card carried « google » (a provider) as an
+    // alias; forced, it minted google→ostrel despite the level's notoriety exemption,
+    // and the vault rewrote the whole prompt — « Ostrel Drive », a connector the model
+    // could not find.
     const forced = [
-      { value: "Karl Studio", category: "ORG" }, // l'entreprise de l'utilisateur : reste forcée
-      { value: "google", category: "ORG" }, // marque COMMERCIALE notoire, casse du fait mémoire
-      { value: "augustin.vaudel@karl-studio.fr", category: "EMAIL" }, // jamais notoire → reste
+      { value: "Karl Studio", category: "ORG" }, // the user's company: stays forced
+      { value: "google", category: "ORG" }, // notorious COMMERCIAL brand, breaks the memory fact
+      { value: "augustin.vaudel@karl-studio.fr", category: "EMAIL" }, // never notorious → stays
     ];
     const spared = filterNotoriousFromForced(forced, { commercial: true, people: true });
     expect(spared).toEqual(
@@ -228,9 +228,9 @@ describe("the injection is protectable WITHOUT a detector", () => {
       ]),
     );
     expect(spared.some((f) => f.value === "google")).toBe(false);
-    // En STRICT (`commercial: false`), une marque COMMERCIALE n'est plus épargnée par la
-    // détection — le forced doit donc la garder : la protection reste entière. (Le set
-    // inconditionnel — pays, tickers, institutions — suit le moteur, comme en détection.)
+    // In STRICT mode (`commercial: false`), a COMMERCIAL brand is no longer spared by
+    // detection — the forced list must therefore keep it: the protection stays whole. (The
+    // unconditional set — countries, tickers, institutions — follows the engine, as in detection.)
     const strict = filterNotoriousFromForced(forced, { commercial: false, people: false });
     expect(strict).toEqual(forced);
   });
@@ -255,9 +255,9 @@ describe("memoryForcedForBlock — le PROFIL est couvert par le forced", () => {
 
 describe("memoryForced — un nom de fiche qui est un MOT DU LANGAGE n'est jamais forcé", () => {
   it("une note « dossiers » ne redacted pas le mot commun de toute la conversation", () => {
-    // Le cas mesuré : la note générique force-redact « dossiers », et « à quels
-    // dossiers as-tu accès ? » partait mutilé (« à quels brantley… ») — question ET
-    // recherche mémoire détruites. Un mot commun n'identifie personne : pas de forced.
+    // The measured case: the generic note force-redacted « dossiers », and « à quels
+    // dossiers as-tu accès ? » went out mutilated (« à quels brantley… ») — question AND
+    // memory search destroyed. A common word identifies nobody: no forced entry.
     const cards = [
       { entity: "dossiers", cat: "autre", text: "dossiers", aliases: [] },
       { entity: "Karl Studio", cat: "organisation", text: "…", aliases: ["karl"] },

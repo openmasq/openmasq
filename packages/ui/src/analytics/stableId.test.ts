@@ -2,25 +2,25 @@ import { BRAND } from "@openmasq/branding";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 /**
- * L'IDENTITÉ de l'app doit être STABLE — et l'ancienne forme ne l'était pas.
+ * The app's IDENTITY must be STABLE — and the old shape was not.
  *
- * Elle poussait l'`installId` (`adoptStableId`) depuis le démarrage du renderer, en
- * parallèle, et pariait que la file d'attente du sink durerait plus longtemps que
- * l'aller-retour IPC. Deux façons de perdre ce pari, toutes deux GRAVÉES puisque
+ * It pushed the `installId` (`adoptStableId`) from the renderer's startup, in parallel,
+ * and bet that the sink's queue would outlast the IPC round-trip. Two ways to lose that
+ * bet, both ENGRAVED since adoption never overwrites an id already set:
  * l'adoption n'écrase jamais un id déjà posé :
- *   • la file part la première → un `anon-…` aléatoire est persisté ;
- *   • `updates.current()` échoue ou n'existe pas → idem.
- * L'install ne pouvait alors plus JAMAIS devenir stable. Mesuré dans PostHog le 12/08 :
- * 291 identités `anon-…` contre 46 uuid, dont une neuve le jour même.
+ *   • the queue leaves first → a random `anon-…` is persisted;
+ *   • `updates.current()` fails or does not exist → same.
+ * The install could then NEVER become stable again. Measured in PostHog on 12/08:
+ * 291 `anon-…` identities against 46 uuids, one of them brand new that same day.
  *
- * Ces cas épinglent l'ordre de résolution et, surtout, ce qui est PERSISTÉ.
+ * These cases pin the resolution order and, above all, what is PERSISTED.
  */
 
 const KEY = `${BRAND.slug}.analytics.aid`;
 const UUID = "6f1e4c2a-0b7d-4a91-9f33-2c8e5a71b0d4";
 
-// Le module lit `localStorage` au premier appel : un faux suffit, et il doit être posé
-// AVANT l'import (le module est évalué une fois).
+// The module reads `localStorage` on the first call: a fake is enough, and it must be set
+// BEFORE the import (the module is evaluated once).
 const store = new Map<string, string>();
 vi.stubGlobal("localStorage", {
   getItem: (k: string) => store.get(k) ?? null,
@@ -39,7 +39,7 @@ describe("id d'analytics — stable, et jamais gelé sur un repli", () => {
   it("adopte l'id de la plateforme sur une install NEUVE, et le persiste", async () => {
     setStableIdSource(async () => UUID);
     expect(await analyticsDistinctId()).toBe(UUID);
-    // Persisté : un profil vidé le retrouvera par la plateforme, un profil intact par ici.
+    // Persisted: a wiped profile finds it again through the platform, an intact one here.
     expect(store.get(KEY)).toBe(UUID);
   });
 
@@ -47,8 +47,8 @@ describe("id d'analytics — stable, et jamais gelé sur un repli", () => {
     let resolve!: (v: string) => void;
     setStableIdSource(() => new Promise<string>((r) => (resolve = r)));
     const inFlight = analyticsDistinctId();
-    // La résolution est en attente : le sink `await` cette promesse, donc aucun événement
-    // ne peut être envoyé sous un id provisoire.
+    // The resolution is pending: the sink `await`s this promise, so no event can be sent
+    // under a provisional id.
     resolve(UUID);
     expect(await inFlight).toBe(UUID);
     expect(store.get(KEY)).toBe(UUID);
@@ -67,8 +67,8 @@ describe("id d'analytics — stable, et jamais gelé sur un repli", () => {
     });
     const id = await analyticsDistinctId();
     expect(id).toMatch(/^anon-/);
-    // LE point du correctif : rien en localStorage, donc l'install n'est pas condamnée à
-    // cet id. Auparavant il y était écrit, et l'adoption n'écrasant jamais, c'était fini.
+    // THE point of the fix: nothing in localStorage, so the install is not condemned to
+    // this id. It used to be written there, and adoption never overwriting, that was that.
     expect(store.get(KEY)).toBeUndefined();
   });
 
@@ -79,8 +79,8 @@ describe("id d'analytics — stable, et jamais gelé sur un repli", () => {
   });
 
   it("SANS source du tout, l'aléatoire est persisté — c'est le mieux disponible", async () => {
-    // Mobile / aperçu web : aucune plateforme n'offre d'id. Ne pas persister ferait une
-    // « personne » par lancement, ce qui est exactement le mal qu'on soigne.
+    // Mobile / web preview: no platform offers an id. Not persisting would make one
+    // "person" per launch, which is exactly the ill being cured.
     const id = await analyticsDistinctId();
     expect(id).toMatch(/^anon-/);
     expect(store.get(KEY)).toBe(id);

@@ -7,17 +7,17 @@
    owns its selectors alone. @import rules MUST lead the file — Lightning CSS
    silently DROPS one placed below any other rule.
 
-   ⚠️ **700 est le poids le plus lourd que cette famille puisse demander.** Les titres
-   d'écran passent par `--font-display`, c'est-à-dire Space Grotesk, et le paquet n'embarque
-   que 400/500/600/700 (`@fontsource`, en tête de `../styles.css` — Archivo n'est PAS
-   installé). Demander 800 ne charge rien : le moteur SYNTHÉTISE le gras, et un titre
-   faux-bold bave au lieu d'appuyer. C'est aussi ce que le kit `chat-app-mobile` a corrigé
-   de son côté en retirant Archivo de ses fontes.
+   ⚠️ **700 is the heaviest weight this family can ask for.** Screen titles
+   go through `--font-display`, meaning Space Grotesk, and the package only bundles
+   400/500/600/700 (`@fontsource`, at the top of `../styles.css` — Archivo is NOT
+   installed). Asking for 800 loads nothing: the engine SYNTHESIZES the bold, and a
+   faux-bold title smears instead of standing firm. That's also what the `chat-app-mobile`
+   kit fixed on its own side by removing Archivo from its fonts.
 
-   Deux natures d'encre, et la règle 12 tient aux deux : ce qui se pose SUR `--brand` prend
-   `--brand-contrast` (jamais un `#fff` — le thème sombre re-pointe la marque sur le lime
-   clair) ; ce qui a besoin d'un quasi-noir à soi (voile de feuille, ombre portée) prend
-   `rgb(var(--ink-neutral) / N%)`, la même encre neutre que les filets.
+   Two natures of ink, and rule 12 holds for both: what sits ON `--brand` takes
+   `--brand-contrast` (never a `#fff` — the dark theme re-points the brand at the light
+   lime); what needs its own near-black (sheet veil, drop shadow) takes
+   `rgb(var(--ink-neutral) / N%)`, the same neutral ink as the rules.
 
    Two kinds of rule live here, and the difference is the migration itself:
    `.app-mobile .<desktop-class>` OVERRIDES a desktop surface (a screen not yet

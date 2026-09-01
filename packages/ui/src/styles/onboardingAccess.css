@@ -1,11 +1,11 @@
-/* ═══ Écran d'accueil, étape « Accès aux modèles » — le choix abonnement / clé, la
-   connexion OAuth OpenRouter et la saisie manuelle. Sortie de `styles.css` (règle 1 :
-   il ne pouvait plus grossir, et c'est précisément ce que le ratchet doit provoquer).
+/* ═══ Onboarding screen, « Accès aux modèles » step — the subscription/key choice, the
+   OpenRouter OAuth connection and manual entry. Pulled out of `styles.css` (rule 1:
+   it couldn't grow any further, and that's exactly what the ratchet is meant to provoke).
 
-   ⚠️ Son `@import` doit rester parmi les @import DE TÊTE de `styles.css` : Lightning CSS
-   droppe silencieusement un @import placé sous le bloc `@theme`. Famille uniquement
-   préfixée, aucun de ses sélecteurs n'est redéclaré plus haut — vérifié avant
-   l'extraction, ce qui rend sa place dans la cascade indifférente. ═══ */
+   ⚠️ Its `@import` must stay among the LEADING @imports of `styles.css`: Lightning CSS
+   silently drops an @import placed below the `@theme` block. Uniquely-prefixed
+   family, none of its selectors is redeclared higher up — verified before
+   extraction, which makes its place in the cascade indifferent. ═══ */
 /* Step « Accès aux modèles » — the subscription-vs-key choice. Two selectable cards,
    then the key form (provider chips + a write-only password input) under the second. */
 .ob-access {
@@ -36,8 +36,8 @@
   gap: 4px;
   min-width: 0;
 }
-/* La pastille de sélection : ce sont DEUX faces d'un même choix, pas deux boutons — la
-   bordure seule portait cette information, et elle ne se voit qu'en comparant. */
+/* The selection dot: these are TWO faces of the same choice, not two buttons — the
+   border alone carried that information, and it only shows up by comparing. */
 .ob-access-radio {
   flex: none;
   margin-top: 2px;
@@ -95,8 +95,8 @@
   border-color: var(--brand);
   color: var(--text-strong);
 }
-/* « conseillé » — une recommandation, pas un état : ton de la marque, jamais un
-   remplissage, pour qu'elle ne se lise pas comme une puce sélectionnée. */
+/* « conseillé » — a recommendation, not a state: the brand's tone, never a
+   fill, so it doesn't read as a selected chip. */
 .ob-access-tag {
   font-family: var(--font-mono);
   font-size: 9px;
@@ -135,8 +135,8 @@
   font-weight: 600;
   cursor: pointer;
 }
-/* « Connecter mon compte OpenRouter » — l'action PRIMAIRE de ce panneau : elle évite le
-   copier-coller d'une clé, donc elle passe avant le champ. */
+/* « Connecter mon compte OpenRouter » — the PRIMARY action of this panel: it avoids
+   copy-pasting a key, so it comes before the field. */
 .ob-access-connect {
   width: 100%;
   padding: 9px 14px;
@@ -155,7 +155,7 @@
   opacity: 0.6;
   cursor: default;
 }
-/* Le séparateur « ou » entre les deux voies — un filet de part et d'autre du mot. */
+/* The « ou » separator between the two paths — a rule on either side of the word. */
 .ob-access-or {
   display: flex;
   align-items: center;
@@ -186,8 +186,8 @@
   font-size: var(--text-xs);
   color: var(--text-faint);
 }
-/* La porte de sortie de la voie en 1 clic (« j'ai déjà une clé », « la créer à la main »).
-   Un lien, pas un bouton : elle ne doit pas concurrencer l'action primaire au-dessus. */
+/* The escape hatch from the 1-click path (« j'ai déjà une clé », « la créer à la main »).
+   A link, not a button: it must not compete with the primary action above. */
 .ob-access-manual {
   align-self: flex-start;
   padding: 0;
@@ -207,9 +207,9 @@
   font-size: var(--text-xs);
   color: var(--danger, #b3261e);
 }
-/* La checklist et son lien officiel viennent de la famille `.byo-*` (modal/forms.css) —
-   une seule forme pour « voici comment obtenir vos identifiants », ici comme dans la
-   connexion d'un connecteur. Seule l'insertion dans cette colonne est à régler. */
+/* The checklist and its official link come from the `.byo-*` family (modal/forms.css) —
+   one single shape for « voici comment obtenir vos identifiants », here as in a
+   connector's connection. Only the insertion into this column needs settling. */
 .ob-access-key .byo-link {
   align-self: flex-start;
 }

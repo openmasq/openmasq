@@ -192,10 +192,10 @@
   font-family: var(--font-sans);
   transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out);
 }
-/* ⚠️ Le fond de survol est `--brand-tint`, PAS une teinte `--hl-*` : cette palette est la
-   langue du REDACTION (une couleur y dit « cette valeur est un téléphone »), jamais du
-   décor — `components/CLAUDE.md`. Elle valait ici `--hl-lime-soft`, donc un citron collé
-   à une marque indigo, sous une carte qui ne redacted rien. */
+/* ⚠️ The hover fill is `--brand-tint`, NOT an `--hl-*` tint: that palette is the
+   language of REDACTION (a colour there says « cette valeur est un téléphone »), never
+   decoration — `components/CLAUDE.md`. It was `--hl-lime-soft` here, so a lime stuck
+   next to an indigo brand, under a card that redacts nothing. */
 .om-create-card:hover {
   border-color: var(--brand);
   background: var(--brand-tint);
@@ -215,9 +215,9 @@
 .om-create-card:hover .om-create-card-plus {
   border-color: var(--brand);
   background: var(--brand);
-  /* Sur un fond de MARQUE, l'encre est celle qui bascule avec elle (règle 12) :
-     `--text-strong` vire quasi-noir sur le thème clair et blanc sur les sombres — elle
-     suit le FOND DE PAGE, pas la pastille. */
+  /* On a BRAND fill, the ink is the one that flips with it (rule 12):
+     `--text-strong` turns near-black on the light theme and white on the dark ones — it
+     follows the PAGE ground, not the chip. */
   color: var(--brand-contrast);
 }
 .om-create-card-label {

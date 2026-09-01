@@ -1,9 +1,9 @@
-/* La famille MODALE, en trois parts (règle 2 : au-delà de 300 lignes, un dossier + un
-   barrel qui @importe ses parts — le modèle est `styles/skills/`). Sortie de `styles.css`,
-   qui ne rétrécissait plus (règle 1).
+/* The MODAL family, in three parts (rule 2: past 300 lines, a folder + a
+   barrel that @imports its parts — the model is `styles/skills/`). Pulled out of `styles.css`,
+   which wasn't shrinking anymore (rule 1).
 
-   ⚠️ Ce barrel doit rester parmi les @import DE TÊTE de `styles.css` — Lightning CSS
-   droppe silencieusement un @import placé sous le bloc `@theme`. */
+   ⚠️ This barrel must stay among the LEADING @imports of `styles.css` — Lightning CSS
+   silently drops an @import placed below the `@theme` block. */
 @import "./modal/shell.css";
 @import "./modal/forms.css";
 @import "./modal/sync.css";

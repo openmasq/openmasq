@@ -41,8 +41,8 @@
   background: var(--surface-hover);
   color: var(--text-strong);
 }
-/* Le CORPS défile, pas les sections : les onglets web et les sources de fichiers sont
-   empilés dans la même colonne, et deux ascenseurs dans 214 px sont deux fois trop. */
+/* The BODY scrolls, not the sections: the web tabs and file sources are
+   stacked in the same column, and two scrollbars in 214 px is twice too many. */
 .rr-body {
   display: flex;
   flex-direction: column;
@@ -162,11 +162,11 @@
   .rail-btn.driving .rail-tile { animation: none; box-shadow: 0 0 0 2px rgba(111, 194, 255, 0.75); }
 }
 
-/* ── Le PIED de la vue large : des LIGNES, pas des icônes ──
-   Commandes du panneau (si un panneau est ouvert) puis « Aide » / « Envoyer un avis ».
-   Dans 214 px où le titre, le groupe « Web » et chaque onglet portent un nom, deux
-   carrés nus en bas à gauche lisaient comme un reste du rail étroit — c'est le même
-   gabarit que `.rr-item`, en plus discret. */
+/* ── The FOOTER of the wide view: ROWS, not icons ──
+   Panel commands (if a panel is open) then « Aide » / « Envoyer un avis ».
+   In 214 px where the title, the « Web » group and each tab carry a name, two
+   bare squares at the bottom left read as a leftover from the narrow rail — it's the same
+   template as `.rr-item`, just more discreet. */
 .rr-foot {
   display: flex;
   flex-direction: column;

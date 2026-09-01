@@ -67,7 +67,7 @@
 /* The "/" palette's workflow rows — the shared action tile, tinted violet. */
 .composer-skill-wf-ico {
   background: var(--hl-violet-soft);
-  color: var(--ink-on-hl-violet); /* l'encre appariée au pastel, jamais --text-* (frozenInk) */
+  color: var(--ink-on-hl-violet); /* the ink paired to the pastel, never --text-* (frozenInk) */
 }
 
 /* Sidebar pinned workflows — same list chrome as the compétences' pins
@@ -86,10 +86,10 @@
   color: var(--ink-on-hl-violet);
 }
 
-/* Le DÉPLIANT « Connecteurs » de la modale de compétence. Replié par défaut : écrire un
-   prompt de prose ne doit pas demander de savoir ce qu'est un connecteur — c'est ce qui
-   permet à une seule modale de servir les deux usages sans peser sur le plus courant.
-   Le résumé sur la ligne dit l'état sans qu'on ouvre. */
+/* The « Connecteurs » DISCLOSURE in the compétence modal. Collapsed by default: writing a
+   prose prompt shouldn't require knowing what a connector is — that's what
+   lets a single modal serve both uses without weighing on the more common one.
+   The row's summary states the state without opening it. */
 .om-skill-disclose {
   display: flex;
   align-items: center;

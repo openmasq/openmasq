@@ -113,11 +113,11 @@
   margin-top: 2px;
   line-height: 1.5;
 }
-/* Le rappel des spams — un TON NEUTRE, pas une alerte : ce n'est pas une panne, c'est une
-   indication. D'où le gris de `--text-faint` et l'absence de panneau teinté, qui le
-   rangeraient à côté de `.login-err` / `.login-offline`. Depuis le 18/08 il tient la place
-   du sous-titre à l'étape « envoyé » (il REMPLACE l'accusé d'envoi), d'où la marge qui
-   reprend celle de `.login-sub`. */
+/* The spam reminder — a NEUTRAL TONE, not an alert: this isn't a failure, it's an
+   indication. Hence the `--text-faint` grey and the absence of a tinted panel, which would
+   file it alongside `.login-err` / `.login-offline`. Since 18/08 it takes the place
+   of the subtitle at the « envoyé » step (it REPLACES the send acknowledgement), hence the margin that
+   reuses `.login-sub`'s. */
 .login-hint {
   display: flex;
   align-items: flex-start;
@@ -131,8 +131,8 @@
 }
 .login-hint-icon {
   flex: 0 0 auto;
-  /* Aligné sur la PREMIÈRE ligne de texte, pas centré sur le bloc : la phrase passe sur
-     deux lignes dans une carte étroite. */
+  /* Aligned on the FIRST line of text, not centered on the block: the sentence wraps
+     onto two lines in a narrow card. */
   margin-top: 3px;
 }
 .login-code-row {

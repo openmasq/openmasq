@@ -1,14 +1,14 @@
-/* ================================================= L'encre neutre, en composantes ==
-   Le ramp de `styles.css` donne l'encre en HEX (`--warm-900`) et les filets en alpha
-   figée (`--border-subtle` = cette encre à 10 %). Ce qui manquait, c'est la même encre
-   utilisable à une alpha CHOISIE : un voile de feuille (42 %), une ombre portée (35 %).
-   Sans elle on réécrit un `rgba(11, 21, 5, …)` à la main, et ce vert-là rouvre celui que
-   le ramp neutre a fermé — c'est comme ça que la famille mobile a gardé six valeurs
-   forêt bien après que les filets soient passés au neutre.
+/* ===================================================== Neutral ink, in components ==
+   `styles.css`'s ramp gives the ink in HEX (`--warm-900`) and the hairlines in a frozen
+   alpha (`--border-subtle` = that ink at 10%). What was missing is the same ink
+   usable at a CHOSEN alpha: a leaf veil (42%), a drop shadow (35%).
+   Without it one rewrites an `rgba(11, 21, 5, …)` by hand, and that green reopens the one
+   the neutral ramp closed — that's how the mobile family kept six forest
+   values well after the hairlines had moved to neutral.
 
-   Usage : `rgb(var(--ink-neutral) / 35%)`. Consommée aujourd'hui par `styles/mobile/` ;
-   `.modal-scrim` (styles/modals.css) et les `--shadow-*` figent encore la leur — les y
-   amener est le reste du chemin, et ce fichier est leur destination. */
+   Usage: `rgb(var(--ink-neutral) / 35%)`. Consumed today by `styles/mobile/`;
+   `.modal-scrim` (styles/modals.css) and the `--shadow-*` still freeze their own — bringing
+   them here is the rest of the path, and this file is their destination. */
 
 :root {
   --ink-neutral: 10 12 30;

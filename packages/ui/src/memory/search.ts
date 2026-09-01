@@ -4,8 +4,8 @@ import type { MemoryData } from "../types";
 import { memoryCategoryLabel, normalizeMem } from "./memory";
 import { fmtDay } from "./select";
 
-/** Le bloc injecté est lu par le MODÈLE, jamais affiché : il garde la langue source,
- *  comme le reste du prompt système. */
+/** The injected block is read by the MODEL, never displayed: it keeps the source
+ *  language, like the rest of the system prompt. */
 const SOURCE = getMessages(DEFAULT_LOCALE);
 
 /**
@@ -15,18 +15,18 @@ const SOURCE = getMessages(DEFAULT_LOCALE);
  * way (entity, category label, facts, dated), both are re-redacted downstream.
  */
 
-/** Plancher du rappel sémantique de `memory_search` — SOUS le seuil de clustering
- *  (`cluster.ts` CLUSTER_MIN_SIM = 0.92, calibré fiche↔fiche) : une REQUÊTE est plus
- *  courte qu'une fiche et cote plus bas, et le résultat de `memory_search` est un
- *  contexte que le modèle juge (re-redacted, borné), pas une décision — l'erreur penche
- *  vers le rappel. Marge nette sur la base e5 (~0.85 entre textes sans rapport). */
+/** Floor of `memory_search`'s semantic recall — BELOW the clustering threshold
+ *  (`cluster.ts` CLUSTER_MIN_SIM = 0.92, calibrated card↔card): a QUERY is shorter than
+ *  a card and scores lower, and `memory_search`'s result is a context the model judges
+ *  (re-redacted, bounded), not a decision — the error leans toward recall. Clear margin
+ *  over the e5 baseline (~0.85 between unrelated texts). */
 const SEARCH_MIN_SIM = 0.88;
 
-/** `memory_search`, tier SÉMANTIQUE en plus du lexical : la question qui DÉCRIT une
- *  fiche sans la nommer (« mon client du secteur audio ») ne matchait aucun mot. Le
- *  lexical garde la priorité (exact bat proche) ; le sémantique complète jusqu'à `max`,
- *  au-dessus du plancher, via `host.memoryIndex.query` (embed sur l'appareil). Sans
- *  index (plateforme, bundle absent, erreur) : le lexical seul, comme avant. */
+/** `memory_search`, a SEMANTIC tier on top of the lexical one: the question that
+ *  DESCRIBES a card without naming it (« mon client du secteur audio ») matched no word.
+ *  The lexical tier keeps priority (exact beats close); the semantic one tops up to
+ *  `max`, above the floor, via `host.memoryIndex.query` (embedding on the device).
+ *  Without an index (platform, missing bundle, error): the lexical alone, as before. */
 export async function searchMemoryHybrid(
   memory: MemoryData | undefined,
   query: string,
@@ -41,7 +41,7 @@ export async function searchMemoryHybrid(
   try {
     hits = await semantic(query, max);
   } catch {
-    return lexical; // l'index est un bonus — son erreur ne casse jamais la recherche
+    return lexical; // the index is a bonus — its failure never breaks the search
   }
   const have = new Set(lines);
   for (const h of hits) {
@@ -49,7 +49,7 @@ export async function searchMemoryHybrid(
     const card = memory.cards.find((c) => c.id === h.id);
     if (!card) continue;
     const line = `${card.entity} (${memoryCategoryLabel(card.cat, SOURCE).toLowerCase()}) : ${card.facts} (noté le ${fmtDay(card.updatedAt)})`;
-    if (have.has(line)) continue; // déjà trouvée par le lexical
+    if (have.has(line)) continue; // already found by the lexical tier
     have.add(line);
     lines.push(line);
   }

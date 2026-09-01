@@ -190,11 +190,11 @@
   color: var(--text-muted);
 }
 
-/* ========================================= Avertissement d'utilité ==
-   pages/ChatWorkspace/utilityRisk.ts — la réponse va dépendre d'une donnée redacted
-   (âge depuis une date, « que fait X », distance entre lieux). Une ligne discrète
-   au-dessus des chips : elle informe, offre « garder en clair », n'empêche RIEN.
-   Tokens partagés uniquement (règle 12) : ambre = signal d'attention, pas d'alerte. */
+/* ================================================= Utility warning ==
+   pages/ChatWorkspace/utilityRisk.ts — the reply is going to depend on a redacted datum
+   (age from a date, « que fait X », distance between places). A discreet line
+   above the chips: it informs, offers « garder en clair », prevents NOTHING.
+   Shared tokens only (rule 12): amber = attention signal, not an alert. */
 .utility-risk {
   display: flex;
   align-items: center;
@@ -240,11 +240,11 @@
   opacity: 1;
 }
 
-/* Décompte PARTIEL — l'analyse approfondie a rendu les armes sur un texte long : le vert
-   « c'est compté » serait un mensonge, l'ambre dit « incomplet, et l'envoi ré-analyse »
-   (`composerDetection.ts` `previewStatus` porte le cas mesuré). Paire fond/encre de la
-   même échelle sémantique que les trois autres surfaces ambre, donc elle suit les thèmes
-   (règle 12) ; `cursor: help` annonce qu'une explication attend au survol. */
+/* PARTIAL count — the in-depth analysis threw in the towel on a long text: the green
+   « c'est compté » would be a lie, the amber says « incomplet, et l'envoi ré-analyse »
+   (`composerDetection.ts` `previewStatus` carries the measured case). Fill/ink pair of the
+   same semantic scale as the three other amber surfaces, so it follows the themes
+   (rule 12); `cursor: help` announces that an explanation awaits on hover. */
 .protected-pill.partial {
   background: var(--amber-soft);
   color: var(--amber-500);

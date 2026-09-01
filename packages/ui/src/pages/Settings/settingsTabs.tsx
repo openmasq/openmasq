@@ -33,10 +33,10 @@ import { tabAvailable, type SettingsCapabilities, type SettingsTabId as TabId } 
 export type SettingsGroup = "main" | "advanced";
 
 /**
- * L'ICÔNE et le GROUPE de chaque onglet, en ordre de rail. L'ÉTIQUETTE n'est pas ici : elle
- * vit dans le catalogue avec le titre et la phrase du même onglet (`settingsIndex.ts` →
- * `settings.tabs`), sinon le rail et l'en-tête nommeraient l'onglet deux fois — et une
- * traduction n'en corrigerait qu'un.
+ * The ICON and the GROUP of each tab, in rail order. The LABEL is not here: it lives in
+ * the catalogue with the title and the sentence of the same tab (`settingsIndex.ts` →
+ * `settings.tabs`), otherwise the rail and the header would name the tab twice — and a
+ * translation would fix only one of them.
  */
 const SETTINGS_NAV_SHAPE: { id: TabId; icon: ReactNode; group: SettingsGroup }[] = [
   { id: "account", icon: <UserIcon size={19} />, group: "main" },
@@ -58,9 +58,9 @@ export function settingsNav(t: Messages): { id: TabId; label: string; icon: Reac
 }
 
 /**
- * Les capacités de CETTE instance, lues sur l'hôte. Un créneau absent = le build n'a pas
- * reçu l'adresse du service (ou la plateforme ne sait pas le faire) : le dépôt privé `infra`.
- * Exposé pour que la palette ⌘K pose la même question que le rail, sans la recopier.
+ * The capabilities of THIS instance, read from the host. A missing slot = the build did
+ * not receive the service's address (or the platform cannot do it): the private `infra`
+ * repo. Exposed so the ⌘K palette asks the same question as the rail, without copying it.
  */
 export function useSettingsCapabilities(orgProfile?: OrgProfileInfo | null): SettingsCapabilities {
   const host = useHost();
@@ -73,9 +73,9 @@ export function useSettingsCapabilities(orgProfile?: OrgProfileInfo | null): Set
 }
 
 /**
- * L'ensemble d'onglets de CE build. La visibilité est une question de CAPACITÉ, jamais de
- * plateforme — et la règle elle-même vit dans `settingsIndex.ts` (`tabAvailable`), pour
- * que la palette ⌘K ne puisse pas offrir une destination que ce rail n'a pas.
+ * The tab set of THIS build. Visibility is a question of CAPABILITY, never of platform —
+ * and the rule itself lives in `settingsIndex.ts` (`tabAvailable`), so that the ⌘K palette
+ * cannot offer a destination this rail does not have.
  */
 export function useVisibleSettingsTabs(orgProfile?: OrgProfileInfo | null) {
   const caps = useSettingsCapabilities(orgProfile);

@@ -1,16 +1,16 @@
-/* La COUPE d'envoi dans la grille tableur (`SpreadsheetViewer`) — famille au préfixe
-   unique `.fv-row-unsent` / `.fv-cut-note`, définie nulle part ailleurs (la méthode de
-   packages/ui : sa position dans la cascade est alors indifférente).
+/* The send CUT in the spreadsheet grid (`SpreadsheetViewer`) — a family with the unique
+   prefix `.fv-row-unsent` / `.fv-cut-note`, defined nowhere else (the packages/ui
+   method: its position in the cascade is then indifferent).
 
-   Les lignes au-delà de la coupe ne quittent JAMAIS la machine : grisées, jamais
-   rendues « en clair comme si parties ». Opacité seule (aucun littéral de couleur),
-   les quatre thèmes tiennent. */
+   Rows beyond the cut NEVER leave the machine: greyed out, never
+   rendered « en clair comme si parties ». Opacity alone (no colour literal),
+   so it holds across all four themes. */
 .fv-row-unsent td,
 .fv-row-unsent th {
   opacity: 0.4;
 }
-/* Double classe : la base `.fv-sheet-note` est déclarée plus tard dans styles.css,
-   la spécificité — pas l'ordre — doit décider. */
+/* Double class: the base `.fv-sheet-note` is declared later in styles.css,
+   specificity — not order — must decide. */
 .fv-sheet-note.fv-cut-note {
   color: var(--text-body);
   padding: 6px 2px 2px;

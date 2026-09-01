@@ -1,5 +1,5 @@
-/* Partage — le badge de portée, les sections partagées et les affordances
-   « Partager » par élément (design ui_kits/chat-app). */
+/* Sharing — the scope badge, the shared sections and the per-item
+   « Partager » affordances (design ui_kits/chat-app). */
 
 /* ---- ScopeBadge (`.om-scope`) — tone rides a per-item CSS var. */
 .om-scope {

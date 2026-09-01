@@ -1,31 +1,31 @@
-/* ── `.om-console` — la coque des consoles d'administration ───────────────────────────
-   Elles chargent la MÊME feuille que le chat, mais ne sont pas une surface de chat : le
-   kit admin (`.claude/skills/design-system/ui_kits/admin`) est fait de surfaces bordées,
-   là où le chat aplatit tout. La marque sert deux fois.
+/* ── `.om-console` — the shell of admin consoles ──────────────────────────────────────
+   They load the SAME sheet as the chat, but aren't a chat surface: the
+   admin kit (`.claude/skills/design-system/ui_kits/admin`) is made of bordered surfaces,
+   where the chat flattens everything. The brand serves twice.
 
-   1. `styles.css` exclut cette coque de la peau sans bordure (`#root:not(:has(.om-console))`),
-      donc les hairlines et l'élévation du design system y restent — plutôt que de les
-      redéclarer ici, ce qui figerait le clair sous un thème sombre.
-   2. Ci-dessous : un `<a>` de console est de la CHROME (une entrée de nav, une entrée de
-      menu), pas de la prose. Or `a { color: var(--text-link) }` est HORS calque et bat
-      donc tout utilitaire Tailwind (calqué), quelle que soit la spécificité — la
-      navigation entière ressortait en indigo, `text-body` ou pas. `revert-layer` rend la
-      main aux calques inférieurs : l'utilitaire s'il existe, l'héritage sinon.
+   1. `styles.css` excludes this shell from the borderless skin (`#root:not(:has(.om-console))`),
+      so the design system's hairlines and elevation stay there — rather than
+      redeclaring them here, which would freeze light under a dark theme.
+   2. Below: a console `<a>` is CHROME (a nav entry, a menu entry),
+      not prose. But `a { color: var(--text-link) }` is OUT OF LAYER and so beats
+      any (layered) Tailwind utility, whatever the specificity — the
+      whole navigation came out indigo, `text-body` or not. `revert-layer` hands the
+      hand back to the lower layers: the utility if it exists, inheritance otherwise.
 
-   Épinglé par `styles/consoleSkin.test.ts`. */
+   Pinned by `styles/consoleSkin.test.ts`. */
 .om-console a {
   color: revert-layer;
 }
 
-/* Le reset que Tailwind n'applique PAS ici : son preflight est désactivé à dessein (le
-   reset de l'app garde la main), et celui de `styles.css` ne donne au `button` que sa
-   police. Un `<button>` nu garde donc la chrome du navigateur — `2px outset`, fond
-   `ButtonFace`, encre noire —, ce qui transformait en pastilles encadrées les lignes de
-   membres d'une équipe, les six pastilles de couleur et deux boutons-icônes.
-   ⚠️ Dans le calque `theme`, DÉLIBÉRÉMENT : déclaré hors calque, il battrait les
-   utilitaires Tailwind (calqués) et effacerait le fond des boutons pleins. `theme` est
-   déclaré avant `utilities` (les deux @import de tête de `styles.css`), donc une classe
-   reprend toujours la main. */
+/* The reset Tailwind does NOT apply here: its preflight is disabled on purpose (the
+   app's own reset keeps the hand), and `styles.css`'s only gives `button` its
+   font. A bare `<button>` therefore keeps the browser's chrome — `2px outset`, `ButtonFace`
+   fill, black ink —, which turned team-member rows, the six colour swatches
+   and two icon-buttons into framed pills.
+   ⚠️ In the `theme` layer, DELIBERATELY: declared out of layer, it would beat
+   the (layered) Tailwind utilities and erase solid buttons' fill. `theme` is
+   declared before `utilities` (the two leading @imports of `styles.css`), so a class
+   always takes the hand back. */
 @layer theme {
   .om-console button {
     background: none;
@@ -34,11 +34,11 @@
   }
 }
 
-/* Le titre d'une modale de console suit le gabarit admin — 17 px / 600 en `--font-sans` —
-   et non le display lourd (Archivo 900, 24 px) que `.modal-header h2` donne aux modales du
-   chat : ici une modale est un formulaire (inviter, créer une équipe), pas une annonce.
-   Impossible en utilitaire au point d'appel, pour la raison ci-dessus : `.modal-header h2`
-   est hors calque et bat toute classe Tailwind. */
+/* A console modal's title follows the admin template — 17 px / 600 in `--font-sans` —
+   not the heavy display (Archivo 900, 24 px) that `.modal-header h2` gives chat
+   modals: here a modal is a form (invite, create a team), not an announcement.
+   Impossible as a utility at the call site, for the reason above: `.modal-header h2`
+   is out of layer and beats any Tailwind class. */
 .om-console .modal-header h2 {
   font-family: var(--font-sans);
   font-size: var(--text-md);
@@ -46,21 +46,21 @@
   letter-spacing: normal;
 }
 
-/* ═══ LA COQUE À TROIS COLONNES ══════════════════════════════════════════════════════
-   Portée telle quelle de `.claude/skills/design-system/ui_kits/_shared/console.css` — la
-   source de design, jamais éditée depuis ici. Rail d'ICÔNES pour les groupes → PANNEAU qui
-   nomme le groupe courant et liste ses vues → CARTE de contenu.
+/* ═══ THE THREE-COLUMN SHELL ═════════════════════════════════════════════════════════
+   Carried as-is from `.claude/skills/design-system/ui_kits/_shared/console.css` — the
+   design source, never edited from here. ICON rail for groups → PANEL that
+   names the current group and lists its views → content CARD.
 
-   ⚠️ Pourquoi trois colonnes et pas deux, puisque la précédente marchait : une barre plate
-   de dix entrées fait concourir tous les libellés au même niveau, donc rien ne se lit comme
-   une hiérarchie. Séparer le rail du panneau fait du groupe un endroit où l'on EST — le
-   panneau le nomme — et laisse la carte porter son propre titre, ses actions et ses onglets
-   sans un second entête empilé au-dessus.
+   ⚠️ Why three columns and not two, since the previous one worked: a flat bar
+   of ten entries makes every label compete at the same level, so nothing reads as
+   a hierarchy. Separating the rail from the panel makes the group a place one IS AT — the
+   panel names it — and lets the card carry its own title, actions and tabs
+   without a second header stacked above it.
 
-   Tout est scopé sous `.om-console` : ces noms de classe ne peuvent donc jamais atteindre le
-   chat, qui possède `.om-settings-rail` avec une autre géométrie. Les deux consoles (admin
-   et opérateur) lisent cette feuille — c'est ce qui les empêche de diverger.
-   ═══════════════════════════════════════════════════════════════════════════════════ */
+   Everything is scoped under `.om-console`: these class names can therefore never reach the
+   chat, which has `.om-settings-rail` with a different geometry. Both consoles (admin
+   and operator) read this sheet — that's what stops them from diverging.
+   ══════════════════════════════════════════════════════════════════════════════════ */
 
 .om-console {
   display: flex;
@@ -148,12 +148,12 @@
   font-weight: 700;
 }
 .om-console-pico { display: inline-flex; flex-shrink: 0; color: var(--text-faint); }
-/* ⚠️ ADAPTATION au produit, pas au kit : nos entrées de panneau sont des `<a>` (la console
-   se cite par URL, donc lien profond, clic-milieu et bouton Retour), là où le kit a des
-   `<button>` d'état. Or `.om-console a { color: revert-layer }` ci-dessus vaut (0,1,1) et
-   bat la classe (0,1,0) : les entrées inactives ressortaient en couleur de LIEN, indigo,
-   toutes au même niveau que l'entrée active. On requalifie par le conteneur — jamais
-   `!important`, la même règle que le reste de ce fichier. */
+/* ⚠️ ADAPTED to the product, not to the kit: our panel entries are `<a>` (the console
+   is cited by URL, hence deep link, middle-click and the Back button), where the kit has
+   stateful `<button>`s. But `.om-console a { color: revert-layer }` above scores (0,1,1) and
+   beats the (0,1,0) class: inactive entries came out in LINK colour, indigo,
+   all at the same level as the active entry. We requalify via the container — never
+   `!important`, the same rule as the rest of this file. */
 .om-console .om-console-pbtn { color: var(--text-body); }
 .om-console .om-console-pbtn:hover,
 .om-console .om-console-pbtn[data-on="1"] { color: var(--text-strong); }

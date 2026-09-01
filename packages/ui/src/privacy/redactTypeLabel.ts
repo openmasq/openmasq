@@ -2,21 +2,21 @@ import type { Messages } from "@openmasq/i18n";
 import type { RedactType } from "@openmasq/redact";
 
 /**
- * L'étiquette LUE d'un type de redaction manuel.
+ * The READ label of a manual redaction type.
  *
- * Le vocabulaire technique — la clé et le `token` du moteur — reste dans
- * `@openmasq/redact` : c'est SA langue, et le moteur tourne aussi côté serveur, sans
- * catalogue. Seul le mot montré à l'utilisateur vient d'ici.
+ * The technical vocabulary — the engine's key and `token` — stays in `@openmasq/redact`:
+ * that is ITS language, and the engine also runs server-side, with no catalogue. Only the
+ * word shown to the user comes from here.
  *
- * Le `label` français porté par `REDACT_TYPES` reste le repli : deux paquets ne peuvent pas
- * s'imposer une clé par le compilateur, et l'extension de navigateur — hors de ce dépôt —
- * lit encore ce champ. Ce qui empêche les deux listes de diverger n'est donc pas un type
- * mais un test qui LIT les deux (`redactTypeLabel.test.ts`, règle 9).
+ * The French `label` carried by `REDACT_TYPES` stays the fallback: two packages cannot
+ * force a key on each other through the compiler, and the browser extension — outside this
+ * repo — still reads that field. What keeps the two lists from diverging is therefore not
+ * a type but a test that READS both (`redactTypeLabel.test.ts`, rule 9).
  */
 export function redactTypeLabel(type: RedactType, t: Messages): string {
-  // `as unknown as` : le catalogue est une interface FERMÉE (ses clés sont un littéral),
-  // la liste du moteur un tableau de `string` — TypeScript refuse de les rapprocher, et il
-  // a raison : c'est précisément le trou que `redactTypeLabel.test.ts` bouche.
+  // `as unknown as`: the catalogue is a CLOSED interface (its keys are a literal), the
+  // engine's list an array of `string` — TypeScript refuses to bring them together, and it
+  // is right: that is precisely the hole `redactTypeLabel.test.ts` plugs.
   const table = t.redactTypes as unknown as Record<string, string | undefined>;
   return table[type.key] ?? type.label;
 }

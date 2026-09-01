@@ -1,8 +1,8 @@
-/* ═══ Grille ⇄ liste : la bascule, et les rangées qu'elle révèle ═══
-   Une seule famille pour les TROIS écrans qui listent des objets (Bibliothèque,
-   Compétences, Workflows) — c'est ce qui fait qu'une liste se lit pareil partout. */
+/* ═══ Grid ⇄ list: the toggle, and the rows it reveals ═══
+   ONE family for the THREE screens that list objects (Bibliothèque,
+   Compétences, Workflows) — that's what makes a list read the same everywhere. */
 
-/* ── La bascule ─────────────────────────────────────────────────────────────── */
+/* ── The toggle ─────────────────────────────────────────────────────────────── */
 .om-viewmode {
   display: inline-flex;
   gap: 2px;
@@ -26,8 +26,8 @@
   color: var(--text-strong);
   background: var(--surface-hover);
 }
-/* L'état actif porte l'encre du thème, jamais un #hex : le mode bleu-sombre re-pointe
-   `--surface-raised` et une valeur figée y perdrait tout contraste (règle 12). */
+/* The active state wears the theme's ink, never a #hex: blue-dark mode re-points
+   `--surface-raised` and a frozen value would lose all contrast there (rule 12). */
 .om-viewmode-btn.active {
   color: var(--text-strong);
   background: var(--surface-raised);
@@ -38,7 +38,7 @@
   outline-offset: 1px;
 }
 
-/* ── Les rangées ────────────────────────────────────────────────────────────── */
+/* ── The rows ────────────────────────────────────────────────────────────── */
 .om-rows {
   display: flex;
   flex-direction: column;
@@ -49,8 +49,8 @@
 }
 .om-row {
   display: grid;
-  /* marque · nom+détail · méta · actions — le nom est la SEULE colonne élastique, donc
-     c'est lui qui absorbe la largeur au lieu d'écarter les autres. */
+  /* mark · name+detail · meta · actions — the name is the ONLY elastic column, so
+     it's the one that absorbs the width instead of squeezing the others. */
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   gap: 12px;
   align-items: center;
@@ -85,8 +85,8 @@
   color: var(--text-muted);
   overflow: hidden;
 }
-/* Une vignette REMPLIT sa marque : à 30 px, `contain` laisse deux bandes vides qui font
-   lire l'image comme cassée. */
+/* A thumbnail FILLS its mark: at 30 px, `contain` leaves two empty bands that make
+   the image read as broken. */
 .om-row-mark img {
   width: 100%;
   height: 100%;
@@ -99,8 +99,8 @@
   display: block;
   font-weight: 500;
   color: var(--text-strong);
-  /* Une seule ligne : c'est ce qui fait tenir deux fois plus d'objets à l'écran, et donc
-     tout l'intérêt du mode liste. */
+  /* A single line: that's what fits twice as many objects on screen, and hence
+     the whole point of list mode. */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -128,8 +128,8 @@
   align-items: center;
   flex: none;
 }
-/* Les actions n'apparaissent qu'au survol sur pointeur FIN — au doigt il n'y a pas de
-   survol, donc les cacher les rendrait inatteignables. */
+/* The actions only appear on hover with a FINE pointer — with a finger there is no
+   hover, so hiding them would make them unreachable. */
 @media (hover: hover) and (pointer: fine) {
   .om-row-actions {
     opacity: 0;
@@ -140,15 +140,15 @@
   }
 }
 
-/* Sous 560 px la méta part : à cette largeur elle mange le nom, qui est ce qu'on lit. */
+/* Below 560 px the meta goes: at this width it eats into the name, which is what gets read. */
 @media (max-width: 560px) {
   .om-row-meta {
     display: none;
   }
 }
 
-/* La rangée « nouvelle … » : même gabarit, deux colonnes seulement — le nom prend la
-   place de la méta et des actions, qu'elle n'a pas. */
+/* The « new … » row: same template, only two columns — the name takes the
+   place of the meta and the actions, which it doesn't have. */
 .om-row-create {
   grid-template-columns: auto minmax(0, 1fr);
   color: var(--text-muted);
@@ -156,7 +156,7 @@
 .om-row-create .om-row-name {
   color: var(--text-strong);
 }
-/* L'objet que l'éditeur vise, ou la ligne cochée : la même marque que la carte. */
+/* The object the editor targets, or the checked row: the same mark as the card. */
 .om-row.is-selected {
   background: var(--surface-hover);
   box-shadow: inset 2px 0 0 var(--brand);
@@ -165,7 +165,7 @@
   display: inline-flex;
   gap: 2px;
   align-items: center;
-  /* Encre de thème, jamais un #hex : la rangée est posée sur `--surface-raised`, que le
-     mode sombre re-pointe (règle 12). */
+  /* Theme ink, never a #hex: the row sits on `--surface-raised`, which
+     dark mode re-points (rule 12). */
   color: var(--text-muted);
 }

@@ -99,7 +99,7 @@
 @theme inline {
   --color-brand: var(--brand);
   --color-brand-contrast: var(--brand-contrast);
-  --color-brand-tint: var(--brand-tint); /* `bg-brand-tint` : la nav active du kit admin */
+  --color-brand-tint: var(--brand-tint); /* `bg-brand-tint`: the admin kit's active nav */
   --color-surface-page: var(--surface-page);
   --color-surface-card: var(--surface-card);
   --color-surface-sunken: var(--surface-sunken);
@@ -1154,15 +1154,15 @@ button {
   color: var(--text-faint);
   background: var(--surface-sunken);
 }
-/* Le compteur de l'onglet SÉLECTIONNÉ porte la MARQUE — le bleu, comme son rail.
-   ⚠️ L'encre est `--brand-contrast`, PAS `--ink-on-brand` : mesuré, ce dernier vaut un
-   LIME sur les deux thèmes bleus (il est défini dans les blocs verts et n'y a jamais été
-   re-pointé), soit du citron sur de l'indigo. `--brand-contrast` suit réellement la
-   marque — lime sur le vert clair, quasi-noir sur le vert sombre, blanc sur les bleus —
-   donc la paire fond/encre bascule ENSEMBLE dans les quatre (règle 12).
-   Il portait avant un lime FIXE, que le thème ne re-tonait pas : il fallait un correctif
-   `[data-theme="blue"…]` avec deux hex gelés pour rattraper le vert sous l'accent bleu.
-   Les deux ont disparu avec lui. */
+/* The count on the SELECTED tab wears the MARK — blue, like its rail.
+   ⚠️ The ink is `--brand-contrast`, NOT `--ink-on-brand`: measured, the latter comes out
+   LIME on both blue themes (it's defined in the green blocks and was never
+   re-pointed there), i.e. lime on indigo. `--brand-contrast` genuinely follows the
+   brand — lime on light green, near-black on dark green, white on the blues —
+   so the fill/ink pair flips TOGETHER across all four (rule 12).
+   It used to wear a FIXED lime, which the theme didn't re-tone: a patch was needed,
+   `[data-theme="blue"…]` with two frozen hexes to catch up the green under the blue accent.
+   Both are gone along with it. */
 .lib-tab.on .lib-tab-count {
   background: var(--brand);
   color: var(--brand-contrast);
@@ -1243,11 +1243,11 @@ button {
   height: 100%;
   object-fit: cover;
 }
-/* La place de la vignette pendant que ses octets arrivent — une surface CALME.
-   Elle balayait comme les squelettes d'images de réponse, mais une bibliothèque en montre
-   vingt à la fois : vingt balayages simultanés attirent l'œil sur ce qui n'est pas encore
-   là plutôt que sur ce qui l'est. Sans mouvement, il n'y a plus rien à désactiver sous
-   `prefers-reduced-motion` — d'où la règle disparue avec l'animation. */
+/* The thumbnail's spot while its bytes arrive — a CALM surface.
+   It used to shimmer like the response-image skeletons, but a library shows
+   twenty at once: twenty simultaneous shimmers draw the eye to what isn't there yet
+   rather than to what already is. With no motion, there's nothing left to disable under
+   `prefers-reduced-motion` — hence the rule that vanished along with the animation. */
 .file-card-img-skeleton {
   width: 100%;
   height: 100%;
@@ -1391,8 +1391,8 @@ button {
   font-weight: 700;
 }
 
-/* Le filet qui sépare les MENUS de la LISTE. Porté par la liste et non par la nav : les
-   épingles s'intercalent entre les deux, posé ici il reste collé à ce qu'il annonce. */
+/* The hairline that separates the MENUS from the LIST. Carried by the list, not the nav:
+   pins slot in between the two, so placed here it stays stuck to what it announces. */
 .conv-list {
   flex: 1;
   overflow-y: auto;
@@ -1410,7 +1410,7 @@ button {
 }
 
 .conv-item {
-  position: relative; /* l'ancre des actions, qui sont hors flux — voir `.conv-actions` */
+  position: relative; /* anchor for the actions, which are out of flow — see `.conv-actions` */
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2256,9 +2256,9 @@ body.resizing-split {
   color: var(--text-faint);
   font-size: var(--text-sm);
 }
-/* Connecteur « browser » déconnecté : la raison + le geste qui la lève, à la place de la
-   page. `.vb-empty` centre déjà ; on ne fait qu'empiler et redonner de l'encre — un état
-   qui propose une ACTION n'est pas une note grise de plus. */
+/* Disconnected « browser » connector: the reason + the gesture that lifts it, in place of
+   the page. `.vb-empty` already centers; we're just stacking and giving back some ink — a
+   state that offers an ACTION isn't just one more grey note. */
 .vb-offline {
   flex-direction: column;
   gap: 10px;
@@ -2287,10 +2287,10 @@ body.resizing-split {
   color: var(--text-muted);
 }
 
-/* « Demander à propos de cette page » — l'action du pied du navigateur, à la place de
-   l'ancienne phrase de réassurance. Pleine largeur : c'est la seule chose de cette bande,
-   et une cible large se vise sans regarder. Discrète au repos (le pied reste du chrome),
-   elle prend la teinte de marque au survol — c'est une action, pas une légende. */
+/* « Demander à propos de cette page » — the browser footer's action, in place of
+   the old reassurance sentence. Full width: it's the only thing on that strip,
+   and a big target is aimed at without looking. Quiet at rest (the footer stays chrome),
+   it takes the brand tint on hover — it's an action, not a caption. */
 .vb-ask {
   display: flex;
   align-items: center;
@@ -2562,11 +2562,11 @@ body.resizing-split {
   text-align: center;
   /* The starters can overflow a short window — scroll rather than clip them. */
   overflow-y: auto;
-  /* ⚠️ `safe` n'est pas un ornement : centrer un contenu PLUS HAUT que son conteneur qui
-     défile pousse son début AU-DESSUS de l'origine du défilement, et `scrollTop` ne va pas
-     dans les négatifs — le bonjour devenait inatteignable, pas seulement coupé (mesuré :
-     −34 px à 700 px de fenêtre). `safe center` retombe sur `start` dès que ça déborde :
-     centré quand ça tient, lisible depuis le haut quand ça ne tient pas. */
+  /* ⚠️ `safe` is not an ornament: centering content TALLER than its scrolling container
+     pushes its start ABOVE the scroll origin, and `scrollTop` doesn't go
+     negative — the greeting became unreachable, not just cut off (measured:
+     −34px at a 700px window). `safe center` falls back to `start` as soon as it overflows:
+     centered when it fits, readable from the top when it doesn't. */
   justify-content: safe center;
 }
 
@@ -3499,8 +3499,8 @@ body.resizing-split {
 }
 .kb--redact .kb-ic {
   background: var(--forest-700);
-  /* Fond = constante de palette, donc encre claire dans les QUATRE thèmes : `--lime` vaut
-     #11160b sur les sombres (glyphe invisible), `--lime-bright` reste clair partout. */
+  /* Fill = palette constant, so a light ink across all FOUR themes: `--lime` is worth
+     #11160b on the dark ones (invisible glyph), `--lime-bright` stays light everywhere. */
   color: var(--lime-bright);
 }
 
@@ -3942,7 +3942,7 @@ body.resizing-split {
   padding: 14px 20px 0;
   flex-shrink: 0;
 }
-/* La ligne de note du viewer — la bascule Redacted⇄Original vit dans fvToggle.css. */
+/* The viewer's note line — the Redacted⇄Original toggle lives in fvToggle.css. */
 .fv-seg-note {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -4018,7 +4018,7 @@ body.resizing-split {
   background: var(--hl-amber-soft, #fff3e0);
   border: 1px solid var(--hl-amber, #f4b04c);
   font-size: var(--text-xs);
-  color: var(--ink-on-hl); /* jamais --text-* : le pastel ne s'inverse pas, l'encre si (frozenInk) */
+  color: var(--ink-on-hl); /* never --text-*: the pastel doesn't invert, the ink does (frozenInk) */
 }
 /* Inline "go to the Redacted tab" link inside a doc-view hint — a text button that
    reads as a link, not a chip. */
@@ -5353,10 +5353,10 @@ body.resizing-split {
 .composer-tag-srv.tone-mint { --mk: var(--hl-mint); --mk-ink: var(--ink-on-hl-mint); }
 .composer-tag-srv.tone-amber { --mk: var(--hl-amber); --mk-ink: var(--ink-on-hl-amber); }
 .composer-tag-srv.tone-coral { --mk: var(--hl-pink); --mk-ink: var(--ink-on-hl-pink); }
-/* Les VALEURS À RENSEIGNER d'un workflow staged (`{date}`, `{sujet}`) : contour, pas
-   pastille pleine — c'est un blanc à combler, pas une capacité acquise comme un
-   connecteur. Sans ce rappel, le prompt part avec ses accolades telles quelles et
-   l'utilisateur n'a rien vu passer (journal du 27/07/2026). */
+/* The VALUES TO FILL IN for a staged workflow (`{date}`, `{sujet}`): outline, not
+   a filled dot — it's a blank to fill in, not an acquired capability like a
+   connector. Without this reminder, the prompt goes out with its braces as-is and
+   the user never saw it happen (log from 27/07/2026). */
 .composer-tag-slot {
   display: inline-flex;
   align-items: center;
@@ -5641,19 +5641,19 @@ body.resizing-split {
   padding: 4px;
 }
 
-/* ── La vue SIMPLIFIÉE du sélecteur ────────────────────────────────────────────
-   Le même cadre que le Finder (`.model-finder` porte le fond, la bordure, l'ombre et
-   le clip), mais une seule colonne et une HAUTEUR LIBRE : cinq entrées dans un cadre
-   fixe de 330px laisseraient un grand vide sous la liste. D'où `max-height` ici et
-   `height` là-bas — la contrainte du navigateur à colonnes (un viewport stable qui
-   défile) n'a pas de sens sur une liste courte. */
+/* ── The selector's SIMPLIFIED view ────────────────────────────────────────────
+   The same frame as the Finder (`.model-finder` carries the fill, border, shadow and
+   clip), but a single column and a FREE HEIGHT: five entries in a fixed
+   330px frame would leave a big gap under the list. Hence `max-height` here and
+   `height` over there — the column-navigator constraint (a stable viewport that
+   scrolls) makes no sense on a short list. */
 .model-finder.simple {
   height: auto;
   display: flex;
   flex-direction: column;
 }
-/* L'intitulé d'un BLOC de la liste courte (`simpleMenuSections`) : mono, minuscule, encre
-   faible — il RANGE, il n'attire pas. Sa marge haute : `styles/modelPickerRow.css`. */
+/* The heading of a BLOCK in the short list (`simpleMenuSections`): mono, small, faint
+   ink — it ORGANIZES, it doesn't attract. Its top margin: `styles/modelPickerRow.css`. */
 .model-simple-sep {
   padding: 8px 10px 3px;
   color: var(--text-faint);
@@ -5668,8 +5668,8 @@ body.resizing-split {
   overflow-y: auto;
   padding: 4px;
 }
-/* Le retour vers la vue complète : une ligne pleine largeur, toujours visible, séparée
-   de la liste — pas un lien discret. Une bascule qu'on ne trouve pas est une impasse. */
+/* The way back to the full view: a full-width row, always visible, separated
+   from the list — not a discreet link. A toggle nobody can find is a dead end. */
 .model-simple-all {
   display: flex;
   align-items: center;
@@ -6225,11 +6225,11 @@ body.resizing-split {
 .redaction-mark.is-actionable {
   cursor: pointer;
 }
-/* Unredacted (« suspended ») = le redaction DISPARAÎT : la valeur redevient du texte
-   ordinaire. Jamais barrée ni estompée — un barré se lit comme « supprimé » alors que
-   l'item, lui, part en clair ; retirer la marque EST l'affichage honnête. L'élément
-   reste interactif : survol → « Reredact », et les chips / le journal gardent la
-   vue d'ensemble de ce qui est révélé. */
+/* Un-redacted (« suspended ») = the redaction DISAPPEARS: the value goes back to plain
+   text. Never struck through nor faded — a strikethrough reads as « deleted » whereas
+   the item, itself, goes out in clear; removing the mark IS the honest display. The element
+   stays interactive: hover → « Reredact », and the chips / the log keep the
+   overview of what's revealed. */
 .redaction-mark.suspended {
   background-image: none;
   color: inherit;
@@ -6454,11 +6454,11 @@ body.resizing-split {
   margin-top: 8px;
 }
 /* Redaction-log TABLE (type · réel · redacted · action) + per-row un-redaction. */
-/* ── Comparatif « ce que le modèle a vu » ────────────────────────────────────
-   Deux colonnes de MÊME largeur, jamais l'une plus étroite que l'autre : la lecture
-   est un aller-retour ligne à ligne, et une asymétrie fait chercher la correspondance
-   au lieu de la voir. `minmax(0, 1fr)` et non `1fr` — sans le `min`, un mot long
-   (une adresse, un IBAN) élargit sa colonne et casse la symétrie. */
+/* ── Comparison — « what the model saw » ─────────────────────────────────────
+   Two columns of the SAME width, never one narrower than the other: reading it
+   is a line-by-line back and forth, and an asymmetry makes you hunt for the match
+   instead of seeing it. `minmax(0, 1fr)` and not `1fr` — without the `min`, a long word
+   (an address, an IBAN) widens its column and breaks the symmetry. */
 .tsp-list {
   display: flex;
   flex-direction: column;
@@ -6486,8 +6486,8 @@ body.resizing-split {
   border-radius: var(--radius-md);
   background: var(--surface-card);
 }
-/* La colonne WIRE porte le fond creusé : c'est celle qui a quitté la machine, et la
-   distinguer d'un simple libellé évite de confondre les deux moitiés d'un coup d'œil. */
+/* The WIRE column wears the sunken fill: it's the one that left the machine, and
+   distinguishing it from a plain label avoids confusing the two halves at a glance. */
 .tsp-col-wire { background: var(--surface-hover); }
 .tsp-col-head {
   display: flex;
@@ -6505,8 +6505,8 @@ body.resizing-split {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-/* Étroit (fenêtre réduite, panneau scindé) : empilées plutôt que deux colonnes
-   illisibles. L'ordre reste « le vôtre » puis « ce qui est parti ». */
+/* Narrow (small window, split panel): stacked rather than two unreadable
+   columns. The order stays « yours » then « what left ». */
 @media (max-width: 720px) {
   .tsp-cols { grid-template-columns: minmax(0, 1fr); }
 }
@@ -7309,10 +7309,10 @@ button.sendmode-opt:hover {
   margin-right: 10px;
 }
 /* Settings → Privacy report (data-driven type colour + bar width stay inline). */
-/* ── Confidentialité : le niveau, l'état vide, le repli des règles ──────────────
+/* ── Privacy: the level, the empty state, the rules fold ────────────────────────
    Three cards for ONE decision, so the page opens on a choice instead of on a
    seventeen-row matrix. */
-/* Mémoire : les deux actions de l'en-tête (export debug + nouvelle fiche). */
+/* Mémoire: the two header actions (debug export + new card). */
 .om-mem-actions {
   display: flex;
   align-items: center;
@@ -7353,24 +7353,24 @@ button.sendmode-opt:hover {
   background: var(--surface-hover);
 }
 .privacy-level-custom { cursor: default; }
-/* ⚠️ Le commentaire qui ouvrait ici n'était JAMAIS refermé — séquelle du retrait de
-   l'ancien niveau « Navigation » : sa règle est partie, sa fermeture avec. En CSS un
-   commentaire ouvert avale tout jusqu'à la fermeture suivante, donc `.privacy-level-head`
-   entier était commenté et l'en-tête de chaque carte avait perdu son `display:flex`
-   (icône et nom empilés, la coche sans son `margin-left:auto`). Rien ne le signalait :
-   ni le build, ni un test — d'où `styles/comments.test.ts`. Ne JAMAIS écrire une
-   séquence de fermeture littérale dans une prose de commentaire : elle le referme. */
+/* ⚠️ The comment that opened here was NEVER closed — a casualty of removing
+   the old « Navigation » level: its rule left, its closing left with it. In CSS an
+   open comment swallows everything up to the next closing, so the ENTIRE
+   `.privacy-level-head` was commented out and every card's header had lost its `display:flex`
+   (icon and name stacked, the checkmark without its `margin-left:auto`). Nothing signaled it:
+   not the build, not a test — hence `styles/comments.test.ts`. NEVER write a
+   literal closing sequence in comment prose: it closes it right there. */
 .privacy-level-head {
   display: flex;
   align-items: center;
   gap: 8px;
   color: var(--text-strong);
 }
-/* Un niveau qui protège MOINS ne se signale plus que par son ICÔNE — l'œil au lieu du
-   bouclier (`PrivacyLevelPicker`) — et par la matrice dépliée sous les cartes, qui montre
-   ses cases décochées. L'étiquette « protection réduite » a existé ici ; sa règle est
-   partie avec elle plutôt que de rester en CSS mort. Les trois cartes portent le même
-   filet neutre, et c'est le fond qui dit laquelle est choisie. */
+/* A level that protects LESS is now only signaled by its ICON — the eye instead of the
+   shield (`PrivacyLevelPicker`) — and by the matrix unfolded under the cards, which shows
+   its unchecked boxes. The « reduced protection » label existed here once; its rule left
+   with it rather than stay behind as dead CSS. The three cards wear the same
+   neutral hairline, and it's the fill that says which one is chosen. */
 .privacy-level-name { font-weight: 600; font-size: var(--text-md); }
 .privacy-level-check { margin-left: auto; color: var(--brand); display: inline-flex; }
 .privacy-level-desc {
@@ -7378,8 +7378,8 @@ button.sendmode-opt:hover {
   color: var(--text-muted);
   line-height: 1.45;
 }
-/* La contrepartie du niveau — toujours affichée (règle 8) : plus discrète que la
-   description, jamais cachée. */
+/* The level's trade-off — always shown (rule 8): more discreet than the
+   description, never hidden. */
 .privacy-level-tradeoff {
   font-size: var(--text-xs);
   color: var(--text-muted);
@@ -7835,10 +7835,10 @@ button.sendmode-opt:hover {
   color: var(--text-body);
   white-space: nowrap;
 }
-/* Sélection = la MARQUE, avec l'encre faite pour elle (`--ink-on-brand`, mesurée dans
-   les quatre thèmes). Le couple `--forest-700`/`--lime` en dur laissait une pastille
-   vert forêt à côté du sélecteur de vue, sur une page devenue indigo — deux styles de
-   sélection sur un même écran, ce qui se lit comme deux mécaniques différentes. */
+/* Selection = the MARK, with the ink made for it (`--ink-on-brand`, measured across
+   the four themes). The hardcoded `--forest-700`/`--lime` pair left a forest-green
+   dot next to the view selector, on a page that had turned indigo — two selection
+   styles on the same screen, which reads as two different mechanisms. */
 .audit-chip.on {
   background: var(--brand);
   color: var(--ink-on-brand);
@@ -7854,7 +7854,7 @@ button.sendmode-opt:hover {
   padding: 0;
   overflow-x: auto;
 }
-/* Une carte PAR CONVERSATION : le coffre l'est, donc le journal aussi (`auditRows.ts`). */
+/* One card PER CONVERSATION: the coffre is, so the log is too (`auditRows.ts`). */
 .audit-list + .audit-list {
   margin-top: 10px;
 }
@@ -7869,9 +7869,9 @@ button.sendmode-opt:hover {
   padding: 11px 18px;
   min-width: 560px;
 }
-/* L'en-tête du groupe porte ce qui appartient à la CONVERSATION et non à la valeur : son
-   titre, son compte, et sa date — le coffre n'horodate pas ses entrées, donc une date par
-   ligne promettait une précision qu'aucune donnée ne porte. */
+/* The group header wears what belongs to the CONVERSATION and not to the value: its
+   title, its count, and its date — the coffre doesn't timestamp its entries, so a date per
+   row promised a precision no data actually carries. */
 .audit-group {
   display: flex;
   align-items: center;
@@ -7900,12 +7900,12 @@ button.sendmode-opt:hover {
   color: var(--text-faint);
   white-space: nowrap;
 }
-/* La date se pose à droite, seule — `margin-left:auto` sur elle plutôt qu'un espaceur. */
+/* The date sits alone on the right — `margin-left:auto` on it rather than a spacer. */
 .audit-group .audit-when {
   margin-left: auto;
 }
-/* Le saut vers le message exact : une flèche, alignée à droite, qui ne concurrence pas les
-   valeurs qu'on vient lire. */
+/* The jump to the exact message: an arrow, right-aligned, that doesn't compete with the
+   values you came to read. */
 .audit-goto {
   justify-self: end;
   display: inline-flex;
@@ -7972,10 +7972,10 @@ button.sendmode-opt:hover {
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
-/* Ce qui MÈNE à la conversation ou au message : l'en-tête de groupe et la flèche de
-   ligne. Chrome de bouton remis à zéro, souligné au survol ; `justify-self:start` pour ne
-   pas étirer la piste de grille. (La colonne « Conversation » n'existe plus : elle
-   répétait à chaque ligne le titre que l'en-tête du groupe porte désormais une fois.) */
+/* What LEADS to the conversation or the message: the group header and the row
+   arrow. Button chrome reset to zero, underlined on hover; `justify-self:start` so as not
+   to stretch the grid track. (The « Conversation » column no longer exists: it
+   repeated on every row the title the group header now carries once.) */
 .audit-conv-link {
   justify-self: start;
   max-width: 100%;
@@ -8877,16 +8877,16 @@ button.sendmode-opt:hover {
   font-weight: 700;
 }
 
-/* La ligne d'IMPACT sous le détail d'une catégorie — ce que la protection peut FAUSSER
-   (un âge calculé, une entreprise inconnue du modèle). Même ton discret que le détail,
-   séparée pour se lire comme une CONTREPARTIE, pas comme la suite de la couverture. */
+/* The IMPACT line under a category's detail — what the protection can THROW OFF
+   (a computed age, a business the model doesn't know). Same discreet tone as the detail,
+   set apart so it reads as a TRADE-OFF, not as a continuation of the coverage. */
 .rrm-cat-impact {
   display: block;
   margin-top: 4px;
   font-style: italic;
   opacity: 0.85;
 }
-/* « Mémoire dans cette conversation » — le rang sous la matrice, onglet conversation. */
+/* « Mémoire dans cette conversation » — the row under the matrix, conversation tab. */
 .rrm-memory-row {
   display: flex;
   gap: 10px;
@@ -9309,8 +9309,8 @@ button.sendmode-opt:hover {
 }
 
 /* ── Step 3: ready ─────────────────────────────────────────────────────────────── */
-/* La liste de comportement de l'étape 1 : même puce que « c'est prêt », resserrée sous la
-   démonstration — elle complète l'image, elle ne rouvre pas un paragraphe. */
+/* The behaviour list from step 1: same bullet as « it's ready », tightened under the
+   demonstration — it completes the picture, it doesn't reopen a paragraph. */
 .ob-behaviour { margin-top: 14px; }
 .ob-ready {
   display: flex;
@@ -9370,7 +9370,7 @@ button.sendmode-opt:hover {
   border-radius: var(--radius-md);
   border: none;
   background: var(--brand);
-  color: var(--brand-contrast); /* l'encre qui bascule avec la marque (règle 12) */
+  color: var(--brand-contrast); /* the ink that flips with the brand (rule 12) */
   font-size: var(--text-base);
   font-weight: 700;
   cursor: pointer;
@@ -9584,9 +9584,9 @@ button.sendmode-opt:hover {
   display: flex;
   padding: 20px;
   overflow-y: auto;
-  /* Le voile est l'ENCRE NEUTRE (celle des `--border-*`), pas le noir-VERT du squelette
-     retiré, qui virait l'aurore mint/sky en olive — criant sur la console web, où ce
-     scrim n'a pas d'app floutée derrière lui mais EST le fond. */
+  /* The veil is the NEUTRAL INK (the one from `--border-*`), not the green-black of the
+     removed skeleton, which turned the mint/sky dawn olive — jarring on the web console, where
+     this scrim has no blurred app behind it but IS the background. */
   background: rgba(10, 12, 30, 0.34);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
@@ -11380,9 +11380,9 @@ button.sendmode-opt:hover {
     left bottom, left bottom, right bottom, right bottom;
 }
 
-/* Boutons pleins de MARQUE : `--brand-contrast`, le seul jeton qui bascule avec `--brand`
-   dans les quatre thèmes. ⚠️ Cette règle GAGNE sur l'encre que chaque bouton déclare —
-   elle vient après. `styles/textContrast.test.ts` la mesure ; ne pas y figer une couleur. */
+/* Solid BRAND buttons: `--brand-contrast`, the only token that flips with `--brand`
+   across the four themes. ⚠️ This rule WINS over the ink each button declares —
+   it comes after. `styles/textContrast.test.ts` measures it; don't freeze a colour there. */
 .btn-new,
 .send-btn,
 .primary,
@@ -11447,8 +11447,8 @@ button.sendmode-opt:hover {
   padding: 8px 14px;
 }
 
-/* Poids NORMAL, y compris sur la ligne active : une liste entièrement en gras n'accentue
-   rien, et l'active se lit à son fond (`--surface-selected`) et à son encre. */
+/* NORMAL weight, including on the active row: a list entirely in bold accents
+   nothing, and the active one reads by its fill (`--surface-selected`) and its ink. */
 .conv-title {
   font-family: "Archivo", var(--font-sans);
   font-weight: var(--weight-regular);
@@ -11497,8 +11497,8 @@ button.sendmode-opt:hover {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-/* (La bascule au survol vit avec les autres règles de `.conv-item` — un `display: none`
-   redéclaré ICI gagnait sur le `visibility: hidden` qui garde la ligne stable.) */
+/* (The hover toggle lives with `.conv-item`'s other rules — a `display: none`
+   redeclared HERE was winning over the `visibility: hidden` that keeps the row stable.) */
 .shield-card.spade-corners {
   box-shadow: none;
 }
@@ -11635,7 +11635,7 @@ body {
   opacity: 0;
 }
 
-/* ── Dark theme — GREEN (Réglages → Mode sombre, accent vert par défaut). The classic
+/* ── Dark theme — GREEN (Settings → Dark mode, green accent by default). The classic
    forest-black ground + lime accent. The blue-accented dark lives in `[data-theme="blue-dark"]`
    below; the two share only the structural dark rules (`.sidebar`, `.msg-answer pre`). ──── */
 [data-theme="dark"] {
@@ -11645,7 +11645,7 @@ body {
   --brand-hover: #b8e635;
   --brand-active: #a9e15a;
   --brand-soft: #28381a;
-  --brand-tint: #28381a; /* sinon il hérite du `--lime-soft` clair de `:root` */
+  --brand-tint: #28381a; /* otherwise it inherits the light `--lime-soft` from `:root` */
   --lime: #11160b;
   --lime-bright: #b8e635;
   --green-soft: #28381a;
@@ -11678,7 +11678,7 @@ body {
   --border-focus: #b8e635;
 }
 
-/* ── Blue-dark theme (Réglages → Mode sombre). Neutral-cool dark ground +
+/* ── Blue-dark theme (Settings → Dark mode). Neutral-cool dark ground +
    the #3939FA blue accent — the dark twin of `[data-theme="blue"]`. ──── */
 [data-theme="blue-dark"] {
   /* Neutral-cool dark (a whisper of blue), NOT green-black — the accent is #3939FA,
@@ -11693,7 +11693,7 @@ body {
   --brand-active: #2d2de6;
   --brand-contrast: #ffffff;
   --brand-soft: #1c1c4a;
-  --brand-tint: #1c1c4a; /* idem : le fond doux suit le SOL, pas le squelette clair */
+  --brand-tint: #1c1c4a; /* same: the soft fill follows the GROUND, not the light skeleton */
   --lime: #11160b;
   /* `--ink-on-brand` tracks `--lime`, which is near-black here — unreadable on the BLUE
      fill. Pin the light lime, exactly like `.btn-primary` below. */
@@ -11735,7 +11735,7 @@ body {
   --border-focus: #4a4aff;
 }
 
-/* ── Blue theme (le défaut : l'accent n'est plus au choix) ─────────────────
+/* ── Blue theme (the default: the accent is no longer a choice) ────────────
    A LIGHT base (inherits :root) with the primary re-pointed to #4436FF. Text and the
    redaction highlights stay as in light mode; the brand is dark enough that ink ON it
    is white. The SHELL tone is the one surface that cannot be inherited — see below. */
@@ -11940,9 +11940,9 @@ select:focus-visible {
   color: var(--text-strong);
   border-color: transparent;
 }
-/* UNE ligne pour toutes les actions du journal, filtres au-dessus. Pas de `flex-wrap` :
-   ce qui manque de place se coupe dans le libellé (`min-width: 0` + ellipse), pas en
-   passant à la ligne — c'est le repli en deux rangées qu'on vient d'enlever. */
+/* ONE row for all the log's actions, filters above it. No `flex-wrap`:
+   whatever's short on room gets cut in the label (`min-width: 0` + ellipsis), not
+   by wrapping — that's the two-row fold we just removed. */
 .dbg-actions {
   display: flex;
   align-items: center;
@@ -12016,7 +12016,7 @@ select:focus-visible {
   background: var(--brand-soft);
   color: var(--brand);
 }
-.dbg-tag.dbg-tool { /* encres appariées --pearl-*-ink, jamais --text-* (frozenInk) ; sky n'existait pas → azure */
+.dbg-tag.dbg-tool { /* paired inks --pearl-*-ink, never --text-* (frozenInk); sky didn't exist → azure */
   background: var(--pearl-azure-soft);
   color: var(--pearl-azure-ink);
 }

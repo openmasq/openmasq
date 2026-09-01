@@ -43,9 +43,9 @@
   line-height: 1.5;
 }
 
-/* La note qui NOMME les connecteurs frères d'une même autorisation coule comme une
-   PHRASE : le `flex` ci-dessus ferait de chaque nom un élément flex, et la ponctuation
-   se détacherait des mots qu'elle sépare. */
+/* The note that NAMES the sibling connectors of the same authorization flows as a
+   SENTENCE: the `flex` above would turn each name into a flex item, and the punctuation
+   would detach from the words it separates. */
 .mcp-modal-note.mcp-note-flow {
   display: block;
 }

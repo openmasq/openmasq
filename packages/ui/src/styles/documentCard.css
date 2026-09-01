@@ -1,15 +1,15 @@
-/* ═══ La CARTE DOCUMENT du fil (```document) : l'en-tête, le corps rendu, l'éditeur
-   en place et le menu de téléchargement — sortie de `styles.css` (règle 1).
+/* ═══ The DOCUMENT CARD in the thread (```document): the header, the rendered body, the editor
+   in place and the download menu — pulled out of `styles.css` (rule 1).
 
-   Le bloc `.md-document-edit` porte AUSSI `.md` côté composant : l'éditeur hérite de la
-   typographie du document rendu, donc cliquer dans le texte ne change rien de visible
-   sauf le caret. Ce qui vit ici n'est que ce que l'ÉDITION ajoute (marqueurs de listes
-   plates, caret, bloc vide) — dupliquer la typographie ici la ferait dériver.
+   The `.md-document-edit` block ALSO carries `.md` on the component side: the editor inherits the
+   rendered document's typography, so clicking into the text changes nothing visible
+   except the caret. What lives here is only what EDITING adds (flat list
+   markers, caret, empty block) — duplicating the typography here would let it drift.
 
-   ⚠️ Son `@import` doit rester parmi les @import DE TÊTE de `styles.css` : Lightning CSS
-   droppe silencieusement un @import placé sous le bloc `@theme`. Extraite après
-   vérification qu'aucun de ses 42 sélecteurs n'est redéclaré plus HAUT — c'est ce qui
-   rend sa position dans la cascade indifférente. ═══ */
+   ⚠️ Its `@import` must stay among the LEADING @imports of `styles.css`: Lightning CSS
+   silently drops an @import placed below the `@theme` block. Extracted after
+   verifying none of its 42 selectors is redeclared HIGHER — that's what
+   makes its position in the cascade indifferent. ═══ */
 /* ── Generated-document card (a ```document fence rendered inline) ──────────────
    A bordered, padded card in the thread with a download action — reads as a
    deliverable, not loose prose. The body reuses `.md` (rendered Markdown), clipped

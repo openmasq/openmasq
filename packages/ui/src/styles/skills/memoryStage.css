@@ -1,7 +1,7 @@
 /* ═══ Mémoire — the GRAPH stage (kit MemoryPage rendered as local SVG) + the
    selection side panel. Split out of ./memory.css (300-LOC cap, rule 1);
    skills.css imports both. ═══ */
-/* ── Mémoire : le graphe (kit MemoryPage, rendu SVG local) ─────────────────── */
+/* ── Mémoire: the graph (kit MemoryPage, local SVG render) ─────────────────── */
 .om-mem-stage {
   position: relative;
   height: 62vh;
@@ -20,8 +20,8 @@
   margin: 0;
   color: var(--text-faint);
 }
-/* La légende des traits — en HAUT à gauche : le bas-gauche porte le compteur, la droite
-   le panneau. Les échantillons répètent les styles de .om-mem-edge{,.cross,.sem}. */
+/* The edge legend — at the TOP left: the bottom-left carries the counter, the right
+   the panel. The samples repeat the styles of .om-mem-edge{,.cross,.sem}. */
 .om-mem-edge-legend {
   position: absolute;
   top: 12px;
@@ -132,8 +132,8 @@
 .om-mem-node.dim .om-mem-label {
   fill: var(--text-faint);
 }
-/* La légende est un FILTRE (bouton), pas une décoration : un clic restreint la liste
-   et estompe le graphe, comme la recherche. */
+/* The legend is a FILTER (button), not a decoration: a click narrows the list
+   and dims the graph, like the search does. */
 .om-mem-legend {
   display: inline-flex;
   gap: 7px;
@@ -189,9 +189,9 @@
   background: var(--surface-card);
   box-shadow: var(--shadow-lg);
 }
-/* En vue LISTE (dans .om-mem-listwrap, flex), le panneau n'est plus absolu : hauteur
-   NATURELLE bornée à l'écran, collant pendant qu'on défile la liste — le pied
-   (Supprimer) reste toujours atteignable, quelle que soit la longueur de la liste. */
+/* In LIST view (inside .om-mem-listwrap, flex), the panel is no longer absolute: a
+   NATURAL height capped to the screen, sticky while the list scrolls — the footer
+   (Supprimer) always stays reachable, whatever the list's length. */
 .om-mem-listwrap .om-mem-panel {
   position: sticky;
   top: 12px;

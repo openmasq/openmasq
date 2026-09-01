@@ -1,13 +1,13 @@
-/* ── Le SÉLECTEUR segmenté — un contrôle, une famille ──────────────────────────────
-   Deux sections l'utilisent (la consommation : voie de facturation + fenêtre ; le
-   Journal : redaction ⇄ réseau), donc il ne porte le nom d'aucune des deux. Il vivait
-   dans `usage.css` sous `.usage-seg` : une troisième section qui l'aurait voulu aurait
-   soit importé le nom d'une page voisine, soit recopié la vingtaine de lignes — et c'est
-   la recopie qui gagne, à chaque fois. */
+/* ── The segmented SELECTOR — one control, one family ──────────────────────────────
+   Two sections use it (usage: billing lane + window; the
+   Journal: redaction ⇄ network), so it carries neither of their names. It used to live
+   in `usage.css` under `.usage-seg`: a third section wanting it would have had to
+   either import a neighboring page's name, or copy the twenty-odd lines — and it's
+   the copy that wins, every time. */
 .om-seg {
   display: inline-flex;
-  /* Enfant direct d'une `.settings-section` (colonne flex), un `inline-flex` s'ÉTIRE :
-     la pastille prenait toute la largeur de la page. */
+  /* Direct child of a `.settings-section` (flex column), an `inline-flex` STRETCHES:
+     the pill was taking the whole width of the page. */
   align-self: flex-start;
   gap: 4px;
   padding: 4px;
@@ -34,26 +34,26 @@
 .om-seg-btn:hover {
   color: var(--text-strong);
 }
-/* La paire MESURÉE : `--ink-on-brand` est le token fait pour l'encre sur un aplat
-   `--brand`, et il bascule avec le thème (`textContrast.test.ts` l'épingle dans les
-   quatre). Avant : `--forest-700` + `--lime` en dur — une pastille vert forêt au milieu
-   d'une app indigo, parce que le thème bleu ne re-pointe pas la rampe verte. */
+/* The MEASURED pair: `--ink-on-brand` is the token made for the ink on a `--brand`
+   fill, and it flips with the theme (`textContrast.test.ts` pins it across all
+   four). Before: `--forest-700` + `--lime` hardcoded — a forest-green pill in the middle
+   of an indigo app, because the blue theme doesn't re-point the green ramp. */
 .om-seg-btn.on {
   background: var(--brand);
   color: var(--ink-on-brand);
 }
-/* Le compteur d'un segment : mono, discret — il dit COMBIEN, l'étiquette dit QUOI. */
+/* A segment's counter: mono, discreet — it says HOW MANY, the label says WHAT. */
 .om-seg-n {
   font-family: var(--font-mono);
   font-size: 10.5px;
   opacity: 0.75;
 }
 
-/* Le segmenté COMME contrôle d'une ligne de réglage (`.toggle-row`, la langue dans
-   « Apparence »). L'`align-self: flex-start` ci-dessus vise le cas COLONNE — enfant direct
-   d'une `.settings-section`, où un `inline-flex` s'étirerait sur toute la largeur. Dans une
-   RANGÉE à items centrés, cette même règle le collait en haut, désaligné du libellé qu'il
-   commande : la correction vit ici, avec le contrôle, et non chez l'appelant. */
+/* The segmented control AS a setting row control (`.toggle-row`, the language in
+   « Apparence »). The `align-self: flex-start` above targets the COLUMN case — direct child
+   of a `.settings-section`, where an `inline-flex` would stretch across the whole width. In a
+   centered-items ROW, that same rule stuck it to the top, misaligned from the label it
+   commands: the fix lives here, with the control, not at the caller. */
 .toggle-row > .om-seg {
   align-self: center;
   flex-shrink: 0;

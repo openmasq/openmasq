@@ -1,22 +1,22 @@
-/* Right rail — la vue « Dossiers » : groupes de sources, racines accordées, arborescence
-   et actions (partie de la famille tabs ; voir ../tabs.css ; le sélecteur de vue est dans
+/* Right rail — the « Dossiers » view: source groups, granted roots, the tree
+   and actions (part of the tabs family; see ../tabs.css; the view switcher is in
    `rail-views.css`).
 
-   Une seule règle de fond ici : l'indentation est la seule chose que la ligne calcule à
-   l'exécution (elle vient de la profondeur, une donnée), tout le reste — couleurs, états,
-   survol — vit dans cette feuille, sinon un fond inline gagnerait contre `:hover`. */
+   One single ground rule here: indentation is the only thing the row computes at
+   runtime (it comes from depth, a data value), everything else — colours, states,
+   hover — lives in this sheet, or an inline background would win against `:hover`. */
 
-/* ── Les GROUPES de sources ────────────────────────────────────────────────── */
+/* ── The source GROUPS ────────────────────────────────────────────────── */
 .rr-tree-group {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 10px 2px 4px;
 }
-/* Le marqueur de groupe : une icône, UN mot, puis un filet qui prend le reste. Le mot
-   est court exprès (LOCAL / CLOUD) — « Sur cet appareil » et « Stockage connecté »
-   tenaient toute la largeur pour dire ce que le glyphe dit déjà, et le filet ne pouvait
-   plus séparer quoi que ce soit. Le titre entier reste dans `title`/`aria-label`. */
+/* The group marker: an icon, ONE word, then a rule that takes the rest. The word
+   is deliberately short (LOCAL / CLOUD) — « Sur cet appareil » and « Stockage connecté »
+   took up the whole width to say what the glyph already says, and the rule could no
+   longer separate anything. The full title stays in `title`/`aria-label`. */
 .rr-group-ico {
   flex: none;
   display: inline-flex;
@@ -34,7 +34,7 @@
 .rr-tree-group:first-child {
   padding-top: 2px;
 }
-/* L'action du groupe est une icône : à cette largeur, un libellé pousse le titre dehors. */
+/* The group's action is an icon: at this width, a label would push the title out. */
 .rr-tree-gear {
   flex: none;
   display: inline-flex;
@@ -49,8 +49,8 @@
   background: var(--surface-hover);
   color: var(--text-strong);
 }
-/* Une RACINE (dossier accordé) ou un stockage connecté : deux lignes — le nom, puis d'où
-   ça vient. Le seul nom ne suffit pas : « Documents », oui, mais lequel ? */
+/* A ROOT (a granted folder) or a connected storage: two lines — the name, then where
+   it comes from. The name alone isn't enough: « Documents », sure, but which one? */
 .rr-src {
   display: flex;
   align-items: center;
@@ -69,8 +69,8 @@
 .rr-src.off {
   opacity: 0.62;
 }
-/* Un nom, sur une ligne. L'état et le chemin vivent dans l'infobulle : le panneau sert à
-   ATTEINDRE un fichier, pas à lire des phrases sur ses sources. */
+/* A name, on one line. The state and the path live in the tooltip: the panel serves to
+   REACH a file, not to read sentences about its sources. */
 .rr-src-name {
   flex: 1;
   min-width: 0;
@@ -82,8 +82,8 @@
   font-weight: 700;
   color: var(--text-strong);
 }
-/* Connecté : une pastille. Non connecté : la prise, qui EST l'action. Deux glyphes de
-   même largeur, donc les lignes s'alignent quel que soit leur état. */
+/* Connected: a dot. Not connected: the plug, which IS the action. Two glyphs of
+   the same width, so the rows align whatever their state. */
 .rr-src-dot,
 .rr-src-cta {
   flex: none;
@@ -103,7 +103,7 @@
   color: var(--brand);
 }
 
-/* ── L'arborescence ────────────────────────────────────────────────────────── */
+/* ── The tree ────────────────────────────────────────────────────────── */
 .rr-tree {
   display: flex;
   flex-direction: column;
@@ -134,8 +134,8 @@
 .rr-tree-row.is-dir {
   font-weight: 600;
 }
-/* Le chevron garde sa place même sur un fichier : sans ça les noms de fichiers et de
-   dossiers ne s'alignent pas et la profondeur devient illisible. */
+/* The chevron keeps its place even on a file: without it file and folder
+   names don't align and the depth becomes illegible. */
 .rr-tree-chev {
   flex: none;
   width: 12px;
@@ -153,8 +153,8 @@
   display: inline-flex;
   color: var(--text-muted);
 }
-/* La pastille d'extension : neutre, JAMAIS une teinte de redaction — celles-ci portent
-   l'identité d'une catégorie de données, et un PDF n'en est pas une. */
+/* The extension pill: neutral, NEVER a redaction tint — those carry
+   the identity of a data category, and a PDF isn't one. */
 .rr-tree-ext {
   flex: none;
   min-width: 24px;
@@ -182,9 +182,9 @@
   font-family: var(--font-mono);
   font-size: 11px;
 }
-/* « Demander » se superpose à la fin de la ligne au survol : les deux vivent au même
-   endroit, et l'action est ce POUR QUOI on survole. Elle ne prend donc pas de place en
-   permanence — un arbre dense n'a pas de colonne à donner à un bouton. */
+/* « Demander » overlaps the end of the row on hover: the two live in the same
+   place, and the action is WHAT the hover is for. It therefore doesn't take up space
+   permanently — a dense tree has no column to spare for a button. */
 .rr-tree-line {
   position: relative;
   display: block;
@@ -213,8 +213,8 @@
 .rr-tree-ask:focus-visible {
   display: inline-flex;
 }
-/* Icône seule : sur une barre en pointillés, la forme dit « ajouter ici » aussi bien
-   que le mot. Le libellé complet reste dans `title`/`aria-label`. */
+/* Icon alone: on a dashed bar, the shape says « ajouter ici » just as well
+   as the word would. The full label stays in `title`/`aria-label`. */
 .rr-tree-add {
   display: flex;
   align-items: center;
@@ -233,8 +233,8 @@
   border-color: var(--brand);
   color: var(--text-strong);
 }
-/* La sélection native est modale : rien ne peut plus être cliqué ici, et le glyphe le
-   dit en respirant plutôt qu'en s'allongeant en « Sélection… ». */
+/* The native picker is modal: nothing here can be clicked anymore, and the glyph
+   says so by breathing rather than stretching into « Sélection… ». */
 .rr-tree-add[aria-busy="true"] {
   animation: rr-add-busy 1.1s var(--ease-out) infinite;
 }
@@ -249,9 +249,9 @@
   }
 }
 
-/* L'échec RÉEL (dossier retiré, disque débranché, autorisation révoquée) et le moyen de
-   réessayer. La paire est celle du reste de l'app — `--red-soft` sous `--red-500` — et
-   aucun des deux tokens n'est re-pointé par un thème, donc elle tient dans les quatre. */
+/* The REAL failure (folder removed, drive unplugged, permission revoked) and the way
+   to retry. The pair is the same as the rest of the app's — `--red-soft` under `--red-500` —
+   and neither token is re-pointed by any theme, so it holds across all four. */
 .rr-tree-error {
   margin: 0;
   padding: 6px 8px;
@@ -276,9 +276,9 @@
   cursor: pointer;
 }
 
-/* Une lecture qui a ÉCHOUÉ. Distincte du « … » : celui-ci promet une arrivée, celle-là
-   dit qu'il n'y en aura pas — la cause s'affiche dans `.rr-tree-error`, en bas du panneau,
-   et replier/rouvrir relance la lecture. */
+/* A read that FAILED. Distinct from the « … »: that one promises an arrival, this one
+   says there won't be one — the cause shows in `.rr-tree-error`, at the bottom of the panel,
+   and collapsing/reopening retries the read. */
 .rr-tree-failed {
   flex-shrink: 0;
   width: 14px;

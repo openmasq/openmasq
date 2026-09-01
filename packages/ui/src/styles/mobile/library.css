@@ -81,9 +81,9 @@
 .mlib-row-main:active {
   background: var(--surface-hover);
 }
-/* Neutre. Cette tuile n'avait aucun fond A ELLE : il arrivait par un style inline
-   (teinte hachée sur l'extension), retiré — voir `pages/Library/libraryKinds.ts`. Sans
-   ces trois lignes elle serait devenue transparente et le glyphe aurait flotté. */
+/* Neutral. This tile had no fill OF ITS OWN: it arrived via an inline style
+   (a tint keyed on the extension), removed — see `pages/Library/libraryKinds.ts`. Without
+   these three lines it would have gone transparent and the glyph would have floated. */
 .mlib-row-tile {
   flex-shrink: 0;
   width: 40px;

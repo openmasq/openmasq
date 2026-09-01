@@ -1,4 +1,4 @@
-/* Le tiers « à vérifier » de l'audit avant envoi — même famille, part séparée. */
+/* The « à vérifier » third of the pre-send audit — same family, separate part. */
 @import "./doubt.css";
 
 /* ============================================ The REDACTION PALETTE, as a SEQUENCE ===
@@ -79,10 +79,10 @@
   .om-mini-fill { animation: none; }
 }
 
-/* ── « Comprendre mon redaction » — le petit conteneur sous les premières réponses ──
-   (RedactionIntroCard ; quand il se montre : privacy/redactionIntro.ts). Une RANGÉE,
-   pas une carte : il revient à chaque conversation jusqu'au « Fermer pour toujours »,
-   donc il doit coûter moins d'attention qu'une réponse. */
+/* ── « Comprendre mon redaction » — the small container under the first replies ──
+   (RedactionIntroCard; when it shows: privacy/redactionIntro.ts). A ROW,
+   not a card: it comes back on every conversation until « Fermer pour toujours »,
+   so it must cost less attention than a reply. */
 .redintro {
   display: flex;
   align-items: center;
@@ -114,8 +114,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* La fermeture DIT sa portée (« pour toujours ») : une croix nue promettrait un simple
-   « pas maintenant », et l'utilisateur découvrirait la permanence après coup. */
+/* The close button STATES its scope (« pour toujours »): a bare cross would promise a mere
+   « pas maintenant », and the user would discover the permanence after the fact. */
 .redintro-close {
   display: inline-flex;
   align-items: center;

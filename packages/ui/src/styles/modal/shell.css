@@ -1,13 +1,13 @@
-/* ═══ ModalShell — le voile, le cadre, le titre, le pied ═══
-   ⚠️ `.modal-scrim` est PORTANT, pas cosmétique : `hooks/modalGate.ts` matche dessus pour
-   cacher le navigateur agent (fenêtre native alwaysOnTop, SANS z-order DOM). Le renommer
-   ou le perdre laisse ce navigateur couvrir n'importe quelle modale. */
-/* ⚠️ Son `@import` (via le barrel `modal.css`) doit rester atteignable depuis les @import
-   DE TÊTE de `styles.css` : Lightning CSS DROPPE silencieusement un @import placé sous le
-   bloc `@theme` (le piège qui avait déjà tué les webfonts). Extrait après vérification que
-   AUCUN de ces sélecteurs n'est redéclaré plus HAUT dans `styles.css` — c'est ce qui rend
-   sa nouvelle position dans la cascade indifférente (le CSS bâti reste le même multiset
-   de règles, seul leur ordre change). */
+/* ═══ ModalShell — the scrim, the frame, the title, the footer ═══
+   ⚠️ `.modal-scrim` is LOAD-BEARING, not cosmetic: `hooks/modalGate.ts` matches on it to
+   hide the agent browser (a native alwaysOnTop window, WITHOUT DOM z-order). Renaming
+   or losing it lets that browser cover any modal. */
+/* ⚠️ Its `@import` (via the `modal.css` barrel) must stay reachable from the LEADING
+   @imports of `styles.css`: Lightning CSS silently DROPS an @import placed below the
+   `@theme` block (the trap that had already killed the webfonts). Extracted after checking
+   that NONE of these selectors is redeclared HIGHER in `styles.css` — that's what makes
+   its new position in the cascade indifferent (the built CSS stays the same multiset
+   of rules, only their order changes). */
 
 /* ================================================================ Modal ===== */
 .modal-overlay {
@@ -114,7 +114,7 @@
   font-weight: var(--weight-semibold);
   cursor: pointer;
   /* Kit Button hover: a slight lift + the brightness pop (`filter` joins the
-     transition). Plus AUCUNE hachure balayée — l'effet rayé est retiré du produit. */
+     transition). And NO MORE swept hatching — the striped effect is removed from the product. */
   position: relative;
   transition: background 0.14s, border-color 0.14s, transform 0.14s var(--ease-out, ease), filter 0.14s, box-shadow 0.14s;
 }

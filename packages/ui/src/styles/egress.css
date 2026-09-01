@@ -1,12 +1,12 @@
-/* ── « Ce qui est sorti de la machine » — le journal RÉSEAU (Réglages → Journal) ──────
-   La moitié réseau de l'onglet Journal, sous le même sélecteur que la moitié redaction.
-   Elle se lit comme la table d'audit qui lui fait face — mêmes filets, mêmes métadonnées
-   en mono, même respiration — parce que les deux répondent à la même question sous deux
-   angles ; deux mises en page auraient suggéré deux registres différents.
+/* ── « Ce qui est sorti de la machine » — the NETWORK journal (Réglages → Journal) ────
+   The network half of the Journal tab, under the same selector as the redaction half.
+   It reads like the audit table it faces — same hairlines, same metadata
+   in mono, same rhythm — because the two answer the same question from two
+   angles; two different layouts would have suggested two different registers.
 
-   La feuille existe pour ça : la carte était écrite en utilitaires Tailwind arbitraires
-   (`text-[11px]`, `py-0.5`, `border-b`), donc en valeurs figées à côté d'une voisine
-   entièrement tokenisée. Ici tout vient des tokens, et les quatre thèmes suivent. */
+   The sheet exists for that: the card was written in arbitrary Tailwind utilities
+   (`text-[11px]`, `py-0.5`, `border-b`), hence in frozen values next to a neighbour
+   fully tokenized. Here everything comes from tokens, and the four themes follow. */
 
 .egress-head {
   margin-bottom: 14px;
@@ -26,7 +26,7 @@
   line-height: 1.5;
   color: var(--text-muted);
 }
-/* Le résumé chiffré : les nombres sont de la métadonnée, donc en mono (design system). */
+/* The numeric summary: the numbers are metadata, hence in mono (design system). */
 .egress-stats {
   display: flex;
   flex-wrap: wrap;
@@ -45,8 +45,8 @@
   margin-bottom: 12px;
 }
 
-/* Une ADRESSE contactée. Grille à colonnes fixes comme `.audit-grid` : la colonne de
-   droite ne doit pas danser d'une ligne à l'autre selon la longueur d'un nom d'hôte. */
+/* An ADDRESS contacted. Fixed-column grid like `.audit-grid`: the right
+   column must not dance from one row to another based on a hostname's length. */
 .egress-list {
   display: flex;
   flex-direction: column;
@@ -75,8 +75,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* « non chiffré » : un fait technique, pas une alerte — mono, discret, jamais rouge.
-   Le refus, lui, a sa pastille. */
+/* « non chiffré »: a technical fact, not an alert — mono, discreet, never red.
+   The refusal, though, has its own pill. */
 .egress-plain {
   flex-shrink: 0;
   font-family: var(--font-mono);
@@ -105,9 +105,9 @@
 .egress-count {
   color: var(--text-muted);
 }
-/* Un refus est le seul état qui mérite une couleur : la teinte voyage avec sa propre
-   encre (`.hl-red` → `--mk` / `--mk-ink`), donc elle s'inverse avec les quatre thèmes
-   (règle 12). */
+/* A refusal is the only state that deserves a colour: the tint travels with its own
+   ink (`.hl-red` → `--mk` / `--mk-ink`), so it inverts with the four themes
+   (rule 12). */
 .egress-refused {
   padding: 2px 7px;
   border-radius: var(--radius-xs);

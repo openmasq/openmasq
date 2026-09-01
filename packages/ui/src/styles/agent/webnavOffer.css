@@ -5,9 +5,9 @@
 .webnav-offer {
   margin-top: 10px;
 }
-/* La rangée de pastilles colle à la phrase : la carte interrompt une recherche, elle doit
-   se lire d'un coup d'œil. C'est la seule compaction qui restait à faire côté style — le
-   reste s'est gagné en retirant la prose qui répétait les pastilles. */
+/* The chip row hugs the sentence: the card interrupts a search, it must
+   read at a glance. That's the only compaction left to do on the style side — the
+   rest was won by removing the prose that repeated the chips. */
 .webnav-offer .agent-card-chips {
   margin-top: 8px;
   gap: 6px;

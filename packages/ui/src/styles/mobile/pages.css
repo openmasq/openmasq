@@ -1,7 +1,7 @@
 /* Mobile — what's left of the desktop reshaping (part of the mobile family; see
-   ../mobile.css). Presque chaque règle ici plie une surface DESKTOP pas encore portée ;
-   c'est la dette du portage, et elle ne doit que rétrécir. La seule exception est le
-   bloc de poids ci-dessous, dont la sortie ne dépend pas d'un écran porté — il le dit.
+   ../mobile.css). Almost every rule here bends a DESKTOP surface not yet ported;
+   it's the porting debt, and it must only shrink. The one exception is the
+   weight block below, whose removal doesn't depend on a ported screen — it says so.
 
    The chat's welcome hero and composer row used to live here as `.app-mobile` overrides;
    they are now width-keyed in `styles.css` (a narrow desktop pane needs them too). */
@@ -12,18 +12,18 @@
   letter-spacing: -0.02em;
 }
 
-/* ── Le plafond de poids de la famille (voir ../mobile.css) appliqué aux titres
-   d'affichage PARTAGÉS avec le desktop.
+/* ── The family's weight cap (see ../mobile.css) applied to display titles
+   SHARED with the desktop.
 
-   La règle commune les déclare en « Archivo » 900. Archivo n'est pas installé — la
-   famille retombe sur Space Grotesk, qui s'arrête à 700 — donc ce 900 est un gras
-   SYNTHÉTISÉ : le moteur épaissit le 700 lui-même, et sur les gros corps d'un écran de
-   téléphone ça bave au lieu d'appuyer. Le kit `chat-app-mobile` a fermé la même chose
-   chez lui en sortant Archivo de ses fontes.
+   The common rule declares them in « Archivo » 900. Archivo isn't installed — the
+   family falls back to Space Grotesk, which stops at 700 — so this 900 is a
+   SYNTHESIZED bold: the engine thickens the 700 itself, and on the large sizes of a
+   phone screen it smears instead of standing out. The `chat-app-mobile` kit closed the
+   same issue on its side by dropping Archivo from its fonts.
 
-   ⚠️ C'est une divergence mobile ASSUMÉE, pas un pas de plus dans le portage : le
-   desktop garde son 900 le temps que la question soit tranchée pour lui. Ce qui retire
-   ce bloc, c'est la règle partagée ramenée à 700 — pas un écran porté de plus. ── */
+   ⚠️ This is a DELIBERATE mobile divergence, not one more step in the porting: the
+   desktop keeps its 900 until the question is settled for it. What removes
+   this block is the shared rule brought down to 700 — not one more ported screen. ── */
 .app-mobile .cv-display,
 .app-mobile .page-header-title,
 .app-mobile .modal-header h2,

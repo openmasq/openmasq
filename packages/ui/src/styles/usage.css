@@ -192,8 +192,8 @@
   gap: 12px;
 }
 
-/* Kit chrome : l'activité en BARRES quotidiennes (une teinte — pas de split par
-   modèle sans horodatage par message). */
+/* Kit chrome: activity in daily BARS (one tint — no split by
+   model without a per-message timestamp). */
 .usage-bars {
   display: flex;
   gap: 6px;
@@ -214,8 +214,8 @@
   transition: height 200ms var(--ease-out);
 }
 
-/* Le sélecteur segmenté (voie de facturation, fenêtre) n'est PAS ici : deux sections
-   s'en servent, il vit donc sous son propre nom dans `segmented.css` (`.om-seg`). */
+/* The segmented selector (billing path, window) is NOT here: two sections
+   use it, so it lives under its own name in `segmented.css` (`.om-seg`). */
 .usage-unknown {
   margin-top: 10px;
 }

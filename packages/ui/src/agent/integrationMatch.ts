@@ -36,21 +36,21 @@ const ALIASES: Record<string, string[]> = {
   stripe: ["mes paiements", "mon chiffre d affaires", "ma caisse"],
 };
 
-/** Les noms GÉNÉRIQUES d'un service, qui ne le désignent que sous POSSESSIF. « mail » nu
- *  était un alias : « je vais envoyer des emails à nos cent premiers utilisateurs, est-ce
- *  que je dois warmup le compte ? » proposait donc de connecter Gmail sous une réponse qui
- *  ne parlait pas de la boîte de l'utilisateur (remonté le 11/08). PARLER d'e-mails n'est
- *  pas demander d'agir sur les SIENS — et un verbe d'action ne départage rien, « envoyer
- *  des emails » en est un. Seul le possessif dit « ce service est le mien ».
- *  ⚠️ Le prix assumé : « envoie un mail à Paul » ne déclenche plus de carte par ici. C'est
- *  le rattrapage d'un modèle FAIBLE (docstring en tête), pas le chemin normal — le modèle
- *  garde `suggest_integrations`, et une carte de travers apprend à ignorer les cartes. */
+/** The GENERIC names of a service, which designate it only under a POSSESSIVE. Bare
+ *  « mail » was an alias: « je vais envoyer des emails à nos cent premiers utilisateurs,
+ *  est-ce que je dois warmup le compte ? » therefore offered to connect Gmail under an
+ *  answer that was not about the user's own inbox (reported 11/08). TALKING about e-mails
+ *  is not asking to act on ONE'S OWN — and an action verb settles nothing, « envoyer des
+ *  emails » is one. Only the possessive says « this service is mine ».
+ *  ⚠️ The accepted price: « envoie un mail à Paul » no longer raises a card here. This is
+ *  the catch-up for a WEAK model (docstring at the top), not the normal path — the model
+ *  keeps `suggest_integrations`, and a card off the mark teaches people to ignore cards. */
 const OWNED_NOUNS: Record<string, string[]> = {
   gmail: ["mail", "mails", "e-mail", "e-mails", "email", "emails", "courriel", "courriels", "messagerie"],
   "microsoft-outlook": ["mail", "mails", "e-mail", "e-mails", "messagerie"],
 };
 const POSSESSIVES = ["mon", "ma", "mes", "notre", "nos"];
-/** Le produit possessif × nom, calculé une fois — `hasPhrase` normalise chaque terme. */
+/** The possessive × noun product, computed once — `hasPhrase` normalises each term. */
 const OWNED_PHRASES: Record<string, string[]> = Object.fromEntries(
   Object.entries(OWNED_NOUNS).map(([id, nouns]) => [
     id,
@@ -58,7 +58,7 @@ const OWNED_PHRASES: Record<string, string[]> = Object.fromEntries(
   ]),
 );
 
-/** Tous les termes génériques d'un connecteur : ceux qui se suffisent + ceux sous possessif. */
+/** All of a connector's generic terms: those that stand alone + those under a possessive. */
 function genericTermsOf(id: string): string[] {
   return [...(ALIASES[id] ?? []), ...(OWNED_PHRASES[id] ?? [])];
 }

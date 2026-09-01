@@ -1,10 +1,10 @@
-/* Glisser-déposer sur une conversation — l'overlay pendant le survol, et la carte qui
-   PROPOSE d'autoriser un dossier (`pages/ChatWorkspace/DropZone.tsx`).
+/* Drag-and-drop onto a conversation — the overlay during hover, and the card that
+   OFFERS to authorize a folder (`pages/ChatWorkspace/DropZone.tsx`).
 
-   La carte est une offre, jamais l'autorisation : le clic ouvre le sélecteur système.
-   Elle emprunte donc la mise en forme de la carte de confirmation d'écriture plutôt que
-   celle d'une modale — même statut visuel, même poids. Rien ici ne fige de couleur : tout
-   passe par les tokens, qui s'inversent avec les quatre thèmes (règle 12). */
+   The card is an offer, never the authorization: the click opens the system picker.
+   It therefore borrows the write-confirmation card's styling rather than
+   a modal's — same visual status, same weight. Nothing here freezes a colour: everything
+   goes through tokens, which invert with the four themes (rule 12). */
 
 .drop-overlay {
   position: absolute;
@@ -14,10 +14,10 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  /* Le fond du chat, très légèrement voilé : on doit continuer à voir OÙ on dépose. */
+  /* The chat's background, very slightly veiled: you must still see WHERE you're dropping. */
   background: color-mix(in srgb, var(--surface-page) 82%, transparent);
   backdrop-filter: blur(2px);
-  pointer-events: none; /* l'overlay ne doit pas manger l'événement `drop` */
+  pointer-events: none; /* the overlay must not eat the `drop` event */
 }
 
 .drop-overlay-card {
@@ -65,8 +65,8 @@
   color: var(--text-strong);
 }
 
-/* La phrase qui dit que la confirmation se joue dans la fenêtre système. Elle porte une
-   garantie, donc elle reste lisible : `--text-body`, pas `--text-faint`. */
+/* The sentence that says the confirmation happens in the system window. It carries a
+   guarantee, so it stays legible: `--text-body`, not `--text-faint`. */
 .drop-offer-note {
   margin-top: 4px;
   font-size: 12px;

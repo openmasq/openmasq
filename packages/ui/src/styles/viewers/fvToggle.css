@@ -1,9 +1,9 @@
-/* La bascule Redacted ⇄ Original du viewer de fichiers (FileViewerModal) — famille au
-   préfixe unique `.fv-seg-toggle` / `.fv-seg-clear`, définie NULLE PART ailleurs (la
-   méthode de packages/ui : sa position dans la cascade est alors indifférente). */
+/* The Redacted ⇄ Original toggle in the file viewer (FileViewerModal) — a family with a
+   unique prefix `.fv-seg-toggle` / `.fv-seg-clear`, defined NOWHERE else (the
+   packages/ui method: its position in the cascade is then indifferent). */
 
-/* L'interrupteur, poussé à droite de la ligne de note. Libellé mono comme la note —
-   c'est un fait d'état, pas un bouton d'action. */
+/* The switch, pushed to the right of the note line. Mono label like the note —
+   it's a fact of state, not an action button. */
 .fv-seg-toggle {
   margin-left: auto;
   display: inline-flex;
@@ -17,8 +17,8 @@
   flex-shrink: 0;
 }
 
-/* La note en vue ORIGINAL : l'ambre du « attention, données réelles » — pas le rouge
-   (rien n'est cassé), pas la marque (rien n'est protégé non plus). Le bouclier suit. */
+/* The note in ORIGINAL view: the amber of « attention, données réelles » — not red
+   (nothing is broken), not the brand mark (nothing is protected either). The shield follows suit. */
 .fv-seg-clear {
   display: inline-flex;
   align-items: center;

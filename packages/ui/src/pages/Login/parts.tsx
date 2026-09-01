@@ -100,21 +100,21 @@ export function OfflineNote() {
 }
 
 /**
- * « Rien reçu ? » — le rappel des spams, montré UNIQUEMENT après l'envoi.
+ * « Rien reçu ? » — the spam reminder, shown ONLY after the send.
  *
- * Un e-mail d'authentification est le message le plus filtré qui existe (expéditeur
- * transactionnel, lien, code) : le premier motif de « ça ne marche pas » n'est pas une
- * panne mais un dossier indésirable. Le dire à l'écran coûte une ligne et évite un
+ * An authentication e-mail is the most filtered message there is (transactional sender,
+ * link, code): the first cause of « ça ne marche pas » is not a failure but a junk
+ * folder. Saying so on screen costs one line and saves a resend loop, then an abandon.
  * renvoi en boucle, puis un abandon.
  *
- * ⚠️ Avant l'envoi, la phrase n'a aucun sens — pire, elle annonce un problème à qui n'a
- * encore rien demandé. `LoginScreen` ne la monte donc que dans l'étape « envoyé », et
- * `LoginScreen.test.tsx` épingle les deux moitiés de cette règle.
+ * ⚠️ Before the send the sentence makes no sense — worse, it announces a problem to
+ * someone who has asked for nothing yet. `LoginScreen` therefore mounts it only in the
+ * « envoyé » step, and `LoginScreen.test.tsx` pins both halves of that rule.
  *
- * Le même rappel, avec le même glyphe de boîte de réception, vit sur les trois autres
- * écrans de connexion du produit (mobile, extension, porte du centre d'aide) : chacun a sa
- * feuille de style, aucun ne peut importer celle d'un autre. La copie est donc nécessaire,
- * et c'est un TEST qui la tient — `spamHint.parity.test.ts` LIT les quatre fichiers.
+ * The same reminder, with the same inbox glyph, lives on the product's three other
+ * sign-in screens (mobile, extension, help-centre door): each has its own stylesheet,
+ * none can import another's. The copy is therefore necessary, and a TEST is what holds
+ * it — `spamHint.parity.test.ts` READS the four files.
  */
 export const SPAM_HINT = "Rien reçu ? Regardez dans vos spams (courriers indésirables).";
 

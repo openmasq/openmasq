@@ -1,23 +1,23 @@
-/* Pastille d'état (StatusChip) + son dock — la famille `.kchip-*`, définie NULLE PART
-   ailleurs (cf. ../CLAUDE.md : c'est ce qui rend sa position dans la cascade indifférente).
+/* Status pill (StatusChip) + its dock — the `.kchip-*` family, defined NOWHERE
+   else (see ../CLAUDE.md: that's what makes its position in the cascade indifferent).
 
-   Ce qu'elle remplace, et pourquoi : les avis PERMANENTS du shell (hors ligne, connecteur
-   tombé, accès limités) étaient des `.kb` pleine largeur en `position: fixed; bottom: 0`.
-   Une phrase confisquait donc toute la partie basse de l'app — composeur compris — pour
-   aussi longtemps que durait l'état. Ici la pastille ne montre que son TITRE, fait la
-   largeur de son texte, et se déplie au clic.
+   What it replaces, and why: the shell's PERMANENT notices (offline, connector
+   down, limited access) used to be full-width `.kb`s at `position: fixed; bottom: 0`.
+   One sentence would confiscate the whole lower part of the app — composer included — for
+   as long as the state lasted. Here the pill shows only its TITLE, is only as
+   wide as its text, and unfolds on click.
 
-   Le TON n'est pas redéfini ici : la pastille porte `.kb--<ton>`, qui pose `--ac`/`--bg`.
-   Une seule table ton→couleur dans le produit (règle 9), et les quatre thèmes la suivent
-   sans rien à retoucher ici. */
+   The TONE isn't redefined here: the pill carries `.kb--<tone>`, which sets `--ac`/`--bg`.
+   One single tone→colour table in the product (rule 9), and the four themes follow it
+   with nothing to retouch here. */
 
 .kchip-dock {
   position: fixed;
   bottom: 12px;
-  /* Au ras du bord GAUCHE de la zone de contenu : 60px = le rail d'icônes (`.nav-dock`
-     replié, l'état par défaut), + la même gouttière que le reste du châssis. Le bas de
-     ce rail porte les réglages et l'avatar — s'y superposer rendrait deux commandes
-     inatteignables. */
+  /* Flush with the LEFT edge of the content zone: 60px = the icon rail (`.nav-dock`
+     collapsed, the default state), + the same gutter as the rest of the chassis. The bottom of
+     that rail carries settings and the avatar — overlapping it would make two controls
+     unreachable. */
   left: 72px;
   z-index: 200;
   display: flex;
@@ -26,21 +26,21 @@
   gap: 8px;
   max-width: min(380px, calc(100vw - 96px));
   -webkit-app-region: no-drag;
-  /* Le dock lui-même n'intercepte jamais rien : seules ses pastilles prennent le clic,
-     le reste du bas de l'app reste cliquable à travers. */
+  /* The dock itself never intercepts anything: only its pills take the click,
+     the rest of the app's bottom stays clickable through it. */
   pointer-events: none;
 }
 .kchip-dock > * {
   pointer-events: auto;
 }
-/* Sidebar dépliée ⇒ la pastille suit le bord de la zone de contenu, sinon elle couvrirait
-   la ligne « Vous / Espace privé » qui en occupe le pied. Sans `:has()`, elle reste à 72px
-   (elle chevauche ce pied, elle ne le bloque pas — le dépli est un état voulu, réversible). */
+/* Sidebar unfolded ⇒ the pill follows the content zone's edge, otherwise it would cover
+   the « Vous / Espace privé » row that occupies its footer. Without `:has()`, it stays at 72px
+   (it overlaps that footer, it doesn't block it — the unfold is a wanted, reversible state). */
 .app:has(.nav-dock.open) .kchip-dock {
   left: calc(var(--sidebar-w) + 12px);
 }
-/* Mobile : le bas appartient à la barre d'onglets ET au composeur, tous deux fixés.
-   La pastille passe donc en haut à DROITE — le retour et le titre d'écran sont à gauche. */
+/* Mobile: the bottom belongs to the tab bar AND the composer, both fixed.
+   The pill therefore moves to the top RIGHT — the back button and the screen title are on the left. */
 .app-mobile .kchip-dock {
   top: calc(env(safe-area-inset-top) + 8px);
   right: 10px;
@@ -88,8 +88,8 @@ button.kchip-head {
   align-items: center;
   justify-content: center;
   background: var(--ac);
-  /* Même paire que `.kb-ic` : encre claire sur le ton plein, qui reste un ton MOYEN dans
-     les quatre thèmes. Le cas `redact` (fond forêt) prend son encre lime, plus bas. */
+  /* Same pairing as `.kb-ic`: light ink on the solid tone, which stays a MID tone across
+     the four themes. The `redact` case (forest ground) takes its lime ink, below. */
   color: #fff;
 }
 .kchip-ic svg {

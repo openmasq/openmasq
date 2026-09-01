@@ -16,38 +16,38 @@ export interface BillingSubscription {
   status: string;
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string;
-  /** Un OCTROI (palier inclus / accès donné) et non une vente — aucun abonnement Stripe
-   *  derrière, donc rien que `changeTier` puisse échanger : la route est la CAISSE
-   *  (`state/billing.ts` `tierAction`). Absent ⇒ `false`, le comportement d'un abonné. */
+  /** A GRANT (included tier / access given) and not a sale — no Stripe subscription
+   *  behind it, hence nothing `changeTier` could swap: the route is CHECKOUT
+   *  (`state/billing.ts` `tierAction`). Absent ⇒ `false`, a subscriber's behaviour. */
   isGranted?: boolean;
   /**
-   * Le déploiement peut-il ENCAISSER ? `false` = l'offre s'affiche (mêmes paliers, mêmes
-   * montants) mais souscrire et gérer sont fermés côté serveur (503 `BILLING_DISABLED`).
+   * Can the deployment TAKE PAYMENT? `false` = the offer still shows (same tiers, same
+   * amounts) but subscribing and managing are closed server-side (503 `BILLING_DISABLED`).
    *
-   * ⚠️ `undefined` ne veut PAS dire « fermé » : c'est une plateforme ou un backend plus
-   * ancien qui ne le dit pas. Le lire comme fermé griserait les boutons d'un déploiement
-   * parfaitement fonctionnel — l'inconnu laisse donc l'action ouverte, et c'est le 503
-   * qui tranche, avec son message. Fermer sur un doute est ici la MAUVAISE direction :
-   * rien d'irréversible n'est en jeu, seulement un clic qui explique pourquoi.
+   * ⚠️ `undefined` does NOT mean "closed": it is a platform, or an older backend, that does
+   * not say. Reading it as closed would grey out the buttons of a perfectly working
+   * deployment — the unknown therefore leaves the action open, and the 503 decides, with
+   * its message. Closing on a doubt is the WRONG direction here: nothing irreversible is
+   * at stake, only a click that explains why.
    */
   billingEnabled?: boolean;
   /**
-   * Le MODE TESTEUR du déploiement : tout compte connecté peut s'octroyer un palier sans
-   * payer. Global — tout le monde ou personne, jamais nominatif.
+   * The deployment's TESTER MODE: any signed-in account can grant itself a tier without
+   * paying. Global — everyone or no one, never per-person.
    *
-   * ⚠️ Ici l'inconnu se lit comme ÉTEINT, à l'inverse de `billingEnabled`, et la raison est
-   * la même dans les deux cas : ne jamais promettre ce qu'on ne peut pas tenir. Griser
-   * « S'abonner » à tort ferme une action qui marche ; afficher « S'octroyer » à tort
-   * propose un bouton MORT, que le serveur refusera.
+   * ⚠️ Here the unknown reads as OFF, the opposite of `billingEnabled`, and the reason is
+   * the same in both cases: never promise what cannot be delivered. Wrongly greying out
+   * « S'abonner » closes an action that works; wrongly showing « S'octroyer » offers a
+   * DEAD button, which the server will refuse.
    */
   selfGrantEnabled?: boolean;
   /**
-   * Le MODE GRATUIT du déploiement (`OPENMASQ_FREE_MODE`) : personne ne paie, les crédits
-   * sont illimités, rien ne se vend. L'onglet Paiement remplace la grille par « tout est
-   * inclus » (`FreeModeBilling`). Le serveur sert alors `tier: "unlimited"` — un palier
-   * qui OUVRE l'accès aux modèles inclus (`send/modelAvailability.ts` ne bloque que
-   * `"free"`) sans être une carte vendue. Absent ⇒ éteint : un backend plus ancien ne le
-   * dit pas, et l'offre normale est le bon repli.
+   * The deployment's FREE MODE (`OPENMASQ_FREE_MODE`): nobody pays, credits are unlimited,
+   * nothing is sold. The Payment tab replaces the grid with "everything is included"
+   * (`FreeModeBilling`). The server then serves `tier: "unlimited"` — a tier that OPENS
+   * access to the included models (`send/modelAvailability.ts` only blocks `"free"`)
+   * without being a sold card. Absent ⇒ off: an older backend does not say so, and the
+   * normal offer is the right fallback.
    */
   freeMode?: boolean;
 }
@@ -58,8 +58,8 @@ export interface CreditBalance {
   allotmentCents: number;
   consumedCents: number;
   balanceCents: number;
-  /** Mode gratuit : aucun plafond. `allotmentCents`/`balanceCents` valent 0 et ne veulent
-   *  rien dire — la jauge affiche la consommation seule, jamais « 0 € restants ». */
+  /** Free mode: no ceiling. `allotmentCents`/`balanceCents` are 0 and mean nothing — the
+   *  gauge shows consumption alone, never « 0 € restants ». */
   unlimited?: boolean;
 }
 
@@ -92,16 +92,16 @@ export interface BillingHost {
    *  REJECTS with a user-facing message on failure (e.g. no Stripe customer yet). */
   openPortal(): Promise<void>;
   /**
-   * Le MODE TESTEUR — s'octroyer un palier à soi-même, sans payer.
+   * TESTER MODE — granting oneself a tier, without paying.
    *
-   * `isTester` est un verdict d'AFFICHAGE : il décide du libellé du bouton, rien d'autre.
-   * La garde réelle est refaite côté serveur à chaque octroi (le rôle est relu en base),
-   * parce qu'un renderer ne décide de rien en matière d'autorisation. Fail-closed à
-   * `false` — un compte sans le rôle voit l'offre normale, jamais un bouton mort.
+   * `isTester` is a DISPLAY verdict: it decides the button's label, nothing else.
+   * The real guard is redone server-side on every grant (the role is re-read from the
+   * database), because a renderer decides nothing about authorisation. Fail-closed to
+   * `false` — an account without the role sees the normal offer, never a dead button.
    *
-   * `selfGrant(tier)` / `selfRevoke()` REJETTENT avec un message lisible, comme
-   * `startCheckout` : un octroi qui échoue en silence laisserait croire au palier obtenu.
-   * Optionnels — absents sur une plateforme sans backend (l'aperçu navigateur).
+   * `selfGrant(tier)` / `selfRevoke()` REJECT with a readable message, like
+   * `startCheckout`: a grant failing in silence would let the tier look obtained.
+   * Optional — absent on a platform with no backend (the browser preview).
    */
   isTester?(): Promise<boolean>;
   selfGrant?(tier: string): Promise<void>;

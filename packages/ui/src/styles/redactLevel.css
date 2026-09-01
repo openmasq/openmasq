@@ -1,24 +1,24 @@
-/* ================================ Niveau de redaction, depuis le composeur ==
-   Le popover derrière le bouton « niveau » de la rangée d'action
-   (pages/ChatWorkspace/ComposerRedactMenu.tsx). Famille `.crm-*` + son ancre,
-   définies NULLE PART ailleurs — c'est ce qui rend sa position dans la cascade
-   indifférente (cf. ../CLAUDE.md).
+/* ================================ Redaction level, from the composer ==
+   The popover behind the « niveau » button of the action row
+   (pages/ChatWorkspace/ComposerRedactMenu.tsx). Family `.crm-*` + its anchor,
+   defined NOWHERE else — that's what makes its position in the cascade
+   indifferent (cf. ../CLAUDE.md).
 
-   Les CARTES ne sont pas habillées ici : elles viennent de `PrivacyLevelPicker`
-   (`.privacy-level*`, la même feuille que Réglages → Confidentialité). Ce fichier
-   ne pose que le contenant et le pied de portée — redéfinir les cartes ferait
-   diverger deux surfaces qui décident la MÊME chose. */
+   The CARDS aren't styled here: they come from `PrivacyLevelPicker`
+   (`.privacy-level*`, the same sheet as Réglages → Confidentialité). This file
+   only lays out the container and the scope footer — redefining the cards would
+   make two surfaces that decide the SAME thing diverge. */
 
 .composer-redact-wrap {
   position: relative;
   display: inline-flex;
 }
 
-/* ⚠️ PORTALÉ et `position: fixed` — la position ET la hauteur viennent de `usePopover`
-   (`anchor`, `clampHeight`), pas d'ici. En `absolute` sous le bouton, deux choses
-   cassaient : les ancêtres à `overflow` du composeur clippaient le menu, et sur l'écran
-   d'accueil les trois cartes dépassaient la place au-dessus du composeur — l'intitulé et
-   la première carte sortaient par le haut de la fenêtre. Ne pas y remettre `bottom`/`left`. */
+/* ⚠️ PORTALED and `position: fixed` — the position AND the height come from `usePopover`
+   (`anchor`, `clampHeight`), not from here. As `absolute` under the button, two things
+   broke: the composer's `overflow` ancestors clipped the menu, and on the home
+   screen the three cards overran the room above the composer — the heading and
+   the first card went out the top of the window. Don't put `bottom`/`left` back here. */
 .crm-pop {
   position: fixed;
   z-index: 60;
@@ -36,11 +36,11 @@
   padding: 0 2px;
 }
 
-/* ── Les cartes ────────────────────────────────────────────────────────────────
-   Volontairement PLUS COMPACTES que celles des Réglages (`.privacy-level`) : ici la
-   décision se change en passant, là-bas elle se pèse. Deux états, jamais confondus —
-   la COCHE dit le niveau en vigueur, le FOND PLEIN celui qu'on vient de choisir et qui
-   n'est pas encore appliqué. */
+/* ── The cards ────────────────────────────────────────────────────────────────
+   Deliberately MORE COMPACT than the Réglages ones (`.privacy-level`): here the
+   decision changes in passing, there it gets weighed. Two states, never confused —
+   the CHECK says the level in force, the SOLID FILL the one just chosen that
+   isn't applied yet. */
 .crm-levels {
   display: flex;
   flex-direction: column;
@@ -61,8 +61,8 @@
 .crm-level:hover {
   background: var(--surface-hover);
 }
-/* Le choix EN ATTENTE : fond plein, sans contour — il se distingue de la coche, qui
-   dit l'état en vigueur, et non ce qu'on s'apprête à poser. */
+/* The PENDING choice: solid fill, no outline — it's distinct from the check, which
+   states the state in force, not what's about to be set. */
 .crm-level.armed {
   background: var(--surface-sunken);
   border-color: transparent;

@@ -41,10 +41,10 @@ describe("le lexique de l'argent — UN mot par concept", () => {
   });
 
   it("« formule » : le SENS monétaire tombe, le verbe et le nom ordinaire non", () => {
-    // Sans ce partage, le garde-fou attrapait « formuler » (un verbe, dans un
-    // classificateur d'intention) et « sans formule creuse » (un prompt) — et la
-    // réaction naturelle, exempter le fichier, aurait amnistié un vrai « changez de
-    // formule » y atterrissant plus tard.
+    // Without this split, the guard caught « formuler » (a verb, in an intent
+    // classifier) and « sans formule creuse » (a prompt) — and the natural reaction,
+    // exempting the file, would have amnestied a real « changez de formule » landing
+    // there later.
     const re = retiredMoneyPattern("formule");
     for (const money of [
       "VOTRE FORMULE",
@@ -60,16 +60,16 @@ describe("le lexique de l'argent — UN mot par concept", () => {
       "Ton courtois et direct, sans formule creuse.",
       "reformule la demande plus précisément",
       "une formule de politesse",
-      // Son jumeau à l'autre bout d'une lettre : `prompt/systemPrompt.ts` décrit la
-      // structure d'un courrier (« une formule d'appel … une formule de politesse »).
-      // Seule la SECONDE était exemptée, donc le garde-fou passait au rouge sur une
-      // phrase qui ne parle pas d'argent — un faux positif qui bloquait tout
-      // déploiement, puisque `verify` porte `pnpm test`.
+      // Its twin at the other end of a letter: `prompt/systemPrompt.ts` describes the
+      // structure of a letter (« une formule d'appel … une formule de politesse »).
+      // Only the SECOND was exempt, so the guard went red on a sentence that says
+      // nothing about money — a false positive that blocked every deployment, since
+      // `verify` carries `pnpm test`.
       "une formule d'appel, des paragraphes courts",
-      "une formule d’appel", // apostrophe typographique : la même phrase, un autre clavier
-      // Le tableur : `=SUM(A1:B2)` est une formule au sens ordinaire, comme
-      // « mathématique » ou « de politesse » — même exemption, même forme (un
-      // qualificatif explicite), donc « changez de formule » reste attrapé.
+      "une formule d’appel", // typographic apostrophe: the same sentence, another keyboard
+      // The spreadsheet: `=SUM(A1:B2)` is a formula in the ordinary sense, like
+      // « mathématique » or « de politesse » — same exemption, same shape (an explicit
+      // qualifier), so « changez de formule » is still caught.
       "les formules de calcul survivent à l'aller-retour",
       "le `=` de la formule de calcul est ajouté",
     ]) {
@@ -81,8 +81,8 @@ describe("le lexique de l'argent — UN mot par concept", () => {
     const fr = getMessages("fr").billing;
     expect(fr.ctaSee).toMatch(/abonnement/i);
     expect(fr.ctaUpgrade).toMatch(/abonnement/i);
-    // Dans chaque langue les deux intentions restent DEUX libellés — et le mot du produit
-    // ne se traduit pas en « plan » : l'anglais dit « subscription ».
+    // In each language the two intents stay TWO labels — and the product's word is not
+    // translated as « plan »: English says « subscription ».
     for (const locale of LOCALES) {
       const b = getMessages(locale).billing;
       expect(b.ctaSee).not.toBe(b.ctaUpgrade);
@@ -91,9 +91,9 @@ describe("le lexique de l'argent — UN mot par concept", () => {
   });
 
   it("« jetons » reste réservé au REDACTION — jamais aux unités facturées", () => {
-    // Les deux sens cohabitaient dans deux onglets voisins de Réglages, dont un sur ce
-    // que l'utilisateur paie. Ici : « jetons » ne doit plus apparaître dans les surfaces
-    // d'usage / facturation.
+    // The two senses coexisted in two neighbouring Settings tabs, one of them about what
+    // the user pays. Here: « jetons » must no longer appear in the usage / billing
+    // surfaces.
     const billing = files.filter((f) => /Settings\/billing\//.test(f));
     expect(billing.length).toBeGreaterThan(0);
     const guilty = billing

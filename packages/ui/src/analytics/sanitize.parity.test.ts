@@ -3,14 +3,14 @@ import { ALLOWED } from "./sanitize";
 import type { EventName, TrackEvent } from "./events";
 
 /**
- * PARITÉ vocabulaire ⇄ allow-list, au niveau TYPE — le trou que l'audit 13/08 a trouvé
- * déjà exploité deux fois : un champ déclaré dans `events.ts` mais absent d'`ALLOWED`
- * était retiré SANS UN MOT par le walk (`loopId` sur tool_loop_summary : la jointure du
- * funnel agentique cassée en silence). Un test d'exemples ne peut pas l'attraper ; le
- * compilateur, si. Les deux directions :
- *  - `_AucunManquant` : chaque clé d'un événement est dans sa ligne ALLOWED ;
- *  - `_AucunSurplus` : ALLOWED ne liste pas une clé qu'aucun événement ne porte.
- * Une dérive fait ÉCHOUER le typecheck (qui couvre les tests) en NOMMANT la clé.
+ * PARITY vocabulary ⇄ allow-list, at the TYPE level — the hole the 13/08 audit found
+ * already exploited twice: a field declared in `events.ts` but absent from `ALLOWED`
+ * was dropped WITHOUT A WORD by the walk (`loopId` on tool_loop_summary: the agentic
+ * funnel's join broken in silence). A test of examples cannot catch that; the compiler
+ * can. Both directions:
+ *  - `_AucunManquant`: every key of an event is in its ALLOWED row;
+ *  - `_AucunSurplus`: ALLOWED does not list a key that no event carries.
+ * A drift FAILS the typecheck (which covers the tests) by NAMING the key.
  */
 type KeysOf<N extends EventName> = Exclude<keyof Extract<TrackEvent, { name: N }>, "name">;
 
@@ -20,14 +20,14 @@ type Surplus = { [N in EventName]: Exclude<(typeof ALLOWED)[N][number], KeysOf<N
 type Expect<T extends true> = T;
 type IsNever<T> = [T] extends [never] ? true : false;
 
-// Si une clé manque/déborde, la ligne fautive est nommée dans l'erreur de compilation.
+// If a key is missing/extra, the offending row is named in the compilation error.
 type _AucunManquant = Expect<IsNever<Manquantes>>;
 type _AucunSurplus = Expect<IsNever<Surplus>>;
 
 describe("parité vocabulaire ⇄ allow-list", () => {
   it("est portée par le TYPECHECK (les alias ci-dessus) — ce test n'est que l'ancrage", () => {
-    // Ancrage runtime minimal : chaque événement du vocabulaire a une ligne (le
-    // `satisfies` de sanitize.ts le garantit déjà ; ceci rend le fichier exécutable).
+    // Minimal runtime anchor: every event of the vocabulary has a row (sanitize.ts's
+    // `satisfies` already guarantees it; this makes the file executable).
     expect(Object.keys(ALLOWED).length).toBeGreaterThan(30);
   });
 });

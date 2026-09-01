@@ -1,11 +1,11 @@
-/* ── « À vérifier » (Detection.uncertain) — le tiers de doute de l'audit avant envoi ──
-   Détection à source unique et signal faible : la valeur RESTE redacted (fail closed),
-   le style ne fait que la désigner à la relecture — bande adoucie + liseré POINTILLÉ
-   dans l'encre du hue (`--mk-soft` / `--mk-ink`), donc juste dans les quatre thèmes.
-   Famille propriétaire : `.mk-doubt`, `.detect-chip.doubt`, `.detect-chip-doubt`,
-   `.mark-keep-doubt` — définie nulle part ailleurs (contrat des partiels de styles.css).
-   Les hôtes (`.composer-mark`, `.detect-chip`, `.mark-keep-value`) restent dans
-   styles.css ; les composés ci-dessous gagnent par SPÉCIFICITÉ, pas par ordre. */
+/* ── « À vérifier » (Detection.uncertain) — the DOUBT tier of the pre-send audit ──────
+   Single-source, weak-signal detection: the value STAYS redacted (fail closed),
+   the style only marks it out for review — softened band + DOTTED outline
+   in the hue's ink (`--mk-soft` / `--mk-ink`), so just in the four themes.
+   Owning family: `.mk-doubt`, `.detect-chip.doubt`, `.detect-chip-doubt`,
+   `.mark-keep-doubt` — defined nowhere else (the styles.css partials' contract).
+   The hosts (`.composer-mark`, `.detect-chip`, `.mark-keep-value`) stay in
+   styles.css; the compounds below win by SPECIFICITY, not by order. */
 
 .composer-mark.mk-doubt {
   --mark-band: var(--mk-soft, var(--mk));
@@ -17,7 +17,7 @@
   border-style: dashed;
   border-color: var(--mk-ink, var(--border-default));
 }
-/* Le petit badge « à vérifier » dans la chip. */
+/* The small « à vérifier » badge inside the chip. */
 .detect-chip-doubt {
   flex-shrink: 0;
   font-size: 9px;
@@ -35,7 +35,7 @@
   outline: 1px dashed var(--mk-ink);
   outline-offset: -1px;
 }
-/* La ligne « Détection à vérifier » du popover — un constat, pas un bouton. */
+/* The « Détection à vérifier » line in the popover — a statement, not a button. */
 .mark-keep-doubt {
   font-size: var(--text-xs);
   color: var(--text-muted);

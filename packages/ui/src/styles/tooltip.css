@@ -24,10 +24,10 @@
   /* A single long word (a URL, a file name) must break rather than widen the bubble
      past its max and spill. */
   overflow-wrap: anywhere;
-  /* `pre-line`, pas `normal` : deux appelants passent un `title` MULTILIGNE (une barre
-     empilée liste ses séries, un modèle ses connecteurs) et leurs `\n` étaient repliés
-     en espaces — la légende du jour sortait en une seule phrase illisible. `pre-line`
-     garde les sauts voulus ET continue de replier les lignes trop longues. */
+  /* `pre-line`, not `normal`: two callers pass a MULTILINE `title` (a stacked
+     bar lists its series, a model its connectors) and their `\n` were folded
+     into spaces — the day's caption came out as one unreadable sentence. `pre-line`
+     keeps the intended breaks AND still wraps lines that are too long. */
   white-space: pre-line;
   box-shadow: var(--shadow-md);
   /* It follows the pointer's target; it must never BE one, or moving onto the bubble

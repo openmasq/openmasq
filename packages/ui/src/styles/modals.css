@@ -76,8 +76,8 @@
   color: var(--text-strong);
 }
 .modal-title.no-marker > span {
-  /* Pas de surligneur : l'encre reprend celle du titre, et le span perd sa boîte —
-     sans quoi le padding décalerait le titre par rapport aux autres têtes de modale. */
+  /* No highlighter: the ink matches the title's, and the span loses its box —
+     otherwise the padding would offset the title relative to other modal heads. */
   background: none;
   color: inherit;
   padding: 0;
@@ -128,10 +128,10 @@
 }
 
 /* ── « Importer mes compétences Claude » ──────────────────────────────────────────
-   La liste de ce que l'app a trouvé sur le disque, avant d'en créer quoi que ce soit :
-   une case (importer ou non), un bouton de RANGEMENT (compétence ⇄ workflow, le pari de
-   l'app restant modifiable), et l'avertissement des skills qui s'appuient sur des
-   fichiers annexes — dit AVANT l'import plutôt que découvert à l'usage. */
+   The list of what the app found on disk, before creating anything at all:
+   a checkbox (import or not), a SORTING button (compétence ⇄ workflow, the app's
+   guess staying editable), and the warning for skills that rely on
+   side files — said BEFORE the import rather than discovered in use. */
 .imp-body {
   max-height: min(52vh, 440px);
   overflow-y: auto;
@@ -139,14 +139,14 @@
   border-radius: var(--radius-md);
   transition: background 0.14s ease, box-shadow 0.14s ease;
 }
-/* Survol d'un dépôt : le corps ENTIER est la cible, pas un rectangle dans le rectangle —
-   viser une zone plus petite que la fenêtre est le meilleur moyen de lâcher à côté. */
+/* Hovering a drop: the WHOLE body is the target, not a rectangle within the rectangle —
+   aiming at a zone smaller than the window is the best way to miss and drop outside it. */
 .imp-body.over {
   background: var(--surface-selected);
   box-shadow: inset 0 0 0 2px var(--brand);
 }
-/* L'invite, quand rien n'a été trouvé automatiquement : c'est l'état par défaut de qui
-   n'utilise pas Claude Code sur cette machine, donc il propose au lieu de constater. */
+/* The prompt, when nothing was found automatically: it's the default state for whoever
+   doesn't use Claude Code on this machine, so it offers instead of just observing. */
 .imp-drop {
   display: flex;
   flex-direction: column;
@@ -216,8 +216,8 @@
   border-radius: var(--radius-md);
   background: var(--surface-card);
 }
-/* Décochée : présente, mais visiblement hors de l'import — pas retirée de la liste, ce
-   qui obligerait à rouvrir l'écran pour se raviser. */
+/* Unchecked: present, but visibly outside the import — not removed from the list, which
+   would force reopening the screen to change one's mind. */
 .imp-row.off {
   opacity: 0.5;
 }
@@ -255,7 +255,7 @@
   flex-shrink: 0;
   margin-top: 1px;
 }
-/* Le rangement, en haut à droite de la ligne : un état qu'on bascule, pas une action. */
+/* The sorting, top right of the row: a state you toggle, not an action. */
 .imp-kind {
   position: absolute;
   top: 8px;

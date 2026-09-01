@@ -5,18 +5,18 @@ import { usePopover } from "../../hooks/usePopover";
 import { ComposerRedactMenu, type RedactLevelApi } from "./ComposerRedactMenu";
 
 /**
- * Le bouton « niveau de redaction » de la rangée d'action, et son popover.
+ * The action row's « niveau de redaction » button, and its popover.
  *
- * À part de `Composer` (déjà en dette de taille) parce que c'est un contrôle entier —
- * déclencheur, ancrage, portail — et qu'il n'a besoin de rien d'autre que son api.
+ * Kept apart from `Composer` (already in size debt) because it is a whole control —
+ * trigger, anchoring, portal — and it needs nothing but its api.
  *
- * ⚠️ **PORTALÉ et ancré, jamais `absolute`.** C'est l'avertissement que porte déjà
- * `HueSelect`, et il vaut ici pour deux raisons mesurées dans l'app construite : le
- * composeur vit dans des ancêtres à `overflow`, qui CLIPPENT un menu en flux ; et les trois
- * cartes — avec la contrepartie que la règle 8 impose à chacune — sont plus hautes que la
- * place au-dessus du composeur sur l'écran d'accueil, si bien qu'en `absolute` le haut du
- * menu sortait de la fenêtre en emportant l'intitulé et la première carte. `clampHeight`
- * borne à la place RÉELLE, et `usePopover` retourne le menu sous le bouton quand il le faut.
+ * ⚠️ **PORTALLED and anchored, never `absolute`.** That is the warning `HueSelect` already
+ * carries, and it holds here for two reasons measured in the built app: the composer lives
+ * inside ancestors with `overflow`, which CLIP an in-flow menu; and the three cards — with
+ * the counterpart rule 8 imposes on each — are taller than the room above the composer on
+ * the welcome screen, so that in `absolute` the top of the menu left the window, taking the
+ * heading and the first card with it. `clampHeight` bounds to the REAL room, and
+ * `usePopover` flips the menu below the button when it must.
  */
 export function ComposerRedactButton({ api }: { api: RedactLevelApi }) {
   const t = useT();

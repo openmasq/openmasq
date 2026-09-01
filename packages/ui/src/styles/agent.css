@@ -46,8 +46,8 @@
 .agent-card-eyebrow {
   margin-bottom: 7px;
 }
-/* Neutre par défaut : le fond vient de `GlyphTile` (sunken), le filet d'ici — une tuile
-   sans bord flottait sur la carte dès que son fond cessait d'être une teinte pleine. */
+/* Neutral by default: the fill comes from `GlyphTile` (sunken), the border from here —
+   a tile with no border floated on the card as soon as its fill stopped being a solid tint. */
 .agent-card-tile {
   width: 38px;
   height: 38px;

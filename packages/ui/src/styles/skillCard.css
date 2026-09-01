@@ -1,34 +1,34 @@
-/* ═══ La CARTE de PROPOSITION du fil (```competence / ```workflow) — la compétence ou
-   le workflow que le modèle vient de fabriquer, avec son bouton d'adoption.
+/* ═══ The PROPOSAL CARD in the thread (```competence / ```workflow) — the compétence or
+   the workflow the model just built, with its adoption button.
 
-   Volontairement MINCE : la carte compose `AgentCard`, donc le cadre, le filet, la
-   tuile, l'exergue et le pied viennent déjà de la famille `.agent-card-*` (voir
-   `components/CLAUDE.md` : on compose ce shell, on ne fabrique pas une boîte). Ne vit
-   ici que ce que CETTE carte ajoute : sa marge dans le fil, la rangée de connecteurs,
-   et le prompt replié.
+   Deliberately THIN: the card composes `AgentCard`, so the frame, the rule, the
+   tile, the eyebrow and the footer already come from the `.agent-card-*` family (see
+   `components/CLAUDE.md`: we compose this shell, we don't fabricate a box). Only what
+   THIS card adds lives here: its margin in the thread, the connector row,
+   and the collapsed prompt.
 
-   ⚠️ Son `@import` doit rester parmi les @import DE TÊTE de `styles.css` — Lightning CSS
-   droppe silencieusement un @import placé sous le bloc `@theme`. Les trois sélecteurs
-   ci-dessous portent un préfixe qui n'existe nulle part ailleurs, donc sa position dans
-   la cascade est indifférente. ═══ */
+   ⚠️ Its `@import` must stay among the LEADING @imports of `styles.css` — Lightning CSS
+   silently drops an @import placed below the `@theme` block. The three selectors
+   below carry a prefix that exists nowhere else, so its position in
+   the cascade is indifferent. ═══ */
 
-/* Même respiration que `.md-document-card` : les deux sont des livrables posés dans le
-   fil, ils ne doivent pas se distinguer par leur espacement. */
+/* Same breathing room as `.md-document-card`: both are deliverables placed in the
+   thread, they must not be distinguished by their spacing. */
 .md-skill-card {
   margin: 4px 0 16px;
 }
 
-/* Les connecteurs qu'un workflow pilote, à gauche du pied. Les tuiles portent leur
-   propre marque (`McpTile`) ; il n'y a ici que l'alignement. */
+/* The connectors a workflow drives, to the left of the footer. The tiles carry their
+   own mark (`McpTile`); there's only the alignment here. */
 .md-skill-servers {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-/* Le prompt déplié — en mono, comme partout où l'on montre une instruction destinée au
-   modèle, et borné en hauteur : une consigne longue ne doit pas repousser le bouton
-   d'adoption hors de l'écran, qui est la seule chose qu'on vient faire ici. */
+/* The unfolded prompt — in mono, like everywhere an instruction meant for the
+   model is shown, and height-capped: a long instruction must not push the adoption
+   button off screen, which is the one thing one comes here to do. */
 .md-skill-prompt {
   margin: 10px 0 0;
   padding: 10px 12px;

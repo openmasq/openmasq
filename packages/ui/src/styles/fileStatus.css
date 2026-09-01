@@ -1,11 +1,11 @@
-/* ═══ Aperçu de document — les ÉTATS du redaction (audit 2026-08-10) ═══
-   Famille propre à ce partial (sélecteurs définis nulle part ailleurs) : le bandeau
-   d'échec de la passe de dépôt, la note de coupe d'envoi, et le sous-titre-bouton
-   qui déplie le détail par catégorie. Les encres sont APPARIÉES à leur fond
-   (jamais un --text-* sur un pastel --hl-* : il s'inverse, le pastel non — balayé
-   par styles/frozenInk.test.ts). */
+/* ═══ Document preview — the redaction STATES (audit 2026-08-10) ═══
+   Family specific to this partial (selectors defined nowhere else): the deposit-pass
+   failure banner, the send-cut note, and the subtitle-button
+   that unfolds the per-category detail. The inks are PAIRED to their ground
+   (never a --text-* on a --hl-* pastel: it inverts, the pastel doesn't — swept
+   by styles/frozenInk.test.ts). */
 
-/* Échec de la passe de dépôt : même gabarit que .fv-coverage-note, teinte alerte. */
+/* Deposit-pass failure: same template as .fv-coverage-note, alert tint. */
 .fv-redact-fail {
   display: flex;
   align-items: center;
@@ -19,7 +19,7 @@
   color: var(--ink-on-hl);
 }
 
-/* La coupe d'envoi, matérialisée au caractère près sous la dernière page. */
+/* The send cut, materialized down to the character under the last page. */
 .fv-truncnote {
   display: flex;
   align-items: center;
@@ -34,7 +34,7 @@
   width: fit-content;
 }
 
-/* Le sous-titre-bouton (détail par catégorie au clic) garde la typo du sous-titre. */
+/* The subtitle-button (per-category detail on click) keeps the subtitle's typography. */
 .fv-caption-btn {
   background: none;
   border: none;

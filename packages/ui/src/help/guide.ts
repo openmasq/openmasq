@@ -5,9 +5,9 @@ import { BRAND } from "@openmasq/branding";
 /**
  * THE in-app guide — the app explaining itself, in the user's language.
  *
- * Ce fichier ASSEMBLE : la COPIE vit dans le catalogue (`guide`), en français et en
- * anglais ; ici restent l'ORDRE des chapitres, leurs ids, et les drapeaux qui décident
- * quoi monter (`demo`, `sections`, `releases`) — de la structure, pas de la prose.
+ * This file ASSEMBLES: the COPY lives in the catalogue (`guide`), in French and in
+ * English; what stays here is the ORDER of the chapters, their ids, and the flags that
+ * decide what to mount (`demo`, `sections`, `releases`) — structure, not prose.
  *
  * Written under the same rules as the public documentation (root rule 8): plain language,
  * for the end user. No file paths, no package names, no internal architecture, no
@@ -31,19 +31,19 @@ export interface GuideChapter {
   terms?: readonly { term: string; def: string }[];
   /** Render the six sections here (label + `guide`), from the single source. */
   sections?: boolean;
-  /** Ce chapitre montre la DÉMONSTRATION du redaction (la même que le premier
-   *  lancement). Un drapeau, pas un composant : `help/` reste du texte, et c'est le
-   *  guide qui décide quoi monter. */
+  /** This chapter shows the redaction DEMONSTRATION (the same one as first launch).
+   *  A flag, not a component: `help/` stays text, and it is the guide that decides
+   *  what to mount. */
   demo?: true;
-  /** Ce chapitre montre l'HISTORIQUE des versions publiées (les notes de l'équipe).
-   *  Même règle que `demo` : un drapeau, le contenu vient d'ailleurs — ici du réseau,
-   *  donc le guide masque le chapitre là où cette source n'existe pas. */
+  /** This chapter shows the HISTORY of the published versions (the team's notes).
+   *  Same rule as `demo`: a flag, the content comes from elsewhere — here from the
+   *  network, so the guide hides the chapter where that source does not exist. */
   releases?: true;
 }
 
 /**
- * L'ORDRE et la STRUCTURE des chapitres. Une langue ne réordonne pas un guide, et ne
- * décide pas qu'un chapitre montre la démonstration : ces trois drapeaux restent ici.
+ * The ORDER and the STRUCTURE of the chapters. A language does not reorder a guide, and
+ * does not decide that a chapter shows the demonstration: these three flags stay here.
  */
 const CHAPTERS: {
   id: string;
@@ -61,11 +61,11 @@ const CHAPTERS: {
   { id: "nouveautes", key: "releases", releases: true },
 ];
 
-/** Les ids des chapitres, dans l'ordre — l'état initial du modal en a besoin AVANT
- *  d'avoir résolu la langue, et un id n'est pas de la copie. */
+/** The chapter ids, in order — the modal's initial state needs them BEFORE the language
+ *  has been resolved, and an id is not copy. */
 export const CHAPTER_IDS = CHAPTERS.map((c) => c.id);
 
-/** Le guide dans la langue de `t`, le nom de marque injecté. */
+/** The guide in `t`'s language, with the brand name injected. */
 export function guideChapters(t: Messages): readonly GuideChapter[] {
   const b = BRAND.name;
   return CHAPTERS.map(({ id, key, ...flags }) => {

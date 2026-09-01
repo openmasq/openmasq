@@ -1,12 +1,12 @@
-/* ═══ Champs de formulaire + listes d'étapes des modales ═══
-   Le NUMÉRO d'étape vit dans la case vide, pour qu'une liste non cochée se lise quand
-   même comme une progression. */
-/* ⚠️ Son `@import` (via le barrel `modal.css`) doit rester atteignable depuis les @import
-   DE TÊTE de `styles.css` : Lightning CSS DROPPE silencieusement un @import placé sous le
-   bloc `@theme` (le piège qui avait déjà tué les webfonts). Extrait après vérification que
-   AUCUN de ces sélecteurs n'est redéclaré plus HAUT dans `styles.css` — c'est ce qui rend
-   sa nouvelle position dans la cascade indifférente (le CSS bâti reste le même multiset
-   de règles, seul leur ordre change). */
+/* ═══ Modal form fields + step lists ═══
+   The step NUMBER lives in the empty box, so an unchecked list still reads
+   as a progression. */
+/* ⚠️ Its `@import` (via the `modal.css` barrel) must stay reachable from the LEADING
+   @imports of `styles.css`: Lightning CSS silently DROPS an @import placed below the
+   `@theme` block (the trap that had already killed the webfonts). Extracted after checking
+   that NONE of these selectors is redeclared HIGHER in `styles.css` — that's what makes
+   its new position in the cascade indifferent (the built CSS stays the same multiset
+   of rules, only their order changes). */
 
 /* Form fields */
 .field {

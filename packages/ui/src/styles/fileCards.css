@@ -1,6 +1,6 @@
-/* ═══ Fichiers (kit) : vignettes composer, cartes en message, bibliothèque scindée ═══ */
+/* ═══ Files (kit): composer thumbnails, in-message cards, split library ═══ */
 
-/* ── ComposerFileThumb : la pièce jointe en vignette (tuile + corps 2 lignes) ── */
+/* ── ComposerFileThumb: the attachment as a thumbnail (tile + 2-line body) ── */
 .attach-chip {
   display: inline-flex;
   gap: 9px;
@@ -37,8 +37,8 @@
 .attach-tile.image {
   background: var(--hl-sky);
 }
-/* Redaction en cours : un voile d'encre PLEIN recouvre la tuile au fil du %
-   (plus de hachures — l'effet rayé est retiré du produit). */
+/* Redaction in progress: a SOLID ink veil covers the tile as the % advances
+   (no more hatching — the striped effect has been removed from the product). */
 .attach-tile.redacting::after {
   content: "";
   position: absolute;
@@ -47,9 +47,9 @@
   clip-path: inset(0 calc(100% - var(--attach-progress, 40%)) 0 0);
   transition: clip-path 130ms linear;
 }
-/* Halo pulsé pendant le chargement (extraction) OU l'analyse (redaction) d'un
-   fichier : un glow doux, contenu dans le padding du chip (7px) donc jamais rogné
-   par son overflow. Teinte marque (`--tile-hue`), lisible sur le fond enfoncé du chip. */
+/* Pulsed halo during loading (extraction) OR analysis (redaction) of a
+   file: a soft glow, contained within the chip's padding (7px) so it's never clipped
+   by its overflow. Brand tint (`--tile-hue`), legible on the chip's sunken ground. */
 @keyframes attach-halo-pulse {
   0%,
   100% {
@@ -99,7 +99,7 @@
   background: var(--hl-amber);
 }
 
-/* ── MessageFileCard : le document dans la conversation ─────────────────────── */
+/* ── MessageFileCard: the document in the conversation ─────────────────────── */
 .msg-filecard {
   display: flex;
   gap: 0;
@@ -120,10 +120,10 @@
   border-color: var(--border-default);
   box-shadow: var(--shadow-md);
 }
-/* Le FORMAT en mono, dans une tuile sourde — ce que la carte doit dire en premier.
-   À la place d'une miniature « document redacted » dessinée : elle ne rendait jamais le
-   vrai fichier (elle ne pouvait pas — 60 px), et elle portait une teinte `--hl-*`, donc
-   le langage du redaction, sur une carte qui ne masque rien. */
+/* The FORMAT in mono, in a muted tile — what the card has to say first.
+   In place of a drawn « document redacted » thumbnail: it never rendered the
+   real file (it couldn't — 60 px), and it wore an `--hl-*` tint, meaning
+   the redaction's language, on a card that masks nothing. */
 .msg-filecard-ext {
   align-self: center;
   flex-shrink: 0;
@@ -142,7 +142,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-/* DOCX, XLSX, PPTX : quatre lettres ne tiennent qu'en plus petit. */
+/* DOCX, XLSX, PPTX: four letters only fit smaller. */
 .msg-filecard-ext.long {
   font-size: 9px;
 }
@@ -179,9 +179,9 @@
   font-size: 10.5px;
   color: var(--text-faint);
 }
-/* Le compte de valeurs masquées : une pastille SOURDE. Elle portait le lime de marque
-   (et une encre figée) — un aplat de couleur pour une information de contexte, sur la
-   seule carte qui devait rester lisible d'un coup d'œil. */
+/* The count of masked values: a MUTED pill. It used to wear the brand lime
+   (and a frozen ink) — a flat colour for a piece of context information, on the
+   one card that had to stay readable at a glance. */
 .msg-filecard-shield {
   display: inline-flex;
   gap: 4px;

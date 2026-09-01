@@ -237,10 +237,10 @@
   display: grid;
   place-items: center;
   background: var(--brand);
-  /* ⚠️ JAMAIS `#fff` ici (règle 12) : le thème sombre re-pointe `--brand` sur le lime
-     très clair, et le glyphe blanc y disparaît. `--brand-contrast` est l'encre qui
-     s'inverse AVEC le fond — lime sur le vert clair, quasi-noir sur le lime, blanc sur
-     l'indigo des thèmes bleus. Les autres boutons de marque passent par la même encre. */
+  /* ⚠️ NEVER `#fff` here (rule 12): the dark theme re-points `--brand` at the very
+     light lime, and the white glyph disappears into it. `--brand-contrast` is the ink
+     that inverts WITH the ground — lime on the light green, near-black on the lime,
+     white on the blue themes' indigo. The other brand buttons go through the same ink. */
   color: var(--brand-contrast);
   cursor: pointer;
   box-shadow: 0 12px 28px -8px rgb(var(--ink-neutral) / 45%);

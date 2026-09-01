@@ -145,9 +145,9 @@
   cursor: pointer;
 }
 
-/* « Importer depuis Claude » : une ICÔNE dans la rangée de filtres. Action secondaire —
-   elle ne dispute pas la place à la création (la tuile en pointillés de la grille) — et le
-   libellé vit dans l'infobulle, que `TooltipLayer` dessine à partir du `title`. */
+/* « Importer depuis Claude »: an ICON in the filter row. A secondary action —
+   it doesn't compete for space with creation (the grid's dashed tile) — and the
+   label lives in the tooltip, which `TooltipLayer` draws from the `title`. */
 .om-skill-import {
   flex: none;
   display: inline-flex;

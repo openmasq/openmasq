@@ -1,6 +1,6 @@
-/* Réglages → Compte : la carte ORGANISATION sous le compte — un BOUTON
-   plein-carte (une cible, pas un panneau de commandes) qui ouvre l'onglet
-   Organisation. Famille `.account-org`, définie nulle part ailleurs. */
+/* Réglages → Compte: the ORGANIZATION card under the account — a full-card
+   BUTTON (one target, not a command panel) that opens the
+   Organisation tab. Family `.account-org`, defined nowhere else. */
 .account-org {
   margin-top: 10px;
   width: 100%;

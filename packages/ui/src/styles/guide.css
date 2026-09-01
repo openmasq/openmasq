@@ -25,10 +25,10 @@
 .guide-eyebrow {
   margin-bottom: 3px;
 }
-/* L'appel vers le centre d'aide étendu : un `.btn-primary` (donc l'encre qui s'inverse
-   avec la marque et le balayage au survol viennent avec, règle 12) posé dans l'en-tête,
-   visible depuis n'importe quel chapitre. `<a>` : il faut donc redresser ce que la règle
-   du bouton suppose — pas de soulignement, et une boîte flex pour centrer le glyphe. */
+/* The call to the extended help center: a `.btn-primary` (so the ink that inverts
+   with the brand and the hover sweep come along, rule 12) placed in the header,
+   visible from any chapter. `<a>`: so what the button rule assumes has to be straightened
+   out — no underline, and a flex box to center the glyph. */
 .guide-head-cta {
   margin-left: auto;
   display: inline-flex;
@@ -158,11 +158,11 @@
   flex-shrink: 0;
 }
 
-/* L'onglet « Nouveautés » : l'historique publié, lu et rien d'autre (les boutons
-   d'installation vivent dans Réglages → Versions). Chaque note est une entrée de
-   chronologie — version + date en tête, titre, puis les puces, qui empruntent la mise en
-   forme des notes de version (`styles/versions/history.css`, `.ver-rel*`) : une note se
-   lit pareil dans les deux écrans, par construction. */
+/* The « Nouveautés » tab: the published history, read-only and nothing else (the
+   install buttons live in Réglages → Versions). Each note is a timeline
+   entry — version + date up top, title, then the bullets, which borrow the
+   release-note formatting (`styles/versions/history.css`, `.ver-rel*`): a note
+   reads the same in both screens, by construction. */
 .rn-list {
   display: flex;
   flex-direction: column;
@@ -223,8 +223,8 @@
     white-space: nowrap;
     flex-shrink: 0;
   }
-  /* Le titre et l'appel ne tiennent pas côte à côte : l'appel passe à la ligne, pleine
-     largeur, plutôt que d'écraser « Prendre en main <marque> » en deux syllabes. */
+  /* The title and the call don't fit side by side: the call wraps onto its own line, full
+     width, rather than squeezing « Prendre en main <marque> » into two syllables. */
   .guide-head {
     flex-wrap: wrap;
   }

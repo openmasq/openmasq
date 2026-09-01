@@ -1,11 +1,11 @@
-/* ═══ « Appareils connectés » (SyncSection) — phrase secrète + liste ═══
-   Partagée entre l'onglet Sync et la modale : même badge d'état, mêmes actions. */
-/* ⚠️ Son `@import` (via le barrel `modal.css`) doit rester atteignable depuis les @import
-   DE TÊTE de `styles.css` : Lightning CSS DROPPE silencieusement un @import placé sous le
-   bloc `@theme` (le piège qui avait déjà tué les webfonts). Extrait après vérification que
-   AUCUN de ces sélecteurs n'est redéclaré plus HAUT dans `styles.css` — c'est ce qui rend
-   sa nouvelle position dans la cascade indifférente (le CSS bâti reste le même multiset
-   de règles, seul leur ordre change). */
+/* ═══ « Appareils connectés » (SyncSection) — passphrase + list ═══
+   Shared between the Sync tab and the modal: same status badge, same actions. */
+/* ⚠️ Its `@import` (via the `modal.css` barrel) must stay reachable from the LEADING
+   @imports of `styles.css`: Lightning CSS silently DROPS an @import placed below the
+   `@theme` block (the trap that had already killed the webfonts). Extracted after verifying
+   that NONE of these selectors is redeclared HIGHER in `styles.css` — that's what makes
+   its new position in the cascade indifferent (the built CSS stays the same multiset
+   of rules, only their order changes). */
 
 /* Status badge + actions + hint — reused by the SyncSection (passphrase state). */
 .keyless-badge {
@@ -114,8 +114,8 @@
 .sync-key-note {
   margin: 0;
 }
-/* La divergence de phrase (verifyPassphrase → « mismatch ») : un avertissement qui doit
-   se VOIR — c'est une synchro morte annoncée, pas une note de bas de page. */
+/* Passphrase divergence (verifyPassphrase → « mismatch »): a warning that must
+   be SEEN — it's a dead sync announced, not a footnote. */
 .sync-pass-warn {
   color: var(--danger, #b3261e);
 }
@@ -210,9 +210,9 @@
   background: var(--surface-page);
 }
 
-/* ── Le témoin d'état (SyncSection) : environnement + dernier échange ─────────
-   La raison d'être : la synchro est best-effort, donc une panne est silencieuse par
-   contrat — cette carte est la seule surface qui la rend visible. */
+/* ── The status indicator (SyncSection): environment + last exchange ─────────
+   The reason it exists: sync is best-effort, so a failure is silent by
+   contract — this card is the only surface that makes it visible. */
 .sync-status-card {
   display: flex;
   flex-direction: column;

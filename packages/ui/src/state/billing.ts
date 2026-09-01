@@ -7,13 +7,13 @@ import { subscriptionsSold } from "../send/platformAccess";
 // Per seat (org) or per person (individual). Amounts in eurocents. Credits = the
 // prepaid monthly model-usage budget included.
 //
-// ⚠️ Solo et Team ont le MÊME prix et la MÊME enveloppe, exprès : la carte doit donc
-// vendre le CADRE (règles imposées, modèles et connecteurs autorisés, facture unique),
-// pas le volume. Une carte Team qui promettrait « plus de crédits » serait fausse.
+// ⚠️ Solo and Team have the SAME price and the SAME allowance, deliberately: the card must
+// therefore sell the FRAME (imposed rules, allowed models and connectors, one invoice),
+// not the volume. A Team card promising « plus de crédits » would be false.
 //
-// ⚠️ `scale` a quitté le catalogue vendu. Le slug survit dans `TierSlug` + `LABEL` pour
-// qu'un compte encore sur Scale s'AFFICHE correctement ; il n'a simplement plus de carte
-// à acheter. Voir `RETIRED_TIERS` côté backend.
+// ⚠️ `scale` has left the sold catalogue. The slug survives in `TierSlug` + `LABEL` so that
+// an account still on Scale DISPLAYS correctly; it simply no longer has a card to buy.
+// See `RETIRED_TIERS` on the backend side.
 
 export type TierSlug = "free" | "solo" | "team" | "scale";
 
@@ -31,8 +31,8 @@ export interface PlanTier {
   feats: string[];
 }
 
-/** La grille des paliers dans la langue de `t`. Prix, crédits et « recommandé » sont des
- *  FAITS de l'offre et restent ici ; nom, étiquette et arguments viennent du catalogue. */
+/** The grid of tiers in `t`'s language. Price, credits and "recommended" are FACTS of the
+ *  offer and stay here; name, label and selling points come from the catalogue. */
 export function planTiers(t: Messages): PlanTier[] {
   const b = BRAND.name;
   const copy = (c: PlanTierCopy) => ({ name: c.name, tag: c.tag, feats: c.feats.map((f) => f(b)) });
@@ -47,7 +47,7 @@ export function planTiers(t: Messages): PlanTier[] {
 /** Display label for a tier slug / legacy account type. */
 export function tierLabel(tier: string | null | undefined, t: Messages): string {
   if (!tier) return t.billing.tierLabels.free;
-  // `PRO` est l'ancien nom serveur du palier Team ; les autres clés sont des slugs.
+  // `PRO` is the old server name of the Team tier; the other keys are slugs.
   const key = tier === "PRO" ? "team" : tier.toLowerCase();
   return (t.billing.tierLabels as Record<string, string | undefined>)[key] ?? tier;
 }
@@ -71,8 +71,8 @@ export function canPitchSubscription(p: {
   /** The signed-in member's org authorization (any non-null value = in an org). */
   inOrg?: boolean;
 }): boolean {
-  // Rien à vendre dans ce build (`subscriptionsSold`, le défaut) ⇒ jamais de pitch, quel
-  // que soit le palier : c'est la seule porte que chaque surface d'upsell relit.
+  // Nothing to sell in this build (`subscriptionsSold`, the default) ⇒ never a pitch, whatever
+  // the tier: this is the one door every upsell surface re-reads.
   if (!subscriptionsSold()) return false;
   if (p.inOrg) return false;
   return !!p.sub && (p.sub.tier ?? "free") === "free";
@@ -91,22 +91,22 @@ export function knownTier(sub: { tier?: string } | null | undefined): string | n
   return sub.tier ?? "free";
 }
 
-/** Ce qu'un clic sur une carte de palier doit DÉCLENCHER. */
+/** What a click on a tier card must TRIGGER. */
 export type TierAction = "self-grant" | "change-tier" | "checkout";
 
 /**
- * Où va un clic sur un autre palier. Pur et testé (`billing.test.ts`) parce que la seule
- * branche qui compte ici est celle qui s'est trompée.
+ * Where a click on another tier goes. Pure and tested (`billing.test.ts`) because the only
+ * branch that matters here is the one that got it wrong.
  *
- * ⚠️ « Abonné » n'est PAS « palier ≠ gratuit ». Un **octroi** — le palier Solo inclus que
- * tout compte reçoit en arrivant, ou un accès donné par un admin — affiche un palier sans
- * qu'aucun abonnement Stripe n'existe derrière. `change-tier` échange le prix d'un
- * abonnement Stripe : sur un octroi il n'a rien à échanger et répond `409 NO_SUBSCRIPTION`.
- * Le confondre envoyait donc TOUS les comptes sur la route morte — plus personne
- * n'achetait, à aucun palier. Un octroi passe par la CAISSE, comme un compte gratuit.
+ * ⚠️ "Subscribed" is NOT "tier ≠ free". A **grant** — the included Solo tier every account
+ * receives on arrival, or an access given by an admin — displays a tier without any Stripe
+ * subscription existing behind it. `change-tier` swaps the price of a Stripe subscription:
+ * on a grant it has nothing to swap and answers `409 NO_SUBSCRIPTION`.
+ * Confusing the two therefore sent EVERY account down the dead route — nobody was buying
+ * any more, at any tier. A grant goes through CHECKOUT, like a free account.
  *
- * `canChangeTier` = l'hôte sait-il exécuter le changement sur place (l'aperçu web et le
- * mobile ne l'ont pas) — sinon la caisse, qui elle existe partout.
+ * `canChangeTier` = can the host run the change in place (the web preview and mobile
+ * cannot) — otherwise checkout, which exists everywhere.
  */
 export function tierAction(p: {
   testerMode: boolean;
@@ -129,9 +129,9 @@ export function tierAction(p: {
  * change-tier — that opens nothing MUST say why.
  */
 /**
- * L'échec d'une action de paiement tel que l'HÔTE le remonte : un statut et un code borné,
- * jamais une phrase. La phrase se choisit dans l'UI (`billingErrorMessage`), dans la langue
- * de l'interface — un hôte qui la formulait figeait le français dans `apps/desktop`.
+ * A payment action's failure as the HOST reports it: a status and a bounded code, never a
+ * sentence. The sentence is chosen in the UI (`billingErrorMessage`), in the interface
+ * language — a host that phrased it froze French into `apps/desktop`.
  */
 export class BillingApiError extends Error {
   constructor(
@@ -165,10 +165,10 @@ export function billingErrorMessage(status: number, t: Messages, code?: string):
   return e.generic;
 }
 
-/** Formate des centimes d'euro comme un montant EUR, dans la LOCALE donnée (« 1,00 € »
- *  en français, « €1.00 » en anglais). La devise reste l'euro — le produit est facturé en
- *  euros — seul le FORMAT suit la langue, via `Intl` (pas le catalogue : un nombre n'est
- *  pas une phrase). Défaut = langue source, pour les appelants encore hors contexte React. */
+/** Formats euro cents as an EUR amount, in the GIVEN locale (« 1,00 € » in French,
+ *  « €1.00 » in English). The currency stays the euro — the product is billed in euros —
+ *  only the FORMAT follows the language, via `Intl` (not the catalogue: a number is not a
+ *  sentence). Default = source language, for callers still outside React context. */
 export function formatCents(cents: number, locale: Locale = DEFAULT_LOCALE): string {
   try {
     return new Intl.NumberFormat(locale, { style: "currency", currency: "eur" }).format(cents / 100);

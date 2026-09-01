@@ -1,22 +1,22 @@
 import type { Detected, Item } from "./composerDetection";
 
 /**
- * UNE pastille par identité — y compris quand une valeur est IMBRIQUÉE dans une autre.
+ * ONE chip per identity — including when a value is NESTED inside another.
  *
- * Le dédoublonnage de `buildDetection` est value-keyed : « 12345678 » et « 12345678Z » sont
- * deux clés distinctes, donc sur « DNI 12345678Z » l'aperçu affichait DEUX pastilles là où
- * l'envoi n'alloue QU'UN faux (mesuré au parcours RH, 17/08 : le moteur rend 3 matches pour
- * 3 valeurs, l'aperçu en montrait 4).
+ * `buildDetection`'s dedup is value-keyed: « 12345678 » and « 12345678Z » are two distinct
+ * keys, so on « DNI 12345678Z » the preview showed TWO chips where the send allocates only
+ * ONE fake (measured on the HR run, 17/08: the engine returns 3 matches for 3 values, the
+ * preview showed 4).
  *
- * ⚠️ Ce n'est pas cosmétique. Une pastille est CLIQUABLE pour « garder en clair » : celle des
- * chiffres nus proposait de un-redact la moitié d'un numéro national. Même famille que le
- * terme du Coffre reclassé qui portait deux pastilles — c'est l'aperçu qui ment, sur la
- * surface dont tout le métier est d'être crue.
+ * ⚠️ This is not cosmetic. A chip is CLICKABLE to « garder en clair »: the bare-digits one
+ * offered to un-redact half a national number. Same family as the reclassified Vault term
+ * that carried two chips — it is the preview that lies, on the very surface whose whole
+ * job is to be believed.
  *
- * La règle : on garde le span LONG, jamais le fragment. Une valeur n'est écartée que si
- * CHACUNE de ses occurrences est STRICTEMENT contenue dans une occurrence d'une autre — deux
- * valeurs qui se chevauchent partiellement, ou qui apparaissent aussi seules ailleurs dans le
- * brouillon, gardent chacune la leur.
+ * The rule: keep the LONG span, never the fragment. A value is dropped only if EVERY one
+ * of its occurrences is STRICTLY contained in an occurrence of another — two values that
+ * partially overlap, or that also appear alone elsewhere in the draft, each keep their
+ * own.
  */
 export function dropNested(
   found: readonly { item: Item; mine: Detected[] }[],
