@@ -37,11 +37,11 @@ it. Verified end-to-end with `node apps/desktop/e2e/fixtures/verify.mjs`.
 | `team-roster.md` | Markdown | ✅ | prose + pipe table + emergency contacts |
 | `support-tickets.log` | Log | ✅ | server logs with tokens/IPs/PAN |
 | `onboarding-notes.txt` | Text | ✅ | free-form prose |
-| `releve-droits-auteur.txt` | Text | ✅ | two-column royalties statement: SIREN before/after RCS, checksum-broken (OCR) SIRET/TVA, labeled ids vs the column gap, letterhead address. Pinned by `src/releveRepartition.test.ts` |
-| `acte-promesse-achat.txt` | Text | ✅ | OCR'd notarial deed: "VILLE (CP)" civil-status order (garbled/wrapped/open-paren), glued birth dates, CRPCEN, 3-token names + short-form identity, all-caps legal vocables, in-text fake collision. Pinned by `src/acteNotarie.test.ts` |
-| `acte-cautionnement.txt` | Text | ✅ | caution act (CAMCA shape): labeled financing reference repeated in per-page footers, contract number embedding it, LU footer registry ids (VAT/RCS Luxembourg/IDU), prose-gated ORIAS, "Agence de :" branch, double-labeled DPO email, legal role nouns + institutions that must stay clear. Pinned by `src/acteCautionnement.test.ts` |
-| `compte-resultat.txt` | Text | ✅ | financial statement: label-less "denomination ⏎ bare SIREN/SIRET" header pair (Luhn-invalid OCR digits), generic accounting vocabulary that must ship verbatim. Pinned by `src/compteResultat.test.ts` |
-| `courrier-inscription.txt` | Text | ✅ | enrollment letter: org name in prose AND glued in URL hosts (fakes must stay glued → valid URLs), 11-digit numéro France Travail, legal-article + schedule-prose address FPs. Pinned by `src/courrierInscription.test.ts` |
+| `royalty-statement.txt` | Text | ✅ | two-column royalties statement: SIREN before/after RCS, checksum-broken (OCR) SIRET/TVA, labeled ids vs the column gap, letterhead address. Pinned by `src/__cases__/royaltyStatement.test.ts` |
+| `purchase-promise-deed.txt` | Text | ✅ | OCR'd notarial deed: "VILLE (CP)" civil-status order (garbled/wrapped/open-paren), glued birth dates, CRPCEN, 3-token names + short-form identity, all-caps legal vocables, in-text fake collision. Pinned by `src/__cases__/notarialDeed.test.ts` |
+| `surety-deed.txt` | Text | ✅ | caution act (CAMCA shape): labeled financing reference repeated in per-page footers, contract number embedding it, LU footer registry ids (VAT/RCS Luxembourg/IDU), prose-gated ORIAS, "Agence de :" branch, double-labeled DPO email, legal role nouns + institutions that must stay clear. Pinned by `src/__cases__/suretyDeed.test.ts` |
+| `income-statement.txt` | Text | ✅ | financial statement: label-less "denomination ⏎ bare SIREN/SIRET" header pair (Luhn-invalid OCR digits), generic accounting vocabulary that must ship verbatim. Pinned by `src/__cases__/incomeStatement.test.ts` |
+| `enrolment-letter.txt` | Text | ✅ | enrollment letter: org name in prose AND glued in URL hosts (fakes must stay glued → valid URLs), 11-digit numéro France Travail, legal-article + schedule-prose address FPs. Pinned by `src/__cases__/enrolmentLetter.test.ts` |
 | `payroll.xlsx` | Excel | ✅ | 3 sheets (Employees / Payroll / Cards) |
 | `invoice-2024-0042.pdf` | PDF | ✅ | full invoice; Quartz-rendered text |
 | `nda-contract.docx` | Word | ✅ | extracted via mammoth |

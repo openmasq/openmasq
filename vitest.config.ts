@@ -63,7 +63,7 @@ const unit = defineConfig({
     // a non-isolated "pure" project next to an isolated "app" project doesn't work.
     pool: "threads",
     // The 5 s default was below the REAL duration of the heavy-document tests
-    // (`releveRepartition`, `acteCautionnement`, `documents`): they hold up when idle and
+    // (`royaltyStatement`, `suretyDeed`, `documents`): they hold up when idle and
     // time out under load, which produced reds that blamed no actual bug. A
     // timeout costs nothing when nothing times out — it only bounds the failure.
     testTimeout: 20_000,

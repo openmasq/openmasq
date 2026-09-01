@@ -85,7 +85,7 @@ const LEAD_HONORIFIC = /^(?:m\.|mme\.?|mlle\.?|mr\.?|mrs\.?|ms\.?|dr\.?|monsieur
  * This isn't a coverage loss: what gets cut falls back under its OWN
  * detectors (phone, DOB, email, identifier), which couldn't see it while it was
  * nested. Same reasoning, and same benefits, as the comma cut.
- * Pinned in `contextFields.test.ts` + `../labelledNeighbour.test.ts` (the WIRE).
+ * Pinned in `contextFields.test.ts` + `../__cases__/labelledNeighbour.test.ts` (the WIRE).
  */
 const NAME_FIELD_END = /[(（[]|\s[-–—]\s|\S*@|\d{2}/u;
 

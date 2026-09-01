@@ -23,7 +23,7 @@ import { isNotoriousEntity } from "../notorious";
  * both: it cost the model every semantic cue a filesystem question runs on, AND it
  * was IRREVERSIBLE — a path the model recomposes rather than echoing verbatim came
  * back with that segment still scrambled (`/Users/julien/xMxQrqR`), i.e. a path that
- * does not exist. Pinned by `../../paths.test.ts`.
+ * does not exist. Pinned by `../../__cases__/paths.test.ts`.
  */
 export function fakePath(value: string, attempt = 0): string {
   const { head, ext, parts } = splitPath(value);

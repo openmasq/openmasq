@@ -51,8 +51,8 @@ export const workspaceSrcAlias = [
  */
 export const CORPUS_TESTS = [
   "packages/**/src/**/*.recall.test.ts",
-  "packages/redact/src/benchReplay.test.ts",
-  "packages/redact/src/benchFixes.test.ts",
+  "packages/redact/src/__cases__/benchReplay.test.ts",
+  "packages/redact/src/__cases__/benchFixes.test.ts",
 ];
 
 /**

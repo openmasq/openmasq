@@ -34,7 +34,7 @@ import {
 export function DesktopShell({ chat }: { chat: ChatStore }) {
   const dispatch = useAppDispatch();
   const shell = useShell({ chat });
-  const { section, pane, conv, split, host, search, feedback: feedback } = shell;
+  const { section, pane, conv, split, host, search, feedback } = shell;
   // Collapsed by default → only the icon rail shows; the conversation sidebar opens on
   // demand from the chat toolbar OR any page header's toggle.
   const [sidebarOpen, setSidebarOpen] = useState(false);

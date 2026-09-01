@@ -13,7 +13,7 @@ que les chiffres restent comparables d'un changement à l'autre.
 - **Planchers** (`../src/*.recall.test.ts`) — un test par famille de documents, qui
   échoue si le rappel mesuré passe sous le plancher gelé. Pipeline DÉTERMINISTE
   (`pseudonymize` sans modèle) : ce qui est compté, ce sont les valeurs du coffre.
-- **Scans réels** (`../src/scans.recall.test.ts`) — le seul banc qui PRODUIT le dégât
+- **Scans réels** (`../src/__cases__/scans.recall.test.ts`) — le seul banc qui PRODUIT le dégât
   OCR (Tesseract vendoré) au lieu de le simuler ; vérités annotées depuis les pixels
   des deux fixtures (identités fictives).
 
