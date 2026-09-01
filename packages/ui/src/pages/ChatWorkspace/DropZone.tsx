@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState, type ReactNode } from "react";
 import { useT } from "../../i18n";
 import { useHost } from "../../host";
-import type { DeferredFile } from "../../state/deferredFile";
-import { bytesToBase64 } from "../../state/bytes";
+import type { DeferredFile } from "../../state/files/deferredFile";
+import { bytesToBase64 } from "../../state/files/bytes";
 import { FolderIcon } from "../../components/brand";
 import {
   FOLDER_OFFER_NOTE,

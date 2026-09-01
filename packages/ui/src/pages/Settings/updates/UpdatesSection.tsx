@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CheckIcon } from "../../../components/brand";
 import { useUpdates, compareVersions, ensureCurrentInReleases } from "./useUpdates";
-import { useReleaseNotes } from "../../../state/releaseNotes";
+import { useReleaseNotes } from "../../../state/settings/releaseNotes";
 import { noteLookup, ReleaseTable } from "./ReleaseHistory";
 import { InstalledCard } from "./parts/InstalledCard";
 import { PublishedNotes } from "./parts/PublishedNotes";

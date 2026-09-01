@@ -1,4 +1,4 @@
-import { SEARCH_ENGINES, DEFAULT_SEARCH_ENGINE } from "../../state/searchEngines";
+import { SEARCH_ENGINES, DEFAULT_SEARCH_ENGINE } from "../../state/settings/searchEngines";
 import { useT } from "../../i18n";
 import { SearchEngineLogo } from "../../components/media/SearchEngineLogo";
 import { CheckIcon } from "../../components/brand";

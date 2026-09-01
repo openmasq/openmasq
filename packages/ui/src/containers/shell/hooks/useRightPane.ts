@@ -11,7 +11,7 @@ import {
   type PanelItem,
   type Section,
 } from "../../../state/redux";
-import { baseName, rootOf } from "../../../state/localFsPaths";
+import { baseName, rootOf } from "../../../state/files/localFsPaths";
 import { useLocalFsRoots } from "./useLocalFsRoots";
 import { useBrowserBusy } from "../../../hooks/useBrowserBusy";
 import { useBrowserDriving } from "../../../hooks/useBrowserDriving";

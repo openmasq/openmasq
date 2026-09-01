@@ -1,5 +1,5 @@
 import type { ExtractedFile, Host } from "../../host";
-import { bytesToBase64 } from "../../state/bytes";
+import { bytesToBase64 } from "../../state/files/bytes";
 
 /** A stored file just enough to rebuild an attachment from. */
 export interface ReattachSource {

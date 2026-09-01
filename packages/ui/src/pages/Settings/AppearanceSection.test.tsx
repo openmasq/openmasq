@@ -4,7 +4,7 @@ import { useState, type ReactNode } from "react";
 import { AppearanceSection } from "./AppearanceSection";
 import { I18nProvider } from "../../i18n";
 import { DEFAULT_SETTINGS } from "../../state/storePersistence";
-import { LOCALE_KEY } from "../../state/locale";
+import { LOCALE_KEY } from "../../state/settings/locale";
 import { mount } from "../../testKit";
 import type { Settings } from "../../types";
 

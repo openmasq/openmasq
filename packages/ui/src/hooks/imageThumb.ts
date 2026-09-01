@@ -6,7 +6,7 @@
  * by the modal viewer.
  */
 
-import { bytesToBase64 } from "../state/bytes";
+import { bytesToBase64 } from "../state/files/bytes";
 
 /** Uint8Array → `data:` URL (CSP allows `img-src data:`, not `blob:`). */
 export function bytesToDataUrl(bytes: Uint8Array, mime: string): string {

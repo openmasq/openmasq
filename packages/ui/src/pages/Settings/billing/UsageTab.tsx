@@ -6,12 +6,12 @@ import {
   countEstimated,
   formatUsd,
   type BilledFilter,
-} from "../../../state/usage";
-import { formatTokens } from "../../../state/usage";
+} from "../../../state/billing/usage";
+import { formatTokens } from "../../../state/billing/usage";
 import { type CreditBalance, type OrgProfileInfo } from "../../../host";
 import { useAppSelector } from "../../../state/redux";
-import { selectBillingCache } from "../../../state/settingsCache";
-import { tierLabel, formatCents } from "../../../state/billing";
+import { selectBillingCache } from "../../../state/settings/settingsCache";
+import { tierLabel, formatCents } from "../../../state/billing/billing";
 import { useT } from "../../../i18n/I18nProvider";
 import { CreditsMeter } from "./CreditsMeter";
 import { dailyActivityCounts, dailyModelMessages } from "./usageActivity";

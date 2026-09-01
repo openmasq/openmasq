@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useHost } from "../../../host";
-import { noteForVersion, useReleaseNotesFeed, type ReleaseNote } from "../../../state/releaseNotes";
+import { noteForVersion, useReleaseNotesFeed, type ReleaseNote } from "../../../state/settings/releaseNotes";
 
 /**
  * AN UPDATE IS DOWNLOADED, AND READY TO INSTALL.

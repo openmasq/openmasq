@@ -1,5 +1,5 @@
 import { tableRowRuns, type Block, type Run } from "./documentBlocks";
-import { base64ToBytes } from "../../state/bytes";
+import { base64ToBytes } from "../../state/files/bytes";
 
 /**
  * Renders a document's `Block[]` to a clean, paginated PDF with pdf-lib — fully

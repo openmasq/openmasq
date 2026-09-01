@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { wireTokenSummary, entryToText, logExportFor, type WireEntry } from "./entryText";
-import { clearDebugLog, pushDebug, setDebugCapture, DRAFT_CONV } from "../../../state/debug";
+import { clearDebugLog, pushDebug, setDebugCapture, DRAFT_CONV } from "../../../state/debug/debug";
 
 const base: WireEntry = { id: "d1", at: 0, type: "wire", model: "gpt-4o", text: "bonjour" };
 

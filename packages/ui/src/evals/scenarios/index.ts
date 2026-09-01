@@ -5,7 +5,7 @@
 // required parameters, the forbidden ones never, the gates must open, and no secret may
 // reach the model's typed legs.
 
-import { fakeDerivedNavHost } from "../../state/browserNavFake";
+import { fakeDerivedNavHost } from "../../state/browserPolicy/browserNavFake";
 import type { ExtractedFile } from "../../host";
 import type { RedactCategoryKey } from "../../types";
 import { suiteInput, verifySuite, type CallSuiteSpec, type SuiteVerdict } from "../expect";

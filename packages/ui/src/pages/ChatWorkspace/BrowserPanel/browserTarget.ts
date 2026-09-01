@@ -1,4 +1,4 @@
-import { searchUrl } from "../../../state/searchEngines";
+import { searchUrl } from "../../../state/settings/searchEngines";
 
 /**
  * Pure URL-bar logic for the BrowserPanel, split out of the component (rule 1)

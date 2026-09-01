@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { BillingHost } from "../../../host";
-import { BillingApiError, billingErrorMessage } from "../../../state/billing";
+import { BillingApiError, billingErrorMessage } from "../../../state/billing/billing";
 import { useT } from "../../../i18n";
 
 /** Fallback when a rejection isn't an Error with a message. */

@@ -5,7 +5,7 @@ import { contextWindow, isFreeModel, supportsTools } from "@openmasq/llm";
 import type { StreamDone, LlmAttachment, ChatMessage } from "@openmasq/llm";
 import type { AskTarget, Conversation, Message, RedactCategoryKey, Settings, } from "../types";
 import { combinedVaultTerms } from "./vaultTerms";
-import { featureUsage } from "../state/featureAccess";
+import { featureUsage } from "../state/billing/featureAccess";
 import { selectMemory, memoryForcedForBlock, memoryForcedAll, filterNotoriousFromForced, searchMemoryHybrid } from "../memory";
 import { skillLaunchText, activeSkillScope } from "../skills/launch";
 import {
@@ -18,8 +18,8 @@ import {
   type Vault,
   type RedactionMatch,
 } from "@openmasq/redact";
-import { webNavOfferableCategories, webNavRevealSet } from "../state/webNavReveal";
-import { bytesToBase64, base64ToBytes } from "../state/bytes";
+import { webNavOfferableCategories, webNavRevealSet } from "../state/browserPolicy/webNavReveal";
+import { bytesToBase64, base64ToBytes } from "../state/files/bytes";
 import { preflightError } from "../send/preflight";
 import { estimateTurnUsage } from "../send/estimateUsage";
 import { fetchPlatformToken } from "../send/tokenFetch";
@@ -61,10 +61,10 @@ import { runMcpAgentLoop, type WriteConfirmInfo, type McpAgentParams } from "../
 import { isBrowserTool } from "../state/browserPolicy";
 import { toolActionLabel } from "../agent/toolActionLabel";
 import { rememberTranscript, resumeMessagesFor, type TurnCheckpoint } from "../agent/turnCheckpoint";
-import { reasoningRelay } from "../state/reasoningRelay";
+import { reasoningRelay } from "../state/conversation/reasoningRelay";
 import { fitHistoryToContext } from "../send/historyWindow";
-import { pushDebug, updateDebug, adoptDraftDebug } from "../state/debug";
-import { logWireMessage } from "../state/wireTrace";
+import { pushDebug, updateDebug, adoptDraftDebug } from "../state/debug/debug";
+import { logWireMessage } from "../state/debug/wireTrace";
 import { captureEvent, captureError, bucket } from "../analytics";
 import {
   type ExtractedFile,
@@ -93,7 +93,7 @@ import {
   newConversation,
   uid,
 } from "../state/storePersistence";
-import { isNerWarmed, markNerWarmed } from "../state/nerWarm";
+import { isNerWarmed, markNerWarmed } from "../state/redaction/nerWarm";
 import { BRAND } from "@openmasq/branding";
 
 // The three MODULE constants only the send consumed — moved along with it.

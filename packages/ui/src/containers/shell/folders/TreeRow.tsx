@@ -1,6 +1,6 @@
 import { ChevRightIcon, FolderIcon, MessageIcon } from "../../../components/brand";
 import type { LocalFsEntry } from "../../../host";
-import { extLabel } from "../../../state/localFsPaths";
+import { extLabel } from "../../../state/files/localFsPaths";
 
 import { useT } from "../../../i18n";
 /** A tree row: a folder that expands, a file that opens. Hovering

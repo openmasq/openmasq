@@ -1,4 +1,4 @@
-import { useReleaseNotesFeed } from "../../state/releaseNotes";
+import { useReleaseNotesFeed } from "../../state/settings/releaseNotes";
 import { ReleaseNotesList } from "../../components/releaseNotes";
 import { BrandLoader } from "../../components/media/BrandLogo";
 

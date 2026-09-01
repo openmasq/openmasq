@@ -1,5 +1,5 @@
 import { setSection, track, useAppDispatch, useAppSelector, type Section } from "../../state/redux";
-import { sectionOrFallback, useFeatureAccess } from "../../state/featureAccess";
+import { sectionOrFallback, useFeatureAccess } from "../../state/billing/featureAccess";
 
 /**
  * Section navigation as a hook — the single source for "which screen is active + go

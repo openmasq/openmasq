@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useHost } from "../host";
-import { watchDir } from "../state/watchDirs";
+import { watchDir } from "../state/files/watchDirs";
 import { useLazyTree } from "./useLazyTree";
 
 /**

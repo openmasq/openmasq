@@ -12,7 +12,7 @@ import {
 } from "@openmasq/redact";
 import { capToolResultText, disabledKindsForTool } from "../send/toolResult";
 import { labelInbound, prescreen } from "../send/inboundScreen";
-import { pushDebug } from "../state/debug";
+import { pushDebug } from "../state/debug/debug";
 
 /**
  * The CLEAR-MODE result redactor for a governed web tool whose call touches no

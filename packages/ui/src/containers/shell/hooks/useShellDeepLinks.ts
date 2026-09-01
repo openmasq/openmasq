@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ChatStore } from "../../../state/store";
 import { setMemoryFresh, useAppDispatch, useAppSelector, type Section } from "../../../state/redux";
 import { useMcpConnectedIds } from "../../../hooks/useMcpConnectedIds";
-import { featureAccess } from "../../../state/featureAccess";
+import { featureAccess } from "../../../state/billing/featureAccess";
 import type { MemoryUiApi } from "../../../memory/memoryUi";
 import { useT } from "../../../i18n";
 

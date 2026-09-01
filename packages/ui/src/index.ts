@@ -10,10 +10,10 @@ export * from "./host";
 // The avis (user-feedback) payload — the desktop Host implements the transport, so
 // it needs the shape. The vocabularies stay internal (only the modal renders them).
 export type { Feedback, FeedbackContext, FeedbackMood, FeedbackCategory } from "./feedback/feedback";
-export * from "./state/billing";
+export * from "./state/billing/billing";
 export * from "./prompt/models";
 export { hueForProvider } from "./prompt/providerHue";
-export * from "./state/usage";
+export * from "./state/billing/usage";
 export { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, captureEvent, captureError, type TrackEvent, type ErrorReport } from "./analytics";
 // To call BEFORE the first render, like `configureAnalytics`: does this build have a
 // hosted service (gateway + accounts)? No ⇒ « included » models become
@@ -24,7 +24,7 @@ export { useChatStore } from "./state/store";
 export type { ChatStore } from "./state/store";
 // Call BEFORE the first React render to theme <html> pre-paint (avoids the splash
 // green→blue flash — the store's own theme effect runs only after mount).
-export { applyPersistedTheme } from "./state/theme";
+export { applyPersistedTheme } from "./state/settings/theme";
 // The i18n: the React layer (provider + hooks) and the typed catalogue re-exported for
 // consumers (the desktop wraps AppShell in `I18nProvider`, /preview will be able
 // to too). The LANGUAGE pre-paint lives INSIDE the provider (`<html lang>` effect), not in
@@ -32,12 +32,12 @@ export { applyPersistedTheme } from "./state/theme";
 export { I18nProvider, useT, type I18nProviderProps } from "./i18n";
 // The resolved device language (device key → host → default), usable BEFORE auth:
 // the renderer attaches it to the connection so the auth email goes out in the right language.
-export { initialLocale } from "./state/locale";
+export { initialLocale } from "./state/settings/locale";
 export { type Locale, LOCALES, DEFAULT_LOCALE, resolveLocale, getMessages, type Messages } from "@openmasq/i18n";
 export { MissingApiKeyError, CreditsExhaustedError } from "./state/errors";
 
-export { useAuth } from "./state/useAuth";
-export type { AuthState } from "./state/useAuth";
+export { useAuth } from "./state/auth/useAuth";
+export type { AuthState } from "./state/auth/useAuth";
 export { LoginScreen } from "./pages/Login";
 
 // Brand primitives + icon set (Avatar, Badge, Switch, IconButton, ModelLogo,
@@ -82,12 +82,12 @@ export type { RootState, AppDispatch, Section } from "./state/redux";
 // Exported for the desktop E2E bridge, which enables capture and surfaces the
 // per-conversation journal to the eval bench — so a looped workflow can be
 // diagnosed (e.g. a tool NAME redacted by the NER) instead of guessed at.
-export { getDebugLog, setDebugCapture, isDebugCapture, clearDebugLog } from "./state/debug";
-export type { DebugEntry, DebugPair, TurnMessage } from "./state/debug";
+export { getDebugLog, setDebugCapture, isDebugCapture, clearDebugLog } from "./state/debug/debug";
+export type { DebugEntry, DebugPair, TurnMessage } from "./state/debug/debug";
 // Leaves the barrel because it has a SECOND caller: the desktop's e2e bridge, which used to
 // serve a conversation's journal with its own copy of the predicate. Who sees which entry
 // is a privacy rule — it exists in exactly one place (rule 9).
-export { isEntryVisibleIn } from "./state/debugScope";
+export { isEntryVisibleIn } from "./state/debug/debugScope";
 
 // The shipped workflow TEMPLATES + the filling of their `{braces}`. Exported
 // so the desktop's e2e suite replays the prompt ACTUALLY shipped instead of a

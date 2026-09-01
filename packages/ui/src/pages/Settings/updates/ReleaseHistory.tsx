@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevDownIcon } from "../../../components/brand";
 import { BrandLoader } from "../../../components/media/BrandLogo";
 import { compareVersions } from "./useUpdates";
-import { baseVersion, latestPerVersion, type ReleaseNote } from "../../../state/releaseNotes";
+import { baseVersion, latestPerVersion, type ReleaseNote } from "../../../state/settings/releaseNotes";
 import { ReleaseNoteBody } from "../../../components/releaseNotes";
 import type { DesktopRelease } from "../../../host";
 

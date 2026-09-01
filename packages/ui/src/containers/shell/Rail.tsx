@@ -13,8 +13,8 @@ import {
 import { BrandMark } from "../../components/media/BrandLogo";
 import type { Conversation, Section } from "../../types";
 import { useAppSelector } from "../../state/redux";
-import { useFeatureAccess } from "../../state/featureAccess";
-import { protectedCount } from "../../state/protectedCount";
+import { useFeatureAccess } from "../../state/billing/featureAccess";
+import { protectedCount } from "../../state/redaction/protectedCount";
 import { sectionGuide } from "../../help";
 import { useT } from "../../i18n";
 import { useSectionNav } from "./useSectionNav";

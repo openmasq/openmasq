@@ -11,7 +11,7 @@ import { DesktopShell } from "./DesktopShell";
 import { MobileShell } from "./mobile/MobileShell";
 import { useHost } from "../../host";
 import { useUpdateQuiescence } from "../../state/effects/useUpdateQuiescence";
-import { useFeatureFlags } from "../../state/featureFlags";
+import { useFeatureFlags } from "../../state/billing/featureFlags";
 
 /**
  * The redact app shell — the store, the redux provider and the redaction contexts, then

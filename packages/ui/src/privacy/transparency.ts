@@ -1,5 +1,5 @@
 import { applyVault } from "@openmasq/redact";
-import { conversationProtectedCount, protectedEntries } from "../state/protectedCount";
+import { conversationProtectedCount, protectedEntries } from "../state/redaction/protectedCount";
 import type { Conversation, Message } from "../types";
 
 /**

@@ -8,7 +8,7 @@ import { buildClusteredGraph } from "../../memory/cluster";
 import { memoryExportFilename, memoryExportText } from "../../memory/memoryExport";
 import { memoryUsageIndex } from "../../memory/usage";
 import { downloadTextFile } from "../../components/export/documentExport";
-import { useMemoryIndex } from "../../state/useMemoryIndex";
+import { useMemoryIndex } from "../../state/memory/useMemoryIndex";
 import { MemoryGraph } from "./MemoryGraph";
 import { matchingCardIds } from "../../memory";
 import { MemoryList, MemoryToolbar } from "./MemoryList";

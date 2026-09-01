@@ -2,7 +2,7 @@ import { ModalShell } from "./ModalShell";
 import { ModalTitle } from "./ModalTitle";
 import { RefreshIcon } from "../../components/brand";
 import { ReleaseNoteBody } from "../../components/releaseNotes";
-import { releaseDate, type ReleaseNote } from "../../state/releaseNotes";
+import { releaseDate, type ReleaseNote } from "../../state/settings/releaseNotes";
 import { useT } from "../../i18n";
 import { BRAND } from "@openmasq/branding";
 

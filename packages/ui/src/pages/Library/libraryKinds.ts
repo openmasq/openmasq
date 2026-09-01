@@ -36,7 +36,7 @@ export function libTabs(t: Messages): { id: "all" | LibKind; label: string }[] {
 /** Uppercase extension chip (PDF / XLS / DOC…), capped to 4 chars. Implemented one tier
  *  down (`state/localFsPaths.ts`) since the right rail's folder tree labels files the same
  *  way and a container may not read this module; re-exported so the cards keep their name. */
-export { extLabel as extOf } from "../../state/localFsPaths";
+export { extLabel as extOf } from "../../state/files/localFsPaths";
 
 /* ⚠️ NO tint by extension — and above all not the one that used to live here.
  *

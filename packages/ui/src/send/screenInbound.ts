@@ -8,7 +8,7 @@ import {
   screenPrompt,
   type ScreenVerdict,
 } from "./inboundScreen";
-import { pushDebug } from "../state/debug";
+import { pushDebug } from "../state/debug/debug";
 import { captureError } from "../analytics";
 
 /** What the inbound-screening façade needs from the send. `isWebTool` is injected (the

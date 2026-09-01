@@ -1,6 +1,6 @@
 import { SettingsView } from "../../../pages/Settings";
 import { useHost } from "../../../host";
-import { makeConnectOpenRouter } from "../../../state/connectOpenRouter";
+import { makeConnectOpenRouter } from "../../../state/auth/connectOpenRouter";
 import type { ShellApi } from "../useShell";
 
 /**

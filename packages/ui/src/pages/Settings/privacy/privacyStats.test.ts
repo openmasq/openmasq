@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { Conversation } from "../../../types";
 import { conversationKinds, conversationKindIndex, kindOf, vaultBreakdown } from "./privacyStats";
-import { conversationProtectedCount, protectedCount } from "../../../state/protectedCount";
+import { conversationProtectedCount, protectedCount } from "../../../state/redaction/protectedCount";
 
 // A conversation whose typed name/company were vaulted but whose fine category was
 // recorded ONLY on the message span (the historic bug) — `redactionKinds` is empty.

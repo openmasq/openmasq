@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { featureUsage, useFeatureAccess } from "../../state/featureAccess";
+import { featureUsage, useFeatureAccess } from "../../state/billing/featureAccess";
 import type { Skill } from "../../types";
 
 /**

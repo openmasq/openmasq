@@ -2,7 +2,7 @@ import { BRAND } from "@openmasq/branding";
 import { ShieldIcon } from "../../../components/brand";
 import type { CreditBalance } from "../../../host";
 import { useLocale, useT } from "../../../i18n/I18nProvider";
-import { formatCents } from "../../../state/billing";
+import { formatCents } from "../../../state/billing/billing";
 
 /**
  * The Payment tab in FREE MODE (`BillingSubscription.freeMode`): this deployment sells

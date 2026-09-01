@@ -2,7 +2,7 @@ import { toSegments, wireSegments, type RedactionSegment } from "@openmasq/redac
 import { ModalShell } from "./ModalShell";
 import { EyeIcon, IconButton, ShieldIcon, XIcon } from "../../components/brand";
 import { transparencyPairs, type TransparencyPair } from "../../privacy/transparency";
-import { conversationProtectedCount } from "../../state/protectedCount";
+import { conversationProtectedCount } from "../../state/redaction/protectedCount";
 import { useT } from "../../i18n";
 import type { Conversation } from "../../types";
 

@@ -1,9 +1,9 @@
 import { wireSegments } from "@openmasq/redact";
 import { estimateCost } from "@openmasq/llm";
-import { getDebugLog, type DebugEntry, type DebugPair } from "../../../state/debug";
-import { isEntryVisibleIn } from "../../../state/debugScope";
-import { formatUsd } from "../../../state/usage";
-import { formatTokens } from "../../../state/usage";
+import { getDebugLog, type DebugEntry, type DebugPair } from "../../../state/debug/debug";
+import { isEntryVisibleIn } from "../../../state/debug/debugScope";
+import { formatUsd } from "../../../state/billing/usage";
+import { formatTokens } from "../../../state/billing/usage";
 import { summarizePairs } from "../../../send/redactSummary";
 import { valueShapeFor } from "./valueShape";
 

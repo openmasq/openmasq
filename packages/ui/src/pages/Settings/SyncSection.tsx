@@ -4,8 +4,8 @@ import type { SyncDeviceInfo, SyncHost } from "../../host";
 import { SyncStatusCard } from "./SyncStatusCard";
 import { SyncPassphraseCard } from "./SyncPassphraseCard";
 import { useAppSelector } from "../../state/redux";
-import { selectBillingCache } from "../../state/settingsCache";
-import { knownTier } from "../../state/billing";
+import { selectBillingCache } from "../../state/settings/settingsCache";
+import { knownTier } from "../../state/billing/billing";
 import { subscriptionsSold } from "../../send/platformAccess";
 
 import { platformLabel, relTime } from "./syncFormat";

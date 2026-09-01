@@ -8,7 +8,7 @@ import {
   resetSettingsCache,
   setReleaseNotesCache,
   setUpdatesCache,
-} from "../../../state/settingsCache";
+} from "../../../state/settings/settingsCache";
 import { mount } from "../../../testKit";
 import type { Host } from "../../../host";
 

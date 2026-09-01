@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import { useHost } from "../../../host";
-import type { DeferredFile } from "../../../state/deferredFile";
+import type { DeferredFile } from "../../../state/files/deferredFile";
 import { FileViewerModal } from "../../../containers/modals";
 import type { LoadedFile } from "../../../containers/modals/viewers/FileViewerBody";
-import { base64ToBytes } from "../../../state/bytes";
+import { base64ToBytes } from "../../../state/files/bytes";
 import { loadLocalFile, mimeOf } from "./localFile";
-import { baseName, sepOf } from "../../../state/localFsPaths";
+import { baseName, sepOf } from "../../../state/files/localFsPaths";
 import { useLiveFile } from "./useLiveFile";
 
 /**

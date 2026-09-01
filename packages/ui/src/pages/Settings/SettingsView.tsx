@@ -5,7 +5,7 @@ import { settingsMeta, type SettingsTabId as TabId } from "./settingsIndex";
 import { useT } from "../../i18n";
 import type { OrgProfileInfo } from "../../host";
 import type { UnavailableReason } from "../../send/modelAvailability";
-import { useSettingsPrefetch } from "../../state/settingsPrefetch";
+import { useSettingsPrefetch } from "../../state/settings/settingsPrefetch";
 import { PageHeader } from "../../containers/shell/PageHeader";
 import { useVisibleSettingsTabs } from "./settingsTabs";
 import { useSettingsDraft } from "./useSettingsDraft";

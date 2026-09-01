@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LocalFsEntry } from "../host";
-import { folderTreeRows, missingListings, toggleFolder } from "../state/folderTree";
+import { folderTreeRows, missingListings, toggleFolder } from "../state/files/folderTree";
 
 /**
  * A tree that reads ONLY what gets opened — the mechanics shared by this machine's

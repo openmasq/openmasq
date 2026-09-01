@@ -33,7 +33,7 @@ import { FileViewerModal } from "../../containers/modals";
 import { MemoryNotedCaption, MemorySkippedCaption, MemoryUsedCaption } from "./MemoryCaptions";
 import { MessageAttachments } from "./MessageAttachments";
 import { MessageImages, loadStoredImageFull } from "../media/MessageImage";
-import { findStoredFile } from "../../state/storedFiles";
+import { findStoredFile } from "../../state/files/storedFiles";
 import { breakdown } from "./messageBreakdown";
 
 import { useT } from "../../i18n";

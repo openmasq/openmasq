@@ -4,7 +4,7 @@ import { CHAPTER_IDS, guideChapters, HELP_CENTER_URL, sectionGuides } from "../.
 import { useT } from "../../i18n";
 import { ArrowRightIcon, HelpIcon } from "../../components/brand";
 import { RedactionDemo } from "../../components/RedactionDemo";
-import { useReleaseNotes } from "../../state/releaseNotes";
+import { useReleaseNotes } from "../../state/settings/releaseNotes";
 import { GuideReleases } from "./GuideReleases";
 import { BRAND } from "@openmasq/branding";
 

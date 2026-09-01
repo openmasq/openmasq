@@ -1,7 +1,7 @@
 import { memo } from "react";
-import { conversationUsage } from "../../state/usage";
+import { conversationUsage } from "../../state/billing/usage";
 import { useChatSelector, shallowEqual } from "../../containers/providers/chatStore";
-import { formatTokens } from "../../state/usage";
+import { formatTokens } from "../../state/billing/usage";
 
 /**
  * Subtle per-conversation token total (in ↑ / out ↓), only when recorded. Reads its usage

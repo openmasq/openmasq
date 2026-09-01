@@ -1,5 +1,5 @@
 import type { ChatMessage } from "@openmasq/llm";
-import type { TurnMessage } from "../state/debug";
+import type { TurnMessage } from "../state/debug/debug";
 
 /**
  * Pure builders for the journal's per-TOUR `turn` entries: the request side of one

@@ -13,7 +13,7 @@ import {
   splitWithTab,
   useAppDispatch,
 } from "../../../state/redux";
-import { canPitchSubscription } from "../../../state/billing";
+import { canPitchSubscription } from "../../../state/billing/billing";
 import { sendTargetConvId } from "../../../hooks/workspaceSeed";
 import type { ShellApi } from "../useShell";
 

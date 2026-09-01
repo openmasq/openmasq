@@ -4,7 +4,7 @@ import type { ExtractedFile } from "../../../host";
 import { useHost } from "../../../host";
 import { openTab, useAppDispatch, type Section } from "../../../state/redux";
 import { loadReattachFile, type ReattachSource } from "../../../pages/Library";
-import type { DeferredFile } from "../../../state/deferredFile";
+import type { DeferredFile } from "../../../state/files/deferredFile";
 import type { AskTarget, Skill } from "../../../types";
 
 export type StagedIntents = {

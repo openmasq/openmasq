@@ -1,5 +1,5 @@
 import type { ExtractedFile } from "../../host/files";
-import { pushDebug } from "../../state/debug";
+import { pushDebug } from "../../state/debug/debug";
 
 /**
  * Traces to the debug Log HOW a document's text was obtained (PDF text layer,

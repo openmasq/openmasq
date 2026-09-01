@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { wireSegments } from "@openmasq/redact";
 import { CheckIcon, CopyIcon } from "../../../components/brand";
-import type { DebugEntry, DebugPair } from "../../../state/debug";
+import type { DebugEntry, DebugPair } from "../../../state/debug/debug";
 import {
   entryToText,
   pairsOf,

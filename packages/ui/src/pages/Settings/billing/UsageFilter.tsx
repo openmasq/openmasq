@@ -1,5 +1,5 @@
 import type { Messages } from "@openmasq/i18n";
-import type { BilledFilter } from "../../../state/usage";
+import type { BilledFilter } from "../../../state/billing/usage";
 import { subscriptionsSold } from "../../../send/platformAccess";
 
 import { useT } from "../../../i18n";

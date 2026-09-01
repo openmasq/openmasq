@@ -44,7 +44,7 @@ and their deep link. ⚠️ Closing an access closes a DOOR, **not the feature**
 riding along with sends and keeps taking notes, Bibliothèque keeps receiving files; only
 Compétences also stop being usable (the "/" palette, pins, the model's own suggestion).
 Network unreachable ⇒ the app keeps the doors as it last knew them, never closed —
-`packages/ui/src/state/featureAccess.ts`.
+`packages/ui/src/state/billing/featureAccess.ts`.
 
 **Verified counters** (recomputed by the gate on every run) —
 <!-- n:sections -->5 sections · <!-- n:onglets-reglages -->11 settings tabs ·
@@ -211,7 +211,7 @@ message, necessarily the most sensitive one, stays in memory.
       rows in the list after a click with no follow-up — `packages/ui/src/workspace/layout/ops.ts` (`showWelcome`)
 - [x] Sending is blocked while the analysis runs (the button says so)
 - [x] Streamed reply, stoppable (« Stop »)
-- [x] The model's reasoning shown during the wait, when the model produces one (DeepSeek, Qwen, Nemotron, Claude, Gemini, OpenRouter…) — un-redacted like the reply; otherwise the loader alone, nothing invented — `packages/ui/src/state/reasoningRelay.ts`
+- [x] The model's reasoning shown during the wait, when the model produces one (DeepSeek, Qwen, Nemotron, Claude, Gemini, OpenRouter…) — un-redacted like the reply; otherwise the loader alone, nothing invented — `packages/ui/src/state/conversation/reasoningRelay.ts`
 - [x] …and **kept** once the reply lands: a collapsed « Réflexion » line above the reply, expandable, surviving a reload (encrypted database only) — `packages/ui/src/components/message/ReasoningPanel.tsx`
 - [x] Starters on an empty conversation, in **two rows of four**: « Sans rien configurer »
       (writing, search, memory, analysis — nothing to set up) and « Avec vos services »
@@ -274,7 +274,7 @@ re-reading an old conversation means knowing who wrote what.
       corner (expanded on click), and leads to « Vos accès ». It announces what is MISSING,
       never a blockage (free models work with nothing), stays quiet for an organization
       member — their accesses are not theirs to buy — and while billing has not loaded —
-      `packages/ui/src/state/accessNotice.test.ts`
+      `packages/ui/src/state/auth/accessNotice.test.ts`
 - [x] The key window SAYS a key is already stored (without ever reading it back: it lives
       encrypted on the privileged side), offers to **replace** it, and to **remove** it
       — `packages/ui/src/containers/modals/ApiKeyModal.tsx`
@@ -688,7 +688,7 @@ again") instead of being swallowed: a memory that claims to have remembered with
 is worse than no memory. Nothing is erased silently either: an update keeps the previous
 version, restorable.
 
-- [x] Cards per entity + a preferences profile — screen `packages/ui/src/pages/Memory/`, CRUD `packages/ui/src/state/useMemory.ts`
+- [x] Cards per entity + a preferences profile — screen `packages/ui/src/pages/Memory/`, CRUD `packages/ui/src/state/memory/useMemory.ts`
 - [x] **Silent** extraction (can be turned off, `MemorySection.tsx`) and **explicit** extraction (always on, 12 languages) — `packages/ui/src/memory/extractExplicit.ts`
 - [x] Graph (drag/zoom/reframe) and list view with search, as you prefer — `packages/ui/src/pages/Memory/MemoryGraph.tsx`, `MemoryList.tsx`
 - [x] Selecting a node **brings the view closer** to its neighbourhood — labels readable — and deselecting widens it again — `packages/ui/src/pages/Memory/graphFrame.test.ts`
@@ -770,7 +770,7 @@ hence revealing that you received it.
       brings the window to the front and opens the right thread. The banner carries
       **neither the message nor the title** of the conversation — it appears above
       everything, sometimes on a locked screen. On by default, can be turned off here —
-      `packages/ui/src/state/replyNotice.test.ts`
+      `packages/ui/src/state/conversation/replyNotice.test.ts`
 - [x] « **Statistiques d'usage anonymes** » (explicit consent, counters only)
 - [x] « **Aperçus de liens** » (opt-in, one outgoing request per link)
 
@@ -1002,7 +1002,7 @@ jargon.
 ### First launch
 **Access**: on first launch, after signing in — on the account's **first** device only: an
 already-established account (paying subscription, or organization member) signing in on a new
-machine does not go through it again — `packages/ui/src/state/establishedAccount.ts`.
+machine does not go through it again — `packages/ui/src/state/auth/establishedAccount.ts`.
 
 **What it makes possible.** Signing in by magic link or Google account, then seeing a
 demonstration of redaction, choosing how to reach models — the built-in subscription or your
@@ -1066,7 +1066,7 @@ would have decided to collect.
       account out of funds** ("Votre compte OpenAI n'a plus de crédits") → top up, without a
       single wasted retry; quota exhausted ("free" only if it is one) → the time it resumes;
       a simple burst → wait, with the duration quoted when it is known.
-      `packages/ui/src/state/errors.test.ts`
+      `packages/ui/src/state/errors/errors.test.ts`
 
 ---
 

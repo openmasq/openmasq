@@ -5,7 +5,7 @@ import { findModelAny } from "../../../prompt/models";
 import { Avatar, ModelLogo, PlusIcon, SearchIcon, ShieldIcon } from "../../../components/brand";
 import { BrandMark } from "../../../components/media/BrandLogo";
 import { groupConversationsByDate, relTime } from "../../../hooks/conversationGroups";
-import { conversationProtectedCount } from "../../../state/protectedCount";
+import { conversationProtectedCount } from "../../../state/redaction/protectedCount";
 
 import { useT } from "../../../i18n";
 interface Props {

@@ -7,7 +7,7 @@ import {
   resolveExtraction,
   worthExtracting,
 } from "./extract";
-import { runMemoryExtraction } from "../state/useMemoryExtraction";
+import { runMemoryExtraction } from "../state/memory/useMemoryExtraction";
 import type { Conversation, MemoryData } from "../types";
 
 // The conversation's vault: fake → real (what the wire replay uses).

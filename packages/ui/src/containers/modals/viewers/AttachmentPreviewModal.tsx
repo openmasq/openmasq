@@ -7,7 +7,7 @@ import { redactionProblemDraft } from "../../../feedback/feedback";
 import { ShieldIcon, RefreshIcon, XIcon } from "../../../components/brand";
 import { FileSkeleton } from "./FileSkeleton";
 import { useHost } from "../../../host";
-import { base64ToBytes } from "../../../state/bytes";
+import { base64ToBytes } from "../../../state/files/bytes";
 import {
   useRedaction,
   useRedactEngine,

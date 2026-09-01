@@ -4,7 +4,7 @@ import type { Attachment } from "./Composer";
 import { pdfReplacements } from "../../containers/modals/viewers/pdf/pdfReplacements";
 import { redactEngineSig } from "./redactEngineSig";
 import { describeRedactFailure } from "../../send/redaction";
-import { pushDebug } from "../../state/debug";
+import { pushDebug } from "../../state/debug/debug";
 import { attachmentVault } from "./attachmentVault";
 
 // Upper bound on how much of an attached file's text we RUN THE REDACTION ENGINE over —

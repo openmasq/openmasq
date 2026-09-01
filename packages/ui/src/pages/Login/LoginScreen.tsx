@@ -1,6 +1,6 @@
 import { BRAND } from "@openmasq/branding";
 import { useState, useEffect } from "react";
-import { useAuth } from "../../state/useAuth";
+import { useAuth } from "../../state/auth/useAuth";
 import { BrandMark } from "../../components/media/BrandLogo";
 import { ModalTitle } from "../../containers/modals/ModalTitle";
 import { AssureStrip, Err, OfflineNote, Field, Spinner, GoogleIcon, SpamHint } from "./parts";

@@ -1,6 +1,6 @@
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { Host, OrgProfileInfo } from "../../host";
-import { orgProfileKeyFor } from "../orgProfileCache";
+import { orgProfileKeyFor } from "../auth/orgProfileCache";
 
 /**
  * Loads the member's org authorization (extracted from `store.ts`, rule 1).

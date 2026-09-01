@@ -4,7 +4,7 @@ import { findConnector } from "@openmasq/catalog/mcp";
 import { useOpenConnector } from "../../containers/providers/connectors";
 import { useMcpConnectedIds } from "../../hooks/useMcpConnectedIds";
 import { pickStarters, type PickedStarter } from "./starters";
-import { useFeatureAccess } from "../../state/featureAccess";
+import { useFeatureAccess } from "../../state/billing/featureAccess";
 import type { ReactNode } from "react";
 
 import { useT } from "../../i18n";

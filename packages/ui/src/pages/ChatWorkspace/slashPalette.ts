@@ -51,7 +51,7 @@ const SLASH_SHAPE: readonly { id: string; insert: string }[] = [
 /** The actions the query matches (id prefix or label/desc substring; "" keeps all).
  *  `memoryOpen` (default: true) removes them all: « /retenir » is an AFFORDANCE of the
  *  Mémoire, which leaves with its door — the Mémoire itself keeps working, and
- *  "retiens que…" spelled out in full is still honored (`../../state/featureAccess.ts`). */
+ *  "retiens que…" spelled out in full is still honored (`../../state/billing/featureAccess.ts`). */
 /** The shipped actions, labeled in `t`'s language — their `insert`, though, is the
  *  PHRASE the memory recognizes: it belongs to the gesture, not to the translation. */
 function slashActions(t: Messages): SlashAction[] {

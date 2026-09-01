@@ -1,5 +1,5 @@
 import type { Conversation } from "../../../types";
-import type { BilledFilter } from "../../../state/usage";
+import type { BilledFilter } from "../../../state/billing/usage";
 
 const DAY_MS = 86_400_000;
 

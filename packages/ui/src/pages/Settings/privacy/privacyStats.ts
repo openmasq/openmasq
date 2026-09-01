@@ -1,6 +1,6 @@
 import { redactionCategory } from "@openmasq/redact";
 import type { Conversation } from "../../../types";
-import { protectedEntries } from "../../../state/protectedCount";
+import { protectedEntries } from "../../../state/redaction/protectedCount";
 import { PRIVACY_KINDS } from "../../../privacy/redactCategories";
 
 /** One by-type row: a PRIVACY_KINDS entry (key/colour/Icon) + its count — the label is

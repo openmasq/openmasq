@@ -1,7 +1,7 @@
 import { CheckIcon, ShieldIcon } from "../../../components/brand";
 import { ConfirmDialog } from "../../../components/feedback/ConfirmDialog";
 import type { CreditBalance, Host, OrgProfileInfo } from "../../../host";
-import { formatCents, planTiers, type PlanTier } from "../../../state/billing";
+import { formatCents, planTiers, type PlanTier } from "../../../state/billing/billing";
 import { CreditsExhausted } from "./CreditsMeter";
 import { BRAND } from "@openmasq/branding";
 

@@ -4,7 +4,7 @@ import { findModel } from "@openmasq/llm";
 import type { Conversation } from "../../types";
 import { findModelAny } from "../../prompt/models";
 import { DotsIcon, EditIcon, IconButton, ModelLogo, TrashIcon } from "../../components/brand";
-import { CONV_TITLE_MAX } from "../../state/renameConversation";
+import { CONV_TITLE_MAX } from "../../state/conversation/renameConversation";
 import { usePopover } from "../../hooks/usePopover";
 import { useT } from "../../i18n";
 import { relTime } from "../../hooks/conversationGroups";

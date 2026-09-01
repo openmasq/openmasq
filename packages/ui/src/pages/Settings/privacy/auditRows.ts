@@ -1,6 +1,6 @@
 import { redactionCategory } from "@openmasq/redact";
 import type { Conversation } from "../../../types";
-import { protectedEntries } from "../../../state/protectedCount";
+import { protectedEntries } from "../../../state/redaction/protectedCount";
 import { conversationKindIndex, kindOf } from "./privacyStats";
 
 /**

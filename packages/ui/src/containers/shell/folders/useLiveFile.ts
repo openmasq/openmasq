@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useHost } from "../../../host";
-import { dirOf } from "../../../state/localFsPaths";
-import { watchDir } from "../../../state/watchDirs";
+import { dirOf } from "../../../state/files/localFsPaths";
+import { watchDir } from "../../../state/files/watchDirs";
 
 /**
  * A counter that increases every time the folder holding `path` changes on disk.

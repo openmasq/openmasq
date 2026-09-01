@@ -17,7 +17,7 @@
  * `useOpenDeliverable.ts`, DESKTOP-only (on mobile the panel is a full-screen sheet, so
  * opening would cover the answer the user is reading).
  */
-import { findStoredFile, type StoredFileRef } from "../../../state/storedFiles";
+import { findStoredFile, type StoredFileRef } from "../../../state/files/storedFiles";
 
 /** The narrow shape the rule reads — `Message` satisfies it. */
 export type DeliverableMessage = {

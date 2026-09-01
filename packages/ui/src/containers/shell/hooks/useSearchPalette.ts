@@ -5,7 +5,7 @@ import { searchSettings, tabAvailable } from "../../../pages/Settings/settingsIn
 import { useSettingsCapabilities } from "../../../pages/Settings/settingsTabs";
 import { searchSections } from "../../../help";
 import { useT } from "../../../i18n";
-import { isGated, useFeatureAccess } from "../../../state/featureAccess";
+import { isGated, useFeatureAccess } from "../../../state/billing/featureAccess";
 import { useLibraryFiles, searchFiles } from "../../../pages/Library";
 
 /**

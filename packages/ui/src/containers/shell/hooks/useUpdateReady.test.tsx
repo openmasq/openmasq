@@ -3,7 +3,7 @@ import { act } from "react";
 import { Provider } from "react-redux";
 import { describe, expect, it, beforeEach } from "vitest";
 import { store } from "../../../state/redux";
-import { resetSettingsCache, setReleaseNotesCache } from "../../../state/settingsCache";
+import { resetSettingsCache, setReleaseNotesCache } from "../../../state/settings/settingsCache";
 import { mount } from "../../../testKit";
 import type { Host, UpdateStatus } from "../../../host";
 import { useUpdateReady, type UpdateReadyApi } from "./useUpdateReady";

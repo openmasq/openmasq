@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { useFileOpen } from "../../../containers/providers/fileOpen";
 import { MarkdownDocContext } from "../context";
-import { baseName } from "../../../state/localFsPaths";
+import { baseName } from "../../../state/files/localFsPaths";
 import { FileIcon } from "../../brand/icons";
 
 import { useT } from "../../../i18n";

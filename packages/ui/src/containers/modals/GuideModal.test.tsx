@@ -6,7 +6,7 @@ import { GuideModal } from "./GuideModal";
 import { getMessages } from "@openmasq/i18n";
 import { guideChapters, HELP_CENTER_URL } from "../../help";
 import { store } from "../../state/redux";
-import { resetSettingsCache, setReleaseNotesCache } from "../../state/settingsCache";
+import { resetSettingsCache, setReleaseNotesCache } from "../../state/settings/settingsCache";
 import { mount } from "../../testKit";
 import type { Host } from "../../host";
 import { brandUrl } from "@openmasq/branding";

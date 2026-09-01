@@ -9,7 +9,7 @@ import {
 import type { CredMode, McpCatalogEntry, McpServerInfo } from "../../../host";
 import { MCP_PRESETS } from "./mcpPresets";
 import { credGroupOf } from "./credGroup";
-import { localServerId } from "../../../state/mcpIds";
+import { localServerId } from "../../../state/conversation/mcpIds";
 
 /**
  * The unified MCP connector list model — one shape for the three historically

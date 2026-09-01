@@ -11,7 +11,7 @@ import {
 } from "react-redux";
 import { type TrackEvent } from "../analytics";
 import type { Section } from "../types";
-import { settingsCacheReducer } from "./settingsCache";
+import { settingsCacheReducer } from "./settings/settingsCache";
 import {
   allOpenConvIds,
   chatRef,
@@ -28,7 +28,7 @@ import {
   splitWithTab as layoutSplitWithTab,
   type WorkspaceLayout,
 } from "../workspace/layout";
-import { devLogger, isDevMode } from "./devlog";
+import { devLogger, isDevMode } from "./debug/devlog";
 import { SECTION_KEY, TABS_KEY, WORKSPACE_KEY, initialLayout, readInitialSection } from "./reduxBoot";
 import { panelReducer } from "./panel";
 
@@ -44,7 +44,7 @@ export {
   type PanelArtifact,
 } from "./panel";
 
-export { isDevMode } from "./devlog";
+export { isDevMode } from "./debug/devlog";
 
 // One-time visible breadcrumb so you can confirm the dev logger is wired up.
 // (Shown in the RENDERER DevTools console — open the Electron window's DevTools,

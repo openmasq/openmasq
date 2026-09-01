@@ -7,8 +7,8 @@ import type {
   DesktopChannelReleases,
 } from "../../../host";
 import { useAppDispatch, useAppSelector } from "../../../state/redux";
-import { selectUpdatesCache } from "../../../state/settingsCache";
-import { loadUpdates } from "../../../state/settingsPrefetch";
+import { selectUpdatesCache } from "../../../state/settings/settingsCache";
+import { loadUpdates } from "../../../state/settings/settingsPrefetch";
 
 // Logic for the updates settings section: current install identity, the list of
 // published releases (from the updates Worker), and the live status stream from

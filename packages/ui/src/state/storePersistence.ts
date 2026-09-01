@@ -6,10 +6,10 @@
 import { PROVIDERS } from "@openmasq/llm";
 import { resolveLocale } from "@openmasq/i18n";
 import { CATEGORY_DEFAULTS } from "@openmasq/catalog/redaction";
-import { migrateRedactCategories } from "./settingsMigrations";
+import { migrateRedactCategories } from "./settings/settingsMigrations";
 import { DEFAULT_MODEL_ID } from "../prompt/models";
 import type { Conversation, Settings } from "../types";
-import { blueAccent } from "./theme";
+import { blueAccent } from "./settings/theme";
 import { mergeLegacyWorkflows } from "../skills/migrate";
 import { stripVaultForLocal } from "../send/sendGuards";
 

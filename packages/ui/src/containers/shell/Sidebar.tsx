@@ -19,7 +19,7 @@ import { groupConversationsByDate } from "../../hooks/conversationGroups";
 import { ConvRow } from "./ConvRow";
 import { sectionGuides, type SectionGuide } from "../../help";
 import { useT } from "../../i18n";
-import { featureUsage, isGated, useFeatureAccess } from "../../state/featureAccess";
+import { featureUsage, isGated, useFeatureAccess } from "../../state/billing/featureAccess";
 import { useSectionNav } from "./useSectionNav";
 
 /** The glyph each section wears. Kept beside the vocabulary it decorates, and keyed by

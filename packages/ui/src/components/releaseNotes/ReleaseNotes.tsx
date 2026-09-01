@@ -6,7 +6,7 @@ import {
   latestPerVersion,
   splitHighlight,
   type ReleaseNote,
-} from "../../state/releaseNotes";
+} from "../../state/settings/releaseNotes";
 
 /**
  * HOW A RELEASE NOTE IS READ — once, for the two surfaces that

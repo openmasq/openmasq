@@ -4,8 +4,8 @@ import { Avatar, ChevLeftIcon, ChevRightIcon, HelpIcon } from "../../../componen
 import type { Conversation, Settings } from "../../../types";
 import type { OrgProfileInfo } from "../../../host";
 import type { UnavailableReason } from "../../../send/modelAvailability";
-import { useAuth } from "../../../state/useAuth";
-import { useSettingsPrefetch } from "../../../state/settingsPrefetch";
+import { useAuth } from "../../../state/auth/useAuth";
+import { useSettingsPrefetch } from "../../../state/settings/settingsPrefetch";
 import { settingsMeta, type SettingsTabId as TabId } from "../../../pages/Settings/settingsIndex";
 import { useT } from "../../../i18n";
 import { useVisibleSettingsTabs } from "../../../pages/Settings/settingsTabs";

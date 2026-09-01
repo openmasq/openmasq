@@ -3,10 +3,10 @@ import type { Settings } from "../../types";
 import type { Host, OrgProfileInfo } from "../../host";
 import { setAnalyticsConsent } from "../../analytics";
 import { connectedKeepList } from "../../send/redactKeep";
-import { setDebugCapture } from "../debug";
+import { setDebugCapture } from "../debug/debug";
 import { load } from "../storePersistence";
-import { saveDeviceTheme } from "../theme";
-import { isNerWarmed, markNerWarmed } from "../nerWarm";
+import { saveDeviceTheme } from "../settings/theme";
+import { isNerWarmed, markNerWarmed } from "../redaction/nerWarm";
 import { BRAND } from "@openmasq/branding";
 
 const BROWSER_PRECONNECTED_KEY = `${BRAND.slug}:browser-preconnected`;

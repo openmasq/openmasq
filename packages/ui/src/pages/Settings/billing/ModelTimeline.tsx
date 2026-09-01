@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { Conversation } from "../../../types";
-import type { BilledFilter } from "../../../state/usage";
+import type { BilledFilter } from "../../../state/billing/usage";
 import { findModelAny } from "../../../prompt/models";
 import { dailyModelMessages } from "./usageActivity";
 import { OTHER_ID, buildSeries, dayCount } from "./usageSeries";

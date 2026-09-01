@@ -3,7 +3,7 @@ import { AnimatePresence } from "framer-motion";
 import { Switch, UsersIcon, LogOutIcon, DownloadIcon, ChevRightIcon, ExternalIcon } from "../../components/brand";
 import { isDevMode } from "../../state/redux";
 import { captureEvent } from "../../analytics";
-import { useAuth } from "../../state/useAuth";
+import { useAuth } from "../../state/auth/useAuth";
 import type { Conversation, Settings } from "../../types";
 import { useHost, type OrgProfileInfo } from "../../host";
 import { ImportModal } from "./import";

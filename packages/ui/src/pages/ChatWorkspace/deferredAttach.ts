@@ -1,6 +1,6 @@
 import type { Attachment } from "./Composer";
 import type { ExtractedFile } from "../../host";
-import type { DeferredFile } from "../../state/deferredFile";
+import type { DeferredFile } from "../../state/files/deferredFile";
 
 /** What `ChatView` knows how to do and this module doesn't: setting, fixing, chaining. */
 export interface DeferredAttachDeps {

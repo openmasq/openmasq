@@ -1,5 +1,5 @@
 import type { Message } from "../types";
-import { knownTier } from "../state/billing";
+import { knownTier } from "../state/billing/billing";
 import type { PlatformTokenResult } from "./tokenFetch";
 import { BRAND } from "@openmasq/branding";
 import { subscriptionsSold } from "./platformAccess";

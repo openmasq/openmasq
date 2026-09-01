@@ -6,7 +6,7 @@ import { mount } from "../../testKit";
 import { useReplyNotice } from "./useReplyNotice";
 
 /**
- * The WIRING (the pure logic is in `../replyNotice.test.ts`): the transition from one tick
+ * The WIRING (the pure logic is in `../conversation/replyNotice.test.ts`): the transition from one tick
  * to the next, the setting, and the fact that no content leaves for the platform.
  */
 

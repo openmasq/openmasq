@@ -1,4 +1,4 @@
-import { formatCents } from "../../../state/billing";
+import { formatCents } from "../../../state/billing/billing";
 import type { CreditBalance } from "../../../host";
 import { useLocale, useT } from "../../../i18n/I18nProvider";
 

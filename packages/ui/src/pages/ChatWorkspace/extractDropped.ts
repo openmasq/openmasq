@@ -1,5 +1,5 @@
 import type { ExtractedBytes, ExtractedFile, OcrProgress } from "../../host";
-import type { DeferredFile } from "../../state/deferredFile";
+import type { DeferredFile } from "../../state/files/deferredFile";
 
 /**
  * Turning DROPPED files into the shape the composer already knows.

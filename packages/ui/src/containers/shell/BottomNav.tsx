@@ -1,5 +1,5 @@
 import { MessageIcon, BookIcon, LockIcon, SparklesIcon, MemoryIcon, SettingsIcon } from "../../components/brand";
-import { isGated, useFeatureAccess } from "../../state/featureAccess";
+import { isGated, useFeatureAccess } from "../../state/billing/featureAccess";
 import { useT } from "../../i18n";
 import type { Section } from "../../types";
 import { useSectionNav } from "./useSectionNav";

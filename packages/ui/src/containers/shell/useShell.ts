@@ -5,7 +5,7 @@ import { useHost } from "../../host";
 import { openTab, track, useAppDispatch, useAppSelector, type Section } from "../../state/redux";
 import { useSectionNav } from "./useSectionNav";
 import { useReplyNotice } from "../../state/effects/useReplyNotice";
-import { useAuth } from "../../state/useAuth";
+import { useAuth } from "../../state/auth/useAuth";
 import { accountDisplayName, firstNameOf } from "./accountName";
 import { useMcpReconnect } from "../../hooks/useMcpReconnect";
 import { useOpenRouterModels } from "../../hooks/useOpenRouterModels";

@@ -1,4 +1,4 @@
-import { searchEngineById } from "../../state/searchEngines";
+import { searchEngineById } from "../../state/settings/searchEngines";
 
 /**
  * The brand mark for a search engine (DuckDuckGo / Brave / Google / …), rendered

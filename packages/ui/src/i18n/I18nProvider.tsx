@@ -5,7 +5,7 @@ import {
   type Locale,
   type Messages,
 } from "@openmasq/i18n";
-import { initialLocale, saveDeviceLocale } from "../state/locale";
+import { initialLocale, saveDeviceLocale } from "../state/settings/locale";
 
 /**
  * The REACT layer of i18n: a context that carries the current language + its catalogue,

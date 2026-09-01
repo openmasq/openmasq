@@ -55,7 +55,7 @@ describe("redaction palette — one source, no drift", () => {
 
   it("keeps the console logger's baked hexes equal to the tokens", () => {
     // The devtools console has no stylesheet; `state/wireTrace.ts` therefore holds literals.
-    const debug = readFileSync(new URL("../state/wireTrace.ts", import.meta.url), "utf8");
+    const debug = readFileSync(new URL("../state/debug/wireTrace.ts", import.meta.url), "utf8");
     for (const hue of HUES) {
       const baked = debug.match(new RegExp(`${hue}:\\s*"(#[0-9a-f]{6})"`, "i"))?.[1];
       expect(baked, `wireTrace.ts has no hex for ${hue}`).toBeTruthy();

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { SEARCH_ENGINES } from "../../../state/searchEngines";
+import { SEARCH_ENGINES } from "../../../state/settings/searchEngines";
 import { SearchEngineLogo } from "../../../components/media/SearchEngineLogo";
 import { ChevDownIcon, CheckIcon } from "../../../components/brand";
 import { blockAgentOverlay, unblockAgentOverlay } from "../../../hooks/modalGate";

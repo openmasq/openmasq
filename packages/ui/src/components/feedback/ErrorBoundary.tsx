@@ -1,6 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { getMessages } from "@openmasq/i18n";
-import { initialLocale } from "../../state/locale";
+import { initialLocale } from "../../state/settings/locale";
 
 /**
  * Catches any render-time throw in the app tree and shows a recoverable error

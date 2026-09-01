@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { useState } from "react";
 import { mount } from "../../testKit";
 import { MemoryView } from "./MemoryView";
-import { useMemoryStore } from "../../state/useMemory";
+import { useMemoryStore } from "../../state/memory/useMemory";
 import type { Settings } from "../../types";
 
 /**

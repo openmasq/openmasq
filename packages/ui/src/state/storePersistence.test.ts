@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { DEFAULT_SETTINGS, clearStuckPending, normalizeSettings, stripUserContentForLocal } from "./storePersistence";
-import { blueAccent } from "./theme";
+import { blueAccent } from "./settings/theme";
 import type { Settings } from "../types";
 
 /** A settings blob as an OLDER build would have written it, with the five toggles

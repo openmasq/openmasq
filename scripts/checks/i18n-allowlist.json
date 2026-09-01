@@ -9,7 +9,7 @@
   "packages/catalog/src/mcp/connectors/broker.ts": 3,
   "packages/ui/src/containers/modals/DebugLogModal/entryText.ts": 3,
   "packages/ui/src/containers/shell/hooks/useSearchPalette.ts": 3,
-  "packages/ui/src/state/debug.ts": 3,
+  "packages/ui/src/state/debug/debug.ts": 3,
   "packages/ui/src/components/media/BrandLogo/redactionShape.ts": 2,
   "packages/ui/src/containers/modals/providerKeyHelp.ts": 2,
   "packages/catalog/src/mcp/connectors/builtin.ts": 1,
@@ -40,8 +40,8 @@
   "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 1,
   "packages/ui/src/pages/Settings/privacy/AuditRedactionView.tsx": 1,
   "packages/ui/src/send/sendOrchestrator.ts": 1,
-  "packages/ui/src/state/folderTree.ts": 1,
-  "packages/ui/src/state/settingsPrefetch.ts": 1,
+  "packages/ui/src/state/files/folderTree.ts": 1,
+  "packages/ui/src/state/settings/settingsPrefetch.ts": 1,
   "packages/ui/src/state/store.ts": 1,
   "packages/ui/src/state/storePersistence.ts": 1
 }

@@ -21,8 +21,8 @@ import { schemaBlindProblems } from "./schemaBlind";
 import { resolveOperation, normalizeAction } from "./operationResolver";
 import { toolStartNarration } from "./toolActionLabel";
 import { isBrowserWriteTool, isBrowserTool, isWebBrowseTool, domainAllowed, analyzeNavExfil, analyzeArgExfil, navCarriesRedactedData, navCarriesOfferableData, browserNavUrl, type NavExfilFlag } from "../state/browserPolicy";
-import { WEBNAV_OFFER_KEYS } from "../state/webNavReveal";
-import { fakeDerivedNavHost } from "../state/browserNavFake";
+import { WEBNAV_OFFER_KEYS } from "../state/browserPolicy/webNavReveal";
+import { fakeDerivedNavHost } from "../state/browserPolicy/browserNavFake";
 import { connectorIdFromInstance, findConnector } from "@openmasq/catalog/mcp";
 import { isConnectorAllowed } from "../privacy/orgAllowList";
 import {
@@ -128,7 +128,7 @@ export interface WriteConfirmInfo {
   flags: NavExfilFlag[];
 }
 
-import { pushDebug, updateDebug, isDebugCapture } from "../state/debug";
+import { pushDebug, updateDebug, isDebugCapture } from "../state/debug/debug";
 import { RUN_PYTHON_DEF, MEMORY_SEARCH_DEF, WEB_FETCH_MANY_DEF, INTERCEPTED_META_TOOLS } from "./interceptedTools";
 import { summarizeToolResult } from "./toolResultSummary";
 export { summarizeToolResult }; // re-export: the trace tests import from here

@@ -12,7 +12,7 @@ import {
 import { useFolderTree } from "../../../hooks/useFolderTree";
 import { StorageSources } from "./StorageSources";
 import { TreeRow } from "./TreeRow";
-import { FILESYSTEM_CONNECTOR_ID, localServerId } from "../../../state/mcpIds";
+import { FILESYSTEM_CONNECTOR_ID, localServerId } from "../../../state/conversation/mcpIds";
 import { panelOpenLocalFile, useAppDispatch } from "../../../state/redux";
 
 import { useT } from "../../../i18n";

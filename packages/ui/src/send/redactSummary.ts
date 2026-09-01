@@ -1,5 +1,5 @@
 import { redactionCategory, type RedactionMatch } from "@openmasq/redact";
-import { pushDebug } from "../state/debug";
+import { pushDebug } from "../state/debug/debug";
 
 /**
  * The diagnostic SUMMARY of a redaction pass — tier A of « more info without

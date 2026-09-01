@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Conversation, Settings } from "../../types";
 import type { Host } from "../../host";
 import { findModelAny } from "../../prompt/models";
-import { noticeText, pendingReplyIds, repliesToAnnounce } from "../replyNotice";
+import { noticeText, pendingReplyIds, repliesToAnnounce } from "../conversation/replyNotice";
 
 /**
  * The system notification "your reply has arrived" — the OBSERVER.
