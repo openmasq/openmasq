@@ -83,13 +83,13 @@ const CLI_MISSING: Record<SubscriptionCliId, string> = {
 };
 
 /**
- * Le dossier de données ISOLÉ de la CLI Antigravity, et les réglages qu'on y pose avant
- * chaque tour. Le drapeau `--app_data_dir` n'accepte qu'un chemin RELATIF (résolu sous
- * `~/.gemini`, mesuré) : ce dossier ne peut donc pas vivre dans `userData` comme le cwd.
- * Ce qu'on y écrit — des permissions VIDES — est ce qui tient l'isolement : sans règle
- * d'allow, le mode headless refuse tout outil qui en demande une, et les règles que
- * l'utilisateur a posées pour SES sessions ne s'appliquent pas ici. Réécrit à chaque
- * tour (idempotent) pour qu'une édition à la main ne laisse jamais un droit derrière.
+ * The Antigravity CLI's ISOLATED data folder, and the settings written into it before
+ * every turn. The `--app_data_dir` flag only accepts a RELATIVE path (resolved under
+ * `~/.gemini`, measured): this folder therefore cannot live in `userData` like the cwd.
+ * What is written there — EMPTY permissions — is what holds the isolation: with no allow
+ * rule, headless mode refuses any tool that needs one, and the rules the user set for
+ * THEIR own sessions do not apply here. Rewritten on every turn (idempotent) so that a
+ * hand edit never leaves a permission behind.
  */
 function prepareAntigravityAppData(): void {
   const dir = join(app.getPath("home"), ".gemini", ANTIGRAVITY_APP_DATA_DIR);

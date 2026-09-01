@@ -6,7 +6,7 @@ import type { MemoryCard } from "../types";
 
 describe("une fiche COMPACTE — elle ne se redit pas", () => {
   it("remplace une reformulation par la version la plus riche", () => {
-    // Le cas mesuré : deux passages d'extraction, la même affirmation deux fois.
+    // The measured case: two extraction passes, the same statement twice.
     const out = mergeFacts("PDG de Walmart depuis janvier 2026", "Est PDG de Walmart depuis janvier 2026");
     expect(out).toBe("Est PDG de Walmart depuis janvier 2026");
     expect(out.match(/Walmart/g)).toHaveLength(1);
@@ -51,8 +51,8 @@ describe("une fiche COMPACTE — elle ne se redit pas", () => {
     expect(restates("", "Un fait.")).toBe(false);
   });
 
-  // Le cas RAPPORTÉ (13/08) : la même consigne « retiens que » rejouée, l'extracteur
-  // reformulant à chaque passage — quatre variantes à un mot d'écart sur une fiche.
+  // The REPORTED case (13/08): the same « retiens que » instruction replayed, the
+  // extractor rephrasing on each pass — four variants one word apart on a single card.
   it("les reformulations à un mot d'écart se replient — le cas Atelier Lucane", () => {
     const variants = [
       "Atelier Lucane est associé à Camille Salvi dans le cadre du projet Horizon.",
@@ -62,7 +62,7 @@ describe("une fiche COMPACTE — elle ne se redit pas", () => {
     ];
     let facts = variants[0]!;
     for (const v of variants.slice(1)) facts = mergeFacts(facts, v);
-    // UNE seule affirmation survit — pas quatre emballages de la même.
+    // ONE single statement survives — not four wrappings of the same one.
     expect(facts.match(/Camille Salvi/g)).toHaveLength(1);
     expect(facts.match(/Atelier Lucane/g)).toHaveLength(1);
   });
@@ -77,8 +77,8 @@ describe("une fiche COMPACTE — elle ne se redit pas", () => {
   });
 
   it("ne replie PAS deux faits qui ne partagent qu'un ou deux mots", () => {
-    // « Aime le café » / « Aime le thé » : un mot d'écart chacun, mais un seul mot
-    // partagé — deux goûts, pas une reformulation.
+    // « Aime le café » / « Aime le thé »: one word apart each, but a single shared
+    // word — two tastes, not a rephrasing.
     expect(restates("Aime le café.", "Aime le thé.")).toBe(false);
     expect(mergeFacts("Aime le café.", "Aime le thé.")).toContain("café");
   });
@@ -110,8 +110,8 @@ describe("l'historique de compaction — la preuve n'est jamais écrasée en sil
     const old2 = "Deuxième fait un peu plus récent.";
     const nouveau = `Le fait tout neuf: ${"détail ".repeat(75)}est arrivé.`;
     const out = mergeFactsDetailed(`${old1} ${old2}`, nouveau);
-    expect(out.replaced).toContain(old1); // le plus ancien part en premier
-    expect(out.facts).toContain("est arrivé."); // le fait NEUF n'est jamais évincé ni amputé…
+    expect(out.replaced).toContain(old1); // the oldest goes first
+    expect(out.facts).toContain("est arrivé."); // the NEW fact is never evicted nor cut…
     expect(out.facts.length).toBeLessThanOrEqual(600);
     expect(out.facts.startsWith("Deuxième") || out.facts.startsWith("Le fait tout neuf")).toBe(true);
   });
@@ -124,7 +124,7 @@ describe("l'historique de compaction — la preuve n'est jamais écrasée en sil
     const r = restoreFact(card, 0)!;
     expect(r.facts).toBe("Deadline fin septembre.");
     expect(r.factsLog).toEqual([expect.objectContaining({ prev: "Deadline le 15 novembre." })]);
-    // …et se rétablit à son tour (le redo).
+    // …and is restored in turn (the redo).
     const back = restoreFact({ ...card, ...r }, 0)!;
     expect(back.facts).toBe("Deadline le 15 novembre.");
   });
@@ -139,6 +139,6 @@ describe("l'historique de compaction — la preuve n'est jamais écrasée en sil
     expect(data.cards[0].facts).toBe("Deadline le 3 décembre.");
     expect(data.cards[0].factsLog).toEqual([{ at: 1234, prev: "Deadline septembre." }]);
     expect(createdIds).toEqual([]);
-    expect(updatedIds).toEqual([card.id]); // la légende du chat rend la mise à jour visible
+    expect(updatedIds).toEqual([card.id]); // the chat's caption makes the update visible
   });
 });

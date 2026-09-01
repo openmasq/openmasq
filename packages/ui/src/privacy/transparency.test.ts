@@ -35,8 +35,8 @@ describe("transparencyPairs — ce que le modèle a reçu, redérivé", () => {
     expect(p.swapped).toBe(2);
   });
 
-  // ⚠️ `modelContent` porte les documents dépliés, donc ce qui est VRAIMENT parti. Le
-  // comparatif doit montrer ça, pas la bulle affichée.
+  // ⚠️ `modelContent` carries the unfolded documents, hence what REALLY left. The
+  // comparison must show that, not the displayed bubble.
   it("préfère `modelContent` au contenu affiché", () => {
     const c = conv({
       redactionVault: VAULT,
@@ -45,8 +45,8 @@ describe("transparencyPairs — ce que le modèle a reçu, redérivé", () => {
     expect(transparencyPairs(c)[0].wire).toContain("Chloé Cros");
   });
 
-  // Un couple identique des deux côtés n'apprend rien et dilue ceux qui comptent — c'est
-  // aussi ce qui rend l'encart honnête : s'il annonce N, les N sont visibles.
+  // A pair identical on both sides teaches nothing and dilutes those that count — it is
+  // also what makes the card honest: if it announces N, the N are visible.
   it("écarte les messages où RIEN n'a été remplacé", () => {
     const c = conv({
       redactionVault: VAULT,
@@ -84,8 +84,8 @@ describe("shouldShowTransparencyCard — une seule fois, et après la première 
     expect(shouldShowTransparencyCard(withReply, undefined)).toBe(true);
   });
 
-  // La condition qui le rend supportable : un bandeau de réassurance qui revient à chaque
-  // nouveau chat cesse d'être lu au troisième, et devient le bruit dont on se débarrasse.
+  // The condition that makes it bearable: a reassurance banner coming back on every new
+  // chat stops being read by the third, and becomes the noise one gets rid of.
   it("ne revient JAMAIS une fois vu", () => {
     expect(shouldShowTransparencyCard(withReply, true)).toBe(false);
   });
@@ -109,8 +109,8 @@ describe("shouldShowTransparencyCard — une seule fois, et après la première 
     expect(shouldShowTransparencyCard(undefined, false)).toBe(false);
   });
 
-  // Le coffre peut porter des valeurs venues d'AILLEURS (un résultat d'outil), sans
-  // qu'aucun message n'en montre : l'encart annoncerait alors N sans rien à ouvrir.
+  // The vault can carry values that came from ELSEWHERE (a tool result), with no message
+  // showing any: the card would then announce N with nothing to open.
   it("ne s'affiche pas si le coffre est plein mais qu'aucun message ne le montre", () => {
     const toolOnly = conv({
       redactionVault: VAULT,

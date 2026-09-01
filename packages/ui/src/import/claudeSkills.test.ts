@@ -21,8 +21,8 @@ describe("splitFrontmatter", () => {
     expect(body.startsWith("# Release")).toBe(true);
   });
 
-  // Un SKILL.md sans frontmatter reste importable : il perd son nom déclaré, pas son
-  // contenu. Refuser le fichier entier pour deux lignes manquantes serait une perte nette.
+  // A SKILL.md without frontmatter stays importable: it loses its declared name, not its
+  // content. Refusing the whole file over two missing lines would be a net loss.
   it("accepte un fichier SANS frontmatter", () => {
     const { fm, body } = splitFrontmatter("Juste des instructions.");
     expect(fm).toEqual({});
@@ -50,9 +50,9 @@ describe("parseSkill", () => {
     expect(s.name).toBe("Compte rendu reunion");
   });
 
-  // Le cas qui casse à l'usage : un skill dont le corps renvoie à ses propres fichiers.
-  // Il s'importe quand même, mais l'écran doit le DIRE — sinon on découvre après coup une
-  // compétence qui demande au modèle d'ouvrir des fichiers qui n'existent pas.
+  // The case that breaks in use: a skill whose body refers to its own files.
+  // It imports all the same, but the screen must SAY so — otherwise one discovers after
+  // the fact a skill that asks the model to open files that do not exist.
   it("signale un skill dont le corps renvoie à des fichiers annexes", () => {
     const s = parseSkill({
       folder: "design-system",
@@ -96,8 +96,8 @@ describe("parseSkills", () => {
 });
 
 describe("freeName", () => {
-  // La règle qui rend le bouton sûr à cliquer deux fois : on n'écrase jamais ce que
-  // l'utilisateur a pu modifier depuis le premier import.
+  // The rule that makes the button safe to click twice: we never overwrite what the user
+  // may have changed since the first import.
   it("suffixe au lieu d'écraser, et cherche le premier libre", () => {
     expect(freeName("Résumé", new Set())).toBe("Résumé");
     expect(freeName("Résumé", new Set(["Résumé"]))).toBe("Résumé (2)");
