@@ -45,7 +45,7 @@ export interface MenusMessages {
   /** The composer's « / ». */
   skills: {
     actions: string;
-    competences: string;
+    heading: string;
     empty: string;
     create: string;
   };

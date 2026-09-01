@@ -145,7 +145,7 @@ Termine par les risques que tu vois pour l'échéance.`,
 3. Pour les trois premières : où elles se déclenchent, et ce que tu en déduis.`,
     },
   },
-  competences: {
+  skills: {
     "reponse-email": {
       name: "Réponse e-mail pro",
       desc: "Rédige une réponse claire à partir d'un e-mail reçu.",

@@ -39,7 +39,7 @@ export interface OrgSharesMessages {
   requestsShort: string;
   empty: string;
   vaultTerm: string;
-  competence: string;
+  skill: string;
   proposedBy: (author: string) => string;
   someMember: string;
   accept: string;

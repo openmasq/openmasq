@@ -8,7 +8,7 @@ export const lists = {
   allFeminine: "All",
   allMasculine: "All",
   libraryTabs: { all: "All", image: "Images", document: "Documents", sheet: "Spreadsheets", audio: "Audio" },
-  competenceCategories: {
+  skillCategories: {
     all: "All",
     redaction: "Writing",
     analyse: "Analysis",
@@ -27,7 +27,7 @@ export const lists = {
     code: "Code",
   },
 
-  competences: {
+  skills: {
     empty: {
       title: "Your instructions, ready to reuse",
       body: "A good instruction written once — an email reply, a translation, a summary — reusable everywhere.",

@@ -54,8 +54,8 @@ export function SkillFilters({
           type="button"
           className="om-skill-import"
           onClick={onImport}
-          title={t.lists.competences.importTip}
-          aria-label={t.lists.competences.import}
+          title={t.lists.skills.importTip}
+          aria-label={t.lists.skills.import}
         >
           <DownloadIcon size={15} />
         </button>
@@ -66,8 +66,8 @@ export function SkillFilters({
         <input
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder={t.lists.competences.search}
-          aria-label={t.lists.competences.search}
+          placeholder={t.lists.skills.search}
+          aria-label={t.lists.skills.search}
         />
       </div>
     </div>

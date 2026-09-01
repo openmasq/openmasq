@@ -69,7 +69,7 @@ function resolveCat(raw: string): string | undefined {
     (c) =>
       c.id === k ||
       LOCALES.some(
-        (loc) => stripAccents(getMessages(loc).lists.competenceCategories[c.id].toLowerCase()) === k,
+        (loc) => stripAccents(getMessages(loc).lists.skillCategories[c.id].toLowerCase()) === k,
       ),
   )?.id;
 }

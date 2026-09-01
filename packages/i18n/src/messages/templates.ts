@@ -20,7 +20,7 @@ export interface TemplatesMessages {
   /** One routine per id of the `ROUTINE_SUGGESTIONS` catalogue. */
   routines: Record<string, TemplateCopy>;
   /** One skill per id of the `COMPETENCE_SUGGESTIONS` catalogue. */
-  competences: Record<string, TemplateCopy>;
+  skills: Record<string, TemplateCopy>;
   /** The idea BUILT for a connector the curated list does not cover. */
   generic: {
     name: (service: string) => string;

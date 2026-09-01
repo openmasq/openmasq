@@ -23,7 +23,7 @@ export const sections = {
       "Every image and document shared in a conversation lands here automatically, already masked. Find them by type, and reuse them elsewhere in one click.",
     keywords: "files documents images attachments pdf downloads bibliothèque",
   },
-  competences: {
+  skills: {
     label: "Skills",
     tip: "Skills — your reusable instructions",
     subtitle:

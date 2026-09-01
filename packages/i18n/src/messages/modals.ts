@@ -65,11 +65,11 @@ export interface ModalsMessages {
    * the send — so the label must SAY it, or the friction removed from the code
    * settles back into the head of whoever writes.
    */
-  avis: {
+  feedback: {
     title: string;
     sub: string;
     thanks: string;
-    thanksWithJournal: string;
+    thanksWithLog: string;
     thanksPlain: string;
     close: string;
     moodLabel: string;
@@ -79,7 +79,7 @@ export interface ModalsMessages {
     messagePlaceholder: string;
     attachContext: string;
     attachContextSub: string;
-    attachJournal: string;
+    attachLog: string;
     /** Where the redaction erred — the sentence goes into the draft the person re-reads. */
     inDocument: string;
     inReply: string;
@@ -87,9 +87,9 @@ export interface ModalsMessages {
     problemKind: (kind: string) => string;
     problemBody: (where: string, kind: string) => string;
     /** The two other pre-filled drafts — the person re-reads and completes them. */
-    journalDraft: string;
+    logDraft: string;
     replyDraft: string;
-    attachJournalSub: string;
+    attachLogSub: string;
     confidential: string;
     /** The moods and the feedback types: the glyph and the id stay in the code. */
     moods: { love: string; ok: string; meh: string };

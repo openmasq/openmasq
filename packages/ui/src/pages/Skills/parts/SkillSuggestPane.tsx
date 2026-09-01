@@ -51,7 +51,7 @@ export function SkillSuggestPane({
       <div className="om-skill-field">
         <span className="om-sugg-label">
           <SparklesIcon size={13} />
-          {t.lists.competences.presets}
+          {t.lists.skills.presets}
         </span>
         <div className="om-sugg-chips">
           {chips.map((c) => (

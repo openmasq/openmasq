@@ -45,7 +45,7 @@ export function ServerPicker({
   return (
     <div className="om-skill-field">
       <p className="om-wf-picker-note">
-        {t.lists.competences.picker.note} {t.lists.competences.picker.connectedDot}
+        {t.lists.skills.picker.note} {t.lists.skills.picker.connectedDot}
       </p>
       {/* Grouped by the canonical MCP categories; ONE scroll (the modal body's) —
           an inner scroll here made two nested scrollbars. */}

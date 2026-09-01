@@ -27,7 +27,7 @@ export function BottomNav() {
   const access = useFeatureAccess();
   const all: { key: Section; label: string; Icon: typeof MessageIcon; on: boolean; act: () => void }[] = [
     { key: "chats", label: t.nav.chats, Icon: MessageIcon, on: section === "chats", act: () => go("chats") },
-    { key: "competences", label: t.nav.competences, Icon: SparklesIcon, on: section === "competences", act: () => go("competences") },
+    { key: "competences", label: t.nav.skills, Icon: SparklesIcon, on: section === "competences", act: () => go("competences") },
     { key: "memory", label: t.nav.memory, Icon: MemoryIcon, on: section === "memory", act: () => go("memory") },
     { key: "vault", label: t.nav.vault, Icon: LockIcon, on: section === "vault", act: () => go("vault") },
     { key: "library", label: t.nav.library, Icon: BookIcon, on: section === "library", act: () => go("library") },

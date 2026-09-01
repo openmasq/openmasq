@@ -35,7 +35,7 @@ export interface NavMessages {
   ariaLabel: string;
   chats: string;
   /** Deliberately short (mobile bar) — « Compét. », « Skills ». */
-  competences: string;
+  skills: string;
   memory: string;
   vault: string;
   library: string;

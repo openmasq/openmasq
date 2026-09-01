@@ -66,7 +66,7 @@ export interface ConversationMessages {
   writeConfirm: { targetTip: (server: string, tool: string) => string; alsoOtherChats: string };
 
   /** The skill label under a message. */
-  competenceTag: {
+  skillTag: {
     show: string;
     hide: string;
     promptEyebrow: string;

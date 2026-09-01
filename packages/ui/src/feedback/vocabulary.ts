@@ -20,18 +20,18 @@ export function feedbackMoods(t: Messages): {
 }[] {
   // Glyphs are mono-font faces (the kit's), not emoji — Space Mono renders them.
   return [
-    { id: "love", glyph: "◕‿◕", label: t.modals.avis.moods.love, tone: "lime" },
-    { id: "ok", glyph: "•‿•", label: t.modals.avis.moods.ok, tone: "sky" },
-    { id: "meh", glyph: "•︵•", label: t.modals.avis.moods.meh, tone: "amber" },
+    { id: "love", glyph: "◕‿◕", label: t.modals.feedback.moods.love, tone: "lime" },
+    { id: "ok", glyph: "•‿•", label: t.modals.feedback.moods.ok, tone: "sky" },
+    { id: "meh", glyph: "•︵•", label: t.modals.feedback.moods.meh, tone: "amber" },
   ];
 }
 
 export function feedbackCategories(t: Messages): { id: FeedbackCategory; label: string }[] {
   return [
-    { id: "idea", label: t.modals.avis.categories.idea },
-    { id: "bug", label: t.modals.avis.categories.bug },
-    { id: "love", label: t.modals.avis.categories.love },
-    { id: "other", label: t.modals.avis.categories.other },
+    { id: "idea", label: t.modals.feedback.categories.idea },
+    { id: "bug", label: t.modals.feedback.categories.bug },
+    { id: "love", label: t.modals.feedback.categories.love },
+    { id: "other", label: t.modals.feedback.categories.other },
   ];
 }
 

@@ -46,7 +46,7 @@ export function SkillTag({
         className="msg-tag msg-comp-btn"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        title={open ? t.conversation.competenceTag.hide : t.conversation.competenceTag.show}
+        title={open ? t.conversation.skillTag.hide : t.conversation.skillTag.show}
       >
         {servers.length > 0 ? <WorkflowIcon size={12} /> : <SparklesIcon size={12} />}
         <span>{skill.name}</span>
@@ -67,7 +67,7 @@ export function SkillTag({
       {open && (
         <div className="msg-comp-body">
           <div className="msg-comp-head">
-            <span className="cv-eyebrow">{t.conversation.competenceTag.promptEyebrow}</span>
+            <span className="cv-eyebrow">{t.conversation.skillTag.promptEyebrow}</span>
             {/* Only offered when the shell wired the provider AND we can still resolve
                 the compétence — a deleted one leaves the snapshot readable, not a dead link. */}
             {openSkill && (
@@ -77,7 +77,7 @@ export function SkillTag({
                 onClick={() => openSkill(skill.id)}
               >
                 <EditIcon size={12} />
-                {t.conversation.competenceTag.edit}
+                {t.conversation.skillTag.edit}
               </button>
             )}
           </div>
@@ -89,7 +89,7 @@ export function SkillTag({
             // The prompt lives in the encrypted DB (it is real user text, stripped from
             // the plaintext copy — `send/sendGuards.ts`). Absent = it hasn't loaded, or
             // this message predates the field. Say so rather than imply it was empty.
-            <div className="msg-comp-empty">{t.conversation.competenceTag.unavailable}</div>
+            <div className="msg-comp-empty">{t.conversation.skillTag.unavailable}</div>
           )}
         </div>
       )}

@@ -58,11 +58,11 @@ export const modals = {
     noResults: "No results.",
   },
 
-  avis: {
+  feedback: {
     title: "Your feedback",
     sub: "Tell us what works — or what gets in the way. We read everything.",
     thanks: "Thank you!",
-    thanksWithJournal:
+    thanksWithLog:
       "Message received, along with the debug log — without the mapping table, so without your real values.",
     thanksPlain: "Message received. None of your conversation content was attached.",
     close: "Close",
@@ -74,16 +74,16 @@ export const modals = {
     attachContext: "Attach the technical context",
     attachContextSub:
       "App version, current screen and install identifier. Never the content of your conversations.",
-    attachJournal: "Attach the debug log",
+    attachLog: "Attach the debug log",
     inDocument: "in a document",
     inReply: "in a reply",
     inMessage: "in a message",
     problemKind: (kind) => ` (kind: ${kind})`,
     problemBody: (where, kind) =>
       `Incorrect redaction${kind} ${where}.\nWhat went wrong (without pasting the real value): `,
-    journalDraft: "Report from the debug journal.\nWhat went wrong: ",
+    logDraft: "Report from the debug journal.\nWhat went wrong: ",
     replyDraft: "About this reply: ",
-    attachJournalSub:
+    attachLogSub:
       "The text that went to the model (already redacted), the tools and the errors — without the lookup table, so no real value. Preview below.",
     confidential: "Confidential",
     moods: { love: "Love it", ok: "Fine", meh: "Meh" },

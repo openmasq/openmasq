@@ -67,7 +67,7 @@ export const conversation = {
     alsoOtherChats: "Aussi dans mes autres conversations (jusqu'à la fermeture de l'app)",
   },
 
-  competenceTag: {
+  skillTag: {
     show: "Voir l'instruction envoyée au modèle",
     hide: "Masquer l'instruction envoyée",
     promptEyebrow: "Instruction envoyée au modèle",

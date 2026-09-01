@@ -58,11 +58,11 @@ export const modals = {
     noResults: "Aucun résultat.",
   },
 
-  avis: {
+  feedback: {
     title: "Votre avis",
     sub: "Dites-nous ce qui marche — ou ce qui coince. On lit tout.",
     thanks: "Merci !",
-    thanksWithJournal:
+    thanksWithLog:
       "Message reçu, avec le journal de débogage — sans la table de correspondance, donc sans vos valeurs réelles.",
     thanksPlain: "Message reçu. Aucun contenu de vos conversations n'a été joint.",
     close: "Fermer",
@@ -74,16 +74,16 @@ export const modals = {
     attachContext: "Joindre le contexte technique",
     attachContextSub:
       "Version de l'app, écran actuel et identifiant d'installation. Jamais le contenu de vos conversations.",
-    attachJournal: "Joindre le journal de débogage",
+    attachLog: "Joindre le journal de débogage",
     inDocument: "dans un document",
     inReply: "dans une réponse",
     inMessage: "dans un message",
     problemKind: (kind) => ` (type : ${kind})`,
     problemBody: (where, kind) =>
       `Masquage incorrect${kind} ${where}.\nCe qui n'allait pas (sans coller la valeur réelle) : `,
-    journalDraft: "Rapport depuis le journal de débogage.\nCe qui n'allait pas : ",
+    logDraft: "Rapport depuis le journal de débogage.\nCe qui n'allait pas : ",
     replyDraft: "À propos de cette réponse : ",
-    attachJournalSub:
+    attachLogSub:
       "Le texte parti au modèle (déjà masqué), les outils et les erreurs — sans la table de correspondance, donc aucune valeur réelle. Aperçu ci-dessous.",
     confidential: "Confidentiel",
     moods: { love: "J'adore", ok: "Correct", meh: "Bof" },

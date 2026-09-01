@@ -63,7 +63,7 @@ export function sectionGuides(t: Messages): readonly SectionGuide[] {
   return [
     { id: "chats", ...s.chats, guide: s.chats.guide(BRAND.name) },
     { id: "library", ...s.library },
-    { id: "competences", ...s.competences },
+    { id: "competences", ...s.skills },
     {
       id: "memory",
       ...s.memory,

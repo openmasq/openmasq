@@ -158,10 +158,10 @@ export function SkillModal({
             <span className="om-skill-head-glyph">{cat.glyph}</span>
             <div className="om-skill-head-text">
               <ModalTitle>
-                {initial.id ? t.lists.competences.modal.titleEdit : t.lists.competences.modal.titleNew}
+                {initial.id ? t.lists.skills.modal.titleEdit : t.lists.skills.modal.titleNew}
               </ModalTitle>
               <p className="om-skill-head-sub">
-                {t.lists.competences.modal.sub}
+                {t.lists.skills.modal.sub}
               </p>
             </div>
           </div>
@@ -187,34 +187,34 @@ export function SkillModal({
               the moment you pick, so the choice reads twice. */}
           <div className="om-skill-row">
             <label className="om-skill-field om-skill-col-grow">
-              <span className="cv-eyebrow">{t.lists.competences.modal.name}</span>
+              <span className="cv-eyebrow">{t.lists.skills.modal.name}</span>
               <input
                 className="om-skill-input"
                 value={draft.name}
                 onChange={(e) => patch({ name: e.target.value })}
-                placeholder={t.lists.competences.modal.namePlaceholder}
+                placeholder={t.lists.skills.modal.namePlaceholder}
                 autoFocus
               />
             </label>
             <div className="om-skill-field om-skill-col-cat">
-              <span className="cv-eyebrow">{t.lists.competences.modal.category}</span>
+              <span className="cv-eyebrow">{t.lists.skills.modal.category}</span>
               <HueSelect
                 value={draft.cat}
                 options={catOptions(t)}
                 onChange={(cat) => patch({ cat })}
-                ariaLabel={t.lists.competences.modal.category}
+                ariaLabel={t.lists.skills.modal.category}
                 neutral
               />
             </div>
           </div>
 
           <label className="om-skill-field">
-            <span className="cv-eyebrow">{t.lists.competences.modal.description}</span>
+            <span className="cv-eyebrow">{t.lists.skills.modal.description}</span>
             <input
               className="om-skill-input"
               value={draft.desc}
               onChange={(e) => patch({ desc: e.target.value })}
-              placeholder={t.lists.competences.modal.descriptionPlaceholder}
+              placeholder={t.lists.skills.modal.descriptionPlaceholder}
             />
           </label>
 
@@ -223,8 +223,8 @@ export function SkillModal({
             onChange={(prompt) => patch({ prompt })}
             note={
               draft.servers.length
-                ? t.lists.competences.modal.noteWithServers
-                : t.lists.competences.modal.noteWithoutServers
+                ? t.lists.skills.modal.noteWithServers
+                : t.lists.skills.modal.noteWithoutServers
             }
           />
 
@@ -239,11 +239,11 @@ export function SkillModal({
               aria-expanded={showServers}
             >
               <ChevDownIcon size={15} />
-              <span className="cv-eyebrow">{t.lists.competences.modal.connectors}</span>
+              <span className="cv-eyebrow">{t.lists.skills.modal.connectors}</span>
               <span className="om-skill-disclose-sum">
                 {draft.servers.length
-                  ? t.lists.competences.modal.someConnectors(draft.servers.length)
-                  : t.lists.competences.modal.allConnectors}
+                  ? t.lists.skills.modal.someConnectors(draft.servers.length)
+                  : t.lists.skills.modal.allConnectors}
               </span>
             </button>
             {showServers && (
@@ -262,7 +262,7 @@ export function SkillModal({
         <div className="om-skill-modal-foot">
           {onDelete && (
             <button type="button" className="btn-ghost om-skill-del" onClick={onDelete}>
-              {t.lists.competences.modal.delete}
+              {t.lists.skills.modal.delete}
             </button>
           )}
           {onDuplicate && (
@@ -270,9 +270,9 @@ export function SkillModal({
               type="button"
               className="btn-ghost"
               onClick={() => onDuplicate(draft)}
-              title={t.lists.competences.modal.duplicateTip}
+              title={t.lists.skills.modal.duplicateTip}
             >
-              {t.lists.competences.modal.duplicate}
+              {t.lists.skills.modal.duplicate}
             </button>
           )}
           <span className="om-skill-spacer" />
@@ -285,7 +285,7 @@ export function SkillModal({
             disabled={!canSave}
             onClick={() => canSave && onSave(draft)}
           >
-            {initial.id ? t.common.save : t.lists.competences.modal.create}
+            {initial.id ? t.common.save : t.lists.skills.modal.create}
           </button>
         </div>
       </div>

@@ -24,7 +24,7 @@
 export interface SectionsMessages {
   chats: { label: string; tip: string; guide: (brand: string) => string; keywords: string };
   library: { label: string; tip: string; subtitle: string; guide: string; keywords: string };
-  competences: { label: string; tip: string; subtitle: string; guide: string; keywords: string };
+  skills: { label: string; tip: string; subtitle: string; guide: string; keywords: string };
   memory: {
     label: string;
     tip: (brand: string) => string;

@@ -36,7 +36,7 @@ export interface ListsMessages {
   /** The Bibliothèque's category tabs. */
   libraryTabs: { all: string; image: string; document: string; sheet: string; audio: string };
   /** A skill's categories, and the filter's « toutes ». */
-  competenceCategories: {
+  skillCategories: {
     all: string;
     redaction: string;
     analyse: string;
@@ -47,7 +47,7 @@ export interface ListsMessages {
   };
   /** The formatting buttons of the instruction editor. */
   marks: { bold: string; italic: string; heading: string; quote: string; bullet: string; ordered: string; code: string };
-  competences: {
+  skills: {
     empty: EmptyStateCopy;
     noMatch: NoMatchCopy;
     createLabel: string;

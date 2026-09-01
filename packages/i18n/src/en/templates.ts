@@ -145,7 +145,7 @@ Finish with the risks you see for the deadline.`,
 3. For the top three: where they fire, and what you make of them.`,
     },
   },
-  competences: {
+  skills: {
     "reponse-email": {
       name: "Professional email reply",
       desc: "Writes a clear reply to an email you received.",

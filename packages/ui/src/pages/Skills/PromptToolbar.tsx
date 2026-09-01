@@ -23,7 +23,7 @@ const MARKS: { id: PromptMark; label: string; cls?: string }[] = [
 export function PromptToolbar({ onMark }: { onMark: (m: PromptMark) => void }) {
   const t = useT();
   return (
-    <div className="om-skill-toolbar" role="toolbar" aria-label={t.lists.competences.formatting}>
+    <div className="om-skill-toolbar" role="toolbar" aria-label={t.lists.skills.formatting}>
       {MARKS.map((m) => (
         <button
           key={m.id}

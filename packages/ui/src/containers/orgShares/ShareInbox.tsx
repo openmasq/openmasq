@@ -92,7 +92,7 @@ export function ShareInbox({
                   <div className="om-shinbox-meta">
                     <span
                       className="om-shinbox-kind"
-                      title={s.scope === "coffre" ? t.orgShares.vaultTerm : t.orgShares.competence}
+                      title={s.scope === "coffre" ? t.orgShares.vaultTerm : t.orgShares.skill}
                     >
                       {s.scope === "coffre" ? <ShieldIcon size={11} /> : <SparklesIcon size={11} />}
                     </span>

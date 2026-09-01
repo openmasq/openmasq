@@ -9,7 +9,7 @@ export const lists = {
   allFeminine: "Toutes",
   allMasculine: "Tous",
   libraryTabs: { all: "Tout", image: "Images", document: "Documents", sheet: "Tableurs", audio: "Audio" },
-  competenceCategories: {
+  skillCategories: {
     all: "Toutes",
     redaction: "Rédaction",
     analyse: "Analyse",
@@ -28,7 +28,7 @@ export const lists = {
     code: "Code",
   },
 
-  competences: {
+  skills: {
     empty: {
       title: "Vos consignes, prêtes à réutiliser",
       body: "Une bonne consigne écrite une fois — réponse e-mail, traduction, résumé — réutilisable partout.",

@@ -23,7 +23,7 @@ export const sections = {
       "Chaque image et document partagé dans une conversation atterrit ici automatiquement, déjà masqué. Vous les retrouvez par type, et vous les réutilisez ailleurs en un clic.",
     keywords: "fichiers documents images pièces jointes pdf téléchargements library",
   },
-  competences: {
+  skills: {
     label: "Compétences",
     tip: "Compétences — vos instructions réutilisables",
     subtitle:

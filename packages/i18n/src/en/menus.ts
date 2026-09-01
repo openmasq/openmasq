@@ -30,7 +30,7 @@ export const menus = {
   },
   skills: {
     actions: "Actions",
-    competences: "Skills",
+    heading: "Skills",
     empty: "No skills yet — your reusable prompts, inserted in one click.",
     create: "Create a skill",
   },

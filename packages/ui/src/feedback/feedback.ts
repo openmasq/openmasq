@@ -147,7 +147,7 @@ export function redactionProblemDraft(
   t: Messages,
   kindLabel?: string,
 ): FeedbackDraft {
-  const a = t.modals.avis;
+  const a = t.modals.feedback;
   const where =
     surface === "document" ? a.inDocument : surface === "reponse" ? a.inReply : a.inMessage;
   return {
@@ -179,7 +179,7 @@ export function debugLogDraft(log: string, t: Messages): FeedbackDraft {
   return {
     ...EMPTY_FEEDBACK,
     category: "bug",
-    message: t.modals.avis.journalDraft,
+    message: t.modals.feedback.logDraft,
     journal: capLog(log),
     attachLog: true,
   };
@@ -207,7 +207,7 @@ export function messageFeedbackDraft(t: Messages, log?: string): FeedbackDraft {
   return {
     ...EMPTY_FEEDBACK,
     category: attached ? "bug" : EMPTY_FEEDBACK.category,
-    message: t.modals.avis.replyDraft,
+    message: t.modals.feedback.replyDraft,
     ...(attached ? { journal: attached, attachLog: true } : {}),
   };
 }

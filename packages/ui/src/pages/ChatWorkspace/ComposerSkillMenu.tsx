@@ -74,7 +74,7 @@ export function ComposerSkillMenu({
           ))}
         </>
       )}
-      <div className="composer-skill-eyebrow">{t.menus.skills.competences}</div>
+      <div className="composer-skill-eyebrow">{t.menus.skills.heading}</div>
       {skillList.length === 0 ? (
         <div className="composer-skill-empty">
           <span>{t.menus.skills.empty}</span>

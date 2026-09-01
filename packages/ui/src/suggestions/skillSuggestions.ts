@@ -43,7 +43,7 @@ const SKILL_SHAPE: readonly { id: string; cat: SkillCategoryId }[] = [
 
 /** Les compétences proposées, dans la langue de `t`. */
 export function skillSuggestions(t: Messages): SkillSuggestion[] {
-  return SKILL_SHAPE.map((c) => ({ ...c, ...t.templates.competences[c.id] }));
+  return SKILL_SHAPE.map((c) => ({ ...c, ...t.templates.skills[c.id] }));
 }
 
 /** How many templates the modal offers at once — enough to cover the usual

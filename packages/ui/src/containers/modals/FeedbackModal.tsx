@@ -105,8 +105,8 @@ export function FeedbackModal({
           <FeedbackIcon size={22} />
         </span>
         <div className="om-avis-head-text">
-          <ModalTitle marker={false}>{t.modals.avis.title}</ModalTitle>
-          <div className="om-avis-sub">{t.modals.avis.sub}</div>
+          <ModalTitle marker={false}>{t.modals.feedback.title}</ModalTitle>
+          <div className="om-avis-sub">{t.modals.feedback.sub}</div>
         </div>
       </div>
 
@@ -115,14 +115,14 @@ export function FeedbackModal({
           <span className="om-avis-done-glyph">
             <CheckIcon size={30} />
           </span>
-          <div className="cv-display om-avis-done-title">{t.modals.avis.thanks}</div>
+          <div className="cv-display om-avis-done-title">{t.modals.feedback.thanks}</div>
           <p className="om-avis-done-text">
             {log && draft.attachLog !== false
-              ? t.modals.avis.thanksWithJournal
-              : t.modals.avis.thanksPlain}
+              ? t.modals.feedback.thanksWithLog
+              : t.modals.feedback.thanksPlain}
           </p>
           <button type="button" className="btn-primary" onClick={onClose}>
-            {t.modals.avis.close}
+            {t.modals.feedback.close}
           </button>
         </div>
       ) : (
@@ -134,8 +134,8 @@ export function FeedbackModal({
                   send would still read as required, and the user would still pick one to
                   be safe: the friction we removed would just move into their head. */}
               <label className="cv-eyebrow">
-                {t.modals.avis.moodLabel}
-                {moodOptional && <span className="om-avis-optional">{t.modals.avis.optional}</span>}
+                {t.modals.feedback.moodLabel}
+                {moodOptional && <span className="om-avis-optional">{t.modals.feedback.optional}</span>}
               </label>
               <div className="om-avis-moods">
                 {feedbackMoods(t).map((m) => {
@@ -159,7 +159,7 @@ export function FeedbackModal({
             </div>
 
             <div className="om-avis-field">
-              <label className="cv-eyebrow">{t.modals.avis.categoryLabel}</label>
+              <label className="cv-eyebrow">{t.modals.feedback.categoryLabel}</label>
               <div className="om-avis-cats">
                 {feedbackCategories(t).map((c) => (
                   <button
@@ -177,14 +177,14 @@ export function FeedbackModal({
 
             <div className="om-avis-field">
               <label className="cv-eyebrow" htmlFor="om-avis-msg">
-                {t.modals.avis.messageLabel}
+                {t.modals.feedback.messageLabel}
               </label>
               <textarea
                 id="om-avis-msg"
                 className="om-avis-textarea"
                 value={draft.message}
                 onChange={(e) => patch({ message: e.target.value })}
-                placeholder={t.modals.avis.messagePlaceholder}
+                placeholder={t.modals.feedback.messagePlaceholder}
                 rows={5}
                 maxLength={MAX_FEEDBACK_MESSAGE}
                 autoFocus
@@ -194,8 +194,8 @@ export function FeedbackModal({
             <label className="om-avis-attach">
               <Switch checked={draft.attachContext} onChange={(v) => patch({ attachContext: v })} />
               <span>
-                <span className="om-avis-attach-title">{t.modals.avis.attachContext}</span>
-                <span className="om-avis-attach-sub">{t.modals.avis.attachContextSub}</span>
+                <span className="om-avis-attach-title">{t.modals.feedback.attachContext}</span>
+                <span className="om-avis-attach-sub">{t.modals.feedback.attachContextSub}</span>
               </span>
             </label>
 
@@ -212,9 +212,9 @@ export function FeedbackModal({
                     onChange={(v) => patch({ attachLog: v })}
                   />
                   <span>
-                    <span className="om-avis-attach-title">{t.modals.avis.attachJournal}</span>
+                    <span className="om-avis-attach-title">{t.modals.feedback.attachLog}</span>
                     <span className="om-avis-attach-sub">
-                      {t.modals.avis.attachJournalSub}
+                      {t.modals.feedback.attachLogSub}
                     </span>
                   </span>
                 </label>
@@ -230,7 +230,7 @@ export function FeedbackModal({
           <div className="om-avis-foot">
             <span className="om-avis-confidential">
               <ShieldIcon size={13} />
-              {t.modals.avis.confidential}
+              {t.modals.feedback.confidential}
             </span>
             <span className="om-avis-spacer" />
             <button type="button" className="btn-ghost" onClick={onClose} disabled={busy}>

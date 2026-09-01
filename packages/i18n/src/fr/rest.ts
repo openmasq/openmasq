@@ -34,7 +34,7 @@ export const orgShares = {
   requestsShort: "Demandes",
   empty: "Rien à examiner. Les termes et compétences proposés par vos collègues apparaîtront ici.",
   vaultTerm: "Terme du coffre",
-  competence: "Compétence",
+  skill: "Compétence",
   proposedBy: (author) => `Proposé par ${author}`,
   someMember: "un membre",
   accept: "Accepter",

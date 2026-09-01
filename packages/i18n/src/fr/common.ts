@@ -22,7 +22,7 @@ export const common = {
 export const nav = {
   ariaLabel: "Navigation",
   chats: "Chats",
-  competences: "Compét.",
+  skills: "Compét.",
   memory: "Mémoire",
   vault: "Coffre",
   library: "Biblio",

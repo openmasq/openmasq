@@ -177,15 +177,15 @@ export function SkillsView({
             ) : skills.length === 0 ? (
               <EmptyState
                 tone="lime"
-                eyebrow={t.sections.competences.label}
+                eyebrow={t.sections.skills.label}
                 icon={<SparklesIcon size={26} />}
-                title={t.lists.competences.empty.title}
-                body={t.lists.competences.empty.body}
+                title={t.lists.skills.empty.title}
+                body={t.lists.skills.empty.body}
                 points={[
-                  { glyph: "✦", label: t.lists.competences.empty.points[0], tone: "violet" },
-                  { glyph: "★", label: t.lists.competences.empty.points[1], tone: "amber" },
+                  { glyph: "✦", label: t.lists.skills.empty.points[0], tone: "violet" },
+                  { glyph: "★", label: t.lists.skills.empty.points[1], tone: "amber" },
                 ]}
-                cta={t.lists.competences.empty.cta}
+                cta={t.lists.skills.empty.cta}
                 ctaIcon={<PlusIcon size={16} />}
                 onCta={() => setDraft(EMPTY_DRAFT)}
               />
@@ -194,13 +194,13 @@ export function SkillsView({
                 tone="sky"
                 eyebrow={
                   cat === "all"
-                    ? t.lists.competences.noMatch.search
-                    : `${t.lists.competences.noMatch.category} · ${skillCategory(cat, t).label}`
+                    ? t.lists.skills.noMatch.search
+                    : `${t.lists.skills.noMatch.category} · ${skillCategory(cat, t).label}`
                 }
                 icon={<SearchIcon size={26} />}
-                title={t.lists.competences.noMatch.title}
-                body={t.lists.competences.noMatch.body}
-                cta={t.lists.competences.noMatch.cta}
+                title={t.lists.skills.noMatch.title}
+                body={t.lists.skills.noMatch.body}
+                cta={t.lists.skills.noMatch.cta}
                 ctaIcon={<PlusIcon size={16} />}
                 onCta={() => setDraft(EMPTY_DRAFT)}
               />
@@ -209,8 +209,8 @@ export function SkillsView({
             <div className={view === "list" ? "om-rows" : "om-skill-grid"}>
               {view === "grid" ? (
                 <CreateCard
-                  label={t.lists.competences.createLabel}
-                  hint={t.lists.competences.createHint}
+                  label={t.lists.skills.createLabel}
+                  hint={t.lists.skills.createHint}
                   onClick={() => setDraft(EMPTY_DRAFT)}
                 />
               ) : (
@@ -221,8 +221,8 @@ export function SkillsView({
                     <PlusIcon size={15} />
                   </span>
                   <span className="om-row-main">
-                    <span className="om-row-name">{t.lists.competences.createLabel}</span>
-                    <span className="om-row-sub">{t.lists.competences.createHint}</span>
+                    <span className="om-row-name">{t.lists.skills.createLabel}</span>
+                    <span className="om-row-sub">{t.lists.skills.createHint}</span>
                   </span>
                 </button>
               )}
@@ -257,7 +257,7 @@ export function SkillsView({
               if (dismissTimer.current) clearTimeout(dismissTimer.current);
             }}
           >
-            {t.lists.competences.undo}
+            {t.lists.skills.undo}
           </button>
         </div>
       )}

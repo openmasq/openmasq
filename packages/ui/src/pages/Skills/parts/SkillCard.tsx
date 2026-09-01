@@ -60,7 +60,7 @@ export function SkillCard({
       className={`om-skill-card om-sweep-host om-step-in${selected ? " selected" : ""}`}
       role="button"
       tabIndex={0}
-      aria-label={t.lists.competences.editAria(name)}
+      aria-label={t.lists.skills.editAria(name)}
       onClick={onEdit}
       onKeyDown={onCardKeyDown}
     >
@@ -77,7 +77,7 @@ export function SkillCard({
             className={`om-skill-pin${skill.pinned ? " on" : ""}`}
             onClick={(e) => stop(e, onTogglePin)}
             aria-pressed={!!skill.pinned}
-            title={skill.pinned ? t.lists.competences.unpin : t.lists.competences.pin}
+            title={skill.pinned ? t.lists.skills.unpin : t.lists.skills.pin}
           >
             {skill.pinned ? "★" : "☆"}
           </button>
@@ -99,10 +99,10 @@ export function SkillCard({
           type="button"
           className="om-skill-use"
           onClick={(e) => stop(e, onUse)}
-          title={t.lists.competences.useTip}
-          aria-label={t.lists.competences.useAria(name)}
+          title={t.lists.skills.useTip}
+          aria-label={t.lists.skills.useAria(name)}
         >
-          <SendIcon size={13} /> <span className="om-sweep">{t.lists.competences.use}</span>
+          <SendIcon size={13} /> <span className="om-sweep">{t.lists.skills.use}</span>
         </button>
         <span className="om-skill-spacer" />
         {onShare && (
@@ -112,9 +112,9 @@ export function SkillCard({
             type="button"
             className="om-skill-share"
             onClick={(e) => stop(e, onShare)}
-            title={t.lists.competences.shareTip}
+            title={t.lists.skills.shareTip}
           >
-            <ArrowRightIcon size={12} /> {t.lists.competences.share}
+            <ArrowRightIcon size={12} /> {t.lists.skills.share}
           </button>
         )}
         <span className="om-skill-uses">{uses}×</span>

@@ -46,12 +46,12 @@ export type SkillCategory = (typeof SKILL_CATEGORIES)[number] & { label: string 
 
 /** The WHOLE list, labeled in `t`'s language — the order stays the design's order. */
 export function skillCategories(t: Messages): SkillCategory[] {
-  return SKILL_CATEGORIES.map((c) => ({ ...c, label: t.lists.competenceCategories[c.id] }));
+  return SKILL_CATEGORIES.map((c) => ({ ...c, label: t.lists.skillCategories[c.id] }));
 }
 
 export function skillCategory(id: string, t: Messages): SkillCategory {
   const cat = SKILL_CATEGORIES.find((c) => c.id === id) ?? FALLBACK;
-  return { ...cat, label: t.lists.competenceCategories[cat.id] };
+  return { ...cat, label: t.lists.skillCategories[cat.id] };
 }
 
 /** A stable id. `crypto.randomUUID` where available, else a time+random fallback
