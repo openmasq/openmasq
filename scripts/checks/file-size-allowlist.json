@@ -5,7 +5,6 @@
   "packages/ui/src/pages/ChatWorkspace/ChatView.tsx": 1921,
   "packages/ui/src/state/store.ts": 1543,
   "packages/ui/src/pages/ChatWorkspace/Composer.tsx": 966,
-  "apps/desktop/src/main/index.ts": 938,
   "packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx": 711,
   "apps/desktop/src/main/mcp/browser/agentMain.ts": 665,
   "packages/ui/src/components/message/MessageBubble.tsx": 549,
