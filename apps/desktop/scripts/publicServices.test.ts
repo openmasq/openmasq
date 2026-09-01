@@ -11,13 +11,13 @@ import {
  * hold:
  *  1. only ABSENT variables receive a default — a variable set EMPTY is an opt-out, not an
  *     oversight;
- *  2. nothing applies in dev (dev talks to LOCAL services, never to production);
+ *  2. dev gets the SAME defaults — no local value by default (product decision);
  *  3. the list can never name an address behind the BILLING gate — this repository has no
  *     backend, and a default here would invent one for it;
  *  4. the relays derive from the brand domain (one home for that fact).
  */
 describe("applyPublicServiceDefaults", () => {
-  const opts = { brandDomain: "example.test", dev: false };
+  const opts = { brandDomain: "example.test" };
 
   it("fills the absent variables and nothing else", () => {
     const env: NodeJS.ProcessEnv = { OPENMASQ_AUTH_URL: "https://mine.example" };
@@ -40,10 +40,11 @@ describe("applyPublicServiceDefaults", () => {
     expect(env.OPENMASQ_AUTH_URL).toBe("");
   });
 
-  it("applies NOTHING in dev", () => {
+  it("dev is not a special case: an empty env receives every default", () => {
     const env: NodeJS.ProcessEnv = {};
-    expect(applyPublicServiceDefaults(env, { ...opts, dev: true })).toEqual({});
-    expect(Object.keys(env)).toEqual([]);
+    const applied = applyPublicServiceDefaults(env, opts);
+    expect(Object.keys(applied).sort()).toEqual([...PUBLIC_SERVICE_NAMES].sort());
+    expect(env.VITE_UPDATES_URL).toBe("https://updates.example.test");
   });
 
   it("⛔ never names an address behind the BILLING gate", () => {
@@ -56,5 +57,6 @@ describe("applyPublicServiceDefaults", () => {
     const d = publicServiceDefaults("openmasq.com");
     expect(d.OPENMASQ_AUTH_URL).toBe("https://auth.openmasq.com");
     expect(d.VITE_ANALYTICS_RELAY_URL).toBe("https://analytics.openmasq.com/e");
+    expect(d.VITE_UPDATES_URL).toBe("https://updates.openmasq.com");
   });
 });

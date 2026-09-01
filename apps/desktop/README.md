@@ -15,5 +15,6 @@ test (root `CLAUDE.md`, rule 7). The renderer is untrusted for security decision
   database and its migrations; `src/main/mcp/` — connectors, tool gates, the broker.
 - `scripts/buildDefines.ts` — every service address a build may receive, and why none has
   a committed default.
-- `pnpm dev` from the repo root builds the packages and launches the app against local
-  services (`.env.development`).
+- `pnpm dev` from the repo root builds the packages and launches the app against the
+  same public services as a build; `.env.development` says how to point it at a local
+  stack instead (`.env.development.local`).

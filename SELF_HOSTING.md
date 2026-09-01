@@ -24,8 +24,10 @@ A **non-dev** build fills five variables it was not given, from
 | `VITE_ANALYTICS_RELAY_URL` | Anonymous counters, release notes, `hide-*` flags | Behind an explicit consent |
 | `OPENMASQ_SENTRY_DSN` | Crash reports | A DSN only lets a client *send* to one project |
 
-**`pnpm dev` applies none of them** — development talks to local services only, per
-`apps/desktop/.env.development`.
+**`pnpm dev` applies them too** — a developer's instance runs against the same public
+services as an installed app, stamped `env:"development"`. A local stack is an explicit
+choice, made in a gitignored `.env.development.local` (`apps/desktop/.env.development`
+says how).
 
 > If you fork this project, you probably do **not** want your users' crash reports and
 > analytics arriving in someone else's account. Set your own values, or opt out (§3).
@@ -63,7 +65,7 @@ What you lose, each stated where it is decided:
 | `OPENMASQ_AUTH_URL` | The Slack connector reads "not configured". GitHub (device flow) and Google (loopback + PKCE) are unaffected: they run on-device |
 | `VITE_ANALYTICS_RELAY_URL` | No telemetry; Settings → Versions shows no release notes |
 | `OPENMASQ_SENTRY_DSN` | No crash reports |
-| `VITE_UPDATES_URL` | No auto-update, and no probing — the app says so rather than asking a stranger's feed. **There is deliberately no committed default**: a fork must never update itself with someone else's signed binary |
+| `VITE_UPDATES_URL` | No auto-update, and no probing — the app says so rather than asking a stranger's feed. The default is the brand's feed (`https://updates.<domain>`, `publicServices.ts`): a fork sets its own or empties it, so it never updates itself with someone else's signed binary |
 
 ### The billing-gated pair
 

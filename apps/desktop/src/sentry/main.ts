@@ -23,13 +23,12 @@ import { resolveEnvironment, sentryBeforeSend, SENTRY_DSN } from "./policy";
  * a chatty default has nothing to re-neutralize: it doesn't get in.
  */
 export function initSentryMain(mode: "app" | "agent-browser" | "playwright-mcp", packaged: boolean): void {
-  // ⚠️ An UNPACKAGED app doesn't report. An `electron-vite dev` is a development
-  // machine: its failures are readable in the console already in front of you, and
-  // they used to arrive here in the SAME project as users' — 983 of the
-  // 1710 events, 57% of the board, produced by us. A crash channel is only worth
-  // what you can read in it. `OPENMASQ_SENTRY_DEV=1` reopens the valve to check the
-  // pipe itself (otherwise no one can test this file anymore).
-  if (!packaged && process.env.OPENMASQ_SENTRY_DEV !== "1") return;
+  // An UNPACKAGED app reports too (product decision, 01/09/2026: a developer's instance
+  // uses the common Sentry). History says why that is a trade-off, not a free lunch: dev
+  // events once made 983 of the board's 1710 (57%). They are therefore TAGGED
+  // `packaged:"false"` / `channel:"dev"` (below) so the board filters them, and
+  // `OPENMASQ_SENTRY_DEV=0` closes the valve on one machine without touching the DSN.
+  if (!packaged && process.env.OPENMASQ_SENTRY_DEV === "0") return;
   // No DSN supplied at build time ⇒ no telemetry at all — never a default project.
   if (!SENTRY_DSN) return;
   const channel = process.env.VITE_UPDATES_CHANNEL || "";

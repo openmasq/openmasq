@@ -28,11 +28,12 @@ the product. Each asset is sha256-pinned; a source that cannot be reached skips 
 warning (except the NER weights, which fail the bake rather than ship an empty model).
 
 
-Dev talks to **local** services only (the convention is committed in
-`apps/desktop/.env.development`). The app runs with no backend at all: paste a provider
-key or point it at a local model. A NON-dev build reaches four hosted services by
-default — sign-in, the Slack relay, the analytics relay, Sentry
-(`apps/desktop/scripts/publicServices.ts`); set the variable empty to build without one.
+Dev reaches the same five hosted services as a build — sign-in, the Slack relay, the
+analytics relay, the releases feed, Sentry (`apps/desktop/scripts/publicServices.ts`) —
+with no local value by default; set a variable empty to run without one. The app runs
+with no backend at all: paste a provider key or point it at a local model. A local stack
+is an explicit choice: `apps/desktop/.env.development` says which overrides go in your
+gitignored `.env.development.local`.
 
 ## The working loop
 

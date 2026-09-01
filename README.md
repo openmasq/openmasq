@@ -106,11 +106,12 @@ analytics relay (anonymous counters behind an explicit consent, plus the release
 the app displays) and crash reports (Sentry — an allow-list of a few machine fields,
 never a message, a key or a vault value: `apps/desktop/src/sentry/policy.ts`). Their
 code is not in this repository. Each is one variable, and a variable set **empty** at
-build time (`OPENMASQ_SENTRY_DSN=`) opts out of it; `pnpm dev` never applies them and
-talks to local services only.
+build time (`OPENMASQ_SENTRY_DSN=`) opts out of it. `pnpm dev` applies them too — no
+local value by default.
 
-`pnpm dev` talks to **local** services only; the dev defaults and the ports are
-documented in `apps/desktop/.env.development`, which is committed on purpose.
+Running a local stack is an explicit choice: the overrides go in a gitignored
+`apps/desktop/.env.development.local`, and the committed `.env.development` documents
+them along with the ports.
 
 ---
 
