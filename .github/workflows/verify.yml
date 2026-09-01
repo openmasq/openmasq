@@ -30,8 +30,6 @@ on:
     secrets:
       POSTHOG_INGEST_KEY:
         required: false
-      ANALYTICS_APP_KEY:
-        required: false
 
 jobs:
   verify:
@@ -107,8 +105,6 @@ jobs:
           # App-attestation HMAC key: the client signs each POST to the relay so it
           # can reject traffic that doesn't come from an official build (anti-abuse, not
           # identity). Empty value ⇒
-          # no attestation header (a relay with ANALYTICS_APP_KEYS will return 401).
-          VITE_ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
         run: pnpm build
 
       - name: Typecheck

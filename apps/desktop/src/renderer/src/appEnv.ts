@@ -167,9 +167,8 @@ export const ANALYTICS_RELAY_URL: string = env.VITE_ANALYTICS_RELAY_URL || "";
 export const RELEASE_NOTES_URL: string | undefined = ANALYTICS_RELAY_URL
   ? `${ANALYTICS_RELAY_URL.replace(/\/e\/?$/, "")}/release-notes`
   : undefined;
-
-/** The build's HMAC attestation key (anti-abuse, NOT identifying). Absent in dev. */
-export const ANALYTICS_APP_KEY: string | undefined = env.VITE_ANALYTICS_APP_KEY;
+// (Retiré le 01/09/2026 : ANALYTICS_APP_KEY — la requête vers le relais est
+// authentifiée par la session Supabase, plus par une clé HMAC bakée.)
 
 /** The version displayed and stamped on events. */
 export const APP_VERSION: string | undefined = env.VITE_APP_VERSION;

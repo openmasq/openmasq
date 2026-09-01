@@ -102,7 +102,6 @@ jobs:
     uses: ./.github/workflows/verify.yml
     secrets:
       POSTHOG_INGEST_KEY: ${{ secrets.POSTHOG_INGEST_KEY }}
-      ANALYTICS_APP_KEY: ${{ secrets.ANALYTICS_APP_KEY }}
 
   # The corpus recall benches, when the diff touches the engine (see the `changes`
   # filter). ⚠️ Deliberately ABSENT from `verdict.needs`: the benches MEASURE, they

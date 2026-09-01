@@ -39,7 +39,6 @@
         "VITE_REDACT_FN_URL",
         "VITE_BACKEND_BYPASS",
         "VITE_ANALYTICS_RELAY_URL",
-        "VITE_ANALYTICS_APP_KEY",
         // Baked as well (`electron.vite.config.ts` turns it into a `define`), so subject to
         // the same rule as the URLs above. It was missing: two versions of the SAME code
         // shared one entry, and a local build handed back the previous version's bundle —

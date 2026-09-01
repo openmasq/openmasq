@@ -50,18 +50,24 @@ export interface ConfigureOptions {
   source?: string;
   debug?: boolean;
   /**
-   * App-attestation HMAC key, baked into the build. The sink signs each RELAY request
-   * with `HMAC-SHA256(appKey, "<ts>.<nonce>")` and sends the attestation headers (`attest.ts`)
-   * so the relay can reject traffic that isn't from an official build BEFORE forwarding to
-   * PostHog. **Anti-abuse only, NON-IDENTIFYING** — it authenticates the *client build*,
-   * NOT a user, so events stay anonymous AND events fire whether or not the user is
-   * signed in (this replaced the account-JWT gate, which dropped all pre-login/error
-   * events). ⚠️ Honest limit: the key is extractable from a shipped bundle (the
-   * extension especially), so it is a bot/drive-by filter, not a wall — rate-limiting is
-   * the real flood backstop. Sent ONLY on the relay POST, never the direct-PostHog path.
-   * Unset (dev without a baked key) ⇒ no attestation header (the relay accepts it when
-   * unconfigured). */
-  appKey?: string;
+   * La session **Supabase** de l'utilisateur — un fournisseur PARESSEUX, appelé à chaque
+   * envoi vers le relais, qui rend le jeton d'accès courant (ou `null` hors session).
+   * Le sink pose alors `Authorization: Bearer <jwt>`, et le relais le vérifie contre le
+   * JWKS du projet (`apps/analytics-fn`).
+   *
+   * Il remplace (01/09/2026) l'attestation HMAC maison, dont la clé était bakée dans un
+   * bundle expédié — donc extractible, et le dépôt le disait : « un filtre à robots, pas
+   * un mur ». Une session est une vraie authentification : révocable, expirante, propre
+   * à une personne.
+   *
+   * ⚠️ Paresseux, et pas une valeur, parce que la configuration se fait AVANT le premier
+   * rendu, quand aucune session n'existe encore. `null` ⇒ aucun en-tête : la requête part
+   * quand même et le relais la refuse (401) — l'envoi est « tire et oublie », un événement
+   * refusé ne casse jamais l'appelant.
+   *
+   * ⚠️ CE QUE ÇA COÛTE : hors session, plus rien n'est mesuré — y compris les plantages
+   * de démarrage. C'est le prix assumé d'une analytique authentifiée. */
+  getAuthToken?: () => Promise<string | null>;
   /**
    * Let through events from a page served LOCALLY (`localhost`, `127.0.0.1`,
    * `*.local`…). Default `false`: a development machine shouldn't feed the

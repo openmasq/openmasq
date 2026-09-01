@@ -1,7 +1,6 @@
 import type { CleanEvent, ConfigureOptions, ErrorReport, Sink, SinkOptions } from "./types";
 import { isOperationalError, MAX_PER_SIGNATURE, REPORTED_ERRORS, scrubMessage } from "./errorTracking";
 import { dntEnabled, isLoopbackHost } from "./gates";
-import { attestHeaders } from "./attest";
 import { fetchRelayFlags } from "./flags";
 
 interface SinkConfig {
@@ -9,10 +8,9 @@ interface SinkConfig {
   apiHost: string;
   relayUrl?: string;
   source?: string;
-  /** App-attestation HMAC key (baked at build). Signs the RELAY POST only — anti-abuse,
-   *  non-identifying: authenticates the client BUILD, not a user, so anonymous + signed-
-   *  out events still send. Unset ⇒ no header (relay accepts when unconfigured). */
-  appKey?: string;
+  /** La session Supabase de l'appelant, lue paresseusement à chaque envoi vers le
+   *  relais (`types.ts` dit pourquoi paresseuse, et ce que ça coûte hors session). */
+  getAuthToken?: () => Promise<string | null>;
   /** Let through a page served locally (see `isLoopbackHost`). Default: no. */
   allowLocalhost?: boolean;
   /** Stamped on every event's `properties.env`. */
@@ -52,7 +50,8 @@ export function createSink(options: SinkOptions): Sink {
   };
 
   /** POST a body, swallowing every error (analytics must never break the app).
-   *  `extraHeaders` carries the relay's `Authorization` bearer (relay path only). */
+   *  `extraHeaders` porte le `Authorization: Bearer` de la session (chemin relais
+   *  uniquement — jamais sur l'envoi direct à PostHog). */
   const post = (
     url: string,
     body: unknown,
@@ -89,9 +88,17 @@ export function createSink(options: SinkOptions): Sink {
     }
   };
 
-  /** The RELAY's attestation headers — the detail (and why this is NOT an
-   *  identity) lives in `attest.ts`, now shared with reading the flags. */
-  const relayAttestHeaders = (): Promise<Record<string, string>> => attestHeaders(config?.appKey);
+  /** L'en-tête d'authentification du RELAIS : la session Supabase de l'utilisateur.
+   *  Hors session (ou si le fournisseur échoue) → aucun en-tête, et le relais refuse :
+   *  l'analytique est authentifiée, et un envoi refusé ne casse jamais l'appelant. */
+  const relayAuthHeaders = async (): Promise<Record<string, string>> => {
+    try {
+      const token = await config?.getAuthToken?.();
+      return token ? { Authorization: `Bearer ${token}` } : {};
+    } catch {
+      return {};
+    }
+  };
 
   /** Stamp EVERY event with the build's env + version (non-sensitive context), so PostHog
    *  can slice by environment/version — the dev/staging/prod split the user asked for. */
@@ -112,7 +119,7 @@ export function createSink(options: SinkOptions): Sink {
         apiHost: opts.apiHost ?? "https://eu.i.posthog.com",
         relayUrl,
         source: opts.source ?? defaultSource,
-        appKey: opts.appKey,
+        getAuthToken: opts.getAuthToken,
         allowLocalhost: opts.allowLocalhost,
         env: opts.env,
         runtimeEnv: opts.runtimeEnv,
@@ -163,14 +170,14 @@ export function createSink(options: SinkOptions): Sink {
       void Promise.resolve(getAnonId()).then(async (distinct_id) => {
         if (cfg.relayUrl) {
           // Neutral, sink-agnostic envelope. The relay maps it to PostHog capture with
-          // its own server-side key (the client ships none in this mode). The attestation
-          // HMAC attests the RELAY request only (anti-abuse, non-identifying) — it is NOT
-          // part of the envelope, so analytics stays anonymous.
+          // its own server-side key (the client ships none in this mode). Le porteur
+          // Supabase authentifie la REQUÊTE et rien d'autre : il ne fait pas partie de
+          // l'enveloppe, donc le `distinct_id` reste l'id d'installation anonyme.
           post(
             cfg.relayUrl,
             { event: event.name, distinct_id, properties: withContext(event.props), source: cfg.source, ts: Date.now() },
             event.name,
-            await relayAttestHeaders(),
+            await relayAuthHeaders(),
           );
         } else {
           // Direct PostHog ingest (until the relay is deployed).
@@ -232,7 +239,7 @@ export function createSink(options: SinkOptions): Sink {
     if (!cfg) return;
     void Promise.resolve(getAnonId()).then(async (distinct_id) => {
       if (cfg.relayUrl) {
-        post(cfg.relayUrl, { event: "$exception", distinct_id, properties: withContext(properties), source: cfg.source, ts: Date.now() }, "$exception", await relayAttestHeaders());
+        post(cfg.relayUrl, { event: "$exception", distinct_id, properties: withContext(properties), source: cfg.source, ts: Date.now() }, "$exception", await relayAuthHeaders());
       } else {
         post(`${cfg.apiHost}/capture/`, { api_key: cfg.key, event: "$exception", distinct_id, properties: { ...withContext(properties), $process_person_profile: false } }, "$exception");
       }
