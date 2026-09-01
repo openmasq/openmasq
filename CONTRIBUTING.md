@@ -67,7 +67,7 @@ exists when it fails — read the message before working around it:
 |---|---|
 | `check:lint` | The errors typechecking cannot see (misplaced hook, dead import, cast optional chain), via Biome. |
 | `check:loc` | No source file over 300 lines (frozen debt, may only shrink). |
-| `check:dup` | A fact or a behaviour has ONE home — no copy "kept in sync". |
+| `check:dup` | A fact or a behaviour has ONE home — never a second copy that a comment promises to keep aligned. |
 | `check:docs` | The root `CLAUDE.md` cites only paths that exist, and does not grow past its frozen size. ⚠️ The nested guides are gitignored — the gate does not see them. |
 | `check:i18n` | No copy hardcoded in a component: it belongs in `@openmasq/i18n` (accent-blind ratchet). |
 | `check:alias` | The workspace→`src` alias table and the `tsconfig` copy of it agree. |

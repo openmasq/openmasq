@@ -1,13 +1,13 @@
 {
-  "files": 28,
-  "dependencies": 10,
-  "devDependencies": 4,
+  "files": 24,
+  "dependencies": 8,
+  "devDependencies": 2,
   "optionalPeerDependencies": 0,
-  "unlisted": 6,
+  "unlisted": 5,
   "binaries": 2,
   "unresolved": 0,
-  "exports": 229,
-  "types": 81,
+  "exports": 207,
+  "types": 76,
   "enumMembers": 0,
-  "duplicates": 8
+  "duplicates": 2
 }
