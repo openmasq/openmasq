@@ -576,8 +576,8 @@ export function createSendMessage(d: SendMessageDeps) {
       const vault: Vault = { ...(conv.redactionVault ?? {}) };
       // Per-conversation secret salt for the value→fake mapping: minted ONCE (CSPRNG,
       // 31-bit non-zero) and reused for every send of this conversation, so the same real
-      // value keeps its fake here but maps DIFFERENTLY in another conversation — a held
-      // fake can't be inverted by precomputing the public pool over a name dictionary.
+      // value keeps its fake here but maps DIFFERENTLY elsewhere, so a table precomputed
+      // over the public pool no longer reverses it. A shift, not a key: see `dispatch.ts`.
       // Absent on a pre-existing conversation ⇒ mint now; its already-vaulted values keep
       // their old (salt-0) fakes via the vault, only NEW values use the salt. Persisted
       // beside the vault (and stripped from the plaintext localStorage mirror, like it).

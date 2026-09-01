@@ -13,11 +13,16 @@ import { fakeUrl } from "./urls";
 
 /**
  * Build a believable fake of the same kind as `value`. `attempt` varies it for uniqueness
- * (collision retry). `salt` is a PER-CONVERSATION secret shift (default 0 = the legacy
- * deterministic mapping): it makes the value→fake function secret-keyed so the same real
- * value maps to a DIFFERENT fake in another conversation, defeating the dictionary/rainbow
- * inversion a public deterministic hash allows (a fake « Simon Cros » no longer reverses to
- * « Augustin Vaudel » by precomputing the pool over a name list). Stability WITHIN a conversation
+ * (collision retry). `salt` (default 0 = the legacy deterministic mapping) is
+ * a per-conversation SHIFT of the value→fake mapping: the same real value maps to a
+ * different fake in another conversation, which defeats a PRECOMPUTED public table.
+ * ⚠️ It is NOT a keyed PRF and must not be described as one: `hashString` is public and
+ * the shift is additive over a 31-bit space, so ONE known (value, fake) pair recovers it
+ * by exhaustive search, after which other values fall to a dictionary. What the fake does
+ * NOT do is leak the real value to someone holding only the fake — that property lives in
+ * the generators (`digitsNotInvertible.test.ts`), not here.
+ * A fake « Simon Cros » therefore no longer reverses to « Augustin Vaudel » by precomputing
+ * the pool over a name list. Stability WITHIN a conversation
  * comes from the vault, not from this — so the same salt is passed for every send of one
  * conversation. Added into every seed so an entity and its fragments/casings shift together.
  */
@@ -93,8 +98,8 @@ export function fakeFor(
       // The RAW attempt, not `a`: the third arg is CONCATENATED into the local-part as a
       // disambiguating suffix, and folding the salt in printed the conversation salt's
       // leading digits inside the fake («…savary9876@…» under salt 987654321) — a
-      // partial leak of the secret that defeats dictionary inversion. The salt already
-      // shifts the name pick through `h`.
+      // partial leak of the salt into the wire. It must only ever reach the output
+      // THROUGH the hash — it already shifts the name pick via `h`.
       return fakeEmail(value, h, attempt);
     case "USERNAME":
       // A pseudo / handle → per-character CLASS-preserving scramble (lower/upper/digit

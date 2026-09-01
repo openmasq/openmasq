@@ -166,7 +166,8 @@ export function fakeIp(value: string, salt: number): string {
     const min = width >= 3 ? 100 : width === 2 ? 10 : first ? 1 : 0;
     const max = width >= 3 ? (first ? 223 : 255) : width === 2 ? 99 : 9;
     const span = max - min + 1;
-    let n = min + ((h + i++ * 37 + Number(oct) + 1) % span);
+    // Seed + position only — never the real octet (`fakeDigits` says why).
+    let n = min + (rehash(h ^ Math.imul(i++ + 1, 0x85ebca6b)) % span);
     if (n === Number(oct)) n = min + ((n - min + 1) % span); // guarantee it differs
     if (first && n === 127) n = 128; // loopback
     return String(n);

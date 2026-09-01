@@ -6,6 +6,8 @@ import { setMcpUser, mcpList, mcpCatalog, mcpAdd, mcpAddCustom, mcpAddStdio, mcp
 import type { CredMode } from "../mcp/credMode";
 import { pickGrantDir } from "../mcp/pickGrantDir";
 import { cancelConnect as mcpCancelConnect } from "../mcp/server/connectCancel";
+import { findConnector } from "@openmasq/catalog/mcp";
+import { isCustomServerId } from "../mcp/server/customSpec";
 
 /** Every `mcp:*` channel — the connector lifecycle the Settings → Connecteurs tab drives. */
 
@@ -20,11 +22,34 @@ export function registerMcpHandlers(): void {
   ipcMain.handle("mcp:catalog", () => mcpCatalog());
   // The local broker sidecar's URL + platforms (null until it's healthy).
   ipcMain.handle("mcp:broker", () => getBroker());
+  // SECURITY (rule 7): the renderer names WHICH catalog connector to add — never what
+  // it is. `customSpec.ts` already spells out why a renderer-chosen identity is
+  // dangerous ("a renderer-supplied `notion` would overwrite that connector's stored
+  // spec and re-point its card, its tool routes and its OAuth state at the attacker's
+  // host"), and this channel used to accept exactly that: id, name AND url, unchecked.
+  // Outward calls are un-redacted by design (rule 11), so a re-pointed connector ships
+  // the user's REAL arguments to whoever owns the new host.
+  //
+  // So main resolves the identity from the catalog it ships and ignores the rest. An id
+  // that is neither a catalog connector (nor a `connector--suffix` instance of one) nor
+  // a main-minted `custom-…` id is refused: user-added servers have their own channel,
+  // `mcp:add-custom`, which mints the id and validates the URL.
   ipcMain.handle(
     "mcp:add",
-    (_e, spec: { id: string; name: string; url: string; apiKey?: string; }) =>
+    (_e, spec: { id: string; name: string; url: string; apiKey?: string; }) => {
+      const id = typeof spec?.id === "string" ? spec.id : "";
+      const connector = findConnector(id);
+      if (!connector) {
+        if (isCustomServerId(id)) return; // belongs to mcp:add-custom, which validates
+        throw new Error("Connecteur inconnu.");
+      }
+      // Catalog data wins over anything the renderer said. `url` is only taken from the
+      // caller when the catalog entry carries none (the connectors whose endpoint the
+      // user supplies) — and `withCatalogUrl` re-asserts the catalog on every read.
+      const url = connector.url ?? (typeof spec?.url === "string" ? spec.url : "");
       // Keep the API key OFF the ServerSpec — mcpAdd stores it encrypted separately.
-      mcpAdd({ id: spec.id, name: spec.name, url: spec.url, kind: "http" }, spec.apiKey)
+      return mcpAdd({ id, name: connector.name, url, kind: "http" }, spec?.apiKey);
+    }
   );
   // SECURITY: a USER-ADDED server is the one connector the app hasn't vetted, so main
   // decides everything about it — it MINTS the id (a renderer-supplied `notion` would

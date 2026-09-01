@@ -84,7 +84,7 @@ export function createVaultSync(opts: VaultSyncOptions): VaultSync {
       try {
         const pass = await passphrase();
         if (!pass || !Object.keys(payload.redactionVault).length) return;
-        const blob = await encryptVault(payload, pass);
+        const blob = await encryptVault(payload, pass, threadId);
         await transport.putVault(threadId, blob, payload.updatedAt);
       } catch (err) {
         fail("push", err);
@@ -100,7 +100,7 @@ export function createVaultSync(opts: VaultSyncOptions): VaultSync {
         if (!pass) return null;
         const remote = await transport.getVault(threadId);
         if (!remote) return null;
-        const decrypted = await decryptVault(remote.blob, pass);
+        const decrypted = await decryptVault(remote.blob, pass, threadId);
         return local ? mergeVaultPayloads(local, decrypted) : decrypted;
       } catch (err) {
         fail("pull", err);

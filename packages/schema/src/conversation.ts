@@ -26,11 +26,13 @@ export interface Conversation {
    */
   redactionKinds?: Record<string, string>;
   /**
-   * PER-CONVERSATION secret salt for the value→fake mapping (a 31-bit int from a CSPRNG,
-   * minted once on the first redacting send). Makes the fake a SECRET-KEYED function of the
-   * real value instead of a public deterministic hash — so « Augustin Vaudel » maps to a
-   * DIFFERENT fake in each conversation and a held fake can't be inverted by precomputing
-   * the pool over a name dictionary. Stability WITHIN the conversation is the vault's job;
+   * PER-CONVERSATION salt for the value→fake mapping (a 31-bit int from a CSPRNG, minted
+   * once on the first redacting send). It SHIFTS the mapping off the public deterministic
+   * hash, so « Augustin Vaudel » maps to a DIFFERENT fake in each conversation and a table
+   * precomputed over the pool no longer reverses a held fake.
+   * ⚠️ It is not a key: the hash is public and the shift additive over 31 bits, so one
+   * known (value, fake) pair recovers it. Keeping the real value out of the wire is the
+   * generators' job (`fakes/digitsNotInvertible.test.ts`), not the salt's. Stability WITHIN the conversation is the vault's job;
    * this only decorrelates ACROSS conversations. Absent ⇒ legacy deterministic mapping
    * (salt 0) — existing conversations keep their vault entries, only newly-minted fakes
    * differ. At rest it is treated like the vault (device-local, stripped from the plaintext

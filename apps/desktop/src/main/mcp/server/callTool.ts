@@ -19,6 +19,7 @@ import {
 import { outputLinkBasenames, inlineOutputLinks } from "../browser/snapshotInline";
 import { noteFetchHostsFromText } from "../../net/fetchAllow";
 import { assertPublicUrl } from "../../net/net";
+import { devOnly } from "../../security/devOnly";
 
 /** @playwright/mcp 0.0.77 externalises an action's page snapshot (+ console/network
  *  logs) to a `.yml`/`.log` file in our temp output dir and returns ONLY a markdown
@@ -205,7 +206,8 @@ export async function mcpCallTool(call: McpToolCall): Promise<McpToolResult> {
   // server reply before any renderer-side redaction — so this is ground truth for
   // "did the pipeline alter the call?". OFF by default: it prints REAL data (PII),
   // so it's a deliberate debugging switch, never on in a normal run.
-  const rawLog = !!process.env.OPENMASQ_MCP_RAW_LOG;
+  // DEV-ONLY: this prints the REAL, un-redacted arguments — never in a packaged build.
+  const rawLog = !!devOnly(process.env.OPENMASQ_MCP_RAW_LOG);
   if (rawLog) {
     console.log(`[mcp:raw] → ${route.realName} args=${JSON.stringify(call.arguments)}`);
   }

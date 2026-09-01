@@ -1,5 +1,8 @@
 // Low-level deterministic string generators shared by the entity/path/dispatch fakers.
-// All are pure functions of the value (stable within a run), so a fake leaks no size hint.
+// All are pure functions of the value (stable within a run). A fake preserves LENGTH and
+// layout by construction — that is the point of `fitLen` — so it leaks the value's SHAPE.
+// What it must never leak is the value's CONTENT: a generator that folds the real
+// characters into its output is invertible (see `fakeDigits`).
 
 export function hashString(s: string): number {
   let h = 0;
@@ -49,8 +52,15 @@ export function fakeDigits(value: string, salt: number): string {
   let i = 0;
   return flat.replace(/[\d０-９]/g, (d) => {
     const full = d >= "０";
-    const n = full ? d.charCodeAt(0) - 0xff10 : Number(d);
-    const f = (h + i++ * 7 + n + 3) % 10;
+    // ⚠️ The fake digit is a function of the SEED and the POSITION only — never of the
+    // real digit. An output that folded the real digit in (`(h + 7i + n + 3) % 10`) is an
+    // additive cipher whose single unknown is `h mod 10`: whoever holds the fake recovers
+    // the real value in TEN subtractions, and the value's own structure (Luhn, IBAN bank
+    // code, operator prefix) picks the right candidate — i.e. the model provider could
+    // read back every card, IBAN, phone and id it was ever sent. `rehash` is the murmur3
+    // finalizer, so consecutive positions do not walk in step the way `+ 7i` did.
+    // Pinned by `digitsNotInvertible.test.ts`.
+    const f = rehash(h ^ Math.imul(i++ + 1, 0x9e3779b1)) % 10;
     return full ? String.fromCharCode(0xff10 + f) : String(f);
   });
 }

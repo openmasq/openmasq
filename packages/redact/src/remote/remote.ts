@@ -99,10 +99,10 @@ export interface RemoteRedactInput {
   reFakeExisting?: boolean;
   /** Tokenise standalone numbers (n1, n2, …). OFF by default. */
   numbers?: boolean;
-  /** Per-conversation secret salt for the value→fake mapping (0/absent = legacy
-   *  deterministic). Forwarded so the SERVER-side pass mints the same secret-keyed,
-   *  non-invertible fakes as the client — else server-side redaction stays deterministic
-   *  (dictionary-invertible) and its fakes disagree with the client's for the same value.
+  /** Per-conversation salt for the value→fake mapping (0/absent = legacy deterministic).
+   *  Forwarded so the SERVER-side pass shifts the mapping exactly like the client — else
+   *  server-side redaction stays on the public deterministic mapping (reversible from a
+   *  precomputed table) and its fakes disagree with the client's for the same value.
    *  The server ignores it until redeployed (same rollout as `forced`/`avoid`). */
   salt?: number;
   /** What the model sees: `"fake"` (default) or `"token"` (`[PERSON1]`). Semantics

@@ -126,9 +126,10 @@ export interface PseudonymizeOptions {
    * PER-CONVERSATION secret shift for the value→fake mapping. Default 0 = the legacy
    * DETERMINISTIC mapping (a public hash: « Augustin Vaudel » always → « Simon Cros », every
    * conversation, every user — reversible by precomputing the fake pool over a name
-   * dictionary). A non-zero per-conversation salt makes the mapping secret-keyed, so the
-   * same value maps to a DIFFERENT fake in another conversation and a held fake can't be
-   * inverted by dictionary. Stability WITHIN a conversation is the VAULT's job, not this —
+   * dictionary). A non-zero salt shifts the mapping per conversation, so the same value maps
+   * to a DIFFERENT fake elsewhere and a precomputed public table no longer reverses it.
+   * ⚠️ NOT a keyed PRF: the hash is public and the shift additive over 31 bits, so one known
+   * (value, fake) pair recovers it by exhaustive search. Stability WITHIN a conversation is the VAULT's job, not this —
    * pass the SAME salt for every send of one conversation. The app generates it with a CSPRNG
    * and persists it on the conversation (`Conversation.redactionSalt`); the engine stays pure
    * and just receives the number. Pinned by `src/model/salt.test.ts`.

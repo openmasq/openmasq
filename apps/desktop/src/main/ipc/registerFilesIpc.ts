@@ -23,6 +23,7 @@ import { registerExtractIpc } from "./filesExtractIpc";
 import { makeDocumentScrub } from "./documentScrub";
 import { handle, str, bool, obj, } from "./handle";
 import { BRAND } from "@openmasq/branding";
+import { devOnly } from "../security/devOnly";
 
 // Minimal ext⇄mime maps for downloaded exports (a signed URL rarely has a real
 // filename; content-type is the fallback). Unknown → octet-stream / no ext.
@@ -77,7 +78,7 @@ export function registerFilesIpc(): void {
   // this at real fixture file(s) (":"-separated) — they're extracted by the same
   // @openmasq/redact/documents path as a user-chosen file. Inert without the var.
   handle("files:pick", [], (e) => {
-    const attach = process.env.OPENMASQ_E2E_ATTACH;
+    const attach = devOnly(process.env.OPENMASQ_E2E_ATTACH);
     if (attach) {
       const paths = attach.split(":");
       paths.forEach(grantRead); // E2E fixture paths → grant (env-set, trusted)
@@ -97,7 +98,7 @@ export function registerFilesIpc(): void {
   // Dialog-only pick (no extraction) so the renderer can show a chip instantly, then
   // extract async. E2E: reuse the pre-set fixture paths (no dialog in headless).
   handle("files:pick-paths", [], async () => {
-    const attach = process.env.OPENMASQ_E2E_ATTACH;
+    const attach = devOnly(process.env.OPENMASQ_E2E_ATTACH);
     const picked = attach
       ? attach.split(":").map((p) => ({ name: p.split(/[\\/]/).pop() || p, path: p }))
       : await withAgentBrowserHidden(() => pickPaths()); // hide agent browser over the picker

@@ -3,10 +3,15 @@ import { pseudonymize } from "./pseudonymize";
 import { fakeFor } from "./fakes";
 import type { Vault } from "../types";
 
-// The per-conversation salt: the fake is a SECRET-KEYED function of the real value, not a
-// public deterministic one. Without it, « Augustin Vaudel » → « Simon Cros » in every
-// conversation and for every user, so anyone holding the fake reverses it by precomputing
-// the pool over a name dictionary. These pin the three properties the fix must have.
+// The per-conversation salt SHIFTS the mapping: without it « Augustin Vaudel » → « Simon
+// Cros » in every conversation and for every user, so a precomputed table over a name
+// dictionary reverses any fake. These pin what the shift does — determinism per
+// (value, salt), and a different mapping per conversation.
+//
+// ⚠️ They do NOT pin secrecy, and the salt is not a key: `hashString` is public and the
+// shift is additive over 31 bits, so one known (value, fake) pair recovers it. The property
+// that actually keeps a real value out of the wire — a fake that does not encode its own
+// input — is pinned separately, in `fakes/digitsNotInvertible.test.ts`.
 
 describe("fakeFor — salt shifts the mapping, deterministically per (value, salt)", () => {
   it("salt 0 is the legacy mapping (existing fakes unchanged — every other test relies on it)", () => {

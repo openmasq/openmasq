@@ -9,6 +9,7 @@ import { ALLOW_HOSTS, buildScript } from "./wheels";
 import { fontsDir, mplConfigDir } from "./runtime";
 import { winJailCmd, winJailExe } from "./winJail";
 import { ambientSecretDirs, ambientSecretFiles } from "../security/ambientSecrets"; import { BRAND } from "@openmasq/branding";
+import { devOnly } from "../security/devOnly";
 
 /**
  * Run model-generated Python in a jailed child process. The code can NOT write the
@@ -42,7 +43,7 @@ const MAX_ADDRESS_SPACE_KB = 4 * 1024 * 1024; // 4 GB
  *  TODO(security) C-2: netns egress filtering (pasta/nftables) → then default Linux net on. */
 const noNetwork = (): boolean => {
   if (process.env.OPENMASQ_SANDBOX_NO_NET === "1") return true;
-  if (process.platform === "linux" && process.env.OPENMASQ_SANDBOX_LINUX_NET !== "1") return true;
+  if (process.platform === "linux" && devOnly(process.env.OPENMASQ_SANDBOX_LINUX_NET) !== "1") return true;
   // win32: ALWAYS, and not as a policy choice — see `winJail.ts` (an AppContainer with no
   // capability has no socket at all, so there is nothing an env var could re-open).
   if (process.platform === "win32") return true;
@@ -405,7 +406,7 @@ export async function runPython(
   // the jail launcher is missing from the bundle — running bare there would give untrusted
   // code the user's real data + full FS/network with their own privileges. Refuse unless
   // the user explicitly accepts the risk with OPENMASQ_PYTHON_UNSAFE=1.
-  if (jailAvailability() === "none" && process.env.OPENMASQ_PYTHON_UNSAFE !== "1") {
+  if (jailAvailability() === "none" && devOnly(process.env.OPENMASQ_PYTHON_UNSAFE) !== "1") {
     return {
       ok: false,
       stdout: "",

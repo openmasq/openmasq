@@ -6,6 +6,7 @@ import { minimalChildEnv } from "./childEnv";
 import { reportMainError } from "./runtime/errorReport";
 import { isAppQuitting } from "./runtime/quitState";
 import { BRAND } from "@openmasq/branding";
+import { devOnly } from "./security/devOnly";
 
 
 /**
@@ -30,7 +31,9 @@ let state: BrokerState | undefined;
 
 /** Resolve the built broker entry (override with OPENMASQ_BROKER_ENTRY). */
 function brokerEntry(): string | undefined {
-  const override = process.env.OPENMASQ_BROKER_ENTRY;
+  // DEV-ONLY: in a packaged build this path is forked as the signed app, so honouring
+  // it would be arbitrary code execution under the app's identity and TCC grants.
+  const override = devOnly(process.env.OPENMASQ_BROKER_ENTRY);
   if (override) return existsSync(override) ? override : undefined;
   // dev: app path is apps/desktop → ../../apps/mcp-broker/dist/index.js
   const dev = join(app.getAppPath(), "..", "..", "apps", "mcp-broker", "dist", "index.js");

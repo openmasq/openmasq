@@ -73,8 +73,8 @@ describe("adresse — le fake porte l'habit de l'original", () => {
 describe("e-mail — le suffixe de désambiguïsation ne transporte jamais le salt", () => {
   it("les chiffres du salt par-conversation n'apparaissent pas dans le fake", () => {
     // « …savary9876@… » under salt 987654321: the first digits of the per-
-    // conversation secret were printed in the wire — a partial key leak that
-    // defeats dictionary inversion. The salt only shifts through the hash.
+    // conversation salt were printed in the wire. The salt must only ever reach the
+    // output THROUGH the hash, never as digits of its own.
     const salt = 987654321;
     const fake = fakeFor("EMAIL", "tugdual.sabourdin@gmail.com", 0, undefined, salt);
     expect(fake).not.toMatch(/9876/);

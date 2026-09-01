@@ -40,8 +40,11 @@ export interface EncryptedBlob {
   iv: string;
   /** PBKDF2 salt, base64. */
   salt: string;
-  /** Envelope version, for future key-rotation / algorithm changes. */
-  v: 1;
+  /**
+   * Envelope version. `2` binds the ciphertext to its thread id through GCM's
+   * additional data; `1` (legacy) is unbound and still readable — see `crypto.ts`.
+   */
+  v: 1 | 2;
 }
 
 /** Row metadata returned by the list endpoint (no ciphertext). */

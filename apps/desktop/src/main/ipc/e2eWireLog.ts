@@ -1,4 +1,5 @@
 import { appendFileSync } from "node:fs";
+import { devOnly } from "../security/devOnly";
 
 /**
  * E2E hook: record the EXACT payload handed to the provider transport — the
@@ -13,7 +14,7 @@ export function e2eWireLog(options: {
   messages?: unknown;
   tools?: unknown[];
 }): void {
-  if (!process.env.OPENMASQ_E2E_WIRE_LOG) return;
+  if (!devOnly(process.env.OPENMASQ_E2E_WIRE_LOG)) return;
   try {
     const tools = Array.isArray(options.tools)
       ? options.tools.map((t) => {
@@ -22,7 +23,7 @@ export function e2eWireLog(options: {
         })
       : undefined;
     appendFileSync(
-      process.env.OPENMASQ_E2E_WIRE_LOG,
+      devOnly(process.env.OPENMASQ_E2E_WIRE_LOG) as string,
       JSON.stringify({
         provider: options.provider,
         model: options.model,

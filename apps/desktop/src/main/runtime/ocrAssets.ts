@@ -41,7 +41,14 @@ export function configureBundledOcr(): void {
  * on MAIN's process.env: the client copies them into the worker's minimal env.
  */
 export function configureBundledDoctr(): void {
-  if (process.env.OPENMASQ_DOCTR_MODEL_PATH) return; // an explicit override wins
+  // The integrity pin is armed BEFORE the override returns: an externally supplied
+  // model path used to skip both, loading an arbitrary .onnx into the native parser
+  // with no digest — in the process that holds decrypted content. The override itself
+  // is DEV-ONLY for the same reason the other capability hooks are.
+  if (!process.env.OPENMASQ_DOCTR_INTEGRITY) process.env.OPENMASQ_DOCTR_INTEGRITY = doctrIntegrityEnv();
+  if (!process.env.OPENMASQ_DOCTR_REQUIRE_PIN) process.env.OPENMASQ_DOCTR_REQUIRE_PIN = "1";
+  if (app.isPackaged) delete process.env.OPENMASQ_DOCTR_MODEL_PATH;
+  if (process.env.OPENMASQ_DOCTR_MODEL_PATH) return; // an explicit dev override wins
   const dir = app.isPackaged
     ? join(process.resourcesPath, "doctr-models")
     : join(__dirname, "..", "..", "build", "doctr-models"); // out/main → apps/desktop/build/…
