@@ -3,14 +3,16 @@
  * a frozen ceiling, and one more wiring would have dug it deeper) and stored with the family
  * it serves (rule 2).
  *
- * A single question: is this provider served by a subscription CLI? If so,
- * the tooled turn answers it with the `completeWithTools` contract; otherwise `null`, and
- * the caller resumes its normal path (key + egress). The question has ONE home,
- * `subscriptionCliFor` (rule 9) — the same one as the text turn: the two wired-up
- * CLIs carry the tools bridge, so there's no second list to maintain.
+ * A single question: is this provider served by a subscription CLI that can carry the
+ * app's TOOLS? If so, the tooled turn answers it with the `completeWithTools` contract;
+ * otherwise `null`, and the caller resumes its normal path (key + egress). The question
+ * has ONE home, `subscriptionToolsCli` (rule 9) — a NARROWER list than the text turn's:
+ * antigravity serves text but cannot carry the bridge (its CLI reads MCP servers only
+ * from the user's global config, and advertises its built-in tools whatever the flags —
+ * measured, `antigravityEngine.ts`). Its models simply get no tools.
  */
 import type { ChatMessage, CompleteToolsResult, ToolDef } from "@openmasq/llm";
-import { subscriptionCliFor, subscriptionTurnEnv } from "./desktop";
+import { subscriptionToolsCli, subscriptionTurnEnv } from "./desktop";
 import { completeSubscriptionTools } from "./toolsTurn";
 
 export interface SubscriptionToolsRequest {
@@ -37,7 +39,7 @@ export function subscriptionToolsRoute(
   req: SubscriptionToolsRequest,
   hooks: SubscriptionToolsHooks,
 ): Promise<CompleteToolsResult> | null {
-  const cli = subscriptionCliFor(req.provider);
+  const cli = subscriptionToolsCli(req.provider);
   if (!cli) return null;
   return completeSubscriptionTools(subscriptionTurnEnv(cli), {
     messages: req.messages,

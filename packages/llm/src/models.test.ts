@@ -89,3 +89,27 @@ describe("setDynamicModels change signal", () => {
     expect(notified).toBe(1); // unsubscribed — no further calls
   });
 });
+
+describe("les CLI d'abonnement et l'aiguillage des outils", () => {
+  it("`antigravity-cli` est marqué SANS outils — c'est ce qui garde l'envoi hors du chemin outillé", async () => {
+    // Sa CLI ne peut pas porter le pont MCP de l'app (mesuré,
+    // `apps/desktop/src/main/subscription/antigravityEngine.ts`), donc le tour outillé le
+    // refuse. Sans ce drapeau, la boucle agentique l'y envoyait quand même et retombait
+    // sur le client à clé, qui ne connaît pas ce fournisseur : « Unknown provider ».
+    const { supportsTools } = await import("./models/capabilities.js");
+    expect(supportsTools("antigravity-cli")).toBe(false);
+    // Les deux autres CLI, elles, portent bien le pont.
+    expect(supportsTools("claude-cli")).toBe(true);
+    expect(supportsTools("codex-cli")).toBe(true);
+  });
+
+  it("streamChat et le tour outillé NOMMENT la vraie raison, jamais « Unknown provider »", async () => {
+    const [{ streamChat }, { completeWithTools }] = await Promise.all([
+      import("./index.js"),
+      import("./tools/index.js"),
+    ]);
+    const opts = { provider: "antigravity-cli" as const, model: "antigravity-cli", messages: [] };
+    await expect(streamChat(opts).next()).rejects.toThrow(/subscription engine/);
+    await expect(completeWithTools(opts)).rejects.toThrow(/cannot use tools/);
+  });
+});

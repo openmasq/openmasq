@@ -298,6 +298,9 @@ const host: Host = {
     ? () => window.openmasq.probeClaudeCli!()
     : undefined,
   probeCodexCli: window.openmasq.probeCodexCli ? () => window.openmasq.probeCodexCli!() : undefined,
+  probeAntigravityCli: window.openmasq.probeAntigravityCli
+    ? () => window.openmasq.probeAntigravityCli!()
+    : undefined,
   completeTools: (payload) => window.openmasq.completeTools(payload) as any,
   // STREAMING tool turn (assistant text token-by-token). Optional-chained: an
   // un-restarted dev preload without it → the agentic loop falls back to the

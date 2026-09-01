@@ -9,20 +9,19 @@ import { connectorCopy, mcpCategoryLabel } from "../../../help/catalogCopy";
 const SERVER_GROUPS = groupByMcpCategory(MCP_CONNECTORS);
 
 /**
- * Le choix des CONNECTEURS d'une compétence : « Toutes les intégrations » par défaut,
- * puis une pastille par connecteur du catalogue, groupées par catégorie, chacune portant
- * un repère « connecté » en direct.
+ * The choice of a skill's CONNECTORS: « Toutes les intégrations » by default, then one
+ * chip per catalogue connector, grouped by category, each carrying a live « connecté »
+ * marker.
  *
- * SÉMANTIQUE : `selected` VIDE = toutes les intégrations restent disponibles — c'est
- * exactement ce que `competences/launch.ts` traite comme « aucune ligne de consigne », et
- * c'est ce qu'était une compétence avant que les deux listes n'en fassent qu'une. En
- * choisir RESTREINT la compétence à celles-là (elles sont nommées en consigne au
- * lancement, et elles élargissent la portée d'outils du tour). Restreindre est un choix ;
- * l'état vide est le permissif.
+ * SEMANTICS: an EMPTY `selected` = every integration stays available — that is exactly
+ * what `competences/launch.ts` treats as « aucune ligne de consigne », and what a skill
+ * was before the two lists became one. Choosing some RESTRICTS the skill to those (they
+ * are named in the instruction at launch, and they widen the turn's tool scope).
+ * Restricting is a choice; the empty state is the permissive one.
  *
- * `servers` est de la CONSIGNE au modèle + de la présentation — les barrières d'appel
- * d'outil de la boucle agent sont inchangées (`competences/launch.ts`), donc rien ici
- * n'est une frontière de sécurité ; le repère « connecté » n'est là que pour y voir clair.
+ * `servers` is INSTRUCTION to the model + presentation — the agent loop's tool-call
+ * barriers are unchanged (`competences/launch.ts`), so nothing here is a security
+ * boundary; the « connecté » marker is only there to see clearly.
  */
 export function ServerPicker({
   selected,

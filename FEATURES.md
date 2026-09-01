@@ -297,6 +297,15 @@ re-reading an old conversation means knowing who wrote what.
       bridge as Claude Code (the call is captured, then goes through the app's vault and
       write gate) — `apps/desktop/src/main/subscription/codexEngine.ts`,
       `apps/desktop/src/main/subscription/codexToolsTurn.ts`
+- [x] « **Votre abonnement Google Antigravity** » (opt-in, OFF by default) — Réglages →
+      Modèles: same pattern with the **Antigravity** CLI (`agy`) installed and signed in:
+      an « Antigravity » model is added to the picker, with no API key, served by the CLI
+      locally — its settings AND its conversation history isolated in a data dir of ours,
+      every permissioned tool auto-denied by the headless mode — redaction unchanged.
+      ⚠️ **The app's connectors are NOT offered on this model** (unlike the two above):
+      that CLI reads MCP servers only from the user's global config, so the app's bridge
+      could not be the turn's only server without writing into their configuration —
+      `apps/desktop/src/main/subscription/antigravityEngine.ts`
 - [x] OpenRouter catalogue fetched live
 - [x] The model that answered stays stamped on the reply
 - [ ] **« Auto » mode** — REMOVED from the picker: neither view offers it any more. The

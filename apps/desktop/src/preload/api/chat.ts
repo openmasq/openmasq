@@ -78,6 +78,11 @@ export const chat = {
     return ipcRenderer.invoke("subscription:codex-available");
   },
 
+  /** Same probe for the Antigravity CLI (`agy`) — a boolean, never a path. */
+  probeAntigravityCli(): Promise<boolean> {
+    return ipcRenderer.invoke("subscription:antigravity-available");
+  },
+
   /** Non-streaming agentic completion with tool-calling (drives MCP). */
   completeTools(payload: CompleteToolsPayload): Promise<CompleteToolsResult> {
     return ipcRenderer.invoke("chat:complete-tools", payload);

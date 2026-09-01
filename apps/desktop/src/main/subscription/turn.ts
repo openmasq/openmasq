@@ -9,16 +9,17 @@
  */
 import { randomUUID } from "node:crypto";
 import type { ChatMessage, StreamDone } from "@openmasq/llm";
-import { flattenForCli, hasUnsupportedAttachments } from "./bridge";
+import { flattenForCli, hasUnsupportedAttachments, promptWithSystem } from "./bridge";
 import { streamClaudeSubscription } from "./engine";
-import { codexPrompt, streamCodexSubscription } from "./codexEngine";
+import { streamCodexSubscription } from "./codexEngine";
+import { streamAntigravitySubscription } from "./antigravityEngine";
 
 export interface SubscriptionTurnEnv {
   /** Which CLI serves this turn (routed by `desktop.ts` from the provider).
    *  ABSENT = `claude`, the historic entry — both the text turn and the TOOLED turn
    *  (`toolsTurn.ts`) fall back to it. */
-  cli?: "claude" | "codex";
-  /** The name shown in refusals ("Claude Code", "Codex"). Absent ⇒ Claude Code. */
+  cli?: "claude" | "codex" | "antigravity";
+  /** The name shown in refusals ("Claude Code", "Codex", "Antigravity"). Absent ⇒ Claude Code. */
   label?: string;
   /** Absolute path to the binary, already resolved (`resolveCli`). */
   binPath: string;
@@ -76,7 +77,18 @@ export async function* streamSubscriptionTurn(
   if (env.cli === "codex") {
     return yield* streamCodexSubscription({
       binPath: env.binPath,
-      prompt: codexPrompt(system, prompt),
+      prompt: promptWithSystem(system, prompt),
+      cwd: env.cwd,
+      signal: opts.signal,
+    });
+  }
+
+  // Antigravity : même forme que codex (pas de champ système, le prompt porte tout),
+  // et AUCUN `--model` — l'abonnement sert son modèle par défaut (`antigravityEngine.ts`).
+  if (env.cli === "antigravity") {
+    return yield* streamAntigravitySubscription({
+      binPath: env.binPath,
+      prompt: promptWithSystem(system, prompt),
       cwd: env.cwd,
       signal: opts.signal,
     });

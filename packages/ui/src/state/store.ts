@@ -49,7 +49,7 @@ import { SETTINGS_KEY, settingsKeyFor, convKeyFor, activeKeyFor, localConvSnapsh
 import { loadDeviceTheme } from "./theme";
 import { adoptSettings, reconcileDbSettings } from "./settingsReconcile";
 import { useLocalPersistence, usePlatformEffects, useOrgProfile } from "./effects";
-import { useLocalEndpointProbe, useClaudeCliProbe, useCodexCliProbe } from "./effects/useAvailabilityProbes";
+import { useLocalEndpointProbe, useClaudeCliProbe, useCodexCliProbe, useAntigravityCliProbe } from "./effects/useAvailabilityProbes";
 
 /** One-time flag: the controllable browser was pre-connected at first run. Guards
  *  the pre-connect so disabling the browser later stays sticky (never re-enabled). */
@@ -699,6 +699,8 @@ export function useChatStore() {
     host,
     settings.codexCliEnabled,
   );
+  const { antigravityCliDetected, antigravityCliReady, antigravityCliReadyRef } =
+    useAntigravityCliProbe(host, settings.antigravityCliEnabled);
 
   // The OpenRouter live-catalogue merge mutates MODELS IN PLACE (`setDynamicModels`),
   // which no dep below can see — without this version the late-fetched models never
@@ -719,6 +721,7 @@ export function useChatStore() {
         localEndpointReachable,
         claudeCliReady,
         codexCliReady,
+        antigravityCliReady,
       });
       if (reason) map.set(m.id, reason);
     }
@@ -730,6 +733,7 @@ export function useChatStore() {
     localEndpointReachable,
     claudeCliReady,
     codexCliReady,
+    antigravityCliReady,
     orgProfile,
     personalCredits,
     personalSub,
@@ -1311,6 +1315,7 @@ export function useChatStore() {
         localEndpointReachableRef,
         claudeCliReadyRef,
         codexCliReadyRef,
+        antigravityCliReadyRef,
       })(...args),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the HISTORICAL list,
     // kept identical: it governs WHEN the send re-captures, not what
@@ -1471,6 +1476,7 @@ export function useChatStore() {
     // `claudeCliEnabled` setting lives in `settings` like the others).
     claudeCliDetected,
     codexCliDetected,
+    antigravityCliDetected,
     conversations,
     /** True once the initial per-account load has settled (see the `loaded` state). */
     loaded,

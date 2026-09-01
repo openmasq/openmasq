@@ -1,15 +1,15 @@
 {
   "packages/ui/src/styles.css": 12146,
   "packages/ui/src/agent/mcpAgent.ts": 2663,
-  "packages/ui/src/send/sendOrchestrator.ts": 2337,
+  "packages/ui/src/send/sendOrchestrator.ts": 2342,
   "packages/ui/src/pages/ChatWorkspace/ChatView.tsx": 1921,
-  "packages/ui/src/state/store.ts": 1537,
+  "packages/ui/src/state/store.ts": 1543,
   "packages/ui/src/pages/ChatWorkspace/Composer.tsx": 966,
   "apps/desktop/src/main/index.ts": 938,
   "packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx": 711,
   "apps/desktop/src/main/mcp/browser/agentMain.ts": 665,
   "packages/ui/src/components/message/MessageBubble.tsx": 549,
-  "apps/desktop/src/renderer/src/main.tsx": 536,
+  "apps/desktop/src/renderer/src/main.tsx": 539,
   "apps/desktop/src/main/mcp/browser/process.ts": 533,
   "apps/desktop/src/main/python/sandbox.ts": 527,
   "apps/desktop/src/renderer/src/auth.ts": 521,
@@ -18,6 +18,6 @@
   "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 383,
   "packages/llm/src/tools/openai.ts": 357,
   "apps/desktop/src/main/mcp/persist.ts": 340,
-  "packages/redact/src/engine/rules/rules.france.ts": 305,
-  "packages/ui/src/pages/Settings/models/ModelsTab.tsx": 303
+  "packages/ui/src/pages/Settings/models/ModelsTab.tsx": 309,
+  "packages/redact/src/engine/rules/rules.france.ts": 305
 }

@@ -1,5 +1,5 @@
 /**
- * Tranche « settingsTabs » du catalogue FR — la langue SOURCE (Compte, Confidentialité,
+ * The FR catalogue's « settingsTabs » slice — the SOURCE language (Compte, Confidentialité,
  * Navigateur, Modèles). `satisfies` par entrée : le compilateur exige EXACTEMENT les clés
  * du contrat (`../messages/settingsTabs.ts`).
  */
@@ -130,7 +130,15 @@ export const browserTab = {
 } satisfies Messages["browserTab"];
 
 export const modelsTab = {
-  accessEyebrow: "Vos accès",
+  sourcesEyebrow: "D'où viennent vos modèles",
+  keysGroupTitle: "Avec une clé API",
+  keysGroupSub: "Vous payez le fournisseur au token.",
+  agentsGroupTitle: "Via un agent installé",
+  agentsGroupSub: "Votre abonnement existant, aucune clé.",
+  recommended: "conseillé",
+  agentTip: (a) => `${a} — votre abonnement existant, aucune clé à coller.`,
+  agentOn: (a) => `${a} : activé. Chaque envoi consomme votre abonnement personnel.`,
+  agentMissing: (a) => `${a} : introuvable sur cette machine. Cliquez pour savoir comment l'installer.`,
   availableEyebrow: (n) => `Modèles disponibles (${n})`,
   noMatch: (q) => `Aucun modèle ne correspond${q ? ` à « ${q} »` : ""}.`,
   keyGearTip: (hasKey, provider) => `${hasKey ? "Modifier" : "Renseigner"} la clé ${provider}`,

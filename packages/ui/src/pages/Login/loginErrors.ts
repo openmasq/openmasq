@@ -1,17 +1,17 @@
 /**
- * Ce que l'écran de connexion MONTRE d'une panne d'authentification.
+ * What the sign-in screen SHOWS of an authentication failure.
  *
- * Supabase répond en anglais et en jargon de serveur ; cette fonction traduit les cas
- * qu'on sait nommer et **laisse passer le reste tel quel**. Le repli n'est pas de la
- * paresse : taire un message inconnu donnerait un formulaire qui « ne fait rien », et la
- * règle du produit est qu'une vraie panne se dit. Un message anglais est un moindre mal
- * qu'un silence — mais chaque cas qu'on apprend à nommer doit descendre ici.
+ * Supabase answers in English and in server jargon; this function translates the cases
+ * we know how to name and **lets the rest through as is**. The fallback is not
+ * laziness: swallowing an unknown message would give a form that « ne fait rien », and
+ * the product's rule is that a real failure says so. An English message is a lesser evil
+ * than silence — but every case we learn to name must come down here.
  *
- * ⚠️ **« Signups not allowed » n'est pas une panne, c'est un RÉGLAGE** : le Supabase de
- * production a les inscriptions fermées (les comptes sont ouverts à la main), donc toute
- * adresse non provisionnée est refusée à l'envoi du lien. Le message brut disait
- * « Signups not allowed for this instance » en anglais sur un écran français, sans jamais
- * laisser deviner que le problème est l'adresse elle-même (constaté sur PostHog le 14/08).
+ * ⚠️ **« Signups not allowed » is not a failure, it is a SETTING**: production Supabase
+ * has sign-ups closed (accounts are opened by hand), so any address that has not been
+ * provisioned is refused when the link is sent. The raw message said « Signups not
+ * allowed for this instance » in English on a French screen, without ever letting one
+ * guess that the problem is the address itself (seen on PostHog on 14/08).
  */
 export function friendlyError(e: unknown): string {
   const s = typeof e === "string" ? e.trim() : e instanceof Error ? e.message.trim() : "";

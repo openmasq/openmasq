@@ -13,14 +13,14 @@
  * everywhere we don't have a reliable source (i.e. everywhere, for now).
  */
 export interface ModelProfile {
-  /** 1 (basique) → 5 (état de l'art). */
+  /** 1 (basic) → 5 (state of the art). */
   reasoning: number;
   coding: number;
-  /** Latency: 1 (lent) → 5 (très rapide). */
+  /** Latency: 1 (slow) → 5 (very fast). */
   speed: number;
-  /** Price: 1 (cher) → 5 (économique). */
+  /** Price: 1 (expensive) → 5 (cheap). */
   cost: number;
-  /** Vision / multimodal: 1 (texte seul) → 5 (multimodal fort). */
+  /** Vision / multimodal: 1 (text only) → 5 (strongly multimodal). */
   multimodal: number;
 }
 
@@ -89,15 +89,17 @@ export const MODEL_META: Record<string, ModelMeta> = {
   "claude-opus-4-8": m([5, 5, 3, 2, 5], [RAIS, CODE, AGENT, VISION, LONG], false),
   "claude-sonnet-5": m([5, 5, 4, 3, 5], [RAIS, CODE, AGENT, VISION, LONG], false),
   "claude-sonnet-4-6": m([4, 5, 4, 3, 5], [CODE, VISION, LONG], false),
-  // L'abonnement Claude via la CLI Claude Code (`cost: 5` = déjà payé par l'abonnement).
-  // Le positionnement est celui de la FAMILLE que l'alias sert — le modèle exact est
-  // celui, courant, de l'abonnement (les trois variantes partagent forces/limites).
+  // The Claude subscription via the Claude Code CLI (`cost: 5` = already paid for by the subscription).
+  // The positioning is that of the FAMILY the alias serves — the exact model is
+  // whichever current one the subscription uses (the three variants share strengths/limits).
   "claude-cli": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG], false),
   "claude-cli-sonnet": m([5, 5, 4, 5, 1], [RAIS, CODE, LONG], false),
   "claude-cli-opus": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG], false),
-  // L'abonnement ChatGPT via la CLI Codex — même logique que claude-cli (`cost: 5` =
-  // déjà payé par l'abonnement, pas « gratuit »).
+  // The ChatGPT subscription via the Codex CLI — same logic as claude-cli (`cost: 5` =
+  // already paid for by the subscription, not "free").
   "codex-cli": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG], false),
+  // L'abonnement Antigravity : même logique (`cost: 5` = pas de facturation au token ici).
+  "antigravity-cli": m([5, 4, 4, 5, 1], [RAIS, CODE, LONG], false),
   "claude-cli-haiku": m([3, 3, 5, 5, 1], [CODE, LONG], false),
   "claude-haiku-4-5": m([3, 4, 5, 4, 5], [FAST, VISION], false),
 
@@ -110,7 +112,7 @@ export const MODEL_META: Record<string, ModelMeta> = {
   "gemini-2.5-flash-lite": m([2, 2, 5, 5, 4], [FAST, CHEAP], false),
   "gemini-2.0-flash": m([3, 3, 5, 5, 5], [FAST, CHEAP, VISION, LONG], false),
 
-  // ── Mistral (hébergé) ─────────────────────────────────────────────────────
+  // ── Mistral (hosted) ──────────────────────────────────────────────────────
   "mistral-large-2512": m([4, 4, 3, 3, 1], [RAIS, CODE], false),
   "mistral-medium-2508": m([4, 4, 4, 4, 4], [CODE, VISION], false),
   "mistral-small-2506": m([3, 3, 5, 5, 4], [FAST, CHEAP, VISION, OSS], true),
@@ -118,12 +120,12 @@ export const MODEL_META: Record<string, ModelMeta> = {
   "pixtral-large-latest": m([4, 3, 3, 3, 5], [VISION, OSS], true),
   "ministral-8b-2512": m([3, 3, 5, 5, 1], [FAST, CHEAP, OSS], true),
 
-  // ── DeepSeek (API hébergée, clé perso) ────────────────────────────────────
+  // ── DeepSeek (hosted API, personal key) ───────────────────────────────────
   "deepseek-v4-pro": m([5, 5, 3, 4, 1], [RAIS, CODE, OSS, LONG], true),
   "deepseek-v4-flash": m([4, 4, 5, 5, 1], [FAST, CODE, CHEAP, OSS, LONG], true),
 
-  // ── OpenRouter (agrégateur multi-vendeurs, clé perso) ─────────────────────
-  // Positionnement relatif famille/tier ; ids vérifiés dans le catalogue OpenRouter.
+  // ── OpenRouter (multi-vendor aggregator, personal key) ────────────────────
+  // Relative family/tier positioning; ids verified in the OpenRouter catalogue.
   "openai/gpt-5.6-luna": m([4, 4, 5, 5, 4], [FAST, CHEAP, VISION, LONG, AGENT], true),
   "moonshotai/kimi-k2.6": m([4, 5, 4, 4, 4], [CODE, AGENT, OSS, VISION], true),
   "x-ai/grok-4.20": m([5, 4, 4, 3, 4], [RAIS, VISION, LONG, AGENT], false),
@@ -152,7 +154,7 @@ export const MODEL_META: Record<string, ModelMeta> = {
   phi4: m([4, 3, 5, 5, 1], [OSS, FAST, RAIS], true),
   "mistral-nemo": m([3, 3, 4, 5, 1], [OSS], true),
 
-  // ── Scaleway — plateforme (inclus dans l'abonnement) ──────────────────────────
+  // ── Scaleway — platform (included in the subscription) ────────────────────────
   "glm-5.2": m([4, 4, 3, 3, 1], [RAIS, CODE, OSS, LONG], true),
   "qwen3.5-397b-a17b": m([5, 5, 3, 4, 4], [RAIS, CODE, VISION, OSS], true),
   "qwen3.6-35b-a3b": m([4, 4, 4, 5, 4], [FAST, CODE, VISION, OSS], true),

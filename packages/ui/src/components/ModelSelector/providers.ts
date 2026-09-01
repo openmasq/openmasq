@@ -12,12 +12,14 @@ import { subscriptionsSold } from "../../send/platformAccess";
  *  providers — the desktop has none. */
 export const PROVIDER_ORDER: ProviderId[] = [
   "scaleway",
-  // L'abonnement Claude de l'utilisateur (CLI Claude Code) — n'apparaît que si la CLI
-  // est détectée ET le réglage activé (`claudeCliReady`, sinon la ligne est masquée).
+  // The user's Claude subscription (Claude Code CLI) — only appears if the CLI
+  // is detected AND the setting enabled (`claudeCliReady`, otherwise the row is hidden).
   "claude-cli",
-  // L'abonnement ChatGPT de l'utilisateur (CLI Codex) — n'apparaît que si la CLI est
-  // détectée ET le réglage activé (`codexCliReady`, sinon la ligne est masquée).
+  // The user's ChatGPT subscription (Codex CLI) — only appears if the CLI is
+  // detected AND the setting enabled (`codexCliReady`, otherwise the row is hidden).
   "codex-cli",
+  // The Google Antigravity subscription (`agy` CLI) — same display rule.
+  "antigravity-cli",
   "openai",
   "anthropic",
   "google",
@@ -35,5 +37,6 @@ export function providerGroupLabel(pid: ProviderId): string {
   }
   if (pid === "claude-cli") return "Claude Code — votre abonnement Claude";
   if (pid === "codex-cli") return "Codex — votre abonnement ChatGPT";
+  if (pid === "antigravity-cli") return "Antigravity — votre abonnement Google";
   return PROVIDERS[pid].label;
 }

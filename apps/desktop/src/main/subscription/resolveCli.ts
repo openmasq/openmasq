@@ -20,12 +20,15 @@
 import { accessSync, constants } from "node:fs";
 import { posix, win32 } from "node:path";
 
-export type SubscriptionCliId = "claude" | "codex";
+export type SubscriptionCliId = "claude" | "codex" | "antigravity";
 
 /** The binary name per CLI. Windows resolves via `WINDOWS_EXTS`. */
 const BIN_NAME: Record<SubscriptionCliId, string> = {
   claude: "claude",
   codex: "codex",
+  // Google Antigravity ships its CLI as `agy` (installed into `~/.local/bin`, already
+  // among the known roots below — no new root to probe).
+  antigravity: "agy",
 };
 
 /** On Windows an npm binary is a `.cmd`; `spawn` doesn't complete it on its own. */
@@ -56,7 +59,7 @@ function knownRoots(platform: NodeJS.Platform, home: string): string[] {
     ];
   }
   return [
-    join(home, ".local", "bin"), // claude (official installer)
+    join(home, ".local", "bin"), // claude (official installer), agy (antigravity)
     join(home, ".claude", "local"), // claude (historic "local" install)
     "/opt/homebrew/bin", // Homebrew Apple Silicon — absent from the Finder PATH
     "/usr/local/bin", // Homebrew Intel + npm global

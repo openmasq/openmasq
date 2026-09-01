@@ -140,6 +140,15 @@ export const modelPicker = {
       missingDesc:
         "CLI introuvable sur cette machine : installez-la (npm i -g @openai/codex), connectez-la avec « codex login », puis revenez ici.",
     },
+    antigravity: {
+      title: "Votre abonnement Google Antigravity",
+      note: "Si vous avez un abonnement Antigravity et sa CLI « agy » installée, vos conversations peuvent passer par elle — sans clé API. Le redaction s'applique comme partout : le modèle ne voit que des données remplacées. ⚠️ Ce chemin passe par un logiciel tiers, ce que les conditions d'Antigravity ne prévoient pas : le risque porte sur votre compte Google.",
+      rowTitle: "Utiliser ma CLI Antigravity",
+      onDesc:
+        "Ajoute « Antigravity » à la liste des modèles. Chaque envoi consomme votre abonnement Google personnel, et les connecteurs de l'app n'y sont pas offerts (sa CLI ne peut pas les porter).",
+      missingDesc:
+        "CLI introuvable sur cette machine : installez Antigravity, connectez-la à votre compte Google, puis revenez ici.",
+    },
   },
 } satisfies Messages["modelPicker"];
 

@@ -71,6 +71,7 @@ export interface AutoRouteAvailability {
   localEndpointReachable?: boolean | null;
   claudeCliReady?: boolean | null;
   codexCliReady?: boolean | null;
+  antigravityCliReady?: boolean | null;
 }
 
 export interface AutoRouteResult {
@@ -111,23 +112,23 @@ export function classifyAutoTask(s: AutoRouteSignals): AutoTaskClass {
   return "standard";
 }
 
-/** Pondération du profil `modelMeta` (1–5 par axe) selon la classe. `cost` est déjà
- *  inversé côté meta (5 = économique), donc le poids joue TOUJOURS vers le moins cher —
- *  c'est ce qui évite de consommer des crédits pour une question triviale. */
+/** Weighting of the `modelMeta` profile (1–5 per axis) by class. `cost` is already
+ *  inverted on the meta side (5 = economical), so the weight ALWAYS plays toward the cheaper one —
+ *  this is what avoids burning credits on a trivial question. */
 const WEIGHTS: Record<AutoTaskClass, { reasoning: number; coding: number; speed: number; cost: number }> = {
   expert: { reasoning: 3, coding: 2, speed: 0, cost: 0 },
   standard: { reasoning: 2, coding: 1, speed: 1, cost: 1 },
   leger: { reasoning: 1, coding: 0, speed: 2, cost: 2 },
 };
 
-/** Un modèle MÉTRÉ (passerelle plateforme → crédits d'abonnement) doit MÉRITER son coût :
- *  pénalité forte sur une tâche légère (un `:free` suffisant ne doit jamais lui céder),
- *  nulle sur une tâche experte — c'est là que l'escalade est le comportement voulu.
- *  Le BYO n'est pas pénalisé : la clé est celle de l'utilisateur, son choix. */
+/** A METERED model (platform gateway → subscription credits) must EARN its cost:
+ *  heavy penalty on a light task (a sufficient `:free` must never lose out to it),
+ *  none on an expert task — that's where escalation is the intended behaviour.
+ *  BYO is never penalised: the key is the user's own, their choice. */
 const METERED_PENALTY: Record<AutoTaskClass, number> = { expert: 0, standard: 2, leger: 4 };
 
-/** Comment l'envoi de ce modèle serait facturé, avec les mêmes entrées que le routage
- *  réel (`resolveEffectivePlatform`) — jamais recalculé autrement (règle 9). */
+/** How this model's send would be billed, with the same inputs as the real
+ *  routing (`resolveEffectivePlatform`) — never recomputed differently (rule 9). */
 export function autoBillingFor(m: ModelInfo, a: AutoRouteAvailability): AutoBilling {
   if (isFreeModel(m.id)) return "free";
   return resolveEffectivePlatform(m.provider, m.id, a.billingMode, a.keyConfigured)
@@ -136,11 +137,11 @@ export function autoBillingFor(m: ModelInfo, a: AutoRouteAvailability): AutoBill
 }
 
 /**
- * Choisit le modèle de CET envoi parmi `candidates` (la liste que le sélecteur
- * offrirait : `selectableModels(allowedModelIds)` — l'org-gouvernance est déjà dedans).
+ * Chooses THIS send's model among `candidates` (the list the picker would
+ * offer: `selectableModels(allowedModelIds)` — org governance is already inside).
  *
- * `null` = aucun candidat envoyable (tout est indisponible) ; l'appelant retombe sur le
- * défaut et laisse `preflightError` produire le refus explicite habituel.
+ * `null` = no sendable candidate (everything unavailable); the caller falls back to the
+ * default and lets `preflightError` produce the usual explicit refusal.
  */
 export function resolveAutoModel(
   candidates: readonly ModelInfo[],
@@ -152,8 +153,8 @@ export function resolveAutoModel(
     Math.ceil((signals.text.length + signals.attachmentChars) / 4) + REPLY_HEADROOM_TOKENS;
 
   const usable = candidates.filter((m) => {
-    // Contraintes DURES d'abord — chacune éliminatoire, aucune pondérable :
-    // 1. la barrière d'envoi doit accepter (clé, crédits, abonnement, endpoint local) ;
+    // HARD constraints first — each eliminatory, none weighable:
+    // 1. the send gate must accept (key, credits, subscription, local endpoint);
     if (
       modelUnavailableReason({
         model: m,
@@ -166,16 +167,17 @@ export function resolveAutoModel(
         localEndpointReachable: avail.localEndpointReachable,
         claudeCliReady: avail.claudeCliReady,
         codexCliReady: avail.codexCliReady,
+        antigravityCliReady: avail.antigravityCliReady,
       }) !== null
     )
       return false;
-    // 2. des images partent ⇒ vision obligatoire ;
+    // 2. images go out ⇒ vision mandatory;
     if (signals.hasImages && !m.vision) return false;
-    // 3. la boucle agentique ⇒ function calling obligatoire ;
+    // 3. the agentic loop ⇒ function calling mandatory;
     if ((signals.usesConnectors || signals.forcesCode) && !supportsTools(m.id)) return false;
-    // 4. l'entrée doit tenir dans la fenêtre, avec 50 % de marge (historique, schémas
-    //    d'outils). Fenêtre INCONNUE (local) : on n'exclut pas — `historyWindow` ne
-    //    tronque pas non plus sur une fenêtre inconnue, même politique.
+    // 4. the input must fit in the window, with 50% headroom (history, tool
+    //    schemas). UNKNOWN window (local): we don't exclude — `historyWindow` doesn't
+    //    trim on an unknown window either, same policy.
     const ctx = contextWindow(m.id);
     if (ctx !== undefined && ctx < needTokens * 1.5) return false;
     return true;
@@ -190,15 +192,15 @@ export function resolveAutoModel(
       p.coding * w.coding +
       p.speed * w.speed +
       p.cost * w.cost +
-      // Des images ⇒ la force multimodale compte, quel que soit le palier.
+      // Images ⇒ multimodal strength counts, whatever the tier.
       (signals.hasImages ? p.multimodal * 2 : 0) -
       (autoBillingFor(m, avail) === "metered" ? METERED_PENALTY[taskClass] : 0)
     );
   };
 
-  // Meilleur score gagne ; à ÉGALITÉ, un modèle qui ne coûte rien à l'utilisateur
-  // (`free`) passe devant un métré/BYO, puis l'ordre du registre départage — le tri est
-  // stable, donc le résultat est déterministe pour des entrées identiques.
+  // Best score wins; on a TIE, a model that costs the user nothing
+  // (`free`) goes ahead of a metered/BYO one, then the registry order breaks the tie — the sort is
+  // stable, so the result is deterministic for identical inputs.
   const billingRank = (m: ModelInfo): number => (autoBillingFor(m, avail) === "free" ? 0 : 1);
   const best = [...usable].sort(
     (a, b) => score(b) - score(a) || billingRank(a) - billingRank(b),
@@ -208,17 +210,17 @@ export function resolveAutoModel(
 }
 
 /**
- * La légende sous une réponse routée — l'EXPLICITE promis : quel modèle a été choisi et,
- * surtout, sur quel argent l'envoi est parti. « via votre abonnement » n'apparaît que
- * sur un envoi réellement métré, jamais par prudence rhétorique (règle 8 : le texte
- * in-app est une promesse au même titre que la doc).
+ * The caption under a routed reply — the EXPLICITNESS that was promised: which model was chosen and,
+ * above all, whose money the send went out on. "via votre abonnement" only shows
+ * on a send that is genuinely metered, never out of rhetorical caution (rule 8: in-app
+ * copy is a promise just like the docs).
  */
 export function autoRouteCaption(billing: AutoBilling, modelName?: string): string {
   const name = modelName ?? "Modèle";
   switch (billing) {
     case "metered":
-      // « abonnement (crédits) » n'existe que dans un build qui vend ; sinon l'envoi est
-      // parti sur le compte de l'utilisateur, et c'est ce qu'on dit.
+      // "abonnement (crédits)" only exists in a build that sells; otherwise the send
+      // went out on the user's own account, and that's what we say.
       return subscriptionsSold()
         ? `${name} — choisi automatiquement · via votre abonnement (crédits)`
         : `${name} — choisi automatiquement · inclus avec votre compte`;

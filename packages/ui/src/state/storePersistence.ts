@@ -147,6 +147,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // personal subscription) without an explicit action in Réglages → Modèles.
   claudeCliEnabled: false,
   codexCliEnabled: false,
+  antigravityCliEnabled: false,
   browserSearchEngine: "brave", // integrated-browser URL-bar search engine (user-switchable)
   // The COFFRE: values the user always wants redacted (code names, accounts, ids).
   // Empty by default; holds REAL sensitive values, so it is stripped from the plaintext

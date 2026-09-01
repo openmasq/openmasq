@@ -16,12 +16,12 @@
 
 const norm = (s: string): string => s.trim().toLowerCase();
 
-/** Familles reconnues en TÊTE de valeur (ou fusionnées à des chiffres : « Qwen3.5 »). */
+/** Families recognized at the HEAD of a value (or fused to digits: « Qwen3.5 »). */
 const FAMILY_TOKENS = new Set([
   "claude", "gpt", "gemini", "gemma", "llama", "qwen", "mistral", "ministral",
   "codestral", "devstral", "pixtral", "magistral", "deepseek", "grok", "kimi",
   "phi", "glm", "holo", "laguna", "nemotron",
-  // en TÊTE seulement (jamais dispensés nus — « North » seul reste un mot ordinaire)
+  // at the HEAD only (never dispensed bare — « North » alone stays an ordinary word)
   "north", "tencent",
 ]);
 
@@ -55,6 +55,10 @@ const VARIANT_WORDS = new Set([
   "luna", "oss", "ai", "s", "m", "l", "xl",
   // the sub-families that follow an umbrella brand (« Claude Sonnet », « Mistral Nemo »)
   "sonnet", "opus", "haiku", "fable", "mythos", "nemo",
+  // ⚠️ « antigravity » ONLY behind a family (« Gemini Antigravity », the subscription
+  // served by Google's CLI). Bare, it is an ordinary word and a plausible company name:
+  // it must never enter BARE_MODELS.
+  "antigravity",
 ]);
 
 /** « 2.5 », « 4o », « 70B », « 2507 », « v3.1 », « r1 », « k2.6 », « hy3 »…

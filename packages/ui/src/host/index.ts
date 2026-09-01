@@ -107,6 +107,9 @@ export interface Host {
   /** Même sonde pour la CLI Codex (fournisseur `codex-cli` — l'abonnement ChatGPT
    *  de l'utilisateur via sa propre CLI). Mêmes règles fail-closed. */
   probeCodexCli?(): Promise<boolean>;
+  /** Même sonde pour la CLI Antigravity `agy` (fournisseur `antigravity-cli` —
+   *  l'abonnement Google de l'utilisateur). Mêmes règles fail-closed. */
+  probeAntigravityCli?(): Promise<boolean>;
   /** Non-streaming agentic completion with tools (drives MCP). */
   completeTools?(payload: CompleteToolsPayload): Promise<CompleteToolsResult>;
   /**

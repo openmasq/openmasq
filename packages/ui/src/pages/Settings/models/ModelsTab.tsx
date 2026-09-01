@@ -17,13 +17,12 @@ import { ModelCard } from "./ModelCard";
 import { DefaultModelSummary } from "./DefaultModelSummary";
 import { ProviderAccess } from "./ProviderAccess";
 import { LocalModelSection } from "./LocalModelSection";
-import { ClaudeCliSection, CodexCliSection } from "./ClaudeCliSection";
 import { ModelsTabModals } from "./ModelsTabModals";
 import { ModelFilterBar } from "./ModelFilterBar";
 import { filterModels, modelFamilies, subgroupByFamily, type PriceTier } from "../../../prompt/modelFilter";
 
-// Les réglages du sélecteur (seuil des pastilles familles, ordre des groupes) vivent à
-// côté — `pickerTuning.ts` — avec le POURQUOI de chaque valeur.
+// The picker's settings (family-chip threshold, group order) live
+// alongside it — `pickerTuning.ts` — with the WHY of each value.
 import { FAMILY_CHIP_MIN, MODEL_PROVIDER_ORDER } from "./pickerTuning";
 
 /**
@@ -49,7 +48,9 @@ export function ModelsTab({
   claudeCliEnabled,
   onClaudeCliEnabled,
   codexCliEnabled,
-  onGeminiCliEnabled,
+  onCodexCliEnabled,
+  antigravityCliEnabled,
+  onAntigravityCliEnabled,
   favoriteModels,
   onToggleFavorite,
 }: {
@@ -58,10 +59,10 @@ export function ModelsTab({
   onPick: (id: string) => void;
   /** Store-backed key setter (writes encrypted via host.keys + refreshes state). */
   onSetApiKey: (id: string, value: string) => void | Promise<void>;
-  /** Retirer la clé d'un fournisseur (la modale l'offre quand il y en a une). */
+  /** Remove a provider's key (the modal offers it when there is one). */
   onClearApiKey?: (id: string) => void | Promise<void>;
   /** OAuth PKCE « Connecter mon compte OpenRouter » (`state/connectOpenRouter.ts`).
-   *  Absent sur une plateforme sans ce flux ⇒ le bouton n'est pas dessiné. */
+   *  Absent on a platform without this flow ⇒ the button is not drawn. */
   onConnectOpenRouter?: () => Promise<boolean>;
   /** Providers whose API key is already stored on this machine — drives the per-provider
    *  "Clé enregistrée / Aucune clé" chip so the list says which are ready to use. */
@@ -78,18 +79,21 @@ export function ModelsTab({
    *  choice, not an account matter. */
   localModelUrl: string;
   onLocalModelUrl: (url: string) => void;
-  /** Opt-in `Settings.claudeCliEnabled` — absents ⇒ section non dessinée (aperçu web). */
+  /** Opt-in `Settings.claudeCliEnabled` / `codexCliEnabled` — absent ⇒ agent
+   *  badge not drawn (web aperçu, host with no probe). */
   claudeCliEnabled?: boolean;
   onClaudeCliEnabled?: (on: boolean) => void;
   codexCliEnabled?: boolean;
-  onGeminiCliEnabled?: (on: boolean) => void;
-  /** Modèles favoris (la liste courte du sélecteur de chat) + le toggle d'étoile.
-   *  Absents ⇒ pas d'étoile sur la grille (aperçu web, harnais de test). */
+  onCodexCliEnabled?: (on: boolean) => void;
+  antigravityCliEnabled?: boolean;
+  onAntigravityCliEnabled?: (on: boolean) => void;
+  /** Favorite models (the chat picker's short list) + the star toggle.
+   *  Absent ⇒ no star on the grid (web aperçu, test harness). */
   favoriteModels?: string[];
   onToggleFavorite?: (id: string) => void;
 }) {
-  // Défaut catalogue affiché tout étoilé quand vide (cohérent avec le sélecteur du chat
-  // et avec la matérialisation au premier geste) — `favoriteSet`, pas un Set brut.
+  // Catalogue default shown fully starred when empty (consistent with the chat picker
+  // and with materializing on the first action) — `favoriteSet`, not a raw Set.
   const favSet = favoriteSet(favoriteModels);
   // Which provider's key modal is open (opened from a model's gear).
   const [keyProvider, setKeyProvider] = useState<ProviderId | null>(null);
@@ -108,9 +112,9 @@ export function ModelsTab({
   const [family, setFamily] = useState<string | null>(null);
   const [price, setPrice] = useState<PriceTier | null>(null);
 
-  // Ce que l'utilisateur peut RÉELLEMENT envoyer : abonnement, clés renseignées,
-  // gratuits — plus le modèle par défaut actuel, qui ne doit jamais disparaître de son
-  // propre réglage. Les modèles à clé/crédits manquants ne sont plus listés du tout.
+  // What the user can ACTUALLY send: subscription, keys entered,
+  // free ones — plus the current default model, which must never disappear from its
+  // own setting. Models missing a key/credits are no longer listed at all.
   const pickerModels = useMemo(
     () => visibleModels(selectableModels(orgProfile?.allowedModelIds), unavailableModels, previewId ?? defaultModelId),
     [orgProfile?.allowedModelIds, unavailableModels, previewId, defaultModelId],
@@ -129,9 +133,11 @@ export function ModelsTab({
 
   return (
     <>
-      {/* Les ACCÈS d'abord (ce qui allonge la liste), la liste ensuite — toujours
-          dépliée : c'est la barre de filtres qui la rend navigable, pas un repli. */}
-      <div className="cv-eyebrow mb-3">{t.modelsTab.accessEyebrow}</div>
+      {/* WHERE the models come from first (what lengthens the list), the list
+          after — always unfolded: it's the filter bar that makes it navigable,
+          not a collapse. The two paths (a key, an agent already installed) live side by
+          side: `ProviderAccess.tsx` says why they aren't conflated. */}
+      <div className="cv-eyebrow mb-3">{t.modelsTab.sourcesEyebrow}</div>
       <ProviderAccess
         keyConfigured={keyConfigured}
         hasSubscription={!pitchSubscription}
@@ -139,8 +145,14 @@ export function ModelsTab({
         onOpenBilling={onOpenBilling}
         byoKeysBlocked={orgProfile?.byoKeysAllowed === false}
         organizationName={orgProfile?.organizationName}
+        claudeCliEnabled={claudeCliEnabled}
+        onClaudeCliEnabled={onClaudeCliEnabled}
+        codexCliEnabled={codexCliEnabled}
+        onCodexCliEnabled={onCodexCliEnabled}
+        antigravityCliEnabled={antigravityCliEnabled}
+        onAntigravityCliEnabled={onAntigravityCliEnabled}
       />
-      {/* Le RÉSULTAT du réglage, énoncé — avant la liste qui sert à le changer. */}
+      {/* The RESULT of the setting, stated — before the list that serves to change it. */}
       <DefaultModelSummary
         model={pickerModels.find((m) => m.id === defaultModelId)}
         onPreview={setPreviewId}
@@ -270,9 +282,9 @@ export function ModelsTab({
         {t.modelsTab.gearNote}
       </p>
 
+      {/* The "subscription via CLI" opt-ins are no longer a bottom-of-page section:
+          they live in their badge, up top (`AgentAccessModal`). */}
       <LocalModelSection url={localModelUrl} onUrl={onLocalModelUrl} />
-      {onClaudeCliEnabled && <ClaudeCliSection enabled={!!claudeCliEnabled} onEnabled={onClaudeCliEnabled} />}
-      {onGeminiCliEnabled && <CodexCliSection enabled={!!codexCliEnabled} onEnabled={onGeminiCliEnabled} />}
 
       <ModelsTabModals
         freeInfoOpen={freeInfoOpen}

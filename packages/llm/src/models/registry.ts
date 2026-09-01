@@ -49,6 +49,14 @@ export const MODELS: ModelInfo[] = [
   // refused with a 400 (measured, `subscription/codexEngine.ts`). Text only (attachments).
   { id: "codex-cli", label: "GPT Codex", provider: "codex-cli" },
 
+  // L'abonnement Google Antigravity, via la CLI `agy` installée. UNE entrée : la CLI
+  // accepte bien un `--model`, mais ses ids sont épinglés à une version
+  // (`gemini-3.7-flash-medium`, `gemini-3.1-pro-high`…) et tournent avec l'offre — une
+  // entrée qui en nomme un pourrirait en erreur CLI. On sert donc le défaut du compte.
+  // ⚠️ SANS OUTILS, contrairement aux deux autres : cette CLI ne peut pas porter le pont
+  // MCP de l'app (mesuré, `subscription/antigravityEngine.ts`). Texte seul.
+  { id: "antigravity-cli", label: "Gemini Antigravity", provider: "antigravity-cli", noTools: true },
+
   // Google Gemini
   // Gemini 1.5 was retired by Google (404 on generateContent) — dropped; old
   // conversations remap to 2.5 via LEGACY_MODEL_ALIASES in packages/ui/models.ts.

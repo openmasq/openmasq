@@ -1,34 +1,42 @@
+import { useState } from "react";
 import { PROVIDERS, isPlatformProvider, type ProviderId } from "@openmasq/llm";
-import { CheckIcon, ModelLogo, ArrowRightIcon, PlusIcon } from "../../../components/brand";
+import { AnimatePresence } from "framer-motion";
+import { ModelLogo, ArrowRightIcon } from "../../../components/brand";
 import { KEYED_PROVIDERS } from "../shared";
 import { BRAND } from "@openmasq/branding";
 import { subscriptionsSold } from "../../../send/platformAccess";
+import { useHost } from "../../../host";
+import { useCliDetected } from "../../../state/effects/useAvailabilityProbes";
+import { AgentAccessModal, type AgentCopy } from "./AgentAccessModal";
 
 import { useT } from "../../../i18n";
 /**
- * « Vos accès » — the head of Réglages → Modèles, in place of the old per-need model
- * recommendations. Since the five big vendors became personal-key-only, the question a
- * user opens this page with is no longer « lequel je prends ? » but « pourquoi ma liste
- * est-elle si courte ? ». So the head of the page answers THAT.
+ * "Where your models come from" — the head of Réglages → Modèles. Two groups, because
+ * they are two different CONNECTIONS and merging them would suggest otherwise:
+ *  · a KEY buys tokens from an API, per call, on the user's own account;
+ *  · an AGENT is a CLI already installed and already paid for (a Claude Code or
+ *    ChatGPT subscription) — nothing to paste, nothing billed here, and it only
+ *    works as long as the tool is on THIS machine.
+ * Showing an "Anthropic key" field to someone with a Claude Code subscription makes
+ * them paste a key they don't need: the separation is what prevents that.
  *
- * **A grid of small cards, each ONE button.** Every card carries a single gesture — open
- * this provider's key — so there is no nested control to reach for and no wondering which
- * of two buttons does what. The alternative shape (a row per provider with its actions
- * beside it) put three competing calls-to-action on screen for an account that has none
- * of them, which read as a wall of pleading rather than a state.
+ * **One chip = ONE gesture.** A key opens its key modal, an agent opens its
+ * opt-in (`AgentAccessModal`): nothing nested, no doubt about what the click does.
+ * Acquired state stays discreet (filled chip + brand dot) — this grid is a
+ * STATE first, an invitation second.
  *
  * ⚠️ Two things that must stay true:
- * - **The subscription is an ACCOUNT-level offer, not a per-provider one.** It unlocks
- *   Scaleway + the curated OpenRouter set and NOTHING else, so it lives once under the
- *   grid. On the OpenAI card it would sell inference the platform does not serve.
- * - **OpenRouter's OAuth (PKCE) lives in the key modal**, beside the paste field — same
- *   place, both roads to the same key, and the card stays a single gesture.
+ * - **The subscription is an ACCOUNT fact, not a provider one.** It unlocks Scaleway +
+ *   the curated OpenRouter set and NOTHING else: so it lives ONCE, under the groups. On
+ *   the OpenAI chip it would sell inference the platform doesn't serve.
+ * - **OpenRouter's OAuth (PKCE) lives in the key modal**, beside the paste field
+ *   — same place, two roads to the same key, and the chip stays one single gesture.
  *
- * **Compte géré par une organisation** : la grille disparaît au profit d'UNE phrase. Les
- * clés personnelles y sont refusées (l'organisation fournit les modèles et paie les
- * appels ; une clé personnelle serait une sortie que sa politique ne voit pas), et main
- * refuse l'écriture de toute façon. Afficher des cartes inertes ferait chercher pourquoi
- * le clic ne fait rien — on dit l'état, une fois, à l'endroit où on venait agir.
+ * **Account managed by an organization**: the key group gives way to ONE sentence.
+ * Personal keys are refused there (the organization supplies the models and pays for
+ * calls; a personal key would be an exit its policy can't see), and main
+ * refuses the write anyway. Showing inert chips would make you wonder
+ * why the click does nothing — the state is said, once, right where you came to act.
  */
 export function ProviderAccess({
   keyConfigured,
@@ -37,82 +45,184 @@ export function ProviderAccess({
   onOpenBilling,
   byoKeysBlocked = false,
   organizationName,
+  claudeCliEnabled,
+  onClaudeCliEnabled,
+  codexCliEnabled,
+  onCodexCliEnabled,
+  antigravityCliEnabled,
+  onAntigravityCliEnabled,
 }: {
   keyConfigured?: ReadonlySet<string>;
-  /** L'organisation interdit les clés personnelles — la grille cède la place à l'état. */
+  /** The organization forbids personal keys — the group gives way to the state. */
   byoKeysBlocked?: boolean;
-  /** Nommée quand on la connaît : « votre organisation » est vague, « Acme » est un fait. */
+  /** Named when known: "your organization" is vague, "Acme" is a fact. */
   organizationName?: string;
   /** The account draws on platform credits (subscription or org) — so the platform
    *  providers are already usable without a personal key. */
   hasSubscription: boolean;
   onOpenKey: (p: ProviderId) => void;
   onOpenBilling?: () => void;
+  /** Opt-in `Settings.claudeCliEnabled` / `codexCliEnabled` — an agent whose host can't
+   *  probe its CLI, or whose setting isn't wired, isn't drawn: promising a connection
+   *  the platform can't honor would be a lie. */
+  claudeCliEnabled?: boolean;
+  onClaudeCliEnabled?: (on: boolean) => void;
+  codexCliEnabled?: boolean;
+  onCodexCliEnabled?: (on: boolean) => void;
+  antigravityCliEnabled?: boolean;
+  onAntigravityCliEnabled?: (on: boolean) => void;
 }) {
   const t = useT();
-  /** OpenRouter leads: the only provider reachable BOTH ways. */
+  const host = useHost();
+  /** The agent whose opt-in is open (`null` = none). */
+  const [agentOpen, setAgentOpen] = useState<ProviderId | null>(null);
+  // The probes are called unconditionally (the hooks rule); each returns
+  // `null` when the host doesn't have its slot.
+  const claudeDetected = useCliDetected(host, "probeClaudeCli");
+  const codexDetected = useCliDetected(host, "probeCodexCli");
+  const antigravityDetected = useCliDetected(host, "probeAntigravityCli");
+
+  /** OpenRouter first: the only provider reachable BOTH ways. */
   const order: ProviderId[] = ["openrouter", ...KEYED_PROVIDERS.filter((p) => p !== "openrouter")];
-  if (byoKeysBlocked) {
-    return (
-      <p className="provider-grid-note org-managed-note">
-        <strong>{organizationName ?? "Votre organisation"} fournit les modèles.</strong>{" "}
-        Les clés d&apos;API personnelles sont désactivées sur ce compte : les modèles que votre
-        organisation a ouverts fonctionnent sans rien renseigner, et aucun autre ne peut être
-        utilisé, même avec une clé à vous. Votre administrateur choisit la liste.
-      </p>
-    );
+
+  interface Agent {
+    pid: ProviderId;
+    copy: AgentCopy;
+    detected: boolean | null;
+    enabled: boolean;
+    onEnabled: (on: boolean) => void;
   }
+  const agents: Agent[] = [];
+  if (host.probeClaudeCli && onClaudeCliEnabled)
+    agents.push({
+      pid: "claude-cli",
+      copy: t.modelPicker.cli.claude,
+      detected: claudeDetected,
+      enabled: !!claudeCliEnabled,
+      onEnabled: onClaudeCliEnabled,
+    });
+  if (host.probeCodexCli && onCodexCliEnabled)
+    agents.push({
+      pid: "codex-cli",
+      copy: t.modelPicker.cli.codex,
+      detected: codexDetected,
+      enabled: !!codexCliEnabled,
+      onEnabled: onCodexCliEnabled,
+    });
+  if (host.probeAntigravityCli && onAntigravityCliEnabled)
+    agents.push({
+      pid: "antigravity-cli",
+      copy: t.modelPicker.cli.antigravity,
+      detected: antigravityDetected,
+      enabled: !!antigravityCliEnabled,
+      onEnabled: onAntigravityCliEnabled,
+    });
+  const open = agents.find((a) => a.pid === agentOpen);
+
   return (
     <>
-      <div className="provider-grid">
-        {order.map((pid) => {
-          const hasKey = !!keyConfigured?.has(pid);
-          // Couvert SANS clé : seul un fournisseur plateforme peut l'être, et seulement
-          // si le compte a de quoi le payer.
-          const covered = !hasKey && isPlatformProvider(pid) && hasSubscription;
-          const ready = hasKey || covered;
-          return (
-            <button
-              key={pid}
-              type="button"
-              className={`provider-card${ready ? " on" : ""}`}
-              onClick={() => onOpenKey(pid)}
-              title={
-                hasKey
-                  ? `Modifier la clé ${PROVIDERS[pid].label}`
-                  : `Renseigner une clé ${PROVIDERS[pid].label}`
-              }
-            >
-              <ModelLogo provider={pid} size={22} />
-              <span className="provider-card-name">{PROVIDERS[pid].label}</span>
-              {/* L'ÉTAT reste discret (clé, inclus) ; l'ACTION porte une pastille bouton —
-                  en texte gris 11px, « Ajouter une clé » se lisait comme une étiquette,
-                  pas comme le geste de la carte (remonté le 14/08). */}
-              {ready ? (
-                <span className="provider-card-state">
-                  <CheckIcon size={12} />
-                  {hasKey ? t.modelPicker.keySaved : t.modelPicker.included}
-                </span>
-              ) : (
-                <span className="provider-card-state add">
-                  <PlusIcon size={12} />
-                  {t.modelPicker.addKey}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-      {/* L'abonnement, UNE fois : c'est un fait de compte, pas de fournisseur — et
-          seulement dans un build qui VEND (`subscriptionsSold`, éteint par défaut). */}
+      {/* Organization: the state, ONE sentence, in place of the key group — above
+          the grid, not inside it (it isn't a third path). */}
+      {byoKeysBlocked && (
+        <p className="provider-grid-note org-managed-note">
+          <strong>{t.modelsTab.orgProvidesModels(organizationName ?? t.modelsTab.yourOrg)}</strong>{" "}
+          {t.modelsTab.orgKeysBlocked}
+        </p>
+      )}
+      {(!byoKeysBlocked || agents.length > 0) && (
+        <div className="source-groups">
+          {!byoKeysBlocked && (
+            <section className="source-group">
+              <div className="source-group-title">{t.modelsTab.keysGroupTitle}</div>
+              <p className="source-group-sub">{t.modelsTab.keysGroupSub}</p>
+              <div className="source-chips">
+                {order.map((pid) => {
+                  const label = PROVIDERS[pid].label;
+                  const hasKey = !!keyConfigured?.has(pid);
+                  // Covered WITHOUT a key: only a platform provider can be, and
+                  // only if the account has the means to pay for it.
+                  const covered = !hasKey && isPlatformProvider(pid) && hasSubscription;
+                  const ready = hasKey || covered;
+                  return (
+                    <button
+                      key={pid}
+                      type="button"
+                      className={`source-chip${ready ? " on" : ""}`}
+                      onClick={() => onOpenKey(pid)}
+                      title={`${hasKey ? t.modelsTab.editKey(label) : t.modelsTab.addKeyFor(label)}${
+                        ready ? ` · ${hasKey ? t.modelsTab.keySaved : t.modelsTab.included}` : ""
+                      }`}
+                    >
+                      <ModelLogo provider={pid} size={15} />
+                      <span className="source-chip-name">{label}</span>
+                      {/* OpenRouter is RECOMMENDED, and saying so here spares five accounts
+                        from being opened: a single key reaches every model. */}
+                      {pid === "openrouter" && (
+                        <span className="source-chip-best">{t.modelsTab.recommended}</span>
+                      )}
+                      {ready && <span className="source-chip-dot" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
+          {agents.length > 0 && (
+            <section className="source-group">
+              <div className="source-group-title">{t.modelsTab.agentsGroupTitle}</div>
+              <p className="source-group-sub">{t.modelsTab.agentsGroupSub}</p>
+              <div className="source-chips">
+                {agents.map((a) => {
+                  const label = PROVIDERS[a.pid].label;
+                  return (
+                    <button
+                      key={a.pid}
+                      type="button"
+                      className={`source-chip${a.enabled ? " on" : ""}${a.detected === false ? " missing" : ""}`}
+                      onClick={() => setAgentOpen(a.pid)}
+                      title={
+                        a.detected === false
+                          ? t.modelsTab.agentMissing(label)
+                          : a.enabled
+                            ? t.modelsTab.agentOn(label)
+                            : t.modelsTab.agentTip(label)
+                      }
+                    >
+                      <ModelLogo provider={a.pid} size={15} />
+                      <span className="source-chip-name">{label}</span>
+                      {a.enabled && <span className="source-chip-dot" aria-hidden="true" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
+
+      {/* The subscription, ONCE: it's an account fact, not a provider one — and
+          only in a build that SELLS (`subscriptionsSold`, off by default). */}
       {subscriptionsSold() && !hasSubscription && onOpenBilling && (
         <p className="provider-grid-note">
-          Sans clé, l&apos;abonnement {BRAND.name} ouvre les modèles inclus.{" "}
+          {t.modelsTab.noKeySubscription(BRAND.name)}{" "}
           <button type="button" className="lnk" onClick={onOpenBilling}>
             {t.billing.ctaUpgrade} <ArrowRightIcon size={12} />
           </button>
         </p>
       )}
+
+      <AnimatePresence>
+        {open && (
+          <AgentAccessModal
+            copy={open.copy}
+            detected={open.detected}
+            enabled={open.enabled}
+            onEnabled={open.onEnabled}
+            onClose={() => setAgentOpen(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

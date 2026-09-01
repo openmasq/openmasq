@@ -72,6 +72,15 @@ export function flattenForCli(messages: ChatMessage[]): FlattenedTurn {
 }
 
 /**
+ * A CLI with NO system field (codex, antigravity) gets the system prompt PREFIXED to the
+ * turn, clearly separated. One home for the two of them (rule 9): the day this wording
+ * changes, both say the same thing — a copy in each engine is how they drift apart.
+ */
+export function promptWithSystem(system: string | undefined, prompt: string): string {
+  return system ? `Instructions système :\n${system}\n\n---\n\n${prompt}` : prompt;
+}
+
+/**
  * Attachments don't go through this path: the headless CLI takes text, not
  * image blocks. Flagging it EARLY and clearly beats letting them silently
  * drop — the user would see the model "ignore" their capture without understanding why.

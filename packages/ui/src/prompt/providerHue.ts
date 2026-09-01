@@ -23,6 +23,8 @@ const PROVIDER_HUE: Partial<Record<ProviderId, string>> = {
   "openai-session": "mint",
   "openai-compat": "mint",
   google: "sky",
+  // La CLI Antigravity sert les Gemini du compte : même teinte que Google.
+  "antigravity-cli": "sky",
   mistral: "amber",
   // teal, NOT lime: lime is the BRAND accent, not a hue of the redaction
   // palette — it doesn't even have a `--ink-on-hl-lime` on the console side. A data

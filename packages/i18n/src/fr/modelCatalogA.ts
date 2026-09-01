@@ -100,6 +100,15 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     weaknesses: ["Texte seul", "Nécessite la CLI Codex installée et connectée"],
     bestFor: "Utiliser votre abonnement ChatGPT existant",
   },
+  "antigravity-cli": {
+    strengths: ["Compris dans votre abonnement Google", "Aucune clé API à gérer"],
+    weaknesses: [
+      "Texte seul",
+      "Sans les connecteurs de l'app",
+      "Nécessite la CLI Antigravity installée et connectée",
+    ],
+    bestFor: "Utiliser votre abonnement Antigravity existant",
+  },
   "claude-cli-haiku": {
     strengths: ["Très rapide", "Compris dans votre abonnement Claude"],
     weaknesses: ["Texte seul", "Moins profond que Sonnet/Opus"],

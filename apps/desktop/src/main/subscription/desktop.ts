@@ -5,8 +5,9 @@
  * stay pure and testable without Electron.
  */
 import { app } from "electron";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { ANTIGRAVITY_APP_DATA_DIR, ANTIGRAVITY_SETTINGS } from "./antigravityEngine";
 import { resolveCli, type SubscriptionCliId } from "./resolveCli";
 import type { SubscriptionTurnEnv } from "./turn";
 
@@ -14,12 +15,29 @@ import type { SubscriptionTurnEnv } from "./turn";
 export function subscriptionCliFor(provider: string): SubscriptionCliId | null {
   if (provider === "claude-cli") return "claude";
   if (provider === "codex-cli") return "codex";
+  if (provider === "antigravity-cli") return "antigravity";
   return null;
+}
+
+/**
+ * The same question for the TOOLED turn — and it is NOT the same list. `antigravity` is
+ * absent BY DESIGN, on two measurements (`antigravityEngine.ts`): its CLI reads MCP
+ * servers only from the user's GLOBAL config (so the app's bridge could not be this
+ * turn's only server without writing into their config and leaking a loopback server
+ * into their other sessions), and it advertises its ~50 built-in tools whatever the
+ * flags (so `toolGate`'s perimeter can't hold). `null` ⇒ the caller keeps its normal
+ * path, and the app's connectors are simply not offered on that model — fail-closed,
+ * rather than a bridge whose guarantees we cannot state.
+ */
+export function subscriptionToolsCli(provider: string): SubscriptionCliId | null {
+  const cli = subscriptionCliFor(provider);
+  return cli === "antigravity" ? null : cli;
 }
 
 const CLI_LABEL: Record<SubscriptionCliId, string> = {
   claude: "Claude Code",
   codex: "Codex",
+  antigravity: "Antigravity",
 };
 
 /**
@@ -51,18 +69,38 @@ function subscriptionCwd(cli: SubscriptionCliId): string {
   return dir;
 }
 
+const CLI_MISSING: Record<SubscriptionCliId, string> = {
+  claude:
+    "La CLI Claude Code est introuvable sur cette machine. Installez-la et " +
+    "connectez-la à votre abonnement Claude, ou choisissez un autre modèle.",
+  codex:
+    "La CLI Codex est introuvable sur cette machine. Installez-la " +
+    "(`npm i -g @openai/codex`), connectez-la à votre compte ChatGPT " +
+    "(`codex login`), ou choisissez un autre modèle.",
+  antigravity:
+    "La CLI Antigravity (`agy`) est introuvable sur cette machine. Installez " +
+    "Antigravity, connectez-la à votre compte Google, ou choisissez un autre modèle.",
+};
+
+/**
+ * Le dossier de données ISOLÉ de la CLI Antigravity, et les réglages qu'on y pose avant
+ * chaque tour. Le drapeau `--app_data_dir` n'accepte qu'un chemin RELATIF (résolu sous
+ * `~/.gemini`, mesuré) : ce dossier ne peut donc pas vivre dans `userData` comme le cwd.
+ * Ce qu'on y écrit — des permissions VIDES — est ce qui tient l'isolement : sans règle
+ * d'allow, le mode headless refuse tout outil qui en demande une, et les règles que
+ * l'utilisateur a posées pour SES sessions ne s'appliquent pas ici. Réécrit à chaque
+ * tour (idempotent) pour qu'une édition à la main ne laisse jamais un droit derrière.
+ */
+function prepareAntigravityAppData(): void {
+  const dir = join(app.getPath("home"), ".gemini", ANTIGRAVITY_APP_DATA_DIR);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "settings.json"), JSON.stringify(ANTIGRAVITY_SETTINGS, null, 2));
+}
+
 /** A turn's environment, or an EXPLAINED error if the CLI is missing (fail-closed). */
 export function subscriptionTurnEnv(cli: SubscriptionCliId = "claude"): SubscriptionTurnEnv {
   const binPath = subscriptionCliPath(cli);
-  if (!binPath) {
-    throw new Error(
-      cli === "claude"
-        ? "La CLI Claude Code est introuvable sur cette machine. Installez-la et " +
-          "connectez-la à votre abonnement Claude, ou choisissez un autre modèle."
-        : "La CLI Codex est introuvable sur cette machine. Installez-la " +
-          "(`npm i -g @openai/codex`), connectez-la à votre compte ChatGPT " +
-          "(`codex login`), ou choisissez un autre modèle.",
-    );
-  }
+  if (!binPath) throw new Error(CLI_MISSING[cli]);
+  if (cli === "antigravity") prepareAntigravityAppData();
   return { cli, label: CLI_LABEL[cli], binPath, cwd: subscriptionCwd(cli) };
 }

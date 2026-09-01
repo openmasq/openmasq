@@ -13,7 +13,10 @@ import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 
-const ref = process.argv[2] ?? "HEAD";
+// `--list-ok` prints the conforming paths and nothing else: in a SHARED tree where other
+// sessions edit code at the same time, that list is exactly what may be staged.
+const listOk = process.argv.includes("--list-ok");
+const ref = process.argv.filter((a) => !a.startsWith("--"))[2] ?? "HEAD";
 const changed = execSync(`git diff --name-only ${ref}`, { encoding: "utf8" })
   .split("\n")
   .filter(Boolean);
@@ -61,7 +64,7 @@ for (const f of changed) {
   try {
     before = execSync(`git show ${ref}:${f}`, { encoding: "utf8", maxBuffer: 1 << 28 });
   } catch {
-    console.log(`  NEW  ${f} (new file — outside the "comments only" contract)`);
+    if (!listOk) console.log(`  NEW  ${f} (new file — outside the "comments only" contract)`);
     bad++;
     continue;
   }
@@ -69,7 +72,7 @@ for (const f of changed) {
   try {
     after = readFileSync(f, "utf8");
   } catch {
-    console.log(`  DEL  ${f}`);
+    if (!listOk) console.log(`  DEL  ${f}`);
     bad++;
     continue;
   }
@@ -79,12 +82,15 @@ for (const f of changed) {
     same = lines(before, HASH) === lines(after, HASH);
   else if (/\.(css|json|rs)$/.test(f)) same = lines(before, SLASH) === lines(after, SLASH);
   else same = before === after;
-  if (same) ok++;
-  else {
-    console.log(`  ✗ ${f} — CODE changed, not just comments`);
+  if (same) {
+    ok++;
+    if (listOk) console.log(f);
+  } else {
+    if (!listOk) console.log(`  ✗ ${f} — CODE changed, not just comments`);
     bad++;
   }
 }
+if (listOk) process.exit(0);
 if (bad) {
   console.error(`\n✗ ${bad} file(s) break the contract, ${ok} conform.`);
   process.exit(1);

@@ -1,13 +1,13 @@
 /**
- * Le CONTENU des onglets de Réglages — Compte, Confidentialité, Navigateur, Modèles.
- * Les onglets eux-mêmes (étiquette, titre, ⌘K) sont dans `settings.ts` ; ici, ce qu'on
- * lit une fois l'onglet ouvert.
+ * The CONTENT of the Settings tabs — Account, Privacy, Browser, Models.
+ * The tabs themselves (label, title, ⌘K) live in `settings.ts`; here is what one reads
+ * once the tab is open.
  *
- * ⚠️ Règle 8 sur presque chaque phrase de l'onglet Confidentialité : « jamais transmis »,
- * « n'a jamais quitté votre machine », « le modèle reçoit… » sont des promesses sur le
- * trajet des données. Elles se traduisent au mot près.
+ * ⚠️ Rule 8 on almost every sentence of the Privacy tab: « jamais transmis », « n'a jamais
+ * quitté votre machine », « le modèle reçoit… » are promises about the path the data
+ * takes. They are translated word for word.
  *
- * Une TRANCHE du contrat (`../messages.ts`), qui reste la seule liste des namespaces.
+ * A SLICE of the contract (`../messages.ts`), which remains the only list of namespaces.
  */
 export interface AccountTabMessages {
   eyebrow: string;
@@ -40,7 +40,7 @@ export interface AccountTabMessages {
   devEyebrow: string;
   linkPreviews: string;
   linkPreviewsHint: string;
-  /** Le rail des réglages : retour, et le pli « Avancé ». */
+  /** The settings rail: back, and the « Avancé » fold. */
   backToChats: string;
   advanced: string;
 }
@@ -59,7 +59,7 @@ export interface PrivacyTabMessages {
   wireEyebrow: string;
   wireTokensTitle: string;
   wireTokensHint: string;
-  /** Le rapport « ce qui a été protégé ». */
+  /** The « ce qui a été protégé » report. */
   reportEyebrow: string;
   reportEmpty: (brand: string) => string;
   reportMessagesSub: (conversations: number) => string;
@@ -91,7 +91,7 @@ export interface PrivacyTabMessages {
   auditGoToMessage: string;
   auditLoading: (shown: number, total: number) => string;
   auditEntries: (count: number) => string;
-  /** La modale de révélation d'une valeur réelle. */
+  /** The modal that reveals a real value. */
   revealTitle: string;
   revealClose: string;
   revealCopy: string;
@@ -106,7 +106,7 @@ export interface PrivacyTabMessages {
   timelineEmpty: string;
   timelineAria: string;
   timelineBarTip: (count: number) => string;
-  /** Le journal des SORTIES réseau. */
+  /** The log of network EGRESS. */
   egressTitle: string;
   egressSub: string;
   egressLoading: string;
@@ -114,13 +114,13 @@ export interface PrivacyTabMessages {
   egressOrigins: (count: number) => string;
   egressContacts: (count: number) => string;
   egressRefused: (count: number) => string;
-  /** Le mot seul, le nombre étant rendu à part dans sa pastille. */
+  /** The word alone, the number being rendered separately in its chip. */
   egressRefusedWord: (count: number) => string;
   egressRefusedFallback: string;
   egressSearch: string;
   egressInsecure: string;
   egressNoMatch: string;
-  /** Un instant relatif COURT, pour une colonne de tableau. */
+  /** A SHORT relative instant, for a table column. */
   relJustNow: string;
   relMinutes: (m: number) => string;
   relHours: (h: number) => string;
@@ -134,12 +134,23 @@ export interface BrowserTabMessages {
 }
 
 export interface ModelsTabMessages {
-  accessEyebrow: string;
+  /** « D'où viennent vos modèles »: the two access ROUTES, at the top of the tab —
+   *  a key bought by the token, or an already-installed agent one already pays for. */
+  sourcesEyebrow: string;
+  keysGroupTitle: string;
+  keysGroupSub: string;
+  agentsGroupTitle: string;
+  agentsGroupSub: string;
+  recommended: string;
+  /** Les infobulles d'une pastille d'agent : à brancher, branché, introuvable. */
+  agentTip: (agent: string) => string;
+  agentOn: (agent: string) => string;
+  agentMissing: (agent: string) => string;
   availableEyebrow: (count: number) => string;
   noMatch: (query: string) => string;
   keyGearTip: (hasKey: boolean, provider: string) => string;
   gearNote: string;
-  /** La grille des fournisseurs. */
+  /** The provider grid. */
   orgProvidesModels: (org: string) => string;
   yourOrg: string;
   orgKeysBlocked: string;
@@ -149,14 +160,14 @@ export interface ModelsTabMessages {
   included: string;
   addKey: string;
   noKeySubscription: (brand: string) => string;
-  /** Le résumé du modèle par défaut, et les cartes. */
+  /** The default model's summary, and the cards. */
   defaultLead: string;
   defaultTip: string;
   freeBadge: string;
   freeBadgeTip: string;
   addFavorite: string;
   removeFavorite: string;
-  /** La barre de filtres. */
+  /** The filter bar. */
   searchPlaceholder: string;
   searchAria: string;
   clearSearch: string;
@@ -165,7 +176,7 @@ export interface ModelsTabMessages {
   price: string;
   priceTiers: { free: string; eco: string; standard: string; premium: string };
   priceTierTips: { free: string; eco: string; standard: string; premium: string };
-  /** Le statut d'un groupe de fournisseur (pastille + infobulle). */
+  /** A provider group's status (chip + tooltip). */
   status: {
     keySaved: string;
     keySavedTip: (provider: string) => string;
@@ -180,7 +191,7 @@ export interface ModelsTabMessages {
     noKey: string;
     noKeyTip: (provider: string) => string;
   };
-  /** Le modèle local, et les deux CLI d'abonnement. */
+  /** The local model, and the two subscription CLIs. */
   localEyebrow: string;
   localHint: string;
   localAddress: string;

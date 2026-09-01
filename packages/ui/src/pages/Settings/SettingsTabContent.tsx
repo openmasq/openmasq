@@ -27,7 +27,7 @@ export interface SettingsTabContentProps {
   onSetApiKey: (id: string, value: string) => void | Promise<void>;
   onClearApiKey?: (id: string) => void | Promise<void>;
   /** OAuth PKCE « Connecter mon compte OpenRouter » (`state/connectOpenRouter.ts`).
-   *  Absent sur une plateforme sans ce flux ⇒ le bouton n'est pas dessiné. */
+   *  Absent on a platform without this flow ⇒ the button is not drawn. */
   onConnectOpenRouter?: () => Promise<boolean>;
   keyConfigured?: ReadonlySet<string>;
   unavailableModels?: ReadonlyMap<string, UnavailableReason>;
@@ -80,7 +80,9 @@ export function SettingsTabContent({
           claudeCliEnabled={draft.claudeCliEnabled}
           onClaudeCliEnabled={(on) => setDraft((d) => ({ ...d, claudeCliEnabled: on }))}
           codexCliEnabled={draft.codexCliEnabled}
-          onGeminiCliEnabled={(on) => setDraft((d) => ({ ...d, codexCliEnabled: on }))}
+          onCodexCliEnabled={(on) => setDraft((d) => ({ ...d, codexCliEnabled: on }))}
+          antigravityCliEnabled={draft.antigravityCliEnabled}
+          onAntigravityCliEnabled={(on) => setDraft((d) => ({ ...d, antigravityCliEnabled: on }))}
           favoriteModels={draft.favoriteModels}
           onToggleFavorite={(id) =>
             setDraft((d) => ({ ...d, favoriteModels: toggleFavoriteModel(d.favoriteModels, id) }))

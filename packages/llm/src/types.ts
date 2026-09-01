@@ -166,7 +166,12 @@ export type ProviderId =
   | "claude-cli"
   /** The user's ChatGPT subscription, served by THEIR installed Codex CLI
    *  (headless, same desktop engine `subscription/`) — no key, no endpoint here. */
-  | "codex-cli";
+  | "codex-cli"
+  /** The user's Google Antigravity subscription, served by THEIR installed `agy` CLI
+   *  (headless, same desktop engine). Text ONLY: that CLI cannot carry the app's MCP
+   *  bridge (measured — `subscription/antigravityEngine.ts`), so its models are offered
+   *  without tools. */
+  | "antigravity-cli";
 
 /**
  * Where a provider's inference is HOSTED — shown as a small flag next to each model

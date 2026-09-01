@@ -35,6 +35,8 @@ export function glyphForProvider(provider: ProviderId): GlyphKey {
     case "codex-cli":
       return "chatgpt";
     case "google":
+    // La CLI Antigravity sert les modèles Gemini du compte : même marque.
+    case "antigravity-cli":
       return "gemini";
     case "mistral":
       return "mistral";

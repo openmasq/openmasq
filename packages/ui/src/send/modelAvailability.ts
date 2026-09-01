@@ -25,15 +25,15 @@ export type UnavailableReason =
   | "no_key"
   /** Routed through the app's metered gateway, but the prepaid budget is exhausted. */
   | "no_credits"
-  /** Sans abonnement ni clé, l'accès gratuit ne sert que `FREE_MODE_MODEL_IDS` — et
-   *  celui-ci n'y est pas. DISTINCT de `no_credits` parce que le message ne peut pas être
-   *  le même : « crédits épuisés » à quelqu'un qui n'en a jamais eu, sur un modèle affiché
-   *  « gratuit », est faux deux fois. Le cas se rencontre pour de vrai — une conversation
-   *  épinglée à un `:free` retiré de la liste le 18/08. */
+  /** With no subscription and no key, free access only serves `FREE_MODE_MODEL_IDS` — and
+   *  this one isn't in it. DISTINCT from `no_credits` because the message can't be
+   *  the same: "credits exhausted" to someone who never had any, on a model shown as
+   *  "free", is wrong twice over. The case happens for real — a conversation
+   *  pinned to a `:free` model removed from the list on 18/08. */
   | "free_mode_only"
-  /** Abonnement Claude via la CLI (`claude-cli`) : la CLI Claude Code n'est pas
-   *  installée/joignable sur cette machine, ou le réglage est désactivé — rien à
-   *  spawner, donc rien à proposer. */
+  /** Claude subscription via the CLI (`claude-cli`): the Claude Code CLI isn't
+   *  installed/reachable on this machine, or the setting is off — nothing to
+   *  spawn, so nothing to offer. */
   | "cli_unavailable"
   /** Self-hosted (openai-compat): no endpoint URL configured, so there's nothing to call. */
   | "no_endpoint"
@@ -64,14 +64,16 @@ export interface AvailabilityInput {
    *  Only `false` blocks — an UNKNOWN result never greys a model (fail-open on the probe,
    *  the send has its own "modèle injoignable" handling). */
   localEndpointReachable?: boolean | null;
-  /** Le fournisseur `claude-cli` (abonnement Claude via la CLI Claude Code) est-il
-   *  utilisable ICI : réglage activé ET CLI détectée par le host. À l'INVERSE du
-   *  probe local, seul `true` OUVRE — absent/`null`/`false` cache le modèle. La
-   *  plupart des machines n'ont pas la CLI : fail-open afficherait à tous un modèle
-   *  qui échoue au premier envoi. */
+  /** Is the `claude-cli` provider (Claude subscription via the Claude Code CLI)
+   *  usable HERE: setting on AND CLI detected by the host. UNLIKE the
+   *  local probe, only `true` OPENS it up — absent/`null`/`false` hides the model. Most
+   *  machines don't have the CLI: fail-open would show everyone a model
+   *  that fails on the first send. */
   claudeCliReady?: boolean | null;
-  /** Idem pour le fournisseur `codex-cli` (abonnement ChatGPT via la CLI Codex). */
+  /** Same for the `codex-cli` provider (ChatGPT subscription via the Codex CLI). */
   codexCliReady?: boolean | null;
+  /** Same for `antigravity-cli` (Google subscription via the `agy` CLI). */
+  antigravityCliReady?: boolean | null;
 }
 
 /**
@@ -105,8 +107,8 @@ export function pickerHides(reason: UnavailableReason): boolean {
     reason === "no_key" ||
     reason === "no_credits" ||
     reason === "free_mode_only" ||
-    // Une CLI non installée (le cas de presque tout le monde) : la ligne serait une
-    // pub pour un outil de développeur — l'activation vit dans Réglages → Modèles.
+    // A CLI that isn't installed (the case for almost everyone): the row would be an
+    // ad for a developer tool — activation lives in Réglages → Modèles.
     reason === "cli_unavailable"
   );
 }
@@ -136,14 +138,17 @@ export function visibleModels<T extends { id: string }>(
 export function modelUnavailableReason(p: AvailabilityInput): UnavailableReason | null {
   const { provider } = p.model;
 
-  // Abonnement Claude via la CLI Claude Code : utilisable UNIQUEMENT quand le host a
-  // positivement confirmé (réglage activé + CLI détectée). Inconnu = indisponible —
-  // fail-closed, contrairement au probe local (voir `claudeCliReady`).
+  // Claude subscription via the Claude Code CLI: usable ONLY when the host has
+  // positively confirmed (setting on + CLI detected). Unknown = unavailable —
+  // fail-closed, unlike the local probe (see `claudeCliReady`).
   if (provider === "claude-cli") {
     return p.claudeCliReady === true ? null : "cli_unavailable";
   }
   if (provider === "codex-cli") {
     return p.codexCliReady === true ? null : "cli_unavailable";
+  }
+  if (provider === "antigravity-cli") {
+    return p.antigravityCliReady === true ? null : "cli_unavailable";
   }
 
   // Self-hosted / local (Ollama, LM Studio…): the ONLY thing that makes it reachable is
@@ -169,15 +174,15 @@ export function modelUnavailableReason(p: AvailabilityInput): UnavailableReason 
       : (p.personalCredits?.blocked ?? false) ||
         (!!p.personalSub && (p.personalSub.tier ?? "free") === "free");
     if (!noBudget) return null;
-    // ⚠️ SANS BUDGET, ce n'est plus le PRIX qui ouvre mais la LISTE (18/08). Un `:free`
-    // d'OpenRouter ne se facture pas au jeton, mais il consomme le quota de NOTRE clé,
-    // partagé : les ~20 tiers gratuits du catalogue ouverts à qui ne paie rien, et une
-    // poignée de comptes assèche la file de tous. Deux modèles nommés, un seul foyer
-    // (`FREE_MODE_MODEL_IDS`), que la passerelle relit — la garde d'ici est de l'UX.
+    // ⚠️ WITH NO BUDGET, it's no longer PRICE that opens it up but the LIST (18/08). An
+    // OpenRouter `:free` isn't billed per token, but it draws on OUR key's quota,
+    // shared: the catalogue's ~20 free tiers are open to anyone paying nothing, and a
+    // handful of accounts can drain the queue for everyone. Two models named, one single home
+    // (`FREE_MODE_MODEL_IDS`), which the gateway re-reads — the guard here is UX only.
     if (isFreeModeModel(p.model.id)) return null;
-    // Un modèle PAYANT reste « abonnement requis » — rien n'a changé pour lui. La raison
-    // neuve ne couvre QUE le cas neuf : un modèle affiché « gratuit » (prix 0/0) qui n'est
-    // pas dans l'offre gratuite. Lui répondre « crédits épuisés » serait faux deux fois.
+    // A PAID model still reads "subscription required" — nothing changed for it. The
+    // new reason covers ONLY the new case: a model shown as "free" (price 0/0) that isn't
+    // in the free offer. Answering it "credits exhausted" would be wrong twice over.
     return isFreeModel(p.model.id) ? "free_mode_only" : "no_credits";
   }
 
@@ -202,15 +207,15 @@ export function unavailableLabel(
     case "no_key":
       return {
         chip: a.keyRequired,
-        // La seconde issue n'existe QUE si ce build a un service hébergé : la promettre
-        // dans un build qui n'en a pas (auto-hébergé, local) enverrait chercher un
-        // abonnement introuvable.
+        // The second way out only exists IF this build has a hosted service: promising it
+        // in a build that has none (self-hosted, local) would send the user looking for a
+        // subscription that doesn't exist.
         title:
           a.noKeyTitle(providerLabel) +
           (platformAccessServed() ? a.noKeyOrIncluded(includedWith(BRAND.name, t)) : "."),
       };
-    // Un build qui ne VEND rien (`subscriptionsSold`, le défaut) ne dit ni « abonnement »
-    // ni « crédits » : le modèle n'est pas ouvert sur ce compte, et la clé est l'issue.
+    // A build that SELLS nothing (`subscriptionsSold`, the default) says neither "subscription"
+    // nor "credits": the model isn't open on this account, and the key is the way out.
     case "no_credits":
       return subscriptionsSold()
         ? { chip: a.subscriptionRequired, title: a.noCreditsSold(BRAND.name, providerLabel) }
@@ -220,7 +225,7 @@ export function unavailableLabel(
         ? { chip: a.subscriptionRequired, title: a.freeModeSold(BRAND.name, providerLabel) }
         : { chip: a.keyRequired, title: a.freeModeUnsold(BRAND.name, providerLabel) };
     case "cli_unavailable":
-      // `providerLabel` = la CLI du fournisseur (« Claude Code », « Gemini CLI »).
+      // `providerLabel` = the provider's CLI ("Claude Code", "Gemini CLI").
       return { chip: a.cliRequired, title: a.cliUnavailable(providerLabel) };
     case "no_endpoint":
       return { chip: a.noEndpoint, title: a.noEndpointTitle };

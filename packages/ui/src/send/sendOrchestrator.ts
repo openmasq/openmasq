@@ -129,6 +129,8 @@ export interface SendMessageDeps {
   claudeCliReadyRef: React.MutableRefObject<boolean | null>;
   /** Same for `codex-cli`. */
   codexCliReadyRef: React.MutableRefObject<boolean | null>;
+  /** Same for `antigravity-cli`. */
+  antigravityCliReadyRef: React.MutableRefObject<boolean | null>;
   /** The INTERFACE-LANGUAGE catalogue: the failure phrases persisted on the bubble,
    *  and the tool-summary instruction — whose OUTPUT shows in the chrome. */
   t: Messages;
@@ -157,6 +159,7 @@ export function createSendMessage(d: SendMessageDeps) {
     localEndpointReachableRef,
     claudeCliReadyRef,
     codexCliReadyRef,
+    antigravityCliReadyRef,
   } = d;
   return (
     async (
@@ -336,6 +339,7 @@ export function createSendMessage(d: SendMessageDeps) {
               localEndpointReachable: localEndpointReachableRef.current,
               claudeCliReady: claudeCliReadyRef.current,
               codexCliReady: codexCliReadyRef.current,
+              antigravityCliReady: antigravityCliReadyRef.current,
             },
           )
         : null;
@@ -509,6 +513,7 @@ export function createSendMessage(d: SendMessageDeps) {
         localEndpointReachable: localEndpointReachableRef.current,
         claudeCliReady: claudeCliReadyRef.current,
         codexCliReady: codexCliReadyRef.current,
+        antigravityCliReady: antigravityCliReadyRef.current,
       });
       if (preflightFail) {
         failTurn(preflightFail.text, preflightFail.action);

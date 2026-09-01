@@ -27,8 +27,13 @@ import { streamCliProcess } from "./spawnStream";
 import { startToolsBridge, type CapturedToolCall } from "./toolsBridge";
 import type { ToolsCliRecipe, ToolsSpawnPlan } from "./toolsRecipe";
 
-/** A subscription CLI = a recipe. The absence of `cli` means `claude` (history). */
-const RECIPES: Record<NonNullable<SubscriptionTurnEnv["cli"]>, ToolsCliRecipe> = {
+/** A subscription CLI = a recipe. The absence of `cli` means `claude` (history).
+ *  PARTIAL on purpose: a CLI can serve TEXT without being able to carry the app's
+ *  tools — `antigravity` has no recipe (its CLI reads MCP servers only from the user's
+ *  global config, measured in `antigravityEngine.ts`). `subscriptionToolsCli` already
+ *  keeps it off this path; the refusal below is the second lock (fail-closed), so a
+ *  future caller cannot slip a tool-less CLI in through a `cli` value alone. */
+const RECIPES: Partial<Record<NonNullable<SubscriptionTurnEnv["cli"]>, ToolsCliRecipe>> = {
   claude: claudeToolsRecipe,
   codex: codexToolsRecipe,
 };
@@ -70,6 +75,13 @@ export async function completeSubscriptionTools(
   opts: SubscriptionToolsTurnOptions,
 ): Promise<CompleteToolsResult> {
   const recipe = RECIPES[env.cli ?? "claude"];
+  if (!recipe) {
+    throw new Error(
+      `Le modèle « ${env.label ?? env.cli} » ne peut pas utiliser les connecteurs de ` +
+        "l'application : sa CLI ne peut pas porter le pont sécurisé. Choisissez un autre " +
+        "modèle pour cette conversation.",
+    );
+  }
   if (hasUnsupportedAttachments(opts.messages)) {
     throw new Error(
       `Le modèle « ${env.label ?? recipe.label} » ne prend pas encore les pièces jointes — ` +

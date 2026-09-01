@@ -79,6 +79,7 @@ export async function* streamChat(
       );
     case "claude-cli":
     case "codex-cli":
+    case "antigravity-cli":
       // Served by the desktop's subscription engine (the user's own Claude Code /
       // Codex CLI, headless) — no HTTP client, no key, no endpoint. The desktop
       // `chat:start` handler branches BEFORE reaching streamChat.

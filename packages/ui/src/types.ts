@@ -47,14 +47,14 @@ export interface CoffreTerm {
 // prettier-ignore
 export type Section = "chats" | "library" | "vault" | "competences" | "memory" | "settings";
 
-// Les types des COMPÉTENCES vivent avec la fonctionnalité — `competences/
-// competenceTypes.ts` (cap de 300 lignes, règle 1), même règle que la Mémoire.
+// The COMPÉTENCES types live with the feature — `competences/
+// competenceTypes.ts` (300-line cap, rule 1), same rule as the Mémoire.
 import type { Competence } from "./competences/competenceTypes";
 export type { Competence, CompetenceCategoryId } from "./competences/competenceTypes";
 
-// Les types de la MÉMOIRE (MemoryCard, MemoryData, MemoryCategory) vivent avec la
-// fonctionnalité — `memory/memoryTypes.ts` (cap de 300 lignes, règle 1). Ré-exportés
-// ici pour que `types.ts` reste l'unique surface d'import.
+// The MÉMOIRE types (MemoryCard, MemoryData, MemoryCategory) live with the
+// feature — `memory/memoryTypes.ts` (300-line cap, rule 1). Re-exported
+// here so `types.ts` stays the single import surface.
 import type { MemoryData } from "./memory/memoryTypes";
 export type { MemoryCard, MemoryCategory, MemoryData } from "./memory/memoryTypes";
 
@@ -118,18 +118,18 @@ export interface Settings {
   /** Display the FAKES as neutral TOKENS (`[PERSON1]`) — documents' redacted views only,
    *  never the conversation marks (they show the REAL values). DISPLAY-only. */
   redactTokenDisplay?: boolean;
-  /** Le sélecteur de modèles s'ouvre en vue SIMPLIFIÉE : une courte liste de favoris
-   *  (`@openmasq/catalog` `SIMPLE_MODEL_IDS`), sans colonnes, sans recherche, sans prix
-   *  ni drapeau. Absent = vue complète (tous les fournisseurs). Un utilisateur qui a
-   *  choisi son modèle dans la vue complète n'est pas ramené de force à la liste courte :
-   *  le réglage n'agit que sur ce que le menu MONTRE, jamais sur ce qui est sélectionné. */
+  /** The model selector opens in SIMPLIFIED view: a short favourites list
+   *  (`@openmasq/catalog` `SIMPLE_MODEL_IDS`), no columns, no search, no price
+   *  or flag. Absent = full view (every provider). A user who picked their
+   *  model from the full view is not forced back to the short list:
+   *  the setting only affects what the menu SHOWS, never what is selected. */
   modelPickerSimple?: boolean;
-  favoriteModels?: string[]; // liste courte du sélecteur : vide=défaut, sinon REMPLACE ; local (`ModelSelector/simpleList.ts`)
-  /** LE MODÈLE ne reçoit que des marqueurs au lieu de faux vraisemblables. Son voisin
-   *  ci-dessus change ce que VOUS voyez ; celui-ci change ce qui PART — d'où deux réglages
-   *  et non une case. Se paie en qualité de réponse (`redact/bench/tokensVsFakes.md`). Vaut
-   *  pour les conversations commencées ENSUITE : le mode est épinglé sur chacune
-   *  (`Conversation.redactionMode`) à son premier redaction. Absent = faux. */
+  favoriteModels?: string[]; // short selector list: empty=default, otherwise REPLACES; local (`ModelSelector/simpleList.ts`)
+  /** THE MODEL only receives markers instead of plausible fakes. Its neighbour
+   *  above changes what YOU see; this one changes what GOES OUT — hence two settings
+   *  instead of one checkbox. Costs reply quality (`redact/bench/tokensVsFakes.md`). Applies
+   *  to conversations started AFTERWARD: the mode is pinned on each one
+   *  (`Conversation.redactionMode`) at its first redaction. Absent = false. */
   redactWireTokens?: boolean;
   // NOTE: the redaction-model API key (if different from the provider's) also
   // lives in the encrypted main-process store under the id "redactModel".
@@ -154,23 +154,23 @@ export interface Settings {
   /** UI colour theme. Two grounds (light / dark) × two accents (green default / blue):
    *  `light` = light+green, `dark` = dark+green, `blue` = light+blue, `blue-dark` = dark+blue. */
   theme?: "light" | "dark" | "blue" | "blue-dark";
-  /** Langue de l'interface. Comme `theme`, c'est une préférence d'APPAREIL doublée d'une
-   *  clé localStorage non scopée (`state/locale.ts`), lue AVANT le premier paint. Absent ⇒
-   *  la langue de l'hôte, sinon le français (langue source). Le type reste une string
-   *  souple exprès : l'union vit dans `@openmasq/i18n` (`Locale`), et `resolveLocale` ramène
-   *  toute valeur — legacy, régionale, inconnue — à une langue livrée ou au défaut. */
+  /** Interface language. Like `theme`, this is a DEVICE preference backed by an
+   *  unscoped localStorage key (`state/locale.ts`), read BEFORE the first paint. Absent ⇒
+   *  the host's language, else French (source language). The type stays a loose
+   *  string on purpose: the union lives in `@openmasq/i18n` (`Locale`), and `resolveLocale`
+   *  brings any value back — legacy, regional, unknown — to a shipped language or the default. */
   language?: string;
   /** True once the first-run onboarding has been completed/skipped. */
   onboarded?: boolean;
-  /** « Ne plus proposer » : l'écran d'accueil n'affiche plus les cartes d'exemples.
-   *  Réversible depuis le même écran (« Voir des exemples ») — un réglage qu'on ne peut
-   *  pas défaire est un cul-de-sac, et celui-ci se prend en un clic. */
+  /** « Ne plus proposer »: the home screen no longer shows the example cards.
+   *  Reversible from the same screen (« Voir des exemples ») — a setting that can't
+   *  be undone is a dead end, and this one takes one click. */
   startersOff?: boolean;
-  /** Journal technique détaillé (Réglages → Confidentialité → Transparence). Depuis le
-   *  13/08 la COLLECTE est permanente (`setDebugCapture(true)` — un retour « Votre
-   *  avis » doit pouvoir joindre le journal sans réglage préalable) ; ce champ ne gate
-   *  plus que la VISIBILITÉ : l'entrée « Journal de débogage » du menu ⋯ et la trace
-   *  console du wire. Le comparatif « ce que le modèle a vu » n'en dépend PAS. */
+  /** Detailed technical log (Réglages → Confidentialité → Transparence). Since
+   *  13/08 CAPTURE is permanent (`setDebugCapture(true)` — a « Votre
+   *  avis » feedback report must be able to attach the log with no prior setting); this field only
+   *  gates VISIBILITY now: the ⋯ menu's « Journal de débogage » entry and the wire's
+   *  console trace. The "what the model saw" comparison does NOT depend on it. */
   debugLog?: boolean;
   /**
    * Opt-in link previews: render an OpenGraph card (thumbnail + title) under a
@@ -179,20 +179,24 @@ export interface Settings {
    * safe context (SSRF guard) and the image is inlined as a `data:` URL.
    */
   linkPreviews?: boolean;
-  /** Opt-in : le modèle `claude-cli` (abonnement Claude via la CLI Claude Code de
-   *  l'utilisateur). OFF par défaut — on ne spawne pas son abonnement personnel sans
-   *  geste explicite ; offert seulement si le host confirme la CLI (`probeClaudeCli`,
-   *  voir `send/modelAvailability.ts`). */
+  /** Opt-in: the `claude-cli` model (Claude abonnement via the user's own Claude
+   *  Code CLI). OFF by default — we do not spawn their personal abonnement without
+   *  an explicit gesture; offered only if the host confirms the CLI (`probeClaudeCli`,
+   *  see `send/modelAvailability.ts`). */
   claudeCliEnabled?: boolean;
-  /** Même opt-in pour la CLI Codex (fournisseur `codex-cli`) — mêmes règles. */
+  /** Same opt-in for the Codex CLI (provider `codex-cli`) — same rules. */
   codexCliEnabled?: boolean;
+  /** Same opt-in for the Antigravity `agy` CLI (provider `antigravity-cli`) — same
+   *  rules. ⚠️ This model is served WITHOUT the app's connectors: its CLI cannot
+   *  carry the MCP bridge (measured, engine `subscription/antigravityEngine.ts`). */
+  antigravityCliEnabled?: boolean;
   /**
-   * Une NOTIFICATION système quand une réponse arrive alors qu'on regarde ailleurs
-   * (autre fenêtre, ou un autre onglet de conversation). ON par défaut : elle ne se
-   * déclenche que hors du champ de vision, et un tour long sans retour est précisément
-   * ce qui fait rester devant l'écran pour rien. `false` = jamais de bannière.
-   * La logique du QUAND et du QUOI vit dans `state/replyNotice.ts` ; la plateforme qui
-   * n'a pas le créneau `host.notify` ne montre pas ce réglage du tout.
+   * A system NOTIFICATION when a reply arrives while looking elsewhere
+   * (another window, or another conversation tab). ON by default: it only
+   * fires out of view, and a long turn with no return is precisely
+   * what keeps someone staring at the screen for nothing. `false` = never a banner.
+   * The WHEN and WHAT logic lives in `state/replyNotice.ts`; a platform that
+   * lacks the `host.notify` slot does not show this setting at all.
    */
   notifyOnReply?: boolean;
   /**
@@ -238,10 +242,10 @@ export interface Settings {
   /** The ORGANIZATION's compétences library — SEPARATE from the personal list
    *  (org-owned, E2E org-scope sync, admin-write/member-use; same at-rest regime). */
   orgCompetences?: Competence[];
-  /** ⚠️ LEGACY — l'ancienne liste « workflows », jamais réécrite mais encore sur le
-   *  disque d'un appareil qui n'a pas repris l'app. `normalizeSettings` la verse dans
-   *  `competences` puis l'efface ; la retirer du TYPE ferait taire le compilateur là où
-   *  il faut lire l'ancienne forme. Reprise + tests : `competences/migrate.ts`. */
+  /** ⚠️ LEGACY — the old « workflows » list, never rewritten but still on the
+   *  disk of a device that hasn't relaunched the app. `normalizeSettings` pours it into
+   *  `competences` then clears it; removing it from the TYPE would silence the compiler
+   *  exactly where it needs to read the old shape. Migration + tests: `competences/migrate.ts`. */
   workflows?: Competence[];
   /** The MÉMOIRE — cross-conversation durable facts (global profile + entity cards).
    *  Rides `Settings` like the coffre/compétences and is treated EXACTLY like the
@@ -255,11 +259,11 @@ export interface Settings {
   memoryAuto?: boolean;
   /** The in-chat « activer la mémoire auto ? » proposal card was answered (either way)
    *  — it offers itself once, ever. */
-  /** Encart « voyez ce que le modèle a vu » déjà montré (`privacy/transparency.ts`). */
+  /** « voyez ce que le modèle a vu » card already shown (`privacy/transparency.ts`). */
   transparencySeen?: boolean;
   memoryProposalSeen?: boolean;
-  /** « Comprendre mon redaction » fermé pour toujours (`privacy/redactionIntro.ts`).
-   *  Le savoir reste atteignable : le même chapitre vit dans Aide → guide. */
+  /** « Comprendre mon redaction » closed for good (`privacy/redactionIntro.ts`).
+   *  The knowledge stays reachable: the same chapter lives in Aide → guide. */
   redactionIntroSeen?: boolean;
   /**
    * Which search engine the integrated browser uses when the user types free-text

@@ -1,6 +1,6 @@
 /**
- * Tranche « settingsTabs » du catalogue EN — traduit de la source (`../fr/settingsTabs.ts`).
- * `satisfies` par entrée : le compilateur exige EXACTEMENT les clés du contrat.
+ * The EN catalogue's « settingsTabs » slice — translated from the source (`../fr/settingsTabs.ts`).
+ * `satisfies` per entry: the compiler demands EXACTLY the contract's keys.
  */
 import type { Messages } from "../messages";
 
@@ -129,7 +129,15 @@ export const browserTab = {
 } satisfies Messages["browserTab"];
 
 export const modelsTab = {
-  accessEyebrow: "Your access",
+  sourcesEyebrow: "Where your models come from",
+  keysGroupTitle: "With an API key",
+  keysGroupSub: "You pay the provider per token.",
+  agentsGroupTitle: "Through an installed agent",
+  agentsGroupSub: "Your existing subscription, no key.",
+  recommended: "recommended",
+  agentTip: (a) => `${a} — your existing subscription, no key to paste.`,
+  agentOn: (a) => `${a}: on. Every send draws on your personal subscription.`,
+  agentMissing: (a) => `${a}: not found on this machine. Click to see how to install it.`,
   availableEyebrow: (n) => `Available models (${n})`,
   noMatch: (q) => `No model matches${q ? ` “${q}”` : ""}.`,
   keyGearTip: (hasKey, provider) => `${hasKey ? "Edit" : "Enter"} the ${provider} key`,

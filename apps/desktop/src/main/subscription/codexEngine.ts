@@ -47,6 +47,7 @@
  * a ChatGPT account ». So no `-m` is ever passed — a single catalog entry.
  */
 import type { StreamDone } from "@openmasq/llm";
+import { promptWithSystem } from "./bridge";
 import { interpretCodexEvent } from "./codexStream";
 import { streamCliProcess } from "./spawnStream";
 
@@ -78,10 +79,9 @@ export const CODEX_DISABLED_FEATURES = [
 ] as const;
 
 /** `codex exec` has NO system field: it is prefixed to the prompt, clearly separated.
- *  One single home, so the text turn and the tooled turn say the same thing. */
-export function codexPrompt(system: string | undefined, prompt: string): string {
-  return system ? `Instructions système :\n${system}\n\n---\n\n${prompt}` : prompt;
-}
+ *  The wording lives in `bridge.ts` (`promptWithSystem`) — shared with the other CLI
+ *  without a system field — and this name stays for its two call sites. */
+export const codexPrompt = promptWithSystem;
 
 export interface CodexTurnOptions {
   /** Absolute path resolved by `resolveCli`. */

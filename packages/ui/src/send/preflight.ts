@@ -35,11 +35,13 @@ export interface PreflightInput {
    *  through so the gate and the picker agree (rule 9): both block a local model whose
    *  server is confirmed unreachable. Unknown (null/absent) never blocks. */
   localEndpointReachable?: boolean | null;
-  /** Le fournisseur `claude-cli` est-il prêt (réglage activé + CLI détectée) ? Passé
-   *  tel quel à `modelUnavailableReason` — seul `true` ouvre (fail-closed). */
+  /** Is the `claude-cli` provider ready (setting enabled + CLI detected)? Passed
+   *  as-is to `modelUnavailableReason` — only `true` opens it (fail-closed). */
   claudeCliReady?: boolean | null;
-  /** Idem pour `codex-cli`. */
+  /** Same for `codex-cli`. */
   codexCliReady?: boolean | null;
+  /** Same for `antigravity-cli`. */
+  antigravityCliReady?: boolean | null;
 }
 
 /**
@@ -62,9 +64,9 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
   if (p.orgProfile?.status === "suspended") {
     return { text: "Votre accès a été suspendu par votre organisation — l'envoi est bloqué." };
   }
-  // ALLOW-list : le modèle doit figurer dans ce que l'organisation a ouvert. Un modèle
-  // absent de la liste est refusé — y compris un modèle arrivé au catalogue après
-  // l'écriture de la politique, que l'ancienne liste de refus laissait passer.
+  // ALLOW-list: the model must appear in what the organization has opened up. A model
+  // absent from the list is refused — including a model that joined the catalog after
+  // the policy was written, which the old deny-list would have let through.
   if (p.orgProfile && !(p.orgProfile.allowedModelIds ?? []).includes(p.model.id)) {
     return { text: new ModelBlockedByOrgError(p.model.id, p.model.label).message };
   }
@@ -82,16 +84,17 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     localEndpointReachable: p.localEndpointReachable,
     claudeCliReady: p.claudeCliReady,
     codexCliReady: p.codexCliReady,
+    antigravityCliReady: p.antigravityCliReady,
   });
 
-  // L'ACCÈS GRATUIT ne sert que deux modèles (`FREE_MODE_MODEL_IDS`) : celui-ci n'en est
-  // pas, et il n'y a NI abonnement NI clé. On le dit tel quel — « crédits épuisés » serait
-  // faux (aucun crédit n'a jamais existé) sur un modèle que le catalogue affiche
-  // « gratuit ». Les deux issues sont les mêmes que pour un budget épuisé, d'où la même
-  // carte d'actions : prendre un abonnement, ou renseigner sa propre clé.
+  // FREE ACCESS serves only two models (`FREE_MODE_MODEL_IDS`): this one isn't one of
+  // them, and there is NEITHER a subscription NOR a key. We say so plainly — « crédits
+  // épuisés » would be wrong (no credit ever existed) for a model the catalog shows as
+  // « gratuit ». Both outcomes are the same as for an exhausted budget, hence the same
+  // action card: take a subscription, or provide your own key.
   if (reason === "free_mode_only") {
     return {
-      // Sans rien à vendre (`subscriptionsSold`, le défaut), la seule issue est la clé.
+      // With nothing to sell (`subscriptionsSold`, the default), the only way out is the key.
       text: subscriptionsSold()
         ? `L'accès gratuit de ${BRAND.name} sert Laguna et Nemotron. Pour ce modèle, prenez un ` +
           "abonnement, ou renseignez votre propre clé."
@@ -122,11 +125,11 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
       };
     }
     const personalCreditsBlocked = !p.orgProfile && (p.personalCredits?.blocked ?? false);
-    // Membre d'org (budget géré par l'admin) ou compte sans facturation : la moitié
-    // ACTIONNABLE du message — « utilisez votre propre clé » — devient un bouton au
-    // lieu d'un texte mort (journal 02/08 : carte sans issue). `missing_key` ouvre la
-    // modale de clé du provider puis régénère en place, plomberie existante ; l'option
-    // abonnement reste du ressort de l'admin, donc pas de carte d'upsell ici.
+    // Org member (budget managed by the admin) or account with no billing: the
+    // ACTIONABLE half of the message — « utilisez votre propre clé » — becomes a button
+    // instead of dead text (log 02/08: a card with no way out). `missing_key` opens the
+    // provider's key modal then regenerates in place, existing plumbing; the subscription
+    // option stays the admin's call, so no upsell card here.
     return {
       text: new CreditsExhaustedError(personalCreditsBlocked).message,
       action: { kind: "missing_key", provider: p.provider, label: PROVIDERS[p.provider].label },
@@ -139,8 +142,8 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     // regenerates in place. (Platform providers need no user key — the platform's backend
     // holds it.)
     return {
-      // Même règle que la pastille du sélecteur : la sortie « abonnement » n'est nommée
-      // que si ce build a un service hébergé (`platformAccess.ts`).
+      // Same rule as the picker's chip: the « abonnement » way out is named only if
+      // this build has a hosted service (`platformAccess.ts`).
       text:
         `Clé manquante pour ${PROVIDERS[p.provider].label}. Renseignez-la pour envoyer` +
         (platformAccessServed() ? ` — ou choisissez un modèle inclus ${includedWith(BRAND.name, getMessages(DEFAULT_LOCALE))}.` : "."),
@@ -149,8 +152,9 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
   }
 
   if (reason === "cli_unavailable") {
-    // Conversation épinglée sur un fournisseur CLI (`claude-cli`/`codex-cli`) alors que
-    // la CLI a disparu ou que le réglage a été coupé : le chemin de réparation, nommé.
+    // Conversation pinned on a CLI provider (`claude-cli`/`codex-cli`/
+    // `antigravity-cli`) while
+    // the CLI has disappeared or the setting was switched off: the repair path, named.
     return {
       text:
         `Ce modèle passe par la CLI ${PROVIDERS[p.provider].label}, introuvable ou ` +
@@ -163,7 +167,7 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     // Self-hosted model with no endpoint set. Sending would silently fall back to a
     // default localhost port the user never chose, so fail closed with the real reason.
     return {
-      // Le CHEMIN exact reste : c'est un réglage qu'on ne trouve pas au hasard.
+      // The exact PATH stays: it's a setting you don't stumble on by chance.
       text: "Adresse manquante pour ce modèle local. Ajoutez-la dans Réglages → Modèles.",
     };
   }

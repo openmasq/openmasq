@@ -139,6 +139,15 @@ export const modelPicker = {
       missingDesc:
         "CLI not found on this machine: install it (npm i -g @openai/codex), connect it with “codex login”, then come back here.",
     },
+    antigravity: {
+      title: "Your Google Antigravity subscription",
+      note: "If you have an Antigravity subscription and its “agy” CLI installed, your conversations can go through it — with no API key. Redaction applies as everywhere: the model only ever sees replaced data. ⚠️ This path goes through third-party software, which Antigravity's terms do not provide for: the risk falls on your Google account.",
+      rowTitle: "Use my Antigravity CLI",
+      onDesc:
+        "Adds “Antigravity” to the model list. Every send draws on your personal Google subscription, and the app's connectors are not offered there (its CLI cannot carry them).",
+      missingDesc:
+        "CLI not found on this machine: install Antigravity, connect it to your Google account, then come back here.",
+    },
   },
 } satisfies Messages["modelPicker"];
 

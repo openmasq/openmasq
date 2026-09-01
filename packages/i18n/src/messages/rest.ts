@@ -105,10 +105,17 @@ export interface ModelPickerMessages {
   addKey: string;
   /** The model running on your machine. */
   local: { eyebrow: string; note: string; label: string };
-  /** The two subscription CLIs — same shape, two providers. */
+  /** The subscription CLIs — same shape, one provider each. */
   cli: {
     claude: { title: string; note: string; rowTitle: string; onDesc: string; missingDesc: string };
     codex: { title: string; note: string; rowTitle: string; onDesc: string; missingDesc: string };
+    antigravity: {
+      title: string;
+      note: string;
+      rowTitle: string;
+      onDesc: string;
+      missingDesc: string;
+    };
   };
 }
 

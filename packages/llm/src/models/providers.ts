@@ -91,6 +91,14 @@ export const PROVIDERS: Record<ProviderId, ProviderInfo> = {
     keyless: true,
     hostCountry: { code: "US", label: "Hébergé aux États-Unis" },
   },
+  "antigravity-cli": {
+    id: "antigravity-cli",
+    // L'abonnement Google Antigravity de l'utilisateur, via sa CLI `agy` installée et
+    // déjà connectée. Keyless par nature : l'auth vit dans la CLI, jamais ici.
+    label: "Antigravity",
+    keyless: true,
+    hostCountry: { code: "US", label: "Hébergé aux États-Unis" },
+  },
   "codex-cli": {
     id: "codex-cli",
     // The user's ChatGPT subscription, via their Codex CLI installed and connected
