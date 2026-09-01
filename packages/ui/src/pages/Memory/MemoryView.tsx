@@ -77,7 +77,7 @@ export function MemoryView({
   // Semantic edges from the on-device index (desktop). Present ⇒ the CLUSTERED view
   // (groups by meaning, the embedder's whole point); absent ⇒ the category radial.
   const { edges: semEdges } = useMemoryIndex(memoire);
-  // « À revoir » + le filet de suppression — la logique du flux de revue.
+  // "À revoir" + the delete safety net — the review-flow logic.
   const review = useMemoryReview(memoire, semEdges, { onUpdate, onRemove, onRestore, onMerge });
   const matched = useMemo(() => {
     let ids: Set<string> | null = matchingCardIds(memoire, query);
@@ -88,8 +88,8 @@ export function MemoryView({
     if (!review.fresh || !review.freshIds.size) return ids;
     return ids ? new Set([...ids].filter((id) => review.freshIds.has(id))) : review.freshIds;
   }, [memoire, query, catFilter, review.fresh, review.freshIds]);
-  // L'usage réel, depuis les traces persistées des envois (`memoryUsed`/`memorySkipped`
-  // sur les messages) — ce qui rend la valeur de la mémoire VISIBLE sur la page.
+  // The real usage, from the persisted send traces (`memoryUsed`/`memorySkipped`
+  // on the messages) — what makes the Mémoire's value VISIBLE on the page.
   const usage = useMemo(() => memoryUsageIndex(conversations ?? []), [conversations]);
   // Chat-caption deep-link → select that card's node (opens its side panel).
   useEffect(() => {
@@ -114,15 +114,15 @@ export function MemoryView({
     );
   };
 
-  // Nom UNIQUE à chaque création : `autoCleanMemory` fusionne d'office deux fiches de
-  // même catégorie qui partagent une clé — un placeholder au nom FIXE s'auto-détruisait.
+  // UNIQUE name on every creation: `autoCleanMemory` automatically merges two cards of the
+  // same category that share a key — a placeholder with a FIXED name would self-destruct.
   const addCard = () => {
     const card = onAdd({ entity: newCardEntity(memoire.cards), facts: "", cat: "personne" });
     if (card) setSelected(`card-${card.id}`);
   };
 
-  // UN panneau pour les deux vues (éditer, historique, connexions) — la liste et le
-  // graphe sélectionnent le même id de nœud, le panneau ne fork jamais.
+  // ONE panel for both views (edit, history, connections) — the list and the
+  // graph select the same node id, the panel never forks.
   const panel = selNode && (
     <MemoryNodePanel
       node={selNode}
@@ -150,8 +150,8 @@ export function MemoryView({
           <div className="om-mem-actions">
             <MemoryPageMenu onExport={exportDebug} />
             <button type="button" className="btn-primary om-skill-new" onClick={addCard}>
-              {/* Une seule promesse : ce geste crée une fiche. Le graphe ne relie
-                  que sur une MENTION dans les faits, jamais sur une création. */}
+              {/* A single promise: this action creates a card. The graph only links
+                  on a MENTION in the facts, never on a creation. */}
               <PlusIcon size={16} />
               {t.lists.memory.newCard}
             </button>
@@ -166,18 +166,18 @@ export function MemoryView({
           <div className="om-skill-filters">
             <label className="om-mem-auto">
               <Switch checked={memoryAuto} onChange={onToggleAuto} />
-              {/* La GARANTIE reste, le mot « redacted » part : sur cette page le
-                  redaction n'est pas le sujet, mais « est-ce que ça fait sortir plus de
-                  mes données ? » est exactement la question qu'un interrupteur
-                  d'extraction automatique pose. Ne retirez pas la seconde phrase. */}
+              {/* The GUARANTEE stays, the word "redacted" goes: on this page
+                  redaction isn't the subject, but "does this send more of
+                  my data out?" is exactly the question an auto-extraction
+                  switch raises. Don't remove the second sentence. */}
               <span>
                 Extraction automatique — {BRAND.name} note seul les faits durables. Rien de nouveau ne
                 quitte votre machine.
               </span>
             </label>
             <span className="om-skill-spacer" />
-            {/* La légende FILTRE — un clic sur une catégorie restreint la liste et
-                estompe le graphe, exactement comme la recherche (même `matched`). */}
+            {/* The legend FILTERS — clicking a category narrows the list and
+                fades the graph, exactly like search (same `matched`). */}
             {legend.map((c) => (
               <button
                 key={c.id}
@@ -207,8 +207,8 @@ export function MemoryView({
             />
           )}
 
-          {/* Le doublon vit dans la boîte « À revoir » : compté dans son chip, montré
-              sous son filtre — jamais une bannière qui pousse la page à chaque visite. */}
+          {/* The duplicate lives in the "À revoir" box: counted in its chip, shown
+              under its filter — never a banner that pushes the page down on every visit. */}
           {review.fresh && review.mergeHint && (
             <MemoryMergeHint
               hint={review.mergeHint}
@@ -224,12 +224,12 @@ export function MemoryView({
           {memoire.cards.length === 0 && !memoire.profile?.trim() && !loaded ? (
             <div className="library-empty">{t.lists.loading}</div>
           ) : memoire.cards.length === 0 && !memoire.profile?.trim() ? (
-            // Les trois points disent déjà la forme, le geste et le bénéfice : le corps ne
-            // les répète pas, il ne garde que les exemples et le régime au repos.
-            // ⚠️ Pas « tout reste sur votre machine » : une fiche part sur les autres
-            // appareils dès que la synchro est active (`packages/sync/src/userdata.ts`).
-            // Chiffrée, elle, l'est toujours — ici retirée de l'instantané en clair
-            // (`useMemory.ts`), et de bout en bout en transit.
+            // The three bullet points already say the shape, the action and the benefit: the body
+            // doesn't repeat them, it only keeps the examples and the at-rest regime.
+            // ⚠️ Not "everything stays on your machine": a card goes out to other
+            // devices as soon as sync is active (`packages/sync/src/userdata.ts`).
+            // Encrypted, though, it always is — here removed from the in-clear snapshot
+            // (`useMemory.ts`), and end-to-end in transit.
             <EmptyState
               tone="violet"
               eyebrow={t.sections.memory.label}
@@ -262,8 +262,8 @@ export function MemoryView({
           ) : (
             <div className="om-mem-stage">
               <MemoryGraph graph={graph} selected={selected} matched={matched} onSelect={setSelected} />
-              {/* La légende des TRAITS — sans elle, plein/pointillé est un code privé.
-                  Le trait sémantique n'est listé que quand la vue le dessine. */}
+              {/* The STROKE legend — without it, solid/dashed is a private code.
+                  The semantic stroke is only listed when the view draws it. */}
               <div className="om-mem-edge-legend">
                 <span className="om-mem-edge-key">
                   <span className="om-mem-edge-swatch cat" />

@@ -21,7 +21,7 @@ describe("modelMark", () => {
   });
 
   it("keeps the id's OWN vendor over the aggregator prefix", () => {
-    // Un id namespacé nomme SON vendeur : le glyphe suit le modèle, pas la passerelle.
+    // A namespaced id names ITS OWN vendor: the glyph follows the model, not the gateway.
     expect(modelMark("openrouter", "deepseek/deepseek-chat-v3.1")).toEqual({
       kind: "glyph",
       glyph: "deepseek",

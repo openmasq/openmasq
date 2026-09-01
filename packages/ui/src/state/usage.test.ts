@@ -144,10 +144,10 @@ describe("formatTokens", () => {
     expect(formatTokens(178115)).toBe("178\u202f115");
   });
 
-  // Le panneau Usage somme le blob d'usage de CHAQUE message ; il suffit d'un import ou
-  // d'un tour d'un schéma plus ancien pour qu'un champ manque et que le total devienne
-  // NaN. Un « NaN » en display de 38 px n'est pas un compteur, c'est un bug affiché —
-  // et l'app dit ses échecs, elle ne les habille pas.
+  // The Usage panel sums the usage blob of EVERY message; it only takes an import or
+  // a turn from an older schema for a field to be missing and the total to become
+  // NaN. A « NaN » in a 38px display is not a counter, it's a displayed bug —
+  // and the app states its failures, it doesn't dress them up.
   it("dit « — » plutôt que NaN quand le total n'est pas un nombre fini", () => {
     expect(formatTokens(Number.NaN)).toBe("—");
     expect(formatTokens(Number.POSITIVE_INFINITY)).toBe("—");

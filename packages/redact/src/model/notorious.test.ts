@@ -349,7 +349,7 @@ describe("Cdiscount — deux marques notoires doivent recevoir le même traiteme
 describe("la FORME JURIDIQUE ne doit pas rater la dispense (constat 15/08, relevé réel)", () => {
   const spared = (v: string) => isNotoriousEntity(v, "company", { commercial: true });
 
-  /** In Renforcé, on the counterparty labels of a real statement: « Ovh Sas » and
+  /** In Enhanced, on the counterparty labels of a real statement: « Ovh Sas » and
    *  « Github, Inc. » were REDACTED although the policy exempts them, while a
    *  real customer was going out in clear — the opposite of the intent. */
   it("une marque connue reste dispensée sous son libellé bancaire", () => {

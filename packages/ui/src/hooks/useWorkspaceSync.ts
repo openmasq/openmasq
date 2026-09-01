@@ -63,10 +63,10 @@ export function useWorkspaceSync(
     if (a !== (chat.activeId ?? null)) chat.setActiveId(a);
   }, [layout, chat.activeId, chat.setActiveId]);
 
-  // Il n'y a PLUS de seed de démarrage. Il créait une conversation vide à froid parce
-  // qu'un premier message sur le null-convId disparaissait — depuis, `ChatPane.onSend`
-  // crée lui-même quand le pane n'a pas de conversation vivante (accueil, ref fantôme),
-  // et « Nouvelle conversation » ne crée plus rien non plus (`showWelcomePane`) : la
-  // conversation naît au PREMIER ENVOI, partout. Re-seeder ici referait exactement la
-  // ligne vide « Nouvelle conversation » que la création différée supprime.
+  // There is NO MORE startup seed. It used to create an empty conversation cold because
+  // a first message on the null-convId used to vanish — since then, `ChatPane.onSend`
+  // creates it itself when the pane has no live conversation (home, ghost ref),
+  // and « Nouvelle conversation » no longer creates anything either (`showWelcomePane`): the
+  // conversation is born on the FIRST SEND, everywhere. Re-seeding here would recreate exactly the
+  // empty « Nouvelle conversation » row that deferred creation removes.
 }

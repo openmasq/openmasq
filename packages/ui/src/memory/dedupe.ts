@@ -73,12 +73,12 @@ export function distinctIdentities(a: MemoryCard, b: MemoryCard): boolean {
 }
 
 /**
- * Une fiche SANS FAIT — la fiche vierge que « Nouvelle fiche » vient de poser, pas
- * encore nommée. On ne suggère JAMAIS de la fusionner : elle n'apporte aucune donnée à
- * préserver, son nom par défaut partage un jeton avec le placeholder suivant (« fiche »
- * ⊂ « fiche »), et le seul cas certain — même clé, même catégorie — est déjà refondu
- * par `autoCleanMemory`. Sans ce filtre, poser deux fiches vierges remplissait la boîte
- * « À revoir » d'un doublon imaginaire.
+ * A card WITH NO FACT — the blank card that "Nouvelle fiche" just created, not
+ * yet named. Merging it is NEVER suggested: it brings no data worth
+ * preserving, its default name shares a token with the next placeholder ("fiche"
+ * ⊂ "fiche"), and the one certain case — same key, same category — is already merged
+ * by `autoCleanMemory`. Without this filter, creating two blank cards used to fill the
+ * "À revoir" box with an imaginary duplicate.
  */
 const blank = (c: MemoryCard): boolean => !c.facts.trim();
 
@@ -127,9 +127,9 @@ export function duplicateSuggestions(
  * caller persists (update keep, remove drop).
  */
 export function mergeCards(keep: MemoryCard, drop: MemoryCard, now = Date.now()): MemoryCard {
-  // Troncature à la FRONTIÈRE de phrase (jamais un slice en pleine phrase) — et ce
-  // qu'une saturation évince entre dans l'historique, avec les historiques des DEUX
-  // cartes fusionnés (plus récent d'abord, borné).
+  // Truncation at the sentence BOUNDARY (never a mid-sentence slice) — and what
+  // a saturation evicts goes into the history, with the histories of BOTH
+  // cards merged (most recent first, bounded).
   const merged = normalizeMem(keep.facts).includes(normalizeMem(drop.facts))
     ? { facts: keep.facts, replaced: [] }
     : appendFactsClamped(keep.facts, drop.facts);
@@ -189,14 +189,14 @@ export function autoCleanMemory(
     cards.push(c);
   }
 
-  // 4 · Une carte qui SE REDIT — les reformulations accumulées AVANT que `restates`
-  //     sache les voir (« …associé à Camille Salvi dans le cadre du projet Horizon » /
-  //     « …comme cliente du projet Horizon », un mot d'écart par passage d'extraction)
-  //     se recompactent par la même règle que l'insertion : replier chaque phrase dans
-  //     les précédentes via `mergeFacts`. Reformulation perdante ⇒ pas d'historique
-  //     (l'affirmation est la même), comme à l'insertion. Idempotent : un texte déjà
-  //     compact se replie sur lui-même à l'identique. Cartes `source:"auto"` SEULEMENT :
-  //     un texte rédigé par l'utilisateur ne se réécrit pas.
+  // 4 · A card that REPEATS ITSELF — reformulations accumulated BEFORE `restates`
+  //     knew how to see them (« …associé à Camille Salvi dans le cadre du projet Horizon » /
+  //     « …comme cliente du projet Horizon », one word's drift per extraction pass)
+  //     get recompacted by the same rule as insertion: fold each sentence into
+  //     the previous ones via `mergeFacts`. A losing reformulation ⇒ no history
+  //     (the claim is the same), same as at insertion. Idempotent: a text that is already
+  //     compact folds back onto itself unchanged. `source:"auto"` cards ONLY:
+  //     text authored by the user is never rewritten.
   let recompacted = 0;
   cards = cards.map((c) => {
     if (c.source !== "auto") return c;

@@ -205,9 +205,9 @@ export function RedactionRulesContent({
                   >
                     <strong>{openCopy.label}</strong> — {openCopy.detail}
                     {openCopy.impact && (
-                      // L'autre moitié de l'obligation de confiance (règle 8) : dire aussi
-                      // ce que la protection peut FAUSSER — un âge calculé, une entreprise
-                      // inconnue du modèle — là où l'on coche, pas dans une doc lointaine.
+                      // The other half of the trust obligation (rule 8): also say
+                      // what the protection can DISTORT — a computed age, a company
+                      // unknown to the model — right where you check the box, not in some distant doc.
                       <span className="rrm-cat-impact">{openCopy.impact}</span>
                     )}
                   </div>

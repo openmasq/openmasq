@@ -1,9 +1,9 @@
 import { str, type FakeServer } from "./kit";
 
-// Deuxième vague de la flotte — l'objectif de COUVERTURE : chaque connecteur du
-// catalogue finit par avoir son FakeServer (noms/schémas transcrits du réel, résultats
-// fixtures thème Karl Studio / Atelier Torbel). Utilisés par les scénarios alambiqués
-// (`catalog.workflows2.ts`) et par le mode `OPENMASQ_EVAL_SERVERS=all` (conflits).
+// Second wave of the fleet — the COVERAGE goal: every connector in the catalogue
+// eventually gets its FakeServer (names/schemas transcribed from the real thing,
+// fixture results themed Karl Studio / Atelier Torbel). Used by the elaborate
+// scenarios (`catalog.workflows2.ts`) and by `OPENMASQ_EVAL_SERVERS=all` mode (conflicts).
 
 export const GITHUB: FakeServer = {
   id: "github",

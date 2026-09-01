@@ -29,41 +29,41 @@ function workspaceSrcInDev() {
 }
 
 /**
- * Ce qui vaut pour les TROIS bundles expédiés (main, preload, renderer).
+ * What applies to the THREE shipped bundles (main, preload, renderer).
  *
- * Un `.asar` n'est pas du chiffrement (c'est un tar avec un index) : tout ce qui est ici
- * se lit chez l'utilisateur. Le bundle partait NON minifié, commentaires intacts — or les
- * commentaires de cette app décrivent le modèle de menace et la garde qui le couvre,
- * c'est-à-dire le document le plus utile qu'on puisse offrir à qui cherche un trou. La
- * minification ne « protège » rien (elle est réversible), elle cesse simplement de FOURNIR
- * l'explication avec le code.
+ * A `.asar` is not encryption (it's a tar with an index): everything here
+ * is readable at the user's. The bundle used to ship NOT minified, comments intact — yet this
+ * app's comments describe the threat model and the guard that covers it,
+ * i.e. the most useful document we could hand someone looking for a hole. Minification
+ * doesn't "protect" anything (it's reversible), it simply stops SUPPLYING
+ * the explanation along with the code.
  *
- * Sourcemaps en `"hidden"` : produites dans `out/` SANS `sourceMappingURL` — le bundle
- * livré ne réfère jamais sa map. Elles existent pour UN destinataire : l'upload Sentry de
- * `release.yml` (symbolication des stacks ; sans elles, chaque frame que
- * `sentry/policy.ts` préserve résout vers `index.js:1:184232` et le groupement casse à
- * chaque release — audit 13/08). Ce qui garantit qu'elles ne PARTENT pas chez
- * l'utilisateur : `electron-builder.yml` exclut les `.map` du dossier `out` de l'app
- * (motif « !out/⋯.map », deux étoiles — écrit ainsi ici parce que la séquence réelle
- * fermerait CE commentaire), et `scripts/check-shipped-bundles.mjs` VÉRIFIE cette
- * exclusion : une map dans `out/` est un artefact d'upload ; une map dans le `.app`
- * serait la livraison de l'explication.
+ * Sourcemaps in `"hidden"` mode: produced in `out/` WITHOUT a `sourceMappingURL` — the
+ * shipped bundle never references its map. They exist for ONE recipient: `release.yml`'s
+ * Sentry upload (stack symbolication; without them, every frame
+ * `sentry/policy.ts` preserves resolves to `index.js:1:184232` and grouping breaks on
+ * every release — audit 13/08). What guarantees they don't SHIP to
+ * the user: `electron-builder.yml` excludes the `.map` files from the app's `out`
+ * folder (pattern "!out/⋯.map", two stars — written this way here because the real
+ * sequence would close THIS comment), and `scripts/check-shipped-bundles.mjs` VERIFIES
+ * this exclusion: a map in `out/` is an upload artifact; a map in the `.app`
+ * would be delivering the explanation.
  */
 const shipped = { minify: true as const, sourcemap: "hidden" as const };
 
 /**
- * `VITE_BACKEND_BYPASS` est le secret d'automation-bypass Vercel, et un bundle est lisible
- * chez l'utilisateur : **toute build qui le porte publie ce secret**.
+ * `VITE_BACKEND_BYPASS` is the Vercel automation-bypass secret, and a bundle is readable
+ * at the user's: **any build carrying it publishes that secret**.
  *
- * Depuis l'artefact unique, AUCUN build à canal (= un build de CI, candidat ou stable) n'a
- * le droit de l'embarquer : le même binaire sert les candidats et le parc, donc « accepté
- * pour staging » n'existe plus — il n'y a plus de build qui ne soit que de staging. La
- * variable ne survit que pour le DEV local (`.env.development.local`, jamais empaqueté),
- * le temps que la protection Vercel de staging soit retirée au profit d'une autorisation
- * par compte (voir `infra/` + apps/desktop/CLAUDE.md).
+ * Since the single artifact, NO channeled build (= a CI, candidate, or stable build) is
+ * allowed to embed it: the same binary serves the candidates and the fleet, so "accepted
+ * for staging" no longer exists — there is no longer a build that is staging-only. The
+ * variable only survives for local DEV (`.env.development.local`, never packaged),
+ * until staging's Vercel protection is removed in favor of per-account
+ * authorization (see `infra/` + apps/desktop/CLAUDE.md).
  *
- * Une garde, pas un ternaire de workflow : elle tient dans TOUS les chemins de build (CI,
- * release locale) et fait ÉCHOUER l'empaquetage au lieu d'expédier le secret.
+ * A guard, not a workflow ternary: it holds across ALL build paths (CI,
+ * local release) and makes packaging FAIL instead of shipping the secret.
  */
 function assertNoBakedBypass() {
   const channel = process.env.VITE_UPDATES_CHANNEL ?? "";
@@ -81,7 +81,7 @@ assertNoBakedBypass();
 // The app version, baked into the renderer as import.meta.env.VITE_APP_VERSION so the
 // analytics sink can stamp it on every event (a CI `VITE_APP_VERSION` override wins).
 const pkgVersion = (JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8")) as { version: string }).version;
-// La marque n'a qu'une maison (règle 9) : les valeurs par défaut brandées en dérivent.
+// The brand has only one home (rule 9): the branded defaults derive from it.
 const BRAND = JSON.parse(readFileSync(resolve(__dirname, "../../packages/branding/branding.json"), "utf8")) as { name: string; domain: string };
 
 // Dev-only: the renderer's static CSP (src/renderer/index.html) whitelists prod
@@ -106,11 +106,11 @@ export default defineConfig({
   main: {
     resolve: {
       alias: {
-        // Le pair OPTIONNEL de linkedom : gardé par un try/catch à l'exécution, mais
-        // vite remplace un pair optionnel absent par un module qui JETTE au chargement
-        // (hissé hors du try) — le build passait, l'app mourait au boot. L'alias résout
-        // vers un stub qui reproduit le repli de linkedom ; `scripts/check-bundle.mjs`
-        // (branché sur `build`) interdit le retour de cette classe entière.
+        // linkedom's OPTIONAL peer: guarded by a runtime try/catch, but
+        // vite replaces a missing optional peer with a module that THROWS on load
+        // (hoisted out of the try) — the build used to pass, the app died at boot. The alias resolves
+        // to a stub that reproduces linkedom's fallback; `scripts/check-bundle.mjs`
+        // (wired into `build`) forbids the return of this entire class of bug.
         canvas: resolve(__dirname, "src/main/net/canvasStub.ts"),
       },
     },
@@ -163,7 +163,7 @@ export default defineConfig({
     // (src/main/updates.ts reads them). Unset → "" → the code's own defaults win.
     // VITE_UPDATES_CHANNEL is what ties a build to its environment: a staging
     // build ships defaulting to `desktop-staging`, a prod build to `desktop-production`.
-    // Identifiants + canaux bakés au build — AUCUN défaut lié à un compte (voir scripts/buildDefines.ts).
+    // Identifiers + channels baked at build time — NO default tied to an account (see scripts/buildDefines.ts).
     define: mainDefines(),
     build: {
       ...shipped,
@@ -173,8 +173,8 @@ export default defineConfig({
           // The in-process filesystem tool's utilityProcess worker → out/main/fsWorker.js
           // (LocalFsConnection forks it). Self-contained (node builtins + fs/grant only).
           fsWorker: resolve(__dirname, "src/main/fs/worker.ts"),
-          // Le worker d'EXTRACTION (pdf.js + OCR + parseurs) → out/main/extractWorker.js
-          // (ocr/extractClient.ts le forke) — l'extraction ne bloque plus l'IPC de main.
+          // The EXTRACTION worker (pdf.js + OCR + parsers) → out/main/extractWorker.js
+          // (ocr/extractClient.ts forks it) — extraction no longer blocks main's IPC.
           extractWorker: resolve(__dirname, "src/main/ocr/extractWorker.ts"),
           // The offline NER inference worker → out/main/nerWorker.js (localNer.ts forks it),
           // so a seconds-long BERT inference runs OFF the main event loop.
@@ -190,15 +190,15 @@ export default defineConfig({
     plugins: [workspaceSrcInDev(), externalizeDepsPlugin()],
     build: {
       ...shipped,
-      // ⛔ NE PAS activer `esbuild.keepNames` ici. `browserStealth.ts` SÉRIALISE
-      // `applyStealthPatches` (`.toString()`) pour l'évaluer dans le MONDE PRINCIPAL de la
-      // page — un autre realm, où seul le texte de la fonction arrive. `keepNames` fait
-      // injecter à esbuild un appel d'assistant `__name(fn, "…")` À L'INTÉRIEUR du corps,
-      // pour restaurer `.name` ; cet assistant est une liaison de MODULE. Sérialisé, le
-      // corps référence donc un identifiant qui n'existe pas dans la page, et jette — dans
-      // un `try/catch {}` qui l'avale : les patches ne s'appliquent simplement plus, sans
-      // un mot. Mesuré à l'essai (`c(u,"applyStealthPatches")` dans le bundle), et c'est
-      // `preload/browserStealth.bundle.test.ts` qui tient la règle, sur le bundle CONSTRUIT.
+      // ⛔ DO NOT enable `esbuild.keepNames` here. `browserStealth.ts` SERIALIZES
+      // `applyStealthPatches` (`.toString()`) to evaluate it in the page's MAIN
+      // WORLD — a different realm, where only the function's text arrives. `keepNames` makes
+      // esbuild inject a helper call `__name(fn, "…")` INSIDE the body,
+      // to restore `.name`; that helper is a MODULE binding. Serialized, the
+      // body then references an identifier that doesn't exist in the page, and throws — inside
+      // a `try/catch {}` that swallows it: the patches simply stop applying, without
+      // a word. Measured by testing it (`c(u,"applyStealthPatches")` in the bundle), and it's
+      // `preload/browserStealth.bundle.test.ts` that enforces the rule, on the BUILT bundle.
       rollupOptions: {
         input: {
           index: resolve(__dirname, "src/preload/index.ts"),
@@ -239,7 +239,7 @@ export default defineConfig({
       workspaceSrcInDev(),
       react(),
       tailwindcss(),
-      // La CSP n'autorise que le projet Supabase du BUILD (env), plus aucun committé.
+      // The CSP only allows the BUILD's Supabase project (env), no longer any committed one.
       brandIndexHtml(BRAND, process.env.OPENMASQ_SUPABASE_URL),
       devLocalhostCsp(),
     ],

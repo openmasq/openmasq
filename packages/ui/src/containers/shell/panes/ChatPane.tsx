@@ -105,7 +105,7 @@ export function ChatPane({
       // workspace a non-focused pane must preview its OWN rules, not whichever tab
       // was last clicked elsewhere.
       onDetectPii={(text, signal) => chat.detectPii(text, signal, convId)}
-      // « Comprendre mon redaction » → le guide, ouvert sur SON chapitre.
+      // « Comprendre mon redaction » → the guide, opened on ITS chapter.
       onOpenGuideChapter={shell.guide.openChapter}
       onStop={() => conv.stopPane(convId)}
       onChangeModel={conv.changeModel}

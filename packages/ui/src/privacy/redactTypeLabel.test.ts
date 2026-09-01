@@ -4,14 +4,14 @@ import { REDACT_TYPES } from "@openmasq/redact";
 import { redactTypeLabel } from "./redactTypeLabel";
 
 /**
- * LA PARITÉ ENTRE LE MOTEUR ET LE CATALOGUE.
+ * PARITY BETWEEN THE ENGINE AND THE CATALOGUE.
  *
- * `REDACT_TYPES` vit dans `@openmasq/redact` (le `token` est la langue du moteur) et son
- * étiquette lue dans `@openmasq/i18n`. Aucun compilateur ne peut lier les deux : le
- * catalogue est une interface fermée, la liste du moteur un tableau de `string`. Le repli
- * sur le `label` français est donc SILENCIEUX — un type ajouté au moteur sans sa
- * traduction s'afficherait en français au milieu d'une interface anglaise, sans rien
- * casser. C'est ce test qui le refuse (règle 9 : un marqueur de synchro nomme son test).
+ * `REDACT_TYPES` lives in `@openmasq/redact` (the `token` is the engine's language) and its
+ * label is read from `@openmasq/i18n`. No compiler can link the two: the
+ * catalogue is a closed interface, the engine's list a `string` array. The fallback
+ * to the French `label` is therefore SILENT — a type added to the engine with no
+ * translation would display in French in the middle of an English interface, without
+ * breaking anything. This test is what refuses that (rule 9: a sync marker names its test).
  */
 describe("redactTypeLabel — le moteur et le catalogue nomment les mêmes types", () => {
   it.each(LOCALES)("[%s] chaque type du moteur a son étiquette traduite", (locale) => {
@@ -32,7 +32,7 @@ describe("redactTypeLabel — le moteur et le catalogue nomment les mêmes types
   });
 
   it("retombe sur l'étiquette du moteur pour une clé inconnue — jamais un vide", () => {
-    // Le repli existe parce que l'extension, hors de ce dépôt, lit encore `label`.
+    // The fallback exists because the extension, outside this repo, still reads `label`.
     const orphan = { key: "inconnu", label: "Étiquette du moteur", token: "X" };
     expect(redactTypeLabel(orphan, getMessages("en"))).toBe("Étiquette du moteur");
   });

@@ -5,14 +5,14 @@ import { FailedTurnCard } from "./FailedTurnCard";
 import { mount } from "../../testKit";
 import { humanizeSendError } from "../../state/errors";
 
-/** La carte « Crédits épuisés » doit offrir une ISSUE, pas un texte mort (journal
- *  02/08 : un membre d'org bloqué n'avait que « Réessayer »). Et son eyebrow reste
- *  honnête : la clé est une issue PROPOSÉE, pas la cause du blocage. */
-// Le bandeau se décide sur le TEXTE, donc raccourcir un message ailleurs peut le faire
-// basculer en silence — c'est arrivé en raccourcissant celui du quota, qui commençait par
-// « Le quota gratuit… ». Ce test relit le message RÉEL plutôt qu'une constante recopiée.
-/* Les classes d'erreur et leurs gestes ne dépendent pas de la langue ; le catalogue
-   français est le témoin, et les motifs attendus plus bas sont les siens. */
+/** The « Crédits épuisés » card must offer a WAY OUT, not dead text (journal
+ *  02/08: a blocked org member only had « Réessayer »). And its eyebrow stays
+ *  honest: the key is a PROPOSED way out, not the cause of the block. */
+// The banner is decided on the TEXT, so shortening a message elsewhere can silently
+// flip it — it happened by shortening the quota one, which began with
+// « Le quota gratuit… ». This test reads the REAL message rather than a copied constant.
+/* The error classes and their remedies don't depend on the language; the French
+   catalogue is the witness, and the patterns expected below are its own. */
 const t = getMessages("fr");
 
 describe("FailedTurnCard — un quota épuisé n'est pas un abonnement requis", () => {
@@ -52,7 +52,7 @@ describe("FailedTurnCard — le blocage crédits offre le geste clé", () => {
         onRetry={() => {}}
       />,
     );
-    expect(ui.el.textContent).toContain("Envoi impossible"); // jamais « Clé requise » ici
+    expect(ui.el.textContent).toContain("Envoi impossible"); // never « Clé requise » here
     expect(ui.el.textContent).not.toContain("Clé requise");
     await ui.click(".btn-primary");
     expect(onAction).toHaveBeenCalledWith("a1", expect.objectContaining({ kind: "missing_key" }));

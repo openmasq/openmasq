@@ -40,15 +40,15 @@ describe("debug log — per-conversation scoping", () => {
     pushDebug({ type: "error", scope: "s", message: "c1" }, "c1");
     pushDebug({ type: "error", scope: "s", message: "c2" }, "c2");
     pushDebug({ type: "error", scope: "s", message: "global" });
-    // Appelle LA règle (`debugScope.ts`) au lieu de la retranscrire : une copie ici a
-    // exactement la valeur d'un commentaire — elle continuerait de passer après un
-    // durcissement qu'elle est censée protéger.
+    // Calls THE rule (`debugScope.ts`) instead of retranscribing it: a copy here has
+    // exactly the value of a comment — it would keep passing after a
+    // hardening it's supposed to protect.
     const forC1 = getDebugLog().filter((e) => isEntryVisibleIn(e, "c1"));
-    // « global » n'est PLUS de la partie : une entrée non attribuée n'appartient à aucune
-    // conversation, donc ne s'affiche dans aucune (12/08 — voir `debugScope.test.ts`).
+    // "global" is NO LONGER part of it: an unattributed entry belongs to no
+    // conversation, so it shows in none (12/08 — see `debugScope.test.ts`).
     expect(forC1.map((e) => e.type === "error" && e.message)).toEqual(["c1"]);
-    // Et le journal de c2 ne montre pas davantage celui de c1 : c'est la même règle vue de
-    // l'autre côté, et c'est ce que « changer de conversation change le journal » veut dire.
+    // And c2's journal doesn't show c1's either: it's the same rule seen from
+    // the other side, and that's what "switching conversation changes the journal" means.
     const forC2 = getDebugLog().filter((e) => isEntryVisibleIn(e, "c2"));
     expect(forC2.map((e) => e.type === "error" && e.message)).toEqual(["c2"]);
   });
@@ -70,10 +70,10 @@ describe("debug log — per-conversation scoping", () => {
 });
 
 /**
- * Le BROUILLON : un fichier déposé sur un chat NEUF travaille pour une conversation qui
- * n'existe pas encore. Ces cas épinglent le bug d'origine (journal du 11/08/2026) : les
- * entrées OCR/redaction du dépôt partaient sans `conv`, donc s'affichaient dans TOUTES
- * les conversations — et l'anneau étant persisté, pour toujours.
+ * The DRAFT: a file dropped on a NEW chat works for a conversation that
+ * doesn't exist yet. These cases pin the original bug (journal from 11/08/2026): the
+ * drop's OCR/redaction entries went out with no `conv`, so they showed in EVERY
+ * conversation — and with the ring persisted, forever.
  */
 describe("debug log — le brouillon (chat pas encore créé)", () => {
   beforeEach(() => {
@@ -96,7 +96,7 @@ describe("debug log — le brouillon (chat pas encore créé)", () => {
     adoptDraftDebug("c-nouvelle");
     const forNew = getDebugLog().filter((e) => isEntryVisibleIn(e, "c-nouvelle"));
     expect(forNew).toHaveLength(2);
-    // Rien n'est resté orphelin sur le brouillon, et l'autre fil n'a rien absorbé.
+    // Nothing stayed orphaned on the draft, and the other thread absorbed nothing.
     expect(getDebugLog().some((e) => e.conv === DRAFT_CONV)).toBe(false);
     expect(getDebugLog().filter((e) => isEntryVisibleIn(e, "c-autre"))).toHaveLength(1);
   });
@@ -105,7 +105,7 @@ describe("debug log — le brouillon (chat pas encore créé)", () => {
     pushDebug({ type: "error", scope: "s", message: "x" }, "c1");
     const before = getDebugLog();
     adoptDraftDebug("c2");
-    expect(getDebugLog()).toBe(before); // même référence : rien recopié
+    expect(getDebugLog()).toBe(before); // same reference: nothing copied
   });
 });
 
@@ -148,25 +148,25 @@ describe("debug log — persistence via attachDebugStore", () => {
   });
 
   /**
-   * Le symptôme rapporté le 12/08 : « en changeant de conversation le journal de débogage
-   * reste le même ». Sa cause n'était pas les émetteurs (ils estampillent tous) mais
-   * l'anneau PERSISTÉ : un blob écrit avant que l'estampillage soit complet contient des
-   * entrées sans `conv`, et la règle de portée les montrait alors dans CHAQUE conversation.
-   * Persisté ⇒ éternel, et plafonné à 200 ⇒ elles prenaient la place des vraies.
+   * The symptom reported on 12/08: "switching conversation leaves the debug journal
+   * looking the same". Its cause wasn't the emitters (they all stamp) but
+   * the PERSISTED ring: a blob written before stamping was complete contains
+   * entries with no `conv`, and the scoping rule then showed them in EVERY conversation.
+   * Persisted ⇒ forever, and capped at 200 ⇒ they took the place of the real ones.
    */
   it("jette les entrées non attribuées du blob, et ré-écrit le blob nettoyé UNE fois", async () => {
     const store = makeStore(
       JSON.stringify([
         { id: "d1", at: 1, type: "error", scope: "s", message: "héritée, sans conv" },
         { id: "d2", at: 2, conv: "c1", type: "error", scope: "s", message: "de c1" },
-        // Une entrée non attribuée PORTANT du réel : elle était déjà masquée, mais elle
-        // restait sur le disque. Elle part aussi.
+        // An unattributed entry CARRYING real data: it was already hidden, but it
+        // stayed on disk. It goes too.
         { id: "d3", at: 3, type: "tool", name: "document-redaction", ok: true, pairs: [{ token: "F", original: "Vrai Nom" }] },
       ]),
     );
     await attachDebugStore(store);
     expect(getDebugLog().map((e) => e.conv)).toEqual(["c1"]);
-    // Le nettoyage est ÉCRIT : sans ça un journal qu'on n'alimente plus les garderait.
+    // The cleanup is WRITTEN: without that, a journal nobody feeds anymore would keep them.
     await vi.advanceTimersByTimeAsync(1000);
     expect(store.saved).toHaveLength(1);
     expect(store.saved[0]).not.toContain("Vrai Nom");

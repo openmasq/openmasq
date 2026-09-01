@@ -72,7 +72,7 @@ export function Sidebar({
 }: Props) {
   const { section, go } = useSectionNav();
   const t = useT();
-  // Les portes gouvernables : une section fermée sort de la nav (`state/featureAccess.ts`).
+  // The governable gates: a closed section drops out of the nav (`state/featureAccess.ts`).
   const access = useFeatureAccess();
   const [pendingDelete, setPendingDelete] = useState<Conversation | null>(null);
   const groups = useMemo(
@@ -133,13 +133,13 @@ export function Sidebar({
         })}
       </nav>
 
-      {/* Les compétences ÉPINGLÉES — un clic les met en scène, tout l'intérêt de
-          l'épingle. Masqué entièrement quand rien n'est épinglé. Celles qui pilotent des
-          connecteurs portent le même glyphe qu'ailleurs : c'est le CHAMP `servers` qui
-          décide, jamais une seconde liste. */}
-      {/* Usage fermé : les épingles partent avec le reste. Sans ça, l'épingle resterait
-          le seul moyen de mettre en scène une compétence — depuis une page devenue
-          inatteignable (`state/featureAccess.ts`). */}
+      {/* The PINNED compétences — one click puts them into play, that's the whole point of
+          pinning. Hidden entirely when nothing is pinned. The ones that drive
+          connectors wear the same glyph as elsewhere: it's the `servers` FIELD that
+          decides, never a second list. */}
+      {/* Closed usage: the pins leave along with the rest. Without that, the pin would stay
+          the only way to put a compétence into play — from a page that's become
+          unreachable (`state/featureAccess.ts`). */}
       {featureUsage("competences") && pinnedCompetences.length > 0 && (
         <div className="om-skill-pins">
           {pinnedCompetences.map((c) => (
@@ -164,7 +164,7 @@ export function Sidebar({
       )}
 
       {/* `role="listbox"` pairs with each `ConvRow`'s `role="option"` — the rows are
-          focusable and keyboard-selectable (Entrée/Espace), see ConvRow. The visible
+          focusable and keyboard-selectable (Enter/Space), see ConvRow. The visible
           eyebrow is aria-hidden because the group already announces the same label. */}
       <nav className="conv-list" role="listbox" aria-label={t.chrome.conversations}>
         {conversations.length === 0 && (

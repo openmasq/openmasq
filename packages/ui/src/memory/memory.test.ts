@@ -69,10 +69,10 @@ describe("bounds + normalization", () => {
   it("freshCardIds — TRAITER vide la boîte : une fiche revue sort, une retouche machine ultérieure la ré-enrôle", () => {
     const now = 1_000_000_000_000;
     const base = { ...card({ entity: "Client Auto", facts: "x", cat: "personne" }), source: "auto" as const, updatedAt: now - 1000 };
-    // Revue (Confirmer / édition depuis le panneau) — reviewedAt ≥ updatedAt ⇒ sortie.
+    // Reviewed (Confirm / edit from the panel) — reviewedAt ≥ updatedAt ⇒ exits.
     const reviewed = { ...base, reviewedAt: now - 1000 };
     expect(freshCardIds({ cards: [reviewed] }, now).size).toBe(0);
-    // La machine repasse APRÈS la revue ⇒ la fiche revient dans la boîte.
+    // The machine touches it again AFTER the review ⇒ the card comes back into the box.
     const touchedAgain = { ...base, reviewedAt: now - 2000, updatedAt: now - 100 };
     expect(freshCardIds({ cards: [touchedAgain] }, now)).toEqual(new Set([base.id]));
   });
@@ -82,8 +82,8 @@ describe("bounds + normalization", () => {
     expect(matchingCardIds(m, "")).toBeNull();
     expect(matchingCardIds(m, "  ")).toBeNull();
     const byEntity = matchingCardIds(m, "karl")!;
-    expect(byEntity.size).toBe(2); // la carte Karl Studio + l'alias e-mail d'Augustin
-    const byFacts = matchingCardIds(m, "EVREUX")!; // accent plié, casse ignorée
+    expect(byEntity.size).toBe(2); // the Karl Studio card + Augustin's email alias
+    const byFacts = matchingCardIds(m, "EVREUX")!; // accent folded, case ignored
     expect(byFacts.size).toBe(1);
     expect(matchingCardIds(m, "introuvable-zzz")!.size).toBe(0);
   });

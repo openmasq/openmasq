@@ -1,4 +1,4 @@
-/* ═══ Onglets unifiés (kit) : right rail, side panel, non-chat tab kinds ═══
+/* ═══ Unified tabs (kit): right rail, side panel, non-chat tab kinds ═══
    Barrel — the family outgrew the 300-line cap (rule 1), so it splits by
    surface: `tabs/rail.css` (the rail's base chrome), `tabs/rail-list.css`
    (the kit's collapsed/expanded width states, the expanded browser-tab list and

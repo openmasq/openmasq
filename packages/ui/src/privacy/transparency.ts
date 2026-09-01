@@ -3,47 +3,47 @@ import { conversationProtectedCount, protectedEntries } from "../state/protected
 import type { Conversation, Message } from "../types";
 
 /**
- * TRANSPARENCE — « voyez ce que le modèle a vu ».
+ * TRANSPARENCY — « voyez ce que le modèle a vu ».
  *
- * Le produit tient déjà sa promesse, mais il ne la MONTRE qu'à qui sait où regarder :
- * une marque au survol, une ligne sous chaque message, et un comparatif message-par-
- * message qui n'existait que dans le journal technique, réservé aux comptes internes.
- * Un utilisateur ordinaire ne pouvait donc pas VÉRIFIER — seulement croire. C'est le
- * constat de l'audit du 27/07 : la fonction existait, cachée dans « Développeur ».
+ * The product already keeps its promise, but only SHOWS it to those who know where
+ * to look: a mark on hover, a line under each message, and a message-by-message
+ * comparison that only existed in the technical log, reserved for internal accounts.
+ * An ordinary user therefore could not VERIFY — only believe. That is the
+ * finding of the 27/07 audit: the feature existed, hidden inside « Développeur ».
  *
- * Rien ici n'a besoin d'être enregistré au moment de l'envoi : ce que le modèle a reçu
- * se REDÉRIVE du texte réel et du coffre de la conversation, par la même substitution
- * que le send (`applyVault`). Le comparatif ne peut donc pas mentir en dérivant d'une
- * copie prise à part — il rejoue la même fonction, sur les mêmes données.
+ * Nothing here needs to be recorded at send time: what the model received
+ * is RE-DERIVED from the real text and the conversation's coffre, via the same
+ * substitution as the send (`applyVault`). The comparison therefore cannot lie by
+ * deriving from a copy taken aside — it replays the same function, on the same data.
  */
 
-/** Un message et sa contrepartie telle qu'elle est partie. */
+/** A message and its counterpart as it actually went out. */
 export interface TransparencyPair {
   id: string;
   role: Message["role"];
-  /** Ce que l'utilisateur a écrit — valeurs réelles. */
+  /** What the user wrote — real values. */
   real: string;
-  /** Ce que le modèle a reçu — valeurs remplacées par leurs pseudonymes. */
+  /** What the model received — values replaced by their pseudonyms. */
   wire: string;
-  /** Nombre de valeurs effectivement remplacées dans CE message. */
+  /** Number of values actually replaced in THIS message. */
   swapped: number;
 }
 
 /**
- * Le texte du message tel qu'il compte pour la transparence : `modelContent` quand il
- * existe (il porte les documents dépliés, donc ce qui est VRAIMENT parti), sinon le
- * contenu affiché.
+ * The message text as it counts for transparency: `modelContent` when it
+ * exists (it carries the expanded documents, i.e. what ACTUALLY went out), otherwise the
+ * displayed content.
  */
 function sourceText(m: Message): string {
   return m.modelContent ?? m.content ?? "";
 }
 
 /**
- * Combien de valeurs protégées apparaissent réellement dans ce texte.
+ * How many protected values actually appear in this text.
  *
- * ⚠️ Sur `protectedEntries`, jamais sur le coffre brut : celui-ci porte les ALIAS d'une
- * même valeur (chaque mot d'un nom, ses casses, le domaine d'une adresse), et les compter
- * annonçait « 9 remplacements » au-dessus de deux colonnes qui en montrent 4.
+ * ⚠️ Over `protectedEntries`, never over the raw coffre: the latter carries the ALIASES of a
+ * single value (each word of a name, its cases, an address's domain), and counting them
+ * used to announce "9 replacements" above two columns that show 4.
  */
 function countSwapped(real: string, wire: string, entries: [string, string][]): number {
   let n = 0;
@@ -52,12 +52,12 @@ function countSwapped(real: string, wire: string, entries: [string, string][]): 
 }
 
 /**
- * Le comparatif d'une conversation : un couple par message qui a réellement quelque
- * chose à montrer.
+ * A conversation's comparison: one pair per message that actually has
+ * something to show.
  *
- * ⚠️ Les messages SANS substitution sont écartés — un couple identique des deux côtés
- * n'apprend rien et dilue ceux qui comptent. C'est aussi ce qui rend l'encart honnête :
- * s'il annonce « N infos protégées », les N sont visibles.
+ * ⚠️ Messages WITHOUT any substitution are discarded — an identical pair on both sides
+ * teaches nothing and dilutes the ones that matter. This is also what makes the card
+ * honest: if it announces "N infos protected", the N are visible.
  */
 export function transparencyPairs(conv: Conversation): TransparencyPair[] {
   const vault = conv.redactionVault ?? {};
@@ -67,8 +67,8 @@ export function transparencyPairs(conv: Conversation): TransparencyPair[] {
   for (const m of conv.messages ?? []) {
     const real = sourceText(m);
     if (!real.trim()) continue;
-    // La substitution reste celle du send : le coffre ENTIER, alias compris. Seul le
-    // COMPTE se lit sur les valeurs distinctes.
+    // The substitution stays the send's: the WHOLE coffre, aliases included. Only the
+    // COUNT is read on distinct values.
     const wire = applyVault(real, vault);
     if (wire === real) continue;
     out.push({ id: m.id, role: m.role, real, wire, swapped: countSwapped(real, wire, entries) });
@@ -77,23 +77,23 @@ export function transparencyPairs(conv: Conversation): TransparencyPair[] {
 }
 
 /**
- * Combien de valeurs distinctes ont été protégées dans cette conversation — le N de
- * l'encart. Ré-export de la définition unique (`state/protectedCount.ts`) : l'encart, le
- * bouclier du rail et l'en-tête du chat sont lus côte à côte, deux formules s'y liraient
- * comme un bug sur les données de l'utilisateur.
+ * How many distinct values were protected in this conversation — the card's
+ * N. Re-export of the single definition (`state/protectedCount.ts`): the card, the
+ * rail's shield and the chat header are read side by side, two formulas there would read
+ * as a bug on the user's own data.
  */
 export const protectedValueCount = conversationProtectedCount;
 
 /**
- * L'encart doit-il s'afficher ?
+ * Should the card show?
  *
- * Quatre conditions, et la première est celle qui le rend supportable : il ne se montre
- * QU'UNE FOIS, jamais par conversation. Un bandeau de réassurance qui revient à chaque
- * nouveau chat cesse d'être lu au troisième, et devient le bruit dont l'utilisateur
- * apprend à se débarrasser — l'inverse de ce que l'audit demande.
+ * Four conditions, and the first is what makes it bearable: it shows
+ * ONLY ONCE, never per conversation. A reassurance banner that comes back on every
+ * new chat stops being read by the third time, and becomes the noise the user
+ * learns to get rid of — the opposite of what the audit asks for.
  *
- * Il attend AUSSI la première réponse : avant elle, l'utilisateur n'a encore rien vu
- * partir, et « voyez ce que le modèle a vu » ne désigne rien.
+ * It ALSO waits for the first reply: before it, the user has not yet seen anything
+ * go out, and "voyez ce que le modèle a vu" points at nothing.
  */
 export function shouldShowTransparencyCard(
   conv: Conversation | null | undefined,

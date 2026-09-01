@@ -18,7 +18,7 @@ const freeSub = { tier: "free", status: "free" } as unknown as BillingSubscripti
 const paidSub = { tier: "solo", status: "active" } as unknown as BillingSubscription;
 const okCredits = { blocked: false } as unknown as CreditBalance;
 
-/** Compte SANS rien : ni clé, ni abonnement — seuls les `:free` sont envoyables. */
+/** Account with NOTHING: no key, no subscription — only `:free` models are sendable. */
 const FREE_TIER: AutoRouteAvailability = {
   billingMode: undefined,
   keyConfigured: new Set<string>(),
@@ -29,7 +29,7 @@ const FREE_TIER: AutoRouteAvailability = {
   localEndpointReachable: null,
 };
 
-/** Abonné payant, sans clé perso : les modèles plateforme (passerelle métrée) s'ouvrent. */
+/** Paying subscriber, no personal key: platform models (metered gateway) open up. */
 const SUBSCRIBED: AutoRouteAvailability = { ...FREE_TIER, personalSub: paidSub, personalCredits: okCredits };
 
 const SIGNALS: AutoRouteSignals = {
@@ -70,7 +70,7 @@ describe("classifyAutoTask", () => {
     const t = `Traduis ce paragraphe en anglais : ${"la réunion de mardi est reportée. ".repeat(20)}`;
     expect(t.length).toBeGreaterThan(280);
     expect(classifyAutoTask({ ...SIGNALS, text: t })).toBe("leger");
-    // Mais le LOURD gagne : la même longueur avec un verbe expert n'est pas légère.
+    // But HEAVY wins: the same length with an expert verb is not light.
     expect(classifyAutoTask({ ...SIGNALS, text: `optimise puis ${t}` })).toBe("expert");
   });
   it("une consigne multi-étapes est experte", () => {
@@ -85,8 +85,8 @@ describe("classifyAutoTask", () => {
 
 describe("resolveAutoModel — le côté sûr", () => {
   it("ne choisit JAMAIS un modèle que la barrière d'envoi refuserait", () => {
-    // Propriété, pas cas par cas : sur plusieurs comptes ET plusieurs signaux, l'élu
-    // repasse toujours la MÊME barrière que preflightError (règle 9).
+    // A PROPERTY, not case by case: across several accounts AND several signals, the
+    // pick always passes the SAME gate as preflightError (rule 9).
     const accounts = [FREE_TIER, SUBSCRIBED, { ...FREE_TIER, personalSub: null }];
     const signalSets: AutoRouteSignals[] = [
       SIGNALS,
@@ -123,8 +123,8 @@ describe("resolveAutoModel — le côté sûr", () => {
 
   it("abonné : une tâche experte PEUT escalader vers un modèle métré — et le dit", () => {
     const r = resolveAutoModel(CANDIDATES, { ...SIGNALS, attachmentChars: 30_000 }, SUBSCRIBED)!;
-    // L'escalade est le comportement voulu (le meilleur profil raisonnement/code de ce
-    // compte est un modèle plateforme) et `billing` la rend EXPLICITE pour l'UI.
+    // The escalation is the intended behaviour (the best reasoning/code profile for
+    // this account is a platform model) and `billing` makes it EXPLICIT for the UI.
     expect(r.taskClass).toBe("expert");
     expect(r.billing).toBe("metered");
     expect(isFreeModel(r.model.id)).toBe(false);
@@ -142,12 +142,12 @@ describe("resolveAutoModel — le côté sûr", () => {
   });
 
   /**
-   * ⚠️ CONSÉQUENCE ASSUMÉE de l'offre gratuite à deux modèles (18/08) : Laguna et
-   * Nemotron 3 Ultra sont TEXTE SEUL. Sans abonnement ni clé, aucun candidat ne satisfait
-   * « des images partent ⇒ vision obligatoire », donc l'Auto ne choisit RIEN et l'appelant
-   * retombe sur le modèle par défaut — plutôt que d'élire un modèle qui ne verra pas
-   * l'image. Le jour où un `:free` vision entre dans `FREE_MODE_MODEL_IDS`, ce cas tombe
-   * de lui-même, et c'est le signal qu'il faut relire cette décision.
+   * ⚠️ ACCEPTED CONSEQUENCE of the two-model free offer (18/08): Laguna and
+   * Nemotron 3 Ultra are TEXT ONLY. With no subscription or key, no candidate satisfies
+   * « images are sent ⇒ vision is mandatory », so Auto picks NOTHING and the caller
+   * falls back to the default model — rather than electing a model that won't see
+   * the image. The day a `:free` vision model enters `FREE_MODE_MODEL_IDS`, this case
+   * falls away on its own, and that is the signal to revisit this decision.
    */
   it("offre gratuite : des images ⇒ AUCUN candidat (les deux modèles sont texte seul)", () => {
     expect(resolveAutoModel(CANDIDATES, { ...SIGNALS, hasImages: true }, FREE_TIER)).toBeNull();
@@ -160,7 +160,7 @@ describe("resolveAutoModel — le côté sûr", () => {
   });
 
   it("un très gros document exclut les petites fenêtres de contexte", () => {
-    // ~400k tokens d'entrée : seules les fenêtres ≥ ~600k restent candidates.
+    // ~400k input tokens: only windows ≥ ~600k remain candidates.
     const r = resolveAutoModel(CANDIDATES, { ...SIGNALS, attachmentChars: 1_600_000 }, FREE_TIER)!;
     expect(r.model.id).toMatch(/nemotron-3-(ultra|super)/);
   });
@@ -172,7 +172,7 @@ describe("resolveAutoModel — le côté sûr", () => {
   });
 
   it("aucun candidat envoyable ⇒ null (fail closed, l'appelant retombe sur le défaut)", () => {
-    // Une liste sans aucun gratuit, pour un compte gratuit sans clé : tout est refusé.
+    // A list with no free model at all, for a free account with no key: everything is refused.
     const paidOnly = CANDIDATES.filter((m) => !isFreeModel(m.id));
     expect(resolveAutoModel(paidOnly, SIGNALS, { ...FREE_TIER })).toBeNull();
   });

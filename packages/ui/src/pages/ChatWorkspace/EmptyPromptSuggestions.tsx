@@ -48,18 +48,18 @@ function StarterCard({
     <button
       type="button"
       className="om-starter"
-      // L'invite ENTIÈRE est ici : la carte n'en montre qu'une ligne (la hauteur est
-      // l'écran d'accueil lui-même), l'infobulle de marque rend le reste au survol —
-      // précédée de la catégorie, qui n'est plus écrite sur la carte.
+      // The WHOLE prompt is here: the card only shows one line of it (the height is
+      // the welcome screen itself), the branded tooltip renders the rest on hover —
+      // preceded by the category, which is no longer written on the card.
       title={t.conversation.starters.cardTip(connector?.name ?? starter.cat, starter.prompt)}
       aria-label={t.conversation.starters.cardAria(connector?.name ?? starter.cat, starter.prompt)}
       onClick={() => onPick(starter.prompt)}
     >
-      {/* UNE ligne, et la CATÉGORIE n'y est plus écrite : empilée, la carte faisait 78 px
-          et huit cartes 538 — l'accueil débordait par le bas après avoir poussé le bonjour
-          par le haut. Écrite à côté, elle laissait « Rédige un email de… » et l'invite ne
-          disait plus rien. Le glyphe la porte donc seul (quatre icônes distinctes, le LOGO
-          du service sinon), et le mot reste dans l'infobulle et le nom accessible. */}
+      {/* ONE line, and the CATEGORY is no longer written there: stacked, the card was 78px
+          and eight cards 538 — the welcome screen overflowed at the bottom after pushing the greeting
+          up top. Written beside it, it left « Rédige un email de… » and the prompt
+          said nothing anymore. So the glyph alone carries it (four distinct icons, the service's
+          LOGO otherwise), and the word stays in the tooltip and the accessible name. */}
       {connector ? (
         <McpTile id={connector.id} name={connector.name} tone={connector.tone ?? "mint"} sm />
       ) : (
@@ -71,11 +71,11 @@ function StarterCard({
 }
 
 /**
- * Un service NON connecté : une PUCE, pas une carte.
+ * A NON-connected service: a CHIP, not a card.
  *
- * Quatre cartes répétant « Connecter pour l'essayer sur vos données » disaient une fois
- * la même chose et occupaient la moitié de l'accueil — au point de pousser le bonjour
- * hors de l'écran. L'offre tient sur une ligne : le logo, le nom, et le geste.
+ * Four cards repeating "Connecter pour l'essayer sur vos données" said the same
+ * thing four times and took up half the welcome screen — to the point of pushing the greeting
+ * off screen. The offer fits on one line: the logo, the name, and the action.
  */
 function ConnectChip({
   starter,
@@ -106,8 +106,8 @@ export function EmptyPromptSuggestions({
   onDismiss,
 }: {
   onPick: (prompt: string) => void;
-  /** Ouvre la liste COMPLÈTE des connecteurs. Les puces ne montrent que les services des
-   *  amorces — sans cette porte, le catalogue entier n'existe pas pour qui arrive ici. */
+  /** Opens the FULL list of connectors. The chips only show the starters'
+   *  services — without this door, the whole catalogue doesn't exist for someone arriving here. */
   onSeeAll?: () => void;
   /** « Ne plus proposer » — absent ⇒ the cards cannot be dismissed. */
   onDismiss?: () => void;
@@ -120,8 +120,8 @@ export function EmptyPromptSuggestions({
     memoryOpen: access.memory,
   });
   const openConnector = useOpenConnector();
-  // Connectés = des cartes (elles portent une vraie question) ; le reste = des puces.
-  // Sans ouvreur monté (banc d'essai, test), une offre ne mène nulle part : on la tait.
+  // Connected = cards (they carry a real question); the rest = chips.
+  // With no opener mounted (test bench, test), an offer leads nowhere: it stays silent.
   const live = integrations.filter((s) => s.connected);
   const offers = openConnector ? integrations.filter((s) => !s.connected) : [];
   const row = (list: PickedStarter[]) => (
@@ -145,9 +145,9 @@ export function EmptyPromptSuggestions({
               {offers.map((s) => (
                 <ConnectChip key={s.id} starter={s} onConnect={openConnector!} />
               ))}
-              {/* Les puces ne portent QUE les services des amorces — quatre sur un
-                  catalogue bien plus large. La porte vers le reste se lit donc au bout de
-                  la ligne, là où l'on vient de constater que le sien n'y est pas. */}
+              {/* The chips only carry the starters' services — four out of a
+                  much larger catalogue. The door to the rest therefore reads at the end of
+                  the row, right where you just noticed yours isn't there. */}
               {onSeeAll && (
                 <button type="button" className="om-starter-chip more" onClick={onSeeAll}>
                   {t.conversation.starters.seeOthers}

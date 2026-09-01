@@ -1,40 +1,40 @@
 import type { UpdateStatus } from "../../../../host";
 
 /**
- * Ce que la page Versions doit MONTRER — la décision, pas le rendu.
+ * What the Versions page must SHOW — the decision, not the rendering.
  *
- * Pour la personne qui utilise l'app, « quelle version tourne, sur quel canal, et voici
- * l'historique publié » ne répond à aucune question qu'elle se pose. La seule qui compte
- * est « est-ce que je suis à jour ? », et l'app y répond déjà toute seule. Le détail
- * technique reste utile à NOUS — sur une build de staging, où l'on bascule d'un canal à
- * l'autre et où l'on épingle une version.
+ * For the person using the app, "which version is running, on which channel, and here's
+ * the published history" answers no question they're actually asking. The only one that matters
+ * is "am I up to date?", and the app already answers that on its own. The
+ * technical detail stays useful to US — on a staging build, where we switch from one channel
+ * to another and pin a version.
  *
- * ⚠️ « à jour » est une AFFIRMATION, pas une mise en page : elle n'est vraie que si
- * l'updater est au repos. Dès qu'il cherche, télécharge, tient une build prête ou a
- * échoué, c'est ÇA qu'il faut dire — sinon la page rassure pendant qu'une mise à jour
- * attend, ou pire, pendant qu'elle a échoué.
+ * ⚠️ "up to date" is an ASSERTION, not a layout: it's only true if
+ * the updater is at rest. As soon as it's checking, downloading, holding a build ready, or has
+ * failed, that's what must be SAID — otherwise the page reassures while an update
+ * is waiting, or worse, while it has failed.
  */
 
-/** Une build de staging : c'est là que le détail technique sert. */
+/** A staging build: that's where the technical detail is useful. */
 export function isStagingBuild(
   current: { channel?: string } | null,
   channels: readonly { channel: string; env: string }[] = [],
 ): boolean {
   const ch = current?.channel?.toLowerCase() ?? "";
   if (!ch) return false;
-  // Le canal PORTE l'environnement dans son nom (`desktop-staging`) ; la liste
-  // privilégiée, quand elle est là, tranche mieux — elle donne l'`env` publié.
+  // The channel CARRIES the environment in its name (`desktop-staging`); the privileged
+  // list, when present, decides better — it gives the published `env`.
   const known = channels.find((c) => c.channel.toLowerCase() === ch);
   if (known) return known.env.toLowerCase() !== "production";
   return ch.includes("staging") || ch.includes("dev") || ch.includes("beta");
 }
 
 export type VersionsView =
-  /** Rien à dire de plus : « l'app est à jour ». */
+  /** Nothing more to say: « l'app est à jour ». */
   | { kind: "upToDate" }
-  /** L'updater travaille (ou a échoué) : la ligne d'état prend la parole. */
+  /** The updater is working (or failed): the status line takes over. */
   | { kind: "busy" }
-  /** Build de staging (ou appareil privilégié) : tout le détail technique. */
+  /** Staging build (or privileged device): all the technical detail. */
   | { kind: "technical" };
 
 export function versionsView(
@@ -42,12 +42,12 @@ export function versionsView(
   opts: {
     current: { channel?: string } | null;
     channels?: readonly { channel: string; env: string }[];
-    /** Appareil autorisé à épingler / basculer d'environnement : il a besoin du détail. */
+    /** Device allowed to pin / switch environment: it needs the detail. */
     privileged?: boolean;
   },
 ): VersionsView {
   if (opts.privileged || isStagingBuild(opts.current, opts.channels)) return { kind: "technical" };
-  // Au repos ⇒ la phrase courte. Pas d'état = l'updater n'a rien à signaler, et
-  // « not-available » EST le repos, juste après une vérification.
+  // At rest ⇒ the short sentence. No state = the updater has nothing to report, and
+  // "not-available" IS rest, right after a check.
   return !status || status.state === "not-available" ? { kind: "upToDate" } : { kind: "busy" };
 }

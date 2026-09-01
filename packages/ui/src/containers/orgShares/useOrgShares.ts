@@ -10,14 +10,14 @@ import type { OrgShareView, OrgSharesHost } from "../../host/orgShares";
  * matrix, and the backend re-checks every call anyway.
  */
 /**
- * La cloche « Demandes » existe-t-elle ? Pure et testée (`shareInboxVisible.test.ts`).
+ * Does the « Demandes » bell exist? Pure and tested (`shareInboxVisible.test.ts`).
  *
- * Trois conditions, toutes nécessaires : le créneau `host.orgShares` (un build sans
- * backend n'a rien à lister), ET une raison d'exister — l'appartenance à une
- * organisation (les partages voyagent entre membres), ou des partages déjà présents
- * (le reliquat d'une organisation quittée reste décidable/révocable). Une cloche
- * montée pour un compte solo, ou hors connexion, est un bouton qui n'annoncera
- * jamais rien : du bruit, pas une invitation.
+ * Three conditions, all necessary: the `host.orgShares` slot (a build with no
+ * backend has nothing to list), AND a reason to exist — belonging to an
+ * organization (shares travel between members), or shares already present
+ * (the leftover from a left organization stays decidable/revocable). A bell
+ * mounted for a solo account, or offline, is a button that will never
+ * announce anything: noise, not an invitation.
  */
 export function shareInboxVisible(p: {
   available: boolean;

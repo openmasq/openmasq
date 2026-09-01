@@ -12,13 +12,13 @@ import corpus from "../bench/corpora/categoriesMinces.json";
    runbook extracts for the generic tokens; ordonnances, discharge summaries and
    Aufnahmebögen for the health data.
 
-   Toutes les valeurs à somme de contrôle sont VALIDES par construction (Luhn, double Luhn
-   SIRET, clés TVA/NIP/CNPJ/ABN…) — une valeur invalide mesurerait la tolérance du moteur,
-   pas son rappel. Les raisons sociales en prose et les tables markdown à en-têtes typés
-   sont annotées CONTEXT (portée NER / suivi « colonnes markdown », hors plancher — la
-   discipline de metric.ts).
+   All checksum values are VALID by construction (Luhn, double Luhn
+   SIRET, VAT/NIP/CNPJ/ABN keys…) — an invalid value would measure the engine's tolerance,
+   not its recall. Company names in prose and markdown tables with typed headers
+   are annotated CONTEXT (NER scope / « markdown columns » tracking, out of the floor — the
+   discipline of metric.ts).
 
-   Score le pipeline déterministe COMPLET tel qu'il est livré (`pseudonymize`, sans modèle). */
+   Scores the WHOLE deterministic pipeline exactly as it ships (`pseudonymize`, no model). */
 
 const cases = corpus as BenchCase[];
 
@@ -28,14 +28,14 @@ const detect = async (text: string): Promise<string[]> => {
   return Object.values(vault);
 };
 
-/** Les cinq catégories que ce corpus existe pour mesurer, tenues à 100 % : chacune a une
- *  forme, une somme de contrôle, un `@`/label ou un mot de scheme — le déterministe les
- *  tient toutes aujourd'hui, et ce plancher transforme toute régression en build rouge. */
+/** The five categories this corpus exists to measure, held at 100%: each has a
+ *  shape, a checksum, an `@`/label or a scheme word — the deterministic pipeline
+ *  holds all of them today, and this floor turns any regression into a red build. */
 const THIN = ["CARD", "COMPANY_ID", "USERNAME", "TOKEN", "HEALTH"] as const;
 
 describe("thin-category recall (full deterministic pipeline)", () => {
-  // 318 × pseudonymize : le timeout vitest par défaut (5 s) est trop juste sous charge
-  // (les sessions parallèles ont fait clignoter categoriesRares exactement comme ça).
+  // 318 × pseudonymize: the default vitest timeout (5s) is too tight under load
+  // (parallel sessions made categoriesRares flicker exactly this way).
   it("ne rate AUCUNE vérité des catégories minces (carte, id société, pseudo, jeton, santé)", { timeout: 60_000 }, async () => {
     const missed: string[] = [];
     for (const c of cases) {
@@ -55,17 +55,17 @@ describe("thin-category recall (full deterministic pipeline)", () => {
       `[categoriesMinces] overall ${s.found}/${s.total} (${pct(s.found, s.total)}%) FP ${s.fp}` +
         (s.misses.length ? `\n  misses: ${s.misses.join(" · ")}` : ""),
     );
-    // Mesuré à 100 % à l'introduction (CONTEXT exclu par metric.ts). La marge couvre les
-    // vérités d'ACCOMPAGNEMENT (noms, IBAN, e-mails des mêmes documents), pas les minces —
-    // elles ont leur plancher exact ci-dessus.
+    // Measured at 100% at introduction (CONTEXT excluded by metric.ts). The margin covers the
+    // ACCOMPANYING truths (names, IBANs, emails from the same documents), not the thin
+    // ones — they have their exact floor above.
     expect(s.found / s.total).toBeGreaterThanOrEqual(0.97);
   });
 
   it("garde un taux de faux positifs NUL sur ces documents", { timeout: 60_000 }, async () => {
     const s = await scoreCorpus(cases, detect);
-    // Factures, Impressum, exports de caisse : des étiquettes en majuscules partout (CIF,
-    // NIP, SIRET, MRN, CVR) — exactement la matière qui fait over-redact. Mesuré à 0 à
-    // l'introduction ; toute dérive du côté précision doit se voir.
+    // Invoices, Impressum, cash-register exports: uppercase labels everywhere (CIF,
+    // NIP, SIRET, MRN, CVR) — exactly the material that causes over-redacting. Measured at 0
+    // at introduction; any drift on the precision side must be visible.
     expect(s.fp).toBeLessThanOrEqual(2);
   });
 });

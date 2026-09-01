@@ -3,23 +3,23 @@ import { describe, it, expect } from "vitest";
 import { readStylesheet } from "./readStylesheet";
 
 /**
- * La console d'administration n'est PAS une surface de chat.
+ * The admin console is NOT a chat surface.
  *
- * `styles.css` aplatit le chat : `--border-subtle: transparent` et les ombres à `none`,
- * sur `.app` **et sur `#root`** — or `#root` est aussi le point de montage de la SPA
- * d'`apps/web`. La console héritait donc de la peau sans bordure : plus une seule
- * hairline, des cartes qui ne se distinguaient plus du panneau, là où le kit admin
- * (`.claude/skills/design-system/ui_kits/admin`) est fait de surfaces bordées. Aucun
- * typecheck ni test de rendu ne pouvait le voir — une couleur de bordure transparente
- * n'échoue nulle part, elle disparaît juste.
+ * `styles.css` flattens the chat: `--border-subtle: transparent` and shadows set to `none`,
+ * on `.app` **and on `#root`** — but `#root` is also the mount point of `apps/web`'s
+ * SPA. The console therefore inherited the borderless skin: not a single
+ * hairline left, cards no longer distinguishable from the panel, where the admin kit
+ * (`.claude/skills/design-system/ui_kits/admin`) is made of bordered surfaces. No
+ * typecheck nor render test could see it — a transparent border colour
+ * fails nowhere, it just disappears.
  *
- * Deux moitiés à tenir ensemble, d'où un seul test : la feuille doit EXCLURE la console,
- * et la console doit PORTER la marque. L'une sans l'autre ne fait rien.
+ * Two halves to hold together, hence a single test: the sheet must EXCLUDE the console,
+ * and the console must CARRY the brand. One without the other does nothing.
  */
 const CSS = readStylesheet();
-// La console vit dans le dépôt privé `infra` depuis le 31/08/2026 : sans elle à côté (le
-// dépôt public), la moitié « la console porte la marque » n'a rien à lire — la moitié
-// « la feuille l'épargne » reste vérifiable, c'est elle qui protège contre la régression CSS.
+// The console has lived in the private `infra` repo since 2026-08-31: without it alongside (the
+// public repo), the « la console porte la marque » half has nothing to read — the
+// « la feuille l'épargne » half stays verifiable, and it's the one that guards against the CSS regression.
 const SHELL_URL = new URL("../../../../apps/web/components/admin/shell/AdminShell.tsx", import.meta.url);
 const ADMIN_SHELL = existsSync(SHELL_URL) ? readFileSync(SHELL_URL, "utf8") : null;
 
@@ -28,14 +28,14 @@ describe("la peau sans bordure du chat épargne la console", () => {
     const rule = /\.app,\s*\n\s*(#root[^{]*)\{([^}]*)\}/.exec(CSS);
     expect(rule, "la règle `.app, #root { … }` a changé de forme").toBeTruthy();
     expect(rule![1]).toContain(":not(:has(.om-console))");
-    // Ce que la règle enlève, et donc ce que la console récupère en s'en excluant.
+    // What the rule removes, and hence what the console recovers by excluding itself from it.
     expect(rule![2]).toMatch(/--border-subtle:\s*transparent/);
   });
 
   it("rend la couleur d'un lien de console à ses classes utilitaires", () => {
-    // `a { color: var(--text-link) }` est HORS calque et bat donc tout utilitaire
-    // Tailwind (calqué), quelle que soit la spécificité : la nav entière ressortait en
-    // indigo. `revert-layer` rend la main aux calques inférieurs.
+    // `a { color: var(--text-link) }` is OUT OF LAYER and so beats any Tailwind
+    // utility (layered), whatever the specificity: the whole nav came out
+    // indigo. `revert-layer` hands the hand back to the lower layers.
     expect(CSS).toMatch(/\.om-console a\s*\{\s*color:\s*revert-layer;?\s*\}/);
   });
 

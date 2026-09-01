@@ -5,35 +5,35 @@ import { findModelAny } from "../../prompt/models";
 import { noticeText, pendingReplyIds, repliesToAnnounce } from "../replyNotice";
 
 /**
- * La notification système « ta réponse est arrivée » — l'OBSERVATEUR.
+ * The system notification "your reply has arrived" — the OBSERVER.
  *
- * ⚠️ Il regarde l'ÉTAT, il ne se branche pas sur la fin d'un envoi. Un tour se pose par
- * une demi-douzaine de chemins (flux terminé, flux en erreur, boucle d'outils, refus
- * fail-closed, arrêt manuel), tous dans `store.ts` : accrocher chacun, c'est en oublier
- * un au prochain chemin ajouté, et personne ne verra que la notification a disparu. Une
- * seule transition observée (`pending` → plus `pending`) les couvre tous par construction.
+ * ⚠️ It watches the STATE, it doesn't hook into a send's completion. A turn settles
+ * through half a dozen paths (finished stream, errored stream, tool loop, fail-closed
+ * refusal, manual stop), all in `store.ts`: hooking each one means forgetting one on
+ * the next path added, and nobody will notice the notification is gone. A single
+ * observed transition (`pending` → no longer `pending`) covers all of them by construction.
  *
- * Le QUAND et le QUOI sont purs et testés (`state/replyNotice.ts`). Ici : le focus de la
- * fenêtre, l'appel plateforme, et le clic qui ramène au bon fil.
+ * The WHEN and the WHAT are pure and tested (`state/replyNotice.ts`). Here: the window's
+ * focus, the platform call, and the click that returns to the right thread.
  */
 export function useReplyNotice(p: {
   conversations: Conversation[];
   activeId: string | null;
   settings: Settings;
   host: Host;
-  /** Ouvrir la conversation cliquée (la plateforme a déjà focalisé la fenêtre). */
+  /** Open the clicked conversation (the platform has already focused the window). */
   onOpen: (conversationId: string) => void;
 }): void {
   const { conversations, activeId, settings, host, onOpen } = p;
-  // Absent ⇒ le réglage n'est pas offert non plus (voir `AccountTab`) : rien à faire.
+  // Absent ⇒ the setting isn't offered either (see `AccountTab`): nothing to do.
   const on = !!host.notify && settings.notifyOnReply !== false;
 
-  // L'ensemble « en cours » du tick précédent. Une ref, pas un state : le comparer ne doit
-  // pas provoquer le rendu qui le recalcule.
+  // The "in-progress" set from the previous tick. A ref, not state: comparing it must
+  // not trigger the render that recomputes it.
   const pendingRef = useRef<Set<string>>(new Set());
-  // Le focus système, lu par événement plutôt que par `document.hasFocus()` à la volée :
-  // la transition arrive dans un effet, donc APRÈS le rendu, et l'appel ponctuel se lit
-  // parfois avant que le navigateur ait rendu le focus à la fenêtre.
+  // System focus, read via event rather than an on-the-fly `document.hasFocus()`:
+  // the transition arrives in an effect, so AFTER the render, and the one-off call
+  // sometimes reads before the browser has handed focus back to the window.
   const focusedRef = useRef(typeof document === "undefined" || document.hasFocus());
   useEffect(() => {
     const set = (v: boolean) => () => {
@@ -49,13 +49,13 @@ export function useReplyNotice(p: {
     };
   }, []);
 
-  // Le clic ramène au fil. Abonné même quand le réglage est OFF : une bannière peut
-  // survivre dans le centre de notifications à une désactivation, et la cliquer doit
-  // continuer d'ouvrir la bonne conversation plutôt que ne rien faire.
+  // The click returns to the thread. Subscribed even when the setting is OFF: a
+  // banner can survive in the notification centre past a deactivation, and clicking
+  // it must still open the right conversation rather than do nothing.
   const openRef = useRef(onOpen);
   openRef.current = onOpen;
   useEffect(() => {
-    return host.notify?.onActivate((id) => openRef.current(id)); // l'unsubscribe, explicite
+    return host.notify?.onActivate((id) => openRef.current(id)); // the unsubscribe, explicit
   }, [host]);
 
   useEffect(() => {

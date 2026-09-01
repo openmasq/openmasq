@@ -133,7 +133,7 @@ describe("groupToolCalls — collapse repeated same-tool calls", () => {
       { tool: "fetch", server: "stripe", ok: true, summary: "cus_123" },
     ]);
     expect(runs).toHaveLength(1);
-    expect(runs[0].tools).toHaveLength(2); // search (collapsed) + fetch — no wall of échec
+    expect(runs[0].tools).toHaveLength(2); // search (collapsed) + fetch — no wall of failure
     expect(runs[0].tools[0]).toMatchObject({
       name: "search",
       state: "done",
@@ -237,23 +237,23 @@ describe("summarizeToolResult", () => {
 });
 
 describe("un refus utilisateur n'est PAS un échec", () => {
-  // Régression (constat 14/08) : refuser une écriture sur la carte de confirmation
-  // rendait `ok:false` nu — le tracé peignait « échec » et la bulle offrait
-  // « Réessayer » sur l'action qu'on venait précisément de refuser.
+  // Regression (noted 14/08): declining a write on the confirmation card
+  // rendered a bare `ok:false` — the trace painted « échec » and the bubble offered
+  // « Réessayer » on the very action just declined.
   const refus = { tool: "send_email", server: "gmail", ok: false, declined: true };
   const panne = { tool: "send_email", server: "gmail", ok: false };
 
   it("hasFailedTool ignore le refus — pas de bandeau « une étape a échoué »", () => {
     expect(hasFailedTool([refus])).toBe(false);
     expect(hasFailedTool([panne])).toBe(true);
-    // Un flux mêlant les deux garde le bandeau : la vraie panne, elle, se réessaie.
+    // A flow mixing both keeps the banner: the real failure is the one that gets retried.
     expect(hasFailedTool([refus, panne])).toBe(true);
   });
 
   it("le tracé porte l'état « declined », distinct d'« error »", () => {
     const [run] = groupToolCalls([refus]);
     expect(run!.tools[0]!.state).toBe("declined");
-    // …et un refus ne compte pas comme tentative échouée d'une ligne repliée.
+    // …and a decline doesn't count as a failed attempt of a collapsed row.
     expect(run!.tools[0]!.failures).toBe(0);
   });
 });
@@ -270,8 +270,8 @@ describe("un échec porte sa cause jusqu'à la ligne (15/08/2026)", () => {
     ]);
     const row = runs[0]?.tools[0];
     expect(row?.state).toBe("error");
-    // C'est cette note que la ligne affiche : « échec — refusé par … ». Sans elle,
-    // l'utilisateur ne lit que la paraphrase du modèle, qui accuse le service tiers.
+    // This is the note the row displays: « échec — refusé par … ». Without it,
+    // the user only reads the model's paraphrase, which blames the third-party service.
     expect(row?.note).toContain(`refusé par ${BRAND.name}`);
   });
 });

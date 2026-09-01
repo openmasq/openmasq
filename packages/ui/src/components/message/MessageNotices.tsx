@@ -25,8 +25,8 @@ export function MessageNotices({
   const quota = quotaNotice(t, message.quotaLeft);
   return (
     <>
-      {/* Mode AUTO : quel modèle a été élu et sur quel argent l'envoi est parti —
-          l'escalade métrée est EXPLICITE sous la réponse, jamais silencieuse. */}
+      {/* AUTO mode: which model got picked and whose money the send ran on —
+          the metered escalation is EXPLICIT under the reply, never silent. */}
       {message.autoRouted && (
         <div
           className="shield-caption"

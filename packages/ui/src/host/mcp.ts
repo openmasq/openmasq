@@ -29,8 +29,8 @@ export interface McpServerInfo {
   label?: string;
   /** desktop-direct (local-oauth): which credentials it's configured to use. */
   credMode?: CredMode;
-  /** Serveur local : les dossiers autorisés, par clé de paramètre. Ce sont les dossiers
-   *  de l'utilisateur, pas un secret — la carte les affiche et les édite. */
+  /** Local server: the authorized folders, by param key. These are the user's
+   *  folders, not a secret — the card displays and edits them. */
   params?: Record<string, string[]>;
   /** desktop-direct + `byo`: the user's own client id/secret are already stored on
    *  this machine (the secret is never surfaced) — lets "Mes clés" say so + reuse. */
@@ -124,10 +124,10 @@ export interface McpHost {
    *  and nothing else: the authorisation is what the dialog returns, so a wrong hint
    *  costs a mis-placed picker and never a grant. */
   pickDir(hint?: string): Promise<string | undefined>;
-  /** Remplacer les dossiers autorisés d'un serveur local DÉJÀ connecté (ajout/retrait),
-   *  sans le déconnecter. Un dossier NOUVEAU doit venir de `pickDir` (l'hôte le vérifie,
-   *  côté privilégié) ; la connexion vivante est reconstruite derrière, donc un retrait
-   *  prend effet tout de suite. Absent ⇒ l'UI n'offre pas l'édition. */
+  /** Replace the authorized folders of an ALREADY connected local server (add/remove),
+   *  without disconnecting it. A NEW folder must come from `pickDir` (the host verifies
+   *  it, on the privileged side); the live connection is rebuilt behind it, so a removal
+   *  takes effect right away. Absent ⇒ the UI doesn't offer editing. */
   setDirs?(id: string, key: string, dirs: string[]): Promise<McpServerInfo>;
   remove(id: string): Promise<void>;
   /** Connect — opens OAuth in a browser (http) or spawns the server (stdio). */

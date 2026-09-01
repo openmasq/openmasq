@@ -129,9 +129,9 @@ const uiSlice = createSlice({
     focusPane(state, action: PayloadAction<string>) {
       state.layout = layoutFocusPane(current(state).layout, action.payload);
     },
-    /** « Nouvelle conversation » : montrer l'ACCUEIL dans le pane focalisé — aucune
-     *  conversation n'est créée (elle naîtra au premier envoi, dans le `onSend` du
-     *  pane). Les onglets du pane restent, aucun n'est actif. */
+    /** « Nouvelle conversation »: show the HOME screen in the focused pane — no
+     *  conversation is created (it will be born on the first send, in the pane's
+     *  `onSend`). The pane's tabs remain, none is active. */
     showWelcomePane(state) {
       state.layout = layoutShowWelcome(current(state).layout);
     },
@@ -141,7 +141,7 @@ const uiSlice = createSlice({
       state.layout = l;
       state.openTabIds = allOpenConvIds(l);
     },
-    /** Split a pane and drop a conversation into the new pane (drag-to-edge / diviser). */
+    /** Split a pane and drop a conversation into the new pane (drag-to-edge / split). */
     splitWithTab(
       state,
       action: PayloadAction<{

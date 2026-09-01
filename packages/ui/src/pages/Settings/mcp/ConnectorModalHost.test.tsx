@@ -4,24 +4,24 @@ import { mount } from "../../../testKit";
 import { ConnectorModalHost } from "./ConnectorModalHost";
 
 /**
- * L'hôte qui rend la modale d'un connecteur ouvrable AILLEURS que dans Réglages. Deux
- * choses le tiennent, et une seule les casse toutes les deux :
+ * The host that renders a connector's modal, openable ELSEWHERE than in Réglages. Two
+ * things hold it up, and either one alone breaks both:
  *
- * 1. Il doit s'ouvrir dès le PREMIER rendu. `useMcpConnectors` appliquait le connecteur
- *    demandé dans un `useEffect`, donc `openId` valait `null` le temps d'une frame — et
- *    l'hôte, qui se démonte quand plus rien n'est ouvert, se serait refermé avant même
- *    d'avoir ouvert.
- * 2. Il doit rendre la main quand on ferme, sinon la coquille le garde monté et le même
- *    connecteur ne se ré-ouvre jamais (le nonce ne changerait rien, l'élément est déjà là).
+ * 1. It must open on the VERY FIRST render. `useMcpConnectors` used to apply the
+ *    requested connector inside a `useEffect`, so `openId` was `null` for one frame — and
+ *    the host, which unmounts once nothing is open, would have closed again before even
+ *    opening.
+ * 2. It must hand control back when closed, otherwise the shell keeps it mounted and the
+ *    same connector never re-opens (the nonce would change nothing, the element is already there).
  */
 
-// La PRÉSENCE du slot `mcp` est exactement ce qu'on teste : c'est la plateforme desktop.
+// The PRESENCE of the `mcp` slot is exactly what's being tested: it's the desktop platform.
 const host = {
   mcp: {
     list: async () => [],
     catalog: async () => [],
     onChanged: () => () => {},
-    // Présent sur le desktop : c'est lui qui fait exister les connecteurs « direct ».
+    // Present on desktop: it's what makes "direct" connectors exist.
     connectDirect: async () => undefined,
   },
 };
@@ -37,7 +37,7 @@ describe("ConnectorModalHost", () => {
     const m = await open(onClose);
     expect(m.maybe(".modal-scrim")).not.toBeNull();
     expect(m.el.textContent).toContain("Slack");
-    // Le piège : un `openId` initialement nul aurait déclenché la fermeture ici même.
+    // The trap: an initially null `openId` would have triggered the close right here.
     expect(onClose).not.toHaveBeenCalled();
     await m.unmount();
   });

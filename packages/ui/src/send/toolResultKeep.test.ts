@@ -56,10 +56,10 @@ describe("toolResultKeep — merged per-call keep layers", () => {
   });
 });
 
-// ── Le scénario épinglé (journal 26/08) : « Numa » en clair dans le message (le NER n'y a
-// rien vu), le modèle cherche « Numa », Dropbox répond « Numa » — et la passe résultat le
-// redact en « Basile », donc le modèle concluait « aucun rapport ». Le résultat doit
-// rendre au modèle la valeur qu'il a DÉJÀ reçue en clair ; le Coffre, lui, gagne toujours.
+// ── The pinned scenario (log 26/08): « Numa » in clear in the message (the NER saw
+// nothing there), the model searches for « Numa », Dropbox replies « Numa » — and the
+// result pass was redacting it to « Basile », so the model concluded « no match ». The
+// result must hand the model back the value it ALREADY received in clear; Coffre always wins.
 describe("makeRedactToolResult + wireUserTexts (scénario Numa)", () => {
   const settings = { redactEngine: "patterns", redactNumbers: false, redactCategories: {} } as Settings;
   const deps = (over: Partial<RedactToolResultDeps> = {}): RedactToolResultDeps => ({
@@ -82,7 +82,7 @@ describe("makeRedactToolResult + wireUserTexts (scénario Numa)", () => {
     extraSecrets: [],
     forced: [],
     completeFn: undefined,
-    // Le NER (stub) détecte cette fois « Numa » dans le résultat — l'asymétrie du bug.
+    // The NER (stub) this time detects « Numa » in the result — the bug's asymmetry.
     detectLocalFn: async () => [{ value: "Numa", category: "name" }],
     toolKinds: {},
     ...over,

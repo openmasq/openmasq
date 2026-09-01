@@ -1,16 +1,16 @@
 import type { Page } from "@playwright/test";
 
 /**
- * Les gestes et les lectures qui ne portent QUE sur une page déjà ouverte — aucun chemin
- * de fichier, aucun lancement d'app.
+ * The gestures and reads that ONLY concern an already-open page — no file
+ * path, no app launch.
  *
- * ⚠️ Ce module est volontairement libre de toute résolution de chemin, et c'est sa raison
- * d'être : `helpers.ts` doit rester en `__dirname` (Playwright transforme les specs en CJS,
- * `import.meta` y casse) alors que le pilote de `parcours/` tourne en ESM sous tsx, où
- * c'est `__dirname` qui n'existe pas. Un seul de ces deux mondes peut importer `helpers.ts`.
- * Les gestes, eux, sont les mêmes des deux côtés — ils vivent donc ici, importés par les
- * deux (règle 9 : un comportement, une maison), et `helpers.ts` les ré-exporte pour que les
- * specs existantes n'aient rien à changer.
+ * ⚠️ This module is deliberately free of any path resolution, and that's its
+ * reason for being: `helpers.ts` must stay in `__dirname` (Playwright turns specs into CJS,
+ * where `import.meta` breaks) while the `parcours/` driver runs in ESM under tsx, where
+ * `__dirname` is what doesn't exist. Only one of these two worlds can import `helpers.ts`.
+ * The gestures themselves are the same on both sides — so they live here, imported by
+ * both (rule 9: one behavior, one home), and `helpers.ts` re-exports them so that
+ * existing specs don't have to change anything.
  */
 
 /** Type a prompt into the composer and submit it. */
@@ -40,8 +40,8 @@ export async function appRedactionMarkCount(page: Page): Promise<number> {
  *  on done, or the message is flagged as an error). Returns the de-redacted reply
  *  text, the wall-clock latency, and whether the app errored ("No response"…).
  *
- *  ⚠️ A turn can also fail into the FAILED-TURN CARD (`.failed-turn-card` — « Envoi
- *  impossible », a « Réessayer » button, no `.msg-answer` at all). That is a settled
+ *  ⚠️ A turn can also fail into the FAILED-TURN CARD (`.failed-turn-card` — "Send
+ *  impossible", a "Retry" button, no `.msg-answer` at all). That is a settled
  *  outcome too, and waiting only on the answer element turned it into a full-timeout
  *  hang: the caller then reports "no reply" when the app had said exactly what went
  *  wrong on screen. Settling on the card returns that text as the error instead. */
@@ -55,7 +55,7 @@ export async function awaitReply(
       const els = document.querySelectorAll(".msg.assistant");
       const a = els[els.length - 1];
       if (!a) return false;
-      if (a.querySelector(".failed-turn-card")) return true; // le tour a échoué, et le dit
+      if (a.querySelector(".failed-turn-card")) return true; // the turn failed, and says so
       const ans = a.querySelector(".msg-answer");
       if (!ans || !(ans.textContent || "").trim()) return false;
       const typing = a.querySelector(".typing");

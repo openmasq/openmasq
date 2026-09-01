@@ -1,9 +1,9 @@
 /**
- * Le cache du PROFIL D'ORGANISATION — la clé par compte, et la relecture défensive.
+ * The ORGANIZATION PROFILE cache — the per-account key, and the defensive re-read.
  *
- * Sorti de `storePersistence.ts` en passant (règle 1 : ce fichier venait de franchir les
- * 300 lignes) et sorti LÀ précisément : `orgProfileCache.test.ts` existait déjà sans
- * module à lui. Une préoccupation, un foyer, son test à côté.
+ * Pulled out of `storePersistence.ts` in passing (rule 1: this file had just crossed
+ * 300 lines) and pulled out THERE precisely: `orgProfileCache.test.ts` already existed with no
+ * module of its own. One concern, one home, its test right beside it.
  */
 // The last-known org profile, cached per ACCOUNT so a policy the member already has
 // survives a restart while offline. It holds no secret — org name/slug, the forced
@@ -21,13 +21,13 @@ export const orgProfileKeyFor = (uid: string | null): string | null =>
   uid ? `${ORG_PROFILE_KEY}:${uid}` : null;
 
 /**
- * Ne rendre un profil caché QUE s'il porte la forme courante — la liste d'AUTORISATION.
+ * Only return a cached profile IF it carries the current shape — the ALLOW-list.
  *
- * Une version antérieure y écrivait une liste de REFUS (`blockedModelIds`). Relu tel quel
- * après mise à jour, un tel profil n'a pas de `allowedModelIds` : selon le lecteur il
- * plante, ou pire il autorise tout en ayant l'air d'une politique appliquée. On préfère
- * l'ignorer et laisser le prochain `getProfile()` réécrire — un cache qu'on ne sait plus
- * lire n'est pas une politique, c'est une supposition.
+ * An earlier version wrote a DENY list there (`blockedModelIds`). Read back as-is
+ * after an update, such a profile has no `allowedModelIds`: depending on the reader it
+ * crashes, or worse it allows everything while looking like an enforced policy. We'd rather
+ * ignore it and let the next `getProfile()` overwrite it — a cache we no longer know how to
+ * read isn't a policy, it's a guess.
  */
 export function readCachedOrgProfile<T extends { allowedModelIds?: unknown; allowedMcpIds?: unknown }>(
   raw: T | null,

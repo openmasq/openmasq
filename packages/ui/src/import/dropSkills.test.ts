@@ -2,8 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { skillsFromDrop } from "./dropSkills";
 
-/** Une entrée `FileSystemEntry` comme Chromium en fabrique pour un DOSSIER lâché : c'est
- *  la seule forme que le renderer reçoit d'un dépôt (des octets, jamais un chemin). */
+/** A `FileSystemEntry` as Chromium builds one for a dropped FOLDER: it's
+ *  the only form the renderer receives from a drop (bytes, never a path). */
 const file = (name: string, text = "corps") => ({
   isFile: true,
   isDirectory: false,
@@ -16,9 +16,9 @@ const dir = (name: string, children: unknown[]) => ({
   name,
   createReader: () => {
     let done = false;
-    // L'API rend des LOTS jusqu'au lot vide, et rappelle sur un TOUR SUIVANT. Les deux
-    // comptent : un faux synchrone qui bascule son drapeau APRÈS l'appel fait boucler
-    // `readAll` à l'infini — c'est ce qui rendait le dépôt muet, pas le parcours.
+    // The API yields BATCHES until the empty batch, and calls back on a NEXT TICK. Both
+    // matter: a sync fake that flips its flag AFTER the call makes `readAll` loop
+    // forever — that's what made the drop silent, not the traversal.
     return {
       readEntries: (cb: (e: unknown[]) => void) => {
         const batch = done ? [] : children;
@@ -45,7 +45,7 @@ describe("skillsFromDrop", () => {
     expect(out.find((s) => s.folder === "revue")?.siblings).toEqual(["notes.md"]);
   });
 
-  // Le piège du dépôt de `~/.claude/skills` : il embarque de la documentation entière.
+  // The trap of dropping `~/.claude/skills`: it carries a whole documentation tree.
   it("ignore un dossier sans SKILL.md", async () => {
     const out = await skillsFromDrop(
       drop([dir("skills", [dir("_lifecycles", [file("rules.md"), file("release.md")])])]),
@@ -63,8 +63,8 @@ describe("skillsFromDrop", () => {
     expect(out[0]).toMatchObject({ folder: "mon-prompt", text: "Fais ceci." });
   });
 
-  // Un binaire compte comme ANNEXE mais n'est jamais lu : le charger coûterait la mémoire
-  // du dépôt entier pour du contenu qui n'a rien à faire dans un prompt.
+  // A binary counts as an ATTACHMENT but is never read: loading it would cost the memory
+  // of the whole drop for content that has no business in a prompt.
   it("compte les fichiers non textuels sans les lire", async () => {
     const out = await skillsFromDrop(
       drop([dir("a", [file("SKILL.md", "x"), file("logo.png", "BINAIRE")])]),

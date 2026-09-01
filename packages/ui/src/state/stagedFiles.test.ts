@@ -5,17 +5,17 @@ const f = (name: string) => ({ cid: name, name });
 
 describe("stagedFiles — les fichiers en attente appartiennent à la CONVERSATION", () => {
   it("survivent à la disparition de l'écran : ce qui est garé se relit", () => {
-    // Le bug d'origine : aller dans Bibliothèque démontait ChatView et emportait un
-    // document dont l'extraction et le redaction avaient déjà été attendus.
+    // The original bug: navigating to Bibliothèque unmounted ChatView and took with it
+    // a document whose extraction and redaction had already been awaited.
     const s = createStagedFiles();
     s.set("c1", [f("contrat.pdf")]);
     expect(s.get("c1")).toHaveLength(1);
   });
 
   it("ne débordent JAMAIS sur une autre conversation", () => {
-    // L'autre moitié du même bug, et la plus grave : l'écran ne se remonte pas au
-    // changement de fil, donc un fichier préparé pour l'un se retrouvait à un clic
-    // d'être envoyé dans l'autre.
+    // The other half of the same bug, and the worse one: the screen doesn't remount on
+    // a thread change, so a file prepared for one conversation ended up one click
+    // away from being sent to the other.
     const s = createStagedFiles();
     s.set("c1", [f("bulletin-de-paie.pdf")]);
     expect(s.get("c2")).toEqual([]);
@@ -38,8 +38,8 @@ describe("stagedFiles — les fichiers en attente appartiennent à la CONVERSATI
   });
 
   it("une conversation vide rend TOUJOURS la même liste — pas un tableau neuf", () => {
-    // Un tableau frais à chaque lecture relancerait l'effet de restauration de l'écran
-    // en boucle : la stabilité de référence fait partie du contrat.
+    // A fresh array on every read would retrigger the screen's restoration effect
+    // in a loop: reference stability is part of the contract.
     const s = createStagedFiles();
     expect(s.get("jamais-vue")).toBe(s.get("autre-inconnue"));
   });
@@ -47,15 +47,15 @@ describe("stagedFiles — les fichiers en attente appartiennent à la CONVERSATI
 
 describe("le passage de relais « Demander » — une cible nommée, pas « l'écran courant »", () => {
   it("un fichier peut être garé pour une conversation qui n'est pas encore affichée", () => {
-    // Le défaut signalé : « Demander » crée la conversation ET met le fichier en scène
-    // dans le même geste, mais la nouvelle conversation n'atteint l'écran qu'un rendu plus
-    // tard. Mis en scène sur « ce qui est affiché », le fichier atterrissait sur la
-    // PRÉCÉDENTE — puis disparaissait quand la nouvelle arrivait.
+    // The reported bug: « Demander » creates the conversation AND stages the file
+    // in the same gesture, but the new conversation only reaches the screen one render
+    // later. Staged onto « ce qui est affiché », the file would land on the
+    // PREVIOUS one — then vanish once the new one arrived.
     const s = createStagedFiles();
     s.set("conv-nouvelle", [f("attestation.pdf")]);
-    // L'écran est encore sur l'ancienne : elle ne doit rien recevoir…
+    // The screen is still on the old one: it must receive nothing…
     expect(s.get("conv-precedente")).toEqual([]);
-    // …et la nouvelle trouve son fichier en arrivant, quel que soit l'ordre.
+    // …and the new one finds its file on arrival, regardless of order.
     expect(s.get("conv-nouvelle")).toHaveLength(1);
   });
 })

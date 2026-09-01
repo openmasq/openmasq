@@ -30,28 +30,28 @@ export function unblockAgentOverlay(): void {
  *  active (split-gutter drag), so it never covers a modal nor steals a drag's pointer. */
 export const shouldHideAgentBrowser = (): boolean => overlayBlocks > 0 || isModalOpen();
 
-// ── Les bornes sont-elles à REDIRE ? ──────────────────────────────────────────────
+// ── Do the bounds need to be RESTATED? ──────────────────────────────────────────────
 //
-// La visibilité de cette fenêtre a DEUX propriétaires (`useAgentBrowserVisibility`, global,
-// et `useBrowserBounds`, côté panneau) et chacun tient sa propre croyance. Or seul le
-// second écrit les bornes, en dédupliquant sur le dernier rectangle envoyé : quand le
-// PREMIER remonte la fenêtre, le second n'en sait rien, ne réémet rien — et elle
-// réapparaît aux bornes d'AVANT. Si la mise en page a bougé entre-temps (barre latérale
-// étendue, panneau redimensionné), elle revient DÉCALÉE, et rien ne la recale tant que le
-// rectangle ne rechange pas de lui-même.
+// This window's visibility has TWO owners (`useAgentBrowserVisibility`, global, and
+// `useBrowserBounds`, panel side) and each holds its own belief. Only the second one
+// writes the bounds, deduplicating on the last rectangle sent: when the FIRST one
+// brings the window back up, the second knows nothing about it, re-emits nothing —
+// and it reappears at the PREVIOUS bounds. If the layout moved in the meantime
+// (sidebar expanded, panel resized), it comes back OFFSET, and nothing corrects it
+// until the rectangle changes on its own.
 //
-// D'où ce compteur, dans le même fichier que le reste de ce qu'on sait de cette fenêtre :
-// celui qui MONTRE l'incrémente, celui qui ÉCRIT le plie dans sa clé de déduplication.
-// Coût d'un faux positif : un `setBounds` de trop. Coût d'un faux négatif : le décalage.
+// Hence this counter, in the same file as the rest of what we know about this window:
+// whoever SHOWS it increments it, whoever WRITES folds it into its deduplication key.
+// Cost of a false positive: one extra `setBounds`. Cost of a false negative: the offset.
 let boundsEpoch = 0;
 
-/** À appeler juste avant/après avoir RENDU la fenêtre visible : la prochaine trame
- *  réémettra les bornes même si le rectangle n'a pas changé. */
+/** Call just before/after having MADE the window visible: the next frame will
+ *  re-emit the bounds even if the rectangle hasn't changed. */
 export function invalidateAgentBrowserBounds(): void {
   boundsEpoch++;
 }
 
-/** La valeur courante, à inclure dans la clé de déduplication de l'écrivain. */
+/** The current value, to include in the writer's deduplication key. */
 export const agentBrowserBoundsEpoch = (): number => boundsEpoch;
 
 /** The element the native window is pinned to (`useBrowserBounds` writes ITS rect as the

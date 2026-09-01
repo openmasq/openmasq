@@ -1,24 +1,24 @@
 import { existsSync, openSync, readSync, closeSync, statSync } from "node:fs";
 
 /**
- * Suivre un fichier qui grossit — l'équivalent de `tail -f`, en Node.
+ * Follows a growing file — the equivalent of `tail -f`, in Node.
  *
- * ⚠️ **C'est la moitié de preuve que le mode ATTACHÉ perdrait sinon.** Quand le pilote
- * spawne l'app, il lit ses tuyaux ; quand il s'ATTACHE à une app lancée par quelqu'un
- * d'autre (`devApp.ts` dit pourquoi c'est parfois la seule voie), cette sortie part dans
- * LE terminal de cette personne. Or `[mcp:raw]` — les arguments RÉELS, un-redacted, reçus
- * par chaque outil — sort précisément là, sur stdout. Sans ce suivi, `D errors` et
- * `D toolcalls` répondraient « rien » sur une app parfaitement bavarde, et l'agent
- * conclurait à un outil jamais appelé.
+ * ⚠️ **This is the half of the proof the ATTACHED mode would otherwise lose.** When the driver
+ * spawns the app, it reads its pipes; when it ATTACHES to an app launched by someone
+ * else (`devApp.ts` says why that's sometimes the only path), that output goes out into
+ * THAT person's terminal. And `[mcp:raw]` — the REAL, un-redacted arguments received
+ * by each tool — comes out precisely there, on stdout. Without this following, `D errors` and
+ * `D toolcalls` would answer "nothing" on a perfectly chatty app, and the agent
+ * would conclude a tool was never called.
  *
- * D'où la convention du mode attaché : l'app se lance en redirigeant sa sortie dans
- * `.parcours/main.log`, et c'est ce fichier qu'on suit.
+ * Hence the attached-mode convention: the app launches redirecting its output into
+ * `.parcours/main.log`, and that's the file we follow.
  */
 const INTERVALLE_MS = 400;
 
 export function suivreLog(chemin: string, noter: (ligne: string) => void): () => void {
-  // Depuis le DÉBUT du fichier, pas depuis maintenant : ce que l'app a dit en démarrant
-  // (modules natifs, connecteurs montés, premières erreurs) est ce qui explique le reste.
+  // From the START of the file, not from now: what the app said on startup
+  // (native modules, mounted connectors, first errors) is what explains the rest.
   let lu = 0;
   let reste = "";
   let vivant = true;
@@ -31,8 +31,8 @@ export function suivreLog(chemin: string, noter: (ligne: string) => void): () =>
     } catch {
       return;
     }
-    // Fichier TRONQUÉ (relance de l'app dans le même log) : repartir de zéro plutôt que
-    // de lire à un offset qui n'existe plus — sinon le suivi se tait définitivement.
+    // TRUNCATED file (app relaunched into the same log): start over from zero rather than
+    // reading at an offset that no longer exists — otherwise following goes silent for good.
     if (taille < lu) {
       lu = 0;
       reste = "";

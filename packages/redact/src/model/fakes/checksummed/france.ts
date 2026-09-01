@@ -25,7 +25,7 @@ function nirKey(stem13: string): string {
 const NIR_RE = /^[12]\d{2}(?:0[1-9]|1[0-2])(?:\d{2}|2[AB])\d{6}(?:\d{2})?$/i;
 
 /** France RIB key — banque(5) + guichet(5) + compte(11, letters transliterated)
- *  must satisfy (89b + 15g + 3c + clé) ≡ 0 (mod 97). Shared with `fakeIban` so a
+ *  must satisfy (89b + 15g + 3c + key) ≡ 0 (mod 97). Shared with `fakeIban` so a
  *  French IBAN's EMBEDDED RIB key also validates, not only the mod-97 IBAN key. */
 const RIB_LETTER: Record<string, string> = {
   A: "1", J: "1", B: "2", K: "2", S: "2", C: "3", L: "3", T: "3",
@@ -54,11 +54,11 @@ export const FRANCE_SCHEMES: IdScheme[] = [
     cat: "national_id",
     is: (c) => NIR_RE.test(c),
     // Keep the SEX digit (the same derived-attribute rule as names keeping
-    // gender), swap everything else, keep a Corsican département Corsican (its
-    // letter is part of the SHAPE), recompute the key when the original has one.
+    // gender), swap everything else, keep a Corsican department (its letter
+    // is part of the SHAPE), recompute the key when the original has one.
     fake: (c, rng) => {
       const corse = /2[AB]/i.test(c.slice(5, 7));
-      // Métropole 01-95, never the numeric 20 (Corsica IS 2A/2B).
+      // Mainland 01-95, never the numeric 20 (Corsica IS 2A/2B).
       let d = 1 + rng(95);
       if (d === 20) d = 21;
       const dept = corse ? "2" + "AB"[rng(2)] : p2(d);

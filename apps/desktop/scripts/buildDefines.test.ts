@@ -7,7 +7,7 @@ import {
   serviceDefines,
 } from "./buildDefines";
 
-/** Un build « complet » : tout ce qu'une CI pourrait fournir. */
+/** A "complete" build: everything a CI could supply. */
 const FULL: NodeJS.ProcessEnv = {
   OPENMASQ_BACKEND_URL: "https://api.example",
   OPENMASQ_BACKEND_URL_STAGING: "https://api-staging.example",

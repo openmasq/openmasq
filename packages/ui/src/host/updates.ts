@@ -88,9 +88,9 @@ export interface AllDesktopReleases {
  */
 export interface UpdatesHost {
   current(): Promise<UpdatesCurrent>;
-  /** Révèle le fichier `updater.log` dans le gestionnaire de fichiers — la seule trace
-   *  de la vraie raison d'un `quitAndInstall` (chemin fixe côté main). Optionnel :
-   *  absent, le bouton ne se rend pas. */
+  /** Reveals the `updater.log` file in the file manager — the only trace
+   *  of the real reason for a `quitAndInstall` (fixed path on the main side). Optional:
+   *  absent, the button doesn't render. */
   revealLog?(): Promise<void>;
   list(): Promise<UpdatesReleaseList>;
   /** This install's self-pin permission (operator-granted). Absent on an
@@ -110,21 +110,21 @@ export interface UpdatesHost {
   switchTo?(arg: { channel: string; version: string }): Promise<{ ok: boolean; reason?: string }>;
   /** Subscribe to live status; returns an unsubscribe. */
   onStatus(cb: (s: UpdateStatus) => void): () => void;
-  /** La sonde de QUIESCENCE de l'auto-installation : main demande « es-tu occupé ? »
-   *  avant un redémarrage automatique (build téléchargé + app en arrière-plan/inactive),
-   *  et l'UI répond via `replyQuiescence` — occupé = un envoi en vol OU un brouillon non
-   *  envoyé quelque part (mémoire seulement : un redémarrage le détruirait). Optionnels :
-   *  absents (préload non redémarré, aperçu web), main ne reçoit rien et lit « occupé »
-   *  — l'auto-installation dégrade en « jamais », pas en « au hasard ». */
+  /** The auto-install QUIESCENCE probe: main asks « es-tu occupé ? »
+   *  before an automatic restart (build downloaded + app in background/idle),
+   *  and the UI answers via `replyQuiescence` — busy = a send in flight OR an unsent
+   *  draft somewhere (memory only: a restart would destroy it). Optional:
+   *  absent (un-restarted preload, web preview), main receives nothing and reads « busy »
+   *  — the auto-install degrades to « never », not to « at random ». */
   onQuiescenceAsk?(cb: (askId: string) => void): () => void;
   replyQuiescence?(askId: string, busy: boolean): void;
 }
 
-/** Verdict d'une demande de bascule d'environnement — décidée et REVÉRIFIÉE dans le
- *  processus privilégié du desktop (allow-list de noms + permission serveur, fail-closed) ;
- *  l'UI ne fait que demander et montrer le refus tel quel. */
-/** Les environnements qu'une instance peut ouvrir. `custom` = la pile AUTO-HÉBERGÉE saisie
- *  par l'utilisateur, qui n'existe que dans un build qui l'honore (`CustomStackHost`). */
+/** Verdict of an environment-switch request — decided and RE-VERIFIED in the
+ *  desktop's privileged process (name allow-list + server permission, fail-closed);
+ *  the UI only asks and shows the refusal as-is. */
+/** The environments an instance can open. `custom` = the SELF-HOSTED stack entered
+ *  by the user, which only exists in a build that honours it (`CustomStackHost`). */
 export type RuntimeEnvName = "production" | "staging" | "custom";
 
 export interface EnvSwitchResult {
@@ -134,7 +134,7 @@ export interface EnvSwitchResult {
   reason?: "unknown_env" | "not_privileged" | "write_failed" | "custom_not_allowed" | "custom_not_configured";
 }
 
-/** Les quatre adresses d'une pile auto-hébergée — publiques, et une clé PUBLIABLE. */
+/** The four addresses of a self-hosted stack — public, and a PUBLISHABLE key. */
 export interface CustomStack {
   backend: string;
   gateway: string;
@@ -142,37 +142,37 @@ export interface CustomStack {
   supabaseAnonKey: string;
 }
 
-/** Verdict de l'écriture d'une pile — décidé HORS de l'UI (validation + boîte native). */
+/** Verdict of writing a stack — decided OUTSIDE the UI (validation + native dialog). */
 export type SetCustomStackResult =
   | { ok: true; relaunching: true }
   | { ok: false; reason: "custom_not_allowed" | "invalid" | "declined" | "write_failed"; field?: keyof CustomStack; detail?: string };
 
 /**
- * La pile AUTO-HÉBERGÉE : présente SEULEMENT dans un build qui l'honore
- * (`OPENMASQ_ALLOW_CUSTOM_STACK=1` — jamais le binaire officiel). L'écran saisit et
- * demande ; la validation et la confirmation (une boîte de dialogue NATIVE) vivent dans le
- * processus privilégié, qui redémarre l'app dans un profil séparé.
+ * The SELF-HOSTED stack: present ONLY in a build that honours it
+ * (`OPENMASQ_ALLOW_CUSTOM_STACK=1` — never the official binary). The screen enters and
+ * requests; the validation and confirmation (a NATIVE dialog box) live in the
+ * privileged process, which restarts the app in a separate profile.
  */
 export interface CustomStackHost {
-  /** La pile déjà écrite, pour pré-remplir — `null` sans. */
+  /** The already-written stack, to pre-fill — `null` without one. */
   current: CustomStack | null;
   set(stack: CustomStack): Promise<SetCustomStackResult>;
   forget(): Promise<SetCustomStackResult>;
 }
 
 /**
- * L'environnement d'exécution de cette instance (production/staging/custom) et sa bascule.
- * Desktop seulement — la build est UNIQUE, l'environnement est résolu au boot depuis un
- * pointeur local ; basculer réécrit ce pointeur et redémarre. Absent = pas de section.
+ * This instance's runtime environment (production/staging/custom) and its switch.
+ * Desktop only — the build is UNIQUE, the environment is resolved at boot from a
+ * local pointer; switching rewrites this pointer and restarts. Absent = no section.
  */
 export interface EnvHost {
-  /** Le nom résolu au boot. Un nom, jamais une adresse (l'allow-list vit côté main). */
+  /** The name resolved at boot. A name, never an address (the allow-list lives on the main side). */
   name: RuntimeEnvName;
   switchTo(env: RuntimeEnvName): Promise<EnvSwitchResult>;
-  /** Le compte porte-t-il le drapeau testeur ? AFFICHAGE seulement (montrer ou non la
-   *  proposition) — la vraie garde retourne au serveur au moment de la bascule.
-   *  Fail-closed : erreur ⇒ false. */
+  /** Does the account carry the tester flag? DISPLAY only (whether to show the
+   *  offer) — the real guard goes back to the server at switch time.
+   *  Fail-closed: error ⇒ false. */
   stagingTester(): Promise<boolean>;
-  /** Absent = ce build ne saisit pas de pile (le cas du binaire officiel). */
+  /** Absent = this build doesn't enter a stack (the official binary's case). */
   customStack?: CustomStackHost;
 }

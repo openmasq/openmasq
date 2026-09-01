@@ -1,10 +1,10 @@
 /**
- * La clé localStorage sous laquelle supabase-js range sa session : `sb-<ref>-auth-token`,
- * la ref étant celle du PROJET du build (`OPENMASQ_SUPABASE_URL`) — plus aucune ref
- * committée. Sans projet configuré, `sb-local-auth-token` : la graine est inerte (l'app
- * tourne alors sans comptes), ce qui est exactement l'état d'un clone non configuré.
- * Calculée côté Node et PASSÉE en argument aux closures `page.evaluate` — une constante
- * Node ne se référence pas depuis le navigateur.
+ * The localStorage key under which supabase-js stores its session: `sb-<ref>-auth-token`,
+ * the ref being that of the build's PROJECT (`OPENMASQ_SUPABASE_URL`) — no more ref
+ * committed. Without a configured project, `sb-local-auth-token`: the seed is inert (the app
+ * then runs with no accounts), which is exactly the state of an unconfigured clone.
+ * Computed on the Node side and PASSED as an argument to `page.evaluate` closures — a Node
+ * constant can't be referenced from the browser.
  */
 export function supabaseAuthStorageKey(): string {
   const ref =

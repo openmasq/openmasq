@@ -1,40 +1,40 @@
 /**
- * Migration du parc — renommage du 24/08/2026.
+ * Fleet migration — the 24/08/2026 rename.
  *
- * Le nom de code du monorepo a changé, et avec lui le préfixe des clés localStorage
- * (`<ancien>.…` → `openmasq.…`, variantes par compte `:<uid>` comprises). Une install
- * d'avant la migration démarre donc avec ses réglages, son thème, ses onglets… sous
- * l'ANCIEN préfixe : sans cette copie, l'app repartirait à vide sous ses yeux.
+ * The monorepo's code name changed, and with it the localStorage key prefix
+ * (`<old>.…` → `openmasq.…`, per-account `:<uid>` variants included). An install
+ * from before the migration therefore starts with its settings, theme, tabs… under
+ * the OLD prefix: without this copy, the app would restart empty right in front of it.
  *
- * COPIE, jamais un déplacement : l'ancienne clé reste en place pour qu'un retour en
- * arrière de build retrouve son état. Et la cible ne s'écrase JAMAIS — une clé déjà
- * écrite par la nouvelle build a raison sur la vieille.
+ * COPY, never a move: the old key stays in place so a build rollback finds its state
+ * again. And the target is NEVER overwritten — a key already written by the new
+ * build takes precedence over the old one.
  *
- * ⚠️ Ce fichier est LA maison du préfixe retiré (exception nommée de `check:brand`,
- * avec le script de thème d'`index.html` et l'adoption du DB legacy) — ne l'écrire
- * nulle part ailleurs.
+ * ⚠️ This file is THE home of the retired prefix (named exception of `check:brand`,
+ * along with `index.html`'s theme script and the legacy DB adoption) — don't write
+ * it anywhere else.
  *
- * ⚠️ Il n'y a QU'UN ancien préfixe, et c'est voulu : le nom porté entre celui-ci et
- * `openmasq` n'a jamais été livré, donc aucune install ne détient de clés sous ce
- * nom-là et il n'y a rien à y reprendre. Une rupture nette, pas un oubli.
+ * ⚠️ There is only ONE old prefix, and that's intentional: the name carried between
+ * this one and `openmasq` was never shipped, so no install holds keys under that
+ * name and there's nothing to pick up there. A clean break, not an oversight.
  */
 
-/** Exporté pour les tests — jamais pour un lecteur : lisez la clé COURANTE. */
+/** Exported for tests — never for a reader: read the CURRENT key. */
 export const LEGACY_STORAGE_PREFIX = "openmasq.";
 const PREFIX = "openmasq.";
 
 let done = false;
 
-/** Test-only : ré-arme la passe (le flag module survit entre tests). */
+/** Test-only: re-arms the pass (the module flag survives across tests). */
 export function resetLegacyStorageMigrationForTests(): void {
   done = false;
 }
 
 /**
- * Copie chaque clé `<ancien>.<suffixe>` vers `openmasq.<suffixe>` absente. Idempotente
- * (une passe par session), sûre sans `localStorage` (SSR, worker, test node). Appelée
- * en tête des PREMIERS lecteurs (`theme`, `storePersistence.load`, `reduxBoot`…) —
- * tout lecteur ultérieur voit donc des clés déjà migrées.
+ * Copies each `<old>.<suffix>` key to an absent `openmasq.<suffix>`. Idempotent
+ * (one pass per session), safe without `localStorage` (SSR, worker, node test). Called
+ * at the top of the FIRST readers (`theme`, `storePersistence.load`, `reduxBoot`…) —
+ * so every later reader sees already-migrated keys.
  */
 export function migrateLegacyLocalStorage(): void {
   if (done) return;
@@ -52,6 +52,6 @@ export function migrateLegacyLocalStorage(): void {
       if (v !== null) localStorage.setItem(target, v);
     }
   } catch {
-    // Pas de localStorage ici (SSR / test node) — rien à migrer, et surtout rien à casser.
+    // No localStorage here (SSR / node test) — nothing to migrate, and above all nothing to break.
   }
 }

@@ -6,7 +6,7 @@
  * prose an LLM reads (`"[DIR] foo"`, no size, no date), every call is wrapped in the
  * conversation's redaction vault — and this surface must show the user their REAL files,
  * never a placeholder (root rule 11 governs what the MODEL sees, nothing else) — and its
- * `read_file` is utf8-only, so an image or a PDF has no aperçu. Same grant, same worker,
+ * `read_file` is utf8-only, so an image or a PDF has no preview. Same grant, same worker,
  * same gate; a shape fit for a UI instead of for a prompt.
  *
  * ABSENT ⇒ DEGRADE. No slot (browser preview, mobile) or `available:false` (the connector
@@ -37,19 +37,19 @@ export interface LocalFsHost {
   list(path: string): Promise<{ path: string; entries: LocalFsEntry[]; truncated: boolean }>;
   stat(path: string): Promise<LocalFsEntry>;
   /** Raw bytes as base64 — one op for text, images and PDFs. Rejects past a size cap
-   *  (the aperçu crosses IPC); offer « Ouvrir dans l'application » instead. */
+   *  (the preview crosses IPC); offer « Ouvrir dans l'application » instead. */
   read(path: string): Promise<{ base64: string; size: number }>;
   /**
-   * Texte ET géométrie OCR d'un document, en UN aller-retour.
+   * Text AND OCR geometry of a document, in ONE round trip.
    *
-   * ⚠️ Optionnel, et l'absence n'est pas neutre : sans lui il faut lire les octets puis les
-   * RENVOYER à la plateforme pour extraction — le fichier traverse la frontière deux fois
-   * et la géométrie se perd en route, donc un scan s'affiche sans ses boîtes de redaction.
-   * Le repli existe (aperçu web), il est simplement moins bon ; il ne dégrade aucune
-   * garantie, seulement la vitesse et le rendu.
+   * ⚠️ Optional, and its absence isn't neutral: without it, the bytes must be read then
+   * SENT BACK to the platform for extraction — the file crosses the boundary twice
+   * and the geometry gets lost along the way, so a scan displays without its redaction boxes.
+   * The fallback exists (web preview), it's simply not as good; it degrades no
+   * guarantee, only speed and rendering.
    *
-   * Ne rend JAMAIS `path` : ce qui vaut pour `read` vaut ici — un chemin remis au renderer
-   * est un chemin qu'un XSS repasse à la lecture de fichiers.
+   * Never returns `path`: what holds for `read` holds here — a path handed back to the renderer
+   * is a path an XSS replays to read files.
    */
   extract?(path: string): Promise<Record<string, unknown>>;
   /** Recursive name search under `path`, bounded in depth and count. */

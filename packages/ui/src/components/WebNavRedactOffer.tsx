@@ -5,11 +5,11 @@ import { useT } from "../i18n";
 import type { Messages } from "@openmasq/i18n";
 import type { RedactCategoryKey } from "../types";
 
-/** Le niveau que la carte propose — son vocabulaire vit chez les niveaux, jamais ici
- *  (règle 9 : deux surfaces qui réécrivent « Standard » finissent par en dire deux
- *  choses). `tradeoff` est justement la phrase qui nomme ce qu'il laisse lisible.
- *  Une FONCTION, plus une constante de module : le vocabulaire suit maintenant la langue,
- *  donc il se résout au rendu et non au chargement du module. */
+/** The level the card offers — its vocabulary lives with the levels, never here
+ *  (rule 9: two surfaces rewriting « Standard » end up saying two
+ *  different things). `tradeoff` is exactly the sentence that names what it leaves readable.
+ *  A FUNCTION, not a module constant anymore: the vocabulary now follows the language,
+ *  so it resolves at render time rather than at module load. */
 const standardLevel = (t: Messages) => privacyLevelMeta(t).find((l) => l.id === "standard")!;
 
 /**
@@ -18,33 +18,33 @@ const standardLevel = (t: Messages) => privacyLevelMeta(t).find((l) => l.id === 
  * shell so it reads as one family with the action-confirmation / integration cards.
  *
  * Public web content's place/org/person names are usually the answer's substance, so
- * redacting them makes the model summarise gibberish. La carte propose donc **un
- * NIVEAU, pas des types** : « Standard » — exactement les cinq catégories que ce niveau
- * laisse lisibles (`state/webNavReveal.ts` dit pourquoi les deux ensembles ne peuvent pas
- * diverger). Un choix, deux boutons, aucune case à cocher.
+ * redacting them makes the model summarise gibberish. The card therefore offers **a
+ * LEVEL, not types**: « Standard » — exactly the five categories this level
+ * leaves readable (`state/webNavReveal.ts` says why the two sets cannot
+ * diverge). One choice, two buttons, no checkbox.
  *
- * ⚠️ **Pourquoi ce n'est plus une liste de cases.** Elle en montrait cinq, chacune avec sa
- * teinte et son œil, sur l'écran qui INTERROMPT une recherche : c'était demander à
- * quelqu'un d'arbitrer catégorie par catégorie au milieu d'autre chose. Le produit sait
- * déjà nommer ce compromis — c'est un niveau de protection — et un niveau se choisit d'un
- * clic. Qui veut l'arbitrage fin l'a toujours, à sa place : Réglages → Confidentialité.
+ * ⚠️ **Why this is no longer a list of checkboxes.** It used to show five, each with its
+ * own tint and eye, on the screen that INTERRUPTS a search: that was asking
+ * someone to arbitrate category by category in the middle of something else. The product
+ * already knows how to name this trade-off — it's a protection level — and a level is chosen with one
+ * click. Whoever wants the fine-grained arbitration still has it, in its place: Réglages → Confidentialité.
  *
- * ⚠️ **CE MESSAGE SEULEMENT.** Le choix ne s'écrit pas dans la conversation : l'envoi
- * suivant repart redacted (`send/sendOrchestrator.ts`). C'est ce qui rend un défaut
- * généreux acceptable — et la carte le DIT, parce qu'une portée qu'on ne lit pas est une
- * portée qu'on croit plus courte qu'elle n'est.
+ * ⚠️ **THIS MESSAGE ONLY.** The choice isn't written into the conversation: the
+ * next send goes back out redacted (`send/sendOrchestrator.ts`). That's what makes a
+ * generous default acceptable — and the card SAYS so, because a scope one doesn't read is a
+ * scope one believes shorter than it is.
  *
- * ⚠️ Il ne s'agit PAS d'une décision d'egress : elle ne change que ce que le MODÈLE lit.
- * La requête part avec la vraie valeur dans tous les cas (règle 11). Et la sélection est
- * de l'UX : le store re-filtre ce qui revient contre l'offrable (règle 7), donc renvoyer
- * une catégorie imposée par l'organisation ne la révèle pas.
+ * ⚠️ This is NOT an egress decision: it only changes what the MODEL reads.
+ * The request leaves with the real value in every case (rule 11). And the selection is
+ * UX only: the store re-filters what comes back against what's offerable (rule 7), so returning
+ * a category imposed by the organization doesn't reveal it.
  */
 export function WebNavRedactOffer({
   categories,
   onDecide,
 }: {
   categories: RedactCategoryKey[];
-  /** Les catégories à révéler pour CET envoi — `[]` = aucune. */
+  /** The categories to reveal for THIS send — `[]` = none. */
   onDecide: (reveal: RedactCategoryKey[]) => void;
 }) {
   const t = useT();
@@ -66,19 +66,19 @@ export function WebNavRedactOffer({
         <>
           <span className="agent-card-note">
             <ShieldIcon size={13} />
-            {/* ⚠️ COURT par obligation : `.agent-card-note` est une ligne unique coupée à
-                l'ellipse, et deux boutons larges lui laissent peu de place. Or c'est LA
-                phrase qui rend un défaut généreux honnête — tronquée, elle ne vaut rien.
-                Le détail (« le suivant repart redacted ») vivait ici et se faisait
-                couper ; la portée seule tient. */}
+            {/* ⚠️ SHORT out of necessity: `.agent-card-note` is a single line clipped at
+                the ellipsis, and two wide buttons leave it little room. Yet it's THE
+                sentence that makes a generous default honest — truncated, it's worth nothing.
+                The detail (« le suivant repart redacted ») used to live here and got
+                cut off; only the scope fits. */}
             <span>{t.webNav.thisMessageOnly}</span>
           </span>
           <span className="agent-card-spacer" />
           <button className="btn-ghost btn-inline" onClick={() => onDecide([])}>
             {t.webNav.keepMasking}
           </button>
-          {/* « Tout l'offert » = le niveau : la carte ne compose pas un sous-ensemble, elle
-              applique celui que « Standard » désigne (le store le re-filtre). */}
+          {/* « Tout l'offert » = the level: the card doesn't compose a subset, it
+              applies the one that « Standard » designates (the store re-filters it). */}
           <button className="btn-primary btn-inline" onClick={() => onDecide(categories)}>
             {t.webNav.switchTo(standard.label)} <ArrowRightIcon size={14} />
           </button>

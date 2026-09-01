@@ -31,8 +31,8 @@ describe("usePopover — dismissal", () => {
     const ui = await mount(<Menu />);
     await ui.click("button");
     expect(ui.maybe("[data-testid=menu]")).not.toBeNull();
-    // Le piège : si le test « clic extérieur » ne consulte pas AUSSI la ref du
-    // déclencheur, ce clic ferme puis rouvre dans le même geste.
+    // The trap: if the « outside click » test doesn't ALSO check the trigger's
+    // ref, this click closes then reopens in the same gesture.
     await ui.click("button");
     expect(ui.maybe("[data-testid=menu]")).toBeNull();
     await ui.unmount();
@@ -41,7 +41,7 @@ describe("usePopover — dismissal", () => {
   it("un mousedown à l'extérieur ferme — et un clic DANS le menu ne ferme pas", async () => {
     const ui = await mount(<Menu />);
     await ui.click("button");
-    await ui.click(".item"); // un item ne se ferme pas tout seul : c'est au caller
+    await ui.click(".item"); // an item doesn't close on its own: that's on the caller
     expect(ui.maybe("[data-testid=menu]")).not.toBeNull();
     await clickOutside();
     expect(ui.maybe("[data-testid=menu]")).toBeNull();
@@ -72,8 +72,8 @@ describe("usePopover — ancrage (menu portalé)", () => {
     const menu = ui.find<HTMLDivElement>("[data-testid=menu]");
     expect(menu.style.position).toBe("fixed");
     expect(menu.style.width).toBe("200px");
-    // Un popover `fixed` qui reste ouvert pendant que le contenu défile se détache de
-    // son déclencheur — d'où la fermeture au scroll pour les ancrés SEULEMENT.
+    // A `fixed` popover that stays open while the content scrolls detaches from
+    // its trigger — hence closing on scroll for ANCHORED ones ONLY.
     await fireWindow("scroll");
     expect(ui.maybe("[data-testid=menu]")).toBeNull();
     await ui.unmount();

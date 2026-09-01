@@ -1,9 +1,9 @@
 import { str, type FakeServer } from "./kit";
 
-// Troisième vague — les connecteurs REMOTE search/dev/data restants, transcrits des
-// MCP hébergés des éditeurs (1-2 outils CLÉS par connecteur : l'objectif est que le
-// mode `all` OFFRE tout le catalogue ; la vérité fine se recale au premier
-// `tools/list` sur compte réel). Résultats fixtures thème Karl Studio / Atelier Torbel.
+// Third wave — the remaining REMOTE search/dev/data connectors, transcribed from
+// vendors' hosted MCPs (1-2 KEY tools per connector: the goal is for `all` mode to
+// OFFER the whole catalogue; the fine-grained truth realigns on the first
+// `tools/list` against a real account). Fixture results themed Karl Studio / Atelier Torbel.
 
 const one = (id: string, tools: FakeServer["tools"]): FakeServer => ({ id, tools });
 const q = (d: string) => ({ type: "object", properties: { query: str(d) }, required: ["query"] });

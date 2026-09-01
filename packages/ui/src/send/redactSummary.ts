@@ -2,10 +2,10 @@ import { redactionCategory, type RedactionMatch } from "@openmasq/redact";
 import { pushDebug } from "../state/debug";
 
 /**
- * Le RÉSUMÉ diagnostic d'une passe de redaction — étage A du « plus d'infos sans
- * casser la promesse » : des COMPTES et des ÉNUMÉRATIONS, jamais une valeur, jamais
- * un faux. C'est le même vocabulaire que s'impose l'analytics (counts + category
- * keys), appliqué au journal de débogage.
+ * The diagnostic SUMMARY of a redaction pass — tier A of « more info without
+ * breaking the promise »: COUNTS and ENUMERATIONS only, never a value, never
+ * a fake. Same vocabulary the analytics enforces on itself (counts + category
+ * keys), applied to the debug log.
  */
 
 const MAX_LISTED = 6;
@@ -22,8 +22,8 @@ function formatCounts(total: number, counts: Map<string, number>, uncertain: num
   return `${total} valeur${total > 1 ? "s" : ""} · ${listed}${more}${doubt}`;
 }
 
-/** « 12 valeurs · name×3, email×2, iban×1 (2 à vérifier) » — groupé par catégorie
- *  fine (`category ?? type`), plafonné pour rester une LIGNE de journal. */
+/** « 12 valeurs · name×3, email×2, iban×1 (2 à vérifier) » — grouped by fine
+ *  category (`category ?? type`), capped to stay a single log LINE. */
 export function summarizeMatches(matches: readonly RedactionMatch[]): string {
   const counts = new Map<string, number>();
   let uncertain = 0;
@@ -35,10 +35,10 @@ export function summarizeMatches(matches: readonly RedactionMatch[]): string {
   return formatCounts(matches.length, counts, uncertain);
 }
 
-/** Le même résumé, DÉRIVÉ des paires redacted↔original qu'une entrée `wire`/`tool` du
- *  journal porte déjà — pour le pass MESSAGE, dont le site d'émission ne stocke rien de
- *  plus (les comptes se recalculent à l'affichage et à l'export). Valeurs DISTINCTES,
- *  la sémantique de `protectedCount`. */
+/** The same summary, DERIVED from the redacted↔original pairs a `wire`/`tool` log
+ *  entry already carries — for the MESSAGE pass, whose emission site stores nothing
+ *  more (counts are recomputed at display and export time). DISTINCT values,
+ *  the semantics of `protectedCount`. */
 export function summarizePairs(pairs: readonly { label?: string }[]): string {
   const counts = new Map<string, number>();
   for (const p of pairs) {
@@ -48,7 +48,7 @@ export function summarizePairs(pairs: readonly { label?: string }[]): string {
   return formatCounts(pairs.length, counts, 0);
 }
 
-/** Quel moteur a redacted — l'étiquette que le journal affiche à côté de la passe. */
+/** Which engine did the redaction — the label the log shows beside the pass. */
 export function engineLabel(useRemote: boolean, useModel: boolean, useLocal: boolean): string {
   if (useRemote) return "remote";
   if (useModel) return "modèle";
@@ -57,10 +57,10 @@ export function engineLabel(useRemote: boolean, useModel: boolean, useLocal: boo
 }
 
 /**
- * Trace UNE passe de redaction dans le journal : une entrée `tool` ok/échec avec la
- * durée mesurée et, au succès, le résumé (`tail()` — lu APRÈS la passe, pour que le
- * site d'appel puisse l'accumuler pendant qu'elle tourne). Absorbe les deux blocs
- * try/catch jumeaux que `toolResult.ts` portait (règle 9).
+ * Traces ONE redaction pass into the log: a `tool` entry ok/failed with the
+ * measured duration and, on success, the summary (`tail()` — read AFTER the pass, so
+ * the call site can accumulate it while it runs). Absorbs the two twin
+ * try/catch blocks `toolResult.ts` used to carry (rule 9).
  */
 export async function tracedRedact<T>(
   o: { name: string; convId?: string; args: string; tail?: () => string },

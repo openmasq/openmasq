@@ -10,10 +10,10 @@ describe("tierAction", () => {
     expect(tierAction({ testerMode: false, isPaid: true, isGranted: false, canChangeTier: true })).toBe("change-tier");
   });
 
-  // ⛔ LA RÉGRESSION. Le palier Solo INCLUS donne un palier à tout compte neuf SANS
-  // abonnement Stripe derrière. Router sur « palier ≠ gratuit » envoyait donc tout le monde
-  // sur `/change-tier`, qui répond 409 NO_SUBSCRIPTION faute d'abonnement à échanger :
-  // plus aucun compte ne pouvait acheter, à aucun palier. Un octroi passe par la CAISSE.
+  // ⛔ THE REGRESSION. The INCLUDED Solo tier gives a tier to every new account WITHOUT
+  // a Stripe subscription behind it. Routing on « tier ≠ free » therefore sent everyone
+  // to `/change-tier`, which replies 409 NO_SUBSCRIPTION for lack of a subscription to swap:
+  // no account could purchase anymore, at any tier. A grant goes through CHECKOUT.
   it("un OCTROI passe par la caisse, comme un compte gratuit", () => {
     expect(tierAction({ testerMode: false, isPaid: true, isGranted: true, canChangeTier: true })).toBe("checkout");
     expect(tierAction({ testerMode: false, isPaid: false, canChangeTier: true })).toBe("checkout");
@@ -30,15 +30,15 @@ describe("tierAction", () => {
 });
 
 describe("billingErrorMessage — le mode testeur est un ÉTAT, pas une panne", () => {
-    // Le serveur ferme la caisse quand l'environnement est en mode testeur : le message
-    // doit dire quoi faire à la place. « Réessayez » serait faux — rien ne changera au
-    // prochain clic tant que l'interrupteur est allumé.
+    // The server closes checkout when the environment is in tester mode: the message
+    // must say what to do instead. « Réessayez » would be wrong — nothing will change on
+    // the next click while the switch stays on.
     it("dit que rien ne s'encaisse ici, et ne promet ni panne ni réessai", () => {
         const m = billingErrorMessage(409, fr, "TESTER_MODE_ENABLED");
         expect(m).toMatch(/sans paiement/i);
         expect(m).not.toMatch(/réessayez/i);
-        // Le libellé du bouton ne change PAS en mode testeur : promettre « S'octroyer »
-        // enverrait chercher un bouton qui n'existe pas.
+        // The button label does NOT change in tester mode: promising « S'octroyer »
+        // would send someone looking for a button that doesn't exist.
         expect(m).not.toMatch(/octroyer/i);
     });
 });
@@ -72,7 +72,7 @@ describe("billingErrorMessage", () => {
 });
 
 describe("canPitchSubscription", () => {
-  // Ces règles ne jouent que dans un build qui VEND ; le défaut du paquet ne vend rien.
+  // These rules only apply in a build that SELLS; the package's default sells nothing.
   beforeEach(() => configurePlatformAccess({ served: true, sold: true }));
   afterEach(() => configurePlatformAccess({ served: true }));
 

@@ -27,15 +27,15 @@ import { useT } from "../../i18n";
  * stays mountable with no provider — a preview harness or a test gets the old sentence
  * instead of a button. That fallback is why the prose still names the destination itself.
  *
- * ⚠️ **Rien ici ne parle la langue du code.** La légende s'adresse à quelqu'un qui voulait
- * lire ses e-mails, pas déboguer un appel : le connecteur est nommé par sa MARQUE
- * (`connectorBrandName`) et l'action par son libellé français (`humanToolLabel`, l'unique
- * traducteur — le même que la trace juste au-dessus, pour que les deux se répondent). Le
- * nom technique de l'outil ne subsiste que dans l'infobulle, où il sert au support sans
- * encombrer la phrase. On ne dit pas non plus « les arguments envoyés étaient conformes »
- * ni « le détail figure au journal si vous l'avez activé » : l'un explique notre
- * plomberie, l'autre renvoie à un réglage que la personne n'a pas — ni l'un ni l'autre ne
- * lui dit quoi FAIRE.
+ * ⚠️ **Nothing here speaks the language of code.** The caption addresses someone who wanted
+ * to read their e-mails, not debug a call: the connector is named by its BRAND
+ * (`connectorBrandName`) and the action by its French label (`humanToolLabel`, the sole
+ * translator — the same one as the trace just above, so the two answer each other). The
+ * tool's technical name only survives in the tooltip, where it serves support without
+ * cluttering the sentence. We also don't say « les arguments envoyés étaient conformes »
+ * nor « le détail figure au journal si vous l'avez activé »: one explains our
+ * plumbing, the other points to a setting the person doesn't have — neither one
+ * tells them what to DO.
  */
 export function ToolStruggleNotice({
   struggle,
@@ -47,16 +47,16 @@ export function ToolStruggleNotice({
   const t = useT();
   const who = modelName ?? "Ce modèle";
   const openConnector = useOpenConnector();
-  // ⚠️ Le connecteur vient du NOM de l'outil (`connectorOfTool`), pas de `struggle.server`
-  // — celui-ci valait « ipc » (l'id de transport du client MCP), d'où « Ipc a refusé
-  // l'appel… ». Le dériver ICI répare aussi les messages DÉJÀ enregistrés avec « ipc ».
+  // ⚠️ The connector comes from the tool's NAME (`connectorOfTool`), not from `struggle.server`
+  // — that one used to hold « ipc » (the MCP client's transport id), hence « Ipc a refusé
+  // l'appel… ». Deriving it HERE also repairs messages ALREADY recorded with « ipc ».
   const connectorId = connectorOfTool(struggle.tool, struggle.server);
   const connector = connectorBrandName(connectorId) ?? connectorPresentation(connectorId).name;
-  // L'action, en français : « Recherche · e-mails » plutôt que `gmail__search_messages`.
+  // The action, in French: « Recherche · e-mails » rather than `gmail__search_messages`.
   const action = struggle.tool ? humanToolLabel(connectorId, splitToolName(struggle.tool).tool) : "";
-  // Les deux causes qui se règlent DANS la fiche du connecteur : un jeton expiré pour
-  // l'une, une action qui réclame vos propres clés pour l'autre. Les deux autres tiennent
-  // au modèle — y proposer « Reconnecter » enverrait au mauvais endroit.
+  // The two causes that get resolved INSIDE the connector's card: an expired token for
+  // one, an action that requires your own keys for the other. The other two are down
+  // to the model — offering « Reconnecter » there would send to the wrong place.
   const fixableHere = struggle.kind === "connector_error" || struggle.kind === "unknown_tool";
   const canOpen = fixableHere && !!openConnector && !!connectorId;
 

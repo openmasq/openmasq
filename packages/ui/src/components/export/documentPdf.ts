@@ -32,9 +32,9 @@ export function toWinAnsi(s: string): string {
     .replace(/[“”„″]/g, '"')
     .replace(/[–—]/g, "-")
     .replace(/…/g, "...")
-    // Les FINES insécables se replient sur l'insécable PLEINE (U+00A0), qui EXISTE en
-    // WinAnsi (0xA0) — l'aplatir en espace simple rendrait à nouveau cassables les
-    // « 12 000 € » que `microTypography.ts` vient de souder.
+    // THIN non-breaking spaces fold back onto the FULL non-breaking space (U+00A0), which
+    // EXISTS in WinAnsi (0xA0) — flattening it to a plain space would make breakable again the
+    // « 12 000 € » that `microTypography.ts` just welded together.
     .replace(/[  ]/g, " ")
     .replace(/[^\t\n\x20-\x7E -ÿŒœŠšŽžŸ€]/g, "");
 }
@@ -62,8 +62,8 @@ function layoutRuns(runs: Run[], size: number, fonts: Fonts, maxWidth: number): 
     const font = fontFor(run, fonts);
     const spaceW = font.widthOfTextAtSize(" ", size);
     // Split keeping whitespace runs, so a run boundary without whitespace joins.
-    // ⚠️ L'insécable (U+00A0) est DANS `\s` pour JavaScript — la classe explicite
-    // l'exclut, sinon « 12 000 » se coupait exactement là où il ne doit pas.
+    // ⚠️ The non-breaking space (U+00A0) is INSIDE `\s` for JavaScript — the explicit
+    // class excludes it, otherwise « 12 000 » would break exactly where it must not.
     for (const part of toWinAnsi(run.text).split(/([ \t\n\r\f\v]+)/)) {
       if (!part) continue;
       if (/^\s+$/.test(part)) {

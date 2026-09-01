@@ -2,30 +2,30 @@ import { spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-// Les VRAIS modules produit (purs, zéro electron) — même parsing HTML→texte que
-// `web_fetch_many` en prod, même PREAMBLE Python (thème de marque + `*_prices` +
-// collecte des figures) et même proxy d'egress yfinance que le jail de l'app. Ce que
-// le modèle lit et exécute ici est EXACTEMENT ce qu'il aurait dans l'app.
+// The REAL product modules (pure, zero electron) — the same HTML→text parsing as
+// `web_fetch_many` in prod, the same Python PREAMBLE (brand theme + `*_prices` +
+// figure collection) and the same yfinance egress proxy as the app's jail. What
+// the model reads and executes here is EXACTLY what it would get in the app.
 import { htmlToText, HTML_TEXT_MAX } from "../../../../apps/desktop/src/main/net/htmlText";
 import { extractArticle } from "../../../../apps/desktop/src/main/net/articleExtract";
 import { ALLOW_HOSTS, buildScript } from "../../../../apps/desktop/src/main/python/wheels";
 import { startEgressProxy } from "../../../../apps/desktop/src/main/python/egressProxy";
 
-// Les branches « monde réel » du harnais d'eval — OPT-IN par env, EVAL-ONLY :
-//   OPENMASQ_EVAL_REAL_WEB=1 → `web_fetch_many` fait de VRAIS GET (sanitisés produit).
-//   OPENMASQ_EVAL_REAL_PY=1  → `run_python` exécute RÉELLEMENT le code du modèle,
-//     COMME DANS L'APP : runtime CPython baké, `buildScript` produit (thème de marque,
-//     `*_prices`, collecte des figures — ce que le prompt système PROMET existe
-//     donc vraiment), proxy d'egress `ALLOW_HOSTS` (yfinance joignable, tout autre
-//     hôte refusé), seatbelt (écriture scratch-only, DNS refusé au child), timeout
-//     dur + kill du groupe. Ce n'est pas LE jail complet de l'app (pas de masquage
-//     des secrets userData ni de rlimits) — même surface FONCTIONNELLE, confinement réel.
+// The eval harness's "real world" branches — OPT-IN via env, EVAL-ONLY:
+//   OPENMASQ_EVAL_REAL_WEB=1 → `web_fetch_many` does REAL GETs (product-sanitised).
+//   OPENMASQ_EVAL_REAL_PY=1  → `run_python` REALLY executes the model's code,
+//     JUST LIKE IN THE APP: baked CPython runtime, product `buildScript` (brand theme,
+//     `*_prices`, figure collection — so what the system prompt PROMISES really does
+//     exist), `ALLOW_HOSTS` egress proxy (yfinance reachable, every other
+//     host refused), seatbelt (scratch-only writes, DNS refused to the child), a
+//     hard timeout + group kill. This is NOT the app's full jail (no masking
+//     of userData secrets nor rlimits) — same FUNCTIONAL surface, real confinement.
 
 export const realWebEnabled = (): boolean => process.env.OPENMASQ_EVAL_REAL_WEB === "1";
 export const realPyEnabled = (): boolean => process.env.OPENMASQ_EVAL_REAL_PY === "1";
 
-/** De vrais GET, sanitisés par le pipeline produit. http(s) publics only, timeout,
- *  cap octets — fail-closed par URL comme `webFetchMany`. */
+/** Real GETs, sanitised by the product pipeline. Public http(s) only, timeout,
+ *  byte cap — fail-closed per URL like `webFetchMany`. */
 export async function realFetchMany(
   urls: string[],
 ): Promise<{ url: string; ok: boolean; text?: string; error?: string }[]> {
@@ -63,20 +63,20 @@ export interface RealPyResult {
   files: { name: string; base64: string; mime: string }[];
 }
 
-/** Exécutions réelles — inspectables par les asserts d'un scénario. `all` accumule
- *  TOUTES les exécutions du run en cours (reset par le host à sa création) : le modèle
- *  peut réussir sa figure PUIS émettre un appel raté — le dernier ne résume pas le run. */
+/** Real executions — inspectable by a scenario's asserts. `all` accumulates
+ *  EVERY execution of the current run (reset by the host on its creation): the model
+ *  may succeed at its figure THEN emit a failed call — the last one doesn't summarise the run. */
 export const lastRealPy: { result?: RealPyResult; code?: string; all: RealPyResult[] } = { all: [] };
 
 const RUNTIME_DIR = resolve(process.cwd(), "apps/desktop/build/python-runtime/darwin-arm64");
 const PY_BIN = join(RUNTIME_DIR, "python", "bin", "python3");
-/** Cache matplotlib PERSISTANT entre les runs (comme `mplConfigDir()` de l'app) : sans
- *  lui, chaque run refait le scan des polices (~secondes) et le premier crève le timeout. */
+/** matplotlib cache PERSISTENT across runs (like the app's `mplConfigDir()`): without
+ *  it, every run redoes the font scan (~seconds) and the first one blows the timeout. */
 const MPL_DIR = join(tmpdir(), "openmasq-eval-mpl");
 
-/** Profil seatbelt éval — mêmes règles réseau que le jail produit (`sandbox.ts`) :
- *  tout DENY ; écritures scratch+cache mpl only ; réseau UNIQUEMENT vers le proxy
- *  d'egress loopback (allow-list yfinance) ; DNS refusé au child (le proxy résout). */
+/** Eval seatbelt profile — same network rules as the product jail (`sandbox.ts`):
+ *  everything DENY; scratch+mpl-cache-only writes; network ONLY to the loopback
+ *  egress proxy (yfinance allow-list); DNS refused to the child (the proxy resolves). */
 function sbProfile(scratch: string, proxyPort: number): string {
   return [
     "(version 1)",
@@ -96,11 +96,11 @@ function sbProfile(scratch: string, proxyPort: number): string {
   ].join("\n");
 }
 
-/** Exécute le code du modèle comme l'APP le ferait : `buildScript` produit (thème
- *  de marque + `*_prices` + save des figures), proxy d'egress `ALLOW_HOSTS`
- *  (yfinance joignable, tout le reste refusé), seatbelt, cwd = scratch/out. */
+/** Executes the model's code as the APP would: product `buildScript` (brand
+ *  theme + `*_prices` + figure saving), `ALLOW_HOSTS` egress proxy
+ *  (yfinance reachable, everything else refused), seatbelt, cwd = scratch/out. */
 export async function runRealPython(code: string): Promise<RealPyResult> {
-  // seatbelt compare des chemins RÉSOLUS : /var/folders est un symlink de /private/var.
+  // seatbelt compares RESOLVED paths: /var/folders is a symlink to /private/var.
   mkdirSync(MPL_DIR, { recursive: true });
   const scratch = realpathSync(mkdtempSync(join(tmpdir(), "openmasq-eval-py-")));
   const figDir = join(scratch, "fig");
@@ -111,8 +111,8 @@ export async function runRealPython(code: string): Promise<RealPyResult> {
   const proxyUrl = `http://127.0.0.1:${proxy.port}`;
   try {
     writeFileSync(join(scratch, "main.py"), buildScript(code));
-    // spawn ASYNCHRONE obligatoire (comme l'app) : le proxy d'egress tourne dans CE
-    // process — un spawnSync bloquerait l'event loop et donc le proxy (deadlock 60 s).
+    // ASYNCHRONOUS spawn is mandatory (like the app): the egress proxy runs in THIS
+    // process — a spawnSync would block the event loop and thus the proxy (60s deadlock).
     const proc = await new Promise<{ status: number | null; stdout: string; stderr: string }>((done) => {
       const child = spawn(
         "/usr/bin/sandbox-exec",
@@ -140,9 +140,9 @@ export async function runRealPython(code: string): Promise<RealPyResult> {
       let stderr = "";
       child.stdout?.on("data", (d) => (stdout += d));
       child.stderr?.on("data", (d) => (stderr += d));
-      // Kill du GROUPE entier au timeout (child `detached` → son propre pgid).
+      // Kill the WHOLE group on timeout (child `detached` → its own pgid).
       const timer = setTimeout(() => {
-        try { process.kill(-child.pid!, "SIGKILL"); } catch { /* déjà mort */ }
+        try { process.kill(-child.pid!, "SIGKILL"); } catch { /* already dead */ }
       }, 60_000);
       child.on("close", (status) => {
         clearTimeout(timer);

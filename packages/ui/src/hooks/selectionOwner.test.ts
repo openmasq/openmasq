@@ -78,8 +78,8 @@ describe("selectionIsUserText — le menu ne s'ouvre que sur du contenu", () => 
   });
 
   it("ne s'ouvre PAS sur le texte que l'app dit d'elle-même", () => {
-    // Redact une légende que le modèle n'a jamais vue, ou « retenir » une phrase
-    // que l'app vient d'écrire, ne veut rien dire.
+    // Redacting a caption the model never saw, or « retenir » a sentence
+    // the app just wrote, means nothing.
     const { caption, model, btn } = mountList();
     expect(selectionIsUserText(caption, USER_TEXT)).toBe(false);
     expect(selectionIsUserText(model, USER_TEXT)).toBe(false);
@@ -87,15 +87,15 @@ describe("selectionIsUserText — le menu ne s'ouvre que sur du contenu", () => 
   });
 
   it("ne s'ouvre pas sur une sélection À CHEVAL sur le contenu et le chrome", () => {
-    // Un glisser depuis la réponse jusqu'au nom du modèle suivant : l'ancêtre commun
-    // est au-dessus des deux, donc au-dessus de tout nœud marqué.
+    // A drag from the reply to the next model's name: the common ancestor
+    // is above both, hence above every marked node.
     const { list } = mountList();
     expect(selectionIsUserText(list, USER_TEXT)).toBe(false);
   });
 
   it("laisse passer TOUT quand l'appelant ne nomme pas de contenu", () => {
-    // L'aperçu de document n'a pas de chrome à exclure : chaque caractère est du
-    // document. C'est pourquoi `within` est optionnel côté hook.
+    // The document preview has no chrome to exclude: every character is
+    // document. That's why `within` is optional on the hook side.
     const { caption } = mountList();
     expect(selectionIsUserText(caption, "*")).toBe(true);
   });

@@ -38,8 +38,8 @@ describe("describeRedactFailure — cloud (remote) engine", () => {
 
   it("phrases a network failure as a reachability problem", () => {
     const msg = describeRedactFailure("fetch failed", "remote");
-    // « en ligne », pas « cloud » : c'est le même moteur, dit en français — et c'est ce qui
-    // l'oppose à « hors ligne » dans les autres messages de cette famille.
+    // "en ligne", not "cloud": it's the same engine, said in French — and that is what
+    // opposes it to "hors ligne" in the other messages of this family.
     expect(msg).toContain("en ligne");
     expect(msg).toContain("injoignable");
     expect(msg).not.toContain("Réglages → Confidentialité");

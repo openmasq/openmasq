@@ -25,9 +25,9 @@ describe("modalGate — la fenêtre agent n'a pas d'ordre DOM", () => {
 
 describe("l'époque des bornes — le rattrapage entre les DEUX propriétaires", () => {
   it("monte à chaque invalidation, pour que la clé de déduplication change", () => {
-    // Le décalage venait de là : le propriétaire GLOBAL remonte la fenêtre, l'ÉCRIVAIN
-    // des bornes garde sa clé (même rectangle) et n'émet rien — la fenêtre revient donc
-    // où elle était. L'époque casse cette égalité, sans dépendre du rectangle.
+    // That's where the drift came from: the GLOBAL owner reports the window back up, the
+    // bounds WRITER keeps its key (same rectangle) and emits nothing — the window therefore
+    // returns to where it was. The epoch breaks this equality, without depending on the rectangle.
     const before = agentBrowserBoundsEpoch();
     invalidateAgentBrowserBounds();
     expect(agentBrowserBoundsEpoch()).toBe(before + 1);

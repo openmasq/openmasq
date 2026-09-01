@@ -5,16 +5,16 @@ import { FileOpenProvider, type FileOpenApi } from "../../../containers/provider
 import { mount } from "../../../testKit";
 
 /**
- * L'icône « ouvrir dans le panneau » d'un CHEMIN de fichier redacted (journal 02/08 :
- * une réponse liste des bilans locaux, l'utilisateur veut les visualiser d'un clic).
- * Épingle les gates de `MarkdownMark` : contexte fourni + chemin dans une racine
- * ACCORDÉE + valeur en forme de FICHIER — et le clic passe le chemin RÉEL. Tout est
- * UX : le grant de main re-vérifie chaque lecture.
+ * The « ouvrir dans le panneau » icon for a redacted file PATH (journal 02/08:
+ * a reply lists local financial statements, the user wants to view them with a click).
+ * Pins `MarkdownMark`'s gates: context provided + path inside a GRANTED
+ * root + a FILE-shaped value — and the click passes the REAL path. It's all
+ * UX: the main-process grant re-checks every read.
  */
 
 const PATH = "/Users/claire/Desktop/DOCS/bilan_2023-1.pdf";
 const DIR = "/Users/claire/Desktop/DOCS";
-// Le mark vient du COFFRE : la valeur réelle est le chemin, le faux son pseudonyme.
+// The mark comes from the COFFRE: the real value is the path, the fake its pseudonym.
 const VAULT = { "/Users/x9q/Desktop/AB12/qq3.pdf": PATH, "Kelby Works": "Karl Studio" };
 const KINDS = { [PATH]: "path", "Karl Studio": "company" };
 
@@ -31,7 +31,7 @@ describe("MarkdownMark — l'icône « ouvrir » d'un chemin de fichier", () => 
     const ui = await render({ openLocalPath, isOpenablePath: (p) => p.startsWith(DIR) });
     const btn = ui.find<HTMLButtonElement>(".md-open-file");
     expect(btn.getAttribute("aria-label")).toContain("bilan_2023-1.pdf");
-    // À gauche : le bouton précède le mark du chemin dans le DOM.
+    // On the left: the button precedes the path's mark in the DOM.
     const mark = ui.el.querySelector(`mark[data-real="${PATH}"]`)!;
     expect(btn.compareDocumentPosition(mark) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     await ui.click(".md-open-file");
@@ -41,19 +41,19 @@ describe("MarkdownMark — l'icône « ouvrir » d'un chemin de fichier", () => 
 
   it("aucune icône pour un mark non-chemin, ni pour un chemin de DOSSIER", async () => {
     const ui = await render({ openLocalPath: vi.fn(), isOpenablePath: () => true });
-    // Une seule icône : le fichier. Ni la company, ni le dossier (pas de bytes à voir).
+    // Only one icon: the file. Neither the company, nor the folder (no bytes to see).
     expect(ui.findAll(".md-open-file")).toHaveLength(1);
     await ui.unmount();
   });
 
   it("un nom de fichier NU se résout vers l'unique chemin du coffre — ambigu ⇒ rien", async () => {
-    // Journal 02/08 : la réponse cite « bilan_2023-1.pdf » sans chemin ; le coffre
-    // connaît le chemin complet. Deux candidats possibles = aucune icône (jamais deviné).
+    // Journal 02/08: the reply cites « bilan_2023-1.pdf » with no path; the coffre
+    // knows the full path. Two possible candidates = no icon (never guessed).
     const bareVault = {
       fake1: "/Users/claire/Desktop/DOCS/bilan_2023-1.pdf",
       fake2: "bilan_2023-1.pdf",
       fake3: "/Users/claire/Desktop/DOCS/notes.csv",
-      fake4: "/Users/claire/Desktop/AUTRE/notes.csv", // « notes.csv » devient ambigu
+      fake4: "/Users/claire/Desktop/AUTRE/notes.csv", // « notes.csv » becomes ambiguous
       fake5: "notes.csv",
     };
     const kinds = { "bilan_2023-1.pdf": "path", "notes.csv": "path" };
@@ -63,7 +63,7 @@ describe("MarkdownMark — l'icône « ouvrir » d'un chemin de fichier", () => 
         <Markdown content="Voir bilan_2023-1.pdf et notes.csv" vault={bareVault} kinds={kinds} />
       </FileOpenProvider>,
     );
-    expect(ui.findAll(".md-open-file")).toHaveLength(1); // le nom unique seulement
+    expect(ui.findAll(".md-open-file")).toHaveLength(1); // the unique name only
     await ui.click(".md-open-file");
     expect(openLocalPath).toHaveBeenCalledWith("/Users/claire/Desktop/DOCS/bilan_2023-1.pdf");
     await ui.unmount();
@@ -73,10 +73,10 @@ describe("MarkdownMark — l'icône « ouvrir » d'un chemin de fichier", () => 
     const outside = await render({ openLocalPath: vi.fn(), isOpenablePath: () => false });
     expect(outside.maybe(".md-open-file")).toBeNull();
     await outside.unmount();
-    // Sans provider : le défaut no-op garde la feuille montable et muette.
+    // Without a provider: the no-op default keeps the sheet mountable and silent.
     const bare = await mount(<Markdown content={`fichier ${PATH}`} vault={VAULT} kinds={KINDS} />);
     expect(bare.maybe(".md-open-file")).toBeNull();
-    expect(bare.el.querySelector("mark")).not.toBeNull(); // le mark, lui, est toujours là
+    expect(bare.el.querySelector("mark")).not.toBeNull(); // the mark itself is always there
     await bare.unmount();
   });
 });

@@ -120,7 +120,7 @@ function ToolBody({ e }: { e: ToolEntry }) {
         </pre>
       )}
       {/* The direction caption is only meaningful for a REAL tool call (it carries a
-          vault); internal timing entries (détection IA / résultat outil) have none. */}
+          vault); internal timing entries (AI detection / tool result) have none. */}
       {e.args && e.vault && (
         <div className="dbg-note">
           {pairs.length

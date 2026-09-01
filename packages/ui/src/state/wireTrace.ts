@@ -7,8 +7,8 @@ import { pushDebug } from "./debug";
  * the devtools `%c` styling. Gated behind Settings → debug mode; renderer console
  * only. This is the honest view of what actually leaves the machine.
  *
- * Séparé de `debug.ts` (l'anneau du journal) : ceci est le RENDU console d'une entrée
- * wire, pas la mécanique du tampon — et c'est ce qui garde chacun sous le cap de 300.
+ * Separate from `debug.ts` (the journal's ring buffer): this is the console RENDERING of a
+ * wire entry, not the buffer mechanics — and that's what keeps each one under the cap of 300.
  */
 
 /**
@@ -44,10 +44,10 @@ export interface WireLog {
   convId?: string;
 }
 
-/** Push a `wire` entry to the in-app log — TOUJOURS (la collecte est permanente) — and
- *  trace the wire message to the console ONLY under `toConsole` (le réglage « Journal
- *  technique détaillé ») : un console.log du texte redacted chez tout le monde serait
- *  du bruit, la capture ne doit pas l'entraîner. Returns the entry id so the caller can
+/** Push a `wire` entry to the in-app log — ALWAYS (the collection is permanent) — and
+ *  trace the wire message to the console ONLY under `toConsole` (the « Journal
+ *  technique détaillé » setting): a console.log of the redacted text for everyone would be
+ *  noise, the capture must not carry it. Returns the entry id so the caller can
  *  patch its token cost once the model replies (via `updateDebug`); "" when capture is off. */
 export function logWireMessage(opts: WireLog, { toConsole = false } = {}): string {
   if (!toConsole) {

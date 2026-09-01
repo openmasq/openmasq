@@ -14,7 +14,7 @@
  * actually uses — `master's degree`, `mastère` — never as a bare English `master`.
  */
 export const EDU_TERMS: string[] = [
-  // ── Établissements & cycles — français ─────────────────────────────────────
+  // ── Institutions & levels — French ─────────────────────────────────────────
   "école", "ecole", "écoles", "ecoles", "école primaire", "ecole primaire",
   "école maternelle", "ecole maternelle", "élémentaire", "elementaire", "collège",
   "college", "lycée", "lycee", "lycée professionnel", "lycee professionnel",
@@ -28,7 +28,7 @@ export const EDU_TERMS: string[] = [
   "spécialités", "specialites", "option",
   "tronc commun", "enseignement supérieur", "enseignement superieur",
 
-  // ── Diplômes & validation — français ───────────────────────────────────────
+  // ── Degrees & certification — French ───────────────────────────────────────
   "diplôme", "diplome", "baccalauréat", "baccalaureat", "bac", "brevet",
   "licence", "licence professionnelle", "mastère", "mastere", "master 1",
   "master 2", "doctorat", "thèse", "these", "mémoire", "memoire", "soutenance",
@@ -43,7 +43,7 @@ export const EDU_TERMS: string[] = [
   "alternance", "apprentissage", "stage", "stage de fin d'études",
   "stage de fin d'etudes", "césure", "cesure", "mobilité", "mobilite",
 
-  // ── Évaluation & vie scolaire — français ───────────────────────────────────
+  // ── Assessment & school life — French ──────────────────────────────────────
   "cours", "cours magistral", "travaux dirigés", "travaux diriges",
   "travaux pratiques", "amphithéâtre", "amphitheatre", "amphi", "emploi du temps",
   "examen", "examens", "partiel", "partiels", "contrôle continu",
@@ -56,7 +56,7 @@ export const EDU_TERMS: string[] = [
   "passage", "conseil de classe", "absence", "absences", "retard", "retards",
   "assiduité", "assiduite", "discipline scolaire", "exclusion",
 
-  // ── Acteurs, inscription & recherche — français ────────────────────────────
+  // ── People, enrolment & research — French ──────────────────────────────────
   "élève", "eleve", "élèves", "eleves", "étudiant", "etudiant", "étudiante",
   "etudiante", "collégien", "collegien", "lycéen", "lyceen", "doctorant",
   "doctorante", "enseignant", "enseignante", "professeur", "professeure",
@@ -89,7 +89,7 @@ export const EDU_TERMS: string[] = [
   "supervisor", "advisor", "researcher", "research group", "peer review",
   "internship", "apprenticeship", "placement", "alumni", "alumnus",
 
-  // ── Deutsch ────────────────────────────────────────────────────────────────
+  // ── German ─────────────────────────────────────────────────────────────────
   "schule", "grundschule", "hauptschule", "realschule", "gesamtschule",
   "gymnasium", "berufsschule", "hochschule", "fachhochschule", "universität",
   "universitat", "fakultät", "fakultat", "fachbereich", "studiengang",
@@ -103,7 +103,7 @@ export const EDU_TERMS: string[] = [
   "professorin", "betreuer", "betreuerin", "ausbildung", "lehre", "fortbildung",
   "weiterbildung", "forschung", "lehrstuhl", "fachrichtung",
 
-  // ── Español ────────────────────────────────────────────────────────────────
+  // ── Spanish ────────────────────────────────────────────────────────────────
   "escuela", "colegio", "instituto", "universidad", "facultad", "departamento",
   "curso", "asignatura", "materia", "semestre", "cuatrimestre", "créditos",
   "creditos", "grado", "licenciatura", "máster", "master universitario",
@@ -123,7 +123,7 @@ export const EDU_TERMS: string[] = [
   "formación profesional", "formacion profesional", "bachillerato",
   "selectividad", "investigación", "investigacion", "investigador",
 
-  // ── Italiano ───────────────────────────────────────────────────────────────
+  // ── Italian ────────────────────────────────────────────────────────────────
   "scuola", "scuola elementare", "scuola media", "liceo", "istituto tecnico",
   "università", "universita", "facoltà", "facolta", "dipartimento",
   "corso di laurea", "laurea", "laurea magistrale", "dottorato", "tesi",
@@ -136,7 +136,7 @@ export const EDU_TERMS: string[] = [
   "professoressa", "relatore", "tirocinio", "formazione", "ricerca",
   "ricercatore", "ateneo",
 
-  // ── Português ──────────────────────────────────────────────────────────────
+  // ── Portuguese ─────────────────────────────────────────────────────────────
   "escola", "colégio", "colegio", "ensino básico", "ensino basico",
   "ensino fundamental", "ensino médio", "ensino medio", "ensino superior",
   "faculdade", "universidade", "departamento", "licenciatura", "mestrado",

@@ -3,19 +3,19 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Un commentaire CSS mal fermé ne fait PAS échouer le build — il avale silencieusement
- * les règles qui suivent, jusqu'à la fermeture suivante. Le symptôme n'apparaît qu'à
- * l'écran, des semaines plus tard, et se lit comme un bug de mise en page.
+ * A badly-closed CSS comment does NOT fail the build — it silently swallows
+ * the rules that follow, up to the next closing. The symptom only shows up on
+ * screen, weeks later, and reads like a layout bug.
  *
- * Deux fois de suite dans `styles.css` :
- *  1. le retrait de l'ancien niveau « Navigation » a emporté la fermeture de son
- *     commentaire — `.privacy-level-head` est resté commenté, et l'en-tête de chaque
- *     carte de niveau a perdu son `display:flex` sans que rien ne le signale ;
- *  2. le commentaire qui documentait CE bug contenait une séquence de fermeture
- *     littérale dans sa prose, ce qui l'a refermé à la deuxième ligne — et a réavalé
- *     la même règle.
+ * Twice in a row in `styles.css`:
+ *  1. removing the old « Navigation » level took its comment's closing
+ *     down with it — `.privacy-level-head` stayed commented out, and every level
+ *     card's header lost its `display:flex` with nothing flagging it;
+ *  2. the comment documenting THIS bug contained a literal closing
+ *     sequence in its prose, which closed it at the second line — and re-swallowed
+ *     the same rule.
  *
- * Les deux sont invisibles à la relecture et au typecheck. Ce test les rend impossibles.
+ * Both are invisible on review and at typecheck. This test makes them impossible.
  */
 
 const STYLES_DIR = join(__dirname);
@@ -34,7 +34,7 @@ function cssFiles(): { name: string; text: string }[] {
   return out;
 }
 
-/** Balaie le texte comme un parseur CSS : pas d'imbrication, la 1ʳᵉ fermeture ferme. */
+/** Scans the text like a CSS parser: no nesting, the 1st closing closes. */
 function scan(text: string): { openedAt: number | null; orphanClosesAt: number[] } {
   let i = 0;
   let line = 1;
@@ -91,7 +91,7 @@ describe("les commentaires CSS ne peuvent pas avaler une règle", () => {
     },
   );
 
-  // Le scanner doit ATTRAPER les deux formes réelles, sinon il ne garantit rien.
+  // The scanner must CATCH both real-world shapes, or it guarantees nothing.
   it("le scanner attrape bien les deux formes qui ont mordu", () => {
     expect(scan("/* jamais fermé\n.a { color: red; }").openedAt).toBe(1);
     expect(scan("/* prose avec */ une fermeture */\n.a { color: red; }").orphanClosesAt).toEqual([1]);

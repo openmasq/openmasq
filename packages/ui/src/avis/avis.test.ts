@@ -13,7 +13,7 @@ import {
 } from "./avis";
 import { feedbackCategories, feedbackMoods } from "./vocabulary";
 
-/* Les ids et l'ordre ne dépendent d'aucune langue — le catalogue français suffit. */
+/* The ids and order don't depend on any language — the French catalogue is enough. */
 const fr = getMessages("fr");
 
 const draft = (p: Partial<FeedbackDraft> = {}): FeedbackDraft => ({
@@ -93,9 +93,9 @@ describe("buildFeedback", () => {
   });
 
   it("l'ID PostHog voyage avec le contexte — et tombe avec lui", () => {
-    // Demande du 12/08 : l'id de la fiche doit être CELUI de PostHog, pour que le
-    // feedback se joigne à la télémétrie du poste. La jonction anonyme↔identifié
-    // n'existe que sous l'interrupteur « contexte technique » : décoché, rien ne part.
+    // Request from 12/08: the report's id must be THE SAME as PostHog's, so
+    // feedback joins the machine's telemetry. The anonymous↔identified junction
+    // only exists under the "contexte technique" toggle: unchecked, nothing goes out.
     const withId = buildFeedback(draft(), { ...ctx, analyticsId: "anon-m3k9dz1a4kx" });
     expect(withId?.context?.analyticsId).toBe("anon-m3k9dz1a4kx");
     const off = buildFeedback(draft({ attachContext: false }), { ...ctx, analyticsId: "anon-m3k9dz1a4kx" });
@@ -124,12 +124,12 @@ describe("buildFeedback", () => {
     expect(Object.keys(f!).sort()).toEqual(["category", "context", "message", "mood"]);
   });
 
-  // Un journal PRÉSENT part par défaut (13/08 — collecte permanente + pré-cochage du
-  // modal) ; seul un refus EXPLICITE (`attachJournal: false`) le retire.
+  // A PRESENT journal goes out by default (13/08 — permanent capture + the modal's
+  // pre-checked box); only an EXPLICIT refusal (`attachJournal: false`) removes it.
   it("attache un journal présent par défaut ; seul un refus explicite le retire", () => {
     const withJournal = draft({ journal: "wire: bonjour [PERSON1]", attachJournal: true });
     expect(buildFeedback(withJournal, ctx)?.journal).toBe("wire: bonjour [PERSON1]");
-    // Interrupteur jamais touché (undefined) ⇒ part aussi — c'est le pré-cochage.
+    // Toggle never touched (undefined) ⇒ also goes out — that is the pre-checking.
     expect(buildFeedback(draft({ journal: "wire" }), ctx)?.journal).toBe("wire");
     expect(
       buildFeedback(draft({ journal: "wire", attachJournal: false }), ctx),

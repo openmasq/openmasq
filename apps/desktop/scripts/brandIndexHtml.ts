@@ -1,12 +1,12 @@
 /**
- * `index.html` est statique (il ne peut pas importer `@openmasq/branding`) : le nom et
- * le domaine de la marque y sont des jetons `%BRAND_NAME%` / `%BRAND_DOMAIN%`, substitués
- * par ce plugin — en dev comme au build. `src/renderer/csp.test.ts` applique la MÊME
- * substitution avant de vérifier la CSP, pour tester ce que le bundle sert vraiment.
+ * `index.html` is static (it can't import `@openmasq/branding`): the brand's name and
+ * domain are `%BRAND_NAME%` / `%BRAND_DOMAIN%` tokens there, substituted
+ * by this plugin — in dev as at build. `src/renderer/csp.test.ts` applies the SAME
+ * substitution before checking the CSP, to test what the bundle actually serves.
  *
- * `%SUPABASE_CSP%` : les origines du projet Supabase du BUILD (https + wss), dérivées de
- * `OPENMASQ_SUPABASE_URL` par `supabaseCspEntries` — plus aucun projet committé. Vide ⇒
- * le jeton s'efface et la CSP n'autorise AUCUN hôte Supabase (l'app tourne sans comptes).
+ * `%SUPABASE_CSP%`: the BUILD's Supabase project origins (https + wss), derived from
+ * `OPENMASQ_SUPABASE_URL` by `supabaseCspEntries` — no more committed project. Empty ⇒
+ * the token clears and the CSP allows NO Supabase host (the app runs without accounts).
  */
 export function supabaseCspEntries(supabaseUrl: string | undefined): string {
   const u = (supabaseUrl ?? "").trim();

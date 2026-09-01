@@ -9,7 +9,7 @@ describe("haloRegions — bandes de ligne représentatives", () => {
     const out = haloRegions([b(50, 100), b(95, 100), b(140, 101)], BOUNDS);
     expect(out).toHaveLength(1);
     const r = out[0];
-    // La bande couvre du premier au dernier mot, gonflée d'une marge < une hauteur.
+    // The band covers from the first to the last word, inflated by a margin < one height.
     expect(r.left).toBeLessThan(50);
     expect(r.left).toBeGreaterThan(40);
     expect(r.left + r.w).toBeGreaterThan(180);
@@ -17,7 +17,7 @@ describe("haloRegions — bandes de ligne représentatives", () => {
   });
 
   it("sépare deux COLONNES : une gouttière de plusieurs hauteurs ne fusionne jamais", () => {
-    const out = haloRegions([b(50, 100), b(300, 100)], BOUNDS); // écart 210 ≫ 1,6×10
+    const out = haloRegions([b(50, 100), b(300, 100)], BOUNDS); // gap 210 ≫ 1.6×10
     expect(out).toHaveLength(2);
   });
 
@@ -27,7 +27,7 @@ describe("haloRegions — bandes de ligne représentatives", () => {
   });
 
   it("une même ligne écrite par DEUX sources (texte + OCR, ordre quelconque) reste UNE bande", () => {
-    // Les mots OCR arrivent APRÈS les mots texte et avec un cadrage vertical léger décalé.
+    // OCR words arrive AFTER text words, with a slightly offset vertical framing.
     const out = haloRegions([b(95, 300), b(50, 301, 40, 9), b(140, 299, 40, 11)], BOUNDS);
     expect(out).toHaveLength(1);
   });

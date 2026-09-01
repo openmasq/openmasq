@@ -8,17 +8,17 @@ const MODES: { id: ViewMode; icon: (p: { size?: number }) => JSX.Element }[] = [
 ];
 
 /**
- * Grille ⇄ liste, la MÊME commande sur les trois écrans qui listent des objets
+ * Grid ⇄ list, the SAME control across the three screens that list objects
  * (Bibliothèque, Compétences, Workflows).
  *
- * Une seule maison (règle 9) : trois copies auraient dérivé sur l'ordre des boutons, la
- * taille de l'icône et le mot employé — et un mode d'affichage se reconnaît justement au
- * fait qu'il est au même endroit partout.
+ * One single home (rule 9): three copies would have drifted on the button order, the
+ * icon size and the word used — and a display mode is recognised precisely by
+ * being in the same place everywhere.
  *
- * `radiogroup` et non deux bascules : les deux modes sont exclusifs, et un lecteur d'écran
- * doit entendre « 1 sur 2 », pas deux interrupteurs indépendants dont l'un serait
- * redondant. Le libellé reste dans `title`/`aria-label` — à cette densité, un mot par
- * bouton coûterait la place qu'on cherche justement à rendre.
+ * `radiogroup` rather than two toggles: the two modes are exclusive, and a screen reader
+ * must hear « 1 sur 2 », not two independent switches one of which would be
+ * redundant. The label stays in `title`/`aria-label` — at this density, a word per
+ * button would cost the very space we're trying to give back.
  */
 export function ViewModeToggle({
   mode,

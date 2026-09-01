@@ -45,7 +45,7 @@ describe("ModelRow — la pastille d'indisponibilité explique quoi faire", () =
     expect(chip, "la pastille doit être rendue").toBeTruthy();
     expect(chip!.classList.contains("clickable")).toBe(true);
     expect(chip!.textContent).toContain("Clé requise");
-    // Elle dit qu'on peut agir — une pastille muette n'apprend rien.
+    // It says you can act — a mute chip teaches nothing.
     expect(chip!.textContent).toMatch(/comment faire/i);
     await act(async () => chip!.click());
     expect(calls).toEqual([["key", "OpenAI"]]);

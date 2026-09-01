@@ -1,26 +1,26 @@
 import { useEffect, type RefObject } from "react";
 
 /**
- * Rendre une boîte de dialogue vraie AU CLAVIER : y amener le focus à l'ouverture, et l'y
- * garder.
+ * Make a dialog TRULY work with the keyboard: bring focus to it on open, and keep
+ * it there.
  *
- * `aria-modal="true"` est une PROMESSE — il dit aux technologies d'assistance que le reste
- * de la page est hors-jeu. Sans ces deux gestes, la promesse est fausse : mesuré sur
- * l'accueil, le focus restait sur `body` et la première tabulation atterrissait sur le
- * logo du rail, DERRIÈRE la carte. Il fallait traverser toute l'app pour atteindre
- * « Suivant ».
+ * `aria-modal="true"` is a PROMISE — it tells assistive technology that the rest of
+ * the page is out of play. Without these two gestures, the promise is false:
+ * measured on onboarding, focus stayed on `body` and the first tab landed on the
+ * rail's logo, BEHIND the card. You had to traverse the whole app to reach
+ * "Suivant".
  *
- * Ce qui est délibérément absent : Échap. Une modale de premier lancement n'a pas de
- * fermeture accidentelle — la sortie porte un nom, « Passer ».
+ * What is deliberately absent: Escape. A first-launch modal has no accidental
+ * closing — the way out has a name, "Passer".
  */
 export function useDialogFocus(ref: RefObject<HTMLElement | null>): void {
   useEffect(() => {
     const root = ref.current;
     if (!root) return;
 
-    /* Le conteneur lui-même prend le focus (`tabIndex={-1}` côté appelant) plutôt que son
-       premier bouton : le lecteur d'écran annonce alors le titre du dialogue, et la
-       tabulation suivante mène au premier contrôle — pas l'inverse. */
+    /* The container itself takes focus (`tabIndex={-1}` on the caller's side) rather than
+       its first button: the screen reader then announces the dialog's title, and the
+       next tab leads to the first control — not the other way around. */
     root.focus({ preventScroll: true });
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -32,8 +32,8 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>): void {
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
       const active = document.activeElement as HTMLElement | null;
-      // Boucler aux deux bouts, et rattraper le cas « le focus est sorti » (un clic dans
-      // le vide le pose sur le conteneur) : la tabulation y revient au premier contrôle.
+      // Loop at both ends, and catch the "focus escaped" case (a click in empty
+      // space lands it on the container): tabbing from there returns to the first control.
       if (e.shiftKey && (active === first || active === root || !root.contains(active))) {
         e.preventDefault();
         last.focus();
@@ -44,8 +44,8 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>): void {
     };
 
     root.addEventListener("keydown", onKeyDown);
-    // Sur le DOCUMENT aussi : quand le focus a fui derrière (une modale montée après coup),
-    // la touche n'atteindrait jamais le conteneur.
+    // On the DOCUMENT too: when focus has fled elsewhere (a modal mounted afterwards),
+    // the key would never reach the container.
     document.addEventListener("keydown", onKeyDown, true);
     return () => {
       root.removeEventListener("keydown", onKeyDown);

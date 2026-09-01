@@ -30,12 +30,12 @@ export const MarkdownDocContext = createContext<{
   /** Re-load a stored image at FULL resolution for the export (screen previews are
    *  downscaled; print needs the original). Absent ⇒ the export embeds the preview. */
   loadImage?: (name: string) => Promise<string | null>;
-  /** Adopter la compétence / le workflow qu'un `SkillCard` propose — rend `true` quand
-   *  l'entrée a bien été créée (le bouton se fige alors sur « Ajouté »). ABSENT ⇒ la
-   *  carte est en lecture seule, comme `onDocumentEdit` : bulle en flux, rendu
-   *  imbriqué, aperçu. Rien n'est jamais ajouté sans ce clic (`SkillCard`). */
+  /** Adopt the skill / workflow a `SkillCard` proposes — returns `true` when
+   *  the entry was actually created (the button then freezes on « Ajouté »). ABSENT ⇒ the
+   *  card is read-only, like `onDocumentEdit`: bubble in stream, nested
+   *  render, preview. Nothing is ever added without this click (`SkillCard`). */
   onAddSkill?: (skill: import("../../suggestions/proposedSkill").ProposedSkill) => boolean;
-  /** « Déjà dans la liste ? » — l'état du bouton d'adoption, DÉRIVÉ des données : la
-   *  liste des messages est virtualisée, un état d'instance se réarme au remount. */
+  /** « Déjà dans la liste ? » — the adoption button's state, DERIVED from the data: the
+   *  message list is virtualized, an instance state re-arms on remount. */
   isSkillAdded?: (skill: import("../../suggestions/proposedSkill").ProposedSkill) => boolean;
 }>({});

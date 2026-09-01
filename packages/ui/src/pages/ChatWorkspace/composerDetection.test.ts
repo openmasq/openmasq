@@ -1,8 +1,8 @@
 import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Intercepte la télémétrie : le test vérifie l'ÉMISSION, pas le réseau (aucun ici de
-// toute façon — le sink par défaut est un no-op, mais l'assertion doit voir l'appel).
+// Intercepts telemetry: the test verifies the EMISSION, not the network (none here
+// anyway — the default sink is a no-op, but the assertion must see the call).
 const { captureEvent } = vi.hoisted(() => ({ captureEvent: vi.fn() }));
 vi.mock("../../analytics", () => ({ captureEvent }));
 import { makeToggleKeep,
@@ -57,11 +57,11 @@ describe("detectRegex — the live preview obeys the redaction rules", () => {
   });
 });
 
-/* UNE pastille par identité, y compris pour une valeur IMBRIQUÉE dans une autre.
-   Trouvé au parcours RH (contrat espagnol, 17/08) : sur « DNI 12345678Z » l'aperçu
-   affichait DEUX pastilles (« 12345678 » et « 12345678Z ») là où l'envoi n'alloue QU'UN
-   faux. Une pastille est cliquable pour « garder en clair » — celle du fragment proposait
-   donc de un-redact la moitié d'un numéro national. */
+/* ONE chip per identity, including for a value NESTED inside another.
+   Found in the HR flow (Spanish contract, 17/08): on "DNI 12345678Z" the aperçu
+   showed TWO chips ("12345678" and "12345678Z") where the send allocates only ONE
+   fake. A chip is clickable for « garder en clair » — the fragment's therefore
+   offered to un-redact half of a national ID number. */
 describe("buildDetection — imbrication", () => {
   it("un fragment contenu dans une valeur plus longue ne fait PAS sa propre pastille", () => {
     const text = "DNI 12345678Z du salarié";
@@ -70,7 +70,7 @@ describe("buildDetection — imbrication", () => {
       { value: "12345678Z", cat: "national_id" },
     ] as Cat[]);
     expect(items.map((i) => i.value)).toEqual(["12345678Z"]);
-    // …et le surlignage reste celui du span LONG, pas deux marques superposées.
+    // …and the highlight stays that of the LONG span, not two overlapping marks.
     expect(ranges).toHaveLength(1);
     expect(text.slice(ranges[0].start, ranges[0].end)).toBe("12345678Z");
   });
@@ -129,11 +129,11 @@ describe("buildDetection", () => {
   });
 
   it("un même terme revendiqué sous DEUX catégories rend UNE pastille — la première gagne", () => {
-    // Vécu (parcours juriste 13/08) : « Projet Ambre » au Coffre (pseudo, fusionné en
-    // premier) ET reclassé « company » par la couche modèle → deux pastilles de teintes
-    // différentes + « 2 à redact » au-dessus d'UN terme protégé, pendant que le fil,
-    // lui, n'allouait qu'UN faux. L'identité d'une entité EST sa clé de dédoublonnage ;
-    // la catégorie de la première revendication fixe la teinte.
+    // Experienced (lawyer flow 13/08): "Projet Ambre" in the Coffre (alias, merged
+    // first) AND reclassified "company" by the model layer → two chips of different
+    // hues + "2 à redact" over ONE protected term, while the thread
+    // itself only allocated ONE fake. An entity's identity IS its dedup key;
+    // the first claim's category fixes the hue.
     const text = "Le dossier Projet Ambre avance ; archive Projet Ambre.";
     const { items, ranges } = buildDetection(text, [
       { value: "Projet Ambre", cat: "username" },
@@ -141,7 +141,7 @@ describe("buildDetection", () => {
     ] as Cat[]);
     expect(items).toHaveLength(1);
     expect(items[0].kind).toBe("username");
-    // Les DEUX occurrences restent surlignées — dédupliquer la pastille ne perd pas de marque.
+    // BOTH occurrences stay highlighted — deduplicating the chip doesn't lose a mark.
     expect(ranges.filter((r) => r.value.includes("Ambre"))).toHaveLength(2);
   });
 });
@@ -188,9 +188,9 @@ describe("« à vérifier » (uncertain) — la couche modèle marque, une sourc
   });
 
   it("une source SÛRE du même identifiant gagne le dédoublonnage — pas de doute affiché", () => {
-    // Ordre de fusion du composeur : forced puis regex puis modèle. Le premier arrivé
-    // fixe l'état de la chip, donc une valeur revendiquée par une source sûre ne porte
-    // jamais « à vérifier », même si la couche modèle doute.
+    // The composer's merge order: forced then regex then model. The first to arrive
+    // fixes the chip's state, so a value claimed by a sure source never carries
+    // "à vérifier", even if the model layer doubts it.
     const text = "Contact : Norvatek pour la suite.";
     const { items } = buildDetection(text, [
       { value: "Norvatek", cat: "company" },
@@ -219,7 +219,7 @@ describe("makeToggleKeep — le geste « garder en clair » est un signal de fau
     const setKeepList = vi.fn();
     makeToggleKeep(items, new Set(), setKeepList)("Elena Sohn");
     expect(captureEvent).toHaveBeenCalledWith({ name: "redaction_kept", kind: "name" });
-    // La valeur ne doit apparaître dans AUCUN champ de l'événement.
+    // The value must not appear in ANY field of the event.
     expect(JSON.stringify(captureEvent.mock.calls)).not.toContain("Elena");
     expect(setKeepList).toHaveBeenCalledOnce();
   });
@@ -228,7 +228,7 @@ describe("makeToggleKeep — le geste « garder en clair » est un signal de fau
     const setKeepList = vi.fn();
     makeToggleKeep(items, new Set(["Elena Sohn"]), setKeepList)("Elena Sohn");
     expect(captureEvent).not.toHaveBeenCalled();
-    expect(setKeepList).toHaveBeenCalledOnce(); // le geste lui-même fonctionne toujours
+    expect(setKeepList).toHaveBeenCalledOnce(); // the action itself still works
   });
 
   it("une valeur sans item (course du debounce) émet `unknown` plutôt que rien", () => {
@@ -248,9 +248,9 @@ describe("makeToggleKeep — le geste « garder en clair » est un signal de fau
 });
 
 describe("competencePromptCats — le prompt d'une compétence nourrit le compteur", () => {
-  // Vécu 15/08 (parcours G) : une compétence portant les coordonnées du cabinet — SIRET,
-  // e-mail, téléphone — était mise en scène, le composeur annonçait « 1 à redact »
-  // quand 8 partaient masqués. Le prompt part dans modelText : le compteur doit le dire.
+  // Experienced 15/08 (path G): a compétence carrying the firm's contact details — SIRET,
+  // email, phone — was staged, the composer announced "1 à redact"
+  // when 8 went out masked. The prompt goes out in modelText: the counter must say so.
   const PROMPT =
     "Tu écris au nom du cabinet. Contact : farid.sellam@tarvelone-expertise.fr, 02 98 44 17 62.";
 
@@ -279,11 +279,11 @@ describe("competenceExtraCount — dédupliqué contre le brouillon", () => {
   it("compte les valeurs distinctes du prompt absentes du brouillon", () => {
     const compCats = [
       { value: "a@b.fr", cat: "email" },
-      { value: "a@b.fr", cat: "email" }, // doublon interne
+      { value: "a@b.fr", cat: "email" }, // internal duplicate
       { value: "06 11 22 33 44", cat: "phone" },
     ];
     expect(competenceExtraCount([], compCats)).toBe(2);
-    // La même valeur déjà comptée par le brouillon ne fait pas deux (casse pliée).
+    // The same value already counted by the draft doesn't make two (case-folded).
     expect(competenceExtraCount([item("A@B.FR")], compCats)).toBe(1);
   });
 
@@ -293,10 +293,10 @@ describe("competenceExtraCount — dédupliqué contre le brouillon", () => {
 });
 
 describe("previewStatus — FINI vs ABANDONNÉ (document long, 15/08)", () => {
-  // Mesuré : 41 872 caractères ⇒ la couche sémantique rend les armes, `detecting`
-  // retombe à faux, et « 321 à redact » s'affichait comme un TOTAL alors qu'il ne
-  // portait que les règles (e-mails + téléphones + SIREN) — ni l'adresse du cabinet ni
-  // les noms de personnes, pourtant détectés sur le même texte en court.
+  // Measured: 41 872 characters ⇒ the semantic layer gives up, `detecting`
+  // falls back to false, and "321 à redact" displayed as a TOTAL when it only
+  // carried the rules (emails + phones + SIREN) — neither the firm's address nor
+  // people's names, though detected on the same text when short.
   it("analyse complète ⇒ un compte ferme, sans explication à donner", () => {
     const s = previewStatus(false, 321, true, fr);
     expect(s).toEqual({ kind: "count", label: "321 à redact" });
@@ -308,12 +308,12 @@ describe("previewStatus — FINI vs ABANDONNÉ (document long, 15/08)", () => {
     if (s.kind !== "count") return;
     expect(s.label).toBe("au moins 321 à redact");
     expect(s.partial).toBe(true);
-    // L'explication doit RASSURER sur ce qui compte : l'envoi ré-analyse tout.
+    // The explanation must REASSURE about what matters: the send re-analyzes everything.
     expect(s.hint).toMatch(/envoi la refait/i);
   });
 
   it("abandon SANS aucune détection ⇒ on le dit, on ne se tait pas", () => {
-    // Se taire se lirait « rien à redact » sur un document qu'on n'a pas fini de lire.
+    // Staying silent would read as "rien à redact" on a document that hasn't finished being read.
     const s = previewStatus(false, 0, true, fr, true);
     expect(s.kind).toBe("count");
     if (s.kind !== "count") return;

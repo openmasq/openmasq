@@ -1,5 +1,5 @@
-/** Les types des COMPÉTENCES — avec la fonctionnalité (même règle que
- *  `memory/memoryTypes.ts`), ré-exportés par `types.ts`, l'unique surface d'import. */
+/** The COMPÉTENCES types — with the feature (same rule as
+ *  `memory/memoryTypes.ts`), re-exported by `types.ts`, the single import surface. */
 
 /** The categories a Compétence can be filed under. The id is what persists, so
  *  it must stay stable; the label/tone/glyph are presentation. */
@@ -9,7 +9,7 @@ export type CompetenceCategoryId =
   | "code"
   | "juridique"
   | "support"
-  /** Ce que l'app appelait un « workflow » : une compétence qui pilote des connecteurs. */
+  /** What the app used to call a "workflow": a compétence that drives connectors. */
   | "routine";
 
 /**
@@ -18,11 +18,11 @@ export type CompetenceCategoryId =
  * payload at send). User-authored content, NOT app config: see
  * `Settings.competences` for why it nonetheless rides the settings blob.
  *
- * ⚠️ **Il n'y a plus qu'UN objet.** Les « workflows » en étaient un second, au champ près,
- * avec deux écrans jumeaux. La seule différence de COMPORTEMENT était `servers`, devenu un
- * champ facultatif d'ici, et la règle qui remplace la frontière : **une compétence qui
- * nomme des connecteurs les utilise** (`competences/launch.ts`). Sans `servers`, rien ne
- * change de l'ancien comportement.
+ * ⚠️ **There is now only ONE object.** "Workflows" were a second one, one field
+ * away, with two twin screens. The only BEHAVIOUR difference was `servers`, which became
+ * an optional field here, and the rule that replaces the boundary: **a compétence that
+ * names connectors uses them** (`competences/launch.ts`). Without `servers`, nothing
+ * changes from the old behaviour.
  */
 export interface Competence {
   id: string;

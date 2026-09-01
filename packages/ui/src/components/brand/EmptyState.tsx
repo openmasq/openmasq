@@ -45,9 +45,9 @@ export function EmptyState({
     <div className="om-empty om-step-in" data-tone={tone}>
       <div className="om-empty-tile">{icon}</div>
       {eyebrow && <div className="cv-eyebrow om-empty-eyebrow">{eyebrow}</div>}
-      {/* Pas de `.om-mark` : le surlignage est la trace du redaction, et il ne dit rien
-          d'une case vide. Sur une ligne entière il devenait une bande de couleur pleine
-          derrière le seul titre — un aplat, pas une marque. */}
+      {/* No `.om-mark`: the highlight is the redaction's trace, and it says nothing
+          about an empty box. On a whole line it became a solid band of color
+          behind the sole title — a flat fill, not a mark. */}
       <h3 className="cv-display om-empty-title">{title}</h3>
       <p className="om-empty-body">{body}</p>
       {points.length > 0 && (

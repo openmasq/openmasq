@@ -23,8 +23,8 @@ function StepDot({ state, current }: { state: TraceTool["state"]; current?: bool
       </span>
     );
   if (state === "error") return <span className={`mcp-trace-dot error${ring}`}>!</span>;
-  // Un refus UTILISATEUR n'est pas une panne : pas de « ! » rouge — le garde-fou a
-  // fait son travail. Le point neutre suffit, la ligne dit « refusé ».
+  // A USER refusal isn't a failure: no red « ! » — the guardrail did
+  // its job. The neutral dot is enough, the row says « refusé ».
   if (state === "declined") return <span className={`mcp-trace-dot pending${ring}`}>–</span>;
   if (state === "running") return <span className="mcp-trace-dot om-spin" />;
   return <span className="mcp-trace-dot pending" />;
@@ -134,15 +134,15 @@ export function ToolTrace({
                     {t.state === "running" ? (
                       <span className="mcp-trace-running">{pendingStatus || "en cours…"}</span>
                     ) : t.state === "error" ? (
-                      // ⚠️ Un échec DIT sa cause quand il en a une. Sans la note, un refus de
-                      // l'app (gate d'intention, domaine non autorisé) s'affichait « échec »
-                      // tout court — et le modèle le paraphrasait en accusant le service
-                      // (« refusée par l'intégration », mesuré 15/08). La trace, elle, n'est
-                      // pas réécrivable par le modèle : c'est le seul endroit qui peut dire
-                      // QUI a refusé.
+                      // ⚠️ A failure STATES its cause when it has one. Without the note, an app
+                      // refusal (intent gate, domain not allowed) displayed as a bare « échec »
+                      // — and the model paraphrased it by blaming the service
+                      // (« refusée par l'intégration », measured 15/08). The trace, though, is
+                      // not rewritable by the model: it's the only place that can say
+                      // WHO refused.
                       <span className="mcp-trace-summary err">{t.note ? `échec — ${t.note}` : "échec"}</span>
                     ) : t.state === "declined" ? (
-                      // Le mot du refus, sans la teinte d'erreur : dire non a marché.
+                      // The word for the refusal, without the error tint: saying no worked.
                       <span className="mcp-trace-summary">refusé</span>
                     ) : (
                       // The human narration ("Recherche d'actualités…") reads better than

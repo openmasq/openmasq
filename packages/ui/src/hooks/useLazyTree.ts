@@ -3,19 +3,19 @@ import type { LocalFsEntry } from "../host";
 import { folderTreeRows, missingListings, toggleFolder } from "../state/folderTree";
 
 /**
- * Un arbre qui ne lit QUE ce qu'on ouvre — la mécanique commune aux dossiers de cette
- * machine et aux stockages connectés.
+ * A tree that reads ONLY what gets opened — the mechanics shared by this machine's
+ * folders and connected storages.
  *
- * Les deux sources diffèrent par une seule chose (comment on liste un dossier), et par
- * rien d'autre : mêmes racines, même dépliage, même « je lis une fois puis je garde ».
- * En écrire deux copies, c'est reproduire deux fois les pièges ci-dessous — dont celui
- * qui a déjà coûté une boucle infinie.
+ * The two sources differ by exactly one thing (how a folder is listed), and by
+ * nothing else: same roots, same expansion, same "read once then keep". Writing
+ * two copies means reproducing the traps below twice — including the one that
+ * already cost an infinite loop.
  *
- * ⚠️ `requestedRef` est ce qui empêche la boucle : la lecture pose `pending`, `pending`
- * nourrit les lignes, les lignes disent ce qui manque — donc un dossier encore en vol
- * serait redemandé au re-rendu que sa propre demande a provoqué. L'effet se déclenche
- * aussi sur une CLÉ (chaîne), parce qu'un nouveau tableau des mêmes chemins est une
- * dépendance différente à chaque rendu.
+ * ⚠️ `requestedRef` is what prevents the loop: reading sets `pending`, `pending`
+ * feeds the rows, the rows say what's missing — so a folder still in flight would
+ * be re-requested on the re-render its own request caused. The effect also fires
+ * on a KEY (a string), because a new array of the same paths is a different
+ * dependency on every render.
  */
 export function useLazyTree({
   active,
@@ -23,18 +23,18 @@ export function useLazyTree({
   list,
 }: {
   active: boolean;
-  /** Les racines, déjà résolues par l'appelant (chemins ou clés composées). */
+  /** The roots, already resolved by the caller (paths or composite keys). */
   roots: readonly string[];
-  /** Lister un dossier. Doit LEVER sur un échec — un dossier illisible ne doit jamais
-   *  se rendre comme un dossier vide. */
+  /** List a folder. Must THROW on failure — an unreadable folder must never
+   *  render as an empty folder. */
   list: (path: string) => Promise<LocalFsEntry[]>;
 }) {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
   const [listings, setListings] = useState<Record<string, LocalFsEntry[]>>({});
   const [pending, setPending] = useState<ReadonlySet<string>>(() => new Set());
-  // Les dossiers dont la lecture a ÉCHOUÉ. Sans cet ensemble, la ligne restait « … » pour
-  // toujours : un échec se lisait comme un chargement lent, donc comme un dossier qui ne
-  // rend pas ses enfants — alors qu'un échec a une cause, affichée juste en dessous.
+  // Folders whose read FAILED. Without this set, the row stayed "…" forever: a
+  // failure read as a slow load, hence as a folder that renders no children —
+  // when a failure has a cause, shown right below.
   const [failed, setFailed] = useState<ReadonlySet<string>>(() => new Set());
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
@@ -43,7 +43,7 @@ export function useLazyTree({
 
   const refresh = useCallback(() => setTick((n) => n + 1), []);
 
-  /** Oublier UN dossier (le disque a changé) — il sera relu s'il est encore ouvert. */
+  /** Forget ONE folder (the disk changed) — it will be re-read if still open. */
   const dropListing = useCallback((path: string) => {
     requestedRef.current.delete(path);
     setFailed((cur) => {
@@ -78,8 +78,8 @@ export function useLazyTree({
     () => missingListings(rows, listings).filter((p) => !requestedRef.current.has(p)),
     [rows, listings],
   );
-  // NUL comme séparateur, jamais l'espace : un dossier s'appelle couramment « Mes
-  // Documents », et recouper la clé sur les espaces demanderait deux chemins inexistants.
+  // NUL as separator, never a space: a folder is commonly named "Mes
+  // Documents", and splitting the key on spaces would produce two nonexistent paths.
   const wantedKey = wanted.join("\u0000");
   useEffect(() => {
     if (!active || !wantedKey) return;
@@ -95,9 +95,9 @@ export function useLazyTree({
           setListings((cur) => ({ ...cur, [path]: entries }));
         } catch (e) {
           if (id !== reqRef.current) return;
-          // Honnête : dossier retiré, disque débranché, autorisation révoquée, compte
-          // déconnecté. Le listing reste ABSENT (donc pas « vide »), et le chemin sort
-          // des demandés pour qu'un « Réessayer » relise vraiment.
+          // Honest: folder removed, disk unplugged, permission revoked, account
+          // disconnected. The listing stays ABSENT (so not "empty"), and the path
+          // leaves the requested set so a « Réessayer » actually re-reads.
           requestedRef.current.delete(path);
           setFailed((cur) => new Set([...cur, path]));
           setError(e instanceof Error ? e.message : String(e));
@@ -110,13 +110,13 @@ export function useLazyTree({
         }
       }
     })();
-    // `list` n'est pas dans les dépendances À DESSEIN : l'appelant la recrée à chaque
-    // rendu, et la clé dit déjà exactement ce qu'il reste à lire.
+    // `list` is not in the dependencies ON PURPOSE: the caller recreates it on every
+    // render, and the key already says exactly what's left to read.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, wantedKey]);
 
-  /** Replier puis redéplier est le « réessayer » naturel : l'échec s'oublie ici, donc la
-   *  lecture repart pour de bon au lieu de re-rendre l'ancien verdict. */
+  /** Collapsing then re-expanding is the natural "retry": the failure is forgotten here, so
+   *  the read starts over for real instead of re-rendering the old verdict. */
   const toggle = useCallback((path: string) => {
     setError("");
     setFailed((cur) => {

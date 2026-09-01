@@ -109,11 +109,11 @@ describe("the pre-search reveal card (what the MODEL may see)", () => {
   }, 30_000);
 
   /**
-   * ⚠️ La portée a CHANGÉ le 18/08 : le unredaction vaut pour CET ENVOI, plus pour la
-   * conversation. Les deux moitiés comptent, et c'est pour ça qu'elles sont dans le même
-   * cas : ce qui est révélé doit l'être TOUT DE SUITE (sinon la recherche en cours reste
-   * redacted et l'utilisateur ne voit aucun effet), et RIEN ne doit survivre à l'envoi
-   * (sinon une décision prise pour une recherche suit vingt messages).
+   * ⚠️ The scope CHANGED on 18/08: the un-redaction applies to THIS SEND, no longer to the
+   * conversation. Both halves matter, and that's why they're in the same
+   * test case: what is revealed must be revealed IMMEDIATELY (otherwise the ongoing search
+   * stays redacted and the user sees no effect), and NOTHING must survive the send
+   * (otherwise a decision made for one search follows twenty messages).
    */
   it("approuvé ⇒ effectif SUR-LE-CHAMP, et rien ne survit à l'envoi", async () => {
     m = await mockModel([
@@ -128,13 +128,13 @@ describe("the pre-search reveal card (what the MODEL may see)", () => {
     });
     await run.send("Cherche l'agence « Karl Studio ».");
 
-    // Le RÉSULTAT de la recherche en cours atteint le modèle EN CLAIR (la mutation
-    // en place de `disabledKinds`), pas seulement au tour suivant.
+    // The RESULT of the ongoing search reaches the model IN CLEAR (the in-place
+    // mutation of `disabledKinds`), not only on the next turn.
     const toolMsgs = run.transcript.events
       .filter((e) => e.t === "model:in")
       .flatMap((e) => (e.t === "model:in" ? e.messages.filter((x) => x.role === "tool") : []));
     expect(toolMsgs.map((x) => x.content).join("\n")).toContain("Karl Studio");
-    // RIEN n'est écrit dans la conversation : l'envoi suivant repart redacted.
+    // NOTHING is written to the conversation: the next send goes out redacted again.
     expect(run.conversation().redactCategories?.company).toBeUndefined();
     await run.send("Écris un mot sur Karl Studio.");
     const lastIn = [...run.transcript.events].reverse().find((e) => e.t === "model:in");
@@ -337,13 +337,13 @@ describe("redaction dynamique du navigateur (clear-mode)", () => {
     expect(toolLegs(run)).toContain("02 32 00 00 00");
   }, 30_000);
 
-  // ⚠️ Journal du 27/07/2026 — le cas qui a fait tomber tout le reste. Le modèle appelle
-  // `browser_navigate` SANS le préfixe du connecteur (le navigateur n'était même pas dans
-  // l'offre du tour). Le client tolère et route quand même, donc l'appel ABOUTIT ; mais
-  // `isGovernedWebTool` répondait `false` sur ce nom nu, donc PAS de mode clair : le moteur
-  // complet tournait sur une page publique et vaultait son contenu — dont un mot que
-  // l'utilisateur avait écrit EN CLAIR dans sa demande. Toute URL le contenant devenait
-  // ensuite « porteuse de données de conversation », et l'exploration s'arrêtait net.
+  // ⚠️ Log entry from 27/07/2026 — the case that brought down everything else. The model calls
+  // `browser_navigate` WITHOUT the connector's prefix (the browser wasn't even in
+  // the turn's offer). The client tolerates it and routes anyway, so the call SUCCEEDS; but
+  // `isGovernedWebTool` answered `false` on this bare name, so NO clear mode: the
+  // full engine ran on a public page and vaulted its content — including a word
+  // the user had written IN CLEAR in their request. Any URL containing it then became
+  // "carrying conversation data", and the exploration stopped dead.
   it("un nom d'outil SANS préfixe garde le mode clair (le nom est recalé avant les politiques)", async () => {
     m = await mockModel([
       calls({ name: "browser_navigate", args: { url: "https://elpais.example.com/actualite" } }),
@@ -354,9 +354,9 @@ describe("redaction dynamique du navigateur (clear-mode)", () => {
       rules: { company: true, location: true },
     });
     await run.send("Je travaille pour « Karl Studio ». Quelle est l'actualité en Espagne ?");
-    // Recalé : la trace porte le nom CANONIQUE, pas celui que le modèle a écrit.
+    // Requalified: the trace carries the CANONICAL name, not the one the model wrote.
     expect(run.transcript.dispatched()).toContain("browser__browser_navigate");
-    // Et la conséquence qui compte : la page publique n'est PAS passée au moteur complet.
+    // And the consequence that matters: the public page is NOT passed to the full engine.
     expect(toolLegs(run)).toContain("contact@karl-studio.fr");
     expect(toolLegs(run)).toContain("02 32 00 00 00");
   }, 30_000);

@@ -35,7 +35,7 @@ describe("un cran de voisinage autour d'une entité NOMMÉE", () => {
   });
 
   it("le lien joue dans les DEUX sens", () => {
-    // Ici c'est la fiche CITÉE qui nomme l'autre, pas l'inverse.
+    // Here it's the CITED card that names the other, not the reverse.
     const studio = card("Karl Studio", "Travaille avec Ambrell Works pour le design");
     const ambrell = card("Ambrell Works", "Agence de design");
     expect(names(store(studio, ambrell), "parle-moi de Karl Studio")).toContain("Ambrell Works");
@@ -44,8 +44,8 @@ describe("un cran de voisinage autour d'une entité NOMMÉE", () => {
 
 describe("ce que l'expansion ne doit PAS faire", () => {
   it("ne part JAMAIS d'une correspondance faible", () => {
-    // « Manon » seul est un score 1 (jeton distinctif). Étendre depuis là ferait boule de
-    // neige sur des fiches que l'utilisateur n'a jamais désignées.
+    // « Manon » alone is a score of 1 (distinctive token). Expanding from there would snowball
+    // onto cards the user never designated.
     const manon = card("Manon Verdolini", "Cliente historique", "personne");
     const autre = card("Ostrel", "Fournisseur de Manon Verdolini");
     expect(names(store(manon, autre), "des nouvelles de Manon ?")).toEqual(["Manon Verdolini"]);
@@ -59,12 +59,12 @@ describe("ce que l'expansion ne doit PAS faire", () => {
   });
 
   it("sert les fiches DIRECTES avant les voisines quand le budget est serré", () => {
-    // Un budget qui ne tient qu'une carte doit garder celle que l'utilisateur a nommée.
+    // A budget that only fits one card must keep the one the user named.
     const m = store(card("Karl Studio", "Plateforme audio"), card("Dropbox", "Concurrent de Karl Studio"));
     const sel = selectMemory({ text: "veille sur Karl Studio", convValues: [], memory: m, budgetChars: 90 });
     expect(sel.cards.map((c) => c.entity)).toEqual(["Karl Studio"]);
-    // Le VOISIN écarté n'est pas un raté surprenant (l'utilisateur ne l'a pas nommé) :
-    // il ne pollue jamais le diagnostic.
+    // The dropped NEIGHBOUR is not a surprising miss (the user didn't name it):
+    // it never pollutes the diagnostic.
     expect(sel.skipped).toEqual([]);
   });
 });

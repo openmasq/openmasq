@@ -25,7 +25,7 @@ export function pinMemoryNote(
             memoryNotedIds: createdIds?.length ? createdIds : undefined,
             memoryUpdatedIds: updatedIds?.length ? updatedIds : undefined,
             memoryNotedFailed: failed || undefined,
-            // Le résultat remplace l'état « en cours » — jamais les deux à la fois.
+            // The result replaces the « en cours » state — never both at once.
             memoryNotedPending: undefined,
           }
         : m,
@@ -33,9 +33,9 @@ export function pinMemoryNote(
   };
 }
 
-/** « Mise en mémoire… » — posé dès que l'extraction explicite DÉMARRE, sur le même tour
- *  que `pinMemoryNote` remplira. Sans lui, les secondes d'appel modèle après un
- *  « retiens que… » sont un silence total qui se lit comme une fonctionnalité morte. */
+/** « Mise en mémoire… » — set as soon as the explicit extraction STARTS, on the same turn
+ *  that `pinMemoryNote` will fill. Without it, the seconds of model call after a
+ *  « retiens que… » are total silence that reads as a dead feature. */
 export function pinMemoryPending(c: Conversation): Conversation {
   const last = [...c.messages].reverse().find((m) => m.role === "assistant" && !m.pending);
   if (!last) return c;

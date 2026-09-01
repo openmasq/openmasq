@@ -1,9 +1,9 @@
-// Scénarios « MONDE RÉEL » (`real-*`) — la recherche INTERNET vivante (4 types) et la
-// GÉNÉRATION DE GRAPHE exécutée dans la sandbox Python. En mode mock (scenarios.test)
-// ils tournent sur fixtures (satisfiabilité) ; sous OPENMASQ_EVAL_REAL_WEB=1 /
-// _REAL_PY=1 les fixtures sont court-circuitées par le vrai monde. Les verdicts
-// restent volontairement STRUCTURELS (le web vivant n'est pas déterministe) ; la
-// sécurité (fuite, navigation dérivée d'un fake) reste assertée à chaque run.
+// "REAL WORLD" scenarios (`real-*`) — live INTERNET search (4 types) and
+// GRAPH GENERATION executed in the Python sandbox. In mock mode (scenarios.test)
+// they run on fixtures (satisfiability); under OPENMASQ_EVAL_REAL_WEB=1 /
+// _REAL_PY=1 the fixtures are bypassed by the real world. The verdicts
+// deliberately stay STRUCTURAL (the live web isn't deterministic); the
+// security (leak, navigation derived from a fake) is still asserted on every run.
 
 import { calls, says, } from "../mockModel";
 import { assertRealFigure } from "./catalog.realData";
@@ -11,7 +11,7 @@ import type { Scenario } from "./index";
 
 const DDG = "https://html.duckduckgo.com/html/?q=";
 
-/** Pages fixtures pour le mode mock — en réel, `realFetchMany` les ignore. */
+/** Fixture pages for mock mode — in real mode, `realFetchMany` ignores them. */
 const PAGES: Record<string, string> = {
   [`${DDG}derni%C3%A8re%20version%20LTS%20de%20Node.js`]: "Node.js — Releases. La version LTS actuelle est la 24.x « Krypton ».",
   [`${DDG}population%20de%20Rouen`]: "Rouen — Wikipédia. La commune comptait 114 083 habitants.",
@@ -36,8 +36,8 @@ const webScenario = (
   secrets: [],
   spec: {
     sequence: [{ tool: "web_fetch_many" }],
-    // En réel le contenu varie — le verdict est STRUCTUREL (a cherché, a répondu
-    // non-vide sans refuser) ; la forme attendue ne s'applique qu'au mock.
+    // In real mode the content varies — the verdict is STRUCTURAL (searched, answered
+    // non-empty without refusing); the expected form only applies to the mock.
     answer: (s) => s.trim().length > 0 && !/je ne peux pas/i.test(s) && answerRe.test(s),
   },
   mock: [
@@ -53,29 +53,29 @@ const webScenario = (
 });
 
 export const REAL_SCENARIOS: Scenario[] = [
-  // 1. ACTUALITÉ / donnée qui évolue — le réflexe « vérifier avant de répondre ».
+  // 1. NEWS / data that changes — the "verify before answering" reflex.
   webScenario(
     "real-web-actualite",
     "Quelle est la dernière version LTS de Node.js ? Vérifie sur le web avant de répondre.",
     /node/i,
     "D'après la page consultée, la dernière LTS de Node.js est la 24.x.",
   ),
-  // 2. FACTUEL encyclopédique — une recherche, une extraction, un chiffre.
+  // 2. Encyclopedic FACT — one search, one extraction, one number.
   webScenario(
     "real-web-factuel",
     "Quelle est la population de Rouen ? Cherche sur le web et cite le chiffre.",
     /rouen|\d{2,3}[  .]?\d{3}/i,
     "Rouen compte environ 114 083 habitants (source consultée).",
   ),
-  // 3. TECHNIQUE / documentation — la requête est du jargon, la réponse un usage.
+  // 3. TECHNICAL / documentation — the query is jargon, the reply a usage.
   webScenario(
     "real-web-technique",
     "Cherche sur le web comment utiliser AbortSignal.timeout avec fetch en JavaScript, et donne un exemple d'une ligne.",
     /abortsignal|timeout/i,
     "Exemple : fetch(url, { signal: AbortSignal.timeout(5000) }).",
   ),
-  // 4. ENTITÉ REDACTED — règle 11 sur le web VIVANT : le modèle ne tient que le
-  //    fake, la requête sortante doit porter la VRAIE valeur.
+  // 4. REDACTED ENTITY — rule 11 on the LIVE web: the model only holds the
+  //    fake, the outgoing query must carry the REAL value.
   webScenario(
     "real-web-entite-redact",
     "Cherche sur le web des informations sur l'agence « Karl Studio » et résume ce que tu trouves en une phrase.",
@@ -84,15 +84,15 @@ export const REAL_SCENARIOS: Scenario[] = [
     {
       ner: { "Karl Studio": "company" },
       rules: { company: true },
-      // PAS de `secrets` global : sur le web VIVANT le nom PUBLIC revient dans les
-      // résultats et la politique SEARCH_CLEAR le laisse en clair (c'est la substance
-      // de la réponse) — le modèle peut donc légitimement le réécrire. L'invariant
-      // produit exact est plus fin : le PROMPT UTILISATEUR wire ne porte que le fake
-      // (assert dans `always`), et la query SORTANTE porte la vraie valeur.
+      // NO global `secrets`: on the LIVE web the PUBLIC name comes back in the
+      // results and the SEARCH_CLEAR policy leaves it in clear (it's the substance
+      // of the answer) — so the model may legitimately rewrite it. The exact product
+      // invariant is finer: the wire USER PROMPT only ever carries the fake
+      // (asserted in `always`), and the OUTGOING query carries the real value.
       secrets: [],
       mock: [
-        // Le modèle ne tient que le FAKE (entre « … » dans son prompt) — il forge sa
-        // query dessus ; le wire doit la un-redact vers la vraie valeur.
+        // The model only holds the FAKE (between « … » in its prompt) — it forges its
+        // query on it; the wire must un-redact it back to the real value.
         (req) => {
           const user = String([...req.messages].reverse().find((m) => m.role === "user")?.content ?? "");
           const fake = /« (.+?) »/.exec(user)?.[1] ?? "INCONNU";
@@ -101,7 +101,7 @@ export const REAL_SCENARIOS: Scenario[] = [
         says("C'est une agence de design normande."),
       ],
       always: (run) => {
-        // 1. Le message UTILISATEUR wire (1er model:in) ne porte JAMAIS la vraie valeur.
+        // 1. The wire USER message (1st model:in) NEVER carries the real value.
         const first = run.transcript.events.find((e) => e.t === "model:in");
         const userLeg = first && first.t === "model:in"
           ? first.messages.filter((m) => m.role === "user").map((m) => m.content).join("\n")
@@ -109,7 +109,7 @@ export const REAL_SCENARIOS: Scenario[] = [
         if (/karl studio/i.test(userLeg)) {
           throw new Error("FUITE : la vraie valeur est dans le prompt utilisateur wire");
         }
-        // 2. La query DISPATCHÉE porte la vraie valeur (encodée ou non) — jamais le fake.
+        // 2. The DISPATCHED query carries the real value (encoded or not) — never the fake.
         const urls = run.transcript.events
           .filter((e) => e.t === "tool:out" && e.name === "web_fetch_many")
           .map((e) => decodeURIComponent(String((e as { args: { url?: unknown } }).args.url ?? "")));
@@ -119,8 +119,8 @@ export const REAL_SCENARIOS: Scenario[] = [
       },
     },
   ),
-  // 5. GRAPHE PYTHON — exécution RÉELLE dans la sandbox (seatbelt + runtime baké) :
-  //    le code du modèle doit produire une FIGURE, vérifiée sur les PNG collectés.
+  // 5. PYTHON GRAPH — REAL execution in the sandbox (seatbelt + baked runtime):
+  //    the model's code must produce a FIGURE, checked against the collected PNGs.
   {
     name: "real-py-graphe",
     prompts: [
@@ -146,8 +146,8 @@ export const REAL_SCENARIOS: Scenario[] = [
       }),
       says("Voici le graphique des montants par client."),
     ],
-    // En RÉEL : au moins UNE exécution du run doit avoir produit un PNG non trivial
-    // (figure collectée OU sauvegardée par le modèle dans le cwd — un livrable).
+    // In REAL mode: at least ONE execution of the run must have produced a non-trivial PNG
+    // (figure collected OR saved by the model in the cwd — a deliverable).
     always: assertRealFigure,
   },
 ];

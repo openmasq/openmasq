@@ -53,8 +53,8 @@ describe("adoptSettings — the theme follows the DEVICE, not the account", () =
   });
 
   it("un accent VERT hérité est traduit, pas conservé — l'axe qui reste est le fond", () => {
-    // `normalizeSettings` (→ `blueAccent`) est le seul endroit qui le décide ; ici on
-    // vérifie que l'adoption ne le contourne pas, d'où qu'elle tienne sa valeur.
+    // `normalizeSettings` (→ `blueAccent`) is the only place that decides this; here
+    // we verify that adoption doesn't bypass it, which is why it keeps its value.
     expect(adoptSettings(null, { theme: "dark" }, undefined).theme).toBe("blue-dark");
     expect(adoptSettings("user-a", { theme: "light" }, "blue-dark").theme).toBe("blue");
   });

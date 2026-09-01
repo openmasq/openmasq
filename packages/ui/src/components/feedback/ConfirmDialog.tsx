@@ -17,7 +17,7 @@ export function ConfirmDialog({
 }: {
   title: string;
   message: string;
-  /** Absent ⇒ « Supprimer » : la boîte est celle d'une action destructrice. */
+  /** Absent ⇒ « Supprimer »: the dialog is that of a destructive action. */
   confirmLabel?: string;
   cancelLabel?: string;
   danger?: boolean;

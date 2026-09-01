@@ -55,9 +55,9 @@ describe("CodeBlock — artifact chips", () => {
     expect(html).not.toContain("md-artifact-chip");
   });
 
-  // Les deux clôtures que le modèle émet quand on lui demande de FABRIQUER une
-  // compétence ou un workflow (`systemPrompt.ts` SKILL_GUIDANCE) : elles atteignent la
-  // carte d'adoption, pas le rendu de code — c'est le trajet de bout en bout.
+  // The two fences the model emits when asked to BUILD a
+  // compétence or a workflow (`systemPrompt.ts` SKILL_GUIDANCE): they reach the
+  // adoption card, not the code render — that's the end-to-end path.
   it("renders a ```competence fence as an adoption card (not code)", () => {
     const html = render("competence", "# Compte rendu\ndescription: D\n---\nTu rédiges…");
     expect(html).toContain("md-skill-card");

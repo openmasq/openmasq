@@ -2,28 +2,28 @@ import { DEFAULT_LOCALE, resolveLocale, type Locale } from "@openmasq/i18n";
 import { migrateLegacyLocalStorage } from "./legacyStorage";
 
 /**
- * La LANGUE — une préférence d'APPAREIL, exactement comme le THÈME (`theme.ts`), et pour
- * la même raison : elle doit être connue AVANT le premier paint (sinon un flash de
- * langue) et AVANT que l'auth ait résolu (l'écran de connexion est déjà dans une langue).
+ * The LANGUAGE — a DEVICE preference, exactly like the THEME (`theme.ts`), and for
+ * the same reason: it must be known BEFORE the first paint (otherwise a language
+ * flash) and BEFORE auth has resolved (the login screen is already in a language).
  *
- * Deux stockages, en miroir du thème : une clé localStorage NON SCOPÉE (lue au boot,
- * indépendante du compte) et un champ `Settings.language` (pour l'UI et la synchro
- * inter-appareils). `applyPersistedLocale` recopie le réglage vers la clé d'appareil, de
- * sorte que le prochain démarrage lise la bonne langue avant que le blob de réglages
- * soit chargé.
+ * Two stores, mirroring the theme: an UNSCOPED localStorage key (read at boot,
+ * account-independent) and a `Settings.language` field (for the UI and cross-device
+ * sync). `applyPersistedLocale` copies the setting back to the device key, so
+ * that the next startup reads the right language before the settings blob is
+ * loaded.
  *
- * ⚠️ Le repli n'est JAMAIS un écran vide : clé d'appareil → langue de l'hôte
- * (`navigator.language`) → `DEFAULT_LOCALE` (le français, langue source).
+ * ⚠️ The fallback is NEVER a blank screen: device key → host language
+ * (`navigator.language`) → `DEFAULT_LOCALE` (French, the source language).
  */
 export const LOCALE_KEY = "openmasq.language";
 
-/** La langue enregistrée sur CET appareil, ou `null` si jamais posée. */
+/** The language recorded on THIS device, or `null` if never set. */
 export function loadDeviceLocale(): Locale | null {
-  migrateLegacyLocalStorage(); // aligné sur `theme.ts` — les clés d'avant le renommage
+  migrateLegacyLocalStorage(); // aligned with `theme.ts` — the pre-rename keys
   try {
     return resolveLocale(localStorage.getItem(LOCALE_KEY));
   } catch {
-    return null; // localStorage indisponible — le caller reprend son repli
+    return null; // localStorage unavailable — the caller falls back on its own
   }
 }
 
@@ -31,11 +31,11 @@ export function saveDeviceLocale(locale: Locale): void {
   try {
     localStorage.setItem(LOCALE_KEY, locale);
   } catch {
-    /* localStorage indisponible — la langue en mémoire pilote quand même l'app */
+    /* localStorage unavailable — the in-memory language still drives the app */
   }
 }
 
-/** La langue de l'HÔTE (le navigateur / l'OS), ramenée à une locale livrée, ou `null`. */
+/** The HOST's language (browser / OS), resolved to a shipped locale, or `null`. */
 export function hostLocale(): Locale | null {
   try {
     const nav = (globalThis as { navigator?: { language?: string } }).navigator;
@@ -46,11 +46,11 @@ export function hostLocale(): Locale | null {
 }
 
 /**
- * La langue à utiliser AU BOOT, dans l'ordre : ce que l'appareil a mémorisé, sinon la
- * langue de l'hôte, sinon le défaut. C'est l'état initial du provider (`I18nProvider`) —
- * une seule décision, réutilisée si le pré-paint revient un jour (règle 9). Le
- * `<html lang>` est posé PAR le provider (effet), pas ici : le splash de boot est du HTML
- * statique sans texte traduisible, donc rien à faire avant le premier paint.
+ * The language to use AT BOOT, in order: what the device remembered, else the
+ * host language, else the default. This is the provider's initial state
+ * (`I18nProvider`) — a single decision, reused if pre-paint ever comes back (rule 9).
+ * `<html lang>` is set BY the provider (effect), not here: the boot splash is static
+ * HTML with no translatable text, so there's nothing to do before the first paint.
  */
 export function initialLocale(): Locale {
   return loadDeviceLocale() ?? hostLocale() ?? DEFAULT_LOCALE;

@@ -68,29 +68,29 @@ export function isFreeModel(id: string): boolean {
 }
 
 /**
- * Le MODE GRATUIT — ce qu'un compte sans clé ET sans abonnement peut faire tourner sur la
- * clé de la plateforme. DEUX modèles, nommés (décision produit du 18/08).
+ * FREE MODE — what an account with no key AND no subscription can run on the
+ * platform's key. TWO models, named (product decision of 18/08).
  *
- * ⚠️ « Gratuit » ne veut pas dire « sans coût pour nous ». Un `:free` d'OpenRouter ne se
- * facture pas au jeton, mais il consomme le QUOTA de notre clé, partagé par tout le monde :
- * ouvrir les ~20 tiers gratuits du catalogue à qui ne paie rien, c'est laisser une poignée
- * de comptes assécher la file de tous. D'où une liste NOMMÉE plutôt que « tout ce qui coûte
- * 0 » — le prix reste la règle de facturation (`isFreeModel`), il n'est plus la règle
- * d'ACCÈS.
+ * ⚠️ "Free" doesn't mean "no cost for us". An OpenRouter `:free` isn't
+ * billed per token, but it consumes our key's QUOTA, shared by everyone:
+ * opening the catalogue's ~20 free tiers to anyone paying nothing would let a handful
+ * of accounts drain the queue for all. Hence a NAMED list rather than "anything that costs
+ * 0" — price stays the BILLING rule (`isFreeModel`), it's no longer the ACCESS
+ * rule.
  *
- * ⚠️ Cette liste est la seule (règle 9) : le sélecteur y grise/masque, la garde d'envoi la
- * relit, et la PASSERELLE la relit encore — sans quoi la restriction ne serait que
- * cosmétique, un renderer n'étant pas une frontière de confiance (règle 7).
+ * ⚠️ This list is the only one (rule 9): the picker greys/hides from it, the send gate
+ * re-reads it, and the GATEWAY re-reads it again — without which the restriction would be
+ * only cosmetic, a renderer not being a trust boundary (rule 7).
  *
- * Un id absent d'ici n'est pas interdit : il redevient simplement affaire d'abonnement ou
- * de clé personnelle, comme n'importe quel modèle payant.
+ * An id absent here isn't forbidden: it simply goes back to being a matter of subscription or
+ * personal key, like any paid model.
  */
 export const FREE_MODE_MODEL_IDS: readonly string[] = [
   "poolside/laguna-s-2.1:free",
   "nvidia/nemotron-3-ultra-550b-a55b:free",
 ];
 
-/** Ce modèle est-il servi SANS abonnement ni clé ? (`FREE_MODE_MODEL_IDS`) */
+/** Is this model served WITHOUT a subscription or key? (`FREE_MODE_MODEL_IDS`) */
 export function isFreeModeModel(id: string): boolean {
   return FREE_MODE_MODEL_IDS.includes(id);
 }

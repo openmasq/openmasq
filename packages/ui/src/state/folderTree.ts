@@ -14,8 +14,8 @@ import { rootEntries, visibleEntries } from "./localFsPaths";
  */
 
 export interface FolderTreeRow {
-  /** La clé de rendu — UNIQUE, contrairement au chemin (voir l'avertissement plus bas).
-   *  Opaque : rien ne doit la déconstruire, elle ne sert qu'à `key=`. */
+  /** The render key — UNIQUE, unlike the path (see the warning below).
+   *  Opaque: nothing should deconstruct it, it's only for `key=`. */
   key: string;
   entry: LocalFsEntry;
   /** 0 = a granted root; +1 per nesting level. Drives the indent alone. */
@@ -25,9 +25,9 @@ export interface FolderTreeRow {
   /** Expanded, but its listing hasn't arrived — the row says so rather than reading as
    *  an empty folder. */
   loading: boolean;
-  /** Sa lecture a ÉCHOUÉ. Distinct de `loading` : un dossier dont le listage a raté restait
-   *  « … » pour toujours, ce qui se lit comme un chargement lent — donc comme un dossier
-   *  qui ne rend pas ses enfants, alors que l'échec, lui, a une cause et un remède. */
+  /** Its read FAILED. Distinct from `loading`: a folder whose listing failed used to stay
+   *  on « … » forever, which reads as a slow load — so as a folder that doesn't render
+   *  its children, whereas a failure has a cause and a remedy. */
   failed: boolean;
 }
 
@@ -48,13 +48,13 @@ export const MAX_TREE_DEPTH = 12;
  * the stack blew. Carrying the ancestor chain is what makes the loop unrenderable rather
  * than merely unlikely; `folderTree.test.ts` pins it.
  *
- * ⚠️ **Chaque ligne porte une `key` UNIQUE, et le chemin n'en est pas une.** Un même chemin
- * peut légitimement apparaître deux fois — le lien vers un ancêtre ci-dessus en est un cas
- * VOULU (la ligne se voit, repliée) — et un stockage distant peut rendre un listing RÉCURSIF,
- * où le petit-fils arrive à côté de son parent. Rendre deux lignes sous la même clé React,
- * c'est ce qui rendait un dossier impossible à REFERMER : replier n'enlevait plus rien et
- * redéplier dupliquait. La clé est donc la CHAÎNE des ancêtres + le chemin, unique par
- * construction ; et un listing qui répète une entrée n'en rend qu'une. `folderTree.test.ts`.
+ * ⚠️ **Every row carries a UNIQUE `key`, and the path is not one.** The same path can
+ * legitimately appear twice — the link to an ancestor above is a WANTED case of that
+ * (the row shows, collapsed) — and a remote storage can return a RECURSIVE listing,
+ * where the grandchild arrives next to its parent. Rendering two rows under the same
+ * React key is what made a folder impossible to CLOSE: collapsing no longer removed
+ * anything and re-expanding duplicated. The key is therefore the CHAIN of ancestors +
+ * the path, unique by construction; and a listing that repeats an entry only renders one. `folderTree.test.ts`.
  */
 export function folderTreeRows(
   roots: readonly string[],
@@ -66,8 +66,8 @@ export function folderTreeRows(
   const rows: FolderTreeRow[] = [];
 
   const walk = (entries: readonly LocalFsEntry[], depth: number, ancestors: readonly string[]) => {
-    // Un listing qui répète une entrée n'en rend qu'une : deux lignes identiques sous le
-    // même parent ne sont pas un cas voulu, contrairement au lien vers un ancêtre.
+    // A listing that repeats an entry only renders one: two identical rows under the
+    // same parent are not a wanted case, unlike the link to an ancestor.
     const here = new Set<string>();
     for (const entry of entries) {
       if (here.has(entry.path)) continue;
@@ -77,14 +77,14 @@ export function folderTreeRows(
       const known = entry.path in listings;
       const broke = open && failed.has(entry.path);
       rows.push({
-        // NUL comme séparateur : aucun chemin n'en contient, donc deux chaînes d'ancêtres
-        // différentes ne peuvent pas se confondre.
+        // NUL as separator: no path contains one, so two different ancestor chains
+        // cannot be confused with each other.
         key: [...ancestors, entry.path].join("\u0000"),
         entry,
         depth,
         expanded: open,
-        // Un dossier en échec ne « charge » plus : sinon la ligne promet une arrivée qui
-        // ne viendra pas, et l'utilisateur attend un contenu au lieu de lire la cause.
+        // A failed folder no longer "loads": otherwise the row promises an arrival that
+        // will never come, and the user waits for content instead of reading the cause.
         loading: !broke && open && (!known || pending.has(entry.path)),
         failed: broke,
       });

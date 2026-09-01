@@ -4,14 +4,14 @@ import type { ExtractedFile } from "../../../host";
 import type { PdfReplacement } from "@openmasq/redact/pdf-redact";
 
 /**
- * L'image STOCKÉE, peinte redacted — le pendant Bibliothèque de ce que la modale
- * post-dépôt fait pour un scan (mêmes boîtes, même `renderRedactedImage`). Lecture
- * seule : ni pick de mots, ni révélation — ces gestes appartiennent à la modale
- * d'AVANT-envoi, la seule qui affecte le fil (containers/CLAUDE.md).
+ * The STORED image, painted redacted — the Bibliothèque counterpart of what the modal
+ * does post-upload for a scan (same boxes, same `renderRedactedImage`). Read
+ * only: no word picking, no reveal — those gestures belong to the
+ * BEFORE-send modal, the only one that affects the thread (containers/CLAUDE.md).
  *
- * Repli FIDÈLE : si la peinture échoue (police, format, OOM canvas), on montre
- * l'ORIGINAL — jamais un écran vide — et c'est acceptable ici uniquement parce que
- * l'onglet s'appelle « Redacted » côté modale, pas parce que l'échec serait rare.
+ * FAITHFUL fallback: if the painting fails (font, format, canvas OOM), we show
+ * the ORIGINAL — never a blank screen — and that's acceptable here only because
+ * the tab is called « Redacted » on the modal side, not because the failure would be rare.
  */
 export function ImageRedacted({
   bytes,

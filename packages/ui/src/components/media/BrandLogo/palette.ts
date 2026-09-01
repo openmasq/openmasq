@@ -9,7 +9,7 @@
  * at its source (`SECTION_HUE`, `packages/redact/src/highlight/sections.ts`) reaches the
  * loader too, and it can never drift from the marks a real conversation shows.
  *
- * IDENTITÉ leads on purpose, then the black bar — the classic redacted-block look, the one
+ * IDENTITY leads on purpose, then the black bar — the classic redacted-block look, the one
  * swatch that is not a section hue — then the palette unrolls in section order.
  */
 export const CAV_SWATCHES = [

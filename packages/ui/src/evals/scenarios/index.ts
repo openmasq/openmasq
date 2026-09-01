@@ -30,7 +30,7 @@ export interface Scenario {
   webNavPick?: (offerable: RedactCategoryKey[]) => RedactCategoryKey[] | null;
   python?: WorkflowOpts["python"];
   toolResult?: (name: string, args: ToolArgs) => string | undefined;
-  /** Pages web fixtures (mode mock) — offre `web_fetch_many` ; en RÉEL, ignorées. */
+  /** Web page fixtures (mock mode) — offers `web_fetch_many`; ignored in REAL mode. */
   webPages?: Record<string, string>;
   /** Values that must NEVER appear in the model's TYPED legs (user/system messages).
    *  Tool legs are excluded on purpose: BROWSER/SEARCH_CLEAR deliberately keep a public
@@ -46,7 +46,7 @@ export interface Scenario {
   mock: MockTurn[];
   /** Free-mode-only deep asserts (deterministic thanks to the script). */
   extraFree?: (run: WorkflowRun) => void;
-  /** Asserts exécutés sur CHAQUE run (mock ET live) — un throw fait échouer le run. */
+  /** Asserts run on EVERY run (mock AND live) — a throw fails the run. */
   always?: (run: WorkflowRun) => void;
 }
 
@@ -76,12 +76,12 @@ export interface ScenarioResult {
 
 const answerOf = (run: WorkflowRun): string => String(run.lastAssistant()?.content ?? "");
 
-/** Heuristique de langue : une réponse française ne contient jamais ≥15 % de
- *  CJK/cyrillique/kana dans ses 600 premiers caractères — un extrait cité peut en
- *  porter un peu, une réponse DANS la mauvaise langue en porte massivement. */
+/** Language heuristic: a French answer never contains ≥15 % CJK/Cyrillic/kana
+ *  in its first 600 characters — a quoted excerpt may carry a little, an answer
+ *  IN the wrong language carries it massively. */
 export function inUserLanguage(s: string): boolean {
   const sample = s.slice(0, 600);
-  if (!sample.trim()) return true; // le vide est jugé ailleurs (answer/bannière)
+  if (!sample.trim()) return true; // emptiness is judged elsewhere (answer/banner)
   const foreign = (sample.match(/[㐀-鿿가-힯Ѐ-ӿ぀-ヿ]/g) ?? []).length;
   return foreign / sample.length < 0.15;
 }
@@ -143,16 +143,16 @@ export async function runScenario(model: WorkflowModel, sc: Scenario): Promise<S
 
     sc.always?.(run);
     let verdict = verifySuite(sc.spec, suiteInput(run.transcript, run.confirmedTools()));
-    // La réponse doit être dans la LANGUE de l'utilisateur (français ici) — mesuré :
-    // ling répond en chinois quand la page consultée l'est. Un spec.answer par mots-clés
-    // (/node/i) ne le voit pas.
+    // The answer must be in the user's LANGUAGE (French here) — measured: ling
+    // answers in Chinese when the page it consulted is. A keyword-based spec.answer
+    // (/node/i) doesn't catch it.
     if (!inUserLanguage(answerOf(run))) {
       verdict = { ok: false, failures: [...verdict.failures, "réponse dans la MAUVAISE langue (l'utilisateur écrit en français)"] };
     }
-    // Une BANNIÈRE d'échec de la boucle (« ⚠️ Boucle d'outils interrompue », « Limite
-    // d'appels atteinte », « n'a renvoyé aucune réponse ») n'est JAMAIS une réponse
-    // conforme — un spec.answer permissif (/./) la laissait passer (mesuré : ling ✅
-    // avec pour toute réponse la bannière d'interruption).
+    // A loop-failure BANNER (« ⚠️ Boucle d'outils interrompue », « Limite
+    // d'appels atteinte », « n'a renvoyé aucune réponse ») is NEVER a conformant
+    // answer — a permissive spec.answer (/./) used to let it through (measured: ling ✅
+    // with the interruption banner as its only answer).
     if (/⚠️ (?:Boucle d'outils interrompue|Limite d'appels d'outils atteinte)|n'a renvoyé aucune réponse/.test(answerOf(run))) {
       verdict = { ok: false, failures: [...verdict.failures, "réponse finale = bannière d'échec de la boucle (pas une réponse)"] };
     }

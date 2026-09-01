@@ -1,9 +1,9 @@
 import type { Page } from "@playwright/test";
 
-/** Attend la FIN du tour, échec compris : la rangée d'actions (réponse aboutie) OU
- *  la carte d'échec persistée (`.failed-turn-card` — « ENVOI IMPOSSIBLE », 401…),
- *  que `awaitReply` ne connaît pas : sans elle, un tour qui a échoué en 10 s se
- *  lit comme 6 minutes de silence. Rend l'issue + le texte (erreur ou réponse). */
+/** Waits for the turn's END, failure included: the action row (answer landed) OR
+ *  the persisted failure card (`.failed-turn-card` — "SEND IMPOSSIBLE", 401…),
+ *  which `awaitReply` doesn't know about: without it, a turn that failed in 10 s reads
+ *  as 6 minutes of silence. Returns the outcome + the text (error or answer). */
 export async function awaitTurnEnd(
   page: Page,
   timeoutMs: number,
@@ -34,8 +34,8 @@ export async function awaitTurnEnd(
   return { ...out, ms: Date.now() - start };
 }
 
-/** L'état du DERNIER bubble assistant — le diagnostic qu'on veut quand un tour ne
- *  se termine pas : y a-t-il un texte, un loader, la rangée d'actions, une erreur ? */
+/** The state of the LAST assistant bubble — the diagnostic we want when a turn doesn't
+ *  end: is there text, a loader, the action row, an error? */
 export async function turnState(page: Page): Promise<string> {
   return page
     .evaluate(() => {
@@ -53,7 +53,7 @@ export async function turnState(page: Page): Promise<string> {
     .catch(() => "page fermée");
 }
 
-/** Point de synchro : les VRAIS connecteurs sont reconnectés (routes à jour). */
+/** Sync point: the REAL connectors are reconnected (routes up to date). */
 export async function waitForRealTools(page: Page, toolPrefix: string): Promise<void> {
   await page.waitForFunction(
     async (prefix) => {

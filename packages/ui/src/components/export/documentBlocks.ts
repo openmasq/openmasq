@@ -144,8 +144,8 @@ function collectBlock(el: Element, out: Block[]): void {
 export function runsOf(el: Node): Run[] {
   const out: Run[] = [];
   walkInline(el, {}, out);
-  // La micro-typographie française s'applique ICI — l'unique couture que les trois
-  // exports partagent — et jamais à un run `code`, où l'espace est un caractère.
+  // French micro-typography applies HERE — the one seam the three
+  // exports share — and never to a `code` run, where a space is a character.
   return mergeRuns(out).map((r) => (r.code ? r : { ...r, text: frenchSpacing(r.text) }));
 }
 

@@ -3,22 +3,22 @@ import { DEAD_TRANSPORT_MESSAGES, isDeadTransport } from "@openmasq/mcp";
 import { isOperationalError } from "@openmasq/analytics";
 
 /**
- * PARITÉ — « ce transport MCP est mort » doit vouloir dire la même chose des deux côtés.
+ * PARITY — "this MCP transport is dead" must mean the same thing on both sides.
  *
- * Deux décisions dépendent du même fait, et elles ne peuvent pas partager un module :
- *  • `@openmasq/mcp` `isDeadTransport` — le propriétaire ÉVINCE le connecteur
- *    (`apps/desktop` `refreshRoutes`) au lieu de continuer à le sonder ;
- *  • `@openmasq/analytics` `isOperationalError` — les canaux d'erreurs (PostHog
- *    `$exception` ET, depuis le 12/08, le `beforeSend` de Sentry) NE RAPPORTENT PAS.
+ * Two decisions depend on the same fact, and they cannot share a module:
+ *  • `@openmasq/mcp` `isDeadTransport` — the owner EVICTS the connector
+ *    (`apps/desktop` `refreshRoutes`) instead of continuing to probe it;
+ *  • `@openmasq/analytics` `isOperationalError` — the error channels (PostHog
+ *    `$exception` AND, since 12/08, Sentry's `beforeSend`) DO NOT REPORT.
  *
- * `@openmasq/analytics` est SANS DÉPENDANCE par contrat : il ne peut pas importer
- * `@openmasq/mcp`. Les deux listes vivent donc séparément, et ce test est ce qui les tient
- * ensemble — un commentaire ne peut pas échouer en CI (règle 9). Il vit dans `packages/ui`
- * parce que c'est le seul paquet qui consomme les DEUX.
+ * `@openmasq/analytics` is DEPENDENCY-FREE by contract: it cannot import
+ * `@openmasq/mcp`. The two lists therefore live separately, and this test is what holds
+ * them together — a comment cannot fail in CI (rule 9). It lives in `packages/ui`
+ * because that is the only package that consumes BOTH.
  *
- * Ce que le désaccord coûterait, dans les deux sens : un message évincé mais pas filtré
- * re-remplit le tableau de bord (l'état du 12/08 : 93 % du volume) ; un message filtré mais
- * pas évincé rend la panne INVISIBLE, puisque plus rien ne la rapporte ET rien ne la retire.
+ * What a disagreement would cost, in both directions: a message evicted but not filtered
+ * re-fills the dashboard (the 12/08 state: 93% of volume); a message filtered but
+ * not evicted makes the outage INVISIBLE, since nothing reports it AND nothing removes it anymore.
  */
 describe("parité mcp ⇄ analytics — les messages de transport mort", () => {
   it("chaque message que mcp reconnaît est écarté par le filtre des canaux d'erreurs", () => {
@@ -32,8 +32,8 @@ describe("parité mcp ⇄ analytics — les messages de transport mort", () => {
   });
 
   it("les formes RÉELLES vues sur Sentry sont couvertes des deux côtés", () => {
-    // Copiées des issues ELECTRON-1 et ELECTRON-2 : ce sont les textes exacts du SDK,
-    // pas les nôtres, et c'est pourquoi on les épingle plutôt que de les paraphraser.
+    // Copied from issues ELECTRON-1 and ELECTRON-2: these are the SDK's exact texts,
+    // not our own, which is why they are pinned rather than paraphrased.
     for (const real of ["Not connected", "MCP error -32000: Connection closed"]) {
       expect(isDeadTransport(new Error(real))).toBe(true);
       expect(isOperationalError({ scope: "mcp", code: "list-tools", message: real })).toBe(true);

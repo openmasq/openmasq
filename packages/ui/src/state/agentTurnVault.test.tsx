@@ -7,24 +7,24 @@ import type { AuthUser, Host } from "../host";
 import type { Conversation } from "../types";
 
 /**
- * LE VAULT D'UN TOUR AGENTIQUE SURVIT À L'ÉCHEC DU TOUR — audit 2026-08-10, sévérité haute.
+ * AN AGENTIC TURN'S VAULT SURVIVES THE TURN'S FAILURE — audit 2026-08-10, high severity.
  *
- * La boucle agentique mute une COPIE du vault de la conversation (résultats d'outils
- * redacted au fil de l'eau), et le texte assistant est persisté UN-redacted. L'historique
- * renvoyé au modèle ne fait ensuite que REJOUER le vault (`buildWireHistory` → `applyVault`),
- * jamais re-détecter. Donc si un Stop ou une erreur d'outil perdait les entrées minées
- * pendant le tour, la VRAIE valeur repartait en clair au tour suivant — l'inverse exact de
- * la promesse du produit.
+ * The agentic loop mutates a COPY of the conversation's vault (tool results redacted
+ * along the way), and the assistant text is persisted UN-redacted. The history sent
+ * back to the model then only REPLAYS the vault (`buildWireHistory` → `applyVault`),
+ * never re-detects. So if a Stop or a tool error lost the entries mined during the
+ * turn, the REAL value would go out in clear on the next turn — the exact opposite of
+ * the product's promise.
  *
- * Trois invariants épinglés ici, contre le vrai `useChatStore` (boucle mockée au ras du
- * module — c'est le contrat store⇄boucle qu'on teste, pas la boucle) :
- *   1. la branche d'ERREUR committe le vault miné par le tour ;
- *   2. un STOP en plein tour committe le vault ET conserve `turnCheckpoint` (l'appel
- *      dispatché-sans-réponse doit rester scellable au retry — `sealInterruptedCalls`) ;
- *      un tour TERMINÉ, lui, efface bien le checkpoint ;
- *   3. le blob de réversibilité part en DB IMMÉDIATEMENT (hors debounce 700 ms) — un
- *      crash pendant le stream ne doit pas perdre un vault dont le texte redacted est
- *      déjà sorti de la machine.
+ * Three invariants pinned here, against the real `useChatStore` (loop mocked right at
+ * the module boundary — it's the store⇄loop contract being tested, not the loop):
+ *   1. the ERROR branch commits the vault mined by the turn;
+ *   2. a STOP mid-turn commits the vault AND keeps `turnCheckpoint` (the
+ *      dispatched-without-response call must stay sealable on retry — `sealInterruptedCalls`);
+ *      a COMPLETED turn, in contrast, does clear the checkpoint;
+ *   3. the reversibility blob goes to DB IMMEDIATELY (outside the 700 ms debounce) — a
+ *      crash during the stream must not lose a vault whose redacted text has already
+ *      left the machine.
  */
 
 const { loopMock } = vi.hoisted(() => ({ loopMock: vi.fn() }));
@@ -38,7 +38,7 @@ const USER: AuthUser = { id: "uid-vault", email: "v@exemple.fr" } as AuthUser;
 
 function harness() {
   let onChangeCb: ((u: AuthUser | null) => void) | null = null;
-  /** Chaque conversation sauvée en DB, horodatée à l'appel — pour prouver l'IMMÉDIAT. */
+  /** Each conversation saved to DB, timestamped at the call — to prove the IMMEDIATE. */
   const dbSaves: { at: number; conv: Conversation }[] = [];
 
   const host: Partial<Host> = {
@@ -61,7 +61,7 @@ function harness() {
     db: {
       configured: async () => true,
       setUser: async () => {},
-      // `null` = « DB non configurée » (dbActive reste faux) — une DB VIDE renvoie un blob.
+      // `null` = "DB not configured" (dbActive stays false) — an EMPTY DB returns a blob.
       load: async () => ({ conversations: [] }) as never,
       saveConversation: async (c: Conversation) => {
         dbSaves.push({ at: Date.now(), conv: c });
@@ -69,8 +69,8 @@ function harness() {
       deleteConversation: async () => {},
     } as unknown as Host["db"],
     mcp: { setUser: async () => {} } as unknown as Host["mcp"],
-    // Moteur local présent (fail-closed sinon) — aucune détection : le vault du test
-    // est miné par la BOUCLE (résultats d'outils), pas par le message envoyé.
+    // Local engine present (fail-closed otherwise) — no detection: the test's vault
+    // is mined by the LOOP (tool results), not by the sent message.
     detectLocalPii: async () => [],
     // Present ⇒ the store takes the AGENTIC path (the loop itself is mocked).
     completeTools: async () => ({ toolCalls: [] }) as never,
@@ -93,12 +93,12 @@ async function mountStore(h: ReturnType<typeof harness>) {
       await new Promise((r) => setTimeout(r, 0));
     });
   };
-  await signIn(null); // l'adoption « déconnecté » que le store joue toujours en premier
+  await signIn(null); // the "signed out" adoption the store always plays first
   await signIn(USER);
   return { ...m, store: () => sink.api! };
 }
 
-/** Crée une conversation et envoie un tour agentique ; renvoie l'id + la promesse du send. */
+/** Creates a conversation and sends an agentic turn; returns the id + the send's promise. */
 async function startTurn(m: Awaited<ReturnType<typeof mountStore>>) {
   let convId = "";
   await act(async () => {
@@ -123,7 +123,7 @@ beforeEach(() => {
 describe("le vault d'un tour agentique survit à l'échec du tour", () => {
   it("branche d'ERREUR : les entrées minées par les outils sont committées", async () => {
     loopMock.mockImplementation(async (p) => {
-      p.vault["Norvik Group"] = "Karl Studio"; // un résultat Gmail/CRM a vaulté une vraie valeur
+      p.vault["Norvik Group"] = "Karl Studio"; // a Gmail/CRM result vaulted a real value
       throw new Error("boom connecteur");
     });
 
@@ -136,7 +136,7 @@ describe("le vault d'un tour agentique survit à l'échec du tour", () => {
 
     const conv = convOf(m, convId);
     expect(conv.redactionVault).toMatchObject({ "Norvik Group": "Karl Studio" });
-    // Et l'échec est montré, pas avalé (règle maison).
+    // And the failure is shown, not swallowed (house rule).
     expect(conv.messages.at(-1)?.error).toBe(true);
 
     await m.unmount();
@@ -147,7 +147,7 @@ describe("le vault d'un tour agentique survit à l'échec du tour", () => {
     const started = new Promise<void>((r) => (loopStarted = r));
     loopMock.mockImplementation(async (p) => {
       p.vault["Norvik Group"] = "Karl Studio";
-      // Le checkpoint que la boucle persiste à chaque réponse modèle (transcript WIRE).
+      // The checkpoint the loop persists on every model response (WIRE transcript).
       p.onResumeTranscript?.([
         {
           role: "assistant",
@@ -156,7 +156,7 @@ describe("le vault d'un tour agentique survit à l'échec du tour", () => {
         },
       ] as never);
       loopStarted();
-      // Un Stop doit LIBÉRER la boucle (raceAbort) — on mime `finalizeAborted` : true.
+      // A Stop must RELEASE the loop (raceAbort) — mimicking `finalizeAborted`: true.
       await new Promise<void>((r) => p.signal.addEventListener("abort", () => r(), { once: true }));
       return true;
     });
@@ -174,8 +174,8 @@ describe("le vault d'un tour agentique survit à l'échec du tour", () => {
 
     const conv = convOf(m, convId);
     expect(conv.redactionVault).toMatchObject({ "Norvik Group": "Karl Studio" });
-    // L'appel dispatché n'a pas de résultat enregistré : le checkpoint DOIT survivre,
-    // sinon le retry ne peut pas le sceller (« a PEUT-ÊTRE abouti ») et ré-émet l'envoi.
+    // The dispatched call has no recorded result: the checkpoint MUST survive,
+    // otherwise the retry can't seal it ("may have gone through") and re-emits the send.
     expect(conv.turnCheckpoint).toBeDefined();
     expect((conv.turnCheckpoint as { turnId: string }).turnId).toBeTruthy();
 
@@ -215,14 +215,14 @@ describe("le vault d'un tour agentique survit à l'échec du tour", () => {
     const { convId, sendDone } = await startTurn(m);
     await act(async () => {
       await sendDone;
-      await new Promise((r) => setTimeout(r, 0)); // l'effet de mirroring joue après le rendu
+      await new Promise((r) => setTimeout(r, 0)); // the mirroring effect runs after the render
     });
 
     const withVault = h.dbSaves.find(
       (s) => s.conv.id === convId && s.conv.redactionVault?.["Norvik Group"] === "Karl Studio",
     );
     expect(withVault, "le vault doit être écrit en DB immédiatement").toBeDefined();
-    // Bien AVANT le debounce : un crash dans la fenêtre de 700 ms ne perd plus le vault.
+    // Well BEFORE the debounce: a crash within the 700 ms window no longer loses the vault.
     expect(withVault!.at - t0).toBeLessThan(600);
 
     await m.unmount();

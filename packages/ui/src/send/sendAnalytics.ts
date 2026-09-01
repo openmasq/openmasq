@@ -23,8 +23,8 @@ export function deriveRedactedSpans(matches: RedactionMatch[]): RedactedSpan[] {
  * unconditional, so the redaction outcome is always reported alongside `send_message`.
  */
 export function buildSendAnalyticsEvents(args: {
-  /** Le dénominateur du taux d'échec PAR MODÈLE (audit 13/08) : `send_error` porte
-   *  provider/model depuis toujours — sans eux ici, pas de ratio calculable. */
+  /** The denominator of the failure rate PER MODEL (audit 13/08): `send_error` has
+   *  always carried provider/model — without them here, no ratio is computable. */
   provider?: string;
   model?: string;
   textLength: number;
@@ -48,8 +48,8 @@ export function buildSendAnalyticsEvents(args: {
   return events;
 }
 
-/** Cause BORNÉE d'un échec de détection (jamais le message brut — il part déjà au
- *  journal) : le `reason` de `redaction_timing { ok:false }`. */
+/** BOUNDED cause of a detection failure (never the raw message — it already goes to
+ *  the log): the `reason` of `redaction_timing { ok:false }`. */
 export function redactionFailReason(e: unknown): "timeout" | "unreachable" | "auth" | "error" {
   const m = (e instanceof Error ? e.message : String(e)).toLowerCase();
   if (m.includes("timed out") || m.includes("timeout")) return "timeout";

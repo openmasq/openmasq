@@ -20,12 +20,12 @@ export function useMcpConnectedIds(): string[] {
 }
 
 /**
- * Un connecteur PRÉCIS est-il connecté — `null` tant qu'on ne le sait pas encore.
+ * Is a SPECIFIC connector connected — `null` as long as it isn't known yet.
  *
- * La nuance compte pour une surface qui REMPLACE sa vue quand c'est « non » (le panneau
- * du navigateur) : `[]` est aussi ce qu'on a avant la première réponse de `list()`, donc
- * traiter « pas encore chargé » comme « déconnecté » ferait clignoter l'appel à l'action
- * à chaque ouverture. Même abonnement, même hôte que ci-dessus.
+ * The nuance matters for a surface that REPLACES its view when it's "no" (the
+ * browser panel): `[]` is also what we have before the first `list()` response, so
+ * treating "not loaded yet" as "disconnected" would flash the call-to-action on
+ * every opening. Same subscription, same host as above.
  */
 function useMcpConnectorConnected(connectorId: string): boolean | null {
   const { ids, loaded } = useConnected();
@@ -39,8 +39,8 @@ function useConnected(): { ids: string[]; loaded: boolean } {
 
   useEffect(() => {
     const mcp = host.mcp;
-    // Pas de pont MCP (aperçu web) : rien ne sera jamais connecté, et c'est SU — sinon
-    // l'appelant attend indéfiniment un état qui n'arrivera pas.
+    // No MCP bridge (web preview): nothing will ever be connected, and that's KNOWN —
+    // otherwise the caller waits indefinitely for a state that will never arrive.
     if (!mcp) {
       setLoaded(true);
       return;
@@ -62,8 +62,8 @@ function useConnected(): { ids: string[]; loaded: boolean } {
           setLoaded(true);
         })
         .catch(() => {
-          // Best-effort — mais un échec de listing est une RÉPONSE : sans ça, la surface
-          // qui attend `loaded` resterait sur son écran de chargement pour toujours.
+          // Best-effort — but a listing failure IS a response: without this, the
+          // surface waiting on `loaded` would stay on its loading screen forever.
           if (alive) setLoaded(true);
         });
     };
@@ -79,18 +79,18 @@ function useConnected(): { ids: string[]; loaded: boolean } {
 }
 
 /**
- * « Le navigateur agent est-il HORS SERVICE ici ? » — la définition, une seule fois.
+ * "Is the agent browser OFFLINE here?" — the definition, in one place.
  *
- * ⚠️ Elle a DEUX lecteurs (`containers/shell/hooks/useAgentBrowserVisibility.ts`, global,
- * et `pages/ChatWorkspace/BrowserPanel`, côté panneau) et ils DOIVENT dire la même chose.
- * Ils ne le disaient pas : le panneau exigeait aussi `host.mcp.enableBrowser` (« on peut
- * proposer de l'activer »), le gate global non. Sur un hôte sans cette capacité, le
- * panneau montrait donc « Chargement du navigateur agent… » pendant que le gate global
- * gardait la fenêtre native éteinte — un chargement qui n'aboutissait JAMAIS, sans rien à
- * cliquer. C'est le même piège que `modalGate.ts` documente pour les modales : deux
- * propriétaires d'une seule fenêtre, deux définitions.
+ * ⚠️ It has TWO readers (`containers/shell/hooks/useAgentBrowserVisibility.ts`, global,
+ * and `pages/ChatWorkspace/BrowserPanel`, panel side) and they MUST say the same thing.
+ * They didn't: the panel also required `host.mcp.enableBrowser` ("we can offer to
+ * enable it"), the global gate didn't. On a host without that capability, the panel
+ * therefore showed "Loading agent browser…" while the global gate kept the native
+ * window off — a loading state that NEVER resolved, with nothing to click. It's the
+ * same trap `modalGate.ts` documents for modals: two owners of a single window, two
+ * definitions.
  *
- * `null` (pas encore su) n'est PAS hors service : on ne conclut que sur un « non » certain.
+ * `null` (not known yet) is NOT offline: we only conclude on a certain "no".
  */
 export function useAgentBrowserOffline(): boolean {
   const host = useHost();

@@ -50,9 +50,9 @@ export function describeRedactFailure(raw: string, engine?: Settings["redactEngi
   const kind = classifyRedactFailure(raw);
   const unmasked = "les noms/prénoms n'ont pas été masqués";
 
-  // Ce qui ne se coupe jamais : ce qui N'A PAS été masqué, et que rien n'est parti. Le
-  // reste (« contactez le support », « vérifiez votre connexion ») ne change pas le geste
-  // suivant, qui est de toute façon « réessayer ».
+  // What never gets cut: what was NOT masked, and that nothing was sent. The
+  // rest (« contactez le support », « vérifiez votre connexion ») doesn't change the next
+  // move, which is « réessayer » (retry) either way.
   if (engine === "remote") {
     if (kind === "auth")
       return `Redaction en ligne indisponible : un souci de notre côté, ${unmasked}. Rien n'a été envoyé — réessayez plus tard, ou contactez le support.`;

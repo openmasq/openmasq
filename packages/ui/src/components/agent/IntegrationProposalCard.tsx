@@ -187,8 +187,8 @@ function IntegrationCard({
               <CheckIcon size={14} /> Connecté — {BRAND.name} peut reprendre
             </span>
             <span className="agent-card-spacer" />
-            {/* REPRENDRE le tour (régénérer), pas re-déep-linker vers Réglages : il n'y
-                a plus rien à connecter, le seul geste utile est de relancer la demande. */}
+            {/* RESUME the turn (regenerate), not re-deep-link to Réglages: there's
+                nothing left to connect, the only useful gesture is to relaunch the request. */}
             <button
               className="btn-primary btn-inline"
               onClick={() => (onResume ? onResume() : onConnect(c.id))}

@@ -30,8 +30,8 @@ interface Props {
   /** Open the "Votre avis" modal. Absent when the platform has no `host.avis` —
    *  the action is then not rendered at all rather than offered and dead. */
   userName?: string;
-  /** Ouvrir Réglages SUR UN ONGLET. Le bouclier promet le rapport de confidentialité :
-   *  sans cet argument il ne pouvait que déposer sur l'onglet par défaut (Compte). */
+  /** Open Settings ON A SPECIFIC TAB. The shield promises the privacy report:
+   *  without this argument it could only land on the default tab (Account). */
   onOpenSettings: (tab?: string) => void;
 }
 
@@ -56,10 +56,10 @@ export function Rail({
    *  (`help/sections.ts`). A tip that only repeats the label taught nothing — and four of
    *  these six names are the app's own words, so the rail was the app's least legible part. */
   const tip = (id: Section): string => sectionGuide(id, t)?.tip ?? id;
-  /** L'étiquette lue du même bouton — le NOM seul, sans la phrase qui l'explique. */
+  /** The label read from the same button — the NAME alone, without the phrase that explains it. */
   const label = (id: Section): string => sectionGuide(id, t)?.label ?? id;
-  // Les portes gouvernables (`state/featureAccess.ts`) : une porte fermée ne rend
-  // pas son entrée. La fonctionnalité, elle, continue de tourner — sauf Compétences.
+  // The governable gates (`state/featureAccess.ts`): a closed gate doesn't render
+  // its entry. The feature itself keeps running — except Compétences.
   const access = useFeatureAccess();
   // The Mémoire « nouveau » dot — raised on a background note, cleared on visit.
   const memoryFresh = useAppSelector((s) => s.ui.memoryFresh);
@@ -142,11 +142,11 @@ export function Rail({
 
       <div className="rail-spacer" />
 
-      {/* ⚠️ Le bouclier ouvre « Confidentialité », PAS l'onglet par défaut. Les deux
-          boutons appelaient `go("settings")`, donc le bouclier déposait sur « Compte » —
-          un bouton qui annonce « rapport de confidentialité » et ouvre la page du compte.
-          Pour une avocate c'est LA pièce qu'on lui demande (prouver que le secret
-          professionnel a tenu), et l'app la lui refusait par un aiguillage. */}
+      {/* ⚠️ The shield opens « Confidentialité », NOT the default tab. Both
+          buttons used to call `go("settings")`, so the shield landed on « Compte » —
+          a button that announces « rapport de confidentialité » and opens the account page.
+          For a lawyer that's THE document being asked for (proving that professional
+          secrecy held), and the app was denying it to her through a misrouting. */}
       <button
         className="rail-btn"
         onClick={() => onOpenSettings("privacy")}

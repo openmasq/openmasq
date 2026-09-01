@@ -30,13 +30,13 @@
 
 /** First word(s) of a public body, as printed. Longest match wins. */
 const BODIES: string[] = [
-  // Sécurité sociale, famille, retraite, emploi
+  // Social security, family, pension, employment
   "urssaf", "cpam", "caf", "cnaf", "carsat", "cnav", "cramif", "msa", "cnam",
   "caisse primaire d'assurance maladie", "caisse d'allocations familiales",
   "caisse nationale", "caisse régionale", "caisse regionale", "assurance maladie",
   "assurance retraite", "sécurité sociale", "securite sociale", "pôle emploi",
   "pole emploi", "france travail", "mission locale",
-  // Fisc et finances publiques
+  // Tax authority and public finances
   "sip", "sie", "sdif", "direction générale des finances publiques",
   "direction generale des finances publiques", "service des impôts",
   "service des impots", "centre des finances publiques", "trésor public",
@@ -46,13 +46,13 @@ const BODIES: string[] = [
   "tribunal correctionnel", "tribunal de police", "conseil de prud'hommes",
   "cour d'appel", "cour administrative d'appel", "cour de cassation",
   "conseil d'état", "conseil d'etat", "parquet", "greffe",
-  // Territoires et représentation de l'État
+  // Territories and State representation
   "préfecture", "prefecture", "sous-préfecture", "sous-prefecture", "mairie",
   "hôtel de ville", "hotel de ville", "conseil départemental",
   "conseil departemental", "conseil régional", "conseil regional",
   "communauté de communes", "communaute de communes", "ambassade", "consulat",
   "consulat général", "consulat general",
-  // Chambres et opérateurs
+  // Chambers and operators
   "chambre de commerce", "chambre des métiers", "chambre des metiers",
   "chambre d'agriculture", "direction départementale", "direction departementale",
   "agence régionale de santé", "agence regionale de sante",

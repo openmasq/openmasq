@@ -4,14 +4,14 @@ import { quotaNotice } from "./quotaNotice";
 
 const resetTomorrow2h = new Date().setHours(24 + 2, 0, 0, 0);
 
-/* Les seuils et la mise en forme testés ici ne dépendent pas de la langue ; le
-   catalogue français sert de témoin. */
+/* The thresholds and formatting tested here don't depend on the language; the
+   French catalogue serves as witness. */
 const t = getMessages("fr");
 
 describe("quotaNotice — prévenir tant qu'il reste de la marge", () => {
   it("se tait tant que la fin n'est pas proche", () => {
-    // Le tour signalé consommait le quota sans un mot jusqu'à zéro ; l'inverse — une
-    // légende sur chaque réponse — cesserait d'être lu.
+    // The reported turn was consuming the quota without a word until zero; the opposite —
+    // a caption on every reply — would stop being read.
     expect(quotaNotice(t, { remaining: 42, limit: 50 })).toBeNull();
     expect(quotaNotice(t, undefined)).toBeNull();
   });
@@ -35,7 +35,7 @@ describe("quotaNotice — prévenir tant qu'il reste de la marge", () => {
   });
 
   it("un GRAND plafond prévient sur son dernier dixième, pas sur cinq requêtes", () => {
-    // 1000/jour : être averti à 5 restantes ne laisse rien faire.
+    // 1000/day: being warned at 5 remaining leaves nothing to do.
     expect(quotaNotice(t, { remaining: 80, limit: 1000 })).toContain("80 requêtes");
     expect(quotaNotice(t, { remaining: 300, limit: 1000 })).toBeNull();
   });

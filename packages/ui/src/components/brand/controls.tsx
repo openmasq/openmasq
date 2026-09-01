@@ -3,10 +3,10 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react
 /**
  * Card / Button / Input — the three form-and-surface primitives the admin consoles
  * compose. They lived TWICE, in `apps/web/components/ui/` and `apps/ops/components/ui/`,
- * the second barrel ANNOUNÇANT la recopie plutôt que de l'éviter — faute d'un paquet
- * partagé. Un seul foyer désormais, parce que les deux copies avaient déjà divergé : l'une
- * écrivait `bg-surface-card`, l'autre `bg-[var(--surface-card)]`, et leurs boutons
- * principaux n'avaient pas la même couleur.
+ * the second barrel ANNOUNCING the copy-paste rather than avoiding it — for lack of a
+ * shared package. A single home now, because the two copies had already diverged: one
+ * wrote `bg-surface-card`, the other `bg-[var(--surface-card)]`, and their primary
+ * buttons weren't the same colour.
  *
  * The original reason for the split — "brand.tsx is already over 300 LOC" — is gone:
  * `brand.tsx` became this folder, and these get their own file rather than growing
@@ -15,8 +15,8 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react
 
 type Pad = "none" | "sm" | "md" | "lg";
 
-// L'échelle du design system (`tokens/layout.css` : --space-3/5/6), pas une approximation :
-// le kit admin compose ses cartes avec `padding="md"` = 20 px, que `p-4` rendait à 16.
+// The design system's scale (`tokens/layout.css`: --space-3/5/6), not an approximation:
+// the admin kit composes its cards with `padding="md"` = 20 px, which `p-4` rendered as 16.
 const PAD: Record<Pad, string> = {
   none: "p-0",
   sm: "p-3",
@@ -27,11 +27,11 @@ const PAD: Record<Pad, string> = {
 /**
  * Surface primitive. Token-styled; layout comes from `className`, never inline style.
  *
- * Rayon et remplissage viennent du `Card` de la source de design
- * (`.claude/skills/design-system/components/display/Card.jsx`) : `--radius-lg` (12) et
- * l'échelle d'espacement. PAS son `--shadow-sm` : mesurée dans le kit admin tel qu'il
- * REND, la carte est plate (sa page charge la peau sans bordure du chat, qui met les
- * ombres à `none`) — c'est un bord net et une hairline qui la détachent, pas une ombre.
+ * Radius and fill come from the design source's `Card`
+ * (`.claude/skills/design-system/components/display/Card.jsx`): `--radius-lg` (12) and
+ * the spacing scale. NOT its `--shadow-sm`: measured in the admin kit as it actually
+ * RENDERS, the card is flat (its page loads the chat's borderless skin, which sets
+ * shadows to `none`) — it's a crisp edge and a hairline that set it apart, not a shadow.
  */
 export function Card({
   children,

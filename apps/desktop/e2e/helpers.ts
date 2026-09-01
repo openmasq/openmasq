@@ -35,9 +35,9 @@ export async function userDataPath(app: ElectronApplication): Promise<string> {
   return app.evaluate(({ app }) => app.getPath("userData"));
 }
 
-// Les gestes sur une page ouverte vivent dans `pageActions.ts` — le pilote de
-// `parcours/` tourne en ESM et ne peut pas importer CE fichier (`__dirname`).
-// Ré-exportés ici pour que les specs existantes n'aient rien à changer.
+// The gestures on an open page live in `pageActions.ts` — the `parcours/`
+// driver runs in ESM and cannot import THIS file (`__dirname`).
+// Re-exported here so existing specs don't have to change anything.
 export {
   sendPrompt,
   appUserText,

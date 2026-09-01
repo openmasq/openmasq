@@ -7,9 +7,9 @@ import type { Competence, CompetenceCategoryId } from "../types";
  * behaviour in `.ts`, chrome in `.tsx`). Mirrors `send/coffre.ts`, the other
  * user-authored list.
  *
- * Ce fichier ne sait que RANGER une liste (créer, filtrer, épingler, restaurer). Ce
- * qu'une compétence FAIT quand on s'en sert — le texte ajouté au payload, la portée
- * d'outils qu'ouvre `servers` — est `./launch.ts`.
+ * This file only knows how to STORE a list (create, filter, pin, restore). What
+ * a compétence DOES when used — the text added to the payload, the tool
+ * scope `servers` opens — is `./launch.ts`.
  *
  * This is NOT in `send/` on purpose: a compétence never reaches the wire as a
  * rule — its prompt rides the model payload, through the ordinary redaction
@@ -32,9 +32,9 @@ export const COMPETENCE_CATEGORIES: {
   { id: "code", tone: "lime", glyph: "{}" },
   { id: "juridique", tone: "amber", glyph: "§" },
   { id: "support", tone: "pink", glyph: "◈" },
-  // La destination des anciens « workflows », et la catégorie que la modale propose
-  // d'elle-même dès qu'on choisit des connecteurs. Le mot que les gens avaient n'est pas
-  // perdu : il est descendu d'une SECTION à une catégorie, ce qui est sa vraie taille.
+  // The destination of the old "workflows", and the category the modal offers
+  // on its own as soon as connectors are chosen. The word people had is not
+  // lost: it went down from a SECTION to a category, which is its true size.
   { id: "routine", tone: "mint", glyph: "»" },
 ];
 
@@ -44,7 +44,7 @@ const FALLBACK = COMPETENCE_CATEGORIES[0];
  *  hand-edited entry) degrades to the first category rather than crashing a render. */
 export type CompetenceCategory = (typeof COMPETENCE_CATEGORIES)[number] & { label: string };
 
-/** La liste ENTIÈRE, libellée dans la langue de `t` — l'ordre reste celui du dessin. */
+/** The WHOLE list, labeled in `t`'s language — the order stays the design's order. */
 export function competenceCategories(t: Messages): CompetenceCategory[] {
   return COMPETENCE_CATEGORIES.map((c) => ({ ...c, label: t.lists.competenceCategories[c.id] }));
 }
@@ -85,8 +85,8 @@ export function makeCompetence(input: {
     prompt,
     desc: input.desc?.trim() || undefined,
     cat,
-    // Absent plutôt que `[]` : le champ est facultatif, et une liste vide écrite partout
-    // ferait croire à une compétence à outils dans tout ce qui teste sa présence.
+    // Absent rather than `[]`: the field is optional, and an empty list written everywhere
+    // would make everything testing its presence believe it's a tool-driving compétence.
     ...(servers.length ? { servers } : {}),
     pinned: false,
     uses: 0,
@@ -107,8 +107,8 @@ export function restoreCompetenceList(
 }
 
 /** Filter by category + a free-text query over name/desc/prompt (case-insensitive).
- *  `cat: "all"` keeps every category; `cat: "tools"` garde celles qui pilotent des
- *  connecteurs — l'ancienne liste « workflows » est devenue ce filtre, pas un écran.
+ *  `cat: "all"` keeps every category; `cat: "tools"` keeps the ones that drive
+ *  connectors — the old "workflows" list became this filter, not a screen.
  *  Pure — the view just renders the result. */
 export function filterCompetences(
   list: readonly Competence[],
@@ -119,8 +119,8 @@ export function filterCompetences(
   return list.filter((c) => {
     if (cat !== "all" && c.cat !== cat) return false;
     if (!q) return true;
-    // Le prompt est cherché aussi : c'est ce que faisait la recherche des workflows, et
-    // on retrouve une routine par ce qu'elle DIT plus souvent que par son nom.
+    // The prompt is searched too: that is what the workflows search used to do, and
+    // a routine gets found by what it SAYS more often than by its name.
     return (
       c.name.toLowerCase().includes(q) ||
       (c.desc ?? "").toLowerCase().includes(q) ||

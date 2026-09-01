@@ -39,7 +39,7 @@ export function MessageAttachments({
             <span className="msg-filecard-body">
               {generated && <span className="msg-filecard-eyebrow">Généré par {BRAND.name}</span>}
               <span className="msg-filecard-name">{a.name}</span>
-              {/* Le format est sur la tuile : le répéter ici ne disait rien de plus. */}
+              {/* The format is on the tile: repeating it here said nothing more. */}
               <span className="msg-filecard-meta">
                 <span className="msg-filecard-shield">
                   <ShieldIcon size={10} />

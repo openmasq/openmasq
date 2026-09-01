@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Ré-ancré : le corps de l'envoi vit désormais dans send/sendOrchestrator.ts
-// (déplacé EN BLOC depuis store.ts — même code, autre fichier).
+// Re-anchored: the send body now lives in send/sendOrchestrator.ts
+// (moved AS A WHOLE from store.ts — same code, different file).
 const STORE = readFileSync(join(__dirname, "../send/sendOrchestrator.ts"), "utf8");
 
 /**

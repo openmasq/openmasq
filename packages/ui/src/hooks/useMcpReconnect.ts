@@ -17,7 +17,7 @@ export function useMcpReconnect(): { items: McpReconnectItem[]; dismiss: () => v
   const host = useHost();
   const [items, setItems] = useState<McpReconnectItem[]>([]);
   useEffect(() => {
-    return host.mcp?.onNeedsReconnect?.((next) => setItems(next)); // l'unsubscribe
+    return host.mcp?.onNeedsReconnect?.((next) => setItems(next)); // the unsubscribe
   }, [host]);
   return { items, dismiss: () => setItems([]) };
 }

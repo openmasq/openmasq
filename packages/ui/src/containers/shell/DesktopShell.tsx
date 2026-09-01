@@ -40,7 +40,7 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toggleSidebar = useCallback(() => setSidebarOpen((o) => !o), []);
   const panelContent = usePanelContent(shell, { closeOnOpenConversation: false });
-  // Absent ⇒ rien ne monte la modale (aperçu, test) : on retombe sur Réglages.
+  // Absent ⇒ nothing mounts the modal (aperçu, test): falls back to Settings.
   const openModal = useOpenConnector();
   const openConnector = useCallback(
     (id: string) => (openModal ? openModal(id) : shell.deep.openSettings("mcp", id)),
@@ -189,9 +189,9 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
       shareInboxNarrow={<ShareInbox inOrg={!!chat.orgProfile} onAdopt={adoptShare} />}
       // Granting and revoking a folder happens in ONE place — the Filesystem connector —
       // so the tree links there instead of growing a second grant surface.
-      // La modale du connecteur s'ouvre PAR-DESSUS le panneau : accorder un dossier ou
-      // brancher Drive depuis la liste des sources ne fait plus quitter l'écran pour y
-      // revenir. Pas d'ouvreur monté (aperçu, test) ⇒ l'ancien lien vers les Réglages.
+      // The connector modal opens OVER the panel: granting a folder or
+      // connecting Drive from the source list no longer leaves the screen to
+      // come back. No opener mounted (aperçu, test) ⇒ the old link to Settings.
       onManageFolders={() => openConnector("filesystem")}
       onOpenConnector={openConnector}
       onAskTarget={shell.askAboutTarget}

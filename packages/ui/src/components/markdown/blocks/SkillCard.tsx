@@ -9,24 +9,24 @@ import { MarkdownDocContext } from "../context";
 
 import { useT } from "../../../i18n";
 /**
- * Une COMPÉTENCE ou un WORKFLOW que le modèle vient de fabriquer, rendu sous sa réponse
- * comme une carte qu'un clic ajoute à la liste de l'utilisateur — le pendant du
- * ```document, pour les deux listes qu'on écrit soi-même.
+ * A COMPÉTENCE or a WORKFLOW the model just built, rendered under its reply
+ * as a card that a click adds to the user's list — the counterpart of the
+ * ```document, for the two lists one writes oneself.
  *
- * Ce qu'on demandait avant : le modèle rendait du Markdown, et il fallait rouvrir la
- * page Compétences, créer une entrée, recopier le prompt. Le bloc n'est donc pas un
- * affichage, c'est le raccourci de ce trajet.
+ * What was asked before: the model rendered Markdown, and one had to reopen the
+ * Compétences page, create an entry, copy the prompt back in. The block is therefore not a
+ * display, it's the shortcut for that trip.
  *
- * ⚠️ **Rien n'est jamais installé par l'app.** `suggestions/` porte déjà cette règle
- * pour les amorces des deux modales : une proposition PRÉ-REMPLIT une création, elle ne
- * la valide pas. Ici le clic EST l'acte de l'utilisateur — pas d'ajout automatique à la
- * fin d'un tour, pas de « on l'a enregistrée pour vous ». C'est aussi ce qui rend le
- * geste sûr quand le modèle se trompe de rail : rien n'entre sans un clic.
+ * ⚠️ **Nothing is ever installed by the app.** `suggestions/` already carries this rule
+ * for both modals' starters: a proposal PRE-FILLS a creation, it doesn't
+ * validate it. Here the click IS the user's act — no automatic add at the
+ * end of a turn, no « we saved it for you ». That's also what makes the
+ * gesture safe when the model gets the rail wrong: nothing goes in without a click.
  *
- * Le bouton n'existe que sur un bloc COMPLET (`isCompleteSkill`) : la carte se peint
- * pendant que le modèle écrit, et ajouter à mi-flux créerait une entrée tronquée à
- * nettoyer à la main. Absent `onAddSkill` (bulle en flux, rendu imbriqué, aperçu
- * mobile), la carte reste lisible et n'agit pas — le régime des autres blocs.
+ * The button only exists on a COMPLETE block (`isCompleteSkill`): the card paints itself
+ * while the model writes, and adding mid-stream would create a truncated entry to
+ * clean up by hand. Absent `onAddSkill` (bubble in stream, nested render, mobile
+ * preview), the card stays readable and doesn't act — the same regime as other blocks.
  */
 export function SkillCard({ kind, text }: { kind: "competence" | "workflow"; text: string }) {
   const t = useT();
@@ -35,10 +35,10 @@ export function SkillCard({ kind, text }: { kind: "competence" | "workflow"; tex
   const [open, setOpen] = useState(false);
   const skill = parseProposedSkill(kind, text);
   const complete = isCompleteSkill(skill);
-  // « Ajouté » est DÉRIVÉ de la liste (⊕ le clic de l'instant, pour le retour immédiat) :
-  // la liste des messages est VIRTUALISÉE — un état d'instance seul se réarmait au
-  // remount (scroll, réouverture) et chaque re-clic créait un doublon (signalé 13/08).
-  // L'adoption elle-même est aussi idempotente (`useAddProposedSkill`), ceinture-bretelles.
+  // « Ajouté » is DERIVED from the list (⊕ the instant's click, for immediate feedback):
+  // the message list is VIRTUALIZED — a lone instance state re-armed on
+  // remount (scroll, reopening) and every re-click created a duplicate (flagged 13/08).
+  // Adoption itself is also idempotent (`useAddProposedSkill`), belt and suspenders.
   const added = justAdded || (complete && (isSkillAdded?.(skill) ?? false));
   const isWf = kind === "workflow";
   const cat = !isWf && skill.cat ? competenceCategory(skill.cat, t) : null;
@@ -54,8 +54,8 @@ export function SkillCard({ kind, text }: { kind: "competence" | "workflow"; tex
         }
         footer={
           <>
-            {/* La catégorie et les connecteurs sont ce que la carte apporte de plus
-                qu'un titre : ils disent OÙ la chose atterrira et ce qu'elle pilotera. */}
+            {/* The category and the connectors are what the card brings beyond
+                a title: they say WHERE the thing will land and what it will drive. */}
             {cat && <span className="agent-card-note">{cat.label}</span>}
             {isWf && skill.servers.length > 0 && (
               <span className="md-skill-servers">
@@ -77,8 +77,8 @@ export function SkillCard({ kind, text }: { kind: "competence" | "workflow"; tex
                 {open ? "Masquer" : t.leaves.document.seePrompt}
               </button>
             )}
-            {/* Ajouté : le bouton ne disparaît pas, il se FIGE — sinon on ne sait plus
-                si le clic a pris, et on reclique (ce qui créerait un doublon). */}
+            {/* Added: the button doesn't disappear, it FREEZES — otherwise you no longer know
+                whether the click took, and you click again (which would create a duplicate). */}
             {complete && onAddSkill && (
               <button
                 type="button"
@@ -102,9 +102,9 @@ export function SkillCard({ kind, text }: { kind: "competence" | "workflow"; tex
       >
         <AgentCardTitle>{skill.name || "Sans titre"}</AgentCardTitle>
         {skill.desc && <AgentCardDesc>{skill.desc}</AgentCardDesc>}
-        {/* Le prompt en clair, replié : c'est ce que la chose FERA, et on doit pouvoir
-            le lire avant de l'adopter. En mono, comme partout où l'on montre une
-            instruction destinée au modèle. */}
+        {/* The prompt in clear, collapsed: it's what the thing WILL DO, and one must be able
+            to read it before adopting it. In mono, like everywhere an instruction
+            meant for the model is shown. */}
         {open && <pre className="md-skill-prompt">{skill.prompt}</pre>}
       </AgentCard>
     </div>

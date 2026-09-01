@@ -8,13 +8,13 @@ import { favoriteSet, simpleMenuModels, simpleMenuSections } from "./simpleList"
 
 import { useT } from "../../i18n";
 /**
- * La vue SIMPLIFIÉE du sélecteur : une liste courte, pas un navigateur. Pas de colonnes,
- * pas de recherche, pas de filtres de prix — sur cinq entrées, chacun de ces outils coûte
- * plus d'attention qu'il n'en fait gagner.
+ * The SIMPLIFIED view of the selector: a short list, not a navigator. No columns,
+ * no search, no price filters — on five entries, each of these tools costs
+ * more attention than it saves.
  *
- * Elle n'est pas un mode dégradé : « Tous les modèles » est visible en permanence, en
- * bas, et bascule sans fermer le menu. Un choix qu'on ne peut pas défaire d'un clic n'est
- * pas une simplification, c'est un mur.
+ * It isn't a degraded mode: « Tous les modèles » stays visible at all times, at the
+ * bottom, and switches without closing the menu. A choice you can't undo in one click isn't
+ * a simplification, it's a wall.
  */
 export function SimpleMenu({
   value,
@@ -33,26 +33,26 @@ export function SimpleMenu({
   value: string;
   available: ModelInfo[];
   unavailableModels?: ReadonlyMap<string, UnavailableReason>;
-  /** Favoris de l'utilisateur (`Settings.favoriteModels`) — vide ⇒ le défaut catalogue. */
+  /** The user's favorites (`Settings.favoriteModels`) — empty ⇒ the default catalogue. */
   favorites?: readonly string[];
-  /** Épingler/retirer un modèle. Absent ⇒ pas d'étoile. */
+  /** Pin/remove a model. Absent ⇒ no star. */
   onToggleFavorite?: (id: string) => void;
-  /** Le modèle par défaut des nouvelles conversations (`Settings.defaultModelId`). */
+  /** The default model for new conversations (`Settings.defaultModelId`). */
   defaultModelId?: string;
-  /** En faire le modèle par défaut. Absent ⇒ pas de marqueur maison. */
+  /** Make it the default model. Absent ⇒ no home marker. */
   onSetDefault?: (id: string) => void;
   pos: MenuPos;
   onChoose: (id: string) => void;
   onClose: () => void;
   onAccessInfo?: (focus: "free" | "credits" | "key", providerLabel?: string) => void;
-  /** Passer en vue complète (tous les fournisseurs) — le menu RESTE ouvert. */
+  /** Switch to the full view (all providers) — the menu STAYS open. */
   onShowAll: () => void;
 }) {
   const t = useT();
   const favSet = favoriteSet(favorites);
-  // Les BLOCS décident de l'ordre affiché (le défaut passe en tête) ; `models` en est
-  // l'aplatissement, et c'est LUI que le clavier suit — deux ordres, l'un pour l'œil et
-  // l'autre pour les flèches, c'est la flèche « bas » qui saute une ligne.
+  // The BLOCKS decide the displayed order (the default goes to the front); `models` is
+  // its flattening, and it's THAT which the keyboard follows — two orders, one for the eye
+  // and the other for the arrows: it's the DOWN arrow that skips a line.
   const sections = simpleMenuSections(
     simpleMenuModels(available, value, favorites),
     { favSet, defaultId: defaultModelId },
@@ -63,15 +63,15 @@ export function SimpleMenu({
   const focusRef = useRef<HTMLButtonElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // Le menu prend le focus à l'ouverture : sans ça les flèches défilent la PAGE derrière
-  // (il n'y a pas de champ de recherche ici pour l'attraper, contrairement au Finder).
+  // The menu takes focus on open: without that the arrows scroll the PAGE behind it
+  // (there's no search field here to catch them, unlike the Finder).
   useEffect(() => {
     rootRef.current?.focus();
   }, []);
-  // ⚠️ Pas au PREMIER rendu. Le focus initial est le modèle courant, qui peut être la
-  // dernière ligne (celle ajoutée hors favoris) : y défiler à l'ouverture présentait la
-  // liste déjà déroulée, première entrée rognée — on ouvre un menu, on ne reprend pas une
-  // navigation. Le défilement ne sert qu'aux flèches.
+  // ⚠️ Not on the FIRST render. The initial focus is the current model, which can be the
+  // last row (the one added outside favorites): scrolling to it on open showed the
+  // list already scrolled down, first entry clipped — you're opening a menu, not resuming a
+  // navigation. Scrolling only serves the arrows.
   const firstRender = useRef(true);
   useEffect(() => {
     if (firstRender.current) {
@@ -115,8 +115,8 @@ export function SimpleMenu({
     >
       <div className="model-simple-list">
         {models.length === 0 && <div className="model-empty">{t.modelPicker.none}</div>}
-        {/* Un intitulé par bloc — « ces cinq-là, pourquoi ? ». `simpleMenuSections` les
-            compose (et n'en rend aucun de vide) ; la vue ne fait que les dérouler. */}
+        {/* One heading per block — « ces cinq-là, pourquoi ? ». `simpleMenuSections`
+            composes them (and renders none of them empty); the view just unrolls them. */}
         {sections.map((sec) => (
           <Fragment key={sec.label}>
             <div className="model-simple-sep">{sec.label}</div>

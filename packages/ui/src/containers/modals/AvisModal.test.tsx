@@ -53,9 +53,9 @@ describe("AvisModal — the debug journal offer on a Bug report", () => {
   });
 
   it("arrive PRÉ-COCHÉ, l'aperçu verbatim à l'écran, et le journal part avec l'envoi", async () => {
-    // Décision 13/08 (collecte permanente) : un rapport de bug sans journal coûte un
-    // aller-retour. Ce qui rend le pré-cochage honnête est À L'ÉCRAN : l'aperçu montre
-    // le texte EXACT qui part (export « sans mapping » — jamais une valeur du coffre).
+    // Decision 13/08 (permanent collection): a bug report with no journal costs a
+    // round-trip. What makes the pre-checking honest is ON SCREEN: the preview shows
+    // the EXACT text that goes out (export « sans mapping » — never a vault value).
     const { m, pickCategory, sendIt } = await openAvis();
     await pickCategory("Bug");
     expect(m.find(".om-avis-journal [role=switch]").getAttribute("aria-checked")).toBe("true");

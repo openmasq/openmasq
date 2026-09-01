@@ -112,15 +112,15 @@ describe("COMPETENCE_LIST", () => {
   });
 
   /**
-   * ⚠️ La liste OFFERTE, pas le catalogue : la bande est plafonnée, donc c'est l'ordre du
-   * catalogue qu'une personne voit vraiment — groupés par thème, un juriste ne voyait que
-   * de la rédaction.
+   * ⚠️ The OFFERED list, not the catalogue: the strip is capped, so it is the catalogue's
+   * order that a person actually sees — grouped by theme, a lawyer would only ever see
+   * redaction.
    *
-   * « Routines » est servie par l'AUTRE catalogue (`ROUTINE_LIST`) : elle a une
-   * règle de classement à elle (ce qui est connecté d'abord), et les deux se rejoignent
-   * seulement dans `offeredTemplates`. On l'exclut donc ici et on l'exige là-bas —
-   * l'exiger des deux côtés obligerait à écrire un modèle de prose « routine » qui ne
-   * pilote rien, c'est-à-dire à mentir sur ce qu'est la catégorie.
+   * « Routines » is served by the OTHER catalogue (`ROUTINE_LIST`): it has its
+   * own ranking rule (what is connected goes first), and the two only meet
+   * in `offeredTemplates`. So it is excluded here and required there —
+   * requiring it on both sides would force writing a "routine" prose template that
+   * drives nothing, i.e. lying about what the category is.
    */
   it("cover every category IN THE OFFERED SET — the strip is capped, so catalog order is what a user actually sees", () => {
     const shown = new Set(suggestedCompetences([], fr).map((s) => s.cat));
@@ -135,8 +135,8 @@ describe("COMPETENCE_LIST", () => {
     const cats = new Set(offered.map(templateCategory));
     for (const c of COMPETENCE_CATEGORIES)
       expect(cats.has(c.id), `aucun modèle proposé pour « ${c.id} »`).toBe(true);
-    // Et une routine proposée pilote VRAIMENT des connecteurs : c'est ce champ, et lui
-    // seul, qui fait la différence de comportement.
+    // And an offered routine ACTUALLY drives connectors: this field, and it
+    // alone, is what makes the behavioural difference.
     for (const t of offered.filter((x) => templateCategory(x) === "routine"))
       expect(isRoutineTemplate(t) && t.servers.length > 0, t.id).toBe(true);
   });
@@ -176,9 +176,9 @@ describe("ROUTINE_LIST", () => {
   });
 
   it("the default strip is FULLY launchable in one click (30/07/2026: no gated template left)", () => {
-    // Depuis que le 1-clic couvre 100 % des capacités Google, plus aucun template
-    // n'exige « vos clés ». La règle historique (au plus UN template gated, marqué)
-    // se ré-applique d'elle-même si un connecteur gated revient au catalogue.
+    // Since 1-click covers 100% of Google's capabilities, no template
+    // requires "vos clés" anymore. The historic rule (at most ONE gated template, marked)
+    // re-applies itself on its own if a gated connector comes back into the catalogue.
     const gated = suggestedRoutines([], fr).filter((s) => ownKeysNeeded(s, fr).length > 0);
     expect(gated).toEqual([]);
   });
@@ -311,10 +311,10 @@ describe("genericRoutineFor", () => {
   });
 
   it("hérite du catalogue : plus AUCUN connecteur marqué « vos clés » depuis le 30/07/2026", () => {
-    // La marque est DÉRIVÉE (`byoOnly`/`byoAdds`) et le catalogue n'en porte plus —
-    // le 1-clic couvre 100 % des capacités Google, et SharePoint/Teams sont
-    // `adminConsent` (une autre mécanique). Elle se rallume seule si un connecteur
-    // gated revient ; le test « is DERIVED » ci-dessous épingle la dérivation.
+    // The mark is DERIVED (`byoOnly`/`byoAdds`) and the catalogue no longer carries any —
+    // 1-click covers 100% of Google's capabilities, and SharePoint/Teams are
+    // `adminConsent` (a different mechanism). It relights on its own if a
+    // gated connector comes back; the "is DERIVED" test below pins the derivation.
     for (const id of ["google-drive", "gmail", "microsoft-sharepoint", "slack"])
       expect(ownKeysNeeded(genericRoutineFor(id, fr)!, fr), id).toEqual([]);
   });
@@ -328,8 +328,8 @@ describe("ownKeysNeeded — « il faut vos propres clés pour ça »", () => {
   const byId = (id: string) => ROUTINE_LIST.find((s) => s.id === id)!;
 
   it("Gmail et Drive ne sont PLUS gated — le 1-clic couvre lecture + envoi (30/07/2026)", () => {
-    // C'était le jour prévu par le test « is DERIVED » ci-dessous : les marques ont
-    // disparu d'elles-mêmes en retirant `byoAdds`/`byoOnly` du catalogue.
+    // This was the day predicted by the "is DERIVED" test below: the marks
+    // disappeared on their own once `byoAdds`/`byoOnly` were removed from the catalogue.
     expect(ownKeysNeeded(byId("revue-boite-mail"), fr)).toEqual([]);
     expect(ownKeysNeeded(byId("point-client"), fr)).toEqual([]);
   });
@@ -353,8 +353,8 @@ describe("ownKeysNeeded — « il faut vos propres clés pour ça »", () => {
 });
 
 describe("les modèles livrés existent dans CHAQUE langue", () => {
-  /* Les listes sont des `Record<string, …>` : un id ajouté à la forme sans ses mots
-     compile, et se rendrait vide devant la personne. C'est ce test qui l'interdit. */
+  /* The lists are `Record<string, …>`: an id added to the shape without its words
+     compiles, and would render empty in front of the person. This test is what forbids that. */
   for (const locale of LOCALES) {
     it(`${locale} — chaque routine et chaque compétence a nom, description et invite`, () => {
       const t = getMessages(locale);

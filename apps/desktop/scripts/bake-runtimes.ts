@@ -1,13 +1,13 @@
 /**
- * Baker le runtime Python de CHAQUE arche que cette plateforme expédie.
+ * Bake the Python runtime for EVERY arch this platform ships.
  *
- * `bake-python-runtime.ts` fait UN triple (celui de l'hôte, ou `BAKE_TARGET`). Depuis que mac
- * livre deux arches, s'en tenir à l'hôte laisse `build/python-runtime/darwin-x64` vide —
- * `extraResources` le réclame pourtant à l'empaquetage. C'est la boucle qui manquait, et elle
- * vit ici plutôt que dans le workflow : `pnpm run release` sur une machine doit produire
- * exactement ce que la CI produit, sinon les deux chemins de release divergent (règle 9).
+ * `bake-python-runtime.ts` does ONE triple (the host's, or `BAKE_TARGET`). Since mac
+ * started shipping two arches, sticking to the host leaves `build/python-runtime/darwin-x64` empty —
+ * yet `extraResources` claims it at packaging time. This is the loop that was missing, and it
+ * lives here rather than in the workflow: `pnpm run release` on a machine must produce
+ * exactly what CI produces, or the two release paths diverge (rule 9).
  *
- * Idempotent : un triple déjà baké est sauté sur sa signature, donc repasser ne coûte rien.
+ * Idempotent: an already-baked triple is skipped on its signature, so running it again costs nothing.
  */
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
@@ -16,11 +16,11 @@ import { currentBlock, shippedTriples } from "./shippedTriples";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const triples = shippedTriples(currentBlock());
-const passthrough = process.argv.slice(2); // `--force` notamment
+const passthrough = process.argv.slice(2); // `--force` in particular
 
-// On relance le MÊME runtime que celui qui nous exécute (`execArgv` porte les drapeaux du
-// chargeur TypeScript), plutôt que d'aller chercher le binaire `tsx` : pas de shim `.cmd` à
-// contourner sur Windows, et aucune dépendance à un paquet que cette app ne déclare pas.
+// We relaunch the SAME runtime that is executing us (`execArgv` carries the TypeScript
+// loader's flags), rather than going to fetch the `tsx` binary: no `.cmd` shim to
+// work around on Windows, and no dependency on a package this app doesn't declare.
 const relance = [...process.execArgv, join(HERE, "bake-python-runtime.ts"), ...passthrough];
 
 console.log(`[bake:runtimes] ${triples.length} triple(s) à baker : ${triples.join(", ")}`);
@@ -31,8 +31,8 @@ for (const target of triples) {
     env: { ...process.env, BAKE_TARGET: target },
   });
   if (r.status !== 0) {
-    // Pas de « on continue avec les autres » : un runtime manquant fait une app qui s'installe
-    // et dont l'exécution Python ne marche pas. Mieux vaut l'arrêt ici que la découverte là-bas.
+    // No "let's continue with the others": a missing runtime makes an app that installs
+    // and whose Python execution doesn't work. Better to stop here than discover it there.
     console.error(`[bake:runtimes] échec sur ${target} → exit ${r.status}`);
     process.exit(r.status ?? 1);
   }

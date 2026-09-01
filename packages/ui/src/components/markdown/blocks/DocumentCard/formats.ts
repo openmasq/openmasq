@@ -3,7 +3,7 @@ import type { Messages } from "@openmasq/i18n";
 /**
  * The document card's download formats — the vocabulary of the « Télécharger » menu, kept
  * out of the component so the list is data (one place to add a format) and the menu stays
- * presentational. La COPIE vient du catalogue ; ce fichier garde l'ORDRE et la forme.
+ * presentational. The COPY comes from the catalogue; this file keeps the ORDER and the shape.
  *
  * Order is deliberate: the two RICH formats first (they carry the layout the user just read),
  * then the two plain ones. `mono` marks a format whose label IS a file extension, worn in the

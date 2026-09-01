@@ -17,23 +17,23 @@ export type Detector = (text: string) => string[] | Promise<string[]>;
 const NAMEISH = new Set(["NAME", "CITY", "ORG"]);
 
 /**
- * Donnée personnelle RÉELLE du texte, mais hors du périmètre que le plancher de rappel
- * mesure — comptée pour la PRÉCISION seulement, jamais pour le rappel.
+ * A REAL personal datum from the text, but outside the scope the recall floor
+ * measures — counted for PRECISION only, never for recall.
  *
- * Elle existe parce qu'un corpus servait deux mesures qui se contredisent. Les planchers de
- * rappel (`*.recall.test.ts`) tournent sur le pipeline DÉTERMINISTE seul, sans modèle : c'est
- * ce qui les rend gratuits, hors ligne et stables. La vérité annotée avait donc été écrite à
- * la mesure de ce pipeline — d'où l'absence des établissements (l'école de l'élève, l'hôpital
- * du patient, l'université de l'étudiant), que seul le NER trouve.
+ * It exists because one corpus served two measures that contradict each other. The recall
+ * floors (`*.recall.test.ts`) run on the DETERMINISTIC pipeline alone, with no model: that's
+ * what makes them free, offline and stable. The annotated truth had therefore been written to
+ * the measure of that pipeline — hence the absence of institutions (the pupil's school, the
+ * patient's hospital, the student's university), which only the NER finds.
  *
- * Conséquence mesurée avant l'ajout de cette catégorie : le produit redact correctement
- * « COLLÈGE JEAN-BAPTISTE CARPEAUX » sur le bulletin d'une mineure nommée, et la mesure de
- * précision comptait ce redaction comme une ERREUR. Les annoter en `CONTEXT` corrige la
- * précision SANS toucher au plancher de rappel : le cliquet garde exactement son sens.
+ * Consequence measured before this category was added: the product correctly redacted
+ * « COLLÈGE JEAN-BAPTISTE CARPEAUX » on a named minor's report card, and the precision
+ * measure counted that redaction as an ERROR. Annotating them `CONTEXT` fixes precision
+ * WITHOUT touching the recall floor: the ratchet keeps exactly its meaning.
  *
- * ⚠️ Choix conservateur assumé : même une valeur qu'un détecteur déterministe trouve est
- * annotée `CONTEXT` si elle vient de cet audit. Sous-estimer le rappel est sans danger ;
- * le gonfler en élargissant la vérité ne le serait pas.
+ * ⚠️ A deliberate conservative choice: even a value a deterministic detector finds is
+ * annotated `CONTEXT` if it comes from this audit. Underestimating recall is harmless;
+ * inflating it by widening the truth would not be.
  */
 const RECALL_EXEMPT = new Set(["CONTEXT"]);
 
@@ -50,11 +50,11 @@ export function isCjk(s: string): boolean {
   return /[぀-ヿ㐀-鿿가-힯]/.test(s);
 }
 
-/** Plancher d'inclusion : sous 3 caractères, « né » recouperait la moitié du corpus. */
+/** Inclusion floor: under 3 characters, « né » would overlap half the corpus. */
 const MIN_CONTAIN = 3;
 
-/** `needle` apparaît-il dans `hay` en DÉBUT de token (bord de mot) ? Sans cette borne,
- *  « med » recouperait « immédiat » et l'inclusion absoudrait n'importe quoi. */
+/** Does `needle` appear in `hay` at the START of a token (word boundary)? Without this bound,
+ *  « med » would overlap « immédiat » and inclusion would excuse anything. */
 function atTokenStart(hay: string, needle: string): boolean {
   const h = hay.toLowerCase(), n = needle.toLowerCase();
   for (let i = h.indexOf(n); i !== -1; i = h.indexOf(n, i + 1)) {
@@ -64,23 +64,23 @@ function atTokenStart(hay: string, needle: string): boolean {
 }
 
 /**
- * Une valeur DÉTECTÉE recoupe-t-elle la vérité annotée ? Son complément est LA définition du
- * faux positif, pour tous les bancs.
+ * Does a DETECTED value overlap the annotated truth? Its complement is THE definition of
+ * a false positive, for every bench.
  *
- * ⚠️ UN SEUL foyer, importé — pas recopié. La version courte (`tokens(d).some(...)`) avait été
- * dupliquée dans cinq bancs, y avait perdu la branche CJK, et comptait comme erreur toute
- * détection correcte dans une langue sans espaces. `sourceFp.bench.ts` pin le comportement.
+ * ⚠️ ONE SINGLE home, imported — not copy-pasted. The short version (`tokens(d).some(...)`) had
+ * been duplicated across five benches, had lost the CJK branch there, and counted as an error
+ * every correct detection in a language with no spaces. `sourceFp.bench.ts` pins the behavior.
  *
- * Une annotation est un SPAN, pas un mot — d'où trois façons de recouper :
- *  1. un token significatif en commun ;
- *  2. CJK : inclusion de chaînes, faute de tokens ;
- *  3. inclusion bornée à un bord de token, dans les DEUX sens — « whitman » dans
- *     « laura.whitman@… », « 63000 » dans « NIORT (63000) », et à l'inverse
- *     « 東京都渋谷区道玄坂1-2-3 » qui contient l'adresse annotée. Détecter une PARTIE d'une
- *     donnée annotée n'est pas une erreur de détection : c'est la même donnée.
+ * An annotation is a SPAN, not a word — hence three ways to overlap:
+ *  1. a significant token in common;
+ *  2. CJK: string inclusion, for lack of tokens;
+ *  3. inclusion bounded to a token edge, in BOTH directions — « whitman » in
+ *     « laura.whitman@… », « 63000 » in « NIORT (63000) », and conversely
+ *     « 東京都渋谷区道玄坂1-2-3 » which contains the annotated address. Detecting a PART of an
+ *     annotated datum is not a detection error: it's the same datum.
  *
- * Ce que la règle du bord REFUSE, et c'est voulu : « MrPaul » ne recoupe pas « Paul VASSEUR »
- * — la civilité est collée au prénom, donc le span est faux même si l'entité est la bonne.
+ * What the edge rule REFUSES, and this is deliberate: « MrPaul » does not overlap « Paul VASSEUR »
+ * — the honorific is glued to the first name, so the span is wrong even if the entity is right.
  */
 export function overlapsTruth(detected: string, truth: readonly string[]): boolean {
   if (!detected.trim()) return false;
@@ -89,9 +89,9 @@ export function overlapsTruth(detected: string, truth: readonly string[]): boole
   const d = norm(detected);
   for (const t of truth) {
     const n = norm(t);
-    // Le plancher est LATIN : un glyphe han/kana/hangul est un morphème entier, donc « 张伟 »
-    // est un nom COMPLET — même exemption que le moteur (`local/CLAUDE.md`). L'appliquer à
-    // tout comptait chaque nom CJK court comme une erreur.
+    // The floor is LATIN: a han/kana/hangul glyph is a whole morpheme, so « 张伟 »
+    // is a COMPLETE name — the same exemption as the engine (`local/CLAUDE.md`). Applying it
+    // to everything counted every short CJK name as an error.
     if (isCjk(detected) || isCjk(t)) {
       if (n && d.includes(n)) return true;
       if (d && n.includes(d)) return true;
@@ -103,10 +103,10 @@ export function overlapsTruth(detected: string, truth: readonly string[]): boole
   return false;
 }
 
-/** Une vérité annotée est-elle COUVERTE par ce qui a été détecté ? Le pendant de
- *  {@link overlapsTruth} côté rappel, exposé pour que les bancs qui ventilent par
- *  catégorie n'en recodent pas une variante (règle 9 — c'est exactement comme ça que
- *  `overlapsTruth` avait dérivé dans cinq fichiers). */
+/** Is an annotated truth COVERED by what was detected? The recall-side counterpart of
+ *  {@link overlapsTruth}, exposed so the benches that break down by
+ *  category don't recode a variant of it (rule 9 — this is exactly how
+ *  `overlapsTruth` had drifted across five files). */
 export function coversTruth(value: string, detected: readonly string[]): boolean {
   const d = [...detected];
   return isCovered(value, d, norm(d.join(" ")), new Set(d.flatMap(tokens)));

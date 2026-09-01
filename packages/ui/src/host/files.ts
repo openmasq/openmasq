@@ -98,27 +98,27 @@ export interface FileMeta {
   redactedCount?: number;
 }
 
-export type ExtractedBytes = Pick<ExtractedFile, "text" | "words" | "ocrText" | "ocr" | "ocrPages">; // la part recomputable depuis les octets seuls (route bytes)
+export type ExtractedBytes = Pick<ExtractedFile, "text" | "words" | "ocrText" | "ocr" | "ocrPages">; // the part recomputable from bytes alone (bytes route)
 export interface ExtractedFile {
   name: string;
   kind: string;
   text: string;
   chars: number;
   error?: string;
-  /** La CAUSE BRUTE d'un échec d'extraction, pour le SEUL journal de débogage
-   *  (`ocrDebug.ts`) : `error` reste la phrase allow-listée montrée à l'utilisateur ;
-   *  ceci distingue un paquet natif manquant d'un PDF corrompu. Jamais rendu hors du
-   *  journal (miroir de `@openmasq/redact` `ExtractedFile.rawCause`). */
+  /** The RAW CAUSE of an extraction failure, for the debug journal ONLY
+   *  (`ocrDebug.ts`): `error` stays the allow-listed phrase shown to the user;
+   *  this distinguishes a missing native package from a corrupt PDF. Never rendered outside the
+   *  journal (mirrors `@openmasq/redact` `ExtractedFile.rawCause`). */
   rawCause?: string;
   /** Count of DISTINCT values the composer's drop-time redaction found in this file's
    *  text. Forwarded to {@link FilesHost.redactAndSave} so the library card can show the
    *  badge for formats whose BYTES can't be scrubbed in place (image/PDF) — there the
    *  storage pass throws and finds nothing to count. Absent until the file is redacted. */
   redactPreview?: number;
-  /** La carte du redaction du DÉPÔT (réel→faux + teinte/catégorie), posée par la passe
-   *  de redaction de la pièce jointe. Threadée jusqu'à `redactAndSave` pour être
-   *  PERSISTÉE avec le fichier (`ExtractionResult.redactions`) — la Bibliothèque repeint
-   *  cette carte-là, pas le coffre de la conversation. */
+  /** The DROP's redaction map (real→fake + tone/category), laid down by the
+   *  attachment's redaction pass. Threaded through to `redactAndSave` to be
+   *  PERSISTED with the file (`ExtractionResult.redactions`) — the Bibliothèque repaints
+   *  THAT map, not the conversation's coffre. */
   replacements?: import("@openmasq/redact/pdf-redact").PdfReplacement[];
   /** Source path on disk (native picks) — lets hidden mode store the original. */
   path?: string;
@@ -147,8 +147,8 @@ export interface ExtractedFile {
     engine: string;
     ms: number;
     pages?: number;
-    /** Total de pages du document — `pages < pagesTotal` = lecture PARTIELLE (plafond
-     *  d'OCR, 10 par défaut) : le chip le dit et offre « Lire tout ». */
+    /** Total pages in the document — `pages < pagesTotal` = PARTIAL read (OCR
+     *  cap, 10 by default): the chip says so and offers « Lire tout ». */
     pagesTotal?: number;
     confidence?: number;
     fellBack?: boolean;
@@ -181,28 +181,28 @@ export interface ExtractionResult {
   ocrPages?: ExtractedFile["ocrPages"];
   /** How the text was extracted (engine + timings) — carried for the Debug Log. */
   ocr?: ExtractedFile["ocr"];
-  /** La carte de redaction du DÉPÔT (réel→faux + teinte/catégorie), FIGÉE au moment où
-   *  ce document est parti. C'est LA source du viewer de la Bibliothèque : le coffre de
-   *  la conversation, lui, accumule les valeurs de TOUTE la conversation — le repeindre
-   *  sur ce document marquait des éléments que cet envoi n'a jamais redacted (et avec
-   *  d'autres teintes, ses `kinds` venant d'un autre producteur). Constaté le 14/08 :
-   *  la modale post-dépôt et la Bibliothèque montraient deux redactions différents. */
+  /** The DROP's redaction map (real→fake + tone/category), FROZEN at the moment
+   *  this document went out. It's THE source for the Bibliothèque's viewer: the conversation's
+   *  coffre, meanwhile, accumulates values from the WHOLE conversation — repainting it
+   *  onto this document used to mark elements this send never redacted (and with
+   *  other tones, its `kinds` coming from a different producer). Observed on 14/08:
+   *  the post-drop modal and the Bibliothèque showed two different redactions. */
   redactions?: { real: string; fake: string; tone?: string; kind?: string }[];
 }
 
-/** Progression OCR d'une extraction en cours : `{name, page, pages}` par page lue.
- *  Optionnelle de bout en bout — un hôte qui ne la relaie pas dégrade vers la barre
- *  indéterminée du chip, jamais un échec. */
+/** OCR progress for an extraction in flight: `{name, page, pages}` per page read.
+ *  Optional end to end — a host that doesn't relay it degrades to the chip's
+ *  indeterminate bar, never a failure. */
 export type OcrProgress = { name: string; page: number; pages: number };
 
 /** Optional file-attachment text extraction (PDF/CSV/text → plain text). */
 export interface FilesHost {
   pick(): Promise<ExtractedFile[]>;
   extract(paths: string[], onOcrProgress?: (p: OcrProgress) => void): Promise<ExtractedFile[]>;
-  /** « Lire tout » : ré-extraire en levant le plafond d'OCR (10 pages par défaut). Un
-   *  scan de 300 pages à quelques secondes la page est un CHOIX de l'utilisateur, pas un
-   *  défaut — d'où un geste dédié plutôt qu'un plafond plus haut. Optionnel : absent
-   *  (aperçu navigateur), le chip n'offre pas le geste. */
+  /** « Lire tout »: re-extract while lifting the OCR cap (10 pages by default). A
+   *  300-page scan at a few seconds per page is a CHOICE the user makes, not a
+   *  default — hence a dedicated action rather than a higher cap. Optional: absent
+   *  (browser preview), the chip doesn't offer the action. */
   extractAll?(paths: string[], onOcrProgress?: (p: OcrProgress) => void): Promise<ExtractedFile[]>;
   /** Native picker WITHOUT extraction — returns chosen paths + basenames instantly, so
    *  the composer can show a chip while `extract()` runs async (a big/scanned file's
@@ -212,7 +212,7 @@ export interface FilesHost {
    *  composer attachment (e.g. rendering a PDF before it's sent). */
   read?(path: string): Promise<Uint8Array>;
   /** In-memory bytes (base64) — MCP tool files + the drop route (bytes, never a path).
-   *  STRUCTURÉ : le drop perdait `words`/`ocrText` — l'aperçu ouvrait l'ORIGINALE. */
+   *  STRUCTURED: the drop used to lose `words`/`ocrText` — the preview opened the ORIGINAL. */
   extractBytes?(
     data: string,
     name: string,

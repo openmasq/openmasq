@@ -1,45 +1,45 @@
 /**
- * Micro-typographie française des documents EXPORTÉS — la moitié « composition » du
- * design que personne ne voit mais que tout le monde sent : une ligne ne doit jamais
- * commencer par « ! » ni séparer « 12 » de « 000 € ».
+ * French micro-typography for EXPORTED documents — the « composition » half of the
+ * design nobody sees but everyone feels: a line must never
+ * start with « ! » nor separate « 12 » from « 000 € ».
  *
- * Une seule règle d'or, qui est ce qui rend ce module SÛR : on ne fait que remplacer
- * une espace ordinaire DÉJÀ LÀ par une insécable — jamais insérer, supprimer ou
- * réécrire un caractère. Un texte mal espacé ressort mal espacé (c'est au modèle
- * d'écrire correctement, le prompt le lui dit) ; un texte correct devient incassable.
- * C'est pourquoi il n'y a NI guillemets « intelligents » ni césure automatique ici :
- * transformer `'` ou couper un mot est génératif, et faux sur du code, un nom propre
- * ou de l'anglais.
+ * One single golden rule, which is what makes this module SAFE: we only replace
+ * an ordinary space ALREADY THERE with a non-breaking one — never insert, remove or
+ * rewrite a character. Badly-spaced text comes out badly spaced (it's the model's
+ * job to write correctly, the prompt tells it so); correctly-spaced text becomes unbreakable.
+ * That's why there are NEITHER « smart » quotes NOR automatic hyphenation here:
+ * transforming `'` or breaking a word is generative, and wrong on code, a proper noun
+ * or English.
  *
- * U+00A0 (insécable PLEINE), pas U+202F (fine) : la fine n'existe pas en WinAnsi, et
- * le repli pdf-lib (`documentPdf.ts` `toWinAnsi`) doit pouvoir imprimer le même texte.
+ * U+00A0 (FULL non-breaking space), not U+202F (thin): the thin one doesn't exist in WinAnsi,
+ * and the pdf-lib fallback (`documentPdf.ts` `toWinAnsi`) must be able to print the same text.
  *
- * Appliquée au moment de la LECTURE des blocs (`documentBlocks.ts` `runsOf`), donc les
- * trois exports (HTML→PDF, DOCX, repli pdf-lib) la reçoivent d'un seul point — jamais
- * aux runs `code`, où une espace est un caractère comme un autre. Elle voit les VRAIES
- * valeurs (l'export porte le un-redacted) ; changer la nature d'une espace n'altère ni
- * le coffre ni le document stocké — le chemin est export-only.
+ * Applied at the moment blocks are READ (`documentBlocks.ts` `runsOf`), so the
+ * three exports (HTML→PDF, DOCX, pdf-lib fallback) receive it from a single point — never
+ * on `code` runs, where a space is a character like any other. It sees the REAL
+ * values (the export carries the un-redacted); changing a space's nature alters neither
+ * the coffre nor the stored document — the path is export-only.
  */
 
 const NBSP = " ";
 
-/** Espace simple → insécable, aux seules positions où la typographie française
- *  l'exige ET où l'intention est non ambiguë. */
+/** Simple space → non-breaking, only at the positions where French typography
+ *  requires it AND where the intent is unambiguous. */
 export function frenchSpacing(text: string): string {
   return (
     text
-      // Avant la ponctuation haute et le guillemet fermant — seulement quand elle est
-      // TERMINALE (suivie d'une espace ou d'une fin), ce qui écarte d'un coup les
-      // smileys « :) » / « ;( » et tout usage non typographique. L'espace doit déjà
-      // exister : « https://x » (rien avant les « : ») ne matche pas non plus.
+      // Before high punctuation and the closing guillemet — only when it is
+      // TERMINAL (followed by a space or an end), which rules out at once
+      // smileys « :) » / « ;( » and any non-typographic use. The space must already
+      // exist: « https://x » (nothing before the « : ») doesn't match either.
       .replace(/ ([:;!?»])(?=\s|$)/g, `${NBSP}$1`)
-      // Après le guillemet ouvrant.
+      // After the opening guillemet.
       .replace(/« /g, `«${NBSP}`)
-      // Groupement des milliers : « 12 000 » — l'espace entre un chiffre et un groupe de
-      // TROIS chiffres en fin de nombre. Un téléphone (« 06 12 34 56 78 », groupes de 2),
-      // deux années (« 2026 2027 », groupe de 4) ne matchent pas.
+      // Thousands grouping: « 12 000 » — the space between a digit and a group of
+      // THREE digits at the end of a number. A phone number (« 06 12 34 56 78 », groups of 2),
+      // two years (« 2026 2027 », group of 4) don't match.
       .replace(/(\d) (?=\d{3}(?!\d))/g, `$1${NBSP}`)
-      // Nombre + symbole monétaire ou % : « 500 € », « 45 % ».
+      // Number + currency symbol or %: « 500 € », « 45 % ».
       .replace(/(\d) (?=[€%$£])/g, `$1${NBSP}`)
   );
 }

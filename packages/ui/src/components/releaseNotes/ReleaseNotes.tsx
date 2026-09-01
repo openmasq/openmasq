@@ -9,18 +9,18 @@ import {
 } from "../../state/releaseNotes";
 
 /**
- * COMMENT SE LIT UNE NOTE DE VERSION — une seule fois, pour les deux surfaces qui en
- * montrent : l'historique des builds (Réglages → Versions) et l'onglet « Nouveautés » de
- * l'AIDE. Promu ici le jour où la seconde est apparue : jusque-là il vivait, privé, dans
+ * HOW A RELEASE NOTE IS READ — once, for the two surfaces that
+ * show them: the build history (Réglages → Versions) and the « Nouveautés » tab of
+ * HELP. Promoted here the day the second one appeared: until then it lived, private, in
  * `pages/Settings/updates/ReleaseHistory.tsx`.
  *
- * Feuille PURE : les notes arrivent en props, rien n'est chargé ici (le cache et son
- * préchargement sont `state/releaseNotes.ts` + `state/settingsPrefetch.ts`).
+ * PURE sheet: the notes arrive as props, nothing is loaded here (the cache and its
+ * prefetch are `state/releaseNotes.ts` + `state/settingsPrefetch.ts`).
  */
 
-/** Les puces d'une note, rangées dans les trois groupes colorés du design system
- *  (Nouveautés / Améliorations / Corrections), plus son corps markdown. `fallback` est
- *  la note brute du manifeste de build, quand Contentful n'en a pas. */
+/** A note's bullets, sorted into the design system's three coloured groups
+ *  (Nouveautés / Améliorations / Corrections), plus its markdown body. `fallback` is
+ *  the raw note from the build manifest, when Contentful has none. */
 export function ReleaseNoteBody({ note, fallback }: { note?: ReleaseNote; fallback?: string }) {
   const t = useT();
   const groups = note ? groupHighlights(note.highlights, t) : [];
@@ -60,13 +60,13 @@ export function ReleaseNoteBody({ note, fallback }: { note?: ReleaseNote; fallba
 }
 
 /**
- * L'HISTORIQUE PUBLIÉ, tel qu'il est écrit — version, date, titre, puis les puces.
+ * THE PUBLISHED HISTORY, exactly as written — version, date, title, then the bullets.
  *
- * ⚠️ Ce n'est PAS la liste des builds installables (celle-là vit dans Réglages → Versions
- * et parle d'installer, d'épingler, de revenir en arrière). Ici on ne montre que ce que
- * l'équipe a publié : rien à cliquer, rien à décider — on vient lire ce qui a changé.
- * Une note sans aucune puce ni corps garde sa ligne : sa date et son titre disent déjà
- * quelque chose, et un trou dans une chronologie se lit comme une panne.
+ * ⚠️ This is NOT the list of installable builds (that one lives in Réglages → Versions
+ * and talks about installing, pinning, rolling back). Here we only show what
+ * the team has published: nothing to click, nothing to decide — one comes to read what changed.
+ * A note with no bullet or body at all keeps its row: its date and title already say
+ * something, and a hole in a timeline reads as an outage.
  */
 export function ReleaseNotesList({ notes }: { notes: readonly ReleaseNote[] }) {
   const t = useT();

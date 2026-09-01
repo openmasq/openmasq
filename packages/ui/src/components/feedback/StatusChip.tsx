@@ -3,24 +3,24 @@ import { BANNER_ICONS, type BannerAction, type BannerTone } from "./bannerTones"
 
 import { useT } from "../../i18n";
 /**
- * La pastille d'ÉTAT — l'avis permanent, dit en un mot.
+ * The STATUS chip — the standing notice, said in one word.
  *
- * Un état de l'app (hors ligne, connecteur à reconnecter, accès limités) dure : il
- * ne peut donc pas coûter une barre pleine largeur en bas de l'écran, qui couvrait
- * le composeur et toute la partie basse pour une phrase qu'on a lue une fois. Ici :
- * le TITRE seul, dans une pastille de la largeur de son texte, et le message +
- * l'action au clic — repliés par défaut. Le ton réutilise le skin `.kb--<ton>`
- * (une seule table ton→couleur dans le produit).
+ * An app state (offline, a connector needing reconnection, limited access) lasts: it
+ * therefore can't cost a full-width bar at the bottom of the screen, which used to cover
+ * the composer and the whole lower area for a sentence read once. Here:
+ * the TITLE alone, in a chip the width of its text, and the message +
+ * the action on click — collapsed by default. The tone reuses the `.kb--<tone>` skin
+ * (a single tone→colour table in the product).
  *
- * Purement présentationnel : le dock qui la place est `.kchip-dock` (styles/statusChip.css),
- * ce qu'elle annonce est décidé par `containers/shell/shellNotice.ts`.
+ * Purely presentational: the dock that places it is `.kchip-dock` (styles/statusChip.css),
+ * what it announces is decided by `containers/shell/shellNotice.ts`.
  */
 export interface StatusChipProps {
   tone: BannerTone;
   title: string;
   message?: string;
   action?: BannerAction;
-  /** Présent ⇒ la pastille se referme pour de bon. Une PANNE n'en a pas. */
+  /** Present ⇒ the chip closes for good. An OUTAGE doesn't have one. */
   onClose?: () => void;
 }
 
@@ -42,7 +42,7 @@ export function StatusChip({ tone, title, message, action, onClose }: StatusChip
   return (
     <div
       className={`kchip kb--${tone}${open ? " kchip-open" : ""}`}
-      // Échap referme le détail — la pastille reste, seul son dépli est transitoire.
+      // Escape closes the detail — the chip stays, only its unfolding is transient.
       onKeyDown={(e) => {
         if (e.key === "Escape" && open) {
           e.stopPropagation();

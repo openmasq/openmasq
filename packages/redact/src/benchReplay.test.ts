@@ -6,7 +6,7 @@ import { createNerPredict } from "./local/ner";
 import { detectLocalNer } from "./local/detect";
 
 const PROMPTS: [string, string][] = [
-  // [prompt, entité que le bench attendait redacted]
+  // [prompt, entity the bench expected redacted]
   ["Je travaille chez Google.", "Google"],
   ["La société Acme recrute.", "Acme"],
   ["Le dossier BNP Paribas avance.", "BNP Paribas"],
@@ -41,8 +41,8 @@ const PROMPTS: [string, string][] = [
 const FAUX_POSITIFS = ["Appelle le 06 12 34 56 78.", "Rappelle au +33 6 12 34 56 78.",
   "Joignable au 06-12-34-56-78", "Mon login est ajoligy92.", "Serveur : srv-prod-01.chalin.local"];
 
-/** Le modèle mBERT n'est présent qu'après un build desktop (173 Mo, jamais en CI légère).
- *  Absent ⇒ le fichier se saute : ce bench documente un TRI, il ne garde pas une porte. */
+/** The mBERT model is only present after a desktop build (173 MB, never in light CI).
+ *  Absent ⇒ the file skips itself: this bench documents a TRIAGE, it doesn't guard a gate. */
 const MODEL_DIR = resolve(process.cwd(), "apps/desktop/build/ner-models");
 const runIf = existsSync(MODEL_DIR) ? it : it.skip;
 
@@ -76,8 +76,8 @@ runIf("classe chaque prompt : par conception / manque réel / faux positif", asy
     const mots = Object.values(vault).filter((v) => /^[A-Za-zÀ-ÿ]+$/.test(v));
     console.log(`  ${mots.length ? "FP: " + mots.join(", ") : "aucun"}  ← ${p}`);
   }
-  // Le seul verrou : les faux positifs confirmés doivent disparaître quand ils seront
-  // corrigés — et ne jamais revenir. Le reste du fichier est un rapport, pas une porte.
+  // The only lock: confirmed false positives must disappear once they are
+  // fixed — and never come back. The rest of the file is a report, not a gate.
   expect(true).toBe(true);
 }, 900000);
 });

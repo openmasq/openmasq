@@ -6,15 +6,15 @@ import { useChatStore } from "./store";
 import type { AuthUser, Host } from "../host";
 
 /**
- * LE SINISTRE DU 14/08 : les canaux de sync démarraient sur `store.loaded`, qui est vrai
- * même quand `db.load()` a ÉCHOUÉ. Un pull tiré sur ce store pas hydraté ne trouve pas les
- * conversations (`getExisting` → undefined), fabrique des SQUELETTES depuis les convMeta
- * du serveur, et le miroir les persiste — 47 conversations vidées de leurs messages, du
- * coffre et des fichiers. Le push, lui, aurait tombstoné « tout supprimé ».
+ * THE INCIDENT OF 14/08: the sync channels used to start on `store.loaded`, which is true
+ * even when `db.load()` has FAILED. A pull run against this un-hydrated store finds no
+ * conversations (`getExisting` → undefined), fabricates SKELETONS from the server's
+ * convMeta, and the mirror persists them — 47 conversations emptied of their messages, their
+ * vault and their files. The push, meanwhile, would have tombstoned « tout supprimé ».
  *
- * L'invariant épinglé : `loaded` (l'UI peut vivre) et `syncReady` (la sync peut tourner)
- * sont deux choses — et un échec de chargement DB ouvre la première SANS ouvrir la
- * seconde. Contre le vrai `useChatStore`, hôte bouchonné.
+ * The pinned invariant: `loaded` (the UI can live) and `syncReady` (sync can run)
+ * are two different things — and a DB load failure opens the first WITHOUT opening the
+ * second. Against the real `useChatStore`, stubbed host.
  */
 
 const USER: AuthUser = { id: "uid-sync", email: "s@exemple.fr" } as AuthUser;

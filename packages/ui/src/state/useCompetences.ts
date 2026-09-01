@@ -5,10 +5,10 @@ import { makeCompetence, pinnedCompetences, restoreCompetenceList } from "../com
 /**
  * The COMPÉTENCES CRUD — reusable prompts the user authors and uses in a chat.
  *
- * ⚠️ **Une seule liste.** Les « workflows » avaient leur hook jumeau, identique au
- * commentaire près, sur un second champ de `Settings` ; ils sont devenus des compétences
- * qui portent des `servers`. La reprise de l'ancien champ est `competences/migrate.ts`,
- * appliquée par `normalizeSettings` — ce hook, lui, ne connaît qu'une liste.
+ * ⚠️ **ONE list only.** The « workflows » used to have a twin hook, identical down to the
+ * comment, on a second `Settings` field; they became Compétences that carry
+ * `servers`. Picking up the old field is `competences/migrate.ts`, applied by
+ * `normalizeSettings` — this hook, itself, knows only one list.
  *
  * Its own hook rather than a fifth block inside `store.ts`: that file is the
  * biggest in the repo and frozen in the LOC allowlist, and `state/CLAUDE.md`

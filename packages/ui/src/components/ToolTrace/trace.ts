@@ -5,10 +5,10 @@ export interface ToolCallRecord {
   tool: string;
   server: string;
   ok: boolean;
-  /** L'utilisateur a REFUSÉ cette écriture (carte de confirmation) — pas une panne.
-   *  ⚠️ Refuser est une RÉUSSITE du garde-fou : sans ce champ, le refus portait
-   *  `ok:false` tout court et la bulle concluait « une étape du flux a échoué » avec
-   *  un bouton Réessayer — l'app grondait l'utilisateur d'avoir dit non (constat 14/08). */
+  /** The user DECLINED this write (confirmation card) — not a failure.
+   *  ⚠️ Declining is a SUCCESS of the guard-rail: without this field, the decline carried
+   *  a bare `ok:false` and the bubble concluded « une étape du flux a échoué » with
+   *  a Réessayer button — the app scolded the user for having said no (noted 14/08). */
   declined?: boolean;
   summary?: string;
   /** One-line human narration of the call (LLM-generated, already un-redacted). */
@@ -134,8 +134,8 @@ function collapseRuns(tools: TraceTool[]): TraceTool[] {
       if (t.ms != null) prev.ms = (prev.ms ?? 0) + t.ms;
       if (t.state === "error") {
         prev.failures = (prev.failures ?? 0) + 1;
-        // Une vraie panne l'emporte sur un refus passé : c'est elle qui est
-        // actionnable (le bandeau « Réessayer » doit revenir).
+        // A real failure overrides a past decline: it's the one that's
+        // actionable (the « Réessayer » banner must come back).
         if (prev.state === "declined") prev.state = "error";
       }
       if (t.state === "running") {
@@ -222,8 +222,8 @@ export function isCurrentStep(
 /** True when the flow ended with at least one tool in a FAILED final state (what
  *  the trace shows as "échec") — a transient failure that later RECOVERED does not
  *  count (collapsed to a succeeded row). Drives the "retry this flow" affordance.
- *  ⚠️ Un REFUS utilisateur (`declined`) n'est PAS un échec : proposer « Réessayer »
- *  après un non revient à re-poser la même écriture qu'on vient de refuser. */
+ *  ⚠️ A user DECLINE (`declined`) is NOT a failure: offering « Réessayer »
+ *  after a no amounts to re-posing the very write that was just declined. */
 export function hasFailedTool(calls?: ToolCallRecord[]): boolean {
   return groupToolCalls(calls).some((run) => run.tools.some((t) => t.state === "error"));
 }

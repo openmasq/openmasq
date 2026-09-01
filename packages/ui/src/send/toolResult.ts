@@ -24,13 +24,13 @@ import type { SendEngineContext } from "./redactionOptions";
  *  security-critical redaction (a MAJOR leak surface: Gmail/CRM/Drive payloads) is
  *  unit-testable outside the sendMessage closure. */
 export interface RedactToolResultDeps {
-  /** Le contexte moteur DE L'ENVOI (`SendEngineContext`) — les mêmes options que le
-   *  message, pour qu'une valeur soit traitée pareil sur toutes les passes du tour.
-   *  ⚠️ Le store y REMPLACE `kinds` par le `turnKinds` du tour (spans fraîchement
-   *  redacted compris) : sans eux, sur un premier message, le redacteur ne sait pas
-   *  qu'une valeur du vault est (p. ex.) une entreprise — ni une catégorie désactivée,
-   *  ni la politique clear BROWSER/SEARCH, ni un reveal en cours d'envoi ne peuvent
-   *  alors empêcher le replay de son faux. `evals/navigation.test.ts`. */
+  /** THIS SEND's engine context (`SendEngineContext`) — the same options as the
+   *  message, so a value is treated the same across every pass of the turn.
+   *  ⚠️ The store REPLACES `kinds` in it with the turn's `turnKinds` (freshly-vaulted
+   *  spans included): without them, on a first message, the redactor doesn't know
+   *  that a vault value is (say) a company — neither a disabled category,
+   *  nor the BROWSER/SEARCH clear policy, nor a reveal mid-send can
+   *  then stop its fake being replayed. `evals/navigation.test.ts`. */
   engine: SendEngineContext;
   useRemote: boolean;
   useAiDetect: boolean;
@@ -46,14 +46,14 @@ export interface RedactToolResultDeps {
    *  a Gmail/CRM result must still be masked; a value absent from a result is a no-op
    *  at the engine. */
   forced: { value: string; category: string }[];
-  /** Les entités de la MÉMOIRE (cartes + alias) — forcées UNIQUEMENT pour le résultat
-   *  de `memory_search` : une carte est du PII CONNU, sa protection ne doit jamais
-   *  dépendre d'une détection (le moteur regex ne voit pas un nom libre). Scopé à ce
-   *  seul outil : un résultat de RECHERCHE WEB garde la politique SEARCH_CLEAR (le nom
-   *  public en clair est la substance de la réponse). */
+  /** The MÉMOIRE entities (cards + aliases) — forced ONLY for `memory_search`'s
+   *  result: a card is KNOWN PII, its protection must never
+   *  depend on detection (the regex engine doesn't see a free-form name). Scoped to this
+   *  one tool: a WEB SEARCH result keeps the SEARCH_CLEAR policy (the public name
+   *  in clear is the substance of the answer). */
   memorySearchForced?: { value: string; category: string }[];
-  /** Les tours UTILISATEUR du wire de CET envoi (post-redaction) — la source de la
-   *  moisson « déjà en clair » (`toolResultKeep.ts` `wireClearKeep`). */
+  /** THIS send's wire's USER turns (post-redaction) — the source of the
+   *  "already in clear" harvest (`toolResultKeep.ts` `wireClearKeep`). */
   wireUserTexts?: string[];
   completeFn: CompleteFn | undefined;
   detectLocalFn: ((t: string) => Promise<Detection[]>) | undefined;
@@ -110,7 +110,7 @@ export function disabledKindsForTool(disabledKinds: string[], tool?: string): st
  * place/org (an authenticated page's real credentials stay redacted). Returns the wrapped
  * fn (the inner redaction + a Debug-Log entry).
  */
-/** Appelable par résultat, plus `many` — N résultats du MÊME outil en UNE passe moteur. */
+/** Callable per result, plus `many` — N results from the SAME tool in ONE engine pass. */
 export interface ToolResultRedactor {
   (text: string, v: Vault, tool?: string): Promise<string>;
   many: (texts: string[], v: Vault, tool?: string) => Promise<string[]>;
@@ -133,10 +133,10 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
     convId,
   } = deps;
 
-  // L'état d'UNE passe pour le résumé du journal (étage A : comptes/enums, jamais une
-  // valeur). Écrit par `recordKinds` et les chemins masqués, lu par `tail()` après la
-  // passe — sûr parce que les passes moteur sont STRICTEMENT SÉRIELLES (le coalesceur
-  // `agent/redactCoalesce.ts` les sérialise ; c'est aussi l'invariant du vault).
+  // ONE pass's state for the log summary (tier A: counts/enums, never a
+  // value). Written by `recordKinds` and the masked paths, read by `tail()` after the
+  // pass — safe because engine passes are STRICTLY SERIAL (the
+  // `agent/redactCoalesce.ts` coalescer serialises them; it's also the vault's invariant).
   const pass = { matches: [] as RedactionMatch[], masked: false };
   const passTail = () =>
     pass.masked ? "masqué (fail-closed)" : summarizeMatches(pass.matches);
@@ -153,14 +153,14 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
     rawText: string,
     v: Vault,
     tool?: string,
-    // `many` a DÉJÀ cappé texte par texte — recapper le blob joint tronquerait la suite.
+    // `many` has ALREADY capped text by text — re-capping the joined blob would truncate the rest.
     precapped = false,
   ): Promise<string> => {
     // Cap a huge tool result before redaction (a browser a11y snapshot is 35k+ chars; the
     // KEPT text is still FULLY redacted, the dropped tail never reaches the model).
     const text = precapped ? rawText : capToolResultText(rawText, tool);
     const dk = disabledForTool(tool);
-    // `memory_search` : les entités des cartes rejoignent le forced — voir la doc du dep.
+    // `memory_search`: the cards' entities join the forced list — see the dep's doc.
     const effForced = tool === "memory_search" ? [...forced, ...(deps.memorySearchForced ?? [])] : forced;
     // Per-tool SHAPE keep-lists (run_python frameworks / discovery ids) + the wire-clear
     // coherence guard — each layer's rationale and fail-closed guards: `toolResultKeep.ts`.
@@ -186,8 +186,8 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
               secrets: [...extraSecrets, ...effForced.map((f) => f.value)],
               forced: effForced,
               ...engine,
-              // Le clear par outil + les keep de forme (framework/discovery) remplacent
-              // les valeurs du contexte — les SEULES divergences voulues avec le message.
+              // The per-tool clear + the shape keeps (framework/discovery) replace
+              // the context's values — the ONLY divergences intended from the message.
               disabledKinds: dk,
               keep,
               numbers: redactNumbersOn(settings),
@@ -195,8 +195,8 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
             },
             { url: rurl, token: rtok },
           );
-          // HANDSHAKE de contrat : si le serveur a ignoré une option dont l'ignorance
-          // fuit (Strict → personnalités), masquer — jamais retourner le sous-redacted.
+          // Contract HANDSHAKE: if the server ignored an option whose ignorance
+          // leaks (Strict → celebrities), mask — never return the under-redacted text.
           const down = remoteContractDowngrade(engine, rr.honored);
           if (down) {
             pass.masked = true;
@@ -222,9 +222,9 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
       complete: useModel ? completeFn : undefined,
       detectLocal: useLocal ? detectLocalFn : undefined,
       ...engine,
-      // Mêmes deux divergences voulues que le chemin remote ci-dessus. `reFakeExisting`
-      // reste ABSENT à dessein : un résultat d'outil est un écho, jamais du contenu
-      // que l'utilisateur vient d'écrire (le garde anti-recomposition reste armé).
+      // Same two intended divergences as the remote path above. `reFakeExisting`
+      // stays ABSENT on purpose: a tool result is an echo, never content
+      // the user just wrote (the anti-recomposition guard stays armed).
       disabledKinds: dk,
       keep,
     });
@@ -244,7 +244,7 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
 
   // The tool-RESULT redaction gets its OWN, unambiguously named Debug-Log entry (it runs
   // AFTER the server returns; the outgoing args are un-redacted by the client, not here).
-  // The entry's `result` carries the pass summary (counts by category — étage A).
+  // The entry's `result` carries the pass summary (counts by category — tier A).
   const one = (text: string, v: Vault, tool?: string): Promise<string> => {
     pass.matches = [];
     pass.masked = false;
@@ -265,12 +265,12 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
     );
   };
 
-  /** N résultats du MÊME outil → UNE passe moteur (`batchRedact`) : chaque texte est cappé
-   *  individuellement, le blob joint est redacted une fois (les keep de forme moissonnent
-   *  l'union — même outil EXIGÉ, la politique par connecteur ne peut pas se mélanger), puis
-   *  chaque partie est screenée séparément. Sentinel perdu ⇒ retombée par-texte dans
-   *  `batchRedact` ; fail-closed inchangé (un masque casse le sentinel ⇒ chaque texte
-   *  repasse seul et ressort masqué seul). */
+  /** N results from the SAME tool → ONE engine pass (`batchRedact`): each text is capped
+   *  individually, the joined blob is redacted once (the shape keeps harvest
+   *  the union — same tool REQUIRED, per-connector policy must not mix), then
+   *  each part is screened separately. Sentinel lost ⇒ falls back to per-text in
+   *  `batchRedact`; fail-closed unchanged (a mask breaks the sentinel ⇒ each text
+   *  goes through alone and comes out masked alone). */
   const many = (texts: string[], v: Vault, tool?: string): Promise<string[]> => {
     pass.matches = [];
     pass.masked = false;

@@ -43,11 +43,11 @@ export function usePlatformEffects(p: {
 
   // Same mirror for the ALLOWED-connector list. The agent loop filters on it too, but that
   // filter is UX: main is where a custom-server re-add or a direct call-tool is refused.
-  // ⚠️ On pousse `null` quand il n'y a PAS d'organisation, et le tableau (même vide) quand
-  // il y en a une : main distingue « pas encore de politique » (porte ouverte) de « rien
-  // d'ouvert » (porte fermée), et les confondre rouvrirait tout.
-  // Les clés personnelles : `null` sans organisation (compte solo, rien à contraindre),
-  // le booléen sinon. Même trois-états que la liste ci-dessous.
+  // ⚠️ We push `null` when there is NO organization, and the array (even empty) when
+  // there is one: main distinguishes "no policy yet" (open door) from "nothing open"
+  // (closed door), and conflating them would reopen everything.
+  // Personal keys: `null` with no organization (solo account, nothing to constrain),
+  // the boolean otherwise. Same three-state as the list below.
   useEffect(() => {
     void host.keys?.setOrgByoAllowed?.(orgProfile ? orgProfile.byoKeysAllowed !== false : null);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- host is stable per platform
@@ -59,12 +59,12 @@ export function usePlatformEffects(p: {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- host is stable per platform
   }, [allowedKey]);
 
-  // Capture debug entries (wire/tool/error) EN PERMANENCE (décision produit 13/08) :
-  // le journal doit exister AVANT le bug pour qu'un retour « Votre avis » puisse
-  // l'embarquer — l'activer après coup ne raconte plus rien. Borné (anneau de 200),
-  // et son SEUL puits persistant reste la DB chiffrée (`attachDebugStore`).
-  // `settings.debugLog` ne gate plus que la VISIBILITÉ : l'entrée « Journal de
-  // débogage » du menu ⋯ et la trace console du wire.
+  // Capture debug entries (wire/tool/error) PERMANENTLY (product decision 13/08):
+  // the journal must exist BEFORE the bug so a "Votre avis" feedback report can
+  // embed it — enabling it after the fact tells nothing anymore. Bounded (ring of
+  // 200), and its ONLY persistent sink remains the encrypted DB (`attachDebugStore`).
+  // `settings.debugLog` now only gates VISIBILITY: the ⋯ menu's "Journal de
+  // débogage" entry and the wire's console trace.
   useEffect(() => {
     setDebugCapture(true);
   }, []);
@@ -115,11 +115,11 @@ export function usePlatformEffects(p: {
     if (!host.mcp?.enableBrowser) return; // desktop-only capability (absent in preview)
     if (load<boolean>(BROWSER_PRECONNECTED_KEY, false)) return;
     setSettings((s) => (s.browserReadOnly === undefined ? { ...s, browserReadOnly: true } : s));
-    // Le drapeau ne se pose qu'APRÈS un enableBrowser résolu : posé avant, un échec au
-    // premier montage devenait définitif et silencieux — plus aucune tentative, jamais.
-    // (L'effet court AVANT l'adoption du compte, donc le spec écrit ici peut se perdre ;
-    // le filet est côté main : `setMcpUser` recrée le spec d'un compte opté-in — c'est
-    // LUI qui rend la pré-connexion effective, ceci n'est que le premier opt-in.)
+    // The flag is only set AFTER an enableBrowser resolves: set before, a failure on
+    // the first mount became permanent and silent — no more attempts, ever.
+    // (The effect runs BEFORE the account is adopted, so the spec written here can
+    // get lost; the safety net is on main's side: `setMcpUser` recreates the spec
+    // for an opted-in account — IT is what makes the pre-connect effective, this is only the first opt-in.)
     host.mcp
       .enableBrowser()
       .then(() => {
@@ -130,7 +130,7 @@ export function usePlatformEffects(p: {
         }
       })
       .catch(() => {
-        /* best-effort : indisponible → on retentera au prochain lancement */
+        /* best-effort: unavailable → we'll retry on the next launch */
       });
   }, [host, setSettings]);
 

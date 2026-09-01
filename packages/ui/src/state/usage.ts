@@ -131,9 +131,9 @@ export function usageByModel(
  *  `formatUsd`: the two format the SAME roll-up, and the token one used to live in
  *  `pages/ChatWorkspace/` where a `containers/` modal had to reach up for it. */
 export function formatTokens(n: number): string {
-  // Un compteur non fini se DIT, il ne s'affiche pas en « NaN » : une seule conversation
-  // dont le blob d'usage est incomplet (import, schéma plus ancien) suffisait à faire du
-  // total du panneau Usage un « NaN » en 38 px de display.
+  // A non-finite count is STATED, it is not displayed as « NaN »: a single conversation
+  // whose usage blob is incomplete (import, older schema) was enough to make the
+  // Usage panel's total a « NaN » in a 38px display.
   if (!Number.isFinite(n)) return "—";
   return Math.round(n).toLocaleString("fr-FR").replace(/ /g, "\u202f");
 }

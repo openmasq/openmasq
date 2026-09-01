@@ -3,21 +3,21 @@ import { useHost, type CloudSource, type LocalFsEntry } from "../host";
 import { useLazyTree } from "./useLazyTree";
 
 /**
- * Les stockages connectés (Drive, OneDrive) parcourus comme les dossiers locaux.
+ * Connected storages (Drive, OneDrive) browsed like local folders.
  *
- * L'astuce tient en une ligne : un identifiant de fournisseur n'est pas un chemin, alors
- * on fabrique une CLÉ `"<source>|<id>"` et l'arbre partagé n'a rien à savoir de plus.
- * `folderTreeRows` s'en sert pour l'ouverture, la profondeur et la garde anti-boucle
- * exactement comme d'un chemin de disque.
+ * The trick fits in one line: a provider id isn't a path, so we build a KEY
+ * `"<source>|<id>"` and the shared tree has nothing more to know.
+ * `folderTreeRows` uses it for opening, depth and the anti-loop guard exactly
+ * like a disk path.
  *
- * Absence de slot (aperçu web, mobile) ou aucun compte connecté ⇒ aucune racine, donc rien
- * ne se dessine : le groupe reste la liste d'états que le panneau montrait déjà.
+ * No slot (web preview, mobile) or no connected account ⇒ no roots, so nothing
+ * renders: the group stays the list of states the panel already showed.
  */
 
-/** La clé d'une entrée distante. `folderId` vide = la racine du compte. */
+/** The key of a remote entry. Empty `folderId` = the account's root. */
 export const cloudKey = (sourceId: string, folderId = ""): string => `${sourceId}|${folderId}`;
 
-/** Défaire une clé — `folderId` vaut `null` à la racine, ce qu'attend l'hôte. */
+/** Undo a key — `folderId` is `null` at the root, which is what the host expects. */
 export function parseCloudKey(key: string): { sourceId: string; folderId: string | null } {
   const cut = key.indexOf("|");
   const sourceId = cut < 0 ? key : key.slice(0, cut);
@@ -31,12 +31,12 @@ export function useCloudTree(active: boolean) {
   const [sources, setSources] = useState<CloudSource[]>([]);
   const [tick, setTick] = useState(0);
 
-  // Connecter ou déconnecter un compte change la liste : même signal que pour les
-  // dossiers locaux, donc un Drive branché apparaît sans rouvrir le panneau.
+  // Connecting or disconnecting an account changes the list: same signal as for
+  // local folders, so a newly-linked Drive appears without reopening the panel.
   useEffect(() => {
-    // `return` EXPLICITE : c'est l'unsubscribe. En arrow concise, le retour implicite
-    // devient le cleanup de React par accident — et le jour où l'API change de type de
-    // retour, ça finit sur l'ErrorBoundary (`scripts/check-effect-returns.mjs`).
+    // EXPLICIT `return`: it's the unsubscribe. In a concise arrow, the implicit
+    // return accidentally becomes React's cleanup — and the day the API's return
+    // type changes, it lands on the ErrorBoundary (`scripts/check-effect-returns.mjs`).
     return host.mcp?.onChanged?.(() => setTick((n) => n + 1));
   }, [host.mcp]);
 
@@ -59,8 +59,8 @@ export function useCloudTree(active: boolean) {
       if (!cloud) return [];
       const { sourceId, folderId } = parseCloudKey(key);
       const { entries } = await cloud.list(sourceId, folderId);
-      // La forme de ligne est celle de l'arbre : `path` porte la clé, `size` est inconnue
-      // et vaut 0 — la ligne n'affiche alors aucune métadonnée plutôt que d'en inventer.
+      // The row shape is the tree's: `path` carries the key, `size` is unknown and
+      // is 0 — the row then shows no metadata rather than inventing some.
       return entries.map((e) => ({
         name: e.name,
         path: cloudKey(sourceId, e.id),

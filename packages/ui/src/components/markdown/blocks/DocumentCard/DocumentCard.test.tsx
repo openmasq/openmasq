@@ -24,7 +24,7 @@ describe("DocumentCard — clic-pour-modifier", () => {
   it("un clic sur le corps ouvre l'éditeur, sans passer par « Modifier »", async () => {
     const ui = await render(async () => true);
     expect(ui.find(".md-document-body").getAttribute("data-editable")).toBe("1");
-    // Il n'y a PLUS de bouton « Modifier » : le texte est l'affordance.
+    // There is NO MORE « Modifier » button: the text is the affordance.
     expect(ui.el.textContent).not.toContain("Modifier");
     await ui.click(".md-document-body p");
     expect(ui.maybe(".md-document-edit")).not.toBeNull();
@@ -35,10 +35,10 @@ describe("DocumentCard — clic-pour-modifier", () => {
     const ui = await render(async () => true);
     await ui.click(".md-document-body p");
     const ed = ui.find(".md-document-edit");
-    // Le titre est un vrai <h1>, et le `#` n'est nulle part à l'écran.
+    // The title is a real <h1>, and the `#` is nowhere on screen.
     expect(ed.querySelector("h1")?.textContent).toBe("Titre");
     expect(ed.textContent).not.toContain("#");
-    // Et il porte la typographie du rendu (`.md`), pas celle d'un champ de saisie.
+    // And it carries the rendered typography (`.md`), not that of an input field.
     expect(ed.classList.contains("md")).toBe(true);
     expect(ed.getAttribute("contenteditable")).toBe("true");
     await ui.unmount();

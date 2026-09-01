@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { findExistingSkill, parseProposedSkill, isCompleteSkill } from "./proposedSkill";
 
 /**
- * Le bloc arrive EN FLUX et vient d'un modèle : les deux faits qui gouvernent ces cas.
- * On lit donc ce qui est là sans jamais lever, on n'autorise l'ajout que sur un bloc
- * complet, et on ne laisse entrer dans les données de l'app que ce que le CATALOGUE
- * reconnaît — un identifiant inventé par le modèle n'a rien à faire dans `servers`.
+ * The block arrives AS A STREAM and comes from a model: the two facts that govern these cases.
+ * So we read what's there without ever throwing, we only allow adding on a
+ * complete block, and we only let into the app's data what the CATALOGUE
+ * recognizes — an id invented by the model has no business in `servers`.
  */
 
 const COMP = `# Compte rendu d'entretien
@@ -27,8 +27,8 @@ describe("parseProposedSkill — le cas nominal", () => {
   });
 
   it("le `kind` vient de la balise, jamais du contenu", () => {
-    // Le corps ment ; la clôture fait foi — sinon le modèle choisirait le rail
-    // (et donc les connecteurs cadrés) par un mot écrit au milieu du texte.
+    // The body lies; the closing tag is authoritative — otherwise the model would choose the rail
+    // (and thus the framed connectors) by a word written in the middle of the text.
     const s = parseProposedSkill("competence", "# X\n---\nCeci est un workflow Gmail.");
     expect(s.kind).toBe("competence");
     expect(s.servers).toEqual([]);

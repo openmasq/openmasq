@@ -55,18 +55,18 @@ describe("webNavRevealSet", () => {
 });
 
 /**
- * ⚠️ La carte propose un NIVEAU (« Standard »), pas cinq types — ce qui n'est vrai que si
- * l'ensemble qu'elle offre est EXACTEMENT celui que « Standard » laisse lisible. Les deux
- * se dérivent du même drapeau `ai` du même catalogue, donc ils ne PEUVENT pas diverger :
- * ce test est là pour que ça reste vrai le jour où l'un des deux changera de source.
+ * ⚠️ The card offers a LEVEL (« Standard »), not five categories — which is true only if
+ * the set it offers is EXACTLY what « Standard » leaves readable. The two are
+ * derived from the same `ai` flag of the same catalogue, so they CANNOT diverge:
+ * this test exists so that stays true the day either one changes its source.
  */
 describe("l'offre EST le niveau Standard", () => {
   it("offre exactement ce que « Standard » laisse lisible et que « Renforcé » masque", () => {
     const standard = (categoriesForLevel("standard") ?? {}) as Record<string, boolean>;
     const renforce = (categoriesForLevel("renforce") ?? {}) as Record<string, boolean>;
-    // La DIFFÉRENCE entre les deux niveaux, pas « tout ce que Standard laisse passer » :
-    // `url` et `username` sont éteintes à TOUS les niveaux (opt-in), donc les compter
-    // ferait dire au test que Standard révèle ce que personne ne masque.
+    // The DIFFERENCE between the two levels, not « everything Standard lets through » :
+    // `url` and `username` are off at ALL levels (opt-in), so counting them
+    // would make the test claim Standard reveals what nobody masks.
     const cedeParStandard = Object.keys(renforce).filter(
       (k) => renforce[k] === true && standard[k] === false,
     );

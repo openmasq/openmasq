@@ -1,8 +1,8 @@
-// Imprime les triples expédiés par une plateforme, séparés par des espaces — la CI n'a pas
-// d'autre façon de lire `electron-builder.cjs`, et recopier la liste dans le workflow la
-// ferait diverger au premier ajout d'arche (règle 9 : une maison, plusieurs lecteurs).
+// Prints the triples shipped by a platform, space-separated — CI has no
+// other way to read `electron-builder.cjs`, and copying the list into the workflow would
+// make it diverge at the first arch addition (rule 9: one home, several readers).
 //
-// Usage : `tsx scripts/print-shipped-triples.ts [mac|win|linux]` (défaut : cette machine).
+// Usage: `tsx scripts/print-shipped-triples.ts [mac|win|linux]` (default: this machine).
 import { currentBlock, shippedTriples } from "./shippedTriples";
 
 process.stdout.write(shippedTriples(process.argv[2] ?? currentBlock()).join(" "));

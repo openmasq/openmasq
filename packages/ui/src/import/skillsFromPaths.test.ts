@@ -19,8 +19,8 @@ describe("skillsFromPaths", () => {
     expect(out[0].siblings).toEqual(["readme.md"]);
   });
 
-  // Le piège du dépôt de `~/.claude/skills` : il embarque des dossiers de documentation
-  // entiers. Les prendre pour des compétences en fabriquerait dix que personne n'a écrites.
+  // The trap of the `~/.claude/skills` repo: it bundles entire documentation
+  // folders. Mistaking them for compétences would manufacture ten nobody wrote.
   it("IGNORE un dossier de .md sans SKILL.md", () => {
     const out = skillsFromPaths([
       f("_lifecycles/rules.md"),
@@ -35,7 +35,7 @@ describe("skillsFromPaths", () => {
     expect(out).toHaveLength(1);
   });
 
-  // On a déposé CE fichier : il est l'objet du geste, même sans dossier ni frontmatter.
+  // THIS file was the one dropped: it is the object of the gesture, even with no folder or frontmatter.
   it("accepte un .md déposé à la RACINE de la sélection", () => {
     const out = skillsFromPaths([f("mon-prompt.md", "Fais ceci.")]);
     expect(out).toEqual([{ folder: "mon-prompt", text: "Fais ceci.", siblings: [] }]);

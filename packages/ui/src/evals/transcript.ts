@@ -44,8 +44,8 @@ export type EvalEvent =
 
 export class Transcript {
   readonly events: EvalEvent[] = [];
-  /** Cumul de la consommation modèle du run (rapports d'eval) : tokens montants /
-   *  descendants quand le provider les rapporte, + nombre de tours modèle. */
+  /** Cumulative model usage for the run (eval reports): input/output tokens when
+   *  the provider reports them, + number of model turns. */
   readonly usage = { inputTokens: 0, outputTokens: 0, cachedTokens: 0, modelTurns: 0 };
 
   push(e: EvalEvent): void {

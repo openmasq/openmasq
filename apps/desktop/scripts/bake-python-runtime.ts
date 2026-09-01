@@ -162,12 +162,12 @@ async function main(): Promise<void> {
   if (gotSha !== wantSha) throw new Error(`sha256 mismatch for ${name}: got ${gotSha}`);
   log("sha256 OK");
 
-  // → <out>/python/. Le nom d'archive est RELATIF et l'extraction se fait depuis `outDir`,
-  // jamais un chemin absolu : le `tar` de git-bash est GNU tar, qui lit un `-f` contenant
-  // deux-points comme un hôte DISTANT (`host:chemin`, syntaxe rsh). Un chemin Windows part
-  // donc en « Cannot connect to D: resolve failed », puis « unexpected end of file » sur un
-  // gzip qui n'a rien reçu. `--force-local` corrigerait GNU tar mais casserait le bsdtar de
-  // Windows, qui ne connaît pas ce drapeau — un nom relatif convient aux deux, partout.
+  // → <out>/python/. The archive name is RELATIVE and extraction happens from `outDir`,
+  // never an absolute path: git-bash's `tar` is GNU tar, which reads a `-f` containing a
+  // colon as a REMOTE host (`host:path`, rsh syntax). A Windows path then fails with
+  // "Cannot connect to D: resolve failed", followed by "unexpected end of file" on a
+  // gzip that received nothing. `--force-local` would fix GNU tar but would break Windows'
+  // bsdtar, which doesn't know that flag — a relative name works for both, everywhere.
   run("tar", ["-xzf", "dl.tar.gz"], outDir);
   await rm(tgz, { force: true });
 

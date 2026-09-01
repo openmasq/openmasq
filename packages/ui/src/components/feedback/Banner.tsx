@@ -8,9 +8,9 @@ import { useT } from "../../i18n";
  * action button, and a close. Purely presentational; styling lives in styles.css
  * (`.kb` + `.kb--{tone}`).
  *
- * ⚠️ Un avis d'ÉTAT de l'app (hors ligne, connecteur tombé, accès) n'est PAS ça :
- * flottant et permanent, cette barre couvrait tout le bas de l'écran pour une
- * phrase. Ces avis-là passent par `StatusChip`.
+ * ⚠️ An app STATE notice (offline, connector down, access) is NOT this:
+ * floating and permanent, this bar used to cover the whole bottom of the screen for one
+ * sentence. Those notices go through `StatusChip`.
  */
 export type { BannerAction, BannerTone };
 

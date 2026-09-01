@@ -6,8 +6,8 @@ import { mount } from "../../testKit";
 import { useReplyNotice } from "./useReplyNotice";
 
 /**
- * Le CÂBLAGE (la logique pure est dans `../replyNotice.test.ts`) : la transition d'un tick
- * à l'autre, le réglage, et le fait qu'aucun contenu ne parte vers la plateforme.
+ * The WIRING (the pure logic is in `../replyNotice.test.ts`): the transition from one tick
+ * to the next, the setting, and the fact that no content leaves for the platform.
  */
 
 const conv = (id: string, pending: boolean): Conversation =>
@@ -28,8 +28,8 @@ function harness(settings: Partial<Settings> = {}) {
   const host = {
     notify: { supported: async () => true, reply, onActivate: () => () => {} },
   };
-  // jsdom rend `document.hasFocus()` vrai : l'onglet REGARDÉ est donc `activeId`, et viser
-  // une autre conversation suffit à jouer « je regarde ailleurs ».
+  // jsdom makes `document.hasFocus()` true: the WATCHED tab is therefore `activeId`, and
+  // targeting another conversation is enough to play « I'm looking elsewhere ».
   const View = ({ convs, activeId }: { convs: Conversation[]; activeId: string }) => {
     useReplyNotice({
       conversations: convs,
@@ -49,14 +49,14 @@ describe("useReplyNotice", () => {
     const m = await mount(<View convs={[conv("a", true)]} activeId="other" />, {
       host: host as never,
     });
-    expect(reply).not.toHaveBeenCalled(); // toujours en cours
+    expect(reply).not.toHaveBeenCalled(); // still in progress
 
     await m.rerender(<View convs={[conv("a", false)]} activeId="other" />);
     expect(reply).toHaveBeenCalledTimes(1);
     await m.unmount();
   });
 
-  // Le piège de l'observateur : sans mémoire du tick précédent, chaque rendu re-notifierait.
+  // The observer trap: without memory of the previous tick, every render would re-notify.
   it("ne notifie qu'UNE fois — un re-rendu sur le même état est muet", async () => {
     const { reply, host, View } = harness();
     const m = await mount(<View convs={[conv("a", true)]} activeId="other" />, {
@@ -78,8 +78,8 @@ describe("useReplyNotice", () => {
     await m.unmount();
   });
 
-  // La bannière atterrit dans le centre de notifications du système et s'affiche par-dessus
-  // tout : le titre d'une conversation est de la donnée RÉELLE, il n'y entre pas.
+  // The banner lands in the system's notification center and displays over
+  // everything: a conversation's title is REAL data, so it never goes into it.
   it("n'envoie à la plateforme ni contenu ni titre de conversation", async () => {
     const { reply, host, View } = harness();
     const m = await mount(<View convs={[conv("a", true)]} activeId="other" />, {

@@ -109,7 +109,7 @@ describe("buildFoldedPayload", () => {
     expect(r.reuseParts[0].text).toBe("Marc Savary habite Lyon");
     expect(r.reuseParts[0].reps).toEqual([{ real: "Marc Savary", fake: "Paul Morvan", tone: "violet" }]);
     // ...and the drop-time fake→real is pre-loaded into the vault preload.
-    // Les reps du document + les paires d'ALIAS (restitution du nom de pièce, 15/08).
+    // The document's reps + the ALIAS pairs (restitution of the file name, 15/08).
     expect(r.vaultPreload).toEqual({
       "Paul Morvan": "Marc Savary",
       "document-1.txt": "contrat.txt",
@@ -172,7 +172,7 @@ describe("buildFoldedPayload", () => {
       { docReplacements: { "d.txt": [{ real: "", fake: "F" }, { real: "R", fake: "" }] } },
       "",
     );
-    // Aucune rep bancale n'est semée — seules les paires d'ALIAS du document restent.
+    // No lopsided rep gets seeded — only the document's ALIAS pairs remain.
     expect(r.vaultPreload).toEqual({ "document-1.txt": "d.txt", "document-1": "d" });
     expect(Object.values(r.vaultPreload)).not.toContain("F");
     expect(Object.keys(r.vaultPreload)).not.toContain("R");
@@ -182,9 +182,9 @@ describe("buildFoldedPayload", () => {
 });
 
 describe("l'alias d'une pièce est une entrée de coffre — la restitution le retourne", () => {
-  // Vécu 15/08 (documentaliste) : un inventaire entier désignait chaque pièce par
-  // « Document-3 » — un nom qui n'existe sur aucun disque — parce que l'alias était la
-  // seule substitution du produit à ne jamais revenir.
+  // Lived 15/08 (documentalist): a whole inventory named every item
+  // « Document-3 » — a name that exists on no disk — because the alias was the
+  // product's only substitution to never come back.
   it("chaque pièce sème alias→réel et radical→radical, groupes image compris", () => {
     const r = buildFoldedPayload(
       "regarde ces pièces",
@@ -231,9 +231,9 @@ describe("l'alias d'une pièce est une entrée de coffre — la restitution le r
 describe("clipFileText — la coupe ne tranche JAMAIS une ligne (donc jamais une valeur)", () => {
   it("coupe à la dernière frontière de ligne dans la borne", () => {
     const text = "ligne-a\nligne-b\nemail: jean.dupont@exemple.fr\nligne-d";
-    const clipped = clipFileText(text, 30); // 30 tombe AU MILIEU de l'adresse
+    const clipped = clipFileText(text, 30); // 30 falls IN THE MIDDLE of the address
     expect(clipped).toBe("ligne-a\nligne-b");
-    expect(clipped).not.toContain("jean.dup"); // le fragment ne part pas à moitié
+    expect(clipped).not.toContain("jean.dup"); // the fragment doesn't leave half-cut
   });
 
   it("texte sous la borne : inchangé ; une seule ligne géante : coupe dure (rien de mieux)", () => {
@@ -246,7 +246,7 @@ describe("clipFileText — la coupe ne tranche JAMAIS une ligne (donc jamais une
     const r = buildFoldedPayload("t", [{ name: "list.txt", text: doc }], {}, "", 100);
     const folded = r.modelText.slice(r.modelText.indexOf("client 0"));
     const kept = folded.slice(0, folded.indexOf("\n…(truncated)"));
-    // Chaque ligne présente est ENTIÈRE (elle se termine par sa propre valeur).
+    // Every line present is WHOLE (it ends with its own value).
     for (const line of kept.split("\n")) expect(line).toMatch(/^client \d+: valeur-\d+$/);
   });
 });

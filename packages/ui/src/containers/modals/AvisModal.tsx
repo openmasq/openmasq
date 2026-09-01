@@ -64,12 +64,12 @@ export function AvisModal({
    * scenario. So the journal is OFFERED as soon as the category is « Bug », not only
    * behind the journal modal's own button.
    *
-   * PRÉ-COCHÉ depuis le 13/08 (décision produit, avec la collecte permanente) : un
-   * rapport de bug sans journal coûte un aller-retour, et l'exiger d'un clic de plus
-   * le perdait presque toujours. Ce qui rend le pré-cochage honnête : l'aperçu
-   * VERBATIM s'affiche sous l'interrupteur (ce qui part est à l'écran), l'export est
-   * « sans mapping » (texte wire redacted, jamais une valeur du coffre), et le refus
-   * reste un geste unique, mémorisé pour ce rapport.
+   * PRE-CHECKED since 13/08 (product decision, alongside the permanent collection): a
+   * bug report with no journal costs a round-trip, and requiring one more click lost
+   * it almost every time. What makes the pre-checking honest: the VERBATIM preview
+   * shows under the switch (what goes out is on screen), the export is « sans mapping »
+   * (redacted wire text, never a vault value), and declining stays a single gesture,
+   * remembered for this report.
    */
   const offer = useMemo(
     () => (draft.category === "bug" && !draft.journal ? capJournal(journalExportFor(convId)) : ""),

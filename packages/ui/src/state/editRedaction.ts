@@ -23,15 +23,15 @@ export async function redactEditedText(
   conv: Conversation,
   text: string,
   disabledKinds: string[],
-  // Dispense de notoriété du NIVEAU effectif — même paire que le chemin d'envoi, pour
-  // qu'une marque ou personnalité en clair dans la conversation le reste à l'édition.
+  // Notoriety EXEMPTION at the effective LEVEL — same pair as the send path, so
+  // that a brand or public figure left in clear in the conversation stays that way at edit time.
   notoriety?: { commercial: boolean; people: boolean },
 ): Promise<Pick<Conversation, "redactionVault" | "redactionKinds" | "redactionSalt">> {
   const vault = { ...(conv.redactionVault ?? {}) };
   const kinds = { ...(conv.redactionKinds ?? {}) };
   const salt = conv.redactionSalt ?? mintSalt();
-  // Le mode de la CONVERSATION, jamais celui des réglages courants : ce texte rejoint un
-  // coffre déjà constitué, et lui donner l'autre forme y mélangerait faux et marqueurs.
+  // The CONVERSATION's mode, never the current settings': this text joins a
+  // vault already built, and giving it the other form would mix fakes and markers in it.
   const r = await pseudonymize(text, {
     vault,
     kinds,

@@ -83,11 +83,11 @@ describe("blocks — the md → DOM → md round-trip", () => {
     expect(roundTrip(roundTrip(once))).toBe(once);
   });
 
-  // Ce test affirmait l'inverse — « renumbers on the source side only », donc
-  // `1. un\n1. deux`. Défendable en apparence (CommonMark renumérote à l'affichage),
-  // mais le raisonnement ne tenait que pour une liste commençant à 1 : une liste
-  // authored à partir de 3 repartait visiblement à 1. Le numéro est donc conservé, ce
-  // qui rend au passage l'aller-retour identitaire.
+  // This test asserted the opposite — « renumbers on the source side only », hence
+  // `1. un\n1. deux`. Defensible on the surface (CommonMark renumbers at display time),
+  // but the reasoning only held for a list starting at 1: a list
+  // authored starting at 3 visibly restarted at 1. The number is therefore kept, which
+  // incidentally makes the round trip identity-preserving.
   it("garde le numéro de départ d'une liste ordonnée — 3. ne redevient pas 1.", () => {
     expect(roundTrip("1. un\n2. deux\n")).toBe("1. un\n2. deux\n");
     expect(roundTrip("3. trois\n4. quatre\n")).toBe("3. trois\n4. quatre\n");
@@ -119,11 +119,11 @@ describe("blocks — the md → DOM → md round-trip", () => {
     expect(domToMarkdown(host)).toBe("Un\n\nDeux\n");
   });
 
-  // Régression : une ligne de continuation ouvrait un NOUVEAU paragraphe, donc
-  // `blocksToMarkdown` intercalait une ligne vide et la première sauvegarde éclatait le
-  // paragraphe en deux. Invisible dans la lettre du premier test, dont tous les
-  // paragraphes sont déjà séparés par des lignes vides — c'est le repli SOUPLE qui
-  // cassait, et c'est ainsi qu'un modèle écrit une lettre.
+  // Regression: a continuation line opened a NEW paragraph, so
+  // `blocksToMarkdown` inserted a blank line and the first save split the
+  // paragraph in two. Invisible in the first test's letter, whose
+  // paragraphs are already all separated by blank lines — it's the SOFT wrap that
+  // broke, and that's how a model writes a letter.
   it("un repli souple reste UN paragraphe — la sauvegarde n'ajoute pas de ligne vide", () => {
     const md = "Bonjour Madame,\nSuite à notre échange du 12,\nje vous confirme.\n";
     expect(blocksToMarkdown(parseBlocks(md))).toBe(md);
@@ -143,29 +143,29 @@ describe("blocks — the md → DOM → md round-trip", () => {
 
   it("un bloc de code garde son LANGAGE — sans lui la carte perd sa coloration", () => {
     expect(roundTrip("```js\nconst a = 1;\n```\n")).toBe("```js\nconst a = 1;\n```\n");
-    // Et un fence sans langage n'en invente pas un.
+    // And a fence with no language doesn't invent one.
     expect(roundTrip("```\nbrut\n```\n")).toBe("```\nbrut\n```\n");
   });
 
   it("une citation sur plusieurs lignes reste UNE citation", () => {
     expect(roundTrip("> ligne un\n> ligne deux\n")).toBe("> ligne un\n> ligne deux\n");
-    // …et deux citations réellement séparées le restent.
+    // …and two genuinely separate quotes stay that way.
     expect(roundTrip("> une\n\n> deux\n")).toBe("> une\n\n> deux\n");
   });
 
-  // L'éditeur ne modélise ni l'imbrication ni le bloc de code indenté. Le CLAUDE.md
-  // promet qu'un construit non supporté « reste du TEXTE LITTÉRAL et survit à
-  // l'aller-retour » : il ne survivait pas — une ligne vide s'intercalait, et le `.trim()`
-  // final mangeait l'indentation d'un document qui COMMENCE par une ligne indentée.
+  // The editor models neither nesting nor an indented code block. The CLAUDE.md
+  // promises that an unsupported construct « reste du TEXTE LITTÉRAL et survit à
+  // l'aller-retour »: it didn't survive — a blank line got inserted, and the final
+  // `.trim()` ate the indentation of a document that STARTS with an indented line.
   it("un construit non modélisé survit VERBATIM — c'est le seul échec acceptable", () => {
     expect(roundTrip("- parent\n  - enfant\n")).toBe("- parent\n  - enfant\n");
     expect(roundTrip("    texte indenté\n")).toBe("    texte indenté\n");
   });
 
   it("une continuation ne traverse ni un titre ni une puce", () => {
-    // Un titre ferme son bloc : la ligne suivante est un paragraphe, pas sa suite.
+    // A heading closes its block: the following line is a paragraph, not its continuation.
     expect(blocksToMarkdown(parseBlocks("# Titre\nUn texte.\n"))).toBe("# Titre\n\nUn texte.\n");
-    // Et une ligne après une puce ouvre bien un paragraphe, sans absorber la puce.
+    // And a line after a bullet does open a paragraph, without absorbing the bullet.
     expect(blocksToMarkdown(parseBlocks("- un\nUne phrase.\n"))).toBe("- un\n\nUne phrase.\n");
   });
 });

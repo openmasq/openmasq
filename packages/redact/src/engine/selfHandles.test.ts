@@ -74,10 +74,10 @@ describe("mot de passe en prose — l'ancre est dans la VALEUR, pas le possessif
   });
 
   /**
-   * « Le code du coffre est 4581 » — remonté le 11/08. La forme à DEUX-POINTS était
-   * couverte par le détecteur étiqueté, la forme PARLÉE non ; c'est pourtant celle qu'on
-   * écrit dans un chat. Un code d'accès n'a aucune forme propre : seule la formulation
-   * peut l'attraper.
+   * « Le code du coffre est 4581 » — reported on 11/08. The COLON form was
+   * covered by the labeled detector; the SPOKEN form was not, yet that's the one
+   * actually written in a chat. An access code has no shape of its own: only the
+   * phrasing can catch it.
    */
   it.each([
     ["Le code du coffre est 4581", "4581"],
@@ -88,8 +88,8 @@ describe("mot de passe en prose — l'ancre est dans la VALEUR, pas le possessif
     expect(found(text)).toContain(value);
   });
 
-  /** ⚠️ La liste des « code DE quelque chose » est une ALLOW-LIST : un `code de \p{L}+`
-   *  générique redact la moitié des phrases qui parlent de règles. */
+  /** ⚠️ The list of « code DE quelque chose » is an ALLOW-LIST: a generic
+   *  `code de \p{L}+` would redact half of the sentences that talk about rules. */
   it("un « code de » qui n'ouvre rien ne déclenche pas", () => {
     expect(found("le code de la route est clair")).toEqual([]);
     expect(found("le code du travail est dense")).toEqual([]);

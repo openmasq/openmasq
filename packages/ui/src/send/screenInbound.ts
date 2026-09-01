@@ -68,9 +68,9 @@ export function makeScreenInbound(deps: ScreenInboundDeps) {
       );
       return labelInbound(provenance, redacted, verdict);
     } catch (e) {
-      // Un chemin d'ÉTIQUETAGE DE SÉCURITÉ qui casse ne doit jamais casser en silence :
-      // le résultat entre alors chez le modèle SANS étiquette (audit 13/08). Le résultat
-      // n'est jamais perdu (contrat inchangé) — mais la panne se rapporte.
+      // A SECURITY-LABELING path that breaks must never break silently: the result then
+      // reaches the model WITHOUT a label (audit 13/08). The result is never lost
+      // (contract unchanged) — but the failure is reported.
       captureError({
         scope: "screening",
         code: "inbound-screen",

@@ -90,12 +90,12 @@ export function useMarkHover(containerRef: RefObject<HTMLElement | null>, select
       const mark = (e.target as HTMLElement).closest?.(selector) as HTMLElement | null;
       if (mark) openOn(mark);
     };
-    // Inspecter ≠ révéler (audit 2026-08-10) : le CLIC (et Entrée sur une marque-bouton,
-    // le seul chemin CLAVIER vers la carte) ÉPINGLE la carte — mêmes actions que le
-    // survol — au lieu de basculer la révélation. Le geste d'exploration (« qu'y a-t-il
-    // dessous ? ») ne doit jamais être celui qui change ce qui sort de la machine ;
-    // « Unredact » est l'action explicite DE la carte. `stopPropagation` neutralise
-    // tout onClick résiduel d'une marque (parité avec la branche mobile ci-dessus).
+    // Inspect ≠ reveal (audit 2026-08-10): the CLICK (and Enter on a mark-button,
+    // the only KEYBOARD path to the card) PINS the card — same actions as
+    // hover — instead of toggling the reveal. The exploration gesture (« qu'y a-t-il
+    // dessous ? ») must never be the one that changes what leaves the machine;
+    // « Unredact » is the card's explicit action. `stopPropagation` neutralizes
+    // any residual onClick from a mark (parity with the mobile branch above).
     const onClick = (e: Event) => {
       const mark = (e.target as HTMLElement).closest?.(selector) as HTMLElement | null;
       if (!mark) return;

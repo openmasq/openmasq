@@ -8,20 +8,20 @@ import type { ExtractedFile } from "../../../host";
 import { useStagedIntents, type StagedIntents } from "./useStagedIntents";
 
 /**
- * Le contrat du staging d'attachements — les deux règles nées d'un bug réel (05/08 :
- * « cliquer sur Demander remplace le précédent fichier ») :
- *  1. « Demander » sur un fichier AJOUTE à la conversation OUVERTE — il n'en crée une
- *     que s'il n'y en a aucune. Chaque clic ouvrait sa conversation neuve, donc le
- *     deuxième fichier « remplaçait » le premier à l'écran.
- *  2. Les ajouts successifs font la FILE : consommer la tête (`setAttach(null)`)
- *     révèle le suivant — un slot unique perdait le premier arrivé.
+ * The attachment-staging contract — the two rules born from a real bug (05/08:
+ * « cliquer sur Demander remplace le précédent fichier »):
+ *  1. « Demander » on a file ADDS to the OPEN conversation — it only creates one
+ *     if there is none yet. Each click used to open its own new conversation, so
+ *     the second file « replaced » the first on screen.
+ *  2. Successive additions form a QUEUE: consuming the head (`setAttach(null)`)
+ *     reveals the next one — a single slot was losing whichever arrived first.
  */
 
 const wrap = (children: React.ReactNode) => <Provider store={store}>{children}</Provider>;
 
 const fakeFile = (name: string): ExtractedFile => ({ name, text: "" }) as ExtractedFile;
 
-/** Un ChatStore réduit à ce que le hook consomme. */
+/** A ChatStore reduced to what the hook consumes. */
 function fakeChat(activeId: string | null) {
   const created: string[] = [];
   let n = 0;
@@ -79,10 +79,10 @@ describe("useStagedIntents — attachFile", () => {
     await m.rerender(<Probe chat={chat} out={out} />);
 
     expect(out.api!.pending.attach?.file.name).toBe("a.pdf");
-    out.api!.pending.setAttach(null); // consommé (ChatPane)
+    out.api!.pending.setAttach(null); // consumed (ChatPane)
     await m.rerender(<Probe chat={chat} out={out} />);
     expect(out.api!.pending.attach?.file.name).toBe("b.pdf");
-    // Les deux visaient la MÊME conversation — c'est le « se rajouter » demandé.
+    // Both were aimed at the SAME conversation — that's the requested « se rajouter ».
     expect(out.api!.pending.attach?.convId).toBe("conv-ouverte");
     await m.unmount();
   });

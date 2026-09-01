@@ -1,52 +1,52 @@
 /**
- * Importer les **compétences Claude** dans l'app — la lecture, pure.
+ * Importing **Claude compétences** into the app — the parsing, pure.
  *
- * Un skill Claude est un dossier `<nom>/SKILL.md` : un frontmatter YAML (`name`,
- * `description`) puis un corps Markdown. La correspondance avec l'app est directe —
- * le corps EST le prompt — et c'est ce qui rend l'import possible en deux clics.
+ * A Claude skill is a `<name>/SKILL.md` folder: a YAML frontmatter (`name`,
+ * `description`) then a Markdown body. The mapping to the app is direct —
+ * the body IS the prompt — and that is what makes the import possible in two clicks.
  *
- * ⚠️ **Ce qui ne traverse pas.** Un skill peut embarquer des scripts, un `references/`,
- * des assets ; une compétence de l'app est un prompt, point. Un skill dont le corps dit
- * « lis `readme.md` et explore les autres fichiers » arrive donc comme une instruction
- * d'ouvrir des fichiers absents. On ne le refuse pas — on le SIGNALE (`needsFiles`), pour
- * que l'écran d'import le dise avant, plutôt que l'usage après.
+ * ⚠️ **What does not carry over.** A skill can bundle scripts, a `references/`,
+ * assets; an app compétence is a prompt, period. A skill whose body says
+ * « lis `readme.md` et explore les autres fichiers » therefore arrives as an instruction
+ * to open files that are absent. It is not rejected — it is FLAGGED (`needsFiles`), so
+ * the import screen says so beforehand, rather than usage saying so after.
  */
 
-/** Un `SKILL.md` tel qu'il a été lu — d'où qu'il vienne (disque ou dépôt). */
+/** A `SKILL.md` as it was read — wherever it comes from (disk or repo). */
 export interface RawSkillFile {
-  /** Le nom du DOSSIER du skill : c'est lui qui nomme, pas le fichier (toujours SKILL.md). */
+  /** The skill's FOLDER name: that is what names it, not the file (always SKILL.md). */
   folder: string;
-  /** Le contenu brut du `SKILL.md`. */
+  /** The raw content of the `SKILL.md`. */
   text: string;
-  /** Les autres fichiers du dossier (noms relatifs). Vide = skill autoporteur. */
+  /** The folder's other files (relative names). Empty = self-contained skill. */
   siblings?: string[];
 }
 
-/** Une compétence prête à créer, plus ce que l'écran d'import doit dire à son sujet. */
+/** A compétence ready to create, plus what the import screen must say about it. */
 export interface ParsedSkill {
   name: string;
   desc: string;
   prompt: string;
-  /** Le corps renvoie à des fichiers du dossier, qui ne seront PAS importés. */
+  /** The body refers to folder files, which will NOT be imported. */
   needsFiles: boolean;
-  /** Combien de fichiers annexes le dossier porte (0 = autoporteur). */
+  /** How many extra files the folder carries (0 = self-contained). */
   extras: number;
-  /** Le pari de l'app : ça ressemble à un WORKFLOW (ça pilote des outils) plutôt qu'à une
-   *  compétence. Un pari, donc modifiable ligne par ligne dans l'aperçu. */
+  /** The app's guess: this looks like a WORKFLOW (it drives tools) rather than a
+   *  compétence. A guess, hence editable line by line in the preview. */
   looksLikeWorkflow: boolean;
 }
 
-/** Découpe le frontmatter YAML de tête. Rend `{}` quand il n'y en a pas — un SKILL.md
- *  sans frontmatter reste importable, il perdra juste son nom déclaré. */
+/** Splits off the leading YAML frontmatter. Returns `{}` when there is none — a SKILL.md
+ *  with no frontmatter stays importable, it just loses its declared name. */
 export function splitFrontmatter(text: string): { fm: Record<string, string>; body: string } {
   const t = text.replace(/^﻿/, "");
   const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(t);
   if (!m) return { fm: {}, body: t.trim() };
   const fm: Record<string, string> = {};
   for (const line of m[1].split(/\r?\n/)) {
-    // Volontairement minimal : `clé: valeur`. Le YAML riche (listes, blocs) n'existe pas
-    // dans les deux champs qui nous intéressent, et un parseur complet ici serait une
-    // dépendance de plus pour lire deux lignes.
+    // Deliberately minimal: `key: value`. Rich YAML (lists, blocks) does not exist
+    // in the two fields we care about, and a full parser here would be one more
+    // dependency just to read two lines.
     const kv = /^([A-Za-z0-9_-]+)\s*:\s*(.*)$/.exec(line.trim());
     if (!kv) continue;
     fm[kv[1].toLowerCase()] = kv[2].trim().replace(/^["']|["']$/g, "");
@@ -54,14 +54,14 @@ export function splitFrontmatter(text: string): { fm: Record<string, string>; bo
   return { fm, body: t.slice(m[0].length).trim() };
 }
 
-/** Les mots qui trahissent une routine à outils plutôt qu'une consigne de rédaction. */
+/** The words that betray a tool-driven routine rather than a writing instruction. */
 const TOOL_HINTS =
   /\b(mcp|connecteur|connector|outil|outils|tool|tools|gmail|slack|notion|drive|calendar|jira|linear|github|api|webhook|navigat|browser|scrape)\b/i;
 
-/** Un corps qui renvoie à ses propres fichiers : « lis X.md », un lien relatif, un chemin. */
+/** A body that refers to its own files: « lis X.md », a relative link, a path. */
 const FILE_REF = /\b(?:read|lis|lire|ouvre|voir|see|consulte)\b[^\n]{0,40}\.(?:md|py|js|ts|json|csv|ya?ml)\b|\]\((?!https?:)[^)]+\.(?:md|py|js|ts|json|csv|ya?ml)\)/i;
 
-/** Nom lisible : le frontmatter s'il existe, sinon le dossier « dé-kebabisé ». */
+/** Readable name: the frontmatter if it exists, otherwise the "un-kebabed" folder name. */
 function displayName(fm: Record<string, string>, folder: string): string {
   const raw = fm.name?.trim() || folder;
   const spaced = raw.replace(/[-_]+/g, " ").trim();
@@ -70,8 +70,8 @@ function displayName(fm: Record<string, string>, folder: string): string {
 
 export function parseSkill(file: RawSkillFile): ParsedSkill | null {
   const { fm, body } = splitFrontmatter(file.text);
-  // Sans corps il n'y a pas de prompt, donc rien à créer — un dossier vide n'est pas une
-  // compétence, et en créer une coquille se paierait à l'usage.
+  // With no body there is no prompt, so nothing to create — an empty folder is not a
+  // compétence, and creating an empty shell for it would cost at use time.
   if (!body) return null;
   const siblings = file.siblings ?? [];
   return {
@@ -84,8 +84,8 @@ export function parseSkill(file: RawSkillFile): ParsedSkill | null {
   };
 }
 
-/** Tout ce qui a été trouvé, dans l'ordre alphabétique du dossier — un ordre stable, donc
- *  une liste qui ne danse pas d'un import à l'autre. */
+/** Everything that was found, in the folder's alphabetical order — a stable order, so
+ *  a list that does not jump around from one import to the next. */
 export function parseSkills(files: readonly RawSkillFile[]): ParsedSkill[] {
   return files
     .map(parseSkill)
@@ -94,9 +94,9 @@ export function parseSkills(files: readonly RawSkillFile[]): ParsedSkill[] {
 }
 
 /**
- * Le nom à donner pour ne JAMAIS écraser : « Résumé » existe déjà ⇒ « Résumé (2) ».
- * Un import doit pouvoir être relancé sans détruire ce que l'utilisateur a modifié depuis
- * — c'est la seule règle qui rende le bouton sûr à cliquer deux fois.
+ * The name to give so as to NEVER overwrite: « Résumé » already exists ⇒ « Résumé (2) ».
+ * An import must be re-runnable without destroying what the user has since modified
+ * — that is the only rule that makes the button safe to click twice.
  */
 export function freeName(wanted: string, taken: ReadonlySet<string>): string {
   if (!taken.has(wanted)) return wanted;

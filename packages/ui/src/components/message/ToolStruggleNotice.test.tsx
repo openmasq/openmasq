@@ -12,10 +12,10 @@ const struggle = (kind: ToolStruggle["kind"]): ToolStruggle => ({
 });
 
 /**
- * Un jeton OAuth expiré est le `connector_error` le plus courant, et la légende se
- * terminait sur « Ouvrez Réglages → Connecteurs » : un écran à trouver, puis un connecteur
- * à reconnaître parmi une dizaine — alors que le message venait de le nommer. Ces tests
- * épinglent que la réparation est atteignable DEPUIS le tour qui a échoué.
+ * An expired OAuth token is the most common `connector_error`, and the caption used to
+ * end on « Ouvrez Réglages → Connecteurs »: a screen to find, then a connector
+ * to recognize among a dozen — when the message had just named it. These tests
+ * pin that the fix is reachable FROM the turn that failed.
  */
 describe("ToolStruggleNotice — la réparation est à portée de clic", () => {
   it("offre « Reconnecter » sur un refus de connecteur, et ouvre CE connecteur", async () => {
@@ -26,7 +26,7 @@ describe("ToolStruggleNotice — la réparation est à portée de clic", () => {
       </OpenConnectorProvider>,
     );
     await m.click("button");
-    // L'id du connecteur fautif, pas un écran générique : c'est toute la différence.
+    // The faulty connector's id, not a generic screen: that's the whole difference.
     expect(open).toHaveBeenCalledWith("gmail");
     await m.unmount();
   });
@@ -58,10 +58,10 @@ describe("ToolStruggleNotice — la réparation est à portée de clic", () => {
   });
 
   it("nomme la MARQUE du connecteur, jamais le transport « Ipc » (signalé 13/08)", async () => {
-    // Ce que la boucle enregistrait réellement : `server` = l'id de connexion du client
-    // MCP. La légende s'ouvrait donc sur « Ipc a refusé l'appel… », et « Reconnecter »
-    // ouvrait la fiche d'un connecteur inexistant. Le nom de l'outil, lui, dit vrai —
-    // y compris sur un message DÉJÀ enregistré, que ce test rejoue.
+    // What the loop actually recorded: `server` = the MCP client's connection
+    // id. The caption therefore opened on « Ipc a refusé l'appel… », and « Reconnecter »
+    // opened the sheet for a connector that doesn't exist. The tool's name, though, tells the truth —
+    // including on a message ALREADY recorded, which this test replays.
     const open = vi.fn();
     const m = await mount(
       <OpenConnectorProvider value={open}>
@@ -86,17 +86,17 @@ describe("ToolStruggleNotice — la réparation est à portée de clic", () => {
     );
     const caption = m.find(".shield-caption");
     expect(caption.textContent).toContain("Recherche");
-    // Le nom de l'outil est une adresse de support, pas une phrase : il ne paraît pas
-    // dans le texte, mais reste atteignable pour qui doit le lire.
+    // The tool's name is a support address, not a sentence: it doesn't appear
+    // in the text, but stays reachable for whoever needs to read it.
     expect(caption.textContent).not.toContain("gmail__search_messages");
     expect(caption.getAttribute("title")).toContain("gmail__search_messages");
     await m.unmount();
   });
 
   it("sans canal monté, retombe sur la PROSE qui nomme la destination", async () => {
-    // `useOpenConnector()` vaut null dans un harnais d'aperçu ou un test : le composant
-    // doit rester montable ET rester utile. Sans cette prose, l'utilisateur n'aurait plus
-    // aucune indication là où il en avait une.
+    // `useOpenConnector()` is null in a preview harness or a test: the component
+    // must stay mountable AND stay useful. Without this prose, the user would have no
+    // indication left where they had one.
     const m = await mount(<ToolStruggleNotice struggle={struggle("connector_error")} />);
     expect(m.maybe("button")).toBeNull();
     expect(m.find(".shield-caption").textContent).toContain("Réglages");

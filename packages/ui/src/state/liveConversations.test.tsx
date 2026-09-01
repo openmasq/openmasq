@@ -9,15 +9,15 @@ import type { AuthUser, Host } from "../host";
 import type { Conversation } from "../types";
 
 /**
- * CRÉER PUIS ENVOYER DANS LE MÊME GESTIONNAIRE GARDE LE MODÈLE CHOISI — remonté par un
- * utilisateur le 11/08 (« mon modèle par défaut est Opus 4.8, la réponse vient de Laguna »).
+ * CREATE THEN SEND IN THE SAME HANDLER KEEPS THE CHOSEN MODEL — reported by a
+ * user on 11/08 ("my default model is Opus 4.8, the reply comes from Laguna").
  *
- * `sendMessage` résout sa conversation — donc son MODÈLE — dans `conversationsRef.current`.
- * Ce ref n'était réassigné qu'au RENDU, or un nouvel onglet crée la conversation ET envoie
- * dans UN SEUL gestionnaire : le ref était en retard d'un battement, le `??` repliait sur
- * `DEFAULT_MODEL_ID` et la réponse revenait d'un autre modèle que celui affiché, sans la
- * moindre erreur. `sendModelResolution.test.ts` épingle la LECTURE (le ref, pas la copie
- * capturée) ; ce test-ci épingle le COMPORTEMENT, seul capable de voir le décalage d'un tour.
+ * `sendMessage` resolves its conversation — hence its MODEL — in `conversationsRef.current`.
+ * This ref was only reassigned on RENDER, but a new tab creates the conversation AND
+ * sends in A SINGLE handler: the ref was one beat behind, the `??` fell back to
+ * `DEFAULT_MODEL_ID`, and the reply came back from a different model than the one
+ * displayed, with no error at all. `sendModelResolution.test.ts` pins the READ (the
+ * ref, not the captured copy); this test pins the BEHAVIOUR, the only thing able to see a turn's drift.
  */
 
 const { loopMock } = vi.hoisted(() => ({ loopMock: vi.fn() }));
@@ -28,7 +28,7 @@ vi.mock("../agent/mcpAgent", () => ({
 }));
 
 const USER: AuthUser = { id: "uid-live", email: "live@exemple.fr" } as AuthUser;
-/** Un modèle qui n'est PAS le défaut : c'est tout l'objet du test. */
+/** A model that is NOT the default: that's the whole point of the test. */
 const PICKED = "gpt-4o";
 
 function harness() {
@@ -85,7 +85,7 @@ async function mountStore(h: ReturnType<typeof harness>) {
 
 beforeEach(() => {
   localStorage.clear();
-  // Le modèle par défaut du compte — celui que la puce du composeur affiche.
+  // The account's default model — the one the composer's chip shows.
   localStorage.setItem(settingsKeyFor(USER.id), JSON.stringify({ defaultModelId: PICKED }));
   loopMock.mockReset();
   loopMock.mockImplementation(async () => true);
@@ -96,9 +96,9 @@ describe("créer-puis-envoyer dans un seul gestionnaire", () => {
     const h = harness();
     const m = await mountStore(h);
 
-    // LE scénario : les deux appels dans le MÊME `act`, comme ChatPane le fait quand le
-    // panneau n'a pas encore de conversation vivante (nouvel onglet, écran d'accueil).
-    // Aucun `modelId` dans les options — c'est la conversation qui doit décider.
+    // THE scenario: both calls in the SAME `act`, like ChatPane does when the panel
+    // doesn't have a live conversation yet (new tab, welcome screen).
+    // No `modelId` in the options — it's the conversation that must decide.
     let convId = "";
     let sendDone!: Promise<void>;
     await act(async () => {
@@ -120,9 +120,9 @@ describe("créer-puis-envoyer dans un seul gestionnaire", () => {
   });
 
   it("le message part bien SUR cette conversation, une seule est créée", async () => {
-    // Le corollaire : le repli minait une conversation FANTÔME (`newConversation`), jamais
-    // ajoutée à l'état. Rien ne le signalait — le tour s'affichait au bon endroit et seul
-    // le modèle changeait. On vérifie donc que l'unique conversation porte bien le tour.
+    // The corollary: the fallback used to mine a GHOST conversation (`newConversation`),
+    // never added to the state. Nothing flagged it — the turn showed up in the right
+    // place and only the model changed. So we check that the one conversation does carry the turn.
     const h = harness();
     const m = await mountStore(h);
 

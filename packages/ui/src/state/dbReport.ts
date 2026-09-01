@@ -2,18 +2,18 @@ import { captureError } from "../analytics";
 import { BRAND } from "@openmasq/branding";
 
 /**
- * Un échec de la base chiffrée n'est JAMAIS silencieux — c'était la pire classe de
- * l'audit observabilité (13/08) : `saveConversation(...).catch(() => {})` laissait un
- * disque plein / une base verrouillée / une corruption « réussir » en mémoire, et les
- * dernières heures de conversations ET LEURS VAULTS disparaissaient au redémarrage sans
- * une ligne nulle part. Ici : console (le poste) + `captureError` (le canal $exception,
- * borné et sans contenu — scope/code/nom/message d'erreur seulement, jamais une donnée).
+ * A failure of the encrypted DB is NEVER silent — it was the worst class of bug from
+ * the observability audit (13/08): `saveConversation(...).catch(() => {})` let a full
+ * disk / a locked DB / a corruption "succeed" in memory, and the last hours of
+ * conversations AND THEIR VAULTS vanished on restart without
+ * a single line anywhere. Here: console (the machine) + `captureError` (the $exception
+ * channel, bounded and content-free — scope/code/name/error message only, never actual data).
  *
- * Le comportement de SECOURS ne change pas : un save raté reste non-bloquant (l'app vit
- * en mémoire), un load raté rend `null` et laisse le miroir COUPÉ — le réactiver ferait
- * ré-écrire par-dessus une base qu'on n'a pas su lire avec la copie EXPURGÉE du
- * localStorage (sans vaults), c'est-à-dire transformer une panne de lecture en perte de
- * données. On dit la panne ; on ne « répare » pas à l'aveugle.
+ * The FALLBACK behavior doesn't change: a failed save stays non-blocking (the app lives
+ * in memory), a failed load returns `null` and leaves the mirror CUT OFF — re-enabling it
+ * would overwrite a DB we failed to read with the PURGED copy from
+ * localStorage (without vaults), i.e. turn a read failure into
+ * data loss. We state the failure; we don't "repair" blindly.
  */
 export const dbFailure =
   (code: string) =>
@@ -28,8 +28,8 @@ export const dbFailure =
     });
   };
 
-/** Le repli du chargement : rapporte, puis rend `null` (même contrat qu'avant — le
- *  miroir reste coupé, voir l'en-tête). */
+/** The load fallback: reports, then returns `null` (same contract as before — the
+ *  mirror stays cut off, see the header). */
 export const dbLoadFailure = (e: unknown): null => {
   dbFailure("load")(e);
   return null;

@@ -1,6 +1,6 @@
-// La liste des arches expédiées a trois lecteurs (le bake, la CI, l'empaquetage) et une seule
-// maison : `electron-builder.cjs`. Ce fichier pince les deux bouts — l'analyse, et ce que la
-// VRAIE config dit aujourd'hui.
+// The list of shipped arches has three readers (the bake, CI, the packaging) and a single
+// home: `electron-builder.cjs`. This file pins both ends — the parsing, and what the
+// REAL config says today.
 import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { EB_CONFIG, currentBlock, shippedTriples, type EbConfigShape } from "./shippedTriples";
@@ -36,8 +36,8 @@ describe("shippedTriples", () => {
     expect(shippedTriples("win", CONFIG)).not.toContain("win32-arm64");
   });
 
-  // ÉCHEC FERMÉ : « aucune arche » ferait un bake qui ne bake rien, et donc un empaquetage
-  // qui réclame un dossier absent — très loin de la cause.
+  // FAIL CLOSED: "no arch" would make a bake that bakes nothing, and hence a packaging
+  // that demands a folder that doesn't exist — a long way from the cause.
   it("refuse une config dont la forme a changé au lieu de rendre une liste vide", () => {
     expect(() => shippedTriples("mac", { mac: { target: [] }, win: {} })).toThrow(
       /forme d'electron-builder/,

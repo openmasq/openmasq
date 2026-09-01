@@ -1,44 +1,44 @@
 /**
- * Parcours OPTIONNEL d'un stockage connecté — le pendant distant de {@link LocalFsHost}
- * pour les fichiers qui ne sont pas sur cette machine (Google Drive, OneDrive, Dropbox).
+ * OPTIONAL browsing of a connected storage — the remote counterpart of {@link LocalFsHost}
+ * for files that aren't on this machine (Google Drive, OneDrive, Dropbox).
  *
- * POURQUOI PAS `mcp.callTool`. La même raison que pour les dossiers locaux : les outils
- * d'un connecteur rendent de la prose faite pour un modèle (`nom — type (date) · id:…`),
- * chaque appel passe par le coffre de la conversation — or ce panneau doit montrer à
- * l'utilisateur SES vrais fichiers (la règle 11 gouverne ce que voit le modèle, rien
- * d'autre). Même compte, même jeton, même pare-feu ; une forme faite pour une interface.
+ * WHY NOT `mcp.callTool`. The same reason as for local folders: a connector's
+ * tools render prose made for a model (`name — type (date) · id:…`),
+ * every call goes through the conversation's vault — but this panel must show the
+ * user THEIR real files (rule 11 governs what the model sees, nothing
+ * else). Same account, same token, same firewall; a shape made for an interface.
  *
- * ABSENT ⇒ DÉGRADER. Pas de slot (aperçu web, mobile) ou aucune source ⇒ le groupe n'est
- * pas dessiné. C'est un confort, pas une garantie que l'utilisateur a choisie.
+ * ABSENT ⇒ DEGRADE. No slot (web preview, mobile) or no source ⇒ the group isn't
+ * drawn. It's a convenience, not a guarantee the user has chosen.
  *
- * LECTURE SEULE, ET SEULEMENT LISTER. Aucun octet de contenu ne transite par ici : lire un
- * document distant reste l'affaire du modèle et de ses outils. Le jeton OAuth ne quitte
- * jamais le processus principal, et l'id de dossier que passe le renderer est validé
- * là-bas avant d'entrer dans une URL de fournisseur.
+ * READ ONLY, AND LISTING ONLY. No content byte transits through here: reading a
+ * remote document remains the model's and its tools' business. The OAuth token never
+ * leaves the main process, and the folder id the renderer passes is validated
+ * there before entering a provider URL.
  */
 export interface CloudEntry {
-  /** L'identifiant du fournisseur, opaque pour l'interface : un fileId Drive, un itemId
-   *  Graph, un chemin Dropbox. Il se repasse tel quel, il ne se compose pas. */
+  /** The provider's identifier, opaque to the interface: a Drive fileId, a Graph
+   *  itemId, a Dropbox path. It gets passed back as-is, never composed. */
   id: string;
   name: string;
   kind: "dir" | "file";
-  /** Epoch ms ; 0 quand le fournisseur ne l'a pas donné. */
+  /** Epoch ms; 0 when the provider didn't give it. */
   mtime: number;
 }
 
-/** Un compte de stockage connecté et parcourable. */
+/** A connected, browsable storage account. */
 export interface CloudSource {
-  /** L'id d'INSTANCE (multi-compte : `google-drive--2`) — à repasser tel quel. */
+  /** The INSTANCE id (multi-account: `google-drive--2`) — pass back as-is. */
   id: string;
-  /** L'id de catalogue : ce qui décide du logo et du nom affichés. */
+  /** The catalog id: what decides the displayed logo and name. */
   connectorId: string;
-  /** Le compte, quand le connecteur a su le nommer. */
+  /** The account, when the connector could name it. */
   label?: string;
 }
 
 export interface CloudFsHost {
-  /** Les stockages connectés que l'app sait parcourir. Vide = rien à montrer. */
+  /** The connected storages the app can browse. Empty = nothing to show. */
   sources(): Promise<{ sources: CloudSource[] }>;
-  /** Le contenu d'un dossier ; `folderId` à `null` = la racine du compte. */
+  /** The contents of a folder; `folderId` of `null` = the account's root. */
   list(sourceId: string, folderId: string | null): Promise<{ entries: CloudEntry[] }>;
 }

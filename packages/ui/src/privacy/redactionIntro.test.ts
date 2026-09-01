@@ -3,10 +3,10 @@ import { shouldShowRedactionIntro } from "./redactionIntro";
 import type { Conversation, Message } from "../types";
 
 /**
- * Le conteneur « Comprendre mon redaction » : sous les premières réponses, jusqu'au
- * « Fermer pour toujours ». Deux erreurs possibles, toutes deux coûteuses : revenir après
- * la fermeture (le bruit qui apprend à ignorer), ou se montrer avant qu'une réponse
- * existe (il « explique » alors un redaction que rien n'illustre).
+ * The "Comprendre mon redaction" container: under the first replies, until
+ * "Fermer pour toujours". Two possible mistakes, both costly: coming back after
+ * it was closed (the noise that teaches people to ignore it), or showing before a reply
+ * exists (it then "explains" a redaction that nothing illustrates).
  */
 const msg = (over: Partial<Message>): Message =>
   ({ id: Math.random().toString(36).slice(2), role: "user", content: "x", ...over }) as Message;
@@ -15,9 +15,9 @@ const conv = (messages: Message[]): Conversation => ({ messages }) as Conversati
 
 describe("shouldShowRedactionIntro", () => {
   it("se montre après la première réponse ARRIVÉE — y compris sans rien de redacted", () => {
-    // LE cas que l'encart de transparence ne couvre jamais : une conversation sans
-    // donnée personnelle. C'est précisément là que « pourquoi rien n'est masqué ? » se
-    // pose, donc le conteneur ne dépend PAS du coffre.
+    // THE case the transparency card never covers: a conversation with no
+    // personal data. That is exactly where "why is nothing masked?" gets
+    // asked, so the container does NOT depend on the coffre.
     const c = conv([msg({}), msg({ role: "assistant" })]);
     expect(shouldShowRedactionIntro(c, false)).toBe(true);
     expect(shouldShowRedactionIntro(c, undefined)).toBe(true);

@@ -18,10 +18,10 @@ const KEYS = REDACT_CATEGORIES.map((c) => c.key as RedactCategoryKey);
 const cats = (over: Record<string, boolean> = {}): Settings["redactCategories"] =>
   ({ ...CATEGORY_DEFAULTS, ...over }) as Settings["redactCategories"];
 
-/* L'échelle telle qu'un écran la voit. Ce fichier teste ce que les niveaux FONT — quelles
-   catégories ils allument — donc la langue de leurs étiquettes lui est indifférente ; le
-   catalogue anglais est vérifié là où il compte, par `locale.test.ts` (complétude) et par
-   les tests d'écran. */
+/* The scale as a screen sees it. This file tests what the levels DO — which
+   categories they turn on — so the language of their labels is irrelevant to it; the
+   English catalogue is verified where it matters, by `locale.test.ts` (completeness) and by
+   the screen tests. */
 const LEVELS = privacyLevelMeta(getMessages("fr"));
 
 describe("privacyLevel — one choice instead of seventeen", () => {
@@ -59,11 +59,11 @@ describe("privacyLevel — one choice instead of seventeen", () => {
     expect(activeCount(cats(), [offByDefault])).toBe(activeCount(cats()) + 1);
   });
 
-  // ⚠️ Ce test disait « AUCUN niveau réduit n'est offert ». « Standard » en est un
-  // désormais — décision produit, assumée. Ce qui reste non négociable, ce sont les trois
-  // conditions qui l'accompagnent (voir le bloc ⚠️ de `privacyLevel.ts`) : un seul niveau
-  // réduit, MARQUÉ, et jamais le défaut d'installation. C'est ce que ce test vérifie
-  // maintenant — un second niveau réduit, ou un `reduced` oublié, le casse.
+  // ⚠️ This test used to say "NO reduced level is offered". "Standard" is one
+  // now — a deliberate product decision. What stays non-negotiable are the three
+  // conditions that come with it (see the ⚠️ block in `privacyLevel.ts`): only one
+  // reduced level, MARKED, and never the install default. This is what this test verifies
+  // now — a second reduced level, or a forgotten `reduced`, breaks it.
   it("un seul niveau protège MOINS que les défauts, et il est MARQUÉ", () => {
     expect(LEVELS.map((m) => m.id)).toEqual(["standard", "renforce", "strict"]);
     for (const m of LEVELS) {
@@ -75,8 +75,8 @@ describe("privacyLevel — one choice instead of seventeen", () => {
   });
 
   it("le défaut d'installation n'est PAS le niveau réduit", () => {
-    // `CATEGORY_DEFAULTS` est le seed de `DEFAULT_SETTINGS.redactCategories` : personne
-    // n'atterrit sur une protection réduite sans l'avoir choisie.
+    // `CATEGORY_DEFAULTS` is the seed for `DEFAULT_SETTINGS.redactCategories`: nobody
+    // lands on reduced protection without having chosen it.
     expect(levelOf(cats())).toBe("renforce");
   });
 
@@ -88,8 +88,8 @@ describe("privacyLevel — one choice instead of seventeen", () => {
   });
 
   it("le PLANCHER tient dans les trois niveaux, y compris le réduit", () => {
-    // Une chaîne en forme de clé laissée passer EST une clé en clair — aucun preset ne
-    // l'éteint. L'utilisateur garde la main à la case près (ça devient « Sur mesure »).
+    // A string shaped like a key that is let through IS a key in clear — no preset
+    // turns it off. The user keeps control down to the checkbox (it becomes « Sur mesure »).
     for (const m of LEVELS) {
       const map = categoriesForLevel(m.id);
       for (const k of ALWAYS_ON) {
@@ -99,9 +99,9 @@ describe("privacyLevel — one choice instead of seventeen", () => {
   });
 
   it("un ancien réglage « Navigation » persisté lit « Standard » — c'est le même jeu", () => {
-    // Des comptes ont enregistré l'ex-preset (les cinq catégories BETA éteintes). C'est
-    // EXACTEMENT ce que « Standard » vaut désormais : il retrouve donc un nom au lieu de
-    // rester « Sur mesure ». Les choix ne sont pas touchés — seule leur lecture change.
+    // Some accounts saved the ex-preset (the five BETA categories turned off). This is
+    // EXACTLY what "Standard" amounts to now: it regains a name instead of
+    // staying "Sur mesure". The choices are not touched — only their reading changes.
     const exNavigation = cats({
       name: false,
       dob: false,
@@ -128,25 +128,25 @@ describe("notoriété par niveau — la liste des personnes/entreprises jamais r
   });
 
   it("dérivée du round-trip levelOf : le jeu de cases d'un niveau porte sa dispense", () => {
-    // Le store la calcule via levelOf(catégories effectives) — le même chemin.
+    // The store computes it via levelOf(effective categories) — the same path.
     expect(notorietyForLevel(levelOf(categoriesForLevel("standard"))).commercial).toBe(true);
     expect(notorietyForLevel(levelOf(categoriesForLevel("renforce"))).people).toBe(true);
     expect(notorietyForLevel(levelOf(categoriesForLevel("strict")))).toEqual({
       commercial: false,
       people: false,
     });
-    // Un jeu réglé à la main (« Sur mesure ») n'est pas Strict : dispensé aussi —
-    // « excepté en mode strict » est la seule exception (demande du 30/07/2026).
+    // A hand-tuned set ("Sur mesure") is not Strict: exempted too —
+    // "except in Strict mode" is the only exception (request from 30/07/2026).
     expect(notorietyForLevel(levelOf(cats({ phone: false }))).commercial).toBe(true);
   });
 
   it("la liste re-exportée est celle du moteur, non vide, avec les têtes d'affiche", () => {
-    // Une seule maison (`@openmasq/redact` model/notoriousData.ts) — ici on vérifie
-    // juste que le re-export expose bien la liste que le moteur applique.
+    // One single home (`@openmasq/redact` model/notoriousData.ts) — here we just
+    // verify that the re-export does expose the list the engine actually applies.
     expect(NOTORIOUS_PEOPLE.length).toBeGreaterThan(50);
     expect(NOTORIOUS_COMMERCIAL_ORGS.length).toBeGreaterThan(50);
     expect(NOTORIOUS_PEOPLE).toContain("Albert Einstein");
     expect(NOTORIOUS_COMMERCIAL_ORGS).toContain("Google");
-    expect(NOTORIOUS_COMMERCIAL_ORGS).toContain("Canva"); // une intégration MCP
+    expect(NOTORIOUS_COMMERCIAL_ORGS).toContain("Canva"); // an MCP integration
   });
 });

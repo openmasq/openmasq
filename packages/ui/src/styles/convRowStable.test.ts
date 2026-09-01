@@ -2,21 +2,21 @@ import { describe, it, expect } from "vitest";
 import { readStylesheet } from "./readStylesheet";
 
 /**
- * **Survoler une conversation ne doit RIEN redimensionner.** La ligne échange deux éléments
- * de son bord droit — l'heure s'efface, le menu ⋯ paraît — et l'échange s'est déjà fait deux
- * fois au prix d'un saut :
+ * **Hovering a conversation must resize NOTHING.** The row swaps two elements
+ * on its right edge — the time fades out, the ⋯ menu appears — and the swap has already
+ * happened twice at the cost of a jump:
  *
- *  • en HAUTEUR : un `IconButton` mesure 30 px là où la ligne au repos en fait 20, donc posé
- *    dans le flux il poussait la ligne de +10 px sous le curseur ;
- *  • en LARGEUR : `display: none` sur l'heure rendait ses 46 px au titre, qui s'élargissait.
+ *  • in HEIGHT: an `IconButton` measures 30 px where the row at rest is 20, so placed
+ *    in flow it pushed the row +10 px under the cursor;
+ *  • in WIDTH: `display: none` on the time gave its 46 px back to the title, which widened.
  *
- * Aucun des deux ne se voit d'un typecheck ni d'un rendu jsdom (rien n'y a de dimension), et
- * le second est revenu par une redéclaration restée en fin de feuille, plus bas dans la
- * cascade que la règle correcte. D'où ce test sur la feuille RÉSOLUE, qui lit ce qui gagne.
+ * Neither shows up in a typecheck or a jsdom render (nothing there has a dimension), and
+ * the second one came back via a redeclaration left at the end of the sheet, lower in the
+ * cascade than the correct rule. Hence this test on the RESOLVED sheet, which reads what wins.
  */
 const CSS = readStylesheet();
 
-/** Les blocs dont le sélecteur mentionne `.conv-time` sous un `:hover`/`:focus-within`. */
+/** The blocks whose selector mentions `.conv-time` under a `:hover`/`:focus-within`. */
 function hoverTimeBlocks(): string[] {
   const out: string[] = [];
   const re = /([^{}]*\.conv-time[^{}]*)\{([^}]*)\}/g;
@@ -32,7 +32,7 @@ describe("ligne de conversation — le survol ne change aucune dimension", () =>
     expect(blocks.length).toBeGreaterThan(0);
     for (const body of blocks) {
       expect(body).toMatch(/visibility:\s*hidden/);
-      // La redéclaration qui a fait revenir le bug.
+      // The redeclaration that brought the bug back.
       expect(body).not.toMatch(/display:\s*none/);
     }
   });

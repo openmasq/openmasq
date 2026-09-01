@@ -1,65 +1,65 @@
 import type { Messages } from "@openmasq/i18n";
 /**
- * **Ce build a-t-il un service hébergé ?** — c'est-à-dire une passerelle d'inférence ET
- * des comptes, les deux moitiés sans lesquelles un modèle « inclus » n'a ni endpoint ni
- * jeton. C'est une constante de BUILD (l'app ne peut pas en gagner un en route), au même
- * titre que `BRAND` : d'où un foyer unique plutôt qu'un drapeau qu'on ferait descendre
- * dans chaque composant qui parle d'abonnement (et `sold`, plus bas, pour l'abonnement lui-même).
+ * **Does this build have a hosted service?** — that is, an inference gateway AND
+ * accounts, the two halves without which an "included" model has neither endpoint nor
+ * token. This is a BUILD constant (the app cannot gain one along the way), on the same
+ * footing as `BRAND`: hence one single home rather than a flag passed down
+ * into every component that talks about a subscription (and `sold`, below, for the subscription itself).
  *
- * Sans elle, un build sans backend (le cas open source par défaut ; les services vivent dans le dépôt privé `infra`)
- * offrait quand même les modèles de la plateforme et disait « prenez un abonnement » :
- * deux affirmations fausses. Avec elle, ces mêmes modèles redeviennent ce qu'ils sont
- * vraiment sur cette machine — des modèles à CLÉ, dont la clé de l'utilisateur est la
- * seule porte (`resolveEffectivePlatform`).
+ * Without it, a build with no backend (the default open-source case; the services live in the private `infra` repository)
+ * still offered the platform's models and said "get a subscription":
+ * two false statements. With it, those same models go back to being what they
+ * truly are on this machine — KEY models, for which the user's own key is the
+ * only door (`resolveEffectivePlatform`).
  *
- * ⚠️ Le défaut est `true` (le comportement historique) : l'hôte qui n'appelle pas
- * `configurePlatformAccess` — l'aperçu web, un harnais de test — se comporte comme
- * avant. Se tromper dans ce sens coûte une phrase inexacte et une erreur d'envoi
- * explicite, jamais une frontière ouverte : la passerelle vérifie le jeton de son côté,
- * et rien ici ne décide ce qui SORT.
+ * ⚠️ The default is `true` (the historical behaviour): a host that doesn't call
+ * `configurePlatformAccess` — the web preview, a test harness — behaves as
+ * before. Getting this wrong in this direction costs an inaccurate sentence and an explicit
+ * send error, never an open boundary: the gateway checks the token on its own side,
+ * and nothing here decides what goes OUT.
  */
 let served = true;
 
 /**
- * **Ce build VEND-il des abonnements ?** — la seconde constante de build, et son défaut
- * est l'inverse du premier : `false`. Rien ne se vend tant que le build ne le dit pas
- * (`OPENMASQ_BILLING=1`, `apps/desktop/scripts/buildDefines.ts`). Éteint, TOUT ce qui
- * parle d'abonnement disparaît — l'onglet Paiement (l'hôte ne branche pas `billing`), les
- * pastilles « Abonnement requis », les cartes « Prenez un abonnement », le mur payant de
- * la synchro, l'étape « Abonnement, ou votre clé » — et la voie « modèles inclus » se
- * nomme par ce qu'elle est alors : *votre compte*. Un modèle inclus reste inclus ; seul
- * le mot qui le vend s'en va.
+ * **Does this build SELL subscriptions?** — the second build constant, and its default
+ * is the inverse of the first: `false`. Nothing sells until the build says so
+ * (`OPENMASQ_BILLING=1`, `apps/desktop/scripts/buildDefines.ts`). Off, EVERYTHING that
+ * talks about a subscription disappears — the Billing tab (the host doesn't wire up `billing`), the
+ * "Subscription required" badges, the "Get a subscription" cards, sync's paywall,
+ * the "Subscription, or your key" step — and the "included models" path
+ * is named by what it then is: *your account*. An included model stays included; only
+ * the word that sells it goes away.
  *
- * ⚠️ Deux constantes, pas une : « servi » (il y a des modèles inclus) et « vendu » (on
- * les fait payer) restent distincts — une pile auto-hébergée saisie dans l'app sert sans
- * vendre, et un serveur en `OPENMASQ_FREE_MODE=1` sert sans encaisser. Côté desktop,
- * `OPENMASQ_BILLING=1` est aussi la porte qui laisse entrer l'API et la passerelle au
- * build : sans elle, rien de distant hormis l'auth, Slack, les analytics et les mises à
- * jour. Le défaut `false` est celui du produit, pas un mode dégradé : dire « abonnement »
- * à qui ne peut rien acheter est la phrase fausse.
+ * ⚠️ Two constants, not one: "served" (there are included models) and "sold" (they're
+ * charged for) stay distinct — a self-hosted stack entered into the app serves without
+ * selling, and a server on `OPENMASQ_FREE_MODE=1` serves without charging. On desktop,
+ * `OPENMASQ_BILLING=1` is also the gate that lets the API and the gateway into the
+ * build: without it, nothing remote except auth, Slack, analytics and updates.
+ * The `false` default is the product's own, not a degraded mode: saying "subscription"
+ * to someone who can buy nothing is the false sentence.
  */
 let sold = false;
 
-/** Appelé UNE fois par l'hôte, au démarrage, depuis ce que le build a reçu. `sold`
- *  omis ⇒ rien à vendre. */
+/** Called ONCE by the host, at startup, from what the build received. `sold`
+ *  omitted ⇒ nothing to sell. */
 export function configurePlatformAccess(opts: { served: boolean; sold?: boolean }): void {
   served = opts.served;
   sold = opts.sold === true;
 }
 
-/** Les modèles servis par la plateforme sont-ils joignables dans ce build ? */
+/** Are the platform's served models reachable in this build? */
 export function platformAccessServed(): boolean {
   return served;
 }
 
-/** Ce build vend-il des abonnements ? `false` par défaut — voir `sold` ci-dessus. */
+/** Does this build sell subscriptions? `false` by default — see `sold` above. */
 export function subscriptionsSold(): boolean {
   return sold;
 }
 
-/** Comment une phrase nomme la voie « modèles inclus » : « dans l'abonnement X » quand
- *  elle se vend, « avec votre compte X » sinon. UN foyer, parce que la même incise
- *  revient sous la pastille, dans le refus d'envoi et sur le libellé de groupe. */
+/** How a sentence names the "included models" path: "dans l'abonnement X" when
+ *  it sells, "avec votre compte X" otherwise. ONE home, because the same aside
+ *  recurs under the badge, in the send refusal and on the group label. */
 export function includedWith(brand: string, t: Messages): string {
   return sold ? t.availability.includedInSubscription(brand) : t.availability.includedWithAccount(brand);
 }

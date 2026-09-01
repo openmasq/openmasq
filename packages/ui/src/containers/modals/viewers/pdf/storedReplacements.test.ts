@@ -12,7 +12,7 @@ describe("storedReplacements — la carte du dépôt relue depuis la base", () =
   });
 
   it("écarte les entrées invalides d'un blob venu de la base, sans jeter", () => {
-    // Une vieille ligne / une autre version : entrée sans real, real vide, non-objet.
+    // An old row / a different version: entry with no real, empty real, non-object.
     const out = storedReplacements([
       { real: "", fake: "x" },
       { fake: "y" },

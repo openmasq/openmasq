@@ -15,14 +15,14 @@ describe("un PSEUDONYME ne devient jamais une fiche mémoire", () => {
   });
 
   it("le REFUSE quand le vault ne l'a pas — au lieu d'en faire une note", () => {
-    // Le cas mesuré : vault non hydraté ⇒ la fiche « Verdanta Industries » (le faux de
-    // « gouvernement français ») entrait en mémoire, la vraie valeur reléguée en alias.
+    // The measured case: vault not hydrated ⇒ the « Verdanta Industries » card (the fake for
+    // « gouvernement français ») used to enter memory, the real value relegated to an alias.
     const out = resolveExtraction(fact("Verdanta Industries", "gouvernement francais"), {}, REAL, { allowNotes: true, wireText: WIRE });
     expect(out.facts).toEqual([]);
   });
 
   it("laisse passer un titre de note VRAIMENT inventé (absent des DEUX textes)", () => {
-    // Un résumé que le modèle compose lui-même : ni dans le réel, ni dans le wire.
+    // A summary the model composes itself: neither in the real text, nor in the wire.
     const out = resolveExtraction(fact("Liste ministérielle 2026"), {}, REAL, { allowNotes: true, wireText: WIRE });
     expect(out.facts[0]?.entity).toBe("Liste ministérielle 2026");
     expect(out.facts[0]?.note).toBe(true);

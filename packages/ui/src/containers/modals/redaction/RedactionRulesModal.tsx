@@ -34,9 +34,9 @@ export function RedactionRulesModal({
   onClose: () => void;
   conversation?: Conversation | null;
   onChangeConversation?: (cats: Conversation["redactCategories"]) => void;
-  /** « Sans mémoire dans cette conversation » — coupe l'injection, l'outil de recherche
-   *  en mémoire et l'extraction silencieuse pour CE fil (un « retiens que… » explicite
-   *  reste honoré). Absent ⇒ le rang ne se rend pas (préversion sans mémoire). */
+  /** « Sans mémoire dans cette conversation » — cuts the injection, the memory
+   *  search tool, and the silent extraction for THIS thread (an explicit « retiens que… »
+   *  is still honoured). Absent ⇒ the row isn't rendered (memory-less pre-release). */
   onMemoryOff?: (off: boolean) => void;
   /** Category keys the organization mandates ON — forced active + locked (a
    *  member can't disable them). Rendered with a 🔒 "Organisation" tag. */
@@ -108,10 +108,10 @@ export function RedactionRulesModal({
           isOverridden={(k) => onConvTab && k in override}
           onReset={onConvTab && hasOverride ? () => onChangeConversation!({}) : undefined}
         />
-        {/* La MÉMOIRE par conversation — dans la modale des règles parce que c'est la
-            même question (« qu'est-ce qui accompagne mes envois d'ici ? ») et le même
-            périmètre (ce fil). Onglet conversation uniquement : le réglage global de la
-            mémoire vit sur sa page. */}
+        {/* Per-conversation MEMORY — in the rules modal because it's the
+            same question (« qu'est-ce qui accompagne mes envois d'ici ? ») and the same
+            scope (this thread). Conversation tab only: the global memory setting
+            lives on its own page. */}
         {onConvTab && onMemoryOff && (
           <label className="rrm-memory-row">
             <Switch

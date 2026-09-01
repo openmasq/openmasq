@@ -5,23 +5,23 @@ import { BRAND } from "@openmasq/branding";
 import { subscriptionsSold } from "../../send/platformAccess";
 
 /**
- * Ce que le shell annonce en permanence, et dans quel ORDRE — pur, donc testable.
+ * What the shell announces at all times, and in what ORDER — pure, hence testable.
  *
- * Trois états peuvent coexister ; une seule pastille s'affiche, la plus grave
- * d'abord : une panne de réseau explique déjà un connecteur tombé, et parler
- * d'abonnement à quelqu'un qui est hors ligne est hors sujet. `ShellChrome` ne
- * fait que rendre ce que cette fonction choisit et brancher les gestes.
+ * Three states can coexist; only one badge is shown, the most serious
+ * first: a network outage already explains a downed connector, and talking
+ * about a subscription to someone who is offline is beside the point. `ShellChrome`
+ * only renders what this function picks and wires up the actions.
  */
 export type ShellNoticeKind = "offline" | "mcp" | "access";
 
 export interface ShellNotice {
   kind: ShellNoticeKind;
   tone: BannerTone;
-  /** Le seul texte visible replié : il doit suffire à comprendre l'état. */
+  /** The only text visible when collapsed: it must be enough to understand the state. */
   title: string;
   message: string;
   actionLabel?: string;
-  /** Une PANNE ne se masque pas : elle disparaît quand elle est finie. */
+  /** An OUTAGE cannot be dismissed: it disappears when it's over. */
   dismissible: boolean;
 }
 

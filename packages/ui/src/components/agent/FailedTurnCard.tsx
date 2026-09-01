@@ -5,13 +5,13 @@ import { AgentCard, GlyphTile, AgentCardTitle } from "./AgentCard";
 import { useT } from "../../i18n";
 type ErrorAction = NonNullable<Message["errorAction"]>;
 
-/** The short status label above the message, by CTA kind — sauf quand le TEXTE dit
- *  « Crédits épuisés » : la clé y est une ISSUE proposée, pas l'exigence (« Clé
- *  requise » au-dessus d'un blocage crédits mentait sur la cause). */
+/** The short status label above the message, by CTA kind — except when the TEXT says
+ *  « Crédits épuisés »: the key there is a proposed ISSUE, not the requirement (« Clé
+ *  requise » above a credits block was lying about the cause). */
 function eyebrowFor(action: ErrorAction | undefined, text: string): string {
-  // « n'a plus de crédits » = le compte FOURNISSEUR de l'utilisateur est à sec ;
-  // « Crédits épuisés » = le budget d'abonnement. Dans les deux cas la clé/l'abonnement du
-  // CTA est une issue proposée, pas la cause — l'eyebrow ne doit pas mentir dessus.
+  // « n'a plus de crédits » = the user's PROVIDER account is dry;
+  // « Crédits épuisés » = the subscription budget. In both cases the CTA's
+  // key/subscription is a proposed way out, not the cause — the eyebrow must not lie about it.
   if (
     text.startsWith("Crédits épuisés") ||
     text.startsWith("Ce modèle n'est pas disponible") ||
@@ -19,12 +19,12 @@ function eyebrowFor(action: ErrorAction | undefined, text: string): string {
   ) {
     return "Envoi impossible";
   }
-  // Un quota épuisé porte la MÊME action (l'abonnement) sans en faire une exigence :
-  // il repart tout seul à la réinitialisation, et « Abonnement requis » au-dessus
-  // vendrait comme obligatoire ce qui n'est qu'un raccourci.
-  // ⚠️ Couplé au TEXTE (`state/errors.ts`), qui a deux formes : « Vos N requêtes
-  // gratuites du jour sont épuisées » (palier gratuit) et « Votre quota chez X est
-  // épuisé » (clé payante). Son test relit le message RÉEL, pas une copie.
+  // An exhausted quota carries the SAME action (the subscription) without making it a
+  // requirement: it resets on its own at reset time, and « Abonnement requis » above
+  // would sell as mandatory what is only a shortcut.
+  // ⚠️ Coupled to the TEXT (`state/errors.ts`), which has two forms: « Vos N requêtes
+  // gratuites du jour sont épuisées » (free tier) and « Votre quota chez X est
+  // épuisé » (paid key). Its test re-reads the REAL message, not a copy.
   if (/requêtes gratuites du jour|quota .* épuisé/i.test(text)) return "Quota épuisé";
   if (action?.kind === "missing_key") return "Clé requise";
   if (action?.kind === "upgrade_plan") return "Abonnement requis";
@@ -58,9 +58,9 @@ export function FailedTurnCard({
   onRetry?: (assistantId: string) => void;
 }) {
   const t = useT();
-  // Un échec est un STATUT, pas une catégorie de redaction : il prend l'écarlate
-  // sémantique. (`--hl-coral` n'était déclaré nulle part — le liseré et la tuile
-  // n'avaient donc AUCUNE couleur : `background: var(--indéfini)` est invalide.)
+  // A failure is a STATUS, not a redaction category: it takes the semantic
+  // scarlet. (`--hl-coral` wasn't declared anywhere — the stripe and the tile
+  // therefore had NO colour at all: `background: var(--undefined)` is invalid.)
   const hue = "var(--red-500)";
   // With a CTA, « Réessayer » is the secondary (ghost) action beside it; alone it IS
   // the action, so it takes the primary style.

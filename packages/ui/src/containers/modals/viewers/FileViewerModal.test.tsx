@@ -8,11 +8,11 @@ import { mount } from "../../../testKit";
 import type { LoadedFile } from "./FileViewerBody";
 
 /**
- * La bascule Redacted ⇄ Original (demandée 14/08) : le viewer OUVRE toujours sur la
- * version redacted — la seule sûre à avoir à l'écran — et montrer l'original est un
- * interrupteur dans la ligne de note, dont l'état ne se persiste nulle part. Sur un
- * fichier SANS redaction la ligne n'existe pas : l'UI ne revendique jamais un
- * masquage qui n'a pas eu lieu.
+ * The Redacted ⇄ Original toggle (requested 14/08): the viewer always OPENS on the
+ * redacted version — the only one safe to have on screen — and showing the original is
+ * a switch on the note row, whose state persists nowhere. On a file WITHOUT
+ * redaction, the row doesn't exist: the UI never claims a
+ * masking that never happened.
  */
 
 beforeAll(() => {
@@ -56,10 +56,10 @@ const modal = (over: Partial<Parameters<typeof FileViewerModal>[0]> = {}) => (
 describe("FileViewerModal — la bascule Redacted ⇄ Original", () => {
   it("ouvre redacted ; l'interrupteur révèle l'original, et la note dit VRAI des deux côtés", async () => {
     const m = await mount(modal());
-    // Le chargement est async : re-render pour laisser le loadFile se poser.
+    // The load is async: re-render to let loadFile settle.
     await m.rerender(modal());
 
-    // État d'ouverture : redacted, note « Données masquées », interrupteur coché.
+    // Opening state: redacted, note « Données masquées », switch checked.
     expect(m.find(".fv-seg-note").className).toContain("fv-seg-masked");
     expect(m.find(".fv-seg-note").textContent).toMatch(/masquées/i);
     expect(m.find(".fv-seg-toggle .cv-switch").getAttribute("aria-checked")).toBe("true");
@@ -72,8 +72,8 @@ describe("FileViewerModal — la bascule Redacted ⇄ Original", () => {
   });
 
   it("la carte de dépôt SUFFIT : un appelant qui ne sait pas dire `redacted` ne cache pas la bascule", async () => {
-    // Le trou constaté le 14/08 : MessageBubble / PanelFileView ne passaient pas le
-    // drapeau — la ligne entière disparaissait alors que le viewer PEIGNAIT le redaction.
+    // The gap found on 14/08: MessageBubble / PanelFileView weren't passing the
+    // flag — the entire row disappeared even though the viewer PAINTED the redaction.
     const m = await mount(modal({ redacted: undefined }));
     await m.rerender(modal({ redacted: undefined }));
     expect(m.maybe(".fv-seg-toggle")).not.toBeNull();

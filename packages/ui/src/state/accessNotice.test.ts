@@ -24,9 +24,9 @@ describe("needsAccessNotice", () => {
     ).toBe(false);
   });
 
-  // Le piège du démarrage : la facturation arrive APRÈS le premier rendu. Traiter
-  // « pas encore chargé » comme « aucun abonnement » ferait clignoter la bannière chez
-  // quelqu'un qui paie — la pire personne à qui annoncer qu'il lui manque un abonnement.
+  // The startup trap: billing arrives AFTER the first render. Treating
+  // « not loaded yet » as « no subscription » would flash the banner at
+  // someone who pays — the worst person to tell they're missing a subscription.
   it("ne dit rien tant que l'abonnement n'est pas chargé", () => {
     expect(needsAccessNotice({ ...base, personalSub: null })).toBe(false);
   });
@@ -44,8 +44,8 @@ describe("needsAccessNotice", () => {
     expect(needsAccessNotice({ ...base, hasBilling: false })).toBe(false);
   });
 
-  // Un crédit restant EST un accès. Quand il s'épuise, c'est le blocage d'envoi qui le
-  // dit, avec ses boutons — pas une bannière permanente au-dessus du composeur.
+  // A remaining credit IS access. When it runs out, it's the send block that
+  // says so, with its buttons — not a permanent banner above the composer.
   it("se tait tant qu'il reste des crédits, prévient quand ils sont bloqués", () => {
     const credits = { allotmentCents: 800, consumedCents: 100, balanceCents: 700 };
     expect(needsAccessNotice({ ...base, personalCredits: { ...credits, blocked: false } })).toBe(false);

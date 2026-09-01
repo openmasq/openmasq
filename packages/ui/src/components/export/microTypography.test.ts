@@ -17,15 +17,15 @@ describe("frenchSpacing — des insécables, et RIEN d'autre", () => {
   });
 
   it("ne touche PAS à ce qui n'est pas une espace française à souder", () => {
-    // La règle d'or : on remplace une espace existante, on n'insère jamais — donc un
-    // texte sans espace avant sa ponctuation reste tel quel (URL, smiley, anglais).
+    // The golden rule: we replace an existing space, we never insert — so a
+    // text with no space before its punctuation stays as-is (URL, smiley, English).
     for (const s of [
       "https://acme.example/page?x=1",
       "voir: le point collé reste collé",
       "un smiley :) et un ;(",
-      "06 12 34 56 78", // téléphone : groupes de 2, jamais soudés en milliers
-      "les années 2026 2027", // deux nombres, pas un groupement
-      "What time is it?", // ponctuation anglaise collée : rien à faire
+      "06 12 34 56 78", // phone: groups of 2, never fused as thousands
+      "les années 2026 2027", // two numbers, not a grouping
+      "What time is it?", // English punctuation already tight: nothing to do
     ]) {
       expect(frenchSpacing(s)).toBe(s);
     }
@@ -37,8 +37,8 @@ describe("frenchSpacing — des insécables, et RIEN d'autre", () => {
   });
 
   it("ne change JAMAIS la longueur ni les caractères non-espace", () => {
-    // La propriété qui rend le module sûr, énoncée comme telle : seule la NATURE
-    // d'espaces existantes change — pas le contenu, pas la longueur.
+    // The property that makes the module safe, stated as such: only the NATURE
+    // of existing spaces changes — not the content, not the length.
     const samples = ["Vraiment ? 12 000 € : oui ; « non » !", "texte 100 % ordinaire"];
     for (const s of samples) {
       const out = frenchSpacing(s);

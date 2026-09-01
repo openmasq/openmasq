@@ -4,7 +4,7 @@ import { gate, WRAP, SP, maxOneWrap } from "./rules.international.util";
 
 // French identity / tax / residency schemes, grouped as ONE family (root rule 10) —
 // the app is FR-first, so this is the coverage that actually meets its users' identity
-// documents (CNI, passeport, NIR, permis, titre de séjour). Spread into `RULES` at the
+// documents (CNI, passport, NIR, driving licence, residence permit). Spread into `RULES` at the
 // SAME position the FR block always occupied: AFTER card/IBAN (so a Luhn-valid PAN is
 // never nibbled) and BEFORE the international spread. All → "national_id".
 //
@@ -128,7 +128,7 @@ export const FRANCE_RULES: RedactionRule[] = [
     ),
     validate: (m) => maxOneWrap(m) && sirenSiret(m.replace(/\D/g, "").slice(0, 9)),
   },
-  // Carte professionnelle immobilière (loi Hoquet) — « CPI 6902 2018 000 024 618 »:
+  // Real-estate professional card (loi Hoquet) — « CPI 6902 2018 000 024 618 »:
   // registry(4) year(4) number(3 3 3). Strict structure + adjacent keyword; no
   // published checksum for this scheme, the 4-4-3-3-3 form is the second factor. Same
   // SHORT lookbehind as « RC » above, for the same cost reason.
@@ -175,10 +175,10 @@ export const FRANCE_RULES: RedactionRule[] = [
   // as AGDREF/CAF below). Left in clear it re-identifies the office even when the
   // notary's name and the office's address are redacted.
   { type: "company_id", pattern: gate("crpcen", String.raw`\d{5}\b`) },
-  // Passeport français — 2 digits + 2 letters + 5 digits ("12AB34567"). The shape
+  // French passport — 2 digits + 2 letters + 5 digits ("12AB34567"). The shape
   // reads like any product/order code → context-gated on the document word.
   nid(gate("passeport|passport", String.raw`\d{2}[A-Za-z]{2}\d{5}\b`)),
-  // Carte nationale d'identité — old card: 12 digits; 2021 card: 9 alnum document
+  // French national identity card — old card: 12 digits; 2021 card: 9 alnum document
   // number. Both banal shapes → gated (both apostrophe glyphs tolerated in the label).
   nid(
     gate(
@@ -186,7 +186,7 @@ export const FRANCE_RULES: RedactionRule[] = [
       String.raw`\d{12}\b|(?=[A-Za-z0-9]{9}\b)(?=[A-Za-z]*\d)[A-Za-z0-9]{9}\b`,
     ),
   ),
-  // Permis de conduire — 12 alphanumerics (old + new formats), must carry a digit
+  // Driving licence — 12 alphanumerics (old + new formats), must carry a digit
   // (else an ordinary 12-letter word after "permis" would match). Gated.
   nid(
     gate(
@@ -194,22 +194,22 @@ export const FRANCE_RULES: RedactionRule[] = [
       String.raw`(?=[A-Za-z0-9]{12}\b)(?=[A-Za-z]*\d)[A-Za-z0-9]{12}\b`,
     ),
   ),
-  // Titre de séjour / numéro étranger (AGDREF) — 9-10 digits, banal shape → gated.
+  // Residence permit / foreign-national number (AGDREF) — 9-10 digits, banal shape → gated.
   nid(gate("titre de s[eé]jour|num[eé]ro [eé]tranger|agdref", String.raw`\d{9,10}\b`)),
-  // CAF allocataire (7 digits) / France Travail–Pôle Emploi id (digits, often + a
+  // CAF beneficiary id (7 digits) / France Travail–Pôle Emploi id (digits, often + a
   // letter; the post-2024 "numéro France Travail" is 11 digits) — banal shapes, no
   // published checksum → the scheme keyword IS the precision (same as AGDREF above).
   nid(gate(
     String.raw`caf|allocataires?|p[oô]le[ -]?emploi|france[ -]travail|demandeur d'emploi`,
     String.raw`\d{7,11}[A-Za-z]?\b`,
   )),
-  // ── Identifiants de PROCÉDURE (juridiction / auxiliaires de justice) ──────────
+  // ── PROCEDURE identifiers (jurisdiction / court officers) ─────────────────────
   // A court document's own reference numbers. They carry no personal data by
   // themselves, yet a RG or a Portalis number is a PUBLIC docket key: it
   // RE-IDENTIFIES the parties whose names the engine just redacted. Banal shapes →
   // gated on the scheme keyword, which IS the precision (same discipline as CRPCEN
   // and AGDREF above); no published checksum for any of them.
-  // « N° RG 23/04871 » — année/numéro d'ordre.
+  // « N° RG 23/04871 » — year/sequence number.
   { type: "national_id", pattern: gate(String.raw`r\.?g\.?`, String.raw`\d{2}[\/-]\d{3,6}\b`) },
   // « N° Portalis DB3R-W-B7H-XKLM » — the national case identifier.
   {
@@ -220,7 +220,7 @@ export const FRANCE_RULES: RedactionRule[] = [
   // identifies the LAWYER (their name is redacted beside it, so leaving the toque
   // undoes that).
   { type: "national_id", pattern: gate("toque", String.raw`[A-Z]{0,2}\s?\d{2,5}\b`) },
-  // INE (identifiant national élève/étudiant) — 10 digits + 1 letter (BEA) or
+  // INE (national pupil/student identifier) — 10 digits + 1 letter (BEA) or
   // 9 digits + 2 letters (RNIE); banal alnum shape → gated on the scheme keyword.
   nid(gate(
     String.raw`ine|identifiant national|num[eé]ro [eé]tudiant|num[eé]ro [eé]l[èe]ve`,

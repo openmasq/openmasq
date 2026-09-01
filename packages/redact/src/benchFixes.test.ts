@@ -6,9 +6,9 @@ import { isGenericTerm } from "./model/genericTerms";
 import { createNerPredict } from "./local/ner";
 import { detectLocalNer } from "./local/detect";
 
-/* Ce que le bench manuel du 27/07/2026 a réellement trouvé, une fois rejoué contre le
-   chemin d'ENVOI et non contre l'aperçu du composeur. Chaque cas ci-dessous a été mesuré
-   avant correction. */
+/* What the manual bench from 27/07/2026 actually found, once replayed against the
+   SEND path rather than the composer's preview. Each case below was measured
+   before the fix. */
 
 const MODEL_DIR = resolve(process.cwd(), "apps/desktop/build/ner-models");
 const withNer = existsSync(MODEL_DIR) ? it : it.skip;
@@ -28,7 +28,7 @@ describe("champ de compte en PROSE — « mon pseudo est … »", () => {
   });
 
   it("⚠️ exige le POSSESSIF — c'est lui qui rend la règle sûre", async () => {
-    // Sans ce garde, « Le login est obligatoire » redact « obligatoire ».
+    // Without this guard, « Le login est obligatoire » would redact « obligatoire ».
     for (const p of ["Le login est obligatoire.", "Le pseudo est libre."]) {
       const vault: Record<string, string> = {};
       await pseudonymize(p, { vault });
@@ -39,8 +39,8 @@ describe("champ de compte en PROSE — « mon pseudo est … »", () => {
 
 describe("faux positifs mesurés — le mot ordinaire partait en prénom", () => {
   it("couvre les étiquettes de compte et les verbes de mise en relation", () => {
-    // « Mon login est ajoligy92 » redact « login » et laissait ajoligy92 ; « Appelle le
-    // 06 … » remplaçait « Appelle » par un prénom et le modèle recevait une phrase absurde.
+    // « Mon login est ajoligy92 » redacted « login » and left ajoligy92 in clear; « Appelle le
+    // 06 … » replaced « Appelle » with a first name and the model received an absurd sentence.
     for (const w of ["login", "pseudo", "identifiant", "username", "matricule",
       "appelle", "rappelle", "joignable", "contacte", "envoie"])
       expect(isGenericTerm(w), w).toBe(true);
@@ -59,7 +59,7 @@ describe("faux positifs mesurés — le mot ordinaire partait en prénom", () =>
       await pseudonymize(p, { vault, detectLocal });
       const mots = Object.values(vault).filter((v) => /^[A-Za-zÀ-ÿ]+$/.test(v));
       expect(mots, p).toEqual([]);
-      // …et le numéro, lui, est toujours protégé.
+      // …and the number, itself, is still protected.
       expect(Object.values(vault).some((v) => /\d/.test(v)), p).toBe(true);
     }
   }, 900000);
@@ -79,14 +79,14 @@ describe("notoriété RATTACHÉE à la personne", () => {
       await pseudonymize(p, { vault, detectLocal });
       return Object.values(vault);
     };
-    // La notoriété dit que l'entité est publique ; elle ne dit pas que la RELATION l'est.
+    // Notoriety says the entity is public; it does not say the RELATION is.
     expect(await vaultOf("Je travaille chez Google.")).toContain("Google");
     expect(await vaultOf("Notre client BNP Paribas a signé.")).toContain("BNP Paribas");
     expect(await vaultOf("I work at Airbus.")).toContain("Airbus");
-    // …et un TIERS, ou une question de culture générale, restent intacts : c'est ce que
-    // le retrait complet du filtre détruisait (mesuré : 10 régressions nommées).
-    // Une MARQUE tierce est désormais redacted elle aussi (décision du 27/07/2026) :
-    // seuls les organismes publics, les indices et la culture générale restent en clair.
+    // …and a THIRD PARTY, or a general-knowledge question, stay intact: that's what
+    // removing the filter entirely destroyed (measured: 10 named regressions).
+    // A third-party BRAND is now redacted too (decision of 27/07/2026):
+    // only public bodies, indices and general knowledge remain in clear.
     expect(await vaultOf("Renault a présenté sa nouvelle voiture.")).toContain("Renault");
     expect(await vaultOf("Le courrier vient de Pôle emploi.")).toEqual([]);
     expect(await vaultOf("Quelles sont les plus grandes villes de France ?")).toEqual([]);

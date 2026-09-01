@@ -16,7 +16,7 @@
  * `vidal` for the same reason.
  */
 export const SANTE_TERMS: string[] = [
-  // ── Professions & services — français ──────────────────────────────────────
+  // ── Professions & services — French ────────────────────────────────────────
   "médecin", "medecin", "médecins", "généraliste", "generaliste", "spécialiste",
   "specialiste", "praticien", "praticienne", "cardiologue", "dermatologue",
   "pédiatre", "pediatre", "gynécologue", "gynecologue", "ophtalmologue",
@@ -34,7 +34,7 @@ export const SANTE_TERMS: string[] = [
   "chirurgien-dentiste", "orthodontiste", "vétérinaire", "veterinaire",
   "manipulateur radio", "secrétaire médicale", "secretaire medicale",
 
-  // ── Structures & parcours — français ───────────────────────────────────────
+  // ── Structures & pathway — French ──────────────────────────────────────────
   "hôpital", "hopital", "hôpitaux", "hopitaux", "clinique", "polyclinique",
   "centre hospitalier", "cabinet médical", "cabinet medical", "maison de santé",
   "maison de sante", "centre de santé", "centre de sante", "dispensaire",
@@ -48,7 +48,7 @@ export const SANTE_TERMS: string[] = [
   "télémédecine", "telemedecine", "téléconsultation", "teleconsultation",
   "permanence des soins", "astreinte médicale", "astreinte medicale",
 
-  // ── Examens & actes — français ─────────────────────────────────────────────
+  // ── Exams & procedures — French ────────────────────────────────────────────
   "examen", "examens", "imagerie", "irm", "radiographie", "radio", "échographie",
   "echographie", "doppler", "scanner", "tomodensitométrie", "tomodensitometrie",
   "mammographie", "scintigraphie", "coloscopie", "endoscopie", "fibroscopie",
@@ -64,7 +64,7 @@ export const SANTE_TERMS: string[] = [
   "opération", "operation", "suture", "pansement", "plâtre", "platre", "attelle",
   "prothèse", "prothese", "orthèse", "orthese", "appareillage",
 
-  // ── Biologie & constantes — français ───────────────────────────────────────
+  // ── Biology & vital signs — French ─────────────────────────────────────────
   "hémoglobine", "hemoglobine", "glycémie", "glycemie", "cholestérol",
   "cholesterol", "triglycérides", "triglycerides", "créatinine", "creatinine",
   "plaquettes", "leucocytes", "globules blancs", "globules rouges", "hématocrite",
@@ -75,7 +75,7 @@ export const SANTE_TERMS: string[] = [
   "fréquence cardiaque", "frequence cardiaque", "saturation", "température",
   "temperature", "poids", "taille", "indice de masse corporelle",
 
-  // ── Clinique & traitement — français ───────────────────────────────────────
+  // ── Clinical & treatment — French ──────────────────────────────────────────
   "diagnostic", "pronostic", "symptôme", "symptome", "symptômes", "symptomes",
   "antécédents", "antecedents", "allergie", "allergies", "intolérance",
   "intolerance", "traitement", "traitements", "prescription", "posologie",
@@ -86,7 +86,7 @@ export const SANTE_TERMS: string[] = [
   "rémission", "remission", "guérison", "guerison", "chronique", "aigu", "aiguë",
   "aigue", "bénin", "benin", "stade", "grade",
 
-  // ── Droits, social & handicap — français ───────────────────────────────────
+  // ── Rights, social & disability — French ───────────────────────────────────
   "affection de longue durée", "arrêt de travail", "arret de travail",
   "arrêt maladie", "arret maladie", "invalidité", "invalidite", "incapacité",
   "incapacite", "handicap", "aidant", "aidant familial", "dépendance",
@@ -115,7 +115,7 @@ export const SANTE_TERMS: string[] = [
   "haemoglobin", "platelets", "white blood cells", "red blood cells",
   "side effect", "contraindication", "remission", "relapse", "chronic", "acute",
 
-  // ── Deutsch ────────────────────────────────────────────────────────────────
+  // ── German ─────────────────────────────────────────────────────────────────
   "arzt", "ärztin", "arztin", "hausarzt", "hausärztin", "facharzt", "fachärztin",
   "kinderarzt", "zahnarzt", "frauenarzt", "augenarzt", "chirurg", "chirurgin",
   "anästhesist", "anasthesist", "psychiater", "psychologe", "physiotherapeut",
@@ -128,7 +128,7 @@ export const SANTE_TERMS: string[] = [
   "einweisung", "entlassung", "krankschreibung", "patient", "patientin",
   "vorsorge", "nachsorge", "pflege", "pflegegrad", "schweigepflicht",
 
-  // ── Español ────────────────────────────────────────────────────────────────
+  // ── Spanish ────────────────────────────────────────────────────────────────
   "médico", "medico", "médica", "medica", "facultativo", "enfermero", "enfermera",
   "matrona", "farmacéutico", "farmaceutico", "farmacia", "cirujano", "cirujana",
   "pediatra", "cardiólogo", "cardiologo", "ginecólogo", "ginecologo",
@@ -145,7 +145,7 @@ export const SANTE_TERMS: string[] = [
   "anestesia", "tensión arterial", "tension arterial", "efecto secundario",
   "efectos secundarios",
 
-  // ── Italiano ───────────────────────────────────────────────────────────────
+  // ── Italian ────────────────────────────────────────────────────────────────
   "medico di base", "medico curante", "infermiere", "infermiera", "ostetrica",
   "farmacista", "chirurgo", "cardiologo", "ginecologo", "oculista", "dentista",
   "fisioterapista", "psicologo", "ospedale", "ambulatorio", "pronto soccorso",
@@ -157,7 +157,7 @@ export const SANTE_TERMS: string[] = [
   "chemioterapia", "radioterapia", "riabilitazione", "chirurgia", "anestesia",
   "pressione arteriosa", "effetto collaterale", "paziente",
 
-  // ── Português ──────────────────────────────────────────────────────────────
+  // ── Portuguese ─────────────────────────────────────────────────────────────
   "médico de família", "medico de familia", "enfermeiro", "enfermeira",
   "parteira", "farmacêutico", "farmaceutico", "farmácia", "farmacia", "cirurgião",
   "cirurgiao", "cardiologista", "ginecologista", "oftalmologista", "pediatra",

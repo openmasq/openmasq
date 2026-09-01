@@ -8,10 +8,10 @@ import { EB_CONFIG, type EbConfigShape } from "./shippedTriples";
 const require = createRequire(import.meta.url);
 const realConfig = () => require(EB_CONFIG) as EbConfigShape;
 
-// `mac-release.ts` orchestre des processus (electron-builder, notarytool, stapler) : ce qui
-// se teste hors machine, c'est la seule décision qu'il prend lui-même — QUELLES arches il
-// traite. Le reste se relit par `OPENMASQ_MAC_RELEASE_DRY_RUN=1`, qui imprime le plan complet
-// sans rien exécuter.
+// `mac-release.ts` orchestrates processes (electron-builder, notarytool, stapler): what
+// can be tested off-machine is the one decision it makes itself — WHICH arches it
+// processes. The rest is reviewed via `OPENMASQ_MAC_RELEASE_DRY_RUN=1`, which prints the full plan
+// without running anything.
 describe("mac-release — les arches viennent d'electron-builder.cjs", () => {
   it("ne recopie aucune liste : elle est lue dans la config qui la décide", () => {
     const arches = macArches(realConfig());
@@ -23,17 +23,17 @@ describe("mac-release — les arches viennent d'electron-builder.cjs", () => {
     expect(macArches(config)).toEqual(["arm64"]);
   });
 
-  // ⚠️ L'ORDRE compte, et c'est pour ça qu'il est épinglé. La première arche traitée sert de
-  // BASE à la fusion des manifestes : c'est son `path:`/`sha512:` de tête — les champs
-  // hérités qu'un très vieux client lirait faute de savoir filtrer par arche — qui ressort.
-  // Le bloc `files:`, lui, est identique quel que soit l'ordre.
+  // ⚠️ ORDER matters, and that's why it's pinned. The first arch processed serves as the
+  // BASE for the manifest merge: it's its top-level `path:`/`sha512:` — the
+  // legacy fields a very old client would read for lack of knowing how to filter by arch — that come out on top.
+  // The `files:` block, on the other hand, is identical regardless of order.
   it("traite l'arm64 en premier (la base du manifeste fusionné)", () => {
     expect(macArches(realConfig())[0]).toBe("arm64");
   });
 
-  // Échec FERMÉ, hérité de `shippedTriples` : « aucune arche » n'est jamais une vérité utile.
-  // Une forme de config devenue méconnaissable doit arrêter la release, pas produire une
-  // boucle qui ne notarise rien et se termine en vert.
+  // FAIL CLOSED, inherited from `shippedTriples`: "no arch" is never a useful truth.
+  // A config shape that has become unrecognizable must stop the release, not produce a
+  // loop that notarizes nothing and ends up green.
   it("refuse un electron-builder.cjs dont la forme a changé", () => {
     expect(() => macArches({ mac: { target: [] }, win: {} })).toThrow(/aucune .*arch/i);
   });

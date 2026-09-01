@@ -2,13 +2,13 @@ import { annotatedCutRow, delimitedGrid } from "@openmasq/redact/documents.brows
 import { MAX_FILE_CHARS } from "../../../../send/foldPayload";
 
 /**
- * La COUPE d'envoi d'un tableur, mappée sur les LIGNES de sa grille — CSV/TSV
- * seulement : même parseur et même sérialisation que l'extraction
- * (`delimitedGrid`/`annotatedCutRow`, une seule maison — règle 9), donc la ligne
- * rendue grisée est EXACTEMENT celle où l'envoi s'arrête. Un classeur XLSX
- * multi-feuilles n'a pas ce mapping sûr (l'extraction saute les lignes vides) :
- * il reste à `null` et l'appelant montre la note générique — jamais un rang faux.
- * Null aussi quand le texte annoté tient dans la borne (pas de coupe).
+ * The send CUTOFF for a spreadsheet, mapped onto the ROWS of its grid — CSV/TSV
+ * only: same parser and same serialization as the extraction
+ * (`delimitedGrid`/`annotatedCutRow`, a single house — rule 9), so the row
+ * rendered greyed-out is EXACTLY the one where the send stops. A multi-sheet
+ * XLSX workbook has no such safe mapping (the extraction skips blank rows):
+ * it stays `null` and the caller shows the generic note — never a wrong row.
+ * Also null when the annotated text fits within the bound (no cutoff).
  */
 export function sheetSendCutRow(
   name: string,

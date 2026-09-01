@@ -120,7 +120,7 @@ const rotItem = (str: string, x: number, y: number, w = 20, h = 10): PdfTextItem
 
 describe("reconstructLayout — rotated text is quarantined, not interleaved", () => {
   it("emits a vertical margin banner AFTER the body, never inside its lines", () => {
-    // SACEM-relevé pathology (anonymised): a dense body table sharing its y-range with a
+    // SACEM-statement pathology (anonymised): a dense body table sharing its y-range with a
     // vertical banner running up the right margin. Treating the banner's (x,y) as
     // horizontal baselines interleaved its words into the table lines.
     const body = [

@@ -9,22 +9,22 @@ import { mount } from "../../testKit";
 import type { Settings } from "../../types";
 
 /**
- * LE SÉLECTEUR DE LANGUE DOIT ÉCRIRE AUX DEUX ENDROITS — et rester lisible dans la langue
- * qu'on ne comprend pas.
+ * THE LANGUAGE PICKER MUST WRITE IN BOTH PLACES — and stay readable in the language
+ * you don't understand.
  *
- * C'est la seule commande de l'app qu'on vient chercher PARCE QU'ON NE COMPREND PAS ce qui
- * s'affiche. Deux règles en découlent, et une seule des deux ne suffit jamais :
+ * It's the one control in the app you come looking for BECAUSE YOU DON'T UNDERSTAND what's
+ * displayed. Two rules follow from that, and neither one alone is ever enough:
  *
- *  1. les options portent des ENDONYMES, pas des noms traduits — « English » doit se lire
- *     « English » quand l'app est en français, sinon l'anglophone ne trouve pas sa ligne ;
- *  2. le choix s'écrit à la fois dans la clé d'APPAREIL (relue avant le premier paint, donc
- *     pas de flash de langue au démarrage) ET dans `Settings.language` (qui voyage avec le
- *     compte). Une seule des deux écritures donne soit un clignotement au boot, soit un
- *     réglage qui ne suit pas l'utilisateur sur son second appareil.
+ *  1. the options carry ENDONYMS, not translated names — "English" must read as
+ *     "English" when the app is in French, otherwise the English speaker can't find their row;
+ *  2. the choice is written both to the DEVICE key (re-read before the first paint, so
+ *     no language flash on startup) AND to `Settings.language` (which travels with the
+ *     account). Either write alone gives either a flicker at boot, or a
+ *     setting that doesn't follow the user to their second device.
  */
 
-/** Les Réglages montent un brouillon VIVANT (`useSettingsDraft` le lie au store) ; ici un
- *  `useState` joue le même rôle, et `seen` laisse le test lire son état final. */
+/** Réglages mounts a LIVE draft (`useSettingsDraft` binds it to the store); here a
+ *  `useState` plays the same role, and `seen` lets the test read its final state. */
 function Harness({ initial, seen }: { initial: Settings; seen: { current: Settings } }) {
   const [draft, setDraft] = useState(initial);
   seen.current = draft;
@@ -45,13 +45,13 @@ describe("Réglages → Apparence — le sélecteur de langue", () => {
       { wrap: inFrench },
     );
 
-    // Des endonymes : l'app est en français, « English » ne devient pas « Anglais ».
+    // Endonyms: the app is in French, "English" doesn't become "Anglais".
     expect(ui.findAll(".om-seg-btn").map((b) => b.textContent)).toEqual(["Français", "English"]);
-    // Le réglage synchronisé décide de la case cochée — une seule.
+    // The synced setting decides the checked box — a single one.
     expect(
       ui.findAll(".om-seg-btn").filter((b) => b.getAttribute("aria-checked") === "true").map((b) => b.textContent),
     ).toEqual(["English"]);
-    // Le thème n'a pas été perdu en route : la section porte toujours ses deux lignes.
+    // The theme wasn't lost along the way: the section still carries its two rows.
     expect(ui.findAll(".toggle-row")).toHaveLength(2);
 
     await ui.unmount();
@@ -61,7 +61,7 @@ describe("Réglages → Apparence — le sélecteur de langue", () => {
     const seen = { current: DEFAULT_SETTINGS };
     const ui = await mount(<Harness initial={DEFAULT_SETTINGS} seen={seen} />, { wrap: inFrench });
 
-    await ui.click(ui.findAll(".om-seg-btn")[1]); // « English »
+    await ui.click(ui.findAll(".om-seg-btn")[1]); // "English"
 
     expect(localStorage.getItem(LOCALE_KEY)).toBe("en");
     expect(seen.current.language).toBe("en");
@@ -70,9 +70,9 @@ describe("Réglages → Apparence — le sélecteur de langue", () => {
   });
 
   it("hors provider (aperçu web), le bouton ne ment pas : la préférence est quand même posée", async () => {
-    // Sans `I18nProvider` il n'y a aucun catalogue à basculer à chaud — mais un bouton qui
-    // n'enregistre RIEN serait pire qu'absent. `useLocale` retombe sur l'écriture de la clé
-    // d'appareil, donc le choix s'applique au démarrage suivant.
+    // Without `I18nProvider` there's no catalogue to hot-swap — but a button that
+    // saves NOTHING would be worse than none at all. `useLocale` falls back to writing the
+    // device key, so the choice applies on the next startup.
     const seen = { current: DEFAULT_SETTINGS };
     const ui = await mount(<Harness initial={DEFAULT_SETTINGS} seen={seen} />);
 

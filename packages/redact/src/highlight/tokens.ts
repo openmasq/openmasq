@@ -4,7 +4,7 @@ import { spanKindLabel } from "./segments";
 
 /**
  * DISPLAY tokens for the FAKES — the « [PERSON1] / [IBAN] » rendering the user can opt
- * into (Réglages, `redactTokenDisplay`) instead of seeing pseudonyms. It applies ONLY
+ * into (Settings, `redactTokenDisplay`) instead of seeing pseudonyms. It applies ONLY
  * where a pseudonym is what's displayed: the documents' redacted views. The conversation
  * marks show the user's REAL values and are never tokenised.
  *

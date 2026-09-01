@@ -52,7 +52,7 @@ describe("normalizeSettings — legacy toggles are stripped (rule 7: no fail-ope
   });
 
   it("clearStuckPending purge aussi « Mise en mémoire… » d'une session morte", () => {
-    // Une extraction qui n'a pas survécu au quit est morte : la légende figée mentirait.
+    // An extraction that didn't survive the quit is dead: the frozen caption would lie.
     const out = clearStuckPending([
       {
         id: "c",
@@ -67,12 +67,12 @@ describe("normalizeSettings — legacy toggles are stripped (rule 7: no fail-ope
   });
 
   it("migre l'ancien défaut anglais du prompt système vers le défaut français", () => {
-    // L'ancien défaut ("You are a helpful assistant.") tirait la RÉFLEXION des modèles vers
-    // l'anglais et, une fois le défaut changé, passerait pour un prompt PERSONNALISÉ (une
-    // passe de détection payée à chaque envoi — `shouldRedactSystemPrompt`).
+    // The old default ("You are a helpful assistant.") pulled the models' REASONING toward
+    // English and, once the default changed, would pass for a CUSTOM prompt (a
+    // detection pass paid on every send — `shouldRedactSystemPrompt`).
     const out = normalizeSettings(legacy({ systemPrompt: "You are a helpful assistant." }));
     expect(out.systemPrompt).toBe(DEFAULT_SETTINGS.systemPrompt);
-    // Le défaut courant est bien français, et un prompt réellement personnalisé survit.
+    // The current default is indeed French, and a genuinely custom prompt survives.
     expect(DEFAULT_SETTINGS.systemPrompt).toBe("Tu es un assistant utile.");
     expect(normalizeSettings(legacy({ systemPrompt: "Réponds en vers." })).systemPrompt).toBe(
       "Réponds en vers.",
@@ -110,7 +110,7 @@ describe("normalizeSettings — legacy toggles are stripped (rule 7: no fail-ope
 
 describe("l'accent vert n'est plus une option", () => {
   it("traduit un thème persisté vers son jumeau indigo, en gardant le fond choisi", () => {
-    // Le FOND reste au choix de la personne ; seul l'accent est imposé.
+    // The BACKGROUND stays the person's choice; only the accent is imposed.
     expect(normalizeSettings(legacy({ theme: "light" })).theme).toBe("blue");
     expect(normalizeSettings(legacy({ theme: "dark" })).theme).toBe("blue-dark");
     expect(normalizeSettings(legacy({ theme: "blue" })).theme).toBe("blue");
@@ -121,8 +121,8 @@ describe("l'accent vert n'est plus une option", () => {
     expect(blueAccent(undefined)).toBe("blue");
   });
 
-  // C'est LE piège du retrait d'un interrupteur : sans coercition au chargement, le
-  // compte qui avait le vert le garderait pour toujours, sans surface pour en sortir.
+  // This is THE trap of removing a toggle: without coercion on load, the
+  // account that had green would keep it forever, with no surface to get out of it.
   it("le retrait de l'interrupteur ne fige personne sur l'ancien accent", () => {
     const vert = legacy({ theme: "dark" });
     expect(normalizeSettings(vert).theme).not.toBe("dark");
@@ -130,9 +130,9 @@ describe("l'accent vert n'est plus une option", () => {
 });
 
 describe("stripUserContentForLocal — l'org suit le même régime au repos que le personnel", () => {
-  // F1 : quand la base chiffrée possède les réglages, la copie localStorage en clair
-  // ne doit porter NI le coffre/compétences personnels NI leurs miroirs d'ORGANISATION
-  // (mêmes classes de contenu : vraies valeurs, vrais exemples collés).
+  // F1: when the encrypted DB holds the settings, the plaintext localStorage copy
+  // must carry NEITHER the personal coffre/compétences NOR their ORGANIZATION mirrors
+  // (same content classes: real values, real pasted examples).
   const filled = (): Settings =>
     ({
       ...DEFAULT_SETTINGS,

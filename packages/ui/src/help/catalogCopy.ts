@@ -4,25 +4,25 @@ import { mcpAuthShape, type McpAuthTag, type McpConnector } from "@openmasq/cata
 import type { ModelMeta, ModelTag } from "@openmasq/llm";
 
 /**
- * Les mots de l'UI pour ce que les CATALOGUES partagés décrivent — connecteurs MCP,
- * catégories de redaction, modèles.
+ * The UI words for what the shared CATALOGUES describe — MCP connectors,
+ * redaction categories, models.
  *
- * `@openmasq/catalog` et `@openmasq/llm` gardent la STRUCTURE (ids, catégories, transport,
- * profil) et la copie que le MODÈLE lit (`desc` sert `suggest_integrations`) ; la copie
- * que la PERSONNE lit vit dans `@openmasq/i18n` (`connectorCatalog`, `redactionCatalog`,
- * `modelCatalog`), et ce fichier est le seul endroit qui les rapproche. Aucun compilateur
- * ne relie un id de catalogue à sa clé de catalogue : `catalogCopy.test.ts` le fait, dans
- * chaque langue. Le repli (la copie française du catalogue) n'est là que pour qu'un id
- * ajouté avant sa traduction ne rende jamais une puce vide.
+ * `@openmasq/catalog` and `@openmasq/llm` keep the STRUCTURE (ids, categories, transport,
+ * profile) and the copy the MODEL reads (`desc` serves `suggest_integrations`); the copy
+ * the PERSON reads lives in `@openmasq/i18n` (`connectorCatalog`, `redactionCatalog`,
+ * `modelCatalog`), and this file is the only place that brings them together. No compiler
+ * links a catalogue id to its catalogue key: `catalogCopy.test.ts` does, in
+ * every language. The fallback (the catalogue's French copy) is only there so an id
+ * added before its translation never renders an empty chip.
  */
 
-/** Le libellé d'une catégorie de connecteur (« Autres » pour un id inconnu ou absent). */
+/** A connector category's label ("Autres" for an unknown or absent id). */
 export function mcpCategoryLabel(id: string | undefined, t: Messages): string {
   const cats = t.connectorCatalog.categories as Record<string, string>;
   return (id && cats[id]) || cats.other;
 }
 
-/** Nom + description d'un connecteur dans la langue de `t`, le catalogue en repli. */
+/** A connector's name + description in `t`'s language, the catalogue as fallback. */
 export function connectorCopy(
   id: string,
   fallback: { name: string; desc: string },
@@ -32,9 +32,9 @@ export function connectorCopy(
   return { name: copy?.name ?? fallback.name, desc: copy?.desc ?? fallback.desc };
 }
 
-/** L'étiquette d'authentification d'un connecteur — la FORME vient du catalogue
- *  (`mcpAuthShape`), les mots d'ici. Même découpage que `mcpAuthTag`, en français
- *  comme en anglais. */
+/** A connector's auth label — the SHAPE comes from the catalogue
+ *  (`mcpAuthShape`), the words from here. Same split as `mcpAuthTag`, in French
+ *  as in English. */
 export function mcpAuthTagCopy(
   c: Pick<McpConnector, "transport" | "auth" | "directAuth" | "byoOnly" | "byoReason" | "byoAdds">,
   t: Messages,
@@ -78,7 +78,7 @@ export function mcpAuthTagCopy(
   }
 }
 
-/** Libellé / détail / impact d'une catégorie de redaction, le catalogue en repli. */
+/** Label / detail / impact of a redaction category, the catalogue as fallback. */
 export function redactionCopy(
   key: string,
   fallback: { label: string; detail?: string; impact?: string },
@@ -87,17 +87,17 @@ export function redactionCopy(
   return t.redactionCatalog.categories[key] ?? fallback;
 }
 
-/** Le titre d'une SECTION du modal des règles (les clés du catalogue sont ses noms français). */
+/** The title of a rules modal SECTION (the catalogue's keys are its French names). */
 export function redactionSectionLabel(group: string, t: Messages): string {
   return t.redactionCatalog.sections[group] ?? group;
 }
 
-/** Le libellé court d'un type de valeur protégée (rapport, journal, chronologie). */
+/** The short label of a protected value type (report, log, timeline). */
 export function privacyKindLabel(key: string, t: Messages): string {
   return t.redactionCatalog.kinds[key] ?? key;
 }
 
-/** Points forts / limites / usage d'un modèle ; un id inconnu prend la copie de sa famille. */
+/** Strengths / limits / usage of a model; an unknown id takes its family's copy. */
 export function modelCopy(id: string, meta: ModelMeta, t: Messages): ModelCopy {
   return t.modelCatalog.models[id] ?? t.modelCatalog.fallback[meta.fallback ?? "generic"];
 }

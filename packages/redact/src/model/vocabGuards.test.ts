@@ -23,22 +23,22 @@ describe("vocabulary volumes — the invariants that bound an allow-list", () =>
       "observabilité", "télémétrie", "vulnérabilité", "déploiement continu",
       "intégration continue", "requête sql", "modèle de langage", "spécification",
       "expression régulière", "hameçonnage", "rançongiciel", "bac à sable",
-      // santé
+      // health
       "médecin", "échographie", "glycémie", "hémoglobine", "anesthésie",
       "tension artérielle", "rééducation", "prélèvement", "hôpital",
-      // éducation
+      // education
       "école", "lycée", "université", "baccalauréat", "relevé de notes",
       "thèse", "matière", "moyenne générale", "élève", "étudiant",
-      // droit
+      // law
       "considérant", "référé", "délibéré", "préjudice", "créance", "nullité",
       "dommages et intérêts", "responsabilité",
-      // gestion
+      // accounting
       "comptabilité", "trésorerie", "rentabilité", "créances", "échéance",
       "résultat net", "chiffre d'affaires", "immobilisation",
-      // vie professionnelle
+      // professional life
       "réunion", "compte rendu", "séminaire", "fidélisation", "réclamation",
       "déplacement", "péage", "aéroport", "grève",
-      // autres langues
+      // other languages
       "diagnóstico", "análisis", "matrícula", "responsabilità", "università",
       "prüfung", "überweisung", "gewährleistung", "avaliação", "orçamento",
     ];
@@ -69,17 +69,17 @@ describe("vocabulary volumes — the invariants that bound an allow-list", () =>
       "apgar", "glasgow", "charcot", "basedow", "ménière", "meniere", "dupuytren",
       "sjögren", "sjogren", "behçet", "behcet", "asperger", "cushing", "addison",
       "raynaud", "paget", "wilson", "tourette", "bichat", "broca", "babinski",
-      // laboratoires et marques — leur place est `notorious.ts`, qui est SCOPÉ par
-      // catégorie : y épargner « Roche » épargnerait aussi le patronyme de Jeanne Cayre,
-      // qui est dans le corpus.
+      // labs and brands — their place is `notorious.ts`, which is SCOPED by
+      // category: sparing « Roche » there would also spare Jeanne Cayre's surname,
+      // who is in the corpus.
       "roche", "servier", "bayer", "merck", "sanofi", "pfizer", "novartis", "biogaran",
       "doliprane", "spasfon", "levothyrox", "efferalgan",
-      // libellés de formulaire écartés sur collision réelle (cf. `vocab/formulaire.ts`)
+      // form labels excluded on a real collision (cf. `vocab/formulaire.ts`)
       "moy", "signe", "colon", "rein", "iris",
-      // RETIRÉS des volumes par le garde-fou mécanique ci-dessous : chacun était une
-      // entrée « évidemment générique » qui épargnait un prénom ou un patronyme réel.
-      // Le coût assumé est une perte de couverture (« mark » sur un relevé anglais,
-      // « malin » au sens médical) ; le coût inverse aurait été un nom en clair.
+      // REMOVED from the volumes by the mechanical guard below: each was an
+      // "obviously generic" entry that spared a real first name or surname.
+      // The accepted cost is a loss of coverage ("mark" on an English statement,
+      // "malin" in the medical sense); the reverse cost would have been a name left in clear.
       "loan", "cassandra", "dora", "malin", "mark", "grant", "barreau", "asma", "ward",
       // tech words that double as given names/surnames. NOT here: `swift` — the banking
       // label list in `genericTermsData.ts` spares it as the SWIFT/BIC header, a call
@@ -119,23 +119,23 @@ describe("vocabulary volumes — the invariants that bound an allow-list", () =>
   });
 
   /**
-   * Le garde-fou MÉCANIQUE des collisions — la règle 2 de `vocab/index.ts` rendue
-   * exécutable. Un terme ne doit jamais être atteignable comme prénom ou patronyme réel.
+   * The MECHANICAL guard against collisions — rule 2 of `vocab/index.ts` made
+   * executable. A term must never be reachable as a real first name or surname.
    *
-   * ⚠️ La comparaison reproduit EXACTEMENT la portée de `isGenericTerm` : minuscules,
-   * délimiteurs repliés, **accents CONSERVÉS**. C'est ce qui rend la règle 4 utile —
-   * « marié » n'épargne pas « Marie », et « signé » n'épargne pas « Signe ». Plier les
-   * accents ici accuserait des entrées que le moteur ne peut pas confondre… et surtout
-   * masquerait la seule chose dangereuse : le JUMEAU ASCII ajouté à la main. C'est le
-   * piège que le dossier documente (« campaña » / « campana »), et il ne se voit qu'à
-   * accents conservés.
+   * ⚠️ The comparison reproduces EXACTLY the scope of `isGenericTerm`: lowercase,
+   * delimiters folded, **accents KEPT**. That's what makes rule 4 useful —
+   * « marié » doesn't spare « Marie », and « signé » doesn't spare « Signe ». Folding
+   * accents here would flag entries the engine can never confuse… and worse, it
+   * would hide the one dangerous thing: the ASCII TWIN added by hand. That's the
+   * trap the file documents (« campaña » / « campana »), and it's only visible with
+   * accents kept.
    *
-   * Les patronymes venaient AUSSI des vérités `NAME` des corpus de bancs ; ces corpus
-   * vivent désormais hors de ce dépôt (bancs privés), et cette moitié de la moisson
-   * tourne là-bas. Ici reste la liste CURÉE — l'axe le plus dense en pièges dès qu'on
-   * ajoute du vocabulaire COURANT : « poisson », « berger », « boulanger », « chevalier »
-   * sont des noms portés par des gens réels. La liste est de TEST — jamais lue par le
-   * moteur.
+   * Surnames used to ALSO come from the bench corpora's `NAME` truths; those corpora
+   * now live outside this repo (private benches), and that half of the harvest
+   * runs there. What remains here is the CURATED list — the axis densest in traps as
+   * soon as COMMON vocabulary is added: « poisson », « berger », « boulanger », « chevalier »
+   * are names carried by real people. This list is TEST-ONLY — never read by the
+   * engine.
    */
   it("n'est atteignable ni comme prénom ni comme patronyme réel", () => {
     const key = (x: string) => x.trim().toLowerCase().replace(/[.\s_'’-]+/g, "");

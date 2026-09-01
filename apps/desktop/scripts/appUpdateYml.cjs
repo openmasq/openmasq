@@ -1,33 +1,33 @@
-// Le CONTENU d'`app-update.yml` — la maison côté BUILD de cette forme.
+// The CONTENT of `app-update.yml` — the BUILD-side home of this shape.
 //
-// electron-builder n'écrit ce fichier que lorsqu'il fabrique une cible distribuable :
-// un empaquetage `--dir` ne le produit pas, et `--prepackaged` reprend l'app telle
-// quelle. Le pipeline mac scindé (`mac-release.ts`, qui notarise les deux arches en
-// parallèle) enchaîne exactement ces deux étapes — la 0.6.0 est donc partie SANS le
-// fichier, et electron-updater échoue en ENOENT à chaque vérification : plus aucune
-// mise à jour automatique, sur la release dont la note annonçait justement qu'elle
-// s'installe toute seule. `afterPack.cjs` l'écrit désormais lui-même, AVANT la
-// signature (l'ajouter après invaliderait le sceau).
+// electron-builder only writes this file when it produces a distributable target:
+// a `--dir` packaging doesn't produce it, and `--prepackaged` reuses the app as-is.
+// The split mac pipeline (`mac-release.ts`, which notarizes both arches IN
+// parallel) chains exactly these two steps — the 0.6.0 therefore shipped WITHOUT the
+// file, and electron-updater fails with ENOENT on every check: no more automatic
+// update, on the very release whose note announced that it installs itself. `afterPack.cjs`
+// now writes it itself, BEFORE
+// signing (adding it afterward would invalidate the seal).
 //
-// La forme reproduit l'octet près ce qu'electron-builder génère (vérifié contre un
-// build du chemin normal). `updaterCacheDirName` est le champ porteur : c'est lui que
-// electron-updater lit même quand `setFeedURL` a remplacé l'URL.
+// The shape reproduces byte-for-byte what electron-builder generates (verified against a
+// build of the normal path). `updaterCacheDirName` is the load-bearing field: it's the one
+// electron-updater reads even when `setFeedURL` has replaced the URL.
 //
-// ⚠️ Une COPIE de cette forme vit côté exécution (`src/main/updates/appUpdateConfig.ts`,
-// l'auto-réparation) : un module CJS de build ne s'importe pas depuis le bundle main.
-// La parité des deux est tenue par `src/main/updates/appUpdateConfig.test.ts`, qui LIT
-// les deux implémentations et compare leurs sorties.
+// ⚠️ A COPY of this shape lives on the runtime side (`src/main/updates/appUpdateConfig.ts`,
+// the auto-repair): a build-side CJS module can't be imported from the main bundle.
+// Parity between the two is held by `src/main/updates/appUpdateConfig.test.ts`, which READS
+// both implementations and compares their outputs.
 
 /**
- * @param {unknown} publish La config `publish` d'electron-builder.cjs (objet ou liste).
- * @param {string} productFilename Le nom produit (branding `name`).
- * @returns {string} Le YAML complet, LF final compris.
+ * @param {unknown} publish The `publish` config from electron-builder.cjs (object or list).
+ * @param {string} productFilename The product name (branding `name`).
+ * @returns {string} The complete YAML, trailing LF included.
  */
 function appUpdateYmlContent(publish, productFilename) {
   const p = Array.isArray(publish) ? publish[0] : publish;
   if (!p || p.provider !== "generic" || typeof p.url !== "string" || !p.url) {
-    // Pas de repli silencieux : un feed qu'on ne sait pas décrire est un feed qu'on
-    // ne doit pas inventer — l'appelant échoue et l'empaquetage s'arrête.
+    // No silent fallback: a feed we can't describe is a feed we must not
+    // invent — the caller fails and packaging stops.
     throw new Error("appUpdateYml: config publish inattendue (provider generic + url requis)");
   }
   const channel = typeof p.channel === "string" && p.channel ? p.channel : "latest";

@@ -13,10 +13,10 @@ import type { Extraction } from "./extractParse";
  *  PROFILE gained new text this run (a preference like « je préfère… » lands here, not
  *  as a card — the caller's chat feedback needs to know, or a profile-only save reads
  *  as « rien retenu ») — pure; the caller persists.
- *  Ce qu'une fusion RETIRE d'une carte (phrase d'attribut remplacée, éviction à
- *  saturation) entre dans son `factsLog` — jamais perdu en silence ; `updatedIds`
- *  nomme les cartes EXISTANTES que la passe a modifiées, pour que la légende du chat
- *  rende la mise à jour visible (et inspectable) au lieu de silencieuse. */
+ *  What a merge REMOVES from a card (replaced attribute sentence, saturation
+ *  eviction) goes into its `factsLog` — never silently lost; `updatedIds`
+ *  names the EXISTING cards this pass modified, so the chat's legend
+ *  makes the update visible (and inspectable) instead of silent. */
 export function mergeExtraction(
   memory: MemoryData,
   resolved: Extraction,
@@ -36,20 +36,20 @@ export function mergeExtraction(
   for (const f of resolved.facts) {
     const key = normalizeMem(f.entity);
     const surfaces = (c: MemoryCard): string[] => [c.entity, ...(c.aliases ?? [])];
-    // 1er passage : la clé EXACTE — elle prime toujours (un projet « Ondine » et une
-    // société « Ondine SARL » homonymes sont DEUX cartes ; un fait adressé à l'une ne
-    // doit jamais glisser vers l'autre par leur cœur commun).
+    // 1st pass: the EXACT key — it always wins (a project « Ondine » and a
+    // homonymous company « Ondine SARL » are TWO cards; a fact addressed to one must
+    // never slide to the other via their shared core).
     let idx = cards.findIndex((c) => surfaces(c).some((k) => normalizeMem(k) === key));
-    // 2e passage : le CŒUR org (affixes légaux retirés — `stripOrgAffixes`, le même
-    // que le moteur de redaction) : « Atelier Torbel SARL » retrouve la carte
-    // « Atelier Torbel » au lieu d'en créer une seconde. Préférence à la carte de MÊME
-    // catégorie quand plusieurs homonymes partagent le cœur.
+    // 2nd pass: the org CORE (legal affixes stripped — `stripOrgAffixes`, the same
+    // one the redaction engine uses): « Atelier Torbel SARL » finds the card
+    // « Atelier Torbel » instead of creating a second one. Preference goes to the card of the
+    // SAME category when several homonyms share the core.
     if (idx < 0) {
       const coreKey = normalizeMem(stripOrgAffixes(f.entity));
       if (coreKey.length >= 3) {
-        // MÊME catégorie UNIQUEMENT : un projet « Ondine » et une société
-        // « Ondine SARL » partagent le cœur mais sont deux entités — glisser le fait
-        // de l'une vers l'autre serait la confusion que ce chemin est censé éviter.
+        // SAME category ONLY: a project « Ondine » and a company
+        // « Ondine SARL » share the core but are two entities — sliding the fact
+        // from one to the other would be exactly the confusion this path is meant to avoid.
         idx = cards.findIndex(
           (c) => c.cat === f.cat && surfaces(c).some((k) => normalizeMem(stripOrgAffixes(k)) === coreKey),
         );
@@ -58,9 +58,9 @@ export function mergeExtraction(
     if (idx >= 0) {
       const card = cards[idx];
       const dup = normalizeMem(card.facts).includes(normalizeMem(f.fact));
-      // Un fait d'ATTRIBUT (deadline, budget, contact…) REMPLACE la phrase concurrente
-      // — une mise à jour, pas une accumulation contradictoire (`mergeFactsDetailed`) ;
-      // la phrase remplacée entre dans l'historique de la carte.
+      // An ATTRIBUTE fact (deadline, budget, contact…) REPLACES the competing sentence
+      // — an update, not a contradictory accumulation (`mergeFactsDetailed`);
+      // the replaced sentence goes into the card's history.
       let merged: MemoryCard;
       if (dup) merged = withAlias(card, f.alias);
       else {
@@ -70,8 +70,8 @@ export function mergeExtraction(
           f.alias,
         );
       }
-      // La SURFACE nouvelle (« Atelier Torbel SARL » rattachée par son cœur) devient un
-      // alias — le rappel la reconnaîtra la prochaine fois.
+      // The new SURFACE form (« Atelier Torbel SARL » attached via its core) becomes an
+      // alias — recall will recognize it next time.
       if (!surfaces(merged).some((k) => normalizeMem(k) === key)) merged = withAlias(merged, f.entity);
       if (merged === card) continue; // nothing new (fact known, alias known)
       if (!updatedIds.includes(card.id)) updatedIds.push(card.id);

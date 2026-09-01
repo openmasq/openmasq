@@ -1,7 +1,7 @@
-// Scénarios ALAMBIQUÉS — 4 à 6 connecteurs par prompt, jointures cross-connecteur,
-// valeurs tool-born traversant plusieurs étages, choix ENTRE connecteurs concurrents.
-// C'est la charge « assistant complet » : le modèle doit séquencer sans main tenue,
-// extraire d'un résultat l'argument du suivant, et s'arrêter une fois le travail fait.
+// CONVOLUTED scenarios — 4 to 6 connectors per prompt, cross-connector joins,
+// tool-born values crossing several tiers, choices BETWEEN competing connectors.
+// This is the "full assistant" load: the model must sequence with no hand-holding,
+// extract the next argument from a result, and stop once the work is done.
 
 import { calls, says, type MockRequest } from "../mockModel";
 import { ASANA, CRM, DEV_FLEET, directFleet, FIREFLIES, GITHUB, GMAIL, MONDAY, PAYPAL, SLACK, STRIPE_PAYMENTS } from "../servers";
@@ -12,14 +12,14 @@ const TEAMS = directFleet(["microsoft-teams"])[0];
 
 const NER = { "Karl Studio": "company", "Atelier Torbel": "company", "Jean Vannec": "name" };
 
-/** Le premier e-mail visible dans l'inbox du modèle (un FAKE), point final exclu. */
+/** The first e-mail visible in the model's inbox (a FAKE), trailing period excluded. */
 function emailIn(req: MockRequest): string {
   for (const m of req.messages) {
-    // Unicode, pas \w : le faussaire tire des prénoms français dans la partie locale
-    // (léa@…, zoé@…, inès@…) et l'ASCII n'en attrapait que la queue — « a@outlook.com »,
-    // dont le domaine se dé-redact ensuite seul — ou rien du tout (le repli). C'était
-    // LE flake de wf2-incident-issue-comm : le salt par conversation rend le tirage du
-    // prénom aléatoire, donc l'échec n'arrivait qu'un run sur quelques-uns.
+    // Unicode, not \w: the faker draws French first names into the local part
+    // (léa@…, zoé@…, inès@…) and ASCII only caught the tail — "a@outlook.com",
+    // whose domain then got un-redacted on its own — or nothing at all (the fallback). This was
+    // THE flake in wf2-incident-issue-comm: the per-conversation salt makes the first-name
+    // draw random, so the failure only hit one run in a few.
     const hit = /[\p{L}\p{N}._%+-]+@[\p{L}\p{N}.-]+\.\p{L}{2,}/u.exec(String(m.content ?? ""));
     if (hit) return hit[0].replace(/\.$/, "");
   }
@@ -28,9 +28,9 @@ function emailIn(req: MockRequest): string {
 
 export const WORKFLOW2_SCENARIOS: Scenario[] = [
   {
-    // 5 CONNECTEURS, 2 écritures : fiche CRM → réunion → paiements → tâches → récap
-    // par e-mail. La difficulté est l'ORCHESTRATION longue (le modèle doit tenir le
-    // fil sur ~6 tours) et la synthèse finale qui croise trois sources.
+    // 5 CONNECTORS, 2 writes: CRM record → meeting → payments → tasks → recap
+    // by e-mail. The difficulty is the LONG ORCHESTRATION (the model must hold the
+    // thread over ~6 turns) and the final summary that crosses three sources.
     name: "wf2-suivi-client-complet",
     prompts: [
       "Fais le point complet sur le client Karl Studio : sa fiche CRM, ce qui s'est dit à la dernière réunion, l'état de ses paiements. Crée une tâche Asana pour chaque action encore en attente, puis envoie un récapitulatif par e-mail à julien@zorvia.fr.",
@@ -66,9 +66,9 @@ export const WORKFLOW2_SCENARIOS: Scenario[] = [
   },
 
   {
-    // SUPPORT → DEV → CLIENT : le bug n'existe que dans Slack ; l'adresse du client
-    // n'existe que dans le message Slack ; l'issue et l'e-mail sont des écritures
-    // dérivées de valeurs tool-born.
+    // SUPPORT → DEV → CLIENT: the bug only exists in Slack; the client's address
+    // only exists in the Slack message; the issue and the e-mail are writes
+    // derived from tool-born values.
     name: "wf2-incident-issue-comm",
     prompts: [
       "Lis les derniers messages du canal support Slack ; s'il y a un bug signalé, ouvre une issue GitHub dans zorvia/app qui le résume, puis envoie un e-mail au client qui l'a signalé pour lui dire que c'est pris en compte.",
@@ -103,7 +103,7 @@ export const WORKFLOW2_SCENARIOS: Scenario[] = [
       says("Issue #122 ouverte et cliente prévenue par e-mail."),
     ],
     extraFree: (run) => {
-      // L'adresse envoyée est la VRAIE, apprise du message Slack (tool-born, 2 étages).
+      // The sent address is the REAL one, learned from the Slack message (tool-born, 2 tiers).
       if (String(run.transcript.wireArgsOf("gmail__send_email")?.to) !== "claire@atelier-torbel.fr") {
         throw new Error(`le destinataire du wire n'est pas l'adresse réelle signalée dans Slack — reçu « ${String(run.transcript.wireArgsOf("gmail__send_email")?.to)} »`);
       }
@@ -111,9 +111,9 @@ export const WORKFLOW2_SCENARIOS: Scenario[] = [
   },
 
   {
-    // CONNECTEURS CONCURRENTS : la facture n'est PAS dans Stripe (que INV-2093) mais
-    // dans PayPal — le modèle doit chercher au bon endroit (ou pivoter après un échec)
-    // puis reporter le résultat dans monday. Mesure la CONFUSION inter-outils voulue.
+    // COMPETING CONNECTORS: the invoice is NOT in Stripe (only INV-2093) but
+    // in PayPal — the model must look in the right place (or pivot after a failure)
+    // then report the result in monday. Measures the intended cross-tool CONFUSION.
     name: "wf2-facturation-croisee",
     prompts: [
       "Le client Atelier Torbel dit avoir réglé la facture INV-3007. Vérifie si le paiement est bien passé — côté Stripe ou côté PayPal — puis mets à jour l'item « Atelier Torbel — facturation » du board Facturation dans monday en « Payé », en notant le moyen de paiement.",
@@ -124,10 +124,10 @@ export const WORKFLOW2_SCENARIOS: Scenario[] = [
     approveWrites: true,
     secrets: ["Atelier Torbel"],
     spec: {
-      // N'ordonner QUE la dépendance réelle (read → write) : un agent moderne dispatch
-      // ses reads indépendants EN PARALLÈLE dans un même tour, l'ordre stripe/paypal
-      // est donc arbitraire — un `optional` placé avant peut déplacer le curseur
-      // au-delà d'un read déjà dispatché (le faux négatif mesuré sur nex).
+      // Order ONLY the real dependency (read → write): a modern agent dispatches
+      // its independent reads IN PARALLEL within the same turn, so the stripe/paypal
+      // order is arbitrary — an `optional` placed before it can move the cursor
+      // past a read already dispatched (the false negative measured on nex).
       sequence: [
         { tool: "paypal__list_transactions" },
         { tool: "monday__update_item", where: { status: /pay/i } },
@@ -145,9 +145,9 @@ export const WORKFLOW2_SCENARIOS: Scenario[] = [
   },
 
   {
-    // NOUVELLE FLOTTE (transcrite + GÉNÉRÉE depuis @openmasq/connectors) : monitoring →
-    // ticket → annonce d'équipe. Prouve que la couverture élargie porte une chaîne
-    // read → write → write à travers trois familles de connecteurs.
+    // NEW FLEET (transcribed + GENERATED from @openmasq/connectors): monitoring →
+    // ticket → team announcement. Proves that the widened coverage carries a
+    // read → write → write chain across three connector families.
     name: "wf2-incident-monitoring",
     prompts: [
       "Regarde s'il y a une erreur fréquente dans Sentry ; si oui, ouvre une issue GitHub dans zorvia/app qui la décrit, puis préviens le canal Incidents de Teams avec le numéro de l'issue.",
@@ -170,8 +170,8 @@ export const WORKFLOW2_SCENARIOS: Scenario[] = [
         name: "github__create_issue",
         args: { repo: "zorvia/app", title: "TypeError: export.generate is undefined", body: "41 événements, 12 utilisateurs (Sentry ZORVIA-APP-3F)." },
       }),
-      // Les VRAIS args du connecteur (`teamId`/`channelId`/`content`) — la fleet
-      // générée rejette un mock approximatif exactement comme un modèle malformant.
+      // The connector's REAL args (`teamId`/`channelId`/`content`) — the generated
+      // fleet rejects an approximate mock exactly like a malformed model call.
       calls({
         name: "microsoft-teams__send_message",
         args: { teamId: "eq-produit", channelId: "incidents", content: "Issue #122 ouverte pour le TypeError export (Sentry)." },

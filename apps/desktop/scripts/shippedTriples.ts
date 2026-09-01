@@ -1,18 +1,18 @@
 /**
- * QUELS TRIPLES CETTE PLATEFORME EXPÉDIE — lu dans `electron-builder.cjs`, qui est le seul
- * endroit où ça se décide.
+ * WHICH TRIPLES THIS PLATFORM SHIPS — read from `electron-builder.cjs`, which is the only
+ * place where that's decided.
  *
- * Pourquoi ça ne se recopie pas ailleurs (règle 9) : ce fait a TROIS lecteurs — le bake
- * (`bake-runtimes.ts` : un runtime Python par arche), la CI (`release.yml` : une archive R2
- * par arche) et l'empaquetage lui-même. Une liste recopiée dans un `package.json` ou un
- * workflow diverge au premier ajout d'arche, et la divergence ne se voit pas au build : elle
- * se voit à l'usage, sur la machine qui n'a pas reçu son interpréteur.
+ * Why this isn't copied elsewhere (rule 9): this fact has THREE readers — the bake
+ * (`bake-runtimes.ts`: one Python runtime per arch), CI (`release.yml`: one R2 archive
+ * per arch) and the packaging itself. A list copied into a `package.json` or a
+ * workflow diverges at the first arch addition, and the divergence doesn't show up at
+ * build time: it shows up in use, on the machine that didn't get its interpreter.
  *
- * La config est du CJS (elle dérive les identifiants de produit de
- * `packages/branding/branding.json`) : on la `require()` donc au lieu d'analyser du YAML à
- * la main. La contrepartie fail-closed est conservée — la fonction ÉCHOUE quand elle ne
- * reconnaît plus la forme de la config, au lieu de rendre une liste vide qui ferait
- * silencieusement sauter un bake.
+ * The config is CJS (it derives the product identifiers from
+ * `packages/branding/branding.json`): so we `require()` it instead of parsing YAML by
+ * hand. The fail-closed counterpart is kept — the function FAILS when it no longer
+ * recognizes the config's shape, instead of returning an empty list that would
+ * silently skip a bake.
  */
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
@@ -23,7 +23,7 @@ export const EB_CONFIG = join(HERE, "..", "electron-builder.cjs");
 
 const require = createRequire(import.meta.url);
 
-/** La part de la config qu'on lit ici : les cibles par bloc de plateforme. */
+/** The part of the config we read here: the targets per platform block. */
 export interface EbPlatformTargets {
   target?: Array<{ target?: string; arch?: string[] }>;
 }
@@ -33,12 +33,12 @@ export type EbConfigShape = Record<string, unknown> & {
   linux?: EbPlatformTargets;
 };
 
-/** Le préfixe de triple que porte chaque bloc de plateforme d'`electron-builder.cjs`. */
+/** The triple prefix each platform block of `electron-builder.cjs` carries. */
 const OS_OF_BLOCK: Record<string, string> = { mac: "darwin", win: "win32", linux: "linux" };
 
 /**
- * Les triples expédiés par un bloc de plateforme (`mac` / `win`), dédoublonnés et ordonnés
- * comme la config les donne — `dmg` et `zip` répètent la même liste d'arches, c'est normal.
+ * The triples shipped by a platform block (`mac` / `win`), deduplicated and ordered
+ * as the config gives them — `dmg` and `zip` repeat the same arch list, that's normal.
  */
 export function shippedTriples(block: keyof typeof OS_OF_BLOCK | string, config?: EbConfigShape): string[] {
   const os = OS_OF_BLOCK[block];
@@ -49,8 +49,8 @@ export function shippedTriples(block: keyof typeof OS_OF_BLOCK | string, config?
   const targets = Array.isArray(platform.target) ? platform.target : [];
   const arches = targets.flatMap((t) => (Array.isArray(t.arch) ? t.arch : []));
   if (arches.length === 0) {
-    // Échec FERMÉ : « aucune arche » n'est jamais une vérité utile ici. Ça veut dire que la
-    // forme de la config a changé — et un bake qui ne bake rien passerait pour un succès.
+    // FAIL CLOSED: "no arch" is never a useful truth here. It means the
+    // config's shape has changed — and a bake that bakes nothing would pass for a success.
     throw new Error(
       `shippedTriples: aucune \`arch: [...]\` sous \`${block}\` — la forme d'electron-builder.cjs a changé`,
     );
@@ -58,7 +58,7 @@ export function shippedTriples(block: keyof typeof OS_OF_BLOCK | string, config?
   return [...new Set(arches)].map((arch) => `${os}-${arch}`);
 }
 
-/** Le bloc de plateforme correspondant à la machine courante. */
+/** The platform block corresponding to the current machine. */
 export function currentBlock(platform: NodeJS.Platform = process.platform): string {
   const block = { darwin: "mac", win32: "win", linux: "linux" }[platform as string];
   if (!block) throw new Error(`shippedTriples: plateforme non empaquetée : ${platform}`);

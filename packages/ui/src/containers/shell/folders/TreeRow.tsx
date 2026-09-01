@@ -3,9 +3,9 @@ import type { LocalFsEntry } from "../../../host";
 import { extLabel } from "../../../state/localFsPaths";
 
 import { useT } from "../../../i18n";
-/** Une ligne de l'arbre : un dossier qui se déplie, un fichier qui s'ouvre. Le survol
- *  d'un dossier propose « Demander » — l'intention même pour laquelle on ouvre ce
- *  panneau pendant qu'on écrit. */
+/** A tree row: a folder that expands, a file that opens. Hovering
+ *  a folder offers « Demander » — the very intention for which this
+ *  panel gets opened while writing. */
 export function TreeRow({
   entry,
   depth,
@@ -20,7 +20,7 @@ export function TreeRow({
   depth: number;
   expanded: boolean;
   loading: boolean;
-  /** Sa lecture a échoué — la ligne le DIT au lieu de charger indéfiniment. */
+  /** Its read failed — the row SAYS so instead of loading indefinitely. */
   failed?: boolean;
   onToggle: () => void;
   onOpen: () => void;
@@ -33,8 +33,8 @@ export function TreeRow({
       <button
         type="button"
         className={`rr-tree-row${isDir ? " is-dir" : ""}`}
-        // L'indentation est la seule chose calculée à l'exécution (elle vient de la
-        // profondeur, une donnée) ; couleurs et états restent dans la feuille de style.
+        // The indentation is the only thing computed at runtime (it comes from the
+        // depth, a piece of data); colours and states stay in the stylesheet.
         style={{ paddingInlineStart: `${6 + depth * 12}px` }}
         title={entry.path}
         aria-expanded={isDir ? expanded : undefined}
@@ -53,10 +53,10 @@ export function TreeRow({
           </span>
         )}
         <span className="rr-tree-name">{entry.name}</span>
-        {/* Un dossier ouvert dont le listing n'est pas là ressemble à un dossier vide —
-            et un dossier vide qui n'en est pas un se lit comme un mensonge. L'ÉCHEC a son
-            propre signe : « … » pour toujours faisait attendre un contenu qui ne vient pas
-            (la raison, elle, s'affiche en bas du panneau). */}
+        {/* An open folder whose listing isn't there looks like an empty folder —
+            and an empty folder that isn't one reads like a lie. FAILURE has its
+            own sign: « … » forever made you wait for content that never comes
+            (the reason, itself, shows at the bottom of the panel). */}
         {failed ? (
           <span className="rr-tree-failed" title={t.shell.folders.folderFailed}>
             !

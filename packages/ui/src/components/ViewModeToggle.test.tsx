@@ -7,8 +7,8 @@ import { BRAND } from "@openmasq/branding";
 
 describe("ViewModeToggle", () => {
   it("annonce UN groupe exclusif, pas deux interrupteurs", async () => {
-    // Deux bascules indépendantes se liraient « activé / activé » à la synthèse vocale,
-    // alors que les deux modes s'excluent.
+    // Two independent toggles would read as « activé / activé » to a screen reader,
+    // when the two modes are mutually exclusive.
     const m = await mount(<ViewModeToggle mode="grid" onChange={() => {}} />);
     expect(m.find("[role='radiogroup']")).toBeTruthy();
     const radios = m.findAll("[role='radio']");
@@ -20,12 +20,12 @@ describe("ViewModeToggle", () => {
   it("marque le mode COURANT, quel qu'il soit", async () => {
     const m = await mount(<ViewModeToggle mode="list" onChange={() => {}} />);
     const checked = m.findAll("[role='radio']").findIndex((r) => r.getAttribute("aria-checked") === "true");
-    expect(checked).toBe(1); // grille d'abord, liste ensuite — l'ordre est le contrat
+    expect(checked).toBe(1); // grid first, list second — the order is the contract
     await m.unmount();
   });
 
   it("rend le mode CLIQUÉ, pas l'inverse du courant", async () => {
-    // Une bascule « inverse » se serait trompée le jour où un troisième mode arrive.
+    // An « inverse » toggle would have gotten it wrong the day a third mode arrives.
     const onChange = vi.fn();
     const m = await mount(<ViewModeToggle mode="list" onChange={onChange} />);
     await m.click(m.findAll("[role='radio']")[0]);
@@ -69,8 +69,8 @@ describe("useViewMode", () => {
   });
 
   it("un écran ne dicte pas l'affichage d'un AUTRE", async () => {
-    // Une bibliothèque d'images se regarde en vignettes, une liste de compétences se lit
-    // en lignes : une préférence globale forcerait à la refaire à chaque va-et-vient.
+    // An image library is viewed as thumbnails, a compétences list is read
+    // as rows: a global preference would force redoing it on every back-and-forth.
     const lib = await mount(<Probe scope="library" />);
     await lib.click("button");
     await lib.unmount();

@@ -154,10 +154,10 @@ export function Composer({
     /** The staged WORKFLOW's scoped connectors — rendered as mini chips beside the
      *  label, so the chip shows WHICH connecteurs the guidance line will name. */
     servers?: { id: string; name: string; tone: string }[];
-    /** Les `{accolades}` que le prompt du workflow attend. Elles ne sont remplies nulle
-     *  part : elles se précisent dans le message qu'on écrit à côté. Les afficher est ce
-     *  qui rend cette règle visible — sinon le prompt part avec ses accolades telles
-     *  quelles et personne ne s'en aperçoit (journal du 27/07/2026). */
+    /** The `{braces}` the workflow's prompt expects. They aren't filled in anywhere:
+     *  they get specified in the message written beside it. Displaying them is what
+     *  makes this rule visible — otherwise the prompt goes out with its braces as-is
+     *  and nobody notices (journal entry of 27/07/2026). */
     slots?: string[];
   } | null;
   /** Remove the active tag (the chip's × button). */
@@ -186,8 +186,8 @@ export function Composer({
   onRemoveAttachment: (index: number) => void;
   /** Re-run redaction for an attachment (by cid) — on failure or engine change. */
   onRetryAttachment?: (cid: string) => void;
-  /** « Lire tout » d'une pièce jointe tronquée par le plafond d'OCR (`ocrShortfall`).
-   *  Absent (hôte sans `extractAll`) ⇒ le chip dit la troncature sans offrir le geste. */
+  /** "Lire tout" for an attachment truncated by the OCR ceiling (`ocrShortfall`).
+   *  Absent (host with no `extractAll`) ⇒ the chip states the truncation without offering the action. */
   onOcrAllAttachment?: (cid: string) => void;
   /** Current redaction engine signature — a chip whose file was redacted with a
    *  different one shows a "reredact" button. */
@@ -207,13 +207,13 @@ export function Composer({
   onAccessInfo?: (focus: "free" | "credits" | "key", providerLabel?: string) => void;
   /** Open Réglages → Modèles from the picker's gear. */
   onOpenModelSettings?: () => void;
-  /** Vue simplifiée du sélecteur de modèles + sa bascule (persistée dans Settings). */
+  /** Simplified view of the model picker + its toggle (persisted in Settings). */
   modelPickerSimple?: boolean;
   onModelPickerSimpleChange?: (simple: boolean) => void;
-  /** Modèles favoris (la liste courte) + le toggle d'étoile, persistés dans Settings. */
+  /** Favorite models (the short list) + the star toggle, persisted in Settings. */
   favoriteModels?: string[];
   onToggleFavoriteModel?: (id: string) => void;
-  /** Modèle par défaut + « définir par défaut » depuis le menu, persistés dans Settings. */
+  /** Default model + "set as default" from the menu, persisted in Settings. */
   defaultModelId?: string;
   onSetDefaultModel?: (id: string) => void;
   onStop: () => void;
@@ -247,8 +247,8 @@ export function Composer({
    *  changes, and is what re-runs the detection effects — without it, toggling a rule
    *  left the preview showing the previous analysis until the next keystroke. */
   redactPolicy?: { disabledKinds: string[]; key: string };
-  /** Le NIVEAU de redaction (`ComposerRedactButton`). Absent ⇒ pas de bouton : une
-   *  préversion sans réglages n'aurait rien où écrire. */
+  /** The redaction LEVEL (`ComposerRedactButton`). Absent ⇒ no button: a
+   *  preview build with no settings would have nowhere to write it. */
   redactLevel?: RedactLevelApi;
 }) {
   const t = useT();
@@ -261,8 +261,8 @@ export function Composer({
   const [skillOpen, setSkillOpen] = useState(false);
   const skillWrapRef = useRef<HTMLDivElement>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
-  // Placement de la palette « / » — recalculé à chaque ouverture ET à chaque frappe qui
-  // change le nombre d'items : la carte grandit, et la place au-dessus, elle, ne bouge pas.
+  // The "/" palette's placement — recomputed on every opening AND every keystroke that
+  // changes the item count: the card grows, but the room above it doesn't move.
   const [slashPlace, setSlashPlace] = useState<SlashPlacement>({ below: false, maxHeight: SLASH_MAX });
   // Navigate to the Compétences page (create the first one) — the empty menu's CTA.
   // Context, not a prop: null outside the shell → the CTA simply doesn't render.
@@ -292,15 +292,15 @@ export function Composer({
   // Open on a "/" lookup whenever a picker exists — with ZERO compétences the palette
   // still lists the built-in ACTIONS (« /retenir »), so "/" is never a dead key.
   const slashQ = onPickCompetence && !slashDismissed ? slashQuery(input) : null;
-  // Deux familles gouvernées séparément (`chatGates.ts`) ; les deux vides ⇒ rien ne s'ouvre.
+  // Two families governed separately (`chatGates.ts`); both empty ⇒ nothing opens.
   const { skillsUsable, memoryOpen } = useChatDoors();
   const slashItems = useMemo(
     () => (slashQ === null || !skillsUsable ? null : slashMatches(competences ?? [], slashQ)),
     [slashQ, competences, skillsUsable],
   );
   // Built-in palette actions (« Retenir en mémoire »…) — listed ABOVE the compétences;
-  // the keyboard cursor spans actions THEN compétences as one list. Il n'y a plus de
-  // troisième section : les routines SONT des compétences, elles sortent du même filtre.
+  // the keyboard cursor spans actions THEN compétences as one list. There is no longer a
+  // third section: routines ARE compétences, they come out of the same filter.
   const slashActs = useMemo(() => (slashQ === null ? null : slashActionMatches(slashQ, t, memoryOpen)), [slashQ, t, memoryOpen]);
   const slashActCount = slashActs?.length ?? 0;
   const slashItemCount = slashItems?.length ?? 0;
@@ -348,7 +348,7 @@ export function Composer({
   //     mutates the vault; the send re-redacts + fail-closes, so this is preview-only.
   const [regexCats, setRegexCats] = useState<Cat[]>([]);
   const [modelCats, setModelCats] = useState<Cat[]>([]);
-  const [modelGaveUp, setModelGaveUp] = useState(false); // couche 2 abandonnée ⇒ partiel
+  const [modelGaveUp, setModelGaveUp] = useState(false); // layer 2 gave up ⇒ partial
   const [regexPending, setRegexPending] = useState(false);
   const [modelPending, setModelPending] = useState(false);
   // The SEND is blocked while either layer is settling, so the user sees the
@@ -392,12 +392,12 @@ export function Composer({
     setModelPending(true);
     setModelGaveUp(false);
     const debounce = setTimeout(() => {
-      // Abort+unblock si ça pend. ⚠️ Budget SCALÉ comme l'ENVOI (`redactTimeoutMs`,
-      // règle 9) : figé à 20 s, l'aperçu abandonnait là où l'envoi avait 45 s (15/08).
+      // Abort+unblock if it hangs. ⚠️ Budget SCALED like the SEND (`redactTimeoutMs`,
+      // rule 9): frozen at 20s, the aperçu used to give up where the send had 45s (15/08).
       guard = setTimeout(() => {
         ctrl.abort();
         setModelPending(false);
-        setModelGaveUp(true); // FINI ≠ ABANDONNÉ — la pastille doit le dire
+        setModelGaveUp(true); // FINISHED ≠ ABANDONED — the badge must say so
       }, Math.max(MODEL_DETECT_TIMEOUT_MS, redactTimeoutMs(input)));
       onDetectPii(input, ctrl.signal)
         .then((res) => {
@@ -406,7 +406,7 @@ export function Composer({
           }
         })
         .catch(() => {
-          setModelGaveUp(true); // règles seules → on le DIT (sinon partiel lu comme total)
+          setModelGaveUp(true); // rules only → we SAY so (otherwise partial reads as total)
         })
         .finally(() => {
           clearTimeout(guard);
@@ -474,7 +474,7 @@ export function Composer({
 
   const toggleKeep = makeToggleKeep(detection.items, keepSet, setKeepList);
 
-  // L'avertissement d'utilité — règles + tests : utilityRisk.ts ; orchestration : le hook.
+  // The utility warning — rules + tests: utilityRisk.ts; orchestration: the hook.
   const utilRisk = useUtilityRisk({
     input, forcedCats, regexCats, modelCats, attachments,
     competencePreview: tag?.preview, disabledKinds: redactPolicy?.disabledKinds,
@@ -548,11 +548,11 @@ export function Composer({
   // user chose to keep in clear. The `previewCount` prop is the regex-only synchronous
   // count: using it here made the pill say « 1 à redact » while three chips showed —
   // the same under-count the attachment chip had before `redactAttachment` re-stamped it.
-  // …PLUS le prompt de la COMPÉTENCE en scène : il part dans modelText, donc il compte.
+  // …PLUS the staged COMPÉTENCE's prompt: it goes out in modelText, so it counts.
   const liveCount =
     detection.items.filter((i) => !keepSet.has(i.value)).length +
     competenceExtraCount(detection.items, utilRisk.competenceCats);
-  // L'aperçu ne doit jamais afficher un zéro qu'il n'a pas fini de calculer.
+  // The aperçu must never show a zero it hasn't finished computing.
   const hasSomething = !!input.trim() || utilRisk.competenceCats.length > 0;
   const scanState = previewStatus(detecting, liveCount, hasSomething, t, modelGaveUp);
   const [showDone, setShowDone] = useState(false);
@@ -568,10 +568,10 @@ export function Composer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busy]);
 
-  // Mesure la place réellement disponible des DEUX côtés — la fenêtre ET l'ancêtre qui
-  // clippe (`.welcome` est un scroller : ce qu'il dépasse est coupé, pas seulement
-  // ce qui sort de l'écran). `useLayoutEffect` : la palette est peinte au même commit,
-  // sinon elle apparaît une frame au mauvais endroit.
+  // Measures the room actually available on BOTH sides — the window AND the ancestor that
+  // clips (`.welcome` is a scroller: what overflows it gets cut, not only
+  // what falls off the screen). `useLayoutEffect`: the palette is painted in the same commit,
+  // otherwise it appears in the wrong place for one frame.
   useLayoutEffect(() => {
     const el = inputWrapRef.current;
     if (!slashCount || !el) return;
@@ -630,7 +630,7 @@ export function Composer({
             // `sky` IS the staged compétence (ChatView) — same mark as the picker it came from.
             <SparklesIcon size={13} />
           ) : tag.tone === "violet" ? (
-            // `violet` = une compétence qui pilote des connecteurs (`servers`).
+            // `violet` = a compétence that drives connectors (`servers`).
             <WorkflowIcon size={13} />
           ) : (
             <MessageIcon size={13} />
@@ -647,8 +647,8 @@ export function Composer({
           ) : (
             <span>{tag.label}</span>
           )}
-          {/* Les connecteurs de la compétence, juste à côté du tag — la moitié visible
-              de la ligne de consigne que le payload portera. */}
+          {/* The compétence's connectors, right beside the tag — the visible half
+              of the instruction line the payload will carry. */}
           {tag.servers && tag.servers.length > 0 && (
             <span className="composer-tag-srvs">
               {tag.servers.map((s) => (
@@ -658,8 +658,8 @@ export function Composer({
               ))}
             </span>
           )}
-          {/* Les blancs à combler — contour pointillé, PLAFONNÉS (`cappedSlots`) : un
-              gabarit à 20 accolades cassait la rangée (13/08) ; le reste en « +N ». */}
+          {/* The blanks to fill in — dashed outline, CAPPED (`cappedSlots`): a
+              template with 20 braces broke the row (13/08); the rest as "+N". */}
           {tag.slots && tag.slots.length > 0 && (() => {
             const { shown, hidden } = cappedSlots(tag.slots);
             return (
@@ -806,7 +806,7 @@ export function Composer({
             conversation ? onChangeModel(conversation.id, modelId) : onChangeNewChatModel?.(modelId)
           }
         />
-        {/* Le niveau, à portée de là où l'on constate qu'un envoi masque trop — ou trop peu. */}
+        {/* The level, within reach of where you notice a send masks too much — or too little. */}
         {redactLevel && <ComposerRedactButton api={redactLevel} />}
         {/* Idle-only count of what WILL be redacted — the LIVE redaction state
             (running → done) is shown IN the send button itself (see below), which is

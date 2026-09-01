@@ -68,7 +68,7 @@ export function ShellChrome({
   const host = useHost();
   const { chat, overlay, avis, search, deep, conv, mcpReconnect } = shell;
   const openConnector = useOpenConnector();
-  // Refermée pour la session : la condition, elle, ne disparaît qu'en ajoutant un accès.
+  // Closed for the session: the condition itself only disappears by adding access.
   const [accessSeen, setAccessSeen] = useState(false);
   const showAccess =
     !accessSeen &&
@@ -79,13 +79,13 @@ export function ShellChrome({
       orgProfile: chat.orgProfile,
       hasBilling: !!host.billing,
     });
-  /* Un compte DÉJÀ ÉTABLI (abonnement payant chargé, ou membre d'une organisation) qui
-     ouvre un NOUVEL appareil ne repasse pas par l'accueil : `onboarded` est local à la
-     machine (jamais synchronisé), donc sans ceci un abonné retombait sur le pipeline
-     complet — étape « Abonnement, ou votre clé » comprise — à chaque nouvelle machine.
-     La décision (et pourquoi `null` = inconnu ⇒ on ne saute pas, et pourquoi on ne touche
-     pas `billingMode`) vit dans `state/establishedAccount.ts`. Si la facturation arrive
-     pendant que l'accueil est à l'écran, il se referme : c'est le but. */
+  /* An ALREADY ESTABLISHED account (paid subscription loaded, or member of an organization)
+     opening a NEW device does not go back through onboarding: `onboarded` is local to the
+     machine (never synced), so without this a subscriber would fall back to the
+     full pipeline — including the "Abonnement, ou votre clé" step — on every new machine.
+     The decision (and why `null` = unknown ⇒ we don't skip, and why we don't touch
+     `billingMode`) lives in `state/establishedAccount.ts`. If billing arrives
+     while onboarding is on screen, it closes: that's the point. */
   const established = hasEstablishedAccount({
     personalSub: chat.personalSub,
     orgProfile: chat.orgProfile,
@@ -94,7 +94,7 @@ export function ShellChrome({
   useEffect(() => {
     if (!established || onboarded) return;
     chat.setSettings({ ...chat.settings, onboarded: true });
-    // `chat` change d'identité à chaque rendu ; la garde ci-dessus rend l'effet idempotent.
+    // `chat` changes identity on every render; the guard above makes the effect idempotent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [established, onboarded]);
 
@@ -105,8 +105,8 @@ export function ShellChrome({
   const runNoticeAction = (kind: ShellNoticeKind) => {
     if (kind === "access") return deep.openSettings("models");
     if (kind !== "mcp") return;
-    // Reconnecter là où on est : la pastille ouvre la modale du connecteur par-dessus
-    // l'écran courant, sans détour par les Réglages (on y retombe si rien ne la monte).
+    // Reconnect right where you are: the chip opens the connector's modal over
+    // the current screen, no detour through Réglages (falls back there if nothing mounts it).
     const id = mcpReconnect.items[0]?.id;
     if (!id) return;
     if (openConnector) openConnector(id);
@@ -117,10 +117,10 @@ export function ShellChrome({
     if (kind === "access") setAccessSeen(true);
   };
 
-  /* `aria-hidden` DIT que le fond est hors-jeu ; `inert` le REND vrai — sans lui, la
-     première tabulation depuis la modale de connexion ou d'accueil atterrit DERRIÈRE
-     (mesuré : sur le logo du rail). Posé par une ref : `inert` n'est pas une propriété
-     connue de cette version de React. */
+  /* `aria-hidden` SAYS the background is out of play; `inert` MAKES it true — without it, the
+     first tab from the login or onboarding modal lands BEHIND it
+     (measured: on the rail's logo). Set via a ref: `inert` isn't a property
+     known to this version of React. */
   const appRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = appRef.current;
@@ -146,14 +146,14 @@ export function ShellChrome({
                 className={`${overlay ? "app app-behind" : "app"}${className ? ` ${className}` : ""}`}
                 aria-hidden={overlay ? true : undefined}
               >
-                {/* Les états PERMANENTS de l'app — serveur d'auth injoignable (on GARDE
-                    la session ouverte au lieu de renvoyer au login), connecteur distant
-                    tombé, ni abonnement ni clé. Un seul à la fois, choisi par
-                    `pickShellNotice`, et rendu en PASTILLE : trois barres pleine largeur
-                    se relayaient au-dessus du composeur et confisquaient tout le bas de
-                    l'écran pour une phrase déjà lue. Le titre suffit ; le message et
-                    l'action sont à un clic. Chacune se tait d'elle-même — la panne quand
-                    elle est réparée, l'information quand on la referme. */}
+                {/* The app's PERMANENT states — auth server unreachable (we KEEP
+                    the session open instead of sending back to login), a remote connector
+                    that dropped, neither subscription nor key. One at a time, chosen by
+                    `pickShellNotice`, and rendered as a CHIP: three full-width bars
+                    used to take turns above the composer and hog the whole bottom of
+                    the screen for a sentence already read. The title is enough; the message and
+                    the action are one click away. Each falls silent on its own — the failure when
+                    it's fixed, the information when it's closed. */}
                 {notice && (
                   <div className="kchip-dock" role="status" aria-live="polite">
                     <StatusChip
@@ -193,9 +193,9 @@ export function ShellChrome({
                     />
                   )}
                 </AnimatePresence>
-                {/* ⚠️ Jamais par-dessus la connexion ni l'accueil : la mise à jour attend,
-                    et se faire annoncer une version avant même d'être entré n'a pas de
-                    sens. Elle n'est pas perdue pour autant — le rail droit la rouvre. */}
+                {/* ⚠️ Never over login or onboarding: the update waits,
+                    and being announced a version before even getting in makes no
+                    sense. It isn't lost for that — the right rail reopens it. */}
                 <AnimatePresence>
                   {!overlay && shell.update.open && shell.update.version && (
                     <UpdateReadyModal
@@ -264,11 +264,11 @@ export function ShellChrome({
                   />
                 )}
               </AnimatePresence>
-              {/* SÉRIALISÉE, jamais concurrente d'un overlay. Cette carte vit hors de la
-                  pile d'overlays (z-index 55 contre 120 pour le voile), donc pendant le
-                  login/onboarding elle s'affichait à moitié cachée sous la modale : phrase
-                  tronquée en plein milieu, et un « Compris » que le voile interceptait —
-                  visible, lisible, et mort au clic. Une décision à la fois. */}
+              {/* SERIALIZED, never concurrent with an overlay. This card lives outside the
+                  overlay stack (z-index 55 against 120 for the scrim), so during
+                  login/onboarding it used to show half-hidden under the modal: a sentence
+                  truncated mid-way, and a "Compris" that the scrim intercepted —
+                  visible, readable, and dead on click. One decision at a time. */}
               {!overlay && <AnalyticsNotice settings={chat.settings} onChange={chat.setSettings} />}
             </AvisOpenProvider>
             </FileOpenProvider>

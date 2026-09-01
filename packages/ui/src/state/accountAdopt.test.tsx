@@ -8,28 +8,28 @@ import type { AuthUser, Host } from "../host";
 import type { Conversation } from "../types";
 
 /**
- * L'ADOPTION D'UN COMPTE — l'ORDRE, pas seulement le résultat.
+ * ACCOUNT ADOPTION — the ORDER, not just the result.
  *
- * `state/CLAUDE.md` appelle cet ordre « the invariant, not an implementation detail » :
- * `keys.setUser` doit être ATTENDU avant `configured()`, et `db.setUser` avant `load()`,
- * sinon on lit le périmètre du compte PRÉCÉDENT — sur une machine partagée, les clés de A
- * servent à B et les conversations de A s'affichent chez B.
+ * `state/CLAUDE.md` calls this order « the invariant, not an implementation detail »:
+ * `keys.setUser` must be AWAITED before `configured()`, and `db.setUser` before `load()`,
+ * otherwise the PREVIOUS account's scope gets read — on a shared machine, A's keys
+ * serve B and A's conversations display on B's screen.
  *
- * Jusqu'ici l'invariante ne tenait que par la prose : `storeSettingsScope.test.ts` teste la
- * fonction PURE de nommage de clé, et son propre `describe` l'admet — « documents what
- * store.ts must do ». Un test qui DOCUMENTE une obligation ne la VÉRIFIE pas : déplacer un
- * `await` dans `store.ts` le laissait vert.
+ * Until now the invariant only held by prose: `storeSettingsScope.test.ts` tests the
+ * PURE key-naming function, and its own `describe` admits it — « documents what
+ * store.ts must do ». A test that DOCUMENTS an obligation does not VERIFY it: moving an
+ * `await` in `store.ts` left it green.
  *
- * ⚠️ Ce qui fait la valeur du fichier tient dans `yieldTwice` : chaque `setUser` du faux
- * hôte CÈDE LE TOUR avant de résoudre. Un appelant qui n'attend pas laisse donc
- * `configured`/`load` s'exécuter en premier, et le journal d'appels le montre. Sans ce
- * délai, le test passerait même sans `await` — il vérifierait l'ordre d'ÉCRITURE du code,
- * pas son ordre d'EXÉCUTION, ce qui est exactement le piège qu'il existe pour fermer.
+ * ⚠️ What gives this file its value lives in `yieldTwice`: each `setUser` of the fake
+ * host YIELDS THE TURN before resolving. A caller that doesn't await therefore lets
+ * `configured`/`load` run first, and the call log shows it. Without this
+ * delay, the test would pass even without `await` — it would verify the code's WRITE
+ * order, not its EXECUTION order, which is exactly the trap it exists to close.
  *
- * ⚠️ Le store adopte TOUJOURS `null` d'abord (`getSession()` résout déconnecté), puis le
- * compte. Le harnais efface donc son journal après cette première adoption : sans ça, un
- * `indexOf("keys.configured")` attrape celui du passage déconnecté et l'assertion d'ordre
- * ne parle plus du compte qu'on teste.
+ * ⚠️ The store ALWAYS adopts `null` first (`getSession()` resolves signed out), then the
+ * account. The harness therefore clears its log after this first adoption: without that, an
+ * `indexOf("keys.configured")` would catch the signed-out pass's one and the order
+ * assertion would no longer be about the account under test.
  */
 
 const USER_A: AuthUser = { id: "uid-a", email: "a@exemple.fr" } as AuthUser;
@@ -43,8 +43,8 @@ function harness() {
   const calls: string[] = [];
   let onChangeCb: ((u: AuthUser | null) => void) | null = null;
 
-  // Deux tours de microtâches : de quoi laisser un appelant qui N'ATTEND PAS le temps
-  // d'appeler la lecture avant que le périmètre soit posé.
+  // Two microtask turns: enough to let a caller who does NOT AWAIT time
+  // to call the read before the scope is set.
   const yieldTwice = async () => {
     await null;
     await null;
@@ -52,7 +52,7 @@ function harness() {
 
   const host: Partial<Host> = {
     auth: {
-      getSession: async () => null, // on démarre déconnecté ; `signIn` fait la suite
+      getSession: async () => null, // we start signed out; `signIn` handles the rest
       onChange: (cb) => {
         onChangeCb = cb;
         return () => {
@@ -96,7 +96,7 @@ function harness() {
   return { calls, host, fire: (u: AuthUser | null) => onChangeCb?.(u) };
 }
 
-/** Monte le vrai store, enregistre `loaded` à CHAQUE rendu, expose l'instantané. */
+/** Mounts the real store, records `loaded` on EVERY render, exposes the snapshot. */
 function Probe({ sink }: { sink: { api: ReturnType<typeof useChatStore> | null; loaded: boolean[] } }) {
   const api = useChatStore();
   sink.api = api;
@@ -111,7 +111,7 @@ async function mountStore(h: ReturnType<typeof harness>) {
   };
   const m = await mount(<Probe sink={sink} />, { host: h.host });
 
-  /** Joue un événement d'auth et laisse les chaînes async de l'adoption se dérouler. */
+  /** Plays an auth event and lets the adoption's async chains unfold. */
   const signIn = async (u: AuthUser | null) => {
     await act(async () => {
       h.fire(u);
@@ -119,7 +119,7 @@ async function mountStore(h: ReturnType<typeof harness>) {
     });
   };
 
-  await signIn(null); // l'adoption « déconnecté » que le store fait toujours en premier
+  await signIn(null); // the "signed out" adoption the store always does first
   h.calls.length = 0;
 
   return { ...m, signIn, store: () => sink.api!, loadedHistory: () => sink.loaded };
@@ -161,17 +161,17 @@ describe("l'adoption d'un compte — l'ORDRE des await, pas seulement le résult
     const m = await mountStore(h);
 
     await m.signIn(USER_A);
-    h.calls.length = 0; // on ne juge que la bascule
+    h.calls.length = 0; // we only judge the switch
     await m.signIn(USER_B);
 
-    // Les trois magasins par compte : la base (conversations), le trousseau (clés de
-    // fournisseur), MCP (jetons OAuth des connecteurs). En manquer un laisse une porte
-    // ouverte de A vers B sur une machine partagée.
+    // The three per-account stores: the database (conversations), the keychain (provider
+    // keys), MCP (connector OAuth tokens). Missing one leaves a door
+    // open from A to B on a shared machine.
     expect(h.calls).toContain("db.setUser(uid-b)");
     expect(h.calls).toContain("keys.setUser(uid-b)");
     expect(h.calls).toContain("mcp.setUser(uid-b)");
-    // L'ordre compte SURTOUT ici : c'est la bascule, donc le seul moment où le périmètre
-    // précédent existe vraiment et où une lecture prématurée fuite pour de bon.
+    // The order matters ESPECIALLY here: this is the switch, so the only moment the
+    // previous scope really still exists and a premature read genuinely leaks.
     expect(h.calls.indexOf("keys.setUser(uid-b)")).toBeLessThan(h.calls.indexOf("keys.configured"));
     expect(h.calls.indexOf("db.setUser(uid-b)")).toBeLessThan(h.calls.indexOf("db.load"));
 
@@ -180,7 +180,7 @@ describe("l'adoption d'un compte — l'ORDRE des await, pas seulement le résult
 
   it("une bascule ne laisse RIEN de A à l'écran de B", async () => {
     const h = harness();
-    // A a une conversation persistée sous SA clé ; B n'a jamais rien enregistré.
+    // A has a conversation persisted under ITS key; B has never saved anything.
     localStorage.setItem(convKeyFor(USER_A.id)!, JSON.stringify([conv("c-a", "Dossier de A")]));
 
     const m = await mountStore(h);
@@ -198,14 +198,14 @@ describe("l'adoption d'un compte — l'ORDRE des await, pas seulement le résult
     const m = await mountStore(h);
 
     await m.signIn(USER_A);
-    expect(m.store().loaded).toBe(true); // la charge de A a abouti
+    expect(m.store().loaded).toBe(true); // A's load has completed
 
     const before = m.loadedHistory().length;
     await m.signIn(USER_B);
 
-    // La bascule REDÉMARRE une charge. Sans le passage par false, les listes de B
-    // s'affichent « vides » le temps qu'elles arrivent — le bug que `loaded` existe pour
-    // empêcher (Coffre/Compétences/Workflows/Mémoire proposant « créez-en un »).
+    // The switch RESTARTS a load. Without passing through false, B's lists would
+    // display as « vides » while they arrive — the bug `loaded` exists to
+    // prevent (Coffre/Compétences/Workflows/Mémoire offering « créez-en un »).
     expect(m.loadedHistory().slice(before)).toEqual([false, true]);
 
     await m.unmount();

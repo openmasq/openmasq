@@ -3,21 +3,21 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Le débordement HORIZONTAL de l'écran d'accueil, épinglé — parce qu'une régression CSS
- * ne se voit ni au typecheck ni au rendu d'un composant.
+ * The HORIZONTAL overflow of the home screen, pinned — because a CSS regression
+ * shows up neither at typecheck nor in a component's render.
  *
- * Ce qui s'est passé : les cartes d'amorce coupaient leur invite à UNE ligne avec
- * `white-space: nowrap`. Une ligne insécable donne à l'élément de grille une taille
- * minimale automatique égale à sa PHRASE ENTIÈRE : la colonne `1fr` refuse alors de
- * rétrécir, et c'est tout l'accueil qui défile latéralement (mesuré dans l'app construite :
- * 911 px de contenu dans une colonne de 560).
+ * What happened: the starter cards clipped their prompt to ONE line with
+ * `white-space: nowrap`. An unbreakable line gives the grid item an automatic
+ * minimum size equal to its WHOLE SENTENCE: the `1fr` column then refuses to
+ * shrink, and the whole home screen scrolls sideways (measured in the built app:
+ * 911 px of content in a 560 column).
  *
- * Deux moitiés d'une même règle, donc deux vérifications : le plafond se met sur la
- * HAUTEUR (un nombre de lignes), et chaque conteneur de la chaîne pose `min-width: 0`.
+ * Two halves of the same rule, hence two checks: the cap goes on the
+ * HEIGHT (a number of lines), and every container in the chain sets `min-width: 0`.
  */
 const css = readFileSync(join(__dirname, "starters.css"), "utf8");
 
-/** Le corps d'une règle, par son sélecteur exact. */
+/** A rule's body, by its exact selector. */
 function block(selector: string): string {
   const at = css.indexOf(`\n${selector} {`);
   expect(at, `sélecteur absent : ${selector}`).toBeGreaterThan(-1);
@@ -33,15 +33,15 @@ describe("starters.css — l'accueil ne défile jamais latéralement", () => {
   });
 
   it("chaque maillon de la chaîne pose `min-width: 0`", () => {
-    // La carte est l'élément de GRILLE : sans ce zéro, sa largeur minimale reste celle de
-    // son contenu, quoi que la colonne demande.
+    // The card is the GRID item: without this zero, its minimum width stays that of
+    // its content, whatever the column asks for.
     for (const sel of [".om-starter", ".om-starter-prompt"]) {
       expect(block(sel), sel).toMatch(/min-width:\s*0/);
     }
   });
 
   it("la carte tient sur UNE ligne — c'est ce qui borne la hauteur du bloc", () => {
-    // Empilée, la carte faisait 78 px et le bloc 538 : l'accueil débordait par le bas.
+    // Stacked, the card was 78 px and the block 538: the home screen overflowed at the bottom.
     expect(block(".om-starter")).toMatch(/align-items:\s*center/);
     expect(block(".om-starter")).not.toMatch(/flex-direction:\s*column/);
     expect(block(".om-starter-prompt")).toMatch(/line-clamp:\s*1/);
@@ -51,12 +51,12 @@ describe("starters.css — l'accueil ne défile jamais latéralement", () => {
     expect(block(".om-starter-chips")).toMatch(/flex-wrap:\s*wrap/);
   });
 
-  // L'autre moitié du même piège, sur l'axe du CENTRAGE. `.welcome` centre ses enfants,
-  // donc la largeur du bloc d'amorces est celle de son plus large enfant : une rangée de
-  // puces plus longue que la grille élargissait le bloc, la grille (bornée à 560) se
-  // collait à gauche et « Ne plus proposer » (aligné à droite) partait au-delà des cartes.
-  // Une seule largeur pour tous les enfants — mesuré dans l'app construite : bloc, grille
-  // et rangée de puces partagent le même centre que le bonjour et le composeur.
+  // The other half of the same trap, on the CENTERING axis. `.welcome` centers its children,
+  // so the starters block's width is that of its widest child: a chip row
+  // longer than the grid widened the block, the grid (capped at 560) stuck
+  // to the left and « Ne plus proposer » (right-aligned) went past the cards.
+  // One single width for all children — measured in the built app: block, grid
+  // and chip row share the same center as the greeting and the composer.
   it("le bloc d'amorces est borné à la largeur des cartes", () => {
     const wrap = block(".om-starters-wrap");
     const grid = block(".om-starters");

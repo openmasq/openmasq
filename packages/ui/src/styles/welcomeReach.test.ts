@@ -3,17 +3,17 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * L'accueil ne cache JAMAIS son haut — l'invariant, épinglé sur la feuille elle-même.
+ * The home screen NEVER hides its top — the invariant, pinned on the sheet itself.
  *
- * `.welcome` est à la fois le conteneur qui DÉFILE et celui qui CENTRE. Ces deux rôles se
- * contredisent dès que le contenu est plus haut que la boîte : `justify-content: center`
- * pousse alors le début du contenu AU-DESSUS de l'origine du défilement, et `scrollTop` ne
- * descend pas sous zéro. Le bonjour n'était donc pas coupé — il était INATTEIGNABLE
- * (mesuré dans l'app construite : le titre à −34 px pour 700 px de fenêtre).
+ * `.welcome` is at once the container that SCROLLS and the one that CENTERS. These two roles
+ * contradict each other as soon as the content is taller than the box: `justify-content: center`
+ * then pushes the start of the content ABOVE the scroll origin, and `scrollTop` doesn't
+ * go below zero. The greeting wasn't cut off, then — it was UNREACHABLE
+ * (measured in the built app: the title at −34 px for a 700 px window).
  *
- * `safe center` est le remède exact : centré tant que ça tient, aligné au DÉBUT dès que ça
- * déborde. Un `center` nu qui reviendrait ici ramènerait le bug en silence — d'où ce test
- * plutôt qu'un commentaire, qu'aucune CI ne lit.
+ * `safe center` is the exact remedy: centered as long as it fits, aligned to the START as soon as it
+ * overflows. A bare `center` coming back here would silently bring the bug back — hence this test
+ * rather than a comment, which no CI reads.
  */
 const css = readFileSync(join(__dirname, "..", "styles.css"), "utf8");
 

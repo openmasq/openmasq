@@ -36,21 +36,21 @@ function useOnline(): boolean {
  * Step 2: click the link — it returns to the app via the app's deep-link scheme and
  * signs you in. No passwords. Wired via {@link useAuth}.
  *
- * ⚠️ **Un compte n'est PAS créé au premier usage partout** : cela dépend du réglage
- * d'inscription de l'instance Supabase, et la production les a FERMÉES (les accès sont
- * ouverts à la main). L'app ne peut pas le savoir d'avance — elle l'apprend au refus,
- * que `loginErrors.ts` traduit. D'où l'absence de toute promesse de création à l'écran.
+ * ⚠️ **An account is NOT created on first use everywhere**: that depends on the
+ * Supabase instance's sign-up setting, and production has them CLOSED (accounts are
+ * opened by hand). The app can't know it in advance — it learns it on refusal,
+ * which `loginErrors.ts` translates. Hence the absence of any creation promise on screen.
  *
  * The "sent" screen adapts to {@link useAuth} `linkFirst`: on a link-first
  * platform (desktop) the LINK is the primary path — no code field up front, just
  * an optional "saisir le code" disclosure as a fallback for a failed deep link.
  * On a code-first platform the code field is shown immediately (`codeSupported`).
  *
- * `heading`/`subheading` re-titrent la PREMIÈRE étape pour un appelant dont la
- * connexion n'est pas un retour mais une ARRIVÉE (la page d'invitation d'`apps/web`,
- * où il faut dire de se connecter avec l'adresse invitée). Tout le reste — le champ
- * code, le renvoi, les erreurs, l'état hors-ligne — reste celui du produit ; c'est
- * précisément ce qu'une carte recopiée perdait.
+ * `heading`/`subheading` re-title the FIRST step for a caller whose
+ * sign-in isn't a return but an ARRIVAL (`apps/web`'s invitation page,
+ * where it must say to sign in with the invited address). Everything else — the code
+ * field, the resend, the errors, the offline state — stays the product's own; that's
+ * exactly what a copy-pasted card used to lose.
  */
 export function LoginScreen({
   heading,
@@ -125,12 +125,12 @@ export function LoginScreen({
           {stage === "email" ? (
             <p className="login-sub">{sub}</p>
           ) : (
-            /* ⚠️ L'ACCUSÉ D'ENVOI a disparu d'ici (18/08) — « Nous avons envoyé un lien à
-               vous@… Cliquez dessus… ». Le titre au-dessus dit déjà d'aller voir ses
-               e-mails, et le reste décrivait un geste que personne n'attend qu'on lui
-               explique : ce qui manquait à cet écran, c'est la réponse au SEUL vrai
-               problème — le message n'arrive pas. Elle prend donc la place de l'accusé,
-               au lieu de le suivre en petit sous le champ. */
+            /* ⚠️ The SEND ACKNOWLEDGMENT disappeared from here (18/08) — « Nous avons envoyé un lien à
+               vous@… Cliquez dessus… ». The heading above already says to go check your
+               email, and the rest described an action nobody expects to have
+               explained to them: what this screen lacked was the answer to the ONE real
+               problem — the message doesn't arrive. It therefore takes the acknowledgment's place,
+               instead of following it in small print under the field. */
             <SpamHint />
           )}
         </div>
@@ -141,15 +141,15 @@ export function LoginScreen({
           {stage === "email" ? (
             <form onSubmit={submitEmail} className="login-fields">
               <Field label={t.login.email}>
-                {/* `required` n'est pas décoratif : sans lui, un champ VIDE est valide en HTML,
-                    donc le formulaire se soumet et `submitEmail` le renvoie en silence
-                    (`if (!addr) return`). Résultat mesuré : le bouton ne faisait RIEN, sans un
-                    mot — l'état où quelqu'un croit que l'app est plantée et la ferme. Une
-                    adresse MAL FORMÉE, elle, était déjà prise en charge par `type="email"` :
-                    Chromium affiche son message, en français, ancré sur le champ. `required`
-                    fait simplement entrer le cas vide dans CE mécanisme-là, au lieu d'ouvrir
-                    une seconde surface d'erreur pour un seul cas. Le garde de `submitEmail`
-                    reste, en défense en profondeur. */}
+                {/* `required` is not decorative: without it, an EMPTY field is valid HTML,
+                    so the form submits and `submitEmail` silently bounces it
+                    (`if (!addr) return`). Measured result: the button did NOTHING, without a
+                    word — the state where someone believes the app has crashed and closes it. A
+                    MALFORMED address, on the other hand, was already handled by `type="email"`:
+                    Chromium shows its message, in French, anchored on the field. `required`
+                    simply brings the empty case into THAT mechanism, instead of opening
+                    a second error surface for a single case. `submitEmail`'s guard
+                    stays, as defense in depth. */}
                 <input type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.login.emailPlaceholder} className="login-input" />
               </Field>
               {error && <Err>{error}</Err>}
@@ -162,7 +162,7 @@ export function LoginScreen({
                   <div className="login-divider">
                     <span className="login-divider-lbl">{t.login.or}</span>
                   </div>
-                  {/* Google SSO is temporarily disabled (greyed out, non-cliquable). */}
+                  {/* Google SSO is temporarily disabled (greyed out, non-clickable). */}
                   <button type="button" disabled className="login-sso">
                     <GoogleIcon />
                     <span className="om-sweep">{t.login.continueWithGoogle}</span>
@@ -170,12 +170,12 @@ export function LoginScreen({
                 </>
               )}
               <AssureStrip />
-              {/* ⚠️ Ne promet PLUS « saisir votre e-mail crée un compte » : sur la
-                  production les inscriptions sont fermées (comptes ouverts à la main),
-                  et la phrase envoyait quelqu'un buter sur un refus qu'elle venait de
-                  démentir. Ce qui reste vrai partout, c'est l'absence de mot de passe ;
-                  le cas « adresse pas encore ouverte » est dit par `loginErrors.ts`, au
-                  moment où on l'apprend. */}
+              {/* ⚠️ No longer promises "entering your email creates an account": in
+                  production sign-ups are closed (accounts opened by hand),
+                  and the sentence used to send someone straight into a refusal it had just
+                  denied. What stays true everywhere is the absence of a password;
+                  the "address not yet opened" case is said by `loginErrors.ts`, at the
+                  moment it's learned. */}
               <p className="login-note">{t.login.noPassword}</p>
             </form>
           ) : (

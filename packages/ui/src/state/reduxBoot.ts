@@ -36,12 +36,12 @@ const SECTIONS: Section[] = [
 ];
 
 export function readInitialSection(): Section {
-  migrateLegacyLocalStorage(); // les clés d'avant le renommage — une passe, puis no-op
+  migrateLegacyLocalStorage(); // the keys from before the rename — one pass, then no-op
   try {
     const s = localStorage.getItem(SECTION_KEY) as Section | null;
-    // « workflows » a été une section ; elle a fusionné dans « competences ». Un
-    // appareil qui l'avait ouverte en dernier la retrouve là, plutôt que d'être
-    // renvoyé aux conversations sans un mot.
+    // « workflows » used to be a section; it merged into « competences ». A
+    // device that had it open last finds it there, rather than being
+    // sent back to conversations without a word.
     if ((s as string) === "workflows") return "competences";
     if (s && SECTIONS.includes(s)) return s;
   } catch {

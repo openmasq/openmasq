@@ -7,12 +7,12 @@ import {
   saveDeviceLocale,
 } from "./locale";
 
-// La LANGUE est une préférence d'APPAREIL, comme le thème : une clé localStorage non
-// scopée, lue avant que l'auth ait résolu. Ces tests tiennent l'ordre du repli — appareil
-// → hôte → défaut — et le fait qu'une valeur illisible ne fait jamais planter (fail-safe).
-// Le runtime de test n'expose pas de localStorage persistant — on en pose un, adossé à
-// une Map, pour que ces cas soient hermétiques (l'app, elle, tolère son absence : save
-// et load sont enveloppés de try/catch).
+// LANGUAGE is a DEVICE preference, like the theme: an unscoped localStorage key,
+// read before auth has resolved. These tests hold the fallback order — device
+// → host → default — and the fact that an unreadable value never crashes (fail-safe).
+// The test runtime doesn't expose a persistent localStorage — we install one, backed by
+// a Map, so these cases stay hermetic (the app itself tolerates its absence: save
+// and load are wrapped in try/catch).
 function installLocalStorage(): Map<string, string> {
   const store = new Map<string, string>();
   const stub = {
@@ -55,16 +55,16 @@ describe("langue d'appareil", () => {
   });
 
   it("initialLocale : appareil d'abord, puis hôte, puis défaut", () => {
-    // 1. l'appareil gagne
+    // 1. the device wins
     saveDeviceLocale("en");
     vi.spyOn(globalThis, "navigator", "get").mockReturnValue({ language: "fr-FR" } as Navigator);
     expect(initialLocale()).toBe("en");
 
-    // 2. sans appareil, l'hôte décide
+    // 2. without a device, the host decides
     localStorage.clear();
     expect(initialLocale()).toBe("fr");
 
-    // 3. sans appareil ni hôte connu, le défaut (français)
+    // 3. with neither device nor known host, the default (French)
     vi.spyOn(globalThis, "navigator", "get").mockReturnValue({ language: "de-DE" } as Navigator);
     expect(initialLocale()).toBe("fr");
   });

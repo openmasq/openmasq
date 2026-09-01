@@ -29,11 +29,11 @@ describe("memory_search hybride — le sémantique complète le lexical, jamais 
     const mem = m();
     const ids = mem.cards.map((c) => c.id);
     const semantic = async () => [
-      { id: ids[0], sim: 0.93 }, // au-dessus du plancher → complète
-      { id: ids[1], sim: 0.85 }, // base e5 entre textes sans rapport → refusé
+      { id: ids[0], sim: 0.93 }, // above the floor → completes
+      { id: ids[1], sim: 0.85 }, // e5 baseline between unrelated texts → refused
     ];
-    // AUCUN mot de la requête n'apparaît dans les fiches : le lexical rend zéro,
-    // seul l'index peut répondre — c'est exactement le trou qu'il comble.
+    // NO word of the query appears in the cards: the lexical pass returns zero,
+    // only the index can answer — this is exactly the gap it fills.
     const out = await searchMemoryHybrid(mem, "le prestataire du secteur sonore", semantic);
     expect(out).toContain("Karl Studio");
     expect(out).not.toContain("Augustin Vaudel");

@@ -14,8 +14,8 @@ import {
   normalizeMem,
 } from "./memory";
 
-/** Le bloc injecté est lu par le MODÈLE, jamais affiché : il garde la langue source,
- *  comme le reste du prompt système. */
+/** The injected block is read by the MODEL, never displayed: it keeps the source language,
+ *  like the rest of the system prompt. */
 const SOURCE = getMessages(DEFAULT_LOCALE);
 
 /**
@@ -47,10 +47,10 @@ export interface MemorySelection {
   cards: MemoryCard[];
   /** The formatted block to inject (empty string = inject nothing). */
   block: string;
-  /** Les QUASI-RATÉS — une fiche qui aurait pu partir mais n'est pas partie pour une
-   *  raison SURPRENANTE : le budget saturé, ou un prénom homographe tapé seul
-   *  (« Pierre » n'évoque pas « Pierre Marché », exprès). Le non-rappel NORMAL (aucune
-   *  mention) n'y figure jamais — le bruit apprendrait à ignorer la légende. */
+  /** The NEAR-MISSES — a card that could have gone out but did not, for a SURPRISING
+   *  reason: the budget was saturated, or a homograph first name typed alone
+   *  ("Pierre" does not evoke "Pierre Marché", on purpose). NORMAL non-recall (no
+   *  mention at all) never shows up here — the noise would teach people to ignore the legend. */
   skipped: { id: string; reason: "budget" | "homographe" }[];
 }
 
@@ -87,7 +87,7 @@ export function selectMemory(input: {
   // match would cascade — « Manon » pulling a card that merely names a Manon, then its
   // neighbours — and quietly spend the budget on things the user never referred to.
   const seeds = new Set(scored.filter((s) => s.score === 3).map((s) => s.card.id));
-  /** Les hits DIRECTS (avant l'expansion de voisinage) — le périmètre du diagnostic. */
+  /** The DIRECT hits (before the neighbourhood expansion) — the diagnostic's scope. */
   const direct = new Set(scored.map((s) => s.card.id));
   const picked = new Set(scored.map((s) => s.card.id));
   const linked: { card: MemoryCard; score: number }[] = [];
@@ -116,13 +116,13 @@ export function selectMemory(input: {
   // Direct hits FIRST, neighbours after: the budget must serve what the user actually
   // named before it serves what merely relates to it.
   for (const { card } of [...scored, ...linked.slice(0, MAX_LINKED)]) {
-    // +40 : la ponctuation de la ligne, la catégorie et le suffixe de date de
-    // `formatMemoryBlock` — le coût compté doit couvrir la ligne réellement émise.
+    // +40: the line's punctuation, the category and the date suffix from
+    // `formatMemoryBlock` — the counted cost must cover the line actually emitted.
     const cost = card.entity.length + card.facts.length + 40;
     // SKIP an oversized card, never STOP: a long high-priority card must not empty the
     // budget's tail — the short cards behind it still fit and still serve the send.
-    // Consigné pour le diagnostic — mais seulement les hits DIRECTS : un VOISIN écarté
-    // n'a pas été nommé par l'utilisateur, son absence n'a rien de surprenant.
+    // Logged for the diagnostic — but only the DIRECT hits: a discarded NEIGHBOUR
+    // was not named by the user, so its absence is not surprising.
     if (used + cost > budget) {
       if (direct.has(card.id)) skipped.push({ id: card.id, reason: "budget" });
       continue;
@@ -130,10 +130,10 @@ export function selectMemory(input: {
     used += cost;
     cards.push(card);
   }
-  // Le non-rappel SURPRENANT de l'autre espèce : la fiche n'a AUCUN score, mais un de
-  // ses tokens homographes est bien dans le texte tapé — « appelle Pierre » n'évoque
-  // pas « Pierre Marché », exprès (la deny-list), et sans ce diagnostic l'utilisateur
-  // voit juste le modèle « ne pas savoir », sans pouvoir comprendre pourquoi.
+  // The other species of SURPRISING non-recall: the card has NO score at all, but one
+  // of its homograph tokens is indeed in the typed text — "appelle Pierre" does not evoke
+  // "Pierre Marché", on purpose (the deny-list), and without this diagnostic the user
+  // just sees the model "not know", with no way to understand why.
   const hit = new Set([...cards.map((c) => c.id), ...skipped.map((s) => s.id)]);
   for (const card of memory.cards) {
     if (hit.has(card.id)) continue;
@@ -144,10 +144,10 @@ export function selectMemory(input: {
   return { profile, cards, block: formatMemoryBlock(profile, cards), skipped };
 }
 
-/** JJ/MM/AAAA — la fraîcheur du fait, injectée AVEC lui : le raisonnement temporel est
- *  le point faible mesuré des modèles sur la mémoire longue, et une carte sans date se
- *  lit comme éternellement vraie (une deadline de l'an dernier raisonnée au présent).
- *  Partagé avec `search.ts` (la ligne de fiche est le même format des deux côtés). */
+/** DD/MM/YYYY — the fact's freshness, injected WITH it: temporal reasoning is
+ *  models' measured weak point on long-term memory, and a card with no date reads
+ *  as eternally true (a deadline from last year reasoned about in the present tense).
+ *  Shared with `search.ts` (the card line is the same format on both sides). */
 export const fmtDay = (t: number): string => new Date(t).toLocaleDateString("fr-FR");
 
 /** The injected block — French, and framed as BACKGROUND the model must not recite.
@@ -166,24 +166,24 @@ export function formatMemoryBlock(profile: string | undefined, cards: MemoryCard
   return lines.join("\n");
 }
 
-/** Périmètre de la dispense de notoriété du NIVEAU de protection de la conversation
- *  (`privacy/privacyLevel.ts` `notorietyForLevel`) — le même objet que reçoit le moteur. */
+/** Scope of the notoriety exemption for the conversation's protection LEVEL
+ *  (`privacy/privacyLevel.ts` `notorietyForLevel`) — the same object the engine receives. */
 export interface MemoryNotoriety {
   commercial?: boolean;
   people?: boolean;
 }
 
 /**
- * Retire du forced mémoire les valeurs que la POLITIQUE DE NOTORIÉTÉ du niveau épargne.
- * « Une entité mémoire est du PII connu par construction » est FAUX pour un alias :
- * l'extraction range des fournisseurs dans les alias d'une fiche organisation, et un
- * alias « google » FORCÉ (le forced outranke notoriété ET deny-lists, par design — il
- * est censé être un choix EXPLICITE de l'utilisateur) mintait `google → ostrel`, que le
- * vault réappliquait ensuite au prompt entier : « Google Drive » devenait « Ostrel
- * Drive », et le modèle répondait « connecteur non connecté » sur ses propres outils.
- * Filtrée ici, une valeur notoire retombe sur la DÉTECTION, où les gates du moteur
- *  (notoriété, keep, deny-lists) tranchent selon le niveau — en Strict rien n'est
- * épargné (`commercial:false`, `people:false`) et le forced reste entier.
+ * Removes from the memory forced list the values that the level's NOTORIETY POLICY exempts.
+ * "A memory entity is known PII by construction" is FALSE for an alias:
+ * extraction files suppliers under an organization card's aliases, and a
+ * FORCED "google" alias (forced outranks notoriety AND deny-lists, by design — it
+ * is meant to be an EXPLICIT user choice) used to mint `google → ostrel`, which the
+ * vault then reapplied to the whole prompt: "Google Drive" became "Ostrel
+ * Drive", and the model would answer "connector not connected" about its own tools.
+ * Filtered here, a notorious value falls back on DETECTION, where the engine's gates
+ *  (notoriety, keep, deny-lists) decide based on the level — under Strict nothing is
+ * exempted (`commercial:false`, `people:false`) and the forced list stays intact.
  */
 export function filterNotoriousFromForced(
   forced: { value: string; category: string }[],
@@ -192,7 +192,7 @@ export function filterNotoriousFromForced(
   const coarse: Record<string, string> = { NAME: "name", ORG: "company" };
   return forced.filter((f) => {
     const cat = coarse[f.category];
-    if (!cat) return true; // EMAIL & co : jamais notoire — la protection reste forcée
+    if (!cat) return true; // EMAIL & co: never notorious — protection stays forced
     return !isNotoriousEntity(f.value, cat, notoriety);
   });
 }
@@ -202,32 +202,32 @@ export function filterNotoriousFromForced(
  *  entity is KNOWN PII by construction — no detector needed to protect it. Aliases ride
  *  along; an email-shaped alias forces as EMAIL.
  *
- *  ⚠️ SAUF un nom qui est un MOT DU LANGAGE (stopword / terme générique) : le chemin
- *  « retiens que… » accepte exprès des fiches-notes au nom générique (`allowNotes`
- *  dans extract.ts), et forcer ce nom redacted le mot commun dans TOUTE la
- *  conversation — mesuré : une note « dossiers » a fait partir « à quels dossiers
- *  as-tu accès ? » en « à quels brantley… », mutilant la question ET la recherche
- *  mémoire derrière. Ne pas le forcer ne fuit rien (un mot commun n'identifie
- *  personne) ; le CONTENU de la note reste protégé par la détection normale. */
+ *  ⚠️ EXCEPT for a name that is a LANGUAGE WORD (stopword / generic term): the
+ *  « retiens que… » path deliberately accepts note-cards with a generic name
+ *  (`allowNotes` in extract.ts), and forcing that name redacted the common word across
+ *  the WHOLE conversation — measured: a note « dossiers » turned « à quels dossiers
+ *  as-tu accès ? » into « à quels brantley… », mutilating both the question AND the
+ *  memory search behind it. Not forcing it leaks nothing (a common word identifies
+ *  nobody); the note's CONTENT stays protected by normal detection. */
 export function memoryForced(sel: MemorySelection): { value: string; category: string }[] {
   const catToken = (c: MemoryCard): string => (c.cat === "personne" ? "NAME" : "ORG");
   const out: { value: string; category: string }[] = [];
-  // Un mot du LEXIQUE COURANT n'est jamais du « PII connu », quelle que soit la fiche :
-  // une extraction ratée a rangé « dossiers » comme organisation, et ce forced l'a alors
-  // redacted PARTOUT — jusqu'au message d'erreur du connecteur (« hors des ashcombe
-  // autorisés », journal 01/08). Le forced MÉMOIRE est machine-décidé, donc filtré ici ;
-  // le forced UTILISATEUR (« Redact » du composeur) garde son passe-droit à l'engine.
-  // ⚠️ `isNonPiiTerm` et NON un prédicat local : les deux branches avaient corrigé ce
-  // bug chacune de son côté, l'une avec `isStopword || isGenericTerm`, l'autre avec ce
-  // prédicat partagé — qui les contient tous deux, plus les composés, les formes à
-  // article, le vocabulaire clinique et les organismes publics. Une seconde définition du
-  // « mot courant » dériverait du lexique qu'elle prétend suivre (règle 9). Seul le
-  // plancher de longueur survit de l'autre version : une « entité » d'un ou deux signes
-  // ne désigne rien et redact des fragments partout.
+  // A word from the COMMON LEXICON is never "known PII", whatever the card says:
+  // a failed extraction filed « dossiers » as an organization, and this forced then
+  // redacted it EVERYWHERE — down to the connector's error message (« hors des ashcombe
+  // autorisés », log 01/08). The MEMORY forced is machine-decided, so it is filtered
+  // here; the USER forced ("Redact" in the composer) keeps its pass to the engine.
+  // ⚠️ `isNonPiiTerm` and NOT a local predicate: both branches had fixed this
+  // bug separately, one with `isStopword || isGenericTerm`, the other with this
+  // shared predicate — which contains both of them, plus compounds, article
+  // forms, clinical vocabulary and public bodies. A second definition of the
+  // "common word" would drift from the lexicon it claims to follow (rule 9). Only
+  // the length floor survives from the other version: an "entity" of one or two
+  // characters designates nothing and would redact fragments everywhere.
   const push = (value: string, category: string) => {
     if (value.trim().length < 3 || isNonPiiTerm(value)) return;
-    // Une fiche déjà corrompue (entité = fragment de phrase, née avant le garde de
-    // l'extraction) cesse au moins de minter un faux — voir `isNominalEntityName`.
+    // A card that is already corrupted (entity = sentence fragment, born before the
+    // extraction guard existed) at least stops minting a fake — see `isNominalEntityName`.
     if (!isNominalEntityName(value)) return;
     out.push({ value, category });
   };
@@ -241,11 +241,11 @@ export function memoryForced(sel: MemorySelection): { value: string; category: s
   return out;
 }
 
-/** Le forced du BLOC INJECTÉ : les cartes sélectionnées + toute entité de la mémoire
- *  qui APPARAÎT dans le bloc — le PROFIL (étage toujours injecté) peut nommer une
- *  organisation dont la carte n'est PAS sélectionnée (« directeur chez X » un jour
- *  sans rapport avec X) : sans ce complément, sa protection retombait sur la seule
- *  détection — la fuite mesurée en éval sous le moteur regex. */
+/** The forced list for the INJECTED BLOCK: the selected cards + any memory entity
+ *  that APPEARS in the block — the PROFILE (the always-injected tier) can name an
+ *  organization whose card is NOT selected ("director at X" on some day unrelated
+ *  to X): without this addition, its protection fell back on detection alone —
+ *  the leak measured in eval under the regex engine. */
 export function memoryForcedForBlock(
   sel: MemorySelection,
   memory: MemoryData | undefined,
@@ -264,10 +264,10 @@ export function memoryForcedForBlock(
   return base;
 }
 
-/** TOUTES les entités de la mémoire comme redactions FORCÉES — pour le résultat de
- *  `memory_search` : une carte est du PII CONNU par construction (c'est exactement le
- *  raisonnement de `memoryForced` côté injection), donc sa protection ne doit JAMAIS
- *  dépendre d'une détection (le moteur regex ne sait pas voir un nom libre). */
+/** ALL memory entities as FORCED redactions — for the `memory_search` result: a
+ *  card is KNOWN PII by construction (this is exactly the reasoning behind
+ *  `memoryForced` on the injection side), so its protection must NEVER depend
+ *  on detection (the regex engine cannot see a free-form name). */
 export function memoryForcedAll(memory: MemoryData | undefined): { value: string; category: string }[] {
   if (!memory?.cards.length) return [];
   return memoryForced({ profile: undefined, cards: memory.cards, block: "", skipped: [] });

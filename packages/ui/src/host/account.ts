@@ -19,11 +19,11 @@ export interface AuthUser {
  * `onChange` then fires. When absent, the app skips the login gate entirely (e.g. the
  * browser preview).
  *
- * ⚠️ **`sendMagicLink` ne crée PAS forcément le compte.** Cela dépend du réglage
- * d'inscription de l'instance Supabase visée, et la production les a FERMÉES : une
- * adresse non provisionnée reçoit un refus (`{ error }`), pas un lien. Un appelant ne
- * doit donc jamais annoncer d'avance qu'une adresse inconnue ouvrira un compte —
- * `pages/Login/loginErrors.ts` traduit le refus quand il arrive.
+ * ⚠️ **`sendMagicLink` does NOT necessarily create the account.** That depends on the
+ * sign-up setting of the targeted Supabase instance, and production has them CLOSED: an
+ * unprovisioned address gets a refusal (`{ error }`), not a link. A caller must
+ * therefore never announce in advance that an unknown address will open an account —
+ * `pages/Login/loginErrors.ts` translates the refusal when it happens.
  */
 export interface AuthHost {
   /** Current session's user, or null if signed out. */
@@ -43,8 +43,8 @@ export interface AuthHost {
    *  outage — it can never tell us the server came back. */
   reconnect?(): Promise<AuthUser | null>;
   /** Email a magic sign-in link. The session is established asynchronously when the user
-   *  clicks it (`onChange` fires). ⚠️ Ne crée un compte que si l'instance Supabase visée
-   *  autorise les inscriptions — la production ne les autorise PAS (voir l'en-tête). */
+   *  clicks it (`onChange` fires). ⚠️ Only creates an account if the targeted Supabase
+   *  instance allows sign-ups — production does NOT allow them (see the header). */
   sendMagicLink(p: { email: string }): Promise<{ error?: string }>;
   /** Complete sign-in with the emailed one-time CODE (the SAME email carries both
    *  a link and an 8-digit code). Present when the platform can verify a code
@@ -84,36 +84,36 @@ export interface SyncDeviceInfo {
  * LOCALLY (never synced, never sent). `enabled` is false when no sync backend is
  * wired (device calls then return []); absent entirely = no sync UI at all.
  */
-/** Ce que Réglages → Synchronisation montre de l'état RÉEL : à qui l'app parle, et le
- *  dernier échange vécu par cette session. La synchro est best-effort (une panne est
- *  silencieuse par contrat) — ce témoin est ce qui l'empêche d'être invisible. */
+/** What Réglages → Synchronisation shows of the REAL state: who the app is talking to, and
+ *  the last exchange this session experienced. Sync is best-effort (a failure is
+ *  silent by contract) — this indicator is what keeps it from being invisible. */
 export interface SyncStatusSnapshot {
-  /** Le nom de l'environnement effectif (« staging », « production »…). */
+  /** The name of the effective environment ("staging", "production"…). */
   env: string;
-  /** L'hôte de l'API visée (jamais un jeton, jamais un chemin). */
+  /** The targeted API's host (never a token, never a path). */
   backendHost: string;
   lastOkAt: number | null;
   lastErrorAt: number | null;
-  /** Raison courte du dernier échec (« HTTP 403 », « serveur injoignable ») ou null. */
+  /** Short reason for the last failure ("HTTP 403", "server unreachable") or null. */
   lastError: string | null;
-  /** La panne ne se réparera pas d'elle-même — un geste humain est nécessaire (corriger
-   *  la phrase secrète). Absent/false ⇒ un simple réessai peut suffire. Change la PHRASE
-   *  affichée : promettre « réessaiera tout seul » sur une panne définitive apprend à
-   *  ignorer le témoin. */
+  /** The failure won't fix itself — a human action is needed (correcting
+   *  the passphrase). Absent/false ⇒ a simple retry may be enough. Changes the PHRASE
+   *  shown: promising "it'll retry on its own" on a definitive failure teaches users to
+   *  ignore the indicator. */
   lastErrorFatal?: boolean;
 }
 
 export interface SyncHost {
   /** Whether a sync backend is configured (a build-time URL is present). */
   enabled: boolean;
-  /** L'état courant du témoin — optionnel : un hôte qui ne l'offre pas (aperçu, mobile
-   *  pas encore câblé) cache la ligne plutôt que d'afficher un état inventé. */
+  /** The indicator's current state — optional: a host that doesn't offer it (preview, mobile
+   *  not wired up yet) hides the row rather than showing a made-up state. */
   status?(): Promise<SyncStatusSnapshot>;
   /** The current E2E passphrase, or null if the user hasn't set one (sync off). */
   getPassphrase(): Promise<string | null>;
   setPassphrase(passphrase: string): Promise<void>;
-  /** Confronter une phrase aux enveloppes DÉJÀ côté serveur (« mismatch » = une autre
-   *  phrase règne — dit tout de suite, jamais bloquant). Optionnel sans backend. */
+  /** Check a phrase against the envelopes ALREADY on the server ("mismatch" = another
+   *  phrase reigns — said immediately, never blocking). Optional without a backend. */
   verifyPassphrase?(passphrase: string): Promise<"match" | "mismatch" | "no-envelopes" | "unreachable">;
   clearPassphrase(): Promise<void>;
   /** Suggest a strong random passphrase (for the first device to set one). */

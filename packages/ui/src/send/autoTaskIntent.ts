@@ -1,73 +1,73 @@
 import { EDGE_L, EDGE_R } from "./wordEdges";
 
 /**
- * « LOURD » ≠ « LÉGER » — le lexique d'intention du mode Auto (`autoRoute.ts`), sœur
- * multilingue de `agent/readIntent.ts` / `agent/sendIntent.ts` et construite sur les
- * mêmes principes : déterministe, locale, et l'ORDRE est la règle (le lourd gagne).
+ * "HEAVY" ≠ "LIGHT" — the Auto mode's intent vocabulary (`autoRoute.ts`), the multilingual
+ * sister of `agent/readIntent.ts` / `agent/sendIntent.ts` and built on the
+ * same principles: deterministic, local, and ORDER is the rule (heavy wins).
  *
- * ## Le sens des faux positifs — l'asymétrie INVERSE de `readIntent`
+ * ## The direction of false positives — the INVERSE asymmetry of `readIntent`
  *
- * Sur-classer coûte de l'ARGENT (un envoi métré pour une question triviale, irréversible) ;
- * sous-classer coûte une réponse moyenne (réparable : on redemande, et l'escalade sur
- * échec est la suite prévue). La liste LOURDE est donc MESURÉE — chaque verbe y est
- * inambigu dans SES six langues ou il n'y entre pas (« développe » est sorti : FR
- * « développe ce point » = étoffer ; « design » : un logo n'est pas une architecture ;
- * « löse » DE : « ein Ticket lösen » = acheter un billet). La liste LÉGÈRE est un peu
- * plus généreuse : son faux positif ne coûte qu'une réponse à re-demander.
+ * Over-classing costs MONEY (a metered send for a trivial question, irreversible);
+ * under-classing costs a middling reply (repairable: you ask again, and escalation on
+ * failure is the intended follow-up). The HEAVY list is therefore MEASURED — every verb in it is
+ * unambiguous in ALL six of its languages or it doesn't go in ("développe" was left out: FR
+ * "développe ce point" = flesh out; "design": a logo is not an architecture;
+ * "löse" DE: "ein Ticket lösen" = buy a ticket). The LIGHT list is a little
+ * more generous: its false positive only costs a reply that has to be re-asked for.
  *
- * Langues couvertes : FR · EN · ES · DE · IT · PT. Frontières Unicode (`wordEdges.ts`),
- * jamais `\b`. Rien de reconnu ⇒ ni lourd ni léger : l'inconnu garde le classement par
- * les seuls signaux structurels (volume, outils, images) — le lexique AFFINE, il ne
- * remplace pas.
+ * Languages covered: FR · EN · ES · DE · IT · PT. Unicode boundaries (`wordEdges.ts`),
+ * never `\b`. Nothing recognised ⇒ neither heavy nor light: the unknown keeps the classing from
+ * structural signals alone (volume, tools, images) — the vocabulary REFINES, it does not
+ * replace.
  */
 
-/** Verbes qui demandent du RAISONNEMENT ou une production experte — inambigus. */
+/** Verbs that call for REASONING or expert output — unambiguous. */
 const HEAVY_VERB = new RegExp(
   `${EDGE_L}(?:` +
-    // FR — impératif / infinitif / 2ᵉ pl. d'un coup (`prouve[rz]?` → prouve/prouver/prouvez)
+    // FR — imperative / infinitive / 2nd pl. all at once (`prouve[rz]?` → prouve/prouver/prouvez)
     `prouve[rz]?|d[ée]montre[rz]?|d[ée]bogue[rz]?|d[ée]bugge?[rz]?|` +
     `optimise[rz]?|refactor(?:e|ise)[rz]?|audite[rz]?|` +
     `con[çc]ois|concevoir|concevez|mod[ée]lise[rz]?|impl[ée]mente[rz]?|` +
     `n[ée]gocie[rz]?|[ée]labore[rz]?|r[ée]sous|r[ée]soudre|r[ée]solvez|` +
-    // EN — avec les flexions (« help me debugging this » doit compter)
+    // EN — with inflections ("help me debugging this" must count)
     `prove[sd]?|proving|debug(?:ging|ged|s)?|troubleshoot(?:ing|s)?|` +
     `optimi[sz](?:e[sd]?|ing|ation)|refactor(?:ing|ed|s)?|audit(?:ing|ed|s)?|` +
     `implement(?:ing|ed|s)?|negotiat(?:e[sd]?|ing|ion)|devise[sd]?|solv(?:e[sd]?|ing)|` +
-    // ES (tú/usted/infinitif : demuestra/demuestre/demostrar)
+    // ES (tú/usted/infinitive: demuestra/demuestre/demostrar)
     `demuestr[ae]|demostrar|depur[ae]|depurar|optimiz[ae]|optimizar|` +
     `refactoriz[ae]|refactorizar|audit[ae]|auditar|` +
     `implement[ae]|implementar|negoci[ae]|negociar|resuelv[ae]|resolver|elabor[ae]|elaborar|` +
-    // DE (impératif/infinitif : beweise/beweisen)
+    // DE (imperative/infinitive: beweise/beweisen)
     `beweisen?|debuggen?|optimieren?|refaktorieren?|auditieren?|implementieren?|verhandeln?|verhandle|` +
-    // IT (tu/voi/infinitif : dimostra/dimostrate/dimostrare)
+    // IT (tu/voi/infinitive: dimostra/dimostrate/dimostrare)
     `dimostra(?:re|te)?|debugga(?:re|te)?|ottimizza(?:re|te)?|rifattorizza(?:re|te)?|` +
     `implementa(?:re|te)?|negozia(?:re|te)?|risolv(?:i|ere|ete)|` +
-    // PT (tu/você/infinitif : demonstra/demonstre/demonstrar)
+    // PT (tu/você/infinitive: demonstra/demonstre/demonstrar)
     `demonstr[ae]|demonstrar|depur[ae]|depurar|otimiz[ae]|otimizar|` +
     `refator[ae]|refatorar|negoceia|resolv[ae]|resolver` +
     `)${EDGE_R}`,
   "iu",
 );
 
-/** Vocabulaire de DÉBOGAGE — un nom de ces familles signe une tâche experte même sans
- *  verbe (« pourquoi ce segfault ? »). Discriminants forts, pas de mot du langage courant. */
+/** DEBUGGING vocabulary — a noun from these families signals an expert task even with no
+ *  verb ("why this segfault?"). Strong discriminants, no everyday-language word. */
 const HEAVY_NOUN = new RegExp(
   `${EDGE_L}(?:bugs?|bogues?|stack[ -]?trace|segfault|deadlock|core[ ]dump)${EDGE_R}` +
     `|race[ ]condition|memory[ ]leak|fuite[ ]m[ée]moire`,
   "iu",
 );
 
-/** Locutions « en profondeur » / analyse causale — la demande DIT qu'elle veut du lourd. */
+/** "In depth" phrases / causal analysis — the request SAYS it wants something heavy. */
 const HEAVY_PHRASE = new RegExp(
   `en[ ]profondeur|in[ -]depth|en[ ]profundidad|in[ ]profondit[àa]|em[ ]profundidade|` +
     `root[ ]cause|cause[ ]racine|causa[ ]ra[íi]z|causa[ ]raiz`,
   "iu",
 );
 
-/** Connecteurs de SÉQUENCE — une consigne en plusieurs étapes est une tâche lourde.
- *  « puis »/« then » sont trop communs seuls : il faut ≥ 3 connecteurs DISTINCTS
- *  (« je passe d'abord au bureau » ne doit pas coûter des crédits), ou une vraie
- *  liste numérotée (≥ 2 items `1.`/`2)`). */
+/** SEQUENCE connectors — a multi-step instruction is a heavy task.
+ *  "puis"/"then" are too common alone: it takes ≥ 3 DISTINCT connectors
+ *  ("je passe d'abord au bureau" must not cost credits), or a real
+ *  numbered list (≥ 2 `1.`/`2)` items). */
 const SEQUENCE = new RegExp(
   `${EDGE_L}(?:d['’]abord|puis|ensuite|enfin|` +
     `first|then|next|finally|afterwards|` +
@@ -79,15 +79,15 @@ const SEQUENCE = new RegExp(
 );
 const NUMBERED_ITEM = /^\s*\d{1,2}[.)]\s+\S/gmu;
 
-/** Verbes de TRANSFORMATION de surface — traduire, résumer, reformuler : un petit
- *  modèle les sert très bien. « resume » nu n'est espagnol QUE devant un déterminant
- *  (sinon c'est le CV/reprendre anglais) ; « corrige » n'est léger QU'avec un objet
- *  d'orthographe (« corrige ce bug » reste lourd, attrapé par HEAVY_NOUN). */
+/** Surface TRANSFORMATION verbs — translate, summarise, rephrase: a small
+ *  model serves them very well. Bare "resume" is Spanish ONLY in front of a determiner
+ *  (otherwise it's the English CV/resume); "corrige" is light ONLY with a
+ *  spelling object ("corrige ce bug" stays heavy, caught by HEAVY_NOUN). */
 const LIGHT_VERB = new RegExp(
   `${EDGE_L}(?:` +
-    // « résumé » accentué libre ; « resume » NU seulement devant un déterminant FR/ES —
-    // sinon c'est l'anglais (le CV, « resume the meeting »). resumer/resumez restent
-    // libres (aucun mot anglais ne finit ainsi) : le clavier sans accents garde sa forme.
+    // Accented "résumé" is free; bare "resume" only in front of an FR/ES determiner —
+    // otherwise it's English ("the CV", "resume the meeting"). resumer/resumez stay
+    // free (no English word ends that way): the accent-less keyboard keeps its form.
     `traduis|traduire|traduisez|r[ée]sume[rz]|résume|r[ée]capitule[rz]?|reformule[rz]?|` +
     `resume(?=\\s+(?:ce|cette|ces|[çc]a|le|la|les|l['’]|moi|este|esta|esto|el|los|las))|` +
     `paraphrase[rz]?|raccourcis|raccourcir|raccourcissez|all[èe]ge[rz]?|[ée]pelle[rz]?|` +
@@ -98,13 +98,13 @@ const LIGHT_VERB = new RegExp(
     `traduci|tradurre|traducete|riassum(?:i|ere|ete)|riformul[ai]|accorci[ao]|` +
     `traduz(?:a|ir)?|parafraseia|encurt[ae]` +
     `)${EDGE_R}` +
-    // DE à particule séparée : « fasse … zusammen » (le verbe se coupe en deux)
+    // DE with a separated particle: "fasse … zusammen" (the verb splits in two)
     `|fass(?:e|t|en)?[^.!?\\n]{0,60}${EDGE_L}zusammen${EDGE_R}`,
   "iu",
 );
 
-/** Relecture orthographique : verbe de correction + objet d'orthographe, ENSEMBLE —
- *  « corrige » seul est ambigu (un bug se corrige aussi). */
+/** Spelling proofread: correction verb + spelling object, TOGETHER —
+ *  "corrige" alone is ambiguous (a bug also gets "corrigé"). */
 const FIX_VERB = new RegExp(
   `${EDGE_L}(?:corrige[rz]?|fix|correct|corrig[ei]|corregg[ei]|corrija|korrigiere?n?|arregl[ae])${EDGE_R}`,
   "iu",
@@ -115,9 +115,9 @@ const SPELL_NOUN = new RegExp(
   "iu",
 );
 
-/** La demande est-elle une consigne MULTI-ÉTAPES ? Liste numérotée (≥ 2 items) ou
- *  ≥ 3 connecteurs de séquence DISTINCTS. Une tête LÉGÈRE désamorce (« traduis :
- *  1. … 2. … » — les numéros sont le CONTENU à traduire, pas des étapes). */
+/** Is the request a MULTI-STEP instruction? A numbered list (≥ 2 items) or
+ *  ≥ 3 DISTINCT sequence connectors. A LIGHT lead defuses it ("translate:
+ *  1. … 2. …" — the numbers are the CONTENT to translate, not steps). */
 export function isMultiStepAsk(text: string): boolean {
   if (LIGHT_VERB.test(text.slice(0, 48))) return false;
   const numbered = text.match(NUMBERED_ITEM);
@@ -127,8 +127,8 @@ export function isMultiStepAsk(text: string): boolean {
   return seen.size >= 3;
 }
 
-/** La demande PORTE le lourd : verbe expert, vocabulaire de débogage, « en profondeur »,
- *  ou consigne multi-étapes. `classifyAutoTask` la classe alors `expert`. */
+/** The request CARRIES heaviness: expert verb, debugging vocabulary, "en profondeur",
+ *  or a multi-step instruction. `classifyAutoTask` then classes it `expert`. */
 export function hardTaskAsk(text: string | undefined | null): boolean {
   if (!text) return false;
   return (
@@ -136,8 +136,8 @@ export function hardTaskAsk(text: string | undefined | null): boolean {
   );
 }
 
-/** La demande n'est qu'une TRANSFORMATION de surface — et rien de lourd à côté :
- *  le lourd gagne toujours (« traduis puis optimise ce code » n'est pas léger). */
+/** The request is only a surface TRANSFORMATION — and nothing heavy alongside it:
+ *  heavy always wins ("traduis puis optimise ce code" is not light). */
 export function lightTaskAsk(text: string | undefined | null): boolean {
   if (!text || hardTaskAsk(text)) return false;
   return LIGHT_VERB.test(text) || (FIX_VERB.test(text) && SPELL_NOUN.test(text));

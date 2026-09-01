@@ -44,7 +44,7 @@ describe("previewStatus — « aucune valeur détectée » n'est jamais qu'une P
     const s = previewStatus({ redacting: true, redactProgress: { done: 3, total: 8 }, replacements: undefined }, fr);
     expect(s.label).toBe("redaction en cours… (3/8)");
     expect(s.pending).toBe(true);
-    // Mono-chunk : pas de compteur « (1/1) » qui n'informe de rien.
+    // Single chunk: no "(1/1)" counter that says nothing.
     expect(previewStatus({ redacting: true, redactProgress: { done: 0, total: 1 }, replacements: undefined }, fr).label)
       .toBe("redaction en cours…");
   });

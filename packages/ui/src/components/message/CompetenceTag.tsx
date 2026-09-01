@@ -11,11 +11,11 @@ import { useT } from "../../i18n";
  * message text (see `schema`'s `Message.competence`), so this is the only trace of it —
  * a chip that expands to reveal what actually went out.
  *
- * ⚠️ **Un seul tag pour les deux anciennes listes.** Il y en avait deux, jumeaux, dont un
- * pour les « workflows » ; ici c'est le CHAMP `servers` qui change le glyphe et fait
- * paraître les connecteurs à côté du nom — pas un second composant. Il rend aussi bien
- * `message.competence` que l'ancien `message.workflow`, sans quoi tous les tours déjà
- * envoyés perdraient leur étiquette (`MessageBubble` fait le rapprochement).
+ * ⚠️ **A single tag for the two former lists.** There used to be two, twins, one
+ * for « workflows »; here it's the `servers` FIELD that changes the glyph and makes
+ * the connectors appear next to the name — not a second component. It renders both
+ * `message.competence` and the old `message.workflow` just as well, without which every turn
+ * already sent would lose its label (`MessageBubble` does the matching).
  *
  * It shows the SNAPSHOT stored on the message, never today's version of the compétence:
  * the point of opening it is "what did this turn send?", and the answer stops being true

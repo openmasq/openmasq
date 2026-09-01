@@ -62,19 +62,19 @@ if (!agent.startsWith("pnpm")) {
   process.exit(1);
 }
 
-// Le `name` du package (`@openmasq/desktop`) N'est PAS un nom de produit, et NSIS s'en sert
-// pour le dossier d'installation par-utilisateur : la première install Windows a atterri
-// dans `AppData\Local\Programs\@openmasqdesktop`. C'est aussi ce que lit Electron pour
-// `userData` quand aucun `productName` n'est présent dans le package.json empaqueté — donc
-// l'endroit où vivent conversations, coffre et clés.
+// The package's `name` (`@openmasq/desktop`) is NOT a product name, and NSIS uses it
+// for the per-user install folder: the first Windows install landed
+// in `AppData\Local\Programs\@openmasqdesktop`. It's also what Electron reads for
+// `userData` when no `productName` is present in the packaged package.json — so,
+// the place where conversations, vault and keys live.
 //
-// ⚠️ Le corriger est GRATUIT tant que rien n'a été livré sur Windows, et coûteux ensuite :
-// après une première livraison, changer ce nom déplacerait le dossier de données et
-// perdrait les conversations des installés. macOS n'est pas concerné (son nom vient du
-// CFBundleName de l'Info.plist, soit `productName`), donc rien ne bouge pour les mac en
-// circulation. Le `extraMetadata` (name/productName/author, dérivés de la marque) vit dans
-// `electron-builder.cjs` — passé en `--config` EXPLICITE ici pour que TOUS les chemins
-// d'empaquetage l'aient — `package`, `dist`, `release` et la CI passent par ce script.
+// ⚠️ Fixing it is FREE as long as nothing has shipped on Windows, and costly afterward:
+// after a first release, changing this name would move the data folder and
+// lose installed users' conversations. macOS is not affected (its name comes from the
+// Info.plist's CFBundleName, i.e. `productName`), so nothing moves for macs already
+// out there. The `extraMetadata` (name/productName/author, derived from the brand) lives in
+// `electron-builder.cjs` — passed as an EXPLICIT `--config` here so that ALL
+// packaging paths have it — `package`, `dist`, `release` and CI all go through this script.
 const argv = [
   electronBuilderCli(),
   "--config",

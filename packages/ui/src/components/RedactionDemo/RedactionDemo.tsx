@@ -6,8 +6,8 @@ import { useT } from "../../i18n";
  * The promise, in motion: the same sentence twice — what you write, and what the model
  * receives — with the sensitive spans flipping to their fakes on a gentle loop.
  *
- * Montée par le premier lancement ET par « Aide » (chapitre « Ce que l'app fait pour
- * vous ») : une seule démo, donc les deux ne peuvent pas raconter deux produits.
+ * Mounted by first launch AND by « Aide » (chapter « Ce que l'app fait pour
+ * vous »): a single demo, so the two can't tell two different products.
  *
  * This replaced a wall of 19 category toggles as the FIRST thing a new user sees. The
  * toggles asked a decision before the concept existed; this shows the concept, and the

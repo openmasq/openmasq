@@ -151,8 +151,8 @@ export function CodeBlock({ node, children }: any) {
   if (lang === "document") {
     return <DocumentCard title={documentTitle(text)} text={text} />;
   }
-  // ```competence / ```workflow (systemPrompt.ts `SKILL_GUIDANCE`) — ce que le modèle
-  // vient de FABRIQUER pour la liste de l'utilisateur, avec son bouton d'adoption.
+  // ```competence / ```workflow (systemPrompt.ts `SKILL_GUIDANCE`) — what the model
+  // just BUILT for the user's list, with its adoption button.
   if (lang === "competence" || lang === "workflow") {
     return <SkillCard kind={lang} text={text} />;
   }

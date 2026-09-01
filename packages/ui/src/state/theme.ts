@@ -3,11 +3,11 @@ import { load, SETTINGS_KEY, DEFAULT_SETTINGS } from "./storePersistence";
 import { migrateLegacyLocalStorage } from "./legacyStorage";
 
 /**
- * Le THÈME — une préférence d'APPAREIL, pas de compte, et un seul axe au choix.
+ * The THEME — a DEVICE preference, not an account one, with a single choosable axis.
  *
- * Sorti de `storePersistence.ts` le jour où l'accent est devenu imposé (règle 1 : ce
- * fichier ne pouvait plus grossir). Tout ce qui décide « de quelle couleur démarre
- * l'app » vit donc ici, y compris la traduction des thèmes verts déjà enregistrés.
+ * Pulled out of `storePersistence.ts` the day the accent became imposed (rule 1: this
+ * file could no longer grow). Everything that decides « what color the app starts
+ * in » lives here, including translating already-persisted green themes.
  */
 
 // The colour theme is a DEVICE preference, so it gets its own UNSCOPED key, written on
@@ -22,16 +22,16 @@ const THEMES: readonly ThemeName[] = ["light", "dark", "blue", "blue-dark"];
 const isTheme = (v: unknown): v is ThemeName => THEMES.includes(v as ThemeName);
 
 /**
- * L'ACCENT est l'indigo, point — le vert n'est plus une option du produit.
+ * The ACCENT is indigo, period — green is no longer a product option.
  *
- * Le thème garde ses deux axes, mais un seul reste au choix : le FOND (clair/sombre).
- * Cette fonction est l'unique endroit qui traduit un thème persisté vers l'accent
- * courant, parce qu'un réglage retiré de l'UI sans coercition au chargement laisserait
- * les comptes qui avaient le vert dessus pour toujours, sans aucune surface pour en
- * sortir — le même piège que `redactEngine` dans `storePersistence.ts`.
+ * The theme keeps its two axes, but only one stays choosable: the BACKGROUND (light/dark).
+ * This function is the single place that translates a persisted theme into the
+ * current accent, because a setting removed from the UI without coercion on load would
+ * leave accounts that had green on it stuck there forever, with no surface at all to
+ * get out — the same trap as `redactEngine` in `storePersistence.ts`.
  *
- * Le TYPE, lui, garde `light`/`dark` : un blob écrit par une version antérieure doit
- * encore se lire. Ils ne sont simplement plus atteignables.
+ * The TYPE itself keeps `light`/`dark`: a blob written by an earlier version must
+ * still be readable. They're simply no longer reachable.
  */
 export function blueAccent(theme: ThemeName | undefined): ThemeName {
   return theme === "dark" || theme === "blue-dark" ? "blue-dark" : "blue";
@@ -39,7 +39,7 @@ export function blueAccent(theme: ThemeName | undefined): ThemeName {
 
 /** The theme last applied on THIS device, or undefined when never recorded. */
 export function loadDeviceTheme(): ThemeName | undefined {
-  migrateLegacyLocalStorage(); // premier lecteur au boot — les clés d'avant le renommage
+  migrateLegacyLocalStorage(); // first reader at boot — the keys from before the rename
   try {
     const t = localStorage.getItem(THEME_KEY);
     return isTheme(t) ? blueAccent(t) : undefined;

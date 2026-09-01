@@ -11,10 +11,10 @@ const act: (cb: () => Promise<void> | void) => Promise<void> = (
 ).act;
 
 /**
- * La carte de révélation AVANT une recherche : le seul endroit où l'on décide de laisser
- * partir une valeur en clair, et le mécanisme qui rend inutile un « mode navigation »
- * permanent (voir `privacy/privacyLevel.ts`). La question est posée à chaque fois, sur les
- * catégories concernées, et rien ne part sans elle.
+ * The reveal card BEFORE a search: the only place where we decide to let
+ * a value leave in clear, and the mechanism that makes a permanent « mode navigation »
+ * unnecessary (see `privacy/privacyLevel.ts`). The question is asked every time, on the
+ * categories concerned, and nothing leaves without it.
  */
 async function render(categories: RedactCategoryKey[]) {
   const decided: RedactCategoryKey[][] = [];
@@ -50,16 +50,16 @@ describe("WebNavRedactOffer — la décision se prend ici, à chaque recherche",
   });
 
   /**
-   * ⚠️ La carte propose un NIVEAU, plus des types (18/08). Ce qui tenait la question
-   * honnête n'est donc plus « rien n'est coché » — il n'y a plus rien à cocher — mais les
-   * trois propriétés ci-dessous : le choix est explicite, il vaut tout l'offert ou rien,
-   * et la carte dit sa PORTÉE (ce message seulement).
+   * ⚠️ The card offers a LEVEL, plus types (18/08). What kept the question
+   * honest is therefore no longer « rien n'est coché » — there's nothing left to check — but the
+   * three properties below: the choice is explicit, it's worth all of the offered or nothing,
+   * and the card states its SCOPE (this message only).
    */
   it("propose un NIVEAU : deux boutons, aucune case à cocher", async () => {
     const { el, unmount } = await render(["name", "dob", "address", "location", "company"]);
     expect(el.querySelectorAll(".webnav-offer-chip")).toHaveLength(0);
     expect(el.textContent).toContain("Standard");
-    // Les cinq types ne sont PAS énumérés : c'est tout l'objet du changement.
+    // The five types are NOT enumerated: that's the whole point of the change.
     expect(el.textContent).not.toContain("Date de naissance");
     await unmount();
   });
@@ -86,8 +86,8 @@ describe("WebNavRedactOffer — la décision se prend ici, à chaque recherche",
   });
 
   it("annonce la PORTÉE : ce message seulement", async () => {
-    // Un défaut généreux n'est acceptable que si la portée est dite — c'est la
-    // contrepartie du passage « conversation entière » → « cet envoi ».
+    // A generous default is only acceptable if the scope is stated — that's the
+    // trade-off of the shift from « conversation entière » → « cet envoi ».
     const { el, unmount } = await render(["name", "company"]);
     const note = el.querySelector(".agent-card-note")?.textContent ?? "";
     expect(note).toContain("Ce message seulement");

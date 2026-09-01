@@ -1,23 +1,23 @@
 import { createServer, type Server } from "node:http";
 
-/** Ce qu'un faux modèle a encaissé, et de quoi le refermer. */
+/** What a fake model has taken in, and how to close it. */
 export interface FakeModel {
-  /** `baseUrl` à poser dans `openaiCompatBaseUrl` — jamais rien d'autre que 127.0.0.1. */
+  /** `baseUrl` to set in `openaiCompatBaseUrl` — never anything but 127.0.0.1. */
   url: string;
-  /** Les corps de requête bruts reçus, dans l'ordre : LE wire, pas un état du renderer. */
+  /** The raw request bodies received, in order: THE wire, not a renderer state. */
   bodies: string[];
   close: () => Promise<void>;
 }
 
 /**
- * Un endpoint OpenAI-compatible minimal, sur la boucle locale : il encaisse la requête et
- * répond du vide. C'est exactement l'usage du provider `openai-compat` (Ollama, LM Studio),
- * donc rien n'est simulé côté app.
+ * A minimal OpenAI-compatible endpoint, on the local loop: it takes in the request and
+ * answers with nothing. It's exactly the use of the `openai-compat` provider (Ollama, LM Studio),
+ * so nothing is simulated app-side.
  *
- * Pourquoi il existe : juger ce que le pipeline construit APRÈS redaction — le wire réel —
- * sans clé, sans réseau et sans coût. Ce qu'il RÉPOND n'a aucune importance, ce qu'il REÇOIT
- * est tout le sujet. Le `/models` est servi parce que l'app sonde l'accessibilité et grise
- * sinon le modèle (« injoignable »), ce qui ferait échouer l'envoi avant le wire.
+ * Why it exists: to judge what the pipeline builds AFTER redaction — the real wire —
+ * with no key, no network and no cost. What it ANSWERS doesn't matter at all, what it RECEIVES
+ * is the whole point. `/models` is served because the app probes reachability and otherwise
+ * greys out the model ("unreachable"), which would fail the send before the wire.
  */
 export async function startFakeModel(modelId = "llama3.3"): Promise<FakeModel> {
   const bodies: string[] = [];

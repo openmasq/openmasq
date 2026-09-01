@@ -103,11 +103,11 @@ describe("mergeCards — data-preserving", () => {
 });
 
 describe("autoCleanMemory — l'auto-nettoyage des doublons CERTAINS", () => {
-  /* La régression rapportée : des dizaines de cartes-notes au titre inventé
-     (« Préférence de réponse », « Préférence utilisateur »…), toutes portant
-     « Préfère des réponses courtes en français ». L'extracteur corrigé ne les crée
-     plus ; cette passe résorbe le STOCK — et tout doublon futur, d'où qu'il vienne
-     (une fusion de listes par la sync multi-appareils incluse). */
+  /* The reported regression: dozens of note-cards with an invented title
+     (« Préférence de réponse », « Préférence utilisateur »…), all carrying
+     « Préfère des réponses courtes en français ». The fixed extractor no longer creates
+     them; this pass absorbs the BACKLOG — and any future duplicate, wherever it comes
+     from (a list merge by multi-device sync included). */
 
   it("migre les notes auto-préférence vers le PROFIL et les supprime", () => {
     const a = card("Préférence de réponse", "Préfère des réponses courtes en français.", "autre", { source: "auto" });
@@ -121,8 +121,8 @@ describe("autoCleanMemory — l'auto-nettoyage des doublons CERTAINS", () => {
   });
 
   it("RECOMPACTE une carte qui se redit — quatre reformulations accumulées, une seule survit", () => {
-    // Le stock laissé par l'ancien `restates` (cas rapporté 13/08) : la même consigne
-    // rejouée, un mot d'emballage d'écart par passage d'extraction.
+    // The backlog left by the old `restates` (case reported 13/08): the same instruction
+    // replayed, one wrapping word apart per extraction pass.
     const a = card(
       "Atelier Lucane",
       "Atelier Lucane est associé à Camille Salvi dans le cadre du projet Horizon. " +
@@ -135,7 +135,7 @@ describe("autoCleanMemory — l'auto-nettoyage des doublons CERTAINS", () => {
     const r = autoCleanMemory({ cards: [a] });
     expect(r.changed).toBe(true);
     expect(r.data.cards[0].facts.match(/Camille Salvi/g)).toHaveLength(1);
-    // Idempotent : la passe suivante ne trouve plus rien à replier.
+    // Idempotent: the next pass no longer finds anything to fold.
     expect(autoCleanMemory(r.data).changed).toBe(false);
   });
 
@@ -201,7 +201,7 @@ describe("la fiche VIERGE (« Nouvelle fiche »)", () => {
     const a = card(NEW_CARD_ENTITY, "", "personne");
     const b = card(`${NEW_CARD_ENTITY} 2`, "", "personne");
     expect(duplicateSuggestions([a, b], [])).toEqual([]);
-    // Une fiche vierge n'est proposée à la fusion par AUCUN des deux signaux.
+    // A blank card is never proposed for merging by EITHER signal.
     const real = card("Manon Verdolini", "Cliente principale.", "personne");
     const empty = card("Manon", "", "personne");
     expect(duplicateSuggestions([real, empty], [])).toEqual([]);

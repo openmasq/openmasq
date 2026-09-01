@@ -129,7 +129,7 @@ export function resolveGeoBlocks(
   // then Carcassonne, and « same region? » flipped from yes to no. Same rule for `taken`:
   // a fake already in the vault is reusable when it serves THE SAME real value.
   const usedFakes = new Map<string, string>(); // fakeLower → realLower
-  const vaultReal = new Map<string, string>(); // fakeLower → realLower (le coffre)
+  const vaultReal = new Map<string, string>(); // fakeLower → realLower (the vault)
   for (const [fk, rl] of Object.entries(opts?.vault ?? {})) vaultReal.set(fk.toLowerCase(), rl.toLowerCase());
   const reusable = (fake: string, real: string): boolean => {
     const f = fake.toLowerCase(), r = real.toLowerCase();

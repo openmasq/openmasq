@@ -55,8 +55,8 @@ describe("vocabulaire d'outil — les mots qui structurent une doc ne sont jamai
   });
 
   it("⚠️ valeur ENTIÈRE seulement — une vraie société garde son filet", () => {
-    // La discipline du bloc : « Sun Microsystems » reste un candidat, et le nom d'une
-    // société qui CONTIENT le mot ne s'échappe pas par cette porte.
+    // The block's discipline: « Sun Microsystems » stays a candidate, and a company's
+    // name that CONTAINS the word doesn't escape through this door.
     for (const v of ["System Solutions SARL", "Entity Group", "Cursor SA"])
       expect(isGenericTerm(v), v).toBe(false);
   });

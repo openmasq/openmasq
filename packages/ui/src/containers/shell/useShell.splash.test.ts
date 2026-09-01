@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { MIN_SPLASH_MS, splashVisible } from "./useShell";
 
 /**
- * Le rideau de lancement. Sa règle tient en une phrase — il part quand la session est
- * résolue ET que le plancher est écoulé, le plus tard des deux — mais chaque moitié
- * couvre un défaut distinct, alors les deux sont épinglées.
+ * The launch curtain. Its rule fits in one sentence — it leaves once the session is
+ * resolved AND the floor has elapsed, whichever comes later — but each half
+ * covers a distinct defect, so both are pinned down.
  */
 describe("splashVisible — le rideau de lancement", () => {
   it("reste tant que la session n'est pas résolue", () => {
@@ -12,8 +12,8 @@ describe("splashVisible — le rideau de lancement", () => {
   });
 
   it("reste jusqu'au plancher, même si la session est résolue instantanément", () => {
-    // C'est le cas COURANT : la porte d'authentification se règle depuis le disque, sans
-    // attendre le réseau. Sans plancher, le rideau clignote et l'animation ne se voit pas.
+    // This is the COMMON case: the auth gate settles from disk, without
+    // waiting on the network. Without a floor, the curtain flickers and the animation is never seen.
     expect(splashVisible({ authEnabled: true, authLoading: false, minDone: false })).toBe(true);
   });
 
@@ -22,13 +22,13 @@ describe("splashVisible — le rideau de lancement", () => {
   });
 
   it("n'apparaît jamais sans porte de compte (aperçu navigateur, mobile sans auth)", () => {
-    // Rien à résoudre : imposer un rideau serait un délai pur, sans contrepartie.
+    // Nothing to resolve: imposing a curtain would be pure delay, with nothing gained.
     expect(splashVisible({ authEnabled: false, authLoading: true, minDone: false })).toBe(false);
   });
 
   it("le plancher laisse la composition entrer entièrement (fondu 0,4 s + 6 × 0,12 s)", () => {
-    // Le chiffre est dérivé de l'animation, pas choisi au jugé — s'il repasse sous ~1,1 s,
-    // le rideau repart avant d'être arrivé.
+    // The number is derived from the animation, not picked by feel — if it drops back under ~1,1 s,
+    // the curtain leaves before it has arrived.
     expect(MIN_SPLASH_MS).toBeGreaterThanOrEqual(1120);
   });
 });

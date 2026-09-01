@@ -24,10 +24,10 @@ export function resolveEffectivePlatform(
   keyConfigured: ReadonlySet<string>,
 ): boolean {
   return (
-    // Pas de service hébergé dans ce build ⇒ AUCUN modèle n'est « de la plateforme » :
-    // il n'y a ni endpoint ni jeton à obtenir, donc la seule porte est la clé de
-    // l'utilisateur — ce que dit alors `modelAvailability` (`no_key`), au lieu d'offrir
-    // un modèle qui échouerait à l'envoi (`platformAccess.ts`).
+    // No hosted service in this build ⇒ NO model is "of the platform": there is
+    // neither an endpoint nor a token to obtain, so the only door is the user's own
+    // key — which is what `modelAvailability` then says (`no_key`), instead of offering
+    // a model that would fail to send (`platformAccess.ts`).
     platformAccessServed() &&
     isPlatformServableModel(provider, modelId) &&
     (billingMode === "subscription" || !keyConfigured.has(provider))

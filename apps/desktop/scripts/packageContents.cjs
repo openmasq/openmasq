@@ -1,37 +1,37 @@
-// Ce que l'app EXPÉDIÉE a le droit de contenir — relu sur l'asar produit, pas sur la config.
+// What the SHIPPED app is allowed to contain — re-read on the produced asar, not on the config.
 //
-// ⛔ POURQUOI CE FICHIER EXISTE. L'allowlist d'`electron-builder.cjs` (`files`) peut cesser
-// de s'appliquer sans que rien ne rougisse : une liste de chaînes dans `mac.files` prend la
-// place du matcher principal et electron-builder retombe sur `**/*`. L'app s'empaquette,
-// démarre et se comporte normalement — elle est seulement plus large que ce que sa config
-// décrit, et rien dans le build ne le dit. C'est la classe de défaut qu'un réglage ne peut
-// pas garder, parce qu'un réglage est une INTENTION.
+// ⛔ WHY THIS FILE EXISTS. `electron-builder.cjs`'s allowlist (`files`) can stop
+// applying without anything turning red: a list of strings in `mac.files` takes the
+// place of the main matcher and electron-builder falls back to `**/*`. The app packages,
+// starts and behaves normally — it is just bigger than what its config
+// describes, and nothing in the build says so. This is the class of defect a setting cannot
+// hold onto, because a setting is an INTENTION.
 //
-// La garde est donc ici, sur l'ARTEFACT, et elle échoue FERMÉ (règle 7) : une entrée hors
-// allowlist casse l'empaquetage. Elle tourne dans `afterPack.cjs`, c'est-à-dire pour mac ET
-// Windows, dans TOUS les chemins (`package`, `dist`, `release`, CI), et avant la signature.
+// The guard is therefore here, on the ARTIFACT, and it fails CLOSED (rule 7): an entry outside
+// the allowlist breaks packaging. It runs inside `afterPack.cjs`, i.e. for mac AND
+// Windows, on ALL paths (`package`, `dist`, `release`, CI), and before signing.
 //
-// ⚠️ ALLOWLIST, jamais denylist. Interdire `src/` et `.env` nommément laisserait passer le
-// prochain dossier qu'on ajoutera à `apps/desktop/`. On énumère ce qui est PERMIS.
+// ⚠️ ALLOWLIST, never a denylist. Forbidding `src/` and `.env` by name would let the
+// next folder we add to `apps/desktop/` through. We enumerate what is PERMITTED.
 "use strict";
 
 /**
- * Les seules racines qu'un app.asar de l'app doit contenir.
+ * The only roots the app's app.asar must contain.
  *
- * `out/` : les bundles (main, preload, renderer) produits par electron-vite.
- * `package.json` : lu par Electron au démarrage (nom, version, `main`).
- * `node_modules/` : les dépendances de production, filtrées par le matcher dédié
- *   d'electron-builder (ce sont ses `!…` qui y font le tri, pas cette table).
+ * `out/`: the bundles (main, preload, renderer) produced by electron-vite.
+ * `package.json`: read by Electron at startup (name, version, `main`).
+ * `node_modules/`: the production dependencies, filtered by electron-builder's
+ *   own dedicated matcher (its `!…` patterns do the sorting there, not this table).
  */
 const ALLOWED_ROOTS = ["out", "node_modules", "package.json"];
 
 /**
- * Ce qui reste interdit À L'INTÉRIEUR d'une racine permise.
+ * What remains forbidden INSIDE an allowed root.
  *
- * Une `.map` de NOS bundles embarque `sourcesContent` : le TypeScript d'origine verbatim.
- * L'expédier annule la minification et livre l'explication avec le code — voir
- * `electron.vite.config.ts`. Les maps des dépendances vendorées ne sont pas concernées :
- * elles décrivent du code déjà public.
+ * A `.map` from OUR bundles embeds `sourcesContent`: the original TypeScript, verbatim.
+ * Shipping it undoes the minification and delivers the explanation along with the code — see
+ * `electron.vite.config.ts`. The vendored dependencies' maps are not affected:
+ * they describe code that's already public.
  */
 const FORBIDDEN_WITHIN = [
   {
@@ -40,17 +40,17 @@ const FORBIDDEN_WITHIN = [
   },
 ];
 
-/** Le premier segment d'une entrée d'asar (`/out/main/index.js` → `out`). */
+/** The first segment of an asar entry (`/out/main/index.js` → `out`). */
 function rootOf(entry) {
   return entry.replace(/^\/+/, "").split("/")[0];
 }
 
 /**
- * Les entrées qui n'ont rien à faire dans l'app. Pur (aucun accès disque) pour être épinglé
- * par `packageContents.test.ts` : c'est la table qui décide, et une table fausse est
- * précisément ce qu'un build ne dit pas.
+ * The entries that have no business in the app. Pure (no disk access) so it can be pinned
+ * by `packageContents.test.ts`: it's the table that decides, and a wrong table is
+ * precisely what a build doesn't say.
  *
- * @param {string[]} entries chemins listés dans l'asar (`/out/main/index.js`, `/.env`, …)
+ * @param {string[]} entries paths listed in the asar (`/out/main/index.js`, `/.env`, …)
  * @returns {{entry: string, why: string}[]}
  */
 function findPackagingViolations(entries) {
@@ -70,8 +70,8 @@ function findPackagingViolations(entries) {
 }
 
 /**
- * Le message d'échec : GROUPÉ par racine. Une fuite se compte en centaines d'entrées, et
- * neuf cents lignes dans un log de CI cachent le diagnostic au lieu de le donner.
+ * The failure message: GROUPED by root. A leak counts in the hundreds of entries, and
+ * nine hundred lines in a CI log hide the diagnosis instead of giving it.
  */
 function formatViolations(violations) {
   const byWhy = new Map();
@@ -89,7 +89,7 @@ function formatViolations(violations) {
   return lines.join("\n");
 }
 
-/** ÉCHEC FERMÉ : casse l'empaquetage si l'app contient autre chose que son allowlist. */
+/** FAIL CLOSED: breaks packaging if the app contains anything other than its allowlist. */
 function assertPackagedContents(entries) {
   const violations = findPackagingViolations(entries);
   if (violations.length === 0) return;

@@ -9,7 +9,7 @@ import { skillsFromDrop } from "../../import/dropSkills";
 import { BRAND } from "@openmasq/branding";
 
 import { useT } from "../../i18n";
-/** Ce que l'écran renvoie : une compétence, ou un workflow, au choix de l'utilisateur. */
+/** What the screen returns: a compétence, or a workflow, the user's choice. */
 export interface SkillImportChoice {
   name: string;
   desc: string;
@@ -18,24 +18,24 @@ export interface SkillImportChoice {
 }
 
 /**
- * « Importer mes compétences Claude » — deux clics : ouvrir, valider.
+ * « Importer mes compétences Claude » — two clicks: open, confirm.
  *
- * Ce que l'écran refuse de faire tout seul, et pourquoi :
+ * What the screen refuses to do on its own, and why:
  *
- * - **Il n'importe pas sans montrer.** Un `~/.claude/skills` peut en contenir trente ;
- *   en créer trente d'un clic, dont certaines cassées, c'est du ménage à faire ensuite.
- * - **Il ne décide pas compétence/workflow.** Il PARIE (le corps parle-t-il d'outils ?)
- *   et met le pari sur chaque ligne, modifiable. Un mauvais rangement silencieux est plus
- *   coûteux à défaire qu'un basculement d'un clic.
- * - **Il dit ce qui ne traversera pas.** Un skill qui s'appuie sur ses fichiers annexes
- *   arrive comme une instruction d'ouvrir des fichiers absents : la ligne le signale
- *   AVANT, plutôt que l'usage APRÈS.
+ * - **It doesn't import without showing.** A `~/.claude/skills` can hold thirty;
+ *   creating thirty in one click, some of them broken, is cleanup to do afterward.
+ * - **It doesn't decide compétence/workflow.** It GUESSES (does the body talk about tools?)
+ *   and puts the guess on each row, editable. A silent wrong filing is more
+ *   costly to undo than a one-click toggle.
+ * - **It says what won't carry over.** A skill that relies on its side files
+ *   arrives as an instruction to open missing files: the row flags it
+ *   BEFORE, rather than usage AFTER.
  */
 export function ImportSkillsModal({
   onImport,
   onClose,
 }: {
-  /** Crée les entrées choisies. L'appelant gère les doublons de nom (`freeName`). */
+  /** Creates the chosen entries. The caller handles name duplicates (`freeName`). */
   onImport: (items: SkillImportChoice[]) => void;
   onClose: () => void;
 }) {
@@ -44,8 +44,8 @@ export function ImportSkillsModal({
   const listSkills = host.claudeSkills?.list;
   const [found, setFound] = useState<ParsedSkill[] | null>(null);
   const [failed, setFailed] = useState(false);
-  // Décochées ⇒ non importées ; « en workflow » ⇒ l'autre rangement. Deux ensembles
-  // plutôt qu'une copie mutable de la liste : la liste reste ce que le disque a dit.
+  // Unchecked ⇒ not imported; "as workflow" ⇒ the other filing. Two sets
+  // rather than a mutable copy of the list: the list stays what the disk said.
   const [skip, setSkip] = useState<ReadonlySet<string>>(new Set());
   const [asWorkflow, setAsWorkflow] = useState<ReadonlySet<string>>(new Set());
   const [over, setOver] = useState(false);
@@ -72,8 +72,8 @@ export function ImportSkillsModal({
     };
   }, [listSkills]);
 
-  /** Le dépôt REMPLACE ce qui était listé : on vient de désigner une source. Empiler deux
-   *  origines rendrait la liste inexplicable (« d'où sort celle-là ? »). */
+  /** The drop REPLACES what was listed: a new source has just been designated. Stacking two
+   *  origins would make the list inexplicable ("where did that one come from?"). */
   const adopt = (parsed: ParsedSkill[]): void => {
     setFound(parsed);
     setSkip(new Set());

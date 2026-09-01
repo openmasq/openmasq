@@ -4,15 +4,15 @@
 // so the measurement/report machinery lives ONCE.
 //
 // Server modes (OPENMASQ_EVAL_SERVERS):
-//   declared (défaut) — chaque scénario offre SES connecteurs (le contrat complet) ;
-//   none              — AUCUN serveur : mesure la dégradation honnête (aucun appel ne
-//                       doit être halluciné, la réponse doit rester utile) ;
-//   all               — TOUTE la flotte offerte : mesure la CONFUSION inter-outils
-//                       (CRM concurrents, deux vues Stripe…), contrat inchangé.
+//   declared (default) — each scenario offers ITS OWN connectors (the full contract);
+//   none              — NO server at all: measures honest degradation (no call
+//                       should be hallucinated, the reply must stay useful);
+//   all               — the WHOLE fleet offered: measures cross-tool CONFUSION
+//                       (competing CRMs, two Stripe views…), contract unchanged.
 //
-// Strategy axis (OPENMASQ_EVAL_STRATEGY, défaut "current") : quel jeu de seuils de
-// réduction du prompt/catalogue d'outils est appliqué (`evals/strategies.ts`) — orthogonal
-// au mode serveurs, croisé par `scripts/bench-agentic.ts --strategies`.
+// Strategy axis (OPENMASQ_EVAL_STRATEGY, default "current"): which set of prompt/tool-
+// catalogue reduction thresholds is applied (`evals/strategies.ts`) — orthogonal
+// to the server mode, crossed by `scripts/bench-agentic.ts --strategies`.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterAll, describe, it } from "vitest";
@@ -39,11 +39,11 @@ const SERVERS_MODE = (process.env.OPENMASQ_EVAL_SERVERS || "declared") as
 const STRATEGY_NAME = process.env.OPENMASQ_EVAL_STRATEGY || "current";
 const STRATEGY = resolveStrategy(STRATEGY_NAME);
 
-// Un modèle OpenRouter évalué ici doit refléter l'APP VIVANTE, où le catalogue
-// DYNAMIQUE (`useOpenRouterModels` → `setDynamicModels`) remplace le registre statique
-// et où le live déclare p.ex. les Gemma tools-capable — sans cette déclaration, le
-// `supportsTools` statique (noTools) ferait partir le store en flux simple et l'eval
-// n'exercerait jamais la boucle agentique.
+// An OpenRouter model evaluated here must reflect the LIVE APP, where the
+// DYNAMIC catalogue (`useOpenRouterModels` → `setDynamicModels`) replaces the static registry
+// and where live declares e.g. the Gemma tiers as tools-capable — without this declaration, the
+// static `supportsTools` (noTools) would send the store down the plain-stream path and the eval
+// would never exercise the agentic loop.
 if (PROVIDER === "openrouter") {
   setDynamicModels("openrouter", [
     { id: MODEL_ID, label: MODEL_ID, provider: "openrouter", tools: true },
@@ -57,13 +57,13 @@ const model = () => ({
   baseUrl: process.env.OPENMASQ_EVAL_BASE_URL,
 });
 
-/** Applique le mode serveurs + la stratégie de réduction à un scénario (le contrat
- *  s'adapte, jamais en silence). */
+/** Applies the servers mode + the reduction strategy to a scenario (the contract
+ *  adapts, never silently). */
 function withServersMode(sc: Scenario): Scenario {
   if (SERVERS_MODE === "declared") return { ...sc, routingConfig: STRATEGY };
   if (SERVERS_MODE === "none") {
-    // Sans AUCUN connecteur : le contrat devient la dégradation honnête — zéro appel
-    // (trivialement) et une réponse non vide qui n'hallucine pas une action faite.
+    // With NO connector at all: the contract becomes honest degradation — zero call
+    // (trivially) and a non-empty reply that doesn't hallucinate an action taken.
     return {
       ...sc,
       servers: [],
@@ -75,17 +75,17 @@ function withServersMode(sc: Scenario): Scenario {
       },
     };
   }
-  // all : la flotte ENTIÈRE, les serveurs déclarés du scénario d'abord (un id en
-  // conflit — deux vues Stripe — garde la variante que le contrat attend).
+  // all: the WHOLE fleet, the scenario's declared servers first (a colliding
+  // id — two Stripe views — keeps the variant the contract expects).
   const seen = new Set(sc.servers.map((s) => s.id));
   const extra = ALL_FLEET.filter((s) => !seen.has(s.id));
   return { ...sc, servers: [...sc.servers, ...extra], routingConfig: STRATEGY };
 }
 
 export interface SuiteOpts {
-  /** Shard [index, of] — la parallélisation par FICHIERS (chaque wrapper = un jsdom). */
+  /** Shard [index, of] — parallelisation by FILES (each wrapper = one jsdom). */
   shard?: [number, number];
-  /** Actif seulement quand ce prédicat l'est (les wrappers exigent EVAL_PARALLEL). */
+  /** Active only when this predicate is (the wrappers require EVAL_PARALLEL). */
   enabled?: boolean;
 }
 
@@ -146,9 +146,9 @@ export function defineScenarioSuite(opts: SuiteOpts = {}): void {
               try {
                 scenarioRun = await runScenario(model(), sc);
               } catch (e) {
-                // Un throw (assert `always`, garde de sécurité) doit rester VISIBLE dans
-                // le rapport : sans cette ligne le run disparaît (« 6/7 » alors que 9 ont
-                // tourné) et l'échec n'existe que dans la sortie vitest.
+                // A throw (`always` assert, safety guard) must stay VISIBLE in
+                // the report: without this line the run disappears ("6/7" when 9
+                // actually ran) and the failure only exists in vitest's output.
                 ROWS.push({
                   scenario: sc.name, run: ++runIdx, ok: false,
                   failures: `ABORT : ${e instanceof Error ? e.message.split("\n")[0] : String(e)}`,
@@ -183,7 +183,7 @@ export function defineScenarioSuite(opts: SuiteOpts = {}): void {
                   `# ${sc.name} — ${MODEL_ID} — servers=${SERVERS_MODE} — strategy=${STRATEGY_NAME}\n# verdict: ${verdict.ok ? "OK" : verdict.failures.join(" · ")}\n\n` +
                   run.transcript.format() +
                   `\n\n## premier model:in\n${inbox}\n`;
-                // Slug modèle en préfixe : plusieurs suites (bench) partagent un même DUMP.
+                // Model slug as prefix: several suites (bench) share the same DUMP.
                 const mSlug = MODEL_ID.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "");
                 writeFileSync(resolve(DUMP, `${mSlug}--${sc.name}-${SERVERS_MODE}-${STRATEGY_NAME}-${++runSeq}.txt`), body);
               }
@@ -206,9 +206,9 @@ export function defineScenarioSuite(opts: SuiteOpts = {}): void {
         const stamp = STARTED.toISOString().replace(/[:.]/g, "-").slice(0, 19);
         const okCount = ROWS.filter((r) => r.ok).length;
         const tot = (f: (r: RunRow) => number) => ROWS.reduce((a, r) => a + f(r), 0);
-        // Le PREMIER appel modèle seul — celui qui porte le plus gros system prompt/
-        // catalogue d'outils, donc le seul comparable entre STRATÉGIES de réduction (les
-        // tours suivants dépendent du nombre d'appels d'outils, pas du prompt initial).
+        // The FIRST model call alone — the one carrying the biggest system prompt/
+        // tool catalogue, so the only one comparable across reduction STRATEGIES (the
+        // following turns depend on the number of tool calls, not the initial prompt).
         const firstCalls = ROWS.map((r) => r.firstCallMs).filter((ms) => ms > 0);
         const p50 = percentile(firstCalls, 50);
         const p95 = percentile(firstCalls, 95);

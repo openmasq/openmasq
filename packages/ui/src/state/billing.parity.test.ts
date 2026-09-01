@@ -6,12 +6,12 @@ import { planTiers } from "./billing";
 const PLAN_TIERS = planTiers(getMessages("fr"));
 
 /**
- * PARITÉ règle 9 : `PLAN_TIERS.creditsCents` (l'affichage des cartes d'abonnement)
- * doit être EXACTEMENT l'allotement que `@openmasq/credits` fait appliquer par le
- * backend et la gateway. Le runtime de `ui` ne dépend pas de `credits` (le montant
- * affiché vient du catalogue backend quand il est joignable) — ce test est donc le
- * lien : la dette « billing.ts re-déclare les tiers » citée par `state/CLAUDE.md`
- * devient un drift IMPOSSIBLE au lieu d'un rappel en commentaire.
+ * PARITY rule 9: `PLAN_TIERS.creditsCents` (the subscription cards' display)
+ * must be EXACTLY the allotment that `@openmasq/credits` has the
+ * backend and gateway apply. `ui`'s runtime doesn't depend on `credits` (the displayed
+ * amount comes from the backend catalog when it's reachable) — this test is therefore the
+ * link: the debt "billing.ts re-declares the tiers" cited by `state/CLAUDE.md`
+ * becomes an IMPOSSIBLE drift instead of a comment reminder.
  */
 describe("billing.ts ⇄ @openmasq/credits — l'allotement affiché est celui appliqué", () => {
   it("chaque tier affiche le creditsCents que credits fait appliquer", () => {
@@ -20,10 +20,10 @@ describe("billing.ts ⇄ @openmasq/credits — l'allotement affiché est celui a
     }
   });
 
-  // Les types qui gardent une enveloppe SANS être vendus. Ils ne sont pas une
-  // exception de confort : `CREDITS_CENTS_PER_SEAT` doit continuer de les servir (un
-  // abonnement pris avant le retrait se renouvelle et doit être crédité), mais leur
-  // offrir une carte remettrait en vente un palier retiré. Voir `RETIRED_TIERS`
+  // The types that keep an allotment WITHOUT being sold. They aren't a
+  // convenience exception: `CREDITS_CENTS_PER_SEAT` must keep serving them (a
+  // subscription taken before the retirement renews and must be credited), but
+  // offering them a card would put a retired tier back on sale. See `RETIRED_TIERS`
   // (apps/backend/.../subscriptions/tiers.ts).
   const NOT_SOLD = new Set(["PRO", "SCALE"]);
 
@@ -38,7 +38,7 @@ describe("billing.ts ⇄ @openmasq/credits — l'allotement affiché est celui a
   it("un tier RETIRÉ garde son enveloppe mais n'a pas de carte", () => {
     const shown = new Set(PLAN_TIERS.map((t) => t.tier.toUpperCase()));
     expect(shown.has("SCALE")).toBe(false);
-    // Le retirer de l'allotement créditerait 0 à un siège déjà payé.
+    // Removing it from the allotment would credit 0 to an already-paid seat.
     expect(creditsCentsForAccountType("SCALE")).toBeGreaterThan(0);
   });
 

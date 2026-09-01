@@ -2,33 +2,33 @@ import type { Page } from "@playwright/test";
 import { EXPR_DIGEST, appel } from "./inPage";
 
 export interface Snapshot {
-  /** La section courante, telle que le rail la marque active. */
+  /** The current section, as the rail marks it active. */
   section: string;
-  /** Le titre de l'écran (`.page-header`), quand l'écran en a un. */
+  /** The screen's title (`.page-header`), when the screen has one. */
   titre: string | null;
-  /** Le nom de la modale ouverte, s'il y en a une — elle capture les clics. */
+  /** The name of the open modal, if there is one — it captures clicks. */
   modale: string | null;
-  /** Ce sur quoi on peut cliquer, par NOM ACCESSIBLE : le vocabulaire de `click`. */
+  /** What can be clicked, by ACCESSIBLE NAME: `click`'s vocabulary. */
   actions: { nom: string; role: string; n: number }[];
-  /** Le composeur : ce qui est écrit, et ce que l'app annonce comme à redact. */
+  /** The composer: what's written, and what the app announces as to-be-redacted. */
   composeur: { valeur: string; toRedact: string[]; envoiPret: boolean } | null;
-  /** Les derniers tours de la conversation, tronqués — de quoi juger, pas de quoi noyer. */
+  /** The conversation's last turns, truncated — enough to judge, not enough to drown in. */
   messages: { role: string; texte: string }[];
-  /** Ce que l'écran dit et qu'aucun bouton ne porte (états vides, bannières, erreurs). */
+  /** What the screen says that no button carries (empty states, banners, errors). */
   textes: string[];
 }
 
 /**
- * Le DIGEST d'un écran : ce qu'un utilisateur voit et peut faire, en JSON.
+ * A screen's DIGEST: what a user sees and can do, in JSON.
  *
- * Pourquoi ça existe à côté de la capture d'écran : une capture dit « c'est cassé », elle ne
- * dit pas « voici les six choses cliquables et comment les nommer ». L'agent décide sur ce
- * digest et VÉRIFIE sur la capture ; l'inverse le fait deviner des sélecteurs, et un
- * sélecteur deviné produit un faux bug — le pire déchet qu'un agent autonome puisse créer.
+ * Why this exists alongside the screenshot: a screenshot says "it's broken", it doesn't
+ * say "here are the six clickable things and how to name them". The agent decides on this
+ * digest and VERIFIES against the screenshot; the reverse makes it guess selectors, and a
+ * guessed selector produces a false bug — the worst waste an autonomous agent can create.
  *
- * Le nom retenu est le nom ACCESSIBLE (`aria-label`, sinon le texte) : le vocabulaire que
- * l'utilisateur lit, et qui casse bruyamment quand on renomme un bouton. Le code de la page
- * est une chaîne — pourquoi : `inPage.ts`.
+ * The name chosen is the ACCESSIBLE name (`aria-label`, otherwise the text): the vocabulary
+ * the user reads, and which breaks loudly when a button is renamed. The page's code
+ * is a string — why: `inPage.ts`.
  */
 export async function snapshot(page: Page, limiteMessages = 6): Promise<Snapshot> {
   return page.evaluate(appel(EXPR_DIGEST, limiteMessages)) as Promise<Snapshot>;

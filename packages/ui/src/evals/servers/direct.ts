@@ -1,14 +1,14 @@
 import { CONNECTORS } from "@openmasq/connectors";
 import type { FakeServer, FakeTool } from "./kit";
 
-// La flotte DIRECT, GÉNÉRÉE depuis les vraies définitions (`@openmasq/connectors`) —
-// noms, descriptions et schémas fidèles PAR CONSTRUCTION (un outil ajouté au connecteur
-// réel apparaît ici tout seul). Seuls les RÉSULTATS sont des fixtures (thème Karl
-// Studio / Atelier Torbel), keyés `<connecteur>__<outil>` ; un outil sans fixture renvoie
-// un OK générique marqué, VISIBLE dans les transcripts sans casser un run.
+// The DIRECT fleet, GENERATED from the real definitions (`@openmasq/connectors`) —
+// names, descriptions and schemas faithful BY CONSTRUCTION (a tool added to the real
+// connector appears here on its own). Only the RESULTS are fixtures (Karl
+// Studio / Atelier Torbel theme), keyed `<connector>__<tool>`; a tool with no fixture returns
+// a marked generic OK, VISIBLE in the transcripts without breaking a run.
 
 const R: Record<string, string> = {
-  // ── github (16 outils) ─────────────────────────────────────────────────────
+  // ── github (16 tools) ─────────────────────────────────────────────────────
   github__get_me: "Connecté en tant que zorvia-dev (Zorvia).",
   github__list_repos: "zorvia/app (TS, maj hier) · zorvia/site (Astro, maj lundi)",
   github__search_repos: "1 résultat : zorvia/app — application de bureau (TS).",
@@ -25,7 +25,7 @@ const R: Record<string, string> = {
   github__create_issue: "Issue #122 créée.",
   github__comment_issue: "Commentaire ajouté.",
   github__update_issue: "Issue mise à jour.",
-  // ── google-calendar / gmail / drive : alignés sur la fleet manuelle ────────
+  // ── google-calendar / gmail / drive: aligned with the manual fleet ────────
   "google-calendar__list_events":
     "jeu. 10:30 — Point Karl Studio (avec contact@karl-studio.fr) · ven. 14:00 — Revue budget",
   "google-calendar__create_event": "Événement créé : Suivi projet",
@@ -55,7 +55,7 @@ const R: Record<string, string> = {
   "google-analytics__list_properties": "1 propriété GA4 : « zorvia.fr » (id 4471002).",
   "google-analytics__get_report":
     "7 derniers jours — sessions : 1 204 (+12 %) · pages vues : 3 877 · source top : recherche organique.",
-  // ── slack (7 outils) ───────────────────────────────────────────────────────
+  // ── slack (7 tools) ───────────────────────────────────────────────────────
   slack__list_channels: "#general · #ventes · #support · #design",
   slack__read_channel:
     "claire (cliente, claire@atelier-torbel.fr) : l'export PDF plante — erreur 500.\nmarc (support) : je remonte.",
@@ -85,8 +85,8 @@ const R: Record<string, string> = {
   "microsoft-teams__send_message": "Message envoyé.",
 };
 
-/** La flotte direct générée. `only` restreint aux ids demandés (un scénario n'offre
- *  que ce qu'il déclare) ; sans argument, TOUS les connecteurs direct du package. */
+/** The generated direct fleet. `only` restricts to the requested ids (a scenario offers
+ *  only what it declares); with no argument, ALL the package's direct connectors. */
 export function directFleet(only?: string[]): FakeServer[] {
   return CONNECTORS.filter((c) => !only || only.includes(c.id)).map((c) => ({
     id: c.id,
@@ -101,8 +101,8 @@ export function directFleet(only?: string[]): FakeServer[] {
   }));
 }
 
-/** Outils direct sans fixture dédiée — la LISTE de couverture restante, consultable
- *  par le test de parité (vide = chaque outil direct a sa fixture). */
+/** Direct tools with no dedicated fixture — the remaining coverage LIST, consulted
+ *  by the parity test (empty = every direct tool has its fixture). */
 export function directFixtureGaps(): string[] {
   return CONNECTORS.flatMap((c) =>
     c.tools.filter((t) => !(`${c.id}__${t.name}` in R)).map((t) => `${c.id}__${t.name}`),

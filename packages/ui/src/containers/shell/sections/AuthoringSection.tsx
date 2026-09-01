@@ -8,17 +8,17 @@ import type { Competence } from "../../../types";
 import type { ShellApi } from "../useShell";
 
 /**
- * La section COMPÉTENCES.
+ * The COMPÉTENCES section.
  *
- * Elle s'appelait « Authoring » et servait DEUX écrans jumeaux — Compétences et
- * Workflows — parce que la barre du bas n'avait qu'un créneau pour les deux. Les deux
- * listes n'en font plus qu'une : celle qui pilote des connecteurs est une compétence qui
- * porte des `servers`.
+ * It used to be called « Authoring » and served TWO twin screens — Compétences and
+ * Workflows — because the bottom bar only had one slot for both. The two
+ * lists are now just one: the one that drives connectors is a competence that
+ * carries `servers`.
  *
- * Dans une ORGANISATION, les sections partagées (Organisation, Équipe) se composent
- * AU-DESSUS de la grille personnelle (design), chaque carte personnelle offre
- * « Partager », et la modale de promotion + la proposition vivent ici — le backend
- * re-vérifie chaque geste.
+ * In an ORGANIZATION, the shared sections (Organization, Team) compose
+ * ABOVE the personal grid (design), each personal card offers
+ * « Partager », and the promotion modal + the proposal live here — the backend
+ * re-checks every action.
  */
 export function AuthoringSection({
   shell,

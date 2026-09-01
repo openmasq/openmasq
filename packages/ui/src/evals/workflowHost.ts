@@ -59,7 +59,7 @@ export interface WorkflowHostOpts {
   python?: (code: string) => { ok: boolean; stdout: string; stderr: string; images: { name: string; base64: string }[]; files: { name: string; base64: string; mime: string }[] };
   /** Entity dictionary for the local NER (absent ⇒ no `detectLocalPii`, regex only). */
   ner?: Record<string, string>;
-  /** Latence artificielle du NER (ms) — ouvre une fenêtre pré-modèle testable. */
+  /** Artificial NER latency (ms) — opens a testable pre-model window. */
   nerDelayMs?: number;
   /** Overrides a fixture's canned answer for one namespaced tool (scenario-local). */
   toolResult?: (name: string, args: ToolArgs) => string | undefined;
@@ -81,9 +81,9 @@ export function makeWorkflowHost(o: WorkflowHostOpts): Host {
     ...(o.webPages
       ? {
           web: {
-            // MONDE RÉEL opt-in (OPENMASQ_EVAL_REAL_WEB=1) : de vrais GET, sanitisés
-            // par le pipeline PRODUIT (`htmlToText`) — les fixtures `webPages` ne
-            // servent alors qu'à offrir l'outil et au mode mock (satisfiabilité).
+            // REAL WORLD opt-in (OPENMASQ_EVAL_REAL_WEB=1): real GETs, sanitized
+            // by the PRODUCT pipeline (`htmlToText`) — the `webPages` fixtures then
+            // only serve to offer the tool and for mock mode (satisfiability).
             fetchMany: async (urls: string[]) => {
               for (const url of urls) t.push({ t: "tool:out", name: "web_fetch_many", args: { url } });
               if (realWebEnabled()) return realFetchMany(urls);
@@ -112,8 +112,8 @@ export function makeWorkflowHost(o: WorkflowHostOpts): Host {
             temperature: payload.temperature ?? 0,
           });
           let acc = "";
-          // Itération MANUELLE (pas for-await) pour capter la valeur de RETOUR du
-          // générateur — l'usage tokens — comme le fait le main desktop.
+          // MANUAL iteration (not for-await) to capture the generator's RETURN
+          // value — the token usage — the same way the desktop main does.
           let r = await gen.next();
           while (!r.done) {
             if (cancelled) return;
@@ -202,22 +202,22 @@ export function makeWorkflowHost(o: WorkflowHostOpts): Host {
   if (o.ner) {
     const detect = dictionaryNer(o.ner);
     host.detectLocalPii = async ({ text }) => {
-      // `nerDelayMs` ouvre une FENÊTRE observable sur les phases pré-modèle (le vrai
-      // NER prend des secondes sur un document) — c'est ce qui permet de tester un
-      // Stop pendant le redaction (`stopEarly.test.ts`) sans course au timing.
+      // `nerDelayMs` opens an observable WINDOW onto the pre-model phases (the real
+      // NER takes seconds on a document) — that's what lets a Stop be tested
+      // during redaction (`stopEarly.test.ts`) without a timing race.
       if (o.nerDelayMs) await new Promise((r) => setTimeout(r, o.nerDelayMs));
       return detect(text);
     };
   }
 
   if (o.python) {
-    lastRealPy.all = []; // un host = un run — l'assert figure inspecte TOUTES ses exécutions
+    lastRealPy.all = []; // one host = one run — the figure assert inspects ALL its runs
     host.python = {
       run: async (code: string) => {
         t.push({ t: "tool:out", name: "run_python", args: { code } });
-        // MONDE RÉEL opt-in (OPENMASQ_EVAL_REAL_PY=1) : exécution RÉELLE comme dans
-        // l'app — `buildScript` produit (thème de marque + *_prices), seatbelt,
-        // réseau LIMITÉ au proxy d'egress yfinance — la fixture `python` = mode mock.
+        // REAL WORLD opt-in (OPENMASQ_EVAL_REAL_PY=1): REAL execution just like in
+        // the app — `buildScript` (brand theme + *_prices), seatbelt,
+        // network LIMITED to the yfinance egress proxy — the `python` fixture = mock mode.
         if (realPyEnabled()) return runRealPython(code);
         return o.python!(code);
       },

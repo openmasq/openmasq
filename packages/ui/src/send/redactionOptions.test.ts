@@ -62,7 +62,7 @@ describe("convKindsFromSpans", () => {
     // The reported bug: a person named only in the injected MÉMOIRE (or found by a
     // document OCR layer) is vaulted by a pass that owns no message, so it has no span.
     // Reading spans alone left it untyped and every consumer fell back to « sensitive »
-    // — filed as généric info instead of a person.
+    // — filed as generic info instead of a person.
     const conv = {
       messages: [{ content: "", redactedSpans: [{ value: "Julien", kind: "name" }] }],
       redactionKinds: { Stephane: "name", "36 AV DU CAPITAINE GLARNER": "address" },

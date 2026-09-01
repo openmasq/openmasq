@@ -3,9 +3,9 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 /**
  * THE side panel — the ONE home of everything that is not a conversation
  * (integrated browser, documents, generated artifacts). One rule, stated once:
- * non-chat content opens in the RIGHT HALF, et la conversation ne disparaît JAMAIS —
- * il n'existe plus aucun geste qui la masque (l'agrandissement du panneau a été retiré
- * avec son bouton : une capacité sans porte est du code mort, pas une réserve).
+ * non-chat content opens in the RIGHT HALF, and the conversation NEVER disappears —
+ * there is no longer any gesture that hides it (the panel's expansion was removed
+ * along with its button: a capability with no door is dead code, not a reserve).
  *
  * The slice is SHARED across sections (chats + bibliothèque): open a file from the
  * library, come back to a conversation — the panel is still there, as left.
@@ -88,7 +88,7 @@ const panelSlice = createSlice({
       }
       if (state.items.length === 0) state.open = false;
     },
-    /** Collapse the panel, KEEPING the items — le clic sur l'onglet ACTIF y mène. */
+    /** Collapse the panel, KEEPING the items — clicking the ACTIVE tab leads there. */
     panelHide(state) {
       state.open = false;
     },

@@ -4,11 +4,11 @@ import { normalizeSettings } from "../state/storePersistence";
 import type { Competence, Settings } from "../types";
 
 /**
- * LA REPRISE DE L'ANCIENNE LISTE — le seul endroit de la fusion où quelqu'un peut PERDRE
- * quelque chose. Une compétence mal rangée se re-range ; une liste qui n'arrive pas est
- * partie. On épingle donc les quatre choses qui la rendent sûre : les ids survivent, rien
- * ne se duplique en rejouant, le champ est effacé après coup, et une reprise blanche
- * n'écrit rien.
+ * THE MIGRATION OF THE OLD LIST — the one place in the merge where someone could LOSE
+ * something. A mis-filed compétence gets re-filed; a list that fails to arrive is
+ * gone. So the four things that make it safe are pinned here: the ids survive, nothing
+ * duplicates on replay, the field is erased afterward, and an empty migration
+ * writes nothing.
  */
 
 const wf = (id: string, over: Partial<Competence> = {}): Competence =>
@@ -67,8 +67,8 @@ describe("normalizeSettings — un blob écrit AVANT la fusion", () => {
 
     expect(out.competences?.map((c) => c.id)).toEqual(["c1", "w1"]);
     expect(out.competences?.find((c) => c.id === "w1")?.servers).toEqual(["gmail"]);
-    // Effacé : sans ça la reprise se rejouerait à chaque chargement, et le champ
-    // resterait à traîner en clair dans le miroir localStorage.
+    // Erased: without that the migration would replay on every load, and the field
+    // would linger in plain sight in the localStorage mirror.
     expect(out.workflows).toBeUndefined();
   });
 

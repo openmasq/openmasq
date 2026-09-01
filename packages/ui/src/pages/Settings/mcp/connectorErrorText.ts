@@ -1,51 +1,51 @@
 import type { Messages } from "@openmasq/i18n";
 /**
- * Ce que l'UTILISATEUR lit quand un connecteur a échoué — le pendant lisible de
- * `connectorErrorReason` (qui, lui, ne rend qu'un enum pour la mesure).
+ * What the USER reads when a connector has failed — the readable counterpart to
+ * `connectorErrorReason` (which itself only renders an enum for measurement).
  *
- * Avant, le message BRUT du fournisseur s'affichait tel quel, à deux endroits : dans la
- * modale, et dans la grille où il REMPLACE la description (la fiche Vercel cessait de dire
- * ce qu'est Vercel pour afficher « Refresh token is invalid. »). De l'anglais technique,
- * sans rien indiquer à faire, sur le seul écran où la réparation tient en un clic.
+ * Before, the provider's RAW message displayed as-is, in two places: in the
+ * modal, and in the grid where it REPLACES the description (the Vercel card stopped saying
+ * what Vercel is to show "Refresh token is invalid."). Technical English,
+ * with nothing telling you what to do, on the one screen where the fix takes one click.
  *
- * Règle : on ne DÉGUISE rien — un échec reste annoncé — mais on le dit dans la langue de
- * l'utilisateur et on nomme le geste. Le texte brut n'est pas perdu : il reste dans le
- * journal de débogage, où il sert à qui diagnostique.
+ * Rule: we DISGUISE nothing — a failure stays announced — but we say it in the
+ * user's language and we name the action. The raw text isn't lost: it stays in the
+ * debug journal, where it serves whoever is diagnosing.
  *
- * ⚠️ Une famille INCONNUE rend `null` : l'appelant affiche alors le message d'origine.
- * Inventer une phrase rassurante sur une panne qu'on ne comprend pas serait pire que
- * l'anglais brut — c'est la règle « une vraie panne se dit ».
+ * ⚠️ An UNKNOWN family returns `null`: the caller then shows the original message.
+ * Making up a reassuring sentence about a failure we don't understand would be worse than
+ * raw English — that's the "a real failure gets said" rule.
  */
 
-/** Autorisation morte : le seul cas que l'utilisateur répare lui-même, en un clic. */
+/** Dead authorization: the one case the user fixes themselves, in one click. */
 const EXPIRED_RE =
   /invalid[_ ]grant|refresh token|expired or revoked|token (?:has )?(?:is )?(?:been )?(?:expired|revoked|invalid)|\b401\b|unauthorized|authorization (?:required|failed)|invalid[_ ]client/i;
-/** Le service est joignable mais nous refuse : rien à re-cliquer, c'est côté service. */
+/** The service is reachable but refuses us: nothing to re-click, it's on the service's side. */
 const FORBIDDEN_RE = /\b403\b|forbidden|access denied|insufficient (?:scope|permission)/i;
-/** Réseau : ça remarchera tout seul. */
+/** Network: it'll work again on its own. */
 const NETWORK_RE =
   /fetch failed|network|econnrefused|econnreset|enotfound|etimedout|timeout|socket|dns|\b5\d\d\b|bad gateway|service unavailable/i;
-/** Le serveur ne sait pas faire le flux — ni l'utilisateur ni un retry n'y peuvent rien. */
+/** The server can't do the flow — neither the user nor a retry can do anything about it. */
 const UNSUPPORTED_RE = /dynamic client registration|unknown server|no url|url refusée/i;
-/** Clé API refusée : le geste est de la remplacer, pas de se reconnecter. */
+/** API key refused: the action is to replace it, not to reconnect. */
 const APIKEY_RE = /clé api refusée|invalid[_ ]?api[_ ]?key|api key/i;
 
 export interface ConnectorErrorText {
-  /** La phrase montrée à la place du message brut. */
+  /** The sentence shown in place of the raw message. */
   text: string;
-  /** `true` quand se reconnecter EST le geste — l'UI met alors l'accent dessus. */
+  /** `true` when reconnecting IS the action — the UI then emphasizes it. */
   reconnect: boolean;
 }
 
-/** Rend le texte utilisateur, ou `null` si on ne sait pas (⇒ garder le brut). */
+/** Renders the user-facing text, or `null` if unknown (⇒ keep the raw one). */
 export function connectorErrorText(
   raw: string | undefined | null,
   t: Messages,
 ): ConnectorErrorText | null {
   const m = (raw ?? "").trim();
   if (!m) return null;
-  // L'ORDRE porte la règle : une clé refusée et un 403 ressemblent à une expiration, mais
-  // le geste diffère — on teste donc du plus spécifique au plus général.
+  // The ORDER carries the rule: a refused key and a 403 look like an expiration, but
+  // the action differs — so we test from most specific to most general.
   if (APIKEY_RE.test(m)) return { text: t.mcpTab.errors.apikey, reconnect: false };
   if (UNSUPPORTED_RE.test(m)) return { text: t.mcpTab.errors.unsupported, reconnect: false };
   if (FORBIDDEN_RE.test(m)) return { text: t.mcpTab.errors.forbidden, reconnect: true };

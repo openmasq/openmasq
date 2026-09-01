@@ -1,27 +1,27 @@
 import type { Settings } from "../types";
 
 /**
- * Migrations de RÉGLAGES — les recalages ponctuels qu'un blob persisté doit subir quand le
- * produit change une valeur par défaut sous ses pieds.
+ * SETTINGS migrations — the one-off recalibrations a persisted blob must undergo when
+ * the product changes a default value out from under it.
  *
- * Elles vivent à part de `storePersistence.ts` parce qu'elles ne se ressemblent pas : chacune
- * est datée, porte son propre « avant », et n'a de sens qu'une fois. Les mélanger à la
- * normalisation permanente rendait les deux illisibles.
+ * They live apart from `storePersistence.ts` because they don't look alike: each one
+ * is dated, carries its own "before", and only makes sense once. Mixing them with the
+ * permanent normalization made both unreadable.
  */
 
 /**
- * Le jeu de catégories qu'une installation SEEDAIT avant que « Chaînes type clé »
- * (`apikey`) rejoigne le plancher commun à tous les niveaux.
+ * The category set an install SEEDED before "Chaînes type clé" (`apikey`) joined the
+ * floor common to all levels.
  *
- * Il est ici pour une raison précise : les réglages sont persistés EN ENTIER depuis
- * `DEFAULT_SETTINGS`, donc chaque utilisateur porte un `apikey: false` explicite. Sans
- * cette migration, tous se réveilleraient en « Sur mesure » — ni Standard, ni Renforcé,
- * ni Strict — pour un réglage qu'ils n'ont jamais touché. Exactement le renommage
- * silencieux que `levelOf` s'interdit par ailleurs.
+ * It's here for a precise reason: settings are persisted IN FULL from
+ * `DEFAULT_SETTINGS`, so every user carries an explicit `apikey: false`. Without this
+ * migration, all of them would wake up on "Sur mesure" — neither Standard, nor
+ * Renforcé, nor Strict — for a setting they never touched. Exactly the silent
+ * renaming that `levelOf` otherwise forbids itself.
  *
- * La correspondance est EXACTE, et c'est ce qui la rend sûre : seul un jeu identique au
- * défaut de cette époque est déplacé. Quelqu'un qui avait réglé une seule case reste sur
- * mesure — on ne devine jamais qu'un `apikey: false` était subi plutôt que voulu.
+ * The match is EXACT, and that's what makes it safe: only a set identical to that
+ * era's default is moved. Someone who had set a single checkbox stays on "sur
+ * mesure" — we never guess that an `apikey: false` was suffered rather than chosen.
  */
 const PRE_APIKEY_FLOOR_DEFAULTS: Record<string, boolean> = {
   name: true, dob: true, username: false, email: true, phone: true, address: true,
@@ -29,7 +29,7 @@ const PRE_APIKEY_FLOOR_DEFAULTS: Record<string, boolean> = {
   company_id: true, ip: true, path: true, url: false, secret: true, apikey: false,
 };
 
-/** Le jeu ci-dessus, à l'identique — au `apikey` près, désormais dans le plancher. */
+/** The set above, identical — except for `apikey`, now in the floor. */
 function isPreApikeyFloorDefault(cats: Record<string, boolean> | undefined): boolean {
   if (!cats) return false;
   const keys = Object.keys(PRE_APIKEY_FLOOR_DEFAULTS);
@@ -38,7 +38,7 @@ function isPreApikeyFloorDefault(cats: Record<string, boolean> | undefined): boo
 }
 
 
-/** Applique les migrations à la carte de catégories. `defaults` est le seed courant. */
+/** Applies the migrations to the category map. `defaults` is the current seed. */
 export function migrateRedactCategories(
   saved: Settings["redactCategories"] | undefined,
   defaults: Settings["redactCategories"],

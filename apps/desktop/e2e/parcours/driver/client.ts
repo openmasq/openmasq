@@ -7,7 +7,7 @@ import { DAEMON_LOG, SOCK, ensureRunDir } from "./paths";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-/** Traduit `click "Bibliothèque" 2` en `{cmd:"click", args:{nom:"…", n:2}}`. */
+/** Translates `click "Library" 2` into `{cmd:"click", args:{nom:"…", n:2}}`. */
 function versRequete(argv: string[]): { cmd: string; args: Record<string, unknown> } {
   const [cmd, ...reste] = argv;
   const un = reste[0];
@@ -33,12 +33,12 @@ function versRequete(argv: string[]): { cmd: string; args: Record<string, unknow
   }
 }
 
-/** Lève le démon en arrière-plan et attend que la socket réponde. */
+/** Spins up the daemon in the background and waits for the socket to answer. */
 async function lever(): Promise<void> {
   ensureRunDir();
   const log = openSync(DAEMON_LOG, "a");
-  // tsx est hissé à la racine du monorepo. On l'appelle par son chemin quand il y est —
-  // un `npx` reviendrait au réseau — et on retombe sur `npx` seulement s'il n'y est pas.
+  // tsx is hoisted to the monorepo root. We call it by its path when it's there —
+  // an `npx` would fall back to the network — and we only fall back to `npx` if it isn't there.
   const tsx = resolve(HERE, "../../../../../node_modules/tsx/dist/cli.mjs");
   const [bin, args] = existsSync(tsx)
     ? [process.execPath, [tsx, resolve(HERE, "daemon.ts")]]
@@ -89,7 +89,7 @@ async function main(): Promise<void> {
     return;
   }
   const brut = await envoyer(versRequete(argv));
-  // Ré-indenté : la réponse est lue par un agent ET par un humain penché sur le terminal.
+  // Re-indented: the answer is read by an agent AND by a human leaning over the terminal.
   process.stdout.write(JSON.stringify(JSON.parse(brut), null, 2) + "\n");
   if (!(JSON.parse(brut) as { ok: boolean }).ok) process.exitCode = 1;
 }

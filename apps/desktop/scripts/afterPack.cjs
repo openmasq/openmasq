@@ -16,8 +16,8 @@
 // path for a hypothetical FUTURE stdio catalog server (none exist today). With the fuse
 // off it would NOT work — a new stdio server must use app-mode or utilityProcess.
 //
-// Il fait AUSSI le tri par arche sur mac (`archPrune.cjs`) : c'est le seul endroit qui
-// connaisse `context.arch`, et le seul moment où le tri est encore gratuit (avant signature).
+// It ALSO does the arch pruning on mac (`archPrune.cjs`): it's the only place that
+// knows `context.arch`, and the only moment when pruning is still free (before signing).
 const path = require("node:path");
 const { existsSync, writeFileSync } = require("node:fs");
 const { flipFuses, FuseVersion, FuseV1Options } = require("@electron/fuses");
@@ -27,7 +27,7 @@ const { appUpdateYmlContent } = require("./appUpdateYml.cjs");
 const { assertPackagedContents } = require("./packageContents.cjs");
 const { listPackage } = require("@electron/asar");
 
-/** L'asar de l'app empaquetée, quelle que soit la plateforme. */
+/** The packaged app's asar, whatever the platform. */
 function asarPath(appOutDir, electronPlatformName, name) {
   return electronPlatformName === "darwin"
     ? path.join(appOutDir, `${name}.app`, "Contents", "Resources", "app.asar")
@@ -38,21 +38,21 @@ exports.default = async function afterPack(context) {
   const { appOutDir, electronPlatformName, packager } = context;
   const name = packager.appInfo.productFilename; // branding `name`
 
-  // ── L'app contient-elle ce qu'elle DIT contenir ? ────────────────────────────────────
-  // Avant tout le reste : inutile de trier par arche, de poser les fusibles et de payer
-  // 20 minutes de notarisation sur un artefact qui embarque `src/` et un `.env`. Un
-  // `files` d'electron-builder est une intention ; l'asar est la preuve — pourquoi cette
-  // distinction a coûté une fuite : `packageContents.cjs`.
+  // ── Does the app contain what it SAYS it contains? ───────────────────────────────────
+  // Before anything else: no point pruning by arch, flipping the fuses, and paying
+  // 20 minutes of notarization on an artifact that ships `src/` and a `.env`. An
+  // electron-builder `files` entry is an intent; the asar is the proof — why this
+  // distinction cost a leak: `packageContents.cjs`.
   const asar = asarPath(appOutDir, electronPlatformName, name);
   if (existsSync(asar)) {
     assertPackagedContents(listPackage(asar));
     console.log(`[contenu] app.asar conforme à l'allowlist de electron-builder.cjs`);
   }
 
-  // Chaque app ne porte que SES binaires natifs : ni ceux de l'autre plateforme (mac et
-  // Windows installent les deux jeux, cf. `supportedArchitectures`), ni ceux de l'autre
-  // arche (macOS livre arm64 ET x64 depuis un seul runner). Avant les fusibles : ce qu'on
-  // supprime n'a pas à être signé.
+  // Each app carries only ITS OWN native binaries: neither the other platform's (mac and
+  // Windows both install both sets, cf. `supportedArchitectures`), nor the other arch's
+  // (macOS ships arm64 AND x64 from a single runner). Before the fuses: what gets
+  // removed doesn't need to be signed.
   const arch = Arch[context.arch];
   if (electronPlatformName === "darwin" || electronPlatformName === "win32") {
     const { freed } = pruneForeignArch({
@@ -66,11 +66,11 @@ exports.default = async function afterPack(context) {
   }
 
   if (electronPlatformName === "darwin") {
-    // `app-update.yml` : electron-builder ne l'écrit que pour une cible distribuable,
-    // donc le pipeline mac scindé (`--dir` puis `--prepackaged`, mac-release.ts) livrait
-    // des .app SANS lui — plus aucune mise à jour automatique (la 0.6.0). On l'écrit
-    // ICI parce que c'est le dernier moment gratuit : après, l'app est signée et tout
-    // ajout invalide le sceau. « Si absent » seulement — le chemin normal garde le sien.
+    // `app-update.yml`: electron-builder only writes it for a distributable target,
+    // so the split mac pipeline (`--dir` then `--prepackaged`, mac-release.ts) shipped
+    // .app bundles WITHOUT it — no more auto-update (the 0.6.0). We write it
+    // HERE because it's the last free moment: after this, the app is signed and any
+    // addition invalidates the seal. "If absent" only — the normal path keeps its own.
     const updateYml = path.join(appOutDir, `${name}.app`, "Contents", "Resources", "app-update.yml");
     if (!existsSync(updateYml)) {
       writeFileSync(updateYml, appUpdateYmlContent(packager.config.publish, name));

@@ -64,8 +64,8 @@ export function useSearchPalette({ chat, blocked }: { chat: ChatStore; blocked: 
   const { files } = useLibraryFiles(chat.conversations, open);
   const fileResults = useCallback((q: string) => searchFiles(files ?? [], q), [files]);
   // …and the SECTIONS themselves — the six places a newcomer is hunting for, which the
-  // palette could not reach at all. Une section dont la PORTE est fermée en est
-  // retirée : la proposer ouvrirait un écran non monté (`state/featureAccess.ts`).
+  // palette could not reach at all. A section whose DOOR is closed is removed
+  // from it: offering it would open an unmounted screen (`state/featureAccess.ts`).
   const access = useFeatureAccess();
   const sectionResults = useCallback(
     (q: string) => searchSections(q, t, (id) => !isGated(id) || access[id]),

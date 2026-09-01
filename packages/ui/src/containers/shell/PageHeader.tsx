@@ -5,14 +5,14 @@ import { useT } from "../../i18n";
 
 interface Props {
   /**
-   * Un en-tête de SECTION : son nom et sa phrase viennent du vocabulaire
-   * (`help/sections.ts`), pas de l'appelant. Les quatre pages recopiaient le nom que le
-   * rail, la barre latérale et le guide affichaient déjà — « Mémoire » vivait à quatre
-   * endroits, dont un seul se traduisait.
+   * A SECTION header: its name and its phrase come from the vocabulary
+   * (`help/sections.ts`), not from the caller. The four pages used to copy the name
+   * the rail, the sidebar, and the guide already displayed — « Mémoire » lived in
+   * four places, only one of which was translated.
    */
   section?: SectionGuide["id"];
-  /** Un en-tête qui n'est PAS une section : les Réglages, dont le titre suit l'onglet.
-   *  Fournir `title`/`subtitle` OU `section`, jamais les deux. */
+  /** A header that is NOT a section: Settings, whose title follows the tab.
+   *  Provide `title`/`subtitle` OR `section`, never both. */
   title?: string;
   subtitle?: string;
   /**

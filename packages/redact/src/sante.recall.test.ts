@@ -7,20 +7,20 @@ import corpus from "../bench/corpora/sante.json";
    ordonnance de biologie, discharge summary (EN), Arztbrief (DE), informe médico (ES),
    referto / relatório (IT+PT).
 
-   C'est le document qu'un utilisateur hésite le plus à confier à un modèle, et c'est
-   celui où le over-redaction coûte le plus cher : « cardiologue », « échographie »,
-   « glycémie » redacted, il reste une lettre sur un patient anonyme atteint d'une
-   maladie sans nom, examiné par une entreprise inventée — et l'identité du patient,
-   elle, était déjà protégée par sa propre règle.
+   This is the document a user hesitates most to hand to a model, and it's
+   the one where over-redacting costs the most: « cardiologue », « échographie »,
+   « glycémie » redacted, all that's left is a letter about an anonymous patient with a
+   nameless disease, examined by a made-up company — and the patient's identity,
+   meanwhile, was already protected by its own rule.
 
-   ⚠️ Épargner le mot n'expose AUCUNE donnée de santé : « glycémie » est le nom d'une
-   mesure, la valeur à côté est un nombre pris par sa propre règle. Même partage que
-   « IBAN » en clair avec le numéro au coffre. */
+   ⚠️ Sparing the word exposes NO health data: « glycémie » is the name of a
+   measurement, the value next to it is a number caught by its own rule. The same sharing as
+   « IBAN » in clear with the number in the vault. */
 
 const cases = corpus as BenchCase[];
 
-/** Le vocabulaire médical, dans les six langues du corpus, qui ne doit JAMAIS entrer
- *  au coffre — même proposé par un détecteur qui sur-étiquette la page. */
+/** The medical vocabulary, in the corpus's six languages, that must NEVER enter
+ *  the vault — even when proposed by a detector that over-tags the page. */
 const MUST_STAY_CLEAR = [
   "cardiologue", "généraliste", "médecin traitant", "chirurgien", "pharmacien",
   "échographie", "électrocardiogramme", "doppler", "radiographie", "biopsie",
@@ -42,9 +42,9 @@ const MUST_STAY_CLEAR = [
 describe("medical-document recall + precision (deterministic pipeline, 6 languages)", () => {
   it("holds the recall floor on the santé corpus", async () => {
     const s = await scoreDomain("santé", cases);
-    // Le plancher : ces documents portent des patronymes, des dates de naissance, des
-    // adresses, des téléphones et des e-mails au milieu du bruit médical — le bruit ne
-    // doit pas les noyer.
+    // The floor: these documents carry surnames, dates of birth,
+    // addresses, phone numbers and emails in the middle of medical noise — the noise
+    // must not drown them out.
     expect(s.found / s.total).toBeGreaterThanOrEqual(0.8);
   });
 
@@ -55,7 +55,7 @@ describe("medical-document recall + precision (deterministic pipeline, 6 languag
 
   it("garde un taux de faux positifs BAS — le over-redaction est mesuré, pas supposé", async () => {
     const s = await scoreDomain("santé", cases);
-    // Contrepartie du plancher : sans plafond, tout redact passerait le test ci-dessus.
+    // Counterpart of the floor: without a ceiling, redacting everything would pass the test above.
     expect(s.fp / s.total).toBeLessThanOrEqual(0.6);
   });
 });

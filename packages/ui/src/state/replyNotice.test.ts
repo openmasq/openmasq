@@ -13,7 +13,7 @@ describe("pendingReplyIds", () => {
     const ids = pendingReplyIds([
       conv("a", user, streaming),
       conv("b", user, done),
-      // Un tour terminé PUIS un nouveau départ : c'est le dernier qui compte.
+      // A finished turn THEN a new start: it's the last one that counts.
       conv("c", user, done, user, streaming),
       conv("d"),
     ]);
@@ -30,8 +30,8 @@ describe("repliesToAnnounce", () => {
     ).toEqual([{ id: "a", failed: false }]);
   });
 
-  // Le piège que tout le reste protège : sans la TRANSITION, chaque rendu ré-annoncerait
-  // toutes les conversations terminées — et ouvrir l'app tirerait une salve de bannières.
+  // The trap everything else guards against: without the TRANSITION, every render would
+  // re-announce every finished conversation — and opening the app would fire off a volley of banners.
   it("n'annonce rien pour une conversation déjà terminée au tick précédent", () => {
     expect(
       repliesToAnnounce({ ...base, prev: new Set(), convs: [conv("a", user, done)] }),
@@ -55,8 +55,8 @@ describe("repliesToAnnounce", () => {
     ).toEqual([]);
   });
 
-  // Les tours tournent en parallèle par onglet : être dans l'app ne veut pas dire
-  // regarder CE fil-là.
+  // Turns run in parallel per tab: being in the app doesn't mean
+  // you're looking at THIS thread.
   it("annonce un AUTRE onglet même fenêtre au premier plan", () => {
     expect(
       repliesToAnnounce({
@@ -91,8 +91,8 @@ describe("repliesToAnnounce", () => {
 });
 
 describe("noticeText", () => {
-  // Le titre d'une conversation est dérivé du premier message : c'est de la donnée RÉELLE,
-  // et une bannière système s'affiche par-dessus tout, parfois sur un écran verrouillé.
+  // A conversation's title is derived from the first message: it is REAL data,
+  // and a system banner displays over everything, sometimes on a locked screen.
   it("ne porte ni contenu ni titre de conversation", () => {
     const t = noticeText({ id: "c-secret", failed: false }, "GPT-5.5");
     expect(t.title).toBe(BRAND.name);

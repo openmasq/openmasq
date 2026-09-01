@@ -1,37 +1,37 @@
 import { useCallback, useEffect, useState } from "react";
 import { BRAND } from "@openmasq/branding";
 
-/** Grille de cartes, ou rangées denses. Deux valeurs, pas trois : un troisième mode se
- *  paie en décisions à chaque écran et personne ne l'a demandé. */
+/** Card grid, or dense rows. Two values, not three: a third mode costs a decision on
+ *  every screen and nobody asked for it. */
 export type ViewMode = "grid" | "list";
 
-/** Les écrans qui listent des OBJETS de l'utilisateur. Le périmètre est fermé exprès :
- *  une chaîne libre laisserait deux écrans partager une préférence par accident. */
+/** Screens that list the user's OBJECTS. The scope is closed on purpose: a free-form
+ *  string would let two screens share a preference by accident. */
 export type ViewScope = "library" | "competences" | "workflows";
 
 const KEY = (scope: ViewScope): string => `${BRAND.slug}.view.${scope}`;
 
 /**
- * Le mode d'affichage d'un écran, retenu d'une session à l'autre.
+ * A screen's display mode, remembered across sessions.
  *
- * PAR ÉCRAN, jamais globalement : une bibliothèque d'images se regarde en vignettes, une
- * liste de compétences se lit en lignes, et imposer le même choix aux deux force à le
- * refaire à chaque va-et-vient.
+ * PER SCREEN, never globally: an image library is looked at as thumbnails, a
+ * skills list is read as rows, and forcing the same choice on both forces
+ * re-doing it on every back-and-forth.
  *
- * Il vit dans `localStorage` et non dans les Réglages parce que c'est une préférence de
- * VUE, pas une donnée : elle ne se synchronise pas, ne se chiffre pas, et son absence
- * n'est pas une perte. Même étagère que la section courante et la disposition
- * (`state/reduxBoot.ts`), même conséquence si le stockage manque — on retombe sur la
- * grille sans rien casser.
+ * It lives in `localStorage` and not in Réglages because it's a VIEW preference,
+ * not data: it doesn't sync, doesn't get encrypted, and its absence isn't a loss.
+ * Same shelf as the current section and the layout (`state/reduxBoot.ts`), same
+ * consequence if storage is missing — we fall back to grid without breaking
+ * anything.
  *
- * ⚠️ Une valeur inconnue (build plus ancien, stockage trafiqué) retombe sur `"grid"` :
- * on ne rend jamais un mode que l'écran ne sait pas dessiner.
+ * ⚠️ An unknown value (older build, tampered storage) falls back to `"grid"`: we
+ * never render a mode the screen doesn't know how to draw.
  */
 export function useViewMode(scope: ViewScope): [ViewMode, (m: ViewMode) => void] {
   const [mode, setMode] = useState<ViewMode>(() => read(scope));
 
-  // Le scope peut changer si un écran est réutilisé pour deux gisements : relire, sinon
-  // le second héritait silencieusement de la préférence du premier.
+  // The scope can change if a screen is reused for two datasets: re-read, otherwise
+  // the second would silently inherit the first's preference.
   useEffect(() => {
     setMode(read(scope));
   }, [scope]);
@@ -42,7 +42,7 @@ export function useViewMode(scope: ViewScope): [ViewMode, (m: ViewMode) => void]
       try {
         localStorage.setItem(KEY(scope), m);
       } catch {
-        /* stockage indisponible (aperçu web restreint) — la vue marche, elle n'est pas retenue */
+        /* storage unavailable (restricted web preview) — the view works, it just isn't remembered */
       }
     },
     [scope],

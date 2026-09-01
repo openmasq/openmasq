@@ -59,15 +59,15 @@ export function SelectionMenu({
   expanded?: boolean;
   /** Small informational line under the title (e.g. «zone image, non envoyée»). */
   note?: string;
-  /** D'où vient la sélection — le DOCUMENT (aperçu de PJ) l'annonce, sinon une
-   *  sélection composer/message. Ne change que la télémétrie, jamais le geste. */
+  /** Where the selection comes from — the DOCUMENT (attachment preview) states it,
+   *  otherwise a composer/message selection. Only changes telemetry, never the gesture. */
   origin?: "selection" | "document";
-  /** Ferme le menu (Échap). La fermeture (clic extérieur, scroll, Échap) appartient
-   *  au PROPRIÉTAIRE de l'état d'ouverture — le menu est ouvert ⇔ une sélection
-   *  existe, c'est pourquoi il ne passe pas par `usePopover`, qui posséderait un
-   *  second état. `useTextSelection`/`useTextareaSelection` gèrent déjà tout cela
-   *  eux-mêmes ; ne passer `onClose` que pour un état ouvert AUTREMENT (le
-   *  `wordPick` du viewer de PJ). */
+  /** Closes the menu (Escape). Closing (outside click, scroll, Escape) belongs
+   *  to the OWNER of the open state — the menu is open ⇔ a selection
+   *  exists, which is why it doesn't go through `usePopover`, which would own a
+   *  second state. `useTextSelection`/`useTextareaSelection` already handle all of this
+   *  themselves; only pass `onClose` for a state opened OTHERWISE (the
+   *  `wordPick` of the attachment viewer). */
   onClose?: () => void;
 }) {
   const t = useT();
@@ -77,9 +77,9 @@ export function SelectionMenu({
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || !onCloseRef.current) return;
-      // CAPTURE + stopPropagation : dans l'aperçu de PJ, `ModalShell` écoute Échap
-      // sur window (bulle) — sans l'arrêt, la même touche fermerait le menu ET la
-      // modale sous lui.
+      // CAPTURE + stopPropagation: in the attachment preview, `ModalShell` listens for Escape
+      // on window (bubble) — without the stop, the same key would close the menu AND the
+      // modal beneath it.
       e.stopPropagation();
       onCloseRef.current();
     };
@@ -88,8 +88,8 @@ export function SelectionMenu({
   }, []);
   const [scope, setScope] = useState<"conversation" | "coffre">("conversation");
   const pick = (token: string) => {
-    // Un redaction MANUEL = le moteur a raté cette valeur : le vrai signal de faux
-    // négatif, par CATÉGORIE seulement — le token est un id de type, jamais la valeur.
+    // A MANUAL redaction = the engine missed this value: the real false-negative
+    // signal, by CATEGORY only — the token is a type id, never the value.
     captureEvent({ name: "redaction_forced", kind: token, source: scope === "coffre" ? "coffre" : origin });
     return scope === "coffre" && onCoffre ? onCoffre(token) : onPick(token);
   };
@@ -109,8 +109,8 @@ export function SelectionMenu({
       onMouseDown={(e) => e.preventDefault()}
     >
       {showTypes ? (
-        // Pas de second role="menu" : la racine le porte déjà (un menu imbriqué
-        // dans un menu est invalide) — les items gardent role="menuitem".
+        // No second role="menu": the root already carries it (a menu nested
+        // inside a menu is invalid) — the items keep role="menuitem".
         <div className="sel-redact-types">
           {onCoffre && (
             <div className="sel-redact-scope" role="radiogroup" aria-label={t.menus.selection.scopeAria}>
@@ -139,7 +139,7 @@ export function SelectionMenu({
           <span className="sel-redact-eyebrow">{label ?? t.menus.selection.typeEyebrow}</span>
           {note && <span className="sel-redact-note">{note}</span>}
           <div className="sel-redact-grid">
-            {/* `type`, pas `t` : `t` est le catalogue de traduction ici. */}
+            {/* `type`, not `t`: `t` is the translation catalogue here. */}
             {REDACT_TYPES.map((type) => (
               <button
                 key={type.key}

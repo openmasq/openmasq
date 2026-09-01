@@ -63,8 +63,8 @@ export function PanelFileView({
         name,
         mime: m?.mime ?? mime ?? "",
         redacted: m?.redacted ?? false,
-        // Sans lui, un PDF/image (octets non redactable en place → redacted=false,
-        // seul le COMPTE dit le masquage) perdait sa ligne « Données masquées » + bascule.
+        // Without it, a PDF/image (bytes not redactable in place → redacted=false,
+        // only the COUNT states the masking) would lose its « Données masquées » line + toggle.
         redactedCount: m?.redactedCount,
         createdAt: m?.createdAt ?? 0,
         contentHash: m?.contentHash,

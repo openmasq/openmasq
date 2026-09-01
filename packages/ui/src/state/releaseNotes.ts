@@ -5,13 +5,13 @@ import { useAppDispatch, useAppSelector } from "./redux";
 import { selectReleaseNotesCache } from "./settingsCache";
 import { loadReleaseNotes } from "./settingsPrefetch";
 
-// Les NOTES DE VERSION publiées (Contentful, servies par analytics-fn `/release-notes`) :
-// le type, le lecteur du cache, et la mise en forme pure que les deux surfaces partagent.
+// The published RELEASE NOTES (Contentful, served by analytics-fn `/release-notes`):
+// the type, the cache reader, and the pure formatting the two surfaces share.
 //
-// ⚠️ Vit ici, dans la couche DONNÉES, et non plus sous `pages/Settings/updates/` : le cache
-// Redux et le préchargement importaient déjà ce type depuis `pages/` (une couche basse qui
-// remonte), et la modale d'AIDE — un `containers/` — n'aurait pas pu l'importer du tout.
-// Deux lecteurs, une seule maison.
+// ⚠️ Lives here, in the DATA layer, and no longer under `pages/Settings/updates/`: the
+// Redux cache and the prefetch were already importing this type from `pages/` (a low
+// layer reaching up), and the HELP modal — a `containers/` — couldn't have imported it at all.
+// Two readers, one home.
 
 /** The stable shape the analytics-fn `/release-notes` endpoint returns per note. */
 export interface ReleaseNote {
@@ -30,8 +30,8 @@ export interface UseReleaseNotes {
   error: string | null;
 }
 
-/** Lecteur PUR du cache : le chargement est fait une fois par `settingsPrefetch`
- *  (`loadReleaseNotes`), donc revenir sur l'écran est instantané. */
+/** PURE cache reader: the loading is done once by `settingsPrefetch`
+ *  (`loadReleaseNotes`), so returning to the screen is instant. */
 export function useReleaseNotes(): UseReleaseNotes {
   const host = useHost();
   const url = host.releaseNotesUrl;
@@ -40,13 +40,13 @@ export function useReleaseNotes(): UseReleaseNotes {
 }
 
 /**
- * Le même cache, mais qui SE CHARGE s'il ne l'est pas encore — pour une surface qu'on peut
- * atteindre sans passer par les Réglages (l'aide s'ouvre depuis le rail).
+ * The same cache, but which LOADS ITSELF if it isn't yet — for a surface reachable
+ * without going through Réglages (help opens from the rail).
  *
- * ⚠️ Une seule maison pour ce déclenchement : `loadReleaseNotes` est idempotent côté cache
- * (il écrit `loaded`), donc un second lecteur ne re-télécharge rien — mais la CONDITION
- * « charger si personne ne l'a fait » recopiée dans chaque écran est exactement ce qui
- * laisse un onglet vide chez qui n'a pas emprunté le bon chemin.
+ * ⚠️ One single home for this trigger: `loadReleaseNotes` is idempotent cache-side
+ * (it writes `loaded`), so a second reader re-downloads nothing — but the CONDITION
+ * "load if nobody has" copied into every screen is exactly what
+ * leaves a tab empty for whoever didn't take the right path.
  */
 export function useReleaseNotesFeed(): UseReleaseNotes {
   const host = useHost();
@@ -64,11 +64,11 @@ export function useReleaseNotesFeed(): UseReleaseNotes {
 export const baseVersion = (v: string): string => v.replace(/^v/, "").split("-")[0];
 
 /**
- * UNE note par version. Le point d'accès en renvoie PLUSIEURS pour une même version (une
- * note d'accueil et la vraie, une correction republiée), classées de la plus récente à la
- * plus ancienne : on garde donc la PREMIÈRE vue. Sans ça l'historique affichait « 0.4.1 »
- * deux fois de suite — ce qui se lit comme un bug de l'app, pas comme deux notes.
- * Même règle que le rapprochement build↔note des Réglages (`noteLookup`), une seule fois.
+ * ONE note per version. The endpoint returns SEVERAL for the same version (a
+ * welcome note and the real one, a republished fix), sorted from most recent to
+ * oldest: so the FIRST one seen is kept. Without this, the history displayed « 0.4.1 »
+ * twice in a row — which reads as an app bug, not as two notes.
+ * Same rule as the Réglages build↔note matching (`noteLookup`), just once.
  */
 export function latestPerVersion(notes: readonly ReleaseNote[]): ReleaseNote[] {
   const seen = new Set<string>();
@@ -83,12 +83,12 @@ export function latestPerVersion(notes: readonly ReleaseNote[]): ReleaseNote[] {
 }
 
 /**
- * LA note d'une version — la seule façon de passer d'un numéro de build à ce qu'il
- * apporte. Tolère le suffixe préliminaire (`0.5.0-staging.12` → `0.5.0`), applique la
- * règle « une note par version », et rend `undefined` plutôt que d'inventer.
+ * THE note for a version — the only way to go from a build number to what it
+ * brings. Tolerates the pre-release suffix (`0.5.0-staging.12` → `0.5.0`), applies the
+ * "one note per version" rule, and returns `undefined` rather than inventing one.
  *
- * Une seule maison (règle 9) : le rapprochement build↔note des Réglages, l'annonce d'une
- * mise à jour téléchargée et l'historique de l'aide posent tous la même question.
+ * One single home (rule 9): the Réglages build↔note matching, a downloaded update's
+ * announcement, and the help history all ask the same question.
  */
 export function noteForVersion(
   notes: readonly ReleaseNote[],
@@ -104,12 +104,12 @@ export function noteForVersion(
 export const HL_TONES = ["pink", "amber", "sky", "lime", "mint", "violet"] as const;
 
 /**
- * "2026-07-11T…" → « 11 juillet 2026 » / "11 July 2026" ; non-ISO ou `null` rendu tel quel.
+ * "2026-07-11T…" → « 11 juillet 2026 » / "11 July 2026"; non-ISO or `null` rendered as-is.
  *
- * `Intl.DateTimeFormat` plutôt qu'une table de mois : elle s'appelait `frenchDate` et
- * portait les douze noms français en dur, donc une app en anglais datait ses versions en
- * français. La date est construite en UTC — un ISO nu (`2026-07-11`) est minuit UTC, et
- * l'afficher dans le fuseau local le reculait d'un jour à l'ouest de Greenwich.
+ * `Intl.DateTimeFormat` rather than a month table: it used to be called `frenchDate` and
+ * hard-coded the twelve French names, so an English-language app dated its versions in
+ * French. The date is built in UTC — a bare ISO (`2026-07-11`) is midnight UTC, and
+ * displaying it in the local timezone pushed it back a day west of Greenwich.
  */
 export function releaseDate(iso: string | null, t: Messages): string {
   if (!iso) return "";
@@ -124,7 +124,7 @@ export function releaseDate(iso: string | null, t: Messages): string {
       timeZone: "UTC",
     }).format(d);
   } catch {
-    return iso; // `Intl` indisponible (jamais dans Electron ni un navigateur) — jamais un vide
+    return iso; // `Intl` unavailable (never in Electron nor a browser) — never a blank
   }
 }
 

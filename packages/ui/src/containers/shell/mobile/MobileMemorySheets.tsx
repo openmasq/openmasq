@@ -8,7 +8,7 @@ import { useT } from "../../../i18n";
 
 /**
  * The three bottom sheets of the mobile Mémoire (kit `chat-app-mobile` MemoryScreen):
- * add a souvenir, inspect/edit one, edit the profile. They are the phone's stand-in for
+ * add a memory, inspect/edit one, edit the profile. They are the phone's stand-in for
  * the desktop's side panel, and they write through the SAME store callbacks — the shapes
  * differ, the data path does not.
  */

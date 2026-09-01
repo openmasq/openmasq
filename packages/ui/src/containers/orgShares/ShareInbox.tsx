@@ -25,8 +25,8 @@ export function ShareInbox({
   onAdopt,
 }: {
   wide?: boolean;
-  /** Ce compte appartient-il à une organisation ? Sans elle (et sans partage déjà
-   *  reçu), la cloche n'annoncera jamais rien — elle n'est pas rendue
+  /** Does this account belong to an organization? Without it (and with no share already
+   *  received), the bell will never announce anything — it isn't rendered
    *  (`shareInboxVisible`). */
   inOrg?: boolean;
   /** Land an accepted person-share's items in the PERSONAL lists. */

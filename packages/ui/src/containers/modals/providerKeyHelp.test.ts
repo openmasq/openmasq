@@ -4,20 +4,20 @@ import { getMessages, LOCALES } from "@openmasq/i18n";
 import { providerKeyHelp, providerKeyIssue } from "./providerKeyHelp";
 
 /**
- * Le verdict rendu au moment où l'on COLLE une clé.
+ * The verdict rendered the moment a key is PASTED.
  *
- * Ce qu'on épingle n'est pas le libellé mais la ligne de partage : ce dont on a la
- * preuve (le préfixe documenté) se dit comme une erreur, ce dont on n'a qu'un soupçon
- * (une longueur) se dit comme un avertissement, et un fournisseur sans forme fixe ne se
- * voit reprocher AUCUNE forme. Se tromper de côté est cher : un faux positif renvoie
- * quelqu'un chercher une deuxième clé qui n'existe pas.
+ * What's pinned here isn't the label but the dividing line: what we have
+ * proof of (the documented prefix) is stated as an error, what we only have a suspicion
+ * about (a length) is stated as a warning, and a provider with no fixed shape is never
+ * reproached for ANY shape. Getting the side wrong is costly: a false positive sends
+ * someone off looking for a second key that doesn't exist.
  */
 
-/* Les verdicts et les formes de clé ne dépendent pas de la langue ; le catalogue
-   français est le témoin, et les messages attendus plus bas sont les siens. */
+/* The verdicts and key shapes don't depend on the language; the French
+   catalog is the witness, and the messages expected below are its. */
 const t = getMessages("fr");
-/** Les fournisseurs dont la clé est documentée — l'union du catalogue, moins les deux
- *  entrées de verdict qui vivent dans le même namespace. */
+/** The providers whose key is documented — the catalog's union, minus the two
+ *  verdict entries that live in the same namespace. */
 const DOCUMENTED = ["openai", "anthropic", "google", "mistral", "deepseek", "openrouter"] as const;
 
 describe("providerKeyIssue — ce qui se voit à la saisie", () => {
@@ -25,7 +25,7 @@ describe("providerKeyIssue — ce qui se voit à la saisie", () => {
     const issue = providerKeyIssue("anthropic", "sk-or-v1-0123456789abcdef0123", t);
     expect(issue?.level).toBe("error");
     expect(issue?.message).toContain("sk-ant-");
-    // Le fournisseur est nommé avec le libellé du registre, jamais son id technique.
+    // The provider is named with the registry's label, never its technical id.
     expect(issue?.message).toContain(PROVIDERS.anthropic.label);
   });
 
@@ -34,8 +34,8 @@ describe("providerKeyIssue — ce qui se voit à la saisie", () => {
   });
 
   it("n'invente aucune forme pour un fournisseur qui n'en publie pas", () => {
-    // Mistral ne documente pas de préfixe : une clé courte reste un simple soupçon,
-    // et une clé longue quelconque ne déclenche rien.
+    // Mistral doesn't document a prefix: a short key remains a mere suspicion,
+    // and any long key triggers nothing.
     expect(providerKeyHelp("mistral", t)?.prefix).toBeUndefined();
     expect(providerKeyIssue("mistral", "0123456789abcdef0123456789", t)).toBeUndefined();
   });
@@ -51,10 +51,10 @@ describe("providerKeyIssue — ce qui se voit à la saisie", () => {
   });
 
   it.each(LOCALES)("[%s] chaque préfixe déclaré est celui que montre le placeholder", (locale) => {
-    // Les deux vivent dans la même entrée : s'ils divergent, l'écran promet une forme
-    // dans le champ et en reproche une autre sous le champ. Et chaque fournisseur
-    // documenté doit porter ses étapes DANS LES DEUX LANGUES — un tutoriel vide serait
-    // un écran de clé sans mode d'emploi, la panne que ce fichier existe pour éviter.
+    // The two live in the same entry: if they diverge, the screen promises one shape
+    // in the field and reproaches a different one under the field. And every documented
+    // provider must carry its steps IN BOTH LANGUAGES — an empty tutorial would be
+    // a key screen with no instructions, the failure this file exists to prevent.
     const tt = getMessages(locale);
     for (const provider of DOCUMENTED) {
       const help = providerKeyHelp(provider, tt)!;

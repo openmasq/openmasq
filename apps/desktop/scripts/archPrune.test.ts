@@ -1,5 +1,5 @@
-// Ce qui part dans le .app de CHAQUE arche mac. La table de `archPrune.cjs` n'est vérifiable
-// nulle part ailleurs : au build elle est juste, ou l'app est morte chez l'utilisateur.
+// What goes into the .app of EACH mac arch. The table in `archPrune.cjs` isn't verifiable
+// anywhere else: at build time it's correct, or the app is dead for the user.
 import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 const require = createRequire(import.meta.url);
 const { prunePlan, applyPlan, assertKept } = require("./archPrune.cjs");
 
-/** Un `node_modules` jetable où chaque chemin donné existe avec un fichier dedans. */
+/** A throwaway `node_modules` where each given path exists with a file inside it. */
 function fauxNodeModules(fichiers: Record<string, string>): string {
   const racine = mkdtempSync(join(tmpdir(), "archprune-"));
   for (const [rel, nom] of Object.entries(fichiers)) {
@@ -23,9 +23,9 @@ function fauxNodeModules(fichiers: Record<string, string>): string {
 const NATIF = "ort-native/bin/napi-v6/darwin/arm64";
 const WASM = "ort-wasm/dist";
 
-/** Les chemins exacts d'un plan (les coupes par PRÉFIXE n'en ont pas — voir `prefixes`). */
+/** The exact paths of a plan (PREFIX cuts don't have one — see `prefixes`). */
 const rels = (plan: { drop: { rel?: string }[] }) => plan.drop.map((d) => d.rel).filter(Boolean) as string[];
-/** Les coupes par préfixe, en `parent/prefix` — la forme des paquets « de plateforme ». */
+/** Prefix cuts, as `parent/prefix` — the shape of "platform" packages. */
 const prefixes = (plan: { drop: { parent?: string; prefix?: string }[] }) =>
   plan.drop.filter((d) => d.parent).map((d) => `${d.parent}/${d.prefix}`);
 
@@ -58,10 +58,10 @@ describe("prunePlan", () => {
     expect(() => prunePlan("linux", "x64")).toThrow(/plateforme inconnue/);
   });
 
-  // ── Ce que `mac.files`/`win.files` faisaient, et qui a dû déménager ici : ces clés-là
-  // expédiaient TOUT `apps/desktop/` dans l'app au passage (electron-builder.cjs, bloc
-  // `mac:`). Le tri doit donc survivre à leur suppression — c'est ce que ces deux cas
-  // épinglent, chacun dans le sens de son miroir.
+  // ── What `mac.files`/`win.files` used to do, and had to move here: those keys
+  // shipped ALL of `apps/desktop/` into the app along the way (electron-builder.cjs, the
+  // `mac:` block). The pruning must therefore survive their removal — that's what these two
+  // cases pin, each in the direction of its mirror.
   it("mac retire les prébuilts Windows, Windows retire ceux de mac", () => {
     expect(prefixes(prunePlan("darwin", "arm64"))).toEqual(
       expect.arrayContaining(["@libsql/win32-", "@napi-rs/canvas-win32-", "@img/sharp-win32-"]),
@@ -108,8 +108,8 @@ describe("assertKept — échec FERMÉ", () => {
     expect(() => assertKept(nm, prunePlan("darwin", "x64"), "x64")).not.toThrow();
   });
 
-  // LE cas qui justifie tout le fichier : sans `@openmasq/ort`, une app Intel n'a AUCUN
-  // moteur ONNX. Elle s'installerait, et refuserait chaque envoi. Le build doit tomber.
+  // THE case that justifies the whole file: without `@openmasq/ort`, an Intel app has NO
+  // ONNX engine at all. It would install, and refuse every send. The build must fail.
   it("casse le build d'une app x64 sans moteur ONNX", () => {
     const nm = fauxNodeModules({ "@libsql/darwin-x64": "index.node" });
     expect(() => assertKept(nm, prunePlan("darwin", "x64"), "x64")).toThrow(/aucun \.wasm/);

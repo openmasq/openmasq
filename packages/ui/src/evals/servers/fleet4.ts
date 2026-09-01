@@ -1,8 +1,8 @@
 import { str, type FakeServer } from "./kit";
 
-// Quatrième vague — les connecteurs REMOTE business/analytics restants. Même contrat
-// que fleet3 : 1-2 outils clés transcrits, résultats fixtures, recalage au premier
-// `tools/list` réel.
+// Fourth wave — the remaining business/analytics REMOTE connectors. Same contract
+// as fleet3: 1-2 key tools transcribed, fixture results, re-alignment on the first
+// real `tools/list`.
 
 const one = (id: string, tools: FakeServer["tools"]): FakeServer => ({ id, tools });
 const q = (d: string) => ({ type: "object", properties: { query: str(d) }, required: ["query"] });

@@ -86,7 +86,7 @@ import { DocPrepCard, type DocPrepState } from "./DocPrepCard";
 
 /** Pull the HTTP status out of a provider error message (`… request failed (400): …`)
  *  so send_error carries the concrete code — safe metadata, never the raw body. */
-// httpStatus/requestIdOf/retriesOf : une seule maison — `state/errors/fields.ts`.
+// httpStatus/requestIdOf/retriesOf: one single home — `state/errors/fields.ts`.
 
 
 // The metered gateway's /chat/completions body is capped ~8 MB; leave headroom below it
@@ -144,8 +144,8 @@ interface Props {
       /** Text-selection menu tag: "graphique" forces a run_python plot for this send. */
       plotTag?: "graphique" | "preciser";
       /** A compétence used for this send: its prompt rides the MODEL payload only, so
-       *  the bubble shows a tag instead of the instruction. `servers`, quand elle en
-       *  porte, fait bâtir la ligne de consigne et ouvre la portée d'outils du tour.
+       *  the bubble shows a tag instead of the instruction. `servers`, when it carries
+       *  some, builds the instruction line and opens the turn's tool scope.
        *  See `store.sendMessage`. */
       competence?: { id: string; name: string; prompt?: string; servers?: string[] };
       /** The folder/file this send is ABOUT (« Demander » in the right rail) — staged
@@ -204,13 +204,13 @@ interface Props {
   onDelete?: () => void;
   settings?: Settings;
   onChangeSettings?: (s: Settings) => void;
-  /** Ouvre le guide (Aide) sur un chapitre — porté par le shell. Absent (aperçu, test) ⇒
-   *  le conteneur « Comprendre mon redaction » ne se rend pas : une porte sans salle
-   *  derrière est pire qu'aucune porte. */
+  /** Opens the guide (Aide) on a chapter — carried by the shell. Absent (aperçu, test) ⇒
+   *  the « Comprendre mon redaction » container doesn't render: a door with no room
+   *  behind it is worse than no door at all. */
   onOpenGuideChapter?: (id: string) => void;
   /** Per-conversation redaction category override (sparse). */
   onChangeConversation?: (id: string, cats: Conversation["redactCategories"]) => void;
-  /** « Sans mémoire dans cette conversation » (rang de la modale de règles). */
+  /** "Sans mémoire dans cette conversation" (rules-modal row). */
   onSetMemoryOff?: (id: string, off: boolean) => void;
   /** Toggle the conversation's NEUTRAL-MARKS display mode (badge + hover highlight). */
   onToggleNeutralMarks?: (id: string) => void;
@@ -370,7 +370,7 @@ export function ChatView({
     );
     return { disabledKinds, key: disabledKinds.slice().sort().join(",") };
   }, [settings?.redactCategories, conversation?.redactCategories, orgProfile?.forcedCategories]);
-  // Le niveau réglable depuis le composeur — construction + invariants : `redactLevelApi.ts`.
+  // The level, adjustable from the composer — construction + invariants: `redactLevelApi.ts`.
   const forcedCategories = orgProfile?.forcedCategories;
   const redactLevel = useMemo(
     () => buildRedactLevelApi({ settings, onChangeSettings, conversation, onChangeConversation, forcedCategories }),
@@ -462,8 +462,8 @@ export function ChatView({
   // composer's picker can list them without threading through AppShell.
   const competences = useChatSelector((s) => s.competences, shallowEqual);
   const markCompetenceUsed = useChatSelector((s) => s.markCompetenceUsed);
-  // Adopter ce que le modèle vient de fabriquer (`SkillCard`) — l'aiguillage vit dans
-  // le domaine de la proposition, pas dans cette vue.
+  // Adopting what the model just produced (`SkillCard`) — the routing lives in
+  // the suggestion domain, not in this view.
   const addProposedSkill = useAddProposedSkill();
   const isProposedSkillAdded = useIsProposedSkillAdded();
   const mergeVaultInto = useChatSelector((s) => s.mergeVaultInto);
@@ -602,10 +602,10 @@ export function ChatView({
   // removes: a clear that misses the entity leaves NO visible trace while the prompt
   // still rides the next send. Derivation makes that unrepresentable.
   //
-  // ⚠️ UN SEUL chip, depuis la fusion : celle qui pilote des connecteurs les montre à
-  // côté de son nom et prévisualise la ligne de consigne, celle qui n'en a pas rend
-  // exactement ce que rendait l'ancien chip de compétence. L'aperçu est le texte EXACT
-  // qui sera préfixé — le chip dit toute la vérité de l'envoi.
+  // ⚠️ ONLY ONE chip, since the merge: the one that drives connectors shows them
+  // beside its name and previews the instruction line, the one that has none renders
+  // exactly what the old compétence chip rendered. The preview is the EXACT text
+  // that will be prepended — the chip tells the whole truth about the send.
   const drivesTools = !!activeCompetence?.servers?.length;
   const competenceTag = activeCompetence
     ? {
@@ -613,10 +613,10 @@ export function ChatView({
         tone: drivesTools ? "violet" : "sky",
         preview: competenceLaunchText(activeCompetence),
         servers: drivesTools ? competenceServers(activeCompetence) : undefined,
-        // Les `{accolades}` du prompt : le chip les MONTRE parce que rien ne les
-        // remplit — elles se précisent dans le message écrit à côté. Sans ce rappel,
-        // « Prépare ma journée du {date}. » part tel quel sur un « go » (journal
-        // du 27/07/2026).
+        // The prompt's `{braces}`: the chip SHOWS them because nothing
+        // fills them in — they get specified in the message written beside it. Without this reminder,
+        // « Prépare ma journée du {date}. » goes out as-is on a plain "go" (journal
+        // entry of 27/07/2026).
         slots: promptSlots(activeCompetence.prompt),
       }
     : null;
@@ -654,16 +654,16 @@ export function ChatView({
       ),
     };
   }, [conversation]);
-  // La décision vit dans `privacy/transparency.ts` (pure + testée) : coffre non vide,
-  // au moins une réponse aboutie, au moins un message dont le comparatif montre quelque
-  // chose, et jamais deux fois.
+  // The decision lives in `privacy/transparency.ts` (pure + tested): non-empty vault,
+  // at least one completed reply, at least one message whose comparison shows
+  // something, and never twice.
   const [showComparison, setShowComparison] = useState(false);
   const showTransparency =
     !activeStreaming && shouldShowTransparencyCard(conversation, settings?.transparencySeen);
-  // « Comprendre mon redaction » — même famille d'encarts, décision pure dans
-  // `privacy/redactionIntro.ts`. JAMAIS en même temps que l'encart de transparence :
-  // deux invitations empilées se lisent comme de la réclame, et la transparence — qui ne
-  // se montre qu'une fois — passe d'abord.
+  // "Comprendre mon redaction" — the same family of cards, pure decision in
+  // `privacy/redactionIntro.ts`. NEVER at the same time as the transparency card:
+  // two stacked invitations read like advertising, and transparency — which only
+  // shows once — goes first.
   const showRedactionIntro =
     !activeStreaming &&
     !showTransparency &&
@@ -787,13 +787,13 @@ export function ChatView({
     // the one on screen. Only for a file that has nothing to show for itself yet.
     for (const a of staged) {
       if (a.redacting && !a.replacements?.length && !a.redactError) redactAttachment(a, redactDeps);
-      // Une EXTRACTION laissée en vol par un changement d'onglet ne PEUT pas reprendre
-      // (les octets n'existent qu'au moment du dépôt ; le patch de fin visait la liste
-      // d'un autre écran). La déclarer échouée — chip rouge, consigne claire — plutôt
-      // que l'ancien duo : pulsation éternelle + exclusion SILENCIEUSE de l'envoi
-      // (`usable` ne garde que les fichiers avec du texte). Si la promesse d'origine
-      // aboutit finalement (aller-retour d'onglet rapide), son patch ÉCRASE cette
-      // erreur avec le vrai texte — l'état final reste juste.
+      // An EXTRACTION left mid-flight by a tab switch CANNOT resume
+      // (the bytes only exist at drop time; the finishing patch targeted another
+      // screen's list). Declare it failed — red chip, clear instruction — rather
+      // than the old duo: eternal pulsing + SILENT exclusion from the send
+      // (`usable` only keeps files with text). If the original promise
+      // does eventually resolve (a quick tab round-trip), its patch OVERWRITES this
+      // error with the real text — the final state stays correct.
       if (a.extracting && !a.text?.trim() && !a.error) {
         updateAttachment(a.cid, { extracting: false, error: "extraction interrompue — redéposez le fichier" });
       }
@@ -973,8 +973,8 @@ export function ChatView({
           exfilFlags: info.flags.length,
           attachments: info.attachments?.length ?? 0,
           searchToolCalls: webSearchCount(convId),
-          // Un envoi ne se rattrape pas : il déclenche le plancher `send-floor`, quel que
-          // soit le mode et quel que soit le nombre de cartes déjà montrées.
+          // A send doesn't get caught after the fact: it triggers the `send-floor`, whatever
+          // the mode and however many cards have already been shown.
           sends: isSendTool(info.tool),
           confirmationsShown: confirmationsShownCount(convId),
           mainWriteGate: !!host.mcp?.mainWriteGate,
@@ -1048,8 +1048,8 @@ export function ChatView({
     // into `modelContent`); the bubble gets the tag. Read BEFORE the state resets below,
     // and threaded into BOTH send paths — "use a compétence ON this document" is the
     // main way one gets used, so the attachment path must not drop it.
-    // `servers` part avec : c'est lui qui fait bâtir la ligne de consigne côté store ET
-    // qui ouvre la portée d'outils du tour (et du suivant, par reprise sur le message).
+    // `servers` goes out with it: it's what builds the instruction line on the store side AND
+    // what opens the turn's tool scope (and the next one's, by resuming from the message).
     const competence = activeCompetence
       ? {
           id: activeCompetence.id,
@@ -1168,8 +1168,8 @@ export function ChatView({
     }
   }
 
-  // La modale s'ouvre PAR-DESSUS la conversation : rien à quitter, donc rien d'où
-  // revenir. Sans hôte monté (aperçu) ⇒ Réglages, l'id de conversation l'y ramène.
+  // The modal opens OVER the conversation: nothing to leave, so nothing to
+  // come back from. With no host mounted (aperçu) ⇒ Réglages, the conversation id brings it back there.
   const handleConnectIntegration = (id: string) =>
     openConnector ? openConnector(id) : onOpenSettings("mcp", id, conversation?.id);
 
@@ -1207,11 +1207,11 @@ export function ChatView({
     redactAsync,
     ctrls: attachRedactCtrls.current,
     updateAttachment,
-    // Jamais indéfini — voir `ocrDebug.ts` : sans conversation encore créée, le
-    // brouillon, que le premier envoi adopte.
+    // Never undefined — see `ocrDebug.ts`: with no conversation created yet, the
+    // draft, which the first send adopts.
     convId: conversation?.id ?? DRAFT_CONV,
     convCategories: conversation?.redactCategories,
-    convVault: conversation?.redactionVault, // amorce du coffre de dépôt (`attachmentVault.ts`)
+    convVault: conversation?.redactionVault, // seeds the drop vault (`attachmentVault.ts`)
   };
 
   // Every value the user FORCES redacted — the three sources `sendForcedList` merges (Coffre
@@ -1234,9 +1234,9 @@ export function ChatView({
       orgProfile?.forcedCategories,
     );
 
-  // La cible de journal d'un travail de dépôt : l'id NOMMÉ par « Demander » (sa
-  // conversation n'est pas celle à l'écran), sinon la conversation ouverte, sinon le
-  // BROUILLON — jamais indéfini. Le pourquoi : `ocrDebug.ts`.
+  // The journal target of a drop job: the id NAMED by « Demander » (its
+  // conversation isn't the one on screen), otherwise the open conversation, otherwise the
+  // DRAFT — never undefined. The why: `ocrDebug.ts`.
   const journalConv = (forConvId?: string) => forConvId ?? conversation?.id ?? DRAFT_CONV;
 
   const { stage: stageAttachments, patch: patchStaged } = makeStaging({
@@ -1263,9 +1263,9 @@ export function ChatView({
     if (failed.length) {
       setAttachWarning(failed.map((f) => `${f.name}: ${f.error}`).join(" · "));
     }
-    // Le journal suit la conversation NOMMÉE quand il y en a une : « Demander » stage pour
-    // un fil qui n'est pas à l'écran, et estampiller `conversation?.id` filait ses entrées
-    // à la conversation que l'utilisateur QUITTE.
+    // The journal follows the NAMED conversation when there is one: « Demander » stages for
+    // a thread that isn't on screen, and stamping `conversation?.id` would leak its entries
+    // to the conversation the user is LEAVING.
     for (const f of picked) logOcrDebug(f, journalConv(forConvId));
     const deps = forConvId ? { ...redactDeps, convId: forConvId } : redactDeps;
     for (const a of added) redactAttachment(a, deps);
@@ -1277,7 +1277,7 @@ export function ChatView({
     if (a) redactAttachment(a, redactDeps);
   }
 
-  // « Lire tout » (chip « N/M pages lues ») — la logique vit dans `ocrAll.ts`.
+  // "Lire tout" (chip "N/M pages lues") — the logic lives in `ocrAll.ts`.
   const canOcrAll = !!host.files?.extractAll;
   function handleOcrAll(cid: string) {
     const a = attachments.find((x) => x.cid === cid);
@@ -1296,9 +1296,9 @@ export function ChatView({
     );
   }
 
-  // Les dépendances de la mise en scène DIFFÉRÉE (chip d'abord, contenu ensuite) —
-  // partagées entre la remise du shell (`pendingAttachment`) et le drag-and-drop,
-  // pour qu'une route ne dérive jamais de l'autre.
+  // The DEFERRED staging dependencies (chip first, content after) —
+  // shared between the shell's hand-off (`pendingAttachment`) and drag-and-drop,
+  // so one route never drifts from the other.
   const deferredDeps = (convId?: string) => ({
     stage: stageAttachments,
     patch: patchStaged,
@@ -1309,8 +1309,8 @@ export function ChatView({
     },
   });
 
-  // Fichiers DÉPOSÉS : la même promesse différée que le shell — le chip paraît dès le
-  // drop, l'OCR (et sa progression) le remplit, l'échec reste porté par le chip.
+  // DROPPED files: the same deferred promise as the shell — the chip appears right at the
+  // drop, OCR (and its progress) fills it in, failure stays carried by the chip.
   function addDroppedFiles(files: DeferredFile[]) {
     for (const d of files) void stageDeferredFile(d, undefined, deferredDeps());
   }
@@ -1336,8 +1336,8 @@ export function ChatView({
         setAttachments((prev) => [...prev, ...placeholders]);
         host.files
           .extract(picked.map((p) => p.path), (p) => {
-            // Progression OCR par fichier (le canal porte le NOM — plusieurs fichiers
-            // choisis d'un coup s'attribuent chacun leurs pages).
+            // Per-file OCR progress (the channel carries the NAME — several files
+            // picked at once each get attributed their own pages).
             const ph = placeholders.find((x) => x.name === p.name);
             if (ph) updateAttachment(ph.cid, { extractProgress: { done: p.page, total: p.pages } });
           })
@@ -1428,8 +1428,8 @@ export function ChatView({
   // The model shown in the header + composer. With NO conversation (empty app /
   // before the first send) fall back to the saved default, else the first model —
   // so the send box always shows a pre-selected model, not a blank picker.
-  // Mode AUTO : le sentinel ne résout pas — `autoMode` corrige ce que l'écran DIT
-  // (« Auto ») et PERMET (vision : le routeur élit un modèle vision à l'envoi).
+  // AUTO mode: the sentinel doesn't resolve — `autoMode` fixes what the screen SAYS
+  // ("Auto") and PERMITS (vision: the router picks a vision-capable model at send time).
   const autoMode = isAutoModelId(conversation?.modelId ?? settings?.defaultModelId ?? "");
   const currentModel =
     findModelAny(conversation?.modelId ?? "") ??
@@ -1481,10 +1481,10 @@ export function ChatView({
   // the two call sites below. Extracted so both share identical send wiring.
   const composerBlock = (
     <div className="composer-wrap">
-      {/* Encart de TRANSPARENCE — une seule fois, après la première réponse qui a
-          réellement protégé quelque chose. Même forme que la proposition mémoire
-          au-dessus : un `*Seen` dans les réglages, jamais un état de composant, sinon
-          il revient au prochain montage. La décision est dans `privacy/transparency.ts`. */}
+      {/* TRANSPARENCY card — once only, after the first reply that
+          actually protected something. Same shape as the memory proposal
+          above: a `*Seen` in the settings, never a component state, otherwise
+          it comes back on the next mount. The decision is in `privacy/transparency.ts`. */}
       {showTransparency && settings && onChangeSettings && (
         <TransparencyCard
           count={protectedValueCount(conversation!)}
@@ -1515,17 +1515,17 @@ export function ChatView({
         onInput={handleInput}
         onSubmit={submit}
         modelPickerSimple={settings?.modelPickerSimple}
-        // La bascule est PERSISTÉE : basculer pour un envoi puis retrouver l'autre vue au
-        // suivant serait un réglage qui ne tient pas. Sans `onChangeSettings` (aperçu web,
-        // harnais de test) la vue reste celle qu'on lui donne, sans bascule offerte.
+        // The toggle is PERSISTED: switching for one send then finding the other view the
+        // next time would be a setting that doesn't hold. Without `onChangeSettings` (web aperçu,
+        // test harness) the view stays whatever it's given, with no toggle offered.
         onModelPickerSimpleChange={
           settings && onChangeSettings
             ? (simple) => onChangeSettings({ ...settings, modelPickerSimple: simple })
             : undefined
         }
         favoriteModels={settings?.favoriteModels}
-        // Épingler = REMPLACER la liste par défaut par ses choix. Local à l'appareil,
-        // comme le modèle par défaut (`toggleFavoriteModel`, pur + testé).
+        // Pinning = REPLACING the default list with one's own choices. Local to the device,
+        // like the default model (`toggleFavoriteModel`, pure + tested).
         onToggleFavoriteModel={
           settings && onChangeSettings
             ? (id) =>
@@ -1536,8 +1536,8 @@ export function ChatView({
             : undefined
         }
         defaultModelId={settings?.defaultModelId}
-        // « Définir par défaut » depuis le menu : le même réglage que Réglages → Modèles
-        // (le modèle des nouvelles conversations), désormais atteignable dans le chat.
+        // "Définir par défaut" from the menu: the same setting as Réglages → Modèles
+        // (the model for new conversations), now reachable from the chat.
         onSetDefaultModel={
           settings && onChangeSettings
             ? (id) => onChangeSettings({ ...settings, defaultModelId: id })
@@ -1760,7 +1760,7 @@ export function ChatView({
                     onWriteDecision={(approved, remember) => {
                       if (!pendingWrite || !conversation) return;
                       if (approved) {
-                        // « Autoriser » vaut pour cet outil dans CETTE conversation —
+                        // "Autoriser" holds for this tool in THIS conversation —
                         // asking again per call taught users to click without reading.
                         conversationAllowedWriteTools.add(
                           convWriteToolKey(conversation.id, pendingWrite.info.server, pendingWrite.info.tool),
@@ -1781,9 +1781,9 @@ export function ChatView({
         )}
       </div>
 
-      {/* Le comparatif côte à côte. Ouvert par l'encart, et rouvrable à volonté depuis le
-          menu ⋯ — c'est ce qui permet à l'encart de ne se montrer qu'une fois sans que la
-          preuve devienne inatteignable. */}
+      {/* The side-by-side comparison. Opened by the card, and reopenable at will from the
+          ⋯ menu — that's what lets the card show only once without the
+          proof becoming unreachable. */}
       <AnimatePresence>
         {showComparison && conversation && (
           <TransparencyModal
@@ -1913,7 +1913,7 @@ export function ChatView({
         )}
       </AnimatePresence>
 
-      {/* La barre de redaction d'un document au moment de l'envoi — sa carte vit à côté. */}
+      {/* A document's redaction progress bar at send time — its card lives beside it. */}
       {docPrep && <DocPrepCard state={docPrep} onCancel={() => docPrepCtrl.current?.abort()} />}
     </main>
     </DropZone>

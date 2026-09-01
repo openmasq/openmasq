@@ -100,7 +100,7 @@ export const DROIT_TERMS: string[] = [
   "intellectual property", "arbitration", "mediation", "litigation",
   "power of attorney", "enforcement", "costs", "legal fees",
 
-  // ── Deutsch ────────────────────────────────────────────────────────────────
+  // ── German ─────────────────────────────────────────────────────────────────
   "kläger", "klager", "klägerin", "klagerin", "beklagter", "beklagte",
   "antragsteller", "antragsgegner", "prozessbevollmächtigter", "rechtsanwalt",
   "rechtsanwältin", "rechtsanwaltin", "notar", "staatsanwalt", "gericht",
@@ -116,7 +116,7 @@ export const DROIT_TERMS: string[] = [
   "gutachten", "sachverständiger", "sachverstandiger", "vergleich",
   "schiedsverfahren", "gerichtsstand", "anwendbares recht", "geheimhaltung",
 
-  // ── Español ────────────────────────────────────────────────────────────────
+  // ── Spanish ────────────────────────────────────────────────────────────────
   "demandante", "demandado", "demandada", "recurrente", "recurrido", "parte",
   "partes", "tercero", "letrado", "abogado", "abogada", "procurador", "notario",
   "juez", "jueza", "magistrado", "fiscal", "juzgado", "tribunal", "sala",
@@ -133,7 +133,7 @@ export const DROIT_TERMS: string[] = [
   "mediación", "mediacion", "fuero", "legislación aplicable",
   "legislacion aplicable", "confidencialidad", "propiedad intelectual",
 
-  // ── Italiano ───────────────────────────────────────────────────────────────
+  // ── Italian ────────────────────────────────────────────────────────────────
   "attore", "convenuto", "convenuta", "ricorrente", "resistente", "parte",
   "parti", "terzo", "difensore", "avvocato", "avvocata", "notaio", "giudice",
   "giudice di pace", "magistrato", "pubblico ministero", "cancelliere",
@@ -148,7 +148,7 @@ export const DROIT_TERMS: string[] = [
   "transazione", "arbitrato", "mediazione", "foro competente",
   "legge applicabile", "riservatezza", "proprietà intellettuale",
 
-  // ── Português ──────────────────────────────────────────────────────────────
+  // ── Portuguese ─────────────────────────────────────────────────────────────
   "autor", "autora", "réu", "reu", "requerente", "requerido", "parte",
   "partes", "terceiro", "advogado", "advogada", "notário", "notario", "juiz",
   "juíza", "juiza", "magistrado", "promotor", "ministério público",

@@ -4,12 +4,12 @@ import { watchDir } from "../state/watchDirs";
 import { useLazyTree } from "./useLazyTree";
 
 /**
- * Les dossiers ACCORDÉS sur cette machine, en arbre — le panneau « Dossiers » du rail.
+ * The folders GRANTED on this machine, as a tree — the rail's « Dossiers » panel.
  *
- * Tout ce qui est commun avec le stockage connecté (dépliage, lecture paresseuse, le
- * garde-fou anti-boucle) vit dans `useLazyTree`. Il ne reste ici que ce qui n'appartient
- * qu'au local : les racines que le connecteur a accordées, et la SURVEILLANCE du disque —
- * un dossier distant ne prévient pas quand il change, celui-ci si.
+ * Everything shared with connected storage (expand/collapse, lazy reading, the
+ * anti-loop guard) lives in `useLazyTree`. All that remains here belongs
+ * only to local: the roots the connector granted, and disk WATCHING —
+ * a remote folder doesn't notify when it changes, this one does.
  */
 export function useFolderTree(active: boolean) {
   const host = useHost();
@@ -26,10 +26,10 @@ export function useFolderTree(active: boolean) {
   );
   const tree = useLazyTree({ active, roots, list });
 
-  // Un dossier accordé ou révoqué dans Réglages reconstruit la connexion : on relit les
-  // racines à ce signal, pour qu'un dossier tout juste autorisé apparaisse sans rien rouvrir.
+  // A folder granted or revoked in Réglages rebuilds the connection: we re-read the
+  // roots on this signal, so a folder just authorized appears without reopening anything.
   useEffect(() => {
-    return host.mcp?.onChanged?.(() => setTick((n) => n + 1)); // l'unsubscribe, explicite
+    return host.mcp?.onChanged?.(() => setTick((n) => n + 1)); // the unsubscribe, explicit
   }, [host.mcp]);
 
   useEffect(() => {
@@ -44,9 +44,9 @@ export function useFolderTree(active: boolean) {
     };
   }, [active, fs, tick]);
 
-  // Surveiller chaque dossier OUVERT — via le registre partagé, parce que le Finder de la
-  // Bibliothèque et le panneau du fichier ouvert surveillent les leurs en même temps et
-  // que l'appel de plateforme remplace tout l'ensemble (`state/watchDirs.ts`).
+  // Watch every OPEN folder — via the shared registry, because the Bibliothèque's
+  // Finder and the open-file panel watch theirs at the same time and
+  // the platform call replaces the whole set (`state/watchDirs.ts`).
   const watchKey = [...tree.expanded].sort().join("\u0000");
   const { dropListing } = tree;
   useEffect(() => {

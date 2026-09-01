@@ -80,11 +80,11 @@ export function useFinderNav({
     if (families.length && !families.some((f) => f.key === selFamily)) setSelFamily(families[0].key);
   }, [families, selFamily]);
 
-  // ⚠️ CORPS DE BLOC obligatoire (règle `check:effects`) : dans Chromium récent,
-  // `scrollIntoView` retourne une PROMISE — l'arrow concise la retournait comme
-  // cleanup d'effet et React l'appelait au démontage : « destroy is not a function »,
-  // l'app entière sur l'ErrorBoundary à chaque changement de modèle. `lib.dom` déclare
-  // encore `void`, donc le typecheck ne peut PAS voir cette classe de bug.
+  // ⚠️ BLOCK BODY mandatory (rule `check:effects`): in recent Chromium,
+  // `scrollIntoView` returns a PROMISE — the concise arrow was returning it as the
+  // effect's cleanup and React called it on unmount: « destroy is not a function »,
+  // the whole app on the ErrorBoundary on every model change. `lib.dom` still declares
+  // it as `void`, so the typecheck CANNOT see this class of bug.
   useEffect(() => {
     inputRef.current?.focus();
   }, []);

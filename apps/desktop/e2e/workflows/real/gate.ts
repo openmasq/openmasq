@@ -1,17 +1,17 @@
 import type { ElectronApplication, Page } from "@playwright/test";
 
 /**
- * LE PONT MCP DE TEST — parler aux VRAIS connecteurs du compte connecté, depuis un
- * test, sans passer par le modèle : le preload expose déjà `mcp.listTools` /
- * `mcp.callTool`, et l'app lancée porte les connexions du compte (store adopté).
- * Sert à (a) préparer un scénario, (b) VÉRIFIER l'effet réel d'un workflow (« le
- * message est-il parti UNE fois ? »), (c) écrire un test d'outil sans LLM.
- * ⚠️ Aucun gate n'est contourné : une écriture risquée ouvre la MÊME fenêtre
- * système non-spoofable — d'où `startSelectiveApprove` en parallèle si besoin.
+ * THE TEST MCP BRIDGE — talk to the connected account's REAL connectors, from a
+ * test, without going through the model: the preload already exposes `mcp.listTools` /
+ * `mcp.callTool`, and the launched app carries the account's connections (adopted store).
+ * Used to (a) set up a scenario, (b) VERIFY a workflow's real effect ("did the
+ * message go out ONCE?"), (c) write a tool test with no LLM.
+ * ⚠️ No gate is bypassed: a risky write opens the SAME non-spoofable
+ * system window — hence `startSelectiveApprove` running alongside if needed.
  */
 export function realMcp(page: Page) {
-  // ⚠️ Tout ce qui suit s'exécute DANS la page : la fonction passée à `evaluate`
-  // est sérialisée, elle ne peut donc capturer aucune variable de ce module.
+  // ⚠️ Everything that follows runs IN the page: the function passed to `evaluate`
+  // is serialized, so it cannot capture any variable from this module.
   const list = (): Promise<{ name: string; description?: string }[]> =>
     page
       .evaluate(() =>
@@ -24,7 +24,7 @@ export function realMcp(page: Page) {
       .catch(() => [] as { name: string; description?: string }[]);
   return {
     listTools: list,
-    /** Noms d'outils d'un connecteur donné (préfixe `<id>__`). */
+    /** A given connector's tool names (prefix `<id>__`). */
     toolsOf: async (connectorId: string) =>
       (await list()).map((t) => t.name).filter((n) => n.startsWith(`${connectorId}__`)),
     call: (name: string, args: Record<string, unknown> = {}) =>
@@ -41,14 +41,14 @@ export function realMcp(page: Page) {
 }
 
 /**
- * Approbateur SÉLECTIF de la fenêtre main non-spoofable, avec comptage PAR OUTIL —
- * les deux assertions de la suite vivent ici :
- *   • `refuse` (ex. /^neon__/) → clic « Refuser » (sentinelle write-deny) : aucune
- *     écriture de ces outils ne s'exécute, et on le PROUVE (compteur `refused`) ;
- *   • tout le reste → « Autoriser » (UN appel — jamais « Toujours pour cet outil »),
- *     donc 1 confirmation = 1 exécution : le compteur `approved` par outil est la
- *     mesure ANTI-DOUBLE-ENVOI (le bug « 2 mails » du dossier tofix = 2 confirmations).
- * Le nom d'outil est lu dans le DOM de la fenêtre (main l'y écrit — `writeConfirmHtml`).
+ * SELECTIVE approver for the non-spoofable main window, counting PER TOOL —
+ * both of the suite's assertions live here:
+ *   • `refuse` (e.g. /^neon__/) → click "Refuse" (write-deny sentinel): no
+ *     write from these tools ever executes, and we PROVE it (the `refused` counter);
+ *   • everything else → "Allow" (ONE call — never "Always for this tool"),
+ *     so 1 confirmation = 1 execution: the per-tool `approved` counter is the
+ *     ANTI-DOUBLE-SEND measurement (the tofix folder's "2 emails" bug = 2 confirmations).
+ * The tool name is read from the window's DOM (main writes it there — `writeConfirmHtml`).
  */
 export function startSelectiveApprove(
   app: ElectronApplication,
@@ -62,7 +62,7 @@ export function startSelectiveApprove(
   const loop = (async () => {
     while (!stop) {
       try {
-        // La carte in-conversation (gestes locaux réversibles) : approuver.
+        // The in-conversation card (local reversible gestures): approve.
         const cardBtn = page.locator(".write-confirm-card .btn-danger");
         if ((await cardBtn.count().catch(() => 0)) > 0)
           await cardBtn.first().click({ timeout: 1_000 }).catch(() => {});
@@ -88,7 +88,7 @@ export function startSelectiveApprove(
           }
         }
       } catch {
-        /* une fenêtre peut se fermer en plein poll — on continue */
+        /* a window can close mid-poll — we keep going */
       }
       await new Promise((r) => setTimeout(r, 400));
     }

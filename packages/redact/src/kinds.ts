@@ -100,13 +100,13 @@ export function redactionCategory(typeOrCategory: string): RedactionCategory {
   if (k === "salary" || k === "salaire" || k.includes("wage") || k === "remuneration") return "salary";
   if (k === "number" || /^n\d+$/.test(k)) return "number";
   if (isPathCategory(k)) return "path";
-  // Une URL entière — sa propre bascule. ⚠️ Distincte de la PORTE de suppression du même
-  // nom : éteinte, la catégorie protège les sous-parties d'URL du bruit ; allumée, elle
-  // masque l'adresse ELLE-MÊME. Les deux vont dans le même sens (« les URL sont-elles
-  // sensibles ? »), c'est ce qui permet une seule bascule pour les deux comportements.
+  // A whole URL — its own toggle. ⚠️ Distinct from the deletion GATE of the same
+  // name: off, the category protects URL sub-parts from noise; on, it
+  // masks the address ITSELF. Both point the same way ("are URLs
+  // sensitive?"), which is what lets a single toggle cover both behaviors.
   if (k === "url") return "url";
   // Financial — bank ROUTING coordinates (ABA/BSB/sort code/CLABE/IFSC/accounts)
-  // ride the "iban" toggle: same nature (coordonnées bancaires), no extra toggle.
+  // ride the "iban" toggle: same nature (bank details), no extra toggle.
   if (k === "iban" || k === "bic" || k === "swift" || k === "bank_route") return "iban";
   // COMPANY identifiers (SIREN/SIRET, VAT, LEI, registries) — their own toggle,
   // grouped with Organisation, so "turn off TVA on my invoices" never drops the
@@ -129,10 +129,10 @@ export function redactionCategory(typeOrCategory: string): RedactionCategory {
   )
     return "national_id";
   // Identity / contact / place
-  // `date` rejoint `dob` : c'est UNE question pour l'utilisateur (« mes dates sont-elles
-  // redacted ? »), pas deux. Sans cette ligne, la date d'un ACTE tombait dans le repli
-  // `secret` — donc sous le mauvais interrupteur, et avec un faux tiré dans la fenêtre de
-  // NAISSANCE (1940-2004) au lieu des ±2 ans que `fakeDate` réserve à une date générique.
+  // `date` joins `dob`: it's ONE question for the user ("are my dates
+  // redacted?"), not two. Without this line, a DEED's date fell into the `secret`
+  // fallback — so under the wrong toggle, and with a fake drawn from the BIRTH
+  // window (1940-2004) instead of the ±2 years `fakeDate` reserves for a generic date.
   if (k === "dob" || k === "date" || k === "dates" || k.includes("birth")) return "dob";
   if (k.includes("address")) return "address";
   if (
@@ -211,16 +211,16 @@ export const URL_EXEMPT_KINDS: ReadonlySet<RedactionCategory> = new Set<Redactio
   "phone",
 ]);
 
-/** Une valeur en forme MRZ (bande machine ISO 9303, police OCR-B) : ≥4 chevrons de
- *  remplissage et ≥6 alphanumériques d'un tenant. UN foyer, deux consommateurs (règle 9) :
- *  la RÈGLE de détection (`rules.international`) et le GÉNÉRATEUR de faux (`fakes`) — les
- *  LETTRES d'une MRZ portent le nom, un faux qui les garde fuit l'identité qu'il prétend
- *  masquer. */
+/** A value shaped like an MRZ (ISO 9303 machine-readable zone, OCR-B font): ≥4 filler
+ *  chevrons and ≥6 alphanumerics in one run. ONE home, two consumers (rule 9):
+ *  the detection RULE (`rules.international`) and the fake GENERATOR (`fakes`) — the
+ *  LETTERS of an MRZ carry the name, and a fake that keeps them leaks the identity it
+ *  claims to mask. */
 export function isMrzShaped(value: string): boolean {
-  // ≥2 chevrons seulement : la LIGNE 2 d'une CNI (« …JULIEN<<LOUIS<… ») n'en a que 3,
-  // et 4 la laissait au mélange chiffres-seuls — lettres (donc prénoms) intactes. La
-  // précision vient du reste : alphabet MRZ PUR d'un tenant (A-Z, 0-9, <), ≥20 signes,
-  // ≥6 alphanumériques — du code ou de la prose n'aligne jamais ça.
+  // ≥2 chevrons only: a CNI's LINE 2 ("…JULIEN<<LOUIS<…") has only 3,
+  // and 4 left it in the digits-only mix — letters (so first names) intact. The
+  // precision comes from the rest: PURE MRZ alphabet in one run (A-Z, 0-9, <), ≥20 characters,
+  // ≥6 alphanumerics — neither code nor prose ever lines that up.
   const flat = value.replace(/\s+/g, "");
   return (
     /^[A-Z0-9<]{20,}$/.test(flat) &&

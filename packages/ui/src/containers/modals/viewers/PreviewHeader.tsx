@@ -10,8 +10,8 @@ import { useT } from "../../../i18n";
  * search / re-redact toolbar. Extracted from `AttachmentPreviewModal` (over the LOC
  * cap — new weight lands in a sibling, rule 1).
  *
- * The subtitle is the audit's three-state line (`previewStatus`): en cours (avec sa
- * progression) / échec / compte PROUVÉ — and its per-category detail opens on CLICK
+ * The subtitle is the audit's three-state line (`previewStatus`): in progress (with its
+ * progress) / failed / PROVEN count — and its per-category detail opens on CLICK
  * (keyboard/touch reachable), not only behind a mouse-hover `title`.
  */
 export function PreviewHeader({

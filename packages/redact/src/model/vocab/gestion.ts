@@ -15,7 +15,7 @@
  * `soll` / `haben` are left to the stopword list as ordinary German verbs.
  */
 export const GESTION_TERMS: string[] = [
-  // ── Comptabilité & états financiers — français ─────────────────────────────
+  // ── Accounting & financial statements — French ─────────────────────────────
   "comptabilité", "comptabilite", "comptable", "expert-comptable",
   "commissaire aux comptes", "grand livre", "livre journal", "écriture",
   "ecriture", "écritures", "ecritures", "écriture comptable",
@@ -41,7 +41,7 @@ export const GESTION_TERMS: string[] = [
   "creances", "dettes", "dettes fournisseurs", "dettes financières",
   "dettes financieres", "emprunt", "échéancier", "echeancier",
 
-  // ── Performance & pilotage — français ──────────────────────────────────────
+  // ── Performance & steering — French ────────────────────────────────────────
   "chiffre d'affaires", "produits", "charges", "charges fixes",
   "charges variables", "achats", "ventes", "marge", "marge brute",
   "marge nette", "taux de marge", "excédent brut d'exploitation",
@@ -61,7 +61,7 @@ export const GESTION_TERMS: string[] = [
   "centre de cout", "coût de revient", "cout de revient", "valorisation",
   "business plan", "plan de trésorerie", "plan de tresorerie",
 
-  // ── Capital & marchés — français ───────────────────────────────────────────
+  // ── Capital & markets — French ─────────────────────────────────────────────
   "capital", "capital social", "augmentation de capital", "actionnaire",
   "actionnaires", "associé", "associe", "part sociale", "parts sociales",
   "dividende", "dividendes", "filiale", "filiales", "holding", "participation",

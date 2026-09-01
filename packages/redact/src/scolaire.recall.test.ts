@@ -4,17 +4,17 @@ import type { BenchCase } from "../bench/metric";
 import corpus from "../bench/corpora/scolaire.json";
 
 /* Recall + PRECISION bench for SCHOOL / ACADEMIC / CAREER documents — bulletin
-   trimestriel, relevé de notes universitaire, CV + lettre de motivation, transcript et
+   trimestriel, relevé de notes universitaire, CV + lettre de motivation, transcript and
    lettre de recommandation (EN), Zeugnis + expediente (DE+ES), pagella + histórico
    escolar (IT+PT).
 
-   La famille la MOINS couverte avant ce volume (2/11 mesuré). Un bulletin ou un CV est
-   fait presque entièrement de ce vocabulaire : « baccalauréat », « relevé de notes »,
-   « moyenne générale », « alternance ». Redacted, il ne reste plus rien d'exploitable —
-   c'est le type de document où le contenu utile EST le vocabulaire.
+   The family LEAST covered before this volume (2/11 measured). A report card or résumé is
+   made almost entirely of this vocabulary: « baccalauréat », « relevé de notes »,
+   « moyenne générale », « alternance ». Redacted, nothing usable is left —
+   this is the type of document where the useful content IS the vocabulary.
 
-   Le corpus mêle aussi le vocabulaire de gestion (le CV d'une contrôleuse de gestion) :
-   il exerce donc deux volumes à la fois, comme un vrai document le fait. */
+   The corpus also mixes in management vocabulary (a financial controller's résumé):
+   it therefore exercises two volumes at once, as a real document does. */
 
 const cases = corpus as BenchCase[];
 
@@ -26,7 +26,7 @@ const MUST_STAY_CLEAR = [
   "année scolaire", "année universitaire", "unité d'enseignement", "soutenance",
   "stage de fin d'études", "alternance", "bourse", "scolarité", "inscription",
   "logement étudiant", "attestation de réussite", "spécialités", "matière",
-  // gestion, présent dans le CV — deux volumes exercés par le même document
+  // management, present in the CV — two volumes exercised by the same document
   "contrôle de gestion", "budget prévisionnel", "plan de trésorerie",
   "écarts budgétaires", "tableau de bord", "comptabilité analytique",
   "grand livre", "rapprochement bancaire", "coût de revient", "liasse fiscale",
@@ -45,8 +45,8 @@ const MUST_STAY_CLEAR = [
 describe("school & career recall + precision (deterministic pipeline, 6 languages)", () => {
   it("holds the recall floor on the scolaire corpus", async () => {
     const s = await scoreDomain("scolaire", cases);
-    // Un bulletin nomme un enfant, son responsable légal, leur adresse et leur
-    // téléphone : le plancher porte sur les personnes les plus exposées du produit.
+    // A report card names a child, their legal guardian, their address and
+    // phone number: the floor covers the most exposed people in the product.
     expect(s.found / s.total).toBeGreaterThanOrEqual(0.8);
   });
 

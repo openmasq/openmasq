@@ -18,8 +18,8 @@ import type { Competence } from "../../types";
 import { useT } from "../../i18n";
 /** The category vocabulary, mapped for the shared picker. Module-level: the list is
  *  static, so it never needs to be rebuilt per render. */
-/** Un ensemble vide STABLE : une nouvelle `Set` par rendu re-rendrait le sélecteur à
- *  chaque frappe dans le nom. */
+/** A STABLE empty set: a new `Set` per render would re-render the picker on
+ *  every keystroke in the name. */
 const EMPTY_CONNECTED: ReadonlySet<string> = new Set<string>();
 
 const catOptions = (t: Messages): HueOption[] =>
@@ -32,8 +32,8 @@ export interface CompetenceDraft {
   desc: string;
   prompt: string;
   cat: string;
-  /** Les connecteurs que la compétence pilote. Vide = un prompt, sans effet sur les
-   *  outils du tour — ce qu'était une compétence avant que les deux listes fusionnent. */
+  /** The connectors the compétence drives. Empty = a prompt, with no effect on the
+   *  turn's tools — what a compétence was before the two lists merged. */
   servers: string[];
 }
 
@@ -60,12 +60,12 @@ export const EMPTY_DRAFT: CompetenceDraft = {
  * Create / edit one compétence. Owns only its form state; saving and deleting are
  * props, so the page keeps the store writes.
  *
- * ⚠️ **C'est ICI que les deux anciennes listes se rejoignent.** Une compétence et un
- * « workflow » avaient deux modales jumelles ; il n'en reste qu'une, et le seul champ qui
- * les distinguait — les connecteurs — est un DÉPLIANT, replié par défaut. C'est ce qui
- * permet de n'avoir rien perdu sans rien alourdir : écrire un prompt de prose ne demande
- * pas de savoir ce qu'est un connecteur, et en choisir un fait basculer la catégorie sur
- * « Routines » de lui-même, pour que la liste reste rangée sans qu'on y pense.
+ * ⚠️ **This is WHERE the two old lists rejoin.** A compétence and a
+ * "workflow" had twin modals; only one is left, and the one field that
+ * used to distinguish them — the connectors — is a DISCLOSURE, collapsed by default. That's what
+ * lets nothing be lost without adding weight: writing a prose prompt doesn't require
+ * knowing what a connector is, and picking one flips the category to
+ * "Routines" on its own, so the list stays organized without anyone thinking about it.
  *
  * Ported from the design kit's `SkillModal` (`.claude/skills/design-system/ui_kits/
  * chat-app/ChatShell.jsx`) — the category-tinted head band, the PROMPT.txt "file"
@@ -104,8 +104,8 @@ export function CompetenceModal({
 }) {
   const t = useT();
   const [draft, setDraft] = useState<CompetenceDraft>(initial);
-  // Le dépliant des connecteurs s'ouvre de lui-même sur une compétence qui en porte
-  // déjà : le replier sur une routine existante cacherait ce qu'elle fait.
+  // The connectors' disclosure opens itself on a compétence that already
+  // has some: collapsing it on an existing routine would hide what it does.
   const [showServers, setShowServers] = useState(initial.servers.length > 0);
   const patch = (p: Partial<CompetenceDraft>) => setDraft((d) => ({ ...d, ...p }));
   // Same bar as `makeCompetence`: a compétence with no name or no prompt is not a
@@ -136,9 +136,9 @@ export function CompetenceModal({
     setShowServers(servers.length > 0);
   };
 
-  /** Cocher un connecteur range la compétence dans « Routines » — mais seulement tant que
-   *  la catégorie est encore celle du formulaire vierge : une catégorie CHOISIE ne se
-   *  fait pas réécrire sous les doigts de qui l'a choisie. */
+  /** Checking a connector files the compétence under "Routines" — but only as long as
+   *  the category is still that of the blank form: a category the user CHOSE doesn't
+   *  get rewritten out from under the person who chose it. */
   const toggleServer = (id: string) =>
     setDraft((d) => {
       const servers = d.servers.includes(id)
@@ -228,9 +228,9 @@ export function CompetenceModal({
             }
           />
 
-          {/* Les connecteurs, DÉPLIÉS à la demande. C'est le seul champ qui distinguait
-              un « workflow » d'une compétence ; replié, il ne demande rien à qui écrit
-              simplement un prompt. Le résumé sur la ligne dit l'état sans l'ouvrir. */}
+          {/* The connectors, EXPANDED on demand. It's the one field that used to distinguish
+              a "workflow" from a compétence; collapsed, it asks nothing of someone who's
+              simply writing a prompt. The row's summary states the state without opening it. */}
           <div className="om-skill-field">
             <button
               type="button"

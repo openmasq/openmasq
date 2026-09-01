@@ -39,9 +39,9 @@ export function KeyChoice({
   onConnectOpenRouter,
   keyConfigured,
 }: {
-  /** Le choix DÉJÀ fait, ou `null` — personne n'a encore répondu. Précocher, c'est faire
-   *  disparaître la seule vraie question du parcours ; et la précocher sur l'abonnement,
-   *  c'est la préremplir avec ce qui coûte. */
+  /** The choice ALREADY made, or `null` — no one has answered yet. Pre-checking it would
+   *  make the flow's one real question disappear; and pre-checking it on the subscription
+   *  would pre-fill it with the option that costs money. */
   mode: "subscription" | "byo" | null;
   onMode: (m: "subscription" | "byo") => void;
   /** Absent (no `host.keys` — preview) ⇒ the key form is not rendered. */
@@ -51,7 +51,7 @@ export function KeyChoice({
   onConnectOpenRouter?: () => Promise<boolean>;
   keyConfigured: ReadonlySet<string>;
 }) {
-  // Ce build a-t-il un service hébergé ? Sans lui, « Mon compte » n'existe pas.
+  // Does this build have a hosted service? Without it, "Mon compte" doesn't exist.
   const served = platformAccessServed();
   const t = useT();
   const [provider, setProvider] = useState<ProviderId>("openrouter");
@@ -110,7 +110,7 @@ export function KeyChoice({
     value: "subscription" | "byo",
     title: string,
     sub: string,
-    /** « conseillé » — la recommandation se lit SUR la carte, là où l'on choisit. */
+    /** "conseillé" — the recommendation reads ON the card, right where you choose. */
     tag?: string,
   ) => (
     <button
@@ -136,27 +136,27 @@ export function KeyChoice({
 
   return (
     <div className="ob-access">
-      {/* ⚠️ Cette carte ne promet PLUS de modèle gratuit sur le compte de l'app : ce qu'elle
-          décrit se paie en crédits d'abonnement, et un compte NEUF n'en a pas. Une carte qui
-          promet la gratuité à qui n'a rien souscrit vend un produit qu'il n'a pas — c'est
-          l'autre carte qui porte le chemin sans abonnement.
-          Et elle DISPARAÎT dans un build sans service hébergé (`send/platformAccess.ts`) :
-          il n'y a alors pas de compte à proposer, donc pas de choix à poser — la clé est
-          le seul chemin, et la question devient une étape. */}
+      {/* ⚠️ This card no longer promises a free model on the app's account: what it
+          describes is paid for in subscription credits, and a BRAND-NEW account has none.
+          A card promising free access to someone who hasn't subscribed to anything sells
+          a product they don't have — it's the other card that carries the no-subscription path.
+          And it DISAPPEARS in a build with no hosted service (`send/platformAccess.ts`):
+          there is then no account to offer, so no choice to pose — the key is
+          the only path, and the question becomes a step. */}
       {served &&
         option(
           "subscription",
           t.onboarding.keyChoice.subscription.title(BRAND.name),
-          // Sans rien à vendre (le défaut), la carte dit ce que le compte inclut — pas des
-          // crédits d'abonnement qu'aucun compte n'a.
+          // With nothing to sell (the default), the card says what the account includes — not
+          // subscription credits no account has.
           subscriptionsSold() ? t.onboarding.keyChoice.subscription.sub : t.onboarding.keyChoice.included.sub,
         )}
-      {/* La voie RECOMMANDÉE, et la seule à ne rien coûter : une clé OpenRouter atteint tous
-          les modèles — les gratuits compris, sur le quota du compte de l'utilisateur, jamais
-          le nôtre. Le « conseillé » vit sur la carte parce que c'est ICI qu'on choisit ; la
-          suite (OAuth en un clic, rien à copier) est déjà sous la carte une fois cochée. */}
-      {/* « jamais relue par l'interface » : un invariant interne qui fuyait dans l'écran —
-          l'utilisateur n'a pas d'« interface », il a sa machine. */}
+      {/* The RECOMMENDED path, and the only one that costs nothing: an OpenRouter key reaches
+          every model — free ones included, on the user's own account quota, never
+          ours. The "conseillé" lives on the card because it's HERE that you choose; the
+          rest (one-click OAuth, nothing to copy) is already below the card once it's checked. */}
+      {/* "never read back by the interface": an internal invariant that leaked into the screen —
+          the user doesn't have an "interface", they have their machine. */}
       {option(
         "byo",
         t.onboarding.keyChoice.ownKey.title,
@@ -176,8 +176,8 @@ export function KeyChoice({
                 aria-pressed={provider === p}
               >
                 {keyConfigured.has(p) && <CheckIcon size={12} />} {PROVIDERS[p].label}
-                {/* Une seule clé atteint tous les modèles : c'est la raison du conseil,
-                    et elle vaut d'être dite là où l'on choisit, pas dans une note. */}
+                {/* A single key reaches every model: that's the reason for the recommendation,
+                    and it's worth saying right where you choose, not in a footnote. */}
                 {p === "openrouter" && <span className="ob-access-tag">{t.onboarding.keyChoice.recommended}</span>}
               </button>
             ))}
@@ -202,8 +202,8 @@ export function KeyChoice({
                     : t.onboarding.keyChoice.connect}
               </button>
               <p className="ob-access-hint">{t.onboarding.keyChoice.connectHint}</p>
-              {/* L'échec est une issue, pas seulement un message : sans cette porte on
-                  reste sur un bouton qui vient de refuser. */}
+              {/* Failure is an exit, not just a message: without this door you're
+                  stuck on a button that just refused. */}
               <button
                 type="button"
                 className="ob-access-manual"

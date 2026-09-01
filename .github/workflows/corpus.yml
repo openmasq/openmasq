@@ -1,25 +1,25 @@
 name: Corpus
 
-# Les bancs de RAPPEL du redaction (`pnpm test:corpus`) — ils MESURENT, ils ne gardent
-# aucun déploiement. Sortis de `ci.yml` le 14/08 pour une raison de coût mesurée : ils
-# tournaient sur CHAQUE push et CHAQUE PR (une centaine de fois par mois, ~4 min chacune,
-# build complet compris) alors qu'ils ne bougent que si le moteur bouge.
+# The RECALL benches for redaction (`pnpm test:corpus`) — they MEASURE, they don't guard
+# any deployment. Taken out of `ci.yml` on 14/08 for a measured cost reason: they
+# ran on EVERY push and EVERY PR (about a hundred times a month, ~4 min each,
+# full build included) even though they only move when the engine moves.
 #
-# Deux appelants, un seul corps (règle 9) :
-#   • `ci.yml` — quand le diff touche le moteur (`packages/redact`, l'OCR, l'ONNX) ;
-#   • la NUIT — parce qu'un banc qui ne tourne que sur le chemin qui le concerne finit
-#     par ne plus tourner du tout : une dérive de rappel peut aussi venir d'un lexique
-#     vendu ailleurs, d'un bump de dépendance ou d'une fixture. Le filet nocturne coûte
-#     quatre minutes et rattrape ce que le filtre de chemins ne peut pas voir.
+# Two callers, one body (rule 9):
+#   • `ci.yml` — when the diff touches the engine (`packages/redact`, OCR, ONNX);
+#   • at NIGHT — because a bench that only runs on the path it concerns ends up
+#     not running at all: a recall drift can also come from a lexicon
+#     shipped elsewhere, a dependency bump or a fixture. The nightly net costs
+#     four minutes and catches what the path filter can't see.
 #
-# ⚠️ Le build RESTE une précondition — vitest résout les `src` des packages aliasés, mais
-# `@openmasq/tesseract2` (vendored) se résout par son dist/, et `scans.recall` l'importe :
-# sans build, « Failed to resolve entry for package tesseract2 ». Avec le cache turbo, ce
-# build coûte des secondes, pas 5 min.
+# ⚠️ The build REMAINS a precondition — vitest resolves the aliased packages' `src`, but
+# `@openmasq/tesseract2` (vendored) resolves via its dist/, and `scans.recall` imports it:
+# without a build, « Failed to resolve entry for package tesseract2 ». With the turbo cache, this
+# build costs seconds, not 5 min.
 on:
   workflow_call:
-  # ⚠️ Un `schedule` ne part que depuis la branche par DÉFAUT (main) : la passe nocturne
-  # mesure donc la production, ce qui est exactement ce qu'on veut d'un filet.
+  # ⚠️ A `schedule` only fires from the DEFAULT branch (main): the nightly pass
+  # therefore measures production, which is exactly what we want from a net.
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
@@ -27,8 +27,8 @@ on:
 permissions:
   contents: read
 
-# Une seule passe à la fois par ref : deux bancs concurrents mesurent la même chose et
-# se disputent le cache turbo.
+# Only one pass at a time per ref: two concurrent benches measure the same thing and
+# fight over the turbo cache.
 concurrency:
   group: corpus-${{ github.ref }}
   cancel-in-progress: true
@@ -47,10 +47,10 @@ jobs:
         with:
           node-version: 26
           cache: pnpm
-      # ⚠️ La MÊME clé que `verify.yml` (plus de suffixe `-corpus`) : le build est
-      # identique, et deux caches distincts faisaient payer DEUX fois le même build à
-      # chaque commit. Les clés de turbo hachent le contenu, donc partager le magasin est
-      # sans risque — au pire une entrée de plus.
+      # ⚠️ The SAME key as `verify.yml` (no more `-corpus` suffix): the build is
+      # identical, and two separate caches were making the same build get paid for TWICE
+      # per commit. Turbo's keys hash the content, so sharing the store is
+      # risk-free — at worst one more entry.
       - name: Turbo cache
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:

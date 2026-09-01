@@ -4,16 +4,16 @@ import { extractText } from "./documents/documents";
 import { pseudonymize } from "./index";
 import { scoreCase, pct, type BenchCase } from "../bench/metric";
 
-/* Le PREMIER harnais qui mesure la détection sur de VRAIS scans — OCR réel (le
-   Tesseract vendoré, WASM embarqué, déterministe), pipeline complet, vérités
-   annotées à la main depuis les pixels. Tous les autres bancs simulent le dégât
-   OCR en le tapant ; celui-ci le PRODUIT. C'est le prérequis de l'item
-   « détection visuelle » : sans lui, aucune règle de zone n'est falsifiable.
+/* The FIRST harness that measures detection on REAL scans — real OCR (the
+   vendored Tesseract, embedded WASM, deterministic), full pipeline, truths
+   hand-annotated from the pixels. Every other bench simulates OCR damage
+   by typing it; this one PRODUCES it. It's the prerequisite for the
+   « visual detection » item: without it, no zone rule is falsifiable.
 
-   Les vérités sont écrites TELLES QUE L'IMAGE LES PORTE (pas telles que l'OCR
-   les lit) — un espace parasite dans l'email océrisé est exactement le genre de
-   fuite que ce banc existe pour compter. Tourne dans `pnpm test:corpus` (l'OCR
-   coûte ~6 s par image, exprès hors de la boucle rapide). */
+   The truths are written AS THE IMAGE CARRIES THEM (not as the OCR
+   reads them) — a stray space in the OCR'd email is exactly the kind of
+   leak this bench exists to count. Runs in `pnpm test:corpus` (OCR
+   costs ~6s per image, deliberately kept out of the fast loop). */
 
 const fx = (name: string): string =>
   fileURLToPath(new URL(`./__fixtures__/${name}`, import.meta.url));
@@ -23,10 +23,10 @@ const CASES: (BenchCase & { file: string })[] = [
     id: "scan-titre-sejour",
     file: "scanned-id.jpg",
     lang: "fr",
-    text: "", // rempli par l'OCR réel
-    // Réannoté le 2026-08-31 : les fixtures ont été RÉGÉNÉRÉES au split (mêmes
-    // gabarits, identités synthétiques neuves — BRIVET/Turenne/75003) et les vérités
-    // suivent les pixels qui shippent, pas ceux de l'ancien arbre.
+    text: "", // filled in by the real OCR
+    // Re-annotated on 2026-08-31: the fixtures were REGENERATED at the split (same
+    // templates, new synthetic identities — BRIVET/Turenne/75003) and the truths
+    // follow the pixels that ship, not those of the old tree.
     truth: [
       ["BRIVET", "NAME"],
       ["Amelie Claire", "NAME"],
@@ -68,7 +68,7 @@ describe("scans réels — OCR véritable, pipeline complet, vérités depuis le
     const misses: string[] = [];
     for (const c of CASES) {
       const file = await extractText(fx(c.file));
-      expect(file.text.trim().length).toBeGreaterThan(40); // l'OCR a réellement lu
+      expect(file.text.trim().length).toBeGreaterThan(40); // the OCR actually read something
       const vault: Record<string, string> = {};
       await pseudonymize(file.text, { vault });
       const s = scoreCase({ ...c, text: file.text }, Object.values(vault));
@@ -79,9 +79,9 @@ describe("scans réels — OCR véritable, pipeline complet, vérités depuis le
     }
     // eslint-disable-next-line no-console
     console.log(`[scans] overall ${found}/${total} (${pct(found, total)}%) FP ${fp}\n  misses: ${misses.join(" · ") || "none"}`);
-    // Plancher CLIQUET — mesuré 20/20 à l'écriture (après fermeture des quatre
-    // fuites : email à espace OCR, document no, place of birth, badge) ; 0,95
-    // laisse UNE vérité de marge. Une baisse = une régression sur un vrai scan.
+    // RATCHET floor — measured 20/20 at writing time (after closing the four
+    // leaks: OCR-spaced email, document no, place of birth, badge); 0.95
+    // leaves ONE truth of margin. A drop = a regression on a real scan.
     expect(found / total).toBeGreaterThanOrEqual(0.95);
     expect(fp).toBeLessThanOrEqual(1);
   }, 120_000);

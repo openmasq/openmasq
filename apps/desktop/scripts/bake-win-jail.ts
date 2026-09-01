@@ -31,7 +31,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const DESKTOP = join(HERE, "..");
 const CRATE = join(DESKTOP, "native", "win-jail");
 const OUT = join(DESKTOP, "build", "win-jail");
-// La marque n'a qu'une maison (règle 9) — le nom du binaire expédié en dérive.
+// The brand has only one home (rule 9) — the shipped binary's name derives from it.
 const BRAND = JSON.parse(
   readFileSync(join(DESKTOP, "..", "..", "packages", "branding", "branding.json"), "utf8"),
 ) as { slug: string };
@@ -64,8 +64,8 @@ async function main(): Promise<void> {
   if (r.error) throw new Error(`cargo not found — install the Rust toolchain: ${r.error.message}`);
   if (r.status !== 0) throw new Error(`cargo build failed (exit ${r.status})`);
 
-  // Le crate est neutre (`openmasq-jail`) ; le binaire EXPÉDIÉ garde son nom de marque
-  // (`<slug>-jail.exe`) — c'est ce que `winJail.ts` résout dans le bundle installé.
+  // The crate is neutral (`openmasq-jail`); the SHIPPED binary keeps its brand name
+  // (`<slug>-jail.exe`) — that's what `winJail.ts` resolves in the installed bundle.
   const exeName = `${BRAND.slug}-jail.exe`;
   const built = join(CRATE, "target", "release", "openmasq-jail.exe");
   await mkdir(OUT, { recursive: true });

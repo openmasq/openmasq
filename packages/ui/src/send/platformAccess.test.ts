@@ -5,8 +5,8 @@ import { resolveEffectivePlatform } from "./routing";
 import { modelUnavailableReason, unavailableLabel } from "./modelAvailability";
 import { preflightError } from "./preflight";
 
-// Le modèle par défaut d'une conversation neuve : servi par la plateforme quand elle
-// existe, et c'est justement lui qui, sans elle, échouait à l'envoi.
+// The default model for a new conversation: served by the platform when it
+// exists, and it is precisely this one that, without it, used to fail to send.
 const MODEL = { id: "poolside/laguna-s-2.1:free", provider: "openrouter" as const };
 const NO_KEYS: ReadonlySet<string> = new Set();
 
@@ -23,11 +23,11 @@ const reasonFor = (served: boolean) => {
   });
 };
 
-// Le défaut du paquet, et ce que tout autre test suppose.
+// The package's default, and what every other test assumes.
 afterEach(() => configurePlatformAccess({ served: true }));
 
-/* Les pastilles se testent sur le catalogue français ; ce qu'on épingle — quel mot est
-   INTERDIT selon les drapeaux de build — vaut pour toute langue. */
+/* The chips are tested against the French catalog; what we pin down — which word is
+   FORBIDDEN depending on the build flags — holds for every language. */
 const fr = getMessages("fr");
 
 describe("un build SANS service hébergé (ni passerelle ni comptes)", () => {
@@ -39,8 +39,8 @@ describe("un build SANS service hébergé (ni passerelle ni comptes)", () => {
   });
 
   it("rend le modèle « inclus » à ce qu'il est vraiment ici : un modèle à CLÉ", () => {
-    // Avec le service : disponible sans rien (c'est l'offre gratuite). Sans lui : la clé
-    // de l'utilisateur est la seule porte — dit AVANT l'envoi, au lieu d'un échec réseau.
+    // With the service: available with nothing (that's the free offer). Without it: the
+    // user's key is the only door — said BEFORE the send, instead of a network failure.
     expect(reasonFor(true)).toBeNull();
     expect(reasonFor(false)).toBe("no_key");
   });
@@ -65,8 +65,8 @@ describe("un build SANS service hébergé (ni passerelle ni comptes)", () => {
     expect(refused?.text).not.toMatch(/abonnement/i);
     expect(unavailableLabel("no_key", "OpenRouter", fr).title).not.toMatch(/abonnement/i);
 
-    // Et avec le service ET la vente, la seconde issue existe : elle se dit (rien n'a
-    // changé pour le build hébergé qui vend).
+    // And with the service AND the sale, the second way out exists: it is said (nothing
+    // changed for the hosted build that sells).
     configurePlatformAccess({ served: true, sold: true });
     expect(unavailableLabel("no_key", "OpenRouter", fr).title).toMatch(/abonnement/i);
   });
@@ -85,7 +85,7 @@ describe("un build qui SERT sans VENDRE (le défaut du paquet)", () => {
     expect(includedWith("Om", fr)).toBe("avec votre compte Om");
     expect(unavailableLabel("no_key", "OpenRouter", fr).title).toMatch(/avec votre compte/);
     expect(unavailableLabel("no_key", "OpenRouter", fr).title).not.toMatch(/abonnement/i);
-    // Le modèle « inclus » reste inclus : la pastille ne le vend pas, elle le nomme.
+    // The « included » model stays included: the chip doesn't sell it, it names it.
     for (const reason of ["no_credits", "free_mode_only"] as const) {
       const { chip, title } = unavailableLabel(reason, "OpenRouter", fr);
       expect(chip).not.toMatch(/abonnement/i);

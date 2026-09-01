@@ -8,24 +8,24 @@ import {
 import { initialLocale, saveDeviceLocale } from "../state/locale";
 
 /**
- * La couche REACT de l'i18n : un contexte qui porte la langue courante + son catalogue,
- * et le hook `useT()` que les composants appellent. Le catalogue lui-même (typé, sans
- * React) vit dans `@openmasq/i18n` — ici, seulement le branchement React.
+ * The REACT layer of i18n: a context that carries the current language + its catalogue,
+ * and the `useT()` hook components call. The catalogue itself (typed, React-free)
+ * lives in `@openmasq/i18n` — here, only the React wiring.
  *
- * ## Dégradation gracieuse — VOULUE
+ * ## Graceful degradation — INTENTIONAL
  *
- * `useT()` HORS provider rend le catalogue de la langue par défaut au lieu de jeter. Un
- * composant n'a donc jamais besoin du provider pour NE PAS PLANTER — le provider n'est
- * qu'un enrichissement (il apporte la langue choisie + le changement à chaud). C'est ce
- * qui rend l'adoption incrémentale sûre : un écran converti avant que le provider ne
- * l'enrobe rend simplement du français, jamais une erreur.
+ * `useT()` OUTSIDE a provider returns the default language's catalogue instead of throwing. A
+ * component therefore never needs the provider to NOT CRASH — the provider is only
+ * an enrichment (it brings the chosen language + hot switching). This is what
+ * makes incremental adoption safe: a screen converted before the provider
+ * wraps it simply renders French, never an error.
  *
- * ## Où vient la langue
+ * ## Where the language comes from
  *
- * `initialLocale()` (`state/locale.ts`) : clé d'appareil → hôte → défaut. Le changement
- * passe par `setLocale`, qui écrit la clé d'appareil ET remonte au caller (`onLocaleChange`,
- * branché par l'app sur la mise à jour de `Settings.language`) — le même double stockage
- * que le thème.
+ * `initialLocale()` (`state/locale.ts`): device key → host → default. A change
+ * goes through `setLocale`, which writes the device key AND bubbles up to the caller (`onLocaleChange`,
+ * wired by the app to updating `Settings.language`) — the same double storage
+ * as the theme.
  */
 interface I18nContextValue {
   locale: Locale;
@@ -37,9 +37,9 @@ const I18nContext = createContext<I18nContextValue | null>(null);
 
 export interface I18nProviderProps {
   children: ReactNode;
-  /** Force une langue (tests, /preview). Absent ⇒ `initialLocale()`. */
+  /** Forces a language (tests, /preview). Absent ⇒ `initialLocale()`. */
   locale?: Locale;
-  /** Remonté à chaque changement, pour que l'app le persiste dans `Settings.language`. */
+  /** Bubbled up on every change, so the app persists it into `Settings.language`. */
   onLocaleChange?: (locale: Locale) => void;
 }
 
@@ -47,15 +47,15 @@ export function I18nProvider({ children, locale: forced, onLocaleChange }: I18nP
   const [locale, setLocaleState] = useState<Locale>(() => forced ?? initialLocale());
   const active = forced ?? locale;
 
-  // `<html lang>` suit la langue courante — pour le lecteur d'écran et la césure du
-  // navigateur. Un effet (post-montage) suffit : le splash de boot est du HTML statique
-  // sans texte traduisible, donc rien à faire AVANT le paint (ce qui évite de toucher au
-  // bootstrap `main.tsx`).
+  // `<html lang>` follows the current language — for the screen reader and the
+  // browser's hyphenation. An effect (post-mount) is enough: the boot splash is static HTML
+  // with no translatable text, so nothing needs doing BEFORE the paint (which avoids touching
+  // the `main.tsx` bootstrap).
   useEffect(() => {
     try {
       document.documentElement.setAttribute("lang", active);
     } catch {
-      /* pas de DOM (test/SSR) — sans effet */
+      /* no DOM (test/SSR) — no effect */
     }
   }, [active]);
 
@@ -76,29 +76,29 @@ export function I18nProvider({ children, locale: forced, onLocaleChange }: I18nP
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
-/** Le catalogue de la langue courante. Hors provider : la langue par défaut (voir plus
- *  haut — un écran non encore enrobé rend du français, jamais une erreur). */
+/** The current language's catalogue. Outside a provider: the default language (see
+ *  above — a screen not yet wrapped renders French, never an error). */
 export function useT(): Messages {
   return useContext(I18nContext)?.t ?? getMessages(DEFAULT_LOCALE);
 }
 
-/** Le repli HORS provider — une constante, pas un objet neuf à chaque rendu : `useLocale`
- *  peut ainsi servir de dépendance d'effet sans boucler. */
+/** The fallback OUTSIDE a provider — a constant, not a new object on every render: `useLocale`
+ *  can then be used as an effect dependency without looping. */
 const NO_PROVIDER: Pick<I18nContextValue, "locale" | "setLocale"> = {
   locale: DEFAULT_LOCALE,
   setLocale: saveDeviceLocale,
 };
 
 /**
- * La langue courante + de quoi en changer. Son unique appelant est le sélecteur des
- * Réglages (« Compte » → Apparence) : c'est pour lui que le contexte portait déjà
+ * The current language + a way to change it. Its only caller is the Réglages
+ * selector ("Compte" → Apparence): that is why the context already carried
  * `setLocale`.
  *
- * Même dégradation VOULUE que `useT()` — hors provider, rien ne jette. Il n'y a alors
- * aucun catalogue à basculer à chaud, donc `locale` est la langue par défaut et
- * `setLocale` se borne à écrire la clé d'APPAREIL : le choix n'est pas perdu, il
- * s'applique au démarrage suivant (`initialLocale`). Un bouton qui fait moins, jamais un
- * bouton qui ment.
+ * The same INTENTIONAL degradation as `useT()` — outside a provider, nothing throws. There is
+ * then no catalogue to hot-switch, so `locale` is the default language and
+ * `setLocale` merely writes the DEVICE key: the choice is not lost, it
+ * applies on the next launch (`initialLocale`). A button that does less, never a
+ * button that lies.
  */
 export function useLocale(): Pick<I18nContextValue, "locale" | "setLocale"> {
   return useContext(I18nContext) ?? NO_PROVIDER;

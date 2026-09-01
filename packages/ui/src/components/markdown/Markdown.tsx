@@ -49,7 +49,7 @@ interface Props {
   imageIds?: string[];
   /** Full-resolution re-load of a stored image, for the export (absent ⇒ the preview). */
   loadImage?: (name: string) => Promise<string | null>;
-  /** Adopter une compétence/un workflow proposé (absent ⇒ la carte est en lecture seule). */
+  /** Adopt a proposed skill/workflow (absent ⇒ the card is read-only). */
   onAddSkill?: (skill: ProposedSkill) => boolean;
   isSkillAdded?: (skill: ProposedSkill) => boolean;
 }

@@ -34,7 +34,7 @@ describe("valueShape — la forme, jamais la valeur", () => {
   it("un secret/clé n'exporte MÊME PAS sa structure", () => {
     expect(valueShapeFor("sk_live_a8B!x", "apikey")).toBe("••• (13 car.)");
     expect(valueShapeFor("p@ssw0rd!", "secret")).toBe("••• (9 car.)");
-    // …mais une catégorie ordinaire garde son gabarit.
+    // …but an ordinary category keeps its shape.
     expect(valueShapeFor("Jean Rebour", "name")).toBe("Xxxx Xxxxxx");
   });
 

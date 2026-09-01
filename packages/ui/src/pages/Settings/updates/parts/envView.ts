@@ -1,25 +1,25 @@
 import type { Messages } from "@openmasq/i18n";
 import { BRAND } from "@openmasq/branding";
-// La logique pure de la carte Environnement (Réglages → Versions) : à qui proposer la
-// bascule, et quelle phrase mettre sur un refus. Séparée de la présentation (règle
-// logique-en-.ts) et testée — c'est une porte d'AFFICHAGE seulement, la vraie garde
-// revit dans le processus privilégié à chaque demande.
+// The Environnement card's (Réglages → Versions) pure logic: who to offer the
+// switch to, and what sentence to put on a refusal. Separated from presentation (the
+// logic-in-.ts rule) and tested — it's a DISPLAY gate only, the real guard
+// lives again in the privileged process on every request.
 
 export type RuntimeEnv = "production" | "staging" | "custom";
 
-/** La cible du bouton : depuis la production, staging ; depuis TOUT le reste (staging, la
- *  pile auto-hébergée), la production — le retour à l'environnement par défaut. */
+/** The button's target: from production, staging; from EVERYTHING else (staging, the
+ *  self-hosted stack), production — returning to the default environment. */
 export const otherEnv = (env: RuntimeEnv): RuntimeEnv =>
   env === "production" ? "staging" : "production";
 
 /**
- * Proposer la bascule ?
+ * Offer the switch?
  *
- * - Depuis STAGING ou la pile AUTO-HÉBERGÉE : toujours — le RETOUR en production est
- *   permis à tous côté main (revenir à l'environnement par défaut n'est pas un privilège),
- *   et cacher le bouton ferait d'une app basculée un cul-de-sac.
- * - Depuis production : au drapeau de compte `staging_tester` (lu fail-closed) ou au
- *   privilège machine (`crossEnv`, le même qui montre les deux flux de versions).
+ * - From STAGING or the SELF-HOSTED stack: always — the RETURN to production is
+ *   allowed to everyone on the main side (going back to the default environment isn't a
+ *   privilege), and hiding the button would turn a switched app into a dead end.
+ * - From production: on the account's `staging_tester` flag (read fail-closed) or on
+ *   machine privilege (`crossEnv`, the same one that shows both version streams).
  */
 export function envSwitchOffered(p: {
   env: RuntimeEnv;
@@ -29,13 +29,13 @@ export function envSwitchOffered(p: {
   return p.env !== "production" || p.stagingTester || p.crossEnv;
 }
 
-/** Le vocabulaire de refus du main → une phrase honnête pour l'utilisateur. */
+/** The main process's refusal vocabulary → an honest sentence for the user. */
 export function switchRefusalText(reason: string | undefined, t: Messages): string {
   switch (reason) {
     case "not_privileged":
-      // ⚠️ « accès bêta » était FAUX ici : ce drapeau ouvre l'ENVIRONNEMENT de test (à
-      // quelle API l'app parle), pas le canal bêta (quels builds elle reçoit). Les deux
-      // sont indépendants depuis l'artefact unique — `main/ipc/registerEnvIpc.ts`.
+      // ⚠️ "beta access" was WRONG here: this flag opens the test ENVIRONMENT (which
+      // API the app talks to), not the beta channel (which builds it receives). The two
+      // are independent since the single artifact — `main/ipc/registerEnvIpc.ts`.
       return t.versionsTab.refusal.notPrivileged(BRAND.name);
     case "write_failed":
       return t.versionsTab.refusal.writeFailed;

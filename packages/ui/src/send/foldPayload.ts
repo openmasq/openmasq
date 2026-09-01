@@ -24,16 +24,16 @@ export const ATTACHMENT_INLINE_NOTE =
   "n'existe sous ce nom sur aucun disque — ne tente JAMAIS de le lire via un outil " +
   "(filesystem, drive, etc.) ; réponds à partir du texte fourni.]";
 
-/** L'en-tête qui OUVRE chaque document plié dans le message user du wire — une seule
- *  source du format, lue aussi par `typedPartOfWire` (règle 9). */
+/** The header that OPENS each folded document in the wire's user message — the single
+ *  source of the format, also read by `typedPartOfWire` (rule 9). */
 const ATTACHMENT_HEADER_MARK = "=== Attached file: ";
 
-/** La partie TAPÉE d'un message user du wire : tout ce qui précède le premier en-tête de
- *  pièce jointe. Ce qui lit « ce que l'utilisateur demande » (le rapprochement
- *  d'intégrations, la relance « connecteur nommé sans appel ») doit lire CETTE partie —
- *  jamais le message plié entier : « résume ce document » sur un courrier a proposé les
- *  cartes Square (un mot d'adresse du document) et Filesystem (le mot « filesystem »…
- *  de NOTRE propre `ATTACHMENT_INLINE_NOTE`, glissée sous chaque en-tête). */
+/** The TYPED part of a wire user message: everything before the first attachment
+ *  header. Whatever reads « ce que l'utilisateur demande » (the integrations
+ *  cross-reference, the « connecteur nommé sans appel » nudge) must read THIS part —
+ *  never the whole folded message: « résume ce document » on a piece of mail surfaced the
+ *  Square card (an address word from the document) and the Filesystem one (the word
+ *  « filesystem »… from OUR OWN `ATTACHMENT_INLINE_NOTE`, slipped under every header). */
 export function typedPartOfWire(text: string): string {
   const i = text.indexOf(ATTACHMENT_HEADER_MARK);
   return i < 0 ? text : text.slice(0, i);
@@ -147,14 +147,14 @@ export function buildFoldedPayload(
   // Every header carries `ATTACHMENT_INLINE_NOTE` (incl. the persisted image blocks — a
   // follow-up turn re-sends them and the model must not go fetch the alias then either).
   //
-  // ⚠️ L'alias devient une ENTRÉE DE COFFRE (faux→réel), pour que la restitution le
-  // retourne : la réponse du modèle cite « document-3.txt » — ou « Document-3 », la
-  // tolérance de casse d'`unredact` s'en charge via le radical — et l'utilisateur doit
-  // relire SON nom de fichier, pas un alias qui n'existe sur aucun disque (vécu 15/08 :
-  // un inventaire de dossier entier désignait chaque pièce par un nom inconnaissable).
-  // Conséquence règle 11, assumée : un argument d'outil nommant l'alias part désormais
-  // avec le VRAI nom — c'est la doctrine (l'extérieur reçoit le réel), et la note
-  // ci-dessus continue de dire au modèle de ne PAS aller chercher le fichier.
+  // ⚠️ The alias becomes a VAULT ENTRY (fake→real), so restitution returns it: the
+  // model's answer cites « document-3.txt » — or « Document-3 », the case tolerance of
+  // `unredact` handles it via the stem — and the user must read back THEIR OWN filename,
+  // not an alias that exists on no disk (lived 15/08: a whole folder inventory named
+  // every item with an unrecognisable name).
+  // Consequence of rule 11, accepted: a tool argument naming the alias now leaves
+  // with the REAL name — that is the doctrine (the outside gets the real value), and the
+  // note above still tells the model NOT to go fetch the file.
   let docNo = 0;
   const aliasVault: Record<string, string> = {};
   const header = (name: string, i: number) => {
@@ -188,7 +188,7 @@ export function buildFoldedPayload(
   const hasFolded =
     !!opts.resendWire || detectDocs.length > 0 || reuseDocs.length > 0 || imageDocs.length > 0;
 
-  // Les reps de réemploi d'abord : sur une collision (impossible en pratique, les alias
-  // sont synthétiques), la carte du document gagne.
+  // Reuse reps first: on a collision (impossible in practice, aliases are synthetic),
+  // the document's map wins.
   return { modelText, fullModelText, hasFolded, reuseParts, vaultPreload: { ...aliasVault, ...vaultPreload } };
 }

@@ -18,7 +18,7 @@ describe("pickShellNotice", () => {
       showAccess: true,
     }, fr);
     expect(n?.kind).toBe("offline");
-    // Une panne ne se masque pas : elle s'en va quand elle est finie, pas au clic.
+    // An outage cannot be dismissed: it goes away once it's over, not by clicking.
     expect(n?.dismissible).toBe(false);
     expect(n?.actionLabel).toBeUndefined();
   });
@@ -30,7 +30,7 @@ describe("pickShellNotice", () => {
       showAccess: true,
     }, fr);
     expect(n?.kind).toBe("mcp");
-    // Le titre est le SEUL texte visible replié : il doit nommer le connecteur.
+    // The title is the ONLY text visible when collapsed: it must name the connector.
     expect(n?.title).toContain("Slack");
     expect(n?.actionLabel).toBe("Reconnecter");
   });

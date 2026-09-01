@@ -1,8 +1,8 @@
-// Scénarios « ANALYSE DE DONNÉES » (`real-data-*`) — chaînes web→python et analyse
-// pure : le modèle doit COLLECTER des chiffres (web vivant ou données inline), les
-// STRUCTURER, calculer, et produire une FIGURE dans la sandbox. En mock ils tournent
-// sur fixtures (satisfiabilité) ; sous OPENMASQ_EVAL_REAL_WEB/_REAL_PY=1 c'est le
-// vrai web et le vrai CPython baké (pandas/numpy/matplotlib présents).
+// « DATA ANALYSIS » scenarios (`real-data-*`) — web→python chains and pure analysis:
+// the model must COLLECT figures (live web or inline data), STRUCTURE them, compute,
+// and produce a FIGURE in the sandbox. In mock they run on fixtures (satisfiability);
+// under OPENMASQ_EVAL_REAL_WEB/_REAL_PY=1 it's the real web and the real baked CPython
+// (pandas/numpy/matplotlib present).
 
 import { calls, says } from "../mockModel";
 import { lastRealPy, realPyEnabled } from "../realWorld";
@@ -13,7 +13,7 @@ const DDG = "https://html.duckduckgo.com/html/?q=";
 const WEB_GUIDE =
   " (Tu disposes de `web_fetch_many` : pour CHERCHER, récupère d'abord une page de résultats — p.ex. https://html.duckduckgo.com/html/?q=… — puis, si besoin, les pages pertinentes.)";
 
-/** Pages fixtures du mode mock — le réel les court-circuite. */
+/** Mock-mode fixture pages — the real thing bypasses them. */
 const PAGES: Record<string, string> = {
   [`${DDG}ETF%20PEA%20plus%20performants%202026`]:
     "Classement ETF PEA 2026 — Amundi PEA Nasdaq-100 +28 %, Lyxor PEA S&P 500 +19 %, " +
@@ -24,10 +24,10 @@ const PAGES: Record<string, string> = {
     "Normandie — Le Havre 165 830, Rouen 114 083, Caen 108 200, Cherbourg 78 549, Évreux 46 349 habitants.",
 };
 
-/** L'assert commun des scénarios à FIGURE : en réel, la sandbox doit avoir produit
- *  un PNG non trivial (le mock ne prouve que la satisfiabilité). Un PNG que le modèle
- *  a sauvegardé LUI-MÊME dans le cwd compte aussi — dans l'app c'est un LIVRABLE remis
- *  à l'utilisateur, exactement comme une figure collectée. */
+/** The shared assert for FIGURE scenarios: for real, the sandbox must have produced
+ *  a non-trivial PNG (the mock only proves satisfiability). A PNG the model saved
+ *  ITSELF into the cwd counts too — in the app it's a DELIVERABLE handed to the
+ *  user, exactly like a collected figure. */
 function assertRealFigure(): void {
   if (!realPyEnabled()) return;
   const runs = lastRealPy.all.length ? lastRealPy.all : lastRealPy.result ? [lastRealPy.result] : [];
@@ -45,9 +45,9 @@ const PY_FIG = { code: (v: unknown) => typeof v === "string" && /matplotlib|plt\
 export { assertRealFigure };
 
 export const REAL_DATA_SCENARIOS: Scenario[] = [
-  // 1. FINANCE : recherche web → extraction de 5 lignes chiffrées → graphe comparatif.
-  //    La difficulté est la CHAÎNE (les chiffres du code viennent du web, pas du prompt)
-  //    et le tri implicite (« les plus performants »).
+  // 1. FINANCE: web search → extraction of 5 numeric rows → comparative chart.
+  //    The difficulty is the CHAIN (the code's figures come from the web, not the prompt)
+  //    and the implicit sort (« les plus performants »).
   {
     name: "real-data-etf-pea",
     prompts: [
@@ -73,8 +73,8 @@ export const REAL_DATA_SCENARIOS: Scenario[] = [
     always: assertRealFigure,
   },
 
-  // 2. RAPPORT INSTITUTIONNEL : trouver la donnée INSEE, la résumer, la tracer.
-  //    Mesure la lecture d'une page DENSE (le site insee.fr) et la fidélité des chiffres.
+  // 2. INSTITUTIONAL REPORT: find the INSEE data, summarize it, chart it.
+  //    Measures reading a DENSE page (the insee.fr site) and the fidelity of the figures.
   {
     name: "real-data-insee-inflation",
     prompts: [
@@ -100,9 +100,9 @@ export const REAL_DATA_SCENARIOS: Scenario[] = [
     always: assertRealFigure,
   },
 
-  // 3. ANALYSE PURE sur données INLINE : stats descriptives + tendance + figure.
-  //    Aucun web — mesure la qualité du CODE d'analyse (pandas/numpy dispo) et la
-  //    restitution chiffrée (moyenne, extrêmes, croissance).
+  // 3. PURE ANALYSIS on INLINE data: descriptive stats + trend + figure.
+  //    No web — measures the quality of the analysis CODE (pandas/numpy available) and
+  //    the numeric restitution (mean, extremes, growth).
   {
     name: "real-data-analyse-ca",
     prompts: [
@@ -133,9 +133,9 @@ export const REAL_DATA_SCENARIOS: Scenario[] = [
     always: assertRealFigure,
   },
 
-  // 4. CHAÎNE web → données → CALCUL : les chiffres viennent du web, l'analyse (parts
-  //    relatives) est calculée, la figure produite. Le piège mesuré : recopier des
-  //    chiffres web dans du code SANS les inventer.
+  // 4. CHAIN web → data → CALCULATION: the figures come from the web, the analysis
+  //    (relative shares) is computed, the figure produced. The trap being measured:
+  //    copying web figures into code WITHOUT inventing them.
   {
     name: "real-data-villes-normandie",
     prompts: [

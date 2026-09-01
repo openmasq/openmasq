@@ -3,19 +3,19 @@ import { COMPETENCE_CATEGORIES } from "../competences/competences";
 import { findConnector } from "@openmasq/catalog/mcp";
 
 /**
- * Le bloc que le MODÈLE émet quand on lui demande de fabriquer une compétence ou un
- * workflow — et sa lecture, pure et testée.
+ * The block the MODEL emits when asked to build a compétence or a
+ * workflow — and its parsing, pure and tested.
  *
- * Pourquoi ici : `suggestions/` est déjà le foyer UNIQUE des amorces que les deux
- * modales d'écriture partagent (règle 9, « ONE home so the two sibling lists' picking
- * rules can't drift »). Une proposition du modèle est la même chose venue d'ailleurs :
- * elle PRÉ-REMPLIT une création, elle ne l'installe pas. C'est l'utilisateur qui clique.
+ * Why here: `suggestions/` is already the ONE home for the starters the two
+ * writing modals share (rule 9, « ONE home so the two sibling lists' picking
+ * rules can't drift »). A proposal from the model is the same thing coming from
+ * elsewhere: it PRE-FILLS a creation, it does not install it. The user is the one who clicks.
  *
- * ⚠️ **Le format est tolérant PARCE QUE le bloc arrive en flux.** Il se peint pendant
- * que le modèle écrit, donc chaque état intermédiaire doit se lire sans planter : un
- * titre seul est déjà quelque chose à montrer, et `isComplete` — jamais `parse` — dit
- * si le bouton d'ajout a le droit d'exister. Un JSON aurait rendu tout état partiel
- * illisible et transformé une faute de virgule en carte vide.
+ * ⚠️ **The format is tolerant BECAUSE the block arrives streamed.** It paints while
+ * the model writes, so every intermediate state must read without crashing: a
+ * title alone is already something to show, and `isComplete` — never `parse` — decides
+ * whether the add button is allowed to exist. JSON would have made every partial
+ * state unreadable and turned a missing comma into an empty card.
  *
  * ```competence
  * # Compte rendu d'entretien
@@ -30,16 +30,16 @@ export interface ProposedSkill {
   kind: "competence" | "workflow";
   name: string;
   desc: string;
-  /** Compétence seulement — id de catégorie validé, jamais la valeur brute du modèle. */
+  /** Compétence only — validated category id, never the model's raw value. */
   cat?: string;
-  /** Workflow seulement — ids de connecteurs du CATALOGUE, les inconnus écartés. */
+  /** Workflow only — connector ids from the CATALOGUE, unknown ones discarded. */
   servers: string[];
   prompt: string;
 }
 
-/** Les langues d'étiquette qu'on accepte. Le modèle répond dans la langue de
- *  l'utilisateur (règle du prompt système), donc l'étiquette suit — et une clé non
- *  reconnue n'est pas perdue : elle retombe dans le prompt. */
+/** The label languages we accept. The model replies in the user's
+ *  language (system prompt rule), so the label follows — and an unrecognized
+ *  key is not lost: it falls back into the prompt. */
 const KEYS: Record<string, "desc" | "cat" | "servers"> = {
   description: "desc",
   desc: "desc",
@@ -58,13 +58,13 @@ const KEYS: Record<string, "desc" | "cat" | "servers"> = {
 
 const stripAccents = (s: string) => s.normalize("NFD").replace(/\p{M}+/gu, "");
 
-/** Une catégorie de compétence, seulement si elle EXISTE — le modèle invente sinon un
- *  identifiant qui ne s'afficherait nulle part. Tolère le libellé (« Rédaction ») autant
- *  que l'id (« redaction »), accents et casse indifférents. */
+/** A compétence category, only if it EXISTS — otherwise the model invents an
+ *  identifier that would show up nowhere. Tolerates the label (« Rédaction ») as much
+ *  as the id (« redaction »), regardless of accents or case. */
 function resolveCat(raw: string): string | undefined {
   const k = stripAccents(raw.trim().toLowerCase());
-  // Le LIBELLÉ est accepté dans TOUTES les langues livrées : le modèle écrit dans celle
-  // de la conversation, qui n'est pas forcément celle de l'interface.
+  // The LABEL is accepted in ALL shipped languages: the model writes in the
+  // conversation's language, which is not necessarily the interface's.
   return COMPETENCE_CATEGORIES.find(
     (c) =>
       c.id === k ||
@@ -74,9 +74,9 @@ function resolveCat(raw: string): string | undefined {
   )?.id;
 }
 
-/** Les connecteurs, résolus contre le CATALOGUE : un id inventé par le modèle ne doit
- *  jamais atterrir dans `Workflow.servers`, que l'app relit ensuite pour afficher des
- *  marques et cadrer le routage. Ce qui ne résout pas est simplement écarté. */
+/** The connectors, resolved against the CATALOGUE: an id invented by the model must
+ *  never land in `Workflow.servers`, which the app later reads to show
+ *  brands and frame routing. Whatever doesn't resolve is simply discarded. */
 function resolveServers(raw: string): string[] {
   const out: string[] = [];
   for (const part of raw.split(/[,;]/)) {
@@ -89,10 +89,10 @@ function resolveServers(raw: string): string[] {
 }
 
 /**
- * Lire un bloc. Ne LÈVE jamais et ne rend jamais `null` : un bloc à moitié écrit rend
- * ce qu'il a déjà (`isComplete` tranche l'affichage du bouton). `kind` vient de la
- * balise de la clôture, jamais du contenu — le modèle ne choisit pas le rail par un
- * mot qu'il écrirait au milieu.
+ * Parses a block. NEVER throws and never returns `null`: a half-written block returns
+ * what it already has (`isComplete` decides whether to show the button). `kind` comes from
+ * the fence's closing tag, never from the content — the model does not choose the rail
+ * via a word it might write in the middle.
  */
 export function parseProposedSkill(kind: ProposedSkill["kind"], text: string): ProposedSkill {
   const lines = text.split("\n");
@@ -102,8 +102,8 @@ export function parseProposedSkill(kind: ProposedSkill["kind"], text: string): P
   let servers: string[] = [];
   let i = 0;
 
-  // Le titre : la même convention que le bloc « document » (`# … `), donc un seul
-  // réflexe à tenir pour le modèle comme pour le lecteur.
+  // The title: the same convention as the « document » block (`# … `), so a single
+  // reflex to hold for both the model and the reader.
   for (; i < lines.length; i++) {
     const l = lines[i].trim();
     if (!l) continue;
@@ -115,8 +115,8 @@ export function parseProposedSkill(kind: ProposedSkill["kind"], text: string): P
     break;
   }
 
-  // Les étiquettes, tant qu'il y en a. Le `---` ferme l'en-tête ; sans lui, la première
-  // ligne qui n'est pas une étiquette connue le ferme aussi — un modèle oublie le tiret.
+  // The labels, as long as there are any. The `---` closes the header; without it, the
+  // first line that isn't a known label closes it too — a model can forget the dashes.
   for (; i < lines.length; i++) {
     const l = lines[i].trim();
     if (!l) continue;
@@ -137,23 +137,23 @@ export function parseProposedSkill(kind: ProposedSkill["kind"], text: string): P
 }
 
 /**
- * A-t-on de quoi CRÉER ? Un nom et un prompt, rien de plus — ce sont exactement les
- * deux champs que `makeCompetence`/`makeWorkflow` exigent, et le reste a des valeurs
- * par défaut. Tant que c'est faux, la carte se montre sans bouton : un ajout à partir
- * d'un bloc encore en train de s'écrire créerait une entrée tronquée que l'utilisateur
- * devrait aller nettoyer à la main.
+ * Is there enough to CREATE? A name and a prompt, nothing more — these are exactly the
+ * two fields `makeCompetence`/`makeWorkflow` require, and the rest have default
+ * values. As long as this is false, the card shows with no button: adding from
+ * a block still being written would create a truncated entry the user
+ * would have to go clean up by hand.
  */
 export function isCompleteSkill(s: ProposedSkill): boolean {
   return s.name.trim().length > 0 && s.prompt.trim().length > 0;
 }
 
 /**
- * L'entrée EXISTANTE qui correspond déjà à cette proposition — sur les deux champs qui
- * définissent l'identité d'une adoption (nom + prompt, espaces indifférents). C'est ce
- * qui rend l'adoption IDEMPOTENTE et l'état « Ajouté » DÉRIVABLE : le bouton de la carte
- * gardait un état React d'instance, et la liste des messages étant VIRTUALISÉE, un
- * scroll suffisait à remonter la carte bouton réarmé — chaque re-clic créait un
- * doublon (signalé 13/08). Un état dérivé de la LISTE survit au remount ET au reload.
+ * The EXISTING entry that already matches this proposal — on the two fields that
+ * define an adoption's identity (name + prompt, whitespace-insensitive). This is what
+ * makes adoption IDEMPOTENT and the "Ajouté" state DERIVABLE: the card's button
+ * used to hold an instance's React state, and since the message list is VIRTUALIZED,
+ * a scroll was enough to remount the card with its button rearmed — every re-click created
+ * a duplicate (reported 13/08). A state derived from the LIST survives remount AND reload.
  */
 export function findExistingSkill(
   list: readonly { id: string; name: string; prompt: string }[] | undefined,

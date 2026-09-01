@@ -5,30 +5,30 @@ import { connectedUrlHosts } from "./redactKeep";
 import type { CoffreTerm } from "../types";
 
 /**
- * Le CŒUR d'options moteur d'un envoi — construit UNE fois dans `sendMessage`, passé
- * par spread à CHAQUE appel moteur du tour (mémoire, couches document, message,
- * résultats d'outils, chemins local ET remote).
+ * The engine options CORE for a send — built ONCE in `sendMessage`, passed
+ * by spread into EVERY engine call of the turn (memory, document layers, message,
+ * tool results, both local AND remote paths).
  *
- * Pourquoi un objet plutôt que des arguments : l'invariant « une même valeur est
- * traitée PAREIL sur toutes les passes du tour » (même keep, mêmes catégories, même
- * dispense de notoriété, même salt/mode) ne tenait que par la discipline de recopier
- * ~9 sites à la main — ajouter `peopleNotoriety` a demandé neuf edits, chacun une
- * occasion d'oublier un site et de faire porter à une conversation la même valeur
- * sous deux formes. Avec le contexte, une option transversale nouvelle = UNE ligne.
+ * Why an object rather than arguments: the invariant "the same value is
+ * treated THE SAME across every pass of the turn" (same keep, same categories, same
+ * notoriety dispensation, same salt/mode) only held by the discipline of copying
+ * ~9 sites by hand — adding `peopleNotoriety` took nine edits, each an
+ * occasion to miss a site and have a conversation carry the same value
+ * in two forms. With the context, a new cross-cutting option = ONE line.
  *
- * Ce qui n'y entre PAS, à dessein (varie par DÉCISION, pas par oubli) :
- * `forced`/`secrets` (par passe), `reFakeExisting` (contexte auteur vs écho d'outil),
- * `numbers` (payé seulement sur le message), `vault`/`text`, les fns de détection.
- * ⚠️ Les résultats d'outils REMPLACENT `kinds` par le `turnKinds` du tour (les spans
- * fraîchement redacted compris) — un override explicite, jamais une copie du ctx.
+ * What does NOT go in, on purpose (varies by DECISION, not by omission):
+ * `forced`/`secrets` (per pass), `reFakeExisting` (author context vs. tool echo),
+ * `numbers` (paid only on the message), `vault`/`text`, the detection fns.
+ * ⚠️ Tool results REPLACE `kinds` with the turn's `turnKinds` (freshly-redacted
+ * spans included) — an explicit override, never a copy of the ctx.
  */
 export interface SendEngineContext {
   disabledKinds: string[];
   keep: string[];
-  /** Les domaines des intégrations CONNECTÉES (`redactKeep.ts` `connectedUrlHosts`) :
-   *  les sous-parties d'un lien qui pointe vers l'une d'elles restent en clair — voir
-   *  `RedactOptions.structuralUrlHosts`. Transversal comme `keep` : même traitement sur
-   *  le message, les couches et les résultats d'outils. */
+  /** The CONNECTED integrations' domains (`redactKeep.ts` `connectedUrlHosts`):
+   *  the sub-parts of a link pointing at one of them stay in clear — see
+   *  `RedactOptions.structuralUrlHosts`. Cross-cutting like `keep`: the same treatment on
+   *  the message, the layers and the tool results. */
   structuralUrlHosts?: string[];
   unrevealableCategories?: string[];
   avoid?: string[];
@@ -39,17 +39,17 @@ export interface SendEngineContext {
   peopleNotoriety: boolean;
 }
 
-// Garde de compilation : le contexte doit RESTER un sous-ensemble des options du
-// moteur — un champ renommé côté `@openmasq/redact` casse ici, pas en silence.
+// Compile-time guard: the context must STAY a subset of the engine's
+// options — a field renamed on the `@openmasq/redact` side breaks here, not silently.
 const _ctxSpreadsIntoEngine = (c: SendEngineContext): PseudonymizeOptions => c;
 void _ctxSpreadsIntoEngine;
 
 /**
- * Assemble le contexte moteur d'un envoi. PUR — c'est ce qui le rend vérifiable, et le
- * seul champ DÉRIVÉ ici est `structuralUrlHosts` : il sort de la liste des connecteurs
- * RÉELLEMENT connectés, pas du `keep` final que `sendKeepList` a déjà filtré par le
- * Coffre — un terme du Coffre qui collide avec un nom de connecteur doit reprendre la
- * main sur ce NOM, jamais rendre illisibles les liens que ce service renvoie.
+ * Assembles a send's engine context. PURE — that's what makes it verifiable, and the
+ * only field DERIVED here is `structuralUrlHosts`: it comes from the list of connectors
+ * ACTUALLY connected, not from the final `keep` that `sendKeepList` has already filtered by
+ * the Coffre — a Coffre term that collides with a connector's name must take back
+ * control over that NAME, never make unreadable the links that service returns.
  */
 export function buildSendEngineContext(
   p: Omit<SendEngineContext, "structuralUrlHosts"> & { connected: readonly string[] },
@@ -105,7 +105,7 @@ export function convKindsFromSpans(
   // The conversation-level map FIRST: it holds the categories of values that belong to no
   // message — a person named only in the injected mémoire, a document-layer (OCR) value, a
   // manual « Redact ». Reading spans alone left those untyped, so every consumer fell
-  // back to « sensitive » (généric info) on the next turn even after the pass that found
+  // back to « sensitive » (generic info) on the next turn even after the pass that found
   // them had recorded their category. A message's own span still wins: it is the more
   // specific evidence, and it is what the user actually typed.
   const convKinds: Record<string, string> = { ...(conv.redactionKinds ?? {}) };

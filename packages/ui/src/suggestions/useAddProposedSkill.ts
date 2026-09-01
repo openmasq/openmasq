@@ -3,20 +3,20 @@ import { useChatSelector } from "../containers/providers/chatStore";
 import { findExistingSkill, type ProposedSkill } from "./proposedSkill";
 
 /**
- * Adopter ce qu'un `SkillCard` propose.
+ * Adopts what a `SkillCard` proposes.
  *
- * ⚠️ **Il n'y a plus d'aiguillage.** Ce hook existait pour choisir entre deux listes
- * sœurs à partir du `kind` du bloc ; les deux listes n'en font plus qu'une. Le `kind`
- * ne décide donc plus d'une DESTINATION, seulement de la catégorie où la compétence est
- * rangée — et les `servers`, eux, viennent du bloc comme avant : ce sont eux qui font
- * qu'elle pilotera des connecteurs.
+ * ⚠️ **There is no more routing.** This hook used to exist to choose between two
+ * sibling lists from the block's `kind`; the two lists are now just one. The `kind`
+ * therefore no longer decides a DESTINATION, only the category the compétence is
+ * filed under — and the `servers`, as before, come from the block: they are what
+ * decide it will drive connectors.
  *
- * Le hook reste (plutôt que du code dans `ChatView`) pour la raison habituelle du dépôt :
- * cette vue est gelée par le plafond de lignes, et l'adoption appartient au domaine de la
- * proposition, comme `competences/competenceOpen.tsx` appartient au sien.
+ * The hook stays (rather than code in `ChatView`) for the repo's usual reason:
+ * this view is frozen by the line-count cap, and adoption belongs to the proposal's
+ * domain, the way `competences/competenceOpen.tsx` belongs to its own.
  *
- * Rend `true` quand l'entrée a bien été créée ; la carte fige alors son bouton, et un
- * refus (nom ou prompt vide) laisse l'utilisateur réessayer.
+ * Returns `true` once the entry has actually been created; the card then freezes its
+ * button, and a refusal (empty name or prompt) lets the user try again.
  */
 export function useAddProposedSkill(): (skill: ProposedSkill) => boolean {
   const addCompetence = useChatSelector((s) => s.addCompetence);
@@ -24,9 +24,9 @@ export function useAddProposedSkill(): (skill: ProposedSkill) => boolean {
   return useCallback(
     (skill: ProposedSkill) => {
       const { name, prompt } = skill;
-      // IDEMPOTENT : une entrée identique (nom + prompt) existe déjà ⇒ l'adoption est
-      // déjà faite — on répond « oui » sans dupliquer. C'est la moitié OPÉRATION du
-      // correctif anti-doublon ; la moitié AFFICHAGE est `useIsProposedSkillAdded`.
+      // IDEMPOTENT: an identical entry (name + prompt) already exists ⇒ the adoption is
+      // already done — we answer "yes" without duplicating. This is the OPERATION half of
+      // the anti-duplicate fix; the DISPLAY half is `useIsProposedSkillAdded`.
       if (findExistingSkill(competences, skill)) return true;
       const desc = skill.desc || undefined;
       const isRoutine = skill.kind === "workflow" || skill.servers.length > 0;
@@ -34,9 +34,9 @@ export function useAddProposedSkill(): (skill: ProposedSkill) => boolean {
         name,
         prompt,
         desc,
-        // Le `kind` du bloc range, il ne crée plus rien d'autre. Une compétence qui
-        // nomme des connecteurs est une routine même si le modèle a tapé l'autre
-        // étiquette — c'est le champ qui décide du comportement, donc du rangement.
+        // The block's `kind` files it, it no longer creates anything else. A compétence
+        // that names connectors is a routine even if the model typed the other
+        // label — it is the field that decides the behaviour, hence the filing.
         cat: isRoutine ? "routine" : skill.cat,
         servers: skill.servers,
       });
@@ -45,8 +45,8 @@ export function useAddProposedSkill(): (skill: ProposedSkill) => boolean {
   );
 }
 
-/** « Cette proposition est-elle DÉJÀ dans la liste ? » — l'état du bouton de la carte,
- *  dérivé des données (survit au remount de la liste virtualisée et au reload). */
+/** "Is this proposal ALREADY in the list?" — the card button's state,
+ *  derived from data (survives the virtualized list's remount and reload). */
 export function useIsProposedSkillAdded(): (skill: ProposedSkill) => boolean {
   const competences = useChatSelector((s) => s.competences);
   return useCallback(

@@ -19,29 +19,29 @@ import type { FakeServer } from "./servers";
 import type { ToolArgs } from "./transcript";
 
 /**
- * Le CYCLE DE VIE de la Mémoire — le niveau au-dessus d'un scénario : une SUITE de
- * conversations (chacune un vrai `runWorkflow`, store réel en jsdom) partageant UNE
- * mémoire qui grandit entre elles, exactement comme dans le produit :
+ * The Mémoire's LIFE CYCLE — the level above a single scenario: a SUITE of
+ * conversations (each a real `runWorkflow`, a real store in jsdom) sharing ONE
+ * memory that grows between them, exactly as in the product:
  *
- *   conversation N  →  extraction (pipeline PUR du produit : gate → prompt wire →
- *   parse → ancrage anti-hallucination via le vault → merge/dédup)  →  la mémoire
- *   enrichie est SEEDÉE dans la conversation N+1 (settings.memoire), où l'injection
- *   (`selectMemory`), le redaction forcé et `memory_search` sont ceux du produit.
+ *   conversation N  →  extraction (the product's PURE pipeline: gate → prompt wire →
+ *   parse → anti-hallucination anchor via the vault → merge/dedup)  →  the
+ *   enriched memory is SEEDED into conversation N+1 (settings.memoire), where the
+ *   injection (`selectMemory`), the forced redaction and `memory_search` are the product's own.
  *
- * En mode MOCK, l'agent est scripté (`phase.mock`) et l'extracteur répond via
- * `phase.extractor(ctx)` — qui écrit ses entités en FAKES (`ctx.fake`), comme le vrai
- * extracteur qui ne voit que le wire. En mode RÉEL, agent ET extracteur sont le même
- * modèle vivant.
+ * In MOCK mode, the agent is scripted (`phase.mock`) and the extractor replies via
+ * `phase.extractor(ctx)` — which writes its entities as FAKES (`ctx.fake`), like the real
+ * extractor that only ever sees the wire. In REAL mode, agent AND extractor are the same
+ * live model.
  */
 
 export interface MemoryPhaseCtx {
-  /** La mémoire APRÈS l'extraction de cette phase. */
+  /** The memory AFTER this phase's extraction. */
   memory: MemoryData;
-  /** Le run de la conversation de cette phase (transcript, gates, vault). */
+  /** This phase's conversation run (transcript, gates, vault). */
   run: WorkflowRun;
-  /** Tous les model:in de la phase, aplatis (system inclus) — le WIRE complet. */
+  /** All of the phase's model:in, flattened (system included) — the FULL wire. */
   wire: string;
-  /** true = modèle vivant (les asserts de COMPTE exact doivent se relâcher). */
+  /** true = live model (EXACT-count asserts must be relaxed). */
   live: boolean;
 }
 
@@ -52,15 +52,15 @@ export interface MemoryPhase {
   servers?: FakeServer[];
   toolResult?: (name: string, args: ToolArgs) => string | undefined;
   approveWrites?: boolean;
-  /** Script agent du mode mock (une conversation = un serveur mock dédié). */
+  /** Mock-mode agent script (one conversation = one dedicated mock server). */
   mock: MockTurn[];
-  /** Réponse scriptée de l'EXTRACTEUR (mode mock) — `ctx.fake(réel)` rend la forme
-   *  wire d'une valeur, comme le vrai extracteur qui répond en fakes. Absent ⇒ rien
-   *  à retenir (`{"profil":null,"faits":[]}`). */
+  /** The EXTRACTOR's scripted reply (mock mode) — `ctx.fake(real)` renders a value's
+   *  wire form, like the real extractor that replies in fakes. Absent ⇒ nothing
+   *  to retain (`{"profil":null,"faits":[]}`). */
   extractor?: (ctx: { wire: string; fake: (real: string) => string }) => string;
-  /** Fait GRANDIR la mémoire avant la phase (bruit de fond, cartes de test). */
+  /** GROWS the memory before the phase (background noise, test cards). */
   growBefore?: (memory: MemoryData) => MemoryData;
-  /** Les asserts de la phase — un throw la fait échouer. */
+  /** The phase's asserts — a throw fails it. */
   expect: (ctx: MemoryPhaseCtx) => void;
 }
 
@@ -69,8 +69,8 @@ export interface MemoryLifeScenario {
   phases: MemoryPhase[];
 }
 
-/** Extraction réelle : un appel modèle PLAIN (system+user), même contrat que le hook
- *  produit (`useMemoryExtraction`) — streaming accumulé, jamais d'exception fatale. */
+/** Real extraction: a PLAIN model call (system+user), the same contract as the
+ *  product's hook (`useMemoryExtraction`) — accumulated streaming, never a fatal exception. */
 async function liveExtract(model: WorkflowModel, system: string, user: string): Promise<string> {
   try {
     const gen = streamChat({
@@ -85,8 +85,8 @@ async function liveExtract(model: WorkflowModel, system: string, user: string): 
       temperature: 0,
     });
     let acc = "";
-    // Borne dure (60 s) : un endpoint qui stalle ne doit pas transformer une phase en
-    // 170 s d'attente — l'extraction rendue partielle/vide vaut « rien appris ».
+    // Hard cap (60s): a stalling endpoint must not turn a phase into a
+    // 170s wait — an extraction rendered partial/empty counts as "nothing learned".
     const deadline = Date.now() + 60_000;
     const timeout = new Promise<{ done: true; value: undefined }>((r) =>
       setTimeout(() => r({ done: true, value: undefined }), 60_000),
@@ -98,13 +98,13 @@ async function liveExtract(model: WorkflowModel, system: string, user: string): 
     }
     return acc;
   } catch {
-    return ""; // extraction ratée = « rien appris », jamais une suite cassée
+    return ""; // failed extraction = "nothing learned", never a broken sequel
   }
 }
 
 export interface MemoryLifeResult {
   memory: MemoryData;
-  /** Une ligne par phase : nom + ✅/message d'échec (la 1re phase rouge jette aussi). */
+  /** One row per phase: name + ✅/failure message (the 1st red phase also throws). */
   rows: { phase: string; ok: boolean; error?: string; ms: number }[];
 }
 
@@ -127,15 +127,15 @@ export async function runMemoryLife(
       ner: phase.ner,
       approveWrites: phase.approveWrites,
       toolResult: phase.toolResult,
-      // La mémoire accumulée est SEEDÉE comme le produit la lirait (settings.memoire) :
-      // l'injection, le forced-redaction et l'offre `memory_search` suivent en vrai.
+      // The accumulated memory is SEEDED the way the product would read it (settings.memoire):
+      // the injection, the forced-redaction and the `memory_search` offer follow for real.
       settings: { memoire: memory },
     });
     let error: string | undefined;
     try {
       for (const p of phase.prompts) await run.send(p);
 
-      // ── Extraction post-conversation : le pipeline PUR du produit, pas une copie ──
+      // ── Post-conversation extraction: the product's PURE pipeline, not a copy ──
       const realText = phase.prompts.join("\n");
       const kinds = Object.fromEntries(Object.entries(phase.ner ?? {}));
       const explicit = isExplicitMemoryAsk(realText);
@@ -147,8 +147,8 @@ export async function runMemoryLife(
           ? await liveExtract(opts.model, system, user)
           : (phase.extractor?.({ wire, fake: (real) => applyVault(real, vault, new Set()) }) ??
             '{"profil":null,"faits":[]}');
-        // Illisible (aucun JSON) ⇒ rien appris — le produit, lui, relance une fois puis
-        // le SIGNALE (`memoryExtractionRun.ts`) ; l'éval mesure la phase telle quelle.
+        // Unreadable (no JSON) ⇒ nothing learned — the product itself retries once then
+        // FLAGS it (`memoryExtractionRun.ts`); the eval measures the phase as-is.
         const parsed = parseExtraction(reply) ?? { facts: [] };
         for (const f of parsed.facts) f.id = memoryId();
         const resolved = resolveExtraction(parsed, vault, realText, { allowNotes: explicit });
@@ -167,8 +167,8 @@ export async function runMemoryLife(
       await run.dispose();
       mockSrv?.close();
     }
-    // Une phase rouge invalide les suivantes (la mémoire attendue n'existe pas) —
-    // en mode soft (éval scorée) on continue quand même pour mesurer chaque phase.
+    // A red phase invalidates the following ones (the expected memory doesn't exist) —
+    // in soft mode (scored eval) we continue anyway to measure each phase.
     if (error && !opts.softFail) throw new Error(`phase « ${phase.name} » : ${error}`);
   }
   return { memory, rows };

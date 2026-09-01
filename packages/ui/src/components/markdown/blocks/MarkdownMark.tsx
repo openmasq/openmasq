@@ -26,18 +26,18 @@ import { useT } from "../../../i18n";
 /** A filename-shaped tail — the viewer needs a FILE, not a directory. */
 const FILE_TAIL_RE = /\.[A-Za-z0-9]{1,8}$/;
 
-/** Un nom de fichier NU (« bilan_2024-1.pdf » sans chemin — la citation la plus courante
- *  dans une réponse) est résolu vers son chemin complet quand le COFFRE de la
- *  conversation en connaît EXACTEMENT UN qui se termine par ce nom : le connecteur l'a
- *  déjà listé, la valeur est sûre. Deux candidats = ambigu, aucune icône (jamais un
- *  choix deviné). Pure, zéro IPC — le coffre est déjà en mémoire. */
+/** A BARE filename (« bilan_2024-1.pdf » with no path — the most common citation
+ *  in a reply) is resolved to its full path when the conversation's COFFRE
+ *  knows EXACTLY ONE that ends with that name: the connector already
+ *  listed it, the value is safe. Two candidates = ambiguous, no icon (never a
+ *  guessed choice). Pure, zero IPC — the coffre is already in memory. */
 function resolveBarePath(real: string, vault?: Record<string, string>): string | null {
-  if (/[\\/]/.test(real)) return real; // déjà un chemin
+  if (/[\\/]/.test(real)) return real; // already a path
   if (!vault) return null;
   let found: string | null = null;
   for (const v of Object.values(vault)) {
     if (!/^([A-Za-z]:[\\/]|[\\/~])/.test(v) || !(v.endsWith(`/${real}`) || v.endsWith(`\\${real}`))) continue;
-    if (found && found !== v) return null; // ambigu
+    if (found && found !== v) return null; // ambiguous
     found = v;
   }
   return found;

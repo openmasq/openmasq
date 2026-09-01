@@ -15,27 +15,27 @@ import { BRAND } from "@openmasq/branding";
 const ANON_KEY = `${BRAND.slug}.analytics.aid`;
 
 /**
- * D'où vient l'id STABLE de la plateforme (bureau : l'`installId` d'`updates.json`, un
- * uuid par machine qui survit à un profil vidé). Une SOURCE, pas une valeur poussée : le
- * sink attend `getAnonId()`, donc rien ne peut partir avant qu'elle ait répondu.
+ * Where the platform's STABLE id comes from (desktop: the `installId` from `updates.json`, a
+ * per-machine uuid that survives a wiped profile). A SOURCE, not a pushed value: the
+ * sink waits on `getAnonId()`, so nothing can go out before it has answered.
  *
- * ⚠️ C'est la correction du 12/08, et la forme compte. L'ancienne version poussait l'id
- * depuis `main.tsx` par un `updates.current().then(adoptStableId).catch(() => {})` en
- * parallèle du démarrage, en pariant que la file d'attente du sink tiendrait plus
- * longtemps que l'aller-retour IPC. Deux façons de perdre ce pari, et elles gravent leur
- * résultat : si la file part la première, ou si `current()` échoue / n'existe pas sur
- * cette plateforme, on frappait un `anon-…` et on le PERSISTAIT — l'install ne pouvait
- * plus jamais devenir stable, puisque l'adoption n'écrase rien. Mesuré dans PostHog :
- * 291 identités `anon-…` contre 46 uuid, et une neuve encore le 12/08.
+ * ⚠️ This is the 12/08 fix, and the shape matters. The old version pushed the id
+ * from `main.tsx` via an `updates.current().then(adoptStableId).catch(() => {})` in
+ * parallel with startup, betting that the sink's queue would hold longer
+ * than the IPC round-trip. There are two ways to lose that bet, and they engrave their
+ * result: if the queue goes first, or if `current()` fails / does not exist on
+ * this platform, it minted an `anon-…` and PERSISTED it — the install could
+ * never become stable again, since adoption overwrites nothing. Measured in PostHog:
+ * 291 `anon-…` identities against 46 uuids, and a new one as recently as 12/08.
  */
 let stableIdSource: (() => Promise<string | undefined>) | null = null;
 
-/** Déclarer la source AVANT le premier événement (voir `main.tsx`). */
+/** Declare the source BEFORE the first event (see `main.tsx`). */
 export function setStableIdSource(fn: () => Promise<string | undefined>): void {
   stableIdSource = fn;
 }
 
-/** Une seule identité par session : la première résolution est mémorisée telle quelle. */
+/** One identity per session: the first resolution is memoized as-is. */
 let pending: Promise<string> | null = null;
 
 const read = (): string | null => {
@@ -49,22 +49,22 @@ const write = (id: string): void => {
   try {
     localStorage.setItem(ANON_KEY, id);
   } catch {
-    /* localStorage indisponible — l'id vaut pour la session */
+    /* localStorage unavailable — the id is valid for the session */
   }
 };
 const randomAnon = (): string =>
   "anon-" + Math.random().toString(36).slice(2) + Date.now().toString(36);
 
 /**
- * L'ordre est la fonctionnalité :
- *  1. un id DÉJÀ posé gagne toujours — la continuité d'une install existante prime, et
- *     c'est ce qui évite de refendre son historique en deux « personnes » ;
- *  2. sinon l'id de la plateforme, persisté : il survit à un localStorage vidé ;
- *  3. sinon un aléatoire — persisté SEULEMENT si cette plateforme n'a pas de source du
- *     tout (mobile, aperçu web : le local est alors le mieux disponible). Une source qui
- *     existe mais a ÉCHOUÉ ne fait rien graver : l'id ne vaut que pour cette session, et
- *     le lancement suivant retentera d'adopter le vrai. Échouer en churn se rattrape,
- *     échouer en gel ne se rattrape pas.
+ * The order IS the feature:
+ *  1. an id ALREADY set always wins — an existing install's continuity comes first, and
+ *     that is what keeps its history from splitting into two "people";
+ *  2. otherwise the platform's id, persisted: it survives a wiped localStorage;
+ *  3. otherwise a random one — persisted ONLY if this platform has no source at
+ *     all (mobile, web preview: the local one is then the best available). A source that
+ *     exists but FAILED writes nothing down: the id is only valid for this session, and
+ *     the next launch will try again to adopt the real one. Failing in churn is recoverable,
+ *     failing in freeze is not.
  */
 async function resolveId(): Promise<string> {
   const stored = read();
@@ -87,21 +87,21 @@ function anonId(): Promise<string> {
 }
 
 /**
- * L'identité PostHog de cette installation — la MÊME résolution que le sink, pas une
- * seconde. Exposée pour UNE raison : l'avis. Une fiche de feedback qui porte cet id se
- * joint aux événements, erreurs et sessions PostHog de l'installation qui l'a envoyée —
- * sans lui, « Impossible d'utiliser mon modèle par défaut » ne se recoupe avec aucune
- * télémétrie et se diagnostique à l'aveugle.
+ * This installation's PostHog identity — the SAME resolution as the sink, not a
+ * second one. Exposed for ONE reason: feedback ("avis"). A feedback report carrying this id
+ * joins the events, errors and PostHog sessions of the installation that sent it —
+ * without it, "Impossible d'utiliser mon modèle par défaut" cross-references no
+ * telemetry at all and gets diagnosed blind.
  *
- * ⚠️ C'est une JONCTION assumée entre deux canaux tenus séparés partout ailleurs :
- * l'analytics est anonyme par construction, l'avis est identifié (jeton vérifié). La
- * jonction n'existe que sur le geste EXPLICITE de l'utilisateur, sous l'interrupteur
- * « contexte technique » de la modale, qui l'annonce. Ne jamais brancher ce getter sur
- * un canal qui part sans geste de l'utilisateur.
+ * ⚠️ This is a deliberate JUNCTION between two channels kept separate everywhere
+ * else: analytics is anonymous by construction, feedback is identified (verified token). The
+ * junction exists only on the user's EXPLICIT gesture, under the modal's
+ * "contexte technique" toggle, which announces it. Never wire this getter to
+ * a channel that fires without a user gesture.
  */
 export const analyticsDistinctId = (): Promise<string> => anonId();
 
-/** Tests uniquement : oublier la résolution mémorisée de cette session. */
+/** Tests only: forget this session's memoized resolution. */
 export function __resetAnalyticsIdForTests(): void {
   pending = null;
   stableIdSource = null;

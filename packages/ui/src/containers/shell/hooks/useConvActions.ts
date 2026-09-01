@@ -36,11 +36,11 @@ export function useConvActions({
 }): ConvActions {
   const dispatch = useAppDispatch();
 
-  // « Nouvelle conversation » ne CRÉE plus rien : elle montre l'accueil du pane
-  // focalisé, et la conversation naît au PREMIER ENVOI (`ChatPane.onSend`, le même
-  // chemin que l'accueil à froid). Créer au clic laissait une « Nouvelle
-  // conversation » vide dans la liste — persistée, synchronisée — à chaque clic
-  // sans suite.
+  // « Nouvelle conversation » no longer CREATES anything: it shows the focused pane's
+  // welcome screen, and the conversation is born on the FIRST SEND (`ChatPane.onSend`, the same
+  // path as the cold welcome). Creating on click used to leave an empty « Nouvelle
+  // conversation » in the list — persisted, synced — on every click
+  // that went nowhere.
   const newChat = () => {
     dispatch(track({ name: "new_chat" }));
     dispatch(showWelcomePane());

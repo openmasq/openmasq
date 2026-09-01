@@ -10,22 +10,22 @@ import type { Conversation, RedactCategoryKey, Settings } from "../types";
 // The categories a web-navigation tool can offer to STOP redacting for the
 // conversation (name/dob/address/location/company — the model-detected "BETA" set
 // whose place/org/person names ARE public web content's substance). Order = display order.
-// ⚠️ DÉRIVÉ du catalogue, jamais recopié (règle 9). Le drapeau `ai` est ce qui affiche
-// le badge « BETA » dans les réglages ET dans la modale de règles ; c'est donc la même
-// liste qui décrit la catégorie à l'utilisateur et qui décide de ce qu'une recherche peut
-// relâcher. Recopiée à la main, elle dérivait en silence : ajouter une catégorie BETA
-// demain la ferait apparaître badgée sans être relâchable — ou l'inverse, ce qui est pire.
+// ⚠️ DERIVED from the catalog, never recopied (rule 9). The `ai` flag is what displays
+// the "BETA" badge in settings AND in the rules modal; it's therefore the same
+// list that describes the category to the user and decides what a search may
+// release. Recopied by hand, it drifted silently: adding a BETA category
+// tomorrow would make it appear badged without being releasable — or the reverse, which is worse.
 export const WEBNAV_OFFER_KEYS: RedactCategoryKey[] = REDACTION_CATEGORIES.filter(
   (c) => c.ai,
 ).map((c) => c.key as RedactCategoryKey);
 
 /**
- * ⚠️ Cette liste EST ce que le niveau « Standard » laisse lisible — pas par coïncidence
- * mais par construction : `privacy/privacyLevel.ts` dérive ses `BETA_KEYS` du MÊME drapeau
- * `ai` du même catalogue. C'est ce qui autorise la carte à proposer un NIVEAU (« passer en
- * Standard pour ce message ») au lieu d'énumérer cinq types : les deux phrases décrivent
- * le même ensemble, et aucune ne peut dériver de l'autre. Épinglé par
- * `webNavReveal.test.ts` — un commentaire ne peut pas échouer en CI (règle 9).
+ * ⚠️ This list IS what the « Standard » level leaves readable — not by coincidence
+ * but by construction: `privacy/privacyLevel.ts` derives its `BETA_KEYS` from the SAME
+ * `ai` flag of the same catalog. That's what lets the card offer a LEVEL ("switch to
+ * Standard for this message") instead of enumerating five types: the two phrasings describe
+ * the same set, and neither can drift from the other. Pinned by
+ * `webNavReveal.test.ts` — a comment can't fail in CI (rule 9).
  */
 
 /**

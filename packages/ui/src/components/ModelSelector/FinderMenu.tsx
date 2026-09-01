@@ -42,13 +42,13 @@ export function FinderMenu({
   value: string;
   available: ModelInfo[];
   unavailableModels?: ReadonlyMap<string, UnavailableReason>;
-  /** Favoris de l'utilisateur — l'étoile de chaque ligne les reflète. */
+  /** The user's favorites — each row's star reflects them. */
   favorites?: readonly string[];
-  /** Épingler/retirer un modèle. Absent ⇒ pas d'étoile. */
+  /** Pin/remove a model. Absent ⇒ no star. */
   onToggleFavorite?: (id: string) => void;
-  /** Le modèle par défaut des nouvelles conversations, marqué d'une maison pleine. */
+  /** The default model for new conversations, marked with a filled house. */
   defaultModelId?: string;
-  /** En faire le modèle par défaut. Absent ⇒ pas de marqueur maison. */
+  /** Make it the default model. Absent ⇒ no house marker. */
   onSetDefault?: (id: string) => void;
   /** Fixed-viewport placement (left/width/maxHeight + top OR bottom), measured by the
    *  caller so the menu clamps to the screen and flips above/below where there's room. */
@@ -59,8 +59,8 @@ export function FinderMenu({
   onAccessInfo?: (focus: "free" | "credits" | "key", providerLabel?: string) => void;
   /** Open Réglages → Modèles (keys, default model) — closes the menu first. */
   onOpenSettings?: () => void;
-  /** Repasser en vue SIMPLIFIÉE. Le menu reste ouvert — la bascule doit se faire dans
-   *  les deux sens au même coût, sinon la vue courte est un aller sans retour. */
+  /** Switch back to the SIMPLIFIED view. The menu stays open — the toggle must work in
+   *  both directions at the same cost, or the short view is a one-way trip. */
   onSimplify?: () => void;
 }) {
   const t = useT();
@@ -70,8 +70,8 @@ export function FinderMenu({
     selProvider, selFamily, focusId, setFocusId, col, setCol,
     inputRef, focusRef, reasonOf, pickProvider, pickFamily, choose, onKeyDown,
   } = useFinderNav({ value, available, unavailableModels, onChoose, onClose });
-  // Défaut catalogue affiché tout étoilé quand vide — cohérent avec le menu simplifié
-  // et avec `toggleFavoriteModel` qui matérialise ce même défaut au premier geste.
+  // Default catalogue shown fully starred when empty — consistent with the simplified
+  // menu and with `toggleFavoriteModel`, which materializes this same default on the first gesture.
   const favSet = favoriteSet(favorites);
 
   return (

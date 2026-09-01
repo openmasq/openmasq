@@ -2,21 +2,21 @@ import type { Attachment } from "./Composer";
 import type { ExtractedFile } from "../../host";
 import type { DeferredFile } from "../../state/deferredFile";
 
-/** Ce que `ChatView` sait faire et que ce module ne sait pas : poser, corriger, enchaîner. */
+/** What `ChatView` knows how to do and this module doesn't: setting, fixing, chaining. */
 export interface DeferredAttachDeps {
-  /** Met le chip en scène — c'est `ChatView` qui choisit entre l'état local et le magasin. */
+  /** Stages the chip — it's `ChatView` that chooses between local state and the store. */
   stage(files: Attachment[], forConvId?: string): void;
-  /** Corrige un chip DÉJÀ posé, du même côté que `stage` l'a mis. */
+  /** Fixes a chip ALREADY set, on the same side `stage` put it on. */
   patch(cid: string, patch: Partial<Attachment>, forConvId?: string): void;
-  /** Le nombre de valeurs que la passe regex voit — le compteur 🛡 du chip. */
+  /** The number of values the regex pass sees — the chip's 🛡 counter. */
   countMatches(text: string): number;
-  /** Journal OCR + départ du redaction, une fois le contenu là. */
+  /** OCR log + start of redaction, once the content is there. */
   onExtracted(file: ExtractedFile, attachment: Attachment): void;
-  /** Un identifiant de chip. Injecté par le TEST seulement, pour être déterministe. */
+  /** A chip identifier. Injected by the TEST only, to be deterministic. */
   newCid?(): string;
 }
 
-/** Le chip tel qu'il paraît AVANT d'avoir son contenu : nommé, et déjà en travail. */
+/** The chip as it appears BEFORE having its content: named, and already at work. */
 export function placeholderFor(d: DeferredFile, cid: string): Attachment {
   return {
     name: d.name,
@@ -31,14 +31,14 @@ export function placeholderFor(d: DeferredFile, cid: string): Attachment {
 }
 
 /**
- * Poser le chip TOUT DE SUITE, puis le remplir.
+ * Set the chip RIGHT AWAY, then fill it in.
  *
- * L'ordre est tout : `stage` avant le premier `await`, sinon on revient au comportement
- * qu'on corrige — l'utilisateur clique et rien ne bouge pendant l'OCR.
+ * The order is everything: `stage` before the first `await`, otherwise we're back to the
+ * behavior being fixed — the user clicks and nothing moves during OCR.
  *
- * ⚠️ **Un échec laisse le chip, marqué.** Le retirer serait plus propre à l'œil et
- * malhonnête : le fichier a bien été demandé, et un chip fautif se réessaie (`retryAttachment`)
- * là où une disparition ne laisse rien à faire, ni rien à comprendre.
+ * ⚠️ **A failure leaves the chip, marked.** Removing it would be cleaner on the eye and
+ * dishonest: the file really was requested, and a faulty chip can be retried (`retryAttachment`)
+ * where a disappearance leaves nothing to do, and nothing to understand.
  */
 export async function stageDeferredFile(
   d: DeferredFile,
@@ -49,8 +49,8 @@ export async function stageDeferredFile(
   deps.stage([ph], forConvId);
   let file: ExtractedFile;
   try {
-    // La progression OCR corrige le chip page par page ; une source qui n'en émet pas
-    // laisse la barre indéterminée (le paramètre est ignoré sans dommage).
+    // OCR progress fixes the chip page by page; a source that emits none
+    // leaves the bar indeterminate (the parameter is ignored harmlessly).
     file = await d.load((p) => deps.patch(ph.cid, { extractProgress: p }, forConvId));
   } catch {
     deps.patch(ph.cid, { extracting: false, error: "extraction échouée" }, forConvId);
@@ -59,8 +59,8 @@ export async function stageDeferredFile(
   const redactPreview = deps.countMatches(file.text);
   deps.patch(
     ph.cid,
-    // `extracting` tombe et `redacting` prend le relais dans le MÊME correctif : deux
-    // correctifs laissaient le chip une frame sans état, ce qui se lit comme un échec.
+    // `extracting` drops and `redacting` takes over in the SAME patch: two
+    // patches left the chip in a stateless frame, which reads as a failure.
     { ...file, extracting: false, extractProgress: undefined, redactPreview, redacting: !!file.text.trim() },
     forConvId,
   );

@@ -65,9 +65,9 @@ describe("splitHighlight", () => {
 });
 
 /**
- * UNE note par version. Le point d'accès en renvoie plusieurs pour une même version (une
- * note d'accueil et la vraie), de la plus récente à la plus ancienne — l'historique de
- * l'aide affichait donc « 0.4.1 » deux fois de suite, ce qui se lit comme un bug de l'app.
+ * ONE note per version. The endpoint returns several for the same version (a
+ * welcome note and the real one), from most recent to oldest — the help
+ * history therefore showed « 0.4.1 » twice in a row, which reads as an app bug.
  */
 describe("latestPerVersion", () => {
   const note = (version: string, title: string) => ({ version, title, releaseDate: null, body: "", highlights: [] });

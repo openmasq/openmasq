@@ -19,7 +19,7 @@ interface Props {
   onChange: (modelId: string) => void;
   disabled?: boolean;
   /** Org-disallowed model ids — hidden from the picker (the send also blocks them). */
-  /** Allow-list de l'organisation ; `undefined` = compte solo, tout est offert. */
+  /** The organization's allow-list; `undefined` = solo account, everything is offered. */
   allowedModelIds?: string[];
   /** Model id → why it can't send (`store.unavailableModels`). A row carries its
    *  reason as a chip/tooltip; only a HARD reason (`pickerBlocks` — nothing to call)
@@ -30,22 +30,22 @@ interface Props {
   onAccessInfo?: (focus: "free" | "credits" | "key", providerLabel?: string) => void;
   /** Open Réglages → Modèles from the finder's gear. */
   onOpenModelSettings?: () => void;
-  /** Vue SIMPLIFIÉE (`Settings.modelPickerSimple`) : une liste courte de favoris au lieu
-   *  du navigateur à colonnes. Le réglage n'agit que sur ce que le menu MONTRE — il ne
-   *  change jamais le modèle sélectionné. */
+  /** SIMPLIFIED view (`Settings.modelPickerSimple`): a short list of favorites instead
+   *  of the column browser. The setting only acts on what the menu SHOWS — it never
+   *  changes the selected model. */
   simple?: boolean;
-  /** Bascule persistée entre les deux vues, depuis le menu lui-même. Absente ⇒ le menu
-   *  n'offre pas la bascule (la vue reste celle que le parent impose). */
+  /** Persisted toggle between the two views, from the menu itself. Absent ⇒ the menu
+   *  doesn't offer the toggle (the view stays whatever the parent imposes). */
   onSimpleChange?: (simple: boolean) => void;
-  /** Les modèles FAVORIS de l'utilisateur (`Settings.favoriteModels`) — la liste courte.
-   *  Vide/absent ⇒ le défaut gouvernable du catalogue. */
+  /** The user's FAVORITE models (`Settings.favoriteModels`) — the short list.
+   *  Empty/absent ⇒ the catalogue's governable default. */
   favoriteModels?: string[];
-  /** Épingler/retirer un modèle des favoris. Absente ⇒ aucune étoile (aperçu web, tests). */
+  /** Pin/remove a model from favorites. Absent ⇒ no star (web preview, tests). */
   onToggleFavorite?: (id: string) => void;
-  /** Le modèle par défaut des nouvelles conversations (`Settings.defaultModelId`) —
-   *  marqué d'une maison pleine dans le menu. */
+  /** The default model for new conversations (`Settings.defaultModelId`) —
+   *  marked with a filled house in the menu. */
   defaultModelId?: string;
-  /** En faire le modèle par défaut, depuis le menu. Absente ⇒ pas de marqueur maison. */
+  /** Make it the default model, from the menu. Absent ⇒ no house marker. */
   onSetDefault?: (id: string) => void;
 }
 
@@ -63,14 +63,14 @@ export function ModelSelector({ value, onChange, disabled, allowedModelIds, unav
   // clamp to the viewport and flip the menu DOWN when there's little room above (the
   // startup/empty screen centres the composer, leaving scant space over it).
   const [pos, setPos] = useState<MenuPos | null>(null);
-  // Le mode AUTO n'est pas un id du registre : la puce porte alors son propre glyphe et
-  // « Auto » — jamais le repli `ALL_MODELS[0]`, qui afficherait un modèle que rien n'a choisi.
+  // AUTO mode isn't a registry id: the chip then wears its own glyph and
+  // « Auto » — never the `ALL_MODELS[0]` fallback, which would show a model nothing chose.
   const auto = isAutoModelId(value);
   const current = findModelAny(value) ?? ALL_MODELS[0];
-  // Ce que ce compte peut RÉELLEMENT envoyer (abonnement, clés, gratuits) — plus le
-  // modèle COURANT, qui reste listé même si sa clé vient d'être retirée, sinon la
-  // conversation afficherait un choix absent de sa propre liste. `visibleModels` est
-  // le seul endroit qui décide de masquer (`send/modelAvailability.ts`).
+  // What this account can ACTUALLY send with (subscription, keys, free tiers) — plus the
+  // CURRENT model, which stays listed even if its key was just removed, otherwise the
+  // conversation would show a choice absent from its own list. `visibleModels` is
+  // the only place that decides to hide (`send/modelAvailability.ts`).
   const available = useMemo(
     () => visibleModels(selectableModels(allowedModelIds), unavailableModels, value),
     [allowedModelIds, unavailableModels, value],
@@ -171,8 +171,8 @@ export function ModelSelector({ value, onChange, disabled, allowedModelIds, unav
                       }
                     : undefined
                 }
-                // La bascule ne FERME pas le menu : on vient de demander à voir plus,
-                // pas à partir. Le Finder se monte à la place, au même endroit.
+                // The toggle does NOT close the menu: we just asked to see more,
+                // not to leave. The Finder mounts in its place, in the same spot.
                 onShowAll={() => onSimpleChange(false)}
               />
             ) : (

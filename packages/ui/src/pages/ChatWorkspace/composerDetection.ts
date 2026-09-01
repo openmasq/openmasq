@@ -67,8 +67,8 @@ export function buildDetection(text: string, cats: Cat[]): { items: Item[]; rang
   const ranges: Detected[] = [];
   const items: Item[] = [];
   const seen = new Set<string>();
-  /** Chaque valeur retenue avec SES occurrences — l'imbrication se juge après la boucle,
-   *  quand on connaît les spans de tout le monde. */
+  /** Each retained value with ITS occurrences — nesting is judged after the loop,
+   *  once everyone's spans are known. */
   const found: { item: Item; mine: Detected[] }[] = [];
   for (const { value, cat, uncertain } of cats) {
     if (!value) continue;
@@ -76,10 +76,10 @@ export function buildDetection(text: string, cats: Cat[]): { items: Item[]; rang
     // ONE chip per entity IDENTITY (all spelling variants share a chip), else per value.
     // First `cat` wins the dedup — forced entries are merged FIRST by the composer and
     // the regex layer before the model layer, so a value any SURE source claims can
-    // never end up wearing the model layer's « à vérifier » state. ⚠️ La catégorie ne
-    // fait PAS partie de la clé : un terme du Coffre (pseudo) que la couche modèle
-    // reclasse « company » est le MÊME terme — deux pastilles de deux teintes au-dessus
-    // d'un seul faux alloué, c'est l'aperçu qui ment (le fil, value-keyed, tient l'unité).
+    // never end up wearing the model layer's « à vérifier » state. ⚠️ The category is NOT
+    // part of the key: a Coffre term (alias) that the model layer
+    // reclassifies as "company" is the SAME term — two chips of two different hues over
+    // a single allocated fake would be the aperçu lying (the thread, value-keyed, holds the unity).
     const key = isEntity ? `e|${entityKey(value)}` : value;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -105,8 +105,8 @@ export function buildDetection(text: string, cats: Cat[]): { items: Item[]; rang
     if (mine.length === 0) continue;
     found.push({ item: { value, hue, kind: cat, uncertain }, mine });
   }
-  // Une valeur imbriquée dans une autre ne fait pas sa propre pastille : `composerNesting.ts`
-  // (le pourquoi y est, avec sa mesure).
+  // A value nested inside another doesn't get its own chip: `composerNesting.ts`
+  // (the why is there, with its measurement).
   for (const { item, mine } of dropNested(found)) {
     items.push(item);
     ranges.push(...mine);
@@ -184,32 +184,32 @@ export function splitDetected(text: string, ranges: Detected[], keep: Set<string
 }
 
 /**
- * Ce que le composeur doit AFFICHER de son propre état d'analyse.
+ * What the composer must DISPLAY of its own analysis state.
  *
- * L'aperçu a deux couches : les règles déterministes, synchrones, puis le NER qui arrive
- * ~1 s plus tard. C'est la surface qui sert à FAIRE CONFIANCE, donc elle n'a pas le droit
- * d'annoncer un compte qu'elle n'a pas fini de calculer : tant qu'une couche travaille,
- * elle se tait — « 2 à redact » à mi-analyse se lit comme un total.
+ * The aperçu has two layers: the deterministic, synchronous rules, then the NER that arrives
+ * ~1s later. It's the surface that serves to BUILD TRUST, so it has no right
+ * to announce a count it hasn't finished computing: as long as a layer is working,
+ * it stays silent — "2 à redact" mid-analysis reads as a total.
  *
- * ⚠️ Ce silence n'est PAS un vide : `detecting` est exactement la fenêtre pendant laquelle
- * le bouton d'envoi affiche « Redaction » (spinner, envoi bloqué). Le travail en cours
- * reste donc visible — c'est ce bouton, et lui seul, qui le montre. Rendre cette pastille
- * bavarde à nouveau ferait deux indicateurs pour un seul état.
+ * ⚠️ This silence is NOT emptiness: `detecting` is exactly the window during which
+ * the send button shows "Redaction" (spinner, send blocked). The work in progress
+ * therefore stays visible — it's this button, and only this button, that shows it. Making this
+ * badge talkative again would give two indicators for a single state.
  */
 export type PreviewStatus =
   | { kind: "count"; label: string; partial?: boolean; hint?: string }
   | { kind: "none" };
 
 /**
- * ⚠️ **`partial` distingue FINI d'ABANDONNÉ, et c'est tout l'objet du garde ci-dessus.**
- * La couche 2 (sémantique) est bornée dans le temps ; quand elle rend les armes sur un
- * document long, `detecting` retombe à faux et le compte des RÈGLES SEULES s'affichait
- * comme un total. Mesuré le 15/08 : 41 872 caractères ⇒ « 321 à redact », soit
- * exactement les e-mails + téléphones + le SIREN — pendant que l'adresse du cabinet et
- * les noms de personnes, détectés sur le même texte en court, manquaient à l'appel.
- * Ce n'est pas une fuite (l'envoi ré-analyse tout et fail-close), mais l'utilisateur
- * validait un chiffre ferme sur la seule surface où il vérifie, et justement sur les
- * documents qu'il ne peut pas relire lui-même.
+ * ⚠️ **`partial` distinguishes FINISHED from ABANDONED, and that's the whole point of the guard above.**
+ * Layer 2 (semantic) is time-bounded; when it gives up on a
+ * long document, `detecting` falls back to false and the RULES-ONLY count used to display
+ * as a total. Measured on 15/08: 41 872 characters ⇒ "321 à redact", which was
+ * exactly the emails + phone numbers + the SIREN — while the firm's address and
+ * people's names, detected on the same text when short, were missing from the count.
+ * It isn't a leak (the send re-analyzes everything and fails closed), but the user
+ * was validating a firm number on the one surface where they verify, and precisely on the
+ * documents they can't re-read themselves.
  */
 export function previewStatus(
   detecting: boolean,
@@ -219,8 +219,8 @@ export function previewStatus(
   partial = false,
 ): PreviewStatus {
   if (!hasText || detecting) return { kind: "none" };
-  // Abandon SANS aucune détection : « au moins 0 » ne veut rien dire, et se taire
-  // laisserait croire « rien à redact » sur un document qu'on n'a pas fini de lire.
+  // Abandonment with NO detection at all: "at least 0" means nothing, and staying silent
+  // would suggest "nothing to redact" on a document that hasn't finished being read.
   if (count === 0)
     return partial
       ? {
@@ -265,13 +265,13 @@ export function makeToggleKeep(
 }
 
 /**
- * Les valeurs sensibles du PROMPT d'une compétence MISE EN SCÈNE — le brouillon reste
- * vide (la compétence est une entité, `ChatView` la stage), mais son prompt part dans
- * `modelText` et SERA redacted : sans cette source, le compteur sous-promettait —
- * « 1 à redact » annoncé quand 8 partaient masqués (constat 15/08, parcours G). Or
- * une compétence est précisément là où s'accumulent les coordonnées de cabinet qu'on
- * réutilise à chaque envoi sans les relire. Regex seule, synchrone — le prompt est
- * STATIQUE tant que la compétence est en scène, aucun debounce à payer.
+ * The sensitive values in a STAGED compétence's PROMPT — the draft stays
+ * empty (the compétence is an entity, `ChatView` stages it), but its prompt goes out in
+ * `modelText` and WILL be redacted: without this source, the counter used to under-promise —
+ * "1 à redact" announced when 8 went out masked (found 15/08, path G). And
+ * a compétence is precisely where the firm's contact details accumulate, ones you
+ * reuse on every send without re-reading them. Regex only, synchronous — the prompt is
+ * STATIC as long as the compétence is staged, no debounce to pay.
  */
 export function competencePromptCats(
   preview: string | undefined,
@@ -280,10 +280,10 @@ export function competencePromptCats(
   return preview?.trim() ? detectRegex(preview, disabledKinds) : [];
 }
 
-/** Combien la compétence AJOUTE au compteur : ses valeurs distinctes, déduites de
- *  celles que le brouillon compte déjà (une même personne dans les deux ne fait pas
- *  deux). Les chips restent ceux du brouillon — une valeur du prompt ne s'y révèle
- *  pas, elle s'édite dans la compétence. */
+/** How much the compétence ADDS to the counter: its distinct values, deduplicated
+ *  against what the draft already counts (the same person in both doesn't count
+ *  twice). The chips stay the draft's own — a value from the prompt isn't revealed
+ *  there, it's edited in the compétence. */
 export function competenceExtraCount(items: Item[], compCats: Cat[]): number {
   const counted = new Set(items.map((i) => i.value.toLowerCase()));
   const extra = new Set<string>();

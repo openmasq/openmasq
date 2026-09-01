@@ -1,5 +1,5 @@
 /**
- * MODÈLES DE DÉPART — the starter templates the two authoring modals offer
+ * STARTING TEMPLATES — the starter templates the two authoring modals offer
  * (Compétences and Workflows). One home for both, because the two lists are
  * siblings and the picking rules must not drift (root rule 9): a template is
  * only ever a PREFILL of the create form, never something the app installs by

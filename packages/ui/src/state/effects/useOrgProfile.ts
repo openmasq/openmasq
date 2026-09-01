@@ -5,10 +5,10 @@ import { orgProfileKeyFor } from "../orgProfileCache";
 /**
  * Loads the member's org authorization (extracted from `store.ts`, rule 1).
  * Refreshed on sign-in/out, retried with backoff on failure, and reloaded on
- * WINDOW FOCUS (throttled) : créer ou rejoindre une organisation passe par la
- * console WEB, donc le moment exact où l'adhésion existe est le retour dans
- * l'app — sans ce déclencheur, la carte « Créer une organisation » survivait à
- * l'adhésion jusqu'au redémarrage.
+ * WINDOW FOCUS (throttled): creating or joining an organization goes through the
+ * web console, so the exact moment the membership exists is the return to the
+ * app — without this trigger, the « Créer une organisation » card would survive
+ * the membership until restart.
  *
  * ⚠️ A FAILED fetch means "we don't know", NOT "this user is solo". It used to
  * `setOrgProfile(null)`, which silently downgraded a member to an unmanaged
@@ -26,13 +26,13 @@ export function useOrgProfile({
   host: Host;
   setOrgProfile: Dispatch<SetStateAction<OrgProfileInfo | null>>;
   storageUidRef: MutableRefObject<string | null | undefined>;
-  /** The RESOLVED account (undefined = not yet). A dep on purpose : l'effet
-   *  d'ADOPTION de compte sème le profil depuis le cache du compte — qui peut
-   *  être VIDE (membre tout neuf) — et ce seed écrasait un profil que le
-   *  premier fetch venait de poser, sans que rien ne re-fetch avant un focus.
-   *  En re-déclenchant le chargement au même commit que l'adoption, le fetch
-   *  repart et REMPLACE le seed en se résolvant (le serveur est le seul
-   *  écrivain) ; un changement de compte rapide est couvert par `alive`. */
+  /** The RESOLVED account (undefined = not yet). A dep on purpose: the account
+   *  ADOPTION effect seeds the profile from the account's cache — which can
+   *  be EMPTY (a brand new member) — and this seed used to overwrite a profile the
+   *  first fetch had just set, with nothing re-fetching before a focus.
+   *  By re-triggering the load in the same commit as the adoption, the fetch
+   *  restarts and REPLACES the seed as it resolves (the server is the only
+   *  writer); a fast account switch is covered by `alive`. */
   userId: string | null | undefined;
 }): void {
   useEffect(() => {

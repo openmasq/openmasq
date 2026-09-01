@@ -9,11 +9,11 @@ const conv = (over: Partial<Conversation>): Conversation =>
   ({ id: "c1", title: "", modelId: "m", messages: [], createdAt: 0, updatedAt: 0, ...over }) as Conversation;
 
 /**
- * Le coffre RÉEL que le moteur produit pour « … pour Claire Berliand, jointe à
+ * The REAL vault the engine produces for « … pour Claire Berliand, jointe à
  * claire.berliand@atelier-fervoie.fr ou au 06 83 57 41 92 ? Le virement doit partir vers
- * FR76 3000 6000 0112 3456 7890 189. » — relevé sur `pseudonymize`, pas inventé.
- * QUATRE informations, NEUF entrées : le nom y est aussi mot par mot et en deux casses,
- * l'adresse y laisse son domaine.
+ * FR76 3000 6000 0112 3456 7890 189. » — taken from `pseudonymize`, not invented.
+ * FOUR pieces of information, NINE entries: the name also appears word by word and in two cases,
+ * the address leaves its domain exposed.
  */
 const VAULT_REEL = {
   "gwenola.grandjean@orange.fr": "claire.berliand@atelier-fervoie.fr",
@@ -35,8 +35,8 @@ const KINDS = {
 };
 
 describe("un élément protégé = une VALEUR, pas une entrée de coffre", () => {
-  // Le défaut que ceci ferme : l'app annonçait « 9 informations protégées » au-dessus
-  // d'un comparatif qui n'en montrait que 4 — le chiffre contredisait sa propre preuve.
+  // The bug this closes: the app announced « 9 informations protégées » above
+  // a comparison that showed only 4 — the number contradicted its own proof.
   it("replie les alias du coffre (mots d'un nom, casses, domaine d'une adresse)", () => {
     const c = conv({ redactionVault: VAULT_REEL, redactionKinds: KINDS });
     expect(vaultEntries(c)).toHaveLength(9);
@@ -51,9 +51,9 @@ describe("un élément protégé = une VALEUR, pas une entrée de coffre", () =>
     );
   });
 
-  // ⚠️ Le piège du repli : « Claire Berliand » EST contenu dans « claire.berliand@… ».
-  // Un simple test de fragment ferait disparaître le nom derrière l'adresse — deux
-  // informations, pas une.
+  // ⚠️ The folding trap: « Claire Berliand » IS contained in « claire.berliand@… ».
+  // A simple fragment test would make the name disappear behind the address — two
+  // pieces of information, not one.
   it("ne replie JAMAIS une valeur reconnue dans une autre qui la contient", () => {
     const c = conv({ redactionVault: VAULT_REEL, redactionKinds: KINDS });
     const reals = protectedEntries(c).map(([, real]) => real);
@@ -61,8 +61,8 @@ describe("un élément protégé = une VALEUR, pas une entrée de coffre", () =>
     expect(reals).toContain("claire.berliand@atelier-fervoie.fr");
   });
 
-  // Les `redactedSpans` d'un message disent aussi ce qui est canonique — une conversation
-  // dont le `redactionKinds` n'a pas encore été persisté doit compter pareil.
+  // A message's `redactedSpans` also state what is canonical — a conversation
+  // whose `redactionKinds` hasn't been persisted yet must count the same way.
   it("lit aussi les `redactedSpans` des messages", () => {
     const c = conv({
       redactionVault: VAULT_REEL,
@@ -75,8 +75,8 @@ describe("un élément protégé = une VALEUR, pas une entrée de coffre", () =>
     expect(conversationProtectedCount(c)).toBe(4);
   });
 
-  // On ne DEVINE pas : sans rien de canonique (conversation d'avant `redactionKinds`),
-  // le coffre est rendu tel quel — jamais un sous-compte inventé.
+  // We don't GUESS: with nothing canonical (a conversation predating `redactionKinds`),
+  // the vault is returned as-is — never an invented sub-count.
   it("rend le coffre entier quand rien n'est reconnu", () => {
     expect(conversationProtectedCount(conv({ redactionVault: VAULT_REEL }))).toBe(9);
   });

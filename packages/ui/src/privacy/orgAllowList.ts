@@ -1,27 +1,27 @@
 import { connectorIdFromInstance } from "@openmasq/catalog/mcp";
 
 /**
- * La décision « cette organisation autorise-t-elle ce connecteur ? », en UN endroit.
+ * The "does this organization allow this connector?" decision, in ONE place.
  *
- * Elle vit ici et pas dans l'agent ni dans les réglages parce que les DEUX la prenaient,
- * chacun avec sa propre normalisation d'identifiant — et elles avaient déjà divergé :
- * les réglages ne connaissaient pas les instances multi-comptes (`gmail--a1b2`), donc un
- * connecteur refusé restait déverrouillé dès qu'il portait un second compte. Un
- * comportement copié « pour garder la même forme » est le même bug avec plus de surface
- * (règle 9) : le point de variation légitime est ce qu'on FAIT du refus, pas comment on
- * le calcule.
+ * It lives here and not in the agent nor in settings because BOTH used to make it,
+ * each with its own identifier normalization — and they had already diverged:
+ * settings did not know about multi-account instances (`gmail--a1b2`), so a
+ * refused connector stayed unlocked as soon as it carried a second account. A
+ * behaviour copied "to keep the same shape" is the same bug with more surface
+ * (rule 9): the legitimate point of variation is what you DO with a refusal, not how
+ * you compute it.
  *
- * ⚠️ Sémantique de liste d'AUTORISATION, et les deux absences ne disent pas la même
- * chose : `undefined` = pas d'organisation (compte solo, tout est permis) ; `[]` = compte
- * géré dont l'organisation n'a encore rien ouvert, donc RIEN n'est permis. Lire les deux
- * pareil transforme l'allow-list en liste de refus, ce que la règle 7 interdit.
+ * ⚠️ ALLOW-list semantics, and the two absences don't say the same
+ * thing: `undefined` = no organization (solo account, everything is permitted); `[]` = a
+ * managed account whose organization has not opened anything yet, so NOTHING is permitted. Reading the two
+ * the same way turns the allow-list into a deny-list, which rule 7 forbids.
  */
 export function isConnectorAllowed(id: string | undefined, allowedIds: string[] | undefined): boolean {
-  if (!allowedIds) return true; // pas d'organisation
-  if (!id) return false; // un identifiant inconnu ne s'autorise pas
+  if (!allowedIds) return true; // no organization
+  if (!id) return false; // an unknown identifier is never allowed
   const allowed = new Set(allowedIds);
-  // Un serveur vivant s'annonce `broker-<id>` / `local-<id>` ; une instance
-  // multi-comptes `<id>--<hash>`. La politique, elle, est écrite en ids de catalogue.
+  // A live server announces itself as `broker-<id>` / `local-<id>`; a
+  // multi-account instance as `<id>--<hash>`. The policy itself is written in catalogue ids.
   const bare = id.replace(/^(broker|local)-/, "");
   return (
     allowed.has(id) ||
@@ -31,7 +31,7 @@ export function isConnectorAllowed(id: string | undefined, allowedIds: string[] 
   );
 }
 
-/** Le miroir pour les modèles. Même distinction absent/vide, même raison. */
+/** The mirror for models. Same absent/empty distinction, same reason. */
 export function isModelAllowed(id: string | undefined, allowedIds: string[] | undefined): boolean {
   if (!allowedIds) return true;
   return !!id && allowedIds.includes(id);

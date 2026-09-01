@@ -5,28 +5,28 @@ import { CheckIcon } from "../../components/brand";
 import { providerKeyHelp, providerKeyIssue } from "../../containers/modals/providerKeyHelp";
 
 /**
- * « Où trouver votre clé », puis le champ où la coller — la moitié manuelle de l'étape
- * d'accès du premier lancement.
+ * "Où trouver votre clé", then the field to paste it in — the manual half of the first-launch
+ * access step.
  *
- * Trois choses qu'une ligne « votre clé se crée sur X » ne fait pas, et que cet écran
- * doit faire parce qu'on n'y passe qu'une fois :
+ * Three things a "your key is created on X" line doesn't do, and that this screen
+ * must do because you go through it only once:
  *
- * - **Les étapes sont une CHECKLIST cochable**, toutes visibles. Le coût ici n'est pas
- *   la lecture : c'est qu'on QUITTE l'app plusieurs fois (console du fournisseur, page
- *   des clés, création) et qu'on revient sans savoir où l'on en était. La coche est le
- *   marque-page. Même geste, mêmes classes que la connexion d'un connecteur MCP
- *   (`Settings/byo/ByoKeysModal.tsx`) — un seul foyer pour cette forme.
- * - **La valeur est jugée au collage** (`providerKeyIssue`), là où le mauvais copier-
- *   coller se répare en trois secondes, plutôt qu'au premier envoi sous la forme d'une
- *   erreur du fournisseur qui ne nomme pas sa cause. Le verdict n'empêche jamais
- *   d'enregistrer : voir le pourquoi dans `providerKeyHelp.ts`.
- * - **Le lien officiel est celui du registre**, jamais une adresse retapée ici.
+ * - **The steps are a checkable CHECKLIST**, all visible. The cost here isn't
+ *   reading: it's that you LEAVE the app several times (the provider's console, the
+ *   keys page, creation) and come back not knowing where you were. The tick is the
+ *   bookmark. Same action, same classes as connecting an MCP connector
+ *   (`Settings/byo/ByoKeysModal.tsx`) — one single home for this shape.
+ * - **The value is judged at paste time** (`providerKeyIssue`), where a bad copy-
+ *   paste is fixed in three seconds, rather than on the first send as a
+ *   provider error that doesn't name its cause. The verdict never blocks
+ *   saving: see why in `providerKeyHelp.ts`.
+ * - **The official link is the registry's**, never an address retyped here.
  *
- * Les étapes, le placeholder, la note et le lien viennent tous de `PROVIDER_KEY_HELP`
- * (règle 9) : un fournisseur non documenté dégrade en champ simple, il ne disparaît pas.
+ * The steps, the placeholder, the note and the link all come from `PROVIDER_KEY_HELP`
+ * (rule 9): an undocumented provider degrades to a plain field, it doesn't disappear.
  *
- * Les coches sont l'état d'UN fournisseur : le parent monte ce composant avec
- * `key={provider}`, donc changer de fournisseur repart d'une liste vierge.
+ * The ticks are the state of ONE provider: the parent mounts this component with
+ * `key={provider}`, so switching provider starts over from a blank list.
  */
 export function KeySteps({
   provider,
@@ -34,8 +34,8 @@ export function KeySteps({
   saving,
 }: {
   provider: ProviderId;
-  /** Enregistre la clé. Résout `true` quand elle est bien posée — le champ ne se vide
-   *  qu'à ce moment-là, sinon un échec effacerait ce qu'il faut réessayer. */
+  /** Saves the key. Resolves `true` when it's actually set — the field only clears
+   *  at that point, otherwise a failure would erase what needs to be retried. */
   onSave: (value: string) => Promise<boolean>;
   saving: boolean;
 }) {

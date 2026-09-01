@@ -5,9 +5,9 @@
    previews, theme) plus the two warm-ups and the connected-integration keep-list. */
 export { useLocalPersistence } from "./useLocalPersistence";
 export { usePlatformEffects } from "./usePlatformEffects";
-// `useOrgProfile` = l'autorisation d'org du membre : chargée, retentée en backoff,
-// rechargée au sign-in/out ET au focus fenêtre (rejoindre une org passe par le web).
+// `useOrgProfile` = the member's org authorization: loaded, retried with backoff,
+// reloaded on sign-in/out AND on window focus (joining an org goes through the web).
 export { useOrgProfile } from "./useOrgProfile";
-// Monté par la COQUILLE (`containers/shell/useShell`) : ouvrir le fil cliqué demande la
-// nav de section, que le store n'a pas.
+// Mounted by the SHELL (`containers/shell/useShell`): opening the clicked thread needs
+// the section nav, which the store doesn't have.
 export { useReplyNotice } from "./useReplyNotice";

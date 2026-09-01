@@ -1,28 +1,28 @@
 import type { ExtractedFile } from "../host";
 
 /**
- * Un fichier mis en scène AVANT d'être extrait.
+ * A file staged BEFORE being extracted.
  *
- * Le sélecteur natif fait déjà ça (`host.files.pickPaths` : les chips paraissent, le texte
- * suit) et l'écart se voyait — joindre un fichier depuis « Dossiers » attendait la lecture
- * ET l'OCR avant que quoi que ce soit ne bouge. Sur un scan de plusieurs pages, l'app avait
- * l'air figée alors qu'elle travaillait.
+ * The native picker already does this (`host.files.pickPaths`: the chips appear, the text
+ * follows) and the gap showed — attaching a file from « Dossiers » awaited the read
+ * AND the OCR before anything moved. On a multi-page scan, the app looked
+ * frozen while it was actually working.
  *
- * ⚠️ **Différer ne veut pas dire cacher.** Le chip apparaît en état « extraction en cours »,
- * puis porte son contenu — ou son ÉCHEC. Une promesse rejetée laisse un chip fautif qu'on
- * peut réessayer ; elle n'efface jamais le fichier, ce qui donnerait à croire qu'on n'a
- * jamais cliqué.
+ * ⚠️ **Deferring doesn't mean hiding.** The chip appears in an « extraction en cours »
+ * state, then carries its content — or its FAILURE. A rejected promise leaves a faulty chip
+ * that can be retried; it never erases the file, which would suggest
+ * it was never clicked.
  */
 export interface DeferredFile {
   name: string;
   mime?: string;
-  /** Lit et extrait. Rejette ⇒ le chip porte l'échec. Le callback (optionnel) reçoit
-   *  la progression OCR `{done, total}` — une source sans pages mesurables l'ignore,
-   *  le chip garde alors sa barre indéterminée. */
+  /** Reads and extracts. Rejects ⇒ the chip carries the failure. The callback (optional) receives
+   *  OCR progress `{done, total}` — a source with no measurable pages ignores it,
+   *  the chip then keeps its indeterminate bar. */
   load(onOcrProgress?: (p: { done: number; total: number }) => void): Promise<ExtractedFile>;
 }
 
-/** Distingue les deux formes que le shell peut mettre en scène. */
+/** Distinguishes the two shapes the shell can stage. */
 export function isDeferredFile(f: ExtractedFile | DeferredFile): f is DeferredFile {
   return typeof (f as DeferredFile).load === "function";
 }

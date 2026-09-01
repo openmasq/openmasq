@@ -5,19 +5,19 @@ import { LoginScreen } from "./LoginScreen";
 import type { Host } from "../../host";
 
 /**
- * Ce que ces cas tiennent, c'est le CONTRAT que la page d'invitation d'`apps/web` a
- * commencé à consommer : elle monte cet écran-ci plutôt que sa propre carte, avec son
- * propre titre — et surtout, sur une plateforme CODE-first, le champ code doit apparaître
- * dès l'envoi. C'est exactement ce que la carte locale n'avait pas : le mail
- * d'authentification est code-first hors bureau (`supabase/functions/send-email`), donc
- * l'invité recevait un code à huit chiffres sans nulle part où le saisir.
+ * What these cases pin down is the CONTRACT that `apps/web`'s invitation page has
+ * started consuming: it mounts this very screen rather than its own card, with its
+ * own title — and above all, on a CODE-first platform, the code field must appear
+ * right after sending. That's exactly what the local card didn't have: the
+ * authentication email is code-first outside desktop (`supabase/functions/send-email`), so
+ * the invitee received an eight-digit code with nowhere to enter it.
  */
 const codeFirstHost = (over: Partial<NonNullable<Host["auth"]>> = {}): Partial<Host> => ({
   auth: {
     getSession: async () => null,
     onChange: () => () => {},
     sendMagicLink: async () => ({}),
-    // Présent ⇒ `codeSupported` ; `linkFirst` absent ⇒ code-first (le web, l'extension).
+    // Present ⇒ `codeSupported`; `linkFirst` absent ⇒ code-first (the web, the extension).
     verifyCode: async () => ({}),
     signOut: async () => {},
     ...over,
@@ -36,21 +36,21 @@ describe("LoginScreen", () => {
     );
     expect(b.el.textContent).toContain("Rejoindre l'organisation");
     expect(b.el.textContent).toContain("Connectez-vous avec l'adresse invitée.");
-    // Le titre personnalisé ne remplace QUE la première étape.
+    // The custom title replaces ONLY the first step.
     expect(b.el.textContent).not.toContain("Content de vous revoir.");
     await b.unmount();
   });
 
-  // Un bouton qui ne fait RIEN est le pire état pour qui découvre l'app : rien ne
-  // distingue « je me suis trompé » de « c'est planté ». Sans `required`, un champ vide
-  // est valide en HTML, le formulaire part, et `submitEmail` le jette en silence.
+  // A button that does NOTHING is the worst state for someone discovering the app: nothing
+  // distinguishes "I made a mistake" from "it's crashed". Without `required`, an empty field
+  // is valid HTML, the form submits, and `submitEmail` silently drops it.
   it("le champ e-mail est REQUIS — un envoi à vide ne peut pas partir en silence", async () => {
     const sendMagicLink = vi.fn(async () => ({}));
     const a = await mount(<LoginScreen />, { host: codeFirstHost({ sendMagicLink }) });
 
     const input = a.el.querySelector<HTMLInputElement>("input[type=email]");
     expect(input?.required).toBe(true);
-    // Le garde de submitEmail reste la seconde barrière : même soumis, un vide n'appelle rien.
+    // submitEmail's guard remains the second barrier: even submitted, an empty one calls nothing.
     a.el.querySelector("form")?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     expect(sendMagicLink).not.toHaveBeenCalled();
     await a.unmount();
@@ -74,9 +74,9 @@ describe("LoginScreen", () => {
   });
 
   /**
-   * Le rappel des spams est la réponse au premier « ça ne marche pas » de ce parcours (un
-   * e-mail d'authentification est le message le plus filtré qui existe). Les DEUX moitiés
-   * comptent : avant l'envoi, la phrase annoncerait un problème à qui n'a rien demandé.
+   * The spam reminder is the answer to this flow's first "it's not working" (an
+   * authentication email is the most-filtered message there is). BOTH halves
+   * matter: before sending, the sentence would announce a problem to someone who hasn't asked for one.
    */
   it("le rappel des spams apparaît APRÈS l'envoi, jamais avant", async () => {
     const m = await mount(<LoginScreen />, { host: codeFirstHost() });

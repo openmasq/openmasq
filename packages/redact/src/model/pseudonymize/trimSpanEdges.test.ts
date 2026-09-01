@@ -52,7 +52,7 @@ describe("stripCivilStatusPrefix — l'état civil n'est pas un prénom", () => 
     expect(stripCivilStatusPrefix("épouse N'Dranoh")).toBe("N'Dranoh");
     expect(stripCivilStatusPrefix("veuve Trégastel")).toBe("Trégastel");
     expect(stripCivilStatusPrefix("dite Mimi")).toBe("Mimi");
-    expect(stripCivilStatusPrefix("épouse née Kervalec")).toBe("Kervalec"); // répété
+    expect(stripCivilStatusPrefix("épouse née Kervalec")).toBe("Kervalec"); // repeated
   });
 
   it("ne touche ni un nom ordinaire, ni un nom qui COMMENCE comme un marqueur", () => {

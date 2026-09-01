@@ -1,5 +1,5 @@
 /**
- * Bake the DESKTOP on-device MÉMOIRE embedder (multilingual-e5-small, q8) into
+ * Bake the DESKTOP on-device MEMORY embedder (multilingual-e5-small, q8) into
  * `apps/desktop/build/embed-models/${EMBED_MODEL_ID}/`, laid down by
  * `electron-builder.cjs` `extraResources` → `${resourcesPath}/embed-models` and loaded
  * 100% OFFLINE at runtime (`src/main/embed/worker.ts`, fail-closed sha256 re-verify).

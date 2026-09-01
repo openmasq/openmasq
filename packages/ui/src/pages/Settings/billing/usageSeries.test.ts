@@ -51,9 +51,9 @@ describe("buildSeries — cinq nommés, le reste dans « Autres »", () => {
     expect(buildSeries([day({})], ["a"])).toEqual([]);
   });
 
-  // La couleur suit l'ENTITÉ : deux modèles restent distincts quel que soit l'ordre où
-  // ils passent l'un devant l'autre — ce qu'on ne veut jamais, c'est deux séries de la
-  // même teinte dans un même graphe.
+  // Color follows the ENTITY: two models stay distinct no matter the order in
+  // which they pass in front of each other — the one thing never wanted is two series of
+  // the same tint in the same graph.
   it("deux modèles ne partagent jamais une teinte, même à volume égal", () => {
     const s = buildSeries([day({ a: 5, b: 5, c: 5 })], ["a", "b", "c"]);
     expect(new Set(s.map((x) => x.color)).size).toBe(3);
@@ -72,8 +72,8 @@ describe("dayCount", () => {
     expect(dayCount(WINDOW[0], s.at(-1)!, named)).toBe(3);
   });
 
-  // La somme des séries DOIT égaler le total du jour, sinon la barre empilée ment sur
-  // sa propre hauteur.
+  // The sum of the series MUST equal the day's total, otherwise the stacked bar lies about
+  // its own height.
   it("la somme des séries égale le total du jour", () => {
     const sum = s.reduce((acc, x) => acc + dayCount(WINDOW[0], x, named), 0);
     expect(sum).toBe(WINDOW[0].total);

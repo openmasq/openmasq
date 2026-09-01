@@ -85,7 +85,7 @@ export const ZapIcon = (p: { size?: number }) => (
     <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
   </Icon>
 );
-/** Lucide `coins` — le PRIX d'un modèle (chips méta du sélecteur). */
+/** Lucide `coins` — the PRICE of a model (selector's meta chips). */
 export const CoinsIcon = (p: { size?: number }) => (
   <Icon {...p}>
     <circle cx="8" cy="8" r="6" />
@@ -94,14 +94,14 @@ export const CoinsIcon = (p: { size?: number }) => (
     <path d="m16.71 13.88.7.71-2.82 2.82" />
   </Icon>
 );
-/** Lucide `book-open` — la fenêtre de CONTEXTE (« ce qu'il peut lire d'un seul tenant »). */
+/** Lucide `book-open` — the CONTEXT window (« ce qu'il peut lire d'un seul tenant »). */
 export const BookOpenIcon = (p: { size?: number }) => (
   <Icon {...p}>
     <path d="M12 7v14" />
     <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" />
   </Icon>
 );
-/** Lucide `gauge` — le DÉBIT (tokens/minute) d'un modèle. */
+/** Lucide `gauge` — the THROUGHPUT (tokens/minute) of a model. */
 export const GaugeIcon = (p: { size?: number }) => (
   <Icon {...p}>
     <path d="m12 14 4-4" />
@@ -115,8 +115,8 @@ export const ClockIcon = (p: { size?: number }) => (
     <path d="M12 6v6l4 2" />
   </Icon>
 );
-/** Lucide `plug` — « brancher ce service » : l'action d'une source de stockage qui n'est
- *  pas encore connectée. Un état, pas un lieu, d'où sa place ici. */
+/** Lucide `plug` — « brancher ce service »: the action for a storage source that isn't
+ *  connected yet. A state, not a place, hence its home here. */
 export const PlugIcon = (p: { size?: number }) => (
   <Icon {...p}>
     <path d="M12 22v-5" />
@@ -125,8 +125,8 @@ export const PlugIcon = (p: { size?: number }) => (
     <path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z" />
   </Icon>
 );
-/** Lucide `hard-drive` — « sur cet appareil » : le gisement local, par opposition au
- *  stockage distant. Marque un GROUPE de sources, là où un libellé mangerait la largeur. */
+/** Lucide `hard-drive` — « sur cet appareil »: the local store, as opposed to
+ *  remote storage. Marks a GROUP of sources, where a label would eat the width. */
 export const HardDriveIcon = (p: { size?: number }) => (
   <Icon {...p}>
     <line x1="22" x2="2" y1="12" y2="12" />
@@ -135,18 +135,18 @@ export const HardDriveIcon = (p: { size?: number }) => (
     <line x1="10" x2="10.01" y1="16" y2="16" />
   </Icon>
 );
-/** Lucide `cloud` — le gisement DISTANT (Drive, OneDrive, Dropbox), pendant de
- *  `HardDriveIcon`. Les deux ne se lisent qu'ensemble : ils opposent deux endroits. */
+/** Lucide `cloud` — the REMOTE store (Drive, OneDrive, Dropbox), counterpart to
+ *  `HardDriveIcon`. The two only read together: they oppose two places. */
 export const CloudIcon = (p: { size?: number }) => (
   <Icon {...p}>
     <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
   </Icon>
 );
 
-/* Les deux ÉTATS d'une liste d'objets — grille ou rangées. Paire indissociable : elles ne
-   se lisent que l'une CONTRE l'autre, dans `components/ViewModeToggle.tsx`. On n'a pas
-   réutilisé `GridIcon` (déjà MCP + artéfacts CSV + feuilles + Sync) : un mode d'affichage
-   qui porte la marque d'un connecteur ne se lit plus comme un mode d'affichage. */
+/* The two STATES of an object list — grid or rows. An inseparable pair: they
+   only read one AGAINST the other, in `components/ViewModeToggle.tsx`. We didn't
+   reuse `GridIcon` (already MCP + CSV artifacts + sheets + Sync): a display mode
+   wearing a connector's mark no longer reads as a display mode. */
 export const TilesIcon = (p: { size?: number }) => (
   <Icon {...p}>
     <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -162,8 +162,8 @@ export const RowsIcon = (p: { size?: number }) => (
   </Icon>
 );
 
-/** Lucide `star` — le marqueur de FAVORI. Plein = épinglé, contour = non ; le remplissage
- *  se pose sur le tracé même (l'`Icon` fixe `fill:none`). */
+/** Lucide `star` — the FAVORITE marker. Filled = pinned, outline = not; the fill
+ *  sits on the stroke itself (`Icon` fixes `fill:none`). */
 export const StarIcon = (p: { size?: number; filled?: boolean }) => (
   <Icon size={p.size}>
     <path
@@ -173,8 +173,8 @@ export const StarIcon = (p: { size?: number; filled?: boolean }) => (
   </Icon>
 );
 
-/** Lucide `house` — le marqueur du MODÈLE PAR DÉFAUT (celui des nouvelles conversations).
- *  Plein = c'est le défaut ; contour = cliquable pour le devenir. */
+/** Lucide `house` — the DEFAULT MODEL marker (the one for new conversations).
+ *  Filled = it's the default; outline = clickable to become it. */
 export const HouseIcon = (p: { size?: number; filled?: boolean }) => (
   <Icon size={p.size}>
     <path
@@ -186,29 +186,29 @@ export const HouseIcon = (p: { size?: number; filled?: boolean }) => (
 );
 
 /**
- * Les TROIS traits de Lucide `menu`, toujours dessinés — et les N DERNIERS en GRAS : le
- * niveau de protection, montré comme une jauge qui se remplit par le bas. Un trait gras =
- * Standard, deux = Renforcé, trois = Strict. Le bouton du composeur porte le niveau EN
- * COURS, chaque carte du menu le sien : la liste se lit alors comme une échelle.
+ * The THREE strokes of Lucide `menu`, always drawn — and the LAST N in BOLD: the
+ * protection level, shown as a gauge that fills from the bottom. One bold stroke =
+ * Standard, two = Renforcé, three = Strict. The composer's button carries the CURRENT
+ * level, each menu card its own: the list then reads as a scale.
  *
- * ⚠️ Les traits pâles RESTENT. En n'en dessinant que N, le glyphe perdait son échelle —
- * un seul trait ne se comparait à rien et ressemblait à un tiret. Ce qui porte le niveau
- * est le CONTRASTE entre ce qui est atteint et ce qui ne l'est pas ; c'est aussi ce qui
- * garde le même encombrement d'un niveau à l'autre, donc pas de saut visuel dans la rangée
- * d'action quand l'utilisateur change de niveau.
+ * ⚠️ The pale strokes STAY. Drawing only N of them, the glyph lost its scale —
+ * a single stroke compared to nothing and looked like a dash. What carries the level
+ * is the CONTRAST between what's reached and what isn't; that's also what
+ * keeps the same footprint from one level to the next, so no visual jump in the action
+ * row when the user changes level.
  *
- * ⚠️ L'opacité accompagne l'épaisseur, elle ne la remplace pas : à 15-16 px, 2,6 contre
- * 1,5 se distingue mal sur un écran non-Retina, et un trait pâle-mais-épais se lit comme
- * une barre active mal rendue. Les deux ensemble ne laissent aucun doute.
+ * ⚠️ Opacity comes WITH the thickness, it doesn't replace it: at 15-16 px, 2.6 against
+ * 1.5 is hard to tell apart on a non-Retina screen, and a pale-but-thick stroke reads as
+ * a badly-rendered active bar. The two together leave no doubt.
  *
- * Le compte vient de `privacy/privacyLevel.ts` `levelBars`, jamais d'un appelant : c'est lui
- * qui sait qu'un réglage « Sur mesure » ne peut revendiquer aucun palier et se déduit de ce
- * qui est réellement actif.
+ * The count comes from `privacy/privacyLevel.ts` `levelBars`, never from a caller: it's the one
+ * that knows a « Sur mesure » setting can claim no tier and is derived from what
+ * is actually active.
  *
- * Ce que ce glyphe n'est pas, et pourquoi : pas le BOUCLIER, alors que c'est la langue du
- * redaction — il vit à deux pixels de là sur la pastille « N à redact », et deux
- * boucliers dans la même rangée ne distinguent plus le compteur du réglage ; pas la JAUGE
- * ronde, déjà la fenêtre de contexte dans la ligne de modèle voisine.
+ * What this glyph is NOT, and why: not the SHIELD, even though that's the vocabulary of
+ * redaction — it lives two pixels away on the « N à redact » pill, and two
+ * shields in the same row no longer distinguish the counter from the setting; not the round
+ * GAUGE, already the context window in the neighboring model row.
  */
 export const LevelsIcon = ({ bars = 3, ...p }: { size?: number; bars?: 1 | 2 | 3 }) => {
   const trait = (on: boolean) =>

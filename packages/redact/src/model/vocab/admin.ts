@@ -28,8 +28,8 @@ export const ADMIN_TERMS: string[] = [
   "assurance", "assurances", "assureur", "assureurs",
   "assuré", "assure", "assurée", "assurees", "assurés", "assures",
   "réassurance", "reassurance", "coassurance", "multirisque", "multirisques",
-  // « courtier(s)/courtière » RETIRÉS : patronymes, comme « corredor » que ce volume
-  // excluait déjà. « courtage » est l'activité, jamais un nom.
+  // « courtier(s)/courtière » (broker) REMOVED: surnames, like « corredor » that this
+  // volume already excluded. « courtage » (brokerage) is the activity, never a name.
   "courtage",
   "police", "polices", "garantie", "garanties",
   "sinistre", "sinistres", "prime", "primes", "franchise", "franchises",
@@ -128,7 +128,7 @@ export const ADMIN_TERMS: string[] = [
   "imposto", "impostos", "rendimento", "rendimentos", "dedução", "deducao",
   "belasting", "belastingen", "inkomen", "huishouden", "aftrek",
   "podatek", "podatki", "dochód", "dochod", "gospodarstwo domowe", "ulga",
-  // ── Royalties / répartition — French ───────────────────────────────────────
+  // ── Royalties / distribution — French ──────────────────────────────────────
   // The FAMILY labels of a rights-society statement (Sacem « FAMILLES » column):
   // « Etranger » standing alone in the grid was NER-tagged an ORG and faked to an
   // invented company. A distribution-category word is never anyone's identity.

@@ -1,8 +1,8 @@
 /**
- * Frontières de mot Unicode pour les lexiques d'intention — JAMAIS `\b` : `\b` est
- * ASCII, donc « Écris » en tête de phrase n'ouvre aucune frontière (le piège épinglé
- * dans `agent/sendIntent.ts`, revécu dans `agent/readIntent.ts`). UNE définition
- * (règle 9) partagée par les trois lexiques : `agent/readIntent.ts`,
+ * Unicode word boundaries for the intent lexicons — NEVER `\b`: `\b` is
+ * ASCII, so « Écris » at the start of a sentence opens no boundary (the trap pinned
+ * in `agent/sendIntent.ts`, relived in `agent/readIntent.ts`). ONE definition
+ * (rule 9) shared by the three lexicons: `agent/readIntent.ts`,
  * `agent/sendIntent.ts`, `send/autoTaskIntent.ts`.
  */
 export const EDGE_L = "(?<![\\p{L}])";

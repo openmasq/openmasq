@@ -1,13 +1,13 @@
-// Ce que l'app.asar a le droit de contenir. Les cas ci-dessous ne sont pas inventés : ce
-// sont les entrées qu'un app.asar ramasse quand l'allowlist d'electron-builder
-// avait cessé de s'appliquer sans que rien ne rougisse.
+// What the app.asar is allowed to contain. The cases below aren't made up: they
+// are the entries an app.asar picks up when electron-builder's allowlist
+// had stopped applying without anything turning red.
 import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
 const require = createRequire(import.meta.url);
 const { findPackagingViolations, assertPackagedContents, ALLOWED_ROOTS } = require("./packageContents.cjs");
 
-/** Ce qu'une app SAINE contient — et rien d'autre. */
+/** What a HEALTHY app contains — and nothing else. */
 const SAIN = [
   "/out",
   "/out/main/index.js",
@@ -48,7 +48,7 @@ describe("findPackagingViolations", () => {
   });
 
   it("est une ALLOWLIST : un dossier NOUVEAU est refusé sans qu'on l'ait nommé", () => {
-    // Le point de tout le fichier : une denylist aurait laissé passer celui-là.
+    // The whole point of the file: a denylist would have let this one through.
     const v = findPackagingViolations(["/un-dossier-qui-n-existe-pas-encore/secret.txt"]);
     expect(v).toHaveLength(1);
     expect(ALLOWED_ROOTS).not.toContain("un-dossier-qui-n-existe-pas-encore");

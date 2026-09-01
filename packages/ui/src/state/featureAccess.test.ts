@@ -17,7 +17,7 @@ afterEach(() => __resetFeatureAccess());
 
 describe("featureAccess — les défauts", () => {
   it("sans réponse, tout est OUVERT : le défaut sûr est « le produit tel qu'il est livré »", () => {
-    // Une panne de relais ne doit pas retirer trois sections au parc.
+    // A relay outage must not strip three sections from the fleet.
     expect(featureAccess("memory")).toBe(true);
     expect(featureAccess("library")).toBe(true);
     expect(featureAccess("competences")).toBe(true);
@@ -30,16 +30,16 @@ describe("featureAccess — les défauts", () => {
   });
 });
 
-/* ⚠️ LE PIÈGE QUI A DÉCIDÉ DE LA POLARITÉ, mesuré contre le vrai PostHog (17/08) :
-   un drapeau DÉSACTIVÉ n'est pas rendu `false`, il est ABSENT de la réponse. Avec des
-   clés « autoriser », le bouton « Disable » du tableau de bord — le geste le plus
-   évident — n'aurait donc rien fermé, en silence. Ces cas épinglent que les TROIS
-   façons de ne rien dire retombent sur OUVERT, et qu'un seul geste ferme. */
+/* ⚠️ THE TRAP THAT DECIDED THE POLARITY, measured against real PostHog (17/08):
+   a DISABLED flag is not rendered `false`, it is ABSENT from the response. With
+   "allow"-style keys, the dashboard's "Disable" button — the most
+   obvious gesture — would therefore have closed nothing, silently. These cases pin that all THREE
+   ways of saying nothing fall back to OPEN, and that only one gesture closes. */
 describe("polarité : le drapeau dit CACHER", () => {
   it("clé absente (jamais créée, désactivée, ou relais muet) ⇒ OUVERT", () => {
     setFeatureAccessFromFlags({ "hide-competences": true });
     expect(featureAccess("competences")).toBe(false);
-    // Les deux autres n'étaient pas dans la réponse : elles restent ouvertes.
+    // The other two weren't in the response: they stay open.
     expect(featureAccess("memory")).toBe(true);
     expect(featureAccess("library")).toBe(true);
   });
@@ -93,10 +93,10 @@ describe("featureAccess — la porte", () => {
 });
 
 describe("featureUsage — porte fermée ≠ fonctionnalité coupée", () => {
-  /* ⚠️ Ces deux cas sont la DÉCISION produit, pas un détail d'implémentation :
-     la Mémoire et la Bibliothèque continuent de tourner porte fermée. Si l'un
-     d'eux tombe parce que quelqu'un a « désactivé la mémoire », c'est le
-     correctif qui est faux, pas le test. */
+  /* ⚠️ These two cases are the product DECISION, not an implementation detail:
+     Mémoire and Bibliothèque keep running with the door closed. If one
+     of them breaks because someone "disabled memory", it's the
+     fix that's wrong, not the test. */
   it("Mémoire : porte fermée, l'usage CONTINUE (injection, recherche, extraction)", () => {
     setFeatureAccess({ memory: false });
     expect(featureAccess("memory")).toBe(false);

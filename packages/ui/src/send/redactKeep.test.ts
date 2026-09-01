@@ -61,8 +61,8 @@ describe("connectedUrlHosts", () => {
     expect(hosts).toContain("slack.com");
   });
 
-  // ALLOW-list : ce qui n'est pas connecté n'est jamais exempté. Un connecteur du
-  // catalogue que l'utilisateur n'a pas relié ne doit pas rendre ses URL structurelles.
+  // ALLOW-list: what is not connected is never exempted. A catalog connector
+  // the user hasn't linked must not have its URLs treated as structural.
   it("never returns a host for a connector nobody connected", async () => {
     const host = hostWith({
       listTools: async () => [{ name: "notion__notion-search" }],

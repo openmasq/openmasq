@@ -40,12 +40,12 @@ export function ModelAccessModal({
   onOwnKeys?: () => void;
 }) {
   const t = useT();
-  // Ce build a-t-il un service hébergé ? Sans lui, il n'y a NI modèles inclus NI
-  // abonnement : la seule route est la clé de l'utilisateur (ou un modèle local, ou sa
-  // CLI). Tout ce que cette modale dit d'autre serait faux — `send/platformAccess.ts`.
+  // Does this build have a hosted service? Without it there is NEITHER included models
+  // NOR a subscription: the only route is the user's own key (or a local model, or
+  // their CLI). Anything else this modal says would be false — `send/platformAccess.ts`.
   const served = platformAccessServed();
-  // Et VEND-il quelque chose ? Sinon (le défaut) la route « abonnement » n'existe pas :
-  // ni option, ni bouton, ni le mot — les modèles inclus sont ceux du compte.
+  // And does it SELL anything? If not (the default) the « abonnement » route doesn't
+  // exist: no option, no button, not even the word — included models are the account's own.
   const sold = subscriptionsSold();
   const title = !served
     ? "Ce modèle demande votre clé"
@@ -64,8 +64,8 @@ export function ModelAccessModal({
         ? sold
           ? `Ce modèle passe par ${BRAND.name}, et votre compte n'a plus de crédits.`
           : `Ce modèle passe par ${BRAND.name}, et il n'est pas disponible sur votre compte pour le moment.`
-        : // Ce qu'un modèle « gratuit » coûte VRAIMENT : rien en crédits, mais un débit et
-          // une disponibilité qui ne sont pas les nôtres. C'est la surprise à éviter.
+        : // What a « gratuit » model TRULY costs: nothing in credits, but a latency and
+          // availability that aren't ours. That's the surprise to avoid.
           sold
           ? `Un modèle gratuit n'entame pas vos crédits : compte ${BRAND.name} connecté, sans abonnement — mais débit et disponibilité dépendent du fournisseur.`
           : `Un modèle gratuit est inclus avec votre compte ${BRAND.name}, sans clé — mais débit et disponibilité dépendent du fournisseur.`;

@@ -7,9 +7,9 @@ import type { SettingsTabId } from "../../../pages/Settings/settingsIndex";
 const ids = (groups: ReturnType<typeof groupSettingsTabs>) =>
   groups.flatMap((g) => g.items.map((i) => i.id));
 
-/** Le rail en français : les titres de groupe attendus plus bas sont ceux de CETTE langue.
- *  Ce qui doit tenir dans toutes — la COUVERTURE, c'est-à-dire qu'aucun onglet ne se perde —
- *  ne dépend d'aucun libellé. */
+/** The rail in French: the group titles expected below are this LANGUAGE's.
+ *  What must hold in every one — COVERAGE, meaning no tab ever gets lost —
+ *  depends on no label. */
 const t = getMessages("fr");
 const NAV = settingsNav(t);
 

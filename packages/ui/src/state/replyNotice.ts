@@ -1,30 +1,30 @@
 /**
- * « Ta réponse est arrivée » — la logique PURE de la notification système.
+ * "Your reply has arrived" — the PURE logic of the system notification.
  *
- * Deux décisions, et une seule est évidente :
+ * Two decisions, and only one is obvious:
  *
- * 1. **QUAND** : une conversation qui vient de se poser (son dernier message d'assistant
- *    n'est plus `pending`) et qu'on ne REGARDE pas. « Regarder » = la fenêtre a le focus
- *    ET c'est l'onglet actif — les tours tournent en parallèle par onglet, donc rester
- *    dans l'app pendant qu'un AUTRE fil répond compte comme être ailleurs.
- * 2. **QUOI** : jamais le contenu, jamais le TITRE de la conversation. Un titre est dérivé
- *    du premier message, donc de données réelles non redacted — et une notification
- *    atterrit dans le centre de notifications du système, s'affiche par-dessus ce qui est
- *    à l'écran, parfois sur un écran verrouillé ou partagé. Le clic mène au bon fil ;
- *    c'est lui qui identifie, pas la bannière.
+ * 1. **WHEN**: a conversation that just settled (its last assistant message
+ *    is no longer `pending`) and that isn't being WATCHED. "Watched" = the window has focus
+ *    AND it's the active tab — turns run in parallel per tab, so staying
+ *    in the app while ANOTHER thread replies counts as being elsewhere.
+ * 2. **WHAT**: never the content, never the conversation's TITLE. A title is derived
+ *    from the first message, hence from real un-redacted data — and a notification
+ *    lands in the system's notification center, shows over whatever is
+ *    on screen, sometimes on a locked or shared screen. The click leads to the right thread;
+ *    that's what identifies it, not the banner.
  *
- * Un tour en ÉCHEC notifie aussi : partir faire autre chose et revenir devant un envoi
- * mort sans l'avoir su est exactement ce que la règle « un échec réel se dit » interdit.
+ * A FAILED turn also notifies: leaving to do something else and coming back to a dead
+ * send without having known is exactly what the "a real failure gets said" rule forbids.
  */
 import { BRAND } from "@openmasq/branding";
 
-/** Ce que la logique a besoin de savoir d'une conversation — rien de plus. */
+/** What the logic needs to know about a conversation — nothing more. */
 export interface NoticeConv {
   id: string;
   messages: { role: string; pending?: boolean; error?: boolean }[];
 }
 
-/** Les ids dont le DERNIER message d'assistant est en cours de génération. */
+/** The ids whose LAST assistant message is currently being generated. */
 export function pendingReplyIds(convs: readonly NoticeConv[]): Set<string> {
   const out = new Set<string>();
   for (const c of convs) {
@@ -34,41 +34,41 @@ export function pendingReplyIds(convs: readonly NoticeConv[]): Set<string> {
   return out;
 }
 
-/** Une conversation à annoncer : son id, et si le tour s'est terminé en échec. */
+/** A conversation to announce: its id, and whether the turn ended in failure. */
 export interface ReplyNotice {
   id: string;
   failed: boolean;
 }
 
 /**
- * Les conversations qui viennent de se poser ET qu'on ne regarde pas.
+ * The conversations that just settled AND aren't being watched.
  *
- * ⚠️ `prev` est l'ensemble du tick PRÉCÉDENT : la transition (`en cours` → `posé`) est ce
- * qui déclenche, jamais l'état « pas en cours » — sinon toute conversation déjà terminée
- * notifierait à chaque rendu, et l'ouverture de l'app tirerait une salve.
+ * ⚠️ `prev` is the set from the PREVIOUS tick: the transition (`in progress` → `settled`)
+ * is what triggers it, never the "not in progress" state — otherwise every already-finished
+ * conversation would notify on every render, and opening the app would fire a volley.
  */
 export function repliesToAnnounce(p: {
   prev: ReadonlySet<string>;
   convs: readonly NoticeConv[];
-  /** L'onglet regardé. `null` = aucun. */
+  /** The watched tab. `null` = none. */
   activeId: string | null;
-  /** La fenêtre a le focus système. */
+  /** The window has system focus. */
   focused: boolean;
 }): ReplyNotice[] {
   const now = pendingReplyIds(p.convs);
   const out: ReplyNotice[] = [];
   for (const id of p.prev) {
-    if (now.has(id)) continue; // toujours en cours
+    if (now.has(id)) continue; // still in progress
     const conv = p.convs.find((c) => c.id === id);
-    if (!conv) continue; // supprimée pendant le tour : plus rien à ouvrir
-    if (p.focused && id === p.activeId) continue; // sous les yeux : la bannière serait du bruit
+    if (!conv) continue; // deleted during the turn: nothing left to open
+    if (p.focused && id === p.activeId) continue; // right in front of them: the banner would be noise
     const last = [...conv.messages].reverse().find((m) => m.role === "assistant");
     out.push({ id, failed: !!last?.error });
   }
   return out;
 }
 
-/** Le texte de la bannière. Aucun contenu de conversation — voir l'en-tête du fichier. */
+/** The banner's text. No conversation content — see the file header. */
 export function noticeText(n: ReplyNotice, modelLabel?: string): { title: string; body: string } {
   return {
     title: BRAND.name,

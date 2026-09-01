@@ -9,13 +9,13 @@ import { PROVIDERS, type ProviderId } from "@openmasq/llm";
  * prefix (placeholder) + a one-line note on cost/hosting. Keyed by `ProviderId`; a
  * provider with no entry falls back to the minimal form + the registry `keyUrl` link.
  */
-/** Les FAITS sur la clé d'un fournisseur — ils ne se traduisent pas, donc ils restent ici.
- *  Les étapes et la note, elles, sont de la copie : catalogue (`providerKeys`). */
+/** The FACTS about a provider's key — they aren't translated, so they live here.
+ *  The steps and the note, though, are copy: catalogue (`providerKeys`). */
 export interface ProviderKeyShape {
   /** The provider's OFFICIAL key page. */
   keyUrl: string;
-  /** Input placeholder = the key's recognisable prefix. Absent quand la clé n'en a
-   *  pas : l'appelant met alors « Votre clé <fournisseur> », qui se traduit. */
+  /** Input placeholder = the key's recognisable prefix. Absent when the key doesn't
+   *  have one: the caller then puts « Votre clé <fournisseur> », which is translated. */
   placeholder?: string;
   /** The prefix a key of this provider PROVABLY starts with, when it has one — the
    *  paste-time verdict's only hard fact. Absent = the provider mints keys with no
@@ -24,9 +24,9 @@ export interface ProviderKeyShape {
 }
 
 export interface ProviderKeyHelp extends ProviderKeyShape {
-  /** Ordered tutorial steps, in the interface language. Absents ⇒ le fournisseur a une
-   *  FORME de clé documentée mais pas de mode d'emploi : l'écran retombe alors sur le
-   *  formulaire minimal + le lien officiel, jamais sur une liste vide. */
+  /** Ordered tutorial steps, in the interface language. Absent ⇒ the provider has a
+   *  documented key SHAPE but no how-to: the screen then falls back to the minimal
+   *  form + the official link, never an empty list. */
   steps?: readonly string[];
   /** One-line note (cost / billing / hosting) shown under the steps. */
   note?: string;
@@ -67,8 +67,8 @@ const PROVIDER_KEY_SHAPE: Partial<Record<ProviderId, ProviderKeyShape>> = {
 export function providerKeyHelp(provider: string, t: Messages): ProviderKeyHelp | undefined {
   const shape = PROVIDER_KEY_SHAPE[provider as ProviderId];
   if (!shape) return undefined;
-  // Le namespace porte AUSSI les deux phrases du verdict : seule une valeur OBJET est
-  // une fiche. Sans elle on rend la forme seule, et l'écran se réduit au lien officiel.
+  // The namespace ALSO carries the verdict's two sentences: only an OBJECT value is
+  // a sheet. Without it we return the shape alone, and the screen shrinks to the official link.
   const copy = t.providerKeys[provider as keyof Messages["providerKeys"]];
   return typeof copy === "object" ? { ...shape, ...copy } : shape;
 }

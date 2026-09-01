@@ -159,16 +159,16 @@ describe("provenanceForTool", () => {
 
 describe("tier 1 — « réassignation de rôle » vise un ORDRE, pas une tournure", () => {
   /**
-   * Mesuré sur une vraie boîte mail (journal du 04/08) : « act as » et « from now on »
-   * sont des tournures ordinaires de l'anglais commercial. Marquées suspectes, elles
-   * déclenchaient un appel classifieur payant ET repartaient étiquetées « suspect » dans
-   * le transcript — apprenant au modèle à se méfier d'une newsletter anodine.
+   * Measured on a real mailbox (log 04/08): « act as » and « from now on »
+   * are ordinary phrasings of commercial English. Flagged as suspect, they
+   * used to trigger a paid classifier call AND come back labelled « suspect » in
+   * the transcript — teaching the model to distrust an innocuous newsletter.
    *
-   * ⚠️ Le compromis est ASYMÉTRIQUE et ce fichier le fige dans les deux sens : un faux
-   * positif coûte un appel de classifieur, un faux NÉGATIF laisse passer une injection
-   * sans étiquette. Donc on ne desserre que là où la grammaire prouve qu'il ne s'agit pas
-   * d'un ordre — un auxiliaire devant « act as », un « from now on » sans sujet à la
-   * deuxième personne. Le reste continue de mordre, exprès.
+   * ⚠️ The trade-off is ASYMMETRIC and this file pins it in both directions: a false
+   * positive costs a classifier call, a false NEGATIVE lets an injection through
+   * with no label. So we only loosen where the grammar proves it is not
+   * an order — an auxiliary before « act as », a « from now on » with no second-person
+   * subject right after. Everything else keeps biting, on purpose.
    */
   it("laisse passer la prose commerciale : l'auxiliaire en fait une description", () => {
     for (const t of [
@@ -194,9 +194,9 @@ describe("tier 1 — « réassignation de rôle » vise un ORDRE, pas une tournu
   });
 
   it("garde le doute quand la tournure reste ambiguë — le faux positif est le côté SÛR", () => {
-    // « You are now part of… » est une phrase de bienvenue, mais elle est à un mot d'une
-    // vraie assignation de rôle. On ne desserre pas là : le coût est un appel, pas une
-    // mauvaise réponse.
+    // « You are now part of… » is a welcome sentence, but it is one word away from a
+    // real role assignment. We don't loosen there: the cost is a call, not a
+    // wrong answer.
     expect(prescreen("You are now part of the Tavily Certification Program.").flagged).toBe(true);
   });
 });

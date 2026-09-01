@@ -35,14 +35,14 @@
  * and `reins` carry the meaning).
  */
 export const CLINIQUE_TERMS: string[] = [
-  // ── Molécules (DCI) — antalgiques, anti-inflammatoires, opioïdes ────────────
+  // ── Molecules (INN) — analgesics, anti-inflammatories, opioids ──────────────
   "paracétamol", "paracetamol", "acétaminophène", "acetaminophene", "ibuprofène",
   "ibuprofen", "aspirine", "acide acétylsalicylique", "kétoprofène", "ketoprofene",
   "diclofénac", "diclofenac", "naproxène", "naproxene", "célécoxib", "celecoxib",
   "tramadol", "codéine", "codeine", "morphine", "oxycodone", "fentanyl", "néfopam",
   "nefopam", "phloroglucinol",
 
-  // ── Molécules — anti-infectieux ────────────────────────────────────────────
+  // ── Molecules — anti-infectives ────────────────────────────────────────────
   "amoxicilline", "pénicilline", "penicilline", "ampicilline", "azithromycine",
   "clarithromycine", "érythromycine", "erythromycine", "ciprofloxacine",
   "ofloxacine", "lévofloxacine", "levofloxacine", "doxycycline", "métronidazole",
@@ -51,7 +51,7 @@ export const CLINIQUE_TERMS: string[] = [
   "oseltamivir", "antibiotique", "antibiotiques", "antibiothérapie", "antifongique",
   "antiviral", "vaccin", "vaccination", "rappel vaccinal",
 
-  // ── Molécules — cardio, métabolisme, endocrinologie ────────────────────────
+  // ── Molecules — cardio, metabolism, endocrinology ──────────────────────────
   "metformine", "gliclazide", "glimépiride", "sitagliptine", "empagliflozine",
   "insuline", "lévothyroxine", "levothyroxine", "atorvastatine", "simvastatine",
   "rosuvastatine", "pravastatine", "ézétimibe", "ezetimibe", "amlodipine",
@@ -63,14 +63,14 @@ export const CLINIQUE_TERMS: string[] = [
   "clopidogrel", "héparine", "heparine", "statine", "statines", "anticoagulant",
   "anticoagulants", "antiagrégant", "antihypertenseur",
 
-  // ── Molécules — respiratoire, allergologie, corticoïdes ────────────────────
+  // ── Molecules — respiratory, allergology, corticosteroids ──────────────────
   "salbutamol", "terbutaline", "budésonide", "budesonide", "fluticasone",
   "béclométasone", "beclometasone", "montélukast", "montelukast", "cétirizine",
   "cetirizine", "loratadine", "desloratadine", "corticoïde", "corticoide",
   "corticoïdes", "corticoides", "prednisone", "prednisolone", "hydrocortisone",
   "dexaméthasone", "dexamethasone", "bétaméthasone", "betamethasone", "bronchodilatateur",
 
-  // ── Molécules — neuro, psychiatrie, sommeil ────────────────────────────────
+  // ── Molecules — neuro, psychiatry, sleep ───────────────────────────────────
   "diazépam", "diazepam", "lorazépam", "lorazepam", "alprazolam", "bromazépam",
   "bromazepam", "oxazépam", "oxazepam", "zolpidem", "zopiclone", "benzodiazépine",
   "benzodiazepine", "sertraline", "fluoxétine", "fluoxetine", "paroxétine",
@@ -80,7 +80,7 @@ export const CLINIQUE_TERMS: string[] = [
   "levetiracetam", "gabapentine", "prégabaline", "pregabaline", "carbamazépine",
   "carbamazepine", "antiépileptique", "antiepileptique",
 
-  // ── Molécules — divers ─────────────────────────────────────────────────────
+  // ── Molecules — miscellaneous ──────────────────────────────────────────────
   "oméprazole", "omeprazole", "ésoméprazole", "esomeprazole", "pantoprazole",
   "lansoprazole", "dompéridone", "domperidone", "métoclopramide", "metoclopramide",
   "lopéramide", "loperamide", "macrogol", "allopurinol", "colchicine",
@@ -92,7 +92,7 @@ export const CLINIQUE_TERMS: string[] = [
   "supplémentation", "supplementation", "générique", "molécule", "molecule",
   "principe actif", "excipient",
 
-  // ── Pathologies — métabolisme, endocrinologie, nutrition ───────────────────
+  // ── Pathologies — metabolism, endocrinology, nutrition ─────────────────────
   "diabète", "diabete", "diabétique", "diabetique", "prédiabète", "prediabete",
   "hypoglycémie", "hypoglycemie", "hyperglycémie", "hyperglycemie", "cholestérol",
   "cholesterol", "hypercholestérolémie", "hypercholesterolemie", "dyslipidémie",
@@ -100,7 +100,7 @@ export const CLINIQUE_TERMS: string[] = [
   "goutte", "hypothyroïdie", "hypothyroidie", "hyperthyroïdie", "hyperthyroidie",
   "thyroïdite", "thyroidite", "ménopause", "menopause", "ostéoporose", "osteoporose",
 
-  // ── Pathologies — cardiovasculaire ─────────────────────────────────────────
+  // ── Pathologies — cardiovascular ───────────────────────────────────────────
   "hypertension", "hypertension artérielle", "hypertension arterielle", "hypotension",
   "insuffisance cardiaque", "infarctus", "infarctus du myocarde", "angor",
   "angine de poitrine", "arythmie", "fibrillation", "fibrillation auriculaire",
@@ -109,7 +109,7 @@ export const CLINIQUE_TERMS: string[] = [
   "phlébite", "phlebite", "thrombose", "varices", "accident vasculaire cérébral",
   "accident vasculaire cerebral", "artériopathie", "arteriopathie",
 
-  // ── Pathologies — respiratoire, ORL, infectieux ────────────────────────────
+  // ── Pathologies — respiratory, ENT, infectious ─────────────────────────────
   "asthme", "asthmatique", "bronchite", "bronchiolite", "bronchopneumopathie",
   "emphysème", "emphyseme", "pneumonie", "pneumopathie", "pleurésie", "pleuresie",
   "tuberculose", "apnée du sommeil", "apnee du sommeil", "sinusite", "rhinite",
@@ -117,7 +117,7 @@ export const CLINIQUE_TERMS: string[] = [
   "rhume", "grippe", "bronchiolite", "covid", "varicelle", "rougeole", "oreillons",
   "rubéole", "rubeole", "zona", "herpès", "herpes", "mycose", "candidose",
 
-  // ── Pathologies — digestif, urinaire, gynécologie ──────────────────────────
+  // ── Pathologies — digestive, urinary, gynecology ───────────────────────────
   "gastro-entérite", "gastro-enterite", "gastrite", "reflux", "reflux gastro-œsophagien",
   "ulcère", "ulcere", "colite", "colopathie", "syndrome de l'intestin irritable",
   "diverticulite", "hémorroïdes", "hemorroides", "hernie", "hernie discale",
@@ -128,7 +128,7 @@ export const CLINIQUE_TERMS: string[] = [
   "cirrhose", "hépatite", "hepatite", "stéatose", "steatose", "pancréatite",
   "pancreatite", "constipation", "diarrhée", "diarrhee",
 
-  // ── Pathologies — neuro, psychiatrie, rhumatologie, dermatologie ───────────
+  // ── Pathologies — neuro, psychiatry, rheumatology, dermatology ─────────────
   "épilepsie", "epilepsie", "sclérose en plaques", "sclerose en plaques", "migraine",
   "céphalée", "cephalee", "névralgie", "nevralgie", "neuropathie", "polyneuropathie",
   "démence", "demence", "dépression", "depression", "anxiété", "anxiete",
@@ -138,7 +138,7 @@ export const CLINIQUE_TERMS: string[] = [
   "scoliose", "fibromyalgie", "eczéma", "eczema", "psoriasis", "urticaire", "acné",
   "acne", "dermatite", "rosacée", "rosacee", "alopécie", "alopecie",
 
-  // ── Pathologies — oncologie, hématologie, ophtalmologie ────────────────────
+  // ── Pathologies — oncology, hematology, ophthalmology ──────────────────────
   "cancer", "carcinome", "adénocarcinome", "adenocarcinome", "mélanome", "melanome",
   "sarcome", "tumeur", "tumeur bénigne", "tumeur maligne", "métastase", "metastase",
   "leucémie", "leucemie", "lymphome", "myélome", "myelome", "kyste", "polype",
@@ -147,7 +147,7 @@ export const CLINIQUE_TERMS: string[] = [
   "conjonctivite", "dégénérescence maculaire", "degenerescence maculaire", "myopie",
   "acouphène", "acouphene", "acouphènes", "surdité", "surdite",
 
-  // ── Symptômes, traumatologie, signes ───────────────────────────────────────
+  // ── Symptoms, trauma, signs ────────────────────────────────────────────────
   "fièvre", "fievre", "asthénie", "asthenie", "fatigue", "toux", "dyspnée", "dyspnee",
   "essoufflement", "nausée", "nausee", "nausées", "nausees", "vomissement",
   "vomissements", "vertige", "vertiges", "malaise", "syncope", "œdème", "oedeme",
@@ -155,7 +155,7 @@ export const CLINIQUE_TERMS: string[] = [
   "douleurs", "fracture", "entorse", "luxation", "contusion", "hématome", "hematome",
   "plaie", "brûlure", "brulure", "escarre", "cicatrice", "traumatisme",
 
-  // ── Anatomie ───────────────────────────────────────────────────────────────
+  // ── Anatomy ────────────────────────────────────────────────────────────────
   "genou", "genoux", "épaule", "epaule", "coude", "poignet", "cheville", "hanche",
   "thorax", "abdomen", "rachis", "vertèbre", "vertebre", "vertèbres", "sacrum",
   "bassin", "fémur", "femur", "tibia", "péroné", "perone", "rotule", "clavicule",

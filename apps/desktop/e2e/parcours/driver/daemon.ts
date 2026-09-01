@@ -4,15 +4,15 @@ import { executer, estArret, type Requete } from "./commands";
 import { SOCK, ensureRunDir } from "./paths";
 
 /**
- * Le démon : il garde UNE session d'app ouverte et sert des commandes sur une socket unix.
+ * The daemon: it keeps ONE app session open and serves commands over a unix socket.
  *
- * C'est la seule forme qui convient à un agent : entre deux commandes il réfléchit, lit une
- * capture, change d'avis. Relancer l'app à chaque geste coûterait une minute par clic ET
- * effacerait l'état que le geste précédent venait de créer — donc rendrait impossible le
- * seul type de bug qui compte ici, celui qui n'apparaît qu'après six gestes enchaînés.
+ * It's the only form that suits an agent: between two commands it thinks, reads a
+ * screenshot, changes its mind. Relaunching the app on every gesture would cost a minute per click AND
+ * would erase the state the previous gesture had just created — so it would make impossible the
+ * one kind of bug that matters here, the one that only shows up after six chained gestures.
  *
- * Une socket UNIX, pas un port : elle est protégée par les droits du système de fichiers,
- * elle ne s'expose sur aucune interface, et elle meurt avec le fichier.
+ * A UNIX socket, not a port: it's protected by the filesystem's permissions,
+ * it exposes on no interface, and it dies with the file.
  */
 async function main(): Promise<void> {
   ensureRunDir();
@@ -22,7 +22,7 @@ async function main(): Promise<void> {
     let tampon = "";
     sock.on("data", async (chunk) => {
       tampon += chunk.toString();
-      // Une requête = une ligne JSON. Le tampon existe parce que TCP/unix découpe où il veut.
+      // One request = one JSON line. The buffer exists because TCP/unix splits wherever it wants.
       let i: number;
       while ((i = tampon.indexOf("\n")) >= 0) {
         const ligne = tampon.slice(0, i).trim();
@@ -46,7 +46,7 @@ async function main(): Promise<void> {
       }
     });
     sock.on("error", () => {
-      /* un client qui raccroche ne tue pas le démon */
+      /* a client hanging up doesn't kill the daemon */
     });
   });
 

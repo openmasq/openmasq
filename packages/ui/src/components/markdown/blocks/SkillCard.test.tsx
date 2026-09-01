@@ -6,9 +6,9 @@ import { SkillCard } from "./SkillCard";
 import type { ProposedSkill } from "../../../suggestions/proposedSkill";
 
 /**
- * Le contrat de la carte, en trois points qui sont tous des DÉCISIONS, pas de la mise
- * en page : rien n'est ajouté sans un clic, on ne peut pas ajouter un bloc encore en
- * train de s'écrire, et un second clic ne peut pas créer un doublon.
+ * The card's contract, in three points that are all DECISIONS, not layout:
+ * nothing is added without a click, a block still being written cannot be added,
+ * and a second click cannot create a duplicate.
  */
 
 const COMP = `# Compte rendu
@@ -56,7 +56,7 @@ describe("SkillCard", () => {
     expect(vus[0].prompt).toContain("{réunion}");
     expect(m.el.textContent).toContain("Ajouté");
 
-    // Un second clic ne peut pas créer de doublon — le bouton est désactivé.
+    // A second click cannot create a duplicate — the button is disabled.
     await m.click(".btn-primary");
     expect(vus).toHaveLength(1);
     await m.unmount();
@@ -99,8 +99,8 @@ describe("SkillCard", () => {
 
 describe("« Ajouté » est dérivé de la LISTE — le remount ne réarme pas le bouton (13/08)", () => {
   it("une proposition déjà dans la liste monte directement figée « Ajouté »", async () => {
-    // La liste des messages est VIRTUALISÉE : la carte remonte au scroll. Avec un état
-    // d'instance seul, elle remontait bouton actif et chaque re-clic créait un doublon.
+    // The message list is VIRTUALIZED: the card remounts on scroll. With a lone
+    // instance state, it remounted with an active button and every re-click created a duplicate.
     const onAddSkill = () => {
       throw new Error("ne doit jamais être appelable sur une carte déjà ajoutée");
     };

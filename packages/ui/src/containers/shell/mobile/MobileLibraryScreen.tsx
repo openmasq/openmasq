@@ -184,8 +184,8 @@ function FileRow({
   return (
     <li className="mlib-row">
       <button type="button" className="mlib-row-main" onClick={onOpen}>
-        {/* Neutre, comme la carte du bureau : la teinte par extension a été retirée
-            (`libraryKinds.ts` dit pourquoi). Plus rien d'inline ici. */}
+        {/* Neutral, like the desktop card: the tint by extension was removed
+            (`libraryKinds.ts` says why). Nothing inline here anymore. */}
         <span className="mlib-row-tile">
           <Icon size={18} />
         </span>

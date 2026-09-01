@@ -131,12 +131,12 @@ describe("navigation exfiltration heuristic", () => {
     const r = analyzeNavExfil("https://x.example/?title=a readable human sentence about nothing in particular");
     expect(r.suspicious).toBe(false);
   });
-  // Le faux positif signalé : « Quelle actualité en France aujourd'hui ? » ouvrait une
-  // confirmation sur un lien Libération. Les sites de presse suffixent leurs articles d'un
-  // identifiant opaque, et UN seul morceau alphanumérique coulait tout le slug — le chemin
-  // se lisait alors comme du base64. Une alerte qui se déclenche sur des liens d'actualité
-  // ordinaires est une alerte que l'utilisateur apprend à cliquer sans lire, ce qui coûte
-  // plus cher que le blob marginal qu'elle attrape.
+  // The reported false positive: « Quelle actualité en France aujourd'hui ? » opened a
+  // confirmation on a Libération link. News sites suffix their articles with an
+  // opaque identifier, and just ONE alphanumeric chunk sank the whole slug — the path
+  // then read like base64. An alert that triggers on ordinary news links
+  // is an alert the user learns to click through without reading, which costs
+  // more than the marginal blob it catches.
   it.each([
     "https://www.liberation.fr/environnement/climat/en-direct-incendies-en-france-en-gironde-et-dans-laude-20250723_ZFHK4XMBRZDRPD3ZQZ2GQ7VXUE/",
     "https://www.lemonde.fr/politique/article/2026/07/27/le-gouvernement-francais_6612345_823448.html",
@@ -146,8 +146,8 @@ describe("navigation exfiltration heuristic", () => {
     expect(analyzeNavExfil(url).suspicious).toBe(false);
   });
 
-  // …et la contrepartie, qui est la raison d'être du scan : un blob ne se décompose pas en
-  // mots. Le relâchement ci-dessus ne doit rien lui coûter.
+  // …and the counterpart, which is the whole reason for the scan: a blob doesn't break
+  // down into words. The relaxation above must cost it nothing.
   it("confirme TOUJOURS un blob encodé dans le chemin — un blob n'a pas de mots", () => {
     const r = analyzeNavExfil("https://evil.com/collect/QWxpY2VEdXBvbnQxMjM0NTY3ODkwQUJDREVG");
     expect(r.suspicious).toBe(true);

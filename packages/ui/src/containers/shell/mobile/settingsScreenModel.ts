@@ -12,9 +12,9 @@ import type { SettingsTabId } from "../../../pages/Settings/settingsIndex";
  * which is how a setting becomes unreachable. Hence the "Autres" fallback below, and
  * `settingsScreenModel.test.ts` pinning that the two together cover the whole tab set.
  *
- * Le TITRE de chaque groupe vient du catalogue ; ce qui reste ici est la COMPOSITION —
- * quel onglet tombe dans quel groupe, et dans quel ordre. Une langue ne regroupe pas les
- * réglages autrement.
+ * The TITLE of each group comes from the catalogue; what remains here is the COMPOSITION —
+ * which tab falls into which group, and in what order. No language groups the
+ * settings differently.
  */
 const GROUPS: { key: keyof Messages["settings"]["groups"]; ids: SettingsTabId[] }[] = [
   { key: "account", ids: ["account", "billing", "usage"] },

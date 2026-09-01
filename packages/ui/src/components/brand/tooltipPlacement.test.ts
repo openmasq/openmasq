@@ -92,13 +92,13 @@ describe("tooltipLabelOf", () => {
 describe("placeTooltip — le navigateur agent est un TROU, pas un calque", () => {
   const VP = { width: 1400, height: 900 };
   const BUBBLE = { width: 200, height: 30 };
-  // La fenêtre native est épinglée sur `.browser-viewport` : la moitié droite, sous la
-  // barre d'outils du panneau. Aucun z-index ne passe par-dessus.
+  // The native window is pinned to `.browser-viewport`: the right half, under the
+  // panel's toolbar. No z-index passes over it.
   const BROWSER = { top: 120, left: 700, width: 700, height: 700 };
 
   it("bascule AU-DESSUS un bouton dont la bulle tomberait sur la fenêtre native", () => {
-    // Un bouton de la barre du navigateur (retour, recharger, ✕) : de la place en bas au
-    // sens du viewport, mais cette place est occupée par la fenêtre native.
+    // A button in the browser's toolbar (back, reload, ✕): there's room below in
+    // viewport terms, but that room is occupied by the native window.
     const trigger = { top: 80, left: 900, width: 30, height: 30 };
     const free = placeTooltip(trigger, BUBBLE, VP);
     expect(free.above, "sans obstacle la bulle va dessous").toBe(false);
@@ -109,14 +109,14 @@ describe("placeTooltip — le navigateur agent est un TROU, pas un calque", () =
   });
 
   it("ne bascule pas quand la bulle tombe à CÔTÉ de la fenêtre (moitié gauche)", () => {
-    // Le chat occupe la gauche : rien à éviter, la bulle garde sa place naturelle.
+    // The chat occupies the left: nothing to avoid, the bubble keeps its natural place.
     const trigger = { top: 300, left: 200, width: 30, height: 30 };
     expect(placeTooltip(trigger, BUBBLE, VP, BROWSER).above).toBe(false);
   });
 
   it("garde le choix d'origine quand les DEUX côtés sont couverts", () => {
-    // Un déclencheur au milieu de la fenêtre native : rien à gagner à basculer, et une
-    // bascule inutile ferait sauter la bulle.
+    // A trigger in the middle of the native window: nothing to gain by flipping, and a
+    // needless flip would make the bubble jump.
     const trigger = { top: 400, left: 900, width: 30, height: 30 };
     const obstacle = { top: 0, left: 700, width: 700, height: 900 };
     expect(placeTooltip(trigger, BUBBLE, VP, obstacle).above).toBe(

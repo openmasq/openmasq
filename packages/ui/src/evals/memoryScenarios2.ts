@@ -2,12 +2,12 @@ import { calls, says, type MockRequest } from "./mockModel";
 import type { MemoryLifeScenario } from "./memoryLife";
 import { assertNotOnWire, hasBlock, mustCard } from "./memoryScenarios";
 
-// MÉMOIRE IMBRIQUÉE — un réseau d'entités FORTEMENT liées et volontairement
-// confondantes : deux Claires, deux frères Grimonet, un projet ET une société
-// homonymes (« Ondine »), un comptable dont le nom entier est fait de mots courants
-// (« Pierre Marché »). Chaque phase mesure que le rappel reste PRÉCIS (le bon
-// homonyme), HONNÊTE (l'ambiguïté réelle expose les deux cartes), et que la mémoire
-// se MET À JOUR (contradiction → remplacement, « SARL » → même carte).
+// NESTED MEMORY — a network of entities STRONGLY linked and deliberately
+// confounding: two Claires, two Grimonet brothers, a project AND a company that are
+// homonyms (« Ondine »), an accountant whose whole name is made of everyday words
+// (« Pierre Marché »). Each phase measures that recall stays ACCURATE (the right
+// homonym), HONEST (real ambiguity exposes both cards), and that the memory
+// UPDATES ITSELF (contradiction → replacement, « SARL » → same card).
 
 const NER = {
   "Karl Studio": "company",
@@ -23,9 +23,9 @@ const NER = {
 export const MEMORY_TANGLE: MemoryLifeScenario = {
   name: "memoire-imbriquee",
   phases: [
-    // 1a ─ SEED (personnes) : les paires confondantes humaines. Le cap produit
-    //     MAX_EXTRACTED_FACTS (6) impose de semer un réseau dense en PLUSIEURS
-    //     conversations — c'est aussi comme ça que la mémoire grandit en vrai.
+    // 1a ─ SEED (people): the confounding human pairs. The product's
+    //     MAX_EXTRACTED_FACTS cap (6) forces seeding a dense network over SEVERAL
+    //     conversations — that's also how memory grows for real.
     {
       name: "seed-personnes",
       prompts: [
@@ -50,7 +50,7 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
       },
     },
 
-    // 1b ─ SEED (entités) : les homonymes projet/société + le comptable homographe.
+    // 1b ─ SEED (entities): the project/company homonyms + the homograph accountant.
     {
       name: "seed-entites",
       prompts: [
@@ -74,8 +74,8 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
       },
     },
 
-    // 2 ─ HOMONYME PRÉCIS : le nom COMPLET ne rappelle QUE la bonne Claire — le
-    //     prénom partagé (« claire », homographe dénylisté) ne déborde pas sur l'autre.
+    // 2 ─ PRECISE HOMONYM: the FULL name recalls ONLY the right Claire — the
+    //     shared first name ("claire", a denylisted homograph) doesn't spill onto the other.
     {
       name: "homonyme-precis",
       prompts: ["Prépare l'ordre du jour du point technique avec Claire Vernaux pour lundi."],
@@ -84,17 +84,17 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
       expect: (ctx) => {
         if (!hasBlock(ctx)) throw new Error("la carte de Claire Vernaux n'a pas été rappelée");
         if (!/directrice technique/i.test(ctx.wire)) throw new Error("le fait de la BONNE Claire manque");
-        // UNE seule carte personne doit venir — le FAIT de Vernaux peut légitimement
-        // mentionner l'autre Claire (« à ne pas confondre avec… ») : compter les
-        // CARTES injectées, pas les mots.
+        // ONLY ONE person card should come through — Vernaux's FACT may legitimately
+        // mention the other Claire ("not to be confused with…"): count the
+        // injected CARDS, not the words.
         const persons = ctx.wire.match(/^- .+ \(personne\) :/gm) ?? [];
         if (persons.length !== 1) throw new Error(`la MAUVAISE Claire a été injectée aussi (${persons.length} cartes personne)`);
         assertNotOnWire(ctx, "Claire Vernaux");
       },
     },
 
-    // 3 ─ HOMONYME AMBIGU : « les Grimonet » — l'ambiguïté est RÉELLE, les DEUX
-    //     cartes doivent venir (choisir en silence serait une erreur du système).
+    // 3 ─ AMBIGUOUS HOMONYM: "les Grimonet" — the ambiguity is REAL, BOTH
+    //     cards must come through (silently picking one would be a system error).
     {
       name: "homonyme-ambigu",
       prompts: ["Fais-moi un récapitulatif de ce qu'on sait sur les Grimonet avant ma réunion."],
@@ -103,15 +103,15 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
       expect: (ctx) => {
         if (!/imprim|tirage|papier/i.test(ctx.wire)) throw new Error("la carte de Baptiste (imprimeur) manque");
         if (!/avocat/i.test(ctx.wire)) throw new Error("la carte de Marc (avocat) manque");
-        // Les noms COMPLETS ne vivent que dans le bloc (forcés) — le « Grimonet » nu
-        // tapé par l'utilisateur suit la réalité produit (détection, pas forced).
+        // The FULL names only live in the block (forced) — the bare "Grimonet"
+        // the user typed follows the real product behaviour (detection, not forced).
         assertNotOnWire(ctx, "Baptiste Grimonet");
         assertNotOnWire(ctx, "Marc Grimonet");
       },
     },
 
-    // 4 ─ HOMOGRAPHE PIÈGE : une phrase pleine de mots courants qui sont AUSSI des
-    //     noms (« pierre », « marché », « fontaine », « claire ») ne rappelle RIEN.
+    // 4 ─ TRAP HOMOGRAPH: a sentence full of everyday words that are ALSO
+    //     names ("pierre", "marché", "fontaine", "claire") recalls NOTHING.
     {
       name: "homographe-piege",
       prompts: ["Le marché est en pierre claire, comme la fontaine de la place — belle référence visuelle pour la home page, non ?"],
@@ -125,24 +125,24 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
       },
     },
 
-    // 5 ─ CONFUSION PROJET/SOCIÉTÉ : « Ondine » évoque LES DEUX cartes homonymes —
-    //     le modèle reçoit de quoi distinguer, avec les faits qui les séparent.
+    // 5 ─ PROJECT/COMPANY CONFUSION: "Ondine" evokes BOTH homonym cards —
+    //     the model gets what it needs to tell them apart, with the facts that separate them.
     {
       name: "confusion-homonymes",
       prompts: ["Où en est Ondine ? Et au fait, prépare la facture annuelle pour la société Ondine SARL."],
       ner: NER,
       mock: [says("Le projet avance vers sa deadline ; la facture d'hébergement annuelle de la société homonyme est prête.")],
       expect: (ctx) => {
-        // Robuste au phrasé d'un extracteur vivant : on exige les DEUX catégories de
-        // cartes injectées (une ligne projet ET une ligne organisation), pas des mots.
+        // Robust to a live extractor's phrasing: we require BOTH card categories to be
+        // injected (a project line AND an organisation line), not specific words.
         if (!/^- .+ \(projet\) :/m.test(ctx.wire)) throw new Error("la carte PROJET Ondine manque");
         if (!/^- .+ \(organisation\) :/m.test(ctx.wire)) throw new Error("la carte SOCIÉTÉ Ondine SARL manque");
         assertNotOnWire(ctx, "Ondine SARL");
       },
     },
 
-    // 6 ─ CONTRADICTION → MISE À JOUR : la nouvelle deadline REMPLACE l'ancienne dans
-    //     la carte (le levier `mergeFacts`) — jamais les deux côte à côte.
+    // 6 ─ CONTRADICTION → UPDATE: the new deadline REPLACES the old one in
+    //     the card (the `mergeFacts` lever) — never both side by side.
     {
       name: "update-contradiction",
       prompts: [
@@ -156,8 +156,8 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
           faits: [{ entite: "Ondine", alias: null, cat: "projet", fait: "Deadline désormais le 15 novembre (décalage validé par le client)." }],
         }),
       expect: (ctx) => {
-        // Sélection EXACTE (entity === "Ondine", cat projet) : le helper par inclusion
-        // attraperait la carte « Ondine SARL » — l'homonymie piège aussi les asserts.
+        // EXACT selection (entity === "Ondine", cat projet): an inclusion-based helper
+        // would also catch the "Ondine SARL" card — the homonymy traps the asserts too.
         const ondine = ctx.memory.cards.find((c) => c.entity === "Ondine" && c.cat === "projet");
         if (!ondine) throw new Error("carte PROJET Ondine introuvable");
         if (!/novembre/i.test(ondine.facts)) throw new Error("la nouvelle deadline n'a pas été retenue");
@@ -167,8 +167,8 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
       },
     },
 
-    // 7 ─ AFFIXE SOCIÉTÉ : « Atelier Torbel SARL » dans une conversation ne crée PAS de
-    //     doublon — le cœur org retrouve la carte existante, la surface devient alias.
+    // 7 ─ COMPANY SUFFIX: "Atelier Torbel SARL" in a conversation does NOT create a
+    //     duplicate — the org core finds the existing card, the surface form becomes an alias.
     {
       name: "affixe-societe",
       prompts: [
@@ -194,8 +194,8 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
       },
     },
 
-    // 8 ─ RECHERCHE AMBIGUË : « Claire » tout court n'injecte RIEN (homographe) —
-    //     le modèle doit CHERCHER, et la mémoire renvoie LES DEUX homonymes.
+    // 8 ─ AMBIGUOUS SEARCH: bare "Claire" injects NOTHING (homograph) —
+    //     the model must SEARCH, and memory returns BOTH homonyms.
     {
       name: "recherche-ambigue",
       prompts: ["Je ne sais plus laquelle des deux Claire gère quoi — cherche dans ta mémoire et rappelle-moi qui fait quoi."],
@@ -222,8 +222,8 @@ export const MEMORY_TANGLE: MemoryLifeScenario = {
       },
     },
 
-    // 9 ─ FAIT CROISÉ : une carte mise à jour au fil des phases reste UNE histoire
-    //     cohérente — le rappel d'Atelier Torbel porte contrat + retard, sans doublon.
+    // 9 ─ CROSS-CUTTING FACT: a card updated across phases stays ONE coherent
+    //     story — Atelier Torbel's recall carries contract + delay, with no duplicate.
     {
       name: "coherence-finale",
       prompts: ["Fais le point administratif complet sur Atelier Torbel avant la clôture."],

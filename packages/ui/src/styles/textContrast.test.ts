@@ -226,12 +226,12 @@ describe("the primary action button — its ink INVERTS with the brand", () => {
 });
 
 /**
- * LES BOUTONS PLEINS DE MARQUE — mesurés, pas promis (remonté par un utilisateur le 11/08 :
- * « le texte du bouton + Nouvelle conversation est noir »). Le bloc « Brand buttons carry
- * lime ink » peignait `color: var(--lime)` sur `background: var(--brand)`. Sur les thèmes
- * SOMBRES `--lime` vaut #11160b : du quasi-noir sur l'indigo, à 1,2:1. Rien ne le voyait —
- * la mesure ci-dessus ne porte que sur `--ink-on-brand`, et `.btn-new` déclarait bien ce
- * jeton-là… dans une règle que celle-ci écrasait, plus bas dans la feuille.
+ * SOLID BRAND BUTTONS — measured, not promised (flagged by a user on 11/08:
+ * « le texte du bouton + Nouvelle conversation est noir »). The « Brand buttons carry
+ * lime ink » block painted `color: var(--lime)` on `background: var(--brand)`. On the
+ * DARK themes `--lime` is #11160b: near-black on indigo, at 1.2:1. Nothing caught it —
+ * the measurement above only covers `--ink-on-brand`, and `.btn-new` did declare that
+ * very token… inside a rule this one overrode, further down the sheet.
  */
 describe("les boutons pleins de marque — l'encre qui GAGNE bascule avec le fond", () => {
   const BRAND_BUTTONS = [".btn-new", ".send-btn", ".primary", ".ob-next"];

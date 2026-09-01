@@ -6,9 +6,9 @@ import {
   resetLegacyStorageMigrationForTests,
 } from "./legacyStorage";
 
-// Les clés réelles du parc : le blob de réglages, ses variantes par compte (`:<uid>`),
-// le thème… La passe est par PRÉFIXE précisément pour ne pas tenir une liste qui
-// oublierait la prochaine clé.
+// The fleet's real keys: the settings blob, its per-account variants (`:<uid>`),
+// the theme… The pass is by PREFIX precisely so as not to hold a list that
+// would forget the next key.
 const legacy = (suffix: string): string => `${LEGACY_STORAGE_PREFIX}${suffix}`;
 
 describe("migrateLegacyLocalStorage — le parc d'avant le renommage garde son état", () => {
@@ -44,7 +44,7 @@ describe("migrateLegacyLocalStorage — le parc d'avant le renommage garde son �
     localStorage.setItem("autre.cle", "x");
     localStorage.setItem(legacy("theme"), "dark");
     migrateLegacyLocalStorage();
-    // Une écriture POSTÉRIEURE à la passe ne doit pas être re-écrasée par un second appel.
+    // A write happening AFTER the pass must not be re-overwritten by a second call.
     localStorage.setItem("openmasq.theme", "blue");
     migrateLegacyLocalStorage();
     expect(localStorage.getItem("openmasq.theme")).toBe("blue");

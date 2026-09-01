@@ -29,9 +29,9 @@ export class ErrorBoundary extends Component<
   render() {
     const { error } = this.state;
     if (!error) return this.props.children;
-    // Une CLASSE ne peut pas lire le contexte i18n par un hook, et le repli doit rester
-    // le plus bête possible : c'est l'écran qui s'affiche quand tout le reste a échoué.
-    // La langue de l'appareil suffit — le provider, lui, a peut-être disparu avec l'arbre.
+    // A CLASS can't read the i18n context via a hook, and the fallback must stay
+    // as dumb as possible: it's the screen shown when everything else has failed.
+    // The device's language is enough — the provider may well have vanished with the tree.
     const t = getMessages(initialLocale()).leaves.errorBoundary;
     return (
       <div className="app app-error">

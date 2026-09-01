@@ -1,29 +1,29 @@
 import type { BillingSubscription, OrgProfileInfo } from "../host";
 
 /**
- * « Ce compte est déjà installé quelque part » — la décision, pure.
+ * "This account is already set up somewhere" — the decision, pure.
  *
- * `Settings.onboarded` est LOCAL à la machine (localStorage scopé par compte + DB locale,
- * jamais synchronisé) : un abonné qui se connecte sur un NOUVEL appareil retombait donc
- * sur l'accueil complet, étape « Abonnement, ou votre clé » comprise — proposer de payer
- * à quelqu'un qui paie déjà. Cette règle dit quand le compte est manifestement ÉTABLI :
- * l'accueil n'a alors plus rien à lui apprendre ni à lui vendre, et `ShellChrome` pose
- * `onboarded` sans le faire repasser par la modale.
+ * `Settings.onboarded` is LOCAL to the machine (localStorage scoped per account +
+ * local DB, never synced): a subscriber signing in on a NEW device therefore fell
+ * back to the full onboarding, "Subscription, or your key" step included — offering
+ * to pay to someone who's already paying. This rule says when the account is clearly
+ * ESTABLISHED: onboarding then has nothing left to teach or sell them, and
+ * `ShellChrome` sets `onboarded` without routing them back through the modal.
  *
- * ⚠️ `null` = PAS ENCORE CHARGÉ, et ne vaut ni « libre » ni « établi » (même règle que
- * `needsAccessNotice`) : au démarrage la facturation arrive après le premier rendu, et
- * trancher avant de savoir ferait sauter l'accueil à un vrai nouveau venu — ou l'infligerait
- * à un abonné. Tant qu'on ne sait pas, on ne saute pas.
+ * ⚠️ `null` = NOT LOADED YET, and means neither "free" nor "established" (same rule
+ * as `needsAccessNotice`): at startup billing arrives after the first render, and
+ * deciding before knowing would skip onboarding for a genuine newcomer — or inflict
+ * it on a subscriber. As long as we don't know, we don't skip.
  *
- * On ne touche PAS `billingMode` en sautant : sans clé sur cette machine, le routage
- * retombe déjà sur l'abonnement (`send/routing.ts` — le défaut « byo » n'est un choix
- * que lorsqu'une clé existe), et pré-répondre à sa place est exactement ce que
- * `KeyChoice` refuse de faire.
+ * We do NOT touch `billingMode` when skipping: without a key on this machine,
+ * routing already falls back to the subscription (`send/routing.ts` — the "byo"
+ * default is only a choice once a key exists), and pre-answering on its behalf is
+ * exactly what `KeyChoice` refuses to do.
  */
 export function hasEstablishedAccount(p: {
-  /** L'abonnement individuel. `null` = pas encore chargé. */
+  /** The individual subscription. `null` = not loaded yet. */
   personalSub: BillingSubscription | null;
-  /** Membre d'une organisation ⇒ ses accès existent déjà, gérés par un admin. */
+  /** Org member ⇒ their access already exists, managed by an admin. */
   orgProfile: OrgProfileInfo | null;
 }): boolean {
   if (p.orgProfile) return true;

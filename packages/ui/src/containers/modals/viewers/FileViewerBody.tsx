@@ -23,11 +23,11 @@ export type LoadedFile = {
    *  is what lets a SCANNED PDF paint its redaction boxes post-send. */
   extraction?: {
     ocrPages?: import("@openmasq/redact/documents.browser").OcrLayerPage[];
-    /** OCR word boxes (image scans) — ce qui permet de PEINDRE le redaction sur l'image. */
+    /** OCR word boxes (image scans) — what lets the redaction be PAINTED onto the image. */
     words?: import("../../../host").ExtractedFile["words"];
-    /** La carte de redaction du DÉPÔT, persistée avec le fichier — LA source des viewers
-     *  (`storedReplacements`) ; le coffre de conversation n'est que le repli des vieilles
-     *  lignes, et il sur-marque (il accumule toute la conversation). */
+    /** The DROP's redaction map, persisted with the file — THE source for viewers
+     *  (`storedReplacements`); the conversation vault is only the fallback for old
+     *  lines, and it over-marks (it accumulates the whole conversation). */
     redactions?: unknown;
   } | null;
 };
@@ -69,9 +69,9 @@ export function FileViewerBody({
         : null,
     [kind, data, mime],
   );
-  // La carte du DÉPÔT stockée avec le fichier — prioritaire sur le coffre de la
-  // conversation : même éléments et mêmes teintes que la modale post-dépôt (le coffre,
-  // lui, accumule TOUTE la conversation et sur-marquait — constaté 14/08).
+  // The DROP map stored with the file — takes priority over the conversation
+  // vault: same elements and same tones as the post-drop modal (the vault,
+  // itself, accumulates the WHOLE conversation and used to over-mark — observed 14/08).
   const stored = useMemo(
     () => (data && data !== "error" ? storedReplacements(data.extraction?.redactions) : undefined),
     [data],
@@ -91,9 +91,9 @@ export function FileViewerBody({
   }
   if (data === "error") return <div className="fv-status">{t.viewers.fileNotFound}</div>;
   if (kind === "image") {
-    // Un scan redacted se montre REDACTED quand on a de quoi le peindre (boîtes OCR +
-    // carte du dépôt) — l'original nu reste l'onglet Aperçu, et le repli si la peinture
-    // échoue. Avant, la Bibliothèque montrait toujours l'original : zéro boîte.
+    // A redacted scan shows as REDACTED when there's enough to paint it (OCR boxes +
+    // drop map) — the bare original stays the Aperçu tab, and the fallback if painting
+    // fails. Before, the Bibliothèque always showed the original: zero boxes.
     const words = data.extraction?.words;
     if (showRedacted && words?.length && imageReps?.length) {
       return <ImageRedacted bytes={data.original} mime={data.mime || mime} words={words} replacements={imageReps} />;
@@ -125,8 +125,8 @@ export function FileViewerBody({
   }
   if (kind === "sheet") {
     const isCsv = CSV.test(data.mime || mime) || CSV_EXT.test(name);
-    // La bascule gouverne AUSSI la substitution du tableur : en vue « Original », la
-    // grille montre les vraies valeurs (bytes originaux, zéro replacement).
+    // The toggle ALSO governs the spreadsheet's substitution: in « Original » view, the
+    // grid shows the real values (original bytes, zero replacement).
     return <SpreadsheetViewer bytes={bytes} csv={isCsv} replacements={showRedacted ? sheetReps : undefined} />;
   }
   if (kind === "docx") return <DocxViewer bytes={bytes} />;

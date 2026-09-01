@@ -18,7 +18,7 @@ export function useLocalFsRoots(): readonly string[] {
   const [roots, setRoots] = useState<readonly string[]>([]);
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    return host.mcp?.onChanged?.(() => setTick((n) => n + 1)); // l'unsubscribe
+    return host.mcp?.onChanged?.(() => setTick((n) => n + 1)); // the unsubscribe
   }, [host.mcp]);
   useEffect(() => {
     if (!fs) return;

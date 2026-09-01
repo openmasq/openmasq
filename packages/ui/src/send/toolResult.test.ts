@@ -14,8 +14,8 @@ const settings = (over: Partial<Settings> = {}): Settings =>
 
 function deps(over: Partial<RedactToolResultDeps> = {}): RedactToolResultDeps {
   return {
-    // Le contexte moteur de l'envoi — la même forme que `sendMessage` construit
-    // (`SendEngineContext`), pour que le harnais exerce le vrai contrat.
+    // The send's engine context — the same shape `sendMessage` builds
+    // (`SendEngineContext`), so the harness exercises the real contract.
     engine: {
       disabledKinds: [],
       keep: [],
@@ -134,19 +134,19 @@ describe("memory_search — les entités des cartes sont du PII CONNU (forced sc
   const mem = [{ value: "Atelier Torbel", category: "ORG" }];
 
   it("redacted l'entité d'une carte dans le RÉSULTAT memory_search, même sous le moteur regex", async () => {
-    // Le moteur patterns ne détecte pas un nom libre : sans le forced scopé, le
-    // résultat de la recherche mémoire partait au modèle en CLAIR (mesuré en éval).
+    // The patterns engine doesn't detect a free-form name: without the scoped forced,
+    // the memory search result was reaching the model in CLEAR (measured in eval).
     const vault: Vault = {};
     const redact = makeRedactToolResult(deps({ memorySearchForced: mem }));
     const out = await redact("Souvenirs correspondants :\nAtelier Torbel (organisation) : paie en retard.", vault, "memory_search");
     expect(out).not.toMatch(/atelier torbel/i);
-    expect(Object.values(vault)).toContain("Atelier Torbel"); // réversible
+    expect(Object.values(vault)).toContain("Atelier Torbel"); // reversible
   });
 
   it("ne force PAS ces entités pour un AUTRE outil (SEARCH_CLEAR intact)", async () => {
     const redact = makeRedactToolResult(deps({ memorySearchForced: mem }));
     const out = await redact("Résultat web : Atelier Torbel est une agence réputée.", {} as Vault, "search__web_search");
-    expect(out).toMatch(/atelier torbel/i); // la politique du web public reste inchangée
+    expect(out).toMatch(/atelier torbel/i); // the public web's policy stays unchanged
   });
 });
 
@@ -163,7 +163,7 @@ describe("handshake de contrat (remote) — une option ignorée dont l'ignorance
       })),
     );
     const d = deps({ useRemote: true, host });
-    d.engine.peopleNotoriety = false; // le niveau Strict
+    d.engine.peopleNotoriety = false; // the Strict level
     const out = await makeRedactToolResult(d)("Albert Einstein a répondu.", {} as Vault);
     expect(out).toContain("masqué");
     expect(out).not.toContain("Einstein");
@@ -204,13 +204,13 @@ describe("many — N résultats du même outil en UNE passe moteur", () => {
       ["le premier texte du lot mentionne jean@example.com", "le second texte du lot mentionne aussi jean@example.com"],
       vault,
     );
-    expect(a).toContain("premier texte du lot"); // jamais de mésattribution des parties
+    expect(a).toContain("premier texte du lot"); // never a misattribution of the parts
     expect(b).toContain("second texte du lot");
     expect(a).not.toContain("jean@example.com");
     expect(b).not.toContain("jean@example.com");
     const fake = Object.keys(vault).find((k) => vault[k] === "jean@example.com");
-    expect(fake).toBeTruthy(); // réversible
-    expect(a).toContain(fake!); // UNE identité pour les deux résultats du lot
+    expect(fake).toBeTruthy(); // reversible
+    expect(a).toContain(fake!); // ONE identity for both results of the batch
     expect(b).toContain(fake!);
   });
 
@@ -219,7 +219,7 @@ describe("many — N résultats du même outil en UNE passe moteur", () => {
     const [a, b] = await redact.many(["A".repeat(20_000), "B".repeat(20_000)], {} as Vault);
     expect(a).toContain("tronqué");
     expect(b).toContain("tronqué");
-    expect(b).toContain("BBB"); // le texte 2 a survécu au cap (régression `precapped`)
+    expect(b).toContain("BBB"); // text 2 survived the cap (regression `precapped`)
   });
 
   it("FAIL-CLOSED en lot : détecteur IA en panne ⇒ CHAQUE partie masquée seule, jamais un blob mélangé", async () => {

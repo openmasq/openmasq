@@ -22,21 +22,21 @@ export const ModelRow = forwardRef<
     focused: boolean;
     reason: UnavailableReason | undefined;
     suppressChip?: boolean;
-    /** Vue SIMPLIFIÉE : la ligne se réduit au logo, au nom et au badge « gratuit ».
-     *  Ni drapeau ni ligne prix/contexte/débit — pas parce que ces faits seraient faux,
-     *  mais parce qu'ils demandent un arbitrage à qui a justement demandé à ne pas en
-     *  faire. Ils restent tous dans la vue complète, à un clic. */
+    /** SIMPLIFIED view: the row reduces to the logo, the name and the « gratuit » badge.
+     *  Neither flag nor price/context/throughput line — not because these facts would be false,
+     *  but because they demand a trade-off from someone who precisely asked not to
+     *  make one. They all stay in the full view, one click away. */
     compact?: boolean;
     onChoose: (id: string) => void;
     onHover: (id: string) => void;
-    /** Ce modèle est-il un favori ? Absent avec `onToggleFavorite` ⇒ pas d'étoile. */
+    /** Is this model a favorite? Absent with `onToggleFavorite` ⇒ no star. */
     favorite?: boolean;
-    /** Épingler/retirer ce modèle des favoris. Absent ⇒ aucune étoile n'est rendue (les
-     *  surfaces sans réglage — aperçu web, harnais de test — ne l'offrent pas). */
+    /** Pin/remove this model from favorites. Absent ⇒ no star is rendered (surfaces
+     *  with no settings — web preview, test harness — don't offer it). */
     onToggleFavorite?: (id: string) => void;
-    /** Ce modèle est-il le modèle PAR DÉFAUT (des nouvelles conversations) ? */
+    /** Is this model the DEFAULT model (for new conversations)? */
     isDefault?: boolean;
-    /** En faire le modèle par défaut. Absent ⇒ aucun marqueur maison n'est rendu. */
+    /** Make it the default model. Absent ⇒ no house marker is rendered. */
     onSetDefault?: (id: string) => void;
     /** Open the « accès aux modèles » explainer — from the « gratuit » badge OR from
      *  the unavailable chip, which otherwise carries its escapes in a hover-only
@@ -125,11 +125,11 @@ export const ModelRow = forwardRef<
         )}
         {!compact && (meta.price || meta.context || meta.tpm) && (
           <div className="model-option-meta">
-            {/* Le drapeau (juridiction d'hébergement) vit sur la ligne MÉTA : c'en est
-                une, et la ligne du nom — la plus disputée — lui coûtait un repli. */}
+            {/* The flag (hosting jurisdiction) lives on the META line: it IS
+                one, and the name line — the most contested — cost it a wrap. */}
             <CountryFlag host={PROVIDERS[model.provider].hostCountry} size={12} />
-            {/* Icône = le référent, valeur nue = la place, `title` = le mot + l'unité
-                (`TooltipLayer` le dessine) — le contrat de `modelMeta` (14/08). */}
+            {/* Icon = the referent, bare value = the space, `title` = the word + the unit
+                (`TooltipLayer` draws it) — `modelMeta`'s contract (14/08). */}
             {meta.price && (
               <span className="model-meta" title={meta.priceTitle}>
                 <CoinsIcon size={11} />
@@ -157,10 +157,10 @@ export const ModelRow = forwardRef<
         </span>
       )}
       {onSetDefault && (
-        /* Le marqueur MODÈLE PAR DÉFAUT — plein sur le défaut actuel, cliquable sur les
-           autres pour le devenir. role=button span + stopPropagation, comme l'étoile :
-           le clic ne CHOISIT pas le modèle pour la conversation. Sur le défaut lui-même
-           il est inerte (aria-disabled) — informatif, pas une action. */
+        /* The DEFAULT MODEL marker — filled on the current default, clickable on
+           others to become it. role=button span + stopPropagation, like the star:
+           the click does NOT CHOOSE the model for the conversation. On the default itself
+           it's inert (aria-disabled) — informative, not an action. */
         <span
           className={`model-default${isDefault ? " on" : ""}`}
           role="button"
@@ -183,8 +183,8 @@ export const ModelRow = forwardRef<
         </span>
       )}
       {onToggleFavorite && (
-        /* La ligne est déjà un <button> : l'étoile est un role=button span +
-           stopPropagation, sinon l'épingler CHOISIRAIT le modèle. */
+        /* The row is already a <button>: the star is a role=button span +
+           stopPropagation, otherwise pinning it would CHOOSE the model. */
         <span
           className={`model-fav${favorite ? " on" : ""}`}
           role="button"

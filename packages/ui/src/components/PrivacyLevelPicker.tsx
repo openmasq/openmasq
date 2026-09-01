@@ -11,13 +11,13 @@ import { useT } from "../i18n";
  * doesn't invite it. Picking a preset from there rewrites the categories, which is why the
  * custom card says so before they click.
  *
- * ⚠️ **Le bouclier n'est pas décoratif : il affirme une protection.** Un niveau marqué
- * `reduced` n'en porte donc AUCUN — il reçoit l'œil, qui dit « ceci reste lisible » —
- * sans quoi l'icône affirmerait exactement la protection que le niveau retire (règle 8 :
- * une UI qui sur-vend le masquage est un bug de confiance, pas un choix de style). C'est
- * le cas de « Standard » depuis qu'il laisse passer les catégories BETA. Cette icône est
- * désormais le SEUL signal porté par la carte : le détail vit dans la matrice dépliée
- * sous les niveaux. Le raisonnement complet est dans `privacy/privacyLevel.ts`.
+ * ⚠️ **The shield isn't decorative: it asserts a protection.** A level marked
+ * `reduced` therefore carries NONE of it — it gets the eye instead, which says « ceci reste lisible » —
+ * without which the icon would assert exactly the protection the level removes (rule 8:
+ * a UI that oversells masking is a trust bug, not a style choice). That's
+ * been the case for « Standard » since it lets the BETA categories through. This icon is
+ * now the ONLY signal the card carries: the detail lives in the matrix unfolded
+ * below the levels. The full reasoning is in `privacy/privacyLevel.ts`.
  */
 export function PrivacyLevelPicker({
   level,
@@ -41,7 +41,7 @@ export function PrivacyLevelPicker({
             onClick={() => onPick(m.id)}
           >
             <span className="privacy-level-head">
-              {/* Pas de bouclier sur un niveau réduit — voir l'en-tête du fichier. */}
+              {/* No shield on a reduced level — see the file's header. */}
               {m.reduced ? <EyeIcon size={15} /> : <ShieldIcon size={15} />}
               <span className="privacy-level-name">{m.label}</span>
               {on && (
@@ -51,8 +51,8 @@ export function PrivacyLevelPicker({
               )}
             </span>
             <span className="privacy-level-desc">{m.desc}</span>
-            {/* La contrepartie, toujours dite (règle 8) : ce que le niveau laisse
-                lisible, ou ce que sa protection peut fausser dans la réponse. */}
+            {/* The trade-off, always stated (rule 8): what the level leaves
+                readable, or what its protection may distort in the reply. */}
             <span className="privacy-level-tradeoff">{m.tradeoff}</span>
           </button>
         );

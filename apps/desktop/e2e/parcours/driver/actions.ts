@@ -2,16 +2,16 @@ import type { Page } from "@playwright/test";
 import { awaitReply } from "../../pageActions";
 import { EXPR_DEMARQUER, EXPR_MARQUER, appel } from "./inPage";
 
-/** Le marqueur temporaire posé sur l'élément visé, le temps d'un vrai clic Playwright. */
+/** The temporary marker set on the targeted element, for the duration of a real Playwright click. */
 const HIT = "data-parcours-hit";
 
 /**
- * Clique par NOM ACCESSIBLE — le vocabulaire du digest, donc celui que l'agent lit.
+ * Clicks by ACCESSIBLE NAME — the digest's vocabulary, so what the agent reads.
  *
- * On repère en page (même règle de nommage que le digest, `inPage.ts`), on MARQUE, puis on
- * laisse Playwright cliquer pour de vrai. Un `el.click()` en page sauterait la file
- * d'événements réelle (survol, focus, mise en vue) et ferait passer des boutons qu'un humain
- * n'aurait pas pu atteindre : un vert qui ment, exactement ce qu'un agent ne doit pas produire.
+ * We locate it in the page (same naming rule as the digest, `inPage.ts`), we MARK it, then we
+ * let Playwright click for real. An in-page `el.click()` would skip the real
+ * event queue (hover, focus, scroll-into-view) and would let through buttons a human
+ * couldn't have reached: a lying green, exactly what an agent must never produce.
  */
 export async function cliquer(page: Page, nom: string, n = 1): Promise<void> {
   const trouve = (await page.evaluate(appel(EXPR_MARQUER, { nom, n, HIT }))) as boolean;
@@ -24,7 +24,7 @@ export async function cliquer(page: Page, nom: string, n = 1): Promise<void> {
   await page.evaluate(appel(EXPR_DEMARQUER, HIT));
 }
 
-/** Écrit dans le composeur (ou dans un champ nommé), sans envoyer. */
+/** Writes into the composer (or into a named field), without sending. */
 export async function ecrire(page: Page, texte: string, champ?: string): Promise<void> {
   const cible = champ
     ? page.getByLabel(champ).first().or(page.getByPlaceholder(champ).first())
@@ -33,7 +33,7 @@ export async function ecrire(page: Page, texte: string, champ?: string): Promise
   await cible.fill(texte);
 }
 
-/** Une touche, sur ce qui a le focus. */
+/** One keystroke, on whatever has focus. */
 export async function toucher(page: Page, touche: string): Promise<void> {
   await page.keyboard.press(touche);
 }
@@ -42,27 +42,27 @@ export interface Reponse {
   reponse: string;
   ms: number;
   enErreur: boolean;
-  /** Ce que l'app a annoncé comme à redact AVANT l'envoi — la promesse faite à l'écran. */
+  /** What the app announced as to-be-redacted BEFORE sending — the promise made on screen. */
   toRedact: string[];
   surlignages: number;
 }
 
 /**
- * Le geste central : poser une question et attendre la réponse, comme on le fait cent fois
- * par jour. Retourne aussi ce que l'app avait ANNONCÉ comme à redact — sans quoi juger
- * « la promesse a-t-elle été tenue » demanderait de rejouer la scène.
+ * The central gesture: ask a question and wait for the answer, like we do a hundred times
+ * a day. Also returns what the app had ANNOUNCED as to-be-redacted — without which judging
+ * "was the promise kept" would require replaying the scene.
  */
 export async function demander(page: Page, prompt: string, timeoutMs = 180_000): Promise<Reponse> {
   const input = page.locator(".composer-input");
   await input.click({ timeout: 30_000 });
   await input.fill(prompt);
-  // La détection vivante est débouncée : on lui laisse le temps de parler, mais on ne BLOQUE
-  // pas dessus — une détection muette est un constat à rapporter, pas un plantage du pilote.
+  // Live detection is debounced: we give it time to speak, but we don't BLOCK
+  // on it — a silent detection is a finding to report, not a driver crash.
   //
-  // ⚠️ Une FONCTION ici, jamais une chaîne : `waitForFunction` scrute en injectant un
-  // `new Function` dans la page, et la CSP de l'app interdit `unsafe-eval` — la chaîne y
-  // lève une violation de CSP au lieu d'attendre. `page.evaluate`, lui, passe par CDP et
-  // n'est pas soumis à la CSP : c'est pourquoi le digest, lui, peut rester une chaîne.
+  // ⚠️ A FUNCTION here, never a string: `waitForFunction` polls by injecting a
+  // `new Function` into the page, and the app's CSP forbids `unsafe-eval` — the string
+  // raises a CSP violation there instead of waiting. `page.evaluate`, though, goes through CDP and
+  // isn't subject to the CSP: that's why the digest can stay a string.
   await page
     .waitForFunction(() => document.querySelectorAll(".detect-chip").length > 0, null, {
       timeout: 8_000,

@@ -63,10 +63,10 @@ describe("un CSV s'ouvre sur ce qui PART, pas sur ce qu'on a déposé", () => {
 
 describe("previewViews — la vue TABLEUR est offerte, quelle que soit la route des octets", () => {
   it("bytes en mémoire (glisser-déposer, ré-attache) : la Feuille est OFFERTE", () => {
-    // LE bug que ceci garde : la vue riche était conditionnée à `file.path`, qu'un fichier
-    // déposé n'a pas — il voyage en `data`. Le tableur retombait sur le texte extrait,
-    // « en row ». Elle n'est plus la vue d'OUVERTURE (on ouvre sur ce qui part), mais elle
-    // doit rester atteignable : c'est là qu'on relit ce que le redaction a touché.
+    // THE bug this pins: the rich view was gated on `file.path`, which a dropped
+    // file doesn't have — it travels as `data`. The spreadsheet fell back to the extracted text,
+    // "row by row". It's no longer the OPENING view (we open on what leaves), but it
+    // must stay reachable: it's where you re-read what the redaction touched.
     const f = file({ data: "QUJD" });
     expect(ids(f)).toContain("rich");
     expect(previewViews(previewShape(f), f, t).find((v) => v.id === "rich")?.label).toBe("Feuille");
@@ -117,12 +117,12 @@ describe("previewViews — les couches de texte", () => {
   });
 
   it("les deux couches d'un tableur sont nommées pour ce qu'elles sont", () => {
-    // « Feuille » a pris le rôle d'« Original » — le fichier tel quel — parce que la
-    // couche redacted est une grille elle aussi, plus un mur de lignes.
+    // « Feuille » took over « Original »'s role — the file as-is — because the
+    // redacted layer is a grid too now, not a wall of lines anymore.
     const f = file({ data: "QUJD" });
     const [rich, cav] = previewViews(previewShape(f), f, t);
     expect(rich.hint).toBe("Le fichier tel quel, avant redaction");
-    // Et le redacted ne se dit plus « texte » : pour un tableur, c'en est un tableau.
+    // And the redacted layer is no longer called "text": for a spreadsheet, it's a table.
     expect(cav.hint).toBe("Ce qui quittera la machine");
     expect(cav.shield).toBe(true);
   });
@@ -152,13 +152,13 @@ describe("previewViews — les couches de texte", () => {
 
 describe("redactedGridReady — la grille ne ment pas sur ce qu'elle montre", () => {
   it("sans remplacements, pas de grille : la couche texte sait attendre", () => {
-    // ⛔ Le piège que cette ouverture par défaut rendait courant : `renderFake` sans rien à
-    // substituer affiche les VRAIES valeurs sous l'étiquette « Redacted ».
+    // ⛔ The trap this default opening made common: `renderFake` with nothing to
+    // substitute shows the REAL values under the « Redacted » label.
     expect(redactedGridReady(true, false)).toBe(false);
   });
 
   it("une liste VIDE est une réponse, pas une absence", () => {
-    // La passe a tourné et n'a rien trouvé : le fichier EST sa version redacted.
+    // The pass ran and found nothing: the file IS its redacted version.
     expect(redactedGridReady(true, true)).toBe(true);
   });
 

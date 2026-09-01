@@ -65,7 +65,7 @@
   display: inline-block;
   height: 11px;
   border-radius: 2px;
-  /* Barre PLEINE (plus de hachures — l'effet rayé est retiré du produit). */
+  /* SOLID bar (no more hatching — the striped effect is removed from the product). */
   background: rgba(255, 255, 255, 0.28);
 }
 .om-vault-pill-eye {

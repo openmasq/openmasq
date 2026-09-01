@@ -1,9 +1,9 @@
 /**
- * Les EMBEDDINGS du Host — l'index sémantique de la Mémoire (on-device) et le store
- * d'embeddings générique. Sorti de `files.ts` en passant (règle 1 : il venait de
- * franchir les 300 lignes) et sorti LÀ précisément : ces trois interfaces ne parlent
- * ni de fichiers ni d'extraction — elles n'y vivaient que par histoire. Le barrel
- * (`./index`) ré-exporte tout : aucun consommateur ne change.
+ * The Host's EMBEDDINGS — the Mémoire's semantic index (on-device) and the generic
+ * embeddings store. Pulled out of `files.ts` in passing (rule 1: it had just
+ * crossed 300 lines) and pulled out THERE precisely: these three interfaces talk about
+ * neither files nor extraction — they only lived there for historical reasons. The barrel
+ * (`./index`) re-exports everything: no consumer changes.
  */
 export interface EmbedConfig {
   model: string;
@@ -27,10 +27,10 @@ export interface EmbeddingHit {
 export interface MemoryIndexHost {
   sync(cards: { id: string; text: string }[]): Promise<{ available: boolean; total: number; indexed: number }>;
   edges(k?: number): Promise<{ a: string; b: string; sim: number }[]>;
-  /** Rappel sémantique texte→fiche (le tier de `memory_search`) : la requête est
-   *  embarquée SUR L'APPAREIL (préfixe e5 `query:`) et comparée aux vecteurs en cache.
-   *  Optionnel — un host plus ancien / une plateforme sans bundle n'en a pas, et la
-   *  recherche lexicale reste entière. */
+  /** Semantic recall text→card (the `memory_search` tier): the query is
+   *  embedded ON-DEVICE (e5 prefix `query:`) and compared against the cached vectors.
+   *  Optional — an older host / a platform with no bundle doesn't have it, and the
+   *  lexical search remains whole. */
   query?(text: string, k?: number): Promise<{ id: string; sim: number }[]>;
 }
 

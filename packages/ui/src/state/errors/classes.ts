@@ -40,13 +40,13 @@ export class RedactionUnavailableError extends Error {
         : kind === "auth"
           ? "le redaction a un souci de notre côté"
           : "le redaction n'a pas pu s'exécuter";
-    // Ce qui ne se coupe PAS : que rien n'est parti. C'est une promesse de confidentialité,
-    // pas un détail de formulation — et c'est la première question qu'on se pose ici.
-    // ⚠️ Plus de « changez de moteur (Réglages → Confidentialité) » : ce sélecteur
-    // n'existe plus pour l'utilisateur (`Settings.redactEngine` est verrouillé sur
-    // "local") — conseiller un réglage introuvable est pire que ne rien conseiller.
-    // Le `(reason)` reste : ce message est aussi ce que le journal de débogage reçoit,
-    // et c'est là que le détail sert.
+    // What does NOT get cut: that nothing went out. That's a privacy promise,
+    // not a wording detail — and it's the first question one asks here.
+    // ⚠️ No more « changez de moteur (Réglages → Confidentialité) » : that selector
+    // no longer exists for the user (`Settings.redactEngine` is locked on
+    // "local") — recommending a setting that can't be found is worse than recommending nothing.
+    // The `(reason)` stays: this message is also what the debug journal receives,
+    // and that's where the detail is useful.
     return `Envoi bloqué : ${cause}, rien n'est parti. Réessayez. (${reason})`;
   }
 }
@@ -80,12 +80,12 @@ export class CreditsExhaustedError extends Error {
    *  upgrade path; otherwise the org-budget wording (admin-managed). */
   constructor(personal = false) {
     super(
-      // QUI peut débloquer change avec le compte : sur un compte perso c'est vous, dans
-      // une organisation c'est l'admin. C'est la seule chose que ces deux phrases doivent
-      // encore distinguer.
-      // Et sur un compte perso d'un build qui ne VEND rien (`subscriptionsSold`, le
-      // défaut), « abonnement supérieur » et « crédits » n'existent pas : le modèle n'est
-      // pas ouvert sur ce compte, la clé est l'issue.
+      // WHO can unlock changes with the account: on a personal account it's you, in
+      // an organization it's the admin. That's the only thing these two phrasings still
+      // need to distinguish.
+      // And on a personal account of a build that doesn't SELL anything (`subscriptionsSold`,
+      // the default), « abonnement supérieur » and « crédits » don't exist: the model isn't
+      // open on this account, the key is the way out.
       personal
         ? subscriptionsSold()
           ? "Crédits épuisés. Passez à un abonnement supérieur, utilisez votre propre clé, " +

@@ -15,11 +15,11 @@ describe("estimateTurnUsage — un tour interrompu n'est jamais compté zéro", 
   });
 
   it("une sortie VIDE laisse quand même l'entrée : le prompt a bien été envoyé", () => {
-    // Le cas du Stop immédiat. Le fournisseur a reçu et traité le prompt — facturé —
-    // même si rien n'est encore revenu. Zéro serait faux dans l'autre sens.
+    // The immediate-Stop case. The provider received and processed the prompt — billed —
+    // even if nothing has come back yet. Zero would be wrong in the other direction.
     const u = estimateTurnUsage(history, "");
     expect(u.inputTokens).toBeGreaterThan(140);
-    expect(u.outputTokens).toBeGreaterThan(0); // la surcharge par message, pas 0 net
+    expect(u.outputTokens).toBeGreaterThan(0); // the per-message overhead, not a net 0
   });
 
   it("plus le flux a produit, plus l'estimation monte — c'est monotone", () => {
@@ -29,9 +29,9 @@ describe("estimateTurnUsage — un tour interrompu n'est jamais compté zéro", 
   });
 
   it("reste dans ~±25 % du décompte réel d'un fournisseur sur du texte courant", () => {
-    // Repère de bon sens sur l'heuristique chars/4 : une réponse française de ~1200
-    // caractères pèse ~300 jetons. L'estimation doit encadrer cet ordre de grandeur —
-    // se tromper de 10 % vaut infiniment mieux que de se tromper de 100 % (zéro).
+    // Sanity anchor on the chars/4 heuristic: a French reply of ~1200 characters weighs
+    // ~300 tokens. The estimate must bracket that order of magnitude — being off by 10 %
+    // is infinitely better than being off by 100 % (zero).
     const out = estimateTurnUsage([], "Bonjour, voici une réponse. ".repeat(43)).outputTokens;
     expect(out).toBeGreaterThan(225);
     expect(out).toBeLessThan(375);

@@ -39,9 +39,9 @@ export function useAvis({ chat, section }: { chat: ChatStore; section: Section }
 
   // Read once: the build cannot change under a running app. `channel` is what tells a
   // staging report from a real user's — the version alone does not, the two ship the
-  // same number. `analyticsId` est l'identité PostHog de l'installation — LE champ qui
-  // permet de joindre la fiche à la télémétrie du poste ; même résolution que le sink
-  // (une seule identité par session), et même posture best-effort que le reste.
+  // same number. `analyticsId` is the PostHog identity of the install — THE field that
+  // lets the report be joined to the machine's telemetry; same resolution as the sink
+  // (one identity per session), and the same best-effort posture as the rest.
   const [build, setBuild] = useState<{
     version?: string;
     os?: string;

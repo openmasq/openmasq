@@ -206,15 +206,15 @@ describe("the Coffre outranks the automatic connector keep-list", () => {
 });
 
 /**
- * LE COFFRE EST INSENSIBLE À LA CASSE — de bout en bout.
+ * THE COFFRE IS CASE-INSENSITIVE — end to end.
  *
- * Sa promesse est « toujours redacted, quelle que soit la source ». La casse ne fait
- * pas partie de l'identité d'une valeur : un terme saisi « ACME2024 » doit masquer
- * « acme2024 » comme « Acme2024 ». La plupart du chemin l'était déjà ; deux endroits ne
- * l'étaient pas, et les deux ne se voyaient QUE sur les valeurs que
- * `entityVariantRegex` refuse de fuzzy-matcher — celles portant un CHIFFRE et les mots
- * isolés de moins de 4 lettres. C'est exactement la forme d'un nom de projet ou d'un
- * sigle d'entreprise, donc pas un cas de bord.
+ * Its promise is « toujours redacted, quelle que soit la source ». Case is not part
+ * of a value's identity: a term entered as « ACME2024 » must mask
+ * « acme2024 » just like « Acme2024 ». Most of the path already did; two spots
+ * didn't, and both only showed up on values that
+ * `entityVariantRegex` refuses to fuzzy-match — those carrying a DIGIT and
+ * isolated words under 4 letters. That is exactly the shape of a project name or
+ * a company acronym, so not an edge case.
  */
 describe("le Coffre est insensible à la casse", () => {
   const COFFRE = [term({ value: "ACME2024", token: "ORG" })];
@@ -246,9 +246,9 @@ describe("le Coffre est insensible à la casse", () => {
     expect(coffreHasValue(COFFRE, "  acme2024 ")).toBe(true);
   });
 
-  // Le compteur « N occ · N conv » de la page Coffre : le moteur vaulte la casse RÉELLE
-  // du texte, donc un `===` sur la casse SAISIE affichait « 0 conversation » pour un
-  // terme pourtant masqué partout.
+  // The « N occ · N conv » counter on the Coffre page: the engine vaults the ACTUAL case
+  // of the text, so a `===` on the TYPED case used to show « 0 conversation » for a
+  // term that was nonetheless masked everywhere.
   it("compte les occurrences quel que soit la casse, message ou vault", () => {
     const inMessage = conv({
       id: "c1",
@@ -263,10 +263,10 @@ describe("le Coffre est insensible à la casse", () => {
 });
 
 describe("coffre d'organisation — même contrat « toujours redacted »", () => {
-  // Règle 11 : un terme imposé par l'organisation est forcé dans CHAQUE envoi,
-  // exactement comme un terme personnel. `combinedCoffre` est le seul point de
-  // fusion — les appelants de l'envoi passent par lui (sendOrchestrator,
-  // redactionEngine, ChatView), donc c'est lui qu'on épingle.
+  // Rule 11: a term imposed by the organization is forced on EVERY send,
+  // exactly like a personal term. `combinedCoffre` is the sole merge
+  // point — the send's callers go through it (sendOrchestrator,
+  // redactionEngine, ChatView), so that's what we pin down.
   it("fusionne personnel ⊕ org, et tolère l'absence de chaque moitié", () => {
     const perso = makeCoffreTerm("ACME2024", "ORG");
     const org = makeCoffreTerm("Projet-Basilic", "ORG");

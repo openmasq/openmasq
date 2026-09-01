@@ -26,15 +26,15 @@ const ok = { blocked: false } as unknown as CreditBalance;
 const freeSub = { tier: "free", status: "free" } as unknown as BillingSubscription;
 const paidSub = { tier: "solo", status: "active" } as unknown as BillingSubscription;
 // A PAID platform model (priced) vs a free one — the credit gate only bites the paid.
-// OpenRouter est le SEUL fournisseur double (clé perso OU abonnement) : c'est donc lui
-// qui exerce les deux branches. Un id des cinq grands (`gpt-5.5`) n'est plus servi par
-// la plateforme du tout — il n'a qu'une issue, la clé personnelle.
+// OpenRouter is the ONLY dual provider (personal key OR subscription): so it's the one
+// that exercises both branches. An id from the big five (`gpt-5.5`) is no longer served
+// by the platform at all — it has only one way out, the personal key.
 const PAID = { id: "x-ai/grok-4.20", provider: "openrouter" as ProviderId };
 const FREE = { id: "poolside/laguna-s-2.1:free", provider: "openrouter" as ProviderId };
 const LOCAL = { id: "llama3.3", provider: "openai-compat" as ProviderId };
 
-/* Les pastilles se testent sur le catalogue français ; ce qu'on épingle — quel mot est
-   INTERDIT selon les drapeaux de build — vaut pour toute langue. */
+/* The chips are tested against the French catalog; what we pin down — which word is
+   FORBIDDEN depending on the build flags — holds for every language. */
 const fr = getMessages("fr");
 
 describe("modelUnavailableReason", () => {
@@ -94,9 +94,9 @@ describe("modelUnavailableReason", () => {
   });
 
   /**
-   * L'OFFRE GRATUITE (18/08) : sans abonnement ni clé, la plateforme sert DEUX modèles
-   * nommés. Ce n'est plus le prix qui ouvre — un `:free` d'OpenRouter ne coûte rien au
-   * jeton mais consomme le quota de NOTRE clé, partagé par tous les comptes.
+   * THE FREE OFFER (18/08): with no subscription or key, the platform serves TWO named
+   * models. It's no longer the price that opens it up — an OpenRouter `:free` costs
+   * nothing per token but consumes OUR key's quota, shared across every account.
    */
   describe("offre gratuite — la liste, pas le prix", () => {
     const OTHER_FREE = { id: "google/gemma-4-31b-it:free", provider: "openrouter" as ProviderId };
@@ -117,8 +117,8 @@ describe("modelUnavailableReason", () => {
         effectivePlatform: true,
         personalSub: freeSub,
       });
-      // La raison est PROPRE au cas : le compte n'a jamais eu de crédits, et le modèle
-      // s'affiche « gratuit » — « crédits épuisés » serait faux deux fois.
+      // The reason is SPECIFIC to the case: the account never had any credits, and the
+      // model shows as « gratuit » — « crédits épuisés » would be wrong twice over.
       expect(reason).toBe("free_mode_only");
       expect(pickerHides(reason!)).toBe(true);
       expect(unavailableLabel(reason!, "OpenRouter", fr).title).toContain("Laguna et Nemotron");
@@ -240,7 +240,7 @@ describe("modelUnavailableReason", () => {
       ).toBeNull();
       expect(
         modelUnavailableReason({ ...BASE, model: G, effectivePlatform: false, claudeCliReady: true }),
-      ).toBe("cli_unavailable"); // le drapeau claude n'ouvre PAS gemini
+      ).toBe("cli_unavailable"); // the claude flag does NOT open gemini
     });
 
     it("est MASQUÉ du sélecteur (pas grisé) : la CLI absente est le cas de presque tous", () => {
@@ -389,8 +389,8 @@ describe("pickerBlocks — what disables a row vs what only informs it", () => {
 });
 
 describe("unavailableLabel", () => {
-  // Par défaut rien ne se vend : la pastille dit « Indisponible ». « Abonnement requis »
-  // n'existe que dans un build qui vend (`platformAccess.test.ts` épingle l'absence).
+  // By default nothing is sold: the chip says « Indisponible ». « Abonnement requis »
+  // exists only in a build that sells (`platformAccess.test.ts` pins the absence).
   afterEach(() => configurePlatformAccess({ served: true }));
 
   it("names the provider whose key would unlock a credit-blocked model", () => {
@@ -414,10 +414,10 @@ describe("unavailableLabel", () => {
   });
 });
 
-/* Le sélecteur ne LISTE que ce que ce compte peut envoyer (décision produit du 02/08 :
-   les cinq grands fournisseurs sont passés en clé personnelle, laisser tout le
-   catalogue grisé transformait la liste en vitrine de l'inaccessible). Trois bords
-   gardent la liste honnête ET non vide. */
+/* The picker only LISTS what this account can send (product decision from 02/08:
+   the big five providers moved to personal-key-only, leaving the whole catalog
+   greyed out turned the list into a showcase of the unreachable). Three edge
+   cases keep the list honest AND non-empty. */
 describe("visibleModels — ce que le sélecteur a le droit de lister", () => {
   const M = (id: string) => ({ id });
   const all = [M("libre"), M("sans-cle"), M("sans-credits"), M("local-eteint")];
@@ -431,7 +431,7 @@ describe("visibleModels — ce que le sélecteur a le droit de lister", () => {
     expect(visibleModels(all, reasons).map((m) => m.id)).toEqual(["libre", "local-eteint"]);
     expect(pickerHides("no_key")).toBe(true);
     expect(pickerHides("no_credits")).toBe(true);
-    // Un local injoignable se répare sur SA machine : le cacher cacherait ce qu'il a réglé.
+    // An unreachable local model is fixed on ITS OWN machine: hiding it would hide what it just fixed.
     expect(pickerHides("endpoint_unreachable")).toBe(false);
     expect(pickerHides("no_endpoint")).toBe(false);
   });
@@ -446,10 +446,10 @@ describe("visibleModels — ce que le sélecteur a le droit de lister", () => {
 });
 
 describe("modelUnavailableReason — le MODE GRATUIT du déploiement", () => {
-  // Le serveur sert `tier: "unlimited"` + des crédits `unlimited` (jamais bloqués) : un
-  // modèle inclus PAYANT doit être proposé. Épinglé parce que la garde ne lit que
-  // `tier === "free"` — si un jour elle lisait « palier connu du catalogue », ce test
-  // dirait que le mode gratuit vient de cacher tous les modèles inclus.
+  // The server serves `tier: "unlimited"` + `unlimited` credits (never blocked): a
+  // PAID included model must be offered. Pinned because the guard only reads
+  // `tier === "free"` — if one day it read « known catalog tier » instead, this test
+  // would say free mode had just hidden every included model.
   const unlimitedSub = { tier: "unlimited", status: "active", freeMode: true } as unknown as BillingSubscription;
   const unlimited = { blocked: false, unlimited: true, allotmentCents: 0, balanceCents: 0 } as unknown as CreditBalance;
 
@@ -466,8 +466,8 @@ describe("modelUnavailableReason — le MODE GRATUIT du déploiement", () => {
   });
 
   it("⛔ un solde à 0 ne bloque PAS quand `blocked` est faux — c'est le drapeau qui décide, jamais l'arithmétique", () => {
-    // `allotmentCents`/`balanceCents` valent 0 en mode gratuit : recalculer `balance ≤ 0`
-    // côté client cacherait tout. Seul `blocked` (serveur) fait foi.
+    // `allotmentCents`/`balanceCents` are 0 in free mode: recomputing `balance ≤ 0`
+    // client-side would hide everything. Only `blocked` (server) is authoritative.
     expect(
       modelUnavailableReason({ ...BASE, model: PAID, effectivePlatform: true, personalSub: unlimitedSub, personalCredits: unlimited }),
     ).toBeNull();

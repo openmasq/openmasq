@@ -37,8 +37,8 @@ describe("la démonstration du premier écran", () => {
   });
 
   it("les couleurs viennent du moteur, pas d'un choix local", () => {
-    // `hueForKind` est la source; on vérifie seulement qu'elle a répondu pour chaque
-    // catégorie et que la légende ne mélange pas deux teintes pour un même type.
+    // `hueForKind` is the source; we only check that it answered for each
+    // category and that the legend doesn't mix two tints for the same type.
     for (const l of demoLegend()) {
       expect(l.hue, l.kind).toBeTruthy();
       expect(l.label, l.kind).not.toBe(l.kind);
@@ -47,9 +47,9 @@ describe("la démonstration du premier écran", () => {
 });
 
 describe("les deux promesses de comportement du premier écran", () => {
-  // Elles ont remplacé une note posée sur la carte « Navigation » de Réglages, lue par
-  // personne au moment où l'on s'énerve qu'une recherche réponde à côté. Dites ici, elles
-  // doivent rester VRAIES du moteur : ce test échoue si l'une cesse de l'être.
+  // They replaced a note placed on the « Navigation » card of Réglages, read by
+  // nobody at the moment one gets annoyed that a search answers off-topic. Stated here, they
+  // must stay TRUE of the engine: this test fails if one of them stops being so.
   it("une célébrité, une grande marque et un pays traversent le redaction", async () => {
     const { pseudonymize } = await import("@openmasq/redact");
     const vault: Record<string, string> = {};
@@ -61,9 +61,9 @@ describe("les deux promesses de comportement du premier écran", () => {
   });
 
   it("la carte de révélation pré-recherche existe et se décide à vide par défaut", async () => {
-    // L'autre moitié de la promesse : la question est POSÉE, et ne rien cocher ne révèle
-    // rien. Le comportement complet est épinglé par `components/WebNavRedactOffer.test.ts`
-    // et `evals/navigation.test.ts`; ici on tient le lien avec ce que l'écran affirme.
+    // The other half of the promise: the question is ASKED, and checking nothing reveals
+    // nothing. The full behavior is pinned by `components/WebNavRedactOffer.test.ts`
+    // and `evals/navigation.test.ts`; here we hold the link to what the screen claims.
     const { WebNavRedactOffer } = await import("../../components/WebNavRedactOffer");
     expect(typeof WebNavRedactOffer).toBe("function");
   });

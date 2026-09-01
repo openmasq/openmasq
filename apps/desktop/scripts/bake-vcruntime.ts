@@ -2,44 +2,44 @@
  * Bake the Microsoft Visual C++ runtime DLLs next to the packaged app executable
  * (`apps/desktop/build/win-vcruntime/` → `electron-builder.cjs` `win.extraFiles`).
  *
- * WHY, mesuré et pas supposé : `@libsql/win32-x64-msvc/index.node` — le pilote de base,
- * chargé au DÉMARRAGE — importe `VCRUNTIME140.dll`, et `onnxruntime_binding.node` (NER
- * local + embeddings) importe en plus `MSVCP140.dll` et `VCRUNTIME140_1.dll`. Ces DLL
- * n'appartiennent PAS à Windows : elles arrivent avec le « Visual C++ Redistributable ».
- * Sur une machine qui ne l'a pas, Windows refuse le `dlopen` avec l'erreur 126 (« Le module
- * spécifié est introuvable » — qui désigne une DÉPENDANCE, pas le fichier), et l'app meurt
- * au lancement sur un dialogue Electron brut, avant qu'une seule ligne à nous ait tourné.
+ * WHY, measured and not assumed: `@libsql/win32-x64-msvc/index.node` — the database driver,
+ * loaded at STARTUP — imports `VCRUNTIME140.dll`, and `onnxruntime_binding.node` (local NER
+ * + embeddings) additionally imports `MSVCP140.dll` and `VCRUNTIME140_1.dll`. These DLLs
+ * do NOT belong to Windows: they arrive with the "Visual C++ Redistributable".
+ * On a machine without it, Windows refuses the `dlopen` with error 126 ("The specified
+ * module could not be found" — which names a DEPENDENCY, not the file), and the app dies
+ * at launch on a raw Electron dialog, before a single line of ours has run.
  *
- * La CI ne pouvait pas le voir : l'image `windows-latest` embarque Visual Studio, donc le
- * redistribuable. Il a fallu une VRAIE installation sur une machine vierge.
+ * CI couldn't see it: the `windows-latest` image embeds Visual Studio, hence the
+ * redistributable. It took a REAL install on a clean machine.
  *
- * POURQUOI LES EMBARQUER plutôt que faire installer le redistribuable par l'installeur :
- * `nsis.oneClick` + `perMachine: false` = installation par utilisateur SANS élévation, ce
- * qui est ce qui permet à l'auto-update de s'appliquer sans jamais interrompre. Le
- * redistribuable, lui, s'installe en administrateur : le poser en prérequis ramènerait une
- * UAC à l'installation ET à chaque mise à jour. Le déploiement « app-local » de ces DLL est
- * une option documentée par Microsoft, et c'est la seule cohérente avec cet installeur.
+ * WHY BUNDLE THEM rather than have the installer install the redistributable:
+ * `nsis.oneClick` + `perMachine: false` = per-user install WITHOUT elevation, which
+ * is what lets auto-update apply without ever interrupting. The
+ * redistributable, on the other hand, installs as administrator: making it a prerequisite would bring back a
+ * UAC prompt at install AND on every update. The "app-local" deployment of these DLLs is
+ * an option documented by Microsoft, and it's the only one consistent with this installer.
  *
- * D'OÙ ELLES VIENNENT, et ce que ça vaut. Microsoft livre ces DLL, pour ce déploiement
- * app-local précis, dans le dossier `VC\Redist\MSVC\<version>\x64\Microsoft.VC*.CRT\` de
- * Visual Studio. C'est cette source-là qu'on lit, sur le runner Windows qui l'a déjà.
+ * WHERE THEY COME FROM, and what that's worth. Microsoft ships these DLLs, for this exact
+ * app-local deployment, in the `VC\Redist\MSVC\<version>\x64\Microsoft.VC*.CRT\` folder of
+ * Visual Studio. That's the source we read, on the Windows runner that already has it.
  *
- * ⚠️ Ce qu'on N'A PAS pu faire, et pourquoi c'est écrit ici : partir de `VC_redist.x64.exe`
- * épinglé par sha256 aurait été mieux (une empreinte QU'ON choisit). L'installeur est un
- * bundle « burn » auto-contenu — `/layout` ne dépose rien (run 31501188537) et 7-Zip n'en
- * voit que le PE, sections et ressources, jamais les charges utiles (run 31502110203).
- * L'extraire demanderait `dark.exe` (WiX), absent des runners. L'intégrité ici est donc un
- * RELEVÉ, pas une porte : `integrity.json` enregistre le sha256 et la version de ce qui a
- * été embarqué, et le bake ÉCHOUE si la source est introuvable. Le jour où l'on veut une
- * vraie épingle, la suite est de VENDORER ces trois fichiers (comme `vendor/`), une fois.
+ * ⚠️ What we could NOT do, and why it's written here: starting from `VC_redist.x64.exe`
+ * pinned by sha256 would have been better (a fingerprint WE choose). The installer is a
+ * self-contained "burn" bundle — `/layout` drops nothing (run 31501188537) and 7-Zip only
+ * sees the PE, sections and resources, never the payloads (run 31502110203).
+ * Extracting it would require `dark.exe` (WiX), absent from the runners. Integrity here is therefore a
+ * RECORD, not a gate: `integrity.json` records the sha256 and the version of what was
+ * bundled, and the bake FAILS if the source can't be found. The day we want a
+ * real pin, the next step is to VENDOR these three files (like `vendor/`), once.
  *
- * ⚠️ RÉSIDUEL À DIRE : servicing. Une copie embarquée ne reçoit pas les correctifs que
- * Windows Update applique au redistribuable central.
+ * ⚠️ RESIDUAL to state: servicing. A bundled copy doesn't receive the patches
+ * Windows Update applies to the central redistributable.
  *
- * ⚠️ WINDOWS-ONLY, et il SAUTE bruyamment ailleurs (comme `bake-win-jail.ts`) : la source
- * n'existe que là. La moitié fail-closed vit au RUNTIME, là où elle a un sens :
- * `src/main/db/driver.ts` transforme un chargement natif impossible en erreur lisible et
- * REMONTÉE, au lieu du dialogue brut.
+ * ⚠️ WINDOWS-ONLY, and it LOUDLY skips elsewhere (like `bake-win-jail.ts`): the source
+ * only exists there. The fail-closed half lives at RUNTIME, where it makes sense:
+ * `src/main/db/driver.ts` turns an impossible native load into a readable and
+ * SURFACED error, instead of the raw dialog.
  *
  * Run: `pnpm --filter @openmasq/desktop bake:vcruntime` (part of `pnpm bake`).
  */
@@ -52,16 +52,16 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "build", "win-vcruntime");
 
-/** Les trois DLL dont dépendent nos modules natifs, lues dans leurs tables d'imports PE.
- *  Une absente fait ÉCHOUER le bake : shipper deux tiers du runtime, c'est shipper un
- *  démarrage qui marche et un NER local qui tombe en silence. */
+/** The three DLLs our native modules depend on, read from their PE import tables.
+ *  A missing one FAILS the bake: shipping two thirds of the runtime means shipping a
+ *  startup that works and a local NER that falls over silently. */
 const WANTED = ["vcruntime140.dll", "vcruntime140_1.dll", "msvcp140.dll"];
 
 const log = (m: string): void => console.log(`[bake:vcruntime] ${m}`);
 
-/** Le chemin d'installation de Visual Studio, demandé à l'outil que Microsoft fournit pour
- *  ça (`vswhere`) — jamais un chemin en dur : l'édition (Enterprise/Community) et l'année
- *  changent d'une image de runner à l'autre. */
+/** Visual Studio's install path, asked from the tool Microsoft provides for
+ *  this (`vswhere`) — never a hardcoded path: the edition (Enterprise/Community) and the year
+ *  change from one runner image to the next. */
 function vsInstallPath(): string | null {
   const vswhere = join(
     process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)",
@@ -88,8 +88,8 @@ async function walk(dir: string): Promise<string[]> {
   return found;
 }
 
-/** La version du redistribuable embarqué, pour le relevé — le nom du dossier `MSVC\<ver>\`
- *  la porte, et c'est la seule chose lisible sans parser les ressources du PE. */
+/** The bundled redistributable's version, for the record — the `MSVC\<ver>\` folder name
+ *  carries it, and it's the only thing readable without parsing the PE's resources. */
 function versionFromPath(p: string): string {
   const m = /\\MSVC\\([^\\]+)\\/i.exec(p);
   return m ? m[1] : "inconnue";
@@ -107,9 +107,9 @@ async function main(): Promise<void> {
   const redistRoot = join(vs, "VC", "Redist", "MSVC");
   log(`source : ${redistRoot}`);
 
-  // On cherche les DLL PAR NOM sous les dossiers `x64\Microsoft.VC*.CRT` : ni la version du
-  // toolset (`14.44.x`), ni le numéro de CRT (`VC143`) ne sont codés en dur — ils changent à
-  // chaque mise à jour de l'image du runner.
+  // We look for the DLLs BY NAME under the `x64\Microsoft.VC*.CRT` folders: neither the
+  // toolset version (`14.44.x`), nor the CRT number (`VC143`) are hardcoded — they change on
+  // every runner image update.
   const all = (await walk(redistRoot)).filter((f) => /\\x64\\Microsoft\.VC\d+\.CRT\\/i.test(f));
   const record: Record<string, { sha256: string; version: string }> = {};
   const missing: string[] = [];
@@ -118,8 +118,8 @@ async function main(): Promise<void> {
   await mkdir(OUT, { recursive: true });
 
   for (const want of WANTED) {
-    // Plusieurs versions du toolset peuvent cohabiter : on prend la plus récente par ordre
-    // de chemin, ce qui trie correctement les `14.xx`.
+    // Several toolset versions can coexist: we take the most recent by path
+    // order, which correctly sorts the `14.xx` ones.
     const hits = all.filter((f) => f.toLowerCase().endsWith(`\\${want}`)).sort();
     const hit = hits[hits.length - 1];
     if (!hit) {

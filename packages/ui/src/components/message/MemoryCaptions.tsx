@@ -32,20 +32,20 @@ export function MemoryUsedCaption({ ids }: { ids: string[] }) {
   );
 }
 
-/** Le NON-RAPPEL surprenant, rendu diagnosticable : une fiche qui aurait pu accompagner
- *  cet envoi mais n'est pas partie — budget d'injection saturé, ou prénom/nom trop
- *  courant tapé seul (ignoré exprès : « Pierre » ne doit pas rappeler « Pierre Marché »
- *  sur chaque « pierre » du texte). Le non-rappel NORMAL (aucune mention) reste
- *  silencieux — cette légende n'apparaît que sur les quasi-ratés, sinon son bruit
- *  apprendrait à l'ignorer. Le message porte des ids opaques ; les noms se résolvent
- *  ici, contre le store vivant. */
+/** The surprising NON-RECALL, made diagnosable: a card that could have accompanied
+ *  this send but wasn't part of it — injection budget saturated, or a too-common
+ *  first/last name typed alone (deliberately ignored: « Pierre » must not recall « Pierre Marché »
+ *  on every « pierre » in the text). NORMAL non-recall (no mention at all) stays
+ *  silent — this caption only appears on the near-misses, otherwise its noise
+ *  would train people to ignore it. The message carries opaque ids; the names are resolved
+ *  here, against the live store. */
 export function MemorySkippedCaption({ skipped }: { skipped: { id: string; reason: string }[] }) {
   const t = useT();
   const mem = useMemoryUi();
   if (!mem) return null;
   const byId = new Map(skipped.map((s) => [s.id, s.reason]));
   const items = mem.resolve(skipped.map((s) => s.id));
-  if (!items.length) return null; // les fiches ont été supprimées depuis
+  if (!items.length) return null; // the cards have since been deleted
   const homographe = items.filter((i) => byId.get(i.id) === "homographe");
   const budget = items.filter((i) => byId.get(i.id) === "budget");
   const parts: string[] = [];
@@ -72,14 +72,14 @@ export function MemorySkippedCaption({ skipped }: { skipped: { id: string; reaso
 
 /** « N faits notés » after an explicit « retiens que… »: clickable (deep-link to the
  *  created card) with an inline « Annuler ». The undo is DERIVED — once the created
- *  cards are gone (annulé here or deleted on the page) the caption says so, instead
+ *  cards are gone (cancelled here or deleted on the page) the caption says so, instead
  *  of keeping a stale claim. */
 export function MemoryNotedCaption({ message }: { message: Message }) {
   const t = useT();
   const mem = useMemoryUi();
-  // Extraction en vol (« retiens que… » reçu, appel modèle en cours) : le dire tout de
-  // suite — les secondes que prend l'extraction se lisaient comme une fonctionnalité
-  // morte. Remplacé par le résultat (`memoryNoted`/`memoryNotedFailed`) quand il tombe.
+  // Extraction in flight (« retiens que… » received, model call in progress): say so right
+  // away — the seconds the extraction takes read as a dead feature.
+  // Replaced by the result (`memoryNoted`/`memoryNotedFailed`) once it lands.
   if (message.memoryNotedPending && typeof message.memoryNoted !== "number") {
     return (
       <div className="shield-caption" title={t.conversation.memory.pendingTip}>
@@ -109,9 +109,9 @@ export function MemoryNotedCaption({ message }: { message: Message }) {
   // profile append has no card to deep-link or undo).
   const hasProfile = ids.includes("profile");
   const live = mem ? mem.resolve(ids).filter((i) => i.id !== "profile") : [];
-  // Les fiches EXISTANTES que la passe a mises à jour — résolues contre le store
-  // vivant (une fiche supprimée depuis sort du compte), deep-link vers le panneau où
-  // l'historique montre la phrase remplacée.
+  // The EXISTING cards the pass updated — resolved against the live
+  // store (a card deleted since drops out of the count), deep-link to the panel where
+  // the history shows the replaced sentence.
   const updated = mem ? mem.resolve(message.memoryUpdatedIds ?? []).filter((i) => i.id !== "profile") : [];
   const undone = n > 0 && ids.some((id) => id !== "profile") && live.length === 0 && updated.length === 0;
   const updSuffix = updated.length

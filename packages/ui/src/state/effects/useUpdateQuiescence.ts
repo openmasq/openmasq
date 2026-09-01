@@ -2,13 +2,13 @@ import { useEffect, useRef } from "react";
 import type { Host } from "../../host";
 
 /**
- * L'app est-elle OCCUPÉE au sens de l'AUTO-INSTALLATION d'une mise à jour ? Pure, testée.
+ * Is the app BUSY in the sense of an update's AUTO-INSTALL? Pure, tested.
  *
- * Occupé = un envoi en vol (le flag global couvre aussi les tours agentiques et leurs
- * `run_python`), OU un brouillon non vide dans n'importe quelle conversation — les
- * brouillons sont mémoire-seulement EXPRÈS (`state/CLAUDE.md`), donc un redémarrage
- * automatique les détruirait en silence. Le doute coûte au pire une fenêtre
- * d'installation manquée ; l'inverse coûte du travail de l'utilisateur.
+ * Busy = a send in flight (the global flag also covers agentic turns and their
+ * `run_python`), OR a non-empty draft in any conversation — drafts
+ * are memory-only ON PURPOSE (`state/CLAUDE.md`), so an automatic restart
+ * would silently destroy them. Doubt costs at worst a missed
+ * install window; the reverse costs the user's work.
  */
 export function updateBusy(p: {
   isStreaming: boolean;
@@ -20,10 +20,10 @@ export function updateBusy(p: {
 }
 
 /**
- * Répond à la sonde de quiescence de main (`updates/autoInstall.ts`) : un build
- * téléchargé ne s'installe tout seul (app en arrière-plan/inactive) que si l'UI se dit
- * libre — silence = occupé côté main, donc l'absence de ce hook (aperçu web, préload
- * non redémarré) désactive l'auto-installation au lieu de la rendre aveugle.
+ * Answers main's quiescence probe (`updates/autoInstall.ts`): a downloaded build
+ * only self-installs (app backgrounded/inactive) if the UI reports itself
+ * free — silence = busy on main's side, so the absence of this hook (web preview, preload
+ * not restarted) disables auto-install instead of making it blind.
  */
 export function useUpdateQuiescence(p: {
   host: Host;
@@ -40,6 +40,6 @@ export function useUpdateQuiescence(p: {
       const { isStreaming, conversations, getDraft } = ref.current;
       u.replyQuiescence?.(askId, updateBusy({ isStreaming, conversations, getDraft }));
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- host stable par plateforme
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- host stable per platform
   }, []);
 }

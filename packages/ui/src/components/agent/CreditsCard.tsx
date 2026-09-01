@@ -100,7 +100,7 @@ export function CreditsCard({
     >
       <AgentCardTitle>Vos crédits offerts sont épuisés</AgentCardTitle>
       <AgentCardDesc>
-        {/* « sans crédits » se lisait aussi « sans avoir de crédits » — l'inverse du sens. */}
+        {/* « sans crédits » also read as « sans avoir de crédits » — the opposite meaning. */}
         Prenez un abonnement pour continuer avec les modèles fournis par {BRAND.name}, ou envoyez avec
         votre propre clé {name} — elle ne touche pas à vos crédits.
       </AgentCardDesc>

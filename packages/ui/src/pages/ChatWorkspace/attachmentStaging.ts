@@ -1,17 +1,17 @@
 import type { Attachment } from "./Composer";
 
 /**
- * Où vit un chip : dans l'état local, ou parqué dans le magasin sous l'id d'une conversation
- * qui n'est pas encore à l'écran.
+ * Where a chip lives: in local state, or parked in the store under the id of a
+ * conversation not yet on screen.
  *
- * ⚠️ **La pose et la correction doivent choisir le MÊME côté.** « Demander » crée la
- * conversation et met le fichier en scène dans le même souffle, et cette conversation
- * n'atteint l'écran qu'un commit plus tard : un chip parqué que l'on corrige localement
- * n'est trouvé nulle part, et reste « extraction en cours » pour toujours. Deux fonctions,
- * une seule règle d'aiguillage — c'est tout l'intérêt de les écrire ensemble.
+ * ⚠️ **Setting and fixing must pick the SAME side.** « Demander » creates the
+ * conversation and stages the file in the same breath, and that conversation
+ * only reaches the screen a commit later: a parked chip that gets fixed locally
+ * is found nowhere, and stays « extraction en cours » forever. Two functions,
+ * one single routing rule — that's the whole point of writing them together.
  */
 export interface StagingDeps {
-  /** La conversation RÉELLEMENT rendue à l'instant (une ref, jamais une valeur capturée). */
+  /** The conversation ACTUALLY rendered right now (a ref, never a captured value). */
   currentConvId(): string | undefined;
   setLocal(update: (prev: Attachment[]) => Attachment[]): void;
   getParked?(convId: string): readonly Attachment[] | undefined;
@@ -19,22 +19,22 @@ export interface StagingDeps {
 }
 
 /**
- * DEUX pièces jointes sont-elles la MÊME ?
+ * Are TWO attachments the SAME ONE?
  *
- * ⚠️ Mesuré le 15/08/2026 : « Demander » agit sur l'onglet ACTIF du panneau, et pressé une
- * seconde fois sans changer d'onglet — ce qui arrive dès qu'on croit avoir changé de fichier
- * — il joignait le MÊME document une seconde fois, sans rien dire. Le contenu partait en
- * double (tokens payés deux fois) et le modèle pouvait le lire comme DEUX pièces à
- * comparer : il a commencé une réponse « document 1 / document 2 » sur un doublon.
+ * ⚠️ Measured on 15/08/2026: « Demander » acts on the panel's ACTIVE tab, and pressed a
+ * second time without changing tabs — which happens as soon as you think you've switched
+ * files — it attached the SAME document a second time, without a word. The content went out
+ * twice (tokens paid twice) and the model could read it as TWO documents to
+ * compare: it started a "document 1 / document 2" reply on a duplicate.
  *
- * ⚠️ Et l'identité BOUGE pendant le chargement : « Demander » pose d'abord un chip VIDE
- * (nom seul), que l'extraction remplit ensuite. Une clé figée « nom + taille du texte »
- * ne reconnaissait donc pas le chip déjà posé, et le doublon repassait — vérifié en
- * direct, c'est ce qui a fait échouer la première version de ce correctif.
+ * ⚠️ And identity MOVES while loading: « Demander » first sets an EMPTY chip
+ * (name only), which extraction then fills in. A frozen "name + text length" key
+ * therefore didn't recognize the chip already set, and the duplicate slipped through — verified
+ * live, that's what made the first version of this fix fail.
  *
- * D'où la comparaison, dans cet ordre : le CHEMIN quand les deux en ont un ; sinon le NOM,
- * les tailles ne départageant que si les DEUX sont déjà remplies (deux fichiers homonymes
- * au contenu différent restent deux pièces).
+ * Hence the comparison, in this order: the PATH when both have one; otherwise the NAME,
+ * with sizes only breaking the tie when BOTH are already filled in (two same-named files
+ * with different content stay two attachments).
  */
 const sameAttachment = (a: Attachment, b: Attachment): boolean => {
   if (a.path && b.path) return a.path === b.path;
@@ -48,19 +48,19 @@ export function makeStaging(d: StagingDeps): {
   stage(added: Attachment[], forConvId?: string): void;
   patch(cid: string, patch: Partial<Attachment>, forConvId?: string): void;
 } {
-  // Poser sur l'état local un fichier destiné à une AUTRE conversation le montrerait sur
-  // celle que l'utilisateur quitte — d'où l'aiguillage, et non un simple `setLocal`.
+  // Setting a file meant for an OTHER conversation onto local state would show it on
+  // the one the user is leaving — hence the routing, rather than a plain `setLocal`.
   const parked = (forConvId?: string): string | undefined =>
     forConvId && forConvId !== d.currentConvId() ? forConvId : undefined;
 
   return {
     stage(added, forConvId) {
-      // Un fichier DÉJÀ joint à cette conversation ne se rejoint pas (voir `identity`).
+      // A file ALREADY attached to this conversation doesn't get re-attached (see `identity`).
       const neufs = (deja: readonly Attachment[]): Attachment[] => {
         const vus: Attachment[] = [...deja];
         return added.filter((a) => {
           if (vus.some((b) => sameAttachment(a, b))) return false;
-          vus.push(a); // le lot lui-même peut porter deux fois la même pièce
+          vus.push(a); // the batch itself can carry the same file twice
           return true;
         });
       };

@@ -3,8 +3,8 @@ import { afterEach, describe, it, expect } from "vitest";
 import { configurePlatformAccess } from "../send/platformAccess";
 import { humanizeSendError, cleanErrorText, sendErrorAction, sendErrorReason } from "./errors";
 
-/* Les classes d'erreur et leurs gestes ne dépendent pas de la langue ; le catalogue
-   français est le témoin, et les motifs attendus plus bas sont les siens. */
+/* The error classes and their gestures don't depend on the language; the French
+   catalogue is the witness, and the patterns expected below are its own. */
 const t = getMessages("fr");
 
 describe("humanizeSendError", () => {
@@ -56,7 +56,7 @@ describe("cleanErrorText", () => {
 });
 
 describe("humanizeSendError — un quota épuisé, dit en français", () => {
-  /** Le message réellement remonté le 02/08/2026, corps du fournisseur inclus. */
+  /** The message actually surfaced on 02/08/2026, provider body included. */
   const raw =
     'openrouter tools request failed (429) — après 7 tentatives: ' +
     JSON.stringify({
@@ -78,9 +78,9 @@ describe("humanizeSendError — un quota épuisé, dit en français", () => {
     const msg = humanizeSendError(raw, t)!;
     expect(msg).toContain("50 requêtes gratuites");
     expect(msg).toContain("demain à 02:00");
-    // Et surtout PAS le conseil faux d'un quota journalier.
+    // And above all NOT the false advice about a daily quota.
     expect(msg).not.toMatch(/réduis|fréquence/i);
-    // Ni le mur de JSON que l'utilisateur voyait.
+    // Nor the wall of JSON the user used to see.
     expect(msg).not.toContain("X-RateLimit");
   });
 
@@ -90,10 +90,10 @@ describe("humanizeSendError — un quota épuisé, dit en français", () => {
     expect(msg).not.toMatch(/quota/i);
   });
 
-  // Règle de rédaction n° 1 (en tête d'`errors.ts`) : UN message = UN geste, les issues
-  // sont des BOUTONS (CTA abonnement de la carte, sélecteur de modèle). L'ancienne
-  // version énumérait « changez de modèle, ou passez par l'abonnement » en prose — le
-  // tic le plus machinal du corpus, redondant avec les clics visibles juste dessous.
+  // Drafting rule no. 1 (at the top of `errors.ts`): ONE message = ONE gesture, the
+  // outs are BUTTONS (the card's subscription CTA, the model picker). The old
+  // version listed « changez de modèle, ou passez par l'abonnement » in prose — the
+  // most mechanical tic in the corpus, redundant with the clicks visible right below.
   it("reste court et n'énumère pas en prose ce que les boutons portent déjà", () => {
     const msg = humanizeSendError(raw, t)!;
     expect(msg.length).toBeLessThan(120);
@@ -115,8 +115,8 @@ describe("sendErrorAction — le bouton sous un envoi échoué", () => {
     expect(sendErrorAction(daily)).toBeUndefined();
   });
 
-  // Une rafale se résout d'elle-même en quelques secondes : y coller « prenez un
-  // abonnement » vendrait une solution à un problème déjà passé.
+  // A burst resolves itself in a few seconds: sticking « prenez un abonnement » on
+  // it would sell a solution to a problem already gone.
   it("ne propose RIEN pour une rafale de 429", () => {
     expect(sendErrorAction('mistral tools request failed (429): {"error":"Too many requests"}')).toBeUndefined();
   });
@@ -127,13 +127,13 @@ describe("sendErrorAction — le bouton sous un envoi échoué", () => {
 });
 
 describe("humanizeSendError — un compte fournisseur à sec (la clé de l'utilisateur)", () => {
-  /** Le 429 réel d'OpenAI quand le compte n'a plus de crédits — aucun en-tête de
-   *  quota, aucun mot journalier : la branche rafale répondait « patientez quelques
-   *  secondes » à un refus que seul un paiement débloque. */
+  /** OpenAI's real 429 when the account has no credits left — no quota header,
+   *  no daily wording: the burst branch answered « patientez quelques secondes »
+   *  to a refusal only a payment unlocks. */
   const OPENAI = 'OpenAI API error 429: {"error":{"message":"You exceeded your current quota, ' +
     'please check your plan and billing details.","type":"insufficient_quota","code":"insufficient_quota"}}';
-  /** Le 400 réel d'Anthropic — même panne, pas même costume : il tombait jusqu'au
-   *  mur de JSON anglais. */
+  /** Anthropic's real 400 — same failure, different costume: it used to fall
+   *  through to the wall of English JSON. */
   const ANTHROPIC = 'Anthropic API error 400: {"type":"error","error":{"type":"invalid_request_error",' +
     '"message":"Your credit balance is too low to access the Anthropic API."}}';
 
@@ -143,21 +143,21 @@ describe("humanizeSendError — un compte fournisseur à sec (la clé de l'utili
       expect(msg).toMatch(/n'a plus de crédits/);
       expect(msg).toMatch(/rechargez/i);
       expect(msg).not.toMatch(/patientez|attendez/i);
-      expect(msg).not.toContain("{"); // plus de JSON anglais
+      expect(msg).not.toContain("{"); // no more English JSON
     }
   });
 
   it("nomme l'acteur quand l'appelant le connaît — « votre compte OpenAI », pas une périphrase", () => {
     expect(humanizeSendError(OPENAI, t, { provider: "openai" })).toContain("Votre compte OpenAI");
     expect(humanizeSendError(ANTHROPIC, t, { provider: "anthropic" })).toContain("Votre compte Anthropic");
-    // Sans fournisseur, le repli reste honnête et générique.
+    // Without a provider, the fallback stays honest and generic.
     expect(humanizeSendError(OPENAI, t)).toContain("chez le fournisseur");
   });
 
   it("offre la modale de clé quand l'appelant nomme le fournisseur", () => {
     expect(sendErrorAction(OPENAI, "openai")).toMatchObject({ kind: "missing_key", provider: "openai" });
     expect(sendErrorAction(ANTHROPIC, "anthropic")).toMatchObject({ kind: "missing_key", provider: "anthropic" });
-    // Sans fournisseur, pas de CTA clé — un bouton qui n'ouvrirait rien.
+    // Without a provider, no key CTA — a button that would open nothing.
     expect(sendErrorAction(OPENAI)).toBeUndefined();
   });
 
@@ -187,13 +187,13 @@ describe("humanizeSendError — les codes passerelle restants", () => {
   it("CREDITS_UNVERIFIABLE a sa phrase — un fail-closed voulu n'est pas un code cryptique", () => {
     const msg = humanizeSendError('scaleway tools request failed (402): {"error":"CREDITS_UNVERIFIABLE"}', t)!;
     expect(msg).toMatch(/vérifier vos crédits/i);
-    expect(msg).toMatch(/rien n'est parti/i); // la promesse reste, dite une fois
+    expect(msg).toMatch(/rien n'est parti/i); // the promise stays, said once
     expect(msg).not.toContain("CREDITS_UNVERIFIABLE");
   });
 
   it("CREDITS_EXHAUSTED se décline selon le compte — perso n'a pas d'organisation", () => {
     const raw = 'scaleway tools request failed (402): {"error":"CREDITS_EXHAUSTED"}';
-    // Par défaut rien ne se vend : le compte perso n'entend ni « organisation » ni « abonnement ».
+    // Nothing sells by default: the personal account hears neither « organisation » nor « abonnement ».
     expect(humanizeSendError(raw, t, { personal: true })).not.toMatch(/organisation|abonnement|crédits/i);
     expect(humanizeSendError(raw, t, { personal: true })).toMatch(/votre propre clé/);
     configurePlatformAccess({ served: true, sold: true });
@@ -201,7 +201,7 @@ describe("humanizeSendError — les codes passerelle restants", () => {
     expect(humanizeSendError(raw, t, { personal: true })).toMatch(/abonnement supérieur/);
     configurePlatformAccess({ served: true });
     expect(humanizeSendError(raw, t, { personal: false })).toMatch(/organisation/);
-    // Défaut inchangé (compatibilité) : la formulation org.
+    // Default unchanged (compatibility): the org wording.
     expect(humanizeSendError(raw, t)).toMatch(/organisation/);
   });
 

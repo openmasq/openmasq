@@ -6,7 +6,7 @@ import { launchApp } from "./helpers";
 import { supabaseAuthStorageKey } from "./supabaseAuthKey";
 
 /**
- * « Le modèle écrit, l'utilisateur voit » — end to end, on the built app.
+ * "The model writes, the user sees" — end to end, on the built app.
  *
  * The write here is done from OUTSIDE the renderer, exactly as the assistant's filesystem
  * tools do it (main → worker → disk). Nothing in the UI is clicked to refresh: if the panel
@@ -16,8 +16,8 @@ import { supabaseAuthStorageKey } from "./supabaseAuthKey";
  * only accepted if the NATIVE picker returned it), so the dialog is stubbed in MAIN — the
  * rest of the chain runs for real.
  */
-// Dossier temporaire de LA machine qui exécute, jamais un chemin absolu committé :
-// celui d'avant nommait le répertoire personnel de qui l'avait écrit.
+// Temporary folder of THE executing machine, never a committed absolute path:
+// the previous one named the personal directory of whoever had written it.
 const SCRATCH = join(tmpdir(), "openmasq-e2e-live");
 const ROOT = `${SCRATCH}/live-test`;
 const FILE = `${ROOT}/notes.txt`;

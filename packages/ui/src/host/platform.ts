@@ -16,7 +16,7 @@ export interface KeysHost {
   /** One-time migration of legacy plaintext keys (only sets ids not present). */
   importLegacy(map: Record<string, string>): Promise<void>;
   /**
-   * « Connecter mon compte OpenRouter » — OAuth PKCE, run entirely by the platform:
+   * "Connect my OpenRouter account" — OAuth PKCE, run entirely by the platform:
    * it opens the browser, receives the callback and stores the key itself. Resolves
    * `true` once a key is stored, `false` on refusal/timeout/failure.
    *
@@ -28,11 +28,11 @@ export interface KeysHost {
    */
   connectOpenRouter?(): Promise<boolean>;
   /**
-   * Publier la posture d'organisation « ce compte peut-il utiliser SES clés ? ».
-   * `null` = pas d'organisation / pas encore su ⇒ la plateforme laisse faire ; `false` =
-   * compte géré ⇒ elle refuse l'écriture d'une clé ET l'injection d'une clé déjà stockée.
-   * Une interface qui masque la grille ne suffit pas : la vraie garde est côté plateforme
-   * (règle 7). Absente ⇒ rien à contraindre sur cette plateforme.
+   * Publish the org posture "can this account use ITS OWN keys?".
+   * `null` = no organization / not known yet ⇒ the platform lets it happen; `false` =
+   * managed account ⇒ it refuses both writing a key AND injecting an already-stored key.
+   * An interface that hides the grid isn't enough: the real guard is on the platform side
+   * (rule 7). Absent ⇒ nothing to constrain on this platform.
    */
   setOrgByoAllowed?(allowed: boolean | null): Promise<void>;
 }
@@ -192,16 +192,16 @@ export interface NotifyHost {
 }
 
 /**
- * Optional read of the **Claude Code skills** this machine already holds — le socle de
- * « Importer mes compétences Claude » en deux clics.
+ * Optional read of the **Claude Code skills** this machine already holds — the basis of
+ * « Importer mes compétences Claude » in two clicks.
  *
- * ⚠️ Le renderer ne fournit AUCUN chemin : la plateforme énumère des racines qu'elle
- * connaît seule (`~/.claude/skills/`, et le `.claude/skills/` des dossiers DÉJÀ accordés
- * au connecteur Fichiers) et ne lit qu'un fichier au nom fixe. C'est une capacité
- * allow-listée d'une seule forme, pas le read-gate élargi.
+ * ⚠️ The renderer supplies NO path: the platform enumerates roots it alone knows
+ * (`~/.claude/skills/`, and the `.claude/skills/` of folders ALREADY granted to the
+ * Files connector) and reads only a fixed-named file. It is a single-shape allow-listed
+ * capability, not the broadened read-gate.
  *
- * Absent (aperçu web, mobile) ⇒ le bouton n'est pas dessiné ; le dépôt d'un dossier reste
- * le chemin universel.
+ * Absent (web preview, mobile) ⇒ the button isn't drawn; dropping a folder remains the
+ * universal path.
  */
 export interface ClaudeSkillsHost {
   list(): Promise<

@@ -3,28 +3,28 @@ import { describe, it, expect } from "vitest";
 import { readStylesheet } from "./readStylesheet";
 
 /**
- * TOUTE surface qui charge cette feuille doit NOMMER son thème.
+ * EVERY surface that loads this sheet must NAME its theme.
  *
- * `styles.css` déclare le squelette clair sous `:root` NU — le skin VERT, retiré du
- * produit (`state/theme.ts` : `blueAccent` traduit tout thème persisté vers l'indigo) —
- * et l'accent réel sous `[data-theme]`. L'app de bureau pose l'attribut avant le premier
- * rendu (`applyPersistedTheme`), ce qui rend le squelette inatteignable CHEZ ELLE. Les
- * consoles web, elles, ne montent jamais ce store : sans attribut sur `<html>` elles
- * rendaient le vert (brand forêt, encre citron, liens et focus verts) face à des kits
- * indigo. Rien dans leur code ne pouvait le dire — d'où ce test, et son unique home ici,
- * à côté des jetons dont il parle (les apps ne s'important pas entre elles, un test posé
- * dans l'une n'aurait pas pu couvrir l'autre).
+ * `styles.css` declares the light skeleton under the BARE `:root` — the GREEN skin, retired
+ * from the product (`state/theme.ts`: `blueAccent` translates any persisted theme to indigo) —
+ * and the real accent under `[data-theme]`. The desktop app sets the attribute before the first
+ * render (`applyPersistedTheme`), which makes the skeleton unreachable AT HOME. The
+ * web consoles, though, never mount this store: with no attribute on `<html>` they
+ * rendered green (forest brand, lemon ink, green links and focus) against
+ * indigo kits. Nothing in their code could say so — hence this test, and its sole home here,
+ * next to the tokens it talks about (apps don't import each other, a test placed
+ * in one couldn't have covered the other).
  *
- * Il lit le TEXTE des documents racine : l'attribut y est un littéral, et le rendre
- * n'apprendrait rien de plus que le lire.
+ * It reads the TEXT of the root documents: the attribute there is a literal, and rendering it
+ * would teach nothing more than reading it.
  */
 const CSS = readStylesheet();
 
-/** Le document racine de chaque console — celui qui porte le `<html>`.
- *  ⚠️ La console vit dans le dépôt privé `infra` depuis le 31/08/2026 : quand elle n'est
- *  pas à côté (le dépôt public), il n'y a rien à lire, et le test se déclare sauté plutôt
- *  que de casser sur un ENOENT — un test qui échoue pour une raison qui n'est pas la sienne
- *  finit désactivé. */
+/** Each console's root document — the one that carries `<html>`.
+ *  ⚠️ The console has lived in the private `infra` repo since 31/08/2026: when it isn't
+ *  alongside (the public repo), there's nothing to read, and the test declares itself skipped rather
+ *  than break on an ENOENT — a test that fails for a reason that isn't its own
+ *  ends up disabled. */
 const ROOTS = (
   [["apps/web (console d'administration)", "../../../../apps/web/index.html"]] as const
 ).filter(([, path]) => existsSync(new URL(path, import.meta.url)));
@@ -53,9 +53,9 @@ describe.skipIf(ROOTS.length === 0)("les consoles nomment leur thème", () => {
   it("nomme un thème que la feuille déclare, et cet accent n'est pas le vert", () => {
     const block = themeBlock(theme!);
     expect(block, `[data-theme="${theme}"] n'existe pas dans styles.css`).not.toBe("");
-    // L'accent indigo du produit. En dur : c'est la VALEUR qu'on veut voir arriver
-    // jusqu'à l'écran, et la relire depuis le même `:root` ne prouverait rien (le
-    // squelette vert satisferait sa propre déclaration).
+    // The product's indigo accent. Hardcoded: it's the VALUE we want to see arrive
+    // on screen, and reading it back from the same `:root` would prove nothing (the
+    // green skeleton would satisfy its own declaration).
     expect(declared(block, "--brand")).toMatch(/^#3939fa$/);
   });
 });

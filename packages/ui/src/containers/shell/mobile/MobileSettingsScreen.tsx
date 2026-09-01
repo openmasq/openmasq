@@ -136,8 +136,8 @@ export function MobileSettingsScreen({
           <ChevRightIcon size={18} />
         </button>
 
-        {/* « Aide » — le guide, atteignable sur mobile aussi : la barre du bas n'a pas
-            de place, et une app qui ne s'explique nulle part n'a pas de recours. */}
+        {/* « Aide » — the guide, reachable on mobile too: the bottom bar has no
+            room, and an app that explains itself nowhere has no recourse. */}
         {onOpenGuide && (
           <section className="mset-group">
             <div className="cv-eyebrow mset-group-title">{t.shell.mobile.settings.help}</div>
@@ -157,7 +157,7 @@ export function MobileSettingsScreen({
           <section key={g.title} className="mset-group">
             <div className="cv-eyebrow mset-group-title">{g.title}</div>
             <div className="mset-list">
-              {/* `entry`, pas `t` : `t` est le catalogue de traduction dans ce composant. */}
+              {/* `entry`, not `t`: `t` is the translation catalogue in this component. */}
               {g.items.map((entry, i) => (
                 <button
                   key={entry.id}

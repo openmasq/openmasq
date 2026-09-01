@@ -4,9 +4,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { launchApp } from "./helpers";
 
-// Sortie des captures : un dossier temporaire de LA machine qui exécute, jamais un
-// chemin absolu committé — celui d'avant nommait le répertoire personnel de qui
-// l'avait écrit et n'existait sur aucune autre machine.
+// Screenshot output: a temporary folder of THE executing machine, never a
+// committed absolute path — the previous one named the personal directory of whoever
+// had written it and didn't exist on any other machine.
 const OUT = join(tmpdir(), "openmasq-e2e-shots");
 mkdirSync(OUT, { recursive: true });
 

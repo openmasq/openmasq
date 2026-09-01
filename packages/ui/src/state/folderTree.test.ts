@@ -3,13 +3,13 @@ import type { LocalFsEntry } from "../host";
 import { MAX_TREE_DEPTH, folderTreeRows, missingListings, toggleFolder } from "./folderTree";
 
 /**
- * L'aplatissement de l'arborescence des dossiers autorisés.
+ * The flattening of the granted folders' tree.
  *
- * Deux choses valent un test plutôt qu'un paragraphe : un dossier ouvert dont le listing
- * n'est pas encore là doit se DIRE en cours (un dossier vide et un dossier pas encore lu
- * se ressemblent à l'écran, et confondre les deux fait croire que la machine ment), et un
- * lien qui pointe vers un ancêtre ne doit pas pouvoir faire boucler le rendu — l'état
- * d'ouverture étant indexé par chemin absolu, c'est exprimable en trois clics.
+ * Two things are worth a test rather than a paragraph: an open folder whose listing
+ * hasn't arrived yet must SAY so as in-progress (an empty folder and a not-yet-read
+ * folder look alike on screen, and confusing the two makes the machine seem to lie),
+ * and a link pointing to an ancestor must not be able to loop the render — the open
+ * state being indexed by absolute path, this is expressible in three clicks.
  */
 
 const dir = (path: string, name = path.split("/").pop()!): LocalFsEntry => ({
@@ -49,7 +49,7 @@ describe("folderTreeRows", () => {
     expect(root.expanded).toBe(true);
     expect(root.loading).toBe(true);
 
-    // Listing arrivé et vide : ce n'est plus un chargement, c'est un dossier vide.
+    // Listing arrived and empty: it's no longer a loading state, it's an empty folder.
     const [read] = folderTreeRows(["/a"], { "/a": [] }, new Set(["/a"]));
     expect(read.loading).toBe(false);
   });
@@ -60,8 +60,8 @@ describe("folderTreeRows", () => {
   });
 
   it("ne déplie pas un dossier à l'intérieur de lui-même — le lien vers un ancêtre", () => {
-    // `/a/boucle` est un lien résolu par main vers `/a` : même chemin absolu, donc même
-    // état d'ouverture. Sans la garde, la marche récursive ne s'arrêterait jamais.
+    // `/a/boucle` is a link resolved by main to `/a`: same absolute path, so same
+    // open state. Without the guard, the recursive walk would never stop.
     const rows = folderTreeRows(
       ["/a"],
       { "/a": [dir("/a", "boucle"), file("/a/note.md")] },
@@ -72,7 +72,7 @@ describe("folderTreeRows", () => {
   });
 
   it("borne la profondeur rendue", () => {
-    // Une chaîne bien plus profonde que la garde, entièrement ouverte.
+    // A chain much deeper than the guard, entirely open.
     const listings: Record<string, LocalFsEntry[]> = {};
     let path = "/a";
     for (let i = 0; i < MAX_TREE_DEPTH + 5; i++) {
@@ -94,8 +94,8 @@ describe("toggleFolder / missingListings", () => {
   });
 
   it("ne réclame que les listings que l'écran peut montrer", () => {
-    // `/a/sub` est ouvert mais son parent ne l'est pas : il n'apparaît dans aucune ligne,
-    // donc le rail ne doit pas payer sa lecture.
+    // `/a/sub` is open but its parent isn't: it doesn't appear in any row, so the
+    // rail must not pay for reading it.
     const expanded = new Set(["/a/sub"]);
     const rows = folderTreeRows(["/a"], {}, expanded);
     expect(missingListings(rows, {})).toEqual([]);
@@ -106,9 +106,9 @@ describe("toggleFolder / missingListings", () => {
 });
 
 describe("folderTreeRows — un ÉCHEC n'est pas un chargement", () => {
-  // Le symptôme qu'on a vu : un dossier dont le listage rate restait « … » indéfiniment,
-  // ce qui se lit comme un dossier lent — donc comme un dossier qui ne rend pas ses
-  // enfants. Un échec a une cause, affichée sous le panneau ; il doit se DIRE.
+  // The symptom we saw: a folder whose listing fails stayed on « … » forever,
+  // which reads as a slow folder — so as a folder that doesn't render its
+  // children. A failure has a cause, shown under the panel; it must SAY so.
   it("cesse de charger et se marque en échec", () => {
     const [row] = folderTreeRows(["/a"], {}, new Set(["/a"]), new Set(), new Set(["/a"]));
     expect(row.loading).toBe(false);
@@ -131,16 +131,16 @@ describe("chaque ligne a une clé UNIQUE — sans quoi un dossier ne se referme 
   const d = (path: string, name: string) => ({ name, path, kind: "dir" as const, size: 0, mtime: 0 });
   const f = (path: string, name: string) => ({ name, path, kind: "file" as const, size: 0, mtime: 0 });
 
-  // Le cas réel : un stockage distant rend un listing RÉCURSIF, donc le petit-fils arrive
-  // à côté de son parent. Deux lignes pour un même chemin = deux fois la même clé React :
-  // replier n'enlevait plus rien, et redéplier dupliquait.
+  // The real case: a remote storage returns a RECURSIVE listing, so the grandchild
+  // arrives next to its parent. Two rows for the same path = the same React key
+  // twice: collapsing no longer removed anything, and re-expanding duplicated.
   it("un listing récursif ne rend pas le même fichier à deux profondeurs", () => {
     const listings = {
       "cloud|": [d("cloud|/Clients", "Clients"), f("cloud|/Clients/devis.pdf", "devis.pdf")],
       "cloud|/Clients": [f("cloud|/Clients/devis.pdf", "devis.pdf")],
     };
     const rows = folderTreeRows(["cloud|"], listings, new Set(["cloud|", "cloud|/Clients"]));
-    // Le CHEMIN peut se répéter (le listing récursif l'impose) ; la CLÉ, jamais.
+    // The PATH can repeat (the recursive listing forces it); the KEY, never.
     const keys = rows.map((r) => r.key);
     expect(new Set(keys).size).toBe(keys.length);
   });

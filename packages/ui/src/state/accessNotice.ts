@@ -1,44 +1,44 @@
 import type { BillingSubscription, CreditBalance, OrgProfileInfo } from "../host";
 
 /**
- * « Vous n'avez aucun accès » — la décision, pure.
+ * "You have no access" — the decision, pure.
  *
- * Deux voies mènent au catalogue complet : un **abonnement** (les modèles passent par les
- * crédits d'abonnement) ou **votre propre clé** chez un fournisseur. Sans ni l'un ni l'autre, le
- * sélecteur se réduit aux modèles gratuits — et l'utilisateur ne l'apprend qu'en voyant une
- * liste courte, ou en butant sur le quota journalier d'un modèle gratuit.
+ * Two paths lead to the full catalogue: a **subscription** (models go through
+ * subscription credits) or **your own key** with a provider. With neither, the
+ * picker shrinks to the free models — and the user only finds out by seeing a
+ * short list, or by hitting a free model's daily quota.
  *
- * ⚠️ Ce que la bannière ne dit PAS : « vous ne pouvez rien envoyer ». C'est faux — les
- * modèles gratuits marchent sans rien. Elle annonce ce qui MANQUE, pas un blocage.
+ * ⚠️ What the banner does NOT say: "you can't send anything". That's false — the
+ * free models work with nothing set up. It announces what's MISSING, not a block.
  */
 export interface AccessNoticeInput {
-  /** Les fournisseurs dont une clé est enregistrée sur cette machine. */
+  /** The providers with a key registered on this machine. */
   keyConfigured: ReadonlySet<string>;
-  /** L'abonnement individuel. `null` = pas encore chargé. */
+  /** The individual subscription. `null` = not loaded yet. */
   personalSub: BillingSubscription | null;
-  /** Le solde prépayé individuel. `null` = pas encore chargé. */
+  /** The individual prepaid balance. `null` = not loaded yet. */
   personalCredits: CreditBalance | null;
-  /** Membre d'une organisation ⇒ ses accès sont gérés par un admin. */
+  /** Org member ⇒ their access is managed by an admin. */
   orgProfile: OrgProfileInfo | null;
-  /** La plateforme expose-t-elle une surface de facturation ? Sinon rien à proposer. */
+  /** Does the platform expose a billing surface? Otherwise nothing to offer. */
   hasBilling: boolean;
 }
 
 export function needsAccessNotice(p: AccessNoticeInput): boolean {
-  // Un membre d'organisation ne choisit pas : lui dire de prendre un abonnement le
-  // renverrait vers une page qui ne le concerne pas.
+  // An org member doesn't choose: telling them to get a subscription would send
+  // them to a page that doesn't concern them.
   if (p.orgProfile) return false;
-  // Rien à vendre sur cette plateforme (aperçu web) ⇒ pas de bannière.
+  // Nothing to sell on this platform (web preview) ⇒ no banner.
   if (!p.hasBilling) return false;
-  // Une seule clé, n'importe laquelle, suffit à ouvrir une voie.
+  // A single key, any one, is enough to open a path.
   if (p.keyConfigured.size > 0) return false;
-  // ⚠️ `null` = PAS ENCORE CHARGÉ, et ne vaut pas « aucun abonnement » : au démarrage la
-  // facturation arrive après le premier rendu, et annoncer un manque avant de savoir
-  // ferait clignoter la bannière chez quelqu'un qui paie.
+  // ⚠️ `null` = NOT LOADED YET, and does not mean "no subscription": at startup
+  // billing arrives after the first render, and announcing a gap before knowing
+  // would flash the banner at someone who's paying.
   if (!p.personalSub) return false;
   if ((p.personalSub.tier ?? "free") !== "free") return false;
-  // Un crédit restant (offert, promo) est un accès : il s'épuisera, et c'est le blocage
-  // d'envoi qui le dira alors — pas une bannière permanente au-dessus du composeur.
+  // A remaining credit (gifted, promo) is access: it will run out, and it's the
+  // send block that will say so then — not a permanent banner above the composer.
   if (p.personalCredits && !p.personalCredits.blocked) return false;
   return true;
 }

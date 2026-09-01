@@ -56,34 +56,34 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
     // fake-collision guard — the "france" trap) are still not threaded here.
     const effective = effectiveRedactCategories(settings.redactCategories, convCategories, orgForced);
     const disabledKinds = disabledKindsOf(effective);
-    // Le COFFRE et la dispense de NOTORIÉTÉ suivent l'envoi (audit 2026-08-10) : sans
-    // eux, l'aperçu « Ce qui quittera la machine » montrait un terme du Coffre EN
-    // CLAIR (l'envoi le masque — son contrat est « toujours redacted ») et masquait
-    // une marque célèbre que l'envoi laisse en clair. La passe de dépôt passe par ce
-    // même chemin, donc ses `replacements` (réutilisées par l'envoi) y gagnent aussi.
-    // Coffre NON filtré par la notoriété, comme l'envoi (« UNFILTERED », store.ts) —
-    // la notoriété n'exempte que la DÉTECTION, jamais un forcé.
+    // The COFFRE and the NOTORIETY dispensation follow the send (audit 2026-08-10): without
+    // them, the "Ce qui quittera la machine" preview showed a Coffre term IN
+    // CLEAR (the send masks it — its contract is "always redacted") and masked
+    // a famous brand that the send leaves in clear. The drop-time pass goes through this
+    // same path, so its `replacements` (reused by the send) benefit too.
+    // Coffre NOT filtered by notoriety, like the send ("UNFILTERED", store.ts) —
+    // notoriety only exempts DETECTION, never a forced value.
     const forced = coffreToForced(combinedCoffre(settings));
     const { commercial: commercialNotoriety, people: peopleNotoriety } = notorietyForLevel(
       levelOf(effective, orgForced),
     );
 
-    // Les moteurs "remote" et "model" sont PURGÉS de ce chemin (audit 2026-08-10) :
-    // `normalizeSettings` coerce ces deux valeurs vers "local" à chaque chargement (les
-    // sélecteurs ont été retirés du produit), donc ces branches étaient inatteignables —
-    // et ~40 % du fichier à relire pour rien. Le moteur distant vivant est l'endpoint de
-    // la gateway (apps/gateway), pas ce chemin. Ne pas les réintroduire ici.
+    // The "remote" and "model" engines are PURGED from this path (audit 2026-08-10):
+    // `normalizeSettings` coerces both values to "local" on every load (the
+    // selectors were removed from the product), so these branches were unreachable —
+    // and ~40% of the file re-read for nothing. The live remote engine is the
+    // gateway's endpoint (apps/gateway), not this path. Do not reintroduce them here.
     // Offline local engine (GLiNER) — redacted free-form PII in documents too,
     // with no LLM/network, mirroring the chat send pipeline.
     const useLocal = settings.redactEngine === "local" && !!host.detectLocalPii;
     const detectLocal = useLocal
       ? (t: string) => host.detectLocalPii!({ text: t })
       : undefined;
-    // ⚠️ `mode` vient des RÉGLAGES ici, pas de la conversation : ce chemin est celui des
-    // aperçus et du redaction d'un document AU DÉPÔT, qui n'ont pas de conversation. Même
-    // famille de résidu que `keep`/`avoid`/`forced` ci-dessus — et il est borné par
-    // `redactEngineSig` (le mode entre dans la signature, donc une carte produite dans
-    // l'autre mode est périmée et le send re-détecte au lieu de la réutiliser).
+    // ⚠️ `mode` comes from SETTINGS here, not the conversation: this path is the one for
+    // previews and DROP-TIME document redaction, which have no conversation. Same
+    // family of residual as `keep`/`avoid`/`forced` above — and it is bounded by
+    // `redactEngineSig` (the mode enters the signature, so a map produced under
+    // the other mode is stale and the send re-detects instead of reusing it).
     const mode = settings.redactWireTokens ? ("token" as const) : ("fake" as const);
     const work = pseudonymize(text, {
       vault, detectLocal, numbers: false, disabledKinds, mode,
@@ -95,14 +95,14 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
 }
 
 /**
- * Course d'un travail de redaction NON-abortable contre le Stop utilisateur et/ou un
- * timeout. Le détecteur local/model tourne en MAIN et ne s'aborte pas en vol : la course
- * JETTE son résultat (`AbortError`) — l'utilisateur voit un arrêt immédiat, le résultat
- * périmé est ignoré, le travail de fond se borne sur son propre garde-fou. `timeoutMs`
- * est ce qui rend VRAIE l'invariante que `apps/desktop` `main/localNer.ts` suppose (« le
- * renderer borne une détection à ≤45 s ») — la branche LOCALE de l'envoi ne la tenait
- * pas : le seul moteur réellement livré était aussi le seul sans borne ni signal, d'où
- * un bouton Stop mort jusqu'à 5 minutes sur un worker NER coincé (`stopEarly.test.ts`).
+ * Races a NON-abortable redaction job against the user's Stop and/or a
+ * timeout. The local/model detector runs in MAIN and does not abort in flight: the race
+ * DISCARDS its result (`AbortError`) — the user sees an immediate stop, the stale
+ * result is ignored, the background job is bounded by its own guard. `timeoutMs`
+ * is what makes TRUE the invariant `apps/desktop` `main/localNer.ts` assumes ("the
+ * renderer bounds a detection to ≤45s") — the send's LOCAL branch didn't hold
+ * it: the only engine actually shipped was also the only one with no bound or signal, hence
+ * a dead Stop button for up to 5 minutes on a stuck NER worker (`stopEarly.test.ts`).
  */
 export function raceRedactionWork<T>(
   work: Promise<T>,

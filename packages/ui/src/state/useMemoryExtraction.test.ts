@@ -41,8 +41,8 @@ const conv = (over: Partial<Conversation> = {}): Conversation =>
 describe("sweepCandidates — le balayage de démarrage est BORNÉ", () => {
   it("filtre au watermark + récence, trie par récence, plafonne", () => {
     const convs = [
-      conv({ id: "done", memoryWatermark: 2 }), // déjà extraite → dehors
-      conv({ id: "old", updatedAt: NOW - MEMORY_SWEEP_RECENCY_MS - 1 }), // trop vieille
+      conv({ id: "done", memoryWatermark: 2 }), // already extracted → out
+      conv({ id: "old", updatedAt: NOW - MEMORY_SWEEP_RECENCY_MS - 1 }), // too old
       conv({ id: "pending", messages: [{ id: "p", role: "user", content: "x", pending: true } as never] }),
       conv({ id: "r1", updatedAt: NOW - 1000 }),
       conv({ id: "r2", updatedAt: NOW - 100 }),
@@ -51,7 +51,7 @@ describe("sweepCandidates — le balayage de démarrage est BORNÉ", () => {
     ];
     const picked = sweepCandidates(convs, NOW);
     expect(picked.length).toBe(MEMORY_SWEEP_MAX);
-    expect(picked.map((c) => c.id)).toEqual(["r4", "r3", "r2"]); // récentes d'abord
+    expect(picked.map((c) => c.id)).toEqual(["r4", "r3", "r2"]); // most recent first
   });
 });
 
@@ -84,15 +84,15 @@ function hookDeps(over: Partial<MemoryExtractionDeps> = {}): MemoryExtractionDep
     },
     setMemoire: () => {},
     patchConversation: () => {},
-    idleMs: 60_000, // l'idle ne doit PAS tirer pendant ces tests
+    idleMs: 60_000, // idle must NOT fire during these tests
     sweepDelayMs: 60_000,
     ...over,
   };
   return Object.assign(deps, { calls: () => calls });
 }
 
-/** Harnais direct de la PASSE (`memoryExtractionRun.ts`) : replies scriptées, captures
- *  de tout ce qui sort (payloads modèle, mémoire, watermark, feedback). */
+/** Direct harness for the PASS (`memoryExtractionRun.ts`): scripted replies, captures
+ *  of everything that comes out (model payloads, memory, watermark, feedback). */
 function runDeps(replies: Array<string | Error>) {
   const payloads: Array<{ role: string; content: string }[]> = [];
   const noted: Array<{ count: number; ids?: string[]; failed?: boolean }> = [];
@@ -135,7 +135,7 @@ describe("runMemoryExtraction — la demande explicite lit la RÉPONSE de l'assi
     const wire = h.payloads[0].find((m) => m.role === "user")!.content;
     expect(wire).toContain("Assistant : D'après la page consultée, c'est Laurent Saint-Andiol.");
     expect(wire).toContain("Utilisateur : retiens tout ça dans ta mémoire");
-    // L'entité n'apparaît QUE dans la réponse assistant — l'ancrage élargi la garde.
+    // The entity appears ONLY in the assistant's reply — the widened anchor keeps it.
     expect(h.memoire[0].cards.map((c) => c.entity)).toEqual(["Laurent Saint-Andiol"]);
     expect(h.noted).toHaveLength(1);
     expect(h.noted[0].count).toBe(1);
@@ -149,7 +149,7 @@ describe("runMemoryExtraction — la demande explicite lit la RÉPONSE de l'assi
     deps.settings = { memoryAuto: true, memoire: { cards: [] } as MemoryData } as Settings;
     const n = await runMemoryExtraction(silent, h.deps);
     expect(n).toBe(0);
-    expect(h.memoire).toEqual([]); // pas d'écriture — l'anti-hallucination tient
+    expect(h.memoire).toEqual([]); // no write — the anti-hallucination holds
   });
 
   it("« sans mémoire ici » (memoryOff) coupe le silencieux — AUCUN appel modèle ; l'explicite reste honoré", async () => {
@@ -158,8 +158,8 @@ describe("runMemoryExtraction — la demande explicite lit la RÉPONSE de l'assi
     const deps = h.deps as never as { settings: Settings };
     deps.settings = { memoryAuto: true, memoire: { cards: [] } as MemoryData } as Settings;
     expect(await runMemoryExtraction(off, h.deps)).toBe(0);
-    expect(h.payloads).toEqual([]); // rien ne part, pas même la tranche redacted
-    // …mais « retiens que… » est son propre consentement, memoryOff ou pas.
+    expect(h.payloads).toEqual([]); // nothing goes out, not even the redacted slice
+    // …but « retiens que… » is its own consent, memoryOff or not.
     const n = await runMemoryExtraction(off, h.deps, { explicit: true });
     expect(h.payloads.length).toBeGreaterThan(0);
     expect(n).toBeGreaterThanOrEqual(0);
@@ -174,7 +174,7 @@ describe("runMemoryExtraction — une réponse illisible n'est pas « rien à re
     expect(h.payloads).toHaveLength(2);
     const retry = h.payloads[1];
     expect(retry.at(-1)!.content).toContain("UNIQUEMENT l'objet JSON");
-    expect(retry.some((m) => m.role === "assistant")).toBe(true); // la réponse fautive en contexte
+    expect(retry.some((m) => m.role === "assistant")).toBe(true); // the faulty reply in context
     expect(h.noted[0]).toMatchObject({ count: 1 });
   });
 
@@ -182,7 +182,7 @@ describe("runMemoryExtraction — une réponse illisible n'est pas « rien à re
     const h = runDeps(["blabla sans JSON"]);
     const n = await runMemoryExtraction(askConv, h.deps, { explicit: true });
     expect(n).toBe(0);
-    expect(h.payloads).toHaveLength(2); // l'appel + sa relance, jamais plus
+    expect(h.payloads).toHaveLength(2); // the call + its retry, never more
     expect(h.noted).toEqual([{ count: 0, ids: undefined, failed: true }]);
     const after = h.patches.reduce((c, fn) => fn(c), askConv);
     expect(after.memoryWatermark).toBe(askConv.messages.length);
@@ -193,9 +193,9 @@ describe("runMemoryExtraction — une réponse illisible n'est pas « rien à re
     const n = await runMemoryExtraction(askConv, h.deps, { explicit: true });
     expect(n).toBe(0);
     expect(h.noted).toEqual([{ count: 0, ids: undefined, failed: true }]);
-    // Pas d'AVANCE de watermark (un retry ultérieur garde sa chance) — le seul patch
-    // est l'annonce « Mise en mémoire… » posée avant l'appel (pinMemoryPending), que
-    // le `noted` d'échec ci-dessus remplace ensuite.
+    // No watermark ADVANCE (a later retry keeps its chance) — the only patch
+    // is the « Mise en mémoire… » notice set before the call (pinMemoryPending), which
+    // the failure `noted` above then replaces.
     const after = h.patches.reduce((c, fn) => fn(c), askConv);
     expect(after.memoryWatermark).toBe(askConv.memoryWatermark);
     expect(after.messages.at(-1)?.memoryNotedPending).toBe(true);
@@ -227,7 +227,7 @@ describe("useMemoryExtraction — blur-flush + balayage de démarrage", () => {
 
   it("le balayage traite les tranches orphelines après le délai — et une seule fois", async () => {
     const d = hookDeps({
-      activeId: null, // rien d'actif : seules les orphelines comptent
+      activeId: null, // nothing active: only the orphaned ones count
       conversations: [conv({ id: "o1" }), conv({ id: "o2", updatedAt: NOW - 5 })],
       sweepDelayMs: 30,
     });
@@ -235,7 +235,7 @@ describe("useMemoryExtraction — blur-flush + balayage de démarrage", () => {
     await act(async () => {
       await new Promise((r) => setTimeout(r, 120));
     });
-    expect(d.calls()).toBe(2); // les deux orphelines, en série
+    expect(d.calls()).toBe(2); // both orphans, in series
     await h.unmount();
   });
 });

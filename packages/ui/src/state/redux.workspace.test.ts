@@ -78,8 +78,8 @@ describe("redux workspace slice (layout-backed)", () => {
     expect(s.activeId).toBeNull();
   });
 
-  // Le panneau n'a plus d'agrandissement : la conversation ne peut plus être masquée par
-  // aucun geste. C'est l'invariant qui remplace l'ancien test du bascule.
+  // The panel no longer has an expand mode: the conversation can no longer be hidden by
+  // any gesture. This is the invariant that replaces the old toggle test.
   it("replier le panneau GARDE ses éléments — seule la croix en retire un", () => {
     store.dispatch(panelOpenBrowser());
     store.dispatch(panelHide());

@@ -1,10 +1,10 @@
 /**
- * Le vocabulaire de TON des retours à l'utilisateur — un nom sémantique, son glyphe.
+ * The TONE vocabulary for feedback shown to the user — a semantic name, its glyph.
  *
- * Deux surfaces le portent et doivent le porter PAREIL : `Banner` (pleine largeur, dans
- * le flux) et `StatusChip` (la pastille d'état, flottante). Un ton ajouté ici s'habille
- * des deux côtés d'un coup ; sa COULEUR, elle, vit une seule fois en CSS
- * (`.kb--<ton>` définit `--ac`/`--bg`, que la pastille réutilise telle quelle).
+ * Two surfaces carry it and must carry it THE SAME WAY: `Banner` (full width, in
+ * the flow) and `StatusChip` (the floating status pill). A tone added here dresses
+ * both sides at once; its COLOUR, though, lives once in CSS
+ * (`.kb--<ton>` defines `--ac`/`--bg`, which the pill reuses as-is).
  */
 export type BannerTone = "error" | "warning" | "success" | "info" | "redact";
 
@@ -14,7 +14,7 @@ export interface BannerAction {
   variant?: "solid" | "ghost";
 }
 
-/* Glyphes Lucide en ligne (aucun asset, aucune requête — cf. components/CLAUDE.md). */
+/* Inline Lucide glyphs (no asset, no request — see components/CLAUDE.md). */
 const stroke = {
   fill: "none" as const,
   stroke: "currentColor",

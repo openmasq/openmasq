@@ -1,11 +1,11 @@
 /**
- * Les CHAMPS diagnostics d'un échec d'envoi, extraits du texte d'erreur — UNE maison
- * (règle 9) : ChatView les portait en privé et les deux émetteurs VIVANTS de
- * `send_error` (sendOrchestrator) ne les remplissaient jamais (audit 13/08 — statut,
- * id de corrélation passerelle et nombre de tentatives absents de tout vrai échec).
+ * The diagnostic FIELDS of a send failure, extracted from the error text — ONE home
+ * (rule 9): ChatView used to carry them privately and the two LIVE emitters of
+ * `send_error` (sendOrchestrator) never filled them (audit 13/08 — status,
+ * gateway correlation id and retry count missing from every real failure).
  */
 
-/** Le statut HTTP qu'un message d'erreur porte (`(429)` etc.). */
+/** The HTTP status an error message carries (`(429)` etc.). */
 export function httpStatus(e: unknown): number | undefined {
   const m = (e instanceof Error ? e.message : String(e)).match(/\((\d{3})\)/);
   return m ? Number(m[1]) : undefined;

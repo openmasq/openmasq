@@ -3,8 +3,8 @@ import type { Conversation } from "../types";
 import { isExplicitMemoryAsk } from "../memory/extract";
 import { runMemoryExtraction, type MemoryExtractionDeps } from "./memoryExtractionRun";
 
-// La passe d'extraction elle-même (décisions, relance, signalement d'échec) vit dans
-// `memoryExtractionRun.ts` — ré-exportée pour que les imports existants ne bougent pas.
+// The extraction pass itself (decisions, retry, failure reporting) lives in
+// `memoryExtractionRun.ts` — re-exported so existing imports don't move.
 export { runMemoryExtraction, type MemoryExtractionDeps } from "./memoryExtractionRun";
 
 /**
@@ -19,20 +19,20 @@ export { runMemoryExtraction, type MemoryExtractionDeps } from "./memoryExtracti
  * flush when the user switches away from it.
  */
 export const MEMORY_IDLE_MS = 120_000;
-/** Balayage au DÉMARRAGE : délai de courtoisie (l'auth/les clés se résolvent, l'app
- *  s'installe), puis rattrapage des tranches ORPHELINES — les conversations quittées
- *  avant l'idle de 120 s (app fermée, machine endormie). */
+/** STARTUP sweep: a courtesy delay (auth/keys resolve, the app
+ *  settles), then catch-up of ORPHANED slices — conversations left
+ *  before the 120 s idle (app closed, machine asleep). */
 export const MEMORY_SWEEP_DELAY_MS = 45_000;
-/** BORNES du balayage — le vrai risque est la rafale : une conversation d'avant la
- *  fonctionnalité a un watermark à 0, et un balayage naïf au premier lancement
- *  extrairait tout l'historique (coût surprise + rate-limit + mémoire polluée par de
- *  vieux contextes). Fenêtre de récence + plafond par démarrage + exécution en SÉRIE. */
+/** Sweep BOUNDS — the real risk is the burst: a conversation from before the
+ *  feature has a watermark at 0, and a naive sweep on first launch
+ *  would extract the entire history (surprise cost + rate-limit + memory polluted by
+ *  old contexts). Recency window + per-startup cap + SERIAL execution. */
 export const MEMORY_SWEEP_MAX = 3;
 export const MEMORY_SWEEP_RECENCY_MS = 7 * 24 * 3600 * 1000;
 
-/** Les conversations qu'un balayage de démarrage peut traiter : une tranche au-delà du
- *  watermark, aucun tour en vol, actives dans la fenêtre de récence — les plus
- *  récentes d'abord, plafonnées. Pur (testé) ; le runner les traite en série. */
+/** The conversations a startup sweep may process: a slice past the
+ *  watermark, no turn in flight, active within the recency window — the most
+ *  recent first, capped. Pure (tested); the runner processes them in series. */
 export function sweepCandidates(conversations: Conversation[], now: number): Conversation[] {
   return conversations
     .filter(
@@ -50,8 +50,8 @@ export function useMemoryExtraction(deps: MemoryExtractionDeps): void {
   const depsRef = useRef(deps);
   depsRef.current = deps;
   const prevActive = useRef<string | null>(null);
-  // Trois déclencheurs (idle, blur, balayage) peuvent viser la MÊME conversation avant
-  // que son watermark n'avance — l'in-flight évite le double appel modèle.
+  // Three triggers (idle, blur, sweep) can target the SAME conversation before
+  // its watermark advances — the in-flight guard avoids the double model call.
   const inFlight = useRef(new Set<string>());
 
   const convById = (id: string | null) =>
@@ -81,8 +81,8 @@ export function useMemoryExtraction(deps: MemoryExtractionDeps): void {
     const lastUser = [...(active?.messages ?? [])].reverse().find((m) => m.role === "user");
     const explicit = !!lastUser && isExplicitMemoryAsk(lastUser.content);
     if (explicit) {
-      // Via `fire` → le garde `inFlight` : l'appel direct d'avant pouvait doubler un
-      // blur/switch-away concurrent sur la même conversation (deux appels modèle).
+      // Via `fire` → the `inFlight` guard: the previous direct call could double up a
+      // concurrent blur/switch-away on the same conversation (two model calls).
       timer.current = setTimeout(() => fire(id, { explicit: true }), 800);
       return () => {
         if (timer.current) clearTimeout(timer.current);
@@ -105,11 +105,11 @@ export function useMemoryExtraction(deps: MemoryExtractionDeps): void {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deps.activeId]);
 
-  // BLUR-FLUSH (le pattern des SDK analytics) : l'utilisateur PART — minimise, change
-  // d'app, s'apprête à fermer — c'est le moment d'extraire, pendant que l'app tourne
-  // encore. Couvre l'essentiel des « fermé avant les 120 s d'idle » ; jamais de travail
-  // réseau à la fermeture elle-même (non déterministe). Idempotent : watermark +
-  // in-flight rendent les blurs répétés gratuits.
+  // BLUR-FLUSH (the analytics-SDK pattern): the user is LEAVING — minimizing, switching
+  // apps, about to close — this is the moment to extract, while the app is still
+  // running. Covers most of the "closed before the 120 s idle" cases; never network
+  // work at close itself (non-deterministic). Idempotent: watermark +
+  // in-flight make repeated blurs free.
   useEffect(() => {
     const flush = () => {
       if (!depsRef.current.settings.memoryAuto) return;
@@ -127,10 +127,10 @@ export function useMemoryExtraction(deps: MemoryExtractionDeps): void {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // BALAYAGE AU DÉMARRAGE : rattrape les tranches orphelines (quittées avant l'idle,
-  // app fermée depuis). Une seule fois par session, après le délai de courtoisie —
-  // les candidates sont lues à l'ÉCHÉANCE (les conversations chargent en async), bornées
-  // (`sweepCandidates`) et traitées en SÉRIE pour ne jamais rafaler le fournisseur.
+  // STARTUP SWEEP: catches up orphaned slices (left before the idle,
+  // app closed since). Once per session, after the courtesy delay —
+  // candidates are read at DEADLINE (conversations load async), bounded
+  // (`sweepCandidates`) and processed in SERIES so as never to burst the provider.
   const swept = useRef(false);
   useEffect(() => {
     if (swept.current) return;
@@ -144,7 +144,7 @@ export function useMemoryExtraction(deps: MemoryExtractionDeps): void {
         try {
           await runMemoryExtraction(conv, depsRef.current);
         } catch {
-          /* une conversation en échec n'empêche pas les suivantes */
+          /* a failed conversation doesn't block the following ones */
         } finally {
           inFlight.current.delete(conv.id);
         }
