@@ -9,6 +9,7 @@ import { capitalize, foldAccents } from "../../util";
 import { GENERIC_MAILBOX, isNotoriousDomain } from "../notoriousDomains";
 // The detection-grade first-name lexicon (curated + INSEE tail), pure data.
 import { FIRST_NAMES } from "../../engine/names/firstNames.data";
+import { seedFrom } from "../fakes/primitives";
 
 const isNameToken = (t: string) =>
   /^[A-Za-zÀ-ÿ]{3,}$/.test(t) && !GENERIC_MAILBOX.has(t.toLowerCase());
@@ -119,8 +120,9 @@ export function buildFakeEmail(
   isTaken: (fake: string) => boolean,
   salt = 0,
   keepKnownDomain = false,
+  convKey?: Uint8Array,
 ): string {
-  const h = hashString(realEmail) + salt + attempt * 101;
+  const h = seedFrom(convKey, `email:${attempt}`, realEmail, hashString(realEmail) + salt + attempt * 101);
   const at = realEmail.lastIndexOf("@");
   const local = at > 0 ? realEmail.slice(0, at) : realEmail;
   const realDomain = at >= 0 ? realEmail.slice(at + 1) : ""; // bare, e.g. "gmail.com"

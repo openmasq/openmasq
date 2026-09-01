@@ -37,7 +37,7 @@ export function fakePath(value: string, attempt = 0, convKey?: Uint8Array): stri
     const isSeg = i % 2 === 0 && !!parts[i];
     if (!isSeg) out += parts[i];
     else if (keepGeneric && !isDistinctivePathSegment(parts[i])) out += parts[i];
-    else out += fakePathSegment(parts[i], attempt);
+    else out += fakePathSegment(parts[i], attempt, convKey);
   }
   return out + ext;
 }

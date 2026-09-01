@@ -1,10 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   e2eConnectorFilter,
   parseFixtureServers,
   makeFixtureConnection,
   maybeRegisterE2eFixtureConnections,
 } from "./e2eFixtures";
+
+// `devOnly()` reads `app.isPackaged`: these hooks must be inert in a packaged build,
+// so the gate is part of what this file exercises. The unit suite has no Electron.
+vi.mock("electron", () => ({ app: { isPackaged: false } }));
 
 const FIXTURE = JSON.stringify({
   servers: [

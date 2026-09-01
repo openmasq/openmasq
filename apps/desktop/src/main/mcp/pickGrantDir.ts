@@ -4,6 +4,7 @@ import { dialog } from "electron";
 // as dead code — rightly so).
 import { notePickedDir } from "./server";
 import { withAgentBrowserHidden } from "./browser";
+import { devOnly } from "../security/devOnly";
 
 /**
  * The native folder picker for an MCP path grant — the user GRANTS the
@@ -22,8 +23,9 @@ import { withAgentBrowserHidden } from "./browser";
  * without a dialog. Inert without both variables (so in production).
  */
 export async function pickGrantDir(hint: unknown): Promise<string | undefined> {
-  if (process.env.OPENMASQ_E2E && process.env.OPENMASQ_E2E_PICK_DIR) {
-    const dir = process.env.OPENMASQ_E2E_PICK_DIR;
+  const pick = devOnly(process.env.OPENMASQ_E2E_PICK_DIR);
+  if (devOnly(process.env.OPENMASQ_E2E) && pick) {
+    const dir = pick;
     notePickedDir(dir);
     return dir;
   }

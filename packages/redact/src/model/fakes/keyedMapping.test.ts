@@ -100,3 +100,24 @@ describe("the keyed path keeps the generators' contract", () => {
     expect(n).not.toBe("Jean Dupont");
   });
 });
+
+describe("the key reaches the identity builders too", () => {
+  const A = keyFromHex("a1".repeat(32))!;
+  const B = keyFromHex("b2".repeat(32))!;
+  // NAME, EMAIL and PATH re-derive their seed from the value inside their own builder;
+  // a first pass threaded the key into the entity dispatch and left these three on the
+  // legacy salted hash, so one known pair still broke them.
+  for (const [category, value] of [
+    ["NAME", "Julien Sabourdin"],
+    ["EMAIL", "julien.sabourdin@example.com"],
+    ["PATH", "/Users/jsabourdin/Documents/contrat.pdf"],
+  ] as const) {
+    it(`${category} maps differently under another key`, () => {
+      const a = fakeFor(category, value, 0, undefined, 0, undefined, A);
+      const b = fakeFor(category, value, 0, undefined, 0, undefined, B);
+      expect(a).not.toBe(value);
+      expect(a).not.toBe(b);
+      expect(fakeFor(category, value, 0, undefined, 0, undefined, A)).toBe(a);
+    });
+  }
+});

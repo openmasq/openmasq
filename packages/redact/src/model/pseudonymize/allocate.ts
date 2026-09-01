@@ -176,9 +176,9 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
     if (preGeo && accept(preGeo)) fake = preGeo;
     for (let a = 0; !fake && a < 60; a++) {
       let candidate: string;
-      if (isEmail) candidate = buildFakeEmail(value, a, resolveFakeCI, mintTaken, salt, ctx.notorietyCommercial === true);
-      else if (isName) candidate = buildFakeName(value, a, resolveFakeCI, mintTaken, salt);
-      else if (isPath) candidate = buildFakePath(value, a, salt).fake;
+      if (isEmail) candidate = buildFakeEmail(value, a, resolveFakeCI, mintTaken, salt, ctx.notorietyCommercial === true, convKey);
+      else if (isName) candidate = buildFakeName(value, a, resolveFakeCI, mintTaken, salt, convKey);
+      else if (isPath) candidate = buildFakePath(value, a, salt, convKey).fake;
       else if (isRecase && a === 0) {
         // An entity keeps ONE identity across casings. Recase a canonical BASE (this
         // call's earlier casing, else a prior turn's fake, else a fresh one) to THIS
@@ -207,7 +207,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       } else candidate = fakeFor(category, value, a, country, salt, geoAnchors, convKey);
       if (accept(candidate)) {
         fake = candidate;
-        if (isPath) pathPairs = buildFakePath(value, a, salt).pairs;
+        if (isPath) pathPairs = buildFakePath(value, a, salt, convKey).pairs;
         break;
       }
     }

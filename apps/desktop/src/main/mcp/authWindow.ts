@@ -74,7 +74,11 @@ export function openAuthWindow(url: string): BrowserWindow {
 
   const prefs = {
     partition: partitionFor(OAUTH_PARTITION_ID),
-    sandbox: false,
+    // `contextIsolation: false` is required (the preload patches `navigator.userAgentData`
+    // in the page's main world); the OS sandbox is NOT — `agentMain.ts` runs this very
+    // preload with `sandbox: true` on the Google login view. This window renders a remote
+    // page, so it keeps the sandbox too.
+    sandbox: true,
     contextIsolation: false,
     nodeIntegration: false,
     preload: LOGIN_PRELOAD,

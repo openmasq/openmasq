@@ -4,6 +4,7 @@ import { release } from "os";
 import { type DetectLocalPayload, detectLocalPii } from "../localNer";
 import { authStoreGet, authStoreSet, authStoreRemove } from "../store/authStore";
 import { whenWindowShown } from "../store/safeStore";
+import { devOnly } from "../security/devOnly";
 
 // M-9: in a PACKAGED build with no OS keychain (a Linux box lacking libsecret /
 // GNOME Keyring / KWallet, or a user who denied access), `safeStorage` can't
@@ -32,7 +33,7 @@ export function registerAppHandlers(): void {
   // has no `process.env`, so the renderer can only learn it here. Discloses a single
   // boolean and grants nothing; it gates the renderer's `E2eBridge` (the programmatic
   // driver for the agentic loop), which is inert in every shipped build.
-  ipcMain.handle("app:is-e2e", () => process.env.OPENMASQ_E2E === "1");
+  ipcMain.handle("app:is-e2e", () => devOnly(process.env.OPENMASQ_E2E) === "1");
   // Supabase auth session (access + refresh tokens) — encrypted at rest via
   // safeStorage, NOT plaintext localStorage. Keyed by Supabase's own storage keys.
   // Hold the auth-session read (the ONLY keychain touch before sign-in) until the

@@ -1,5 +1,6 @@
 import { readFileSync, appendFileSync } from "node:fs";
 import type { McpConnection, McpTool, McpToolCall, McpToolResult } from "@openmasq/mcp";
+import { devOnly } from "../security/devOnly";
 
 /**
  * E2E-ONLY fixture MCP connections (inert in production). When the app is launched
@@ -101,9 +102,10 @@ export function makeFixtureConnection(
 export function maybeRegisterE2eFixtureConnections(
   connected: Map<string, McpConnection>,
 ): void {
-  if (!process.env.OPENMASQ_E2E || !process.env.OPENMASQ_E2E_MCP_FIXTURES) return;
+  const fixtures = devOnly(process.env.OPENMASQ_E2E_MCP_FIXTURES);
+  if (!devOnly(process.env.OPENMASQ_E2E) || !fixtures) return;
   try {
-    for (const conn of loadE2eFixtureConnections(process.env.OPENMASQ_E2E_MCP_FIXTURES)) {
+    for (const conn of loadE2eFixtureConnections(fixtures)) {
       connected.set(conn.id, conn);
     }
   } catch (err) {
@@ -130,7 +132,7 @@ export function e2eFilterServers<T extends { id: string }>(servers: T[]): T[] {
 }
 
 export function e2eConnectorFilter(): ((id: string) => boolean) | null {
-  if (!process.env.OPENMASQ_E2E) return null;
+  if (!devOnly(process.env.OPENMASQ_E2E)) return null;
   const raw = process.env.OPENMASQ_E2E_MCP_ONLY;
   if (!raw) return null;
   const allowed = new Set(
@@ -149,7 +151,9 @@ export function e2eConnectorFilter(): ((id: string) => boolean) | null {
  *  under the env gate; throws on an unreadable/invalid file (fail loud). */
 export function loadE2eFixtureConnections(path: string): McpConnection[] {
   const servers = parseFixtureServers(readFileSync(path, "utf8"));
-  const logPath = process.env.OPENMASQ_E2E_TOOLCALL_LOG;
+  // Writes the REAL, un-redacted tool arguments — the same capability as
+  // OPENMASQ_MCP_RAW_LOG, and gated the same way.
+  const logPath = devOnly(process.env.OPENMASQ_E2E_TOOLCALL_LOG);
   const logCall = logPath
     ? (entry: { server: string; tool: string; arguments: unknown }) => {
         try {

@@ -7,6 +7,7 @@ import { isStopword, isGenericTerm } from "../detect";
 import { isCountry } from "../../engine/geo/countries";
 import { isParticle } from "../../engine/honorifics";
 import { capitalize } from "../../util";
+import { seedFrom } from "../fakes/primitives";
 
 /**
  * A single name-like word we may fake/alias (letters incl. accents, apostrophes,
@@ -129,8 +130,9 @@ export function buildFakeName(
   resolveFake: (real: string) => string | undefined,
   isTaken: (fake: string) => boolean,
   salt = 0,
+  convKey?: Uint8Array,
 ): string {
-  const h = hashString(realName) + salt + attempt * 101;
+  const h = seedFrom(convKey, `name:${attempt}`, realName, hashString(realName) + salt + attempt * 101);
   const parts = realName.split(NAME_SEPARATORS); // even index = token, odd = separator
   let elementIdx = 0;
   // Fakes already picked for THIS name. Two tokens drawing from the SAME pool (the halves

@@ -14,6 +14,11 @@ const { autoUpdater } = electronUpdater;
 // SOMEONE ELSE'S BINARY, signed by someone else. Empty ⇒ no automatic
 // updates at all (`UPDATES_CONFIGURED`), and the app says so rather than
 // probing into the void.
+// ⚠️ A non-dev build DOES receive a default now: `scripts/publicServices.ts`
+// lists `VITE_UPDATES_URL` among the public services, so a build from these
+// sources polls the brand's feed unless it is set — including to the empty
+// string, which is the documented opt-out (`SELF_HOSTING.md`). A fork that
+// ships under its own identity must set or empty it.
 export const UPDATES_URL = (process.env.VITE_UPDATES_URL || "").replace(/\/+$/, "");
 
 /** Does this build have an update feed? Empty = no, and that's a NORMAL state

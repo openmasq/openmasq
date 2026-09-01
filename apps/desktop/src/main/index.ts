@@ -50,6 +50,7 @@ import { registerAppHandlers } from "./ipc/registerAppIpc";
 import { registerMcpHandlers } from "./ipc/registerMcpIpc";
 import { installMainNotifiers } from "./mainNotifiers";
 import { warnIfNoAtRestEncryption } from "./atRestWarning";
+import { devOnly } from "./security/devOnly";
 
 // ── Isolated agent-browser process ───────────────────────────────────────────
 // This SAME binary re-spawned with OPENMASQ_AGENT_BROWSER=1 runs ONLY the
@@ -85,7 +86,7 @@ const PROFILE = HELPER_MODE ? null : applyProfilePath(app, process.env);
 // Chromium switch removes the navigator.webdriver exposure so the webview looks
 // like the same browser it is in normal use. Gated to the e2e launch; no effect
 // in production. Must run before app-ready.
-if (process.env.OPENMASQ_E2E) {
+if (devOnly(process.env.OPENMASQ_E2E)) {
   app.commandLine.appendSwitch("disable-blink-features", "AutomationControlled");
 }
 

@@ -213,8 +213,8 @@ export function fakeIban(value: string, salt: number, convKey?: Uint8Array): str
   const bbanD = bbanReal.replace(/\D/g, "");
   const h = seedFrom(convKey, `iban:${salt}`, bbanD, hashString(bbanD) + salt);
   let i = 0;
-  let bban = bbanReal.replace(/\d/g, (d) => String((h + i++ * 7 + Number(d) + 3) % 10));
-  if (bban === bbanReal) bban = bbanReal.replace(/\d/, (d) => String((Number(d) + 1) % 10));
+  let bban = bbanReal.replace(/\d/g, () => String(rehash(h ^ Math.imul(i++ + 1, 0x9e3779b1)) % 10));
+  if (bban === bbanReal) bban = bbanReal.replace(/\d/, () => String(rehash(h ^ 0x5bf03635) % 10));
   // A FRENCH BBAN embeds its own RIB key (banque 5 + guichet 5 + compte 11 +
   // clé 2): recompute it so a French bank-side validator passes the WHOLE
   // coordinate, not only the ISO mod-97 — else the fake reads broken to any
@@ -265,7 +265,7 @@ export function fakePhone(value: string, salt: number, convKey?: Uint8Array): st
   let out = value.replace(/[ \t]*\r?\n[ \t]*/g, " ").replace(/\d/g, (d) => {
     n++;
     if (n <= keep) return d;
-    return String((h + i++ * 7 + Number(d) + 3) % 10);
+    return String(rehash(h ^ Math.imul(i++ + 1, 0x9e3779b1)) % 10);
   });
   if (out.replace(/\D/g, "") === digits) {
     // The mix landed on the original — bump one subscriber digit (never the prefix).
@@ -275,7 +275,7 @@ export function fakePhone(value: string, salt: number, convKey?: Uint8Array): st
       k++;
       if (k === keep + 1 && !bumped) {
         bumped = true;
-        return String((Number(d) + 1) % 10);
+        return String(rehash(h ^ 0x27d4eb2f) % 10);
       }
       return d;
     });

@@ -1,108 +1,129 @@
-// The property that matters for a digit fake: whoever holds ONLY the fake must not be
-// able to compute the real value. `salt.test.ts` pins determinism and salt-sensitivity —
-// neither of which says anything about invertibility, and both of which an additive
-// cipher satisfies happily.
+// The property that matters for a fake: whoever holds ONLY the fake must not be able to
+// compute the real value. `salt.test.ts` pins determinism and salt-sensitivity — neither
+// says anything about invertibility, and both are satisfied by an additive cipher.
 //
-// The regression this file exists for: `fakeDigits` used to emit
-// `(h + 7i + n + 3) % 10`, where `n` is the REAL digit. Every unknown except `h mod 10`
-// cancels, so the holder of a fake recovers TEN candidate plaintexts — and the value's
-// own structure (Luhn for a card, the published bank code inside an IBAN, an operator
-// prefix inside a phone number) picks the true one. The conversation salt did not help:
-// being ADDED, it is absorbed into `h mod 10`.
+// The regression this file exists for: a generator that emits `(h + 7i + n + 3) % 10`,
+// where `n` is the REAL character. Every unknown except `h mod 10` cancels, so the holder
+// of a fake recovers TEN candidate plaintexts — and the value's own structure picks the
+// true one: Luhn for a card, the embedded RIB key for a French IBAN, the operator prefix
+// for a phone. For an MRZ the letters carry the NAME, so ~130 candidates contain exactly
+// one pronounceable surname.
 //
-// So the assertions below are stated over the whole family that break was a member of:
-// the fake must not be an AFFINE function of the real digits, for any shift and any
-// per-position step. A future "small simplification" that folds the real digit back in
-// fails here rather than in someone's transcript.
+// ⚠️ Two things this oracle must do that the obvious version does not:
+//
+//  1. **Cover every generator that re-derives from the value**, not just `fakeDigits`.
+//     `fakePhone`, `fakeIban`, `fakeMrz` and the checksummed schemes each carry their own
+//     copy of the loop — a first pass at this file tested two of them and the other three
+//     stayed broken behind a green suite.
+//  2. **Fit PIECEWISE, not globally.** `fakePhone` keeps a country/class prefix verbatim
+//     and restarts its counter after it; `fakeIban` recomputes two check digits from the
+//     fake body. Neither is affine over the WHOLE string, so a single global fit reports
+//     "no relation" on a generator that is trivially invertible position by position.
+//     So: every contiguous run of ≥4 positions is fitted separately.
 import { describe, it, expect } from "vitest";
+import { fakeFor } from "./dispatch";
 import { fakeDigits } from "./primitives";
 import { fakeIp } from "./entities";
+import { keyFromHex } from "./prf";
 
-const digitsOf = (s: string) => s.replace(/\D/g, "").split("").map(Number);
+const KEY = keyFromHex("c3".repeat(32))!;
+const MIN_RUN = 4;
+
+const digits = (s: string) => s.replace(/\D/g, "").split("").map(Number);
+const alnum = (s: string) => s.replace(/[^A-Z0-9]/g, "").split("");
 
 /**
- * Is `fake` explained by `real_i + a*i + c (mod 10)` for some (a, c)? That covers the
- * additive cipher (a=7, c=h+3) and every other affine variant of it.
+ * Is any contiguous run of ≥`MIN_RUN` positions explained by `real + a*i + c (mod m)`?
+ * That covers the additive cipher and every affine variant of it, including one that
+ * only holds over a suffix.
  */
-function affineRelationExists(real: string, fake: string): boolean {
-  const r = digitsOf(real);
-  const f = digitsOf(fake);
-  if (r.length !== f.length || r.length === 0) return false;
-  for (let a = 0; a < 10; a++)
-    for (let c = 0; c < 10; c++)
-      if (r.every((n, i) => (n + a * i + c) % 10 === f[i])) return true;
+function piecewiseAffine(real: number[], fake: number[], m: number): boolean {
+  if (real.length !== fake.length) return false;
+  for (let start = 0; start + MIN_RUN <= real.length; start++) {
+    for (let end = start + MIN_RUN; end <= real.length; end++) {
+      for (let a = 0; a < m; a++)
+        for (let c = 0; c < m; c++) {
+          let ok = true;
+          for (let i = start; i < end && ok; i++)
+            if ((real[i] + a * (i - start) + c) % m !== fake[i]) ok = false;
+          if (ok) return true;
+        }
+    }
+  }
   return false;
 }
 
-/** The attack, written out: recover candidates from the fake alone. */
-function recoverCandidates(fake: string): string[] {
-  const out: string[] = [];
-  for (let a = 0; a < 10; a++)
-    for (let c = 0; c < 10; c++) {
-      let i = 0;
-      out.push(fake.replace(/\d/g, (d) => String((((Number(d) - a * i++ - c) % 10) + 10) % 10)));
-    }
-  return out;
+/** The same test over an alphanumeric string (MRZ): digits mod 10, letters mod 26. */
+function mrzAffine(real: string[], fake: string[]): boolean {
+  const asNum = (cs: string[], pick: (c: string) => boolean, base: number) =>
+    cs.filter(pick).map((c) => (base === 10 ? Number(c) : c.charCodeAt(0) - 65));
+  const isDigit = (c: string) => /\d/.test(c);
+  const isAlpha = (c: string) => /[A-Z]/.test(c);
+  return (
+    piecewiseAffine(asNum(real, isDigit, 10), asNum(fake, isDigit, 10), 10) ||
+    piecewiseAffine(asNum(real, isAlpha, 26), asNum(fake, isAlpha, 26), 26)
+  );
 }
 
-const VALUES = [
-  "+33 6 12 34 56 78", // phone — operator prefix would pick the candidate
-  "FR7630006000011234567890189", // IBAN — the bank code is public
-  "4539148803436467", // card — Luhn picks the candidate
-  "863 471 587 00015", // SIRET-shaped, spaced
-  "1 84 12 75 116 001 42", // national id shaped
+/** Every category whose generator re-derives its seed from the value. */
+const CASES: [string, string][] = [
+  ["PHONE", "+33 6 12 34 56 78"],
+  ["PHONE", "01 45 67 89 10"],
+  ["IBAN", "FR7630006000011234567890189"],
+  ["CARD", "4539148803436467"],
+  ["COMPANY_ID", "863 471 587 00015"],
+  ["NATIONAL_ID", "1 84 12 75 116 001 42"],
+  ["ID", "AB1234567"],
 ];
 
-describe("fakeDigits is not invertible from the fake alone", () => {
-  const salt = 0x2f6b91c4;
-
-  for (const real of VALUES) {
-    it(`no affine relation leaks the real digits of ${real}`, () => {
-      const fake = fakeDigits(real, salt);
-      expect(affineRelationExists(real, fake)).toBe(false);
-    });
-
-    it(`the ten-candidate recovery does not find ${real}`, () => {
-      const fake = fakeDigits(real, salt);
-      expect(recoverCandidates(fake)).not.toContain(real);
-    });
+describe("no fake encodes its own input", () => {
+  for (const [category, real] of CASES) {
+    for (const [label, key] of [["legacy salt", undefined], ["keyed", KEY]] as const) {
+      it(`${category} — ${real} (${label})`, () => {
+        const fake = fakeFor(category, real, 0, undefined, 0x2f6b91c4, undefined, key);
+        expect(fake).not.toBe(real);
+        expect(piecewiseAffine(digits(real), digits(fake), 10)).toBe(false);
+      });
+    }
   }
 
-  it("stays deterministic for one value + salt (identity atomicity)", () => {
-    expect(fakeDigits(VALUES[0], salt)).toBe(fakeDigits(VALUES[0], salt));
+  it("MRZ — the letters carry the holder's name", () => {
+    const real = "IDFRASABOURDIN<<<<<<<<<<<<<<<<";
+    for (const key of [undefined, KEY]) {
+      const fake = fakeFor("MRZ", real, 0, undefined, 0x11aa22bb, undefined, key);
+      expect(fake).not.toBe(real);
+      expect(mrzAffine(alnum(real), alnum(fake))).toBe(false);
+    }
   });
 
-  it("still shifts with the conversation salt", () => {
-    expect(fakeDigits(VALUES[0], salt)).not.toBe(fakeDigits(VALUES[0], salt + 1));
-  });
-
-  it("keeps the layout (separators and digit count)", () => {
-    const fake = fakeDigits(VALUES[3], salt);
-    expect(fake).toMatch(/^\d{3} \d{3} \d{3} \d{5}$/);
-  });
-
-  it("does not mirror one spelling's grouping onto another", () => {
-    // Same number, two groupings — the DIGITS must match (the vault key is separator
-    // insensitive); only the layout differs.
-    const a = fakeDigits("863 471 587 00015", salt).replace(/\D/g, "");
-    const b = fakeDigits("863471587 000 15", salt).replace(/\D/g, "");
-    expect(a).toBe(b);
+  it("IPv4 octets are drawn from the seed, and stay in range", () => {
+    for (const real of ["10.0.0.1", "192.168.14.203", "8.8.8.8"]) {
+      const fake = fakeIp(real, 0x7c1a55e0);
+      expect(fake).not.toBe(real);
+      for (const oct of fake.split(".")) expect(Number(oct)).toBeLessThanOrEqual(255);
+      expect(piecewiseAffine(digits(real), digits(fake), 10)).toBe(false);
+    }
   });
 });
 
-describe("fakeIp does not fold the real octet into the fake", () => {
-  const salt = 0x7c1a55e0;
+describe("the generators keep their contract", () => {
+  const salt = 0x2f6b91c4;
 
-  it("no affine relation leaks the real octets", () => {
-    const real = "192.168.14.203";
-    expect(affineRelationExists(real, fakeIp(real, salt))).toBe(false);
+  it("stays deterministic for one value (identity atomicity)", () => {
+    expect(fakeDigits("863 471 587 00015", salt)).toBe(fakeDigits("863 471 587 00015", salt));
   });
 
-  it("emits in-range octets", () => {
-    for (const real of ["10.0.0.1", "192.168.14.203", "8.8.8.8"]) {
-      const fake = fakeIp(real, salt);
-      for (const oct of fake.split(".")) expect(Number(oct)).toBeLessThanOrEqual(255);
-      expect(fake).not.toBe(real);
-    }
+  it("shifts with the conversation salt", () => {
+    expect(fakeDigits("863 471 587 00015", salt)).not.toBe(fakeDigits("863 471 587 00015", salt + 1));
+  });
+
+  it("keeps the layout", () => {
+    expect(fakeDigits("863 471 587 00015", salt)).toMatch(/^\d{3} \d{3} \d{3} \d{5}$/);
+  });
+
+  it("gives one number written two ways the same digits", () => {
+    const a = fakeDigits("863 471 587 00015", salt).replace(/\D/g, "");
+    const b = fakeDigits("863471587 000 15", salt).replace(/\D/g, "");
+    expect(a).toBe(b);
   });
 });

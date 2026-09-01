@@ -2,6 +2,7 @@ import { app, safeStorage } from "electron";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { decodeEncryptedBlob, encryptionAvailable } from "./safeStore";
+import { assertPlaintextAllowed } from "./atRestPolicy";
 
 /**
  * Encrypted at-rest store for the SUPABASE AUTH SESSION (access + refresh tokens),
@@ -44,7 +45,8 @@ function write(map: Store): void {
     const json = JSON.stringify(map);
     const enc = encryptionAvailable()
       ? safeStorage.encryptString(json).toString("base64")
-      : (console.warn("[auth] safeStorage unavailable — storing session unencrypted"),
+      : (assertPlaintextAllowed("Supabase session (access + refresh token)"),
+        console.warn("[auth] safeStorage unavailable — storing session unencrypted"),
         Buffer.from(json, "utf8").toString("base64"));
     writeFileSync(file(), enc, { mode: 0o600 });
   } catch (err) {

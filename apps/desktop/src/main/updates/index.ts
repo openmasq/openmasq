@@ -141,6 +141,10 @@ function registerUpdateIpc(): void {
     const arg = raw as { version: string };
     if (!app.isPackaged) return { ok: false, reason: "dev" };
     if (!arg?.version) return { ok: false, reason: "no_version" };
+    // Same server-verified permission as `set-channel`/`switch`: pinning is a DOWNGRADE
+    // primitive (it re-installs an older signed build, vulnerabilities included), and the
+    // renderer is not trusted to authorise one. Fail-closed on any error.
+    if (!(await selfPinAllowed())) return { ok: false, reason: "not_allowed" };
     autoUpdater.allowDowngrade = true;
     applyFeed(getConfig().channel, arg.version);
     ownDownloadPromise(await autoUpdater.checkForUpdates());

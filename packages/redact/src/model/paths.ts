@@ -34,6 +34,7 @@ export function buildFakePath(
   value: string,
   attempt = 0,
   salt = 0,
+  convKey?: Uint8Array,
 ): { fake: string; pairs: [string, string][] } {
   const { head, ext, parts } = splitPath(value);
   const lastIdx = lastSegIndex(parts);
@@ -53,7 +54,7 @@ export function buildFakePath(
       out += seg;
       continue;
     }
-    const fakeSeg = fakePathSegment(seg, attempt + salt);
+    const fakeSeg = fakePathSegment(seg, attempt + salt, convKey);
     out += fakeSeg;
     if (isDistinctivePathSegment(seg)) {
       const isLast = i === lastIdx;
