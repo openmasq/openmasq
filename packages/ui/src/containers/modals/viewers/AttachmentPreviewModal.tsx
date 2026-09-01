@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { hueForTone } from "@openmasq/redact";
 import { ModalShell } from "../ModalShell";
 import { RedactionInlineReveal } from "../../../components/message/RedactionInlineReveal";
-import { useAvisOpen } from "../../providers/avisOpen";
-import { redactionProblemDraft } from "../../../avis/avis";
+import { useFeedbackOpen } from "../../providers/feedbackOpen";
+import { redactionProblemDraft } from "../../../feedback/feedback";
 import { ShieldIcon, RefreshIcon, XIcon } from "../../../components/brand";
 import { FileSkeleton } from "./FileSkeleton";
 import { useHost } from "../../../host";
@@ -57,7 +57,7 @@ export function AttachmentPreviewModal({
   reveal,
   onRevealChange,
   onForceRedact,
-  onAddToCoffre,
+  onAddToVault,
   onDeleteRedaction,
   inactiveCategories,
   convCategories,
@@ -115,7 +115,7 @@ export function AttachmentPreviewModal({
   /** Add the selected value to the global COFFRE (always redacted, every conversation)
    *  AS a chosen type — enables the picker's Cette conversation / Coffre scope toggle.
    *  A Coffre pick ALSO force-redacted it in this document so the preview reflects it. */
-  onAddToCoffre?: (value: string, token: string) => void;
+  onAddToVault?: (value: string, token: string) => void;
   /** Labels of the redaction categories currently OFF (see `docCategoryNotice.ts`).
    *  Non-empty ⇒ the preview shows a coverage note: in a document, a category that is
    *  not detected is INVISIBLE (unlike the composer, where the user watches a value
@@ -128,7 +128,7 @@ export function AttachmentPreviewModal({
   const host = useHost();
   // « Signaler un masquage incorrect » on a mark — the before-send preview is where
   // a bad DOCUMENT redaction is first visible.
-  const { openAvis } = useAvisOpen();
+  const { openFeedback } = useFeedbackOpen();
   // Body root for the hover-reveal delegation (same mechanism as chat bubbles) — it
   // watches every `[data-doc-reveal]` mark (text tab, spreadsheet cell, PDF box).
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -631,7 +631,7 @@ export function AttachmentPreviewModal({
           onReveal={(real) => toggleReveal(real)}
           onReRedact={(real) => toggleReveal(real)}
           onDelete={onDeleteRedaction}
-          onReport={openAvis ? (kind) => openAvis(redactionProblemDraft("document", t, kind)) : undefined}
+          onReport={openFeedback ? (kind) => openFeedback(redactionProblemDraft("document", t, kind)) : undefined}
         />
       )}
 
@@ -661,10 +661,10 @@ export function AttachmentPreviewModal({
             onForceRedact(wordPick.value, token);
             closeWordPick();
           }}
-          onCoffre={
-            onAddToCoffre
+          onVault={
+            onAddToVault
               ? (token) => {
-                  onAddToCoffre(wordPick.value, token);
+                  onAddToVault(wordPick.value, token);
                   onForceRedact(wordPick.value, token);
                   closeWordPick();
                 }
@@ -688,8 +688,8 @@ export function AttachmentPreviewModal({
             clear();
             window.getSelection()?.removeAllRanges();
           }}
-          onCoffre={
-            onAddToCoffre
+          onVault={
+            onAddToVault
               ? (token) => {
                   const value =
                     view === "redacted"
@@ -697,7 +697,7 @@ export function AttachmentPreviewModal({
                       : sel.text;
                   // Global protection + still force it in THIS document so the preview
                   // shows it faked immediately (Coffre = superset of "this conversation").
-                  onAddToCoffre(value, token);
+                  onAddToVault(value, token);
                   onForceRedact(value, token);
                   clear();
                   window.getSelection()?.removeAllRanges();

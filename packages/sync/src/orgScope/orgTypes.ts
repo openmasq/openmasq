@@ -11,9 +11,9 @@ import type { EncryptedRecord } from "../recordTypes";
 
 /** The two org scopes, an ALLOW-list (backend parity pinned by its gate test).
  *  `coffre` = always-redacted terms; `userdata` = skills. */
-export const ORG_COFFRE_SCOPE = "coffre";
+export const ORG_VAULT_SCOPE = "coffre";
 export const ORG_USERDATA_SCOPE = "userdata";
-export const ORG_SCOPES = [ORG_COFFRE_SCOPE, ORG_USERDATA_SCOPE] as const;
+export const ORG_SCOPES = [ORG_VAULT_SCOPE, ORG_USERDATA_SCOPE] as const;
 export type OrgScope = (typeof ORG_SCOPES)[number];
 
 /** The three audiences a share can target — same parity contract. */

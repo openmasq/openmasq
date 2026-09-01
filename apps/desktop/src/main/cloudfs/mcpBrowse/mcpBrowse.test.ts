@@ -4,7 +4,7 @@ import {
   assertFolderRef,
   directChildren,
   describeShape,
-  findFolderLister,
+  findFolderListTool,
   isFolderListTool,
   mcpBrowseList,
   parseToolList,
@@ -22,7 +22,7 @@ const props = (o: Record<string, unknown>, required?: string[]) => ({
 describe("findFolderLister — une ALLOW-list, pas une devinette", () => {
   it("reconnaît ListFolder quelle que soit la casse ou le tiret bas", () => {
     for (const n of ["ListFolder", "list_folder", "listFolder", "dropbox__ListFolder"]) {
-      expect(findFolderLister([tool(n, props({ path: { type: "string" } }))])?.folderArg).toBe("path");
+      expect(findFolderListTool([tool(n, props({ path: { type: "string" } }))])?.folderArg).toBe("path");
     }
   });
 
@@ -33,7 +33,7 @@ describe("findFolderLister — une ALLOW-list, pas une devinette", () => {
       tool("Move", props({ path: { type: "string" } })),
       tool("Search", props({ query: { type: "string" } })),
     ];
-    expect(findFolderLister(tools)).toBeNull();
+    expect(findFolderListTool(tools)).toBeNull();
     // And the question `cloudSources()` asks gives the same answer.
     expect(tools.some((t) => isFolderListTool(t.name))).toBe(false);
   });
@@ -42,12 +42,12 @@ describe("findFolderLister — une ALLOW-list, pas une devinette", () => {
     // Calling it halfway would produce a server error where « this account can't be
     // browsed » is the honest answer.
     const t = tool("ListFolder", props({ path: {}, account_id: {} }, ["path", "account_id"]));
-    expect(findFolderLister([t])).toBeNull();
+    expect(findFolderListTool([t])).toBeNull();
   });
 
   it("prend l'argument de pagination quand le schéma en déclare un", () => {
     const t = tool("ListFolder", props({ path: {}, cursor: {} }, ["path"]));
-    expect(findFolderLister([t])).toEqual({ tool: "ListFolder", folderArg: "path", cursorArg: "cursor" });
+    expect(findFolderListTool([t])).toEqual({ tool: "ListFolder", folderArg: "path", cursorArg: "cursor" });
   });
 });
 

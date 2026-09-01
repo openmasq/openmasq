@@ -2,7 +2,7 @@ import { pseudonymize, type RedactionResult } from "@openmasq/redact";
 import type { Host } from "../host";
 import { redactTimeoutMessage } from "./redactTimeout";
 import { disabledKindsOf, effectiveRedactCategories } from "./redactionOptions";
-import { coffreToForced, combinedCoffre } from "./coffre";
+import { vaultTermsToForced, combinedVaultTerms } from "./vaultTerms";
 import { levelOf, notorietyForLevel } from "../privacy/privacyLevel";
 import type { Settings } from "../types";
 
@@ -63,7 +63,7 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
     // same path, so its `replacements` (reused by the send) benefit too.
     // Coffre NOT filtered by notoriety, like the send ("UNFILTERED", store.ts) —
     // notoriety only exempts DETECTION, never a forced value.
-    const forced = coffreToForced(combinedCoffre(settings));
+    const forced = vaultTermsToForced(combinedVaultTerms(settings));
     const { commercial: commercialNotoriety, people: peopleNotoriety } = notorietyForLevel(
       levelOf(effective, orgForced),
     );

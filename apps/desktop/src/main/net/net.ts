@@ -2,7 +2,7 @@ import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
 import Debug from "debug";
 import { isPrivateIp } from "./privateIp";
-import { noteEgressUrl } from "./egressJournal";
+import { noteEgressUrl } from "./egressLog";
 
 const debug = Debug("openmasq:net");
 

@@ -16,7 +16,7 @@ import { useConvActions, type ConvActions } from "./hooks/useConvActions";
 import { useStagedIntents, type StagedIntents } from "./hooks/useStagedIntents";
 import { useRightPane, type RightPane } from "./hooks/useRightPane";
 import { useSearchPalette } from "./hooks/useSearchPalette";
-import { useAvis } from "./hooks/useAvis";
+import { useFeedback } from "./hooks/useFeedback";
 import { useUpdateReady, type UpdateReadyApi } from "./hooks/useUpdateReady";
 import { useSplitRatio } from "./hooks/useSplitRatio";
 import type { WorkspaceLayout } from "../../workspace/layout";
@@ -89,7 +89,7 @@ export type ShellApi = {
   conv: ConvActions;
   pane: RightPane;
   search: ReturnType<typeof useSearchPalette>;
-  avis: ReturnType<typeof useAvis>;
+  feedback: ReturnType<typeof useFeedback>;
   split: ReturnType<typeof useSplitRatio>;
   /** « Demander » from the browser: prime a question ABOUT the open page. */
   askAboutPage: (draft: string) => void;
@@ -117,7 +117,7 @@ export function useShell({
   const deep = useShellDeepLinks({ chat, section, go });
   const conv = useConvActions({ chat, go, onEnterConversation });
   const pane = useRightPane({ chat, section });
-  const avis = useAvis({ chat, section });
+  const feedback = useFeedback({ chat, section });
   const split = useSplitRatio();
 
   // A reply arriving while looking elsewhere signals to the SYSTEM, and the
@@ -234,7 +234,7 @@ export function useShell({
     conv,
     pane,
     search,
-    avis,
+    feedback,
     split,
     ...staged,
     askAboutPage,

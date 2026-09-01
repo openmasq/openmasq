@@ -21,8 +21,8 @@ import { pinMemoryPending } from "./memoryNote";
 
 /** Entity surfaces already in memory — handed to the prompt so the ceiling is spent on
  *  what is MISSING instead of re-stating what is known. */
-function knownEntities(memoire: MemoryData | undefined): string[] {
-  return (memoire?.cards ?? []).map((c) => c.entity).filter(Boolean);
+function knownEntities(memoryData: MemoryData | undefined): string[] {
+  return (memoryData?.cards ?? []).map((c) => c.entity).filter(Boolean);
 }
 import { memoryId } from "../memory";
 import { DEFAULT_MODEL_ID, findModelAny } from "../prompt/models";
@@ -50,7 +50,7 @@ export interface MemoryExtractionDeps {
   activeId: string | null;
   settings: Settings;
   complete: ((payload: CompletePayload) => Promise<string>) | undefined;
-  setMemoire: (fn: (m: MemoryData) => MemoryData) => void;
+  setMemory: (fn: (m: MemoryData) => MemoryData) => void;
   patchConversation: (id: string, fn: (c: Conversation) => Conversation) => void;
   /** EXPLICIT-ask feedback: pin « N faits notés » on the conversation's last assistant
    *  message, with the ids of the cards the run CREATED (deep-link + « Annuler ») and
@@ -81,7 +81,7 @@ export async function runMemoryExtraction(
   conv: Conversation,
   deps: Pick<
     MemoryExtractionDeps,
-    "settings" | "complete" | "setMemoire" | "patchConversation" | "noteOnMessage" | "onMemoryFresh"
+    "settings" | "complete" | "setMemory" | "patchConversation" | "noteOnMessage" | "onMemoryFresh"
   >,
   opts?: { explicit?: boolean },
 ): Promise<number> {
@@ -278,7 +278,7 @@ export async function runMemoryExtraction(
       merged.updatedIds.length ? merged.updatedIds : undefined,
     );
   if (!resolved.facts.length && !resolved.profile) return 0;
-  deps.setMemoire((m) => mergeExtraction(m, withIds).data);
+  deps.setMemory((m) => mergeExtraction(m, withIds).data);
   deps.onMemoryFresh?.();
   pushDebug(
     {

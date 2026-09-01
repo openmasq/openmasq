@@ -24,7 +24,7 @@ import type {
   RecordTransport,
   SyncRecord,
 } from "./types";
-import { COFFRE_SCOPE, INTEGRATIONS_SCOPE, USERDATA_SCOPE } from "./types";
+import { VAULT_TERMS_SCOPE, INTEGRATIONS_SCOPE, USERDATA_SCOPE } from "./types";
 
 export interface RecordSyncOptions {
   transport: RecordTransport;
@@ -56,8 +56,8 @@ export interface RecordSync {
   pushUserdata(records: SyncRecord[]): Promise<number>;
   pullUserdata(since: number): Promise<PulledRecords>;
   /** Coffre sugar (always-redacted terms) — its scope, extension-accessible. */
-  pushCoffre(records: SyncRecord[]): Promise<number>;
-  pullCoffre(since: number): Promise<PulledRecords>;
+  pushVaultTerms(records: SyncRecord[]): Promise<number>;
+  pullVaultTerms(since: number): Promise<PulledRecords>;
   /** Forget the "sealed" scopes (see `dekFor`) — to call when this device's passphrase
    *  CHANGES, since that's the only event that can make an envelope
    *  openable again. Without it the circuit-breaker would hold until restart, and a
@@ -190,8 +190,8 @@ export function createRecordSync(opts: RecordSyncOptions): RecordSync {
     pullIntegrations: (since) => pull(INTEGRATIONS_SCOPE, since),
     pushUserdata: (records) => push(USERDATA_SCOPE, records),
     pullUserdata: (since) => pull(USERDATA_SCOPE, since),
-    pushCoffre: (records) => push(COFFRE_SCOPE, records),
-    pullCoffre: (since) => pull(COFFRE_SCOPE, since),
+    pushVaultTerms: (records) => push(VAULT_TERMS_SCOPE, records),
+    pullVaultTerms: (since) => pull(VAULT_TERMS_SCOPE, since),
 
     async rewrapAllKeys(oldPassphrase, newPassphrase) {
       const done: string[] = [];

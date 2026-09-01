@@ -23,7 +23,7 @@ export type ShellDeepLinks = {
   openMemCard: DeepLink;
   connectedIds: string[];
   openSettings: (tab?: string, connectorId?: string, returnToConvId?: string) => void;
-  openCompetenceById: (id: string) => void;
+  openSkillById: (id: string) => void;
   memoryUiApi: MemoryUiApi;
   /** Disarm the auto-return once it has fired (see `useReturnAfterConnect`). */
   clearReturnTo: () => void;
@@ -68,7 +68,7 @@ export function useShellDeepLinks({
       }));
     go("settings");
   };
-  const openCompetenceById = useCallback(
+  const openSkillById = useCallback(
     (id: string) => {
       // Gate closed: `go` would fall back to conversations, and the editor would open
       // on top — a modal for a removed feature. Do nothing.
@@ -96,13 +96,13 @@ export function useShellDeepLinks({
       resolve: (ids) =>
         ids.flatMap((id) => {
           if (id === "profile") return [{ id, label: t.lists.memory.profileNode }];
-          const card = chat.memoire.cards.find((c) => c.id === id);
+          const card = chat.memoryData.cards.find((c) => c.id === id);
           return card ? [{ id, label: card.entity }] : [];
         }),
       forget: (ids) => ids.forEach((id) => chat.removeMemoryCard(id)),
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [chat.memoire, go],
+    [chat.memoryData, go],
   );
   // Visiting the Mémoire clears its « nouveau » dot.
   const memoryFresh = useAppSelector((s) => s.ui.memoryFresh);
@@ -121,7 +121,7 @@ export function useShellDeepLinks({
     openMemCard,
     connectedIds,
     openSettings,
-    openCompetenceById,
+    openSkillById,
     memoryUiApi,
     clearReturnTo,
   };

@@ -16,7 +16,7 @@ import {
   MODEL_DEBOUNCE_MS,
   MODEL_DETECT_TIMEOUT_MS,
   makeToggleKeep,
-  competenceExtraCount,
+  skillExtraCount,
   type Detected,
   type Item,
   type Cat,
@@ -49,16 +49,16 @@ import { ComposerSkillMenu } from "./ComposerSkillMenu";
 import { ComposerRedactButton } from "./ComposerRedactButton";
 import type { RedactLevelApi } from "./ComposerRedactMenu";
 import { slashQuery, slashMatches, clampSlashIndex, slashActionMatches, type SlashAction } from "./slashPalette";
-import { useOpenCompetence } from "../../competences/competenceOpen";
+import { useOpenSkill } from "../../skills/skillOpen";
 import { useChatDoors } from "./chatGates";
-import { cappedSlots } from "../../competences/launch";
+import { cappedSlots } from "../../skills/launch";
 import { isExplicitMemoryAsk } from "../../memory/extract";
 import { MemoryIcon } from "../../components/brand";
 import { Markdown } from "../../components/markdown/Markdown";
 import { redactTimeoutMs } from "../../send/redactTimeout";
 import type { UnavailableReason } from "../../send/modelAvailability";
 import type { ExtractedFile } from "../../host";
-import type { Competence, Conversation } from "../../types";
+import type { Skill, Conversation } from "../../types";
 import type { PdfReplacement } from "../../containers/modals/viewers/pdf/pdfReplacements";
 
 export type Attachment = ExtractedFile & {
@@ -130,11 +130,11 @@ export function Composer({
   tag,
   onClearTag,
   onEditTag,
-  competences,
-  onPickCompetence,
+  competences: skills,
+  onPickSkill,
   forcedRedactions,
   onForceRedact,
-  onAddToCoffre,
+  onAddToVault,
   memoryHint,
 }: {
   input: string;
@@ -167,9 +167,9 @@ export function Composer({
   onEditTag?: () => void;
   /** The user's compétences — the composer's picker button lists them so one can be
    *  inserted from the chatbox. Absent/empty ⇒ the picker button is not shown. */
-  competences?: Competence[];
+  competences?: Skill[];
   /** Insert a compétence's prompt into the composer (+ show its tag). Owned by ChatView. */
-  onPickCompetence?: (c: Competence) => void;
+  onPickSkill?: (c: Skill) => void;
   /** The conversation's manual (user-forced) redactions — merged into the live
    *  preview highlight so the user sees their manual marks. */
   forcedRedactions?: { value: string; category: string }[];
@@ -178,7 +178,7 @@ export function Composer({
   onForceRedact?: (value: string, category: string) => void;
   /** Add the selected span to the global COFFRE (always redacted) AS `token`. When set,
    *  the "Redact" menu shows a Cette conversation / Coffre scope toggle. */
-  onAddToCoffre?: (value: string, token: string) => void;
+  onAddToVault?: (value: string, token: string) => void;
   /** Explicit « retiens que… » capture works here → show the passive « sera noté en
    *  mémoire » hint chip when the draft matches the phrasing. */
   memoryHint?: boolean;
@@ -266,7 +266,7 @@ export function Composer({
   const [slashPlace, setSlashPlace] = useState<SlashPlacement>({ below: false, maxHeight: SLASH_MAX });
   // Navigate to the Compétences page (create the first one) — the empty menu's CTA.
   // Context, not a prop: null outside the shell → the CTA simply doesn't render.
-  const openCompetencePage = useOpenCompetence();
+  const openSkillPage = useOpenSkill();
   useEffect(() => {
     if (!skillOpen) return;
     const onDown = (e: MouseEvent) => {
@@ -291,12 +291,12 @@ export function Composer({
   const [slashDismissed, setSlashDismissed] = useState(false);
   // Open on a "/" lookup whenever a picker exists — with ZERO compétences the palette
   // still lists the built-in ACTIONS (« /retenir »), so "/" is never a dead key.
-  const slashQ = onPickCompetence && !slashDismissed ? slashQuery(input) : null;
+  const slashQ = onPickSkill && !slashDismissed ? slashQuery(input) : null;
   // Two families governed separately (`chatGates.ts`); both empty ⇒ nothing opens.
   const { skillsUsable, memoryOpen } = useChatDoors();
   const slashItems = useMemo(
-    () => (slashQ === null || !skillsUsable ? null : slashMatches(competences ?? [], slashQ)),
-    [slashQ, competences, skillsUsable],
+    () => (slashQ === null || !skillsUsable ? null : slashMatches(skills ?? [], slashQ)),
+    [slashQ, skills, skillsUsable],
   );
   // Built-in palette actions (« Retenir en mémoire »…) — listed ABOVE the compétences;
   // the keyboard cursor spans actions THEN compétences as one list. There is no longer a
@@ -311,9 +311,9 @@ export function Composer({
   useEffect(() => {
     setSlashIdx(0);
   }, [slashQ]);
-  const pickSlash = (c: Competence) => {
+  const pickSlash = (c: Skill) => {
     onInput(""); // consume the "/query" draft — the compétence rides as a chip, not text
-    onPickCompetence?.(c);
+    onPickSkill?.(c);
   };
   const pickSlashAction = (a: SlashAction) => {
     onInput(a.insert); // the draft becomes the phrase — no longer a "/" lookup, palette closes
@@ -551,9 +551,9 @@ export function Composer({
   // …PLUS the staged COMPÉTENCE's prompt: it goes out in modelText, so it counts.
   const liveCount =
     detection.items.filter((i) => !keepSet.has(i.value)).length +
-    competenceExtraCount(detection.items, utilRisk.competenceCats);
+    skillExtraCount(detection.items, utilRisk.skillCats);
   // The aperçu must never show a zero it hasn't finished computing.
-  const hasSomething = !!input.trim() || utilRisk.competenceCats.length > 0;
+  const hasSomething = !!input.trim() || utilRisk.skillCats.length > 0;
   const scanState = previewStatus(detecting, liveCount, hasSomething, t, modelGaveUp);
   const [showDone, setShowDone] = useState(false);
   const wasBusy = useRef(false);
@@ -702,7 +702,7 @@ export function Composer({
             style={{ "--slash-max": `${slashPlace.maxHeight}px` } as React.CSSProperties}
           >
             <ComposerSkillMenu
-              competences={slashItems ?? []}
+              skillList={slashItems ?? []}
               actions={slashActs ?? undefined}
               activeIndex={clampSlashIndex(slashIdx, slashCount)}
               onPick={pickSlash}
@@ -750,10 +750,10 @@ export function Composer({
               onForceRedact(redactSel.text, token);
               clearRedactSel();
             }}
-            onCoffre={
-              onAddToCoffre
+            onVault={
+              onAddToVault
                 ? (token) => {
-                    onAddToCoffre(redactSel.text, token);
+                    onAddToVault(redactSel.text, token);
                     clearRedactSel();
                   }
                 : undefined
@@ -825,7 +825,7 @@ export function Composer({
         {/* Visible even with ZERO compétences: the empty menu is where a chat-first
             user DISCOVERS the feature (its empty branch carries the create CTA) —
             gated on length, the concept was invisible outside the dedicated page. */}
-        {skillsUsable && onPickCompetence && competences && (
+        {skillsUsable && onPickSkill && skills && (
           <div className="composer-skill-wrap" ref={skillWrapRef}>
             {/* THE SAME primitive as the paperclip beside it: two neighbouring glyph actions
                 rendered as two different controls (34px bordered pill vs 30px ghost square,
@@ -843,18 +843,18 @@ export function Composer({
             </IconButton>
             {skillOpen && (
               <ComposerSkillMenu
-                competences={competences}
+                skillList={skills}
                 onPick={(c) => {
                   setSkillOpen(false);
-                  onPickCompetence(c);
+                  onPickSkill(c);
                 }}
                 onCreate={
-                  openCompetencePage
+                  openSkillPage
                     ? () => {
                         setSkillOpen(false);
                         // "" resolves to no compétence → just lands on the page, whose
                         // big empty state carries the real create CTA.
-                        openCompetencePage("");
+                        openSkillPage("");
                       }
                     : undefined
                 }
@@ -939,7 +939,7 @@ export function Composer({
         onRevealChange={onRevealChange}
         onForceRedactDoc={onForceRedactDoc}
         onDeleteRedactionDoc={onDeleteRedactionDoc}
-        onAddToCoffre={onAddToCoffre}
+        onAddToVault={onAddToVault}
         onClose={() => setPreviewCid(null)}
       />
       <AnimatePresence>
@@ -956,7 +956,7 @@ export function Composer({
             keepValueOf={(occ) => chipValueFor(detection.items, occ)}
             liveCount={liveCount}
             onForceRedact={onForceRedact}
-            onAddToCoffre={onAddToCoffre}
+            onAddToVault={onAddToVault}
             onClose={() => setEditorOpen(false)}
           />
         )}

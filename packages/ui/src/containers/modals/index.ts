@@ -1,6 +1,6 @@
 export { ModalShell } from "./ModalShell";
 export { ModalTitle } from "./ModalTitle";
-export { AvisModal } from "./AvisModal";
+export { FeedbackModal } from "./FeedbackModal";
 export { GuideModal } from "./GuideModal";
 export { SearchModal } from "./SearchModal";
 export { RedactionRulesModal } from "./redaction/RedactionRulesModal";

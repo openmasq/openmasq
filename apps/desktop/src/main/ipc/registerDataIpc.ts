@@ -5,14 +5,14 @@ import {
   dbSaveConversation,
   dbDeleteConversation,
   dbSaveSettings,
-  dbSaveDebugJournal,
-  dbLoadDebugJournal,
+  dbSaveDebugLog,
+  dbLoadDebugLog,
   storeEmbedding,
   searchEmbeddings,
-  dbSaveEgressJournal,
-  dbLoadEgressJournal,
+  dbSaveEgressLog,
+  dbLoadEgressLog,
 } from "../db";
-import { attachEgressSink, listEgress, type EgressRecord } from "../net/egressJournal";
+import { attachEgressSink, listEgress, type EgressRecord } from "../net/egressLog";
 import { embed, probeEndpoint, type EmbedConfig } from "../embeddings";
 import { memoryIndexSync, memoryIndexEdges, memoryIndexQuery, type MemoryIndexCard } from "../embed";
 import { handle, str, obj, arr, optional, num, nullable } from "./handle";
@@ -43,12 +43,12 @@ export function registerDataIpc(): void {
       userId
         ? {
             load: async () => {
-              const raw = await dbLoadEgressJournal();
+              const raw = await dbLoadEgressLog();
               if (!raw) return [];
               const parsed: unknown = JSON.parse(raw);
               return Array.isArray(parsed) ? (parsed as EgressRecord[]) : [];
             },
-            save: (records) => dbSaveEgressJournal(JSON.stringify(records)),
+            save: (records) => dbSaveEgressLog(JSON.stringify(records)),
           }
         : null,
     ).catch(() => {});
@@ -60,8 +60,8 @@ export function registerDataIpc(): void {
   // The renderer's DEBUG JOURNAL ring (wire text + vault values = real PII): its only
   // at-rest home is this per-account encrypted DB — same rule as the vault. Whole-ring
   // replace on save; content is the renderer's own data, so no gate beyond the shape.
-  handle("db:save-debug-journal", [str], (_e, json) => dbSaveDebugJournal(json));
-  handle("db:load-debug-journal", [], () => dbLoadDebugJournal());
+  handle("db:save-debug-journal", [str], (_e, json) => dbSaveDebugLog(json));
+  handle("db:load-debug-journal", [], () => dbLoadDebugLog());
 
   // The EGRESS journal — read-only from the renderer. Main is the sole writer (the record
   // would be worthless if the untrusted side could author or erase rows), so there is no

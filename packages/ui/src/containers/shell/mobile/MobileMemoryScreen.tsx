@@ -27,7 +27,7 @@ import { useT } from "../../../i18n";
  * by reusing those two pure pieces, not by re-deriving the rules.
  */
 export function MobileMemoryScreen({
-  memoire,
+  memoryData,
   memoryAuto,
   onToggleAuto,
   onSetProfile,
@@ -35,7 +35,7 @@ export function MobileMemoryScreen({
   onUpdate,
   onRemove,
 }: {
-  memoire: MemoryData;
+  memoryData: MemoryData;
   memoryAuto: boolean;
   onToggleAuto: (on: boolean) => void;
   onSetProfile: (profile: string) => void;
@@ -44,14 +44,14 @@ export function MobileMemoryScreen({
   onRemove: (id: string) => void;
 }) {
   const t = useT();
-  const groups = useMemo(() => groupMemoryCards(memoire.cards, t), [memoire.cards]);
+  const groups = useMemo(() => groupMemoryCards(memoryData.cards, t), [memoryData.cards]);
   const [addTo, setAddTo] = useState<{ id: string; label: string } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   // Read the card fresh from the store each render so an edit re-renders the sheet.
-  const openCard = memoire.cards.find((c) => c.id === openId) ?? null;
-  const total = memoire.cards.length;
-  const profile = memoire.profile?.trim() ?? "";
+  const openCard = memoryData.cards.find((c) => c.id === openId) ?? null;
+  const total = memoryData.cards.length;
+  const profile = memoryData.profile?.trim() ?? "";
 
   return (
     <div className="mobile-screen mmem">

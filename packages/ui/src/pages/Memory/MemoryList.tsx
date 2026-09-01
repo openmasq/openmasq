@@ -141,7 +141,7 @@ function Row({
 }
 
 export function MemoryList({
-  memoire,
+  memoryData,
   matched,
   freshIds,
   grouped,
@@ -150,7 +150,7 @@ export function MemoryList({
   onConfirm,
   onRemove,
 }: {
-  memoire: MemoryData;
+  memoryData: MemoryData;
   /** From `matchingCardIds` (query ∩ legend category ∩ inbox) — `null` shows everything. */
   matched: Set<string> | null;
   /** The « À revoir » inbox — those rows get inline Confirmer / Supprimer. */
@@ -164,7 +164,7 @@ export function MemoryList({
   onRemove?: (id: string) => void;
 }) {
   const t = useT();
-  const rows = memoire.cards
+  const rows = memoryData.cards
     .filter((c) => !matched || matched.has(c.id))
     .sort((a, b) => b.updatedAt - a.updatedAt);
   if (!rows.length) {

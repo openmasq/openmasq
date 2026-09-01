@@ -5,14 +5,14 @@ import { CheckIcon, SearchIcon, ShieldIcon } from "../../components/brand";
 import { useHost } from "../../host";
 import type { OrgShareAudienceInput, OrgShareAudienceOptions } from "../../host/orgShares";
 import { shareTargets } from "../../orgShares/scopes";
-import { coffreTypeLabel } from "../../send/coffre";
-import type { CoffreTerm, Competence } from "../../types";
+import { vaultTermTypeLabel } from "../../send/vaultTerms";
+import type { VaultTerm, Skill } from "../../types";
 
 import { useT } from "../../i18n";
 /** What is being shared: ONE item at a time (design: promotion per row/card). */
 export type PromoteSubject =
-  | { kind: "term"; term: CoffreTerm }
-  | { kind: "skill"; competence: Competence };
+  | { kind: "term"; term: VaultTerm }
+  | { kind: "skill"; competence: Skill };
 
 /**
  * The « Partager » dialog (design source: ui_kits/chat-app `PromoteModal`):
@@ -174,7 +174,7 @@ export function SharePromoteModal({
             <>
               <div className="om-promote-term">{subject.term.value}</div>
               <div className="om-promote-term-sub">
-                {coffreTypeLabel(subject.term.token)}
+                {vaultTermTypeLabel(subject.term.token)}
                 {subject.term.note ? ` · ${subject.term.note}` : ""}
               </div>
             </>

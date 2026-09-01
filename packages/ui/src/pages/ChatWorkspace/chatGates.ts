@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { featureUsage, useFeatureAccess } from "../../state/featureAccess";
-import type { Competence } from "../../types";
+import type { Skill } from "../../types";
 
 /**
  * The governable GATES as the chat screen sees them, and the single
@@ -23,8 +23,8 @@ export interface ChatGates {
    *  its prompt doesn't touch the draft, it joins the model payload at send time.
    *  `null` as soon as usage is closed, without erasing the state: reopening the door restores
    *  the staging as-is, and a flag flipping back and forth destroys nothing. */
-  activeCompetence: Competence | null;
-  setActiveCompetence: (c: Competence | null) => void;
+  activeSkill: Skill | null;
+  setActiveSkill: (c: Skill | null) => void;
 }
 
 /** The two gates alone — what `Composer` needs (the staged state
@@ -36,10 +36,10 @@ export function useChatDoors(): Pick<ChatGates, "skillsUsable" | "memoryOpen"> {
 
 export function useChatGates(): ChatGates {
   const doors = useChatDoors();
-  const [staged, setActiveCompetence] = useState<Competence | null>(null);
+  const [staged, setActiveSkill] = useState<Skill | null>(null);
   return {
     ...doors,
-    activeCompetence: doors.skillsUsable ? staged : null,
-    setActiveCompetence,
+    activeSkill: doors.skillsUsable ? staged : null,
+    setActiveSkill,
   };
 }

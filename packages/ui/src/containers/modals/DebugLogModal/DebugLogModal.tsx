@@ -5,8 +5,8 @@ import { RedactionInlineReveal } from "../../../components/message/RedactionInli
 import { subscribeDebugLog, getDebugLog, clearDebugLog, type DebugEntry } from "../../../state/debug";
 import { isEntryVisibleIn } from "../../../state/debugScope";
 import { VirtualMessageList } from "../../../components/VirtualMessageList";
-import { useAvisOpen } from "../../providers/avisOpen";
-import { debugJournalDraft } from "../../../avis/avis";
+import { useFeedbackOpen } from "../../providers/feedbackOpen";
+import { debugLogDraft } from "../../../feedback/feedback";
 import { matchesQuery, toText } from "./entryText";
 import { Row } from "./parts";
 
@@ -26,7 +26,7 @@ const TAB_IDS: readonly Filter[] = ["all", "phase", "wire", "turn", "tool", "err
 export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId?: string | null }) {
   const t = useT();
   const entries = useSyncExternalStore(subscribeDebugLog, getDebugLog);
-  const { openAvis } = useAvisOpen();
+  const { openFeedback } = useFeedbackOpen();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [copied, setCopied] = useState<"" | "full" | "nomap">("");
@@ -136,12 +136,12 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
             <XIcon size={13} /> {t.modals.debug.clear}
           </button>
           <span className="dbg-actions-spacer" />
-          {openAvis && (
+          {openFeedback && (
             <button
               className="dbg-action primary"
               title={t.modals.debug.sendToDevsTip}
               onClick={() => {
-                openAvis(debugJournalDraft(toText([...shown].reverse(), { mapping: false }), t));
+                openFeedback(debugLogDraft(toText([...shown].reverse(), { mapping: false }), t));
                 onClose();
               }}
             >

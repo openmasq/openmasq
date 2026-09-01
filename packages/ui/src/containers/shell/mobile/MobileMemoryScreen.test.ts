@@ -20,7 +20,7 @@ beforeAll(() => {
 const card = (id: string, entity: string, cat: string, facts = ""): MemoryCard =>
   ({ id, entity, cat, facts, createdAt: 0, updatedAt: 0 }) as MemoryCard;
 
-const memoire: MemoryData = {
+const memoryData: MemoryData = {
   profile: "",
   cards: [
     card("1", "Marcus Foy", "personne", "Contact chez Acme"),
@@ -39,7 +39,7 @@ afterEach(() => {
 
 function mount(over: Partial<Parameters<typeof MobileMemoryScreen>[0]> = {}) {
   const props = {
-    memoire,
+    memoryData,
     memoryAuto: false,
     onToggleAuto: vi.fn(),
     onSetProfile: vi.fn(),
@@ -79,7 +79,7 @@ describe("MobileMemoryScreen", () => {
     const { container } = mount();
     expect(texts(container, ".mmem-group-name")).toEqual(["Personne", "Organisation", "Projet"]);
     expect(texts(container, ".mmem-group-n")).toEqual(["2", "1", "1"]);
-    expect(container.querySelectorAll(".mmem-chip").length).toBe(memoire.cards.length);
+    expect(container.querySelectorAll(".mmem-chip").length).toBe(memoryData.cards.length);
   });
 
   it("counts the elements it says it remembers", () => {
@@ -127,7 +127,7 @@ describe("MobileMemoryScreen", () => {
   });
 
   it("offers a first fiche when the memory is empty", () => {
-    const { container } = mount({ memoire: { profile: "", cards: [] } });
+    const { container } = mount({ memoryData: { profile: "", cards: [] } });
     expect(container.querySelectorAll(".mmem-group").length).toBe(0);
     expect(container.querySelector(".mmem-empty")?.textContent).toContain("Rien en mémoire");
   });

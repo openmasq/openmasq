@@ -24,7 +24,7 @@ import {
   wrapOrgDek,
 } from "./orgCrypto";
 import {
-  ORG_COFFRE_SCOPE,
+  ORG_VAULT_SCOPE,
   type MemberKeyEnvelope,
   type OrgKeyEnvelope,
   type OrgScopeTransport,
@@ -45,12 +45,12 @@ describe("org member key", () => {
   it("a passphrase re-wrap keeps the SAME keypair (old envelopes stay valid)", async () => {
     const { envelope } = await createMemberKey("old-phrase");
     const raw = mintOrgDek();
-    const wrapped = await wrapOrgDek(raw, envelope.publicJwk, ORG, ORG_COFFRE_SCOPE, "share-1", 1);
+    const wrapped = await wrapOrgDek(raw, envelope.publicJwk, ORG, ORG_VAULT_SCOPE, "share-1", 1);
     const next = await rewrapMemberKey(envelope, "old-phrase", "new-phrase");
     expect(next.publicJwk).toBe(envelope.publicJwk);
     await expect(openMemberKey(next, "old-phrase")).rejects.toThrow();
     const priv = await openMemberKey(next, "new-phrase");
-    const opened = await openOrgDek(wrapped, priv, ORG, ORG_COFFRE_SCOPE, "share-1");
+    const opened = await openOrgDek(wrapped, priv, ORG, ORG_VAULT_SCOPE, "share-1");
     expect([...opened.raw]).toEqual([...raw]);
   });
 });
@@ -63,15 +63,15 @@ describe("share DEK envelope — slot binding", () => {
     const bobPriv = await openMemberKey(bob.envelope, "pass-bob");
 
     const raw = mintOrgDek();
-    const env = await wrapOrgDek(raw, alice.envelope.publicJwk, ORG, ORG_COFFRE_SCOPE, "share-A", 1);
-    const ok = await openOrgDek(env, alicePriv, ORG, ORG_COFFRE_SCOPE, "share-A");
+    const env = await wrapOrgDek(raw, alice.envelope.publicJwk, ORG, ORG_VAULT_SCOPE, "share-A", 1);
+    const ok = await openOrgDek(env, alicePriv, ORG, ORG_VAULT_SCOPE, "share-A");
     expect([...ok.raw]).toEqual([...raw]);
 
-    await expect(openOrgDek(env, bobPriv, ORG, ORG_COFFRE_SCOPE, "share-A")).rejects.toThrow();
+    await expect(openOrgDek(env, bobPriv, ORG, ORG_VAULT_SCOPE, "share-A")).rejects.toThrow();
     // Another SHARE — the server can't replay an envelope across shares.
-    await expect(openOrgDek(env, alicePriv, ORG, ORG_COFFRE_SCOPE, "share-B")).rejects.toThrow();
+    await expect(openOrgDek(env, alicePriv, ORG, ORG_VAULT_SCOPE, "share-B")).rejects.toThrow();
     await expect(
-      openOrgDek({ ...env, keyVersion: 2 }, alicePriv, ORG, ORG_COFFRE_SCOPE, "share-A"),
+      openOrgDek({ ...env, keyVersion: 2 }, alicePriv, ORG, ORG_VAULT_SCOPE, "share-A"),
     ).rejects.toThrow();
   });
 });

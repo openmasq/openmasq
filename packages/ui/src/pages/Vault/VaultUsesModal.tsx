@@ -7,8 +7,8 @@ import { ModalTitle } from "../../containers/modals/ModalTitle";
 import { ModelLogo } from "../../components/brand";
 import { findModelAny } from "../../prompt/models";
 import { VaultTermPill } from "./parts/VaultTermPill";
-import type { CoffreTerm } from "../../types";
-import { coffreOccurrences, coffreTypeLabel, type CoffreUse } from "../../send/coffre";
+import type { VaultTerm } from "../../types";
+import { vaultTermOccurrences, vaultTermTypeLabel, type VaultTermUse } from "../../send/vaultTerms";
 import type { Conversation } from "../../types";
 
 import { useT } from "../../i18n";
@@ -31,7 +31,7 @@ function UseRow({
   use,
   onOpen,
 }: {
-  use: CoffreUse;
+  use: VaultTermUse;
   onOpen: (convId: string, msgId?: string) => void;
 }) {
   const t = useT();
@@ -61,7 +61,7 @@ export function VaultUsesModal({
   onOpen,
   onClose,
 }: {
-  term: CoffreTerm;
+  term: VaultTerm;
   conversations: Conversation[];
   /** Open a conversation (optionally scrolled to the anchor message) — the row click. */
   onOpen: (convId: string, msgId?: string) => void;
@@ -69,7 +69,7 @@ export function VaultUsesModal({
 }) {
   const t = useT();
   const tone = hueForKind(term.token);
-  const { uses, totalCount, convCount } = coffreOccurrences(term, conversations);
+  const { uses, totalCount, convCount } = vaultTermOccurrences(term, conversations);
   return (
     <ModalShell onClose={onClose} width="480px" maxHeight="80vh">
       <div className="om-vault-uses-head">
@@ -77,7 +77,7 @@ export function VaultUsesModal({
         <div className="om-vault-uses-tags">
           <VaultTermPill value={term.value} tone={tone} full />
           <span className="om-vault-uses-type">
-            {coffreTypeLabel(term.token)}
+            {vaultTermTypeLabel(term.token)}
             {term.note ? ` · ${term.note}` : ""}
           </span>
         </div>

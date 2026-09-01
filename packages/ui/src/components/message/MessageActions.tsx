@@ -7,9 +7,9 @@ import {
   ForkIcon,
   FeedbackIcon,
 } from "../brand";
-import { useAvisOpen } from "../../containers/providers/avisOpen";
-import { messageFeedbackDraft } from "../../avis/avis";
-import { journalExportFor } from "../../containers/modals/DebugLogModal/entryText";
+import { useFeedbackOpen } from "../../containers/providers/feedbackOpen";
+import { messageFeedbackDraft } from "../../feedback/feedback";
+import { logExportFor } from "../../containers/modals/DebugLogModal/entryText";
 import { copyText } from "../../hooks/clipboard";
 import { captureEvent } from "../../analytics";
 
@@ -18,7 +18,7 @@ import { useT } from "../../i18n";
  *  deliberately session-scoped: it holds ids, the message list is VIRTUALISED (a
  *  bubble re-mounts every time it scrolls back into view), and a per-conversation
  *  reset would re-pulse everything on each thread switch. */
-const pulsedAvis = new Set<string>();
+const pulsedFeedback = new Set<string>();
 
 /**
  * The row under a finished reply: Copier · Régénérer · Forker · Avis.
@@ -48,14 +48,14 @@ export function MessageActions({
   const [copied, setCopied] = useState(false);
   // Absent without `host.avis` (nowhere to send it) — same contract as every other
   // report affordance in the app.
-  const { openAvis } = useAvisOpen();
+  const { openFeedback } = useFeedbackOpen();
 
   // Decide ONCE per mount whether this reply's glyph still owes its nudge, then
   // record it in an effect (never during render, which React may replay).
   const pulseRef = useRef<boolean | null>(null);
-  if (pulseRef.current === null) pulseRef.current = !!openAvis && !pulsedAvis.has(messageId);
+  if (pulseRef.current === null) pulseRef.current = !!openFeedback && !pulsedFeedback.has(messageId);
   useEffect(() => {
-    if (pulseRef.current) pulsedAvis.add(messageId);
+    if (pulseRef.current) pulsedFeedback.add(messageId);
   }, [messageId]);
 
   return (
@@ -97,13 +97,13 @@ export function MessageActions({
           (`journalExportFor` reads the live debug buffer) and never subscribed to: a
           row that re-rendered on every debug entry would cost a list re-render per
           streamed turn, for a value only one click ever needs. */}
-      {openAvis && (
+      {openFeedback && (
         <IconButton
           size="sm"
           className={pulseRef.current ? "msg-action-pulse" : undefined}
           label={t.conversation.actions.feedback}
           onClick={() => {
-            openAvis(messageFeedbackDraft(t, journalExportFor(conversationId)));
+            openFeedback(messageFeedbackDraft(t, logExportFor(conversationId)));
             captureEvent({ name: "avis_from_message" });
           }}
         >

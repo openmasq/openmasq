@@ -3,8 +3,8 @@ import { AnimatePresence } from "framer-motion";
 import { hueForKind } from "@openmasq/redact";
 import { EmptyState, PlusIcon, SearchIcon, ShieldIcon } from "../../components/brand";
 import { REDACT_TYPES } from "@openmasq/redact";
-import type { CoffreTerm, Conversation } from "../../types";
-import { coffreOccurrences, coffreTypeLabel, type CoffreOccurrences } from "../../send/coffre";
+import type { VaultTerm, Conversation } from "../../types";
+import { vaultTermOccurrences, vaultTermTypeLabel, type VaultTermOccurrences } from "../../send/vaultTerms";
 import { PageHeader } from "../../containers/shell/PageHeader";
 import { VaultUsesModal } from "./VaultUsesModal";
 import { VaultAddModal } from "./parts/VaultAddModal";
@@ -22,7 +22,7 @@ import { useT } from "../../i18n";
  * lives in `send/coffre.ts`; this composes the parts.
  */
 export function VaultView({
-  coffre,
+  coffre: vaultTerms,
   conversations,
   onAdd,
   onRemove,
@@ -32,7 +32,7 @@ export function VaultView({
   onToggleSidebar,
   loaded = true,
 }: {
-  coffre: CoffreTerm[];
+  coffre: VaultTerm[];
   conversations: Conversation[];
   onAdd: (value: string, token: string, note?: string) => void;
   onRemove: (id: string) => void;
@@ -41,10 +41,10 @@ export function VaultView({
    *  also present in a share of yours wears the share's scope. `orgScope` is
    *  the device-local tag the sync aggregation writes. */
   org?: {
-    terms: (CoffreTerm & { orgScope?: "team" | "org" })[];
+    terms: (VaultTerm & { orgScope?: "team" | "org" })[];
   };
   /** Opens the « Partager » dialog for a personal term (the section owns it). */
-  onShareTerm?: (term: CoffreTerm) => void;
+  onShareTerm?: (term: VaultTerm) => void;
   /** Open a conversation (optionally anchored to a message) from the uses modal. */
   onOpenConversation: (convId: string, msgId?: string) => void;
   /** Expand/collapse the primary sidebar (shell-owned). */
@@ -60,7 +60,7 @@ export function VaultView({
   const t = useT();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all"); // "all" | a token
-  const [open, setOpen] = useState<CoffreTerm | null>(null);
+  const [open, setOpen] = useState<VaultTerm | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
   // ONE list, badged (design): personal terms first — wearing the scope of a
@@ -71,21 +71,21 @@ export function VaultView({
     [org?.terms],
   );
   const display = useMemo(() => {
-    const personal = coffre.map((t) => ({
+    const personal = vaultTerms.map((t) => ({
       term: t,
       scope: org ? (mirrorById.get(t.id)?.orgScope ?? "personal") : undefined,
       mine: true,
     }));
     const shared = (org?.terms ?? [])
-      .filter((t) => !coffre.some((p) => p.id === t.id))
-      .map((t) => ({ term: t as CoffreTerm, scope: t.orgScope ?? "org", mine: false }));
+      .filter((t) => !vaultTerms.some((p) => p.id === t.id))
+      .map((t) => ({ term: t as VaultTerm, scope: t.orgScope ?? "org", mine: false }));
     return [...personal, ...shared];
-  }, [coffre, org, mirrorById]);
+  }, [vaultTerms, org, mirrorById]);
 
   // Occurrences ONCE per term (keyed by id), so every row reads the same numbers.
   const occ = useMemo(() => {
-    const m = new Map<string, CoffreOccurrences>();
-    for (const { term } of display) m.set(term.id, coffreOccurrences(term, conversations));
+    const m = new Map<string, VaultTermOccurrences>();
+    for (const { term } of display) m.set(term.id, vaultTermOccurrences(term, conversations));
     return m;
   }, [display, conversations]);
 
@@ -103,7 +103,7 @@ export function VaultView({
         (filter === "all" || t.token === filter) &&
         (!needle ||
           t.value.toLowerCase().includes(needle) ||
-          coffreTypeLabel(t.token).toLowerCase().includes(needle)),
+          vaultTermTypeLabel(t.token).toLowerCase().includes(needle)),
     );
   }, [display, filter, query]);
 
@@ -179,7 +179,7 @@ export function VaultView({
                 eyebrow={
                   filter === "all"
                     ? t.lists.vault.noMatch.search
-                    : `${t.lists.vault.noMatch.category} · ${coffreTypeLabel(filter)}`
+                    : `${t.lists.vault.noMatch.category} · ${vaultTermTypeLabel(filter)}`
                 }
                 icon={<SearchIcon size={26} />}
                 title={t.lists.vault.noMatch.title}

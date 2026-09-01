@@ -11,7 +11,7 @@ import { autoCleanMemory, mergeCards } from "../memory/dedupe";
  * exists (`storePersistence.ts`): this list is real PII, the coffre's at-rest regime.
  */
 export interface MemoryApi {
-  memoire: MemoryData;
+  memoryData: MemoryData;
   setMemoryProfile: (profile: string) => void;
   addMemoryCard: (input: { entity: string; facts: string; cat?: string; aliases?: string[] }) => MemoryCard | null;
   updateMemoryCard: (id: string, patch: Partial<Omit<MemoryCard, "id" | "createdAt">>) => void;
@@ -27,7 +27,7 @@ export function useMemoryStore(
   settings: Settings,
   setSettings: Dispatch<SetStateAction<Settings>>,
 ): MemoryApi {
-  const memoire = useMemo(() => settings.memoire ?? emptyMemory(), [settings.memoire]);
+  const memoryData = useMemo(() => settings.memoire ?? emptyMemory(), [settings.memoire]);
 
   const patch = useCallback(
     (fn: (m: MemoryData) => MemoryData) => {
@@ -43,9 +43,9 @@ export function useMemoryStore(
   // render and never loops; duplicates arriving from any source (old extractions, a
   // device-sync list merge) heal the same way.
   useEffect(() => {
-    if (!autoCleanMemory(memoire).changed) return;
+    if (!autoCleanMemory(memoryData).changed) return;
     patch((m) => autoCleanMemory(m).data);
-  }, [memoire, patch]);
+  }, [memoryData, patch]);
 
   const setMemoryProfile = useCallback(
     (profile: string) =>
@@ -110,7 +110,7 @@ export function useMemoryStore(
   );
 
   return {
-    memoire,
+    memoryData,
     setMemoryProfile,
     addMemoryCard,
     updateMemoryCard,

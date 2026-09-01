@@ -174,7 +174,7 @@ export async function runLab(
 
 /** Dump the bench's journal to a file (for the autopsy of a workflow that
  *  loops) — the FULL journal, with the redacted↔original correspondences. */
-export async function dumpJournal(page: Page, convId: string): Promise<unknown[]> {
+export async function dumpLog(page: Page, convId: string): Promise<unknown[]> {
   return page.evaluate((c) => window.__openmasqE2E!.journal(c), convId);
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { wireTokenSummary, entryToText, journalExportFor, type WireEntry } from "./entryText";
+import { wireTokenSummary, entryToText, logExportFor, type WireEntry } from "./entryText";
 import { clearDebugLog, pushDebug, setDebugCapture, DRAFT_CONV } from "../../../state/debug";
 
 const base: WireEntry = { id: "d1", at: 0, type: "wire", model: "gpt-4o", text: "bonjour" };
@@ -136,7 +136,7 @@ describe("journalExportFor — what an avis may attach", () => {
     pushDebug({ type: "error", scope: "send", message: "ici" }, "c1");
     pushDebug({ type: "error", scope: "send", message: "ailleurs" }, "c2");
     pushDebug({ type: "error", scope: "app", message: "global" });
-    const out = journalExportFor("c1");
+    const out = logExportFor("c1");
     expect(out).toContain("ici");
     expect(out).not.toContain("global");
     expect(out).not.toContain("ailleurs");
@@ -147,8 +147,8 @@ describe("journalExportFor — what an avis may attach", () => {
     // report about a document dropped before the first send used to leave EMPTY, precisely
     // in the case where the user has something to report.
     pushDebug({ type: "tool", name: "document-redaction", ok: true, args: "devis.pdf" }, DRAFT_CONV);
-    expect(journalExportFor(null)).toContain("devis.pdf");
-    expect(journalExportFor("c1")).not.toContain("devis.pdf");
+    expect(logExportFor(null)).toContain("devis.pdf");
+    expect(logExportFor("c1")).not.toContain("devis.pdf");
   });
 
   it("strips the redacted → réel mapping — the only form safe to send", () => {
@@ -158,7 +158,7 @@ describe("journalExportFor — what an avis may attach", () => {
       { type: "wire", model: "gpt-5", text: "Bonjour [PERSON1]", vault: { "[PERSON1]": "Camille Riol" } },
       "c1",
     );
-    const out = journalExportFor("c1");
+    const out = logExportFor("c1");
     expect(out).toContain("[PERSON1]");
     expect(out).not.toContain("Camille Riol");
   });
@@ -166,6 +166,6 @@ describe("journalExportFor — what an avis may attach", () => {
   it("is empty when nothing was captured, so the modal has nothing to offer", () => {
     setDebugCapture(false);
     pushDebug({ type: "error", scope: "send", message: "perdu" }, "c1");
-    expect(journalExportFor("c1")).toBe("");
+    expect(logExportFor("c1")).toBe("");
   });
 });

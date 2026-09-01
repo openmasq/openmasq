@@ -9,7 +9,7 @@ export type { ProviderId } from "@openmasq/llm";
 export * from "./host";
 // The avis (user-feedback) payload — the desktop Host implements the transport, so
 // it needs the shape. The vocabularies stay internal (only the modal renders them).
-export type { Feedback, FeedbackContext, FeedbackMood, FeedbackCategory } from "./avis/avis";
+export type { Feedback, FeedbackContext, FeedbackMood, FeedbackCategory } from "./feedback/feedback";
 export * from "./state/billing";
 export * from "./prompt/models";
 export { hueForProvider } from "./prompt/providerHue";

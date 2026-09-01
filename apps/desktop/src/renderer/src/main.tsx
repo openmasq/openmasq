@@ -27,7 +27,7 @@ import {
   orgSharesHost,
 } from "./sync";
 import { billingHost } from "./billing";
-import { avisHost } from "./avis";
+import { feedbackHost } from "./feedback";
 // THE renderer's environment reader — only one place reads `import.meta.env`,
 // and that's where the runtime environment switch will go through (see `./appEnv`).
 import {
@@ -489,7 +489,7 @@ const host: Host = {
   // Individual billing (backend + Stripe) — ONLY in a build that SELLS: this slot makes the Payment tab and every upsell exist.
   billing: SYNC_ENABLED && BILLING_SOLD ? billingHost : undefined,
   // "Your feedback" — to the backend; without it, the rail action isn't offered.
-  avis: SYNC_ENABLED ? avisHost : undefined,
+  feedback: SYNC_ENABLED ? feedbackHost : undefined,
   // The gateway (apps/gateway) — cloud redaction AND inference for included models.
   // ABSENT when the build doesn't supply its address: the redaction engine remains
   // the machine's own (already the default) and the models served by the platform

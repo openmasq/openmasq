@@ -1,9 +1,9 @@
 import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import { slashQuery, slashMatches, clampSlashIndex, slashActionMatches } from "./slashPalette";
-import type { Competence } from "../../types";
+import type { Skill } from "../../types";
 
-const c = (name: string, desc?: string): Competence => ({
+const c = (name: string, desc?: string): Skill => ({
   id: name,
   name,
   prompt: "p",

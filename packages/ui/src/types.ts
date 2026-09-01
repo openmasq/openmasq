@@ -21,7 +21,7 @@ export type { AskTarget } from "@openmasq/schema";
  * `token` is the canonical pseudonymize category token (from `REDACT_TYPES`, e.g.
  * `NAME`/`ORG`/`IBAN`), so the value gets a same-kind fake + the right highlight hue.
  */
-export interface CoffreTerm {
+export interface VaultTerm {
   id: string;
   /** The real value to always redact. */
   value: string;
@@ -49,8 +49,8 @@ export type Section = "chats" | "library" | "vault" | "competences" | "memory" |
 
 // The COMPÉTENCES types live with the feature — `competences/
 // competenceTypes.ts` (300-line cap, rule 1), same rule as the Mémoire.
-import type { Competence } from "./competences/competenceTypes";
-export type { Competence, CompetenceCategoryId } from "./competences/competenceTypes";
+import type { Skill } from "./skills/skillTypes";
+export type { Skill, SkillCategoryId } from "./skills/skillTypes";
 
 // The MÉMOIRE types (MemoryCard, MemoryData, MemoryCategory) live with the
 // feature — `memory/memoryTypes.ts` (300-line cap, rule 1). Re-exported
@@ -224,12 +224,12 @@ export interface Settings {
    * STRIPPED from the plaintext localStorage snapshot when a Host DB exists; kept in
    * localStorage where there is no DB (browser preview / mobile — their only store).
    */
-  coffre?: CoffreTerm[];
+  coffre?: VaultTerm[];
   /** The ORGANIZATION's Coffre — org-mandated always-redacted terms, SEPARATE from
    *  the personal `coffre` (org-owned, E2E org-scope sync, admin-write/member-read;
    *  the backend enforces the role). Forced into every send via `combinedCoffre`;
    *  same at-rest regime as `coffre` (stripped from plaintext localStorage). */
-  orgCoffre?: CoffreTerm[];
+  orgCoffre?: VaultTerm[];
   /**
    * The COMPÉTENCES: reusable prompts the user authors and inserts into a chat. They
    * ride `Settings` (a small, user-owned list) and inherit its persistence path
@@ -238,15 +238,15 @@ export interface Settings {
    * in while drafting it — so the encrypted DB owns them wherever there is one;
    * no-DB platforms keep them in localStorage, the coffre's trade-off.
    */
-  competences?: Competence[];
+  competences?: Skill[];
   /** The ORGANIZATION's compétences library — SEPARATE from the personal list
    *  (org-owned, E2E org-scope sync, admin-write/member-use; same at-rest regime). */
-  orgCompetences?: Competence[];
+  orgCompetences?: Skill[];
   /** ⚠️ LEGACY — the old « workflows » list, never rewritten but still on the
    *  disk of a device that hasn't relaunched the app. `normalizeSettings` pours it into
    *  `competences` then clears it; removing it from the TYPE would silence the compiler
    *  exactly where it needs to read the old shape. Migration + tests: `competences/migrate.ts`. */
-  workflows?: Competence[];
+  workflows?: Skill[];
   /** The MÉMOIRE — cross-conversation durable facts (global profile + entity cards).
    *  Rides `Settings` like the coffre/compétences and is treated EXACTLY like the
    *  coffre at rest: real PII, stripped from the plaintext localStorage snapshot

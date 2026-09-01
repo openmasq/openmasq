@@ -15,7 +15,7 @@ import type { DbHost, FilesHost } from "./files";
 import type { EmbeddingsHost, MemoryIndexHost } from "./embeddings";
 import type { CloudFsHost } from "./cloudFs";
 import type { LocalFsHost } from "./localFs";
-import type { AuthHost, SyncHost, OrgHost, AvisHost } from "./account";
+import type { AuthHost, SyncHost, OrgHost, FeedbackHost } from "./account";
 import type { BillingHost } from "./billing";
 import type { OrgSharesHost } from "./orgShares";
 import type { AppHost, EnvHost, UpdatesHost } from "./updates";
@@ -159,7 +159,7 @@ export interface Host {
   billing?: BillingHost;
   /** Optional user-feedback transport ("Votre avis"). Absent = the rail's avis
    *  action is not rendered (there is nowhere to send it). */
-  avis?: AvisHost;
+  feedback?: FeedbackHost;
   /** Optional encrypted-at-rest API key store. Absent = keys live in settings. */
   keys?: KeysHost;
   /** Optional microphone access gate (macOS TCC). Absent = record directly. */

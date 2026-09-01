@@ -5,7 +5,7 @@ import { useArtifact } from "../../../containers/providers/artifact";
 import { SyntaxHighlight } from "./SyntaxHighlight";
 import { canHighlight } from "../logic/codeHighlight";
 import { DocumentCard } from "./DocumentCard";
-import { SkillCard } from "./SkillCard";
+import { SkillProposalCard } from "./SkillProposalCard";
 import { documentTitle } from "../../export/documentExport";
 
 import { useT } from "../../../i18n";
@@ -154,7 +154,7 @@ export function CodeBlock({ node, children }: any) {
   // ```competence / ```workflow (systemPrompt.ts `SKILL_GUIDANCE`) — what the model
   // just BUILT for the user's list, with its adoption button.
   if (lang === "competence" || lang === "workflow") {
-    return <SkillCard kind={lang} text={text} />;
+    return <SkillProposalCard kind={lang} text={text} />;
   }
   const csvTable = lang === "csv" || lang === "tsv" ? parseCsvText(text) : null;
   const lines = text.replace(/\n+$/, "").split("\n").length;

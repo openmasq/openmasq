@@ -6,7 +6,7 @@ export { useConvSync } from "./useConvSync";
 export { useIntegrationSync } from "./useIntegrationSync";
 export { pullSyncedIntegrations } from "./integrationSync";
 export { useUserdataSync } from "./useUserdataSync";
-export { useCoffreSync } from "./useCoffreSync";
+export { useVaultTermsSync } from "./useVaultTermsSync";
 export { useOrgScopeSync } from "./useOrgScopeSync";
 export { resetOrgKeys, orgSharesHost } from "./orgScopeSync";
 export { getSyncPassphrase, setSyncPassphrase, clearSyncPassphrase } from "./passphrase";

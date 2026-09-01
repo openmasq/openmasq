@@ -12,7 +12,7 @@ export function MemorySection({
   const { chat, deep } = shell;
   return (
     <MemoryView
-      memoire={chat.memoire}
+      memoryData={chat.memoryData}
       conversations={chat.conversations}
       loaded={chat.loaded}
       requestedId={deep.openMemCard}

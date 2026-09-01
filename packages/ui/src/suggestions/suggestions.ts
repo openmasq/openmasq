@@ -7,7 +7,7 @@
  * sends goes through the ordinary redaction pipeline like any typed text.
  *
  * React-free and unit-tested; the catalogs live beside this file
- * (`./competenceSuggestions.ts`, `./routineSuggestions.ts`).
+ * (`./skillSuggestions.ts`, `./routineSuggestions.ts`).
  */
 
 /** The fields every template prefills, and the shape of a create-form draft. */

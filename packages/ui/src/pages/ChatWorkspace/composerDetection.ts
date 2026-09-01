@@ -273,7 +273,7 @@ export function makeToggleKeep(
  * reuse on every send without re-reading them. Regex only, synchronous — the prompt is
  * STATIC as long as the compétence is staged, no debounce to pay.
  */
-export function competencePromptCats(
+export function skillPromptCats(
   preview: string | undefined,
   disabledKinds?: readonly string[],
 ): Cat[] {
@@ -284,7 +284,7 @@ export function competencePromptCats(
  *  against what the draft already counts (the same person in both doesn't count
  *  twice). The chips stay the draft's own — a value from the prompt isn't revealed
  *  there, it's edited in the compétence. */
-export function competenceExtraCount(items: Item[], compCats: Cat[]): number {
+export function skillExtraCount(items: Item[], compCats: Cat[]): number {
   const counted = new Set(items.map((i) => i.value.toLowerCase()));
   const extra = new Set<string>();
   for (const c of compCats) {

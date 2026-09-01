@@ -5,7 +5,7 @@ import { useHost } from "../../../host";
 import { openTab, useAppDispatch, type Section } from "../../../state/redux";
 import { loadReattachFile, type ReattachSource } from "../../../pages/Library";
 import type { DeferredFile } from "../../../state/deferredFile";
-import type { AskTarget, Competence } from "../../../types";
+import type { AskTarget, Skill } from "../../../types";
 
 export type StagedIntents = {
   /** Staged for the composer, consumed once by `ChatView` (see `panes/ChatPane`). */
@@ -22,15 +22,15 @@ export type StagedIntents = {
      *  the one that drives connectors is a compétence with `servers`, not
      *  another thing to stage. Two twin slots was two ways
      *  of answering "what goes out with this message?". */
-    competence: Competence | null;
-    setCompetence: (c: Competence | null) => void;
+    competence: Skill | null;
+    setSkill: (c: Skill | null) => void;
     /** The folder/file the next send is ABOUT (« Demander » in the right rail) —
      *  staged like a compétence: a TAG, never draft text. */
     target: AskTarget | null;
     setTarget: (t: AskTarget | null) => void;
   };
   /** Stage a compétence (the ENTITY — its prompt joins the payload at send) and go chat. */
-  stageCompetence: (c: Competence) => void;
+  stageSkill: (c: Skill) => void;
   /** Library re-attach: rebuild the file from its ORIGINAL bytes into a fresh chat. */
   reattach: (src: ReattachSource) => Promise<void>;
   /** Stage an already-built attachment into the OPEN conversation (created only when
@@ -62,13 +62,13 @@ export function useStagedIntents({ chat, go }: { chat: ChatStore; go: (s: Sectio
   // The exposed API stays "head + consume" (`attach` / `setAttach(null)`), so the
   // consumer (ChatPane → ChatView) handles one file at a time, in order.
   const [attachQueue, setAttachQueue] = useState<{ file: ExtractedFile | DeferredFile; convId: string }[]>([]);
-  const [competence, setCompetence] = useState<Competence | null>(null);
+  const [skill, setSkill] = useState<Skill | null>(null);
   const [target, setTarget] = useState<AskTarget | null>(null);
   // Using one ALWAYS lands you in the chat — staging a prompt you can't see is a dead end.
-  const stageCompetence = useCallback(
-    (c: Competence) => {
-      setCompetence(c);
-      chat.markCompetenceUsed(c.id);
+  const stageSkill = useCallback(
+    (c: Skill) => {
+      setSkill(c);
+      chat.markSkillUsed(c.id);
       go("chats");
     },
     [chat, go],
@@ -125,12 +125,12 @@ export function useStagedIntents({ chat, go }: { chat: ChatStore; go: (s: Sectio
       attach: attachQueue[0] ?? null,
       // `null` = "the head is consumed" (ChatPane); a value = a direct addition.
       setAttach: (a) => setAttachQueue((q) => (a === null ? q.slice(1) : [...q, a])),
-      competence,
-      setCompetence,
+      competence: skill,
+      setSkill,
       target,
       setTarget,
     },
-    stageCompetence,
+    stageSkill,
     reattach,
     attachFile,
     askAboutTarget,

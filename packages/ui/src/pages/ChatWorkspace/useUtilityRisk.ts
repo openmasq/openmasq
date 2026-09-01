@@ -8,7 +8,7 @@ import {
   type UtilityRiskKind,
   type RevealableAttachment,
 } from "./utilityRisk";
-import { competencePromptCats, type Cat } from "./composerDetection";
+import { skillPromptCats, type Cat } from "./composerDetection";
 
 /**
  * The composer's utility warning, peeled off `Composer.tsx` (frozen) into a hook —
@@ -37,19 +37,19 @@ export function useUtilityRisk(p: {
   /** The « Garder en clair » gesture: draft → keep; attachment → `reveal`. */
   keepInClear: (risk: UtilityRisk) => void;
   /** The values from the compétence's prompt — the « N à masquer » counter counts them. */
-  competenceCats: Cat[];
+  skillCats: Cat[];
 } {
   const [dismissed, setDismissed] = useState<UtilityRiskKind | null>(null);
-  const competenceCats = useMemo<Cat[]>(
-    () => competencePromptCats(p.competencePreview, p.disabledKinds),
+  const skillCats = useMemo<Cat[]>(
+    () => skillPromptCats(p.competencePreview, p.disabledKinds),
     [p.competencePreview, p.disabledKinds],
   );
   const riskCats = useMemo<Cat[]>(
     () => [
       ...p.forcedCats, ...p.regexCats, ...p.modelCats,
-      ...attachmentCats(p.attachments), ...competenceCats,
+      ...attachmentCats(p.attachments), ...skillCats,
     ],
-    [p.forcedCats, p.regexCats, p.modelCats, p.attachments, competenceCats],
+    [p.forcedCats, p.regexCats, p.modelCats, p.attachments, skillCats],
   );
   const risk = useMemo(() => {
     if (!p.input.trim()) return null;
@@ -66,5 +66,5 @@ export function useUtilityRisk(p: {
     if (p.onRevealChange)
       for (const plan of revealPlan(values, p.attachments)) p.onRevealChange(plan.cid, plan.reveal);
   };
-  return { risk, dismissed, dismiss: setDismissed, keepInClear, competenceCats };
+  return { risk, dismissed, dismiss: setDismissed, keepInClear, skillCats };
 }

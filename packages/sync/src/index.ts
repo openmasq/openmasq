@@ -50,7 +50,7 @@ export {
   settingsPatchOf,
 } from "./userdata";
 export type {
-  SyncedCompetence,
+  SyncedSkill,
   SyncedWorkflow,
   SyncedMemoryCard,
   UserdataPayload,
@@ -58,15 +58,15 @@ export type {
   UserdataSettingsLike,
   UserdataSyncState,
 } from "./userdata";
-export { emptyCoffreSyncState, emitCoffreRecords, absorbCoffreRecords } from "./coffre";
-export type { SyncedCoffreTerm, CoffreSyncState } from "./coffre";
+export { emptyVaultTermsSyncState, emitVaultTermRecords, absorbVaultTermRecords } from "./vaultTerms";
+export type { SyncedVaultTerm, VaultTermsSyncState } from "./vaultTerms";
 export type { RecordSync, RecordSyncOptions, PulledRecords } from "./recordClient";
 export { verifyPassphrase, type PassphraseVerdict } from "./verifyPassphrase";
 export { accountPassphrase } from "./accountPassphrase";
 export { reportedLedger } from "./reportedLedger";
 export type { ReportedLedger, ReportedLedgerOptions, OpenedLedger } from "./reportedLedger";
 export type { AccountPassphrase, AccountPassphraseOptions, PassphraseStore } from "./accountPassphrase";
-export { INTEGRATIONS_SCOPE, EXTENSION_SCOPE_PREFIX, USERDATA_SCOPE, COFFRE_SCOPE } from "./types";
+export { INTEGRATIONS_SCOPE, EXTENSION_SCOPE_PREFIX, USERDATA_SCOPE, VAULT_TERMS_SCOPE } from "./types";
 export type {
   SyncRecord,
   SyncRecordKind,
@@ -105,7 +105,7 @@ export {
   orgRecordConvId,
 } from "./orgScope/orgCrypto";
 export {
-  ORG_COFFRE_SCOPE,
+  ORG_VAULT_SCOPE,
   ORG_USERDATA_SCOPE,
   ORG_SCOPES,
   SHARE_AUDIENCES,

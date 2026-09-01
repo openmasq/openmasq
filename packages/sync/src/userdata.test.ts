@@ -5,12 +5,12 @@ import {
   emptyUserdataSyncState,
   snapshotOfSettings,
   settingsPatchOf,
-  type SyncedCompetence,
+  type SyncedSkill,
   type UserdataSnapshot,
 } from "./userdata";
 import type { SyncRecord } from "./types";
 
-const comp = (over: Partial<SyncedCompetence> = {}): SyncedCompetence => ({
+const comp = (over: Partial<SyncedSkill> = {}): SyncedSkill => ({
   id: "c1",
   name: "Réponse e-mail pro",
   prompt: "Rédige une réponse claire.",
@@ -43,7 +43,7 @@ describe("emitUserdataRecords", () => {
   });
 
   it("never leaks non-allow-listed fields (uses, tokens, anything extra)", () => {
-    const rich = { ...comp(), uses: 12, secretToken: "sk-REAL", apiKey: "leak" } as SyncedCompetence;
+    const rich = { ...comp(), uses: 12, secretToken: "sk-REAL", apiKey: "leak" } as SyncedSkill;
     const { records } = emitUserdataRecords(snap({ competences: [rich] }), emptyUserdataSyncState("u1"), "devA");
     const payload = JSON.stringify(records[0].payload);
     expect(payload).not.toContain("uses");
@@ -118,7 +118,7 @@ describe("absorbUserdataRecords", () => {
   });
 
   it("preserves device-local extra fields (uses) through a remote update", () => {
-    const localRich = snap({ competences: [{ ...comp(), uses: 7 } as SyncedCompetence] });
+    const localRich = snap({ competences: [{ ...comp(), uses: 7 } as SyncedSkill] });
     const st = emitUserdataRecords(snap({ competences: [comp()] }), emptyUserdataSyncState("u1"), "devB").state;
     const renamed = emitUserdataRecords(snap({ competences: [comp({ name: "V2" })] }), st, "devA").records;
     const r = absorbUserdataRecords(localRich, renamed, st);

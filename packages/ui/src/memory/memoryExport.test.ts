@@ -20,7 +20,7 @@ const data = (over: Partial<MemoryData> = {}): MemoryData => ({ cards: [card()],
 describe("memoryExportText — the links, with the bars that decide them", () => {
   it("prints every card with its identity, provenance and dates", () => {
     const out = memoryExportText({
-      memoire: data({ cards: [card({ aliases: ["Karl"], source: "auto" })] }),
+      memoryData: data({ cards: [card({ aliases: ["Karl"], source: "auto" })] }),
       now: NOW,
     });
     expect(out).toContain("Karl Studio");
@@ -37,7 +37,7 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
     const p2 = card({ id: "p2", entity: "Valentine", cat: "personne" });
     const org = card({ id: "o1", entity: "Vera", cat: "projet" });
     const out = memoryExportText({
-      memoire: { cards: [p1, p2, org] },
+      memoryData: { cards: [p1, p2, org] },
       edges: [
         { a: "p1", b: "p2", sim: 0.93 }, // person↔person → 0.95 bar → ✗
         { a: "p1", b: "o1", sim: 0.93 }, // person↔project → 0.92 bar → ✓
@@ -55,7 +55,7 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
     const p2 = card({ id: "p2", entity: "B", cat: "personne" });
     const p3 = card({ id: "p3", entity: "C", cat: "personne" });
     const out = memoryExportText({
-      memoire: { cards: [p1, p2, p3] },
+      memoryData: { cards: [p1, p2, p3] },
       edges: [
         { a: "p1", b: "p2", sim: 0.96 },
         { a: "p2", b: "p3", sim: 0.93 },
@@ -70,7 +70,7 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
     // export read as « Laura is not connected to Vera », which was false.
     const laura = card({ id: "l", entity: "Laura", cat: "personne", facts: "Go-to-market pour l'équipe de Vera." });
     const vera = card({ id: "v", entity: "Vera", cat: "projet", facts: "Services numériques." });
-    const out = memoryExportText({ memoire: { cards: [laura, vera] }, edges: [], now: NOW });
+    const out = memoryExportText({ memoryData: { cards: [laura, vera] }, edges: [], now: NOW });
     expect(out).toContain("Liens mention   1");
     expect(out).toMatch(/mention {3}Vera/);
     expect(out).toMatch(/mention {3}Laura/); // both directions, under each card
@@ -80,7 +80,7 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
     const a = card({ id: "a", entity: "Alice", cat: "personne" });
     const b = card({ id: "b", entity: "Bob", cat: "personne" });
     const out = memoryExportText({
-      memoire: { cards: [a, b] },
+      memoryData: { cards: [a, b] },
       edges: [{ a: "a", b: "b", sim: 0.97 }],
       now: NOW,
     });
@@ -92,13 +92,13 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
   });
 
   it("a card with no link says so instead of looking truncated", () => {
-    const out = memoryExportText({ memoire: data(), edges: [], now: NOW });
+    const out = memoryExportText({ memoryData: data(), edges: [], now: NOW });
     expect(out).toContain("liens     (aucun)");
   });
 
   it("shows a DANGLING edge rather than hiding it (that's a bug worth seeing)", () => {
     const out = memoryExportText({
-      memoire: { cards: [card({ id: "a", entity: "Alice" })] },
+      memoryData: { cards: [card({ id: "a", entity: "Alice" })] },
       edges: [{ a: "a", b: "ghost", sim: 0.99 }],
       now: NOW,
     });
@@ -106,14 +106,14 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
   });
 
   it("distinguishes « no index » from « no links »", () => {
-    expect(memoryExportText({ memoire: data(), now: NOW })).toContain("index sémantique absent");
-    const empty = memoryExportText({ memoire: data(), edges: [], now: NOW });
+    expect(memoryExportText({ memoryData: data(), now: NOW })).toContain("index sémantique absent");
+    const empty = memoryExportText({ memoryData: data(), edges: [], now: NOW });
     expect(empty).toContain("0 bruts");
     expect(empty).not.toContain("index sémantique absent");
   });
 
   it("carries the three thresholds, and warns that it holds REAL data", () => {
-    const out = memoryExportText({ memoire: data(), edges: [], now: NOW });
+    const out = memoryExportText({ memoryData: data(), edges: [], now: NOW });
     expect(out).toContain("cluster 0.92");
     expect(out).toContain("paire de personnes 0.95");
     expect(out).toContain("doublon 0.95");
@@ -121,7 +121,7 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
   });
 
   it("handles an empty memory without pretending it has content", () => {
-    const out = memoryExportText({ memoire: { cards: [] }, edges: [], now: NOW });
+    const out = memoryExportText({ memoryData: { cards: [] }, edges: [], now: NOW });
     expect(out).toContain("(aucune fiche)");
     expect(out).toContain("(aucun profil enregistré)");
   });

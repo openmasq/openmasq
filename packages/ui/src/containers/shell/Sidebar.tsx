@@ -1,6 +1,6 @@
 import { BRAND } from "@openmasq/branding";
 import { useMemo, useState } from "react";
-import type { Competence, Conversation } from "../../types";
+import type { Skill, Conversation } from "../../types";
 import {
   PlusIcon,
   SearchIcon,
@@ -42,10 +42,10 @@ interface Props {
   onOpenSearch: () => void;
   /** The user's PINNED compétences — listed under the nav for one-click insertion.
    *  Empty (the default) renders nothing. */
-  pinnedCompetences?: Competence[];
+  pinnedSkills?: Skill[];
   /** Insert a compétence's prompt into the composer. Absent ⇒ the pinned list is
    *  inert, so callers that can't insert simply don't pass pins. */
-  onUseCompetence?: (c: Competence) => void;
+  onUseSkill?: (c: Skill) => void;
   /** Signed-in user's display name — drives the account avatar's initials. Absent
    *  (signed out / no email) ⇒ the catalogue's « Vous » / « You », so the fallback name
    *  follows the interface language instead of being frozen in French. */
@@ -64,8 +64,8 @@ export function Sidebar({
   onNew,
   onOpenSettings,
   onOpenSearch,
-  pinnedCompetences = [],
-  onUseCompetence,
+  pinnedSkills = [],
+  onUseSkill,
   userName,
   onRename,
   onDelete,
@@ -140,14 +140,14 @@ export function Sidebar({
       {/* Closed usage: the pins leave along with the rest. Without that, the pin would stay
           the only way to put a compétence into play — from a page that's become
           unreachable (`state/featureAccess.ts`). */}
-      {featureUsage("competences") && pinnedCompetences.length > 0 && (
+      {featureUsage("competences") && pinnedSkills.length > 0 && (
         <div className="om-skill-pins">
-          {pinnedCompetences.map((c) => (
+          {pinnedSkills.map((c) => (
             <button
               key={c.id}
               type="button"
               className="om-skill-pin-item"
-              onClick={() => onUseCompetence?.(c)}
+              onClick={() => onUseSkill?.(c)}
               title={c.servers?.length ? t.chrome.launchPinned(c.desc || c.name) : c.desc || c.name}
             >
               {c.servers?.length ? (

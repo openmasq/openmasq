@@ -1,6 +1,6 @@
 import type { Messages } from "@openmasq/i18n";
-import type { Competence, CompetenceCategoryId } from "../types";
-import { suggestedCompetences, type CompetenceSuggestion } from "./competenceSuggestions";
+import type { Skill, SkillCategoryId } from "../types";
+import { suggestedSkills, type SkillSuggestion } from "./skillSuggestions";
 import { suggestedRoutines, type RoutineSuggestion } from "./routineSuggestions";
 
 /**
@@ -18,7 +18,7 @@ import { suggestedRoutines, type RoutineSuggestion } from "./routineSuggestions"
  * on what works with nothing plugged in.
  */
 
-export type AnyTemplate = CompetenceSuggestion | RoutineSuggestion;
+export type AnyTemplate = SkillSuggestion | RoutineSuggestion;
 
 /** A template that drives connectors — what the app used to call a "workflow".
  *  The test is on the FIELD, never on a label: it is `servers` that decides
@@ -28,7 +28,7 @@ export function isRoutineTemplate(t: AnyTemplate): t is RoutineSuggestion {
 }
 
 /** The category a template pre-fills into the creation form. */
-export function templateCategory(t: AnyTemplate): CompetenceCategoryId {
+export function templateCategory(t: AnyTemplate): SkillCategoryId {
   return isRoutineTemplate(t) ? "routine" : t.cat;
 }
 
@@ -38,7 +38,7 @@ export function templateCategory(t: AnyTemplate): CompetenceCategoryId {
  * handled by the caller, which alone sees the draft currently being edited.
  */
 export function offeredTemplates(
-  existing: readonly Competence[],
+  existing: readonly Skill[],
   t: Messages,
   opts: {
     connected?: ReadonlySet<string>;
@@ -49,7 +49,7 @@ export function offeredTemplates(
 ): AnyTemplate[] {
   const { limit, connected, unavailable } = opts;
   return [
-    ...suggestedCompetences(existing, t, limit),
+    ...suggestedSkills(existing, t, limit),
     ...suggestedRoutines(existing, t, { connected, unavailable, limit }),
   ];
 }

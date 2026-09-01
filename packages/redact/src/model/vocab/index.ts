@@ -41,17 +41,17 @@
  * an ORG and the measurement proves nothing.
  */
 import { ADMIN_TERMS } from "./admin";
-import { VIE_TERMS } from "./vie";
+import { LIFE_TERMS } from "./life";
 import { TECH_TERMS, TOOL_DOC_TERMS } from "./tech";
 import { ARIA_ROLE_TERMS } from "./aria";
-import { SANTE_TERMS } from "./sante";
+import { HEALTH_TERMS } from "./health";
 import { EDU_TERMS } from "./edu";
-import { DROIT_TERMS } from "./droit";
-import { GESTION_TERMS } from "./gestion";
+import { LEGAL_TERMS } from "./legal";
+import { MANAGEMENT_TERMS } from "./management";
 import { PRO_TERMS } from "./pro";
-import { CLINIQUE_TERMS } from "./clinique";
-import { FORMULAIRE_TERMS } from "./formulaire";
-import { QUOTIDIEN_TERMS } from "./quotidien";
+import { CLINICAL_TERMS } from "./clinical";
+import { FORM_TERMS } from "./form";
+import { EVERYDAY_TERMS } from "./everyday";
 
 export { ARIA_ROLE_TERMS };
 
@@ -66,19 +66,19 @@ export { ARIA_ROLE_TERMS };
  * because anyone called it a diagnosis. The molecule stops being an organisation; the
  * pathology keeps obeying the user's switch. Same stance as `../notorious.ts`.
  */
-export { CLINIQUE_TERMS };
+export { CLINICAL_TERMS };
 
 /** Every domain volume, flattened. Order is irrelevant — the consumer is a Set. */
 export const VOCAB_TERMS: string[] = [
   ...ADMIN_TERMS, // insurance / banking / social / tax / administration
-  ...VIE_TERMS, // employment, housing, health, school, courts, invoices
+  ...LIFE_TERMS, // employment, housing, health, school, courts, invoices
   ...TECH_TERMS, // languages, infra, observability, compliance, protocols
   ...TOOL_DOC_TERMS, // the words that structure a tool's doc (System/entity — 15/08)
-  ...SANTE_TERMS, // care professions, exams, biology, treatment, care pathway
+  ...HEALTH_TERMS, // care professions, exams, biology, treatment, care pathway
   ...EDU_TERMS, // schooling, higher education, degrees, assessment, research
-  ...DROIT_TERMS, // procedure, parties, remedies, contract vocabulary
-  ...GESTION_TERMS, // accounting, financial statements, markets, controlling
+  ...LEGAL_TERMS, // procedure, parties, remedies, contract vocabulary
+  ...MANAGEMENT_TERMS, // accounting, financial statements, markets, controlling
   ...PRO_TERMS, // meetings, sales & marketing, customer service, mobility
-  ...FORMULAIRE_TERMS, // form/letter furniture: labels, civil-status connectives, postal words
-  ...QUOTIDIEN_TERMS, // the everyday: cooking, DIY, garden, sport, the car, the weather
+  ...FORM_TERMS, // form/letter furniture: labels, civil-status connectives, postal words
+  ...EVERYDAY_TERMS, // the everyday: cooking, DIY, garden, sport, the car, the weather
 ];

@@ -12,7 +12,7 @@ import type { MemoryCard, MemoryData } from "../../types";
  * reinserts it VERBATIM (same id, history included).
  */
 export function useMemoryReview(
-  memoire: MemoryData,
+  memoryData: MemoryData,
   semEdges: { a: string; b: string; sim: number }[] | null,
   ops: {
     onUpdate: (id: string, patch: Partial<Omit<MemoryCard, "id" | "createdAt">>) => void;
@@ -22,7 +22,7 @@ export function useMemoryReview(
   },
 ) {
   const [fresh, setFresh] = useState(false);
-  const freshIds = useMemo(() => freshCardIds(memoire, Date.now()), [memoire]);
+  const freshIds = useMemo(() => freshCardIds(memoryData, Date.now()), [memoryData]);
 
   // Duplicate suggestions (surface match + semantic ≥0.95 when the on-device index is
   // present). SESSION-dismissed only — a page revisit may re-ask; persisting dismissals
@@ -30,10 +30,10 @@ export function useMemoryReview(
   const [dismissed, setDismissed] = useState<ReadonlySet<string>>(new Set());
   const mergeHints = useMemo<MergeSuggestion[]>(() => {
     if (!ops.onMerge) return [];
-    return duplicateSuggestions(memoire.cards, semEdges ?? []).filter(
+    return duplicateSuggestions(memoryData.cards, semEdges ?? []).filter(
       (s) => !dismissed.has(pairKey(s.keepId, s.dropId)),
     );
-  }, [memoire.cards, semEdges, dismissed, ops.onMerge]);
+  }, [memoryData.cards, semEdges, dismissed, ops.onMerge]);
   const mergeHint = mergeHints[0] ?? null;
   const dismissMerge = (s: MergeSuggestion) =>
     setDismissed((d) => new Set([...d, pairKey(s.keepId, s.dropId)]));
@@ -46,7 +46,7 @@ export function useMemoryReview(
   const [undo, setUndo] = useState<MemoryCard | null>(null);
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const removeWithUndo = (id: string) => {
-    const card = memoire.cards.find((c) => c.id === id) ?? null;
+    const card = memoryData.cards.find((c) => c.id === id) ?? null;
     ops.onRemove(id);
     if (!card || !ops.onRestore) return;
     setUndo(card);

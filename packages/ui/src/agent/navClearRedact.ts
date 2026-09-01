@@ -71,10 +71,10 @@ export function makeNavClearRedactor(opts: {
         const t = s.trim();
         return t.length >= 2 && !vaultedReals.has(t.toLowerCase());
       });
-      const coffreHit = unvaulted.some((s) => variantOccurrences(text, s.trim()).length > 0);
-      const credHit = !coffreHit && containsCredentialShaped(text);
-      escalate = coffreHit || credHit;
-      why = coffreHit
+      const vaultHit = unvaulted.some((s) => variantOccurrences(text, s.trim()).length > 0);
+      const credHit = !vaultHit && containsCredentialShaped(text);
+      escalate = vaultHit || credHit;
+      why = vaultHit
         ? "valeur du Coffre (hors vault) présente dans la page"
         : "token en forme de credential dans la page";
       if (!escalate) {

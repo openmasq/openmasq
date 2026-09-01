@@ -52,10 +52,10 @@ export async function dbLoad(): Promise<{
         /* corrupt JSON → drop the trace, don't break the load */
       }
     }
-    let competence: DbMessage["competence"];
+    let skill: DbMessage["competence"];
     if (r.competence) {
       try {
-        competence = JSON.parse(r.competence);
+        skill = JSON.parse(r.competence);
       } catch {
         /* corrupt JSON → drop the tag, don't break the load */
       }
@@ -74,7 +74,7 @@ export async function dbLoad(): Promise<{
       autoRouted: r.auto_routed ?? undefined,
       toolStruggle,
       toolCalls: toolCalls?.length ? toolCalls : undefined,
-      competence,
+      competence: skill,
       reasoning: r.reasoning || undefined,
     });
     msgsByConv.set(r.conversation_id, list);

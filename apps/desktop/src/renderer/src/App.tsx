@@ -1,5 +1,5 @@
 import { useChatStore, AppShell, ErrorBoundary, I18nProvider, resolveLocale } from "@openmasq/ui";
-import { useCoffreSync, useConvSync, useIntegrationSync, useOrgScopeSync, useUserdataSync, useVaultSync } from "./sync";
+import { useVaultTermsSync, useConvSync, useIntegrationSync, useOrgScopeSync, useUserdataSync, useVaultSync } from "./sync";
 import { E2eBridge } from "./e2eBridge";
 
 // The desktop app reaches models via real API keys only. The keyless web-session
@@ -19,7 +19,7 @@ export function App() {
   useUserdataSync(store);
   // The Coffre (always-redacted terms) — its own `@coffre` scope, the one scope
   // the extension may also read/write (bidirectional across all surfaces).
-  useCoffreSync(store);
+  useVaultTermsSync(store);
   // The ORGANIZATION's shared scopes (org Coffre + org compétences) — E2E to
   // the members via per-member envelopes; member devices pull, admin devices
   // also push and drive the recipient set. No-op outside an organization.

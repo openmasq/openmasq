@@ -21,7 +21,7 @@ an unchecked box is something the app does **not do yet**, not a bug.
 **A build with NO backend is the repository's DEFAULT.** No service address has a committed
 value: what the build receives decides what EXISTS. Without them — accounts, billing, sync
 and devices, organizations and shares (the inbox, "share" on the vault and the skills),
-"Votre avis", included models, release notes, auto-update and the environment switch,
+"Votre feedback", included models, release notes, auto-update and the environment switch,
 analytics — **none of it appears**: no tab, no ⌘K entry, no card, no switch, and the
 onboarding no longer offers a subscription. **`OPENMASQ_BILLING=1` is the gate of the
 remote stack** (`apps/desktop/scripts/buildDefines.ts`): without it the API and gateway
@@ -153,9 +153,9 @@ opens in one click from any reply.
 - [x] Global audit log, filterable and searchable — Réglages → **Journal** (the per-conversation log, an impoverished view of the same vault, was removed)
 - [x] Technical **debug log**, turn by turn, **persistent** (⋯ → « Journal de débogage », visible when « Journal technique détaillé » is on) — `packages/ui/src/containers/modals/DebugLogModal/`
 - [x] Copy an exchange **without** the mapping table (the text that left, alone)
-- [x] **Send the log to the developers** — the debug log opens « Votre avis » pre-filled, the mapping-free export attached and re-readable before sending — `packages/ui/src/avis/avis.ts` (`debugJournalDraft`)
-- [x] **Report from the reply itself** — a feedback icon in the action bar (next to Copy / Regenerate / Fork) opens « Votre avis » with this conversation's log already attached; it catches the eye once per reply, then goes quiet — `packages/ui/src/avis/avis.ts` (`messageFeedbackDraft`)
-- [x] On a report that **carries the log**, the mood becomes **optional** — the logs are the signal, and demanding a note before sending cost exactly the report one wants most (the label says so, the server applies the same rule) — `packages/ui/src/avis/avis.ts` (`canSendFeedback`)
+- [x] **Send the log to the developers** — the debug log opens « Votre feedback » pre-filled, the mapping-free export attached and re-readable before sending — `packages/ui/src/feedback/feedback.ts` (`debugLogDraft`)
+- [x] **Report from the reply itself** — a feedback icon in the action bar (next to Copy / Regenerate / Fork) opens « Votre feedback » with this conversation's log already attached; it catches the eye once per reply, then goes quiet — `packages/ui/src/feedback/feedback.ts` (`messageFeedbackDraft`)
+- [x] On a report that **carries the log**, the mood becomes **optional** — the logs are the signal, and demanding a note before sending cost exactly the report one wants most (the label says so, the server applies the same rule) — `packages/ui/src/feedback/feedback.ts` (`canSendFeedback`)
 
 ### How protected values are displayed
 **Access**: Réglages → Confidentialité → two neighbouring settings:
@@ -422,7 +422,7 @@ convenience is not paid for in attack surface.
 The moment the assistant stops answering and starts **acting** — and where the guardrails
 stop being theoretical.
 
-### Connecteurs
+### Connectors (« Connecteurs »)
 **Access**: Réglages → **Connecteurs**. One card per service; the card opens its modal. The
 same modal opens **wherever you are**, anywhere a connector is named: the « Dossiers » panel
 → connected storage, the « Reconnexion nécessaire » pill, an integration offered inside a
@@ -563,7 +563,7 @@ the **real** value, otherwise it would be searching for someone who does not exi
 
 ---
 
-## 4. Bibliothèque
+## 4. Library (« Bibliothèque »)
 
 ### Your files, already masked
 **Access**: the **Bibliothèque** section.
@@ -590,13 +590,13 @@ original makes it possible to share a document without reworking it.
 
 ---
 
-## 5. Compétences
+## 5. Skills (« Compétences »)
 
 Stop rewriting the same thing. **One single list**: a skill is a reusable instruction, and
 one that names connectors puts them to work — that is the "Routines" category, what the app
 used to call a "workflow" when it was a second screen.
 
-### Compétences
+### Skills
 **Access**: the **Compétences** section · `/` in the composer.
 
 **What it makes possible.** Saving a good instruction — a standard reply, a report format, a
@@ -612,13 +612,13 @@ it compounds: your library of instructions becomes your way of working. The prom
 redacted like everything else — a saved template often contains the real example pasted while
 it was being written.
 
-- [x] Create, edit, file by category — screen `packages/ui/src/pages/Competences/`, logic `packages/ui/src/competences/`
-- [x] **Skills shared inside the organization** — the grid groups by scope (**Organisation** and **Équipe** sections above your cards, badged Perso): skills shared with you are used in one click. Each personal card carries **« Partager »** on hover → the same "with whom?" modal, with a **redacted preview** of the shared text ("exactly what others will see"); requests and decisions on the **« Demandes » bell** (rendered only for an organization member, or while received shares remain — `shareInboxVisible.test.ts`), an accepted person-share **adopts a copy** — sections `packages/ui/src/pages/Competences/parts/OrgCompetencesBlock.tsx`, modal + bell `packages/ui/src/containers/orgShares/`, channel `packages/sync/src/orgScope/`
+- [x] Create, edit, file by category — screen `packages/ui/src/pages/Skills/`, logic `packages/ui/src/skills/`
+- [x] **Skills shared inside the organization** — the grid groups by scope (**Organisation** and **Équipe** sections above your cards, badged Perso): skills shared with you are used in one click. Each personal card carries **« Partager »** on hover → the same "with whom?" modal, with a **redacted preview** of the shared text ("exactly what others will see"); requests and decisions on the **« Demandes » bell** (rendered only for an organization member, or while received shares remain — `shareInboxVisible.test.ts`), an accepted person-share **adopts a copy** — sections `packages/ui/src/pages/Skills/parts/OrgSkillsBlock.tsx`, modal + bell `packages/ui/src/containers/orgShares/`, channel `packages/sync/src/orgScope/`
 - [x] **Asking the assistant to write one**: "create me a skill for…" and it answers with a
       card — name, category, expandable prompt — that an **Ajouter** button files into the
       list. It is classified as a **Routine** when it drives connectors (which then show on
       the card). Nothing is added without the click, and a block still being written offers
-      no button — `packages/ui/src/components/markdown/blocks/SkillCard.tsx`, block reading
+      no button — `packages/ui/src/components/markdown/blocks/SkillProposalCard.tsx`, block reading
       `packages/ui/src/suggestions/proposedSkill.ts`
 - [ ] **Import from Claude** — DISABLED: the `claudeSkills` slot is not wired
       (`apps/desktop/src/renderer/src/main.tsx`), so no button shows and nothing reads the
@@ -652,17 +652,17 @@ anything: the rights stay the ones you gave in Réglages. So a routine cannot qu
 access.
 
 - [x] Connectors chosen in the creation window (guidance, not an access right) —
-      `packages/ui/src/competences/launch.ts`, `packages/ui/src/pages/Competences/parts/ServerPicker.tsx`
+      `packages/ui/src/skills/launch.ts`, `packages/ui/src/pages/Skills/parts/ServerPicker.tsx`
 - [x] The scope SURVIVES into the next turn: a routine that asks a clarifying question keeps
-      its connectors for the answer — `packages/ui/src/competences/launch.test.ts`
+      its connectors for the answer — `packages/ui/src/skills/launch.test.ts`
 - [x] One intent per send
 - [x] Starter templates, sorted by what is already connected
 - [x] **Your old workflows are carried over automatically**, with their connectors and their
-      history — `packages/ui/src/competences/migrate.test.ts`
+      history — `packages/ui/src/skills/migrate.test.ts`
 
 ---
 
-## 6. Mémoire
+## 6. Memory (« Mémoire »)
 
 ### What the app remembers from one time to the next
 **Access**: the **Mémoire** section · « retiens que… » (12 languages) inside a conversation ·
@@ -708,7 +708,7 @@ version, restorable.
 
 ---
 
-## 7. Coffre
+## 7. Vault (« Coffre »)
 
 ### Your always-masked terms
 **Access**: the **Coffre** section.
@@ -725,22 +725,22 @@ you work.
 a Coffre term appearing in an e-mail fetched by a connector is masked as if it came from you.
 Without that, the promise would have a hole exactly where nobody looks.
 
-- [x] A dictionary of values masked on **every** send, whatever the conversation — screen `packages/ui/src/pages/Vault/`, logic `packages/ui/src/send/coffre.ts`
+- [x] A dictionary of values masked on **every** send, whatever the conversation — screen `packages/ui/src/pages/Vault/`, logic `packages/ui/src/send/vaultTerms.ts`
 - [x] Occurrence count computed on the real vaults
 - [x] Holds inside a tool result too (not only in what you type)
 - [x] Add a term from a selection inside a conversation
-- [x] **Terms shared inside the organization** — the Coffre list stays ONE, badged by scope (Perso / Équipe / Orga): terms shared with you fold into it read-only, masked like yours. Each personal row carries **« Partager »** → the "with whom?" modal (the whole organization, your team, or one person — each target states **who approves**: an administrator for org/team, the recipient themselves for a person); requests arrive on the right panel's **« Demandes » bell**, and accepting a person-share **adopts a copy** into your list; end-to-end encrypted to the audience only (desktop) — badge/scopes `packages/ui/src/orgShares/scopes.ts`, modal + bell `packages/ui/src/containers/orgShares/`, merge at send time `combinedCoffre` (`packages/ui/src/send/coffre.ts`), channel `packages/sync/src/orgScope/`
+- [x] **Terms shared inside the organization** — the Coffre list stays ONE, badged by scope (Perso / Équipe / Orga): terms shared with you fold into it read-only, masked like yours. Each personal row carries **« Partager »** → the "with whom?" modal (the whole organization, your team, or one person — each target states **who approves**: an administrator for org/team, the recipient themselves for a person); requests arrive on the right panel's **« Demandes » bell**, and accepting a person-share **adopts a copy** into your list; end-to-end encrypted to the audience only (desktop) — badge/scopes `packages/ui/src/orgShares/scopes.ts`, modal + bell `packages/ui/src/containers/orgShares/`, merge at send time `combinedVaultTerms` (`packages/ui/src/send/vaultTerms.ts`), channel `packages/sync/src/orgScope/`
 - [ ] Bulk import of a list of terms
 
 ---
 
-## 8. Réglages
+## 8. Settings (« Réglages »)
 
 **Access**: the gear in the rail · ⌘K, which indexes the settings themselves. Four visible
 tabs, the rest behind « Avancé » — because a setting one is looking for is found by
 searching, not by an eleven-entry list.
 
-### Compte
+### Account (« Compte »)
 **Access**: Réglages → **Compte**.
 
 **What it makes possible.** The device's identity — and the **Organisation** card: on a
@@ -773,7 +773,7 @@ hence revealing that you received it.
 - [x] « **Statistiques d'usage anonymes** » (explicit consent, counters only)
 - [x] « **Aperçus de liens** » (opt-in, one outgoing request per link)
 
-### Confidentialité, Modèles, Connecteurs, Navigateur
+### Privacy, Models, Connectors, Browser (« Confidentialité », « Modèles », « Connecteurs », « Navigateur »)
 **Access**: Réglages → the matching tab. The detail of each is in sections 1 to 3.
 
 **What it makes possible.** The four tabs that govern what the app protects, what it answers
@@ -789,7 +789,7 @@ nothing becomes unreachable, only less cluttered.
 - [x] Each tab is titled and searchable by construction — `packages/ui/src/pages/Settings/settingsIndex.ts`
 - [x] The settings themselves are indexed in ⌘K, not only the tabs
 
-### Journal, Usage
+### Log, Usage (« Journal », « Usage »)
 **Access**: Réglages → **Journal** (the redaction audit, then « **Ce qui est sorti de la
 machine** ») · Réglages → **Usage**.
 
@@ -816,19 +816,19 @@ is read-only: the app writes it, the interface can neither invent nor erase it.
 - [x] The **date lives on the group header**, never on the row: the vault does not timestamp
       its entries, and a date per value promised a precision no data carries
 - [x] **Network log**: contacted and refused addresses, by origin (browser, connector, link
-      preview…), searchable — `packages/ui/src/pages/Settings/privacy/egressJournal.ts`
+      preview…), searchable — `packages/ui/src/pages/Settings/privacy/egressLog.ts`
 - [x] The two halves are **two views of a selector**, not a stack: the redaction table loads
       endlessly by pages, so the network log placed underneath was out of scrolling reach —
       `packages/ui/src/pages/Settings/privacy/AuditLogTab.tsx`
 - [x] The network log keeps the **site name only** (never the page nor the request)
-- [x] Written by the privileged process, read-only for the interface — `apps/desktop/src/main/net/egressJournal.ts`
+- [x] Written by the privileged process, read-only for the interface — `apps/desktop/src/main/net/egressLog.ts`
 - [x] Consumption per model and per conversation, estimated cost
 - [x] Separation of "my key" / "subscription", and what is estimated rather than measured
 - [x] The histograms have no y-axis: the **maximum is written** under the title, and
       **hovering a column** (or reaching it by keyboard) gives the day and its value, model by
       model — `packages/ui/src/pages/Settings/billing/ModelTimeline.tsx`
 
-### Vos appareils
+### Your devices (« Vos appareils »)
 **Access**: Réglages → **Vos appareils** → « **Appareils connectés** ».
 
 **What it makes possible.** Finding your conversations, skills and memory again on another
@@ -848,7 +848,7 @@ redaction closed.
 - [x] Connector credentials do NOT sync (each device redoes its OAuth)
 - [x] **The status line** — Réglages → Synchronisation shows the RESOLVED environment (staging/production, never inferred from the channel) and the last exchange (succeeded X min ago / failed + reason): sync is best-effort, and this line is what stops an outage from being invisible — `packages/ui/src/pages/Settings/syncStatusLine.ts`, `apps/desktop/src/renderer/src/sync/status.ts`
 
-### Organisation
+### Organization (« Organisation »)
 **Access**: Réglages → **Organisation** (if the account belongs to an organization).
 
 **What it makes possible.** Attaching accounts to an organization, with roles, a shared
@@ -886,7 +886,7 @@ risk — a policy that depends on everyone's goodwill is not a policy.
 - [x] A gap between active members and billed seats is **shown**, with a gesture to close it,
       never swallowed silently
 
-### Paiement
+### Billing (« Paiement »)
 **Access**: Réglages → **Paiement** — **only in a build that sells** (`OPENMASQ_BILLING=1`;
 off by default, and then the tab, every upsell and the very word « abonnement » are absent:
 `packages/ui/src/send/platformAccess.test.ts`).
@@ -1027,7 +1027,7 @@ to reveal first).
 - [x] With the keyboard: focus enters the card and stays there, the rest of the app is inert — `packages/ui/src/hooks/useDialogFocus.ts`
 
 ### Help and feedback
-**Access**: the foot of the right rail → « Aide » and « Envoyer un avis ».
+**Access**: the foot of the right rail → « Aide » and « Envoyer un feedback ».
 
 **What it makes possible.** A guide explaining the five sections, a feedback form, and the
 copyable detail of an error.
@@ -1049,13 +1049,13 @@ would have decided to collect.
       not exist where that source does not exist —
       `packages/ui/src/containers/modals/GuideReleases.tsx`,
       `packages/ui/src/containers/modals/GuideModal.test.tsx`
-- [x] « Votre avis »: feedback, with what you choose to attach — `packages/ui/src/containers/modals/AvisModal.tsx`
+- [x] « Votre feedback »: feedback, with what you choose to attach — `packages/ui/src/containers/modals/FeedbackModal.tsx`
 - [x] **Technical context** attachable with one switch: version, channel, screen, system,
       model, protection level — six machine values, never a line of your conversations —
-      `packages/ui/src/containers/shell/hooks/useAvis.ts`
+      `packages/ui/src/containers/shell/hooks/useFeedback.ts`
 - [x] On a **bug report**, the debug log is **attached by default** — a verbatim preview on
       screen, one gesture removes it (the collection is permanent, and a report without a log
-      cost a round trip) — `packages/ui/src/containers/modals/AvisModal.test.tsx`
+      cost a round trip) — `packages/ui/src/containers/modals/FeedbackModal.test.tsx`
 - [x] **A feedback icon under every reply** (the Copy / Regenerate / Fork bar): the
       conversation's log arrives already attached, the mood is no longer required — reporting
       no longer requires leaving the reply — `packages/ui/src/components/message/MessageBubble.tsx`

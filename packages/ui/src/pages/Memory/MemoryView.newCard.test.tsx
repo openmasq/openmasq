@@ -15,10 +15,10 @@ import type { Settings } from "../../types";
 function Harness({ seen }: { seen: { entities: string[] } }) {
   const [settings, setSettings] = useState<Settings>({} as Settings);
   const memory = useMemoryStore(settings, setSettings);
-  seen.entities = memory.memoire.cards.map((c) => c.entity);
+  seen.entities = memory.memoryData.cards.map((c) => c.entity);
   return (
     <MemoryView
-      memoire={memory.memoire}
+      memoryData={memory.memoryData}
       memoryAuto={false}
       onToggleAuto={() => {}}
       onSetProfile={memory.setMemoryProfile}

@@ -82,7 +82,7 @@ function hookDeps(over: Partial<MemoryExtractionDeps> = {}): MemoryExtractionDep
       calls++;
       return '{"profil":null,"faits":[]}';
     },
-    setMemoire: () => {},
+    setMemory: () => {},
     patchConversation: () => {},
     idleMs: 60_000, // idle must NOT fire during these tests
     sweepDelayMs: 60_000,
@@ -96,7 +96,7 @@ function hookDeps(over: Partial<MemoryExtractionDeps> = {}): MemoryExtractionDep
 function runDeps(replies: Array<string | Error>) {
   const payloads: Array<{ role: string; content: string }[]> = [];
   const noted: Array<{ count: number; ids?: string[]; failed?: boolean }> = [];
-  const memoire: MemoryData[] = [];
+  const memoryData: MemoryData[] = [];
   const patches: Array<(c: Conversation) => Conversation> = [];
   let i = 0;
   const deps = {
@@ -107,12 +107,12 @@ function runDeps(replies: Array<string | Error>) {
       if (r instanceof Error) throw r;
       return r;
     },
-    setMemoire: (fn: (m: MemoryData) => MemoryData) => memoire.push(fn({ cards: [] })),
+    setMemory: (fn: (m: MemoryData) => MemoryData) => memoryData.push(fn({ cards: [] })),
     patchConversation: (_id: string, fn: (c: Conversation) => Conversation) => patches.push(fn),
     noteOnMessage: (_id: string, count: number, ids?: string[], failed?: boolean) =>
       noted.push({ count, ids, failed }),
   };
-  return { deps: deps as never as Parameters<typeof runMemoryExtraction>[1], payloads, noted, memoire, patches };
+  return { deps: deps as never as Parameters<typeof runMemoryExtraction>[1], payloads, noted, memoryData, patches };
 }
 
 const askConv = conv({
@@ -136,7 +136,7 @@ describe("runMemoryExtraction — la demande explicite lit la RÉPONSE de l'assi
     expect(wire).toContain("Assistant : D'après la page consultée, c'est Laurent Saint-Andiol.");
     expect(wire).toContain("Utilisateur : retiens tout ça dans ta mémoire");
     // The entity appears ONLY in the assistant's reply — the widened anchor keeps it.
-    expect(h.memoire[0].cards.map((c) => c.entity)).toEqual(["Laurent Saint-Andiol"]);
+    expect(h.memoryData[0].cards.map((c) => c.entity)).toEqual(["Laurent Saint-Andiol"]);
     expect(h.noted).toHaveLength(1);
     expect(h.noted[0].count).toBe(1);
     expect(h.noted[0].failed).toBeUndefined();
@@ -149,7 +149,7 @@ describe("runMemoryExtraction — la demande explicite lit la RÉPONSE de l'assi
     deps.settings = { memoryAuto: true, memoire: { cards: [] } as MemoryData } as Settings;
     const n = await runMemoryExtraction(silent, h.deps);
     expect(n).toBe(0);
-    expect(h.memoire).toEqual([]); // no write — the anti-hallucination holds
+    expect(h.memoryData).toEqual([]); // no write — the anti-hallucination holds
   });
 
   it("« sans mémoire ici » (memoryOff) coupe le silencieux — AUCUN appel modèle ; l'explicite reste honoré", async () => {

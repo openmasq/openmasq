@@ -33,7 +33,7 @@
   "packages/ui/src/pages/ChatWorkspace/composerDetection.ts": 1,
   "packages/ui/src/pages/ChatWorkspace/extractDropped.ts": 1,
   "packages/ui/src/pages/ChatWorkspace/forcedFake.ts": 1,
-  "packages/ui/src/pages/Competences/CompetenceModal.tsx": 1,
+  "packages/ui/src/pages/Skills/SkillModal.tsx": 1,
   "packages/ui/src/pages/Settings/billing/usageActivity.ts": 1,
   "packages/ui/src/pages/Settings/mcp/McpConnectorModal.tsx": 1,
   "packages/ui/src/pages/Settings/mcp/McpLocalFields.tsx": 1,

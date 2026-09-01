@@ -10,7 +10,7 @@ import { migrateRedactCategories } from "./settingsMigrations";
 import { DEFAULT_MODEL_ID } from "../prompt/models";
 import type { Conversation, Settings } from "../types";
 import { blueAccent } from "./theme";
-import { mergeLegacyWorkflows } from "../competences/migrate";
+import { mergeLegacyWorkflows } from "../skills/migrate";
 import { stripVaultForLocal } from "../send/sendGuards";
 
 export const CONV_KEY = "openmasq.conversations";

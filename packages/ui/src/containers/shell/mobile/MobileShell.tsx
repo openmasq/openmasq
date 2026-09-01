@@ -93,7 +93,7 @@ export function MobileShell({ chat }: { chat: ChatStore }) {
     ) : section === "memory" ? (
       // PORTED: the desktop force GRAPH becomes the kit's grouped chip list.
       <MobileMemoryScreen
-        memoire={chat.memoire}
+        memoryData={chat.memoryData}
         memoryAuto={chat.settings.memoryAuto === true}
         onToggleAuto={(on) => chat.setSettings((s) => ({ ...s, memoryAuto: on }))}
         onSetProfile={chat.setMemoryProfile}

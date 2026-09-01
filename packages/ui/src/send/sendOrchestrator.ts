@@ -4,10 +4,10 @@ import { redactNumbersOn } from "../send/redactNumbers";
 import { contextWindow, isFreeModel, supportsTools } from "@openmasq/llm";
 import type { StreamDone, LlmAttachment, ChatMessage } from "@openmasq/llm";
 import type { AskTarget, Conversation, Message, RedactCategoryKey, Settings, } from "../types";
-import { combinedCoffre } from "../send/coffre";
+import { combinedVaultTerms } from "./vaultTerms";
 import { featureUsage } from "../state/featureAccess";
 import { selectMemory, memoryForcedForBlock, memoryForcedAll, filterNotoriousFromForced, searchMemoryHybrid } from "../memory";
-import { competenceLaunchText, activeCompetenceScope } from "../competences/launch";
+import { skillLaunchText, activeSkillScope } from "../skills/launch";
 import {
   unredact, unredactReply,
   unredactArgs,
@@ -280,7 +280,7 @@ export function createSendMessage(d: SendMessageDeps) {
       // prose compétence goes out exactly as before.
       const compPrompt = opts?.competence?.prompt?.trim();
       const compPrefix = compPrompt
-        ? `${competenceLaunchText({ prompt: compPrompt, servers: opts?.competence?.servers ?? [] })}\n\n`
+        ? `${skillLaunchText({ prompt: compPrompt, servers: opts?.competence?.servers ?? [] })}\n\n`
         : "";
       // The « Demander » target's context line leads (it SITUATES the question — the
       // clicked folder/file, its service or local path) — model payload only, so the
@@ -816,7 +816,7 @@ export function createSendMessage(d: SendMessageDeps) {
       // data of the same kind (fake name/email/phone/company…), never a
       // conspicuous [REDACTED_…] placeholder. The model engine additionally runs
       // the model detector for free-form PII (names, orgs) and tokenises numbers.
-      const forcedList = sendForcedList(combinedCoffre(settings), conv, opts?.forcedRedactions, modelText);
+      const forcedList = sendForcedList(combinedVaultTerms(settings), conv, opts?.forcedRedactions, modelText);
       const keepList = sendKeepList(keepListRef.current, conv, opts?.keepValues, forcedList);
       const engineCtx = buildSendEngineContext({
         disabledKinds, keep: keepList, connected: keepListRef.current,
@@ -1397,7 +1397,7 @@ export function createSendMessage(d: SendMessageDeps) {
           // Coffre value the user never typed that surfaces in a Gmail/CRM RESULT was
           // reaching the model in CLEAR — while the Coffre page promised "toujours
           // redacted". Pinned by `send/toolResult.test.ts` (coffre-in-tool-result).
-          forced: toolForcedList(combinedCoffre(settings), conv),
+          forced: toolForcedList(combinedVaultTerms(settings), conv),
           // `memory_search`'s result carries the cards' entities (known PII) —
           // protected by FORCED, never by detection alone (see toolResult.ts).
           memorySearchForced: filterNotoriousFromForced(memoryForcedAll(settings.memoire), { commercial: commercialNotoriety, people: peopleNotoriety }),
@@ -1666,7 +1666,7 @@ export function createSendMessage(d: SendMessageDeps) {
             // reads the old `workflow` tag from history).
             scopedConnectors: opts?.competence?.servers?.length
               ? opts.competence.servers
-              : activeCompetenceScope(conv.messages),
+              : activeSkillScope(conv.messages),
             // Tool-routing/catalog threshold override — undefined in every REAL send
             // (ChatView never sets it); only the eval bench passes one to sweep the
             // latency/conformance trade-off of a leaner reduction (`evals/strategies.ts`).

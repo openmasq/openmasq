@@ -1,6 +1,6 @@
 import type { Messages } from "@openmasq/i18n";
-import { filterCompetences } from "../../competences/competences";
-import type { Competence } from "../../types";
+import { filterSkills } from "../../skills/skills";
+import type { Skill } from "../../types";
 
 // Pure logic for the composer's "/" palette — typing "/" at the start of an EMPTY
 // draft opens the compétence lookup, the text after it filters, arrows + Enter pick.
@@ -26,8 +26,8 @@ export function slashQuery(input: string): string | null {
 
 /** The compétences the current query matches — same filter as the Compétences page
  *  (name/desc, case-insensitive; "" keeps all), so the two lookups agree. */
-export function slashMatches(list: readonly Competence[], query: string): Competence[] {
-  return filterCompetences(list, "all", query);
+export function slashMatches(list: readonly Skill[], query: string): Skill[] {
+  return filterSkills(list, "all", query);
 }
 
 /** A built-in palette ACTION (not a compétence): picking it rewrites the draft. */

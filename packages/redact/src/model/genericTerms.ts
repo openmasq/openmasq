@@ -13,11 +13,11 @@ import { isStopword } from "./stopwords";
 export { isStopword };
 
 import { GENERIC_TERMS } from "./genericTermsData";
-import { CLINIQUE_TERMS } from "./vocab";
+import { CLINICAL_TERMS } from "./vocab";
 import { isPublicBodyCompound } from "./publicBodies";
 
 /** Molecules, pathologies, anatomy — spared EXCEPT under the `health` category. */
-const CLINICAL_TERMS = new Set(CLINIQUE_TERMS.map((t) => t.toLowerCase()));
+const CLINICAL_TERM_SET = new Set(CLINICAL_TERMS.map((t) => t.toLowerCase()));
 
 /** True when `value` is a single generic document/design/type word (never PII).
  *  CASE-insensitive AND SEPARATOR-insensitive, so a dotted/spaced acronym form matches
@@ -152,7 +152,7 @@ export function isNonPiiTerm(value: string, category?: string): boolean {
  */
 export function isClinicalTerm(value: string, category?: string): boolean {
   if (category === "health") return false;
-  return CLINICAL_TERMS.has(value.trim().toLowerCase());
+  return CLINICAL_TERM_SET.has(value.trim().toLowerCase());
 }
 
 // Company legal FORMS + leading descriptors STRIPPED from the ends of an ORG span so

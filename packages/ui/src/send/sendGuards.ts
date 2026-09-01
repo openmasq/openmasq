@@ -42,7 +42,7 @@ export function stripVaultForLocal(c: Conversation): Conversation {
   // example pasted in while drafting it), so it belongs to the encrypted DB exactly like
   // `modelContent`. `id`/`name` stay — they ARE the tag, which must render before the
   // async DB load, and neither is user content.
-  const hasCompetencePrompt = c.messages?.some((m) => m.competence?.prompt !== undefined);
+  const hasSkillPrompt = c.messages?.some((m) => m.competence?.prompt !== undefined);
   // Same contract for a workflow's prompt — the compétences' sibling.
   const hasWorkflowPrompt = c.messages?.some((m) => m.workflow?.prompt !== undefined);
   // The model's kept REFLECTION: un-redacted (it reasons about the fakes, we restore
@@ -57,7 +57,7 @@ export function stripVaultForLocal(c: Conversation): Conversation {
     c.redactionSalt === undefined &&
     !hasModelContent &&
     !hasSpans &&
-    !hasCompetencePrompt &&
+    !hasSkillPrompt &&
     !hasWorkflowPrompt &&
     !hasReasoning &&
     !c.forcedRedactions?.length &&
@@ -83,7 +83,7 @@ export function stripVaultForLocal(c: Conversation): Conversation {
   delete rest.redactionSalt;
   delete rest.forcedRedactions;
   delete rest.fileRedactions;
-  if (hasModelContent || hasSpans || hasCompetencePrompt || hasWorkflowPrompt || hasReasoning) {
+  if (hasModelContent || hasSpans || hasSkillPrompt || hasWorkflowPrompt || hasReasoning) {
     rest.messages = c.messages.map((m) => {
       if (
         m.modelContent === undefined &&

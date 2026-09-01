@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { isGenericTerm } from "./genericTerms";
-import { VOCAB_TERMS, CLINIQUE_TERMS } from "./vocab";
+import { VOCAB_TERMS, CLINICAL_TERMS } from "./vocab";
 import { FIRST_NAMES } from "../engine/names/firstNames.data";
 import { COMMON_SURNAMES } from "./surnamesGuard.data";
 
@@ -142,7 +142,7 @@ describe("vocabulary volumes — the invariants that bound an allow-list", () =>
     const surnames = new Set<string>();
     for (const n of COMMON_SURNAMES) surnames.add(key(n));
 
-    const collisions = [...VOCAB_TERMS, ...CLINIQUE_TERMS].filter(
+    const collisions = [...VOCAB_TERMS, ...CLINICAL_TERMS].filter(
       (t) => FIRST_NAMES.has(key(t)) || surnames.has(key(t)),
     );
     expect(

@@ -12,13 +12,13 @@ import type { MemoryData } from "../types";
  * or the index errored) — the Mémoire page then renders the category graph, quietly
  * (an optional host slot's absence is a normal state, not an error).
  */
-export function useMemoryIndex(memoire: MemoryData | undefined): { edges: SemanticEdge[] | null } {
+export function useMemoryIndex(memoryData: MemoryData | undefined): { edges: SemanticEdge[] | null } {
   const host = useHost();
   const [edges, setEdges] = useState<SemanticEdge[] | null>(null);
 
   useEffect(() => {
     const index = host.memoryIndex;
-    const cards = memoire?.cards ?? [];
+    const cards = memoryData?.cards ?? [];
     if (!index || cards.length < 2) {
       setEdges(null);
       return;
@@ -44,7 +44,7 @@ export function useMemoryIndex(memoire: MemoryData | undefined): { edges: Semant
       alive = false;
       clearTimeout(timer);
     };
-  }, [host, memoire]);
+  }, [host, memoryData]);
 
   return { edges };
 }

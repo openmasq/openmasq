@@ -164,7 +164,7 @@ export function ChatPane({
       onReRedact={chat.reRedact}
       isRevealForced={chat.isRevealForced}
       onForceRedact={chat.forceRedact}
-      onAddToCoffre={chat.addCoffreTerm}
+      onAddToVault={chat.addVaultTerm}
       onAddMemoryCard={chat.addMemoryCard}
       memoryHint={!!host.complete}
       onSetApiKey={chat.setApiKey}
@@ -181,8 +181,8 @@ export function ChatPane({
       onScrolled={chat.clearScrollTarget}
       pendingAttachment={focused ? pending.attach : null}
       onPendingConsumed={() => pending.setAttach(null)}
-      pendingCompetence={focused ? pending.competence : null}
-      onCompetenceConsumed={() => pending.setCompetence(null)}
+      pendingSkill={focused ? pending.competence : null}
+      onSkillConsumed={() => pending.setSkill(null)}
       pendingTarget={focused ? pending.target : null}
       onTargetConsumed={() => pending.setTarget(null)}
     />

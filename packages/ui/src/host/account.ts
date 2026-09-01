@@ -1,4 +1,4 @@
-import type { Feedback } from "../avis/avis";
+import type { Feedback } from "../feedback/feedback";
 // The org profile carries the SAME prepaid budget shape as an individual one — one home
 // for it (`billing.ts`), never a parallel definition on the org side (rule 9).
 import type { CreditBalance } from "./billing";
@@ -204,7 +204,7 @@ export interface OrgHost {
  * then tells the user their message reached the team, and a success screen over a
  * dropped message is a lie. Same contract as `BillingHost.startCheckout`.
  */
-export interface AvisHost {
+export interface FeedbackHost {
   /** Deliver one avis. Resolves ONLY once the backend accepted it. */
-  send(avis: Feedback): Promise<void>;
+  send(feedback: Feedback): Promise<void>;
 }

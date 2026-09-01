@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import type { ChatStore } from "../../state/store";
-import type { CoffreTerm, Competence } from "../../types";
+import type { VaultTerm, Skill } from "../../types";
 import { WorkspaceView } from "../../workspace";
 import { SplitGutter } from "../../pages/ChatWorkspace";
 import { ArtifactProvider } from "../providers/artifact";
@@ -34,7 +34,7 @@ import {
 export function DesktopShell({ chat }: { chat: ChatStore }) {
   const dispatch = useAppDispatch();
   const shell = useShell({ chat });
-  const { section, pane, conv, split, host, search, avis } = shell;
+  const { section, pane, conv, split, host, search, feedback: feedback } = shell;
   // Collapsed by default → only the icon rail shows; the conversation sidebar opens on
   // demand from the chat toolbar OR any page header's toggle.
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -75,8 +75,8 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
           onNew={conv.newChat}
           onOpenSettings={shell.deep.openSettings}
           onOpenSearch={() => search.setOpen(true)}
-          pinnedCompetences={chat.pinned}
-          onUseCompetence={shell.stageCompetence}
+          pinnedSkills={chat.pinned}
+          onUseSkill={shell.stageSkill}
           userName={shell.userName}
           onRename={chat.renameConversation}
           onDelete={conv.deleteConversation}
@@ -142,7 +142,7 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
   // Accepting a PERSON share adopts its items into the PERSONAL lists — « vous
   // gardez votre copie » goes both ways (design). Dedup terms by id; a
   // compétence adopts as a fresh entry (its author keeps theirs).
-  const adoptShare = (items: { terms: CoffreTerm[]; competences: Competence[] }) => {
+  const adoptShare = (items: { terms: VaultTerm[]; competences: Skill[] }) => {
     if (items.terms.length)
       shell.chat.setSettings((st) => ({
         ...st,
@@ -152,7 +152,7 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
         ],
       }));
     for (const c of items.competences)
-      shell.chat.addCompetence({
+      shell.chat.addSkill({
         name: c.name,
         prompt: c.prompt,
         desc: c.desc,
@@ -184,7 +184,7 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
       onOpenUpdate={() => shell.update.setOpen(true)}
       updateVersion={shell.update.version}
       onOpenGuide={() => shell.guide.setOpen(true)}
-      onOpenAvis={host.avis ? () => avis.setOpen({}) : undefined}
+      onOpenFeedback={host.feedback ? () => feedback.setOpen({}) : undefined}
       shareInbox={<ShareInbox wide inOrg={!!chat.orgProfile} onAdopt={adoptShare} />}
       shareInboxNarrow={<ShareInbox inOrg={!!chat.orgProfile} onAdopt={adoptShare} />}
       // Granting and revoking a folder happens in ONE place — the Filesystem connector —

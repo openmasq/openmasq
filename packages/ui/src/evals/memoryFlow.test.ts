@@ -8,7 +8,7 @@ import type { MemoryData } from "../types";
 // injected re-redacted through THIS conversation's vault+salt, pulled via the
 // intercepted `memory_search` tool with rule-11 un-redaction. Free suite.
 
-const MEMOIRE: MemoryData = {
+const MEMORY: MemoryData = {
   profile: "Consultant indépendant, répond en français.",
   cards: [
     {
@@ -48,7 +48,7 @@ describe("mémoire — injection re-redacted", () => {
     m = await mockModel([says("Bien noté.")]);
     // No `ner`: the regex engine alone cannot detect a free-form org name. The card's
     // entity rides `forced`, which is what keeps the injection protected anyway.
-    run = await runWorkflow({ model: model(), settings: { memoire: MEMOIRE } });
+    run = await runWorkflow({ model: model(), settings: { memoire: MEMORY } });
     await run.send("Fais un point sur Karl Studio .");
 
     const sys = systemLegs(run);
@@ -63,7 +63,7 @@ describe("mémoire — injection re-redacted", () => {
 
   it("no signal ⇒ only the profile is injected; an unrelated card stays OUT of the context", async () => {
     m = await mockModel([says("Bonjour !")]);
-    run = await runWorkflow({ model: model(), settings: { memoire: MEMOIRE } });
+    run = await runWorkflow({ model: model(), settings: { memoire: MEMORY } });
     await run.send("Quelle heure est-il ?");
     const sys = systemLegs(run);
     expect(sys).toContain("Consultant indépendant"); // profile (not PII-detected here — user-authored)
@@ -94,7 +94,7 @@ describe("mémoire — memory_search (the model-pulled path, rule 11)", () => {
     ]);
     run = await runWorkflow({
       model: model(),
-      settings: { memoire: MEMOIRE },
+      settings: { memoire: MEMORY },
       // A server list is needed for the loop to run at all? No — searchMemory alone
       // offers the tool; zero MCP servers is fine (like run_python).
     });

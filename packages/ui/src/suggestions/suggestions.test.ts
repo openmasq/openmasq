@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { MCP_CONNECTORS, findConnector } from "@openmasq/catalog/mcp";
 import { isUntouchedDraft, pickSuggestions } from "./suggestions";
 import {
-  competenceSuggestions,
-  suggestedCompetences,
-  type CompetenceSuggestion,
-} from "./competenceSuggestions";
+  skillSuggestions,
+  suggestedSkills,
+  type SkillSuggestion,
+} from "./skillSuggestions";
 import {
   routineSuggestions,
   focusRoutines,
@@ -15,15 +15,15 @@ import {
 } from "./routineSuggestions";
 import { genericRoutineFor } from "./routineGeneric";
 import { offeredTemplates, isRoutineTemplate, templateCategory } from "./offered";
-import { COMPETENCE_CATEGORIES } from "../competences/competences";
-import { makeCompetence } from "../competences/competences";
-import type { Competence } from "../types";
+import { SKILL_CATEGORIES } from "../skills/skills";
+import { makeSkill } from "../skills/skills";
+import type { Skill } from "../types";
 
-const asCompetence = (s: CompetenceSuggestion): Competence =>
-  makeCompetence({ name: s.name, prompt: s.prompt, desc: s.desc, cat: s.cat })!;
+const asSkill = (s: SkillSuggestion): Skill =>
+  makeSkill({ name: s.name, prompt: s.prompt, desc: s.desc, cat: s.cat })!;
 
 const fr = getMessages("fr");
-const COMPETENCE_LIST = competenceSuggestions(fr);
+const SKILL_LIST = skillSuggestions(fr);
 const ROUTINE_LIST = routineSuggestions(fr);
 
 describe("pickSuggestions", () => {
@@ -97,17 +97,17 @@ describe("isUntouchedDraft — the guard that makes a pick safe without a confir
 
 describe("COMPETENCE_LIST", () => {
   it("are all saveable as-is (the create bar `makeCompetence` enforces)", () => {
-    for (const s of COMPETENCE_LIST) expect(asCompetence(s)).not.toBeNull();
+    for (const s of SKILL_LIST) expect(asSkill(s)).not.toBeNull();
   });
 
   it("carry a known category and unique ids/names", () => {
-    const cats = new Set(COMPETENCE_CATEGORIES.map((c) => c.id));
-    for (const s of COMPETENCE_LIST) expect(cats.has(s.cat)).toBe(true);
-    expect(new Set(COMPETENCE_LIST.map((s) => s.id)).size).toBe(
-      COMPETENCE_LIST.length,
+    const cats = new Set(SKILL_CATEGORIES.map((c) => c.id));
+    for (const s of SKILL_LIST) expect(cats.has(s.cat)).toBe(true);
+    expect(new Set(SKILL_LIST.map((s) => s.id)).size).toBe(
+      SKILL_LIST.length,
     );
-    expect(new Set(COMPETENCE_LIST.map((s) => s.name)).size).toBe(
-      COMPETENCE_LIST.length,
+    expect(new Set(SKILL_LIST.map((s) => s.name)).size).toBe(
+      SKILL_LIST.length,
     );
   });
 
@@ -123,8 +123,8 @@ describe("COMPETENCE_LIST", () => {
    * drives nothing, i.e. lying about what the category is.
    */
   it("cover every category IN THE OFFERED SET — the strip is capped, so catalog order is what a user actually sees", () => {
-    const shown = new Set(suggestedCompetences([], fr).map((s) => s.cat));
-    for (const c of COMPETENCE_CATEGORIES) {
+    const shown = new Set(suggestedSkills([], fr).map((s) => s.cat));
+    for (const c of SKILL_CATEGORIES) {
       if (c.id === "routine") continue;
       expect(shown.has(c.id), `no template shown for "${c.id}"`).toBe(true);
     }
@@ -133,7 +133,7 @@ describe("COMPETENCE_LIST", () => {
   it("« Routines » est servie par l'autre catalogue — la fusion n'a laissé aucune catégorie vide", () => {
     const offered = offeredTemplates([], fr, { limit: 99 });
     const cats = new Set(offered.map(templateCategory));
-    for (const c of COMPETENCE_CATEGORIES)
+    for (const c of SKILL_CATEGORIES)
       expect(cats.has(c.id), `aucun modèle proposé pour « ${c.id} »`).toBe(true);
     // And an offered routine ACTUALLY drives connectors: this field, and it
     // alone, is what makes the behavioural difference.
@@ -142,10 +142,10 @@ describe("COMPETENCE_LIST", () => {
   });
 
   it("stop being offered once saved — a picked template never re-appears", () => {
-    const saved = [asCompetence(COMPETENCE_LIST[0])];
-    const offered = suggestedCompetences(saved, fr, 99);
-    expect(offered.some((s) => s.id === COMPETENCE_LIST[0].id)).toBe(false);
-    expect(offered).toHaveLength(COMPETENCE_LIST.length - 1);
+    const saved = [asSkill(SKILL_LIST[0])];
+    const offered = suggestedSkills(saved, fr, 99);
+    expect(offered.some((s) => s.id === SKILL_LIST[0].id)).toBe(false);
+    expect(offered).toHaveLength(SKILL_LIST.length - 1);
   });
 });
 
@@ -153,7 +153,7 @@ describe("ROUTINE_LIST", () => {
   it("are all saveable as-is", () => {
     for (const s of ROUTINE_LIST)
       expect(
-        makeCompetence({ name: s.name, prompt: s.prompt, desc: s.desc, servers: s.servers }),
+        makeSkill({ name: s.name, prompt: s.prompt, desc: s.desc, servers: s.servers }),
       ).not.toBeNull();
   });
 
@@ -237,7 +237,7 @@ describe("ROUTINE_LIST", () => {
 
   it("drops one already saved", () => {
     const saved = [
-      makeCompetence({ name: ROUTINE_LIST[0].name, prompt: "x" }) as Competence,
+      makeSkill({ name: ROUTINE_LIST[0].name, prompt: "x" }) as Skill,
     ];
     expect(suggestedRoutines(saved, fr, { limit: 99 }).map((s) => s.id)).not.toContain(
       ROUTINE_LIST[0].id,
@@ -303,7 +303,7 @@ describe("genericRoutineFor", () => {
   it("is saveable, read-only, and speaks the catalog's own words", () => {
     const g = genericRoutineFor("microsoft-outlook", fr)!;
     expect(
-      makeCompetence({ name: g.name, prompt: g.prompt, desc: g.desc, servers: g.servers }),
+      makeSkill({ name: g.name, prompt: g.prompt, desc: g.desc, servers: g.servers }),
     ).not.toBeNull();
     expect(g.prompt).toContain("Lecture seule");
     expect(g.prompt).toContain("{"); // a value to fill at launch, like every template
@@ -363,7 +363,7 @@ describe("les modèles livrés existent dans CHAQUE langue", () => {
         expect(r.desc, r.id).toBeTruthy();
         expect(r.prompt, r.id).toBeTruthy();
       }
-      for (const c of competenceSuggestions(t)) {
+      for (const c of skillSuggestions(t)) {
         expect(c.name, c.id).toBeTruthy();
         expect(c.desc, c.id).toBeTruthy();
         expect(c.prompt, c.id).toBeTruthy();

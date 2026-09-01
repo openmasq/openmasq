@@ -49,7 +49,7 @@ const connectorIdOf = (specId: string, stored?: string): string => {
 /** Does a remote server expose a folder listing? Read from the ROUTING table, which
  *  main already keeps up to date — announcing as browsable an account that isn't would give a
  *  chevron that leads nowhere. */
-function exposesLister(serverId: string): boolean {
+function exposesListTool(serverId: string): boolean {
   const prefix = `${serverId}__`;
   for (const name of routes.keys()) if (name.startsWith(prefix) && isFolderListTool(name)) return true;
   return false;
@@ -63,7 +63,7 @@ export function cloudSources(): CloudSource[] {
       (s) =>
         connected.has(s.id) &&
         (!!CLOUD_PROVIDERS[s.connectorId] ||
-          (MCP_BROWSABLE.has(s.connectorId) && exposesLister(s.id))),
+          (MCP_BROWSABLE.has(s.connectorId) && exposesListTool(s.id))),
     );
 }
 

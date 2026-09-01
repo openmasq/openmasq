@@ -1,6 +1,6 @@
 import type { McpConnection, McpToolResult } from "@openmasq/mcp";
 import { sortRemote, type RemoteEntry } from "@openmasq/connectors";
-import { listerFor, } from "./lister";
+import { listToolFor, } from "./listTool";
 import { asRecord, describeShape, parseToolList, } from "./read";
 
 /**
@@ -77,8 +77,8 @@ export async function mcpBrowseList(
   conn: McpConnection,
   folderRef: string | null,
 ): Promise<RemoteEntry[]> {
-  const lister = await listerFor(conn);
-  if (!lister) throw new Error("Ce stockage n'expose pas de listage de dossier.");
+  const listTool = await listToolFor(conn);
+  if (!listTool) throw new Error("Ce stockage n'expose pas de listage de dossier.");
   const folder = assertFolderRef(folderRef);
   const entries: RemoteEntry[] = [];
   const seen = new Set<string>();
@@ -86,9 +86,9 @@ export async function mcpBrowseList(
   for (let page = 0; page < MAX_PAGES; page++) {
     // The folder ALWAYS accompanies the cursor: a tool whose path is mandatory
     // would refuse a follow-up page carrying only the cursor.
-    const args: Record<string, string> = { [lister.folderArg]: folder };
-    if (cursor && lister.cursorArg) args[lister.cursorArg] = cursor;
-    const res = await conn.callTool({ name: lister.tool, arguments: args });
+    const args: Record<string, string> = { [listTool.folderArg]: folder };
+    if (cursor && listTool.cursorArg) args[listTool.cursorArg] = cursor;
+    const res = await conn.callTool({ name: listTool.tool, arguments: args });
     if (res.isError) throw new Error("Ce dossier n'a pas pu être listé.");
     const texts = textsOf(res.content);
     const parsed = parseToolList(texts);
@@ -106,13 +106,13 @@ export async function mcpBrowseList(
     cursor = parsed.cursor;
     // A page that brings NOTHING new stops the pagination: that's the signature of an
     // ignored cursor, and insisting would only repay the same round trip.
-    if (!cursor || !lister.cursorArg || !neuf || entries.length >= MAX_ENTRIES) break;
+    if (!cursor || !listTool.cursorArg || !neuf || entries.length >= MAX_ENTRIES) break;
   }
   return sortRemote(entries.slice(0, MAX_ENTRIES));
 }
 
 // What the barrel REALLY exposes: the rest is imported directly from
-// `./lister` / `./read` by its consumers, and re-exporting it would only create
+// `./listTool` / `./read` by its consumers, and re-exporting it would only create
 // unreachable code.
-export { findFolderLister, isFolderListTool } from "./lister";
+export { findFolderListTool, isFolderListTool } from "./listTool";
 export { describeShape, parseToolList } from "./read";

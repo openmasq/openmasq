@@ -8,10 +8,10 @@ import { useT } from "../../i18n";
  *  own edit draft. Split out of `MemoryView` (300-LOC cap, rule 1); the draft state
  *  lives here because nothing else reads it. */
 export function MemoryProfile({
-  memoire,
+  memoryData,
   onSetProfile,
 }: {
-  memoire: MemoryData;
+  memoryData: MemoryData;
   onSetProfile: (profile: string) => void;
 }) {
   const t = useT();
@@ -22,7 +22,7 @@ export function MemoryProfile({
         <span className="om-skill-name">{t.lists.memory.profile.title}</span>
         <span className="om-skill-spacer" />
         {draft === null ? (
-          <button type="button" className="om-skill-use" onClick={() => setDraft(memoire.profile ?? "")}>
+          <button type="button" className="om-skill-use" onClick={() => setDraft(memoryData.profile ?? "")}>
             Modifier
           </button>
         ) : (
@@ -52,10 +52,10 @@ export function MemoryProfile({
           onClick={() => {
             const sel = window.getSelection();
             if (sel && !sel.isCollapsed) return;
-            setDraft(memoire.profile ?? "");
+            setDraft(memoryData.profile ?? "");
           }}
         >
-          {memoire.profile?.trim() ||
+          {memoryData.profile?.trim() ||
             `Qui vous êtes et ce que ${BRAND.name} doit garder en tête — votre métier, vos préférences, votre façon de travailler.`}
         </p>
       ) : (

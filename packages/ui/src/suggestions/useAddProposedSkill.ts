@@ -19,18 +19,18 @@ import { findExistingSkill, type ProposedSkill } from "./proposedSkill";
  * button, and a refusal (empty name or prompt) lets the user try again.
  */
 export function useAddProposedSkill(): (skill: ProposedSkill) => boolean {
-  const addCompetence = useChatSelector((s) => s.addCompetence);
-  const competences = useChatSelector((s) => s.competences);
+  const addSkill = useChatSelector((s) => s.addSkill);
+  const skills = useChatSelector((s) => s.skills);
   return useCallback(
     (skill: ProposedSkill) => {
       const { name, prompt } = skill;
       // IDEMPOTENT: an identical entry (name + prompt) already exists ⇒ the adoption is
       // already done — we answer "yes" without duplicating. This is the OPERATION half of
       // the anti-duplicate fix; the DISPLAY half is `useIsProposedSkillAdded`.
-      if (findExistingSkill(competences, skill)) return true;
+      if (findExistingSkill(skills, skill)) return true;
       const desc = skill.desc || undefined;
       const isRoutine = skill.kind === "workflow" || skill.servers.length > 0;
-      return !!addCompetence?.({
+      return !!addSkill?.({
         name,
         prompt,
         desc,
@@ -41,16 +41,16 @@ export function useAddProposedSkill(): (skill: ProposedSkill) => boolean {
         servers: skill.servers,
       });
     },
-    [addCompetence, competences],
+    [addSkill, skills],
   );
 }
 
 /** "Is this proposal ALREADY in the list?" — the card button's state,
  *  derived from data (survives the virtualized list's remount and reload). */
 export function useIsProposedSkillAdded(): (skill: ProposedSkill) => boolean {
-  const competences = useChatSelector((s) => s.competences);
+  const skills = useChatSelector((s) => s.skills);
   return useCallback(
-    (skill: ProposedSkill) => !!findExistingSkill(competences, skill),
-    [competences],
+    (skill: ProposedSkill) => !!findExistingSkill(skills, skill),
+    [skills],
   );
 }

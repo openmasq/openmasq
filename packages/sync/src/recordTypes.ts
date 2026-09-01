@@ -91,7 +91,7 @@ export const USERDATA_SCOPE = "@userdata";
  *  accepted: a compromised extension (which already holds the passphrase and the
  *  per-thread vaults) can also read this one scope's terms — it still cannot
  *  read conversations, userdata, or any other record. */
-export const COFFRE_SCOPE = "@coffre";
+export const VAULT_TERMS_SCOPE = "@coffre";
 
 /** Conversations pushed by the browser extension live under this conv-id prefix.
  *  The backend enforces DIRECTION on it: a `contributor` device (the extension —

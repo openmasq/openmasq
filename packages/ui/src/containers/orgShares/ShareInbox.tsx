@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BellIcon, CheckIcon, ShieldIcon, SparklesIcon } from "../../components/brand";
 import { ScopeBadge } from "../../components/brand/ScopeBadge";
-import type { CoffreTerm, Competence } from "../../types";
+import type { VaultTerm, Skill } from "../../types";
 import type { OrgShareView } from "../../host/orgShares";
 import { shareInboxVisible, useOrgShares } from "./useOrgShares";
 
@@ -30,7 +30,7 @@ export function ShareInbox({
    *  (`shareInboxVisible`). */
   inOrg?: boolean;
   /** Land an accepted person-share's items in the PERSONAL lists. */
-  onAdopt?: (items: { terms: CoffreTerm[]; competences: Competence[] }) => void;
+  onAdopt?: (items: { terms: VaultTerm[]; competences: Skill[] }) => void;
 }) {
   const t = useT();
   const { available, api, shares, decide, revoke } = useOrgShares();

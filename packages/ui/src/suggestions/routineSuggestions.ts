@@ -1,7 +1,7 @@
 import type { Messages } from "@openmasq/i18n";
 import { findConnector } from "@openmasq/catalog/mcp";
 import { connectorCopy, mcpAuthTagCopy } from "../help/catalogCopy";
-import type { Competence } from "../types";
+import type { Skill } from "../types";
 import { pickSuggestions } from "./suggestions";
 import { routineSuggestions, type RoutineSuggestion } from "./routineTemplates";
 import { genericRoutineFor } from "./routineGeneric";
@@ -71,7 +71,7 @@ export function ownKeysNeeded(s: Pick<RoutineSuggestion, "servers">, t: Messages
  * host can't offer, exactly like the Settings grid gates its browser card.
  */
 export function suggestedRoutines(
-  existing: readonly Competence[],
+  existing: readonly Skill[],
   t: Messages,
   opts: {
     /** Catalog ids with a connected account — ranked first. */

@@ -7,7 +7,7 @@
  */
 
 /** One skill, as the sync sees it (allow-listed). */
-export interface SyncedCompetence {
+export interface SyncedSkill {
   id: string;
   name: string;
   desc?: string;
@@ -62,7 +62,7 @@ export interface SyncedMemoryCard {
 }
 
 export type UserdataPayload =
-  | { type: "competence"; item: SyncedCompetence }
+  | { type: "competence"; item: SyncedSkill }
   | { type: "workflow"; item: SyncedWorkflow }
   | { type: "memoryCard"; item: SyncedMemoryCard }
   | { type: "memoryProfile"; profile: string };
@@ -71,7 +71,7 @@ export type UserdataPayload =
  *  (extra local fields ride through an absorb untouched); emission re-builds
  *  the allow-listed subset only. */
 export interface UserdataSnapshot {
-  competences: SyncedCompetence[];
+  competences: SyncedSkill[];
   workflows: SyncedWorkflow[];
   memoryCards: SyncedMemoryCard[];
   memoryProfile?: string;
@@ -96,10 +96,10 @@ export const emptyUserdataSyncState = (accountId: string): UserdataSyncState => 
  *  `Settings` satisfies it without importing UI types (single-source glue for
  *  the desktop and mobile hooks, rule 9). */
 export interface UserdataSettingsLike {
-  competences?: SyncedCompetence[];
+  competences?: SyncedSkill[];
   /** LEGACY — the local field from before the merge, still read on an old blob. `servers`
    *  is optional there, like on the single skill. */
-  workflows?: SyncedCompetence[];
+  workflows?: SyncedSkill[];
   memoire?: { profile?: string; cards: SyncedMemoryCard[] };
 }
 
@@ -115,17 +115,17 @@ export interface UserdataSettingsLike {
 export const snapshotOfSettings = (s: UserdataSettingsLike): UserdataSnapshot => {
   const all = [...(s.competences ?? []), ...(s.workflows ?? [])];
   const seen = new Set<string>();
-  const competences: SyncedCompetence[] = [];
+  const skills: SyncedSkill[] = [];
   const workflows: SyncedWorkflow[] = [];
   for (const c of all) {
     if (!c?.id || seen.has(c.id)) continue;
     seen.add(c.id);
     const servers = (c as SyncedWorkflow).servers ?? [];
     if (servers.length) workflows.push({ ...(c as SyncedWorkflow), servers });
-    else competences.push(c as SyncedCompetence);
+    else skills.push(c as SyncedSkill);
   }
   return {
-    competences,
+    competences: skills,
     workflows,
     memoryCards: s.memoire?.cards ?? [],
     memoryProfile: s.memoire?.profile,

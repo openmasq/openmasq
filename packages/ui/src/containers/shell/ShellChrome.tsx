@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
 import { panelOpenFile, useAppDispatch } from "../../state/redux";
-import { CompetenceOpenProvider } from "../../competences/competenceOpen";
+import { SkillOpenProvider } from "../../skills/skillOpen";
 import { MemoryUiProvider } from "../../memory/memoryUi";
 import { LinkOpenProvider } from "../providers/linkOpen";
 import { FileOpenProvider } from "../providers/fileOpen";
 import { makeConnectOpenRouter } from "../../state/connectOpenRouter";
-import { AvisOpenProvider } from "../providers/avisOpen";
+import { FeedbackOpenProvider } from "../providers/feedbackOpen";
 import { useOpenConnector } from "../providers/connectors";
 import { needsAccessNotice } from "../../state/accessNotice";
 import { hasEstablishedAccount } from "../../state/establishedAccount";
-import { AvisModal, GuideModal, SearchModal, UpdateReadyModal } from "../modals";
+import { FeedbackModal, GuideModal, SearchModal, UpdateReadyModal } from "../modals";
 import { StatusChip } from "../../components/feedback/StatusChip";
 import { pickShellNotice, type ShellNoticeKind } from "./shellNotice";
 import { TooltipLayer } from "../../components/brand/TooltipLayer";
@@ -66,7 +66,7 @@ export function ShellChrome({
   const t = useT();
   const dispatch = useAppDispatch();
   const host = useHost();
-  const { chat, overlay, avis, search, deep, conv, mcpReconnect } = shell;
+  const { chat, overlay, feedback, search, deep, conv, mcpReconnect } = shell;
   const openConnector = useOpenConnector();
   // Closed for the session: the condition itself only disappears by adding access.
   const [accessSeen, setAccessSeen] = useState(false);
@@ -132,11 +132,11 @@ export function ShellChrome({
   }, [overlay]);
 
   return (
-    <CompetenceOpenProvider value={deep.openCompetenceById}>
+    <SkillOpenProvider value={deep.openSkillById}>
               <MemoryUiProvider value={deep.memoryUiApi}>
           <LinkOpenProvider value={shell.pane.linkOpenApi}>
             <FileOpenProvider value={shell.pane.fileOpenApi}>
-            <AvisOpenProvider value={avis.api}>
+            <FeedbackOpenProvider value={feedback.api}>
               {/* One delegated listener for every `title` in the app — mounted HERE, on
                   the surround both platforms share, so a control labelled on one is
                   labelled on the other. It renders nothing until something is hovered. */}
@@ -174,13 +174,13 @@ export function ShellChrome({
                 )}
                 {nav}
                 <AnimatePresence>
-                  {avis.open && (
-                    <AvisModal
-                      onClose={() => avis.setOpen(null)}
+                  {feedback.open && (
+                    <FeedbackModal
+                      onClose={() => feedback.setOpen(null)}
                       // What identifies the build and the moment — never conversation
                       // content. Assembled in `useAvis`, gated by `buildFeedback`.
-                      context={avis.context}
-                      prefill={avis.open.prefill}
+                      context={feedback.context}
+                      prefill={feedback.open.prefill}
                       convId={chat.activeId}
                     />
                   )}
@@ -270,10 +270,10 @@ export function ShellChrome({
                   truncated mid-way, and a "Compris" that the scrim intercepted —
                   visible, readable, and dead on click. One decision at a time. */}
               {!overlay && <AnalyticsNotice settings={chat.settings} onChange={chat.setSettings} />}
-            </AvisOpenProvider>
+            </FeedbackOpenProvider>
             </FileOpenProvider>
           </LinkOpenProvider>
         </MemoryUiProvider>
-          </CompetenceOpenProvider>
+          </SkillOpenProvider>
   );
 }

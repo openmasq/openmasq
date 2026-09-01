@@ -28,7 +28,7 @@ import {
   emptyUserdataSyncState,
   snapshotOfSettings,
   settingsPatchOf,
-  type SyncedCompetence,
+  type SyncedSkill,
   type SyncedMemoryCard,
   type SyncedWorkflow,
   type UserdataPayload,
@@ -43,7 +43,7 @@ export {
   emptyUserdataSyncState,
   snapshotOfSettings,
   settingsPatchOf,
-  type SyncedCompetence,
+  type SyncedSkill,
   type SyncedMemoryCard,
   type SyncedWorkflow,
   type UserdataPayload,
@@ -55,7 +55,7 @@ export {
 const str = (v: unknown): v is string => typeof v === "string";
 const num = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
-const cleanCompetence = (c: SyncedCompetence): SyncedCompetence => ({
+const cleanSkill = (c: SyncedSkill): SyncedSkill => ({
   id: c.id,
   name: c.name,
   prompt: c.prompt,
@@ -102,7 +102,7 @@ const sigOf = (p: UserdataPayload): string => JSON.stringify(p);
 /** The snapshot as (key → allow-listed payload) entries. */
 function entriesOf(s: UserdataSnapshot): Map<string, UserdataPayload> {
   const out = new Map<string, UserdataPayload>();
-  for (const c of s.competences) if (str(c.id)) out.set(`cmp:${c.id}`, { type: "competence", item: cleanCompetence(c) });
+  for (const c of s.competences) if (str(c.id)) out.set(`cmp:${c.id}`, { type: "competence", item: cleanSkill(c) });
   for (const w of s.workflows) if (str(w.id)) out.set(`wf:${w.id}`, { type: "workflow", item: cleanWorkflow(w) });
   for (const m of s.memoryCards) if (str(m.id)) out.set(`mem:${m.id}`, { type: "memoryCard", item: cleanMemoryCard(m) });
   if (s.memoryProfile?.trim()) out.set(PROFILE_KEY, { type: "memoryProfile", profile: s.memoryProfile });
@@ -119,7 +119,7 @@ function validPayload(raw: unknown): UserdataPayload | null {
   if (!item || !str(item.id)) return null;
   if (p.type === "competence")
     return str(item.name) && str(item.prompt) && str(item.cat) && num(item.createdAt)
-      ? { type: "competence", item: cleanCompetence(item as unknown as SyncedCompetence) }
+      ? { type: "competence", item: cleanSkill(item as unknown as SyncedSkill) }
       : null;
   if (p.type === "workflow")
     return str(item.name) && str(item.prompt) && num(item.createdAt)

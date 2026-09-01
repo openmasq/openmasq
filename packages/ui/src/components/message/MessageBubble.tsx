@@ -4,7 +4,7 @@ import type { ProviderId } from "@openmasq/llm";
 import type { Message, RedactCategoryKey } from "../../types";
 import type { CreditBalance } from "../../host";
 import { RedactedText } from "./RedactedText";
-import { CompetenceTag } from "./CompetenceTag";
+import { SkillTag } from "./SkillTag";
 import { useHost } from "../../host";
 import {
   ModelLogo,
@@ -236,7 +236,7 @@ function MessageBubbleImpl({
         )}
         {message.askTarget && <AskTargetTag target={message.askTarget} />}
         {/* ⚠️ `?? workflow`: the OLD tag, still around in history (`@openmasq/schema`). */}
-        {skillTag && <CompetenceTag competence={skillTag} vault={vault} kinds={kinds} />}
+        {skillTag && <SkillTag competence={skillTag} vault={vault} kinds={kinds} />}
         {!!message.content.trim() && (
           <div className="msg-bubble" data-user-text>
             <RedactedText

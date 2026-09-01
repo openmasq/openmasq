@@ -28,7 +28,7 @@ import { registerCloudFsIpc } from "./ipc/registerCloudFsIpc";
 import { registerLocalFsIpc, setLocalFsChangeNotifier } from "./ipc/registerLocalFsIpc";
 import { decideProviderEndpoint } from "./net/providerEndpoint";
 import { noteFetchHostsFromText } from "./net/fetchAllow";
-import { flushEgressJournal } from "./net/egressJournal";
+import { flushEgressLog } from "./net/egressLog";
 import { initConfirmationMode } from "./mcp/confirmationMode";
 import { pickGrantDir } from "./mcp/pickGrantDir";
 import { registerPostureIpc } from "./ipc/registerPostureIpc";
@@ -930,7 +930,7 @@ app.on("before-quit", () => {
   // Land the last debounce window of the egress journal. Best-effort like the rest of this
   // handler: losing a few seconds of the record on a hard kill is acceptable — nothing else
   // depends on it, it is evidence for the user.
-  void flushEgressJournal();
+  void flushEgressLog();
 });
 
 app.on("window-all-closed", () => {

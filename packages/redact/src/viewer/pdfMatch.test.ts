@@ -293,9 +293,9 @@ describe("pdfReplacements — coffre PARTAGÉ entre documents (15/08/2026)", () 
     // The real case: the Kbis extract names the director, the agreement in principle names
     // the borrower. Without a shared vault, each mints its own and the model sees two
     // people — it answered "these documents don't name the same person".
-    const coffre: Record<string, string> = {};
-    const p1 = await pdfReplacements("Président : Sabourdin Julien — Karl Studio", redact, { vault: coffre });
-    const p2 = await pdfReplacements("Emprunteur : Sabourdin Julien", redact, { vault: coffre });
+    const vault: Record<string, string> = {};
+    const p1 = await pdfReplacements("Président : Sabourdin Julien — Karl Studio", redact, { vault });
+    const p2 = await pdfReplacements("Emprunteur : Sabourdin Julien", redact, { vault });
     const faux = (r: { replacements: { real: string; fake: string }[] }, real: string) =>
       r.replacements.find((x) => x.real === real)?.fake;
     expect(faux(p1, "Sabourdin Julien")).toBeTruthy();

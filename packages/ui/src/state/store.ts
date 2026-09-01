@@ -3,9 +3,9 @@ import { useT } from "../i18n";
 import { redactNumbersOn } from "../send/redactNumbers";
 import { modelsVersion, onModelsChanged } from "@openmasq/llm";
 import type { ChatMessage } from "@openmasq/llm";
-import type { Conversation, Settings, CoffreTerm } from "../types";
-import { makeCoffreTerm, coffreHasValue } from "../send/coffre";
-import { useCompetences } from "./useCompetences";
+import type { Conversation, Settings, VaultTerm } from "../types";
+import { makeVaultTerm, vaultHasValue } from "../send/vaultTerms";
+import { useSkills } from "./useSkills";
 import { useMemoryStore } from "./useMemory";
 import { useMemoryExtraction } from "./useMemoryExtraction";
 import { pinMemoryNote } from "./memoryExtractionRun";
@@ -1048,46 +1048,46 @@ export function useChatStore() {
    *  entry. Persisted in `Settings.coffre` (encrypted at rest via the DB, stripped from
    *  the plaintext localStorage copy) and merged HIGHEST-priority into every send's
    *  forced list. `token` = a canonical pseudonymize category (`NAME`/`ORG`/`IBAN`…). */
-  const addCoffreTerm = useCallback(
-    (value: string, token: string, note?: string): CoffreTerm | null => {
+  const addVaultTerm = useCallback(
+    (value: string, token: string, note?: string): VaultTerm | null => {
       const v = value.trim();
       if (!v) return null;
-      let entry: CoffreTerm | null = null;
+      let entry: VaultTerm | null = null;
       setSettings((s) => {
-        const coffre = s.coffre ?? [];
-        const existing = coffre.find((t) => t.value.trim().toLowerCase() === v.toLowerCase());
+        const vaultTerms = s.coffre ?? [];
+        const existing = vaultTerms.find((t) => t.value.trim().toLowerCase() === v.toLowerCase());
         if (existing) {
           entry = existing;
           return s;
         }
-        entry = makeCoffreTerm(v, token, note);
-        return { ...s, coffre: [entry, ...coffre] };
+        entry = makeVaultTerm(v, token, note);
+        return { ...s, coffre: [entry, ...vaultTerms] };
       });
       return entry;
     },
     [],
   );
   /** Remove a coffre entry by id. */
-  const removeCoffreTerm = useCallback((id: string) => {
+  const removeVaultTerm = useCallback((id: string) => {
     setSettings((s) => ({ ...s, coffre: (s.coffre ?? []).filter((t) => t.id !== id) }));
   }, []);
   /** Patch a coffre entry (e.g. change its type or note). */
-  const updateCoffreTerm = useCallback((id: string, patch: Partial<Omit<CoffreTerm, "id">>) => {
+  const updateVaultTerm = useCallback((id: string, patch: Partial<Omit<VaultTerm, "id">>) => {
     setSettings((s) => ({
       ...s,
       coffre: (s.coffre ?? []).map((t) => (t.id === id ? { ...t, ...patch } : t)),
     }));
   }, []);
   /** True when a value is already in the coffre (case-insensitive) — for de-dup UI. */
-  const coffreHas = useCallback(
-    (value: string) => coffreHasValue(settings.coffre, value),
+  const vaultHas = useCallback(
+    (value: string) => vaultHasValue(settings.coffre, value),
     [settings.coffre],
   );
 
   // ── The COMPÉTENCES: reusable prompts the user inserts into a chat ────────────────
   // Its CRUD lives in its own hook (this file is the repo's biggest and on the LOC
   // ratchet), over the SAME settings-field storage the coffre uses.
-  const competencesApi = useCompetences(settings, setSettings);
+  const skillsApi = useSkills(settings, setSettings);
   const memoryApi = useMemoryStore(settings, setSettings);
   // The extractor call must ROUTE exactly like a normal send. A platform model
   // (Scaleway, or OpenRouter without a stored key) is proxied through the app's
@@ -1136,7 +1136,7 @@ export function useChatStore() {
     activeId,
     settings,
     complete: host.complete ? memoryComplete : undefined,
-    setMemoire: (fn) => setSettings((s) => ({ ...s, memoire: fn(s.memoire ?? { cards: [] }) })),
+    setMemory: (fn) => setSettings((s) => ({ ...s, memoire: fn(s.memoire ?? { cards: [] }) })),
     patchConversation,
     // « retiens ça » feedback on the turn's assistant reply — the patch is
     // `pinMemoryNote` (beside the run that triggers it).
@@ -1521,14 +1521,14 @@ export function useChatStore() {
     unforceRedact,
     isRevealForced,
     /** The COFFRE — values ALWAYS redacted across every conversation + model. */
-    addCoffreTerm,
-    removeCoffreTerm,
-    updateCoffreTerm,
-    coffreHas,
+    addVaultTerm,
+    removeVaultTerm,
+    updateVaultTerm,
+    vaultHas,
     /** The COMPÉTENCES — reusable prompts the user inserts into a chat
      *  (`state/useCompetences.ts`). Spread so callers read `chat.competences`,
      *  `chat.addCompetence`, … flat, like every other store member. */
-    ...competencesApi,
+    ...skillsApi,
     /** The MÉMOIRE — cross-conversation durable facts (`state/useMemory.ts`). */
     ...memoryApi,
     sendMessage,

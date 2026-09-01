@@ -25,7 +25,7 @@ import { BRAND } from "@openmasq/branding";
  * send it anywhere, and the warning is inside the file so a stray copy still carries it.
  */
 export interface MemoryExportInput {
-  memoire: MemoryData;
+  memoryData: MemoryData;
   /** Semantic edges from the on-device index (raw kNN). Absent ⇒ the export says so
    *  rather than implying the memory has no links. */
   edges?: readonly SemanticEdge[] | null;
@@ -79,8 +79,8 @@ function neighbourhood(rows: Row[]): string[] {
 }
 
 export function memoryExportText(input: MemoryExportInput): string {
-  const { memoire, edges, now = new Date() } = input;
-  const cards = memoire.cards ?? [];
+  const { memoryData, edges, now = new Date() } = input;
+  const cards = memoryData.cards ?? [];
   const byId = new Map(cards.map((c) => [c.id, c]));
   const nameOf = (id: string) => byId.get(id)?.entity ?? `? ${id}`;
 
@@ -124,7 +124,7 @@ export function memoryExportText(input: MemoryExportInput): string {
     "",
     "PROFIL",
     line(),
-    memoire.profile?.trim() ? memoire.profile.trim() : "(aucun profil enregistré)",
+    memoryData.profile?.trim() ? memoryData.profile.trim() : "(aucun profil enregistré)",
   ];
 
   const cardsPart = ["", `FICHES ET LEURS LIENS (${cards.length})`, line()];

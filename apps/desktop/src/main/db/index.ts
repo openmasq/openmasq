@@ -11,8 +11,8 @@ export {
   dbDeleteConversation,
   dbSaveSettings,
 } from "./conversations";
-export { dbSaveDebugJournal, dbLoadDebugJournal } from "./debugJournal";
-export { dbSaveEgressJournal, dbLoadEgressJournal } from "./egressJournal";
+export { dbSaveDebugLog, dbLoadDebugLog } from "./debugLog";
+export { dbSaveEgressLog, dbLoadEgressLog } from "./egressLog";
 export {
   dbSaveFile,
   dbListFiles,

@@ -1,4 +1,4 @@
-import type { CoffreTerm, Competence } from "../types";
+import type { VaultTerm, Skill } from "../types";
 
 /**
  * Optional ORG-SHARE capability: propose / approve / read shares of coffre
@@ -63,13 +63,13 @@ export interface OrgSharesHost {
   proposeCoffre(input: {
     audience: OrgShareAudienceInput;
     label: string;
-    terms: CoffreTerm[];
+    terms: VaultTerm[];
   }): Promise<OrgShareView | null>;
   /** Propose a share of COMPÉTENCES. */
   proposeCompetences(input: {
     audience: OrgShareAudienceInput;
     label: string;
-    competences: Competence[];
+    competences: Skill[];
   }): Promise<OrgShareView | null>;
   /** Approve / refuse a pending share (the server checks WHO may). */
   decide(shareUuid: string, approve: boolean): Promise<OrgShareView | null>;
@@ -81,7 +81,7 @@ export interface OrgSharesHost {
   /** Decrypt ONE share's items (post-approval adopt of a person-share: the
    *  recipient copies them into their PERSONAL list — « vous gardez votre
    *  copie » goes both ways). Empty when unreadable. */
-  pullShareItems(shareUuid: string): Promise<{ terms: CoffreTerm[]; competences: Competence[] }>;
+  pullShareItems(shareUuid: string): Promise<{ terms: VaultTerm[]; competences: Skill[] }>;
   /** Pull the shared mirrors again NOW (after a decision landed). */
   refresh(): Promise<void>;
 }

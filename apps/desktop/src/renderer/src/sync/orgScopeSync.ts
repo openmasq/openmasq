@@ -10,23 +10,23 @@
  */
 import Debug from "debug";
 import {
-  absorbCoffreRecords,
+  absorbVaultTermRecords,
   absorbUserdataRecords,
   createOrgScopeSync,
-  emitCoffreRecords,
+  emitVaultTermRecords,
   emitUserdataRecords,
-  emptyCoffreSyncState,
+  emptyVaultTermsSyncState,
   emptyUserdataSyncState,
   orgHttpTransport,
   type OrgScopeSync,
   type OrgShareInfo,
-  type SyncedCoffreTerm,
-  type SyncedCompetence,
+  type SyncedVaultTerm,
+  type SyncedSkill,
   type SyncRecord,
 } from "@openmasq/sync";
 import type {
-  CoffreTerm,
-  Competence,
+  VaultTerm,
+  Skill,
   OrgSharesHost,
   OrgShareView,
 } from "@openmasq/ui";
@@ -83,11 +83,11 @@ function serial<T>(fn: () => Promise<T>): Promise<T> {
 
 /** Records for a coffre-share SNAPSHOT: the pure emit machinery over a fresh
  *  ledger (one allow-listed record per term — rule 9, no second serializer). */
-const coffreRecords = (terms: SyncedCoffreTerm[]): SyncRecord[] =>
-  emitCoffreRecords(terms, emptyCoffreSyncState("share"), syncDeviceId()).records;
-const competenceRecords = (competences: SyncedCompetence[]): SyncRecord[] =>
+const vaultTermRecords = (terms: SyncedVaultTerm[]): SyncRecord[] =>
+  emitVaultTermRecords(terms, emptyVaultTermsSyncState("share"), syncDeviceId()).records;
+const skillRecords = (skills: SyncedSkill[]): SyncRecord[] =>
   emitUserdataRecords(
-    { competences, workflows: [], memoryCards: [] },
+    { competences: skills, workflows: [], memoryCards: [] },
     emptyUserdataSyncState("share"),
     syncDeviceId(),
   ).records;
@@ -97,7 +97,7 @@ const competenceRecords = (competences: SyncedCompetence[]): SyncRecord[] =>
  *  recipient sets (admit newly-keyed audience members, rotate on exits). */
 export function pullOrgShares(
   orgUuid: string,
-): Promise<{ terms: CoffreTerm[]; competences: Competence[] } | null> {
+): Promise<{ terms: VaultTerm[]; competences: Skill[] } | null> {
   return serial(async () => {
     const s = orgSync();
     if (!s) return null;
@@ -110,8 +110,8 @@ export function pullOrgShares(
           debug("share %s: admitted=%d rotated=%s", share.shareUuid.slice(0, 8), r.admitted, r.rotated);
       }
     }
-    const terms = new Map<string, CoffreTerm>();
-    const competences = new Map<string, Competence>();
+    const terms = new Map<string, VaultTerm>();
+    const skills = new Map<string, Skill>();
     for (const share of shares) {
       if (!share.canRead || share.status !== "approved") continue;
       // A PERSON share never mirrors: accepting it ADOPTS the items into the
@@ -123,8 +123,8 @@ export function pullOrgShares(
       // The device-local `orgScope` tag is what badges the row (Équipe/Orga).
       const orgScope = share.audience.kind === "team" ? "team" : "org";
       if (share.scope === "coffre") {
-        const out = absorbCoffreRecords([], records, emptyCoffreSyncState("mirror"));
-        for (const t of out.terms) terms.set(t.id, { ...(t as CoffreTerm), orgScope } as CoffreTerm);
+        const out = absorbVaultTermRecords([], records, emptyVaultTermsSyncState("mirror"));
+        for (const t of out.terms) terms.set(t.id, { ...(t as VaultTerm), orgScope } as VaultTerm);
       } else {
         const out = absorbUserdataRecords(
           { competences: [], workflows: [], memoryCards: [] },
@@ -132,11 +132,11 @@ export function pullOrgShares(
           emptyUserdataSyncState("mirror"),
         );
         for (const c of out.snapshot.competences)
-          competences.set(c.id, { ...(c as Competence), orgScope } as Competence);
+          skills.set(c.id, { ...(c as Skill), orgScope } as Skill);
       }
     }
-    debug("org shares: %d visible, %d terms, %d compétences", shares.length, terms.size, competences.size);
-    return { terms: [...terms.values()], competences: [...competences.values()] };
+    debug("org shares: %d visible, %d terms, %d compétences", shares.length, terms.size, skills.size);
+    return { terms: [...terms.values()], competences: [...skills.values()] };
   });
 }
 
@@ -176,17 +176,17 @@ export const orgSharesHost: OrgSharesHost = {
     const share = await s.proposeShare(
       currentOrgUuid,
       { scope: "coffre", audience, label },
-      coffreRecords(terms as SyncedCoffreTerm[]),
+      vaultTermRecords(terms as SyncedVaultTerm[]),
     );
     return share ? toView(share) : null;
   },
-  async proposeCompetences({ audience, label, competences }) {
+  async proposeCompetences({ audience, label, competences: skills }) {
     const s = orgSync();
     if (!s || !currentOrgUuid) return null;
     const share = await s.proposeShare(
       currentOrgUuid,
       { scope: "userdata", audience, label },
-      competenceRecords(competences as SyncedCompetence[]),
+      skillRecords(skills as SyncedSkill[]),
     );
     return share ? toView(share) : null;
   },
@@ -225,15 +225,15 @@ export const orgSharesHost: OrgSharesHost = {
     const { records } = await s.pullShare(currentOrgUuid, share, 0);
     if (!records.length) return none;
     if (share.scope === "coffre") {
-      const out = absorbCoffreRecords([], records, emptyCoffreSyncState("adopt"));
-      return { terms: out.terms as CoffreTerm[], competences: [] };
+      const out = absorbVaultTermRecords([], records, emptyVaultTermsSyncState("adopt"));
+      return { terms: out.terms as VaultTerm[], competences: [] };
     }
     const out = absorbUserdataRecords(
       { competences: [], workflows: [], memoryCards: [] },
       records,
       emptyUserdataSyncState("adopt"),
     );
-    return { terms: [], competences: out.snapshot.competences as Competence[] };
+    return { terms: [], competences: out.snapshot.competences as Skill[] };
   },
   async markRead(id) {
     const s = orgSync();

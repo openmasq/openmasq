@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useT } from "../../../i18n";
 import type { Conversation } from "../../../types";
 import { AuditRedactionView } from "./AuditRedactionView";
-import { EgressJournalCard } from "./EgressJournalCard";
+import { EgressLogCard } from "./EgressLogCard";
 
 /**
  * The **Journal** tab — both halves of the same promise, behind ONE selector:
@@ -62,7 +62,7 @@ export function AuditLogTab({
       {view === "redaction" ? (
         <AuditRedactionView conversations={conversations} onOpenMessage={onOpenMessage} />
       ) : (
-        <EgressJournalCard />
+        <EgressLogCard />
       )}
     </>
   );

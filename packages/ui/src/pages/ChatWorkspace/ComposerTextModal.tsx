@@ -34,7 +34,7 @@ export function ComposerTextModal({
   keepValueOf,
   liveCount,
   onForceRedact,
-  onAddToCoffre,
+  onAddToVault,
   onClose,
 }: {
   input: string;
@@ -53,7 +53,7 @@ export function ComposerTextModal({
   keepValueOf: (occurrence: string) => string;
   liveCount: number;
   onForceRedact?: (text: string, token: string) => void;
-  onAddToCoffre?: (text: string, token: string) => void;
+  onAddToVault?: (text: string, token: string) => void;
   onClose: () => void;
 }) {
   const t = useT();
@@ -149,10 +149,10 @@ export function ComposerTextModal({
               onForceRedact(sel.text, token);
               clear();
             }}
-            onCoffre={
-              onAddToCoffre
+            onVault={
+              onAddToVault
                 ? (token) => {
-                    onAddToCoffre(sel.text, token);
+                    onAddToVault(sel.text, token);
                     clear();
                   }
                 : undefined

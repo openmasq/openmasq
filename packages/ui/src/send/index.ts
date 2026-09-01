@@ -1,5 +1,5 @@
 export * from "./askTarget";
-export * from "./coffre";
+export * from "./vaultTerms";
 export * from "./generatedFiles";
 export * from "./historyWindow";
 export * from "./redactFailure";

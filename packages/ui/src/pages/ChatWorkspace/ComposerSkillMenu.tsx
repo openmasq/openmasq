@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useT } from "../../i18n";
-import type { Competence } from "../../types";
+import type { Skill } from "../../types";
 import type { SlashAction } from "./slashPalette";
 import { MemoryIcon, WorkflowIcon } from "../../components/brand";
 
@@ -18,15 +18,15 @@ import { MemoryIcon, WorkflowIcon } from "../../components/brand";
  * as one list. The ✨ dropdown passes no actions. Chrome: `styles/skills/composer.css`.
  */
 export function ComposerSkillMenu({
-  competences,
+  skillList,
   onPick,
   activeIndex,
   onCreate,
   actions,
   onPickAction,
 }: {
-  competences: Competence[];
-  onPick: (c: Competence) => void;
+  skillList: Skill[];
+  onPick: (c: Skill) => void;
   /** The "/" palette's keyboard cursor — highlights that row and keeps it scrolled
    *  into view. Absent for the ✨ dropdown (mouse-only). */
   activeIndex?: number;
@@ -75,7 +75,7 @@ export function ComposerSkillMenu({
         </>
       )}
       <div className="composer-skill-eyebrow">{t.menus.skills.competences}</div>
-      {competences.length === 0 ? (
+      {skillList.length === 0 ? (
         <div className="composer-skill-empty">
           <span>{t.menus.skills.empty}</span>
           {onCreate && (
@@ -85,7 +85,7 @@ export function ComposerSkillMenu({
           )}
         </div>
       ) : (
-        competences.map((c, i) => (
+        skillList.map((c, i) => (
           <button
             key={c.id}
             type="button"

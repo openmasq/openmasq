@@ -1,10 +1,10 @@
 export { pickSuggestions, isUntouchedDraft, type SuggestionBase } from "./suggestions";
 export {
-  competenceSuggestions,
-  COMPETENCE_SUGGESTION_LIMIT,
-  suggestedCompetences,
-  type CompetenceSuggestion,
-} from "./competenceSuggestions";
+  skillSuggestions,
+  SKILL_SUGGESTION_LIMIT,
+  suggestedSkills,
+  type SkillSuggestion,
+} from "./skillSuggestions";
 export {
   routineSuggestions,
   ROUTINE_SUGGESTION_LIMIT,

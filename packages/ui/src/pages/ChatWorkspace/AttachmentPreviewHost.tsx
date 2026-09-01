@@ -20,7 +20,7 @@ export function AttachmentPreviewHost({
   onRevealChange,
   onForceRedactDoc,
   onDeleteRedactionDoc,
-  onAddToCoffre,
+  onAddToVault,
   onClose,
 }: {
   preview: Attachment | null;
@@ -31,7 +31,7 @@ export function AttachmentPreviewHost({
   onRevealChange?: (cid: string, reveal: string[]) => void;
   onForceRedactDoc?: (cid: string, value: string, token: string) => void;
   onDeleteRedactionDoc?: (cid: string, value: string) => void;
-  onAddToCoffre?: (value: string, token: string) => void;
+  onAddToVault?: (value: string, token: string) => void;
   onClose: () => void;
 }) {
   return (
@@ -57,7 +57,7 @@ export function AttachmentPreviewHost({
           onDeleteRedaction={
             onDeleteRedactionDoc ? (value) => onDeleteRedactionDoc(preview.cid, value) : undefined
           }
-          onAddToCoffre={onAddToCoffre}
+          onAddToVault={onAddToVault}
           inactiveCategories={inactiveCategories}
           convCategories={convCategories}
           onClose={onClose}

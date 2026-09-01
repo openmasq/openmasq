@@ -1,8 +1,8 @@
 import { RETIRED_CATEGORIES } from "@openmasq/catalog/redaction";
 import type { PseudonymizeOptions } from "@openmasq/redact";
-import { coffreToForced } from "./coffre";
+import { vaultTermsToForced } from "./vaultTerms";
 import { connectedUrlHosts } from "./redactKeep";
-import type { CoffreTerm } from "../types";
+import type { VaultTerm } from "../types";
 
 /**
  * The engine options CORE for a send — built ONCE in `sendMessage`, passed
@@ -169,12 +169,12 @@ export function sendKeepList(
  *  source": a Coffre value the user never typed that surfaces in a Gmail/CRM
  *  result must still be masked (a value absent from a result is a no-op). */
 export function toolForcedList(
-  coffre: CoffreTerm[] | undefined,
+  vaultTerms: VaultTerm[] | undefined,
   conv: Pick<ConvLike, "forcedRedactions">,
 ): ForcedItem[] {
   const seen = new Set<string>();
   const out: ForcedItem[] = [];
-  for (const f of [...coffreToForced(coffre), ...(conv.forcedRedactions ?? [])]) {
+  for (const f of [...vaultTermsToForced(vaultTerms), ...(conv.forcedRedactions ?? [])]) {
     const key = f?.value?.trim().toLowerCase();
     if (!key || seen.has(key)) continue;
     seen.add(key);
@@ -184,7 +184,7 @@ export function toolForcedList(
 }
 
 export function sendForcedList(
-  coffre: CoffreTerm[] | undefined,
+  vaultTerms: VaultTerm[] | undefined,
   conv: Pick<ConvLike, "forcedRedactions">,
   optsForced: ForcedItem[] | undefined,
   modelText: string,
@@ -198,7 +198,7 @@ export function sendForcedList(
   const seen = new Set<string>();
   const out: ForcedItem[] = [];
   for (const f of [
-    ...coffreToForced(coffre),
+    ...vaultTermsToForced(vaultTerms),
     ...(conv.forcedRedactions ?? []),
     ...(optsForced ?? []),
   ]) {

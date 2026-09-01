@@ -199,7 +199,7 @@ export function toText(entries: readonly DebugEntry[], opts?: { mapping?: boolea
  * Empty when debug mode is off — nothing is captured then, and an empty string is what
  * tells the modal it has no journal to offer.
  */
-export function journalExportFor(convId?: string | null): string {
+export function logExportFor(convId?: string | null): string {
   const entries = getDebugLog().filter((e) => isEntryVisibleIn(e, convId));
   return toText(entries, { mapping: false });
 }

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import { CompetencesView, OrgCompetencesBlock } from "../../../pages/Competences";
+import { SkillsView, OrgSkillsBlock } from "../../../pages/Skills";
 import { applySkillImport, type ImportChoice } from "../../../import/applyImport";
 import { SharePromoteModal } from "../../orgShares/SharePromoteModal";
 import { useHost } from "../../../host";
-import type { Competence } from "../../../types";
+import type { Skill } from "../../../types";
 import type { ShellApi } from "../useShell";
 
 /**
@@ -27,34 +27,34 @@ export function AuthoringSection({
   shell: ShellApi;
   onToggleSidebar?: () => void;
 }) {
-  const { chat, deep, stageCompetence } = shell;
+  const { chat, deep, stageSkill } = shell;
   const host = useHost();
-  const [promo, setPromo] = useState<Competence | null>(null);
+  const [promo, setPromo] = useState<Skill | null>(null);
   const onImport = (items: ImportChoice[]) =>
     applySkillImport(items, {
-      competenceNames: chat.competences.map((c) => c.name),
-      addCompetence: chat.addCompetence,
+      competenceNames: chat.skills.map((c) => c.name),
+      addCompetence: chat.addSkill,
     });
   return (
     <>
-      <CompetencesView
-        competences={chat.competences}
+      <SkillsView
+        skills={chat.skills}
         loaded={chat.loaded}
-        onAdd={chat.addCompetence}
-        onUpdate={chat.updateCompetence}
-        onRemove={chat.removeCompetence}
-        onRestore={chat.restoreCompetence}
-        onTogglePin={chat.toggleCompetencePin}
-        onUse={stageCompetence}
+        onAdd={chat.addSkill}
+        onUpdate={chat.updateSkill}
+        onRemove={chat.removeSkill}
+        onRestore={chat.restoreSkill}
+        onTogglePin={chat.toggleSkillPin}
+        onUse={stageSkill}
         onImport={onImport}
         requestedId={deep.openComp}
         onToggleSidebar={onToggleSidebar}
-        onShareCompetence={host.orgShares ? (c) => setPromo(c) : undefined}
+        onShareSkill={host.orgShares ? (c) => setPromo(c) : undefined}
         orgBlock={
           chat.orgProfile ? (
-            <OrgCompetencesBlock
+            <OrgSkillsBlock
               competences={chat.settings.orgCompetences ?? []}
-              onUse={stageCompetence}
+              onUse={stageSkill}
             />
           ) : undefined
         }

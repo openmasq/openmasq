@@ -28,7 +28,7 @@ import { useT } from "../../i18n";
  * `useMemoryReview`; the small chrome (⋯ menu, merge card, undo toast) in `parts.tsx`.
  */
 export function MemoryView({
-  memoire,
+  memoryData,
   conversations,
   requestedId,
   memoryAuto,
@@ -42,7 +42,7 @@ export function MemoryView({
   onToggleSidebar,
   loaded = true,
 }: {
-  memoire: MemoryData;
+  memoryData: MemoryData;
   /** For usage ("recalled in N conversations") — read only, never mutated here. */
   conversations?: readonly Conversation[];
   /** Deep-link from a chat caption: focus this card's node. The `n` nonce re-focuses
@@ -76,18 +76,18 @@ export function MemoryView({
   const [grouped, setGrouped] = useState(false);
   // Semantic edges from the on-device index (desktop). Present ⇒ the CLUSTERED view
   // (groups by meaning, the embedder's whole point); absent ⇒ the category radial.
-  const { edges: semEdges } = useMemoryIndex(memoire);
+  const { edges: semEdges } = useMemoryIndex(memoryData);
   // "À revoir" + the delete safety net — the review-flow logic.
-  const review = useMemoryReview(memoire, semEdges, { onUpdate, onRemove, onRestore, onMerge });
+  const review = useMemoryReview(memoryData, semEdges, { onUpdate, onRemove, onRestore, onMerge });
   const matched = useMemo(() => {
-    let ids: Set<string> | null = matchingCardIds(memoire, query);
+    let ids: Set<string> | null = matchingCardIds(memoryData, query);
     if (catFilter) {
-      const inCat = new Set(memoire.cards.filter((c) => c.cat === catFilter).map((c) => c.id));
+      const inCat = new Set(memoryData.cards.filter((c) => c.cat === catFilter).map((c) => c.id));
       ids = ids ? new Set([...ids].filter((id) => inCat.has(id))) : inCat;
     }
     if (!review.fresh || !review.freshIds.size) return ids;
     return ids ? new Set([...ids].filter((id) => review.freshIds.has(id))) : review.freshIds;
-  }, [memoire, query, catFilter, review.fresh, review.freshIds]);
+  }, [memoryData, query, catFilter, review.fresh, review.freshIds]);
   // The real usage, from the persisted send traces (`memoryUsed`/`memorySkipped`
   // on the messages) — what makes the Mémoire's value VISIBLE on the page.
   const usage = useMemo(() => memoryUsageIndex(conversations ?? []), [conversations]);
@@ -96,13 +96,13 @@ export function MemoryView({
     if (requestedId) setSelected(`card-${requestedId.id}`);
   }, [requestedId]);
   const clustered = useMemo(
-    () => (semEdges ? buildClusteredGraph(memoire, semEdges, t) : null),
-    [memoire, semEdges, t],
+    () => (semEdges ? buildClusteredGraph(memoryData, semEdges, t) : null),
+    [memoryData, semEdges, t],
   );
-  const graph = useMemo(() => clustered ?? buildMemoryGraph(memoire, t), [clustered, memoire, t]);
+  const graph = useMemo(() => clustered ?? buildMemoryGraph(memoryData, t), [clustered, memoryData, t]);
   const selNode = graph.nodes.find((n) => n.id === selected) ?? null;
-  const selCard = selNode?.cardId ? memoire.cards.find((c) => c.id === selNode.cardId) ?? null : null;
-  const legend = MEMORY_CATEGORIES.filter((c) => memoire.cards.some((k) => k.cat === c.id));
+  const selCard = selNode?.cardId ? memoryData.cards.find((c) => c.id === selNode.cardId) ?? null : null;
+  const legend = MEMORY_CATEGORIES.filter((c) => memoryData.cards.some((k) => k.cat === c.id));
 
   // DEBUG export: the cards AND the semantic links, as a local text file. The links are
   // what a clustering/dedupe question turns on, and they are invisible on screen.
@@ -110,14 +110,14 @@ export function MemoryView({
     downloadTextFile(
       memoryExportFilename(),
       "text/plain;charset=utf-8",
-      memoryExportText({ memoire, edges: semEdges ?? null }),
+      memoryExportText({ memoryData, edges: semEdges ?? null }),
     );
   };
 
   // UNIQUE name on every creation: `autoCleanMemory` automatically merges two cards of the
   // same category that share a key — a placeholder with a FIXED name would self-destruct.
   const addCard = () => {
-    const card = onAdd({ entity: newCardEntity(memoire.cards), facts: "", cat: "personne" });
+    const card = onAdd({ entity: newCardEntity(memoryData.cards), facts: "", cat: "personne" });
     if (card) setSelected(`card-${card.id}`);
   };
 
@@ -161,7 +161,7 @@ export function MemoryView({
 
       <div className="library-body">
         <div className="om-skill-inner">
-          <MemoryProfile memoire={memoire} onSetProfile={onSetProfile} />
+          <MemoryProfile memoryData={memoryData} onSetProfile={onSetProfile} />
 
           <div className="om-skill-filters">
             <label className="om-mem-auto">
@@ -193,7 +193,7 @@ export function MemoryView({
             ))}
           </div>
 
-          {memoire.cards.length > 0 && (
+          {memoryData.cards.length > 0 && (
             <MemoryToolbar
               query={query}
               onQuery={setQuery}
@@ -212,7 +212,7 @@ export function MemoryView({
           {review.fresh && review.mergeHint && (
             <MemoryMergeHint
               hint={review.mergeHint}
-              cardOf={(id) => memoire.cards.find((c) => c.id === id)}
+              cardOf={(id) => memoryData.cards.find((c) => c.id === id)}
               onMerge={() => {
                 onMerge?.(review.mergeHint!.keepId, review.mergeHint!.dropId);
                 setSelected(`card-${review.mergeHint!.keepId}`);
@@ -221,9 +221,9 @@ export function MemoryView({
             />
           )}
 
-          {memoire.cards.length === 0 && !memoire.profile?.trim() && !loaded ? (
+          {memoryData.cards.length === 0 && !memoryData.profile?.trim() && !loaded ? (
             <div className="library-empty">{t.lists.loading}</div>
-          ) : memoire.cards.length === 0 && !memoire.profile?.trim() ? (
+          ) : memoryData.cards.length === 0 && !memoryData.profile?.trim() ? (
             // The three bullet points already say the shape, the action and the benefit: the body
             // doesn't repeat them, it only keeps the examples and the at-rest regime.
             // ⚠️ Not "everything stays on your machine": a card goes out to other
@@ -248,7 +248,7 @@ export function MemoryView({
           ) : view === "list" ? (
             <div className="om-mem-listwrap">
               <MemoryList
-                memoire={memoire}
+                memoryData={memoryData}
                 matched={matched}
                 freshIds={review.freshIds}
                 grouped={grouped}

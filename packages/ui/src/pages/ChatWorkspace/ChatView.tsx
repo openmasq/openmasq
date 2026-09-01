@@ -13,7 +13,7 @@ import { sendErrorReason } from "../../state/errors";
 import { httpStatus, requestIdOf, retriesOf } from "../../state/errors/fields";
 import { useRedaction } from "../../send/redaction";
 import { effectiveRedactCategories, disabledKindsOf } from "../../send/redactionOptions";
-import { coffreToForced, combinedCoffre } from "../../send/coffre";
+import { vaultTermsToForced, combinedVaultTerms } from "../../send/vaultTerms";
 import { pushDebug, DRAFT_CONV } from "../../state/debug";
 import { logOcrDebug } from "./ocrDebug";
 import { conversationProtectedCount } from "../../state/protectedCount";
@@ -22,9 +22,9 @@ import type { Conversation, Message, RedactCategoryKey, Settings } from "../../t
 import { DropZone } from "./DropZone";
 import { MessageBubble } from "../../components/message/MessageBubble";
 import { ApiKeyModal, ModelAccessModal } from "../../containers/modals";
-import { useAvisOpen } from "../../containers/providers/avisOpen";
+import { useFeedbackOpen } from "../../containers/providers/feedbackOpen";
 import { useOpenConnector } from "../../containers/providers/connectors";
-import { redactionProblemDraft } from "../../avis/avis";
+import { redactionProblemDraft } from "../../feedback/feedback";
 import {
   sessionAllowedWriteTools,
   conversationAllowedWriteTools,
@@ -42,10 +42,10 @@ import { redactEngineSig } from "./redactEngineSig";
 import { timeGreeting } from "./greeting";
 import { inactiveCategoryLabels } from "./docCategoryNotice";
 import { useChatSelector, shallowEqual } from "../../containers/providers/chatStore";
-import type { AskTarget, Competence } from "../../types";
-import { useOpenCompetence } from "../../competences/competenceOpen";
+import type { AskTarget, Skill } from "../../types";
+import { useOpenSkill } from "../../skills/skillOpen";
 import { useAddProposedSkill, useIsProposedSkillAdded } from "../../suggestions/useAddProposedSkill";
-import { competenceLaunchText, competenceServers, promptSlots } from "../../competences/launch";
+import { skillLaunchText, skillServers, promptSlots } from "../../skills/launch";
 import { askTargetLabel, askTargetLaunchText } from "../../send/askTarget";
 import { protectedValueCount, shouldShowTransparencyCard } from "../../privacy/transparency";
 import { TransparencyCard } from "./TransparencyCard";
@@ -226,7 +226,7 @@ interface Props {
   onForceRedact?: (value: string, category: string) => void;
   /** Add the selected span to the global COFFRE (always redacted, every conversation).
    *  Enables the "Redact" menu's Cette conversation / Coffre scope toggle. */
-  onAddToCoffre?: (value: string, token: string) => void;
+  onAddToVault?: (value: string, token: string) => void;
   /** Add a MÉMOIRE card — the selection menu's « Retenir » gesture (local + instant,
    *  never a model call: the selection is REAL text and re-sending it would be new
    *  egress). Absent ⇒ the gesture is hidden. */
@@ -245,9 +245,9 @@ interface Props {
   /** A compétence the user chose to USE, from the Compétences page or the sidebar's
    *  pinned list. Staged the same way as `pendingAttachment`: the shell hands it over,
    *  we consume it and call back. It stages a TAG — its prompt never enters the draft. */
-  pendingCompetence?: Competence | null;
+  pendingSkill?: Skill | null;
   /** Called after `pendingCompetence` has been staged, to clear it. */
-  onCompetenceConsumed?: () => void;
+  onSkillConsumed?: () => void;
   /** The folder/file the user clicked « Demander » on (right rail) — staged like a
    *  compétence: a TAG the send carries, never draft text. */
   pendingTarget?: AskTarget | null;
@@ -314,15 +314,15 @@ export function ChatView({
   onReRedact,
   isRevealForced,
   onForceRedact,
-  onAddToCoffre,
+  onAddToVault,
   onAddMemoryCard,
   memoryHint,
   onSetApiKey,
   keyConfigured,
   pendingAttachment,
   onPendingConsumed,
-  pendingCompetence,
-  onCompetenceConsumed,
+  pendingSkill,
+  onSkillConsumed,
   pendingTarget,
   onTargetConsumed,
   orgProfile,
@@ -342,10 +342,10 @@ export function ChatView({
   // « Signaler un masquage incorrect » on a mark's popover → « Votre avis »
   // prefilled (category bug + surface phrasing; the KIND label only, never the value).
   // No `host.avis` ⇒ `openAvis` undefined ⇒ the popover hides the report row.
-  const { openAvis } = useAvisOpen();
+  const { openFeedback } = useFeedbackOpen();
   const openConnector = useOpenConnector();
-  const reportRedaction = openAvis
-    ? (surface: "message" | "reponse", kind: string) => openAvis(redactionProblemDraft(surface, t, kind))
+  const reportRedaction = openFeedback
+    ? (surface: "message" | "reponse", kind: string) => openFeedback(redactionProblemDraft(surface, t, kind))
     : undefined;
   const redactAsync = useRedaction();
   /**
@@ -451,17 +451,17 @@ export function ChatView({
     label: string;
     tone: string;
   } | null>(null);
-  const { skillsUsable, memoryOpen, activeCompetence, setActiveCompetence } = useChatGates();
+  const { skillsUsable, memoryOpen, activeSkill, setActiveSkill } = useChatGates();
   // The « Demander » target staged for the NEXT send — held the SAME way (entity, not
   // text): its context line rides the model payload at send, the composer shows a tag.
   const [activeTarget, setActiveTarget] = useState<AskTarget | null>(null);
   // Editing the STAGED compétence, from its chip — the same deep-link a sent bubble's tag
   // offers, so the affordance reads the same before and after the send.
-  const openCompetence = useOpenCompetence();
+  const openSkill = useOpenSkill();
   // The user's compétences, read straight from the store slice (like ChatHeader) so the
   // composer's picker can list them without threading through AppShell.
-  const competences = useChatSelector((s) => s.competences, shallowEqual);
-  const markCompetenceUsed = useChatSelector((s) => s.markCompetenceUsed);
+  const skills = useChatSelector((s) => s.skills, shallowEqual);
+  const markSkillUsed = useChatSelector((s) => s.markSkillUsed);
   // Adopting what the model just produced (`SkillCard`) — the routing lives in
   // the suggestion domain, not in this view.
   const addProposedSkill = useAddProposedSkill();
@@ -588,14 +588,14 @@ export function ChatView({
   // so the composer shows a tag and the user's own text stays their own. Picking a second
   // one REPLACES the first — a send carries at most one compétence, and the chip is the
   // whole truth about what will be prepended.
-  const handlePickCompetence = (c: Competence) => {
-    setActiveCompetence(c);
+  const handlePickSkill = (c: Skill) => {
+    setActiveSkill(c);
     // Drop a selection tag ("Préciser") and the « Demander » target: a send carries ONE
     // intent chip, and the compétence chip is DERIVED from the entity below — never
     // set as a second state.
     setActiveTag(null);
     setActiveTarget(null);
-    markCompetenceUsed?.(c.id);
+    markSkillUsed?.(c.id);
   };
   // The compétence chip is DERIVED from the staged entity — one state, not two.
   // The former hand-paired `setActiveTag` twin died of exactly the failure class this
@@ -606,18 +606,18 @@ export function ChatView({
   // beside its name and previews the instruction line, the one that has none renders
   // exactly what the old compétence chip rendered. The preview is the EXACT text
   // that will be prepended — the chip tells the whole truth about the send.
-  const drivesTools = !!activeCompetence?.servers?.length;
-  const competenceTag = activeCompetence
+  const drivesTools = !!activeSkill?.servers?.length;
+  const skillTag = activeSkill
     ? {
-        label: `${drivesTools ? "Routine" : "Compétence"} : ${activeCompetence.name}`,
+        label: `${drivesTools ? "Routine" : "Compétence"} : ${activeSkill.name}`,
         tone: drivesTools ? "violet" : "sky",
-        preview: competenceLaunchText(activeCompetence),
-        servers: drivesTools ? competenceServers(activeCompetence) : undefined,
+        preview: skillLaunchText(activeSkill),
+        servers: drivesTools ? skillServers(activeSkill) : undefined,
         // The prompt's `{braces}`: the chip SHOWS them because nothing
         // fills them in — they get specified in the message written beside it. Without this reminder,
         // « Prépare ma journée du {date}. » goes out as-is on a plain "go" (journal
         // entry of 27/07/2026).
-        slots: promptSlots(activeCompetence.prompt),
+        slots: promptSlots(activeSkill.prompt),
       }
     : null;
   // The « Demander » target chip — same derivation rule (one state, the chip derives).
@@ -1050,12 +1050,12 @@ export function ChatView({
     // main way one gets used, so the attachment path must not drop it.
     // `servers` goes out with it: it's what builds the instruction line on the store side AND
     // what opens the turn's tool scope (and the next one's, by resuming from the message).
-    const competence = activeCompetence
+    const skill = activeSkill
       ? {
-          id: activeCompetence.id,
-          name: activeCompetence.name,
-          prompt: activeCompetence.prompt,
-          servers: activeCompetence.servers,
+          id: activeSkill.id,
+          name: activeSkill.name,
+          prompt: activeSkill.prompt,
+          servers: activeSkill.servers,
         }
       : undefined;
     // The staged « Demander » target rides the same way: its context line is minted
@@ -1066,11 +1066,11 @@ export function ChatView({
     if (usable.length > 0) {
       clearInput();
       setActiveTag(null);
-      setActiveCompetence(null);
+      setActiveSkill(null);
         setActiveTarget(null);
       setAttachments([]);
       void runSend(text, usable, {
-        competence,
+        competence: skill,
         askTarget,
         docReplacements: reuseDocReplacements(usable),
       });
@@ -1082,11 +1082,11 @@ export function ChatView({
     const forcedRedactions = conversation || !pendingForced.length ? undefined : pendingForced;
     clearInput();
     setActiveTag(null);
-    setActiveCompetence(null);
+    setActiveSkill(null);
     setActiveTarget(null);
     setPendingForced([]);
     setAttachments([]);
-    void runSend(text, usable, { plotTag, competence, askTarget, forcedRedactions });
+    void runSend(text, usable, { plotTag, competence: skill, askTarget, forcedRedactions });
   }
 
   // A vision model to offer when the current one can't take files: prefer one from
@@ -1218,7 +1218,7 @@ export function ChatView({
   // ⊕ the conversation's persisted set ⊕ this send's buffered ones). A document containing
   // one must NOT be reused: the drop-time pass applies no `forced` list (reusableDocReplacements).
   const forcedValues = [
-    ...coffreToForced(combinedCoffre(settings)),
+    ...vaultTermsToForced(combinedVaultTerms(settings)),
     ...(conversation?.forcedRedactions ?? pendingForced),
   ];
 
@@ -1237,7 +1237,7 @@ export function ChatView({
   // The journal target of a drop job: the id NAMED by « Demander » (its
   // conversation isn't the one on screen), otherwise the open conversation, otherwise the
   // DRAFT — never undefined. The why: `ocrDebug.ts`.
-  const journalConv = (forConvId?: string) => forConvId ?? conversation?.id ?? DRAFT_CONV;
+  const logConv = (forConvId?: string) => forConvId ?? conversation?.id ?? DRAFT_CONV;
 
   const { stage: stageAttachments, patch: patchStaged } = makeStaging({
     currentConvId: () => convIdRef.current,
@@ -1266,7 +1266,7 @@ export function ChatView({
     // The journal follows the NAMED conversation when there is one: « Demander » stages for
     // a thread that isn't on screen, and stamping `conversation?.id` would leak its entries
     // to the conversation the user is LEAVING.
-    for (const f of picked) logOcrDebug(f, journalConv(forConvId));
+    for (const f of picked) logOcrDebug(f, logConv(forConvId));
     const deps = forConvId ? { ...redactDeps, convId: forConvId } : redactDeps;
     for (const a of added) redactAttachment(a, deps);
   }
@@ -1288,7 +1288,7 @@ export function ChatView({
         patch: (c, patch) => patchStaged(c, patch),
         countMatches: (t) => redactMatchCount(t, redactPolicy.disabledKinds),
         onExtracted: (f, merged) => {
-          logOcrDebug(f, journalConv(conversation?.id));
+          logOcrDebug(f, logConv(conversation?.id));
           if (f.text.trim()) redactAttachment(merged, redactDeps);
         },
       },
@@ -1304,7 +1304,7 @@ export function ChatView({
     patch: patchStaged,
     countMatches: (t: string) => redactMatchCount(t, redactPolicy.disabledKinds),
     onExtracted: (f: ExtractedFile, a: Attachment) => {
-      logOcrDebug(f, journalConv(convId));
+      logOcrDebug(f, logConv(convId));
       if (f.text.trim()) redactAttachment(a, convId ? { ...redactDeps, convId } : redactDeps);
     },
   });
@@ -1361,7 +1361,7 @@ export function ChatView({
                 redactPreview: merged.redactPreview,
                 redacting: !!f.text.trim(),
               });
-              logOcrDebug(f, journalConv());
+              logOcrDebug(f, logConv());
               if (f.error) setAttachWarning(`${f.name}: ${f.error}`);
               else if (f.text.trim()) redactAttachment(merged, redactDeps);
             });
@@ -1402,14 +1402,14 @@ export function ChatView({
   // so a half-typed message is never clobbered and the prompt can't be edited into
   // something the tag no longer describes.
   useEffect(() => {
-    if (!pendingCompetence) return;
+    if (!pendingSkill) return;
     // Same path as the composer's picker: stage the ENTITY; the chip derives from it.
-    setActiveCompetence(pendingCompetence);
+    setActiveSkill(pendingSkill);
     setActiveTag(null);
     setActiveTarget(null);
-    onCompetenceConsumed?.();
+    onSkillConsumed?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingCompetence]);
+  }, [pendingSkill]);
 
   // A « Demander » target (right rail): same hand-off as the compétence — stage the
   // ENTITY, the chip derives from it, the draft stays the user's own. The old version
@@ -1420,7 +1420,7 @@ export function ChatView({
     if (!pendingTarget) return;
     setActiveTarget(pendingTarget);
     setActiveTag(null);
-    setActiveCompetence(null);
+    setActiveSkill(null);
     onTargetConsumed?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingTarget]);
@@ -1544,11 +1544,11 @@ export function ChatView({
             : undefined
         }
         memoryHint={memoryHint}
-        tag={competenceTag ?? targetTag ?? activeTag}
+        tag={skillTag ?? targetTag ?? activeTag}
         onClearTag={() => {
           // Each intent chip derives from its entity: clearing IT clears the
           // entity (they cannot desync); a selection tag clears its own state.
-          if (activeCompetence) setActiveCompetence(null);
+          if (activeSkill) setActiveSkill(null);
           else if (activeTarget) setActiveTarget(null);
           else setActiveTag(null);
         }}
@@ -1556,19 +1556,19 @@ export function ChatView({
           // A compétence chip stands for something editable, and only once the shell
           // has wired its provider (null in a preview fragment) — the selection tags
           // stay inert text, as before.
-          activeCompetence && openCompetence
-            ? () => openCompetence(activeCompetence.id)
+          activeSkill && openSkill
+            ? () => openSkill(activeSkill.id)
             : undefined
         }
-        competences={competences}
-        onPickCompetence={handlePickCompetence}
+        competences={skills}
+        onPickSkill={handlePickSkill}
         // The live highlight's forced layer must see EVERY source the send forces —
         // the Coffre included (`forcedValues` = coffre ⊕ conversation/pending). With
         // only the conversation's set, a Coffre term typed in the composer showed no
         // highlight at all until after the send (the reported "coffre ne surligne pas").
         forcedRedactions={forcedValues}
         onForceRedact={onForceRedact || !conversation ? handleForceRedact : undefined}
-        onAddToCoffre={onAddToCoffre}
+        onAddToVault={onAddToVault}
         attachments={attachments}
         onRemoveAttachment={(i) => {
           // Cancel an in-flight redaction for the removed file (a long remote /
@@ -1806,10 +1806,10 @@ export function ChatView({
             seedForcedFake(sel.text, token);
             dropSelection();
           }}
-          onCoffre={
-            onAddToCoffre
+          onVault={
+            onAddToVault
               ? (token) => {
-                  onAddToCoffre(sel.text, token);
+                  onAddToVault(sel.text, token);
                   dropSelection();
                 }
               : undefined

@@ -1,5 +1,5 @@
 import { getMessages, LOCALES } from "@openmasq/i18n";
-import { COMPETENCE_CATEGORIES } from "../competences/competences";
+import { SKILL_CATEGORIES } from "../skills/skills";
 import { findConnector } from "@openmasq/catalog/mcp";
 
 /**
@@ -65,7 +65,7 @@ function resolveCat(raw: string): string | undefined {
   const k = stripAccents(raw.trim().toLowerCase());
   // The LABEL is accepted in ALL shipped languages: the model writes in the
   // conversation's language, which is not necessarily the interface's.
-  return COMPETENCE_CATEGORIES.find(
+  return SKILL_CATEGORIES.find(
     (c) =>
       c.id === k ||
       LOCALES.some(

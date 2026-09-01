@@ -31,7 +31,7 @@ export function SelectionMenu({
   x,
   y,
   onPick,
-  onCoffre,
+  onVault,
   onPreciser,
   onRetenir,
   label,
@@ -44,7 +44,7 @@ export function SelectionMenu({
   y: number;
   onPick: (token: string) => void;
   /** When set, picking under the "Coffre" scope adds the value to the global coffre. */
-  onCoffre?: (token: string) => void;
+  onVault?: (token: string) => void;
   /** When set, a second stage-1 action quotes the selection into the composer and tags
    *  the send "Préciser". A message selection offers it; a composer draft does not. */
   onPreciser?: () => void;
@@ -91,7 +91,7 @@ export function SelectionMenu({
     // A MANUAL redaction = the engine missed this value: the real false-negative
     // signal, by CATEGORY only — the token is a type id, never the value.
     captureEvent({ name: "redaction_forced", kind: token, source: scope === "coffre" ? "coffre" : origin });
-    return scope === "coffre" && onCoffre ? onCoffre(token) : onPick(token);
+    return scope === "coffre" && onVault ? onVault(token) : onPick(token);
   };
   // The menu hangs ABOVE the selection. Near the top of the viewport there is no room:
   // it used to render off-screen (select the first line of a document and the actions
@@ -112,7 +112,7 @@ export function SelectionMenu({
         // No second role="menu": the root already carries it (a menu nested
         // inside a menu is invalid) — the items keep role="menuitem".
         <div className="sel-redact-types">
-          {onCoffre && (
+          {onVault && (
             <div className="sel-redact-scope" role="radiogroup" aria-label={t.menus.selection.scopeAria}>
               <button
                 type="button"

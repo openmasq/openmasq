@@ -1,4 +1,4 @@
-import { BANK_OP_CODES } from "../vocab/vie";
+import { BANK_OP_CODES } from "../vocab/life";
 
 /**
  * The edges of a detected span, without the punctuation surrounding it.
@@ -74,7 +74,7 @@ export function stripTrailingEmailParen(value: string): string {
  *
  * Same move as `stripCivilStatusPrefix`: WHOLE words, at the head only, repeated (a
  * statement writes « VIR PRLV » on adjustments), and never to the point of emptying the span.
- * The list lives in `../vocab/vie.ts` (rule 9) — the same word already serves there to prevent a
+ * The list lives in `../vocab/life.ts` (rule 9) — the same word already serves there to prevent a
  * code ALONE from becoming an entity.
  */
 const BANK_OP_PREFIX = new RegExp(`^(?:${BANK_OP_CODES.join("|")})[\\s.:-]+`, "iu");

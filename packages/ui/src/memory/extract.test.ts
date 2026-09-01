@@ -281,15 +281,15 @@ describe("runMemoryExtraction — the whole pass, scripted model", () => {
   });
 
   function deps(complete: (p: { messages: { role: string; content: string }[] }) => Promise<string>) {
-    let memoire: MemoryData = { cards: [] };
+    let memoryData: MemoryData = { cards: [] };
     const patches: number[] = [];
     return {
       settings: { memoryAuto: true } as Parameters<typeof runMemoryExtraction>[1]["settings"],
       complete: complete as Parameters<typeof runMemoryExtraction>[1]["complete"],
-      setMemoire: (fn: (m: MemoryData) => MemoryData) => (memoire = fn(memoire)),
+      setMemory: (fn: (m: MemoryData) => MemoryData) => (memoryData = fn(memoryData)),
       patchConversation: (_id: string, fn: (c: Conversation) => Conversation) =>
         patches.push(fn(conv()).memoryWatermark ?? -1),
-      get memoire() { return memoire; },
+      get memoire() { return memoryData; },
       get watermarks() { return patches; },
     };
   }
@@ -434,7 +434,7 @@ describe("« retiens ça » — the explicit fast path", () => {
       ],
     };
     let sawUser = "";
-    let memoire: MemoryData = { cards: [] };
+    let memoryData: MemoryData = { cards: [] };
     let noted: number | undefined;
     const n = await runMemoryExtraction(conv, {
       settings: { memoryAuto: true } as never,
@@ -442,13 +442,13 @@ describe("« retiens ça » — the explicit fast path", () => {
         sawUser = p.messages[p.messages.length - 1]?.content ?? "";
         return JSON.stringify({ profil: null, faits: [{ entite: "Norvik Group", cat: "organisation", fait: "Devis signé, deadline septembre." }] });
       }) as never,
-      setMemoire: (fn) => (memoire = fn(memoire)),
+      setMemory: (fn) => (memoryData = fn(memoryData)),
       patchConversation: () => {},
       noteOnMessage: (_id, c) => (noted = c),
     }, { explicit: true });
     expect(sawUser).toContain("Norvik Group"); // the lookback recovered the referent (wire form)
     expect(n).toBe(1);
-    expect(memoire.cards[0].entity).toBe("Karl Studio");
+    expect(memoryData.cards[0].entity).toBe("Karl Studio");
     expect(noted).toBe(1); // the visible feedback fired
   });
 
@@ -482,7 +482,7 @@ describe("« retiens ça » — the explicit fast path", () => {
         settings: { memoryAuto: true } as never,
         // A good model judges a one-off chart request non-durable: empty extraction.
         complete: (async () => '{"profil": null, "faits": []}') as never,
-        setMemoire: () => { throw new Error("nothing must be stored"); },
+        setMemory: () => { throw new Error("nothing must be stored"); },
         patchConversation: () => {},
         noteOnMessage: (_id, c) => (noted = c),
       },
@@ -493,7 +493,7 @@ describe("« retiens ça » — the explicit fast path", () => {
   });
 
   it("an explicit ask runs even with memoryAuto OFF — the ask is its own consent", async () => {
-    let memoire: MemoryData = { cards: [] };
+    let memoryData: MemoryData = { cards: [] };
     let noted: { count: number; ids?: string[] } | undefined;
     const n = await runMemoryExtraction(
       {
@@ -507,24 +507,24 @@ describe("« retiens ça » — the explicit fast path", () => {
         settings: { memoryAuto: false } as never,
         complete: (async () =>
           JSON.stringify({ profil: null, faits: [{ entite: "Norvik Group", cat: "organisation", fait: "Devis Q3 signé." }] })) as never,
-        setMemoire: (fn) => (memoire = fn(memoire)),
+        setMemory: (fn) => (memoryData = fn(memoryData)),
         patchConversation: () => {},
         noteOnMessage: (_id, count, ids) => (noted = { count, ids }),
       },
       { explicit: true },
     );
     expect(n).toBe(1);
-    expect(memoire.cards[0].entity).toBe("Karl Studio");
+    expect(memoryData.cards[0].entity).toBe("Karl Studio");
     // The feedback carries the CREATED card's id — and it matches the stored card,
     // so the caption's deep-link and « Annuler » target the right card.
-    expect(noted?.ids).toEqual([memoire.cards[0].id]);
+    expect(noted?.ids).toEqual([memoryData.cards[0].id]);
   });
 
   it("a PROFILE-only preference is saved AND fed back (« je préfère… » has no entity)", async () => {
     // The user's exact case: a response-style preference. The extractor puts it in the
     // profile (no proper noun → no card), so facts.length is 0 — but it IS a save, and
     // the feedback must carry the « profile » sentinel or the caption reads « rien retenu ».
-    let memoire: MemoryData = { cards: [] };
+    let memoryData: MemoryData = { cards: [] };
     let noted: { count: number; ids?: string[] } | undefined;
     const n = await runMemoryExtraction(
       {
@@ -538,14 +538,14 @@ describe("« retiens ça » — the explicit fast path", () => {
         settings: { memoryAuto: false } as never,
         complete: (async () =>
           JSON.stringify({ profil: "Préfère des réponses courtes, en français.", faits: [] })) as never,
-        setMemoire: (fn) => (memoire = fn(memoire)),
+        setMemory: (fn) => (memoryData = fn(memoryData)),
         patchConversation: () => {},
         noteOnMessage: (_id, count, ids) => (noted = { count, ids }),
       },
       { explicit: true },
     );
     expect(n).toBe(0); // no FACTS…
-    expect(memoire.profile).toBe("Préfère des réponses courtes, en français."); // …but the profile WAS saved
+    expect(memoryData.profile).toBe("Préfère des réponses courtes, en français."); // …but the profile WAS saved
     expect(noted?.count).toBe(0);
     expect(noted?.ids).toEqual(["profile"]); // the sentinel → caption says « Préférence enregistrée »
   });
@@ -564,7 +564,7 @@ describe("« retiens ça » — the explicit fast path", () => {
         settings: { memoryAuto: true } as never,
         complete: (async () =>
           JSON.stringify({ profil: null, faits: [{ entite: "Norvik Group", cat: "organisation", fait: "Devis signé." }] })) as never,
-        setMemoire: () => {},
+        setMemory: () => {},
         patchConversation: () => {},
         noteOnMessage: () => (noted = true),
       },

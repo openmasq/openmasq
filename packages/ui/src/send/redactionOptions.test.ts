@@ -8,7 +8,7 @@ import {
   sendForcedList,
   shouldRedactSystemPrompt,
 } from "./redactionOptions";
-import type { CoffreTerm } from "../types";
+import type { VaultTerm } from "../types";
 
 describe("effectiveRedactCategories", () => {
   it("layers global ⊕ conversation ⊕ org-forced, org winning (forced ON)", () => {
@@ -104,11 +104,11 @@ describe("sendKeepList", () => {
 });
 
 describe("sendForcedList", () => {
-  const coffre: CoffreTerm[] = [{ id: "1", value: "SecretCorp", token: "ORG", createdAt: 0 }];
+  const vaultTerms: VaultTerm[] = [{ id: "1", value: "SecretCorp", token: "ORG", createdAt: 0 }];
   it("merges coffre ⊕ conv ⊕ opts, deduped, kept only if present in modelText", () => {
     const text = "un mail de SecretCorp à Jean, réf ABSENTE ailleurs";
     const out = sendForcedList(
-      coffre,
+      vaultTerms,
       { forcedRedactions: [{ value: "Jean", category: "NAME" }] },
       [{ value: "Jean", category: "NAME" }], // duplicate → deduped
       text,

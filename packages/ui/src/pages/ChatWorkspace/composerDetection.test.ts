@@ -9,7 +9,7 @@ import { makeToggleKeep,
   buildDetection,
   detectRegex,
   markAtCaret,
-  longTextStats, splitDetected, competencePromptCats, competenceExtraCount,
+  longTextStats, splitDetected, skillPromptCats, skillExtraCount,
   previewStatus, type Cat, type Item } from "./composerDetection";
 
 /**
@@ -255,19 +255,19 @@ describe("competencePromptCats — le prompt d'une compétence nourrit le compte
     "Tu écris au nom du cabinet. Contact : farid.sellam@tarvelone-expertise.fr, 02 98 44 17 62.";
 
   it("détecte les valeurs du prompt (regex, synchrone)", () => {
-    const cats = competencePromptCats(PROMPT);
+    const cats = skillPromptCats(PROMPT);
     const values = cats.map((c) => c.value);
     expect(values).toContain("farid.sellam@tarvelone-expertise.fr");
     expect(values).toContain("02 98 44 17 62");
   });
 
   it("préview absente ou vide ⇒ rien (et jamais d'exception)", () => {
-    expect(competencePromptCats(undefined)).toEqual([]);
-    expect(competencePromptCats("   ")).toEqual([]);
+    expect(skillPromptCats(undefined)).toEqual([]);
+    expect(skillPromptCats("   ")).toEqual([]);
   });
 
   it("honore les catégories désactivées, comme le brouillon", () => {
-    const values = competencePromptCats(PROMPT, ["phone"]).map((c) => c.value);
+    const values = skillPromptCats(PROMPT, ["phone"]).map((c) => c.value);
     expect(values).not.toContain("02 98 44 17 62");
     expect(values).toContain("farid.sellam@tarvelone-expertise.fr");
   });
@@ -282,13 +282,13 @@ describe("competenceExtraCount — dédupliqué contre le brouillon", () => {
       { value: "a@b.fr", cat: "email" }, // internal duplicate
       { value: "06 11 22 33 44", cat: "phone" },
     ];
-    expect(competenceExtraCount([], compCats)).toBe(2);
+    expect(skillExtraCount([], compCats)).toBe(2);
     // The same value already counted by the draft doesn't make two (case-folded).
-    expect(competenceExtraCount([item("A@B.FR")], compCats)).toBe(1);
+    expect(skillExtraCount([item("A@B.FR")], compCats)).toBe(1);
   });
 
   it("compétence sans valeur sensible ⇒ zéro ajouté", () => {
-    expect(competenceExtraCount([item("x@y.fr")], [])).toBe(0);
+    expect(skillExtraCount([item("x@y.fr")], [])).toBe(0);
   });
 });
 

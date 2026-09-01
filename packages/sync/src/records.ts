@@ -91,7 +91,7 @@ export function liveView(merged: SyncRecord[]): LiveConversation {
   const messages: SyncRecord[] = [];
   const integrations: SyncRecord[] = [];
   const userdata: SyncRecord[] = [];
-  const coffre: SyncRecord[] = [];
+  const vaultTerms: SyncRecord[] = [];
   let meta: SyncRecord | undefined;
   for (const r of merged) {
     if (r.kind === "message") messages.push(r);
@@ -107,8 +107,8 @@ export function liveView(merged: SyncRecord[]): LiveConversation {
       if (!tomb || compareRecords(r, tomb) > 0) userdata.push(r);
     } else if (r.kind === "coffre") {
       const tomb = cfTombs.get(r.entityId);
-      if (!tomb || compareRecords(r, tomb) > 0) coffre.push(r);
+      if (!tomb || compareRecords(r, tomb) > 0) vaultTerms.push(r);
     }
   }
-  return { deleted: false, meta, messages, integrations, userdata, coffre };
+  return { deleted: false, meta, messages, integrations, userdata, coffre: vaultTerms };
 }

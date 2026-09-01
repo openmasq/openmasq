@@ -79,7 +79,7 @@ export function RightRail({
   onSelectBrowserTab,
   onCloseBrowserTab,
   onOpenGuide,
-  onOpenAvis,
+  onOpenFeedback,
   shareInbox,
   shareInboxNarrow,
   onOpenUpdate,
@@ -109,7 +109,7 @@ export function RightRail({
   /** Open « Aide » (the in-app guide). */
   onOpenGuide: () => void;
   /** Open « Votre avis ». Absent (no `host.avis`) ⇒ not rendered at all. */
-  onOpenAvis?: () => void;
+  onOpenFeedback?: () => void;
   /** The share-requests bell (ShareInbox), wide-row / narrow-icon variants —
    *  slots, so this rail stays ignorant of the org-share machinery. */
   shareInbox?: ReactNode;
@@ -181,8 +181,8 @@ export function RightRail({
         ]
       : []),
     { key: "guide", icon: <HelpIcon size={17} />, label: t.chrome.help, title: t.chrome.helpTip(BRAND.name), onClick: onOpenGuide },
-    ...(onOpenAvis
-      ? [{ key: "avis", icon: <FeedbackIcon size={17} />, label: t.chrome.sendFeedback, title: t.chrome.sendFeedback, onClick: onOpenAvis }]
+    ...(onOpenFeedback
+      ? [{ key: "avis", icon: <FeedbackIcon size={17} />, label: t.chrome.sendFeedback, title: t.chrome.sendFeedback, onClick: onOpenFeedback }]
       : []),
   ];
 

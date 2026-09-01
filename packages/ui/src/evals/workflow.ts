@@ -15,7 +15,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { CATEGORY_DEFAULTS } from "@openmasq/catalog/redaction";
 import { HostProvider } from "../host";
 import { useChatStore, type ChatStore } from "../state/store";
-import type { CoffreTerm, Conversation, Message, RedactCategoryKey, Settings } from "../types";
+import type { VaultTerm, Conversation, Message, RedactCategoryKey, Settings } from "../types";
 import type { ExtractedFile } from "../host";
 import type { WriteConfirmInfo, McpAgentParams } from "../agent/mcpAgent";
 import { Transcript } from "./transcript";
@@ -83,7 +83,7 @@ export class WorkflowRun {
       ...this.o.settings,
       redactCategories: { ...CATEGORY_DEFAULTS, ...(this.o.rules ?? {}) } as Settings["redactCategories"],
       ...(this.o.coffre?.length
-        ? { coffre: this.o.coffre.map((c, i) => ({ id: `cf-${i}`, value: c.value, token: c.token, createdAt: 0 })) as CoffreTerm[] }
+        ? { coffre: this.o.coffre.map((c, i) => ({ id: `cf-${i}`, value: c.value, token: c.token, createdAt: 0 })) as VaultTerm[] }
         : {}),
     };
     localStorage.setItem("openmasq.settings", JSON.stringify(settings));

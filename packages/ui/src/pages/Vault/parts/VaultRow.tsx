@@ -2,14 +2,14 @@ import { hueForKind } from "@openmasq/redact";
 import { ModelLogo, ShieldIcon, TrashIcon } from "../../../components/brand";
 import { ScopeBadge } from "../../../components/brand/ScopeBadge";
 import { findModelAny } from "../../../prompt/models";
-import { coffreTypeLabel, type CoffreOccurrences } from "../../../send/coffre";
-import type { CoffreTerm } from "../../../types";
+import { vaultTermTypeLabel, type VaultTermOccurrences } from "../../../send/vaultTerms";
+import type { VaultTerm } from "../../../types";
 import { VaultTermPill } from "./VaultTermPill";
 
 import { useT } from "../../../i18n";
 /** The models that have actually seen this term redacted — deduped, most-recent
  *  first (the uses already arrive sorted), capped like the kit's avatar stack. */
-function usedModels(occ: CoffreOccurrences): string[] {
+function usedModels(occ: VaultTermOccurrences): string[] {
   const seen: string[] = [];
   for (const u of occ.uses) {
     if (u.modelId && !seen.includes(u.modelId)) seen.push(u.modelId);
@@ -31,8 +31,8 @@ export function VaultRow({
   scope,
   onShare,
 }: {
-  term: CoffreTerm;
-  occ: CoffreOccurrences;
+  term: VaultTerm;
+  occ: VaultTermOccurrences;
   onOpenUses: () => void;
   /** Absent = read-only row (a SHARED term) — no delete. */
   onRemove?: () => void;
@@ -48,7 +48,7 @@ export function VaultRow({
     <div className="om-vault-row">
       <VaultTermPill value={term.value} tone={tone} />
       <div className="om-vault-meta">
-        <span className="om-vault-meta-type">{coffreTypeLabel(term.token)}</span>
+        <span className="om-vault-meta-type">{vaultTermTypeLabel(term.token)}</span>
         <div className="om-vault-meta-sub">
           {term.note && <span className="om-vault-meta-note">{term.note}</span>}
           {models.length > 0 && (
