@@ -83,14 +83,14 @@ export interface FeedbackContext {
    *  category map: which categories a user turned off describes the user. */
   level?: string;
   /**
-   * L'identité PostHog de l'installation (`analytics/posthog.ts` `analyticsDistinctId`)
-   * — LE champ qui joint une fiche de feedback à la télémétrie de l'installation qui
-   * l'a envoyée. Sans lui, une fiche et les événements/erreurs PostHog du même poste
-   * sont impossibles à recouper, et un bug se diagnostique à l'aveugle.
-   * ⚠️ C'est une jonction ASSUMÉE entre le canal anonyme (analytics) et le canal
-   * identifié (avis) : elle n'existe que sur le geste explicite d'envoyer un avis,
-   * sous l'interrupteur « contexte technique », que la modale annonce. Un id machine
-   * (uuid d'installation), jamais un contenu.
+   * The installation's PostHog identity (`analytics/posthog.ts` `analyticsDistinctId`)
+   * — THE field that joins a feedback record to the telemetry of the installation that
+   * sent it. Without it, a record and the PostHog events/errors of the same machine are
+   * impossible to cross-reference, and a bug is diagnosed blind.
+   * ⚠️ It is an ACCEPTED junction between the anonymous channel (analytics) and the
+   * identified one (feedback): it exists only on the explicit gesture of sending
+   * feedback, under the « contexte technique » switch, which the modal announces. A
+   * machine id (installation uuid), never any content.
    */
   analyticsId?: string;
 }
@@ -215,9 +215,9 @@ export function messageFeedbackDraft(t: Messages, journal?: string): FeedbackDra
 /** True when this draft actually ships the debug journal (present AND its toggle on).
  *  One home for the question — the send gate, the payload and the modal's copy all
  *  ask it, and three readings of the same test would drift.
- *  Un journal PRÉSENT part par défaut (`attachJournal !== false`, décision 13/08 : la
- *  collecte est permanente pour que l'avis l'embarque) — l'interrupteur du modal reste
- *  le refus, visible et à un geste, aperçu verbatim à l'appui. */
+ *  A journal that is PRESENT goes by default (`attachJournal !== false`, decision 13/08:
+ *  collection is permanent so that feedback can carry it) — the modal's switch stays the
+ *  refusal, visible and one gesture away, with a verbatim preview to back it. */
 export function carriesJournal(d: FeedbackDraft): boolean {
   return !!d.journal?.trim() && d.attachJournal !== false;
 }

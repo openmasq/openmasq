@@ -18,9 +18,9 @@
  */
 
 /** One action — open the billing tab — so one label per intent, everywhere. */
-/* Les libellés d'argent (CTA d'abonnement, crédits épuisés) vivent dans le catalogue
-   (`billing`) : ce fichier ne garde que la RÈGLE — les mots que la copie ne doit plus
-   employer — que `money.test.ts` fait respecter sur la source. */
+/* The money labels (subscription CTA, credits exhausted) live in the catalogue
+   (`billing`): this file keeps only the RULE — the words the copy must no longer use —
+   which `money.test.ts` enforces on the source. */
 
 export const RETIRED_MONEY_WORDS = ["forfait", "formule", "offre supérieure"] as const;
 
@@ -38,11 +38,11 @@ export const RETIRED_MONEY_WORDS = ["forfait", "formule", "offre supérieure"] a
  */
 export const RETIRED_MONEY_PATTERNS: Record<string, RegExp> = {
   formule:
-    // `d'appel` rejoint `de politesse` : ce sont les DEUX termes de la lettre, et ils
-    // vivent dans la même phrase du prompt système (« une formule d'appel, … une formule
-    // de politesse »). N'en exempter qu'un attrapait l'autre — un faux positif qui pousse
-    // à réécrire une consigne correcte, ou pire à exempter le fichier entier et à
-    // amnistier du même coup un vrai « changez de formule ».
+    // `d'appel` joins `de politesse`: they are the TWO terms of the letter, and they live
+    // in the same sentence of the system prompt (« une formule d'appel, … une formule de
+    // politesse »). Exempting only one caught the other — a false positive that pushes one
+    // to rewrite a correct instruction, or worse to exempt the whole file and amnesty a
+    // real « changez de formule » in the same move.
     /\b(?:la|le|les|une?|des|du|de|votre|vos|notre|nos|cette|ces|ma|sa|leur)\s+formules?\b(?!\s+(?:creuses?|d['’]appel|de\s+politesse|de\s+calcul|math[ée]matiques?|chimiques?))|\bformules?\s+(?:actuelles?|gratuites?|payantes?|sup[ée]rieures?|inf[ée]rieures?|premium|pro)\b/i,
 };
 

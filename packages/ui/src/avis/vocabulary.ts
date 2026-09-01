@@ -2,17 +2,16 @@ import type { Messages } from "@openmasq/i18n";
 import type { FeedbackCategory, FeedbackMood } from "./avis";
 
 /**
- * Le VOCABULAIRE de « Votre avis » — ce que la modale MONTRE, séparé de ce que `avis.ts`
- * DÉCIDE (quand un envoi est permis, ce qu'un brouillon pré-rempli contient).
+ * The VOCABULARY of « Votre avis » — what the modal SHOWS, separated from what `avis.ts`
+ * DECIDES (when a send is allowed, what a prefilled draft contains).
  *
- * La coupe suit la règle du dépôt (logique en `.ts`, présentation ailleurs) et elle est ce
- * qui garde `avis.ts` sous le cap : les étiquettes venant maintenant du catalogue, les
- * deux tables sont devenues des fonctions, plus longues que les constantes qu'elles
- * remplacent.
+ * The cut follows the repo's rule (logic in `.ts`, presentation elsewhere) and it is what
+ * keeps `avis.ts` under the cap: the labels now coming from the catalogue, the two tables
+ * became functions, longer than the constants they replace.
  */
 
-/** L'ORDRE, le GLYPHE et la TEINTE d'une humeur restent ici — ils ne se traduisent pas.
- *  Seule l'étiquette vient du catalogue (`modals.avis.moods`). */
+/** The ORDER, the GLYPH and the HUE of a mood stay here — they are not translated.
+ *  Only the label comes from the catalogue (`modals.avis.moods`). */
 export function feedbackMoods(t: Messages): {
   id: FeedbackMood;
   glyph: string;

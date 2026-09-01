@@ -26,9 +26,9 @@ export interface RoutineSuggestion extends SuggestionBase {
  *  4. the dev-only ones LAST — useful, but a narrow audience should not fill a
  *     strip capped at six.
  *
- * ⚠️ Les MOTS (nom, description, invite) vivent dans `@openmasq/i18n` (`templates.routines`)
- * — l'invite PRÉ-REMPLIT le message de la personne, donc elle se lit dans sa langue. Ici :
- * l'id, l'ordre, et les connecteurs que chaque routine déclare.
+ * ⚠️ The WORDS (name, description, prompt) live in `@openmasq/i18n` (`templates.routines`)
+ * — the prompt PRE-FILLS the person's message, so it is read in their language. Here:
+ * the id, the order, and the connectors each routine declares.
  *
  * Two rules the copy follows:
  *  - every template READS, none writes on its own — a write template that fires
@@ -38,7 +38,7 @@ export interface RoutineSuggestion extends SuggestionBase {
  *  - the values that change at each launch are `{accolades}`, the convention
  *    the modal's own note documents.
  */
-/** L'ordre est celui de la STRIP : ce qui ne demande aucun compte d'abord. */
+/** The order is the STRIP's: whatever needs no account first. */
 const ROUTINE_SHAPE: readonly { id: string; servers: string[] }[] = [
   { id: "comparer-offres", servers: ["browser"] },
   { id: "preparer-journee", servers: ["google-calendar"] },
@@ -55,18 +55,18 @@ const ROUTINE_SHAPE: readonly { id: string; servers: string[] }[] = [
   { id: "erreurs-semaine", servers: ["sentry"] },
 ];
 
-/** Les routines proposées, dans la langue de `t`. */
+/** The suggested routines, in `t`'s language. */
 export function routineSuggestions(t: Messages): RoutineSuggestion[] {
   return ROUTINE_SHAPE.map((r) => ({ ...r, ...t.templates.routines[r.id] }));
 }
 
-/** Les ids livrés, dans l'ordre du catalogue — une FORME, sans un mot : de quoi jouer
- *  les modèles (suite e2e) sans avoir à choisir une langue. */
+/** The shipped ids, in catalogue order — a SHAPE, without a word: enough to play the
+ *  templates (e2e suite) without having to pick a language. */
 export function routineIds(): string[] {
   return ROUTINE_SHAPE.map((r) => r.id);
 }
 
-/** Les connecteurs qu'une routine déclare — une FORME, sans un mot. */
+/** The connectors a routine declares — a SHAPE, without a word. */
 export function templateServersOf(id: string): string[] | undefined {
   return ROUTINE_SHAPE.find((r) => r.id === id)?.servers;
 }

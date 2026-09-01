@@ -6,16 +6,15 @@ import { ScopeBadge } from "../../../components/brand/ScopeBadge";
 
 import { useT } from "../../../i18n";
 /**
- * Une compétence en RANGÉE — la même que `CompetenceCard`, dense.
+ * A skill as a ROW — the same as `CompetenceCard`, dense.
  *
- * Ce qui reste et ce qui part, et pourquoi : le nom, la catégorie et « Utiliser » restent
- * (c'est ce pour quoi on vient) ; la description tombe à UNE ligne au lieu de trois — en
- * rangée, la troisième ligne coûte le gain de densité qu'on est venu chercher.
+ * What stays and what goes, and why: the name, the category and « Utiliser » stay (that
+ * is what one comes for); the description drops to ONE line instead of three — in a row,
+ * the third line costs the density gain one came for.
  *
- * Les mêmes deux règles d'interaction que la carte, pour la même raison : les boutons
- * imbriqués coupent la propagation, et le clavier ne déclenche l'édition QUE si la touche
- * a atterri sur la rangée elle-même. Sans ça, Entrée sur l'épingle épinglerait ET ouvrirait
- * l'éditeur.
+ * The same two interaction rules as the card, for the same reason: nested buttons stop
+ * propagation, and the keyboard triggers the edit ONLY if the key landed on the row
+ * itself. Without that, Enter on the pin would pin AND open the editor.
  */
 export function CompetenceRow({
   competence,
