@@ -1,16 +1,19 @@
 /**
  * The main and renderer bundles' `define`s — pulled out of `electron.vite.config.ts`
  * (300 LOC cap, rule 1): this is a VOCABULARY of identifiers, not build config.
- * ⚠️ NO committed default — neither for an identifier tied to a provider account
- * (Supabase project, Sentry DSN, GitHub/Slack/Google/Microsoft OAuth clients), NOR for
- * a service's address (backend, gateway, auth relay, updates feed): a
- * public repo that embeds them routes every fork's traffic through THAT
- * account, and offers its users a SaaS that isn't theirs. Not supplied at
- * build time ⇒ "" ⇒ the capability disables cleanly (no accounts, no billing,
- * no sync, no included models, no telemetry, connector "not
- * configured") and the app runs on the machine — personal keys, local models, a
- * subscription CLI, on-device redaction. The full list and how to deploy your own:
- * the private `infra` repo; DEV values: `apps/desktop/.env.development`.
+ * ⚠️ NO committed default here — neither for an identifier tied to a provider account
+ * (GitHub/Slack/Google/Microsoft OAuth clients), NOR for a service's address (backend,
+ * gateway): a public repo that embeds them routes every fork's traffic through THAT
+ * account, and offers its users a SaaS that isn't theirs. Not supplied at build time ⇒
+ * "" ⇒ the capability disables cleanly (no billing, no sync, no included models,
+ * connector "not configured") and the app runs on the machine — personal keys, local
+ * models, a subscription CLI, on-device redaction.
+ * **The ONE exception is `scripts/publicServices.ts`**: sign-in (Supabase), the Slack
+ * relay, the analytics relay, the releases feed and the Sentry DSN are filled by default
+ * into `process.env` before these defines read it — in DEV as in a build, and never over
+ * a variable that is set (set EMPTY is how a fork opts out) — because they are what makes
+ * the installed product usable, and public by nature. Running against a LOCAL stack is an
+ * explicit choice: `apps/desktop/.env.development` says how.
  */
 /**
  * The API and gateway addresses — the ONLY remote services behind the
@@ -107,7 +110,8 @@ export function mainDefines(): Record<string, string> {
     ),
     // The Supabase project + its PUBLISHABLE key and the Sentry DSN — read by
     // `src/environments/index.ts` and `src/sentry/policy.ts`, shared main/renderer
-    // (the same define exists on the renderer side). Empty ⇒ no accounts / no Sentry.
+    // (the same define exists on the renderer side). Both arrive with a default
+    // (`publicServices.ts`). Set EMPTY ⇒ no accounts / no Sentry.
     "process.env.OPENMASQ_SUPABASE_URL": JSON.stringify(process.env.OPENMASQ_SUPABASE_URL ?? ""),
     "process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
       process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY ?? "",

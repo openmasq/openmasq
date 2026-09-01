@@ -39,13 +39,15 @@
  */
 
 /**
- * The Supabase PROJECT credentials are NO LONGER committed: they arrive at BUILD time
- * (`OPENMASQ_SUPABASE_URL` / `OPENMASQ_SUPABASE_PUBLISHABLE_KEY`, baked into literals
- * by electron.vite.config.ts's `define`s — main AND renderer). Empty ⇒ the app runs
- * WITHOUT accounts: `auth.ts` builds no client and the `host.auth` slot stays
- * absent (no login gate) — fail-closed, never someone else's project.
- * In dev, `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` (`.env.development` → local
- * GoTrue) always win (`appEnv.ts`).
+ * The Supabase PROJECT credentials arrive at BUILD time (`OPENMASQ_SUPABASE_URL` /
+ * `OPENMASQ_SUPABASE_PUBLISHABLE_KEY`, baked into literals by electron.vite.config.ts's
+ * `define`s — main AND renderer), with the brand's project as the DEFAULT of every
+ * build, `pnpm dev` included (`scripts/publicServices.ts`: sign-in is what makes the
+ * installed product usable, and a publishable key is made to ship in clients). Set the
+ * variable EMPTY to build without accounts: `auth.ts` then builds no client and the
+ * `host.auth` slot stays absent (no login gate) — never silently someone else's project.
+ * Against a LOCAL GoTrue, `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`
+ * (`.env.development.local`) always win (`appEnv.ts`).
  */
 const SUPABASE_URL = process.env.OPENMASQ_SUPABASE_URL ?? "";
 const SUPABASE_PUBLISHABLE_KEY = process.env.OPENMASQ_SUPABASE_PUBLISHABLE_KEY ?? "";

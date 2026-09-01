@@ -18,8 +18,10 @@ capability, **What it gives you** the change on the user's side, **What it is wo
 trade-off — including what it costs when it costs. The checklist enumerates the gestures;
 an unchecked box is something the app does **not do yet**, not a bug.
 
-**A build with NO backend is the repository's DEFAULT.** No service address has a committed
-value: what the build receives decides what EXISTS. Without them — accounts, billing, sync
+**A build with NO backend is the repository's DEFAULT.** Apart from five public services
+filled in by default, dev included — sign-in (Supabase), the Slack relay, the analytics relay,
+the releases feed and Sentry (`apps/desktop/scripts/publicServices.ts`; a variable set empty opts out) — no service
+address has a committed value: what the build receives decides what EXISTS. Without them — accounts, billing, sync
 and devices, organizations and shares (the inbox, "share" on the vault and the skills),
 "Votre feedback", included models, release notes, auto-update and the environment switch,
 analytics — **none of it appears**: no tab, no ⌘K entry, no card, no switch, and the

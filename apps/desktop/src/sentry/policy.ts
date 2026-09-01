@@ -24,9 +24,9 @@
 
 import { isOperationalError } from "@openmasq/analytics";
 
-/** The only network entry point of this file. Public by nature but tied to ONE
- *  Sentry account: never committed anymore — supplied at BUILD time (`OPENMASQ_SENTRY_DSN`, baked by
- *  `scripts/buildDefines.ts`). Empty ⇒ `initSentry*` doesn't initialize: nothing leaves. */
+/** The only network entry point of this file. Public by nature (a DSN only lets a client
+ *  SEND to one project): the DEFAULT of every build, dev included (`scripts/publicServices.ts`),
+ *  baked by `scripts/buildDefines.ts`; `OPENMASQ_SENTRY_DSN=` EMPTY ⇒ nothing initializes, nothing leaves. */
 export const SENTRY_DSN = process.env.OPENMASQ_SENTRY_DSN ?? "";
 
 /**

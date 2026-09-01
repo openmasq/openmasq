@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { workspaceSrcAlias } from "../../scripts/vitest/vitest.workspaceAlias";
 import { brandIndexHtml } from "./scripts/brandIndexHtml";
 import { mainDefines, rendererDefines } from "./scripts/buildDefines";
+import { applyPublicServiceDefaults } from "./scripts/publicServices";
 
 /**
  * DEV ONLY (`apply: "serve"`): resolve the workspace packages from their SOURCE.
@@ -83,6 +84,12 @@ assertNoBakedBypass();
 const pkgVersion = (JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8")) as { version: string }).version;
 // The brand has only one home (rule 9): the branded defaults derive from it.
 const BRAND = JSON.parse(readFileSync(resolve(__dirname, "../../packages/branding/branding.json"), "utf8")) as { name: string; domain: string };
+
+// The public services a build reaches BY DEFAULT (sign-in, Slack relay, analytics relay,
+// releases feed, Sentry) — filled BEFORE the defines below read `process.env`, in dev as in
+// a build, never over a variable the CI or a fork set, even empty. Why these and no other:
+// `scripts/publicServices.ts`.
+applyPublicServiceDefaults(process.env, { brandDomain: BRAND.domain });
 
 // Dev-only: the renderer's static CSP (src/renderer/index.html) whitelists prod
 // origins only. Under `electron-vite dev` (apply:"serve") we also allow localhost
