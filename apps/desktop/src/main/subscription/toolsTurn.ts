@@ -14,11 +14,13 @@
  * refusal, flattening, bridge, the "capture ⇄ end of stream" race, cleanup. What
  * varies from one CLI to another — the flags, how to hand it the bridge and its token,
  * the event interpreter — is a RECIPE, and nothing else:
- * `claudeToolsTurn.ts` (0600 config file) and `codexToolsTurn.ts` (`-c` override +
- * environment variable). A 3rd CLI only adds a recipe.
+ * `claudeToolsTurn.ts` (0600 config file), `codexToolsTurn.ts` (`-c` override +
+ * environment variable) and `antigravityToolsTurn.ts` (a plugin in a disposable
+ * `--add-dir` folder). A 4th CLI only adds a recipe.
  */
 import { randomUUID } from "node:crypto";
 import type { ChatMessage, CompleteToolsResult, StreamDone, ToolDef } from "@openmasq/llm";
+import { antigravityToolsRecipe } from "./antigravityToolsTurn";
 import { flattenForCli, hasUnsupportedAttachments } from "./bridge";
 import { claudeToolsRecipe } from "./claudeToolsTurn";
 import { codexToolsRecipe } from "./codexToolsTurn";
@@ -28,14 +30,15 @@ import { startToolsBridge, type CapturedToolCall } from "./toolsBridge";
 import type { ToolsCliRecipe, ToolsSpawnPlan } from "./toolsRecipe";
 
 /** A subscription CLI = a recipe. The absence of `cli` means `claude` (history).
- *  PARTIAL on purpose: a CLI can serve TEXT without being able to carry the app's
- *  tools — `antigravity` has no recipe (its CLI reads MCP servers only from the user's
- *  global config, measured in `antigravityEngine.ts`). `subscriptionToolsCli` already
- *  keeps it off this path; the refusal below is the second lock (fail-closed), so a
- *  future caller cannot slip a tool-less CLI in through a `cli` value alone. */
+ *  PARTIAL on purpose: a CLI may one day serve TEXT without being able to carry the
+ *  app's tools (antigravity was that case until its `--add-dir` path was measured —
+ *  `antigravityEngine.ts`). `subscriptionToolsCli` is the first lock; the refusal below
+ *  is the second (fail-closed), so a future caller cannot slip a tool-less CLI in
+ *  through a `cli` value alone. */
 const RECIPES: Partial<Record<NonNullable<SubscriptionTurnEnv["cli"]>, ToolsCliRecipe>> = {
   claude: claudeToolsRecipe,
   codex: codexToolsRecipe,
+  antigravity: antigravityToolsRecipe,
 };
 
 /** A tooled turn that returns nothing in 5 min is dead, not slow — we kill it (fail closed). */

@@ -302,10 +302,11 @@ re-reading an old conversation means knowing who wrote what.
       an « Antigravity » model is added to the picker, with no API key, served by the CLI
       locally — its settings AND its conversation history isolated in a data dir of ours,
       every permissioned tool auto-denied by the headless mode — redaction unchanged.
-      ⚠️ **The app's connectors are NOT offered on this model** (unlike the two above):
-      that CLI reads MCP servers only from the user's global config, so the app's bridge
-      could not be the turn's only server without writing into their configuration —
-      `apps/desktop/src/main/subscription/antigravityEngine.ts`
+      **The app's connectors work there too**, through the same MCP bridge: it rides a
+      plugin in a disposable folder passed by `--add-dir`, and the ONE permission our data
+      dir grants is that server's (`mcp(openmasq/*)`) — the user's own configuration is
+      never written — `apps/desktop/src/main/subscription/antigravityEngine.ts`,
+      `apps/desktop/src/main/subscription/antigravityToolsTurn.ts`
 - [x] OpenRouter catalogue fetched live
 - [x] The model that answered stays stamped on the reply
 - [ ] **« Auto » mode** — REMOVED from the picker: neither view offers it any more. The

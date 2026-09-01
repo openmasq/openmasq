@@ -9,13 +9,23 @@
 // prevent subscription auth (the isolation bet, exactly as `--ignore-user-config` for
 // codex); (2) the real NDJSON flow matches the measured shapes; (3) the headless
 // auto-deny really removes command execution, since this CLI has no flag to cut tools
-// with — if that ever changed, this is where it shows.
-import { tmpdir } from "node:os";
-import { mkdtempSync, readdirSync } from "node:fs";
+// with — if that ever changed, this is where it shows; (4) the TOOLED turn's plugin in a
+// disposable `--add-dir` folder is still loaded and its `mcp(openmasq/*)` rule still
+// lets the bridge's call through — the two measured facts a CLI update can take back.
+//
+// ⚠️ (4) needs `~/.gemini/.openmasq-cli/settings.json` to hold `ANTIGRAVITY_SETTINGS` —
+// the desktop writes it before every turn; this test writes it the same way.
+import { homedir, tmpdir } from "node:os";
+import { mkdirSync, mkdtempSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { resolveCli } from "./resolveCli";
-import { streamAntigravitySubscription } from "./antigravityEngine";
+import {
+  ANTIGRAVITY_APP_DATA_DIR,
+  ANTIGRAVITY_SETTINGS,
+  streamAntigravitySubscription,
+} from "./antigravityEngine";
+import { completeSubscriptionTools } from "./toolsTurn";
 
 const enabled = process.env.OPENMASQ_TEST_SUBSCRIPTION_ANTIGRAVITY === "1";
 
@@ -84,5 +94,35 @@ describe.skipIf(!enabled)("streamAntigravitySubscription (CLI réelle)", () => {
     setTimeout(() => ac.abort(), 1500);
     const { done } = await drain(gen);
     expect(done.finish).toBe("cut");
+  }, 300_000);
+
+  it("tour OUTILLÉ : le plugin `--add-dir` est chargé et le pont capture l'appel", async (ctx) => {
+    const bin = agyPath();
+    if (!bin) return ctx.skip();
+    // What `desktop.ts` does before a turn: our data dir, our ONE rule.
+    const dataDir = join(homedir(), ".gemini", ANTIGRAVITY_APP_DATA_DIR);
+    mkdirSync(dataDir, { recursive: true });
+    writeFileSync(join(dataDir, "settings.json"), JSON.stringify(ANTIGRAVITY_SETTINGS, null, 2));
+    const r = await completeSubscriptionTools(
+      { cli: "antigravity", label: "Antigravity", binPath: bin, cwd: mkdtempSync(join(tmpdir(), "openmasq-agy-")) },
+      {
+        messages: [
+          {
+            role: "user",
+            content:
+              'You have a tool named openmasq_probe. Call it with text="hello" and reply with exactly the tool output.',
+          },
+        ],
+        tools: [
+          {
+            name: "openmasq_probe",
+            description: "Returns PROBE_OK followed by the given text.",
+            parameters: { type: "object", properties: { text: { type: "string" } }, required: ["text"] },
+          },
+        ],
+      },
+    );
+    expect(r.stopReason).toBe("tool_calls");
+    expect(r.toolCalls[0]).toMatchObject({ name: "openmasq_probe", arguments: { text: "hello" } });
   }, 300_000);
 });

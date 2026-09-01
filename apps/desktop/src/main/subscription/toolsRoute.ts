@@ -6,10 +6,9 @@
  * A single question: is this provider served by a subscription CLI that can carry the
  * app's TOOLS? If so, the tooled turn answers it with the `completeWithTools` contract;
  * otherwise `null`, and the caller resumes its normal path (key + egress). The question
- * has ONE home, `subscriptionToolsCli` (rule 9) — a NARROWER list than the text turn's:
- * antigravity serves text but cannot carry the bridge (its CLI reads MCP servers only
- * from the user's global config, and advertises its built-in tools whatever the flags —
- * measured, `antigravityEngine.ts`). Its models simply get no tools.
+ * has ONE home, `subscriptionToolsCli` (rule 9) — allowed to be NARROWER than the text
+ * turn's list, should a CLI serve text without being able to carry the bridge (none does
+ * today: antigravity's recipe was measured on 01/09/2026, `antigravityToolsTurn.ts`).
  */
 import type { ChatMessage, CompleteToolsResult, ToolDef } from "@openmasq/llm";
 import { subscriptionToolsCli, subscriptionTurnEnv } from "./desktop";

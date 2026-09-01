@@ -186,9 +186,8 @@ export interface Settings {
   claudeCliEnabled?: boolean;
   /** Same opt-in for the Codex CLI (provider `codex-cli`) — same rules. */
   codexCliEnabled?: boolean;
-  /** Same opt-in for the Antigravity `agy` CLI (provider `antigravity-cli`) — same
-   *  rules. ⚠️ This model is served WITHOUT the app's connectors: its CLI cannot
-   *  carry the MCP bridge (measured, engine `subscription/antigravityEngine.ts`). */
+  /** Same opt-in for the Antigravity `agy` CLI (provider `antigravity-cli`) — same rules,
+   *  connectors included (engine `subscription/antigravityToolsTurn.ts`). */
   antigravityCliEnabled?: boolean;
   /**
    * A system NOTIFICATION when a reply arrives while looking elsewhere

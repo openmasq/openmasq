@@ -53,9 +53,10 @@ export const MODELS: ModelInfo[] = [
   // CLI does accept a `--model`, but its ids are pinned to a version
   // (`gemini-3.7-flash-medium`, `gemini-3.1-pro-high`…) and rotate with the offer — an
   // entry naming one would rot into a CLI error. So we serve the account's default.
-  // ⚠️ NO TOOLS, unlike the other two: this CLI cannot carry the app's MCP bridge
-  // (measured, `subscription/antigravityEngine.ts`). Text only.
-  { id: "antigravity-cli", label: "Gemini Antigravity", provider: "antigravity-cli", noTools: true },
+  // The app's tools ride the desktop MCP bridge, as on the other two — through a plugin
+  // in a disposable `--add-dir` folder (measured, `subscription/antigravityToolsTurn.ts`).
+  // Text only (attachments).
+  { id: "antigravity-cli", label: "Gemini Antigravity", provider: "antigravity-cli" },
 
   // Google Gemini
   // Gemini 1.5 was retired by Google (404 on generateContent) — dropped; old

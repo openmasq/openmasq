@@ -145,7 +145,7 @@ export const modelPicker = {
       note: "Si vous avez un abonnement Antigravity et sa CLI « agy » installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées. ⚠️ Ce chemin passe par un logiciel tiers, ce que les conditions d'Antigravity ne prévoient pas : le risque porte sur votre compte Google.",
       rowTitle: "Utiliser ma CLI Antigravity",
       onDesc:
-        "Ajoute « Antigravity » à la liste des modèles. Chaque envoi consomme votre abonnement Google personnel, et les connecteurs de l'app n'y sont pas offerts (sa CLI ne peut pas les porter).",
+        "Ajoute « Antigravity » à la liste des modèles. Chaque envoi consomme votre abonnement Google personnel ; les connecteurs de l'app y fonctionnent comme sur les autres modèles.",
       missingDesc:
         "CLI introuvable sur cette machine : installez Antigravity, connectez-la à votre compte Google, puis revenez ici.",
     },

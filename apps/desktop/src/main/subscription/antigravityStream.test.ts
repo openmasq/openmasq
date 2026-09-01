@@ -111,4 +111,12 @@ describe("buildAntigravityArgs — l'isolement est dans les drapeaux", () => {
   it("⛔ ne rend JAMAIS la machine au modèle", () => {
     expect(args).not.toContain("--dangerously-skip-permissions");
   });
+
+  it("le tour TEXTE ne monte aucun dossier ; le tour outillé passe le sien par `--add-dir`", () => {
+    // Measured: `--add-dir` is the only path print mode reads customizations from — the
+    // bare cwd, `.git` or not, trusted or not, is never scanned (`antigravityEngine.ts`).
+    expect(args).not.toContain("--add-dir");
+    const tooled = buildAntigravityArgs({ prompt: "x", addDir: "/tmp/plug" });
+    expect(tooled[tooled.indexOf("--add-dir") + 1]).toBe("/tmp/plug");
+  });
 });

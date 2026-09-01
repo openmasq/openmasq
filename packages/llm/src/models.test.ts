@@ -91,16 +91,15 @@ describe("setDynamicModels change signal", () => {
 });
 
 describe("les CLI d'abonnement et l'aiguillage des outils", () => {
-  it("`antigravity-cli` est marqué SANS outils — c'est ce qui garde l'envoi hors du chemin outillé", async () => {
-    // Its CLI cannot carry the app's MCP bridge (measured,
-    // `apps/desktop/src/main/subscription/antigravityEngine.ts`), so the tooled turn
-    // refuses it. Without this flag the agent loop sent it there anyway and fell back on
-    // the key-based client, which does not know this provider: « Unknown provider ».
+  it("les trois CLI d'abonnement portent le pont d'outils — aucune n'est marquée `noTools`", async () => {
+    // `antigravity-cli` was `noTools` until its `--add-dir` plugin path was measured
+    // (01/09/2026, `apps/desktop/src/main/subscription/antigravityToolsTurn.ts`). The flag
+    // is what routes the agent loop: a CLI wrongly marked would lose the app's connectors
+    // silently, one wrongly unmarked would end on « Unknown provider » — both pinned here.
     const { supportsTools } = await import("./models/capabilities.js");
-    expect(supportsTools("antigravity-cli")).toBe(false);
-    // Les deux autres CLI, elles, portent bien le pont.
     expect(supportsTools("claude-cli")).toBe(true);
     expect(supportsTools("codex-cli")).toBe(true);
+    expect(supportsTools("antigravity-cli")).toBe(true);
   });
 
   it("streamChat et le tour outillé NOMMENT la vraie raison, jamais « Unknown provider »", async () => {

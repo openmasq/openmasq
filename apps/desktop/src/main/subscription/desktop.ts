@@ -20,18 +20,14 @@ export function subscriptionCliFor(provider: string): SubscriptionCliId | null {
 }
 
 /**
- * The same question for the TOOLED turn — and it is NOT the same list. `antigravity` is
- * absent BY DESIGN, on two measurements (`antigravityEngine.ts`): its CLI reads MCP
- * servers only from the user's GLOBAL config (so the app's bridge could not be this
- * turn's only server without writing into their config and leaking a loopback server
- * into their other sessions), and it advertises its ~50 built-in tools whatever the
- * flags (so `toolGate`'s perimeter can't hold). `null` ⇒ the caller keeps its normal
- * path, and the app's connectors are simply not offered on that model — fail-closed,
- * rather than a bridge whose guarantees we cannot state.
+ * The same question for the TOOLED turn — kept as its OWN question (rule 9: one home)
+ * because the two lists are allowed to differ. They no longer do: antigravity was
+ * excluded until 01/09/2026, when its `--add-dir` plugin path was measured
+ * (`antigravityEngine.ts`, `antigravityToolsTurn.ts`). `null` ⇒ the caller keeps its
+ * normal path and the app's connectors are not offered on that model — fail-closed.
  */
 export function subscriptionToolsCli(provider: string): SubscriptionCliId | null {
-  const cli = subscriptionCliFor(provider);
-  return cli === "antigravity" ? null : cli;
+  return subscriptionCliFor(provider);
 }
 
 const CLI_LABEL: Record<SubscriptionCliId, string> = {
@@ -86,10 +82,11 @@ const CLI_MISSING: Record<SubscriptionCliId, string> = {
  * The Antigravity CLI's ISOLATED data folder, and the settings written into it before
  * every turn. The `--app_data_dir` flag only accepts a RELATIVE path (resolved under
  * `~/.gemini`, measured): this folder therefore cannot live in `userData` like the cwd.
- * What is written there — EMPTY permissions — is what holds the isolation: with no allow
- * rule, headless mode refuses any tool that needs one, and the rules the user set for
- * THEIR own sessions do not apply here. Rewritten on every turn (idempotent) so that a
- * hand edit never leaves a permission behind.
+ * What is written there — ONE allow rule, the app's bridge (`ANTIGRAVITY_SETTINGS`) — is
+ * what holds the isolation: headless mode refuses every other tool that needs a
+ * permission, and the rules the user set for THEIR own sessions do not apply here.
+ * Rewritten on every turn (idempotent) so that a hand edit never leaves a wider grant
+ * behind.
  */
 function prepareAntigravityAppData(): void {
   const dir = join(app.getPath("home"), ".gemini", ANTIGRAVITY_APP_DATA_DIR);

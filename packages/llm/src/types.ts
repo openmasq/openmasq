@@ -168,9 +168,8 @@ export type ProviderId =
    *  (headless, same desktop engine `subscription/`) — no key, no endpoint here. */
   | "codex-cli"
   /** The user's Google Antigravity subscription, served by THEIR installed `agy` CLI
-   *  (headless, same desktop engine). Text ONLY: that CLI cannot carry the app's MCP
-   *  bridge (measured — `subscription/antigravityEngine.ts`), so its models are offered
-   *  without tools. */
+   *  (headless, same desktop engine) — no key, no endpoint here. Tools ride the desktop
+   *  MCP bridge like the other two (`subscription/antigravityToolsTurn.ts`). */
   | "antigravity-cli";
 
 /**
