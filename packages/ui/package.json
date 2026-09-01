@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/ui",
   "version": "0.1.0",
+  "description": "All the React UI, the app state and the design system, platform-agnostic — reaches the outside world only through the injected Host.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

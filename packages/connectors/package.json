@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/connectors",
   "version": "0.1.0",
+  "description": "Transport-agnostic MCP connector tool definitions the desktop runs in-process with on-device OAuth — pure TypeScript, fetch only.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

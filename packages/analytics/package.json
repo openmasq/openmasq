@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/analytics",
   "version": "0.1.0",
+  "description": "Privacy-safe usage analytics core: allow-listed event sanitising, a double consent gate, and the relay envelope — zero dependencies, manual events only.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

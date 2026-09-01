@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/catalog",
   "version": "0.1.0",
+  "description": "Single-source governable lists: models, MCP connectors, redaction categories and feature flags, consumed by the desktop and by the admin tooling.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

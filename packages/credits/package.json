@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/credits",
   "version": "0.1.0",
+  "description": "Prepaid-credit engine and billing tiers — pure logic plus queries against an injected database handle, shared by every server that meters.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

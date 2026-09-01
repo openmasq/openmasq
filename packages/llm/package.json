@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/llm",
   "version": "0.1.0",
+  "description": "Provider clients and model registry: one streamChat over fetch + SSE, tool calling, pricing and context windows — no Electron.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

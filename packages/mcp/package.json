@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/mcp",
   "version": "0.1.0",
+  "description": "Redacting MCP client: every tool call goes through the per-conversation vault in both directions — arguments un-redacted, results re-redacted.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

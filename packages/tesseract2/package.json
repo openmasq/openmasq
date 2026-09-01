@@ -2,7 +2,7 @@
   "name": "tesseract2.js",
   "version": "1.0.0",
   "private": true,
-  "description": "OCR multilingue ISOMORPHE (Node.js worker_threads + navigateur/MV3 Web Worker) — réécriture TypeScript sécurisée de tesseract.js avec le WASM tesseract.js-core. Vendored into the monorepo; the desktop uses the Node build, the extension the browser build.",
+  "description": "Isomorphic multilingual OCR (Node worker_threads + browser/MV3 Web Worker) — a hardened TypeScript rewrite of tesseract.js over the tesseract.js-core WASM. Vendored into the monorepo; the desktop uses the Node build, the extension the browser build.",
   "main": "dist/node/index.js",
   "types": "dist/node/index.d.ts",
   "type": "commonjs",

@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/i18n",
   "version": "0.1.0",
+  "description": "Typed message catalogue, French source and English side by side — no React, no library; importable from the renderer, the main process and servers.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

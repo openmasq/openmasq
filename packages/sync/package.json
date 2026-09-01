@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/sync",
   "version": "0.1.0",
+  "description": "Cross-device end-to-end encrypted sync (record oplog and vaults), organisation scopes and audit — pure TypeScript shared by every client.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

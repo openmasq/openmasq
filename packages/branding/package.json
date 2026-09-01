@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/branding",
   "version": "0.1.0",
+  "description": "The one home of the brand (branding.json): name, domains, URL scheme, storage keys — every runtime, wire and disk value derives from it.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",

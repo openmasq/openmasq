@@ -1,6 +1,7 @@
 {
   "name": "@openmasq/redact",
   "version": "0.1.0",
+  "description": "The redaction engine: detect, redact, pseudonymise and restore sensitive data with a per-conversation vault — pure, unit-tested, the suite is the specification.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
