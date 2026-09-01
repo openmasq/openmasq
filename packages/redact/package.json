@@ -61,8 +61,8 @@
     "@napi-rs/canvas": "^0.1.100",
     "@openmasq/branding": "workspace:*",
     "fflate": "^0.8.3",
-    "libphonenumber-js": "^1.13.8",
-    "mammoth": "^1.12.0",
+    "libphonenumber-js": "^1.13.12",
+    "mammoth": "^1.12.2",
     "pdfjs-dist": "^4.10.38",
     "tesseract2.js": "workspace:*",
     "xlsx": "workspace:*"
