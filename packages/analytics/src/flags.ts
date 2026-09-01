@@ -27,6 +27,19 @@ export interface FlagFetchConfig {
   appVersion?: string;
 }
 
+/** L'en-tête d'authentification du relais : la session Supabase de l'appelant.
+ *  Hors session (ou si le fournisseur échoue) → aucun en-tête, et le relais refuse.
+ *  ⚠️ Type de retour EXPLICITE : sans lui, TypeScript infère une union
+ *  `{ Authorization?: undefined }` que `HeadersInit` refuse (TS2769). */
+async function authHeaders(cfg: FlagFetchConfig): Promise<Record<string, string>> {
+  try {
+    const token = await cfg.getAuthToken?.();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
 export async function fetchRelayFlags(
   cfg: FlagFetchConfig | null,
   distinctId: string,
@@ -39,7 +52,7 @@ export async function fetchRelayFlags(
     const url = new URL("flags", cfg.relayUrl).toString();
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...(await (async () => { try { const t = await cfg.getAuthToken?.(); return t ? { Authorization: `Bearer ${t}` } : {}; } catch { return {}; } })()) },
+      headers: { "Content-Type": "application/json", ...(await authHeaders(cfg)) },
       body: JSON.stringify({
         distinct_id: distinctId,
         source: cfg.source,

@@ -66,11 +66,8 @@ configurePlatformAccess({
 configureAnalytics({
   relayUrl: ANALYTICS_RELAY_URL,
   source: "desktop",
-  // La session Supabase authentifie la requête vers le relais (01/09/2026 — elle a
-  // remplacé la clé HMAC bakée, extractible d'un bundle expédié). Lue PARESSEUSEMENT :
-  // ce `configureAnalytics` tourne avant le premier rendu, quand aucune session n'existe.
-  // ⚠️ Hors session, le relais refuse : rien n'est mesuré avant la connexion, plantages
-  // de démarrage compris. C'est le prix assumé d'une analytique authentifiée.
+  // La session Supabase authentifie la requête vers le relais — PARESSEUSE, et ce qu'elle
+  // coûte hors session : `@openmasq/analytics` types.ts, `getAuthToken`.
   getAuthToken: () => authHost.getAccessToken?.() ?? Promise.resolve(null),
   // Stamps env + version on every event (`./appEnv` explains the derivation, and why
   // "empty" does NOT mean production). ⚠️ `runtimeEnv` is the SECOND axis, stamped nowhere
