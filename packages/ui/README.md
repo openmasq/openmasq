@@ -18,7 +18,7 @@ in code. Styling is Tailwind + `src/styles.css` tokens — no inline styles.
 - `src/state/` — the store and the state modules (grouped by theme); `src/send/` — the send
   pipeline (redaction gates, vault terms, preflight); `src/agent/` — the tool-calling loop.
 - `src/skills/` (reusable instructions), `src/memory/`, `src/feedback/` — feature logic
-  behind the Skills, Memory and « Votre avis » screens.
+  behind the Skills and Memory screens and the « Votre avis » modal.
 - `src/styles.css` — tokens and the four themes.
 
 `pnpm test:changed` after each burst; `pnpm test` before pushing.

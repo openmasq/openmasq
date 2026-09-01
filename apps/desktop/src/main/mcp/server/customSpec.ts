@@ -32,7 +32,7 @@ export function newCustomServerId(): string {
   return `${CUSTOM_ID_PREFIX}${randomBytes(6).toString("hex")}`;
 }
 
-export interface CustomServerDraft {
+interface CustomServerDraft {
   name: string;
   url: string;
 }

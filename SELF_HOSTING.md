@@ -69,12 +69,13 @@ What you lose, each stated where it is decided:
 | `OPENMASQ_SENTRY_DSN` | No crash reports |
 | `VITE_UPDATES_URL` | No auto-update, and no probing — the app says so rather than asking a stranger's feed. The default is the brand's feed (`https://updates.<domain>`, `publicServices.ts`): a fork sets its own or empties it, so it never updates itself with someone else's signed binary |
 
-### The billing-gated pair
+### The billing-gated addresses
 
-`OPENMASQ_BACKEND_URL` and `OPENMASQ_GATEWAY_URL` are behind a second gate,
+`OPENMASQ_BACKEND_URL`, `OPENMASQ_GATEWAY_URL` and their `_STAGING` twins — four
+variables (`BILLING_GATED_SERVICES`) — are behind a second gate,
 `OPENMASQ_BILLING=1` (`apps/desktop/scripts/buildDefines.ts`). **Without it they are baked
 empty whatever the build received**, and with them go accounts sync, organizations,
-reviews, included models, server-side redaction — and therefore anything sold. That is the
+feedback, included models, server-side redaction — and therefore anything sold. That is the
 configuration this repository ships.
 
 ---

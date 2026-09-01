@@ -1,7 +1,7 @@
 # Contributing to OpenMasq
 
 Thanks for wanting to contribute. This document says how to work here without friction:
-the repository checks itself a great deal (about twenty gates), and a pull request that
+the repository checks itself a great deal (seventeen `check:*` gates), and a pull request that
 passes them is quick to review.
 
 The project is under the [Apache License 2.0](LICENSE). By opening a pull request you
@@ -52,10 +52,11 @@ the whole tree: existing code is written dense to stay under the 300-line cap (r
 and a global reformat would push it over. Run `pnpm format` on what you write; do not
 reformat files you are not touching.
 
-⚠️ **`pnpm test:e2e` hits the real OpenAI API and costs real money.** Never run it out of
-curiosity; the unit tests (`pnpm test`, 7 000+) are free and cover the essentials. The e2e
-suites sit behind environment variables (`apps/desktop/e2e/helpers.ts`) for exactly that
-reason.
+⚠️ **The e2e suites hit real provider APIs and cost real money.** Never run one out of
+curiosity; the unit tests (`pnpm test`) are free and cover the essentials. Each e2e spec
+SKIPS itself when its provider key is absent (`test.skip` at the top of the file), and they
+are launched one at a time: `pnpm --filter @openmasq/desktop e2e:openai`, `e2e:workflows`…
+(`apps/desktop/e2e/README.md`).
 
 ## The gates — why they block you, and how to read the red
 
@@ -67,7 +68,12 @@ exists when it fails — read the message before working around it:
 | `check:lint` | The errors typechecking cannot see (misplaced hook, dead import, cast optional chain), via Biome. |
 | `check:loc` | No source file over 300 lines (frozen debt, may only shrink). |
 | `check:dup` | A fact or a behaviour has ONE home — no copy "kept in sync". |
-| `check:docs` | The root `CLAUDE.md` only cites paths that exist. |
+| `check:docs` | The root `CLAUDE.md` cites only paths that exist, and does not grow past its frozen size. ⚠️ The nested guides are gitignored — the gate does not see them. |
+| `check:i18n` | No copy hardcoded in a component: it belongs in `@openmasq/i18n` (accent-blind ratchet). |
+| `check:alias` | The workspace→`src` alias table and the `tsconfig` copy of it agree. |
+| `check:effects` | A `useEffect` that subscribes returns its cleanup. |
+| `check:shipped` | What the bundles ship matches what the packaging expects. |
+| `check:pkgtree` | The packaged app's flattened `node_modules` resolves the versions the build meant (release only). |
 | `check:features` | `FEATURES.md` describes the real product (screens, settings, counters). |
 | `check:tests` | Every tracked `*.test.ts` file is actually run by an `include`. |
 | `check:brand` | The repository's retired codename does not come back. |

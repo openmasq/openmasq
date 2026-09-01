@@ -7,7 +7,7 @@ Two families, and the split is the trigger, not the file name.
 | Workflow | What it does |
 |---|---|
 | `ci.yml` | The entry point: path filter, then `verify.yml`, `corpus.yml` on engine diffs, and the features-drift notice. The one required check is the `ci` verdict. |
-| `verify.yml` | `pnpm build` + every `check:*` gate + `pnpm test`. The only secrets it accepts are optional analytics keys baked as build defines — empty on a fork, which is the documented off-state. |
+| `verify.yml` | `pnpm build` + the gate suite + `pnpm test` (`check:pkgtree` runs in the release workflows, `check:features-drift` in `ci.yml`). The only secrets it accepts are optional analytics keys baked as build defines — empty on a fork, which is the documented off-state. |
 | `corpus.yml` | Recall/precision benches of the redaction engine on real documents. Informative, never blocking. |
 | `scan.yml` | gitleaks + CodeQL. On a fork's PR the CodeQL upload has no token and degrades to analysis-only. |
 

@@ -986,7 +986,7 @@ stuck with a version that breaks your use.
 ### Navigation
 **Access**: the left rail · ⌘K everywhere.
 
-**What it makes possible.** Six sections plus Réglages, a shared side panel that survives a
+**What it makes possible.** Five sections plus Réglages, a shared side panel that survives a
 change of section, and a ⌘K palette that reaches conversations, sections **and** settings.
 
 **What it gives you.** An open document stays open when you move from the chat to
@@ -998,7 +998,7 @@ The app cannot describe itself in two ways — which, on a product where four na
 are its own (Coffre, Compétences, Mémoire), is the difference between a vocabulary and
 jargon.
 
-- [x] Six sections + Réglages — `packages/ui/src/help/sections.ts`
+- [x] Five sections + Réglages — `packages/ui/src/help/sections.ts`
 - [x] ⌘K palette: conversations, sections, settings — `packages/ui/src/containers/modals/SearchModal/`
 - [x] Shared side panel, kept from one section to the next
 - [x] Folding it: click the **active** tab again; closing it: the cross on its item. The

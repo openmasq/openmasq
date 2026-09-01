@@ -14,38 +14,13 @@ import { expect, type Page } from "@playwright/test";
  * only substitutes the confirmation cards' answer (see `e2eBridge.tsx`).
  */
 
-/** The bridge's contract, redeclared here: the spec and the renderer don't share a
- *  tsconfig. It must stay the mirror of `src/renderer/src/e2eBridge.tsx` — a
- *  drift shows up immediately (the bridge is the ONLY consumer). */
-interface E2eTurnSnapshot {
-  convId: string;
-  done: boolean;
-  text: string;
-  error: boolean;
-  errorText: string;
-  tools: string[];
-  redactions: Record<string, string>;
-  ms: number;
-}
+/** The bridge's contract, imported from its ONE source (`src/renderer/src/e2eContract.ts`,
+ *  types only — the spec and the renderer share no tsconfig, so a type-only import is all
+ *  that can cross, and it is all that is needed). */
+import type { E2eApi } from "../../../src/renderer/src/e2eContract";
 declare global {
   interface Window {
-    __openmasqE2E?: {
-      send: (
-        text: string,
-        opts?: { approveWrites?: boolean; revealForWeb?: boolean; modelId?: string },
-      ) => string;
-      modelReady: (id: string) => boolean;
-      turn: (convId: string) => E2eTurnSnapshot | null;
-      confirms: () => {
-        tool: string;
-        convId: string;
-        approved: boolean;
-        at: number;
-        args: Record<string, unknown>;
-      }[];
-      journal: (convId: string) => unknown[];
-      toolNameRedactions: (convId: string) => { fake: string; real: string }[];
-    };
+    __openmasqE2E?: E2eApi;
   }
 }
 

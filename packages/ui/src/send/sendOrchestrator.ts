@@ -1156,7 +1156,7 @@ export function createSendMessage(d: SendMessageDeps) {
                 // actually went out — the compétence may be edited/deleted later.
                 // `servers` (connector ids) is kept so the tag shows the
                 // connectors the instruction named, AND so the FOLLOWING turn's tool
-                // scope can pick it back up (`activeCompetenceScope`).
+                // scope can pick it back up (`activeSkillScope`).
                 // ⚠️ `message.workflow` is NEVER written: it is the old shape, read
                 // only (`@openmasq/schema`).
                 competence: opts?.competence
@@ -1671,7 +1671,7 @@ export function createSendMessage(d: SendMessageDeps) {
             // prompt: the router — a model call — could drop the tools of the
             // requested connector and leave it unreachable without `load_tools` (log from
             // 27/07/2026: empty pick on a routine scoped to Google Agenda). WIDENS
-            // the offer. Falls back to the LAST one used (`activeCompetenceScope`, which also
+            // the offer. Falls back to the LAST one used (`activeSkillScope`, which also
             // reads the old `workflow` tag from history).
             scopedConnectors: opts?.competence?.servers?.length
               ? opts.competence.servers

@@ -100,8 +100,9 @@ DeepSeek, OpenRouter, or any OpenAI-compatible endpoint — Ollama, LM Studio, v
 point the app at a local model. Your Claude Code / Codex CLI subscription works too.
 
 **This build has no backend.** No billing, no sync, no organizations, no included
-models: those services no longer exist, and the app runs on your machine — your keys,
-a local model, or a CLI subscription. Redaction is on-device.
+models: those services are not part of it — they live in a private repository, behind the
+`OPENMASQ_BILLING` gate — and the app runs on your machine: your keys, a local model, or a
+CLI subscription. Redaction is on-device.
 
 **Five small services stay hosted by the brand, and a build from these sources
 reaches them by default** (`apps/desktop/scripts/publicServices.ts`): sign-in (a
@@ -117,8 +118,8 @@ its own identity should empty the feed so it never updates itself with the brand
 signed binary (`SELF_HOSTING.md`). `pnpm dev` applies them too.
 
 Running a local stack is an explicit choice: the overrides go in a gitignored
-`apps/desktop/.env.development.local`, and the committed `.env.development` documents
-them along with the ports.
+`apps/desktop/.env.development.local`, and the committed `.env.development` says which
+overrides go there.
 
 ---
 
@@ -133,8 +134,9 @@ pnpm build
 pnpm verify            # the full local gate suite
 ```
 
-`pnpm test:e2e` is **not** part of that loop: it drives the built app against the real
-OpenAI API and costs real money. It is env-gated in `apps/desktop/e2e/helpers.ts`.
+The e2e suites are **not** part of that loop: they drive the built app against real
+provider APIs and cost real money. Each spec skips itself without its key —
+`pnpm --filter @openmasq/desktop e2e:openai` (`apps/desktop/e2e/README.md`).
 
 Some conventions are enforced rather than asked for, each by its own gate: a 300-line
 cap per source file (`check:loc`), documentation that points at paths which exist
@@ -167,7 +169,7 @@ containing exploit details.
 ## License
 
 [Apache License 2.0](LICENSE) — for the whole repository: the desktop app, the packages
-(including the redaction engine), the server components and the tooling. You may use,
+(including the redaction engine), the local MCP broker and the tooling. You may use,
 modify, redistribute and build on it, commercially included, provided you keep the notices
 ([`NOTICE`](NOTICE)) and state your changes; the licence also carries an express patent
 grant from every contributor.

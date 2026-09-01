@@ -45,18 +45,18 @@ the **model** sees, and nothing else.
 tool-result clear-lists all enumerate what is permitted. A new primitive appearing in a
 dependency is denied by default rather than silently exposed.
 
-**Process isolation.** Five things run outside the privileged process, each because
+**Process isolation.** Seven things run outside the privileged process, each because
 collapsing it back would be a real weakening: the agent browser (CDP is process-global), the
 @playwright/mcp server (third-party code), the Python sandbox (model-generated code running
 on de-redacted data, under an OS jail), the PDF print window, the filesystem worker, the NER
-and embedding workers.
+and embedding workers. The local MCP broker sidecar is an eighth, spawned the same way.
 
 **The renderer is untrusted.** Every gate the interface shows is UX; the real decision is
 re-taken in the privileged process, because a renderer XSS can call any exposed IPC directly.
 
 **Secrets at rest.** Provider keys are write-only from the interface — set and cleared,
 never read back — and are injected into the provider call in the privileged process. The
-local database, the file blobs and the debug journal are encrypted per account.
+local database, the file blobs and the debug log are encrypted per account.
 
 **Integrity-pinned assets.** OCR traineddata, OCR models, NER weights and the Python runtime
 are baked into the build and sha256-verified before they reach a parser or an interpreter.
@@ -65,7 +65,7 @@ verified against a digest held in the source. A normal packaged run downloads no
 One asset can still fall back to a runtime download when its baked directory is missing from
 the build — see **Baked assets have one runtime fallback** under Known limitations.
 
-**Egress is recorded.** Every outbound decision passes one SSRF floor, which journals the
+**Egress is recorded.** Every outbound decision passes one SSRF floor, which records the
 origin contacted (or refused) per account, visible in Settings → Journal. Origins only —
 never a path or a query, because a signed URL carries its token there.
 
@@ -103,8 +103,8 @@ this list is the consolidated view.
 
 **Redaction is detection, and detection is imperfect.**
 - A value no detector recognises ships in clear. The manual "Redact" gesture and the
-  Coffre exist because of this, and the Coffre is the only *guarantee* of coverage for a
-  given string.
+  Vault (the always-masked terms, « Coffre » in the French UI) exist because of this, and
+  the Vault is the only *guarantee* of coverage for a given string.
 - **PII baked into pixels that OCR never read is invisible to every gate**, including the
   per-value proof that guards sending a document as redacted images.
 - The vault-pollution cleanup can drop a genuinely real file path, which would then ship in
@@ -191,7 +191,7 @@ this list is the consolidated view.
 - The feedback endpoint has no rate limit.
 - On sync, the account token can register fresh devices; a per-device scoped token is
   follow-up work. The browser extension (maintained outside this repo) is push-only by server-enforced capability, with one
-  deliberate read exception for the Coffre, which it must pull in order to enforce it.
+  deliberate read exception for the Vault's terms, which it must pull to enforce them.
 - Three main-process channels fetch a URL the renderer chose — the model call itself
   (`chat:*`), the batch page reader (`web:fetch-many`) and the embeddings endpoint. Each is
   constrained to public hosts by the SSRF guard, and none is constrained to hosts the app
@@ -200,7 +200,7 @@ this list is the consolidated view.
   main knowing the gateway origin; the other two are accepted alongside it, because closing
   them would refuse a URL the user typed and a self-hosted embedder while leaving the
   attacker the first.
-- The egress journal is best-effort evidence: it is flushed on a short debounce and on quit,
+- The egress log is best-effort evidence: it is flushed on a short debounce and on quit,
   so a hard kill loses the last seconds. Nothing depends on it.
 
 ---

@@ -7,8 +7,8 @@ Privacy-first multi-model desktop chat. Sensitive data is **redacted before it l
 prompt ──redact──▶ what the model receives ──model──▶ reply ──de-redact──▶ shown
 ```
 
-Models are reached with real **API keys**, or on **the app's own key** through the gateway
-(metered on credits). The **keyless web-session** path (driving a signed-in ChatGPT/Claude
+Models are reached with real **API keys** — or, when a build opens the `OPENMASQ_BILLING`
+gate, on the app's key through the gateway (private `infra` repo, metered on credits). The **keyless web-session** path (driving a signed-in ChatGPT/Claude
 tab) was REMOVED from the desktop product; its config package and only consumer (a
 browser extension) live outside this repo.
 **Brand VALUES have ONE home** (rule 9): `packages/branding/branding.json`, via `@openmasq/branding` (`BRAND`, `brandHost`, `brandKey`…) — runtime/wire/disk values derive from it, never a literal. The NAME also serves as the technical namespace (npm scope, `OPENMASQ_*` env, `window.openmasq`); `check:brand` guards the RETIRED codename instead.
@@ -36,12 +36,12 @@ browser extension) live outside this repo.
    store, IPC). Change the visual layer only, unless that IS the task.
 4. **e2e is slow and costs real money — never run it casually.** `apps/desktop/e2e` drives the
    built app against the **real OpenAI API** (`openai-redaction.e2e.ts` = document redaction;
-   `shot.e2e.ts`/`lib-shot.e2e.ts` = screenshots). Env-gated in `apps/desktop/e2e/helpers.ts`.
+   `shot.e2e.ts`/`lib-shot.e2e.ts` = screenshots). Each spec SKIPS itself without its provider key.
    Unit tests (`pnpm test`) are free — run them constantly.
 5. **Document as you change, in the RIGHT file.** Every app/package has a `CLAUDE.md`; when
    you change its structure, public exports, build steps or conventions, update it **in the
-   same change**. **Enforced**: `pnpm check:docs` fails on a doc naming a path that no longer
-   exists, and on doc bloat. See **Writing docs**.
+   same change**. **Enforced**: `pnpm check:docs`, on the ROOT map ONLY — a path it names must
+   exist and it may not bloat. The nested docs are gitignored: the gate never sees them.
 6. **Never write inline CSS — always Tailwind.** No `style={{…}}`. Use utilities (`bg-brand`,
    `text-strong`, `rounded-xl`) or a semantic class in `packages/ui/src/styles.css` mapped to
    tokens. Inline `style` ONLY for a genuinely runtime-computed value (a width from JS, a
@@ -152,10 +152,10 @@ packages/
   redact/      The redaction engine (pure, unit-tested): redact/unredact/pseudonymize/vault
   mcp/         Redacting MCP client — tool calls redacted via redact
   catalog/     Single-source governable lists (models / MCP connectors / redaction categories)
-  credits/     Billing tiers + credit amounts · schema/ persisted chat schema · emails/ mail
+  credits/     Billing tiers + credit amounts · schema/ persisted chat schema (types only)
   sync/        Cross-device E2E sync (vaults + records) + org audit · analytics/ analytics core
   connectors/  On-device-OAuth MCP tools
-  tesseract2/  Vendored hardened OCR (worker_threads+WASM) · ort/ ONNX+repli WASM · vendor/xlsx/
+  tesseract2/  Vendored hardened OCR (worker_threads+WASM) · ort/ ONNX + WASM fallback · vendor/xlsx/
 ```
 
 **Dependency direction:** `ui` → `llm`/`redact`/`mcp`/`catalog`/`schema`/`analytics`/`i18n`; `mcp` → `redact`;
@@ -206,7 +206,7 @@ A `CLAUDE.md` is loaded **whole** into every session touching its directory, and
   (`packages/ui/src/send/CLAUDE.md`). **Never `@import`** — it expands eagerly.
 - **Write what the code CANNOT say**: invariants, rationale, a trap and why it bites. **Cut what's derivable** — listings, signatures, dep lists, architecture.
 - **No archaeology.** "X used to be Y" belongs in the commit message; a rule that needs a bug story to be believed belongs in a test.
-- **Prefer a test to a paragraph** — name the test that pins an invariant (`send/preflight.test.ts` pins `greyed ⇔ refused`). **A procedure is a skill**, not a section.
+- **Prefer a test to a paragraph** — name the test that pins an invariant (`send/modelAvailability.test.ts` pins `grisé ⇔ refusé`). **A procedure is a skill**, not a section.
 
 ---
 

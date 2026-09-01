@@ -20,7 +20,7 @@ import { devOnly } from "../security/devOnly";
  * like the wire log: test artefact, real PII, never committed.
  */
 
-export interface FixtureTool {
+interface FixtureTool {
   name: string;
   description?: string;
   /** JSON Schema for the arguments. Defaults to an open object. */

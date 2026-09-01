@@ -62,7 +62,7 @@ describe("drivesTools", () => {
   });
 });
 
-describe("activeCompetenceScope", () => {
+describe("activeSkillScope", () => {
   const user = (tag?: Record<string, unknown>) => ({ role: "user", ...tag });
 
   it("reprend la portée de la DERNIÈRE compétence à connecteurs", () => {

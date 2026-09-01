@@ -1,4 +1,4 @@
-# scripts/ — root tooling, in four families
+# scripts/ — root tooling, in three families
 
 Nothing here ships. Everything runs from the repository root.
 

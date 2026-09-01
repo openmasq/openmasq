@@ -4,10 +4,10 @@ import { sink } from "./posthog";
 
 export type {
   TrackEvent,
-  EventName,
-  CleanEvent,
   SendErrorReason,
   ToolErrorReason,
+  // Read by `agent/toolFault.ts` through `import("…/analytics").ToolErrorFamily` — a form
+  // knip does not follow, so it is NOT dead: keep it here, whatever the report says.
   ToolErrorFamily,
   ConnectorErrorReason,
 } from "./events";

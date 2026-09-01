@@ -1,82 +1,63 @@
-# Real end-to-end tests (logged-in ChatGPT / Claude)
+# Real end-to-end tests (the BUILT app, real provider APIs)
 
-> Two other suites live here on the SAME built-app harness: `workflows-openrouter.e2e.ts`
-> (agentic workflows, MCP fixtures) and `documents.e2e.ts` (generation + EDITING of
-> ```document documents — PII typed into the editor enters the vault and never leaves in the
-> clear). Both are gated on `OPENROUTER_API_KEY` (a free model by default → zero cost);
-> `pnpm e2e:workflows` / `pnpm e2e:documents`. Each spec documents its invariants at the top.
-> ⚠️ The scripts go through `node ../../node_modules/@playwright/test/cli.js` — the hoisted
-> `.bin/playwright` is a standalone `playwright` of ANOTHER version that collects no test at
-> all ("did not expect test.describe()").
+These launch the **built Electron app** on an isolated profile and assert the privacy
+contract on the payload that actually leaves the machine. They hit a real network and a
+real model, so they are **not** part of `pnpm test` — run them deliberately.
 
-These launch the **built Electron app** with an **actual signed-in web session**
-and assert the core privacy guarantee by comparing two things:
+⚠️ The scripts go through `node ../../node_modules/@playwright/test/cli.js` — the hoisted
+`.bin/playwright` is a standalone `playwright` of ANOTHER version that collects no test at
+all ("did not expect test.describe()").
 
-| Prompt contains       | App shows you (your copy) | Text sent to the model        |
-| --------------------- | ------------------------- | ----------------------------- |
-| nothing sensitive     | the prompt                | **identical**                 |
-| names / emails        | the **real** values       | **fake** substitute / token   |
-| numbers (number mode) | the **real** figures      | `n1`, `n2`… tokens            |
+## What is compared, and where it is captured
 
-### What we compare, and why not the live page
+The wire is captured in the MAIN process, at the exact boundary `streamChat()` POSTs from
+(`src/main/ipc/e2eWireLog.ts`, armed by `OPENMASQ_E2E_WIRE_LOG` and inert without it). Not
+the rendered page, not an intermediate state: what the provider receives.
 
-The "text sent to the model" is captured at the **relay boundary** — the exact
-payload the app hands to the web session (`wv.send("host:send", { text })`),
-before it hits the network. We do **not** scrape ChatGPT's rendered page:
-driving the live site in automation gets stuck on Cloudflare's "Un instant…"
-challenge (bot detection on the embedded webview). Capturing what *leaves the
-app* is both Cloudflare-proof and the thing that actually matters — it's exactly
-what the model receives. The test still runs the whole pipeline (UI → store →
-redaction → relay).
+| The prompt carries   | The app shows you    | What leaves for the provider |
+| -------------------- | -------------------- | ---------------------------- |
+| nothing sensitive    | the prompt           | **identical**                |
+| names / e-mails      | the **real** values  | a **fake** or a placeholder  |
+| numbers (number mode)| the **real** figures | `n1`, `n2`… tokens           |
 
-## Why we don't automate the password login
+## Running one
 
-`chatgpt.com` is behind Arkose FunCaptcha + Cloudflare, and **fresh logins from
-inside Electron loop forever** on Cloudflare's challenge (it flags the embedded
-browser as a bot → repeated 403). OpenAI's ToS also forbids automated login.
-
-So we **don't** log in from scratch. `pnpm e2e:login`:
-
-1. Launches the app on your **real profile** and, if it's already signed in to
-   ChatGPT/Claude (it usually is — you use the keyless feature), **copies just the
-   session cookies** (`Partitions/`) into the isolated test profile. No password,
-   no CAPTCHA, no Cloudflare.
-2. Only if no existing session is found does it fall back to an interactive login
-   window (now using a Chromium-matching User-Agent, so it no longer loops).
-
-## Usage
+Each spec **skips itself** when its provider key is absent (`test.skip` at the top of the
+file, keys read from the root `.env`) — there is no shared env gate, and nothing to log in to.
 
 ```bash
-# 1) Once: adopt your existing session into the test profile (or log in by hand).
-pnpm e2e:login                       # ChatGPT
-E2E_PLATFORM=claude pnpm e2e:login   # or Claude
-
-# 2) Automated comparison tests — reuse the saved session, no password needed.
-pnpm test:e2e
+pnpm --filter @openmasq/desktop e2e:boot        # the app starts, nothing else
+pnpm --filter @openmasq/desktop e2e:openai      # OPENAI_API_KEY — document round-trip
+pnpm --filter @openmasq/desktop e2e:workflows   # OPENROUTER_API_KEY — agentic workflows
+pnpm --filter @openmasq/desktop e2e:documents   # OPENROUTER_API_KEY — generate + edit
+pnpm --filter @openmasq/desktop e2e:documents-multi  # no key at all (see below)
 ```
 
-The session lasts weeks; re-run `e2e:login` only when `test:e2e` reports "Not
-signed in". These tests hit the real network and a real model, so they are
-**not** part of `pnpm test` — run them nightly or manually.
+The full list of entry points is `apps/desktop/package.json` (`e2e:*`). ⚠️ The root
+`pnpm test:e2e` and `pnpm e2e:login` point at desktop scripts that no longer exist — the
+keyless web-session path they served was removed from the product.
 
-> The infinite-Cloudflare-loop on a Firefox UA was also a **real bug** in the
-> app's own keyless login (`webSession.ts` forced a Firefox UA on the Chromium
-> login window); it's fixed to use a Chrome UA for the platform's own sign-in.
+## The document round-trip (`e2e:openai`)
+
+`openai-redaction.e2e.ts` attaches a CSV full of personal data, asks for a consolidated CSV
+back, and asserts the whole contract: the payload that leaves for `api.openai.com` carries
+only placeholders, and the returned document is de-redacted in the copy the user sees — the
+real e-mails restored, no token left behind. It runs on the deterministic `patterns` engine
+so "nothing leaked" never depends on a model's recall.
 
 ## How it works
 
-- Two inert production hooks (no effect without the env vars):
-  `OPENMASQ_USER_DATA_DIR` points Electron at the test profile;
-  `OPENMASQ_DISABLE_DB` skips the local DB so the renderer store is
-  localStorage-only and tests can seed settings deterministically.
-- `helpers.ts` launches the app, opens a keyless chat, patches the webview's
-  `send` to record the relayed `text`, sends a prompt, and reads the app's user
-  bubble (`.msg.user`) + redaction highlights (`mark.redaction-mark`).
-- `chat.e2e.ts` runs the no-sensitive / email / numbers comparisons above.
+- Two inert production hooks (no effect without the env vars): `OPENMASQ_USER_DATA_DIR`
+  points Electron at the test profile, `OPENMASQ_DISABLE_DB` skips the local DB so the
+  renderer store is localStorage-only and a test can seed settings deterministically.
+- `helpers.ts` exports `launchApp` (isolated profile, DB disabled), `PROFILE_DIR` and
+  `userDataPath`, and re-exports the gestures from `pageActions.ts`. Settings are seeded
+  per test through `localStorage`.
+- The e-mail and number cases work fully offline through the deterministic rules;
+  **names and companies** need a reachable redaction model.
 
-Settings are seeded per-test through `localStorage`. Email and number cases work
-fully offline via the built-in regex rules; **names/companies** detection needs a
-reachable redaction model (Mistral/Ollama).
+> `e2e/journey/` is NOT a test suite — it is the driver a human or an agent steers by hand.
+> Its own `CLAUDE.md` documents it.
 
 ## Multiple documents — local redaction, JUDGED (`pnpm e2e:documents-multi`)
 

@@ -1,17 +1,17 @@
 # Release notes
 
-This file feeds the **release announcement e-mail** (`packages/emails` → `ReleaseNotes`). On
-every **production** release (a `v*` tag), CI reads the published version's section, renders
-it as an e-mail, and creates a **draft Resend broadcast** — re-read then sent by hand from
-the Resend dashboard (Resend handles the audience + unsubscribes). See
-`packages/emails/scripts/release-broadcast.ts`.
+This file feeds the **release announcement e-mail**. On every **production** release (a
+`v*` tag), the CI of the private `infra` repository reads the published version's section,
+renders it as an e-mail and creates a **draft Resend broadcast** — re-read then sent by hand
+from the Resend dashboard (Resend handles the audience + unsubscribes). The renderer, the
+parser and that workflow all live there; this repository only holds the source text.
 
 ⚠️ **The notes themselves are written in FRENCH, on purpose**: they are the copy users
 receive, and the product speaks French. Everything else in this repository is English (see
-`CONTRIBUTING.md`) — this file is the exception, because its content is not documentation but
-a message to customers.
+`CONTRIBUTING.md`) — this file and `evals-reports/README.md` are the exceptions, the first
+because its content is not documentation but a message to customers.
 
-**Per-version format — the parser (`scripts/parseReleaseNotes.ts`) depends on it:**
+**Per-version format — the parser (in the `infra` repository) depends on it:**
 
 - a `## <version> — <YYYY-MM-DD>` heading, carrying the version being released — that is
   the string CI looks up (an absent section is the no-op stated below, never a broken
@@ -27,9 +27,8 @@ Contentful serves a past note as a single markdown block — but a section that 
 renders its bullets and nothing else.
 
 The budget is not a style preference: a note is read in thirty seconds or it is not read. It
-is held on both sides — the generator's schema caps it
-(`packages/emails/scripts/generateNote.ts`) and step 3 of the `release-version` skill says the
-same thing, with `generateNote.budget.test.ts` checking that the two agree.
+is held on both sides — the generator's schema caps it (in `infra`) and step 3 of the
+`release-version` skill says the same thing, with a test checking that the two agree.
 
 A version with no section here ⇒ CI sends nothing (a no-op; the release is not blocked). Keep
 the most recent section **at the top**.

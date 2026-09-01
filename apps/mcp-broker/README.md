@@ -6,7 +6,7 @@ Authorization Server** that **federates** to each provider's login. The desktop
 app connects to one URL per platform and authenticates through the broker — the
 "Anthropic-held credentials / Composio" model — so the user never registers a
 cloud OAuth app or runs a local server. The provider access token stays inside
-the broker; only tool output is returned (and the desktop then redacted it).
+the broker; only tool output is returned (and the desktop then redacts it).
 
 ```
 desktop ──OAuth(DCR+PKCE)──▶ broker ──federates──▶ Google/Slack/GitHub login
@@ -56,7 +56,7 @@ all others exact; auth codes single-use with a 60 s TTL; broker tokens are
 256-bit crypto-random with a TTL; provider creds come only from env and are never
 logged; upstream tokens never leave the broker; `/oauth/token` is rate-limited.
 
-> Scope/simplifications: in-memory stores (swap for Redis/DB in prod); the
+> Scope/simplifications: an encrypted local snapshot under `BROKER_DATA_DIR` (in-memory when it is unset); a hosted deployment would swap it for a shared encrypted store; the
 > Authorization Server is hand-rolled to satisfy the MCP SDK client (not a full
 > general-purpose AS); refresh of **upstream** provider tokens is stored but not
 > auto-refreshed on expiry yet. See `CLAUDE.md`.

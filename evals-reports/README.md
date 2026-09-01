@@ -3,12 +3,12 @@
 Deux bancs, deux dossiers, **jamais mélangés** (leurs chiffres ne mesurent pas la
 même chose) :
 
-- **`fixtures/`** — résultats d'outils FIGÉS (`apps/desktop/e2e/fixtures/mcp/workflows.json`).
+- **`fixtures/`** (créé par un run, gitignoré) — résultats d'outils FIGÉS (`apps/desktop/e2e/fixtures/mcp/workflows.json`).
   Le modèle est réel, les services non : déterministe, répétable, gratuit côté
   services, sans effet de bord. **C'est le banc où l'on itère** — un écart
   avant/après y est imputable au changement de guidance, pas à la latence d'un
   service ou au contenu d'un compte.
-- **`e2e/`** — les VRAIS connecteurs du compte dev. Mesure ce que l'utilisateur
+- **`e2e/`** (créé par un run, gitignoré) — les VRAIS connecteurs du compte dev. Mesure ce que l'utilisateur
   vivra, au prix d'écritures réelles et d'une variance qui interdit d'y lire un
   progrès fin. **On y confirme**, on n'y itère pas.
 
