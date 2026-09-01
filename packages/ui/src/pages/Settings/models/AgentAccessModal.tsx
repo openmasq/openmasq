@@ -61,8 +61,8 @@ export function AgentAccessModal({
           </div>
           <Switch checked={enabled} onChange={onEnabled} />
         </div>
+        {detected !== false && <AgentAccountCard cli={cli} />}
       </div>
-      {detected !== false && <AgentAccountCard cli={cli} />}
       <div className="confirm-footer">
         <span className="akm-foot-spacer" />
         <button className="btn-primary btn-inline" onClick={onClose}>

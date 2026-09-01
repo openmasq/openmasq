@@ -222,20 +222,68 @@
 
 /* ---------------------------------------------- Stacked messages/jour chart */
 
-/* The account card under an agent's opt-in (Réglages → Modèles → agent chip): what the
-   CLI says about its own plan, quota and models. Reuses `.usage-mbar` for the bar. */
-.agent-account { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-.agent-account-quota { display: flex; flex-direction: column; gap: 4px; }
-.agent-account-fill { background: var(--accent); }
-.agent-account-fill.hot { background: var(--danger, #c33); }
-.agent-account-when { font-style: italic; }
-.agent-account-models { margin-top: 6px; }
-.agent-account-list { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.agent-account-list li { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
-.agent-account-tag {
-  font-size: 11px;
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: var(--surface-sunken);
+/* The account ROWS under an agent's opt-in switch (Réglages → Modèles → agent chip):
+   what the CLI says about its own plan, quota and models. Same measures as `.toggle-row`
+   (14px 18px, hairline between rows) so the card reads as ONE surface; the bar is
+   `.usage-mbar`, reused. */
+.agent-account-row {
+  padding: 14px 18px;
+  border-top: 1px solid color-mix(in oklch, var(--border-default) 55%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.agent-account-kv {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+.agent-account-label {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-strong);
+  min-width: 0;
+}
+.agent-account-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
   color: var(--text-muted);
+  flex-shrink: 0;
+}
+.agent-account-value.is-hot { color: var(--text-strong); font-weight: var(--weight-medium); }
+.agent-account-bar { flex: none; width: 100%; }
+.agent-account-fill { background: var(--brand); }
+.agent-account-fill.is-hot { background: var(--text-strong); }
+.agent-account-note {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.agent-account-models {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.agent-account-model {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  font-size: var(--text-xs);
+  color: var(--text-body);
+}
+.agent-account-model.is-default { border-color: var(--brand); }
+.agent-account-tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--brand);
 }

@@ -6,15 +6,19 @@ import { useT } from "../../../i18n";
 export type AgentCli = SubscriptionAccount["cli"];
 
 /**
- * What the agent's CLI says about ITS OWN account — plan, quota windows, models — under
- * the opt-in switch of `AgentAccessModal`. Read when the card mounts (one short CLI
- * process, bounded on the main side), never before: the user opened this card to look at
- * their subscription, that is the gesture.
+ * What the agent's CLI says about ITS OWN account — plan, quota windows, models — as
+ * extra ROWS of the opt-in card in `AgentAccessModal`, under the switch. Read when the
+ * rows mount (one short CLI process, bounded on the main side), never before: the user
+ * opened this card to look at their subscription, that is the gesture.
  *
- * Each CLI fills what it exposes and the card says the rest plainly: codex gives plan,
+ * Each CLI fills what it exposes and the rows say the rest plainly: codex gives plan,
  * quota and models; antigravity its models only (`noQuota`); claude only what its last
  * turn announced (`lastTurn`, or `claudeNoData` before any send). Nothing here is an
  * error: a silent CLI is `unavailable`, a normal state (not signed in).
+ *
+ * Rows, not a nested card: `.row-title`/`.row-desc` are styled under `.toggle-row` only,
+ * and the card's padding lives on its rows — so these share `.agent-account-row` (same
+ * measures, same hairline) rather than re-inventing a second surface.
  */
 export function AgentAccountCard({ cli }: { cli: AgentCli }) {
   const t = useT();
@@ -36,53 +40,59 @@ export function AgentAccountCard({ cli }: { cli: AgentCli }) {
   if (!host.readSubscriptionAccount) return null;
   const copy = t.modelPicker.cli.account;
 
-  let body: React.ReactNode;
-  if (account === "loading") body = <div className="row-desc">{copy.loading}</div>;
-  else if (account === null)
-    body = <div className="row-desc">{cli === "claude" ? copy.claudeNoData : copy.unavailable}</div>;
-  else
-    body = (
-      <>
-        {account.plan && <div className="row-desc">{copy.plan(account.plan)}</div>}
-        {account.quotas.length === 0 && cli !== "claude" && <div className="row-desc">{copy.noQuota}</div>}
-        {account.quotas.map((q) => (
-          <QuotaLine key={q.window} quota={q} />
-        ))}
-        {account.source === "lastTurn" && <div className="row-desc agent-account-when">{copy.lastTurn}</div>}
-        {cli !== "claude" && (
-          <div className="agent-account-models">
-            <div className="row-title">{copy.modelsTitle}</div>
-            {account.models.length === 0 ? (
-              <div className="row-desc">{copy.noModels}</div>
-            ) : (
-              <ul className="agent-account-list">
-                {account.models.map((m) => (
-                  <li key={m.id}>
-                    <span>{m.label}</span>
-                    {m.isDefault && <span className="agent-account-tag">{copy.defaultTag}</span>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-      </>
+  if (account === "loading" || account === null) {
+    return (
+      <div className="agent-account-row">
+        <div className="agent-account-note">
+          {account === "loading" ? copy.loading : cli === "claude" ? copy.claudeNoData : copy.unavailable}
+        </div>
+      </div>
     );
+  }
 
   return (
-    <div className="settings-card agent-account">
-      <div className="row-title">{copy.title}</div>
-      {body}
-    </div>
+    <>
+      {account.plan && (
+        <div className="agent-account-row agent-account-kv">
+          <span className="agent-account-label">{copy.title}</span>
+          <span className="agent-account-value">{copy.plan(account.plan)}</span>
+        </div>
+      )}
+      {account.quotas.map((q) => (
+        <QuotaRow key={q.window} quota={q} lastTurn={account.source === "lastTurn"} />
+      ))}
+      {account.quotas.length === 0 && cli !== "claude" && (
+        <div className="agent-account-row">
+          <div className="agent-account-note">{copy.noQuota}</div>
+        </div>
+      )}
+      {cli !== "claude" && (
+        <div className="agent-account-row">
+          <div className="agent-account-label">{copy.modelsTitle}</div>
+          {account.models.length === 0 ? (
+            <div className="agent-account-note">{copy.noModels}</div>
+          ) : (
+            <ul className="agent-account-models">
+              {account.models.map((m) => (
+                <li key={m.id} className={`agent-account-model${m.isDefault ? " is-default" : ""}`}>
+                  {m.label}
+                  {m.isDefault && <span className="agent-account-tag">{copy.defaultTag}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
-/** One quota window: a bar when the CLI gives a percentage, a status word when it gives
- *  only a verdict (claude), the reset time whenever it is known. */
-function QuotaLine({ quota }: { quota: SubscriptionQuota }) {
+/** One quota window: label and figure on one line, the bar under them when the CLI
+ *  gives a percentage, the reset time and « as of the last send » in a muted footnote. */
+function QuotaRow({ quota, lastTurn }: { quota: SubscriptionQuota; lastTurn: boolean }) {
   const t = useT();
   const copy = t.modelPicker.cli.account;
-  const reset = quota.resetsAt ? copy.resets(new Date(quota.resetsAt).toLocaleString(t.common.intlTag)) : null;
+  const pct = quota.usedPercent;
   const status =
     quota.status === "rejected"
       ? copy.statusExhausted
@@ -91,22 +101,30 @@ function QuotaLine({ quota }: { quota: SubscriptionQuota }) {
         : quota.status
           ? copy.statusOk
           : null;
-  const pct = quota.usedPercent;
+  const label =
+    pct !== undefined && quota.windowMinutes !== undefined
+      ? copy.quotaUsed(pct, copy.windowOf(quota.windowMinutes))
+      : copy.windowName(quota.window);
+  const notes = [
+    quota.resetsAt ? copy.resets(new Date(quota.resetsAt).toLocaleString(t.common.intlTag)) : null,
+    lastTurn ? copy.lastTurn : null,
+  ].filter(Boolean);
   return (
-    <div className="agent-account-quota">
+    <div className="agent-account-row">
+      <div className="agent-account-kv">
+        <span className="agent-account-label">{label}</span>
+        {pct !== undefined ? (
+          <span className={`agent-account-value${pct >= 90 ? " is-hot" : ""}`}>{pct} %</span>
+        ) : (
+          status && <span className={`agent-account-value${quota.status === "rejected" ? " is-hot" : ""}`}>{status}</span>
+        )}
+      </div>
       {pct !== undefined && (
-        <div className="usage-mbar" role="img" aria-label={`${pct}%`}>
-          <div className={`usage-mbar-fill agent-account-fill${pct >= 90 ? " hot" : ""}`} style={{ width: `${Math.min(100, pct)}%` }} />
+        <div className="usage-mbar agent-account-bar" role="img" aria-label={`${pct}%`}>
+          <div className={`usage-mbar-fill agent-account-fill${pct >= 90 ? " is-hot" : ""}`} style={{ width: `${Math.min(100, pct)}%` }} />
         </div>
       )}
-      <div className="row-desc">
-        {pct !== undefined && quota.windowMinutes !== undefined
-          ? copy.quotaUsed(pct, copy.windowOf(quota.windowMinutes))
-          : status
-            ? `${status} — ${copy.windowName(quota.window)}`
-            : copy.windowName(quota.window)}
-        {reset ? ` · ${reset}` : ""}
-      </div>
+      {notes.length > 0 && <div className="agent-account-note">{notes.join(" · ")}</div>}
     </div>
   );
 }
