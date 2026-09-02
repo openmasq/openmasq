@@ -1,0 +1,60 @@
+/* The 2026-09-01 accessibility pass (WCAG 2.2), split out of `styles.css` (frozen size).
+   Tokens are RE-DECLARED here for the same selectors they left: the originals are gone
+   from `styles.css`, so there is exactly one declaration per (selector, token) — the
+   cascade has nothing to arbitrate. Order mirrors the theme blocks (:root, then the
+   themes), so `[data-theme]` overrides keep winning over `:root` at equal specificity.
+
+   The tokens:
+     --brand-text     the accent as TEXT — the brand fill colour is not always readable
+                      as text on the theme's ground; dark themes lift it.
+     --border-control the boundary of a control (input, chip, outline button): 3:1
+                      against the ground (1.4.11), where --border-default is a hairline.
+     --switch-off     the OFF track of a toggle, 3:1 on the ground.
+     --amber-text     the "needs setup" amber as text: 5.5:1 on white, the pastel on dark. */
+:root {
+  --brand-text: var(--brand);
+  --border-control: rgba(10, 12, 30, 0.5);
+  --switch-off: #8a8fa8;
+  --amber-text: #9a5a00;
+}
+[data-theme="dark"] {
+  --brand-text: var(--brand);
+  --border-control: rgba(216, 235, 176, 0.45);
+  --switch-off: var(--warm-300);
+  --amber-text: #ffb85c;
+}
+/* Measured on the blue-dark ground: the fill one step lighter than #3939FA is 3.3:1
+   (white on it 5.2:1), and the accent as TEXT is the periwinkle (6.9:1). */
+[data-theme="blue-dark"] {
+  --brand-text: #8a9bff;
+  --border-control: rgba(208, 212, 235, 0.45);
+  --switch-off: var(--warm-300);
+  --amber-text: #ffb85c;
+}
+[data-theme="blue"] {
+  --brand-text: #3939fa;
+  --border-control: rgba(10, 12, 30, 0.5);
+  --switch-off: #8a8fa8;
+  --amber-text: #9a5a00;
+  --border-focus: #3939fa;
+  --focus-ring: color-mix(in oklch, #3939fa 38%, transparent);
+}
+
+/* ================================================ Control boundaries ==== */
+/* WCAG 1.4.11: the boundary of a control must reach 3:1 against what surrounds it.
+   `--border-default` is a hairline meant for dividers (1.4-1.6:1 measured); controls take
+   `--border-control` instead. Selected states (`.on`) keep their own fill/border. */
+html .btn-ghost,
+html .om-vault-occ,
+html .om-vault-search-input,
+html .om-mem-input,
+html .om-starter-chip,
+html .model-gear,
+html .rrm-master,
+.om-vault-chip:not(.on),
+.om-skill-chip:not(.on),
+.model-price-chip:not(.on),
+.source-chip:not(.on),
+.audit-chip:not(.on) {
+  border-color: var(--border-control);
+}

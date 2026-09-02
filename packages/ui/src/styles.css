@@ -76,6 +76,7 @@
 @import "./styles/onboardingAccess.css";
 @import "./styles/drop.css";
 @import "./styles/console.css";
+@import "./styles/a11y.css";
 @import "./styles/modelPickerRow.css";
 @import "./styles/viewers/fvToggle.css";
 
@@ -11201,17 +11202,6 @@ button.sendmode-opt:hover {
   --brand-active: var(--forest-900);
   --brand-contrast: var(--lime);
   --brand-tint: var(--lime-soft);
-  /* Accessibility tokens (measured 2026-09-01, WCAG 2.2):
-     --brand-text    the accent as TEXT — the brand fill colour is not always readable as
-                     text on the theme's ground; dark themes lift it.
-     --border-control the boundary of a control (input, chip, outline button): 3:1
-                     against the ground (1.4.11), where --border-default is a hairline.
-     --switch-off    the OFF track of a toggle, 3:1 on the ground.
-     --amber-text    the "needs setup" amber as text: 5.5:1 on white, the pastel on dark. */
-  --brand-text: var(--brand);
-  --border-control: rgba(10, 12, 30, 0.5);
-  --switch-off: #8a8fa8;
-  --amber-text: #9a5a00;
   /* Ink for the light-lime chrome that sits ON a `--brand` fill (the « gratuit » badge,
      the selected price chip, a markdown table header, the version tile). Light + BOTH
      blue themes keep that lime on purpose; the dark-GREEN theme MUST flip it, because
@@ -11657,10 +11647,6 @@ body {
   --brand-active: #a9e15a;
   --brand-soft: #28381a;
   --brand-tint: #28381a; /* otherwise it inherits the light `--lime-soft` from `:root` */
-  --brand-text: var(--brand);
-  --border-control: rgba(216, 235, 176, 0.45);
-  --switch-off: var(--warm-300);
-  --amber-text: #ffb85c;
   --lime: #11160b;
   --lime-bright: #b8e635;
   --green-soft: #28381a;
@@ -11703,19 +11689,13 @@ body {
   --surface-shell: #0a0b0e;
   /* Primary = the same #3939FA blue as the (default) blue theme. On the dark
      surface the hover LIGHTENS (not darkens) so it still reads; ink on it is white. */
-  /* Measured: #3939FA on this ground is 2.6:1 — under the 3:1 a button fill needs to be
-     seen (1.4.11) — so the dark fill is one step lighter (3.3:1; white on it 5.2:1), and
-     the accent used as TEXT is the periwinkle (6.9:1). The brand hue is unchanged. */
+  /* One step lighter than #3939FA: 3.3:1 on this ground (1.4.11) — measures in `styles/a11y.css`. */
   --brand: #5252ff;
   --brand-hover: #6262ff;
   --brand-active: #4747ff;
   --brand-contrast: #ffffff;
   --brand-soft: #1c1c4a;
   --brand-tint: #1c1c4a; /* same: the soft fill follows the GROUND, not the light skeleton */
-  --brand-text: #8a9bff;
-  --border-control: rgba(208, 212, 235, 0.45);
-  --switch-off: var(--warm-300);
-  --amber-text: #ffb85c;
   --lime: #11160b;
   /* `--ink-on-brand` tracks `--lime`, which is near-black here — unreadable on the BLUE
      fill. White: 5.2:1 on the #5252ff fill (the light lime measured 4.1:1 on it). */
@@ -11767,12 +11747,6 @@ body {
   --brand-active: #2222c0;
   --brand-contrast: #ffffff;
   --brand-tint: #e7e7ff;
-  --brand-text: #3939fa;
-  --border-control: rgba(10, 12, 30, 0.5);
-  --switch-off: #8a8fa8;
-  --amber-text: #9a5a00;
-  --border-focus: #3939fa;
-  --focus-ring: color-mix(in oklch, #3939fa 38%, transparent);
   /* Links carry the blue accent (were green); the SELECTED row stays a neutral grey
      rather than a blue tint — a coloured selection read as too loud on the light base. */
   --surface-selected: #e9e9ec;
@@ -12170,22 +12144,3 @@ select:focus-visible {
   color: var(--text-faint);
 }
 
-
-/* ================================================ Control boundaries (a11y) ==== */
-/* WCAG 1.4.11: the boundary of a control must reach 3:1 against what surrounds it.
-   `--border-default` is a hairline meant for dividers (1.4–1.6:1 measured); controls take
-   `--border-control` instead. Selected states (`.on`) keep their own fill/border. */
-html .btn-ghost,
-html .om-vault-occ,
-html .om-vault-search-input,
-html .om-mem-input,
-html .om-starter-chip,
-html .model-gear,
-html .rrm-master,
-.om-vault-chip:not(.on),
-.om-skill-chip:not(.on),
-.model-price-chip:not(.on),
-.source-chip:not(.on),
-.audit-chip:not(.on) {
-  border-color: var(--border-control);
-}
