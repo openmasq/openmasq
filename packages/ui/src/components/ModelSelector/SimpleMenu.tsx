@@ -5,6 +5,7 @@ import { ExpandIcon } from "../brand";
 import type { MenuPos } from "./FinderMenu";
 import { ModelRow } from "./ModelRow";
 import { favoriteSet, simpleMenuModels, simpleMenuSections } from "./simpleList";
+import { factorySimpleIds } from "../../prompt/defaultModel";
 
 import { useT } from "../../i18n";
 /**
@@ -49,12 +50,14 @@ export function SimpleMenu({
   onShowAll: () => void;
 }) {
   const t = useT();
-  const favSet = favoriteSet(favorites);
+  // The factory list follows the ACCESS PATH: a ready subscription CLI leads it.
+  const factory = factorySimpleIds(unavailableModels);
+  const favSet = favoriteSet(favorites, factory);
   // The BLOCKS decide the displayed order (the default goes to the front); `models` is
   // its flattening, and it's THAT which the keyboard follows — two orders, one for the eye
   // and the other for the arrows: it's the DOWN arrow that skips a line.
   const sections = simpleMenuSections(
-    simpleMenuModels(available, value, favorites),
+    simpleMenuModels(available, value, favorites, factory),
     { favSet, defaultId: defaultModelId },
     t,
   );

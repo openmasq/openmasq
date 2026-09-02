@@ -9,6 +9,7 @@ import { OrgSection } from "./OrgSection";
 import { McpTab } from "./mcp/McpTab";
 import { ModelsTab } from "./models";
 import { toggleFavoriteModel } from "../../components/ModelSelector/simpleList";
+import { effectiveDefaultModelId, factorySimpleIds } from "../../prompt/defaultModel";
 import { BrowserTab } from "./BrowserTab";
 import { UsageTab } from "./billing/UsageTab";
 import { AuditLogTab } from "./privacy/AuditLogTab";
@@ -66,7 +67,8 @@ export function SettingsTabContent({
     <div className={`settings-page-inner${tab === "models" ? " wide" : ""}`}>
       {tab === "models" ? (
         <ModelsTab
-          defaultModelId={draft.defaultModelId}
+          // The default the access path makes (a ready CLI), unless one was picked by hand.
+          defaultModelId={effectiveDefaultModelId(draft.defaultModelId, unavailableModels, orgProfile?.allowedModelIds)}
           onPick={(id) => setDraft((d) => ({ ...d, defaultModelId: id }))}
           onSetApiKey={onSetApiKey}
           onClearApiKey={onClearApiKey}
@@ -85,7 +87,14 @@ export function SettingsTabContent({
           onAntigravityCliEnabled={(on) => setDraft((d) => ({ ...d, antigravityCliEnabled: on }))}
           favoriteModels={draft.favoriteModels}
           onToggleFavorite={(id) =>
-            setDraft((d) => ({ ...d, favoriteModels: toggleFavoriteModel(d.favoriteModels, id) }))
+            setDraft((d) => ({
+              ...d,
+              favoriteModels: toggleFavoriteModel(
+                d.favoriteModels,
+                id,
+                factorySimpleIds(unavailableModels, orgProfile?.allowedModelIds),
+              ),
+            }))
           }
         />
       ) : tab === "mcp" ? (

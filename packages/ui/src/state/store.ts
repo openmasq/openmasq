@@ -42,6 +42,7 @@ import { loadReattachFile } from "../pages/Library/reattach";
 import { retryResendWire, retryTagPrompt } from "../send/retryResend";
 import { createStagedFiles } from "./files/stagedFiles";
 import { ALL_MODELS, DEFAULT_MODEL_ID, findModelAny, } from "../prompt/models";
+import { effectiveDefaultModelId } from "../prompt/defaultModel";
 import { isAutoModelId } from "../send/autoRoute";
 import { shouldImportLegacyKeysOnce } from "../send/sendGuards";
 import { orgProfileKeyFor, readCachedOrgProfile } from "./auth/orgProfileCache";
@@ -656,26 +657,6 @@ export function useChatStore() {
     [patchConversation],
   );
 
-  // Preferred model for a NEW chat — read via a ref so the callback stays stable.
-  // Keep whatever the user is currently on (the active conversation's model),
-  // else their saved default, else the built-in default. This way the model
-  // selected in a conversation carries over when opening a new one.
-  const newChatModelRef = useRef(DEFAULT_MODEL_ID);
-  // Allow-list: a model that isn't open never carries over and never becomes the default.
-  const orgBlocks = (id: string | undefined): boolean =>
-    !isModelAllowed(id, orgProfile?.allowedModelIds);
-  newChatModelRef.current =
-    // Don't carry over / default to a model the org has disabled. AUTO is a valid
-    // carry-over/default: it is a MODE, not a registry id, so it bypasses the
-    // findModelAny existence check (which would silently drop it).
-    [
-      conversations.find((c) => c.id === activeId)?.modelId,
-      settings.defaultModelId &&
-        (isAutoModelId(settings.defaultModelId)
-          ? settings.defaultModelId
-          : findModelAny(settings.defaultModelId)?.id),
-    ].find((id) => id && !orgBlocks(id)) || DEFAULT_MODEL_ID;
-
   // Which models can't actually SEND right now, and why — id → reason, for the pickers
   // to FLAG (Composer's `ModelSelector`, the Compte default-model picker). Computed
   // with the SAME `modelUnavailableReason` the fail-closed send gate uses, so a flagged
@@ -739,6 +720,22 @@ export function useChatStore() {
     personalSub,
     registryVersion,
   ]);
+
+  // Preferred model for a NEW chat — read via a ref so the callback stays stable. Keep
+  // whatever the user is currently on (the active conversation's model), else the default
+  // the chosen ACCESS PATH makes (`prompt/defaultModel.ts`: a ready subscription CLI, unless
+  // a model was picked by hand), else the built-in default. Below the map on purpose.
+  const newChatModelRef = useRef(DEFAULT_MODEL_ID);
+  // Allow-list: a model that isn't open never carries over and never becomes the default.
+  const orgBlocks = (id: string | undefined): boolean => !isModelAllowed(id, orgProfile?.allowedModelIds);
+  const defaultModelId = effectiveDefaultModelId(settings.defaultModelId, unavailableModels, orgProfile?.allowedModelIds);
+  newChatModelRef.current =
+    // AUTO is a valid carry-over/default: it is a MODE, not a registry id, so it
+    // bypasses the findModelAny existence check (which would silently drop it).
+    [
+      conversations.find((c) => c.id === activeId)?.modelId,
+      isAutoModelId(defaultModelId) ? defaultModelId : findModelAny(defaultModelId)?.id,
+    ].find((id) => id && !orgBlocks(id)) || DEFAULT_MODEL_ID;
 
   /** The ref first, the state second: `conversationsRef` is only reassigned at RENDER, and
    *  creating THEN sending happens in ONE SINGLE handler (new tab, home) — the

@@ -330,6 +330,7 @@ re-reading an old conversation means knowing who wrote what.
       reply) — `packages/ui/src/send/autoRoute.test.ts`,
       `packages/ui/src/send/autoTaskIntent.test.ts`
 - [x] An unreachable model explains what it takes to reach it — `packages/ui/src/containers/modals/ModelAccessModal.tsx`
+- [x] **The default follows the access path**: a subscription CLI switched on AND found (Claude Code, Codex, Antigravity) leads the short list and becomes the model of new conversations, until a default is picked by hand — `packages/ui/src/prompt/defaultModel.ts`
 - [x] **Two picker views**: **simplified by default** (a short list of favourites, no price
       and no flag) or full (every provider, columns + search) — toggled from the menu, both
       ways, and remembered —

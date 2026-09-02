@@ -6,6 +6,7 @@ import type { ReviewWire } from "../../send/redactionPreview";
 import type { WriteConfirmInfo } from "../../agent/mcpAgent";
 import type { UnavailableReason } from "../../send/modelAvailability";
 import { ALL_MODELS, findModelAny } from "../../prompt/models";
+import { effectiveDefaultModelId, factorySimpleIds } from "../../prompt/defaultModel";
 import { AUTO_MODEL_ID, isAutoModelId } from "../../send/autoRoute";
 import { SendModeDialog } from "./SendModeDialog";
 import { useHost, type CreditBalance, type ExtractedFile, type OrgProfileInfo, type PdfDocument } from "../../host";
@@ -332,6 +333,9 @@ export function ChatView({
   scrollTarget,
   onScrolled,
 }: Props) {
+  // The default for NEW conversations as the chosen ACCESS PATH makes it (a ready
+  // subscription CLI leads, unless a model was picked by hand) — `prompt/defaultModel.ts`.
+  const defaultModelId = effectiveDefaultModelId(settings?.defaultModelId, unavailableModels, orgProfile?.allowedModelIds);
   const t = useT();
   const host = useHost();
   // A generated document's PDF is typeset by the platform (real brand fonts, tables,
@@ -1102,7 +1106,7 @@ export function ChatView({
     if (!mode) return;
     setSendMode(null);
     if (modelId && conversation) onChangeModel(conversation.id, modelId);
-    const targetModelId = modelId ?? conversation?.modelId ?? settings?.defaultModelId;
+    const targetModelId = modelId ?? conversation?.modelId ?? defaultModelId;
 
     // Reuse the dialog's size-PROBE render when it matches (same docs + target model) so we
     // never render twice; otherwise render now, with the progress UI.
@@ -1429,10 +1433,10 @@ export function ChatView({
   // so the send box always shows a pre-selected model, not a blank picker.
   // AUTO mode: the sentinel doesn't resolve — `autoMode` fixes what the screen SAYS
   // ("Auto") and PERMITS (vision: the router picks a vision-capable model at send time).
-  const autoMode = isAutoModelId(conversation?.modelId ?? settings?.defaultModelId ?? "");
+  const autoMode = isAutoModelId(conversation?.modelId ?? defaultModelId ?? "");
   const currentModel =
     findModelAny(conversation?.modelId ?? "") ??
-    findModelAny(settings?.defaultModelId ?? "") ??
+    findModelAny(defaultModelId ?? "") ??
     ALL_MODELS[0];
   const currentModelLabel = autoMode ? "Auto" : currentModel?.label;
   const provider = currentModel?.provider;
@@ -1447,7 +1451,7 @@ export function ChatView({
       filePrepRef.current = null;
       return;
     }
-    const targetModelId = conversation?.modelId ?? settings?.defaultModelId;
+    const targetModelId = conversation?.modelId ?? defaultModelId;
     const ctrl = new AbortController();
     setFileSize({ loading: true });
     void buildFileImages(sendMode, targetModelId, ctrl, true, host, setDocPrep)
@@ -1464,7 +1468,7 @@ export function ChatView({
       .catch(() => setFileSize(null));
     return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sendMode, currentModel?.vision, conversation?.modelId, settings?.defaultModelId]);
+  }, [sendMode, currentModel?.vision, conversation?.modelId, defaultModelId]);
   // Count DISTINCT protected values from the conversation vault — the single
   // source of truth that aggregates EVERY source/type (message text, attached
   // files, MCP tool results) and de-dupes repeats. Summing per-message
@@ -1530,11 +1534,11 @@ export function ChatView({
             ? (id) =>
                 onChangeSettings({
                   ...settings,
-                  favoriteModels: toggleFavoriteModel(settings.favoriteModels, id),
+                  favoriteModels: toggleFavoriteModel(settings.favoriteModels, id, factorySimpleIds(unavailableModels, orgProfile?.allowedModelIds)),
                 })
             : undefined
         }
-        defaultModelId={settings?.defaultModelId}
+        defaultModelId={defaultModelId}
         // "Définir par défaut" from the menu: the same setting as Réglages → Modèles
         // (the model for new conversations), now reachable from the chat.
         onSetDefaultModel={
@@ -1649,11 +1653,11 @@ export function ChatView({
       <ChatHeader
         conversation={conversation}
         protectedCount={protectedCount}
+        redactLevel={redactLevel}
         modelName={currentModelLabel}
         onOpenTransparency={() => setShowComparison(true)}
         settings={settings}
         onChangeSettings={onChangeSettings}
-        redactLevel={redactLevel}
         onChangeConversation={onChangeConversation}
         onSetMemoryOff={onSetMemoryOff}
         onToggleNeutralMarks={onToggleNeutralMarks}
@@ -1848,7 +1852,6 @@ export function ChatView({
       {/* Docked at the bottom once a thread exists; on the empty home it's up in the
           welcome instead (below the greeting). Same instance — see `composerBlock`. */}
       {messages.length > 0 && composerBlock}
-
       <AnimatePresence>
         {accessInfo && (
           <ModelAccessModal
@@ -1872,7 +1875,6 @@ export function ChatView({
           />
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {keyModalOpen && keyTarget && (
           <ApiKeyModal
@@ -1884,7 +1886,6 @@ export function ChatView({
           />
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {sendMode && (
           <SendModeDialog
@@ -1912,7 +1913,6 @@ export function ChatView({
           />
         )}
       </AnimatePresence>
-
       {/* A document's redaction progress bar at send time — its card lives beside it. */}
       {docPrep && <DocPrepCard state={docPrep} onCancel={() => docPrepCtrl.current?.abort()} />}
     </main>

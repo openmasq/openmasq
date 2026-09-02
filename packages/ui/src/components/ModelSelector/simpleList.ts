@@ -4,12 +4,17 @@ import type { ModelInfo } from "@openmasq/llm";
 
 /**
  * The ids that POPULATE the simplified view: the favorites CHOSEN by the user
- * (`Settings.favoriteModels`) if they exist, otherwise the catalogue's governable list
- * (`@openmasq/catalog` `SIMPLE_MODEL_IDS`) — the factory default. Personalizing REPLACES,
- * it doesn't add: a short list that grows with every star stops being short.
+ * (`Settings.favoriteModels`) if they exist, otherwise the FACTORY list — the catalogue's
+ * governable `SIMPLE_MODEL_IDS`, led by the access-path models that are ready here
+ * (`prompt/defaultModel.ts` `factorySimpleIds`: a switched-on, found Claude Code or Codex
+ * CLI). Personalizing REPLACES, it doesn't add: a short list that grows with every star
+ * stops being short.
  */
-export function favoriteSourceIds(favorites?: readonly string[]): readonly string[] {
-  return favorites && favorites.length ? favorites : SIMPLE_MODEL_IDS;
+export function favoriteSourceIds(
+  favorites?: readonly string[],
+  factory: readonly string[] = SIMPLE_MODEL_IDS,
+): readonly string[] {
+  return favorites && favorites.length ? favorites : factory;
 }
 
 /**
@@ -33,14 +38,15 @@ export function simpleMenuModels(
   available: ModelInfo[],
   currentId: string,
   favorites?: readonly string[],
+  factory: readonly string[] = SIMPLE_MODEL_IDS,
 ): ModelInfo[] {
   const byId = new Map(available.map((m) => [m.id, m]));
   const resolve = (ids: readonly string[]) =>
     ids.map((id) => byId.get(id)).filter((m): m is ModelInfo => !!m);
 
-  let out = resolve(favoriteSourceIds(favorites));
-  // All favorites unreachable → fall back to the default catalogue (never empty).
-  if (out.length === 0 && favorites && favorites.length) out = resolve(SIMPLE_MODEL_IDS);
+  let out = resolve(favoriteSourceIds(favorites, factory));
+  // All favorites unreachable → fall back to the factory list (never empty).
+  if (out.length === 0 && favorites && favorites.length) out = resolve(factory);
 
   if (currentId && !out.some((m) => m.id === currentId)) {
     const current = byId.get(currentId);
@@ -51,8 +57,11 @@ export function simpleMenuModels(
 
 /** The EFFECTIVE set of favorites (chosen or default), to distinguish a pinned
  *  entry from the current model added at the tail — the view needs it for its separator. */
-export function favoriteSet(favorites?: readonly string[]): Set<string> {
-  return new Set(favoriteSourceIds(favorites));
+export function favoriteSet(
+  favorites?: readonly string[],
+  factory: readonly string[] = SIMPLE_MODEL_IDS,
+): Set<string> {
+  return new Set(favoriteSourceIds(favorites, factory));
 }
 
 /**
@@ -65,8 +74,12 @@ export function favoriteSet(favorites?: readonly string[]): Set<string> {
  * the single id touched (the 14/08 bug — `toggleFavoriteModel(undefined, x)` returned `[x]`).
  * Removing all of them down to an empty list switches back to the default (a « reset »).
  */
-export function toggleFavoriteModel(favorites: readonly string[] | undefined, id: string): string[] {
-  const base = favorites && favorites.length ? favorites : SIMPLE_MODEL_IDS;
+export function toggleFavoriteModel(
+  favorites: readonly string[] | undefined,
+  id: string,
+  factory: readonly string[] = SIMPLE_MODEL_IDS,
+): string[] {
+  const base = favorites && favorites.length ? favorites : factory;
   return base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
 }
 

@@ -195,4 +195,19 @@ describe("simpleMenuSections — ce que chaque bloc annonce", () => {
     const sec = simpleMenuSections([m("a"), m("cur")], { favSet: new Set(["a"]), defaultId: "cur" }, fr);
     expect(sec.map((s) => s.label)).toEqual(["Favoris", "Modèle en cours"]);
   });
+
+  /* The factory list is a PARAMETER: the access path decides it (`prompt/defaultModel.ts`),
+     and every reader — the menu, the effective favorite set, the first star gesture —
+     must see the SAME list, or a ready CLI would show under « Modèle en cours » and
+     vanish at the first star. */
+  it("une liste d'usine fournie remplace SIMPLE_MODEL_IDS partout, favoris vides", () => {
+    const factory = ["claude-cli", ...SIMPLE_MODEL_IDS];
+    expect(simpleMenuModels(ALL, "", undefined, factory).map((m) => m.id)).toEqual(factory);
+    expect(favoriteSet(undefined, factory).has("claude-cli")).toBe(true);
+    expect(toggleFavoriteModel(undefined, SIMPLE_MODEL_IDS[0], factory)).toEqual(
+      factory.filter((id) => id !== SIMPLE_MODEL_IDS[0]),
+    );
+    // Chosen favorites still REPLACE it.
+    expect(simpleMenuModels(ALL, "", [SIMPLE_MODEL_IDS[1]], factory).map((m) => m.id)).toEqual([SIMPLE_MODEL_IDS[1]]);
+  });
 });

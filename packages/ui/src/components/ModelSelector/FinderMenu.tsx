@@ -4,6 +4,7 @@ import type { UnavailableReason } from "../../send/modelAvailability";
 import { FamilyLogo, SearchIcon, SettingsIcon } from "../brand";
 import { ModelRow } from "./ModelRow";
 import { favoriteSet } from "./simpleList";
+import { factorySimpleIds } from "../../prompt/defaultModel";
 import { providerGroupLabel } from "./providers";
 import { useFinderNav } from "./useFinderNav";
 
@@ -72,7 +73,7 @@ export function FinderMenu({
   } = useFinderNav({ value, available, unavailableModels, onChoose, onClose });
   // Default catalogue shown fully starred when empty — consistent with the simplified
   // menu and with `toggleFavoriteModel`, which materializes this same default on the first gesture.
-  const favSet = favoriteSet(favorites);
+  const favSet = favoriteSet(favorites, factorySimpleIds(unavailableModels));
 
   return (
     <div
