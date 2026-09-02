@@ -1,6 +1,6 @@
 # Security policy
 
-<sub>**English** · [Français](#politique-de-sécurité)</sub>
+<sub>**English** · [Français](#politique-de-sécurité) · [openmasq.com](https://openmasq.com)</sub>
 
 The product is a desktop application whose purpose is to keep sensitive data on the user's
 machine: text is redacted before it leaves, the model only ever receives substitutes, and

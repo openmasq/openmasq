@@ -1,6 +1,6 @@
 # @openmasq/credits — billing tiers and prepaid credits
 
-<sub>**English** · [Français](#openmasqcredits--paliers-de-facturation-et-crédits-prépayés)</sub>
+<sub>**English** · [Français](#openmasqcredits--paliers-de-facturation-et-crédits-prépayés) · [openmasq.com](https://openmasq.com)</sub>
 
 The plan tiers and the credit amounts as **one fact**, plus the DB-agnostic credit
 engine (pure logic + queries against an injected handle). The server side that meters

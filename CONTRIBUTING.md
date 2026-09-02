@@ -1,6 +1,6 @@
 # Contributing to OpenMasq
 
-<sub>**English** · [Français](#contribuer-à-openmasq)</sub>
+<sub>**English** · [Français](#contribuer-à-openmasq) · [openmasq.com](https://openmasq.com)</sub>
 
 Thanks for wanting to contribute. This document says how to work here without friction:
 the repository checks itself a great deal (seventeen `check:*` gates), and a pull request that

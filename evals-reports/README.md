@@ -1,6 +1,6 @@
 # Agentic evaluations — the summary
 
-<sub>**English** · [Français](#évaluations-agentiques--synthèse)</sub>
+<sub>**English** · [Français](#évaluations-agentiques--synthèse) · [openmasq.com](https://openmasq.com)</sub>
 
 Two benches, two folders, **never mixed** (their numbers do not measure the same thing):
 

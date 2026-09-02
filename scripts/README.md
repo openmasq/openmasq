@@ -1,6 +1,6 @@
 # scripts/ — root tooling, in three families
 
-<sub>**English** · [Français](#scripts--loutillage-de-la-racine-en-trois-familles)</sub>
+<sub>**English** · [Français](#scripts--loutillage-de-la-racine-en-trois-familles) · [openmasq.com](https://openmasq.com)</sub>
 
 Nothing here ships. Everything runs from the repository root.
 

@@ -1,6 +1,6 @@
 # Release notes
 
-<sub>**English** · [Français](#notes-de-version)</sub>
+<sub>**English** · [Français](#notes-de-version) · [openmasq.com](https://openmasq.com)</sub>
 
 This file feeds the **release announcement e-mail**. On every **production** release (a
 `v*` tag), the CI of the private `infra` repository reads the published version's section,

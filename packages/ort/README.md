@@ -1,6 +1,6 @@
 # @openmasq/ort — onnxruntime with a WASM fallback
 
-<sub>**English** · [Français](#openmasqort--onnxruntime-avec-un-repli-wasm)</sub>
+<sub>**English** · [Français](#openmasqort--onnxruntime-avec-un-repli-wasm) · [openmasq.com](https://openmasq.com)</sub>
 
 Takes the place of `onnxruntime-node` (a pnpm override) and picks the engine at runtime:
 the native binding where it exists, `onnxruntime-web` WASM where it does not (Intel Mac).

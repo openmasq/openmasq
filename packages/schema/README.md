@@ -1,6 +1,6 @@
 # @openmasq/schema — the persisted chat schema
 
-<sub>**English** · [Français](#openmasqschema--le-schéma-de-chat-persisté)</sub>
+<sub>**English** · [Français](#openmasqschema--le-schéma-de-chat-persisté) · [openmasq.com](https://openmasq.com)</sub>
 
 `Role`, `Message`, `Conversation`, `RedactCategoryKey`: the shapes written to disk and
 synced between devices. **Types only, zero runtime**, so the desktop and any other client

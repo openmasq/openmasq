@@ -1,6 +1,6 @@
 # @openmasq/branding — the one home of the brand
 
-<sub>**English** · [Français](#openmasqbranding--lunique-foyer-de-la-marque)</sub>
+<sub>**English** · [Français](#openmasqbranding--lunique-foyer-de-la-marque) · [openmasq.com](https://openmasq.com)</sub>
 
 `branding.json` holds the name, domains, URL scheme and storage keys; `BRAND`,
 `brandHost`, `brandUrl`, `brandKey`, `brandHeader` derive every runtime, wire and disk

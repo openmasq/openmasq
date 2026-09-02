@@ -1,6 +1,6 @@
 # Trademark policy
 
-<sub>**English** · [Français](#politique-de-marque)</sub>
+<sub>**English** · [Français](#politique-de-marque) · [openmasq.com](https://openmasq.com)</sub>
 
 The **code** in this repository is licensed under the Apache License 2.0. The **name**
 "OpenMasq", the OpenMasq logo, and the associated domain names are not — they are

@@ -1,6 +1,6 @@
 # @openmasq/desktop — the product
 
-<sub>**English** · [Français](#openmasqdesktop--le-produit)</sub>
+<sub>**English** · [Français](#openmasqdesktop--le-produit) · [openmasq.com](https://openmasq.com)</sub>
 
 The Electron app: `src/main` (IPC, SQLite, MCP, streaming, the process boundaries),
 `src/preload` (`contextBridge` → `window.openmasq`), `src/renderer` (mounts `@openmasq/ui`

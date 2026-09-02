@@ -1,6 +1,6 @@
 # Real end-to-end tests (the BUILT app, real provider APIs)
 
-<sub>**English** · [Français](#les-tests-de-bout-en-bout-réels-lapplication-construite-de-vraies-api-de-fournisseurs)</sub>
+<sub>**English** · [Français](#les-tests-de-bout-en-bout-réels-lapplication-construite-de-vraies-api-de-fournisseurs) · [openmasq.com](https://openmasq.com)</sub>
 
 These launch the **built Electron app** on an isolated profile and assert the privacy
 contract on the payload that actually leaves the machine. They hit a real network and a

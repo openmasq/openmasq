@@ -1,6 +1,6 @@
 # @openmasq/sync — cross-device sync
 
-<sub>**English** · [Français](#openmasqsync--la-synchronisation-entre-appareils)</sub>
+<sub>**English** · [Français](#openmasqsync--la-synchronisation-entre-appareils) · [openmasq.com](https://openmasq.com)</sub>
 
 End-to-end encrypted synchronisation of a user's records (conversations oplog, vaults,
 vault terms, skills) and the **organisation scopes** (shares approved by an admin or a

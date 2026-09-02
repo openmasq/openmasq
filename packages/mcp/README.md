@@ -1,6 +1,6 @@
 # @openmasq/mcp — the redacting MCP client
 
-<sub>**English** · [Français](#openmasqmcp--le-client-mcp-masquant)</sub>
+<sub>**English** · [Français](#openmasqmcp--le-client-mcp-masquant) · [openmasq.com](https://openmasq.com)</sub>
 
 A Model Context Protocol client where **every tool call goes through the vault in both
 directions**: arguments leave un-redacted (the outside world gets real values), results

@@ -1,6 +1,6 @@
 # @openmasq/catalog — the governable lists
 
-<sub>**English** · [Français](#openmasqcatalog--les-listes-gouvernables)</sub>
+<sub>**English** · [Français](#openmasqcatalog--les-listes-gouvernables) · [openmasq.com](https://openmasq.com)</sub>
 
 The single source of truth for what the product exposes and lets an organisation govern:
 models (`./models`), MCP connectors (`./mcp`), redaction categories (`./redaction`) and

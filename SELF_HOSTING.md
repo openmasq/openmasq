@@ -1,6 +1,6 @@
 # Running OpenMasq without the brand's services
 
-<sub>**English** · [Français](#faire-tourner-openmasq-sans-les-services-de-la-marque)</sub>
+<sub>**English** · [Français](#faire-tourner-openmasq-sans-les-services-de-la-marque) · [openmasq.com](https://openmasq.com)</sub>
 
 The desktop app is designed to run **entirely on your machine**. Every remote address it
 knows is supplied at *build* time through an environment variable, and **an unset variable

@@ -1,6 +1,6 @@
 # `@openmasq/redact` — the detection benches
 
-<sub>**English** · [Français](#openmasqredact--bancs-de-détection)</sub>
+<sub>**English** · [Français](#openmasqredact--bancs-de-détection) · [openmasq.com](https://openmasq.com)</sub>
 
 Reproducible recall benches of the redaction engine, on versioned annotated corpora so the
 numbers stay comparable from one change to the next.

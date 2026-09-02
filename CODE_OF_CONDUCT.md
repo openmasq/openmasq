@@ -1,6 +1,6 @@
 # Contributor Covenant Code of Conduct
 
-<sub>**English** · [Français](#code-de-conduite-contributor-covenant)</sub>
+<sub>**English** · [Français](#code-de-conduite-contributor-covenant) · [openmasq.com](https://openmasq.com)</sub>
 
 ## Our Pledge
 

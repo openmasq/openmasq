@@ -1,6 +1,6 @@
 # @openmasq/analytics — privacy-safe analytics core
 
-<sub>**English** · [Français](#openmasqanalytics--le-cœur-danalytique-respectueux-de-la-vie-privée)</sub>
+<sub>**English** · [Français](#openmasqanalytics--le-cœur-danalytique-respectueux-de-la-vie-privée) · [openmasq.com](https://openmasq.com)</sub>
 
 Manual events only, allow-listed and sanitised (a walk that drops anything not in the
 schema), behind a **double consent gate**, wrapped in the relay envelope. Zero

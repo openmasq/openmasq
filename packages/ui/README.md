@@ -1,6 +1,6 @@
 # @openmasq/ui — the whole interface
 
-<sub>**English** · [Français](#openmasqui--toute-linterface)</sub>
+<sub>**English** · [Français](#openmasqui--toute-linterface) · [openmasq.com](https://openmasq.com)</sub>
 
 All the React UI, the app state and the design system, **platform-agnostic**: the
 package never touches the OS, a database or the network directly — it reaches them

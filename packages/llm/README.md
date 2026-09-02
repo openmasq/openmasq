@@ -1,6 +1,6 @@
 # @openmasq/llm — providers and models
 
-<sub>**English** · [Français](#openmasqllm--fournisseurs-et-modèles)</sub>
+<sub>**English** · [Français](#openmasqllm--fournisseurs-et-modèles) · [openmasq.com](https://openmasq.com)</sub>
 
 One `streamChat(options)` over `fetch` + SSE for every provider (OpenAI, Anthropic,
 Google, DeepSeek, OpenRouter, OpenAI-compatible endpoints, the Claude Code / Codex CLIs),

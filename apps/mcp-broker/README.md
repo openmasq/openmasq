@@ -1,6 +1,6 @@
 # @openmasq/mcp-broker — MCP broker
 
-<sub>**English** · [Français](#openmasqmcp-broker--le-broker-mcp)</sub>
+<sub>**English** · [Français](#openmasqmcp-broker--le-broker-mcp) · [openmasq.com](https://openmasq.com)</sub>
 
 An Express MCP **broker**: it hosts a Streamable-HTTP **MCP server per platform**
 (Gmail, Slack, GitHub, + a credential-free **demo**) and is its own **OAuth 2.1

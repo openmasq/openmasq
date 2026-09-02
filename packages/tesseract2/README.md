@@ -1,6 +1,6 @@
 # tesseract2.js
 
-<sub>**English** · [Français](#tesseract2js--la-réécriture)</sub>
+<sub>**English** · [Français](#tesseract2js--la-réécriture) · [openmasq.com](https://openmasq.com)</sub>
 
 A **TypeScript** rewrite of [tesseract.js](https://github.com/naptha/tesseract.js) for Node.js, with the same public API on the Node side but typed, simpler and markedly safer code. Multilingual OCR through the official WASM build [`tesseract.js-core`](https://www.npmjs.com/package/tesseract.js-core), run inside a `worker_threads` thread.
 

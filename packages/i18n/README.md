@@ -1,6 +1,6 @@
 # @openmasq/i18n — the typed message catalogue
 
-<sub>**English** · [Français](#openmasqi18n--le-catalogue-de-messages-typé)</sub>
+<sub>**English** · [Français](#openmasqi18n--le-catalogue-de-messages-typé) · [openmasq.com](https://openmasq.com)</sub>
 
 **French is the source, English ships beside it in the same commit.** Structure (ids,
 order, flags) stays in code; copy comes here, typed, so a missing key fails typecheck.

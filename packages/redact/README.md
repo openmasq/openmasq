@@ -1,6 +1,6 @@
 # @openmasq/redact — the redaction engine
 
-<sub>**English** · [Français](#openmasqredact--le-moteur-de-masquage)</sub>
+<sub>**English** · [Français](#openmasqredact--le-moteur-de-masquage) · [openmasq.com](https://openmasq.com)</sub>
 
 Sensitive data is replaced **before it leaves the machine** by a placeholder or a
 believable fake, and restored in the reply from the same **per-conversation vault**.

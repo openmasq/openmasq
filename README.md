@@ -6,8 +6,10 @@ machine — and puts it back in the reply.**
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)](#getting-started)
 [![Redaction](https://img.shields.io/badge/redaction-on--device-green)](#whats-in-the-box)
+[![Website](https://img.shields.io/badge/openmasq.com-website-6c5ce7)](https://openmasq.com)
+[![Help](https://img.shields.io/badge/help.openmasq.com-help_centre-6c5ce7)](https://help.openmasq.com)
 
-<sub>**English** · [Français](#français)</sub>
+<sub>**English** · [Français](#français) · [openmasq.com](https://openmasq.com) · [Help centre](https://help.openmasq.com) · [Contact](mailto:support@openmasq.com)</sub>
 
 ![What the model saw: the message on the left, what actually left on the right — the name, e-mail, phone and company replaced](docs/img/what-the-model-saw.webp)
 
@@ -234,7 +236,7 @@ The corpora, the scorer, the runner and the exact provenance of Presidio's evalu
 | | |
 |---|---|
 | **Help centre** | [help.openmasq.com](https://help.openmasq.com) — how each screen works, in French and English |
-| **Website** | [openmasq.com](https://openmasq.com) — not open to the public yet |
+| **Website** | [openmasq.com](https://openmasq.com) — the landing: what the product is, for whom, and how to get it |
 | **Contact** | [support@openmasq.com](mailto:support@openmasq.com) — questions, and the address the app's feedback reaches |
 | **Security** | [`SECURITY.md`](SECURITY.md) — the trust boundary, the residuals, and how to report a vulnerability |
 | **What it does, screen by screen** | [`FEATURES.md`](FEATURES.md) |
@@ -381,6 +383,8 @@ and shipped inside the app are listed in [`NOTICE`](NOTICE).
 
 # Français
 
+<sub>[openmasq.com](https://openmasq.com) · [Centre d'aide](https://help.openmasq.com) · [Contact](mailto:support@openmasq.com)</sub>
+
 **Une application de chat de bureau multi-modèles qui masque les données sensibles avant
 qu'elles ne quittent votre machine — et les rétablit dans la réponse.**
 
@@ -520,7 +524,7 @@ Les corpus, le scoreur, le harnais et la provenance exacte du jeu d'évaluation 
 | | |
 |---|---|
 | **Centre d'aide** | [help.openmasq.com](https://help.openmasq.com) — le fonctionnement de chaque écran, en français et en anglais |
-| **Site** | [openmasq.com](https://openmasq.com) — pas encore ouvert au public |
+| **Site** | [openmasq.com](https://openmasq.com) — la landing : ce qu'est le produit, pour qui, et comment l'obtenir |
 | **Contact** | [support@openmasq.com](mailto:support@openmasq.com) — les questions, et l'adresse où arrivent les avis envoyés depuis l'app |
 | **Sécurité** | [`SECURITY.md`](SECURITY.md) — la frontière de confiance, les résiduels, et comment signaler une faille |
 | **Ce que fait l'app, écran par écran** | [`FEATURES.md`](FEATURES.md) |
