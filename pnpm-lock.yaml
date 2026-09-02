@@ -51,7 +51,7 @@ importers:
         version: 0.14.0
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
-        version: 1.30.0(zod@4.5.2)
+        version: 1.30.0(zod@4.5.4)
       '@mozilla/readability':
         specifier: ^0.6.0
         version: 0.6.0
@@ -202,13 +202,13 @@ importers:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
-        version: 1.30.0(zod@4.5.2)
+        version: 1.30.0(zod@4.5.4)
       express:
         specifier: ^5.2.1
         version: 5.2.1
       zod:
-        specifier: ^4.5.2
-        version: 4.5.2
+        specifier: ^4.5.4
+        version: 4.5.4
     devDependencies:
       '@types/express':
         specifier: ^5.0.0
@@ -331,7 +331,7 @@ importers:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
-        version: 1.30.0(zod@4.5.2)
+        version: 1.30.0(zod@4.5.4)
       '@openmasq/branding':
         specifier: workspace:*
         version: link:../branding
@@ -5617,8 +5617,8 @@ packages:
     peerDependencies:
       zod: ^3.25.28 || ^4
 
-  zod@4.5.2:
-    resolution: {integrity: sha512-XkYXCol10+ba/6F/cueWV+TezUeOqXW0hdeJt5CdXjTYeAgAQg5N03RQdJ80mhfFE72+pblvYMW4wy2Qp4Qbrg==}
+  zod@4.5.4:
+    resolution: {integrity: sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -6428,7 +6428,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@modelcontextprotocol/sdk@1.30.0(zod@4.5.2)':
+  '@modelcontextprotocol/sdk@1.30.0(zod@4.5.4)':
     dependencies:
       '@hono/node-server': 2.1.1(hono@4.13.5)
       ajv: 8.20.0
@@ -6445,8 +6445,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.5.2
-      zod-to-json-schema: 3.25.2(zod@4.5.2)
+      zod: 4.5.4
+      zod-to-json-schema: 3.25.2(zod@4.5.4)
     transitivePeerDependencies:
       - supports-color
 
@@ -8930,7 +8930,7 @@ snapshots:
       tinyglobby: 0.2.17
       unbash: 4.0.4
       yaml: 2.9.0
-      zod: 4.5.2
+      zod: 4.5.4
 
   lazy-val@1.0.5: {}
 
@@ -11000,10 +11000,10 @@ snapshots:
       compress-commons: 4.1.2
       readable-stream: 3.6.2
 
-  zod-to-json-schema@3.25.2(zod@4.5.2):
+  zod-to-json-schema@3.25.2(zod@4.5.4):
     dependencies:
-      zod: 4.5.2
+      zod: 4.5.4
 
-  zod@4.5.2: {}
+  zod@4.5.4: {}
 
   zwitch@2.0.4: {}
