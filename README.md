@@ -90,7 +90,8 @@ different one in the next conversation, so a table built over the pool reverses 
 
 ## How good is the detection?
 
-Scored on **Presidio's own evaluation corpus** — Microsoft's benchmark, not one we wrote —
+Scored on **Presidio's own evaluation corpus** — the reference benchmark of the engine we
+compare against, not one we wrote —
 with the same scorer applied to all three columns: 1 387 English cases, 2 523 truths, a
 truth counts as found when ≥ 60 % of its significant tokens were replaced.
 
@@ -339,8 +340,8 @@ L'inventaire exhaustif, écran par écran, est dans [`FEATURES.md`](FEATURES.md)
 
 ## Quelle est la qualité de la détection ?
 
-Mesurée sur **le corpus d'évaluation de Presidio** — le banc de Microsoft, pas un que nous
-aurions écrit — avec le même scoreur pour les trois colonnes : 1 387 cas anglais,
+Mesurée sur **le corpus d'évaluation de Presidio** — le banc de référence du moteur auquel
+on se compare, pas un que nous aurions écrit — avec le même scoreur pour les trois colonnes : 1 387 cas anglais,
 2 523 vérités, une vérité comptant comme trouvée quand ≥ 60 % de ses tokens significatifs
 ont été remplacés.
 

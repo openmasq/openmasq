@@ -81,8 +81,12 @@ Microsoft Presidio — https://github.com/microsoft/presidio, MIT License
     packages/redact/src/engine/rules/rules.international.ts
     packages/redact/src/engine/rules/rules.international.{us,europe,apac}.ts
     packages/redact/src/engine/validators/validators.international.ts
-  presidio-research benchmark corpus — a fork at data-privacy-stack/presidio-research,
-  redistributed to score detection against a published baseline. MIT License.
+  presidio-research benchmark corpus — data-privacy-stack/presidio-research,
+  redistributed to score detection against a published baseline. MIT License,
+  Copyright (c) Presidio contributors.
+  Not a fork: `microsoft/presidio-research` and `microsoft/presidio` both redirect
+  there — the project was transferred out of the microsoft organization, and this is
+  its own repository at its current home.
     packages/redact/bench/external/presidio-research.benchcase.json
 
 --------------------------------------------------------------------------------

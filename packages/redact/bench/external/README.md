@@ -50,6 +50,30 @@ against it — 119 fabricated false positives, in our favour, on a number we the
 That single choice is worth 13 false positives on the Presidio column (183, not 196) and 5
 on ours (118, not 123).
 
+## Cross-check: what Presidio's own notebook reports
+
+`notebooks/4_Evaluate_Presidio_Analyzer.ipynb`, upstream, ships its executed output for
+Presidio on this very file (1 500 samples, of which 1 387 carry at least one span):
+
+```
+Level: binary (PII vs O):
+{'F2': 0.661, 'Precision': 0.733, 'Recall': 0.646}
+```
+
+⚠️ **65 % there and 58 % here are not the same measurement, and neither corrects the
+other.** Theirs is TOKEN-level and binary — every token is PII or not, skip-words removed,
+every category counted including the four this comparison leaves unscored. Ours is
+VALUE-level and per category: a truth counts as found when ≥ 60 % of its significant
+tokens were replaced, which is the question a redaction product actually faces (did the
+value leave the machine?) rather than the question a tagger faces (was this token
+labelled?). The configurations differ too — the upstream notebook tokenizes with
+`en_core_web_sm`, `run_presidio.py` runs the analyzer on `en_core_web_lg`.
+
+They are close enough to say the harness is not producing a fantasy, and far enough apart
+that quoting one for the other would be dishonest. The number this repository publishes
+for Presidio is the one **its own runner** produces, from committed detections anyone can
+replay.
+
 ## Honest reading
 
 - **`patterns` vs Presidio is not a product comparison** — it pits a no-model pipeline
@@ -86,8 +110,13 @@ then `v/bin/python run_presidio.py` from this directory.
 
 - **Dataset**: `synth_dataset_v2.json` from
   [data-privacy-stack/presidio-research](https://github.com/data-privacy-stack/presidio-research)
-  (MIT © Microsoft Corporation), pinned at commit `78c45e58` with a sha256-verified
-  fetch (`fetch.sh`). Fully synthetic (template + faker generated) — no real persons.
+  (MIT, Copyright (c) Presidio contributors), pinned at commit `78c45e58` with a
+  sha256-verified fetch (`fetch.sh`). Fully synthetic (template + faker generated) — no
+  real persons. **Not a fork, and not a mirror**: `microsoft/presidio-research` and
+  `microsoft/presidio` both HTTP-301 to `data-privacy-stack/*` — the project was
+  transferred out of the microsoft organization, so this IS its own repository at its
+  current home (same repo id, created 2020-01-05, `fork: false`, no parent). Verified
+  again on 2026-09-02, because "the official source" is a claim with an expiry date.
 - **Adaptation**: `adapt-presidio-research.mjs` — InputSample → BenchCase, mapping
   documented in the file. Out of scope on both sides: TITLE, AGE, NRP and DATE_TIME — they
   are annotated `CONTEXT`, so the recall denominators drop them for every engine equally
@@ -141,6 +170,31 @@ faux positifs fabriqués, en notre faveur, sur un chiffre que nous publions ensu
 choix vaut 13 faux positifs sur la colonne Presidio (183 et non 196) et 5 sur la nôtre
 (118 et non 123).
 
+## Recoupement : ce que rapporte le notebook de Presidio lui-même
+
+`notebooks/4_Evaluate_Presidio_Analyzer.ipynb`, en amont, livre sa sortie exécutée pour
+Presidio sur ce fichier exact (1 500 échantillons, dont 1 387 portent au moins un span) :
+
+```
+Level: binary (PII vs O):
+{'F2': 0.661, 'Precision': 0.733, 'Recall': 0.646}
+```
+
+⚠️ **65 % là-bas et 58 % ici ne sont pas la même mesure, et aucune ne corrige l'autre.**
+La leur est au niveau du TOKEN et binaire — chaque token est une donnée personnelle ou non,
+mots vides retirés, toutes les catégories comptées, y compris les quatre que cette
+comparaison ne note pas. La nôtre est au niveau de la VALEUR et par catégorie : une vérité
+compte comme trouvée quand ≥ 60 % de ses tokens significatifs ont été remplacés, ce qui est
+la question que pose vraiment un produit de masquage (la valeur a-t-elle quitté la machine ?)
+plutôt que celle que pose un étiqueteur (ce token a-t-il été étiqueté ?). Les configurations
+diffèrent aussi — le notebook amont tokenise avec `en_core_web_sm`, `run_presidio.py` fait
+tourner l'analyseur sur `en_core_web_lg`.
+
+Elles sont assez proches pour dire que le harnais ne produit pas une fantaisie, et assez
+éloignées pour que citer l'une à la place de l'autre soit malhonnête. Le chiffre que ce
+dépôt publie pour Presidio est celui que **son propre harnais** produit, à partir de
+détections commitées que n'importe qui peut rejouer.
+
 ## Lecture honnête
 
 - **`patterns` contre Presidio n'est pas une comparaison de produits** — cela oppose un
@@ -173,8 +227,14 @@ un environnement Python, décrit au même endroit.
 
 - **Jeu de données** : `synth_dataset_v2.json` de
   [data-privacy-stack/presidio-research](https://github.com/data-privacy-stack/presidio-research)
-  (MIT © Microsoft Corporation), épinglé au commit `78c45e58` avec une récupération vérifiée
-  en sha256 (`fetch.sh`). Entièrement synthétique (gabarits + faker) — aucune personne réelle.
+  (MIT, Copyright (c) Presidio contributors), épinglé au commit `78c45e58` avec une
+  récupération vérifiée en sha256 (`fetch.sh`). Entièrement synthétique (gabarits + faker)
+  — aucune personne réelle. **Ni un fork, ni un miroir** : `microsoft/presidio-research` et
+  `microsoft/presidio` répondent tous deux en 301 vers `data-privacy-stack/*` — le projet a
+  été transféré hors de l'organisation microsoft, et c'est donc bien son propre dépôt à son
+  adresse actuelle (même identifiant, créé le 2020-01-05, `fork: false`, sans parent).
+  Revérifié le 2026-09-02, parce que « la source officielle » est une affirmation
+  périssable.
 - **Adaptation** : `adapt-presidio-research.mjs` — InputSample → BenchCase, la correspondance
   est documentée dans le fichier. Hors périmètre des deux côtés : TITLE, AGE, NRP et
   DATE_TIME — annotés `CONTEXT`, si bien que les dénominateurs de rappel les retirent pour
