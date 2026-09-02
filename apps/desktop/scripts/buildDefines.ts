@@ -70,11 +70,11 @@ export function mainDefines(): Record<string, string> {
     "process.env.VITE_UPDATES_URL": JSON.stringify(process.env.VITE_UPDATES_URL ?? ""),
     "process.env.VITE_UPDATES_CHANNEL": JSON.stringify(process.env.VITE_UPDATES_CHANNEL ?? ""),
     // Desktop-direct MCP connector OAuth client ids (read in main `mcp/connectors`).
-    // ⚠️ NO committed default: each id/secret belongs to a provider account
-    // (GitHub app, Slack app, Google Cloud project, Azure app) — a public repo that
-    // embeds them routes every fork's traffic through THAT account. Not supplied at
-    // build time ⇒ "" ⇒ the connector shows "not configured" and "My keys" mode
-    // stays available (the path already existed for Microsoft).
+    // GitHub / Slack / Microsoft default to the publisher's apps via
+    // `publicServices.ts` (which fills the UNSET ones before these lines read them —
+    // the header there says why, and how a fork opts out with `X=`). Google alone has
+    // no committed default: its flow also carries the client secret, an account's.
+    // Empty ⇒ the connector shows "not configured" and "My keys" mode stays available.
     "process.env.OPENMASQ_GITHUB_CLIENT_ID": JSON.stringify(
       process.env.OPENMASQ_GITHUB_CLIENT_ID ?? "",
     ),

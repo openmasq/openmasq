@@ -1,9 +1,9 @@
 /**
- * The FIVE public services a build reaches BY DEFAULT — and the only ones.
+ * The public services a build reaches BY DEFAULT — and the only ones.
  *
  * The repository ships with no backend: no accounts API, no gateway, no sync, no
  * organizations, nothing sold (`buildDefines.ts`, the `OPENMASQ_BILLING` gate). What
- * remains hosted by the brand is small, public by nature, and needed for the product to
+ * remains reachable by default is small, public by nature, and needed for the product to
  * be USABLE as installed — so a build from the sources gets it too, without a CI:
  *
  * - the Supabase project (sign-in by magic link / Google): the URL and the PUBLISHABLE
@@ -16,7 +16,16 @@
  *   what a PACKAGED app updates from (a dev instance never updates — `updates/index.ts`);
  * - the Sentry project (crash reports): a DSN only lets a client SEND events to one
  *   project, and what an event may carry is decided once in `src/sentry/policy.ts`
- *   (an allow-list rebuilt from scratch — never a vault value, a key, or a message).
+ *   (an allow-list rebuilt from scratch — never a vault value, a key, or a message);
+ * - the desktop-direct connector OAuth clients (GitHub device flow, Slack via the auth
+ *   relay, Microsoft multi-tenant): a client ID names an app, it authenticates nothing —
+ *   every distributed binary already carries it in clear, so committing it hides no
+ *   secret. What it DOES decide is whose app a build's consent screens belong to
+ *   (product decision, 02/09/2026): GitHub / Slack / Microsoft work from a plain
+ *   `git pull`, on the publisher's apps. « Mes clés » mode remains, and a fork that
+ *   ships under its own identity sets its own ids — or empties them (`X=`) to get
+ *   « non configuré » rather than the brand's consent screen. The Google client stays
+ *   env-only: its flow also wants the client secret, and that one is an account's.
  *
  * **`pnpm dev` gets the SAME defaults** (product decision, 01/09/2026): a developer's
  * instance signs in on the common Supabase, counts in the common analytics, lists the
@@ -41,6 +50,11 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Sq6ZFX8-uKLht3ZhiVwccg_sO6E72Pz
 const SENTRY_DSN =
   "https://d71bded67c98ccd36507d2ecd2894d2b@o4511977640558592.ingest.de.sentry.io/4511977659367504";
 
+/** Desktop-direct connector OAuth clients — app IDENTIFIERS, not credentials (header). */
+const GITHUB_CLIENT_ID = "Ov23liV0bczEMOMvB4y3";
+const SLACK_CLIENT_ID = "11932971970983.11933393357959";
+const MICROSOFT_CLIENT_ID = "c82277bc-dcca-4677-b3bd-9f343480d592";
+
 export const PUBLIC_SERVICE_NAMES = [
   "OPENMASQ_SUPABASE_URL",
   "OPENMASQ_SUPABASE_PUBLISHABLE_KEY",
@@ -48,6 +62,9 @@ export const PUBLIC_SERVICE_NAMES = [
   "VITE_ANALYTICS_RELAY_URL",
   "VITE_UPDATES_URL",
   "OPENMASQ_SENTRY_DSN",
+  "OPENMASQ_GITHUB_CLIENT_ID",
+  "OPENMASQ_SLACK_CLIENT_ID",
+  "OPENMASQ_MICROSOFT_CLIENT_ID",
 ] as const;
 
 export type PublicServiceName = (typeof PUBLIC_SERVICE_NAMES)[number];
@@ -61,6 +78,9 @@ export function publicServiceDefaults(brandDomain: string): Record<PublicService
     VITE_ANALYTICS_RELAY_URL: `https://analytics.${brandDomain}/e`,
     VITE_UPDATES_URL: `https://updates.${brandDomain}`,
     OPENMASQ_SENTRY_DSN: SENTRY_DSN,
+    OPENMASQ_GITHUB_CLIENT_ID: GITHUB_CLIENT_ID,
+    OPENMASQ_SLACK_CLIENT_ID: SLACK_CLIENT_ID,
+    OPENMASQ_MICROSOFT_CLIENT_ID: MICROSOFT_CLIENT_ID,
   };
 }
 
