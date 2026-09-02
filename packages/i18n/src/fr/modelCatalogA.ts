@@ -85,6 +85,11 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     weaknesses: ["Texte seul", "Nécessite la CLI Claude Code installée et connectée"],
     bestFor: "Utiliser votre abonnement Claude existant",
   },
+  "claude-cli-fable": {
+    strengths: ["Le plus intelligent de l'abonnement", "Compris dans votre abonnement Claude"],
+    weaknesses: ["Texte seul", "Selon l'offre (absent du plan Pro)"],
+    bestFor: "Les tâches qui demandent le meilleur modèle",
+  },
   "claude-cli-sonnet": {
     strengths: ["Équilibre capacité/vitesse", "Compris dans votre abonnement Claude"],
     weaknesses: ["Texte seul"],

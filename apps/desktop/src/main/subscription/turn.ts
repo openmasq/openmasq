@@ -42,15 +42,16 @@ export interface SubscriptionTurnOptions {
 /**
  * Registry id → the CLI's `--model` alias. Bare `claude-cli` = NO flag (the subscription's
  * default — the historic behaviour, and what conversations already pinned to it
- * are served by); `claude-cli-<family>` = the family alias (`sonnet`/`opus`/
- * `haiku`), which the CLI resolves to that family's CURRENT model. An unexpected id
- * returns `undefined` rather than an invented alias — the default, never a CLI error.
- * ⚠️ Opus depends on the plan (absent from the Pro plan): the CLI then refuses the turn and
- * its message surfaces as-is via `chat:error`.
+ * are served by); `claude-cli-<family>` = the family alias (`fable`/`sonnet`/`opus`/
+ * `haiku` — the ones `claude --help` lists on 2.1.258), which the CLI resolves to that
+ * family's CURRENT model. An unexpected id returns `undefined` rather than an invented
+ * alias — the default, never a CLI error.
+ * ⚠️ Fable and Opus depend on the plan (absent from the Pro plan): the CLI then refuses the
+ * turn and its message surfaces as-is via `chat:error`.
  */
 export function cliModelAlias(modelId: string | undefined): string | undefined {
   const alias = modelId?.startsWith("claude-cli-") ? modelId.slice("claude-cli-".length) : "";
-  return ["sonnet", "opus", "haiku"].includes(alias) ? alias : undefined;
+  return ["fable", "sonnet", "opus", "haiku"].includes(alias) ? alias : undefined;
 }
 
 /**

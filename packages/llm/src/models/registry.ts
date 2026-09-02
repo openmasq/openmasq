@@ -35,9 +35,10 @@ export const MODELS: ModelInfo[] = [
   // pinned to it). TOOLED: the app's connectors are offered to them like to a keyed
   // model — it's OUR loop that drives, the desktop MCP bridge capturing the call so
   // it passes through the vault and the write gate (`subscription/toolsTurn.ts`).
-  // Text only (attachments are refused early by the bridge). Opus depends on
+  // Text only (attachments are refused early by the bridge). Fable and Opus depend on
   // the plan (absent from the Pro plan): the CLI then refuses the turn, its message surfaces as-is.
   { id: "claude-cli", label: "Claude Code", provider: "claude-cli" },
+  { id: "claude-cli-fable", label: "Claude Fable", provider: "claude-cli" },
   { id: "claude-cli-sonnet", label: "Claude Sonnet", provider: "claude-cli" },
   { id: "claude-cli-opus", label: "Claude Opus", provider: "claude-cli" },
   { id: "claude-cli-haiku", label: "Claude Haiku", provider: "claude-cli" },

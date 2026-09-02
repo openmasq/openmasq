@@ -32,6 +32,7 @@ export const MODEL_CONTEXT: Record<string, number> = {
   // on every row next to the keyed 1M rows read as a difference between the two roads that
   // does not exist.
   "claude-cli": 1_000_000,
+  "claude-cli-fable": 1_000_000,
   "claude-cli-sonnet": 1_000_000,
   "claude-cli-opus": 1_000_000,
   "claude-cli-haiku": 200_000,

@@ -91,8 +91,9 @@ export const MODEL_META: Record<string, ModelMeta> = {
   "claude-sonnet-4-6": m([4, 5, 4, 3, 5], [CODE, VISION, LONG], false),
   // The Claude subscription via the Claude Code CLI (`cost: 5` = already paid for by the subscription).
   // The positioning is that of the FAMILY the alias serves — the exact model is
-  // whichever current one the subscription uses (the three variants share strengths/limits).
+  // whichever current one the subscription uses (the variants share strengths/limits).
   "claude-cli": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG], false),
+  "claude-cli-fable": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG], false),
   "claude-cli-sonnet": m([5, 5, 4, 5, 1], [RAIS, CODE, LONG], false),
   "claude-cli-opus": m([5, 5, 3, 5, 1], [RAIS, CODE, LONG], false),
   // The ChatGPT subscription via the Codex CLI — same logic as claude-cli (`cost: 5` =

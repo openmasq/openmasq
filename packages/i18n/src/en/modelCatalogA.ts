@@ -84,6 +84,11 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     weaknesses: ["Text only", "Requires the Claude Code CLI installed and signed in"],
     bestFor: "Use your existing Claude subscription",
   },
+  "claude-cli-fable": {
+    strengths: ["The smartest of the subscription", "Included in your Claude subscription"],
+    weaknesses: ["Text only", "Depends on the plan (absent from Pro)"],
+    bestFor: "Tasks that call for the best model",
+  },
   "claude-cli-sonnet": {
     strengths: ["Capability/speed balance", "Included in your Claude subscription"],
     weaknesses: ["Text only"],
