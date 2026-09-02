@@ -48,7 +48,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.11",
     "@electron/asar": "^3.4.1",
-    "jsdom": "^25.0.1",
+    "jsdom": "^30.0.1",
     "knip": "^6.29.0",
     "onnxruntime-node": "link:packages/ort",
     "turbo": "^2.10.12",
