@@ -4,8 +4,8 @@ import { BRAND } from "@openmasq/branding";
 /**
  * Each screen's modes, FIRST = the default. Two values per screen, not three: a third
  * mode costs a decision on every screen and nobody asked for it. The Mémoire's pair is
- * different in kind — the list FINDS, the graph EXPLAINS — and opens on the list because
- * at 50+ cards the daily gesture is a scan, not a glance.
+ * different in kind — the graph EXPLAINS, the list FINDS — and opens on the graph: the
+ * map of what the app knows is the page's first impression, the list is one chip away.
  *
  * The scope is closed on purpose: a free-form string would let two screens share a
  * preference by accident.
@@ -14,7 +14,7 @@ export const VIEW_MODES = {
   library: ["grid", "list"],
   competences: ["grid", "list"],
   workflows: ["grid", "list"],
-  memory: ["list", "graph"],
+  memory: ["graph", "list"],
 } as const;
 
 export type ViewScope = keyof typeof VIEW_MODES;

@@ -19,9 +19,9 @@ function Probe({ scope }: { scope: ViewScope }) {
 describe("useViewMode — per-screen default", () => {
   beforeEach(() => localStorage.clear());
 
-  it("la Mémoire s'ouvre en LISTE, la Bibliothèque en GRILLE", async () => {
+  it("la Mémoire s'ouvre sur le GRAPHE, la Bibliothèque en GRILLE", async () => {
     const mem = await mount(<Probe scope="memory" />);
-    expect(mem.find("button").textContent).toBe("list");
+    expect(mem.find("button").textContent).toBe("graph");
     await mem.unmount();
     const lib = await mount(<Probe scope="library" />);
     expect(lib.find("button").textContent).toBe("grid");
@@ -31,8 +31,8 @@ describe("useViewMode — per-screen default", () => {
   it("le choix est retenu sous la clé de SON écran", async () => {
     const m = await mount(<Probe scope="memory" />);
     await m.click(m.find("button"));
-    expect(m.find("button").textContent).toBe("graph");
-    expect(localStorage.getItem(`${BRAND.slug}.view.memory`)).toBe("graph");
+    expect(m.find("button").textContent).toBe("list");
+    expect(localStorage.getItem(`${BRAND.slug}.view.memory`)).toBe("list");
     expect(localStorage.getItem(`${BRAND.slug}.view.library`)).toBeNull();
     await m.unmount();
   });
@@ -41,7 +41,7 @@ describe("useViewMode — per-screen default", () => {
     // "grid" is a Library mode: the Mémoire cannot draw it.
     localStorage.setItem(`${BRAND.slug}.view.memory`, "grid");
     const m = await mount(<Probe scope="memory" />);
-    expect(m.find("button").textContent).toBe("list");
+    expect(m.find("button").textContent).toBe("graph");
     await m.unmount();
   });
 });

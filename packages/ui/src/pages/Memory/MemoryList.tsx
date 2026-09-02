@@ -74,9 +74,10 @@ export function MemoryToolbar({
           {t.lists.memory.byCategory}
         </button>
       )}
-      {/* List FIRST: it is the default, and the order of the two chips is the order
-          one reads them — find, then understand. */}
-      {(["list", "graph"] as const).map((v) => (
+      {/* Graph FIRST: it is the default (the page opens on the map of what the app
+          knows), the list is the workhorse one switches to — the order of the two chips
+          is the order one meets them. */}
+      {(["graph", "list"] as const).map((v) => (
         <button
           key={v}
           type="button"

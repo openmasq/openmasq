@@ -63,7 +63,7 @@ export function MemoryView({
 }) {
   const t = useT();
   const [selected, setSelected] = useState<string | null>(null);
-  // List (default) ⇄ graph, remembered per screen like the Bibliothèque's grid ⇄ list:
+  // Graph (default) ⇄ list, remembered per screen like the Bibliothèque's grid ⇄ list:
   // the graph makes you UNDERSTAND (the links), the list makes you FIND — at 50+
   // cards, finding the one to fix is a scan, not a glance.
   const [view, setView] = useViewMode("memory");
