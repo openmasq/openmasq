@@ -274,7 +274,7 @@ function MessageBubbleImpl({
             <span>
               {t.conversation.bubble.redacted(message.redactions, modelName ?? t.modals.transparency.theModel)}
               {message.redactedSpans?.length
-                ? t.conversation.bubble.breakdownSuffix(breakdown(message.redactedSpans))
+                ? t.conversation.bubble.breakdownSuffix(breakdown(message.redactedSpans, t.conversation.bubble.breakdownLabels))
                 : ""}
             </span>
           </div>

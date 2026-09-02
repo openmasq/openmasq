@@ -7,11 +7,13 @@ machine — and puts it back in the reply.**
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)](#getting-started)
 [![Redaction](https://img.shields.io/badge/redaction-on--device-green)](#whats-in-the-box)
 
-![The audit log: eight values masked before they reached a model, restored only in your copy](docs/img/audit.webp)
+![What the model saw: the message on the left, what actually left on the right — the name, e-mail, phone and company replaced](docs/img/what-the-model-saw.webp)
+
+*Every screenshot on this page is a real run of the app, captured on a seeded profile
+with fixture data — never anyone's real conversation.*
 
 > **No binary is published yet.** You build it from source — two commands, see
-> [Getting started](#getting-started). The interface ships in French and English; the
-> screenshots here are the French one.
+> [Getting started](#getting-started).
 
 The model never sees the real thing. Values the engine detects are replaced with
 believable substitutes before any network call; the reply is restored locally from a
@@ -67,20 +69,32 @@ The exhaustive, screen-by-screen inventory lives in [`FEATURES.md`](FEATURES.md)
 ---
 
 <details>
-<summary><b>More screenshots</b> — what is protected, and what the app can reach</summary>
+<summary><b>Two more screenshots</b> — before the send, and after the reply</summary>
 
-**Settings → Privacy.** Seventeen categories, three protection levels. What the *model*
-sees is decided here, and nothing else: a connected service still receives the real value.
+**Before anything leaves.** The composer highlights what it is about to replace, lists each
+value as a chip you can strike out, and carries the count. Nothing has been sent yet.
 
-![The privacy settings: seventeen categories grouped by family, and the three protection levels](docs/img/regles.webp)
+![The composer: name, e-mail, phone and company highlighted, one chip each, and the send row reading "4 to mask"](docs/img/composer.webp)
 
-**Settings → Connectors.** Fifty-six MCP connectors, each connected on your own account.
-Their arguments leave un-redacted — a search for a substitute finds nobody — and their
-results come back redacted through the same vault.
+**After the reply.** The model answered about *Amaury Aubertin* at *Nerivo Labs*; you read
+it about Jean Rebour at Acme Studio. The line under your message names what was replaced,
+by category, and the card offers the side-by-side comparison above.
 
-![The connectors screen: fifty-six MCP connectors, none connected](docs/img/connecteurs.webp)
+![The conversation: four values highlighted in the prompt, the reply restored, and the transparency card](docs/img/conversation.webp)
 
 </details>
+
+## Links
+
+| | |
+|---|---|
+| **Help centre** | [help.openmasq.com](https://help.openmasq.com) — how each screen works, in French and English |
+| **Website** | [openmasq.com](https://openmasq.com) — not open to the public yet |
+| **Contact** | [support@openmasq.com](mailto:support@openmasq.com) — questions, and the address the app's feedback reaches |
+| **Security** | [`SECURITY.md`](SECURITY.md) — the trust boundary, the residuals, and how to report a vulnerability |
+| **What it does, screen by screen** | [`FEATURES.md`](FEATURES.md) |
+| **Contributing** | [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) |
+| **Running your own stack** | [`SELF_HOSTING.md`](SELF_HOSTING.md) |
 
 ## Repository layout
 

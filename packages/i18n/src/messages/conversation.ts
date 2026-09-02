@@ -108,6 +108,9 @@ export interface ConversationMessages {
     redactedTip: string;
     redacted: (count: number, modelName: string) => string;
     breakdownSuffix: (breakdown: string) => string;
+    /** Per-category words of that breakdown, [singular, plural]. Keyed by redaction kind;
+     *  `other` catches a kind nothing maps, so the detail always sums to the total. */
+    breakdownLabels: Record<string, [string, string]>;
     toolFlowFailed: string;
     autoRoutedTip: string;
     quotaTip: string;

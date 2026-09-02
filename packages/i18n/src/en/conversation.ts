@@ -116,6 +116,24 @@ export const conversation = {
     redacted: (n, modelName) =>
       `${n} item${n === 1 ? "" : "s"} redacted before ${modelName}`,
     breakdownSuffix: (breakdown) => ` — ${breakdown}`,
+    breakdownLabels: {
+      name: ["name", "names"],
+      dob: ["date of birth", "dates of birth"],
+      health: ["health datum", "health data"],
+      email: ["email", "emails"],
+      phone: ["phone", "phones"],
+      address: ["address", "addresses"],
+      location: ["place", "places"],
+      company: ["company", "companies"],
+      card: ["card", "cards"],
+      iban: ["IBAN", "IBANs"],
+      national_id: ["identifier", "identifiers"],
+      ip: ["IP", "IPs"],
+      number: ["number", "numbers"],
+      secret: ["secret", "secrets"],
+      apikey: ["access key", "access keys"],
+      other: ["other", "others"],
+    },
     toolFlowFailed:
       "A step of the tool flow failed. Retrying restarts the flow (successful steps are replayed; every write asks for confirmation again).",
     autoRoutedTip:

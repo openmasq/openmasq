@@ -117,6 +117,24 @@ export const conversation = {
     redacted: (n, modelName) =>
       `${n} élément${n === 1 ? "" : "s"} masqué${n === 1 ? "" : "s"} avant ${modelName}`,
     breakdownSuffix: (breakdown) => ` — ${breakdown}`,
+    breakdownLabels: {
+      name: ["nom", "noms"],
+      dob: ["date de naissance", "dates de naissance"],
+      health: ["donnée de santé", "données de santé"],
+      email: ["e-mail", "e-mails"],
+      phone: ["téléphone", "téléphones"],
+      address: ["adresse", "adresses"],
+      location: ["lieu", "lieux"],
+      company: ["entreprise", "entreprises"],
+      card: ["carte", "cartes"],
+      iban: ["IBAN", "IBAN"],
+      national_id: ["identifiant", "identifiants"],
+      ip: ["IP", "IP"],
+      number: ["numéro", "numéros"],
+      secret: ["secret", "secrets"],
+      apikey: ["clé d'accès", "clés d'accès"],
+      other: ["autre", "autres"],
+    },
     toolFlowFailed:
       "Une étape du flux d'outils a échoué. Réessayer relance le flux (les étapes réussies sont rejouées ; chaque écriture redemande confirmation).",
     autoRoutedTip:
