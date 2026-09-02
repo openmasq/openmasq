@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: 🔒 Security vulnerability
-    url: https://github.com/tgaudibert/openmasq/security/advisories/new
+    url: https://github.com/openmasq/openmasq/security/advisories/new
     about: >-
       NEVER report a flaw in a public issue. Use the private advisory flow
       (Security → Report a vulnerability). See SECURITY.md.

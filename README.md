@@ -211,7 +211,7 @@ committed detections so the column needs no Python to verify.
 ### Replay it
 
 ```bash
-git clone https://github.com/tgaudibert/openmasq && cd openmasq && pnpm install
+git clone https://github.com/openmasq/openmasq && cd openmasq && pnpm install
 pnpm bench:compare --engines patterns,presidio   # ~1 min, no model: rules vs Presidio's committed detections
 pnpm build && pnpm bench:compare                  # adds the product column (bakes the local NER, sha256-pinned)
 pnpm bench:compare --markdown                     # prints the tables above, verbatim — diff them against this file
@@ -497,7 +497,7 @@ seconde copie traduite dériverait de la première au prochain relevé.
 ### Le rejouer
 
 ```bash
-git clone https://github.com/tgaudibert/openmasq && cd openmasq && pnpm install
+git clone https://github.com/openmasq/openmasq && cd openmasq && pnpm install
 pnpm bench:compare --engines patterns,presidio   # ~1 min, sans modèle : les règles contre les détections commitées de Presidio
 pnpm build && pnpm bench:compare                  # ajoute la colonne du produit (cuit la NER locale, épinglée sha256)
 pnpm bench:compare --markdown                     # imprime les tableaux ci-dessus, tels quels — à differ contre ce fichier
