@@ -86,6 +86,12 @@ export const modals = {
     attachLogSub:
       "Le texte parti au modèle (déjà masqué), les outils et les erreurs — sans la table de correspondance, donc aucune valeur réelle. Aperçu ci-dessous.",
     confidential: "Confidentiel",
+    sendMail: "Ouvrir dans votre messagerie",
+    mailDone:
+      "Votre messagerie s'est ouverte, le message est prêt — il part quand vous l'envoyez.",
+    mailFallback: (address) => `Rien ne s'est ouvert ? Écrivez à ${address}.`,
+    copyAddress: "Copier l'adresse",
+    copied: "Copiée",
     moods: { love: "J'adore", ok: "Correct", meh: "Bof" },
     categories: { idea: "Idée", bug: "Bug", love: "Compliment", other: "Autre" },
   },

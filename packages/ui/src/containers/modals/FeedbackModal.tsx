@@ -50,7 +50,12 @@ export function FeedbackModal({
   const host = useHost();
   const [draft, setDraft] = useState<FeedbackDraft>(prefill ?? EMPTY_FEEDBACK);
   const [sent, setSent] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The transport words the promise: "reached the team" is only true of the backend
+  // one; over mailto the modal says the mail client was handed the message, no more.
+  const mail = host.feedback?.kind === "mailto";
+  const mailAddress = host.feedback?.address;
   const [error, setError] = useState<string | null>(null);
   const patch = (p: Partial<FeedbackDraft>) => setDraft((d) => ({ ...d, ...p }));
   const canSend = canSendFeedback(draft) && !busy;
@@ -117,10 +122,27 @@ export function FeedbackModal({
           </span>
           <div className="cv-display om-avis-done-title">{t.modals.feedback.thanks}</div>
           <p className="om-avis-done-text">
-            {log && draft.attachLog !== false
-              ? t.modals.feedback.thanksWithLog
-              : t.modals.feedback.thanksPlain}
+            {mail
+              ? t.modals.feedback.mailDone
+              : log && draft.attachLog !== false
+                ? t.modals.feedback.thanksWithLog
+                : t.modals.feedback.thanksPlain}
           </p>
+          {mail && mailAddress && (
+            <p className="om-avis-done-text">
+              {t.modals.feedback.mailFallback(mailAddress)}{" "}
+              <button
+                type="button"
+                className="btn-ghost"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(mailAddress);
+                  setCopied(true);
+                }}
+              >
+                {copied ? t.modals.feedback.copied : t.modals.feedback.copyAddress}
+              </button>
+            </p>
+          )}
           <button type="button" className="btn-primary" onClick={onClose}>
             {t.modals.feedback.close}
           </button>
@@ -237,7 +259,7 @@ export function FeedbackModal({
               {t.common.cancel}
             </button>
             <button type="button" className="btn-primary" onClick={submit} disabled={!canSend}>
-              {busy ? "Envoi…" : "Envoyer"}
+              {busy ? "Envoi…" : mail ? t.modals.feedback.sendMail : "Envoyer"}
             </button>
           </div>
         </>

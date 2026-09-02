@@ -10,7 +10,8 @@
  * silently bin what the user wrote.
  */
 import Debug from "debug";
-import { captureError } from "@openmasq/ui";
+import { BRAND } from "@openmasq/branding";
+import { captureError, feedbackMailto } from "@openmasq/ui";
 import type { FeedbackHost, Feedback } from "@openmasq/ui";
 import { authHost } from "./auth";
 import { backendFetch } from "./backendFetch";
@@ -59,5 +60,22 @@ export const feedbackHost: FeedbackHost = {
       captureError({ scope: "avis", code: "http", status: res.status });
       throw new Error(res.status === 401 ? SIGNED_OUT : UNAVAILABLE);
     }
+  },
+};
+
+/**
+ * The BACKEND-LESS transport: hand the avis to the user's own mail client. The
+ * `mailto:` URL goes through `window.open`, which main's `setWindowOpenHandler`
+ * routes into `safeOpenExternal` — the scheme-gated single door to the OS.
+ * Resolving means the client was HANDED the message, nothing more; the modal reads
+ * `kind` and words its success screen accordingly, with `address` as the manual
+ * fallback for a machine where nothing answers the scheme.
+ */
+export const mailtoFeedbackHost: FeedbackHost = {
+  kind: "mailto",
+  address: BRAND.supportEmail,
+  async send(feedback: Feedback): Promise<void> {
+    debug("send → mailto (%s)", feedback.category);
+    window.open(feedbackMailto(feedback, BRAND.supportEmail, BRAND.name));
   },
 };

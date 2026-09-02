@@ -87,3 +87,48 @@ describe("AvisModal — the debug journal offer on a Bug report", () => {
     expect(m.maybe(".om-avis-journal")).toBeNull();
   });
 });
+
+describe("AvisModal — the mailto transport words its own promise", () => {
+  beforeEach(() => {
+    logExportFor.mockReset().mockReturnValue(LOG);
+  });
+
+  /** Same drive as `openFeedback`, on a host whose transport is the mail client. */
+  async function openMailFeedback() {
+    const send = vi.fn(async (_f: Feedback) => {});
+    const m = await mount(<FeedbackModal onClose={() => {}} context={{ version: "0.4.0" }} />, {
+      host: { feedback: { kind: "mailto", address: "avis@example.org", send } },
+    });
+    await m.click(".om-avis-mood");
+    await m.type(".om-avis-textarea", "le modèle répond à côté");
+    return { m, send };
+  }
+
+  it("labels the action as opening the mail client, not as sending", async () => {
+    const { m } = await openMailFeedback();
+    expect(m.find(".om-avis-foot .btn-primary").textContent).toContain("messagerie");
+  });
+
+  it("never claims the message ARRIVED — and shows the manual address", async () => {
+    const { m, send } = await openMailFeedback();
+    await m.click(".om-avis-foot .btn-primary");
+    expect(send).toHaveBeenCalledOnce();
+    const done = m.findAll(".om-avis-done-text").map((n) => n.textContent).join(" ");
+    expect(done).not.toContain("reçu"); // the backend wording must not leak here
+    expect(done).toContain("prêt");
+    expect(done).toContain("avis@example.org");
+  });
+
+  it("keeps the backend wording when the transport is the backend", async () => {
+    const send = vi.fn(async (_f: Feedback) => {});
+    const m = await mount(<FeedbackModal onClose={() => {}} context={{}} />, {
+      host: { feedback: { send } },
+    });
+    await m.click(".om-avis-mood");
+    await m.type(".om-avis-textarea", "tout va bien");
+    await m.click(".om-avis-foot .btn-primary");
+    const done = m.findAll(".om-avis-done-text").map((n) => n.textContent).join(" ");
+    expect(done).toContain("reçu");
+    expect(done).not.toContain("messagerie");
+  });
+});

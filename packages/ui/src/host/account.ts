@@ -196,8 +196,9 @@ export interface OrgHost {
 
 /**
  * Optional user FEEDBACK transport — the rail's "Votre avis" modal. Absent (browser
- * preview, or any surface with no backend) ⇒ the action is not offered at all,
- * rather than offered and dead.
+ * preview) ⇒ the action is not offered at all, rather than offered and dead. A build
+ * with no backend offers it too, over the `"mailto"` transport below — the avis is a
+ * default surface of the product, not a perk of the hosted one.
  *
  * `send` REJECTS with a user-facing (French) message when the avis could not be
  * delivered, so the modal can say so. It must NEVER resolve on a failure: the modal
@@ -205,6 +206,19 @@ export interface OrgHost {
  * dropped message is a lie. Same contract as `BillingHost.startCheckout`.
  */
 export interface FeedbackHost {
-  /** Deliver one avis. Resolves ONLY once the backend accepted it. */
+  /**
+   * How `send` delivers, because the modal's SUCCESS SCREEN must not promise more
+   * than the transport can know:
+   *  - `"backend"` (default): resolving means the team's endpoint ACCEPTED the
+   *    message — the modal may say it arrived;
+   *  - `"mailto"`: resolving means the user's mail client was HANDED the message —
+   *    the modal says exactly that, shows `address` for the machine with no mail
+   *    client, and never claims delivery.
+   */
+  kind?: "backend" | "mailto";
+  /** The address the mailto transport writes to — shown by the modal as the manual
+   *  fallback. Present iff `kind` is `"mailto"`. */
+  address?: string;
+  /** Deliver one avis. Resolves ONLY once the transport's own promise (above) holds. */
   send(feedback: Feedback): Promise<void>;
 }

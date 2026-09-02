@@ -86,6 +86,11 @@ export const modals = {
     attachLogSub:
       "The text that went to the model (already redacted), the tools and the errors — without the lookup table, so no real value. Preview below.",
     confidential: "Confidential",
+    sendMail: "Open in your email app",
+    mailDone: "Your email app opened with the message ready — it leaves when you send it.",
+    mailFallback: (address) => `Nothing opened? Write to ${address}.`,
+    copyAddress: "Copy address",
+    copied: "Copied",
     moods: { love: "Love it", ok: "Fine", meh: "Meh" },
     categories: { idea: "Idea", bug: "Bug", love: "Compliment", other: "Other" },
   },

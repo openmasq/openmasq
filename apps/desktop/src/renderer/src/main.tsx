@@ -27,7 +27,7 @@ import {
   orgSharesHost,
 } from "./sync";
 import { billingHost } from "./billing";
-import { feedbackHost } from "./feedback";
+import { feedbackHost, mailtoFeedbackHost } from "./feedback";
 // THE renderer's environment reader — only one place reads `import.meta.env`,
 // and that's where the runtime environment switch will go through (see `./appEnv`).
 import {
@@ -186,7 +186,7 @@ const host: Host = {
   // Live OpenRouter model catalogue. Guarded so an un-restarted preload (no `models`
   // namespace) degrades to the static registry rather than throwing.
   models: window.openmasq.models
-    ? { listOpenRouter: () => window.openmasq.models.listOpenRouter() }
+    ? { listOpenRouter: () => window.openmasq.models.listOpenRouter(), listLocal: (u) => window.openmasq.models.listLocal?.(u) ?? Promise.resolve([]) }
     : undefined,
   // Auto-update controls (electron-updater ↔ the apps/updates Worker feed).
   // ⚠️ Two conditions: a feed provided at build time (otherwise there's NOTHING to query — no
@@ -484,8 +484,8 @@ const host: Host = {
   orgShares: SYNC_ENABLED ? orgSharesHost : undefined,
   // Individual billing (backend + Stripe) — ONLY in a build that SELLS: this slot makes the Payment tab and every upsell exist.
   billing: SYNC_ENABLED && BILLING_SOLD ? billingHost : undefined,
-  // "Your feedback" — to the backend; without it, the rail action isn't offered.
-  feedback: SYNC_ENABLED ? feedbackHost : undefined,
+  // "Your feedback" — the backend, or the user's mail client (the modal reads `kind`).
+  feedback: SYNC_ENABLED ? feedbackHost : mailtoFeedbackHost,
   // The gateway (apps/gateway) — cloud redaction AND inference for included models.
   // ABSENT when the build doesn't supply its address: the redaction engine remains
   // the machine's own (already the default) and the models served by the platform

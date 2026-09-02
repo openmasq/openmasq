@@ -91,6 +91,12 @@ export interface ModalsMessages {
     replyDraft: string;
     attachLogSub: string;
     confidential: string;
+    /** The mailto transport's wording — the modal must not claim delivery there. */
+    sendMail: string;
+    mailDone: string;
+    mailFallback: (address: string) => string;
+    copyAddress: string;
+    copied: string;
     /** The moods and the feedback types: the glyph and the id stay in the code. */
     moods: { love: string; ok: string; meh: string };
     categories: { idea: string; bug: string; love: string; other: string };
