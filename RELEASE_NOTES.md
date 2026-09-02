@@ -1,5 +1,7 @@
 # Release notes
 
+<sub>**English** · [Français](#notes-de-version)</sub>
+
 This file feeds the **release announcement e-mail**. On every **production** release (a
 `v*` tag), the CI of the private `infra` repository reads the published version's section,
 renders it as an e-mail and creates a **draft Resend broadcast** — re-read then sent by hand
@@ -32,6 +34,44 @@ is held on both sides — the generator's schema caps it (in `infra`) and step 3
 
 A version with no section here ⇒ CI sends nothing (a no-op; the release is not blocked). Keep
 the most recent section **at the top**.
+
+
+# Notes de version
+
+**Les notes elles-mêmes restent en FRANÇAIS et ne sont pas traduites** : ce ne sont pas de la
+documentation, c'est la copie que les clients reçoivent, et l'analyseur du dépôt `infra` lit
+les intitulés `## <version> — <AAAA-MM-JJ>`, `### Nouveautés` et
+`### Améliorations & corrections` tels quels. Ce qui suit traduit donc le mode d'emploi
+ci-dessus, à l'intention de qui écrit une note.
+
+Ce fichier alimente l'**e-mail d'annonce de version**. À chaque version de **production** (un
+tag `v*`), la CI du dépôt privé `infra` lit la section de la version publiée, la rend en
+e-mail et crée un **brouillon de broadcast Resend** — relu puis envoyé à la main depuis le
+tableau de bord Resend (Resend tient l'audience et les désabonnements). Le rendu, l'analyseur
+et ce workflow vivent là-bas ; ce dépôt-ci ne détient que le texte source.
+
+**Le format par version — l'analyseur (dans le dépôt `infra`) en dépend :**
+
+- un intitulé `## <version> — <AAAA-MM-JJ>`, portant la version publiée — c'est la chaîne que
+  la CI cherche (une section absente est le non-événement énoncé plus bas, jamais une
+  publication cassée) ;
+- une ligne d'accroche citée `> …` (le teaser sous le titre) ;
+- une liste `### Nouveautés` de puces `- **Titre** — description` (les fonctionnalités mises
+  en avant, rendues avec une coche) — **3 au maximum, une ligne chacune** ;
+- une liste `### Améliorations & corrections` de puces `- …` (rendues avec une puce violette)
+  — **6 au maximum, une ligne chacune**.
+
+⚠️ Les deux sections sont lues COMME DES PUCES. La prose reste acceptée pour les notes déjà
+publiées — Contentful sert une note passée comme un seul bloc markdown — mais une section qui
+porte des puces rend ses puces et rien d'autre.
+
+Le budget n'est pas une préférence de style : une note se lit en trente secondes ou elle ne se
+lit pas. Il est tenu des deux côtés — le schéma du générateur le plafonne (dans `infra`) et
+l'étape 3 de la compétence `release-version` dit la même chose, avec un test qui vérifie que
+les deux s'accordent.
+
+Une version sans section ici ⇒ la CI n'envoie rien (un non-événement ; la publication n'est
+pas bloquée). Gardez la section la plus récente **en haut**.
 
 ---
 
