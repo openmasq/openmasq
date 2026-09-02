@@ -76,9 +76,11 @@ value as a chip you can strike out, and carries the count. Nothing has been sent
 
 ![The composer: name, e-mail, phone and company highlighted, one chip each, and the send row reading "4 to mask"](docs/img/composer.webp)
 
-**After the reply.** The model answered about *Amaury Aubertin* at *Nerivo Labs*; you read
-it about Jean Rebour at Acme Studio. The line under your message names what was replaced,
-by category, and the card offers the side-by-side comparison above.
+**After the reply.** The model answered about *Anselme Bouchereau* at *Torvel Labs*; you
+read it about Jean Rebour at Acme Studio. The line under your message names what was
+replaced, by category, and the card offers the side-by-side comparison above. The
+substitute is not a fixed alias: a per-conversation salt gives the same real value a
+different one in the next conversation, so a table built over the pool reverses nothing.
 
 ![The conversation: four values highlighted in the prompt, the reply restored, and the transparency card](docs/img/conversation.webp)
 
@@ -95,6 +97,10 @@ by category, and the card offers the side-by-side comparison above.
 | **What it does, screen by screen** | [`FEATURES.md`](FEATURES.md) |
 | **Contributing** | [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) |
 | **Running your own stack** | [`SELF_HOSTING.md`](SELF_HOSTING.md) |
+
+<!-- docs/img/social-preview.png is the GitHub social preview (1280×640): upload it under
+     Settings → General → Social preview. It is not referenced by any page — it exists so the
+     card that shows up in Slack, X and Discord lives in the repository like everything else. -->
 
 ## Repository layout
 
