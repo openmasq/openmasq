@@ -78,6 +78,17 @@ jobs:
   # documented — but "few" is verified, not declared.
   codeql:
     runs-on: ubuntu-latest
+    # ⚠️ Code scanning does not EXIST on a private repository outside GitHub Advanced
+    # Security, and this one is a personal private repo: the API answers 403 "Code scanning
+    # is not enabled for this repository", which no permission and no rebase can change.
+    # The job used to run anyway — seven minutes of analysis, then a failed upload that
+    # painted every pull request red with a problem that was never in the code. A red no
+    # one can act on is worse than no check: it teaches people to ignore the column.
+    #
+    # The condition is the repository's own visibility, so nothing has to be remembered:
+    # the day this repo is published, code scanning becomes available and this job starts
+    # running again by itself.
+    if: ${{ !github.event.repository.private }}
     permissions:
       contents: read
       security-events: write # publier les alertes dans l'onglet Security
