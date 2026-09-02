@@ -25,6 +25,19 @@ export interface ShellMessages {
     closeItem: (label: string) => string;
     driven: string;
   };
+  /** The ONE status chip (`shell/shellNotice.ts`): the sentence behind each title and
+   *  its action. The titles themselves are `leaves.offline` / `leaves.freeModelsNotice`. */
+  notice: {
+    offlineBody: (brand: string) => string;
+    reconnectOne: (name: string) => string;
+    reconnectMany: (count: number) => string;
+    reconnectOneBody: string;
+    reconnectManyBody: (names: string) => string;
+    reconnect: string;
+    accessBodySold: (brand: string) => string;
+    accessBody: string;
+    seeAccess: string;
+  };
   /** The document tabs above a panel. */
   panelTabs: {
     sidePanel: string;

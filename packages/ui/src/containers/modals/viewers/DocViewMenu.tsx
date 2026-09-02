@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useT } from "../../../i18n";
 import { CheckIcon, DotsIcon, ShieldIcon } from "../../../components/brand";
 
@@ -39,27 +39,24 @@ export function DocViewMenu({
     const away = (e: MouseEvent) => {
       if (!ref.current?.contains(e.target as Node)) setOpen(false);
     };
-    // CAPTURE + stopPropagation: `ModalShell` closes the whole modal on Escape from a
-    // bubble-phase window listener, so without this the first Escape would dismiss the
-    // document instead of the menu it was aimed at.
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      e.stopPropagation();
-      setOpen(false);
-    };
     document.addEventListener("mousedown", away, true);
-    document.addEventListener("keydown", key, true);
-    return () => {
-      document.removeEventListener("mousedown", away, true);
-      document.removeEventListener("keydown", key, true);
-    };
+    return () => document.removeEventListener("mousedown", away, true);
   }, [open]);
+  // Escape aims at the INNERMOST open layer. Focus sits on the tri-dot or an option
+  // whenever the menu is open, so the key reaches this root; closing the menu and
+  // marking the key consumed (`preventDefault`) is what keeps `ModalShell` — which
+  // yields to a consumed Escape — from dismissing the document underneath as well.
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "Escape" || !open) return;
+    e.preventDefault();
+    setOpen(false);
+  };
 
   const current = views.find((v) => v.id === view) ?? views[0];
   if (!current) return null;
 
   return (
-    <div className="fv-viewmenu" ref={ref}>
+    <div className="fv-viewmenu" ref={ref} onKeyDown={onKeyDown}>
       {/* A tri-dot, not a labelled control: the header already names the file, and the
           current layer is stated by the menu's own check — spelling it on the button
           spent the width the filename needs. */}

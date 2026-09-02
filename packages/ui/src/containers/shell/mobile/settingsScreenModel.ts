@@ -22,7 +22,6 @@ const GROUPS: { key: keyof Messages["settings"]["groups"]; ids: SettingsTabId[] 
   { key: "privacy", ids: ["privacy", "audit"] },
   { key: "aiTools", ids: ["models", "mcp", "browser"] },
   { key: "devices", ids: ["sync"] },
-  { key: "org", ids: ["org"] },
   { key: "app", ids: ["versions"] },
 ];
 

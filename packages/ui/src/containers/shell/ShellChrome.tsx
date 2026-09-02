@@ -154,8 +154,8 @@ export function ShellChrome({
                     the screen for a sentence already read. The title is enough; the message and
                     the action are one click away. Each falls silent on its own — the failure when
                     it's fixed, the information when it's closed. */}
-                {notice && (
-                  <div className="kchip-dock" role="status" aria-live="polite">
+                <div className="kchip-dock" role="status" aria-live="polite">
+                  {notice && (
                     <StatusChip
                       key={notice.kind}
                       tone={notice.tone}
@@ -170,8 +170,13 @@ export function ShellChrome({
                         notice.dismissible ? () => dismissNotice(notice.kind) : undefined
                       }
                     />
-                  </div>
-                )}
+                  )}
+                  {/* The first-launch analytics notice — a chip in the same dock, SERIALIZED
+                      after login/onboarding: it used to be a card outside the overlay stack
+                      that showed half-hidden under the modal, its « Compris » dead on click.
+                      One decision at a time. */}
+                  {!overlay && <AnalyticsNotice settings={chat.settings} onChange={chat.setSettings} />}
+                </div>
                 {nav}
                 <AnimatePresence>
                   {feedback.open && (
@@ -264,12 +269,6 @@ export function ShellChrome({
                   />
                 )}
               </AnimatePresence>
-              {/* SERIALIZED, never concurrent with an overlay. This card lives outside the
-                  overlay stack (z-index 55 against 120 for the scrim), so during
-                  login/onboarding it used to show half-hidden under the modal: a sentence
-                  truncated mid-way, and a "Compris" that the scrim intercepted —
-                  visible, readable, and dead on click. One decision at a time. */}
-              {!overlay && <AnalyticsNotice settings={chat.settings} onChange={chat.setSettings} />}
             </FeedbackOpenProvider>
             </FileOpenProvider>
           </LinkOpenProvider>

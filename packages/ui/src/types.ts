@@ -157,9 +157,10 @@ export interface Settings {
   billingMode?: "subscription" | "byo";
   /** Model id used for new conversations. Empty = first available model. */
   defaultModelId: string;
-  /** UI colour theme. Two grounds (light / dark) × two accents (green default / blue):
-   *  `light` = light+green, `dark` = dark+green, `blue` = light+blue, `blue-dark` = dark+blue. */
-  theme?: "light" | "dark" | "blue" | "blue-dark";
+  /** UI colour theme — the GROUND only (light / dark); the accent is not a choice. A blob
+   *  from an earlier version may still say `blue` / `blue-dark`: `state/settings/theme.ts`
+   *  `readTheme` reads those as the ground they meant. */
+  theme?: "light" | "dark";
   /** Interface language. Like `theme`, this is a DEVICE preference backed by an
    *  unscoped localStorage key (`state/locale.ts`), read BEFORE the first paint. Absent ⇒
    *  the host's language, else French (source language). The type stays a loose

@@ -1435,7 +1435,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       // connect cards. Ids validated against the not-connected set (`resolveSuggestCall`).
       if (call.name === "suggest_integrations") {
         p.onToolProgress?.("Recherche d'une intégration"); // intercepted — narrate like any call
-        const { ids, message: sugMsg } = resolveSuggestCall(args.integration_ids, suggestCandidates);
+        const { ids, message: sugMsg } = resolveSuggestCall(args.integration_ids, suggestCandidates, requestText, alreadyConnected);
         if (ids.length) {
           suggested = true;
           p.onSuggestIntegrations?.(ids);

@@ -21,7 +21,7 @@ export function ApiKeyModal({
   onConnect,
   hasKey = false,
   onClear,
-  saveLabel = "Enregistrer et envoyer",
+  saveLabel,
 }: {
   provider: ProviderId;
   label: string;
@@ -62,9 +62,9 @@ export function ApiKeyModal({
     setConnectError("");
     try {
       if (await onConnect()) onClose();
-      else setConnectError("Connexion non terminée. Réessayez — rien n'a été enregistré.");
+      else setConnectError(t.modals.apiKey.connectIncomplete);
     } catch {
-      setConnectError("Connexion impossible. Réessayez dans un instant.");
+      setConnectError(t.modals.apiKey.connectUnreachable);
     } finally {
       setConnecting(false);
     }
@@ -183,7 +183,8 @@ export function ApiKeyModal({
           onClick={save}
           disabled={!value.trim() || saving}
         >
-          {hasKey ? "Remplacer la clé" : saveLabel} <ArrowRightIcon size={15} />
+          {hasKey ? t.modals.apiKey.replaceKey : (saveLabel ?? t.modals.apiKey.saveAndSend)}{" "}
+          <ArrowRightIcon size={15} />
         </button>
       </div>
     </ModalShell>

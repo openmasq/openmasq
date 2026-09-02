@@ -5,18 +5,12 @@
 .om-empty[data-tone="amber"],  .om-empty-point[data-tone="amber"]  { --es-hue: var(--hl-amber); --es-ink: var(--ink-on-hl-amber); }
 .om-empty[data-tone="pink"],   .om-empty-point[data-tone="pink"]   { --es-hue: var(--hl-pink); --es-ink: var(--ink-on-hl-pink); }
 .om-empty[data-tone="sky"],    .om-empty-point[data-tone="sky"]    { --es-hue: var(--hl-sky); --es-ink: var(--ink-on-hl-sky); }
-.om-empty[data-tone="lime"],   .om-empty-point[data-tone="lime"]   { --es-hue: var(--hl-lime); --es-ink: var(--ink-on-hl-lime); }
+/* The LIME tone is brand chrome (first-run empty states), so it follows the #3939FA
+   primary → a light periwinkle marker/tile (dark ink stays legible). The other tones are
+   category hues. */
+.om-empty[data-tone="lime"],   .om-empty-point[data-tone="lime"]   { --es-hue: #9a9aff; --es-ink: #0b0b0f; }
 .om-empty[data-tone="mint"],   .om-empty-point[data-tone="mint"]   { --es-hue: var(--hl-mint); --es-ink: var(--ink-on-hl-mint); }
 .om-empty[data-tone="violet"], .om-empty-point[data-tone="violet"] { --es-hue: var(--hl-violet); --es-ink: var(--ink-on-hl-violet); }
-
-/* Blue + dark themes: the LIME tone is brand chrome (first-run empty states), so it
-   follows the #3939FA primary → a light periwinkle marker/tile (dark ink stays
-   legible). The other tones are category hues (pink/amber/sky/violet points), left
-   as-is. */
-[data-theme="blue"] .om-empty[data-tone="lime"],
-[data-theme="blue"] .om-empty-point[data-tone="lime"],
-[data-theme="blue-dark"] .om-empty[data-tone="lime"],
-[data-theme="blue-dark"] .om-empty-point[data-tone="lime"] { --es-hue: #9a9aff; --es-ink: #0b0b0f; }
 
 /* SOLID fill. The diagonal hatching that lived here is gone: it ran
    under the one paragraph this screen exists to get read, and the dark themes
@@ -48,12 +42,11 @@
   box-shadow: 0 8px 20px -10px rgba(11, 21, 5, 0.45);
 }
 
-/* Blue themes: the icon tile is a WHITE PLATE, not a coloured one — a saturated 60px block
-   beside the point chips reads as a second accent competing with the brand. The ink is
-   pinned to the palette's near-black BECAUSE the plate is fixed: it cannot follow
-   `--text-strong`, which flips near-white in blue-dark and would erase the glyph. */
-[data-theme="blue"] .om-empty-tile,
-[data-theme="blue-dark"] .om-empty-tile {
+/* The icon tile is a WHITE PLATE, not a coloured one — a saturated 60px block beside
+   the point chips reads as a second accent competing with the brand. The ink is pinned
+   to the palette's near-black BECAUSE the plate is fixed: it cannot follow
+   `--text-strong`, which flips near-white in dark and would erase the glyph. */
+.om-empty-tile {
   background: #ffffff;
   color: #0b0b0f;
 }

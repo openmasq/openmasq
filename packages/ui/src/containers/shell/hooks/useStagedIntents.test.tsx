@@ -87,3 +87,38 @@ describe("useStagedIntents — attachFile", () => {
     await m.unmount();
   });
 });
+
+/**
+ * « Demander » on a FOLDER follows the same rule as a file and as the browser's
+ * « Demander à propos de cette page »: the rail sits beside the open conversation, so
+ * the target joins it. A fresh thread on every click replaced the context being read.
+ */
+describe("useStagedIntents — askAboutTarget", () => {
+  const folder = { kind: "folder" as const, name: "Clients", path: "/w/Clients" };
+
+  it("cible la conversation OUVERTE (aucune création) quand il y en a une", async () => {
+    const { chat, created } = fakeChat("conv-ouverte");
+    const out: { api?: StagedIntents } = {};
+    const m = await mount(<Probe chat={chat} out={out} />, { wrap });
+
+    out.api!.askAboutTarget(folder);
+    await m.rerender(<Probe chat={chat} out={out} />);
+
+    expect(created).toEqual([]);
+    expect(out.api!.pending.target).toMatchObject(folder);
+    await m.unmount();
+  });
+
+  it("ne crée une conversation que s'il n'y en a AUCUNE", async () => {
+    const { chat, created } = fakeChat(null);
+    const out: { api?: StagedIntents } = {};
+    const m = await mount(<Probe chat={chat} out={out} />, { wrap });
+
+    out.api!.askAboutTarget(folder);
+    await m.rerender(<Probe chat={chat} out={out} />);
+
+    expect(created).toEqual(["conv-1"]);
+    expect(out.api!.pending.target).toMatchObject(folder);
+    await m.unmount();
+  });
+});

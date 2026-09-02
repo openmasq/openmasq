@@ -4,6 +4,7 @@ import { Provider } from "react-redux";
 import { describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { store } from "../../state/redux";
+import { sectionGuides } from "../../help";
 import { mount } from "../../testKit";
 import { Rail } from "./Rail";
 
@@ -33,6 +34,18 @@ const railProps = (onOpenSettings: (tab?: string) => void) => ({
    hardcoded French string in an app that switches to English — and it would fail at the
    first copy tweak rather than at a real behaviour regression. */
 const t = getMessages("fr");
+
+describe("Rail — les sections viennent de l'unique vocabulaire", () => {
+  it("rend chaque section de `sectionGuides`, dans l'ordre, avec son tip pour bulle", async () => {
+    const m = await mount(<Rail {...railProps(() => {})} />, { wrap });
+    const nav = m.findAll(".rail-nav");
+    expect(nav.map((b) => b.getAttribute("aria-label"))).toEqual(sectionGuides(t).map((s) => s.label));
+    // The tooltip is the `title` (drawn by TooltipLayer), never a private mechanism.
+    expect(nav.map((b) => b.getAttribute("title"))).toEqual(sectionGuides(t).map((s) => s.tip));
+    expect(m.findAll("[data-tip]")).toHaveLength(0);
+    await m.unmount();
+  });
+});
 
 describe("Rail — le bouclier mène au rapport de confidentialité", () => {
   it("le bouclier demande l'onglet « privacy »", async () => {

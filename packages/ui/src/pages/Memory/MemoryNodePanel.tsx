@@ -42,8 +42,7 @@ export function MemoryNodePanel({
   onRemove: (id: string) => void;
 }) {
   const t = useT();
-  const KIND_LABEL = { core: "Racine", hub: "Catégorie", leaf: "Souvenir" } as const;
-  const kindLabel = node.kind === "hub" && node.group ? "Groupe" : KIND_LABEL[node.kind];
+  const kindLabel = node.kind === "hub" && node.group ? t.lists.memory.panel.kind.group : t.lists.memory.panel.kind[node.kind];
   const nameRef = useRef<HTMLInputElement>(null);
   const [aliases, setAliases] = useState((card?.aliases ?? []).join(", "));
   useEffect(() => {
@@ -59,7 +58,7 @@ export function MemoryNodePanel({
 
   const connections = neighborsOf(node.id, graph.edges);
   const linked = graph.nodes.filter((n) => connections.has(n.id));
-  const day = (t: number) => new Date(t).toLocaleDateString("fr-FR");
+  const day = (at: number) => new Date(at).toLocaleDateString(t.common.intlTag);
 
   return (
     <aside className="om-mem-panel om-step-in" aria-label={t.lists.memory.panel.aria}>
@@ -85,12 +84,12 @@ export function MemoryNodePanel({
               the surprising non-recall diagnosable instead of invisible. */}
           <span className="om-mem-usage">
             {usage && usage.convCount > 0
-              ? `Rappelée dans ${usage.convCount} conversation${usage.convCount > 1 ? "s" : ""} · dernière le ${day(usage.lastAt)}`
-              : "Jamais rappelée pour l'instant — elle part dès qu'un message mentionne cette entité."}
+              ? t.lists.memory.panel.recalled(usage.convCount, day(usage.lastAt))
+              : t.lists.memory.panel.neverRecalled}
             {usage?.lastSkip &&
               (usage.lastSkip.reason === "budget"
-                ? ` Écartée le ${day(usage.lastSkip.at)}, faute de place dans le budget d'injection.`
-                : ` Pas rappelée le ${day(usage.lastSkip.at)} : le prénom seul est un homonyme trop courant — un alias plus distinctif aiderait.`)}
+                ? t.lists.memory.panel.skippedBudget(day(usage.lastSkip.at))
+                : t.lists.memory.panel.skippedHomonym(day(usage.lastSkip.at)))}
           </span>
           <div className="om-skill-filters" role="radiogroup" aria-label={t.lists.memory.panel.category}>
             {MEMORY_CATEGORIES.map((c) => (
@@ -118,8 +117,8 @@ export function MemoryNodePanel({
               compaction by losing a sentence. The 600 threshold isn't re-declared:
               it comes from the same constant as maxLength. */}
           <span className="om-mem-limit">
-            {card.facts.length}/{MAX_FACTS_CHARS} — une fiche se compacte : au-delà, la
-            phrase la plus ancienne passe dans l'historique.
+            {card.facts.length}/{MAX_FACTS_CHARS}
+            {t.lists.memory.panel.limitNote}
           </span>
           <input
             className="om-mem-input"
@@ -147,7 +146,7 @@ export function MemoryNodePanel({
                 <div key={`${e.at}-${i}`} className="om-mem-history-row">
                   <span className="om-mem-history-prev">{e.prev}</span>
                   <span className="om-mem-history-meta">
-                    {new Date(e.at).toLocaleDateString("fr-FR")}
+                    {day(e.at)}
                     <button
                       type="button"
                       className="om-mem-history-restore"
@@ -157,7 +156,7 @@ export function MemoryNodePanel({
                         if (r) edit(card.id, r);
                       }}
                     >
-                      Rétablir
+                      {t.lists.memory.panel.restore}
                     </button>
                   </span>
                 </div>
@@ -175,7 +174,7 @@ export function MemoryNodePanel({
       )}
 
       <div className="om-mem-panel-links">
-        <div className="cv-eyebrow">Connexions · {linked.length}</div>
+        <div className="cv-eyebrow">{t.lists.memory.panel.links(linked.length)}</div>
         {linked.map((n) => (
           <button key={n.id} type="button" className="om-mem-link" onClick={() => onSelect(n.id)}>
             <span className="om-mem-dot-chip sm" style={n.tone !== "core" ? { background: `var(--hl-${n.tone})` } : undefined} />
@@ -194,11 +193,11 @@ export function MemoryNodePanel({
               title={t.lists.memory.confirmTip}
               onClick={() => onConfirm(card.id)}
             >
-              <CheckIcon size={13} /> Confirmer
+              <CheckIcon size={13} /> {t.lists.memory.confirm}
             </button>
           )}
           <button type="button" className="om-skill-use danger" onClick={() => onRemove(card.id)}>
-            Supprimer
+            {t.lists.memory.panel.delete}
           </button>
         </div>
       )}

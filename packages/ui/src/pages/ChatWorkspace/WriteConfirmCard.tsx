@@ -143,7 +143,7 @@ export function WriteConfirmCard({
       )}
 
       <details className="write-confirm-json">
-        <summary>Détails techniques ({tool})</summary>
+        <summary>{t.cards.writeConfirm.details(tool)}</summary>
         <pre>{json}</pre>
       </details>
 
@@ -151,9 +151,7 @@ export function WriteConfirmCard({
           user knows they won't be re-asked (per-call re-confirmation taught clicking
           without reading). The checkbox widens it to every conversation this session. */}
       <div className="write-confirm-scope">
-        <span className="write-confirm-scope-note">
-          Une fois autorisé, « {tool} » ne redemandera plus dans cette conversation.
-        </span>
+        <span className="write-confirm-scope-note">{t.cards.writeConfirm.scopeNote(tool)}</span>
         <label className="write-confirm-remember">
           <input
             type="checkbox"

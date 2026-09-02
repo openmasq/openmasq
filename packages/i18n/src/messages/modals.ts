@@ -120,6 +120,12 @@ export interface ModalsMessages {
     removeKey: string;
     /** The fallback when the provider's key has no recognisable prefix. */
     keyPlaceholderFallback: (provider: string) => string;
+    /** The save button: from the missing-key banner (retries the send), or replacing one. */
+    saveAndSend: string;
+    replaceKey: string;
+    /** The OAuth road's two failures — nothing saved, or the provider unreachable. */
+    connectIncomplete: string;
+    connectUnreachable: string;
   };
 
   /** The debug log — the REAL of this conversation. */
@@ -162,6 +168,19 @@ export interface ModalsMessages {
   /** « Comment accéder à ce modèle ? » */
   modelAccess: {
     eyebrow: string;
+    /** The title and the lead, by the route the user bumped into (key / credits /
+     *  free) and by what this build serves and sells. */
+    titleKey: string;
+    titleCreditsSold: string;
+    titleCreditsClosed: string;
+    titleFree: string;
+    thisProvider: string;
+    leadUnserved: (provider: string) => string;
+    leadKey: (provider: string) => string;
+    leadCreditsSold: (brand: string) => string;
+    leadCreditsClosed: (brand: string) => string;
+    leadFreeSold: (brand: string) => string;
+    leadFreeServed: (brand: string) => string;
     freeModels: string;
     includedModels: string;
     freeDescSold: (brand: string) => string;
@@ -180,14 +199,16 @@ export interface ModalsMessages {
   /** The ⌘K group headers, and the state of a conversation that is generating. */
   searchRows: { goTo: string; files: string; settings: string; generating: string };
 
-  /** The redaction rules: the frame around the chips. */
+  /** The redaction rules of ONE conversation: the frame around the chips. The level
+   *  and the default are chosen elsewhere (composer button, Réglages) — the modal only
+   *  LINKS to the default. */
   redactionRules: {
     eyebrow: string;
     titleLead: string;
     titleHighlight: string;
     sub: string;
-    thisConversation: string;
-    byDefault: string;
+    /** The text link to Réglages → Confidentialité. */
+    defaultLevelLink: string;
     memoryTitle: string;
     memoryDesc: (brand: string) => string;
     done: string;

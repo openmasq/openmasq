@@ -3,6 +3,7 @@ import { MCP_LOGOS, MCP_LOGO_IMAGES } from "../media/McpTile";
 import { CheckIcon, LockIcon, ArrowRightIcon, GridIcon } from "../brand";
 import { AgentCard, GlyphTile, AgentCardTitle, AgentCardDesc } from "./AgentCard";
 import { BRAND } from "@openmasq/branding";
+import { useT } from "../../i18n";
 
 /**
  * "Connect this integration to continue" — rendered under an assistant bubble when the
@@ -78,9 +79,10 @@ function IntegrationTilesCard({
   connected: Set<string>;
   onConnect: (id: string) => void;
 }) {
+  const t = useT();
   return (
     <AgentCard
-      eyebrow={`${connectors.length} intégrations suggérées`}
+      eyebrow={t.cards.integration.manySuggested(connectors.length)}
       tile={
         <GlyphTile>
           <GridIcon size={18} />
@@ -89,24 +91,23 @@ function IntegrationTilesCard({
       footer={
         <span className="agent-card-note">
           <LockIcon size={13} />
-          <span>Connexion sécurisée · accès chiffré, révocable à tout moment</span>
+          <span>{t.cards.integration.secureNote}</span>
         </span>
       }
     >
-      <AgentCardTitle marked>Connectez vos outils pour continuer</AgentCardTitle>
+      <AgentCardTitle marked>{t.cards.integration.connectTools}</AgentCardTitle>
       <div className="integration-tiles">
         {connectors.map((c) => {
             const isOn = connected.has(c.id);
             const logo = MCP_LOGOS[c.id];
             const img = MCP_LOGO_IMAGES[c.id];
-            const _hue = `var(--hl-${c.tone ?? "violet"})`;
             return (
             <button
               key={c.id}
               type="button"
               className={`integration-tile${isOn ? " connected" : ""}`}
               disabled={isOn}
-              title={isOn ? `${c.name} · connecté` : `Connecter ${c.name}`}
+              title={isOn ? t.cards.integration.tileConnected(c.name) : t.cards.integration.tileConnect(c.name)}
               onClick={() => onConnect(c.id)}
             >
               <GlyphTile bg={img ? "var(--surface-card)" : undefined} small>
@@ -146,13 +147,13 @@ function IntegrationCard({
   onConnect: (id: string) => void;
   onResume?: () => void;
 }) {
+  const t = useT();
   const logo = MCP_LOGOS[c.id];
   const img = MCP_LOGO_IMAGES[c.id];
   // A builtin (the browser) ships with the app — there's nothing to connect TO, the user
   // just switches it on, so the CTA says so.
   const builtin = c.transport === "builtin";
-  const cta = builtin ? "Activer" : `Connecter ${c.name}`;
-  const _hue = `var(--hl-${c.tone ?? "violet"})`;
+  const cta = builtin ? t.cards.integration.activate : t.cards.integration.connect(c.name);
   // REAL scopes from the catalog (`direct` connectors carry them per credential mode).
   // A remote/builtin connector has none declared — show no chips rather than invent any:
   // this card tells the user what access they are granting, so a plausible-looking but
@@ -162,7 +163,7 @@ function IntegrationCard({
   return (
     <AgentCard
       stripe={connected ? "var(--brand)" : "var(--border-strong)"}
-      eyebrow={connected ? `${c.name} · connecté` : "Intégration suggérée"}
+      eyebrow={connected ? t.cards.integration.connectedEyebrow(c.name) : t.cards.integration.suggested}
       tile={
         logo ? (
           <GlyphTile>
@@ -184,7 +185,7 @@ function IntegrationCard({
         connected ? (
           <>
             <span className="agent-card-resolved done">
-              <CheckIcon size={14} /> Connecté — {BRAND.name} peut reprendre
+              <CheckIcon size={14} /> {t.cards.integration.connectedResume(BRAND.name)}
             </span>
             <span className="agent-card-spacer" />
             {/* RESUME the turn (regenerate), not re-deep-link to Réglages: there's
@@ -193,7 +194,7 @@ function IntegrationCard({
               className="btn-primary btn-inline"
               onClick={() => (onResume ? onResume() : onConnect(c.id))}
             >
-              Continuer <ArrowRightIcon size={14} />
+              {t.cards.integration.resume} <ArrowRightIcon size={14} />
             </button>
           </>
         ) : (
@@ -201,9 +202,7 @@ function IntegrationCard({
             <span className="agent-card-note">
               <LockIcon size={13} />
               <span>
-                {builtin
-                  ? `Intégré à ${BRAND.name} — rien à connecter, aucun compte tiers.`
-                  : "Connexion sécurisée · accès chiffré, révocable à tout moment"}
+                {builtin ? t.cards.integration.builtinNote(BRAND.name) : t.cards.integration.secureNote}
               </span>
             </span>
             <span className="agent-card-spacer" />
@@ -215,7 +214,7 @@ function IntegrationCard({
       }
     >
       <AgentCardTitle marked={!connected}>
-        {builtin ? `Activez ${c.name} pour continuer` : `Connectez ${c.name} pour continuer`}
+        {builtin ? t.cards.integration.activateTitle(c.name) : t.cards.integration.connectTitle(c.name)}
       </AgentCardTitle>
       <AgentCardDesc>{c.desc}</AgentCardDesc>
       {scopes.length > 0 && (

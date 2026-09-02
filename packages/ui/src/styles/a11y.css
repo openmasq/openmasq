@@ -1,8 +1,9 @@
 /* The 2026-09-01 accessibility pass (WCAG 2.2), split out of `styles.css` (frozen size).
    Tokens are RE-DECLARED here for the same selectors they left: the originals are gone
    from `styles.css`, so there is exactly one declaration per (selector, token) — the
-   cascade has nothing to arbitrate. Order mirrors the theme blocks (:root, then the
-   themes), so `[data-theme]` overrides keep winning over `:root` at equal specificity.
+   cascade has nothing to arbitrate. Order mirrors the theme blocks (:root, then dark),
+   so the `[data-theme="dark"]` override keeps winning over `:root` at equal specificity.
+   (`--border-focus`/`--focus-ring` live with the brand tokens in `styles.css`.)
 
    The tokens:
      --brand-text     the accent as TEXT — the brand fill colour is not always readable
@@ -17,27 +18,13 @@
   --switch-off: #8a8fa8;
   --amber-text: #9a5a00;
 }
-[data-theme="dark"] {
-  --brand-text: var(--brand);
-  --border-control: rgba(216, 235, 176, 0.45);
-  --switch-off: var(--warm-300);
-  --amber-text: #ffb85c;
-}
-/* Measured on the blue-dark ground: the fill one step lighter than #3939FA is 3.3:1
+/* Measured on the dark ground: the fill one step lighter than #3939FA is 3.3:1
    (white on it 5.2:1), and the accent as TEXT is the periwinkle (6.9:1). */
-[data-theme="blue-dark"] {
+[data-theme="dark"] {
   --brand-text: #8a9bff;
   --border-control: rgba(208, 212, 235, 0.45);
   --switch-off: var(--warm-300);
   --amber-text: #ffb85c;
-}
-[data-theme="blue"] {
-  --brand-text: #3939fa;
-  --border-control: rgba(10, 12, 30, 0.5);
-  --switch-off: #8a8fa8;
-  --amber-text: #9a5a00;
-  --border-focus: #3939fa;
-  --focus-ring: color-mix(in oklch, #3939fa 38%, transparent);
 }
 
 /* ================================================ Control boundaries ==== */

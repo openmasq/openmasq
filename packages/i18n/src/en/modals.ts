@@ -113,6 +113,10 @@ export const modals = {
     getOne: "get one ↗",
     removeKey: "Remove the key",
     keyPlaceholderFallback: (provider) => `Your ${provider} key`,
+    saveAndSend: "Save and send",
+    replaceKey: "Replace the key",
+    connectIncomplete: "The connection did not finish. Try again — nothing was saved.",
+    connectUnreachable: "Could not connect. Try again in a moment.",
   },
 
   debug: {
@@ -157,6 +161,21 @@ export const modals = {
 
   modelAccess: {
     eyebrow: "MODEL ACCESS",
+    titleKey: "This model needs your key",
+    titleCreditsSold: "This model needs a subscription",
+    titleCreditsClosed: "This model is not open on your account",
+    titleFree: "Free, with limits",
+    thisProvider: "This provider",
+    leadUnserved: (provider) =>
+      `${provider} is used with your own key. This version has no hosted service: a local model or your subscription CLI are the other roads.`,
+    leadKey: (provider) => `${provider} is used with your own key — or pick another model.`,
+    leadCreditsSold: (brand) => `This model goes through ${brand}, and your account has no credits left.`,
+    leadCreditsClosed: (brand) =>
+      `This model goes through ${brand}, and it is not available on your account for now.`,
+    leadFreeSold: (brand) =>
+      `A free model does not touch your credits: ${brand} account signed in, no subscription — but throughput and availability depend on the provider.`,
+    leadFreeServed: (brand) =>
+      `A free model is included with your ${brand} account, with no key — but throughput and availability depend on the provider.`,
     freeModels: "The free models",
     includedModels: "The included models",
     freeDescSold: (brand) =>
@@ -172,7 +191,7 @@ export const modals = {
     ownKeyDesc: (soldSuffix) =>
       `Plug in your OpenAI, Anthropic or Mistral key: your provider bills you${soldSuffix}. The protection is the same.`,
     ownKeyWithoutCredits: ", without touching your credits",
-    ownKeyStatic: "Enter it from each provider's ⚙ gear, on this page.",
+    ownKeyStatic: "Enter it from its provider's chip, at the top of this page.",
     openRouterNote: (brand) =>
       `One special case: in the extended OpenRouter catalogue, only the models ${brand} offers go through without a key — the others need your own OpenRouter key.`,
   },
@@ -188,9 +207,8 @@ export const modals = {
     eyebrow: "REDACTION",
     titleLead: "Redaction ",
     titleHighlight: "rules",
-    sub: "The categories you turn on are removed from your messages before any model sees them.",
-    thisConversation: "This conversation",
-    byDefault: "By default",
+    sub: "For this conversation: the categories you turn on are removed from your messages before any model sees them.",
+    defaultLevelLink: "Change the default level in Settings → Privacy",
     memoryTitle: "Memory in this conversation",
     memoryDesc: (brand) =>
       `Off: none of your memory rides along with what you send from here, the model cannot consult it, and ${brand} notes nothing on its own. “Remember that…” still works — that one is your call.`,

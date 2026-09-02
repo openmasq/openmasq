@@ -1,25 +1,21 @@
 import { useMemo, useState } from "react";
 import { useT } from "../../../i18n";
-import { PROVIDERS, type ProviderId } from "@openmasq/llm";
-import { CheckIcon, FamilyLogo, SettingsIcon } from "../../../components/brand";
+import { type ProviderId } from "@openmasq/llm";
 import { selectableModels } from "../../../prompt/models";
 import { visibleModels, type UnavailableReason } from "../../../send/modelAvailability";
-import { providerGroupLabel } from "../../../components/ModelSelector/providers";
 import { favoriteSet } from "../../../components/ModelSelector/simpleList";
-import { providerGroupStatus } from "./providerGroupStatus";
-import { KEYED_PROVIDERS } from "../shared";
 import { ModelDetail } from "../ModelDetail";
 import { useAppSelector } from "../../../state/redux";
 import { selectBillingCache } from "../../../state/settings/settingsCache";
 import { canPitchSubscription } from "../../../state/billing/billing";
 import type { OrgProfileInfo } from "../../../host";
-import { ModelCard } from "./ModelCard";
+import { ProviderGroup } from "./ProviderGroup";
 import { DefaultModelSummary } from "./DefaultModelSummary";
 import { ProviderAccess } from "./ProviderAccess";
 import { LocalModelSection, type LocalModelProps } from "./LocalModelSection";
 import { ModelsTabModals } from "./ModelsTabModals";
 import { ModelFilterBar } from "./ModelFilterBar";
-import { filterModels, modelFamilies, subgroupByFamily, type PriceTier } from "../../../prompt/modelFilter";
+import { filterModels, modelFamilies, modelPriceTier, type PriceTier } from "../../../prompt/modelFilter";
 
 // The picker's settings (family-chip threshold, group order) live
 // alongside it — `pickerTuning.ts` — with the WHY of each value.
@@ -28,10 +24,11 @@ import { FAMILY_CHIP_MIN, MODEL_PROVIDER_ORDER } from "./pickerTuning";
 /**
  * The "Modèle" section — a dedicated sidebar screen for the DEFAULT model used by
  * every new conversation (moved out of Settings → Compte). Grouped model cards on the
- * left, a sticky `ModelDetail` panel on the right. The API-key control is ONE gear PER
- * PROVIDER (in each group header), beside a chip that states whether that provider's
- * key is already stored — not a per-card gear. The page only renders + collects the
- * choice; the store write arrives as `onPick` (it persists `Settings.defaultModelId`).
+ * left, a sticky `ModelDetail` panel on the right. The API-key control is the provider
+ * CHIP at the top of the tab (`ProviderAccess`, « Avec une clé API ») — a group header
+ * only STATES whether that provider's key is stored (the pill), it no longer carries a
+ * second gear for the same modal. The page only renders + collects the choice; the
+ * store write arrives as `onPick` (it persists `Settings.defaultModelId`).
  */
 export function ModelsTab({
   defaultModelId,
@@ -69,7 +66,7 @@ export function ModelsTab({
   /** The signed-in member's org authorization (null = solo user). */
   orgProfile?: OrgProfileInfo | null;
   /** Model id → why it can't send. Those cards render GREYED and can't be made default;
-   *  the group's key gear is how a `no_key` provider is unlocked. */
+   *  the provider's chip at the top is how a `no_key` provider is unlocked. */
   unavailableModels?: ReadonlyMap<string, UnavailableReason>;
   /** Switch to Réglages → Paiement (the free-models explainer's subscribe path). */
   onOpenBilling?: () => void;
@@ -93,7 +90,7 @@ export function ModelsTab({
   // Catalogue default shown fully starred when empty (consistent with the chat picker
   // and with materializing on the first action) — `favoriteSet`, not a raw Set.
   const favSet = favoriteSet(favoriteModels);
-  // Which provider's key modal is open (opened from a model's gear).
+  // Which provider's key modal is open (opened from a provider chip, `ProviderAccess`).
   const [keyProvider, setKeyProvider] = useState<ProviderId | null>(null);
   const t = useT();
   // The « Modèles gratuits » explainer, opened from a card's badge.
@@ -124,6 +121,13 @@ export function ModelsTab({
   const filtered = useMemo(
     () => filterModels(pickerModels, query, family, price),
     [pickerModels, query, family, price],
+  );
+  // The price filter only exists when there is something to filter BY: a list whose
+  // models all sit in one tier (an account on free models only) would offer a menu
+  // with one useful answer.
+  const priceTiers = useMemo(
+    () => new Set(pickerModels.map((m) => modelPriceTier(m.id))).size,
+    [pickerModels],
   );
   const shown = new Set(filtered.map((m) => m.id));
   const previewModel =
@@ -166,6 +170,7 @@ export function ModelsTab({
               families={families}
               price={price}
               onPrice={setPrice}
+              showPrice={priceTiers > 1}
               matchCount={filtered.length}
             />
             {filtered.length === 0 && (
@@ -173,102 +178,21 @@ export function ModelsTab({
                 {t.modelsTab.noMatch(query.trim())}
               </p>
             )}
-            {MODEL_PROVIDER_ORDER.map((pid) => {
-              const group = pickerModels.filter((m) => m.provider === pid && shown.has(m.id));
-              if (group.length === 0) return null;
-              const keyed = KEYED_PROVIDERS.includes(pid);
-              const hasKey = !!keyConfigured?.has(pid);
-              // What this group's header says about availability + its key pill — the
-              // wording rules live in `providerGroupStatus.ts`.
-              const { groupReason, groupChip, keyStatus } = providerGroupStatus({
-                pid,
-                group,
-                keyed,
-                hasKey,
-                unavailableModels,
-                t,
-              });
-              // Sub-group the provider's cards by vendor family — clarifies the dense
-              // aggregator/platform groups (OpenRouter, Scaleway — both multi-vendor).
-              // Single-family providers render flat (no redundant sub-header).
-              const subgroups = subgroupByFamily(group);
-              const showSubgroups = subgroups.length > 1;
-              return (
-                <div key={pid} className="model-platform-group">
-                  <div className="model-platform-header">
-                    <span className="cv-eyebrow">
-                      {providerGroupLabel(pid)}
-                    </span>
-                    {(groupChip || keyed) && (
-                      <div className="model-platform-right">
-                        {groupChip && (
-                          <span className="model-unavailable" title={groupChip.title}>
-                            {groupChip.chip}
-                          </span>
-                        )}
-                        {keyed && (
-                      <div className="model-platform-key">
-                        <span
-                          className={`model-key-status${keyStatus!.check ? " on" : ""}${keyStatus!.blocked ? " blocked" : ""}`}
-                          title={keyStatus!.title}
-                        >
-                          {keyStatus!.check && <CheckIcon size={11} />}
-                          {keyStatus!.text}
-                        </span>
-                        <button
-                          type="button"
-                          className="model-gear"
-                          title={t.modelsTab.keyGearTip(hasKey, PROVIDERS[pid].label)}
-                          aria-label={t.modelsTab.keyGearTip(hasKey, PROVIDERS[pid].label)}
-                          onClick={() => setKeyProvider(pid)}
-                        >
-                          <SettingsIcon size={14} />
-                        </button>
-                      </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {subgroups.map((sub) => (
-                    <div key={sub.key} className="model-subgroup">
-                      {/* A provider that mixes vendors (OpenRouter/Scaleway)
-                          gets a vendor-family sub-header; a single-family provider (native
-                          OpenAI/Anthropic/…) renders the grid flat, no redundant header. */}
-                      {showSubgroups && (
-                        <div className="model-subhead">
-                          <FamilyLogo familyKey={sub.key} label={sub.label} size={15} />
-                          <span className="model-subhead-label">{sub.label}</span>
-                          <span className="model-subhead-count">{sub.models.length}</span>
-                        </div>
-                      )}
-                      <div className="model-grid">
-                        {sub.models.map((m) => (
-                          <ModelCard
-                            key={m.id}
-                            model={m}
-                            active={m.id === defaultModelId}
-                            reason={unavailableModels?.get(m.id)}
-                            // Per-card chip only when the group is MIXED — a uniform group
-                            // states the reason once in its header (above) — AND the
-                            // provider is not keyed: a keyed provider's key pill already
-                            // says the unlock (« Clé ou abonnement »), so stamping
-                            // « Abonnement requis » on every paid card of a mixed group
-                            // (OpenRouter: free rows usable, ~300 paid rows blocked) is
-                            // pure repetition. The card stays greyed + titled either way.
-                            showChip={!groupReason && !keyed}
-                            onPreview={setPreviewId}
-                            onPick={onPick}
-                            onAccessInfo={() => setFreeInfoOpen(true)}
-                            favorite={favSet.has(m.id)}
-                            onToggleFavorite={onToggleFavorite}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
+            {MODEL_PROVIDER_ORDER.map((pid) => (
+              <ProviderGroup
+                key={pid}
+                pid={pid}
+                models={pickerModels.filter((m) => m.provider === pid && shown.has(m.id))}
+                hasKey={!!keyConfigured?.has(pid)}
+                unavailableModels={unavailableModels}
+                defaultModelId={defaultModelId}
+                favSet={favSet}
+                onPreview={setPreviewId}
+                onPick={onPick}
+                onAccessInfo={() => setFreeInfoOpen(true)}
+                onToggleFavorite={onToggleFavorite}
+              />
+            ))}
           </div>
           {previewModel && (
             <aside className="model-detail-panel">
@@ -276,12 +200,9 @@ export function ModelsTab({
             </aside>
           )}
       </div>
-      <p className="modal-note">
-        {t.modelsTab.gearNote}
-      </p>
-
       {/* The "subscription via CLI" opt-ins are no longer a bottom-of-page section:
-          they live in their badge, up top (`AgentAccessModal`). */}
+          they live in their badge, up top (`AgentAccessModal`). What stays down here
+          is the « Avancé » fold: the model on the user's own machine. */}
       <LocalModelSection {...local} />
 
       <ModelsTabModals

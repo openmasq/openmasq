@@ -26,15 +26,6 @@
 .om-mem-textarea {
   resize: vertical;
 }
-.om-mem-auto {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 560px;
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  cursor: pointer;
-}
 .om-mem-auto-badge {
   color: var(--brand-text);
 }
@@ -70,29 +61,6 @@
 }
 .om-mem-profile-text:hover {
   background: var(--surface-sunken);
-}
-
-/* The safety net for deletion: a bottom-of-page toast, a few seconds, « Annuler »
-   reinserts the card as it was. */
-.om-mem-undo {
-  position: fixed;
-  bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  background: var(--surface-card);
-  box-shadow: 0 8px 28px rgba(11, 21, 5, 0.16);
-  font-size: var(--text-sm);
-  color: var(--text-body);
-}
-.om-mem-undo strong {
-  color: var(--text-strong);
 }
 
 /* ── Search + LIST view (the graph makes you understand, the list makes you find) ── */

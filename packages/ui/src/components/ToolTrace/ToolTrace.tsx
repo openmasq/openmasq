@@ -99,56 +99,58 @@ export function ToolTrace({
                   {run.name}
                   {/* Built-in intercepted tools (the code interpreter) are NOT MCP
                       connectors — no "MCP" badge, so it never reads "PythonMCP". */}
-                  {!run.builtin && <span className="mcp-trace-mcp">connecteur</span>}
+                  {!run.builtin && <span className="mcp-trace-mcp">{t.conversation.trace.connector}</span>}
                 </div>
                 <div className="mcp-trace-status">
                   {busy
                     ? done > 0
-                      ? `${done} action${done > 1 ? "s" : ""} · en cours…`
-                      : "Appel des outils…"
-                    : `${done} action${done > 1 ? "s" : ""} · terminé`}
+                      ? t.conversation.trace.actionsRunning(done)
+                      : t.conversation.trace.calling
+                    : t.conversation.trace.actionsDone(done)}
                 </div>
               </div>
             </div>
             <div className="mcp-trace-list">
-              {run.tools.map((t, i) => {
+              {run.tools.map((tool, i) => {
                 // Collapsed retry loop → one discreet hint instead of a wall of
                 // "échec" rows. On a recovered call: "N tentatives"; on a fully
                 // failed one: "échec · N tentatives".
                 const retries =
-                  (t.attempts ?? 1) > 1 && (t.failures ?? 0) > 0
-                    ? t.state === "running"
-                      ? `nouvel essai (${t.attempts}\u1d49)`
-                      : `${t.attempts} tentatives`
+                  (tool.attempts ?? 1) > 1 && (tool.failures ?? 0) > 0
+                    ? tool.state === "running"
+                      ? t.conversation.trace.retrying(tool.attempts!)
+                      : t.conversation.trace.attempts(tool.attempts!)
                     : null;
                 // Duration chip on finished rows, only when NOTABLE (≥2 s): where the
                 // turn's time went, without stamping "0 s" on every instant call.
-                const took = t.state !== "running" && (t.ms ?? 0) >= 2000 ? formatElapsed(t.ms!) : null;
+                const took = tool.state !== "running" && (tool.ms ?? 0) >= 2000 ? formatElapsed(tool.ms!) : null;
                 return (
-                  <div key={`${t.name}-${i}`} className="mcp-trace-row om-step-in">
-                    <StepDot state={t.state} current={isCurrentStep(runs, live, runIndex, i)} />
-                    <span className="mcp-trace-name" title={t.name}>{humanToolLabel(run.serverId, t.name)}</span>
+                  <div key={`${tool.name}-${i}`} className="mcp-trace-row om-step-in">
+                    <StepDot state={tool.state} current={isCurrentStep(runs, live, runIndex, i)} />
+                    <span className="mcp-trace-name" title={tool.name}>{humanToolLabel(run.serverId, tool.name)}</span>
                     {retries && <span className="mcp-trace-retries">{retries}</span>}
                     {took && <span className="mcp-trace-retries">{took}</span>}
                     <span className="mcp-trace-spacer" />
-                    {t.state === "running" ? (
-                      <span className="mcp-trace-running">{pendingStatus || "en cours…"}</span>
-                    ) : t.state === "error" ? (
+                    {tool.state === "running" ? (
+                      <span className="mcp-trace-running">{pendingStatus || t.conversation.trace.running}</span>
+                    ) : tool.state === "error" ? (
                       // ⚠️ A failure STATES its cause when it has one. Without the note, an app
                       // refusal (intent gate, domain not allowed) displayed as a bare « échec »
                       // — and the model paraphrased it by blaming the service
                       // (« refusée par l'intégration », measured 15/08). The trace, though, is
                       // not rewritable by the model: it's the only place that can say
                       // WHO refused.
-                      <span className="mcp-trace-summary err">{t.note ? `échec — ${t.note}` : "échec"}</span>
-                    ) : t.state === "declined" ? (
+                      <span className="mcp-trace-summary err">
+                        {tool.note ? t.conversation.trace.failedWith(tool.note) : t.conversation.trace.failed}
+                      </span>
+                    ) : tool.state === "declined" ? (
                       // The word for the refusal, without the error tint: saying no worked.
-                      <span className="mcp-trace-summary">refusé</span>
+                      <span className="mcp-trace-summary">{t.conversation.trace.declined}</span>
                     ) : (
                       // The human narration ("Recherche d'actualités…") reads better than
                       // the raw result blurb ("10 résultats"); fall back to summary.
-                      (t.note || t.summary) && (
-                        <span className="mcp-trace-summary">{t.note || t.summary}</span>
+                      (tool.note || tool.summary) && (
+                        <span className="mcp-trace-summary">{tool.note || tool.summary}</span>
                       )
                     )}
                   </div>

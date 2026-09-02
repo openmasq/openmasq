@@ -161,8 +161,8 @@ export function layoutValueHits(
 
 /**
  * Audit H2 — the fail-closed PER-VALUE proof gating every "ship the painted pages"
- * surface (desktop send-as-images `renderDocImages.ts`, extension native upload
- * `scrubFile.ts`). Every expected (non-revealed) replacement must appear in some
+ * surface (the extension's native upload `scrubFile.ts`; the desktop no longer ships
+ * painted pages). Every expected (non-revealed) replacement must appear in some
  * page's `covered` set — `renderRedactedPdf` marks a value covered only when its
  * pixels were painted (own box, or fully subsumed under a longer painted value).
  * Refuses (→ the caller falls back to the redacted TEXT path) when:

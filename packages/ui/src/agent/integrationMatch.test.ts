@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MCP_CONNECTORS, type McpConnector } from "@openmasq/catalog/mcp";
 import { connectorsForRequest, scopePreflight, missingConnectorMessage } from "./integrationMatch";
+import { MAX_SUGGESTIONS } from "./suggestIntegrations";
 import { ATTACHMENT_INLINE_NOTE, typedPartOfWire } from "../send/foldPayload";
 
 const pick = (...ids: string[]): McpConnector[] =>
@@ -18,8 +19,10 @@ describe("connectorsForRequest — proposer sans attendre le modèle", () => {
     const wire =
       "résume ce document\n\n=== Attached file: document-1.pdf ===\n" +
       `${ATTACHMENT_INLINE_NOTE}\nRendez-vous au 3 Square des Peupliers pour votre dossier.`;
-    // The WHOLE wire message would match both — that's the original bug…
-    expect(ids(connectorsForRequest(wire, docCandidates))).toEqual(["square", "filesystem"]);
+    // The WHOLE wire message used to match both — that's the original bug. « 3 Square »
+    // no longer names a service (an address is not a service position), our own note
+    // still would…
+    expect(ids(connectorsForRequest(wire, docCandidates))).not.toContain("square");
     // …the typed part, though, proposes nothing: it's what the loop now reads.
     expect(connectorsForRequest(typedPartOfWire(wire), docCandidates)).toEqual([]);
     // And naming the service IN what's typed still proposes.
@@ -99,9 +102,21 @@ describe("connectorsForRequest — proposer sans attendre le modèle", () => {
     ).toEqual(["google-calendar"]);
   });
 
-  it("plafonne comme toute proposition — quatre cartes, c'est déjà du bruit", () => {
+  it("plafonne comme toute proposition — deux cartes, c'est déjà du bruit", () => {
     const many = pick("gmail", "microsoft-outlook", "google-calendar", "notion", "stripe");
-    expect(connectorsForRequest("mail agenda notion stripe outlook", many).length).toBeLessThanOrEqual(4);
+    const out = connectorsForRequest("mon agenda, mes pages Notion, Stripe et Outlook", many);
+    expect(out.length).toBe(MAX_SUGGESTIONS);
+    expect(MAX_SUGGESTIONS).toBe(2);
+  });
+
+  it("une lettre de relance ne propose RIEN — ni l'adresse (Square) ni le courrier (Gmail)", () => {
+    // The turn that raised the bar (2026-08): two cards under a letter about neither.
+    const letter =
+      "Rédige une lettre de relance pour la facture de M. Dupont, 3 square des Peupliers, " +
+      "restée impayée malgré deux courriers.";
+    expect(connectorsForRequest(letter, pick("square", "gmail", "stripe"))).toEqual([]);
+    // …and the follow-up that DOES ask for the tool proposes it.
+    expect(ids(connectorsForRequest("envoie-la par mail à M. Dupont", pick("square", "gmail")))).toEqual(["gmail"]);
   });
 });
 

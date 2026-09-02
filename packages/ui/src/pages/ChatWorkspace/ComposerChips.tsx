@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useT } from "../../i18n";
-import { FileIcon, ShieldIcon } from "../../components/brand";
+import { FileIcon, RefreshIcon, ShieldIcon, XIcon } from "../../components/brand";
 import type { Item } from "./composerDetection";
 import type { longTextStats } from "./composerDetection";
 
@@ -17,9 +17,10 @@ export const CHIP_COLLAPSE_LIMIT = 8;
  * modal editor). Pure render — every decision stays with the caller.
  */
 
-/** One chip per detected value: click toggles « garder en clair » for this send.
+/** One chip per detected value: click toggles « Laisser en clair · cet envoi ».
  *  The same gesture exists directly ON the highlighted word (`MarkKeepMenu`) —
- *  this row stays the overview + the way BACK (re-redact a kept value). */
+ *  this row stays the overview + the way BACK (re-mask a kept value). The verbs come
+ *  from `conversation.mark`, THE lexicon every reveal surface shares. */
 export function DetectChips({
   items,
   keepSet,
@@ -54,17 +55,17 @@ export function DetectChips({
             className={`detect-chip hl-${hue} ${kept ? "kept" : ""}${doubt ? " doubt" : ""}`}
             title={
               kept
-                ? t.composer.detect.reMask
+                ? t.conversation.mark.reMask(t.conversation.mark.scopeSend)
                 : doubt
                   ? t.composer.detect.uncertain
-                  : t.composer.detect.keepInClear
+                  : t.conversation.mark.leaveClear(t.conversation.mark.scopeSend)
             }
             onClick={() => onToggle(value)}
           >
             <ShieldIcon size={11} />
             <span className="detect-chip-val">{value}</span>
             {doubt && <span className="detect-chip-doubt">{t.composer.detect.toVerify}</span>}
-            <span className="detect-chip-x">{kept ? "↺" : "✕"}</span>
+            <span className="detect-chip-x">{kept ? <RefreshIcon size={10} /> : <XIcon size={10} />}</span>
           </button>
         );
       })}

@@ -20,6 +20,19 @@ export const shell = {
     closeItem: (label) => `Fermer — ${label}`,
     driven: "Navigateur piloté",
   },
+  notice: {
+    offlineBody: (brand) =>
+      `Connexion à ${brand} perdue. Vos conversations restent accessibles — reconnexion automatique en cours…`,
+    reconnectOne: (name) => `Reconnexion nécessaire : ${name}`,
+    reconnectMany: (count) => `Reconnexion nécessaire : ${count} connecteurs`,
+    reconnectOneBody: "La connexion à ce connecteur a été perdue. Reconnectez-le depuis les réglages.",
+    reconnectManyBody: (names) => `Connexions perdues : ${names}.`,
+    reconnect: "Reconnecter",
+    accessBodySold: (brand) =>
+      `Pour ouvrir tout le catalogue : un abonnement ${brand}, ou votre propre clé chez un fournisseur.`,
+    accessBody: "Pour ouvrir tout le catalogue : votre propre clé chez un fournisseur.",
+    seeAccess: "Voir mes accès",
+  },
   panelTabs: {
     sidePanel: "Panneau latéral",
     closeTab: "Fermer l'onglet",

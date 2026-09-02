@@ -82,7 +82,7 @@ export function SkillSuggestPane({
               >
                 <span className="om-sugg-card-name">{s.name}</span>
                 <span className="om-sugg-card-desc">
-                  {asking ? "Remplacer ce que vous avez écrit ? Cliquez à nouveau." : s.desc}
+                  {asking ? t.lists.skills.replaceConfirm : s.desc}
                 </span>
                 <span className="om-sugg-card-meta">{skillCategory(templateCategory(s), t).label}</span>
               </button>

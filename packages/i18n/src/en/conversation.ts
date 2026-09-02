@@ -14,6 +14,7 @@ export const conversation = {
     cardTip: (category, prompt) => `${category} — ${prompt}`,
     cardAria: (category, prompt) => `${category}: ${prompt}`,
     connectTip: (connector, prompt) => `Connect ${connector} — ${prompt}`,
+    dismiss: "Stop suggesting",
   },
 
   artifact: { pane: "File preview", copy: "Copy", copied: "Copied", close: "Close" },
@@ -102,6 +103,8 @@ export const conversation = {
   },
 
   actions: {
+    copy: "Copy",
+    copied: "Copied",
     regenerate: "Regenerate",
     fork: "Duplicate the conversation from here",
     feedback: "Give feedback on this reply",
@@ -113,51 +116,62 @@ export const conversation = {
     plot: "Chart",
     redactionFailedTip: "The redaction model failed for this message",
     redactedTip: "Replaced by placeholders before the model saw it, restored in its reply",
-    redacted: (n, modelName) =>
-      `${n} item${n === 1 ? "" : "s"} redacted before ${modelName}`,
-    breakdownSuffix: (breakdown) => ` — ${breakdown}`,
-    breakdownLabels: {
-      name: ["name", "names"],
-      dob: ["date of birth", "dates of birth"],
-      health: ["health datum", "health data"],
-      email: ["email", "emails"],
-      phone: ["phone", "phones"],
-      address: ["address", "addresses"],
-      location: ["place", "places"],
-      company: ["company", "companies"],
-      card: ["card", "cards"],
-      iban: ["IBAN", "IBANs"],
-      national_id: ["identifier", "identifiers"],
-      ip: ["IP", "IPs"],
-      number: ["number", "numbers"],
-      secret: ["secret", "secrets"],
-      apikey: ["access key", "access keys"],
-      other: ["other", "others"],
-    },
-    toolFlowFailed:
-      "A step of the tool flow failed. Retrying restarts the flow (successful steps are replayed; every write asks for confirmation again).",
+    protectedCount: (n) => `${n} protected`,
+    protectedSee: "see",
     autoRoutedTip:
       "Auto mode: the model for this reply was chosen automatically, based on the task.",
     quotaTip: "This model's provider quota",
     reasoning: "Reasoning",
   },
 
+  trace: {
+    connector: "connector",
+    calling: "Calling tools…",
+    running: "running…",
+    actionsRunning: (n) => `${n} action${n > 1 ? "s" : ""} · running…`,
+    actionsDone: (n) => `${n} action${n > 1 ? "s" : ""} · done`,
+    retrying: (attempt) => `retrying (attempt ${attempt})`,
+    attempts: (n) => `${n} attempts`,
+    failed: "failed",
+    failedWith: (note) => `failed — ${note}`,
+    declined: "declined",
+  },
+
+  thinking: {
+    writing: "The model is writing the reply",
+    reflecting: "The model is thinking",
+    preparing: "The model is preparing the reply",
+  },
+
+  tokens: {
+    tip: (total, input, output) => `${total} tokens (input ${input} · output ${output})`,
+    line: (input, output) => `↑ ${input} · ↓ ${output} tokens`,
+  },
+
   mark: {
     realValue: "real value",
     seenByModel: "seen by the model",
+    seenByModelTip: "Value seen by the model",
+    realValueTip: "Real value — leaves in the clear if you leave it in the clear",
     orgForced: "Enforced by the organisation",
-    reveal: "Reveal",
-    reRedact: "Redact again",
-    revealKind: "Reveal the whole category",
-    reRedactKind: "Redact the whole category again",
-    deleteTip: "Remove this redaction entirely — the value stays visible and leaves in the clear",
-    delete: "Delete the redaction",
+    scopeSend: "this send",
+    scopeConversation: "this conversation",
+    scopeMessage: "this message",
+    leaveClear: (scope) => `Leave in the clear · ${scope}`,
+    leaveClearKind: (scope) => `Leave the category in the clear · ${scope}`,
+    leaveClearTip: "Reversible: the value leaves as-is for the model, the mask comes back with one click",
+    reMask: (scope) => `Mask again · ${scope}`,
+    reMaskKind: (scope) => `Mask the category again · ${scope}`,
+    reMaskTip: "Mask this value again",
+    remove: (scope) => `Remove the masking · ${scope}`,
+    removeTip: "Definitive: no marker left — the value stays visible and leaves in the clear",
     reportTip: "Opens “Your feedback”, prefilled — never paste the real value into it",
     report: "Report a mistake",
     sheetLabel: "Redaction",
   },
 
   struggle: {
+    failedTip: (tool) => (tool ? `A tool call did not go through: ${tool}` : "A tool call did not go through"),
     unknownTool: (connector, action) =>
       `${connector} cannot do “${action}” — that action does not exist in the connector.`,
     ownKeysHint: "Some of them only turn on with your own access keys.",

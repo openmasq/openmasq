@@ -1,4 +1,4 @@
-import { setDynamicModels, type DynamicModel } from "@openmasq/llm";
+import { findModel, setDynamicModels, type DynamicModel } from "@openmasq/llm";
 import type { Host } from "../host";
 
 /**
@@ -42,7 +42,11 @@ export function localModelList(typed: readonly string[], served: readonly string
   for (const id of [...typed, ...served]) {
     if (seen.has(id)) continue;
     seen.add(id);
-    out.push({ id, label: `${id} (local)`, provider: "openai-compat", pricing: { in: 0, out: 0 } });
+    // A served id the registry knows keeps its readable label (« Llama 3.3 (local) »);
+    // an unknown one is shown by its id, marked local.
+    const known = findModel(id);
+    const label = known?.provider === "openai-compat" ? known.label : `${id} (local)`;
+    out.push({ id, label, provider: "openai-compat", pricing: { in: 0, out: 0 } });
   }
   return out;
 }

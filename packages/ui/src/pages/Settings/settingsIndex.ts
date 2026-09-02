@@ -22,7 +22,6 @@ export type SettingsTabId =
   | "audit"
   | "usage"
   | "sync"
-  | "org"
   | "billing"
   | "models"
   | "versions";
@@ -57,7 +56,6 @@ const TAB_ORDER = [
   "audit",
   "usage",
   "sync",
-  "org",
   "billing",
   "versions",
 ] as const satisfies readonly SettingsTabId[];
@@ -96,6 +94,9 @@ const fold = (s: string): string =>
  *  the capability (`billing`), so as not to invent a second vocabulary. */
 const ENTRY_REQUIRES: Partial<Record<keyof Messages["settings"]["entries"], SettingsTabId>> = {
   messageBilling: "billing",
+  // Lives on Connecteurs, but only exists where the platform HAS an agent browser —
+  // the same gate as the Navigateur tab.
+  browserSecurity: "browser",
 };
 
 const ENTRY_TABS = {
@@ -109,11 +110,16 @@ const ENTRY_TABS = {
   protectionLevel: "privacy",
   showTokens: "privacy",
   modelSeesTokens: "privacy",
+  memoryAuto: "privacy",
   localModel: "models",
   favouriteModels: "models",
   claudeSubscription: "models",
   chatgptSubscription: "models",
+  antigravitySubscription: "models",
   writeConfirm: "mcp",
+  // The agent-browser hardening moved beside the write gate: ONE « Ce que l'agent peut
+  // faire » section on Connecteurs, so ⌘K lands there, not on the search-engine tab.
+  browserSecurity: "mcp",
   connectedDevices: "sync",
   environment: "versions",
 } as const satisfies Record<keyof Messages["settings"]["entries"], SettingsTabId>;
@@ -140,8 +146,6 @@ export function settingsEntries(
  * promises a service this build can't reach is a lie, not an invitation.
  */
 export interface SettingsCapabilities {
-  /** `host.org` + a membership: the Organisation tab. */
-  org: boolean;
   /** `host.sync`: Vos appareils (end-to-end encrypted sync, via the backend). */
   sync: boolean;
   /** `host.browser`: the built-in browser (platform, not network). */
@@ -157,7 +161,6 @@ export interface SettingsCapabilities {
  * ends up offering a destination the rail doesn't have.
  */
 export function tabAvailable(id: SettingsTabId, caps: SettingsCapabilities): boolean {
-  if (id === "org") return caps.org;
   if (id === "sync") return caps.sync;
   if (id === "browser") return caps.browser;
   if (id === "billing") return caps.billing;

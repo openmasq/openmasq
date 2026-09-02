@@ -18,6 +18,7 @@ export interface ConversationMessages {
     cardTip: (category: string, prompt: string) => string;
     cardAria: (category: string, prompt: string) => string;
     connectTip: (connector: string, prompt: string) => string;
+    dismiss: string;
   };
 
   /** The preview of a file produced by the model. */
@@ -97,7 +98,7 @@ export interface ConversationMessages {
   };
 
   /** The action row under a reply. */
-  actions: { regenerate: string; fork: string; feedback: string };
+  actions: { copy: string; copied: string; regenerate: string; fork: string; feedback: string };
 
   /** What borders a bubble. */
   bubble: {
@@ -106,28 +107,67 @@ export interface ConversationMessages {
     plot: string;
     redactionFailedTip: string;
     redactedTip: string;
-    redacted: (count: number, modelName: string) => string;
-    breakdownSuffix: (breakdown: string) => string;
-    /** Per-category words of that breakdown, [singular, plural]. Keyed by redaction kind;
-     *  `other` catches a kind nothing maps, so the detail always sums to the total. */
-    breakdownLabels: Record<string, [string, string]>;
-    toolFlowFailed: string;
+    /** « N protégés » — the ONE short mention under a sent message; « voir » opens the
+     *  transparency comparison. The per-category detail lives there, never here. */
+    protectedCount: (count: number) => string;
+    protectedSee: string;
     autoRoutedTip: string;
     quotaTip: string;
     reasoning: string;
   };
 
-  /** The card shown when hovering a redaction mark. */
+  /** The tool-call trace card: one row per call, its status words. */
+  trace: {
+    connector: string;
+    calling: string;
+    running: string;
+    actionsRunning: (count: number) => string;
+    actionsDone: (count: number) => string;
+    retrying: (attempt: number) => string;
+    attempts: (count: number) => string;
+    failed: string;
+    failedWith: (note: string) => string;
+    declined: string;
+  };
+
+  /** The loader's accessible name — announced, never painted. */
+  thinking: { writing: string; reflecting: string; preparing: string };
+
+  /** The per-conversation token total (counts arrive already formatted). */
+  tokens: { tip: (total: string, input: string, output: string) => string; line: (input: string, output: string) => string };
+
+  /**
+   * THE lexicon of « letting the model see » — ONE block, for every surface that offers
+   * it (the composer chips and word popover, the hover card on a mark, the document
+   * preview, the pre-search card). Five verbs used to coexist (« Garder en clair »,
+   * « Démasquer », « Supprimer le masquage », « Passer en Standard »…) for two gestures:
+   *
+   *  - `leaveClear` — REVERSIBLE: the value goes out as-is, the mask comes back on a click;
+   *  - `remove` — DEFINITIVE: the redaction is deleted, the value stays visible for good.
+   *
+   * ⚠️ Every verb is a FUNCTION of its scope and renders it as a suffix (« · cet envoi »,
+   * « · cette conversation », « · ce message »): a gesture whose reach one has to guess is
+   * a gesture one believes shorter than it is (rule 8). The three scopes are the keys
+   * `scopeSend` / `scopeConversation` / `scopeMessage`; a surface passes the one it holds.
+   */
   mark: {
     realValue: string;
     seenByModel: string;
+    /** Tooltips on the displayed value, per surface. */
+    seenByModelTip: string;
+    realValueTip: string;
     orgForced: string;
-    reveal: string;
-    reRedact: string;
-    revealKind: string;
-    reRedactKind: string;
-    deleteTip: string;
-    delete: string;
+    scopeSend: string;
+    scopeConversation: string;
+    scopeMessage: string;
+    leaveClear: (scope: string) => string;
+    leaveClearKind: (scope: string) => string;
+    leaveClearTip: string;
+    reMask: (scope: string) => string;
+    reMaskKind: (scope: string) => string;
+    reMaskTip: string;
+    remove: (scope: string) => string;
+    removeTip: string;
     reportTip: string;
     report: string;
     sheetLabel: string;
@@ -135,6 +175,8 @@ export interface ConversationMessages {
 
   /** When a tool went wrong — said with the gesture that repairs it. */
   struggle: {
+    /** The caption's tooltip — carries the tool's technical name, for support. */
+    failedTip: (tool?: string) => string;
     unknownTool: (connector: string, action: string) => string;
     ownKeysHint: string;
     ownKeysHintWithPath: string;

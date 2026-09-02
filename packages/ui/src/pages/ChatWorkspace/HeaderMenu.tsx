@@ -1,7 +1,6 @@
 import { ShieldIcon, ActivityIcon, EyeIcon, TrashIcon } from "../../components/brand";
 import type { Settings } from "../../types";
 import { useT } from "../../i18n";
-import { privacyLevelLabel } from "../../privacy/privacyLevel";
 import type { RedactLevelApi } from "./ComposerRedactMenu";
 
 /**
@@ -19,8 +18,9 @@ export function HeaderMenu({
   onAskDelete,
 }: {
   protectedCount: number;
-  /** The level in force here — the entry names it, and tags a thread that deviates
-   *  from the default. Absent (no settings) ⇒ the count alone. */
+  /** The level in force here — only its `overridden` flag is read, to tag a thread
+   *  that DEVIATES from the default. The level itself is chosen (and named) by the
+   *  composer's button, the one place for it; this entry leads to the categories. */
   redactLevel?: RedactLevelApi;
   settings?: Settings;
   onOpenRules: () => void;
@@ -35,16 +35,14 @@ export function HeaderMenu({
     <div className="header-menu">
       {/* The kit moved the toolbar's standalone shield pill in here: the count is a
           STATUS, not an action you reach for, and the toolbar reads cleaner without
-          it. Same target as the old pill — the per-conversation redaction rules, which
-          now lead with the SAME three levels as Réglages → Confidentialité. The LEVEL
-          is named too: a count of values says nothing about how this thread masks, and
-          « modifié » is the only place outside the modal that says it deviates. */}
+          it. Same target as the old pill — THIS conversation's fine categories. The
+          level is NOT named here: three doors chose it (this menu, the modal's picker,
+          the composer button) and the composer button is now the only one — this
+          entry says what its modal holds, and « modifié » stays the one place outside
+          it that says the thread deviates from the default. */}
       <button className="header-menu-item" onClick={onOpenRules}>
         <ShieldIcon size={15} />
-        {t.chat.redactionSummary(
-          protectedCount,
-          redactLevel && privacyLevelLabel(t, redactLevel.level),
-        )}
+        {t.chat.redactionSummary(protectedCount)}
         {redactLevel?.overridden && (
           <span className="rrm-tag ml-auto">{t.redactionCatalog.modified}</span>
         )}

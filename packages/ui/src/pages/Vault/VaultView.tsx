@@ -4,27 +4,30 @@ import { hueForKind } from "@openmasq/redact";
 import { EmptyState, PlusIcon, SearchIcon, ShieldIcon } from "../../components/brand";
 import { REDACT_TYPES } from "@openmasq/redact";
 import type { VaultTerm, Conversation } from "../../types";
-import { vaultTermOccurrences, vaultTermTypeLabel, type VaultTermOccurrences } from "../../send/vaultTerms";
+import { vaultTermOccurrences, type VaultTermOccurrences } from "../../send/vaultTerms";
 import { PageHeader } from "../../containers/shell/PageHeader";
 import { VaultUsesModal } from "./VaultUsesModal";
 import { VaultAddModal } from "./parts/VaultAddModal";
 import { VaultFilters } from "./parts/VaultFilters";
 import { VaultRow } from "./parts/VaultRow";
+import { vaultTokenLabel } from "./vaultTypes";
 
 import { useT } from "../../i18n";
 /**
  * The COFFRE page ("Coffre") — the user's dictionary of values ALWAYS redacted,
  * before every send, in every conversation, whatever the model. Reskin of the
- * design's VaultPage: a toolbar (type-filter chips + search + « Ajouter un
- * terme »), and the term list — values masked behind their reveal pill — with a
- * real occurrence count (computed from the persisted vaults) that opens the
- * uses modal. Adding goes through the dedicated `VaultAddModal`. Pure logic
- * lives in `send/coffre.ts`; this composes the parts.
+ * design's VaultPage: « Ajouter un terme » in the page header (where the four pages
+ * keep their « Créer »), a toolbar (category chips + search), and the term list —
+ * values masked behind their reveal pill — with a real occurrence count (computed
+ * from the persisted vaults) that opens the uses modal. Adding AND editing go
+ * through the same `VaultAddModal`. Pure logic lives in `send/vaultTerms.ts` and
+ * `vaultTypes.ts`; this composes the parts.
  */
 export function VaultView({
   coffre: vaultTerms,
   conversations,
   onAdd,
+  onUpdate,
   onRemove,
   org,
   onShareTerm,
@@ -35,6 +38,8 @@ export function VaultView({
   coffre: VaultTerm[];
   conversations: Conversation[];
   onAdd: (value: string, token: string, note?: string) => void;
+  /** Rename a term / change its category — absent ⇒ rows offer no edit. */
+  onUpdate?: (id: string, patch: Partial<Omit<VaultTerm, "id">>) => void;
   onRemove: (id: string) => void;
   /** The ORGANIZATION's shared terms — absent outside an org. ONE list, badged
    *  by scope (design): mirror terms fold into the main list; a personal term
@@ -62,6 +67,7 @@ export function VaultView({
   const [filter, setFilter] = useState<string>("all"); // "all" | a token
   const [open, setOpen] = useState<VaultTerm | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<VaultTerm | null>(null);
 
   // ONE list, badged (design): personal terms first — wearing the scope of a
   // share of yours when one carries the same id — then the terms shared WITH
@@ -99,31 +105,35 @@ export function VaultView({
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return display.filter(
-      ({ term: t }) =>
-        (filter === "all" || t.token === filter) &&
+      ({ term }) =>
+        (filter === "all" || term.token === filter) &&
         (!needle ||
-          t.value.toLowerCase().includes(needle) ||
-          vaultTermTypeLabel(t.token).toLowerCase().includes(needle)),
+          term.value.toLowerCase().includes(needle) ||
+          vaultTokenLabel(term.token, t).toLowerCase().includes(needle)),
     );
-  }, [display, filter, query]);
+  }, [display, filter, query, t]);
 
   // Filter chips: "Tous" + one per token present, in the REDACT_TYPES order,
   // each wearing its type's highlight hue.
   const chips = useMemo(
     () => [
       { id: "all", label: t.lists.allMasculine },
-      ...REDACT_TYPES.filter((t) => counts[t.token]).map((t) => ({
-        id: t.token,
-        label: t.label,
-        tone: hueForKind(t.token),
+      ...REDACT_TYPES.filter((x) => counts[x.token]).map((x) => ({
+        id: x.token,
+        label: vaultTokenLabel(x.token, t),
+        tone: hueForKind(x.token),
       })),
     ],
-    [counts],
+    [counts, t],
   );
 
   const add = (value: string, token: string, note?: string) => {
     onAdd(value, token, note);
     setAddOpen(false);
+  };
+  const saveEdit = (value: string, token: string, note?: string) => {
+    if (editing) onUpdate?.(editing.id, { value, token, note });
+    setEditing(null);
   };
 
   return (
@@ -131,6 +141,12 @@ export function VaultView({
       <PageHeader
         section="vault"
         onToggleSidebar={onToggleSidebar}
+        action={
+          <button type="button" className="btn-primary om-skill-new" onClick={() => setAddOpen(true)}>
+            <PlusIcon size={16} />
+            {t.lists.vault.addTerm}
+          </button>
+        }
       />
 
       {/* Same skeleton as the Bibliothèque: a fixed header over a scrollable body
@@ -138,9 +154,8 @@ export function VaultView({
       <div className="library-body">
         <div className="om-vault-inner">
           {/* The toolbar is only useful once there are terms to filter/search. On a
-              first-run EMPTY coffre it's hidden entirely — the empty state below owns the
-              add CTA; on a no-match it stays for the search/chips but drops its own add
-              button (`showAdd`), which the empty state's CTA already covers. */}
+              first-run EMPTY coffre it's hidden entirely — the empty state below owns
+              its own add CTA, the header keeps the page's. */}
           {display.length > 0 && (
             <VaultFilters
               chips={chips}
@@ -149,8 +164,6 @@ export function VaultView({
               onFilter={setFilter}
               query={query}
               onQuery={setQuery}
-              onAdd={() => setAddOpen(true)}
-              showAdd={filtered.length > 0}
             />
           )}
 
@@ -179,7 +192,7 @@ export function VaultView({
                 eyebrow={
                   filter === "all"
                     ? t.lists.vault.noMatch.search
-                    : `${t.lists.vault.noMatch.category} · ${vaultTermTypeLabel(filter)}`
+                    : `${t.lists.vault.noMatch.category} · ${vaultTokenLabel(filter, t)}`
                 }
                 icon={<SearchIcon size={26} />}
                 title={t.lists.vault.noMatch.title}
@@ -198,6 +211,7 @@ export function VaultView({
                   occ={occ.get(t.id) ?? { uses: [], totalCount: 0, convCount: 0 }}
                   scope={scope}
                   onOpenUses={() => setOpen(t)}
+                  onEdit={mine && onUpdate ? () => setEditing(t) : undefined}
                   onRemove={mine ? () => onRemove(t.id) : undefined}
                   onShare={mine && scope === "personal" && onShareTerm ? () => onShareTerm(t) : undefined}
                 />
@@ -221,7 +235,15 @@ export function VaultView({
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {addOpen && <VaultAddModal onClose={() => setAddOpen(false)} onAdd={add} />}
+        {addOpen && <VaultAddModal onClose={() => setAddOpen(false)} onSubmit={add} />}
+        {editing && (
+          <VaultAddModal
+            key={editing.id}
+            initial={editing}
+            onClose={() => setEditing(null)}
+            onSubmit={saveEdit}
+          />
+        )}
       </AnimatePresence>
     </main>
   );

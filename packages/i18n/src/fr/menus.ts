@@ -43,8 +43,6 @@ export const menus = {
     ariaLabel: "Formats de téléchargement",
   },
   markKeep: {
-    keep: "Garder en clair",
-    keepTip: "Ne PAS masquer cet élément pour cet envoi — il partira tel quel au modèle",
     uncertain: (brand) => `Détection à vérifier — ${brand} n'est pas sûr`,
   },
   page: {

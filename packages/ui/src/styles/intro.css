@@ -122,13 +122,11 @@
   position: relative;
   z-index: 1;
 }
-/* Blue + blue-dark themes: the scaffold shimmer is the #3939FA brand blue (single hue at
-   varying opacity — NOT the softer periwinkle) instead of the lime/sky/violet palette, so
-   the splash reads as the blue app rather than flashing green. The rainbow skeleton TILES
-   keep the redaction palette. (Both themes hide the scaffold outright below, so this rule
-   only matters if that ever changes.) */
-[data-theme="blue"] .intro-skel::after,
-[data-theme="blue-dark"] .intro-skel::after {
+/* The scaffold shimmer is the #3939FA brand (single hue at varying opacity — NOT the
+   softer periwinkle) instead of the lime/sky/violet palette. The rainbow skeleton TILES
+   keep the redaction palette. (The scaffold is hidden outright below, so this rule only
+   matters if that ever changes.) */
+.intro-skel::after {
   background: linear-gradient(
     105deg,
     transparent 30%,
@@ -141,16 +139,13 @@
   background-repeat: no-repeat;
 }
 
-/* Blue + blue-dark: no rainbow scaffold — the loader is the ground, the grid ABOVE the
-   mark, and the mark. */
-[data-theme="blue"] .intro-skel,
-[data-theme="blue-dark"] .intro-skel { display: none; }
+/* No rainbow scaffold — the loader is the ground, the grid ABOVE the mark, and the mark. */
+.intro-skel { display: none; }
 
-/* ── Blue / blue-dark splash: a FAINT GRID on which a random right-angled shape forms,
-   its cells filling BLACK to read as redaction — no rainbow scaffold, just the theme
-   ground (white in blue-light), the #3939FA halo, and `--text-strong` ink (black on
-   light, white on dark). CSS-gated so the green light/dark themes keep the coloured
-   scaffold; grid-template comes inline from GRID_COLS/GRID_ROWS. */
+/* ── The splash: a FAINT GRID on which a random right-angled shape forms, its cells
+   filling BLACK to read as redaction — no rainbow scaffold, just the theme ground, the
+   #3939FA halo, and `--text-strong` ink (black on light, white on dark); grid-template
+   comes inline from GRID_COLS/GRID_ROWS. */
 .intro-grid {
   display: none;
   position: absolute;
@@ -164,8 +159,7 @@
   pointer-events: none;
   --grid-line: color-mix(in srgb, var(--text-strong) 12%, transparent);
 }
-[data-theme="blue"] .intro-grid,
-[data-theme="blue-dark"] .intro-grid { display: grid; }
+.intro-grid { display: grid; }
 /* Each cell draws its faint line (inset outline — no doubling between neighbours) and
    FADES IN on a staggered delay, so the grid forms bit by bit as a diagonal sweep. */
 /* The cells the mark occupies: the grid is centred ON the logo, so these draw NOTHING —

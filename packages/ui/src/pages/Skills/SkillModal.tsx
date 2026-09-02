@@ -181,10 +181,11 @@ export function SkillModal({
           )}
 
           <div className="om-split-main">
-          {/* Name + category share a row (kit layout) — which is why the category is a
-              dropdown and not a tag row: tags need their own full-width line. The picker
-              carries each category's tone + glyph, and the head band above still retints
-              the moment you pick, so the choice reads twice. */}
+          {/* CREATION asks two things — a name and the instruction — and nothing else:
+              the category is filed under `EMPTY_DRAFT.cat` (or « Routines » the moment a
+              connector is picked) and only appears when EDITING, beside the name (kit
+              layout: a dropdown, not a tag row, so the two share a line). The head band
+              above retints as you pick, so the choice reads twice. */}
           <div className="om-skill-row">
             <label className="om-skill-field om-skill-col-grow">
               <span className="cv-eyebrow">{t.lists.skills.modal.name}</span>
@@ -196,18 +197,21 @@ export function SkillModal({
                 autoFocus
               />
             </label>
-            <div className="om-skill-field om-skill-col-cat">
-              <span className="cv-eyebrow">{t.lists.skills.modal.category}</span>
-              <HueSelect
-                value={draft.cat}
-                options={catOptions(t)}
-                onChange={(cat) => patch({ cat })}
-                ariaLabel={t.lists.skills.modal.category}
-                neutral
-              />
-            </div>
+            {initial.id && (
+              <div className="om-skill-field om-skill-col-cat">
+                <span className="cv-eyebrow">{t.lists.skills.modal.category}</span>
+                <HueSelect
+                  value={draft.cat}
+                  options={catOptions(t)}
+                  onChange={(cat) => patch({ cat })}
+                  ariaLabel={t.lists.skills.modal.category}
+                  neutral
+                />
+              </div>
+            )}
           </div>
 
+          {/* Optional — the placeholder says so; a card without one shows « — ». */}
           <label className="om-skill-field">
             <span className="cv-eyebrow">{t.lists.skills.modal.description}</span>
             <input

@@ -6,7 +6,7 @@ import type { Messages } from "@openmasq/i18n";
 import type { RedactCategoryKey } from "../types";
 
 /** The level the card offers — its vocabulary lives with the levels, never here
- *  (rule 9: two surfaces rewriting « Standard » end up saying two
+ *  (rule 9: two surfaces rewriting « Allégé » end up saying two
  *  different things). `tradeoff` is exactly the sentence that names what it leaves readable.
  *  A FUNCTION, not a module constant anymore: the vocabulary now follows the language,
  *  so it resolves at render time rather than at module load. */
@@ -78,9 +78,10 @@ export function WebNavRedactOffer({
             {t.webNav.keepMasking}
           </button>
           {/* « Tout l'offert » = the level: the card doesn't compose a subset, it
-              applies the one that « Standard » designates (the store re-filters it). */}
+              applies the one that « Allégé » designates (the store re-filters it). The
+              verb is the shared lexicon's, suffixed with its reach (`conversation.mark`). */}
           <button className="btn-primary btn-inline" onClick={() => onDecide(categories)}>
-            {t.webNav.switchTo(standard.label)} <ArrowRightIcon size={14} />
+            {t.conversation.mark.leaveClear(t.conversation.mark.scopeMessage)} <ArrowRightIcon size={14} />
           </button>
         </>
       }

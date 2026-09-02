@@ -37,26 +37,27 @@ describe("adoptSettings — the theme follows the DEVICE, not the account", () =
   it("KEEPS the device theme when signing OUT, ignoring the stale unscoped blob", () => {
     // The unscoped blob stops being written the moment an account signs in, so it
     // still holds whatever theme predated the account. Adopting it is what stripped
-    // the user's blue mode the instant they logged out.
-    const out = adoptSettings(null, { theme: "light" }, "blue-dark");
-    expect(out.theme).toBe("blue-dark");
+    // the user's dark mode the instant they logged out.
+    const out = adoptSettings(null, { theme: "light" }, "dark");
+    expect(out.theme).toBe("dark");
   });
 
   it("falls back to the blob, then the default, when the device never recorded one", () => {
-    expect(adoptSettings(null, { theme: "blue-dark" }, undefined).theme).toBe("blue-dark");
+    expect(adoptSettings(null, { theme: "dark" }, undefined).theme).toBe("dark");
     expect(adoptSettings(null, {}, undefined).theme).toBe(DEFAULT_SETTINGS.theme);
   });
 
   it("still honours the ACCOUNT's own theme when signing IN", () => {
     // Signing in is adopting someone's stored preferences — that is not the bug.
-    expect(adoptSettings("user-a", { theme: "blue" }, "blue-dark").theme).toBe("blue");
+    expect(adoptSettings("user-a", { theme: "light" }, "dark").theme).toBe("light");
   });
 
-  it("un accent VERT hérité est traduit, pas conservé — l'axe qui reste est le fond", () => {
-    // `normalizeSettings` (→ `blueAccent`) is the only place that decides this; here
-    // we verify that adoption doesn't bypass it, which is why it keeps its value.
-    expect(adoptSettings(null, { theme: "dark" }, undefined).theme).toBe("blue-dark");
-    expect(adoptSettings("user-a", { theme: "light" }, "blue-dark").theme).toBe("blue");
+  it("un nom de thème d'une version antérieure est lu comme le fond qu'il désignait", () => {
+    // `normalizeSettings` (→ `readTheme`) is the only place that decides this; here
+    // we verify that adoption doesn't bypass it.
+    const stale = { theme: "blue-dark" } as unknown as Partial<Settings>;
+    expect(adoptSettings(null, stale, undefined).theme).toBe("dark");
+    expect(adoptSettings("user-a", { theme: "blue" } as unknown as Partial<Settings>, "dark").theme).toBe("light");
   });
 
   it("adopts the account blob over the defaults for everything else", () => {
@@ -69,6 +70,6 @@ describe("adoptSettings — the theme follows the DEVICE, not the account", () =
   it("does not leak the signed-out theme rule into a signed-in adoption with no theme", () => {
     // No theme stored for the account: the device's is the only sensible value, and
     // it is what is already on screen.
-    expect(adoptSettings("user-a", {}, "blue-dark").theme).toBe(DEFAULT_SETTINGS.theme);
+    expect(adoptSettings("user-a", {}, "dark").theme).toBe(DEFAULT_SETTINGS.theme);
   });
 });

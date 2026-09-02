@@ -18,7 +18,7 @@ export const settings = {
       label: "Account",
       title: "Account",
       sub: () => "Your identity on this device, the look of the app, and your data.",
-      kw: "profile name email address theme dark mode api key redaction rules categories default model preferences sign out language langue compte",
+      kw: "profile name email address theme dark mode preferences sign out language langue compte organisation organization team members sso company administration",
     },
     privacy: {
       label: "Privacy",
@@ -34,15 +34,15 @@ export const settings = {
     },
     mcp: {
       label: "Connectors",
-      title: "Connectors & tools",
+      title: "Connectors",
       sub: () => "The connectors available inside your conversations.",
-      kw: "connectors integrations gmail notion stripe github slack tools server oauth connecteurs",
+      kw: "connectors integrations gmail notion stripe github slack tools server oauth connecteurs agent security browser confirmation read-only domains",
     },
     browser: {
       label: "Browser",
       title: "Browser",
-      sub: () => "The built-in browser the model can drive, under your control.",
-      kw: "web search engine duckduckgo google agent navigation security navigateur",
+      sub: () => "The built-in browser's search engine.",
+      kw: "web search engine duckduckgo google qwant ecosia brave startpage navigateur",
     },
     audit: {
       label: "Log",
@@ -61,12 +61,6 @@ export const settings = {
       title: "Sync",
       sub: () => "Your devices and the sync between them.",
       kw: "devices appareils cloud encryption backup sync",
-    },
-    org: {
-      label: "Organisation",
-      title: "Organisation",
-      sub: () => "The organisation this account belongs to.",
-      kw: "team members domain sso company administration organization equipe",
     },
     billing: {
       label: "Billing",
@@ -100,8 +94,8 @@ export const settings = {
       kw: "analytics telemetry consent anonymous",
     },
     transparencyLog: {
-      label: "Transparency · technical log",
-      kw: "transparency debugging debug log wire exact message what the model saw comparison",
+      label: "Detailed technical log",
+      kw: "transparency debugging debug log wire exact message what the model saw comparison advanced options",
     },
     linkPreviews: { label: "Link previews", kw: "link preview thumbnail url ip" },
     protectionLevel: {
@@ -115,6 +109,10 @@ export const settings = {
     modelSeesTokens: {
       label: "The model only ever sees tokens",
       kw: "tokens markers pseudonyms model anonymisation person1 sending",
+    },
+    memoryAuto: {
+      label: "Automatic memory extraction",
+      kw: "memory cards extraction automatic silent remember to review notes",
     },
     localModel: {
       label: "A model on your own computer",
@@ -132,9 +130,17 @@ export const settings = {
       label: "Your ChatGPT subscription",
       kw: "codex cli openai chatgpt subscription no key",
     },
+    antigravitySubscription: {
+      label: "Your Google Antigravity subscription",
+      kw: "antigravity agy cli google gemini subscription no key",
+    },
     writeConfirm: {
       label: "Confirming actions",
-      kw: "confirmation write gate stricter tools",
+      kw: "confirmation write gate stricter tools agent",
+    },
+    browserSecurity: {
+      label: "Agent browser security",
+      kw: "agent browser read-only allowed domains injection security navigateur",
     },
     connectedDevices: {
       label: "Connected devices",
@@ -150,7 +156,6 @@ export const settings = {
     privacy: "Privacy",
     aiTools: "AI & tools",
     devices: "Your devices",
-    org: "Organisation",
     app: "App",
     other: "Other",
   },

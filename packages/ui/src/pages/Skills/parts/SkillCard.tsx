@@ -42,7 +42,7 @@ export function SkillCard({
   const t = useT();
   const cat = skillCategory(skill.cat, t);
   const uses = skill.uses ?? 0;
-  const name = skill.name || "Sans titre";
+  const name = skill.name || t.lists.skills.untitled;
 
   const onCardKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) return; // a nested button owns this key
@@ -117,7 +117,8 @@ export function SkillCard({
             <ArrowRightIcon size={12} /> {t.lists.skills.share}
           </button>
         )}
-        <span className="om-skill-uses">{uses}×</span>
+        {/* Said in words — a bare « ×3 » explained nothing. */}
+        <span className="om-skill-uses">{t.lists.skills.usesCount(uses)}</span>
       </div>
     </div>
   );

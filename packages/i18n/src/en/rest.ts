@@ -6,8 +6,11 @@ import type { Messages } from "../messages";
 
 export const login = {
   heading: "Good to see you again.",
+  headingFirst: (brand) => `Sign in to ${brand}`,
   subheading:
     "Enter your email: we send you a sign-in link, with no password.",
+  inviteOnly:
+    "Access by invitation: your address must have been opened on our side before the first sign-in.",
   checkYourEmail: "Check your email",
   passwordlessStrip: "NO PASSWORD · A LINK SENT BY EMAIL",
   offline:
@@ -104,8 +107,8 @@ export const modelPicker = {
   sectionDefault: "Default",
   sectionFavorites: "Favourites",
   sectionCurrent: "Current model",
-  freeTip: "Free model — included with your account, limited usage. Click to find out more.",
-  howToUse: "How do I use this model?",
+  freeTip: "Free model — included with your account, limited usage.",
+  moreActions: "More actions",
   isDefault: "Default model for new conversations",
   setDefault: "Set as the default model",
   addFavorite: "Add to favourites",
@@ -177,6 +180,8 @@ export const modelPicker = {
 export const leaves = {
   analytics: {
     privacyTitle: "Privacy & GDPR",
+    body: (brand) =>
+      `Redaction runs locally, before anything is sent. ${brand} also measures app usage with anonymous statistics — never your messages, your files or your sensitive data. They are optional.`,
     local: "locally",
     alwaysOn: "Session & security — always on",
     usageStats: "Usage statistics",

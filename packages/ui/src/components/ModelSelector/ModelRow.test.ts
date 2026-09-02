@@ -12,10 +12,11 @@ const act: (cb: () => Promise<void> | void) => Promise<void> = (
 ).act;
 
 /**
- * The unavailable chip is the FIRST place a user meets the paid-model question, and it
- * used to be a dead end: the one sentence naming the two escapes (abonnement / votre clé)
- * lived in a `title=` tooltip — hover-only, and unreadable on a touch screen. These pin
- * that it now ANSWERS itself, and reports which route the user bumped into.
+ * A gated row is the FIRST place a user meets the paid-model question, and it used to be
+ * a dead end: the one sentence naming the two escapes (abonnement / votre clé) lived in a
+ * `title=` tooltip — hover-only, and unreadable on a touch screen. These pin that the
+ * row's BODY now answers it (the chip and the badge are no longer targets of their own),
+ * and reports which route the user bumped into.
  */
 const MODEL = { id: "gpt-5.5", provider: "openai", label: "GPT-5.5" } as ModelInfo;
 
@@ -27,34 +28,37 @@ async function render(node: React.ReactElement) {
   return { el, unmount: async () => { await act(async () => root.unmount()); el.remove(); } };
 }
 
-describe("ModelRow — la pastille d'indisponibilité explique quoi faire", () => {
-  it("« Clé requise » est cliquable et annonce la route CLÉ, avec le fournisseur", async () => {
+const row = (el: HTMLElement) => el.querySelector<HTMLButtonElement>(".model-option")!;
+
+describe("ModelRow — une ligne inaccessible explique quoi faire", () => {
+  it("« Clé requise » : le CORPS annonce la route CLÉ, avec le fournisseur", async () => {
     const calls: Array<[string, string | undefined]> = [];
+    let chosen = 0;
     const { el, unmount } = await render(
       React.createElement(ModelRow, {
         model: MODEL,
         selected: false,
         focused: false,
         reason: "no_key",
-        onChoose: () => {},
+        onChoose: () => { chosen++; },
         onHover: () => {},
         onAccessInfo: (focus, provider) => calls.push([focus, provider]),
       }),
     );
     const chip = el.querySelector<HTMLElement>(".model-unavailable");
     expect(chip, "la pastille doit être rendue").toBeTruthy();
-    expect(chip!.classList.contains("clickable")).toBe(true);
     expect(chip!.textContent).toContain("Clé requise");
-    // It says you can act — a mute chip teaches nothing.
-    expect(chip!.textContent).toMatch(/comment faire/i);
-    await act(async () => chip!.click());
+    // The chip is a LABEL now — no role, no second target inside the row.
+    expect(chip!.getAttribute("role")).toBeNull();
+    await act(async () => row(el).click());
     expect(calls).toEqual([["key", "OpenAI"]]);
+    expect(chosen, "le corps explique, il ne sélectionne pas un modèle qui ne peut pas envoyer").toBe(0);
     await unmount();
   });
 
   afterEach(() => configurePlatformAccess({ served: true }));
 
-  it("par défaut (rien à vendre), la pastille dit « Indisponible » et ouvre la même explication", async () => {
+  it("par défaut (rien à vendre), la pastille dit « Indisponible » et le corps ouvre la même explication", async () => {
     const calls: string[] = [];
     const { el, unmount } = await render(
       React.createElement(ModelRow, {
@@ -70,7 +74,7 @@ describe("ModelRow — la pastille d'indisponibilité explique quoi faire", () =
     const chip = el.querySelector<HTMLElement>(".model-unavailable")!;
     expect(chip.textContent).toContain("Indisponible");
     expect(chip.textContent).not.toContain("Abonnement");
-    await act(async () => chip.click());
+    await act(async () => row(el).click());
     expect(calls).toEqual(["credits"]);
     await unmount();
   });
@@ -89,51 +93,34 @@ describe("ModelRow — la pastille d'indisponibilité explique quoi faire", () =
         onAccessInfo: (focus) => calls.push(focus),
       }),
     );
-    const chip = el.querySelector<HTMLElement>(".model-unavailable")!;
-    expect(chip.textContent).toContain("Abonnement requis");
-    await act(async () => chip.click());
+    expect(el.querySelector<HTMLElement>(".model-unavailable")!.textContent).toContain("Abonnement requis");
+    await act(async () => row(el).click());
     expect(calls).toEqual(["credits"]);
     await unmount();
   });
 
-  it("cliquer la pastille NE choisit PAS le modèle (le clic ne remonte pas à la ligne)", async () => {
-    let chosen = 0;
+  it("sans explicateur câblé, le corps CHOISIT le modèle — jamais un clic mort", async () => {
+    const chosen: string[] = [];
     const { el, unmount } = await render(
       React.createElement(ModelRow, {
         model: MODEL,
         selected: false,
         focused: false,
         reason: "no_key",
-        onChoose: () => { chosen++; },
-        onHover: () => {},
-        onAccessInfo: () => {},
-      }),
-    );
-    await act(async () => el.querySelector<HTMLElement>(".model-unavailable")!.click());
-    expect(chosen, "la pastille explique, elle ne sélectionne pas").toBe(0);
-    await unmount();
-  });
-
-  it("sans explicateur câblé, la pastille reste un simple libellé (jamais un bouton mort)", async () => {
-    const { el, unmount } = await render(
-      React.createElement(ModelRow, {
-        model: MODEL,
-        selected: false,
-        focused: false,
-        reason: "no_key",
-        onChoose: () => {},
+        onChoose: (id) => chosen.push(id),
         onHover: () => {},
       }),
     );
-    const chip = el.querySelector<HTMLElement>(".model-unavailable")!;
-    expect(chip.classList.contains("clickable")).toBe(false);
-    expect(chip.getAttribute("role")).toBeNull();
+    await act(async () => row(el).click());
+    expect(chosen).toEqual(["gpt-5.5"]);
     await unmount();
   });
 });
 
-describe("ModelRow — le marqueur MODÈLE PAR DÉFAUT", () => {
-  it("sur une ligne ordinaire : cliquer la maison DÉFINIT le défaut, sans choisir le modèle", async () => {
+describe("ModelRow — le MODÈLE PAR DÉFAUT se définit depuis le menu contextuel", () => {
+  const menuItem = () => document.body.querySelector<HTMLButtonElement>(".model-row-pop .model-row-act");
+
+  it("le « ⋯ » ouvre le menu ; son item DÉFINIT le défaut, sans choisir le modèle", async () => {
     let chosen = 0;
     const set: string[] = [];
     const { el, unmount } = await render(
@@ -148,16 +135,50 @@ describe("ModelRow — le marqueur MODÈLE PAR DÉFAUT", () => {
         onSetDefault: (id) => set.push(id),
       }),
     );
-    const home = el.querySelector<HTMLElement>(".model-default")!;
-    expect(home, "la maison doit être rendue").toBeTruthy();
-    expect(home.classList.contains("on")).toBe(false);
-    await act(async () => home.click());
+    // No house on an ordinary row any more: the row is body + star (+ the hover ⋯).
+    expect(el.querySelector(".model-default")).toBeNull();
+    const more = el.querySelector<HTMLElement>(".model-more");
+    expect(more, "le ⋯ doit être rendu").toBeTruthy();
+    expect(menuItem()).toBeNull();
+    await act(async () => more!.click());
+    const item = menuItem();
+    expect(item, "le menu doit s'ouvrir dans le body").toBeTruthy();
+    expect(item!.textContent).toContain("Définir comme modèle par défaut");
+    await act(async () => item!.click());
     expect(set).toEqual(["gpt-5.5"]);
     expect(chosen, "définir le défaut ne sélectionne pas le modèle").toBe(0);
+    expect(menuItem(), "le menu se referme sur son geste").toBeNull();
     await unmount();
   });
 
-  it("sur le défaut ACTUEL : marqueur plein et inerte (informatif, pas une action)", async () => {
+  it("un clic droit sur la ligne ouvre le même menu", async () => {
+    const set: string[] = [];
+    const { el, unmount } = await render(
+      React.createElement(ModelRow, {
+        model: MODEL,
+        selected: false,
+        focused: false,
+        reason: undefined,
+        onChoose: () => {},
+        onHover: () => {},
+        compact: true,
+        isDefault: false,
+        onSetDefault: (id) => set.push(id),
+      }),
+    );
+    // Simplified view: body + star only — no ⋯ drawn — yet the right-click still serves.
+    expect(el.querySelector(".model-more")).toBeNull();
+    await act(async () => {
+      row(el).dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: 40, clientY: 40 }));
+    });
+    const item = menuItem();
+    expect(item).toBeTruthy();
+    await act(async () => item!.click());
+    expect(set).toEqual(["gpt-5.5"]);
+    await unmount();
+  });
+
+  it("sur le défaut ACTUEL : la maison pleine reste (information), l'item du menu est inerte", async () => {
     const set: string[] = [];
     const { el, unmount } = await render(
       React.createElement(ModelRow, {
@@ -171,15 +192,16 @@ describe("ModelRow — le marqueur MODÈLE PAR DÉFAUT", () => {
         onSetDefault: (id) => set.push(id),
       }),
     );
-    const home = el.querySelector<HTMLElement>(".model-default")!;
-    expect(home.classList.contains("on")).toBe(true);
-    expect(home.getAttribute("aria-disabled")).toBe("true");
-    await act(async () => home.click());
+    expect(el.querySelector(".model-default.on")).toBeTruthy();
+    await act(async () => el.querySelector<HTMLElement>(".model-more")!.click());
+    const item = menuItem()!;
+    expect(item.disabled).toBe(true);
+    await act(async () => item.click());
     expect(set, "cliquer le défaut ne redéfinit rien").toEqual([]);
     await unmount();
   });
 
-  it("sans `onSetDefault`, aucun marqueur maison (surfaces sans réglage)", async () => {
+  it("sans `onSetDefault`, ni maison, ni ⋯, ni menu (surfaces sans réglage)", async () => {
     const { el, unmount } = await render(
       React.createElement(ModelRow, {
         model: MODEL,
@@ -191,6 +213,11 @@ describe("ModelRow — le marqueur MODÈLE PAR DÉFAUT", () => {
       }),
     );
     expect(el.querySelector(".model-default")).toBeNull();
+    expect(el.querySelector(".model-more")).toBeNull();
+    await act(async () => {
+      row(el).dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+    });
+    expect(menuItem()).toBeNull();
     await unmount();
   });
 });

@@ -8,24 +8,26 @@
 import type { Messages } from "../messages";
 
 export const privacyLevels = {
+  // The id stays `standard` (persisted in the settings); only the LABEL says what the
+  // level is — the one below the default.
   standard: {
-    label: "Standard",
-    desc: "Parfait pour l'utilisation agentique du web.",
+    label: "Allégé",
+    desc: "Pour la recherche web et les outils connectés — protège moins que le défaut.",
     short: () =>
-      "Le strict minimum sur vos données personnelles : e-mails, téléphones, cartes bancaires, IBAN, identifiants et clés.",
+      "Le strict minimum : e-mails, téléphones, cartes bancaires, IBAN, identifiants et clés.",
     tradeoff: "Noms, dates, adresses, lieux et entreprises restent lisibles par le modèle.",
   },
   renforce: {
     label: "Renforcé",
-    desc: "Parfait pour l'utilisation agentique hors web.",
+    desc: "Pour la rédaction, les e-mails et les échanges courants — le niveau par défaut.",
     short: () =>
-      "Va plus loin : ajoute les noms de personnes et d'entreprises, les dates de naissance, adresses et lieux que vous citez.",
+      "Ajoute les noms de personnes et d'entreprises, les dates de naissance, adresses et lieux que vous citez.",
     tradeoff:
       "Un âge ou une distance calculés sur une valeur masquée peuvent être décalés — le composeur le signale.",
   },
   strict: {
     label: "Strict",
-    desc: "Parfait pour l'analyse de documents.",
+    desc: "Pour les documents à analyser.",
     short: (brand) => `La totalité de ce que ${brand} sait détecter, sans exception.`,
     tradeoff:
       "Le modèle raisonne sur des valeurs fictives : calculs et réponses sur le monde réel peuvent être faux.",
@@ -54,7 +56,6 @@ export const webNav = {
   eyebrow: "Navigation web",
   thisMessageOnly: "Ce message seulement.",
   keepMasking: "Garder le masquage",
-  switchTo: (level) => `Passer en ${level}`,
-  title: (level) => `Chercher sur le web en protection ${level} ?`,
+  title: (level) => `Chercher sur le web au niveau ${level} ?`,
   rest: "Tout le reste demeure masqué, et votre requête part de toute façon avec la vraie valeur.",
 } satisfies Messages["webNav"];

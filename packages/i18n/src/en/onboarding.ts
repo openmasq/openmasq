@@ -30,12 +30,6 @@ export const onboarding = {
     },
   },
 
-  places: {
-    eyebrow: "YOUR SPACE",
-    title: "Six places, six uses",
-    sub: "The left bar leads everywhere. There is nothing to set up: each place fills as you work.",
-  },
-
   access: {
     eyebrow: "MODEL ACCESS",
     titleServed: "A subscription, or your key",
@@ -59,7 +53,7 @@ export const onboarding = {
     slashHint: {
       lead: "Type ",
       strong: "/",
-      tail: " in the message box for your skills, your workflows and “remember that…”.",
+      tail: " in the message box for your skills, your routines and “remember that…”.",
     },
     helpHint: {
       lead: "Not sure? ",
@@ -72,7 +66,7 @@ export const onboarding = {
   tune: {
     eyebrow: "MASKING",
     title: "Fine-tune",
-    sub: "These settings are already good by default. You will find them any time in Settings → Account.",
+    sub: "These settings are already good by default. You will find them any time in Settings → Privacy.",
   },
 
   keyChoice: {
@@ -90,9 +84,10 @@ export const onboarding = {
     agent: {
       title: "My Claude Code / Codex subscription",
       sub: "Already installed, already paid for: your sends go through the CLI on this machine, no key to paste. Each send draws on your personal subscription.",
-      hint: "Each CLI's plan and quota can be read in Settings → Models.",
+      hint: "Each CLI's subscription and quota can be read in Settings → Models.",
     },
     recommended: "recommended",
+    otherProvider: "Another provider",
     savedKey: (provider) => `${provider} key saved — you're ready.`,
     connect: "Get a key for free",
     connecting: "Authorising in your browser…",
@@ -113,5 +108,7 @@ export const onboarding = {
     placeholderPlain: (provider) => `${provider} key`,
     save: "Save",
     saving: "Saving…",
+    stepDone: (step) => `Step ${step}: done`,
+    stepUndo: (step) => `Step ${step}: to redo`,
   },
 } satisfies Messages["onboarding"];

@@ -3,28 +3,6 @@
    fixed head and footer so the way out is never below the fold. On a narrow viewport the
    menu folds into a horizontal chip row above the content (media query at the bottom). */
 
-.guide-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 22px 26px 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  flex-shrink: 0;
-}
-.guide-head-ic {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
-  background: var(--surface-sunken);
-  color: var(--text-strong);
-  flex-shrink: 0;
-}
-.guide-eyebrow {
-  margin-bottom: 3px;
-}
 /* The call to the extended help center: a `.btn-primary` (so the ink that inverts
    with the brand and the hover sweep come along, rule 12) placed in the header,
    visible from any chapter. `<a>`: so what the button rule assumes has to be straightened
@@ -41,11 +19,6 @@
 .guide-head-cta > * {
   position: relative;
   z-index: 1;
-}
-.guide-title {
-  font-size: var(--text-xl);
-  color: var(--text-strong);
-  line-height: 1.15;
 }
 
 /* ── The two panes ─────────────────────────────────────────────────────────────── */
@@ -222,11 +195,6 @@
   .guide-nav-item {
     white-space: nowrap;
     flex-shrink: 0;
-  }
-  /* The title and the call don't fit side by side: the call wraps onto its own line, full
-     width, rather than squeezing « Prendre en main <marque> » into two syllables. */
-  .guide-head {
-    flex-wrap: wrap;
   }
   .guide-head-cta {
     margin-left: 0;

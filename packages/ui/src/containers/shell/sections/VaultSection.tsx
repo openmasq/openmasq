@@ -29,6 +29,7 @@ export function VaultSection({
         conversations={chat.conversations}
         loaded={chat.loaded}
         onAdd={chat.addVaultTerm}
+        onUpdate={chat.updateVaultTerm}
         onRemove={chat.removeVaultTerm}
         org={chat.orgProfile ? { terms: chat.settings.orgCoffre ?? [] } : undefined}
         onShareTerm={host.orgShares ? (t) => setPromo(t) : undefined}

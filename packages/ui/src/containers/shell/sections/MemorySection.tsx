@@ -16,8 +16,6 @@ export function MemorySection({
       conversations={chat.conversations}
       loaded={chat.loaded}
       requestedId={deep.openMemCard}
-      memoryAuto={chat.settings.memoryAuto === true}
-      onToggleAuto={(on) => chat.setSettings((s) => ({ ...s, memoryAuto: on }))}
       onSetProfile={chat.setMemoryProfile}
       onAdd={chat.addMemoryCard}
       onUpdate={chat.updateMemoryCard}

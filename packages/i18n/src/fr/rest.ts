@@ -6,8 +6,11 @@ import type { Messages } from "../messages";
 
 export const login = {
   heading: "Content de vous revoir.",
+  headingFirst: (brand) => `Connexion à ${brand}`,
   subheading:
     "Entrez votre e-mail : nous vous envoyons un lien de connexion, sans mot de passe.",
+  inviteOnly:
+    "Accès sur invitation : votre adresse doit avoir été ouverte de notre côté avant la première connexion.",
   checkYourEmail: "Consultez vos e-mails",
   passwordlessStrip: "SANS MOT DE PASSE · LIEN ENVOYÉ PAR E-MAIL",
   offline:
@@ -104,9 +107,8 @@ export const modelPicker = {
   sectionDefault: "Par défaut",
   sectionFavorites: "Favoris",
   sectionCurrent: "Modèle en cours",
-  freeTip:
-    "Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus.",
-  howToUse: "Comment utiliser ce modèle ?",
+  freeTip: "Modèle gratuit — inclus avec votre compte, usage limité.",
+  moreActions: "Plus d'actions",
   isDefault: "Modèle par défaut des nouvelles conversations",
   setDefault: "Définir comme modèle par défaut",
   addFavorite: "Ajouter aux favoris",
@@ -178,6 +180,8 @@ export const modelPicker = {
 export const leaves = {
   analytics: {
     privacyTitle: "Confidentialité & RGPD",
+    body: (brand) =>
+      `Le masquage s'exécute en local, avant tout envoi. ${brand} mesure aussi l'usage de l'app avec des statistiques anonymes — jamais vos messages, vos fichiers ni vos données sensibles. Elles sont facultatives.`,
     local: "en local",
     alwaysOn: "Session & sécurité — toujours actifs",
     usageStats: "Statistiques d'usage",

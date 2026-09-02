@@ -1,0 +1,161 @@
+/* ═══ ModalShell — THE shared modal chrome ═══
+   The scrim, the panel, the one-shot sweep, the marker title (`ModalTitle`) and the
+   house head (`title` / `eyebrow` / `icon` / `headEnd` props of
+   `containers/modals/ModalShell.tsx`).
+
+   ⚠️ `.modal-scrim` is LOAD-BEARING, not cosmetic: `hooks/modalGate.ts` matches it to
+   hide the always-on-top NATIVE agent-browser window, which has no DOM z-order.
+   Never rename it, and give any hand-rolled overlay `role="dialog"` or `aria-modal` so
+   it still trips the gate.
+
+   ⚠️ Its `@import` (via the `modal.css` barrel) must stay reachable from the LEADING
+   @imports of `styles.css`: Lightning CSS silently DROPS an @import placed below the
+   `@theme` block. The only redeclarations of these selectors elsewhere carry a HIGHER
+   specificity (`.app-mobile .modal-scrim`, `[data-theme] .modal-title > span`,
+   `.om-vault-uses-head .modal-title`), so the barrel's position in the cascade is inert. */
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  /* ⚠️ Frameless-window trap: Electron computes the drag region GEOMETRICALLY, from the
+     elements that declare `drag` — painting something over one does NOT punch a hole in
+     it. A modal scrims the whole window, `.page-header` (and the chat's `.chat-drag`)
+     are draggable, so without this the modal's own top ~44px stayed a drag handle: the
+     close button MOVED THE WINDOW instead of closing (a tall viewer's header lands right
+     in that strip, which is why the Bibliothèque felt impossible to exit). `app-region`
+     is inherited, so declaring it here covers every panel and control inside. */
+  -webkit-app-region: no-drag;
+  /* The kit's scrim: an ink radial rather than a flat wash, so the panel reads
+     as lit from above. */
+  background: radial-gradient(120% 90% at 50% 0%, rgba(11, 21, 5, 0.34), rgba(11, 21, 5, 0.5));
+  backdrop-filter: blur(2.5px);
+  -webkit-backdrop-filter: blur(2.5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.modal-scrim.top {
+  align-items: flex-start;
+}
+.modal-panel {
+  --modal-shadow: 0 44px 100px -34px rgba(11, 21, 5, 0.55);
+  position: relative;
+  max-width: 92vw;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--modal-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.modal-panel.top {
+  margin-top: min(12vh, 110px);
+}
+/* The panel itself takes focus on open (`tabIndex={-1}`, `useDialogFocus`) so a reader
+   announces the dialog; a focus ring around a whole card would read as a selection,
+   so the global `:focus-visible` treatment is undone here — the controls inside keep it. */
+.modal-panel:focus-visible {
+  outline: none;
+  box-shadow: var(--modal-shadow);
+  border-radius: var(--radius-xl);
+}
+.modal-inline-panel:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* One-shot brand sweep on open — the "unmask" reveal, and the ONLY brand flourish a
+   panel wears. Purely decorative, so it is aria-hidden and pointer-events:none. */
+.modal-sweep {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 50%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, color-mix(in oklch, var(--brand) 20%, transparent), transparent);
+}
+
+/* ── The house head ───────────────────────────────────────────────────────────────
+   `[icon] eyebrow / title … headEnd`, a hairline under it. What `GuideModal` and
+   `ConfirmDialog` used to hand-roll each; the `.rrm-head` / `.rlog-head` /
+   `.om-*-head` families are the ones still to fold in here. */
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 26px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.modal-head-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.modal-eyebrow {
+  margin-bottom: 3px;
+}
+.modal-head-ic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  flex-shrink: 0;
+}
+/* A destructive confirmation: the glyph's square goes red, the title stays the house one. */
+.modal-head-ic.danger {
+  background: var(--red-soft);
+  color: var(--red-500);
+}
+@media (max-width: 640px) {
+  /* The title and a trailing call don't fit side by side: the call wraps onto its own
+     line (`.guide-head-cta` then takes the full width). */
+  .modal-head {
+    flex-wrap: wrap;
+  }
+}
+
+/* The signature marker highlight on a modal title. `box-decoration-break: clone`
+   keeps the marker painted on EVERY line of a wrapped title instead of one long
+   smear across the line break. */
+.modal-title {
+  margin: 0;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+.modal-title.no-marker > span {
+  /* No highlighter: the ink matches the title's, and the span loses its box —
+     otherwise the padding would offset the title relative to other modal heads. */
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+.modal-title > span {
+  background: var(--hl-lime);
+  /* `--hl-lime` is a FIXED bright hue in BOTH themes, so the ink must be the
+     theme-stable dark forest ink — NOT `--text-strong`, which flips near-white in
+     dark mode and turns the marker title illegible on the lime. Same rule as the
+     redaction marks (`--ink-on-hl`). */
+  color: var(--ink-on-hl);
+  padding: 0 8px;
+  border-radius: 5px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-sweep {
+    display: none;
+  }
+}

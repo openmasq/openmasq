@@ -1,9 +1,18 @@
-/* The MODAL family, in three parts (rule 2: past 300 lines, a folder + a
-   barrel that @imports its parts — the model is `styles/skills/`). Pulled out of `styles.css`,
+/* The MODAL family — ONE home (rule 9), a barrel that @imports its parts (rule 2: past
+   300 lines, a folder — the model is `styles/skills/`). Pulled out of `styles.css`,
    which wasn't shrinking anymore (rule 1).
+     chrome.css        ModalShell: scrim, panel, sweep, house head, ModalTitle marker
+     shell.css         the classic `.modal-*` frame + the confirm footer + the `.btn-*` family
+     forms.css         form fields + step lists
+     sync.css          « Appareils connectés »
+     palette.css       the ⌘K palette's settings/file rows
+     importSkills.css  « Importer mes compétences Claude »
 
    ⚠️ This barrel must stay among the LEADING @imports of `styles.css` — Lightning CSS
    silently drops an @import placed below the `@theme` block. */
+@import "./modal/chrome.css";
 @import "./modal/shell.css";
 @import "./modal/forms.css";
 @import "./modal/sync.css";
+@import "./modal/palette.css";
+@import "./modal/importSkills.css";

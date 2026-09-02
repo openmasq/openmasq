@@ -39,7 +39,7 @@ export function SkillRow({
 }) {
   const t = useT();
   const cat = skillCategory(skill.cat, t);
-  const name = skill.name || "Sans titre";
+  const name = skill.name || t.lists.skills.untitled;
   const stop = (e: MouseEvent, run: () => void) => {
     e.stopPropagation();
     run();

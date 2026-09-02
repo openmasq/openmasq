@@ -45,7 +45,9 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     );
 
     // We explicitly pick Anthropic: the default value is OpenRouter, so wiring
-    // that ignored the selection would go unnoticed without this click.
+    // that ignored the selection would go unnoticed without this click. The other
+    // providers sit behind « Autre fournisseur » — unfold first.
+    await m.click(".ob-access-others");
     const anthropic = m
       .findAll(".ob-access-provider")
       .find((b) => b.textContent?.includes(PROVIDERS.anthropic.label))!;
@@ -131,6 +133,13 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     expect(m.find<HTMLAnchorElement>(".byo-link").href).toBe(
       providerKeyHelp("openrouter", getMessages("fr"))!.keyUrl,
     );
+
+    // OpenRouter is the ONE chip drawn at first — the recommendation, not one option out
+    // of six; the five others unfold behind « Autre fournisseur ».
+    expect(m.findAll(".ob-access-provider")).toHaveLength(1);
+    await m.click(".ob-access-others");
+    expect(m.findAll(".ob-access-provider").length).toBeGreaterThan(1);
+    expect(m.maybe(".ob-access-others")).toBeNull();
 
     // Changing provider changes the guide AND starts over from a blank list: a tick
     // inherited from the previous provider is a false bookmark.

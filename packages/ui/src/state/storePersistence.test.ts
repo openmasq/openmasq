@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { DEFAULT_SETTINGS, clearStuckPending, normalizeSettings, stripUserContentForLocal } from "./storePersistence";
-import { blueAccent } from "./settings/theme";
+import { readTheme } from "./settings/theme";
 import type { Settings } from "../types";
 
 /** A settings blob as an OLDER build would have written it, with the five toggles
@@ -108,24 +108,20 @@ describe("normalizeSettings — legacy toggles are stripped (rule 7: no fail-ope
   });
 });
 
-describe("l'accent vert n'est plus une option", () => {
-  it("traduit un thème persisté vers son jumeau indigo, en gardant le fond choisi", () => {
-    // The BACKGROUND stays the person's choice; only the accent is imposed.
-    expect(normalizeSettings(legacy({ theme: "light" })).theme).toBe("blue");
-    expect(normalizeSettings(legacy({ theme: "dark" })).theme).toBe("blue-dark");
-    expect(normalizeSettings(legacy({ theme: "blue" })).theme).toBe("blue");
-    expect(normalizeSettings(legacy({ theme: "blue-dark" })).theme).toBe("blue-dark");
+describe("le thème n'a plus qu'un axe : le fond", () => {
+  it("lit un nom de thème d'une version antérieure comme le fond qu'il désignait", () => {
+    // `blue` / `blue-dark` were the only two names an earlier version could write.
+    expect(normalizeSettings(legacy({ theme: "light" })).theme).toBe("light");
+    expect(normalizeSettings(legacy({ theme: "dark" })).theme).toBe("dark");
+    expect(normalizeSettings(legacy({ theme: "blue" })).theme).toBe("light");
+    expect(normalizeSettings(legacy({ theme: "blue-dark" })).theme).toBe("dark");
   });
 
-  it("un réglage absent tombe sur l'indigo clair, pas sur le vert", () => {
-    expect(blueAccent(undefined)).toBe("blue");
-  });
-
-  // This is THE trap of removing a toggle: without coercion on load, the
-  // account that had green would keep it forever, with no surface to get out of it.
-  it("le retrait de l'interrupteur ne fige personne sur l'ancien accent", () => {
-    const vert = legacy({ theme: "dark" });
-    expect(normalizeSettings(vert).theme).not.toBe("dark");
+  it("un réglage absent ou inconnu tombe sur le thème par défaut", () => {
+    expect(readTheme(undefined)).toBeUndefined();
+    expect(normalizeSettings(legacy({ theme: "sepia" })).theme).toBe(
+      DEFAULT_SETTINGS.theme,
+    );
   });
 });
 

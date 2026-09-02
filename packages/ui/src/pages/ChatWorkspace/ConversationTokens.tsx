@@ -2,6 +2,7 @@ import { memo } from "react";
 import { conversationUsage } from "../../state/billing/usage";
 import { useChatSelector, shallowEqual } from "../../containers/providers/chatStore";
 import { formatTokens } from "../../state/billing/usage";
+import { useT } from "../../i18n";
 
 /**
  * Subtle per-conversation token total (in ↑ / out ↓), only when recorded. Reads its usage
@@ -14,15 +15,14 @@ export const ConversationTokens = memo(function ConversationTokens({ convId }: {
     const c = s.conversations.find((cv) => cv.id === convId);
     return c ? conversationUsage(c) : null;
   }, shallowEqual);
+  const t = useT();
   if (!u || u.total === 0) return null;
   return (
     <span
       className="usage-float"
-      title={`${formatTokens(u.total)} tokens (entrée ${formatTokens(
-        u.inputTokens,
-      )} · sortie ${formatTokens(u.outputTokens)})`}
+      title={t.conversation.tokens.tip(formatTokens(u.total), formatTokens(u.inputTokens), formatTokens(u.outputTokens))}
     >
-      ↑ {formatTokens(u.inputTokens)} · ↓ {formatTokens(u.outputTokens)} tokens
+      {t.conversation.tokens.line(formatTokens(u.inputTokens), formatTokens(u.outputTokens))}
     </span>
   );
 });

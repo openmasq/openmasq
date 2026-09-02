@@ -1,13 +1,14 @@
 import { FamilyLogo, SearchIcon, XIcon } from "../../../components/brand";
+import { PriceTierSelect } from "../../../components/ModelSelector/PriceTierSelect";
 import { useT } from "../../../i18n";
-import { PRICE_TIERS, type FamilyOption, type PriceTier } from "../../../prompt/modelFilter";
+import { type FamilyOption, type PriceTier } from "../../../prompt/modelFilter";
 
 /**
  * The default-model picker's toolbar: a free-text search + a row of vendor-family
- * chips (OpenAI, Anthropic, Google, Meta…) + a token-PRICE tier row (Gratuit / Éco /
- * Standard / Premium). Pure — the tab owns `query` / `family` / `price` and passes
- * the family options. It exists so the ~320-model OpenRouter catalogue is navigable
- * instead of a wall of cards.
+ * chips (OpenAI, Anthropic, Google, Meta…) + a token-PRICE tier dropdown (Gratuit / Éco /
+ * Standard / Premium — `PriceTierSelect`, shared with the chat's Finder). Pure — the tab
+ * owns `query` / `family` / `price` and passes the family options. It exists so the
+ * ~320-model OpenRouter catalogue is navigable instead of a wall of cards.
  */
 export function ModelFilterBar({
   query,
@@ -17,6 +18,7 @@ export function ModelFilterBar({
   families,
   price,
   onPrice,
+  showPrice = true,
   matchCount,
 }: {
   query: string;
@@ -29,6 +31,9 @@ export function ModelFilterBar({
   /** Selected price tier, or null for "Tous les prix". */
   price: PriceTier | null;
   onPrice: (tier: PriceTier | null) => void;
+  /** Draw the price dropdown at all — `false` when every listed model sits in ONE tier
+   *  (a menu with a single useful answer is not a filter). */
+  showPrice?: boolean;
   /** How many models the current query + family + price match — shown when filtering. */
   matchCount: number;
 }) {
@@ -83,30 +88,10 @@ export function ModelFilterBar({
           ))}
         </div>
       )}
-      {/* Price-tier row — deliberately a DIFFERENT chip species from the vendor chips
-          above (mono micro-pills behind a « PRIX » eyebrow), so the two filter axes
-          can't be misread as one list. A tier click toggles; « Tous » clears. */}
-      <div className="model-filter-prices" role="group" aria-label={t.modelsTab.priceAria}>
-        <span className="model-filter-prices-label">{t.modelsTab.price}</span>
-        <button
-          type="button"
-          className={`model-price-chip${price === null ? " on" : ""}`}
-          onClick={() => onPrice(null)}
-        >
-          {t.modelsTab.all}
-        </button>
-        {PRICE_TIERS.map((tier) => (
-          <button
-            key={tier.key}
-            type="button"
-            className={`model-price-chip${price === tier.key ? " on" : ""}`}
-            title={t.modelsTab.priceTierTips[tier.key]}
-            onClick={() => onPrice(price === tier.key ? null : tier.key)}
-          >
-            {t.modelsTab.priceTiers[tier.key]}
-          </button>
-        ))}
-      </div>
+      {/* Price tier — a DROPDOWN, deliberately not a second chip row under the vendor
+          chips: two chip rows read as one long tag list, and four tiers are a
+          rarely-touched filter. Absent when the list holds a single tier. */}
+      {showPrice && <PriceTierSelect price={price} onPrice={onPrice} />}
     </div>
   );
 }

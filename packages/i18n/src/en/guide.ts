@@ -37,7 +37,7 @@ export const guide = {
       (brand) =>
         `Some models need your own key: ${brand} tells you at send time, and offers to set it up.`,
       () =>
-        "Type / in the message box to find your skills, your workflows and “remember that…”.",
+        "Type / in the message box to find your skills, your routines and “remember that…”.",
     ],
   },
   models: {
@@ -98,8 +98,8 @@ export const guide = {
         def: () => "An instruction you reuse as-is in your conversations.",
       },
       {
-        term: () => "A workflow",
-        def: () => "An instruction that puts your connected services to work.",
+        term: () => "A routine",
+        def: () => "A skill that puts your connected services to work.",
       },
       {
         term: () => "A connector",

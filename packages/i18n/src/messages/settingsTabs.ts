@@ -14,12 +14,6 @@ export interface AccountTabMessages {
   signedInFallback: string;
   signedInHint: (brand: string) => string;
   signOut: string;
-  viewOrg: string;
-  yourOrg: string;
-  roleOwner: string;
-  roleAdmin: string;
-  roleMember: string;
-  members: (count: number) => string;
   createOrgTip: string;
   createOrg: string;
   createOrgHint: string;
@@ -37,7 +31,9 @@ export interface AccountTabMessages {
   statsEyebrow: string;
   statsTitle: string;
   statsHint: string;
-  devEyebrow: string;
+  /** « Vie privée » — link previews are a privacy decision (one outgoing request per
+   *  link), not a developer toggle. */
+  privacyEyebrow: string;
   linkPreviews: string;
   linkPreviewsHint: string;
   /** The settings rail: back, and the « Avancé » fold. */
@@ -50,15 +46,23 @@ export interface PrivacyTabMessages {
   perCategory: string;
   activeCount: (active: number, total: number) => string;
   managedByOrg: (count: number) => string;
-  transparencyEyebrow: string;
+  /** The « Options avancées » fold: the three display/wire toggles live behind it. */
+  advancedTitle: string;
+  advancedSub: string;
   debugLogTitle: string;
+  /** ONE sentence — the long version belongs to the Guide, not to a switch. */
   debugLogHint: string;
-  displayEyebrow: string;
   tokenDisplayTitle: string;
   tokenDisplayHint: string;
-  wireEyebrow: string;
   wireTokensTitle: string;
   wireTokensHint: string;
+  /** The Mémoire's silent extraction — a setting, so it lives here, not on the page. */
+  memoryEyebrow: string;
+  memoryAutoTitle: string;
+  memoryAutoHint: (brand: string) => string;
+  /** The Journal's diagnostic export of the memory (cards + semantic links). */
+  memoryExportTitle: string;
+  memoryExportHint: string;
   /** The « ce qui a été protégé » report. */
   reportEyebrow: string;
   reportEmpty: (brand: string) => string;
@@ -148,8 +152,9 @@ export interface ModelsTabMessages {
   agentMissing: (agent: string) => string;
   availableEyebrow: (count: number) => string;
   noMatch: (query: string) => string;
-  keyGearTip: (hasKey: boolean, provider: string) => string;
-  gearNote: string;
+  /** The « Avancé » fold at the foot of the tab: the local model and its extra ids. */
+  advancedTitle: string;
+  advancedSub: string;
   /** The provider grid. */
   orgProvidesModels: (org: string) => string;
   yourOrg: string;

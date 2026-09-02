@@ -235,6 +235,12 @@ jobs:
         id: i18n
         continue-on-error: true
         run: pnpm check:i18n
+      # CSS-family ratchet: the number of hand-rolled btn/menu/card/chip classes only goes
+      # down — a control renders through the design system's primitive, not a new family.
+      - name: CSS-family ratchet
+        id: css
+        continue-on-error: true
+        run: pnpm check:css
       # The verdict: a single failure is enough to paint the job red (without blocking
       # the caller). The list says WHICH ONES, to fix without rereading five logs.
       - name: Verdict hygiène
@@ -247,6 +253,7 @@ jobs:
           [ "${{ steps.features.outcome }}" = "failure" ] && failed="$failed check:features"
           [ "${{ steps.knip.outcome }}" = "failure" ] && failed="$failed check:knip"
           [ "${{ steps.i18n.outcome }}" = "failure" ] && failed="$failed check:i18n"
+          [ "${{ steps.css.outcome }}" = "failure" ] && failed="$failed check:css"
           if [ -n "$failed" ]; then
             echo "::warning::Hygiene debt increased (non-blocking):$failed — fix it in the same pass."
             exit 1

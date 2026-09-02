@@ -34,9 +34,9 @@
 @import "./styles/thinking.css";
 @import "./styles/toolTrace.css";
 @import "./styles/messageActions.css";
+@import "./styles/turnStatus.css";
 @import "./styles/intro.css";
 @import "./styles/brandLoader.css";
-@import "./styles/modals.css";
 @import "./styles/emptyState.css";
 @import "./styles/statusChip.css";
 @import "./styles/redactLevel.css";
@@ -46,7 +46,6 @@
 @import "./styles/fileUsage.css";
 @import "./styles/fileStatus.css";
 @import "./styles/auth.css";
-@import "./styles/consent.css";
 @import "./styles/vault.css";
 @import "./styles/orgBlock.css";
 @import "./styles/accountOrg.css";
@@ -504,7 +503,7 @@ button {
   flex: 1;
 }
 .rail-avatar {
-  position: relative; /* anchors the [data-tip] hover label */
+  position: relative;
   width: 40px;
   height: 40px;
   border: none;
@@ -518,40 +517,11 @@ button {
   justify-content: center;
 }
 .rail-new {
-  position: relative; /* anchors the [data-tip] hover label */
+  position: relative;
 }
-
-/* Instant hover tooltip for the collapsed rail. The native `title` only surfaces
-   after a ~1–2s OS delay, leaving these icon-only buttons unlabelled on hover;
-   `data-tip` paints the label immediately to the RIGHT of the icon. `title` is
-   dropped on these buttons so the two don't stack — `aria-label` still names them
-   for assistive tech. */
-.rail [data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  left: calc(100% + 6px);
-  top: 50%;
-  transform: translateY(-50%) translateX(-3px);
-  z-index: 60;
-  padding: 5px 9px;
-  border-radius: var(--radius-sm, 8px);
-  background: var(--surface-inverse);
-  color: var(--text-inverse);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  box-shadow: var(--shadow-md);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
-}
-.rail [data-tip]:hover::after,
-.rail [data-tip]:focus-visible::after {
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
-}
+/* The rail's tooltips are its `title`s, drawn by `brand/TooltipLayer` like every other
+   glyph-only control in the app — it had a private `data-tip` ::after mechanism once,
+   which was the one bubble that ignored the theme's placement and delay. */
 
 /* ============================================ Window drag (frameless) === */
 /* macOS uses titleBarStyle "hiddenInset" (no native title bar), so the window
@@ -863,8 +833,7 @@ button {
   display: flex;
   flex-direction: column;
 }
-[data-theme="dark"] .sidebar,
-[data-theme="blue-dark"] .sidebar {
+[data-theme="dark"] .sidebar {
   background: transparent;
 }
 
@@ -1155,15 +1124,10 @@ button {
   color: var(--text-faint);
   background: var(--surface-sunken);
 }
-/* The count on the SELECTED tab wears the MARK — blue, like its rail.
-   ⚠️ The ink is `--brand-contrast`, NOT `--ink-on-brand`: measured, the latter comes out
-   LIME on both blue themes (it's defined in the green blocks and was never
-   re-pointed there), i.e. lime on indigo. `--brand-contrast` genuinely follows the
-   brand — lime on light green, near-black on dark green, white on the blues —
-   so the fill/ink pair flips TOGETHER across all four (rule 12).
-   It used to wear a FIXED lime, which the theme didn't re-tone: a patch was needed,
-   `[data-theme="blue"…]` with two frozen hexes to catch up the green under the blue accent.
-   Both are gone along with it. */
+/* The count on the SELECTED tab wears the MARK — indigo, like its rail.
+   ⚠️ The ink is `--brand-contrast`, NOT `--ink-on-brand`: the latter is the light lime
+   the marker swipes wear, i.e. lime on indigo here. `--brand-contrast` is white on the
+   brand in BOTH themes, so the fill/ink pair flips TOGETHER (rule 12). */
 .lib-tab.on .lib-tab-count {
   background: var(--brand);
   color: var(--brand-contrast);
@@ -3256,95 +3220,72 @@ body.resizing-split {
   color: var(--text-strong);
 }
 
-/* Shield caption under a redacted user message */
-.shield-caption {
+/* ── THE toast (`components/feedback/Toast.tsx`) — a TRANSIENT notice, one family.
+   Either ANCHORED at a viewport point (`.om-toast-at`: « Noté en mémoire » above the
+   selection — the same pop as `.sel-menu`) or DOCKED above the composer (`.om-toast-dock`,
+   bottom-centre of the content zone). Tone via `.kb--<tone>` (one tone→colour table in
+   the product), which sets `--ac`/`--bg`. A permanent state is a `StatusChip`, a
+   decision a `ModalShell` — never a toast (components/CLAUDE.md). */
+.om-toast {
+  --ac: var(--text-strong);
+  --bg: var(--surface-card);
+  position: fixed;
+  z-index: 60;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
-  max-width: 78%;
-  padding: 6px 12px;
-  border-radius: var(--radius-lg);
-  background: var(--green-soft);
-  color: var(--green-ink);
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 8px 12px;
+  background: var(--bg);
+  color: var(--text-strong);
+  border: 1px solid color-mix(in oklch, var(--ac) 30%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   font-size: var(--text-xs);
   font-weight: var(--weight-medium);
-  line-height: 1.4;
+  line-height: 1.35;
+  -webkit-app-region: no-drag;
 }
-/* Redaction-model failure: free-form PII may be unmasked — warn in amber. */
-.shield-caption.warn {
-  background: var(--amber-soft);
-  color: var(--amber-500);
-  align-items: flex-start;
-}
-/* Clickable part of a caption (deep-link to the Mémoire) — inherits the caption's
-   ink, discloses interactivity on hover only (a caption is not a button row). */
-.shield-caption .caption-link {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.shield-caption .caption-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-/* Inline « Annuler » of a memory note — quiet, bracketed off from the label. */
-.shield-caption .caption-undo {
+.om-toast-ic {
   flex-shrink: 0;
-  margin-left: 2px;
-  padding: 1px 8px;
-  border: 1px solid currentColor;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  opacity: 0.75;
+  display: inline-flex;
+  color: var(--ac);
 }
-.shield-caption .caption-undo:hover {
-  opacity: 1;
+.om-toast-ic svg {
+  width: 14px;
+  height: 14px;
 }
-/* The one-time « activer la mémoire auto ? » proposal, docked above the composer. */
-.memory-propose {
-  margin: 0 0 10px;
+.om-toast-title {
+  font-weight: var(--weight-semibold);
 }
-/* « Noté en mémoire » — transient confirmation where the « Retenir » selection was
-   (composes `.sel-menu` for the fixed above-the-selection anchor + pop). */
-.mem-toast {
-  gap: 6px;
-  align-items: center;
-  padding: 7px 12px;
+.om-toast-act {
+  flex-shrink: 0;
+  margin-left: 4px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--ac);
+  color: #fff;
+  font-family: var(--font-sans);
   font-size: var(--text-xs);
-  font-weight: var(--weight-medium);
-  color: var(--green-ink);
-  background: var(--green-soft);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+.om-toast-at {
+  transform: translate(-50%, calc(-100% - 8px));
+  animation: sel-menu-pop 120ms var(--ease-out, ease);
+}
+.om-toast-dock {
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  animation: om-toast-rise 200ms var(--ease-out, ease);
+}
+@keyframes om-toast-rise {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* Suggested-integration cards: shown under an assistant bubble when the model
-   couldn't act for lack of a not-connected connector. Clicking one deep-links to
-   Réglages → MCP with that connector's modal open.
-
-   TWO per row: the model may suggest up to `MAX_SUGGESTIONS` (4), and stacking four
-   `AgentCard`s pushed the last one a screen below the reply that prompted them.
-   `auto-fit` keeps the pair only while each card still clears ~255px — a narrow pane
-   (the workspace splits) falls back to ONE column rather than two unreadable slivers,
-   and a lone suggestion still spans the full width as it did. The cards get smaller,
-   which the shared shell already absorbs: `.agent-card-footer` deliberately does not
-   wrap (`styles/agent.css`), so the muted note ellipsises and the CTA keeps its row.
-   `align-items: start` so a short card doesn't stretch to its neighbour's height. */
-.integration-suggest {
-  margin-top: 10px;
-  max-width: 88%;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
-  gap: 8px;
-  align-items: start;
-}
 /* Credit-blocked action-card tiles (subscription / own-key) — the SAME .mcp-tile box
    as the integration cards, with static highlight hues (a class, not inline style). */
 .credit-tile-sub {
@@ -3392,11 +3333,6 @@ body.resizing-split {
    Full-bleed across the app width, flush to the edges, square corners, an accent
    top hairline and an upward shadow. Soft-tint semantic skin + solid icon tile.
    Stacks above the composer; entrance rises into place. */
-.kb-stack {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
 .kb {
   --ac: var(--text-strong);
   --bg: var(--surface-card);
@@ -4682,76 +4618,6 @@ body.resizing-split {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-faint);
-}
-/* Send-time document redaction toast: a floating card above the composer with
-   the page counter + a cancel, shown while a PDF's redacted pages are rendered. */
-.docprep {
-  position: fixed;
-  left: 50%;
-  bottom: 104px;
-  transform: translateX(-50%);
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  max-width: min(460px, 90vw);
-  padding: 12px 16px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-raised);
-  box-shadow: var(--shadow-lg);
-}
-.docprep-info {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-.docprep-title {
-  font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  color: var(--text-strong);
-}
-.docprep-note {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.docprep-bar {
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--surface-sunken);
-  overflow: hidden;
-}
-.docprep-bar-fill {
-  height: 100%;
-  width: 0;
-  border-radius: inherit;
-  background: var(--brand);
-  transition: width 0.2s ease;
-}
-.docprep-bar-fill.indet {
-  width: 40%;
-  animation: pdfv-indet 1.1s ease-in-out infinite;
-}
-.docprep-cancel {
-  flex-shrink: 0;
-  padding: 5px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-  background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: var(--text-xs);
-  font-weight: var(--weight-semibold);
-  cursor: pointer;
-}
-.docprep-cancel:hover {
-  color: var(--text-strong);
-  border-color: var(--border-strong);
 }
 /* Redaction-model failure inside the PDF viewer — names/addresses unmasked. */
 .pdfv-warn {
@@ -6601,17 +6467,6 @@ body.resizing-split {
 .confirm-body {
   padding: 24px 24px 18px;
 }
-.confirm-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: var(--red-soft);
-  color: var(--red-500);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
-}
 .confirm-title {
   font-size: var(--text-lg);
   color: var(--text-strong);
@@ -7113,85 +6968,6 @@ body.resizing-split {
   filter: brightness(1.05);
 }
 
-/* SendModeDialog — "texte extrait" vs "document redacted (fichier)" cards. */
-.sendmode-options {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 4px 20px 8px;
-}
-.sendmode-opt {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  text-align: left;
-  padding: 12px 14px;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl, 14px);
-  background: var(--surface-card);
-  cursor: pointer;
-}
-button.sendmode-opt:hover {
-  border-color: var(--brand);
-  background: var(--surface-sunken);
-}
-.sendmode-opt--accent {
-  border-color: var(--brand);
-}
-.sendmode-opt--disabled {
-  cursor: default;
-  opacity: 0.85;
-  background: var(--surface-sunken);
-}
-.sendmode-opt-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-.sendmode-opt-title {
-  font-weight: 700;
-  color: var(--text-strong);
-  font-size: var(--text-sm);
-}
-/* Live payload size badge (tokens for text, Mo/Ko for the image file). */
-.sendmode-opt-size {
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: var(--surface-sunken);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill, 999px);
-  padding: 1px 8px;
-}
-.sendmode-opt-size.over {
-  color: var(--hl-pink, #c0392b);
-  border-color: currentColor;
-}
-.sendmode-opt-desc {
-  color: var(--text-muted);
-  font-size: 12px;
-  line-height: 1.4;
-}
-.sendmode-opt-warn {
-  color: var(--hl-pink, #c0392b);
-  font-weight: 600;
-}
-.sendmode-switch {
-  align-self: flex-start;
-  margin-top: 6px;
-  padding: 6px 11px;
-  border: 1px solid var(--brand);
-  border-radius: var(--radius-pill, 999px);
-  background: var(--brand);
-  color: var(--brand-ink, #18230d);
-  font-weight: 600;
-  font-size: 12px;
-  cursor: pointer;
-}
-
 /* Rail avatar gets a brand ring when the settings section is active. */
 .rail-avatar.active {
   box-shadow: 0 0 0 2px var(--brand);
@@ -7313,13 +7089,6 @@ button.sendmode-opt:hover {
 /* ── Privacy: the level, the empty state, the rules fold ────────────────────────
    Three cards for ONE decision, so the page opens on a choice instead of on a
    seventeen-row matrix. */
-/* Mémoire: the two header actions (debug export + new card). */
-.om-mem-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 /* « Avancé » — the rail's one disclosure. */
 .settings-rail-more { color: var(--text-muted); }
 .settings-rail-more .settings-rail-ico {
@@ -7717,15 +7486,7 @@ button.sendmode-opt:hover {
   border-radius: var(--radius-lg);
   padding: 18px 22px;
   margin-bottom: 16px;
-  color: #eef1f8; /* theme-checked — the band stays DARK in all four themes (see below) */
-}
-/* The band's ink (#eef1f8) and its lime icon are FIXED, so the band itself must stay dark
-   in every theme. In the dark-GREEN theme `--brand`/`--brand-active` ARE the light limes,
-   which turned the near-white headline to 1.14:1 and the icon to 1.00:1 — pin the forest
-   pair (the light theme's own values) so the banner keeps being a dark banner. The blue
-   themes need nothing: their brand is #3939FA, which the ink reads on at 5.9:1. */
-[data-theme="dark"] .audit-hero {
-  background: linear-gradient(135deg, var(--forest-900), var(--forest-700));
+  color: #eef1f8; /* theme-checked — the band is the indigo brand in BOTH themes: 5.9:1 */
 }
 .audit-hero-icon {
   width: 44px;
@@ -8607,31 +8368,23 @@ button.sendmode-opt:hover {
   flex-direction: column;
   gap: 8px;
 }
-/* Scope tabs: "Cette conversation" vs "Par défaut". */
-.rrm-tabs {
-  display: flex;
-  gap: 6px;
-  margin: 0 26px 10px;
-  padding: 4px;
-  background: var(--surface-sunken, var(--warm-50, #f2f1ea));
-  border-radius: var(--radius-md);
-}
-.rrm-tabs button {
-  flex: 1;
-  height: 32px;
+/* The text link to Réglages → Confidentialité (the default level lives THERE — the
+   modal holds one conversation's categories and never mirrors that screen). */
+.rrm-link {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 0;
   border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
+  background: none;
   font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--text-muted);
+  color: var(--brand-ink, var(--text-strong));
+  text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 }
-.rrm-tabs button.on {
-  background: var(--surface-card, #fff);
+.rrm-link:hover {
   color: var(--text-strong);
-  box-shadow: 0 1px 2px rgba(15, 28, 6, 0.12);
 }
 .rrm-group {
   display: flex;
@@ -9654,8 +9407,10 @@ button.sendmode-opt:hover {
   flex: 1;
   min-width: 0;
 }
+/* A card carries logo + name + vendor line + star + check: under ~220px the name
+   ellipses to two letters and the badges bleed out of it. */
 .model-picker-list .model-grid {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
 /* ── Picker toolbar: search + vendor-family chips (tames the ~320 OpenRouter cards) ── */
@@ -11015,10 +10770,12 @@ button.sendmode-opt:hover {
   color: var(--brand-text);
 }
 
-/* ═══════════════════════ SPADE skin — chat-app kit ════════════════════════
-   Plain near-white paper (no grid), forest-green ink, lime accent, heavy Archivo
-   display, squarer radii, corner-bracket data boxes, labeled redaction pills.
-   Overrides the warm-coral base; placed last so it wins.                       */
+/* ═══════════════════════ THE LIGHT THEME — chat-app kit ═══════════════════
+   Near-white paper, dark neutral ink, ONE indigo accent (#3939FA), ink-tinted
+   hairlines, squarer radii, corner-bracket data boxes, labeled redaction pills.
+   The bare `:root` IS the light theme (light = no `data-theme`); `[data-theme="dark"]`
+   at the end of this file re-points the ground + accent for the dark one. Two themes,
+   no more. Overrides the warm-coral base above; placed last so it wins.        */
 :root {
   /* Fonts — Space Grotesk (text + headings) + Space Mono (code), matching the
      chat-app design reference (was Archivo/Plus Jakarta/Geist Mono). */
@@ -11032,7 +10789,7 @@ button.sendmode-opt:hover {
      (`packages/redact/src/highlight/sections.ts`) is the single source, and everything
      downstream — the chat marks, the composer band, the document painters, the rules
      screen, the admin console — derives from it. This block only gives each hue its
-     VALUE, identically in all four themes (no per-theme override below: one palette
+     VALUE, identically in both themes (no per-theme override below: one palette
      means one palette), matching the design source in `.claude/skills/design-system`.
 
      Every fill is a light pastel, which is the accessibility model: one near-black ink
@@ -11060,9 +10817,9 @@ button.sendmode-opt:hover {
   --pearl-emerald-soft: var(--hl-mint-soft); --pearl-azure-soft: var(--hl-sky-soft);
   --pearl-violet-soft: var(--hl-violet-soft); --pearl-magenta-soft: var(--hl-lime-soft);
   /* Ink for text/initials sitting ON a `--pearl-*-soft` fill (the Avatar, `.cv-badge`,
-     `.redaction-pill`). The softs above are the `--hl-*-soft` pastels — light in ALL FOUR
+     `.redaction-pill`). The softs above are the `--hl-*-soft` pastels — light in BOTH
      themes by documented invariant — so these inks stay dark everywhere and need no
-     per-theme override; `styles/textContrast.test.ts` measures every pair in the four
+     per-theme override; `styles/textContrast.test.ts` measures every pair in both
      themes. Coral aliases the badge red it always wore; emerald is deliberately NOT
      `--green-ink` (that one flips light in dark mode WITH `--green-soft`, while the pearl
      soft stays a light mint — the pair must invert TOGETHER, rule 12). */
@@ -11074,7 +10831,7 @@ button.sendmode-opt:hover {
   --pearl-magenta-ink: #a01f6b;
 
   /* Ink for text sitting ON a highlight fill (redaction mark, `.om-mark`, a marker
-     sweep). The palette is the same light pastels in ALL FOUR themes, so their text must
+     sweep). The palette is the same light pastels in BOTH themes, so their text must
      stay the dark forest ink everywhere — it must NOT follow `--text-strong` (which flips
      near-white in dark mode and turns a highlighted label illegible). */
   --ink-on-hl: var(--forest-900);
@@ -11100,7 +10857,8 @@ button.sendmode-opt:hover {
      pins soft-lightness + this pairing). */
   --ink-on-hl-soft: var(--ink-on-hl);
 
-  /* Forest ink + lime accent. */
+  /* The forest ramp: the palette's dark INK (`--ink-on-hl`) and the marker swipes' lime.
+     No longer an accent — `--brand` is the indigo below. */
   --forest-900: #0f1c06; --forest-800: #16250b; --forest-700: #18280c; --forest-600: #283518;
   --forest-500: #3c6b1e; --forest-400: #4c5c3b; --forest-300: #76855f; --forest-200: #b9c2a6; --forest-100: #dcefbe;
   --lime: #c7f08a; --lime-bright: #a9e15a; --lime-soft: #dcefbe;
@@ -11135,8 +10893,7 @@ button.sendmode-opt:hover {
      green-tinted set (#f2f2ec / #f0f1ea / #e8eadf), hue only — which is why the
      change reads as "the grey moved slightly". They tint toward the ink
      (rgba(10,12,30)) rather than toward the green brand, so a sunken panel stays
-     neutral under BOTH the green and the blue skin instead of turning the blue
-     one olive.
+     neutral beside the indigo accent instead of turning it olive.
      ⚠️ `--surface-page` et `--surface-shell` ÉTAIENT restés chauds (#FBFBFA / #F6F6F3,
      des blancs cassés jaune-vert du squelette vert). Ils se voyaient : le rail des
      Réglages porte `--surface-page`, et il tirait au chaud contre tout ce que le thème
@@ -11153,34 +10910,30 @@ button.sendmode-opt:hover {
   --surface-inverse: #0a0c1e;
   --surface-hover: #f1f1f6;
   --surface-active: #e8e8f2;
-  /* NOT re-tinted with the greys: a selected row is a BRAND tint, so it follows the
-     skin (the blue theme re-points it just below) — not the neutral ramp. */
-  --surface-selected: #e7ecda;
+  /* The SELECTED row stays a neutral grey rather than a brand tint — a coloured
+     selection read as too loud on the light base. */
+  --surface-selected: #e9e9ec;
 
-  /* Text.
-     ⚠️ C'était l'encre FORÊT — le vert n'étant plus une option (`state/theme.ts`), le
-     squelette clair le portait encore et le thème indigo ne le repointait pas : tout le
-     texte de l'app avait une dominante verte, ce qui est l'autre moitié du « trop chaud ».
-     Valeurs de la source de design, mesurées AA sur `--surface-card` ET `--surface-sunken`
-     (`styles/textContrast.test.ts` mesure les quatre thèmes). */
+  /* Text. Encre NEUTRE (source de design), mesurée AA sur `--surface-card` ET
+     `--surface-sunken` (`styles/textContrast.test.ts` mesure les deux thèmes). */
   --text-strong: #141726;
   --text-body: #2a2f45;
   --text-muted: #565c78;
   /* AA 4.5:1 against every surface it sits on, worst case `--surface-hover`
-     (`styles/textContrast.test.ts` measures all four). Assombri en gardant la teinte —
+     (`styles/textContrast.test.ts` measures both). Assombri en gardant la teinte —
      la valeur de la source de design (#6E7591) tombe à 4.04:1 sur cette même surface, et
      ce ton sert ~135 fois pour des horodatages, des compteurs et des métadonnées, c'est-
      à-dire du texte qui porte du sens. */
   --text-faint: #666d87;
   --text-inverse: #eef0ff;
-  /* Links: muted (less vivid green) — mixed toward the body ink. */
-  --text-link: color-mix(in oklch, var(--forest-500) 62%, var(--text-body));
+  /* Links carry the brand accent. */
+  --text-link: #3939fa;
 
   /* The neutral ramp — near-white paper, neutral-COOL tint (the design source's
      `tokens/colors.css`). It is consumed DIRECTLY by a handful of elements (the
      neutral badge, a disabled send/onboarding button, the stop button, switch
      tracks, dividers), so leaving it olive is precisely what kept green on screen
-     under the blue skin, which re-points the brand but not the greys.
+     beside the indigo accent.
      ⚠️ ONE home: an earlier `:root` in this file used to declare the ramp a second
      time; the copy that loads LAST silently wins, so a re-tone applied to the other
      one changes nothing on screen. Keep exactly one. */
@@ -11193,21 +10946,20 @@ button.sendmode-opt:hover {
   --border-subtle: rgba(10, 12, 30, 0.10);
   --border-default: rgba(10, 12, 30, 0.20);
   --border-strong: rgba(10, 12, 30, 0.34);
-  --border-focus: rgba(24, 40, 12, 0.45);
-  --focus-ring: color-mix(in oklch, var(--forest-700) 32%, transparent);
+  --border-focus: #3939fa;
+  --focus-ring: color-mix(in oklch, #3939fa 38%, transparent);
 
-  /* Brand actions. */
-  --brand: var(--forest-700);
-  --brand-hover: var(--forest-800);
-  --brand-active: var(--forest-900);
-  --brand-contrast: var(--lime);
-  --brand-tint: var(--lime-soft);
+  /* Brand actions — the ONE accent, #3939FA. Dark enough that ink ON it is white. */
+  --brand: #3939fa;
+  --brand-hover: #2d2de6;
+  --brand-active: #2222c0;
+  --brand-contrast: #ffffff;
+  --brand-tint: #e7e7ff;
   /* Ink for the light-lime chrome that sits ON a `--brand` fill (the « gratuit » badge,
-     the selected price chip, a markdown table header, the version tile). Light + BOTH
-     blue themes keep that lime on purpose; the dark-GREEN theme MUST flip it, because
-     there `--brand` IS this very lime → 1:1 contrast, invisible text. A hardcoded
-     `#c7f08a` is the bug, so use this token (never the literal) for anything on `--brand`.
-     Distinct from `--brand-contrast`, which the blue themes re-point to white. */
+     the selected price chip, the marker swipes, the version tile): the lime on indigo,
+     5.4:1 here and white on the dark theme's lighter indigo. A hardcoded `#c7f08a` is the
+     bug, so use this token (never the literal) for anything on `--brand`. Distinct from
+     `--brand-contrast`, the plain white ink. */
   --ink-on-brand: var(--lime);
   /* The sent message's hairline — same family as `--border-*` above, so it carries
      the same neutral ink; left green it was the one olive edge among neutral ones. */
@@ -11599,103 +11351,23 @@ body {
    sweeps — a per-tone list is how `tone-mint` once ended up the one that never did. */
 .redaction-mark { background-image: linear-gradient(var(--mk), var(--mk)); background-color: transparent; }
 
-/* ── NEUTRAL MARKS (« Marques discrètes », per-conversation, ChatHeader menu) ──
-   The redacted span reads as PLAIN TEXT — no fill, body ink — with a small category-
-   coloured badge sitting above its start; the full highlight (the AA-paired fill+ink
-   above) returns on hover/focus only. Placed AFTER the sweep block on purpose: these
-   rules must out-cascade the per-tone background-image. Display-only — the vault, the
-   detection and the wire never see this flag. The state label in the menu is
-   `.header-menu-state`. */
-.messages.marks-neutral .redaction-mark {
-  background-image: none;
-  background-color: transparent;
-  color: inherit;
-  position: relative;
-}
-.messages.marks-neutral .redaction-mark::after {
-  content: "";
-  position: absolute;
-  top: -3px;
-  left: 1px;
-  width: 10px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--nm-hue, var(--hl-amber));
-  pointer-events: none;
-}
-.messages.marks-neutral .redaction-mark { --nm-hue: var(--mk); }
-/* Hover/focus: the ordinary highlight comes back — same tokens, same AA pairs. */
-.messages.marks-neutral .redaction-mark:hover,
-.messages.marks-neutral .redaction-mark:focus-visible {
-  background-image: linear-gradient(var(--nm-hue), var(--nm-hue));
-  background-color: transparent;
-  color: var(--mk-ink);
-}
-.messages.marks-neutral .redaction-mark:hover::after,
-.messages.marks-neutral .redaction-mark:focus-visible::after {
-  opacity: 0;
-}
 
-/* ── Dark theme — GREEN (Settings → Dark mode, green accent by default). The classic
-   forest-black ground + lime accent. The blue-accented dark lives in `[data-theme="blue-dark"]`
-   below; the two share only the structural dark rules (`.sidebar`, `.msg-answer pre`). ──── */
+/* ── THE DARK THEME (Settings → « Mode sombre »). Neutral-cool dark ground (a whisper
+   of blue, NOT green-black — the accent is indigo, so a green-biased ground read as a
+   bug) + the same indigo one step lighter. Everything else inherits `:root`. ──── */
 [data-theme="dark"] {
-  --surface-page: #10130b;
-  --surface-shell: #0b0e07;
-  --brand: #c7f08a;
-  --brand-hover: #b8e635;
-  --brand-active: #a9e15a;
-  --brand-soft: #28381a;
-  --brand-tint: #28381a; /* otherwise it inherits the light `--lime-soft` from `:root` */
-  --lime: #11160b;
-  --lime-bright: #b8e635;
-  --green-soft: #28381a;
-  --green-ink: #b8e635;
-  --text-strong: #f2f5ea;
-  --text-body: #d5dcc6;
-  --text-muted: #93a07c;
-  --text-faint: #869277;
-  /* Links: softer lime (less vivid) — mixed toward the body ink. */
-  --text-link: color-mix(in oklch, #b8e635 60%, var(--text-body));
-  --surface-card: #191d11;
-  --surface-raised: #1e2314;
-  --surface-sunken: #14180d;
-  --surface-hover: #222818;
-  --surface-active: #2a311f;
-  --surface-selected: #283619;
-  --doc-paper: #1b2013;
-  --doc-ink: #dbe2cf;
-  --doc-edge: rgba(219, 226, 207, 0.14);
-  --warm-50: #14170d;
-  --warm-100: #191d11;
-  --warm-200: #2a311f;
-  --warm-400: #69745a;
-  --warm-700: #d5dcc6;
-  --warm-800: #d5dcc6;
-  --warm-900: #191d11;
-  --border-subtle: rgba(216, 235, 176, 0.1);
-  --border-default: rgba(216, 235, 176, 0.18);
-  --border-strong: rgba(216, 235, 176, 0.3);
-  --border-focus: #b8e635;
-}
-
-/* ── Blue-dark theme (Settings → Dark mode). Neutral-cool dark ground +
-   the #3939FA blue accent — the dark twin of `[data-theme="blue"]`. ──── */
-[data-theme="blue-dark"] {
-  /* Neutral-cool dark (a whisper of blue), NOT green-black — the accent is #3939FA,
-     so a green-biased ground read as a bug. */
   --surface-page: #0e0f13;
   /* Shell tone sits a touch DARKER than the floating card, so the panel reads. */
   --surface-shell: #0a0b0e;
-  /* Primary = the same #3939FA blue as the (default) blue theme. On the dark
-     surface the hover LIGHTENS (not darkens) so it still reads; ink on it is white. */
-  /* One step lighter than #3939FA: 3.3:1 on this ground (1.4.11) — measures in `styles/a11y.css`. */
+  /* One step lighter than #3939FA: 3.3:1 on this ground (1.4.11) — measured in
+     `styles/a11y.css`. On the dark surface the hover LIGHTENS (not darkens) so it still
+     reads; ink on it is white. */
   --brand: #5252ff;
   --brand-hover: #6262ff;
   --brand-active: #4747ff;
   --brand-contrast: #ffffff;
   --brand-soft: #1c1c4a;
-  --brand-tint: #1c1c4a; /* same: the soft fill follows the GROUND, not the light skeleton */
+  --brand-tint: #1c1c4a; /* the soft fill follows the GROUND, not the light skeleton */
   --lime: #11160b;
   /* `--ink-on-brand` tracks `--lime`, which is near-black here — unreadable on the BLUE
      fill. White: 5.2:1 on the #5252ff fill (the light lime measured 4.1:1 on it). */
@@ -11703,11 +11375,17 @@ body {
   --lime-bright: #b8e635;
   --green-soft: #28381a;
   --green-ink: #b8e635;
+  /* The other semantic SOFT fills (banner, chip and toast skins `.kb--<tone>`): a tint of
+     the ground, so the light ink they carry stays readable — the light values would put
+     white text on a pastel. */
+  --blue-soft: #1a2342;
+  --amber-soft: #3a2b0f;
+  --red-soft: #44201c;
   --text-strong: #f1f2f7;
   --text-body: #d3d5df;
   --text-muted: #969aab;
   --text-faint: #878a98;
-  /* Links: a soft blue (was lime) — mixed toward the body ink. */
+  /* Links: a soft blue — mixed toward the body ink. */
   --text-link: color-mix(in oklch, #6b6bff 62%, var(--text-body));
   --surface-card: #181920;
   /* Floating menus/popovers (HueSelect dropdown etc.) sit a touch LIGHTER than the
@@ -11716,7 +11394,7 @@ body {
   --surface-sunken: #131419;
   --surface-hover: #21222b;
   --surface-active: #292a35;
-  /* Selected nav/conversation rows carry the BLUE brand accent (was a green tint). */
+  /* Selected nav/conversation rows carry the brand accent. */
   --surface-selected: #26265c;
   /* Document TEXT preview (`.fv-page`): a dark "sheet" + light ink in dark mode, instead
      of the bright-white paper that glared against the dark app. Reads as a raised sheet;
@@ -11737,40 +11415,22 @@ body {
   --border-focus: #4a4aff;
 }
 
-/* ── Blue theme (the default: the accent is no longer a choice) ────────────
-   A LIGHT base (inherits :root) with the primary re-pointed to #4436FF. Text and the
-   redaction highlights stay as in light mode; the brand is dark enough that ink ON it
-   is white. The SHELL tone is the one surface that cannot be inherited — see below. */
-[data-theme="blue"] {
-  --brand: #3939fa;
-  --brand-hover: #2d2de6;
-  --brand-active: #2222c0;
-  --brand-contrast: #ffffff;
-  --brand-tint: #e7e7ff;
-  /* Links carry the blue accent (were green); the SELECTED row stays a neutral grey
-     rather than a blue tint — a coloured selection read as too loud on the light base. */
-  --surface-selected: #e9e9ec;
-  --text-link: #3939fa;
-}
-
 /* ── No per-theme redaction palette ───────────────────────────────────────────
-   There used to be one here, for the blue pair. It is gone on purpose: a redaction
-   colour now has exactly ONE value, declared once in `:root`, in every theme. A theme
-   that re-toned the palette meant the same section wore two different colours depending
-   on the ground — which is the drift this whole family of code was reorganised to make
-   impossible. Theme the GROUND and the accents; leave `--hl-*` alone. */
+   A redaction colour has exactly ONE value, declared once in `:root`, in both themes.
+   A theme that re-toned the palette meant the same section wore two different colours
+   depending on the ground — which is the drift this whole family of code was
+   reorganised to make impossible. Theme the GROUND and the accents; leave `--hl-*` alone. */
 
 /* ── The CHART ramp, however, IS per-ground — and that is not the same thing ────
    A redaction hue carries MEANING (this value is a phone number), so it must not move
    with the theme. A chart colour carries only IDENTITY WITHIN ONE CHART — "this series,
    not that one" — and identity is preserved as long as the seven stay mutually
    distinguishable ON THE GROUND THEY ARE DRAWN ON. The light steps measure 2.5–2.9:1
-   against the dark forest card: legible enough for text, not for a data mark, so the
-   dark themes get their OWN steps of the SAME families rather than an automatic flip
-   (the dataviz reference is explicit that dark mode is selected, not derived). Both
-   registers are validated by `styles/chartPalette.test.ts`; re-tone one and it says so. */
-[data-theme="dark"],
-[data-theme="blue-dark"] {
+   against the dark card: legible enough for text, not for a data mark, so the dark
+   theme gets its OWN steps of the SAME families rather than an automatic flip (the
+   dataviz reference is explicit that dark mode is selected, not derived). Both
+   registers are validated by `pages/Settings/billing/usageSeries.test.ts`. */
+[data-theme="dark"] {
   --chart-1: #8b5cf6;
   --chart-2: #e26325;
   --chart-3: #5566f0;
@@ -11781,23 +11441,20 @@ body {
   --chart-other: #7c8a9e;
 }
 /* The brand MARKER swipes (KV_MARK on empty-state titles + the wordmark, and the
-   modal-title marker) read like the action buttons in the blue AND dark themes: the
-   #3939FA brand fill with the same slightly-green light-lime ink. Scoped to THESE
-   selectors so a lime-category redaction mark (also `--hl-lime`) is untouched. */
-[data-theme="blue"] .om-mark,
-[data-theme="blue"] .modal-title > span,
-[data-theme="blue-dark"] .om-mark,
-[data-theme="blue-dark"] .modal-title > span {
+   modal-title marker) read like the action buttons: the brand fill with the
+   slightly-green light-lime ink. Scoped to THESE selectors so a lime-category redaction
+   mark (also `--hl-lime`) is untouched. */
+.om-mark,
+.modal-title > span {
   background: var(--brand);
-  /* Resolves to the light lime in both blue themes — via the token, not the literal. */
+  /* The light lime on the light theme, white on the dark one — via the token. */
   color: var(--ink-on-brand);
 }
-/* BLUE mode — de-blue the conversation surfaces (the brand #3939FA reads too loud beside
-   the soft pastel redaction). Each falls back to the app's NEUTRAL treatment, blue-mode
-   ONLY (light stays coral, dark stays blue).
+/* De-blue the conversation surfaces (the brand #3939FA reads too loud beside the soft
+   pastel redaction). Each falls back to the app's NEUTRAL treatment.
    1. Markdown table headers → the same neutral header the file viewer/CSV tables use
       (sunken surface + strong ink) instead of the brand band. */
-[data-theme="blue"] .md th {
+.md th {
   background: var(--surface-sunken);
   color: var(--text-strong);
   border-bottom: 1px solid var(--border-default);
@@ -11805,16 +11462,13 @@ body {
 /* 1bis. The marker SWIPE, where it lands on a piece of chrome rather than a brand
    moment: the in-chat information containers' headline (crédits, proposition
    d'intégration, offre de redaction) and the document title of the right-hand
-   preview. Under the blue accent the `.om-mark` override above fills them with solid
-   #3939FA, which reads as a selection/highlight over content the user did not
-   highlight — and beside the pastel redaction marks it is the loudest thing on
-   screen. No fill here, just strong ink; the horizontal padding goes with it so the
-   title keeps its alignment. The BRAND moments (empty states, the wordmark, modal
-   titles) keep their swipe — that is what it is for. */
-[data-theme="blue"] .agent-card-title > .om-mark,
-[data-theme="blue"] .fv-title .om-mark,
-[data-theme="blue-dark"] .agent-card-title > .om-mark,
-[data-theme="blue-dark"] .fv-title .om-mark {
+   preview. The `.om-mark` rule above fills them with solid #3939FA, which reads as a
+   selection/highlight over content the user did not highlight — and beside the pastel
+   redaction marks it is the loudest thing on screen. No fill here, just strong ink; the
+   horizontal padding goes with it so the title keeps its alignment. The BRAND moments
+   (empty states, the wordmark, modal titles) keep their swipe — that is what it is for. */
+.agent-card-title > .om-mark,
+.fv-title .om-mark {
   background: none;
   color: var(--text-strong);
   padding-inline: 0;
@@ -11822,28 +11476,26 @@ body {
 /* 2. The failed-turn card's « Réessayer » (a btn-primary when it's the sole action) →
       the neutral outline button. Scoped to `.failed-retry` so the card's REAL CTAs
       (« Renseigner la clé » / l'abonnement) keep the brand emphasis. */
-[data-theme="blue"] .failed-retry.btn-primary {
+.failed-retry.btn-primary {
   background: transparent;
   border-color: var(--border-default);
   color: var(--text-body);
 }
-[data-theme="blue"] .failed-retry.btn-primary:hover:not(:disabled) {
+.failed-retry.btn-primary:hover:not(:disabled) {
   background: var(--surface-hover);
 }
-/* MCP connector cards: the light-theme green hairline is invisible on the dark ground,
-   so the cards had no visible border — give them a cool one (blue when connected). */
-[data-theme="blue-dark"] .mcp-card {
+/* MCP connector cards: the light-theme hairline is invisible on the dark ground,
+   so the cards had no visible border — give them a cool one (indigo when connected). */
+[data-theme="dark"] .mcp-card {
   border-color: var(--border-default);
 }
-[data-theme="blue-dark"] .mcp-card.on {
+[data-theme="dark"] .mcp-card.on {
   border-color: color-mix(in oklch, var(--brand) 55%, var(--border-strong));
 }
-/* Loading skeletons carry a #3939FA glow in the shimmer sweep (blue + blue-dark themes) —
-   the peak leans well into the brand blue so the sweep clearly reads as #3939FA. */
-[data-theme="blue"] .msg-image-skeleton,
-[data-theme="blue"] .md-img-skeleton,
-[data-theme="blue-dark"] .msg-image-skeleton,
-[data-theme="blue-dark"] .md-img-skeleton {
+/* Loading skeletons carry a #3939FA glow in the shimmer sweep — the peak leans well
+   into the brand so the sweep clearly reads as the accent. */
+.msg-image-skeleton,
+.md-img-skeleton {
   background-image: linear-gradient(
     90deg,
     var(--surface-sunken) 25%,
@@ -11852,11 +11504,8 @@ body {
   );
   background-size: 400% 100%;
 }
-/* Assistant code blocks: a green-black in green dark, a cool-black in blue-dark. */
+/* Assistant code blocks: a cool-black in dark. */
 [data-theme="dark"] .msg-answer pre {
-  background: #0c1207;
-}
-[data-theme="blue-dark"] .msg-answer pre {
   background: #0a0b12;
 }
 

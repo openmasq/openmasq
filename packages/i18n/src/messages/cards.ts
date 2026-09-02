@@ -53,28 +53,28 @@ export interface CardsMessages {
     close: string;
   };
 
+  /** « Connectez X pour continuer » — the connect cards under a reply the model could
+   *  not honour for lack of a connector. Two shapes: one full card, or a tile grid. */
+  integration: {
+    manySuggested: (count: number) => string;
+    secureNote: string;
+    connectTools: string;
+    tileConnected: (name: string) => string;
+    tileConnect: (name: string) => string;
+    activate: string;
+    connect: (name: string) => string;
+    suggested: string;
+    connectedEyebrow: (name: string) => string;
+    connectedResume: (brand: string) => string;
+    resume: string;
+    builtinNote: (brand: string) => string;
+    activateTitle: (name: string) => string;
+    connectTitle: (name: string) => string;
+  };
+
   /** The thread's banners. */
   banners: {
     attachmentIgnored: string;
-  };
-
-  /** The « how to send this document » modal: extracted text or pages as images. */
-  sendMode: {
-    title: string;
-    question: (fileCount: number) => string;
-    textOption: string;
-    /** The count arrives ALREADY formatted by the caller (`tokenLabel`) — we do not
-     *  reformat it here, on pain of applying the locale twice. */
-    textTokens: (tokens: string) => string;
-    textDesc: string;
-    fileOption: string;
-    computing: string;
-    approx: (size: string) => string;
-    fileDesc: string;
-    tooBig: string;
-    noFiles: (modelLabel: string) => string;
-    switchAndSend: (modelLabel: string) => string;
-    cancel: string;
   };
 
   /**
@@ -88,6 +88,8 @@ export interface CardsMessages {
     target: string;
     note: string;
     attachmentsWarning: (count: number) => string;
+    details: (tool: string) => string;
+    scopeNote: (tool: string) => string;
     navExfil: { eyebrow: string; title: (host: string) => string; titleNoHost: string; desc: string; confirm: string };
     attachments: { eyebrow: string; title: string; desc: (server: string) => string; confirm: string };
     action: { eyebrow: string; title: string; desc: (server: string) => string; confirm: string };

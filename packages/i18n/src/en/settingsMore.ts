@@ -182,8 +182,7 @@ export const importModal = {
   hintChatgpt:
     "chatgpt.com → Settings → Data controls → Export. Drop the .zip you received by email here.",
   hintClaude: "claude.ai → Settings → Privacy → Export. Drop the archive you received by email here.",
-  geminiSoonTip: "Google Takeout does not preserve thread structure — coming soon.",
-  geminiSoon: "Gemini · soon",
+  geminiNote: "Gemini: not yet — Google Takeout does not preserve thread structure.",
   choose: (provider) => `Choose the ${provider} export file…`,
   maskedNote:
     "Sensitive values detected are masked on import: if you continue a thread here, its history leaves masked.",

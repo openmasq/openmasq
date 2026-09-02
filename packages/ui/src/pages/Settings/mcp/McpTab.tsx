@@ -1,7 +1,8 @@
 import { AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { useHost } from "../../../host";
-import { McpWriteConfirm } from "./McpWriteConfirm";
+import type { Settings } from "../../../types";
+import { McpAgentPowers } from "./McpAgentPowers";
 import { PlusIcon, SearchIcon } from "../../../components/brand";
 import { type McpItem } from "./mcpItems";
 import { Btn } from "./McpBtn";
@@ -19,11 +20,18 @@ import { mcpCategoryLabel } from "../../../help/catalogCopy";
 export function McpTab({
   allowedMcpIds,
   requestedConnector,
+  draft,
+  setDraft,
 }: {
   allowedMcpIds?: string[];
   /** Deep-link: preselect (open the modal of) this connector — used by the chat's
    *  suggested-integration cards. The `n` nonce re-applies even for the same id. */
   requestedConnector?: { id: string; n: number };
+  /** The settings draft — the agent-browser hardening (« Ce que l'agent peut faire »)
+   *  writes `browserReadOnly` / `browserAllowedDomains` through it. Absent (a caller
+   *  with no settings) ⇒ that section is not drawn. */
+  draft?: Settings;
+  setDraft?: (updater: (s: Settings) => Settings) => void;
 } = {}) {
   const t = useT();
   const host = useHost();
@@ -106,9 +114,7 @@ export function McpTab({
       <section className="settings-section">
         <div className="mcp-head">
           <div className="cv-eyebrow">{t.mcpTab.eyebrow}</div>
-          <div className="mcp-count">
-            {connectedCount} connecté{connectedCount === 1 ? "" : "s"} · {items.length} disponibles
-          </div>
+          <div className="mcp-count">{t.mcpTab.count(connectedCount, items.length)}</div>
         </div>
         <div className="mcp-search-row">
           <label className="audit-search mcp-search">
@@ -198,7 +204,9 @@ export function McpTab({
           )}
         </AnimatePresence>
       </section>
-      <McpWriteConfirm />
+      {/* The agent's guardrails — write gate + browser hardening — as ONE section: the
+          browser tab keeps only its search engine (`McpAgentPowers`). */}
+      {draft && setDraft && <McpAgentPowers settings={draft} setSettings={setDraft} />}
     </>
   );
 }

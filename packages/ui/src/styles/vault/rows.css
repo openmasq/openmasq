@@ -178,3 +178,21 @@
   background: var(--surface-sunken);
   color: var(--danger, #d64550);
 }
+/* Edit — the same quiet square as delete, without the danger ink on hover. */
+.om-vault-edit {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.om-vault-edit:hover {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+}

@@ -1,5 +1,6 @@
 import { CheckIcon, TrashIcon } from "../../components/brand";
 import { MEMORY_CATEGORIES, memoryCategory, memoryCategoryLabel } from "../../memory";
+import type { ViewModeOf } from "../../hooks/useViewMode";
 import type { MemoryCard, MemoryData } from "../../types";
 
 import { useT } from "../../i18n";
@@ -32,8 +33,8 @@ export function MemoryToolbar({
 }: {
   query: string;
   onQuery: (q: string) => void;
-  view: "graph" | "list";
-  onView: (v: "graph" | "list") => void;
+  view: ViewModeOf<"memory">;
+  onView: (v: ViewModeOf<"memory">) => void;
   reviewCount: number;
   fresh: boolean;
   onFresh: (on: boolean) => void;
@@ -73,7 +74,9 @@ export function MemoryToolbar({
           {t.lists.memory.byCategory}
         </button>
       )}
-      {(["graph", "list"] as const).map((v) => (
+      {/* List FIRST: it is the default, and the order of the two chips is the order
+          one reads them — find, then understand. */}
+      {(["list", "graph"] as const).map((v) => (
         <button
           key={v}
           type="button"
@@ -81,7 +84,7 @@ export function MemoryToolbar({
           aria-pressed={view === v}
           onClick={() => onView(v)}
         >
-          {v === "graph" ? "Graphe" : "Liste"}
+          {t.lists.memory.views[v]}
         </button>
       ))}
     </div>
@@ -110,7 +113,7 @@ function Row({
         <span className="om-mem-dot-chip sm" style={{ background: `var(--hl-${memoryCategory(c.cat).tone})` }} />
         <span className="om-mem-row-entity">{c.entity}</span>
         <span className="om-mem-row-facts">{c.facts}</span>
-        {c.source === "auto" && <span className="om-mem-row-badge">auto</span>}
+        {c.source === "auto" && <span className="om-mem-row-badge">{t.lists.memory.autoBadge}</span>}
         <span className="om-mem-row-date">{new Date(c.updatedAt).toLocaleDateString(t.common.intlTag)}</span>
       </button>
       {fresh && onConfirm && (

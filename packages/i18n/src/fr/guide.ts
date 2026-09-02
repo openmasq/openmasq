@@ -27,7 +27,7 @@ export const guide = {
     points: [
       () => "Le nom du modèle est sous la zone de saisie — cliquez-le pour en changer.",
       (brand) => `Certains modèles demandent votre propre clé : ${brand} vous le dit au moment de l'envoi, et vous propose de la renseigner.`,
-      () => "Tapez / dans la zone de message pour retrouver vos compétences, vos workflows et « retiens que… ».",
+      () => "Tapez / dans la zone de message pour retrouver vos compétences, vos routines et « retiens que… ».",
     ],
   },
   models: {
@@ -87,8 +87,8 @@ export const guide = {
         def: () => "Une instruction que vous réutilisez telle quelle dans vos conversations.",
       },
       {
-        term: () => "Un workflow",
-        def: () => "Une instruction qui met vos services connectés au travail.",
+        term: () => "Une routine",
+        def: () => "Une compétence qui met vos services connectés au travail.",
       },
       {
         term: () => "Un connecteur",

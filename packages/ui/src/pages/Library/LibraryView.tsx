@@ -3,9 +3,10 @@ import { AnimatePresence } from "framer-motion";
 import { useHost } from "../../host";
 import { panelCloseItem, panelOpenFile, useAppDispatch } from "../../state/redux";
 import type { Conversation } from "../../types";
-import { BookIcon, CheckIcon, EmptyState, SearchIcon, TrashIcon } from "../../components/brand";
+import { ArrowRightIcon, BookIcon, CheckIcon, EmptyState, SearchIcon, TrashIcon } from "../../components/brand";
 import { ConfirmDialog } from "../../components/feedback/ConfirmDialog";
 import { PageHeader } from "../../containers/shell/PageHeader";
+import { useSectionNav } from "../../containers/shell/useSectionNav";
 import { LibraryTabs } from "./LibraryTabs";
 import { FileCard } from "./FileCard";
 import { FileRow } from "./FileRow";
@@ -44,6 +45,7 @@ export function LibraryView({
   const host = useHost();
   const [view, setView] = useViewMode("library");
   const dispatch = useAppDispatch();
+  const { go } = useSectionNav();
   const { files, setFiles } = useLibraryFiles(conversations);
   // A clicked file opens in THE shared side panel (rendered by AppShell beside this
   // page) — the same panel the conversations use, kept across section switches.
@@ -132,6 +134,11 @@ export function LibraryView({
                 { glyph: "▤", label: t.lists.library.empty.points[1], tone: "amber" },
                 { glyph: "⛉", label: t.lists.library.empty.points[2], tone: "lime" },
               ]}
+              // Files arrive THROUGH a conversation, so the way out of an empty
+              // library is the chat — not an upload this page doesn't offer.
+              cta={t.lists.library.goToChats}
+              ctaIcon={<ArrowRightIcon size={16} />}
+              onCta={() => go("chats")}
             />
           </div>
         ) : (
@@ -143,20 +150,19 @@ export function LibraryView({
               query={query}
               onQuery={setQuery}
             />
+            {/* ONE toolbar row — the view toggle and « Sélectionner » side by side, the
+                way `SkillFilters` lays its controls; two stacked rows for two buttons
+                read as two features. */}
             <div className="library-toolbar">
               <ViewModeToggle mode={view} onChange={setView} />
-            </div>
-            {canDelete && (
-              <div className="library-toolbar">
-                {selectMode ? (
+              {canDelete &&
+                (selectMode ? (
                   <div className="library-actions">
-                    <span className="library-sel-count">
-                      {selected.size} sélectionné{selected.size === 1 ? "" : "s"}
-                    </span>
+                    <span className="library-sel-count">{t.lists.library.selectedCount(selected.size)}</span>
                     <button className="btn-ghost btn-inline" onClick={toggleAll}>
                       {selected.size >= visible.length && visible.length > 0
-                        ? "Tout désélectionner"
-                        : "Tout sélectionner"}
+                        ? t.lists.library.deselectAll
+                        : t.lists.library.selectAll}
                     </button>
                     <button
                       className="btn-danger btn-inline"
@@ -173,9 +179,8 @@ export function LibraryView({
                   <button className="btn-ghost btn-inline" onClick={() => setSelectMode(true)}>
                     <CheckIcon size={14} /> {t.lists.library.select}
                   </button>
-                )}
-              </div>
-            )}
+                ))}
+            </div>
             {visible.length === 0 ? (
               <EmptyState
                 tone="sky"

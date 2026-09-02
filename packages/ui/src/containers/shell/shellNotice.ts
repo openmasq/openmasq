@@ -38,8 +38,7 @@ export function pickShellNotice(
       kind: "offline",
       tone: "warning",
       title: t.leaves.offline,
-      message:
-        `Connexion à ${BRAND.name} perdue. Vos conversations restent accessibles — reconnexion automatique en cours…`,
+      message: t.shell.notice.offlineBody(BRAND.name),
       dismissible: false,
     };
   }
@@ -50,13 +49,13 @@ export function pickShellNotice(
       tone: "warning",
       title:
         items.length === 1
-          ? `Reconnexion nécessaire : ${items[0].name}`
-          : `Reconnexion nécessaire : ${items.length} connecteurs`,
+          ? t.shell.notice.reconnectOne(items[0].name)
+          : t.shell.notice.reconnectMany(items.length),
       message:
         items.length === 1
-          ? "La connexion à ce connecteur a été perdue. Reconnectez-le depuis les réglages."
-          : `Connexions perdues : ${items.map((i) => i.name).join(", ")}.`,
-      actionLabel: "Reconnecter",
+          ? t.shell.notice.reconnectOneBody
+          : t.shell.notice.reconnectManyBody(items.map((i) => i.name).join(", ")),
+      actionLabel: t.shell.notice.reconnect,
       dismissible: true,
     };
   }
@@ -66,9 +65,9 @@ export function pickShellNotice(
       tone: "info",
       title: t.leaves.freeModelsNotice,
       message: subscriptionsSold()
-        ? `Pour ouvrir tout le catalogue : un abonnement ${BRAND.name}, ou votre propre clé chez un fournisseur.`
-        : "Pour ouvrir tout le catalogue : votre propre clé chez un fournisseur.",
-      actionLabel: "Voir mes accès",
+        ? t.shell.notice.accessBodySold(BRAND.name)
+        : t.shell.notice.accessBody,
+      actionLabel: t.shell.notice.seeAccess,
       dismissible: true,
     };
   }

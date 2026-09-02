@@ -18,7 +18,7 @@ import { redactionCopy, redactionSectionLabel } from "../../../help/catalogCopy"
    state. The detection engine is fixed (on-device NER), so there is no engine
    picker here anymore.
 
-   A category is a CHIP that toggles on click, not a labelled row + Switch: 18 of
+   A category is a CHIP that toggles on click, not a labelled row + Switch: seventeen of
    them read as a wall of furniture at one-per-line, and the whole point is to scan
    what's on. The chip is the control, so it carries `aria-pressed` itself. Groups
    COLLAPSE (design-kit rules tree): the everyday sections open, the specialised

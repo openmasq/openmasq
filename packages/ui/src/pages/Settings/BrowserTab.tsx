@@ -3,16 +3,15 @@ import { useT } from "../../i18n";
 import { SearchEngineLogo } from "../../components/media/SearchEngineLogo";
 import { CheckIcon } from "../../components/brand";
 import { captureEvent } from "../../analytics";
-import { McpBrowserSecurity } from "./mcp/McpBrowserSecurity";
 import type { Settings } from "../../types";
 
 /**
- * The "Navigateur" settings tab — every integrated-browser preference in one place:
- *  - the DEFAULT SEARCH ENGINE used when you type keywords in the browser URL bar
- *    (DuckDuckGo / Brave / Google / Ecosia / Startpage / Qwant), the same choice
- *    surfaced in the browser panel's engine dropdown;
- *  - the agent-browser SECURITY hardening (read-only mode + domain allow-list),
- *    reused verbatim from `McpBrowserSecurity`.
+ * The "Navigateur" settings tab — ONE preference: the DEFAULT SEARCH ENGINE used when
+ * you type keywords in the browser URL bar (DuckDuckGo / Brave / Google / Ecosia /
+ * Startpage / Qwant), the same choice surfaced in the browser panel's engine dropdown.
+ * The agent-browser SECURITY hardening (read-only + domain allow-list) is NOT here: it
+ * sits with the write gate under « Ce que l'agent peut faire » on the Connecteurs tab
+ * (`mcp/McpAgentPowers.tsx`) — the agent's guardrails read as one family, not two tabs.
  * Desktop only (gated on `host.browser` by `SettingsView`).
  */
 export function BrowserTab({
@@ -26,7 +25,6 @@ export function BrowserTab({
   const current = draft.browserSearchEngine ?? DEFAULT_SEARCH_ENGINE;
 
   return (
-    <>
       <section className="settings-section">
         <div className="cv-eyebrow">{t.browserTab.engineEyebrow}</div>
         <p className="modal-note">
@@ -59,8 +57,5 @@ export function BrowserTab({
           })}
         </div>
       </section>
-
-      <McpBrowserSecurity settings={draft} setSettings={setDraft} />
-    </>
   );
 }

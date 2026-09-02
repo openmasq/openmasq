@@ -25,10 +25,20 @@ const codeFirstHost = (over: Partial<NonNullable<Host["auth"]>> = {}): Partial<H
 });
 
 describe("LoginScreen", () => {
-  it("porte son titre par défaut, et celui qu'on lui donne", async () => {
+  it("porte un titre NEUTRE sur un appareil vierge, « revoir » seulement après un premier compte, et celui qu'on lui donne", async () => {
+    localStorage.clear();
     const a = await mount(<LoginScreen />, { host: codeFirstHost() });
-    expect(a.el.textContent).toContain("Content de vous revoir.");
+    // Nobody has signed in here yet: « Content de vous revoir » would be a lie.
+    expect(a.el.textContent).toContain("Connexion à");
+    expect(a.el.textContent).not.toContain("Content de vous revoir.");
     await a.unmount();
+
+    // An account-scoped settings blob is the trace a sign-in leaves on the device.
+    localStorage.setItem("openmasq.settings:user-a", "{}");
+    const seen = await mount(<LoginScreen />, { host: codeFirstHost() });
+    expect(seen.el.textContent).toContain("Content de vous revoir.");
+    await seen.unmount();
+    localStorage.clear();
 
     const b = await mount(
       <LoginScreen heading="Rejoindre l'organisation" subheading="Connectez-vous avec l'adresse invitée." />,
@@ -87,6 +97,33 @@ describe("LoginScreen", () => {
 
     expect(m.el.textContent).toContain("Rien reçu ? Regardez dans vos spams");
     expect(m.find(".login-hint-icon")).toBeTruthy();
+    await m.unmount();
+  });
+
+  /**
+   * The Google button follows the HOST's capability, never a `disabled` flag: a host
+   * whose SSO is off omits `signInWithGoogle`, and no greyed promise is drawn in its
+   * place. Present, the button is LIVE — it calls the host.
+   */
+  it("le bouton Google n'existe que si l'hôte expose le SSO — et alors il est vivant", async () => {
+    const without = await mount(<LoginScreen />, { host: codeFirstHost() });
+    expect(without.maybe(".login-sso")).toBeNull();
+    await without.unmount();
+
+    const signInWithGoogle = vi.fn(async () => ({}));
+    const withSso = await mount(<LoginScreen />, { host: codeFirstHost({ signInWithGoogle }) });
+    const btn = withSso.find<HTMLButtonElement>(".login-sso");
+    expect(btn.disabled).toBe(false);
+    await withSso.click(btn);
+    expect(signInWithGoogle).toHaveBeenCalledTimes(1);
+    await withSso.unmount();
+  });
+
+  // On the hosted service sign-ups are closed: the card says « accès sur invitation »
+  // under the field BEFORE the refusal `loginErrors.ts` would otherwise be first to mention.
+  it("annonce l'accès sur invitation sous le champ, avant tout refus", async () => {
+    const m = await mount(<LoginScreen />, { host: codeFirstHost() });
+    expect(m.find(".login-invite").textContent).toContain("invitation");
     await m.unmount();
   });
 });

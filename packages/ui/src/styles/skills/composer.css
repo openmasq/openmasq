@@ -98,6 +98,22 @@
   white-space: nowrap;
 }
 
+/* ── The « + » door (ComposerAddMenu) ─────────────────────────────────────── */
+/* The SAME card and rows as the compétence picker, narrower: four short entries
+   (Fichier · Dossier · Connecteur · Compétence), no eyebrow, no description. */
+.composer-add-menu {
+  min-width: 168px;
+  max-height: none;
+}
+.composer-add-menu .composer-skill-item {
+  padding: 7px 10px;
+}
+.composer-add-menu .composer-skill-item:focus-visible {
+  background: var(--surface-hover);
+  outline: 1.5px solid var(--brand);
+  outline-offset: -1.5px;
+}
+
 /* ── The "/" palette + keyboard cursor ─────────────────────────────────────── */
 /* Anchored over the INPUT (not the ✨ button): the lookup appears where the user
    is typing. Reuses the .composer-skill-menu card wholesale. */

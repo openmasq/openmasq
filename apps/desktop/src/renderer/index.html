@@ -27,7 +27,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src 'self' %SUPABASE_CSP% https://eu.i.posthog.com https://*.%BRAND_DOMAIN%; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://images.openai.com https://*.oaiusercontent.com https://*.oaistatic.com https://claude.ai https://*.anthropic.com https://*.googleusercontent.com https://*.gstatic.com https://*.google.com https://*.mistral.ai https://*.deepseek.com; script-src 'self' 'sha256-JIDSUeE3AdkANm1xvp3OeApcGbvK6eDv8TzbSSW3iOM='; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+      content="default-src 'self'; connect-src 'self' %SUPABASE_CSP% https://eu.i.posthog.com https://*.%BRAND_DOMAIN%; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://images.openai.com https://*.oaiusercontent.com https://*.oaistatic.com https://claude.ai https://*.anthropic.com https://*.googleusercontent.com https://*.gstatic.com https://*.google.com https://*.mistral.ai https://*.deepseek.com; script-src 'self' 'sha256-Wo7gGJI80aZoZzk9seMv2K25wGseCqs0yP5ODqmgizM='; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>%BRAND_NAME%</title>
@@ -61,8 +61,7 @@
       /* Dark grounds at FIRST paint (before the bundle's theme tokens load): the inline
          head script below has already set `data-theme`, so these hardcoded values theme
          the boot splash to match AppIntro's dark surfaces + near-white mark. */
-      html[data-theme="dark"] #boot-splash { background: #10130b; color: #f2f5ea; }
-      html[data-theme="blue-dark"] #boot-splash { background: #0e0f13; color: #f1f2f7; }
+      html[data-theme="dark"] #boot-splash { background: #0e0f13; color: #f1f2f7; }
       #boot-splash.boot-hide { opacity: 0; pointer-events: none; }
       #boot-splash svg { width: 72px; height: 72px; animation: boot-pulse 1.4s ease-in-out infinite; }
       @keyframes boot-pulse { 0%, 100% { opacity: .32; } 50% { opacity: .85; } }
@@ -72,16 +71,16 @@
     </style>
     <!-- Theme <html> from the persisted setting BEFORE the boot splash paints, so it (and
          the AppIntro after it) render in the right theme from frame 0 — no light→dark /
-         green→blue flash. Runs synchronously in <head> (NOT deferred like the bundle).
+         light→dark flash. Runs synchronously in <head> (NOT deferred like the bundle).
          ⚠️ CSP-gated by a sha256 hash in the script-src above: if you edit this script,
          recompute the hash or it is BLOCKED and the flash returns. Mirrors
-         `applyPersistedTheme` (@openmasq/ui `state/theme.ts`) — same keys, same order, and
-         the SAME translation: the green accent is no longer an option, so a « light »/« dark »
-         theme saved by an earlier version becomes its indigo twin HERE TOO. Without that, the
-         first frame would be green before React coerces — the very flash this script exists
-         to avoid. The DEVICE key wins; the settings blob is the fallback from before
-         `openmasq.theme`. -->
-    <script>try{var t=localStorage.getItem("openmasq.theme")||JSON.parse(localStorage.getItem("openmasq.settings")||"{}").theme;document.documentElement.setAttribute("data-theme",t==="dark"||t==="blue-dark"?"blue-dark":"blue")}catch(e){}</script>
+         `applyPersistedTheme` (@openmasq/ui `state/settings/theme.ts`) — same keys, same order,
+         and the SAME tolerance: « blue-dark », the name an earlier version wrote for the dark
+         ground, is read as dark HERE TOO (light is the bare :root, no attribute). Without that,
+         the first frame would be light before React reads the key — the very flash this
+         script exists to avoid. The DEVICE key wins; the settings blob is the fallback from
+         before `openmasq.theme`. -->
+    <script>try{var t=localStorage.getItem("openmasq.theme")||JSON.parse(localStorage.getItem("openmasq.settings")||"{}").theme;if(t==="dark"||t==="blue-dark")document.documentElement.setAttribute("data-theme","dark")}catch(e){}</script>
   </head>
   <body>
     <!-- Brand mark inlined so it needs no font/asset and paints instantly — the ring +

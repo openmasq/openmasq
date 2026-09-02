@@ -2,9 +2,10 @@ import { ModalShell } from "../../containers/modals/ModalShell";
 import { TrashIcon } from "../brand";
 import { useT } from "../../i18n";
 /**
- * Confirm a destructive action — reference redact styling: a red-soft icon, a
- * display-face title, and a footer with cancel + (danger) confirm. Escape /
- * scrim / "Cancel" dismiss without confirming.
+ * Confirm a destructive action — the house head (`ModalShell`'s `title` + a red-tinted
+ * icon), the message, and a footer with cancel + (danger) confirm. Escape / scrim /
+ * "Cancel" dismiss without confirming; the confirm button takes focus on open, and
+ * the shell hands it back to the control that asked when the dialog closes.
  */
 export function ConfirmDialog({
   title,
@@ -26,12 +27,14 @@ export function ConfirmDialog({
 }) {
   const t = useT();
   return (
-    <ModalShell onClose={onCancel} width="420px">
+    <ModalShell
+      onClose={onCancel}
+      width="420px"
+      title={title}
+      icon={<TrashIcon size={19} />}
+      tone={danger ? "danger" : undefined}
+    >
       <div className="confirm-body">
-        <span className="confirm-icon">
-          <TrashIcon size={19} />
-        </span>
-        <h2 className="cv-display confirm-title">{title}</h2>
         <p className="confirm-text">{message}</p>
       </div>
       <div className="confirm-footer">

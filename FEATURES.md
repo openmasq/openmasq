@@ -49,7 +49,7 @@ Network unreachable ⇒ the app keeps the doors as it last knew them, never clos
 `packages/ui/src/state/billing/featureAccess.ts`.
 
 **Verified counters** (recomputed by the gate on every run) —
-<!-- n:sections -->5 sections · <!-- n:onglets-reglages -->11 settings tabs ·
+<!-- n:sections -->5 sections · <!-- n:onglets-reglages -->10 settings tabs ·
 <!-- n:ecrans -->8 screens · <!-- n:categories-redaction -->17 redaction categories.
 The number of connectors is NOT stated here: the catalogue is made of five families
 (`packages/catalog/src/mcp/connectors/`) and a hand-written total would be unverifiable —
@@ -96,17 +96,23 @@ a real city — the model reasons correctly, on values that are not yours.
 - [ ] Restoring a marker the model translated (« [PERSONNE1] ») — not covered
 
 ### The 17 categories, and the protection level
-**Access**: Réglages → **Confidentialité** → « **Niveau de protection** » (Standard /
+**Access**: Réglages → **Confidentialité** → « **Niveau de protection** » (Allégé /
 Renforcé / Strict, « Sur mesure » being the hand-set state), then the expandable matrix.
-Also per conversation: ⋯ in the chat header → « Masquage · Renforcé · N protégés » (the level
-in force, tagged « modifié » when the thread deviates from the default).
-And **from the composer**: the "level" button in the action row (tooltip = level + scope) opens
-the same three levels, each with what it covers and what it leaves readable (the reduced one
-wears the eye), right where one notices that a send masks too much — or too little. Its glyph
-keeps three strokes and bolds as many as the current level (1 · 2 · 3); each card its own.
-The menu says the scope before the click. One click sets the level on THAT CONVERSATION — the
-global default is changed where it is weighed (Réglages, or the « Par défaut » tab of the ⋯
-menu); with no conversation created yet, the default is what receives it, and the menu says so.
+Each card names a concrete use — Allégé « recherche web et outils », Renforcé (the default)
+« rédaction, e-mails, échanges courants », Strict « documents à analyser » — then what it
+covers and what it leaves readable; the composer menu renders the same three sentences.
+Per conversation, the LEVEL has ONE door — **the composer**: the "level" button in the action
+row (tooltip = level + scope) opens the same three levels, each with what it covers and what
+it leaves readable (the reduced one wears the eye), right where one notices that a send masks
+too much — or too little. Its glyph keeps three strokes and bolds as many as the current level
+(1 · 2 · 3); each card its own. The menu says the scope before the click. One click sets the
+level on THAT CONVERSATION — the global default is changed where it is weighed (Réglages →
+Confidentialité); with no conversation created yet, the default is what receives it, and the
+menu says so. The fine CATEGORIES of a conversation are behind ⋯ in the chat header →
+« Catégories de cette conversation · N protégés » (tagged « modifié » when the thread
+deviates from the default): the chips, the thread's memory switch, and a text link to the
+default level in Réglages — no level picker and no « Par défaut » tab there, so the same
+setting is never offered on three screens — `packages/ui/src/containers/modals/redaction/RedactionRulesModal.tsx`.
 A confirmation pill names what was set and where, with « Annuler » for a few seconds.
 « Sur mesure » shows as the checked state, never as a choice; org-mandated categories are
 counted under the cards — `packages/ui/src/pages/ChatWorkspace/ComposerRedactMenu.tsx`
@@ -121,24 +127,29 @@ levels make the choice for you; « Sur mesure » is the hand-set one. The scope 
 moves where it must: one can work strictly on an HR file and leave city names in the clear
 on a logistics question, without changing a global setting or an account.
 
-**What it is worth.** Protection stays credible because no preset lowers it — there is no
-"fast mode" that quietly disables categories. And inside an organization, a category
+**What it is worth.** Protection stays credible because the ONE preset that lowers it says
+so, and only that one: « Allégé » leaves names, dates of birth, addresses, places and
+companies readable — the five categories only the model detects — because a web search or
+a connector call that queries a masked name answers about nobody. It is named as the lighter
+level, wears the eye instead of the shield, states what it leaves readable on its card, is
+never the install default (Renforcé is), and cannot switch off the floor (keys and secrets).
+No preset lowers the protection quietly. And inside an organization, a category
 mandated by the admin can be neither disabled nor revealed by a member: the policy actually
 holds, it is not merely displayed.
 
 - [x] Three named levels, « Sur mesure » being the hand-set one — `packages/ui/src/privacy/privacyLevel.ts`
 - [x] **Global** scope (Réglages) or **per conversation** (the chat modal)
-- [x] No preset LOWERS the protection
+- [x] Exactly ONE preset lowers the protection (« Allégé »), marked with the eye, never the install default, floor kept — `packages/ui/src/privacy/privacyLevel.test.ts`
 - [x] A category mandated by the organization can be neither disabled nor revealed
 - [x] The composer's preview obeys the same rules as the send
 - [x] Reveal a detected value one at a time (and re-mask it)
 - [x] An uncertain detection is marked « **à vérifier** » (dotted) in the preview — masked by default, kept in the clear with one click if it is a false positive — `packages/ui/src/pages/ChatWorkspace/composerDetection.ts`
-- [x] Notoriety follows the level: Standard/Renforcé spare big brands, MCP integrations and public figures; **Strict** masks them too — `packages/ui/src/privacy/privacyLevel.ts`
+- [x] Notoriety follows the level: Allégé/Renforcé spare big brands, MCP integrations and public figures; **Strict** masks them too — `packages/ui/src/privacy/privacyLevel.ts`
 - [x] Every category and every level also state what masking can DISTORT (not only what it covers) — `packages/ui/src/components/PrivacyLevelPicker.tsx`
 
 ### Seeing what the model saw
 **Access**: under a reply → « Voir ce que le modèle a vu » (`TransparencyModal`), or
-Réglages → Confidentialité → « **Transparence · journal technique** ».
+Réglages → Confidentialité → « Options avancées » → « **Journal technique détaillé** ».
 
 **What it makes possible.** Comparing, message by message, what you wrote and what actually
 left. The comparison is not a copy taken aside: it replays the same substitution as the
@@ -156,6 +167,9 @@ opens in one click from any reply.
 
 - [x] Message-by-message comparison, your text ⇄ the text that left — `packages/ui/src/privacy/transparency.ts`
 - [x] Recomputed on demand from the vault (no separate copy that could lie)
+- [x] Under each sent message, ONE short, stable mention — « **N protégés · voir** » — opens
+      that same comparison; the per-category detail lives there, never in the caption —
+      `packages/ui/src/components/message/MessageBubble.tsx`
 - [x] **« Comprendre mon masquage »** — a small container under the first replies opens the guide's redaction chapter (public figures left in the clear, a zero counter on a conversation with no personal data, Coffre for code names); « Fermer pour toujours » (`Settings.redactionIntroSeen`), the chapter staying in Aide; never stacked with the transparency card — `packages/ui/src/privacy/redactionIntro.ts`, `packages/ui/src/pages/ChatWorkspace/RedactionIntroCard.tsx`
 - [x] Global audit log, filterable and searchable — Réglages → **Journal** (the per-conversation log, an impoverished view of the same vault, was removed)
 - [x] Technical **debug log**, turn by turn, **persistent** (⋯ → « Journal de débogage », visible when « Journal technique détaillé » is on) — `packages/ui/src/containers/modals/DebugLogModal/`
@@ -213,6 +227,11 @@ what makes real document work bearable. Drafts are never written to disk: a half
 message, necessarily the most sensitive one, stays in memory.
 
 - [x] Composer with live highlighting of what will be redacted — `packages/ui/src/pages/ChatWorkspace/Composer.tsx`
+- [x] **One « + » door** in the action row for everything that joins a message — « Fichier »
+      (the native picker), « Dossier » (grant a folder, same gesture as the right rail's),
+      « Connecteur » (the catalogue, Réglages → Connecteurs), « Compétence » (the palette) —
+      each entry present only where its way in exists; « / » stays the keyboard way to the
+      compétences, in the same single palette — `packages/ui/src/pages/ChatWorkspace/ComposerAddMenu.tsx`
 - [x] « Nouvelle conversation » **creates** nothing: it shows the welcome screen, and the
       conversation is born on the **first send** — no more empty « Nouvelle conversation »
       rows in the list after a click with no follow-up — `packages/ui/src/workspace/layout/ops.ts` (`showWelcome`)
@@ -233,9 +252,13 @@ message, necessarily the most sensitive one, stays in memory.
 - [x] « **Ne plus proposer** » hides the starters, and « Voir des exemples » brings them back
       in the same place (`Settings.startersOff`)
 - [x] Several conversations in parallel, each with its own turn
+- [x] **One status slot** under a reply — failed, interrupted, empty, or a failed tool step:
+      the same card, a variant per reason, and a single « Réessayer » that regenerates in
+      place; the credits card is its amber variant — `packages/ui/src/components/message/TurnStatus/`
 - [x] Conversation tabs + a splittable workspace — `packages/ui/src/workspace/`
 - [x] Drafts kept per conversation, **in memory only**
-- [x] Full-screen editor for a long draft, with a Preview tab
+- [x] Full-screen editor for a long draft, with a Preview tab — opened by clicking the
+      collapsed draft card in the composer — `packages/ui/src/pages/ChatWorkspace/ComposerTextModal.tsx`
 - [x] Delete a conversation; open several in tabs
 - [x] Rename or delete a conversation from its row in the list (⋯ on hover):
       **in-place** rename, confirmed deletion — `packages/ui/src/containers/shell/ConvRow.tsx`
@@ -354,8 +377,8 @@ re-reading an old conversation means knowing who wrote what.
       OpenRouter through the subscription OR your key, the other five through your key only
 
 ### Files inside a conversation
-**Access**: the composer's paperclip, or **drag and drop** a file or a folder onto the
-conversation.
+**Access**: the composer's « + » → **Fichier**, or **drag and drop** a file or a folder onto
+the conversation (pasting works too).
 
 **What it makes possible.** Dropping a PDF, a scan, an image, an Office document, a CSV —
 and sending it **already masked**. The text is extracted, a scan goes through OCR with its
@@ -382,7 +405,8 @@ today's.
 - [x] Document redaction **on drop**, before any send
 - [x] Preview before sending: the document (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », cut at the send limit) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
 - [x] Redact a word by hand in the preview (selection or click on a word)
-- [x] Sending a document as **redacted images** to a multimodal model
+- [ ] Sending a document as **redacted images** to a multimodal model — not offered: a
+      document leaves as its extracted, masked text (the « texte ou fichier » choice was removed)
 - [x] A card that has aged (rules changed) is flagged + can be re-redacted
 - [x] An unfinished or failed document blocks the send
 
@@ -466,12 +490,23 @@ them.
 - [x] Remote (OAuth/DCR), on-device direct, local, added by you
 - [x] OAuth sign-in in the system browser (the only place an SSO works)
 - [x] Several accounts per connector, labelled
-- [x] « Ajouter un connecteur », unverified, in its own section
+- [x] « Ajouter un connecteur », unverified, in its own section — the toolbar button beside
+      the search field opens the name / URL / key form, behind a risk acknowledgement —
+      `packages/ui/src/pages/Settings/mcp/McpCustomModal.tsx`
 - [x] See the tools a connector exposes — `packages/ui/src/containers/modals/McpToolsModal.tsx`
 - [x] Choice of access mode when the server offers two — `packages/ui/src/containers/modals/McpAuthChoiceModal.tsx`
 - [x] Connectors from your other devices are offered for connection
-- [x] Connect without leaving the screen: the modal opens on top, from any mention of a
-      connector — `packages/ui/src/pages/Settings/mcp/ConnectorModalHost.test.tsx`
+- [x] Connect without leaving the screen: the connector's modal (connect / disconnect,
+      accounts, tools) opens on top, from its card in Réglages → Connecteurs or from any
+      mention of a connector — `packages/ui/src/pages/Settings/mcp/McpConnectorModal.tsx`,
+      `packages/ui/src/pages/Settings/mcp/ConnectorModalHost.test.tsx`
+- [x] An integration is **offered** under a reply only on a strong match — the service
+      named, or an explicit ask only that tool honours — never a word in passing; at most
+      two cards, once per conversation, and never on the turn a once-only card (Transparence,
+      « Comprendre mon masquage », Mémoire) takes — `packages/ui/src/agent/integrationRelevance.ts`,
+      `packages/ui/src/components/agent/integrationSlot.ts`
+- [x] « Mes clés » inside a connector's modal: your own OAuth client id / secret for that
+      service, with the per-provider checklist — `packages/ui/src/pages/Settings/byo/ByoKeysModal.tsx`
 - [x] **Every call leaves in the clear and comes back redacted**
 - [x] Enter an API key when the service asks for one — `packages/ui/src/containers/modals/ApiKeyModal.tsx`
 
@@ -500,12 +535,14 @@ granting one's home directory. A removal takes effect immediately, not at the ne
 - [x] Browse them **without leaving the conversation**: right rail → « Dossiers », an
       expandable tree; a file opens in the shared side panel —
       `packages/ui/src/containers/shell/folders/FolderTreePanel.tsx`
-- [x] **Add a folder** from that same rail (native picker; the grants already in place are
-      kept)
-- [x] **« Demander »** on hovering a folder (or clicking a cloud entry): a fresh
-      conversation carrying the target as a **tag** — folder/file and its service or path, a
-      chip on the composer then on the message — which the model reads with the connector's
-      tools; nothing is attached by default
+- [x] **Add a folder** from that same rail, or from the composer's « + » → « Dossier »
+      (native picker; the grants already in place are kept — one gesture, two doors) —
+      `packages/ui/src/hooks/useGrantFolder.ts`
+- [x] **« Demander »** on hovering a folder (or clicking a cloud entry): the **open**
+      conversation (a new one only when none is open — the same rule as the browser's
+      « Demander à propos de cette page ») receives the target as a **tag** — folder/file
+      and its service or path, a chip on the composer then on the message — which the model
+      reads with the connector's tools; nothing is attached by default
 - [x] **Connected storage** (Drive, OneDrive, Dropbox) is listed in the same place, with its
       state — `packages/catalog/src/mcp/registry.ts`
 - [x] **Google Drive, OneDrive and Dropbox browse as a tree**, like the machine's folders —
@@ -554,7 +591,9 @@ a weakening cannot come from anywhere but you.
 - [x] The card stays attached to ITS conversation (turns run in parallel)
 
 ### The driven browser
-**Access**: the globe in the right rail of a conversation · Réglages → **Navigateur**.
+**Access**: the globe in the right rail of a conversation · Réglages → **Navigateur** (the
+search engine) · Réglages → **Connecteurs** → « Ce que l'agent peut faire » (« **Sécurité du
+navigateur agent** »: read-only mode, allowed domains).
 
 **What it makes possible.** Giving the model a real browser — pages, forms, signed-in
 sessions — in an isolated window, next to the conversation, which you watch working and can
@@ -602,8 +641,10 @@ original makes it possible to share a document without reworking it.
 
 - [x] Every file of a conversation lands here automatically — `packages/ui/src/pages/Library/`
 - [x] Filters by type; search
-- [x] **Grid or list** display, remembered per screen — `packages/ui/src/components/ViewModeToggle.tsx`
-- [x] Opens in the shared side panel — **one view only, the redacted one** (+ « Conversations »)
+- [x] **Grid or list** display, remembered per screen — `packages/ui/src/components/ViewModeToggle.tsx`; one toolbar row (view toggle + « Sélectionner »)
+- [x] Opens in the shared side panel — **one view only, the redacted one** (+ « Conversations »); the card is the only click target (its footer keeps « Ouvrir dans l'app externe » alone)
+- [x] An empty library points at « **Aller aux conversations** » — files arrive through a conversation, never from here —
+      by clicking a file card or row — `packages/ui/src/pages/Library/LibraryFileModal.tsx`
 - [x] "Which conversations use this file"
 - [x] Re-attach a file to a new conversation (without re-OCR)
 - [ ] Uploading a file straight into Bibliothèque (it goes through a conversation)
@@ -617,7 +658,7 @@ one that names connectors puts them to work — that is the "Routines" category,
 used to call a "workflow" when it was a second screen.
 
 ### Skills
-**Access**: the **Compétences** section · `/` in the composer.
+**Access**: the **Compétences** section · `/` in the composer, or its « + » → « Compétence ».
 
 **What it makes possible.** Saving a good instruction — a standard reply, a report format, a
 translation brief, a proofreading style — filing it by category, and inserting it into any
@@ -632,7 +673,8 @@ it compounds: your library of instructions becomes your way of working. The prom
 redacted like everything else — a saved template often contains the real example pasted while
 it was being written.
 
-- [x] Create, edit, file by category — screen `packages/ui/src/pages/Skills/`, logic `packages/ui/src/skills/`
+- [x] Create, edit, file by category — screen `packages/ui/src/pages/Skills/`, logic `packages/ui/src/skills/`. « **Nouvelle compétence** » lives in the page header (the same place as the Mémoire's and the Coffre's « Créer »). Creation asks **two fields** — name and instruction (a plain markdown textarea: the chat renders it, no formatting bar, no preview) — plus the connectors fold; the description is optional and the category is chosen when editing, filed under « Rédaction » (or « Routines » the moment a connector is picked) until then — `packages/ui/src/pages/Skills/SkillModal.tsx`
+- [x] A card says « N utilisations », in words
 - [x] **Skills shared inside the organization** — the grid groups by scope (**Organisation** and **Équipe** sections above your cards, badged Perso): skills shared with you are used in one click. Each personal card carries **« Partager »** on hover → the same "with whom?" modal, with a **redacted preview** of the shared text ("exactly what others will see"); requests and decisions on the **« Demandes » bell** (rendered only for an organization member, or while received shares remain — `shareInboxVisible.test.ts`), an accepted person-share **adopts a copy** — sections `packages/ui/src/pages/Skills/parts/OrgSkillsBlock.tsx`, modal + bell `packages/ui/src/containers/orgShares/`, channel `packages/sync/src/orgScope/`
 - [x] **Asking the assistant to write one**: "create me a skill for…" and it answers with a
       card — name, category, expandable prompt — that an **Ajouter** button files into the
@@ -677,6 +719,9 @@ access.
       its connectors for the answer — `packages/ui/src/skills/launch.test.ts`
 - [x] One intent per send
 - [x] Starter templates, sorted by what is already connected
+- [x] « Nouvelle compétence », or editing one from its card or row, opens the ONE editor —
+      name, category, description, prompt, connectors, with the suggestion pane —
+      `packages/ui/src/pages/Skills/SkillModal.tsx`
 - [x] **Your old workflows are carried over automatically**, with their connectors and their
       history — `packages/ui/src/skills/migrate.test.ts`
 
@@ -708,11 +753,12 @@ is worse than no memory. Nothing is erased silently either: an update keeps the 
 version, restorable.
 
 - [x] Cards per entity + a preferences profile — screen `packages/ui/src/pages/Memory/`, CRUD `packages/ui/src/state/memory/useMemory.ts`
-- [x] **Silent** extraction (can be turned off, `MemorySection.tsx`) and **explicit** extraction (always on, 12 languages) — `packages/ui/src/memory/extractExplicit.ts`
-- [x] Graph (drag/zoom/reframe) and list view with search, as you prefer — `packages/ui/src/pages/Memory/MemoryGraph.tsx`, `MemoryList.tsx`
+- [x] **Silent** extraction — a SETTING, « **Extraction automatique de la mémoire** » in Réglages → Confidentialité (`packages/ui/src/pages/Settings/privacy/PrivacyTab.tsx`, indexed in ⌘K), not a switch on the page — and **explicit** extraction (always on, 12 languages) — `packages/ui/src/memory/extractExplicit.ts`
+- [x] **List first**, the graph (drag/zoom/reframe) as the second view — the choice remembered per screen like the Bibliothèque's (`packages/ui/src/hooks/useViewMode.ts`); a card's « Connexions » reach the graph from the list — `packages/ui/src/pages/Memory/MemoryGraph.tsx`, `MemoryList.tsx`
+- [x] The page keeps five things — profile, search, « À revoir », Liste/Graphe, « Nouvelle fiche » (header) — and no setting; the diagnostic export moved to Réglages → Journal
 - [x] Selecting a node **brings the view closer** to its neighbourhood — labels readable — and deselecting widens it again — `packages/ui/src/pages/Memory/graphFrame.test.ts`
 - [x] Grouping + merge suggestions between nearby cards, computed on the device — `packages/ui/src/memory/cluster.ts`, `dedupe.ts`
-- [x] « Mémoire utilisée » under a sent message, and a non-recall explained when it could surprise — `packages/ui/src/components/message/MemoryCaptions.tsx`
+- [x] « Mémoire utilisée » under a sent message, and a non-recall explained when it could surprise — ONE line per message, whatever memory has to say about it — `packages/ui/src/components/message/MemoryCaption.tsx`
 - [x] A card **updates** (never stacks); replaced versions stay visible and **restorable** — `packages/ui/src/memory/compaction.ts`
 - [x] A « À revoir · N » box: auto cards + proposed duplicates, with inline **Confirmer**/Delete — emptying it is the task — `packages/ui/src/pages/Memory/useMemoryReview.ts`
 - [x] "Recalled in N conversations" + a surprising non-recall explained, on the card — `packages/ui/src/memory/usage.ts`
@@ -746,9 +792,16 @@ a Coffre term appearing in an e-mail fetched by a connector is masked as if it c
 Without that, the promise would have a hole exactly where nobody looks.
 
 - [x] A dictionary of values masked on **every** send, whatever the conversation — screen `packages/ui/src/pages/Vault/`, logic `packages/ui/src/send/vaultTerms.ts`
-- [x] Occurrence count computed on the real vaults
+- [x] Occurrence count computed on the real vaults; clicking a term's row opens
+      **« Occurrences »** — where and when it was masked, each row jumping to its
+      conversation — `packages/ui/src/pages/Vault/VaultUsesModal.tsx`
 - [x] Holds inside a tool result too (not only in what you type)
 - [x] Add a term from a selection inside a conversation
+- [x] « **Ajouter un terme** » in the page header; the **category is guessed** from the value's shape with the engine's own detectors (e-mail, phone, IBAN, card…), so a paste + Enter is enough; five frequent categories shown, the other nine behind « Plus de catégories » — `packages/ui/src/pages/Vault/vaultTypes.ts`
+- [x] **Edit** a term (rename it, change its category) from its row; deletion says « Supprimer », like everywhere else
+- [x] The empty state says what the Coffre is for, against the categories: known shapes for them, **your own words** for it
+- [x] **« Ajouter au coffre »** from the filter bar's add button or the empty screen's call:
+      term, type, optional note — `packages/ui/src/pages/Vault/parts/VaultAddModal.tsx`
 - [x] **Terms shared inside the organization** — the Coffre list stays ONE, badged by scope (Perso / Équipe / Orga): terms shared with you fold into it read-only, masked like yours. Each personal row carries **« Partager »** → the "with whom?" modal (the whole organization, your team, or one person — each target states **who approves**: an administrator for org/team, the recipient themselves for a person); requests arrive on the right panel's **« Demandes » bell**, and accepting a person-share **adopts a copy** into your list; end-to-end encrypted to the audience only (desktop) — badge/scopes `packages/ui/src/orgShares/scopes.ts`, modal + bell `packages/ui/src/containers/orgShares/`, merge at send time `combinedVaultTerms` (`packages/ui/src/send/vaultTerms.ts`), channel `packages/sync/src/orgScope/`
 - [ ] Bulk import of a list of terms
 
@@ -758,16 +811,18 @@ Without that, the promise would have a hole exactly where nobody looks.
 
 **Access**: the gear in the rail · ⌘K, which indexes the settings themselves. Four visible
 tabs, the rest behind « Avancé » — because a setting one is looking for is found by
-searching, not by an eleven-entry list.
+searching, not by a ten-entry list.
 
 ### Account (« Compte »)
 **Access**: Réglages → **Compte**.
 
-**What it makes possible.** The device's identity — and the **Organisation** card: on a
-company account it shows yours (name, role, headcount) and leads to the Organisation tab; on
-a solo account it offers to **create one**, in the web app — the appearance (light or dark),
-importing your existing conversations, the billing-mode choice, consent to anonymous
-statistics, and link previews.
+**What it makes possible.** The device's identity — and the **Organisation** block: on a
+company account it shows yours (name, plan, role, headcount, the rules it imposes, the
+console link for an admin) right under the identity it governs — there is no separate tab,
+nothing there is a setting; on a solo account it offers to **create one**, in the web app —
+the appearance (light or dark), importing your existing conversations, the billing-mode
+choice, consent to anonymous statistics, and link previews (under « Vie privée »: one
+outgoing request per link is a privacy decision, not a developer toggle).
 
 **What it gives you.** The import is the gesture that makes changing tools possible: your
 ChatGPT or Claude history arrives **redacted on import**, hence reusable here without
@@ -781,8 +836,10 @@ previews are **off by default** because previewing a link means making an outgoi
 hence revealing that you received it.
 
 - [x] Device identity, sign-out
-- [x] « **Mode sombre** » (the background; the indigo accent is no longer an option — an inherited green theme is translated at load, `packages/ui/src/state/storePersistence.ts`)
+- [x] « **Mode sombre** » (the ground: two themes, light and dark, the indigo accent is not a setting; a theme name persisted by an earlier version is still read, `packages/ui/src/state/settings/theme.ts`)
 - [x] « **Importer des conversations** » (official ChatGPT / Claude exports, redacted on import)
+      — the « Importer » button of Réglages → Compte opens the source + drop dialog —
+      `packages/ui/src/pages/Settings/import/ImportModal.tsx`
 - [x] « **Facturation des messages** » : your key, or the included credits
 - [x] « **Prévenir quand une réponse arrive** »: a system notification, **only** if the
       thread is not in front of you (another window, or another conversation); the click
@@ -797,17 +854,40 @@ hence revealing that you received it.
 **Access**: Réglages → the matching tab. The detail of each is in sections 1 to 3.
 
 **What it makes possible.** The four tabs that govern what the app protects, what it answers
-with, what it reaches, and what it may do on its own.
+with, what it reaches, and what it may do on its own — the last one on **Connecteurs**, under
+« Ce que l'agent peut faire »: the write gate and the agent browser's hardening, one family;
+**Navigateur** keeps only its search engine.
 
 **What it gives you.** Each tab is titled, described and **searchable by construction**: the
 same single source feeds the rail's label, the page header and the ⌘K palette row. So a
 setting cannot exist without being findable.
 
-**What it is worth.** That is what makes it acceptable to fold seven tabs behind « Avancé »:
+**What it is worth.** That is what makes it acceptable to fold six tabs behind « Avancé »:
 nothing becomes unreachable, only less cluttered.
 
 - [x] Each tab is titled and searchable by construction — `packages/ui/src/pages/Settings/settingsIndex.ts`
 - [x] The settings themselves are indexed in ⌘K, not only the tabs
+- [x] Réglages → Connecteurs → « Ce que l'agent peut faire »: « **Confirmation des actions** »
+      and « **Sécurité du navigateur agent** » (read-only browsing, allowed domains) in ONE
+      section — `packages/ui/src/pages/Settings/mcp/McpAgentPowers.tsx`
+- [x] Réglages → Confidentialité → « **Options avancées** », folded: the technical log, the
+      token display, what the model receives, the memory extraction — one fold for the
+      toggles most accounts never touch — `packages/ui/src/pages/Settings/privacy/PrivacyTab.tsx`
+- [x] Réglages → Modèles: the key lives on the provider CHIP (« Avec une clé API ») — no
+      second gear per group; the price filter is a **dropdown**, hidden when every listed
+      model sits in one tier; the local model waits behind an « **Avancé** » fold —
+      `packages/ui/src/components/ModelSelector/PriceTierSelect.tsx`,
+      `packages/ui/src/pages/Settings/models/LocalModelSection.tsx`
+- [x] Réglages → Modèles → a CLI chip under « Via un agent installé » opens that agent's
+      opt-in (the switch + its account/plan card) — `packages/ui/src/pages/Settings/models/AgentAccessModal.tsx`
+- [x] Réglages → Confidentialité → either stat card of the privacy report opens the
+      **by-type breakdown** (your messages, or everything ever masked) —
+      `packages/ui/src/pages/Settings/privacy/PrivacyBreakdownModal.tsx`
+- [x] Réglages → Confidentialité → « **Extraction automatique de la mémoire** »: the
+      Mémoire's silent extraction, off by default; « retiens que… » works either way —
+      `packages/ui/src/pages/Settings/privacy/PrivacyTab.tsx`
+- [x] Réglages → Journal → in the redaction table, clicking a masked `•••` cell reveals that
+      ONE real value beside its token, copyable — `packages/ui/src/pages/Settings/privacy/AuditRevealModal.tsx`
 
 ### Log, Usage (« Journal », « Usage »)
 **Access**: Réglages → **Journal** (the redaction audit, then « **Ce qui est sorti de la
@@ -840,6 +920,8 @@ is read-only: the app writes it, the interface can neither invent nor erase it.
 - [x] The two halves are **two views of a selector**, not a stack: the redaction table loads
       endlessly by pages, so the network log placed underneath was out of scrolling reach —
       `packages/ui/src/pages/Settings/privacy/AuditLogTab.tsx`
+- [x] « **Exporter la mémoire (diagnostic)** » under the redaction view: the cards and their
+      semantic links as a local text file, real values — `packages/ui/src/pages/Memory/MemoryExportRow.tsx`
 - [x] The network log keeps the **site name only** (never the page nor the request)
 - [x] Written by the privileged process, read-only for the interface — `apps/desktop/src/main/net/egressLog.ts`
 - [x] Consumption per model and per conversation, estimated cost
@@ -869,7 +951,8 @@ redaction closed.
 - [x] **The status line** — Réglages → Synchronisation shows the RESOLVED environment (staging/production, never inferred from the channel) and the last exchange (succeeded X min ago / failed + reason): sync is best-effort, and this line is what stops an outage from being invisible — `packages/ui/src/pages/Settings/syncStatusLine.ts`, `apps/desktop/src/renderer/src/sync/status.ts`
 
 ### Organization (« Organisation »)
-**Access**: Réglages → **Organisation** (if the account belongs to an organization).
+**Access**: Réglages → **Compte** → the « Organisation » block (if the account belongs to an
+organization) — no tab of its own: nothing there is a setting, an admin sets it in the console.
 
 **What it makes possible.** Attaching accounts to an organization, with roles, a shared
 credit pool, an audit log, and above all a **mandated frame** the member cannot loosen:
@@ -1008,7 +1091,8 @@ The app cannot describe itself in two ways — which, on a product where four na
 are its own (Coffre, Compétences, Mémoire), is the difference between a vocabulary and
 jargon.
 
-- [x] Five sections + Réglages — `packages/ui/src/help/sections.ts`
+- [x] Five sections + Réglages, iterated by the rail, the sidebar and the mobile bar from the same list, each with its one mark — `packages/ui/src/help/sections.ts`, `packages/ui/src/components/brand/icons/sections.tsx`
+- [x] Transient notices are ONE toast (« Noté en mémoire », an ignored attachment); a lasting state is the status chip; the first-launch analytics notice is that chip — `packages/ui/src/components/feedback/Toast.tsx`, `packages/ui/src/components/AnalyticsNotice.tsx`
 - [x] ⌘K palette: conversations, sections, settings — `packages/ui/src/containers/modals/SearchModal/`
 - [x] Shared side panel, kept from one section to the next
 - [x] Folding it: click the **active** tab again; closing it: the cross on its item. The
@@ -1017,6 +1101,12 @@ jargon.
       storage, only if there is something to browse), Aide and Avis —
       `packages/ui/src/containers/shell/RightRail.tsx`
 - [x] 📱 Mobile replaces certain screens with its own — `packages/ui/src/containers/shell/mobile/`
+- [x] Every modal is a real dialog: focus enters it, Tab stays inside, Escape closes the
+      topmost one only, and focus returns to the control that opened it —
+      `packages/ui/src/containers/modals/ModalShell.test.tsx`
+- [x] A destructive gesture (deleting a conversation or files, changing plan) asks first in
+      the ONE confirm dialog — focus on the confirm button, Escape cancels —
+      `packages/ui/src/components/feedback/ConfirmDialog.tsx`
 
 ### First launch
 **Access**: on first launch, after signing in — on the account's **first** device only: an

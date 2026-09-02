@@ -159,7 +159,6 @@ export function ChatPane({
       onChangeSettings={chat.setSettings}
       onChangeConversation={chat.setConversationCategories}
       onSetMemoryOff={chat.setConversationMemoryOff}
-      onToggleNeutralMarks={chat.toggleConversationNeutralMarks}
       onReveal={chat.revealRedaction}
       onReRedact={chat.reRedact}
       isRevealForced={chat.isRevealForced}

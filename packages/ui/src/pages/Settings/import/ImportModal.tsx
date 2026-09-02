@@ -18,7 +18,7 @@ type Phase =
  * « Importer des conversations » (BÊTA) — Réglages → Compte. The user picks the
  * source assistant, drops its OFFICIAL export (zip/json), and everything happens
  * on-device: parse → import-time redaction (vault per conversation) → merge with
- * dedup. Gemini is greyed: Google Takeout doesn't preserve thread structure.
+ * dedup. Gemini is a one-line note: Google Takeout doesn't preserve thread structure.
  */
 export function ImportModal({
   defaultModelId,
@@ -78,7 +78,7 @@ export function ImportModal({
 
       {phase.step === "pick" && (
         <>
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-2 gap-2 mb-3">
             {(["chatgpt", "claude"] as const).map((p) => (
               <button
                 key={p}
@@ -92,16 +92,12 @@ export function ImportModal({
                 <span className="text-sm font-semibold text-strong">{PROVIDER_LABEL[p]}</span>
               </button>
             ))}
-            <div
-              className="flex flex-col items-center gap-2 py-3.5 rounded-[var(--radius-md)] bg-surface-sunken border-[1.5px] border-border-subtle opacity-55"
-              title={t.importModal.geminiSoonTip}
-            >
-              <ModelLogo provider="google" size={22} />
-              <span className="text-sm font-semibold text-muted">{t.importModal.geminiSoon}</span>
-            </div>
           </div>
 
           <p className="text-xs text-muted leading-relaxed mb-3">{provider === "chatgpt" ? t.importModal.hintChatgpt : t.importModal.hintClaude}</p>
+          {/* Gemini is a NOTE, not a greyed third tile: a tile promises a choice, and Google
+              Takeout gives no thread structure to import. */}
+          <p className="text-xs text-faint leading-relaxed mb-3">{t.importModal.geminiNote}</p>
 
           {error && (
             <div role="alert" className="mb-3 text-sm text-[var(--red-500,#d4493f)]">

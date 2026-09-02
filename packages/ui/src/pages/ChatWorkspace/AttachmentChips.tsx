@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { useT } from "../../i18n";
-import { FileIcon, RefreshIcon } from "../../components/brand";
+import { AlertIcon, FileIcon, RefreshIcon, ShieldIcon, XIcon } from "../../components/brand";
 import type { Attachment } from "./Composer";
 import { ocrShortfall } from "./ocrShortfall";
 
@@ -9,6 +9,10 @@ import { ocrShortfall } from "./ocrShortfall";
  * `Composer.tsx` (LOC ratchet). Pure render over the attachment lifecycle the
  * caller owns: extraction → redaction (with progress) → error / stale-engine
  * re-run / preview open / remove.
+ *
+ * The chip says ONE of four states (lecture · masquage · à refaire · prêt) and offers
+ * ONE contextual action besides the remove cross; the reason and the detail live in
+ * the tooltip. Eight ad-hoc labels used to compete for the same 10-px line.
  */
 export function AttachmentChips({
   attachments,
@@ -41,6 +45,45 @@ export function AttachmentChips({
         // file has a path (a dropped one with no path keeps the marker in its text).
         const shortfall = !a.redacting && ocrShortfall(a);
         const showOcrAll = !!shortfall && !!onOcrAll && !!a.path;
+        // The four states, in the order the file goes through them. « À refaire »
+        // covers everything that needs a gesture (an error, a partial read, stale rules).
+        const redo = !!a.error || !!a.redactError || !!shortfall || engineChanged;
+        const state = a.extracting ? "reading" : a.redacting ? "masking" : redo ? "redo" : "ready";
+        const pct = (p?: { done: number; total: number }) =>
+          p && p.total > 1 ? Math.round((p.done / p.total) * 100) : undefined;
+        const stateLabel =
+          state === "reading"
+            ? a.extractProgress && a.extractProgress.total > 1
+              ? // Paginated OCR: stating the current page beats a percentage
+                // (the user sees their document, they think in pages).
+                t.composer.attachments.stateReadingPage(
+                  Math.min(a.extractProgress.done + 1, a.extractProgress.total),
+                  a.extractProgress.total,
+                )
+              : t.composer.attachments.stateReading
+            : state === "masking"
+              ? pct(a.redactProgress) !== undefined
+                ? t.composer.attachments.stateMaskingPct(pct(a.redactProgress)!)
+                : t.composer.attachments.stateMasking
+              : state === "redo"
+                ? t.composer.attachments.stateRedo
+                : a.redactPreview > 0
+                  ? // The unit matters on a chip this small: « 10 » alone read as a
+                    // file count / a page number as often as a redaction count.
+                    t.composer.attachments.stateReady(a.redactPreview)
+                  : a.kind;
+        // The tooltip carries the REASON: the error text, the stale rules, the pages left.
+        const tip = a.error
+          ? a.error
+          : a.redactError
+            ? a.redactError
+            : a.redacting
+              ? t.composer.attachments.redacting
+              : shortfall
+                ? t.composer.attachments.partialTip(shortfall.read, shortfall.total)
+                : engineChanged
+                  ? t.composer.attachments.staleTip
+                  : t.composer.attachments.open;
         // An image stays viewable even when text OCR failed (the picture itself is
         // fine) — so don't let its `error` block the preview. Its bytes may come from
         // a granted PATH or be held in memory (a drop / a Bibliothèque re-attach has
@@ -62,17 +105,7 @@ export function AttachmentChips({
             aria-label={`${a.name} — ${openable ? t.composer.attachments.open : t.composer.attachments.processing}`}
             aria-disabled={!openable || undefined}
             className={`attach-chip ${a.error || a.redactError ? "err" : engineChanged ? "stale" : ""}`}
-            title={
-              a.error
-                ? a.error
-                : a.redactError
-                  ? a.redactError
-                  : a.redacting
-                    ? t.composer.attachments.redacting
-                    : engineChanged
-                      ? "Redacted avec vos anciens réglages — reredact pour appliquer les réglages actuels"
-                      : "Consulter le fichier"
-            }
+            title={tip}
             onClick={open}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -98,34 +131,22 @@ export function AttachmentChips({
             <span className="attach-body">
               <span className="attach-name">{a.name}</span>
               <span className="attach-meta">
-                {a.error
-                  ? a.error
-                  : a.extracting
-                    ? a.extractProgress && a.extractProgress.total > 1
-                      ? // Paginated OCR: stating the current page beats a percentage
-                        // (the user sees their document, they think in pages).
-                        `📄 OCR… page ${Math.min(a.extractProgress.done + 1, a.extractProgress.total)}/${a.extractProgress.total}`
-                      : a.extractProgress
-                        ? "📄 lecture de l'image…"
-                        : "📄 extraction…"
-                    : a.redacting
-                      ? a.redactProgress && a.redactProgress.total > 1
-                        ? `⏳ redaction… ${Math.round((a.redactProgress.done / a.redactProgress.total) * 100)}%`
-                        : "⏳ redaction…"
-                      : a.redactError
-                        ? "⚠ échec"
-                        : shortfall
-                          ? `📄 ${shortfall.read}/${shortfall.total} pages lues`
-                          : engineChanged
-                          ? "↻ réglages modifiés"
-                          : a.redactPreview > 0
-                            ? // The unit matters on a chip this small: « 🛡 10 » read as a
-                              // file count / a page number as often as a redaction count.
-                              t.composer.attachments.values(a.redactPreview)
-                            : a.kind}
+                {/* One glyph per state (Lucide, like the rest of the app), one word. */}
+                {state === "reading" ? (
+                  <FileIcon size={11} />
+                ) : state === "masking" ? (
+                  <RefreshIcon size={11} />
+                ) : state === "redo" ? (
+                  <AlertIcon size={11} />
+                ) : a.redactPreview > 0 ? (
+                  <ShieldIcon size={11} />
+                ) : null}
+                <span>{stateLabel}</span>
               </span>
             </span>
-            {showOcrAll && (
+            {/* ONE contextual action: re-read the pages the OCR left, else re-mask /
+                retry. Both buttons used to be able to show at once. */}
+            {showOcrAll ? (
               <button
                 className="attach-retry"
                 aria-label={t.composer.attachments.readAllPages(shortfall!.total)}
@@ -137,8 +158,7 @@ export function AttachmentChips({
               >
                 <RefreshIcon size={13} />
               </button>
-            )}
-            {showRerun && (
+            ) : showRerun ? (
               <button
                 className="attach-retry"
                 aria-label={a.redactError ? t.composer.attachments.retryRedaction : t.composer.attachments.reRedact}
@@ -154,7 +174,7 @@ export function AttachmentChips({
               >
                 <RefreshIcon size={11} />
               </button>
-            )}
+            ) : null}
             <button
               className="attach-x"
               aria-label={t.composer.attachments.remove}
@@ -163,7 +183,7 @@ export function AttachmentChips({
                 onRemove(i);
               }}
             >
-              ✕
+              <XIcon size={11} />
             </button>
             {a.redacting && a.redactProgress && a.redactProgress.total > 1 && (
               <span className="attach-progress" aria-hidden="true">

@@ -54,10 +54,10 @@ export function useSearchPalette({ chat, blocked }: { chat: ChatStore; blocked: 
   // The palette also searches SETTINGS. The shell resolves them because it owns which
   // tabs actually exist here — the same capability gates the settings rail applies — so
   // the palette can never offer a destination the rail doesn't have.
-  const caps = useSettingsCapabilities(chat.orgProfile);
+  const caps = useSettingsCapabilities();
   const settingsResults = useCallback(
     (q: string) => searchSettings(q, t, (id) => tabAvailable(id, caps)),
-    [caps.org, caps.sync, caps.browser, caps.billing],
+    [caps.sync, caps.browser, caps.billing],
   );
   // …and the stored FILES. Aggregate them (host.db) ONLY while the palette is open — no
   // cost on every shell render (the Library grid and this share ONE listing).

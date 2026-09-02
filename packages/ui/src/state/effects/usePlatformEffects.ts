@@ -95,12 +95,12 @@ export function usePlatformEffects(p: {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- host is stable per platform
   }, [settings.claudeCliEnabled, settings.codexCliEnabled, settings.antigravityCliEnabled]);
 
-  // Apply the colour theme to <html> (the dark / blue / blue-dark token overrides key off
-  // `data-theme`; light = no attribute).
+  // Apply the colour theme to <html> (the dark token overrides key off `data-theme`;
+  // light = no attribute, the bare `:root`).
   useEffect(() => {
     const root = document.documentElement;
     const t = settings.theme;
-    if (t === "dark" || t === "blue" || t === "blue-dark") root.setAttribute("data-theme", t);
+    if (t === "dark") root.setAttribute("data-theme", "dark");
     else root.removeAttribute("data-theme");
     // Mirror to the DEVICE key: it is what the pre-paint pass and the signed-out scope
     // read, so recording it here is what makes the theme survive a sign-out or a cold

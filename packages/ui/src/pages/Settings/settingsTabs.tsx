@@ -8,7 +8,6 @@ import {
   RefreshIcon,
   ShieldIcon,
   UserIcon,
-  UsersIcon,
   ZapIcon,
 } from "../../components/brand";
 import { useHost, type OrgProfileInfo } from "../../host";
@@ -48,7 +47,6 @@ const SETTINGS_NAV_SHAPE: { id: TabId; icon: ReactNode; group: SettingsGroup }[]
   { id: "audit", icon: <ShieldIcon size={19} />, group: "advanced" },
   { id: "browser", icon: <BrowserIcon size={19} />, group: "advanced" },
   { id: "sync", icon: <RefreshIcon size={19} />, group: "advanced" },
-  { id: "org", icon: <UsersIcon size={19} />, group: "advanced" },
   { id: "versions", icon: <LayersIcon size={19} />, group: "advanced" },
 ];
 
@@ -61,11 +59,14 @@ export function settingsNav(t: Messages): { id: TabId; label: string; icon: Reac
  * The capabilities of THIS instance, read from the host. A missing slot = the build did
  * not receive the service's address (or the platform cannot do it): the private `infra`
  * repo. Exposed so the ⌘K palette asks the same question as the rail, without copying it.
+ *
+ * `_orgProfile` is accepted and IGNORED: no tab depends on an organisation any more (the
+ * Organisation block lives inside Compte, drawn when the profile exists). The parameter
+ * stays so the shell's call sites keep compiling; it will go with its next caller edit.
  */
-export function useSettingsCapabilities(orgProfile?: OrgProfileInfo | null): SettingsCapabilities {
+export function useSettingsCapabilities(_orgProfile?: OrgProfileInfo | null): SettingsCapabilities {
   const host = useHost();
   return {
-    org: !!orgProfile,
     sync: !!host.sync,
     browser: !!host.browser,
     billing: !!host.billing,

@@ -7,6 +7,7 @@
  * so it's trivially unit-tested. Kept OUT of the (already >300 LOC) `mcpAgent.ts`.
  */
 import type { ToolDef } from "@openmasq/llm";
+import { isStrongMatch } from "./integrationRelevance";
 import {
   BROWSER_CONNECTOR_ID,
   findConnector,
@@ -30,8 +31,9 @@ export interface BrowserState {
   enableable?: boolean;
 }
 
-/** At most this many cards per turn — a longer list reads as noise, not a suggestion. */
-export const MAX_SUGGESTIONS = 4;
+/** At most this many cards per turn — a longer list reads as noise, not a suggestion.
+ *  Two, measured: four tiles under a reply were a catalogue, not an answer. */
+export const MAX_SUGGESTIONS = 2;
 
 /** The connector ids currently connected, from the live tool list's `serverId`s
  *  (a multi-account instance id like `gmail--a1b2` maps back to `gmail`). */
@@ -177,14 +179,29 @@ export function suggestIntegrationsDef(candidates: McpConnector[]): ToolDef {
  * The `suggest_integrations` call, resolved: the VALID ids to pin on the message and the
  * tool message that goes back to the model. Pure — the loop keeps only the side effects.
  *
+ * ⚠️ The model's pick is CORROBORATED against the request (`isStrongMatch`) when the
+ * request text is given: a model that reads « lettre de relance » and proposes Gmail is
+ * guessing a need the user never expressed, and a card off the mark teaches people to
+ * ignore cards. Same bar as our own catch-up — the service named, or an imperative only
+ * that tool honours — so the two paths cannot disagree about what counts.
+ *
  * The instruction not to repeat the names is not style: the cards already carry them, and
  * a model that lists them again turns one proposal into two, one of them unclickable.
  */
 export function resolveSuggestCall(
   rawIds: unknown,
   candidates: McpConnector[],
+  requestText?: string,
+  connected: readonly McpConnector[] = [],
 ): { ids: string[]; message: string } {
-  const ids = validateSuggestions(rawIds, candidates);
+  const valid = validateSuggestions(rawIds, candidates);
+  const ids =
+    requestText === undefined
+      ? valid
+      : valid.filter((id) => {
+          const c = findConnector(id);
+          return !!c && isStrongMatch(requestText, c, connected);
+        });
   const names = ids.map((id) => findConnector(id)?.name ?? id);
   return {
     ids,

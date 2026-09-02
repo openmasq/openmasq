@@ -52,6 +52,14 @@ export interface ChromeMessages {
   help: string;
   helpTip: (brand: string) => string;
   sendFeedback: string;
+  /** The update entry, first in the footer once a version is downloaded: the short
+   *  label (« Mise à jour 0.9.1 ») and its tooltip. */
+  updateReady: (version: string) => string;
+  updateReadyTip: (brand: string, version: string) => string;
+  /** The « Aide » modal's head — eyebrow, title — and its one closing button. */
+  guideEyebrow: string;
+  guideTitle: (brand: string) => string;
+  guideUnderstood: string;
   /** The three families of a release note. */
   releaseKinds: { feat: string; imp: string; fix: string };
 }
@@ -83,9 +91,10 @@ export interface ChatMessages {
   splitScreen: string;
   splitLeft: string;
   splitRight: string;
-  /** The menu entry leading to the redaction rules: its counter, and the level in force
-   *  when the caller knows it. */
-  redactionSummary: (protectedCount: number, level?: string) => string;
+  /** The menu entry leading to THIS conversation's redaction categories, with its
+   *  counter. The LEVEL is not named here: the composer's level button is the one
+   *  place a conversation's level is chosen, and this entry leads to the categories. */
+  redactionSummary: (protectedCount: number) => string;
   seeWhatTheModelSaw: string;
   debugLog: string;
 }
@@ -130,8 +139,17 @@ export interface ComposerMessages {
   keepInClearTip: string;
   dismissWarning: string;
 
-  useSkill: string;
+  /** The « + » door — ONE button in the action row, four ways of adding something to
+   *  the message. The short words are the entries; the long ones their tooltips. */
+  add: string;
+  addFile: string;
   attachFile: string;
+  addFolder: string;
+  addFolderTip: string;
+  addConnector: string;
+  addConnectorTip: string;
+  addSkill: string;
+  useSkill: string;
   stop: string;
   send: string;
   /** The send button MORPHS: send → redacting → redacted. Three states, three words. */
@@ -139,16 +157,15 @@ export interface ComposerMessages {
   redactingAria: string;
   redacted: string;
 
-  /** The DETECTION chips under the input — each toggles « masqué ⇄ en clair ». */
+  /** The DETECTION chips under the input — each toggles « masqué ⇄ en clair ». The
+   *  toggle's VERBS come from `conversation.mark` (the one lexicon), scoped « cet envoi ». */
   detect: {
     /** The deep analysis GAVE UP: say so, and say the send redoes it. */
     partialNone: string;
     partialNoneHint: string;
     partialCount: (count: number) => string;
     partialCountHint: string;
-    reMask: string;
     uncertain: string;
-    keepInClear: string;
     /** The word an uncertain detection carries, on the chip itself. */
     toVerify: string;
     showAll: string;
@@ -177,13 +194,23 @@ export interface ComposerMessages {
     done: string;
   };
 
-  /** The ATTACHMENTS waiting to be sent. */
+  /** The ATTACHMENTS waiting to be sent. The chip has FOUR states, one word each
+   *  (reading · masking · redo · ready); the detail goes to the tooltip. */
   attachments: {
     open: string;
     processing: string;
+    /** Tooltip while the file is being masked. */
     redacting: string;
-    /** « 🛡 3 valeurs » — the unit matters on a chip that small. */
-    values: (count: number) => string;
+    stateReading: string;
+    stateReadingPage: (page: number, total: number) => string;
+    stateMasking: string;
+    stateMaskingPct: (pct: number) => string;
+    stateRedo: string;
+    /** « 3 valeurs » — the unit matters on a chip that small (the glyph is drawn). */
+    stateReady: (count: number) => string;
+    /** Why the chip says « à refaire ». */
+    staleTip: string;
+    partialTip: (read: number, total: number) => string;
     readAllPages: (total: number) => string;
     readAllPagesTip: (read: number) => string;
     retryRedaction: string;

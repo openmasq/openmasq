@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
  * The signature marker title — the lime redaction highlight every modal
  * head carries. The inner <span> is what gets marked (not the heading box), so a
  * wrapped title paints the marker on each line rather than one smear across the
- * break; see `.modal-title` in ../../styles/modals.css.
+ * break; see `.modal-title` in ../../styles/modal/chrome.css.
  *
  * `marker={false}` drops the highlight for a head that already carries the accent
  * elsewhere — « Votre avis » has its lime glyph beside the title, and two lime
@@ -18,8 +18,11 @@ export function ModalTitle({
   size = "var(--text-xl)",
   as: Tag = "h2",
   marker = true,
+  id,
 }: {
   children: ReactNode;
+  /** Set by `ModalShell` so the dialog is `aria-labelledby` its own title. */
+  id?: string;
   /** Any CSS length/var. Defaults to the standard modal head size. */
   size?: string;
   /** The heading level — pick the one that fits the surrounding outline. */
@@ -29,6 +32,7 @@ export function ModalTitle({
 }) {
   return (
     <Tag
+      id={id}
       className={`cv-display modal-title${marker ? "" : " no-marker"}`}
       style={{ fontSize: size }}
     >

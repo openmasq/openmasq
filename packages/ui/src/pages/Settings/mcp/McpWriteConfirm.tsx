@@ -34,7 +34,7 @@ import { useT } from "../../../i18n";
  * (`composeConfirmationMode`) — a switch that silently springs back reads as a bug, and a
  * policy the member can appear to defeat is not a policy.
  */
-export function McpWriteConfirm() {
+export function McpWriteConfirm({ embedded = false }: { embedded?: boolean } = {}) {
   const t = useT();
   const host = useHost();
   const { orgProfile } = useChatStore();
@@ -101,9 +101,9 @@ export function McpWriteConfirm() {
     }
   };
 
-  return (
-    <section className="settings-section">
-      <div className="cv-eyebrow">{t.mcpTab.confirmEyebrow}</div>
+  // `embedded`: the card alone, under the « Ce que l'agent peut faire » eyebrow that
+  // `McpAgentPowers` owns — beside the browser hardening, one family of guardrails.
+  const card = (
       <div className="settings-card">
         {setMode && (
           <div className="toggle-row">
@@ -143,6 +143,12 @@ export function McpWriteConfirm() {
           </div>
         )}
       </div>
+  );
+  if (embedded) return card;
+  return (
+    <section className="settings-section">
+      <div className="cv-eyebrow">{t.mcpTab.confirmEyebrow}</div>
+      {card}
     </section>
   );
 }

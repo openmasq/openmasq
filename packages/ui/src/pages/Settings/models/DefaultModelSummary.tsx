@@ -42,7 +42,7 @@ export function DefaultModelSummary({
         <span className="model-default-label">{t.modelPicker.defaultSummaryLabel}</span>
         <span className="model-default-name">
           {display.label}
-          {display.free && <span className="model-free-badge">gratuit</span>}
+          {display.free && <span className="model-free-badge">{t.modelsTab.freeBadge}</span>}
           <span className="model-default-provider">{PROVIDERS[model.provider].label}</span>
         </span>
       </span>

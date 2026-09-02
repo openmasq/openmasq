@@ -624,9 +624,7 @@ export function AttachmentPreviewModal({
           suppressed={!!sel || !!wordPick}
           selector="[data-doc-reveal]"
           show="real"
-          valueTitle="Valeur réelle — envoyée en clair si gardée"
-          revealTitle="Garder en clair (ne PAS redact) — envoyé tel quel au modèle"
-          reRedactTitle="Re-redact cette valeur"
+          scope="send"
           revealed={revealed}
           onReveal={(real) => toggleReveal(real)}
           onReRedact={(real) => toggleReveal(real)}

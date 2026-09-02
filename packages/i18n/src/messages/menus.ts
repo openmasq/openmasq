@@ -58,10 +58,9 @@ export interface MenusMessages {
   download: {
     ariaLabel: string;
   };
-  /** A mark one decides NOT to redact for this send. */
+  /** The popover on a highlighted word in the composer. Its VERB comes from
+   *  `conversation.mark` (the one lexicon); only the doubt note lives here. */
   markKeep: {
-    keep: string;
-    keepTip: string;
     uncertain: (brand: string) => string;
   };
   /** A page's ⋯ — today only the Mémoire's. */

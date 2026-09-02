@@ -1,19 +1,33 @@
-import { forwardRef } from "react";
+import { forwardRef, useCallback, useState, type MouseEvent, type MutableRefObject } from "react";
+import { createPortal } from "react-dom";
 import { useT } from "../../i18n";
 import { PROVIDERS, type ModelInfo } from "@openmasq/llm";
 import { modelDisplay } from "../../prompt/models";
 import { modelMeta } from "../../prompt/modelMeta";
+import { usePopover } from "../../hooks/usePopover";
 import { pickerBlocks, unavailableLabel, type UnavailableReason } from "../../send/modelAvailability";
-import { BookOpenIcon, CheckIcon, CoinsIcon, GaugeIcon, HouseIcon, ModelLogo, StarIcon } from "../brand";
+import { BookOpenIcon, CheckIcon, CoinsIcon, DotsIcon, GaugeIcon, HouseIcon, ModelLogo, StarIcon } from "../brand";
 import { CountryFlag } from "../media/CountryFlag";
 
 /**
  * One model row in the Finder's rightmost column (and the flat search results). An
  * unavailable model shows its reason inline (unless the caller already states it once
  * above — `suppressChip`), but only a HARD reason (`pickerBlocks`: nothing to call)
- * greys + disables the row: a subscription/key-gated model stays SELECTABLE, and the
- * send's inline container explains the escapes (abonnement / clé) with their CTAs.
+ * greys + disables the row: a subscription/key-gated model stays listed, and its BODY
+ * then opens the access explainer (`onAccessInfo`) instead of choosing it — the
+ * « gratuit » badge and the reason chip are no longer targets of their own.
+ *
+ * Two gestures per row, not three: the BODY (use this model) and the STAR (favourite).
+ * « Définir par défaut » lives in a CONTEXT MENU — a right-click anywhere on the row,
+ * or the « ⋯ » that appears on hover in the full view; the simplified view draws no ⋯
+ * at all (body + star only, the right-click stays). A third always-drawn gesture on
+ * ~70 rows was noise, and the house's meaning (« défaut des NOUVELLES conversations »)
+ * needs the sentence the menu item carries.
  */
+
+/** The context menu's width (`.model-row-pop` min-width) — for the right-edge clamp. */
+const MENU_W = 220;
+
 export const ModelRow = forwardRef<
   HTMLButtonElement,
   {
@@ -36,11 +50,11 @@ export const ModelRow = forwardRef<
     onToggleFavorite?: (id: string) => void;
     /** Is this model the DEFAULT model (for new conversations)? */
     isDefault?: boolean;
-    /** Make it the default model. Absent ⇒ no house marker is rendered. */
+    /** Make it the default model — the context menu's item. Absent ⇒ no menu, no ⋯. */
     onSetDefault?: (id: string) => void;
-    /** Open the « accès aux modèles » explainer — from the « gratuit » badge OR from
-     *  the unavailable chip, which otherwise carries its escapes in a hover-only
-     *  `title=` no touch screen can read. Absent = plain, non-interactive badge/chip. */
+    /** Open the « accès aux modèles » explainer: the BODY of a gated row calls it
+     *  (with the route the user bumped into) instead of choosing a model that cannot
+     *  send. Absent = the body chooses, whatever the reason. */
     onAccessInfo?: (focus: "free" | "credits" | "key", providerLabel?: string) => void;
   }
 >(function ModelRow({ model, selected, focused, reason, suppressChip, compact, onChoose, onHover, onAccessInfo, favorite, onToggleFavorite, isDefault, onSetDefault }, ref) {
@@ -49,13 +63,54 @@ export const ModelRow = forwardRef<
   const display = modelDisplay(model);
   const unavailable = reason ? unavailableLabel(reason, PROVIDERS[model.provider].label, t) : null;
   const hardBlocked = !!reason && pickerBlocks(reason);
+  // The context menu (default model). Open state, Escape and outside-click come from
+  // `usePopover`; the PLACEMENT is ours — a right-click opens at the pointer, the ⋯
+  // under itself — so no `anchor`. The ROW is the trigger (a click on it must not
+  // count as "outside" and reopen what it just closed), hence the merged ref.
+  const menu = usePopover<HTMLButtonElement, HTMLDivElement>({ closeOnScroll: true });
+  const [menuPos, setMenuPos] = useState<{ left: number; top: number } | null>(null);
+  const rowRef = useCallback(
+    (el: HTMLButtonElement | null) => {
+      (menu.triggerRef as MutableRefObject<HTMLButtonElement | null>).current = el;
+      if (typeof ref === "function") ref(el);
+      else if (ref) (ref as MutableRefObject<HTMLButtonElement | null>).current = el;
+    },
+    [menu.triggerRef, ref],
+  );
+  const openMenuAt = (left: number, top: number) => {
+    if (!onSetDefault) return;
+    setMenuPos({
+      left: Math.max(8, Math.min(left, window.innerWidth - MENU_W - 8)),
+      top: Math.min(top, window.innerHeight - 56),
+    });
+    menu.setOpen(true);
+  };
+  const onContextMenu = (ev: MouseEvent<HTMLButtonElement>) => {
+    if (!onSetDefault || hardBlocked) return;
+    ev.preventDefault();
+    openMenuAt(ev.clientX, ev.clientY);
+  };
+  const setDefault = () => {
+    menu.close();
+    if (!isDefault) onSetDefault?.(model.id);
+  };
   return (
     <button
-      ref={ref}
+      ref={rowRef}
       className={`model-option ${selected ? "active" : ""}${focused ? " focus" : ""}${hardBlocked ? " unavailable" : ""}${compact ? " compact" : ""}`}
       disabled={hardBlocked}
       title={unavailable?.title}
-      onClick={() => onChoose(model.id)}
+      onClick={() => {
+        menu.close();
+        // A listed-but-gated model (a key just removed, credits gone): the body answers
+        // « comment faire ? » instead of picking a model that cannot send.
+        if (reason && onAccessInfo) {
+          onAccessInfo(reason === "no_key" ? "key" : "credits", PROVIDERS[model.provider].label);
+          return;
+        }
+        onChoose(model.id);
+      }}
+      onContextMenu={onContextMenu}
       onMouseMove={() => onHover(model.id)}
     >
       <ModelLogo provider={model.provider} modelId={model.id} size={24} tile />
@@ -63,64 +118,14 @@ export const ModelRow = forwardRef<
         <div className="model-option-name">
           <strong>{display.label}</strong>
           {display.free && (
-            /* A row is already a <button>, so the badge is a role=button span —
-               stopPropagation keeps a badge click from PICKING the model. */
-            <span
-              className={`model-free-badge${onAccessInfo ? " clickable" : ""}`}
-              title={t.modelPicker.freeTip}
-              role={onAccessInfo ? "button" : undefined}
-              tabIndex={onAccessInfo ? 0 : undefined}
-              onClick={
-                onAccessInfo
-                  ? (ev) => {
-                      ev.stopPropagation();
-                      onAccessInfo("free");
-                    }
-                  : undefined
-              }
-              onKeyDown={
-                onAccessInfo
-                  ? (ev) => {
-                      if (ev.key === "Enter" || ev.key === " ") {
-                        ev.preventDefault();
-                        ev.stopPropagation();
-                        onAccessInfo("free");
-                      }
-                    }
-                  : undefined
-              }
-            >
-              gratuit
+            <span className="model-free-badge" title={t.modelPicker.freeTip}>
+              {t.modelsTab.freeBadge}
             </span>
           )}
         </div>
         {unavailable && !suppressChip && (
           <div className="model-option-desc">
-            {onAccessInfo && reason && !hardBlocked ? (
-              /* The chip ANSWERS its own question: what to do about it. A row is already
-                 a <button>, so this is a role=button span + stopPropagation. */
-              <span
-                className="model-unavailable clickable"
-                role="button"
-                tabIndex={0}
-                title={t.modelPicker.howToUse}
-                onClick={(ev) => {
-                  ev.stopPropagation();
-                  onAccessInfo(reason === "no_key" ? "key" : "credits", PROVIDERS[model.provider].label);
-                }}
-                onKeyDown={(ev) => {
-                  if (ev.key === "Enter" || ev.key === " ") {
-                    ev.preventDefault();
-                    ev.stopPropagation();
-                    onAccessInfo(reason === "no_key" ? "key" : "credits", PROVIDERS[model.provider].label);
-                  }
-                }}
-              >
-                {unavailable.chip} — comment faire ?
-              </span>
-            ) : (
-              <span className="model-unavailable">{unavailable.chip}</span>
-            )}
+            <span className="model-unavailable">{unavailable.chip}</span>
           </div>
         )}
         {!compact && (meta.price || meta.context || meta.tpm) && (
@@ -156,30 +161,39 @@ export const ModelRow = forwardRef<
           <CheckIcon size={15} />
         </span>
       )}
-      {onSetDefault && (
-        /* The DEFAULT MODEL marker — filled on the current default, clickable on
-           others to become it. role=button span + stopPropagation, like the star:
-           the click does NOT CHOOSE the model for the conversation. On the default itself
-           it's inert (aria-disabled) — informative, not an action. */
+      {isDefault && onSetDefault && (
+        /* The current default keeps its MARK (information, never an action): the
+           filled house, inert. Changing the default is the menu's job. */
+        <span className="model-default on" title={t.modelPicker.isDefault} aria-hidden="true">
+          <HouseIcon size={15} filled />
+        </span>
+      )}
+      {onSetDefault && !compact && !hardBlocked && (
+        /* The « ⋯ » — role=button span + stopPropagation, like the star: opening the
+           menu must not CHOOSE the model. Hover-revealed by the stylesheet. */
         <span
-          className={`model-default${isDefault ? " on" : ""}`}
+          className="model-more"
           role="button"
-          tabIndex={isDefault ? -1 : 0}
-          aria-disabled={isDefault}
-          title={isDefault ? t.modelPicker.isDefault : t.modelPicker.setDefault}
+          tabIndex={0}
+          aria-haspopup="menu"
+          aria-expanded={menu.open}
+          title={t.modelPicker.moreActions}
           onClick={(ev) => {
             ev.stopPropagation();
-            if (!isDefault) onSetDefault(model.id);
+            const r = ev.currentTarget.getBoundingClientRect();
+            if (menu.open) menu.close();
+            else openMenuAt(r.right - MENU_W, r.bottom + 4);
           }}
           onKeyDown={(ev) => {
-            if ((ev.key === "Enter" || ev.key === " ") && !isDefault) {
+            if (ev.key === "Enter" || ev.key === " ") {
               ev.preventDefault();
               ev.stopPropagation();
-              onSetDefault(model.id);
+              const r = ev.currentTarget.getBoundingClientRect();
+              openMenuAt(r.right - MENU_W, r.bottom + 4);
             }
           }}
         >
-          <HouseIcon size={15} filled={isDefault} />
+          <DotsIcon size={15} />
         </span>
       )}
       {onToggleFavorite && (
@@ -206,6 +220,39 @@ export const ModelRow = forwardRef<
           <StarIcon size={15} filled={favorite} />
         </span>
       )}
+      {menu.open &&
+        menuPos &&
+        onSetDefault &&
+        createPortal(
+          /* Portaled to <body>, yet a React child of the row: every event would bubble
+             to the row's handlers through the portal, so the menu stops them itself.
+             Runtime-computed position — the allowed inline-style case. */
+          <div
+            ref={menu.menuRef}
+            className="model-row-pop"
+            role="menu"
+            style={{ position: "fixed", left: menuPos.left, top: menuPos.top }}
+            onClick={(ev) => ev.stopPropagation()}
+            onMouseMove={(ev) => ev.stopPropagation()}
+            onContextMenu={(ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+            }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              className="model-row-act"
+              disabled={isDefault}
+              onClick={setDefault}
+            >
+              <HouseIcon size={14} filled={isDefault} />
+              {isDefault ? t.modelPicker.isDefault : t.modelPicker.setDefault}
+            </button>
+          </div>,
+          document.body,
+        )}
     </button>
   );
 });
+

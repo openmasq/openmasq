@@ -4,7 +4,6 @@ import {
   MicIcon,
   ShieldIcon,
   CheckIcon,
-  SearchIcon,
   DownloadIcon,
   IconButton,
 } from "../../components/brand";
@@ -101,8 +100,8 @@ export function FileCard({
             className="file-card-shield"
             title={
               file.redactedCount
-                ? `${file.redactedCount} donnée${file.redactedCount > 1 ? "s" : ""} redacted${file.redactedCount > 1 ? "s" : ""}`
-                : "Contient des données redacted"
+                ? t.lists.library.redactedCountTip(file.redactedCount)
+                : t.lists.library.redactedTip
             }
           >
             <ShieldIcon size={11} />
@@ -120,18 +119,14 @@ export function FileCard({
           <div className="file-card-name">{file.name}</div>
           <div className="file-card-date">{fmtDate(file.createdAt)}</div>
         </div>
-        {/* Kit: two icon actions on the footer's right — Aperçu + Télécharger. The
-            span swallows the click so Télécharger doesn't ALSO open the panel. */}
-        {!selectMode && (
+        {/* ONE icon action on the footer's right — the external app. The card itself
+            already opens the preview, so a second « Aperçu » button only repeated the
+            click target. The span swallows the click so it doesn't ALSO open the panel. */}
+        {!selectMode && onDownload && (
           <span className="file-card-foot-actions" onClick={(e) => e.stopPropagation()}>
-            <IconButton size="sm" label={t.lists.library.preview} onClick={onOpen}>
-              <SearchIcon size={15} />
+            <IconButton size="sm" label={t.lists.library.openExternal} onClick={onDownload}>
+              <DownloadIcon size={15} />
             </IconButton>
-            {onDownload && (
-              <IconButton size="sm" label={t.lists.library.openExternal} onClick={onDownload}>
-                <DownloadIcon size={15} />
-              </IconButton>
-            )}
           </span>
         )}
       </div>

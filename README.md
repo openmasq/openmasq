@@ -257,7 +257,7 @@ apps/
                  (not the backend: the server side lives in a separate repository)
 packages/
   redact/        The redaction engine (pure, unit-tested)
-  ui/            All React UI + store + design system (4 themes)
+  ui/            All React UI + store + design system (light + dark)
   llm/           Provider clients, model registry, SSE, tool-calling
   mcp/           Redacting MCP client · connectors/ on-device-OAuth MCP tools
   catalog/       Single-source governable lists (models, connectors, categories)

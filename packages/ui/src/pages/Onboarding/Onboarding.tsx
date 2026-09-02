@@ -5,7 +5,6 @@ import { ArrowRightIcon, ChevLeftIcon } from "../../components/brand";
 import { captureEvent } from "../../analytics";
 import { useDialogFocus } from "../../hooks/useDialogFocus";
 import { RedactionRulesContent } from "../../containers/modals/redaction/RedactionRulesContent";
-import { sectionGuides, sectionOneLiner } from "../../help";
 import { useT } from "../../i18n";
 import { RedactionDemo } from "../../components/RedactionDemo";
 import { KeyChoice } from "./KeyChoice";
@@ -13,17 +12,19 @@ import { useAgentOptIns } from "../../hooks/useAgentOptIns";
 import { platformAccessServed, subscriptionsSold } from "../../send/platformAccess";
 
 /* redact — first-run onboarding.
-   FOUR steps: what the app does (shown, not configured), where things live, how you
-   reach the models (the app's account vs your own key — the ONE genuine first-run
-   choice, optional and skippable: the free model works with no action), and you're
-   ready. It used to be a single screen of 19 redaction-category toggles — a settings
-   pane wearing a welcome hat, which spent the whole of first-run attention on the one
-   thing that already works by default, and never named Coffre / Mémoire / Compétences /
-   Workflows / Bibliothèque at all.
+   THREE steps: what the app does (shown, not configured), how you reach the models (the
+   app's account vs your own key — the ONE genuine first-run choice, optional and
+   skippable: the free model works with no action), and you're ready. It used to be a
+   single screen of every redaction-category toggle (`privacy/privacyLevel.ts`
+   `TOTAL_CATEGORIES`, read from the catalogue) — a settings pane wearing a welcome hat,
+   which spent the whole of first-run attention on the one thing that already works by
+   default. The « six endroits » tour of the sections is gone too: one line per place on
+   a second page got skipped, and « Aide » already tells the same story when one looks.
    The rules did not move OUT of reach: « Régler finement » swaps this same card to the
    very same `RedactionRulesContent` the Réglages pane uses, and it stays there for ever
    after. Choices still write into the real Settings live; "Commencer" (or "Passer")
-   marks onboarding complete. */
+   marks onboarding complete. The analytics step id is the 1-based screen number
+   (`skip:1` … `skip:3`), so the renumbering shifts the access/ready ids by one. */
 
 /* The accent is the redaction palette's SKY hue, reached the way every marked surface
    reaches it: the `.hl-<hue>` class, then `--mk` / `--mk-ink` in the stylesheet. It was a
@@ -32,7 +33,7 @@ import { platformAccessServed, subscriptionsSold } from "../../send/platformAcce
    dark themes near-white ink sat on a light pastel. Naming the hue instead lets the ink
    invert with it. */
 
-const STEPS = 4;
+const STEPS = 3;
 
 interface Props {
   settings: Settings;
@@ -154,23 +155,6 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                 </ul>
               </>
             ) : step === 1 ? (
-              <>
-                <div className="cv-eyebrow ob-eyebrow">{t.onboarding.places.eyebrow}</div>
-                <h1 className="cv-display ob-title">{t.onboarding.places.title}</h1>
-                <p className="ob-sub">{t.onboarding.places.sub}</p>
-                {/* ONE line per place, not the guide's paragraph: six paragraphs
-                    on the second page of a first launch get skipped. The long
-                    sentence still exists — in « Aide », when you look for it. */}
-                <dl className="ob-sections">
-                  {sectionGuides(t).map((s) => (
-                    <div key={s.id} className="ob-section">
-                      <dt>{s.label}</dt>
-                      <dd>{sectionOneLiner(s)}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </>
-            ) : step === 2 ? (
               <>
                 <div className="cv-eyebrow ob-eyebrow">{t.onboarding.access.eyebrow}</div>
                 {/* Without a hosted service (`send/platformAccess.ts`), there is no account

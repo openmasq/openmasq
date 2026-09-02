@@ -32,6 +32,7 @@ import { conversation } from "./fr/conversation";
 import { leaves, login, modelPicker, orgShares } from "./fr/rest";
 import { lists } from "./fr/lists";
 import { templates } from "./fr/templates";
+import { turnStatus } from "./fr/turnStatus";
 import { shell } from "./fr/shell";
 import { viewers } from "./fr/viewers";
 import { settings } from "./fr/settings";
@@ -77,6 +78,7 @@ export const fr = {
   chat,
   chrome,
   conversation,
+  turnStatus,
   lists,
   templates,
   login,

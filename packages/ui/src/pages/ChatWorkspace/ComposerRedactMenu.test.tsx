@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { mount } from "../../testKit";
 import { ComposerRedactMenu, type RedactLevelApi } from "./ComposerRedactMenu";
+import { PrivacyLevelPicker } from "../../components/PrivacyLevelPicker";
 import { getMessages } from "@openmasq/i18n";
 import { privacyLevelMeta } from "../../privacy/privacyLevel";
 
@@ -60,7 +61,7 @@ describe("ComposerRedactMenu", () => {
     const onDone = vi.fn();
     const a = api({ onApplyConversation: undefined });
     const m = await mount(<ComposerRedactMenu api={a} onDone={onDone} />);
-    await m.click(cardNamed(m, "Standard"));
+    await m.click(cardNamed(m, "Allégé"));
     expect(a.onApplyAlways).toHaveBeenCalledWith("standard");
     expect(onDone).toHaveBeenCalledWith({ level: "standard", scope: "default", snap });
     await m.unmount();
@@ -84,7 +85,7 @@ describe("ComposerRedactMenu", () => {
       <ComposerRedactMenu api={api({ level: "renforce" })} onDone={() => {}} />,
     );
     expect(cardNamed(m, "Renforcé").querySelector(".crm-level-check")).not.toBeNull();
-    expect(cardNamed(m, "Standard").querySelector(".crm-level-check")).toBeNull();
+    expect(cardNamed(m, "Allégé").querySelector(".crm-level-check")).toBeNull();
     expect(cardNamed(m, "Strict").querySelector(".crm-level-check")).toBeNull();
     await m.unmount();
   });
@@ -114,10 +115,10 @@ describe("ComposerRedactMenu", () => {
     ];
     const bold = (label: string) =>
       paths(label).filter((p) => Number(p.getAttribute("stroke-width")) > 2).length;
-    expect(paths("Standard")).toHaveLength(3);
+    expect(paths("Allégé")).toHaveLength(3);
     expect(paths("Renforcé")).toHaveLength(3);
     expect(paths("Strict")).toHaveLength(3);
-    expect([bold("Standard"), bold("Renforcé"), bold("Strict")]).toEqual([1, 2, 3]);
+    expect([bold("Allégé"), bold("Renforcé"), bold("Strict")]).toEqual([1, 2, 3]);
     await m.unmount();
   });
 
@@ -128,8 +129,9 @@ describe("ComposerRedactMenu", () => {
   it("descriptions, contreparties et l'œil du niveau réduit sortent du vocabulaire partagé", async () => {
     const m = await mount(<ComposerRedactMenu api={api()} onDone={() => {}} />);
     const meta = privacyLevelMeta(fr);
+    // The USE then the COVERAGE — the same two sentences Réglages' picker renders.
     expect(m.findAll(".crm-level-desc").map((el) => el.textContent)).toEqual(
-      meta.map((x) => x.short),
+      meta.map((x) => `${x.desc} ${x.short}`),
     );
     expect(m.findAll(".crm-level-tradeoff").map((el) => el.textContent)).toEqual(
       meta.map((x) => x.tradeoff),
@@ -138,6 +140,32 @@ describe("ComposerRedactMenu", () => {
       expect(cardNamed(m, x.label).querySelector(".crm-level-flag") !== null).toBe(!!x.reduced);
     }
     await m.unmount();
+  });
+
+  /* Two doors, ONE vocabulary: the composer menu and Réglages' picker must say the
+     same thing about each level, word for word — a card rewritten on one surface is
+     the start of two products. */
+  it("dit exactement ce que dit le sélecteur des Réglages, carte par carte", async () => {
+    const menu = await mount(<ComposerRedactMenu api={api()} onDone={() => {}} />);
+    const picker = await mount(<PrivacyLevelPicker level="renforce" onPick={() => {}} />);
+    const text = (els: Element[]) => els.map((el) => el.textContent?.trim());
+    expect(text(menu.findAll(".crm-level-desc"))).toEqual(text(picker.findAll(".privacy-level-desc")));
+    expect(text(menu.findAll(".crm-level-tradeoff"))).toEqual(
+      text(picker.findAll(".privacy-level-tradeoff")),
+    );
+    expect(text(menu.findAll(".crm-level-name"))).toEqual(text(picker.findAll(".privacy-level-name")));
+    await menu.unmount();
+    await picker.unmount();
+  });
+
+  /* The level below the default is NAMED as such: « Allégé », never « Standard » —
+     a « standard » that protects less than the default reads as the norm. The id stays
+     `standard` because it is persisted in the settings. */
+  it("le niveau réduit s'appelle « Allégé » et sa carte dit qu'il protège moins", async () => {
+    const reduced = privacyLevelMeta(fr).find((x) => x.reduced)!;
+    expect(reduced.id).toBe("standard");
+    expect(reduced.label).toBe("Allégé");
+    expect(reduced.desc).toMatch(/protège moins/);
   });
 
   /* Org-mandated categories stay on whatever the card says — the menu says so, or a
@@ -161,11 +189,11 @@ describe("ComposerRedactMenu", () => {
     );
     expect(document.activeElement).toBe(cardNamed(m, "Renforcé"));
     expect(cardNamed(m, "Renforcé").getAttribute("tabindex")).toBe("0");
-    expect(cardNamed(m, "Standard").getAttribute("tabindex")).toBe("-1");
+    expect(cardNamed(m, "Allégé").getAttribute("tabindex")).toBe("-1");
     await arrow("ArrowDown");
     expect(document.activeElement).toBe(cardNamed(m, "Strict"));
     await arrow("ArrowDown");
-    expect(document.activeElement).toBe(cardNamed(m, "Standard"));
+    expect(document.activeElement).toBe(cardNamed(m, "Allégé"));
     await arrow("End");
     expect(document.activeElement).toBe(cardNamed(m, "Strict"));
     await m.unmount();

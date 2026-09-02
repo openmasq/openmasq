@@ -938,15 +938,6 @@ export function useChatStore() {
     [patchConversation],
   );
 
-  /** Toggle the NEUTRAL-MARKS display mode for one conversation (display-only —
-   *  detection/vault/wire unchanged; the flag persists with the conversation). */
-  const toggleConversationNeutralMarks = useCallback(
-    (id: string) => {
-      patchConversation(id, (c) => ({ ...c, neutralMarks: !c.neutralMarks }));
-    },
-    [patchConversation],
-  );
-
   // ── Per-conversation un-redaction (reveal) ────────────────────────────────
   /** True when a redacted value's category is FORCED by the org — it can never be
    *  un-redacted (the reveal actions no-op and the UI shows a lock). */
@@ -1511,7 +1502,6 @@ export function useChatStore() {
     applySyncedConversation,
     setConversationCategories,
     setConversationMemoryOff,
-    toggleConversationNeutralMarks,
     revealRedaction,
     reRedact,
     forceRedact,

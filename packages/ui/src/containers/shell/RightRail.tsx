@@ -119,9 +119,9 @@ export function RightRail({
   onManageFolders?: () => void;
   /** Open Réglages → Connecteurs on a storage connector (Drive, OneDrive…). */
   onOpenConnector?: (connectorId: string) => void;
-  /** Start a conversation ABOUT a source (« Demander », on hover) — a granted folder,
-   *  or a file/folder of a connected storage. The target is STAGED as a tag on the new
-   *  conversation (see `useShell.askAboutTarget`), never written into the draft. */
+  /** Ask ABOUT a source (« Demander », on hover) — a granted folder, or a file/folder of a
+   *  connected storage. STAGED as a tag on the OPEN conversation (a new one only when none
+   *  exists, like « Demander à propos de cette page »; `useStagedIntents.askAboutTarget`). */
   onAskTarget?: (target: AskTarget) => void;
 }) {
   const t = useT();
@@ -174,8 +174,8 @@ export function RightRail({
           {
             key: "update",
             icon: <RefreshIcon size={17} />,
-            label: `Mise à jour ${updateVersion}`,
-            title: `${BRAND.name} ${updateVersion} est prête — voir les nouveautés et redémarrer`,
+            label: t.chrome.updateReady(updateVersion),
+            title: t.chrome.updateReadyTip(BRAND.name, updateVersion),
             onClick: onOpenUpdate,
           },
         ]

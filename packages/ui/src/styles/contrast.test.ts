@@ -10,7 +10,7 @@ import { SECTION_HUE } from "@openmasq/redact";
  * so the pair (`--hl-<hue>`, `--ink-on-hl-<hue>`) is the one place where a colour choice
  * can make the product's core surface unreadable. One generic ink is enough while every
  * hue is a pastel; the moment a palette turns saturated, white reads on some and near-black
- * on others, and the only way to keep that honest across four themes is to compute it.
+ * on others, and the only way to keep that honest across both themes is to compute it.
  *
  * Two things make this test hard to bypass: it parses the REAL stylesheet, not a copy of the
  * values; and the hue list comes FROM `SECTION_HUE`, so adding a section's hue enrols it in
@@ -62,8 +62,6 @@ const ROOT = varsOf(":root");
 const THEMES: Record<string, Record<string, string>> = {
   light: {},
   dark: varsOf('[data-theme="dark"]'),
-  blue: varsOf('[data-theme="blue"]'),
-  "blue-dark": varsOf('[data-theme="blue-dark"]'),
 };
 
 /** Resolve a token to a literal colour, following `var()` chains (theme over :root). */
@@ -129,12 +127,12 @@ describe("redaction palette — contrast of every hue against its own ink", () =
 
   it("keeps every -soft tint mixed toward WHITE in the themed palette", () => {
     // The chat marks write `--ink-on-hl-soft` (dark) on `--hl-*-soft` fills. That is only
-    // safe because the softs are LIGHT in every theme. The blue pair inherits the base
+    // safe because the softs are LIGHT in every theme. The dark theme inherits the base
     // pastel softs today, but a theme may declare its own as a color-mix() (unresolvable
     // to hex here) — so the invariant is pinned STRUCTURALLY too: a mix takes its hue at
-    // ≤40 % into #ffffff. A soft re-based on a surface token flips dark in blue-dark and
+    // ≤40 % into #ffffff. A soft re-based on a surface token flips dark in dark mode and
     // the dark ink vanishes with it.
-    for (const themeName of ["blue", "blue-dark"] as const) {
+    for (const themeName of ["dark"] as const) {
       for (const hue of HUES) {
         const raw = THEMES[themeName][`--hl-${hue}-soft`] ?? ROOT[`--hl-${hue}-soft`];
         expect(raw, `${themeName} --hl-${hue}-soft`).toMatch(

@@ -174,8 +174,8 @@ export interface ImportModalMessages {
   sub: string;
   hintChatgpt: string;
   hintClaude: string;
-  geminiSoonTip: string;
-  geminiSoon: string;
+  /** ONE line of note, not a greyed tile: Gemini has no importable export yet. */
+  geminiNote: string;
   choose: (provider: string) => string;
   maskedNote: string;
   redacting: (done: number, total: number) => string;

@@ -183,14 +183,14 @@ export function shouldImportLegacyKeysOnce(
 }
 
 /**
- * H2 — fail-closed invariant for the "send a PDF as REDACTED images" path
- * (`renderDocImages.ts`): a PER-VALUE proof, not a whole-document floor. The
- * implementation lives in `@openmasq/redact/pdf-redact` (`pdfMatch.ts`) because the
- * extension's native-upload path (`scrubFile.ts`) applies the SAME gate (rule 9);
- * re-exported here so the send pipeline's gates stay enumerable in one place.
- * Caller contract + failure modes: see the source. `buildFileImages` passes the
- * DOCUMENT's own drop-time map — never the whole-conversation vault.
- * The FILE send is dormant today (submit() forces the text path); this is the gate
- * that must hold before re-enabling it. Pinned in `sendGuards.test.ts`.
+ * H2 — fail-closed invariant for any "send a PDF as REDACTED images" path: a
+ * PER-VALUE proof, not a whole-document floor. The implementation lives in
+ * `@openmasq/redact/pdf-redact` (`pdfMatch.ts`) because the extension's native-upload
+ * path (`scrubFile.ts`) applies the SAME gate (rule 9); re-exported here so the send
+ * pipeline's gates stay enumerable in one place. Caller contract + failure modes: see
+ * the source. A caller passes the DOCUMENT's own drop-time map — never the
+ * whole-conversation vault. The desktop has NO file send today (a document goes out as
+ * its extracted text; the dormant images path and its dialog were removed); this is
+ * the gate that must hold before one is written again. Pinned in `sendGuards.test.ts`.
  */
 export { paintCoversReplacements } from "@openmasq/redact/pdf-redact";

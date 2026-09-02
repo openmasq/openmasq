@@ -38,7 +38,7 @@ export function FileViewerModal({
   onAsk,
   loadFile,
   onOpenExternal,
-  storageLabel = "stocké localement",
+  storageLabel: storageLabelProp,
   redactedView = true,
 }: {
   id: string;
@@ -140,6 +140,7 @@ export function FileViewerModal({
   );
 
   const activeExtra = (extraTabs ?? []).find((t) => t.id === tab);
+  const storageLabel = storageLabelProp ?? t.viewers.storedLocally;
   const sizeLine =
     data && data !== "error" ? `${fmtSize(data.original.byteLength)} · ${storageLabel}` : storageLabel;
 
@@ -232,9 +233,9 @@ export function FileViewerModal({
                 <ShieldIcon size={12} />
                 {showRedacted
                   ? labels
-                    ? `Données masquées : ${labels}`
-                    : "Version partagée aux modèles"
-                  : "Original — vos données réelles, jamais partagées telles quelles"}
+                    ? t.viewers.maskedNote(labels)
+                    : t.viewers.maskedNoteNoLabels
+                  : t.viewers.originalNote}
               </span>
               {/* A <span>, not a <label>: the Switch is a button[role=switch], which a
                   label doesn't relay — the word is a label, the switch is the gesture. */}

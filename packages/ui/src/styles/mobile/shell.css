@@ -76,9 +76,18 @@
 .bottom-nav-btn.active {
   color: var(--brand-text);
 }
+/* Full section names (« Compétences », « Bibliothèque ») on six 60px tabs: a size
+   and tracking that fit them on a 360px phone, and an ellipsis rather than a wrap if a
+   translation runs longer. */
 .bottom-nav-label {
-  font-size: 10.5px;
+  max-width: 100%;
+  padding: 0 2px;
+  font-size: 9.5px;
   font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Mobile home — the chat LIST screen (kit ChatList) ── */

@@ -4,7 +4,6 @@ export * from "./icons";
 export * from "./primitives";
 export * from "./controls";
 export * from "./EmptyState";
-export { CreateCard } from "./CreateCard";
 
 // Model logos live in ../ModelLogo (real per-model vendor marks + tile colours).
 // Re-exported so existing `import { ModelLogo } from "./index"` sites keep working.

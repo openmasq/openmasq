@@ -19,8 +19,6 @@ function Harness({ seen }: { seen: { entities: string[] } }) {
   return (
     <MemoryView
       memoryData={memory.memoryData}
-      memoryAuto={false}
-      onToggleAuto={() => {}}
       onSetProfile={memory.setMemoryProfile}
       onAdd={memory.addMemoryCard}
       onUpdate={memory.updateMemoryCard}

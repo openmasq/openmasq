@@ -184,8 +184,7 @@ export const importModal = {
     "chatgpt.com → Réglages → Contrôles des données → Exporter. Déposez ici le .zip reçu par e-mail.",
   hintClaude:
     "claude.ai → Réglages → Confidentialité → Exporter. Déposez ici l'archive reçue par e-mail.",
-  geminiSoonTip: "Google Takeout ne préserve pas la structure des fils — bientôt.",
-  geminiSoon: "Gemini · bientôt",
+  geminiNote: "Gemini : pas encore — Google Takeout ne préserve pas la structure des fils.",
   choose: (provider) => `Choisir le fichier d'export ${provider}…`,
   maskedNote:
     "Les valeurs sensibles détectées sont masquées dès l'import : si vous poursuivez un fil ici, son historique part masqué.",

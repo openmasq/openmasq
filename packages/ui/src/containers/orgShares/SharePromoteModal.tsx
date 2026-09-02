@@ -37,7 +37,9 @@ export function SharePromoteModal({
   const t = useT();
   const host = useHost();
   const [options, setOptions] = useState<OrgShareAudienceOptions>({ teams: [], members: [] });
-  const [target, setTarget] = useState<"person" | "team" | "org">("team");
+  // The NARROWEST audience by default: a share widens who can read, so the dialog
+  // opens on « une personne » and lets one choose to go broader — never the reverse.
+  const [target, setTarget] = useState<"person" | "team" | "org">("person");
   const [who, setWho] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);

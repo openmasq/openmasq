@@ -9,12 +9,6 @@ export const accountTab = {
   signedInFallback: "Signed-in account",
   signedInHint: (brand) => `Signed in to ${brand} on this device.`,
   signOut: "Sign out",
-  viewOrg: "View the organisation",
-  yourOrg: "Your organisation",
-  roleOwner: "owner",
-  roleAdmin: "administrator",
-  roleMember: "member",
-  members: (n) => `${n} member${n > 1 ? "s" : ""}`,
   createOrgTip: "Create an organisation — in the web app",
   createOrg: "Create an organisation",
   createOrgHint:
@@ -34,7 +28,7 @@ export const accountTab = {
   statsEyebrow: "Statistics",
   statsTitle: "Anonymous usage statistics",
   statsHint: "Usage counters — never your messages.",
-  devEyebrow: "Developer",
+  privacyEyebrow: "Privacy",
   linkPreviews: "Link previews",
   linkPreviewsHint: "A thumbnail under links. Turning it on reveals your IP address to the linked site.",
   backToChats: "Back to conversations",
@@ -46,18 +40,24 @@ export const privacyTab = {
   perCategory: "Adjust category by category",
   activeCount: (active, total) => `${active}/${total} active`,
   managedByOrg: (n) => ` · ${n} managed by your organisation`,
-  transparencyEyebrow: "Transparency",
+  advancedTitle: "Advanced options",
+  advancedSub: "Technical log, token display, what the model receives.",
   debugLogTitle: "Detailed technical log",
   debugLogHint:
-    "Adds “Debug log” to the ⋯ menu of every conversation, and traces the exact message sent to the model in the console. The log itself — exchanges, tools called, errors — is kept at all times, on this device only; it is what a “Your feedback” report can attach, always without the mapping table. The “what the model saw” comparison does not depend on this setting.",
-  displayEyebrow: "Display",
+    "Adds “Debug log” to the ⋯ menu of every conversation — kept on this device only.",
   tokenDisplayTitle: "Show tokens rather than pseudonyms",
   tokenDisplayHint:
     "A protected value reads “[PERSON1]” rather than a fake name. Changes only the display: the model receives what the setting below says.",
-  wireEyebrow: "What the model receives",
   wireTokensTitle: "The model only ever sees tokens",
   wireTokensHint:
     "Instead of a plausible fake name, the model receives “[PERSON1]”. Plainer — a fake name is still a name — but it writes and reasons less well on markers. Applies to conversations started afterwards.",
+  memoryEyebrow: "Memory",
+  memoryAutoTitle: "Automatic memory extraction",
+  memoryAutoHint: (brand) =>
+    `${brand} notes the durable facts of a conversation on its own, under “To review”. Nothing new leaves your machine; “remember that…” keeps working whether this is on or off.`,
+  memoryExportTitle: "Export the memory (diagnostic)",
+  memoryExportHint:
+    "The cards and their semantic links, as text, in a local file — real values, to understand a grouping or a duplicate.",
   reportEyebrow: "What was protected",
   reportEmpty: (brand) =>
     `Nothing has left from here yet. From your first message on, you will see here what ${brand} protected — and of which kind.`,
@@ -140,9 +140,8 @@ export const modelsTab = {
   agentMissing: (a) => `${a}: not found on this machine. Click to see how to install it.`,
   availableEyebrow: (n) => `Available models (${n})`,
   noMatch: (q) => `No model matches${q ? ` “${q}”` : ""}.`,
-  keyGearTip: (hasKey, provider) => `${hasKey ? "Edit" : "Enter"} the ${provider} key`,
-  gearNote:
-    "The ⚙ of each service opens its key (encrypted on this machine, never read in clear). The pill says whether a key is already saved there.",
+  advancedTitle: "Advanced",
+  advancedSub: "A model on your own computer (Ollama, LM Studio…) and the ids it does not list.",
   orgProvidesModels: (org) => `${org} provides the models.`,
   yourOrg: "Your organisation",
   orgKeysBlocked:

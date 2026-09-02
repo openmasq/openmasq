@@ -1,0 +1,160 @@
+/* ═══ « Importer mes compétences Claude » (ImportSkillsModal) ═══
+   The list of what the app found on disk, before creating anything at all:
+   a checkbox (import or not), a SORTING button (compétence ⇄ workflow, the app's
+   guess staying editable), and the warning for skills that rely on
+   side files — said BEFORE the import rather than discovered in use.
+   The `.imp-*` family is defined ONLY here. */
+.imp-body {
+  max-height: min(52vh, 440px);
+  overflow-y: auto;
+  padding: 4px 2px;
+  border-radius: var(--radius-md);
+  transition: background 0.14s ease, box-shadow 0.14s ease;
+}
+/* Hovering a drop: the WHOLE body is the target, not a rectangle within the rectangle —
+   aiming at a zone smaller than the window is the best way to miss and drop outside it. */
+.imp-body.over {
+  background: var(--surface-selected);
+  box-shadow: inset 0 0 0 2px var(--brand);
+}
+/* The prompt, when nothing was found automatically: it's the default state for whoever
+   doesn't use Claude Code on this machine, so it offers instead of just observing. */
+.imp-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 34px 20px;
+  text-align: center;
+  color: var(--text-faint);
+}
+.imp-drop-title {
+  margin: 6px 0 0;
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.imp-drop-sub {
+  margin: 0;
+  max-width: 420px;
+  font-size: var(--text-xs);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.imp-drop-sub code {
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.imp-drop-scan {
+  margin: 8px 0 0;
+  font-size: var(--text-2xs);
+  color: var(--text-faint);
+}
+.imp-drop-error {
+  margin: 10px 2px 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--red-soft);
+  color: var(--red-500);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+.imp-loading,
+.imp-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 4px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.imp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.imp-row {
+  position: relative;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+/* Unchecked: present, but visibly outside the import — not removed from the list, which
+   would force reopening the screen to change one's mind. */
+.imp-row.off {
+  opacity: 0.5;
+}
+.imp-pick {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+.imp-name {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.imp-desc {
+  margin: 4px 0 0 25px;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.imp-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 7px 0 0 25px;
+  padding: 6px 9px;
+  border-radius: var(--radius-sm);
+  background: var(--amber-soft);
+  color: var(--amber-500);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+.imp-warn svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+/* The sorting, top right of the row: a state you toggle, not an action. */
+.imp-kind {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.imp-kind[aria-pressed="true"] {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--ink-on-brand);
+}
+.imp-note {
+  margin: 12px 2px 0;
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-faint);
+}

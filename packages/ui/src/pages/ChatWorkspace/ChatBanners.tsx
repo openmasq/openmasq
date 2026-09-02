@@ -1,12 +1,13 @@
-import { Banner } from "../../components/feedback/Banner";
+import { Toast } from "../../components/feedback/Toast";
 import { useT } from "../../i18n";
 
 /**
- * The bottom banner stack — full-bleed feedback above the composer. SEND failures
- * (missing key, rate limit, generic error) are no longer shown here: they persist
- * INLINE on the failed assistant bubble (with "Réessayer" + any CTA). The only
- * thing left is the transient attachment-warning toast (a composer-side notice,
- * not a send error), so this stays a thin, single-purpose banner.
+ * The composer's transient notice. SEND failures (missing key, rate limit, generic
+ * error) are not shown here: they persist INLINE on the failed assistant bubble (with
+ * "Réessayer" + any CTA). The only thing left is the attachment warning — a composer-side
+ * notice, not a send error — and being transient it is THE toast (components/CLAUDE.md:
+ * a toast passes, a chip stays, a modal blocks), docked above the composer and gone on
+ * its own.
  */
 export function ChatBanners({
   attachWarning,
@@ -18,13 +19,12 @@ export function ChatBanners({
   const t = useT();
   if (!attachWarning) return null;
   return (
-    <div className="kb-stack">
-      <Banner
-        tone="warning"
-        title={t.cards.banners.attachmentIgnored}
-        message={attachWarning}
-        onClose={onDismissAttachWarning}
-      />
-    </div>
+    <Toast
+      tone="warning"
+      title={t.cards.banners.attachmentIgnored}
+      message={attachWarning}
+      duration={6000}
+      onDone={onDismissAttachWarning}
+    />
   );
 }

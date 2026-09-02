@@ -81,7 +81,7 @@ describe("redaction palette — one source, no drift", () => {
   it("no theme re-tones the palette — one colour per hue, every ground", () => {
     // A theme that re-toned `--hl-*` meant the same section wore two colours depending on
     // the ground. Theme the ground and the accents; leave the redaction palette alone.
-    for (const theme of ['[data-theme="dark"]', '[data-theme="blue"]', '[data-theme="blue-dark"]']) {
+    for (const theme of ['[data-theme="dark"]']) {
       for (const hue of HUES) {
         const block = CSS.split(theme).slice(1).join(theme);
         const scoped = new RegExp(`^[^}]*--hl-${hue}\\s*:`, "m");

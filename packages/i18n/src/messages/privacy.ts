@@ -42,10 +42,14 @@ export interface PrivacyLevelCopy {
 }
 
 /**
- * The PROTECTION LEVEL, in its three registers. They do not replace one another:
- * `desc` + `tradeoff` serve the Settings, where the decision is made knowingly;
- * `short` serves the composer menu, where it is made in passing, and says what IS
- * masked rather than the use the level suits.
+ * The PROTECTION LEVEL, in its three registers, and BOTH surfaces (Réglages'
+ * `PrivacyLevelPicker`, the composer's `ComposerRedactMenu`) render all three, in the
+ * same order: `desc` names a concrete USE (« recherche web et outils », « documents à
+ * analyser »), `short` what the level COVERS, `tradeoff` what it leaves readable or may
+ * skew. One vocabulary, two doors — `ComposerRedactMenu.test.tsx` pins the parity.
+ *
+ * ⚠️ `standard` (label « Allégé ») is the ONE level below the default: its `desc` and
+ * `tradeoff` must SAY it (rule 8) — the id stays `standard` because it is persisted.
  *
  * ⚠️ `tradeoff` is not decorative: over-selling reliability would be the same trust
  * bug as over-selling protection (rule 8). Translating it means translating a
@@ -96,7 +100,8 @@ export interface WebNavMessages {
   /** The SCOPE, kept short: the line is ellipsised by its container. */
   thisMessageOnly: string;
   keepMasking: string;
-  switchTo: (level: string) => string;
+  /** The other button says « Laisser en clair · ce message » — from `conversation.mark`,
+   *  the one lexicon, so it is not written here. */
   title: (level: string) => string;
   /** Follows the level's `tradeoff`: what stays masked, and what the request carries. */
   rest: string;

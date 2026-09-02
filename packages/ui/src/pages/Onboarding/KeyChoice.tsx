@@ -78,6 +78,12 @@ export function KeyChoice({
   const [error, setError] = useState("");
   // The agent panel is open: pre-opened when one is already on (coming back to this step).
   const [agentPath, setAgentPath] = useState(() => agents.some((a) => a.enabled));
+  // The five other providers sit behind « Autre fournisseur »: OpenRouter alone is the
+  // recommendation, and six chips made it one option out of six. Pre-unfolded when a
+  // key already sits on one of them — a saved key must never hide behind a link.
+  const [othersOpen, setOthersOpen] = useState(() =>
+    KEY_PROVIDERS.some((p) => p !== "openrouter" && keyConfigured.has(p)),
+  );
 
   // « Obtenir une clé gratuitement » — the key ends up on the USER's OpenRouter account,
   // so their own credits AND their own free-model quota. That second half matters: those
@@ -202,7 +208,7 @@ export function KeyChoice({
       {!agentPath && (mode === "byo" || !served) && onSaveKey && (
         <div className="ob-access-key">
           <div className="ob-access-providers">
-            {KEY_PROVIDERS.map((p) => (
+            {KEY_PROVIDERS.filter((p) => othersOpen || p === "openrouter").map((p) => (
               <button
                 key={p}
                 type="button"
@@ -218,6 +224,15 @@ export function KeyChoice({
                 )}
               </button>
             ))}
+            {!othersOpen && (
+              <button
+                type="button"
+                className="ob-access-manual ob-access-others"
+                onClick={() => setOthersOpen(true)}
+              >
+                {t.onboarding.keyChoice.otherProvider}
+              </button>
+            )}
           </div>
           {keyConfigured.has(provider) ? (
             <div className="ob-access-saved">

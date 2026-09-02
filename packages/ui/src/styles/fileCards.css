@@ -20,7 +20,11 @@
      variable the theme can re-point. Lime under the forest brand; the blue+dark rule at
      the foot of this file swings it to periwinkle — same treatment as the empty-state
      lime tone (see emptyState.css). Dark ink stays legible on both. */
-  --tile-hue: var(--hl-lime);
+  /* Brand chrome, not a redaction category: it follows the #3939FA primary → a
+     periwinkle (dark ink stays legible), exactly as the empty-state lime tone does
+     (emptyState.css). The per-category `--hl-*` marks are untouched; image/err/stale
+     tiles keep their own status hues. */
+  --tile-hue: #9a9aff;
   position: relative;
   display: inline-flex;
   flex-shrink: 0;
@@ -209,16 +213,6 @@
 .msg-filecard:hover .msg-filecard-open {
   background: var(--surface-sunken);
   color: var(--text-strong);
-}
-
-/* Blue + dark themes: the composer's document tile is brand chrome, not a redaction
-   category, so it follows the #3939FA primary → a periwinkle (dark ink stays legible),
-   exactly as the empty-state lime tone does (emptyState.css). The per-category redaction
-   `--hl-*` marks are untouched; image/err/stale tiles keep their own status hues.
-   (The message card's shield no longer takes a hue at all — it is sunken + hairline.) */
-[data-theme="blue"] .attach-tile,
-[data-theme="blue-dark"] .attach-tile {
-  --tile-hue: #9a9aff;
 }
 
 /* The inline detail panel (ModalShell `panel` mode) fills the split column. */

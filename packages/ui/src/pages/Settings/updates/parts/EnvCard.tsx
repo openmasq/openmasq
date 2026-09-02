@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { LayersIcon } from "../../../../components/brand";
+import { ConfirmDialog } from "../../../../components/feedback/ConfirmDialog";
 import { useHost } from "../../../../host";
 import { useT } from "../../../../i18n/I18nProvider";
 import { useUpdates } from "../useUpdates";
@@ -21,6 +22,9 @@ export function EnvCard() {
   const { crossEnv } = useUpdates();
   const [tester, setTester] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The switch asks first — in the app's own dialog (`ConfirmDialog`), never the
+  // system `window.confirm`, which wears the OS chrome and ignores the theme.
+  const [confirming, setConfirming] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const env = host.env;
 
@@ -53,7 +57,7 @@ export function EnvCard() {
         : t.versionsTab.envProductionDesc;
 
   const onSwitch = async () => {
-    if (!window.confirm(t.versionsTab.envSwitchConfirm(envLabel(target, t)))) return;
+    setConfirming(false);
     setBusy(true);
     setErr(null);
     const r = await env.switchTo(target).catch(() => null);
@@ -77,7 +81,7 @@ export function EnvCard() {
           </div>
           <div className="ver-now-chan">{description}</div>
         </div>
-        <button onClick={onSwitch} disabled={busy} className="ver-btn">
+        <button onClick={() => setConfirming(true)} disabled={busy} className="ver-btn">
           <span className="om-sweep">{t.versionsTab.envSwitchTo(envLabel(target, t))}</span>
         </button>
       </div>
@@ -86,6 +90,16 @@ export function EnvCard() {
           <span className="ver-note-icon">🔒</span>
           <span>{err}</span>
         </div>
+      )}
+      {confirming && (
+        <ConfirmDialog
+          title={t.versionsTab.envSwitchTo(envLabel(target, t))}
+          message={t.versionsTab.envSwitchConfirm(envLabel(target, t))}
+          confirmLabel={t.common.confirm}
+          danger={false}
+          onConfirm={() => void onSwitch()}
+          onCancel={() => setConfirming(false)}
+        />
       )}
     </section>
   );

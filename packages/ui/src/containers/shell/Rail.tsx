@@ -1,21 +1,11 @@
 import { useMemo } from "react";
-import {
-  PlusIcon,
-  MessageIcon,
-  BookIcon,
-  LockIcon,
-  SparklesIcon,
-  MemoryIcon,
-  SearchIcon,
-  ShieldIcon,
-  Avatar,
-} from "../../components/brand";
+import { PlusIcon, SearchIcon, SECTION_ICON, ShieldIcon, Avatar } from "../../components/brand";
 import { BrandMark } from "../../components/media/BrandLogo";
-import type { Conversation, Section } from "../../types";
+import type { Conversation } from "../../types";
 import { useAppSelector } from "../../state/redux";
-import { useFeatureAccess } from "../../state/billing/featureAccess";
+import { isGated, useFeatureAccess } from "../../state/billing/featureAccess";
 import { protectedCount } from "../../state/redaction/protectedCount";
-import { sectionGuide } from "../../help";
+import { sectionGuides } from "../../help";
 import { useT } from "../../i18n";
 import { useSectionNav } from "./useSectionNav";
 
@@ -37,9 +27,15 @@ interface Props {
 
 /**
  * Collapsed sidebar = the compact icon rail (matching the chat-app kit): brand
- * mark (expands the sidebar), new chat, Chats / Bibliothèque nav, Search (⌘K),
- * then a spacer, the privacy shield and the account avatar — both opening
- * settings. Shown when the conversation sidebar is collapsed.
+ * mark (expands the sidebar), new chat, Search (⌘K), the five sections, then a
+ * spacer, the privacy shield and the account avatar — both opening settings. Shown
+ * when the conversation sidebar is collapsed.
+ *
+ * The sections are ITERATED from the one vocabulary (`sectionGuides`, the same list
+ * and the same gating as `Sidebar`), each wearing its `SECTION_ICON` — five hand-written
+ * buttons used to sit here, which is how a section could exist in one nav and not the
+ * other. Tooltips are plain `title`s: `brand/TooltipLayer` draws them like every other
+ * glyph-only control's.
  */
 export function Rail({
   conversations,
@@ -52,15 +48,13 @@ export function Rail({
 }: Props) {
   const { section, go } = useSectionNav();
   const t = useT();
-  /** The tooltip for a section: its label AND what it is for, from the one vocabulary
-   *  (`help/sections.ts`). A tip that only repeats the label taught nothing — and four of
-   *  these six names are the app's own words, so the rail was the app's least legible part. */
-  const tip = (id: Section): string => sectionGuide(id, t)?.tip ?? id;
-  /** The label read from the same button — the NAME alone, without the phrase that explains it. */
-  const label = (id: Section): string => sectionGuide(id, t)?.label ?? id;
   // The governable gates (`state/featureAccess.ts`): a closed gate doesn't render
   // its entry. The feature itself keeps running — except Compétences.
   const access = useFeatureAccess();
+  /* Each section's `tip` is its label AND what it is for (`help/sections.ts`) — a tip
+     that only repeats the label taught nothing, and four of these names are the app's own
+     words. The `aria-label` reads the NAME alone. */
+  const sections = sectionGuides(t).filter((s) => !isGated(s.id) || access[s.id]);
   // The Mémoire « nouveau » dot — raised on a background note, cleared on visit.
   const memoryFresh = useAppSelector((s) => s.ui.memoryFresh);
   // The SAME number the confidentialité report shows (`state/protectedCount.ts`) —
@@ -72,73 +66,43 @@ export function Rail({
       <button
         className="rail-btn rail-logo"
         onClick={onExpand}
-        data-tip={t.chrome.expandSidebar}
+        title={t.chrome.expandSidebar}
         aria-label={t.chrome.expandSidebar}
       >
         <BrandMark size={24} className="brand-mark" />
       </button>
 
-      <button className="rail-new" onClick={onNew} data-tip={t.chrome.newChat} aria-label={t.chrome.newChat}>
+      <button className="rail-new" onClick={onNew} title={t.chrome.newChat} aria-label={t.chrome.newChat}>
         <PlusIcon size={18} />
       </button>
 
       <button
         className="rail-btn"
         onClick={onOpenSearch}
-        data-tip={t.chrome.searchShortcut}
+        title={t.chrome.searchShortcut}
         aria-label={t.chrome.search}
       >
         <SearchIcon size={18} />
       </button>
 
-      <button
-        className={`rail-btn rail-nav ${section === "chats" ? "active" : ""}`}
-        onClick={() => go("chats")}
-        data-tip={tip("chats")}
-        aria-label={label("chats")}
-      >
-        <MessageIcon size={16} />
-      </button>
-      {access.library && (
-        <button
-          className={`rail-btn rail-nav ${section === "library" ? "active" : ""}`}
-          onClick={() => go("library")}
-          data-tip={tip("library")}
-          aria-label={label("library")}
-        >
-          <BookIcon size={16} />
-        </button>
-      )}
-      {access.competences && (
-        <button
-          className={`rail-btn rail-nav ${section === "competences" ? "active" : ""}`}
-          onClick={() => go("competences")}
-          data-tip={tip("competences")}
-          aria-label={label("competences")}
-        >
-          <SparklesIcon size={16} />
-        </button>
-      )}
-      {access.memory && (
-        <button
-          className={`rail-btn rail-nav ${section === "memory" ? "active" : ""}`}
-          onClick={() => go("memory")}
-          data-tip={memoryFresh ? t.chrome.memoryFresh : tip("memory")}
-          aria-label={memoryFresh ? t.chrome.memoryFresh : label("memory")}
-        >
-          <MemoryIcon size={16} />
-          {/* Background extraction noted something the user hasn't seen — cleared on visit. */}
-          {memoryFresh && <span className="rail-note-dot" aria-hidden="true" />}
-        </button>
-      )}
-      <button
-        className={`rail-btn rail-nav ${section === "vault" ? "active" : ""}`}
-        onClick={() => go("vault")}
-        data-tip={tip("vault")}
-        aria-label={label("vault")}
-      >
-        <LockIcon size={16} />
-      </button>
+      {sections.map((s) => {
+        const Glyph = SECTION_ICON[s.id];
+        // The Mémoire « nouveau » dot: a background extraction noted something the user
+        // hasn't seen — the tip says so, and the dot clears on visit.
+        const fresh = s.id === "memory" && memoryFresh;
+        return (
+          <button
+            key={s.id}
+            className={`rail-btn rail-nav ${section === s.id ? "active" : ""}`}
+            onClick={() => go(s.id)}
+            title={fresh ? t.chrome.memoryFresh : s.tip}
+            aria-label={fresh ? t.chrome.memoryFresh : s.label}
+          >
+            <Glyph size={16} />
+            {fresh && <span className="rail-note-dot" aria-hidden="true" />}
+          </button>
+        );
+      })}
 
       <div className="rail-spacer" />
 
@@ -150,7 +114,7 @@ export function Rail({
       <button
         className="rail-btn"
         onClick={() => onOpenSettings("privacy")}
-        data-tip={t.chrome.privacyReportTip(protectedN)}
+        title={t.chrome.privacyReportTip(protectedN)}
         aria-label={t.chrome.privacyReport}
       >
         <ShieldIcon size={18} />
@@ -158,7 +122,7 @@ export function Rail({
       <button
         className="rail-avatar"
         onClick={() => onOpenSettings()}
-        data-tip={t.chrome.account}
+        title={t.chrome.account}
         aria-label={t.chrome.account}
       >
         <Avatar name={userName ?? t.chrome.you} size={30} muted />

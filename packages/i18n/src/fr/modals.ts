@@ -114,6 +114,10 @@ export const modals = {
     getOne: "en obtenir une ↗",
     removeKey: "Retirer la clé",
     keyPlaceholderFallback: (provider) => `Votre clé ${provider}`,
+    saveAndSend: "Enregistrer et envoyer",
+    replaceKey: "Remplacer la clé",
+    connectIncomplete: "Connexion non terminée. Réessayez — rien n'a été enregistré.",
+    connectUnreachable: "Connexion impossible. Réessayez dans un instant.",
   },
 
   debug: {
@@ -158,6 +162,21 @@ export const modals = {
 
   modelAccess: {
     eyebrow: "ACCÈS AUX MODÈLES",
+    titleKey: "Ce modèle demande votre clé",
+    titleCreditsSold: "Ce modèle demande un abonnement",
+    titleCreditsClosed: "Ce modèle n'est pas ouvert sur votre compte",
+    titleFree: "Gratuit, avec des limites",
+    thisProvider: "Ce fournisseur",
+    leadUnserved: (provider) =>
+      `${provider} s'utilise avec votre propre clé. Cette version n'a pas de service hébergé : un modèle local ou votre CLI d'abonnement sont les autres chemins.`,
+    leadKey: (provider) => `${provider} s'utilise avec votre propre clé — ou choisissez un autre modèle.`,
+    leadCreditsSold: (brand) => `Ce modèle passe par ${brand}, et votre compte n'a plus de crédits.`,
+    leadCreditsClosed: (brand) =>
+      `Ce modèle passe par ${brand}, et il n'est pas disponible sur votre compte pour le moment.`,
+    leadFreeSold: (brand) =>
+      `Un modèle gratuit n'entame pas vos crédits : compte ${brand} connecté, sans abonnement — mais débit et disponibilité dépendent du fournisseur.`,
+    leadFreeServed: (brand) =>
+      `Un modèle gratuit est inclus avec votre compte ${brand}, sans clé — mais débit et disponibilité dépendent du fournisseur.`,
     freeModels: "Les modèles gratuits",
     includedModels: "Les modèles inclus",
     freeDescSold: (brand) =>
@@ -173,7 +192,7 @@ export const modals = {
     ownKeyDesc: (soldSuffix) =>
       `Branchez votre clé OpenAI, Anthropic, Mistral… : c'est votre fournisseur qui vous facture${soldSuffix}. La protection est la même.`,
     ownKeyWithoutCredits: ", sans passer par vos crédits",
-    ownKeyStatic: "Renseignez-la via l'engrenage ⚙ de chaque fournisseur, sur cette page.",
+    ownKeyStatic: "Renseignez-la depuis la puce de son fournisseur, en haut de cette page.",
     openRouterNote: (brand) =>
       `Cas particulier : dans le catalogue étendu OpenRouter, seuls les modèles proposés par ${brand} passent sans clé — les autres demandent votre propre clé OpenRouter.`,
   },
@@ -189,9 +208,8 @@ export const modals = {
     eyebrow: "MASQUAGE",
     titleLead: "Règles de ",
     titleHighlight: "masquage",
-    sub: "Les catégories activées sont retirées de vos messages avant qu'un modèle ne les voie.",
-    thisConversation: "Cette conversation",
-    byDefault: "Par défaut",
+    sub: "Pour cette conversation : les catégories activées sont retirées de vos messages avant qu'un modèle ne les voie.",
+    defaultLevelLink: "Modifier le niveau par défaut dans Réglages → Confidentialité",
     memoryTitle: "Mémoire dans cette conversation",
     memoryDesc: (brand) =>
       `Coupée : rien de votre mémoire n'accompagne les envois d'ici, le modèle ne peut pas la consulter, et ${brand} n'y note rien de lui-même. « Retiens que… » reste possible — c'est votre demande.`,

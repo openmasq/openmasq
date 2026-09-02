@@ -9,10 +9,16 @@
  */
 
 export interface LoginMessages {
-  /** The DEFAULT title — `apps/web` sets another on its invitation page, where
+  /** The RETURNING title (« Content de vous revoir ») — only once an account has already
+   *  been seen on this device; `apps/web` sets another on its invitation page, where
    *  signing in is not a return but an arrival. */
   heading: string;
+  /** The FIRST-LAUNCH title: neutral, no account has been seen here yet. */
+  headingFirst: (brand: string) => string;
   subheading: string;
+  /** Said under the field BEFORE any refusal: on the hosted service, sign-ups are
+   *  closed and an address must have been opened by hand. */
+  inviteOnly: string;
   checkYourEmail: string;
   passwordlessStrip: string;
   offline: string;
@@ -92,7 +98,8 @@ export interface ModelPickerMessages {
   sectionFavorites: string;
   sectionCurrent: string;
   freeTip: string;
-  howToUse: string;
+  /** The row's « ⋯ » — opens the context menu (default model). */
+  moreActions: string;
   isDefault: string;
   setDefault: string;
   addFavorite: string;
@@ -153,6 +160,8 @@ export interface ModelPickerMessages {
 export interface LeavesMessages {
   analytics: {
     privacyTitle: string;
+    /** The chip's ONE sentence: what runs locally, what is measured, that it is optional. */
+    body: (brand: string) => string;
     local: string;
     alwaysOn: string;
     usageStats: string;

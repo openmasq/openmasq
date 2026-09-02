@@ -1,6 +1,6 @@
 import { connectorBrandName } from "@openmasq/catalog/mcp";
 import { connectorPresentation, splitToolName } from "../ToolTrace";
-import { RefreshIcon } from "../brand";
+import { AlertIcon, RefreshIcon } from "../brand";
 import { useOpenConnector } from "../../containers/providers/connectors";
 import { humanToolLabel } from "../../agent/humanToolLabel";
 import { connectorOfTool, type ToolStruggle } from "../../agent/toolStruggle";
@@ -61,11 +61,10 @@ export function ToolStruggleNotice({
   const canOpen = fixableHere && !!openConnector && !!connectorId;
 
   return (
-    <div
-      className="shield-caption warn"
-      title={struggle.tool ? `Un appel d'outil n'a pas abouti : ${struggle.tool}` : "Un appel d'outil n'a pas abouti"}
-    >
-      <span aria-hidden>⚠️</span>
+    <div className="shield-caption warn" title={t.conversation.struggle.failedTip(struggle.tool)}>
+      <span aria-hidden>
+        <AlertIcon size={13} />
+      </span>
       <span className="flex-min">
         {struggle.kind === "unknown_tool" ? (
           <>

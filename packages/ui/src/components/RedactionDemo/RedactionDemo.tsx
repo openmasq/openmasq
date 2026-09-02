@@ -9,9 +9,10 @@ import { useT } from "../../i18n";
  * Mounted by first launch AND by « Aide » (chapter « Ce que l'app fait pour
  * vous »): a single demo, so the two can't tell two different products.
  *
- * This replaced a wall of 19 category toggles as the FIRST thing a new user sees. The
- * toggles asked a decision before the concept existed; this shows the concept, and the
- * decision stays one click away (« Régler finement ») and in Réglages for ever after.
+ * This replaced the whole category matrix (`privacy/privacyLevel.ts` `TOTAL_CATEGORIES`,
+ * read from the catalogue) as the FIRST thing a new user sees. The toggles asked a
+ * decision before the concept existed; this shows the concept, and the decision stays one
+ * click away (« Régler finement ») and in Réglages for ever after.
  *
  * Motion is a cross-fade on the values only — the sentence never reflows, so the eye
  * stays on what changed. Respects `prefers-reduced-motion` by simply showing the end
@@ -79,7 +80,7 @@ export function RedactionDemo() {
       </div>
 
       <div className="ob-demo-legend">
-        {demoLegend().map((l) => (
+        {demoLegend(t).map((l) => (
           <span key={l.kind} className={`ob-demo-chip hl-${l.hue}`}>
             {l.label}
           </span>
@@ -90,7 +91,8 @@ export function RedactionDemo() {
 }
 
 /** `hueForKind` already ran in `demo.ts` for the legend; the spans re-derive it there
- *  too, so the mark and its legend chip can never wear different colours. */
+ *  too, so the mark and its legend chip can never wear different colours. The hue does
+ *  not depend on the language, so the default catalogue serves. */
 function markHue(kind: string | undefined): string {
   return demoLegend().find((l) => l.kind === kind)?.hue ?? "slate";
 }

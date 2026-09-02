@@ -5,17 +5,18 @@ import type { SlashAction } from "./slashPalette";
 import { MemoryIcon, WorkflowIcon } from "../../components/brand";
 
 /**
- * The composer's compétence picker menu — shared by the ✨ button's dropdown AND the
- * "/" palette (same list, same look, one home). Picking one stages the compétence as
- * a chip; both live in `ChatView` (`onPickCompetence`). This is pure presentation:
- * it renders the list and reports the pick. The button that toggles it + the
- * outside-click/Escape close live in `Composer` (which owns the wrapper ref), and the
- * palette's keyboard cursor arrives as `activeIndex` (the textarea keeps focus — the
- * menu never steals it, so `aria-activedescendant`-style focus stays a non-problem).
+ * The composer's compétence palette — ONE instance, two openers: "/" at the start of
+ * the draft and « + » → Compétence (same list, same look, one home). Picking one
+ * stages the compétence as a chip; both live in `ChatView` (`onPickSkill`). This is
+ * pure presentation: it renders the list and reports the pick. The open state, the
+ * outside-click/Escape close and the keyboard cursor live in `Composer`; the cursor
+ * arrives as `activeIndex` (the textarea keeps focus — the menu never steals it, so
+ * `aria-activedescendant`-style focus stays a non-problem).
  *
- * The "/" palette also lists built-in ACTIONS (`slashPalette.SLASH_ACTIONS`, e.g.
+ * The "/" lookup also lists built-in ACTIONS (`slashPalette.SLASH_ACTIONS`, e.g.
  * « /retenir ») ABOVE the compétences; `activeIndex` spans actions THEN compétences
- * as one list. The ✨ dropdown passes no actions. Chrome: `styles/skills/composer.css`.
+ * as one list. Opened from « + », no actions are passed (they rewrite the draft).
+ * Chrome: `styles/skills/composer.css`.
  */
 export function ComposerSkillMenu({
   skillList,

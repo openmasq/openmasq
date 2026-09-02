@@ -1,6 +1,5 @@
-import { useState } from "react";
 import type { AskTarget } from "../../../types";
-import { useHost, type LocalFsEntry } from "../../../host";
+import type { LocalFsEntry } from "../../../host";
 import {
   ChevRightIcon,
   FolderIcon,
@@ -10,9 +9,9 @@ import {
   SettingsIcon,
 } from "../../../components/brand";
 import { useFolderTree } from "../../../hooks/useFolderTree";
+import { useGrantFolder } from "../../../hooks/useGrantFolder";
 import { StorageSources } from "./StorageSources";
 import { TreeRow } from "./TreeRow";
-import { FILESYSTEM_CONNECTOR_ID, localServerId } from "../../../state/conversation/mcpIds";
 import { panelOpenLocalFile, useAppDispatch } from "../../../state/redux";
 
 import { useT } from "../../../i18n";
@@ -50,75 +49,14 @@ export function FolderTreePanel({
 }) {
   const t = useT();
   const dispatch = useAppDispatch();
-  const host = useHost();
   const tree = useFolderTree(true);
-  const [adding, setAdding] = useState(false);
-  const [addError, setAddError] = useState("");
-
-  const mcp = host.mcp;
-  const canAdd = !!mcp?.pickDir && !!mcp?.setDirs;
-  /* A NEW folder can only come from the native picker: the host checks it on the
-     privileged side, the renderer cannot assign itself a path.
-     Three things a shortcut misses here, which make a button that "does nothing":
-      · the targeted server is `local-filesystem`, not `filesystem` (`state/mcpIds.ts`);
-      · the LIST starts from what the server actually has registered — `setDirs` replaces,
-        so sending only the new path would silently revoke the others;
-      · a refusal comes back in `info.error`, it is NOT thrown: without reading it, the
-        failure exists nowhere on screen;
-      · and the connector may not be connected at all — that's even the default state
-        of a fresh install, the one where this button gets clicked the most. */
-  const addFolder = async () => {
-    if (!mcp?.pickDir || !mcp.setDirs || adding) return;
-    setAdding(true);
-    setAddError("");
-    try {
-      const serverId = localServerId(FILESYSTEM_CONNECTOR_ID);
-      const server = (await mcp.list()).find((s) => s.id === serverId);
-      // The param key comes from the server itself when it exists; otherwise `root`,
-      // which is what main's catalog declares (`mcp/catalog.ts`) — and already the
-      // fallback this file used.
-      const key = server ? (Object.keys(server.params ?? {})[0] ?? "root") : "root";
-      const current = server ? (server.params?.[key] ?? tree.roots) : [];
-
-      // ⚠️ THE PICKER FIRST, even with no connector. The folder isn't a connector
-      // setting: it IS the AUTHORIZATION itself, and the server refuses to be
-      // registered without it (« Dossiers autorisés requis » — `root` is required). Trying
-      // to install it empty to "fix" it before asking therefore always fails.
-      const picked = await mcp.pickDir();
-      if (!picked || current.includes(picked)) return;
-
-      // Connector absent ⇒ install it WITH the folder that was just granted, then
-      // connect it. The user has nothing to connect themselves: they chose a
-      // folder, the integration sets itself up behind the scenes. Nothing is authorized
-      // along the way — the root stays what the NATIVE dialog returned (`main/fs/CLAUDE.md`).
-      if (!server) {
-        const added = await mcp.addStdio(FILESYSTEM_CONNECTOR_ID, {}, { [key]: [picked] });
-        if (added?.error) {
-          setAddError(added.error);
-          return;
-        }
-        const started = await mcp.connect(serverId);
-        if (started?.error) setAddError(started.error);
-        else tree.refresh();
-        return;
-      }
-      // Registered but off: reconnect it, otherwise `setDirs` would write into the void.
-      if (server.connected === false) {
-        const started = await mcp.connect(serverId);
-        if (started?.error) {
-          setAddError(started.error);
-          return;
-        }
-      }
-      const info = await mcp.setDirs(server.id, key, [...current, picked]);
-      if (info?.error) setAddError(info.error);
-      else tree.refresh();
-    } catch (e) {
-      setAddError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setAdding(false);
-    }
-  };
+  /* The grant itself (native picker first, install / reconnect / extend the server,
+     the host's refusal read back) has ONE home — `hooks/useGrantFolder`, shared with
+     the composer's « + » → Dossier — so the two doors cannot drift. */
+  const { canAdd, adding, error: addError, addFolder } = useGrantFolder({
+    roots: tree.roots,
+    onGranted: tree.refresh,
+  });
 
   return (
     <div className="rr-tree">

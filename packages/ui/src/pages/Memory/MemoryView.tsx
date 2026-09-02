@@ -1,38 +1,37 @@
-import { BRAND } from "@openmasq/branding";
 import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "../../containers/shell/PageHeader";
-import { MemoryIcon, EmptyState, PlusIcon, Switch } from "../../components/brand";
+import { MemoryIcon, EmptyState, PlusIcon } from "../../components/brand";
 import { MEMORY_CATEGORIES, newCardEntity, memoryCategoryLabel } from "../../memory";
 import { buildMemoryGraph } from "../../memory/graph";
 import { buildClusteredGraph } from "../../memory/cluster";
-import { memoryExportFilename, memoryExportText } from "../../memory/memoryExport";
 import { memoryUsageIndex } from "../../memory/usage";
-import { downloadTextFile } from "../../components/export/documentExport";
 import { useMemoryIndex } from "../../state/memory/useMemoryIndex";
+import { useViewMode } from "../../hooks/useViewMode";
 import { MemoryGraph } from "./MemoryGraph";
 import { matchingCardIds } from "../../memory";
 import { MemoryList, MemoryToolbar } from "./MemoryList";
 import { MemoryProfile } from "./MemoryProfile";
 import { MemoryNodePanel } from "./MemoryNodePanel";
-import { MemoryMergeHint, MemoryPageMenu, MemoryUndoToast } from "./parts";
+import { MemoryMergeHint, MemoryUndoToast } from "./parts";
 import { useMemoryReview } from "./useMemoryReview";
 import type { Conversation, MemoryCard, MemoryData } from "../../types";
 
 import { useT } from "../../i18n";
 /**
- * The MÉMOIRE page — the kit's GRAPH design over the real store: core → category hubs →
- * one leaf per entity card, with the REAL cross-links (a card whose facts mention
- * another entity draws the edge). Click a node → the side panel edits it. The profile
- * and the auto-extraction opt-in keep their place above the graph — they are feature
- * controls, not decoration. The review flow (« À revoir », delete undo) lives in
- * `useMemoryReview`; the small chrome (⋯ menu, merge card, undo toast) in `parts.tsx`.
+ * The MÉMOIRE page: the profile, a search, « À revoir », the LIST (default) or the kit's
+ * GRAPH — core → category hubs → one leaf per entity card, with the REAL cross-links (a
+ * card whose facts mention another entity draws the edge) — and « Nouvelle fiche ».
+ * Click a row or a node → the side panel edits it; its « Connexions » reach the graph
+ * from the list. The page carries NO setting: the silent extraction's switch lives in
+ * Réglages → Confidentialité, and the diagnostic export in Réglages → Journal — a page
+ * that files what you know is not where one tunes what the machine does. The review
+ * flow (« À revoir », delete undo) lives in `useMemoryReview`; the small chrome (merge
+ * card, undo toast) in `parts.tsx`.
  */
 export function MemoryView({
   memoryData,
   conversations,
   requestedId,
-  memoryAuto,
-  onToggleAuto,
   onSetProfile,
   onAdd,
   onUpdate,
@@ -48,8 +47,6 @@ export function MemoryView({
   /** Deep-link from a chat caption: focus this card's node. The `n` nonce re-focuses
    *  the SAME card twice (mirrors the Compétences deep-link). */
   requestedId?: { id: string; n: number } | null;
-  memoryAuto: boolean;
-  onToggleAuto: (on: boolean) => void;
   onSetProfile: (profile: string) => void;
   /** Returns the created card so the graph can select it for immediate rename. */
   onAdd: (input: { entity: string; facts: string; cat?: string; aliases?: string[] }) => MemoryCard | null;
@@ -66,9 +63,10 @@ export function MemoryView({
 }) {
   const t = useT();
   const [selected, setSelected] = useState<string | null>(null);
-  // Search + Graph/List toggle: the graph makes you UNDERSTAND (the links), the list
-  // makes you FIND — at 50+ cards, finding the one to fix is a scan, not a glance.
-  const [view, setView] = useState<"graph" | "list">("graph");
+  // List (default) ⇄ graph, remembered per screen like the Bibliothèque's grid ⇄ list:
+  // the graph makes you UNDERSTAND (the links), the list makes you FIND — at 50+
+  // cards, finding the one to fix is a scan, not a glance.
+  const [view, setView] = useViewMode("memory");
   const [query, setQuery] = useState("");
   // The LEGEND filters (the page's most obvious affordance) — clicking a
   // category narrows the list and fades the graph, just like search.
@@ -104,16 +102,6 @@ export function MemoryView({
   const selCard = selNode?.cardId ? memoryData.cards.find((c) => c.id === selNode.cardId) ?? null : null;
   const legend = MEMORY_CATEGORIES.filter((c) => memoryData.cards.some((k) => k.cat === c.id));
 
-  // DEBUG export: the cards AND the semantic links, as a local text file. The links are
-  // what a clustering/dedupe question turns on, and they are invisible on screen.
-  const exportDebug = () => {
-    downloadTextFile(
-      memoryExportFilename(),
-      "text/plain;charset=utf-8",
-      memoryExportText({ memoryData, edges: semEdges ?? null }),
-    );
-  };
-
   // UNIQUE name on every creation: `autoCleanMemory` automatically merges two cards of the
   // same category that share a key — a placeholder with a FIXED name would self-destruct.
   const addCard = () => {
@@ -147,15 +135,13 @@ export function MemoryView({
         section="memory"
         onToggleSidebar={onToggleSidebar}
         action={
-          <div className="om-mem-actions">
-            <MemoryPageMenu onExport={exportDebug} />
-            <button type="button" className="btn-primary om-skill-new" onClick={addCard}>
-              {/* A single promise: this action creates a card. The graph only links
-                  on a MENTION in the facts, never on a creation. */}
-              <PlusIcon size={16} />
-              {t.lists.memory.newCard}
-            </button>
-          </div>
+          // The « Créer » of the four pages lives HERE, in the header — one place,
+          // whatever the screen. A single promise: this action creates a card; the
+          // graph only links on a MENTION in the facts, never on a creation.
+          <button type="button" className="btn-primary om-skill-new" onClick={addCard}>
+            <PlusIcon size={16} />
+            {t.lists.memory.newCard}
+          </button>
         }
       />
 
@@ -163,21 +149,11 @@ export function MemoryView({
         <div className="om-skill-inner">
           <MemoryProfile memoryData={memoryData} onSetProfile={onSetProfile} />
 
+          {/* The legend FILTERS — clicking a category narrows the list and fades
+              the graph, exactly like search (same `matched`). Only once there is
+              something to filter. */}
+          {legend.length > 0 && (
           <div className="om-skill-filters">
-            <label className="om-mem-auto">
-              <Switch checked={memoryAuto} onChange={onToggleAuto} />
-              {/* The GUARANTEE stays, the word "redacted" goes: on this page
-                  redaction isn't the subject, but "does this send more of
-                  my data out?" is exactly the question an auto-extraction
-                  switch raises. Don't remove the second sentence. */}
-              <span>
-                Extraction automatique — {BRAND.name} note seul les faits durables. Rien de nouveau ne
-                quitte votre machine.
-              </span>
-            </label>
-            <span className="om-skill-spacer" />
-            {/* The legend FILTERS — clicking a category narrows the list and
-                fades the graph, exactly like search (same `matched`). */}
             {legend.map((c) => (
               <button
                 key={c.id}
@@ -192,6 +168,7 @@ export function MemoryView({
               </button>
             ))}
           </div>
+          )}
 
           {memoryData.cards.length > 0 && (
             <MemoryToolbar
@@ -282,8 +259,8 @@ export function MemoryView({
               </div>
               <div className="cv-eyebrow om-mem-stage-count">
                 {clustered
-                  ? `Graphe sémantique · ${clustered.clusters.length} groupe${clustered.clusters.length > 1 ? "s" : ""} · ${graph.nodes.length} nœuds`
-                  : `Graphe de mémoire · ${graph.nodes.length} nœuds`}
+                  ? t.lists.memory.stageCountSemantic(clustered.clusters.length, graph.nodes.length)
+                  : t.lists.memory.stageCount(graph.nodes.length)}
               </div>
               {panel}
             </div>
@@ -291,7 +268,7 @@ export function MemoryView({
         </div>
       </div>
 
-      {review.undo && onRestore && <MemoryUndoToast undo={review.undo} onRestore={review.restoreUndo} />}
+      {review.undo && onRestore && <MemoryUndoToast undo={review.undo} onRestore={review.restoreUndo} onDone={review.dismissUndo} />}
     </main>
   );
 }

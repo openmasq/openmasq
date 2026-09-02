@@ -1,3 +1,4 @@
+import type { Section } from "../../../types";
 import { Icon } from "./Icon";
 
 /* The marks that NAME a place in the app — a shell section, a panel, a surface. These
@@ -117,3 +118,14 @@ export const WorkflowIcon = (p: { size?: number }) => (
     <rect width="8" height="8" x="13" y="13" rx="2" />
   </Icon>
 );
+
+/** The glyph each section wears — ONE map, keyed by the section ids `help/sections.ts`
+ *  names, so the rail, the sidebar and the mobile bar cannot disagree, and a section
+ *  added to the vocabulary fails to compile without a mark. */
+export const SECTION_ICON: Record<Exclude<Section, "settings">, (p: { size?: number }) => JSX.Element> = {
+  chats: MessageIcon,
+  library: BookIcon,
+  competences: SparklesIcon,
+  memory: MemoryIcon,
+  vault: LockIcon,
+};

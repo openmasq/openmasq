@@ -58,17 +58,19 @@ describe("WebNavRedactOffer — la décision se prend ici, à chaque recherche",
   it("propose un NIVEAU : deux boutons, aucune case à cocher", async () => {
     const { el, unmount } = await render(["name", "dob", "address", "location", "company"]);
     expect(el.querySelectorAll(".webnav-offer-chip")).toHaveLength(0);
-    expect(el.textContent).toContain("Standard");
+    expect(el.textContent).toContain("Allégé");
     // The five types are NOT enumerated: that's the whole point of the change.
     expect(el.textContent).not.toContain("Date de naissance");
     await unmount();
   });
 
-  it("« Passer en Standard » révèle TOUT l'offert — le niveau, pas un sous-ensemble", async () => {
+  it("« Laisser en clair · ce message » révèle TOUT l'offert — le niveau, pas un sous-ensemble", async () => {
     const offert = ["name", "dob", "address", "location", "company"] as RedactCategoryKey[];
     const { el, decided, unmount } = await render(offert);
+    // The shared lexicon (`conversation.mark`): the reversible verb, suffixed with its
+    // reach — never « Passer en <niveau> », which named a level rather than a gesture.
     const go = [...el.querySelectorAll<HTMLElement>("button")].find((b) =>
-      b.textContent?.includes("Standard"),
+      b.textContent?.includes("Laisser en clair · ce message"),
     );
     await act(async () => go!.click());
     expect(decided).toEqual([offert]);

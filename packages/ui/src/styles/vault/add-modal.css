@@ -121,6 +121,39 @@
   box-shadow: inset 0 0 0 1.5px var(--addm-tone);
   color: var(--text-strong);
 }
+/* « Plus de catégories » — a quiet chip at the end of the row; the chevron turns. */
+.om-vault-addm-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px dashed var(--border-default);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.om-vault-addm-more:hover {
+  color: var(--text-strong);
+  border-color: var(--border-strong, var(--border-default));
+}
+.om-vault-addm-more svg {
+  transition: transform 140ms var(--ease-out, ease);
+}
+.om-vault-addm-more.on svg {
+  transform: rotate(180deg);
+}
+/* The category was guessed from the value — said beside the label, not as a banner. */
+.om-vault-addm-detected {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  color: var(--brand-text);
+}
 .om-vault-addm-foot {
   display: flex;
   align-items: center;

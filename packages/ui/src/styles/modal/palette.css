@@ -1,0 +1,29 @@
+/* ═══ ⌘K palette (SearchModal) — the row kinds beyond a conversation ═══
+   The base row (`.search-row-title`) lives in `styles.css`; these only ADD the
+   settings and file variants, at a higher specificity, so the barrel's early
+   position in the cascade changes nothing. */
+
+/* A SETTINGS destination row: the palette searches conversations AND settings; a
+   settings row carries its one-line description so the two kinds are never
+   confused at a glance. */
+.search-row-set .search-row-title {
+  flex: 0 0 auto;
+}
+.search-row-sub {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--text-faint);
+}
+
+/* A stored FILE row: the file NAME fills + truncates (base .search-row-title); its
+   owning conversation rides along as a faint, right-aligned suffix that shrinks
+   first, so the filename always wins the row. */
+.search-row-file .search-row-sub {
+  flex: 0 1 auto;
+  max-width: 45%;
+  text-align: right;
+}

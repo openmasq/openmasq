@@ -1,7 +1,9 @@
-/* ═══ ModalShell — the scrim, the frame, the title, the footer ═══
-   ⚠️ `.modal-scrim` is LOAD-BEARING, not cosmetic: `hooks/modalGate.ts` matches on it to
-   hide the agent browser (a native alwaysOnTop window, WITHOUT DOM z-order). Renaming
-   or losing it lets that browser cover any modal. */
+/* ═══ The classic modal FRAME (`.modal-overlay` / `.modal` / `.modal-header` /
+   `.modal-body` / `.modal-footer` / `.modal-note`), the confirm footer and the shared
+   `.btn-*` family ═══
+   `ModalShell`'s own chrome (scrim, panel, sweep, head, marker title) is `chrome.css`;
+   this frame is what the web console and the mobile sheets still wear, and
+   `.modal-note` / `.btn-*` are used app-wide. */
 /* ⚠️ Its `@import` (via the `modal.css` barrel) must stay reachable from the LEADING
    @imports of `styles.css`: Lightning CSS silently DROPS an @import placed below the
    `@theme` block (the trap that had already killed the webfonts). Extracted after checking

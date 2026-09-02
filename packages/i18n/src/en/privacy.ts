@@ -8,22 +8,23 @@
 import type { Messages } from "../messages";
 
 export const privacyLevels = {
+  // The id stays `standard` (persisted in the settings); only the LABEL says what the
+  // level is — the one below the default.
   standard: {
-    label: "Standard",
-    desc: "Ideal for agentic use of the web.",
-    short: () =>
-      "The bare minimum on your personal data: emails, phone numbers, bank cards, IBANs, identifiers and keys.",
+    label: "Light",
+    desc: "For web search and connected tools — protects less than the default.",
+    short: () => "The bare minimum: emails, phone numbers, bank cards, IBANs, identifiers and keys.",
     tradeoff: "Names, dates, addresses, places and companies stay readable by the model.",
   },
   renforce: {
     label: "Reinforced",
-    desc: "Ideal for agentic use away from the web.",
-    short: () => "Goes further: adds the people's and company names, dates of birth, addresses and places you mention.",
+    desc: "For writing, emails and everyday exchanges — the default level.",
+    short: () => "Adds the people's and company names, dates of birth, addresses and places you mention.",
     tradeoff: "An age or a distance computed on a masked value may be off — the composer flags it.",
   },
   strict: {
     label: "Strict",
-    desc: "Ideal for analysing documents.",
+    desc: "For documents to analyse.",
     short: (brand) => `Everything ${brand} can detect, without exception.`,
     tradeoff:
       "The model reasons on fictitious values: calculations and answers about the real world may be wrong.",
@@ -52,7 +53,6 @@ export const webNav = {
   eyebrow: "Web browsing",
   thisMessageOnly: "This message only.",
   keepMasking: "Keep the masking",
-  switchTo: (level) => `Switch to ${level}`,
-  title: (level) => `Search the web at ${level} protection?`,
+  title: (level) => `Search the web at the ${level} level?`,
   rest: "Everything else stays masked, and your query leaves with the real value either way.",
 } satisfies Messages["webNav"];

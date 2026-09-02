@@ -3,6 +3,7 @@ import { useT } from "../../../i18n";
 import type { Conversation } from "../../../types";
 import { AuditRedactionView } from "./AuditRedactionView";
 import { EgressLogCard } from "./EgressLogCard";
+import { MemoryExportRow } from "../../Memory";
 
 /**
  * The **Journal** tab — both halves of the same promise, behind ONE selector:
@@ -64,6 +65,9 @@ export function AuditLogTab({
       ) : (
         <EgressLogCard />
       )}
+      {/* The Mémoire's diagnostic export (cards + semantic links, local file) — a
+          transparency artifact, so it sits with the journal, not on the Mémoire page. */}
+      {view === "redaction" && <MemoryExportRow />}
     </>
   );
 }

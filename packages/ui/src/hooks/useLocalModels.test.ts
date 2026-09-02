@@ -16,6 +16,10 @@ describe("parseLocalModelIds", () => {
 });
 
 describe("localModelList", () => {
+  it("un id connu du registre garde son libellé lisible, un inconnu est marqué local", () => {
+    const out = localModelList([], ["llama3.3", "mon-modele"]);
+    expect(out.map((m) => m.label)).toEqual(["Llama 3.3 (local)", "mon-modele (local)"]);
+  });
   it("les ids saisis d'abord, puis ceux du serveur, sans doublon, gratuits, marqués (local)", () => {
     const out = localModelList(["mine"], ["served", "mine"]);
     expect(out.map((m) => m.id)).toEqual(["mine", "served"]);

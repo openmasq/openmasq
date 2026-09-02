@@ -8,7 +8,6 @@ import type { UnavailableReason } from "../../send/modelAvailability";
 import { ALL_MODELS, findModelAny } from "../../prompt/models";
 import { effectiveDefaultModelId, factorySimpleIds } from "../../prompt/defaultModel";
 import { AUTO_MODEL_ID, isAutoModelId } from "../../send/autoRoute";
-import { SendModeDialog } from "./SendModeDialog";
 import { useHost, type CreditBalance, type ExtractedFile, type OrgProfileInfo, type PdfDocument } from "../../host";
 import { sendErrorReason } from "../../state/errors";
 import { httpStatus, requestIdOf, retriesOf } from "../../state/errors/fields";
@@ -56,7 +55,6 @@ import { RedactionIntroCard } from "./RedactionIntroCard";
 import { TransparencyModal } from "../../containers/modals/TransparencyModal";
 import { reusableDocReplacements } from "./reusableDocReplacements";
 import { forcedVaultPatch } from "./forcedFake";
-import { buildFileImages } from "./buildFileImages";
 import { MAX_REDACT_CHARS, redactAttachment } from "./redactAttachment";
 import { stageDeferredFile } from "./deferredAttach";
 import { makeStaging } from "./attachmentStaging";
@@ -69,12 +67,14 @@ import { WelcomeScreen } from "./WelcomeScreen";
 import { useMcpConnectedIds } from "../../hooks/useMcpConnectedIds";
 import { ChatBanners } from "./ChatBanners";
 import { Banner } from "../../components/feedback/Banner";
+import { Toast } from "../../components/feedback/Toast";
 import { VirtualMessageList, type VirtualListHandle } from "../../components/VirtualMessageList";
 import type { ConvTab } from "./ConvTabs";
 import { useTextSelection } from "../../hooks/useTextSelection";
 import { SelectionMenu } from "../../components/SelectionMenu";
 import { toggleFavoriteModel } from "../../components/ModelSelector/simpleList";
 import { MemoryProposalCard } from "./MemoryProposalCard";
+import { integrationHostId } from "../../components/agent/integrationSlot";
 import { memoryNoteTitle } from "../../memory";
 import { isExplicitMemoryAsk, worthExtracting, type ConvSlice } from "../../memory/extract";
 import { MemoryIcon } from "../../components/brand";
@@ -83,28 +83,11 @@ import { useChatGates } from "./chatGates";
 import { buildRedactLevelApi } from "./redactLevelApi";
 import type { MemoryCard } from "../../types";
 import { useT } from "../../i18n";
-import { DocPrepCard, type DocPrepState } from "./DocPrepCard";
+import { useGrantFolder } from "../../hooks/useGrantFolder";
 
 /** Pull the HTTP status out of a provider error message (`… request failed (400): …`)
  *  so send_error carries the concrete code — safe metadata, never the raw body. */
 // httpStatus/requestIdOf/retriesOf: one single home — `state/errors/fields.ts`.
-
-// The metered gateway's /chat/completions body is capped ~8 MB; leave headroom below it
-// for the JSON envelope + text. A PLATFORM (Scaleway/OpenRouter) image send over this fails.
-const PLATFORM_MAX_B64 = 7_000_000;
-
-/** Human size for the send-mode dialog: base64 payload length ≈ the bytes that leave. */
-function formatSendSize(base64Len: number): string {
-  const mb = base64Len / 1_000_000;
-  if (mb >= 1) return `${mb.toFixed(mb >= 10 ? 0 : 1)} Mo`;
-  return `${Math.max(1, Math.round(base64Len / 1000))} Ko`;
-}
-
-/** Rough token estimate for the extracted-text option (≈ 4 chars / token). */
-function estimateTokens(chars: number): string {
-  const t = Math.ceil(chars / 4);
-  return t >= 1000 ? `${(t / 1000).toFixed(t >= 10_000 ? 0 : 1)} k` : `${t}`;
-}
 
 /** Synchronous chip match-count, BOUNDED so a giant file doesn't block the UI thread.
  *  Takes the conversation's `disabledKinds` for the same reason the composer's live
@@ -212,8 +195,6 @@ interface Props {
   onChangeConversation?: (id: string, cats: Conversation["redactCategories"]) => void;
   /** "Sans mémoire dans cette conversation" (rules-modal row). */
   onSetMemoryOff?: (id: string, off: boolean) => void;
-  /** Toggle the conversation's NEUTRAL-MARKS display mode (badge + hover highlight). */
-  onToggleNeutralMarks?: (id: string) => void;
   /** Un-redact a value for this conversation ("suspend" reversible / "delete"
    *  drops the vault entry). Returns false when the org forces that category. */
   onReveal?: (value: string, mode: "suspend" | "delete") => boolean;
@@ -309,7 +290,6 @@ export function ChatView({
   onOpenGuideChapter,
   onChangeConversation,
   onSetMemoryOff,
-  onToggleNeutralMarks,
   onReveal,
   onReRedact,
   isRevealForced,
@@ -434,11 +414,6 @@ export function ChatView({
   // Values the user chose to KEEP IN CLEAR via the composer's un-redact chips.
   // Read at send time by `reviewWire` to restore their tokens (replaces the popup).
   const keepListRef = useRef<string[]>([]);
-  // Send-time document redaction progress (rendering the redacted PDF pages to
-  // images before the send) — so a big file isn't an opaque wait, and can be
-  // cancelled. Null when no document is being prepared.
-  const [docPrep, setDocPrep] = useState<DocPrepState | null>(null);
-  const docPrepCtrl = useRef<AbortController | null>(null);
   // Per-attachment redaction controllers, so a LONG document redaction (remote
   // GPT-OSS / local NER) can be CANCELLED — removing the chip aborts it.
   const attachRedactCtrls = useRef<Map<string, AbortController>>(new Map());
@@ -570,11 +545,6 @@ export function ChatView({
   // model call: the selection is REAL text; sending it anywhere would be new egress).
   // Feedback = a transient « Noté » toast at the selection + the rail's dot.
   const [memToast, setMemToast] = useState<{ x: number; y: number } | null>(null);
-  useEffect(() => {
-    if (!memToast) return;
-    const t = setTimeout(() => setMemToast(null), 1600);
-    return () => clearTimeout(t);
-  }, [memToast]);
   const onRetenirSelection = () => {
     if (!sel || !onAddMemoryCard) return;
     const text = sel.text.trim();
@@ -681,10 +651,12 @@ export function ChatView({
     memorySlice.userTexts.length > 0 &&
     !isExplicitMemoryAsk(memorySlice.userTexts.join("\n")) &&
     worthExtracting(memorySlice);
+  // The conversation's ONE integration proposal, never on the turn a once-only card takes
+  // (`components/agent/integrationSlot.ts`).
+  const integrationHost = integrationHostId(messages, !!settings && !!onChangeSettings && (showTransparency || showRedactionIntro || (showMemoryProposal && !!memoryOpen)));
 
-  // value -> kind, gathered from every message, so a redacted span is coloured
-  // by its real category (name / email / phone / company / number) in both the
-  // user's message and the assistant's restored reply.
+  // value -> kind, gathered from every message, so a redacted span is coloured by its real
+  // category in both the user's message and the assistant's restored reply.
   // A STABLE identity while the value→kind mapping is unchanged. Streaming grows
   // the assistant's content each chunk → `messages` gets a fresh array ref → this
   // memo recomputes, but the redaction mapping itself doesn't change per token.
@@ -838,19 +810,6 @@ export function ChatView({
   const pendingRetryRef = useRef(false);
   const keyRetryMsgIdRef = useRef<string | null>(null);
 
-  // Pending send that has document attachments: parked until the user picks
-  // "texte" vs "fichier" in the SendModeDialog. Kept as `Attachment` (not just
-  // ExtractedFile) so the file's OWN drop-time `replacements` are available.
-  const [sendMode, setSendMode] = useState<{ text: string; usable: Attachment[] } | null>(null);
-  // Live payload SIZE shown in the SendModeDialog for the "fichier" (images) option: probed
-  // by rendering the redacted pages in the background when the dialog opens. `filePrepRef`
-  // caches that render so `sendAsFile` reuses it (no double render).
-  const [fileSize, setFileSize] = useState<{ loading: boolean; totalB64?: number; tooBig?: boolean } | null>(null);
-  const filePrepRef = useRef<{
-    text: string;
-    modelId?: string;
-    result: NonNullable<Awaited<ReturnType<typeof buildFileImages>>>;
-  } | null>(null);
   // Tool calls awaiting the user's go-ahead (the agentic loop blocks on the promise
   // stored here until Autoriser/Annuler resolves it). `info.reason` says WHY it opened —
   // a write is only one of the four (see `WriteConfirmInfo`).
@@ -1041,12 +1000,10 @@ export function ChatView({
       setAttachWarning(failed.redactError!);
       return;
     }
-    // Document send-mode is TEMPORARILY forced to the extracted-TEXT path: the
-    // "Document redacted (fichier)" option (send redacted pages as images) is disabled
-    // for now, so we always send the text version and skip the SendModeDialog.
-    // (`SendModeDialog` + `sendAsFile` stay wired to re-enable later — restore
-    // `setSendMode({ text, usable })` here.) Reuse each file's drop-time redaction so
-    // the send doesn't re-detect the whole document (mirrors `sendAsText`).
+    // A document goes out as its extracted, masqué TEXT — the one path (the former
+    // « texte ou fichier » dialog and its images path were short-circuited for months,
+    // then removed). Reuse each file's drop-time redaction so the send doesn't
+    // re-detect the whole document.
     // The staged compétence rides the MODEL payload (the store prefixes it and folds it
     // into `modelContent`); the bubble gets the tag. Read BEFORE the state resets below,
     // and threaded into BOTH send paths — "use a compétence ON this document" is the
@@ -1090,72 +1047,6 @@ export function ChatView({
     setPendingForced([]);
     setAttachments([]);
     void runSend(text, usable, { plotTag, competence: skill, askTarget, forcedRedactions });
-  }
-
-  // A vision model to offer when the current one can't take files: prefer one from
-  // the SAME provider, else the first vision-capable model overall.
-  const suggestedVision = useMemo(() => {
-    const cur = conversation ? findModelAny(conversation.modelId) : undefined;
-    const vis = ALL_MODELS.filter((m) => m.vision);
-    return vis.find((m) => m.provider === cur?.provider) ?? vis[0] ?? null;
-  }, [conversation]);
-
-
-  async function sendAsFile(modelId?: string) {
-    const mode = sendMode;
-    if (!mode) return;
-    setSendMode(null);
-    if (modelId && conversation) onChangeModel(conversation.id, modelId);
-    const targetModelId = modelId ?? conversation?.modelId ?? defaultModelId;
-
-    // Reuse the dialog's size-PROBE render when it matches (same docs + target model) so we
-    // never render twice; otherwise render now, with the progress UI.
-    const cached = filePrepRef.current;
-    let result: Awaited<ReturnType<typeof buildFileImages>>;
-    if (cached && cached.text === mode.text && cached.modelId === targetModelId) {
-      result = cached.result;
-    } else {
-      const ctrl = new AbortController();
-      docPrepCtrl.current = ctrl;
-      result = await buildFileImages(mode, targetModelId, ctrl, false, host, setDocPrep);
-      setDocPrep(null);
-      if (ctrl.signal.aborted) return; // cancelled mid-redaction → composer intact
-    }
-    filePrepRef.current = null;
-    if (!result) return;
-    const { images, imageNames, fileVault, totalB64, platform } = result;
-
-    // Metered gateway body cap: fail LOUDLY (composer intact) rather than firing a doomed
-    // request the gateway 400s — tell the user to send as text or use a direct-key model.
-    if (platform && totalB64 > PLATFORM_MAX_B64) {
-      setAttachWarning(
-        "Document trop volumineux en images pour ce modèle. Envoyez-le en texte, ou changez de modèle.",
-      );
-      return;
-    }
-
-    clearInput();
-    setAttachments([]);
-    void runSend(mode.text, mode.usable, {
-      imageAttachments: images,
-      imageNames,
-      modelId,
-      fileVault,
-      // Non-renderable files still go as TEXT here — reuse their drop-time redaction too
-      // (image files are excluded from folding by their name, so this is a no-op for them).
-      docReplacements: reuseDocReplacements(mode.usable),
-    });
-  }
-
-  function sendAsText() {
-    const mode = sendMode;
-    if (!mode) return;
-    setSendMode(null);
-    clearInput();
-    setAttachments([]);
-    // Reuse each file's drop-time redaction → the send doesn't re-detect the whole
-    // document (the double pass that delayed the reply).
-    void runSend(mode.text, mode.usable, { docReplacements: reuseDocReplacements(mode.usable) });
   }
 
   // The inline "Renseigner la clé" CTA on a failed bubble: open the key modal for
@@ -1282,6 +1173,8 @@ export function ChatView({
 
   // "Lire tout" (chip "N/M pages lues") — the logic lives in `ocrAll.ts`.
   const canOcrAll = !!host.files?.extractAll;
+  // The folder grant behind « + » → Dossier (absent capability ⇒ no entry).
+  const grantFolder = useGrantFolder();
   function handleOcrAll(cid: string) {
     const a = attachments.find((x) => x.cid === cid);
     if (!a || !host.files?.extractAll) return;
@@ -1442,33 +1335,6 @@ export function ChatView({
   const provider = currentModel?.provider;
   const vendor = provider ? PROVIDERS[provider].label : undefined;
 
-  // When the send-mode dialog opens on a VISION model, render the redacted pages in the
-  // BACKGROUND to measure the "fichier" payload (and cache it for the real send). Cancelled
-  // if the dialog closes or the user picks "texte". (Placed after `currentModel` — its dep.)
-  useEffect(() => {
-    if (!sendMode || !(autoMode || currentModel?.vision)) {
-      setFileSize(null);
-      filePrepRef.current = null;
-      return;
-    }
-    const targetModelId = conversation?.modelId ?? defaultModelId;
-    const ctrl = new AbortController();
-    setFileSize({ loading: true });
-    void buildFileImages(sendMode, targetModelId, ctrl, true, host, setDocPrep)
-      .then((result) => {
-        if (ctrl.signal.aborted) return;
-        if (!result) return setFileSize(null);
-        filePrepRef.current = { text: sendMode.text, modelId: targetModelId, result };
-        setFileSize({
-          loading: false,
-          totalB64: result.totalB64,
-          tooBig: result.platform && result.totalB64 > PLATFORM_MAX_B64,
-        });
-      })
-      .catch(() => setFileSize(null));
-    return () => ctrl.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sendMode, currentModel?.vision, conversation?.modelId, defaultModelId]);
   // Count DISTINCT protected values from the conversation vault — the single
   // source of truth that aggregates EVERY source/type (message text, attached
   // files, MCP tool results) and de-dupes repeats. Summing per-message
@@ -1484,10 +1350,8 @@ export function ChatView({
   // the two call sites below. Extracted so both share identical send wiring.
   const composerBlock = (
     <div className="composer-wrap">
-      {/* TRANSPARENCY card — once only, after the first reply that
-          actually protected something. Same shape as the memory proposal
-          above: a `*Seen` in the settings, never a component state, otherwise
-          it comes back on the next mount. The decision is in `privacy/transparency.ts`. */}
+      {/* TRANSPARENCY card — once only, after the first reply that actually protected
+          something: a `*Seen` in the settings, never component state (`privacy/transparency.ts`). */}
       {showTransparency && settings && onChangeSettings && (
         <TransparencyCard
           count={protectedValueCount(conversation!)}
@@ -1606,6 +1470,12 @@ export function ChatView({
         onStop={onStop}
         onAttach={attach}
         canAttach={!!host.files}
+        // « + » → Dossier: the SAME grant as the rail's « Dossiers » (+) — one home,
+        // `hooks/useGrantFolder`; the rail's tree re-lists on `host.mcp.onChanged`.
+        onAddFolder={grantFolder.canAdd ? () => void grantFolder.addFolder() : undefined}
+        // « + » → Connecteur: the catalogue is Réglages → Connecteurs (one card per
+        // service, each opening its modal) — there is no separate chooser to open.
+        onOpenConnectors={() => onOpenSettings("mcp")}
         allowedModelIds={orgProfile?.allowedModelIds}
         unavailableModels={unavailableModels}
         onKeepListChange={(k) => {
@@ -1660,7 +1530,6 @@ export function ChatView({
         onChangeSettings={onChangeSettings}
         onChangeConversation={onChangeConversation}
         onSetMemoryOff={onSetMemoryOff}
-        onToggleNeutralMarks={onToggleNeutralMarks}
         onOpenSettings={onOpenSettings}
         onToggleSidebar={onToggleSidebar}
         onBack={onBack}
@@ -1676,7 +1545,7 @@ export function ChatView({
       />
 
       <div
-        className={`messages${conversation?.neutralMarks ? " marks-neutral" : ""}`}
+        className="messages"
         ref={scrollRef}
         onMouseUp={onMessagesMouseUp}
       >
@@ -1746,20 +1615,20 @@ export function ChatView({
                     highlight={m.id === highlightId}
                     linkPreviews={!!settings?.linkPreviews}
                     onConnectIntegration={handleConnectIntegration}
+                    hideIntegrations={m.id !== integrationHost}
+                    onOpenTransparency={() => setShowComparison(true)}
                     connectedMcpIds={connectedMcpIds}
                     credits={credits}
                     creditsResetIso={creditsResetIso}
                     // The pending pre-search reveal gate belongs to the pending assistant
-                    // bubble — rendered inline under it. Stable array ref while awaited
-                    // (compared in propsEqual).
+                    // bubble — inline under it; stable array ref while awaited (propsEqual).
                     webNavConfirm={m.pending && pendingWebNav ? pendingWebNav.categories : null}
                     onWebNavDecision={(reveal) => {
                       if (!conversation) return;
                       releasePendingWebNav(conversation.id, reveal);
                     }}
-                    // The pending write-confirmation belongs to the (single) pending
-                    // assistant bubble — rendered inline under it. `pendingWrite.info`
-                    // is a stable ref while awaited.
+                    // The pending write-confirmation belongs to the (single) pending assistant
+                    // bubble — inline under it. `pendingWrite.info` is a stable ref while awaited.
                     writeConfirm={m.pending && pendingWrite ? pendingWrite.info : null}
                     onWriteDecision={(approved, remember) => {
                       if (!pendingWrite || !conversation) return;
@@ -1824,15 +1693,14 @@ export function ChatView({
       )}
       {/* « Retenir » confirmation — a transient toast where the selection was. */}
       {memToast && (
-        <div
-          className="sel-menu mem-toast"
-          role="status"
-          // Runtime-computed anchor (viewport coords) — the allowed inline case.
-          style={{ left: memToast.x, top: memToast.y }}
-        >
-          <MemoryIcon size={14} />
-          <span>{t.conversation.memoryToast}</span>
-        </div>
+        <Toast
+          tone="success"
+          icon={<MemoryIcon size={14} />}
+          message={t.conversation.memoryToast}
+          at={memToast}
+          duration={1600}
+          onDone={() => setMemToast(null)}
+        />
       )}
 
       {/* Full-bleed feedback banners — direct child of .chat so they span the
@@ -1886,35 +1754,6 @@ export function ChatView({
           />
         )}
       </AnimatePresence>
-      <AnimatePresence>
-        {sendMode && (
-          <SendModeDialog
-            fileCount={sendMode.usable.length}
-            modelLabel={currentModelLabel ?? "Ce modèle"}
-            modelVision={autoMode || !!currentModel?.vision}
-            suggestedVisionLabel={suggestedVision?.label ?? null}
-            // "Texte extrait" size: ≈ tokens over the typed text + every doc's extracted text.
-            textTokens={estimateTokens(
-              sendMode.text.length + sendMode.usable.reduce((s, a) => s + (a.text?.length ?? 0), 0),
-            )}
-            // "Fichier" size: the actual redacted-image payload, probed in the background.
-            fileSizeLabel={
-              fileSize?.loading
-                ? "…"
-                : fileSize?.totalB64
-                  ? formatSendSize(fileSize.totalB64)
-                  : null
-            }
-            fileTooBig={!!fileSize?.tooBig}
-            onText={sendAsText}
-            onFile={() => void sendAsFile()}
-            onSwitchAndFile={() => suggestedVision && void sendAsFile(suggestedVision.id)}
-            onCancel={() => setSendMode(null)}
-          />
-        )}
-      </AnimatePresence>
-      {/* A document's redaction progress bar at send time — its card lives beside it. */}
-      {docPrep && <DocPrepCard state={docPrep} onCancel={() => docPrepCtrl.current?.abort()} />}
     </main>
     </DropZone>
   );

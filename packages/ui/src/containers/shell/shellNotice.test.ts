@@ -32,7 +32,7 @@ describe("pickShellNotice", () => {
     expect(n?.kind).toBe("mcp");
     // The title is the ONLY text visible when collapsed: it must name the connector.
     expect(n?.title).toContain("Slack");
-    expect(n?.actionLabel).toBe("Reconnecter");
+    expect(n?.actionLabel).toBe(fr.shell.notice.reconnect);
   });
 
   it("plusieurs connecteurs : le titre compte, le détail les nomme", () => {

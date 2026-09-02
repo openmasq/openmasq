@@ -1,5 +1,5 @@
 /**
- * THE FIRST LAUNCH — four screens, plus the « régler finement » fallback.
+ * THE FIRST LAUNCH — three screens, plus the « régler finement » fallback.
  *
  * ⚠️ It is the only surface an English speaker meets BEFORE being able to change language:
  * the picker lives in the Settings, behind this screen. A sentence left in French
@@ -32,14 +32,7 @@ export interface OnboardingMessages {
     webReveal: { lead: (brand: string) => string; strong: string; tail: string };
   };
 
-  /** Screen 1 — the places where one works. The names come from `sections`. */
-  places: {
-    eyebrow: string;
-    title: string;
-    sub: string;
-  };
-
-  /** Screen 2 — model access. The title CHANGES with what this build serves: a
+  /** Screen 1 — model access. The title CHANGES with what this build serves: a
    *  subscription (`titleServed`), included models with nothing for sale (`titleIncluded`,
    *  the default), or nothing at all (`titleUnserved`). */
   access: {
@@ -51,7 +44,7 @@ export interface OnboardingMessages {
     subUnserved: string;
   };
 
-  /** Screen 3 — « c'est prêt ». The 2nd sentence makes the 1st verifiable: a free model is
+  /** Screen 2 — « c'est prêt ». The 2nd sentence makes the 1st verifiable: a free model is
    *  selected by default, so a fresh install writes with no key and no subscription. */
   ready: {
     eyebrow: string;
@@ -81,6 +74,8 @@ export interface OnboardingMessages {
     agent: { title: string; sub: string; hint: string };
     /** The tag carried by the recommended option and the recommended provider. */
     recommended: string;
+    /** The link that unfolds the five other key providers under OpenRouter. */
+    otherProvider: string;
     savedKey: (provider: string) => string;
     connect: string;
     connecting: string;
@@ -102,5 +97,8 @@ export interface OnboardingMessages {
     placeholderPlain: (provider: string) => string;
     save: string;
     saving: string;
+    /** The tick's accessible name, before and after it is ticked. */
+    stepDone: (step: number) => string;
+    stepUndo: (step: number) => string;
   };
 }

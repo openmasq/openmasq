@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
 import { PageHeader } from "../../containers/shell/PageHeader";
-import {
-  CreateCard,
-  EmptyState,
-  SparklesIcon,
-  PlusIcon,
-  SearchIcon,
-} from "../../components/brand";
+import { EmptyState, SparklesIcon, PlusIcon, SearchIcon } from "../../components/brand";
 import { ImportSkillsModal, type SkillImportChoice } from "../../containers/modals";
 import { useHost } from "../../host";
 import {
@@ -147,11 +141,17 @@ export function SkillsView({
 
   return (
     <main className="library-page">
-      {/* Kit `SkillsPage`: NO header action — creation lives in the grid's dashed
-          CreateCard (and the empty state's CTA). */}
+      {/* « Créer » lives in the header, where the Mémoire and the Coffre put theirs —
+          one place on the four pages. The empty state keeps its own CTA. */}
       <PageHeader
         section="competences"
         onToggleSidebar={onToggleSidebar}
+        action={
+          <button type="button" className="btn-primary om-skill-new" onClick={() => setDraft(EMPTY_DRAFT)}>
+            <PlusIcon size={16} />
+            {t.lists.skills.createLabel}
+          </button>
+        }
       />
 
       <div className="library-body">
@@ -207,25 +207,6 @@ export function SkillsView({
             )
           ) : (
             <div className={view === "list" ? "om-rows" : "om-skill-grid"}>
-              {view === "grid" ? (
-                <CreateCard
-                  label={t.lists.skills.createLabel}
-                  hint={t.lists.skills.createHint}
-                  onClick={() => setDraft(EMPTY_DRAFT)}
-                />
-              ) : (
-                // Creation stays a ROW: removing the card without replacing it
-                // would remove this screen's only path to « nouvelle ».
-                <button type="button" className="om-row om-row-create" onClick={() => setDraft(EMPTY_DRAFT)}>
-                  <span className="om-row-mark">
-                    <PlusIcon size={15} />
-                  </span>
-                  <span className="om-row-main">
-                    <span className="om-row-name">{t.lists.skills.createLabel}</span>
-                    <span className="om-row-sub">{t.lists.skills.createHint}</span>
-                  </span>
-                </button>
-              )}
               {filtered.map((c) => {
                 const p = {
                   skill: c,
@@ -247,7 +228,7 @@ export function SkillsView({
           a few seconds. Plain DOM, no dialog role (agent-browser modal gate). */}
       {deleted && (
         <div className="om-skill-undo om-step-in" role="status">
-          <span className="om-skill-undo-text">« {deleted.name} » supprimée.</span>
+          <span className="om-skill-undo-text">{t.lists.skills.deletedToast(deleted.name)}</span>
           <button
             type="button"
             className="om-skill-undo-btn"
@@ -289,7 +270,7 @@ export function SkillsView({
             }
             onDuplicate={
               draft.id
-                ? (d) => setDraft({ ...d, id: undefined, name: `${d.name.trim() || "Sans titre"} (copie)` })
+                ? (d) => setDraft({ ...d, id: undefined, name: `${d.name.trim() || t.lists.skills.untitled} (copie)` })
                 : undefined
             }
           />

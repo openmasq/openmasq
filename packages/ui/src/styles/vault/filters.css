@@ -79,13 +79,4 @@
 .om-vault-search-input:focus {
   border-color: var(--brand);
 }
-/* « Ajouter un terme » — `.btn-primary` supplies the brand fill; this only sizes
-   it into the toolbar row. */
-.om-vault-add-btn {
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-}
 

@@ -182,7 +182,7 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
         containerRef={bodyRef}
         show="real"
         readOnly
-        valueTitle="Valeur réelle (avant redaction)"
+        valueTitle={t.conversation.mark.realValue}
       />
     </ModalShell>
   );

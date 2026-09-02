@@ -147,15 +147,6 @@
   }
 }
 
-/* The « new … » row: same template, only two columns — the name takes the
-   place of the meta and the actions, which it doesn't have. */
-.om-row-create {
-  grid-template-columns: auto minmax(0, 1fr);
-  color: var(--text-muted);
-}
-.om-row-create .om-row-name {
-  color: var(--text-strong);
-}
 /* The object the editor targets, or the checked row: the same mark as the card. */
 .om-row.is-selected {
   background: var(--surface-hover);

@@ -26,7 +26,6 @@ export function ChatHeader({
   onChangeSettings,
   onChangeConversation,
   onSetMemoryOff,
-  onToggleNeutralMarks,
   protectedCount,
   redactLevel,
   onOpenSettings,
@@ -53,12 +52,12 @@ export function ChatHeader({
   onChangeConversation?: (id: string, cats: Conversation["redactCategories"]) => void;
   /** « Sans mémoire dans cette conversation » (a row in the rules modal). */
   onSetMemoryOff?: (id: string, off: boolean) => void;
-  /** Toggle this conversation's NEUTRAL-MARKS display mode (badge + hover highlight). */
-  onToggleNeutralMarks?: (id: string) => void;
   protectedCount: number;
-  /** The level in force (from `redactLevelApi`), for the ⋯ entry's name + « modifié » tag. */
+  /** The level in force (from `redactLevelApi`), for the ⋯ entry's « modifié » tag. */
   redactLevel?: RedactLevelApi;
-  onOpenSettings: () => void;
+  /** Open Réglages, on a tab when one is named — the rules modal links to
+   *  « Confidentialité » for the default level. */
+  onOpenSettings: (tab?: string) => void;
   onToggleSidebar?: () => void;
   /** MOBILE: pop back to the chat list. When present the bar switches to the kit's
    *  mobile chat top bar — back chevron + centered title/model instead of the
@@ -192,6 +191,12 @@ export function ChatHeader({
                 ? (off) => onSetMemoryOff(conversation.id, off)
                 : undefined
             }
+            // The default level is chosen in Réglages → Confidentialité; the modal
+            // only links there (and closes, so the link is not a second modal).
+            onOpenPrivacySettings={() => {
+              setRulesOpen(false);
+              onOpenSettings("privacy");
+            }}
             onClose={() => setRulesOpen(false)}
           />
         )}

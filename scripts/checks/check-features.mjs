@@ -95,6 +95,18 @@ for (const d of readdirSync(join(root, "packages/ui/src/containers/modals"), { w
   if (MODAL_INFRA.has(name) || name.includes(".test")) continue;
   anchor("modale", name, "packages/ui/src/containers/modals/");
 }
+// A screen's OWN dialogs live beside it (`pages/**/XxxModal.tsx`, `XxxDialog.tsx`) and the
+// shared confirm in `components/` — the folder above only holds the transverse family, so
+// without this walk half the dialogs the app can open were never inventoried.
+const walkDialogs = (dir) => {
+  for (const d of readdirSync(join(root, dir), { withFileTypes: true })) {
+    const rel = `${dir}/${d.name}`;
+    if (d.isDirectory()) walkDialogs(rel);
+    else if (/(Modal|Dialog)\.tsx$/.test(d.name)) anchor("modale", d.name.replace(/\.tsx$/, ""), rel);
+  }
+};
+walkDialogs("packages/ui/src/pages");
+walkDialogs("packages/ui/src/components");
 
 for (const a of anchors)
   if (!doc.includes(a.value)) fail(`${a.kind} « ${a.value} » exists (${a.origin}) but is not in ${DOC}`);

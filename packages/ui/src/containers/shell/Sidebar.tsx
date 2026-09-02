@@ -1,36 +1,15 @@
 import { BRAND } from "@openmasq/branding";
 import { useMemo, useState } from "react";
 import type { Skill, Conversation } from "../../types";
-import {
-  PlusIcon,
-  SearchIcon,
-  Avatar,
-  Badge,
-  MessageIcon,
-  BookIcon,
-  LockIcon,
-  SparklesIcon,
-  MemoryIcon,
-  WorkflowIcon,
-} from "../../components/brand";
+import { PlusIcon, SearchIcon, Avatar, Badge, SECTION_ICON, WorkflowIcon } from "../../components/brand";
 import { ConfirmDialog } from "../../components/feedback/ConfirmDialog";
 import { BrandMark } from "../../components/media/BrandLogo";
 import { groupConversationsByDate } from "../../hooks/conversationGroups";
 import { ConvRow } from "./ConvRow";
-import { sectionGuides, type SectionGuide } from "../../help";
+import { sectionGuides } from "../../help";
 import { useT } from "../../i18n";
 import { featureUsage, isGated, useFeatureAccess } from "../../state/billing/featureAccess";
 import { useSectionNav } from "./useSectionNav";
-
-/** The glyph each section wears. Kept beside the vocabulary it decorates, and keyed by
- *  the same ids, so a section added to `SECTION_GUIDE` fails to compile without one. */
-const SECTION_ICON: Record<SectionGuide["id"], (p: { size?: number }) => JSX.Element> = {
-  chats: MessageIcon,
-  library: BookIcon,
-  competences: SparklesIcon,
-  memory: MemoryIcon,
-  vault: LockIcon,
-};
 
 interface Props {
   conversations: Conversation[];

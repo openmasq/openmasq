@@ -26,8 +26,8 @@ export function MarkKeepMenu({
   value: string;
   hue: string;
   /** « À vérifier »: single-source detection with a weak signal — the popover SAYS
-   *  so, so that « Garder en clair » is an informed choice. The redaction itself doesn't
-   *  change: the value goes out masked until the user decides otherwise. */
+   *  so, so that « Laisser en clair · cet envoi » is an informed choice. The redaction
+   *  itself doesn't change: the value goes out masked until the user decides otherwise. */
   uncertain?: boolean;
   onKeep: () => void;
   onClose: () => void;
@@ -60,13 +60,13 @@ export function MarkKeepMenu({
         type="button"
         role="menuitem"
         className="mark-keep-btn"
-        title={t.menus.markKeep.keepTip}
+        title={t.conversation.mark.leaveClearTip}
         onClick={() => {
           onKeep();
           onClose();
         }}
       >
-        <ShieldIcon size={12} /> {t.menus.markKeep.keep}
+        <ShieldIcon size={12} /> {t.conversation.mark.leaveClear(t.conversation.mark.scopeSend)}
       </button>
     </div>
   );

@@ -16,6 +16,8 @@ export const versionsTab = {
   installVersion: (v) => `Install ${v}`,
   updatesEyebrow: "UPDATES",
   upToDate: (brand) => `${brand} is up to date.`,
+  revertConfirm: (version) => `Go back to version ${version}? The app will restart to apply it.`,
+  autoUpdateLead: (brand) => `${brand} updates itself automatically. You can check now`,
   installedEyebrow: "INSTALLED VERSION",
   orSwitchEnv: " or switch between the staging and production versions.",
   orRevert: " or go back to a previous version.",

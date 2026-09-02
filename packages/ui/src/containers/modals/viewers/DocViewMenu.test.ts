@@ -85,19 +85,22 @@ describe("DocViewMenu", () => {
     expect(el.querySelector(".fv-viewmenu-menu")).toBeNull();
   });
 
-  it("closes on Escape WITHOUT letting it reach the modal's own Escape handler", () => {
+  it("closes on Escape and marks the key CONSUMED, so the modal beneath yields", () => {
     const el = render();
-    let modalClosed = false;
-    const onWindowEsc = () => {
-      modalClosed = true;
-    };
-    window.addEventListener("keydown", onWindowEsc);
     click(el.querySelector(".fv-viewmenu-btn"));
+    // From the focused tri-dot, as a real key travels; `ModalShell` reads
+    // `defaultPrevented` to know an inner layer took it.
+    const esc = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
     act(() => {
-      document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      el.querySelector(".fv-viewmenu-btn")!.dispatchEvent(esc);
     });
-    window.removeEventListener("keydown", onWindowEsc);
     expect(el.querySelector(".fv-viewmenu-menu")).toBeNull();
-    expect(modalClosed).toBe(false);
+    expect(esc.defaultPrevented).toBe(true);
+    // Closed: the next Escape is NOT ours — it may close the document.
+    const again = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+    act(() => {
+      el.querySelector(".fv-viewmenu-btn")!.dispatchEvent(again);
+    });
+    expect(again.defaultPrevented).toBe(false);
   });
 });

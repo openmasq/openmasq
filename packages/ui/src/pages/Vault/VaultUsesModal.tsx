@@ -8,23 +8,25 @@ import { ModelLogo } from "../../components/brand";
 import { findModelAny } from "../../prompt/models";
 import { VaultTermPill } from "./parts/VaultTermPill";
 import type { VaultTerm } from "../../types";
-import { vaultTermOccurrences, vaultTermTypeLabel, type VaultTermUse } from "../../send/vaultTerms";
+import { vaultTermOccurrences, type VaultTermUse } from "../../send/vaultTerms";
 import type { Conversation } from "../../types";
+import { vaultTokenLabel } from "./vaultTypes";
 
+import type { Messages } from "@openmasq/i18n";
 import { useT } from "../../i18n";
 /** Relative "il y a …" from an epoch ms — same spirit as the sidebar groups, kept
  *  local + pure so the modal has no date dependency. */
-function ago(ms: number): string {
+function ago(ms: number, t: Messages): string {
   if (!ms) return "";
   const s = Math.max(0, (Date.now() - ms) / 1000);
-  if (s < 60) return "à l'instant";
+  if (s < 60) return t.lists.vault.uses.justNow;
   const m = s / 60;
-  if (m < 60) return `il y a ${Math.floor(m)} min`;
+  if (m < 60) return t.lists.vault.uses.minutesAgo(Math.floor(m));
   const h = m / 60;
-  if (h < 24) return `il y a ${Math.floor(h)} h`;
+  if (h < 24) return t.lists.vault.uses.hoursAgo(Math.floor(h));
   const d = h / 24;
-  if (d < 7) return `il y a ${Math.floor(d)} j`;
-  return new Date(ms).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  if (d < 7) return t.lists.vault.uses.daysAgo(Math.floor(d));
+  return new Date(ms).toLocaleDateString(t.common.intlTag, { day: "numeric", month: "short" });
 }
 
 function UseRow({
@@ -46,7 +48,7 @@ function UseRow({
       <ModelLogo provider={model?.provider ?? "openai-compat"} modelId={use.modelId} size={18} />
       <div className="om-vault-use-main">
         <div className="om-vault-use-title">{use.title}</div>
-        <div className="om-vault-use-when">{ago(use.updatedAt)}</div>
+        <div className="om-vault-use-when">{ago(use.updatedAt, t)}</div>
       </div>
       <span className="om-vault-use-count">{use.count}×</span>
     </button>
@@ -77,7 +79,7 @@ export function VaultUsesModal({
         <div className="om-vault-uses-tags">
           <VaultTermPill value={term.value} tone={tone} full />
           <span className="om-vault-uses-type">
-            {vaultTermTypeLabel(term.token)}
+            {vaultTokenLabel(term.token, t)}
             {term.note ? ` · ${term.note}` : ""}
           </span>
         </div>

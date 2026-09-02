@@ -7,6 +7,7 @@ import {
   validateSuggestions,
   suggestGuidance,
   suggestIntegrationsDef,
+  resolveSuggestCall,
   MAX_SUGGESTIONS,
 } from "./suggestIntegrations";
 
@@ -152,5 +153,33 @@ describe("suggestIntegrationsDef", () => {
     const en = props.properties.integration_ids.items.enum;
     expect(en).toEqual(candidates.map((c) => c.id));
     expect(en).not.toContain("gmail-not-a-real-id");
+  });
+});
+
+describe("resolveSuggestCall — le choix du modèle est corroboré par la demande", () => {
+  const candidates = notConnectedConnectors(new Set());
+
+  it("sans texte de demande, garde la validation seule (compat)", () => {
+    expect(resolveSuggestCall(["gmail"], candidates).ids).toEqual(["gmail"]);
+  });
+
+  it("une lettre de relance : Gmail et Square proposés par le modèle sont ÉCARTÉS", () => {
+    const r = resolveSuggestCall(
+      ["gmail", "square"],
+      candidates,
+      "Rédige une lettre de relance pour M. Dupont, 3 square des Peupliers, restée sans réponse.",
+    );
+    expect(r.ids).toEqual([]);
+    expect(r.message).toContain("Aucune intégration valide");
+  });
+
+  it("…mais un impératif ou un nom de service les garde", () => {
+    expect(resolveSuggestCall(["gmail", "square"], candidates, "envoie-la par mail à M. Dupont").ids).toEqual(["gmail"]);
+    expect(resolveSuggestCall(["square"], candidates, "combien de ventes sur Square hier ?").ids).toEqual(["square"]);
+  });
+
+  it("plafonne à deux cartes", () => {
+    expect(MAX_SUGGESTIONS).toBe(2);
+    expect(validateSuggestions(["gmail", "notion", "stripe"], candidates).length).toBe(2);
   });
 });

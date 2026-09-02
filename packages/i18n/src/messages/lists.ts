@@ -45,8 +45,6 @@ export interface ListsMessages {
     support: string;
     routine: string;
   };
-  /** The formatting buttons of the instruction editor. */
-  marks: { bold: string; italic: string; heading: string; quote: string; bullet: string; ordered: string; code: string };
   skills: {
     empty: EmptyStateCopy;
     noMatch: NoMatchCopy;
@@ -55,9 +53,15 @@ export interface ListsMessages {
     search: string;
     importTip: string;
     import: string;
-    formatting: string;
     presets: string;
+    /** The second click a template asks for when the draft already holds edits. */
+    replaceConfirm: string;
     undo: string;
+    /** The undo bar's sentence, and a nameless compétence. */
+    deletedToast: (name: string) => string;
+    untitled: string;
+    /** The card's usage counter — a bare « ×N » explained nothing. */
+    usesCount: (count: number) => string;
     /** The card and the row. */
     editAria: (name: string) => string;
     pin: string;
@@ -87,13 +91,11 @@ export interface ListsMessages {
       duplicateTip: string;
       create: string;
     };
-    /** The instruction field. */
+    /** The instruction field — plain markdown, rendered by the chat itself. */
     prompt: {
       label: string;
       chars: (count: number) => string;
       fileName: string;
-      preview: string;
-      previewEmpty: string;
       placeholder: string;
     };
     /** The connector choice. */
@@ -113,6 +115,13 @@ export interface ListsMessages {
     confirm: string;
     removeTip: string;
     removeAria: (entity: string) => string;
+    /** The two views — the list finds, the graph explains. */
+    views: { list: string; graph: string };
+    /** The graph's caption under the stage. */
+    stageCount: (nodes: number) => string;
+    stageCountSemantic: (groups: number, nodes: number) => string;
+    /** The « auto » badge of a machine-written row. */
+    autoBadge: string;
     graphAria: (count: number) => string;
     /** The two nodes the graph draws itself. */
     coreNode: string;
@@ -139,10 +148,33 @@ export interface ListsMessages {
       restoreTip: string;
       restore: string;
       noLinks: string;
+      links: (count: number) => string;
       delete: string;
+      /** What the node IS (the eyebrow). */
+      kind: { core: string; hub: string; group: string; leaf: string };
+      /** Where the card served — and why it did not, when that could surprise. */
+      recalled: (conversations: number, lastDay: string) => string;
+      neverRecalled: string;
+      skippedBudget: (day: string) => string;
+      skippedHomonym: (day: string) => string;
+      /** The cap of the facts field, stated under it. */
+      limitNote: string;
     };
-    profile: { title: string; edit: string; editTip: string; placeholder: string; aria: string };
-    /** The two banners: the proposed duplicate, and the undoable deletion. */
+    profile: {
+      title: string;
+      edit: string;
+      editTip: string;
+      placeholder: string;
+      aria: string;
+      /** The click-to-edit text of an EMPTY profile. */
+      emptyText: (brand: string) => string;
+      limitNote: string;
+    };
+    /** The two banners: the proposed duplicate, and the undoable deletion. The merge
+     *  sentence is split around the two entity names the view renders in bold. */
+    mergeLead: string;
+    mergeJoin: string;
+    mergeTail: string;
     mergeSemantic: string;
     merge: string;
     dismiss: string;
@@ -161,13 +193,23 @@ export interface ListsMessages {
     deleteCount: (count: number) => string;
     deleteTitle: (count: number) => string;
     deleteBody: (count: number) => string;
-    preview: string;
+    /** The select-mode bar. */
+    selectedCount: (count: number) => string;
+    selectAll: string;
+    deselectAll: string;
     openExternal: string;
     openInApp: string;
     openInTab: string;
+    /** The usage panel's primary action. */
+    reattach: string;
     usedIn: (count: number) => string;
     conversationsLoading: string;
     notUsed: string;
+    /** The empty state's way out: files arrive through a conversation. */
+    goToChats: string;
+    /** The shield badge on a card. */
+    redactedTip: string;
+    redactedCountTip: (count: number) => string;
   };
 
   vault: {
@@ -179,18 +221,27 @@ export interface ListsMessages {
     usesTip: string;
     occurrences: (count: number) => string;
     conversations: (count: number) => string;
+    addTerm: string;
+    editTip: string;
     removeTip: string;
     reveal: string;
     hide: string;
-    /** The add modal. */
+    /** The add / edit modal. `type` reads « Catégorie », the Réglages' word. */
     add: {
       title: string;
       sub: string;
+      titleEdit: string;
+      subEdit: string;
       term: string;
       termPlaceholder: string;
       type: string;
+      /** The category was inferred from the value's shape. */
+      detected: string;
+      moreTypes: string;
+      fewerTypes: string;
       note: string;
       notePlaceholder: string;
+      submit: string;
     };
     /** The occurrences window. */
     uses: {
@@ -198,6 +249,11 @@ export interface ListsMessages {
       summary: (times: number, conversations: number) => string;
       none: string;
       openConversation: string;
+      /** Relative dates of a use. */
+      justNow: string;
+      minutesAgo: (minutes: number) => string;
+      hoursAgo: (hours: number) => string;
+      daysAgo: (days: number) => string;
     };
   };
 }

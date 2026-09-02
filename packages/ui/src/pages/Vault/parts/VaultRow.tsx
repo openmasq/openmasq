@@ -1,9 +1,10 @@
 import { hueForKind } from "@openmasq/redact";
-import { ModelLogo, ShieldIcon, TrashIcon } from "../../../components/brand";
+import { EditIcon, ModelLogo, ShieldIcon, TrashIcon } from "../../../components/brand";
 import { ScopeBadge } from "../../../components/brand/ScopeBadge";
 import { findModelAny } from "../../../prompt/models";
-import { vaultTermTypeLabel, type VaultTermOccurrences } from "../../../send/vaultTerms";
+import type { VaultTermOccurrences } from "../../../send/vaultTerms";
 import type { VaultTerm } from "../../../types";
+import { vaultTokenLabel } from "../vaultTypes";
 import { VaultTermPill } from "./VaultTermPill";
 
 import { useT } from "../../../i18n";
@@ -19,14 +20,15 @@ function usedModels(occ: VaultTermOccurrences): string[] {
 }
 
 /**
- * One Coffre term: the value MASKED behind its reveal pill, its type + note, the
+ * One Coffre term: the value MASKED behind its reveal pill, its category + note, the
  * models that have redacted it, a real occurrence count opening the uses modal,
- * and remove. Pure — every number is threaded in as `occ`.
+ * edit and delete. Pure — every number is threaded in as `occ`.
  */
 export function VaultRow({
   term,
   occ,
   onOpenUses,
+  onEdit,
   onRemove,
   scope,
   onShare,
@@ -34,6 +36,8 @@ export function VaultRow({
   term: VaultTerm;
   occ: VaultTermOccurrences;
   onOpenUses: () => void;
+  /** Absent = read-only row (a SHARED term, or no update path) — no edit. */
+  onEdit?: () => void;
   /** Absent = read-only row (a SHARED term) — no delete. */
   onRemove?: () => void;
   /** Sharing scope badge (kit): shown when an org exists. */
@@ -48,7 +52,7 @@ export function VaultRow({
     <div className="om-vault-row">
       <VaultTermPill value={term.value} tone={tone} />
       <div className="om-vault-meta">
-        <span className="om-vault-meta-type">{vaultTermTypeLabel(term.token)}</span>
+        <span className="om-vault-meta-type">{vaultTokenLabel(term.token, t)}</span>
         <div className="om-vault-meta-sub">
           {term.note && <span className="om-vault-meta-note">{term.note}</span>}
           {models.length > 0 && (
@@ -81,6 +85,16 @@ export function VaultRow({
         {t.lists.vault.occurrences(occ.totalCount)}
         <span className="om-vault-occ-conv">{t.lists.vault.conversations(occ.convCount)}</span>
       </button>
+      {onEdit && (
+        <button
+          className="om-vault-edit"
+          onClick={onEdit}
+          title={t.lists.vault.editTip}
+          aria-label={t.lists.vault.editTip}
+        >
+          <EditIcon size={15} />
+        </button>
+      )}
       {onRemove && (
         <button
           className="om-vault-del"

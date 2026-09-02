@@ -6,13 +6,13 @@ import { describe, it, expect } from "vitest";
  * The app's TEXT accessibility floor, measured rather than promised — the sibling of
  * `contrast.test.ts` (which measures the redaction palette). This one covers what every
  * screen uses: the ink tokens (body / link / muted / strong) on the surfaces they sit on,
- * and the primary-action button's ink on its brand fill, in ALL FOUR themes.
+ * and the primary-action button's ink on its brand fill, in BOTH themes.
  *
- * Why it has to be computed: three of the four themes define `--text-link` as a
+ * Why it has to be computed: the dark theme defines `--text-link` as a
  * `color-mix(in oklch, …)`, so no one can eyeball whether a link stays readable after a
- * theme re-points the accent. And `--brand` genuinely INVERTS between themes (the
- * dark-green theme's brand IS the light lime the other themes write ON it), which is the
- * whole reason root rule 12 exists.
+ * theme re-points the accent. And `--ink-on-brand` genuinely INVERTS between themes (the
+ * light lime on the light theme's indigo, white on the dark theme's lighter one), which
+ * is the whole reason root rule 12 exists.
  *
  * ⚠️ The `color-mix(in oklch, …)` evaluation below is our own implementation of the CSS
  * interpolation (sRGB → OKLab → polar OKLch → back). It tracks the spec, but it is not
@@ -52,8 +52,6 @@ const ROOT = varsOf(":root");
 const THEMES: Record<string, Record<string, string>> = {
   light: {},
   dark: varsOf('[data-theme="dark"]'),
-  blue: varsOf('[data-theme="blue"]'),
-  "blue-dark": varsOf('[data-theme="blue-dark"]'),
 };
 
 // ── colour maths ────────────────────────────────────────────────────────────────
@@ -166,8 +164,8 @@ const AA_LARGE = 3;
 /** The surfaces app text actually sits on.
  *  `--surface-shell` is the ground of the RAIL and the SIDEBAR — section labels,
  *  conversation titles, timestamps, the account block. It was the one ground nothing
- *  measured, which is how it could be re-toned per theme (each dark one, then the blue
- *  light one) with no check that the ink on it still reads. */
+ *  measured, which is how it could be re-toned per theme with no check that the ink on
+ *  it still reads. */
 const SURFACES = [
   "--surface-page",
   "--surface-card",
@@ -176,7 +174,7 @@ const SURFACES = [
   "--surface-shell",
 ];
 
-describe("ink tokens stay readable on every surface, in all four themes", () => {
+describe("ink tokens stay readable on every surface, in both themes", () => {
   // `--text-faint` is IN: it carries timestamps, counts and metadata — meaning-bearing
   // text, so WCAG's normal-text floor applies to it like the rest. It used to measure
   // ~3.1-3.5:1 (worst case on `--surface-hover`) and was re-toned in OKLab, hue kept.
@@ -215,7 +213,7 @@ describe("the primary action button — its ink INVERTS with the brand", () => {
 
   it("`.btn-primary` takes its ink from the INVERTING token, not a literal", () => {
     // The rule used to read `color: var(--lime, #fff)` and rely on a per-theme
-    // `[data-theme="blue-dark"] .btn-primary` override to stay readable — two
+    // per-theme `.btn-primary` override to stay readable — two
     // declarations of one decision (rule 9), and the override missed `:disabled`.
     const decl = blocksFor(".btn-primary")
       .map((b) => b.match(/(?:^|;)\s*color\s*:\s*([^;]+)/)?.[1]?.trim())
@@ -283,7 +281,7 @@ describe("les boutons pleins de marque — l'encre qui GAGNE bascule avec le fon
 
 describe("the pearl badge pairs — each `--pearl-*-soft` fill with its own ink", () => {
   // The Avatar, `.cv-badge` and `.redaction-pill` write `--pearl-<name>-ink` on
-  // `--pearl-<name>-soft`. The softs alias the `--hl-*-soft` pastels (light in all four
+  // `--pearl-<name>-soft`. The softs alias the `--hl-*-soft` pastels (light in both
   // themes by documented invariant), so the inks stay dark everywhere — this measures
   // that the pairing actually clears AA wherever a theme moves. Literal inks
   // (#5b3bbf, #8a5a06…) used to sit here unmeasured; `frozenInk.test.ts` now bans the

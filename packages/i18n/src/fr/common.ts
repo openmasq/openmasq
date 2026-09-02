@@ -22,10 +22,10 @@ export const common = {
 export const nav = {
   ariaLabel: "Navigation",
   chats: "Chats",
-  skills: "Compét.",
+  skills: "Compétences",
   memory: "Mémoire",
   vault: "Coffre",
-  library: "Biblio",
+  library: "Bibliothèque",
   settings: "Réglages",
 } satisfies Messages["nav"];
 

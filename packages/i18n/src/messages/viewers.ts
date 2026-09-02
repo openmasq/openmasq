@@ -32,6 +32,11 @@ export interface ViewersMessages {
   sharedVersion: string;
   documentTab: string;
   redactedToggle: string;
+  /** The default storage caption, and the note line over the masked ⇄ original views. */
+  storedLocally: string;
+  maskedNote: (labels: string) => string;
+  maskedNoteNoLabels: string;
+  originalNote: string;
   /** What one keeps in clear, by hand. */
   keptClearTip: string;
   reRedactAll: string;

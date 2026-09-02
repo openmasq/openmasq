@@ -23,7 +23,7 @@ export function MemoryProfile({
         <span className="om-skill-spacer" />
         {draft === null ? (
           <button type="button" className="om-skill-use" onClick={() => setDraft(memoryData.profile ?? "")}>
-            Modifier
+            {t.lists.memory.profile.edit}
           </button>
         ) : (
           <>
@@ -35,10 +35,10 @@ export function MemoryProfile({
                 setDraft(null);
               }}
             >
-              Enregistrer
+              {t.common.save}
             </button>
             <button type="button" className="om-skill-use" onClick={() => setDraft(null)}>
-              Annuler
+              {t.common.cancel}
             </button>
           </>
         )}
@@ -55,8 +55,7 @@ export function MemoryProfile({
             setDraft(memoryData.profile ?? "");
           }}
         >
-          {memoryData.profile?.trim() ||
-            `Qui vous êtes et ce que ${BRAND.name} doit garder en tête — votre métier, vos préférences, votre façon de travailler.`}
+          {memoryData.profile?.trim() || t.lists.memory.profile.emptyText(BRAND.name)}
         </p>
       ) : (
         <>
@@ -72,8 +71,8 @@ export function MemoryProfile({
           {/* The limit, stated: the profile rides with EVERY send, its size is a
               budget — not a free-text field that silently truncates. */}
           <span className="om-mem-limit">
-            {draft.length}/{MAX_PROFILE_CHARS} — le profil accompagne chaque envoi ;
-            court, il laisse la place aux fiches.
+            {draft.length}/{MAX_PROFILE_CHARS}
+            {t.lists.memory.profile.limitNote}
           </span>
         </>
       )}

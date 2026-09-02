@@ -5,7 +5,6 @@ import type { UnavailableReason } from "../../send/modelAvailability";
 import type { SettingsTabId as TabId } from "./settingsIndex";
 import { AccountTab } from "./AccountTab";
 import { SyncSection } from "./SyncSection";
-import { OrgSection } from "./OrgSection";
 import { McpTab } from "./mcp/McpTab";
 import { ModelsTab } from "./models";
 import { toggleFavoriteModel } from "../../components/ModelSelector/simpleList";
@@ -104,6 +103,8 @@ export function SettingsTabContent({
       ) : tab === "mcp" ? (
         <McpTab
           allowedMcpIds={orgProfile?.allowedMcpIds}
+          draft={draft}
+          setDraft={setDraft}
           requestedConnector={
             requestedTab?.connectorId
               ? { id: requestedTab.connectorId, n: requestedTab.n }
@@ -130,15 +131,12 @@ export function SettingsTabContent({
         <VersionsTab />
       ) : tab === "sync" ? (
         host.sync ? <SyncSection sync={host.sync} onUpgrade={() => onPickTab("billing")} /> : null
-      ) : tab === "org" ? (
-        orgProfile ? <OrgSection org={orgProfile} /> : null
       ) : (
         <AccountTab
           draft={draft}
           setDraft={setDraft}
           conversations={conversations}
           orgProfile={orgProfile}
-          onOpenOrg={orgProfile ? () => onPickTab("org") : undefined}
           onImportConversations={onImportConversations}
         />
       )}

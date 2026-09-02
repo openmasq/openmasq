@@ -18,7 +18,7 @@ export const settings = {
       label: "Compte",
       title: "Compte",
       sub: () => "Votre identité sur cet appareil, l'apparence et vos données.",
-      kw: "profil nom email adresse thème sombre dark mode clé api key masquage règles catégories modèle défaut préférences déconnexion langue",
+      kw: "profil nom email adresse thème sombre dark mode préférences déconnexion langue organisation équipe team membres sso entreprise administration",
     },
     privacy: {
       label: "Confidentialité",
@@ -34,15 +34,15 @@ export const settings = {
     },
     mcp: {
       label: "Connecteurs",
-      title: "Connecteurs & outils",
+      title: "Connecteurs",
       sub: () => "Les connecteurs disponibles dans vos conversations.",
-      kw: "connecteurs intégrations gmail notion stripe github slack outils tools serveur oauth",
+      kw: "connecteurs intégrations gmail notion stripe github slack outils tools serveur oauth agent sécurité navigateur confirmation lecture seule domaines",
     },
     browser: {
       label: "Navigateur",
       title: "Navigateur",
-      sub: () => "Le navigateur intégré que le modèle peut piloter, sous votre contrôle.",
-      kw: "web recherche moteur duckduckgo google agent navigation sécurité",
+      sub: () => "Le moteur de recherche du navigateur intégré.",
+      kw: "web recherche moteur duckduckgo google qwant ecosia brave startpage",
     },
     audit: {
       label: "Journal",
@@ -54,19 +54,13 @@ export const settings = {
       label: "Usage",
       title: "Usage",
       sub: () => "Votre consommation, au total et par modèle.",
-      kw: "consommation crédits cout dépense tokens jetons quota statistiques",
+      kw: "consommation crédits cout dépense tokens quota statistiques",
     },
     sync: {
       label: "Vos appareils",
       title: "Synchronisation",
       sub: () => "Vos appareils et la synchronisation entre eux.",
       kw: "appareils devices cloud chiffrement sauvegarde",
-    },
-    org: {
-      label: "Organisation",
-      title: "Organisation",
-      sub: () => "L'organisation à laquelle appartient ce compte.",
-      kw: "équipe team membres domaine sso entreprise administration",
     },
     billing: {
       label: "Paiement",
@@ -100,8 +94,8 @@ export const settings = {
       kw: "analytics telemetrie consentement anonymes",
     },
     transparencyLog: {
-      label: "Transparence · journal technique",
-      kw: "transparence debogage debug journal wire message exact modele vu par le modele comparatif",
+      label: "Journal technique détaillé",
+      kw: "transparence debogage debug journal wire message exact modele vu par le modele comparatif options avancees",
     },
     linkPreviews: { label: "Aperçus de liens", kw: "lien preview vignette apercu url ip" },
     protectionLevel: {
@@ -115,6 +109,10 @@ export const settings = {
     modelSeesTokens: {
       label: "Le modèle ne voit que des jetons",
       kw: "jetons marqueurs pseudonymes modèle anonymisation person1 envoi",
+    },
+    memoryAuto: {
+      label: "Extraction automatique de la mémoire",
+      kw: "memoire fiches extraction automatique silencieuse retenir a revoir notes",
     },
     localModel: {
       label: "Modèle sur votre ordinateur",
@@ -132,9 +130,17 @@ export const settings = {
       label: "Votre abonnement ChatGPT",
       kw: "codex cli openai chatgpt abonnement sans cle subscription",
     },
+    antigravitySubscription: {
+      label: "Votre abonnement Google Antigravity",
+      kw: "antigravity agy cli google gemini abonnement sans cle subscription",
+    },
     writeConfirm: {
       label: "Confirmation des actions",
-      kw: "confirmation ecriture write gate renforce outils",
+      kw: "confirmation ecriture write gate renforce outils agent",
+    },
+    browserSecurity: {
+      label: "Sécurité du navigateur agent",
+      kw: "navigateur agent lecture seule domaines autorises injection securite browser",
     },
     connectedDevices: {
       label: "Appareils connectés",
@@ -150,7 +156,6 @@ export const settings = {
     privacy: "Confidentialité",
     aiTools: "IA & outils",
     devices: "Vos appareils",
-    org: "Organisation",
     app: "Application",
     other: "Autres",
   },

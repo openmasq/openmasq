@@ -1,4 +1,5 @@
 import { MiniRedaction } from "../media/BrandLogo/MiniRedaction";
+import { useT } from "../../i18n";
 
 /**
  * The "thinking" indicator shown while an assistant turn is PENDING with no content
@@ -40,6 +41,7 @@ export function ThinkingIndicator({
    *  which `TurnProcess` is already showing above the answer by then. */
   trailing?: boolean;
 }) {
+  const t = useT();
   const text = trailing ? undefined : reasoning?.trim();
   return (
     <div
@@ -47,10 +49,10 @@ export function ThinkingIndicator({
       role="status"
       aria-label={
         trailing
-          ? "Le modèle rédige la réponse"
+          ? t.conversation.thinking.writing
           : text
-            ? "Le modèle réfléchit"
-            : "Le modèle prépare la réponse"
+            ? t.conversation.thinking.reflecting
+            : t.conversation.thinking.preparing
       }
     >
       {/* The app-open grid, in miniature and never finishing — the wait wears the object

@@ -6,6 +6,7 @@ import { kindLabel } from "./kindLabel";
 import { EyeIcon } from "../brand/icons/data";
 import { LayersIcon, FeedbackIcon } from "../brand/icons/sections";
 import { TrashIcon } from "../brand/icons/actions";
+import { LockIcon } from "../brand/icons/sections";
 import { BottomSheet } from "../brand/BottomSheet";
 
 const DEFAULT_MARK_SEL = ".redaction-mark[data-real]";
@@ -13,11 +14,14 @@ const DEFAULT_MARK_SEL = ".redaction-mark[data-real]";
 /**
  * The kit's redaction POPOVER (`RedactionPill` menu): hovering a redacted mark opens
  * a small tone-bordered card — a tinted header naming the data type + the COUNTERPART
- * value, then one action per scope: « Démasquer » (this mark) and « Démasquer la
- * catégorie » (every mark of that kind in this container). The rows never repeat the
- * type or the value: the header two lines above already carries both, and the tooltips
- * hold the precision. It flips BELOW the mark near
- * the viewport top, and carries the kit's pointer arrow.
+ * value, then one action per reach: « Laisser en clair · <portée> » (this mark) and
+ * « Laisser la catégorie en clair · <portée> » (every mark of that kind in this
+ * container), plus the definitive « Retirer le masquage · <portée> ». The verbs come
+ * from `conversation.mark`, THE lexicon every reveal surface shares; the `scope` prop
+ * picks the suffix (a chat bubble reveals for the CONVERSATION, the before-send document
+ * preview for THIS SEND). The rows never repeat the type or the value: the header two
+ * lines above already carries both, and the tooltips hold the precision. It flips BELOW
+ * the mark near the viewport top, and carries the kit's pointer arrow.
  *
  * REUSED by three surfaces so they behave identically: (1) chat bubbles, where the
  * mark shows the REAL value and the header shows the FAKE the model saw (`show:"fake"`,
@@ -43,10 +47,9 @@ export function RedactionInlineReveal({
   revealed,
   selector = DEFAULT_MARK_SEL,
   show = "fake",
+  scope = "conversation",
   readOnly = false,
-  valueTitle = "Valeur vue par le modèle",
-  revealTitle = "Unredact pour cette conversation",
-  reRedactTitle = "Réactiver le redaction de cette valeur",
+  valueTitle,
   onReport,
   onDelete,
   displayTokens,
@@ -66,20 +69,20 @@ export function RedactionInlineReveal({
    *  hide, and drop any card already open. Two cards over one document left the user with
    *  two sets of actions and no way to tell which applied to what. */
   suppressed?: boolean;
+  /** The REACH of a reveal, said as the verbs' suffix: a chat bubble's reveal holds for
+   *  the conversation; the before-send document preview's for this send only. */
+  scope?: "conversation" | "send";
   /** No actions — a pure reveal (the developer Debug Log has no per-conversation
    *  reveal action, so it just shows the counterpart + its type). */
   readOnly?: boolean;
-  /** Tooltip on the displayed value. */
+  /** Tooltip on the displayed value — defaults to the catalogue's, per `show`. */
   valueTitle?: string;
-  /** Action tooltips for the two toggle directions. */
-  revealTitle?: string;
-  reRedactTitle?: string;
   /** « Signaler un masquage incorrect » — opens « Votre avis » prefilled (the caller
    *  binds the surface + opener). Receives the mark's KIND label only (a vocabulary
    *  word, never the value). Offered even in `readOnly` mode: reporting is not a
    *  reveal action. Absent ⇒ no report row. */
   onReport?: (kindLabel: string) => void;
-  /** « Supprimer ce masquage » — DELETE the element entirely (a false positive):
+  /** « Retirer le masquage · <portée> » — DELETE the element entirely (a false positive):
    *  no mark, no tag, the value stays visible and leaves in clear. A reveal is a
    *  SUSPENSION instead: the mark renders as plain text too (unredacted = the
    *  redaction disappears, never a strikethrough) but stays hoverable to
@@ -135,40 +138,37 @@ export function RedactionInlineReveal({
   // The label in the READER's language, never the engine key: the card used to read
   // « Démasquer tous les « company » » in an otherwise French interface (`kindLabel.ts`).
   const label = kindLabel(hov.kind, t);
+  const mark = t.conversation.mark;
+  // The two verbs and their reach, from THE lexicon (`conversation.mark`).
+  const reach = scope === "send" ? mark.scopeSend : mark.scopeConversation;
+  const toggleTitle = isRevealed ? mark.reMaskTip : mark.leaveClearTip;
   // The card + actions — ONE content tree, two presentations (popover / sheet).
   const content = (
     <>
-      <span className="rmark-pop-value" title={valueTitle}>
+      <span
+        className="rmark-pop-value"
+        title={valueTitle ?? (show === "real" ? mark.realValueTip : mark.seenByModelTip)}
+      >
         <span className="rmark-pop-eyebrow">
-          {label} · {show === "real" ? t.conversation.mark.realValue : t.conversation.mark.seenByModel}
+          {label} · {show === "real" ? mark.realValue : mark.seenByModel}
         </span>
         <span className="rmark-pop-val">
           {(show === "real" ? hov.real : displayTokens?.get(hov.real) ?? hov.fake) || "—"}
         </span>
       </span>
       {readOnly ? null : forced ? (
-        <span className="rmark-pop-btn locked" title={t.conversation.mark.orgForced}>
-          🔒 {t.conversation.mark.orgForced}
+        <span className="rmark-pop-btn locked" title={mark.orgForced}>
+          <LockIcon size={14} /> {mark.orgForced}
         </span>
       ) : (
         <>
-          <button
-            type="button"
-            className="rmark-pop-btn"
-            onClick={toggleOne}
-            title={isRevealed ? reRedactTitle : revealTitle}
-          >
-            <EyeIcon size={14} /> {isRevealed ? t.conversation.mark.reRedact : t.conversation.mark.reveal}
+          <button type="button" className="rmark-pop-btn" onClick={toggleOne} title={toggleTitle}>
+            <EyeIcon size={14} /> {isRevealed ? mark.reMask(reach) : mark.leaveClear(reach)}
           </button>
           {hov.kind && (
-            <button
-              type="button"
-              className="rmark-pop-btn"
-              onClick={toggleKind}
-              title={isRevealed ? reRedactTitle : revealTitle}
-            >
+            <button type="button" className="rmark-pop-btn" onClick={toggleKind} title={toggleTitle}>
               <LayersIcon size={14} />{" "}
-              {isRevealed ? t.conversation.mark.reRedactKind : t.conversation.mark.revealKind}
+              {isRevealed ? mark.reMaskKind(reach) : mark.leaveClearKind(reach)}
             </button>
           )}
         </>
@@ -181,9 +181,9 @@ export function RedactionInlineReveal({
             onDelete(hov.real);
             close();
           }}
-          title={t.conversation.mark.deleteTip}
+          title={mark.removeTip}
         >
-          <TrashIcon size={14} /> {t.conversation.mark.delete}
+          <TrashIcon size={14} /> {mark.remove(reach)}
         </button>
       )}
       {onReport && (

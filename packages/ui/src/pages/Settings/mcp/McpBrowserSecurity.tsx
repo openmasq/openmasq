@@ -16,9 +16,12 @@ import { useT } from "../../../i18n";
 export function McpBrowserSecurity({
   settings,
   setSettings,
+  embedded = false,
 }: {
   settings: Settings;
   setSettings: (updater: (s: Settings) => Settings) => void;
+  /** The card alone, under an eyebrow the caller owns (`McpAgentPowers`). */
+  embedded?: boolean;
 }) {
   const t = useT();
   const readOnly = !!settings.browserReadOnly;
@@ -40,9 +43,7 @@ export function McpBrowserSecurity({
     setSettings((s) => ({ ...s, browserAllowedDomains: uniq }));
   };
 
-  return (
-    <section className="settings-section">
-      <div className="cv-eyebrow">{t.mcpTab.browserSecurityEyebrow}</div>
+  const card = (
       <div className="settings-card">
         <div className="toggle-row">
           <span className="row-icon tone-coral">
@@ -83,6 +84,12 @@ export function McpBrowserSecurity({
           </div>
         </div>
       </div>
+  );
+  if (embedded) return card;
+  return (
+    <section className="settings-section">
+      <div className="cv-eyebrow">{t.mcpTab.browserSecurityEyebrow}</div>
+      {card}
     </section>
   );
 }

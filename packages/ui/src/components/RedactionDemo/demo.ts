@@ -1,4 +1,5 @@
 import { hueForKind } from "@openmasq/redact";
+import { DEFAULT_LOCALE, getMessages, type Messages } from "@openmasq/i18n";
 
 /**
  * The first-run DEMONSTRATION: one realistic sentence, and what the model receives
@@ -33,28 +34,27 @@ export const DEMO_SPANS: readonly DemoSpan[] = [
   { text: "." },
 ];
 
-/** French label per demo kind — what the coloured chip under the sentence says. */
-const KIND_LABEL: Record<string, string> = {
-  name: "Nom",
-  email: "E-mail",
-  phone: "Téléphone",
-  company: "Entreprise",
-};
-
 export interface DemoLegendItem {
   kind: string;
   label: string;
   hue: string;
 }
 
-/** The legend under the demo: one chip per DISTINCT kind, in order of appearance. */
-export function demoLegend(spans: readonly DemoSpan[] = DEMO_SPANS): DemoLegendItem[] {
+/** The legend under the demo: one chip per DISTINCT kind, in order of appearance. The
+ *  label is the redaction type's own (`t.redactTypes`, the catalogue) — never a local
+ *  table, so the demo names a kind the way the rest of the app does. Default catalogue
+ *  = the source language, for a caller outside React (a test, a hue lookup). */
+export function demoLegend(
+  t: Messages = getMessages(DEFAULT_LOCALE),
+  spans: readonly DemoSpan[] = DEMO_SPANS,
+): DemoLegendItem[] {
+  const labels = t.redactTypes as unknown as Record<string, string | undefined>;
   const seen = new Set<string>();
   const out: DemoLegendItem[] = [];
   for (const s of spans) {
     if (!s.kind || seen.has(s.kind)) continue;
     seen.add(s.kind);
-    out.push({ kind: s.kind, label: KIND_LABEL[s.kind] ?? s.kind, hue: hueForKind(s.kind) });
+    out.push({ kind: s.kind, label: labels[s.kind] ?? s.kind, hue: hueForKind(s.kind) });
   }
   return out;
 }

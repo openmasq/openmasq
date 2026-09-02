@@ -38,10 +38,10 @@ export type StagedIntents = {
    *  Successive calls QUEUE: each file joins the same conversation. */
   attachFile: (file: ExtractedFile | DeferredFile) => void;
   /** « Demander » on a file SOURCE — a granted folder, a folder, or a
-   *  file of a connected storage: a new conversation carrying the target as a TAG
-   *  (composer chip, then a tag on the sent message — the compétences
-   *  mechanism). Nothing is attached — the model has the connector's tools to go
-   *  read it, and attaching a whole tree would be a send nobody
+   *  file of a connected storage: the OPEN conversation (created only when none exists)
+   *  receives the target as a TAG (composer chip, then a tag on the sent message — the
+   *  compétences mechanism). Nothing is attached — the model has the connector's tools
+   *  to go read it, and attaching a whole tree would be a send nobody
    *  asked for. Draft prose (« À propos de "patrons" dans Dropbox : ») has already
    *  lived here: with no DOSSIER wording and no visible trace, the model read the name
    *  as a concept and went off to explain it. */
@@ -95,9 +95,14 @@ export function useStagedIntents({ chat, go }: { chat: ChatStore; go: (s: Sectio
     if (!existing) dispatch(openTab(convId));
     stageAttach(file, convId);
   };
+  /* Same rule as `attachFile` and the browser's « Demander à propos de cette page »
+     (`useShell.askAboutPage`): the rail sits BESIDE the open conversation, so the target
+     joins it — a new conversation only when there is none. Opening a fresh thread on
+     every click replaced the context the user was looking at while asking. */
   const askAboutTarget = (t: Omit<AskTarget, "prompt">) => {
-    const convId = chat.createConversation();
-    dispatch(openTab(convId));
+    const existing = chat.activeId;
+    const convId = existing ?? chat.createConversation();
+    if (!existing) dispatch(openTab(convId));
     // The target is STAGED as an entity (the same channel as the compétences):
     // ChatView derives the chip from it, and on send its context line — folder/file,
     // local path or service — goes up into the MODEL payload (`send/askTarget.ts`).

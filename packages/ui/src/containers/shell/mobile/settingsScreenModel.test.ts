@@ -29,11 +29,11 @@ describe("groupSettingsTabs", () => {
   });
 
   it("drops a group whose tabs are all capability-gated away", () => {
-    // A solo user has no org, a browser-less platform no "Navigateur": their headings
-    // must not linger over nothing.
-    const solo = NAV.filter((n) => n.id !== "org" && n.id !== "browser");
+    // A browser-less platform has no "Navigateur", a build without sync no "Vos
+    // appareils": their headings must not linger over nothing.
+    const solo = NAV.filter((n) => n.id !== "sync" && n.id !== "browser");
     const groups = groupSettingsTabs(solo, t);
-    expect(groups.map((g) => g.title)).not.toContain("Organisation");
+    expect(groups.map((g) => g.title)).not.toContain("Vos appareils");
     expect(groups.find((g) => g.title === "IA & outils")?.items.map((i) => i.id)).toEqual([
       "models",
       "mcp",
@@ -46,7 +46,6 @@ describe("groupSettingsTabs", () => {
       "Confidentialité",
       "IA & outils",
       "Vos appareils",
-      "Organisation",
       "Application",
     ]);
   });

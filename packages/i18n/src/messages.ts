@@ -53,6 +53,7 @@ import type { SectionsMessages } from "./messages/sections";
 import type { ConversationMessages } from "./messages/conversation";
 import type { ListsMessages } from "./messages/lists";
 import type { TemplatesMessages } from "./messages/templates";
+import type { TurnStatusMessages } from "./messages/turnStatus";
 import type {
   LeavesMessages,
   LoginMessages,
@@ -133,6 +134,7 @@ export interface Messages {
   leaves: LeavesMessages;
   chat: ChatMessages;
   conversation: ConversationMessages;
+  turnStatus: TurnStatusMessages;
   webNav: WebNavMessages;
   composer: ComposerMessages;
   cards: CardsMessages;

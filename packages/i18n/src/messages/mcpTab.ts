@@ -98,6 +98,13 @@ export interface McpTabMessages {
   customWarnReal: { lead: string; strong: string; tail: string };
   customWarnReplies: string;
   customWarnFoot: string;
+  /** « n connectés · m disponibles » under the tab's eyebrow. */
+  count: (connected: number, total: number) => string;
+  /** « Ce que l'agent peut faire » — the ONE section holding the write gate AND the
+   *  agent-browser hardening, on the Connecteurs tab (the browser tab keeps only its
+   *  search engine). */
+  agentPowersEyebrow: string;
+  agentPowersHint: string;
   /** Action confirmation. */
   confirmEyebrow: string;
   reinforced: string;
@@ -136,6 +143,11 @@ export interface McpTabMessages {
 
 export interface VersionsTabMessages {
   switchConfirm: (version: string, env: string) => string;
+  /** Going back to an older build — asked in the app's own dialog, never `window.confirm`. */
+  revertConfirm: (version: string) => string;
+  /** « X se met à jour automatiquement. Vous pouvez vérifier maintenant » — the tail
+   *  (`orSwitchEnv` / `orRevert` / a full stop) follows it. */
+  autoUpdateLead: (brand: string) => string;
   current: string;
   noRelease: string;
   switchTo: string;

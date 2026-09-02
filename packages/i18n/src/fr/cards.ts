@@ -44,25 +44,25 @@ export const cards = {
     close: "Fermer pour toujours",
   },
 
-  banners: {
-    attachmentIgnored: "Pièce jointe ignorée",
+  integration: {
+    manySuggested: (n) => `${n} intégrations suggérées`,
+    secureNote: "Connexion sécurisée · accès chiffré, révocable à tout moment",
+    connectTools: "Connectez vos outils pour continuer",
+    tileConnected: (name) => `${name} · connecté`,
+    tileConnect: (name) => `Connecter ${name}`,
+    activate: "Activer",
+    connect: (name) => `Connecter ${name}`,
+    suggested: "Intégration suggérée",
+    connectedEyebrow: (name) => `${name} · connecté`,
+    connectedResume: (brand) => `Connecté — ${brand} peut reprendre`,
+    resume: "Continuer",
+    builtinNote: (brand) => `Intégré à ${brand} — rien à connecter, aucun compte tiers.`,
+    activateTitle: (name) => `Activez ${name} pour continuer`,
+    connectTitle: (name) => `Connectez ${name} pour continuer`,
   },
 
-  sendMode: {
-    title: "Envoyer le document",
-    question: (n) =>
-      `Comment envoyer ${n === 1 ? "ce document" : `ces ${n} documents`} au modèle ? Dans les deux cas, seule la version masquée part.`,
-    textOption: "Texte extrait",
-    textTokens: (tokens) => `≈ ${tokens} tokens de texte`,
-    textDesc: "Le texte du document, masqué — rapide et léger, sans la mise en page.",
-    fileOption: "Document masqué (fichier)",
-    computing: "calcul…",
-    approx: (size) => `≈ ${size}`,
-    fileDesc: "Les pages redactées en images — garde la mise en page, les tableaux, la structure.",
-    tooBig: " — trop volumineux pour ce modèle, préférez le texte.",
-    noFiles: (modelLabel) => `⚠ ${modelLabel} ne gère pas l'envoi de fichiers.`,
-    switchAndSend: (modelLabel) => `Basculer sur ${modelLabel} et envoyer le fichier`,
-    cancel: "Annuler",
+  banners: {
+    attachmentIgnored: "Pièce jointe ignorée",
   },
 
   writeConfirm: {
@@ -74,6 +74,8 @@ export const cards = {
       n === 1
         ? "1 fichier de vos données sera joint (envoyé en clair) :"
         : `${n} fichiers de vos données seront joints (envoyés en clair) :`,
+    details: (tool) => `Détails techniques (${tool})`,
+    scopeNote: (tool) => `Une fois autorisé, « ${tool} » ne redemandera plus dans cette conversation.`,
     navExfil: {
       eyebrow: "Navigation web",
       title: (host) => `Ouvrir ${host} ?`,

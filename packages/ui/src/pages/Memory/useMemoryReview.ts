@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { freshCardIds } from "../../memory";
 import { duplicateSuggestions, pairKey, type MergeSuggestion } from "../../memory/dedupe";
 import type { MemoryCard, MemoryData } from "../../types";
@@ -44,26 +44,18 @@ export function useMemoryReview(
 
   // Delete with a net: gone immediately, restorable while the toast lives.
   const [undo, setUndo] = useState<MemoryCard | null>(null);
-  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The toast owns the 6 s window (components/feedback/Toast) and calls `dismissUndo`.
   const removeWithUndo = (id: string) => {
     const card = memoryData.cards.find((c) => c.id === id) ?? null;
     ops.onRemove(id);
     if (!card || !ops.onRestore) return;
     setUndo(card);
-    if (undoTimer.current) clearTimeout(undoTimer.current);
-    undoTimer.current = setTimeout(() => setUndo(null), 6000);
   };
+  const dismissUndo = () => setUndo(null);
   const restoreUndo = () => {
     if (undo) ops.onRestore?.(undo);
     setUndo(null);
-    if (undoTimer.current) clearTimeout(undoTimer.current);
   };
-  useEffect(
-    () => () => {
-      if (undoTimer.current) clearTimeout(undoTimer.current);
-    },
-    [],
-  );
 
   return {
     fresh,
@@ -76,5 +68,6 @@ export function useMemoryReview(
     removeWithUndo,
     undo,
     restoreUndo,
+    dismissUndo,
   };
 }

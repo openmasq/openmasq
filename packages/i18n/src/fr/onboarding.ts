@@ -30,12 +30,6 @@ export const onboarding = {
     },
   },
 
-  places: {
-    eyebrow: "VOTRE ESPACE",
-    title: "Six endroits, six usages",
-    sub: "La barre de gauche mène à tout. Vous n'avez rien à y préparer : chaque endroit se remplit en travaillant.",
-  },
-
   access: {
     eyebrow: "ACCÈS AUX MODÈLES",
     titleServed: "Abonnement, ou votre clé",
@@ -59,7 +53,7 @@ export const onboarding = {
     slashHint: {
       lead: "Tapez ",
       strong: "/",
-      tail: " dans la zone de message pour vos compétences, vos workflows et « retiens que… ».",
+      tail: " dans la zone de message pour vos compétences, vos routines et « retiens que… ».",
     },
     helpHint: {
       lead: "Un doute ? ",
@@ -72,7 +66,7 @@ export const onboarding = {
   tune: {
     eyebrow: "MASQUAGE",
     title: "Régler finement",
-    sub: "Ces réglages sont déjà bons par défaut. Vous les retrouverez à tout moment dans Réglages → Compte.",
+    sub: "Ces réglages sont déjà bons par défaut. Vous les retrouverez à tout moment dans Réglages → Confidentialité.",
   },
 
   keyChoice: {
@@ -90,9 +84,10 @@ export const onboarding = {
     agent: {
       title: "Mon abonnement Claude Code / Codex",
       sub: "Déjà installé, déjà payé : vos envois passent par la CLI présente sur cette machine, sans clé à coller. Chaque envoi consomme votre abonnement personnel.",
-      hint: "Le forfait et le quota de chaque CLI se lisent dans Réglages → Modèles.",
+      hint: "L'abonnement et le quota de chaque CLI se lisent dans Réglages → Modèles.",
     },
     recommended: "conseillé",
+    otherProvider: "Autre fournisseur",
     savedKey: (provider) => `Clé ${provider} enregistrée — vous êtes prêt.`,
     connect: "Obtenir une clé gratuitement",
     connecting: "Autorisation dans votre navigateur…",
@@ -113,5 +108,7 @@ export const onboarding = {
     placeholderPlain: (provider) => `Clé ${provider}`,
     save: "Enregistrer",
     saving: "Enregistrement…",
+    stepDone: (step) => `Étape ${step} : c'est fait`,
+    stepUndo: (step) => `Étape ${step} : à refaire`,
   },
 } satisfies Messages["onboarding"];

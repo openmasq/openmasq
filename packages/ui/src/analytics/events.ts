@@ -54,7 +54,7 @@ export type TrackEvent =
   // ── app / navigation ───────────────────────────────────────────────────
   | { name: "app_open" }
   | { name: "section_change"; section: Section }
-  | { name: "theme_toggle"; theme: "light" | "dark" | "blue" | "blue-dark" }
+  | { name: "theme_toggle"; theme: "light" | "dark" }
   // The language CHOSEN in settings — a shipped locale, so an enum, never a raw
   // `navigator.language` (which carries the region: « fr-CA » is a location signal).
   | { name: "language_change"; locale: Locale }

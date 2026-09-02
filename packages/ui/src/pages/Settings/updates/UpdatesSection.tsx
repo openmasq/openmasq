@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { CheckIcon } from "../../../components/brand";
+import { ConfirmDialog } from "../../../components/feedback/ConfirmDialog";
 import { useUpdates, compareVersions, ensureCurrentInReleases } from "./useUpdates";
 import { useReleaseNotes } from "../../../state/settings/releaseNotes";
 import { noteLookup, ReleaseTable } from "./ReleaseHistory";
@@ -48,6 +49,10 @@ export function UpdatesSection() {
   // Which environment the privileged picker is showing. `null` = "not chosen yet",
   // resolved below to the device's OWN channel so the view opens on what is running.
   const [segEnv, setSegEnv] = useState<string | null>(null);
+  // A rollback or an environment switch asks first — in the app's own dialog
+  // (`ConfirmDialog`), never `window.confirm`: the system box wears the OS chrome,
+  // ignores the theme and cannot be styled. `pending` holds the question + its answer.
+  const [pending, setPending] = useState<{ title: string; message: string; go: () => void } | null>(null);
   // Always surface the RUNNING build as a history row (own-channel view) so its
   // release note shows even when the channel feed lists no build for it — e.g. a dev
   // build on the empty default `desktop-production` channel.
@@ -56,16 +61,38 @@ export function UpdatesSection() {
 
   const onPick = (version: string) => {
     if (current && compareVersions(version, current.version) < 0) {
-      if (!window.confirm(`Revenir à la version ${version} ? L'app redémarrera pour l'appliquer.`))
-        return;
+      setPending({
+        title: t.versionsTab.revertTo(version),
+        message: t.versionsTab.revertConfirm(version),
+        go: () => pin(version),
+      });
+      return;
     }
     pin(version);
   };
 
   const onSwitch = (channel: string, env: string, version: string) => {
-    if (!window.confirm(t.versionsTab.switchConfirm(version, envLabel(env, t)))) return;
-    switchTo(channel, version);
+    setPending({
+      title: t.versionsTab.switchToVersion(version),
+      message: t.versionsTab.switchConfirm(version, envLabel(env, t)),
+      go: () => switchTo(channel, version),
+    });
   };
+
+  const confirmDialog = pending && (
+    <ConfirmDialog
+      title={pending.title}
+      message={pending.message}
+      confirmLabel={t.common.confirm}
+      danger={false}
+      onConfirm={() => {
+        const go = pending.go;
+        setPending(null);
+        go();
+      }}
+      onCancel={() => setPending(null)}
+    />
+  );
 
   const currentTag = (
     <span className="ver-curtag">
@@ -167,7 +194,7 @@ export function UpdatesSection() {
     <section className="mb-6">
       <div className="cv-eyebrow ver-eyebrow">{t.versionsTab.installedEyebrow}</div>
       <p className="ver-sub">
-        {BRAND.name} se met à jour automatiquement. Vous pouvez vérifier maintenant
+        {t.versionsTab.autoUpdateLead(BRAND.name)}
         {crossEnv ? t.versionsTab.orSwitchEnv : canPin ? t.versionsTab.orRevert : "."}
       </p>
 
@@ -223,6 +250,7 @@ export function UpdatesSection() {
           {t.versionsTab.stagingWarning}
         </div>
       )}
+      {confirmDialog}
     </section>
   );
 }

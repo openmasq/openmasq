@@ -44,25 +44,25 @@ export const cards = {
     close: "Close for good",
   },
 
-  banners: {
-    attachmentIgnored: "Attachment ignored",
+  integration: {
+    manySuggested: (n) => `${n} suggested integrations`,
+    secureNote: "Secure connection · encrypted access, revocable at any time",
+    connectTools: "Connect your tools to continue",
+    tileConnected: (name) => `${name} · connected`,
+    tileConnect: (name) => `Connect ${name}`,
+    activate: "Turn on",
+    connect: (name) => `Connect ${name}`,
+    suggested: "Suggested integration",
+    connectedEyebrow: (name) => `${name} · connected`,
+    connectedResume: (brand) => `Connected — ${brand} can carry on`,
+    resume: "Continue",
+    builtinNote: (brand) => `Built into ${brand} — nothing to connect, no third-party account.`,
+    activateTitle: (name) => `Turn on ${name} to continue`,
+    connectTitle: (name) => `Connect ${name} to continue`,
   },
 
-  sendMode: {
-    title: "Send the document",
-    question: (n) =>
-      `How should ${n === 1 ? "this document" : `these ${n} documents`} be sent to the model? Either way, only the masked version leaves.`,
-    textOption: "Extracted text",
-    textTokens: (tokens) => `≈ ${tokens} tokens of text`,
-    textDesc: "The document's text, masked — fast and light, without the layout.",
-    fileOption: "Masked document (file)",
-    computing: "computing…",
-    approx: (size) => `≈ ${size}`,
-    fileDesc: "The masked pages as images — keeps the layout, the tables, the structure.",
-    tooBig: " — too large for this model, prefer the text.",
-    noFiles: (modelLabel) => `⚠ ${modelLabel} does not accept file uploads.`,
-    switchAndSend: (modelLabel) => `Switch to ${modelLabel} and send the file`,
-    cancel: "Cancel",
+  banners: {
+    attachmentIgnored: "Attachment ignored",
   },
 
   writeConfirm: {
@@ -74,6 +74,8 @@ export const cards = {
       n === 1
         ? "1 file of your data will be attached (sent in clear):"
         : `${n} files of your data will be attached (sent in clear):`,
+    details: (tool) => `Technical details (${tool})`,
+    scopeNote: (tool) => `Once allowed, “${tool}” will not ask again in this conversation.`,
     navExfil: {
       eyebrow: "Web browsing",
       title: (host) => `Open ${host}?`,

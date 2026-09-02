@@ -4,7 +4,7 @@
 import type { Messages } from "../messages";
 
 export const mcpTab = {
-  eyebrow: "SERVEURS MCP",
+  eyebrow: "CONNECTEURS",
   unavailable: "Les connecteurs MCP ne sont pas disponibles sur cette plateforme.",
   search: "Rechercher un connecteur…",
   addTip: "Connecter un service qui n'est pas dans la liste",
@@ -94,6 +94,11 @@ export const mcpTab = {
   customWarnReplies:
     "Ses réponses reviennent dans la conversation, et le modèle s'en sert : un service malveillant peut chercher à le manipuler.",
   customWarnFoot: "N'ajoutez que des services dont vous connaissez l'origine.",
+  count: (connected, total) =>
+    `${connected} connecté${connected === 1 ? "" : "s"} · ${total} disponible${total === 1 ? "" : "s"}`,
+  agentPowersEyebrow: "Ce que l'agent peut faire",
+  agentPowersHint:
+    "Les garde-fous de l'agent : ce qu'il confirme avant d'agir sur vos comptes, et ce que son navigateur a le droit de faire.",
   confirmEyebrow: "Confirmation des actions",
   reinforced: "Mode renforcé",
   reinforcedHint: (brand) =>

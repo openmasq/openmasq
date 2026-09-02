@@ -118,9 +118,9 @@ browser extension) live outside this repo.
     backstops that remain: `packages/ui/src/agent/CLAUDE.md`.
 12. **Never a frozen `#hex` on top of a theme token.** Ink/border/glyph sitting on `var(--brand)`,
     `var(--hl-*)` or a `var(--surface-*)` goes through the token that INVERTS with it
-    (`--ink-on-brand`, `--ink-on-hl`): a literal assumes a fixed ground, and the dark-GREEN theme
-    re-points `--brand` at that very light lime (1:1 contrast, text gone). A literal that is
-    truly needed is checked in all FOUR themes (light, dark, blue, blue-dark) and says so.
+    (`--ink-on-brand`, `--ink-on-hl`): a literal assumes a fixed ground, and the dark theme
+    re-points `--brand`, `--lime` and every surface (a lime pinned on the brand is near-black
+    there). A literal truly needed is checked in the TWO themes (`:root`, `[data-theme="dark"]`) and says so.
 13. **`FEATURES.md` is the MASTER file — it ships IN the change, never after.** What the app
     does, on which screen, how the user gets there, checklist per feature. **Enforced**:
     `pnpm check:features` re-reads the lists the product single-sources (sections, settings
@@ -174,7 +174,7 @@ packages/
 | Desktop MCP connector flow (OAuth, creds, run tools) | `apps/desktop/src/main/mcp/` + `packages/ui/src/agent/` |
 | The agentic tool-calling loop | `packages/ui/src/agent/mcpAgent.ts` |
 | App state, send pipeline, persistence | `packages/ui/src/state/store.ts` + `packages/ui/src/send/` |
-| Design tokens, the 4 themes, ALL CSS | `packages/ui/src/styles.css` + `packages/ui/src/styles/` |
+| Design tokens, the 2 themes, ALL CSS | `packages/ui/src/styles.css` + `packages/ui/src/styles/` |
 | Provider/model list, pricing, context windows | `packages/llm/src/models/` |
 | Main↔renderer API surface | `apps/desktop/src/preload/index.ts` (`window.openmasq`) |
 | Local DB / files at rest | `apps/desktop/src/main/db/` + `apps/desktop/src/main/store/` |
@@ -194,7 +194,7 @@ Visual reference: the design source lives OUTSIDE this repo — tokens land in `
   (`scripts/vitest/vitest.workspaceAlias.ts`, tsconfig copy held by `pnpm check:alias`). ⚠️ A
   PACKAGE's `typecheck`, however, reads `dist/*.d.ts` (only `apps/desktop` aliases to `src`).
 - Build: `cd apps/desktop && npx electron-vite build`. ⚠️ **CI's contract is `.github/workflows/verify.yml`, NOT `pnpm verify`** — it also runs `pnpm build`. Before a push that triggers a release, replay ITS list: trusting the script that carries the name put `dev` in the red twice in a row. ⚠️ And **`pnpm.supportedArchitectures` must keep `linux`**: it decides which OPTIONAL native binaries get installed, so restricting it to darwin+win32 for desktop packaging deprives esbuild and rollup of theirs on an Ubuntu runner and kills EVERY CI build — invisible locally, where everything compiles.
-- **Tailwind v4** is imported in `styles.css` as **utilities + theme ONLY (no preflight)**, so the app's own reset keeps the upper hand. Tokens + the FOUR themes that re-point them (`[data-theme="dark"|"blue"|"blue-dark"]`, light = none) live there too.
+- **Tailwind v4** is imported in `styles.css` as **utilities + theme ONLY (no preflight)**, so the app's own reset keeps the upper hand. Tokens + the TWO themes live there too: light IS the bare `:root`, dark re-points it (`[data-theme="dark"]`); `pnpm check:css` ratchets the btn/menu/card/chip class families.
 
 ---
 

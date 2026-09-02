@@ -77,7 +77,7 @@ describe("ComposerRedactButton", () => {
   it("la pastille s'efface d'elle-même", async () => {
     const m = await mount(<ComposerRedactButton api={api()} />);
     await m.click("button");
-    await clickCard("Standard");
+    await clickCard("Allégé");
     expect(m.maybe(".crm-applied")).not.toBeNull();
     await act(async () => {
       vi.advanceTimersByTime(APPLIED_PILL_MS + 1);

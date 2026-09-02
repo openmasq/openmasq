@@ -15,7 +15,7 @@ import { useT } from "../i18n";
  * `reduced` therefore carries NONE of it — it gets the eye instead, which says « ceci reste lisible » —
  * without which the icon would assert exactly the protection the level removes (rule 8:
  * a UI that oversells masking is a trust bug, not a style choice). That's
- * been the case for « Standard » since it lets the BETA categories through. This icon is
+ * been the case for « Allégé » (id `standard`) since it lets the BETA categories through. This icon is
  * now the ONLY signal the card carries: the detail lives in the matrix unfolded
  * below the levels. The full reasoning is in `privacy/privacyLevel.ts`.
  */
@@ -50,7 +50,11 @@ export function PrivacyLevelPicker({
                 </span>
               )}
             </span>
-            <span className="privacy-level-desc">{m.desc}</span>
+            {/* The USE, then what the level COVERS — the same two sentences as the
+                composer menu (`ComposerRedactMenu`): one vocabulary, two doors. */}
+            <span className="privacy-level-desc">
+              {m.desc} {m.short}
+            </span>
             {/* The trade-off, always stated (rule 8): what the level leaves
                 readable, or what its protection may distort in the reply. */}
             <span className="privacy-level-tradeoff">{m.tradeoff}</span>

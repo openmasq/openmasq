@@ -38,18 +38,17 @@ export function GuideModal({
   const chapter = chapters.find((c) => c.id === active) ?? chapters[0];
 
   return (
-    <ModalShell onClose={onClose} width="min(820px, 94vw)" maxHeight="min(78vh, 720px)">
-      <div className="guide-head">
-        <span className="guide-head-ic">
-          <HelpIcon size={18} />
-        </span>
-        <div>
-          <div className="cv-eyebrow guide-eyebrow">AIDE</div>
-          <h2 className="cv-display guide-title">Prendre en main {BRAND.name}</h2>
-        </div>
-        {/* The extended help center. `target="_blank"` is the exit to the SYSTEM
-            browser (the main process filters it by scheme) — never the agent
-            browser, which is a model tool, not a documentation viewer. */}
+    <ModalShell
+      onClose={onClose}
+      width="min(820px, 94vw)"
+      maxHeight="min(78vh, 720px)"
+      eyebrow={t.chrome.guideEyebrow}
+      title={t.chrome.guideTitle(BRAND.name)}
+      icon={<HelpIcon size={18} />}
+      headEnd={
+        /* The extended help center. `target="_blank"` is the exit to the SYSTEM
+           browser (the main process filters it by scheme) — never the agent
+           browser, which is a model tool, not a documentation viewer. */
         <a
           className="btn-primary guide-head-cta"
           href={HELP_CENTER_URL}
@@ -59,8 +58,8 @@ export function GuideModal({
           <span>{t.modals.guide.helpCenter}</span>
           <ArrowRightIcon size={15} />
         </a>
-      </div>
-
+      }
+    >
       <div className="guide-layout">
         <nav className="guide-nav" aria-label={t.modals.guide.themes}>
           {chapters.map((c) => (
@@ -130,7 +129,7 @@ export function GuideModal({
             guide it's « go read more », not « close ». The exit stays obvious — the
             cross and the clickable background also close it. */}
         <button type="button" className="btn-ghost" onClick={onClose}>
-          J&apos;ai compris
+          {t.chrome.guideUnderstood}
         </button>
       </div>
     </ModalShell>

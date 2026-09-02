@@ -61,7 +61,7 @@ export function SearchModal({
   const [active, setActive] = useState(0);
 
   const filtered = conversations.filter((c) =>
-    (c.title || "Nouvelle conversation").toLowerCase().includes(q.toLowerCase()),
+    (c.title || t.chrome.untitledConversation).toLowerCase().includes(q.toLowerCase()),
   );
   const groups = useMemo(() => groupConversationsByDate(filtered, t), [filtered, t]);
   // Each injected group. An EMPTY query yields none of them (the palette stays

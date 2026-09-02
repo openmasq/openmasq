@@ -6,35 +6,28 @@ import type { CreditBalance } from "../../host";
 import { RedactedText } from "./RedactedText";
 import { SkillTag } from "./SkillTag";
 import { useHost } from "../../host";
-import {
-  ModelLogo,
-  ShieldIcon,
-  RefreshIcon,
-  ActivityIcon,
-} from "../brand";
+import { ModelLogo, ShieldIcon, ActivityIcon } from "../brand";
 import { MessageActions } from "./MessageActions";
 import { Markdown } from "../markdown/Markdown";
 import type { ProposedSkill } from "../../suggestions/proposedSkill";
 import { AskTargetTag } from "./AskTargetTag";
 import { IntegrationSuggestions } from "../agent/IntegrationProposalCard";
-import { CreditsCard } from "../agent/CreditsCard";
-import { FailedTurnCard } from "../agent/FailedTurnCard";
+import { MAX_SUGGESTIONS } from "../../agent/suggestIntegrations";
 import { WriteConfirmCard } from "../../pages/ChatWorkspace/WriteConfirmCard";
 import { WebNavRedactOffer } from "../WebNavRedactOffer";
 import type { WriteConfirmInfo } from "../../agent/mcpAgent";
-import { hasFailedTool } from "../ToolTrace";
 import { ThinkingIndicator } from "./ThinkingIndicator";
 import { TurnProcess } from "./TurnProcess";
 import { MessageNotices } from "./MessageNotices";
+import { TurnStatus } from "./TurnStatus";
 import { assistantBody, showsTrailingLoader } from "./messageBubbleView";
 import { useStreamReveal } from "../../hooks/useStreamReveal";
 import { RedactionInlineReveal } from "./RedactionInlineReveal";
 import { FileViewerModal } from "../../containers/modals";
-import { MemoryNotedCaption, MemorySkippedCaption, MemoryUsedCaption } from "./MemoryCaptions";
+import { MemoryCaption } from "./MemoryCaption";
 import { MessageAttachments } from "./MessageAttachments";
 import { MessageImages, loadStoredImageFull } from "../media/MessageImage";
 import { findStoredFile } from "../../state/files/storedFiles";
-import { breakdown } from "./messageBreakdown";
 
 import { useT } from "../../i18n";
 interface Props {
@@ -98,6 +91,11 @@ interface Props {
   /** Connect an integration the model suggested (`Message.suggestedIntegrations`) —
    *  deep-links to Réglages → MCP with that connector preselected. */
   onConnectIntegration?: (connectorId: string) => void;
+  /** This bubble is NOT the conversation's one integration host (`integrationSlot.ts`):
+   *  its suggestions stay pinned on the message but are not rendered. */
+  hideIntegrations?: boolean;
+  /** « N protégés · voir » opens the transparency comparison. Absent ⇒ plain caption. */
+  onOpenTransparency?: () => void;
   /** The account's REAL prepaid credit budget — drives the credit card's figures + bar.
    *  Absent/null ⇒ the card shows no numbers (never an invented amount). */
   credits?: CreditBalance | null;
@@ -149,6 +147,8 @@ function MessageBubbleImpl({
   isRevealForced,
   revealedValues,
   onConnectIntegration,
+  hideIntegrations,
+  onOpenTransparency,
   connectedMcpIds,
   credits,
   creditsResetIso,
@@ -256,29 +256,36 @@ function MessageBubbleImpl({
           attachments={fileAttachments}
           onOpen={(name) => void openAttachment(name)}
         />
-        <MemoryNotedCaption message={message} />
-        {message.memoryUsed && <MemoryUsedCaption ids={message.memoryUsed} />}
-        {message.memorySkipped && <MemorySkippedCaption skipped={message.memorySkipped} />}
+        <MemoryCaption message={message} />
         {message.redactionFailed && (
           <div className="shield-caption warn" title={t.conversation.bubble.redactionFailedTip}>
             <ShieldIcon size={13} />
             <span className="flex-min">{message.redactionFailed}</span>
           </div>
         )}
-        {!!message.redactions && (
-          <div
-            className="shield-caption spade-corners"
-            title={t.conversation.bubble.redactedTip}
-          >
-            <ShieldIcon size={13} />
-            <span>
-              {t.conversation.bubble.redacted(message.redactions, modelName ?? t.modals.transparency.theModel)}
-              {message.redactedSpans?.length
-                ? t.conversation.bubble.breakdownSuffix(breakdown(message.redactedSpans, t.conversation.bubble.breakdownLabels))
-                : ""}
-            </span>
-          </div>
-        )}
+        {/* ONE short, stable mention — « N protégés · voir » — that opens the transparency
+            comparison, where the per-category detail lives. The header menu and the
+            composer pill count the CONVERSATION; this counts the message. */}
+        {!!message.redactions &&
+          (onOpenTransparency ? (
+            <button
+              type="button"
+              className="shield-caption spade-corners is-button"
+              title={t.conversation.bubble.redactedTip}
+              onClick={onOpenTransparency}
+            >
+              <ShieldIcon size={13} />
+              <span>
+                {t.conversation.bubble.protectedCount(message.redactions)} ·{" "}
+                <span className="caption-see">{t.conversation.bubble.protectedSee}</span>
+              </span>
+            </button>
+          ) : (
+            <div className="shield-caption spade-corners" title={t.conversation.bubble.redactedTip}>
+              <ShieldIcon size={13} />
+              <span>{t.conversation.bubble.protectedCount(message.redactions)}</span>
+            </div>
+          ))}
         <AnimatePresence>
           {viewFile && (
             <FileViewerModal
@@ -352,90 +359,29 @@ function MessageBubbleImpl({
         {/* …and it SURVIVES the first token: still writing ≠ finished (`showsTrailingLoader`). */}
         {showsTrailingLoader(message) && <ThinkingIndicator trailing />}
 
-        {/* An INTERRUPTED / EMPTY turn: the stream was cut (reload/quit mid-answer)
-            or the model returned nothing. Survives reload; offers Réessayer. Not
-            an error (no red) — just a "this answer is incomplete" notice. */}
-        {message.incomplete && !message.pending && !message.error && (
-          <div className="flex items-center gap-3 flex-wrap mt-1.5 px-3.5 py-3 rounded-[var(--radius-md)] border border-border-default bg-surface-hover">
-            <span className="flex-1 min-w-0 text-sm text-muted leading-snug">
-              {message.content
-                ? "Réponse interrompue — elle a été coupée avant la fin."
-                : "Réponse vide ou interrompue."}
-            </span>
-            {onRegenerate && (
-              <button
-                className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-md)] border border-border-default bg-surface-card text-body text-sm font-semibold cursor-pointer hover:bg-surface-hover transition-colors"
-                onClick={() => onRegenerate(message.id)}
-              >
-                <RefreshIcon size={14} /> Réessayer
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* A FAILED / blocked turn: the error persisted on the message (survives reload),
-            with a Réessayer that regenerates in place — no duplicate send. Built on the
-            shared `AgentCard` shell (`FailedTurnCard`) so it reads as one family with the
-            credits / integration / write-confirm cards. `credit_options` renders the
-            richer `CreditsCard` below instead. */}
-        {message.error && !message.pending && message.errorAction?.kind !== "credit_options" && (
-          <FailedTurnCard
-            assistantId={message.id}
-            text={message.errorText || ""}
-            action={message.errorAction}
-            onAction={onErrorAction}
-            onRetry={onRegenerate}
-          />
-        )}
-
-        {/* Platform send blocked on credits, FREE account: the amber credits card with
-            the account's REAL usage + reset date. Its two CTAs delegate to the shared
-            `onErrorAction` (upgrade_plan / missing_key) — no extra wiring. */}
-        {message.errorAction?.kind === "credit_options" && !message.pending && onErrorAction && (
-          <CreditsCard
-            assistantId={message.id}
-            provider={message.errorAction.provider}
-            label={message.errorAction.label}
-            credits={credits}
-            resetIso={creditsResetIso}
-            onAction={onErrorAction}
-          />
-        )}
-
-        {/* A flow whose tool trace ended with a FAILED step but that isn't itself an
-            errored/incomplete turn (the model may have produced text after) — offer a
-            clear retry, since otherwise a failed flow with no final text shows none.
-            Regenerate re-runs the WHOLE flow (re-attempts the failed step; each write
-            re-asks confirmation) — per-step resumption isn't supported. */}
-        {hasFailedTool(message.toolCalls) &&
-          !message.pending &&
-          !message.error &&
-          !message.incomplete && (
-            <div className="flex items-center gap-3 flex-wrap mt-1.5 px-3.5 py-3 rounded-[var(--radius-md)] border border-border-default bg-surface-hover">
-              <span className="flex-1 min-w-0 text-sm text-muted leading-snug">
-                {t.conversation.bubble.toolFlowFailed}
-              </span>
-              {onRegenerate && (
-                <button
-                  className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-md)] border border-border-default bg-surface-card text-body text-sm font-semibold cursor-pointer hover:bg-surface-hover transition-colors"
-                  onClick={() => onRegenerate(message.id)}
-                >
-                  <RefreshIcon size={14} /> Réessayer
-                </button>
-              )}
-            </div>
-          )}
+        {/* ONE slot for how the turn ended — failed / interrupted / empty / tool step, or
+            the credits card — with the single « Réessayer » (regenerates in place, no
+            duplicate send). The decision is `TurnStatus/status.ts`. */}
+        <TurnStatus
+          message={message}
+          onRegenerate={onRegenerate}
+          onErrorAction={onErrorAction}
+          credits={credits}
+          creditsResetIso={creditsResetIso}
+        />
 
         {/* What the app has to say about this turn: the fault, and the remaining quota. */}
         <MessageNotices message={message} modelName={modelName} />
 
         {/* « retiens ça » feedback — the extraction pins its outcome on THIS reply
             (see store's noteOnMessage). Clickable deep-link + « Annuler ». */}
-        <MemoryNotedCaption message={message} />
+        <MemoryCaption message={message} />
 
-        {message.suggestedIntegrations?.length && !message.pending ? (
+        {/* The conversation's ONE proposal (`hideIntegrations` says whether this bubble
+            hosts it), capped like the loop caps it. */}
+        {message.suggestedIntegrations?.length && !message.pending && !hideIntegrations ? (
           <IntegrationSuggestions
-            ids={message.suggestedIntegrations}
+            ids={message.suggestedIntegrations.slice(0, MAX_SUGGESTIONS)}
             connectedIds={connectedMcpIds}
             onConnect={(id) => onConnectIntegration?.(id)}
             // « Continuer » (connected) = regenerate THIS turn: the model replays the
@@ -542,6 +488,7 @@ function propsEqual(a: Props, b: Props): boolean {
     // show/hide the card. Both are stable refs while pending → identity is correct.
     a.writeConfirm === b.writeConfirm &&
     a.webNavConfirm === b.webNavConfirm &&
+    a.hideIntegrations === b.hideIntegrations &&
     a.highlight === b.highlight
   );
 }

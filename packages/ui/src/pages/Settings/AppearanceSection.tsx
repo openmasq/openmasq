@@ -29,12 +29,9 @@ export function AppearanceSection({
   const t = useT();
   const { locale, setLocale } = useLocale();
 
-  // The theme used to have two axes; only ONE is left to choose — the GROUND, light or dark.
-  // The accent is indigo either way: `blueAccent` (state/storePersistence) also translates
-  // already-persisted green themes, so this toggle can no longer produce a
-  // value this function would refuse.
-  const isDark = draft.theme === "dark" || draft.theme === "blue-dark";
-  const themeFor = (dark: boolean): NonNullable<Settings["theme"]> => (dark ? "blue-dark" : "blue");
+  // ONE axis to choose — the GROUND, light or dark. The accent is not a setting.
+  const isDark = draft.theme === "dark";
+  const themeFor = (dark: boolean): NonNullable<Settings["theme"]> => (dark ? "dark" : "light");
   const applyTheme = (theme: NonNullable<Settings["theme"]>) => {
     captureEvent({ name: "theme_toggle", theme });
     setDraft((d) => ({ ...d, theme }));

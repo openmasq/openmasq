@@ -72,7 +72,7 @@ export function KeySteps({
                   onClick={() => toggleStep(i)}
                   aria-pressed={done.has(i)}
                   aria-label={
-                    done.has(i) ? `Étape ${i + 1} : à refaire` : `Étape ${i + 1} : c'est fait`
+                    done.has(i) ? t.onboarding.keySteps.stepUndo(i + 1) : t.onboarding.keySteps.stepDone(i + 1)
                   }
                   title={t.onboarding.keySteps.markDone}
                 >

@@ -26,14 +26,12 @@ describe("boot theme script", () => {
     expect(blobAt).toBeGreaterThan(deviceAt);
   });
 
-  it("ne peint QUE de l'indigo — un thème vert enregistré devient son jumeau", () => {
-    // The accent is no longer a choice (`state/theme.ts` `blueAccent`). This script must do
-    // the SAME translation, otherwise the first frame is green before React coerces:
-    // exactly the flash it exists to avoid.
-    expect(script).toContain('"blue-dark":"blue"');
-    // And it can only set these two values — no bare "light" nor "dark".
+  it("lit « blue-dark », le nom d'une version antérieure, comme le fond sombre", () => {
+    // Same tolerance as `state/settings/theme.ts` `readTheme`: an install that saved the
+    // dark ground under its old name must not flash light before React reads the key.
+    expect(script).toContain('t==="dark"||t==="blue-dark"');
+    // And the only value it can stamp is "dark" — light is the bare :root, no attribute.
     const poses = [...script.matchAll(/setAttribute\("data-theme",([^)]*)\)/g)].map((m) => m[1]);
-    expect(poses).toHaveLength(1);
-    expect(poses[0]).not.toMatch(/"light"|:"dark"/);
+    expect(poses).toEqual(['"dark"']);
   });
 });

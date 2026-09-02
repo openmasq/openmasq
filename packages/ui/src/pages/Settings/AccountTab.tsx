@@ -1,6 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence } from "framer-motion";
-import { Switch, UsersIcon, LogOutIcon, DownloadIcon, ChevRightIcon, ExternalIcon } from "../../components/brand";
+import { Switch, UsersIcon, LogOutIcon, DownloadIcon, ExternalIcon } from "../../components/brand";
+import { OrgSection } from "./OrgSection";
 import { captureEvent } from "../../analytics";
 import { useAuth } from "../../state/auth/useAuth";
 import type { Conversation, Settings } from "../../types";
@@ -12,14 +13,15 @@ import { BRAND } from "@openmasq/branding";
 import { AppearanceSection } from "./AppearanceSection";
 import { useT } from "../../i18n";
 
-/** The "Compte" tab — the app's real account/privacy/redaction settings. The
- *  default-model picker lives in the Modèles settings tab (`Settings/models/`). */
+/** The "Compte" tab — the device's identity, the organisation it belongs to (read-only
+ *  block + console link, `OrgSection`), appearance, data, notifications, statistics and
+ *  the one privacy toggle that is an account matter (link previews). The default-model
+ *  picker lives in the Modèles settings tab (`Settings/models/`). */
 export function AccountTab({
   draft,
   setDraft,
   conversations,
   orgProfile,
-  onOpenOrg,
   onImportConversations,
 }: {
   draft: Settings;
@@ -27,8 +29,6 @@ export function AccountTab({
   conversations: Conversation[];
   /** The signed-in member's org authorization (null = solo user). */
   orgProfile?: OrgProfileInfo | null;
-  /** Open the « Organisation » tab (the org card's one gesture). */
-  onOpenOrg?: () => void;
   /** Merge conversations parsed from another assistant's export (BETA — hides the
    *  « Vos données » import row when absent). */
   onImportConversations?: (convs: Conversation[]) => { added: number; skipped: number };
@@ -59,44 +59,7 @@ export function AccountTab({
               {t.accountTab.signOut}
             </button>
           </div>
-          {/* The CURRENT organization, right under the identity it governs — the
-              card is a TARGET (kit MCP-card rule): the whole row opens the
-              Organisation tab, where the detail lives. Solo account ⇒ no row. */}
-          {orgProfile && (
-            <button
-              type="button"
-              className="settings-card account-card account-org"
-              onClick={onOpenOrg}
-              disabled={!onOpenOrg}
-              title={t.accountTab.viewOrg}
-            >
-              <span className="org-avatar">
-                {(orgProfile.organizationName ?? "?").trim().charAt(0).toUpperCase() || "?"}
-              </span>
-              <div className="account-info">
-                <div className="account-email">
-                  {orgProfile.organizationName ?? t.accountTab.yourOrg}
-                </div>
-                <div className="account-hint">
-                  {[
-                    orgProfile.organizationSlug,
-                    orgProfile.role === "owner"
-                      ? t.accountTab.roleOwner
-                      : orgProfile.role === "admin"
-                        ? t.accountTab.roleAdmin
-                        : t.accountTab.roleMember,
-                    orgProfile.memberCount != null
-                      ? t.accountTab.members(orgProfile.memberCount)
-                      : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </div>
-              </div>
-              {onOpenOrg && <ChevRightIcon size={16} />}
-            </button>
-          )}
-          {/* Solo account: the SAME slot offers creating one — the console's
+          {/* Solo account: this slot offers creating one — the console's
               AdminGate lands a no-org user straight on its create form, so the
               gesture is a redirect to the web app, said as such (external). */}
           {!orgProfile && host.org?.openAdmin && (
@@ -120,6 +83,11 @@ export function AccountTab({
           )}
         </section>
       )}
+
+      {/* The CURRENT organisation, right under the identity it governs: name · plan ·
+          role, the stats, the rules it imposes and the console link — read here, since
+          there is nothing to SET (an admin sets it in the web console). */}
+      {orgProfile && <OrgSection org={orgProfile} />}
 
       {onImportConversations && (
         <section className="settings-section">
@@ -215,8 +183,10 @@ export function AccountTab({
         </div>
       </section>
 
+      {/* « Vie privée », not « Développeur »: previewing a link is one outgoing request
+          per link — a privacy decision, whoever flips it. */}
       <section className="settings-section">
-        <div className="cv-eyebrow">{t.accountTab.devEyebrow}</div>
+        <div className="cv-eyebrow">{t.accountTab.privacyEyebrow}</div>
         <div className="settings-card">
           <div className="toggle-row">
             <div className="row-body">

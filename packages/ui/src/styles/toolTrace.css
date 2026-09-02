@@ -49,25 +49,21 @@
   font-size: 12px;
   flex-shrink: 0;
 }
-/* The real brand logo rides alongside the letters but is hidden outside the blue themes. */
+/* The real brand logo rides alongside the letters and replaces them when it exists. */
 .mcp-trace-glyph-logo { display: none; }
 .mcp-trace-glyph-logo,
 img.mcp-trace-glyph-logo { width: 18px; height: 18px; object-fit: contain; }
-/* Blue + blue-dark: a MONOCHROME connector logo on a NEUTRAL tile with a grey border
-   (the colored initials-on-hue look is kept for the green light/dark themes). */
-[data-theme="blue"] .mcp-trace-glyph,
-[data-theme="blue-dark"] .mcp-trace-glyph {
+/* A MONOCHROME connector logo on a NEUTRAL tile with a grey border — the per-connector
+   `--glyph-hue` only shows through when there is no logo. */
+.mcp-trace-glyph {
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   color: var(--text-strong);
 }
-[data-theme="blue"] .mcp-trace-glyph.has-logo .mcp-trace-glyph-letters,
-[data-theme="blue-dark"] .mcp-trace-glyph.has-logo .mcp-trace-glyph-letters { display: none; }
-[data-theme="blue"] .mcp-trace-glyph.has-logo .mcp-trace-glyph-logo,
-[data-theme="blue-dark"] .mcp-trace-glyph.has-logo .mcp-trace-glyph-logo { display: inline-flex; }
+.mcp-trace-glyph.has-logo .mcp-trace-glyph-letters { display: none; }
+.mcp-trace-glyph.has-logo .mcp-trace-glyph-logo { display: inline-flex; }
 /* SVG logo → currentColor (already fill=currentColor); raster favicon → greyscale. */
-[data-theme="blue"] img.mcp-trace-glyph-logo,
-[data-theme="blue-dark"] img.mcp-trace-glyph-logo { filter: grayscale(1); }
+img.mcp-trace-glyph-logo { filter: grayscale(1); }
 .mcp-trace-head-text { flex: 1; min-width: 0; }
 .mcp-trace-title {
   font-size: 0.875rem;

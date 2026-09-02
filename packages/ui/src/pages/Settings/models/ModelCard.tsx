@@ -11,7 +11,7 @@ import { useT } from "../../../i18n";
  * so the grid can be rendered both flat and inside a vendor-family sub-group without
  * duplicating the button. Unusable models render GREYED + `aria-disabled` (not
  * `disabled`) so they still drive the detail panel on hover; the fix (a missing key)
- * is the provider group's header gear.
+ * is the provider's chip at the top of the tab (`ProviderAccess`).
  */
 export function ModelCard({
   model,
@@ -84,7 +84,7 @@ export function ModelCard({
                   : undefined
               }
             >
-              gratuit
+              {t.modelsTab.freeBadge}
             </span>
           )}
           {unavailable && showChip && <span className="model-unavailable">{unavailable.chip}</span>}

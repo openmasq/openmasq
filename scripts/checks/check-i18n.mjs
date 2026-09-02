@@ -14,7 +14,8 @@
 //
 // What this counts = a proxy for "HARD-CODED copy": a string literal sitting on a
 // property someone READS (`title`, `aria-label`, `placeholder`, `label`…), a JSX
-// text node, and both branches of a string ternary. ⚠️ **Without looking at
+// text node, both branches of a string ternary, and a TEMPLATE literal whose text
+// reads as French (an accent, a function word) — `Mise à jour ${v}` is a sentence. ⚠️ **Without looking at
 // accents**: the first version only counted accented literals, so
 // "Nouvelle conversation" or "Search a file" got through the gate — and hard-coded English
 // is exactly the same defect as hard-coded French, in an app that has two languages.
@@ -61,6 +62,21 @@ const READ_PROPS = new RegExp(`\\b(${READ_NAMES})\\s*[=:]\\s*\\{?(["'\`])((?:(?!
 /** A ternary whose BOTH branches are sentences — the pattern of a toggled label. */
 const TERNARY = /\?\s*"([^"]{4,})"\s*:\s*"([^"]{4,})"/g;
 const JSX_TEXT = />([^<>{}\n]{3,}?)</g;
+/** A TEMPLATE literal — `Mise à jour ${v}` — is a sentence with a hole, and the hole is
+ *  what hid it from the gate for months (`isCopy` rightly refuses a bare `${…}` as code).
+ *  Counted when the TEXT around the holes reads as French: an accented letter, or one of
+ *  the function words no identifier, class list or URL carries. Accent-blind for the rest
+ *  is the JSX/prop rule's job; here the accent is the cheapest French detector there is. */
+const TEMPLATE = /`([^`]{4,}?)`/g;
+const FRENCH_WORDS =
+  /(^|[\s«(])(le|la|les|des|une|un|du|au|aux|et|ou|est|sont|pour|avec|sur|dans|vos|votre|ce|cette|ces|pas|plus|ne|qui|que|prête|voir|nouveau|nouvelle|depuis|chez|encore|déjà)(?=[\s»,.:;!?)]|$)/i;
+function isFrenchTemplate(v) {
+  const s = v.replace(/\$\{[^}]*\}/g, " ").trim();
+  if (!/[A-Za-zÀ-ÿ]{3,}/.test(s)) return false;
+  if (!/ /.test(s)) return false; // one word is a class, an id, a key
+  if (/[àâäéèêëîïôöùûüçœÀÂÉÈÊËÎÏÔÙÛÜÇŒ]/.test(s)) return true;
+  return FRENCH_WORDS.test(s);
+}
 
 /** Is a value COPY (as opposed to an id, a URL, a CSS class)? */
 function isCopy(v) {
@@ -135,6 +151,7 @@ function frenchCopyCount(file) {
     for (const m of line.matchAll(READ_PROPS)) if (isCopy(m[3])) n++;
     for (const m of line.matchAll(JSX_TEXT)) if (isCopy(m[1])) n++;
     for (const m of line.matchAll(TERNARY)) for (const g of [m[1], m[2]]) if (isCopy(g) && / /.test(g)) n++;
+    for (const m of line.matchAll(TEMPLATE)) if (isFrenchTemplate(m[1])) n++;
   }
   return n;
 }

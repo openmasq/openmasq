@@ -65,9 +65,10 @@ export function CreditsCard({
   const pct = usedPct(credits);
 
   return (
+    // Same family as the turn-status card: ONE slot under the reply, amber variant.
     <AgentCard
-      className="credits-card"
-      eyebrow="Limite atteinte"
+      className="turn-status turn-status--credits credits-card"
+      eyebrow={t.turnStatus.eyebrow.limit}
       tile={
         <GlyphTile>
           <ZapIcon size={18} />
@@ -78,16 +79,16 @@ export function CreditsCard({
           {reset && (
             <span className="agent-card-note">
               <ClockIcon size={13} />
-              <span>Réinitialisation le {reset}</span>
+              <span>{t.turnStatus.credits.resetOn(reset)}</span>
             </span>
           )}
           <span className="agent-card-spacer" />
           <button
             className="btn-ghost btn-inline"
             onClick={() => onAction(assistantId, { kind: "missing_key", provider, label })}
-            title={`Renseigner votre clé ${name}`}
+            title={t.turnStatus.credits.useKeyTip(name)}
           >
-            <KeyIcon size={14} /> Utiliser ma clé {name}
+            <KeyIcon size={14} /> {t.turnStatus.credits.useKey(name)}
           </button>
           <button
             className="btn-primary btn-inline"
@@ -98,20 +99,16 @@ export function CreditsCard({
         </>
       }
     >
-      <AgentCardTitle>Vos crédits offerts sont épuisés</AgentCardTitle>
-      <AgentCardDesc>
-        {/* « sans crédits » also read as « sans avoir de crédits » — the opposite meaning. */}
-        Prenez un abonnement pour continuer avec les modèles fournis par {BRAND.name}, ou envoyez avec
-        votre propre clé {name} — elle ne touche pas à vos crédits.
-      </AgentCardDesc>
+      <AgentCardTitle>{t.turnStatus.credits.title}</AgentCardTitle>
+      <AgentCardDesc>{t.turnStatus.credits.desc(BRAND.name, name)}</AgentCardDesc>
       {/* Real figures only. No `credits` ⇒ no bar: the message stands on its own, and a
           made-up amount on a billing surface is worse than none. */}
       {credits && (
         <div className="credits-meter">
           <div className="credits-meter-row">
-            <span className="credits-meter-used">{euros(credits.consumedCents)} utilisés</span>
+            <span className="credits-meter-used">{t.turnStatus.credits.used(euros(credits.consumedCents))}</span>
             <span className="credits-meter-left">
-              {euros(Math.max(0, credits.balanceCents))} restants
+              {t.turnStatus.credits.left(euros(Math.max(0, credits.balanceCents)))}
             </span>
           </div>
           <div className="credits-meter-track">

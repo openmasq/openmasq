@@ -33,8 +33,6 @@ import {
   StopIcon,
   ShieldIcon,
   CheckIcon,
-  IconButton,
-  PaperclipIcon,
   ActivityIcon,
   MessageIcon,
   SparklesIcon,
@@ -46,6 +44,8 @@ import { AttachmentPreviewHost } from "./AttachmentPreviewHost";
 import { useTextareaSelection } from "./useTextareaSelection";
 import { SelectionMenu } from "../../components/SelectionMenu";
 import { ComposerSkillMenu } from "./ComposerSkillMenu";
+import { ComposerAddMenu } from "./ComposerAddMenu";
+import { usePopover } from "../../hooks/usePopover";
 import { ComposerRedactButton } from "./ComposerRedactButton";
 import type { RedactLevelApi } from "./ComposerRedactMenu";
 import { slashQuery, slashMatches, clampSlashIndex, slashActionMatches, type SlashAction } from "./slashPalette";
@@ -89,8 +89,9 @@ export type Attachment = ExtractedFile & {
 
 /**
  * The bottom composer: attachment chips, the auto-growing textarea, and the
- * action row (model picker, "will be redacted" preview, attach / voice, send /
- * stop). Owns its textarea ref + auto-resize; all logic is passed in.
+ * action row (model picker, level, "will be redacted" preview, the « + » door —
+ * file / folder / connector / compétence — and send / stop). Owns its textarea
+ * ref + auto-resize; all logic is passed in.
  */
 export function Composer({
   input,
@@ -118,6 +119,8 @@ export function Composer({
   onStop,
   onAttach,
   canAttach,
+  onAddFolder,
+  onOpenConnectors,
   allowedModelIds,
   unavailableModels,
   onKeepListChange,
@@ -219,6 +222,11 @@ export function Composer({
   onStop: () => void;
   onAttach: () => void;
   canAttach: boolean;
+  /** « + » → Dossier: grant a local folder to the Filesystem connector (the native
+   *  picker). Absent (no capability) ⇒ no entry. */
+  onAddFolder?: () => void;
+  /** « + » → Connecteur: open the connector catalogue. Absent (no shell) ⇒ no entry. */
+  onOpenConnectors?: () => void;
   /** Org-disallowed model ids — hidden from the picker. */
   allowedModelIds?: string[];
   /** Model id → why it can't send — flagged in the picker; only a `pickerBlocks` reason disables the row (`store.unavailableModels`). */
@@ -255,64 +263,66 @@ export function Composer({
   const taRef = useRef<HTMLTextAreaElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
   const [previewCid, setPreviewCid] = useState<string | null>(null);
-  // The compétence picker dropdown (a button in the action row → a list of the user's
-  // compétences). Closed on pick, on Escape, or on a click outside the wrapper (which
-  // holds BOTH the toggle button and the menu, so clicking the button never self-closes).
-  const [skillOpen, setSkillOpen] = useState(false);
-  const skillWrapRef = useRef<HTMLDivElement>(null);
-  const inputWrapRef = useRef<HTMLDivElement>(null);
+  // The compétence PALETTE has ONE instance and two openers: "/" at the START of the
+  // draft (filtered as you type — `slashQuery`, pure, tested) and « + » → Compétence
+  // (the whole list). Both share the keyboard cursor: the textarea keeps the focus,
+  // arrows walk, Enter/Tab pick, Escape closes. `usePopover` owns the menu-opened state
+  // and its dismissal: `menuRef` is the palette card, `triggerRef` the input wrap, so
+  // clicking back into the textarea keeps it open and a click anywhere else closes it.
+  const palette = usePopover<HTMLDivElement, HTMLDivElement>();
+  const inputWrapRef = palette.triggerRef;
   // The "/" palette's placement — recomputed on every opening AND every keystroke that
   // changes the item count: the card grows, but the room above it doesn't move.
   const [slashPlace, setSlashPlace] = useState<SlashPlacement>({ below: false, maxHeight: SLASH_MAX });
   // Navigate to the Compétences page (create the first one) — the empty menu's CTA.
   // Context, not a prop: null outside the shell → the CTA simply doesn't render.
   const openSkillPage = useOpenSkill();
-  useEffect(() => {
-    if (!skillOpen) return;
-    const onDown = (e: MouseEvent) => {
-      if (skillWrapRef.current && !skillWrapRef.current.contains(e.target as Node)) setSkillOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSkillOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [skillOpen]);
 
-  // The "/" palette: typing "/" at the START of the draft opens the same compétence
-  // list, filtered as you type, arrows + Enter to stage. `slashQuery` (pure, tested)
-  // owns when it opens; Escape dismisses UNTIL the draft stops being a slash lookup
+  // Escape on the "/" lookup dismisses it UNTIL the draft stops being a slash lookup
   // (so it doesn't pop right back on the next keystroke of the same text).
   const [slashIdx, setSlashIdx] = useState(0);
   const [slashDismissed, setSlashDismissed] = useState(false);
   // Open on a "/" lookup whenever a picker exists — with ZERO compétences the palette
   // still lists the built-in ACTIONS (« /retenir »), so "/" is never a dead key.
   const slashQ = onPickSkill && !slashDismissed ? slashQuery(input) : null;
+  // What the palette lists: the "/" lookup, else EVERYTHING when opened from « + »,
+  // else nothing (closed).
+  const paletteQ = slashQ ?? (palette.open ? "" : null);
   // Two families governed separately (`chatGates.ts`); both empty ⇒ nothing opens.
   const { skillsUsable, memoryOpen } = useChatDoors();
   const slashItems = useMemo(
-    () => (slashQ === null || !skillsUsable ? null : slashMatches(skills ?? [], slashQ)),
-    [slashQ, skills, skillsUsable],
+    () => (paletteQ === null || !skillsUsable ? null : slashMatches(skills ?? [], paletteQ)),
+    [paletteQ, skills, skillsUsable],
   );
   // Built-in palette actions (« Retenir en mémoire »…) — listed ABOVE the compétences;
   // the keyboard cursor spans actions THEN compétences as one list. There is no longer a
-  // third section: routines ARE compétences, they come out of the same filter.
+  // third section: routines ARE compétences, they come out of the same filter. They are
+  // a "/" affordance only: picking one REWRITES the draft, which « + » → Compétence
+  // (opened over a draft the user is keeping) must never do.
   const slashActs = useMemo(() => (slashQ === null ? null : slashActionMatches(slashQ, t, memoryOpen)), [slashQ, t, memoryOpen]);
   const slashActCount = slashActs?.length ?? 0;
   const slashItemCount = slashItems?.length ?? 0;
   const slashCount = slashActCount + slashItemCount;
+  // Shown with a match to walk — or, opened from « + », even empty: that empty state
+  // (with its create CTA) is where a chat-first user DISCOVERS the feature.
+  const paletteOpen = paletteQ !== null && (slashCount > 0 || palette.open);
   useEffect(() => {
     if (slashQuery(input) === null) setSlashDismissed(false);
   }, [input]);
   useEffect(() => {
     setSlashIdx(0);
-  }, [slashQ]);
+  }, [paletteQ]);
+  // Opened from « + », the palette follows the draft: typing closes it — unless the
+  // draft became a "/" lookup, which keeps it open by its own rule.
+  const closePalette = palette.close;
+  useEffect(() => {
+    closePalette();
+  }, [input, closePalette]);
   const pickSlash = (c: Skill) => {
-    onInput(""); // consume the "/query" draft — the compétence rides as a chip, not text
+    // Consume the "/query" draft — the compétence rides as a chip, not text. Opened
+    // from « + » over a real draft, that draft is the user's and stays.
+    if (slashQ !== null) onInput("");
+    closePalette();
     onPickSkill?.(c);
   };
   const pickSlashAction = (a: SlashAction) => {
@@ -518,7 +528,10 @@ export function Composer({
       }
       if (e.key === "Escape") {
         e.preventDefault();
-        setSlashDismissed(true);
+        // A "/" lookup is DISMISSED (until the draft moves on); the « + » palette just
+        // closes — dismissing it would also swallow the next "/" typed into an empty box.
+        if (slashQ !== null) setSlashDismissed(true);
+        closePalette();
         return;
       }
       if ((e.key === "Enter" && !e.shiftKey) || e.key === "Tab") {
@@ -574,7 +587,7 @@ export function Composer({
   // otherwise it appears in the wrong place for one frame.
   useLayoutEffect(() => {
     const el = inputWrapRef.current;
-    if (!slashCount || !el) return;
+    if (!paletteOpen || !el) return;
     const r = el.getBoundingClientRect();
     let topLimit = 0;
     let bottomLimit = window.innerHeight;
@@ -587,7 +600,7 @@ export function Composer({
       }
     }
     setSlashPlace(placeSlashPalette(r.top - topLimit, bottomLimit - r.bottom));
-  }, [slashCount]);
+  }, [paletteOpen, slashCount, inputWrapRef]);
 
   return (
     <div className="composer">
@@ -694,10 +707,12 @@ export function Composer({
         </div>
       )}
       <div className="composer-input-wrap" ref={inputWrapRef}>
-        {/* The "/" palette — anchored over the input (the wrap is position:relative),
-            so the lookup appears where the user is typing, not under the ✨ button. */}
-        {slashCount > 0 && !skillOpen && (
+        {/* THE compétence palette — anchored over the input (the wrap is
+            position:relative), so the lookup appears where the user is typing, whether
+            "/" or « + » → Compétence opened it. */}
+        {paletteOpen && (
           <div
+            ref={palette.menuRef}
             className={`composer-slash-pop${slashPlace.below ? " below" : ""}`}
             style={{ "--slash-max": `${slashPlace.maxHeight}px` } as React.CSSProperties}
           >
@@ -707,6 +722,16 @@ export function Composer({
               activeIndex={clampSlashIndex(slashIdx, slashCount)}
               onPick={pickSlash}
               onPickAction={pickSlashAction}
+              onCreate={
+                openSkillPage
+                  ? () => {
+                      closePalette();
+                      // "" resolves to no compétence → just lands on the page, whose
+                      // big empty state carries the real create CTA.
+                      openSkillPage("");
+                    }
+                  : undefined
+              }
             />
           </div>
         )}
@@ -770,7 +795,7 @@ export function Composer({
             title={t.composer.keepInClearTip}
             onClick={() => utilRisk.keepInClear(utilRisk.risk!)}
           >
-            {t.menus.markKeep.keep}
+            {t.conversation.mark.leaveClear(t.conversation.mark.scopeSend)}
           </button>
           <button
             type="button"
@@ -822,51 +847,26 @@ export function Composer({
           </span>
         )}
         <div className="flex-spacer" />
-        {/* Visible even with ZERO compétences: the empty menu is where a chat-first
-            user DISCOVERS the feature (its empty branch carries the create CTA) —
-            gated on length, the concept was invisible outside the dedicated page. */}
-        {skillsUsable && onPickSkill && skills && (
-          <div className="composer-skill-wrap" ref={skillWrapRef}>
-            {/* THE SAME primitive as the paperclip beside it: two neighbouring glyph actions
-                rendered as two different controls (34px bordered pill vs 30px ghost square,
-                mismatched hovers) read as unrelated. `IconButton` carries the name on
-                `aria-label` + its tooltip — an icon-only control is never label-less. */}
-            <IconButton
-              size="sm"
-              label={t.composer.useSkill}
-              active={skillOpen}
-              expanded={skillOpen}
-              haspopup="menu"
-              onClick={() => setSkillOpen((o) => !o)}
-            >
-              <SparklesIcon size={16} />
-            </IconButton>
-            {skillOpen && (
-              <ComposerSkillMenu
-                skillList={skills}
-                onPick={(c) => {
-                  setSkillOpen(false);
-                  onPickSkill(c);
-                }}
-                onCreate={
-                  openSkillPage
-                    ? () => {
-                        setSkillOpen(false);
-                        // "" resolves to no compétence → just lands on the page, whose
-                        // big empty state carries the real create CTA.
-                        openSkillPage("");
-                      }
-                    : undefined
+        {/* ONE door for everything that joins the message — file, folder, connector,
+            compétence — where two neighbouring glyph buttons (📎 and ✨) read as
+            unrelated tools. "/" stays the keyboard way to the compétences; the entry
+            exists even with ZERO of them, because the empty palette is where a
+            chat-first user DISCOVERS the feature (gated on length, the concept was
+            invisible outside the dedicated page). Drag-and-drop and paste are untouched. */}
+        <ComposerAddMenu
+          onFile={canAttach ? onAttach : undefined}
+          onFolder={onAddFolder}
+          onConnector={onOpenConnectors}
+          onSkill={
+            skillsUsable && onPickSkill && skills
+              ? () => {
+                  palette.setOpen(true);
+                  // The textarea keeps the focus: that is what makes the arrows walk.
+                  taRef.current?.focus();
                 }
-              />
-            )}
-          </div>
-        )}
-        {canAttach && (
-          <IconButton size="sm" label={t.composer.attachFile} onClick={onAttach}>
-            <PaperclipIcon size={18} />
-          </IconButton>
-        )}
+              : undefined
+          }
+        />
         {isStreaming ? (
           <button className="send-btn stop" onClick={onStop} aria-label={t.composer.stop}>
             <StopIcon size={16} />

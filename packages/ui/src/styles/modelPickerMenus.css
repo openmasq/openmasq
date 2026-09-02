@@ -1,0 +1,152 @@
+/* The model pickers' two small MENUS — the row's « ⋯ » context menu (default model) and
+   the price-tier dropdown shared by Réglages → Modèles and the chat's Finder. Imported
+   by `modelPickerRow.css` (the selector's family), kept apart so neither file crosses
+   the 300-line cap. Unique prefixes `.model-more` / `.model-row-pop` / `.model-row-act`
+   / `.model-price-select` / `.model-price-pop` / `.model-price-opt` / `.model-finder-tools`
+   — defined here only, so their position in the cascade is indifferent. */
+
+/* ── The row's « ⋯ » and its context menu ─────────────────────────────────────
+   The house left the row: « définir par défaut » is ONE gesture behind ⋯ (or a
+   right-click) — same slot, same hover reveal as the star, so a row shows body + star
+   at rest. In the SIMPLIFIED view the ⋯ is not drawn at all (the context menu stays). */
+.model-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  color: var(--text-faint);
+  opacity: 0;
+  transition: color 0.12s, opacity 0.12s, background 0.12s;
+  position: absolute;
+  top: 50%;
+  right: 28px;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+}
+.model-option:hover .model-more,
+.model-option:focus-within .model-more,
+.model-more[aria-expanded="true"] {
+  opacity: 0.55;
+  background: var(--surface-hover);
+}
+.model-more:hover,
+.model-more:focus-visible,
+.model-more[aria-expanded="true"] {
+  opacity: 1;
+  color: var(--brand-text);
+  outline: none;
+}
+.model-row-pop {
+  position: fixed;
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  min-width: 220px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md, 0 12px 32px -12px rgba(0, 0, 0, 0.4));
+}
+.model-row-act {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.model-row-act:hover,
+.model-row-act:focus-visible {
+  background: var(--surface-hover);
+  outline: none;
+}
+.model-row-act:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+/* ── The price-tier DROPDOWN (both pickers) ──────────────────────────────────
+   `.model-price-select` is the trigger beside the « PRIX » eyebrow; the list is
+   portaled + fixed (`.model-price-pop`), one option per tier (`.model-price-opt`). */
+.model-price-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 7px 0 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.model-price-select:hover,
+.model-price-select[aria-expanded="true"] {
+  background: var(--surface-hover);
+  color: var(--text-body);
+}
+.model-price-select.on {
+  border-color: transparent;
+  background: var(--brand);
+  color: var(--ink-on-brand);
+  font-weight: 700;
+}
+.model-price-pop {
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md, 0 12px 32px -12px rgba(0, 0, 0, 0.4));
+}
+.model-price-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 9px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.model-price-opt:hover,
+.model-price-opt:focus-visible {
+  background: var(--surface-hover);
+  outline: none;
+}
+.model-price-opt.on {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+/* The Finder's toolbar strip under its search: price dropdown · view toggle · gear. */
+.model-finder-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}

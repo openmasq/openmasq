@@ -159,7 +159,7 @@ export function EmptyPromptSuggestions({
       )}
       {onDismiss && (
         <button type="button" className="om-starters-off" onClick={onDismiss}>
-          <XIcon size={13} /> Ne plus proposer
+          <XIcon size={13} /> {t.conversation.starters.dismiss}
         </button>
       )}
     </div>

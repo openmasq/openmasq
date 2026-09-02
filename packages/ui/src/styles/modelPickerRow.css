@@ -2,7 +2,10 @@
    reveal on hover in the menu) and meta CHIPS (price / context / throughput, icon +
    bare value, the word in the tooltip). Family with the unique prefix `.model-fav` /
    `.model-default` / `.model-meta` / `.model-option-meta` — defined NOWHERE else,
-   which makes its position in the cascade indifferent (packages/ui's method). */
+   which makes its position in the cascade indifferent (packages/ui's method). The two
+   MENUS of the pickers (the row's ⋯ / price dropdown) are the same family, in their own
+   partial so neither file crosses the 300-line cap. */
+@import "./modelPickerMenus.css";
 
 /* The FAVORITE star of a model row/card. Discreet at rest (the faded outline),
    filled and brand-tinted once pinned. A generous click area, on the right. */

@@ -1,8 +1,9 @@
 import { PROVIDERS, type ModelInfo } from "@openmasq/llm";
-import { PRICE_TIERS } from "../../prompt/modelFilter";
+import { modelPriceTier } from "../../prompt/modelFilter";
 import type { UnavailableReason } from "../../send/modelAvailability";
 import { FamilyLogo, SearchIcon, SettingsIcon } from "../brand";
 import { ModelRow } from "./ModelRow";
+import { PriceTierSelect } from "./PriceTierSelect";
 import { favoriteSet } from "./simpleList";
 import { factorySimpleIds } from "../../prompt/defaultModel";
 import { providerGroupLabel } from "./providers";
@@ -74,6 +75,8 @@ export function FinderMenu({
   // Default catalogue shown fully starred when empty — consistent with the simplified
   // menu and with `toggleFavoriteModel`, which materializes this same default on the first gesture.
   const favSet = favoriteSet(favorites, factorySimpleIds(unavailableModels));
+  // One tier across the whole list ⇒ no price filter (a menu with one answer).
+  const priceTiers = new Set(available.map((m) => modelPriceTier(m.id))).size;
 
   return (
     <div
@@ -100,28 +103,11 @@ export function FinderMenu({
         />
       </div>
 
-      {/* Price-tier row — the Settings grid's chips (`.model-price-chip`), narrowing
-          every column + the search. A tier click toggles; « Tous » clears. */}
-      <div className="model-filter-prices finder" role="group" aria-label={t.modelPicker.priceFilter}>
-        <span className="model-filter-prices-label">{t.modelPicker.price}</span>
-        <button
-          type="button"
-          className={`model-price-chip${price === null ? " on" : ""}`}
-          onClick={() => setPrice(null)}
-        >
-          Tous
-        </button>
-        {PRICE_TIERS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            className={`model-price-chip${price === t.key ? " on" : ""}`}
-            title={t.title}
-            onClick={() => setPrice(price === t.key ? null : t.key)}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* The toolbar strip under the search: the price DROPDOWN (the Settings grid's
+          `PriceTierSelect`, narrowing every column + the search — absent when the list
+          holds one tier), then the view toggle and the settings gear on the right. */}
+      <div className="model-finder-tools" role="group" aria-label={t.modelPicker.priceFilter}>
+        {priceTiers > 1 && <PriceTierSelect price={price} onPrice={setPrice} />}
         <span className="flex-spacer" />
         {onSimplify && (
           <button

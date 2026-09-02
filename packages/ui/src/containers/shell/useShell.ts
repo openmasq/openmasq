@@ -149,10 +149,11 @@ export function useShell({
    * « Demander » from the browser bar — the counterpart of `askAboutTarget` for the
    * open page.
    *
-   * ⚠️ It writes into the CURRENT conversation, whereas the folder version opens a new one. The
-   * browser lives in the split screen, BESIDE a conversation: creating another one
-   * would replace the context the user is precisely looking at while asking their
-   * question. A conversation is only created if there is none.
+   * ⚠️ It writes into the CURRENT conversation — the same rule as the folder version
+   * (`useStagedIntents.askAboutTarget`) and as `attachFile`. The browser and the rail
+   * live in the split screen, BESIDE a conversation: creating another one would replace
+   * the context the user is precisely looking at while asking their question. A
+   * conversation is only created if there is none.
    *
    * The TEXT arrives already drafted (`BrowserPanel` → `askPageDraft`, pure and tested): the
    * page owns its vocabulary, this level owns only the conversation — a

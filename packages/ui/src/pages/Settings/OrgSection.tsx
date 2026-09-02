@@ -9,12 +9,13 @@ const catLabel = (key: string): string =>
   REDACT_CATEGORIES.find((c) => c.key === key)?.label ?? key;
 
 /**
- * The "Organisation" settings tab — reflects the signed-in member's organization,
- * reproducing the design-system chat-app `OrgSection`: an org card (name · plan ·
- * role badge), a three-stat row (members / role / imposed rules), an "ACCÈS" card
+ * The "Organisation" block of the Compte tab — reflects the signed-in member's
+ * organization, reproducing the design-system chat-app `OrgSection`: an org card (name ·
+ * plan · role badge), a three-stat row (members / role / imposed rules), an "ACCÈS" card
  * (the org-imposed redaction rules + an admin-console link for owners/admins), and
  * a shield note. Presentation only — enforcement lives in the store (`orgProfile`).
- * Rendered by `SettingsView` only when the account belongs to an organization.
+ * Rendered by `AccountTab` only when the account belongs to an organization: there is
+ * nothing to SET here, so a tab of its own was a destination with no decision in it.
  */
 export function OrgSection({ org }: { org: OrgProfileInfo }) {
   const host = useHost();

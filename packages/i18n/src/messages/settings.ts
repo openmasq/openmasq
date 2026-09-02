@@ -54,7 +54,6 @@ export interface SettingsMessages {
     audit: SettingsTab;
     usage: SettingsTab;
     sync: SettingsTab;
-    org: SettingsTab;
     billing: SettingsTab;
     versions: SettingsTab;
   };
@@ -75,11 +74,16 @@ export interface SettingsMessages {
     protectionLevel: SettingsEntry;
     showTokens: SettingsEntry;
     modelSeesTokens: SettingsEntry;
+    memoryAuto: SettingsEntry;
     localModel: SettingsEntry;
     favouriteModels: SettingsEntry;
     claudeSubscription: SettingsEntry;
     chatgptSubscription: SettingsEntry;
+    antigravitySubscription: SettingsEntry;
     writeConfirm: SettingsEntry;
+    /** The agent-browser hardening (read-only, allowed domains) — on the Connecteurs
+     *  tab, under « Ce que l'agent peut faire ». */
+    browserSecurity: SettingsEntry;
     connectedDevices: SettingsEntry;
     environment: SettingsEntry;
   };
@@ -95,7 +99,6 @@ export interface SettingsMessages {
     privacy: string;
     aiTools: string;
     devices: string;
-    org: string;
     app: string;
     other: string;
   };

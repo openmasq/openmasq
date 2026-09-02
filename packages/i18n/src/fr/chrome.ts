@@ -8,14 +8,14 @@
 import type { Messages } from "../messages";
 
 export const chrome = {
-  expandSidebar: "Développer la barre latérale",
+  expandSidebar: "Agrandir la barre latérale",
   newChat: "Nouvelle conversation",
   search: "Rechercher",
   searchShortcut: "Rechercher (⌘K)",
   memoryFresh: "Mémoire — nouveaux souvenirs notés",
   privacyReportTip: (n) => `${n} élément(s) protégé(s) — rapport de confidentialité`,
   privacyReport: "Rapport de confidentialité",
-  account: "Compte et paramètres",
+  account: "Compte et réglages",
   conversations: "Conversations",
   noConversations: "Aucune conversation pour le moment.",
   you: "Vous",
@@ -37,6 +37,11 @@ export const chrome = {
   help: "Aide",
   helpTip: (brand) => `Aide — prendre en main ${brand}`,
   sendFeedback: "Envoyer un avis",
+  updateReady: (version) => `Mise à jour ${version}`,
+  updateReadyTip: (brand, version) => `${brand} ${version} est prête — voir les nouveautés et redémarrer`,
+  guideEyebrow: "Aide",
+  guideTitle: (brand) => `Prendre en main ${brand}`,
+  guideUnderstood: "J'ai compris",
   releaseKinds: { feat: "Nouveautés", imp: "Améliorations", fix: "Corrections" },
 } satisfies Messages["chrome"];
 
@@ -54,8 +59,8 @@ export const chat = {
   splitScreen: "Diviser l'écran",
   splitLeft: "À gauche",
   splitRight: "À droite",
-  redactionSummary: (n, level) =>
-    `Masquage · ${level ? `${level} · ` : ""}${n} protégé${n === 1 ? "" : "s"}`,
+  redactionSummary: (n) =>
+    `Catégories de cette conversation · ${n} protégé${n === 1 ? "" : "s"}`,
   seeWhatTheModelSaw: "Voir ce que le modèle a vu",
   debugLog: "Journal de débogage",
 } satisfies Messages["chat"];
@@ -89,8 +94,15 @@ export const composer = {
     "Envoyer ces valeurs telles quelles pour ce message — le modèle verra les vraies",
   dismissWarning: "Masquer cet avertissement",
 
-  useSkill: "Utiliser une compétence",
+  add: "Ajouter",
+  addFile: "Fichier",
   attachFile: "Joindre un fichier",
+  addFolder: "Dossier",
+  addFolderTip: "Autoriser un dossier de cet ordinateur (sélecteur système)",
+  addConnector: "Connecteur",
+  addConnectorTip: "Connecter un service (Réglages → Connecteurs)",
+  addSkill: "Compétence",
+  useSkill: "Utiliser une compétence",
   stop: "Arrêter",
   send: "Envoyer",
   redacting: "Masquage",
@@ -104,14 +116,12 @@ export const composer = {
     partialCount: (n) => `au moins ${n} à masquer`,
     partialCountHint:
       "Le décompte est partiel : l'analyse approfondie n'a pas pu finir sur un texte de cette taille. L'envoi la refait entièrement, avec plus de temps — il y aura donc au moins ce nombre.",
-    reMask: "Masquer à nouveau cet élément",
-    uncertain: "Détection incertaine — masqué par défaut. Cliquez pour garder en clair.",
-    keepInClear: "Garder en clair (ne PAS masquer) — envoyé tel quel au modèle",
+    uncertain: "Détection incertaine — masqué par défaut. Cliquez pour laisser en clair.",
     toVerify: "à vérifier",
     showAll: "Afficher toutes les détections",
     more: (n) => `+${n} autres`,
     collapseTip: "Replier la liste",
-    collapse: "Réduire",
+    collapse: "Replier",
   },
 
   longText: {
@@ -136,7 +146,14 @@ export const composer = {
     open: "consulter le fichier",
     processing: "fichier en cours de traitement",
     redacting: "Masquage en cours…",
-    values: (n) => `🛡 ${n} valeur${n > 1 ? "s" : ""}`,
+    stateReading: "Lecture…",
+    stateReadingPage: (page, total) => `Lecture · page ${page}/${total}`,
+    stateMasking: "Masquage…",
+    stateMaskingPct: (pct) => `Masquage · ${pct} %`,
+    stateRedo: "À refaire",
+    stateReady: (n) => `${n} valeur${n > 1 ? "s" : ""}`,
+    staleTip: "Masqué avec vos anciens réglages — remasquer pour appliquer les réglages actuels",
+    partialTip: (read, total) => `${read} pages lues sur ${total} — le reste n'est ni lu ni masqué`,
     readAllPages: (total) => `Lire les ${total} pages`,
     readAllPagesTip: (read) =>
       `Seules les ${read} premières pages ont été lues (et donc masquées). Relire le document en entier — quelques secondes par page.`,

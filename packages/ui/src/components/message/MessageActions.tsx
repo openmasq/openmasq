@@ -62,7 +62,7 @@ export function MessageActions({
     <div className="msg-actions">
       <IconButton
         size="sm"
-        label={copied ? "Copié" : "Copier"}
+        label={copied ? t.conversation.actions.copied : t.conversation.actions.copy}
         onClick={async () => {
           await copyText(content);
           captureEvent({ name: "copy_reply" });

@@ -11,7 +11,9 @@ import type { Message } from "../../types";
  *
  * Grouped so the bubble has ONE slot for "what the app has to say about this turn"
  * rather than a growing list of conditionals in a file that may not grow. Both are
- * silent by default — a caption that appears on every reply stops being read.
+ * silent by default — a caption that appears on every reply stops being read. They wear
+ * `.turn-status-note`: the line-sized member of the `.turn-status` family the outcome
+ * card belongs to (`TurnStatus/`), so the two never drift into different margins.
  */
 export function MessageNotices({
   message,
@@ -29,7 +31,7 @@ export function MessageNotices({
           the metered escalation is EXPLICIT under the reply, never silent. */}
       {message.autoRouted && (
         <div
-          className="shield-caption"
+          className="shield-caption turn-status-note"
           title={t.conversation.bubble.autoRoutedTip}
         >
           <ZapIcon size={12} />
@@ -40,7 +42,7 @@ export function MessageNotices({
         <ToolStruggleNotice struggle={message.toolStruggle} modelName={modelName} />
       )}
       {quota && (
-        <div className="shield-caption warn" title={t.conversation.bubble.quotaTip}>
+        <div className="shield-caption warn turn-status-note" title={t.conversation.bubble.quotaTip}>
           <ShieldIcon size={12} />
           <span className="flex-min">{quota}</span>
         </div>

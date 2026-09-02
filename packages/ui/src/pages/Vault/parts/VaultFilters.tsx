@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { PlusIcon, SearchIcon } from "../../../components/brand";
+import { SearchIcon } from "../../../components/brand";
 
 import { useT } from "../../../i18n";
 export interface VaultChip {
@@ -10,9 +10,10 @@ export interface VaultChip {
 }
 
 /**
- * The Coffre's toolbar: type-filter chips (each wearing its type's hue square,
- * design-kit VaultPage), search, and the "Ajouter un terme" button that opens
- * the add modal. Pure: the page owns `filter` / `query` and the chip list.
+ * The Coffre's toolbar: category-filter chips (each wearing its type's hue square,
+ * design-kit VaultPage) and search. « Ajouter un terme » is NOT here: it is the page
+ * header's action, where the four pages put their « Créer ». Pure: the page owns
+ * `filter` / `query` and the chip list.
  */
 export function VaultFilters({
   chips,
@@ -21,8 +22,6 @@ export function VaultFilters({
   onFilter,
   query,
   onQuery,
-  onAdd,
-  showAdd = true,
 }: {
   chips: VaultChip[];
   counts: Record<string, number>;
@@ -30,10 +29,6 @@ export function VaultFilters({
   onFilter: (id: string) => void;
   query: string;
   onQuery: (q: string) => void;
-  onAdd: () => void;
-  /** Hide the "Ajouter un terme" button when an empty state is shown — its own CTA
-   *  already offers the add, so the toolbar button would be a duplicate. */
-  showAdd?: boolean;
 }) {
   const t = useT();
   return (
@@ -60,11 +55,6 @@ export function VaultFilters({
           className="om-vault-search-input"
         />
       </div>
-      {showAdd && (
-        <button className="btn-primary om-vault-add-btn" onClick={onAdd}>
-          <PlusIcon size={16} /> Ajouter un terme
-        </button>
-      )}
     </div>
   );
 }

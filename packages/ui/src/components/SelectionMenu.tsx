@@ -77,10 +77,12 @@ export function SelectionMenu({
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key !== "Escape" || !onCloseRef.current) return;
-      // CAPTURE + stopPropagation: in the attachment preview, `ModalShell` listens for Escape
-      // on window (bubble) — without the stop, the same key would close the menu AND the
-      // modal beneath it.
-      e.stopPropagation();
+      // On the DOCUMENT, capture phase: focus never sits in this menu (`onMouseDown
+      // preventDefault` keeps the selection alive, so it stays in the document), which
+      // is why a React `onKeyDown` here would hear nothing. Escape aims at the innermost
+      // layer: `preventDefault` marks it consumed, and `ModalShell` beneath (the
+      // attachment preview) yields to a consumed Escape instead of closing as well.
+      e.preventDefault();
       onCloseRef.current();
     };
     document.addEventListener("keydown", h, true);

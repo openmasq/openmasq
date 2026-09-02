@@ -1,5 +1,6 @@
 import { connectorIdFromInstance, findConnector, type McpConnector } from "@openmasq/catalog/mcp";
 import { MAX_SUGGESTIONS } from "./suggestIntegrations";
+import { matchStrength, normalise, servedBy } from "./integrationRelevance";
 
 /**
  * **Which not-connected integration would unblock THIS request** — computed by us, not
@@ -16,83 +17,11 @@ import { MAX_SUGGESTIONS } from "./suggestIntegrations";
  * IDS. Nothing here reaches the wire.
  */
 
-/** The FR words a user actually types for a service whose brand name they may never
- *  write ("ma boîte mail", "mon agenda") — those that DESIGNATE on their own; a generic
- *  noun that only designates under a possessive lives in `OWNED_NOUNS` below.
- *  Kept TIGHT on purpose — a loose alias proposes
- *  the wrong connector, which is worse than proposing none: « documents » would drag in
- *  Drive on any request mentioning a document. Keyed by connector id, like
- *  `toolActionLabel`'s `CONNECTOR_LABEL`. A connector absent here still matches on its
- *  own NAME, which is the common case (« sur Notion », « dans Stripe »). */
-const ALIASES: Record<string, string[]> = {
-  gmail: ["boite mail", "boites mail"],
-  "microsoft-outlook": ["boite mail"],
-  "google-calendar": ["agenda", "calendrier", "mes rendez-vous", "mes reunions"],
-  "google-drive": ["mon drive", "mes fichiers"],
-  "google-sheets": ["tableur", "feuille de calcul", "feuilles de calcul"],
-  "google-tasks": ["mes taches", "ma todo"],
-  github: ["mes depots", "mon depot", "pull request", "pull requests"],
-  linear: ["mes tickets"],
-  stripe: ["mes paiements", "mon chiffre d affaires", "ma caisse"],
-};
-
-/** The GENERIC names of a service, which designate it only under a POSSESSIVE. Bare
- *  « mail » was an alias: « je vais envoyer des emails à nos cent premiers utilisateurs,
- *  est-ce que je dois warmup le compte ? » therefore offered to connect Gmail under an
- *  answer that was not about the user's own inbox (reported 11/08). TALKING about e-mails
- *  is not asking to act on ONE'S OWN — and an action verb settles nothing, « envoyer des
- *  emails » is one. Only the possessive says « this service is mine ».
- *  ⚠️ The accepted price: « envoie un mail à Paul » no longer raises a card here. This is
- *  the catch-up for a WEAK model (docstring at the top), not the normal path — the model
- *  keeps `suggest_integrations`, and a card off the mark teaches people to ignore cards. */
-const OWNED_NOUNS: Record<string, string[]> = {
-  gmail: ["mail", "mails", "e-mail", "e-mails", "email", "emails", "courriel", "courriels", "messagerie"],
-  "microsoft-outlook": ["mail", "mails", "e-mail", "e-mails", "messagerie"],
-};
-const POSSESSIVES = ["mon", "ma", "mes", "notre", "nos"];
-/** The possessive × noun product, computed once — `hasPhrase` normalises each term. */
-const OWNED_PHRASES: Record<string, string[]> = Object.fromEntries(
-  Object.entries(OWNED_NOUNS).map(([id, nouns]) => [
-    id,
-    POSSESSIVES.flatMap((p) => nouns.map((n) => `${p} ${n}`)),
-  ]),
-);
-
-/** All of a connector's generic terms: those that stand alone + those under a possessive. */
-function genericTermsOf(id: string): string[] {
-  return [...(ALIASES[id] ?? []), ...(OWNED_PHRASES[id] ?? [])];
-}
-
-/** Lower-cased, accent-stripped, punctuation → spaces. Matching « Boîte mail » against
- *  « boite mail » is the whole point: users type accents, and inconsistently. */
-function normalise(text: string): string {
-  return ` ${text
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()} `;
-}
-
-/** Does `haystack` (already normalised, space-padded) contain `needle` as WHOLE words?
- *  Substring matching would fire « mail » inside « mailing » and « notion » inside
- *  « notionnel » — a card proposed on a coincidence teaches the user to ignore cards. */
-function hasPhrase(haystack: string, needle: string): boolean {
-  const n = normalise(needle).trim();
-  return n.length > 2 && haystack.includes(` ${n} `);
-}
-
-/** A connector's BRAND terms (its name, and the distinctive half of a namespaced id) —
- *  what a user types when they mean THAT service and no other. */
-function brandTerms(c: McpConnector): string[] {
-  return [c.name, ...(c.id.includes("-") ? [c.id.split("-").slice(1).join(" ")] : [])];
-}
-
 /**
- * The candidates whose service the request NAMES — by brand name, by connector id, or by
- * one of the French aliases above. Ordered as the catalog orders them and capped like any
- * other suggestion set, because four cards is already the point at which a proposal reads
- * as noise.
+ * The candidates the request asks for STRONGLY — the judgement is `integrationRelevance.ts`
+ * (brand in a service position, a tight alias, or an imperative only that tool honours).
+ * Ordered as the catalog orders them and capped like any other suggestion set
+ * (`MAX_SUGGESTIONS`): two cards is already the point at which a proposal reads as noise.
  *
  * ⚠️ **A NEED already served by a connected connector proposes nothing** (`connected`).
  * The aliases are per-SERVICE but the need is not: « mes e-mails » claims both `gmail`
@@ -109,17 +38,10 @@ export function connectorsForRequest(
 ): McpConnector[] {
   if (!text.trim()) return [];
   const hay = normalise(text);
-  // The generic terms the CONNECTED connectors already answer for.
-  const served = new Set<string>();
-  for (const c of connected) for (const a of genericTermsOf(c.id)) served.add(normalise(a).trim());
+  const served = servedBy(connected);
   const out: McpConnector[] = [];
   for (const c of candidates) {
-    if (brandTerms(c).some((t) => hasPhrase(hay, t))) {
-      out.push(c); // named outright — an explicit ask beats any coverage rule
-    } else {
-      const hits = genericTermsOf(c.id).filter((t) => hasPhrase(hay, t));
-      if (hits.length && !hits.every((t) => served.has(normalise(t).trim()))) out.push(c);
-    }
+    if (matchStrength(hay, c, served)) out.push(c);
     if (out.length >= MAX_SUGGESTIONS) break;
   }
   return out;

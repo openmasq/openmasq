@@ -43,8 +43,6 @@ export const menus = {
     ariaLabel: "Download formats",
   },
   markKeep: {
-    keep: "Leave in clear",
-    keepTip: "Do NOT mask this item for this send — it leaves as-is for the model",
     uncertain: (brand) => `Worth checking — ${brand} isn't sure about this one`,
   },
   page: {

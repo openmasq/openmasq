@@ -37,8 +37,7 @@
   --cav-secrets: var(--hl-red);
   --cav-secrets-on: var(--ink-on-hl-red);
 }
-[data-theme="dark"],
-[data-theme="blue-dark"] {
+[data-theme="dark"] {
   --cav-bar: var(--text-strong);
   --cav-bar-on: #0b0b0f;
 }

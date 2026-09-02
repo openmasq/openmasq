@@ -87,7 +87,7 @@ export function FileUsagePanel({
           })
         }
       >
-        Réintégrer dans une conversation <ArrowRightIcon size={15} />
+        {t.lists.library.reattach} <ArrowRightIcon size={15} />
       </button>
       {onOpenInTab && (
         <button

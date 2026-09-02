@@ -1,3 +1,4 @@
+import { BRAND } from "@openmasq/branding";
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { useT } from "../../../i18n";
 import { ChevDownIcon, ShieldIcon, Switch } from "../../../components/brand";
@@ -41,6 +42,8 @@ export function PrivacyTab({
   // five BETA boxes unchecked. Collapsible, but never the first screen of a privacy
   // choice. A conversation's rules modal keeps its own default.
   const [rulesOpen, setRulesOpen] = useState(true);
+  // The « Options avancées » fold — closed: none of its toggles is the page's decision.
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const forced = new Set(forcedCategories ?? []);
   const active = activeCount(draft.redactCategories, forcedCategories);
 
@@ -84,76 +87,87 @@ export function PrivacyTab({
 
       <PrivacyReport conversations={conversations} onOpenAudit={onOpenAudit} />
 
+      {/* « Options avancées » — ONE fold, CLOSED by default, for the toggles most
+          accounts never touch. Each row keeps its one-line hint; the long explanation
+          is the Guide's job. Two of them are neighbours on purpose: one changes what
+          YOU see (token display), the other what LEAVES (wire tokens) — merging them
+          would pass off a privacy choice paid for in reply quality as a display
+          preference. The technical log is a trust argument (the exact message the model
+          received), not a developer tool, hence its place here rather than in Compte.
+          The Mémoire's SILENT extraction sits here too: "does this send more of my data
+          out?" is exactly the question an auto-extraction switch raises, so its hint
+          keeps the guarantee — nothing new leaves the machine, and the explicit
+          « retiens que… » is its own consent. To add a row: one more `.toggle-row`
+          in the list below. */}
       <section className="settings-section">
-        {/* TRANSPARENCY — moved out of « Développeur » (audit of 27/07). The setting
-            described "the exact message received by the model": that's a trust
-            argument, not a debugging tool, and it had no business being in a
-            section nobody opens. What it activates remains the technical LOG;
-            the side-by-side comparison, meanwhile, is always available with nothing to
-            activate (⋯ menu → « Voir ce que le modèle a vu »). */}
-        <div className="cv-eyebrow">{t.privacyTab.transparencyEyebrow}</div>
-        <div className="settings-card">
-          <div className="toggle-row">
-            <div className="row-body">
-              <div className="row-title">{t.privacyTab.debugLogTitle}</div>
-              <div className="row-desc">
-                {t.privacyTab.debugLogHint}
-              </div>
-            </div>
-            <Switch
-              checked={!!draft.debugLog}
-              onChange={(v) => {
-                captureEvent({ name: "debug_mode_toggle", on: v });
-                setDraft((d) => ({ ...d, debugLog: v }));
-              }}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* TWO neighboring settings, and it's deliberate: one changes what YOU see, the other
-          what LEAVES. Merging them into one checkbox would pass off a privacy choice —
-          one paid for in reply quality — as a display preference. */}
-      <section className="settings-section">
-        <div className="cv-eyebrow">{t.privacyTab.displayEyebrow}</div>
-        <div className="settings-card">
-          <div className="toggle-row">
-            <span className="row-icon tone-coral">
-              <ShieldIcon size={16} />
+        <div className="settings-card settings-rules-card">
+          <button
+            type="button"
+            className="settings-rules-toggle"
+            aria-expanded={advancedOpen}
+            onClick={() => setAdvancedOpen((o) => !o)}
+          >
+            <span className="row-body">
+              <span className="row-title">{t.privacyTab.advancedTitle}</span>
+              <span className="row-desc">{t.privacyTab.advancedSub}</span>
             </span>
-            <div className="row-body">
-              <div className="row-title">{t.privacyTab.tokenDisplayTitle}</div>
-              {/* One line. The five-line version of this text is the Guide's job. */}
-              <div className="row-desc">
-                {t.privacyTab.tokenDisplayHint}
-              </div>
-            </div>
-            <Switch
-              checked={!!draft.redactTokenDisplay}
-              onChange={(v) => setDraft((d) => ({ ...d, redactTokenDisplay: v }))}
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="settings-section">
-        <div className="cv-eyebrow">{t.privacyTab.wireEyebrow}</div>
-        <div className="settings-card">
-          <div className="toggle-row">
-            <span className="row-icon tone-coral">
-              <ShieldIcon size={16} />
+            <span className={`settings-rules-chev${advancedOpen ? " on" : ""}`}>
+              <ChevDownIcon size={16} />
             </span>
-            <div className="row-body">
-              <div className="row-title">{t.privacyTab.wireTokensTitle}</div>
-              <div className="row-desc">
-                {t.privacyTab.wireTokensHint}
+          </button>
+          {advancedOpen && (
+            <>
+              <div className="toggle-row">
+                <div className="row-body">
+                  <div className="row-title">{t.privacyTab.debugLogTitle}</div>
+                  <div className="row-desc">{t.privacyTab.debugLogHint}</div>
+                </div>
+                <Switch
+                  checked={!!draft.debugLog}
+                  onChange={(v) => {
+                    captureEvent({ name: "debug_mode_toggle", on: v });
+                    setDraft((d) => ({ ...d, debugLog: v }));
+                  }}
+                />
               </div>
-            </div>
-            <Switch
-              checked={!!draft.redactWireTokens}
-              onChange={(v) => setDraft((d) => ({ ...d, redactWireTokens: v }))}
-            />
-          </div>
+              <div className="toggle-row">
+                <span className="row-icon tone-coral">
+                  <ShieldIcon size={16} />
+                </span>
+                <div className="row-body">
+                  <div className="row-title">{t.privacyTab.tokenDisplayTitle}</div>
+                  <div className="row-desc">{t.privacyTab.tokenDisplayHint}</div>
+                </div>
+                <Switch
+                  checked={!!draft.redactTokenDisplay}
+                  onChange={(v) => setDraft((d) => ({ ...d, redactTokenDisplay: v }))}
+                />
+              </div>
+              <div className="toggle-row">
+                <span className="row-icon tone-coral">
+                  <ShieldIcon size={16} />
+                </span>
+                <div className="row-body">
+                  <div className="row-title">{t.privacyTab.wireTokensTitle}</div>
+                  <div className="row-desc">{t.privacyTab.wireTokensHint}</div>
+                </div>
+                <Switch
+                  checked={!!draft.redactWireTokens}
+                  onChange={(v) => setDraft((d) => ({ ...d, redactWireTokens: v }))}
+                />
+              </div>
+              <div className="toggle-row">
+                <div className="row-body">
+                  <div className="row-title">{t.privacyTab.memoryAutoTitle}</div>
+                  <div className="row-desc">{t.privacyTab.memoryAutoHint(BRAND.name)}</div>
+                </div>
+                <Switch
+                  checked={draft.memoryAuto === true}
+                  onChange={(v) => setDraft((d) => ({ ...d, memoryAuto: v }))}
+                />
+              </div>
+            </>
+          )}
         </div>
       </section>
     </>

@@ -10,12 +10,6 @@ export const accountTab = {
   signedInFallback: "Compte connecté",
   signedInHint: (brand) => `Connecté à ${brand} sur cet appareil.`,
   signOut: "Se déconnecter",
-  viewOrg: "Voir l'organisation",
-  yourOrg: "Votre organisation",
-  roleOwner: "propriétaire",
-  roleAdmin: "administrateur",
-  roleMember: "membre",
-  members: (n) => `${n} membre${n > 1 ? "s" : ""}`,
   createOrgTip: "Créer une organisation — dans l'app web",
   createOrg: "Créer une organisation",
   createOrgHint:
@@ -35,7 +29,7 @@ export const accountTab = {
   statsEyebrow: "Statistiques",
   statsTitle: "Statistiques d'usage anonymes",
   statsHint: "Des compteurs d'usage — jamais vos messages.",
-  devEyebrow: "Développeur",
+  privacyEyebrow: "Vie privée",
   linkPreviews: "Aperçus de liens",
   linkPreviewsHint: "Une vignette sous les liens. Activer révèle votre adresse IP au site lié.",
   backToChats: "Retour aux conversations",
@@ -47,18 +41,24 @@ export const privacyTab = {
   perCategory: "Régler catégorie par catégorie",
   activeCount: (active, total) => `${active}/${total} actives`,
   managedByOrg: (n) => ` · ${n} gérée(s) par votre organisation`,
-  transparencyEyebrow: "Transparence",
+  advancedTitle: "Options avancées",
+  advancedSub: "Journal technique, affichage des jetons, ce que le modèle reçoit.",
   debugLogTitle: "Journal technique détaillé",
   debugLogHint:
-    "Ajoute « Journal de débogage » au menu ⋯ de chaque conversation, et trace dans la console le message exact parti au modèle. Le journal lui-même — échanges, outils appelés, erreurs — est tenu en permanence, sur cet appareil uniquement ; c'est lui qu'un retour « Votre avis » peut joindre, toujours sans la table de correspondance. Le comparatif « ce que le modèle a vu » ne dépend pas de ce réglage.",
-  displayEyebrow: "Affichage",
+    "Ajoute « Journal de débogage » au menu ⋯ de chaque conversation — tenu sur cet appareil uniquement.",
   tokenDisplayTitle: "Afficher des jetons plutôt que des pseudonymes",
   tokenDisplayHint:
     "Une valeur protégée se lit « [PERSON1] » plutôt qu'un faux nom. Ne change que l'affichage : le modèle, lui, reçoit ce que dit le réglage ci-dessous.",
-  wireEyebrow: "Ce que le modèle reçoit",
   wireTokensTitle: "Le modèle ne voit que des jetons",
   wireTokensHint:
     "Au lieu d'un faux nom vraisemblable, le modèle reçoit « [PERSON1] ». Plus sobre — un faux nom reste un nom —, mais il rédige et raisonne moins bien sur des marqueurs. S'applique aux conversations commencées ensuite.",
+  memoryEyebrow: "Mémoire",
+  memoryAutoTitle: "Extraction automatique de la mémoire",
+  memoryAutoHint: (brand) =>
+    `${brand} note seul les faits durables d'une conversation, dans « À revoir ». Rien de nouveau ne quitte votre machine ; « retiens que… » fonctionne toujours, réglage éteint ou non.`,
+  memoryExportTitle: "Exporter la mémoire (diagnostic)",
+  memoryExportHint:
+    "Les fiches et leurs liens sémantiques, en texte, dans un fichier local — données réelles, pour comprendre un regroupement ou un doublon.",
   reportEyebrow: "Ce qui a été protégé",
   reportEmpty: (brand) =>
     `Rien n'est encore parti d'ici. Dès votre premier message, vous verrez ici ce que ${brand} a protégé — et de quel type.`,
@@ -141,9 +141,8 @@ export const modelsTab = {
   agentMissing: (a) => `${a} : introuvable sur cette machine. Cliquez pour savoir comment l'installer.`,
   availableEyebrow: (n) => `Modèles disponibles (${n})`,
   noMatch: (q) => `Aucun modèle ne correspond${q ? ` à « ${q} »` : ""}.`,
-  keyGearTip: (hasKey, provider) => `${hasKey ? "Modifier" : "Renseigner"} la clé ${provider}`,
-  gearNote:
-    "Le ⚙ de chaque service ouvre sa clé (chiffrée sur cette machine, jamais lue en clair). La pastille indique si une clé y est déjà enregistrée.",
+  advancedTitle: "Avancé",
+  advancedSub: "Un modèle sur votre ordinateur (Ollama, LM Studio…) et les identifiants qu'il ne liste pas.",
   orgProvidesModels: (org) => `${org} fournit les modèles.`,
   yourOrg: "Votre organisation",
   orgKeysBlocked:

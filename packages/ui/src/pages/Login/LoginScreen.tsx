@@ -5,6 +5,8 @@ import { BrandMark } from "../../components/media/BrandLogo";
 import { ModalTitle } from "../../containers/modals/ModalTitle";
 import { AssureStrip, Err, OfflineNote, Field, Spinner, GoogleIcon, SpamHint } from "./parts";
 import { friendlyError } from "./loginErrors";
+import { hasSeenAccountOnDevice } from "./seenAccount";
+import { platformAccessServed } from "../../send/platformAccess";
 
 import { useT } from "../../i18n";
 /** Track browser connectivity so the login card can explain that sign-in needs a
@@ -57,9 +59,18 @@ export function LoginScreen({
   subheading,
 }: { heading?: string; subheading?: React.ReactNode } = {}) {
   const t = useT();
-  const title = heading ?? t.login.heading;
+  // « Content de vous revoir » only once an account has REALLY been seen on this device
+  // (`seenAccount.ts`); a fresh install gets the neutral « Connexion à … ». Read once —
+  // the answer cannot change while the card is on screen.
+  const [seen] = useState(() => hasSeenAccountOnDevice());
+  const title = heading ?? (seen ? t.login.heading : t.login.headingFirst(BRAND.name));
   const sub = subheading ?? t.login.subheading;
-  const { sendMagicLink, verifyCode, codeSupported, linkFirst, googleSupported } = useAuth();
+  // On the hosted service sign-ups are closed (accounts are opened by hand): say so
+  // UNDER the field, before the refusal `loginErrors.ts` would otherwise be the first to
+  // mention. A self-hosted stack with no hosted service gets no such promise.
+  const inviteOnly = platformAccessServed();
+  const { sendMagicLink, verifyCode, codeSupported, linkFirst, googleSupported, signInWithGoogle } =
+    useAuth();
   const online = useOnline();
   const [stage, setStage] = useState<"email" | "sent">("email");
   const [email, setEmail] = useState("");
@@ -152,18 +163,31 @@ export function LoginScreen({
                     stays, as defense in depth. */}
                 <input type="email" required autoFocus value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t.login.emailPlaceholder} className="login-input" />
               </Field>
+              {inviteOnly && <p className="login-note login-invite">{t.login.inviteOnly}</p>}
               {error && <Err>{error}</Err>}
               <button type="submit" disabled={busy} className="btn-primary login-btn">
                 {busy && <Spinner />}
                 {busy ? t.login.sending : t.login.sendLink}
               </button>
+              {/* Google SSO exists only where the HOST exposes it (`auth.signInWithGoogle`):
+                  a host whose SSO is off simply omits the slot, and no greyed button is
+                  drawn in its place — a disabled control promises a road that isn't there. */}
               {googleSupported && (
                 <>
                   <div className="login-divider">
                     <span className="login-divider-lbl">{t.login.or}</span>
                   </div>
-                  {/* Google SSO is temporarily disabled (greyed out, non-clickable). */}
-                  <button type="button" disabled className="login-sso">
+                  <button
+                    type="button"
+                    className="login-sso"
+                    disabled={busy}
+                    onClick={() => {
+                      setError(null);
+                      void signInWithGoogle().then((r) => {
+                        if (r.error) setError(friendlyError(r.error));
+                      });
+                    }}
+                  >
                     <GoogleIcon />
                     <span className="om-sweep">{t.login.continueWithGoogle}</span>
                   </button>

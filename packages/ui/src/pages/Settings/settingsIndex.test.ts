@@ -55,7 +55,8 @@ describe("searchSettings", () => {
   it("matches a keyword that appears in NO label or sub", () => {
     expect(searchSettings("facture", fr).map((d) => d.id)).toContain("billing");
     expect(searchSettings("changelog", fr).map((d) => d.id)).toContain("versions");
-    expect(searchSettings("sso", fr).map((d) => d.id)).toContain("org");
+    // The organisation lives inside Compte now — « sso » lands there, not on a tab of its own.
+    expect(searchSettings("sso", fr).map((d) => d.id)).toContain("account");
   });
 
   it("is accent- and case-insensitive both ways", () => {
@@ -118,11 +119,11 @@ describe("tabAvailable — un onglet n'existe que si sa capacité existe", () =>
   // A build with no backend has neither billing, nor sync, nor organization
   // (`SELF_HOSTING.md`): these tabs don't show up EMPTY, they don't exist. The
   // rule lives here because both the settings rail AND the ⌘K palette read it.
-  const NONE = { org: false, sync: false, browser: false, billing: false };
-  const ALL = { org: true, sync: true, browser: true, billing: true };
+  const NONE = { sync: false, browser: false, billing: false };
+  const ALL = { sync: true, browser: true, billing: true };
 
   it("retire chaque onglet dont la capacité manque", () => {
-    for (const id of ["org", "sync", "browser", "billing"] as const) {
+    for (const id of ["sync", "browser", "billing"] as const) {
       expect(tabAvailable(id, NONE), id).toBe(false);
       expect(tabAvailable(id, ALL), id).toBe(true);
     }

@@ -14,6 +14,7 @@ export const conversation = {
     cardTip: (category, prompt) => `${category} — ${prompt}`,
     cardAria: (category, prompt) => `${category} : ${prompt}`,
     connectTip: (connector, prompt) => `Connecter ${connector} — ${prompt}`,
+    dismiss: "Ne plus proposer",
   },
 
   artifact: { pane: "Aperçu du fichier", copy: "Copier", copied: "Copié", close: "Fermer" },
@@ -102,6 +103,8 @@ export const conversation = {
   },
 
   actions: {
+    copy: "Copier",
+    copied: "Copié",
     regenerate: "Régénérer",
     fork: "Dupliquer la conversation à partir d'ici",
     feedback: "Donner un avis sur cette réponse",
@@ -114,52 +117,62 @@ export const conversation = {
     redactionFailedTip: "Le modèle de masquage a échoué pour ce message",
     redactedTip:
       "Remplacé par des marqueurs avant que le modèle ne le voie, restauré dans sa réponse",
-    redacted: (n, modelName) =>
-      `${n} élément${n === 1 ? "" : "s"} masqué${n === 1 ? "" : "s"} avant ${modelName}`,
-    breakdownSuffix: (breakdown) => ` — ${breakdown}`,
-    breakdownLabels: {
-      name: ["nom", "noms"],
-      dob: ["date de naissance", "dates de naissance"],
-      health: ["donnée de santé", "données de santé"],
-      email: ["e-mail", "e-mails"],
-      phone: ["téléphone", "téléphones"],
-      address: ["adresse", "adresses"],
-      location: ["lieu", "lieux"],
-      company: ["entreprise", "entreprises"],
-      card: ["carte", "cartes"],
-      iban: ["IBAN", "IBAN"],
-      national_id: ["identifiant", "identifiants"],
-      ip: ["IP", "IP"],
-      number: ["numéro", "numéros"],
-      secret: ["secret", "secrets"],
-      apikey: ["clé d'accès", "clés d'accès"],
-      other: ["autre", "autres"],
-    },
-    toolFlowFailed:
-      "Une étape du flux d'outils a échoué. Réessayer relance le flux (les étapes réussies sont rejouées ; chaque écriture redemande confirmation).",
+    protectedCount: (n) => `${n} protégé${n === 1 ? "" : "s"}`,
+    protectedSee: "voir",
     autoRoutedTip:
       "Mode Auto : le modèle de cette réponse a été choisi automatiquement selon la tâche.",
     quotaTip: "Quota du fournisseur de ce modèle",
     reasoning: "Réflexion",
   },
 
+  trace: {
+    connector: "connecteur",
+    calling: "Appel des outils…",
+    running: "en cours…",
+    actionsRunning: (n) => `${n} action${n > 1 ? "s" : ""} · en cours…`,
+    actionsDone: (n) => `${n} action${n > 1 ? "s" : ""} · terminé`,
+    retrying: (attempt) => `nouvel essai (${attempt}ᵉ)`,
+    attempts: (n) => `${n} tentatives`,
+    failed: "échec",
+    failedWith: (note) => `échec — ${note}`,
+    declined: "refusé",
+  },
+
+  thinking: {
+    writing: "Le modèle rédige la réponse",
+    reflecting: "Le modèle réfléchit",
+    preparing: "Le modèle prépare la réponse",
+  },
+
+  tokens: {
+    tip: (total, input, output) => `${total} tokens (entrée ${input} · sortie ${output})`,
+    line: (input, output) => `↑ ${input} · ↓ ${output} tokens`,
+  },
+
   mark: {
     realValue: "valeur réelle",
     seenByModel: "vu par le modèle",
+    seenByModelTip: "Valeur vue par le modèle",
+    realValueTip: "Valeur réelle — partira en clair si vous la laissez en clair",
     orgForced: "Imposé par l'organisation",
-    reveal: "Démasquer",
-    reRedact: "Remasquer",
-    revealKind: "Démasquer la catégorie",
-    reRedactKind: "Remasquer la catégorie",
-    deleteTip:
-      "Retirer entièrement ce masquage — la valeur restera visible et partira en clair",
-    delete: "Supprimer le masquage",
+    scopeSend: "cet envoi",
+    scopeConversation: "cette conversation",
+    scopeMessage: "ce message",
+    leaveClear: (scope) => `Laisser en clair · ${scope}`,
+    leaveClearKind: (scope) => `Laisser la catégorie en clair · ${scope}`,
+    leaveClearTip: "Réversible : la valeur part telle quelle au modèle, le masquage revient d'un clic",
+    reMask: (scope) => `Remasquer · ${scope}`,
+    reMaskKind: (scope) => `Remasquer la catégorie · ${scope}`,
+    reMaskTip: "Masquer à nouveau cette valeur",
+    remove: (scope) => `Retirer le masquage · ${scope}`,
+    removeTip: "Définitif : plus aucun marqueur — la valeur restera visible et partira en clair",
     reportTip: "Ouvre « Votre avis » prérempli — n'y collez jamais la valeur réelle",
     report: "Signaler une erreur",
     sheetLabel: "Masquage",
   },
 
   struggle: {
+    failedTip: (tool) => (tool ? `Un appel d'outil n'a pas abouti : ${tool}` : "Un appel d'outil n'a pas abouti"),
     unknownTool: (connector, action) =>
       `${connector} ne sait pas faire « ${action} » — cette action n'existe pas dans le connecteur.`,
     ownKeysHint: "Certaines ne s'activent qu'avec vos propres clés d'accès.",
