@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ShieldIcon } from "./brand";
-import { isDevMode } from "../state/redux";
 import { captureEvent } from "../analytics";
 import type { Settings } from "../types";
 import { BRAND } from "@openmasq/branding";
@@ -45,7 +44,7 @@ export function AnalyticsNotice({
   const [details, setDetails] = useState(false);
 
   // Only in the packaged app, and only before the user has made an explicit choice.
-  if (isDevMode || settings.analyticsConsent !== undefined || dismissed) return null;
+  if (settings.analyticsConsent !== undefined || dismissed) return null;
 
   const close = () => {
     try {
@@ -64,9 +63,9 @@ export function AnalyticsNotice({
   };
 
   // The REAL effective state, resolved exactly as the store does
-  // (`state/store.ts`: `settings.analyticsConsent ?? !isDevMode`) — the row must
+  // (`usePlatformEffects.ts`: `settings.analyticsConsent ?? true`) — the row must
   // report what is actually happening, not a decorative constant.
-  const analyticsOn = settings.analyticsConsent ?? !isDevMode;
+  const analyticsOn = settings.analyticsConsent ?? true;
 
   return (
     <div className="analytics-notice" role="status">

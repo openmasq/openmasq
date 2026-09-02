@@ -140,7 +140,9 @@ export const DEFAULT_SETTINGS: Settings = {
   // French fallback. Setting « fr » here would impose French on everyone — the opposite of the goal.
   language: undefined,
   onboarded: false,
-  debugLog: false,
+  // ON by default (product decision, 02/09/2026): capture is permanent anyway (the
+  // feedback report needs it), this only shows the ⋯ menu entry + the console trace.
+  debugLog: true,
   linkPreviews: false, // opt-in: fetching a link leaks your IP + the link to that site
   // Opt-in: the app NEVER spawns the user's Claude Code CLI (their
   // personal subscription) without an explicit action in Réglages → Modèles.

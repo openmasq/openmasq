@@ -1,7 +1,6 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Switch, UsersIcon, LogOutIcon, DownloadIcon, ChevRightIcon, ExternalIcon } from "../../components/brand";
-import { isDevMode } from "../../state/redux";
 import { captureEvent } from "../../analytics";
 import { useAuth } from "../../state/auth/useAuth";
 import type { Conversation, Settings } from "../../types";
@@ -204,7 +203,7 @@ export function AccountTab({
               <div className="row-desc">{t.accountTab.statsHint}</div>
             </div>
             <Switch
-              checked={draft.analyticsConsent ?? !isDevMode}
+              checked={draft.analyticsConsent ?? true}
               onChange={(v) => {
                 // Emit BEFORE the toggle takes effect: an opt-OUT must still send
                 // (its own consent gate is checked at send time on the next event).

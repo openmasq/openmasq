@@ -170,7 +170,8 @@ export interface Settings {
    *  13/08 CAPTURE is permanent (`setDebugCapture(true)` — a « Votre
    *  avis » feedback report must be able to attach the log with no prior setting); this field only
    *  gates VISIBILITY now: the ⋯ menu's « Journal de débogage » entry and the wire's
-   *  console trace. The "what the model saw" comparison does NOT depend on it. */
+   *  console trace — ON by default since 02/09/2026 (transparency is the product).
+   *  The "what the model saw" comparison does NOT depend on it. */
   debugLog?: boolean;
   /**
    * Opt-in link previews: render an OpenGraph card (thumbnail + title) under a
@@ -199,9 +200,10 @@ export interface Settings {
    */
   notifyOnReply?: boolean;
   /**
-   * Opt-in to anonymous usage analytics (privacy-safe: counts/enums only, never
-   * prompt text, PII, vault values or tool data). OFF by default; only sends when
-   * a PostHog project is configured AND this is on. See src/analytics.
+   * Anonymous usage analytics (privacy-safe: counts/enums only, never prompt text,
+   * PII, vault values or tool data). Tri-state: `undefined` = ON — the default, dev
+   * included (02/09/2026) — until the user explicitly toggles it off; only sends when
+   * a relay is configured. See src/analytics.
    */
   analyticsConsent?: boolean;
   /**
