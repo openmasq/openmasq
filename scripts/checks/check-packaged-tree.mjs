@@ -55,7 +55,8 @@
 // is not a prerequisite for the cheap gates.
 import { readdirSync, readFileSync, existsSync, statSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join, sep, resolve as resolvePath } from "node:path";
+import { dirname, join, relative, sep, resolve as resolvePath } from "node:path";
+import { runtimeView } from "./packagedTreeView.mjs";
 import { createRequire, isBuiltin } from "node:module";
 import satisfies from "semver/functions/satisfies.js";
 
@@ -91,8 +92,8 @@ function findTree() {
   return null;
 }
 
-const TREE = findTree();
-if (!TREE) {
+const FOUND = findTree();
+if (!FOUND) {
   // Skipping is right when nothing is built (this runs in contexts with no packaged app),
   // but it is exactly how the check went green on a Windows build for free: only the macOS
   // layout was known, so `release/win-unpacked/` read as "nothing packaged". A caller that
@@ -111,7 +112,22 @@ if (!TREE) {
 // Resolution must never climb above this. Plain `require.resolve` would: from inside the
 // packaged app it keeps walking up into THIS repo's node_modules and "finds" a package the
 // app does not ship, turning the exact bug we hunt into a green result.
-const APP_ROOT = dirname(TREE);
+// Resolution happens in the RUNTIME view (asar ∪ unpacked), not in `app.asar.unpacked`
+// alone: Electron keeps an unpacked file's `__filename` at its `app.asar/...` path, so a
+// `require` falls back through the seal and loads a dependency the seal keeps inside the
+// archive. Resolving against the unpacked dir alone produced 21 phantom "dead on launch"
+// findings the day the 2026-08 server split stopped nesting sealed deps under their
+// unpacked consumers — `packagedTreeView.mjs` carries the full story, and the one loader
+// this view must NOT excuse is handled just below.
+const UNPACKED_ROOT = dirname(FOUND);
+const { appRoot: APP_ROOT, tree: TREE } = runtimeView(FOUND);
+const SHOWN = FOUND.replace(root + sep, "");
+
+// Trees that run inside a `worker_threads` Worker started on a REAL unpacked path: no
+// asar fall-through exists there, so their dependencies must resolve from the unpacked
+// dir ALONE — the strictness the merged view would otherwise lose. The loader inventory
+// justifying each entry is the `asarUnpack` block of apps/desktop/electron-builder.cjs.
+const REAL_PATH_WORKER_PKGS = new Set(["tesseract2.js", "tesseract.js-core"]);
 
 // The built main bundle — the same files electron-builder packs into the asar. Read from
 // disk so this needs no asar tooling.
@@ -191,9 +207,9 @@ function pkgNameOf(spec) {
 // ---- resolution, confined to the shipped tree ---------------------------------
 
 /** The `node_modules` dir inside the app that owns `name`, or null if the app ships none. */
-function ownerNodeModules(fromDir, name) {
+function ownerNodeModules(fromDir, name, limit = APP_ROOT) {
   let cur = fromDir;
-  while (cur.startsWith(APP_ROOT)) {
+  while (cur.startsWith(limit)) {
     const nm = join(cur, "node_modules");
     if (existsSync(join(nm, name, "package.json"))) return nm;
     const parent = dirname(cur);
@@ -208,10 +224,10 @@ function ownerNodeModules(fromDir, name) {
  * the package is absent from the bundle, or it is present but does not EXPORT the requested
  * subpath (ERR_PACKAGE_PATH_NOT_EXPORTED — the `entities/decode` crash).
  */
-function resolveBare(fromDir, spec) {
+function resolveBare(fromDir, spec, limit = APP_ROOT) {
   const name = pkgNameOf(spec);
   if (!name) return null;
-  const nm = ownerNodeModules(fromDir, name);
+  const nm = ownerNodeModules(fromDir, name, limit);
   if (!nm) return null;
   try {
     // `paths: [dirname(nm)]` makes Node look in `nm` FIRST, so it lands on the copy the app
@@ -373,11 +389,18 @@ for (const dir of pkgDirs) {
   }
 
   // UNRESOLVED — a specifier the code really asks for, on a dep it really declares.
+  // A real-path worker tree resolves from its UNPACKED twin, asar excluded (see
+  // REAL_PATH_WORKER_PKGS): the merged view models the loaders that fall back through
+  // the seal, and these are exactly the ones that cannot.
+  const strict = REAL_PATH_WORKER_PKGS.has(pkg.name);
   for (const file of filesUnder(dir)) {
     for (const spec of specifiersOf(file)) {
       const name = pkgNameOf(spec);
       if (!name || !declared.includes(name)) continue;
-      if (resolveBare(dirname(file), spec)) continue;
+      const from = strict
+        ? join(UNPACKED_ROOT, "node_modules", relative(TREE, dirname(file)))
+        : dirname(file);
+      if (resolveBare(from, spec, strict ? UNPACKED_ROOT : APP_ROOT)) continue;
       findings.push({
         key: `UNRESOLVED ${self} requires "${spec}" — does not resolve`,
         reachable: isReachableFile(file),
@@ -452,7 +475,7 @@ const fixed = [...allowed].filter((k) => !byKey.has(k));
 console.log(
   `check:pkgtree — ${pkgDirs.length} shipped packages, ` +
     `${loaded === null ? "reachability UNKNOWN" : `${loaded.size} files on the load path`} ` +
-    `(${TREE.replace(root + sep, "")})`,
+    `(${SHOWN})`,
 );
 
 if (fixed.length) {
