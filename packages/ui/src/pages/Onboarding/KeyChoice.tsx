@@ -4,6 +4,8 @@ import { useState } from "react";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { CheckIcon } from "../../components/brand";
 import { KeySteps } from "./KeySteps";
+import { KeyChoiceAgents } from "./KeyChoiceAgents";
+import type { AgentOptIn } from "../../hooks/useAgentOptIns";
 import { platformAccessServed, subscriptionsSold } from "../../send/platformAccess";
 
 /** The providers the onboarding offers a key slot for — OpenRouter first (one key,
@@ -19,18 +21,29 @@ const KEY_PROVIDERS: ProviderId[] = [
 ];
 
 /**
- * Onboarding step « Accès aux modèles » : the subscription-vs-your-own-key choice.
+ * Onboarding step « Accès aux modèles » : the subscription-vs-your-own-key choice —
+ * and, on a host that can probe them, the third road: a subscription CLI already
+ * installed (Claude Code, Codex, Antigravity).
  *
- * Both paths already exist in Réglages (AccountTab's billing toggle + the per-provider
- * key modal); this step only SURFACES the choice at first run. The key is write-only:
- * `onSaveKey` → `host.keys.set` (encrypted in main, never read back — the renderer
- * only learns WHICH providers hold one), exactly like the Settings path.
+ * All paths already exist in Réglages (AccountTab's billing toggle, the per-provider
+ * key modal, the agent opt-ins of Réglages → Modèles); this step only SURFACES them at
+ * first run. The key is write-only: `onSaveKey` → `host.keys.set` (encrypted in main,
+ * never read back — the renderer only learns WHICH providers hold one), exactly like
+ * the Settings path. The agent switches write `Settings.*CliEnabled`, the same opt-in
+ * as `AgentAccessModal`, through the same list (`useAgentOptIns`, rule 9).
  *
  * OpenRouter is the one provider with TWO roads, and they are not offered side by side:
  * the OAuth flow mints a key with nothing to copy, so it is the whole panel until the
  * person says they already have one — at which point they get the same guided checklist
  * (`KeySteps`) as every other provider. Showing both at once made the shorter road look
  * like one option out of two.
+ *
+ * ⚠️ The agent card is NOT a billing mode: `billingMode` says how a KEYED provider is
+ * paid, and a CLI is neither keyed nor billed here. So the card is a PANEL choice held
+ * locally (`agentPath`), pre-opened when an agent is already enabled; the subtitle
+ * promised this road (« ou votre abonnement Claude Code / Codex ») while nothing on
+ * the screen led to it — the card is that door. With no probeable agent (web preview)
+ * it isn't drawn: a card with nothing under it would be the same broken promise.
  */
 export function KeyChoice({
   mode,
@@ -38,6 +51,7 @@ export function KeyChoice({
   onSaveKey,
   onConnectOpenRouter,
   keyConfigured,
+  agents = [],
 }: {
   /** The choice ALREADY made, or `null` — no one has answered yet. Pre-checking it would
    *  make the flow's one real question disappear; and pre-checking it on the subscription
@@ -50,6 +64,8 @@ export function KeyChoice({
    *  key ITSELF (it never reaches this component). Absent ⇒ only the paste path shows. */
   onConnectOpenRouter?: () => Promise<boolean>;
   keyConfigured: ReadonlySet<string>;
+  /** The subscription CLIs this build can offer (`useAgentOptIns`). Empty ⇒ no card. */
+  agents?: AgentOptIn[];
 }) {
   // Does this build have a hosted service? Without it, "Mon compte" doesn't exist.
   const served = platformAccessServed();
@@ -60,6 +76,8 @@ export function KeyChoice({
   const [connectFailed, setConnectFailed] = useState(false);
   const [manual, setManual] = useState(false);
   const [error, setError] = useState("");
+  // The agent panel is open: pre-opened when one is already on (coming back to this step).
+  const [agentPath, setAgentPath] = useState(() => agents.some((a) => a.enabled));
 
   // « Obtenir une clé gratuitement » — the key ends up on the USER's OpenRouter account,
   // so their own credits AND their own free-model quota. That second half matters: those
@@ -107,7 +125,8 @@ export function KeyChoice({
   };
 
   const option = (
-    value: "subscription" | "byo",
+    on: boolean,
+    onPick: () => void,
     title: string,
     sub: string,
     /** "conseillé" — the recommendation reads ON the card, right where you choose. */
@@ -115,14 +134,14 @@ export function KeyChoice({
   ) => (
     <button
       type="button"
-      className={`ob-access-opt${mode === value ? " on" : ""}`}
-      onClick={() => onMode(value)}
-      aria-pressed={mode === value}
+      className={`ob-access-opt${on ? " on" : ""}`}
+      onClick={onPick}
+      aria-pressed={on}
     >
-      {/* The radio mark is what makes the two cards read as ONE choice rather than two
+      {/* The radio mark is what makes the cards read as ONE choice rather than
           buttons — the selected border alone was carrying that on its own. */}
       <span className="ob-access-radio" aria-hidden="true">
-        {mode === value && <CheckIcon size={11} />}
+        {on && <CheckIcon size={11} />}
       </span>
       <span className="ob-access-opt-body">
         <span className="ob-access-opt-title">
@@ -133,6 +152,10 @@ export function KeyChoice({
       </span>
     </button>
   );
+  const pickMode = (m: "subscription" | "byo") => {
+    setAgentPath(false);
+    onMode(m);
+  };
 
   return (
     <div className="ob-access">
@@ -145,26 +168,38 @@ export function KeyChoice({
           the only path, and the question becomes a step. */}
       {served &&
         option(
-          "subscription",
+          mode === "subscription" && !agentPath,
+          () => pickMode("subscription"),
           t.onboarding.keyChoice.subscription.title(BRAND.name),
           // With nothing to sell (the default), the card says what the account includes — not
           // subscription credits no account has.
-          subscriptionsSold() ? t.onboarding.keyChoice.subscription.sub : t.onboarding.keyChoice.included.sub,
+          subscriptionsSold()
+            ? t.onboarding.keyChoice.subscription.sub
+            : t.onboarding.keyChoice.included.sub,
         )}
       {/* The RECOMMENDED path, and the only one that costs nothing: an OpenRouter key reaches
           every model — free ones included, on the user's own account quota, never
           ours. The "conseillé" lives on the card because it's HERE that you choose; the
           rest (one-click OAuth, nothing to copy) is already below the card once it's checked. */}
-      {/* "never read back by the interface": an internal invariant that leaked into the screen —
-          the user doesn't have an "interface", they have their machine. */}
       {option(
-        "byo",
+        mode === "byo" && !agentPath,
+        () => pickMode("byo"),
         t.onboarding.keyChoice.ownKey.title,
         t.onboarding.keyChoice.ownKey.sub,
         t.onboarding.keyChoice.recommended,
       )}
+      {/* The subscription CLI already on this machine — see the file's header. */}
+      {agents.length > 0 &&
+        option(
+          agentPath,
+          () => setAgentPath(true),
+          t.onboarding.keyChoice.agent.title,
+          t.onboarding.keyChoice.agent.sub,
+        )}
 
-      {(mode === "byo" || !served) && onSaveKey && (
+      {agentPath && agents.length > 0 && <KeyChoiceAgents agents={agents} />}
+
+      {!agentPath && (mode === "byo" || !served) && onSaveKey && (
         <div className="ob-access-key">
           <div className="ob-access-providers">
             {KEY_PROVIDERS.map((p) => (
@@ -178,7 +213,9 @@ export function KeyChoice({
                 {keyConfigured.has(p) && <CheckIcon size={12} />} {PROVIDERS[p].label}
                 {/* A single key reaches every model: that's the reason for the recommendation,
                     and it's worth saying right where you choose, not in a footnote. */}
-                {p === "openrouter" && <span className="ob-access-tag">{t.onboarding.keyChoice.recommended}</span>}
+                {p === "openrouter" && (
+                  <span className="ob-access-tag">{t.onboarding.keyChoice.recommended}</span>
+                )}
               </button>
             ))}
           </div>
@@ -204,11 +241,7 @@ export function KeyChoice({
               <p className="ob-access-hint">{t.onboarding.keyChoice.connectHint}</p>
               {/* Failure is an exit, not just a message: without this door you're
                   stuck on a button that just refused. */}
-              <button
-                type="button"
-                className="ob-access-manual"
-                onClick={() => setManual(true)}
-              >
+              <button type="button" className="ob-access-manual" onClick={() => setManual(true)}>
                 {connectFailed
                   ? t.onboarding.keyChoice.manualCreate
                   : t.onboarding.keyChoice.manualHave}

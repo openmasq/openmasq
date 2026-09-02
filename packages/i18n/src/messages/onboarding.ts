@@ -77,6 +77,8 @@ export interface OnboardingMessages {
     subscription: { title: (brand: string) => string; sub: string };
     included: { sub: string };
     ownKey: { title: string; sub: string };
+    /** The third card: a subscription CLI already installed (Claude Code, Codex…). */
+    agent: { title: string; sub: string; hint: string };
     /** The tag carried by the recommended option and the recommended provider. */
     recommended: string;
     savedKey: (provider: string) => string;

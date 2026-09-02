@@ -1,16 +1,8 @@
 import { ModalShell } from "../../../containers/modals";
 import { Switch } from "../../../components/brand";
 import { useT } from "../../../i18n";
-import { AgentAccountCard, type AgentCli } from "./AgentAccountCard";
-
-/** The copy of ONE agent, as it lives in `@openmasq/i18n` (`modelPicker.cli.*`). */
-export interface AgentCopy {
-  title: string;
-  note: string;
-  rowTitle: string;
-  onDesc: string;
-  missingDesc: string;
-}
+import { AgentAccountCard } from "./AgentAccountCard";
+import type { AgentCli, AgentCopy } from "../../../hooks/useAgentOptIns";
 
 /**
  * The « abonnement par CLI » opt-in (Claude Code, Codex), opened from its chip in

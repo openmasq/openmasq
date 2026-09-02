@@ -213,3 +213,38 @@
 .ob-access-key .byo-link {
   align-self: flex-start;
 }
+/* The third card's panel — « Mon abonnement Claude Code / Codex »: one row per agent,
+   the same switch as Réglages → Modèles. Rows, not chips: a chip says "pick me", a
+   switch says "consume my subscription", and only the second is what's being asked. */
+.ob-access-agents {
+  gap: 0;
+}
+.ob-access-agent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+.ob-access-agent + .ob-access-agent {
+  border-top: 1px solid var(--border-subtle);
+}
+.ob-access-agent-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ob-access-agent-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.ob-access-agent-desc {
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.ob-access-agents .ob-access-hint {
+  margin-top: 10px;
+}

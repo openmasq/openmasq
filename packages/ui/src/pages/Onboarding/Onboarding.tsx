@@ -9,6 +9,7 @@ import { sectionGuides, sectionOneLiner } from "../../help";
 import { useT } from "../../i18n";
 import { RedactionDemo } from "../../components/RedactionDemo";
 import { KeyChoice } from "./KeyChoice";
+import { useAgentOptIns } from "../../hooks/useAgentOptIns";
 import { platformAccessServed, subscriptionsSold } from "../../send/platformAccess";
 
 /* redact — first-run onboarding.
@@ -56,6 +57,16 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
   const [rules, setRules] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   useDialogFocus(cardRef);
+  // The subscription CLIs this build can offer — the SAME list as Réglages → Modèles, so
+  // the step never promises an agent the settings would not draw.
+  const agents = useAgentOptIns({
+    claudeCliEnabled: settings.claudeCliEnabled,
+    onClaudeCliEnabled: (on) => onChange({ ...settings, claudeCliEnabled: on }),
+    codexCliEnabled: settings.codexCliEnabled,
+    onCodexCliEnabled: (on) => onChange({ ...settings, codexCliEnabled: on }),
+    antigravityCliEnabled: settings.antigravityCliEnabled,
+    onAntigravityCliEnabled: (on) => onChange({ ...settings, antigravityCliEnabled: on }),
+  });
 
   function finish() {
     captureEvent({ name: "onboarding", step: "done" });
@@ -182,6 +193,7 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                   onSaveKey={onSaveKey}
                   onConnectOpenRouter={onConnectOpenRouter}
                   keyConfigured={keyConfigured ?? new Set()}
+                  agents={agents}
                 />
               </>
             ) : (

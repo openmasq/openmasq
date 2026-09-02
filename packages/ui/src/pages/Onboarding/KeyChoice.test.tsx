@@ -5,6 +5,7 @@ import { mount } from "../../testKit";
 import { getMessages } from "@openmasq/i18n";
 import { providerKeyHelp } from "../../containers/modals/providerKeyHelp";
 import { KeyChoice } from "./KeyChoice";
+import type { AgentOptIn } from "../../hooks/useAgentOptIns";
 import { configurePlatformAccess } from "../../send/platformAccess";
 
 /**
@@ -134,7 +135,9 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     // Changing provider changes the guide AND starts over from a blank list: a tick
     // inherited from the previous provider is a false bookmark.
     await m.click(
-      m.findAll(".ob-access-provider").find((b) => b.textContent?.includes(PROVIDERS.openai.label))!,
+      m
+        .findAll(".ob-access-provider")
+        .find((b) => b.textContent?.includes(PROVIDERS.openai.label))!,
     );
     await m.click(".byo-tick");
     expect(m.find(".byo-steps li").className).toContain("done");
@@ -213,6 +216,87 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     expect(m.maybe(".ob-access-key")).toBeNull();
     expect(m.find(".ob-access-opt").getAttribute("aria-pressed")).toBe("true");
 
+    await m.unmount();
+  });
+
+  /* The third road. The subtitle promised « ou votre abonnement Claude Code / Codex » while
+     nothing on the screen led to it: the card is that door, and it only exists when the
+     build can offer an agent (the list comes from the same hook as Réglages → Modèles). */
+  const agent = (over: Partial<AgentOptIn> = {}): AgentOptIn => ({
+    pid: "claude-cli",
+    cli: "claude",
+    copy: getMessages("fr").modelPicker.cli.claude,
+    detected: true,
+    enabled: false,
+    onEnabled: () => {},
+    ...over,
+  });
+  const cardTitled = (m: Awaited<ReturnType<typeof mount>>, title: string) =>
+    m.findAll(".ob-access-opt").find((b) => b.textContent?.includes(title))!;
+  const agentTitle = getMessages("fr").onboarding.keyChoice.agent.title;
+
+  it("sans agent probeable, la carte « abonnement CLI » n'existe pas", async () => {
+    const m = await mount(<KeyChoice mode={null} onMode={noop} keyConfigured={new Set()} />);
+    expect(cardTitled(m, agentTitle)).toBeUndefined();
+    await m.unmount();
+  });
+
+  it("la carte ouvre un interrupteur par agent — le MÊME opt-in que Réglages — et range le formulaire de clé", async () => {
+    const flips: boolean[] = [];
+    const m = await mount(
+      <KeyChoice
+        mode="byo"
+        onMode={noop}
+        onSaveKey={async () => {}}
+        keyConfigured={new Set()}
+        agents={[
+          agent({ onEnabled: (on) => flips.push(on) }),
+          agent({
+            pid: "codex-cli",
+            cli: "codex",
+            copy: getMessages("fr").modelPicker.cli.codex,
+            detected: false,
+          }),
+        ]}
+      />,
+    );
+    // The key form is open (mode byo), the agent panel is not.
+    expect(m.maybe(".ob-access-providers")).not.toBeNull();
+    expect(m.maybe(".ob-access-agents")).toBeNull();
+
+    await m.click(cardTitled(m, agentTitle));
+    expect(cardTitled(m, agentTitle).getAttribute("aria-pressed")).toBe("true");
+    expect(m.maybe(".ob-access-providers")).toBeNull();
+    const rows = m.findAll(".ob-access-agent");
+    expect(rows).toHaveLength(2);
+    expect(rows[0].textContent).toContain(getMessages("fr").modelPicker.cli.claude.rowTitle);
+    // A CLI the probe did not find is still offered, with the install words.
+    expect(rows[1].textContent).toContain(getMessages("fr").modelPicker.cli.codex.missingDesc);
+    expect(rows[1].className).toContain("missing");
+
+    await m.click(rows[0].querySelector('[role="switch"]')!);
+    expect(flips).toEqual([true]);
+
+    // Back to the key card: the form returns, the panel goes.
+    await m.click(cardTitled(m, getMessages("fr").onboarding.keyChoice.ownKey.title));
+    expect(m.maybe(".ob-access-agents")).toBeNull();
+    expect(m.maybe(".ob-access-providers")).not.toBeNull();
+    await m.unmount();
+  });
+
+  it("revenir sur l'étape avec un agent déjà activé rouvre sa carte", async () => {
+    const m = await mount(
+      <KeyChoice
+        mode="byo"
+        onMode={noop}
+        onSaveKey={async () => {}}
+        keyConfigured={new Set()}
+        agents={[agent({ enabled: true })]}
+      />,
+    );
+    expect(cardTitled(m, agentTitle).getAttribute("aria-pressed")).toBe("true");
+    expect(m.find('.ob-access-agent [role="switch"]').getAttribute("aria-checked")).toBe("true");
+    expect(m.maybe(".ob-access-providers")).toBeNull();
     await m.unmount();
   });
 });

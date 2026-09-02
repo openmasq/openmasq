@@ -42,7 +42,7 @@ export const onboarding = {
     titleIncluded: "Votre compte, ou votre clé",
     titleUnserved: "Votre clé, ou un modèle local",
     subServed:
-      "Vous changerez d'avis quand vous voudrez. Dans les deux cas, le masquage s'applique avant chaque envoi.",
+      "Vous changerez d'avis quand vous voudrez. Quel que soit le chemin, le masquage s'applique avant chaque envoi.",
     subUnserved:
       "Une clé, un modèle qui tourne sur votre machine, ou votre abonnement Claude Code / Codex — le masquage s'applique avant chaque envoi, quel que soit le chemin.",
   },
@@ -86,6 +86,11 @@ export const onboarding = {
     ownKey: {
       title: "Ma propre clé API",
       sub: "Une clé OpenRouter ouvre tous les modèles, les gratuits compris, sur votre compte. Un clic pour l'obtenir ; elle reste chiffrée sur cette machine.",
+    },
+    agent: {
+      title: "Mon abonnement Claude Code / Codex",
+      sub: "Déjà installé, déjà payé : vos envois passent par la CLI présente sur cette machine, sans clé à coller. Chaque envoi consomme votre abonnement personnel.",
+      hint: "Le forfait et le quota de chaque CLI se lisent dans Réglages → Modèles.",
     },
     recommended: "conseillé",
     savedKey: (provider) => `Clé ${provider} enregistrée — vous êtes prêt.`,

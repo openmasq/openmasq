@@ -3,7 +3,8 @@ import type { SubscriptionAccount, SubscriptionQuota } from "@openmasq/llm";
 import { useHost } from "../../../host";
 import { useT } from "../../../i18n";
 
-export type AgentCli = SubscriptionAccount["cli"];
+import type { AgentCli } from "../../../hooks/useAgentOptIns";
+export type { AgentCli };
 
 /**
  * What the agent's CLI says about ITS OWN account — plan, quota windows, models — as

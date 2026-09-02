@@ -1035,7 +1035,7 @@ to reveal first).
 
 - [x] Sign-in by magic link or Google — `packages/ui/src/pages/Login/`
 - [x] Redaction demonstration, replayable afterwards from **Aide** — `packages/ui/src/components/RedactionDemo/`
-- [x] Choice between the built-in subscription ⇄ your own key (OpenRouter or another), optional — `packages/ui/src/pages/Onboarding/KeyChoice.tsx`
+- [x] Choice between the built-in subscription ⇄ your own key (OpenRouter or another) ⇄ a subscription CLI already installed (Claude Code, Codex, Antigravity — the same opt-in switches as Réglages → Modèles, listed by `packages/ui/src/hooks/useAgentOptIns.ts`), optional — `packages/ui/src/pages/Onboarding/KeyChoice.tsx`
 - [x] A tickable procedure to obtain the chosen provider's key + an alert on paste if the key does not have that provider's shape — `packages/ui/src/pages/Onboarding/KeySteps.tsx`
 - [x] "Get a key for free" (OpenRouter) — OAuth, with no copy-paste; the key is born and stays in the main process — `apps/desktop/src/main/store/openrouterPkce.ts`
 - [x] Fine-tuning the categories from the welcome, without being forced to

@@ -42,7 +42,7 @@ export const onboarding = {
     titleIncluded: "Your account, or your key",
     titleUnserved: "Your key, or a local model",
     subServed:
-      "You can change your mind whenever you like. Either way, masking applies before every send.",
+      "You can change your mind whenever you like. Whichever road you take, masking applies before every send.",
     subUnserved:
       "A key, a model running on your own machine, or your Claude Code / Codex subscription — masking applies before every send, whichever road you take.",
   },
@@ -86,6 +86,11 @@ export const onboarding = {
     ownKey: {
       title: "My own API key",
       sub: "An OpenRouter key opens every model, the free ones included, on your account. One click to get it; it stays encrypted on this machine.",
+    },
+    agent: {
+      title: "My Claude Code / Codex subscription",
+      sub: "Already installed, already paid for: your sends go through the CLI on this machine, no key to paste. Each send draws on your personal subscription.",
+      hint: "Each CLI's plan and quota can be read in Settings → Models.",
     },
     recommended: "recommended",
     savedKey: (provider) => `${provider} key saved — you're ready.`,

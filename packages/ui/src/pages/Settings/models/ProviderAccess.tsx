@@ -5,10 +5,8 @@ import { ModelLogo, ArrowRightIcon } from "../../../components/brand";
 import { KEYED_PROVIDERS } from "../shared";
 import { BRAND } from "@openmasq/branding";
 import { subscriptionsSold } from "../../../send/platformAccess";
-import { useHost } from "../../../host";
-import { useCliDetected } from "../../../state/effects/useAvailabilityProbes";
-import { AgentAccessModal, type AgentCopy } from "./AgentAccessModal";
-import type { AgentCli } from "./AgentAccountCard";
+import { useAgentOptIns } from "../../../hooks/useAgentOptIns";
+import { AgentAccessModal } from "./AgentAccessModal";
 
 import { useT } from "../../../i18n";
 /**
@@ -74,55 +72,19 @@ export function ProviderAccess({
   onAntigravityCliEnabled?: (on: boolean) => void;
 }) {
   const t = useT();
-  const host = useHost();
   /** The agent whose opt-in is open (`null` = none). */
   const [agentOpen, setAgentOpen] = useState<ProviderId | null>(null);
-  // The probes are called unconditionally (the hooks rule); each returns
-  // `null` when the host doesn't have its slot.
-  const claudeDetected = useCliDetected(host, "probeClaudeCli");
-  const codexDetected = useCliDetected(host, "probeCodexCli");
-  const antigravityDetected = useCliDetected(host, "probeAntigravityCli");
-
   /** OpenRouter first: the only provider reachable BOTH ways. */
   const order: ProviderId[] = ["openrouter", ...KEYED_PROVIDERS.filter((p) => p !== "openrouter")];
-
-  interface Agent {
-    pid: ProviderId;
-    /** The CLI behind the provider — what the account card asks. */
-    cli: AgentCli;
-    copy: AgentCopy;
-    detected: boolean | null;
-    enabled: boolean;
-    onEnabled: (on: boolean) => void;
-  }
-  const agents: Agent[] = [];
-  if (host.probeClaudeCli && onClaudeCliEnabled)
-    agents.push({
-      pid: "claude-cli",
-      cli: "claude",
-      copy: t.modelPicker.cli.claude,
-      detected: claudeDetected,
-      enabled: !!claudeCliEnabled,
-      onEnabled: onClaudeCliEnabled,
-    });
-  if (host.probeCodexCli && onCodexCliEnabled)
-    agents.push({
-      pid: "codex-cli",
-      cli: "codex",
-      copy: t.modelPicker.cli.codex,
-      detected: codexDetected,
-      enabled: !!codexCliEnabled,
-      onEnabled: onCodexCliEnabled,
-    });
-  if (host.probeAntigravityCli && onAntigravityCliEnabled)
-    agents.push({
-      pid: "antigravity-cli",
-      cli: "antigravity",
-      copy: t.modelPicker.cli.antigravity,
-      detected: antigravityDetected,
-      enabled: !!antigravityCliEnabled,
-      onEnabled: onAntigravityCliEnabled,
-    });
+  // The agents this build can offer — ONE list, shared with the onboarding step.
+  const agents = useAgentOptIns({
+    claudeCliEnabled,
+    onClaudeCliEnabled,
+    codexCliEnabled,
+    onCodexCliEnabled,
+    antigravityCliEnabled,
+    onAntigravityCliEnabled,
+  });
   const open = agents.find((a) => a.pid === agentOpen);
 
   return (
