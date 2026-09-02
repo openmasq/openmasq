@@ -350,10 +350,10 @@ window.openmasq?.auth?.onCallback?.((url) => {
 });
 
 export const authHost: AuthHost = {
-  // Desktop's magic link returns via the `<protocol>://` deep link, and the Supabase
-  // send-email hook renders a LINK-first email for app-scheme redirects — so the
-  // login screen leads with the link (code kept as a fallback via `verifyCode`).
-  linkFirst: true,
+  // The auth email carries the CODE and no link (a single-use URL in an inbox: a mail
+  // scanner's pre-fetch spends it, and it only ever landed anywhere on a machine holding
+  // a packaged build's `<protocol>://` handler). So the screen leads with `verifyCode`.
+  linkFirst: false,
   async getSession() {
     // ⚠️ Do NOT block the auth gate on `supabase.auth.getSession()`. At cold start with
     // an expired access token and the auth server UNREACHABLE, Supabase's init refresh
