@@ -7,6 +7,8 @@ machine — and puts it back in the reply.**
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)](#getting-started)
 [![Redaction](https://img.shields.io/badge/redaction-on--device-green)](#whats-in-the-box)
 
+<sub>**English** · [Français](#français)</sub>
+
 ![What the model saw: the message on the left, what actually left on the right — the name, e-mail, phone and company replaced](docs/img/what-the-model-saw.webp)
 
 *Every screenshot on this page is a real run of the app, captured on a seeded profile
@@ -226,3 +228,198 @@ there is no separate agreement to sign.
 Third-party code included here keeps its own licence: `packages/tesseract2` (derived from
 tesseract.js) and `vendor/xlsx` (SheetJS), both Apache-2.0. Assets fetched at build time
 and shipped inside the app are listed in [`NOTICE`](NOTICE).
+
+
+---
+
+# Français
+
+**Une application de chat de bureau multi-modèles qui masque les données sensibles avant
+qu'elles ne quittent votre machine — et les rétablit dans la réponse.**
+
+Le modèle ne voit jamais la vraie valeur. Ce que le moteur détecte est remplacé par un
+substitut crédible avant tout appel réseau ; la réponse est rétablie localement depuis un
+coffre propre à la conversation, si bien que l'échange se lit normalement de votre côté.
+
+```
+message ──masquage──▶ ce que le modèle reçoit ──modèle──▶ réponse ──démasquage──▶ ce que vous lisez
+```
+
+```
+vous tapez :  « Relance Jean Rebour (SAS Acme) au 06 12 34 56 78 — CA 850 000 € »
+→ au modèle : « Relance Léa Savary (Cyberdyne) au 36 86 42 08 64 — CA 850 000 € »
+← le modèle : « J'écris à Léa Savary au sujet du CA de 850 000 €… »
+→ vous lisez : « J'écris à Jean Rebour au sujet du CA de 850 000 €… »
+```
+
+Les identités sont permutées ; **les chiffres restent vrais par défaut**, pour qu'un modèle
+puisse encore calculer avec. Le coffre est stable d'un tour à l'autre — une même valeur
+donne toujours le même substitut, et c'est ce qui rend la réponse réversible.
+
+Les modèles sont atteints avec **vos propres clés d'API**, un modèle local, ou un abonnement
+Claude Code / Codex CLI. (Le code sait aussi passer par la passerelle facturée de la marque ;
+ce service ne fait pas partie de ce build — voir *Le faire tourner* plus bas.)
+
+> **La frontière de masquage gouverne ce que le *modèle* voit, et rien d'autre.** Les
+> services connectés — une boîte mail, un agenda, une recherche — reçoivent la **vraie**
+> valeur, parce qu'une recherche sur un substitut ne trouve personne. Leurs résultats
+> reviennent masqués par le même coffre. C'est un compromis délibéré et documenté :
+> [`SECURITY.md`](SECURITY.md).
+
+## Ce qu'il y a dedans
+
+- **Le moteur de masquage** — des règles déterministes, des sommes de contrôle et des
+  détecteurs de forme, puis un modèle NER local. Tout s'exécute sur la machine. Noms, dates
+  de naissance, e-mails, téléphones, adresses, lieux, entreprises, cartes, IBAN,
+  identifiants nationaux, IP, chemins de fichiers, données de santé, pseudos, URL, clés et
+  secrets.
+- **Les documents** — les pièces jointes PDF, Office et images sont extraites (pdf.js, OCR
+  par un Tesseract durci et vendorisé + docTR) puis masquées avant l'envoi.
+- **Les connecteurs MCP** — Gmail, Drive, Agenda, Slack, GitHub, Notion, Linear, Sentry,
+  PostHog, un serveur de fichiers local et un navigateur piloté par l'agent. Les appels
+  d'outils partent démasqués et leurs résultats reviennent masqués.
+- **Un bac à sable Python** — le code écrit par le modèle s'exécute sur des données
+  démasquées, sous une prison système, hors du processus privilégié.
+- **La synchronisation entre appareils** — chiffrée de bout en bout ; le serveur ne stocke
+  que du chiffré. *(Côté client seulement dans ce build : il lui faut un backend, qui n'en
+  fait pas partie.)*
+- **Les organisations** — une console d'administration avec RBAC, un journal d'audit, des
+  catégories de masquage imposées et un plancher de posture de confirmation.
+  *(Côté client seulement, pour la même raison.)*
+
+L'inventaire exhaustif, écran par écran, est dans [`FEATURES.md`](FEATURES.md).
+
+## Liens
+
+| | |
+|---|---|
+| **Centre d'aide** | [help.openmasq.com](https://help.openmasq.com) — le fonctionnement de chaque écran, en français et en anglais |
+| **Site** | [openmasq.com](https://openmasq.com) — pas encore ouvert au public |
+| **Contact** | [support@openmasq.com](mailto:support@openmasq.com) — les questions, et l'adresse où arrivent les avis envoyés depuis l'app |
+| **Sécurité** | [`SECURITY.md`](SECURITY.md) — la frontière de confiance, les résiduels, et comment signaler une faille |
+| **Ce que fait l'app, écran par écran** | [`FEATURES.md`](FEATURES.md) |
+| **Contribuer** | [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) |
+| **Héberger sa propre pile** | [`SELF_HOSTING.md`](SELF_HOSTING.md) |
+
+## L'arborescence
+
+```
+apps/
+  desktop/       L'application Electron — le produit. main (IPC, base, MCP, streaming) ·
+                 preload (contextBridge → window.openmasq) · renderer · e2e
+  mcp-broker/    Courtier MCP + serveur OAuth — un annexe LOCAL que le desktop lance
+                 (ce n'est PAS le backend : le côté serveur vit dans un autre dépôt)
+packages/
+  redact/        Le moteur de masquage (pur, couvert par ses tests)
+  ui/            Toute l'interface React + le store + le design system (4 thèmes)
+  llm/           Les clients de fournisseurs, le registre de modèles, le SSE, les outils
+  mcp/           Client MCP masquant · connectors/ outils MCP à OAuth sur l'appareil
+  catalog/       Les listes gouvernables à une seule maison (modèles, connecteurs, catégories)
+  i18n/          Le catalogue de messages typé (français source + anglais)
+  credits/ schema/ sync/ branding/ analytics/
+  tesseract2/    OCR durci et vendorisé (worker_threads + WASM) · ort/ · vendor/xlsx/
+```
+
+**Sens des dépendances :** `ui` → `llm`/`redact`/`mcp`/`catalog`/`schema`/`analytics` ;
+`mcp` → `redact` ; `sync` → `schema` ; `desktop` compose le tout et fournit le `Host`.
+**Une app n'importe jamais une autre app** — tenu par `pnpm check:dup`.
+
+## Démarrer
+
+**Prérequis** — Node.js ≥ 20 (la CI tourne en 26) et pnpm (`corepack enable` le fournit).
+
+```bash
+pnpm install
+pnpm dev          # construit les paquets, puis lance l'application Electron
+```
+
+> **Vous travaillez sur le masquage ?** Les modèles NER et OCR embarqués ne font partie ni
+> de `dev` ni de `build` — lancez `pnpm --filter @openmasq/desktop bake` une fois pour les
+> récupérer. Sans eux l'app tourne, mais la détection retombe **sans le dire** sur les
+> règles à motifs : vous testeriez le plancher des expressions régulières, pas le modèle.
+> Voir [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
+Ouvrez ensuite **⚙ Réglages** et collez une clé de fournisseur (OpenAI, Anthropic, Google,
+Mistral, DeepSeek, OpenRouter, ou n'importe quel point d'accès compatible OpenAI — Ollama,
+LM Studio, vLLM), ou pointez l'app sur un modèle local. Votre abonnement Claude Code /
+Codex CLI fonctionne aussi.
+
+**Ce build n'a pas de backend.** Ni facturation, ni synchronisation, ni organisations, ni
+modèles inclus : ces services n'en font pas partie — ils vivent dans un dépôt privé,
+derrière la porte `OPENMASQ_BILLING` — et l'app tourne sur votre machine : vos clés, un
+modèle local, ou un abonnement CLI. Le masquage s'exécute sur l'appareil.
+
+**Cinq petits services restent hébergés par la marque, et un build issu de ces sources les
+atteint par défaut** (`apps/desktop/scripts/publicServices.ts`) : la connexion (un projet
+Supabase — lien magique ou Google ; le compte ne fait que vous identifier, rien ne se cache
+derrière), le relais Slack (l'échange code→jeton que Slack interdit sur l'appareil), le
+relais analytics (des compteurs anonymes derrière un consentement explicite, plus les notes
+de version que l'app affiche), les rapports de plantage (Sentry — une liste d'autorisation
+de quelques champs machine, jamais un message, une clé ni une valeur du coffre :
+`apps/desktop/src/sentry/policy.ts`) et le flux de mises à jour (là où un build empaqueté
+cherche les nouvelles versions). Leur code n'est pas dans ce dépôt. Chacun tient en une
+variable, et une variable posée **vide** au build (`OPENMASQ_SENTRY_DSN=`,
+`VITE_UPDATES_URL=`) le débranche — un fork qui publie sous sa propre identité devrait vider
+le flux, pour ne jamais se mettre à jour avec le binaire signé de la marque
+(`SELF_HOSTING.md`). `pnpm dev` les applique aussi.
+
+Faire tourner une pile locale est un choix explicite : les surcharges vont dans un
+`apps/desktop/.env.development.local` ignoré par git, et le `.env.development` versionné dit
+lesquelles y mettre.
+
+## Y travailler
+
+```bash
+pnpm test              # tests unitaires — gratuits, à lancer sans cesse
+pnpm test:changed      # seulement ce que le graphe de changement touche
+pnpm test:redact       # le moteur de masquage seul (~4 s)
+pnpm typecheck
+pnpm build
+pnpm verify            # toute la série de contrôles, en local
+```
+
+Les suites e2e ne font **pas** partie de cette boucle : elles pilotent l'app construite
+contre de vraies API de fournisseurs et coûtent de l'argent. Chaque spec se saute d'elle-même
+sans sa clé — `pnpm --filter @openmasq/desktop e2e:openai`
+(`apps/desktop/e2e/README.md`).
+
+Certaines conventions sont tenues plutôt que demandées, chacune par son propre contrôle :
+un plafond de 300 lignes par fichier source (`check:loc`), une documentation qui ne cite que
+des chemins existants (`check:docs`), aucun fait ni comportement écrit deux fois
+(`check:dup`), `FEATURES.md` tenu au pas du produit (`check:features`), et chaque GitHub
+Action épinglée à un SHA de commit (`check:actions`). Elles tournent en CI ; `pnpm verify`
+les lance en local.
+
+Le `CLAUDE.md` à la racine est la carte — les invariants, les pièges, et où vit chaque
+chose. Chaque app et chaque paquet a aussi son `CLAUDE.md` imbriqué, que les mainteneurs
+utilisent comme carnet de bord ; ceux-là restent hors de l'arbre publié (`.gitignore`) — ici,
+le contrat, c'est le code et ses tests, pas les notes. Lisez celui de la racine avant une
+première modification.
+
+## Sécurité
+
+Le modèle de menace, les garanties et — avec la même longueur — les **limites connues** sont
+dans [`SECURITY.md`](SECURITY.md). Il est écrit pour être vérifié contre ces sources, pas
+pour être cru sur parole : masquer c'est détecter, et détecter est imparfait ; l'injection de
+prompt est bornée, pas résolue ; le chiffrement au repos n'est pas garanti sur toutes les
+installations ; et la prison Python n'est pas aussi solide sur toutes les plateformes. Tout
+cela y est dit.
+
+**Signalez une faille en privé** par le parcours *Security → Report a vulnerability* de ce
+dépôt. N'ouvrez pas d'issue, de discussion ni de pull request publique contenant les détails
+d'un exploit.
+
+## Licence
+
+[Licence Apache 2.0](LICENSE) — pour tout le dépôt : l'application de bureau, les paquets (le
+moteur de masquage compris), le courtier MCP local et l'outillage. Vous pouvez l'utiliser, le
+modifier, le redistribuer et bâtir dessus, y compris commercialement, à condition de
+conserver les mentions ([`NOTICE`](NOTICE)) et d'indiquer vos modifications ; la licence
+porte aussi une concession de brevet expresse de chaque contributeur.
+
+Les contributions sont acceptées sous la même licence, par la section 5 de la licence
+elle-même — il n'y a aucun accord séparé à signer.
+
+Le code tiers inclus ici garde sa propre licence : `packages/tesseract2` (dérivé de
+tesseract.js) et `vendor/xlsx` (SheetJS), tous deux en Apache-2.0. Les ressources
+téléchargées au build et embarquées dans l'app sont listées dans [`NOTICE`](NOTICE).

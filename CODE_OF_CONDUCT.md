@@ -1,5 +1,7 @@
 # Contributor Covenant Code of Conduct
 
+<sub>**English** · [Français](#code-de-conduite-contributor-covenant)</sub>
+
 ## Our Pledge
 
 We as members, contributors, and leaders pledge to make participation in our community a
@@ -115,5 +117,114 @@ https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
 
 Community Impact Guidelines were inspired by
 [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
+
+[homepage]: https://www.contributor-covenant.org
+
+---
+
+# Code de conduite Contributor Covenant
+
+> Traduction de courtoisie. En cas de divergence, **le texte anglais ci-dessus fait foi**.
+> Les traductions officielles du Contributor Covenant sont sur
+> <https://www.contributor-covenant.org/translations>.
+
+## Notre engagement
+
+En tant que membres, contributeurs et responsables, nous nous engageons à faire de la
+participation à notre communauté une expérience exempte de harcèlement pour tout le monde,
+quels que soient l'âge, la corpulence, le handicap visible ou invisible, l'origine
+ethnique, les caractéristiques sexuelles, l'identité et l'expression de genre, le niveau
+d'expérience, l'éducation, le statut socio-économique, la nationalité, l'apparence
+personnelle, la race, la religion ou l'identité et l'orientation sexuelles.
+
+Nous nous engageons à agir et à interagir de manière à contribuer à une communauté ouverte,
+accueillante, diverse, inclusive et saine.
+
+## Nos critères
+
+Exemples de comportements qui contribuent à un environnement positif :
+
+- faire preuve d'empathie et de bienveillance ;
+- respecter les opinions, points de vue et expériences divergents ;
+- donner et accueillir avec grâce les retours constructifs ;
+- accepter la responsabilité de ses erreurs, présenter ses excuses aux personnes affectées
+  et apprendre de l'expérience ;
+- se concentrer sur ce qui est le mieux non seulement pour soi, mais pour l'ensemble de la
+  communauté.
+
+Exemples de comportements inacceptables :
+
+- l'usage de langage ou d'images à connotation sexuelle, et les avances sexuelles ;
+- le trollage, les commentaires insultants ou désobligeants, et les attaques personnelles
+  ou politiques ;
+- le harcèlement public ou privé ;
+- la publication d'informations privées d'autrui — adresse postale ou électronique par
+  exemple — sans autorisation explicite ;
+- toute conduite qu'on pourrait raisonnablement juger inappropriée dans un cadre
+  professionnel.
+
+### Une note propre à ce projet
+
+OpenMasq manipule les données personnelles d'autrui. Deux conséquences en découlent, et
+elles font partie de ce code plutôt que d'une règle séparée :
+
+- **Ne collez jamais de données personnelles réelles dans une issue, une pull request ou une
+  fixture de test.** Les fixtures de ce dépôt sont synthétiques à dessein, et un contrôle le
+  tient. Si vous devez décrire un échec de détection, décrivez la *forme* de la valeur, pas
+  la valeur.
+- **Signalez une faille présumée en privé**, par le processus décrit dans
+  [`SECURITY.md`](SECURITY.md) — pas dans une issue publique. Divulguer un trou avant qu'un
+  correctif ne soit livré met de vrais utilisateurs en danger, et c'est l'exact contraire de
+  ce à quoi ce projet sert.
+
+## Responsabilités d'application
+
+Les responsables de la communauté ont la charge de clarifier et de faire respecter ces
+critères, et prendront des mesures correctives appropriées et équitables face à tout
+comportement qu'ils jugeront inapproprié, menaçant, offensant ou nuisible.
+
+Ils ont le droit et le devoir de retirer, modifier ou rejeter commentaires, commits, code,
+modifications du wiki, issues et autres contributions non alignés sur ce code de conduite,
+et communiqueront les raisons de leurs décisions de modération quand cela est approprié.
+
+## Portée
+
+Ce code de conduite s'applique dans tous les espaces de la communauté, ainsi que lorsqu'une
+personne représente officiellement la communauté dans un espace public.
+
+## Application
+
+Les cas de comportement abusif, harcelant ou autrement inacceptable peuvent être signalés
+aux responsables de la communauté à **support@openmasq.com**. Toutes les plaintes seront
+examinées et instruites rapidement et équitablement.
+
+Tous les responsables sont tenus de respecter la vie privée et la sécurité de la personne
+qui signale un incident.
+
+## Lignes directrices d'application
+
+**1. Correction** — un langage inapproprié ou un comportement jugé non professionnel :
+un avertissement privé et écrit, avec l'explication de la nature du manquement ; des excuses
+publiques peuvent être demandées.
+
+**2. Avertissement** — un manquement par un incident ou une série d'actions : un
+avertissement assorti de conséquences en cas de récidive, et l'interdiction d'interagir avec
+les personnes concernées pendant une durée déterminée.
+
+**3. Bannissement temporaire** — un manquement grave, dont un comportement inapproprié
+soutenu : l'interdiction temporaire de toute interaction ou communication publique avec la
+communauté.
+
+**4. Bannissement permanent** — la démonstration d'un schéma de manquements, du harcèlement
+ou de l'agression envers une catégorie de personnes : l'interdiction permanente de toute
+interaction publique au sein de la communauté.
+
+## Attribution
+
+Ce code de conduite est adapté du [Contributor Covenant][homepage], version 2.1, disponible
+sur https://www.contributor-covenant.org/version/2/1/code_of_conduct.html.
+
+Les lignes directrices d'impact communautaire s'inspirent de
+[l'échelle d'application du code de conduite de Mozilla](https://github.com/mozilla/diversity).
 
 [homepage]: https://www.contributor-covenant.org

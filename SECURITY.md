@@ -1,5 +1,7 @@
 # Security policy
 
+<sub>**English** · [Français](#politique-de-sécurité)</sub>
+
 The product is a desktop application whose purpose is to keep sensitive data on the user's
 machine: text is redacted before it leaves, the model only ever receives substitutes, and
 the reply is restored locally from a per-conversation vault. This document states what that
@@ -233,3 +235,269 @@ this list is the consolidated view.
 
 Security fixes are made on the current release and the main branch. Older releases may
 require upgrading.
+
+---
+
+# Politique de sécurité
+
+Le produit est une application de bureau dont la raison d'être est de garder les données
+sensibles sur la machine de l'utilisateur : le texte est masqué avant de partir, le modèle ne
+reçoit jamais que des substituts, et la réponse est restaurée localement depuis un coffre
+propre à la conversation. Ce document énonce ce que cette conception garantit et ce qu'elle ne
+garantit pas.
+
+Il est écrit pour être lu par quelqu'un qui décide s'il fait confiance au produit — un
+utilisateur, un DPO, un relecteur sécurité. Une promesse de confidentialité invérifiable ne
+vaut rien : les limites ci-dessous sont donc énoncées aussi platement que les garanties. Elles
+ne sont ni une feuille de route ni la promesse que l'une d'elles sera comblée.
+
+## Signaler une faille
+
+Signalez une faille présumée **en privé**, par le parcours **Security → Report a
+vulnerability** de ce dépôt. Si ce formulaire ne vous est pas accessible, écrivez à
+**support@openmasq.com** avec `security` comme premier mot de l'objet, et nous basculerons le
+fil vers un avis privé. Dans les deux cas, n'ouvrez pas d'issue, de discussion ou de pull
+request publique contenant les détails d'un exploit — un signalement non corrigé lu au grand
+jour arme quiconque fait encore tourner la version affectée.
+
+Indiquez la version affectée, la plateforme, l'impact et la plus petite reproduction que vous
+puissiez fournir sans risque. Ne testez pas contre des comptes ou des déploiements qui ne sont
+pas les vôtres, et n'accédez pas à des données qui ne sont pas les vôtres.
+
+---
+
+## Ce que le produit protège
+
+**La frontière de masquage.** Les valeurs que le moteur détecte — noms, dates de naissance,
+adresses e-mail, numéros de téléphone, adresses, lieux, entreprises, cartes, IBAN,
+identifiants nationaux et d'entreprise, IP, numéros, chemins de fichiers, données de santé,
+pseudonymes, URL, clés et secrets — sont remplacées avant tout appel réseau, et restaurées
+seulement dans la copie de l'utilisateur. Le moteur tourne sur l'appareil (règles
+déterministes, sommes de contrôle, détecteurs de forme, puis un modèle NER local).
+
+**Échouer fermé.** En cas d'erreur, d'expiration ou d'inconnu, le résultat sûr est le défaut :
+l'envoi est bloqué, le résultat d'outil est masqué, l'appel d'outil est refusé. Un moteur de
+masquage qui n'a pas pu tourner ne se dégrade **pas** en silence vers une détection plus
+faible — l'envoi est refusé.
+
+**Le trajet vers l'extérieur est inconditionnel.** Chaque appel d'outil part avec la vraie
+valeur et son résultat revient masqué, par le même coffre. Les catégories protégées
+gouvernent ce que voit le **modèle**, et rien d'autre.
+
+**Des listes d'autorisation, pas d'interdiction.** Les outils du navigateur, les entrées du
+catalogue de connecteurs, les hôtes de `fetch` et les listes de résultats d'outils laissés en
+clair énumèrent tous ce qui est permis. Une primitive nouvellement apparue dans une dépendance
+est refusée par défaut plutôt qu'exposée en silence.
+
+**L'isolation des processus.** Sept choses tournent hors du processus privilégié, chacune
+parce que la replier serait un affaiblissement réel : le navigateur agent (CDP est global au
+processus), le serveur @playwright/mcp (code tiers), le bac à sable Python (du code écrit par
+le modèle tournant sur des données démasquées, sous une prison de l'OS), la fenêtre
+d'impression PDF, le worker de système de fichiers, les workers NER et d'embeddings. Le
+sidecar du broker MCP local est un huitième, lancé de la même façon.
+
+**Le renderer n'est pas de confiance.** Chaque porte que l'interface montre est de l'UX ; la
+vraie décision est reprise dans le processus privilégié, parce qu'un XSS dans le renderer peut
+appeler directement n'importe quel IPC exposé.
+
+**Les secrets au repos.** Les clés de fournisseur sont en écriture seule depuis l'interface —
+posées et effacées, jamais relues — et sont injectées dans l'appel au fournisseur par le
+processus privilégié. La base locale, les blobs de fichiers et le journal de débogage sont
+chiffrés par compte.
+
+**Des ressources épinglées par empreinte.** Les traineddata et les modèles d'OCR, les poids
+NER et le runtime Python sont cuits dans le build et vérifiés en sha256 avant d'atteindre un
+analyseur ou un interpréteur. Chacun est récupéré au moment du *build* depuis l'origine
+canonique de son éditeur, sur un commit épinglé, et vérifié contre une empreinte gardée dans
+les sources. Une exécution packagée normale n'en télécharge aucun. Une ressource peut encore
+retomber sur un téléchargement à l'exécution si son répertoire cuit manque au build — voir
+**Les ressources cuites ont un repli à l'exécution** dans les limites connues.
+
+**Les sorties réseau sont consignées.** Chaque décision sortante passe par un plancher SSRF
+unique, qui consigne par compte l'origine contactée (ou refusée), visible dans Réglages →
+Journal. Les origines seulement — jamais un chemin ni une requête, parce qu'une URL signée y
+porte son jeton.
+
+**La synchronisation entre appareils est chiffrée de bout en bout.** Le serveur ne stocke que
+du chiffré ; les clés dérivent d'une phrase secrète que l'utilisateur détient. Les jetons OAuth
+des connecteurs ne sont **pas** synchronisés — chaque appareil fait sa propre autorisation.
+
+---
+
+## Frontières de confiance et hypothèses
+
+- **La machine de l'utilisateur est de confiance.** L'application empêche les données d'en
+  sortir ; elle ne protège pas contre un système d'exploitation compromis, un utilisateur
+  local malveillant disposant de la session du compte, ou un accès physique à une machine
+  déverrouillée.
+- **Les fournisseurs de modèles reçoivent ce qu'on leur envoie** — c'est-à-dire le texte
+  masqué. Le produit ne contrôle pas leur rétention. Quand sa propre passerelle est utilisée,
+  elle voit le même texte masqué et compte les crédits dessus.
+- **Les services connectés reçoivent de vraies valeurs**, par nécessité : chercher un
+  substitut ne trouve personne. Qui connecte un service hérite de l'exposition de ce service.
+- **Les pages web et les résultats d'outils sont des entrées hostiles.** Ce sont des données,
+  jamais des instructions. Les portes qui les entourent limitent les dégâts, elles ne
+  démontrent rien.
+- **Le modèle n'est pas une frontière d'autorisation.** Il propose ; les portes déterministes
+  et les confirmations de l'utilisateur disposent.
+- **Un administrateur d'organisation fixe la politique et peut voir les données d'audit.** Les
+  catégories de masquage imposées ne peuvent être ni désactivées ni révélées par un membre.
+- **Une approbation signifie qu'un humain a accepté l'action affichée** avec l'information
+  montrée à cet instant — pas que le comportement qui en découle est sûr.
+
+---
+
+## Limites connues
+
+Chacune est un manque réel et actuellement ouvert. Elles sont documentées au niveau du code
+qui les porte ; cette liste en est la vue consolidée.
+
+**Le masquage est une détection, et une détection est imparfaite.**
+- Une valeur qu'aucun détecteur ne reconnaît part en clair. Le geste manuel « Masquer » et le
+  Coffre (les termes toujours masqués) existent pour cela, et le Coffre est la seule
+  *garantie* de couverture pour une chaîne donnée.
+- **Des données personnelles cuites dans des pixels que l'OCR n'a jamais lus sont invisibles à
+  toutes les portes**, y compris à la preuve valeur par valeur qui garde l'envoi d'un document
+  sous forme d'images masquées.
+- Le nettoyage de la pollution du coffre peut écarter un chemin de fichier réellement vrai, qui
+  partirait alors en clair à l'envoi suivant. Celui-ci échoue **ouvert** et le dit à l'endroit
+  du code.
+- Un substitut que le modèle *traduit* (`[PERSON1]` → `[PERSONNE1]`) n'est pas restauré.
+
+**L'injection de prompt est bornée, pas résolue.**
+- Le contenu entrant est **étiqueté et examiné, pas filtré**. Les résultats d'outils et les
+  pages arrivent enveloppés d'un marqueur de provenance qui dit au modèle que ce sont des
+  données ; un pré-filtre heuristique gratuit tourne sur tous, et un classifieur modèle
+  seulement sur le contenu externe qu'il a signalé. L'examen **marque** — il ne retire jamais
+  de contenu, parce qu'un faux positif amputerait en silence un résultat légitime. C'est une
+  heuristique, pas une garantie, et elle ne couvre pas le contenu que le pré-filtre ne
+  reconnaît pas.
+- Les défenses restantes sont sur le trajet sortant : une liste de domaines autorisés, des
+  analyses d'exfiltration sur les arguments d'outils et les URL de navigation, et des cartes de
+  confirmation.
+- Le produit **accepte sciemment** qu'un modèle sous injection puisse glisser une vraie valeur
+  dans une URL qu'il construit. La liste d'autorisation, l'analyse d'exfiltration à la
+  navigation et la carte de confirmation sont la ligne ; ce sont des heuristiques.
+- Les noms d'outils sont classés en lecture ou écriture par heuristique. Un outil nommé pour
+  tromper (`fetch_customer` qui supprime) n'est rattrapé que par le filet d'exfiltration sur
+  les arguments, s'il l'est.
+
+**Le modèle de confirmation a un trou accepté en mode `standard`.**
+- Dans le mode `standard` par défaut, une écriture ordinaire n'est confirmée que par une carte
+  dans la fenêtre : un XSS dans le renderer pourrait donc déclencher une écriture sans
+  confirmation visible par l'utilisateur. Ce qui la borne : le mode lui-même appartient au
+  processus privilégié, et *redescendre* de `renforcé` à `standard` exige une confirmation sur
+  une fenêtre système non usurpable. `renforcé` fait passer les écritures par cette fenêtre.
+
+**La politique d'organisation est appliquée dans le processus privilégié, mais depuis une liste
+non vérifiée.**
+- Un connecteur bloqué est désormais refusé au dispatch d'outil, à la connexion, et quand le
+  même service est rajouté par URL. La liste elle-même arrive encore de l'interface : une
+  compromission du renderer qui la vide vide la politique ; tout ce qui est en deçà est fermé.
+- La posture de confirmation qu'une organisation impose est un plancher, composé en prenant le
+  plus strict du plancher et du choix du membre. Cette direction est délibérée : un plancher
+  non vérifié ne peut jamais qu'ajouter des confirmations, jamais en retirer une.
+
+**Le chiffrement au repos n'est pas garanti sur toutes les installations.**
+- Un build distribué qui n'atteint pas le trousseau de l'OS (Linux sans libsecret, une panne
+  passagère) ouvre la base **en clair** plutôt que d'enfermer l'utilisateur dehors. C'est
+  signalé par un log de sécurité bruyant, une seule fois, et par une boîte de dialogue native
+  qui nomme le risque, et `OPENMASQ_REQUIRE_DB_ENCRYPTION=1` le fait échouer à la place. Le
+  vrai correctif — une clé dérivée d'une phrase secrète quand aucun trousseau n'est disponible
+  — n'est pas implémenté.
+- Le même repli s'applique aux deux secrets de synchronisation — la phrase secrète et le
+  secret d'appareil — qui sont écrits encodés en base64 plutôt que chiffrés quand le trousseau
+  est inaccessible. La phrase secrète est la clé qui déchiffre le coffre de tous les appareils
+  du compte : c'est donc le plus lourd de conséquences des deux replis. Il n'est annoncé que
+  par une ligne de log : il n'y a ni dialogue ni interrupteur `OPENMASQ_REQUIRE_…` pour le
+  faire échouer, contrairement à la base ci-dessus. Les fichiers gardent dans ce cas un nom en
+  `.enc`, ce qui induit en erreur, et les permissions autour (`0600`) sont tout ce qui sépare
+  la phrase secrète d'un autre compte local.
+- Les builds de développement sont en clair, à dessein.
+
+**Le navigateur agent ne peut pas épingler son propre DNS.**
+- Chromium re-résout au moment de la connexion : un vrai enregistrement de DNS rebinding
+  (public à la vérification, privé à la connexion) n'est donc détecté qu'après coup. Electron
+  n'expose aucun épinglage de résolveur par navigation. Les actions faites dans le navigateur
+  ne repassent pas non plus par la porte d'écriture ; elles s'appuient sur la liste
+  d'autorisation des outils du navigateur et sur les portes de navigation.
+
+**Le bac à sable Python n'est pas aussi solide sur toutes les plateformes.**
+- Windows est un prototype sans prison. Sur macOS et Linux la prison est réelle mais le côté
+  lecture est délibérément large (l'interpréteur a besoin de sa bibliothèque standard et de ses
+  bibliothèques dynamiques).
+- L'installation des wheels vérifie les empreintes ; le résiduel est une compromission de
+  l'index au moment de la CI. Les utilisateurs finaux reçoivent à la place une signature du
+  runtime entier.
+
+**Les ressources cuites ont un repli à l'exécution.**
+- Les données de langue de l'OCR sont embarquées et vérifiées en sha256, mais le code qui
+  pointe le moteur vers le bundle est conditionné à la présence de ce répertoire. Un build
+  packagé dont l'étape de bake ne l'a pas produit — ou dont le chemin de ressource ne se
+  résout pas — laisse le moteur sur le défaut de sa bibliothèque, qui récupère les données de
+  langue sur le réseau depuis un CDN public **sans empreinte pour les vérifier**, et remet les
+  octets à l'analyseur OCR. Cet analyseur est du code natif, et il tourne dans un processus qui
+  détient du contenu déchiffré. Le même épinglage s'applique aux modèles de détection de l'OCR,
+  qui refusent en plus catégoriquement un modèle non épinglé ; les données de langue ne le font
+  pas encore. Rien d'autre — aucun modèle, aucune wheel, aucun binaire, aucun code exécutable —
+  n'a de chemin réseau à l'exécution.
+
+**La provenance des modèles n'est pas entièrement de première main.**
+- Les poids NER proviennent d'un ré-upload communautaire d'un modèle multilingue public. Le
+  build de bureau les cuit épinglés en sha256 et hors ligne ; les builds de développement
+  n'épinglent que le commit. Un ré-export de première main est le correctif prévu et n'est pas
+  fait.
+
+**Autres résiduels énoncés.**
+- Un point d'accès `openai-compat` réellement distant ne peut pas porter une clé stockée sans
+  risque : la clé n'est attachée que pour les points d'accès en loopback et sur réseau privé,
+  et est abandonnée sinon.
+- Le point d'accès des retours n'a pas de limite de débit.
+- À la synchronisation, le jeton de compte peut enregistrer de nouveaux appareils ; un jeton
+  restreint par appareil est un travail de suite. L'extension de navigateur (maintenue hors de
+  ce dépôt) est en écriture seule par une capacité imposée côté serveur, avec une exception de
+  lecture délibérée pour les termes du Coffre, qu'elle doit tirer pour les appliquer.
+- Trois canaux du processus principal récupèrent une URL choisie par le renderer — l'appel au
+  modèle lui-même (`chat:*`), le lecteur de pages en lot (`web:fetch-many`) et le point d'accès
+  d'embeddings. Chacun est contraint aux hôtes publics par la garde SSRF, et aucun n'est
+  contraint aux hôtes que l'application a observés dans du contenu reçu. Une exécution de script
+  dans le renderer peut donc envoyer des données vers un hôte public de son choix. Le premier
+  est l'appel au modèle : il ne peut pas être fermé sans que le processus principal connaisse
+  l'origine de la passerelle ; les deux autres sont acceptés à côté, parce que les fermer
+  refuserait une URL tapée par l'utilisateur et un service d'embeddings auto-hébergé tout en
+  laissant le premier à l'attaquant.
+- Le journal des sorties réseau est une preuve au mieux : il est vidé sur un court debounce et
+  à la fermeture, donc une mort brutale perd les dernières secondes. Rien n'en dépend.
+
+---
+
+## Chaîne d'approvisionnement
+
+- **Délai de refroidissement des dépendances.** Une version de paquet publiée depuis moins de
+  **trois jours** ne peut pas être résolue dans le lockfile (`minimumReleaseAge` dans
+  `pnpm-workspace.yaml`). Le schéma d'attaque npm — un jeton de mainteneur volé publie une
+  version corrective malveillante — est normalement repéré et dépublié en quelques heures.
+  Seule la résolution est concernée ; les installations `--frozen-lockfile` ne le sont pas, et
+  un correctif de sécurité urgent peut être pris explicitement avec
+  `--config.minimumReleaseAge=0`.
+- **Les actions de CI sont épinglées à des SHA de commit**, jamais à des tags. Un tag est un
+  pointeur mutable que son propriétaire peut re-viser vers du code qui tournerait alors avec
+  les secrets du job. Tenu par `pnpm check:actions`.
+- **Les avis de sécurité des dépendances** sont triés par surface, pas par nombre.
+  `pnpm audit:gate` sépare les avis qui atteignent un workspace livré ou exposé à Internet de
+  l'outillage de développement et de build qui ne part jamais, et échoue sur les premiers.
+  **Ce n'est pas une vérification obligatoire aujourd'hui** : il tourne sur une planification
+  hebdomadaire et à la demande, et aucune pull request n'est bloquée par lui. En faire une
+  porte de fusion attend les constats ouverts qu'il rapporte actuellement. Deux limites méritent
+  d'être connues à la lecture de son verdict : il ne considère que `high` et `critical`, donc un
+  avis noté `moderate` sur un service exposé à Internet n'apparaît pas ; et il décide du
+  caractère livré ou de développement d'après le chemin de dépendance que l'audit rapporte,
+  donc un paquet atteint à la fois par un outil de build et par un paquet livré peut être classé
+  par le mauvais chemin.
+- **Rien de privilégié n'est récupéré à l'exécution.** Modèles, wheels, traineddata et binaires
+  sont cuits au moment du build et vérifiés par empreinte.
+
+## Versions suivies
+
+Les correctifs de sécurité sont faits sur la version courante et sur la branche principale. Les
+versions plus anciennes peuvent demander une mise à jour.

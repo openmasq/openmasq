@@ -1,5 +1,7 @@
 # Contributing to OpenMasq
 
+<sub>**English** · [Français](#contribuer-à-openmasq)</sub>
+
 Thanks for wanting to contribute. This document says how to work here without friction:
 the repository checks itself a great deal (seventeen `check:*` gates), and a pull request that
 passes them is quick to review.
@@ -107,3 +109,120 @@ Read it before a first change: it is short, and it is the map.
 
 A vulnerability is **never** reported in a public issue — see `SECURITY.md` (the
 *Security → Report a vulnerability* flow).
+
+
+---
+
+# Contribuer à OpenMasq
+
+Merci d'avoir envie de contribuer. Ce document dit comment travailler ici sans friction :
+le dépôt se contrôle lui-même beaucoup (dix-sept portes `check:*`), et une pull request qui
+les passe se relit vite.
+
+Le projet est sous [licence Apache 2.0](LICENSE). En ouvrant une pull request vous soumettez
+votre contribution sous cette même licence — la section 5 de la licence le dit, et il n'y a
+aucun accord séparé à signer.
+
+## Démarrer
+
+Prérequis : **Node ≥ 20** (la CI tourne en 26) et **pnpm** (`corepack enable`). Pas de
+serveur, pas de Docker : l'app tourne seule.
+
+```bash
+pnpm install
+pnpm dev                     # construit les paquets, puis lance l'application Electron
+
+# Les modèles embarqués — ils ne font partie NI de `dev` NI de `build`, et il faut le savoir :
+pnpm --filter @openmasq/desktop bake   # CPython, poids NER, données OCR, embeddings
+```
+
+⚠️ **Sans `bake`, le NER et l'OCR locaux sont indisponibles et le masquage retombe sur les
+règles à motifs déterministes.** L'app tourne quand même, et rien ne vous prévient — donc si
+vous touchez à la détection, lancez `bake` d'abord, sinon vous mesurerez le plancher des
+expressions régulières et non le produit. Chaque ressource est épinglée en sha256 ; une
+source injoignable est sautée avec un avertissement (sauf les poids NER, qui font échouer le
+bake plutôt que de livrer un modèle vide).
+
+Le dev atteint les cinq mêmes services hébergés qu'un build — connexion, relais Slack, relais
+analytics, flux de versions, Sentry (`apps/desktop/scripts/publicServices.ts`) — sans aucune
+valeur locale par défaut ; posez une variable vide pour tourner sans l'un d'eux. L'app tourne
+sans le moindre backend : collez une clé de fournisseur ou pointez-la sur un modèle local.
+Une pile locale est un choix explicite : `apps/desktop/.env.development` dit quelles
+surcharges mettre dans votre `.env.development.local` ignoré par git.
+
+## La boucle de travail
+
+```bash
+pnpm test:changed      # après chaque salve d'édits — remonte le graphe depuis le diff
+pnpm test:related <f>  # cibler des fichiers (pas de `--`, pnpm l'avale)
+pnpm test:redact       # le moteur de masquage seul (~4 s)
+pnpm check:lint        # lint Biome (tenu en CI et au pre-commit)
+pnpm format            # format Biome — à appliquer au code que vous ÉCRIVEZ
+pnpm verify            # toute la série de portes, à passer avant d'ouvrir une PR
+```
+
+**Format contre lint.** Le **lint** est tenu partout (CI + pre-commit). Le **format**
+(Biome) est disponible et configuré pour votre éditeur, mais il n'est **pas** imposé
+rétroactivement à tout l'arbre : le code existant est écrit dense pour rester sous le
+plafond de 300 lignes (règle 1), et un reformatage global le ferait déborder. Lancez
+`pnpm format` sur ce que vous écrivez ; ne reformatez pas des fichiers que vous ne touchez pas.
+
+⚠️ **Les suites e2e tapent de vraies API de fournisseurs et coûtent de l'argent.** N'en
+lancez jamais une par curiosité ; les tests unitaires (`pnpm test`) sont gratuits et
+couvrent l'essentiel. Chaque spec e2e SE SAUTE d'elle-même quand la clé de son fournisseur
+est absente (`test.skip` en tête de fichier), et elles se lancent une par une :
+`pnpm --filter @openmasq/desktop e2e:openai`, `e2e:workflows`…
+(`apps/desktop/e2e/README.md`).
+
+## Les portes — pourquoi elles vous bloquent, et comment lire le rouge
+
+Ici les conventions ne sont pas demandées, elles sont **tenues**. Chaque porte imprime la
+raison de son existence quand elle échoue — lisez le message avant de la contourner :
+
+| Porte | Ce qu'elle protège |
+|---|---|
+| `check:lint` | Les erreurs que le typage ne voit pas (hook mal placé, import mort, chaînage optionnel casté), via Biome. |
+| `check:loc` | Aucun fichier source au-dessus de 300 lignes (dette gelée, qui ne peut que diminuer). |
+| `check:dup` | Un fait ou un comportement a UNE maison — jamais une seconde copie qu'un commentaire promet de tenir alignée. |
+| `check:docs` | Le `CLAUDE.md` racine ne cite que des chemins existants, et ne dépasse pas sa taille gelée. ⚠️ Les guides imbriqués sont ignorés par git — la porte ne les voit pas. |
+| `check:i18n` | Aucune formulation codée en dur dans un composant : elle appartient à `@openmasq/i18n` (cliquet insensible aux accents). |
+| `check:alias` | La table d'alias workspace→`src` et sa copie dans `tsconfig` s'accordent. |
+| `check:effects` | Un `useEffect` qui s'abonne rend son nettoyage. |
+| `check:shipped` | Ce que les bundles expédient correspond à ce que l'empaquetage attend. |
+| `check:pkgtree` | Le `node_modules` aplati de l'app empaquetée résout les versions que le build visait (release seulement). |
+| `check:features` | `FEATURES.md` décrit le vrai produit (écrans, réglages, compteurs). |
+| `check:tests` | Chaque `*.test.ts` suivi est réellement exécuté par un `include`. |
+| `check:brand` | Le nom de code retiré du dépôt ne revient pas. |
+| `check:pii` | Aucune identité réelle ne revient dans les fixtures (empreintes hachées). |
+| `check:actions` | Chaque GitHub Action est épinglée à un SHA de commit. |
+| `check:knip` | Le code mort n'augmente pas (cliquet). |
+
+Les invariants plus profonds — échouer fermé, liste d'autorisation jamais liste
+d'interdiction, le renderer n'est pas digne de confiance, la frontière modèle/extérieur du
+masquage — sont dans le **`CLAUDE.md`** de la racine. Lisez-le avant une première
+modification : il est court, et c'est la carte.
+
+## Commits et pull requests
+
+- **Une PR = UNE intention** — un bug, une fonctionnalité ou un refactor, jamais deux. La
+  part mécanique (renommage, déplacement, formatage) part dans sa PROPRE PR, avant celle qui
+  change le comportement. Visez ≤ 400 lignes de diff ; au-delà, empilez les PR.
+- **Un commit = une étape cohérente, verte seule** (un `git bisect` doit pouvoir s'y
+  arrêter). Aucun « wip », « oops » ou « fixup » dans l'historique poussé — écrasez avant de
+  pousser.
+- **Titres en ANGLAIS, conventional commits, effet observable** :
+  `type(scope): ce que le code fait MAINTENANT`, avec un type parmi
+  `feat|fix|refactor|chore|docs|test`. Jamais « update » ni « improvements ».
+- **Corps de PR : 3 blocs** (le gabarit les porte) — *Quoi/pourquoi* (l'intention, pas le
+  diff paraphrasé), *Vérifié* (les portes réellement passées), *Résiduels* (ce qui reste
+  ouvert, ou « aucun »).
+- **Un correctif de sécurité ne se décrit jamais** : dites ce que le code garantit
+  MAINTENANT, jamais ce qui était exposé ni depuis quand (voir `SECURITY.md`).
+- Circuit : **fork → branche → PR contre `dev`** (la branche par défaut ; `main` est la
+  ligne de release). Personne ne pousse directement. Fusions en rebase, jamais un commit de
+  merge.
+
+## Sécurité
+
+Une faille ne se signale **jamais** dans une issue publique — voir `SECURITY.md` (le
+parcours *Security → Report a vulnerability*).
