@@ -412,9 +412,9 @@ module.exports = {
   publish: {
     provider: "generic",
     // Fallback only (the app overrides via setFeedURL to its baked channel). Points
-    // at the prod default; `channel: latest` is the electron-updater manifest
+    // at the stable default; `channel: latest` is the electron-updater manifest
     // FILENAME prefix (latest-mac.yml), not the logical update channel.
-    url: `https://updates.${brand.domain}/desktop/desktop-production`,
+    url: `https://updates.${brand.domain}/desktop/desktop-stable`,
     channel: "latest",
   },
 };

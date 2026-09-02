@@ -169,7 +169,7 @@ export default defineConfig({
     // env-bound update CHANNEL as literal process.env replacements at build time
     // (src/main/updates.ts reads them). Unset → "" → the code's own defaults win.
     // VITE_UPDATES_CHANNEL is what ties a build to its environment: a staging
-    // build ships defaulting to `desktop-staging`, a prod build to `desktop-production`.
+    // build ships defaulting to `desktop-beta`, a fleet build to `desktop-stable`.
     // Identifiers + channels baked at build time — NO default tied to an account (see scripts/buildDefines.ts).
     define: mainDefines(),
     build: {

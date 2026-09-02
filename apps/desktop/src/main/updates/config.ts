@@ -31,12 +31,13 @@ export const UPDATES_CONFIGURED = !!UPDATES_URL;
 // enrolled every fresh install from the landing page's .dmg into beta (08/14). Being in beta
 // is an ACT: `allow_self_pin` + the in-app switch, persisted here — and an existing
 // `updates.json` always wins over the baked value.
-export const DEFAULT_CHANNEL = process.env.VITE_UPDATES_CHANNEL || "desktop-production";
+export const DEFAULT_CHANNEL = process.env.VITE_UPDATES_CHANNEL || "desktop-stable";
 
-// Channels that predate the env-bound model (desktop-staging/desktop-production).
-// A persisted "latest" from a pre-migration install must NOT win over the baked
-// channel — that channel no longer serves releases (the feed 404s), so we treat
-// it as stale and migrate the install to this build's environment channel.
+// Channels that predate the current naming. "latest" predates channels entirely; the two
+// env-shaped names (desktop-staging/desktop-production) predate the beta/stable rename and
+// are STILL SERVED by the Worker as aliases, so they are NOT listed here — an install that
+// persists one keeps updating. Only a channel that no longer serves releases belongs in this
+// set: a persisted value must not win over the baked one when the feed would 404.
 const LEGACY_CHANNELS = new Set(["latest"]);
 
 // ⛔ NO `autoUpdate` preference here, and this is not an oversight. Updates are

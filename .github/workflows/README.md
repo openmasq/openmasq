@@ -20,7 +20,7 @@ secret to pass, that is a bug in the workflow, not a setup step for the contribu
 
 | Workflow | Trigger | Needs |
 |---|---|---|
-| `release.yml` | `v*` / `staging-v*` tags | Apple signing + R2 + updates-Worker token. **Every secret-dependent step is skipped with a named notice when the secret is absent**: a fork's tag builds, boot-smokes and uploads the UNSIGNED app to the run — nothing reaches a channel (`PUBLISH` in the job env is the one decision). |
+| `release.yml` | `v*` / `beta-v*` tags | Apple signing + R2 + updates-Worker token. **Every secret-dependent step is skipped with a named notice when the secret is absent**: a fork's tag builds, boot-smokes and uploads the UNSIGNED app to the run — nothing reaches a channel (`PUBLISH` in the job env is the one decision). |
 | `release-windows.yml` | manual | nothing — by design (see its header). |
 | `audit.yml` | weekly | nothing. `pnpm audit` sorted by shipped surface. |
 
@@ -57,7 +57,7 @@ pour le contributeur.
 
 | Workflow | Déclencheur | Exige |
 |---|---|---|
-| `release.yml` | tags `v*` / `staging-v*` | La signature Apple + R2 + le jeton du Worker de mises à jour. **Chaque étape dépendante d'un secret est sautée avec un avis nommé quand le secret est absent** : le tag d'un fork construit, passe le test de démarrage et téléverse l'application NON SIGNÉE dans le run — rien n'atteint un canal (`PUBLISH` dans l'env du job est la décision unique). |
+| `release.yml` | tags `v*` / `beta-v*` | La signature Apple + R2 + le jeton du Worker de mises à jour. **Chaque étape dépendante d'un secret est sautée avec un avis nommé quand le secret est absent** : le tag d'un fork construit, passe le test de démarrage et téléverse l'application NON SIGNÉE dans le run — rien n'atteint un canal (`PUBLISH` dans l'env du job est la décision unique). |
 | `release-windows.yml` | manuel | rien — à dessein (voir son en-tête). |
 | `audit.yml` | hebdomadaire | rien. `pnpm audit` trié par surface livrée. |
 

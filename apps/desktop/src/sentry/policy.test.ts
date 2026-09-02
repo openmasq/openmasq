@@ -150,7 +150,7 @@ describe("scrubEvent — une liste d'AUTORISATION, pas d'exclusion (règle 7)", 
  * THE VERSION, and the fact that both processes state the SAME one.
  *
  * Sentry attaches a report to a `release`. Main reads `app.getVersion()` — the version
- * STAMPED by electron-builder (`-c.extraMetadata.version`, so `0.4.1-staging.123`);
+ * STAMPED by electron-builder (`-c.extraMetadata.version`, so `0.4.1-beta.123`);
  * the renderer reads the `VITE_APP_VERSION` define, frozen at bundle time, that is,
  * BEFORE this stamping. Without the env variable in the build step, it fell back to the
  * repo's `package.json` (`0.4.1`): a single app was thus sending two releases, and
@@ -174,9 +174,19 @@ describe("release.yml — le renderer est bâti avec la version qui sera EXPÉDI
   it("et c'est LA MÊME expression que celle timbrée par electron-builder", () => {
     // Two versions that look alike without being linked is the original bug in
     // another form: we require textual equality of the source, not a plausible value.
+    //
+    // ⚠️ Le timbrage passe par une VARIABLE SHELL (`-c.extraMetadata.version="$APP_VERSION"`),
+    // pas par une expression `${{ }}` écrite en ligne — la commande est dans un `run:`
+    // multi-ligne où l'expression aurait été interpolée dans le script. Le test suivait
+    // l'ancienne forme et cherchait un `${{ }}` collé à `extraMetadata.version=` : il ne
+    // trouvait plus rien et comparait à `undefined`. On suit donc l'indirection, parce que
+    // c'est elle qui existe — l'invariant protégé est inchangé : UNE source pour les deux.
     const bundle = wf.match(/VITE_APP_VERSION:\s*(\$\{\{[^}]+\}\})/)?.[1];
-    const stamped = wf.match(/extraMetadata\.version=(\$\{\{[^}]+\}\})/)?.[1];
+    const shellVar = wf.match(/extraMetadata\.version="\$(\w+)"/)?.[1];
     expect(bundle).toBeTruthy();
+    expect(shellVar).toBeTruthy();
+    const stamped = wf.match(new RegExp(`\\n\\s+${shellVar}:\\s*(\\$\\{\\{[^}]+\\}\\})`))?.[1];
+    expect(stamped).toBeTruthy();
     expect(bundle).toBe(stamped);
   });
 });

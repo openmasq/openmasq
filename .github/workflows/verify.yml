@@ -14,10 +14,16 @@ name: Verify
 # Two families of callers, and that is this file's whole purpose:
 #   • `ci.yml` — the feedback on PR and on push.
 #   • EVERY deployment workflow, which puts it in `needs:` — it is THIS dependency that
-#     prevents a deployment from going out without tests. `main`'s branch protection
-#     ALSO exists (mandatory PR + "ci" check — ci.yml's verdict job carries that
-#     name, a reusable-workflow caller only publishing its children); the
-#     `needs:` remains what holds the DEPLOYMENTS, protection or not.
+#     prevents a deployment from going out without tests, and as of 02/09/2026 it is the
+#     ONLY thing that does.
+#     ⚠️ This comment used to say that `main`'s branch protection "ALSO exists (mandatory
+#     PR + `ci` check)". It does not, and it never did on this repository: the API answers
+#     404 "Branch not protected" on `main` as on `dev`, and no ruleset is defined
+#     (infra's `modules/github` has the resource COMMENTED OUT for want of an admin token —
+#     its own CLAUDE.md says so). A safety net described but absent is worse than an
+#     acknowledged gap: it gets counted on. What actually holds is written above, in
+#     `needs:`, and it holds with no GitHub setting at all — which is also why a direct
+#     push to `main` is, today, nobody's error but the pusher's.
 #
 # ⚠️ Secrets are OPTIONAL and only serve `ci.yml`'s baked values. A
 # caller that doesn't pass any gets a build with empty values — perfectly sufficient

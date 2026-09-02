@@ -18,8 +18,10 @@ name: Corpus
 # build costs seconds, not 5 min.
 on:
   workflow_call:
-  # ⚠️ A `schedule` only fires from the DEFAULT branch (main): the nightly pass
-  # therefore measures production, which is exactly what we want from a net.
+  # ⚠️ A `schedule` only fires from the DEFAULT branch, which is `dev` here — so the
+  # nightly pass measures the trunk, not what is in the field. That is the right net for
+  # now (a recall drift is caught where it lands); the day `main` becomes the released
+  # commit and the default branch, this comment and that intent both need re-reading.
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:

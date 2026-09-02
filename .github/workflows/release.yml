@@ -16,9 +16,19 @@ name: Release
 # Only the MANUAL launch (never promoted, disposable) keeps `desktop-beta`: an install from an
 # internal trial MUST follow the beta.
 #
-#   trigger                    STORAGE             BAKED CHANNEL   VERSION
-#   push -> tag staging-v*     desktop-staging     desktop-stable  <tag>  (staging-v0.5.1 -> 0.5.1)
-#   push -> tag v*             desktop-production  desktop-stable  <tag>  (v0.5.1 -> 0.5.1, depuis main)
+#   trigger                    STORAGE          BAKED CHANNEL   VERSION
+#   push -> tag beta-v*        desktop-beta     desktop-stable  <tag>  (beta-v0.5.1 -> 0.5.1)
+#   push -> tag v*             desktop-stable   desktop-stable  <tag>  (v0.5.1 -> 0.5.1, from main)
+#   workflow_dispatch          desktop-beta     desktop-beta    <pkg>-beta.<run>  (disposable)
+#
+# ⚠️ NO CHANNEL AND NO BUILD IS CALLED "staging" ANY MORE. A channel says which BUILDS an
+# install receives (beta = candidates, stable = the fleet); "staging" names an ENVIRONMENT —
+# which servers the app talks to — and that axis is decided elsewhere, at runtime, by the
+# privileged toggle (`src/environments/`). The two were never the same thing (a candidate
+# points at production like everyone else), and sharing a word made people look for the
+# wrong privilege when a switch was refused. The historical storage names
+# (`desktop-staging` / `desktop-production`) survive ONLY as aliases the Worker still
+# resolves for installs that predate the rename (`lib/desktopChannels.ts`).
 #
 # ⚠️ A TAG, NEVER A BRANCH. No branch push builds the app — neither `dev`,
 # nor `main`. This is the rule set on 11/08 for ALL app deployments (desktop and
@@ -44,27 +54,27 @@ name: Release
 on:
   push:
     tags:
-      # Production (tags cut from `main`). ⚠️ `v*` cannot catch `staging-v…`:
+      # Production (tags cut from `main`). ⚠️ `v*` cannot catch `beta-v…`:
       # the glob is anchored at the start of the tag name. The two channels therefore cannot
       # be confused, and that is the property that matters here.
       - "v*"
-      # Staging. The branch name no longer enters the equation: a
-      # `staging-v*` can be placed on any commit to try.
-      - "staging-v*"
-  # Manual launch — always builds, and ALWAYS in `staging` (see the `meta` job:
-  # only a `v*` tag gives production, everything else falls back to staging, fail closed).
+      # The candidate. The branch name no longer enters the equation: a
+      # `beta-v*` can be placed on any commit to try.
+      - "beta-v*"
+  # Manual launch — always builds, and ALWAYS on the beta channel (see the `meta` job:
+  # only a `v*` tag reaches stable, everything else falls back to beta, fail closed).
   # NOTE: GitHub only exposes a workflow_dispatch from the DEFAULT branch, so this
   # becomes usable once this file is on `main`; until then, the tag is the way.
   workflow_dispatch: {}
 
-# An in-flight STAGING build is replaced by the next one: without this, two
-# `staging-v*` tags placed ten minutes apart would run TWO macOS runners (×10)
+# An in-flight BETA build is replaced by the next one: without this, two
+# `beta-v*` tags placed ten minutes apart would run TWO macOS runners (×10)
 # on the same channel, and the second one would win anyway. Hence a single group shared
-# by all staging tags — the predecessor gets cancelled, as the old push used to do
-# on the branch. A `v*` tag (production), on the other hand, has its OWN group and is NEVER cancelled
+# by all beta tags — the predecessor gets cancelled, as the old push used to do
+# on the branch. A `v*` tag (stable), on the other hand, has its OWN group and is NEVER cancelled
 # mid-flight: a signature/notarization/publish is never cut in two.
-# ⚠️ The `refs/tags/v` predicate must stay the SAME as the one in the `meta` job (the env is decided
-# there): letting them diverge means cancelling a production or piling up stagings.
+# ⚠️ The `refs/tags/v` predicate must stay the SAME as the one in the `meta` job (the channel is
+# decided there): letting them diverge means cancelling a stable release or piling up betas.
 # Least privilege for `GITHUB_TOKEN`: without this block, a workflow inherits the repo's
 # DEFAULT — which nothing here sets and which can be write-enabled. This job installs then runs
 # ~2,000 packages on a machine holding the Apple credentials and the R2 keys; a
@@ -75,7 +85,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-${{ startsWith(github.ref, 'refs/tags/v') && github.ref || 'staging' }}
+  group: release-${{ startsWith(github.ref, 'refs/tags/v') && github.ref || 'beta' }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/v') }}
 
 jobs:
@@ -94,7 +104,7 @@ jobs:
   verify:
     uses: ./.github/workflows/verify.yml
 
-  # The env, the channel, the baked URLs and the VERSION — computed ONCE, here, and consumed
+  # The channel, the storage and the VERSION — computed ONCE, here, and consumed
   # by the matrix as well as by the closing jobs. Before the matrix this computation lived in the
   # release job and a single copy was enough; with two platforms plus a purge plus an
   # email, leaving it there would mean writing it four times (rule 9). And this is THE value
@@ -103,62 +113,70 @@ jobs:
   meta:
     runs-on: ubuntu-latest
     outputs:
-      env: ${{ steps.m.outputs.env }}
       channel: ${{ steps.m.outputs.channel }}
-      # ⚠️ TWO names per channel, and it is a contract with the Worker (`lib/desktopChannels.ts`):
-      # `channel` is the PUBLIC name baked into the app (desktop-beta / desktop-stable),
-      # `storage_channel` the HISTORICAL identity of R2 and the database (desktop-staging /
-      # desktop-production) — renaming the storage would have orphaned every existing install.
-      # CI publishes and prunes under the storage name; the Worker aliases the requests.
-      # A divergence is LOUD: the first candidate build would get a 404 feed.
+      # TWO outputs, because they answer two different questions, and a tagged candidate is
+      # exactly the case where they diverge:
+      #   • `channel`         — the name BAKED into the binary (`VITE_UPDATES_CHANNEL`): the
+      #                         default feed of a FIRST launch. A `beta-v*` bakes
+      #                         `desktop-stable` on purpose — these bytes get promoted as they
+      #                         are, and a promoted install must follow the fleet, not the beta.
+      #   • `storage_channel` — where CI PUBLISHES and PRUNES these bytes.
+      # There is no environment output any more: this workflow decides a channel, never an
+      # environment (the addresses are a baked table resolved at runtime).
+      # ⚠️ It stays a contract with the Worker (`lib/desktopChannels.ts`), which keeps
+      # resolving the pre-rename names for installs that still ask for them. A divergence is
+      # LOUD: the first candidate build would get a 404 feed.
       storage_channel: ${{ steps.m.outputs.storage_channel }}
       version: ${{ steps.m.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
-      # Decide env / channel / baked URLs / version from the trigger (see header).
-      # ⚠️ ONLY a `v*` tag gives production — the `else` catches EVERYTHING else
-      # (`staging-v*`, a manual launch from any ref) and falls back to
-      # staging. This is the CLOSED failure: an unexpected ref delivers, at worst, to a test channel,
-      # never to users. Never invert this test into "if staging then staging".
+      # Decide channel / storage / version from the trigger (see header).
+      # ⚠️ ONLY a `v*` tag reaches stable — the `else` catches EVERYTHING else
+      # (`beta-v*`, a manual launch from any ref) and falls back to the beta
+      # channel. This is the CLOSED failure: an unexpected ref delivers, at worst, to the
+      # candidate channel, never to the fleet. Never invert this test into "if beta then beta".
       # ⚠️ THE VERSION COMES FROM THE TAG, not from package.json — this is the contract of the
-      # rebuild-free promotion: a `staging-v0.5.1` candidate is called `0.5.1`, and it is THESE bytes,
+      # rebuild-free promotion: a `beta-v0.5.1` candidate is called `0.5.1`, and it is THESE bytes,
       # under THIS number, that will be promoted onto the stable channel (the Worker `/promote`). A
-      # suffixed number (`0.5.1-staging.42`) would not be promotable: electron-updater
+      # suffixed number (`0.5.1-beta.42`) would not be promotable: electron-updater
       # identifies a release by version + sha512, and the same bytes cannot
       # carry two numbers. Accepted consequence: a NEW candidate = a NEW number
-      # (staging-v0.5.2) — two tags on the same number, and the second does not propagate.
-      # A MANUAL launch (no tag) keeps the old suffixed scheme: a disposable trial,
+      # (beta-v0.5.2) — two tags on the same number, and the second does not propagate.
+      # A MANUAL launch (no tag) keeps the suffixed scheme: a disposable trial,
       # never promotable, and that is exactly right.
-      - name: Compute env / channel / version
+      - name: Compute channel / storage / version
         id: m
         run: |
           set -euo pipefail
           PKG=$(node -p "require('./apps/desktop/package.json').version")
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             {
-              echo "env=production"
               echo "channel=desktop-stable"
-              echo "storage_channel=desktop-production"
+              echo "storage_channel=desktop-stable"
               echo "version=${GITHUB_REF#refs/tags/v}"
             } >> "$GITHUB_OUTPUT"
-          elif [[ "${GITHUB_REF}" == refs/tags/staging-v* ]]; then
+          elif [[ "${GITHUB_REF}" == refs/tags/beta-v* ]]; then
             {
-              echo "env=staging"
               # `desktop-stable` ON PURPOSE (see the header): these bytes will be promoted as
               # they are, and the baked channel is the default for a NEW install — not the
               # storage they go to (`storage_channel` below says that instead).
               echo "channel=desktop-stable"
-              echo "storage_channel=desktop-staging"
-              echo "version=${GITHUB_REF#refs/tags/staging-v}"
+              echo "storage_channel=desktop-beta"
+              echo "version=${GITHUB_REF#refs/tags/beta-v}"
             } >> "$GITHUB_OUTPUT"
           else
+            # ⚠️ The suffixed number is what makes this build UNPROMOTABLE, and that is its
+            # purpose: electron-updater identifies a release by version + sha512, so the same
+            # bytes cannot be renumbered `0.8.0` on the way to stable. A disposable internal
+            # trial, which is why it also BAKES the beta channel — an install from it must
+            # follow the beta. The Worker refuses to promote a suffixed version
+            # (`validatePromoteDesktopReleaseQuery`); this line is the other half of that pair.
             {
-              echo "env=staging"
               echo "channel=desktop-beta"
-              echo "storage_channel=desktop-staging"
-              echo "version=${PKG}-staging.${GITHUB_RUN_NUMBER}"
+              echo "storage_channel=desktop-beta"
+              echo "version=${PKG}-beta.${GITHUB_RUN_NUMBER}"
             } >> "$GITHUB_OUTPUT"
           fi
 
@@ -167,8 +185,24 @@ jobs:
     # And still no `always()`, on purpose — `verify` MUST have succeeded, so a skip or
     # a failure of the verification blocks the release, production tag included.
     needs: [verify, meta]
+    # ── L'ENVIRONNEMENT QUI DÉTIENT LES CLÉS ────────────────────────────────
+    # Le certificat Apple, son mot de passe, les clés R2 et le jeton d'admin du Worker
+    # ne sont plus des secrets de DÉPÔT (`modules/github` côté infra les pose sur cet
+    # environnement) : au niveau dépôt, TOUT workflow les lisait — y compris un fichier
+    # ajouté demain par une PR fusionnée. L'environnement `release` n'autorise que des
+    # TAGS (`v*`, `beta-v*`).
+    #
+    # ⚠️ L'expression est CONDITIONNELLE, et c'est ce qui garde le lancement manuel
+    # utilisable : une chaîne vide = pas d'environnement. Sur un tag ⇒ `release`, les
+    # secrets arrivent, on signe et on publie. Sur un dispatch (une branche) ⇒ aucun
+    # environnement, donc aucun secret, donc `PUBLISH` reste vide : le build se fait,
+    # le test de démarrage tourne, l'app NON SIGNÉE atterrit dans le run et rien
+    # n'atteint un canal — exactement le chemin déjà prévu pour un fork. Nommer
+    # `release` inconditionnellement ferait ÉCHOUER le dispatch (« branch is not
+    # allowed to deploy to release »), ce qui n'est pas une dégradation, c'est une panne.
+    environment: ${{ startsWith(github.ref, 'refs/tags/') && 'release' || '' }}
     # ONE release, TWO platforms — and the reason is the VERSION. It equals
-    # `<pkg>-staging.<GITHUB_RUN_NUMBER>`: two separate workflows are two run
+    # `<pkg>-beta.<GITHUB_RUN_NUMBER>`: two separate workflows are two run
     # numbers, so two different versions for the SAME code. The Worker would support it
     # (since migration 0007 each platform has its own row and version), but the download
     # page would show macOS at `.124` and Windows at `.127`, and a rollback would have to
@@ -359,7 +393,7 @@ jobs:
           # ⚠️ THE SAME version as `-c.extraMetadata.version` further down, and that is the
           # whole point: this bundle is built BEFORE electron-builder stamps the
           # version, so without this line the renderer falls back to the repo's
-          # `package.json` (`0.4.1`) while the installed app is called `0.4.1-staging.123`.
+          # `package.json` (`0.4.1`) while the installed app is called `0.4.1-beta.123`.
           # Two consequences measured on 11/08: PostHog's `app_version` would not budge
           # from one update to the next (every build of the same x.y.z lumped together,
           # adoption unmeasurable), and Sentry received TWO releases for a single app —
@@ -547,8 +581,8 @@ jobs:
           done
 
       # Package, sign and notarize the desktop app (no publish - we upload to R2).
-      # extraMetadata.version stamps the exact version (staging gets the unique
-      # -staging.<run> prerelease without mutating package.json in git); it flows
+      # extraMetadata.version stamps the exact version (a manual trial gets the unique
+      # -beta.<run> prerelease without mutating package.json in git); it flows
       # into the .dmg/.zip filenames + each latest*.yml the publish step registers.
       - name: Build desktop app
         working-directory: apps/desktop
@@ -686,6 +720,11 @@ jobs:
   # there. That's the right direction for retention.
   finalize:
     needs: [meta, release]
+    # Même environnement, même raison : l'élagage appelle le Worker avec
+    # `UPDATES_ADMIN_TOKEN`, qui vit désormais sur `release`. Sur un dispatch le jeton
+    # est absent : l'étape d'élagage avertit et passe (elle échoue déjà ainsi), elle
+    # n'interrompt pas le run.
+    environment: ${{ startsWith(github.ref, 'refs/tags/') && 'release' || '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -704,16 +743,18 @@ jobs:
         id: brand
         run: echo "domain=$(node -p "require('./packages/branding/branding.json').domain")" >> "$GITHUB_OUTPUT"
 
-      # STAGING only: prune old desktop builds. desktop-beta gets one build per
+      # BETA only: prune old desktop builds. desktop-beta gets one build per
       # CI run, so without this its R2 artifacts (~hundreds of MB each) accumulate
       # forever. Keep the newest 4 releases (plus any build behind an active
       # rollout rule) and delete the rest - the Worker removes BOTH the R2 objects
       # and the DB rows in one authenticated call (it owns both bindings, so CI
-      # needs only the admin token, no R2 S3 creds). Production is never
+      # needs only the admin token, no R2 S3 creds). The stable channel is never
       # auto-pruned (its rare builds are rollback targets). Housekeeping only -
       # a prune failure warns but never fails the release (publish already ran).
-      - name: Prune old desktop staging builds (keep newest 4)
-        if: ${{ needs.meta.outputs.env == 'staging' }}
+      - name: Prune old desktop beta builds (keep newest 4)
+        # Decided on the CHANNEL, never on an environment: this workflow no longer computes
+        # one, and it is the beta channel — not "a test env" — whose artifacts accumulate.
+        if: ${{ needs.meta.outputs.storage_channel == 'desktop-beta' }}
         env:
           UPDATES_URL: ${{ vars.UPDATES_URL || format('https://updates.{0}', steps.brand.outputs.domain) }}
           UPDATES_ADMIN_TOKEN: ${{ secrets.UPDATES_ADMIN_TOKEN }}
