@@ -1,5 +1,7 @@
 # tesseract2.js
 
+<sub>**English** · [Français](#tesseract2js--la-réécriture)</sub>
+
 A **TypeScript** rewrite of [tesseract.js](https://github.com/naptha/tesseract.js) for Node.js, with the same public API on the Node side but typed, simpler and markedly safer code. Multilingual OCR through the official WASM build [`tesseract.js-core`](https://www.npmjs.com/package/tesseract.js-core), run inside a `worker_threads` thread.
 
 **Node ≥ 18 only** (uses native `fetch`, `worker_threads`, `zlib`). No browser support.
@@ -91,3 +93,85 @@ const worker = await createWorker('eng', OEM.LSTM_ONLY, {
 ## Licence
 
 Apache-2.0. A derivative work of tesseract.js (© the naptha/tesseract.js project) — see `LICENSE.md`.
+
+---
+
+# tesseract2.js — la réécriture
+
+Une réécriture en **TypeScript** de [tesseract.js](https://github.com/naptha/tesseract.js)
+pour Node.js, avec la même API publique côté Node mais un code typé, plus simple et
+nettement plus sûr. OCR multilingue via le build WASM officiel
+[`tesseract.js-core`](https://www.npmjs.com/package/tesseract.js-core), exécuté dans un fil
+`worker_threads`.
+
+**Node ≥ 18 seulement** (utilise le `fetch` natif, `worker_threads`, `zlib`). Pas de support
+navigateur.
+
+## Installer et construire
+
+```bash
+npm install    # tesseract.js-core (exécution) + typescript (dev) ; compile via "prepare"
+npm run build  # recompile src/*.ts -> dist/ (CommonJS + .d.ts)
+npm test       # build + tests de fumée (vrai OCR, hors ligne)
+```
+
+Les sources sont dans `src/` (TypeScript strict), la sortie compilée dans `dist/` (CommonJS,
+donc utilisable en `require()` comme en `import`). Les déclarations `.d.ts` sont générées à la
+compilation. L'usage est identique à celui montré plus haut.
+
+Entrées d'image acceptées : chemin local, URL `http(s):`/`file:`/`data:`, `Buffer`,
+`Uint8Array`, `ArrayBuffer`.
+
+## Ce qui change par rapport à tesseract.js
+
+### Sécurité
+
+| Problème dans tesseract.js | Correctif dans tesseract2.js |
+| --- | --- |
+| `workerPath`/`corePath` permettent de charger et d'exécuter du code arbitraire | Le script du worker et le cœur WASM viennent toujours du paquet installé ; les options sont ignorées avec un avertissement |
+| Codes de langue interpolés bruts dans des chemins et des URL (`langs: '../../x'` = traversée de chemin) | Codes validés par une expression stricte avant tout usage ; les lectures locales sont confinées au dossier `langPath` |
+| Dispatch d'action par recherche non validée (`handlers[packet.action]`) | Une liste d'autorisation gelée (`Object.freeze` + `hasOwnProperty`), de même pour les méthodes `FS` et les actions du scheduler |
+| Aucune limite de taille (image, traineddata, gunzip → bombe zip) | `maxImageBytes` (128 Mio), `maxLangDataBytes` (512 Mio), décompression plafonnée par `zlib maxOutputLength` |
+| Téléchargements sans délai d'expiration | `fetchTimeout` (30 s par défaut) sur chaque requête |
+| Un `langPath` distant en HTTP accepté | HTTPS obligatoire pour les données de langue |
+| N'importe quel octet remis au décodeur C/WASM | Vérification des octets magiques (PNG, JPEG, BMP, GIF, WebP, TIFF, PNM, JP2) ; `allowUnknownFormats: true` pour désactiver |
+| Écriture de cache non atomique (un traineddata tronqué était possible) | Écriture temporaire + `rename` atomique ; cache par défaut dans `~/.cache/tesseract2.js` plutôt que dans le répertoire courant |
+| Un `throw` dans le gestionnaire de messages → plantage du processus sans `errorHandler` | Toute erreur est propagée en rejet de promesse typé (`ValidationError`, `NetworkError`, `WorkerError`, `TimeoutError`) |
+| Échec d'init silencieux (`.catch(() => {})`) : une promesse pendante et un fil zombie | Un échec d'init ⇒ le fil est terminé et `createWorker` rejette |
+| Identifiants de job issus de `Math.random` | `crypto.randomUUID()` |
+| 8 dépendances d'exécution (node-fetch, zlibjs, bmp-js, is-url, idb-keyval…) | Une seule : `tesseract.js-core` |
+
+### Robustesse et corrections
+
+- Un worker qui meurt (plantage, `exit`) rejette immédiatement tous les jobs en attente.
+- `scheduler.terminate()` attend vraiment la fin des workers (le `forEach(async …)` d'origine
+  ne le faisait pas).
+- Une option `jobTimeout` pour borner la durée d'un `recognize`.
+- Une option `resourceLimits` passée à `worker_threads` (plafond mémoire du fil OCR).
+- Un objet `config` correctement converti en fichier de configuration (l'implémentation
+  d'origine cassait sur les valeurs contenant `,` `:` `"`).
+- Le test de PSM de `rotateAuto` corrigé (`PSM.OSD` n'existait pas → la comparaison était
+  toujours fausse).
+- Les buffers d'image sont transférés (et non copiés) vers le fil du worker.
+- Données de langue personnalisées (`{ code, data }`) : les données explicites l'emportent sur
+  le cache.
+- Les options inconnues sont rejetées (détection de faute de frappe) au lieu d'être ignorées.
+
+### Délibérément non repris
+
+- Le support navigateur / CDN / worker par blob.
+- Le ré-encodage BMP par `bmp-js` (non maintenu) : les BMP ordinaires vont directement à
+  Leptonica ; convertissez les variantes exotiques en PNG.
+- Le `setLogging` global → une option `logging` par worker.
+- `corePath` : le cœur vient toujours du paquet installé.
+
+## Données de langue
+
+Par défaut, les fichiers `.traineddata` sont téléchargés depuis le CDN jsDelivr officiel
+(`@tesseract.js-data`) puis mis en cache dans `~/.cache/tesseract2.js`. Pour un usage hors
+ligne, pointez `langPath` vers un dossier local (voir l'exemple plus haut).
+
+## Licence
+
+Apache-2.0. Œuvre dérivée de tesseract.js (© le projet naptha/tesseract.js) — voir
+`LICENSE.md`.

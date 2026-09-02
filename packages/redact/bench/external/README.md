@@ -1,5 +1,7 @@
 # External comparison — Presidio's own evaluation corpus
 
+<sub>**English** · [Français](#comparaison-externe--le-corpus-dévaluation-de-presidio)</sub>
+
 The away game. The internal benches (`../corpora/`) measure regressions on our corpus;
 this directory scores the engine on **[Microsoft Presidio](https://github.com/data-privacy-stack/presidio-research)'s
 own synthetic evaluation dataset**, and scores Presidio on the same cases through the
@@ -78,3 +80,67 @@ then `v/bin/python run_presidio.py` from this directory.
 - **openmasq columns**: computed live from `../../src` at whatever commit you're on —
   which is the point: the committed Presidio detections are the fixed yardstick, the
   engine columns move with the engine.
+
+---
+
+# Comparaison externe — le corpus d'évaluation de Presidio
+
+Le match à l'extérieur. Les bancs internes (`../corpora/`) mesurent les régressions sur notre
+corpus ; ce dossier note le moteur sur le **jeu d'évaluation synthétique de
+[Microsoft Presidio](https://github.com/data-privacy-stack/presidio-research)**, et note
+Presidio sur les mêmes cas avec la **même métrique** (`../metric.ts`). L'avantage du terrain
+est retiré dans les deux sens : le rapport interne historique faisait tourner Presidio sur
+notre corpus ; celui-ci nous fait tourner sur le sien.
+
+## Résultat — 2026-08-31
+
+1 325 cas, 2 642 vérités annotées (anglais). Le même scoreur pour les trois colonnes :
+couverture ≥ 60 % des tokens significatifs par vérité, faux positifs par chevauchement. Les
+chiffres sont **dans le tableau ci-dessus** — une seconde copie traduite dériverait de la
+première au prochain relevé.
+
+## Lecture honnête
+
+- **`patterns` contre Presidio n'est pas une comparaison de produits** — cela oppose un
+  pipeline sans modèle à un moteur à NER spaCy. La colonne du produit est `ner`.
+- **DATE à 100 contre 14 est un choix de conception, pas un défaut** : le moteur ne masque une
+  date que dans un contexte de *naissance* — une règle générale sur les dates détruirait tous
+  les horodatages qu'une conversation transporte. Ce corpus annote chaque date comme une
+  vérité ; les 17 dates en contexte de naissance sont toutes prises, les 102 génériques sont
+  laissées en clair à dessein. En excluant DATE (comme TITLE/AGE/NRP le sont déjà, des deux
+  côtés) l'écart global se lit 74 % contre 58 %.
+- **POSTAL et PHONE favorisent structurellement Presidio** : les formats ZIP américains et
+  NANP, hors du centre de gravité FR/UE de ce moteur.
+- **La précision a une hiérarchie** : 6 faux positifs (patterns) · 123 (ner) · 196 (Presidio).
+  Chaque couche de détection se paie en faux positifs ; la NER locale paie moins que celle de
+  Presidio pour un rappel supérieur.
+- **Réserve du synthétique contre synthétique** : les corpus bâtis avec faker sont
+  structurellement aimables avec les moteurs à motifs — lisez les nombres absolus comme
+  comparables *entre colonnes*, pas comme une performance de terrain. Les corpus internes
+  (mises en page de vrais documents, dégât OCR, 14 langues) sont l'épreuve la plus dure ; le
+  même ordre y tient (`ner` 93,5 % contre Presidio 64,3 %, même métrique — voir l'historique
+  du moteur).
+
+## Le rejouer
+
+Les commandes sont **celles ci-dessus** ; pour régénérer la colonne Presidio de zéro il faut
+un environnement Python, décrit au même endroit.
+
+## Provenance et épinglage — ce qui rend ceci citable
+
+- **Jeu de données** : `synth_dataset_v2.json` de
+  [data-privacy-stack/presidio-research](https://github.com/data-privacy-stack/presidio-research)
+  (MIT © Microsoft Corporation), épinglé au commit `78c45e58` avec une récupération vérifiée
+  en sha256 (`fetch.sh`). Entièrement synthétique (gabarits + faker) — aucune personne réelle.
+- **Adaptation** : `adapt-presidio-research.mjs` — InputSample → BenchCase, la correspondance
+  est documentée dans le fichier. Exclus des deux côtés : TITLE, AGE, NRP (hors de la portée du
+  produit ; les dénominateurs de rappel les retirent pour chaque moteur également). Le
+  `presidio-research.benchcase.json` commité est l'entrée de référence.
+- **Colonne Presidio** : `presidio.detections.json`, produit par `run_presidio.py` avec
+  presidio-analyzer **2.2.364**, spaCy **3.8.16**, `en_core_web_lg` **3.8.0**, l'`AnalyzerEngine`
+  par défaut (seuil de score 0, 17 reconnaisseurs prédéfinis). C'est la configuration par défaut
+  de Presidio, pas son plafond — c'est une bibliothèque faite pour recevoir des reconnaisseurs
+  sur mesure.
+- **Colonnes openmasq** : calculées en direct depuis `../../src` au commit où vous êtes — et
+  c'est le but : les détections Presidio commitées sont l'étalon fixe, les colonnes du moteur
+  bougent avec le moteur.

@@ -1,5 +1,7 @@
 # The regression corpus — one file per document family or scenario
 
+<sub>**English** · [Français](#le-corpus-de-non-régression--un-fichier-par-famille-de-documents-ou-par-scénario)</sub>
+
 These are not unit tests of a module (those stay next to their module: `../index.test.ts`,
 `../util.test.ts`, `../documents*.test.ts`…). Each file here replays a **document family**
 or a **scenario** that once leaked, over-redacted or corrupted output, and pins what the
@@ -50,3 +52,27 @@ pins, and add a row here.
 | `thinCategories.recall.test.ts` | recall bench (`pnpm test:corpus`) | thin-category recall (full deterministic pipeline) |
 | `toolMetadata.test.ts` | unit case (`pnpm test`) | A canned model detector: returns the given findings JSON verbatim. A realistic MCP "info <tool>" result (the PostHog shape that triggered the reported overredaction):… |
 | `urlCredentials.test.ts` | unit case (`pnpm test`) | Audit H-3: the `url`-off gate used to drop EVERY match inside a URL span, including secrets/api keys — so a credential embedded in a query string (`?token=sk_live_…`,… |
+
+---
+
+# Le corpus de non-régression — un fichier par famille de documents ou par scénario
+
+Ce ne sont pas les tests unitaires d'un module (ceux-là restent à côté du leur :
+`../index.test.ts`, `../util.test.ts`, `../documents*.test.ts`…). Chaque fichier ici rejoue
+une **famille de documents** ou un **scénario** qui a un jour fui, sur-masqué ou corrompu la
+sortie, et épingle ce que le moteur doit en faire. Les fixtures vivent dans
+`../__fixtures__/` (voir son README), les corpus des bancs de rappel dans
+`../../bench/corpora/`.
+
+Deux natures, jamais mélangées : un **cas unitaire** tourne dans `pnpm test` (gratuit,
+quelques secondes) ; un **banc de rappel** (`*.recall.test.ts`, `benchReplay`, `benchFixes`)
+mesure le rappel et la précision sur un corpus et tourne dans `pnpm test:corpus` —
+`scripts/vitest/vitest.workspaceAlias.ts` (`CORPUS_TESTS`) est l'unique liste qui décide
+lequel est lequel.
+
+Ajouter un cas : nommez-le d'après la famille de documents, en anglais, dites dans son
+en-tête ce qu'il épingle, et ajoutez une ligne au tableau.
+
+L'index des cas est **le tableau ci-dessus** : il reprend l'en-tête de chaque test, et le
+recopier traduit ici en ferait une seconde copie à tenir à jour — exactement ce que la règle
+9 du dépôt interdit.

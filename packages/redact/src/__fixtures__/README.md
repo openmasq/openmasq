@@ -1,5 +1,7 @@
 # PII fixtures (all data is FAKE)
 
+<sub>**English** · [Français](#fixtures-de-données-personnelles-tout-est-faux)</sub>
+
 Synthetic files with realistic-but-invented personal data — names, emails,
 phones, postal addresses, IBANs, payment cards, national IDs/SSN, IPs and API
 keys — for exercising the redaction (redaction) pipeline by hand or in e2e.
@@ -56,3 +58,48 @@ them, and they're useful as manual drag-and-drop test material in the meantime.
 - `payroll.xlsx` → `node apps/desktop/e2e/fixtures/generate-xlsx.mjs`
 - PDF / docx / images were produced with `cupsfilter`, `textutil` and
   ImageMagick respectively (macOS). See the chat history / commit for commands.
+
+---
+
+# Fixtures de données personnelles (tout est FAUX)
+
+Des fichiers synthétiques aux données personnelles réalistes mais inventées — noms,
+e-mails, téléphones, adresses postales, IBAN, cartes de paiement, identifiants nationaux,
+IP et clés d'API — pour exercer à la main ou en e2e le pipeline de masquage.
+
+> ⚠️ Rien ici n'est réel. Les noms, comptes, cartes et clés sont fabriqués et emploient des
+> valeurs réservées ou d'exemple (`example.com`, IP de la RFC 5737, numéros de carte
+> d'échantillon). Sans risque à commiter.
+
+**La règle est celle du dépôt, pas celle de ce dossier.** Les tests unitaires portent aussi
+des données personnelles en ligne — un nom dans une assertion, un chemin, un e-mail — et
+elles y sont inventées pour la même raison qu'ici. Tenue par `pnpm check:pii`, qui échoue si
+une identité réelle connue réapparaît où que ce soit dans l'arbre ; sa liste est stockée en
+empreintes, de sorte que ni la porte ni un log de CI ne peuvent redire la valeur qu'elle
+protège.
+
+**Substituer une valeur n'est pas un renommage — gardez la FORME.** Ce que la plupart des
+tests exercent est la forme, pas la personne : un remplacement doit donc coïncider avec
+l'original sur ce sur quoi l'assertion repose vraiment. En pratique : la même longueur (une
+paire de bruit OCR comme `SABOVRDIN`/`SABOURDIN` tient à un caractère substitué), la même
+appartenance à `engine/names/firstNames.data.ts` (le gazetier se déclenche sur une PAIRE
+prénom + nom), la même réponse de `isGenericTerm` / `isStopword` / `isCountry` (plusieurs
+tests y assertent `false`), et la même **sonorité initiale** — `engine/elision.test.ts`
+épingle `d'X → de X`, qui s'inverse entièrement si une valeur à initiale consonantique
+devient vocalique. Vérifiez un candidat contre ces fonctions avant de l'adopter, pas après.
+
+## Les fichiers, et ce que l'application extrait aujourd'hui
+
+L'application de bureau extrait le texte dans `apps/desktop/src/main/files.ts`, puis le
+masque. Vérifié de bout en bout avec `node apps/desktop/e2e/fixtures/verify.mjs`. Le tableau
+des fichiers est **celui ci-dessus** : chaque ligne nomme le cas qui l'épingle, et une
+seconde copie traduite dériverait de la première.
+
+Les images sont incluses à dessein : l'OCR est l'étape suivante naturelle pour les prendre en
+charge, et elles servent entre-temps de matériel de test à glisser-déposer.
+
+## Régénérer
+
+- `payroll.xlsx` → `node apps/desktop/e2e/fixtures/generate-xlsx.mjs`
+- Le PDF, le docx et les images ont été produits avec `cupsfilter`, `textutil` et ImageMagick
+  respectivement (macOS). Voir l'historique du commit pour les commandes.

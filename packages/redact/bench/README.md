@@ -1,3 +1,32 @@
+# `@openmasq/redact` — the detection benches
+
+<sub>**English** · [Français](#openmasqredact--bancs-de-détection)</sub>
+
+Reproducible recall benches of the redaction engine, on versioned annotated corpora so the
+numbers stay comparable from one change to the next.
+
+- **Corpora** (`corpora/*.json`) — 18 corpora, 916 cases, ~3,400 annotated truths, 14
+  languages. `{ id, lang, text, truth: [[value, category], …] }`. **Entirely synthetic**:
+  generated, invented people, identifiers recomputed valid (checksums), full
+  pseudonymisation re-verified on 2026-08-31.
+- **Scorer** (`metric.ts`) — ≥ 60 % coverage of a truth's significant tokens, false
+  positives by overlap; `RECALL_EXEMPT` documents what the floors do not measure.
+- **Floors** (`../src/*.recall.test.ts`) — one test per document family, failing when the
+  measured recall drops below the frozen floor. DETERMINISTIC pipeline (`pseudonymize`
+  with no model): what is counted is the vault's values.
+- **Real scans** (`../src/__cases__/scans.recall.test.ts`) — the only bench that PRODUCES the
+  OCR damage (vendored Tesseract) instead of simulating it; truths annotated from the pixels
+  of both fixtures (fictional identities).
+
+```bash
+pnpm test:corpus    # ~1 min; OCR and the local NER need `pnpm build` first
+```
+
+CI: `.github/workflows/corpus.yml` — a nightly pass plus manual dispatch; the benches
+MEASURE, they gate no deployment.
+
+---
+
 # `@openmasq/redact` — bancs de détection
 
 Bancs de rappel reproductibles du moteur de redaction, corpus annotés versionnés pour
