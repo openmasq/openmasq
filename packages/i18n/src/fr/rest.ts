@@ -120,6 +120,10 @@ export const modelPicker = {
     eyebrow: "Modèle sur votre ordinateur",
     note: "Si vous faites tourner un modèle d'IA sur votre propre ordinateur (avec Ollama, LM Studio…), indiquez son adresse ici.",
     label: "Adresse du modèle",
+    idsLabel: "Modèles supplémentaires",
+    idsHint:
+      "La liste du sélecteur est lue sur le serveur lui-même. Ajoutez ici, séparés par des virgules, les identifiants qu'il ne liste pas (un modèle pas encore chargé, un proxy sans liste).",
+    idsPlaceholder: "llama3.2, qwen/qwen3-8b",
   },
   cli: {
     claude: {

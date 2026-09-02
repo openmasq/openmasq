@@ -16,7 +16,7 @@ import type { OrgProfileInfo } from "../../../host";
 import { ModelCard } from "./ModelCard";
 import { DefaultModelSummary } from "./DefaultModelSummary";
 import { ProviderAccess } from "./ProviderAccess";
-import { LocalModelSection } from "./LocalModelSection";
+import { LocalModelSection, type LocalModelProps } from "./LocalModelSection";
 import { ModelsTabModals } from "./ModelsTabModals";
 import { ModelFilterBar } from "./ModelFilterBar";
 import { filterModels, modelFamilies, subgroupByFamily, type PriceTier } from "../../../prompt/modelFilter";
@@ -43,8 +43,7 @@ export function ModelsTab({
   orgProfile,
   unavailableModels,
   onOpenBilling,
-  localModelUrl,
-  onLocalModelUrl,
+  local,
   claudeCliEnabled,
   onClaudeCliEnabled,
   codexCliEnabled,
@@ -77,8 +76,7 @@ export function ModelsTab({
   /** Base URL of a model running on the user's OWN machine (Ollama, LM Studio… —
    *  `Settings.openaiCompatBaseUrl`). Lives on THIS tab: a local model is a model
    *  choice, not an account matter. */
-  localModelUrl: string;
-  onLocalModelUrl: (url: string) => void;
+  local: LocalModelProps;
   /** Opt-in `Settings.claudeCliEnabled` / `codexCliEnabled` — absent ⇒ agent
    *  badge not drawn (web aperçu, host with no probe). */
   claudeCliEnabled?: boolean;
@@ -284,7 +282,7 @@ export function ModelsTab({
 
       {/* The "subscription via CLI" opt-ins are no longer a bottom-of-page section:
           they live in their badge, up top (`AgentAccessModal`). */}
-      <LocalModelSection url={localModelUrl} onUrl={onLocalModelUrl} />
+      <LocalModelSection {...local} />
 
       <ModelsTabModals
         freeInfoOpen={freeInfoOpen}

@@ -17,4 +17,10 @@ import type { DynamicModel } from "@openmasq/llm";
 export interface ModelsHost {
   /** OpenRouter's live catalogue, normalized. Rejects/([]) ⇒ keep the static baseline. */
   listOpenRouter(): Promise<DynamicModel[]>;
+  /**
+   * The ids the user's OWN `openai-compat` server serves (`GET <baseUrl>/models` — Ollama,
+   * LM Studio, llama.cpp all answer it). Optional: absent, the picker keeps the static
+   * Ollama names. Rejects/([]) ⇒ keep whatever is listed (`hooks/useLocalModels.ts`).
+   */
+  listLocal?(baseUrl: string): Promise<string[]>;
 }

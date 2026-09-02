@@ -89,6 +89,7 @@ export function stripUserContentForLocal(s: Settings, hasDb: boolean): Settings 
 
 export const DEFAULT_SETTINGS: Settings = {
   openaiCompatBaseUrl: PROVIDERS["openai-compat"].defaultBaseUrl ?? "",
+  openaiCompatModelIds: "",
   // Deliberately in FRENCH: this default is concatenated into the SAME system message as
   // LANGUAGE_GUIDANCE (`send/buildWire.ts`), and an English sentence there pulls the reply — and
   // especially the displayed REASONING — toward English. The old English default is migrated by

@@ -46,6 +46,30 @@ function isPrivateIpv6(host: string): boolean {
   return /^f[cd][0-9a-f]{0,2}:/.test(h) || /^fe[89ab][0-9a-f]?:/.test(h);
 }
 
+/** Link-local only (169.254/16, fe80::/10) — where cloud metadata services live. */
+function isLinkLocalHost(host: string): boolean {
+  const h = host.replace(/^\[|\]$/g, "").toLowerCase();
+  return /^169\.254\.\d{1,3}\.\d{1,3}$/.test(h) || /^fe[89ab][0-9a-f]?:/.test(h);
+}
+
+/**
+ * True when a URL is a LAN/loopback endpoint the app may CONTACT on the user's behalf
+ * without a DNS/SSRF check: the `openai-compat` probe and its model listing
+ * (`localEndpoint.ts`). Same set as {@link isLocalOrPrivateEndpoint} MINUS link-local —
+ * a LAN box on 192.168.x is exactly the documented use, while 169.254.169.254 never is.
+ * Hostnames that merely RESOLVE to a private address are not in this set (no DNS here);
+ * they go through `assertPublicUrl` and are refused — use the IP or a `.local` name.
+ */
+export function isLanEndpoint(urlStr: string): boolean {
+  let host: string;
+  try {
+    host = new URL(urlStr).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  return isLocalOrPrivateEndpoint(urlStr) && !isLinkLocalHost(host);
+}
+
 /**
  * True when a URL points at the LOCAL machine / private network — the only place a
  * main-injected `openai-compat` key may be sent. A non-URL, or any public host, returns

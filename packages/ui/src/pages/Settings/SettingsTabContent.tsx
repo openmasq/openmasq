@@ -77,8 +77,12 @@ export function SettingsTabContent({
           orgProfile={orgProfile}
           unavailableModels={unavailableModels}
           onOpenBilling={() => onPickTab("billing")}
-          localModelUrl={draft.openaiCompatBaseUrl}
-          onLocalModelUrl={(url) => setDraft((d) => ({ ...d, openaiCompatBaseUrl: url }))}
+          local={{
+            url: draft.openaiCompatBaseUrl,
+            onUrl: (url) => setDraft((d) => ({ ...d, openaiCompatBaseUrl: url })),
+            ids: draft.openaiCompatModelIds,
+            onIds: (ids) => setDraft((d) => ({ ...d, openaiCompatModelIds: ids })),
+          }}
           claudeCliEnabled={draft.claudeCliEnabled}
           onClaudeCliEnabled={(on) => setDraft((d) => ({ ...d, claudeCliEnabled: on }))}
           codexCliEnabled={draft.codexCliEnabled}

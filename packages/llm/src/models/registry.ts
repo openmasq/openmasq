@@ -128,7 +128,9 @@ export const MODELS: ModelInfo[] = [
   { id: "tencent/hy3:free", label: "Tencent Hy3 (gratuit)", provider: "openrouter" },
   { id: "nvidia/nemotron-nano-9b-v2:free", label: "Nemotron Nano 9B (gratuit)", provider: "openrouter" },
 
-  // OpenAI-compatible / local (Ollama defaults)
+  // OpenAI-compatible / local — a BASELINE of common Ollama names, shown only until the
+  // configured server answers: `useLocalModels` then REPLACES this group with what the
+  // server's `/models` actually serves (plus the ids typed in Réglages → Modèles).
   { id: "llama3.3", label: "Llama 3.3 (local)", provider: "openai-compat" },
   { id: "llama3.1", label: "Llama 3.1 (local)", provider: "openai-compat" },
   { id: "qwen2.5", label: "Qwen 2.5 (local)", provider: "openai-compat" },

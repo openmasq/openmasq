@@ -52,32 +52,6 @@ export async function assertEmbeddingsEndpoint(baseUrl: string): Promise<string[
   return await assertPublicUrl(u.toString(), "embeddings"); // throws on a private/internal host
 }
 
-/**
- * Reachability probe for a self-hosted (openai-compat) endpoint, for the model picker's
- * "serveur joignable / injoignable" status. Runs in MAIN (the renderer can't reach
- * localhost under the CSP), behind the SAME SSRF allow-list as `embed` (loopback or public
- * host only — a renderer XSS can't turn this into an internal-network scanner). Resolves
- * `true` if the server ANSWERS at all (any HTTP status ⇒ it's up), `false` on a refused
- * endpoint, network error, or timeout. Never throws — a probe is best-effort UX.
- */
-export async function probeEndpoint(baseUrl: string, timeoutMs = 2500): Promise<boolean> {
-  try {
-    await assertEmbeddingsEndpoint(baseUrl);
-  } catch {
-    return false; // malformed / non-http(s) / private host → treat as unreachable
-  }
-  const url = `${baseUrl.replace(/\/$/, "")}/models`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    await fetch(url, { method: "GET", signal: controller.signal });
-    return true; // any response (incl. 4xx auth-required) means the server is reachable
-  } catch {
-    return false; // network error / timeout / abort → not running
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 export async function embed(
   inputs: string[],

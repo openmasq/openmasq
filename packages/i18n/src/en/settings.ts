@@ -118,7 +118,7 @@ export const settings = {
     },
     localModel: {
       label: "A model on your own computer",
-      kw: "local ollama lm studio localhost address openai compatible",
+      kw: "local ollama lm studio localhost address openai compatible model id list network lan",
     },
     favouriteModels: {
       label: "Favourite models",

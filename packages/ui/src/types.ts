@@ -71,6 +71,12 @@ export interface Settings {
   // `storePersistence.ts` strips the legacy key for exactly that reason.
   /** Base URL for the OpenAI-compatible / local provider. */
   openaiCompatBaseUrl: string;
+  /**
+   * Model ids to offer for that endpoint ON TOP of what its `/models` lists — free text,
+   * comma/newline separated (`hooks/useLocalModels.ts` `parseLocalModelIds`). For a
+   * server that hides a model until it is loaded, or a proxy without `/models`.
+   */
+  openaiCompatModelIds: string;
   systemPrompt: string;
   /**
    * How sensitive data is detected. **The product exposes NO engine picker** — new

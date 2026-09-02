@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Host } from "../../host";
+import { refreshLocalModels } from "../../hooks/useLocalModels";
 
 /**
  * The two AVAILABILITY probes that the pickers and the send guard read
@@ -12,9 +13,11 @@ import type { Host } from "../../host";
  * Reachability of the self-hosted endpoint (openai-compat / Ollama): `true` = the
  * server responded, `false` = confirmed failure (the only blocking case — fail-open
  * on the unknown), `null` = not probed. Probed on mount, on address change and on
- * focus (the user may have just started their server).
+ * focus (the user may have just started their server). A probe that ANSWERS also
+ * refreshes the picker's local model list from the server (`refreshLocalModels`) —
+ * same trigger, same address, one effect.
  */
-export function useLocalEndpointProbe(host: Host, openaiCompatBaseUrl: string) {
+export function useLocalEndpointProbe(host: Host, openaiCompatBaseUrl: string, openaiCompatModelIds = "") {
   const [localEndpointReachable, setLocalEndpointReachable] = useState<boolean | null>(null);
   const localEndpointReachableRef = useRef<boolean | null>(null);
   useEffect(() => {
@@ -31,7 +34,11 @@ export function useLocalEndpointProbe(host: Host, openaiCompatBaseUrl: string) {
     const check = () =>
       host
         .probeLocalEndpoint!(base)
-        .then((ok) => !cancelled && apply(ok))
+        .then((ok) => {
+          if (cancelled) return;
+          apply(ok);
+          if (ok) void refreshLocalModels(host, base, openaiCompatModelIds);
+        })
         .catch(() => !cancelled && apply(false));
     void check();
     const onFocus = () => void check();
@@ -40,7 +47,7 @@ export function useLocalEndpointProbe(host: Host, openaiCompatBaseUrl: string) {
       cancelled = true;
       window.removeEventListener("focus", onFocus);
     };
-  }, [openaiCompatBaseUrl, host]);
+  }, [openaiCompatBaseUrl, openaiCompatModelIds, host]);
   return { localEndpointReachable, localEndpointReachableRef };
 }
 

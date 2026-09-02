@@ -104,7 +104,16 @@ export interface ModelPickerMessages {
   included: string;
   addKey: string;
   /** The model running on your machine. */
-  local: { eyebrow: string; note: string; label: string };
+  local: {
+    eyebrow: string;
+    note: string;
+    label: string;
+    /** The free-text ids field under the address, and what it is for. */
+    idsLabel: string;
+    idsHint: string;
+    /** Example ids in the empty field — one Ollama name, one LM Studio name. */
+    idsPlaceholder: string;
+  };
   /** The subscription CLIs — same shape, one provider each. */
   cli: {
     claude: { title: string; note: string; rowTitle: string; onDesc: string; missingDesc: string };

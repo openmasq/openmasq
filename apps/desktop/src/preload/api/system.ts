@@ -99,6 +99,8 @@ export const web = {
  *  endpoint and returns the normalized list; on any failure it resolves `[]`. */
 export const models = {
   listOpenRouter: (): Promise<DynamicModel[]> => ipcRenderer.invoke("models:list-openrouter"),
+  /** The ids the user's OWN openai-compat server serves (`/models`); [] on any failure. */
+  listLocal: (baseUrl: string): Promise<string[]> => ipcRenderer.invoke("models:list-local", baseUrl),
 };
 
 /** Account auth bridge: receive the `<protocol>://auth/callback` magic-link deep

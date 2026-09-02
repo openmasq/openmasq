@@ -670,7 +670,7 @@ export function useChatStore() {
   // (the WHY of each fail-open/fail-closed polarity lives there).
   const { localEndpointReachable, localEndpointReachableRef } = useLocalEndpointProbe(
     host,
-    settings.openaiCompatBaseUrl,
+    settings.openaiCompatBaseUrl, settings.openaiCompatModelIds,
   );
   const { claudeCliDetected, claudeCliReady, claudeCliReadyRef } = useClaudeCliProbe(
     host,

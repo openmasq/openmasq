@@ -13,7 +13,8 @@ import {
   dbLoadEgressLog,
 } from "../db";
 import { attachEgressSink, listEgress, type EgressRecord } from "../net/egressLog";
-import { embed, probeEndpoint, type EmbedConfig } from "../embeddings";
+import { embed, type EmbedConfig } from "../embeddings";
+import { probeEndpoint } from "../net/localEndpoint";
 import { memoryIndexSync, memoryIndexEdges, memoryIndexQuery, type MemoryIndexCard } from "../embed";
 import { handle, str, obj, arr, optional, num, nullable } from "./handle";
 

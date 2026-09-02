@@ -287,7 +287,11 @@ re-reading an old conversation means knowing who wrote what.
       — `packages/ui/src/containers/modals/ApiKeyModal.tsx`
 - [x] **Hosting jurisdiction** flag per model
 - [x] Default model for new conversations
-- [x] « **Modèle sur votre ordinateur** » (Ollama / LM Studio) — Réglages → Modèles
+- [x] « **Modèle sur votre ordinateur** » (Ollama / LM Studio / llama.cpp, on this machine
+      OR a LAN box) — Réglages → Modèles: the address, and the picker's list read LIVE from
+      the server's own `/models` (a static Ollama baseline until it answers), plus a field
+      for ids the server doesn't list — `packages/ui/src/hooks/useLocalModels.ts`,
+      `apps/desktop/src/main/net/localEndpoint.ts`
 - [x] « **Votre abonnement Claude** » (opt-in, OFF by default) — Réglages → Modèles: if the
       Claude Code CLI is installed and signed in, a « Claude Code » group is added to the
       picker, with no API key — the subscription's default plus the Sonnet / Opus / Haiku

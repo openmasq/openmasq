@@ -119,6 +119,10 @@ export const modelPicker = {
     eyebrow: "A model on your computer",
     note: "If you run an AI model on your own computer (with Ollama, LM Studio…), give its address here.",
     label: "Model address",
+    idsLabel: "Extra models",
+    idsHint:
+      "The picker's list is read from the server itself. Add here, comma-separated, the ids it does not list (a model not loaded yet, a proxy with no list).",
+    idsPlaceholder: "llama3.2, qwen/qwen3-8b",
   },
   cli: {
     claude: {

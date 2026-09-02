@@ -1,5 +1,6 @@
 import { ipcMain } from "electron";
 import { webFetchMany } from "./webFetchMany";
+import { listEndpointModels } from "./localEndpoint";
 import { fetchOpenRouterModels } from "./openrouterModels";
 
 /**
@@ -16,6 +17,16 @@ export function registerWebIpc(): void {
   ipcMain.handle("models:list-openrouter", async () => {
     try {
       return await fetchOpenRouterModels();
+    } catch {
+      return [];
+    }
+  });
+  // The user's OWN server's model list (`/models` of the configured openai-compat
+  // endpoint) — ids only, [] on any failure, same host gate as the reachability probe.
+  ipcMain.handle("models:list-local", async (_e, baseUrl: unknown) => {
+    if (typeof baseUrl !== "string") return [];
+    try {
+      return await listEndpointModels(baseUrl);
     } catch {
       return [];
     }

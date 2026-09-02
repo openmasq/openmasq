@@ -21,7 +21,7 @@ set -euo pipefail
 
 DESKTOP="$(cd "$(dirname "$0")/.." && pwd)"
 ROOT="$(cd "$DESKTOP/../.." && pwd)"
-REPO="tgaudibert/openmasq"
+REPO="openmasq/openmasq"
 CHANNEL="desktop-staging"
 # The brand has one home (rule 9): the domain comes from packages/branding.
 BRAND_DOMAIN="$(node -p "require('$ROOT/packages/branding/branding.json').domain")"
