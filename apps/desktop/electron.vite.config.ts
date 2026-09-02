@@ -6,6 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { workspaceSrcAlias } from "../../scripts/vitest/vitest.workspaceAlias";
 import { brandIndexHtml } from "./scripts/brandIndexHtml";
 import { mainDefines, rendererDefines } from "./scripts/buildDefines";
+import { applyDevEnvFiles, isDevCommand } from "./scripts/devEnv";
 import { applyPublicServiceDefaults } from "./scripts/publicServices";
 
 /**
@@ -84,6 +85,18 @@ assertNoBakedBypass();
 const pkgVersion = (JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8")) as { version: string }).version;
 // The brand has only one home (rule 9): the branded defaults derive from it.
 const BRAND = JSON.parse(readFileSync(resolve(__dirname, "../../packages/branding/branding.json"), "utf8")) as { name: string; domain: string };
+
+// Dev only: make `.env.development(.local)` actually reach the defines below, which
+// read the BUILDER's `process.env` — Vite's own loading stops at `import.meta.env`
+// and the VITE_ prefixes, so the un-prefixed variables the file documents were read
+// from the shell alone. Never under `build`/`preview`: a locally packaged release
+// must not bake a dev override. Shell > `.local` > `.env.development` > the defaults.
+if (isDevCommand(process.argv)) {
+  applyDevEnvFiles(process.env, [
+    resolve(__dirname, ".env.development.local"),
+    resolve(__dirname, ".env.development"),
+  ]);
+}
 
 // The public services a build reaches BY DEFAULT (sign-in, Slack relay, analytics relay,
 // releases feed, Sentry) — filled BEFORE the defines below read `process.env`, in dev as in
