@@ -75,6 +75,22 @@ pas bloquée). Gardez la section la plus récente **en haut**.
 
 ---
 
+## 0.9.0 — 2026-09-02
+> Moins de portes, moins de mots : l'app dit chaque chose une fois, au même endroit.
+
+### Nouveautés
+- **Un seul bouton « + » dans la zone de message** — fichier, dossier, connecteur ou compétence, sans quitter la conversation.
+- **Trois niveaux de masquage nommés par l'usage** — Allégé pour la recherche web, Renforcé pour la rédaction, Strict pour les documents ; chacun dit ce qu'il laisse lisible.
+- **Des réglages qui tiennent en quatre onglets** — Compte, Confidentialité, Modèles, Connecteurs ; l'organisation rejoint le compte, ce que l'agent peut faire rejoint les connecteurs.
+
+### Améliorations & corrections
+- Laisser un mot en clair se dit d'une seule façon, avec sa portée : cet envoi, cette conversation ou ce message.
+- Sous une réponse, un seul encart de statut et une seule ligne mémoire ; les suggestions de connecteurs se font plus rares et plus justes.
+- La Mémoire s'ouvre sur son graphe, la liste reste à un clic ; le réglage d'extraction vit dans Confidentialité.
+- Une compétence se crée avec un nom et une consigne ; le Coffre devine la catégorie d'un terme et permet de le modifier.
+- Le premier lancement tient en trois écrans ; les fenêtres de dialogue gardent le clavier à l'intérieur.
+- Deux thèmes, clair et sombre, avec les mêmes contrastes partout.
+
 ## 0.8.0 — 2026-08-20
 > Le niveau de masquage se règle désormais là où vous écrivez, pour la conversation en cours.
 
