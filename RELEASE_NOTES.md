@@ -76,10 +76,10 @@ pas bloquée). Gardez la section la plus récente **en haut**.
 ---
 
 ## 0.8.0 — 2026-08-20
-> Le niveau de masquage se règle désormais là où vous écrivez, message par message.
+> Le niveau de masquage se règle désormais là où vous écrivez, pour la conversation en cours.
 
 ### Nouveautés
-- **Le niveau de masquage, depuis la barre de saisie** — un clic le pose pour le message en cours, et le glyphe montre d'un coup d'œil ce qui sera masqué.
+- **Le niveau de masquage, depuis la barre de saisie** — un clic le pose pour la conversation en cours, et le glyphe montre d'un coup d'œil ce qui sera masqué.
 - **Un sélecteur de modèles qui se lit** — trois blocs titrés, les variantes techniques en moins, et l'offre gratuite enfin nommée.
 - **Fermer à distance Mémoire, Bibliothèque et Compétences** — une organisation décide des espaces ouverts à ses membres, sans passer par chaque poste.
 

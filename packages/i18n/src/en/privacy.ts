@@ -12,13 +12,13 @@ export const privacyLevels = {
     label: "Standard",
     desc: "Ideal for agentic use of the web.",
     short: () =>
-      "The bare minimum on your personal data: emails, phone numbers, bank cards, IBANs, health data.",
+      "The bare minimum on your personal data: emails, phone numbers, bank cards, IBANs, identifiers and keys.",
     tradeoff: "Names, dates, addresses, places and companies stay readable by the model.",
   },
   renforce: {
     label: "Reinforced",
     desc: "Ideal for agentic use away from the web.",
-    short: () => "Goes further: adds people's names, company names and the identifiers you quote.",
+    short: () => "Goes further: adds the people's and company names, dates of birth, addresses and places you mention.",
     tradeoff: "An age or a distance computed on a masked value may be off — the composer flags it.",
   },
   strict: {

@@ -97,7 +97,7 @@ a real city — the model reasons correctly, on values that are not yours.
 
 ### The 17 categories, and the protection level
 **Access**: Réglages → **Confidentialité** → « **Niveau de protection** » (Standard /
-Strict / Sur mesure), then the expandable matrix.
+Renforcé / Strict, « Sur mesure » being the hand-set state), then the expandable matrix.
 Also per conversation: ⋯ in the chat header → « Masquage · Renforcé · N protégés » (the level
 in force, tagged « modifié » when the thread deviates from the default).
 And **from the composer**: the "level" button in the action row (tooltip = level + scope) opens
@@ -1030,7 +1030,7 @@ have one.
 
 **What it is worth.** The onboarding **shows**, and configures only what it is asked to: the
 one choice offered (subscription or key) is optional — "Skip" leaves the free model already
-active. It also defuses the two reflexes that would push someone to lower the protection
+active in a hosted build; without a gateway, a free model still needs an OpenRouter key. It also defuses the two reflexes that would push someone to lower the protection
 ("it will mask public figures" — no; "a web search will look for a fake name" — no, it offers
 to reveal first).
 

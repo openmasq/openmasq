@@ -12,14 +12,14 @@ export const privacyLevels = {
     label: "Standard",
     desc: "Parfait pour l'utilisation agentique du web.",
     short: () =>
-      "Le strict minimum sur vos données personnelles : e-mails, téléphones, cartes bancaires, IBAN, données de santé.",
+      "Le strict minimum sur vos données personnelles : e-mails, téléphones, cartes bancaires, IBAN, identifiants et clés.",
     tradeoff: "Noms, dates, adresses, lieux et entreprises restent lisibles par le modèle.",
   },
   renforce: {
     label: "Renforcé",
     desc: "Parfait pour l'utilisation agentique hors web.",
     short: () =>
-      "Va plus loin : ajoute les noms de personnes, d'entreprises et les identifiants que vous citez.",
+      "Va plus loin : ajoute les noms de personnes et d'entreprises, les dates de naissance, adresses et lieux que vous citez.",
     tradeoff:
       "Un âge ou une distance calculés sur une valeur masquée peuvent être décalés — le composeur le signale.",
   },
