@@ -1,0 +1,5166 @@
+{
+ "fr1": [
+  "rue de la République"
+ ],
+ "fr2": [
+  "Senlis"
+ ],
+ "fr3": [
+  "Senlis"
+ ],
+ "fr4": [
+  "du Moulin"
+ ],
+ "fr5": [
+  "Gisele Noemie"
+ ],
+ "fr6": [],
+ "en1": [
+  "Fifth Avenue",
+  "Venlo Gotha",
+  "NY"
+ ],
+ "en2": [
+  "Pennsylvania Avenue",
+  "NW",
+  "Sigmaringen DC"
+ ],
+ "en3": [
+  "Baker Street"
+ ],
+ "de1": [
+  "München"
+ ],
+ "de2": [
+  "Wohnhaft Hauptstraße 5"
+ ],
+ "es1": [
+  "Vive en Calle",
+  "3",
+  "Soria"
+ ],
+ "es2": [],
+ "it1": [
+  "00184 Enna"
+ ],
+ "nl1": [],
+ "pt1": [
+  "Morada",
+  "Rua Augusta",
+  "Aveiro"
+ ],
+ "lab1": [
+  "Senlis"
+ ],
+ "lab2": [
+  "Louhans"
+ ],
+ "stk1": [
+  "Résidence Les Garorel"
+ ],
+ "two1": [],
+ "zh1": [],
+ "ja1": [],
+ "ko1": [
+  "서울특별시"
+ ],
+ "bare1": [],
+ "adm1": [
+  "2241037",
+  "204712583",
+  "204712583",
+  "204712583",
+  "2241037",
+  "204712583"
+ ],
+ "adm2": [],
+ "adm3": [
+  "FR 16 850"
+ ],
+ "adm4": [
+  "Clement du Gast ApptA02"
+ ],
+ "adm5": [],
+ "adm6": [
+  "1993",
+  "Célibataire"
+ ],
+ "adm7": [],
+ "adm8": [
+  "2024",
+  "80075678829645",
+  "80075678829645"
+ ],
+ "adm9": [
+  "Vitale"
+ ],
+ "adm10": [
+  "03/2026"
+ ],
+ "adm11": [
+  "Mme TRISTAN Velaland",
+  "née ALEXANDRE",
+  "bis rue des Acacias"
+ ],
+ "adm12": [
+  "TRISTAN",
+  "ci-après"
+ ],
+ "adm13": [
+  "Mutuelle Prévoyance",
+  "01/01/2026",
+  "00834912",
+  "00834912"
+ ],
+ "adm14": [
+  "1er avril",
+  "2023-004518",
+  "004518"
+ ],
+ "adm15": [
+  "7890 1",
+  "123 456 7890 1"
+ ],
+ "adm16": [
+  "judiciaire de Nanterre"
+ ],
+ "adm17": [],
+ "adm18": [],
+ "adm19": [
+  "5742853G"
+ ],
+ "adm20": [],
+ "adm21": [],
+ "adm22": [
+  "059067608065798",
+  "chiffre illisible sur l'original",
+  "059067608065798",
+  "059067608065798"
+ ],
+ "adm23": [
+  "M. Roland LANIER",
+  "Macon"
+ ],
+ "adm24": [
+  "10192854774",
+  "10192854774"
+ ],
+ "adm25": [
+  "alexandre.rouon@exemple.fr",
+  "56 78",
+  "Courriel",
+  "alexandre.ro",
+  "exemple.fr",
+  "06 12 34 56 78"
+ ],
+ "adm26": [
+  "Maître FANNY"
+ ],
+ "adm27": [],
+ "adm28": [
+  "3000.4000.0312"
+ ],
+ "adm29": [
+  "M. et Mme EDITH-ROLAND"
+ ],
+ "adm30": [
+  "Nom et prénom :",
+  "184037512000512"
+ ],
+ "adm31": [],
+ "adm32": [],
+ "adm33": [],
+ "adm34": [],
+ "fisc1-avis-ir": [
+  "Référence de l'avis :",
+  "20 35",
+  "CAROLE Capucine",
+  "4525937789",
+  "A195936",
+  "4525937789",
+  "4525937789"
+ ],
+ "fisc2-taxe-fonciere": [
+  "15/10/2026",
+  "2026",
+  "Propriétaire",
+  "Mme Aurélie",
+  "Bien",
+  "Date",
+  "9931204558",
+  "9931204558",
+  "0123456",
+  "9931204558"
+ ],
+ "fisc3-taxe-habitation": [
+  "M. Estelle GISELE",
+  "34 56",
+  "14/03/1979",
+  "02 40 12 34 56",
+  "B072118"
+ ],
+ "fisc4-asdir": [
+  "NIELS Freja",
+  "Référence de l'avis",
+  "20 22",
+  "Adresse",
+  "C314159"
+ ],
+ "fisc5-contravention": [
+  "A0154893 71",
+  "Numéro",
+  "Titulaire",
+  "M. Ulla GASPARD",
+  "78290",
+  "30/04/2026",
+  "A0154893",
+  "778412"
+ ],
+ "fisc6-caf": [
+  "FR76 3000 4028 3700 0105 7289 121",
+  "69 2026 0045678",
+  "017 21",
+  "Versement du",
+  "05/03/2026",
+  "0 456 789",
+  "0045678"
+ ],
+ "fisc7-urssaf": [
+  "Période",
+  "2026",
+  "Montant",
+  "T1",
+  "0001234567",
+  "0001234567",
+  "0001234567",
+  "0001234567"
+ ],
+ "fisc8-carte-grise": [
+  "12/06/2019"
+ ],
+ "dob-01": [
+  "14/03/1988"
+ ],
+ "dob-02": [
+  "1988-03-14",
+  "Date de naissance"
+ ],
+ "dob-03": [
+  "14.03.88"
+ ],
+ "dob-04": [
+  "31-01-1955"
+ ],
+ "dob-05": [
+  "12.04.2024"
+ ],
+ "dob-06": [
+  "23/12/1969"
+ ],
+ "dob-07": [
+  "02/11/1975"
+ ],
+ "dob-08": [
+  "05/08/1994"
+ ],
+ "dob-09": [],
+ "dob-10": [
+  "Son anniversaire est le"
+ ],
+ "dob-11": [
+  "Elle est née le 29 février 1996"
+ ],
+ "dob-12": [],
+ "dob-13": [],
+ "dob-14": [],
+ "dob-15": [
+  "1988"
+ ],
+ "dob-16": [
+  "Ma fille est née en mars 2015"
+ ],
+ "dob-17": [
+  "07/09/2001"
+ ],
+ "dob-18": [
+  "15/06/1990"
+ ],
+ "pse-01": [],
+ "pse-02": [],
+ "pse-03": [],
+ "pse-04": [
+  "a.jo"
+ ],
+ "pse-05": [],
+ "pse-06": [],
+ "pse-07": [],
+ "pse-08": [],
+ "pse-09": [],
+ "pse-10": [],
+ "pse-11": [],
+ "pse-12": [],
+ "fmt-01": [
+  "US",
+  "+1 (212) 736-5000"
+ ],
+ "fmt-02": [
+  "US",
+  "(555) 123-4567"
+ ],
+ "fmt-03": [
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.do"
+ ],
+ "fmt-04": [
+  "Partage"
+ ],
+ "fmt-05": [
+  "chalin.io"
+ ],
+ "fmt-06": [
+  "851135"
+ ],
+ "fmt-07": [
+  "maison2026"
+ ],
+ "fmt-08": [
+  "A1B2C",
+  "D3E4F",
+  "G5H6I",
+  "J7K8L"
+ ],
+ "fmt-09": [],
+ "fmt-10": [
+  "Résidence Les Chênes"
+ ],
+ "fmt-11": [],
+ "url-01": [
+  "Va",
+  "www.notre-intranet-chalin.fr"
+ ],
+ "url-02": [
+  "srv-prod-01.ch"
+ ],
+ "url-03": [
+  "Lien",
+  "https://app.chalin.io"
+ ],
+ "amt-01": [],
+ "amt-02": [],
+ "amt-03": [
+  "Je gagne"
+ ],
+ "amt-04": [],
+ "amt-05": [
+  "FR7630006000011234567890189"
+ ],
+ "amt-06": [],
+ "amt-07": [],
+ "lc-fr-je-suis": [
+  "Je suis estelle joligy"
+ ],
+ "lc-fr-appelle": [
+  "Je m'appelle",
+  "capucine linand"
+ ],
+ "lc-fr-pour-info": [],
+ "lc-fr-confirme": [
+  "Je te confirme que le colis"
+ ],
+ "lc-fr-oublie-pas": [
+  "N'oublie pas d'inviter grégoire norouand à la réunion de lundi"
+ ],
+ "lc-fr-question": [
+  "de tristan"
+ ],
+ "lc-fr-verifie": [],
+ "lc-fr-apostrophe": [],
+ "lc-fr-citation": [
+  "« Je passe",
+  "mireille malent demain »"
+ ],
+ "lc-fr-partenaire": [],
+ "lc-fr-retrouve": [],
+ "lc-fr-devis": [],
+ "lc-en-update": [
+  "einar maren",
+  "tuesday"
+ ],
+ "lc-en-forward": [
+  "ylva holholt"
+ ],
+ "lc-en-reminder": [
+  "lene vorbeck",
+  "thursday"
+ ],
+ "lcpar-fr-retour": [
+  "capucine avant vendredi"
+ ],
+ "lcpar-fr-recrutement": [
+  "candidatures intéressantes",
+  "La deuxième est celle de alexandre clerin",
+  "Enfin"
+ ],
+ "lcpar-fr-compte-rendu": [],
+ "lcpar-fr-succession": [
+  "andré talauret",
+  "hélène sorouon",
+  "je vous tiendrai informé",
+  "bien cordialement",
+  "edith moneyent"
+ ],
+ "lcpar-fr-bonne-nouvelle": [],
+ "lcpar-fr-salle": [],
+ "lcpar-fr-liste": [
+  "roland bensaïd\n- réserver le"
+ ],
+ "lcpar-fr-etiquettes": [
+  "alexandre verard\nville",
+  "macon\nsociété :"
+ ],
+ "lcpar-en-recap": [
+  "friday",
+  "next month",
+  "nils bersen",
+  "anders"
+ ],
+ "lcpar-en-contract": [
+  "caspar kelgaard"
+ ],
+ "chat-fr-rappeler": [
+  "sorat ce soir",
+  "18h"
+ ],
+ "chat-fr-numero": [
+  "salut"
+ ],
+ "chat-fr-vol": [
+  "jeudi matin",
+  "retour dimanche"
+ ],
+ "chat-fr-rdv": [
+  "ne sois pas en"
+ ],
+ "chat-en-invoice": [
+  "holberg vorwald"
+ ],
+ "chat-en-intro": [
+  "emma stenfeld",
+  "kolding"
+ ],
+ "chat-es-intro": [
+  "2020"
+ ],
+ "caps-fr-dossier": [
+  "MIREILLE"
+ ],
+ "caps-fr-urgent": [],
+ "ctrl-fr-plain": [
+  "Je m'appelle",
+  "Valentine Mony"
+ ],
+ "ctrl-fr-paragraphe": [
+  "Bonjour Madame Gaspard",
+  "je vous confirme le rendez-vous de mardi à Objat"
+ ],
+ "ctrl-en-meeting": [
+  "Yesterday",
+  "Bengt Vorormann",
+  "Alkmaar",
+  "Mordorf Groning"
+ ],
+ "mix-fr-freres": [
+  "Mathis Carole",
+  "roland carole viendrait aussi"
+ ],
+ "mix-fr-associe": [
+  "mathis jolier pour la visite"
+ ],
+ "md-fr-cr": [
+  "edith monon\nexcusé : le",
+  "s2"
+ ],
+ "md-en-changelog": [
+  "gunnar hagholt",
+  "gotha",
+  "q3",
+  "q3"
+ ],
+ "list-num-fr": [
+  "relancer bérengère",
+  "l'acompte du traiteur"
+ ],
+ "mail-fr-reply": [
+  "gisele",
+  "je préviens joël monret et l'équipe de saint-voiron"
+ ],
+ "sig-fr-lettre": [],
+ "csv-fr": [
+  "mathis"
+ ],
+ "log-fr": [
+  "2026-07-21",
+  "14:02:11",
+  "2026-07-21"
+ ],
+ "log-en": [
+  "2026-06-30 09:14",
+  "astrid dahlberg"
+ ],
+ "json-fr": [
+  "belfort",
+  "hortense"
+ ],
+ "transcript-fr": [
+  "gisele au"
+ ],
+ "srt-fr": [
+  "de agathe joleau"
+ ],
+ "dialog-fr": [
+  "— tu",
+  "elle arrive de mauriac demain matin"
+ ],
+ "screenplay-fr": [
+  "CLEMENT",
+  "tu diras à fanny",
+  "quéré que le tournage est décalé",
+  "elle raccroche et",
+  "quitte la pièce"
+ ],
+ "poem-fr": [
+  "du matin\n",
+  "Marchait mathis linarin"
+ ],
+ "form-caps-fr": [],
+ "ticket-fr": [
+  "clement chael"
+ ],
+ "cal-fr": [
+  "noemie savret"
+ ],
+ "invoice-fr": [
+  "menuiserie lamat\nlivraison",
+  "edith le savin"
+ ],
+ "social-fr": [
+  "week-end"
+ ],
+ "sms-fr-abrege": [
+  "slt tu px passer chez carole lamand vers",
+  "20h"
+ ],
+ "name-first-fr": [
+  "carole guingamp",
+  "pour toi ce matin"
+ ],
+ "cap-prenom-lc-nom-fr": [
+  "Estelle joligy m'a rappelé hier soir au sujet"
+ ],
+ "caps-ref-fr": [
+  "saveyy avant vendredi",
+  "Réf"
+ ],
+ "titlecase-hard-fr": [
+  "gaspard toraud"
+ ],
+ "de-ctrl": [
+  "ich Frau Caspar",
+  "Hoxter",
+  "den Vertrag"
+ ],
+ "it-chat": [
+  "ulla elke e abito",
+  "zwolle"
+ ],
+ "pt-chat": [
+  "mireille ontem à noite",
+  "lamego"
+ ],
+ "z1": [],
+ "z2": [],
+ "z3": [
+  "0013 8000"
+ ],
+ "z4": [],
+ "z5": [],
+ "z6": [],
+ "z7": [],
+ "z8": [
+  "sun@example.cn",
+  "example.cn"
+ ],
+ "j1": [
+  "お客様の宁则川さんは关柏舟に住んでいます"
+ ],
+ "j2": [],
+ "j3": [],
+ "j4": [
+  "五百旗頭光"
+ ],
+ "j5": [],
+ "j6": [],
+ "k1": [],
+ "k2": [],
+ "k3": [],
+ "k4": [],
+ "k5": [],
+ "k6": [
+  "한지민이"
+ ],
+ "m1": [
+  "Anders"
+ ],
+ "m2": [
+  "Rouigeau Linois"
+ ],
+ "doc1-cni-ocr": [
+  "14.02.1988",
+  "090476102853",
+  "090476102853"
+ ],
+ "doc2-quittance": [
+  "69300",
+  "69100",
+  "Yssingeaux",
+  "ci-dessus désigné la somme de 820,00",
+  "01/04/2025",
+  "30/06/2025",
+  "30/06/2025",
+  "B12"
+ ],
+ "doc3-facture": [
+  "Siège",
+  "20 30",
+  "Élodie",
+  "brumaire-exemple.fr",
+  "04 72 10 20 30",
+  "815234907712",
+  "815234907712"
+ ],
+ "doc4-attestation-vereyac": [
+  "nurifuc@pupocurupob-dofegar.fr",
+  "HORTENSE MATHIS",
+  "ALLEE DES CHARMILLES",
+  "HORTENSE MATHIS",
+  "M. MATHIS",
+  "HORTENSE est",
+  "ALLEE DES CHARMILLES",
+  "pupocurupob-dofegar.fr",
+  "5 402 918 736",
+  "14431234568470",
+  "14431234568470"
+ ],
+ "doc5-avenant-ocr": [
+  "FR76 3000 6000 0112 3456 7890 189",
+  "MrRoland GASPARD",
+  "Mademoiselle Inès JUSTINE\nLe"
+ ],
+ "doc6-bulletin-paie": [
+  "Ingénieurs",
+  "Analyste",
+  "01/03/2025",
+  "73282932000074",
+  "184037512000512",
+  "73282932000074"
+ ],
+ "doc7-diagnostic": [
+  "contact@sorinvelent-exemple.fr",
+  "Numéro",
+  "Adresse    Rue",
+  "France",
+  "Nom et prénom",
+  "Mme AURORE CHALAUD",
+  "Sorinvelent",
+  "....Mm",
+  "sorinvelent-exemple.fr",
+  "84210395",
+  "701283456",
+  "0476102938",
+  "0611223344",
+  "20250310",
+  "20250310",
+  "73282932000074",
+  "84210395",
+  "701283456",
+  "701283456",
+  "701283456",
+  "0476102938",
+  "0611223344",
+  "84210395",
+  "701283456",
+  "701283456",
+  "701283456",
+  "20250310",
+  "20250310",
+  "73282932000074",
+  "0476102938",
+  "0611223344",
+  "84210395",
+  "701283456"
+ ],
+ "doc8-promesse-notariale": [
+  "7 mars 1991",
+  "Gisele CAROLE"
+ ],
+ "doc9-appel-fonds": [
+  "retidi@biralecuroma-tevepum.fr",
+  "FR76 3000 6000 0112 3456 7890 189",
+  "2018 000 024 618",
+  "Montant de l'appel de fonds",
+  "biralecuroma-tevepum.fr",
+  "424613305",
+  "424613305",
+  "424613305",
+  "73282932000074",
+  "424613305",
+  "73282932000074"
+ ],
+ "doc10-attestation-mandat": [
+  "Actions Simplifiée",
+  "Siège",
+  "75002",
+  "Senlis",
+  "Clement GUINGAMP"
+ ],
+ "doc11-pv-ag-ocr": [
+  "contact@doron-exemple.com",
+  "doron-exemple.com",
+  "01.43.28.55.10"
+ ],
+ "doc12-adhesion-assurance": [
+  "Monsieur HORTENSE",
+  "ASSURIA VIE",
+  "75002",
+  "Senlis",
+  "29184730",
+  "29184730"
+ ],
+ "doc13-accord-credit": [
+  "Mme DELPHINE",
+  "2024",
+  "Coût",
+  "09218374",
+  "09218374",
+  "09218374"
+ ],
+ "doc14-passeport-mrz": [
+  "ROLAND",
+  "22.11.1979"
+ ],
+ "n1": [
+  "Clement Hortense",
+  "souligne également que la",
+  "la",
+  "de la conformité réglementaire"
+ ],
+ "n2": [
+  "FR76 3000 1007 9412 3456 7890 185",
+  "la",
+  "de la conformité réglementaire",
+  "3456 7890 185"
+ ],
+ "n3": [
+  "56 78",
+  "souligne également que la",
+  "la",
+  "de la conformité réglementaire",
+  "06 12 34 56 78"
+ ],
+ "n4": [
+  "Fanny Talanaud il y",
+  "La réunion",
+  "souligne également que la",
+  "la",
+  "de la conformité réglementaire",
+  "Tristan Marac"
+ ],
+ "n5": [
+  "estelle.whitman@voraring-traders.com",
+  "venlo",
+  "the end of the month",
+  "the past year",
+  "voraring-traders.com"
+ ],
+ "n6": [
+  "souligne également que la",
+  "la",
+  "de la conformité réglementaire"
+ ],
+ "n7": [
+  "Gaspard Tristan",
+  "souligne également que la"
+ ],
+ "n8": [
+  "souligne également que la",
+  "la",
+  "de la conformité réglementaire",
+  "souligne également que la",
+  "la",
+  "de la conformité réglementaire",
+  "souligne également que la",
+  "la",
+  "de la conformité réglementaire"
+ ],
+ "n9": [],
+ "n10": [
+  "souligne également que la",
+  "la",
+  "de la conformité réglementaire",
+  "03/04/1988"
+ ],
+ "n11": [
+  "venlo",
+  "the end of the month",
+  "the past year",
+  "venlo",
+  "the end of the month",
+  "Anders Falelstra",
+  "Friday"
+ ],
+ "n12": [
+  "Femke O'Kelbeck",
+  "this quarter",
+  "venlo",
+  "the end of the month",
+  "the past year",
+  "venlo",
+  "the end of the month"
+ ],
+ "n13": [
+  "l'appel d'offres",
+  "la",
+  "de la conformité réglementaire"
+ ],
+ "n14": [
+  "mathis.aurore@acme-corp.fr",
+  "Élodie Aurore",
+  "66 55",
+  "souligne également que la",
+  "Senlis",
+  "la",
+  "de la conformité réglementaire",
+  "mathis.au",
+  "acme-corp.fr",
+  "+33 6 88 77 66 55"
+ ],
+ "n15": [
+  "souligne également que la",
+  "La réunion"
+ ],
+ "n16": [
+  "favor.gov@example.org",
+  "venlo",
+  "the end of the month",
+  "the past year",
+  "venlo",
+  "the end of the month",
+  "the past year",
+  "venlo",
+  "the end of the month",
+  "the past year",
+  "favor.gov",
+  "example.org"
+ ],
+ "belret1-consultation-cardio": [
+  "a.aurore-fony@laposte.net",
+  "14 avril 2026",
+  "Aurélien AURORE-FONY",
+  "59300 Guebwiller",
+  "21 88 05",
+  "Courriel",
+  "Docteur Gisele CAROLE",
+  "Antécédents",
+  "1984",
+  "électrocardiogramme de repos sans",
+  "Contrôle de la",
+  "Docteur Fanny TORANIER",
+  "06 74 21 88 05",
+  "a.au",
+  "laposte.net",
+  "10003847521",
+  "10003847521"
+ ],
+ "belret2-ordonnance-biologie": [
+  "s.capucine.dorret@protonmail.com",
+  "Vienne",
+  "Roland CAPUCINE-DORRET",
+  "née le 23 janvier 1989",
+  "Numéro",
+  "DOS-2026",
+  "six mois",
+  "hémoglobine glyquée\n- Bilan",
+  "Résultats",
+  "appeler la",
+  "La patiente",
+  "Nadège JOLON-LANY",
+  "05 56 40 12 77",
+  "s.capucine.do",
+  "protonmail.com"
+ ],
+ "belret3-discharge-summary": [
+  "c.holelfeld.oda@fastmail.com",
+  "Torben HOLELFELD-ODA",
+  "November 1974",
+  "2 February 2026",
+  "February 2026",
+  "Bengt MORERGAARD",
+  "Lars THALFELD",
+  "kelberg",
+  "twice weekly",
+  "six weeks",
+  "day ten",
+  "three months",
+  "07700 900 812",
+  "fastmail.com"
+ ],
+ "belret4-arztbrief": [
+  "bagororin@tunovunu-pucafubul.de",
+  "Frau Kollegin",
+  "sehr",
+  "Herr Kollege",
+  "GRETA",
+  "Juli 1968",
+  "wohnhaft Kirschblütenweg 19",
+  "Januar 2026",
+  "Behandlung",
+  "Keine bekannte Allergie",
+  "Einnahme",
+  "Dosierung",
+  "Blutdruck 138/85",
+  "Blutwerte",
+  "Normbereich",
+  "Befund",
+  "eingeleitete Behandlung",
+  "Die Entlassung",
+  "Allgemeinzustand",
+  "Empfehlung",
+  "zwei Wochen",
+  "Fortführung",
+  "Rezept",
+  "Vorsorgeuntersuchung",
+  "Herbst",
+  "Eine Krankschreibung",
+  "Überweisung",
+  "Praxis liegt bei.",
+  "Schweigepflicht",
+  "Bengt DAHLBECK-HOLMANN",
+  "tunovunu-pucafubul.de",
+  "0341 55 21 907"
+ ],
+ "belret5-informe-medico": [
+  "nino.ventalorio@correo.es",
+  "Paciente",
+  "Don Íñigo VENTALORIO-BARARES",
+  "nacido el 30",
+  "Domicilio",
+  "calle",
+  "Olivar 14",
+  "46600",
+  "Vaxjo",
+  "Valencia",
+  "07 39",
+  "dolor tras caída",
+  "Historia clínica sin incidencias relevantes",
+  "Exploración",
+  "sin hallazgos de gravedad",
+  "Tratamiento",
+  "Tratamiento al alta:",
+  "posología indicada",
+  "Se informa de los",
+  "y se",
+  "las dudas",
+  "paciente",
+  "olino",
+  "informe médico al paciente y se remite al médico de familia",
+  "Doctora Lorenzo BALANTE-FERRÉ",
+  "nino.ve",
+  "correo.es"
+ ],
+ "belret6-referto-relatorio": [
+  "l.sanaranes@posteo.eu",
+  "Gelsomini",
+  "27 64",
+  "Fabio ROSALAVE",
+  "corso",
+  "al dosaggio",
+  "intermittenti da circa",
+  "mesi",
+  "sangue nella norma",
+  "ed eventuali effetti collaterali",
+  "Controllo tra tre mesi",
+  "portoghese",
+  "Mantém",
+  "l.sa",
+  "posteo.eu"
+ ],
+ "lay1": [
+  "FR76 3000 6000 0112 3456 7890 189",
+  "BULLETIN DE PAIE                              Période",
+  "Roland LEANDRE",
+  "01/06/2026",
+  "30/06/2026",
+  "004782"
+ ],
+ "lay2": [
+  "0001",
+  "03/06",
+  "05/06",
+  "12/06"
+ ],
+ "lay3": [
+  "EXTRAIT KBIS",
+  "Saint-Valentine 69002 Cahors",
+  "FR6901",
+  "831054792",
+  "831054792",
+  "831054792",
+  "831054792"
+ ],
+ "lay4": [
+  "menuiserie-chalonat.fr/rdv?email=roland.chalonat@menuiserie-chalonat.fr",
+  "2026-0611",
+  "FR 40",
+  "https://menuiserie-chalonat.fr/rdv?email=roland.chalonat@menuiserie-chalonat.fr",
+  "06 44 21 09 87"
+ ],
+ "lay5": [
+  "docteur leandre",
+  "Adresse",
+  "cours de l'Intendance"
+ ],
+ "lay6": [
+  "03/02/2004"
+ ],
+ "lay7": [
+  "CARTENATIONALE",
+  "23.09.1996",
+  "990275301245",
+  "990275301245"
+ ],
+ "lay8": [
+  "fanny.lameyat@proton.me",
+  "Fanny LAMEYAT",
+  "7 68 12",
+  "44 90",
+  "75018",
+  "Senlis",
+  "fanny.la",
+  "proton.me",
+  "+33 7 68 12 44 90"
+ ],
+ "lay9": [
+  "justine guingamp",
+  "ci-après « le bailleur »",
+  "chloé norouand",
+  "ci-après «",
+  "0000157841Z 25"
+ ],
+ "lay10": [
+  "0343 6467",
+  "0343 6467",
+  "09/27"
+ ],
+ "lay11": [
+  "carole.tristan@exemple.org",
+  "c.maren@exemple.org",
+  "Prénom",
+  "83 94",
+  "Agathe",
+  "06 71 22 83 94",
+  "07 55 60 41 28",
+  "carole.tr",
+  "exemple.org",
+  "c.ma",
+  "exemple.org"
+ ],
+ "lay12": [
+  "mathis.auch@passau.fr",
+  "Mathis AUCH",
+  "06.51.42.90.77",
+  "mathis.au",
+  "passau.fr"
+ ],
+ "lay13": [
+  "noemie.roland@banquepop.fr",
+  "Noemie ROLAND\nDirecteur d'agence\n",
+  "noemie.ro",
+  "banquepop.fr"
+ ],
+ "lay14": [
+  "64100",
+  "Gisele ALEXANDRE",
+  "4 janvier 1991"
+ ],
+ "lay15": [
+  "30/11/1979"
+ ],
+ "lay16": [
+  "Collège Sorauy-Clereau",
+  "M. et Mme TRAORÉ"
+ ],
+ "lay17-tableau-filets": [
+  "FR76 3000 4028 3700 0105 7289 121",
+  "s.clerinois@atelier-brun.fr",
+  "2026-0441",
+  "┐\n│ CLIENT                       │",
+  "Mme Blandine CLERINOIS       ",
+  "Facturation",
+  "66 08",
+  "30/04/2026",
+  "s.cl",
+  "atelier-brun.fr",
+  "01 47 32 66 08",
+  "392315545",
+  "392315545",
+  "392315545",
+  "392315545"
+ ],
+ "lay18-fil-email": [
+  "k.torel@cabinet-orvault.fr",
+  "fafufab@depururi-niceti.fr",
+  "m.fonouat91@laposte.net",
+  "Vertou",
+  "90 33",
+  "k.to",
+  "cabinet-orvault.fr",
+  "depururi-niceti.fr",
+  "m.fo",
+  "laposte.net",
+  "06 71 45 90 33",
+  "02 40 76 11 25"
+ ],
+ "lay19-export-messagerie": [
+  "capucine.lamac@gmx.fr",
+  "FR76 2004 1010 0505 0001 3002 675",
+  "14/03/2026",
+  "je suis devant le",
+  "14/03/2026",
+  "14/03/2026",
+  "appelle-moi au",
+  "14/03/2026",
+  "14/03/2026",
+  "2004 1010 0505",
+  "capucine.la",
+  "gmx.fr",
+  "07 58 22 41 06"
+ ],
+ "lay20-log-json": [
+  "mathis.gaspard@sfr.fr",
+  "FR76 1027 8060 2100 0204 8630 163",
+  "2026-03-14T09:22:31Z",
+  "87",
+  "2026-03-14T09:22:31Z",
+  "api.us",
+  "mathis.ga",
+  "sfr.fr",
+  "api.us",
+  "+33 6 23 87 14 55"
+ ],
+ "lay21-config-yaml": [
+  "contact@menuiserie-beraud.fr",
+  "Alexandre CAPUCINE-MONARON",
+  "+33 4 78 92 10 47",
+  "10.2.14.7",
+  "10.2.14",
+  "smtp.hebergeur-x.fr",
+  "menuiserie-beraud.fr"
+ ],
+ "lay22-ordonnance": [
+  "Dr Noemie-Pelois MARANEAU                          ORDONNANCE\nMédecin",
+  "Carnot",
+  "42300",
+  "Tristan VELIGIER",
+  "017 21",
+  "30 jours",
+  "12/03/1994",
+  "12/06/2026",
+  "04 77 71 20 08",
+  "10003456789",
+  "10003456789"
+ ],
+ "lay23-analyses-labo": [
+  "Noemie Jaurès",
+  "2026",
+  "Dr M. TRISTAN",
+  "04/02/1961"
+ ],
+ "lay24-bulletin-scolaire": [
+  "30900 Nîmes\nÉlève",
+  "ANTONIN Maëlys",
+  "M. Gaspard ANTONIN",
+  "Mme TRISTAN",
+  "M. ALEXANDRE",
+  "15,0         12,4",
+  "Mme FANNY",
+  "18/07/2011"
+ ],
+ "lay25-formulaire-cases": [
+  "FR76 1254 8029 0000 0430 0245 170",
+  "Sinistre n",
+  "Mme            Nom",
+  "02 43 56 71 09",
+  "26/03/7741",
+  "2019-884512",
+  "884512"
+ ],
+ "lay26-reservation-voyage": [
+  "c.coline83@passau.fr",
+  "Réf",
+  "07:35 TLS    09:05",
+  "c.co",
+  "passau.fr",
+  "06 88 30 12 74",
+  "AF1276",
+  "AF1276"
+ ],
+ "lay27-carte-visite": [
+  "fanny.norel@norel-associes.fr",
+  "12 90",
+  "fanny.no",
+  "norel-associes.fr",
+  "05 56 44 12 90"
+ ],
+ "lay28-organigramme": [
+  "f.gisele@groupe-avelis.com",
+  "GÉNÉRALE\n├",
+  "Responsable",
+  "Estelle GISELE",
+  "Comptabilité",
+  "Léa GARIGON",
+  "└",
+  "Mathis BELAION",
+  "Responsable",
+  "Estelle LEANDRE-RASARD",
+  "f.gi",
+  "groupe-avelis.com",
+  "06 12 44 78 03"
+ ],
+ "lay29-colonnes-fusionnees": [
+  "r.gisele@free.fr",
+  "Mme Régine GISELE",
+  "courriel",
+  "r.gi",
+  "free.fr",
+  "06 09 55 71 20"
+ ],
+ "lay30-mandat-sepa": [
+  "FR76 3000 4028 3700 0105 7289 121",
+  "rue Lavoisier",
+  "Débiteur",
+  "M. Hortense",
+  "06/02/2026",
+  "2026-000841",
+  "000841"
+ ],
+ "lay31-cni-mrz": [
+  "RÉPUBLIQUE FRANÇAISE",
+  "Finn",
+  "PORTUGAL",
+  "Sexe",
+  "21.05.1993"
+ ],
+ "lay32-export-tabule": [
+  "o.caspar@laposte.net",
+  "FR76 1027 8060 2100 0204 8630 163",
+  "p.gaspard@wp.pl",
+  "FR76 1254 8029 0000 0430 0245 170",
+  "1990-04-17",
+  "GASPARD",
+  "1985-11-02",
+  "o.ca",
+  "laposte.net",
+  "p.ga",
+  "wp.pl",
+  "0663120944",
+  "+33755012288",
+  "0663120944",
+  "33755012288",
+  "0663120944",
+  "33755012288"
+ ],
+ "lay33-derive-colonnes": [
+  "ac.leandre@nordnet.fr",
+  "FICHE ADHÉRENT",
+  "Adresse",
+  "59800",
+  "03/12/1987",
+  "nordnet.fr",
+  "03 20 55 41 87"
+ ],
+ "lay34-notes-bas-page": [
+  "FR76 2004 1010 0505 0001 3002 675",
+  "percevra la",
+  "convenue²",
+  "78290",
+  "Hélène CHAALAT",
+  "09/08/1954",
+  "01 39 76 22 14"
+ ],
+ "lay35-facture-de-en": [
+  "m.kenorson@kenorson-branenholt.de",
+  "DE02 1203 0000 0000 2020 51",
+  "RECHNUNG",
+  "2026-0088",
+  "Lieferadresse",
+  "Herr Ingmar Kenorson       Kenorson",
+  "Branenholt GmbH",
+  "04435",
+  "51",
+  "m.ke",
+  "kenorson-branenholt.de",
+  "+49 341 2298 4471"
+ ],
+ "lay36-manuscrit-ocr": [
+  "NIELS-GARARAC Freja",
+  "O5/O9",
+  "Adresse",
+  "O6 4l",
+  "O3",
+  "freja.ni",
+  "O5",
+  "O9",
+  "l982",
+  "O6",
+  "O3"
+ ],
+ "jur1-jugement": [
+  "Monsieur Étienne HORTENSE",
+  "Gabriel Péri",
+  "Maître Noemie-Fanny ALEXANDRE",
+  "C1284"
+ ],
+ "jur2-statuts": [
+  "Madame Léna BLANDINE"
+ ],
+ "jur3-procuration": [
+  "Monsieur Gaspard-Roland JOLAND",
+  "né le",
+  "du Moulin",
+  "041129900823",
+  "Femke DORINAC",
+  "clerc de notaire",
+  "12/09/1954",
+  "041129900823",
+  "041129900823"
+ ],
+ "jur4-pv-ag": [
+  "EL JOLELENT",
+  "31/12/2025"
+ ],
+ "jur5-bail-commercial": [
+  "Cavelier de la Salle",
+  "Monsieur Hervé VELON",
+  "Madame Aïcha SAVELEL"
+ ],
+ "jur6-conclusions": [
+  "Antonin TOURÉ",
+  "de Senlis",
+  "Monsieur Fanny TRISTAN",
+  "01 42 60 33 21",
+  "P0142"
+ ],
+ "jur7-assignation": [
+  "69007",
+  "Gaspard TORARRET",
+  "Maître Blandine",
+  "Alexandre LANAT DORANIN",
+  "69007"
+ ],
+ "jur8-cession-parts": [
+  "FR76 3000 6000 0112 3456 7890 189",
+  "Valentine VAN DER",
+  "Jonzac",
+  "JONZAC",
+  "ODA",
+  "Noemie Jaurès"
+ ],
+ "jur9-contrat-travail": [
+  "093 920",
+  "cours de l'Yser",
+  "Clement CHAIGAC",
+  "JOLEL",
+  "Maroc",
+  "Clement Godard",
+  "1 92 11 99",
+  "07/11/1992"
+ ],
+ "jur10-mise-en-demeure": [
+  "jcosta@vauoux-malent.fr",
+  "Fanny MALENT",
+  "03 87",
+  "21 09",
+  "vauoux-malent.fr",
+  "03 87 55 21 09",
+  "F2025"
+ ],
+ "jur11-compromis": [
+  "Gaspard DA VELARD",
+  "Mademoiselle Inès GASPARD",
+  "Maître GASPARD"
+ ],
+ "jur12-ordonnance": [
+  "Nous",
+  "Carole VERELIN",
+  "judiciaire de NOGARO",
+  "jour de retard"
+ ],
+ "jur13-transaction": [
+  "alexandre de la aurore",
+  "75007",
+  "roland torand jolinaud",
+  "75018",
+  "d'autre"
+ ],
+ "jur14-pacte-associes": [
+  "coline.lanaient@bauoux-lanaient.bzh",
+  "La",
+  "Blandine NOROIS",
+  "coline.la",
+  "bauoux-lanaient.bz"
+ ],
+ "jur15-testament": [
+  "TESTAMENT OLOGRAPHE",
+  "Je",
+  "Clement LEANDRE",
+  "Rémi DELPHINE"
+ ],
+ "jur16-requete-cnil": [
+  "s.gavabevo@cesagen.fr",
+  "dpo@praalois.io",
+  "06 23 54 87 01",
+  "09/03/1987",
+  "s.ga",
+  "cesagen.fr",
+  "praalois.io"
+ ],
+ "jur17-de-vertrag": [
+  "Bremholt Logistik GmbH",
+  "Handelsregister des Amtsgerichts",
+  "München",
+  "Geschäftsführer Herr Ingmar HAGING",
+  "Leopoldstraße 42",
+  "München",
+  "Frau Femke MORSON",
+  "60329 Frankfurt",
+  "14.06.1975",
+  "147936"
+ ],
+ "jur18-es-contrato": [
+  "De una parte",
+  "Joaquin OLOSSI",
+  "12345678Z",
+  "Soria",
+  "S.L.",
+  "Silvia SOLIAVE",
+  "12345678Z",
+  "B12345678",
+  "B12345678"
+ ],
+ "jur19-it-contratto": [
+  "Sigrid DE BERING",
+  "Corso Italia",
+  "Bari",
+  "rappresentata dalla",
+  "Signora Wouter",
+  "21/07/1980",
+  "01234567897",
+  "01234567897",
+  "01234567897"
+ ],
+ "jur20-cgv": [
+  "contact@roueyret.fr",
+  "François Mitterrand",
+  "rue Kellermann",
+  "59100",
+  "Jonzac",
+  "44 12",
+  "roueyret.fr",
+  "02 99 30 44 12"
+ ],
+ "rib-fr-01": [
+  "FR76 3000 4000 0312 3456 7890 143",
+  "Fanny LEANDRE"
+ ],
+ "rib-fr-02": [
+  "FR14 2004 1010 0505 0001 3M02 606",
+  "Peleceau"
+ ],
+ "rib-de-01": [
+  "DE89 3704 0044 0532 0130 00",
+  "Bram Hagberg"
+ ],
+ "rib-es-01": [
+  "ES91 2100 0418 4502 0005 1332",
+  "2100 0418 4502"
+ ],
+ "rib-it-01": [
+  "IT60 X054 2811 1010 0000 0123 456",
+  "di Sandro Venteorio",
+  "1010 0000 0123 456",
+  "X054"
+ ],
+ "rib-en-01": [
+  "BE68 5390 0754 7034",
+  "Dagmar Maren",
+  "0754 7034"
+ ],
+ "rib-nl-01": [
+  "NL86 INGB 0002 4455 88",
+  "88"
+ ],
+ "rib-pt-01": [
+  "PT50 0002 0123 1234 5678 9015 4",
+  "Marta Terinante"
+ ],
+ "rib-ch-01": [
+  "CH93 0076 2011 6238 5295 7",
+  "0076 2011 6238 5295 7"
+ ],
+ "bank-export-csv": [
+  "Tristan",
+  "Éric Gaspard-Garalent;CEPAFRPP751;480,00"
+ ],
+ "bic-mail-01": [
+  "Bonjour Roland",
+  "L'IBAN",
+  "Bien à toi",
+  "Roland Maronent"
+ ],
+ "bic-json-01": [
+  "FR76 3000 4000 0312 3456 7890 143"
+ ],
+ "bic-quittance": [
+  "Montant"
+ ],
+ "bic-sepa-mandate": [
+  "FR14 2004 1010 0505 0001 3M02 606",
+  "14/02/2026"
+ ],
+ "bic-en-invoice": [
+  "2026-0431",
+  "12 400.00",
+  "https://billing.voraring-logistics.co.uk/inv/2026-0431",
+  "https://billing.voraring-logistics.co.uk/inv/2026-0431"
+ ],
+ "bic-support-ticket": [
+  "20 88",
+  "06 71 34 20 88"
+ ],
+ "card-csv-01": [
+  "4111 1111 1111 1111",
+  "4012 8888 8888 1881",
+  "5555 5555 5555 4444",
+  "5105 1051 0510 5100",
+  "5200 8282 8282 8210",
+  "Mathis"
+ ],
+ "card-ticket-01": [
+  "3782 822463 10005",
+  "5436 0310 3060 6378",
+  "4485 0403 7153 6584",
+  "Rasigy-Niels",
+  "3782 822463 10005",
+  "61 09",
+  "04 78 22 61 09",
+  "822463"
+ ],
+ "card-json-refund": [
+  "4242 4242 4242 4242",
+  "4000 0566 5566 5556",
+  "3714 496353 98431",
+  "6011 1111 1111 1117",
+  "5566",
+  "496353"
+ ],
+ "card-sms-01": [
+  "6011 0009 9013 9424"
+ ],
+ "card-maroux-01": [
+  "3530 1113 3330 0000"
+ ],
+ "card-maroux-02": [
+  "3566 0020 2036 0505",
+  "La"
+ ],
+ "card-corp-01": [
+  "3056 930902 5904",
+  "Agathe Clement",
+  "930902"
+ ],
+ "card-corp-02": [
+  "3852 000002 3237",
+  "Deuxième",
+  "000002 3237",
+  "000002"
+ ],
+ "card-caisse-01": [
+  "6759 6498 2643 8453",
+  "ce matin"
+ ],
+ "card-dossier-01": [
+  "5019 7170 1010 3742",
+  "Supprimer"
+ ],
+ "card-dossier-02": [
+  "4917 6100 0000 0000",
+  "venlo"
+ ],
+ "acte-vente-01": [
+  "12/03/2024"
+ ],
+ "bail-commercial-01": [
+  "01/07/2025"
+ ],
+ "kbis-extrait-01": [
+  "EXTRAIT KBIS",
+  "Siège",
+  "04/11/2019"
+ ],
+ "statuts-sci-01": [
+  "Aurélien Maraud",
+  "Noemie Lamy-Praent",
+  "22/09/2023"
+ ],
+ "contrat-travail-01": [
+  "Inès Justine est",
+  "01/09/2021"
+ ],
+ "pv-ag-01": [
+  "18/06/2026"
+ ],
+ "attestation-emploi-01": [
+  "Je soussignée",
+  "Monsieur Alexandre Marac",
+  "au 30/04/2024",
+  "03/01/2018"
+ ],
+ "acte-mariage-01": [
+  "75015",
+  "27/05/2017"
+ ],
+ "rdv-medical-01": [
+  "Clement",
+  "09/09/2026",
+  "11/02/2026"
+ ],
+ "registre-societes-01": [
+  "TALAT"
+ ],
+ "devis-01": [
+  "Devis n° 2026-118",
+  "18 900"
+ ],
+ "config-yaml-01": [
+  "carole.peland@chaly-studio.fr",
+  "https://intranet.chaly-studio.fr/admin",
+  "https://api.chaly-studio.fr/oauth/callback",
+  "carole.pe",
+  "chaly-studio.fr",
+  "10.4.2.11",
+  "4.2.11"
+ ],
+ "runbook-01": [
+  "alexandre.marac@talac-belret.fr",
+  "Astreinte",
+  "Alexandre Marac",
+  "https://console.talac-belret.fr/backups",
+  "https://grafana.talac-belret.fr/d/restore",
+  "alexandre.ma",
+  "talac-belret.fr"
+ ],
+ "env-file-01": [
+  "https://app.voraring-logistics.co.uk",
+  "https://hooks.voraring-logistics.co.uk/stripe",
+  "AWS_SECRET_ACCESS_KEY"
+ ],
+ "drive-json-01": [
+  "clement.guingamp@talac-belret.fr",
+  "\"https://drive.talac-belret.fr/f/8821\"",
+  "recto.jp",
+  "recto.jp",
+  "clement.gu",
+  "talac-belret.fr"
+ ],
+ "mail-partage-01": [
+  "Bonjour Noemie",
+  "https://intranet-aurore-lananin.fr/rh/notes",
+  "https://forms.aurore-lananin.fr/2026/conges."
+ ],
+ "bookmarks-01": [
+  "https://extranet.cabinet-talat-breaud.fr/clients/4471",
+  "https://coffre.cabinet-talat-breaud.fr/depot/2026-118",
+  "https://visio.cabinet-talat-breaud.fr/salle/gaspard"
+ ],
+ "ticket-tech-01": [
+  "Bengt Morunfeld",
+  "token",
+  "https://portal.sorel-garauard.com/sso",
+  "https://status.sorel-garauard.com"
+ ],
+ "git-log-01": [
+  "femke.lanalaud@sorel-garauard.com",
+  "femke.la",
+  "sorel-garauard.com"
+ ],
+ "intranet-fr-01": [
+  "Clement Guingamp",
+  "Demandes d'accès",
+  "portail",
+  "https://annuaire.groupe-toronier.fr/agents/guingamp",
+  "https://sso.groupe-toronier.fr/demandes.",
+  "http://vieux-portail.groupe-toronier.fr"
+ ],
+ "notaire-place-01": [
+  "13008",
+  "l'autre à DINARD-GUINGAMP"
+ ],
+ "amount-mail-01": [
+  "Bonjour Madame Gisele"
+ ],
+ "amount-json-01": [
+  "\"https://billing.beron-pelecac.no/i/2026-441\""
+ ],
+ "scol1-bulletin-trimestriel": [
+  "femke.chalinier@passau.fr",
+  "— Académie de Vire\nBULLETIN",
+  "2025-2026",
+  "Maëlys CHALINIER-PRAIN",
+  "Responsable",
+  "Femke CHALINIER",
+  "Courriel",
+  "Les",
+  "bien préparés",
+  "12,0 / 12,4",
+  "Gronelbeck de la vie et de la Terre",
+  "Hélène GISELE",
+  "Coline HORTENSE-PRÉVOST",
+  "07 82 15 43 60",
+  "femke.ch",
+  "passau.fr"
+ ],
+ "scol2-releve-notes-universite": [
+  "mireille.clement-lanelier@edu.univ-fcomte.fr",
+  "Théodore MBAPPÉ-LANELIER",
+  "Admis",
+  "Admis",
+  "Admis\n\nSemestre 6",
+  "Admis\nStage de fin d'études",
+  "12 semaines",
+  "Admis",
+  "bien\nDécision",
+  "1",
+  "la responsable de la",
+  "Antonin PELECARD-TALEAU",
+  "mireille.cl",
+  "edu.univ-fcomte.fr",
+  "22104877",
+  "22104877"
+ ],
+ "scol3-cv-lettre-motivation": [
+  "clement.doreyard@gmail.com",
+  "Clement DOREYARD-LANALAUD",
+  "44 71",
+  "2021",
+  "2016",
+  "Mareyon",
+  "bien\n\nEXPÉRIENCE PROFESSIONNELLE",
+  "2021-2026",
+  "2020",
+  "6 mois",
+  "2019",
+  "m'ont appris",
+  "Clement DOREYARD-LANALAUD",
+  "clement.do",
+  "gmail.com",
+  "06 12 90 44 71"
+ ],
+ "scol4-transcript-reference": [
+  "r.stendorf-falinmann@kenarstra.ac.uk",
+  "Ms Sigrid STENDORF-FALINMANN",
+  "6 June 1999",
+  "Kolding",
+  "20 — 72",
+  "the final year",
+  "year",
+  "summer",
+  "Femke HEIKE-GRONDORF",
+  "r.st",
+  "kenarstra.ac.uk",
+  "5518420"
+ ],
+ "scol5-zeugnis-expediente": [
+  "lars.thaleling@web.de",
+  "j.thaleling@usal.es",
+  "STÄDTISCHES WIKMANN",
+  "Halbjahr\n\nSchülerin:",
+  "Greta THALELING-THALDORF",
+  "27",
+  "Dezember 2009",
+  "Frau Lars THALELING",
+  "sehr",
+  "Geschichte",
+  "Die Versetzung ist nicht gefährdet",
+  "Bemerkungen",
+  "Eine Klausur",
+  "Die Teilnahme",
+  "findet nach den Ferien",
+  "Doña Greta THALELING-THALDORF",
+  "— Aprobado\nPrácticas",
+  "lars.th",
+  "web.de",
+  "j.th",
+  "usal.es",
+  "0721 39 84 210",
+  "78443019",
+  "78443019"
+ ],
+ "scol6-pagella-historico": [
+  "irene.alexandre@libero.it",
+  "primo quadrimestre\n\nStudente:",
+  "Clement ALEXANDRE-CLERAUARD",
+  "16145 Honfleur",
+  "Signora Irene ALEXANDRE",
+  "Storia",
+  "Lo studente è",
+  "scrutinio intermedio",
+  "il tirocinio",
+  "Si segnala la partecipazione",
+  "Serviços",
+  "Clement ALEXANDRE-CLERAUARD",
+  "avaliação muito",
+  "irene.al",
+  "libero.it",
+  "333 470 19 82",
+  "2026114532",
+  "2026114532",
+  "2026114532"
+ ],
+ "fr-plain": [
+  "Noemie Fanny",
+  "2019"
+ ],
+ "fr-org": [
+  "Fanny Blandine est"
+ ],
+ "en-plain": [
+  "Anders Falelstra",
+  "last spring"
+ ],
+ "fr-form-1": [
+  "Nom et prénom :",
+  "TRISTAN Fanny",
+  "45435361",
+  "45435361"
+ ],
+ "fr-form-2": [
+  "JUSTINE Amélie",
+  "Gisele Noemie"
+ ],
+ "fr-form-3": [
+  "Bénéficiaire",
+  "EDITH Alexandre",
+  "45435361",
+  "45435361"
+ ],
+ "fr-form-dense": [
+  "03/09/1978"
+ ],
+ "en-form": [
+  "03/15/1990",
+  "ANDERS",
+  "Kasper",
+  "Elm Street",
+  "Melle MA 02108"
+ ],
+ "fr-addr": [
+  "Senlis"
+ ],
+ "en-addr": [],
+ "de-addr": [],
+ "us-addr-apt": [
+  "Finn Thalelstra",
+  "NW",
+  "Sigmaringen DC"
+ ],
+ "fr-caps": [
+  "GASPARD DELPHINE",
+  "LISIEUX"
+ ],
+ "en-caps": [
+  "KASPER ANDERS"
+ ],
+ "fr-lower": [
+  "mathis roland"
+ ],
+ "fr-mixed": [],
+ "fr-particle": [
+  "de Alexandre de la Prainac et de Edith van der Chaat"
+ ],
+ "fr-apostrophe": [
+  "Signé Noemie N'Dorier",
+  "Fanny O'Breand"
+ ],
+ "fr-hyphen": [
+  "Mathis-Carole Vallée-Fanny"
+ ],
+ "fr-title": [
+  "Noemie-Fanny Savarin"
+ ],
+ "amb-word-1": [
+  "Gaspard Blandine",
+  "Blandine Gaspard"
+ ],
+ "amb-word-2": [
+  "Ralf Jack",
+  "Jack Ralf"
+ ],
+ "amb-place-name": [
+  "Senlis Vauac"
+ ],
+ "amb-brand": [
+  "Henrik Vorgaard"
+ ],
+ "fr-contact": [
+  "noemie.fanny@example.com",
+  "56 78",
+  "06 12 34 56 78",
+  "example.com"
+ ],
+ "fr-dob": [
+  "12/04/1989"
+ ],
+ "fr-ssn": [],
+ "fr-iban": [
+  "FR76 3000 6000 0112 3456 7890 189"
+ ],
+ "intl-passport": [
+  "Sigrid Morsen",
+  "AB1234567"
+ ],
+ "trap-currency": [],
+ "trap-months": [],
+ "trap-months-en": [
+  "March",
+  "May",
+  "August",
+  "December"
+ ],
+ "trap-units": [],
+ "trap-doctype": [],
+ "trap-homograph": [],
+ "trap-bodies": [
+  "Dossier transmis à l'URSSAF"
+ ],
+ "mix-1": [
+  "M. Fanny"
+ ],
+ "mix-2": [],
+ "nested": [
+  "Tristan Sororret de l'hôpital Saint-Tory à Senlis"
+ ],
+ "list-names": [
+  "Présents",
+  "Léa Tristan",
+  "Noemie Garel",
+  "Inès Pely",
+  "Alexandre Petit"
+ ],
+ "glued": [],
+ "es": [
+  "Bianca García vive en Olot",
+  "calle"
+ ],
+ "it": [
+  "Tomas Chaigac",
+  "Enna 10"
+ ],
+ "pt": [
+  "João Velard",
+  "Aveiro"
+ ],
+ "nl": [
+  "Wetzlar"
+ ],
+ "ru": [],
+ "zh-2char": [],
+ "zh-3char": [],
+ "zh-mixed": [],
+ "ja": [],
+ "ja-short": [],
+ "ko": [
+  "서울특별시 강남구에"
+ ],
+ "ko-short": [
+  "연락처는 부산입니다"
+ ],
+ "fr-pv-ag": [
+  "Fanny Capucine",
+  "01/06/2026",
+  "30/06/2026"
+ ],
+ "tech1-postmortem": [
+  "clement.guingamp@sorel-garauard.fr",
+  "capucine@atelier-sud.fr",
+  "POST-MORTEM",
+  "Rédigé",
+  "Clement Guingamp",
+  "Alexandre Marac",
+  "Datadog",
+  "Atelier Sud",
+  "Clement Guingamp",
+  "Sorel Garauard",
+  "clement.gu",
+  "sorel-garauard.fr",
+  "atelier-sud.fr",
+  "06 44 21 88 30",
+  "p99"
+ ],
+ "tech2-audit-secu": [
+  "capucine.gaspard@chalalois.eu",
+  "alexandre.talanaud@chaly-studio.fr",
+  "92.184.106.14",
+  "Capucine Gaspard",
+  "18 janvier 2026",
+  "42",
+  "Alexandre Talanaud",
+  "conservent l'adresse",
+  "Dépendances",
+  "Dependabot",
+  "activer",
+  "SIEM",
+  "Mme Aurélie Gaspard",
+  "22 17",
+  "capucine.ga",
+  "chalalois.eu",
+  "chaly-studio.fr",
+  "92.184.106.14",
+  "01 84 60 22 17",
+  "C1",
+  "S3",
+  "C2",
+  "C3",
+  "C4"
+ ],
+ "tech3-adr": [
+  "antonin.tristan@chaly-studio.fr",
+  "FR76 3000 6000 0112 3456 7890 189",
+  "Antonin Tristan",
+  "Carole Blandine",
+  "Noemie Liny",
+  "Bengt Monard",
+  "mesurée à 2 %",
+  "Carole Blandine",
+  "3456 7890 189",
+  "antonin.tr",
+  "chaly-studio.fr"
+ ],
+ "tech4-runbook": [
+  "noemie.taland@sorel-garauard.fr",
+  "Propriétaire",
+  "Tristan Rasoux",
+  "07 61 09",
+  "Kubernetes de",
+  "Helm",
+  "Rollback Helm",
+  "30 minutes",
+  "sorel-garauard.fr",
+  "07 61 09 44 52"
+ ],
+ "tech5-cv-dev": [
+  "marcantoine.peland@protonmail.com",
+  "40 91",
+  "2023-2026",
+  "Torouier SARL",
+  "Prometheus",
+  "Grafana",
+  "2021-2023",
+  "Développeur",
+  "Docker",
+  "Migration d'un",
+  "2021",
+  "Permis B. Né le",
+  "marcantoine.pe",
+  "protonmail.com",
+  "github.com/madelaunay",
+  "06 12 77 40 91",
+  "p95"
+ ],
+ "tech6-ticket": [
+  "blandine.torarret@mairie-quimperle.fr",
+  "Noemie Liny",
+  "81 09",
+  "Ticket clos le",
+  "02 32 64 81 09",
+  "blandine.to",
+  "mairie-quimperle.fr",
+  "N2"
+ ],
+ "tech7-dpa": [
+  "dpo@chalalois.eu",
+  "capucine.linaiin@chalalois.eu",
+  "Aurélie Gaspard",
+  "35 jours",
+  "Journaux",
+  "12 mois",
+  "Datadog",
+  "24/7",
+  "09 72 55 12 08",
+  "Sébastien Linaiin",
+  "ISO 27001",
+  "chalalois.eu",
+  "capucine.li",
+  "chalalois.eu",
+  "09 72 55 12 08"
+ ],
+ "tech8-stacktrace": [
+  "bengt.monard@sorel-garauard.fr",
+  "FR4782341",
+  "Bengt Monard",
+  "Node.js 22",
+  "Atelier Sud",
+  "FR47823411902",
+  "Docker Compose",
+  "Vitest",
+  "Carole Blandine",
+  "6 44",
+  "21 88 30",
+  "bengt.mo",
+  "sorel-garauard.fr",
+  "+33 6 44 21 88 30",
+  "v1"
+ ],
+ "minces-card-caisse": [
+  "4539 5787 6362 1486",
+  "5453 0112 8367 9015",
+  "3714 496353 98431",
+  "4916 7700 1894 2352",
+  "0112",
+  "496353",
+  "30/07/2026",
+  "496353"
+ ],
+ "minces-card-sav": [
+  "4451 0398 4217 6509",
+  "FR33 3000 2005 5000 0015 7841 Z25",
+  "Ma",
+  "Mme Guingamp",
+  "Z25",
+  "12/07"
+ ],
+ "minces-card-maroux-de": [
+  "4539 5787 6362 1486",
+  "5453 0112 8367 9015",
+  "Maroux Lindenhof",
+  "Ablauf",
+  "0112",
+  "Nacht",
+  "09/27"
+ ],
+ "minces-card-recibo-es": [
+  "4916 7700 1894 2352",
+  "3459 821764 09319",
+  "Taller Mecánico\nCliente",
+  "4916 7700 1894",
+  "821764"
+ ],
+ "minces-card-scontrino-it": [
+  "36001234567895",
+  "Storno",
+  "sulla carta 36001234567895",
+  "36001234567895",
+  "003321",
+  "36001234567895"
+ ],
+ "minces-card-ocr-glue": [
+  "6200 1234 5678 9010",
+  "solde néant",
+  "12/06"
+ ],
+ "minces-card-wrap": [
+  "0123 457"
+ ],
+ "minces-card-nbsp": [
+  "4916 7700 1894 2352",
+  "de M. Mathis Chaelret"
+ ],
+ "minces-card-json": [
+  "4539578763621486",
+  "t.renard@passau.fr",
+  "3528 1234 5678 9012",
+  "payment.fail",
+  "t.re",
+  "passau.fr",
+  "4539578763621486",
+  "4539578763621486"
+ ],
+ "minces-card-pt": [
+  "5453 0112 8367 9015",
+  "8367 9015"
+ ],
+ "minces-card-nl": [
+  "3714 4963 5398 431",
+  "5398 431"
+ ],
+ "minces-card-log": [
+  "4916770018942352",
+  "2026-07-30",
+  "2026-07-30",
+  "psp.ga",
+  "psp.ga",
+  "2224105982743166",
+  "4916770018942352",
+  "2224105982743166",
+  "4916770018942352"
+ ],
+ "minces-card-table-md": [
+  "4539-5787-6362-1486",
+  "5453-0112-8367-9015",
+  "R. Ryan",
+  "4539-5787-6362-1486",
+  "K. Capucine",
+  "5453-0112-8367-9015"
+ ],
+ "minces-card-mixte": [
+  "3459 8217 6409 319",
+  "4451-0398-4217-6509",
+  "y.saveceau@saveceau-conseil.fr",
+  "Litige n° 2026",
+  "20 93",
+  "y.sa",
+  "saveceau-conseil.fr",
+  "06 44 71 20 93",
+  "02/05"
+ ],
+ "minces-cid-kbis": [
+  "EXTRAIT KBIS",
+  "FR7501",
+  "947782603",
+  "947782603",
+  "947782603",
+  "947782603",
+  "947782603"
+ ],
+ "minces-cid-facture-fr": [
+  "FACTURE F-2026-1188",
+  "Objat",
+  "SIRET",
+  "812345676",
+  "812345676",
+  "812345676",
+  "81234567600041",
+  "812345676",
+  "81234567600041"
+ ],
+ "minces-cid-impressum-de": [
+  "Amtsgericht München",
+  "Frau Gunnar Morendorf"
+ ],
+ "minces-cid-fattura-it": [
+  "01827346550",
+  "00743980583",
+  "01827346550",
+  "00743980583",
+  "01827346550"
+ ],
+ "minces-cid-factura-es": [
+  "Roselorio Ibéricos S.L.",
+  "B29045887",
+  "A58318219",
+  "B29045887",
+  "A58318219"
+ ],
+ "minces-cid-nota-br": [
+  "Emitente"
+ ],
+ "minces-cid-invoice-au": [],
+ "minces-cid-faktura-pl": [
+  "Sprzedawca",
+  "Nabywca",
+  "9472461871",
+  "9472461871",
+  "9472461871"
+ ],
+ "minces-cid-nordics": [
+  "SE",
+  "40 27",
+  "Momsreg.nr"
+ ],
+ "minces-cid-benelux": [],
+ "minces-cid-lei-report": [],
+ "minces-cid-w9-us": [
+  "3172906"
+ ],
+ "minces-cid-uen-sg": [
+  "Singapore"
+ ],
+ "minces-cid-json-crm": [
+  "94778260300015",
+  "94778260300015"
+ ],
+ "minces-cid-mail-mixte": [
+  "p.estelle@brearat.fr",
+  "0000157841Z 25",
+  "Cordialement",
+  "P. Estelle",
+  "p.es",
+  "brearat.fr"
+ ],
+ "minces-user-social-export": [
+  "2019",
+  "2021"
+ ],
+ "minces-user-forum-fr": [
+  "d'attente"
+ ],
+ "minces-user-labels-multi": [
+  "Zugangsdaten",
+  "h.na",
+  "tova.co"
+ ],
+ "minces-user-yaml": [
+  "roten.pe"
+ ],
+ "minces-user-gaming": [
+  "48h",
+  "mifal.pe"
+ ],
+ "minces-user-nl-pl": [
+  "Gebruikersnaam",
+  "nazwa",
+  "dufo.sa"
+ ],
+ "minces-user-serialized": [
+  "203.0.113.44",
+  "marivu.ga"
+ ],
+ "minces-user-negatifs": [],
+ "minces-token-env": [
+  ".env.st"
+ ],
+ "minces-token-curl": [
+  "https://api.staging.int",
+  "v2"
+ ],
+ "minces-token-yaml-ci": [],
+ "minces-token-log-fr": [
+  "2026-07-29",
+  "Jeton de remplacement"
+ ],
+ "minces-token-docker-de": [
+  "committen",
+  "wurde widerrufen"
+ ],
+ "minces-token-mixte-secret": [
+  "Runbook accès (extrait",
+  "corbeau-madras-812"
+ ],
+ "minces-token-es": [
+  "el nuevo"
+ ],
+ "minces-health-ordonnance": [
+  "médical n° 88213470",
+  "I48.1\nPraticien : RPPS 10003456789",
+  "I48",
+  "88213470",
+  "10003456789",
+  "750712184",
+  "750712184",
+  "750712184",
+  "88213470",
+  "10003456789",
+  "750712184"
+ ],
+ "minces-health-de": [
+  "Aufnahmebogen",
+  "E11",
+  "55098213",
+  "55098213"
+ ],
+ "minces-health-es": [
+  "Historia clínica nº 77120945",
+  "F32",
+  "77120945",
+  "77120945"
+ ],
+ "minces-health-it": [
+  "soccorso\nCartella clinica n. 66031287\n",
+  "J45",
+  "66031287",
+  "66031287"
+ ],
+ "minces-health-en": [
+  "6 weeks",
+  "55531208",
+  "A88213470",
+  "K35",
+  "A88213470",
+  "55531208",
+  "55531208"
+ ],
+ "minces-health-nl": [
+  "Overdracht",
+  "hulp\nBloedgroep",
+  "bevestigd",
+  "S72",
+  "44210873",
+  "44210873"
+ ],
+ "minces-health-pt": [
+  "M54.5",
+  "M54",
+  "99120384",
+  "99120384"
+ ],
+ "minces-health-tabular": [
+  "Astreinte",
+  "G40",
+  "N18",
+  "70318452",
+  "70318460",
+  "70318452",
+  "70318460"
+ ],
+ "camp-card-fr1": [
+  "4490 7076 9234 3899"
+ ],
+ "camp-card-fr2": [
+  "5149-4369-8543-4940"
+ ],
+ "camp-card-fr3": [
+  "5514327414149430",
+  "5514327414149430",
+  "5514327414149430"
+ ],
+ "camp-card-en1": [
+  "2267 4789 8341 2109",
+  "Friday"
+ ],
+ "camp-card-en2": [
+  "3754-1858-5616-569",
+  "3754-1858-5616-569",
+  "last month"
+ ],
+ "camp-card-de1": [
+  "3452 7834 3858 763",
+  "Die Buchung wurde",
+  "Karte",
+  "zurückerstattet"
+ ],
+ "camp-card-de2": [
+  "36927052349851",
+  "36927052349851",
+  "36927052349851"
+ ],
+ "camp-card-es1": [
+  "3581 6121 4183 8501"
+ ],
+ "camp-card-it1": [
+  "6292 9270 7654 1059"
+ ],
+ "camp-card-pt1": [],
+ "camp-card-nl1": [],
+ "camp-card-en3": [
+  "5158325814987012",
+  "5158325814987012",
+  "5158325814987012"
+ ],
+ "camp-card-fr4": [
+  "3743 6547 4543 456",
+  "456"
+ ],
+ "camp-card-en4": [
+  "4638 5650 3850 9471"
+ ],
+ "camp-cid-fr1": [
+  "170967293",
+  "170967293",
+  "170967293",
+  "170967293",
+  "170967293"
+ ],
+ "camp-cid-fr2": [],
+ "camp-cid-fr3": [
+  "19654325000027",
+  "mentionne un SIRET",
+  "19654325000027",
+  "19654325000027"
+ ],
+ "camp-cid-fr4": [
+  "sur la"
+ ],
+ "camp-cid-fr5": [],
+ "camp-cid-it1": [
+  "03309711202",
+  "03309711202",
+  "03309711202"
+ ],
+ "camp-cid-pl1": [
+  "1132456789",
+  "1132456789",
+  "1132456789",
+  "1132456789"
+ ],
+ "camp-cid-pt1": [],
+ "camp-cid-en1": [
+  "Australia",
+  "51234560081",
+  "51234560081"
+ ],
+ "camp-cid-en2": [],
+ "camp-cid-sv1": [
+  "SE5562106"
+ ],
+ "camp-cid-da1": [],
+ "camp-cid-nl1": [],
+ "camp-cid-de2": [
+  "Eingetragen",
+  "Amtsgericht Köln",
+  "102344"
+ ],
+ "camp-cid-en3": [
+  "2140328"
+ ],
+ "camp-cid-br1": [],
+ "camp-cid-sg1": [
+  "Singapore"
+ ],
+ "camp-cid-fr6": [],
+ "camp-cid-pl2": [],
+ "camp-cid-at1": [
+  "Tochter"
+ ],
+ "camp-cid-ie1": [],
+ "camp-cid-es1": [
+  "La"
+ ],
+ "camp-cid-de1": [
+  "Die Zweigniederlassung"
+ ],
+ "camp-user-en1": [],
+ "camp-user-en2": [
+  "deben.ve"
+ ],
+ "camp-user-fr1": [
+  "Nom d'utilisateur"
+ ],
+ "camp-user-fr2": [],
+ "camp-user-de1": [
+  "Freitag",
+  "nute.de"
+ ],
+ "camp-user-es1": [],
+ "camp-user-it1": [],
+ "camp-user-pt1": [],
+ "camp-user-nl1": [
+  "Gebruikersnaam",
+  "tijdelijk wachtwoord",
+  "capecogu.no"
+ ],
+ "camp-user-en3": [],
+ "camp-user-fr3": [
+  "signalé pour"
+ ],
+ "camp-user-en4": [],
+ "camp-tok-en1": [],
+ "camp-tok-en2": [
+  "Grafana"
+ ],
+ "camp-tok-fr1": [
+  "La clé d'import sX74kZmW9Qt2Vp8Rn1Yc"
+ ],
+ "camp-tok-fr2": [
+  "Jeton de préproduction :"
+ ],
+ "camp-tok-de1": [
+  "Der Export-Schlüssel"
+ ],
+ "camp-tok-es1": [
+  "sigue activo — revocar hoy."
+ ],
+ "camp-tok-it1": [
+  "La"
+ ],
+ "camp-tok-pt1": [],
+ "camp-tok-nl1": [],
+ "camp-tok-en3": [],
+ "camp-tok-en4": [],
+ "camp-tok-fr3": [],
+ "camp-hlt-fr1": [],
+ "camp-hlt-fr2": [
+  "Merci de rappeler le",
+  "61208453",
+  "61208453"
+ ],
+ "camp-hlt-en1": [
+  "90217364",
+  "90217364"
+ ],
+ "camp-hlt-en2": [
+  "C50"
+ ],
+ "camp-hlt-de1": [
+  "33108276",
+  "33108276"
+ ],
+ "camp-hlt-es1": [
+  "avisar al banco de sangre"
+ ],
+ "camp-hlt-it1": [
+  "50291837",
+  "50291837"
+ ],
+ "camp-hlt-fr3": [
+  "10009876543",
+  "10009876543"
+ ],
+ "camp-hlt-fr4": [],
+ "camp-hlt-en3": [],
+ "camp-hlt-de2": [
+  "F41"
+ ],
+ "camp-hlt-pt2": [
+  "laudo de imagem",
+  "88031246",
+  "88031246"
+ ],
+ "camp-hlt-fr5": [
+  "690023072",
+  "690023072",
+  "690023072",
+  "690023072"
+ ],
+ "camp-hlt-en4": [
+  "71203984",
+  "71203984"
+ ],
+ "camp-hlt-it2": [
+  "seconda determinazione"
+ ],
+ "camp-hlt-es2": [
+  "60218457",
+  "60218457"
+ ],
+ "camp-tok-en5": [],
+ "serie-card-fr-0": [
+  "5425 4301 8743 8762",
+  "8743 8762",
+  "5 du mois"
+ ],
+ "serie-card-en-1": [
+  "3729 272345 47259",
+  "6294-1434-1816-9215",
+  "3528743652341092",
+  "5058",
+  "6294-1434-1816-9215",
+  "overnight",
+  "3528743652341092",
+  "272345",
+  "3528743652341092"
+ ],
+ "serie-card-de-2": [
+  "3783-476969-81215",
+  "349238167478706",
+  "Die Buchung",
+  "Die Erstattung erfolgt auf",
+  "Karte 3783-476969-81215",
+  "Die Buchung wurde mit",
+  "349238167478706",
+  "476969"
+ ],
+ "serie-card-es-3": [
+  "3589 0329 4505 2708",
+  "la",
+  "La",
+  "5603-6941-6127-2786",
+  "la tarjeta",
+  "2221238983432522",
+  "2221238983432522"
+ ],
+ "serie-card-it-4": [
+  "6501496985470161",
+  "Storno",
+  "sulla carta 5036 5012",
+  "7078",
+  "La",
+  "Storno",
+  "sulla carta 6501496985470161",
+  "La",
+  "6501496985470161",
+  "6501496985470161"
+ ],
+ "serie-card-pt-5": [
+  "5396 5634 5832 7499",
+  "6250-1874-3674-3255",
+  "4341630345812568",
+  "5853",
+  "lançado",
+  "4341630345812568",
+  "4341630345812568"
+ ],
+ "serie-card-nl-6": [
+  "6507 2987 2945 2347",
+  "3589-2703-4321-4344",
+  "4272329258900",
+  "kaart 3418",
+  "2189 4704",
+  "4272329258900",
+  "501612",
+  "4272329258900"
+ ],
+ "serie-card-pl-7": [
+  "6218 1096 5258 5039",
+  "1674 5410",
+  "Obciążenie",
+  "na kartę 6218 1096",
+  "Płatność",
+  "5072-5698-3656-",
+  "Obciążenie",
+  "Płatność",
+  "6704",
+  "5607012563452789",
+  "5607012563452789"
+ ],
+ "serie-card-sv-8": [
+  "5370 9818 9494 1014",
+  "5594-7232-5670-9476",
+  "5594-7232-5670-9476"
+ ],
+ "serie-card-da-9": [
+  "4707 8383 0183 0783",
+  "6587252949478304",
+  "1872",
+  "4707 8383",
+  "0183 0783",
+  "3623-4349-8363-64",
+  "6587252949478304",
+  "5685 4967 4783",
+  "6587252949478304",
+  "6587252949478304"
+ ],
+ "serie-card-fr-10": [
+  "5283454723678765",
+  "4942",
+  "1876 9878 7636 768",
+  "51",
+  "5283454723678765",
+  "5283454723678765"
+ ],
+ "serie-card-en-11": [
+  "6278 3490 7258 1294",
+  "4543-8103-6363-8303",
+  "36250167696722",
+  "overnight",
+  "4543-8103-6363-8303",
+  "yesterday",
+  "8747 4365 4309",
+  "36250167696722",
+  "36250167696722"
+ ],
+ "serie-card-de-12": [
+  "5336 3018 5098 9431",
+  "6274-3214-7896-5078",
+  "3528589296163073",
+  "Die Erstattung erfolgt",
+  "Karte 5574 7692",
+  "Die Buchung wurde mit",
+  "Karte 6274-3214-7896-5078",
+  "Die Erstattung erfolgt auf",
+  "Karte",
+  "3528589296163073",
+  "3528589296163073"
+ ],
+ "serie-card-es-13": [
+  "6501 6189 6767 4383",
+  "5447-4563-0989-6367",
+  "5249890101810145",
+  "La",
+  "la tarjeta",
+  "5447-4563-0989-6367",
+  "la",
+  "La",
+  "5249890101810145",
+  "5249890101810145",
+  "032529"
+ ],
+ "serie-card-it-14": [
+  "6541 8165 6569 2383",
+  "5443-8701-6501-6742",
+  "La",
+  "2369",
+  "sulla carta",
+  "6569 2383",
+  "Storno",
+  "sulla carta",
+  "La"
+ ],
+ "serie-card-pt-15": [
+  "5594 5230 1418 9692",
+  "5370-1052-3436-1036",
+  "5596387690325618",
+  "9214",
+  "lançado",
+  "1418",
+  "9692",
+  "5596387690325618",
+  "5596387690325618"
+ ],
+ "serie-card-nl-16": [
+  "5265 6903 8305 6105",
+  "kaart"
+ ],
+ "serie-card-pl-17": [
+  "5312725272525639",
+  "3767 092783 05471",
+  "5192-5610-3230-3032",
+  "5312725272525639",
+  "Obciążenie",
+  "na kartę 5514",
+  "1412 1876 5410",
+  "Płatność",
+  "5058",
+  "Obciążenie",
+  "Płatność",
+  "5312725272525639",
+  "5312725272525639",
+  "092783"
+ ],
+ "serie-card-sv-18": [
+  "374507892703259",
+  "3528 3272 3654 1615",
+  "kortet",
+  "6290 5272 1058 7091",
+  "9036",
+  "374507892703259"
+ ],
+ "serie-card-da-19": [
+  "36670767254541",
+  "5607-4741-6905-2944",
+  "36670767254541",
+  "36670767254541",
+  "674765"
+ ],
+ "serie-card-fr-20": [
+  "36830383816145",
+  "51",
+  "36830383816145",
+  "36830383816145"
+ ],
+ "serie-card-en-21": [
+  "5332 3438 3812 1632",
+  "5194-3096-7250-3877",
+  "5358369856307877",
+  "yesterday",
+  "1632",
+  "9212 9072",
+  "5358369856307877",
+  "5358369856307877"
+ ],
+ "serie-card-de-22": [
+  "5461 2329 6787 2540",
+  "6503-8905-2785-0740",
+  "Die Buchung",
+  "Die Erstattung erfolgt auf",
+  "Karte 6503-8905-2785-0740",
+  "5603036581654765",
+  "5603036581654765"
+ ],
+ "serie-card-es-23": [
+  "3589 4783 6743 8125",
+  "3749-418965-63015",
+  "347890547878567",
+  "La",
+  "la",
+  "4658 7494 5012",
+  "la",
+  "4783 6743",
+  "La",
+  "347890547878567",
+  "418965"
+ ],
+ "serie-card-it-24": [
+  "6288 9036 7058 7810",
+  "sulla carta 4729 ",
+  "Storno",
+  "6987",
+  "21",
+  "La",
+  "7810 527",
+  "Storno"
+ ],
+ "serie-card-pt-25": [
+  "3589 8727 8383 2301",
+  "6529636741234926",
+  "lançado",
+  "lançado",
+  "6529636741234926",
+  "6529636741234926"
+ ],
+ "serie-card-nl-26": [
+  "4329 4965 6903 0766",
+  "6549-4921-4987-4103",
+  "376163454169097",
+  "kaart",
+  "376163454169097",
+  "376163454169097"
+ ],
+ "serie-card-pl-27": [
+  "6507 0541 4769 2307",
+  "3787-676789-25478",
+  "8984",
+  "Obciążenie",
+  "na kartę 2221 ",
+  "8969 0529 8907",
+  "Płatność",
+  "Obciążenie",
+  "na kartę",
+  "676789"
+ ],
+ "serie-card-sv-28": [
+  "5221076701272124",
+  "6569 6761 4925 2568",
+  "5221076701272124",
+  "4925 2568",
+  "5221076701272124",
+  "5221076701272124"
+ ],
+ "serie-card-da-29": [
+  "5196-9258-7674-7032",
+  "5394747874701872",
+  "5196-9258-7674-7032",
+  "5394747874701872",
+  "til kortet",
+  "5892 5436 7078",
+  "5394747874701872",
+  "5394747874701872",
+  "121438"
+ ],
+ "serie-card-fr-30": [
+  "3528-5852-9836-3018",
+  "3528925090387676",
+  "Reçu n° 8841",
+  "3528-5852-9836-3018",
+  "1418",
+  "le 5 du mois",
+  "3528925090387676",
+  "3528925090387676",
+  "307092"
+ ],
+ "serie-card-en-31": [
+  "4141-0327-4307-8946",
+  "5241036303610945",
+  "4141-0327-4307-8946",
+  "overnight",
+  "0183 0925 0109",
+  "6103 4765",
+  "yesterday",
+  "5241036303610945",
+  "5241036303610945"
+ ],
+ "serie-card-de-32": [
+  "5138 1472 3290 9690",
+  "Die Erstattung erfolgt",
+  "Karte 2530-5618-5650-9639",
+  "Die Buchung wurde mit",
+  "Karte 2530 9412 5412 ",
+  "5654",
+  "Die Erstattung erfolgt auf",
+  "Karte",
+  "2530567278507895",
+  "2530567278507895"
+ ],
+ "serie-card-es-33": [
+  "la",
+  "La",
+  "la tarjeta",
+  "0369",
+  "5605830983652544",
+  "5605830983652544"
+ ],
+ "serie-card-it-34": [
+  "3496 745458 16722",
+  "Storno",
+  "16722",
+  "La",
+  "sulla carta",
+  "Storno",
+  "sulla carta 6581",
+  "La",
+  "2567",
+  "2221254963892783",
+  "745458",
+  "2221254963892783"
+ ],
+ "serie-card-wrap-fr": [
+  "8785 8721"
+ ],
+ "serie-card-wrap-en": [
+  "4729 8303\n8543",
+  "yesterday"
+ ],
+ "serie-card-wrap-de": [
+  "Die Erstattung erfolgt",
+  "Karte",
+  "3721 618107",
+  "618107"
+ ],
+ "serie-cid-fr-0": [
+  "émane du SIRET",
+  "657 00014"
+ ],
+ "serie-cid-fr-1": [
+  "BE0705674",
+  "Assujetti"
+ ],
+ "serie-cid-fr-2": [
+  "émane du SIRET"
+ ],
+ "serie-cid-fr-3": [
+  "627 070 360 00067",
+  "Assujetti",
+  "émane du SIRET"
+ ],
+ "serie-cid-fr-4": [],
+ "serie-cid-fr-5": [
+  "Assujetti",
+  "émane du"
+ ],
+ "serie-cid-fr-6": [
+  "945 00022"
+ ],
+ "serie-cid-pt-0": [
+  "PT5278925",
+  "Emitir",
+  "03.016.549/0001-62"
+ ],
+ "serie-cid-pt-1": [
+  "03.670.763/0001-38",
+  "034/0001-68"
+ ],
+ "serie-cid-pt-2": [],
+ "serie-cid-pt-3": [],
+ "serie-cid-en-0": [
+  "Singapore",
+  "1618785"
+ ],
+ "serie-cid-en-1": [
+  "SE8187052",
+  "961 012"
+ ],
+ "serie-cid-en-2": [
+  "Singapore",
+  "0543452"
+ ],
+ "serie-cid-en-3": [
+  "581 071",
+  "Singapore",
+  "05 076 581 071",
+  "7254565"
+ ],
+ "serie-cid-en-4": [],
+ "serie-cid-en-5": [
+  "Singapore",
+  "2527870"
+ ],
+ "serie-cid-en-6": [
+  "Singapore",
+  "9434147"
+ ],
+ "serie-cid-en-7": [
+  "094 325 078"
+ ],
+ "serie-cid-en-8": [
+  "Singapore",
+  "8345276"
+ ],
+ "serie-cid-en-9": [
+  "050",
+  "Singapore",
+  "05 058 361 050",
+  "5252127"
+ ],
+ "serie-cid-en-10": [],
+ "serie-cid-pl-0": [
+  "Nabywca",
+  "Nabywca",
+  "5678941451",
+  "034-345-63-66",
+  "2965690920",
+  "5678941451",
+  "2965690920",
+  "5678941451",
+  "2965690920"
+ ],
+ "serie-cid-pl-1": [
+  "Nabywca",
+  "Nabywca",
+  "7410587273",
+  "458-325-49-25",
+  "6361494989",
+  "301-670-12-50",
+  "7410587273",
+  "6361494989",
+  "7410587273",
+  "6361494989"
+ ],
+ "serie-cid-pl-2": [
+  "Nabywca",
+  "Nabywca",
+  "1472563691",
+  "2729056540",
+  "525-676-74-10",
+  "1472563691",
+  "2729056540",
+  "1472563691",
+  "2729056540"
+ ],
+ "serie-cid-pl-3": [
+  "Nabywca",
+  "5638143051",
+  "816-147-49-25",
+  "5638143051",
+  "5638143051"
+ ],
+ "serie-cid-sv-0": [
+  "SE7238163"
+ ],
+ "serie-cid-da-0": [],
+ "serie-cid-nl-0": [
+  "Belgisch",
+  "Belgisch"
+ ],
+ "serie-cid-nl-1": [
+  "Belgisch"
+ ],
+ "serie-cid-nl-2": [
+  "Belgisch"
+ ],
+ "serie-cid-it-0": [
+  "83850581030",
+  "14321298144",
+  "67618521495",
+  "78589490123",
+  "83850581030",
+  "14321298144",
+  "67618521495",
+  "78589490123"
+ ],
+ "serie-cid-it-1": [
+  "54905818180",
+  "65636389655",
+  "54905818180",
+  "69696147854",
+  "65636389655",
+  "54905818180",
+  "69696147854"
+ ],
+ "serie-cid-de-0": [
+  "TU3810187",
+  "Die Rechnung",
+  "Tochter"
+ ],
+ "serie-cid-de-1": [
+  "TU4345434",
+  "TU9238949",
+  "Tochter",
+  "Eingetragen beim Amtsgericht",
+  "Die Rechnung",
+  "Tochter"
+ ],
+ "serie-cid-de-2": [
+  "Eingetragen beim Amtsgericht",
+  "Tochter",
+  "ATU05896563",
+  "Eingetragen beim Amtsgericht"
+ ],
+ "serie-cid-de-3": [
+  "Die Rechnung",
+  "Tochter",
+  "Eingetragen beim Amtsgericht"
+ ],
+ "serie-cid-de-4": [
+  "Tochter",
+  "Die Rechnung",
+  "Tochter"
+ ],
+ "serie-cid-de-5": [
+  "Eingetragen beim Amtsgericht"
+ ],
+ "serie-cid-es-0": [
+  "La",
+  "en el registro",
+  "al NIF",
+  "La",
+  "en el registro",
+  "P85698721",
+  "G34561034",
+  "P85698721",
+  "G34561034"
+ ],
+ "serie-cid-es-1": [
+  "al NIF",
+  "La",
+  "en el registro",
+  "al NIF",
+  "N87854147",
+  "F61416969",
+  "N87854147",
+  "F61416969"
+ ],
+ "serie-user-list-en-0": [],
+ "serie-user-list-fr-1": [
+  "@monetodora_51"
+ ],
+ "serie-user-list-en-2": [],
+ "serie-user-list-es-3": [],
+ "serie-user-list-de-4": [
+  "Gemeldete Konten"
+ ],
+ "serie-user-list-pt-5": [
+  "sinalizadas",
+  "@vamiru_21"
+ ],
+ "serie-user-list-en-6": [],
+ "serie-user-list-fr-7": [],
+ "serie-user-list-en-8": [],
+ "serie-user-list-es-9": [
+  "@furub_25"
+ ],
+ "serie-user-list-de-10": [
+  "Gemeldete Konten"
+ ],
+ "serie-user-list-pt-11": [
+  "sinalizadas"
+ ],
+ "serie-user-list-en-12": [
+  "@besavufive"
+ ],
+ "serie-user-list-fr-13": [],
+ "serie-user-labels-0": [],
+ "serie-user-labels-1": [],
+ "serie-user-labels-2": [
+  "nome de utilizador",
+  "nazwa",
+  "cebubeg.bo"
+ ],
+ "serie-user-labels-3": [
+  "nom d'utilisateur",
+  "lofinigom"
+ ],
+ "serie-user-labels-4": [],
+ "serie-user-labels-5": [],
+ "serie-user-labels-6": [
+  "borova.com"
+ ],
+ "serie-user-labels-7": [],
+ "serie-user-labels-8": [],
+ "serie-user-labels-9": [
+  "supate.su"
+ ],
+ "serie-user-labels-10": [
+  "nome utente:",
+  "pibofutav"
+ ],
+ "serie-user-labels-11": [
+  "cosepu.pa"
+ ],
+ "serie-user-labels-12": [
+  "povalafud",
+  "lafape.to"
+ ],
+ "serie-user-labels-13": [
+  "nome de utilizador",
+  "mimubal.nu"
+ ],
+ "serie-user-labels-14": [
+  "nom d'utilisateur:",
+  "mufute.bid"
+ ],
+ "serie-user-labels-15": [],
+ "serie-user-labels-16": [],
+ "serie-token-0": [
+  "Der Schlüssel"
+ ],
+ "serie-token-1": [
+  "Der Schlüssel",
+  "La",
+  "va"
+ ],
+ "serie-token-2": [
+  "La",
+  "va"
+ ],
+ "serie-token-3": [
+  "KdsTGHE3LmajYz5fCMJ"
+ ],
+ "serie-token-4": [
+  "Der Schlüssel",
+  "La"
+ ],
+ "serie-token-5": [
+  "kzw7kms8qzW0cmJtgZ\nDer Schlüssel",
+  "La",
+  "KjYznX35ABYznx7daKQ va"
+ ],
+ "serie-token-6": [
+  "KtY3Wpu7ajGZ6F4mJTgrn"
+ ],
+ "serie-token-7": [],
+ "serie-token-8": [
+  "Der Schlüssel kJjQ9ex2vAjY92FkmAbqr",
+  "La",
+  "va"
+ ],
+ "serie-token-9": [
+  "Der Schlüssel",
+  "La",
+  "kx4dSt8hExCMS2q9ex va",
+  "nog in de wiki"
+ ],
+ "serie-token-10": [],
+ "serie-token-11": [],
+ "serie-token-12": [
+  "La",
+  "Ku5S7GhNXL5S3g9WP45S va"
+ ],
+ "serie-token-13": [
+  "La",
+  "Ky9WpkV23QRWFUDATg va",
+  "nog in de wiki"
+ ],
+ "serie-token-14": [],
+ "serie-token-15": [
+  "Der Schlüssel"
+ ],
+ "serie-token-16": [
+  "Der Schlüssel",
+  "La",
+  "va",
+  "Khwx5mibQrw7cvAB9ZEpc"
+ ],
+ "serie-token-17": [
+  "La",
+  "va",
+  "nog in de wiki"
+ ],
+ "serie-token-18": [
+  "Der Schlüssel KMSjq76x4Ditg7NXcvaTg"
+ ],
+ "serie-token-19": [
+  "La",
+  "va"
+ ],
+ "serie-token-20": [
+  "Der Schlüssel",
+  "La",
+  "K2ByZNxu3aBqrW3uDsKy va",
+  "KyhwpCdJ7Y1EXLvstg"
+ ],
+ "serie-token-21": [
+  "KbQ9NFc7itqzN5uMSKQ",
+  "kBY9WxuvAb84w6uVs3yH"
+ ],
+ "serie-token-22": [
+  "Der Schlüssel"
+ ],
+ "serie-token-23": [
+  "La"
+ ],
+ "serie-token-24": [
+  "La",
+  "nog in de wiki"
+ ],
+ "serie-token-25": [],
+ "serie-token-26": [
+  "Der Schlüssel",
+  "La",
+  "va"
+ ],
+ "serie-token-27": [
+  "Der Schlüssel",
+  "La",
+  "va",
+  "nog in de wiki"
+ ],
+ "serie-token-28": [
+  "La",
+  "va",
+  "nog in de wiki"
+ ],
+ "serie-hlt-fr-0": [
+  "10050129434",
+  "S85",
+  "10050129434",
+  "436561",
+  "10050129434"
+ ],
+ "serie-hlt-en-1": [
+  "B95",
+  "470169"
+ ],
+ "serie-hlt-de-2": [
+  "V40",
+  "769672"
+ ],
+ "serie-hlt-es-3": [
+  "N02.4",
+  "N02",
+  "109098"
+ ],
+ "serie-hlt-it-4": [
+  "Z78",
+  "10385098",
+  "10385098"
+ ],
+ "serie-hlt-pt-5": [
+  "Krankenakte",
+  "10058969416",
+  "C77",
+  "10058969416",
+  "1098165",
+  "10058969416"
+ ],
+ "serie-hlt-nl-6": [
+  "G04",
+  "4561278"
+ ],
+ "serie-hlt-fr-7": [
+  "10852163630",
+  "V60",
+  "16541290",
+  "10852163630",
+  "16541290",
+  "10852163630"
+ ],
+ "serie-hlt-en-8": [
+  "E49",
+  "47230949",
+  "47230949"
+ ],
+ "serie-hlt-de-9": [
+  "N43",
+  "5878947"
+ ],
+ "serie-hlt-es-10": [
+  "10092587278",
+  "A82",
+  "58341674",
+  "10092587278",
+  "58341674",
+  "10092587278"
+ ],
+ "serie-hlt-it-11": [
+  "W25",
+  "690309"
+ ],
+ "serie-hlt-pt-12": [
+  "S07",
+  "9652345"
+ ],
+ "serie-hlt-nl-13": [
+  "G96.8",
+  "G96",
+  "729274"
+ ],
+ "serie-hlt-fr-14": [
+  "G82",
+  "989210"
+ ],
+ "serie-hlt-en-15": [
+  "Krankenakte",
+  "10052307232",
+  "P13",
+  "10052307232",
+  "7636545",
+  "10052307232"
+ ],
+ "serie-hlt-de-16": [
+  "10256389872",
+  "E19",
+  "10256389872",
+  "254325",
+  "10256389872"
+ ],
+ "serie-hlt-es-17": [
+  "10430385258",
+  "J83",
+  "07018181",
+  "10430385258",
+  "07018181",
+  "10430385258"
+ ],
+ "serie-hlt-it-18": [
+  "10452109230",
+  "0563632",
+  "V70",
+  "10452109230",
+  "0563632",
+  "10452109230"
+ ],
+ "serie-hlt-pt-19": [
+  "J69",
+  "058121"
+ ],
+ "serie-hlt-nl-20": [
+  "L36.8",
+  "10674709290",
+  "L36",
+  "92749274",
+  "10674709290",
+  "92749274",
+  "10674709290"
+ ],
+ "serie-hlt-fr-21": [
+  "O80",
+  "10634341256",
+  "6525632",
+  "10634341256"
+ ],
+ "serie-hlt-en-22": [
+  "0907694",
+  "O76",
+  "0907694"
+ ],
+ "serie-hlt-de-23": [
+  "10892349410",
+  "F35",
+  "10892349410",
+  "5256963",
+  "10892349410"
+ ],
+ "serie-hlt-es-24": [
+  "W51",
+  "W51",
+  "47672905",
+  "47672905"
+ ],
+ "serie-hlt-it-25": [
+  "Krankenakte",
+  "A77",
+  "3256305"
+ ],
+ "serie-hlt-pt-26": [
+  "P00",
+  "32509656",
+  "32509656"
+ ],
+ "serie-hlt-nl-27": [
+  "P99",
+  "7878949"
+ ],
+ "serie-hlt-fr-28": [
+  "10010367058",
+  "T68",
+  "10010367058",
+  "769030",
+  "10010367058"
+ ],
+ "serie-hlt-en-29": [
+  "D51",
+  "10032321476",
+  "056767",
+  "10032321476"
+ ],
+ "serie-hlt-de-30": [
+  "C61",
+  "690703"
+ ],
+ "serie-hlt-es-31": [
+  "D90",
+  "10050541474",
+  "101616",
+  "10050541474"
+ ],
+ "serie-hlt-it-32": [
+  "O10",
+  "8107496"
+ ],
+ "serie-hlt-pt-33": [
+  "10650543850",
+  "H12",
+  "10650543850",
+  "923294",
+  "10650543850"
+ ],
+ "serie-hlt-nl-34": [
+  "X19",
+  "096909"
+ ],
+ "serie-hlt-fr-35": [
+  "Krankenakte",
+  "10032545692",
+  "D53",
+  "10032545692",
+  "3416927",
+  "10032545692"
+ ],
+ "serie-hlt-en-36": [
+  "10296307438",
+  "E88",
+  "10296307438",
+  "2301630",
+  "10296307438"
+ ],
+ "serie-hlt-de-37": [
+  "03832547",
+  "A77",
+  "03832547",
+  "10058961270",
+  "03832547",
+  "10058961270"
+ ],
+ "serie-hlt-es-38": [
+  "L88",
+  "0107014"
+ ],
+ "serie-hlt-it-39": [
+  "W31",
+  "10450301834",
+  "5450721",
+  "10450301834"
+ ],
+ "serie-hlt-pt-40": [
+  "M26",
+  "4749076"
+ ],
+ "serie-hlt-nl-41": [
+  "I36",
+  "741296"
+ ],
+ "serie-hlt-fr-42": [
+  "C76",
+  "56125892",
+  "56125892"
+ ],
+ "serie-hlt-en-43": [
+  "10670309472",
+  "F87",
+  "10670309472",
+  "7456721",
+  "10670309472"
+ ],
+ "serie-hlt-de-44": [
+  "H21",
+  "092969"
+ ],
+ "serie-hlt-es-45": [
+  "B96",
+  "18145078",
+  "18145078"
+ ],
+ "serie-hlt-it-46": [
+  "Y26",
+  "987652"
+ ],
+ "serie-hlt-pt-47": [
+  "P93",
+  "1230147"
+ ],
+ "serie-hlt-nl-48": [],
+ "minces-ocr-confusables": [
+  "189",
+  "O112",
+  "12/06"
+ ],
+ "tr-gmail-list": [
+  "l.guingamp@atelier-lanaud.fr",
+  "clement.jolaud@exemple.fr",
+  "compta@atelier-lanaud.fr",
+  "n.veligier@exemple.fr",
+  "Tristan VELIGIER <n.veligier@exemple.fr",
+  "2026-0417 - chantier",
+  "14 Jul 2026",
+  "l.gu",
+  "atelier-lanaud.fr",
+  "clement.jo",
+  "exemple.fr",
+  "atelier-lanaud.fr",
+  "n.ve",
+  "exemple.fr"
+ ],
+ "tr-gmail-signature": [
+  "capucine.gaspard@menuiserie-chalonat.fr",
+  "Bien",
+  "Capucine Gaspard",
+  "21 88 05",
+  "capucine.ga",
+  "menuiserie-chalonat.fr",
+  "01 46 21 88 04",
+  "06 74 21 88 05"
+ ],
+ "tr-outlook-message": [
+  "bengt.morergaard@kenarstra.co.uk",
+  "t.thalfeld@kenarstra.co.uk",
+  "venlo",
+  "3 August",
+  "Kolding",
+  "5HN",
+  "2026-07-21T08:03:11Z",
+  "07700 900 812",
+  "bengt.mo",
+  "kenarstra.co.uk",
+  "t.th",
+  "kenarstra.co.uk"
+ ],
+ "tr-superhuman-thread": [
+  "a.agathe@cabinet-agathe.fr",
+  "gisele.carole@laposte.net",
+  "Gisele CAROLE",
+  "12 septembre",
+  "Cordialement",
+  "55 09",
+  "a.ag",
+  "cabinet-agathe.fr",
+  "gisele.car",
+  "laposte.net",
+  "04 73 21 55 09",
+  "990275301245",
+  "990275301245"
+ ],
+ "tr-slack-history": [
+  "r.gisele@free.fr",
+  "Mme Alexandre au",
+  "71 20",
+  "r.gi",
+  "free.fr",
+  "06 09 55 71 20",
+  "1753692184",
+  "1753692240",
+  "1753692184",
+  "1753692240",
+  "1753692184",
+  "1753692240"
+ ],
+ "tr-slack-profile": [
+  "femke.heike@kenarstra.co.uk",
+  "Heike-Grondorf\",\"display_name\":\"femke",
+  "1984-11-02",
+  "kenarstra.co.uk"
+ ],
+ "tr-teams-chat": [
+  "Greta-Kenerwald",
+  "Bengt",
+  "2026-07-19T14:22:00Z",
+  "0341 55 21 907"
+ ],
+ "tr-gcal-event": [
+  "leandre.gaspard@exemple.fr",
+  "p.megan@exemple.fr",
+  "notaire@etude-gaspard.fr",
+  "FR76 3000 6000 0112 3456 7890 189",
+  "JUSTINE\",\"location\":\"12 rue des",
+  "2026-09-03T10:00:00+02:00",
+  "leandre.ga",
+  "exemple.fr",
+  "p.me",
+  "exemple.fr",
+  "etude-gaspard.fr"
+ ],
+ "tr-fireflies-transcript": [
+  "h.gisele@exemple.fr",
+  "o.hortense@exemple.fr",
+  "h.gisele@exemple.fr",
+  "o.hortense@exemple.fr",
+  "femke.chalinier@passau.fr",
+  "h.gisele@exemple.fr",
+  "o.hortense@exemple.fr",
+  "Hortense-Maron",
+  "Justine",
+  "Hortense-Maron\",\"start_time\":31.9,\"raw_text\":\"Sa",
+  "Femke Chalinier",
+  "Femke Chalinier",
+  "2026-07-21",
+  "h.gi",
+  "exemple.fr",
+  "exemple.fr",
+  "h.gi",
+  "exemple.fr",
+  "exemple.fr",
+  "femke.ch",
+  "passau.fr",
+  "h.gi",
+  "exemple.fr",
+  "exemple.fr",
+  "07 82 15 43 60",
+  "07 82 15 43 60"
+ ],
+ "tr-gtasks-list": [
+  "tristan.veligier@exemple.fr",
+  "14/03/1979",
+  "tristan.ve",
+  "exemple.fr",
+  "02 40 12 34 56"
+ ],
+ "tr-supabase-sql": [
+  "o.caspar@laposte.net",
+  "p.gaspard@wp.pl",
+  "j.thaleling@usal.es",
+  "0721398421",
+  "Megan CASPAR",
+  "2026-01-14",
+  "Ulla GASPARD",
+  "2026-01-15",
+  "Greta THALELING-THALDORF",
+  "2026-02-02",
+  "o.ca",
+  "laposte.net",
+  "p.ga",
+  "wp.pl",
+  "j.th",
+  "usal.es",
+  "0663120944",
+  "+33755012288",
+  "0721398421",
+  "0663120944",
+  "33755012288",
+  "0721398421",
+  "0663120944",
+  "33755012288",
+  "0721398421"
+ ],
+ "tr-neon-json": [
+  "FR34 1027 8060 4100 0204 5230 187",
+  "FR76 3000 4028 3700 0105 7289 121",
+  "rows\":[{\"client_id\":9042,\"nom\":\"Gisele ALEXANDRE\",\"adresse\":\"12 allee des Tamaris\",\"cp\":\"64600\",\"ville\":\"YVETOT\",\"iban\":\"FR34 1027 8060 4100 0204 5230",
+  "187\",\"naissance\":\"1991-01-04",
+  "121\",\"naissance\":\"1979-11-30\"}],\"rowCount\":2"
+ ],
+ "tr-prisma-ndjson": [
+  "torben.holelfeld@fastmail.com",
+  "sigrid.stendorf@kenarstra.ac.uk",
+  "Stendorf",
+  "1974-11-12",
+  "1999-06-06",
+  "fastmail.com",
+  "sigrid.st",
+  "kenarstra.ac.uk",
+  "AB123456C",
+  "CD654321D"
+ ],
+ "tr-airtable-records": [
+  "mireille.clement@edu.univ-fcomte.fr",
+  "clement.doreyard@gmail.com",
+  "CLEMENT-LANELIER\",\"Email\":\"mireille.clement@edu.univ-fcomte.fr\",\"Telephone\":\"06",
+  "mireille.cl",
+  "edu.univ-fcomte.fr",
+  "clement.do",
+  "gmail.com",
+  "06 12 90 44 71",
+  "07 68 12 44 90",
+  "22104877",
+  "22104912",
+  "22104877",
+  "22104912"
+ ],
+ "tr-synapse-csv": [
+  "jb.aurore@passau.fr",
+  "c.carole@laposte.net",
+  "04/02/1961",
+  "21 08",
+  "18/09/1958",
+  "jb.au",
+  "passau.fr",
+  "c.car",
+  "laposte.net",
+  "05 56 40 12 77",
+  "02 96 33 21 08"
+ ],
+ "tr-dropbox-search": [
+  "recto.jp",
+  "recto.jp",
+  "412887"
+ ],
+ "tr-intercom-contact": [
+  "wouter.morholt@posteo.eu",
+  "27 64",
+  "Gelsomini",
+  "1980-03-15",
+  "wouter.mo",
+  "posteo.eu",
+  "+39 340 118 27 64"
+ ],
+ "tr-attio-record": [
+  "s.devigado@nufenup.fr",
+  "dpo@praalois.io",
+  "54 87 01\"}],\"company\":[{\"value\":\"PRAALOIS",
+  "s.dev",
+  "nufenup.fr",
+  "praalois.io",
+  "+33 6 23 54 87 01"
+ ],
+ "tr-close-lead": [
+  "b.chaier@exemple.fr",
+  "Chaier",
+  "b.ch",
+  "exemple.fr",
+  "+33472889012",
+  "33472889012",
+  "73282932000074",
+  "33472889012",
+  "73282932000074"
+ ],
+ "tr-jotform-submission": [
+  "femke.chalinier@passau.fr",
+  "allee des Cytises",
+  "59110",
+  "11/10/2011",
+  "femke.ch",
+  "passau.fr",
+  "07 82 15 43 60"
+ ],
+ "tr-monday-item": [
+  "pulse-1234567890@chalin.monday.com",
+  "9876543210",
+  "h.gisele@exemple.fr",
+  "clement.doreyard@gmail.com",
+  "clement.doreyard@gmail.com",
+  "90 44 71\",\"value\":\"{\\\"phone\\\":\\\"0612904471\\\"}\",\"type\":\"phone",
+  "1997-08-19",
+  "1997-08-19",
+  "chalin.monday.com",
+  "h.gi",
+  "exemple.fr",
+  "clement.do",
+  "gmail.com",
+  "clement.do",
+  "gmail.com",
+  "1234567890",
+  "1234567890",
+  "9876543210",
+  "06 12 90 44 71",
+  "0612904471",
+  "1234567890",
+  "1234567890",
+  "9876543210",
+  "0612904471",
+  "1234567890",
+  "1234567890",
+  "9876543210",
+  "0612904471"
+ ],
+ "tr-asana-task": [
+  "bengt.morergaard@kenarstra.co.uk",
+  "t.thalfeld.priv@fastmail.com",
+  "Kolding",
+  "5HN",
+  "07700 900 231",
+  "2026-08-03",
+  "bengt.mo",
+  "kenarstra.co.uk",
+  "t.thalfeld.pr",
+  "fastmail.com"
+ ],
+ "tr-linear-issue": [
+  "capucine.gaspard@chalalois.eu",
+  "fanny.malent@vauoux-malent.fr",
+  "21 09",
+  "capucine.ga",
+  "chalalois.eu",
+  "fanny.ma",
+  "vauoux-malent.fr",
+  "03 87 55 21 09"
+ ],
+ "tr-atlassian-jira": [
+  "n.jolon@exemple.fr",
+  "Roland CAPUCINE-DORRET",
+  "05 56 40 12 77",
+  "n.jo",
+  "exemple.fr",
+  "05 56 40 12 77"
+ ],
+ "tr-notion-page": [
+  "FR76 3000 6000 0112 3456 7890 189",
+  "12/05/1988",
+  "Roland LEANDRE",
+  "004782",
+  "Adresse",
+  "Roland",
+  "004782"
+ ],
+ "tr-gdrive-list": [
+  "noemie.roland@banquepop.fr",
+  "f.pelecard@univ-fcomte.fr",
+  "2026-06-02T09:41:00Z",
+  "Noemie.do",
+  "vnd.openxmlformats-officedocument.wordprocessingml.do",
+  "noemie.ro",
+  "banquepop.fr",
+  "f.pe",
+  "univ-fcomte.fr"
+ ],
+ "tr-gdocs-content": [
+  "Confolens"
+ ],
+ "tr-gsheets-values": [
+  "r.gisele@free.fr",
+  "b.blandine@exemple.fr",
+  "m.fanny@exemple.re",
+  "32 51 09 44\",\"27200\",\"Quimperle",
+  "06 09 55 71 20",
+  "r.gi",
+  "free.fr",
+  "exemple.fr",
+  "exemple.re",
+  "02 32 51 09 44",
+  "06 92 77 12 03",
+  "A1",
+  "F4"
+ ],
+ "tr-onedrive-item": [
+  "lars.thaleling@web.de",
+  "Greta THALELING-THALDORF",
+  "27",
+  "Dezember 2009",
+  "lars.th",
+  "web.de",
+  "204118"
+ ],
+ "tr-sharepoint-search": [
+  "FR76 1027 8060 2100 0204 8630 163",
+  "8060 2100",
+  "Stendorf",
+  "\"https://contoso.sharepoint.com/sites/HR/payroll_q2_2026.xlsx\"",
+  "Q2",
+  "QQ123456C"
+ ],
+ "tr-filesystem-list": [
+  "recto.jp"
+ ],
+ "tr-stripe-customer": [
+  "l.niels@exemple.fr",
+  "NIELS",
+  "l.ni",
+  "exemple.fr",
+  "+33641220987",
+  "33641220987",
+  "33641220987"
+ ],
+ "tr-stripe-charges": [
+  "a.agathe@cabinet-agathe.fr",
+  "gisele.carole@laposte.net",
+  "a.ag",
+  "cabinet-agathe.fr",
+  "gisele.car",
+  "laposte.net"
+ ],
+ "tr-paypal-transaction": [
+  "nino.ventalorio@correo.es",
+  "Olivar 14",
+  "41 07 39",
+  "nino.ve",
+  "correo.es"
+ ],
+ "tr-square-customer": [
+  "g.dageru@nubapa.eu",
+  "Bering",
+  "Enna",
+  "30 11",
+  "1980-07-21",
+  "nubapa.eu",
+  "+39 3401182764",
+  "081 552 30 11",
+  "3401182764",
+  "3401182764"
+ ],
+ "tr-sentry-event": [
+  "o.caspar@laposte.net",
+  "culprit\":\"computeVat(/srv",
+  "92.184.105.22",
+  "\"https://app.chalin.fr/facture/4471\"",
+  "o.ca",
+  "laposte.net",
+  "srv-prod-01.ch",
+  "92.184.105.22"
+ ],
+ "tr-sentry-breadcrumbs": [
+  "r.alexandre@exemple.fr",
+  "88.174.22.9",
+  "45 67 89 01\\",
+  "r.al",
+  "exemple.fr",
+  "06 45 67 89 01"
+ ],
+ "tr-github-commits": [
+  "carole.peland@protonmail.com",
+  "jcosta@vauoux-malent.fr",
+  "2026-07-11T08:22:41Z",
+  "carole.pe",
+  "protonmail.com",
+  "vauoux-malent.fr"
+ ],
+ "tr-github-issue": [
+  "sigrid.stendorf-falinmann@kenarstra.ac.uk",
+  "sigrid",
+  "sigrid.st",
+  "kenarstra.ac.uk",
+  "5518420"
+ ],
+ "tr-vercel-logs": [
+  "torben.holelfeld@fastmail.com",
+  "2026-07-22T10:14:02.118Z",
+  "2026-07-22T10:14:03.902Z",
+  "2026-07-22T10:14:09.771Z",
+  "92.184.105.22",
+  "2a01:cb04:8f2:1e00::42",
+  "88.174.22.9",
+  "fastmail.com",
+  "92.184.105.22",
+  "07700 900 812"
+ ],
+ "tr-cloudflare-morbeck": [
+  "92.184.105.22",
+  "2001:861:3f42:1200::7",
+  "freja.ni",
+  "92.184.105.22",
+  "19876543",
+  "19876543"
+ ],
+ "tr-netlify-forms": [
+  "r.gisele@free.fr",
+  "09 55 71",
+  "2026-07-20T11:02:00Z",
+  "r.gi",
+  "free.fr",
+  "06 09 55 71 20"
+ ],
+ "tr-semgrep-findings": [
+  "carole.peland@protonmail.com",
+  "generic.se",
+  "db-prod.int",
+  "\"pii.logging.email\"",
+  "logger.info",
+  "user.email",
+  "carole.pe",
+  "protonmail.com"
+ ],
+ "tr-posthog-events": [
+  "o.caspar@laposte.net",
+  "p.gaspard@wp.pl",
+  "Gaspard",
+  "92.184.105.22",
+  "o.ca",
+  "laposte.net",
+  "p.ga",
+  "wp.pl",
+  "0663120944",
+  "92.184.105.22",
+  "0663120944",
+  "0663120944"
+ ],
+ "tr-amplitude-user": [
+  "p.gaspard@wp.pl",
+  "31.11.180.4",
+  "p.ga",
+  "wp.pl",
+  "992114"
+ ],
+ "tr-ga4-report": [
+  "92.184.105.22",
+  "88.174.22.9",
+  "92.184.105.22",
+  "19876543",
+  "19876543"
+ ],
+ "tr-exa-search": [
+  "contact@doron-exemple.com",
+  "DORON",
+  "\"https://doron-exemple.com/contact\"",
+  "doron-exemple.com",
+  "01.43.28.55.10",
+  "01.43.28.55.11"
+ ],
+ "tr-tavily-answer": [
+  "i.heike-grondorf@kenarstra.ac.uk",
+  "Femke Heike-Grondorf",
+  "Wikgaard",
+  "+44 117 928 4412",
+  "kenarstra.ac.uk"
+ ],
+ "tr-firecrawl-scrape": [
+  "contact@chalystudio-exemple.fr",
+  "Capucine Gaspard",
+  "21 09",
+  "Hebergeur",
+  "rue Kellermann",
+  "59100",
+  "Jonzac",
+  "chalystudio-exemple.fr",
+  "05 56 44 21 09"
+ ],
+ "tr-brightdata-profile": [
+  "ulla.elke@posteo.eu",
+  "Italy",
+  "posteo.eu",
+  "+39 011 555 2201"
+ ],
+ "tr-apify-scrape": [
+  "Carnot",
+  "42300",
+  "59300",
+  "14 88",
+  "04 77 71 20 08",
+  "03 27 14 88 02",
+  "10003456789",
+  "10003847521",
+  "10003456789",
+  "10003847521"
+ ],
+ "tr-wix-orders": [
+  "m.fanny@exemple.re",
+  "rue de la Verrerie\",\"city\":\"Saint-Auch\",\"postalCode\":\"97400\",\"country\":\"RE",
+  "exemple.re",
+  "0692771203",
+  "0692771203",
+  "0692771203"
+ ],
+ "tr-webflow-form": [
+  "j.thaleling@usal.es",
+  "j.th",
+  "usal.es",
+  "+49 721 39 84 210"
+ ],
+ "tr-canva-designs": [
+  "noemie.roland@banquepop.fr",
+  "Mireille",
+  "\"https://canva-exemple.com/t/DAF9x.png\"",
+  "2026-07-18",
+  "noemie.ro",
+  "banquepop.fr"
+ ],
+ "tr-cloudinary-assets": [
+  "cni_leandre_justine_recto\",\"format\":\"jpg\",\"bytes\":412887",
+  "JUSTINE nee le",
+  "30/01/1995",
+  "412887"
+ ],
+ "tr-zapier-run": [
+  "s.fenagigu@padosip.fr",
+  "dpo@praalois.io",
+  "09/03/1987",
+  "padosip.fr",
+  "praalois.io",
+  "06 23 54 87 01"
+ ],
+ "tr-websitepublisher-deploy": [
+  "secretariat@cabinet-carole.fr",
+  "Carnot",
+  "42300",
+  "cabinet-carole.fr",
+  "04 77 71 20 08"
+ ],
+ "tr-morningstar-quote": [],
+ "tr-vantage-cost": [],
+ "tr-huggingface-model": [
+  "184221"
+ ],
+ "tr-error-message": [
+  "clement.jolaud@exemple.fr",
+  "0663120944",
+  "clement.jo",
+  "exemple.fr",
+  "0663120944",
+  "0663120944"
+ ],
+ "tr-pagination-cursor": [
+  "l.niels@exemple.fr",
+  "\"https://dashboard.example.com/logs/req_2Kx?email=l.niels%40exemple.fr\"",
+  "l.ni",
+  "exemple.fr"
+ ],
+ "tr-nested-deep": [
+  "b.chaier@exemple.fr",
+  "Fanny LEANDRE",
+  "91 04\"},\"Bailleur\":{\"people\":[{\"name\":\"Blandine",
+  "b.ch",
+  "exemple.fr",
+  "04 78 22 91 04"
+ ],
+ "tr-xml-soap": [
+  "quai de la",
+  "02 40 12 34 56",
+  "14/03/1979"
+ ],
+ "tr-yaml-config": [
+  "fo-saduc@lipodel.fr",
+  "carole.peland@protonmail.com",
+  "Carole Peland",
+  "6 12 77 40 91",
+  "+33 6 12 77 40 91",
+  "10.4.2.11",
+  "4.2.11",
+  "smtp.exemple.fr",
+  "lipodel.fr",
+  "carole.pe",
+  "protonmail.com"
+ ],
+ "tr-slack-cjk": [
+  "cesocose@example.cn",
+  "example.cn"
+ ],
+ "tr-teams-ja": [
+  "090-1234-5678"
+ ],
+ "tr-outlook-ko": [
+  "ti.pive@example.kr",
+  "example.kr"
+ ],
+ "tr-supabase-advisor": [
+  "\"https://supabase.com/docs/guides/database/database-linter\"",
+  "public.cu"
+ ],
+ "tr-gmail-quoted-chain": [
+  "clement.jolaud@exemple.fr",
+  "Clement Jolaud",
+  "03 80",
+  "22 09",
+  "Tristan",
+  "clement.jo",
+  "exemple.fr",
+  "03 80 41 22 09"
+ ],
+ "tr-haystack-jack": [
+  "s.capucine.dorret@protonmail.com",
+  "Les indicateurs de disponibilite sont conformes aux objectifs",
+  "s.capucine.do",
+  "protonmail.com"
+ ],
+ "tr-markdown-table": [
+  "c.holelfeld.oda@fastmail.com",
+  "r.stendorf-falinmann@kenarstra.ac.uk",
+  "Torben Holelfeld-Oda",
+  "07700",
+  "2024-09-02",
+  "07700",
+  "2025-01-13",
+  "fastmail.com",
+  "r.st",
+  "kenarstra.ac.uk",
+  "07700 900 812",
+  "07700 900 455",
+  "QQ123456C",
+  "AB654321D"
+ ],
+ "tr-tsv-export": [
+  "r.alexandre@libero.it",
+  "h.gisele@exemple.fr",
+  "ALEXANDRE-CLERAUARD",
+  "Clement",
+  "Honfleur",
+  "22/06/1975",
+  "Vire",
+  "03/04/2008",
+  "r.al",
+  "libero.it",
+  "h.gi",
+  "exemple.fr"
+ ],
+ "tr-lowercase-crm": [
+  "f.carole@exemple.fr",
+  "de mathis carole",
+  "il habite",
+  "capucine pour les rendez-vous",
+  "f.car",
+  "exemple.fr"
+ ],
+ "tr-slack-profile-full": [
+  "i.heike-grondorf@kenarstra.co.uk",
+  "Heike",
+  "Heike-Grondorf",
+  "Kolding",
+  "2021-09-13",
+  "1984-11-02",
+  "kenarstra.co.uk",
+  "Xf0111",
+  "Xf0222",
+  "Xf0333",
+  "QQ123456C"
+ ],
+ "tr-slack-search-users": [
+  "clement.jolaud@exemple.fr",
+  "l.guingamp@atelier-lanaud.fr",
+  "c.jo",
+  "clement.jo",
+  "exemple.fr",
+  "l.gu",
+  "l.gu",
+  "atelier-lanaud.fr",
+  "0663120944",
+  "0663120944",
+  "0663120944"
+ ],
+ "tr-slack-thread": [
+  "FR76 3000 6000 0112 3456 7890 189",
+  "JUSTINE",
+  "je relance le",
+  "189",
+  "Leandre GASPARD nee le",
+  "user\":\"U0BB2\",\"ts\":\"1753692401.003\",\"text\":\"ok",
+  "je la",
+  "30/01/1995",
+  "1753692184",
+  "1753692300",
+  "1753692184",
+  "1753692401",
+  "06 45 67 89 01",
+  "1753692184",
+  "1753692184",
+  "1753692300",
+  "1753692184",
+  "1753692401",
+  "1753692184",
+  "1753692184",
+  "1753692300",
+  "1753692184",
+  "1753692401",
+  "1753692184"
+ ],
+ "tr-slack-canvas": [
+  "ops@chalystudio-exemple.fr",
+  "Carole Peland",
+  "Fanny Malent",
+  "Capucine Gaspard",
+  "21 88",
+  "Carole Peland",
+  "chalystudio-exemple.fr",
+  "06 12 77 40 91",
+  "06 74 21 88 05",
+  "S28",
+  "S29",
+  "N2"
+ ],
+ "tr-graph-message-full": [
+  "7c1e@kenarstra.co.uk",
+  "c.holelfeld.oda@fastmail.com",
+  "c.holelfeld.oda@fastmail.com",
+  "payroll@kenarstra.co.uk",
+  "bengt.morergaard@kenarstra.co.uk",
+  "c.holelfeld.priv@fastmail.com",
+  "Venlo",
+  "2026-07-21T08:03:11Z",
+  "kenarstra.co.uk",
+  "fastmail.com",
+  "fastmail.com",
+  "kenarstra.co.uk",
+  "bengt.mo",
+  "kenarstra.co.uk",
+  "c.holelfeld.pr",
+  "fastmail.com",
+  "81234567",
+  "QQ123456C",
+  "81234567"
+ ],
+ "tr-graph-headers": [
+  "s.capucine.dorret@protonmail.com",
+  "s.capucine.dorret@protonmail.com",
+  "92.184.105.22",
+  "88.174.22.9",
+  "mail.exemple.fr",
+  "mail.exemple.fr",
+  "s.capucine.do",
+  "protonmail.com",
+  "s.capucine.do",
+  "protonmail.com",
+  "[92.184.105.22"
+ ],
+ "tr-graph-attachment": [
+  "graph.microsoft.com/v1.0/users/roland.leandre@clerouret.fr",
+  "\"https://graph.microsoft.com/v1.0/users/roland.leandre@clerouret.fr/messages/AAMkAG/attachments\"",
+  "microsoft.graph.fi",
+  "odata.co",
+  "v1"
+ ],
+ "tr-gcal-full": [
+  "a.agathe@cabinet-agathe.fr",
+  "etude@baudet-garard.fr",
+  "gisele.carole@laposte.net",
+  "a.agathe@cabinet-agathe.fr",
+  "clerc@baudet-garard.fr",
+  "09\",\"location\":\"8",
+  "63410",
+  "Senlis",
+  "2026-09-12T14:00:00+02:00",
+  "a.ag",
+  "cabinet-agathe.fr",
+  "baudet-garard.fr",
+  "gisele.car",
+  "laposte.net",
+  "a.ag",
+  "cabinet-agathe.fr",
+  "baudet-garard.fr",
+  "04 73 21 55 09"
+ ],
+ "tr-gcal-freebusy": [
+  "gisele.carole@cabinet-carole.fr",
+  "fanny.toranier@chu-guebwiller.fr",
+  "2026-09-03T09:00:00Z",
+  "2026-09-03T10:30:00Z",
+  "gisele.car",
+  "cabinet-carole.fr",
+  "fanny.to",
+  "chu-guebwiller.fr"
+ ],
+ "tr-stripe-customer-full": [
+  "l.niels@exemple.fr",
+  "NIELS\",\"phone\":\"+33641220987\",\"address\":{\"line1\":\"7",
+  "87 654",
+  "l.ni",
+  "exemple.fr",
+  "+33641220987",
+  "+33641220987",
+  "C314159",
+  "0759376C",
+  "33641220987",
+  "33641220987",
+  "73282932000074",
+  "33641220987",
+  "33641220987",
+  "73282932000074"
+ ],
+ "tr-stripe-dispute": [
+  "p.gaspard@wp.pl",
+  "Breda",
+  "31.11.180.4",
+  "p.ga",
+  "wp.pl"
+ ],
+ "tr-stripe-payout-report": [
+  "a.agathe@cabinet-agathe.fr",
+  "gisele.carole@laposte.net",
+  "leandre.gaspard@exemple.fr",
+  "Gisele",
+  "2026-07-02",
+  "2026-07-03",
+  "2026-07-05",
+  "a.ag",
+  "cabinet-agathe.fr",
+  "gisele.car",
+  "laposte.net",
+  "leandre.ga",
+  "exemple.fr"
+ ],
+ "tr-sentry-user-geo": [
+  "o.caspar@laposte.net",
+  "92.184.105.22",
+  "\"https://app.chalin.fr/compte/megan-caspar\"",
+  "92.184.105.22",
+  "o.ca",
+  "laposte.net",
+  "92.184.105.22",
+  "0663120944",
+  "92.184.105.22",
+  "0663120944",
+  "0663120944"
+ ],
+ "tr-sentry-issue-list": [
+  "FR76 3000 6000 0112 3456 7890 189",
+  "carole.peland@protonmail.com",
+  "rejete pour Roland LEANDRE\"},\"count\":\"312",
+  "carole.pe",
+  "protonmail.com"
+ ],
+ "tr-airtable-full": [
+  "r.gisele@free.fr",
+  "2026-07-12T21:03:49.000Z",
+  "b.blandine@exemple.fr",
+  "1962-04-18",
+  "1958-12-02",
+  "09 55 71",
+  "20\",\"Date de naissance\":\"1962-04-18\",\"Actif\":true",
+  "fields\":{\"Nom\":\"Blandine",
+  "32 51 09",
+  "2026-07-12T21:03:48.000Z",
+  "r.gi",
+  "free.fr",
+  "exemple.fr",
+  "06 09 55 71 20",
+  "02 32 51 09 44"
+ ],
+ "tr-notion-sql": [
+  "mireille.clement@edu.univ-fcomte.fr",
+  "clement.doreyard@gmail.com",
+  "CLEMENT-LANELIER\",\"Email\":\"mireille.clement@edu.univ-fcomte.fr\",\"Statut\":\"Actif\",\"Tuteur\":\"Antonin PELECARD",
+  "2003-02-02",
+  "1997-08-19",
+  "mireille.cl",
+  "edu.univ-fcomte.fr",
+  "clement.do",
+  "gmail.com"
+ ],
+ "tr-notion-comments": [
+  "capucine.gaspard@chalalois.eu",
+  "21 09",
+  "2026-07-19T10:12:00Z",
+  "capucine.ga",
+  "chalalois.eu",
+  "05 56 44 21 09"
+ ],
+ "tr-supabase-json-agg": [
+  "o.caspar@laposte.net",
+  "FR76 1027 8060 2100 0204 8630 163",
+  "p.gaspard@wp.pl",
+  "FR76 1254 8029 0000 0430 0245 170",
+  "8060 2100",
+  "1990-04-17",
+  "92.184.105.22",
+  "1986-02-11",
+  "31.11.180.4",
+  "o.ca",
+  "laposte.net",
+  "p.ga",
+  "wp.pl",
+  "92.184.105.22"
+ ],
+ "tr-supabase-logs": [
+  "j.thaleling@usal.es",
+  "user=clement.alexandre@libero.it",
+  "93.45.201.8",
+  "185.12.44.7",
+  "j.th",
+  "usal.es",
+  "auth.si",
+  "clement.al",
+  "libero.it",
+  "+49 721 39 84 210",
+  "v1",
+  "1753692184000000",
+  "1753692190000000",
+  "1753692184000000",
+  "1753692190000000"
+ ],
+ "tr-linear-graphql": [
+  "s.magudobu@bumisin.fr",
+  "carole.peland@protonmail.com",
+  "jcosta@vauoux-malent.fr",
+  "Capucine N'TALAUIN",
+  "87 01",
+  "06 23 54 87 01",
+  "09/03/1987",
+  "s.ma",
+  "bumisin.fr",
+  "carole.pe",
+  "protonmail.com",
+  "vauoux-malent.fr"
+ ],
+ "tr-asana-stories": [
+  "h.gisele@exemple.fr",
+  "femke.chalinier@passau.fr",
+  "de Justine CHALINIER-",
+  "59110",
+  "h.gi",
+  "exemple.fr",
+  "femke.ch",
+  "passau.fr",
+  "07 82 15 43 60"
+ ],
+ "tr-monday-graphql": [
+  "estelle.gisele@exemple.fr",
+  "12 34 56",
+  "1979-03-14",
+  "estelle.gi",
+  "exemple.fr",
+  "02 40 12 34 56"
+ ],
+ "tr-jira-adf": [
+  "n.jolon@exemple.fr",
+  "capucine.gaspard@chalalois.eu",
+  "Roland CAPUCINE-DORRET",
+  "nee le 23 janvier 1989",
+  "05 56 40 12 77",
+  "n.jo",
+  "exemple.fr",
+  "capucine.ga",
+  "chalalois.eu",
+  "05 56 40 12 77"
+ ],
+ "tr-confluence-page": [
+  "carole.peland@protonmail.com",
+  "jcosta@vauoux-malent.fr",
+  "Annuaire de l equipe</h2><table><tr><th",
+  "Fanny Malent</td><td",
+  "carole.pe",
+  "protonmail.com",
+  "vauoux-malent.fr",
+  "06 12 77 40 91",
+  "03 87 55 21 09",
+  "h2",
+  "h2"
+ ],
+ "tr-github-search-code": [
+  "clement.jolaud@exemple.fr",
+  "0663120944",
+  "clement.jo",
+  "exemple.fr",
+  "0663120944",
+  "0663120944"
+ ],
+ "tr-github-pr-reviews": [
+  "o.caspar@laposte.net",
+  "jcosta@vauoux-malent.fr",
+  "o.ca",
+  "laposte.net",
+  "vauoux-malent.fr"
+ ],
+ "tr-intercom-conversation": [
+  "wouter.morholt@posteo.eu",
+  "support@chalin.it",
+  "+39 340 118 27 64",
+  "wouter.mo",
+  "posteo.eu",
+  "chalin.it"
+ ],
+ "tr-attio-list-entries": [
+  "p.megan@exemple.fr",
+  "Gaspard",
+  "06 45 67 89 01",
+  "sentier des",
+  "p.me",
+  "exemple.fr",
+  "06 45 67 89 01"
+ ],
+ "tr-close-activities": [
+  "b.chaier@exemple.fr",
+  "b.chaier@exemple.fr",
+  "69300",
+  "b.ch",
+  "exemple.fr",
+  "b.ch",
+  "exemple.fr",
+  "+33472889012",
+  "33472889012",
+  "33472889012"
+ ],
+ "tr-gdrive-permissions": [
+  "noemie.roland@banquepop.fr",
+  "capucine.gaspard@chalalois.eu",
+  "rabosefoc.2026@novicecas.fr",
+  "ROLAND",
+  "Gaspard",
+  "noemie.ro",
+  "banquepop.fr",
+  "capucine.ga",
+  "chalalois.eu",
+  "novicecas.fr"
+ ],
+ "tr-gdrive-revisions": [
+  "roland.leandre@clerouret.fr",
+  "e.capucine@clerouret.fr",
+  "2026-06-02T09:41:00Z",
+  "2026-06-14T11:02:00Z",
+  "clerouret.fr",
+  "e.ca",
+  "clerouret.fr"
+ ],
+ "tr-dropbox-shared-links": [
+  "\"https://www.dropbox.com/s/8a2f/CNI_JUSTINE_Leandre.jpg\"",
+  "Leandre.jp",
+  "leandre.jp"
+ ],
+ "tr-onedrive-search": [
+  "h.dahlbeck@klinikum-stadtpark.de",
+  "Magnus GRETA-KENERWALD",
+  "Juli 1968",
+  "\"https://klinikum.sharepoint.com/Dokumente/Arztbrief_GRETA-KENERWALD.pdf\"",
+  "klinikum-stadtpark.de"
+ ],
+ "tr-filesystem-read": [
+  "FR76 3000 6000 0112 3456 7890 189",
+  "FR34 1027 8060 4100 0204 5230 187",
+  "Roland",
+  "3456 7890 189,2140.00\\nCAPUCINE",
+  "Roland",
+  "carole.pe"
+ ],
+ "tr-paypal-invoice": [
+  "facturation@chalystudio-exemple.fr",
+  "a.agathe@cabinet-agathe.fr",
+  "Roland",
+  "chalystudio-exemple.fr",
+  "a.ag",
+  "cabinet-agathe.fr",
+  "473215509",
+  "473215509",
+  "473215509",
+  "473215509"
+ ],
+ "tr-square-orders": [
+  "g.mapusi@surafu.eu",
+  "g.ma",
+  "surafu.eu",
+  "+39 3401182764",
+  "3401182764",
+  "3401182764"
+ ],
+ "tr-vercel-runtime-errors": [
+  "fanny.fanny@exemple.re",
+  "92.184.105.22",
+  "exemple.re",
+  "92.184.105.22",
+  "0692771203",
+  "0692771203",
+  "0692771203"
+ ],
+ "tr-cloudflare-firewall": [
+  "mireille-clement-lanelier",
+  "185.12.44.7",
+  "2a01:cb04:8f2:1e00::42",
+  "\"app.chalin.fr\"",
+  "clement.al",
+  "40libero.it"
+ ],
+ "tr-netlify-deploy-log": [
+  "12:04:11 Building",
+  "Gisele CAROLE",
+  "Carnot 42300 Elbeuf",
+  "20 08",
+  "SG.f9K2xQ8mTgWpL4nV.Rt7yUiOp3aSdFgHjKlZxCvBnM1qW2eR",
+  "contact.as",
+  "04 77 71 20 08"
+ ],
+ "tr-semgrep-sarif": [
+  "c.holelfeld.oda@fastmail.com",
+  "fastmail.com",
+  "QQ123456C"
+ ],
+ "tr-posthog-hogql": [
+  "l.niels@exemple.fr",
+  "p.gaspard@wp.pl",
+  "m.fanny@exemple.re",
+  "columns\":[\"person.properties.email\",\"person.properties.name\",\"properties.$geoip_city_name\",\"properties.$ip\",\"count",
+  "92.184.105.22",
+  "31.11.180.4",
+  "88.174.22.9",
+  "\"person.properties.email\"",
+  "\"person.properties.name\"",
+  "l.ni",
+  "exemple.fr",
+  "p.ga",
+  "wp.pl",
+  "exemple.re",
+  "92.184.105.22"
+ ],
+ "tr-amplitude-cohort": [
+  "o.caspar@laposte.net",
+  "p.gaspard@wp.pl",
+  "Megan Caspar",
+  "France",
+  "Ulla Gaspard",
+  "Poland",
+  "2026-07-22",
+  "2026-07-21",
+  "o.ca",
+  "laposte.net",
+  "p.ga",
+  "wp.pl",
+  "d7f2a"
+ ],
+ "tr-firecrawl-crawl-map": [
+  "20 08",
+  "\"https://cabinet-carole.fr/equipe\"",
+  "04 77 71 20 08",
+  "10003456789",
+  "10003847521",
+  "10003456789",
+  "10003847521"
+ ],
+ "tr-exa-contents": [
+  "info@bremholt-logistik.de",
+  "147936",
+  "Ingmar HAGING",
+  "Telefon +49 89",
+  "10 44",
+  "\"https://bremholt-logistik.de/impressum\"",
+  "bremholt-logistik.de",
+  "+49 89 552 10 44",
+  "147936"
+ ],
+ "tr-brightdata-serp": [
+  "jcosta@vauoux-malent.fr",
+  "Fanny MALENT",
+  "21 09",
+  "\"https://vauoux-malent.fr\"",
+  "vauoux-malent.fr",
+  "03 87 55 21 09"
+ ],
+ "tr-mixed-encoding": [
+  "40clerouret.fr",
+  "e.ca",
+  "40clerouret.fr",
+  "201027",
+  "208060",
+  "204100",
+  "200204",
+  "205230"
+ ],
+ "tr-jsonl-bulk": [
+  "torben.holelfeld@fastmail.com",
+  "sigrid.stendorf@kenarstra.ac.uk",
+  "t.thalfeld@kenarstra.co.uk",
+  "Holelfeld",
+  "Stendorf",
+  "fastmail.com",
+  "sigrid.st",
+  "kenarstra.ac.uk",
+  "t.th",
+  "kenarstra.co.uk",
+  "QQ123456C",
+  "AB654321D"
+ ],
+ "tr-truncated-payload": [
+  "r.alexandre@libero.it",
+  "irene.alexandre@libero.it",
+  "16145",
+  "2008-04-03",
+  "r.al",
+  "libero.it",
+  "irene.al",
+  "libero.it",
+  "333 470 19 82",
+  "2026114532",
+  "2026114532",
+  "2026114532"
+ ],
+ "tr-zapier-webhook": [
+  "ulla.elke@posteo.eu",
+  "Sud\",\"vat\":\"IT01234567897\",\"address\":\"corso Vittorio Fabio 118",
+  "Zwolle",
+  "2026-07-22T09:14:00Z",
+  "posteo.eu",
+  "+39 011 555 2201"
+ ],
+ "tc-supabase-sql-where": [
+  "o.caspar@laposte.net",
+  "1986-02-11",
+  "Gaspard",
+  "1986-02-11'",
+  "0663120944",
+  "public.cu",
+  "o.ca",
+  "laposte.net",
+  "0663120944",
+  "0663120944"
+ ],
+ "tc-supabase-sql-insert": [
+  "FR76 3000 6000 0112 3456 7890 189",
+  "FR34 1027 8060 4100 0204 5230 187",
+  "adresse",
+  "cp",
+  "ville",
+  "rue des Forges','25000','CONFOLENS','1988-05-12'",
+  "1988-05-12",
+  "1979-11-30"
+ ],
+ "tc-supabase-sql-update": [
+  "leandre.gaspard@exemple.fr",
+  "45 67 89 01'",
+  "456 22'",
+  "GASPARD",
+  "06 45 67 89 01",
+  "leandre.ga",
+  "exemple.fr"
+ ],
+ "tc-posthog-hogql": [
+  "l.niels@exemple.fr",
+  "p.gaspard@wp.pl",
+  "92.184.105.22",
+  "person.properties.email",
+  "person.properties.email",
+  "l.ni",
+  "exemple.fr",
+  "p.ga",
+  "wp.pl",
+  "person.properties.email",
+  "92.184.105.22"
+ ],
+ "tc-posthog-filter": [
+  "fanny.fanny@exemple.re",
+  "exemple.re"
+ ],
+ "tc-notion-sql": [
+  "mireille.clement@edu.univ-fcomte.fr",
+  "Tuteur",
+  "Antonin PELECARD-TALEAU",
+  "mireille.cl",
+  "edu.univ-fcomte.fr"
+ ],
+ "tc-linear-graphql-vars": [
+  "carole.peland@protonmail.com",
+  "87 01",
+  "carole.pe",
+  "protonmail.com",
+  "06 23 54 87 01"
+ ],
+ "tc-slack-search-query": [
+  "c.jo",
+  "06 09 55 71 20"
+ ],
+ "tc-gmail-search-query": [
+  "l.guingamp@atelier-lanaud.fr",
+  "clement.jolaud@exemple.fr",
+  "2026/07/01",
+  "l.gu",
+  "atelier-lanaud.fr",
+  "clement.jo",
+  "exemple.fr"
+ ],
+ "tc-stripe-search": [
+  "l.niels@exemple.fr",
+  "Niels",
+  "l.ni",
+  "exemple.fr",
+  "73282932000074",
+  "73282932000074"
+ ],
+ "tc-intercom-search": [
+  "wouter.morholt@posteo.eu",
+  "wouter.mo",
+  "posteo.eu",
+  "\"location.city\"",
+  "+39 340 118 27 64"
+ ],
+ "tc-airtable-formula": [
+  "Email}='r.gisele@free.fr",
+  "r.gi",
+  "free.fr"
+ ],
+ "tc-jira-jql": [
+  "n.jolon@exemple.fr",
+  "n.jo",
+  "exemple.fr"
+ ],
+ "tc-sentry-query": [
+  "c.holelfeld.oda@fastmail.com",
+  "92.184.105.22",
+  "user.email",
+  "fastmail.com",
+  "92.184.105.22"
+ ],
+ "tc-vercel-logs-query": [
+  "fanny.fanny@exemple.re",
+  "exemple.re",
+  "0692771203",
+  "0692771203",
+  "0692771203"
+ ],
+ "tc-filesystem-write": [
+  "Roland LEANDRE",
+  "solde du au 31/07",
+  "carole.pe"
+ ],
+ "tc-gmail-send": [
+  "gisele.carole@laposte.net",
+  "a.agathe@cabinet-agathe.fr",
+  "FR76 3000 6000 0112 3456 7890 189",
+  "merci de vous munir de votre",
+  "gisele.car",
+  "laposte.net",
+  "a.ag",
+  "cabinet-agathe.fr",
+  "990275301245",
+  "990275301245"
+ ],
+ "tc-webbrowse-url": [
+  "\"https://annuaire.exemple.fr/recherche?nom=Gisele+CAROLE&ville=Elbeuf&tel=0477712008\"",
+  "0477712008",
+  "0477712008",
+  "0477712008"
+ ],
+ "h1": [
+  "Coordonnées",
+  "56 78",
+  "06 12 34 56 78"
+ ],
+ "h2": [
+  "Gaspard Tristan"
+ ],
+ "h3": [],
+ "h4": [
+  "Senlis"
+ ],
+ "h5": [
+  "societe-generale.fr"
+ ],
+ "h6": [
+  "1007 94"
+ ],
+ "h7": [],
+ "h8": [
+  "M.\nJUSTINE"
+ ],
+ "h9": [
+  "56 78"
+ ],
+ "h10": [],
+ "h11": [
+  "mathis.aurore@acme-corp.fr",
+  "Élodie Aurore",
+  "66 55",
+  "mathis.au",
+  "acme-corp.fr",
+  "+33 6 88 77 66 55"
+ ],
+ "h12": [
+  "1988"
+ ],
+ "h13": [
+  "Acheteur",
+  "Carole\nRouonin"
+ ],
+ "h14": [
+  "Résidence Les",
+  "Bât"
+ ],
+ "h15": [
+  "Coline"
+ ],
+ "h16": [
+  "Anders\nCity"
+ ],
+ "h17": [
+  "voraring-traders.com"
+ ],
+ "h18": [
+  "Baker",
+  "Verden WA"
+ ],
+ "h19": [
+  "EXPÉRIENCE                    Clement Hortense",
+  "2020-2024",
+  "Lisieux"
+ ],
+ "h20": [],
+ "h21": [
+  "518057"
+ ],
+ "h22": [
+  "090-1234-5678"
+ ],
+ "h23": [],
+ "h24": [
+  "Lieferadresse",
+  "Bremholt-\nstraße",
+  "München"
+ ],
+ "h25": [
+  "Alexandre de la\nPrainac",
+  "a validé l'acte"
+ ],
+ "h26": [
+  "Louhans\nDépartement",
+  "Loire"
+ ],
+ "h27": [
+  "Numéro"
+ ],
+ "h28": [
+  "tristan\nROLAND"
+ ],
+ "h29": [
+  "de Riom"
+ ],
+ "h30": [],
+ "h31": [
+  "example.org"
+ ],
+ "h32": [
+  "FR14 2004 1010 0505 0001 3M02 606"
+ ]
+}

@@ -18,6 +18,7 @@
     "test:e2e": "pnpm --filter @openmasq/desktop run e2e",
     "eval": "vitest run --config vitest.evals.config.ts",
     "bench": "tsx scripts/tooling/bench-agentic.ts",
+    "bench:compare": "tsx packages/redact/bench/compare.mts",
     "e2e:login": "pnpm --filter @openmasq/desktop run e2e:login",
     "audit:gate": "node scripts/checks/audit-gate.mjs",
     "format": "biome format --write .",

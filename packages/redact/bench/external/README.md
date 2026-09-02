@@ -27,7 +27,7 @@ historical internal report ran Presidio on our corpus; this runs us on theirs.
 | ID | 21 | 95 % | 95 % | **100 %** |
 | IBAN | 21 | 100 % | 100 % | 100 % |
 | IP | 14 | 100 % | 100 % | 100 % |
-| **GLOBAL** | 2 523 | 31 % · **6 FP** | **74 %** · 118 FP | 58 % · 183 FP |
+| **GLOBAL** | 2 523 | 31 % · **6 FP** | **74 %** · 118 FP | 58 % · 196 FP |
 
 340 further annotations — titles, ages, nationalities and **dates** — are outside the
 product's scope and are **not scored**. They are still annotated, which is the point: a
@@ -47,8 +47,14 @@ comparison. The four out-of-scope types are mapped to `CONTEXT`, which `metric.t
 out of the recall denominator and *inside* the definition of a false positive. Deleting
 the spans instead would have turned every date Presidio correctly finds into an error
 against it — 119 fabricated false positives, in our favour, on a number we then publish.
-That single choice is worth 13 false positives on the Presidio column (183, not 196) and 5
-on ours (118, not 123).
+Presidio finds 133 of the 340 out-of-scope annotations; deleting them would have charged
+it 133 false positives it did not commit. Its column reads 196 either way — the same figure
+as when dates were scored, which is exactly what "not counted, still annotated" should do.
+
+(An earlier revision of this page printed 183. That was not the exclusion: the corpus had
+grown back by 94 cases that the committed detections file did not yet cover, and an absent
+entry scored as "detected nothing". `presidio.py` re-run on the full corpus — same pinned
+versions, byte-identical on every case it already had — closes the gap.)
 
 ## Cross-check: what Presidio's own notebook reports
 
@@ -67,7 +73,7 @@ VALUE-level and per category: a truth counts as found when ≥ 60 % of its signi
 tokens were replaced, which is the question a redaction product actually faces (did the
 value leave the machine?) rather than the question a tagger faces (was this token
 labelled?). The configurations differ too — the upstream notebook tokenizes with
-`en_core_web_sm`, `run_presidio.py` runs the analyzer on `en_core_web_lg`.
+`en_core_web_sm`, `../presidio.py` runs the analyzer on `en_core_web_lg`.
 
 They are close enough to say the harness is not producing a fantasy, and far enough apart
 that quoting one for the other would be dishonest. The number this repository publishes
@@ -85,7 +91,7 @@ replay.
   A street line is recovered in pieces (the city, sometimes the number) rather than as a
   span, so a 60 %-coverage threshold often fails it. Presidio does worse (17 %), which is
   a reason to keep working on it, not a reason to be satisfied.
-- **Precision has a hierarchy**: 6 FP (patterns) · 118 (ner) · 183 (Presidio). Every
+- **Precision has a hierarchy**: 6 FP (patterns) · 118 (ner) · 196 (Presidio). Every
   detection layer is paid for in false positives; the local NER pays less than
   Presidio's for a higher recall.
 - **Synthetic-vs-synthetic caveat**: faker-built corpora are structurally friendly to
@@ -97,14 +103,17 @@ replay.
 ## Replay it
 
 ```bash
-pnpm exec tsx packages/redact/bench/external/run.mts                                    # patterns
-pnpm build && pnpm exec tsx packages/redact/bench/external/run.mts --ner                # the product
-pnpm exec tsx packages/redact/bench/external/run.mts --detections presidio.detections.json
+pnpm bench:compare --corpus external --engines patterns,presidio   # no model needed
+pnpm build && pnpm bench:compare --corpus external                 # the product column too
+pnpm bench:compare --corpus external --markdown                    # the table above, verbatim
 ```
+
+The runner is `../compare.mts`, shared with the internal corpus (`../README.md`): one
+scorer, one table format, one command for both.
 
 To regenerate the Presidio column from scratch (Python):
 `python -m venv v && v/bin/pip install presidio-analyzer && v/bin/python -m spacy download en_core_web_lg`
-then `v/bin/python run_presidio.py` from this directory.
+then `v/bin/python packages/redact/bench/presidio.py external` from the repo root.
 
 ## Provenance & pinning — what makes this citable
 
@@ -122,7 +131,7 @@ then `v/bin/python run_presidio.py` from this directory.
   are annotated `CONTEXT`, so the recall denominators drop them for every engine equally
   while a detector that finds one is still not charged a false positive. The committed
   `presidio-research.benchcase.json` is the reference input.
-- **Presidio column**: `presidio.detections.json`, produced by `run_presidio.py` with
+- **Presidio column**: `presidio.detections.json`, produced by `../presidio.py external` with
   presidio-analyzer **2.2.364**, spaCy **3.8.16**, `en_core_web_lg` **3.8.0**, default
   `AnalyzerEngine` (score threshold 0, 17 predefined recognizers). This is Presidio's
   default configuration, not its ceiling — it is a library built to receive custom
@@ -167,8 +176,16 @@ comparaison. Les quatre types hors périmètre sont annotés `CONTEXT`, que `met
 dénominateur de rappel et garde *dans* la définition du faux positif. Supprimer les spans
 aurait transformé chaque date que Presidio trouve correctement en erreur contre lui — 119
 faux positifs fabriqués, en notre faveur, sur un chiffre que nous publions ensuite. Ce seul
-choix vaut 13 faux positifs sur la colonne Presidio (183 et non 196) et 5 sur la nôtre
-(118 et non 123).
+Presidio trouve 133 des 340 annotations hors périmètre ; les supprimer lui aurait compté 133
+faux positifs qu'il n'a pas commis. Sa colonne se lit 196 dans les deux cas — le même chiffre
+que lorsque les dates étaient notées, ce qui est exactement ce que « non compté, toujours
+annoté » doit produire.
+
+(Une révision antérieure de cette page affichait 183. Ce n'était pas l'exclusion : le corpus
+avait regagné 94 cas que le fichier de détections commité ne couvrait pas encore, et une
+entrée absente se notait comme « rien détecté ». `presidio.py` relancé sur le corpus complet —
+mêmes versions épinglées, identique à l'octet près sur chaque cas déjà présent — comble
+l'écart.)
 
 ## Recoupement : ce que rapporte le notebook de Presidio lui-même
 
@@ -187,7 +204,7 @@ comparaison ne note pas. La nôtre est au niveau de la VALEUR et par catégorie 
 compte comme trouvée quand ≥ 60 % de ses tokens significatifs ont été remplacés, ce qui est
 la question que pose vraiment un produit de masquage (la valeur a-t-elle quitté la machine ?)
 plutôt que celle que pose un étiqueteur (ce token a-t-il été étiqueté ?). Les configurations
-diffèrent aussi — le notebook amont tokenise avec `en_core_web_sm`, `run_presidio.py` fait
+diffèrent aussi — le notebook amont tokenise avec `en_core_web_sm`, `../presidio.py` fait
 tourner l'analyseur sur `en_core_web_lg`.
 
 Elles sont assez proches pour dire que le harnais ne produit pas une fantaisie, et assez
@@ -208,7 +225,7 @@ détections commitées que n'importe qui peut rejouer.
   comme un span, si bien qu'un seuil de couverture à 60 % la fait souvent échouer. Presidio
   fait moins bien (17 %), ce qui est une raison d'y travailler, pas une raison de s'en
   contenter.
-- **La précision a une hiérarchie** : 6 faux positifs (patterns) · 118 (ner) · 183
+- **La précision a une hiérarchie** : 6 faux positifs (patterns) · 118 (ner) · 196
   (Presidio). Chaque couche de détection se paie en faux positifs ; la NER locale paie moins
   que celle de Presidio pour un rappel supérieur.
 - **Réserve du synthétique contre synthétique** : les corpus bâtis avec faker sont
@@ -240,7 +257,7 @@ un environnement Python, décrit au même endroit.
   DATE_TIME — annotés `CONTEXT`, si bien que les dénominateurs de rappel les retirent pour
   chaque moteur également, sans qu'un détecteur qui en trouve un se voie compter un faux
   positif. Le `presidio-research.benchcase.json` commité est l'entrée de référence.
-- **Colonne Presidio** : `presidio.detections.json`, produit par `run_presidio.py` avec
+- **Colonne Presidio** : `presidio.detections.json`, produit par `../presidio.py external` avec
   presidio-analyzer **2.2.364**, spaCy **3.8.16**, `en_core_web_lg` **3.8.0**, l'`AnalyzerEngine`
   par défaut (seuil de score 0, 17 reconnaisseurs prédéfinis). C'est la configuration par défaut
   de Presidio, pas son plafond — c'est une bibliothèque faite pour recevoir des reconnaisseurs
