@@ -67,14 +67,19 @@ const s = await scoreCorpus(cases, async (text) => {
   return c ? detById.get(c.id)! : [];
 });
 
+// `CONTEXT` is the corpus's out-of-scope annotation (titles, age, nationality, dates —
+// `adapt-presidio-research.mjs`). `metric.ts` keeps it out of the recall denominator and
+// inside the false-positive test, so it gets its own line: reporting a recall for it in the
+// table would state a score the GLOBAL line deliberately does not include.
 const byCat = new Map<string, { ok: number; n: number }>();
+const unscored = { ok: 0, n: 0 };
 for (const c of cases) {
   const detected = detById.get(c.id)!;
   for (const [v, cat] of c.truth) {
-    const e = byCat.get(cat) ?? { ok: 0, n: 0 };
+    const e = cat === "CONTEXT" ? unscored : (byCat.get(cat) ?? { ok: 0, n: 0 });
     e.n++;
     if (coversTruth(v, detected)) e.ok++;
-    byCat.set(cat, e);
+    if (cat !== "CONTEXT") byCat.set(cat, e);
   }
 }
 
@@ -83,3 +88,7 @@ console.log("category   found/total   recall");
 for (const [cat, e] of [...byCat].sort((a, b) => b[1].n - a[1].n))
   console.log(`  ${cat.padEnd(8)} ${String(e.ok).padStart(6)}/${String(e.n).padEnd(6)} ${String(pct(e.ok, e.n)).padStart(4)} %`);
 console.log(`\n  GLOBAL  ${s.found}/${s.total} (${pct(s.found, s.total)} %) · false positives ${s.fp}`);
+console.log(
+  `  (out of scope, NOT in the global: ${unscored.ok}/${unscored.n} ` +
+    `titles, ages, nationalities and dates — annotated so that finding one is never counted as an error)`,
+);

@@ -88,6 +88,54 @@ different one in the next conversation, so a table built over the pool reverses 
 
 </details>
 
+## How good is the detection?
+
+Scored on **Presidio's own evaluation corpus** — Microsoft's benchmark, not one we wrote —
+with the same scorer applied to all three columns: 1 387 English cases, 2 523 truths, a
+truth counts as found when ≥ 60 % of its significant tokens were replaced.
+
+| category | truths | `patterns` (no model) | **the product** (`ner`) | Presidio (default) |
+|---|---:|---:|---:|---:|
+| NAME | 857 | 32 % | **98 %** | 87 % |
+| ADDRESS | 598 | 26 % | **38 %** | 17 % |
+| CITY | 411 | 2 % | **68 %** | 58 % |
+| ORG | 250 | 5 % | **73 %** | 22 % |
+| CARD | 136 | **100 %** | **100 %** | 97 % |
+| PHONE | 92 | 57 % | 57 % | **63 %** |
+| EMAIL · URL · IBAN · IP | 121 | 100 % | 100 % | 100 % |
+| ID | 21 | 95 % | 95 % | **100 %** |
+| POSTAL | 37 | 0 % | 0 % | **5 %** |
+| **overall** | **2 523** | 31 % · 6 false positives | **74 %** · 118 | 58 % · 183 |
+
+> [!WARNING]
+> **Read the categories, not the total.** A single percentage hides which of your data is
+> actually protected, and the answer is not uniform.
+>
+> - **Structured values are solved** — cards, IBANs, e-mails, URLs, IPs are at 100 % with
+>   no model at all, because a checksum or a shape is a proof rather than a guess.
+> - **Names are the strong case** (98 %), and they are what a chat leaks most.
+> - **Addresses are the weak one** (38 %, and the second-largest category). A street line
+>   comes back in pieces — the city, sometimes the number — rather than as one span, so it
+>   often misses the coverage threshold. Presidio does worse here (17 %); that is a reason
+>   to keep working, not a reason to be satisfied.
+> - **POSTAL and PHONE favour Presidio structurally**: US ZIP and NANP shapes, outside this
+>   engine's FR/EU centre of gravity. A bare five-digit ZIP is not distinguishable from any
+>   other number without US-shaped context.
+> - **Dates are not scored, on purpose.** The engine redacts a date only in a *birth*
+>   context: a blanket rule would destroy every appointment, deadline and log line a
+>   conversation carries. The corpus annotates every date as a truth, so scoring the
+>   category measured a design decision as a defect. Dates stay annotated, though — a
+>   detector that finds one is never charged a false positive for it.
+> - **Recall is paid for in false positives**, and the hierarchy is visible: 6 · 118 · 183.
+> - **Synthetic against synthetic.** A faker-built corpus is structurally kind to pattern
+>   engines. Compare the columns to each other, not to field performance.
+>
+> **Whatever the numbers, detection is not a guarantee.** The Vault — terms you mark
+> yourself — is the only coverage promise the product makes for a given string.
+
+The corpus, the runner, Presidio's own detections and the exact provenance are in
+[`packages/redact/bench/external`](packages/redact/bench/external), replayable from a clone.
+
 ## Links
 
 | | |
@@ -288,6 +336,60 @@ ce service ne fait pas partie de ce build — voir *Le faire tourner* plus bas.)
   *(Côté client seulement, pour la même raison.)*
 
 L'inventaire exhaustif, écran par écran, est dans [`FEATURES.md`](FEATURES.md).
+
+## Quelle est la qualité de la détection ?
+
+Mesurée sur **le corpus d'évaluation de Presidio** — le banc de Microsoft, pas un que nous
+aurions écrit — avec le même scoreur pour les trois colonnes : 1 387 cas anglais,
+2 523 vérités, une vérité comptant comme trouvée quand ≥ 60 % de ses tokens significatifs
+ont été remplacés.
+
+| catégorie | vérités | `patterns` (sans modèle) | **le produit** (`ner`) | Presidio (par défaut) |
+|---|---:|---:|---:|---:|
+| NOM | 857 | 32 % | **98 %** | 87 % |
+| ADRESSE | 598 | 26 % | **38 %** | 17 % |
+| VILLE | 411 | 2 % | **68 %** | 58 % |
+| ENTREPRISE | 250 | 5 % | **73 %** | 22 % |
+| CARTE | 136 | **100 %** | **100 %** | 97 % |
+| TÉLÉPHONE | 92 | 57 % | 57 % | **63 %** |
+| E-MAIL · URL · IBAN · IP | 121 | 100 % | 100 % | 100 % |
+| IDENTIFIANT | 21 | 95 % | 95 % | **100 %** |
+| CODE POSTAL | 37 | 0 % | 0 % | **5 %** |
+| **global** | **2 523** | 31 % · 6 faux positifs | **74 %** · 118 | 58 % · 183 |
+
+> [!WARNING]
+> **Lisez les catégories, pas le total.** Un pourcentage unique cache lesquelles de vos
+> données sont réellement protégées, et la réponse n'est pas uniforme.
+>
+> - **Les valeurs structurées sont réglées** — cartes, IBAN, e-mails, URL, IP sont à 100 %
+>   sans aucun modèle, parce qu'une somme de contrôle ou une forme est une preuve et non
+>   une supposition.
+> - **Les noms sont le point fort** (98 %), et c'est ce qu'une conversation laisse le plus
+>   échapper.
+> - **Les adresses sont le point faible** (38 %, et la deuxième catégorie par la taille).
+>   Une ligne d'adresse revient par morceaux — la ville, parfois le numéro — plutôt que
+>   comme un seul span, et rate donc souvent le seuil de couverture. Presidio fait moins
+>   bien (17 %) : c'est une raison d'y travailler, pas une raison de s'en contenter.
+> - **Le code postal et le téléphone favorisent structurellement Presidio** : les formats
+>   ZIP américains et NANP, hors du centre de gravité FR/UE de ce moteur. Un code à cinq
+>   chiffres nu ne se distingue d'aucun autre nombre sans un contexte de forme américaine.
+> - **Les dates ne sont pas notées, à dessein.** Le moteur ne masque une date que dans un
+>   contexte de *naissance* : une règle générale détruirait tous les rendez-vous, échéances
+>   et lignes de journal qu'une conversation transporte. Le corpus annote chaque date comme
+>   une vérité, si bien que noter la catégorie revenait à mesurer un choix de conception
+>   comme un défaut. Les dates restent annotées pour autant — un détecteur qui en trouve
+>   une ne se voit jamais compter un faux positif pour ça.
+> - **Le rappel se paie en faux positifs**, et la hiérarchie est lisible : 6 · 118 · 183.
+> - **Synthétique contre synthétique.** Un corpus bâti avec faker est structurellement
+>   aimable avec les moteurs à motifs. Comparez les colonnes entre elles, pas à une
+>   performance de terrain.
+>
+> **Quels que soient les chiffres, une détection n'est pas une garantie.** Le Coffre — les
+> termes que vous marquez vous-même — est la seule promesse de couverture que le produit
+> fasse pour une chaîne donnée.
+
+Le corpus, le harnais, les détections de Presidio et la provenance exacte sont dans
+[`packages/redact/bench/external`](packages/redact/bench/external), rejouables depuis un clone.
 
 ## Liens
 
