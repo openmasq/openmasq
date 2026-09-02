@@ -25,11 +25,15 @@ export const MODEL_CONTEXT: Record<string, number> = {
   "claude-haiku-4-5": 200_000,
   // Anthropic — previous generation.
   "claude-sonnet-4-6": 1_000_000,
-  // Subscription via the Claude Code CLI: the window depends on the model the
-  // subscription serves; 200K is the common floor of the range, never a promise beyond it.
-  "claude-cli": 200_000,
-  "claude-cli-sonnet": 200_000,
-  "claude-cli-opus": 200_000,
+  // Subscription via the Claude Code CLI: each entry is a FAMILY alias the CLI resolves to
+  // that family's current model, so its window is the one the API entries above state for
+  // the same family — Fable 5 / Sonnet 5 / Opus 4.8 at 1M, Haiku 4.5 at 200K. The bare entry
+  // is the subscription's default (Sonnet or Opus, by plan), hence the same 1M. Showing 200K
+  // on every row next to the keyed 1M rows read as a difference between the two roads that
+  // does not exist.
+  "claude-cli": 1_000_000,
+  "claude-cli-sonnet": 1_000_000,
+  "claude-cli-opus": 1_000_000,
   "claude-cli-haiku": 200_000,
   // ChatGPT subscription via the Codex CLI: the window is that of the model the
   // account serves; 400K is the floor of the GPT-5.x range, never a promise beyond it.
