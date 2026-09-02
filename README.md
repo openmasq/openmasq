@@ -205,7 +205,8 @@ CLI subscription. Redaction is on-device.
 reaches them by default** (`apps/desktop/scripts/publicServices.ts`): sign-in (a
 Supabase project — magic link or Google; the account only identifies you, nothing sits
 behind it), the Slack relay (the code→token exchange Slack forbids on-device), the
-analytics relay (pseudonymous counters behind a consent, plus the release notes
+analytics relay (pseudonymous counters — ON by default, tied to a stable install id,
+turned off in Settings, and never sent when Do Not Track or GPC is set — plus the release notes
 the app displays, plus the feature-flag read — that last one is a configuration request,
 not measurement, so it runs outside consent and carries the install id and, when you are
 signed in, your account token: `packages/analytics/src/flags.ts` says so in full), crash reports (Sentry — an allow-list of a few machine
@@ -461,7 +462,9 @@ modèle local, ou un abonnement CLI. Le masquage s'exécute sur l'appareil.
 atteint par défaut** (`apps/desktop/scripts/publicServices.ts`) : la connexion (un projet
 Supabase — lien magique ou Google ; le compte ne fait que vous identifier, rien ne se cache
 derrière), le relais Slack (l'échange code→jeton que Slack interdit sur l'appareil), le
-relais analytics (des compteurs pseudonymes derrière un consentement, plus les notes
+relais analytics (des compteurs pseudonymes — ACTIFS par défaut, liés à un identifiant
+d'installation stable, désactivables dans les Réglages, et jamais envoyés si Do Not Track ou
+GPC est posé — plus les notes
 de version que l'app affiche, plus la lecture des drapeaux de fonctionnalité — celle-ci est
 une requête de configuration, pas une mesure : elle s'exécute hors consentement et porte
 l'identifiant d'installation et, si vous êtes connecté, votre jeton de compte ;
