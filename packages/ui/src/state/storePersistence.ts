@@ -7,9 +7,8 @@ import { PROVIDERS } from "@openmasq/llm";
 import { resolveLocale } from "@openmasq/i18n";
 import { CATEGORY_DEFAULTS } from "@openmasq/catalog/redaction";
 import { migrateRedactCategories } from "./settings/settingsMigrations";
-import { DEFAULT_MODEL_ID } from "../prompt/models";
 import type { Conversation, Settings } from "../types";
-import { blueAccent } from "./settings/theme";
+import { readTheme } from "./settings/theme";
 import { mergeLegacyWorkflows } from "../skills/migrate";
 import { stripVaultForLocal } from "../send/sendGuards";
 
@@ -131,11 +130,12 @@ export const DEFAULT_SETTINGS: Settings = {
   // `apikey` heuristic and bare `number` are off by default (the latter also gated
   // by `redactNumbers`).
   redactCategories: { ...CATEGORY_DEFAULTS },
-  // The default has ONE single home (`prompt/models.ts`): onboarding no longer asks for a
-  // chat model, so this seed governs — and a second write of the id
-  // would drift from the constant the rest of the code consults (rule 9).
-  defaultModelId: DEFAULT_MODEL_ID,
-  theme: "blue",
+  // EMPTY = no choice yet, so new conversations follow the access path
+  // (`prompt/defaultModel.ts` `effectiveDefaultModelId`: a ready subscription CLI leads).
+  // NOT `DEFAULT_MODEL_ID`: seeding a real id made an explicit pick of that same model
+  // (Laguna) look like the seed, and the picker resolved it to the CLI instead.
+  defaultModelId: "",
+  theme: "light",
   // Language: absent by default, which lets `state/locale.ts` pick the HOST's
   // (an English-speaking user starts in English without configuring anything) before the
   // French fallback. Setting « fr » here would impose French on everyone — the opposite of the goal.
@@ -223,10 +223,9 @@ export function normalizeSettings(s: Settings): Settings {
   ) {
     out.redactModelName = "mistral-small-latest";
   }
-  // The green accent is no longer offered: a theme persisted by an earlier version is
-  // translated to its indigo twin, otherwise the account that had it would stay green with
-  // no switch to get out of it (the light/dark ground, though, stays a choice).
-  out.theme = blueAccent(out.theme);
+  // A theme NAME persisted by an earlier version (`blue`, `blue-dark`) is read as the
+  // ground it meant; an unknown value falls back to the default rather than staying.
+  out.theme = readTheme(out.theme) ?? DEFAULT_SETTINGS.theme;
   // The language is brought back to a SHIPPED locale, or cleared (⇒ host language at boot).
   // A legacy/regional/unknown value (« en-US », « de », an old blob) must not
   // stay as-is: `state/locale.ts` rereads it and `resolveLocale` would normalize it

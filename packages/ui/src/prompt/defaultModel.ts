@@ -17,11 +17,11 @@ import { DEFAULT_MODEL_ID, findModelAny } from "./models";
  * that fails on the first send is worse than Laguna. And an ABSENT map (not computed yet)
  * offers nothing: the picker must not flip on load.
  *
- * ⚠️ The factory default is NOT a choice. A `Settings.defaultModelId` equal to
- * `DEFAULT_MODEL_ID` (what every install is seeded with) yields to the access path; any
- * OTHER id — the home marker, Réglages → Modèles, AUTO — is respected as is. The one
- * thing this cannot express is « I have a CLI on and still want Laguna »: pick any other
- * free model then. Pure — `defaultModel.test.ts`.
+ * ⚠️ « No choice » is the EMPTY seed, and only that. A fresh install seeds
+ * `Settings.defaultModelId` to `""` and yields to the access path; ANY id the user picks
+ * — Laguna included, the home marker, Réglages → Modèles, AUTO — is respected as is.
+ * Seeding a real id here (Laguna) once made « choose Laguna » indistinguishable from
+ * « never chose », so the picker showed the CLI. Pure — `defaultModel.test.ts`.
  */
 export const ACCESS_MODEL_IDS: readonly string[] = ["claude-cli", "codex-cli", "antigravity-cli"];
 
@@ -41,9 +41,12 @@ export function readyAccessModelIds(
   );
 }
 
-/** Is this the seeded default, i.e. no choice made? */
+/** Is this the seeded default, i.e. no choice made? Only the EMPTY seed counts — an id
+ *  equal to `DEFAULT_MODEL_ID` is a real, explicit pick of that model (the picker writes
+ *  it like any other), and confusing the two made « choose Laguna » resolve to the access
+ *  path's CLI. « No choice » is the empty seed alone. */
 export function isFactoryDefault(id: string | undefined): boolean {
-  return !id || id === DEFAULT_MODEL_ID;
+  return !id;
 }
 
 /** The model NEW conversations open on: the person's choice, else the access path's, else the seed. */

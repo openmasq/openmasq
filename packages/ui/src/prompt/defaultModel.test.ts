@@ -26,13 +26,18 @@ describe("readyAccessModelIds", () => {
 });
 
 describe("effectiveDefaultModelId", () => {
-  it("le défaut d'usine n'est pas un choix : la CLI prête le remplace", () => {
-    expect(effectiveDefaultModelId(DEFAULT_MODEL_ID, unavailable("antigravity-cli"))).toBe("claude-cli");
+  it("le seed vide n'est pas un choix : la CLI prête le remplace", () => {
+    expect(effectiveDefaultModelId("", unavailable("antigravity-cli"))).toBe("claude-cli");
     expect(effectiveDefaultModelId(undefined, unavailable("claude-cli"))).toBe("codex-cli");
   });
-  it("sans CLI prête, le défaut d'usine reste", () => {
-    expect(effectiveDefaultModelId(DEFAULT_MODEL_ID, allBlocked)).toBe(DEFAULT_MODEL_ID);
+  it("sans CLI prête, le seed vide retombe sur le défaut d'usine", () => {
+    expect(effectiveDefaultModelId("", allBlocked)).toBe(DEFAULT_MODEL_ID);
     expect(effectiveDefaultModelId(undefined, undefined)).toBe(DEFAULT_MODEL_ID);
+  });
+  it("choisir Laguna À LA MAIN le respecte, même avec une CLI prête (le bug corrigé)", () => {
+    // DEFAULT_MODEL_ID est Laguna : un clic dessus est un choix, pas l'absence de choix.
+    // Avant, il était confondu avec le seed et se résolvait vers la CLI d'accès.
+    expect(effectiveDefaultModelId(DEFAULT_MODEL_ID, unavailable("antigravity-cli"))).toBe(DEFAULT_MODEL_ID);
   });
   it("un modèle choisi à la main est respecté, CLI prête ou non", () => {
     expect(effectiveDefaultModelId("openai/gpt-4o", unavailable())).toBe("openai/gpt-4o");

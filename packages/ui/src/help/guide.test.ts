@@ -4,6 +4,7 @@ import { guideChapters, sectionGuide, sectionGuides, sectionSubtitle } from "./i
 import { DEFAULT_SETTINGS } from "../state/storePersistence";
 import { isFreeModel } from "@openmasq/llm/pricing";
 import { findModelAny } from "../prompt/models";
+import { effectiveDefaultModelId } from "../prompt/defaultModel";
 
 /**
  * THE GUIDE MUST STAY TRUE. It is the app's own account of what it does with someone's
@@ -65,12 +66,17 @@ describe("le guide décrit l'app RÉELLE", () => {
     },
   );
 
-  it("« un modèle gratuit est déjà sélectionné » — vrai du modèle réellement semé", () => {
-    const seeded = findModelAny(DEFAULT_SETTINGS.defaultModelId);
-    expect(seeded, "le modèle par défaut doit exister dans le registre").toBeTruthy();
+  it("« un modèle gratuit est déjà sélectionné » — vrai du modèle réellement présenté", () => {
+    // Le seed est VIDE (« pas de choix ») ; le modèle qu'un premier lancement présente
+    // est celui qu'`effectiveDefaultModelId` en tire. Sans disponibilité encore calculée
+    // (le tout premier rendu), c'est le défaut d'usine — et c'est LUI que le guide promet
+    // gratuit et déjà là.
+    const presented = effectiveDefaultModelId(DEFAULT_SETTINGS.defaultModelId, undefined);
+    const seeded = findModelAny(presented);
+    expect(seeded, "le modèle présenté doit exister dans le registre").toBeTruthy();
     expect(
-      isFreeModel(DEFAULT_SETTINGS.defaultModelId),
-      "le guide promet zéro configuration : le modèle semé doit être gratuit",
+      isFreeModel(presented),
+      "le guide promet zéro configuration : le modèle présenté doit être gratuit",
     ).toBe(true);
   });
 
