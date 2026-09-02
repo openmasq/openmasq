@@ -1,11 +1,17 @@
 {
   "findings": [
     "MISMATCH @types/node@24.13.3 declares undici-types@~7.18.0 — shipped 6.21.0",
+    "MISMATCH body-parser@2.3.0 declares content-type@^2.0.0 — shipped 1.0.5",
     "MISMATCH body-parser@2.3.0 declares iconv-lite@^0.7.2 — shipped 0.6.3",
     "MISMATCH electron-updater@6.8.9 declares semver@~7.7.3 — shipped 7.8.5",
+    "MISMATCH jszip@3.10.1 declares readable-stream@~2.3.6 — shipped 3.6.2",
     "MISMATCH libsql@0.4.7 declares detect-libc@2.0.2 — shipped 2.1.2",
+    "MISMATCH mammoth@1.12.2 declares argparse@~1.0.3 — shipped 2.0.1",
+    "MISMATCH mammoth@1.12.2 declares bluebird@~3.4.0 — shipped 3.7.2",
+    "MISMATCH mammoth@1.12.2 declares xmlbuilder@^10.0.0 — shipped 15.1.1",
     "MISMATCH mime-types@3.0.2 declares mime-db@^1.54.0 — shipped 1.52.0",
     "MISMATCH raw-body@3.0.2 declares iconv-lite@~0.7.0 — shipped 0.6.3",
-    "MISMATCH roarr@2.15.4 declares sprintf-js@^1.1.2 — shipped 1.0.3"
+    "MISMATCH roarr@2.15.4 declares sprintf-js@^1.1.2 — shipped 1.0.3",
+    "MISMATCH type-is@2.1.0 declares content-type@^2.0.0 — shipped 1.0.5"
   ]
 }
