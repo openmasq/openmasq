@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@openmasq/llm": "workspace:*",
-    "knex": "^3.1.0"
+    "knex": "^3.3.0"
   },
   "devDependencies": {
     "tsup": "^8.3.0",
