@@ -54,7 +54,7 @@ export const chat = {
   splitScreen: "Split the screen",
   splitLeft: "To the left",
   splitRight: "To the right",
-  redactionSummary: (n) => `Masking · ${n} protected`,
+  redactionSummary: (n, level) => `Masking · ${level ? `${level} · ` : ""}${n} protected`,
   seeWhatTheModelSaw: "See what the model saw",
   debugLog: "Debug log",
 } satisfies Messages["chat"];
@@ -62,6 +62,16 @@ export const chat = {
 export const composer = {
   redactLevel: "Masking level",
   currentLevel: "Current level",
+  redactLevelTip: (level, scope) => `Masking level · ${level} (${scope})`,
+  scopeShortConversation: "this conversation",
+  scopeShortDefault: "default",
+  scopeConversation: "For this conversation only. The default level is set in Settings → Privacy.",
+  scopeDefault: "No conversation open: this choice becomes your default level.",
+  reducedTip: "Reduced protection",
+  forcedNote: (n) =>
+    `${n} ${n > 1 ? "categories" : "category"} mandated by your organization, whatever the level.`,
+  applied: (level, scope) => `${level} · ${scope}`,
+  undo: "Undo",
   protectionLevel: "Protection level",
 
   placeholder: (brand) => `Message ${brand}…`,

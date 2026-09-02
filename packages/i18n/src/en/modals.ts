@@ -189,5 +189,6 @@ export const modals = {
     memoryTitle: "Memory in this conversation",
     memoryDesc: (brand) =>
       `Off: none of your memory rides along with what you send from here, the model cannot consult it, and ${brand} notes nothing on its own. “Remember that…” still works — that one is your call.`,
+    done: "Done",
   },
 } satisfies Messages["modals"];

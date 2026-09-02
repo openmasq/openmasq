@@ -189,5 +189,6 @@ export const modals = {
     memoryTitle: "Mémoire dans cette conversation",
     memoryDesc: (brand) =>
       `Coupée : rien de votre mémoire n'accompagne les envois d'ici, le modèle ne peut pas la consulter, et ${brand} n'y note rien de lui-même. « Retiens que… » reste possible — c'est votre demande.`,
+    done: "Terminé",
   },
 } satisfies Messages["modals"];

@@ -1,17 +1,20 @@
 /* ================================ Redaction level, from the composer ==
    The popover behind the « niveau » button of the action row
-   (pages/ChatWorkspace/ComposerRedactMenu.tsx). Family `.crm-*` + its anchor,
+   (pages/ChatWorkspace/ComposerRedactMenu.tsx) and the confirmation pill that
+   follows a click (ComposerRedactButton.tsx). Family `.crm-*` + its anchor,
    defined NOWHERE else — that's what makes its position in the cascade
    indifferent (cf. ../CLAUDE.md).
 
-   The CARDS aren't styled here: they come from `PrivacyLevelPicker`
-   (`.privacy-level*`, the same sheet as Réglages → Confidentialité). This file
-   only lays out the container and the scope footer — redefining the cards would
-   make two surfaces that decide the SAME thing diverge. */
+   The cards ARE styled here, deliberately MORE COMPACT than the Réglages ones
+   (`.privacy-level`): here the decision changes in passing, there it gets weighed.
+   What they must never do is say something different — their text, their eye
+   and their trade-off come from the same vocabulary (`privacyLevelMeta`). */
 
 .composer-redact-wrap {
   position: relative;
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* ⚠️ PORTALED and `position: fixed` — the position AND the height come from `usePopover`
@@ -32,15 +35,20 @@
 }
 
 .crm-eyebrow {
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   padding: 0 2px;
 }
 
-/* ── The cards ────────────────────────────────────────────────────────────────
-   Deliberately MORE COMPACT than the Réglages ones (`.privacy-level`): here the
-   decision changes in passing, there it gets weighed. Two states, never confused —
-   the CHECK says the level in force, the SOLID FILL the one just chosen that
-   isn't applied yet. */
+/* The SCOPE, said before the click: which thread (or the default) the choice lands on. */
+.crm-scope {
+  margin: 0 0 8px;
+  padding: 0 2px;
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+/* ── The cards ──────────────────────────────────────────────────────────────── */
 .crm-levels {
   display: flex;
   flex-direction: column;
@@ -61,9 +69,13 @@
 .crm-level:hover {
   background: var(--surface-hover);
 }
-/* The PENDING choice: solid fill, no outline — it's distinct from the check, which
-   states the state in force, not what's about to be set. */
-.crm-level.armed {
+.crm-level:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+/* « Sur mesure »: a STATE shown checked, not a choice — no hover, no pointer. */
+.crm-level.custom {
+  cursor: default;
   background: var(--surface-sunken);
   border-color: transparent;
 }
@@ -88,6 +100,11 @@
   font-weight: var(--weight-bold);
   color: var(--text-strong);
 }
+/* The eye of a REDUCED level — same glyph as Réglages: « ceci reste lisible ». */
+.crm-level-flag {
+  display: inline-flex;
+  color: var(--text-muted);
+}
 .crm-level-check {
   display: inline-flex;
   color: var(--brand-text);
@@ -96,4 +113,58 @@
   font-size: var(--text-xs);
   line-height: 1.35;
   color: var(--text-muted);
+}
+/* The counterpart (rule 8), same register as `.privacy-level-tradeoff`. */
+.crm-level-tradeoff {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  font-style: italic;
+  color: var(--text-muted);
+  opacity: 0.9;
+}
+
+/* Org-mandated categories: active whatever the card, and the menu says so. */
+.crm-lock {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0 2px;
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+.crm-lock svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── The confirmation pill ───────────────────────────────────────────────────
+   Inline in the action row, next to the button, for a few seconds: what was set,
+   where, and the way back. Same shape as the « N à masquer » pill beside it. */
+.crm-applied {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  white-space: nowrap;
+}
+.crm-applied > svg {
+  color: var(--brand-text);
+}
+.crm-applied-undo {
+  padding: 0 2px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: var(--brand-text);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }

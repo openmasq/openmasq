@@ -207,3 +207,9 @@ export function activeCount(
 }
 
 export const TOTAL_CATEGORIES = ALL_KEYS.length;
+
+/** The level's display name: the preset's label, or « Sur mesure » for the set that is none
+ *  of them — the ONE place a surface asks for it (tooltip, ⋯ menu, confirmation pill). */
+export function privacyLevelLabel(t: Messages, level: PrivacyLevel): string {
+  return privacyLevelMeta(t).find((m) => m.id === level)?.label ?? t.leaves.privacyLevels.custom;
+}

@@ -54,7 +54,8 @@ export const chat = {
   splitScreen: "Diviser l'écran",
   splitLeft: "À gauche",
   splitRight: "À droite",
-  redactionSummary: (n) => `Masquage · ${n} protégé${n === 1 ? "" : "s"}`,
+  redactionSummary: (n, level) =>
+    `Masquage · ${level ? `${level} · ` : ""}${n} protégé${n === 1 ? "" : "s"}`,
   seeWhatTheModelSaw: "Voir ce que le modèle a vu",
   debugLog: "Journal de débogage",
 } satisfies Messages["chat"];
@@ -62,6 +63,17 @@ export const chat = {
 export const composer = {
   redactLevel: "Niveau de masquage",
   currentLevel: "Niveau actuel",
+  redactLevelTip: (level, scope) => `Niveau de masquage · ${level} (${scope})`,
+  scopeShortConversation: "cette conversation",
+  scopeShortDefault: "par défaut",
+  scopeConversation:
+    "Pour cette conversation seulement. Le niveau par défaut se règle dans Réglages → Confidentialité.",
+  scopeDefault: "Aucune conversation ouverte : ce choix devient votre niveau par défaut.",
+  reducedTip: "Protection réduite",
+  forcedNote: (n) =>
+    `${n} catégorie${n > 1 ? "s" : ""} imposée${n > 1 ? "s" : ""} par votre organisation, quel que soit le niveau.`,
+  applied: (level, scope) => `${level} · ${scope}`,
+  undo: "Annuler",
   protectionLevel: "Niveau de protection",
 
   placeholder: (brand) => `Message à ${brand}…`,

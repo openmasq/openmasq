@@ -88,7 +88,6 @@ import { DocPrepCard, type DocPrepState } from "./DocPrepCard";
  *  so send_error carries the concrete code — safe metadata, never the raw body. */
 // httpStatus/requestIdOf/retriesOf: one single home — `state/errors/fields.ts`.
 
-
 // The metered gateway's /chat/completions body is capped ~8 MB; leave headroom below it
 // for the JSON envelope + text. A PLATFORM (Scaleway/OpenRouter) image send over this fails.
 const PLATFORM_MAX_B64 = 7_000_000;
@@ -1654,6 +1653,7 @@ export function ChatView({
         onOpenTransparency={() => setShowComparison(true)}
         settings={settings}
         onChangeSettings={onChangeSettings}
+        redactLevel={redactLevel}
         onChangeConversation={onChangeConversation}
         onSetMemoryOff={onSetMemoryOff}
         onToggleNeutralMarks={onToggleNeutralMarks}

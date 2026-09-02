@@ -8,6 +8,7 @@ import { usePopover } from "../../hooks/usePopover";
 import { useT } from "../../i18n";
 import { ConvTabs, type ConvTab } from "./ConvTabs";
 import { HeaderMenu } from "./HeaderMenu";
+import type { RedactLevelApi } from "./ComposerRedactMenu";
 
 /**
  * The chat pane's unified top bar (`.chat-topbar`, per the refreshed design's
@@ -27,6 +28,7 @@ export function ChatHeader({
   onSetMemoryOff,
   onToggleNeutralMarks,
   protectedCount,
+  redactLevel,
   onOpenSettings,
   onToggleSidebar,
   onBack,
@@ -54,6 +56,8 @@ export function ChatHeader({
   /** Toggle this conversation's NEUTRAL-MARKS display mode (badge + hover highlight). */
   onToggleNeutralMarks?: (id: string) => void;
   protectedCount: number;
+  /** The level in force (from `redactLevelApi`), for the ⋯ entry's name + « modifié » tag. */
+  redactLevel?: RedactLevelApi;
   onOpenSettings: () => void;
   onToggleSidebar?: () => void;
   /** MOBILE: pop back to the chat list. When present the bar switches to the kit's
@@ -143,6 +147,7 @@ export function ChatHeader({
             {menuOpen && (
               <HeaderMenu
                 protectedCount={protectedCount}
+                redactLevel={redactLevel}
                 settings={settings}
                 onOpenRules={() => {
                   closeMenu();

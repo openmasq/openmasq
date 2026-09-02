@@ -83,8 +83,9 @@ export interface ChatMessages {
   splitScreen: string;
   splitLeft: string;
   splitRight: string;
-  /** The menu entry leading to the redaction rules, with its counter. */
-  redactionSummary: (protectedCount: number) => string;
+  /** The menu entry leading to the redaction rules: its counter, and the level in force
+   *  when the caller knows it. */
+  redactionSummary: (protectedCount: number, level?: string) => string;
   seeWhatTheModelSaw: string;
   debugLog: string;
 }
@@ -93,6 +94,21 @@ export interface ChatMessages {
 export interface ComposerMessages {
   redactLevel: string;
   currentLevel: string;
+  /** The button's tooltip: the level in force and the scope a click would write. */
+  redactLevelTip: (level: string, scope: string) => string;
+  /** The scope, as a short noun for the tooltip and the confirmation pill. */
+  scopeShortConversation: string;
+  scopeShortDefault: string;
+  /** The scope, said in the menu BEFORE the click — full sentence. */
+  scopeConversation: string;
+  scopeDefault: string;
+  /** The eye a reduced level wears (screen-reader name). */
+  reducedTip: string;
+  /** Org-mandated categories stay on whatever the level. */
+  forcedNote: (count: number) => string;
+  /** The confirmation pill after a click, and its undo. */
+  applied: (level: string, scope: string) => string;
+  undo: string;
   /** The read label of the Settings level picker. */
   protectionLevel: string;
 

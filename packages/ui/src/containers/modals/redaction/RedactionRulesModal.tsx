@@ -130,7 +130,7 @@ export function RedactionRulesModal({
 
       <div className="confirm-footer">
         <button className="btn-primary btn-inline" onClick={onClose}>
-          <CheckIcon size={15} /> Terminé
+          <CheckIcon size={15} /> {t.modals.redactionRules.done}
         </button>
       </div>
     </ModalShell>

@@ -98,13 +98,18 @@ a real city — the model reasons correctly, on values that are not yours.
 ### The 17 categories, and the protection level
 **Access**: Réglages → **Confidentialité** → « **Niveau de protection** » (Standard /
 Strict / Sur mesure), then the expandable matrix.
-Also per conversation: ⋯ in the chat header → « Masquage · N protégés ».
-And **from the composer**: the "level" button in the action row opens the same three levels,
-right where one notices that a send masks too much — or too little. Its glyph keeps three
-strokes and bolds as many as the current level (1 · 2 · 3); each card its own. One click sets
-the level on THAT CONVERSATION — the global default is changed where it is weighed (Réglages,
-or the « Par défaut » tab of the ⋯ menu); with no conversation created yet, the default is what
-receives it — `packages/ui/src/pages/ChatWorkspace/ComposerRedactMenu.tsx`
+Also per conversation: ⋯ in the chat header → « Masquage · Renforcé · N protégés » (the level
+in force, tagged « modifié » when the thread deviates from the default).
+And **from the composer**: the "level" button in the action row (tooltip = level + scope) opens
+the same three levels, each with what it covers and what it leaves readable (the reduced one
+wears the eye), right where one notices that a send masks too much — or too little. Its glyph
+keeps three strokes and bolds as many as the current level (1 · 2 · 3); each card its own.
+The menu says the scope before the click. One click sets the level on THAT CONVERSATION — the
+global default is changed where it is weighed (Réglages, or the « Par défaut » tab of the ⋯
+menu); with no conversation created yet, the default is what receives it, and the menu says so.
+A confirmation pill names what was set and where, with « Annuler » for a few seconds.
+« Sur mesure » shows as the checked state, never as a choice; org-mandated categories are
+counted under the cards — `packages/ui/src/pages/ChatWorkspace/ComposerRedactMenu.tsx`
 
 **What it makes possible.** Deciding *what* is protected, by category: names, dates of
 birth, e-mails, phones, addresses, places, companies, cards, IBANs, national and company

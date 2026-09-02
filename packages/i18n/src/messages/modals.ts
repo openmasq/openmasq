@@ -184,5 +184,6 @@ export interface ModalsMessages {
     byDefault: string;
     memoryTitle: string;
     memoryDesc: (brand: string) => string;
+    done: string;
   };
 }
