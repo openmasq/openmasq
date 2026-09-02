@@ -1300,6 +1300,9 @@ export function createSendMessage(d: SendMessageDeps) {
             sendAbort.signal,
             vault,
             conv.redactCategories,
+            // The SAME seed as the message: without it the prompt's fakes came from the
+            // public mapping while the message's came from the conversation key.
+            { salt: redactionSalt, key: redactionKey },
           );
           if (sys.modelError) return failClosed(`détection du prompt système échouée (${sys.modelError})`);
         } catch (e) {

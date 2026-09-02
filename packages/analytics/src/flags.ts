@@ -6,12 +6,21 @@
  * Contract: `POST <relay origin>/flags` with `{ distinct_id }` + a NON-identifying
  * build context, response `{ flags: { key: boolean | variant } }`.
  *
- * ⚠️ Nothing is reported here: the request only carries the anonymous id that serves as the
- * bucketing key. It is therefore **not subject to consent** — declining measurement must
- * not give a different product — nor to the "local host" refusal, which exists to avoid
- * polluting the product's numbers, which a configuration read doesn't do. The only
- * refusal that applies is `setAnalyticsSuspended`: an automated launch must see
- * DETERMINISTIC flags, i.e. the caller's defaults.
+ * ⚠️ **No measurement is reported here, but the request is not anonymous — state it
+ * plainly rather than let the word do work it can't.** It carries the stable install id
+ * (the bucketing key), the build context, the source IP, and — because the relay refuses
+ * an unauthenticated read — the signed-in account's bearer token. A configuration read is
+ * therefore an identified one, and the relay operator can see which install asked and
+ * when.
+ *
+ * It is **not subject to consent** all the same, and that is a deliberate trade, not an
+ * oversight: declining measurement must not give a different product, and a flag read is
+ * what decides which product you get. The same reasoning exempts it from the "local host"
+ * refusal, which exists to keep dev traffic out of the product's numbers — a configuration
+ * read adds nothing to those numbers. The only refusal that applies is
+ * `setAnalyticsSuspended`: an automated launch must see DETERMINISTIC flags, i.e. the
+ * caller's defaults. Anyone who wants none of it ships with the relay variable empty,
+ * which is the documented opt-out for every channel in `README.md`.
  *
  * `null` on anything that isn't a readable response — the caller then keeps its
  * compiled defaults, never "closed".

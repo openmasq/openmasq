@@ -1,6 +1,11 @@
-import { handle, str } from "./handle";
+import { bool, handle, str } from "./handle";
 import { readSubscriptionAccount } from "../subscription/account";
-import { claudeCliPath, subscriptionCliPath, subscriptionTurnEnv } from "../subscription/desktop";
+import {
+  claudeCliPath,
+  setSubscriptionCliEnabled,
+  subscriptionCliPath,
+  subscriptionTurnEnv,
+} from "../subscription/desktop";
 import type { SubscriptionCliId } from "../subscription/resolveCli";
 
 /**
@@ -23,6 +28,13 @@ export function registerSubscriptionIpc(): void {
   handle("subscription:cli-available", [], () => claudeCliPath() !== null);
   handle("subscription:codex-available", [], () => subscriptionCliPath("codex") !== null);
   handle("subscription:antigravity-available", [], () => subscriptionCliPath("antigravity") !== null);
+  // The renderer MIRRORS the opt-in; main holds it and decides. Fail-closed: until this
+  // arrives, `subscriptionTurnEnv` refuses, so no script that reaches the bridge can
+  // spawn the user's subscription CLI by naming its provider.
+  handle("subscription:set-enabled", [str, bool], (_e, cli, on) => {
+    if (!CLIS.includes(cli as SubscriptionCliId)) return;
+    setSubscriptionCliEnabled(cli as SubscriptionCliId, on);
+  });
   handle("subscription:account", [str], async (_e, cli) => {
     if (!CLIS.includes(cli as SubscriptionCliId)) return null;
     let env: ReturnType<typeof subscriptionTurnEnv>;

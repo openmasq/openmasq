@@ -116,6 +116,14 @@ export interface Host {
    * state. Optional: a host that can't spawn simply shows no account card.
    */
   readSubscriptionAccount?(cli: "claude" | "codex" | "antigravity"): Promise<SubscriptionAccount | null>;
+  /**
+   * Mirror the per-CLI opt-in to the privileged process, which holds the AUTHORITATIVE
+   * flag. The chat channels route on a renderer-supplied provider id, so "the user asked
+   * for their own subscription CLI to be spawned" cannot be a fact the interface keeps to
+   * itself — main defaults every CLI to off and refuses to build a turn environment for
+   * one that was never mirrored on.
+   */
+  setSubscriptionEnabled?(cli: "claude" | "codex" | "antigravity", on: boolean): Promise<void>;
   /** Non-streaming agentic completion with tools (drives MCP). */
   completeTools?(payload: CompleteToolsPayload): Promise<CompleteToolsResult>;
   /**

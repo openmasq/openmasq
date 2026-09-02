@@ -75,3 +75,6 @@ users2.csv
 # publiques (LICENSE, NOTICE, TRADEMARK.md) devront être déplacées à leurs
 # emplacements canoniques — un dossier ignoré ne part pas.
 license/
+# The PII ratchet's fingerprint list — see scripts/checks/check-pii.mjs.
+# A fingerprint of a real name is a preimage puzzle over a small space: it stays local.
+scripts/checks/.pii-banned.json

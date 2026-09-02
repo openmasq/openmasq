@@ -83,6 +83,12 @@ export const chat = {
     return ipcRenderer.invoke("subscription:antigravity-available");
   },
 
+  /** Mirror the user's per-CLI opt-in to MAIN, which holds the authoritative flag: the
+   *  chat channels route on a renderer-supplied provider, so the permission to spawn the
+   *  user's own subscription CLI cannot live in the interface alone. */
+  setSubscriptionEnabled(cli: string, on: boolean): Promise<void> {
+    return ipcRenderer.invoke("subscription:set-enabled", cli, on);
+  },
   /** What a subscription CLI says about its own account (plan, quota, models) — read
    *  from the CLI, never from its credentials. `null` = absent or silent (normal). */
   readSubscriptionAccount(cli: "claude" | "codex" | "antigravity"): Promise<SubscriptionAccount | null> {

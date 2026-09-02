@@ -7,73 +7,65 @@
  * stops the second convention ("I'll take what I have to hand") from coming back on the
  * evening of a hotfix.
  *
- * ⚠️ **The list is HASHED, and that is the only way this file can exist.** A cleartext
- * denylist would put back into the public repository exactly the strings just removed from
- * it — the gate would be the leak. So we compare fingerprints: the file never says WHO it
- * protects, only that something known has reappeared.
+ * ⚠️ **The watch list lives OUTSIDE the tracked tree, and that is the only way this gate can
+ * exist in a public repository.** A cleartext denylist would put back exactly the strings
+ * just removed from it — the gate would be the leak. Hashing alone does not fix that: a
+ * surname, a first-name bigram or an e-mail local-part is a preimage puzzle over a space of
+ * a few hundred thousand candidates, and the folding and digest functions are right here in
+ * the file. A published fingerprint of a low-entropy human name IS that name, to anyone
+ * willing to spend a second on it. So the fingerprints are never committed, and the tracked
+ * file carries no entry a reader could attack.
  *
- * Adding a term: `node scripts/checks/check-pii.mjs --hash "the value"`, then paste the
- * fingerprint below with a comment stating the CATEGORY, never the value.
+ * The list is read, in order, from:
+ *   1. `OPENMASQ_PII_RATCHET` — the JSON itself, base64-encoded (how CI holds it, as a secret)
+ *   2. `OPENMASQ_PII_RATCHET_FILE` — a path
+ *   3. `scripts/checks/.pii-banned.json` — the local default, git-ignored
+ * Shape: `[{ "fp": "<16 hex>", "why": "<category, never the value>" }]`.
  *
- * What the gate does NOT do: ban a bare first name. « thomas » and « numa » are first names
- * from the `firstNames.data.ts` lexicon and must stay there — it is the identity (surname,
- * glued form, company bigram, identifier) that is forbidden, not a dictionary word.
+ * With no list the gate reports that half as INACTIVE and still runs its self-check. That
+ * is the right default rather than a hard failure: the list names the identities ONE
+ * publisher removed, so it protects that publisher and no one else — a fork has nothing to
+ * compare against, and a clone that cannot build is a worse outcome than a clone that is
+ * told which guarantee it is not getting.
+ *
+ * Adding a term: `node scripts/checks/check-pii.mjs --hash "the value"`, then add the
+ * fingerprint to the local list with a comment stating the CATEGORY, never the value.
+ *
+ * What the gate does NOT do: ban a bare first name. First names from the
+ * `firstNames.data.ts` lexicon must stay there — it is the identity (surname, glued form,
+ * company bigram, identifier) that is forbidden, not a dictionary word.
  *
  *   node scripts/checks/check-pii.mjs        # ou: pnpm check:pii
  *
- * Exit codes: 0 = clean; 1 = a real identity has reappeared.
+ * Exit codes: 0 = clean; 1 = a real identity has reappeared, or one leaked into the tree.
  */
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync, statSync } from "node:fs";
 
-/** Forbidden fingerprints (sha256 of the folded term, first 16 characters). */
-const BANNED = new Map([
-  ["54c291eb2346853f", "surname of a real person"],
-  ["0ff9174a9925fad0", "real identity, glued form (path/handle)"],
-  ["2152d9b597ab24a2", "local-part of a personal e-mail address"],
-  ["c54743b08ce03dfe", "real company, glued form"],
-  ["3040da40375141ae", "real company"],
-  ["4661da1efb155361", "real company, domain form"],
-  ["531f6edabf0149d8", "real company, filename form"],
-  ["a34abf3a6bdfff46", "identifiant administratif personnel"],
-  ["c30f39054eb0f384", "identifiant administratif personnel"],
-  ["337c4f2603570d8f", "real invoice reference"],
-  ["e74d2792c5bb3f78", "real project/client name"],
-  ["f48164934dd7d674", "real project/client name"],
-  // Real identities removed from a fixture taken from a log: two named researchers, and a
-  // first name distinctive enough to identify on its own.
-  ["69ac038132139275", "surname of a real person"],
-  ["ea72e0ba02eb0c3d", "real identity, first name + surname"],
-  ["d2e4e2e840510929", "distinctive first name of a real person"],
-  ["5b3c14cb49cc2868", "real handle (account handle)"],
-  // ⚠️ The FIRST NAME of this identity is NOT banned, and that is deliberate: it lives in
-  // `firstNames.data.ts`, in the masculine list of `gender.ts` and in the surnames of
-  // `surnamesGuard.data.ts`, where it is a dictionary word — removing it would blind the
-  // engine to everyone who bears it. We ban what DESIGNATES: the bigram, the surname, the
-  // company.
-  ["5d896dc9ab526f7a", "real identity, first name + surname"],
-  ["4085c11577b99640", "surname of a real person"],
-  ["3784b6419c484732", "real company"],
-  // A real firm. The gate compares whole WORDS, so « gideon » (a gazetteer first name) and
-  // « frigideira » (vocabulary) do not match — a substring is not an identity.
-  ["89c986e7b5d11b1d", "real firm"],
-  // The publisher's infrastructure identifiers, removed when they moved to environment
-  // variables — public by design but tied to ONE account, they do not come back: base/auth
-  // project ref, publishable key, analytics ingestion key, telemetry DSN and org, OAuth
-  // client (id + secret fragment),
-  // ids d'apps connecteurs.
-  ["3f1bd64743dd4d37", "publisher's base/auth project ref"],
-  ["093b9b0d7845c95a", "base/auth project publishable key"],
-  ["d05d49e1adce6ecb", "publisher's analytics ingestion key"],
-  ["3b51360fe9dae2de", "publisher's telemetry DSN key"],
-  ["92fbd8ee7a95a811", "publisher's telemetry org"],
-  ["c404f776449aa468", "publisher's Google OAuth client"],
-  ["f8668e516c7cbcc9", "fragment of the publisher's Google OAuth secret"],
-  ["643412d1893ab2a0", "publisher's GitHub OAuth client"],
-  ["64333a2e044ab6c0", "publisher's Slack app"],
-  ["e4ae09db72ecbb10", "publisher's Microsoft app"],
-]);
+const LOCAL_LIST = "scripts/checks/.pii-banned.json";
+
+/** The watch list, or an empty map when this checkout holds none. */
+function loadBanned() {
+  const b64 = process.env.OPENMASQ_PII_RATCHET;
+  const path = process.env.OPENMASQ_PII_RATCHET_FILE ?? LOCAL_LIST;
+  let raw;
+  try {
+    raw = b64 ? Buffer.from(b64, "base64").toString("utf8") : readFileSync(path, "utf8");
+  } catch {
+    return new Map();
+  }
+  const entries = JSON.parse(raw);
+  if (!Array.isArray(entries)) throw new Error("PII ratchet: expected a JSON array");
+  return new Map(
+    entries.map(({ fp, why }) => {
+      if (!/^[0-9a-f]{16}$/.test(fp ?? "")) throw new Error(`PII ratchet: bad fingerprint`);
+      return [fp, why ?? "watched term"];
+    }),
+  );
+}
+
+const BANNED = loadBanned();
 
 /** Comparison folding: lowercase + diacritics removed (an OCR loses them too). */
 const fold = (s) => s.normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase();
@@ -97,6 +89,36 @@ const MAX_BYTES = 4_000_000;
 const files = execFileSync("git", ["ls-files"], { encoding: "utf8", maxBuffer: 64 << 20 })
   .split("\n")
   .filter((f) => f && f !== SELF && !BINARY.test(f));
+
+// ── Self-check: the watch list must never become tracked ────────────────────────────────
+// The gate's guarantee is that the repository publishes no fingerprint of a real name — a
+// fingerprint of a surname or an e-mail local-part is a preimage puzzle over a space of a
+// few hundred thousand candidates, so publishing it publishes the value. That holds only
+// while the list stays out of the tree, so it is enforced rather than trusted: the loaded
+// fingerprints are searched for, verbatim, in every tracked file. Exact, not heuristic —
+// the tree legitimately carries other 16-hex tokens (bench corpora, identifier fixtures).
+// With no list loaded there is nothing to leak, and nothing to check.
+const leaked = [];
+if (files.includes(LOCAL_LIST)) leaked.push(`${LOCAL_LIST} is tracked`);
+if (BANNED.size) {
+  for (const file of files) {
+    let text;
+    try {
+      if (statSync(file).size > MAX_BYTES) continue;
+      text = readFileSync(file, "utf8");
+    } catch {
+      continue;
+    }
+    const n = [...BANNED.keys()].filter((fp) => text.includes(fp)).length;
+    if (n) leaked.push(`${file} — ${n} watch-list fingerprint(s)`);
+  }
+}
+if (leaked.length) {
+  console.error(`\n✗ the PII watch list has leaked into the tracked tree:\n`);
+  for (const l of leaked) console.error(`  ${l}`);
+  console.error(`\n  Publishing a fingerprint of a low-entropy name publishes the name.\n`);
+  process.exit(1);
+}
 
 const hits = [];
 for (const file of files) {
@@ -136,4 +158,8 @@ if (hits.length) {
   process.exit(1);
 }
 
-console.log(`✓ ${files.length} files — no real identity (${BANNED.size} fingerprints watched).`);
+console.log(
+  BANNED.size
+    ? `✓ ${files.length} files — no real identity (${BANNED.size} fingerprints watched).`
+    : `✓ ${files.length} files — list INACTIVE (no ${LOCAL_LIST}); self-check only.`,
+);

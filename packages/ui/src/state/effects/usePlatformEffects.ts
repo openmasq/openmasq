@@ -84,6 +84,17 @@ export function usePlatformEffects(p: {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- host is stable per platform
   }, [settings.linkPreviews]);
 
+  // Mirror the three subscription-CLI opt-ins to the platform, for the same reason as
+  // `linkPreviews` above: main holds the authoritative flag, defaults it to off and
+  // refuses to spawn the user's personal CLI until the gesture reaches it. Push on mount
+  // and on every change so main and the UI never drift.
+  useEffect(() => {
+    void host.setSubscriptionEnabled?.("claude", !!settings.claudeCliEnabled);
+    void host.setSubscriptionEnabled?.("codex", !!settings.codexCliEnabled);
+    void host.setSubscriptionEnabled?.("antigravity", !!settings.antigravityCliEnabled);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- host is stable per platform
+  }, [settings.claudeCliEnabled, settings.codexCliEnabled, settings.antigravityCliEnabled]);
+
   // Apply the colour theme to <html> (the dark / blue / blue-dark token overrides key off
   // `data-theme`; light = no attribute).
   useEffect(() => {

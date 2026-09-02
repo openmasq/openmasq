@@ -29,11 +29,25 @@ not access data that is not yours.
 
 ## What the product protects
 
-**The redaction boundary.** Values the engine detects — names, dates of birth, e-mail
-addresses, phone numbers, addresses, places, companies, cards, IBANs, national and company
-identifiers, IPs, numbers, file paths, health data, handles, URLs, keys and secrets — are
-replaced before any network call, and restored only in the user's own copy. The engine runs
-on-device (deterministic rules, checksums, shape detectors, then a local NER model).
+**The redaction boundary.** Values the engine detects are replaced before any network
+call, and restored only in the user's own copy. What is covered, exactly — the catalogue is
+`packages/catalog/src/redaction/`, and `SECURITY.categories.test.ts` pins this paragraph to
+it, so a category added or retired in the code fails CI until this list follows:
+
+- **On by default (15).** Names, dates of birth, e-mail addresses, phone numbers,
+  addresses, places, companies, cards, IBANs, national identifiers, company identifiers,
+  IPs, file paths, secrets, API keys.
+- **Off unless you turn them on (2).** Handles (`username`) and URLs. URLs are raised by
+  the Strict level; both are off at the default level because redacting every link makes
+  ordinary chat unusable, and that trade is the user's to make, not ours to hide.
+- **Retired — these cannot be enabled at all (3).** Health data, bare numbers, salaries.
+  The detectors were withdrawn rather than left half-working, and the send path forces the
+  three off even against a persisted setting or an org policy that still names them. **If
+  you are evaluating this tool for medical, insurance or payroll data, read that as: a
+  diagnosis or a bare account number in a message is NOT removed.**
+
+The engine runs on-device (deterministic rules, checksums, shape detectors, then a local
+NER model).
 
 **Fail closed.** On an error, a timeout or an unknown, the secure outcome is the default:
 the send is blocked, the tool result is masked, the tool call is refused. A redaction engine
@@ -73,7 +87,10 @@ never a path or a query, because a signed URL carries its token there.
 
 **Cross-device sync is end-to-end encrypted.** The server stores ciphertext only; keys derive
 from a passphrase the user holds. Connector OAuth tokens are **not** synced — each device
-performs its own authorization.
+performs its own authorization. A vault blob is bound to its conversation as authenticated
+data, so a hostile server cannot serve conversation A's vault for B; blobs written before
+that binding existed are still readable and carry no such tie, and were deliberately not
+rewritten — an account holding them keeps that residual until they are re-encrypted.
 
 ---
 
@@ -268,12 +285,28 @@ pas les vôtres, et n'accédez pas à des données qui ne sont pas les vôtres.
 
 ## Ce que le produit protège
 
-**La frontière de masquage.** Les valeurs que le moteur détecte — noms, dates de naissance,
-adresses e-mail, numéros de téléphone, adresses, lieux, entreprises, cartes, IBAN,
-identifiants nationaux et d'entreprise, IP, numéros, chemins de fichiers, données de santé,
-pseudonymes, URL, clés et secrets — sont remplacées avant tout appel réseau, et restaurées
-seulement dans la copie de l'utilisateur. Le moteur tourne sur l'appareil (règles
-déterministes, sommes de contrôle, détecteurs de forme, puis un modèle NER local).
+**La frontière de masquage.** Les valeurs que le moteur détecte sont remplacées avant tout
+appel réseau, et restaurées seulement dans la copie de l'utilisateur. Ce qui est couvert,
+exactement — le catalogue est `packages/catalog/src/redaction/`, et
+`SECURITY.categories.test.ts` épingle ce paragraphe dessus : une catégorie ajoutée ou
+retirée dans le code fait échouer la CI tant que cette liste ne suit pas :
+
+- **Actives par défaut (15).** Noms, dates de naissance, adresses e-mail, numéros de
+  téléphone, adresses, lieux, entreprises, cartes, IBAN, identifiants nationaux,
+  identifiants d'entreprise, IP, chemins de fichiers, secrets, clés d'API.
+- **Inactives sauf si vous les activez (2).** Les pseudonymes (`username`) et les URL. Le
+  niveau Strict lève les URL ; les deux sont inactives au niveau par défaut parce que
+  masquer chaque lien rend une conversation ordinaire inutilisable — cet arbitrage
+  appartient à l'utilisateur, il n'est pas à nous de le dissimuler.
+- **Retirées — celles-ci ne peuvent pas être activées du tout (3).** Données de santé,
+  nombres bruts, salaires. Les détecteurs ont été retirés plutôt que laissés à moitié
+  fonctionnels, et le chemin d'envoi force les trois à l'arrêt même contre un réglage
+  persisté ou une politique d'organisation qui les nomme encore. **Si vous évaluez cet
+  outil pour des données médicales, d'assurance ou de paie, lisez cela comme : un
+  diagnostic ou un numéro de compte brut dans un message n'est PAS retiré.**
+
+Le moteur tourne sur l'appareil (règles déterministes, sommes de contrôle, détecteurs de
+forme, puis un modèle NER local).
 
 **Échouer fermé.** En cas d'erreur, d'expiration ou d'inconnu, le résultat sûr est le défaut :
 l'envoi est bloqué, le résultat d'outil est masqué, l'appel d'outil est refusé. Un moteur de
@@ -321,6 +354,10 @@ porte son jeton.
 **La synchronisation entre appareils est chiffrée de bout en bout.** Le serveur ne stocke que
 du chiffré ; les clés dérivent d'une phrase secrète que l'utilisateur détient. Les jetons OAuth
 des connecteurs ne sont **pas** synchronisés — chaque appareil fait sa propre autorisation.
+Un coffre est lié à sa conversation en donnée authentifiée : un serveur hostile ne peut pas
+servir le coffre de la conversation A pour B. Les coffres écrits avant l'existence de ce
+lien restent lisibles et n'en portent aucun ; ils n'ont délibérément pas été réécrits — un
+compte qui en détient conserve ce résidu jusqu'à leur rechiffrement.
 
 ---
 

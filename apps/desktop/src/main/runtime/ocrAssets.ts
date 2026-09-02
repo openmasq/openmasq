@@ -17,7 +17,14 @@ import { doctrIntegrityEnv } from "../ocr/doctrModels";
  */
 export function configureBundledOcr(): void {
   if (!app.isPackaged) return;
-  if (process.env.OPENMASQ_TESSERACT_LANG_PATH) return; // an explicit override wins
+  // Both overrides are DEV-ONLY, for the reason the docTR sibling states below: whoever
+  // sets the app's launch environment would otherwise choose the language data (a path)
+  // AND the digests it is checked against (the integrity map), which together put chosen
+  // bytes through the native Tesseract WASM parser inside a signed, notarized bundle. A
+  // packaged build therefore drops both before reading either, so the in-code pin and the
+  // bundled langs are the only pair that can apply.
+  delete process.env.OPENMASQ_TESSERACT_LANG_PATH;
+  delete process.env.OPENMASQ_TESSERACT_INTEGRITY;
   const dir = join(process.resourcesPath, "tesseract-langs");
   if (existsSync(dir)) process.env.OPENMASQ_TESSERACT_LANG_PATH = dir;
 }

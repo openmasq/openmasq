@@ -151,11 +151,23 @@ jobs:
         run: |
           set -euo pipefail
           PKG=$(node -p "require('./apps/desktop/package.json').version")
+          # ⚠️ A tag is HUMAN INPUT and this job's `version` output is interpolated into shell
+          # lines further down. Git's ref rules forbid a space but allow " $ ( ) ; | & and a
+          # backtick, so an unvalidated tag is a command-injection sink on the runner that
+          # holds the signing certificate and the R2 keys. Validate the SHAPE once, here,
+          # rather than quoting each use correctly forever.
+          check_version() {
+            if [[ ! "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?$ ]]; then
+              echo "::error::refusing tag: version '$1' is not a plain semver" >&2
+              exit 1
+            fi
+          }
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             {
               echo "channel=desktop-stable"
               echo "storage_channel=desktop-stable"
-              echo "version=${GITHUB_REF#refs/tags/v}"
+              V="${GITHUB_REF#refs/tags/v}"; check_version "$V"
+              echo "version=$V"
             } >> "$GITHUB_OUTPUT"
           elif [[ "${GITHUB_REF}" == refs/tags/beta-v* ]]; then
             {
@@ -164,7 +176,8 @@ jobs:
               # storage they go to (`storage_channel` below says that instead).
               echo "channel=desktop-stable"
               echo "storage_channel=desktop-beta"
-              echo "version=${GITHUB_REF#refs/tags/beta-v}"
+              V="${GITHUB_REF#refs/tags/beta-v}"; check_version "$V"
+              echo "version=$V"
             } >> "$GITHUB_OUTPUT"
           else
             # ⚠️ The suffixed number is what makes this build UNPROMOTABLE, and that is its
@@ -427,10 +440,14 @@ jobs:
         env:
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          # Through the environment, never interpolated into the shell line: a GitHub
+          # expression is substituted BEFORE the shell parses it, so the quotes around it
+          # would not have contained a crafted tag.
+          APP_VERSION: ${{ needs.meta.outputs.version }}
         run: |
           # `app:///` is the prefix normalizePathsIntegration gives to frames.
           pnpm dlx @sentry/cli@2.58.6 sourcemaps upload \
-            --release "${{ needs.meta.outputs.version }}" \
+            --release "$APP_VERSION" \
             --url-prefix "app:///out" \
             out
 

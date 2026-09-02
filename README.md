@@ -205,10 +205,15 @@ CLI subscription. Redaction is on-device.
 reaches them by default** (`apps/desktop/scripts/publicServices.ts`): sign-in (a
 Supabase project — magic link or Google; the account only identifies you, nothing sits
 behind it), the Slack relay (the code→token exchange Slack forbids on-device), the
-analytics relay (anonymous counters behind an explicit consent, plus the release notes
-the app displays), crash reports (Sentry — an allow-list of a few machine fields,
-never a message, a key or a vault value: `apps/desktop/src/sentry/policy.ts`) and the
-update feed (where a packaged build checks for new versions). Their code is not in this
+analytics relay (pseudonymous counters behind a consent, plus the release notes
+the app displays, plus the feature-flag read — that last one is a configuration request,
+not measurement, so it runs outside consent and carries the install id and, when you are
+signed in, your account token: `packages/analytics/src/flags.ts` says so in full), crash reports (Sentry — an allow-list of a few machine
+fields, never a key or a vault value; the exception message and the frame names cannot be
+allow-listed field by field, so they are scrubbed and truncated instead — a mitigation, not
+a guarantee, and `apps/desktop/src/sentry/policy.ts` states the residual it accepts) and
+the update feed (where a packaged build checks for new versions, carrying a per-install
+identifier so a staged rollout can be held back). Their code is not in this
 repository. Each is one variable, and a variable set **empty** at build time
 (`OPENMASQ_SENTRY_DSN=`, `VITE_UPDATES_URL=`) opts out of it — a fork that ships under
 its own identity should empty the feed so it never updates itself with the brand's
@@ -456,11 +461,17 @@ modèle local, ou un abonnement CLI. Le masquage s'exécute sur l'appareil.
 atteint par défaut** (`apps/desktop/scripts/publicServices.ts`) : la connexion (un projet
 Supabase — lien magique ou Google ; le compte ne fait que vous identifier, rien ne se cache
 derrière), le relais Slack (l'échange code→jeton que Slack interdit sur l'appareil), le
-relais analytics (des compteurs anonymes derrière un consentement explicite, plus les notes
-de version que l'app affiche), les rapports de plantage (Sentry — une liste d'autorisation
-de quelques champs machine, jamais un message, une clé ni une valeur du coffre :
-`apps/desktop/src/sentry/policy.ts`) et le flux de mises à jour (là où un build empaqueté
-cherche les nouvelles versions). Leur code n'est pas dans ce dépôt. Chacun tient en une
+relais analytics (des compteurs pseudonymes derrière un consentement, plus les notes
+de version que l'app affiche, plus la lecture des drapeaux de fonctionnalité — celle-ci est
+une requête de configuration, pas une mesure : elle s'exécute hors consentement et porte
+l'identifiant d'installation et, si vous êtes connecté, votre jeton de compte ;
+`packages/analytics/src/flags.ts` l'énonce en entier), les rapports de plantage (Sentry — une liste d'autorisation
+de quelques champs machine, jamais une clé ni une valeur du coffre ; le message d'exception
+et les noms de frames ne peuvent pas être autorisés champ par champ, ils sont donc épurés
+puis tronqués — une atténuation, pas une garantie, et `apps/desktop/src/sentry/policy.ts`
+énonce le résidu qu'il accepte) et le flux de mises à jour (là où un build empaqueté cherche
+les nouvelles versions, en portant un identifiant par installation pour qu'un déploiement
+progressif puisse être retenu). Leur code n'est pas dans ce dépôt. Chacun tient en une
 variable, et une variable posée **vide** au build (`OPENMASQ_SENTRY_DSN=`,
 `VITE_UPDATES_URL=`) le débranche — un fork qui publie sous sa propre identité devrait vider
 le flux, pour ne jamais se mettre à jour avec le binaire signé de la marque

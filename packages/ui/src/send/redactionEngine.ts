@@ -23,6 +23,13 @@ export type RedactFn = (
    *  (`effectiveRedactCategories`: global ⊕ conversation ⊕ org-forced). Absent when
    *  there is no conversation yet (e.g. the Library file viewer). */
   convCategories?: Record<string, boolean>,
+  /** The conversation's fake-mapping SEED — its salt and, when it has one, its key.
+   *  Without it this path mints fakes under the fully public mapping (salt 0, no key),
+   *  which a table precomputed over the pools reverses: the send REUSES a document's
+   *  replacements verbatim, so an unseeded drop-time pass would put that public mapping
+   *  on the wire. Absent only where there is genuinely no conversation yet (the Library
+   *  viewer, a preview) — those results are not reused by a send. */
+  convSeed?: { salt?: number; key?: string },
 ) => Promise<RedactionResult>;
 
 /**
@@ -36,6 +43,7 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
     signal?: AbortSignal,
     vault?: Record<string, string>,
     convCategories?: Record<string, boolean>,
+    convSeed?: { salt?: number; key?: string },
   ) => {
     if (!text.trim()) return { text, matches: [] };
     if (signal?.aborted) throw new DOMException("aborted", "AbortError");
@@ -75,7 +83,12 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
     // gateway's endpoint (apps/gateway), not this path. Do not reintroduce them here.
     // Offline local engine (GLiNER) — redacted free-form PII in documents too,
     // with no LLM/network, mirroring the chat send pipeline.
-    const useLocal = settings.redactEngine === "local" && !!host.detectLocalPii;
+    // ⚠️ The HOST's capability decides, exactly as on the message path
+    // (`sendOrchestrator` `useLocal`). Reading the persisted preference here instead
+    // meant a legacy `redactEngine: "patterns"` blob gave the message AI detection and
+    // this path regex only — silently, since `modelError` then never sets and the
+    // fail-closed guard cannot fire.
+    const useLocal = !!host.detectLocalPii;
     const detectLocal = useLocal
       ? (t: string) => host.detectLocalPii!({ text: t })
       : undefined;
@@ -88,6 +101,7 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
     const work = pseudonymize(text, {
       vault, detectLocal, numbers: false, disabledKinds, mode,
       forced, commercialNotoriety, peopleNotoriety,
+      salt: convSeed?.salt, key: convSeed?.key,
     });
     if (!signal) return work;
     return raceRedactionWork(work, { signal });

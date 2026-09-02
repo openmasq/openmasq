@@ -95,7 +95,33 @@ function prepareAntigravityAppData(): void {
 }
 
 /** A turn's environment, or an EXPLAINED error if the CLI is missing (fail-closed). */
+/**
+ * ⚠️ The AUTHORITATIVE opt-in, held in MAIN and empty until the renderer mirrors it.
+ *
+ * Spawning one of these CLIs runs the user's own Claude Code / Codex / Antigravity
+ * subscription on their machine, so `Settings.claudeCliEnabled` and its siblings are a
+ * real permission, not a picker preference. Enforcing them only in the renderer would
+ * make `chat:start` a spawn primitive for any script that can reach the bridge: the
+ * channel routes on a renderer-supplied `provider` string, so the CLI is chosen by the
+ * caller. Same shape as `links:set-enabled` (audit M4) — the interface asks, main decides.
+ *
+ * Fail-closed: unset means OFF, so a build that never mirrors spawns nothing.
+ */
+const enabledClis = new Set<SubscriptionCliId>();
+
+export function setSubscriptionCliEnabled(cli: SubscriptionCliId, on: boolean): void {
+  if (on) enabledClis.add(cli);
+  else enabledClis.delete(cli);
+}
+
+export function isSubscriptionCliEnabled(cli: SubscriptionCliId): boolean {
+  return enabledClis.has(cli);
+}
+
 export function subscriptionTurnEnv(cli: SubscriptionCliId = "claude"): SubscriptionTurnEnv {
+  if (!enabledClis.has(cli)) {
+    throw new Error(`${CLI_LABEL[cli]} n'est pas activé (Réglages → Modèles).`);
+  }
   const binPath = subscriptionCliPath(cli);
   if (!binPath) throw new Error(CLI_MISSING[cli]);
   if (cli === "antigravity") prepareAntigravityAppData();
