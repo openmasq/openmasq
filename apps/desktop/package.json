@@ -44,7 +44,7 @@
     "@libsql/client": "^0.14.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@mozilla/readability": "^0.6.0",
-    "@napi-rs/canvas": "^0.1.100",
+    "@napi-rs/canvas": "^1.0.8",
     "@openmasq/updates-manifest": "workspace:*",
     "@playwright/mcp": "0.0.79",
     "@supabase/supabase-js": "^2.108.2",
