@@ -40,6 +40,12 @@ export interface ModalsMessages {
     noNote: string;
     later: string;
     restartNow: string;
+    /** The button once clicked, and the two lines under the note: what is happening,
+     *  then — past a delay — how to get out of it by hand. */
+    restarting: string;
+    restartingHint: string;
+    restartSlow: string;
+    retry: string;
   };
 
   /** A connector that accepts both: your account, or anonymous access. */

@@ -112,3 +112,22 @@
   background: var(--surface-card);
   flex-shrink: 0;
 }
+
+/* The restart, acknowledged: a status line between the note and the buttons — what is
+   happening, then (past RESTART_SLOW_MS, UpdateReadyModal.tsx) the way out. */
+.om-upd-status {
+  margin: 0 0 4px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+.om-upd-status.slow {
+  color: var(--text-strong);
+}
+.om-upd-foot .btn-primary.is-busy {
+  opacity: 0.75;
+  cursor: progress;
+}

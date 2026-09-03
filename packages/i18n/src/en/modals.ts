@@ -39,6 +39,10 @@ export const modals = {
     noNote: "The release notes for this version are not published yet.",
     later: "Later",
     restartNow: "Restart now",
+    restarting: "Restarting…",
+    restartingHint: "The app closes and relaunches on its own in a few seconds — no need to reopen it by hand.",
+    restartSlow: "This is taking longer than expected. You can quit the app yourself: the update applies at the next launch.",
+    retry: "Try again",
   },
 
   mcpAuth: {

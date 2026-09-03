@@ -1038,7 +1038,10 @@ stuck with a version that breaks your use.
       published note) and a "Restart now" — no more system dialog, in English and mute about
       the content. Once per version, never before the version is there, never on top of
       sign-in; dismissed, a button at the foot of the right rail reopens it while the update
-      waits — `UpdateReadyModal`,
+      waits. « Redémarrer maintenant » is acknowledged at once (« Redémarrage… », one click only,
+      what is happening), and past twenty seconds says how to get out by hand — the update applies
+      at the next launch — `UpdateReadyModal`,
+      `packages/ui/src/containers/modals/UpdateReadyModal.test.tsx`,
       `packages/ui/src/containers/shell/hooks/useUpdateReady.test.tsx`
 - [x] **Updating is always automatic — no setting turns it off.** Checking and downloading
       happen on their own; installation waits for a click on "Install and restart", the next
