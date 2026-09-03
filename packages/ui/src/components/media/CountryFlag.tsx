@@ -1,4 +1,5 @@
 import type { HostCountry, HostCode } from "@openmasq/llm";
+import type { Locale } from "@openmasq/i18n";
 
 /**
  * A small hosting-jurisdiction mark shown next to a model's provider — so a
@@ -19,7 +20,52 @@ export function CountryFlag({ host, size = 13 }: { host?: HostCountry; size?: nu
   );
 }
 
-function FlagSvg({ code, size }: { code: HostCode; size: number }) {
+/**
+ * Le drapeau d'une LANGUE de l'interface, pour le sélecteur des Réglages — dessiné par la
+ * même fonction que les drapeaux d'hébergement, parce qu'un drapeau dessiné deux fois
+ * dérive au premier ajustement de teinte (règle 9).
+ *
+ * ⚠️ `HostCode` n'est pas élargi pour autant : c'est le type des JURIDICTIONS
+ * d'hébergement d'un modèle, et « GB » n'en est pas une — l'y ajouter laisserait une
+ * fiche de modèle se déclarer hébergée au Royaume-Uni sans que rien ne serve cette
+ * promesse. Le code de dessin est donc un peu plus large que le code de données.
+ *
+ * Décoratif : le bouton qui le porte dit déjà « Français » ou « English », et c'est ce
+ * mot que lit un lecteur d'écran. Un drapeau nomme un pays, jamais une langue.
+ */
+export function LanguageFlag({ locale, size = 12 }: { locale: Locale; size?: number }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{
+        display: "inline-flex",
+        lineHeight: 0,
+        borderRadius: 2,
+        overflow: "hidden",
+        boxShadow: "0 0 0 1px var(--border-subtle)",
+      }}
+    >
+      <FlagSvg code={locale === "en" ? "GB" : "FR"} size={size} />
+    </span>
+  );
+}
+
+function FlagSvg({ code, size }: { code: HostCode | "GB"; size: number }) {
+  if (code === "GB") {
+    const w = Math.round(size * 1.45);
+    // L'Union Jack, ramené sur la même boîte 20×14 que les autres : champ bleu, croix de
+    // saint André blanche puis rouge (décalée par le tracé, comme sur le vrai drapeau),
+    // croix de saint Georges par-dessus.
+    return (
+      <svg width={w} height={size} viewBox="0 0 20 14" aria-hidden="true">
+        <rect x="0" y="0" width="20" height="14" fill="#012169" />
+        <path d="M0,0 L20,14 M20,0 L0,14" stroke="#FFFFFF" strokeWidth="2.8" />
+        <path d="M0,0 L20,14 M20,0 L0,14" stroke="#C8102E" strokeWidth="1.4" />
+        <path d="M10,0 v14 M0,7 h20" stroke="#FFFFFF" strokeWidth="4.6" />
+        <path d="M10,0 v14 M0,7 h20" stroke="#C8102E" strokeWidth="2.8" />
+      </svg>
+    );
+  }
   // Rectangular flags render at a ~1.45:1 ratio; the neutral glyphs are square.
   if (code === "FR") {
     const w = Math.round(size * 1.45);

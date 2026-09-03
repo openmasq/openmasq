@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { LOCALES, resolveLocale, type Locale } from "@openmasq/i18n";
 import { Switch } from "../../components/brand";
+import { LanguageFlag } from "../../components/media/CountryFlag";
 import { captureEvent } from "../../analytics";
 import { useLocale, useT } from "../../i18n";
 import type { Settings } from "../../types";
@@ -80,6 +81,7 @@ export function AppearanceSection({
                 className={`om-seg-btn${activeLocale === loc ? " on" : ""}`}
                 onClick={() => applyLocale(loc)}
               >
+                <LanguageFlag locale={loc} />
                 {t.language.names[loc]}
               </button>
             ))}
