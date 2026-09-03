@@ -46,7 +46,7 @@ jobs:
       packages: ${{ steps.f.outputs.packages }}
       corpus: ${{ steps.f.outputs.corpus }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # PR: dorny reads the file list VIA THE API (pull-requests: read), the
           # clone doesn't serve any further purpose — depth 1. Push: it diffs locally,
@@ -123,7 +123,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
