@@ -31,7 +31,7 @@
     "tesseract.js-core": "^6.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.16.5",
+    "@types/node": "^26.4.0",
     "esbuild": "^0.28.2",
     "typescript": "^5.6.3"
   },
