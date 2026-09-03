@@ -58,7 +58,7 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.100",
+    "@napi-rs/canvas": "^1.0.8",
     "@openmasq/branding": "workspace:*",
     "fflate": "^0.8.3",
     "libphonenumber-js": "^1.13.12",
