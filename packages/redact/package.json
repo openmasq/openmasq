@@ -63,7 +63,7 @@
     "fflate": "^0.8.3",
     "libphonenumber-js": "^1.13.12",
     "mammoth": "^1.12.2",
-    "pdfjs-dist": "^4.10.38",
+    "pdfjs-dist": "^6.3.289",
     "tesseract2.js": "workspace:*",
     "xlsx": "workspace:*"
   },
