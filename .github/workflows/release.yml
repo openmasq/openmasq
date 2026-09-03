@@ -639,6 +639,17 @@ jobs:
               pnpm exec tsx scripts/mac-release.ts "$APP_VERSION"
             else
               echo "::warning::MAC_CSC_LINK / APPLE_ID are not configured — packaging an UNSIGNED, non-notarized mac build."
+              # ⚠️ UNSET, not empty. A job-level `env:` entry always DEFINES the variable, so
+              # without secrets `CSC_LINK` reaches electron-builder as an empty string, which it
+              # treats as a certificate PATH and resolves against the project directory — dying on
+              # `⨯ apps/desktop not a file` AFTER packaging, arch prune and fuses have all
+              # succeeded. `CSC_IDENTITY_AUTO_DISCOVERY=false` does not help: it disables keychain
+              # LOOKUP, not an explicitly supplied path.
+              # Measured 03/09 by a publish-free dispatch — the FIRST run ever to take this branch,
+              # because until the credentials moved into the tag-restricted `release` environment
+              # (02/09) a manual run still carried them and signed. This is the path a FORK takes,
+              # and the one this job's header promises works.
+              unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
               CSC_IDENTITY_AUTO_DISCOVERY=false pnpm run eb --publish never -c.mac.notarize=false -c.extraMetadata.version="$APP_VERSION"
             fi
           else
