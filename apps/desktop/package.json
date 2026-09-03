@@ -55,7 +55,7 @@
     "onnxruntime-node": "^1.24.3",
     "ort-native": "npm:onnxruntime-node@1.24.3",
     "ort-wasm": "npm:onnxruntime-web@1.26.0-dev.20260416-b7804b056c",
-    "pdfjs-dist": "^4.10.38",
+    "pdfjs-dist": "^6.3.289",
     "tesseract.js-core": "^6.0.0",
     "tesseract2.js": "workspace:*",
     "undici": "^7.29.0",
