@@ -75,7 +75,7 @@
     "@openmasq/redact": "workspace:*",
     "@openmasq/sync": "workspace:*",
     "@openmasq/ui": "workspace:*",
-    "@sentry/electron": "^7.16.0",
+    "@sentry/electron": "^7.17.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/debug": "4.1.13",
     "@types/node": "^24.9.0",
