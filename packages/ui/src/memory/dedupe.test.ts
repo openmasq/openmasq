@@ -18,9 +18,9 @@ const card = (
 ): MemoryCard => ({ ...makeMemoryCard({ entity, facts, cat })!, ...over });
 
 describe("duplicateSuggestions", () => {
-  it("SURFACE: a token-subset pair is flagged (« Manon » ⊂ « Manon Verdolini »), longer facts kept", () => {
-    const short = card("Manon", "Cliente.", "personne", { createdAt: 5 });
-    const full = card("Manon Verdolini", "Cliente principale, dossier fiscal.", "personne", { createdAt: 9 });
+  it("SURFACE: a token-subset pair is flagged (« Ninon » ⊂ « Ninon Verdolini »), longer facts kept", () => {
+    const short = card("Ninon", "Cliente.", "personne", { createdAt: 5 });
+    const full = card("Ninon Verdolini", "Cliente principale, dossier fiscal.", "personne", { createdAt: 9 });
     const [s] = duplicateSuggestions([short, full], []);
     expect(s).toMatchObject({ keepId: full.id, dropId: short.id, reason: "surface" });
   });
@@ -81,13 +81,13 @@ describe("duplicateSuggestions", () => {
 
 describe("mergeCards — data-preserving", () => {
   it("keeps recall by the OLD name: the dropped entity + aliases become aliases", () => {
-    const keep = card("Manon Verdolini", "Cliente principale.", "personne", { aliases: ["Manon"] });
-    const drop = card("Manon P.", "Préfère le jeudi.", "personne", { aliases: ["manon verdolini"] });
+    const keep = card("Ninon Verdolini", "Cliente principale.", "personne", { aliases: ["Ninon"] });
+    const drop = card("Ninon P.", "Préfère le jeudi.", "personne", { aliases: ["ninon verdolini"] });
     const merged = mergeCards(keep, drop, 42);
     expect(merged.id).toBe(keep.id);
     expect(merged.facts).toBe("Cliente principale. Préfère le jeudi.");
-    // "Manon P." joins; "manon verdolini" is already a known surface (entity) → deduped.
-    expect(merged.aliases).toEqual(["Manon", "Manon P."]);
+    // "Ninon P." joins; "ninon verdolini" is already a known surface (entity) → deduped.
+    expect(merged.aliases).toEqual(["Ninon", "Ninon P."]);
     expect(merged.updatedAt).toBe(42);
   });
 
@@ -202,8 +202,8 @@ describe("la fiche VIERGE (« Nouvelle fiche »)", () => {
     const b = card(`${NEW_CARD_ENTITY} 2`, "", "personne");
     expect(duplicateSuggestions([a, b], [])).toEqual([]);
     // A blank card is never proposed for merging by EITHER signal.
-    const real = card("Manon Verdolini", "Cliente principale.", "personne");
-    const empty = card("Manon", "", "personne");
+    const real = card("Ninon Verdolini", "Cliente principale.", "personne");
+    const empty = card("Ninon", "", "personne");
     expect(duplicateSuggestions([real, empty], [])).toEqual([]);
     expect(duplicateSuggestions([real, empty], [{ a: real.id, b: empty.id, sim: 0.99 }])).toEqual([]);
   });

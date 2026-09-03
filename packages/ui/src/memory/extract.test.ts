@@ -97,11 +97,11 @@ describe("parseExtraction — strict, clamped, never throws", () => {
   it("reads an alias; a null or entity-equal alias is dropped", () => {
     const out = parseExtraction(
       '{"profil":null,"faits":[' +
-        '{"entite":"Manon Verdolini","alias":"Manon","cat":"personne","fait":"a"},' +
+        '{"entite":"Ninon Verdolini","alias":"Ninon","cat":"personne","fait":"a"},' +
         '{"entite":"Karl Studio","alias":null,"cat":"organisation","fait":"b"},' +
         '{"entite":"Zeta","alias":"ZETA","cat":"projet","fait":"c"}]}',
     );
-    expect(out!.facts.map((f) => f.alias)).toEqual(["Manon", undefined, undefined]);
+    expect(out!.facts.map((f) => f.alias)).toEqual(["Ninon", undefined, undefined]);
   });
 });
 
@@ -233,18 +233,18 @@ describe("mergeExtraction — compaction, dedup, provenance", () => {
 
   it("an alias lands on the card — new card at creation, known card by append, bounded + deduped", () => {
     const created = mergeExtraction(base, {
-      facts: [{ entity: "Manon Verdolini", alias: "Manon", cat: "personne", fact: "Cliente." }],
+      facts: [{ entity: "Ninon Verdolini", alias: "Ninon", cat: "personne", fact: "Cliente." }],
     });
-    expect(created.data.cards[0].aliases).toEqual(["Manon"]);
+    expect(created.data.cards[0].aliases).toEqual(["Ninon"]);
     // The alias becomes a matchable SURFACE: the same entity re-extracted under the
     // alias merges into the card instead of forking a second one.
     const merged = mergeExtraction(created.data, {
-      facts: [{ entity: "Manon", alias: "Manon Verdolini", cat: "personne", fact: "Dossier fiscal en cours." }],
+      facts: [{ entity: "Ninon", alias: "Ninon Verdolini", cat: "personne", fact: "Dossier fiscal en cours." }],
     });
-    expect(merged.data.cards).toHaveLength(2); // base card + the one Manon card
-    const manon = merged.data.cards.find((c) => c.entity === "Manon Verdolini")!;
-    expect(manon.facts).toContain("Dossier fiscal");
-    expect(manon.aliases).toEqual(["Manon"]); // "Manon Verdolini" = the entity, not a new alias
+    expect(merged.data.cards).toHaveLength(2); // base card + the one Ninon card
+    const ninon = merged.data.cards.find((c) => c.entity === "Ninon Verdolini")!;
+    expect(ninon.facts).toContain("Dossier fiscal");
+    expect(ninon.aliases).toEqual(["Ninon"]); // "Ninon Verdolini" = the entity, not a new alias
   });
 
   it("the profile appends only NEW information and never overwrites", () => {

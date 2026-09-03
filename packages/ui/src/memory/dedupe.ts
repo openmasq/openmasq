@@ -11,7 +11,7 @@ import type { SemanticEdge } from "./cluster";
  * category only (a projet and an organisation sharing a name are two things):
  *
  *  - SURFACE: the cards share a matchable key (entity/alias), or one's distinctive
- *    tokens are a subset of the other's (« Manon » ⊂ « Manon Verdolini ») — works on
+ *    tokens are a subset of the other's (« Ninon » ⊂ « Ninon Verdolini ») — works on
  *    every platform, no embeddings needed.
  *  - SEMANTIC: embedding cosine ≥ `DUPLICATE_MIN_SIM`, AND the two cards must not carry
  *    DISJOINT names (`distinctIdentities`). The threshold alone was never going to be

@@ -16,7 +16,7 @@ import { BRAND } from "@openmasq/branding";
  *     the bars told the opposite story.
  *  2. It showed only the SEMANTIC half. The graph also draws MENTION links (a card whose
  *     facts name another entity), which is where real groupings come from — so « Laura has
- *     no link to Vera » was an artefact of the export, not a fact about the memory.
+ *     no link to Orvalis » was an artefact of the export, not a fact about the memory.
  *  3. It sorted globally by similarity, which answers « which pair is closest » but never
  *     « what is this card connected to » — the question you actually open the file with.
  *

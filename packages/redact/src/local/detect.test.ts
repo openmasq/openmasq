@@ -146,22 +146,22 @@ describe("chunker", () => {
 
 describe("surname extension (extendNames)", () => {
   it("extends a detected first name over an untagged Capitalized surname", async () => {
-    // The cased model tags only "Manon"; the post-pass recovers the surname "Verdolini".
-    const text = "Prépare le contrat pour Manon Verdolini du cabinet Vaneau.";
-    const found = await detectLocalNer(text, predictOf("Manon", "PER"));
-    expect(found).toEqual([{ value: "Manon Verdolini", category: "NAME" }]);
+    // The cased model tags only "Ninon"; the post-pass recovers the surname "Verdolini".
+    const text = "Prépare le contrat pour Ninon Verdolini du cabinet Vaneau.";
+    const found = await detectLocalNer(text, predictOf("Ninon", "PER"));
+    expect(found).toEqual([{ value: "Ninon Verdolini", category: "NAME" }]);
   });
 
   it("stops at a lowercase word (never crosses into ordinary prose)", async () => {
-    const text = "Appelle Manon chez le notaire.";
-    const found = await detectLocalNer(text, predictOf("Manon", "PER"));
-    expect(found).toEqual([{ value: "Manon", category: "NAME" }]);
+    const text = "Appelle Ninon chez le notaire.";
+    const found = await detectLocalNer(text, predictOf("Ninon", "PER"));
+    expect(found).toEqual([{ value: "Ninon", category: "NAME" }]);
   });
 
   it("stops at a country word (does not swallow a place as a surname)", async () => {
-    const text = "Manon France repart demain.";
-    const found = await detectLocalNer(text, predictOf("Manon", "PER"));
-    expect(found).toEqual([{ value: "Manon", category: "NAME" }]);
+    const text = "Ninon France repart demain.";
+    const found = await detectLocalNer(text, predictOf("Ninon", "PER"));
+    expect(found).toEqual([{ value: "Ninon", category: "NAME" }]);
   });
 
   it("does not extend a non-person (ORG/LOC) span", async () => {
@@ -171,9 +171,9 @@ describe("surname extension (extendNames)", () => {
   });
 
   it("can be disabled", async () => {
-    const text = "Manon Verdolini arrive.";
-    const found = await detectLocalNer(text, predictOf("Manon", "PER"), { extendNames: false });
-    expect(found).toEqual([{ value: "Manon", category: "NAME" }]);
+    const text = "Ninon Verdolini arrive.";
+    const found = await detectLocalNer(text, predictOf("Ninon", "PER"), { extendNames: false });
+    expect(found).toEqual([{ value: "Ninon", category: "NAME" }]);
   });
 });
 

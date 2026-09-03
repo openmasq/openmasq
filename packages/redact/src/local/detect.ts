@@ -35,7 +35,7 @@ export interface LocalDetectOptions extends ChunkerOptions {
   threshold?: number;
   /**
    * Extend a detected PERSON name forward over immediately-following Capitalized
-   * surname tokens the cased model failed to tag ("Manon" → "Manon Verdolini").
+   * surname tokens the cased model failed to tag ("Ninon" → "Ninon Verdolini").
    * Default ON — high precision (only fires after a model-confirmed person, and
    * only over Capitalized non-function/non-generic tokens). Set false to disable.
    */
@@ -129,7 +129,7 @@ export async function detectLocalNer(
     options.onError?.(err);
     return [];
   }
-  // Recover surnames the cased model tagged only the FIRST name of ("Manon" → "Manon
+  // Recover surnames the cased model tagged only the FIRST name of ("Ninon" → "Ninon
   // Verdolini"). ON by default (high precision); the span's [start,end) is extended
   // before value extraction so recase/occurrence expansion see the full name.
   if (options.extendNames !== false) spans = extendPersonNames(input, spans);

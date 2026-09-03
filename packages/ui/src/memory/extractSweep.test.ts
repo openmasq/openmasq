@@ -67,10 +67,10 @@ describe("sweepExtraction — finish what one call started", () => {
   });
 
   it("dedups across passes case- and spacing-insensitively", async () => {
-    const pages = [page(["Karl Studio", "Vera"]), page(["karl  studio", "Zorvia"])];
+    const pages = [page(["Karl Studio", "Orvalis"]), page(["karl  studio", "Zorvia"])];
     let i = 0;
     const out = await sweepExtraction(async () => pages[i++] ?? null, { limit: 2 });
-    expect(out.facts.map((f) => f.entity)).toEqual(["Karl Studio", "Vera", "Zorvia"]);
+    expect(out.facts.map((f) => f.entity)).toEqual(["Karl Studio", "Orvalis", "Zorvia"]);
   });
 
   it("keeps the FIRST profile offered, and survives a failed pass mid-sweep", async () => {

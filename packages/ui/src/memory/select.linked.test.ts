@@ -44,11 +44,11 @@ describe("un cran de voisinage autour d'une entité NOMMÉE", () => {
 
 describe("ce que l'expansion ne doit PAS faire", () => {
   it("ne part JAMAIS d'une correspondance faible", () => {
-    // « Manon » alone is a score of 1 (distinctive token). Expanding from there would snowball
+    // « Ninon » alone is a score of 1 (distinctive token). Expanding from there would snowball
     // onto cards the user never designated.
-    const manon = card("Manon Verdolini", "Cliente historique", "personne");
-    const autre = card("Ostrel", "Fournisseur de Manon Verdolini");
-    expect(names(store(manon, autre), "des nouvelles de Manon ?")).toEqual(["Manon Verdolini"]);
+    const ninon = card("Ninon Verdolini", "Cliente historique", "personne");
+    const autre = card("Ostrel", "Fournisseur de Ninon Verdolini");
+    expect(names(store(ninon, autre), "des nouvelles de Ninon ?")).toEqual(["Ninon Verdolini"]);
   });
 
   it("ne fait qu'UN saut — le voisin du voisin reste dehors", () => {

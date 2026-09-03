@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
  *   • removing an origin still called → a blocked `fetch`, visible only in use;
  *   • keeping an origin nobody calls anymore → the allow-list widens on its own.
  * This file ties the two together. It was written while migrating the backend's origin from
- * the old domain (`tchin.co`) to the current one: the CSP allowed both, and nothing
+ * one domain to its successor: the CSP allowed both, and nothing
  * would have flagged that one had been left off — nor that the wrong one had been removed.
  */
 const ICI = new URL(".", import.meta.url).pathname;
@@ -80,13 +80,5 @@ describe("CSP du renderer", () => {
   it("autorise chaque origine que le code appelle en dur", () => {
     expect(origines.length).toBeGreaterThan(0); // otherwise the test would pass vacuously
     expect(origines.filter((o) => !autorisee(o))).toEqual([]);
-  });
-
-  it("ne garde aucune origine héritée : l'app est entièrement sur le domaine de la marque", () => {
-    // The old domain is DETACHED (no `tchin.co` host serves anything anymore). Nothing should
-    // therefore target it or allow it: an allow-list that keeps a dead entry widens
-    // for nothing, and the day the line comes back, this is where it shows.
-    expect(connectSrc.filter((m) => m.includes("tchin.co"))).toEqual([]);
-    expect(origines.filter((o) => o.includes("tchin.co"))).toEqual([]);
   });
 });

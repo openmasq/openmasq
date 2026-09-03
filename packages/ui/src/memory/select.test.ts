@@ -53,16 +53,16 @@ describe("selection — mention beats conversation-presence beats nothing", () =
     expect(selectMemory({ text: "et ensuite ?", convValues: ["Bakartis"], memory: m }).cards).toEqual([]);
   });
 
-  it("a DISTINCTIVE token evokes the card (« Manon » seule → « Manon Verdolini »), ranked below a full mention", () => {
+  it("a DISTINCTIVE token evokes the card (« Ninon » seule → « Ninon Verdolini »), ranked below a full mention", () => {
     const m: MemoryData = {
       cards: [
-        card({ entity: "Manon Verdolini", facts: "Cliente, dossier fiscal.", cat: "personne" }),
+        card({ entity: "Ninon Verdolini", facts: "Cliente, dossier fiscal.", cat: "personne" }),
         card({ entity: "Karl Studio", facts: "Agence.", cat: "organisation" }),
       ],
     };
-    const sel = selectMemory({ text: "appelle manon demain au sujet de karl studio", convValues: [], memory: m });
+    const sel = selectMemory({ text: "appelle ninon demain au sujet de karl studio", convValues: [], memory: m });
     // full mention (score 3) first, token evocation (score 1) after
-    expect(sel.cards.map((c) => c.entity)).toEqual(["Karl Studio", "Manon Verdolini"]);
+    expect(sel.cards.map((c) => c.entity)).toEqual(["Karl Studio", "Ninon Verdolini"]);
   });
 
   it("a GENERIC token alone never fires (« cabinet » must not inject « Cabinet Bezier »)", () => {
@@ -99,8 +99,8 @@ describe("selection — mention beats conversation-presence beats nothing", () =
   });
 
   it("the token tier reads the TYPED text only — a conv value carrying a lone token stays score 0", () => {
-    const m: MemoryData = { cards: [card({ entity: "Manon Verdolini", facts: "x", cat: "personne" })] };
-    expect(selectMemory({ text: "et ensuite ?", convValues: ["manon"], memory: m }).cards).toEqual([]);
+    const m: MemoryData = { cards: [card({ entity: "Ninon Verdolini", facts: "x", cat: "personne" })] };
+    expect(selectMemory({ text: "et ensuite ?", convValues: ["ninon"], memory: m }).cards).toEqual([]);
   });
 
   it("the budget cuts by (score, recency) — never a raw dump", () => {

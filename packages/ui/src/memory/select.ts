@@ -25,8 +25,8 @@ const SOURCE = getMessages(DEFAULT_LOCALE);
  *
  *   3 · the typed text MENTIONS the entity (or an alias/fragment) — near-certain
  *   2 · the entity is already IN this conversation (vault originals / kinds map)
- *   1 · the typed text carries a DISTINCTIVE TOKEN of the entity (« Manon » alone
- *       for « Manon Verdolini ») — likely, ranked below the certain tiers
+ *   1 · the typed text carries a DISTINCTIVE TOKEN of the entity (« Ninon » alone
+ *       for « Ninon Verdolini ») — likely, ranked below the certain tiers
  *   0 · everything else (never injected; `memory_search` covers the long tail)
  *
  * Then ONE HOP along the cross-links: a card that NAMES a certainly-mentioned entity is
@@ -84,7 +84,7 @@ export function selectMemory(input: {
     .sort((a, b) => b.score - a.score || b.card.updatedAt - a.card.updatedAt);
 
   // ONE hop, and only from a CERTAIN mention (score 3). Expanding from a weak token
-  // match would cascade — « Manon » pulling a card that merely names a Manon, then its
+  // match would cascade — « Ninon » pulling a card that merely names a Ninon, then its
   // neighbours — and quietly spend the budget on things the user never referred to.
   const seeds = new Set(scored.filter((s) => s.score === 3).map((s) => s.card.id));
   /** The DIRECT hits (before the neighbourhood expansion) — the diagnostic's scope. */

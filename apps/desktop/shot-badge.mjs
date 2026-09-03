@@ -60,5 +60,5 @@ console.log("BETA badge:", JSON.stringify(badge));
 console.log("chip:", JSON.stringify(chip), "| label font:", label);
 console.log("badge height / chip height:", (badge.h / chip.h).toFixed(2));
 
-await page.locator(".settings-rules-card").first().screenshot({ path: "badge-01.png" });
+await page.locator(".settings-rules-card").first().screenshot({ path: "shot-badge-01.png" });
 await app.close();

@@ -35,7 +35,7 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
     // without its bar told the opposite story.
     const p1 = card({ id: "p1", entity: "Florian", cat: "personne" });
     const p2 = card({ id: "p2", entity: "Valentine", cat: "personne" });
-    const org = card({ id: "o1", entity: "Vera", cat: "projet" });
+    const org = card({ id: "o1", entity: "Orvalis", cat: "projet" });
     const out = memoryExportText({
       memoryData: { cards: [p1, p2, org] },
       edges: [
@@ -45,7 +45,7 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
       now: NOW,
     });
     expect(out).toMatch(/0\.9300 ✗ {2}Valentine.*seuil 0\.95/);
-    expect(out).toMatch(/0\.9300 ✓ {2}Vera.*seuil 0\.92/);
+    expect(out).toMatch(/0\.9300 ✓ {2}Orvalis.*seuil 0\.92/);
     expect(barFor(p1, p2)).toBe(PERSON_PAIR_MIN_SIM);
     expect(barFor(p1, org)).toBe(CLUSTER_MIN_SIM);
   });
@@ -66,13 +66,13 @@ describe("memoryExportText — the links, with the bars that decide them", () =>
   });
 
   it("includes the MENTION links — the half a semantic-only export was missing", () => {
-    // Laura's facts name Vera: the graph draws that edge, and its absence from the first
-    // export read as « Laura is not connected to Vera », which was false.
-    const laura = card({ id: "l", entity: "Laura", cat: "personne", facts: "Go-to-market pour l'équipe de Vera." });
-    const vera = card({ id: "v", entity: "Vera", cat: "projet", facts: "Services numériques." });
-    const out = memoryExportText({ memoryData: { cards: [laura, vera] }, edges: [], now: NOW });
+    // Laura's facts name Orvalis: the graph draws that edge, and its absence from the first
+    // export read as « Laura is not connected to Orvalis », which was false.
+    const laura = card({ id: "l", entity: "Laura", cat: "personne", facts: "Go-to-market pour l'équipe de Orvalis." });
+    const orvalis = card({ id: "v", entity: "Orvalis", cat: "projet", facts: "Services numériques." });
+    const out = memoryExportText({ memoryData: { cards: [laura, orvalis] }, edges: [], now: NOW });
     expect(out).toContain("Liens mention   1");
-    expect(out).toMatch(/mention {3}Vera/);
+    expect(out).toMatch(/mention {3}Orvalis/);
     expect(out).toMatch(/mention {3}Laura/); // both directions, under each card
   });
 

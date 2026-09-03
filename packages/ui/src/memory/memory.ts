@@ -181,7 +181,7 @@ export function deniedHomographTokens(card: MemoryCard): string[] {
 }
 
 /** The DISTINCTIVE single tokens of a card's keys — the weaker recall pass: « appelle
- *  Manon demain » must hit the « Manon Verdolini » card without the full entity. A token
+ *  Ninon demain » must hit the « Ninon Verdolini » card without the full entity. A token
  *  qualifies only when it is proper-noun-ish ON ITS OWN: no digits, not an email/dotted
  *  fragment (those match whole-key only), not a stopword / generic word / name-noun
  *  homograph (deny-lists — over-matching costs tokens and a wrong « Mémoire utilisée »

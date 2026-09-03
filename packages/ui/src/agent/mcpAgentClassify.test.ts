@@ -99,7 +99,7 @@ describe("looksWebIntent — « fais des recherches sur X »", () => {
   // nothing. The browser was therefore not offered, the model guessed a tool name,
   // and the loop mis-attributed the resulting connector.
   it.each([
-    "fait des recherches sur Vera et ses membres",
+    "fait des recherches sur Orvalis et ses membres",
     "fais des recherches sur cette entreprise",
     "faites-moi une recherche sur ce sujet",
     "renseigne-toi sur ce fournisseur",

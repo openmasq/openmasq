@@ -12,18 +12,18 @@ const card = (entity: string, facts: string, cat = "personne", ts = 1): MemoryCa
 const fr = getMessages("fr");
 
 describe("buildClusters — semantic ∪ mention union", () => {
-  const manon = card("Manon Verdolini", "Cliente, dossier fiscal.", "personne", 3);
-  const avocate = card("Cabinet Bezier", "Avocats fiscalistes de Manon Verdolini.", "organisation", 2);
+  const ninon = card("Ninon Verdolini", "Cliente, dossier fiscal.", "personne", 3);
+  const avocate = card("Cabinet Bezier", "Avocats fiscalistes de Ninon Verdolini.", "organisation", 2);
   const karl = card("Karl Studio", "Agence de design.", "organisation", 1);
   const zeta = card("Projet Zeta", "Refonte du site.", "projet", 1);
 
   it("a strong semantic edge groups two cards; below-threshold does not", () => {
-    const strong = [{ a: manon.id, b: avocate.id, sim: 0.93 }];
-    const clusters = buildClusters([manon, avocate, karl], strong);
+    const strong = [{ a: ninon.id, b: avocate.id, sim: 0.93 }];
+    const clusters = buildClusters([ninon, avocate, karl], strong);
     expect(clusters).toHaveLength(1);
-    expect(clusters[0].cardIds.sort()).toEqual([manon.id, avocate.id].sort());
+    expect(clusters[0].cardIds.sort()).toEqual([ninon.id, avocate.id].sort());
     // Below threshold, and no mention between these two ⇒ no cluster.
-    expect(buildClusters([manon, karl], [{ a: manon.id, b: karl.id, sim: 0.88 }])).toEqual([]);
+    expect(buildClusters([ninon, karl], [{ a: ninon.id, b: karl.id, sim: 0.88 }])).toEqual([]);
     // The eval's measured FP bridges (« site web » 0.914, « renouvellement » 0.910)
     // must stay UNDER the threshold — that is what 0.92 was calibrated against.
     expect(CLUSTER_MIN_SIM).toBeGreaterThan(0.914);
@@ -45,19 +45,19 @@ describe("buildClusters — semantic ∪ mention union", () => {
   });
 
   it("an explicit MENTION merges even without a semantic edge (facts name the entity)", () => {
-    // avocate's facts mention « Manon Verdolini » → crossLinks unions them.
-    const clusters = buildClusters([manon, avocate, karl], []);
+    // avocate's facts mention « Ninon Verdolini » → crossLinks unions them.
+    const clusters = buildClusters([ninon, avocate, karl], []);
     expect(clusters).toHaveLength(1);
-    expect(clusters[0].cardIds).toContain(manon.id);
+    expect(clusters[0].cardIds).toContain(ninon.id);
   });
 
   it("labels the group by its most-connected member and takes the dominant tone", () => {
     const edges = [
-      { a: manon.id, b: avocate.id, sim: 0.94 },
-      { a: manon.id, b: zeta.id, sim: 0.92 },
+      { a: ninon.id, b: avocate.id, sim: 0.94 },
+      { a: ninon.id, b: zeta.id, sim: 0.92 },
     ];
-    const [cl] = buildClusters([manon, avocate, zeta], edges);
-    expect(cl.label).toBe("Manon Verdolini"); // degree 2 beats 1
+    const [cl] = buildClusters([ninon, avocate, zeta], edges);
+    expect(cl.label).toBe("Ninon Verdolini"); // degree 2 beats 1
     expect(cl.tone).toBe("violet"); // 1/1/1 tie → first-seen category (personne) wins
   });
 });
@@ -99,7 +99,7 @@ describe("buildClusteredGraph — same vocabulary as the radial graph", () => {
 
 describe("cardEmbedText", () => {
   it("folds entity + aliases + facts into one passage", () => {
-    const c = { ...card("Manon Verdolini", "Cliente."), aliases: ["Manon"] };
-    expect(cardEmbedText(c)).toBe("Manon Verdolini (Manon). Cliente.");
+    const c = { ...card("Ninon Verdolini", "Cliente."), aliases: ["Ninon"] };
+    expect(cardEmbedText(c)).toBe("Ninon Verdolini (Ninon). Cliente.");
   });
 });

@@ -160,9 +160,9 @@ export const LOAD_TOOLS_DEF: ToolDef = {
  *
  * Measured (27/07/2026 journal): the model calls `browser_navigate` with no prefix (the
  * browser wasn't even in the offer — the router hadn't kept it and
- * `looksWebIntent` hadn't triggered on « fait des recherches sur Vera »).
+ * `looksWebIntent` hadn't triggered on « fait des recherches sur Orvalis »).
  * `isGovernedWebTool` then answers `false`, so NO clear mode: the full engine
- * runs on a public DuckDuckGo results page and vaults 62 entities, including « Vera »
+ * runs on a public DuckDuckGo results page and vaults 62 entities, including « Orvalis »
  * — a word that was in CLEAR in the user's message. Any URL containing that word
  * then becomes « porteuse de données de conversation » and the exploration stops dead.
  *
