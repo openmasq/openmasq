@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
-import { LOCALES, resolveLocale, type Locale } from "@openmasq/i18n";
+import { resolveLocale, type Locale } from "@openmasq/i18n";
 import { Switch } from "../../components/brand";
-import { LanguageFlag } from "../../components/media/CountryFlag";
+import { LanguageSelect } from "./LanguageSelect";
 import { captureEvent } from "../../analytics";
 import { useLocale, useT } from "../../i18n";
 import type { Settings } from "../../types";
@@ -59,33 +59,15 @@ export function AppearanceSection({
     <section className="settings-section">
       <div className="cv-eyebrow">{t.settings.appearance.title}</div>
       <div className="settings-card">
-        {/* A segmented control rather than a dropdown: two languages fit on screen, and
-            the option NOT chosen stays readable — the whole point of a setting one comes
-            to fix precisely because one doesn't understand what's displayed. The labels
-            are ENDONYMS (« Français », « English »): they don't change with the
-            current language, and `lang` tells the screen reader so, which would otherwise pronounce
-            « English » the French way. */}
+        {/* A flag-only trigger with a list behind it — the two languages read as flags
+            at a glance, and the words (ENDONYMS, unchanged by the current language) wait
+            in the menu, which is where someone lost in the wrong language will look. */}
         <div className="toggle-row">
           <div className="row-body">
             <div className="row-title">{t.language.label}</div>
             <div className="row-desc">{t.language.hint}</div>
           </div>
-          <div className="om-seg" role="radiogroup" aria-label={t.language.label}>
-            {LOCALES.map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                role="radio"
-                aria-checked={activeLocale === loc}
-                lang={loc}
-                className={`om-seg-btn${activeLocale === loc ? " on" : ""}`}
-                onClick={() => applyLocale(loc)}
-              >
-                <LanguageFlag locale={loc} />
-                {t.language.names[loc]}
-              </button>
-            ))}
-          </div>
+          <LanguageSelect value={activeLocale} names={t.language.names} label={t.language.label} onChange={applyLocale} />
         </div>
         <div className="toggle-row">
           <div className="row-body">

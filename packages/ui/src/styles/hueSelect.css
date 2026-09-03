@@ -115,3 +115,15 @@
   display: inline-flex;
   flex-shrink: 0;
 }
+
+/* `compact`: a trigger that shows an affordance and no label (the language flag in the
+   Réglages). The default fills its row — right for a form field, wrong for a control
+   sitting at the end of a `toggle-row`, where it would push the row's title away. */
+.om-hue-select.compact {
+  width: auto;
+}
+.om-hue-select.compact .om-hue-select-btn {
+  width: auto;
+  height: 34px;
+  padding: 0 8px 0 10px;
+}

@@ -33,6 +33,13 @@ function Harness({ initial, seen }: { initial: Settings; seen: { current: Settin
 
 const inFrench = (children: ReactNode) => <I18nProvider locale="fr">{children}</I18nProvider>;
 
+/** The picker is a flag-only trigger over a PORTALED listbox: the options live on
+ *  `document.body`, not under the mounted section, so they are read from the document. */
+async function openOptions(ui: Awaited<ReturnType<typeof mount>>): Promise<HTMLButtonElement[]> {
+  await ui.click(ui.find(".om-hue-select-btn"));
+  return [...document.querySelectorAll<HTMLButtonElement>('[role="option"]')];
+}
+
 beforeEach(() => {
   localStorage.clear();
 });
@@ -45,12 +52,13 @@ describe("Réglages → Apparence — le sélecteur de langue", () => {
       { wrap: inFrench },
     );
 
+    // The trigger names the setting AND the language in use — a flag alone says neither.
+    expect(ui.find(".om-hue-select-btn").getAttribute("aria-label")).toBe("Langue : English");
+    const options = await openOptions(ui);
     // Endonyms: the app is in French, "English" doesn't become "Anglais".
-    expect(ui.findAll(".om-seg-btn").map((b) => b.textContent)).toEqual(["Français", "English"]);
-    // The synced setting decides the checked box — a single one.
-    expect(
-      ui.findAll(".om-seg-btn").filter((b) => b.getAttribute("aria-checked") === "true").map((b) => b.textContent),
-    ).toEqual(["English"]);
+    expect(options.map((b) => b.textContent)).toEqual(["Français", "English"]);
+    // The synced setting decides the selected line — a single one.
+    expect(options.filter((b) => b.getAttribute("aria-selected") === "true").map((b) => b.textContent)).toEqual(["English"]);
     // The theme wasn't lost along the way: the section still carries its two rows.
     expect(ui.findAll(".toggle-row")).toHaveLength(2);
 
@@ -61,7 +69,7 @@ describe("Réglages → Apparence — le sélecteur de langue", () => {
     const seen = { current: DEFAULT_SETTINGS };
     const ui = await mount(<Harness initial={DEFAULT_SETTINGS} seen={seen} />, { wrap: inFrench });
 
-    await ui.click(ui.findAll(".om-seg-btn")[1]); // "English"
+    await ui.click((await openOptions(ui))[1]); // "English"
 
     expect(localStorage.getItem(LOCALE_KEY)).toBe("en");
     expect(seen.current.language).toBe("en");
@@ -76,7 +84,7 @@ describe("Réglages → Apparence — le sélecteur de langue", () => {
     const seen = { current: DEFAULT_SETTINGS };
     const ui = await mount(<Harness initial={DEFAULT_SETTINGS} seen={seen} />);
 
-    await ui.click(ui.findAll(".om-seg-btn")[1]);
+    await ui.click((await openOptions(ui))[1]);
 
     expect(localStorage.getItem(LOCALE_KEY)).toBe("en");
     expect(seen.current.language).toBe("en");
