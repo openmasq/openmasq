@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { createServer, type Server } from "node:http";
 import { connectSignal } from "./server/connectCancel";
 import { BRAND } from "@openmasq/branding";
@@ -5,10 +6,26 @@ import { BRAND } from "@openmasq/branding";
 /**
  * An ephemeral loopback HTTP server on 127.0.0.1 that catches the OAuth redirect.
  * The provider's authorization page redirects the browser back to
- * `http://127.0.0.1:<port>/callback?code=…`; we read that code and resolve.
+ * `http://127.0.0.1:<port>/callback?code=…&state=…`; we read that code and resolve.
+ *
+ * ⚠️ **The `state` is the per-attempt binding, and it is not decoration.** The port is
+ * PERSISTED per server (`persist.ts` `savePort`) precisely so the registered redirect URI
+ * stays stable — which also makes `http://127.0.0.1:<port>/callback` a long-lived endpoint
+ * any web page can hit with a bare `<img src="…/callback?error=x">`: no CORS to clear, no
+ * response to read. That request settled the pending promise and killed a login the user
+ * was in the middle of; a `?code=` would have resolved it with a code the page chose.
+ * Nothing tied a request to THIS attempt. The OAuth `state` does, the way RFC 6749 §10.12
+ * intends: the loopback mints an unguessable value, every flow puts it in its authorize URL
+ * (`loop.state`), the authorization server echoes it, and a callback whose `state` does not
+ * match gets a 404 that settles NOTHING. The binding lives in a QUERY parameter every
+ * provider must echo verbatim — never in the path, which would change the redirect URI on
+ * each attempt, something loopback clients are only guaranteed to tolerate for the PORT.
+ * (PKCE is unchanged and still the defence for an intercepted code.)
  */
 export interface Loopback {
   redirectUrl: string;
+  /** The per-attempt `state` — put it in the authorize URL, the callback must echo it. */
+  state: string;
   /** The port actually bound — persist it so the redirect URI stays stable. */
   port: number;
   /** Resolves with the `code` once the browser is redirected back (or rejects). */
@@ -146,9 +163,17 @@ export async function startLoopback(
     rejectCode = reject;
   });
 
+  // One secret segment per attempt (128 bits, url-safe). A second, concurrent or later,
+  // attempt gets a different one — so a stale browser tab redirecting back can no longer
+  // settle the flow that replaced it either.
+  const state = randomBytes(16).toString("base64url");
+
   const server: Server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://127.0.0.1");
-    if (url.pathname !== "/callback") {
+    // Not ours, or not THIS attempt: 404, and nothing settles — an unsolicited hit
+    // (a web page's `<img>`, a stale tab replaying an old redirect) must not touch the
+    // pending login either way.
+    if (url.pathname !== "/callback" || url.searchParams.get("state") !== state) {
       res.writeHead(404);
       res.end();
       return;
@@ -163,7 +188,10 @@ export async function startLoopback(
     // "access_denied" it could do nothing with.
     const detail = url.searchParams.get("error_description");
     if (code) resolveCode(code);
-    else rejectCode(new Error([error, detail].filter(Boolean).join(" — ") || "OAuth redirect carried no code"));
+    else
+      rejectCode(
+        new Error([error, detail].filter(Boolean).join(" — ") || "OAuth redirect carried no code"),
+      );
     onRedirect?.();
   });
 
@@ -207,6 +235,7 @@ export async function startLoopback(
 
   return {
     redirectUrl: `http://127.0.0.1:${port}/callback`,
+    state,
     port,
     waitForCode: (timeoutMs) =>
       Promise.race([

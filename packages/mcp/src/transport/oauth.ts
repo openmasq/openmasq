@@ -67,6 +67,10 @@ export interface OAuthProviderOptions {
   persist: (state: StoredOAuthState) => void | Promise<void>;
   /** Open the provider's authorisation page (e.g. a BrowserWindow / shell.openExternal). */
   openAuthorization: (url: URL) => void | Promise<void>;
+  /** The OAuth `state` to send. When the caller's redirect endpoint VALIDATES the echoed
+   *  state (the desktop loopback does), it must be the caller who mints it — pass a
+   *  function returning that value. Absent, an unpredictable outbound-only value is sent. */
+  authState?: () => string;
 }
 
 /**
@@ -140,11 +144,13 @@ export function makeOAuthProvider(opts: OAuthProviderOptions): OAuthClientProvid
     // Without this, no `state` is sent — and an authorization server that REQUIRES it
     // (per the current MCP auth spec; e.g. PostHog's `oauth.posthog.com`) rejects the
     // request with "Missing state parameter". So always send an unpredictable state.
-    // (It's outbound only: PKCE `code_verifier` is the primary CSRF/code-injection guard,
-    // and our loopback exchanges the code by verifier — it does not re-validate the echoed
-    // state, so a fresh per-authorization value is sufficient and needs no persistence.)
+    // PKCE `code_verifier` is the guard against an intercepted code. The echoed state is
+    // what binds a CALLBACK to THIS attempt: the desktop loopback refuses (404, settles
+    // nothing) any callback whose `state` is not the one it minted, so it hands us the
+    // value through `authState`. A caller without such an endpoint gets a fresh
+    // outbound-only value; neither needs persistence.
     state() {
-      return randomState();
+      return opts.authState?.() ?? randomState();
     },
     async redirectToAuthorization(url) {
       await opts.openAuthorization(url);

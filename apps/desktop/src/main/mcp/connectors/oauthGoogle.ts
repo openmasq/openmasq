@@ -69,6 +69,8 @@ export async function googleLogin(opts: {
     const url = new URL(AUTH_URL);
     url.searchParams.set("client_id", opts.clientId);
     url.searchParams.set("redirect_uri", loop.redirectUrl);
+    // The loopback settles ONLY on a callback echoing this value (`oauthLoopback.ts`).
+    url.searchParams.set("state", loop.state);
     url.searchParams.set("response_type", "code");
     url.searchParams.set("scope", opts.scopes.join(" "));
     url.searchParams.set("code_challenge", challengeOf(verifier));

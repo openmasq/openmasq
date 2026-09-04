@@ -115,6 +115,7 @@ export async function connectRemoteHttp(
     savePort(id, loop.port);
     const provider = makeOAuthProvider({
       redirectUrl: loop.redirectUrl,
+      authState: () => loop.state,
       clientName: OAUTH_CLIENT.name,
       clientUri: OAUTH_CLIENT.clientUri,
       logoUri: OAUTH_CLIENT.logoUri,
