@@ -80,12 +80,26 @@ async function extractOne(
   const carried: ExtractedFile = { ...base, data, ...(file.type ? { mime: file.type } : {}) };
   try {
     const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress);
-    // EVERYTHING the bytes route returns travels with the file: `words` is what
+    // ⚠️ A REFUSAL travels first, and it travels WITHOUT the bytes. `blocked` is the
+    // pre-parse safety gate's verdict (`@openmasq/redact` `guardUpload`: oversize, a
+    // magic-byte/extension contradiction, a decompression bomb) — not "extraction
+    // failed". Both were dropped here, so a refused archive was attached anyway, with
+    // `data` intact, and the preview path then handed those very bytes to `unzipSync`:
+    // the gate had refused the file and the app opened it regardless. Keeping the bytes
+    // is right when a parser merely could not read them (below); it is exactly wrong
+    // when the answer was "do not parse this".
+    if (r.blocked) {
+      return { ...base, error: r.error ?? "fichier refusé", blocked: true };
+    }
+    // EVERYTHING else the bytes route returns travels with the file: `words` is what
     // lets the aperçu paint the REDACTED image (boxes) instead of the original.
     return {
       ...carried,
       text: r.text,
       chars: r.text.length,
+      // A PARTIAL failure (some text, plus a reason) kept its text and lost its reason,
+      // so the chip said nothing was wrong. It rides along now.
+      ...(r.error ? { error: r.error } : {}),
       ...(r.words ? { words: r.words } : {}),
       ...(r.ocrText ? { ocrText: r.ocrText } : {}),
       ...(r.ocr ? { ocr: r.ocr } : {}),

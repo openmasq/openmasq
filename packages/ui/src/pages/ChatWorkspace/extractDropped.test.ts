@@ -98,6 +98,57 @@ describe("la route bytes rend la même RICHESSE que la route chemin", () => {
   });
 });
 
+/**
+ * The pre-parse safety gate (`@openmasq/redact` `guardUpload`) answers "do not parse
+ * this" for an oversize file, a magic-byte/extension contradiction, or a decompression
+ * bomb — and says so with `blocked`. That verdict was dropped on the floor here: the
+ * file was attached anyway, `data` (the raw base64 bytes) intact, and the preview path
+ * then handed those very bytes to `unzipSync`. The gate refused the file; the app
+ * opened it.
+ */
+describe("un fichier REFUSÉ par la garde ne s'attache pas avec ses octets", () => {
+  it("propage `blocked` et LAISSE TOMBER les octets", async () => {
+    const d = deps({
+      extractBytes: vi.fn(async () => ({
+        text: "",
+        blocked: true,
+        error: "Ratio de compression anormal — fichier refusé (protection anti-bombe).",
+      })),
+    });
+    const out = await extractDroppedFiles([f("bombe.docx")], d);
+    expect(out[0]!.blocked).toBe(true);
+    expect(out[0]!.error).toMatch(/anti-bombe/);
+    // Le point qui compte : plus rien à déballer en aval.
+    expect(out[0]!.data).toBeUndefined();
+    expect(out[0]!.text).toBe("");
+  });
+
+  it("un échec d'extraction ORDINAIRE garde bien ses octets (la règle inchangée)", async () => {
+    // Un parseur qui n'a rien su lire n'est pas un refus : le fichier reste stockable
+    // et visualisable. C'est la distinction que `blocked` porte.
+    const d = deps({
+      extractBytes: vi.fn(async () => {
+        throw new Error("illisible");
+      }),
+    });
+    const out = await extractDroppedFiles([f("scan.pdf")], d);
+    expect(out[0]!.blocked).toBeUndefined();
+    expect(out[0]!.data).toBe("BASE64");
+  });
+
+  it("une extraction PARTIELLE garde son texte ET sa raison", async () => {
+    // `error` était jeté avec `blocked` : la puce ne disait rien alors qu'une couche
+    // manquait.
+    const d = deps({
+      extractBytes: vi.fn(async () => ({ text: "page 1", error: "OCR indisponible" })),
+    });
+    const out = await extractDroppedFiles([f("scan.pdf")], d);
+    expect(out[0]!.text).toBe("page 1");
+    expect(out[0]!.error).toBe("OCR indisponible");
+    expect(out[0]!.data).toBe("BASE64");
+  });
+});
+
 describe("deferDroppedFile — la forme différée du drop", () => {
   it("mappe la progression {page,pages}→{done,total} et FILTRE sur le nom du fichier", async () => {
     // The `files:ocr-progress` channel is global: a concurrent extraction (another

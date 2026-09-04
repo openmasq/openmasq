@@ -1,8 +1,5 @@
 import { shell } from "electron";
-import { readFile, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { randomUUID } from "node:crypto";
-import { join } from "path";
+import { readFile } from "node:fs/promises";
 import { redactFileInPlace } from "@openmasq/redact/inplace";
 import {
   dbSaveFile,
@@ -14,6 +11,7 @@ import {
 } from "../db";
 import { pickAndExtract, extractPaths, pickPaths, type OcrProgressFn } from "../files";
 import { safeFileName } from "../db/safePath";
+import { writeAppTmpFile } from "./appTmpFile";
 import { safeFetch } from "../net/net";
 import { isFetchHostAllowed } from "../net/fetchAllow";
 import { previewLink } from "../net/linkPreview";
@@ -22,7 +20,6 @@ import { grantRead, assertReadAllowed } from "./readGate";
 import { registerExtractIpc } from "./filesExtractIpc";
 import { makeDocumentScrub } from "./documentScrub";
 import { handle, str, bool, obj, } from "./handle";
-import { BRAND } from "@openmasq/branding";
 import { devOnly } from "../security/devOnly";
 
 // Minimal ext⇄mime maps for downloaded exports (a signed URL rarely has a real
@@ -146,8 +143,10 @@ export function registerFilesIpc(): void {
     const name = base && dot > 0 ? base : `export.${ext || "bin"}`;
     const mime = contentType || extToMime(ext);
 
-    const path = join(tmpdir(), `${BRAND.slug}-export-${randomUUID()}${ext ? `.${ext}` : ""}`);
-    await writeFile(path, buf);
+    // A 0700 dir + a 0600 file, removed on quit (`appTmpFile.ts`): the downloaded export is
+    // the user's own document, and it used to stay in a world-readable OS temp dir forever.
+    // The random DIRECTORY is what makes the path unguessable, so the file keeps a real name.
+    const path = await writeAppTmpFile("export", `export${ext ? `.${ext}` : ""}`, buf);
     return { path, name, mime };
   });
 
@@ -193,12 +192,14 @@ export function registerFilesIpc(): void {
   handle("files:open", [str], async (_e, id) => {
     const data = await dbLoadFile(id);
     if (!data) return false;
-    // Generated temp file: a RANDOM basename (never the renderer-supplied id) plus the
-    // file's SANITISED display name, so a hostile id/name can't traverse out of tmpdir
-    // (audit: files-store path traversal). The real extension survives for the OS
-    // handler; the slug prefix keeps it inside the read-gate's temp allow-list.
-    const path = join(tmpdir(), `${BRAND.slug}-${randomUUID()}-${safeFileName(data.name)}`);
-    await writeFile(path, Buffer.from(data.original));
+    // The RANDOM part is now the enclosing directory (`appTmpFile.ts`), which is created
+    // 0700 — so the file below it is unreachable by another local account, keeps the
+    // SANITISED display name (never the renderer-supplied id, which is how a hostile name
+    // used to traverse out of tmpdir — audit: files-store path traversal) and therefore the
+    // real extension the OS handler needs. It is 0600 and is deleted on quit: these are the
+    // DECRYPTED originals, and they used to survive the app that encrypts them at rest.
+    // The slug prefix keeps the path inside the read-gate's temp allow-list.
+    const path = await writeAppTmpFile("open", safeFileName(data.name), Buffer.from(data.original));
     const err = await shell.openPath(path);
     return err === "";
   });

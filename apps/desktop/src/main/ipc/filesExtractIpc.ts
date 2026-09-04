@@ -31,17 +31,24 @@ export function registerExtractIpc(): void {
     const bytes = new Uint8Array(Buffer.from(p.data, "base64"));
     const name = p.name ?? "file";
     const out = await extractBytes(bytes, name, p.mime, (d, t) => progressTo(e.sender)(name, d, t));
-    // A TOTAL failure rejects ("" would read as "no text"); a partial one returns its text.
+    // A guard REFUSAL (`blocked`: zip bomb, oversized image, unreadable dimensions) is not
+    // a parser failure: the renderer must learn it is a refusal so it does NOT keep the
+    // bytes for a preview (audit 04/09 — a refused archive was still attached and unzipped
+    // in the renderer, because this handler folded the refusal into a generic throw).
+    if (out.blocked) return { text: "", error: out.error ?? "refusé", blocked: true };
+    // A TOTAL failure rejects ("" would read as "no text"); a partial one returns its text
+    // AND the cause, so the chip can say what was left out.
     if (out.error && !out.text.trim()) throw new Error(out.error);
     // STRUCTURED, not the plain text: the preview paints the redacted image from `words` — the
     // drop route used to discard everything but the text, a dropped ID card would open WITHOUT boxes.
-    const { text, words, ocrText, ocr, ocrPages } = out;
+    const { text, words, ocrText, ocr, ocrPages, error } = out;
     return {
       text,
       ...(words && { words }),
       ...(ocrText && { ocrText }),
       ...(ocr && { ocr }),
       ...(ocrPages && { ocrPages }),
+      ...(error && { error }),
     };
   });
 }

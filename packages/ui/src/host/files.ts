@@ -98,13 +98,25 @@ export interface FileMeta {
   redactedCount?: number;
 }
 
-export type ExtractedBytes = Pick<ExtractedFile, "text" | "words" | "ocrText" | "ocr" | "ocrPages">; // the part recomputable from bytes alone (bytes route)
+// the part recomputable from bytes alone (bytes route) — plus the REFUSAL, which is not
+// data about the file but a verdict on it, and which the caller must not discard.
+export type ExtractedBytes = Pick<
+  ExtractedFile,
+  "text" | "words" | "ocrText" | "ocr" | "ocrPages" | "error" | "blocked"
+>;
 export interface ExtractedFile {
   name: string;
   kind: string;
   text: string;
   chars: number;
   error?: string;
+  /** The pre-parse SAFETY gate REFUSED this file (oversize, a magic-byte/extension
+   *  contradiction, a decompression bomb) — `@openmasq/redact` `guardUpload`, whose
+   *  reason is in `error`. It is NOT "extraction failed": nothing parsed the bytes, and
+   *  nothing should. A refused file must not be attached, and above all must not travel
+   *  with its `data` — carrying the bytes is what let a refused archive reach the
+   *  viewer's unzip anyway (`pages/ChatWorkspace/extractDropped.ts`). */
+  blocked?: boolean;
   /** The RAW CAUSE of an extraction failure, for the debug journal ONLY
    *  (`ocrDebug.ts`): `error` stays the allow-listed phrase shown to the user;
    *  this distinguishes a missing native package from a corrupt PDF. Never rendered outside the
