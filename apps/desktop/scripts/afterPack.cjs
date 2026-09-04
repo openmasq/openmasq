@@ -62,7 +62,9 @@ exports.default = async function afterPack(context) {
       platform: electronPlatformName,
     });
     const mo = (freed / 1e6).toFixed(0);
-    console.log(`[arch] ${electronPlatformName}-${arch} — ${mo} Mo retirés (autre plateforme + autre arche), moteur ONNX vérifié`);
+    console.log(
+      `[arch] ${electronPlatformName}-${arch} — ${mo} Mo retirés (autre plateforme + autre arche), moteur ONNX vérifié`,
+    );
   }
 
   if (electronPlatformName === "darwin") {
@@ -71,9 +73,21 @@ exports.default = async function afterPack(context) {
     // .app bundles WITHOUT it — no more auto-update (the 0.6.0). We write it
     // HERE because it's the last free moment: after this, the app is signed and any
     // addition invalidates the seal. "If absent" only — the normal path keeps its own.
-    const updateYml = path.join(appOutDir, `${name}.app`, "Contents", "Resources", "app-update.yml");
+    const updateYml = path.join(
+      appOutDir,
+      `${name}.app`,
+      "Contents",
+      "Resources",
+      "app-update.yml",
+    );
     if (!existsSync(updateYml)) {
-      writeFileSync(updateYml, appUpdateYmlContent(packager.config.publish, name));
+      writeFileSync(
+        updateYml,
+        appUpdateYmlContent(packager.config.publish, name, {
+          platform: packager.platform?.nodeName,
+          publisherName: packager.config.win?.publisherName,
+        }),
+      );
       console.log(`[update-yml] app-update.yml écrit (absent de l'empaquetage --dir)`);
     }
   }
@@ -109,5 +123,7 @@ exports.default = async function afterPack(context) {
       : {}),
   });
 
-  console.log(`[fuses] flipped on ${electronPlatformName} (RunAsNode DISABLED — see afterPack.cjs)`);
+  console.log(
+    `[fuses] flipped on ${electronPlatformName} (RunAsNode DISABLED — see afterPack.cjs)`,
+  );
 };

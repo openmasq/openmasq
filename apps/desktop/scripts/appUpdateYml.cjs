@@ -21,9 +21,12 @@
 /**
  * @param {unknown} publish The `publish` config from electron-builder.cjs (object or list).
  * @param {string} productFilename The product name (branding `name`).
+ * @param {{ platform?: string, publisherName?: unknown }} [opts]
+ *   `platform` is the electron-builder node name (`darwin` | `win32` | `linux`);
+ *   `publisherName` is `config.win.publisherName` when it exists.
  * @returns {string} The complete YAML, trailing LF included.
  */
-function appUpdateYmlContent(publish, productFilename) {
+function appUpdateYmlContent(publish, productFilename, opts = {}) {
   const p = Array.isArray(publish) ? publish[0] : publish;
   if (!p || p.provider !== "generic" || typeof p.url !== "string" || !p.url) {
     // No silent fallback: a feed we can't describe is a feed we must not
@@ -31,11 +34,24 @@ function appUpdateYmlContent(publish, productFilename) {
     throw new Error("appUpdateYml: config publish inattendue (provider generic + url requis)");
   }
   const channel = typeof p.channel === "string" && p.channel ? p.channel : "latest";
+  // ⚠️ On Windows, `publisherName` is the ONLY integrity anchor of an update besides TLS:
+  // without it `NsisUpdater.verifySignature` verifies nothing (electron-builder.cjs, the
+  // `win:` header). mac relies on Developer ID + notarization instead and needs no such
+  // line. A win32 file written WITHOUT it would go green while shipping an unverifiable
+  // config — so refuse, same posture as the `provider generic` check above.
+  const publisher =
+    typeof opts.publisherName === "string" && opts.publisherName ? opts.publisherName : null;
+  if (opts.platform === "win32" && !publisher) {
+    throw new Error(
+      "appUpdateYml: win32 exige `win.publisherName` (sinon aucune vérification de signature)",
+    );
+  }
   return [
     "provider: generic",
     `url: ${p.url}`,
     `channel: ${channel}`,
     `updaterCacheDirName: ${productFilename.toLowerCase()}-updater`,
+    ...(publisher ? [`publisherName: ${publisher}`] : []),
     "",
   ].join("\n");
 }
