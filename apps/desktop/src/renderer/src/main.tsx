@@ -1,23 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { initSentryRenderer } from "../../sentry/renderer";
 import { fileSourceSlots } from "./host/fileSources";
 import { envSlot } from "./host/envSlot";
-import {
-  HostProvider,
-  configureAnalytics,
-  configurePlatformAccess,
-  captureError,
-  captureEvent,
-  setAnalyticsSuspended,
-  setStableIdSource,
-  USAGE_EVENTS,
-  applyPersistedTheme,
-  type Host,
-  type TrackEvent,
-} from "@openmasq/ui";
+import { HostProvider, applyPersistedTheme, type Host } from "@openmasq/ui";
 import "@openmasq/ui/styles.css";
 import { App } from "./App";
+import { initRendererTelemetry } from "./telemetry";
 import { AUTH_CONFIGURED, authHost } from "./auth";
 import {
   syncHost,
@@ -33,110 +21,18 @@ import { feedbackHost, mailtoFeedbackHost } from "./feedback";
 // and that's where the runtime environment switch will go through (see `./appEnv`).
 import {
   ADMIN_URL,
-  ANALYTICS_DEBUG,
-  ANALYTICS_RELAY_URL,
   BACKEND_CONFIGURED,
   BILLING_SOLD,
   GATEWAY_CONFIGURED,
   RELEASE_NOTES_URL,
   UPDATES_CONFIGURED,
-  APP_VERSION,
-  BUILD_ENV,
   REDACT_FN_URL,
-  RUNTIME_ENV,
 } from "./appEnv";
 
-// Before everything else: an error during renderer bootstrap is precisely
-// the one you can't reproduce.
-initSentryRenderer();
-
-// Wire opt-in usage analytics + error tracking through the FIRST-PARTY RELAY ONLY.
-// The desktop NEVER holds a PostHog key: it POSTs the neutral envelope to the relay
-// (apps/analytics-fn), which forwards to PostHog with its OWN server-side key. We
-// deliberately do NOT pass `key`/`apiHost` here so `VITE_POSTHOG_KEY` is never
-// referenced → never inlined in the shipped bundle, regardless of the build env.
-// The URLs and their defaults live in `./appEnv`. Sending stays subject to in-app
-// consent (+ Do-Not-Track): nothing here touches the privacy gate.
-// SERVED = gateway + accounts; SOLD = `OPENMASQ_BILLING=1` (the gate for remote
-// addresses at build time — `appEnv.ts` BILLING_SOLD). An entered stack serves without selling.
-configurePlatformAccess({
-  served: GATEWAY_CONFIGURED && AUTH_CONFIGURED,
-  sold: BILLING_SOLD && SYNC_ENABLED,
-});
-
-configureAnalytics({
-  relayUrl: ANALYTICS_RELAY_URL,
-  source: "desktop",
-  // La session Supabase authentifie la requête vers le relais — PARESSEUSE, et ce qu'elle
-  // coûte hors session : `@openmasq/analytics` types.ts, `getAuthToken`.
-  getAuthToken: () => authHost.getAccessToken?.() ?? Promise.resolve(null),
-  // Stamps env + version on every event (`./appEnv` explains the derivation, and why
-  // "empty" does NOT mean production). ⚠️ `runtimeEnv` is the SECOND axis, stamped nowhere
-  // else: reserved for FLAGS, because a prod binary switched to staging stays
-  // `BUILD_ENV: "production"` (`@openmasq/analytics` types.ts).
-  env: BUILD_ENV,
-  runtimeEnv: RUNTIME_ENV,
-  appVersion: APP_VERSION,
-  tier: BUILD_ENV === "local" ? "usage" : "full",
-  usageEvents: USAGE_EVENTS, // a package built outside CI reports usage only (`@openmasq/ui` analytics/tier.ts)
-  // Logs every event (sent / skipped + reason) in dev; VITE_POSTHOG_DEBUG=1 also opens it on a package.
-  debug: ANALYTICS_DEBUG,
-});
-
-// The STABLE ID: the `installId` from `updates.json`, a per-machine uuid that survives a
-// wiped profile — without which a fresh localStorage recreates a "person" every time
-// (measured: 277 out of 278 production identities had lived only one day).
-//
-// ⚠️ We DECLARE the source, we no longer push the value. The pushed version ran in
-// parallel with startup and bet that the sink's queue would last longer
-// than this IPC round trip; losing that bet — or `current()` failing — would carve in a
-// definitive `anon-…`, adoption never overwriting anything. Here the sink AWAITS `getAnonId()`,
-// so no event can leave before the question is settled. The detail of the
-// three cases is in `@openmasq/ui` `analytics/posthog.ts`.
-setStableIdSource(async () => (await window.openmasq.updates?.current?.())?.installId);
-
-// Safeguard against NON-HUMAN launches, the top source of noise in the
-// numbers: the truth comes from MAIN (`OPENMASQ_E2E` at launch), the renderer can't
-// claim it for itself — a spec driving the built app no longer emits anything. Not a
-// race: nothing leaves before consent is settled (the settings effect),
-// well after this IPC round trip.
-void window.openmasq.env
-  ?.isE2e?.()
-  .then((on) => {
-    if (on) setAnalyticsSuspended(true);
-  })
-  .catch(() => {});
-
-// Error tracking: route ANY uncaught renderer error / unhandled rejection to the
-// SEPARATE `$exception` channel (not the product-events stream). Anonymised — the
-// message is scrubbed of PII by `captureError`, and it's gated by the same consent.
-window.addEventListener("error", (ev) => {
-  captureError({
-    scope: "uncaught",
-    code: "window-error",
-    name: (ev.error as Error | undefined)?.name,
-    message: (ev.error as Error | undefined)?.message || ev.message,
-    fatal: true,
-  });
-});
-window.addEventListener("unhandledrejection", (ev) => {
-  const r = ev.reason as { name?: string; message?: string } | undefined;
-  captureError({
-    scope: "uncaught",
-    code: "unhandled-rejection",
-    name: r?.name,
-    message: r?.message || String(ev.reason),
-    fatal: true,
-  });
-});
-// Main-process errors, forwarded over IPC → the same anonymised channel (the
-// message is scrubbed by `captureError` before it leaves the machine).
-window.openmasq.onAppError?.((e) => captureError(e));
-// Main-process product events (the auto-update funnel — main is the only process that
-// sees a check/download/install) through the SAME allow-listed, consent-gated choke
-// point as a renderer event. Main emits against the `TrackEvent` catalogue too, so the
-// cast just re-narrows what the IPC boundary widened.
-window.openmasq.onAppEvent?.((e) => captureEvent(e as TrackEvent));
+// Crash reporting, the platform-access verdict, the analytics sink and the four
+// channels that feed it — one subject, one file (`./telemetry`). FIRST, because an
+// error during renderer bootstrap is precisely the one you can't reproduce.
+initRendererTelemetry();
 
 // The desktop platform implementation of the UI's Host interface: it simply
 // forwards to the Electron preload bridge (window.openmasq). A mobile shell
