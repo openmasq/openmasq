@@ -41,11 +41,15 @@ export function secretFile(name: string, label: string): SecretFile {
     set(value: string) {
       const v = value.trim();
       if (!v) return this.clear();
+      // The strict at-rest refusal runs BEFORE the try: inside it the catch below only
+      // logged, so `OPENMASQ_REQUIRE_DB_ENCRYPTION=1` turned into a silent no-op and the
+      // caller was told the secret was stored. `atRestPolicy.ts`: fail where it happens.
+      const canEncrypt = encryptionAvailable();
+      if (!canEncrypt) assertPlaintextAllowed(label);
       try {
-        const enc = encryptionAvailable()
+        const enc = canEncrypt
           ? safeStorage.encryptString(v).toString("base64")
-          : (assertPlaintextAllowed(label),
-            console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
+          : (console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
             Buffer.from(v, "utf8").toString("base64"));
         writeFileSync(path(), enc, { mode: 0o600 });
       } catch (err) {
@@ -144,12 +148,15 @@ export function accountSecretFile(name: string, label: string): AccountSecretFil
       if (!v) return this.clear();
       const p = path();
       if (!p) throw new Error(`no account — refusing to store the ${label}`);
+      // Strict at-rest refuses BEFORE the try, like the device-scoped twin above: the
+      // refusal is the answer to the caller, not a line in a log (`atRestPolicy.ts`).
+      const canEncrypt = encryptionAvailable();
+      if (!canEncrypt) assertPlaintextAllowed(label);
       try {
         mkdirSync(accountsDir(), { recursive: true });
-        const enc = encryptionAvailable()
+        const enc = canEncrypt
           ? safeStorage.encryptString(v).toString("base64")
-          : (assertPlaintextAllowed(label),
-            console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
+          : (console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
             Buffer.from(v, "utf8").toString("base64"));
         writeFileSync(p, enc, { mode: 0o600 });
       } catch (err) {

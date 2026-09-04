@@ -40,18 +40,24 @@ function read(): Store {
 }
 
 function write(map: Store): void {
-  cache = map;
+  // Strict at-rest refuses BEFORE the try: inside it the catch swallowed the throw while
+  // `cache` was already assigned, so the session read back as stored for the rest of the
+  // session while nothing (or worse, cleartext) was on disk. `atRestPolicy.ts`: a caller that
+  // cannot write a secret must fail where it happens, never report success.
+  const canEncrypt = encryptionAvailable();
+  if (!canEncrypt) assertPlaintextAllowed("Supabase session (access + refresh token)");
   try {
     const json = JSON.stringify(map);
-    const enc = encryptionAvailable()
+    const enc = canEncrypt
       ? safeStorage.encryptString(json).toString("base64")
-      : (assertPlaintextAllowed("Supabase session (access + refresh token)"),
-        console.warn("[auth] safeStorage unavailable — storing session unencrypted"),
+      : (console.warn("[auth] safeStorage unavailable — storing session unencrypted"),
         Buffer.from(json, "utf8").toString("base64"));
     writeFileSync(file(), enc, { mode: 0o600 });
   } catch (err) {
     console.error("[auth] failed to write auth.enc:", err);
+    return; // the cache must not report a session that never reached the disk
   }
+  cache = map; // only what actually reached the disk
 }
 
 export function authStoreGet(key: string): string | null {

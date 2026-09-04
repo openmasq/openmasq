@@ -49,6 +49,7 @@ describe("every store that can write a secret in cleartext asks the policy first
   // the warning but drops the policy call fails here.
   const STORES: [string, string][] = [
     ["store/keys.ts", "storing API keys unencrypted"],
+    ["store/authStore.ts", "storing session unencrypted"],
     ["store/secretFile.ts", "unencrypted"],
     ["mcp/persist.ts", "storing credentials unencrypted"],
   ];

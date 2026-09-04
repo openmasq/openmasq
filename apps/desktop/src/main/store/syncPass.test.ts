@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, existsSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -21,7 +21,14 @@ vi.mock("./safeStore", () => ({
   decodeEncryptedBlob: () => null,
 }));
 
-import { getSyncPass, setSyncPass, setSyncPassUser, clearSyncPass } from "./syncPass";
+import {
+  getSyncPass,
+  setSyncPass,
+  setSyncPassUser,
+  clearSyncPass,
+  getDeviceSecret,
+  setDeviceSecret,
+} from "./syncPass";
 import { BRAND } from "@openmasq/branding";
 
 const b64 = (s: string): string => Buffer.from(s, "utf8").toString("base64");
@@ -107,5 +114,34 @@ describe("l'ancien fichier partagé", () => {
     expect(existsSync(legacy())).toBe(true);
     setSyncPassUser("A");
     expect(getSyncPass()).toBe("ancienne");
+  });
+});
+
+/* `OPENMASQ_REQUIRE_DB_ENCRYPTION=1` means it for BOTH sync secrets. The regression was in
+   the shared skeleton (`secretFile.ts`): `assertPlaintextAllowed` threw inside a try whose
+   catch only logged, so the device secret was silently not written while the caller was told
+   it was — `store/atRestPolicy.ts` requires the refusal to reach the caller. */
+describe("mode strict au repos : on refuse, on ne fait pas semblant", () => {
+  const before = process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION;
+  afterEach(() => {
+    if (before === undefined) delete process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION;
+    else process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION = before;
+  });
+
+  it("le secret d'appareil lève et ne laisse rien sur le disque", () => {
+    encAvailable = false;
+    process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION = "1";
+    expect(() => setDeviceSecret("appareil-en-clair")).toThrow(/refusing to persist/);
+    expect(existsSync(join(USERDATA, "sync-device-secret.enc"))).toBe(false);
+    expect(getDeviceSecret()).toBeNull();
+  });
+
+  it("la phrase par compte lève aussi, et rien n'est écrit sous le compte", () => {
+    encAvailable = false;
+    process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION = "1";
+    setSyncPassUser("strict");
+    expect(() => setSyncPass("phrase-en-clair")).toThrow(/refusing to persist/);
+    expect(existsSync(join(USERDATA, "accounts", "sync-pass-strict.enc"))).toBe(false);
+    expect(getSyncPass()).toBeNull();
   });
 });

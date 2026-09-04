@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, existsSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -177,5 +177,27 @@ describe("safeUid path-traversal guard (audit M10)", () => {
     // Written ONLY as accounts/keys-tmpevil.enc — the payload cannot climb to /tmp.
     expect(existsSync(join(USERDATA, "accounts", "keys-tmpevil.enc"))).toBe(true);
     expect(existsSync(join(tmpdir(), "evil"))).toBe(false);
+  });
+});
+
+/* Strict at-rest (`OPENMASQ_REQUIRE_DB_ENCRYPTION=1`) must FAIL THE CALL, not log. The
+   regression: `assertPlaintextAllowed` threw inside a try whose catch only console.error'd,
+   and `cache = map` had already run — so `setKey` returned normally and `configuredKeys()`
+   listed a key that exists nowhere. `store/atRestPolicy.ts` states the opposite contract. */
+describe("strict at-rest refuses the write instead of reporting success", () => {
+  const before = process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION;
+  afterEach(() => {
+    if (before === undefined) delete process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION;
+    else process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION = before;
+  });
+
+  it("throws, persists nothing, and the cache does NOT report the key as set", () => {
+    encAvailable = false; // no keychain → the base64 fallback is what strict mode forbids
+    process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION = "1";
+    setKeysUser("strict-user");
+    expect(() => setKey("openai", "sk-MUST-NOT-PERSIST")).toThrow(/refusing to persist/);
+    expect(getKey("openai")).toBeUndefined();
+    expect(configuredKeys()).toEqual([]);
+    expect(existsSync(join(USERDATA, "accounts", "keys-strict-user.enc"))).toBe(false);
   });
 });

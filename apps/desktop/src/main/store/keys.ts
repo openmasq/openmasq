@@ -77,21 +77,31 @@ function read(): KeyMap {
 }
 
 function write(map: KeyMap): void {
-  cache = map;
   const path = file();
-  if (!path) return; // signed out / unresolved → in-memory only, never persisted
+  if (!path) {
+    cache = map; // signed out / unresolved → in-memory only, never persisted
+    return;
+  }
+  // The strict at-rest refusal runs BEFORE the try: inside it, the catch below swallowed the
+  // throw while `cache` had already been assigned, so `setKey` returned success and
+  // `configuredKeys()` listed a key that exists nowhere on disk — exactly what
+  // `atRestPolicy.ts` forbids ("fail where it happens, not persist a readable one and report
+  // success").
+  const canEncrypt = encryptionAvailable();
+  if (!canEncrypt) assertPlaintextAllowed("provider API keys");
   try {
     mkdirSync(accountsDir(), { recursive: true });
     const json = JSON.stringify(map);
-    const enc = encryptionAvailable()
+    const enc = canEncrypt
       ? safeStorage.encryptString(json).toString("base64")
-      : (assertPlaintextAllowed("provider API keys"),
-        console.warn("[keys] safeStorage unavailable — storing API keys unencrypted"),
+      : (console.warn("[keys] safeStorage unavailable — storing API keys unencrypted"),
         Buffer.from(json, "utf8").toString("base64"));
     writeFileSync(path, enc, { mode: 0o600 });
   } catch (err) {
     console.error("[keys] failed to write keys.enc:", err);
+    return; // the cache must not claim a key the next launch will not find
   }
+  cache = map; // only what actually reached the disk
 }
 
 /**
