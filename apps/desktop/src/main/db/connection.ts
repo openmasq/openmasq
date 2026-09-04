@@ -1,7 +1,7 @@
 import { app } from "electron";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
-import { mkdir, copyFile, writeFile } from "node:fs/promises";
+import { mkdir, copyFile, writeFile, rm } from "node:fs/promises";
 import type { Client } from "@libsql/client";
 import { loadDriver } from "./driver";
 import { dbEncryptionKey } from "../store/dbCrypto";
@@ -17,6 +17,7 @@ import { BRAND } from "@openmasq/branding";
 let client: Client | null = null;
 let dbFile = "";
 let currentUid: string | null = null;
+let encryptedAtRest = false;
 
 /** The live DB handle, or null when no account DB is open (the CRUD no-op guard). */
 export function getClient(): Client | null {
@@ -27,6 +28,17 @@ export function isDbConfigured(): boolean {
 }
 export function databasePath(): string {
   return dbFile;
+}
+
+/**
+ * Was the open handle given libSQL's `encryptionKey`? FALSE means the bytes on disk are
+ * CLEARTEXT — deliberately so in dev (`store/dbCrypto.ts`), and as a documented FALLBACK in a
+ * packaged build whose keychain is unreachable or whose key file is unreadable. It is exported
+ * because a caller may hold data whose only allowed home at rest is an ENCRYPTED store, and
+ * has to be able to ask rather than assume (`debugLog.ts`). False when no DB is open.
+ */
+export function isDbEncrypted(): boolean {
+  return !!client && encryptedAtRest;
 }
 
 async function openDb(file: string): Promise<void> {
@@ -45,6 +57,7 @@ async function openDb(file: string): Promise<void> {
     : createClient({ url: `file:${file}` }); // local-only, no syncUrl
   await migrate(client);
   await backfillRedactionKinds(client);
+  encryptedAtRest = useKey; // what `isDbEncrypted()` reports to a caller that must ask
   // Remove any CLEARTEXT blobs left on disk from before at-rest blob encryption (F2):
   // when the DB is encrypted, re-encrypt existing plaintext file blobs IN PLACE (once),
   // so no un-encrypted document bytes survive in `userData/files`. No-op in plaintext mode.
@@ -70,6 +83,7 @@ export async function setDbUser(userId: string | null): Promise<void> {
   }
   client = null;
   dbFile = "";
+  encryptedAtRest = false;
   currentUid = userId;
   if (!userId) return; // signed out → no local DB
   // The uid is a Supabase UUID; sanitise defensively so it can never escape the dir.
@@ -90,6 +104,14 @@ export async function setDbUser(userId: string | null): Promise<void> {
  * so NO OTHER account can inherit it (the isolation guarantee holds from then on).
  * Copies the legacy DB over the freshly-created (empty) account file; a no-op once
  * the marker exists or there's no legacy DB (clean installs).
+ *
+ * ⚠️ The copy is followed by an UNLINK, and that is the point of the gesture — the same one
+ * `store/keys.ts`, `store/secretFile.ts` and `mcp/persist.ts` make. `userData/openmasq.db` is
+ * the pre-isolation file: it holds the whole shared history AND the redaction vault, and it
+ * is UNENCRYPTED (at-rest encryption came after it). Left behind it was readable by any
+ * other account on the machine and by anything that can read the profile dir — the isolation
+ * the marker enforces was only ever about who ADOPTS it, never about who can still read it.
+ * The `-wal`/`-shm` siblings go too: they carry recent pages in the clear.
  */
 async function maybeAdoptLegacyDb(accountFile: string): Promise<void> {
   const userData = app.getPath("userData");
@@ -107,7 +129,13 @@ async function maybeAdoptLegacyDb(accountFile: string): Promise<void> {
     }
     await copyFile(legacy, accountFile); // the account file is freshly-created/empty
     await writeFile(marker, "adopted\n");
-    console.log(`[db] adopted legacy shared db into ${accountFile}`);
+    // Only AFTER the copy AND the marker: an unlink before either would lose the history
+    // outright. Best-effort per file (a locked `-wal` on Windows must not fail adoption) —
+    // the marker already prevents a second adoption.
+    for (const p of [legacy, `${legacy}-wal`, `${legacy}-shm`]) {
+      await rm(p, { force: true }).catch(() => {});
+    }
+    console.log(`[db] adopted legacy shared db into ${accountFile} (original removed)`);
   } catch (e) {
     // Best-effort: a failed adoption leaves the account empty (data still safe in the
     // legacy file); don't block sign-in.
