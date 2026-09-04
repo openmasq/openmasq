@@ -178,7 +178,6 @@ app.whenReady().then(async () => {
   registerClaudeSkillsIpc(); // enumerates ~/.claude/skills (./claudeSkills.ts)
   if (PROFILE) installCustomStackCspFor(PROFILE, join(__dirname, "../renderer/index.html")); // self-hosted stack: CSP widened BEFORE loadFile
   createWindow();
-  warnIfNoAtRestEncryption(); // M-9: one-time notice if a packaged build has no keychain
   // Re-warms the NER engine when the user COMES BACK to the app: the worker is evicted
   // after 10 min of inactivity (RAM), and without this the first redaction after a pause
   // repays the whole cold load while the user watches the
@@ -228,6 +227,12 @@ app.whenReady().then(async () => {
     // Background auto-install holds off as long as a chat:* stream is in flight.
     mainBusy: chatStreamsBusy,
   });
+  // M-9: one-time notice if a packaged build has no keychain. AFTER every `ipcMain.handle`
+  // above, on purpose: without a parent window the dialog runs a NESTED run loop on macOS,
+  // so the renderer — already loading since `createWindow()` — reached the handlers that
+  // were still to come (`updates:current`, `models:list-openrouter`, `browser:hide`) and
+  // got "No handler registered" (measured on an unsigned local package, 03/09/2026).
+  warnIfNoAtRestEncryption();
   // Cold start via the magic link on Windows/Linux: the URL is in our argv.
   // (macOS uses open-url; buffered until the renderer subscribes.)
   if (process.platform !== "darwin") {
