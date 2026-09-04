@@ -1,6 +1,7 @@
 import { app } from "electron";
 import { readFileSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { devOnly } from "../../security/devOnly";
 
 // ── Browser-agent opt-in flag ────────────────────────────────────────────────
 // The controllable browser is OFF by default. Enabling it persists this flag so
@@ -16,7 +17,11 @@ function flagPath(): string {
 }
 
 export function isBrowserAgentEnabled(): boolean {
-  if (process.env[ENABLED_ENV] === "1") return true;
+  // `devOnly`: turning the controllable browser on is a CAPABILITY — it spawns a process
+  // that drives a real browser session with the user's logged-in cookies. Whoever can set
+  // the app's launch environment must not be able to arm it inside the signed bundle; the
+  // user's own opt-in goes through the on-disk flag below.
+  if (devOnly(process.env[ENABLED_ENV]) === "1") return true;
   try {
     return readFileSync(flagPath(), "utf8").trim() === "1";
   } catch {

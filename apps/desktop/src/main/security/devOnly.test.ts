@@ -6,10 +6,17 @@
 // app, and one that turns the Python jail off. Reviewing each new hook by hand is the
 // process that already failed, so this test is the process instead.
 //
-// Every `process.env.OPENMASQ_*` read in `src/main/**` must be one of:
+// EVERY `process.env` read in `src/main/**` (+ the packages main pulls in) must be one of:
 //   • CAPABILITY — gated on the same line by `devOnly(...)` or `!app.isPackaged`;
 //   • BENIGN — listed below with the reason it grants nothing.
 // A var in neither list fails: adding a hook forces the author to classify it.
+//
+// The scan reads THREE shapes, because the first version read only `process.env.OPENMASQ_*`
+// and both holes it left were real: `ELECTRON_RENDERER_URL` (bracket notation, no prefix —
+// an env-named origin the packaged top frame would load with the full IPC exposed) and
+// `OPENMASQ_BROWSER_AGENT` (read as `process.env[ENABLED_ENV]`, a module-level const). So:
+// `process.env.NAME`, `process.env["NAME"]` / `['NAME']`, and `process.env[CONST]` where
+// CONST is a module-level string literal — and no prefix filter at all.
 import { describe, it, expect } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -34,6 +41,8 @@ const DROPS_IN = "runtime/ocrAssets.ts";
 
 /** Grants a capability ⇒ must never be honoured by a packaged build. */
 const CAPABILITY = new Set([
+  "ELECTRON_RENDERER_URL", // names the URL the TOP FRAME loads, `window.openmasq` exposed
+  "OPENMASQ_BROWSER_AGENT", // arms the controllable browser (the user's logged-in sessions)
   "OPENMASQ_BROKER_ENTRY", // forks an arbitrary entry AS the signed app
   "OPENMASQ_PYTHON_UNSAFE", // runs model-generated code with no jail
   "OPENMASQ_SANDBOX_LINUX_NET", // re-opens network inside the Linux jail
@@ -93,6 +102,36 @@ const BENIGN: Record<string, string> = {
   OPENMASQ_EVAL_STRATEGY: "eval loop strategy selection",
   OPENMASQ_EVAL_REAL_PY: "eval loop: use the real Python jail rather than a double",
   OPENMASQ_EVAL_REAL_WEB: "eval loop: use the real browser rather than a double",
+  // Replaced at BUILD time by vite `define` (apps/desktop/scripts/buildDefines.ts), so the
+  // shipped bundle holds a literal — there is no runtime read for an env to reach.
+  VITE_UPDATES_URL: "baked at build by vite define; not a runtime read",
+  VITE_UPDATES_CHANNEL: "baked at build by vite define; not a runtime read",
+  // Set BY main in the EXPLICIT `env:` of a `utilityProcess.fork` / spawn, which replaces
+  // the child's environment — the ambient launch env never reaches these reads.
+  FS_ROOTS: "the granted roots, handed to the fs worker at fork (fs/connection.ts)",
+  FS_DENY: "the deny-list, handed to the fs worker at fork (fs/connection.ts)",
+  NER_BUNDLED_DIR: "bundled model dir, handed to the NER worker at fork (localNer.ts)",
+  EMBED_BUNDLED_DIR: "bundled model dir, handed to the embed worker at fork (embed/client.ts)",
+  PLAYWRIGHT_MCP_CDP_ENDPOINT: "the CDP address, handed to the pw-mcp child (mcp/browserTools.ts)",
+  // OS-provided ambient state. Not app hooks: every process has them, and the app cannot
+  // refuse them without losing the thing it needs them for.
+  PATH: "the process's own PATH — forwarded to the Python jail, and probed to find an installed CLI",
+  APPDATA: "where Windows keeps Roaming AppData; only a DENY list is derived from it, with a home-relative default",
+  LOCALAPPDATA: "where Windows keeps Local AppData; same derived deny list, same default",
+  XDG_CACHE_HOME: "the XDG cache dir for the tesseract wasm cache; holds no secret",
+  ORT_THREADS: "onnxruntime thread count; a performance knob",
+  // The eval harness again — the fallbacks beside `OPENMASQ_EVAL_API_KEY`.
+  OPENAI_API_KEY: "the runner's own provider key, for the eval loop",
+  ZEN_API_KEY: "the runner's own provider key, for the eval loop",
+};
+
+/**
+ * Reads whose KEY is COMPUTED, so no scan can name the variable. Each file is listed with
+ * why the read grants nothing; a new one fails until it is explained here.
+ */
+const DYNAMIC: Record<string, string> = {
+  "apps/desktop/src/main/ocr/extractClient.ts":
+    "forwards a LITERAL list of four OCR-asset names (all classified above) into the worker's minimal env",
 };
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -108,8 +147,18 @@ function walk(dir: string, out: string[] = []): string[] {
 
 type Hit = { file: string; line: number; name: string; text: string };
 
-function hits(): Hit[] {
+/** `const NAME = "ENV_VAR"` at module level — what `process.env[NAME]` resolves through. */
+const CONST_DECL = /\bconst\s+([A-Za-z_$][\w$]*)\s*(?::\s*[^=]+)?=\s*"([A-Z][A-Z0-9_]*)"/g;
+/** `process.env.NAME`, `process.env["NAME"]`, `process.env['NAME']`, `process.env[CONST]`. */
+const READ =
+  /process\.env(?:\.([A-Za-z_$][\w$]*)|\[\s*(?:"([^"]+)"|'([^']+)'|([A-Za-z_$][\w$]*))\s*\])/g;
+
+/** A bracket read whose key could not be resolved to a name — reported per FILE. */
+const dynamicFiles = (): string[] => scan().dynamic;
+
+function scan(): { found: Hit[]; dynamic: string[] } {
   const found: Hit[] = [];
+  const dynamic = new Set<string>();
   const roots = [MAIN, ...readdirSync(PACKAGES).map((p) => join(PACKAGES, p, "src"))];
   for (const root of roots) {
     let files: string[];
@@ -119,17 +168,30 @@ function hits(): Hit[] {
       continue; // a package with no src/
     }
     for (const file of files) {
-      const lines = readFileSync(file, "utf8").split("\n");
-      lines.forEach((text, i) => {
-        for (const m of text.matchAll(/process\.env\.(OPENMASQ_[A-Z0-9_]+)/g)) {
-          // A comment mentioning the var is documentation, not a read.
-          if (/^\s*(\/\/|\*|\/\*)/.test(text)) continue;
-          found.push({ file: file.slice(REPO.length + 1), line: i + 1, name: m[1], text });
+      const src = readFileSync(file, "utf8");
+      const rel = file.slice(REPO.length + 1);
+      // Resolve `process.env[CONST]` against the consts declared in the SAME file.
+      const consts = new Map<string, string>();
+      for (const m of src.matchAll(CONST_DECL)) consts.set(m[1], m[2]);
+      src.split("\n").forEach((text, i) => {
+        // A comment mentioning the var is documentation, not a read.
+        if (/^\s*(\/\/|\*|\/\*)/.test(text)) return;
+        for (const m of text.matchAll(READ)) {
+          const name = m[1] ?? m[2] ?? m[3] ?? (m[4] ? consts.get(m[4]) : undefined);
+          if (!name) {
+            dynamic.add(rel); // a computed key — nothing to classify, so name the FILE
+            continue;
+          }
+          found.push({ file: rel, line: i + 1, name, text });
         }
       });
     }
   }
-  return found;
+  return { found, dynamic: [...dynamic] };
+}
+
+function hits(): Hit[] {
+  return scan().found;
 }
 
 const gated = (text: string) => text.includes("devOnly(") || text.includes("!app.isPackaged");
@@ -164,6 +226,11 @@ describe("launch-env capability hooks are dev-only", () => {
         expect(line).not.toMatch(/=\s*process\.env\./);
       }
     }
+  });
+
+  it("a computed-key read is explained (no scan can name it, so the file is declared)", () => {
+    const unexplained = dynamicFiles().filter((f) => !(f in DYNAMIC));
+    expect(unexplained).toEqual([]);
   });
 
   it("every env hook is classified (a new one must be declared CAPABILITY or BENIGN)", () => {

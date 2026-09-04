@@ -6,6 +6,7 @@ import { DEVTOOLS_PREF } from "./devtools";
 import { setMainWindow } from "./mainWindowRef";
 import { stopAgentBrowser, setAppMainFocused } from "./mcp/browser";
 import { safeOpenExternal } from "./net/safeOpen";
+import { devOnly } from "./security/devOnly";
 import { markWindowShown } from "./store/safeStore";
 import { loadWindowTone } from "./windowTone";
 
@@ -69,7 +70,11 @@ export function createWindow(): void {
   // doing `location.href=…`, a form post, meta-refresh) would load remote content with
   // `window.openmasq` — full IPC — still exposed. Deny anything that isn't our origin.
   const isAppOrigin = (u: string): boolean => {
-    const dev = process.env["ELECTRON_RENDERER_URL"];
+    // `devOnly`: honoured unpackaged only. Read raw, this env var is a hole in the very
+    // guard it sits in — anyone who can set the app's launch environment (`launchctl
+    // setenv`, a LaunchAgent, an edited shortcut; no admin needed) names an origin the
+    // top frame may navigate to, with `window.openmasq` — the full IPC — still exposed.
+    const dev = devOnly(process.env["ELECTRON_RENDERER_URL"]);
     if (dev && u.startsWith(dev)) return true;
     return u.startsWith("file://") || u === "about:blank";
   };
@@ -109,8 +114,10 @@ export function createWindow(): void {
     if (items.length) Menu.buildFromTemplate(items).popup({ window: mainWindow });
   });
 
-  // Loaded by the dev server in development, from the built file in production.
-  const devUrl = process.env["ELECTRON_RENDERER_URL"];
+  // Loaded by the dev server in development, from the built file in production. `devOnly`:
+  // a packaged build must never take its whole UI from an env-named URL — that is remote
+  // code inside a signed bundle holding the keychain grant.
+  const devUrl = devOnly(process.env["ELECTRON_RENDERER_URL"]);
   if (devUrl) {
     // Dev convenience: mirror the renderer console into this terminal and open
     // DevTools, so logs (Redux actions, etc.) are visible where you run the app.
