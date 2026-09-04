@@ -142,6 +142,48 @@ pnpm test       # unit tests, free
 
 In the app, **Settings → Versions** reports which services the build actually reached.
 Absent ones are named as absent — that is the intended, legible outcome, not an error.
+---
+
+## 6. Packaging locally (an installable app, not a `pnpm dev`)
+
+`build` produces `apps/desktop/out/` — what `pnpm dev` runs. An **installable** app is one
+more step, `electron-builder` through the repo's wrapper (never `npx electron-builder`:
+`apps/desktop/scripts/eb.mjs` says why). Bake first, or the packager stops on a missing
+`build/python-runtime`:
+
+```bash
+pnpm --filter @openmasq/desktop bake     # this platform's runtimes + models (see §4)
+pnpm build                               # every package's dist/, then the app bundle
+cd apps/desktop
+CSC_IDENTITY_AUTO_DISCOVERY=false pnpm run eb --mac --arm64 --dir   # unsigned .app, macOS
+pnpm run eb --win --dir                                              # unpacked, Windows host
+```
+
+Output lands in `apps/desktop/release/<platform>-<arch>/` (gitignored). Then check what you
+got: `pnpm check:pkgtree --require-tree` from the repo root walks the packaged
+`node_modules` — the one place a dependency dropped by the packager shows up.
+
+What each platform needs, verified on 03/09/2026:
+
+| Platform | Host | What the local package lacks vs the CI one |
+|---|---|---|
+| macOS (arm64 + x64) | macOS. `--dir` skips notarization; a `dmg`/`zip` target runs it (`notarize: true`) and needs `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` — or `-c.mac.notarize=false`. With a Developer ID in your keychain, drop `CSC_IDENTITY_AUTO_DISCOVERY=false` and answer the keychain prompt: signing a ~1 GB app takes several minutes. | Nothing, if signed. **Unsigned**, macOS asks for keychain access on first launch (Chromium safe storage); refuse it and the app runs with **no at-rest encryption** and says so once. |
+| Windows (x64) | A Windows machine: NSIS is bundled by electron-builder, but `bake:jail` compiles the Python sandbox launcher (Rust, `cargo` + the MSVC linker) and `bake:vcruntime` fetches the VC++ redistributable — both skip loudly on any other host, and a Windows bundle without the launcher **refuses to run Python** rather than run it unconfined. Unsigned installers work; the CI refuses to *publish* one. | Authenticode signature. |
+| Linux | **Not a target.** `electron-builder.cjs` declares no `linux` block, the Linux native binaries are excluded from every bundle, and asar integrity has no Linux support. The source build (`pnpm dev`) runs there. | Everything: no package exists. |
+
+Two assets never come from a public source, so a fresh clone packages **without** them and
+the app degrades where §4 says: the docTR OCR export (`OPENMASQ_DOCTR_SRC`) and the e5
+memory embedder (`OPENMASQ_E5_SRC`). The bake prints a warning for each; the package is still
+valid. Everything else (CPython from python-build-standalone, the NER weights on a pinned
+Hugging Face commit, tessdata_fast) downloads and verifies from the pins alone.
+
+One more variable matters for a package you keep: a packaged app checks the brand's update
+feed by default (`desktop-stable`, the `publish` block of `electron-builder.cjs`) and would
+replace itself with the next signed release. Bake `VITE_UPDATES_URL=` (empty) for a local
+package that must stay what you built — §2 says how an empty value is honoured.
+
+`apps/desktop/scripts/release-local.sh` is **not** this: it mirrors the staging deployment
+(signing, notarization, R2 upload, feed registration) and requires every CI secret.
 
 ---
 
@@ -294,3 +336,49 @@ pnpm test       # les tests unitaires, gratuits
 Dans l'application, **Réglages → Versions** rapporte quels services le build a réellement
 atteints. Les absents sont nommés comme absents — c'est le résultat lisible et voulu, pas une
 erreur.
+
+---
+
+## 6. Empaqueter localement (une application installable, pas un `pnpm dev`)
+
+`build` produit `apps/desktop/out/` — ce que `pnpm dev` lance. Une application
+**installable** demande une étape de plus, `electron-builder` à travers l'enrobage du dépôt
+(jamais `npx electron-builder` : `apps/desktop/scripts/eb.mjs` dit pourquoi). Bakez d'abord,
+sinon l'empaqueteur s'arrête sur un `build/python-runtime` absent :
+
+```bash
+pnpm --filter @openmasq/desktop bake     # runtimes + modèles de cette plateforme (§4)
+pnpm build                               # le dist/ de chaque paquet, puis le bundle de l'app
+cd apps/desktop
+CSC_IDENTITY_AUTO_DISCOVERY=false pnpm run eb --mac --arm64 --dir   # .app non signée, macOS
+pnpm run eb --win --dir                                              # dépliée, hôte Windows
+```
+
+La sortie atterrit dans `apps/desktop/release/<plateforme>-<arch>/` (ignoré par git). Puis
+vérifiez ce que vous avez obtenu : `pnpm check:pkgtree --require-tree` depuis la racine
+parcourt le `node_modules` empaqueté — le seul endroit où une dépendance perdue par
+l'empaqueteur se voit.
+
+Ce que chaque plateforme exige, vérifié le 03/09/2026 :
+
+| Plateforme | Hôte | Ce qui manque au paquet local face à celui de la CI |
+|---|---|---|
+| macOS (arm64 + x64) | macOS. `--dir` saute la notarisation ; une cible `dmg`/`zip` la lance (`notarize: true`) et demande `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` — ou `-c.mac.notarize=false`. Avec un Developer ID dans votre trousseau, retirez `CSC_IDENTITY_AUTO_DISCOVERY=false` et répondez à l'invite du trousseau : signer une app d'environ 1 Go prend plusieurs minutes. | Rien, si elle est signée. **Non signée**, macOS demande l'accès au trousseau au premier lancement (stockage sûr de Chromium) ; refusez et l'app tourne **sans chiffrement au repos** et le dit une fois. |
+| Windows (x64) | Une machine Windows : NSIS est fourni par electron-builder, mais `bake:jail` compile le lanceur du bac à sable Python (Rust, `cargo` + l'éditeur de liens MSVC) et `bake:vcruntime` récupère le redistribuable VC++ — les deux passent bruyamment sur tout autre hôte, et un bundle Windows sans lanceur **refuse d'exécuter Python** plutôt que de le faire sans confinement. Un installeur non signé fonctionne ; la CI refuse d'en *publier* un. | La signature Authenticode. |
+| Linux | **Pas une cible.** `electron-builder.cjs` ne déclare aucun bloc `linux`, les binaires natifs Linux sont exclus de chaque bundle, et l'intégrité asar n'existe pas sous Linux. Le build depuis les sources (`pnpm dev`) y tourne. | Tout : aucun paquet n'existe. |
+
+Deux ressources ne viennent jamais d'une source publique, donc un clone frais s'empaquette
+**sans** elles et l'app se dégrade là où le §4 le dit : l'export OCR docTR (`OPENMASQ_DOCTR_SRC`)
+et l'encodeur de mémoire e5 (`OPENMASQ_E5_SRC`). Le bake imprime un avertissement pour
+chacune ; le paquet reste valide. Tout le reste (CPython depuis python-build-standalone, les
+poids NER sur un commit Hugging Face épinglé, tessdata_fast) se télécharge et se vérifie
+depuis les seuls pins.
+
+Une variable de plus compte pour un paquet que vous gardez : une application empaquetée
+interroge par défaut le flux de mises à jour de la marque (`desktop-stable`, bloc `publish`
+d'`electron-builder.cjs`) et se remplacerait par la prochaine version signée. Bakez
+`VITE_UPDATES_URL=` (vide) pour un paquet local qui doit rester ce que vous avez construit —
+le §2 dit comment une valeur vide est honorée.
+
+`apps/desktop/scripts/release-local.sh` n'est **pas** cela : il reproduit le déploiement de
+staging (signature, notarisation, envoi R2, inscription au flux) et exige chaque secret de la CI.
