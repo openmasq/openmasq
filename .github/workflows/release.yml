@@ -131,6 +131,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0 # `merge-base --is-ancestor` needs main's history (see the v* branch below)
           persist-credentials: false
       # Decide channel / storage / version from the trigger (see header).
       # ⚠️ ONLY a `v*` tag reaches stable — the `else` catches EVERYTHING else
@@ -163,6 +164,17 @@ jobs:
             fi
           }
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            # ⛔ A production tag must point at a commit that is ALREADY on `main`. The
+            # repository rulesets protect branches (PR + green checks on `main`) but no
+            # ruleset covers tags, and this workflow fires on a tag push: without this
+            # check, `git tag v9.9.9 <any sha> && git push --tags` from any write-holder
+            # produced a signed, notarized, auto-installed build from an unreviewed commit.
+            # `beta-v*` is exempt ON PURPOSE (the header: a candidate may sit on any commit).
+            git fetch --no-tags --quiet origin main
+            if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+              echo "::error::refusing tag: ${GITHUB_REF#refs/tags/} points at ${GITHUB_SHA:0:12}, which is not on main" >&2
+              exit 1
+            fi
             {
               echo "channel=desktop-stable"
               echo "storage_channel=desktop-stable"
@@ -274,7 +286,10 @@ jobs:
       WIN_CSC_LINK: ${{ matrix.platform == 'win' && secrets.WIN_CSC_LINK || '' }}
       # Same mechanism for the sourcemaps upload: `if:` cannot read `secrets`
       # (the workflow does not LOAD), the job's env can. Empty ⇒ the step is skipped.
-      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      # ⚠️ The FLAG travels here, never the token: a job-level value is visible to every
+      # step, `pnpm install`'s ~2,000 packages included (the rule stated just below). The
+      # token itself is read by the ONE step that uploads, in that step's own `env:`.
+      HAS_SENTRY: ${{ secrets.SENTRY_AUTH_TOKEN != '' && '1' || '' }}
       # The other credentials travel as DECISIONS, not as values: a job-level env is visible
       # to every step, `pnpm install`'s ~2,000 packages included, and the R2 keys or the
       # Apple certificate have no business there. Each step that needs the value reads
@@ -435,9 +450,10 @@ jobs:
       # release (observability audit 13/08). Step SKIPPED without the secret: a release
       # must never fail over symbolication.
       - name: Upload sourcemaps to Sentry
-        if: ${{ env.SENTRY_AUTH_TOKEN != '' }}
+        if: ${{ env.HAS_SENTRY == '1' }}
         working-directory: apps/desktop
         env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ vars.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
           # Through the environment, never interpolated into the shell line: a GitHub
@@ -490,10 +506,10 @@ jobs:
             apps/desktop/build/python-runtime
             apps/desktop/build/ner-models
             apps/desktop/build/embed-models
-          # `electron-builder.yml` goes into the key: it is the one that decides HOW MANY arches
+          # `electron-builder.cjs` goes into the key: it is the one that decides HOW MANY arches
           # get baked. Without this, a single-arch cache would get reused under a name that
           # promises two — and the missing bake would only show up at packaging time.
-          key: bake-${{ runner.os }}-${{ hashFiles('apps/desktop/electron-builder.yml', 'apps/desktop/src/main/python/wheels.ts', 'apps/desktop/src/main/python/runtimeSpec.ts', 'apps/desktop/scripts/bake-ner-models.ts', 'apps/desktop/src/main/ner/model.ts', 'apps/desktop/scripts/bake-embed-models.ts', 'apps/desktop/src/main/embed/model.ts') }}
+          key: bake-${{ runner.os }}-${{ hashFiles('apps/desktop/electron-builder.cjs', 'apps/desktop/src/main/python/wheels.ts', 'apps/desktop/src/main/python/runtimeSpec.ts', 'apps/desktop/scripts/bake-ner-models.ts', 'apps/desktop/src/main/ner/model.ts', 'apps/desktop/scripts/bake-embed-models.ts', 'apps/desktop/src/main/embed/model.ts') }}
 
       # The Memory's IN-HOUSE e5 export (first-party re-export of intfloat/
       # multilingual-e5-small, sha256-pinned — NO public upstream serves these bytes,

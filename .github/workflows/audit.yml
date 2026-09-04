@@ -7,7 +7,7 @@ name: audit
 # is reported but never fails the build, so the signal isn't drowned by noise.
 #
 # ⚠️ NOT a required status check yet. Today it is RED on real existing debt
-# (Electron 31 · xlsx@0.18.5 · Hono 4.9 on apps/updates · path-to-regexp ReDoS).
+# (Electron 43 · xlsx vendored at 0.20.3 under vendor/ · Hono 4.9 on apps/updates · path-to-regexp ReDoS).
 # It's informational until that debt is cleared; once it goes green, add `audit`
 # to the branch-protection required checks (Terraform-managed
 # required_status_checks, outside this repo) to make it blocking.
