@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { act } from "react";
 import { describe, expect, it } from "vitest";
 import { usePopover } from "./usePopover";
 import { clickOutside, fireWindow, mount, pressKey } from "../testKit";
@@ -76,6 +77,19 @@ describe("usePopover — ancrage (menu portalé)", () => {
     // its trigger — hence closing on scroll for ANCHORED ones ONLY.
     await fireWindow("scroll");
     expect(ui.maybe("[data-testid=menu]")).toBeNull();
+    await ui.unmount();
+  });
+
+  it("un défilement DANS le menu ancré ne le ferme pas (une liste bornée se parcourt)", async () => {
+    const ui = await mount(<Menu anchor />);
+    await ui.click("button");
+    const menu = ui.find<HTMLDivElement>("[data-testid=menu]");
+    // `scroll` doesn't bubble, but the capture-phase listener on `window` sees it: the
+    // menu's OWN scrollbar used to dismiss the menu on the first tick.
+    await act(async () => {
+      menu.dispatchEvent(new Event("scroll"));
+    });
+    expect(ui.maybe("[data-testid=menu]")).not.toBeNull();
     await ui.unmount();
   });
 

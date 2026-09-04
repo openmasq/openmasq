@@ -41,7 +41,7 @@ export const APPLIED_PILL_MS = 6000;
 export function ComposerRedactButton({ api }: { api: RedactLevelApi }) {
   const t = useT();
   const pop = usePopover<HTMLDivElement, HTMLDivElement>({
-    anchor: { gap: 8, width: 386, desiredHeight: 460, clampHeight: true, minHeight: 220 },
+    anchor: { gap: 8, width: 336, desiredHeight: 400, clampHeight: true, minHeight: 220 },
   });
   const [applied, setApplied] = useState<AppliedChange | null>(null);
   useEffect(() => {

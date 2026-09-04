@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type RefObject,
+} from "react";
 
 /**
  * THE popover/menu primitive: open state, dismissal, and (optionally) fixed-viewport
@@ -57,7 +65,10 @@ export interface PopoverApi<T extends HTMLElement, M extends HTMLElement> {
   style: CSSProperties | null;
 }
 
-export function usePopover<T extends HTMLElement = HTMLElement, M extends HTMLElement = HTMLElement>(
+export function usePopover<
+  T extends HTMLElement = HTMLElement,
+  M extends HTMLElement = HTMLElement,
+>(
   opts: {
     /** Placement config for a portaled menu. Omit for an in-flow menu (the common
      *  `.menu-anchor` dropdown): you then get open state + dismissal only. */
@@ -90,10 +101,14 @@ export function usePopover<T extends HTMLElement = HTMLElement, M extends HTMLEl
     });
   }, []);
   const close = useCallback(() => setOpen(false), [setOpen]);
-  const toggle = useCallback(() => setOpenState((o) => {
-    if (o) onCloseRef.current?.();
-    return !o;
-  }), []);
+  const toggle = useCallback(
+    () =>
+      setOpenState((o) => {
+        if (o) onCloseRef.current?.();
+        return !o;
+      }),
+    [],
+  );
 
   // ── Placement (anchored menus only) ──────────────────────────────────────────
   // Measured in a LAYOUT effect: the menu is portaled and fixed, so placing it after
@@ -121,7 +136,9 @@ export function usePopover<T extends HTMLElement = HTMLElement, M extends HTMLEl
       left,
       width,
       ...(cfg.clampHeight
-        ? { maxHeight: Math.max(cfg.minHeight, Math.min(cfg.desiredHeight, openUp ? above : below)) }
+        ? {
+            maxHeight: Math.max(cfg.minHeight, Math.min(cfg.desiredHeight, openUp ? above : below)),
+          }
         : {}),
       ...(openUp ? { bottom: vh - r.top + cfg.gap } : { top: r.bottom + cfg.gap }),
     });
@@ -150,15 +167,23 @@ export function usePopover<T extends HTMLElement = HTMLElement, M extends HTMLEl
     // between us and the document would otherwise swallow the outside click.
     document.addEventListener("mousedown", away, true);
     document.addEventListener("keydown", key, true);
+    // ⚠️ A scroll INSIDE the menu is not the page moving out from under it: a clamped
+    // menu (`clampHeight`) scrolls its own options, and closing on that first wheel tick
+    // made every long menu unreachable past its fold — it read as "not scrollable".
+    const scrolled = (e: Event) => {
+      // The target is `window` or `document` for a page scroll — not a Node.
+      if (e.target instanceof Node && menuRef.current?.contains(e.target)) return;
+      close();
+    };
     if (closeOnScroll) {
-      window.addEventListener("scroll", close, true); // capture: any scroller, not just window
+      window.addEventListener("scroll", scrolled, true); // capture: any scroller, not just window
       window.addEventListener("resize", close);
     }
     return () => {
       document.removeEventListener("mousedown", away, true);
       document.removeEventListener("keydown", key, true);
       if (closeOnScroll) {
-        window.removeEventListener("scroll", close, true);
+        window.removeEventListener("scroll", scrolled, true);
         window.removeEventListener("resize", close);
       }
     };

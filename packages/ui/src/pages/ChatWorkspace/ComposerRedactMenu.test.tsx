@@ -129,9 +129,9 @@ describe("ComposerRedactMenu", () => {
   it("descriptions, contreparties et l'œil du niveau réduit sortent du vocabulaire partagé", async () => {
     const m = await mount(<ComposerRedactMenu api={api()} onDone={() => {}} />);
     const meta = privacyLevelMeta(fr);
-    // The USE then the COVERAGE — the same two sentences Réglages' picker renders.
+    // The COVERAGE only — the USE (`desc`) is weighed in Réglages, not in passing.
     expect(m.findAll(".crm-level-desc").map((el) => el.textContent)).toEqual(
-      meta.map((x) => `${x.desc} ${x.short}`),
+      meta.map((x) => x.short),
     );
     expect(m.findAll(".crm-level-tradeoff").map((el) => el.textContent)).toEqual(
       meta.map((x) => x.tradeoff),
@@ -144,16 +144,22 @@ describe("ComposerRedactMenu", () => {
 
   /* Two doors, ONE vocabulary: the composer menu and Réglages' picker must say the
      same thing about each level, word for word — a card rewritten on one surface is
-     the start of two products. */
+     the start of two products. The composer says LESS (no USE sentence), never
+     something ELSE: its coverage line is the tail of Réglages' description. */
   it("dit exactement ce que dit le sélecteur des Réglages, carte par carte", async () => {
     const menu = await mount(<ComposerRedactMenu api={api()} onDone={() => {}} />);
     const picker = await mount(<PrivacyLevelPicker level="renforce" onPick={() => {}} />);
     const text = (els: Element[]) => els.map((el) => el.textContent?.trim());
-    expect(text(menu.findAll(".crm-level-desc"))).toEqual(text(picker.findAll(".privacy-level-desc")));
+    const menuDesc = text(menu.findAll(".crm-level-desc"));
+    const pickerDesc = text(picker.findAll(".privacy-level-desc"));
+    expect(menuDesc).toHaveLength(pickerDesc.length);
+    menuDesc.forEach((d, i) => expect(pickerDesc[i]!.endsWith(d!)).toBe(true));
     expect(text(menu.findAll(".crm-level-tradeoff"))).toEqual(
       text(picker.findAll(".privacy-level-tradeoff")),
     );
-    expect(text(menu.findAll(".crm-level-name"))).toEqual(text(picker.findAll(".privacy-level-name")));
+    expect(text(menu.findAll(".crm-level-name"))).toEqual(
+      text(picker.findAll(".privacy-level-name")),
+    );
     await menu.unmount();
     await picker.unmount();
   });

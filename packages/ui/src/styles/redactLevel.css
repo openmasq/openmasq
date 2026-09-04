@@ -7,8 +7,11 @@
 
    The cards ARE styled here, deliberately MORE COMPACT than the Réglages ones
    (`.privacy-level`): here the decision changes in passing, there it gets weighed.
-   What they must never do is say something different — their text, their eye
-   and their trade-off come from the same vocabulary (`privacyLevelMeta`). */
+   Compact in TEXT too — coverage and trade-off only, the USE sentence stays in
+   Réglages — because three cards at seven lines each overran the room above the
+   composer and left the third one behind a scrollbar. What they must never do is
+   say something different — their text, their eye and their trade-off come from
+   the same vocabulary (`privacyLevelMeta`). */
 
 .composer-redact-wrap {
   position: relative;
@@ -26,7 +29,10 @@
   position: fixed;
   z-index: 60;
   overflow-y: auto;
-  padding: 8px;
+  /* A wheel tick over the menu must scroll THE MENU, never chain to the thread
+     behind it — `usePopover` closes on any scroll that isn't the menu's own. */
+  overscroll-behavior: contain;
+  padding: 6px;
   background: var(--surface-card);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
@@ -35,39 +41,45 @@
 }
 
 .crm-eyebrow {
-  margin-bottom: 4px;
-  padding: 0 2px;
+  margin-bottom: 3px;
+  padding: 0 4px;
 }
 
 /* The SCOPE, said before the click: which thread (or the default) the choice lands on. */
 .crm-scope {
-  margin: 0 0 8px;
-  padding: 0 2px;
+  margin: 0 0 6px;
+  padding: 0 4px;
   font-size: var(--text-xs);
   line-height: 1.35;
   color: var(--text-muted);
 }
 
 /* ── The cards ──────────────────────────────────────────────────────────────── */
+/* Flat rows, not boxed cards: a bordered card inside a bordered popover inside a
+   bordered composer read as three nested boxes. The row in force carries a tint,
+   the hover another — the scale reads as a list, like every other menu. */
 .crm-levels {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 2px;
 }
 .crm-level {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
+  gap: 8px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 6px 8px;
   text-align: left;
-  background: var(--surface-card);
-  border: 1px solid var(--border-default);
+  background: transparent;
+  border: 0;
   border-radius: var(--radius-md);
   cursor: pointer;
 }
 .crm-level:hover {
   background: var(--surface-hover);
+}
+.crm-level[aria-checked="true"] {
+  background: var(--surface-sunken);
 }
 .crm-level:focus-visible {
   outline: 2px solid var(--brand);
@@ -76,8 +88,6 @@
 /* « Sur mesure »: a STATE shown checked, not a choice — no hover, no pointer. */
 .crm-level.custom {
   cursor: default;
-  background: var(--surface-sunken);
-  border-color: transparent;
 }
 .crm-level-ico {
   flex-shrink: 0;
@@ -87,13 +97,14 @@
 .crm-level-body {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 .crm-level-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-height: 18px;
 }
 .crm-level-name {
   font-size: var(--text-sm);

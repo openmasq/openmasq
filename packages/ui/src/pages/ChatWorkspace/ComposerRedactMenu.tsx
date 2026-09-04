@@ -59,10 +59,13 @@ const NAV_KEYS = new Set(["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft", "Ho
  * is a gesture one believes shorter than it is — on the home screen it rewrites every future
  * thread, and nothing else on screen would say so.
  *
- * ⚠️ **The cards' text comes from `privacyLevelMeta`, never from here.** `desc` is the USE,
- * `short` what the level COVERS, `tradeoff` what it leaves readable or may distort — the
- * counterpart rule 8 imposes, stated on the surface where one lowers the guard in passing.
- * Réglages' `PrivacyLevelPicker` renders the SAME three, in the same order. A level marked
+ * ⚠️ **The cards' text comes from `privacyLevelMeta`, never from here.** `short` is what the
+ * level COVERS, `tradeoff` what it leaves readable or may distort — the counterpart rule 8
+ * imposes, stated on the surface where one lowers the guard in passing. The USE (`desc`,
+ * « pour la recherche web… ») stays in Réglages, where a level is WEIGHED: at the composer
+ * one asks « what does this mask, what stays readable », and the sentence that said when
+ * to pick it doubled the height of every card — the menu no longer fit above the composer.
+ * Réglages' `PrivacyLevelPicker` renders the SAME sentences, in the same order. A level marked
  * `reduced` also wears the EYE, as in Réglages: a card that looked like the others would
  * assert a protection it removes. Writing the sentences in this file would be the
  * start of two vocabularies (rule 9).
@@ -169,11 +172,9 @@ export function ComposerRedactMenu({
                     </span>
                   )}
                 </span>
-                {/* The USE, then what the level COVERS — the same two sentences as
-                    Réglages' `PrivacyLevelPicker`: one vocabulary, two doors. */}
-                <span className="crm-level-desc">
-                  {m.desc} {m.short}
-                </span>
+                {/* What the level COVERS — word for word the sentence Réglages'
+                    `PrivacyLevelPicker` renders: one vocabulary, two doors. */}
+                <span className="crm-level-desc">{m.short}</span>
                 <span className="crm-level-tradeoff">{m.tradeoff}</span>
               </span>
             </button>
