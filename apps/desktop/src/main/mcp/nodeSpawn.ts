@@ -1,3 +1,4 @@
+import { app } from "electron";
 import { dirname, join, sep } from "node:path";
 
 // ── Running bundled npm-package MCP servers without npx ───────────────────────
@@ -43,7 +44,14 @@ export interface NodeSpawn {
 /** Turn a `{ command, args }` (as declared in the catalog) into a spawnable spec.
  *  For `npx -y <pkg> [rest…]` it resolves the BUNDLED package and runs it via
  *  Electron's Node; anything else is passed through unchanged. Falls back to the
- *  original npx command if the package can't be resolved (dev without the dep). */
+ *  original npx command if the package can't be resolved (dev without the dep).
+ *
+ *  ⚠️ That fallback is DEV-ONLY. In a packaged build the resolve failing means the server
+ *  was mis-bundled, and returning `npx` there turns a packaging defect into a NETWORK
+ *  action: `npx -y <pkg>` downloads and executes whatever the registry currently serves
+ *  under that name, unpinned, as the signed app — while the whole point of resolving a
+ *  bundled dependency is "no npx, no network". A packaged build fails loudly instead; the
+ *  connector reports the error, which is what a mis-bundle deserves. */
 export function nodeSpawnFor(command: string, args: string[]): NodeSpawn {
   if (command !== "npx") return { command, args };
   const pkgIdx = args.findIndex((a) => !a.startsWith("-")); // first non-flag = the package
@@ -56,7 +64,8 @@ export function nodeSpawnFor(command: string, args: string[]): NodeSpawn {
       args: [resolveNodeBin(pkg), ...rest],
       env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" } as Record<string, string>,
     };
-  } catch {
-    return { command, args };
+  } catch (e) {
+    if (app.isPackaged) throw e;
+    return { command, args }; // dev without the dependency installed
   }
 }
