@@ -38,6 +38,33 @@ function loadKatex(): Promise<KatexPlugin> {
   return katexPromise;
 }
 
+/**
+ * The options every KaTeX render in the app runs under — one object, so the guards
+ * below cannot be present on one call site and missing on the next.
+ *
+ * ⚠️ SECURITY — the LaTeX we typeset is MODEL output, i.e. attacker-influenceable
+ * (an injected page can dictate a formula verbatim), and KaTeX's defaults are sized
+ * for a document you wrote yourself:
+ *  - `maxSize` defaults to **Infinity**, so `\rule{9999999em}{9999999em}` renders a
+ *    box millions of ems wide — the layout is destroyed and the reply unreadable.
+ *    10em bounds any single element to something that still fits a bubble.
+ *  - `maxExpand` bounds macro expansion, i.e. the "billion laughs" of TeX: a
+ *    self-referential `\def` otherwise spins the render thread forever.
+ *  - `trust` is already effectively false (undefined), which is what refuses
+ *    `\href`/`\url`/`\includegraphics`. Stated EXPLICITLY so a future change of
+ *    KaTeX's default cannot silently hand the model an anchor factory.
+ * `throwOnError: false` renders malformed/partial LaTeX inert instead of throwing
+ * (math arrives mid-stream); `strict: false` tolerates the loose LaTeX models write.
+ * Pinned by `katex.test.ts`.
+ */
+export const KATEX_OPTIONS = {
+  throwOnError: false,
+  strict: false,
+  maxSize: 10,
+  maxExpand: 1000,
+  trust: false,
+} as const;
+
 export function useKatexPlugin(): KatexPlugin | null {
   const [plugin, setPlugin] = useState<KatexPlugin | null>(katexPlugin);
   useEffect(() => {

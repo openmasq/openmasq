@@ -6,7 +6,7 @@ import { CodeBlock } from "./blocks/CodeBlock";
 import { MarkdownMark } from "./blocks/MarkdownMark";
 import { InTableContext, MarkdownDocContext } from "./context";
 import { rehypeRedact } from "./logic/rehypeRedact";
-import { normalizeMath, useKatexPlugin, type KatexPlugin } from "./logic/katex";
+import { KATEX_OPTIONS, normalizeMath, useKatexPlugin, type KatexPlugin } from "./logic/katex";
 import { MarkdownImage } from "./blocks/MarkdownImage";
 import { TableScroll } from "./blocks/TableScroll";
 import { MarkdownLink } from "./blocks/MarkdownLink";
@@ -81,11 +81,13 @@ function MarkdownImpl({
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[
-          // Never throw on malformed/partial LaTeX — render it inert instead.
+          // `KATEX_OPTIONS` carries the whole policy — inert on malformed/partial LaTeX,
+          // and the size/expansion/trust bounds that keep MODEL-authored math from
+          // wrecking the layout or minting links (see logic/katex.ts).
           // KaTeX is lazy-loaded (see useKatexPlugin); until it lands, math renders
           // as raw LaTeX text rather than blocking the launch bundle.
           ...(katex
-            ? [[katex, { throwOnError: false, strict: false }] as [KatexPlugin, Record<string, unknown>]]
+            ? [[katex, KATEX_OPTIONS] as [KatexPlugin, Record<string, unknown>]]
             : []),
           rehypeRedact(vault, kinds, revealed),
         ]}

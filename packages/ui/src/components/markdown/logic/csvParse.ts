@@ -11,6 +11,16 @@ export interface CsvTable {
   rows: string[][];
 }
 
+/**
+ * Row cap. A model can emit an arbitrarily long ```csv fence (a tool result pasted
+ * whole, or an injected page telling it to), and this parser runs DURING RENDER inside
+ * a component covered only by the root `ErrorBoundary` — so anything that throws here
+ * replaces the WHOLE UI with the error card, and re-throws the moment the conversation
+ * is reopened. A table this size is unreadable anyway, so we hand the caller `null` and
+ * it falls back to a plain (virtualisable) code block.
+ */
+export const MAX_CSV_ROWS = 20_000;
+
 /** Most frequent of `;` / tab / `,` OUTSIDE quotes on the header line. */
 function detectDelimiter(line: string): string {
   const counts: Record<string, number> = { ";": 0, "\t": 0, ",": 0 };
@@ -54,9 +64,14 @@ export function parseCsvText(text: string): CsvTable | null {
     .split("\n")
     .filter((l) => l.trim() !== ""); // drop blank separator lines (not `;;total` rows)
   if (lines.length < 2) return null;
+  if (lines.length > MAX_CSV_ROWS) return null; // see MAX_CSV_ROWS — refuse before parsing
   const delim = detectDelimiter(lines[0]);
   const rows = lines.map((l) => splitLine(l, delim));
-  const cols = Math.max(...rows.map((r) => r.length));
+  // `Math.max(...rows.map(…))` spreads one ARGUMENT per row and throws `RangeError:
+  // too many arguments` past ~125 000 of them — a crash raised during render, i.e. the
+  // whole-app error card (see MAX_CSV_ROWS). A fold takes no argument list at all, so
+  // the cap above is a product decision rather than the only thing holding this up.
+  const cols = rows.reduce((m, r) => Math.max(m, r.length), 0);
   if (cols < 2) return null; // one column → a table adds nothing
   const norm = rows.map((r) => {
     const c = r.slice(0, cols);

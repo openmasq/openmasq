@@ -24,10 +24,17 @@
       origin (backend, gateway, updates, staging variants) — a wildcard we OWN
       entirely, unlike a SaaS suffix. The old Scaleway function wildcards are gone:
       nothing has pointed at *.scw.cloud since the gateway moved to the brand domain.
+
+      form-action 'none' is the LAST egress channel a CSP has to close: a navigation
+      started by a <form> submit is governed by neither connect-src nor default-src, so
+      an injected form (or a script setting form.action) could POST the conversation to
+      an arbitrary host with every other directive still satisfied. The renderer has no
+      form that submits anywhere — every call goes through fetch — so 'none' costs
+      nothing and removes the channel. Pinned, with the img-src host list, by csp.test.ts.
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; connect-src 'self' %SUPABASE_CSP% https://eu.i.posthog.com https://*.%BRAND_DOMAIN%; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://images.openai.com https://*.oaiusercontent.com https://*.oaistatic.com https://claude.ai https://*.anthropic.com https://*.googleusercontent.com https://*.gstatic.com https://*.google.com https://*.mistral.ai https://*.deepseek.com; script-src 'self' 'sha256-Wo7gGJI80aZoZzk9seMv2K25wGseCqs0yP5ODqmgizM='; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+      content="default-src 'self'; connect-src 'self' %SUPABASE_CSP% https://eu.i.posthog.com https://*.%BRAND_DOMAIN%; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://images.openai.com https://*.oaiusercontent.com https://*.oaistatic.com https://claude.ai https://*.anthropic.com https://*.googleusercontent.com https://*.gstatic.com https://*.google.com https://*.mistral.ai https://*.deepseek.com; script-src 'self' 'sha256-Wo7gGJI80aZoZzk9seMv2K25wGseCqs0yP5ODqmgizM='; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>%BRAND_NAME%</title>

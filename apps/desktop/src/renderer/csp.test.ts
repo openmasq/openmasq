@@ -26,12 +26,17 @@ const HTML = readFileSync(join(ICI, "index.html"), "utf8")
   .replaceAll("%BRAND_DOMAIN%", BRAND.domain)
   .replaceAll("%SUPABASE_CSP%", supabaseCspEntries(ENVIRONMENTS.production.supabaseUrl));
 
-const connectSrc = (() => {
-  const csp = /content="([^"]*Content-Security|[^"]*default-src[^"]*)"/.exec(HTML)?.[1] ?? HTML;
-  const bloc = /connect-src ([^;]+);/.exec(csp);
-  if (!bloc) throw new Error("connect-src introuvable dans la CSP de index.html");
+const CSP = /content="([^"]*Content-Security|[^"]*default-src[^"]*)"/.exec(HTML)?.[1] ?? HTML;
+
+/** One directive of the CSP, as its list of sources. Throws when it is ABSENT — a
+ *  directive that quietly disappeared is exactly the regression these tests exist for. */
+function directive(nom: string): string[] {
+  const bloc = new RegExp(`(?:^|;)\\s*${nom} ([^;"]+)`).exec(CSP);
+  if (!bloc) throw new Error(`${nom} introuvable dans la CSP de index.html`);
   return bloc[1].trim().split(/\s+/);
-})();
+}
+
+const connectSrc = directive("connect-src");
 
 /** `https://*.<domain>` covers `https://app.<domain>` — a wildcard is only worth one label. */
 function autorisee(origine: string): boolean {
@@ -80,5 +85,40 @@ describe("CSP du renderer", () => {
   it("autorise chaque origine que le code appelle en dur", () => {
     expect(origines.length).toBeGreaterThan(0); // otherwise the test would pass vacuously
     expect(origines.filter((o) => !autorisee(o))).toEqual([]);
+  });
+
+  // A <form> submit is a NAVIGATION: neither connect-src nor default-src governs it, so
+  // an injected form is an exfiltration channel that leaves every other directive
+  // satisfied. The renderer submits no form anywhere — everything goes through fetch —
+  // so the only correct value is 'none', and nothing else in the build would notice it
+  // being dropped.
+  it("interdit toute soumission de formulaire (form-action 'none')", () => {
+    expect(directive("form-action")).toEqual(["'none'"]);
+  });
+
+  // img-src is the widest directive here, and a host added to it is a host that can be
+  // pinged with a URL an injected reply chooses. This is a SNAPSHOT, not a rule: it does
+  // not claim the list is minimal (narrowing it is a separate piece of work, pending a
+  // check of which hosts are actually used) — it claims the list cannot GROW without
+  // someone editing this line, i.e. without a review.
+  it("épingle la liste EXACTE des hôtes d'images — elle ne peut pas s'élargir sans revue", () => {
+    expect(directive("img-src")).toEqual([
+      "'self'",
+      "data:",
+      "https://images.openai.com",
+      "https://*.oaiusercontent.com",
+      "https://*.oaistatic.com",
+      "https://claude.ai",
+      "https://*.anthropic.com",
+      "https://*.googleusercontent.com",
+      "https://*.gstatic.com",
+      "https://*.google.com",
+      "https://*.mistral.ai",
+      "https://*.deepseek.com",
+    ]);
+    // Ni `blob:` ni joker d'hôte : `components/CLAUDE.md` en fait une invariante — toute
+    // image construite à partir d'octets utilisateur/modèle est une `data:` URL.
+    expect(directive("img-src")).not.toContain("blob:");
+    expect(directive("img-src").some((s) => s === "https:" || s === "*")).toBe(false);
   });
 });
