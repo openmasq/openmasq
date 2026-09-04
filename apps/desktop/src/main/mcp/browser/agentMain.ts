@@ -8,11 +8,11 @@ import {
   type WebContents,
 } from "electron";
 import { readFileSync } from "node:fs";
-import { isIP } from "node:net";
 import { join } from "node:path";
-import { assertPublicUrl, isPrivateIp } from "../../net/net";
+import { assertPublicUrl } from "../../net/net";
 import { fetchFaviconDataUrl } from "../../net/favicon";
 import { FIREFOX_UA, LOGIN_PRELOAD, STEALTH_PRELOAD } from "../../browserSession";
+import { isBlankUrl, isSafeAgentUrl, loadGuarded, navUrlBlocked } from "./loadGuard";
 import { CONSENT_DISMISS_JS } from "./consentDismiss"; import { BRAND } from "@openmasq/branding";
 
 // ── Isolated agent-browser process (MULTI-TAB) ───────────────────────────────
@@ -71,31 +71,6 @@ function acceptLanguage(): string {
   return l.includes("-") ? `${l},${l.split("-")[0]};q=0.9,en;q=0.8` : `${l};q=0.9,en;q=0.8`;
 }
 
-// Final sink guard: only ever load real web origins into an agent tab. Last line of
-// defence before `loadURL` — never `file://`, `data:`, `chrome://`, `devtools://`.
-function isSafeAgentUrl(url: string): boolean {
-  const u = url.trim().toLowerCase();
-  if (u === "about:blank") return true;
-  return u.startsWith("http://") || u.startsWith("https://");
-}
-
-// SYNCHRONOUS pre-check for `will-navigate`/`will-redirect`: rejects a bad scheme, an
-// internal hostname, and a LITERAL private IP (a public page 302-ing to 169.254.169.254
-// / a LAN IP). A hostname that RESOLVES private is caught by the async re-check below.
-function navUrlBlocked(url: string): boolean {
-  if (!isSafeAgentUrl(url)) return true;
-  let host: string;
-  try {
-    host = new URL(url).hostname.replace(/^\[|\]$/g, "");
-  } catch {
-    return true;
-  }
-  if (!host) return false;
-  const lower = host.toLowerCase();
-  if (lower === "localhost" || lower.endsWith(".localhost") || lower.endsWith(".local")) return true;
-  if (isIP(host) && isPrivateIp(host)) return true;
-  return false;
-}
 
 // BROAD Google-host match — used ONLY to rewrite outbound request headers (UA →
 // Firefox, drop Sec-CH-UA). A false positive is harmless: it just sends a wrong UA
@@ -454,7 +429,10 @@ export function runAgentBrowserMain(): void {
       touchActive(id);
       layout(); // attaches this (now-active) view to the window
     }
-    if (isSafeAgentUrl(url)) void view.webContents.loadURL(url);
+    // The tab exists either way (as before); WHAT it loads goes through the sink guard, so
+    // an internal address opens an empty tab instead of a page. `will-navigate` never fires
+    // for this call — see `loadGuarded`.
+    void loadGuarded(view.webContents, url);
     reportTabs();
     evictLruTabs(); // enforce the live-tab cap (rarely fires)
     return id;
@@ -465,7 +443,9 @@ export function runAgentBrowserMain(): void {
   // foreground user tab instead — so the human browses in parallel and never clobbers the
   // page the model is working on. Otherwise it loads in the target tab as before.
   const navigate = (url: string, tabId?: string): void => {
-    if (!isSafeAgentUrl(url)) return;
+    // Sync floor first, so a refused URL never even picks a target tab; the DNS re-check
+    // runs inside `loadGuarded` (or inside `createTab`'s, on the branches below).
+    if (!isBlankUrl(url) && navUrlBlocked(url)) return;
     const targetId = tabId ?? activeId ?? null;
     if (driving && targetId && targetId === agentTabId) {
       createTab(url, true); // the user's own foreground tab; the model keeps agentTabId
@@ -473,8 +453,11 @@ export function runAgentBrowserMain(): void {
     }
     const tab = targetId ? tabs.find((t) => t.id === targetId) : undefined;
     if (tab) {
-      tab.userNav = true; // attribute the coming did-navigate to the USER, not the model
-      void tab.view.webContents.loadURL(url);
+      // The attribution flag is set only once the load is ALLOWED — a refused navigation
+      // must not leave the next `did-navigate` misattributed to the user.
+      void loadGuarded(tab.view.webContents, url, () => {
+        tab.userNav = true; // attribute the coming did-navigate to the USER, not the model
+      });
     } else {
       createTab(url);
     }
