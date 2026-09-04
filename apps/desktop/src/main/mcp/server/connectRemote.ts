@@ -25,6 +25,7 @@ import {
   refreshRoutes,
 } from "./registry";
 import { connectId } from "./connectCancel";
+import { REFRESH_NETWORK_ERROR } from "./reconnectRetry";
 import { infoFor } from "./info";
 import { maybeStoreRemoteIdentity } from "./accounts";
 import type { McpServerInfo } from "./types";
@@ -147,10 +148,16 @@ export async function connectRemoteHttp(
 
     let outcome = await server.connect();
     if (!outcome.authorized) {
-      // Silent reconnect: don't wait for a login that will never come.
+      // Silent reconnect: don't wait for a login that will never come. A refresh the
+      // NETWORK swallowed is not a lost authorization — say so, so the retry keeps it
+      // off the banner (`REFRESH_NETWORK_ERROR`); the cause is a socket code, never a
+      // token or a URL, and digits are dropped so no status code can sneak in.
       if (!interactive) {
         await server.close().catch(() => {});
-        return { ...infoFor(spec), error: "authorization required" };
+        const error = outcome.networkError
+          ? `${REFRESH_NETWORK_ERROR}: ${outcome.networkError.replace(/\d/g, "")}`
+          : "authorization required";
+        return { ...infoFor(spec), error };
       }
       const code = await loop.waitForCode(OAUTH_TIMEOUT_MS);
       await server.finishAuth(code);
@@ -187,7 +194,14 @@ export async function connectRemoteHttp(
     await refreshRoutes();
     return infoFor(getServer(id) ?? spec);
   } catch (err) {
-    const raw = err instanceof Error ? err.message : String(err);
+    // An SDK `OAuthError` built from a bare `{error:"invalid_grant"}` (no description)
+    // has an EMPTY message and only `errorCode` — without the fallback the verdict was
+    // "", which `shouldFlagForReconnect` reads as « no error », so a dead token stayed
+    // absent from the banner.
+    const raw =
+      (err instanceof Error && err.message) ||
+      (typeof (err as { errorCode?: unknown })?.errorCode === "string" && (err as { errorCode: string }).errorCode) ||
+      String(err);
     // Some hosted MCP servers (GitHub, Slack…) don't implement OAuth dynamic
     // client registration, so the one-click connector flow can't auto-register.
     // Surface an actionable message instead of the SDK's raw error.

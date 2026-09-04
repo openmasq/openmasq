@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 // ⚠️ The helper lives in `server/`, which the vitest `include` does NOT cover — the test
 // must therefore stay in `mcp/` and import the subpath (the same trap as
 // `customServer.test.ts`). A test placed in `server/` would never run.
-import { isTransientConnectError, reconnectRemoteWithRetry } from "./server/reconnectRetry";
+import { isTransientConnectError, REFRESH_NETWORK_ERROR, reconnectRemoteWithRetry } from "./server/reconnectRetry";
 import type { McpServerInfo } from "./server/types";
 
 const info = (over: Partial<McpServerInfo> = {}): McpServerInfo =>
@@ -40,6 +40,14 @@ describe("isTransientConnectError", () => {
     for (const m of ["fetch failed", "ETIMEDOUT", "socket hang up", "ECONNRESET", "502 Bad Gateway"])
       expect(isTransientConnectError(m), m).toBe(true);
   });
+  it("un refresh que le RÉSEAU a avalé reste transitoire — pas une autorisation morte", () => {
+    // The wording the silent reconnect uses when the SDK's token refresh never reached
+    // the server (laptop waking up on no network): retried, never on the banner.
+    expect(isTransientConnectError(`${REFRESH_NETWORK_ERROR}: fetch failed (EHOSTUNREACH)`)).toBe(true);
+    expect(isTransientConnectError(`${REFRESH_NETWORK_ERROR}: fetch failed (ENOTFOUND)`)).toBe(true);
+    expect(isTransientConnectError("invalid_grant")).toBe(false);
+  });
+
   it("pas d'erreur → non-retentable (rien à retenter)", () => {
     expect(isTransientConnectError(undefined)).toBe(false);
     expect(isTransientConnectError("")).toBe(false);

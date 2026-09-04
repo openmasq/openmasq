@@ -27,6 +27,17 @@ import type { McpServerInfo } from "./types";
 // connector therefore paid for 3 doomed attempts + the backoff, on EVERY startup and
 // every account switch — exactly what this filter exists to avoid (15/08).
 // A dead token doesn't come back to life by retrying: only the user can re-authorize.
+/**
+ * The error a SILENT remote reconnect reports when the SDK's token refresh never reached
+ * the authorization server (`ConnectOutcome.networkError`). The SDK swallows a network
+ * failure there and falls through to a NEW authorization, which in silent mode reads
+ * « authorization required » — a PERMANENT verdict for a token that is perfectly
+ * valid. Worded so `PERMANENT_RE` cannot match it (no « token », no « authorization »,
+ * no status code): a laptop waking up on no network is retried, then left silent, never
+ * put on the « connexions perdues » banner. `reconnectRetry.test.ts`.
+ */
+export const REFRESH_NETWORK_ERROR = "network failure while renewing the session";
+
 const PERMANENT_RE =
   /authorization required|authorization failed|dynamic client registration|clé api refusée|url refusée|unknown server|no url|invalid[_ ]grant|refresh token|expired or revoked|token (?:has )?(?:is )?(?:been )?(?:expired|revoked|invalid)|\b401\b|\b403\b|unauthorized|forbidden|invalid[_ ]client/i;
 

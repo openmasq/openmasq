@@ -42,8 +42,20 @@ export type ConnectOutcome =
   /** Connected and ready. */
   | { authorized: true }
   /** OAuth required: `authProvider.redirectToAuthorization` was already invoked.
-   *  Capture the redirect code, call {@link HttpMcpServer.finishAuth}, reconnect. */
-  | { authorized: false };
+   *  Capture the redirect code, call {@link HttpMcpServer.finishAuth}, reconnect.
+   *  `networkError` is set when a request the SDK made on the way (the token
+   *  refresh, typically) never reached its host: the SDK swallows that failure
+   *  and falls through to a NEW authorization, so without this flag a laptop
+   *  waking up on no network reads exactly like a revoked token. */
+  | { authorized: false; networkError?: string };
+
+/** The text of a fetch that never got a response — undici's `TypeError: fetch failed`
+ *  carries the socket error as `cause` (`EHOSTUNREACH`, `ENOTFOUND`…), the useful part. */
+function networkErrorText(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  const cause = err instanceof Error ? (err.cause as { code?: unknown } | undefined)?.code : undefined;
+  return typeof cause === "string" ? `${msg} (${cause})` : msg;
+}
 
 /**
  * A remote MCP server over Streamable HTTP, with the OAuth connector handshake.
@@ -61,6 +73,20 @@ export class HttpMcpServer implements McpConnection {
   /** Set true by our own {@link close} so the resulting transport-close doesn't
    *  fire `onClose` (which is meant for UNEXPECTED drops only). */
   private closing = false;
+  /** The last request that failed at the NETWORK level during the current
+   *  {@link connect} — see `ConnectOutcome.networkError`. Reset on every connect. */
+  private netError: string | undefined;
+  /** Every request the SDK makes (MCP AND the OAuth discovery/refresh calls it
+   *  threads through `fetchFn`) passes here, so a fetch that throws is seen once,
+   *  whoever asked for it. The error is re-thrown untouched. */
+  private readonly fetchImpl: typeof fetch = async (input, init) => {
+    try {
+      return await uaFetch(input, init);
+    } catch (err) {
+      this.netError = networkErrorText(err);
+      throw err;
+    }
+  };
 
   constructor(spec: HttpServerSpec) {
     this.id = spec.id;
@@ -87,18 +113,21 @@ export class HttpMcpServer implements McpConnection {
       // `fetch` covers the MCP requests AND (via the SDK's `_fetchWithInit`) the
       // OAuth discovery/registration/token calls — so the browser UA reaches the
       // authorization server too, not just the resource endpoint.
-      fetch: uaFetch,
+      fetch: this.fetchImpl,
       requestInit: this.spec.headers ? { headers: this.spec.headers } : undefined,
     });
   }
 
   /** Attempt to connect. Returns `{authorized:false}` when an OAuth login is needed. */
   async connect(): Promise<ConnectOutcome> {
+    this.netError = undefined;
     try {
       await this.client.connect(this.transport);
       return { authorized: true };
     } catch (err) {
-      if (err instanceof UnauthorizedError) return { authorized: false };
+      if (err instanceof UnauthorizedError) {
+        return this.netError ? { authorized: false, networkError: this.netError } : { authorized: false };
+      }
       throw err;
     }
   }
@@ -116,7 +145,7 @@ export class HttpMcpServer implements McpConnection {
    */
   async authenticate(): Promise<"AUTHORIZED" | "REDIRECT"> {
     if (!this.spec.authProvider) return "AUTHORIZED";
-    return auth(this.spec.authProvider, { serverUrl: this.spec.url, fetchFn: uaFetch });
+    return auth(this.spec.authProvider, { serverUrl: this.spec.url, fetchFn: this.fetchImpl });
   }
 
   /** Whether this server advertises OAuth (RFC 9728 protected-resource metadata),
@@ -125,7 +154,7 @@ export class HttpMcpServer implements McpConnection {
    *  silently connecting anonymously. False when the server isn't an OAuth resource. */
   async supportsOAuth(): Promise<boolean> {
     try {
-      const meta = await discoverOAuthProtectedResourceMetadata(this.spec.url, {}, uaFetch);
+      const meta = await discoverOAuthProtectedResourceMetadata(this.spec.url, {}, this.fetchImpl);
       return !!meta?.authorization_servers?.length;
     } catch {
       return false;
