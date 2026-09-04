@@ -5,15 +5,32 @@ import type { ErrorReport } from "./types";
  * sent to error tracking: emails, `scheme://user:pass@`, bearer/long opaque tokens,
  * long digit runs, and obvious paths — then truncate. Conservative on purpose (an
  * error message is the one place raw user data can leak into telemetry).
+ *
+ * ⚠️ Order matters: each rule runs on what the previous one left. The two widest
+ * (`‹token›`, `‹num›`) come after the shapes whose own content they would otherwise
+ * eat — a Windows account name of 24+ characters, or the first chunk of a spaced IBAN.
  */
 export function scrubMessage(raw: string): string {
-  return (raw ?? "")
-    .replace(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi, "‹email›")
-    .replace(/[a-z][a-z0-9+.-]*:\/\/[^\s/]*:[^\s/@]*@/gi, "‹creds›@")
-    .replace(/\b[A-Za-z0-9_-]{24,}\b/g, "‹token›")
-    .replace(/\b\d{7,}\b/g, "‹num›")
-    .replace(/(?:\/[\w .-]+){2,}/g, "‹path›")
-    .slice(0, 200);
+  return (
+    (raw ?? "")
+      .replace(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi, "‹email›")
+      .replace(/[a-z][a-z0-9+.-]*:\/\/[^\s/]*:[^\s/@]*@/gi, "‹creds›@")
+      // A Windows home directory: `C:\Users\julien\…`. The POSIX rule below only knows
+      // FORWARD slashes, so on Windows — half the installs — every path in a message went
+      // out whole, account name included (a real name, most of the time). Only the
+      // `<drive>:\Users\<account>` head is a person; the rest of the path is not, and is
+      // exactly the part that makes a report actionable.
+      .replace(/[a-z]:\\Users\\[^\\\s]+/gi, "‹path›")
+      // A number group written the way a person writes an IBAN, a card or an RIB: four or
+      // more runs of 2-4 digits separated by spaces. The `\d{7,}` rule below sees only
+      // unbroken runs, so the spaced form — the one someone actually types or pastes —
+      // travelled in clear. Before that rule, or its first chunk would already be gone.
+      .replace(/\b\d{2,4}(?: \d{2,4}){3,}\b/g, "‹num›")
+      .replace(/\b[A-Za-z0-9_-]{24,}\b/g, "‹token›")
+      .replace(/\b\d{7,}\b/g, "‹num›")
+      .replace(/(?:\/[\w .-]+){2,}/g, "‹path›")
+      .slice(0, 200)
+  );
 }
 
 // Error-class names that are always TRANSIENT/OPERATIONAL, not code bugs: a flaky

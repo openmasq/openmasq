@@ -17,6 +17,29 @@ describe("scrubMessage", () => {
   it("truncates to a bounded length", () => {
     expect(scrubMessage("x".repeat(1000)).length).toBeLessThanOrEqual(200);
   });
+
+  // The POSIX path rule only knows forward slashes, so on Windows every path in an
+  // error message went out whole — account name (usually a real name) included.
+  it("masque un chemin WINDOWS, pas seulement un chemin POSIX", () => {
+    const out = scrubMessage(String.raw`ENOENT: open 'C:\Users\JulienSabourdin\AppData\x.db'`);
+    expect(out).not.toContain("JulienSabourdin");
+    expect(out).toContain("‹path›");
+    // Ce qui rend le rapport exploitable — la suite du chemin — reste lisible.
+    expect(out).toContain("AppData");
+  });
+
+  it("masque un IBAN écrit AVEC des espaces (la forme qu'on tape ou colle)", () => {
+    // `\d{7,}` ne voit que des suites INSÉCABLES de chiffres : découpé en groupes,
+    // le même numéro passait en clair.
+    const out = scrubMessage("échec pour le compte 3000 4000 5000 6000 7000 12");
+    expect(out).not.toContain("3000 4000");
+    expect(out).toContain("‹num›");
+  });
+
+  it("ne mange pas une suite trop courte pour être un numéro de compte", () => {
+    // Trois groupes = une date, une version, des coordonnées — pas un IBAN.
+    expect(scrubMessage("étape 12 34 56")).toBe("étape 12 34 56");
+  });
 });
 
 describe("captureError → $exception channel", () => {
