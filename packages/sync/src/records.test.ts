@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  clearKekCache,
   createConvKey,
   decryptRecord,
   encryptRecord,
+  kekFor,
   openConvKey,
   rewrapConvKey,
 } from "./crypto";
@@ -304,6 +306,31 @@ describe("createRecordSync — une portée qui ne s'ouvre pas est scellée, pas 
     expect((await device.pull("conv-1", 0)).records).toEqual([]); // …but the scope is sealed
     device.resetKeys();
     expect((await device.pull("conv-1", 0)).records).toHaveLength(1);
+  });
+
+  // The KEK cache is keyed by the PLAINTEXT passphrase and holds a usable CryptoKey —
+  // the very material the passphrase exists to gate. Nothing cleared it, so it outlived
+  // sign-out, « Désactiver la synchronisation » and an account switch: the previous
+  // account's key stayed resident and kept opening its envelopes for the whole process.
+  it("`clearKekCache()` oublie la clé dérivée — elle ne survit pas à sa phrase", async () => {
+    clearKekCache();
+    const salt = (await createConvKey("phrase-a")).envelope.kekSalt;
+    const premier = kekFor("phrase-a", salt);
+    // Même (phrase, sel) ⇒ la MÊME dérivation réutilisée : c'est ce que le cache achète.
+    expect(kekFor("phrase-a", salt)).toBe(premier);
+    clearKekCache();
+    expect(kekFor("phrase-a", salt)).not.toBe(premier);
+    // …et la clé re-dérivée reste utilisable (on vide un cache, on ne casse rien).
+    expect((await kekFor("phrase-a", salt)).algorithm).toEqual((await premier).algorithm);
+  });
+
+  it("`resetKeys()` vide AUSSI le cache de KEK (déconnexion, changement de compte)", async () => {
+    const { transport } = fakeTransport();
+    clearKekCache();
+    const salt = (await createConvKey("phrase-b")).envelope.kekSalt;
+    const avant = kekFor("phrase-b", salt);
+    createRecordSync({ transport, getPassphrase: () => "phrase-b" }).resetKeys();
+    expect(kekFor("phrase-b", salt)).not.toBe(avant);
   });
 
   it("un échec RÉSEAU n'est PAS scellé — lui mérite un retour", async () => {

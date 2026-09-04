@@ -90,3 +90,34 @@ describe("complétude des catalogues (chaque langue livrée est entière)", () =
     expect(m.nav.chats.length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * Règle 8 : une promesse de confidentialité n'est pas de la copie, c'est un engagement —
+ * on ne promet que ce que le pipeline fait. Ce que la synchronisation envoie est le texte
+ * NON MASQUÉ de la conversation plus les documents d'origine (`@openmasq/sync`
+ * `convSync.ts`), chiffrés avec la phrase secrète avant l'envoi et conservés chiffrés sur
+ * le serveur. La note disait l'inverse : « vos données masquées […] elles ne quittent
+ * jamais vos appareils » — faux sur le masquage ET sur la destination. Ce qui reste vrai,
+ * et ce que la note doit dire, c'est que la PHRASE ne quitte pas les appareils.
+ */
+describe("note de synchronisation : elle décrit ce qui part vraiment", () => {
+  for (const locale of LOCALES) {
+    const n = MESSAGES[locale].syncTab.passNote;
+    const texte = `${n.lead}${n.before}${n.mid}${n.same}${n.tail}`;
+
+    it(`${locale} : ne prétend pas que les données restent sur l'appareil`, () => {
+      // Le sujet de « ne quitte jamais vos appareils » doit être la phrase, jamais les
+      // données : ces deux tournures nommaient les données.
+      expect(texte).not.toMatch(/données masquées|masked data/i);
+      expect(texte).not.toMatch(/(elles|they) ne quittent jamais|they never leave/i);
+    });
+
+    it(`${locale} : nomme le chiffrement AVANT l'envoi et le serveur qui stocke`, () => {
+      expect(n.before).toMatch(/^(avant|before)$/i);
+      expect(texte).toMatch(/chiffré|encrypted/i);
+      expect(texte).toMatch(/serveur|server/i);
+      // Et l'autre moitié du contrat : la même phrase sur chaque appareil.
+      expect(n.same).toMatch(/^(même|same)$/i);
+    });
+  }
+});

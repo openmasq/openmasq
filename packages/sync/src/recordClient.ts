@@ -17,6 +17,7 @@ import {
   encryptRecord,
   openConvKey,
   rewrapConvKey,
+  clearKekCache,
 } from "./crypto";
 import type {
   ConvKeyEnvelope,
@@ -167,6 +168,10 @@ export function createRecordSync(opts: RecordSyncOptions): RecordSync {
 
     resetKeys() {
       sealed.clear();
+      // The passphrase behind the cached KEKs is no longer the current one (it changed,
+      // or the account did) — a cache keyed by the plaintext passphrase must not outlive
+      // it. See `crypto.ts` `clearKekCache`.
+      clearKekCache();
     },
 
     async changed(since) {

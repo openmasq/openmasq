@@ -12,7 +12,7 @@
  * DECRYPT is sealed for the session (`isCryptoFailure`); `resetKeys()` reopens
  * after a passphrase change. A NETWORK failure is never sealed.
  */
-import { decryptRecord, encryptRecord } from "../crypto";
+import { clearKekCache, decryptRecord, encryptRecord } from "../crypto";
 import type { PulledRecords } from "../recordClient";
 import type { SyncRecord } from "../types";
 import { mintOrgDek, openOrgDek, orgRecordConvId, rewrapMemberKey } from "./orgCrypto";
@@ -275,6 +275,11 @@ export function createOrgScopeSync(opts: OrgScopeSyncOptions): OrgScopeSync {
 
     resetKeys() {
       keyring.reset();
+      // Same reason as the record client: the derived KEK is keyed by the plaintext
+      // passphrase, so it must not survive a change of passphrase or of account
+      // (`crypto.ts` `clearKekCache`). The member private key is wrapped under this
+      // very KEK, so a stale one would keep opening the previous account's shares.
+      clearKekCache();
     },
   };
 }

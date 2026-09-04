@@ -16,7 +16,7 @@
  */
 export { createVaultSync, mergeVaultPayloads, isVaultSubset } from "./vaultClient";
 export type { VaultSync, VaultSyncOptions } from "./vaultClient";
-export { encryptVault, decryptVault, generatePassphrase } from "./crypto";
+export { encryptVault, decryptVault, generatePassphrase, clearKekCache } from "./crypto";
 export {
   createConvKey,
   openConvKey,

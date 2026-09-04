@@ -118,10 +118,13 @@ export const syncTab = {
   passDesc: "Rules, history and categories, end-to-end encrypted",
   passActive: "Active",
   passUnset: "Not set",
+  // ⚠️ See the FR twin: what sync uploads is the UNMASKED conversation text and the
+  // original documents (`@openmasq/sync` `convSync.ts`), encrypted with this phrase
+  // before it leaves and stored as ciphertext. Only the phrase stays on the devices.
   passNote: {
-    lead: "Your masked data is end-to-end encrypted with this phrase ",
+    lead: "Your conversations, real values and attached documents included, are encrypted with this phrase ",
     before: "before",
-    mid: " it is synced — it never leaves your devices and we cannot recover it. Enter the ",
+    mid: " they reach the server, which stores them without being able to read them. It never leaves your devices and we cannot recover it. Enter the ",
     same: "same",
     tail: " phrase on each of your devices so they sync.",
   },

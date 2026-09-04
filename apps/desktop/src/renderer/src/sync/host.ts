@@ -5,7 +5,7 @@
  * through the sync client → backend. Setting a passphrase also heartbeats this
  * device so it appears in the list immediately.
  */
-import { generatePassphrase } from "@openmasq/sync";
+import { clearKekCache, generatePassphrase } from "@openmasq/sync";
 import type { SyncHost } from "@openmasq/ui";
 import { clearSyncPassphrase, getSyncPassphrase, setSyncPassphrase } from "./passphrase";
 import { checkPassphrase, listDevices, recordSync, registerDevice, revokeDevice, setDeviceName, SYNC_ENABLED } from "./client";
@@ -41,6 +41,10 @@ export const syncHost: SyncHost = {
   },
   async clearPassphrase() {
     await clearSyncPassphrase();
+    // Called directly, not only through the two clients: turning sync off (or signing
+    // out) must forget the derived key even when no record-sync client was ever built
+    // — `recordSync()` is optional, and the cache is keyed by the plaintext passphrase.
+    clearKekCache();
     recordSync()?.resetKeys();
     resetOrgKeys();
   },

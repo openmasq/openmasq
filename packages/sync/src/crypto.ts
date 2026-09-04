@@ -129,8 +129,22 @@ export async function decryptVault(
 
 /** KEK cache: PBKDF2 is deliberately slow; one derivation per (passphrase, salt).
  *  Exported for `orgScope/orgCrypto.ts` (the member private key is wrapped under
- *  the SAME passphrase KEK as the conv envelopes — one derivation, one cache). */
+ *  the SAME passphrase KEK as the conv envelopes — one derivation, one cache).
+ *
+ *  ⚠️ It is keyed by the PLAINTEXT PASSPHRASE and holds a live, usable `CryptoKey`,
+ *  so it is exactly the material the passphrase is meant to gate. Nothing used to
+ *  clear it: it outlived sign-out, « Désactiver la synchronisation » and an account
+ *  switch, which means the previous account's KEK stayed resident and would still
+ *  open its envelopes for the whole process lifetime. {@link clearKekCache} is called
+ *  wherever the passphrase stops being the current one — `resetKeys()` on both record
+ *  and org clients, and the desktop's `clearPassphrase()`. */
 const kekCache = new Map<string, Promise<CryptoKey>>();
+
+/** Forget every derived KEK. The next {@link kekFor} pays PBKDF2 again — that cost
+ *  is the point: the cache must not survive the passphrase it was derived from. */
+export function clearKekCache(): void {
+  kekCache.clear();
+}
 
 export function kekFor(passphrase: string, saltB64: string): Promise<CryptoKey> {
   const k = `${saltB64}:${passphrase}`;

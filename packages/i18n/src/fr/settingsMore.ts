@@ -119,10 +119,15 @@ export const syncTab = {
   passDesc: "Règles, historique et catégories, chiffrés de bout en bout",
   passActive: "Active",
   passUnset: "Non définie",
+  // ⚠️ Ce que la synchronisation envoie, c'est le texte NON MASQUÉ de la conversation
+  // et les documents d'origine (`@openmasq/sync` `convSync.ts`) — chiffrés avec cette
+  // phrase avant l'envoi, puis stockés chiffrés sur le serveur. La version
+  // précédente disait « vos données masquées […] ne quittent jamais vos appareils »,
+  // ce qui était faux deux fois. Règle 8 : on ne promet que ce que le code fait.
   passNote: {
-    lead: "Vos données masquées sont chiffrées de bout en bout avec cette phrase ",
+    lead: "Vos conversations, vraies valeurs et documents joints compris, sont chiffrées avec cette phrase ",
     before: "avant",
-    mid: " d'être synchronisées — elle ne quitte jamais vos appareils et nous ne pouvons pas la récupérer. Saisissez la ",
+    mid: " d'atteindre le serveur, qui les conserve sans pouvoir les lire. Elle ne quitte jamais vos appareils et nous ne pouvons pas la récupérer. Saisissez la ",
     same: "même",
     tail: " phrase sur chacun de vos appareils pour qu'ils se synchronisent.",
   },
