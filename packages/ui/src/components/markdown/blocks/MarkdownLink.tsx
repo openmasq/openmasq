@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { useHost, type LinkPreviewData } from "../../../host";
 import { useLinkOpen } from "../../../containers/providers/linkOpen";
 import { realLinkHref } from "../../linkHref";
+import { hrefCarriesVaultValue } from "../logic/hrefCarriesVault";
 import { LinkPreview, LinkPreviewSkeleton } from "../../LinkPreview";
 import { LinkOpenMenu } from "../../LinkOpenMenu";
 import { InTableContext, MarkdownDocContext } from "../context";
@@ -46,7 +47,7 @@ export function MarkdownLink({ previewEnabled: previewProp, ...props }: any) {
   const { vault } = useContext(MarkdownDocContext);
   const href: string | undefined = realLinkHref(props.href, vault);
   const isHttp = typeof href === "string" && /^https?:\/\//i.test(href);
-  // ⚠️ SECURITY — a link whose href carried a VAULT VALUE is never auto-previewed.
+  // ⚠️ SECURITY — a link whose href carries a VAULT VALUE is never auto-previewed.
   // `realLinkHref` restores the real value so a CLICK reaches the right page (a user
   // action, and root rule 11's outward-real). But the preview fetch is AUTOMATIC: the
   // model only ever holds fakes, so an injected page can make it emit
@@ -55,9 +56,16 @@ export function MarkdownLink({ previewEnabled: previewProp, ...props }: any) {
   // click. `safeFetch` blocks private hosts but has no public-host allow-list, so the
   // destination is attacker-chosen. Rule 11's outward-real covers what the USER or the
   // model DISPATCHES; an automatic background fetch is neither, so here we do withhold
-  // the material. Pinned by `MarkdownLink.preview.test.ts`.
-  const hrefCarriesVaultValue = href !== props.href;
-  const previewEnabled = previewProp && !inTable && !hrefCarriesVaultValue;
+  // the material.
+  //
+  // The question asked is about the RESOLVED href — "does it contain a real value?" —
+  // and NOT « did un-redacting change it? », which was the previous test and only ever
+  // caught the encoded case: the reply is already un-redacted as plain text before
+  // markdown parses it, so an UNENCODED fake arrives already substituted and the two
+  // hrefs are equal. Same helper guards `MarkdownImage`'s auto-load, which had no gate
+  // at all. Pinned by `MarkdownLink.preview.test.tsx` + `../logic/hrefCarriesVault.ts`.
+  const carriesVault = hrefCarriesVaultValue(href, vault);
+  const previewEnabled = previewProp && !inTable && !carriesVault;
   // Seed from the session cache so a remount (Markdown re-parsing each streamed
   // chunk) shows the cached card immediately — no flicker, no re-fetch.
   const [preview, setPreview] = useState<LinkPreviewData | null>(() =>

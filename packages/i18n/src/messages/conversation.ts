@@ -114,6 +114,12 @@ export interface ConversationMessages {
     autoRoutedTip: string;
     quotaTip: string;
     reasoning: string;
+    /** An image in a reply whose URL carries a REAL vault value is NOT loaded on sight:
+     *  the fetch alone would hand that value to whoever serves the URL, and the model
+     *  only holds fakes, so a URL like that is something an injected page dictated.
+     *  The placeholder says why; loading it is the user's own click. */
+    imageWithheld: string;
+    imageWithheldLoad: string;
   };
 
   /** The tool-call trace card: one row per call, its status words. */

@@ -123,6 +123,8 @@ export const conversation = {
       "Mode Auto : le modèle de cette réponse a été choisi automatiquement selon la tâche.",
     quotaTip: "Quota du fournisseur de ce modèle",
     reasoning: "Réflexion",
+    imageWithheld: "Image retenue — elle contiendrait une valeur masquée",
+    imageWithheldLoad: "Charger",
   },
 
   trace: {

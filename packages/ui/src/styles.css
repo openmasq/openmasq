@@ -9926,6 +9926,33 @@ body.resizing-split {
 .md-img.is-failed {
   display: none;
 }
+/* An image whose URL carries a REAL vault value is NOT fetched on sight — the fetch
+   alone hands that value to whoever serves the URL (see `blocks/MarkdownImage.tsx`).
+   The shell keeps the same slot; the click inside it is what loads the image. */
+.md-img-withheld {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 7px 11px;
+  border: 1px dashed var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+.md-img-withheld:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.md-img-withheld b {
+  color: var(--brand);
+  font-weight: 600;
+}
 @keyframes md-img-shimmer {
   0% {
     background-position: 100% 0;

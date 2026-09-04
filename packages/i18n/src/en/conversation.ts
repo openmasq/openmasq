@@ -122,6 +122,8 @@ export const conversation = {
       "Auto mode: the model for this reply was chosen automatically, based on the task.",
     quotaTip: "This model's provider quota",
     reasoning: "Reasoning",
+    imageWithheld: "Image withheld — it would carry a masked value",
+    imageWithheldLoad: "Load",
   },
 
   trace: {
