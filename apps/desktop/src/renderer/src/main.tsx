@@ -11,6 +11,7 @@ import {
   captureEvent,
   setAnalyticsSuspended,
   setStableIdSource,
+  USAGE_EVENTS,
   applyPersistedTheme,
   type Host,
   type TrackEvent,
@@ -76,6 +77,8 @@ configureAnalytics({
   env: BUILD_ENV,
   runtimeEnv: RUNTIME_ENV,
   appVersion: APP_VERSION,
+  tier: BUILD_ENV === "local" ? "usage" : "full",
+  usageEvents: USAGE_EVENTS, // a package built outside CI reports usage only (`@openmasq/ui` analytics/tier.ts)
   // Logs every event (sent / skipped + reason) in dev; VITE_POSTHOG_DEBUG=1 also opens it on a package.
   debug: ANALYTICS_DEBUG,
 });
@@ -186,7 +189,10 @@ const host: Host = {
   // Live OpenRouter model catalogue. Guarded so an un-restarted preload (no `models`
   // namespace) degrades to the static registry rather than throwing.
   models: window.openmasq.models
-    ? { listOpenRouter: () => window.openmasq.models.listOpenRouter(), listLocal: (u) => window.openmasq.models.listLocal?.(u) ?? Promise.resolve([]) }
+    ? {
+        listOpenRouter: () => window.openmasq.models.listOpenRouter(),
+        listLocal: (u) => window.openmasq.models.listLocal?.(u) ?? Promise.resolve([]),
+      }
     : undefined,
   // Auto-update controls (electron-updater ↔ the apps/updates Worker feed).
   // ⚠️ Two conditions: a feed provided at build time (otherwise there's NOTHING to query — no
@@ -292,11 +298,19 @@ const host: Host = {
     ? (baseUrl) => window.openmasq.probeLocalEndpoint!(baseUrl)
     : undefined,
   // Same un-restarted-preload guard: absent ⇒ `claude-cli` isn't offered (fail-closed).
-  probeClaudeCli: window.openmasq.probeClaudeCli ? () => window.openmasq.probeClaudeCli!() : undefined,
+  probeClaudeCli: window.openmasq.probeClaudeCli
+    ? () => window.openmasq.probeClaudeCli!()
+    : undefined,
   probeCodexCli: window.openmasq.probeCodexCli ? () => window.openmasq.probeCodexCli!() : undefined,
-  probeAntigravityCli: window.openmasq.probeAntigravityCli ? () => window.openmasq.probeAntigravityCli!() : undefined,
-  readSubscriptionAccount: window.openmasq.readSubscriptionAccount ? (cli) => window.openmasq.readSubscriptionAccount!(cli) : undefined,
-  setSubscriptionEnabled: window.openmasq.setSubscriptionEnabled ? (cli, on) => window.openmasq.setSubscriptionEnabled!(cli, on) : undefined,
+  probeAntigravityCli: window.openmasq.probeAntigravityCli
+    ? () => window.openmasq.probeAntigravityCli!()
+    : undefined,
+  readSubscriptionAccount: window.openmasq.readSubscriptionAccount
+    ? (cli) => window.openmasq.readSubscriptionAccount!(cli)
+    : undefined,
+  setSubscriptionEnabled: window.openmasq.setSubscriptionEnabled
+    ? (cli, on) => window.openmasq.setSubscriptionEnabled!(cli, on)
+    : undefined,
   completeTools: (payload) => window.openmasq.completeTools(payload) as any,
   // STREAMING tool turn (assistant text token-by-token). Optional-chained: an
   // un-restarted dev preload without it → the agentic loop falls back to the

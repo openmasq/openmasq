@@ -19,10 +19,10 @@ import { resolveEnvironment, sentryBeforeSend } from "./policy";
  * name, a message excerpt. And `contextLines` joins the source code.
  */
 export function initSentryRenderer(): void {
-  // The renderer-side counterpart of main's `app.isPackaged` guard: `import.meta.env.DEV` is
-  // true under `electron-vite dev` and false in any BUILT bundle — it's the same
-  // boundary, expressed with what this process can see. Same escape hatch, in `VITE_`
-  // since `process.env` doesn't exist here.
+  // The renderer-side counterpart of main's `gate.ts`: `import.meta.env.DEV` is true under
+  // `electron-vite dev` and false in any BUILT bundle — the same « dev reports nothing »
+  // boundary, expressed with what this process can see. Same valve, in `VITE_` since
+  // `process.env` doesn't exist here: `VITE_SENTRY_DEV=1` reopens it on one machine.
   if (import.meta.env.DEV && import.meta.env.VITE_SENTRY_DEV !== "1") return;
   const channel = import.meta.env.VITE_UPDATES_CHANNEL || "";
   Sentry.init({

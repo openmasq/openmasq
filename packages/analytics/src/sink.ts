@@ -20,6 +20,9 @@ interface SinkConfig {
   runtimeEnv?: string;
   /** Stamped on every event's `properties.app_version`. */
   appVersion?: string;
+  /** `usage` = only `usageEvents` leave, and no `$exception` (`types.ts`). */
+  tier?: "full" | "usage";
+  usageEvents?: ReadonlySet<string>;
 }
 
 /** Build the transport (relay-or-direct PostHog) with the injected id source. */
@@ -124,6 +127,8 @@ export function createSink(options: SinkOptions): Sink {
         env: opts.env,
         runtimeEnv: opts.runtimeEnv,
         appVersion: opts.appVersion,
+        tier: opts.tier,
+        usageEvents: opts.usageEvents,
       };
       log("configured", "analytics", relayUrl ? `relay ${relayUrl}` : `direct ${config.apiHost}`);
     } else {
@@ -164,6 +169,8 @@ export function createSink(options: SinkOptions): Sink {
       if (dntEnabled()) return log("skip", event.name, "Do-Not-Track / GPC enabled");
       if (!config?.allowLocalhost && isLoopbackHost())
         return log("skip", event.name, "hôte local (développement)");
+      if (config?.tier === "usage" && !config.usageEvents?.has(event.name))
+        return log("skip", event.name, "build hors CI : usage seulement");
       log("send", event.name, event.props);
       const cfg = config;
       if (!cfg) return;
@@ -216,6 +223,7 @@ export function createSink(options: SinkOptions): Sink {
     if (dntEnabled()) return log("skip", "$exception", "Do-Not-Track / GPC enabled");
     if (!config?.allowLocalhost && isLoopbackHost())
       return log("skip", "$exception", "hôte local (développement)");
+    if (config?.tier === "usage") return log("skip", "$exception", "build hors CI : usage seulement");
     // Drop transient/operational failures (offline fetch, token-refresh) — they're
     // not bugs and flooded the channel with non-actionable noise.
     if (isOperationalError(e)) return log("skip", "$exception", "operational/transient");

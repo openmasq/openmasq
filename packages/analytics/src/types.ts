@@ -103,6 +103,16 @@ export interface ConfigureOptions {
   runtimeEnv?: string;
   /** App version stamped on EVERY event's `properties.app_version`. Not sensitive. */
   appVersion?: string;
+  /**
+   * How much this build may report. `full` (default) — every declared event and the
+   * `$exception` channel. `usage` — ONLY the names in `usageEvents`, and NO `$exception`:
+   * a build packaged outside the CI runs code that may differ from any release, so its
+   * diagnostics would be read as product facts; its usage is real. The set is the
+   * caller's (its vocabulary knows which event is which — `@openmasq/ui` `analytics/tier.ts`),
+   * an ALLOW-list: a `usage` tier with no set lets nothing through.
+   */
+  tier?: "full" | "usage";
+  usageEvents?: ReadonlySet<string>;
 }
 
 /** The transport half: `{ configureAnalytics, setAnalyticsConsent, sink }`. */

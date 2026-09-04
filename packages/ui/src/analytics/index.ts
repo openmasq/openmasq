@@ -14,6 +14,7 @@ export type {
 export { sanitize, bucket } from "./sanitize";
 export { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, analyticsDistinctId, captureError } from "./posthog";
 export type { ErrorReport } from "@openmasq/analytics";
+export { EVENT_TIER, USAGE_EVENTS, type EventTier } from "./tier";
 
 /**
  * Capture a typed event: allow-list + bucket it, then hand it to the sink (which

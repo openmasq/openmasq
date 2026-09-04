@@ -24,6 +24,59 @@ function wire(hostname: string | null, allowLocalhost?: boolean) {
   return { s, fetchFn };
 }
 
+describe("niveau `usage` — un build empaqueté hors CI ne rapporte que l'usage", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  function wireTier(tier: "full" | "usage" | undefined) {
+    const fetchFn = vi.fn(async () => ({ ok: true }));
+    vi.stubGlobal("fetch", fetchFn);
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("location", undefined); // the packaged desktop's `file://`
+    const s = createSink({ getAnonId: () => "anon-x", defaultSource: "test" });
+    s.configureAnalytics({ key: "phc_test", tier, usageEvents: new Set(["app_open"]) });
+    s.setAnalyticsConsent(true);
+    return { s, fetchFn };
+  }
+
+  it("laisse passer un événement d'usage, retient un diagnostic", async () => {
+    const { s, fetchFn } = wireTier("usage");
+    s.sink({ name: "model_latency", props: {} });
+    await flush();
+    expect(fetchFn).not.toHaveBeenCalled();
+    s.sink({ name: "app_open", props: {} });
+    await flush();
+    expect(fetchFn).toHaveBeenCalledOnce();
+  });
+
+  it("retient le canal `$exception` entier", async () => {
+    const { s, fetchFn } = wireTier("usage");
+    s.captureError({ scope: "db", code: "open", name: "Error", message: "boom" });
+    await flush();
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("un niveau `usage` SANS liste ne laisse rien passer — allow-list, jamais deny-list", async () => {
+    const fetchFn = vi.fn(async () => ({ ok: true }));
+    vi.stubGlobal("fetch", fetchFn);
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("location", undefined);
+    const s = createSink({ getAnonId: () => "anon-x", defaultSource: "test" });
+    s.configureAnalytics({ key: "phc_test", tier: "usage" });
+    s.setAnalyticsConsent(true);
+    s.sink({ name: "app_open", props: {} });
+    await flush();
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("le niveau `full` (défaut) laisse tout passer, `$exception` compris", async () => {
+    const { s, fetchFn } = wireTier(undefined);
+    s.sink({ name: "model_latency", props: {} });
+    s.captureError({ scope: "db", code: "open", name: "Error", message: "boom" });
+    await flush();
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("hôte local ⇒ rien ne part", () => {
   afterEach(() => vi.unstubAllGlobals());
 

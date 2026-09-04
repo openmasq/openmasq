@@ -297,4 +297,4 @@ export function sentryBeforeSend(event: RawEvent | null | undefined): Record<str
 // `event.process`: set by the Electron SDK on a RELAYED event (renderer→main,
 // child) — without it, a renderer event arrived tagged `process: app` (main's
 // scope, applied to the relay) and the faulty process was unreadable.
-const ALLOWED_TAGS = new Set(["process", "channel", "packaged", "scope", "code", "event.process"]);
+const ALLOWED_TAGS = new Set(["process", "channel", "packaged", "build", "scope", "code", "event.process"]);

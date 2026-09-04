@@ -1,5 +1,6 @@
 import { app } from "electron";
 import * as Sentry from "@sentry/electron/main";
+import { buildKind, sentryEnabled } from "./gate";
 import { resolveEnvironment, sentryBeforeSend, SENTRY_DSN } from "./policy";
 
 /**
@@ -23,15 +24,14 @@ import { resolveEnvironment, sentryBeforeSend, SENTRY_DSN } from "./policy";
  * a chatty default has nothing to re-neutralize: it doesn't get in.
  */
 export function initSentryMain(mode: "app" | "agent-browser" | "playwright-mcp", packaged: boolean): void {
-  // An UNPACKAGED app reports too (product decision, 01/09/2026: a developer's instance
-  // uses the common Sentry). History says why that is a trade-off, not a free lunch: dev
-  // events once made 983 of the board's 1710 (57%). They are therefore TAGGED
-  // `packaged:"false"` / `channel:"dev"` (below) so the board filters them, and
-  // `OPENMASQ_SENTRY_DEV=0` closes the valve on one machine without touching the DSN.
-  if (!packaged && process.env.OPENMASQ_SENTRY_DEV === "0") return;
+  // Only a DISTRIBUTED binary reports (product decision, 03/09/2026 — `gate.ts` says what
+  // each kind of build may report, and why `OPENMASQ_SENTRY_DEV=1` is a valve for one
+  // machine, never a default). The `build` tag below names the kind on every event.
+  const channel = process.env.VITE_UPDATES_CHANNEL || "";
+  const kind = buildKind(packaged, channel);
+  if (!sentryEnabled(kind, process.env.OPENMASQ_SENTRY_DEV)) return;
   // No DSN supplied at build time ⇒ no telemetry at all — never a default project.
   if (!SENTRY_DSN) return;
-  const channel = process.env.VITE_UPDATES_CHANNEL || "";
   Sentry.init({
     dsn: SENTRY_DSN,
     environment: resolveEnvironment(channel),
@@ -73,6 +73,6 @@ export function initSentryMain(mode: "app" | "agent-browser" | "playwright-mcp",
     sendDefaultPii: false,
     // No performance traces at all: they name routes and queries.
     tracesSampleRate: 0,
-    initialScope: { tags: { process: mode, channel: channel || "dev", packaged: String(packaged) } },
+    initialScope: { tags: { process: mode, channel: channel || "dev", packaged: String(packaged), build: kind } },
   });
 }

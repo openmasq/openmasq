@@ -28,11 +28,18 @@
  *   env-only: its flow also wants the client secret, and that one is an account's.
  *
  * **`pnpm dev` gets the SAME defaults** (product decision, 01/09/2026): a developer's
- * instance signs in on the common Supabase, counts in the common analytics, lists the
- * common releases and reports to the common Sentry — every event stamped
- * `env:"development"` / `packaged:false`, so the boards filter it, never lose it. There
- * is NO local value by default: a local stack is an explicit choice, made in a
- * gitignored `.env.development.local` (`apps/desktop/.env.development` says how).
+ * instance signs in on the common Supabase, counts in the common analytics (stamped
+ * `env:"development"`, refused by the sink on a loopback host) and lists the common
+ * releases. **Sentry is the exception (03/09/2026): only a DISTRIBUTED binary reports**
+ * (packaged AND a CI-baked channel) — the DSN is baked, the gate is `src/sentry/gate.ts`,
+ * and `OPENMASQ_SENTRY_DEV=1` is the one-machine valve. A package built OUTSIDE the CI
+ * (no channel baked) reports NO error anywhere — neither Sentry nor `$exception` — and
+ * only its USAGE to analytics (`tier:"usage"` — `@openmasq/ui` `analytics/tier.ts`),
+ * every event stamped `env:"local"`: its code may differ from any release. Sign-in is
+ * untouched by any of this: the Supabase session authenticates the analytics relay
+ * request whatever the tier, and identifies nothing in it. There is NO local value by
+ * default: a local stack is an explicit choice, made in a gitignored
+ * `.env.development.local` (`apps/desktop/.env.development` says how).
  *
  * ⚠️ Two things this file does NOT do, on purpose:
  * - it never names a BILLING-gated address (backend, gateway) — those stay empty unless a

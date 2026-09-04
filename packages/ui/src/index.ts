@@ -15,7 +15,7 @@ export * from "./state/billing/billing";
 export * from "./prompt/models";
 export { hueForProvider } from "./prompt/providerHue";
 export * from "./state/billing/usage";
-export { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, captureEvent, captureError, type TrackEvent, type ErrorReport } from "./analytics";
+export { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, captureEvent, captureError, USAGE_EVENTS, type TrackEvent, type ErrorReport } from "./analytics";
 // To call BEFORE the first render, like `configureAnalytics`: does this build have a
 // hosted service (gateway + accounts)? No ⇒ « included » models become
 // key-based models again and nothing promises an abonnement (`send/platformAccess.ts`).

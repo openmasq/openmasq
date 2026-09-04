@@ -312,7 +312,10 @@ identifier so a staged rollout can be held back). Their code is not in this
 repository. Each is one variable, and a variable set **empty** at build time
 (`OPENMASQ_SENTRY_DSN=`, `VITE_UPDATES_URL=`) opts out of it — a fork that ships under
 its own identity should empty the feed so it never updates itself with the brand's
-signed binary (`SELF_HOSTING.md`). `pnpm dev` applies them too.
+signed binary (`SELF_HOSTING.md`). `pnpm dev` applies them too — except error reports:
+only a binary the CI built and signed reports crashes; an unpackaged app or a package
+built outside the CI reports no error at all, only its usage to analytics (stamped
+`env:"local"`), since its code may differ from any release.
 
 Running a local stack is an explicit choice: the overrides go in a gitignored
 `apps/desktop/.env.development.local`, and the committed `.env.development` says which
