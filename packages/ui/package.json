@@ -61,6 +61,7 @@
     "@openmasq/connectors": "workspace:*",
     "@openmasq/credits": "workspace:*",
     "@types/d3-force": "^3.0.10",
+    "@types/hast": "^3.0.4",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "react": "^18.3.1",
