@@ -16,8 +16,12 @@ machine — and puts it back in the reply.**
 *Every screenshot on this page is a real run of the app, captured on a seeded profile
 with fixture data — never anyone's real conversation.*
 
-> **No binary is published yet.** You build it from source — two commands, see
-> [Getting started](#getting-started).
+> **Download, or build.** A signed and notarised **macOS** build (Apple silicon and
+> Intel) is at [openmasq.com/telecharger](https://openmasq.com/telecharger); it updates
+> itself. No Windows or Linux build is published. Building from source takes two commands,
+> see [Getting started](#getting-started) — and note that the downloadable build is this
+> repository's release workflow run *with* the brand's service addresses, so it carries the
+> account, sync and included-model features that a build from these sources alone leaves out.
 
 The model never sees the real thing. Values the engine detects are replaced with
 believable substitutes before any network call; the reply is restored locally from a
@@ -38,8 +42,8 @@ Identities are swapped; **figures stay real by default**, so a model can still c
 with them. The vault is stable across turns — the same value always maps to the same
 substitute, which is what makes the reply reversible.
 
-Models are reached with **your own API keys**, a local model, or a Claude Code / Codex CLI
-subscription. (The code also supports reaching them on the app's key through a metered
+Models are reached with **your own API keys**, a local model, or a Claude Code, Codex or
+Antigravity CLI subscription. (The code also supports reaching them on the app's key through a metered
 gateway; that service is not part of this build — see *Running it* below.)
 
 > **The redaction boundary governs what the *model* sees, and nothing else.** Connected
@@ -57,9 +61,11 @@ gateway; that service is not part of this build — see *Running it* below.)
   URLs, keys and secrets.
 - **Documents** — PDF, Office and image attachments are extracted (pdf.js, OCR via a
   vendored, hardened Tesseract + docTR) and redacted before they are sent.
-- **MCP connectors** — Gmail, Drive, Calendar, Slack, GitHub, Notion, Linear, Sentry,
-  PostHog, a local filesystem server, and an agent-driven browser. Tool calls leave
-  de-redacted and their results return redacted.
+- **MCP connectors** — Gmail, Google Drive, Docs, Sheets, Calendar, Outlook, OneDrive,
+  SharePoint, Teams, Slack and GitHub with on-device OAuth; some forty remote MCP servers
+  (Notion, Linear, Sentry, PostHog, Atlassian, Stripe, Supabase, Vercel…) and any you add;
+  a local filesystem server; an agent-driven browser. Tool calls leave de-redacted and
+  their results return redacted.
 - **A Python sandbox** — model-generated code runs against de-redacted data under an OS
   jail, out of the privileged process.
 - **Cross-device sync** — end-to-end encrypted; the server stores ciphertext only.
@@ -287,8 +293,9 @@ pnpm dev          # builds the packages, then launches the Electron app
 > testing the regex floor rather than the model. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 Then open **⚙ Settings** and paste a provider key (OpenAI, Anthropic, Google, Mistral,
-DeepSeek, OpenRouter, or any OpenAI-compatible endpoint — Ollama, LM Studio, vLLM), or
-point the app at a local model. Your Claude Code / Codex CLI subscription works too.
+DeepSeek, Scaleway, OpenRouter, or any OpenAI-compatible endpoint — Ollama, LM Studio,
+vLLM), or point the app at a local model. Your Claude Code, Codex or Antigravity CLI
+subscription works too.
 
 **This build has no backend.** No billing, no sync, no organizations, no included
 models: those services are not part of it — they live in a private repository, behind the
@@ -391,6 +398,14 @@ and shipped inside the app are listed in [`NOTICE`](NOTICE).
 **Une application de chat de bureau multi-modèles qui masque les données sensibles avant
 qu'elles ne quittent votre machine — et les rétablit dans la réponse.**
 
+> **Téléchargez, ou construisez.** Un build **macOS** signé et notarisé (Apple silicon et
+> Intel) est sur [openmasq.com/telecharger](https://openmasq.com/telecharger) ; il se met à
+> jour seul. Aucun build Windows ni Linux n'est publié. Construire depuis les sources tient
+> en deux commandes, voir [Démarrer](#démarrer) — et le build téléchargeable est le workflow
+> de publication de ce dépôt exécuté *avec* les adresses des services de la marque : il porte
+> le compte, la synchronisation et les modèles inclus qu'un build issu des seules sources
+> n'a pas.
+
 Le modèle ne voit jamais la vraie valeur. Ce que le moteur détecte est remplacé par un
 substitut crédible avant tout appel réseau ; la réponse est rétablie localement depuis un
 coffre propre à la conversation, si bien que l'échange se lit normalement de votre côté.
@@ -411,7 +426,7 @@ puisse encore calculer avec. Le coffre est stable d'un tour à l'autre — une m
 donne toujours le même substitut, et c'est ce qui rend la réponse réversible.
 
 Les modèles sont atteints avec **vos propres clés d'API**, un modèle local, ou un abonnement
-Claude Code / Codex CLI. (Le code sait aussi passer par la passerelle facturée de la marque ;
+Claude Code, Codex ou Antigravity CLI. (Le code sait aussi passer par la passerelle facturée de la marque ;
 ce service ne fait pas partie de ce build — voir *Le faire tourner* plus bas.)
 
 > **La frontière de masquage gouverne ce que le *modèle* voit, et rien d'autre.** Les
@@ -429,9 +444,11 @@ ce service ne fait pas partie de ce build — voir *Le faire tourner* plus bas.)
   secrets.
 - **Les documents** — les pièces jointes PDF, Office et images sont extraites (pdf.js, OCR
   par un Tesseract durci et vendorisé + docTR) puis masquées avant l'envoi.
-- **Les connecteurs MCP** — Gmail, Drive, Agenda, Slack, GitHub, Notion, Linear, Sentry,
-  PostHog, un serveur de fichiers local et un navigateur piloté par l'agent. Les appels
-  d'outils partent démasqués et leurs résultats reviennent masqués.
+- **Les connecteurs MCP** — Gmail, Google Drive, Docs, Sheets, Agenda, Outlook, OneDrive,
+  SharePoint, Teams, Slack et GitHub avec OAuth sur l'appareil ; une quarantaine de serveurs
+  MCP distants (Notion, Linear, Sentry, PostHog, Atlassian, Stripe, Supabase, Vercel…) et
+  ceux que vous ajoutez ; un serveur de fichiers local ; un navigateur piloté par l'agent.
+  Les appels d'outils partent démasqués et leurs résultats reviennent masqués.
 - **Un bac à sable Python** — le code écrit par le modèle s'exécute sur des données
   démasquées, sous une prison système, hors du processus privilégié.
 - **La synchronisation entre appareils** — chiffrée de bout en bout ; le serveur ne stocke
@@ -544,7 +561,7 @@ apps/
                  (ce n'est PAS le backend : le côté serveur vit dans un autre dépôt)
 packages/
   redact/        Le moteur de masquage (pur, couvert par ses tests)
-  ui/            Toute l'interface React + le store + le design system (4 thèmes)
+  ui/            Toute l'interface React + le store + le design system (clair + sombre)
   llm/           Les clients de fournisseurs, le registre de modèles, le SSE, les outils
   mcp/           Client MCP masquant · connectors/ outils MCP à OAuth sur l'appareil
   catalog/       Les listes gouvernables à une seule maison (modèles, connecteurs, catégories)
@@ -573,9 +590,9 @@ pnpm dev          # construit les paquets, puis lance l'application Electron
 > Voir [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 Ouvrez ensuite **⚙ Réglages** et collez une clé de fournisseur (OpenAI, Anthropic, Google,
-Mistral, DeepSeek, OpenRouter, ou n'importe quel point d'accès compatible OpenAI — Ollama,
-LM Studio, vLLM), ou pointez l'app sur un modèle local. Votre abonnement Claude Code /
-Codex CLI fonctionne aussi.
+Mistral, DeepSeek, Scaleway, OpenRouter, ou n'importe quel point d'accès compatible OpenAI —
+Ollama, LM Studio, vLLM), ou pointez l'app sur un modèle local. Votre abonnement Claude Code,
+Codex ou Antigravity CLI fonctionne aussi.
 
 **Ce build n'a pas de backend.** Ni facturation, ni synchronisation, ni organisations, ni
 modèles inclus : ces services n'en font pas partie — ils vivent dans un dépôt privé,
@@ -602,7 +619,10 @@ progressif puisse être retenu). Leur code n'est pas dans ce dépôt. Chacun tie
 variable, et une variable posée **vide** au build (`OPENMASQ_SENTRY_DSN=`,
 `VITE_UPDATES_URL=`) le débranche — un fork qui publie sous sa propre identité devrait vider
 le flux, pour ne jamais se mettre à jour avec le binaire signé de la marque
-(`SELF_HOSTING.md`). `pnpm dev` les applique aussi.
+(`SELF_HOSTING.md`). `pnpm dev` les applique aussi — sauf les rapports d'erreur : seul un
+binaire construit et signé par la CI signale ses plantages ; une app non empaquetée, ou un
+paquet construit hors CI, ne signale aucune erreur, seulement son usage à l'analytics
+(estampillé `env:"local"`), puisque son code peut différer de toute version publiée.
 
 Faire tourner une pile locale est un choix explicite : les surcharges vont dans un
 `apps/desktop/.env.development.local` ignoré par git, et le `.env.development` versionné dit
