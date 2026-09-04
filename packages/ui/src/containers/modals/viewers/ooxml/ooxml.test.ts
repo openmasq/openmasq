@@ -58,6 +58,59 @@ describe("zip — part path resolution", () => {
   });
 });
 
+/**
+ * `unzipSync` inflates every member before anything can look at a size, so the ARCHIVE
+ * decides the allocation. The upload gate refuses a bomb before a parser ever sees it,
+ * but this viewer is a second door onto the same inflater — it opens bytes read back out
+ * of the store, which a file can reach by routes the upload gate never covered. It runs
+ * the ZIP half of that gate itself now, from the same implementation.
+ */
+describe("zip — l'ouverture se défend elle-même contre une bombe", () => {
+  /** A ZIP whose CENTRAL DIRECTORY declares `uncompressed` bytes with no payload behind
+   *  it — the classic bomb shape, and the one the check reads (nothing is decompressed
+   *  to find it out). Same fixture shape as `@openmasq/redact` `guard.test.ts`. */
+  function zipDeclaring(uncompressed: number, compressed = 100): Uint8Array {
+    const local = new Uint8Array(30);
+    new DataView(local.buffer).setUint32(0, 0x04034b50, true);
+    const name = new Uint8Array([0x78]); // "x"
+    const cd = new Uint8Array(46 + name.length);
+    const dv = new DataView(cd.buffer);
+    dv.setUint32(0, 0x02014b50, true);
+    dv.setUint32(20, compressed, true);
+    dv.setUint32(24, uncompressed >>> 0, true);
+    dv.setUint16(28, name.length, true);
+    cd.set(name, 46);
+    const eocd = new Uint8Array(22);
+    const edv = new DataView(eocd.buffer);
+    edv.setUint32(0, 0x06054b50, true);
+    edv.setUint16(8, 1, true); // entries on this disk
+    edv.setUint16(10, 1, true); // entries total
+    edv.setUint32(12, cd.length, true);
+    edv.setUint32(16, local.length, true); // central-directory offset
+    const out = new Uint8Array(local.length + cd.length + eocd.length);
+    out.set(local, 0);
+    out.set(cd, local.length);
+    out.set(eocd, local.length + cd.length);
+    return out;
+  }
+
+  it("REFUSE une archive qui déclare des gigaoctets décompressés", async () => {
+    // Throwing is this module's documented contract: `parseDocx`/`parsePptx` surface
+    // « document illisible » plutôt qu'une page vide.
+    await expect(openOoxml(zipDeclaring(400 * 1024 * 1024))).rejects.toThrow(/anti-bombe/i);
+  });
+
+  it("REFUSE un ratio de compression aberrant", async () => {
+    await expect(openOoxml(zipDeclaring(50 * 1024 * 1024, 1000))).rejects.toThrow(/anti-bombe/i);
+  });
+
+  it("ouvre normalement un paquet OOXML ordinaire", async () => {
+    const { zipSync, strToU8 } = await import("fflate");
+    const pkg = await openOoxml(zipSync({ "word/document.xml": strToU8("<a/>") }));
+    expect(pkg.text("word/document.xml")).toBe("<a/>");
+  });
+});
+
 describe("zip — rels", () => {
   const build = async (relsXml: string) => {
     const { zipSync, strToU8 } = await import("fflate");

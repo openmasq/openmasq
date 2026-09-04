@@ -76,19 +76,36 @@ async function walk(entry: FsEntry, prefix: string, out: DroppedFile[], depth: n
   }
 }
 
-/** A `.zip` (the archive uploaded to claude.ai has the same shape as a folder). */
+/**
+ * A `.zip` (the archive uploaded to claude.ai has the same shape as a folder).
+ *
+ * ⚠️ The size bounds are enforced by fflate's `filter`, i.e. BEFORE the entry is
+ * inflated — never on the inflated bytes. `unzipSync(bytes)` decompresses every member
+ * up front, so checking `data.length` afterwards let a dropped archive allocate
+ * gigabytes (a zip bomb, or plainly a 2 GB video someone zipped) and freeze the app
+ * before a single cap was consulted. The filter is handed each entry's DECLARED
+ * `originalSize` from the central directory, which is exactly what the pre-parse guard
+ * on the upload path reads too (`@openmasq/redact` `documents/guard.ts`).
+ *
+ * The filter also runs for the entries it REFUSES, which is how a non-text member still
+ * gets counted as a sibling — it is listed, never read (same rule as the folder walk).
+ */
 async function fromZip(bytes: Uint8Array): Promise<DroppedFile[]> {
   const { unzipSync, strFromU8 } = await import("fflate");
-  const files = unzipSync(bytes);
+  const listed: string[] = [];
+  const files = unzipSync(bytes, {
+    filter: (f) => {
+      listed.push(f.name);
+      return TEXT.test(f.name) && f.originalSize <= MAX_BYTES;
+    },
+  });
   const out: DroppedFile[] = [];
-  for (const [path, data] of Object.entries(files)) {
+  for (const path of listed) {
     if (out.length >= MAX_FILES || path.endsWith("/")) continue;
-    if (!TEXT.test(path)) {
-      out.push({ path, text: "" });
-      continue;
-    }
-    if (data.length > MAX_BYTES) continue;
-    out.push({ path, text: strFromU8(data) });
+    const data = files[path];
+    // Absent ⇒ refused by the filter (not text, or over the cap): it counts as an
+    // EXTRA without having been read, exactly like a binary in a dropped folder.
+    out.push({ path, text: data ? strFromU8(data) : "" });
   }
   return out;
 }

@@ -1,3 +1,4 @@
+import { checkZipBomb } from "@openmasq/redact";
 import { parseXml, attr, REL } from "./xml";
 
 // An OOXML package (docx/pptx/xlsx are all the same shape): a zip of XML parts plus
@@ -46,6 +47,16 @@ export interface OoxmlPackage {
 }
 
 export async function openOoxml(bytes: Uint8Array): Promise<OoxmlPackage> {
+  // ⚠️ `unzipSync` INFLATES every member up front, so the archive decides the allocation.
+  // The upload path refuses a bomb before any parser sees it (`@openmasq/redact`
+  // `guardUpload`), but this viewer is a SECOND door onto the same inflater: it opens
+  // bytes read back out of the store, and a file can reach the store by routes the
+  // upload gate never covered (a re-attach, an older row, an MCP tool result). A viewer
+  // that defends itself is not redundant with a gate it does not sit behind — so run the
+  // ZIP half of the very same check here, from the same implementation. The throw is the
+  // documented contract of this module (`parseDocx`/`parsePptx` surface « illisible »).
+  const bomb = checkZipBomb(bytes);
+  if (bomb) throw new Error(bomb);
   const { unzipSync, strFromU8 } = await import("fflate");
   const zip = unzipSync(bytes);
   const relsCache = new Map<string, Map<string, string>>();

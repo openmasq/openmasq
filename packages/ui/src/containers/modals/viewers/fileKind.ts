@@ -8,7 +8,18 @@ const TEXT_EXT =
   /\.(txt|json|log|xml|ya?ml|html?|css|js|ts|tsx|jsx|py|java|c|h|cpp|rb|go|rs|sh|sql|ini|toml|env)$/i;
 const MD_MIME = /^text\/(x-)?markdown/i;
 const MD_EXT = /\.(md|markdown|mdown|mkd|mdx)$/i;
-const IMG = /^image\/|\.(png|jpe?g|webp|bmp|tiff?|gif)$/i;
+/**
+ * ⚠️ The mime half is the RASTER set, not `^image/`, and the two halves must stay in
+ * agreement: `image/svg+xml` is not a picture, it is a document format with its own
+ * script and fetch surface, and this classification decides whether the viewer hands the
+ * bytes to an `<img>`. The extension half never listed `svg`; the mime half did, so a
+ * file arriving with a mime (a drop, a tool result — both attacker-reachable) took the
+ * image branch while the very same file named `x.svg` took the inert one. Narrowed to
+ * match the two places that already refuse SVG for exactly this reason: `ooxml/media.ts`
+ * (an allow-list by magic bytes, no `image/svg+xml` entry) and the favicon path.
+ * An SVG now falls through to « other » — offered for download, never rendered.
+ */
+const IMG = /^image\/(png|jpeg|gif|webp|bmp|tiff)\b|\.(png|jpe?g|webp|bmp|tiff?|gif)$/i;
 const SHEET_MIME = /spreadsheetml|ms-excel|opendocument\.spreadsheet|^text\/csv/i;
 const SHEET_EXT = /\.(xlsx|xlsm|xls|ods|csv|tsv)$/i;
 const DOCX = /wordprocessingml\.document|\.docx$/i;
