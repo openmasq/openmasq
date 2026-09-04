@@ -33,6 +33,30 @@ export const UPDATES_CONFIGURED = !!UPDATES_URL;
 // `updates.json` always wins over the baked value.
 export const DEFAULT_CHANNEL = process.env.VITE_UPDATES_CHANNEL || "desktop-stable";
 
+/** The desktop channels that exist server-side. An ALLOW-list, because the target
+ *  comes from the renderer: an unknown value used to be persisted verbatim and
+ *  pointed the feed at `<worker>/desktop/<whatever>`.
+ *  The PUBLIC names (beta/stable — single artifact: the channel says which BUILDS we
+ *  receive, not which environment) AND the historical names, which existing installs
+ *  still persist — the Worker aliases both to the same lines
+ *  (`apps/updates/src/lib/desktopChannels.ts`). */
+const KNOWN_CHANNELS = new Set([
+  "desktop-beta",
+  "desktop-stable",
+  "desktop-staging",
+  "desktop-production",
+]);
+
+/** …plus whatever channel THIS build was baked with. A dry-run build ships a
+ *  channel that deliberately doesn't exist server-side (`desktop-winci`), and it
+ *  must still be able to keep — and return to — its own.
+ *
+ *  It lives HERE rather than beside `classifyChannelChange` because BOTH ways a channel
+ *  enters this process must pass it: the renderer's `updates:set-channel`, and the value
+ *  read back out of `updates.json` at every launch (see `loadConfig`). */
+export const channelAllowed = (c: string): boolean =>
+  KNOWN_CHANNELS.has(c) || c === DEFAULT_CHANNEL;
+
 // Channels that predate the current naming. "latest" predates channels entirely; the two
 // env-shaped names (desktop-staging/desktop-production) predate the beta/stable rename and
 // are STILL SERVED by the Worker as aliases, so they are NOT listed here — an install that
@@ -77,8 +101,16 @@ export function loadConfig(): UpdatesConfig {
     const raw = JSON.parse(readFileSync(configPath(), "utf8")) as Partial<UpdatesConfig>;
     const persisted = typeof raw.channel === "string" && raw.channel ? raw.channel : "";
     const cfg: UpdatesConfig = {
-      // A stale legacy channel ("latest") falls back to this build's baked channel.
-      channel: persisted && !LEGACY_CHANNELS.has(persisted) ? persisted : DEFAULT_CHANNEL,
+      // A stale legacy channel ("latest") falls back to this build's baked channel — and so
+      // does anything the ALLOW-LIST doesn't know. `updates.json` sits in `userData`, a plain
+      // editable file: without this, any string in it was persisted verbatim and interpolated
+      // into the update feed PATH by `feedBase`, i.e. it chose which manifest this signed app
+      // asks for its next binary. The IPC path has gated on `channelAllowed` all along; the
+      // persisted path is the same value arriving by another door (rule 7).
+      channel:
+        persisted && !LEGACY_CHANNELS.has(persisted) && channelAllowed(persisted)
+          ? persisted
+          : DEFAULT_CHANNEL,
       installId: typeof raw.installId === "string" && raw.installId ? raw.installId : randomUUID(),
       ...(typeof raw.lastVersion === "string" && raw.lastVersion ? { lastVersion: raw.lastVersion } : {}),
       ...(typeof raw.pendingInstall === "string" && raw.pendingInstall

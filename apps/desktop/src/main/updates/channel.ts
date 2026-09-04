@@ -1,24 +1,16 @@
 import { app } from "electron";
-import { applyFeed, DEFAULT_CHANNEL, feedBase, getConfig, updateConfig } from "./config";
-
-/** The desktop channels that exist server-side. An ALLOW-list, because the target
- *  comes from the renderer: an unknown value used to be persisted verbatim and
- *  pointed the feed at `<worker>/desktop/<whatever>`.
- *  The PUBLIC names (beta/stable — single artifact: the channel says which BUILDS we
- *  receive, not which environment) AND the historical names, which existing installs
- *  still persist — the Worker aliases both to the same lines
- *  (`apps/updates/src/lib/desktopChannels.ts`). */
-const KNOWN_CHANNELS = new Set([
-    "desktop-beta",
-    "desktop-stable",
-    "desktop-staging",
-    "desktop-production",
-]);
-
-/** …plus whatever channel THIS build was baked with. A dry-run build ships a
- *  channel that deliberately doesn't exist server-side (`desktop-winci`), and it
- *  must still be able to keep — and return to — its own. */
-const channelAllowed = (c: string): boolean => KNOWN_CHANNELS.has(c) || c === DEFAULT_CHANNEL;
+// ⚠️ `channelAllowed` lives in `config.ts`, not here: the PERSISTED channel has to pass the
+// same allow-list, and `config.ts` is the lower layer (importing this one from there would
+// be a cycle). This module owns the DECISION about a change; that one owns what a channel
+// may be at all.
+import {
+    applyFeed,
+    channelAllowed,
+    DEFAULT_CHANNEL,
+    feedBase,
+    getConfig,
+    updateConfig,
+} from "./config";
 
 export type ChannelVerdict =
     | { kind: "refuse"; reason: "unknown_channel" }

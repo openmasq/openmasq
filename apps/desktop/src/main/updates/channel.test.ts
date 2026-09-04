@@ -10,8 +10,12 @@ const cfg = { channel: "desktop-production", installId: "inst-1" };
 const applyFeed = vi.fn();
 
 vi.mock("electron", () => ({ app: { isPackaged: true } }));
+// The allow-list itself moved to `config.ts`, so the PERSISTED channel passes it too
+// (`config.test.ts` covers that side); mirrored here against this file's baked channel.
+const KNOWN = new Set(["desktop-beta", "desktop-stable", "desktop-staging", "desktop-production"]);
 vi.mock("./config", () => ({
   DEFAULT_CHANNEL: "desktop-production",
+  channelAllowed: (c: string) => KNOWN.has(c) || c === "desktop-production",
   applyFeed: (...args: unknown[]) => applyFeed(...args),
   feedBase: (c: string) => `https://updates.test/desktop/${c}`,
   getConfig: () => cfg,
