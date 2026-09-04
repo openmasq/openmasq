@@ -27,6 +27,53 @@ const roamingAppData = (home: string): string =>
 const localAppData = (home: string): string =>
   process.env.LOCALAPPDATA || join(home, "AppData", "Local");
 
+/**
+ * AUTOSTART + SHELL-INIT locations — the paths that decide what runs NEXT, on every login
+ * or every terminal. They hold no credential, which is exactly why they were missing here,
+ * and it is the wrong reason: the two consumers of this set both hand a path to code that
+ * can WRITE (the fs connector's `write_file`, the Python jail), and both re-mask only KNOWN
+ * vault PII. One line appended to `~/.zshrc`, or one plist dropped in `~/Library/
+ * LaunchAgents`, converts a single injected tool call into persistent code execution as the
+ * user — strictly worse than reading any one credential, because it outlives the session
+ * and re-reads every credential above at leisure. `~/.local/bin` is the same shape by
+ * shadowing (a `python`/`git` earlier on PATH), and `~/.claude/settings.json` is one too:
+ * it declares hooks another agent runs.
+ *
+ * Returned as its own named set so a reviewer sees WHY these are here and not among the
+ * credential stores; the entries are folded into the dirs/files below, so both consumers
+ * get them (the file's whole premise: the two boundaries must mask the same set).
+ */
+function autostartDirs(home: string): string[] {
+  const h = (...p: string[]): string => join(home, ...p);
+  return [
+    h("Library", "LaunchAgents"), // macOS: a plist here is launched at every login
+    h(".config", "autostart"), // Linux/XDG: a .desktop here is started with the session
+    h(".config", "systemd", "user"), // Linux: a user unit, enabled and started at login
+    h(".local", "bin"), // early on PATH ⇒ shadows `python`, `git`, …
+    // Windows: a shortcut dropped here runs at every logon. Under Roaming, like PSReadLine.
+    join(roamingAppData(home), "Microsoft", "Windows", "Start Menu", "Programs", "Startup"),
+  ];
+}
+
+function shellInitFiles(home: string): string[] {
+  const h = (...p: string[]): string => join(home, ...p);
+  return [
+    // Every interactive shell sources one of these; between them they cover zsh (macOS's
+    // default), bash and fish, login and non-login.
+    h(".zshrc"), h(".zprofile"), h(".zshenv"),
+    h(".bashrc"), h(".bash_profile"), h(".profile"),
+    h(".config", "fish", "config.fish"),
+    // Declares hooks + permissions another agent on this machine executes.
+    h(".claude", "settings.json"),
+  ];
+}
+
+/** The autostart / shell-init set, flat — the named view of what the two lists below fold in. */
+export function autostartAndShellInitPaths(): string[] {
+  const home = app.getPath("home");
+  return [...autostartDirs(home), ...shellInitFiles(home)];
+}
+
 /** Home-relative credential DIRECTORIES to deny (macOS + Linux + Windows). */
 export function ambientSecretDirs(): string[] {
   const home = app.getPath("home");
@@ -77,6 +124,9 @@ export function ambientSecretDirs(): string[] {
     roam("Opera Software"),
     // Cloud/CLI stores that do NOT use the XDG dotfile layout on Windows.
     roam("gcloud"), roam("GitHub CLI"),
+    // ── PERSISTENCE ────────────────────────────────────────────────────────────
+    // Not credentials — what runs at the next login. See `autostartAndShellInitPaths`.
+    ...autostartDirs(home),
   ];
 }
 
@@ -93,6 +143,9 @@ export function ambientSecretFiles(): string[] {
     // pasted secrets included. It is the exact counterpart of the three histories above,
     // and it is the file an operator most often forgets.
     roam("Microsoft", "Windows", "PowerShell", "PSReadLine", "ConsoleHost_history.txt"),
+    // ── PERSISTENCE ────────────────────────────────────────────────────────────
+    // Not credentials — what runs in the next shell. See `autostartAndShellInitPaths`.
+    ...shellInitFiles(home),
   ];
 }
 

@@ -15,6 +15,7 @@ import {
   ambientSecretDirs,
   ambientSecretFiles,
   ambientSecretPaths,
+  autostartAndShellInitPaths,
   fsMcpDenyPaths,
 } from "./ambientSecrets";
 import { makeGrant } from "../fs/grant";
@@ -72,6 +73,49 @@ describe("ambient credential deny set", () => {
     // would create the second list rule 9 forbids.
     expect(ambientSecretDirs()).toContain(join(HOME, ".ssh"));
     expect(ambientSecretDirs()).toContain(join(HOME, ".aws"));
+  });
+
+  /* The gap: this set held only things worth READING, and nothing that decides what RUNS.
+     Both consumers hand a path to code that can WRITE, so one line appended to `~/.zshrc`
+     or one plist dropped in `~/Library/LaunchAgents` turns a single injected tool call into
+     persistent execution as the user — it outlives the session and then reads every
+     credential above at leisure. */
+  describe("autostart + shell-init (persistence, not credentials)", () => {
+    it("covers the per-OS autostart locations", () => {
+      const dirs = ambientSecretDirs();
+      expect(dirs).toContain(join(HOME, "Library", "LaunchAgents")); // macOS login items
+      expect(dirs).toContain(join(HOME, ".config", "autostart")); // XDG session start
+      expect(dirs).toContain(join(HOME, ".config", "systemd", "user")); // user units
+      expect(dirs).toContain(join(HOME, ".local", "bin")); // PATH shadowing
+      const roam = process.env.APPDATA || join(HOME, "AppData", "Roaming");
+      expect(dirs).toContain(
+        join(roam, "Microsoft", "Windows", "Start Menu", "Programs", "Startup"),
+      );
+    });
+
+    it("covers every shell's init file, login and non-login, plus the agent's settings", () => {
+      const files = ambientSecretFiles();
+      for (const f of [".zshrc", ".zprofile", ".zshenv", ".bashrc", ".bash_profile", ".profile"]) {
+        expect(files).toContain(join(HOME, f));
+      }
+      expect(files).toContain(join(HOME, ".config", "fish", "config.fish"));
+      expect(files).toContain(join(HOME, ".claude", "settings.json"));
+    });
+
+    /* The set is named on its own so a reviewer sees WHY it is here — but it must be FOLDED
+       IN, or only one of the two boundaries would carry it (this file's whole premise). */
+    it("is folded into BOTH lists, so the jail and the fs connector mask the same set", () => {
+      const flat = ambientSecretPaths();
+      for (const p of autostartAndShellInitPaths()) expect(flat).toContain(p);
+    });
+
+    it("a grant over HOME blocks ~/.zshrc and ~/Library/LaunchAgents", () => {
+      const g = makeGrant([HOME], fsMcpDenyPaths());
+      expect(() => g.resolve(join(HOME, ".zshrc"))).toThrow(/protégé|refusé/);
+      expect(() =>
+        g.resolve(join(HOME, "Library", "LaunchAgents", "com.evil.plist")),
+      ).toThrow(/protégé|refusé/);
+    });
   });
 
   it("the flat list is dirs ∪ files and excludes userData (each caller adds its own)", () => {
