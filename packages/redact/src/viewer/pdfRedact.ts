@@ -69,7 +69,18 @@ export async function renderRedactedPdf(
   const pdfjs: any = await import("pdfjs-dist");
   pdfjs.GlobalWorkerOptions.workerSrc = o.pdfWorkerSrc;
 
-  const doc = await pdfjs.getDocument({ data: new Uint8Array(o.bytes) }).promise;
+  // ⚠️ The bytes are an UNTRUSTED document (a drop, an attachment, a tool result), and the
+  // four other `getDocument` call sites (`documents/node.ts`, `documents/browser.ts` ×2,
+  // `ocr/pdf.ts`) already say so. `isEvalSupported` lets pdf.js compile font/colour
+  // programs from the file through `Function(…)` — a crafted PDF then chooses code that
+  // runs in the renderer, where the whole vault lives; `enableXfa` turns on the XFA
+  // sub-parser, a second, far less exercised format we never need to display. Both off,
+  // here too. Pinned by `pdfRedact.test.ts`, which reads EVERY call site.
+  const doc = await pdfjs.getDocument({
+    data: new Uint8Array(o.bytes),
+    isEvalSupported: false,
+    enableXfa: false,
+  }).promise;
   try {
   const total = doc.numPages;
   const pageCount = Math.min(total, maxPages);

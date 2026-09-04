@@ -3,6 +3,7 @@
 // ocr.ts (LOC cap): this file owns the pdf→raster plumbing; the engines, the router
 // and the traineddata pin logic stay in ocr.ts.
 import { OCR_LANGS, PAGE_BREAK, type OcrMeta } from "../documents/core";
+import { rasterScale } from "../documents/guard";
 import type { OcrLayerPage } from "../documents/geometry";
 import { ocrImageLayout } from "./ocr";
 
@@ -101,11 +102,29 @@ export async function ocrPdf(
   const out: string[] = [];
   const engines = new Set<string>();
   // Per-page word boxes + raster dims — the OCR half of the cross-layer alignment
-  // (`../documents/geometry`). Boxes are relative to THIS raster (scale-2 canvas).
+  // (`../documents/geometry`). Boxes are relative to THIS raster, whose scale is 2 unless
+  // the pixel ceiling clamped it (below) — hence the `width`/`height` carried per page.
   const layout: OcrLayerPage[] = [];
   for (let i = 1; i <= pages; i++) {
     const page = await doc.getPage(i);
-    const viewport = page.getViewport({ scale: 2 });
+    // ⚠️ The canvas is sized from the page's OWN geometry, which the file chooses: at a
+    // fixed scale 2 a 28 800×28 800 pt page (the format's maximum) asks for 3.3 GP —
+    // ~13 GB — and the process dies before OCR reads a character. Clamp the scale to the
+    // pixel ceiling; a page still over it at 1:1 is skipped with a marker, the same way a
+    // page past the page cap is (`../documents/guard.ts` `rasterScale`).
+    const base = page.getViewport({ scale: 1 });
+    const scale = rasterScale(base.width, base.height, 2);
+    if (scale === null) {
+      const marker = `[… page ${i} non océrisée : dimensions excessives]`;
+      out.push(marker);
+      // A placeholder entry, not a skipped one: `layout` is read BY PAGE INDEX
+      // (`../documents/geometry.ts`), so dropping it would shift every later page.
+      layout.push({ text: marker, words: [], width: 0, height: 0 });
+      tick(i);
+      page.cleanup?.();
+      continue;
+    }
+    const viewport = page.getViewport({ scale });
     const canvas = canvasMod.createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
     const ctx = canvas.getContext("2d");
     await page.render({ canvasContext: ctx, viewport }).promise;

@@ -16,7 +16,7 @@ import {
   type ExtractedFile,
   type RedactedDocument,
 } from "./core";
-import { MAX_PDF_PAGES } from "./guard";
+import { MAX_PDF_PAGES, rasterScale } from "./guard";
 import { reconstructPageText } from "./pdfLayout";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines } from "./core";
@@ -97,7 +97,18 @@ async function ocrPdf(
   const out: string[] = [];
   for (let i = 1; i <= pages; i++) {
     const page = await doc.getPage(i);
-    const viewport = page.getViewport({ scale: 2 });
+    // Same ceiling as the Node rasteriser (`../ocr/pdf.ts`, which states it in full): the
+    // canvas is sized from geometry the FILE chooses, so a scale fixed at 2 lets an
+    // absurd page allocate gigabytes here too — in the tab, this time.
+    const base = page.getViewport({ scale: 1 });
+    const scale = rasterScale(base.width, base.height, 2);
+    if (scale === null) {
+      out.push(`[… page ${i} non océrisée : dimensions excessives]`);
+      tick(i);
+      page.cleanup?.();
+      continue;
+    }
+    const viewport = page.getViewport({ scale });
     const canvas: any = new (globalThis as any).OffscreenCanvas(
       Math.ceil(viewport.width),
       Math.ceil(viewport.height),

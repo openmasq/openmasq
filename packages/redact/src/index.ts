@@ -116,3 +116,22 @@ export {
   type ChunkerOptions,
 } from "./local";
 export { NUMBER_TOKEN_INSTRUCTION, computeTokenFormulas } from "./numbers/formulas";
+// The pre-parse upload SAFETY gate. Pure and dependency-free, so it belongs on the pure
+// barrel: `documents/` owns the parsers, but the guard in front of them is needed by any
+// consumer about to hand untrusted bytes to an inflater or a decoder — including the
+// renderer's own OOXML viewer, which opens a zip without going through the upload path.
+export {
+  guardUpload,
+  checkZipBomb,
+  sniff,
+  rasterScale,
+  MAX_FILE_BYTES,
+  MAX_IMAGE_PIXELS,
+  MAX_RASTER_PIXELS,
+  MAX_ZIP_TOTAL_BYTES,
+  MAX_ZIP_RATIO,
+  MAX_ZIP_ENTRIES,
+  MAX_PDF_PAGES,
+  type Sniffed,
+  type SniffFamily,
+} from "./documents/guard";

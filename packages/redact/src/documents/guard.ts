@@ -22,9 +22,20 @@
 // All messages are user-facing FR (the codebase's convention), path-free.
 
 /** Hard ceiling on any single upload. Bytes past this never reach a parser. */
+import { IMAGE_FAMILIES, sniff, type SniffFamily, type Sniffed, u16le, u32le } from "./sniff";
+
+// Re-exported: the guard stays the one door to sniffing (split out for the LOC cap).
+export { sniff, type SniffFamily, type Sniffed };
+
 export const MAX_FILE_BYTES = 50 * 1024 * 1024; // 50 MiB
 /** A decoded image this many pixels would allocate ~4 bytes each (RGBA). */
 export const MAX_IMAGE_PIXELS = 40_000_000; // ~40 MP → ~160 MB decoded
+/** Same ceiling, reached from the other direction: a PDF page RASTERISED for OCR.
+ *  Nothing declares the size there — it is computed from the page's own MediaBox times
+ *  a fixed scale, i.e. from geometry the file chooses. A 28 800×28 800 pt page (the PDF
+ *  format's own maximum) at scale 2 asks for 3.3 GP, ~13 GB of canvas, and the process
+ *  dies before OCR reads a character. {@link rasterScale} is how a caller stays under it. */
+export const MAX_RASTER_PIXELS = 40_000_000; // ~40 MP → ~160 MB of canvas
 /** Total UNCOMPRESSED size a ZIP (docx/pptx/xlsx/ods) may declare. */
 export const MAX_ZIP_TOTAL_BYTES = 300 * 1024 * 1024; // 300 MiB
 /** Overall compression ratio (uncompressed / compressed) above which a ZIP is a bomb. */
@@ -34,89 +45,22 @@ export const MAX_ZIP_ENTRIES = 10_000;
 /** Page cap for PDF TEXT extraction (OCR is capped separately, lower). */
 export const MAX_PDF_PAGES = 500;
 
-/** Coarse content family sniffed from the leading bytes. */
-export type SniffFamily =
-  | "pdf"
-  | "zip" // docx / pptx / xlsx / ods (Office Open XML is a ZIP)
-  | "ole" // legacy .doc / .xls (OLE compound file)
-  | "png"
-  | "jpeg"
-  | "gif"
-  | "bmp"
-  | "tiff"
-  | "webp"
-  | "exe" // Mach-O / ELF / PE / shebang — never a document
-  | "unknown";
-
-export interface Sniffed {
-  family: SniffFamily;
-  /** Pixel dimensions when the header carries them (png/gif/bmp/jpeg). */
-  width?: number;
-  height?: number;
-}
-
-const IMAGE_FAMILIES: ReadonlySet<SniffFamily> = new Set(["png", "jpeg", "gif", "bmp", "tiff", "webp"]);
-
-const eq = (b: Uint8Array, off: number, sig: readonly number[]): boolean => {
-  if (off + sig.length > b.length) return false;
-  for (let i = 0; i < sig.length; i++) if (b[off + i] !== sig[i]) return false;
-  return true;
-};
-const u16be = (b: Uint8Array, o: number) => (b[o] << 8) | b[o + 1];
-const u16le = (b: Uint8Array, o: number) => b[o] | (b[o + 1] << 8);
-const u32be = (b: Uint8Array, o: number) => (b[o] * 0x1000000) + (b[o + 1] << 16) + (b[o + 2] << 8) + b[o + 3];
-const u32le = (b: Uint8Array, o: number) => b[o] + (b[o + 1] << 8) + (b[o + 2] << 16) + b[o + 3] * 0x1000000;
-
-/** JPEG width/height: walk the marker segments to the first Start-Of-Frame. */
-function jpegDims(b: Uint8Array): { width: number; height: number } | undefined {
-  let o = 2; // past SOI (FF D8)
-  while (o + 9 < b.length) {
-    if (b[o] !== 0xff) { o++; continue; } // resync on padding
-    const marker = b[o + 1];
-    // SOF0/1/2/3, 5-7, 9-11, 13-15 carry the frame dimensions.
-    const isSOF = (marker >= 0xc0 && marker <= 0xcf) && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc;
-    if (isSOF) return { height: u16be(b, o + 5), width: u16be(b, o + 7) };
-    if (marker === 0xd8 || marker === 0xd9 || (marker >= 0xd0 && marker <= 0xd7)) { o += 2; continue; }
-    const len = u16be(b, o + 2); // segment length includes the 2 length bytes
-    if (len < 2) return undefined;
-    o += 2 + len;
-  }
-  return undefined;
-}
-
 /**
- * Identify a file from its leading bytes. Scans a small window for `%PDF`
- * (real PDFs sometimes carry a BOM/junk prefix); everything else keys on the
- * first bytes. Returns `unknown` when nothing matches — NOT an error.
+ * The scale to rasterise a page at: `desired`, or as much less as it takes for
+ * `width × height × scale²` to stay under {@link MAX_RASTER_PIXELS}. `null` when even
+ * scale 1 is over the ceiling — the page cannot be rasterised at all, and the caller
+ * SKIPS it with its truncation marker rather than allocating.
+ *
+ * `width`/`height` are the page's size at scale 1 (`getViewport({ scale: 1 })`).
+ * Degrading the scale rather than refusing the document is deliberate: a genuinely huge
+ * page (a plan, a poster) is a real thing a user drops, and OCR at a lower resolution is
+ * worth more than an error — while an absurd one still costs nothing.
  */
-export function sniff(b: Uint8Array): Sniffed {
-  if (b.length < 4) return { family: "unknown" };
-  // Executables — highest priority: a "document" that is really code is hostile.
-  if (eq(b, 0, [0x7f, 0x45, 0x4c, 0x46])) return { family: "exe" }; // ELF
-  if (eq(b, 0, [0x4d, 0x5a])) return { family: "exe" }; // PE "MZ"
-  if (eq(b, 0, [0x23, 0x21])) return { family: "exe" }; // "#!" shebang
-  if (eq(b, 0, [0xca, 0xfe, 0xba, 0xbe]) || eq(b, 0, [0xcf, 0xfa, 0xed, 0xfe]) || eq(b, 0, [0xfe, 0xed, 0xfa, 0xce])) return { family: "exe" }; // Mach-O
-
-  if (eq(b, 0, [0xd0, 0xcf, 0x11, 0xe0])) return { family: "ole" };
-  if (eq(b, 0, [0x50, 0x4b, 0x03, 0x04]) || eq(b, 0, [0x50, 0x4b, 0x05, 0x06]) || eq(b, 0, [0x50, 0x4b, 0x07, 0x08])) return { family: "zip" };
-
-  if (eq(b, 0, [0x89, 0x50, 0x4e, 0x47])) {
-    // PNG IHDR: width @16 height @20 (big-endian), present once past the sig.
-    const dims = b.length >= 24 && eq(b, 12, [0x49, 0x48, 0x44, 0x52]) ? { width: u32be(b, 16), height: u32be(b, 20) } : {};
-    return { family: "png", ...dims };
-  }
-  if (eq(b, 0, [0xff, 0xd8, 0xff])) return { family: "jpeg", ...(jpegDims(b) ?? {}) };
-  if (eq(b, 0, [0x47, 0x49, 0x46, 0x38])) return { family: "gif", ...(b.length >= 10 ? { width: u16le(b, 6), height: u16le(b, 8) } : {}) };
-  if (eq(b, 0, [0x42, 0x4d])) return { family: "bmp", ...(b.length >= 26 ? { width: Math.abs(u32le(b, 18) | 0), height: Math.abs(u32le(b, 22) | 0) } : {}) };
-  if (eq(b, 0, [0x49, 0x49, 0x2a, 0x00]) || eq(b, 0, [0x4d, 0x4d, 0x00, 0x2a])) return { family: "tiff" };
-  if (eq(b, 0, [0x52, 0x49, 0x46, 0x46]) && b.length >= 12 && eq(b, 8, [0x57, 0x45, 0x42, 0x50])) return { family: "webp" };
-
-  // `%PDF` may sit a few bytes in (BOM / leading whitespace tolerated by readers).
-  const head = b.subarray(0, Math.min(b.length, 1024));
-  for (let i = 0; i + 4 <= head.length; i++) {
-    if (head[i] === 0x25 && head[i + 1] === 0x50 && head[i + 2] === 0x44 && head[i + 3] === 0x46) return { family: "pdf" };
-  }
-  return { family: "unknown" };
+export function rasterScale(width: number, height: number, desired: number): number | null {
+  const base = width * height;
+  if (!Number.isFinite(base) || base <= 0) return null; // an unreadable page size
+  if (base > MAX_RASTER_PIXELS) return null; // over the ceiling at 1:1 — nothing to clamp to
+  return Math.min(desired, Math.sqrt(MAX_RASTER_PIXELS / base));
 }
 
 /** Which sniffed families are ACCEPTABLE for a given (lower-case, dotted) ext.
@@ -133,8 +77,14 @@ function allowedFamilies(ext: string): ReadonlySet<SniffFamily> | null {
       return new Set(["zip"]);
     case ".xls": // legacy OLE, but SheetJS also reads the ZIP variants
       return new Set(["ole", "zip"]);
-    case ".png": case ".jpg": case ".jpeg": case ".webp":
-    case ".bmp": case ".tiff": case ".tif": case ".gif":
+    case ".png":
+    case ".jpg":
+    case ".jpeg":
+    case ".webp":
+    case ".bmp":
+    case ".tiff":
+    case ".tif":
+    case ".gif":
       return IMAGE_FAMILIES; // images are widely mislabelled between each other
     default:
       return null; // text / unknown ext → no magic-byte constraint
@@ -147,14 +97,23 @@ function allowedFamilies(ext: string): ReadonlySet<SniffFamily> | null {
  * files are ZIPs) advertises its true, absurd expanded size here. Returns a
  * reject reason, or null when the ZIP looks benign OR can't be read (a malformed
  * archive isn't necessarily a bomb — the real parser will reject it safely).
+ *
+ * Exported (and re-exported from the package barrel) because the upload path is not the
+ * only door onto an inflater: the renderer's OOXML VIEWER opens a docx/pptx zip of its
+ * own, from bytes it read back out of the store. That path never went through
+ * {@link guardUpload}, so the check has to be reachable there — one implementation, both
+ * doors (rule 9: import it, never re-derive it).
  */
-function checkZipBomb(b: Uint8Array): string | null {
+export function checkZipBomb(b: Uint8Array): string | null {
   // Find the End Of Central Directory record (sig 0x06054b50), scanning back
   // from the tail (it sits within the last 64KiB + 22-byte fixed record).
   const min = Math.max(0, b.length - (0xffff + 22));
   let eocd = -1;
   for (let i = b.length - 22; i >= min; i--) {
-    if (b[i] === 0x50 && b[i + 1] === 0x4b && b[i + 2] === 0x05 && b[i + 3] === 0x06) { eocd = i; break; }
+    if (b[i] === 0x50 && b[i + 1] === 0x4b && b[i + 2] === 0x05 && b[i + 3] === 0x06) {
+      eocd = i;
+      break;
+    }
   }
   if (eocd < 0) return null; // not a well-formed ZIP → let the parser deal with it
   const entries = u16le(b, eocd + 10);
@@ -163,7 +122,11 @@ function checkZipBomb(b: Uint8Array): string | null {
   let totalUncompressed = 0;
   let totalCompressed = 0;
   for (let n = 0; n < entries; n++) {
-    if (cd + 46 > b.length || !(b[cd] === 0x50 && b[cd + 1] === 0x4b && b[cd + 2] === 0x01 && b[cd + 3] === 0x02)) break; // truncated/odd → stop, don't reject
+    if (
+      cd + 46 > b.length ||
+      !(b[cd] === 0x50 && b[cd + 1] === 0x4b && b[cd + 2] === 0x01 && b[cd + 3] === 0x02)
+    )
+      break; // truncated/odd → stop, don't reject
     const comp = u32le(b, cd + 20);
     const uncomp = u32le(b, cd + 24);
     totalCompressed += comp;
@@ -176,7 +139,11 @@ function checkZipBomb(b: Uint8Array): string | null {
     const commentLen = u16le(b, cd + 32);
     cd += 46 + nameLen + extraLen + commentLen;
   }
-  if (totalCompressed > 0 && totalUncompressed / totalCompressed > MAX_ZIP_RATIO && totalUncompressed > 10 * 1024 * 1024) {
+  if (
+    totalCompressed > 0 &&
+    totalUncompressed / totalCompressed > MAX_ZIP_RATIO &&
+    totalUncompressed > 10 * 1024 * 1024
+  ) {
     return `Ratio de compression anormal — fichier refusé (protection anti-bombe).`;
   }
   return null;
@@ -204,8 +171,21 @@ export function guardUpload(bytes: Uint8Array, ext: string): string | null {
     return `Le contenu du fichier ne correspond pas à son extension — refusé.`;
   }
   // Image "pixel flood": tiny header, enormous declared canvas.
-  if (IMAGE_FAMILIES.has(s.family) && s.width && s.height && s.width * s.height > MAX_IMAGE_PIXELS) {
+  if (
+    IMAGE_FAMILIES.has(s.family) &&
+    s.width &&
+    s.height &&
+    s.width * s.height > MAX_IMAGE_PIXELS
+  ) {
     return `Image aux dimensions excessives (${s.width}×${s.height}) — refusée.`;
+  }
+  // FAIL CLOSED for the two families whose size is not a fixed field: a TIFF whose first
+  // IFD we cannot read, or a WebP whose chunk we do not recognise, is an image whose
+  // canvas we have not measured — and both route to OCR, i.e. to a full decode. The
+  // conservative "unrecognised passes" policy above is about a file's TYPE; once the type
+  // says image, an unreadable SIZE is a positive danger signal, not an absence of one.
+  if ((s.family === "tiff" || s.family === "webp") && !(s.width && s.height)) {
+    return `Image illisible (dimensions introuvables) — refusée.`;
   }
   // ZIP-container bomb (Office formats).
   if (s.family === "zip") {
