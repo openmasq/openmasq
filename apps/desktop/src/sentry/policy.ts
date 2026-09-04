@@ -23,6 +23,10 @@
  */
 
 import { isOperationalError } from "@openmasq/analytics";
+import { scrubText } from "./scrubText";
+
+// Re-exported: `policy.ts` stays the one door to the scrubber (split out for the LOC cap).
+export { scrubText };
 
 /** The only network entry point of this file. Public by nature (a DSN only lets a client
  *  SEND to one project): the DEFAULT of every build, dev included (`scripts/publicServices.ts`),
@@ -48,30 +52,6 @@ export function resolveEnvironment(channel: string | undefined | null): string {
   return c;
 }
 
-/** Max length of a kept free-text string. A useful error message fits within it;
- *  beyond that, you're copying content, not describing a failure. */
-const MAX_TEXT = 300;
-
-/**
- * Neutralizes the most likely forms of personal data in free text,
- * then truncates. See the residual documented at the top of the file.
- */
-export function scrubText(input: unknown): string {
-  if (typeof input !== "string" || !input) return "";
-  return (
-    input
-      // A personal path carries the user's name (`/Users/first.last/…`,
-      // `C:\Users\…`, `/home/…`) — we keep the DEPTH, which locates the file.
-      .replace(/(?:\/Users\/|\/home\/|[A-Za-z]:\\Users\\)[^/\\\s)'"]+/g, "~")
-      .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[courriel]")
-      // Everything after a `?` or a `#` in a URL: that's where the agent
-      // browser's search queries travel, so real values.
-      .replace(/(https?:\/\/[^\s?#'"]*)[?#][^\s'"]*/g, "$1")
-      // A run of 6+ digits: IBAN, card, phone number, SIREN, identifier.
-      .replace(/\d[\d\s.-]{5,}\d/g, "[nombre]")
-      .slice(0, MAX_TEXT)
-  );
-}
 
 /** A stack frame, reduced to what locates the code — never to what it was handling. */
 interface CleanFrame {

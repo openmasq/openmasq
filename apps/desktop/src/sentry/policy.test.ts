@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { resolveEnvironment, scrubEvent, scrubText, sentryBeforeSend } from "./policy";
+import { originOf } from "../main/net/egressLog";
 
 describe("resolveEnvironment — l'environnement est TOUJOURS renseigné", () => {
   it("dérive du canal de mise à jour, la source unique du dépôt", () => {
@@ -28,18 +29,44 @@ describe("scrubText — les formes de données personnelles les plus probables",
     expect(scrubText("C:\\Users\\Jean\\AppData\\openmasq.db")).not.toContain("Jean");
   });
 
+  /* The Windows branch stopped at the first SPACE, and a Windows account name is routinely
+     two words: `C:\Users\Jean Dupont\…` came out as `~ Dupont\…`. The surname shipped, from
+     the very rule whose job is to remove the name. */
+  it("un compte Windows en DEUX MOTS perd bien les deux", () => {
+    const out = scrubText("EPERM: C:\\Users\\Jean Dupont\\AppData\\Roaming\\openmasq.db");
+    expect(out).not.toContain("Dupont");
+    expect(out).not.toContain("Jean");
+    expect(out).toBe("EPERM: ~\\AppData\\Roaming\\openmasq.db"); // la profondeur reste
+  });
+
   it("un courriel ne part pas", () => {
     expect(scrubText("échec pour marie.morvan@exemple.fr")).toBe("échec pour [courriel]");
   });
 
-  it("une URL perd sa REQUÊTE — c'est là que voyage ce qu'on a cherché", () => {
+  it("une URL est réduite à son ORIGINE — requête ET chemin", () => {
     // The agent browser queries the web with the REAL value (rule 11): the
     // full URL of a navigation crash would therefore say exactly what the rule
-    // protects everywhere else.
+    // protects everywhere else. Dropping only the query was half the rule — the PATH
+    // carries a name, a file id, a conversation slug just as readily.
     expect(scrubText("nav failed https://duckduckgo.com/?q=Marie+Morvan+salaire")).toBe(
-      "nav failed https://duckduckgo.com/",
+      "nav failed https://duckduckgo.com",
     );
-    expect(scrubText("https://exemple.fr/page#section-secrete")).toBe("https://exemple.fr/page");
+    expect(scrubText("https://exemple.fr/page#section-secrete")).toBe("https://exemple.fr");
+    expect(scrubText("404 https://drive.example.com/files/Bilan-Marie-Morvan-2026.pdf")).toBe(
+      "404 https://drive.example.com",
+    );
+    // Le port non standard reste : il fait partie du « à qui a-t-on parlé ».
+    expect(scrubText("ECONNREFUSED https://api.exemple.fr:8443/v1/x")).toBe(
+      "ECONNREFUSED https://api.exemple.fr:8443",
+    );
+  });
+
+  /* The URL rule runs FIRST, before the e-mail and path patterns: reducing to the origin
+     drops userinfo, path, query and fragment in ONE move, so nothing inside a URL has to be
+     recognised pattern by pattern. Run after the e-mail rule, `user:pass@host` had already
+     become `user:[courriel]` — no longer a parseable URL, so the path survived. */
+  it("un identifiant dans l'URL disparaît AVEC le reste, pas motif par motif", () => {
+    expect(scrubText("401 https://marie:s3cr3t@exemple.fr/coffre")).toBe("401 https://exemple.fr");
   });
 
   it("une longue suite de chiffres (IBAN, carte, téléphone, SIREN) est neutralisée", () => {
@@ -311,5 +338,48 @@ describe("scrubEvent — les ajouts diagnostics restent champ par champ (audit 1
     expect(out.fingerprint).toEqual(["updates", "updater-404"]);
     // A non-string fingerprint is discarded, never copied over as is.
     expect(scrubEvent({ ...base(), fingerprint: [{ evil: 1 }] })!).not.toHaveProperty("fingerprint");
+  });
+});
+
+/* `scrubText` reduces a URL to its origin with a COPY of `main/net/egressLog.ts` `originOf` —
+   a copy because this module is also bundled into the RENDERER, and `egressLog.ts` is
+   main-only. A copy that nothing compares is the duplication rule 9 forbids, so the two are
+   pinned here value for value: the crash report and the egress journal must agree on what
+   "the origin" is, or one of them is leaking what the other drops. */
+describe("l'origine est CELLE du journal d'egress — même règle, deux processus", () => {
+  it("rend exactement ce que rend originOf, cas par cas", () => {
+    const urls = [
+      "https://duckduckgo.com/?q=Marie+Morvan",
+      "https://EXEMPLE.fr/dossiers/2026/bilan.pdf#p3",
+      "http://exemple.fr:80/x",
+      "https://exemple.fr:443/x",
+      "https://api.exemple.fr:8443/v1/x?token=abc",
+      "https://user:pass@exemple.fr/secret",
+    ];
+    for (const u of urls) {
+      const expected = originOf(u);
+      expect(expected).not.toBeNull();
+      expect(scrubText(u)).toBe(expected);
+    }
+  });
+
+  /* The one place the two diverge, and it diverges TIGHTER: after the origin, `scrubText`
+     still runs its 6+ digit rule, so a literal-IP host is neutralised further. The journal
+     keeps the address on purpose — it is the record of who was talked to. */
+  it("va PLUS LOIN que le journal sur un hôte en IP littérale, jamais moins loin", () => {
+    expect(originOf("http://192.168.1.4:3000/admin")).toBe("http://192.168.1.4:3000");
+    expect(scrubText("ECONNREFUSED http://192.168.1.4:3000/admin")).toBe(
+      "ECONNREFUSED http://[nombre]:3000",
+    );
+  });
+
+  /* Both are http(s)-only, by the same reasoning: outside those there is no origin to
+     reduce to. A non-http URL is therefore not this rule's business — the truncation and
+     the other patterns are what bound it. */
+  it("les deux s'arrêtent au même périmètre : http(s) et rien d'autre", () => {
+    expect(originOf("ftp://exemple.fr/x")).toBeNull();
+    expect(originOf("file:///Users/marie/bilan.pdf")).toBeNull();
+    // …and the personal-path rule is what covers the `file://` case here.
+    expect(scrubText("EACCES file:///Users/marie/bilan.pdf")).toBe("EACCES file://~/bilan.pdf");
   });
 });
