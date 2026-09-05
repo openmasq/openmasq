@@ -12,6 +12,12 @@ describe("candidatePaths", () => {
     expect(out).toContain("/opt/homebrew/bin/claude");
   });
 
+  it("probes the app's own roots BEFORE the PATH — the pinned install wins", () => {
+    const out = candidatePaths("codex", { ...mac, path: "/usr/local/bin", extraRoots: ["/app/cli/codex/bin"] });
+    expect(out[0]).toBe("/app/cli/codex/bin/codex");
+    expect(out[1]).toBe("/usr/local/bin/codex");
+  });
+
   it("donne la priorité au PATH quand il existe", () => {
     const out = candidatePaths("claude", { ...mac, path: "/custom/bin:/usr/bin" });
     expect(out[0]).toBe("/custom/bin/claude");

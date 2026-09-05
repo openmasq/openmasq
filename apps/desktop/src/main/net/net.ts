@@ -3,6 +3,7 @@ import { lookup } from "node:dns/promises";
 import Debug from "debug";
 import { isPrivateIp } from "./privateIp";
 import { noteEgressUrl } from "./egressLog";
+import { contentTypeOk, readCapped, type FetchAccept } from "./body";
 
 const debug = Debug("openmasq:net");
 
@@ -93,43 +94,19 @@ async function resolvePublicUrl(url: string): Promise<string[]> {
 const BROWSER_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
 
-const MEDIA_CONTENT_TYPES = [
-  "image/",
-  "application/pdf",
-  "video/mp4",
-  "text/csv",
-  "application/zip",
-  "application/octet-stream", // some signed-export hosts mislabel binaries
-  "application/vnd.openxmlformats-officedocument.", // pptx/docx/xlsx
-];
-
-// `accept:"text"` — the batch web reader (`webFetchMany.ts`) accepts a page or a
-// text-shaped DATA response. Non-executable types only: NO `application/javascript`
-// (the reader never runs it, and refusing it keeps the accept honest — we fetch
-// documents/data, not code). Everything is still http(s), SSRF-checked per hop,
-// size-capped and timed out exactly like the other accepts.
-const TEXT_CONTENT_TYPES = [
-  "text/html",
-  "application/xhtml+xml",
-  "text/plain",
-  "text/markdown",
-  "text/csv",
-  "text/tab-separated-values",
-  "application/json",
-  "text/xml",
-  "application/xml",
-  "application/rss+xml",
-  "application/atom+xml",
-];
-
 export interface SafeFetchOpts {
   /** Hard cap on the downloaded body (bytes), enforced while streaming. */
   maxBytes: number;
   /** Abort after this many ms. */
   timeoutMs: number;
-  /** What the response must be: an HTML page, an image, any media file, or a
-   *  text/data document (`"text"` — the batch web reader; see TEXT_CONTENT_TYPES). */
-  accept: "html" | "image" | "media" | "text";
+  /** What the response must be: an HTML page, an image, any media file, a text/data
+   *  document (`"text"` — the batch web reader), or a pinned binary artefact
+   *  (`"binary"` — verified by its caller). The lists live in `body.ts`. */
+  accept: FetchAccept;
+  /** Stream the body here chunk by chunk instead of buffering it (`buf` comes back
+   *  empty). The size cap still applies. For the one caller that writes a large,
+   *  pinned artefact to disk while hashing it (`subscription/install/download.ts`). */
+  sink?: (chunk: Uint8Array) => void;
   /** Optional defence-in-depth: the host (initial AND every redirect hop) must
    *  match one of these suffixes, else the fetch is refused. */
   allowHosts?: string[];
@@ -149,35 +126,6 @@ export interface SafeFetchResult {
 function hostAllowed(host: string, allow: string[]): boolean {
   const h = host.toLowerCase();
   return allow.some((a) => h === a.toLowerCase() || h.endsWith("." + a.toLowerCase()));
-}
-
-function contentTypeOk(ct: string, accept: SafeFetchOpts["accept"]): boolean {
-  const t = ct.split(";")[0].trim().toLowerCase();
-  if (accept === "html") return t === "text/html" || t === "application/xhtml+xml";
-  if (accept === "image") return t.startsWith("image/");
-  if (accept === "text") return TEXT_CONTENT_TYPES.includes(t);
-  return MEDIA_CONTENT_TYPES.some((p) => t.startsWith(p));
-}
-
-/** Read a response body into a Buffer, aborting if it exceeds `maxBytes`. */
-async function readCapped(res: Response, maxBytes: number): Promise<Buffer> {
-  const declared = Number(res.headers.get("content-length") ?? "");
-  if (Number.isFinite(declared) && declared > maxBytes) throw new Error("Response too large");
-  const reader = res.body?.getReader();
-  if (!reader) return Buffer.alloc(0);
-  const chunks: Buffer[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.byteLength;
-    if (total > maxBytes) {
-      await reader.cancel().catch(() => {});
-      throw new Error("Response too large");
-    }
-    chunks.push(Buffer.from(value));
-  }
-  return Buffer.concat(chunks);
 }
 
 /**
@@ -276,7 +224,7 @@ export async function safeFetch(url: string, opts: SafeFetchOpts): Promise<SafeF
         await res.body?.cancel().catch(() => {});
         throw new Error(`Refused Content-Type '${contentType}' for accept='${opts.accept}'`);
       }
-      const buf = await readCapped(res, opts.maxBytes);
+      const buf = await readCapped(res, opts.maxBytes, opts.sink);
       debug("ok host=%s type=%s bytes=%d", u.hostname, contentType, buf.byteLength);
       return { finalUrl: current, buf, contentType };
     }

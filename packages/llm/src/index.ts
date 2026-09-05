@@ -5,6 +5,7 @@ import { PROVIDERS } from "./models/index.js";
 import type { StreamChatOptions, StreamDone } from "./types.js";
 
 export * from "./types.js";
+export * from "./subscriptionSetup.js";
 export * from "./models/index.js";
 export * from "./modelMeta.js";
 export { completeWithTools, streamWithTools, supportsStreamingTools } from "./tools/index.js";

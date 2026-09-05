@@ -1,0 +1,44 @@
+// The sign-in relay is only as good as its reading of what the CLIs print; these pin the
+// measured outputs (2026-09-05) and the one refusal that matters: a URL off the vendor's
+// domain is never handed to the interface to open.
+import { describe, expect, it } from "vitest";
+import { parseClaudeStatus, parseCodexStatus, parseLoginOutput, stripAnsi } from "./login";
+
+const ESC = String.fromCharCode(27);
+
+describe("parseClaudeStatus", () => {
+  it("reads loggedIn, email and the plan from `auth status --json`", () => {
+    const out = JSON.stringify({ loggedIn: true, authMethod: "claude.ai", email: "a@b.c", subscriptionType: "max" });
+    expect(parseClaudeStatus(out)).toEqual({ loggedIn: true, email: "a@b.c", plan: "max" });
+    expect(parseClaudeStatus(JSON.stringify({ loggedIn: false, authMethod: "none" }))).toEqual({ loggedIn: false });
+  });
+  it("answers null — not false — when the CLI did not answer", () => {
+    expect(parseClaudeStatus("")).toEqual({ loggedIn: null });
+    expect(parseClaudeStatus("{}")).toEqual({ loggedIn: null });
+  });
+});
+
+describe("parseCodexStatus", () => {
+  it("reads `login status`", () => {
+    expect(parseCodexStatus("Logged in using ChatGPT\n")).toEqual({ loggedIn: true });
+    expect(parseCodexStatus("Not logged in\n")).toEqual({ loggedIn: false });
+    expect(parseCodexStatus("")).toEqual({ loggedIn: null });
+  });
+});
+
+describe("parseLoginOutput", () => {
+  it("claude: the sign-in page URL, on claude.com", () => {
+    const text = "Opening browser to sign in…\nIf the browser didn't open, visit: https://claude.com/cai/oauth/authorize?code=true&state=x\nPaste code here if prompted > ";
+    expect(parseLoginOutput("claude", text)).toEqual({ url: "https://claude.com/cai/oauth/authorize?code=true&state=x" });
+  });
+  it("codex: the device page and the one-time code, through the ANSI colours", () => {
+    const text = `1. Open this link\n   ${ESC}[94mhttps://auth.openai.com/codex/device${ESC}[0m\n\n2. Enter this one-time code\n   ${ESC}[94mVYVS-FZCHL${ESC}[0m\n`;
+    expect(parseLoginOutput("codex", text)).toEqual({ url: "https://auth.openai.com/codex/device", code: "VYVS-FZCHL" });
+    expect(stripAnsi(`${ESC}[90mx${ESC}[0m`)).toBe("x");
+  });
+  it("relays no URL that is not on the vendor's domain", () => {
+    expect(parseLoginOutput("claude", "visit: https://evil.example/claude.com/x")).toEqual({});
+    expect(parseLoginOutput("codex", "https://openai.com.evil.example/device")).toEqual({});
+    expect(parseLoginOutput("claude", "nothing here")).toEqual({});
+  });
+});

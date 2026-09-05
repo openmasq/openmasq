@@ -1,5 +1,14 @@
 import { ipcRenderer, type IpcRendererEvent } from "electron";
-import type { CompleteToolsResult, StreamDone, SubscriptionAccount } from "@openmasq/llm";
+import type {
+  CompleteToolsResult,
+  StreamDone,
+  SubscriptionAccount,
+  SubscriptionCli,
+  SubscriptionCliStatus,
+  SubscriptionInstallProgress,
+  SubscriptionLoginEvent,
+  SubscriptionSetupResult,
+} from "@openmasq/llm";
 import type { Detection } from "@openmasq/redact";
 import type {
   StartChatPayload,
@@ -93,6 +102,39 @@ export const chat = {
    *  from the CLI, never from its credentials. `null` = absent or silent (normal). */
   readSubscriptionAccount(cli: "claude" | "codex" | "antigravity"): Promise<SubscriptionAccount | null> {
     return ipcRenderer.invoke("subscription:account", cli);
+  },
+
+  /** Where a subscription CLI stands on this machine — installed? installable here?
+   *  signed in (its own `auth status`, never its credentials)? `null` for an unknown CLI. */
+  readSubscriptionStatus(cli: SubscriptionCli): Promise<SubscriptionCliStatus | null> {
+    return ipcRenderer.invoke("subscription:status", cli);
+  },
+  /** Download the pinned official build of a CLI and let it install itself. Progress
+   *  arrives on `onSubscriptionInstallProgress`; the result says ok or WHY not (a code). */
+  installSubscriptionCli(cli: SubscriptionCli): Promise<SubscriptionSetupResult> {
+    return ipcRenderer.invoke("subscription:install", cli);
+  },
+  onSubscriptionInstallProgress(cb: (p: SubscriptionInstallProgress) => void): () => void {
+    const handler = (_e: IpcRendererEvent, p: SubscriptionInstallProgress) => cb(p);
+    ipcRenderer.on("subscription:install-progress", handler);
+    return () => ipcRenderer.removeListener("subscription:install-progress", handler);
+  },
+  /** Run the CLI's OWN sign-in; what it prints (page, one-time code) arrives on
+   *  `onSubscriptionLoginEvent`. Resolves when the CLI exits — signed in, or not. */
+  loginSubscriptionCli(cli: SubscriptionCli): Promise<SubscriptionSetupResult> {
+    return ipcRenderer.invoke("subscription:login", cli);
+  },
+  /** claude: the code its sign-in page showed, handed to the waiting CLI. */
+  submitSubscriptionLoginCode(cli: SubscriptionCli, code: string): Promise<boolean> {
+    return ipcRenderer.invoke("subscription:login-code", cli, code);
+  },
+  cancelSubscriptionLogin(cli: SubscriptionCli): Promise<void> {
+    return ipcRenderer.invoke("subscription:login-cancel", cli);
+  },
+  onSubscriptionLoginEvent(cb: (e: SubscriptionLoginEvent) => void): () => void {
+    const handler = (_e: IpcRendererEvent, e: SubscriptionLoginEvent) => cb(e);
+    ipcRenderer.on("subscription:login-event", handler);
+    return () => ipcRenderer.removeListener("subscription:login-event", handler);
   },
 
   /** Non-streaming agentic completion with tool-calling (drives MCP). */

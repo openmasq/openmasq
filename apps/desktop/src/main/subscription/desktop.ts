@@ -8,6 +8,7 @@ import { app } from "electron";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { ANTIGRAVITY_APP_DATA_DIR, ANTIGRAVITY_SETTINGS } from "./antigravityEngine";
+import { appCliRoots } from "./install";
 import { resolveCli, type SubscriptionCliId } from "./resolveCli";
 import type { SubscriptionTurnEnv } from "./turn";
 
@@ -47,6 +48,7 @@ export function subscriptionCliPath(cli: SubscriptionCliId): string | null {
     platform: process.platform,
     home: app.getPath("home"),
     path: process.env.PATH,
+    extraRoots: appCliRoots(cli, app.getPath("userData")),
   });
 }
 
@@ -59,7 +61,7 @@ export function claudeCliPath(): string | null {
  * Dedicated working directory PER CLI, under `userData` — NEVER a user
  * project folder: a CLI would look there for settings and context files.
  */
-function subscriptionCwd(cli: SubscriptionCliId): string {
+export function subscriptionCwd(cli: SubscriptionCliId): string {
   const dir = join(app.getPath("userData"), "subscription-chat", cli);
   mkdirSync(dir, { recursive: true });
   return dir;

@@ -53,6 +53,7 @@
 @import "./styles/workflows.css";
 @import "./styles/feedback.css";
 @import "./styles/agent.css";
+@import "./styles/agentSetup.css";
 @import "./styles/tabs.css";
 @import "./styles/viewMode.css";
 @import "./styles/fileCards.css";

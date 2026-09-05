@@ -75,11 +75,14 @@ export interface CandidateOptions {
   home: string;
   /** The process's `PATH`. Empty/absent is the NORMAL case under the Finder, not an error. */
   path?: string;
+  /** Roots the APP owns (`subscription/install`), probed BEFORE the PATH: the pinned
+   *  version the engine was measured against wins over whatever the terminal holds. */
+  extraRoots?: string[];
 }
 
 /**
- * The absolute paths to probe, in order — PATH first (if the user has
- * overridden their install, we respect it), then the known roots. Pure: this is what
+ * The absolute paths to probe, in order — the app's own roots, then PATH (if the user
+ * has overridden their install, we respect it), then the known roots. Pure: this is what
  * `resolveCli.test.ts` pins, without touching the real filesystem.
  */
 export function candidatePaths(cli: SubscriptionCliId, opts: CandidateOptions): string[] {
@@ -87,6 +90,7 @@ export function candidatePaths(cli: SubscriptionCliId, opts: CandidateOptions): 
   const bin = BIN_NAME[cli];
   const exts = opts.platform === "win32" ? WINDOWS_EXTS : ([""] as const);
   const dirs = [
+    ...(opts.extraRoots ?? []),
     ...(opts.path ? opts.path.split(delimiter).filter(Boolean) : []),
     ...knownRoots(opts.platform, opts.home),
   ];

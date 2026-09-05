@@ -135,7 +135,7 @@ export const modelPicker = {
       onDesc:
         "Ajoute « Claude Code » à la liste des modèles. Chaque envoi consomme votre abonnement Claude personnel.",
       missingDesc:
-        "CLI introuvable sur cette machine : installez Claude Code et connectez-le à votre compte Claude, puis revenez ici.",
+        "CLI introuvable sur cette machine : installez-la ci-dessous, puis connectez-la à votre compte Claude.",
     },
     codex: {
       title: "Votre abonnement ChatGPT",
@@ -144,7 +144,7 @@ export const modelPicker = {
       onDesc:
         "Ajoute « GPT Codex » à la liste des modèles. Chaque envoi consomme votre abonnement ChatGPT personnel.",
       missingDesc:
-        "CLI introuvable sur cette machine : installez-la (npm i -g @openai/codex), connectez-la avec « codex login », puis revenez ici.",
+        "CLI introuvable sur cette machine : installez-la ci-dessous, puis connectez-la à votre compte ChatGPT.",
     },
     antigravity: {
       title: "Votre abonnement Google Antigravity",
@@ -154,6 +154,34 @@ export const modelPicker = {
         "Ajoute « Antigravity » à la liste des modèles. Chaque envoi consomme votre abonnement Google personnel ; les connecteurs de l'app y fonctionnent comme sur les autres modèles.",
       missingDesc:
         "CLI introuvable sur cette machine : installez Antigravity, connectez-la à votre compte Google, puis revenez ici.",
+    },
+    setup: {
+      install: "Installer",
+      installNote: (label, megabytes) =>
+        `Télécharge ${label} (${megabytes} Mo) depuis son éditeur, vérifie son empreinte, puis l'installe. Rien d'autre à faire.`,
+      installing: (percent) => `Téléchargement… ${percent} %`,
+      finishing: "Installation…",
+      notInstallable: "Cette version de l'app ne peut pas l'installer sur cette machine.",
+      connect: "Se connecter",
+      notConnected: "Installée, pas encore connectée à votre compte.",
+      connecting: "Connexion en cours dans votre navigateur…",
+      openPage: "Ouvrir la page",
+      typeCode: (code) => `Saisissez ce code sur la page : ${code}`,
+      pasteCode: "Collez ici le code affiché par la page :",
+      codePlaceholder: "Code",
+      submitCode: "Valider",
+      cancel: "Annuler",
+      connected: (email) => (email ? `Connectée : ${email}` : "Connectée à votre compte"),
+      plan: (plan) => `Offre ${plan}`,
+      checking: "Vérification…",
+      errors: {
+        unsupported: "Indisponible sur cette machine.",
+        network: "Le téléchargement a échoué — vérifiez votre connexion, puis réessayez.",
+        checksum: "Le fichier téléchargé ne correspond pas à l'empreinte attendue : il n'a pas été installé.",
+        install: "L'installation a échoué.",
+        login: "La connexion n'a pas abouti.",
+        busy: "Une installation est déjà en cours.",
+      },
     },
     account: {
       title: "Votre compte",

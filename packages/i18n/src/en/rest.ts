@@ -135,7 +135,7 @@ export const modelPicker = {
       onDesc:
         "Adds “Claude Code” to the model list. Every send draws on your personal Claude subscription.",
       missingDesc:
-        "CLI not found on this machine: install Claude Code, connect it to your Claude account, then come back here.",
+        "CLI not found on this machine: install it below, then connect it to your Claude account.",
     },
     codex: {
       title: "Your ChatGPT subscription",
@@ -144,7 +144,7 @@ export const modelPicker = {
       onDesc:
         "Adds “GPT Codex” to the model list. Every send draws on your personal ChatGPT subscription.",
       missingDesc:
-        "CLI not found on this machine: install it (npm i -g @openai/codex), connect it with “codex login”, then come back here.",
+        "CLI not found on this machine: install it below, then connect it to your ChatGPT account.",
     },
     antigravity: {
       title: "Your Google Antigravity subscription",
@@ -154,6 +154,34 @@ export const modelPicker = {
         "Adds “Antigravity” to the model list. Every send draws on your personal Google subscription; the app's connectors work there as on any other model.",
       missingDesc:
         "CLI not found on this machine: install Antigravity, connect it to your Google account, then come back here.",
+    },
+    setup: {
+      install: "Install",
+      installNote: (label, megabytes) =>
+        `Downloads ${label} (${megabytes} MB) from its publisher, verifies its fingerprint, then installs it. Nothing else to do.`,
+      installing: (percent) => `Downloading… ${percent}%`,
+      finishing: "Installing…",
+      notInstallable: "This build of the app cannot install it on this machine.",
+      connect: "Sign in",
+      notConnected: "Installed, not yet connected to your account.",
+      connecting: "Signing in, in your browser…",
+      openPage: "Open the page",
+      typeCode: (code) => `Enter this code on the page: ${code}`,
+      pasteCode: "Paste the code the page shows here:",
+      codePlaceholder: "Code",
+      submitCode: "Confirm",
+      cancel: "Cancel",
+      connected: (email) => (email ? `Connected: ${email}` : "Connected to your account"),
+      plan: (plan) => `${plan} plan`,
+      checking: "Checking…",
+      errors: {
+        unsupported: "Unavailable on this machine.",
+        network: "The download failed — check your connection, then try again.",
+        checksum: "The downloaded file does not match the expected fingerprint: it was not installed.",
+        install: "The installation failed.",
+        login: "The sign-in did not complete.",
+        busy: "An installation is already running.",
+      },
     },
     account: {
       title: "Your account",

@@ -185,6 +185,7 @@ export function ProviderAccess({
           <AgentAccessModal
             copy={open.copy}
             cli={open.cli}
+            label={PROVIDERS[open.pid].label}
             detected={open.detected}
             enabled={open.enabled}
             onEnabled={open.onEnabled}

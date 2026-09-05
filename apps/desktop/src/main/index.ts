@@ -17,6 +17,7 @@ import { flushEgressLog } from "./net/egressLog";
 import { initConfirmationMode } from "./mcp/confirmationMode";
 import { registerPostureIpc } from "./ipc/registerPostureIpc";
 import { registerSubscriptionIpc } from "./ipc/registerSubscriptionIpc";
+import { registerSubscriptionSetupIpc } from "./ipc/registerSubscriptionSetupIpc";
 import { registerWindowIpc } from "./ipc/registerWindowIpc";
 import { warmLocalNer } from "./localNer";
 import {
@@ -150,6 +151,9 @@ app.whenReady().then(async () => {
   // "Is the Claude Code CLI installed?" — what makes the `claude-cli` model exist
   // (or not) in the pickers. A boolean, never a path.
   registerSubscriptionIpc();
+  // Installing and signing in one of those CLIs from inside the app (pinned download,
+  // then the CLI's own sign-in) — the set-up half of the same family.
+  registerSubscriptionSetupIpc();
   // File + link IPC (read-gate audit H-1 + fetch/preview host allow-list audit M4) —
   // split into ipc/registerFilesIpc so the whole file-read trust boundary lives together.
   registerFilesIpc();

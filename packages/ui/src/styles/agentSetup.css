@@ -1,0 +1,32 @@
+/* The set-up rows under an agent's opt-in (`AgentSetupRows`): install, then sign in.
+   They share `.agent-account-row` (usage.css) for measures and hairline; only what is
+   specific to a gesture lives here — an action line, a code to type, a field to paste. */
+.agent-setup-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.agent-setup-actions > .agent-account-note { flex: 1 1 200px; }
+.agent-setup-code {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  letter-spacing: 0.04em;
+}
+.agent-setup-input {
+  flex: 1 1 120px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+}
+.agent-setup-input:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.agent-setup-error { color: var(--text-strong); }
+/* In the onboarding's agent list the rows sit inside an already-padded row body. */
+.ob-access-agent-body .agent-setup-row { padding-left: 0; padding-right: 0; }

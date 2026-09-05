@@ -16,6 +16,7 @@ import {
   orgSharesHost,
 } from "./sync";
 import { billingHost } from "./billing";
+import { subscriptionHost } from "./hostSubscription";
 import { feedbackHost, mailtoFeedbackHost } from "./feedback";
 // THE renderer's environment reader — only one place reads `import.meta.env`,
 // and that's where the runtime environment switch will go through (see `./appEnv`).
@@ -193,20 +194,8 @@ const host: Host = {
   probeLocalEndpoint: window.openmasq.probeLocalEndpoint
     ? (baseUrl) => window.openmasq.probeLocalEndpoint!(baseUrl)
     : undefined,
-  // Same un-restarted-preload guard: absent ⇒ `claude-cli` isn't offered (fail-closed).
-  probeClaudeCli: window.openmasq.probeClaudeCli
-    ? () => window.openmasq.probeClaudeCli!()
-    : undefined,
-  probeCodexCli: window.openmasq.probeCodexCli ? () => window.openmasq.probeCodexCli!() : undefined,
-  probeAntigravityCli: window.openmasq.probeAntigravityCli
-    ? () => window.openmasq.probeAntigravityCli!()
-    : undefined,
-  readSubscriptionAccount: window.openmasq.readSubscriptionAccount
-    ? (cli) => window.openmasq.readSubscriptionAccount!(cli)
-    : undefined,
-  setSubscriptionEnabled: window.openmasq.setSubscriptionEnabled
-    ? (cli, on) => window.openmasq.setSubscriptionEnabled!(cli, on)
-    : undefined,
+  // The subscription CLIs (probe, opt-in, account, set-up) — same guard, in one place.
+  ...subscriptionHost(),
   completeTools: (payload) => window.openmasq.completeTools(payload) as any,
   // STREAMING tool turn (assistant text token-by-token). Optional-chained: an
   // un-restarted dev preload without it → the agentic loop falls back to the

@@ -2,6 +2,7 @@ import { ModalShell } from "../../../containers/modals";
 import { Switch } from "../../../components/brand";
 import { useT } from "../../../i18n";
 import { AgentAccountCard } from "./AgentAccountCard";
+import { AgentSetupRows } from "./AgentSetupRows";
 import type { AgentCli, AgentCopy } from "../../../hooks/useAgentOptIns";
 
 /**
@@ -16,13 +17,16 @@ import type { AgentCli, AgentCopy } from "../../../hooks/useAgentOptIns";
  * Hence `missingDesc` when the CLI is absent: the setting can be turned on, it will be of
  * no use until the tool is installed AND signed in.
  *
- * Under the switch, the ACCOUNT card (`AgentAccountCard`): what the CLI itself says
- * about its plan, quota and models — only when the binary is present, since asking an
- * absent CLI would only produce the « did not answer » line.
+ * Under the switch, the SET-UP rows (`AgentSetupRows`): install the CLI here, sign it
+ * in, or see whose account it holds — the path for someone who never opens a terminal.
+ * Then the ACCOUNT card (`AgentAccountCard`): what the CLI itself says about its plan,
+ * quota and models — only when the binary is present, since asking an absent CLI would
+ * only produce the « did not answer » line.
  */
 export function AgentAccessModal({
   copy,
   cli,
+  label,
   detected,
   enabled,
   onEnabled,
@@ -31,6 +35,8 @@ export function AgentAccessModal({
   copy: AgentCopy;
   /** Which CLI this agent is — the account card asks it by name. */
   cli: AgentCli;
+  /** The agent's catalogue label (« Claude Code ») — what the install row names. */
+  label: string;
   /** `false` = binary absent from this machine, `null` = not (yet) probed. */
   detected: boolean | null;
   enabled: boolean;
@@ -53,6 +59,7 @@ export function AgentAccessModal({
           </div>
           <Switch checked={enabled} onChange={onEnabled} />
         </div>
+        <AgentSetupRows cli={cli} label={label} />
         {detected !== false && <AgentAccountCard cli={cli} />}
       </div>
       <div className="confirm-footer">

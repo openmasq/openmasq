@@ -132,6 +132,29 @@ export interface ModelPickerMessages {
       onDesc: string;
       missingDesc: string;
     };
+    /** Setting the CLI up from inside the app — install, then sign in (`AgentSetupRows`). */
+    setup: {
+      install: string;
+      installNote: (label: string, megabytes: number) => string;
+      installing: (percent: number) => string;
+      finishing: string;
+      notInstallable: string;
+      connect: string;
+      notConnected: string;
+      connecting: string;
+      openPage: string;
+      /** codex: the one-time code to type on the page it opened. */
+      typeCode: (code: string) => string;
+      /** claude: the page shows a code to paste back here. */
+      pasteCode: string;
+      codePlaceholder: string;
+      submitCode: string;
+      cancel: string;
+      connected: (email: string | undefined) => string;
+      plan: (plan: string) => string;
+      checking: string;
+      errors: { unsupported: string; network: string; checksum: string; install: string; login: string; busy: string };
+    };
     /** The account card inside an agent's opt-in: what its CLI says about itself. */
     account: {
       title: string;

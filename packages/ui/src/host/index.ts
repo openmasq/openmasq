@@ -1,5 +1,13 @@
 import { createContext, useContext } from "react";
-import type { CompleteToolsResult, SubscriptionAccount } from "@openmasq/llm";
+import type {
+  CompleteToolsResult,
+  SubscriptionAccount,
+  SubscriptionCli,
+  SubscriptionCliStatus,
+  SubscriptionInstallProgress,
+  SubscriptionLoginEvent,
+  SubscriptionSetupResult,
+} from "@openmasq/llm";
 import type { Detection } from "@openmasq/redact";
 import type {
   StartChatPayload,
@@ -124,6 +132,19 @@ export interface Host {
    * one that was never mirrored on.
    */
   setSubscriptionEnabled?(cli: "claude" | "codex" | "antigravity", on: boolean): Promise<void>;
+  /**
+   * Setting a subscription CLI up from inside the app (`hooks/useAgentSetup.ts`): where
+   * it stands (installed? installable here? signed in?), a pinned install of the
+   * official build, and the CLI's own sign-in relayed (page, code). All optional: a host
+   * without them draws no set-up rows, and the person is told to install it themselves.
+   */
+  readSubscriptionStatus?(cli: SubscriptionCli): Promise<SubscriptionCliStatus | null>;
+  installSubscriptionCli?(cli: SubscriptionCli): Promise<SubscriptionSetupResult>;
+  onSubscriptionInstallProgress?(cb: (p: SubscriptionInstallProgress) => void): () => void;
+  loginSubscriptionCli?(cli: SubscriptionCli): Promise<SubscriptionSetupResult>;
+  submitSubscriptionLoginCode?(cli: SubscriptionCli, code: string): Promise<boolean>;
+  cancelSubscriptionLogin?(cli: SubscriptionCli): Promise<void>;
+  onSubscriptionLoginEvent?(cb: (e: SubscriptionLoginEvent) => void): () => void;
   /** Non-streaming agentic completion with tools (drives MCP). */
   completeTools?(payload: CompleteToolsPayload): Promise<CompleteToolsResult>;
   /**

@@ -881,6 +881,12 @@ nothing becomes unreachable, only less cluttered.
       `packages/ui/src/pages/Settings/models/LocalModelSection.tsx`
 - [x] Réglages → Modèles → a CLI chip under « Via un agent installé » opens that agent's
       opt-in (the switch + its account/plan card) — `packages/ui/src/pages/Settings/models/AgentAccessModal.tsx`
+- [x] Inside that opt-in (and the onboarding's agent list): **install the CLI from the app**
+      (Claude Code, Codex — a pinned, sha256-verified download of the official build that
+      then places itself; never Antigravity) and **sign it in from the app** (the CLI's own
+      sign-in relayed: the page to open, the code to type or to paste), then « connectée :
+      e-mail · offre » — `packages/ui/src/pages/Settings/models/AgentSetupRows.tsx`,
+      `apps/desktop/src/main/subscription/install/`
 - [x] Réglages → Confidentialité → either stat card of the privacy report opens the
       **by-type breakdown** (your messages, or everything ever masked) —
       `packages/ui/src/pages/Settings/privacy/PrivacyBreakdownModal.tsx`
@@ -1134,7 +1140,7 @@ to reveal first).
 
 - [x] Sign-in by magic link or Google — `packages/ui/src/pages/Login/`
 - [x] Redaction demonstration, replayable afterwards from **Aide** — `packages/ui/src/components/RedactionDemo/`
-- [x] Choice between the built-in subscription ⇄ your own key (OpenRouter or another) ⇄ a subscription CLI already installed (Claude Code, Codex, Antigravity — the same opt-in switches as Réglages → Modèles, listed by `packages/ui/src/hooks/useAgentOptIns.ts`), optional — `packages/ui/src/pages/Onboarding/KeyChoice.tsx`
+- [x] Choice between the built-in subscription ⇄ your own key (OpenRouter or another) ⇄ a subscription CLI already installed (Claude Code, Codex, Antigravity — the same opt-in switches as Réglages → Modèles, listed by `packages/ui/src/hooks/useAgentOptIns.ts`; each row carries the install / sign-in rows of `packages/ui/src/pages/Settings/models/AgentSetupRows.tsx`), optional — `packages/ui/src/pages/Onboarding/KeyChoice.tsx`
 - [x] A tickable procedure to obtain the chosen provider's key + an alert on paste if the key does not have that provider's shape — `packages/ui/src/pages/Onboarding/KeySteps.tsx`
 - [x] "Get a key for free" (OpenRouter) — OAuth, with no copy-paste; the key is born and stays in the main process — `apps/desktop/src/main/store/openrouterPkce.ts`
 - [x] Fine-tuning the categories from the welcome, without being forced to
