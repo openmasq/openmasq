@@ -7,6 +7,18 @@
  * before this screen. What lives here is what nobody else says.
  */
 
+/** The home starters' ids — the union `starters.ts` (packages/ui) builds its lists from. */
+export type StarterId =
+  | "write"
+  | "search"
+  | "memory"
+  | "analyse"
+  | "mail-triage"
+  | "files-find"
+  | "day-brief"
+  | "chat-catchup"
+  | "pr-review";
+
 export interface ConversationMessages {
   /** The home of an empty conversation. */
   greeting: { morning: string; afternoon: string; evening: string };
@@ -19,6 +31,12 @@ export interface ConversationMessages {
     cardAria: (category: string, prompt: string) => string;
     connectTip: (connector: string, prompt: string) => string;
     dismiss: string;
+    /** The cards' copy, keyed by the starter id of `starters.ts` — that module keeps the
+     *  STRUCTURE (which four, what each needs), the words live here in every language. */
+    cats: Record<StarterId, string>;
+    /** Every prompt takes the brand's domain, even the ones that ignore it: the « write »
+     *  card names an address on it, and one shape keeps the lookup by id trivial. */
+    prompts: Record<StarterId, (domain: string) => string>;
   };
 
   /** The preview of a file produced by the model. */

@@ -15,6 +15,36 @@ export const conversation = {
     cardAria: (category, prompt) => `${category} : ${prompt}`,
     connectTip: (connector, prompt) => `Connecter ${connector} — ${prompt}`,
     dismiss: "Ne plus proposer",
+    cats: {
+      write: "Rédaction",
+      search: "Recherche",
+      memory: "Mémoire",
+      analyse: "Analyse",
+      "mail-triage": "Boîte mail",
+      "files-find": "Mes dossiers",
+      "day-brief": "Agenda",
+      "chat-catchup": "Messages",
+      "pr-review": "Code",
+    },
+    prompts: {
+      write: (domain) => `Rédige un email de remerciement à julien@${domain}.`,
+      search: () => "Quelle actualité en France aujourd'hui ?",
+      // A DEMONSTRATOR, not a memo: named people + a named company (the redaction lights up
+      // before the user's eyes BEFORE it goes out) AND several entity-linked facts (cards get
+      // born, the « N faits notés » caption clicks through to the Mémoire graph).
+      memory: () =>
+        "Retiens que sur le projet Horizon, ma cliente Camille Salvi (Atelier Lucane) valide les maquettes et que Marc Wulff gère la facturation.",
+      analyse: () => "Trace un graphique des 5 ETF éligibles au PEA les plus performants de l'année.",
+      "mail-triage": () =>
+        "Trie mes e-mails non lus de la semaine : lesquels attendent vraiment une réponse de moi, et lesquels peuvent attendre ?",
+      "files-find": () =>
+        "Retrouve dans mes dossiers le dernier devis que j'ai reçu, et sors-en le montant et les dates clés.",
+      "day-brief": () =>
+        "Prépare ma journée de demain : mes rendez-vous, avec qui, et ce que je dois avoir lu avant chacun.",
+      "chat-catchup": () =>
+        "Résume ce que j'ai raté cette semaine dans mes canaux, et liste ce qui attend une réponse de ma part.",
+      "pr-review": () => "Liste les pull requests qui attendent ma revue, et résume ce que chacune change.",
+    },
   },
 
   artifact: { pane: "Aperçu du fichier", copy: "Copier", copied: "Copié", close: "Fermer" },
