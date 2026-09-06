@@ -302,6 +302,15 @@ models: those services are not part of it — they live in a private repository,
 `OPENMASQ_BILLING` gate — and the app runs on your machine: your keys, a local model, or a
 CLI subscription. Redaction is on-device.
 
+**So why does the source mention subscriptions at all?** You will find a tier catalogue
+(`packages/credits/src/tiers.ts`), a Paiement tab and its wording in the translation
+catalogues. They exist for one case only: someone who deploys the private stack and chooses
+to charge for it. The OpenMasq the brand publishes is built **without** that gate — the
+binaries on the releases page sell nothing, show no plan, hold no credits, and the word
+« subscription » never appears except for your own Claude Code, Codex or Antigravity CLI.
+Release notes older than the open-source launch (September 2026) describe the earlier hosted
+offer; they are kept as history, not as a promise.
+
 **Five small services stay hosted by the brand, and a build from these sources
 reaches them by default** (`apps/desktop/scripts/publicServices.ts`): sign-in (a
 Supabase project — magic link or Google; the account only identifies you, nothing sits
@@ -598,6 +607,15 @@ Codex ou Antigravity CLI fonctionne aussi.
 modèles inclus : ces services n'en font pas partie — ils vivent dans un dépôt privé,
 derrière la porte `OPENMASQ_BILLING` — et l'app tourne sur votre machine : vos clés, un
 modèle local, ou un abonnement CLI. Le masquage s'exécute sur l'appareil.
+
+**Pourquoi le code parle-t-il alors d'abonnements ?** Vous trouverez un catalogue de paliers
+(`packages/credits/src/tiers.ts`), un onglet Paiement et son vocabulaire dans les catalogues
+de traduction. Ils ne servent qu'à un cas : quelqu'un qui déploie la pile privée et choisit
+de la facturer. L'OpenMasq que publie la marque est construit **sans** cette porte — les
+binaires de la page des versions ne vendent rien, n'affichent aucune offre, ne comptent aucun
+crédit, et le mot « abonnement » n'y apparaît que pour votre propre CLI Claude Code, Codex ou
+Antigravity. Les notes de version antérieures au passage en open source (septembre 2026)
+décrivent l'ancienne offre hébergée ; elles sont gardées comme historique, pas comme promesse.
 
 **Cinq petits services restent hébergés par la marque, et un build issu de ces sources les
 atteint par défaut** (`apps/desktop/scripts/publicServices.ts`) : la connexion (un projet
