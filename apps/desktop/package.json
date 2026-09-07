@@ -63,7 +63,7 @@
     "xlsx": "workspace:*"
   },
   "devDependencies": {
-    "@electron/asar": "^3.4.1",
+    "@electron/asar": "^4.3.0",
     "@electron/fuses": "^2.1.3",
     "@playwright/test": "^1.62.1",
     "@openmasq/analytics": "workspace:*",
