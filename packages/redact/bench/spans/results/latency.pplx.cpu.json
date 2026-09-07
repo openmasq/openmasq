@@ -1,0 +1,67 @@
+{
+ "host": "Darwin arm64 · cpu torch.float32",
+ "sample": 25,
+ "measured": "2026-09-07",
+ "rows": [
+  {
+   "dataset": "internal",
+   "engine": "pplx",
+   "device": "CPU",
+   "runtime": "python + torch 2.14.0",
+   "numeric": "float32",
+   "cases": 24,
+   "medianChars": 46,
+   "median": 170.8,
+   "p90": 215.3,
+   "charsPerSec": 264
+  },
+  {
+   "dataset": "ai4privacy",
+   "engine": "pplx",
+   "device": "CPU",
+   "runtime": "python + torch 2.14.0",
+   "numeric": "float32",
+   "cases": 24,
+   "medianChars": 467,
+   "median": 388.7,
+   "p90": 528.6,
+   "charsPerSec": 1104
+  },
+  {
+   "dataset": "nemotron",
+   "engine": "pplx",
+   "device": "CPU",
+   "runtime": "python + torch 2.14.0",
+   "numeric": "float32",
+   "cases": 24,
+   "medianChars": 945,
+   "median": 597.5,
+   "p90": 969.0,
+   "charsPerSec": 1707
+  },
+  {
+   "dataset": "gretel",
+   "engine": "pplx",
+   "device": "CPU",
+   "runtime": "python + torch 2.14.0",
+   "numeric": "float32",
+   "cases": 24,
+   "medianChars": 1431,
+   "median": 987.8,
+   "p90": 1151.8,
+   "charsPerSec": 1477
+  },
+  {
+   "dataset": "tab",
+   "engine": "pplx",
+   "device": "CPU",
+   "runtime": "python + torch 2.14.0",
+   "numeric": "float32",
+   "cases": 24,
+   "medianChars": 3760,
+   "median": 3250.1,
+   "p90": 9163.2,
+   "charsPerSec": 1115
+  }
+ ]
+}

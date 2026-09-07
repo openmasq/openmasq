@@ -1,0 +1,5 @@
+# regenerable: `fetch.sh` downloads the pinned upstream files, `adapt.py` derives the cases.
+# The committed `manifest.json` (revisions, checksums, seed, sampled ids), `results/` (every
+# engine's predicted spans + `scores.json`, the scored summary) and `figures/` (drawn FROM
+# that summary, stamped with the engine version) ARE the reference.
+data/

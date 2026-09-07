@@ -1,0 +1,5467 @@
+{
+ "measured": "2026-09-07",
+ "scorer": "spans/metric.ts",
+ "rows": [
+  {
+   "dataset": "ai4privacy",
+   "engine": "patterns",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.8810566037735849,
+    "r": 0.5584782624695483,
+    "f1": 0.683624930178922,
+    "goldChars": 135871,
+    "predChars": 86125
+   },
+   "in": {
+    "p": 0.8810566037735849,
+    "r": 0.6509209231672162,
+    "f1": 0.7487031210387138,
+    "goldChars": 115862
+   },
+   "spanOverlapF1": 0.628143148770816,
+   "spanContainmentF1": 0.5779047555769646,
+   "consistency": {
+    "recurring": {
+     "ok": 44,
+     "n": 228
+    },
+    "buckets": {
+     "1": {
+      "ok": 5780,
+      "n": 12354
+     },
+     "2": {
+      "ok": 44,
+      "n": 196
+     },
+     "3–5": {
+      "ok": 0,
+      "n": 29
+     },
+     "6–10": {
+      "ok": 0,
+      "n": 3
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.8810566037735849,
+     "r": 0.5584782624695483,
+     "f1": 0.683624930178922,
+     "goldChars": 135871
+    }
+   },
+   "byLang": {
+    "German": {
+     "f1": 0.6920798476216048,
+     "goldChars": 72635
+    },
+    "English": {
+     "f1": 0.6738248767251188,
+     "goldChars": 63236
+    }
+   },
+   "byLabel": {
+    "BUILDING": {
+     "charRecall": 0.4390444810543657,
+     "spans": 422,
+     "contained": 185,
+     "goldChars": 1214
+    },
+    "STREET": {
+     "charRecall": 0.4237512404895799,
+     "spans": 422,
+     "contained": 177,
+     "goldChars": 6046
+    },
+    "CITY": {
+     "charRecall": 0.6707667076670767,
+     "spans": 445,
+     "contained": 301,
+     "goldChars": 4878
+    },
+    "STATE": {
+     "charRecall": 0.14418416801292408,
+     "spans": 447,
+     "contained": 75,
+     "goldChars": 2476
+    },
+    "POSTCODE": {
+     "charRecall": 0.7414342629482071,
+     "spans": 449,
+     "contained": 322,
+     "goldChars": 2510
+    },
+    "SECADDRESS": {
+     "charRecall": 0.6282051282051282,
+     "spans": 190,
+     "contained": 115,
+     "goldChars": 1872
+    },
+    "IP": {
+     "charRecall": 0.9544061302681992,
+     "spans": 599,
+     "contained": 581,
+     "goldChars": 15660
+    },
+    "TIME": {
+     "charRecall": 0.017461251716696095,
+     "spans": 1014,
+     "contained": 11,
+     "goldChars": 5097
+    },
+    "SEX": {
+     "charRecall": 0.05799934832192897,
+     "spans": 534,
+     "contained": 18,
+     "goldChars": 3069
+    },
+    "USERNAME": {
+     "charRecall": 0.10795758809039306,
+     "spans": 768,
+     "contained": 72,
+     "goldChars": 9337
+    },
+    "GEOCOORD": {
+     "charRecall": 0,
+     "spans": 60,
+     "contained": 0,
+     "goldChars": 957
+    },
+    "LASTNAME1": {
+     "charRecall": 0.42877629063097517,
+     "spans": 560,
+     "contained": 247,
+     "goldChars": 4184
+    },
+    "LASTNAME2": {
+     "charRecall": 0.32100840336134456,
+     "spans": 163,
+     "contained": 54,
+     "goldChars": 1190
+    },
+    "LASTNAME3": {
+     "charRecall": 0.22493887530562348,
+     "spans": 53,
+     "contained": 12,
+     "goldChars": 409
+    },
+    "TITLE": {
+     "charRecall": 0.07667731629392971,
+     "spans": 528,
+     "contained": 29,
+     "goldChars": 3130
+    },
+    "SOCIALNUMBER": {
+     "charRecall": 0.49267995119967467,
+     "spans": 709,
+     "contained": 306,
+     "goldChars": 9836
+    },
+    "IDCARD": {
+     "charRecall": 0.8245697896749522,
+     "spans": 666,
+     "contained": 550,
+     "goldChars": 6276
+    },
+    "TEL": {
+     "charRecall": 0.7155665280665281,
+     "spans": 508,
+     "contained": 361,
+     "goldChars": 7696
+    },
+    "PASS": {
+     "charRecall": 0.58338405356056,
+     "spans": 400,
+     "contained": 217,
+     "goldChars": 3286
+    },
+    "GIVENNAME1": {
+     "charRecall": 0.5081967213114754,
+     "spans": 483,
+     "contained": 242,
+     "goldChars": 3294
+    },
+    "PASSPORT": {
+     "charRecall": 0.8264211369095277,
+     "spans": 712,
+     "contained": 580,
+     "goldChars": 6245
+    },
+    "DATE": {
+     "charRecall": 0.006432545201668985,
+     "spans": 450,
+     "contained": 3,
+     "goldChars": 5752
+    },
+    "DRIVERLICENSE": {
+     "charRecall": 0.6462053571428571,
+     "spans": 568,
+     "contained": 373,
+     "goldChars": 8064
+    },
+    "BOD": {
+     "charRecall": 0.6361142287068213,
+     "spans": 607,
+     "contained": 378,
+     "goldChars": 8019
+    },
+    "COUNTRY": {
+     "charRecall": 0.01322860686233981,
+     "spans": 365,
+     "contained": 8,
+     "goldChars": 2419
+    },
+    "EMAIL": {
+     "charRecall": 0.9747253591457326,
+     "spans": 614,
+     "contained": 610,
+     "goldChars": 13017
+    },
+    "GIVENNAME2": {
+     "charRecall": 0.3722794959908362,
+     "spans": 128,
+     "contained": 45,
+     "goldChars": 873
+    }
+   },
+   "ms": {
+    "median": 21.8,
+    "p90": 68.3,
+    "total": 189945
+   }
+  },
+  {
+   "dataset": "ai4privacy",
+   "engine": "ner",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.85366142899496,
+    "r": 0.6357648063236452,
+    "f1": 0.728774450457899,
+    "goldChars": 135871,
+    "predChars": 101190
+   },
+   "in": {
+    "p": 0.85366142899496,
+    "r": 0.7394313925186861,
+    "f1": 0.7924510746103162,
+    "goldChars": 115862
+   },
+   "spanOverlapF1": 0.6918227642298873,
+   "spanContainmentF1": 0.6348984668038129,
+   "consistency": {
+    "recurring": {
+     "ok": 61,
+     "n": 228
+    },
+    "buckets": {
+     "1": {
+      "ok": 6761,
+      "n": 12354
+     },
+     "2": {
+      "ok": 60,
+      "n": 196
+     },
+     "3–5": {
+      "ok": 1,
+      "n": 29
+     },
+     "6–10": {
+      "ok": 0,
+      "n": 3
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.85366142899496,
+     "r": 0.6357648063236452,
+     "f1": 0.728774450457899,
+     "goldChars": 135871
+    }
+   },
+   "byLang": {
+    "German": {
+     "f1": 0.7460578626254675,
+     "goldChars": 72635
+    },
+    "English": {
+     "f1": 0.7088225671598385,
+     "goldChars": 63236
+    }
+   },
+   "byLabel": {
+    "BUILDING": {
+     "charRecall": 0.4390444810543657,
+     "spans": 422,
+     "contained": 185,
+     "goldChars": 1214
+    },
+    "STREET": {
+     "charRecall": 0.8971220641746609,
+     "spans": 422,
+     "contained": 367,
+     "goldChars": 6046
+    },
+    "CITY": {
+     "charRecall": 0.9454694546945469,
+     "spans": 445,
+     "contained": 413,
+     "goldChars": 4878
+    },
+    "STATE": {
+     "charRecall": 0.7633279483037156,
+     "spans": 447,
+     "contained": 204,
+     "goldChars": 2476
+    },
+    "POSTCODE": {
+     "charRecall": 0.7414342629482071,
+     "spans": 449,
+     "contained": 322,
+     "goldChars": 2510
+    },
+    "SECADDRESS": {
+     "charRecall": 0.6629273504273504,
+     "spans": 190,
+     "contained": 116,
+     "goldChars": 1872
+    },
+    "IP": {
+     "charRecall": 0.9544061302681992,
+     "spans": 599,
+     "contained": 581,
+     "goldChars": 15660
+    },
+    "TIME": {
+     "charRecall": 0.020207965469884244,
+     "spans": 1014,
+     "contained": 11,
+     "goldChars": 5097
+    },
+    "SEX": {
+     "charRecall": 0.07266210492016943,
+     "spans": 534,
+     "contained": 25,
+     "goldChars": 3069
+    },
+    "USERNAME": {
+     "charRecall": 0.19010388775838064,
+     "spans": 768,
+     "contained": 100,
+     "goldChars": 9337
+    },
+    "GEOCOORD": {
+     "charRecall": 0,
+     "spans": 60,
+     "contained": 0,
+     "goldChars": 957
+    },
+    "LASTNAME1": {
+     "charRecall": 0.8166826003824091,
+     "spans": 560,
+     "contained": 454,
+     "goldChars": 4184
+    },
+    "LASTNAME2": {
+     "charRecall": 0.8235294117647058,
+     "spans": 163,
+     "contained": 132,
+     "goldChars": 1190
+    },
+    "LASTNAME3": {
+     "charRecall": 0.7041564792176039,
+     "spans": 53,
+     "contained": 38,
+     "goldChars": 409
+    },
+    "TITLE": {
+     "charRecall": 0.14217252396166133,
+     "spans": 528,
+     "contained": 69,
+     "goldChars": 3130
+    },
+    "SOCIALNUMBER": {
+     "charRecall": 0.49298495323302155,
+     "spans": 709,
+     "contained": 306,
+     "goldChars": 9836
+    },
+    "IDCARD": {
+     "charRecall": 0.8250478011472275,
+     "spans": 666,
+     "contained": 551,
+     "goldChars": 6276
+    },
+    "TEL": {
+     "charRecall": 0.7155665280665281,
+     "spans": 508,
+     "contained": 361,
+     "goldChars": 7696
+    },
+    "PASS": {
+     "charRecall": 0.58338405356056,
+     "spans": 400,
+     "contained": 217,
+     "goldChars": 3286
+    },
+    "GIVENNAME1": {
+     "charRecall": 0.7880995749848209,
+     "spans": 483,
+     "contained": 385,
+     "goldChars": 3294
+    },
+    "PASSPORT": {
+     "charRecall": 0.8264211369095277,
+     "spans": 712,
+     "contained": 580,
+     "goldChars": 6245
+    },
+    "DATE": {
+     "charRecall": 0.006432545201668985,
+     "spans": 450,
+     "contained": 3,
+     "goldChars": 5752
+    },
+    "DRIVERLICENSE": {
+     "charRecall": 0.6499255952380952,
+     "spans": 568,
+     "contained": 373,
+     "goldChars": 8064
+    },
+    "BOD": {
+     "charRecall": 0.6378600823045267,
+     "spans": 607,
+     "contained": 380,
+     "goldChars": 8019
+    },
+    "COUNTRY": {
+     "charRecall": 0.014055394791236048,
+     "spans": 365,
+     "contained": 9,
+     "goldChars": 2419
+    },
+    "EMAIL": {
+     "charRecall": 0.9751862948452025,
+     "spans": 614,
+     "contained": 610,
+     "goldChars": 13017
+    },
+    "GIVENNAME2": {
+     "charRecall": 0.7353951890034365,
+     "spans": 128,
+     "contained": 94,
+     "goldChars": 873
+    }
+   },
+   "ms": {
+    "median": 232.7,
+    "p90": 559.2,
+    "total": 585445
+   }
+  },
+  {
+   "dataset": "ai4privacy",
+   "engine": "ner-strict",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.8570123028907913,
+    "r": 0.7316057142436576,
+    "f1": 0.7893591677916304,
+    "goldChars": 135871,
+    "predChars": 115989
+   },
+   "in": {
+    "p": 0.8570123028907913,
+    "r": 0.7849338005558336,
+    "f1": 0.8193909929432025,
+    "goldChars": 115862
+   },
+   "spanOverlapF1": 0.7682916486895749,
+   "spanContainmentF1": 0.7082012692888499,
+   "consistency": {
+    "recurring": {
+     "ok": 94,
+     "n": 228
+    },
+    "buckets": {
+     "1": {
+      "ok": 8018,
+      "n": 12354
+     },
+     "2": {
+      "ok": 86,
+      "n": 196
+     },
+     "3–5": {
+      "ok": 7,
+      "n": 29
+     },
+     "6–10": {
+      "ok": 1,
+      "n": 3
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.8570123028907913,
+     "r": 0.7316057142436576,
+     "f1": 0.7893591677916304,
+     "goldChars": 135871
+    }
+   },
+   "byLang": {
+    "German": {
+     "f1": 0.8025764175881455,
+     "goldChars": 72635
+    },
+    "English": {
+     "f1": 0.7742610470803386,
+     "goldChars": 63236
+    }
+   },
+   "byLabel": {
+    "BUILDING": {
+     "charRecall": 0.4390444810543657,
+     "spans": 422,
+     "contained": 185,
+     "goldChars": 1214
+    },
+    "STREET": {
+     "charRecall": 0.8971220641746609,
+     "spans": 422,
+     "contained": 367,
+     "goldChars": 6046
+    },
+    "CITY": {
+     "charRecall": 0.9454694546945469,
+     "spans": 445,
+     "contained": 413,
+     "goldChars": 4878
+    },
+    "STATE": {
+     "charRecall": 0.7633279483037156,
+     "spans": 447,
+     "contained": 204,
+     "goldChars": 2476
+    },
+    "POSTCODE": {
+     "charRecall": 0.7414342629482071,
+     "spans": 449,
+     "contained": 322,
+     "goldChars": 2510
+    },
+    "SECADDRESS": {
+     "charRecall": 0.6629273504273504,
+     "spans": 190,
+     "contained": 116,
+     "goldChars": 1872
+    },
+    "IP": {
+     "charRecall": 0.9544061302681992,
+     "spans": 599,
+     "contained": 581,
+     "goldChars": 15660
+    },
+    "TIME": {
+     "charRecall": 0.7164999019030802,
+     "spans": 1014,
+     "contained": 639,
+     "goldChars": 5097
+    },
+    "SEX": {
+     "charRecall": 0.07266210492016943,
+     "spans": 534,
+     "contained": 25,
+     "goldChars": 3069
+    },
+    "USERNAME": {
+     "charRecall": 0.5149405590660812,
+     "spans": 768,
+     "contained": 374,
+     "goldChars": 9337
+    },
+    "GEOCOORD": {
+     "charRecall": 0,
+     "spans": 60,
+     "contained": 0,
+     "goldChars": 957
+    },
+    "LASTNAME1": {
+     "charRecall": 0.8166826003824091,
+     "spans": 560,
+     "contained": 454,
+     "goldChars": 4184
+    },
+    "LASTNAME2": {
+     "charRecall": 0.8235294117647058,
+     "spans": 163,
+     "contained": 132,
+     "goldChars": 1190
+    },
+    "LASTNAME3": {
+     "charRecall": 0.7041564792176039,
+     "spans": 53,
+     "contained": 38,
+     "goldChars": 409
+    },
+    "TITLE": {
+     "charRecall": 0.15207667731629393,
+     "spans": 528,
+     "contained": 70,
+     "goldChars": 3130
+    },
+    "SOCIALNUMBER": {
+     "charRecall": 0.49298495323302155,
+     "spans": 709,
+     "contained": 306,
+     "goldChars": 9836
+    },
+    "IDCARD": {
+     "charRecall": 0.8236137667304015,
+     "spans": 666,
+     "contained": 550,
+     "goldChars": 6276
+    },
+    "TEL": {
+     "charRecall": 0.7155665280665281,
+     "spans": 508,
+     "contained": 361,
+     "goldChars": 7696
+    },
+    "PASS": {
+     "charRecall": 0.5852099817407181,
+     "spans": 400,
+     "contained": 217,
+     "goldChars": 3286
+    },
+    "GIVENNAME1": {
+     "charRecall": 0.7880995749848209,
+     "spans": 483,
+     "contained": 385,
+     "goldChars": 3294
+    },
+    "PASSPORT": {
+     "charRecall": 0.8264211369095277,
+     "spans": 712,
+     "contained": 580,
+     "goldChars": 6245
+    },
+    "DATE": {
+     "charRecall": 0.7373087621696801,
+     "spans": 450,
+     "contained": 293,
+     "goldChars": 5752
+    },
+    "DRIVERLICENSE": {
+     "charRecall": 0.6499255952380952,
+     "spans": 568,
+     "contained": 373,
+     "goldChars": 8064
+    },
+    "BOD": {
+     "charRecall": 0.9174460655942137,
+     "spans": 607,
+     "contained": 527,
+     "goldChars": 8019
+    },
+    "COUNTRY": {
+     "charRecall": 0.018189334435717238,
+     "spans": 365,
+     "contained": 9,
+     "goldChars": 2419
+    },
+    "EMAIL": {
+     "charRecall": 0.9751862948452025,
+     "spans": 614,
+     "contained": 609,
+     "goldChars": 13017
+    },
+    "GIVENNAME2": {
+     "charRecall": 0.7353951890034365,
+     "spans": 128,
+     "contained": 94,
+     "goldChars": 873
+    }
+   },
+   "ms": {
+    "median": 234.7,
+    "p90": 502.9,
+    "total": 566433
+   }
+  },
+  {
+   "dataset": "ai4privacy",
+   "engine": "pplx",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "Darwin arm64 · mps torch.bfloat16 · torch 2.14.0",
+   "all": {
+    "p": 0.9203563511074201,
+    "r": 0.986928778032104,
+    "f1": 0.9524807330326384,
+    "goldChars": 135871,
+    "predChars": 145699
+   },
+   "in": {
+    "p": 0.9203563511074201,
+    "r": 0.9861732060554798,
+    "f1": 0.9521287200349199,
+    "goldChars": 115862
+   },
+   "spanOverlapF1": 0.9622228823332162,
+   "spanContainmentF1": 0.9200869333783739,
+   "consistency": {
+    "recurring": {
+     "ok": 225,
+     "n": 228
+    },
+    "buckets": {
+     "1": {
+      "ok": 12268,
+      "n": 12354
+     },
+     "2": {
+      "ok": 194,
+      "n": 196
+     },
+     "3–5": {
+      "ok": 29,
+      "n": 29
+     },
+     "6–10": {
+      "ok": 2,
+      "n": 3
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.9203563511074201,
+     "r": 0.986928778032104,
+     "f1": 0.9524807330326384,
+     "goldChars": 135871
+    }
+   },
+   "byLang": {
+    "German": {
+     "f1": 0.9500939182148238,
+     "goldChars": 72635
+    },
+    "English": {
+     "f1": 0.9552277571100094,
+     "goldChars": 63236
+    }
+   },
+   "byLabel": {
+    "BUILDING": {
+     "charRecall": 0.9950576606260296,
+     "spans": 422,
+     "contained": 420,
+     "goldChars": 1214
+    },
+    "STREET": {
+     "charRecall": 0.9993384055573933,
+     "spans": 422,
+     "contained": 420,
+     "goldChars": 6046
+    },
+    "CITY": {
+     "charRecall": 1,
+     "spans": 445,
+     "contained": 445,
+     "goldChars": 4878
+    },
+    "STATE": {
+     "charRecall": 0.9995961227786753,
+     "spans": 447,
+     "contained": 446,
+     "goldChars": 2476
+    },
+    "POSTCODE": {
+     "charRecall": 0.998804780876494,
+     "spans": 449,
+     "contained": 448,
+     "goldChars": 2510
+    },
+    "SECADDRESS": {
+     "charRecall": 1,
+     "spans": 190,
+     "contained": 190,
+     "goldChars": 1872
+    },
+    "IP": {
+     "charRecall": 0.9835249042145594,
+     "spans": 599,
+     "contained": 594,
+     "goldChars": 15660
+    },
+    "TIME": {
+     "charRecall": 0.985285462036492,
+     "spans": 1014,
+     "contained": 1011,
+     "goldChars": 5097
+    },
+    "SEX": {
+     "charRecall": 0.9918540241120887,
+     "spans": 534,
+     "contained": 530,
+     "goldChars": 3069
+    },
+    "USERNAME": {
+     "charRecall": 0.9486987255006961,
+     "spans": 768,
+     "contained": 741,
+     "goldChars": 9337
+    },
+    "GEOCOORD": {
+     "charRecall": 1,
+     "spans": 60,
+     "contained": 60,
+     "goldChars": 957
+    },
+    "LASTNAME1": {
+     "charRecall": 0.9918738049713193,
+     "spans": 560,
+     "contained": 558,
+     "goldChars": 4184
+    },
+    "LASTNAME2": {
+     "charRecall": 1,
+     "spans": 163,
+     "contained": 163,
+     "goldChars": 1190
+    },
+    "LASTNAME3": {
+     "charRecall": 1,
+     "spans": 53,
+     "contained": 53,
+     "goldChars": 409
+    },
+    "TITLE": {
+     "charRecall": 0.9383386581469648,
+     "spans": 528,
+     "contained": 519,
+     "goldChars": 3130
+    },
+    "SOCIALNUMBER": {
+     "charRecall": 1,
+     "spans": 709,
+     "contained": 709,
+     "goldChars": 9836
+    },
+    "IDCARD": {
+     "charRecall": 1,
+     "spans": 666,
+     "contained": 666,
+     "goldChars": 6276
+    },
+    "TEL": {
+     "charRecall": 0.9581600831600832,
+     "spans": 508,
+     "contained": 496,
+     "goldChars": 7696
+    },
+    "PASS": {
+     "charRecall": 0.9580036518563603,
+     "spans": 400,
+     "contained": 385,
+     "goldChars": 3286
+    },
+    "GIVENNAME1": {
+     "charRecall": 0.9681238615664846,
+     "spans": 483,
+     "contained": 479,
+     "goldChars": 3294
+    },
+    "PASSPORT": {
+     "charRecall": 0.9974379503602883,
+     "spans": 712,
+     "contained": 710,
+     "goldChars": 6245
+    },
+    "DATE": {
+     "charRecall": 0.997913769123783,
+     "spans": 450,
+     "contained": 449,
+     "goldChars": 5752
+    },
+    "DRIVERLICENSE": {
+     "charRecall": 0.9889632936507936,
+     "spans": 568,
+     "contained": 564,
+     "goldChars": 8064
+    },
+    "BOD": {
+     "charRecall": 1,
+     "spans": 607,
+     "contained": 607,
+     "goldChars": 8019
+    },
+    "COUNTRY": {
+     "charRecall": 1,
+     "spans": 365,
+     "contained": 365,
+     "goldChars": 2419
+    },
+    "EMAIL": {
+     "charRecall": 0.9771836828762388,
+     "spans": 614,
+     "contained": 613,
+     "goldChars": 13017
+    },
+    "GIVENNAME2": {
+     "charRecall": 0.9633447880870561,
+     "spans": 128,
+     "contained": 127,
+     "goldChars": 873
+    }
+   },
+   "ms": {
+    "median": 498.3,
+    "p90": 713.4,
+    "total": 1046504
+   }
+  },
+  {
+   "dataset": "gretel",
+   "engine": "patterns",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.6794835272836042,
+    "r": 0.44868792325056434,
+    "f1": 0.5404782271267285,
+    "goldChars": 212640,
+    "predChars": 140414
+   },
+   "in": {
+    "p": 0.6794835272836042,
+    "r": 0.5600912778904665,
+    "f1": 0.6140376450267598,
+    "goldChars": 169592
+   },
+   "spanOverlapF1": 0.5253350815265062,
+   "spanContainmentF1": 0.4106220029098884,
+   "consistency": {
+    "recurring": {
+     "ok": 692,
+     "n": 1870
+    },
+    "buckets": {
+     "1": {
+      "ok": 2282,
+      "n": 7977
+     },
+     "2": {
+      "ok": 513,
+      "n": 1236
+     },
+     "6–10": {
+      "ok": 13,
+      "n": 108
+     },
+     "3–5": {
+      "ok": 165,
+      "n": 519
+     },
+     "11+": {
+      "ok": 1,
+      "n": 7
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.5364364228524902,
+     "r": 0.49337465937220476,
+     "f1": 0.5140052228374526,
+     "goldChars": 48073
+    },
+    "1k–10k": {
+     "p": 0.7452286902286902,
+     "r": 0.43563411862645607,
+     "f1": 0.5498471815835593,
+     "goldChars": 164567
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.5463377194135304,
+     "goldChars": 113341
+    },
+    "it": {
+     "f1": 0.5728360309641097,
+     "goldChars": 15834
+    },
+    "nl": {
+     "f1": 0.48383500557413595,
+     "goldChars": 16395
+    },
+    "sv": {
+     "f1": 0.5062440301411539,
+     "goldChars": 18151
+    },
+    "de": {
+     "f1": 0.5481770833333333,
+     "goldChars": 19040
+    },
+    "es": {
+     "f1": 0.4988484383207403,
+     "goldChars": 15597
+    },
+    "fr": {
+     "f1": 0.5891655178006651,
+     "goldChars": 14282
+    }
+   },
+   "byLabel": {
+    "street_address": {
+     "charRecall": 0.639411376714354,
+     "spans": 1562,
+     "contained": 607,
+     "goldChars": 43967
+    },
+    "company": {
+     "charRecall": 0.230399624985351,
+     "spans": 2375,
+     "contained": 205,
+     "goldChars": 42665
+    },
+    "date": {
+     "charRecall": 0.01020055784300704,
+     "spans": 3107,
+     "contained": 33,
+     "goldChars": 37645
+    },
+    "name": {
+     "charRecall": 0.6107570102402143,
+     "spans": 3559,
+     "contained": 1735,
+     "goldChars": 52245
+    },
+    "date_of_birth": {
+     "charRecall": 0.7917547568710359,
+     "spans": 86,
+     "contained": 70,
+     "goldChars": 946
+    },
+    "email": {
+     "charRecall": 0.9624409252964099,
+     "spans": 502,
+     "contained": 473,
+     "goldChars": 12061
+    },
+    "phone_number": {
+     "charRecall": 0.7602905569007264,
+     "spans": 341,
+     "contained": 253,
+     "goldChars": 4956
+    },
+    "swift_bic_code": {
+     "charRecall": 0.4482758620689655,
+     "spans": 87,
+     "contained": 39,
+     "goldChars": 957
+    },
+    "time": {
+     "charRecall": 0.0076,
+     "spans": 504,
+     "contained": 3,
+     "goldChars": 5000
+    },
+    "ipv4": {
+     "charRecall": 1,
+     "spans": 40,
+     "contained": 40,
+     "goldChars": 538
+    },
+    "ssn": {
+     "charRecall": 0.5836120401337793,
+     "spans": 53,
+     "contained": 30,
+     "goldChars": 598
+    },
+    "bban": {
+     "charRecall": 0.6334728033472803,
+     "spans": 64,
+     "contained": 40,
+     "goldChars": 1195
+    },
+    "password": {
+     "charRecall": 0.48484848484848486,
+     "spans": 42,
+     "contained": 14,
+     "goldChars": 594
+    },
+    "first_name": {
+     "charRecall": 0.33241379310344826,
+     "spans": 112,
+     "contained": 34,
+     "goldChars": 725
+    },
+    "driver_license_number": {
+     "charRecall": 0.7245370370370371,
+     "spans": 35,
+     "contained": 25,
+     "goldChars": 432
+    },
+    "employee_id": {
+     "charRecall": 0.6324110671936759,
+     "spans": 60,
+     "contained": 36,
+     "goldChars": 506
+    },
+    "iban": {
+     "charRecall": 0.9425212279555846,
+     "spans": 63,
+     "contained": 58,
+     "goldChars": 1531
+    },
+    "credit_card_number": {
+     "charRecall": 0.8582766439909297,
+     "spans": 54,
+     "contained": 47,
+     "goldChars": 882
+    },
+    "local_latlng": {
+     "charRecall": 0.3035264483627204,
+     "spans": 34,
+     "contained": 11,
+     "goldChars": 794
+    },
+    "ipv6": {
+     "charRecall": 0.9102691924227319,
+     "spans": 60,
+     "contained": 36,
+     "goldChars": 2006
+    },
+    "credit_card_security_code": {
+     "charRecall": 0.5,
+     "spans": 64,
+     "contained": 32,
+     "goldChars": 192
+    },
+    "customer_id": {
+     "charRecall": 0.6666666666666666,
+     "spans": 63,
+     "contained": 36,
+     "goldChars": 606
+    },
+    "passport_number": {
+     "charRecall": 0.7798594847775175,
+     "spans": 47,
+     "contained": 37,
+     "goldChars": 427
+    },
+    "user_name": {
+     "charRecall": 0.14912280701754385,
+     "spans": 21,
+     "contained": 3,
+     "goldChars": 228
+    },
+    "account_pin": {
+     "charRecall": 0.5515151515151515,
+     "spans": 63,
+     "contained": 35,
+     "goldChars": 330
+    },
+    "api_key": {
+     "charRecall": 0.8840182648401826,
+     "spans": 27,
+     "contained": 21,
+     "goldChars": 1095
+    },
+    "bank_routing_number": {
+     "charRecall": 0.625,
+     "spans": 56,
+     "contained": 35,
+     "goldChars": 504
+    },
+    "last_name": {
+     "charRecall": 0.48776508972267535,
+     "spans": 67,
+     "contained": 28,
+     "goldChars": 613
+    },
+    "date_time": {
+     "charRecall": 0,
+     "spans": 20,
+     "contained": 0,
+     "goldChars": 413
+    }
+   },
+   "ms": {
+    "median": 29.1,
+    "p90": 86.3,
+    "total": 1390932
+   }
+  },
+  {
+   "dataset": "gretel",
+   "engine": "ner",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.6390007375366277,
+    "r": 0.6030238901429646,
+    "f1": 0.6204912559156852,
+    "goldChars": 212640,
+    "predChars": 200668
+   },
+   "in": {
+    "p": 0.6390007375366277,
+    "r": 0.7534966271993963,
+    "f1": 0.6915415608029547,
+    "goldChars": 169592
+   },
+   "spanOverlapF1": 0.5820731797723856,
+   "spanContainmentF1": 0.4723983318204274,
+   "consistency": {
+    "recurring": {
+     "ok": 949,
+     "n": 1870
+    },
+    "buckets": {
+     "1": {
+      "ok": 2792,
+      "n": 7977
+     },
+     "2": {
+      "ok": 646,
+      "n": 1236
+     },
+     "6–10": {
+      "ok": 41,
+      "n": 108
+     },
+     "3–5": {
+      "ok": 260,
+      "n": 519
+     },
+     "11+": {
+      "ok": 2,
+      "n": 7
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.5579269389958611,
+     "r": 0.644935826763464,
+     "f1": 0.5982844958173732,
+     "goldChars": 48073
+    },
+    "1k–10k": {
+     "p": 0.6700505865001585,
+     "r": 0.5907806546877563,
+     "f1": 0.6279237240243488,
+     "goldChars": 164567
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.6132683440438588,
+     "goldChars": 113341
+    },
+    "it": {
+     "f1": 0.6258034628525102,
+     "goldChars": 15834
+    },
+    "nl": {
+     "f1": 0.5765352294764059,
+     "goldChars": 16395
+    },
+    "sv": {
+     "f1": 0.6356566397652237,
+     "goldChars": 18151
+    },
+    "de": {
+     "f1": 0.6353219614973878,
+     "goldChars": 19040
+    },
+    "es": {
+     "f1": 0.6184767737311877,
+     "goldChars": 15597
+    },
+    "fr": {
+     "f1": 0.6846005843369202,
+     "goldChars": 14282
+    }
+   },
+   "byLabel": {
+    "street_address": {
+     "charRecall": 0.8049901062160256,
+     "spans": 1562,
+     "contained": 615,
+     "goldChars": 43967
+    },
+    "company": {
+     "charRecall": 0.6419782022735263,
+     "spans": 2375,
+     "contained": 846,
+     "goldChars": 42665
+    },
+    "date": {
+     "charRecall": 0.01046619737016868,
+     "spans": 3107,
+     "contained": 33,
+     "goldChars": 37645
+    },
+    "name": {
+     "charRecall": 0.7569145372762944,
+     "spans": 3559,
+     "contained": 2324,
+     "goldChars": 52245
+    },
+    "date_of_birth": {
+     "charRecall": 0.7917547568710359,
+     "spans": 86,
+     "contained": 70,
+     "goldChars": 946
+    },
+    "email": {
+     "charRecall": 0.9650941049664207,
+     "spans": 502,
+     "contained": 473,
+     "goldChars": 12061
+    },
+    "phone_number": {
+     "charRecall": 0.7602905569007264,
+     "spans": 341,
+     "contained": 253,
+     "goldChars": 4956
+    },
+    "swift_bic_code": {
+     "charRecall": 0.4482758620689655,
+     "spans": 87,
+     "contained": 39,
+     "goldChars": 957
+    },
+    "time": {
+     "charRecall": 0.0092,
+     "spans": 504,
+     "contained": 3,
+     "goldChars": 5000
+    },
+    "ipv4": {
+     "charRecall": 1,
+     "spans": 40,
+     "contained": 40,
+     "goldChars": 538
+    },
+    "ssn": {
+     "charRecall": 0.5836120401337793,
+     "spans": 53,
+     "contained": 30,
+     "goldChars": 598
+    },
+    "bban": {
+     "charRecall": 0.6334728033472803,
+     "spans": 64,
+     "contained": 40,
+     "goldChars": 1195
+    },
+    "password": {
+     "charRecall": 0.48484848484848486,
+     "spans": 42,
+     "contained": 14,
+     "goldChars": 594
+    },
+    "first_name": {
+     "charRecall": 0.9420689655172414,
+     "spans": 112,
+     "contained": 105,
+     "goldChars": 725
+    },
+    "driver_license_number": {
+     "charRecall": 0.7245370370370371,
+     "spans": 35,
+     "contained": 25,
+     "goldChars": 432
+    },
+    "employee_id": {
+     "charRecall": 0.6324110671936759,
+     "spans": 60,
+     "contained": 36,
+     "goldChars": 506
+    },
+    "iban": {
+     "charRecall": 0.9425212279555846,
+     "spans": 63,
+     "contained": 58,
+     "goldChars": 1531
+    },
+    "credit_card_number": {
+     "charRecall": 0.8582766439909297,
+     "spans": 54,
+     "contained": 47,
+     "goldChars": 882
+    },
+    "local_latlng": {
+     "charRecall": 0.3035264483627204,
+     "spans": 34,
+     "contained": 11,
+     "goldChars": 794
+    },
+    "ipv6": {
+     "charRecall": 0.9102691924227319,
+     "spans": 60,
+     "contained": 36,
+     "goldChars": 2006
+    },
+    "credit_card_security_code": {
+     "charRecall": 0.5,
+     "spans": 64,
+     "contained": 32,
+     "goldChars": 192
+    },
+    "customer_id": {
+     "charRecall": 0.6666666666666666,
+     "spans": 63,
+     "contained": 36,
+     "goldChars": 606
+    },
+    "passport_number": {
+     "charRecall": 0.7798594847775175,
+     "spans": 47,
+     "contained": 37,
+     "goldChars": 427
+    },
+    "user_name": {
+     "charRecall": 0.40350877192982454,
+     "spans": 21,
+     "contained": 6,
+     "goldChars": 228
+    },
+    "account_pin": {
+     "charRecall": 0.5515151515151515,
+     "spans": 63,
+     "contained": 35,
+     "goldChars": 330
+    },
+    "api_key": {
+     "charRecall": 0.8840182648401826,
+     "spans": 27,
+     "contained": 21,
+     "goldChars": 1095
+    },
+    "bank_routing_number": {
+     "charRecall": 0.625,
+     "spans": 56,
+     "contained": 35,
+     "goldChars": 504
+    },
+    "last_name": {
+     "charRecall": 0.9412724306688418,
+     "spans": 67,
+     "contained": 60,
+     "goldChars": 613
+    },
+    "date_time": {
+     "charRecall": 0,
+     "spans": 20,
+     "contained": 0,
+     "goldChars": 413
+    }
+   },
+   "ms": {
+    "median": 1177.8,
+    "p90": 2373.3,
+    "total": 3296471
+   }
+  },
+  {
+   "dataset": "gretel",
+   "engine": "ner-strict",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.5688894438894438,
+    "r": 0.7070024454477051,
+    "f1": 0.6304707026990757,
+    "goldChars": 212640,
+    "predChars": 264264
+   },
+   "in": {
+    "p": 0.5688894438894438,
+    "r": 0.7567632907212605,
+    "f1": 0.6495134606134838,
+    "goldChars": 169592
+   },
+   "spanOverlapF1": 0.6363289263414639,
+   "spanContainmentF1": 0.5349581758126393,
+   "consistency": {
+    "recurring": {
+     "ok": 1103,
+     "n": 1870
+    },
+    "buckets": {
+     "1": {
+      "ok": 4074,
+      "n": 7977
+     },
+     "2": {
+      "ok": 759,
+      "n": 1236
+     },
+     "6–10": {
+      "ok": 54,
+      "n": 108
+     },
+     "3–5": {
+      "ok": 288,
+      "n": 519
+     },
+     "11+": {
+      "ok": 2,
+      "n": 7
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.5158457797846474,
+     "r": 0.7723254217544152,
+     "f1": 0.6185525789684126,
+     "goldChars": 48073
+    },
+    "1k–10k": {
+     "p": 0.5887440259193194,
+     "r": 0.6879204214696749,
+     "f1": 0.634480014347524,
+     "goldChars": 164567
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.6355194428322692,
+     "goldChars": 113341
+    },
+    "it": {
+     "f1": 0.6224524148646899,
+     "goldChars": 15834
+    },
+    "nl": {
+     "f1": 0.5525486360178241,
+     "goldChars": 16395
+    },
+    "sv": {
+     "f1": 0.6202231485410479,
+     "goldChars": 18151
+    },
+    "de": {
+     "f1": 0.658127186249591,
+     "goldChars": 19040
+    },
+    "es": {
+     "f1": 0.613496581514432,
+     "goldChars": 15597
+    },
+    "fr": {
+     "f1": 0.6870508132644055,
+     "goldChars": 14282
+    }
+   },
+   "byLabel": {
+    "street_address": {
+     "charRecall": 0.8050583392089522,
+     "spans": 1562,
+     "contained": 615,
+     "goldChars": 43967
+    },
+    "company": {
+     "charRecall": 0.6517285831477793,
+     "spans": 2375,
+     "contained": 889,
+     "goldChars": 42665
+    },
+    "date": {
+     "charRecall": 0.48314517200159385,
+     "spans": 3107,
+     "contained": 1329,
+     "goldChars": 37645
+    },
+    "name": {
+     "charRecall": 0.7574504737295435,
+     "spans": 3559,
+     "contained": 2326,
+     "goldChars": 52245
+    },
+    "date_of_birth": {
+     "charRecall": 0.8868921775898521,
+     "spans": 86,
+     "contained": 79,
+     "goldChars": 946
+    },
+    "email": {
+     "charRecall": 0.9656744880192355,
+     "spans": 502,
+     "contained": 473,
+     "goldChars": 12061
+    },
+    "phone_number": {
+     "charRecall": 0.7602905569007264,
+     "spans": 341,
+     "contained": 253,
+     "goldChars": 4956
+    },
+    "swift_bic_code": {
+     "charRecall": 0.4482758620689655,
+     "spans": 87,
+     "contained": 39,
+     "goldChars": 957
+    },
+    "time": {
+     "charRecall": 0.6836,
+     "spans": 504,
+     "contained": 340,
+     "goldChars": 5000
+    },
+    "ipv4": {
+     "charRecall": 1,
+     "spans": 40,
+     "contained": 40,
+     "goldChars": 538
+    },
+    "ssn": {
+     "charRecall": 0.5836120401337793,
+     "spans": 53,
+     "contained": 30,
+     "goldChars": 598
+    },
+    "bban": {
+     "charRecall": 0.6334728033472803,
+     "spans": 64,
+     "contained": 40,
+     "goldChars": 1195
+    },
+    "password": {
+     "charRecall": 0.48484848484848486,
+     "spans": 42,
+     "contained": 14,
+     "goldChars": 594
+    },
+    "first_name": {
+     "charRecall": 0.9420689655172414,
+     "spans": 112,
+     "contained": 105,
+     "goldChars": 725
+    },
+    "driver_license_number": {
+     "charRecall": 0.7245370370370371,
+     "spans": 35,
+     "contained": 25,
+     "goldChars": 432
+    },
+    "employee_id": {
+     "charRecall": 0.6324110671936759,
+     "spans": 60,
+     "contained": 36,
+     "goldChars": 506
+    },
+    "iban": {
+     "charRecall": 0.9425212279555846,
+     "spans": 63,
+     "contained": 58,
+     "goldChars": 1531
+    },
+    "credit_card_number": {
+     "charRecall": 0.8582766439909297,
+     "spans": 54,
+     "contained": 47,
+     "goldChars": 882
+    },
+    "local_latlng": {
+     "charRecall": 0.3035264483627204,
+     "spans": 34,
+     "contained": 11,
+     "goldChars": 794
+    },
+    "ipv6": {
+     "charRecall": 0.9102691924227319,
+     "spans": 60,
+     "contained": 36,
+     "goldChars": 2006
+    },
+    "credit_card_security_code": {
+     "charRecall": 0.5,
+     "spans": 64,
+     "contained": 32,
+     "goldChars": 192
+    },
+    "customer_id": {
+     "charRecall": 0.6666666666666666,
+     "spans": 63,
+     "contained": 36,
+     "goldChars": 606
+    },
+    "passport_number": {
+     "charRecall": 0.7798594847775175,
+     "spans": 47,
+     "contained": 37,
+     "goldChars": 427
+    },
+    "user_name": {
+     "charRecall": 0.4166666666666667,
+     "spans": 21,
+     "contained": 7,
+     "goldChars": 228
+    },
+    "account_pin": {
+     "charRecall": 0.5515151515151515,
+     "spans": 63,
+     "contained": 35,
+     "goldChars": 330
+    },
+    "api_key": {
+     "charRecall": 0.8840182648401826,
+     "spans": 27,
+     "contained": 21,
+     "goldChars": 1095
+    },
+    "bank_routing_number": {
+     "charRecall": 0.625,
+     "spans": 56,
+     "contained": 35,
+     "goldChars": 504
+    },
+    "last_name": {
+     "charRecall": 0.9526916802610114,
+     "spans": 67,
+     "contained": 61,
+     "goldChars": 613
+    },
+    "date_time": {
+     "charRecall": 0.9685230024213075,
+     "spans": 20,
+     "contained": 10,
+     "goldChars": 413
+    }
+   },
+   "ms": {
+    "median": 1191.7,
+    "p90": 2386.5,
+    "total": 3352802
+   }
+  },
+  {
+   "dataset": "gretel",
+   "engine": "pplx",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "Darwin arm64 · mps torch.bfloat16 · torch 2.14.0",
+   "all": {
+    "p": 0.6063870808884677,
+    "r": 0.613821482317532,
+    "f1": 0.6100816337023561,
+    "goldChars": 212640,
+    "predChars": 215247
+   },
+   "in": {
+    "p": 0.6063870808884677,
+    "r": 0.6633036935704515,
+    "f1": 0.633569682599499,
+    "goldChars": 169592
+   },
+   "spanOverlapF1": 0.5812685013312299,
+   "spanContainmentF1": 0.5308940346250277,
+   "consistency": {
+    "recurring": {
+     "ok": 1023,
+     "n": 1870
+    },
+    "buckets": {
+     "1": {
+      "ok": 4749,
+      "n": 7977
+     },
+     "2": {
+      "ok": 754,
+      "n": 1236
+     },
+     "6–10": {
+      "ok": 26,
+      "n": 108
+     },
+     "3–5": {
+      "ok": 242,
+      "n": 519
+     },
+     "11+": {
+      "ok": 1,
+      "n": 7
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.38530246844971655,
+     "r": 0.793231127660017,
+     "f1": 0.5186681356347166,
+     "goldChars": 48073
+    },
+    "1k–10k": {
+     "p": 0.7945613099640517,
+     "r": 0.561412676903632,
+     "f1": 0.6579429934661468,
+     "goldChars": 164567
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.6319790232016103,
+     "goldChars": 113341
+    },
+    "it": {
+     "f1": 0.5665082121203495,
+     "goldChars": 15834
+    },
+    "nl": {
+     "f1": 0.510308303385663,
+     "goldChars": 16395
+    },
+    "sv": {
+     "f1": 0.5992528158804505,
+     "goldChars": 18151
+    },
+    "de": {
+     "f1": 0.6311625713836643,
+     "goldChars": 19040
+    },
+    "es": {
+     "f1": 0.550742655237846,
+     "goldChars": 15597
+    },
+    "fr": {
+     "f1": 0.6479759116761459,
+     "goldChars": 14282
+    }
+   },
+   "byLabel": {
+    "street_address": {
+     "charRecall": 0.9472331521368299,
+     "spans": 1562,
+     "contained": 1432,
+     "goldChars": 43967
+    },
+    "company": {
+     "charRecall": 0.04743935309973046,
+     "spans": 2375,
+     "contained": 115,
+     "goldChars": 42665
+    },
+    "date": {
+     "charRecall": 0.4019126045955638,
+     "spans": 3107,
+     "contained": 1137,
+     "goldChars": 37645
+    },
+    "name": {
+     "charRecall": 0.7539286056081922,
+     "spans": 3559,
+     "contained": 2507,
+     "goldChars": 52245
+    },
+    "date_of_birth": {
+     "charRecall": 0.8657505285412262,
+     "spans": 86,
+     "contained": 77,
+     "goldChars": 946
+    },
+    "email": {
+     "charRecall": 0.9592902744382721,
+     "spans": 502,
+     "contained": 456,
+     "goldChars": 12061
+    },
+    "phone_number": {
+     "charRecall": 0.8993139628732849,
+     "spans": 341,
+     "contained": 306,
+     "goldChars": 4956
+    },
+    "swift_bic_code": {
+     "charRecall": 0.9885057471264368,
+     "spans": 87,
+     "contained": 86,
+     "goldChars": 957
+    },
+    "time": {
+     "charRecall": 0.4998,
+     "spans": 504,
+     "contained": 267,
+     "goldChars": 5000
+    },
+    "ipv4": {
+     "charRecall": 1,
+     "spans": 40,
+     "contained": 40,
+     "goldChars": 538
+    },
+    "ssn": {
+     "charRecall": 1,
+     "spans": 53,
+     "contained": 53,
+     "goldChars": 598
+    },
+    "bban": {
+     "charRecall": 1,
+     "spans": 64,
+     "contained": 64,
+     "goldChars": 1195
+    },
+    "password": {
+     "charRecall": 1,
+     "spans": 42,
+     "contained": 42,
+     "goldChars": 594
+    },
+    "first_name": {
+     "charRecall": 0.983448275862069,
+     "spans": 112,
+     "contained": 110,
+     "goldChars": 725
+    },
+    "driver_license_number": {
+     "charRecall": 1,
+     "spans": 35,
+     "contained": 35,
+     "goldChars": 432
+    },
+    "employee_id": {
+     "charRecall": 0.8893280632411067,
+     "spans": 60,
+     "contained": 53,
+     "goldChars": 506
+    },
+    "iban": {
+     "charRecall": 0.992161985630307,
+     "spans": 63,
+     "contained": 61,
+     "goldChars": 1531
+    },
+    "credit_card_number": {
+     "charRecall": 1,
+     "spans": 54,
+     "contained": 54,
+     "goldChars": 882
+    },
+    "local_latlng": {
+     "charRecall": 0.9710327455919395,
+     "spans": 34,
+     "contained": 33,
+     "goldChars": 794
+    },
+    "ipv6": {
+     "charRecall": 0.7711864406779662,
+     "spans": 60,
+     "contained": 40,
+     "goldChars": 2006
+    },
+    "credit_card_security_code": {
+     "charRecall": 0.96875,
+     "spans": 64,
+     "contained": 62,
+     "goldChars": 192
+    },
+    "customer_id": {
+     "charRecall": 0.9207920792079208,
+     "spans": 63,
+     "contained": 57,
+     "goldChars": 606
+    },
+    "passport_number": {
+     "charRecall": 0.9789227166276346,
+     "spans": 47,
+     "contained": 46,
+     "goldChars": 427
+    },
+    "user_name": {
+     "charRecall": 0.9298245614035088,
+     "spans": 21,
+     "contained": 19,
+     "goldChars": 228
+    },
+    "account_pin": {
+     "charRecall": 1,
+     "spans": 63,
+     "contained": 63,
+     "goldChars": 330
+    },
+    "api_key": {
+     "charRecall": 0.9342465753424658,
+     "spans": 27,
+     "contained": 25,
+     "goldChars": 1095
+    },
+    "bank_routing_number": {
+     "charRecall": 1,
+     "spans": 56,
+     "contained": 56,
+     "goldChars": 504
+    },
+    "last_name": {
+     "charRecall": 0.7308319738988581,
+     "spans": 67,
+     "contained": 46,
+     "goldChars": 613
+    },
+    "date_time": {
+     "charRecall": 1,
+     "spans": 20,
+     "contained": 20,
+     "goldChars": 413
+    }
+   },
+   "ms": {
+    "median": 1464.4,
+    "p90": 1880,
+    "total": 2890598
+   }
+  },
+  {
+   "dataset": "internal",
+   "engine": "patterns",
+   "cases": 907,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.9467125147838276,
+    "r": 0.8684359119141728,
+    "f1": 0.9058864101735982,
+    "goldChars": 49588,
+    "predChars": 45658
+   },
+   "in": {
+    "p": 0.9467125147838276,
+    "r": 0.8718820861678005,
+    "f1": 0.9077577619101743,
+    "goldChars": 49392
+   },
+   "spanOverlapF1": 0.8862301845135624,
+   "spanContainmentF1": 0.8509284314968376,
+   "consistency": {
+    "recurring": {
+     "ok": 71,
+     "n": 83
+    },
+    "buckets": {
+     "1": {
+      "ok": 2538,
+      "n": 3159
+     },
+     "2": {
+      "ok": 58,
+      "n": 67
+     },
+     "3–5": {
+      "ok": 13,
+      "n": 16
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.9445450324976787,
+     "r": 0.8619003062266077,
+     "f1": 0.9013321746336275,
+     "goldChars": 47024
+    },
+    "1k–10k": {
+     "p": 0.9829325058184639,
+     "r": 0.9882995319812793,
+     "f1": 0.9856087125632049,
+     "goldChars": 2564
+    }
+   },
+   "byLang": {
+    "fr": {
+     "f1": 0.9023658444366911,
+     "goldChars": 27614
+    },
+    "en": {
+     "f1": 0.8980408322485236,
+     "goldChars": 13802
+    },
+    "de": {
+     "f1": 0.9256649238463287,
+     "goldChars": 2270
+    },
+    "es": {
+     "f1": 0.9288537549407114,
+     "goldChars": 1349
+    },
+    "it": {
+     "f1": 0.9821177523956137,
+     "goldChars": 1293
+    },
+    "nl": {
+     "f1": 0.9629648561483769,
+     "goldChars": 822
+    },
+    "pt": {
+     "f1": 0.8772102161100196,
+     "goldChars": 1140
+    },
+    "zh": {
+     "f1": 0.3723404255319149,
+     "goldChars": 78
+    },
+    "ja": {
+     "f1": 0.3225806451612903,
+     "goldChars": 32
+    },
+    "ko": {
+     "f1": 0.7555555555555555,
+     "goldChars": 66
+    },
+    "ru": {
+     "f1": 0,
+     "goldChars": 17
+    },
+    "pl": {
+     "f1": 1,
+     "goldChars": 470
+    },
+    "sv": {
+     "f1": 1,
+     "goldChars": 332
+    },
+    "da": {
+     "f1": 1,
+     "goldChars": 303
+    }
+   },
+   "byLabel": {
+    "ADDRESS": {
+     "charRecall": 0.9864967668314949,
+     "spans": 227,
+     "contained": 222,
+     "goldChars": 5258
+    },
+    "POSTAL": {
+     "charRecall": 0.8861940298507462,
+     "spans": 103,
+     "contained": 91,
+     "goldChars": 536
+    },
+    "CITY": {
+     "charRecall": 0.5870418848167539,
+     "spans": 230,
+     "contained": 131,
+     "goldChars": 1528
+    },
+    "ID": {
+     "charRecall": 0.8849122807017544,
+     "spans": 217,
+     "contained": 183,
+     "goldChars": 2850
+    },
+    "NAME": {
+     "charRecall": 0.8580060422960725,
+     "spans": 674,
+     "contained": 534,
+     "goldChars": 8937
+    },
+    "PLACE": {
+     "charRecall": 0.8949671772428884,
+     "spans": 27,
+     "contained": 22,
+     "goldChars": 457
+    },
+    "ORG": {
+     "charRecall": 0.6318510858324715,
+     "spans": 68,
+     "contained": 38,
+     "goldChars": 967
+    },
+    "PHONE": {
+     "charRecall": 0.9574870099196977,
+     "spans": 153,
+     "contained": 146,
+     "goldChars": 2117
+    },
+    "EMAIL": {
+     "charRecall": 1,
+     "spans": 253,
+     "contained": 253,
+     "goldChars": 6193
+    },
+    "IBAN": {
+     "charRecall": 1,
+     "spans": 52,
+     "contained": 52,
+     "goldChars": 1632
+    },
+    "DATE": {
+     "charRecall": 0.38762214983713356,
+     "spans": 27,
+     "contained": 10,
+     "goldChars": 307
+    },
+    "DOB": {
+     "charRecall": 0.9087221095334685,
+     "spans": 88,
+     "contained": 79,
+     "goldChars": 986
+    },
+    "SECRET": {
+     "charRecall": 0.9834319526627219,
+     "spans": 23,
+     "contained": 21,
+     "goldChars": 845
+    },
+    "PATH": {
+     "charRecall": 0.8031914893617021,
+     "spans": 30,
+     "contained": 23,
+     "goldChars": 1128
+    },
+    "URL": {
+     "charRecall": 0.19804134929270947,
+     "spans": 23,
+     "contained": 2,
+     "goldChars": 919
+    },
+    "AMOUNT": {
+     "charRecall": 0,
+     "spans": 30,
+     "contained": 0,
+     "goldChars": 196
+    },
+    "BIC": {
+     "charRecall": 0.7391304347826086,
+     "spans": 23,
+     "contained": 17,
+     "goldChars": 253
+    },
+    "CARD": {
+     "charRecall": 1,
+     "spans": 228,
+     "contained": 228,
+     "goldChars": 4197
+    },
+    "COMPANY": {
+     "charRecall": 0.7844990548204159,
+     "spans": 25,
+     "contained": 4,
+     "goldChars": 529
+    },
+    "IP": {
+     "charRecall": 1,
+     "spans": 30,
+     "contained": 30,
+     "goldChars": 391
+    },
+    "COMPANY_ID": {
+     "charRecall": 1,
+     "spans": 207,
+     "contained": 207,
+     "goldChars": 2554
+    },
+    "USERNAME": {
+     "charRecall": 0,
+     "spans": 203,
+     "contained": 0,
+     "goldChars": 2123
+    },
+    "TOKEN": {
+     "charRecall": 1,
+     "spans": 201,
+     "contained": 201,
+     "goldChars": 4007
+    },
+    "HEALTH": {
+     "charRecall": 1,
+     "spans": 205,
+     "contained": 205,
+     "goldChars": 1363
+    }
+   },
+   "ms": {
+    "median": 5.4,
+    "p90": 20.3,
+    "total": 8222
+   }
+  },
+  {
+   "dataset": "internal",
+   "engine": "ner",
+   "cases": 907,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.9131077463944709,
+    "r": 0.9088690812293296,
+    "f1": 0.9109834833753245,
+    "goldChars": 49588,
+    "predChars": 50062
+   },
+   "in": {
+    "p": 0.9131077463944709,
+    "r": 0.9124757045675413,
+    "f1": 0.9127916160702666,
+    "goldChars": 49392
+   },
+   "spanOverlapF1": 0.897394117772791,
+   "spanContainmentF1": 0.8526433475239613,
+   "consistency": {
+    "recurring": {
+     "ok": 76,
+     "n": 83
+    },
+    "buckets": {
+     "1": {
+      "ok": 2695,
+      "n": 3159
+     },
+     "2": {
+      "ok": 60,
+      "n": 67
+     },
+     "3–5": {
+      "ok": 16,
+      "n": 16
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.9132128488409221,
+     "r": 0.9042191221503912,
+     "f1": 0.908693732360168,
+     "goldChars": 47024
+    },
+    "1k–10k": {
+     "p": 0.9115072933549433,
+     "r": 0.9941497659906396,
+     "f1": 0.9510365550229332,
+     "goldChars": 2564
+    }
+   },
+   "byLang": {
+    "fr": {
+     "f1": 0.9143583418382016,
+     "goldChars": 27614
+    },
+    "en": {
+     "f1": 0.9098348938127708,
+     "goldChars": 13802
+    },
+    "de": {
+     "f1": 0.916396904855369,
+     "goldChars": 2270
+    },
+    "es": {
+     "f1": 0.8945400317581251,
+     "goldChars": 1349
+    },
+    "it": {
+     "f1": 0.9253752803352617,
+     "goldChars": 1293
+    },
+    "nl": {
+     "f1": 0.9449908685324871,
+     "goldChars": 822
+    },
+    "pt": {
+     "f1": 0.8564961521050249,
+     "goldChars": 1140
+    },
+    "zh": {
+     "f1": 0.4412354592860008,
+     "goldChars": 78
+    },
+    "ja": {
+     "f1": 0.4895104895104895,
+     "goldChars": 32
+    },
+    "ko": {
+     "f1": 0.7999999999999999,
+     "goldChars": 66
+    },
+    "ru": {
+     "f1": 1,
+     "goldChars": 17
+    },
+    "pl": {
+     "f1": 0.9881422924901185,
+     "goldChars": 470
+    },
+    "sv": {
+     "f1": 0.8238213399503722,
+     "goldChars": 332
+    },
+    "da": {
+     "f1": 1,
+     "goldChars": 303
+    }
+   },
+   "byLabel": {
+    "ADDRESS": {
+     "charRecall": 0.9935336629897299,
+     "spans": 227,
+     "contained": 223,
+     "goldChars": 5258
+    },
+    "POSTAL": {
+     "charRecall": 0.8861940298507462,
+     "spans": 103,
+     "contained": 91,
+     "goldChars": 536
+    },
+    "CITY": {
+     "charRecall": 0.8900523560209425,
+     "spans": 230,
+     "contained": 200,
+     "goldChars": 1528
+    },
+    "ID": {
+     "charRecall": 0.8807017543859649,
+     "spans": 217,
+     "contained": 183,
+     "goldChars": 2850
+    },
+    "NAME": {
+     "charRecall": 0.9645294841669464,
+     "spans": 674,
+     "contained": 615,
+     "goldChars": 8937
+    },
+    "PLACE": {
+     "charRecall": 0.9409190371991247,
+     "spans": 27,
+     "contained": 22,
+     "goldChars": 457
+    },
+    "ORG": {
+     "charRecall": 0.8500517063081696,
+     "spans": 68,
+     "contained": 50,
+     "goldChars": 967
+    },
+    "PHONE": {
+     "charRecall": 0.9574870099196977,
+     "spans": 153,
+     "contained": 146,
+     "goldChars": 2117
+    },
+    "EMAIL": {
+     "charRecall": 1,
+     "spans": 253,
+     "contained": 253,
+     "goldChars": 6193
+    },
+    "IBAN": {
+     "charRecall": 1,
+     "spans": 52,
+     "contained": 52,
+     "goldChars": 1632
+    },
+    "DATE": {
+     "charRecall": 0.38762214983713356,
+     "spans": 27,
+     "contained": 10,
+     "goldChars": 307
+    },
+    "DOB": {
+     "charRecall": 0.9087221095334685,
+     "spans": 88,
+     "contained": 79,
+     "goldChars": 986
+    },
+    "SECRET": {
+     "charRecall": 0.9834319526627219,
+     "spans": 23,
+     "contained": 21,
+     "goldChars": 845
+    },
+    "PATH": {
+     "charRecall": 0.8031914893617021,
+     "spans": 30,
+     "contained": 23,
+     "goldChars": 1128
+    },
+    "URL": {
+     "charRecall": 0.21980413492927095,
+     "spans": 23,
+     "contained": 2,
+     "goldChars": 919
+    },
+    "AMOUNT": {
+     "charRecall": 0,
+     "spans": 30,
+     "contained": 0,
+     "goldChars": 196
+    },
+    "BIC": {
+     "charRecall": 0.7391304347826086,
+     "spans": 23,
+     "contained": 17,
+     "goldChars": 253
+    },
+    "CARD": {
+     "charRecall": 1,
+     "spans": 228,
+     "contained": 228,
+     "goldChars": 4197
+    },
+    "COMPANY": {
+     "charRecall": 0.8015122873345936,
+     "spans": 25,
+     "contained": 6,
+     "goldChars": 529
+    },
+    "IP": {
+     "charRecall": 1,
+     "spans": 30,
+     "contained": 30,
+     "goldChars": 391
+    },
+    "COMPANY_ID": {
+     "charRecall": 1,
+     "spans": 207,
+     "contained": 207,
+     "goldChars": 2554
+    },
+    "USERNAME": {
+     "charRecall": 0.16015073009891662,
+     "spans": 203,
+     "contained": 7,
+     "goldChars": 2123
+    },
+    "TOKEN": {
+     "charRecall": 1,
+     "spans": 201,
+     "contained": 201,
+     "goldChars": 4007
+    },
+    "HEALTH": {
+     "charRecall": 1,
+     "spans": 205,
+     "contained": 205,
+     "goldChars": 1363
+    }
+   },
+   "ms": {
+    "median": 102,
+    "p90": 400.5,
+    "total": 156029
+   }
+  },
+  {
+   "dataset": "internal",
+   "engine": "ner-strict",
+   "cases": 907,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.8808487584650113,
+    "r": 0.9699120755021376,
+    "f1": 0.9232374403503776,
+    "goldChars": 49588,
+    "predChars": 55375
+   },
+   "in": {
+    "p": 0.8808487584650113,
+    "r": 0.9737609329446064,
+    "f1": 0.9249774901953147,
+    "goldChars": 49392
+   },
+   "spanOverlapF1": 0.9126507980635146,
+   "spanContainmentF1": 0.8748333804433543,
+   "consistency": {
+    "recurring": {
+     "ok": 79,
+     "n": 83
+    },
+    "buckets": {
+     "1": {
+      "ok": 2955,
+      "n": 3159
+     },
+     "2": {
+      "ok": 63,
+      "n": 67
+     },
+     "3–5": {
+      "ok": 16,
+      "n": 16
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.882144022730327,
+     "r": 0.9682715209254849,
+     "f1": 0.9232033717971156,
+     "goldChars": 47024
+    },
+    "1k–10k": {
+     "p": 0.8603164942178941,
+     "r": 1,
+     "f1": 0.924914117454605,
+     "goldChars": 2564
+    }
+   },
+   "byLang": {
+    "fr": {
+     "f1": 0.9152716658276389,
+     "goldChars": 27614
+    },
+    "en": {
+     "f1": 0.9375652051155721,
+     "goldChars": 13802
+    },
+    "de": {
+     "f1": 0.9356741202630765,
+     "goldChars": 2270
+    },
+    "es": {
+     "f1": 0.9251668346945312,
+     "goldChars": 1349
+    },
+    "it": {
+     "f1": 0.9307898531170514,
+     "goldChars": 1293
+    },
+    "nl": {
+     "f1": 0.9628783552255855,
+     "goldChars": 822
+    },
+    "pt": {
+     "f1": 0.9399916072177926,
+     "goldChars": 1140
+    },
+    "zh": {
+     "f1": 0.42985541227041807,
+     "goldChars": 78
+    },
+    "ja": {
+     "f1": 0.4895104895104895,
+     "goldChars": 32
+    },
+    "ko": {
+     "f1": 0.7999999999999999,
+     "goldChars": 66
+    },
+    "ru": {
+     "f1": 1,
+     "goldChars": 17
+    },
+    "pl": {
+     "f1": 0.9881422924901185,
+     "goldChars": 470
+    },
+    "sv": {
+     "f1": 0.8238213399503722,
+     "goldChars": 332
+    },
+    "da": {
+     "f1": 1,
+     "goldChars": 303
+    }
+   },
+   "byLabel": {
+    "ADDRESS": {
+     "charRecall": 0.9935336629897299,
+     "spans": 227,
+     "contained": 223,
+     "goldChars": 5258
+    },
+    "POSTAL": {
+     "charRecall": 0.8861940298507462,
+     "spans": 103,
+     "contained": 91,
+     "goldChars": 536
+    },
+    "CITY": {
+     "charRecall": 0.893979057591623,
+     "spans": 230,
+     "contained": 201,
+     "goldChars": 1528
+    },
+    "ID": {
+     "charRecall": 0.9266666666666666,
+     "spans": 217,
+     "contained": 198,
+     "goldChars": 2850
+    },
+    "NAME": {
+     "charRecall": 0.9690052590354705,
+     "spans": 674,
+     "contained": 621,
+     "goldChars": 8937
+    },
+    "PLACE": {
+     "charRecall": 0.9409190371991247,
+     "spans": 27,
+     "contained": 22,
+     "goldChars": 457
+    },
+    "ORG": {
+     "charRecall": 0.8500517063081696,
+     "spans": 68,
+     "contained": 50,
+     "goldChars": 967
+    },
+    "PHONE": {
+     "charRecall": 0.9574870099196977,
+     "spans": 153,
+     "contained": 146,
+     "goldChars": 2117
+    },
+    "EMAIL": {
+     "charRecall": 1,
+     "spans": 253,
+     "contained": 253,
+     "goldChars": 6193
+    },
+    "IBAN": {
+     "charRecall": 1,
+     "spans": 52,
+     "contained": 52,
+     "goldChars": 1632
+    },
+    "DATE": {
+     "charRecall": 1,
+     "spans": 27,
+     "contained": 27,
+     "goldChars": 307
+    },
+    "DOB": {
+     "charRecall": 1,
+     "spans": 88,
+     "contained": 88,
+     "goldChars": 986
+    },
+    "SECRET": {
+     "charRecall": 0.9834319526627219,
+     "spans": 23,
+     "contained": 21,
+     "goldChars": 845
+    },
+    "PATH": {
+     "charRecall": 0.949468085106383,
+     "spans": 30,
+     "contained": 26,
+     "goldChars": 1128
+    },
+    "URL": {
+     "charRecall": 0.9466811751904244,
+     "spans": 23,
+     "contained": 21,
+     "goldChars": 919
+    },
+    "AMOUNT": {
+     "charRecall": 0,
+     "spans": 30,
+     "contained": 0,
+     "goldChars": 196
+    },
+    "BIC": {
+     "charRecall": 0.7391304347826086,
+     "spans": 23,
+     "contained": 17,
+     "goldChars": 253
+    },
+    "CARD": {
+     "charRecall": 1,
+     "spans": 228,
+     "contained": 228,
+     "goldChars": 4197
+    },
+    "COMPANY": {
+     "charRecall": 0.8015122873345936,
+     "spans": 25,
+     "contained": 6,
+     "goldChars": 529
+    },
+    "IP": {
+     "charRecall": 1,
+     "spans": 30,
+     "contained": 30,
+     "goldChars": 391
+    },
+    "COMPANY_ID": {
+     "charRecall": 1,
+     "spans": 207,
+     "contained": 207,
+     "goldChars": 2554
+    },
+    "USERNAME": {
+     "charRecall": 1,
+     "spans": 203,
+     "contained": 203,
+     "goldChars": 2123
+    },
+    "TOKEN": {
+     "charRecall": 1,
+     "spans": 201,
+     "contained": 201,
+     "goldChars": 4007
+    },
+    "HEALTH": {
+     "charRecall": 1,
+     "spans": 205,
+     "contained": 205,
+     "goldChars": 1363
+    }
+   },
+   "ms": {
+    "median": 103.8,
+    "p90": 418.3,
+    "total": 157286
+   }
+  },
+  {
+   "dataset": "internal",
+   "engine": "pplx",
+   "cases": 907,
+   "measured": "2026-09-06",
+   "host": "mps torch.bfloat16 · torch 2.14.0",
+   "all": {
+    "p": 0.826098312699159,
+    "r": 0.9488585948213277,
+    "f1": 0.8832332558056162,
+    "goldChars": 49588,
+    "predChars": 57429
+   },
+   "in": {
+    "p": 0.826098312699159,
+    "r": 0.9516520894071915,
+    "f1": 0.8844415778552918,
+    "goldChars": 49392
+   },
+   "spanOverlapF1": 0.8766158729574859,
+   "spanContainmentF1": 0.7824910579771043,
+   "consistency": {
+    "recurring": {
+     "ok": 76,
+     "n": 83
+    },
+    "buckets": {
+     "1": {
+      "ok": 2877,
+      "n": 3159
+     },
+     "2": {
+      "ok": 61,
+      "n": 67
+     },
+     "3–5": {
+      "ok": 15,
+      "n": 16
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.8302562587696625,
+     "r": 0.9480265396393331,
+     "f1": 0.8852416147977289,
+     "goldChars": 47024
+    },
+    "1k–10k": {
+     "p": 0.7571209800918837,
+     "r": 0.9641185647425897,
+     "f1": 0.8481729284611426,
+     "goldChars": 2564
+    }
+   },
+   "byLang": {
+    "fr": {
+     "f1": 0.8606060609549719,
+     "goldChars": 27614
+    },
+    "en": {
+     "f1": 0.9160808866921897,
+     "goldChars": 13802
+    },
+    "de": {
+     "f1": 0.8765407152960195,
+     "goldChars": 2270
+    },
+    "es": {
+     "f1": 0.9220265900107797,
+     "goldChars": 1349
+    },
+    "it": {
+     "f1": 0.9183420904077467,
+     "goldChars": 1293
+    },
+    "nl": {
+     "f1": 0.9321021621965151,
+     "goldChars": 822
+    },
+    "pt": {
+     "f1": 0.9371478110099696,
+     "goldChars": 1140
+    },
+    "zh": {
+     "f1": 0.5454545454545454,
+     "goldChars": 78
+    },
+    "ja": {
+     "f1": 0.43573487031700286,
+     "goldChars": 32
+    },
+    "ko": {
+     "f1": 0.738095238095238,
+     "goldChars": 66
+    },
+    "ru": {
+     "f1": 0.7391304347826086,
+     "goldChars": 17
+    },
+    "pl": {
+     "f1": 0.9880562357510766,
+     "goldChars": 470
+    },
+    "sv": {
+     "f1": 0.9879518072289156,
+     "goldChars": 332
+    },
+    "da": {
+     "f1": 0.9950738916256158,
+     "goldChars": 303
+    }
+   },
+   "byLabel": {
+    "ADDRESS": {
+     "charRecall": 0.9899201217192849,
+     "spans": 227,
+     "contained": 218,
+     "goldChars": 5258
+    },
+    "POSTAL": {
+     "charRecall": 0.9906716417910447,
+     "spans": 103,
+     "contained": 102,
+     "goldChars": 536
+    },
+    "CITY": {
+     "charRecall": 0.8920157068062827,
+     "spans": 230,
+     "contained": 203,
+     "goldChars": 1528
+    },
+    "ID": {
+     "charRecall": 0.9656140350877193,
+     "spans": 217,
+     "contained": 206,
+     "goldChars": 2850
+    },
+    "NAME": {
+     "charRecall": 0.9844466823318787,
+     "spans": 674,
+     "contained": 657,
+     "goldChars": 8937
+    },
+    "PLACE": {
+     "charRecall": 0.8971553610503282,
+     "spans": 27,
+     "contained": 9,
+     "goldChars": 457
+    },
+    "ORG": {
+     "charRecall": 0.3485005170630817,
+     "spans": 68,
+     "contained": 21,
+     "goldChars": 967
+    },
+    "PHONE": {
+     "charRecall": 1,
+     "spans": 153,
+     "contained": 153,
+     "goldChars": 2117
+    },
+    "EMAIL": {
+     "charRecall": 0.9996770547392217,
+     "spans": 253,
+     "contained": 252,
+     "goldChars": 6193
+    },
+    "IBAN": {
+     "charRecall": 0.9926470588235294,
+     "spans": 52,
+     "contained": 51,
+     "goldChars": 1632
+    },
+    "DATE": {
+     "charRecall": 0.9869706840390879,
+     "spans": 27,
+     "contained": 26,
+     "goldChars": 307
+    },
+    "DOB": {
+     "charRecall": 1,
+     "spans": 88,
+     "contained": 88,
+     "goldChars": 986
+    },
+    "SECRET": {
+     "charRecall": 0.98698224852071,
+     "spans": 23,
+     "contained": 22,
+     "goldChars": 845
+    },
+    "PATH": {
+     "charRecall": 0.6427304964539007,
+     "spans": 30,
+     "contained": 10,
+     "goldChars": 1128
+    },
+    "URL": {
+     "charRecall": 0.9434167573449401,
+     "spans": 23,
+     "contained": 21,
+     "goldChars": 919
+    },
+    "AMOUNT": {
+     "charRecall": 0.24489795918367346,
+     "spans": 30,
+     "contained": 7,
+     "goldChars": 196
+    },
+    "BIC": {
+     "charRecall": 1,
+     "spans": 23,
+     "contained": 23,
+     "goldChars": 253
+    },
+    "CARD": {
+     "charRecall": 0.9923755063140338,
+     "spans": 228,
+     "contained": 216,
+     "goldChars": 4197
+    },
+    "COMPANY": {
+     "charRecall": 0.2646502835538752,
+     "spans": 25,
+     "contained": 5,
+     "goldChars": 529
+    },
+    "IP": {
+     "charRecall": 1,
+     "spans": 30,
+     "contained": 30,
+     "goldChars": 391
+    },
+    "COMPANY_ID": {
+     "charRecall": 0.9996084573218481,
+     "spans": 207,
+     "contained": 206,
+     "goldChars": 2554
+    },
+    "USERNAME": {
+     "charRecall": 0.993876589731512,
+     "spans": 203,
+     "contained": 190,
+     "goldChars": 2123
+    },
+    "TOKEN": {
+     "charRecall": 0.9947591714499626,
+     "spans": 201,
+     "contained": 200,
+     "goldChars": 4007
+    },
+    "HEALTH": {
+     "charRecall": 0.7336757153338225,
+     "spans": 205,
+     "contained": 138,
+     "goldChars": 1363
+    }
+   },
+   "ms": {
+    "median": 147.8,
+    "p90": 297.7,
+    "total": 170200
+   }
+  },
+  {
+   "dataset": "internal",
+   "engine": "presidio",
+   "cases": 907,
+   "measured": "2026-09-02",
+   "host": "presidio-analyzer 2.2.364 · spaCy 3.8.16 · en_core_web_lg 3.8.0 · language=en",
+   "all": {
+    "p": 0.6477118136801436,
+    "r": 0.4767484068726305,
+    "f1": 0.5492334359908073,
+    "goldChars": 49588,
+    "predChars": 36754
+   },
+   "in": {
+    "p": 0.6477118136801436,
+    "r": 0.47821509556203434,
+    "f1": 0.5502054606443102,
+    "goldChars": 49392
+   },
+   "spanOverlapF1": 0.5532164973114189,
+   "spanContainmentF1": 0.4688222950344932,
+   "consistency": {
+    "recurring": {
+     "ok": 25,
+     "n": 83
+    },
+    "buckets": {
+     "1": {
+      "ok": 1277,
+      "n": 3159
+     },
+     "2": {
+      "ok": 20,
+      "n": 67
+     },
+     "3–5": {
+      "ok": 5,
+      "n": 16
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.6807414076810829,
+     "r": 0.4636568560734944,
+     "f1": 0.551609401868412,
+     "goldChars": 47024
+    },
+    "1k–10k": {
+     "p": 0.4136413641364136,
+     "r": 0.7168486739469578,
+     "f1": 0.5245835936308023,
+     "goldChars": 2564
+    }
+   },
+   "byLang": {
+    "fr": {
+     "f1": 0.5719310598408691,
+     "goldChars": 27614
+    },
+    "en": {
+     "f1": 0.5277765875871159,
+     "goldChars": 13802
+    },
+    "de": {
+     "f1": 0.4635066034899551,
+     "goldChars": 2270
+    },
+    "es": {
+     "f1": 0.49730139939014856,
+     "goldChars": 1349
+    },
+    "it": {
+     "f1": 0.5690930323082911,
+     "goldChars": 1293
+    },
+    "nl": {
+     "f1": 0.4316205533596838,
+     "goldChars": 822
+    },
+    "pt": {
+     "f1": 0.5094117647058823,
+     "goldChars": 1140
+    },
+    "zh": {
+     "f1": 0.4113588110403397,
+     "goldChars": 78
+    },
+    "ja": {
+     "f1": 0.5294117647058824,
+     "goldChars": 32
+    },
+    "ko": {
+     "f1": 0.4070796460176991,
+     "goldChars": 66
+    },
+    "ru": {
+     "f1": 0,
+     "goldChars": 17
+    },
+    "pl": {
+     "f1": 0.6711281070745697,
+     "goldChars": 470
+    },
+    "sv": {
+     "f1": 0.5367793240556661,
+     "goldChars": 332
+    },
+    "da": {
+     "f1": 0.6344294003868471,
+     "goldChars": 303
+    }
+   },
+   "byLabel": {
+    "ADDRESS": {
+     "charRecall": 0.17364016736401675,
+     "spans": 227,
+     "contained": 4,
+     "goldChars": 5258
+    },
+    "POSTAL": {
+     "charRecall": 0.17164179104477612,
+     "spans": 103,
+     "contained": 17,
+     "goldChars": 536
+    },
+    "CITY": {
+     "charRecall": 0.2218586387434555,
+     "spans": 230,
+     "contained": 51,
+     "goldChars": 1528
+    },
+    "ID": {
+     "charRecall": 0.35578947368421054,
+     "spans": 217,
+     "contained": 67,
+     "goldChars": 2850
+    },
+    "NAME": {
+     "charRecall": 0.513595166163142,
+     "spans": 674,
+     "contained": 298,
+     "goldChars": 8937
+    },
+    "PLACE": {
+     "charRecall": 0.06564551422319474,
+     "spans": 27,
+     "contained": 0,
+     "goldChars": 457
+    },
+    "ORG": {
+     "charRecall": 0.17993795243019647,
+     "spans": 68,
+     "contained": 11,
+     "goldChars": 967
+    },
+    "PHONE": {
+     "charRecall": 0.9513462446858763,
+     "spans": 153,
+     "contained": 143,
+     "goldChars": 2117
+    },
+    "EMAIL": {
+     "charRecall": 0.9940255126756015,
+     "spans": 253,
+     "contained": 251,
+     "goldChars": 6193
+    },
+    "IBAN": {
+     "charRecall": 0.9056372549019608,
+     "spans": 52,
+     "contained": 45,
+     "goldChars": 1632
+    },
+    "DATE": {
+     "charRecall": 0.739413680781759,
+     "spans": 27,
+     "contained": 20,
+     "goldChars": 307
+    },
+    "DOB": {
+     "charRecall": 0.7150101419878296,
+     "spans": 88,
+     "contained": 63,
+     "goldChars": 986
+    },
+    "SECRET": {
+     "charRecall": 0.14911242603550295,
+     "spans": 23,
+     "contained": 2,
+     "goldChars": 845
+    },
+    "PATH": {
+     "charRecall": 0.008865248226950355,
+     "spans": 30,
+     "contained": 0,
+     "goldChars": 1128
+    },
+    "URL": {
+     "charRecall": 0.941240478781284,
+     "spans": 23,
+     "contained": 21,
+     "goldChars": 919
+    },
+    "AMOUNT": {
+     "charRecall": 0.10714285714285714,
+     "spans": 30,
+     "contained": 3,
+     "goldChars": 196
+    },
+    "BIC": {
+     "charRecall": 0.043478260869565216,
+     "spans": 23,
+     "contained": 1,
+     "goldChars": 253
+    },
+    "CARD": {
+     "charRecall": 0.6461758398856325,
+     "spans": 228,
+     "contained": 134,
+     "goldChars": 4197
+    },
+    "COMPANY": {
+     "charRecall": 0.00945179584120983,
+     "spans": 25,
+     "contained": 0,
+     "goldChars": 529
+    },
+    "IP": {
+     "charRecall": 1,
+     "spans": 30,
+     "contained": 30,
+     "goldChars": 391
+    },
+    "COMPANY_ID": {
+     "charRecall": 0.24197337509788566,
+     "spans": 207,
+     "contained": 43,
+     "goldChars": 2554
+    },
+    "USERNAME": {
+     "charRecall": 0.04286387187941592,
+     "spans": 203,
+     "contained": 9,
+     "goldChars": 2123
+    },
+    "TOKEN": {
+     "charRecall": 0.07312203643623659,
+     "spans": 201,
+     "contained": 15,
+     "goldChars": 4007
+    },
+    "HEALTH": {
+     "charRecall": 0.6537050623624358,
+     "spans": 205,
+     "contained": 116,
+     "goldChars": 1363
+    }
+   },
+   "ms": {
+    "median": 0,
+    "p90": 0,
+    "total": 0
+   }
+  },
+  {
+   "dataset": "nemotron",
+   "engine": "patterns",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.886347534604363,
+    "r": 0.34531327887154517,
+    "f1": 0.49699977468663653,
+    "goldChars": 242739,
+    "predChars": 94569
+   },
+   "in": {
+    "p": 0.886347534604363,
+    "r": 0.4472778021366927,
+    "f1": 0.5945351610908864,
+    "goldChars": 187018
+   },
+   "spanOverlapF1": 0.5616572505829983,
+   "spanContainmentF1": 0.49595527446403387,
+   "consistency": {
+    "recurring": {
+     "ok": 923,
+     "n": 2276
+    },
+    "buckets": {
+     "1": {
+      "ok": 4019,
+      "n": 10821
+     },
+     "2": {
+      "ok": 638,
+      "n": 1498
+     },
+     "3–5": {
+      "ok": 255,
+      "n": 661
+     },
+     "6–10": {
+      "ok": 28,
+      "n": 110
+     },
+     "11+": {
+      "ok": 2,
+      "n": 7
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.8876242852460211,
+     "r": 0.3880225125180108,
+     "f1": 0.5399899187406181,
+     "goldChars": 125619
+    },
+    "1k–10k": {
+     "p": 0.8845794981717312,
+     "r": 0.29950478142076503,
+     "f1": 0.4474948174134907,
+     "goldChars": 117120
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.49699977468663653,
+     "goldChars": 242739
+    }
+   },
+   "byLabel": {
+    "employee_id": {
+     "charRecall": 0.7561752988047808,
+     "spans": 174,
+     "contained": 134,
+     "goldChars": 1255
+    },
+    "occupation": {
+     "charRecall": 0.0014406391199004648,
+     "spans": 773,
+     "contained": 0,
+     "goldChars": 15271
+    },
+    "employment_status": {
+     "charRecall": 0.02301685162351007,
+     "spans": 262,
+     "contained": 7,
+     "goldChars": 2433
+    },
+    "race_ethnicity": {
+     "charRecall": 0,
+     "spans": 156,
+     "contained": 0,
+     "goldChars": 1020
+    },
+    "bank_routing_number": {
+     "charRecall": 0.8010471204188482,
+     "spans": 191,
+     "contained": 153,
+     "goldChars": 1719
+    },
+    "mac_address": {
+     "charRecall": 0.974025974025974,
+     "spans": 77,
+     "contained": 75,
+     "goldChars": 1309
+    },
+    "last_name": {
+     "charRecall": 0.8731228070175439,
+     "spans": 1131,
+     "contained": 981,
+     "goldChars": 7125
+    },
+    "date": {
+     "charRecall": 0.0037396667104054584,
+     "spans": 1455,
+     "contained": 5,
+     "goldChars": 15242
+    },
+    "account_number": {
+     "charRecall": 0.825308396339037,
+     "spans": 403,
+     "contained": 341,
+     "goldChars": 5026
+    },
+    "customer_id": {
+     "charRecall": 0.8467561521252797,
+     "spans": 374,
+     "contained": 316,
+     "goldChars": 3576
+    },
+    "date_time": {
+     "charRecall": 0,
+     "spans": 194,
+     "contained": 0,
+     "goldChars": 3654
+    },
+    "ipv4": {
+     "charRecall": 1,
+     "spans": 134,
+     "contained": 134,
+     "goldChars": 1768
+    },
+    "ipv6": {
+     "charRecall": 0.6100418410041841,
+     "spans": 66,
+     "contained": 42,
+     "goldChars": 2390
+    },
+    "url": {
+     "charRecall": 0.007321365716297079,
+     "spans": 831,
+     "contained": 2,
+     "goldChars": 42615
+    },
+    "first_name": {
+     "charRecall": 0.7590797742038555,
+     "spans": 1616,
+     "contained": 1231,
+     "goldChars": 9389
+    },
+    "pin": {
+     "charRecall": 0.7386861313868613,
+     "spans": 123,
+     "contained": 95,
+     "goldChars": 685
+    },
+    "religious_belief": {
+     "charRecall": 0.0070202808112324495,
+     "spans": 110,
+     "contained": 0,
+     "goldChars": 1282
+    },
+    "email": {
+     "charRecall": 0.9946265713581464,
+     "spans": 879,
+     "contained": 873,
+     "goldChars": 20285
+    },
+    "fax_number": {
+     "charRecall": 0.18654434250764526,
+     "spans": 109,
+     "contained": 17,
+     "goldChars": 1308
+    },
+    "time": {
+     "charRecall": 0.005299539170506912,
+     "spans": 520,
+     "contained": 3,
+     "goldChars": 4340
+    },
+    "phone_number": {
+     "charRecall": 0.4467966573816156,
+     "spans": 448,
+     "contained": 198,
+     "goldChars": 5385
+    },
+    "country": {
+     "charRecall": 0,
+     "spans": 435,
+     "contained": 0,
+     "goldChars": 1390
+    },
+    "age": {
+     "charRecall": 0,
+     "spans": 179,
+     "contained": 0,
+     "goldChars": 358
+    },
+    "gender": {
+     "charRecall": 0,
+     "spans": 141,
+     "contained": 0,
+     "goldChars": 715
+    },
+    "medical_record_number": {
+     "charRecall": 0.5760188087774295,
+     "spans": 245,
+     "contained": 92,
+     "goldChars": 2552
+    },
+    "date_of_birth": {
+     "charRecall": 0.9516728624535316,
+     "spans": 269,
+     "contained": 256,
+     "goldChars": 2690
+    },
+    "city": {
+     "charRecall": 0.20637537785105797,
+     "spans": 418,
+     "contained": 86,
+     "goldChars": 3639
+    },
+    "state": {
+     "charRecall": 0.09474123539232053,
+     "spans": 427,
+     "contained": 48,
+     "goldChars": 2396
+    },
+    "political_view": {
+     "charRecall": 0,
+     "spans": 116,
+     "contained": 0,
+     "goldChars": 1610
+    },
+    "street_address": {
+     "charRecall": 0.7095435684647303,
+     "spans": 354,
+     "contained": 222,
+     "goldChars": 5784
+    },
+    "certificate_license_number": {
+     "charRecall": 0.03739837398373984,
+     "spans": 113,
+     "contained": 4,
+     "goldChars": 1230
+    },
+    "cvv": {
+     "charRecall": 0.7070707070707071,
+     "spans": 99,
+     "contained": 70,
+     "goldChars": 297
+    },
+    "http_cookie": {
+     "charRecall": 0.46788350289247954,
+     "spans": 124,
+     "contained": 0,
+     "goldChars": 10026
+    },
+    "coordinate": {
+     "charRecall": 0.0014530659691950015,
+     "spans": 171,
+     "contained": 0,
+     "goldChars": 3441
+    },
+    "license_plate": {
+     "charRecall": 0.009655172413793104,
+     "spans": 98,
+     "contained": 1,
+     "goldChars": 725
+    },
+    "vehicle_identifier": {
+     "charRecall": 0.9921773142112125,
+     "spans": 91,
+     "contained": 90,
+     "goldChars": 1534
+    },
+    "company_name": {
+     "charRecall": 0.14856144777060792,
+     "spans": 1043,
+     "contained": 112,
+     "goldChars": 20611
+    },
+    "education_level": {
+     "charRecall": 0,
+     "spans": 225,
+     "contained": 0,
+     "goldChars": 3204
+    },
+    "swift_bic": {
+     "charRecall": 0.9748858447488584,
+     "spans": 122,
+     "contained": 119,
+     "goldChars": 1314
+    },
+    "language": {
+     "charRecall": 0,
+     "spans": 149,
+     "contained": 0,
+     "goldChars": 1069
+    },
+    "credit_debit_card": {
+     "charRecall": 0.36767317939609234,
+     "spans": 271,
+     "contained": 89,
+     "goldChars": 5067
+    },
+    "blood_type": {
+     "charRecall": 0.769857433808554,
+     "spans": 107,
+     "contained": 83,
+     "goldChars": 491
+    },
+    "biometric_identifier": {
+     "charRecall": 0.4149751917004962,
+     "spans": 172,
+     "contained": 76,
+     "goldChars": 2217
+    },
+    "user_name": {
+     "charRecall": 0.1582246740220662,
+     "spans": 337,
+     "contained": 39,
+     "goldChars": 3988
+    },
+    "ssn": {
+     "charRecall": 0.8692033293697978,
+     "spans": 153,
+     "contained": 133,
+     "goldChars": 1682
+    },
+    "county": {
+     "charRecall": 0.2521045635799734,
+     "spans": 312,
+     "contained": 72,
+     "goldChars": 4514
+    },
+    "health_plan_beneficiary_number": {
+     "charRecall": 0.1780821917808219,
+     "spans": 169,
+     "contained": 16,
+     "goldChars": 2263
+    },
+    "password": {
+     "charRecall": 0.2353228962818004,
+     "spans": 164,
+     "contained": 25,
+     "goldChars": 2044
+    },
+    "postcode": {
+     "charRecall": 0.3891336270190896,
+     "spans": 135,
+     "contained": 53,
+     "goldChars": 681
+    },
+    "tax_id": {
+     "charRecall": 0.6468646864686468,
+     "spans": 28,
+     "contained": 18,
+     "goldChars": 303
+    },
+    "device_identifier": {
+     "charRecall": 0.2251207729468599,
+     "spans": 47,
+     "contained": 16,
+     "goldChars": 1035
+    },
+    "api_key": {
+     "charRecall": 0.8906810035842294,
+     "spans": 96,
+     "contained": 81,
+     "goldChars": 5022
+    },
+    "sexuality": {
+     "charRecall": 0,
+     "spans": 90,
+     "contained": 0,
+     "goldChars": 692
+    },
+    "unique_id": {
+     "charRecall": 0.2597402597402597,
+     "spans": 39,
+     "contained": 10,
+     "goldChars": 1078
+    }
+   },
+   "ms": {
+    "median": 35.1,
+    "p90": 85.8,
+    "total": 278163
+   }
+  },
+  {
+   "dataset": "nemotron",
+   "engine": "ner",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.8750191641370005,
+    "r": 0.4702499392351456,
+    "f1": 0.6117403688727756,
+    "goldChars": 242739,
+    "predChars": 130452
+   },
+   "in": {
+    "p": 0.8750191641370005,
+    "r": 0.6047546225497011,
+    "f1": 0.715206458030687,
+    "goldChars": 187018
+   },
+   "spanOverlapF1": 0.6826014000226434,
+   "spanContainmentF1": 0.6038684378883651,
+   "consistency": {
+    "recurring": {
+     "ok": 1375,
+     "n": 2276
+    },
+    "buckets": {
+     "1": {
+      "ok": 4942,
+      "n": 10821
+     },
+     "2": {
+      "ok": 890,
+      "n": 1498
+     },
+     "3–5": {
+      "ok": 420,
+      "n": 661
+     },
+     "6–10": {
+      "ok": 61,
+      "n": 110
+     },
+     "11+": {
+      "ok": 4,
+      "n": 7
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.8873005798690247,
+     "r": 0.48967910905197465,
+     "f1": 0.6310805611839236,
+     "goldChars": 125619
+    },
+    "1k–10k": {
+     "p": 0.8610902071131761,
+     "r": 0.4494108606557377,
+     "f1": 0.5905882880962267,
+     "goldChars": 117120
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.6117403688727756,
+     "goldChars": 242739
+    }
+   },
+   "byLabel": {
+    "employee_id": {
+     "charRecall": 0.7561752988047808,
+     "spans": 174,
+     "contained": 134,
+     "goldChars": 1255
+    },
+    "occupation": {
+     "charRecall": 0.03726016632833475,
+     "spans": 773,
+     "contained": 28,
+     "goldChars": 15271
+    },
+    "employment_status": {
+     "charRecall": 0.02301685162351007,
+     "spans": 262,
+     "contained": 7,
+     "goldChars": 2433
+    },
+    "race_ethnicity": {
+     "charRecall": 0.06372549019607843,
+     "spans": 156,
+     "contained": 5,
+     "goldChars": 1020
+    },
+    "bank_routing_number": {
+     "charRecall": 0.8010471204188482,
+     "spans": 191,
+     "contained": 153,
+     "goldChars": 1719
+    },
+    "mac_address": {
+     "charRecall": 0.974025974025974,
+     "spans": 77,
+     "contained": 75,
+     "goldChars": 1309
+    },
+    "last_name": {
+     "charRecall": 0.9904561403508771,
+     "spans": 1131,
+     "contained": 1122,
+     "goldChars": 7125
+    },
+    "date": {
+     "charRecall": 0.0037396667104054584,
+     "spans": 1455,
+     "contained": 5,
+     "goldChars": 15242
+    },
+    "account_number": {
+     "charRecall": 0.825308396339037,
+     "spans": 403,
+     "contained": 341,
+     "goldChars": 5026
+    },
+    "customer_id": {
+     "charRecall": 0.8467561521252797,
+     "spans": 374,
+     "contained": 316,
+     "goldChars": 3576
+    },
+    "date_time": {
+     "charRecall": 0,
+     "spans": 194,
+     "contained": 0,
+     "goldChars": 3654
+    },
+    "ipv4": {
+     "charRecall": 1,
+     "spans": 134,
+     "contained": 134,
+     "goldChars": 1768
+    },
+    "ipv6": {
+     "charRecall": 0.6100418410041841,
+     "spans": 66,
+     "contained": 42,
+     "goldChars": 2390
+    },
+    "url": {
+     "charRecall": 0.015158981579256131,
+     "spans": 831,
+     "contained": 2,
+     "goldChars": 42615
+    },
+    "first_name": {
+     "charRecall": 0.9936095430823304,
+     "spans": 1616,
+     "contained": 1607,
+     "goldChars": 9389
+    },
+    "pin": {
+     "charRecall": 0.7386861313868613,
+     "spans": 123,
+     "contained": 95,
+     "goldChars": 685
+    },
+    "religious_belief": {
+     "charRecall": 0.0234009360374415,
+     "spans": 110,
+     "contained": 3,
+     "goldChars": 1282
+    },
+    "email": {
+     "charRecall": 0.9956125215676608,
+     "spans": 879,
+     "contained": 874,
+     "goldChars": 20285
+    },
+    "fax_number": {
+     "charRecall": 0.18654434250764526,
+     "spans": 109,
+     "contained": 17,
+     "goldChars": 1308
+    },
+    "time": {
+     "charRecall": 0.005299539170506912,
+     "spans": 520,
+     "contained": 3,
+     "goldChars": 4340
+    },
+    "phone_number": {
+     "charRecall": 0.4467966573816156,
+     "spans": 448,
+     "contained": 198,
+     "goldChars": 5385
+    },
+    "country": {
+     "charRecall": 0.01870503597122302,
+     "spans": 435,
+     "contained": 9,
+     "goldChars": 1390
+    },
+    "age": {
+     "charRecall": 0,
+     "spans": 179,
+     "contained": 0,
+     "goldChars": 358
+    },
+    "gender": {
+     "charRecall": 0,
+     "spans": 141,
+     "contained": 0,
+     "goldChars": 715
+    },
+    "medical_record_number": {
+     "charRecall": 0.5760188087774295,
+     "spans": 245,
+     "contained": 92,
+     "goldChars": 2552
+    },
+    "date_of_birth": {
+     "charRecall": 0.9516728624535316,
+     "spans": 269,
+     "contained": 256,
+     "goldChars": 2690
+    },
+    "city": {
+     "charRecall": 0.9829623522945864,
+     "spans": 418,
+     "contained": 411,
+     "goldChars": 3639
+    },
+    "state": {
+     "charRecall": 0.8580968280467446,
+     "spans": 427,
+     "contained": 271,
+     "goldChars": 2396
+    },
+    "political_view": {
+     "charRecall": 0.09503105590062112,
+     "spans": 116,
+     "contained": 8,
+     "goldChars": 1610
+    },
+    "street_address": {
+     "charRecall": 0.8343706777316736,
+     "spans": 354,
+     "contained": 224,
+     "goldChars": 5784
+    },
+    "certificate_license_number": {
+     "charRecall": 0.03739837398373984,
+     "spans": 113,
+     "contained": 4,
+     "goldChars": 1230
+    },
+    "cvv": {
+     "charRecall": 0.7070707070707071,
+     "spans": 99,
+     "contained": 70,
+     "goldChars": 297
+    },
+    "http_cookie": {
+     "charRecall": 0.47147416716537005,
+     "spans": 124,
+     "contained": 0,
+     "goldChars": 10026
+    },
+    "coordinate": {
+     "charRecall": 0.0014530659691950015,
+     "spans": 171,
+     "contained": 0,
+     "goldChars": 3441
+    },
+    "license_plate": {
+     "charRecall": 0.009655172413793104,
+     "spans": 98,
+     "contained": 1,
+     "goldChars": 725
+    },
+    "vehicle_identifier": {
+     "charRecall": 0.9921773142112125,
+     "spans": 91,
+     "contained": 90,
+     "goldChars": 1534
+    },
+    "company_name": {
+     "charRecall": 0.9119402260928631,
+     "spans": 1043,
+     "contained": 888,
+     "goldChars": 20611
+    },
+    "education_level": {
+     "charRecall": 0.019975031210986267,
+     "spans": 225,
+     "contained": 3,
+     "goldChars": 3204
+    },
+    "swift_bic": {
+     "charRecall": 0.9748858447488584,
+     "spans": 122,
+     "contained": 119,
+     "goldChars": 1314
+    },
+    "language": {
+     "charRecall": 0,
+     "spans": 149,
+     "contained": 0,
+     "goldChars": 1069
+    },
+    "credit_debit_card": {
+     "charRecall": 0.36767317939609234,
+     "spans": 271,
+     "contained": 89,
+     "goldChars": 5067
+    },
+    "blood_type": {
+     "charRecall": 0.769857433808554,
+     "spans": 107,
+     "contained": 83,
+     "goldChars": 491
+    },
+    "biometric_identifier": {
+     "charRecall": 0.42038791159224176,
+     "spans": 172,
+     "contained": 76,
+     "goldChars": 2217
+    },
+    "user_name": {
+     "charRecall": 0.5569207622868606,
+     "spans": 337,
+     "contained": 169,
+     "goldChars": 3988
+    },
+    "ssn": {
+     "charRecall": 0.8692033293697978,
+     "spans": 153,
+     "contained": 133,
+     "goldChars": 1682
+    },
+    "county": {
+     "charRecall": 0.9811696942844483,
+     "spans": 312,
+     "contained": 302,
+     "goldChars": 4514
+    },
+    "health_plan_beneficiary_number": {
+     "charRecall": 0.1780821917808219,
+     "spans": 169,
+     "contained": 16,
+     "goldChars": 2263
+    },
+    "password": {
+     "charRecall": 0.2446183953033268,
+     "spans": 164,
+     "contained": 25,
+     "goldChars": 2044
+    },
+    "postcode": {
+     "charRecall": 0.3891336270190896,
+     "spans": 135,
+     "contained": 53,
+     "goldChars": 681
+    },
+    "tax_id": {
+     "charRecall": 0.6468646864686468,
+     "spans": 28,
+     "contained": 18,
+     "goldChars": 303
+    },
+    "device_identifier": {
+     "charRecall": 0.2251207729468599,
+     "spans": 47,
+     "contained": 16,
+     "goldChars": 1035
+    },
+    "api_key": {
+     "charRecall": 0.8906810035842294,
+     "spans": 96,
+     "contained": 81,
+     "goldChars": 5022
+    },
+    "sexuality": {
+     "charRecall": 0,
+     "spans": 90,
+     "contained": 0,
+     "goldChars": 692
+    },
+    "unique_id": {
+     "charRecall": 0.2597402597402597,
+     "spans": 39,
+     "contained": 10,
+     "goldChars": 1078
+    }
+   },
+   "ms": {
+    "median": 469.6,
+    "p90": 1369.8,
+    "total": 1293449
+   }
+  },
+  {
+   "dataset": "nemotron",
+   "engine": "ner-strict",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.9117884402868084,
+    "r": 0.730797276086661,
+    "f1": 0.8113214450689925,
+    "goldChars": 242739,
+    "predChars": 194555
+   },
+   "in": {
+    "p": 0.9117884402868084,
+    "r": 0.833497310419318,
+    "f1": 0.8708868588917335,
+    "goldChars": 187018
+   },
+   "spanOverlapF1": 0.8022358097737422,
+   "spanContainmentF1": 0.726467961528329,
+   "consistency": {
+    "recurring": {
+     "ok": 1651,
+     "n": 2276
+    },
+    "buckets": {
+     "1": {
+      "ok": 6984,
+      "n": 10821
+     },
+     "2": {
+      "ok": 1103,
+      "n": 1498
+     },
+     "3–5": {
+      "ok": 477,
+      "n": 661
+     },
+     "6–10": {
+      "ok": 66,
+      "n": 110
+     },
+     "11+": {
+      "ok": 5,
+      "n": 7
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.9195031472602064,
+     "r": 0.7419180219552775,
+     "f1": 0.8212197711662415,
+     "goldChars": 125619
+    },
+    "1k–10k": {
+     "p": 0.9033981780529416,
+     "r": 0.7188695355191257,
+     "f1": 0.8006390353609076,
+     "goldChars": 117120
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.8113214450689925,
+     "goldChars": 242739
+    }
+   },
+   "byLabel": {
+    "employee_id": {
+     "charRecall": 0.7561752988047808,
+     "spans": 174,
+     "contained": 134,
+     "goldChars": 1255
+    },
+    "occupation": {
+     "charRecall": 0.03726016632833475,
+     "spans": 773,
+     "contained": 28,
+     "goldChars": 15271
+    },
+    "employment_status": {
+     "charRecall": 0.02301685162351007,
+     "spans": 262,
+     "contained": 7,
+     "goldChars": 2433
+    },
+    "race_ethnicity": {
+     "charRecall": 0.06372549019607843,
+     "spans": 156,
+     "contained": 5,
+     "goldChars": 1020
+    },
+    "bank_routing_number": {
+     "charRecall": 0.8010471204188482,
+     "spans": 191,
+     "contained": 153,
+     "goldChars": 1719
+    },
+    "mac_address": {
+     "charRecall": 0.974025974025974,
+     "spans": 77,
+     "contained": 75,
+     "goldChars": 1309
+    },
+    "last_name": {
+     "charRecall": 0.9904561403508771,
+     "spans": 1131,
+     "contained": 1122,
+     "goldChars": 7125
+    },
+    "date": {
+     "charRecall": 0.9198267943839391,
+     "spans": 1455,
+     "contained": 1316,
+     "goldChars": 15242
+    },
+    "account_number": {
+     "charRecall": 0.8282928770393951,
+     "spans": 403,
+     "contained": 342,
+     "goldChars": 5026
+    },
+    "customer_id": {
+     "charRecall": 0.8467561521252797,
+     "spans": 374,
+     "contained": 316,
+     "goldChars": 3576
+    },
+    "date_time": {
+     "charRecall": 0.9663382594417077,
+     "spans": 194,
+     "contained": 181,
+     "goldChars": 3654
+    },
+    "ipv4": {
+     "charRecall": 1,
+     "spans": 134,
+     "contained": 134,
+     "goldChars": 1768
+    },
+    "ipv6": {
+     "charRecall": 0.6100418410041841,
+     "spans": 66,
+     "contained": 42,
+     "goldChars": 2390
+    },
+    "url": {
+     "charRecall": 0.9965270444679104,
+     "spans": 831,
+     "contained": 829,
+     "goldChars": 42615
+    },
+    "first_name": {
+     "charRecall": 0.9936095430823304,
+     "spans": 1616,
+     "contained": 1607,
+     "goldChars": 9389
+    },
+    "pin": {
+     "charRecall": 0.7386861313868613,
+     "spans": 123,
+     "contained": 95,
+     "goldChars": 685
+    },
+    "religious_belief": {
+     "charRecall": 0.0234009360374415,
+     "spans": 110,
+     "contained": 3,
+     "goldChars": 1282
+    },
+    "email": {
+     "charRecall": 0.9962040916933694,
+     "spans": 879,
+     "contained": 875,
+     "goldChars": 20285
+    },
+    "fax_number": {
+     "charRecall": 0.18654434250764526,
+     "spans": 109,
+     "contained": 17,
+     "goldChars": 1308
+    },
+    "time": {
+     "charRecall": 0.6838709677419355,
+     "spans": 520,
+     "contained": 353,
+     "goldChars": 4340
+    },
+    "phone_number": {
+     "charRecall": 0.4467966573816156,
+     "spans": 448,
+     "contained": 198,
+     "goldChars": 5385
+    },
+    "country": {
+     "charRecall": 0.01870503597122302,
+     "spans": 435,
+     "contained": 9,
+     "goldChars": 1390
+    },
+    "age": {
+     "charRecall": 0.0335195530726257,
+     "spans": 179,
+     "contained": 6,
+     "goldChars": 358
+    },
+    "gender": {
+     "charRecall": 0,
+     "spans": 141,
+     "contained": 0,
+     "goldChars": 715
+    },
+    "medical_record_number": {
+     "charRecall": 0.5760188087774295,
+     "spans": 245,
+     "contained": 92,
+     "goldChars": 2552
+    },
+    "date_of_birth": {
+     "charRecall": 1,
+     "spans": 269,
+     "contained": 269,
+     "goldChars": 2690
+    },
+    "city": {
+     "charRecall": 0.9829623522945864,
+     "spans": 418,
+     "contained": 411,
+     "goldChars": 3639
+    },
+    "state": {
+     "charRecall": 0.8580968280467446,
+     "spans": 427,
+     "contained": 271,
+     "goldChars": 2396
+    },
+    "political_view": {
+     "charRecall": 0.10434782608695652,
+     "spans": 116,
+     "contained": 8,
+     "goldChars": 1610
+    },
+    "street_address": {
+     "charRecall": 0.8343706777316736,
+     "spans": 354,
+     "contained": 224,
+     "goldChars": 5784
+    },
+    "certificate_license_number": {
+     "charRecall": 0.03739837398373984,
+     "spans": 113,
+     "contained": 4,
+     "goldChars": 1230
+    },
+    "cvv": {
+     "charRecall": 0.7070707070707071,
+     "spans": 99,
+     "contained": 70,
+     "goldChars": 297
+    },
+    "http_cookie": {
+     "charRecall": 0.5154598045082784,
+     "spans": 124,
+     "contained": 2,
+     "goldChars": 10026
+    },
+    "coordinate": {
+     "charRecall": 0.0014530659691950015,
+     "spans": 171,
+     "contained": 0,
+     "goldChars": 3441
+    },
+    "license_plate": {
+     "charRecall": 0.009655172413793104,
+     "spans": 98,
+     "contained": 1,
+     "goldChars": 725
+    },
+    "vehicle_identifier": {
+     "charRecall": 0.9921773142112125,
+     "spans": 91,
+     "contained": 90,
+     "goldChars": 1534
+    },
+    "company_name": {
+     "charRecall": 0.9119402260928631,
+     "spans": 1043,
+     "contained": 888,
+     "goldChars": 20611
+    },
+    "education_level": {
+     "charRecall": 0.019975031210986267,
+     "spans": 225,
+     "contained": 3,
+     "goldChars": 3204
+    },
+    "swift_bic": {
+     "charRecall": 0.9748858447488584,
+     "spans": 122,
+     "contained": 119,
+     "goldChars": 1314
+    },
+    "language": {
+     "charRecall": 0,
+     "spans": 149,
+     "contained": 0,
+     "goldChars": 1069
+    },
+    "credit_debit_card": {
+     "charRecall": 0.36767317939609234,
+     "spans": 271,
+     "contained": 89,
+     "goldChars": 5067
+    },
+    "blood_type": {
+     "charRecall": 0.769857433808554,
+     "spans": 107,
+     "contained": 83,
+     "goldChars": 491
+    },
+    "biometric_identifier": {
+     "charRecall": 0.4330175913396482,
+     "spans": 172,
+     "contained": 78,
+     "goldChars": 2217
+    },
+    "user_name": {
+     "charRecall": 0.6268806419257773,
+     "spans": 337,
+     "contained": 201,
+     "goldChars": 3988
+    },
+    "ssn": {
+     "charRecall": 0.8692033293697978,
+     "spans": 153,
+     "contained": 133,
+     "goldChars": 1682
+    },
+    "county": {
+     "charRecall": 0.9811696942844483,
+     "spans": 312,
+     "contained": 302,
+     "goldChars": 4514
+    },
+    "health_plan_beneficiary_number": {
+     "charRecall": 0.1780821917808219,
+     "spans": 169,
+     "contained": 16,
+     "goldChars": 2263
+    },
+    "password": {
+     "charRecall": 0.25293542074363995,
+     "spans": 164,
+     "contained": 26,
+     "goldChars": 2044
+    },
+    "postcode": {
+     "charRecall": 0.3891336270190896,
+     "spans": 135,
+     "contained": 53,
+     "goldChars": 681
+    },
+    "tax_id": {
+     "charRecall": 0.6468646864686468,
+     "spans": 28,
+     "contained": 18,
+     "goldChars": 303
+    },
+    "device_identifier": {
+     "charRecall": 0.2251207729468599,
+     "spans": 47,
+     "contained": 16,
+     "goldChars": 1035
+    },
+    "api_key": {
+     "charRecall": 0.8906810035842294,
+     "spans": 96,
+     "contained": 81,
+     "goldChars": 5022
+    },
+    "sexuality": {
+     "charRecall": 0,
+     "spans": 90,
+     "contained": 0,
+     "goldChars": 692
+    },
+    "unique_id": {
+     "charRecall": 0.29313543599257885,
+     "spans": 39,
+     "contained": 11,
+     "goldChars": 1078
+    }
+   },
+   "ms": {
+    "median": 481.1,
+    "p90": 1307.7,
+    "total": 1269651
+   }
+  },
+  {
+   "dataset": "nemotron",
+   "engine": "pplx",
+   "cases": 2000,
+   "measured": "2026-09-07",
+   "host": "Darwin arm64 · mps torch.bfloat16 · torch 2.14.0",
+   "all": {
+    "p": 0.9646043578591406,
+    "r": 0.7473747523059747,
+    "f1": 0.8422076399737242,
+    "goldChars": 242739,
+    "predChars": 188074
+   },
+   "in": {
+    "p": 0.9646043578591406,
+    "r": 0.832657819033462,
+    "f1": 0.8937876411930527,
+    "goldChars": 187018
+   },
+   "spanOverlapF1": 0.8569512072317353,
+   "spanContainmentF1": 0.800611694954259,
+   "consistency": {
+    "recurring": {
+     "ok": 1543,
+     "n": 2276
+    },
+    "buckets": {
+     "1": {
+      "ok": 8879,
+      "n": 10821
+     },
+     "2": {
+      "ok": 1111,
+      "n": 1498
+     },
+     "3–5": {
+      "ok": 388,
+      "n": 661
+     },
+     "6–10": {
+      "ok": 42,
+      "n": 110
+     },
+     "11+": {
+      "ok": 2,
+      "n": 7
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.9573222373605332,
+     "r": 0.8278365533876245,
+     "f1": 0.887883302667697,
+     "goldChars": 125619
+    },
+    "1k–10k": {
+     "p": 0.9745613372605292,
+     "r": 0.661074112021858,
+     "f1": 0.7877761159101778,
+     "goldChars": 117120
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.8422076399737242,
+     "goldChars": 242739
+    }
+   },
+   "byLabel": {
+    "employee_id": {
+     "charRecall": 1,
+     "spans": 174,
+     "contained": 174,
+     "goldChars": 1255
+    },
+    "occupation": {
+     "charRecall": 0.011263178573767272,
+     "spans": 773,
+     "contained": 16,
+     "goldChars": 15271
+    },
+    "employment_status": {
+     "charRecall": 0.05672009864364982,
+     "spans": 262,
+     "contained": 14,
+     "goldChars": 2433
+    },
+    "race_ethnicity": {
+     "charRecall": 0.6852941176470588,
+     "spans": 156,
+     "contained": 107,
+     "goldChars": 1020
+    },
+    "bank_routing_number": {
+     "charRecall": 1,
+     "spans": 191,
+     "contained": 191,
+     "goldChars": 1719
+    },
+    "mac_address": {
+     "charRecall": 1,
+     "spans": 77,
+     "contained": 77,
+     "goldChars": 1309
+    },
+    "last_name": {
+     "charRecall": 0.984421052631579,
+     "spans": 1131,
+     "contained": 1115,
+     "goldChars": 7125
+    },
+    "date": {
+     "charRecall": 0.7790972313344705,
+     "spans": 1455,
+     "contained": 1126,
+     "goldChars": 15242
+    },
+    "account_number": {
+     "charRecall": 1,
+     "spans": 403,
+     "contained": 403,
+     "goldChars": 5026
+    },
+    "customer_id": {
+     "charRecall": 1,
+     "spans": 374,
+     "contained": 374,
+     "goldChars": 3576
+    },
+    "date_time": {
+     "charRecall": 0.9466338259441708,
+     "spans": 194,
+     "contained": 182,
+     "goldChars": 3654
+    },
+    "ipv4": {
+     "charRecall": 1,
+     "spans": 134,
+     "contained": 134,
+     "goldChars": 1768
+    },
+    "ipv6": {
+     "charRecall": 1,
+     "spans": 66,
+     "contained": 66,
+     "goldChars": 2390
+    },
+    "url": {
+     "charRecall": 0.8741522937932653,
+     "spans": 831,
+     "contained": 720,
+     "goldChars": 42615
+    },
+    "first_name": {
+     "charRecall": 0.9939290659282138,
+     "spans": 1616,
+     "contained": 1607,
+     "goldChars": 9389
+    },
+    "pin": {
+     "charRecall": 0.9532846715328467,
+     "spans": 123,
+     "contained": 117,
+     "goldChars": 685
+    },
+    "religious_belief": {
+     "charRecall": 0.7262090483619345,
+     "spans": 110,
+     "contained": 87,
+     "goldChars": 1282
+    },
+    "email": {
+     "charRecall": 0.9993591323638156,
+     "spans": 879,
+     "contained": 878,
+     "goldChars": 20285
+    },
+    "fax_number": {
+     "charRecall": 1,
+     "spans": 109,
+     "contained": 109,
+     "goldChars": 1308
+    },
+    "time": {
+     "charRecall": 0.5711981566820277,
+     "spans": 520,
+     "contained": 320,
+     "goldChars": 4340
+    },
+    "phone_number": {
+     "charRecall": 0.9977715877437325,
+     "spans": 448,
+     "contained": 447,
+     "goldChars": 5385
+    },
+    "country": {
+     "charRecall": 0.4856115107913669,
+     "spans": 435,
+     "contained": 225,
+     "goldChars": 1390
+    },
+    "age": {
+     "charRecall": 0.39664804469273746,
+     "spans": 179,
+     "contained": 71,
+     "goldChars": 358
+    },
+    "gender": {
+     "charRecall": 0.7216783216783217,
+     "spans": 141,
+     "contained": 100,
+     "goldChars": 715
+    },
+    "medical_record_number": {
+     "charRecall": 1,
+     "spans": 245,
+     "contained": 245,
+     "goldChars": 2552
+    },
+    "date_of_birth": {
+     "charRecall": 0.9996282527881041,
+     "spans": 269,
+     "contained": 268,
+     "goldChars": 2690
+    },
+    "city": {
+     "charRecall": 0.7353668590272052,
+     "spans": 418,
+     "contained": 314,
+     "goldChars": 3639
+    },
+    "state": {
+     "charRecall": 0.6527545909849749,
+     "spans": 427,
+     "contained": 290,
+     "goldChars": 2396
+    },
+    "political_view": {
+     "charRecall": 0.4186335403726708,
+     "spans": 116,
+     "contained": 53,
+     "goldChars": 1610
+    },
+    "street_address": {
+     "charRecall": 0.9922199170124482,
+     "spans": 354,
+     "contained": 351,
+     "goldChars": 5784
+    },
+    "certificate_license_number": {
+     "charRecall": 1,
+     "spans": 113,
+     "contained": 113,
+     "goldChars": 1230
+    },
+    "cvv": {
+     "charRecall": 0.7171717171717171,
+     "spans": 99,
+     "contained": 71,
+     "goldChars": 297
+    },
+    "http_cookie": {
+     "charRecall": 0.8253540793935767,
+     "spans": 124,
+     "contained": 61,
+     "goldChars": 10026
+    },
+    "coordinate": {
+     "charRecall": 0.9546643417611159,
+     "spans": 171,
+     "contained": 162,
+     "goldChars": 3441
+    },
+    "license_plate": {
+     "charRecall": 0.9613793103448276,
+     "spans": 98,
+     "contained": 94,
+     "goldChars": 725
+    },
+    "vehicle_identifier": {
+     "charRecall": 1,
+     "spans": 91,
+     "contained": 91,
+     "goldChars": 1534
+    },
+    "company_name": {
+     "charRecall": 0.019746737179176167,
+     "spans": 1043,
+     "contained": 18,
+     "goldChars": 20611
+    },
+    "education_level": {
+     "charRecall": 0.011235955056179775,
+     "spans": 225,
+     "contained": 3,
+     "goldChars": 3204
+    },
+    "swift_bic": {
+     "charRecall": 1,
+     "spans": 122,
+     "contained": 122,
+     "goldChars": 1314
+    },
+    "language": {
+     "charRecall": 0.09167446211412535,
+     "spans": 149,
+     "contained": 14,
+     "goldChars": 1069
+    },
+    "credit_debit_card": {
+     "charRecall": 1,
+     "spans": 271,
+     "contained": 271,
+     "goldChars": 5067
+    },
+    "blood_type": {
+     "charRecall": 0.745417515274949,
+     "spans": 107,
+     "contained": 79,
+     "goldChars": 491
+    },
+    "biometric_identifier": {
+     "charRecall": 0.9936851601262968,
+     "spans": 172,
+     "contained": 171,
+     "goldChars": 2217
+    },
+    "user_name": {
+     "charRecall": 1,
+     "spans": 337,
+     "contained": 337,
+     "goldChars": 3988
+    },
+    "ssn": {
+     "charRecall": 1,
+     "spans": 153,
+     "contained": 153,
+     "goldChars": 1682
+    },
+    "county": {
+     "charRecall": 0.6495347806823216,
+     "spans": 312,
+     "contained": 203,
+     "goldChars": 4514
+    },
+    "health_plan_beneficiary_number": {
+     "charRecall": 1,
+     "spans": 169,
+     "contained": 169,
+     "goldChars": 2263
+    },
+    "password": {
+     "charRecall": 0.9735812133072407,
+     "spans": 164,
+     "contained": 161,
+     "goldChars": 2044
+    },
+    "postcode": {
+     "charRecall": 1,
+     "spans": 135,
+     "contained": 135,
+     "goldChars": 681
+    },
+    "tax_id": {
+     "charRecall": 1,
+     "spans": 28,
+     "contained": 28,
+     "goldChars": 303
+    },
+    "device_identifier": {
+     "charRecall": 1,
+     "spans": 47,
+     "contained": 47,
+     "goldChars": 1035
+    },
+    "api_key": {
+     "charRecall": 0.9950219036240542,
+     "spans": 96,
+     "contained": 91,
+     "goldChars": 5022
+    },
+    "sexuality": {
+     "charRecall": 0.7456647398843931,
+     "spans": 90,
+     "contained": 66,
+     "goldChars": 692
+    },
+    "unique_id": {
+     "charRecall": 1,
+     "spans": 39,
+     "contained": 39,
+     "goldChars": 1078
+    }
+   },
+   "ms": {
+    "median": 678,
+    "p90": 1548.5,
+    "total": 1712878
+   }
+  },
+  {
+   "dataset": "tab",
+   "engine": "patterns",
+   "cases": 127,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.762294247412184,
+    "r": 0.26024798614356803,
+    "f1": 0.38802415436277643,
+    "goldChars": 72746,
+    "predChars": 29465
+   },
+   "in": {
+    "p": 0.762294247412184,
+    "r": 0.40181352743422877,
+    "f1": 0.5262401765780187,
+    "goldChars": 32423
+   },
+   "spanOverlapF1": 0.4704552660259586,
+   "spanContainmentF1": 0.2518004279509453,
+   "consistency": {
+    "recurring": {
+     "ok": 32,
+     "n": 500
+    },
+    "buckets": {
+     "1": {
+      "ok": 662,
+      "n": 3925
+     },
+     "2": {
+      "ok": 24,
+      "n": 319
+     },
+     "3–5": {
+      "ok": 7,
+      "n": 139
+     },
+     "6–10": {
+      "ok": 1,
+      "n": 34
+     },
+     "11+": {
+      "ok": 0,
+      "n": 8
+     }
+    }
+   },
+   "byLength": {
+    "1k–10k": {
+     "p": 0.7660343621239213,
+     "r": 0.26022322413847465,
+     "f1": 0.38847933341713475,
+     "goldChars": 63434
+    },
+    "≥10k": {
+     "p": 0.7365605776945707,
+     "r": 0.2604166666666667,
+     "f1": 0.3847884222556929,
+     "goldChars": 9312
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.38802415436277643,
+     "goldChars": 72746
+    }
+   },
+   "byLabel": {
+    "CODE": {
+     "charRecall": 0.58700882117081,
+     "spans": 329,
+     "contained": 183,
+     "goldChars": 2494
+    },
+    "PERSON": {
+     "charRecall": 0.7062098832263553,
+     "spans": 987,
+     "contained": 63,
+     "goldChars": 12931
+    },
+    "DATETIME": {
+     "charRecall": 0.18293910417715148,
+     "spans": 2468,
+     "contained": 494,
+     "goldChars": 31792
+    },
+    "ORG": {
+     "charRecall": 0.17038385677438933,
+     "spans": 653,
+     "contained": 90,
+     "goldChars": 13182
+    },
+    "DEM": {
+     "charRecall": 0,
+     "spans": 233,
+     "contained": 0,
+     "goldChars": 2769
+    },
+    "LOC": {
+     "charRecall": 0.047741273100616016,
+     "spans": 391,
+     "contained": 8,
+     "goldChars": 3896
+    },
+    "QUANTITY": {
+     "charRecall": 0.018543046357615896,
+     "spans": 171,
+     "contained": 3,
+     "goldChars": 2265
+    },
+    "MISC": {
+     "charRecall": 0.012838403572425341,
+     "spans": 192,
+     "contained": 0,
+     "goldChars": 3583
+    }
+   },
+   "ms": {
+    "median": 92.1,
+    "p90": 260.2,
+    "total": 15681
+   }
+  },
+  {
+   "dataset": "tab",
+   "engine": "ner",
+   "cases": 127,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.84150726305192,
+    "r": 0.4254529458664394,
+    "f1": 0.5651665166960494,
+    "goldChars": 72746,
+    "predChars": 55624
+   },
+   "in": {
+    "p": 0.84150726305192,
+    "r": 0.7569318076673966,
+    "f1": 0.7969820376080924,
+    "goldChars": 32423
+   },
+   "spanOverlapF1": 0.6379006059815603,
+   "spanContainmentF1": 0.4181095275890015,
+   "consistency": {
+    "recurring": {
+     "ok": 159,
+     "n": 500
+    },
+    "buckets": {
+     "1": {
+      "ok": 908,
+      "n": 3925
+     },
+     "2": {
+      "ok": 92,
+      "n": 319
+     },
+     "3–5": {
+      "ok": 54,
+      "n": 139
+     },
+     "6–10": {
+      "ok": 10,
+      "n": 34
+     },
+     "11+": {
+      "ok": 3,
+      "n": 8
+     }
+    }
+   },
+   "byLength": {
+    "1k–10k": {
+     "p": 0.8472004294326534,
+     "r": 0.42570230475770093,
+     "f1": 0.566665725061222,
+     "goldChars": 63434
+    },
+    "≥10k": {
+     "p": 0.8031441291040623,
+     "r": 0.42375429553264604,
+     "f1": 0.5547904664405252,
+     "goldChars": 9312
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.5651665166960494,
+     "goldChars": 72746
+    }
+   },
+   "byLabel": {
+    "CODE": {
+     "charRecall": 0.5894145950280674,
+     "spans": 329,
+     "contained": 183,
+     "goldChars": 2494
+    },
+    "PERSON": {
+     "charRecall": 0.7694687185832495,
+     "spans": 987,
+     "contained": 97,
+     "goldChars": 12931
+    },
+    "DATETIME": {
+     "charRecall": 0.18331655762455965,
+     "spans": 2468,
+     "contained": 494,
+     "goldChars": 31792
+    },
+    "ORG": {
+     "charRecall": 0.7765134274010014,
+     "spans": 653,
+     "contained": 445,
+     "goldChars": 13182
+    },
+    "DEM": {
+     "charRecall": 0.0628385698808234,
+     "spans": 233,
+     "contained": 10,
+     "goldChars": 2769
+    },
+    "LOC": {
+     "charRecall": 0.7612936344969199,
+     "spans": 391,
+     "contained": 284,
+     "goldChars": 3896
+    },
+    "QUANTITY": {
+     "charRecall": 0.024282560706401765,
+     "spans": 171,
+     "contained": 3,
+     "goldChars": 2265
+    },
+    "MISC": {
+     "charRecall": 0.11024281328495673,
+     "spans": 192,
+     "contained": 23,
+     "goldChars": 3583
+    }
+   },
+   "ms": {
+    "median": 1905.3,
+    "p90": 4359.1,
+    "total": 292736
+   }
+  },
+  {
+   "dataset": "tab",
+   "engine": "ner-strict",
+   "cases": 127,
+   "measured": "2026-09-07",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.8983594216442126,
+    "r": 0.725579413301075,
+    "f1": 0.8027778978659155,
+    "goldChars": 72746,
+    "predChars": 77046
+   },
+   "in": {
+    "p": 0.8983594216442126,
+    "r": 0.7531073620577985,
+    "f1": 0.819345688198014,
+    "goldChars": 32423
+   },
+   "spanOverlapF1": 0.8515032332342919,
+   "spanContainmentF1": 0.6861809579780291,
+   "consistency": {
+    "recurring": {
+     "ok": 247,
+     "n": 500
+    },
+    "buckets": {
+     "1": {
+      "ok": 2289,
+      "n": 3925
+     },
+     "2": {
+      "ok": 169,
+      "n": 319
+     },
+     "3–5": {
+      "ok": 65,
+      "n": 139
+     },
+     "6–10": {
+      "ok": 10,
+      "n": 34
+     },
+     "11+": {
+      "ok": 3,
+      "n": 8
+     }
+    }
+   },
+   "byLength": {
+    "1k–10k": {
+     "p": 0.9015490020851951,
+     "r": 0.72434341205032,
+     "f1": 0.8032894115545364,
+     "goldChars": 63434
+    },
+    "≥10k": {
+     "p": 0.8767413688673531,
+     "r": 0.7339991408934707,
+     "f1": 0.7990454174769083,
+     "goldChars": 9312
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.8027778978659155,
+     "goldChars": 72746
+    }
+   },
+   "byLabel": {
+    "CODE": {
+     "charRecall": 0.5894145950280674,
+     "spans": 329,
+     "contained": 183,
+     "goldChars": 2494
+    },
+    "PERSON": {
+     "charRecall": 0.7695460521228057,
+     "spans": 987,
+     "contained": 98,
+     "goldChars": 12931
+    },
+    "DATETIME": {
+     "charRecall": 0.8739620030196276,
+     "spans": 2468,
+     "contained": 2049,
+     "goldChars": 31792
+    },
+    "ORG": {
+     "charRecall": 0.7670307995751783,
+     "spans": 653,
+     "contained": 439,
+     "goldChars": 13182
+    },
+    "DEM": {
+     "charRecall": 0.0628385698808234,
+     "spans": 233,
+     "contained": 10,
+     "goldChars": 2769
+    },
+    "LOC": {
+     "charRecall": 0.7612936344969199,
+     "spans": 391,
+     "contained": 284,
+     "goldChars": 3896
+    },
+    "QUANTITY": {
+     "charRecall": 0.024282560706401765,
+     "spans": 171,
+     "contained": 3,
+     "goldChars": 2265
+    },
+    "MISC": {
+     "charRecall": 0.11024281328495673,
+     "spans": 192,
+     "contained": 23,
+     "goldChars": 3583
+    }
+   },
+   "ms": {
+    "median": 1982.7,
+    "p90": 4658.6,
+    "total": 317049
+   }
+  },
+  {
+   "dataset": "tab",
+   "engine": "pplx",
+   "cases": 127,
+   "measured": "2026-09-07",
+   "host": "Darwin arm64 · mps torch.bfloat16 · torch 2.14.0",
+   "all": {
+    "p": 0.9893793311238325,
+    "r": 0.529472410854205,
+    "f1": 0.689796173281844,
+    "goldChars": 72746,
+    "predChars": 39828
+   },
+   "in": {
+    "p": 0.9893793311238325,
+    "r": 0.3743638774943713,
+    "f1": 0.5431930005174456,
+    "goldChars": 32423
+   },
+   "spanOverlapF1": 0.7171791011063939,
+   "spanContainmentF1": 0.6946251781996824,
+   "consistency": {
+    "recurring": {
+     "ok": 173,
+     "n": 500
+    },
+    "buckets": {
+     "1": {
+      "ok": 2411,
+      "n": 3925
+     },
+     "2": {
+      "ok": 125,
+      "n": 319
+     },
+     "3–5": {
+      "ok": 35,
+      "n": 139
+     },
+     "6–10": {
+      "ok": 11,
+      "n": 34
+     },
+     "11+": {
+      "ok": 2,
+      "n": 8
+     }
+    }
+   },
+   "byLength": {
+    "1k–10k": {
+     "p": 0.9885214228889646,
+     "r": 0.535469937257622,
+     "f1": 0.6946542062302186,
+     "goldChars": 63434
+    },
+    "≥10k": {
+     "p": 0.9958981001727115,
+     "r": 0.4886168384879725,
+     "f1": 0.655584620255268,
+     "goldChars": 9312
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.689796173281844,
+     "goldChars": 72746
+    }
+   },
+   "byLabel": {
+    "CODE": {
+     "charRecall": 0.6559743384121892,
+     "spans": 329,
+     "contained": 206,
+     "goldChars": 2494
+    },
+    "PERSON": {
+     "charRecall": 0.7643647049725466,
+     "spans": 987,
+     "contained": 686,
+     "goldChars": 12931
+    },
+    "DATETIME": {
+     "charRecall": 0.8173439859084046,
+     "spans": 2468,
+     "contained": 1973,
+     "goldChars": 31792
+    },
+    "ORG": {
+     "charRecall": 0.0027309968138370506,
+     "spans": 653,
+     "contained": 4,
+     "goldChars": 13182
+    },
+    "DEM": {
+     "charRecall": 0.1155651859877212,
+     "spans": 233,
+     "contained": 16,
+     "goldChars": 2769
+    },
+    "LOC": {
+     "charRecall": 0.14938398357289528,
+     "spans": 391,
+     "contained": 40,
+     "goldChars": 3896
+    },
+    "QUANTITY": {
+     "charRecall": 0.017660044150110375,
+     "spans": 171,
+     "contained": 4,
+     "goldChars": 2265
+    },
+    "MISC": {
+     "charRecall": 0.011442924923248674,
+     "spans": 192,
+     "contained": 0,
+     "goldChars": 3583
+    }
+   },
+   "ms": {
+    "median": 3126.3,
+    "p90": 8939,
+    "total": 565044
+   }
+  }
+ ]
+}

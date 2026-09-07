@@ -102,8 +102,8 @@ Two corpora, three engines, **one scorer** — and one command that replays all 
 
 | corpus | truths | `patterns` (no model) | **the product** (`ner`) | Presidio (default) |
 |---|---:|---:|---:|---:|
-| **Ours** — 18 document families, 14 languages, real layouts, OCR damage | 3 357 | 89 % · 89 FP | **95 %** · 256 FP | 46 % · 847 FP |
-| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 31 % · 6 FP | **74 %** · 118 FP | 58 % · 196 FP |
+| **Ours** — 18 document families, 14 languages, real layouts, OCR damage | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 46 % · 847 FP |
+| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | 58 % · 196 FP |
 
 A truth counts as *found* when ≥ 60 % of its significant tokens were replaced; a *false
 positive* (FP) is a detection that overlaps no annotated value. Titles, ages, nationalities
@@ -120,7 +120,7 @@ committed detections so the column needs no Python to verify.
 | EMAIL | 247 | 99 % | 99 % | 98 % |
 | CITY | 243 | 53 % | 87 % | 23 % |
 | CARD | 233 | 100 % | 100 % | 65 % |
-| ADDRESS | 232 | 97 % | 99 % | 15 % |
+| ADDRESS | 232 | 98 % | 100 % | 15 % |
 | ID | 215 | 93 % | 93 % | 45 % |
 | COMPANY_ID | 206 | 100 % | 100 % | 24 % |
 | HEALTH | 205 | 100 % | 100 % | 66 % |
@@ -140,11 +140,11 @@ committed detections so the column needs no Python to verify.
 | SECRET | 23 | 91 % | 91 % | 13 % |
 | URL | 23 | 91 % | 91 % | 96 % |
 | BIC | 23 | 74 % | 74 % | 4 % |
-| **GLOBAL** | 3357 | **89 %** · 89 FP | **95 %** · 256 FP | **46 %** · 847 FP |
+| **GLOBAL** | 3357 | **89 %** · 91 FP | **95 %** · 258 FP | **46 %** · 847 FP |
 
 | language | cases | openmasq `patterns` | **openmasq `ner`** (the product) | Presidio (default) |
 |---|---:|---:|---:|---:|
-| fr | 468 | 87 % | 93 % | 50 % |
+| fr | 468 | 87 % | 94 % | 50 % |
 | en | 215 | 92 % | 96 % | 41 % |
 | de | 47 | 98 % | 99 % | 46 % |
 | es | 32 | 97 % | 99 % | 52 % |
@@ -167,7 +167,7 @@ committed detections so the column needs no Python to verify.
 | category | truths | openmasq `patterns` | **openmasq `ner`** (the product) | Presidio (default) |
 |---|---:|---:|---:|---:|
 | NAME | 857 | 32 % | 98 % | 87 % |
-| ADDRESS | 598 | 26 % | 38 % | 17 % |
+| ADDRESS | 598 | 28 % | 40 % | 17 % |
 | CITY | 411 | 2 % | 68 % | 58 % |
 | ORG | 250 | 5 % | 73 % | 22 % |
 | CARD | 136 | 100 % | 100 % | 97 % |
@@ -175,10 +175,10 @@ committed detections so the column needs no Python to verify.
 | EMAIL | 49 | 100 % | 100 % | 100 % |
 | POSTAL | 37 | 0 % | 0 % | 5 % |
 | URL | 37 | 100 % | 100 % | 100 % |
-| ID | 21 | 95 % | 95 % | 100 % |
+| ID | 21 | 100 % | 100 % | 100 % |
 | IBAN | 21 | 100 % | 100 % | 100 % |
 | IP | 14 | 100 % | 100 % | 100 % |
-| **GLOBAL** | 2523 | **31 %** · 6 FP | **74 %** · 118 FP | **58 %** · 196 FP |
+| **GLOBAL** | 2523 | **31 %** · 6 FP | **74 %** · 115 FP | **58 %** · 196 FP |
 
 </details>
 
@@ -191,7 +191,7 @@ committed detections so the column needs no Python to verify.
 >   guess.
 > - **Names are the strong case** (94 % at home, 98 % away), and they are what a chat
 >   leaks most.
-> - **Addresses are the honest weakness.** 99 % on our documents, **38 %** on Presidio's
+> - **Addresses are the honest weakness.** 100 % on our documents, **40 %** on Presidio's
 >   corpus, whose truths are multi-line US street addresses recovered in pieces — the
 >   city, sometimes the number — rather than as one span. Presidio does worse there
 >   (17 %); that is a reason to keep working, not a reason to be satisfied.
@@ -208,13 +208,51 @@ committed detections so the column needs no Python to verify.
 > - **`AMOUNT` at 3 % is a decision, not a miss** — the category was retired (an amount
 >   is not an identity), and the corpus keeps annotating it so the measure stays honest.
 > - **Recall is paid for in false positives**, and the hierarchy is visible on both
->   corpora: 89 · 256 · 847 at home, 6 · 118 · 196 away.
+>   corpora: 91 · 258 · 847 at home, 6 · 115 · 196 away.
 > - **Synthetic against synthetic.** Presidio's corpus is faker-built and structurally
 >   kind to pattern engines; ours carries real layouts and OCR noise. Compare columns
 >   to each other, not to field performance.
 >
 > **Whatever the numbers, detection is not a guarantee.** The Vault — terms you mark
 > yourself — is the only coverage promise the product makes for a given string.
+
+### At character level, on public benchmarks
+
+The tables above score **values**: a truth counts when most of its tokens were replaced. That
+is the right measure for a regression floor and the wrong one for a reader who knows the
+literature, where a detector is judged on **character offsets, on public datasets, with
+precision as well as recall**. So the engine is also measured that way, on the protocol of
+Perplexity's [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
+paper, against **PII-Tracer** — the 0.6B detector Perplexity open-sourced — on four public
+corpora plus ours.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-dark.png">
+  <img alt="Character F1 per corpus and per engine, in both views" src="packages/redact/bench/spans/figures/f1-by-corpus-light.png">
+</picture>
+
+| corpus | cases | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
+|---|---:|---:|---:|---:|---:|---:|
+| Notre corpus / **ours** | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
+| TAB (ECHR) | 127 | 0.388 | 0.565 | 0.803 | 0.690 | — |
+| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | — |
+| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | — |
+| Nemotron-PII | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | — |
+
+**The bench reproduces the author's own published figures on two of the four**: 0.952 against
+0.950 on ai4privacy, 0.842 against 0.847 on Nemotron-PII, with a metric written from the
+paper's description alone. Where it does not — TAB, Gretel — the bench says so and says what
+differs, rather than quietly keeping the flattering half.
+
+Read the whole page before quoting a number: **[`packages/redact/bench/spans`](packages/redact/bench/spans)** carries
+six figures, the per-label and per-language tables, what each corpus annotates that the
+product deliberately does not, why ai4privacy's 0.952 is an in-distribution figure, and the
+one command that rebuilds every figure from the committed results.
+
+⚠️ The product's columns run with the policy of the levels it **ships**: `ner` at the default
+level (Renforcé), `ner (Strict)` with every category on. Latency is measured separately, one
+engine at a time — and PII-Tracer on **both** the GPU it ships for and the CPU ours runs on,
+because a device, a runtime and a numeric type all differ at once between those rows.
 
 ### Replay it
 
@@ -475,8 +513,8 @@ Deux corpus, trois moteurs, **un seul scoreur** — et une commande qui rejoue l
 
 | corpus | vérités | `patterns` (sans modèle) | **le produit** (`ner`) | Presidio (par défaut) |
 |---|---:|---:|---:|---:|
-| **Le nôtre** — 18 familles de documents, 14 langues, vraies mises en page, dégât OCR | 3 357 | 89 % · 89 FP | **95 %** · 256 FP | 46 % · 847 FP |
-| **Celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 31 % · 6 FP | **74 %** · 118 FP | 58 % · 196 FP |
+| **Le nôtre** — 18 familles de documents, 14 langues, vraies mises en page, dégât OCR | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 46 % · 847 FP |
+| **Celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | 58 % · 196 FP |
 
 Une vérité compte comme *trouvée* quand ≥ 60 % de ses tokens significatifs ont été
 remplacés ; un *faux positif* (FP) est une détection qui ne chevauche aucune valeur
@@ -498,7 +536,7 @@ seconde copie traduite dériverait de la première au prochain relevé.
 >   preuve et non une supposition.
 > - **Les noms sont le point fort** (94 % chez nous, 98 % chez eux), et c'est ce qu'une
 >   conversation laisse le plus échapper.
-> - **Les adresses sont la faiblesse honnête.** 99 % sur nos documents, **38 %** sur le
+> - **Les adresses sont la faiblesse honnête.** 100 % sur nos documents, **40 %** sur le
 >   corpus de Presidio, dont les vérités sont des adresses américaines sur plusieurs
 >   lignes, récupérées par morceaux — la ville, parfois le numéro — plutôt que comme un
 >   seul span. Presidio y fait moins bien (17 %) : une raison d'y travailler, pas de s'en
@@ -518,7 +556,7 @@ seconde copie traduite dériverait de la première au prochain relevé.
 >   montant n'est pas une identité), et le corpus continue de l'annoter pour que la mesure
 >   reste honnête.
 > - **Le rappel se paie en faux positifs**, et la hiérarchie est lisible sur les deux
->   corpus : 89 · 256 · 847 chez nous, 6 · 118 · 196 chez eux.
+>   corpus : 91 · 258 · 847 chez nous, 6 · 115 · 196 chez eux.
 > - **Synthétique contre synthétique.** Le corpus de Presidio est bâti avec faker et
 >   structurellement aimable avec les moteurs à motifs ; le nôtre porte de vraies mises en
 >   page et du bruit OCR. Comparez les colonnes entre elles, pas à du terrain.
@@ -526,6 +564,46 @@ seconde copie traduite dériverait de la première au prochain relevé.
 > **Quels que soient les chiffres, une détection n'est pas une garantie.** Le Coffre — les
 > termes que vous marquez vous-même — est la seule promesse de couverture que le produit
 > fasse pour une chaîne donnée.
+
+### Au caractère près, sur des bancs publics
+
+Les tableaux ci-dessus notent des **valeurs** : une vérité compte quand la plupart de ses
+tokens ont été remplacés. C'est la bonne mesure pour un plancher de régression et la mauvaise
+pour un lecteur qui connaît la littérature, où un détecteur se juge **aux offsets de
+caractères, sur des jeux publics, en précision autant qu'en rappel**. Le moteur est donc aussi
+mesuré ainsi, selon le protocole de l'article [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
+de Perplexity, face à **PII-Tracer** — le détecteur de 0,6 Md que Perplexity a ouvert — sur
+quatre corpus publics plus le nôtre.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-dark.png">
+  <img alt="F1 caractère par corpus et par moteur, dans les deux vues" src="packages/redact/bench/spans/figures/f1-by-corpus-light.png">
+</picture>
+
+| corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
+|---|---:|---:|---:|---:|---:|---:|
+| Notre corpus / **ours** | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
+| TAB (ECHR) | 127 | 0.388 | 0.565 | 0.803 | 0.690 | — |
+| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | — |
+| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | — |
+| Nemotron-PII | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | — |
+
+**Le banc reproduit les chiffres que l'auteur publie sur deux des quatre** : 0,952 contre
+0,950 sur ai4privacy, 0,842 contre 0,847 sur Nemotron-PII, avec une métrique écrite à partir
+de la seule description de l'article. Là où il ne les reproduit pas — TAB, Gretel — il le dit
+et dit ce qui diffère, plutôt que de garder discrètement la moitié qui l'arrange.
+
+À lire en entier avant de citer un chiffre : **[`packages/redact/bench/spans`](packages/redact/bench/spans)** porte
+six figures, les tableaux par étiquette et par langue, ce que chaque corpus annote et que le
+produit ne prétend pas masquer, pourquoi le 0,952 d'ai4privacy est un chiffre en distribution
+d'entraînement, et la commande unique qui reconstruit chaque figure depuis les résultats
+commités.
+
+⚠️ Les colonnes du produit tournent avec la politique des niveaux **livrés** : `ner` au niveau
+par défaut (Renforcé), `ner (Strict)` avec toutes les catégories allumées. La latence est
+mesurée à part, un moteur à la fois — et PII-Tracer sur **les deux** appareils, le GPU pour
+lequel il est livré et le processeur sur lequel tourne le nôtre, parce qu'un appareil, un
+moteur d'exécution et un type numérique diffèrent tous en même temps entre ces lignes.
 
 ### Le rejouer
 

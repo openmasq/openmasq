@@ -23,14 +23,19 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadEngine } from "./engines";
 import { coversTruth, pct, scoreCorpus, type BenchCase } from "./metric";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
 const opt = (name: string) => { const i = argv.indexOf(`--${name}`); return i >= 0 ? argv[i + 1] : undefined; };
 const CORPORA = (opt("corpus") ?? "internal,external").split(",") as ("internal" | "external")[];
-const ENGINES = (opt("engines") ?? "patterns,ner,presidio").split(",") as ("patterns" | "ner" | "presidio")[];
+const ENGINES = (opt("engines") ?? "patterns,ner,presidio").split(",") as ("patterns" | "ner" | "ner-strict" | "presidio")[];
 const MARKDOWN = argv.includes("--markdown");
+/** Extra columns from committed detection files: `--extra pplx=bench/pplx.detections.json[,name=file…]`.
+ *  Same shape as Presidio's (`{ caseId: [detected values] }`), so any engine with a sidecar
+ *  that writes that file gets a column, scored by the same metric. */
+const EXTRA: [string, string][] = (opt("extra") ?? "").split(",").filter(Boolean).map((kv) => { const i = kv.indexOf("="); return [kv.slice(0, i), kv.slice(i + 1)]; });
 
 type Detect = (text: string, id: string) => Promise<string[]>;
 
@@ -45,32 +50,16 @@ function loadCorpus(which: "internal" | "external"): BenchCase[] {
     .flatMap((f) => (JSON.parse(readFileSync(join(dir, f), "utf8")) as Partial<BenchCase>[]).filter((c) => Array.isArray(c.truth)) as BenchCase[]);
 }
 
-async function engine(name: "patterns" | "ner" | "presidio", which: "internal" | "external"): Promise<Detect | null> {
+async function engine(name: "patterns" | "ner" | "ner-strict" | "presidio", which: "internal" | "external"): Promise<Detect | null> {
   if (name === "presidio") {
     if (!existsSync(PRESIDIO_FILE[which])) { console.error(`! no Presidio detections for ${which} — run bench/presidio.py ${which}`); return null; }
     const dets = JSON.parse(readFileSync(PRESIDIO_FILE[which], "utf8")) as Record<string, string[]>;
     return async (_t, id) => dets[id] ?? [];
   }
-  const { pseudonymize } = await import("../src/index");
-  let detectLocal: NonNullable<Parameters<typeof pseudonymize>[1]>["detectLocal"];
-  if (name === "ner") {
-    const MODELS = join(HERE, "../../../apps/desktop/build/ner-models");
-    if (!existsSync(join(MODELS, "openmasq/bert-base-multilingual-cased-ner-hrl/config.json"))) {
-      console.error(`! local NER model missing under ${MODELS} — run \`pnpm build\` first`); return null;
-    }
-    const tf = await import("@huggingface/transformers");
-    tf.env.allowLocalModels = true; tf.env.localModelPath = MODELS;
-    const pipe = await tf.pipeline("token-classification", "openmasq/bert-base-multilingual-cased-ner-hrl", { dtype: "q8" });
-    const { createNerPredict } = await import("../src/local/ner");
-    const { detectLocalNer } = await import("../src/local/detect");
-    const predict = await createNerPredict({ pipeline: (t: string, o?: unknown) => pipe(t, o as Parameters<typeof pipe>[1]), modelKey: "multilingual" });
-    detectLocal = (text: string) => detectLocalNer(text, predict, { chunkSize: 1000 });
-  }
-  return async (text: string) => {
-    const vault: Record<string, string> = {};
-    await pseudonymize(text, { vault, ...(detectLocal ? { detectLocal } : {}) });
-    return Object.values(vault).map((v) => v.replace(/\\/g, "/"));
-  };
+  // `engines.ts` — the same loader `spans/run.mts` uses; BARE policy here (see its header).
+  const run = await loadEngine(name, "bare");
+  if (!run) return null;
+  return async (text: string) => Object.values(await run(text)).map((v) => v.replace(/\\/g, "/"));
 }
 
 interface Column { name: string; byCat: Map<string, [ok: number, n: number]>; unscored: [number, number]; found: number; total: number; fp: number; byLang: Record<string, [number, number]> }
@@ -126,6 +115,12 @@ for (const which of CORPORA) {
   for (const name of ENGINES) {
     const detect = await engine(name, which);
     if (detect) cols.push(await score(name, cases, detect));
+  }
+  for (const [name, file] of EXTRA) {
+    const path = file.startsWith("/") ? file : join(process.cwd(), file);
+    if (!existsSync(path)) { console.error(`! no detections file for ${name}: ${path}`); continue; }
+    const dets = JSON.parse(readFileSync(path, "utf8")) as Record<string, string[]>;
+    cols.push(await score(name, cases, async (_t, id) => dets[id] ?? []));
   }
   if (cols.length) render(which, cases, cols);
 }

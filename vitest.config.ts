@@ -94,6 +94,11 @@ const unit = defineConfig({
       // (`scripts/` — the Contentful→email mapping the preview and the audience
       // broadcast SHARE). One `**` glob per the rule above, not a per-folder list.
       "packages/emails/**/*.test.{ts,tsx}",
+      // `packages/redact/bench` is outside `src/` on purpose (it is measurement code, not
+      // shipped code) — and the glob above would therefore never run its tests. The one it
+      // holds pins `spans/predict.ts`, which turns the vault into character offsets: a
+      // drift there does not fail, it silently moves every figure the span bench publishes.
+      "packages/redact/bench/**/*.test.ts",
       // The desktop MAIN process (security-critical, electron-free units: the fs grant
       // gate, the read gate, secrets-at-rest, SSRF egress, the Python jail, the NER
       // integrity pin, the DB round-trip…), its IPC layer and the renderer's pre-paint
