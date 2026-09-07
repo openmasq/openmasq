@@ -219,11 +219,11 @@ committed detections so the column needs no Python to verify.
 ### At character level, on public benchmarks
 
 The tables above score **values**: a truth counts when most of its tokens were replaced. Below,
-scoring is **character-level**: every annotated character counts on its own, so a name found
-but cut short scores partly rather than wholly, and an engine that paints past the edge of a
-value pays for the overshoot. That is how the literature judges a detector, and it is the protocol of
-Perplexity's [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
-paper, run here against **PII-Tracer** — the 0.6B detector Perplexity open-sourced — and against
+every annotated **character** counts on its own, so a name found but cut short scores partly,
+and an engine that paints past the edge of a value pays for the overshoot. That is how the
+literature judges a detector. The protocol is the one in Perplexity's
+[PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
+paper, run here against **PII-Tracer**, the 0.6B detector Perplexity open-sourced, and against
 **Presidio**, on four public corpora plus ours.
 
 <picture>
@@ -239,24 +239,22 @@ paper, run here against **PII-Tracer** — the 0.6B detector Perplexity open-sou
 | ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
 | Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
 
-Presidio's column is a **default `pip install`** — predefined recognizers, `language="en"` —
-run on all five corpora, not only on ours. It matters: on TAB, English formal prose, that
-default scores **0.766**, above this product's own default level. Showing it on one corpus
-only would have been a comparison in name.
+Presidio is a **default `pip install`**, run on all five corpora rather than only on ours. On
+TAB it scores 0.766, above this product's own default level.
 
-**The bench reproduces the author's own published figures on two of the four**: 0.952 against
-0.950 on ai4privacy, 0.842 against 0.847 on Nemotron-PII, with a metric written from the
-paper's description alone. Where it does not — TAB, Gretel — the bench says so and says what
-differs, rather than quietly keeping the flattering half.
+**The bench reproduces the published figures on two of the four**: 0.952 against 0.950 on
+ai4privacy, 0.842 against 0.847 on Nemotron. Where it does not, on TAB and Gretel, it says so
+and says what differs.
 
-Read the whole page before quoting a number: **[`packages/redact/bench/spans`](packages/redact/bench/spans)** carries
-six figures, the per-label and per-language tables, what each corpus annotates that the
-product deliberately does not, why ai4privacy's 0.952 is an in-distribution figure, and the
-one command that rebuilds every figure from the committed results.
+⚠️ F1 gives partial credit, which flatters everyone. A redaction product has to find *every*
+mention of a value, and that number is lower for all of us. It is on the bench page, beside
+this one.
 
+**[`packages/redact/bench/spans`](packages/redact/bench/spans)** carries the whole thing: six
+figures, the per-label and per-language tables, what each corpus contains, and the one command
+that rebuilds every figure from the committed results.
 
-**What it costs, per document.** Response time is a product decision as much as recall is: an
-engine nobody waits for is an engine people turn off.
+**What it costs, per document.** An engine nobody waits for is an engine people turn off.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/latency-en-dark.png">
@@ -271,37 +269,22 @@ engine nobody waits for is an engine people turn off.
 | ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms | 18 ms |
 | Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms | 35 ms |
 
-Bar = median, whisker = p90, hatched = GPU. Measured one engine at a time, nothing else on the
-machine, 40 documents per corpus, a warm-up excluded. **A default Presidio install is the
-cheapest thing here after the bare rules** — and it is the comparison that says what the local
-model actually costs. ⚠️ Three things differ between the product and PII-Tracer — device, runtime, numeric
-type — so the latter is measured on **both** the GPU it ships for and the CPU ours runs on.
-
-⚠️ The product's columns run with the policy of the levels it **ships**: `ner` at the default
-level (Renforcé), `ner (Strict)` with every category on. Latency is measured separately, one
-engine at a time — and PII-Tracer on **both** the GPU it ships for and the CPU ours runs on,
-because a device, a runtime and a numeric type all differ at once between those rows.
+Bar = median, whisker = p90, hatched = GPU. One engine at a time, nothing else running, 40
+documents per corpus. ⚠️ Device, runtime and numeric type all differ between the product and
+PII-Tracer, so the latter is measured on **both** the GPU it ships for and the CPU ours runs on.
 
 ### Replay it
 
 ```bash
 git clone https://github.com/openmasq/openmasq && cd openmasq && pnpm install
-pnpm bench:compare --engines patterns,presidio   # ~1 min, no model: rules vs Presidio's committed detections
+pnpm bench:spans   --replay --markdown            # the character-level page, from committed results
+pnpm bench:compare --engines patterns,presidio    # ~1 min, no model: rules vs Presidio's committed detections
 pnpm build && pnpm bench:compare                  # adds the product column (bakes the local NER, sha256-pinned)
-pnpm bench:compare --markdown                     # prints the tables above, verbatim — diff them against this file
 ```
 
-Presidio's column is a committed artifact (`packages/redact/bench/**/presidio.detections.json`)
-so the comparison replays without Python. To regenerate it from scratch:
-
-```bash
-python3.12 -m venv v && v/bin/pip install presidio-analyzer==2.2.364 spacy==3.8.16
-v/bin/python -m spacy download en_core_web_lg
-v/bin/python packages/redact/bench/presidio.py internal && v/bin/python packages/redact/bench/presidio.py external
-```
-
-The corpora, the scorer, the runner and the exact provenance of Presidio's evaluation set
-(pinned commit, sha256) are in [`packages/redact/bench`](packages/redact/bench).
+Presidio's column is a committed artifact, so both benches replay without Python. Regenerating
+it, the corpora, the scorer and the exact provenance of each dataset are documented in
+[`packages/redact/bench`](packages/redact/bench).
 
 ## Links
 
@@ -596,12 +579,12 @@ seconde copie traduite dériverait de la première au prochain relevé.
 ### Au caractère près, sur des bancs publics
 
 Les tableaux ci-dessus notent des **valeurs** : une vérité compte quand la plupart de ses
-tokens ont été remplacés. Ci-dessous, la notation se fait **au niveau du caractère** : chaque caractère
-annoté compte pour lui-même, si bien qu'un nom trouvé mais coupé compte en partie et non en
-entier, et qu'un moteur qui déborde d'une valeur paie ce débordement. C'est ainsi que la littérature juge un détecteur,
-et c'est le protocole de l'article [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
-de Perplexity, exécuté ici face à **PII-Tracer** — le détecteur de 0,6 Md que Perplexity a
-ouvert — et face à **Presidio**, sur quatre corpus publics plus le nôtre.
+tokens ont été remplacés. Ci-dessous, chaque **caractère** annoté compte pour lui-même : un nom
+trouvé mais coupé compte en partie, et un moteur qui déborde d'une valeur paie ce débordement.
+C'est ainsi que la littérature juge un détecteur. Le protocole est celui de l'article
+[PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
+de Perplexity, exécuté ici face à **PII-Tracer**, le détecteur de 0,6 Md que Perplexity a
+ouvert, et face à **Presidio**, sur quatre corpus publics plus le nôtre.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-fr-dark.png">
@@ -616,25 +599,22 @@ ouvert — et face à **Presidio**, sur quatre corpus publics plus le nôtre.
 | ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
 | Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
 
-La colonne Presidio est une **installation `pip` par défaut** — reconnaisseurs prédéfinis,
-`language="en"` — exécutée sur les cinq corpus et pas seulement sur le nôtre. Cela compte :
-sur TAB, prose juridique anglaise, ce défaut note **0,766**, au-dessus du niveau par défaut de
-ce produit. Ne la montrer que sur un corpus aurait été une comparaison de nom seulement.
+Presidio est une **installation `pip` par défaut**, exécutée sur les cinq corpus et pas
+seulement sur le nôtre. Sur TAB elle note 0,766, au-dessus du niveau par défaut de ce produit.
 
-**Le banc reproduit les chiffres que l'auteur publie sur deux des quatre** : 0,952 contre
-0,950 sur ai4privacy, 0,842 contre 0,847 sur Nemotron-PII, avec une métrique écrite à partir
-de la seule description de l'article. Là où il ne les reproduit pas — TAB, Gretel — il le dit
-et dit ce qui diffère, plutôt que de garder discrètement la moitié qui l'arrange.
+**Le banc reproduit les chiffres publiés sur deux des quatre** : 0,952 contre 0,950 sur
+ai4privacy, 0,842 contre 0,847 sur Nemotron. Là où il ne les reproduit pas, sur TAB et Gretel,
+il le dit et dit ce qui diffère.
 
-À lire en entier avant de citer un chiffre : **[`packages/redact/bench/spans`](packages/redact/bench/spans)** porte
-six figures, les tableaux par étiquette et par langue, ce que chaque corpus annote et que le
-produit ne prétend pas masquer, pourquoi le 0,952 d'ai4privacy est un chiffre en distribution
-d'entraînement, et la commande unique qui reconstruit chaque figure depuis les résultats
-commités.
+⚠️ Le F1 donne un crédit partiel, ce qui flatte tout le monde. Un produit de masquage doit
+trouver *chaque* mention d'une valeur, et ce chiffre-là est plus bas pour nous tous. Il est sur
+la page du banc, à côté de celui-ci.
 
+**[`packages/redact/bench/spans`](packages/redact/bench/spans)** porte l'ensemble : six
+figures, les tableaux par étiquette et par langue, ce que contient chaque corpus, et la
+commande unique qui reconstruit chaque figure depuis les résultats commités.
 
-**Ce que cela coûte, par document.** Le temps de réponse est une décision produit autant que
-le rappel : un moteur qu'on n'attend pas est un moteur qu'on désactive.
+**Ce que cela coûte, par document.** Un moteur qu'on n'attend pas est un moteur qu'on désactive.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/latency-fr-dark.png">
@@ -649,39 +629,23 @@ le rappel : un moteur qu'on n'attend pas est un moteur qu'on désactive.
 | ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms | 18 ms |
 | Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms | 35 ms |
 
-Barre = médiane, moustache = p90, hachures = GPU. Mesuré un moteur à la fois, rien d'autre sur
-la machine, 40 documents par corpus, un échauffement écarté. **Une installation Presidio par
-défaut est ce qu'il y a de moins cher ici après les règles nues** — et c'est la comparaison qui
-dit ce que le modèle local coûte vraiment. ⚠️ Trois choses diffèrent entre le produit et PII-Tracer — appareil, moteur
-d'exécution, type numérique — donc ce dernier est mesuré sur **les deux** appareils : le GPU
-pour lequel il est livré et le processeur sur lequel tourne le nôtre.
-
-⚠️ Les colonnes du produit tournent avec la politique des niveaux **livrés** : `ner` au niveau
-par défaut (Renforcé), `ner (Strict)` avec toutes les catégories allumées. La latence est
-mesurée à part, un moteur à la fois — et PII-Tracer sur **les deux** appareils, le GPU pour
-lequel il est livré et le processeur sur lequel tourne le nôtre, parce qu'un appareil, un
-moteur d'exécution et un type numérique diffèrent tous en même temps entre ces lignes.
+Barre = médiane, moustache = p90, hachures = GPU. Un moteur à la fois, rien d'autre en marche,
+40 documents par corpus. ⚠️ L'appareil, le moteur d'exécution et le type numérique diffèrent
+tous entre le produit et PII-Tracer : ce dernier est donc mesuré sur **les deux**, le GPU pour
+lequel il est livré et le processeur sur lequel tourne le nôtre.
 
 ### Le rejouer
 
 ```bash
 git clone https://github.com/openmasq/openmasq && cd openmasq && pnpm install
-pnpm bench:compare --engines patterns,presidio   # ~1 min, sans modèle : les règles contre les détections commitées de Presidio
+pnpm bench:spans   --replay --markdown            # la page au niveau du caractère, depuis les résultats commités
+pnpm bench:compare --engines patterns,presidio    # ~1 min, sans modèle : les règles contre les détections commitées de Presidio
 pnpm build && pnpm bench:compare                  # ajoute la colonne du produit (cuit la NER locale, épinglée sha256)
-pnpm bench:compare --markdown                     # imprime les tableaux ci-dessus, tels quels — à differ contre ce fichier
 ```
 
-La colonne Presidio est un artefact commité (`packages/redact/bench/**/presidio.detections.json`),
-donc la comparaison se rejoue sans Python. Pour la régénérer de zéro :
-
-```bash
-python3.12 -m venv v && v/bin/pip install presidio-analyzer==2.2.364 spacy==3.8.16
-v/bin/python -m spacy download en_core_web_lg
-v/bin/python packages/redact/bench/presidio.py internal && v/bin/python packages/redact/bench/presidio.py external
-```
-
-Les corpus, le scoreur, le harnais et la provenance exacte du jeu d'évaluation de Presidio
-(commit épinglé, sha256) sont dans [`packages/redact/bench`](packages/redact/bench).
+La colonne Presidio est un artefact commité, donc les deux bancs se rejouent sans Python. Sa
+régénération, les corpus, le scoreur et la provenance exacte de chaque jeu sont documentés dans
+[`packages/redact/bench`](packages/redact/bench).
 
 ## Liens
 
