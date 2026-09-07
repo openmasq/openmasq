@@ -227,8 +227,8 @@ paper, against **PII-Tracer** — the 0.6B detector Perplexity open-sourced — 
 corpora plus ours.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-dark.png">
-  <img alt="Character F1 per corpus and per engine, in both views" src="packages/redact/bench/spans/figures/f1-by-corpus-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-en-dark.png">
+  <img alt="Character F1 per corpus and per engine" src="packages/redact/bench/spans/figures/f1-by-corpus-en-light.png">
 </picture>
 
 | corpus | cases | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
@@ -248,6 +248,27 @@ Read the whole page before quoting a number: **[`packages/redact/bench/spans`](p
 six figures, the per-label and per-language tables, what each corpus annotates that the
 product deliberately does not, why ai4privacy's 0.952 is an in-distribution figure, and the
 one command that rebuilds every figure from the committed results.
+
+
+**What it costs, per document.** Response time is a product decision as much as recall is: an
+engine nobody waits for is an engine people turn off.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/latency-en-dark.png">
+  <img alt="Median response time per document, per corpus and per engine" src="packages/redact/bench/spans/figures/latency-en-light.png">
+</picture>
+
+| corpus | median chars | rules | product (Renforcé) | product (Strict) | PII-Tracer (CPU) | PII-Tracer (GPU) |
+|---|---:|---:|---:|---:|---:|---:|
+| ours | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms |
+| TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s |
+| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms |
+| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms |
+| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms |
+
+Bar = median, whisker = p90, hatched = GPU. Measured one engine at a time, nothing else on the
+machine. ⚠️ Three things differ between the product and PII-Tracer — device, runtime, numeric
+type — so the latter is measured on **both** the GPU it ships for and the CPU ours runs on.
 
 ⚠️ The product's columns run with the policy of the levels it **ships**: `ner` at the default
 level (Renforcé), `ner (Strict)` with every category on. Latency is measured separately, one
@@ -576,8 +597,8 @@ de Perplexity, face à **PII-Tracer** — le détecteur de 0,6 Md que Perplexity
 quatre corpus publics plus le nôtre.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-dark.png">
-  <img alt="F1 caractère par corpus et par moteur, dans les deux vues" src="packages/redact/bench/spans/figures/f1-by-corpus-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-fr-dark.png">
+  <img alt="F1 caractère par corpus et par moteur" src="packages/redact/bench/spans/figures/f1-by-corpus-fr-light.png">
 </picture>
 
 | corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
@@ -598,6 +619,28 @@ six figures, les tableaux par étiquette et par langue, ce que chaque corpus ann
 produit ne prétend pas masquer, pourquoi le 0,952 d'ai4privacy est un chiffre en distribution
 d'entraînement, et la commande unique qui reconstruit chaque figure depuis les résultats
 commités.
+
+
+**Ce que cela coûte, par document.** Le temps de réponse est une décision produit autant que
+le rappel : un moteur qu'on n'attend pas est un moteur qu'on désactive.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/latency-fr-dark.png">
+  <img alt="Temps de réponse médian par document, par corpus et par moteur" src="packages/redact/bench/spans/figures/latency-fr-light.png">
+</picture>
+
+| corpus | car. médians | règles | produit (Renforcé) | produit (Strict) | PII-Tracer (CPU) | PII-Tracer (GPU) |
+|---|---:|---:|---:|---:|---:|---:|
+| le nôtre | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms |
+| TAB | 3 740 | 47 ms | 1,1 s | 1,4 s | 3,3 s | 2,3 s |
+| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms |
+| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms |
+| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms |
+
+Barre = médiane, moustache = p90, hachures = GPU. Mesuré un moteur à la fois, rien d'autre sur
+la machine. ⚠️ Trois choses diffèrent entre le produit et PII-Tracer — appareil, moteur
+d'exécution, type numérique — donc ce dernier est mesuré sur **les deux** appareils : le GPU
+pour lequel il est livré et le processeur sur lequel tourne le nôtre.
 
 ⚠️ Les colonnes du produit tournent avec la politique des niveaux **livrés** : `ner` au niveau
 par défaut (Renforcé), `ner (Strict)` avec toutes les catégories allumées. La latence est

@@ -108,8 +108,8 @@ sha256 of every input, so a stale figure is detectable rather than merely suspec
 ### The headline — character F1, all labels
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/f1-by-corpus-dark.png">
-  <img alt="Character F1 per corpus and per engine, in both views" src="figures/f1-by-corpus-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/f1-by-corpus-en-dark.png">
+  <img alt="Character F1 per corpus and per engine" src="figures/f1-by-corpus-en-light.png">
 </picture>
 
 | corpus | cases | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
@@ -120,6 +120,7 @@ sha256 of every input, so a stale figure is detectable rather than merely suspec
 | ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | — |
 | Nemotron-PII | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | — |
 
+The figure carries the **all-labels** view, the one comparable to the published figures.
 Same table on the **product's scope** only — the labels it claims to redact, plain dates,
 countries, occupations and demographics removed from the denominator:
 
@@ -134,8 +135,8 @@ countries, occupations and demographics removed from the denominator:
 ### Does this bench reproduce the published figures?
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/reproduction-dark.png">
-  <img alt="PII-Tracer measured here against the figure Perplexity publishes" src="figures/reproduction-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/reproduction-en-dark.png">
+  <img alt="PII-Tracer measured here against the figure Perplexity publishes" src="figures/reproduction-en-light.png">
 </picture>
 
 | benchmark | measured here | published | gap |
@@ -169,8 +170,8 @@ than hiding.
 ### Precision against recall
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/precision-recall-dark.png">
-  <img alt="Precision against recall per corpus, with iso-F1 curves" src="figures/precision-recall-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/precision-recall-en-dark.png">
+  <img alt="Precision against recall per corpus, with iso-F1 curves" src="figures/precision-recall-en-light.png">
 </picture>
 
 Two engines on the same iso-F1 curve share a number and not a behaviour. There is no useful
@@ -180,8 +181,8 @@ engine would score above 99 %.
 ### Finding EVERY mention — the measure PII-TRACE introduced
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/consistency-dark.png">
-  <img alt="Share of identifiers whose every mention is found, by mention count" src="figures/consistency-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/consistency-en-dark.png">
+  <img alt="Share of identifiers whose every mention is found, by mention count" src="figures/consistency-en-light.png">
 </picture>
 
 An identifier counts only when **all** of its characters, in **all** of its mentions, were
@@ -193,8 +194,8 @@ curves cross with repetition.
 ### What each engine costs
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/latency-dark.png">
-  <img alt="Median time per document, linear scale, one axis per corpus" src="figures/latency-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/latency-en-dark.png">
+  <img alt="Median time per document, linear scale, one axis per corpus" src="figures/latency-en-light.png">
 </picture>
 
 | corpus | median chars | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> |
@@ -216,8 +217,8 @@ are taken during the accuracy passes, under contention, and must not be charted 
 ### Every label, every engine
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/recall-by-label-dark.png">
-  <img alt="Character recall per annotated label, per corpus and engine" src="figures/recall-by-label-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/recall-by-label-en-dark.png">
+  <img alt="Character recall per annotated label, per corpus and engine" src="figures/recall-by-label-en-light.png">
 </picture>
 
 <details>
@@ -649,8 +650,10 @@ v/bin/pip install torch transformers safetensors
 v/bin/python packages/redact/bench/spans/pplx.py tab      # PII-Tracer's column, measured (MPS)
 ```
 
-`figures/` holds the six figures in a light and a dark variant (PNG, 192 dpi), plus the
-manifest that ties them to an engine version. They are COMMITTED so a reader sees them without running
+`figures/` holds six figures × **English and French** × light and dark (PNG, 192 dpi), plus
+the manifest that ties them to an engine version. A figure carries values, bars, an axis name
+and a legend — never a sentence: what it means belongs here, where it can be translated and
+corrected, not baked into a raster. They are COMMITTED so a reader sees them without running
 anything; the script that draws them lives outside this repository, and everything it needs is
 `results/scores.json` (`pnpm bench:spans --replay --json`).
 
@@ -772,8 +775,8 @@ le sha256 de chaque entrée, de sorte qu'une figure périmée se détecte au lie
 ### Le chiffre de tête — F1 caractère, toutes étiquettes
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/f1-by-corpus-dark.png">
-  <img alt="F1 caractère per corpus and per engine, in both views" src="figures/f1-by-corpus-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/f1-by-corpus-fr-dark.png">
+  <img alt="F1 caractère per corpus and per engine, in both views" src="figures/f1-by-corpus-fr-light.png">
 </picture>
 
 | corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
@@ -784,6 +787,7 @@ le sha256 de chaque entrée, de sorte qu'une figure périmée se détecte au lie
 | ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | — |
 | Nemotron-PII | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | — |
 
+La figure porte la vue **toutes étiquettes**, celle qui se compare aux chiffres publiés.
 Le même tableau sur le **périmètre du produit** — les étiquettes qu'il revendique masquer,
 dates ordinaires, pays, professions et données démographiques retirés du dénominateur :
 
@@ -798,8 +802,8 @@ dates ordinaires, pays, professions et données démographiques retirés du dén
 ### Ce banc reproduit-il les chiffres publiés ?
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/reproduction-dark.png">
-  <img alt="PII-Tracer mesuré ici against the figure Perplexity publishes" src="figures/reproduction-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/reproduction-fr-dark.png">
+  <img alt="PII-Tracer mesuré ici against the figure Perplexity publishes" src="figures/reproduction-fr-light.png">
 </picture>
 
 | banc | mesuré ici | publié | écart |
@@ -833,8 +837,8 @@ d'être écrits plutôt que tus.
 ### Précision contre rappel
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/precision-recall-dark.png">
-  <img alt="Précision contre rappel per corpus, with iso-F1 curves" src="figures/precision-recall-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/precision-recall-fr-dark.png">
+  <img alt="Précision contre rappel per corpus, with iso-F1 curves" src="figures/precision-recall-fr-light.png">
 </picture>
 
 Deux moteurs posés sur la même courbe d'iso-F1 partagent un nombre, pas un comportement. Il
@@ -844,8 +848,8 @@ du document, et tout moteur y ferait plus de 99 %.
 ### Trouver CHAQUE mention — la mesure introduite par PII-TRACE
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/consistency-dark.png">
-  <img alt="Part des identifiants whose every mention is found, by mention count" src="figures/consistency-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/consistency-fr-dark.png">
+  <img alt="Part des identifiants whose every mention is found, by mention count" src="figures/consistency-fr-light.png">
 </picture>
 
 Un identifiant ne compte que si **tous** ses caractères, dans **toutes** ses mentions, ont été
@@ -857,8 +861,8 @@ quand les courbes se croisent à mesure que la répétition augmente.
 ### Ce que chaque moteur coûte
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/latency-dark.png">
-  <img alt="Temps médian per document, linear scale, one axis per corpus" src="figures/latency-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/latency-fr-dark.png">
+  <img alt="Temps médian per document, linear scale, one axis per corpus" src="figures/latency-fr-light.png">
 </picture>
 
 | corpus | car. médians | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> |
@@ -881,8 +885,8 @@ jamais être portés sur un graphique de latence.
 ### Chaque étiquette, chaque moteur
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="figures/recall-by-label-dark.png">
-  <img alt="Rappel caractère par étiquette annotée, per corpus and engine" src="figures/recall-by-label-light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="figures/recall-by-label-fr-dark.png">
+  <img alt="Rappel caractère par étiquette annotée, per corpus and engine" src="figures/recall-by-label-fr-light.png">
 </picture>
 
 <details>
@@ -1308,8 +1312,10 @@ Character recall by upstream label (spans · scope), all engines:
 
 ## Rejouer, régénérer
 
-Mêmes commandes que ci-dessus. `figures/` porte les six figures dans un thème clair et un
-thème sombre (PNG, 192 ppp), plus le manifeste qui les rattache à une version du moteur.
+Mêmes commandes que ci-dessus. `figures/` porte six figures × **anglais et français** × thème clair et sombre (PNG,
+192 ppp), plus le manifeste qui les rattache à une version du moteur. Une figure porte des
+valeurs, des barres, un nom d'axe et une légende — jamais une phrase : ce qu'elle signifie est
+ici, où cela se traduit et se corrige, pas cuit dans une image.
 Elles sont COMMITÉES pour qu'un lecteur les voie sans rien exécuter ; le script qui les dessine
 vit hors de ce dépôt, et tout ce dont il a besoin est `results/scores.json`
 (`pnpm bench:spans --replay --json`).
