@@ -65,17 +65,31 @@ export const KATEX_OPTIONS = {
   trust: false,
 } as const;
 
+/**
+ * ⚠️ The plugin is held in a BOX, never bare in the state.
+ *
+ * `rehype-katex`'s export is a FUNCTION, and React reads a function given to
+ * `useState` as a lazy INITIALISER: `useState(katexPlugin)` calls it and stores
+ * `katexPlugin()` — the attacher's transformer instead of the attacher. That value is
+ * truthy, so the effect below considers the load done, and unified, handed a transformer
+ * where it expects an attacher, silently typesets nothing. It only bites once the
+ * module cache is warm, i.e. on every bubble AFTER the first: the first one renders
+ * math, all the others show raw LaTeX. A box has no such reading.
+ * Pinned by `katexPlugin.test.tsx`.
+ */
 export function useKatexPlugin(): KatexPlugin | null {
-  const [plugin, setPlugin] = useState<KatexPlugin | null>(katexPlugin);
+  const [box, setBox] = useState<{ plugin: KatexPlugin } | null>(
+    katexPlugin ? { plugin: katexPlugin } : null,
+  );
   useEffect(() => {
-    if (plugin) return;
+    if (box) return;
     let alive = true;
     void loadKatex().then((p) => {
-      if (alive) setPlugin(() => p);
+      if (alive) setBox({ plugin: p });
     });
     return () => {
       alive = false;
     };
-  }, [plugin]);
-  return plugin;
+  }, [box]);
+  return box?.plugin ?? null;
 }
