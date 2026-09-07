@@ -100,11 +100,11 @@ function render(dataset: string, cases: SpanCase[], cols: { engine: string; res:
   H(`### ${dataset} — ${cases.length} cases · ${gold} annotated characters (${goldIn} in the product's scope)`);
   row(["metric", ...cols.map((c) => name(c.engine))]); sep(cols.length);
   const m = (f: (s: Scores) => number) => cols.map((c) => f3(f(c.all)));
-  row(["character precision", ...m((s) => s.char.p)]);
-  row(["character recall · all labels", ...m((s) => s.char.r)]);
-  row(["**character F1 · all labels**", ...m((s) => s.char.f1).map((x) => (MARKDOWN ? `**${x}**` : x))]);
-  row(["character recall · product scope", ...cols.map((c) => f3(c.inn.char.r))]);
-  row(["character F1 · product scope", ...cols.map((c) => f3(c.inn.char.f1))]);
+  row(["character-level precision", ...m((s) => s.char.p)]);
+  row(["character-level recall · all labels", ...m((s) => s.char.r)]);
+  row(["**character-level F1 · all labels**", ...m((s) => s.char.f1).map((x) => (MARKDOWN ? `**${x}**` : x))]);
+  row(["character-level recall · product scope", ...cols.map((c) => f3(c.inn.char.r))]);
+  row(["character-level F1 · product scope", ...cols.map((c) => f3(c.inn.char.f1))]);
   row(["span-overlap F1", ...m((s) => s.overlap.f1)]);
   row(["span-containment F1", ...m((s) => s.containment.f1)]);
   row(["recurring identifiers, every mention found", ...cols.map((c) => pc(c.all.consistency.recurring[0], c.all.consistency.recurring[1]) + ` (${c.all.consistency.recurring[1]})`)]);
@@ -120,18 +120,18 @@ function render(dataset: string, cases: SpanCase[], cols: { engine: string; res:
   }
   const lens = Object.keys(cols[0].all.byLength).sort();
   if (lens.length > 1) {
-    H(`Character P / R / F1 by text length (all labels):`);
+    H(`Character-level P / R / F1 by text length (all labels):`);
     row(["length", ...cols.map((c) => name(c.engine))]); sep(cols.length);
     for (const l of lens) row([`${l} (${cases.filter((c) => (c.text.length < 1000 ? "<1k" : c.text.length < 10000 ? "1k–10k" : "≥10k") === l).length})`, ...cols.map((c) => { const e = c.all.byLength[l]; return `${f3(e.p)} / ${f3(e.r)} / ${f3(e.f1)}`; })]);
   }
   const langs = Object.keys(cols[0].all.byLang).sort((a, b) => cols[0].all.byLang[b].gold - cols[0].all.byLang[a].gold);
   if (langs.length > 1) {
-    H(`Character F1 by language (all labels):`);
+    H(`Character-level F1 by language (all labels):`);
     row(["language", ...cols.map((c) => name(c.engine))]); sep(cols.length);
     for (const l of langs) row([`${l} (${cases.filter((c) => c.lang === l).length})`, ...cols.map((c) => f3(c.all.byLang[l].f1))]);
   }
   const labels = Object.entries(cols[0].all.byLabel).sort((a, b) => b[1].gold - a[1].gold);
-  H(`Character recall by upstream label (spans · scope), all engines:`);
+  H(`Character-level recall by upstream label (spans · scope), all engines:`);
   row(["label", ...cols.map((c) => name(c.engine))]); sep(cols.length);
   // a label's scope as `adapt.py` assigned it (TAB mixes: the same type is `in` or `ctx` per mention)
   const scopeOf = (l: string) => { const n: Record<string, number> = {}; for (const c of cases) for (const s of c.spans) if (s.label === l) n[s.scope] = (n[s.scope] ?? 0) + 1; return Object.entries(n).sort((a, b) => b[1] - a[1]).map(([k]) => k).join("/"); };

@@ -1,6 +1,6 @@
 {
  "redactVersion": "0.1.0",
- "commit": "078a715",
+ "commit": "df56d82",
  "engineTreeDirty": true,
  "measured": "2026-09-07",
  "figuresGenerated": "2026-09-07",
@@ -60,6 +60,7 @@
   "latency.node.json": "9b769e3f5c4420c70c4789486beb1d82ba015ae3bf47fac9fc1ba035cadbbb43",
   "latency.pplx.cpu.json": "c1c54b7dfc276b8bbc2539536615aa5415d360f2a1a82a4a05d2e413e76cbc9a",
   "latency.pplx.mps.json": "7b3682780ae4c445657e57e0ef2b3ec852c375a28c3d50a191a6d6a400487ed2",
+  "latency.presidio.json": "b44553f05e36fba0a54174ce01d1abe10f2f31d95078e68fcbc00b468f002466",
   "nemotron.ner-strict.json": "83697d515e80984a0e10cf844578b46a35f2fbf187ac9eabe43ba05cc10ec34f",
   "nemotron.ner.json": "c1503b30d2bfc321eb71102d2d080f9f892b2319d54afa1e8f7d338c023be2d5",
   "nemotron.patterns.json": "1e737a21bc68d468960d15f1d3974920f63fb11293bc24e381c9f71c958d89b6",

@@ -219,16 +219,16 @@ committed detections so the column needs no Python to verify.
 ### At character level, on public benchmarks
 
 The tables above score **values**: a truth counts when most of its tokens were replaced. Below,
-the unit of measurement is the **character** — every annotated character is one unit, so a name
-found but cut short scores partly rather than fully, and an engine that paints past the edge of
-a value pays for it. That is how the literature judges a detector, and it is the protocol of
+scoring is **character-level**: every annotated character counts on its own, so a name found
+but cut short scores partly rather than wholly, and an engine that paints past the edge of a
+value pays for the overshoot. That is how the literature judges a detector, and it is the protocol of
 Perplexity's [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
 paper, run here against **PII-Tracer** — the 0.6B detector Perplexity open-sourced — and against
 **Presidio**, on four public corpora plus ours.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-en-dark.png">
-  <img alt="Character F1 per corpus and per engine" src="packages/redact/bench/spans/figures/f1-by-corpus-en-light.png">
+  <img alt="Character-level F1 per corpus and per engine" src="packages/redact/bench/spans/figures/f1-by-corpus-en-light.png">
 </picture>
 
 | corpus | cases | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
@@ -263,16 +263,18 @@ engine nobody waits for is an engine people turn off.
   <img alt="Median response time per document, per corpus and per engine" src="packages/redact/bench/spans/figures/latency-en-light.png">
 </picture>
 
-| corpus | median chars | rules | product (Renforcé) | product (Strict) | PII-Tracer (CPU) | PII-Tracer (GPU) |
-|---|---:|---:|---:|---:|---:|---:|
-| ours | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms |
-| TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s |
-| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms |
-| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms |
-| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms |
+| corpus | median chars | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> | Presidio<br><sub>CPU</sub> |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OpenMasq | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms | 4 ms |
+| TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s | 124 ms |
+| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms | 49 ms |
+| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms | 18 ms |
+| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms | 35 ms |
 
 Bar = median, whisker = p90, hatched = GPU. Measured one engine at a time, nothing else on the
-machine. ⚠️ Three things differ between the product and PII-Tracer — device, runtime, numeric
+machine, 40 documents per corpus, a warm-up excluded. **A default Presidio install is the
+cheapest thing here after the bare rules** — and it is the comparison that says what the local
+model actually costs. ⚠️ Three things differ between the product and PII-Tracer — device, runtime, numeric
 type — so the latter is measured on **both** the GPU it ships for and the CPU ours runs on.
 
 ⚠️ The product's columns run with the policy of the levels it **ships**: `ner` at the default
@@ -594,16 +596,16 @@ seconde copie traduite dériverait de la première au prochain relevé.
 ### Au caractère près, sur des bancs publics
 
 Les tableaux ci-dessus notent des **valeurs** : une vérité compte quand la plupart de ses
-tokens ont été remplacés. Ci-dessous, l'unité de mesure est le **caractère** — chaque caractère
-annoté vaut une unité, si bien qu'un nom trouvé mais coupé compte en partie et non en entier, et
-qu'un moteur qui déborde d'une valeur le paie. C'est ainsi que la littérature juge un détecteur,
+tokens ont été remplacés. Ci-dessous, la notation se fait **au niveau du caractère** : chaque caractère
+annoté compte pour lui-même, si bien qu'un nom trouvé mais coupé compte en partie et non en
+entier, et qu'un moteur qui déborde d'une valeur paie ce débordement. C'est ainsi que la littérature juge un détecteur,
 et c'est le protocole de l'article [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
 de Perplexity, exécuté ici face à **PII-Tracer** — le détecteur de 0,6 Md que Perplexity a
 ouvert — et face à **Presidio**, sur quatre corpus publics plus le nôtre.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-fr-dark.png">
-  <img alt="F1 caractère par corpus et par moteur" src="packages/redact/bench/spans/figures/f1-by-corpus-fr-light.png">
+  <img alt="F1 au niveau du caractère, par corpus et par moteur" src="packages/redact/bench/spans/figures/f1-by-corpus-fr-light.png">
 </picture>
 
 | corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
@@ -639,16 +641,18 @@ le rappel : un moteur qu'on n'attend pas est un moteur qu'on désactive.
   <img alt="Temps de réponse médian par document, par corpus et par moteur" src="packages/redact/bench/spans/figures/latency-fr-light.png">
 </picture>
 
-| corpus | car. médians | règles | produit (Renforcé) | produit (Strict) | PII-Tracer (CPU) | PII-Tracer (GPU) |
-|---|---:|---:|---:|---:|---:|---:|
-| le nôtre | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms |
-| TAB | 3 740 | 47 ms | 1,1 s | 1,4 s | 3,3 s | 2,3 s |
-| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms |
-| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms |
-| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms |
+| corpus | car. médians | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> | Presidio<br><sub>CPU</sub> |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OpenMasq | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms | 4 ms |
+| TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s | 124 ms |
+| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms | 49 ms |
+| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms | 18 ms |
+| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms | 35 ms |
 
 Barre = médiane, moustache = p90, hachures = GPU. Mesuré un moteur à la fois, rien d'autre sur
-la machine. ⚠️ Trois choses diffèrent entre le produit et PII-Tracer — appareil, moteur
+la machine, 40 documents par corpus, un échauffement écarté. **Une installation Presidio par
+défaut est ce qu'il y a de moins cher ici après les règles nues** — et c'est la comparaison qui
+dit ce que le modèle local coûte vraiment. ⚠️ Trois choses diffèrent entre le produit et PII-Tracer — appareil, moteur
 d'exécution, type numérique — donc ce dernier est mesuré sur **les deux** appareils : le GPU
 pour lequel il est livré et le processeur sur lequel tourne le nôtre.
 

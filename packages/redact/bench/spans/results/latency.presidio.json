@@ -1,0 +1,67 @@
+{
+ "host": "Darwin arm64 · CPU · en_core_web_lg",
+ "sample": 40,
+ "measured": "2026-09-07",
+ "rows": [
+  {
+   "dataset": "internal",
+   "engine": "presidio",
+   "device": "CPU",
+   "runtime": "presidio-analyzer 2.2.364 · spaCy 3.8.16",
+   "numeric": "—",
+   "cases": 39,
+   "medianChars": 55,
+   "median": 4.4,
+   "p90": 6.6,
+   "charsPerSec": 12146
+  },
+  {
+   "dataset": "tab",
+   "engine": "presidio",
+   "device": "CPU",
+   "runtime": "presidio-analyzer 2.2.364 · spaCy 3.8.16",
+   "numeric": "—",
+   "cases": 39,
+   "medianChars": 3740,
+   "median": 123.5,
+   "p90": 314.8,
+   "charsPerSec": 30970
+  },
+  {
+   "dataset": "gretel",
+   "engine": "presidio",
+   "device": "CPU",
+   "runtime": "presidio-analyzer 2.2.364 · spaCy 3.8.16",
+   "numeric": "—",
+   "cases": 39,
+   "medianChars": 1283,
+   "median": 48.7,
+   "p90": 74.8,
+   "charsPerSec": 27131
+  },
+  {
+   "dataset": "ai4privacy",
+   "engine": "presidio",
+   "device": "CPU",
+   "runtime": "presidio-analyzer 2.2.364 · spaCy 3.8.16",
+   "numeric": "—",
+   "cases": 39,
+   "medianChars": 426,
+   "median": 18.0,
+   "p90": 25.2,
+   "charsPerSec": 23010
+  },
+  {
+   "dataset": "nemotron",
+   "engine": "presidio",
+   "device": "CPU",
+   "runtime": "presidio-analyzer 2.2.364 · spaCy 3.8.16",
+   "numeric": "—",
+   "cases": 39,
+   "medianChars": 709,
+   "median": 35.3,
+   "p90": 82.4,
+   "charsPerSec": 22164
+  }
+ ]
+}

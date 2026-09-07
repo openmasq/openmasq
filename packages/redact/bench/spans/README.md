@@ -23,7 +23,7 @@ as a company is found. That is how Perplexity scores its external benchmarks.
 
 | measure | definition |
 |---|---|
-| P / R / F1, **the character being the unit** | pooled over the corpus: precision = share of the characters the engine marked that are annotated PII; recall = share of the annotated PII characters it marked |
+| character-level P / R / F1 | pooled over the corpus, the character being the unit: precision = share of the characters the engine marked that are annotated PII; recall = share of the annotated PII characters it marked |
 | span-overlap F1 | a gold span is found when ANY of its characters is marked; a predicted span is right when it touches an annotation |
 | span-containment F1 | a gold span is found only when ALL its characters are marked; a predicted span is right only when it lies entirely inside annotation |
 | consistency | share of the identifiers whose EVERY mention is fully covered — by number of mentions (1 · 2 · 3–5 · 6–10 · 11+) and for the recurring ones (≥ 2) overall |
@@ -48,7 +48,7 @@ of each says which.
 
 Precision is identical in both views and **never charges an engine for marking an annotated
 datum we chose not to score** — the `CONTEXT` rule of `../metric.ts`, kept. It is not free:
-on TAB it is worth 0.096 of character F1 to the product and 0.006 to PII-Tracer, and the
+on TAB it is worth 0.096 of character-level F1 to the product and 0.006 to PII-Tracer, and the
 paragraph on TAB below gives both readings rather than only the flattering one.
 
 An **identifier** is a group of mentions: TAB carries an entity id from its own annotation, the
@@ -192,7 +192,7 @@ sha256 of every input, so a stale figure is detectable rather than merely suspec
 | scorer | `spans/metric.ts` — the ONE scorer; the figures only draw |
 | inputs | 26 files, sha256 in `figures/manifest.json` |
 
-### The headline — F1 with the CHARACTER as the unit, all labels
+### The headline — character-level F1, all labels
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/f1-by-corpus-en-dark.png">
@@ -298,18 +298,20 @@ curves cross with repetition.
   <img alt="Median time per document, linear scale, one axis per corpus" src="figures/latency-en-light.png">
 </picture>
 
-| corpus | median chars | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> |
-|---|---:|---:|---:|---:|---:|---:|
-| Notre corpus | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms |
-| TAB (ECHR) | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s |
-| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms |
-| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms |
-| Nemotron-PII | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms |
+| corpus | median chars | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> | Presidio<br><sub>CPU</sub> |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OpenMasq | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms | 4 ms |
+| TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s | 124 ms |
+| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms | 49 ms |
+| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms | 18 ms |
+| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms | 35 ms |
 
 ⚠️ **Three things differ between those columns, not one**: the device, the runtime and the
 numeric type. PII-Tracer ships for the GPU in bfloat16 under PyTorch; the product runs on the
 CPU, in int8 through onnxruntime. It is therefore measured on **both** devices, and the
-CPU column is the one that compares to ours. Measured by `latency.mts` / `pplx.py --latency`:
+CPU column is the one that compares to ours. Presidio runs on the CPU too, through spaCy, and
+is the cheapest thing here after the bare rules — 4 ms on our short cases, 124 ms on TAB's
+long judgments. Measured by `latency.mts` / `pplx.py --latency`:
 one engine at a time, nothing else on the machine, the same documents, a warm-up case
 excluded. The per-case timings inside `results/<dataset>.<engine>.json` are NOT this — they
 are taken during the accuracy passes, under contention, and must not be charted as latency.
@@ -333,11 +335,11 @@ are taken during the accuracy passes, under contention, and must not be charted 
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.881 | 0.854 | 0.857 | 0.920 | 0.568 |
-| character recall · all labels | 0.558 | 0.636 | 0.732 | 0.987 | 0.561 |
-| **character F1 · all labels** | **0.684** | **0.729** | **0.789** | **0.952** | **0.564** |
-| character recall · product scope | 0.651 | 0.739 | 0.785 | 0.986 | 0.582 |
-| character F1 · product scope | 0.749 | 0.792 | 0.819 | 0.952 | 0.575 |
+| character-level precision | 0.881 | 0.854 | 0.857 | 0.920 | 0.568 |
+| character-level recall · all labels | 0.558 | 0.636 | 0.732 | 0.987 | 0.561 |
+| **character-level F1 · all labels** | **0.684** | **0.729** | **0.789** | **0.952** | **0.564** |
+| character-level recall · product scope | 0.651 | 0.739 | 0.785 | 0.986 | 0.582 |
+| character-level F1 · product scope | 0.749 | 0.792 | 0.819 | 0.952 | 0.575 |
 | span-overlap F1 | 0.628 | 0.692 | 0.768 | 0.962 | 0.553 |
 | span-containment F1 | 0.578 | 0.635 | 0.708 | 0.920 | 0.466 |
 | recurring identifiers, every mention found | 19 % (228) | 27 % (228) | 41 % (228) | 99 % (228) | 30 % (228) |
@@ -352,14 +354,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 3–5 (29) | 0 % | 3 % | 24 % | 100 % | 24 % |
 | 6–10 (3) | 0 % | 0 % | 33 % | 67 % | 33 % |
 
-Character F1 by language (all labels):
+Character-level F1 by language (all labels):
 
 | language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | de (1031) | 0.692 | 0.746 | 0.803 | 0.950 | 0.472 |
 | en (969) | 0.674 | 0.709 | 0.774 | 0.955 | 0.703 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -395,11 +397,11 @@ Character recall by upstream label (spans · scope), all engines:
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.679 | 0.639 | 0.569 | 0.606 | 0.350 |
-| character recall · all labels | 0.449 | 0.603 | 0.707 | 0.614 | 0.529 |
-| **character F1 · all labels** | **0.540** | **0.620** | **0.630** | **0.610** | **0.421** |
-| character recall · product scope | 0.560 | 0.753 | 0.757 | 0.663 | 0.477 |
-| character F1 · product scope | 0.614 | 0.692 | 0.650 | 0.634 | 0.404 |
+| character-level precision | 0.679 | 0.639 | 0.569 | 0.606 | 0.350 |
+| character-level recall · all labels | 0.449 | 0.603 | 0.707 | 0.614 | 0.529 |
+| **character-level F1 · all labels** | **0.540** | **0.620** | **0.630** | **0.610** | **0.421** |
+| character-level recall · product scope | 0.560 | 0.753 | 0.757 | 0.663 | 0.477 |
+| character-level F1 · product scope | 0.614 | 0.692 | 0.650 | 0.634 | 0.404 |
 | span-overlap F1 | 0.525 | 0.582 | 0.636 | 0.581 | 0.501 |
 | span-containment F1 | 0.411 | 0.472 | 0.535 | 0.531 | 0.407 |
 | recurring identifiers, every mention found | 37 % (1870) | 51 % (1870) | 59 % (1870) | 55 % (1870) | 44 % (1870) |
@@ -415,14 +417,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 6–10 (108) | 12 % | 38 % | 50 % | 24 % | 24 % |
 | 11+ (7) | 14 % | 29 % | 29 % | 14 % | 0 % |
 
-Character P / R / F1 by text length (all labels):
+Character-level P / R / F1 by text length (all labels):
 
 | length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | 1k–10k (1427) | 0.745 / 0.436 / 0.550 | 0.670 / 0.591 / 0.628 | 0.589 / 0.688 / 0.634 | 0.795 / 0.561 / 0.658 | 0.344 / 0.526 / 0.416 |
 | <1k (573) | 0.536 / 0.493 / 0.514 | 0.558 / 0.645 / 0.598 | 0.516 / 0.772 / 0.619 | 0.385 / 0.793 / 0.519 | 0.372 / 0.541 / 0.441 |
 
-Character F1 by language (all labels):
+Character-level F1 by language (all labels):
 
 | language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -434,7 +436,7 @@ Character F1 by language (all labels):
 | es (166) | 0.499 | 0.618 | 0.613 | 0.551 | 0.284 |
 | fr (138) | 0.589 | 0.685 | 0.687 | 0.648 | 0.412 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -472,11 +474,11 @@ Character recall by upstream label (spans · scope), all engines:
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.947 | 0.913 | 0.881 | 0.826 | 0.648 |
-| character recall · all labels | 0.868 | 0.909 | 0.970 | 0.949 | 0.477 |
-| **character F1 · all labels** | **0.906** | **0.911** | **0.923** | **0.883** | **0.549** |
-| character recall · product scope | 0.872 | 0.912 | 0.974 | 0.952 | 0.478 |
-| character F1 · product scope | 0.908 | 0.913 | 0.925 | 0.884 | 0.550 |
+| character-level precision | 0.947 | 0.913 | 0.881 | 0.826 | 0.648 |
+| character-level recall · all labels | 0.868 | 0.909 | 0.970 | 0.949 | 0.477 |
+| **character-level F1 · all labels** | **0.906** | **0.911** | **0.923** | **0.883** | **0.549** |
+| character-level recall · product scope | 0.872 | 0.912 | 0.974 | 0.952 | 0.478 |
+| character-level F1 · product scope | 0.908 | 0.913 | 0.925 | 0.884 | 0.550 |
 | span-overlap F1 | 0.886 | 0.897 | 0.913 | 0.877 | 0.553 |
 | span-containment F1 | 0.851 | 0.853 | 0.875 | 0.782 | 0.469 |
 | recurring identifiers, every mention found | 86 % (83) | 92 % (83) | 95 % (83) | 92 % (83) | 30 % (83) |
@@ -490,14 +492,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 2 (67) | 87 % | 90 % | 94 % | 91 % | 30 % |
 | 3–5 (16) | 81 % | 100 % | 100 % | 94 % | 31 % |
 
-Character P / R / F1 by text length (all labels):
+Character-level P / R / F1 by text length (all labels):
 
 | length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | 1k–10k (27) | 0.983 / 0.988 / 0.986 | 0.912 / 0.994 / 0.951 | 0.860 / 1.000 / 0.925 | 0.757 / 0.964 / 0.848 | 0.414 / 0.717 / 0.525 |
 | <1k (880) | 0.945 / 0.862 / 0.901 | 0.913 / 0.904 / 0.909 | 0.882 / 0.968 / 0.923 | 0.830 / 0.948 / 0.885 | 0.681 / 0.464 / 0.552 |
 
-Character F1 by language (all labels):
+Character-level F1 by language (all labels):
 
 | language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -516,7 +518,7 @@ Character F1 by language (all labels):
 | ja (12) | 0.323 | 0.490 | 0.490 | 0.436 | 0.529 |
 | ru (1) | 0.000 | 1.000 | 1.000 | 0.739 | 0.000 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -549,11 +551,11 @@ Character recall by upstream label (spans · scope), all engines:
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.886 | 0.875 | 0.912 | 0.965 | 0.871 |
-| character recall · all labels | 0.345 | 0.470 | 0.731 | 0.747 | 0.598 |
-| **character F1 · all labels** | **0.497** | **0.612** | **0.811** | **0.842** | **0.709** |
-| character recall · product scope | 0.447 | 0.605 | 0.833 | 0.833 | 0.656 |
-| character F1 · product scope | 0.595 | 0.715 | 0.871 | 0.894 | 0.748 |
+| character-level precision | 0.886 | 0.875 | 0.912 | 0.965 | 0.871 |
+| character-level recall · all labels | 0.345 | 0.470 | 0.731 | 0.747 | 0.598 |
+| **character-level F1 · all labels** | **0.497** | **0.612** | **0.811** | **0.842** | **0.709** |
+| character-level recall · product scope | 0.447 | 0.605 | 0.833 | 0.833 | 0.656 |
+| character-level F1 · product scope | 0.595 | 0.715 | 0.871 | 0.894 | 0.748 |
 | span-overlap F1 | 0.562 | 0.683 | 0.802 | 0.857 | 0.751 |
 | span-containment F1 | 0.496 | 0.604 | 0.726 | 0.801 | 0.651 |
 | recurring identifiers, every mention found | 41 % (2276) | 60 % (2276) | 73 % (2276) | 68 % (2276) | 56 % (2276) |
@@ -569,14 +571,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 6–10 (110) | 25 % | 55 % | 60 % | 38 % | 27 % |
 | 11+ (7) | 29 % | 57 % | 71 % | 29 % | 43 % |
 
-Character P / R / F1 by text length (all labels):
+Character-level P / R / F1 by text length (all labels):
 
 | length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | 1k–10k (675) | 0.885 / 0.300 / 0.447 | 0.861 / 0.449 / 0.591 | 0.903 / 0.719 / 0.801 | 0.975 / 0.661 / 0.788 | 0.833 / 0.551 / 0.663 |
 | <1k (1325) | 0.888 / 0.388 / 0.540 | 0.887 / 0.490 / 0.631 | 0.920 / 0.742 / 0.821 | 0.957 / 0.828 / 0.888 | 0.904 / 0.642 / 0.751 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -639,11 +641,11 @@ Character recall by upstream label (spans · scope), all engines:
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.762 | 0.842 | 0.898 | 0.989 | 0.930 |
-| character recall · all labels | 0.260 | 0.425 | 0.726 | 0.529 | 0.652 |
-| **character F1 · all labels** | **0.388** | **0.565** | **0.803** | **0.690** | **0.766** |
-| character recall · product scope | 0.402 | 0.757 | 0.753 | 0.374 | 0.467 |
-| character F1 · product scope | 0.526 | 0.797 | 0.819 | 0.543 | 0.621 |
+| character-level precision | 0.762 | 0.842 | 0.898 | 0.989 | 0.930 |
+| character-level recall · all labels | 0.260 | 0.425 | 0.726 | 0.529 | 0.652 |
+| **character-level F1 · all labels** | **0.388** | **0.565** | **0.803** | **0.690** | **0.766** |
+| character-level recall · product scope | 0.402 | 0.757 | 0.753 | 0.374 | 0.467 |
+| character-level F1 · product scope | 0.526 | 0.797 | 0.819 | 0.543 | 0.621 |
 | span-overlap F1 | 0.470 | 0.638 | 0.852 | 0.717 | 0.816 |
 | span-containment F1 | 0.252 | 0.418 | 0.686 | 0.695 | 0.699 |
 | recurring identifiers, every mention found | 6 % (500) | 32 % (500) | 49 % (500) | 35 % (500) | 43 % (500) |
@@ -659,14 +661,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 6–10 (34) | 3 % | 29 % | 29 % | 32 % | 21 % |
 | 11+ (8) | 0 % | 38 % | 38 % | 25 % | 13 % |
 
-Character P / R / F1 by text length (all labels):
+Character-level P / R / F1 by text length (all labels):
 
 | length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | 1k–10k (117) | 0.766 / 0.260 / 0.388 | 0.847 / 0.426 / 0.567 | 0.902 / 0.724 / 0.803 | 0.989 / 0.535 / 0.695 | 0.930 / 0.646 / 0.762 |
 | ≥10k (10) | 0.737 / 0.260 / 0.385 | 0.803 / 0.424 / 0.555 | 0.877 / 0.734 / 0.799 | 0.996 / 0.489 / 0.656 | 0.933 / 0.691 / 0.794 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -691,7 +693,7 @@ Character recall by upstream label (spans · scope), all engines:
 > to call personal.
 >
 > - **One of Perplexity's four published figures reproduces here; three do not.** They report
->   a character F1 of 0.847 for PII-Tracer on Nemotron-PII, and this bench measures 0.847 on
+>   a character-level F1 of 0.847 for PII-Tracer on Nemotron-PII, and this bench measures 0.847 on
 >   the same split, with an implementation of the metric written from their description alone.
 >   On ai4privacy, Gretel and TAB it does not land on their figure. The notes below say what
 >   differs on each. One agreement out of four is the reason this page compares columns to
@@ -704,7 +706,7 @@ Character recall by upstream label (spans · scope), all engines:
 >   PII-Tracer; the labels the product claims, 0.749 against 0.543. The reversal is a
 >   difference of doctrine, not of detection. And 2 141 of TAB's 7 565 mentions are annotated
 >   `NO_MASK` — the bench treats those as context, neither gold nor error. That convention is
->   worth 0.096 of character F1 to the product and 0.006 to PII-Tracer, because the product
+>   worth 0.096 of character-level F1 to the product and 0.006 to PII-Tracer, because the product
 >   marks organisations and PII-Tracer has no label for them. Counting them as errors instead
 >   gives 0.439 and 0.684. Both readings are here; pick the one you believe.
 >
@@ -717,7 +719,7 @@ Character recall by upstream label (spans · scope), all engines:
 >   characters; dropping those formats lifts its precision to 0.800. Read Gretel's precision
 >   as a statement about the annotation's coverage as much as about the engine's restraint.
 >
-> - **On our own corpus the model buys recall and pays precision, and the character F1 does
+> - **On our own corpus the model buys recall and pays precision, and the character-level F1 does
 >   not move.** Rules alone 0.935, rules plus the local NER 0.935 — recall 0.934 to 0.967,
 >   precision 0.936 to 0.905. The value-level bench reads the same event as 89 % to 95 %.
 >   Both are true: a character metric charges for every extra character the model paints
@@ -787,11 +789,11 @@ nom trouvé comme entreprise est trouvé. C'est ainsi que Perplexity note ses ba
 
 | mesure | définition |
 |---|---|
-| P / R / F1, **le caractère étant l'unité** | poolés sur le corpus : précision = part des caractères marqués par le moteur qui sont annotés ; rappel = part des caractères annotés qu'il a marqués |
+| P / R / F1 au niveau du caractère | poolés sur le corpus, le caractère étant l'unité : précision = part des caractères marqués par le moteur qui sont annotés ; rappel = part des caractères annotés qu'il a marqués |
 | F1 chevauchement | un span annoté est trouvé dès qu'UN de ses caractères est marqué ; un span prédit est juste dès qu'il touche une annotation |
 | F1 contenance | un span annoté n'est trouvé que si TOUS ses caractères sont marqués ; un span prédit n'est juste que s'il tient entièrement dans une annotation |
 | constance | part des identifiants dont CHAQUE mention est entièrement couverte — par nombre de mentions (1 · 2 · 3–5 · 6–10 · 11+) et pour les récurrents (≥ 2) |
-| par longueur · langue · étiquette | P / R / F1 caractère poolés dans < 1 k · 1–10 k · ≥ 10 k caractères ; par langue ; rappel caractère par étiquette amont |
+| par longueur · langue · étiquette | P / R / F1 au niveau du caractère, poolés dans < 1 k · 1–10 k · ≥ 10 k caractères ; par langue ; rappel par étiquette amont |
 
 Deux **vues** de la vérité, toutes deux rapportées (`metric.ts`) :
 
@@ -811,7 +813,7 @@ pipeline sous deux politiques, et le README de chacun dit laquelle.
 
 La précision est identique dans les deux vues et **ne reproche jamais à un moteur d'avoir
 marqué une donnée annotée que nous avons choisi de ne pas noter** — la règle `CONTEXT` de
-`../metric.ts`, conservée. Elle n'est pas gratuite : sur TAB elle vaut 0,096 de F1 caractère
+`../metric.ts`, conservée. Elle n'est pas gratuite : sur TAB elle vaut 0,096 de F1 au niveau du caractère
 au produit et 0,006 à PII-Tracer, et le paragraphe sur TAB plus bas donne les deux lectures
 plutôt que la seule qui nous arrange.
 
@@ -961,11 +963,11 @@ le sha256 de chaque entrée, de sorte qu'une figure périmée se détecte au lie
 | scoreur | `spans/metric.ts` — LE scoreur unique ; les figures ne font que dessiner |
 | entrées | 26 fichiers, sha256 dans `figures/manifest.json` |
 
-### Le chiffre de tête — F1, le CARACTÈRE étant l'unité, toutes étiquettes
+### Le chiffre de tête — F1 au niveau du caractère, toutes étiquettes
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/f1-by-corpus-fr-dark.png">
-  <img alt="F1 caractère per corpus and per engine, in both views" src="figures/f1-by-corpus-fr-light.png">
+  <img alt="F1 au niveau du caractère, par corpus et par moteur" src="figures/f1-by-corpus-fr-light.png">
 </picture>
 
 | corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
@@ -1069,13 +1071,13 @@ quand les courbes se croisent à mesure que la répétition augmente.
   <img alt="Temps médian per document, linear scale, one axis per corpus" src="figures/latency-fr-light.png">
 </picture>
 
-| corpus | car. médians | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> |
-|---|---:|---:|---:|---:|---:|---:|
-| Notre corpus | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms |
-| TAB (ECHR) | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s |
-| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms |
-| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms |
-| Nemotron-PII | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms |
+| corpus | car. médians | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> | Presidio<br><sub>CPU</sub> |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OpenMasq | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms | 4 ms |
+| TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s | 124 ms |
+| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms | 49 ms |
+| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms | 18 ms |
+| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms | 35 ms |
 
 ⚠️ **Trois choses diffèrent entre ces colonnes, pas une** : l'appareil, le moteur d'exécution
 et le type numérique. PII-Tracer est livré pour le GPU en bfloat16 sous PyTorch ; le produit
@@ -1105,11 +1107,11 @@ jamais être portés sur un graphique de latence.
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.881 | 0.854 | 0.857 | 0.920 | 0.568 |
-| character recall · all labels | 0.558 | 0.636 | 0.732 | 0.987 | 0.561 |
-| **character F1 · all labels** | **0.684** | **0.729** | **0.789** | **0.952** | **0.564** |
-| character recall · product scope | 0.651 | 0.739 | 0.785 | 0.986 | 0.582 |
-| character F1 · product scope | 0.749 | 0.792 | 0.819 | 0.952 | 0.575 |
+| character-level precision | 0.881 | 0.854 | 0.857 | 0.920 | 0.568 |
+| character-level recall · all labels | 0.558 | 0.636 | 0.732 | 0.987 | 0.561 |
+| **character-level F1 · all labels** | **0.684** | **0.729** | **0.789** | **0.952** | **0.564** |
+| character-level recall · product scope | 0.651 | 0.739 | 0.785 | 0.986 | 0.582 |
+| character-level F1 · product scope | 0.749 | 0.792 | 0.819 | 0.952 | 0.575 |
 | span-overlap F1 | 0.628 | 0.692 | 0.768 | 0.962 | 0.553 |
 | span-containment F1 | 0.578 | 0.635 | 0.708 | 0.920 | 0.466 |
 | recurring identifiers, every mention found | 19 % (228) | 27 % (228) | 41 % (228) | 99 % (228) | 30 % (228) |
@@ -1124,14 +1126,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 3–5 (29) | 0 % | 3 % | 24 % | 100 % | 24 % |
 | 6–10 (3) | 0 % | 0 % | 33 % | 67 % | 33 % |
 
-Character F1 by language (all labels):
+Character-level F1 by language (all labels):
 
 | language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | de (1031) | 0.692 | 0.746 | 0.803 | 0.950 | 0.472 |
 | en (969) | 0.674 | 0.709 | 0.774 | 0.955 | 0.703 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -1167,11 +1169,11 @@ Character recall by upstream label (spans · scope), all engines:
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.679 | 0.639 | 0.569 | 0.606 | 0.350 |
-| character recall · all labels | 0.449 | 0.603 | 0.707 | 0.614 | 0.529 |
-| **character F1 · all labels** | **0.540** | **0.620** | **0.630** | **0.610** | **0.421** |
-| character recall · product scope | 0.560 | 0.753 | 0.757 | 0.663 | 0.477 |
-| character F1 · product scope | 0.614 | 0.692 | 0.650 | 0.634 | 0.404 |
+| character-level precision | 0.679 | 0.639 | 0.569 | 0.606 | 0.350 |
+| character-level recall · all labels | 0.449 | 0.603 | 0.707 | 0.614 | 0.529 |
+| **character-level F1 · all labels** | **0.540** | **0.620** | **0.630** | **0.610** | **0.421** |
+| character-level recall · product scope | 0.560 | 0.753 | 0.757 | 0.663 | 0.477 |
+| character-level F1 · product scope | 0.614 | 0.692 | 0.650 | 0.634 | 0.404 |
 | span-overlap F1 | 0.525 | 0.582 | 0.636 | 0.581 | 0.501 |
 | span-containment F1 | 0.411 | 0.472 | 0.535 | 0.531 | 0.407 |
 | recurring identifiers, every mention found | 37 % (1870) | 51 % (1870) | 59 % (1870) | 55 % (1870) | 44 % (1870) |
@@ -1187,14 +1189,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 6–10 (108) | 12 % | 38 % | 50 % | 24 % | 24 % |
 | 11+ (7) | 14 % | 29 % | 29 % | 14 % | 0 % |
 
-Character P / R / F1 by text length (all labels):
+Character-level P / R / F1 by text length (all labels):
 
 | length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | 1k–10k (1427) | 0.745 / 0.436 / 0.550 | 0.670 / 0.591 / 0.628 | 0.589 / 0.688 / 0.634 | 0.795 / 0.561 / 0.658 | 0.344 / 0.526 / 0.416 |
 | <1k (573) | 0.536 / 0.493 / 0.514 | 0.558 / 0.645 / 0.598 | 0.516 / 0.772 / 0.619 | 0.385 / 0.793 / 0.519 | 0.372 / 0.541 / 0.441 |
 
-Character F1 by language (all labels):
+Character-level F1 by language (all labels):
 
 | language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -1206,7 +1208,7 @@ Character F1 by language (all labels):
 | es (166) | 0.499 | 0.618 | 0.613 | 0.551 | 0.284 |
 | fr (138) | 0.589 | 0.685 | 0.687 | 0.648 | 0.412 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -1244,11 +1246,11 @@ Character recall by upstream label (spans · scope), all engines:
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.947 | 0.913 | 0.881 | 0.826 | 0.648 |
-| character recall · all labels | 0.868 | 0.909 | 0.970 | 0.949 | 0.477 |
-| **character F1 · all labels** | **0.906** | **0.911** | **0.923** | **0.883** | **0.549** |
-| character recall · product scope | 0.872 | 0.912 | 0.974 | 0.952 | 0.478 |
-| character F1 · product scope | 0.908 | 0.913 | 0.925 | 0.884 | 0.550 |
+| character-level precision | 0.947 | 0.913 | 0.881 | 0.826 | 0.648 |
+| character-level recall · all labels | 0.868 | 0.909 | 0.970 | 0.949 | 0.477 |
+| **character-level F1 · all labels** | **0.906** | **0.911** | **0.923** | **0.883** | **0.549** |
+| character-level recall · product scope | 0.872 | 0.912 | 0.974 | 0.952 | 0.478 |
+| character-level F1 · product scope | 0.908 | 0.913 | 0.925 | 0.884 | 0.550 |
 | span-overlap F1 | 0.886 | 0.897 | 0.913 | 0.877 | 0.553 |
 | span-containment F1 | 0.851 | 0.853 | 0.875 | 0.782 | 0.469 |
 | recurring identifiers, every mention found | 86 % (83) | 92 % (83) | 95 % (83) | 92 % (83) | 30 % (83) |
@@ -1262,14 +1264,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 2 (67) | 87 % | 90 % | 94 % | 91 % | 30 % |
 | 3–5 (16) | 81 % | 100 % | 100 % | 94 % | 31 % |
 
-Character P / R / F1 by text length (all labels):
+Character-level P / R / F1 by text length (all labels):
 
 | length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | 1k–10k (27) | 0.983 / 0.988 / 0.986 | 0.912 / 0.994 / 0.951 | 0.860 / 1.000 / 0.925 | 0.757 / 0.964 / 0.848 | 0.414 / 0.717 / 0.525 |
 | <1k (880) | 0.945 / 0.862 / 0.901 | 0.913 / 0.904 / 0.909 | 0.882 / 0.968 / 0.923 | 0.830 / 0.948 / 0.885 | 0.681 / 0.464 / 0.552 |
 
-Character F1 by language (all labels):
+Character-level F1 by language (all labels):
 
 | language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -1288,7 +1290,7 @@ Character F1 by language (all labels):
 | ja (12) | 0.323 | 0.490 | 0.490 | 0.436 | 0.529 |
 | ru (1) | 0.000 | 1.000 | 1.000 | 0.739 | 0.000 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -1321,11 +1323,11 @@ Character recall by upstream label (spans · scope), all engines:
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.886 | 0.875 | 0.912 | 0.965 | 0.871 |
-| character recall · all labels | 0.345 | 0.470 | 0.731 | 0.747 | 0.598 |
-| **character F1 · all labels** | **0.497** | **0.612** | **0.811** | **0.842** | **0.709** |
-| character recall · product scope | 0.447 | 0.605 | 0.833 | 0.833 | 0.656 |
-| character F1 · product scope | 0.595 | 0.715 | 0.871 | 0.894 | 0.748 |
+| character-level precision | 0.886 | 0.875 | 0.912 | 0.965 | 0.871 |
+| character-level recall · all labels | 0.345 | 0.470 | 0.731 | 0.747 | 0.598 |
+| **character-level F1 · all labels** | **0.497** | **0.612** | **0.811** | **0.842** | **0.709** |
+| character-level recall · product scope | 0.447 | 0.605 | 0.833 | 0.833 | 0.656 |
+| character-level F1 · product scope | 0.595 | 0.715 | 0.871 | 0.894 | 0.748 |
 | span-overlap F1 | 0.562 | 0.683 | 0.802 | 0.857 | 0.751 |
 | span-containment F1 | 0.496 | 0.604 | 0.726 | 0.801 | 0.651 |
 | recurring identifiers, every mention found | 41 % (2276) | 60 % (2276) | 73 % (2276) | 68 % (2276) | 56 % (2276) |
@@ -1341,14 +1343,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 6–10 (110) | 25 % | 55 % | 60 % | 38 % | 27 % |
 | 11+ (7) | 29 % | 57 % | 71 % | 29 % | 43 % |
 
-Character P / R / F1 by text length (all labels):
+Character-level P / R / F1 by text length (all labels):
 
 | length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | 1k–10k (675) | 0.885 / 0.300 / 0.447 | 0.861 / 0.449 / 0.591 | 0.903 / 0.719 / 0.801 | 0.975 / 0.661 / 0.788 | 0.833 / 0.551 / 0.663 |
 | <1k (1325) | 0.888 / 0.388 / 0.540 | 0.887 / 0.490 / 0.631 | 0.920 / 0.742 / 0.821 | 0.957 / 0.828 / 0.888 | 0.904 / 0.642 / 0.751 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -1411,11 +1413,11 @@ Character recall by upstream label (spans · scope), all engines:
 
 | metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| character precision | 0.762 | 0.842 | 0.898 | 0.989 | 0.930 |
-| character recall · all labels | 0.260 | 0.425 | 0.726 | 0.529 | 0.652 |
-| **character F1 · all labels** | **0.388** | **0.565** | **0.803** | **0.690** | **0.766** |
-| character recall · product scope | 0.402 | 0.757 | 0.753 | 0.374 | 0.467 |
-| character F1 · product scope | 0.526 | 0.797 | 0.819 | 0.543 | 0.621 |
+| character-level precision | 0.762 | 0.842 | 0.898 | 0.989 | 0.930 |
+| character-level recall · all labels | 0.260 | 0.425 | 0.726 | 0.529 | 0.652 |
+| **character-level F1 · all labels** | **0.388** | **0.565** | **0.803** | **0.690** | **0.766** |
+| character-level recall · product scope | 0.402 | 0.757 | 0.753 | 0.374 | 0.467 |
+| character-level F1 · product scope | 0.526 | 0.797 | 0.819 | 0.543 | 0.621 |
 | span-overlap F1 | 0.470 | 0.638 | 0.852 | 0.717 | 0.816 |
 | span-containment F1 | 0.252 | 0.418 | 0.686 | 0.695 | 0.699 |
 | recurring identifiers, every mention found | 6 % (500) | 32 % (500) | 49 % (500) | 35 % (500) | 43 % (500) |
@@ -1431,14 +1433,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 | 6–10 (34) | 3 % | 29 % | 29 % | 32 % | 21 % |
 | 11+ (8) | 0 % | 38 % | 38 % | 25 % | 13 % |
 
-Character P / R / F1 by text length (all labels):
+Character-level P / R / F1 by text length (all labels):
 
 | length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
 | 1k–10k (117) | 0.766 / 0.260 / 0.388 | 0.847 / 0.426 / 0.567 | 0.902 / 0.724 / 0.803 | 0.989 / 0.535 / 0.695 | 0.930 / 0.646 / 0.762 |
 | ≥10k (10) | 0.737 / 0.260 / 0.385 | 0.803 / 0.424 / 0.555 | 0.877 / 0.734 / 0.799 | 0.996 / 0.489 / 0.656 | 0.933 / 0.691 / 0.794 |
 
-Character recall by upstream label (spans · scope), all engines:
+Character-level recall by upstream label (spans · scope), all engines:
 
 | label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
@@ -1463,7 +1465,7 @@ Character recall by upstream label (spans · scope), all engines:
 > que l'annotation a décidé d'appeler personnel.
 >
 > - **Un des quatre chiffres publiés par Perplexity se reproduit ici ; trois non.** Ils
->   annoncent un F1 caractère de 0,847 pour PII-Tracer sur Nemotron-PII, et ce banc mesure
+>   annoncent un F1 au niveau du caractère de 0,847 pour PII-Tracer sur Nemotron-PII, et ce banc mesure
 >   0,847 sur la même partition, avec une implémentation de la métrique écrite à partir de
 >   leur seule description. Sur ai4privacy, Gretel et TAB, il ne retombe pas sur leur chiffre.
 >   Les notes ci-dessous disent ce qui diffère sur chacun. Un accord sur quatre, c'est la
@@ -1476,7 +1478,7 @@ Character recall by upstream label (spans · scope), all engines:
 >   étiquettes, 0,535 pour le produit contre 0,690 pour PII-Tracer ; sur le périmètre que le
 >   produit revendique, 0,749 contre 0,543. Le renversement est une divergence de doctrine,
 >   pas de détection. Et 2 141 des 7 565 mentions de TAB sont annotées `NO_MASK` — le banc les
->   traite en contexte, ni vérité ni erreur. Cette convention vaut 0,096 de F1 caractère au
+>   traite en contexte, ni vérité ni erreur. Cette convention vaut 0,096 de F1 au niveau du caractère au
 >   produit et 0,006 à PII-Tracer, parce que le produit marque les organisations et que
 >   PII-Tracer n'a pas d'étiquette pour elles. Les compter comme des erreurs donne 0,439 et
 >   0,684. Les deux lectures sont là ; choisissez celle que vous croyez.
