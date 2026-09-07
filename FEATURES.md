@@ -50,7 +50,7 @@ Network unreachable ⇒ the app keeps the doors as it last knew them, never clos
 
 **Verified counters** (recomputed by the gate on every run) —
 <!-- n:sections -->5 sections · <!-- n:onglets-reglages -->10 settings tabs ·
-<!-- n:ecrans -->8 screens · <!-- n:categories-redaction -->17 redaction categories.
+<!-- n:ecrans -->8 screens · <!-- n:categories-redaction -->18 redaction categories.
 The number of connectors is NOT stated here: the catalogue is made of five families
 (`packages/catalog/src/mcp/connectors/`) and a hand-written total would be unverifiable —
 exactly what this file is not allowed to contain.
@@ -95,7 +95,7 @@ a real city — the model reasons correctly, on values that are not yours.
 - [x] Public figures and countries are not masked (otherwise the model answers about nobody)
 - [ ] Restoring a marker the model translated (« [PERSONNE1] ») — not covered
 
-### The 17 categories, and the protection level
+### The 18 categories, and the protection level
 **Access**: Réglages → **Confidentialité** → « **Niveau de protection** » (Allégé /
 Renforcé / Strict, « Sur mesure » being the hand-set state), then the expandable matrix.
 Each card names a concrete use — Allégé « recherche web et outils », Renforcé (the default)
@@ -118,8 +118,9 @@ A confirmation pill names what was set and where, with « Annuler » for a few s
 counted under the cards — `packages/ui/src/pages/ChatWorkspace/ComposerRedactMenu.tsx`
 
 **What it makes possible.** Deciding *what* is protected, by category: names, dates of
-birth, e-mails, phones, addresses, places, companies, cards, IBANs, national and company
-identifiers, IPs, numbers, file paths, health, handles, URLs, keys and secrets. Three named
+birth, every other date (off by default, on in Strict), e-mails, phones, addresses, places,
+companies, cards, IBANs, national and company identifiers, IPs, numbers, file paths, health,
+handles, URLs, keys and secrets. Three named
 levels make the choice for you; « Sur mesure » is the hand-set one. The scope is global, or
 **specific to a conversation**.
 

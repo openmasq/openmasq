@@ -30,6 +30,7 @@ export type RedactionType =
   | "company_id"
   | "bank_route"
   | "dob"
+  | "date"
   | "crypto"
   | "mac"
   | "geo"
@@ -85,6 +86,7 @@ export type RedactionKind =
 export type RedactionCategory =
   | "name"
   | "dob"
+  | "date"
   | "email"
   | "phone"
   | "address"

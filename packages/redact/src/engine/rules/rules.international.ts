@@ -68,7 +68,8 @@ const DATE_CORE =
   // Spelled-out forms — the whole missing half. Ordered longest-first so a
   // day+month+year is never truncated to its month+year tail.
   // « de » / « di » optional: « 14 de marzo de 1988 » (ES), « 14 de março de 1988 » (PT).
-  String.raw`|[0-3]?\d(?:er|ère|ere|e|st|nd|rd|th)?\s+(?:d[ei]\s+)?${MONTH}\.?\s+(?:de\s+)?\d{4}` + // 14 mars 1988 · 1er avril 1980 · 14 de marzo de 1988
+  String.raw`|[0-3]?\d(?:er|ère|ere|e|st|nd|rd|th)?\s+(?:d[ei]\s+)?${MONTH}\.?,?\s+(?:de\s+)?\d{4}` + // 14 mars 1988 · 1er avril 1980 · 14 de marzo de 1988 · 15th March, 2023
+  String.raw`|${MONTH}\.?\s+[0-3]?\d(?:st|nd|rd|th)?,?\s+\d{4}` + // May 12, 2024 (US)
   String.raw`|${MONTH}\.?\s+\d{4})`; // mars 2015
 
 const DOB_RULE: RedactionRule = {
@@ -95,6 +96,62 @@ const DOB_YEAR_RULE: RedactionRule = {
   ),
 };
 
+/** The forms a DOCUMENT writes a moment in, beyond `DATE_CORE` — measured on Nemotron-PII and
+ *  Gretel (2026-09-07, `bench/spans/`): ISO date-times, clock times with their suffix, the
+ *  compact `YYYYMMDD` of bank files, « the 7th day of February, 1974 », English « May ».
+ *  Longest first: the ISO date-time must win over its own date prefix. */
+const TIME_ZONE = String.raw`(?:\s*(?:[ap]\.?m\.?|uhr|utc|gmt|[a-z]{2,4}t|[+-][0-2]\d:?[0-5]\d|z)(?![\p{L}]))?`;
+const DATE_FORMS =
+  String.raw`(?:\d{4}-[01]\d-[0-3]\d[T ][0-2]\d:[0-5]\d(?::[0-5]\d(?:\.\d{1,6})?)?(?:Z|[+-][0-2]\d:?[0-5]\d)?` + // 2023-10-21T09:00:00+01:00
+  String.raw`|(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])(?![\d])` + // 20231015 (bank-file compact)
+  String.raw`|[0-3]?\d(?:st|nd|rd|th)?\s+day\s+of\s+${MONTH},?\s+\d{4}` + // the 7th day of February, 1974
+  String.raw`|may\s+[0-3]?\d(?:st|nd|rd|th)?,?\s+\d{4}|[0-3]?\d(?:st|nd|rd|th)?\s+may,?\s+\d{4}` + // English May, day forms only
+  String.raw`|${DATE_CORE}` +
+  String.raw`|[0-2]?\d:[0-5]\d(?::[0-5]\d(?:\.\d{1,3})?)?${TIME_ZONE}` + // 16:22:38 · 14:30 · 8:15 AM · 14:35 Uhr · 18:30:45+01:00
+  String.raw`|[0-2]?\dh[0-5]\d(?![\p{L}\d])` + // 07h30
+  String.raw`|[0-2]?\d(?:[.:][0-5]\d)?\s*[ap]\.m\.)`; // 8.45 a.m. · 9 a.m.
+
+/**
+ * EVERY OTHER DATE — and the TIMES — the `date` category, OFF by default and on in Strict
+ * (`kinds.ts`). Same `DATE_CORE` as the birth rule, with no context, plus `DATE_FORMS`: a
+ * dated event in a document is the quasi-identifier a re-identification annotation (TAB,
+ * `bench/spans/`) counts first, and the product could not follow a user who asked for it.
+ * What keeps it honest when it is on:
+ *  - `DOB_RULE` sits BEFORE it in `RULES`, so a birth date keeps its own category and fake;
+ *  - a dotted numeric form needs a FOUR-digit year (« 2.3.10 » is a version, « 12.05.2024 »
+ *    a date), and every numeric form needs a real month and day (« 31/13/2024 » is a code);
+ *  - a bare year is not a date here (« in 1989 » stays), nor is a month alone, nor a
+ *    duration (« 24 hours », « vier Wochen ») — those name no moment.
+ * A clock time is redacted with the dates because a timestamp locates an event as surely as
+ * its day; the price, accepted for Strict only, is a verse or a score written « 3:16 ».
+ */
+const DATE_RULE: RedactionRule = {
+  type: "date",
+  // Bounded by what would make it PART of a longer number: a digit, a slash or a dash on
+  // either side, or a dotted digit (« 2.3.10 »). A sentence's full stop is not a bound.
+  pattern: new RegExp(`(?<![\\d/\\-]|\\d\\.)${DATE_FORMS}(?![\\d/\\-]|\\.\\d)`, "giu"),
+  validate: (m) => {
+    const t = m.trim();
+    let mo = 0, d = 0;
+    let n = /^(\d{4})-([01]\d)-([0-3]\d)(?:[T ].*)?$/i.exec(t) ?? /^(\d{4})[/.]([01]?\d)[/.]([0-3]?\d)$/.exec(t) ?? /^(\d{4})(\d{2})(\d{2})$/.exec(t);
+    if (n) { mo = +n[2]!; d = +n[3]!; }
+    else {
+      n = /^([0-3]?\d)([/.\-])([0-3]?\d)\2(\d{2,4})$/.exec(t);
+      if (n) {
+        if (n[2] === "." && n[4]!.length !== 4) return false;
+        const a = +n[1]!, b = +n[3]!;
+        // day/month or month/day: valid when EITHER reading is a calendar date
+        return (a >= 1 && a <= 31 && b >= 1 && b <= 12) || (a >= 1 && a <= 12 && b >= 1 && b <= 31);
+      }
+      // a clock time: hour ≤ 23 (« 45:30 » is a duration or a score, not a time)
+      const c = /^([0-2]?\d)[:h.]/.exec(t);
+      if (c && /^[0-2]?\d[:h]/.test(t)) return +c[1]! <= 23;
+      return true; // a spelled-out month is already a real month
+    }
+    return mo >= 1 && mo <= 12 && d >= 1 && d <= 31;
+  },
+};
+
 /**
  * International sensitive-data rules ported from presidio-ts, spread into the
  * engine's `RULES` after the built-in national-id block and before the phone
@@ -119,6 +176,7 @@ const MRZ_RULE: RedactionRule = {
 export const INTERNATIONAL_RULES: RedactionRule[] = [
   DOB_RULE,
   DOB_YEAR_RULE,
+  DATE_RULE,
   MRZ_RULE,
   ...US_RULES,
   ...EUROPE_RULES,

@@ -24,7 +24,7 @@ const cats = (over: Record<string, boolean> = {}): Settings["redactCategories"] 
    the screen tests. */
 const LEVELS = privacyLevelMeta(getMessages("fr"));
 
-describe("privacyLevel — one choice instead of seventeen", () => {
+describe("privacyLevel — one choice instead of eighteen", () => {
   it("round-trips: the map a level produces reads back as that level", () => {
     expect(levelOf(categoriesForLevel("standard"))).toBe("standard");
     expect(levelOf(categoriesForLevel("renforce"))).toBe("renforce");

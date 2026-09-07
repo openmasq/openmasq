@@ -25,6 +25,7 @@ import { spanKindLabel } from "./segments";
 export const CATEGORY_TOKEN: Record<RedactionCategory, string> = {
   name: "PERSON",
   dob: "DOB",
+  date: "DATE",
   email: "EMAIL",
   phone: "PHONE",
   address: "ADDRESS",

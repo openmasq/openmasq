@@ -129,8 +129,10 @@ const counters = {
       .length,
   ecrans: () =>
     readdirSync(join(root, "packages/ui/src/pages"), { withFileTypes: true }).filter((d) => d.isDirectory()).length,
+  // One entry of the catalogue's BASE list, whether the formatter writes it on one line
+  // (`  { key: "name", … }`) or on several (`  {\n    key: "name",`).
   "categories-redaction": () =>
-    matchAll(read("packages/catalog/src/redaction/index.ts"), /^\s{2}\{ key: "/gm).length,
+    matchAll(read("packages/catalog/src/redaction/index.ts"), /^\s{2}\{ key: "|^\s{4}key: "/gm).length,
 };
 for (const [key, compute] of Object.entries(counters)) {
   const re = new RegExp(`<!-- n:${key} -->(\\d+)`);

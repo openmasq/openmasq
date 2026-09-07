@@ -15,7 +15,7 @@ import { activeCount, categoriesForLevel, levelOf, TOTAL_CATEGORIES } from "../.
  *
  * It used to be three headings deep inside « Compte » (« Votre confidentialité »,
  * « Confidentialité & masquage », « Confidentialité »), between a sign-out button and a
- * developer toggle, with the seventeen-category matrix always unfolded. Here the page is
+ * developer toggle, with the eighteen-category matrix always unfolded. Here the page is
  * one decision (the level), then the proof (what has been protected), then the display
  * options — the matrix staying unfolded under the levels, as their detail.
  */

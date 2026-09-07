@@ -15,9 +15,16 @@ export const redactionCatalog = {
     dob: {
       label: "Date of birth",
       detail:
-        "Dates of birth (born on…, date of birth, FR/EN/DE formats), labelled fields included. Other dates are never touched.",
+        "Dates of birth (born on…, date of birth, FR/EN/DE formats), labelled fields included. Other dates belong to « Dates », off by default.",
       impact:
         "Masked, an age or a delay COMPUTED by the model may be off (the fake date protects the real year, itself identifying). The restored date is always the real one.",
+    },
+    date: {
+      label: "Dates",
+      detail:
+        "Every other date — in digits (12/05/2024, 2024-05-12, 20240512) or in words (12 May 2024, May 12, 2024, May 2024) — and clock times (14:30, 8:15 AM, 07h30), in the product's languages. Off by default; the Strict level turns it on. Bare years and durations are never touched.",
+      impact:
+        "Masked, the durations, deadlines and timelines the model computes run on borrowed dates: shifted by a few years but consistent with each other, and always restored true.",
     },
     username: {
       label: "Username / handle",
@@ -116,6 +123,7 @@ export const redactionCatalog = {
     health: "Health",
     name: "Names",
     dob: "Dates of birth",
+    date: "Dates",
     username: "Usernames / handles",
     email: "Email addresses",
     phone: "Phone numbers",

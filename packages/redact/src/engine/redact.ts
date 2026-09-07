@@ -16,6 +16,18 @@ import { detectHostedUrlSpans, detectUrlSpans, occursOutsideUrl } from "./urls";
  * Redact sensitive data from `input`. With a {@link Vault}, placeholders are
  * stable across calls and the vault is updated so the result is reversible.
  */
+/**
+ * Is the `date` category ON for this call? The one OPT-IN rule of the table: a caller that
+ * names its categories (`disabledKinds` given, the app's levels and the proxy) and leaves
+ * `date` out of the list has it on — Strict does; a BARE call (no `disabledKinds`) never
+ * does, because every consumer of the bare engine was promised that plain dates stay
+ * untouched (a masked timestamp corrupts every duration the model reasons about), and the
+ * product's own default level agrees. Shared by `pseudonymize` and the marker mode.
+ */
+export function datesEnabled(disabledKinds: readonly string[] | undefined): boolean {
+  return disabledKinds !== undefined && !disabledKinds.includes("date");
+}
+
 export function redact(
   input: string,
   options: RedactOptions = {},
@@ -72,7 +84,9 @@ export function redact(
   const urlSpans = urlSpansRaw.length ? urlSpansRaw : null;
   const inUrlOnly = (v: string): boolean =>
     urlSpans !== null && !occursOutsideUrl(v, input, urlSpans);
+  const datesOn = datesEnabled(options.disabledKinds);
   for (const rule of RULES) {
+    if (rule.type === "date" && !datesOn) continue;
     const cat = redactionCategory(rule.type);
     if (disabled.has(cat)) continue;
     // A gated rule whose keyword appears nowhere is skipped whole — its lookbehind

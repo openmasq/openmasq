@@ -129,11 +129,12 @@ export function redactionCategory(typeOrCategory: string): RedactionCategory {
   )
     return "national_id";
   // Identity / contact / place
-  // `date` joins `dob`: it's ONE question for the user ("are my dates
-  // redacted?"), not two. Without this line, a DEED's date fell into the `secret`
-  // fallback — so under the wrong toggle, and with a fake drawn from the BIRTH
-  // window (1940-2004) instead of the ±2 years `fakeDate` reserves for a generic date.
-  if (k === "dob" || k === "date" || k === "dates" || k.includes("birth")) return "dob";
+  // A BIRTH date is `dob` (on by default); every OTHER date is `date`, its own toggle,
+  // OFF by default and on in Strict — a plain date is rarely an identity on its own, and
+  // a masked timestamp corrupts every duration the model reasons about. Both fake through
+  // `fakeDate`: the DOB window for a birth date, ±2 years for a generic one.
+  if (k === "dob" || k.includes("birth")) return "dob";
+  if (k === "date" || k === "dates" || k === "datetime" || k === "date_time") return "date";
   if (k.includes("address")) return "address";
   if (
     k === "location" ||

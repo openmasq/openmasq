@@ -1,6 +1,6 @@
 {
   "packages/catalog/src/mcp/connectors/remote.ts": 21,
-  "packages/catalog/src/redaction/index.ts": 17,
+  "packages/catalog/src/redaction/index.ts": 18,
   "packages/catalog/src/mcp/connectors/direct.ts": 13,
   "packages/ui/src/send/sendOrchestrator.ts": 10,
   "packages/catalog/src/mcp/authTag.ts": 9,

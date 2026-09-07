@@ -47,7 +47,10 @@ export interface PseudonymizeOptions {
    * swapped same-kind regardless, because they DO correspond to something.
    */
   numbers?: boolean;
-  /** Highlight kinds the user disabled (e.g. ["email"]); those spans are left in clear. */
+  /** Highlight kinds the user disabled (e.g. ["email"]); those spans are left in clear.
+   *  ⚠️ `date` (every non-birth date) is OPT-IN: it runs only when this list is GIVEN and
+   *  leaves `date` out — a bare call never masks a plain date (`engine/redact.ts`
+   *  `datesEnabled`). */
   disabledKinds?: string[];
   /**
    * value -> kind for spans already in the vault, so disabled categories (and

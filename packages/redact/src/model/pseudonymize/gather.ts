@@ -1,5 +1,6 @@
 import type { Detection } from "../../types";
 import { LABELS, RULES } from "../../engine/rules";
+import { datesEnabled } from "../../engine/redact";
 import { longestValidPrefix } from "../../engine/validators";
 import { detectPhones } from "../../engine/phones";
 import { detectSelfHandles, detectLabeledFields, detectAccountNumbers, detectFiscalNumbers, detectContractNumbers, detectLabeledCodes } from "../../engine/contextFields";
@@ -50,7 +51,18 @@ export async function gatherCandidates(
       modelError = err instanceof Error ? err.message : String(err);
     }
   }
+  // The `date` category is the one OPT-IN rule of the table: it runs only for a caller
+  // that names its categories (`disabledKinds` given) and leaves `date` on — the app at
+  // the Strict level, the proxy — never for a bare call, whose consumers were promised
+  // that plain dates stay untouched. `datesEnabled` (`../../engine/redact.ts`) is the one
+  // predicate, shared with the marker mode.
+  const datesOn = datesEnabled(options.disabledKinds);
+  // A birth date matches BOTH `DOB_RULE` and `DATE_RULE` (same core); the birth rule comes
+  // first in `RULES`, and its value must keep its category and its fake — the date rule
+  // skips what a dob rule already claimed.
+  const dobValues = new Set<string>();
   for (const rule of RULES) {
+    if (rule.type === "date" && !datesOn) continue;
     // Same keyword presence-probe as `engine/redact.ts` — a gated rule with no
     // keyword in the input never runs its per-digit lookbehind.
     const probe = (rule.pattern as { probe?: RegExp }).probe;
@@ -69,6 +81,8 @@ export async function gatherCandidates(
         if (!trimmed) continue;
         value = trimmed;
       }
+      if (rule.type === "dob") dobValues.add(value);
+      else if (rule.type === "date" && dobValues.has(value)) continue;
       candidates.push({ value, category: LABELS[rule.type] });
     }
   }

@@ -82,6 +82,7 @@ export const SECTION_HUE: Record<RedactionSection, Hue> = {
 export const CATEGORY_SECTION: Record<RedactionCategory, RedactionSection> = {
   name: "Identité",
   dob: "Identité",
+  date: "Identité",
   username: "Identité",
   health: "Identité",
   email: "Contact",

@@ -429,7 +429,7 @@ export const LABELS: Record<RedactionType, string> = {
   bank_route: "BANK_ROUTE",
   health: "HEALTH",
   username: "USERNAME",
-  dob: "DOB",
+  dob: "DOB", date: "DATE",
   crypto: "CRYPTO",
   mac: "MAC",
   geo: "GEO",

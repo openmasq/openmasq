@@ -14,9 +14,16 @@ export const redactionCatalog = {
     dob: {
       label: "Date de naissance",
       detail:
-        "Dates de naissance (né le…, date of birth, formats FR/EN/DE), champs étiquetés inclus. Les autres dates ne sont jamais touchées.",
+        "Dates de naissance (né le…, date of birth, formats FR/EN/DE), champs étiquetés inclus. Les autres dates relèvent de « Dates », éteinte par défaut.",
       impact:
         "Masquée, un âge ou un délai CALCULÉ par le modèle peut être décalé (la fausse date protège l'année réelle, elle-même identifiante). La date restituée, elle, est toujours la vraie.",
+    },
+    date: {
+      label: "Dates",
+      detail:
+        "Toutes les autres dates — en chiffres (12/05/2024, 2024-05-12, 20240512) ou en lettres (12 mai 2024, May 12, 2024, mai 2024) — et les heures (14:30, 8:15 AM, 07h30), dans les langues du produit. Éteinte par défaut ; le niveau Strict l'allume. Les années seules et les durées ne sont jamais touchées.",
+      impact:
+        "Masquées, les durées, délais et chronologies que le modèle calcule portent sur des dates d'emprunt : décalées de quelques années mais cohérentes entre elles, et toujours restituées vraies.",
     },
     username: {
       label: "Pseudo / identifiant",
@@ -116,6 +123,7 @@ export const redactionCatalog = {
     health: "Santé",
     name: "Noms",
     dob: "Dates de naissance",
+    date: "Dates",
     username: "Pseudos / identifiants",
     email: "Adresses e-mail",
     phone: "Numéros de téléphone",

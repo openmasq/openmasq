@@ -7091,7 +7091,7 @@ body.resizing-split {
 /* Settings → Privacy report (data-driven type colour + bar width stay inline). */
 /* ── Privacy: the level, the empty state, the rules fold ────────────────────────
    Three cards for ONE decision, so the page opens on a choice instead of on a
-   seventeen-row matrix. */
+   eighteen-row matrix. */
 /* « Avancé » — the rail's one disclosure. */
 .settings-rail-more { color: var(--text-muted); }
 .settings-rail-more .settings-rail-ico {
