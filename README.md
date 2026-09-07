@@ -239,8 +239,10 @@ paper, run here against **PII-Tracer**, the 0.6B detector Perplexity open-source
 | ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
 | Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
 
-Presidio is a **default `pip install`**, run on all five corpora rather than only on ours. On
-TAB it scores 0.766, above this product's own default level.
+Presidio is a **default `pip install`** — which means Presidio *and* spaCy: a bare
+`AnalyzerEngine()` loads `en_core_web_lg`, and every name, place and organisation in that
+column comes from it. Run on all five corpora rather than only on ours; on TAB it scores
+0.766, above this product's own default level.
 
 **The bench reproduces the published figures on two of the four**: 0.952 against 0.950 on
 ai4privacy, 0.842 against 0.847 on Nemotron. Where it does not, on TAB and Gretel, it says so
@@ -599,8 +601,10 @@ ouvert, et face à **Presidio**, sur quatre corpus publics plus le nôtre.
 | ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
 | Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
 
-Presidio est une **installation `pip` par défaut**, exécutée sur les cinq corpus et pas
-seulement sur le nôtre. Sur TAB elle note 0,766, au-dessus du niveau par défaut de ce produit.
+Presidio est une **installation `pip` par défaut** — donc Presidio *et* spaCy : un
+`AnalyzerEngine()` nu charge `en_core_web_lg`, d'où viennent tous les noms, lieux et
+organisations de cette colonne. Exécutée sur les cinq corpus et pas seulement sur le nôtre ;
+sur TAB elle note 0,766, au-dessus du niveau par défaut de ce produit.
 
 **Le banc reproduit les chiffres publiés sur deux des quatre** : 0,952 contre 0,950 sur
 ai4privacy, 0,842 contre 0,847 sur Nemotron. Là où il ne les reproduit pas, sur TAB et Gretel,

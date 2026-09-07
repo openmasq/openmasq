@@ -52,6 +52,11 @@ Three of them need a caveat before you read their numbers.
 - **ai4privacy** puts a label beside every value, which makes it the easiest of the five for a
   model trained on that shape.
 
+**Presidio means Presidio + spaCy.** A bare `AnalyzerEngine()` loads `en_core_web_lg` as its
+NLP engine: every name, place and organisation in that column comes from spaCy, and Presidio's
+own recognizers supply the regex-and-checksum half. It reads English only, while three of
+these corpora are multilingual.
+
 <details>
 <summary>Provenance, sampling and what <code>in scope</code> counts</summary>
 
@@ -74,6 +79,11 @@ needing no masking (TAB) — never a hit, never an error.
 
 Categories are not required to match: a name found as a company is found. That is how the
 PII-TRACE paper scores its external benchmarks.
+
+**The other two engines, pinned.** PII-Tracer is `perplexity-ai/pplx-pii-masking` through
+transformers. Presidio is `presidio-analyzer==2.2.364` with `spacy==3.8.16` and
+`en_core_web_lg`, a bare `AnalyzerEngine()` at score threshold 0. Its detections are committed,
+so its column replays without Python.
 
 </details>
 
@@ -291,6 +301,11 @@ Trois d'entre eux demandent une réserve avant qu'on lise leurs chiffres.
 - **ai4privacy** pose une étiquette à côté de chaque valeur, ce qui en fait le plus facile des
   cinq pour un modèle entraîné sur cette forme.
 
+**Presidio, ici, c'est Presidio + spaCy.** Un `AnalyzerEngine()` nu charge `en_core_web_lg`
+comme moteur linguistique : tous les noms, lieux et organisations de cette colonne viennent de
+spaCy, et les reconnaisseurs propres à Presidio fournissent la moitié regex et sommes de
+contrôle. Il ne lit que l'anglais, alors que trois de ces corpus sont multilingues.
+
 <details>
 <summary>Provenance, échantillonnage, et ce que compte le périmètre</summary>
 
@@ -314,6 +329,11 @@ annotée amont comme n'ayant pas besoin d'être masquée (TAB) — jamais trouv�
 
 Les catégories n'ont pas à coïncider : un nom trouvé comme entreprise est trouvé. C'est ainsi
 que l'article PII-TRACE note ses bancs externes.
+
+**Les deux autres moteurs, épinglés.** PII-Tracer, c'est `perplexity-ai/pplx-pii-masking` via
+transformers. Presidio, c'est `presidio-analyzer==2.2.364` avec `spacy==3.8.16` et
+`en_core_web_lg`, un `AnalyzerEngine()` nu au seuil de score 0. Ses détections sont commitées :
+sa colonne se rejoue sans Python.
 
 </details>
 
