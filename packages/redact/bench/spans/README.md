@@ -23,7 +23,7 @@ as a company is found. That is how Perplexity scores its external benchmarks.
 
 | measure | definition |
 |---|---|
-| character P / R / F1 | pooled over the corpus: precision = share of the characters the engine marked that are annotated PII; recall = share of the annotated PII characters it marked |
+| P / R / F1, **the character being the unit** | pooled over the corpus: precision = share of the characters the engine marked that are annotated PII; recall = share of the annotated PII characters it marked |
 | span-overlap F1 | a gold span is found when ANY of its characters is marked; a predicted span is right when it touches an annotation |
 | span-containment F1 | a gold span is found only when ALL its characters are marked; a predicted span is right only when it lies entirely inside annotation |
 | consistency | share of the identifiers whose EVERY mention is fully covered — by number of mentions (1 · 2 · 3–5 · 6–10 · 11+) and for the recurring ones (≥ 2) overall |
@@ -56,39 +56,126 @@ other corpora group on label plus lowercased surface form. So two different peop
 first name inside one document count as one identifier there — a proxy for what Perplexity
 groups with a pipeline we do not have.
 
-## The datasets
+## The datasets — what is actually in them
 
-Four of the five external benchmarks in the PII-TRACE paper (SPY is not published on the
-Hub), fetched by `fetch.sh` at a **pinned revision, checksum-verified**, derived by `adapt.py`
-with a **fixed seed** (`20260907`); the sampled ids are in `manifest.json` so the exact same
-cases rebuild anywhere. The sample sizes are what an evening on one laptop allows for three
-engines; the split is the one Perplexity used.
+Four of the five external benchmarks in the PII-TRACE paper (SPY is not published on the Hub)
+plus this repository's own, all re-expressed as character offsets by `adapt.py`. Each is
+fetched by `fetch.sh` at a **pinned revision, checksum-verified**, and sampled with a **fixed
+seed** (`20260907`) whose drawn ids are written into `manifest.json` — so the exact same cases
+rebuild on another machine.
 
-| dataset | split · upstream size | scored here | what it is |
-|---|---|---|---|
-| [ai4privacy/pii-masking-300k](https://huggingface.co/datasets/ai4privacy/pii-masking-300k) | validation · 47 728 | 6 000 (rules) · 2 000 (product, PII-Tracer) | synthetic records, 6 languages, 28 labels, ~7 annotations per document |
-| [nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII) | test · 100 000 | 6 000 (rules) · 2 000 (product, PII-Tracer) | English documents, 50+ industries, 55 labels incl. dates, occupations, demographics |
-| [gretelai/synthetic_pii_finance_multilingual](https://huggingface.co/datasets/gretelai/synthetic_pii_finance_multilingual) | test · 5 594 | 5 594 (rules) · 2 000 (product, PII-Tracer) | finance documents, 7 languages, 29 labels incl. dates and times |
-| [TAB](https://huggingface.co/datasets/mattmdjaga/text-anonymization-benchmark-val-test) (Pilán et al. 2022) | test · 127 | 127 (all) | **real, human-annotated** ECHR judgments, 1–13 k characters, recurring identifiers |
-| ours — `../corpora/` | 907 | 907 (all) | 18 document families, 14 languages, real layouts, OCR damage (`internal.mts`) |
+The short names on the figures are these five. What each one *is*, and what a document in it
+looks like:
 
-**Why the `300k` release and not the larger `400k`.** The paper reports on an ai4privacy
-validation split of 47 728 documents, and that is exactly this one. `400k`'s validation split
-holds 81 379 rows with a much thinner annotation: 1.1 spans per row against 7, no `DATE`,
-`TIME`, `SEX` or `TITLE` labels, and 29 % of rows annotated as containing nothing while
-carrying a passport number, an IBAN or a crypto address in plain sight. Scored on it, every
-engine is charged for finding real personal data the file never marked. The bench used it for
-one afternoon; the numbers it produced are not in this page.
+### `OpenMasq` — this repository's own corpus
 
-TAB is read with one annotator per document (the quality-checked one when the corpus names
-it), `DIRECT` and `QUASI` mentions as gold, `NO_MASK` mentions as context. Perplexity's TAB
-numbers are not built the same way (the paper does not say how it pools annotators), so on
-that line compare the columns to each other, not to the paper.
+907 cases, 125 characters median, 14 languages, 25 categories, 3 394 gold spans. Eighteen
+document families written for this engine: French administrative forms, payslips, notarial
+deeds, lab results, school reports, bank statements, tool results from connectors, and OCR
+damage produced rather than simulated. Entirely synthetic — invented people, identifiers
+recomputed valid against their checksums.
 
-Our own corpus is annotated as VALUES, so `internal.mts` makes every standalone occurrence of
-a value a gold span. 104 of its 3 357 truths appear nowhere standalone — OCR-damaged spellings
-that the token-coverage scorer forgives and an offset scorer cannot express. They are out of
-this view, equally for every column, and they still count in `pnpm bench:compare`.
+```
+DIRECTION GÉNÉRALE DES FINANCES PUBLIQUES
+AVIS D'IMPÔT 2026 — IMPÔT SUR LE REVENU
+
+Numéro fiscal :         12 34 567 890 123
+Référence de l'avis :   20 35 A195936 32
+Numéro FIP :            350 54 32 4525937789 3
+```
+
+*It is home ground, and it is the only corpus here we wrote. Read it as the regression floor
+it is, not as evidence against the four we did not.*
+
+### `TAB` — real court judgments, annotated by hand
+
+127 cases, 3 886 characters median, English, 8 entity types, 7 565 mentions.
+[Text Anonymization Benchmark](https://aclanthology.org/2022.cl-4.19/) (Pilán et al., 2022):
+judgments of the European Court of Human Rights, annotated by people for the task of
+anonymising a ruling. **The only corpus in this set that is not synthetic** — and the only one
+where identifiers genuinely recur across a long document.
+
+```
+PROCEDURE
+
+The case originated in an application (no. 36110/97) against the Republic of Turkey
+lodged with the European Commission of Human Rights ("the Commission") under former
+Article 25 of the Convention for the Protection of Human Rights…
+```
+
+*Its gold is a **re-identification** annotation, not a list of personal data: annotators marked
+anything that could help identify the applicant, so organisations are 36 % of the annotated
+characters and plain dates 30 %. `NO_MASK` mentions — 2 141 of 7 565, which the annotators
+judged safe to leave — are treated here as context: neither gold nor error.*
+
+### `Gretel` — synthetic finance documents
+
+5 594 cases, 1 306 characters median, 7 languages, 29 labels, 36 990 spans.
+[gretelai/synthetic_pii_finance_multilingual](https://huggingface.co/datasets/gretelai/synthetic_pii_finance_multilingual):
+invoices, statements, payment advices, insurance policies — and machine-to-machine banking
+formats (MT940, SWIFT, EDI, FIX, XBRL).
+
+```
+Sammanfattning: Samsung Pay-betalning
+Transaktions-ID: SMP-2022-003912
+Datum: 2022-04-11    Tid: 14:27:36 (CET)
+Payer: Nigel Henschel    Adress: 6 Vadim-Pohl-Ring
+```
+
+*⚠️ On the machine formats its gold annotates one address and leaves the wall of account
+numbers unlabelled. Precision measured on Gretel therefore says as much about the annotation's
+coverage as about an engine's restraint — for every column, ours included.*
+
+### `ai4privacy` — dense synthetic records, six languages
+
+6 000 cases sampled from 47 728, 426 characters median, 6 languages, 28 labels, 39 927 spans.
+[ai4privacy/pii-masking-300k](https://huggingface.co/datasets/ai4privacy/pii-masking-300k),
+validation split. **This release and not the larger `400k`**: the paper reports on a validation
+split of 47 728 documents, which is exactly this one; `400k` annotates 1.1 spans per row
+against 7 and leaves passports and IBANs unmarked.
+
+```
+- Gebäudenummer: 745    - Straße: Neßlach    - Stadt: Aindling
+- Bundesland: Bayern    - Postleitzahl: 86447
+- Nebenadresse: Ranch 412    - IP-Adresse: 222.232.249.225
+```
+
+*Every value sits beside an explicit label — a bullet list, a JSON key, an XML tag. That makes
+it the easiest corpus here for a model trained on it, and it is where PII-Tracer scores 96–100 %
+on all 27 labels, sex and country included. See the caveat in the results.*
+
+### `Nemotron` — English documents across fifty industries
+
+6 000 cases sampled from 100 000, 752 characters median, English, 55 labels, 50 391 spans.
+[nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), test split.
+Persona-grounded forms, e-mails, invoices and free text, structured and unstructured, with the
+widest label set of the five — it annotates occupation, education level, political view and
+blood type alongside names and cards.
+
+```
+- **Policyholder Last Name:** Calderon
+- **Payment Date:** 07/15/2023
+- **Account Number:** 9826371540
+```
+
+*Its 55 labels are why the two views matter most here: 14 656 of its 50 391 spans are things
+the product does not claim to redact.*
+
+### What "in scope" means, per corpus
+
+`adapt.py` maps every upstream label to one of three scopes, and `manifest.json` counts them.
+`in` = a datum the product claims to redact. `out` = a real annotation it does not claim
+(plain dates and times, country, occupation, demographics, opinions, coordinates) — scored for
+recall in the all-labels view only. `ctx` = annotated upstream as needing no masking (TAB's
+`NO_MASK`) — never gold, never an error.
+
+| corpus | `in` | `out` | `ctx` |
+|---|---:|---:|---:|
+| OpenMasq | 3 394 | AMOUNT only | CONTEXT annotations |
+| TAB | 2 360 | 3 064 | 2 141 |
+| Gretel | 26 686 | 10 304 | — |
+| ai4privacy | 30 955 | 8 972 | — |
+| Nemotron | 35 735 | 14 656 | — |
 
 ## Results — 2026-09-07
 
@@ -105,7 +192,7 @@ sha256 of every input, so a stale figure is detectable rather than merely suspec
 | scorer | `spans/metric.ts` — the ONE scorer; the figures only draw |
 | inputs | 26 files, sha256 in `figures/manifest.json` |
 
-### The headline — character F1, all labels
+### The headline — F1 with the CHARACTER as the unit, all labels
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/f1-by-corpus-en-dark.png">
@@ -114,11 +201,11 @@ sha256 of every input, so a stale figure is detectable rather than merely suspec
 
 | corpus | cases | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
 |---|---:|---:|---:|---:|---:|---:|
-| Notre corpus / **ours** | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
-| TAB (ECHR) | 127 | 0.388 | 0.565 | 0.803 | 0.690 | — |
-| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | — |
-| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | — |
-| Nemotron-PII | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | — |
+| OpenMasq | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
+| TAB | 127 | 0.388 | 0.565 | 0.803 | 0.690 | 0.766 |
+| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | 0.421 |
+| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
+| Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
 
 The figure carries the **all-labels** view, the one comparable to the published figures.
 Same table on the **product's scope** only — the labels it claims to redact, plain dates,
@@ -126,11 +213,24 @@ countries, occupations and demographics removed from the denominator:
 
 | corpus | cases | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
 |---|---:|---:|---:|---:|---:|---:|
-| Notre corpus / **ours** | 907 | 0.908 | 0.913 | 0.925 | 0.884 | 0.550 |
-| TAB (ECHR) | 127 | 0.526 | 0.797 | 0.819 | 0.543 | — |
-| Gretel | 2 000 | 0.614 | 0.692 | 0.650 | 0.634 | — |
-| ai4privacy | 2 000 | 0.749 | 0.792 | 0.819 | 0.952 | — |
-| Nemotron-PII | 2 000 | 0.595 | 0.715 | 0.871 | 0.894 | — |
+| OpenMasq | 907 | 0.908 | 0.913 | 0.925 | 0.884 | 0.550 |
+| TAB | 127 | 0.526 | 0.797 | 0.819 | 0.543 | 0.621 |
+| Gretel | 2 000 | 0.614 | 0.692 | 0.650 | 0.634 | 0.404 |
+| ai4privacy | 2 000 | 0.749 | 0.792 | 0.819 | 0.952 | 0.575 |
+| Nemotron | 2 000 | 0.595 | 0.715 | 0.871 | 0.894 | 0.748 |
+
+
+**Presidio is now measured on all five, and the fifth column changes the reading.** It had
+only ever run on our own corpus, where a default English install faces fourteen languages and
+scores 0.549 — a number that flattered us by omission. On **TAB it scores 0.766**, above this
+product's default level and within 0.04 of its Strict level: English formal prose full of
+organisations, people and dates is exactly what spaCy's model was trained for. On Gretel it
+falls to 0.421, where seven languages meet a default install that reads only English.
+
+That configuration is `AnalyzerEngine()` with its predefined recognizers and `language="en"` —
+what a `pip install` gives you, not Presidio's ceiling, which is a library built to receive
+recognizers and models. Every number here is that default, on every corpus, and the point of
+running it everywhere is that a comparison shown on one corpus only is not a comparison.
 
 ### Does this bench reproduce the published figures?
 
@@ -231,142 +331,142 @@ are taken during the accuracy passes, under contention, and must not be charted 
 
 ### ai4privacy — 2000 cases · 135871 annotated characters (115862 in the product's scope)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| character precision | 0.881 | 0.854 | 0.857 | 0.920 |
-| character recall · all labels | 0.558 | 0.636 | 0.732 | 0.987 |
-| **character F1 · all labels** | **0.684** | **0.729** | **0.789** | **0.952** |
-| character recall · product scope | 0.651 | 0.739 | 0.785 | 0.986 |
-| character F1 · product scope | 0.749 | 0.792 | 0.819 | 0.952 |
-| span-overlap F1 | 0.628 | 0.692 | 0.768 | 0.962 |
-| span-containment F1 | 0.578 | 0.635 | 0.708 | 0.920 |
-| recurring identifiers, every mention found | 19 % (228) | 27 % (228) | 41 % (228) | 99 % (228) |
-| latency during this pass (ms/case) | 21.8 · 68.3 | 232.7 · 559.2 | 234.7 · 502.9 | 498.3 · 713.4 |
+| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| character precision | 0.881 | 0.854 | 0.857 | 0.920 | 0.568 |
+| character recall · all labels | 0.558 | 0.636 | 0.732 | 0.987 | 0.561 |
+| **character F1 · all labels** | **0.684** | **0.729** | **0.789** | **0.952** | **0.564** |
+| character recall · product scope | 0.651 | 0.739 | 0.785 | 0.986 | 0.582 |
+| character F1 · product scope | 0.749 | 0.792 | 0.819 | 0.952 | 0.575 |
+| span-overlap F1 | 0.628 | 0.692 | 0.768 | 0.962 | 0.553 |
+| span-containment F1 | 0.578 | 0.635 | 0.708 | 0.920 | 0.466 |
+| recurring identifiers, every mention found | 19 % (228) | 27 % (228) | 41 % (228) | 99 % (228) | 30 % (228) |
+| latency during this pass (ms/case) | 21.8 · 68.3 | 232.7 · 559.2 | 234.7 · 502.9 | 498.3 · 713.4 | 21.6 · 30.8 |
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1 (12354) | 47 % | 55 % | 65 % | 99 % |
-| 2 (196) | 22 % | 31 % | 44 % | 99 % |
-| 3–5 (29) | 0 % | 3 % | 24 % | 100 % |
-| 6–10 (3) | 0 % | 0 % | 33 % | 67 % |
+| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1 (12354) | 47 % | 55 % | 65 % | 99 % | 41 % |
+| 2 (196) | 22 % | 31 % | 44 % | 99 % | 31 % |
+| 3–5 (29) | 0 % | 3 % | 24 % | 100 % | 24 % |
+| 6–10 (3) | 0 % | 0 % | 33 % | 67 % | 33 % |
 
 Character F1 by language (all labels):
 
-| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| German (1031) | 0.692 | 0.746 | 0.803 | 0.950 |
-| English (969) | 0.674 | 0.709 | 0.774 | 0.955 |
+| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| de (1031) | 0.692 | 0.746 | 0.803 | 0.950 | 0.472 |
+| en (969) | 0.674 | 0.709 | 0.774 | 0.955 | 0.703 |
 
 Character recall by upstream label (spans · scope), all engines:
 
-| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| IP (599 · in) | 95 % | 95 % | 95 % | 98 % |
-| EMAIL (614 · in) | 97 % | 98 % | 98 % | 98 % |
-| SOCIALNUMBER (709 · in) | 49 % | 49 % | 49 % | 100 % |
-| USERNAME (768 · in) | 11 % | 19 % | 51 % | 95 % |
-| DRIVERLICENSE (568 · in) | 65 % | 65 % | 65 % | 99 % |
-| BOD (607 · in) | 64 % | 64 % | 92 % | 100 % |
-| TEL (508 · in) | 72 % | 72 % | 72 % | 96 % |
-| IDCARD (666 · in) | 82 % | 83 % | 82 % | 100 % |
-| PASSPORT (712 · in) | 83 % | 83 % | 83 % | 100 % |
-| STREET (422 · in) | 42 % | 90 % | 90 % | 100 % |
-| DATE (450 · out) | 1 % | 1 % | 74 % | 100 % |
-| TIME (1014 · out) | 2 % | 2 % | 72 % | 99 % |
-| CITY (445 · in) | 67 % | 95 % | 95 % | 100 % |
-| LASTNAME1 (560 · in) | 43 % | 82 % | 82 % | 99 % |
-| GIVENNAME1 (483 · in) | 51 % | 79 % | 79 % | 97 % |
-| PASS (400 · in) | 58 % | 58 % | 59 % | 96 % |
-| TITLE (528 · out) | 8 % | 14 % | 15 % | 94 % |
-| SEX (534 · out) | 6 % | 7 % | 7 % | 99 % |
-| POSTCODE (449 · in) | 74 % | 74 % | 74 % | 100 % |
-| STATE (447 · in) | 14 % | 76 % | 76 % | 100 % |
-| COUNTRY (365 · out) | 1 % | 1 % | 2 % | 100 % |
-| SECADDRESS (190 · in) | 63 % | 66 % | 66 % | 100 % |
-| BUILDING (422 · in) | 44 % | 44 % | 44 % | 100 % |
-| LASTNAME2 (163 · in) | 32 % | 82 % | 82 % | 100 % |
-| GEOCOORD (60 · out) | 0 % | 0 % | 0 % | 100 % |
-| GIVENNAME2 (128 · in) | 37 % | 74 % | 74 % | 96 % |
-| LASTNAME3 (53 · in) | 22 % | 70 % | 70 % | 100 % |
+| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| IP (599 · in) | 95 % | 95 % | 95 % | 98 % | 96 % |
+| EMAIL (614 · in) | 97 % | 98 % | 98 % | 98 % | 98 % |
+| SOCIALNUMBER (709 · in) | 49 % | 49 % | 49 % | 100 % | 58 % |
+| USERNAME (768 · in) | 11 % | 19 % | 51 % | 95 % | 27 % |
+| DRIVERLICENSE (568 · in) | 65 % | 65 % | 65 % | 99 % | 36 % |
+| BOD (607 · in) | 64 % | 64 % | 92 % | 100 % | 77 % |
+| TEL (508 · in) | 72 % | 72 % | 72 % | 96 % | 55 % |
+| IDCARD (666 · in) | 82 % | 83 % | 82 % | 100 % | 74 % |
+| PASSPORT (712 · in) | 83 % | 83 % | 83 % | 100 % | 49 % |
+| STREET (422 · in) | 42 % | 90 % | 90 % | 100 % | 44 % |
+| DATE (450 · out) | 1 % | 1 % | 74 % | 100 % | 75 % |
+| TIME (1014 · out) | 2 % | 2 % | 72 % | 99 % | 39 % |
+| CITY (445 · in) | 67 % | 95 % | 95 % | 100 % | 47 % |
+| LASTNAME1 (560 · in) | 43 % | 82 % | 82 % | 99 % | 41 % |
+| GIVENNAME1 (483 · in) | 51 % | 79 % | 79 % | 97 % | 37 % |
+| PASS (400 · in) | 58 % | 58 % | 59 % | 96 % | 8 % |
+| TITLE (528 · out) | 8 % | 14 % | 15 % | 94 % | 18 % |
+| SEX (534 · out) | 6 % | 7 % | 7 % | 99 % | 17 % |
+| POSTCODE (449 · in) | 74 % | 74 % | 74 % | 100 % | 27 % |
+| STATE (447 · in) | 14 % | 76 % | 76 % | 100 % | 20 % |
+| COUNTRY (365 · out) | 1 % | 1 % | 2 % | 100 % | 62 % |
+| SECADDRESS (190 · in) | 63 % | 66 % | 66 % | 100 % | 8 % |
+| BUILDING (422 · in) | 44 % | 44 % | 44 % | 100 % | 3 % |
+| LASTNAME2 (163 · in) | 32 % | 82 % | 82 % | 100 % | 41 % |
+| GEOCOORD (60 · out) | 0 % | 0 % | 0 % | 100 % | 2 % |
+| GIVENNAME2 (128 · in) | 37 % | 74 % | 74 % | 96 % | 46 % |
+| LASTNAME3 (53 · in) | 22 % | 70 % | 70 % | 100 % | 45 % |
 
 ### gretel — 2000 cases · 212640 annotated characters (169592 in the product's scope)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| character precision | 0.679 | 0.639 | 0.569 | 0.606 |
-| character recall · all labels | 0.449 | 0.603 | 0.707 | 0.614 |
-| **character F1 · all labels** | **0.540** | **0.620** | **0.630** | **0.610** |
-| character recall · product scope | 0.560 | 0.753 | 0.757 | 0.663 |
-| character F1 · product scope | 0.614 | 0.692 | 0.650 | 0.634 |
-| span-overlap F1 | 0.525 | 0.582 | 0.636 | 0.581 |
-| span-containment F1 | 0.411 | 0.472 | 0.535 | 0.531 |
-| recurring identifiers, every mention found | 37 % (1870) | 51 % (1870) | 59 % (1870) | 55 % (1870) |
-| latency during this pass (ms/case) | 29.1 · 86.3 | 1177.8 · 2373.3 | 1191.7 · 2386.5 | 1464.4 · 1880 |
+| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| character precision | 0.679 | 0.639 | 0.569 | 0.606 | 0.350 |
+| character recall · all labels | 0.449 | 0.603 | 0.707 | 0.614 | 0.529 |
+| **character F1 · all labels** | **0.540** | **0.620** | **0.630** | **0.610** | **0.421** |
+| character recall · product scope | 0.560 | 0.753 | 0.757 | 0.663 | 0.477 |
+| character F1 · product scope | 0.614 | 0.692 | 0.650 | 0.634 | 0.404 |
+| span-overlap F1 | 0.525 | 0.582 | 0.636 | 0.581 | 0.501 |
+| span-containment F1 | 0.411 | 0.472 | 0.535 | 0.531 | 0.407 |
+| recurring identifiers, every mention found | 37 % (1870) | 51 % (1870) | 59 % (1870) | 55 % (1870) | 44 % (1870) |
+| latency during this pass (ms/case) | 29.1 · 86.3 | 1177.8 · 2373.3 | 1191.7 · 2386.5 | 1464.4 · 1880 | 57.7 · 86.8 |
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1 (7977) | 29 % | 35 % | 51 % | 60 % |
-| 2 (1236) | 42 % | 52 % | 61 % | 61 % |
-| 3–5 (519) | 32 % | 50 % | 55 % | 47 % |
-| 6–10 (108) | 12 % | 38 % | 50 % | 24 % |
-| 11+ (7) | 14 % | 29 % | 29 % | 14 % |
+| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1 (7977) | 29 % | 35 % | 51 % | 60 % | 45 % |
+| 2 (1236) | 42 % | 52 % | 61 % | 61 % | 49 % |
+| 3–5 (519) | 32 % | 50 % | 55 % | 47 % | 35 % |
+| 6–10 (108) | 12 % | 38 % | 50 % | 24 % | 24 % |
+| 11+ (7) | 14 % | 29 % | 29 % | 14 % | 0 % |
 
 Character P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1k–10k (1427) | 0.745 / 0.436 / 0.550 | 0.670 / 0.591 / 0.628 | 0.589 / 0.688 / 0.634 | 0.795 / 0.561 / 0.658 |
-| <1k (573) | 0.536 / 0.493 / 0.514 | 0.558 / 0.645 / 0.598 | 0.516 / 0.772 / 0.619 | 0.385 / 0.793 / 0.519 |
+| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1k–10k (1427) | 0.745 / 0.436 / 0.550 | 0.670 / 0.591 / 0.628 | 0.589 / 0.688 / 0.634 | 0.795 / 0.561 / 0.658 | 0.344 / 0.526 / 0.416 |
+| <1k (573) | 0.536 / 0.493 / 0.514 | 0.558 / 0.645 / 0.598 | 0.516 / 0.772 / 0.619 | 0.385 / 0.793 / 0.519 | 0.372 / 0.541 / 0.441 |
 
 Character F1 by language (all labels):
 
-| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| en (1033) | 0.546 | 0.613 | 0.636 | 0.632 |
-| de (187) | 0.548 | 0.635 | 0.658 | 0.631 |
-| sv (161) | 0.506 | 0.636 | 0.620 | 0.599 |
-| nl (156) | 0.484 | 0.577 | 0.553 | 0.510 |
-| it (159) | 0.573 | 0.626 | 0.622 | 0.567 |
-| es (166) | 0.499 | 0.618 | 0.613 | 0.551 |
-| fr (138) | 0.589 | 0.685 | 0.687 | 0.648 |
+| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| en (1033) | 0.546 | 0.613 | 0.636 | 0.632 | 0.543 |
+| de (187) | 0.548 | 0.635 | 0.658 | 0.631 | 0.315 |
+| sv (161) | 0.506 | 0.636 | 0.620 | 0.599 | 0.356 |
+| nl (156) | 0.484 | 0.577 | 0.553 | 0.510 | 0.316 |
+| it (159) | 0.573 | 0.626 | 0.622 | 0.567 | 0.305 |
+| es (166) | 0.499 | 0.618 | 0.613 | 0.551 | 0.284 |
+| fr (138) | 0.589 | 0.685 | 0.687 | 0.648 | 0.412 |
 
 Character recall by upstream label (spans · scope), all engines:
 
-| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| name (3559 · in) | 61 % | 76 % | 76 % | 75 % |
-| street_address (1562 · in) | 64 % | 80 % | 81 % | 95 % |
-| company (2375 · in) | 23 % | 64 % | 65 % | 5 % |
-| date (3107 · out) | 1 % | 1 % | 48 % | 40 % |
-| email (502 · in) | 96 % | 97 % | 97 % | 96 % |
-| time (504 · out) | 1 % | 1 % | 68 % | 50 % |
-| phone_number (341 · in) | 76 % | 76 % | 76 % | 90 % |
-| ipv6 (60 · in) | 91 % | 91 % | 91 % | 77 % |
-| iban (63 · in) | 94 % | 94 % | 94 % | 99 % |
-| bban (64 · in) | 63 % | 63 % | 63 % | 100 % |
-| api_key (27 · in) | 88 % | 88 % | 88 % | 93 % |
-| swift_bic_code (87 · in) | 45 % | 45 % | 45 % | 99 % |
-| date_of_birth (86 · in) | 79 % | 79 % | 89 % | 87 % |
-| credit_card_number (54 · in) | 86 % | 86 % | 86 % | 100 % |
-| local_latlng (34 · in) | 30 % | 30 % | 30 % | 97 % |
-| first_name (112 · in) | 33 % | 94 % | 94 % | 98 % |
-| last_name (67 · in) | 49 % | 94 % | 95 % | 73 % |
-| customer_id (63 · in) | 67 % | 67 % | 67 % | 92 % |
-| ssn (53 · in) | 58 % | 58 % | 58 % | 100 % |
-| password (42 · in) | 48 % | 48 % | 48 % | 100 % |
-| ipv4 (40 · in) | 100 % | 100 % | 100 % | 100 % |
-| employee_id (60 · in) | 63 % | 63 % | 63 % | 89 % |
-| bank_routing_number (56 · in) | 63 % | 63 % | 63 % | 100 % |
-| driver_license_number (35 · in) | 72 % | 72 % | 72 % | 100 % |
-| passport_number (47 · in) | 78 % | 78 % | 78 % | 98 % |
-| date_time (20 · out) | 0 % | 0 % | 97 % | 100 % |
-| account_pin (63 · in) | 55 % | 55 % | 55 % | 100 % |
-| user_name (21 · in) | 15 % | 40 % | 42 % | 93 % |
-| credit_card_security_code (64 · in) | 50 % | 50 % | 50 % | 97 % |
+| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| name (3559 · in) | 61 % | 76 % | 76 % | 75 % | 67 % |
+| street_address (1562 · in) | 64 % | 80 % | 81 % | 95 % | 43 % |
+| company (2375 · in) | 23 % | 64 % | 65 % | 5 % | 9 % |
+| date (3107 · out) | 1 % | 1 % | 48 % | 40 % | 77 % |
+| email (502 · in) | 96 % | 97 % | 97 % | 96 % | 97 % |
+| time (504 · out) | 1 % | 1 % | 68 % | 50 % | 47 % |
+| phone_number (341 · in) | 76 % | 76 % | 76 % | 90 % | 79 % |
+| ipv6 (60 · in) | 91 % | 91 % | 91 % | 77 % | 74 % |
+| iban (63 · in) | 94 % | 94 % | 94 % | 99 % | 76 % |
+| bban (64 · in) | 63 % | 63 % | 63 % | 100 % | 9 % |
+| api_key (27 · in) | 88 % | 88 % | 88 % | 93 % | 20 % |
+| swift_bic_code (87 · in) | 45 % | 45 % | 45 % | 99 % | 1 % |
+| date_of_birth (86 · in) | 79 % | 79 % | 89 % | 87 % | 80 % |
+| credit_card_number (54 · in) | 86 % | 86 % | 86 % | 100 % | 65 % |
+| local_latlng (34 · in) | 30 % | 30 % | 30 % | 97 % | 55 % |
+| first_name (112 · in) | 33 % | 94 % | 94 % | 98 % | 63 % |
+| last_name (67 · in) | 49 % | 94 % | 95 % | 73 % | 37 % |
+| customer_id (63 · in) | 67 % | 67 % | 67 % | 92 % | 41 % |
+| ssn (53 · in) | 58 % | 58 % | 58 % | 100 % | 82 % |
+| password (42 · in) | 48 % | 48 % | 48 % | 100 % | 7 % |
+| ipv4 (40 · in) | 100 % | 100 % | 100 % | 100 % | 100 % |
+| employee_id (60 · in) | 63 % | 63 % | 63 % | 89 % | 44 % |
+| bank_routing_number (56 · in) | 63 % | 63 % | 63 % | 100 % | 100 % |
+| driver_license_number (35 · in) | 72 % | 72 % | 72 % | 100 % | 52 % |
+| passport_number (47 · in) | 78 % | 78 % | 78 % | 98 % | 93 % |
+| date_time (20 · out) | 0 % | 0 % | 97 % | 100 % | 64 % |
+| account_pin (63 · in) | 55 % | 55 % | 55 % | 100 % | 73 % |
+| user_name (21 · in) | 15 % | 40 % | 42 % | 93 % | 19 % |
+| credit_card_security_code (64 · in) | 50 % | 50 % | 50 % | 97 % | 3 % |
 
 ### internal — 907 cases · 49588 annotated characters (49392 in the product's scope)
 
@@ -447,137 +547,137 @@ Character recall by upstream label (spans · scope), all engines:
 
 ### nemotron — 2000 cases · 242739 annotated characters (187018 in the product's scope)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| character precision | 0.886 | 0.875 | 0.912 | 0.965 |
-| character recall · all labels | 0.345 | 0.470 | 0.731 | 0.747 |
-| **character F1 · all labels** | **0.497** | **0.612** | **0.811** | **0.842** |
-| character recall · product scope | 0.447 | 0.605 | 0.833 | 0.833 |
-| character F1 · product scope | 0.595 | 0.715 | 0.871 | 0.894 |
-| span-overlap F1 | 0.562 | 0.683 | 0.802 | 0.857 |
-| span-containment F1 | 0.496 | 0.604 | 0.726 | 0.801 |
-| recurring identifiers, every mention found | 41 % (2276) | 60 % (2276) | 73 % (2276) | 68 % (2276) |
-| latency during this pass (ms/case) | 35.1 · 85.8 | 469.6 · 1369.8 | 481.1 · 1307.7 | 678 · 1548.5 |
+| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| character precision | 0.886 | 0.875 | 0.912 | 0.965 | 0.871 |
+| character recall · all labels | 0.345 | 0.470 | 0.731 | 0.747 | 0.598 |
+| **character F1 · all labels** | **0.497** | **0.612** | **0.811** | **0.842** | **0.709** |
+| character recall · product scope | 0.447 | 0.605 | 0.833 | 0.833 | 0.656 |
+| character F1 · product scope | 0.595 | 0.715 | 0.871 | 0.894 | 0.748 |
+| span-overlap F1 | 0.562 | 0.683 | 0.802 | 0.857 | 0.751 |
+| span-containment F1 | 0.496 | 0.604 | 0.726 | 0.801 | 0.651 |
+| recurring identifiers, every mention found | 41 % (2276) | 60 % (2276) | 73 % (2276) | 68 % (2276) | 56 % (2276) |
+| latency during this pass (ms/case) | 35.1 · 85.8 | 469.6 · 1369.8 | 481.1 · 1307.7 | 678 · 1548.5 | 34.5 · 87 |
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1 (10821) | 37 % | 46 % | 65 % | 82 % |
-| 2 (1498) | 43 % | 59 % | 74 % | 74 % |
-| 3–5 (661) | 39 % | 64 % | 72 % | 59 % |
-| 6–10 (110) | 25 % | 55 % | 60 % | 38 % |
-| 11+ (7) | 29 % | 57 % | 71 % | 29 % |
+| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1 (10821) | 37 % | 46 % | 65 % | 82 % | 60 % |
+| 2 (1498) | 43 % | 59 % | 74 % | 74 % | 60 % |
+| 3–5 (661) | 39 % | 64 % | 72 % | 59 % | 54 % |
+| 6–10 (110) | 25 % | 55 % | 60 % | 38 % | 27 % |
+| 11+ (7) | 29 % | 57 % | 71 % | 29 % | 43 % |
 
 Character P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1k–10k (675) | 0.885 / 0.300 / 0.447 | 0.861 / 0.449 / 0.591 | 0.903 / 0.719 / 0.801 | 0.975 / 0.661 / 0.788 |
-| <1k (1325) | 0.888 / 0.388 / 0.540 | 0.887 / 0.490 / 0.631 | 0.920 / 0.742 / 0.821 | 0.957 / 0.828 / 0.888 |
+| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1k–10k (675) | 0.885 / 0.300 / 0.447 | 0.861 / 0.449 / 0.591 | 0.903 / 0.719 / 0.801 | 0.975 / 0.661 / 0.788 | 0.833 / 0.551 / 0.663 |
+| <1k (1325) | 0.888 / 0.388 / 0.540 | 0.887 / 0.490 / 0.631 | 0.920 / 0.742 / 0.821 | 0.957 / 0.828 / 0.888 | 0.904 / 0.642 / 0.751 |
 
 Character recall by upstream label (spans · scope), all engines:
 
-| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| url (831 · in) | 1 % | 2 % | 100 % | 87 % |
-| company_name (1043 · in) | 15 % | 91 % | 91 % | 2 % |
-| email (879 · in) | 99 % | 100 % | 100 % | 100 % |
-| occupation (773 · out) | 0 % | 4 % | 4 % | 1 % |
-| date (1455 · out) | 0 % | 0 % | 92 % | 78 % |
-| http_cookie (124 · in) | 47 % | 47 % | 52 % | 83 % |
-| first_name (1616 · in) | 76 % | 99 % | 99 % | 99 % |
-| last_name (1131 · in) | 87 % | 99 % | 99 % | 98 % |
-| street_address (354 · in) | 71 % | 83 % | 83 % | 99 % |
-| phone_number (448 · in) | 45 % | 45 % | 45 % | 100 % |
-| credit_debit_card (271 · in) | 37 % | 37 % | 37 % | 100 % |
-| account_number (403 · in) | 83 % | 83 % | 83 % | 100 % |
-| api_key (96 · in) | 89 % | 89 % | 89 % | 100 % |
-| county (312 · in) | 25 % | 98 % | 98 % | 65 % |
-| time (520 · out) | 1 % | 1 % | 68 % | 57 % |
-| user_name (337 · in) | 16 % | 56 % | 63 % | 100 % |
-| date_time (194 · out) | 0 % | 0 % | 97 % | 95 % |
-| city (418 · in) | 21 % | 98 % | 98 % | 74 % |
-| customer_id (374 · in) | 85 % | 85 % | 85 % | 100 % |
-| coordinate (171 · out) | 0 % | 0 % | 0 % | 95 % |
-| education_level (225 · out) | 0 % | 2 % | 2 % | 1 % |
-| date_of_birth (269 · in) | 95 % | 95 % | 100 % | 100 % |
-| medical_record_number (245 · in) | 58 % | 58 % | 58 % | 100 % |
-| employment_status (262 · out) | 2 % | 2 % | 2 % | 6 % |
-| state (427 · in) | 9 % | 86 % | 86 % | 65 % |
-| ipv6 (66 · in) | 61 % | 61 % | 61 % | 100 % |
-| health_plan_beneficiary_number (169 · in) | 18 % | 18 % | 18 % | 100 % |
-| biometric_identifier (172 · in) | 41 % | 42 % | 43 % | 99 % |
-| password (164 · in) | 24 % | 24 % | 25 % | 97 % |
-| ipv4 (134 · in) | 100 % | 100 % | 100 % | 100 % |
-| bank_routing_number (191 · in) | 80 % | 80 % | 80 % | 100 % |
-| ssn (153 · in) | 87 % | 87 % | 87 % | 100 % |
-| political_view (116 · out) | 0 % | 10 % | 10 % | 42 % |
-| vehicle_identifier (91 · in) | 99 % | 99 % | 99 % | 100 % |
-| country (435 · out) | 0 % | 2 % | 2 % | 49 % |
-| swift_bic (122 · in) | 97 % | 97 % | 97 % | 100 % |
-| mac_address (77 · in) | 97 % | 97 % | 97 % | 100 % |
-| fax_number (109 · in) | 19 % | 19 % | 19 % | 100 % |
-| religious_belief (110 · out) | 1 % | 2 % | 2 % | 73 % |
-| employee_id (174 · in) | 76 % | 76 % | 76 % | 100 % |
-| certificate_license_number (113 · in) | 4 % | 4 % | 4 % | 100 % |
-| unique_id (39 · in) | 26 % | 26 % | 29 % | 100 % |
-| language (149 · out) | 0 % | 0 % | 0 % | 9 % |
-| device_identifier (47 · in) | 23 % | 23 % | 23 % | 100 % |
-| race_ethnicity (156 · out) | 0 % | 6 % | 6 % | 69 % |
-| license_plate (98 · in) | 1 % | 1 % | 1 % | 96 % |
-| gender (141 · out) | 0 % | 0 % | 0 % | 72 % |
-| sexuality (90 · out) | 0 % | 0 % | 0 % | 75 % |
-| pin (123 · in) | 74 % | 74 % | 74 % | 95 % |
-| postcode (135 · in) | 39 % | 39 % | 39 % | 100 % |
-| blood_type (107 · in) | 77 % | 77 % | 77 % | 75 % |
-| age (179 · out) | 0 % | 0 % | 3 % | 40 % |
-| tax_id (28 · in) | 65 % | 65 % | 65 % | 100 % |
-| cvv (99 · in) | 71 % | 71 % | 71 % | 72 % |
+| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| url (831 · in) | 1 % | 2 % | 100 % | 87 % | 92 % |
+| company_name (1043 · in) | 15 % | 91 % | 91 % | 2 % | 1 % |
+| email (879 · in) | 99 % | 100 % | 100 % | 100 % | 100 % |
+| occupation (773 · out) | 0 % | 4 % | 4 % | 1 % | 0 % |
+| date (1455 · out) | 0 % | 0 % | 92 % | 78 % | 94 % |
+| http_cookie (124 · in) | 47 % | 47 % | 52 % | 83 % | 11 % |
+| first_name (1616 · in) | 76 % | 99 % | 99 % | 99 % | 90 % |
+| last_name (1131 · in) | 87 % | 99 % | 99 % | 98 % | 88 % |
+| street_address (354 · in) | 71 % | 83 % | 83 % | 99 % | 31 % |
+| phone_number (448 · in) | 45 % | 45 % | 45 % | 100 % | 100 % |
+| credit_debit_card (271 · in) | 37 % | 37 % | 37 % | 100 % | 55 % |
+| account_number (403 · in) | 83 % | 83 % | 83 % | 100 % | 72 % |
+| api_key (96 · in) | 89 % | 89 % | 89 % | 100 % | 3 % |
+| county (312 · in) | 25 % | 98 % | 98 % | 65 % | 94 % |
+| time (520 · out) | 1 % | 1 % | 68 % | 57 % | 69 % |
+| user_name (337 · in) | 16 % | 56 % | 63 % | 100 % | 28 % |
+| date_time (194 · out) | 0 % | 0 % | 97 % | 95 % | 84 % |
+| city (418 · in) | 21 % | 98 % | 98 % | 74 % | 79 % |
+| customer_id (374 · in) | 85 % | 85 % | 85 % | 100 % | 64 % |
+| coordinate (171 · out) | 0 % | 0 % | 0 % | 95 % | 10 % |
+| education_level (225 · out) | 0 % | 2 % | 2 % | 1 % | 2 % |
+| date_of_birth (269 · in) | 95 % | 95 % | 100 % | 100 % | 100 % |
+| medical_record_number (245 · in) | 58 % | 58 % | 58 % | 100 % | 83 % |
+| employment_status (262 · out) | 2 % | 2 % | 2 % | 6 % | 0 % |
+| state (427 · in) | 9 % | 86 % | 86 % | 65 % | 85 % |
+| ipv6 (66 · in) | 61 % | 61 % | 61 % | 100 % | 84 % |
+| health_plan_beneficiary_number (169 · in) | 18 % | 18 % | 18 % | 100 % | 53 % |
+| biometric_identifier (172 · in) | 41 % | 42 % | 43 % | 99 % | 88 % |
+| password (164 · in) | 24 % | 24 % | 25 % | 97 % | 6 % |
+| ipv4 (134 · in) | 100 % | 100 % | 100 % | 100 % | 100 % |
+| bank_routing_number (191 · in) | 80 % | 80 % | 80 % | 100 % | 100 % |
+| ssn (153 · in) | 87 % | 87 % | 87 % | 100 % | 99 % |
+| political_view (116 · out) | 0 % | 10 % | 10 % | 42 % | 1 % |
+| vehicle_identifier (91 · in) | 99 % | 99 % | 99 % | 100 % | 3 % |
+| country (435 · out) | 0 % | 2 % | 2 % | 49 % | 82 % |
+| swift_bic (122 · in) | 97 % | 97 % | 97 % | 100 % | 4 % |
+| mac_address (77 · in) | 97 % | 97 % | 97 % | 100 % | 100 % |
+| fax_number (109 · in) | 19 % | 19 % | 19 % | 100 % | 100 % |
+| religious_belief (110 · out) | 1 % | 2 % | 2 % | 73 % | 20 % |
+| employee_id (174 · in) | 76 % | 76 % | 76 % | 100 % | 34 % |
+| certificate_license_number (113 · in) | 4 % | 4 % | 4 % | 100 % | 65 % |
+| unique_id (39 · in) | 26 % | 26 % | 29 % | 100 % | 10 % |
+| language (149 · out) | 0 % | 0 % | 0 % | 9 % | 0 % |
+| device_identifier (47 · in) | 23 % | 23 % | 23 % | 100 % | 23 % |
+| race_ethnicity (156 · out) | 0 % | 6 % | 6 % | 69 % | 0 % |
+| license_plate (98 · in) | 1 % | 1 % | 1 % | 96 % | 5 % |
+| gender (141 · out) | 0 % | 0 % | 0 % | 72 % | 0 % |
+| sexuality (90 · out) | 0 % | 0 % | 0 % | 75 % | 1 % |
+| pin (123 · in) | 74 % | 74 % | 74 % | 95 % | 84 % |
+| postcode (135 · in) | 39 % | 39 % | 39 % | 100 % | 46 % |
+| blood_type (107 · in) | 77 % | 77 % | 77 % | 75 % | 0 % |
+| age (179 · out) | 0 % | 0 % | 3 % | 40 % | 64 % |
+| tax_id (28 · in) | 65 % | 65 % | 65 % | 100 % | 70 % |
+| cvv (99 · in) | 71 % | 71 % | 71 % | 72 % | 0 % |
 
 ### tab — 127 cases · 72746 annotated characters (32423 in the product's scope)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| character precision | 0.762 | 0.842 | 0.898 | 0.989 |
-| character recall · all labels | 0.260 | 0.425 | 0.726 | 0.529 |
-| **character F1 · all labels** | **0.388** | **0.565** | **0.803** | **0.690** |
-| character recall · product scope | 0.402 | 0.757 | 0.753 | 0.374 |
-| character F1 · product scope | 0.526 | 0.797 | 0.819 | 0.543 |
-| span-overlap F1 | 0.470 | 0.638 | 0.852 | 0.717 |
-| span-containment F1 | 0.252 | 0.418 | 0.686 | 0.695 |
-| recurring identifiers, every mention found | 6 % (500) | 32 % (500) | 49 % (500) | 35 % (500) |
-| latency during this pass (ms/case) | 92.1 · 260.2 | 1905.3 · 4359.1 | 1982.7 · 4658.6 | 3126.3 · 8939 |
+| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| character precision | 0.762 | 0.842 | 0.898 | 0.989 | 0.930 |
+| character recall · all labels | 0.260 | 0.425 | 0.726 | 0.529 | 0.652 |
+| **character F1 · all labels** | **0.388** | **0.565** | **0.803** | **0.690** | **0.766** |
+| character recall · product scope | 0.402 | 0.757 | 0.753 | 0.374 | 0.467 |
+| character F1 · product scope | 0.526 | 0.797 | 0.819 | 0.543 | 0.621 |
+| span-overlap F1 | 0.470 | 0.638 | 0.852 | 0.717 | 0.816 |
+| span-containment F1 | 0.252 | 0.418 | 0.686 | 0.695 | 0.699 |
+| recurring identifiers, every mention found | 6 % (500) | 32 % (500) | 49 % (500) | 35 % (500) | 43 % (500) |
+| latency during this pass (ms/case) | 92.1 · 260.2 | 1905.3 · 4359.1 | 1982.7 · 4658.6 | 3126.3 · 8939 | 147.4 · 349.9 |
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1 (3925) | 17 % | 23 % | 58 % | 61 % |
-| 2 (319) | 8 % | 29 % | 53 % | 39 % |
-| 3–5 (139) | 5 % | 39 % | 47 % | 25 % |
-| 6–10 (34) | 3 % | 29 % | 29 % | 32 % |
-| 11+ (8) | 0 % | 38 % | 38 % | 25 % |
+| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1 (3925) | 17 % | 23 % | 58 % | 61 % | 64 % |
+| 2 (319) | 8 % | 29 % | 53 % | 39 % | 53 % |
+| 3–5 (139) | 5 % | 39 % | 47 % | 25 % | 27 % |
+| 6–10 (34) | 3 % | 29 % | 29 % | 32 % | 21 % |
+| 11+ (8) | 0 % | 38 % | 38 % | 25 % | 13 % |
 
 Character P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1k–10k (117) | 0.766 / 0.260 / 0.388 | 0.847 / 0.426 / 0.567 | 0.902 / 0.724 / 0.803 | 0.989 / 0.535 / 0.695 |
-| ≥10k (10) | 0.737 / 0.260 / 0.385 | 0.803 / 0.424 / 0.555 | 0.877 / 0.734 / 0.799 | 0.996 / 0.489 / 0.656 |
+| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1k–10k (117) | 0.766 / 0.260 / 0.388 | 0.847 / 0.426 / 0.567 | 0.902 / 0.724 / 0.803 | 0.989 / 0.535 / 0.695 | 0.930 / 0.646 / 0.762 |
+| ≥10k (10) | 0.737 / 0.260 / 0.385 | 0.803 / 0.424 / 0.555 | 0.877 / 0.734 / 0.799 | 0.996 / 0.489 / 0.656 | 0.933 / 0.691 / 0.794 |
 
 Character recall by upstream label (spans · scope), all engines:
 
-| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| DATETIME (2468 · out/ctx) | 18 % | 18 % | 87 % | 82 % |
-| ORG (653 · ctx/in) | 17 % | 78 % | 77 % | 0 % |
-| PERSON (987 · in/ctx) | 71 % | 77 % | 77 % | 76 % |
-| LOC (391 · in/ctx) | 5 % | 76 % | 76 % | 15 % |
-| MISC (192 · out/ctx) | 1 % | 11 % | 11 % | 1 % |
-| DEM (233 · ctx/out) | 0 % | 6 % | 6 % | 12 % |
-| CODE (329 · in/ctx) | 59 % | 59 % | 59 % | 66 % |
-| QUANTITY (171 · out/ctx) | 2 % | 2 % | 2 % | 2 % |
+| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| DATETIME (2468 · out/ctx) | 18 % | 18 % | 87 % | 82 % | 99 % |
+| ORG (653 · ctx/in) | 17 % | 78 % | 77 % | 0 % | 14 % |
+| PERSON (987 · in/ctx) | 71 % | 77 % | 77 % | 76 % | 80 % |
+| LOC (391 · in/ctx) | 5 % | 76 % | 76 % | 15 % | 74 % |
+| MISC (192 · out/ctx) | 1 % | 11 % | 11 % | 1 % | 12 % |
+| DEM (233 · ctx/out) | 0 % | 6 % | 6 % | 12 % | 14 % |
+| CODE (329 · in/ctx) | 59 % | 59 % | 59 % | 66 % | 4 % |
+| QUANTITY (171 · out/ctx) | 2 % | 2 % | 2 % | 2 % | 1 % |
 ```
 
 </details>
@@ -687,7 +787,7 @@ nom trouvé comme entreprise est trouvé. C'est ainsi que Perplexity note ses ba
 
 | mesure | définition |
 |---|---|
-| P / R / F1 caractère | poolés sur le corpus : précision = part des caractères marqués par le moteur qui sont annotés ; rappel = part des caractères annotés qu'il a marqués |
+| P / R / F1, **le caractère étant l'unité** | poolés sur le corpus : précision = part des caractères marqués par le moteur qui sont annotés ; rappel = part des caractères annotés qu'il a marqués |
 | F1 chevauchement | un span annoté est trouvé dès qu'UN de ses caractères est marqué ; un span prédit est juste dès qu'il touche une annotation |
 | F1 contenance | un span annoté n'est trouvé que si TOUS ses caractères sont marqués ; un span prédit n'est juste que s'il tient entièrement dans une annotation |
 | constance | part des identifiants dont CHAQUE mention est entièrement couverte — par nombre de mentions (1 · 2 · 3–5 · 6–10 · 11+) et pour les récurrents (≥ 2) |
@@ -721,41 +821,130 @@ minuscules. Deux personnes différentes partageant un prénom dans un même docu
 donc là pour un seul identifiant — un approximant de ce que Perplexity groupe avec une
 chaîne de traitement dont nous ne disposons pas.
 
-## Les jeux
+## Les jeux — ce qu'ils contiennent vraiment
 
-Quatre des cinq bancs externes de l'article PII-TRACE (SPY n'est pas publié sur le Hub),
-récupérés par `fetch.sh` à une **révision épinglée, vérifiée par somme de contrôle**, dérivés
-par `adapt.py` avec une **graine fixe** (`20260907`) ; les identifiants tirés sont dans
-`manifest.json`, les mêmes cas se reconstruisent donc partout. Les tailles d'échantillon sont
-ce qu'une soirée sur un portable permet pour trois moteurs ; la partition est celle de Perplexity.
+Quatre des cinq bancs externes de l'article PII-TRACE (SPY n'est pas publié sur le Hub) plus
+celui de ce dépôt, tous ré-exprimés en offsets de caractères par `adapt.py`. Chacun est
+récupéré par `fetch.sh` à une **révision épinglée, vérifiée par somme de contrôle**, et
+échantillonné à **graine fixe** (`20260907`) dont les identifiants tirés sont écrits dans
+`manifest.json` — les mêmes cas se reconstruisent donc sur une autre machine.
 
-| jeu | partition · taille amont | noté ici | ce que c'est |
-|---|---|---|---|
-| ai4privacy/pii-masking-300k | validation · 47 728 | 6 000 (règles) · 2 000 (produit, PII-Tracer) | enregistrements synthétiques, 6 langues, 28 étiquettes, ~7 annotations par document |
-| nvidia/Nemotron-PII | test · 100 000 | 6 000 (règles) · 2 000 (produit, PII-Tracer) | documents anglais, 50 secteurs, 55 étiquettes dont dates, professions, démographie |
-| gretelai/synthetic_pii_finance_multilingual | test · 5 594 | 5 594 (règles) · 2 000 (produit, PII-Tracer) | documents financiers, 7 langues, 29 étiquettes dont dates et heures |
-| TAB (Pilán et al. 2022) | test · 127 | 127 (tous) | arrêts CEDH **réels, annotés à la main**, 1 à 13 k caractères, identifiants récurrents |
-| le nôtre — `../corpora/` | 907 | 907 (tous) | 18 familles de documents, 14 langues, vraies mises en page, dégâts OCR (`internal.mts`) |
+Les noms courts des figures sont ces cinq-là. Ce que chacun *est*, et à quoi ressemble un de
+ses documents :
 
-**Pourquoi la version `300k` et pas la plus grosse `400k`.** L'article évalue sur une partition
-de validation ai4privacy de 47 728 documents : c'est exactement celle-ci. La validation de
-`400k` compte 81 379 lignes avec une annotation bien plus maigre — 1,1 span par ligne contre 7,
-pas d'étiquette `DATE`, `TIME`, `SEX` ni `TITLE`, et 29 % de lignes annotées comme ne contenant
-rien alors qu'un numéro de passeport, un IBAN ou une adresse de portefeuille y figure en clair.
-Notée dessus, chaque machine est pénalisée pour avoir trouvé de vraies données personnelles que
-le fichier n'a pas marquées. Le banc l'a utilisée une après-midi ; ses chiffres ne sont pas sur
-cette page.
+### `OpenMasq` — le corpus de ce dépôt
 
-TAB est lu avec un annotateur par document (celui que le corpus marque comme contrôlé quand
-il le nomme), mentions `DIRECT` et `QUASI` en vérité, `NO_MASK` en contexte. Les chiffres TAB
-de Perplexity ne sont pas construits ainsi (l'article ne dit pas comment il regroupe les
-annotateurs) : sur cette ligne, comparez les colonnes entre elles, pas à l'article.
+907 cas, 125 caractères en médiane, 14 langues, 25 catégories, 3 394 spans annotés. Dix-huit
+familles de documents écrites pour ce moteur : imprimés administratifs français, bulletins de
+paie, actes notariés, résultats de laboratoire, bulletins scolaires, relevés bancaires,
+résultats d'outils de connecteurs, et des dégâts OCR produits plutôt que simulés. Entièrement
+synthétique — personnes inventées, identifiants recalculés valides contre leurs sommes de
+contrôle.
 
-Notre corpus est annoté en VALEURS : `internal.mts` fait de chaque occurrence isolée d'une
-valeur un span de vérité. 104 de ses 3 357 vérités n'apparaissent nulle part isolées — des
-graphies abîmées par l'OCR que le scoreur par couverture de tokens pardonne et qu'un scoreur
-d'offsets ne sait pas exprimer. Elles sont hors de cette vue, également pour chaque colonne,
-et elles comptent toujours dans `pnpm bench:compare`.
+```
+DIRECTION GÉNÉRALE DES FINANCES PUBLIQUES
+AVIS D'IMPÔT 2026 — IMPÔT SUR LE REVENU
+
+Numéro fiscal :         12 34 567 890 123
+Référence de l'avis :   20 35 A195936 32
+Numéro FIP :            350 54 32 4525937789 3
+```
+
+*C'est notre terrain, et le seul corpus ici que nous ayons écrit. À lire comme le plancher de
+régression qu'il est, pas comme une preuve contre les quatre que nous n'avons pas écrits.*
+
+### `TAB` — de vrais arrêts, annotés à la main
+
+127 cas, 3 886 caractères en médiane, anglais, 8 types d'entités, 7 565 mentions.
+[Text Anonymization Benchmark](https://aclanthology.org/2022.cl-4.19/) (Pilán et coll., 2022) :
+des arrêts de la Cour européenne des droits de l'homme, annotés par des personnes pour la
+tâche d'anonymiser une décision. **Le seul corpus de cette série qui ne soit pas synthétique**
+— et le seul où des identifiants reviennent vraiment au long d'un document.
+
+```
+PROCEDURE
+
+The case originated in an application (no. 36110/97) against the Republic of Turkey
+lodged with the European Commission of Human Rights ("the Commission") under former
+Article 25 of the Convention for the Protection of Human Rights…
+```
+
+*Sa vérité est une annotation de **réidentification**, pas une liste de données personnelles :
+les annotateurs ont marqué tout ce qui pourrait aider à identifier le requérant, si bien que
+les organisations pèsent 36 % des caractères annotés et les dates ordinaires 30 %. Les mentions
+`NO_MASK` — 2 141 sur 7 565, que les annotateurs ont jugées sans danger — sont traitées ici en
+contexte : ni vérité, ni erreur.*
+
+### `Gretel` — documents financiers synthétiques
+
+5 594 cas, 1 306 caractères en médiane, 7 langues, 29 étiquettes, 36 990 spans.
+[gretelai/synthetic_pii_finance_multilingual](https://huggingface.co/datasets/gretelai/synthetic_pii_finance_multilingual) :
+factures, relevés, avis de paiement, contrats d'assurance — et des formats bancaires de
+machine à machine (MT940, SWIFT, EDI, FIX, XBRL).
+
+```
+Sammanfattning: Samsung Pay-betalning
+Transaktions-ID: SMP-2022-003912
+Datum: 2022-04-11    Tid: 14:27:36 (CET)
+Payer: Nigel Henschel    Adress: 6 Vadim-Pohl-Ring
+```
+
+*⚠️ Sur les formats machine, sa vérité annote une adresse et laisse le mur de numéros de compte
+sans étiquette. La précision mesurée sur Gretel en dit donc autant sur la couverture de
+l'annotation que sur la retenue d'un moteur — pour chaque colonne, la nôtre comprise.*
+
+### `ai4privacy` — enregistrements synthétiques denses, six langues
+
+6 000 cas tirés de 47 728, 426 caractères en médiane, 6 langues, 28 étiquettes, 39 927 spans.
+[ai4privacy/pii-masking-300k](https://huggingface.co/datasets/ai4privacy/pii-masking-300k),
+partition de validation. **Cette version et pas la plus grosse `400k`** : l'article évalue sur
+une partition de validation de 47 728 documents, exactement celle-ci ; `400k` annote 1,1 span
+par ligne contre 7 et laisse passeports et IBAN non marqués.
+
+```
+- Gebäudenummer: 745    - Straße: Neßlach    - Stadt: Aindling
+- Bundesland: Bayern    - Postleitzahl: 86447
+- Nebenadresse: Ranch 412    - IP-Adresse: 222.232.249.225
+```
+
+*Chaque valeur y est collée à une étiquette explicite — une puce, une clé JSON, une balise XML.
+C'est ce qui en fait le corpus le plus facile pour un modèle entraîné dessus, et c'est là que
+PII-Tracer tient 96 à 100 % sur les vingt-sept étiquettes, sexe et pays compris. Voir la
+réserve dans les résultats.*
+
+### `Nemotron` — documents anglais, cinquante secteurs
+
+6 000 cas tirés de 100 000, 752 caractères en médiane, anglais, 55 étiquettes, 50 391 spans.
+[nvidia/Nemotron-PII](https://huggingface.co/datasets/nvidia/Nemotron-PII), partition de test.
+Formulaires, courriels, factures et texte libre ancrés sur des personas, structurés et non
+structurés, avec le jeu d'étiquettes le plus large des cinq — il annote la profession, le
+niveau d'études, l'opinion politique et le groupe sanguin à côté des noms et des cartes.
+
+```
+- **Policyholder Last Name:** Calderon
+- **Payment Date:** 07/15/2023
+- **Account Number:** 9826371540
+```
+
+*Ses 55 étiquettes sont la raison pour laquelle les deux vues comptent le plus ici : 14 656 de
+ses 50 391 spans sont des choses que le produit ne prétend pas masquer.*
+
+### Ce que « dans le périmètre » veut dire, corpus par corpus
+
+`adapt.py` range chaque étiquette amont dans l'un de trois périmètres, et `manifest.json` les
+compte. `in` = une donnée que le produit revendique masquer. `out` = une annotation réelle
+qu'il ne revendique pas (dates et heures ordinaires, pays, profession, données démographiques,
+opinions, coordonnées) — notée en rappel dans la seule vue toutes étiquettes. `ctx` = annotée
+amont comme n'ayant pas besoin d'être masquée (le `NO_MASK` de TAB) — jamais vérité, jamais
+erreur.
+
+| corpus | `in` | `out` | `ctx` |
+|---|---:|---:|---:|
+| OpenMasq | 3 394 | AMOUNT seul | annotations CONTEXT |
+| TAB | 2 360 | 3 064 | 2 141 |
+| Gretel | 26 686 | 10 304 | — |
+| ai4privacy | 30 955 | 8 972 | — |
+| Nemotron | 35 735 | 14 656 | — |
 
 ## Résultats — 2026-09-07
 
@@ -772,7 +961,7 @@ le sha256 de chaque entrée, de sorte qu'une figure périmée se détecte au lie
 | scoreur | `spans/metric.ts` — LE scoreur unique ; les figures ne font que dessiner |
 | entrées | 26 fichiers, sha256 dans `figures/manifest.json` |
 
-### Le chiffre de tête — F1 caractère, toutes étiquettes
+### Le chiffre de tête — F1, le CARACTÈRE étant l'unité, toutes étiquettes
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/f1-by-corpus-fr-dark.png">
@@ -781,11 +970,11 @@ le sha256 de chaque entrée, de sorte qu'une figure périmée se détecte au lie
 
 | corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
 |---|---:|---:|---:|---:|---:|---:|
-| Notre corpus / **ours** | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
-| TAB (ECHR) | 127 | 0.388 | 0.565 | 0.803 | 0.690 | — |
-| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | — |
-| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | — |
-| Nemotron-PII | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | — |
+| OpenMasq | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
+| TAB | 127 | 0.388 | 0.565 | 0.803 | 0.690 | 0.766 |
+| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | 0.421 |
+| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
+| Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
 
 La figure porte la vue **toutes étiquettes**, celle qui se compare aux chiffres publiés.
 Le même tableau sur le **périmètre du produit** — les étiquettes qu'il revendique masquer,
@@ -793,11 +982,26 @@ dates ordinaires, pays, professions et données démographiques retirés du dén
 
 | corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
 |---|---:|---:|---:|---:|---:|---:|
-| Notre corpus / **ours** | 907 | 0.908 | 0.913 | 0.925 | 0.884 | 0.550 |
-| TAB (ECHR) | 127 | 0.526 | 0.797 | 0.819 | 0.543 | — |
-| Gretel | 2 000 | 0.614 | 0.692 | 0.650 | 0.634 | — |
-| ai4privacy | 2 000 | 0.749 | 0.792 | 0.819 | 0.952 | — |
-| Nemotron-PII | 2 000 | 0.595 | 0.715 | 0.871 | 0.894 | — |
+| OpenMasq | 907 | 0.908 | 0.913 | 0.925 | 0.884 | 0.550 |
+| TAB | 127 | 0.526 | 0.797 | 0.819 | 0.543 | 0.621 |
+| Gretel | 2 000 | 0.614 | 0.692 | 0.650 | 0.634 | 0.404 |
+| ai4privacy | 2 000 | 0.749 | 0.792 | 0.819 | 0.952 | 0.575 |
+| Nemotron | 2 000 | 0.595 | 0.715 | 0.871 | 0.894 | 0.748 |
+
+
+**Presidio est désormais mesuré sur les cinq, et la cinquième colonne change la lecture.** Il
+n'avait jamais tourné que sur notre corpus, où une installation anglaise par défaut affronte
+quatorze langues et note 0,549 — un chiffre qui nous flattait par omission. Sur **TAB il note
+0,766**, au-dessus du niveau par défaut de ce produit et à 0,04 de son niveau Strict : la prose
+juridique anglaise, pleine d'organisations, de personnes et de dates, est exactement ce pour
+quoi le modèle de spaCy a été entraîné. Sur Gretel il tombe à 0,421, là où sept langues
+rencontrent une installation qui ne lit que l'anglais.
+
+Cette configuration est `AnalyzerEngine()` avec ses reconnaisseurs prédéfinis et
+`language="en"` — ce qu'un `pip install` donne, pas le plafond de Presidio, bibliothèque faite
+pour recevoir des reconnaisseurs et des modèles. Chaque chiffre ici est ce défaut, sur chaque
+corpus, et l'intérêt de le faire tourner partout est qu'une comparaison montrée sur un seul
+corpus n'est pas une comparaison.
 
 ### Ce banc reproduit-il les chiffres publiés ?
 
@@ -899,142 +1103,142 @@ jamais être portés sur un graphique de latence.
 
 ### ai4privacy — 2000 cases · 135871 annotated characters (115862 in the product's scope)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| character precision | 0.881 | 0.854 | 0.857 | 0.920 |
-| character recall · all labels | 0.558 | 0.636 | 0.732 | 0.987 |
-| **character F1 · all labels** | **0.684** | **0.729** | **0.789** | **0.952** |
-| character recall · product scope | 0.651 | 0.739 | 0.785 | 0.986 |
-| character F1 · product scope | 0.749 | 0.792 | 0.819 | 0.952 |
-| span-overlap F1 | 0.628 | 0.692 | 0.768 | 0.962 |
-| span-containment F1 | 0.578 | 0.635 | 0.708 | 0.920 |
-| recurring identifiers, every mention found | 19 % (228) | 27 % (228) | 41 % (228) | 99 % (228) |
-| latency during this pass (ms/case) | 21.8 · 68.3 | 232.7 · 559.2 | 234.7 · 502.9 | 498.3 · 713.4 |
+| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| character precision | 0.881 | 0.854 | 0.857 | 0.920 | 0.568 |
+| character recall · all labels | 0.558 | 0.636 | 0.732 | 0.987 | 0.561 |
+| **character F1 · all labels** | **0.684** | **0.729** | **0.789** | **0.952** | **0.564** |
+| character recall · product scope | 0.651 | 0.739 | 0.785 | 0.986 | 0.582 |
+| character F1 · product scope | 0.749 | 0.792 | 0.819 | 0.952 | 0.575 |
+| span-overlap F1 | 0.628 | 0.692 | 0.768 | 0.962 | 0.553 |
+| span-containment F1 | 0.578 | 0.635 | 0.708 | 0.920 | 0.466 |
+| recurring identifiers, every mention found | 19 % (228) | 27 % (228) | 41 % (228) | 99 % (228) | 30 % (228) |
+| latency during this pass (ms/case) | 21.8 · 68.3 | 232.7 · 559.2 | 234.7 · 502.9 | 498.3 · 713.4 | 21.6 · 30.8 |
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1 (12354) | 47 % | 55 % | 65 % | 99 % |
-| 2 (196) | 22 % | 31 % | 44 % | 99 % |
-| 3–5 (29) | 0 % | 3 % | 24 % | 100 % |
-| 6–10 (3) | 0 % | 0 % | 33 % | 67 % |
+| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1 (12354) | 47 % | 55 % | 65 % | 99 % | 41 % |
+| 2 (196) | 22 % | 31 % | 44 % | 99 % | 31 % |
+| 3–5 (29) | 0 % | 3 % | 24 % | 100 % | 24 % |
+| 6–10 (3) | 0 % | 0 % | 33 % | 67 % | 33 % |
 
 Character F1 by language (all labels):
 
-| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| German (1031) | 0.692 | 0.746 | 0.803 | 0.950 |
-| English (969) | 0.674 | 0.709 | 0.774 | 0.955 |
+| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| de (1031) | 0.692 | 0.746 | 0.803 | 0.950 | 0.472 |
+| en (969) | 0.674 | 0.709 | 0.774 | 0.955 | 0.703 |
 
 Character recall by upstream label (spans · scope), all engines:
 
-| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| IP (599 · in) | 95 % | 95 % | 95 % | 98 % |
-| EMAIL (614 · in) | 97 % | 98 % | 98 % | 98 % |
-| SOCIALNUMBER (709 · in) | 49 % | 49 % | 49 % | 100 % |
-| USERNAME (768 · in) | 11 % | 19 % | 51 % | 95 % |
-| DRIVERLICENSE (568 · in) | 65 % | 65 % | 65 % | 99 % |
-| BOD (607 · in) | 64 % | 64 % | 92 % | 100 % |
-| TEL (508 · in) | 72 % | 72 % | 72 % | 96 % |
-| IDCARD (666 · in) | 82 % | 83 % | 82 % | 100 % |
-| PASSPORT (712 · in) | 83 % | 83 % | 83 % | 100 % |
-| STREET (422 · in) | 42 % | 90 % | 90 % | 100 % |
-| DATE (450 · out) | 1 % | 1 % | 74 % | 100 % |
-| TIME (1014 · out) | 2 % | 2 % | 72 % | 99 % |
-| CITY (445 · in) | 67 % | 95 % | 95 % | 100 % |
-| LASTNAME1 (560 · in) | 43 % | 82 % | 82 % | 99 % |
-| GIVENNAME1 (483 · in) | 51 % | 79 % | 79 % | 97 % |
-| PASS (400 · in) | 58 % | 58 % | 59 % | 96 % |
-| TITLE (528 · out) | 8 % | 14 % | 15 % | 94 % |
-| SEX (534 · out) | 6 % | 7 % | 7 % | 99 % |
-| POSTCODE (449 · in) | 74 % | 74 % | 74 % | 100 % |
-| STATE (447 · in) | 14 % | 76 % | 76 % | 100 % |
-| COUNTRY (365 · out) | 1 % | 1 % | 2 % | 100 % |
-| SECADDRESS (190 · in) | 63 % | 66 % | 66 % | 100 % |
-| BUILDING (422 · in) | 44 % | 44 % | 44 % | 100 % |
-| LASTNAME2 (163 · in) | 32 % | 82 % | 82 % | 100 % |
-| GEOCOORD (60 · out) | 0 % | 0 % | 0 % | 100 % |
-| GIVENNAME2 (128 · in) | 37 % | 74 % | 74 % | 96 % |
-| LASTNAME3 (53 · in) | 22 % | 70 % | 70 % | 100 % |
+| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| IP (599 · in) | 95 % | 95 % | 95 % | 98 % | 96 % |
+| EMAIL (614 · in) | 97 % | 98 % | 98 % | 98 % | 98 % |
+| SOCIALNUMBER (709 · in) | 49 % | 49 % | 49 % | 100 % | 58 % |
+| USERNAME (768 · in) | 11 % | 19 % | 51 % | 95 % | 27 % |
+| DRIVERLICENSE (568 · in) | 65 % | 65 % | 65 % | 99 % | 36 % |
+| BOD (607 · in) | 64 % | 64 % | 92 % | 100 % | 77 % |
+| TEL (508 · in) | 72 % | 72 % | 72 % | 96 % | 55 % |
+| IDCARD (666 · in) | 82 % | 83 % | 82 % | 100 % | 74 % |
+| PASSPORT (712 · in) | 83 % | 83 % | 83 % | 100 % | 49 % |
+| STREET (422 · in) | 42 % | 90 % | 90 % | 100 % | 44 % |
+| DATE (450 · out) | 1 % | 1 % | 74 % | 100 % | 75 % |
+| TIME (1014 · out) | 2 % | 2 % | 72 % | 99 % | 39 % |
+| CITY (445 · in) | 67 % | 95 % | 95 % | 100 % | 47 % |
+| LASTNAME1 (560 · in) | 43 % | 82 % | 82 % | 99 % | 41 % |
+| GIVENNAME1 (483 · in) | 51 % | 79 % | 79 % | 97 % | 37 % |
+| PASS (400 · in) | 58 % | 58 % | 59 % | 96 % | 8 % |
+| TITLE (528 · out) | 8 % | 14 % | 15 % | 94 % | 18 % |
+| SEX (534 · out) | 6 % | 7 % | 7 % | 99 % | 17 % |
+| POSTCODE (449 · in) | 74 % | 74 % | 74 % | 100 % | 27 % |
+| STATE (447 · in) | 14 % | 76 % | 76 % | 100 % | 20 % |
+| COUNTRY (365 · out) | 1 % | 1 % | 2 % | 100 % | 62 % |
+| SECADDRESS (190 · in) | 63 % | 66 % | 66 % | 100 % | 8 % |
+| BUILDING (422 · in) | 44 % | 44 % | 44 % | 100 % | 3 % |
+| LASTNAME2 (163 · in) | 32 % | 82 % | 82 % | 100 % | 41 % |
+| GEOCOORD (60 · out) | 0 % | 0 % | 0 % | 100 % | 2 % |
+| GIVENNAME2 (128 · in) | 37 % | 74 % | 74 % | 96 % | 46 % |
+| LASTNAME3 (53 · in) | 22 % | 70 % | 70 % | 100 % | 45 % |
 
 ### gretel — 2000 cases · 212640 annotated characters (169592 in the product's scope)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| character precision | 0.679 | 0.639 | 0.569 | 0.606 |
-| character recall · all labels | 0.449 | 0.603 | 0.707 | 0.614 |
-| **character F1 · all labels** | **0.540** | **0.620** | **0.630** | **0.610** |
-| character recall · product scope | 0.560 | 0.753 | 0.757 | 0.663 |
-| character F1 · product scope | 0.614 | 0.692 | 0.650 | 0.634 |
-| span-overlap F1 | 0.525 | 0.582 | 0.636 | 0.581 |
-| span-containment F1 | 0.411 | 0.472 | 0.535 | 0.531 |
-| recurring identifiers, every mention found | 37 % (1870) | 51 % (1870) | 59 % (1870) | 55 % (1870) |
-| latency during this pass (ms/case) | 29.1 · 86.3 | 1177.8 · 2373.3 | 1191.7 · 2386.5 | 1464.4 · 1880 |
+| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| character precision | 0.679 | 0.639 | 0.569 | 0.606 | 0.350 |
+| character recall · all labels | 0.449 | 0.603 | 0.707 | 0.614 | 0.529 |
+| **character F1 · all labels** | **0.540** | **0.620** | **0.630** | **0.610** | **0.421** |
+| character recall · product scope | 0.560 | 0.753 | 0.757 | 0.663 | 0.477 |
+| character F1 · product scope | 0.614 | 0.692 | 0.650 | 0.634 | 0.404 |
+| span-overlap F1 | 0.525 | 0.582 | 0.636 | 0.581 | 0.501 |
+| span-containment F1 | 0.411 | 0.472 | 0.535 | 0.531 | 0.407 |
+| recurring identifiers, every mention found | 37 % (1870) | 51 % (1870) | 59 % (1870) | 55 % (1870) | 44 % (1870) |
+| latency during this pass (ms/case) | 29.1 · 86.3 | 1177.8 · 2373.3 | 1191.7 · 2386.5 | 1464.4 · 1880 | 57.7 · 86.8 |
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1 (7977) | 29 % | 35 % | 51 % | 60 % |
-| 2 (1236) | 42 % | 52 % | 61 % | 61 % |
-| 3–5 (519) | 32 % | 50 % | 55 % | 47 % |
-| 6–10 (108) | 12 % | 38 % | 50 % | 24 % |
-| 11+ (7) | 14 % | 29 % | 29 % | 14 % |
+| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1 (7977) | 29 % | 35 % | 51 % | 60 % | 45 % |
+| 2 (1236) | 42 % | 52 % | 61 % | 61 % | 49 % |
+| 3–5 (519) | 32 % | 50 % | 55 % | 47 % | 35 % |
+| 6–10 (108) | 12 % | 38 % | 50 % | 24 % | 24 % |
+| 11+ (7) | 14 % | 29 % | 29 % | 14 % | 0 % |
 
 Character P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1k–10k (1427) | 0.745 / 0.436 / 0.550 | 0.670 / 0.591 / 0.628 | 0.589 / 0.688 / 0.634 | 0.795 / 0.561 / 0.658 |
-| <1k (573) | 0.536 / 0.493 / 0.514 | 0.558 / 0.645 / 0.598 | 0.516 / 0.772 / 0.619 | 0.385 / 0.793 / 0.519 |
+| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1k–10k (1427) | 0.745 / 0.436 / 0.550 | 0.670 / 0.591 / 0.628 | 0.589 / 0.688 / 0.634 | 0.795 / 0.561 / 0.658 | 0.344 / 0.526 / 0.416 |
+| <1k (573) | 0.536 / 0.493 / 0.514 | 0.558 / 0.645 / 0.598 | 0.516 / 0.772 / 0.619 | 0.385 / 0.793 / 0.519 | 0.372 / 0.541 / 0.441 |
 
 Character F1 by language (all labels):
 
-| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| en (1033) | 0.546 | 0.613 | 0.636 | 0.632 |
-| de (187) | 0.548 | 0.635 | 0.658 | 0.631 |
-| sv (161) | 0.506 | 0.636 | 0.620 | 0.599 |
-| nl (156) | 0.484 | 0.577 | 0.553 | 0.510 |
-| it (159) | 0.573 | 0.626 | 0.622 | 0.567 |
-| es (166) | 0.499 | 0.618 | 0.613 | 0.551 |
-| fr (138) | 0.589 | 0.685 | 0.687 | 0.648 |
+| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| en (1033) | 0.546 | 0.613 | 0.636 | 0.632 | 0.543 |
+| de (187) | 0.548 | 0.635 | 0.658 | 0.631 | 0.315 |
+| sv (161) | 0.506 | 0.636 | 0.620 | 0.599 | 0.356 |
+| nl (156) | 0.484 | 0.577 | 0.553 | 0.510 | 0.316 |
+| it (159) | 0.573 | 0.626 | 0.622 | 0.567 | 0.305 |
+| es (166) | 0.499 | 0.618 | 0.613 | 0.551 | 0.284 |
+| fr (138) | 0.589 | 0.685 | 0.687 | 0.648 | 0.412 |
 
 Character recall by upstream label (spans · scope), all engines:
 
-| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| name (3559 · in) | 61 % | 76 % | 76 % | 75 % |
-| street_address (1562 · in) | 64 % | 80 % | 81 % | 95 % |
-| company (2375 · in) | 23 % | 64 % | 65 % | 5 % |
-| date (3107 · out) | 1 % | 1 % | 48 % | 40 % |
-| email (502 · in) | 96 % | 97 % | 97 % | 96 % |
-| time (504 · out) | 1 % | 1 % | 68 % | 50 % |
-| phone_number (341 · in) | 76 % | 76 % | 76 % | 90 % |
-| ipv6 (60 · in) | 91 % | 91 % | 91 % | 77 % |
-| iban (63 · in) | 94 % | 94 % | 94 % | 99 % |
-| bban (64 · in) | 63 % | 63 % | 63 % | 100 % |
-| api_key (27 · in) | 88 % | 88 % | 88 % | 93 % |
-| swift_bic_code (87 · in) | 45 % | 45 % | 45 % | 99 % |
-| date_of_birth (86 · in) | 79 % | 79 % | 89 % | 87 % |
-| credit_card_number (54 · in) | 86 % | 86 % | 86 % | 100 % |
-| local_latlng (34 · in) | 30 % | 30 % | 30 % | 97 % |
-| first_name (112 · in) | 33 % | 94 % | 94 % | 98 % |
-| last_name (67 · in) | 49 % | 94 % | 95 % | 73 % |
-| customer_id (63 · in) | 67 % | 67 % | 67 % | 92 % |
-| ssn (53 · in) | 58 % | 58 % | 58 % | 100 % |
-| password (42 · in) | 48 % | 48 % | 48 % | 100 % |
-| ipv4 (40 · in) | 100 % | 100 % | 100 % | 100 % |
-| employee_id (60 · in) | 63 % | 63 % | 63 % | 89 % |
-| bank_routing_number (56 · in) | 63 % | 63 % | 63 % | 100 % |
-| driver_license_number (35 · in) | 72 % | 72 % | 72 % | 100 % |
-| passport_number (47 · in) | 78 % | 78 % | 78 % | 98 % |
-| date_time (20 · out) | 0 % | 0 % | 97 % | 100 % |
-| account_pin (63 · in) | 55 % | 55 % | 55 % | 100 % |
-| user_name (21 · in) | 15 % | 40 % | 42 % | 93 % |
-| credit_card_security_code (64 · in) | 50 % | 50 % | 50 % | 97 % |
+| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| name (3559 · in) | 61 % | 76 % | 76 % | 75 % | 67 % |
+| street_address (1562 · in) | 64 % | 80 % | 81 % | 95 % | 43 % |
+| company (2375 · in) | 23 % | 64 % | 65 % | 5 % | 9 % |
+| date (3107 · out) | 1 % | 1 % | 48 % | 40 % | 77 % |
+| email (502 · in) | 96 % | 97 % | 97 % | 96 % | 97 % |
+| time (504 · out) | 1 % | 1 % | 68 % | 50 % | 47 % |
+| phone_number (341 · in) | 76 % | 76 % | 76 % | 90 % | 79 % |
+| ipv6 (60 · in) | 91 % | 91 % | 91 % | 77 % | 74 % |
+| iban (63 · in) | 94 % | 94 % | 94 % | 99 % | 76 % |
+| bban (64 · in) | 63 % | 63 % | 63 % | 100 % | 9 % |
+| api_key (27 · in) | 88 % | 88 % | 88 % | 93 % | 20 % |
+| swift_bic_code (87 · in) | 45 % | 45 % | 45 % | 99 % | 1 % |
+| date_of_birth (86 · in) | 79 % | 79 % | 89 % | 87 % | 80 % |
+| credit_card_number (54 · in) | 86 % | 86 % | 86 % | 100 % | 65 % |
+| local_latlng (34 · in) | 30 % | 30 % | 30 % | 97 % | 55 % |
+| first_name (112 · in) | 33 % | 94 % | 94 % | 98 % | 63 % |
+| last_name (67 · in) | 49 % | 94 % | 95 % | 73 % | 37 % |
+| customer_id (63 · in) | 67 % | 67 % | 67 % | 92 % | 41 % |
+| ssn (53 · in) | 58 % | 58 % | 58 % | 100 % | 82 % |
+| password (42 · in) | 48 % | 48 % | 48 % | 100 % | 7 % |
+| ipv4 (40 · in) | 100 % | 100 % | 100 % | 100 % | 100 % |
+| employee_id (60 · in) | 63 % | 63 % | 63 % | 89 % | 44 % |
+| bank_routing_number (56 · in) | 63 % | 63 % | 63 % | 100 % | 100 % |
+| driver_license_number (35 · in) | 72 % | 72 % | 72 % | 100 % | 52 % |
+| passport_number (47 · in) | 78 % | 78 % | 78 % | 98 % | 93 % |
+| date_time (20 · out) | 0 % | 0 % | 97 % | 100 % | 64 % |
+| account_pin (63 · in) | 55 % | 55 % | 55 % | 100 % | 73 % |
+| user_name (21 · in) | 15 % | 40 % | 42 % | 93 % | 19 % |
+| credit_card_security_code (64 · in) | 50 % | 50 % | 50 % | 97 % | 3 % |
 
 ### internal — 907 cases · 49588 annotated characters (49392 in the product's scope)
 
@@ -1115,137 +1319,137 @@ Character recall by upstream label (spans · scope), all engines:
 
 ### nemotron — 2000 cases · 242739 annotated characters (187018 in the product's scope)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| character precision | 0.886 | 0.875 | 0.912 | 0.965 |
-| character recall · all labels | 0.345 | 0.470 | 0.731 | 0.747 |
-| **character F1 · all labels** | **0.497** | **0.612** | **0.811** | **0.842** |
-| character recall · product scope | 0.447 | 0.605 | 0.833 | 0.833 |
-| character F1 · product scope | 0.595 | 0.715 | 0.871 | 0.894 |
-| span-overlap F1 | 0.562 | 0.683 | 0.802 | 0.857 |
-| span-containment F1 | 0.496 | 0.604 | 0.726 | 0.801 |
-| recurring identifiers, every mention found | 41 % (2276) | 60 % (2276) | 73 % (2276) | 68 % (2276) |
-| latency during this pass (ms/case) | 35.1 · 85.8 | 469.6 · 1369.8 | 481.1 · 1307.7 | 678 · 1548.5 |
+| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| character precision | 0.886 | 0.875 | 0.912 | 0.965 | 0.871 |
+| character recall · all labels | 0.345 | 0.470 | 0.731 | 0.747 | 0.598 |
+| **character F1 · all labels** | **0.497** | **0.612** | **0.811** | **0.842** | **0.709** |
+| character recall · product scope | 0.447 | 0.605 | 0.833 | 0.833 | 0.656 |
+| character F1 · product scope | 0.595 | 0.715 | 0.871 | 0.894 | 0.748 |
+| span-overlap F1 | 0.562 | 0.683 | 0.802 | 0.857 | 0.751 |
+| span-containment F1 | 0.496 | 0.604 | 0.726 | 0.801 | 0.651 |
+| recurring identifiers, every mention found | 41 % (2276) | 60 % (2276) | 73 % (2276) | 68 % (2276) | 56 % (2276) |
+| latency during this pass (ms/case) | 35.1 · 85.8 | 469.6 · 1369.8 | 481.1 · 1307.7 | 678 · 1548.5 | 34.5 · 87 |
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1 (10821) | 37 % | 46 % | 65 % | 82 % |
-| 2 (1498) | 43 % | 59 % | 74 % | 74 % |
-| 3–5 (661) | 39 % | 64 % | 72 % | 59 % |
-| 6–10 (110) | 25 % | 55 % | 60 % | 38 % |
-| 11+ (7) | 29 % | 57 % | 71 % | 29 % |
+| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1 (10821) | 37 % | 46 % | 65 % | 82 % | 60 % |
+| 2 (1498) | 43 % | 59 % | 74 % | 74 % | 60 % |
+| 3–5 (661) | 39 % | 64 % | 72 % | 59 % | 54 % |
+| 6–10 (110) | 25 % | 55 % | 60 % | 38 % | 27 % |
+| 11+ (7) | 29 % | 57 % | 71 % | 29 % | 43 % |
 
 Character P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1k–10k (675) | 0.885 / 0.300 / 0.447 | 0.861 / 0.449 / 0.591 | 0.903 / 0.719 / 0.801 | 0.975 / 0.661 / 0.788 |
-| <1k (1325) | 0.888 / 0.388 / 0.540 | 0.887 / 0.490 / 0.631 | 0.920 / 0.742 / 0.821 | 0.957 / 0.828 / 0.888 |
+| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1k–10k (675) | 0.885 / 0.300 / 0.447 | 0.861 / 0.449 / 0.591 | 0.903 / 0.719 / 0.801 | 0.975 / 0.661 / 0.788 | 0.833 / 0.551 / 0.663 |
+| <1k (1325) | 0.888 / 0.388 / 0.540 | 0.887 / 0.490 / 0.631 | 0.920 / 0.742 / 0.821 | 0.957 / 0.828 / 0.888 | 0.904 / 0.642 / 0.751 |
 
 Character recall by upstream label (spans · scope), all engines:
 
-| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| url (831 · in) | 1 % | 2 % | 100 % | 87 % |
-| company_name (1043 · in) | 15 % | 91 % | 91 % | 2 % |
-| email (879 · in) | 99 % | 100 % | 100 % | 100 % |
-| occupation (773 · out) | 0 % | 4 % | 4 % | 1 % |
-| date (1455 · out) | 0 % | 0 % | 92 % | 78 % |
-| http_cookie (124 · in) | 47 % | 47 % | 52 % | 83 % |
-| first_name (1616 · in) | 76 % | 99 % | 99 % | 99 % |
-| last_name (1131 · in) | 87 % | 99 % | 99 % | 98 % |
-| street_address (354 · in) | 71 % | 83 % | 83 % | 99 % |
-| phone_number (448 · in) | 45 % | 45 % | 45 % | 100 % |
-| credit_debit_card (271 · in) | 37 % | 37 % | 37 % | 100 % |
-| account_number (403 · in) | 83 % | 83 % | 83 % | 100 % |
-| api_key (96 · in) | 89 % | 89 % | 89 % | 100 % |
-| county (312 · in) | 25 % | 98 % | 98 % | 65 % |
-| time (520 · out) | 1 % | 1 % | 68 % | 57 % |
-| user_name (337 · in) | 16 % | 56 % | 63 % | 100 % |
-| date_time (194 · out) | 0 % | 0 % | 97 % | 95 % |
-| city (418 · in) | 21 % | 98 % | 98 % | 74 % |
-| customer_id (374 · in) | 85 % | 85 % | 85 % | 100 % |
-| coordinate (171 · out) | 0 % | 0 % | 0 % | 95 % |
-| education_level (225 · out) | 0 % | 2 % | 2 % | 1 % |
-| date_of_birth (269 · in) | 95 % | 95 % | 100 % | 100 % |
-| medical_record_number (245 · in) | 58 % | 58 % | 58 % | 100 % |
-| employment_status (262 · out) | 2 % | 2 % | 2 % | 6 % |
-| state (427 · in) | 9 % | 86 % | 86 % | 65 % |
-| ipv6 (66 · in) | 61 % | 61 % | 61 % | 100 % |
-| health_plan_beneficiary_number (169 · in) | 18 % | 18 % | 18 % | 100 % |
-| biometric_identifier (172 · in) | 41 % | 42 % | 43 % | 99 % |
-| password (164 · in) | 24 % | 24 % | 25 % | 97 % |
-| ipv4 (134 · in) | 100 % | 100 % | 100 % | 100 % |
-| bank_routing_number (191 · in) | 80 % | 80 % | 80 % | 100 % |
-| ssn (153 · in) | 87 % | 87 % | 87 % | 100 % |
-| political_view (116 · out) | 0 % | 10 % | 10 % | 42 % |
-| vehicle_identifier (91 · in) | 99 % | 99 % | 99 % | 100 % |
-| country (435 · out) | 0 % | 2 % | 2 % | 49 % |
-| swift_bic (122 · in) | 97 % | 97 % | 97 % | 100 % |
-| mac_address (77 · in) | 97 % | 97 % | 97 % | 100 % |
-| fax_number (109 · in) | 19 % | 19 % | 19 % | 100 % |
-| religious_belief (110 · out) | 1 % | 2 % | 2 % | 73 % |
-| employee_id (174 · in) | 76 % | 76 % | 76 % | 100 % |
-| certificate_license_number (113 · in) | 4 % | 4 % | 4 % | 100 % |
-| unique_id (39 · in) | 26 % | 26 % | 29 % | 100 % |
-| language (149 · out) | 0 % | 0 % | 0 % | 9 % |
-| device_identifier (47 · in) | 23 % | 23 % | 23 % | 100 % |
-| race_ethnicity (156 · out) | 0 % | 6 % | 6 % | 69 % |
-| license_plate (98 · in) | 1 % | 1 % | 1 % | 96 % |
-| gender (141 · out) | 0 % | 0 % | 0 % | 72 % |
-| sexuality (90 · out) | 0 % | 0 % | 0 % | 75 % |
-| pin (123 · in) | 74 % | 74 % | 74 % | 95 % |
-| postcode (135 · in) | 39 % | 39 % | 39 % | 100 % |
-| blood_type (107 · in) | 77 % | 77 % | 77 % | 75 % |
-| age (179 · out) | 0 % | 0 % | 3 % | 40 % |
-| tax_id (28 · in) | 65 % | 65 % | 65 % | 100 % |
-| cvv (99 · in) | 71 % | 71 % | 71 % | 72 % |
+| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| url (831 · in) | 1 % | 2 % | 100 % | 87 % | 92 % |
+| company_name (1043 · in) | 15 % | 91 % | 91 % | 2 % | 1 % |
+| email (879 · in) | 99 % | 100 % | 100 % | 100 % | 100 % |
+| occupation (773 · out) | 0 % | 4 % | 4 % | 1 % | 0 % |
+| date (1455 · out) | 0 % | 0 % | 92 % | 78 % | 94 % |
+| http_cookie (124 · in) | 47 % | 47 % | 52 % | 83 % | 11 % |
+| first_name (1616 · in) | 76 % | 99 % | 99 % | 99 % | 90 % |
+| last_name (1131 · in) | 87 % | 99 % | 99 % | 98 % | 88 % |
+| street_address (354 · in) | 71 % | 83 % | 83 % | 99 % | 31 % |
+| phone_number (448 · in) | 45 % | 45 % | 45 % | 100 % | 100 % |
+| credit_debit_card (271 · in) | 37 % | 37 % | 37 % | 100 % | 55 % |
+| account_number (403 · in) | 83 % | 83 % | 83 % | 100 % | 72 % |
+| api_key (96 · in) | 89 % | 89 % | 89 % | 100 % | 3 % |
+| county (312 · in) | 25 % | 98 % | 98 % | 65 % | 94 % |
+| time (520 · out) | 1 % | 1 % | 68 % | 57 % | 69 % |
+| user_name (337 · in) | 16 % | 56 % | 63 % | 100 % | 28 % |
+| date_time (194 · out) | 0 % | 0 % | 97 % | 95 % | 84 % |
+| city (418 · in) | 21 % | 98 % | 98 % | 74 % | 79 % |
+| customer_id (374 · in) | 85 % | 85 % | 85 % | 100 % | 64 % |
+| coordinate (171 · out) | 0 % | 0 % | 0 % | 95 % | 10 % |
+| education_level (225 · out) | 0 % | 2 % | 2 % | 1 % | 2 % |
+| date_of_birth (269 · in) | 95 % | 95 % | 100 % | 100 % | 100 % |
+| medical_record_number (245 · in) | 58 % | 58 % | 58 % | 100 % | 83 % |
+| employment_status (262 · out) | 2 % | 2 % | 2 % | 6 % | 0 % |
+| state (427 · in) | 9 % | 86 % | 86 % | 65 % | 85 % |
+| ipv6 (66 · in) | 61 % | 61 % | 61 % | 100 % | 84 % |
+| health_plan_beneficiary_number (169 · in) | 18 % | 18 % | 18 % | 100 % | 53 % |
+| biometric_identifier (172 · in) | 41 % | 42 % | 43 % | 99 % | 88 % |
+| password (164 · in) | 24 % | 24 % | 25 % | 97 % | 6 % |
+| ipv4 (134 · in) | 100 % | 100 % | 100 % | 100 % | 100 % |
+| bank_routing_number (191 · in) | 80 % | 80 % | 80 % | 100 % | 100 % |
+| ssn (153 · in) | 87 % | 87 % | 87 % | 100 % | 99 % |
+| political_view (116 · out) | 0 % | 10 % | 10 % | 42 % | 1 % |
+| vehicle_identifier (91 · in) | 99 % | 99 % | 99 % | 100 % | 3 % |
+| country (435 · out) | 0 % | 2 % | 2 % | 49 % | 82 % |
+| swift_bic (122 · in) | 97 % | 97 % | 97 % | 100 % | 4 % |
+| mac_address (77 · in) | 97 % | 97 % | 97 % | 100 % | 100 % |
+| fax_number (109 · in) | 19 % | 19 % | 19 % | 100 % | 100 % |
+| religious_belief (110 · out) | 1 % | 2 % | 2 % | 73 % | 20 % |
+| employee_id (174 · in) | 76 % | 76 % | 76 % | 100 % | 34 % |
+| certificate_license_number (113 · in) | 4 % | 4 % | 4 % | 100 % | 65 % |
+| unique_id (39 · in) | 26 % | 26 % | 29 % | 100 % | 10 % |
+| language (149 · out) | 0 % | 0 % | 0 % | 9 % | 0 % |
+| device_identifier (47 · in) | 23 % | 23 % | 23 % | 100 % | 23 % |
+| race_ethnicity (156 · out) | 0 % | 6 % | 6 % | 69 % | 0 % |
+| license_plate (98 · in) | 1 % | 1 % | 1 % | 96 % | 5 % |
+| gender (141 · out) | 0 % | 0 % | 0 % | 72 % | 0 % |
+| sexuality (90 · out) | 0 % | 0 % | 0 % | 75 % | 1 % |
+| pin (123 · in) | 74 % | 74 % | 74 % | 95 % | 84 % |
+| postcode (135 · in) | 39 % | 39 % | 39 % | 100 % | 46 % |
+| blood_type (107 · in) | 77 % | 77 % | 77 % | 75 % | 0 % |
+| age (179 · out) | 0 % | 0 % | 3 % | 40 % | 64 % |
+| tax_id (28 · in) | 65 % | 65 % | 65 % | 100 % | 70 % |
+| cvv (99 · in) | 71 % | 71 % | 71 % | 72 % | 0 % |
 
 ### tab — 127 cases · 72746 annotated characters (32423 in the product's scope)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| character precision | 0.762 | 0.842 | 0.898 | 0.989 |
-| character recall · all labels | 0.260 | 0.425 | 0.726 | 0.529 |
-| **character F1 · all labels** | **0.388** | **0.565** | **0.803** | **0.690** |
-| character recall · product scope | 0.402 | 0.757 | 0.753 | 0.374 |
-| character F1 · product scope | 0.526 | 0.797 | 0.819 | 0.543 |
-| span-overlap F1 | 0.470 | 0.638 | 0.852 | 0.717 |
-| span-containment F1 | 0.252 | 0.418 | 0.686 | 0.695 |
-| recurring identifiers, every mention found | 6 % (500) | 32 % (500) | 49 % (500) | 35 % (500) |
-| latency during this pass (ms/case) | 92.1 · 260.2 | 1905.3 · 4359.1 | 1982.7 · 4658.6 | 3126.3 · 8939 |
+| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| character precision | 0.762 | 0.842 | 0.898 | 0.989 | 0.930 |
+| character recall · all labels | 0.260 | 0.425 | 0.726 | 0.529 | 0.652 |
+| **character F1 · all labels** | **0.388** | **0.565** | **0.803** | **0.690** | **0.766** |
+| character recall · product scope | 0.402 | 0.757 | 0.753 | 0.374 | 0.467 |
+| character F1 · product scope | 0.526 | 0.797 | 0.819 | 0.543 | 0.621 |
+| span-overlap F1 | 0.470 | 0.638 | 0.852 | 0.717 | 0.816 |
+| span-containment F1 | 0.252 | 0.418 | 0.686 | 0.695 | 0.699 |
+| recurring identifiers, every mention found | 6 % (500) | 32 % (500) | 49 % (500) | 35 % (500) | 43 % (500) |
+| latency during this pass (ms/case) | 92.1 · 260.2 | 1905.3 · 4359.1 | 1982.7 · 4658.6 | 3126.3 · 8939 | 147.4 · 349.9 |
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1 (3925) | 17 % | 23 % | 58 % | 61 % |
-| 2 (319) | 8 % | 29 % | 53 % | 39 % |
-| 3–5 (139) | 5 % | 39 % | 47 % | 25 % |
-| 6–10 (34) | 3 % | 29 % | 29 % | 32 % |
-| 11+ (8) | 0 % | 38 % | 38 % | 25 % |
+| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1 (3925) | 17 % | 23 % | 58 % | 61 % | 64 % |
+| 2 (319) | 8 % | 29 % | 53 % | 39 % | 53 % |
+| 3–5 (139) | 5 % | 39 % | 47 % | 25 % | 27 % |
+| 6–10 (34) | 3 % | 29 % | 29 % | 32 % | 21 % |
+| 11+ (8) | 0 % | 38 % | 38 % | 25 % | 13 % |
 
 Character P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| 1k–10k (117) | 0.766 / 0.260 / 0.388 | 0.847 / 0.426 / 0.567 | 0.902 / 0.724 / 0.803 | 0.989 / 0.535 / 0.695 |
-| ≥10k (10) | 0.737 / 0.260 / 0.385 | 0.803 / 0.424 / 0.555 | 0.877 / 0.734 / 0.799 | 0.996 / 0.489 / 0.656 |
+| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| 1k–10k (117) | 0.766 / 0.260 / 0.388 | 0.847 / 0.426 / 0.567 | 0.902 / 0.724 / 0.803 | 0.989 / 0.535 / 0.695 | 0.930 / 0.646 / 0.762 |
+| ≥10k (10) | 0.737 / 0.260 / 0.385 | 0.803 / 0.424 / 0.555 | 0.877 / 0.734 / 0.799 | 0.996 / 0.489 / 0.656 | 0.933 / 0.691 / 0.794 |
 
 Character recall by upstream label (spans · scope), all engines:
 
-| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer |
-|---|---:|---:|---:|---:|
-| DATETIME (2468 · out/ctx) | 18 % | 18 % | 87 % | 82 % |
-| ORG (653 · ctx/in) | 17 % | 78 % | 77 % | 0 % |
-| PERSON (987 · in/ctx) | 71 % | 77 % | 77 % | 76 % |
-| LOC (391 · in/ctx) | 5 % | 76 % | 76 % | 15 % |
-| MISC (192 · out/ctx) | 1 % | 11 % | 11 % | 1 % |
-| DEM (233 · ctx/out) | 0 % | 6 % | 6 % | 12 % |
-| CODE (329 · in/ctx) | 59 % | 59 % | 59 % | 66 % |
-| QUANTITY (171 · out/ctx) | 2 % | 2 % | 2 % | 2 % |
+| label | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| DATETIME (2468 · out/ctx) | 18 % | 18 % | 87 % | 82 % | 99 % |
+| ORG (653 · ctx/in) | 17 % | 78 % | 77 % | 0 % | 14 % |
+| PERSON (987 · in/ctx) | 71 % | 77 % | 77 % | 76 % | 80 % |
+| LOC (391 · in/ctx) | 5 % | 76 % | 76 % | 15 % | 74 % |
+| MISC (192 · out/ctx) | 1 % | 11 % | 11 % | 1 % | 12 % |
+| DEM (233 · ctx/out) | 0 % | 6 % | 6 % | 12 % | 14 % |
+| CODE (329 · in/ctx) | 59 % | 59 % | 59 % | 66 % | 4 % |
+| QUANTITY (171 · out/ctx) | 2 % | 2 % | 2 % | 2 % | 1 % |
 ```
 
 </details>

@@ -218,13 +218,13 @@ committed detections so the column needs no Python to verify.
 
 ### At character level, on public benchmarks
 
-The tables above score **values**: a truth counts when most of its tokens were replaced. That
-is the right measure for a regression floor and the wrong one for a reader who knows the
-literature, where a detector is judged on **character offsets, on public datasets, with
-precision as well as recall**. So the engine is also measured that way, on the protocol of
+The tables above score **values**: a truth counts when most of its tokens were replaced. Below,
+the unit of measurement is the **character** — every annotated character is one unit, so a name
+found but cut short scores partly rather than fully, and an engine that paints past the edge of
+a value pays for it. That is how the literature judges a detector, and it is the protocol of
 Perplexity's [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
-paper, against **PII-Tracer** — the 0.6B detector Perplexity open-sourced — on four public
-corpora plus ours.
+paper, run here against **PII-Tracer** — the 0.6B detector Perplexity open-sourced — and against
+**Presidio**, on four public corpora plus ours.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-en-dark.png">
@@ -233,11 +233,16 @@ corpora plus ours.
 
 | corpus | cases | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
 |---|---:|---:|---:|---:|---:|---:|
-| Notre corpus / **ours** | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
-| TAB (ECHR) | 127 | 0.388 | 0.565 | 0.803 | 0.690 | — |
-| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | — |
-| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | — |
-| Nemotron-PII | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | — |
+| OpenMasq | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
+| TAB | 127 | 0.388 | 0.565 | 0.803 | 0.690 | 0.766 |
+| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | 0.421 |
+| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
+| Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
+
+Presidio's column is a **default `pip install`** — predefined recognizers, `language="en"` —
+run on all five corpora, not only on ours. It matters: on TAB, English formal prose, that
+default scores **0.766**, above this product's own default level. Showing it on one corpus
+only would have been a comparison in name.
 
 **The bench reproduces the author's own published figures on two of the four**: 0.952 against
 0.950 on ai4privacy, 0.842 against 0.847 on Nemotron-PII, with a metric written from the
@@ -589,12 +594,12 @@ seconde copie traduite dériverait de la première au prochain relevé.
 ### Au caractère près, sur des bancs publics
 
 Les tableaux ci-dessus notent des **valeurs** : une vérité compte quand la plupart de ses
-tokens ont été remplacés. C'est la bonne mesure pour un plancher de régression et la mauvaise
-pour un lecteur qui connaît la littérature, où un détecteur se juge **aux offsets de
-caractères, sur des jeux publics, en précision autant qu'en rappel**. Le moteur est donc aussi
-mesuré ainsi, selon le protocole de l'article [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
-de Perplexity, face à **PII-Tracer** — le détecteur de 0,6 Md que Perplexity a ouvert — sur
-quatre corpus publics plus le nôtre.
+tokens ont été remplacés. Ci-dessous, l'unité de mesure est le **caractère** — chaque caractère
+annoté vaut une unité, si bien qu'un nom trouvé mais coupé compte en partie et non en entier, et
+qu'un moteur qui déborde d'une valeur le paie. C'est ainsi que la littérature juge un détecteur,
+et c'est le protocole de l'article [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
+de Perplexity, exécuté ici face à **PII-Tracer** — le détecteur de 0,6 Md que Perplexity a
+ouvert — et face à **Presidio**, sur quatre corpus publics plus le nôtre.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-fr-dark.png">
@@ -603,11 +608,16 @@ quatre corpus publics plus le nôtre.
 
 | corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
 |---|---:|---:|---:|---:|---:|---:|
-| Notre corpus / **ours** | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
-| TAB (ECHR) | 127 | 0.388 | 0.565 | 0.803 | 0.690 | — |
-| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | — |
-| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | — |
-| Nemotron-PII | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | — |
+| OpenMasq | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
+| TAB | 127 | 0.388 | 0.565 | 0.803 | 0.690 | 0.766 |
+| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | 0.421 |
+| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
+| Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
+
+La colonne Presidio est une **installation `pip` par défaut** — reconnaisseurs prédéfinis,
+`language="en"` — exécutée sur les cinq corpus et pas seulement sur le nôtre. Cela compte :
+sur TAB, prose juridique anglaise, ce défaut note **0,766**, au-dessus du niveau par défaut de
+ce produit. Ne la montrer que sur un corpus aurait été une comparaison de nom seulement.
 
 **Le banc reproduit les chiffres que l'auteur publie sur deux des quatre** : 0,952 contre
 0,950 sur ai4privacy, 0,842 contre 0,847 sur Nemotron-PII, avec une métrique écrite à partir

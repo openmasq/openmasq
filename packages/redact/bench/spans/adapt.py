@@ -116,7 +116,8 @@ def ai4privacy(n):
                   "entity": key(m["label"].rstrip("123"), m["value"]),
                   "scope": "out" if m["label"] in AI4_OUT else "in"}
                  for m in (r.get("privacy_mask") or [])]
-        out.append({"id": f"ai4-{i}-{r['id']}", "lang": r["language"], "text": r["source_text"], "spans": spans})
+        out.append({"id": f"ai4-{i}-{r['id']}", "lang": LANG.get(r["language"], r["language"]),
+                    "text": r["source_text"], "spans": spans})
     return out
 
 def nemotron(n):
@@ -133,7 +134,10 @@ def nemotron(n):
                     "meta": {"uid": r["uid"], "locale": r["locale"], "format": r["document_format"]}})
     return out
 
-GRETEL_LANG = {"English": "en", "German": "de", "Dutch": "nl", "Spanish": "es", "Italian": "it", "Swedish": "sv", "France": "fr", "French": "fr"}
+# Upstream writes a language as it pleases — "English", "France", "en". One vocabulary here,
+# ISO 639-1, so a per-language table reads the same whichever corpus produced the row.
+LANG = {"English": "en", "German": "de", "Dutch": "nl", "Spanish": "es", "Italian": "it",
+        "Swedish": "sv", "France": "fr", "French": "fr", "Portuguese": "pt", "Polish": "pl"}
 
 def gretel(n):
     t = pq.read_table(os.path.join(DATA, "gretel-test.parquet"), columns=["index", "generated_text", "pii_spans", "language", "document_type"]).to_pylist()
@@ -143,7 +147,7 @@ def gretel(n):
         spans = [{"start": s["start"], "end": s["end"], "label": s["label"],
                   "entity": key(s["label"], text[s["start"]:s["end"]]),
                   "scope": "out" if s["label"] in GRETEL_OUT else "in"} for s in json.loads(r["pii_spans"])]
-        out.append({"id": f"gretel-{r['index']}", "lang": GRETEL_LANG.get(r["language"], r["language"]), "text": text, "spans": spans,
+        out.append({"id": f"gretel-{r['index']}", "lang": LANG.get(r["language"], r["language"]), "text": text, "spans": spans,
                     "meta": {"document_type": r["document_type"]}})
     return out
 

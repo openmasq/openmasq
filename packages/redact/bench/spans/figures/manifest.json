@@ -1,6 +1,6 @@
 {
  "redactVersion": "0.1.0",
- "commit": "f734012",
+ "commit": "078a715",
  "engineTreeDirty": true,
  "measured": "2026-09-07",
  "figuresGenerated": "2026-09-07",
@@ -46,10 +46,12 @@
   "ai4privacy.ner.json": "902f2b82d147a0a1beff8bd21fff9de75794bea778df22a414701e4e4746bdf3",
   "ai4privacy.patterns.json": "802ceac80e0af261bf0efaf3a407a5b542ed5fd8575fb8c7564d18128f950de0",
   "ai4privacy.pplx.json": "1841dd3699550c8a77208db04ef0e2026d8854bedf45f6d7aa7b84f26932bdad",
+  "ai4privacy.presidio.json": "028bf66bee9b09735ef78e15c7b0e19de3613643c0dd9e15b77cb835c7cc9784",
   "gretel.ner-strict.json": "4715d08e5b0af5e6ec1258c432a664f02b4a403013db08a9fcfc25317f77bbab",
   "gretel.ner.json": "a9439be79479f76e77da981eec10273257e7ed2fabe2cd2dedfb9196d8f12f6d",
   "gretel.patterns.json": "bd3cda038e23b9835862be0a80fbce9a40819ed8946d745d87691f85ba67d6da",
   "gretel.pplx.json": "8e1a1034bcda972820dccb9a2d29dcd9ec13fa20d27e4c3c0867078993aa6179",
+  "gretel.presidio.json": "aef325e45e11bfa46faa03428c411f355521aeb667d0b77c621f14b6f4096249",
   "internal.ner-strict.json": "f84aa9cd78ee2a381b356d85f63ed4c6759e2996699720f19ae4355e90222697",
   "internal.ner.json": "29acedd0272f9a90058f357f1f5a603d99d609401ce3807918869e318e8b83f4",
   "internal.patterns.json": "2dd102cc2af1107ec7f63d003501ad63c810c89c8bcf27263c437948bde60251",
@@ -62,11 +64,13 @@
   "nemotron.ner.json": "c1503b30d2bfc321eb71102d2d080f9f892b2319d54afa1e8f7d338c023be2d5",
   "nemotron.patterns.json": "1e737a21bc68d468960d15f1d3974920f63fb11293bc24e381c9f71c958d89b6",
   "nemotron.pplx.json": "de8cdf2cb04f9a8437016fef68c17908a6e46616534f4dc2c5addc165e599221",
-  "scores.json": "c991f162368819b1d121aadefd1fb09ed1149d43a94c2f348a4879e4a5c5f7e2",
+  "nemotron.presidio.json": "0e8b525408c3fa3fa419c794ada1c156ed26859912eabf58f10bdd7d71913034",
+  "scores.json": "7eb648a8925cd28421e80e76fd3d8ef320c0f93ad039af1b3fa238769e724a01",
   "tab.ner-strict.json": "5e9ce1b8a2385fe135680aec1927075883f2d750508c003df7f550c1b49a61f9",
   "tab.ner.json": "2a935ba5c25850625a7ebb2c785a5f460da6e3ac8aa87f2c53ef4a83dc24b26e",
   "tab.patterns.json": "f8d67be78bbf1f6dd3d7d5ddd74e040e5d2f649aa0ba72c7cc414f7021b0222e",
   "tab.pplx.json": "1149ee292858fa0f89a97c6476a9759557ee2dffbb41726ccba916e57de7cf0e",
+  "tab.presidio.json": "462f0469f31718c086beed610766dd27a2731b384eae778aeaaf9c8a91c87b18",
   "manifest.json": "06bf806ce7460d90902fda969a2869ed43fbb2ee8ee441904184b614ce4016cb"
  }
 }
