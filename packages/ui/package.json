@@ -44,7 +44,7 @@
     "mammoth": "^1.12.2",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
-    "react-markdown": "^9.0.1",
+    "react-markdown": "^10.1.0",
     "react-redux": "^9.1.2",
     "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.0",
