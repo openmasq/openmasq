@@ -1,11 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { PROVIDERS } from "@openmasq/llm";
 import { ALL_MODELS, findModelAny, selectableModels } from "../../prompt/models";
 import { visibleModels, type UnavailableReason } from "../../send/modelAvailability";
 import { AUTO_MODEL_LABEL, isAutoModelId } from "../../send/autoRoute";
 import { ChevDownIcon, ModelLogo, ZapIcon } from "../brand";
-import { CountryFlag } from "../media/CountryFlag";
 import { FinderMenu, type MenuPos } from "./FinderMenu";
 import { SimpleMenu } from "./SimpleMenu";
 
@@ -137,7 +135,6 @@ export function ModelSelector({ value, onChange, disabled, allowedModelIds, unav
             `min-width:auto`, so the chip could never yield width and the composer row
             overflowed sideways whenever the send button morphed (« Masquage »). */}
         <span className="model-chip-label">{auto ? AUTO_MODEL_LABEL : current.label}</span>
-        {!auto && <CountryFlag host={PROVIDERS[current.provider].hostCountry} size={12} />}
         <span className="chev">
           <ChevDownIcon size={14} />
         </span>

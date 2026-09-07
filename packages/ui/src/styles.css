@@ -4720,23 +4720,28 @@ body.resizing-split {
   z-index: 1;
   outline: none;
   resize: none;
-  /* Text stays fully visible (no typing lag); the transparent background lets the
-     backdrop's live-redaction highlights show through behind it. */
-  color: var(--text-strong);
+  /* The GLYPHS are painted by the backdrop, not by the field: the textarea only carries
+     the caret, the selection and the input. The backdrop mirrors the SAME controlled
+     `value` in the SAME render, so there is no typing lag to fear — and this is what lets
+     a redacted span take the hue's ink (`--mk-ink`) instead of the field's, which in the
+     dark theme was white on a pastel band while every other mark reads dark. */
+  color: transparent;
+  caret-color: var(--text-strong);
   background: transparent;
 }
 .composer-input::placeholder {
   color: var(--text-faint);
 }
-/* Backdrop behind the textarea: renders the SAME text (invisible), so only the
-   `.composer-mark` backgrounds paint — exactly aligned with the visible text. */
+/* Backdrop behind the textarea: renders the SAME text, and it is the copy you READ —
+   the field's own text is transparent (see `.composer-input`), so a mark can give its
+   span the hue's ink. Exactly aligned with the textarea: same font rule above. */
 .composer-highlight {
   position: absolute;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  color: transparent;
+  color: var(--text-strong);
 }
 /* ═══════════ THE hue → token map — the ONLY place a `.hl-<hue>` class resolves ══════
    A surface that paints a redaction adds `hl-<hue>` (the hue name from `hueForKind`, i.e.
@@ -4761,14 +4766,12 @@ body.resizing-split {
 .hl-lime   { --mk: var(--hl-lime);   --mk-ink: var(--ink-on-hl-lime);   --mk-soft: var(--hl-lime-soft); }
 .composer-mark {
   border-radius: 3px;
-  /* The band paints BEHIND the textarea's own text, so its ink is the FIELD's and can't
-     follow the hue — which is why the fill is indirected through `--mark-band`: a theme
-     whose palette went saturated would re-point it to `--mk-soft` rather than swallow the
-     typed text. No theme needs that today (all four palettes are light pastels), so the
-     hook is the escape hatch, not a live override. The keyframe reads the same token, or
-     it would win at fill-mode `both`. */
+  /* Fill and ink from the hue tokens, like `.redaction-mark` in the messages: the
+     backdrop paints the glyphs, so the span reads in `--mk-ink` on `--mk` in both themes.
+     `--mark-band` stays as the indirection the keyframe reads (fill-mode `both`). */
   --mark-band: var(--mk, var(--hl-amber));
   background: var(--mark-band);
+  color: var(--mk-ink, var(--ink-on-hl));
   /* Light appear animation when a new sensitive item is detected (stable keys →
      an existing mark isn't remounted, so this plays once, not on every keypress). */
   animation: composer-mark-in 0.22s var(--ease-out, ease-out) both;
@@ -10666,7 +10669,6 @@ body.resizing-split {
 }
 .md tbody tr:last-child td { border-bottom: none; }
 .md tbody tr:nth-child(even) { background: var(--surface-sunken); }
-.md .katex-display { margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; }
 .md .katex-display { margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; }
 
 /* ── Composer file attachments ────────────────────────────────────────────── */
