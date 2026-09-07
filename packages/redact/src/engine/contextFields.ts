@@ -190,3 +190,4 @@ export {
   detectFiscalNumbers,
   detectContractNumbers,
 } from "./contextFields.numbers";
+export { detectLabeledCodes } from "./contextFields.codes";

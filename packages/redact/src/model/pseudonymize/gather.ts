@@ -2,7 +2,7 @@ import type { Detection } from "../../types";
 import { LABELS, RULES } from "../../engine/rules";
 import { longestValidPrefix } from "../../engine/validators";
 import { detectPhones } from "../../engine/phones";
-import { detectSelfHandles, detectLabeledFields, detectAccountNumbers, detectFiscalNumbers, detectContractNumbers } from "../../engine/contextFields";
+import { detectSelfHandles, detectLabeledFields, detectAccountNumbers, detectFiscalNumbers, detectContractNumbers, detectLabeledCodes } from "../../engine/contextFields";
 import { detectIdentityDocFields } from "../../engine/identityDocs";
 import { detectAddresses } from "../../engine/addresses";
 import { detectAddressComplements } from "../../engine/addressComplement";
@@ -83,6 +83,7 @@ export async function gatherCandidates(
   candidates.push(...detectAccountNumbers(input));
   candidates.push(...detectFiscalNumbers(input));
   candidates.push(...detectContractNumbers(input));
+  candidates.push(...detectLabeledCodes(input));
   candidates.push(...detectIdentityDocFields(input));
   candidates.push(...detectHonorificNames(input));
   candidates.push(...detectOrgContext(input));
