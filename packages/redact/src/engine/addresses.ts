@@ -13,7 +13,10 @@
 // category, country}` for `pseudonymize`. Deterministic + language-agnostic-by-extension.
 import type { Detection } from "../types";
 
-import { PRE, SUF, DE, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./addressShapes";
+import { PRE, SUF, SUF_LONG, DE, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./addressShapes";
+
+/** `SUF_LONG` with each word in its two casings (see shape D'). */
+const SUF_LONG_CASED = SUF_LONG.split("|").map((w) => `[${w[0]!.toUpperCase()}${w[0]}]${w.slice(1)}`).join("|");
 import { trimAddressTail } from "./addressTail";
 
 // Re-exported: `trimAddressTail` used to live here, and consumers import it from this path.
@@ -108,6 +111,15 @@ export function detectAddresses(text: string): Detection[] {
   pushAll(
     text,
     new RegExp(`\\b\\d{1,5}(?:${W}(?:${SUF})|${H}+${NAME}${H}+(?:${SUF}))\\b${TAIL_CITYZIP}`, "giu"),
+    "ADDRESS", out, seen, 6, anglo,
+  );
+  // Shape D' — the LONG street-type list (`SUF_LONG`): number → CAPITALISED name → type.
+  // Case-SENSITIVE on purpose, unlike D (« 12 small hills » must stay prose) — so the type
+  // words carry their own two casings (« Terrace » / « terrace ») instead of the `i` flag,
+  // which would fold the `\p{Lu}` guard away with them.
+  pushAll(
+    text,
+    new RegExp(`\\b\\d{1,5}${H}+\\p{Lu}${NAME}${H}+(?:${SUF_LONG_CASED})\\b${TAIL_CITYZIP}`, "gu"),
     "ADDRESS", out, seen, 6, anglo,
   );
   // FR minor street types ("2 mail Camille du Gast", sente/venelle/hameau/clos) —

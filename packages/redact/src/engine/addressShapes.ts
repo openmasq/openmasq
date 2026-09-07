@@ -6,6 +6,25 @@
 // name precedes the type (EN); `de` = name+type compound then number (DE/NL).
 export const PRE = "rue|r|avenue|av|ave|boulevard|bd|bld|all[ée]e|impasse|imp|place|pl|chemin|route|rte|quai|cours|passage|square|voie|faubourg|sentier|venelle|hameau|lotissement|résidence|residence|esplanade|parvis|rond-point|calle|avenida|avda|paseo|plaza|camino|carretera|via|viale|corso|piazza|vicolo|largo|strada|rua|travessa|pra[çc]a";
 export const SUF = "street|avenue|ave|road|rd|boulevard|blvd|lane|drive|way|court|place|square";
+// The LONG list of EN street types — USPS Publication 28 — that a US address generator
+// draws from (« 4893 Justin Terrace », « 030 Campbell Motorway », « 052 Katie Pine »).
+// Measured 2026-09-07 (`bench/spans/`): with `SUF` alone the product kept the street and
+// DROPPED THE HOUSE NUMBER, the one part that finds the door. ⚠️ Only ever the LAST word of
+// a « number Name Type » shape whose Name is CAPITALISED (`addresses.ts` shape D'):
+// « park », « green », « point », « spring » are ordinary words, and « ST » is Saint —
+// none may follow a bare number the way `SUF` does. No two-letter abbreviations.
+export const SUF_LONG =
+  "terrace|parkway|pkwy|highway|hwy|motorway|freeway|expressway|turnpike|trail|circle" +
+  "|crescent|close|row|walk|path|pass|passage|alley|mews|grove|gardens|garden|gate|gateway|heights" +
+  "|hollow|hill|hills|ridge|run|creek|brook|cliffs|cliff|ports|port|harbor|harbour|haven|isle|island|islands" +
+  "|junction|landing|loop|manor|meadow|meadows|mill|mills|mission|mount|mountain|mountains|neck|orchard" +
+  "|oval|overpass|park|parks|pike|pine|pines|plain|plains|plaza|point|points|prairie|ramp|ranch|rapids" +
+  "|rest|river|shore|shores|spring|springs|spur|station|stream|summit|throughway|trace|track|tunnel" +
+  "|underpass|valley|view|views|village|ville|vista|wall|wells|well|crossing|causeway|center|centre" +
+  "|common|commons|corner|corners|course|cove|coves|dale|dam|divide|estates|estate|extension|falls|ferry" +
+  "|field|fields|flat|flats|ford|forest|forge|fork|forks|fort|glen|glens|green|greens|inlet|key|keys|knoll" +
+  "|knolls|lake|lakes|light|lights|loaf|lock|locks|lodge|mall|bypass|camp|canyon|cape|burg|burgs|bluff|bluffs" +
+  "|bottom|branch|bridge|bend|beach|bayou|arcade|annex|viaduct|walks|ways";
 export const DE = "stra(?:ße|sse)|str|weg|platz|gasse|allee|ring|laan|straat|plein";
 
 // `H` = horizontal space; `W` = a join that tolerates ONE line wrap. The distinction is
