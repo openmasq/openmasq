@@ -40,6 +40,21 @@ export const US_RULES: RedactionRule[] = [
     pattern: gate("aba|routing|bank routing|aba routing", String.raw`[0123678]\d{8}`),
     validate: abaRoutingValid,
   },
+  // A PAYMENT CARD under an EXPLICIT card label, WITHOUT the Luhn check. The shape rules
+  // above (`rules.ts`) require the checksum, and that is right for a bare run — but a
+  // number introduced by « credit/debit card number », « Kartennummer », « tarjeta » IS
+  // the card whether or not its check digit adds up: measured on 2026-09-07
+  // (`bench/spans/`), 682 of Nemotron-PII's 764 annotated cards and 62 of Gretel's 118
+  // fail Luhn (synthetic corpora invent digits), and the product found a quarter of them
+  // while a label-reading detector found 97 %. Real cards pass Luhn and are claimed by the
+  // shape rules first (`RULES` order); this only adds what a label vouches for.
+  {
+    type: "card",
+    pattern: gate(
+      String.raw`(?:credit|debit|credit/debit|credit debit|payment|bank)\s+card(?:\s+(?:number|no|n[°º]))?|card\s+(?:number|no|n[°º])|kartennummer|kreditkarte(?:nnummer)?|n[úu]mero\s+de\s+tarjeta|tarjeta\s+de\s+cr[ée]dito|numero\s+(?:di\s+)?carta|carta\s+di\s+credito|kaartnummer|kortnummer|creditcard(?:nummer)?|num[ée]ro\s+de\s+carte|carte\s+(?:bancaire|de\s+cr[ée]dit)`,
+      String.raw`\d(?:[   -]?\d){11,18}`,
+    ),
+  },
   // US bank account — a bare 8–17 digit run has no checksum, so ONLY when a bank
   // context word precedes it (else it would eat every long number).
   {
