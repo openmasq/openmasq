@@ -1,4 +1,7 @@
 import { isStopword, isGenericTerm } from "../model/genericTerms";
+import {
+  DOB_TERMS_WORLD, ID_TERMS_WORLD, PHONE_TERMS_WORLD, USERNAME_TERMS_WORLD, WORLD_GROUPS,
+} from "./contextFields.labels.world";
 // The label VOCABULARY of the `label : value` detector — data only, split from
 // contextFields.ts (LOC cap): the matching/cleaning logic stays there; coverage
 // grows HERE, by adding label terms per language. Genuinely-identifying field
@@ -20,6 +23,10 @@ export interface LabelGroup {
    * isolated field, never prose.
    */
   serialisedOnly?: string[];
+  /** The value must carry a digit — a PIN, a routing number. Defaults to the category's
+   *  own rule (`contextFields.values.ts` NUMERIC_CATS); set it to make a SECRET group
+   *  numeric without making every password one. */
+  numeric?: boolean;
 }
 
 // Genuinely-identifying field labels only (never generic "Objet"/"Note"/"Ref").
@@ -48,6 +55,7 @@ export const LABEL_GROUPS: LabelGroup[] = [
       // never a bare "usuario"-alone-means-id word that isn't the LOGIN label).
       "benutzername", "anmeldename", "nombre de usuario", "nome utente",
       "nome de utilizador", "utilizador", "gebruikersnaam", "nazwa użytkownika",
+      ...USERNAME_TERMS_WORLD,
     ],
   },
   {
@@ -129,6 +137,7 @@ export const LABEL_GROUPS: LabelGroup[] = [
       "telefone", "telemóvel", "telemovel",
       // CJK: phone
       "電話", "電話番号", "携帯", "电话", "手机", "联系电话", "电话号码", "전화", "전화번호", "휴대폰", "연락처",
+      ...PHONE_TERMS_WORLD,
     ],
   },
   {
@@ -146,6 +155,7 @@ export const LABEL_GROUPS: LabelGroup[] = [
       "date of birth", "geburtsdatum", "fecha de nacimiento", "data di nascita",
       // CJK: date of birth
       "生年月日", "出生日期", "生日", "생년월일",
+      ...DOB_TERMS_WORLD,
     ],
   },
   {
@@ -204,59 +214,10 @@ export const LABEL_GROUPS: LabelGroup[] = [
       // CJK: national id / postal code
       "マイナンバー", "個人番号", "身份证", "身份证号", "证件号", "주민등록번호",
       "邮编", "邮政编码", "우편번호", "郵便番号",
+      ...ID_TERMS_WORLD,
     ],
   },
-  {
-    // PASSWORDS, CODES AND KEYS. The group was ENTIRELY missing, and it's the
-    // most serious miss in the audit: a password has NO shape at all — « maison2026! » is
-    // indistinguishable from an ordinary word, « 4581 » from any number. Anchoring on
-    // the label is therefore the ONLY possible mechanism for this category.
-    //
-    // ⚠️ The compounds are explicit because the INLINE matcher, unlike
-    // `labelOf`, tolerates no qualifier between the term and the colon:
-    // « Mdp wifi : … » is only reachable if « mdp wifi » is listed as-is.
-    category: "SECRET",
-    terms: [
-      "mot de passe", "mots de passe", "mdp", "mdp wifi", "mot de passe wifi",
-      // OBSERVED compounds (the inline matcher tolerates no free qualifier).
-      "mot de passe applicatif", "mot de passe admin", "mot de passe administrateur",
-      "code wifi", "clé wifi", "cle wifi", "clé wpa", "cle wpa", "clé de sécurité",
-      "cle de securite", "code secret", "code confidentiel", "code d'accès",
-      "code d'acces", "code pin", "code du coffre", "code coffre",
-      "clé de licence", "cle de licence", "clé licence", "cle licence",
-      "clé d'activation", "cle d'activation", "clé produit", "cle produit",
-      "password", "passwd", "passphrase", "pass phrase", "licence key", "license key",
-      "product key", "activation key", "api key", "secret key", "access token",
-      "passwort", "kennwort", "lizenzschlüssel", "lizenzschlussel",
-      "contraseña", "contrasena", "clave de licencia", "clave de acceso",
-      "chiave di licenza", "parola d'ordine",
-      "palavra-passe", "senha", "chave de licença", "chave de licenca",
-    ],
-  },
-  {
-    category: "IBAN",
-    terms: ["iban", "rib", "numéro iban", "n° iban"],
-  },
-  {
-    category: "CARD",
-    terms: [
-      "numéro de carte", "numero de carte", "numéro de carte bancaire", "carte bancaire",
-      "n° carte", "card number", "credit card", "card no",
-    ],
-  },
-  {
-    category: "POSTAL_CODE",
-    // Stripe `address.postal_code`, PayPal `postal_code`, Square `postal_code`,
-    // Airtable/Notion `CP`, Graph `postalCode`: a serialised payload's postal code
-    // never has a prose form.
-    serialisedOnly: ["cp", "zip", "zipcode", "postal", "cap", "plz", "codpostal"],
-    terms: [
-      "code postal", "codigo postal", "código postal", "postal code", "postcode",
-      "zip code", "plz",
-      // CJK: postal code
-      "邮编", "邮政编码", "郵便番号", "우편번호",
-    ],
-  },
+  ...WORLD_GROUPS,
 ];
 
 /** Is this single word one of the label vocabulary's own terms? */

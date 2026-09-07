@@ -35,7 +35,9 @@ export function cleanValue(raw: string): string {
   // greedy capture would carry off the next field, and the fake would rewrite the birth
   // date at the same time as the identifier. The SIMPLE hyphen is excluded: it lives
   // inside names and addresses (« Saint-Ouen », « 12-14 rue »).
-  let v = raw.split(/\t|　|\s{2,}|\s\|\s|\s[—–]\s/u)[0] ?? raw;
+  // …and the MIDDLE DOT / BULLET the same way (« Customer ID: Xe-97453 · SSN: … »): a
+  // one-line record separates its fields with it, and the SSN value kept « · » glued.
+  let v = raw.split(/\t|　|\s{2,}|\s\|\s|\s[—–·•]\s/u)[0] ?? raw;
   // Next field: a short token (Latin word OR CJK run) immediately before a colon —
   // INCLUDING the "N° xxx :" label form ("Nom et prénom : REBOUR Jean N° sécu :
   // 184…" — without it the whole rest of the line became the NAME value, the NIR
@@ -104,6 +106,7 @@ function trimNameValue(v: string): string {
 export function acceptFieldValue(
   raw: string,
   groupCategory: string,
+  numeric: boolean = NUMERIC_CATS.has(groupCategory),
 ): { value: string; category: string } | null {
   let value = raw;
   if (groupCategory === "ORG") value = stripOrgAffixes(value);
@@ -126,15 +129,12 @@ export function acceptFieldValue(
   // A numeric-kind field (phone/IBAN/card/CP/date) whose "value" carries NO digit is
   // prose, not the field's value — never redact a sentence as a PHONE (its
   // digit-faker would be an identity pass-through).
-  if (NUMERIC_CATS.has(groupCategory) && !/\d/.test(value)) return null;
+  if (numeric && !/\d/.test(value)) return null;
   // …and a digit is not enough: a SENTENCE that happens to carry a date ("Fait à Lyon,
   // le 06/02/2026 —") satisfied the digit test and was vaulted as an IBAN, so the fake
   // rewrote a whole clause of the document. An identifier/phone/postal value is not
   // prose: two or more FUNCTION words in it means we captured a sentence.
-  if (
-    NUMERIC_CATS.has(groupCategory) &&
-    value.split(/[\s,;]+/u).filter((w) => w && isStopword(w)).length >= 2
-  ) {
+  if (numeric && value.split(/[\s,;]+/u).filter((w) => w && isStopword(w)).length >= 2) {
     return null;
   }
   if (/^(n\/?a|néant|neant|none|null|undefined|non renseigné|-+|—+)$/iu.test(value)) return null;

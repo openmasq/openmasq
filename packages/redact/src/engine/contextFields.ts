@@ -85,7 +85,7 @@ export function detectLabeledFields(text: string): Detection[] {
       // Canonicalising an ORG value, trimming a NAME, the FP gates and the CITY→PLACE
       // promotion are all `acceptFieldValue` — shared with the vertical, serialised and
       // BLOCK passes so no copy of the gate can drift (rule 9).
-      const ok = acceptFieldValue(cleanValue(rawValue), group.category);
+      const ok = acceptFieldValue(cleanValue(rawValue), group.category, group.numeric);
       if (!ok) continue;
       const { value, category } = ok;
       const key = `${category}::${value}`;
@@ -122,7 +122,7 @@ export function detectLabeledFields(text: string): Detection[] {
       // vaulted the word "Prénom" as a person and then redacted every later occurrence
       // of it. `labelOf` is the same test the BLOCK pass uses (one vocabulary, one rule).
       if (/[:：]/.test(rawV) || labelOf(rawV)) continue;
-      const okv = acceptFieldValue(rawV, group.category);
+      const okv = acceptFieldValue(rawV, group.category, group.numeric);
       if (!okv) continue;
       const { value, category } = okv;
       const key = `${category}::${value}`;
@@ -152,19 +152,34 @@ export function detectLabeledFields(text: string): Detection[] {
       .sort((a, b) => b.length - a.length)
       .map(flex)
       .join("|");
+    // A serialised key may wear an IDENTIFIER SUFFIX the prose label never does —
+    // `Telefonnummer_id`, `Führerschein_id`, `TeacherID`, `customer-no` (measured 2026-09-07
+    // on ai4privacy, `bench/spans/`: 16 % of its records are such payloads, and every one of
+    // those keys missed). Tolerated only here, glued or `_`/`-`-joined to the term.
+    const KEY_SUFFIX = `(?:[_\\s-]?(?:id|nr|no|num|number|nummer|code))?`;
     const qre = new RegExp(
-      `(?<![\\p{L}])["'\`]?(?:${qalt})s?["'\`]?[^\\S\\r\\n]*[:=][^\\S\\r\\n]*["'\`]([^"'\`\\n\\r]{2,120})["'\`]`,
+      `(?<![\\p{L}])["'\`]?(?:${qalt})s?${KEY_SUFFIX}["'\`]?[^\\S\\r\\n]*[:=][^\\S\\r\\n]*["'\`]([^"'\`\\n\\r]{2,120})["'\`]`,
       "giu",
     );
-    let qm: RegExpExecArray | null;
-    while ((qm = qre.exec(text)) !== null) {
-      const okq = acceptFieldValue((qm[1] ?? "").trim(), group.category);
-      if (!okq) continue;
-      const { value, category } = okq;
-      const key = `${category}::${value}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({ value, category, start: qm.index });
+    // …and the XML ELEMENT form — `<Username>manaka</Username>`, `<postcode>79774</postcode>`
+    // — where the tag IS the label and the closing `<` bounds the value exactly, the same
+    // proof the quotes give above. 13 % of ai4privacy's records; an API response or a
+    // config file pasted into a chat looks like this. Attributes on the tag are tolerated.
+    const xre = new RegExp(
+      `<\\s*(?:${qalt})s?${KEY_SUFFIX}(?:\\s[^<>]{0,80})?>\\s*([^<>\\n\\r]{1,120}?)\\s*<\\s*/`,
+      "giu",
+    );
+    for (const re2 of [qre, xre]) {
+      let qm: RegExpExecArray | null;
+      while ((qm = re2.exec(text)) !== null) {
+        const okq = acceptFieldValue((qm[1] ?? "").trim(), group.category, group.numeric);
+        if (!okq) continue;
+        const { value, category } = okq;
+        const key = `${category}::${value}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({ value, category, start: qm.index });
+      }
     }
   }
   return out;
