@@ -177,7 +177,7 @@ export const ORGS = [
   // scoped like every entry here, so "Claude"/"Gemini" the FIRST NAMES stay protected
   // under the "name" category — only the product reading is spared.
   "Excel", "PowerPoint", "Windows", "macOS",
-  "iOS", "iPhone", "iPad", "MacBook", "Android", "Chrome", "Firefox", "Safari",
+  "iOS", "iPhone", "iPad", "MacBook", "Android", "Chrome", "Firefox", "Mozilla", "Safari",
   "ChatGPT", "Copilot", "Gemini", "Claude", "DeepSeek", "Perplexity",
   // The AI TOOLS the app cites itself (Settings: « Model on your
   // computer » names Ollama and LM Studio) + the app. VERSIONED MODEL names

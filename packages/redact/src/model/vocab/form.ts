@@ -82,4 +82,9 @@ export const FORM_TERMS: string[] = [
   "judiciaire", "judiciaires", "notarial", "notariale", "fiscal", "fiscale",
   "sociale", "administratif", "administrative", "française", "francaise",
   "républicaine", "republicaine", "république", "republique",
+  // ── Placeholders — the scaffolding of a TEMPLATE (measured 2026-09-07 on Gretel,
+  // `bench/spans/`): « XYZ » faked 37 times, « ABC » 33, « Anytown » 35. A template names
+  // nobody; the value that REPLACES the placeholder is caught by its own detector. ─────
+  "xyz", "abc", "anytown", "example", "placeholder", "lorem ipsum", "ehr",
+  "electronic health record",
 ];

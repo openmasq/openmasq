@@ -51,8 +51,14 @@ const CALENDAR_TERMS = new Set([
   "jan", "janv", "feb", "févr", "fevr", "apr", "avr", "jul", "juil", "aug", "sept", "sep",
   "oct", "nov", "dec", "déc",
 ]);
+/** A MARKUP tag — « <br> », « </label> », « <p> » — is document structure, never a value.
+ *  Measured 2026-09-07 on ai4privacy (`bench/spans/`), whose records separate fields with
+ *  literal « <br> »: the NER tagged the tag, and the fake rewrote the page's own markup. */
+const MARKUP_TAG = /^<\/?[a-z][\w:.-]*(?:\s[^<>]*)?\/?>$/i;
+
 export function isGenericTerm(value: string): boolean {
   const lower = value.trim().toLowerCase();
+  if (MARKUP_TAG.test(lower)) return true;
   if (GENERIC_TERMS.has(lower)) return true;
   // A glued abbreviation period (« Aug. », « janv. ») is part of the word, not the value.
   if (CALENDAR_TERMS.has(lower.replace(/\.$/, ""))) return true;

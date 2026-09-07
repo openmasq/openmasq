@@ -56,6 +56,18 @@ const BODIES: string[] = [
   "chambre de commerce", "chambre des métiers", "chambre des metiers",
   "chambre d'agriculture", "direction départementale", "direction departementale",
   "agence régionale de santé", "agence regionale de sante",
+  // ── English / international — the bodies a judgment or an official letter names
+  // (measured 2026-09-07 on TAB, `bench/spans/`: « Ministry of Foreign Affairs »,
+  // « European Commission of Human Rights », « Secretary of State for the Home
+  // Department » — each vaulted as somebody's employer). Same narrowness: a FUNCTION of a
+  // State, never the establishment attached to a named person (no « university of »).
+  "ministry of", "ministry for", "department of", "department for", "secretary of state",
+  "office of the", "government of", "parliament of", "council of", "commission of",
+  "commissioner for", "commissioner of", "ombudsman", "supreme court", "high court",
+  "court of appeal", "district court", "county court", "crown court", "constitutional court",
+  "court of cassation", "european court", "european commission", "european parliament",
+  "council of europe", "united nations", "bundesministerium", "ministerio de", "ministero",
+  "ministère", "ministere",
 ];
 
 const SORTED = [...BODIES].sort((a, b) => b.length - a.length);

@@ -54,6 +54,10 @@ const NAMES = [
   "ringgit", "baht", "rupiah", "hryvnia", "dinar", "dinars", "riyal",
   "riyals", "rial", "lira", "krona", "kronor", "krone", "kroner", "koruna",
   "forint", "naira", "taka", "tenge", "kwacha", "birr",
+  // Crypto-currencies — a "brand" the NER reads as an ORG (« Bitcoin » faked to a company
+  // 10 times on ai4privacy, 2026-09-07). A currency, like the ones above: never a person.
+  "bitcoin", "bitcoins", "ethereum", "litecoin", "dogecoin", "tether", "monero", "stablecoin",
+  "btc", "eth", "ltc", "usdt", "xrp", "bnb", "doge",
 ];
 
 const CURRENCIES = new Set<string>([...ISO_CODES, ...SYMBOLS, ...NAMES]);

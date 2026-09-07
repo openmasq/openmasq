@@ -164,4 +164,21 @@ export const LEGAL_TERMS: string[] = [
   "fiança", "fianca", "procuração", "procuracao", "testemunha", "prova",
   "perícia", "pericia", "acordo", "arbitragem", "mediação", "mediacao",
   "foro", "lei aplicável", "lei aplicavel", "confidencialidade",
+  // ── English — the institutions of a judgment (measured 2026-09-07 on TAB, 127 ECHR
+  // rulings, `bench/spans/`): « Chamber » redacted 101 times, « Secretary of State » 39,
+  // « Union », « proceedings », « Ministry of Justice »… KIND-of-body words, never a
+  // name (« court » is deliberately ABSENT: it is a surname). The compounds fall out
+  // whole through `isGenericCompound` once their words are here. ─────────────────
+  "chamber", "grand chamber", "section", "fourth section", "first section", "second section",
+  "third section", "fifth section", "union", "state", "office", "home office", "foreign office",
+  "ministry", "ministries", "proceedings", "army", "navy", "community", "government",
+  "commission", "committee", "council", "parliament", "department", "home department",
+  "secretary of state", "secretary", "minister", "prosecutor", "public prosecutor",
+  "prosecution", "rules", "rules of court", "court of appeal", "supreme court", "high court",
+  "district court", "county court", "crown court", "constitutional court", "court of cassation",
+  "court of human rights", "commission of human rights", "european court of human rights",
+  "european commission of human rights", "convention", "the convention", "protocol",
+  "registry", "registrar", "applicant", "applicants", "respondent", "defendant", "plaintiff",
+  "claimant", "appellant", "the court", "the chamber", "the government", "the commission",
+  "the committee", "the applicant", "industries",
 ];

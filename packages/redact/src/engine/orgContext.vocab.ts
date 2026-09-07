@@ -7,6 +7,12 @@ export const LEGAL_SUFFIXES = [
   // "sl" (ES) is safe in the /i arm — unlike "sa", it is no possessive/pronoun in
   // any covered language, and prose "sl" does not exist.
   "gmbh", "srl", "ltda", "ltd", "llc", "llp", "plc", "inc", "corp", "sl",
+  // The Benelux, German and Anglo long forms the benchmarks write (2026-09-07,
+  // `bench/spans/`: « Innovatieve Infrastructuurontwikkelingen B.V. » shipped in clear, the
+  // suffix alone redacted). Dotted renderings folded like `PREFIX_FORMS`. « AB », « AS »,
+  // « Oy » stay in the NORDIC family below: bare, they are English words.
+  "bv", "b\\.v", "nv", "n\\.v", "ohg", "oyj", "limited", "incorporated", "corporation",
+  "pty ltd", "co\\. ltd", "s\\.p\\.a", "s\\.r\\.l", "sp\\. z o\\.o",
 ];
 
 // Family 5 — the legal form as a PREFIX. French/Spanish/Italian deeds write it BEFORE

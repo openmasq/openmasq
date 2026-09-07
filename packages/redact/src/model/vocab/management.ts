@@ -181,4 +181,16 @@ export const MANAGEMENT_TERMS: string[] = [
   "participacao", "investidor", "bolsa", "ação", "acoes", "ações", "obrigação",
   "obrigacao", "títulos", "titulos", "carteira", "rendibilidade",
   "volatilidade", "mais-valia", "taxa de juro", "vencimento",
+  // ── English — the furniture of a loan or a policy (measured 2026-09-07 on Gretel's
+  // finance corpus, `bench/spans/`): « Loan Amount » faked 159 times, « Policy » 69,
+  // « Information » 50. Kind words only; « purpose » and « amount » are never names.
+  // ⚠️ Bare « loan » and « isa » are deliberately ABSENT (a surname, a given name — the
+  // guard roster): « Loan Amount » falls out through « amount », the gazetteer's pairing
+  // guard refusing a generic second word. ──────────────────────────────────────────
+  "loan amount", "loan purpose", "loan term", "amount", "amounts",
+  "policy", "policies", "information", "company", "purpose", "isda",
+  "individual savings account", "premium", "premiums", "coverage", "deductible",
+  "beneficiary", "beneficiaries", "policyholder", "insured", "insurer", "underwriter",
+  "principal", "interest rate", "maturity", "collateral", "borrower", "lender",
+  "statement", "balance", "transaction", "transactions", "remittance", "settlement",
 ];
