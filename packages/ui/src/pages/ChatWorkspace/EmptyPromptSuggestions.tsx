@@ -3,7 +3,8 @@ import { McpTile } from "../../components/media/McpTile";
 import { findConnector } from "@openmasq/catalog/mcp";
 import { useOpenConnector } from "../../containers/providers/connectors";
 import { useMcpConnectedIds } from "../../hooks/useMcpConnectedIds";
-import { pickStarters, type PickedStarter } from "./starters";
+import { pickStarters, starterCopy, type PickedStarter } from "./starters";
+import { connectorCopy } from "../../help/catalogCopy";
 import { useFeatureAccess } from "../../state/billing/featureAccess";
 import type { ReactNode } from "react";
 
@@ -44,6 +45,8 @@ function StarterCard({
 }) {
   const t = useT();
   const connector = starter.connectorId ? findConnector(starter.connectorId) : undefined;
+  const name = connector ? connectorCopy(connector.id, connector, t).name : undefined;
+  const { cat, prompt } = starterCopy(starter, t);
   return (
     <button
       type="button"
@@ -51,9 +54,9 @@ function StarterCard({
       // The WHOLE prompt is here: the card only shows one line of it (the height is
       // the welcome screen itself), the branded tooltip renders the rest on hover —
       // preceded by the category, which is no longer written on the card.
-      title={t.conversation.starters.cardTip(connector?.name ?? starter.cat, starter.prompt)}
-      aria-label={t.conversation.starters.cardAria(connector?.name ?? starter.cat, starter.prompt)}
-      onClick={() => onPick(starter.prompt)}
+      title={t.conversation.starters.cardTip(name ?? cat, prompt)}
+      aria-label={t.conversation.starters.cardAria(name ?? cat, prompt)}
+      onClick={() => onPick(prompt)}
     >
       {/* ONE line, and the CATEGORY is no longer written there: stacked, the card was 78px
           and eight cards 538 — the welcome screen overflowed at the bottom after pushing the greeting
@@ -61,11 +64,11 @@ function StarterCard({
           said nothing anymore. So the glyph alone carries it (four distinct icons, the service's
           LOGO otherwise), and the word stays in the tooltip and the accessible name. */}
       {connector ? (
-        <McpTile id={connector.id} name={connector.name} tone={connector.tone ?? "mint"} sm />
+        <McpTile id={connector.id} name={name ?? connector.name} tone={connector.tone ?? "mint"} sm />
       ) : (
         <span className="om-starter-tile">{UNIVERSAL_ICON[starter.id]}</span>
       )}
-      <span className="om-starter-prompt">{starter.prompt}</span>
+      <span className="om-starter-prompt">{prompt}</span>
     </button>
   );
 }
@@ -87,15 +90,16 @@ function ConnectChip({
   const t = useT();
   const connector = starter.connectorId ? findConnector(starter.connectorId) : undefined;
   if (!connector) return null;
+  const { name } = connectorCopy(connector.id, connector, t);
   return (
     <button
       type="button"
       className="om-starter-chip"
-      title={t.conversation.starters.connectTip(connector.name, starter.prompt)}
+      title={t.conversation.starters.connectTip(name, starterCopy(starter, t).prompt)}
       onClick={() => onConnect(connector.id)}
     >
-      <McpTile id={connector.id} name={connector.name} tone={connector.tone ?? "mint"} sm />
-      {connector.name}
+      <McpTile id={connector.id} name={name} tone={connector.tone ?? "mint"} sm />
+      {name}
     </button>
   );
 }

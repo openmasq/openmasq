@@ -5,6 +5,7 @@ export type {
   Messages,
   SettingsTab,
   SettingsEntry,
+  StarterId,
   PrivacyLevelCopy,
   DownloadFormatCopy,
   PlanTierCopy,

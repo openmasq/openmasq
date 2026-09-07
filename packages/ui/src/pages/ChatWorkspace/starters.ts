@@ -1,4 +1,5 @@
 import { BRAND } from "@openmasq/branding";
+import type { Messages, StarterId } from "@openmasq/i18n";
 /**
  * The empty-thread prompt starters, and WHICH four to show.
  *
@@ -26,18 +27,25 @@ type StarterNeed =
   | { kind: "connector"; ids: string[] };
 
 export interface Starter {
-  /** Stable key — the eyebrow is the connector's name once one is resolved. */
-  id: string;
-  /** Fallback eyebrow for a universal starter (an integration one wears the service). */
-  cat: string;
-  prompt: string;
+  /** Stable key — the eyebrow is the connector's name once one is resolved. The words
+   *  (category, prompt) live in the catalogue under this id: `starterCopy` reads them. */
+  id: StarterId;
   need: StarterNeed;
+}
+
+/** A starter's category and prompt in `t`'s language. Every prompt takes the brand's
+ *  domain (the « write » card names an address on it). */
+export function starterCopy(s: Starter, t: Messages): { cat: string; prompt: string } {
+  const c = t.conversation.starters;
+  return { cat: c.cats[s.id], prompt: c.prompts[s.id](BRAND.domain) };
 }
 
 /**
  * The integration starters, most convincing first. Each one is a job somebody actually
  * has, phrased as the whole job rather than a feature demo — "trie mes non-lus et dis-moi
- * lesquels attendent une réponse" is a morning; "envoie un email" is a button.
+ * lesquels attendent une réponse" is a morning; "envoie un email" is a button. The words
+ * are in the catalogue (`conversation.starters.prompts`, FR and EN): the home screen stayed
+ * French in an English app as long as they lived here.
  *
  * They are ordered: the picker takes the first ones whose service is connected, so this
  * order is the editorial call about what impresses most.
@@ -45,16 +53,10 @@ export interface Starter {
 export const INTEGRATION_STARTERS: Starter[] = [
   {
     id: "mail-triage",
-    cat: "Boîte mail",
-    prompt:
-      "Trie mes e-mails non lus de la semaine : lesquels attendent vraiment une réponse de moi, et lesquels peuvent attendre ?",
     need: { kind: "connector", ids: ["gmail", "microsoft-outlook"] },
   },
   {
     id: "files-find",
-    cat: "Mes dossiers",
-    prompt:
-      "Retrouve dans mes dossiers le dernier devis que j'ai reçu, et sors-en le montant et les dates clés.",
     need: {
       kind: "connector",
       ids: ["google-drive", "microsoft-onedrive", "microsoft-sharepoint", "filesystem"],
@@ -62,22 +64,14 @@ export const INTEGRATION_STARTERS: Starter[] = [
   },
   {
     id: "day-brief",
-    cat: "Agenda",
-    prompt:
-      "Prépare ma journée de demain : mes rendez-vous, avec qui, et ce que je dois avoir lu avant chacun.",
     need: { kind: "connector", ids: ["google-calendar", "microsoft-outlook"] },
   },
   {
     id: "chat-catchup",
-    cat: "Messages",
-    prompt:
-      "Résume ce que j'ai raté cette semaine dans mes canaux, et liste ce qui attend une réponse de ma part.",
     need: { kind: "connector", ids: ["slack", "microsoft-teams"] },
   },
   {
     id: "pr-review",
-    cat: "Code",
-    prompt: "Liste les pull requests qui attendent ma revue, et résume ce que chacune change.",
     need: { kind: "connector", ids: ["github"] },
   },
 ];
@@ -86,34 +80,21 @@ export const INTEGRATION_STARTERS: Starter[] = [
 export const UNIVERSAL_STARTERS: Starter[] = [
   {
     id: "write",
-    cat: "Rédaction",
-    prompt: `Rédige un email de remerciement à julien@${BRAND.domain}.`,
     need: { kind: "none" },
   },
   {
     id: "search",
-    cat: "Recherche",
-    prompt: "Quelle actualité en France aujourd'hui ?",
     need: { kind: "none" },
   },
   {
     // Teaches the MÉMOIRE's conversational gesture — an explicit « retiens que… » needs
-    // no opt-in, so this one cannot fail either. The sentence is a DEMONSTRATOR, not a
-    // memo: named people + a named company (redaction lights up before the user's
-    // eyes BEFORE it goes out to the model) AND several entity-linked facts (CARDS get
-    // born, the "N facts noted" caption clicks through to the Mémoire page's graph).
-    // The old version — "I prefer short replies" alone — produced only one profile
-    // line: nothing to see, nothing to click.
+    // no opt-in, so this one cannot fail either. Why the sentence is what it is: see the
+    // catalogue entry (`fr/conversation.ts`, `starters.prompts.memory`).
     id: "memory",
-    cat: "Mémoire",
-    prompt:
-      "Retiens que sur le projet Horizon, ma cliente Camille Salvi (Atelier Lucane) valide les maquettes et que Marc Wulff gère la facturation.",
     need: { kind: "none" },
   },
   {
     id: "analyse",
-    cat: "Analyse",
-    prompt: "Trace un graphique des 5 ETF éligibles au PEA les plus performants de l'année.",
     need: { kind: "none" },
   },
 ];

@@ -15,6 +15,33 @@ export const conversation = {
     cardAria: (category, prompt) => `${category}: ${prompt}`,
     connectTip: (connector, prompt) => `Connect ${connector} — ${prompt}`,
     dismiss: "Stop suggesting",
+    cats: {
+      write: "Writing",
+      search: "Search",
+      memory: "Memory",
+      analyse: "Analysis",
+      "mail-triage": "Mailbox",
+      "files-find": "My folders",
+      "day-brief": "Calendar",
+      "chat-catchup": "Messages",
+      "pr-review": "Code",
+    },
+    prompts: {
+      write: (domain) => `Write a thank-you email to julien@${domain}.`,
+      search: () => "What's in the news today?",
+      memory: () =>
+        "Remember that on the Horizon project, my client Camille Salvi (Atelier Lucane) approves the mock-ups and Marc Wulff handles invoicing.",
+      analyse: () => "Plot a chart of this year's 5 best-performing ETFs.",
+      "mail-triage": () =>
+        "Sort my unread emails from this week: which ones really need a reply from me, and which can wait?",
+      "files-find": () =>
+        "Find the latest quote I received in my folders, and pull out the amount and the key dates.",
+      "day-brief": () =>
+        "Prepare my day tomorrow: my meetings, with whom, and what I should have read before each one.",
+      "chat-catchup": () =>
+        "Summarise what I missed this week in my channels, and list what is waiting for a reply from me.",
+      "pr-review": () => "List the pull requests waiting for my review, and summarise what each one changes.",
+    },
   },
 
   artifact: { pane: "File preview", copy: "Copy", copied: "Copied", close: "Close" },
