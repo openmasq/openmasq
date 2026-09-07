@@ -171,16 +171,49 @@ export function buildFakeEmail(
   let domain = realDomain ? resolveFake(realDomain) : undefined;
   if (!domain && keepKnownDomain && isNotoriousDomain(realDomain)) domain = realDomain;
   if (!domain) {
+    // ONE fake domain per REAL domain — seeded on the domain, not on the address, and not on
+    // the attempt: two colleagues at atelier-sud.fr must share a fake domain, or "how many
+    // domains?" answers wrong (the utility bench measured 2 → 3). Uniqueness of the whole
+    // address is the local part's job. Same TLD when the pool has one: `.fr` reads `.fr`,
+    // and a model asked for the extension answers the same.
     const pool = FAKE_EMAIL_DOMAINS.map((d) => d.replace(/^@/, "")); // bare domains
-    domain = pool[(h + attempt) % pool.length];
-    for (let k = 0; k < pool.length; k++) {
-      const cand = pool[(h + attempt + k) % pool.length];
-      if (cand.toLowerCase() !== realDomain.toLowerCase() && !isTaken(cand)) {
-        domain = cand;
-        break;
+    const lower = realDomain.toLowerCase();
+    const tld = lower.slice(lower.lastIndexOf("."));
+    const sameTld = pool.filter((d) => d.endsWith(tld));
+    const candidates = sameTld.length ? sameTld : pool;
+    const dh = seedFrom(convKey, "email-domain", lower, hashString(lower) + salt);
+    // Two REAL domains must never share a fake one ("how many domains?" would answer one
+    // short): a fake already taken by another domain is skipped — `emailDomainPair` registers
+    // every allocated domain, so `isTaken` sees it. Same TLD first, the whole pool next, and
+    // when both are spent a scrambled label under the same extension, which is always free.
+    domain = undefined;
+    for (const list of [candidates, pool]) {
+      for (let k = 0; k < list.length && !domain; k++) {
+        const cand = list[(dh + k) % list.length];
+        if (cand.toLowerCase() !== lower && !isTaken(cand)) domain = cand;
       }
+    }
+    if (!domain) {
+      const label = lower.slice(0, lower.length - tld.length) || "mail";
+      domain = `${fakeToken(label, dh).toLowerCase()}${tld}`;
     }
   }
   return `${out.join("")}@${domain}`;
 }
 
+/**
+ * The domain pair beside an allocated email — `[fake domain, real domain]` — for the vault:
+ * the next address at the same real domain then RESOLVES this fake instead of drawing one,
+ * another real domain cannot draw it (it is taken), and the domain written alone in prose
+ * masks to the same fake it wears inside the address. Null when the domain was kept
+ * verbatim (a notorious provider) or the address has none.
+ */
+export function emailDomainPair(realEmail: string, fakeEmail: string): [string, string] | null {
+  const r = realEmail.lastIndexOf("@");
+  const f = fakeEmail.lastIndexOf("@");
+  if (r < 0 || f < 0) return null;
+  const real = realEmail.slice(r + 1);
+  const fake = fakeEmail.slice(f + 1);
+  if (!real || !fake || real.toLowerCase() === fake.toLowerCase()) return null;
+  return [fake, real];
+}

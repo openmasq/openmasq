@@ -4,7 +4,8 @@
 // `./fakes` importers are unchanged:
 //   pools.ts      — the fake-data pools (names/orgs/places/email domains) + firstNamePool
 //   primitives.ts — hashString/pick/fitLen/fakeToken/fakeDigits (low-level generators)
-//   entities.ts   — fakeCity/fakeOrg/fakePostal/fakeDate/fakeIp/fakeEmail (per-kind)
+//   entities.ts   — fakeCity/fakeOrg/fakePostal/fakeDate/fakeEmail (per-kind)
+//   ip.ts         — fakeIp/ipPrefixPairs (class- and prefix-preserving addresses)
 //   paths.ts      — fakePath/splitPath/fakePathSegment (filesystem paths)
 //   dispatch.ts   — fakeFor (the per-category switch)
 // ⚠️ FAKE_ORG / the place pool are INVENTED + OBSCURE on purpose (see pools.ts) — a
@@ -14,3 +15,4 @@ export * from "./primitives";
 export * from "./entities";
 export * from "./paths";
 export * from "./dispatch";
+export { fakeIp, ipPrefixPairs } from "./ip";

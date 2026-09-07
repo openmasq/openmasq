@@ -141,37 +141,6 @@ export function fakeDate(value: string, category: string, seed: number): string 
   return result;
 }
 
-/**
- * A believable, VALID fake IP. IPv4 → each dotted octet becomes a DIFFERENT in-range
- * value (0-255), keeping the octet's digit-width so the layout is preserved; IPv6 /
- * compact colon form → each hextet is re-randomised in hex. `fakeDigits` alone
- * swapped digits independently and produced OUT-OF-RANGE octets (`127` → `313`,
- * `973`) — an obviously broken "IP" that also leaked that the original was one.
- */
-export function fakeIp(value: string, salt: number, convKey?: Uint8Array): string {
-  const h = seedFrom(convKey, `ip:${salt}`, value, hashString(value) + salt);
-  if (value.includes(":")) {
-    let i = 0;
-    return value.replace(/[0-9A-Fa-f]+/g, (grp) =>
-      Array.from(grp, (_c, k) => "0123456789abcdef"[(h + i++ * 7 + k * 3 + 5) % 16]).join(""),
-    );
-  }
-  let i = 0;
-  return value.replace(/\d+/g, (oct) => {
-    const width = oct.length;
-    // The FIRST octet is bounded to plausible unicast space (1-223 — never 0, the
-    // 224+ multicast range, or 255 broadcast) and dodges 127 (loopback): a fake
-    // «255.x.x.x» read broken at a glance. Later octets keep the full 0-255 range.
-    const first = i === 0;
-    const min = width >= 3 ? 100 : width === 2 ? 10 : first ? 1 : 0;
-    const max = width >= 3 ? (first ? 223 : 255) : width === 2 ? 99 : 9;
-    const span = max - min + 1;
-    let n = min + (rehash(h ^ Math.imul(i++ + 1, 0x85ebca6b)) % span);
-    if (n === Number(oct)) n = min + ((n - min + 1) % span); // guarantee it differs
-    if (first && n === 127) n = 128; // loopback
-    return String(n);
-  });
-}
 
 /**
  * A fake CARD number that VALIDATES: same-shape digit swap, then the last digit is

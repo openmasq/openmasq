@@ -137,4 +137,7 @@ export const FAKE_PLACES: FakePlace[] = [
 export const FAKE_EMAIL_DOMAINS = [
   "@melvio.com", "@ordimel.fr", "@postelio.com", "@courlys.fr", "@mailvane.com",
   "@brevanet.fr", "@ecrimel.com", "@messadora.com", "@plumtel.net", "@telmiot.net",
+  // One of each common extension, so a fake domain can keep the real one's (`email.ts`).
+  "@nortavi.io", "@lumeris.org", "@brelvane.de", "@corvix.co.uk", "@vantil.es", "@ostrel.it",
+  "@quillar.be", "@merova.ch", "@talvane.ca", "@orbisel.nl",
 ];

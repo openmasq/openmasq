@@ -23,7 +23,7 @@
 import { describe, it, expect } from "vitest";
 import { fakeFor } from "./dispatch";
 import { fakeDigits } from "./primitives";
-import { fakeIp } from "./entities";
+import { fakeIp } from "./ip";
 import { keyFromHex } from "./prf";
 
 const KEY = keyFromHex("c3".repeat(32))!;
@@ -97,12 +97,26 @@ describe("no fake encodes its own input", () => {
   });
 
   it("IPv4 octets are drawn from the seed, and stay in range", () => {
-    for (const real of ["10.0.0.1", "192.168.14.203", "8.8.8.8"]) {
-      const fake = fakeIp(real, 0x7c1a55e0);
-      expect(fake).not.toBe(real);
-      for (const oct of fake.split(".")) expect(Number(oct)).toBeLessThanOrEqual(255);
-      expect(piecewiseAffine(digits(real), digits(fake), 10)).toBe(false);
+    // The leading octets that NAME the class (10/8, 192.168/16…) are kept on purpose — they
+    // say "a LAN address", not which one (`fakes/ip.ts`). The property to hold is on the
+    // octets that carry the identity: those are never an affine image of the real ones.
+    const beyondClass = (real: string, fake: string): [number[], number[]] => {
+      const r = real.split(".");
+      const f = fake.split(".");
+      let k = 0;
+      while (k < 3 && r[k] === f[k]) k++;
+      return [digits(r.slice(k).join(".")), digits(f.slice(k).join("."))];
+    };
+    for (const real of ["10.0.0.1", "192.168.14.203", "8.8.8.8", "104.215.3.14"]) {
+      for (const key of [undefined, KEY]) {
+        const fake = fakeIp(real, 0x7c1a55e0, key);
+        expect(fake).not.toBe(real);
+        for (const oct of fake.split(".")) expect(Number(oct)).toBeLessThanOrEqual(255);
+        expect(piecewiseAffine(...beyondClass(real, fake), 10)).toBe(false);
+      }
     }
+    // A public address keeps NO octet: the whole string is the identity.
+    expect(fakeIp("8.8.8.8", 0x7c1a55e0, KEY).split(".")[0]).not.toBe("8");
   });
 });
 

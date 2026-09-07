@@ -6,7 +6,8 @@ import { FAKE_LAST, firstNamePool } from "./pools";
 import { hashString, pick, rehash, fakeToken, fakeDigits, fakeHandle, seedFrom } from "./primitives";
 import { isMrzShaped } from "../../kinds";
 import { fakeMrz } from "./mrz";
-import { fakeCity, fakeOrg, fakePostal, fakeDate, fakeIp, fakeEmail, fakePhone, fakeCard, fakeIban} from "./entities";
+import { fakeCity, fakeOrg, fakePostal, fakeDate, fakeEmail, fakePhone, fakeCard, fakeIban} from "./entities";
+import { fakeIp } from "./ip";
 import { fakeValidId } from "./checksummed/index";
 import { fakePath } from "./paths";
 import { fakeUrl } from "./urls";
@@ -51,8 +52,8 @@ export function fakeFor(
       // Without this case, a URL would get a NAME-shaped fake — « allez sur Marc Charvet ».
       return fakeUrl(value, a, convKey);
     case "IP":
-      // In-range octets (0-255) / hex hextets — a VALID fake IP, not `fakeDigits`'s
-      // char-for-char swap that could emit octet 313.
+      // Class- and prefix-preserving (fakes/ip.ts): a LAN address stays a LAN address,
+      // two hosts of one /24 stay on one fake /24 — what a model reasons on survives.
       return fakeIp(value, a, convKey);
     case "TOKEN":
     case "APIKEY":

@@ -13,7 +13,7 @@
 //                   substitutes to AND reverses from the SAME fake.
 // Split by the SPELLING a value arrives in, each family in one file: `email.ts` (an
 // address), `name.ts` (whitespace- or `.`/`_`/`-`-separated), `glued.ts` (separatorless).
-export { emailNameAliases, buildFakeEmail } from "./email";
+export { emailNameAliases, buildFakeEmail, emailDomainPair } from "./email";
 export { buildFakeName, nameAliases } from "./name";
 export { reconstructGlued } from "./glued";
 export { placeAliases } from "./place";
