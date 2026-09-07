@@ -134,15 +134,14 @@ pas bloquée). Gardez la section la plus récente **en haut**.
 ---
 
 ## 0.7.5 — 2026-08-15
-> Votre compte arrive avec le palier Solo inclus — et changer d'offre se fait sans
-> détour.
+> La connexion et la synchronisation disent ce qui se passe, et les cartes de fournisseurs
+> respirent.
 
-### Nouveautés
-- **Le palier Solo, inclus** — chaque compte démarre avec son enveloppe de crédits, sans
-  rien souscrire ni renseigner de carte.
+_Cette version portait aussi une offre hébergée avec crédits inclus. Cette offre n'existe
+plus depuis le passage en open source (septembre 2026) : l'app publiée est gratuite, sans
+abonnement ni crédits. Voir le README._
 
 ### Améliorations & corrections
-- Souscrire une offre ou en changer se fait sans accroc, depuis n'importe quel palier.
 - La connexion vous dit ce qui se passe, y compris quand elle n'aboutit pas.
 - La synchronisation annonce la cause d'un échec au lieu de rester muette.
 - Les cartes de fournisseurs de modèles respirent.
