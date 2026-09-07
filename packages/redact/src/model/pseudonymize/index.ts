@@ -12,6 +12,7 @@ import { keyFromHex } from "../fakes/prf";
 import type { RedactionMatch, RedactionResult, RedactionType } from "../../types";
 import { keepSet, isKept, capitalize, entityKey } from "../../util";
 import { applyVault, applyVaultVariants, disabledVaultTokens } from "../../engine/vault";
+import { extendEdges } from "./extendEdges";
 import { detectHostedUrlSpans, detectUrlSpans, detectEmailSpans, urlOccurrenceGuard } from "../../engine/urls";
 import { resolveGeoBlocks } from "../../engine/geo/geoBlocks";
 import { createGeoAnchors, seedGeoAnchors } from "../../engine/geo/cityAnchor";
@@ -93,6 +94,9 @@ export async function pseudonymize(
   const lineSafe = [...splitLineCrossing(candidates, input)];
   candidates.length = 0;
   candidates.push(...lineSafe);
+  // A span extended to the edge of its datum (the house number of a street, two touching
+  // ORG fragments) — `extendEdges.ts`; the fragment then de-nests or stands alone.
+  candidates.push(...extendEdges(input, candidates));
   // Expand each entity candidate to every spelling variant present in the text.
   candidates.push(...expandVariants(input, candidates));
 
