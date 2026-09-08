@@ -40,7 +40,7 @@ export function isHeadingLine(line: string): boolean {
  * PEOPLE — « :70:/NST/STANLEY JAMES-MARSH/SE/QH56771472 » is a driver's licence, and dropping
  * the whole line's tokens sent it in clear. Only the head is machinery; the rest is data.
  */
-export function isSwiftFieldHead(line: string, column: number): boolean {
+function isSwiftFieldHead(line: string, column: number): boolean {
   const tag = /^\s*:\d{2}[A-Z]?:/u.exec(line);
   return !!tag && column === tag[0].length;
 }

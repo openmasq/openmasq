@@ -25,7 +25,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import { dirname } from "node:path";
 
 /** The pipeline surface the bench injects into `createNerPredict`. */
-export type BenchPipeline = (text: string, opts?: Record<string, unknown>) => Promise<unknown>;
+type BenchPipeline = (text: string, opts?: Record<string, unknown>) => Promise<unknown>;
 
 export interface NerCache {
   /** Wrap a pipeline so an already-seen chunk is served from disk. */
