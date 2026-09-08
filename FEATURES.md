@@ -88,7 +88,7 @@ a real city — the model reasons correctly, on values that are not yours.
 - [x] Detection by a remote model (the "cloud" engine), for those without the local horsepower — `packages/redact/src/remote/`
 - [x] **Believable** substitutes of the same nature (default) — `packages/redact/src/model/pseudonymize/`
 - [x] **Marker** substitutes `[PERSON1]` (plain mode, opt-in) — `packages/redact/src/model/pseudonymize/allocateTokens.ts`
-- [x] Restitution of the reply through the conversation's vault — `packages/redact/src/engine/vault.ts`
+- [x] Restitution of the reply through the conversation's vault — `packages/redact/src/engine/vault/index.ts`
 - [x] **Failure = the send is blocked**, never a silent fallback to less protection
 - [x] One substitute per value, across the whole conversation (cases, fragments, tool echoes)
 - [x] A secret salt per conversation: the same name does not yield the same fake elsewhere
