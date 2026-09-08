@@ -105,6 +105,9 @@ const unit = defineConfig({
       // boot script. One glob: this used to be FIFTEEN hand-listed directories, and the
       // trap was documented twice in the CLAUDE.md tree instead of being fixed.
       "apps/desktop/src/**/*.test.{ts,tsx}",
+      // The local redaction proxy (`apps/proxy`): wire masking, the streaming restorer, the
+      // route allow-list and the server, all electron-free units.
+      "apps/proxy/src/**/*.test.{ts,tsx}",
       // The desktop BUILD scripts. They don't ship, but they decide what
       // ships: `archPrune.cjs`'s per-arch sort is the table that says which
       // ONNX engine goes into which .app, and getting it wrong there only shows up in use.
