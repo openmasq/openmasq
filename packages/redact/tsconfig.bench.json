@@ -1,0 +1,19 @@
+{
+  // `tsconfig.json` deliberately stops at `src` — the benchmark is measurement code, it
+  // never ships, and typing it as part of the package would put `node:fs` in the compile
+  // graph of a package whose whole point is to stay pure.
+  //
+  // But "does not ship" is not "may be wrong". Two of the twelve files under `bench/` were
+  // being checked BY ACCIDENT (`metric.ts`, `domainBench.ts` — pulled in transitively
+  // because tests in `src/__cases__/` import them), and the other ten by nobody at all —
+  // including `spans/metric.ts`, the character-level scorer that computes every figure the
+  // span benchmark publishes. A drift there does not fail loudly, it moves a published
+  // number. So: a second project, same strictness, its own `typecheck:bench`.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // The benchmark is a Node program (fs, path, perf_hooks, child_process) — unlike `src`,
+    // which must stay runtime-agnostic and therefore declares no node types at all.
+    "types": ["node"]
+  },
+  "include": ["bench"]
+}

@@ -53,7 +53,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.bench.json --noEmit",
     "lint": "echo \"(no lint configured)\"",
     "clean": "rm -rf dist .turbo"
   },
