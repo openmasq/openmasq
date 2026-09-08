@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { reconstructPageText, reconstructPdfText, reconstructLayout, type PdfTextItem } from "./pdfLayout";
-import { detectLabeledFields } from "../../engine/contextFields";
+import { detectLabeledFields } from "../../engine/labels";
 
 // Build a pdf.js-style text item at (x,y) with width w and height h (font size).
 const item = (str: string, x: number, y: number, w = 20, h = 10): PdfTextItem => ({

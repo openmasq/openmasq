@@ -11,7 +11,7 @@
 //
 // Same discipline as the first volume: genuinely-identifying labels only, never a bare
 // generic word (« number », « code », « id »), and a NUMERIC group refuses a value with no digit.
-import type { LabelGroup } from "./contextFields.labels";
+import type { LabelGroup } from "./terms";
 
 /** Customer / employee / member / policy / case ids, and the identity documents of the
  *  languages the first volume covers only in French. Merged INTO the `ID` group. */

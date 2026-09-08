@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { detectLabeledCodes } from "./contextFields.codes";
-import { pseudonymize } from "../index";
+import { detectLabeledCodes } from "./codes";
+import { pseudonymize } from "../../index";
 
 const found = (t: string) => detectLabeledCodes(t).map((d) => `${d.category}:${d.value}`);
 

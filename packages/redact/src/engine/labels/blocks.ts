@@ -1,6 +1,6 @@
-import type { Detection } from "../types";
-import { labelOf } from "./contextFields.labels";
-import { acceptFieldValue } from "./contextFields";
+import type { Detection } from "../../types";
+import { labelOf } from "./terms";
+import { acceptFieldValue } from ".";
 
 /**
  * DETACHED label block — the form whose labels and values arrive as two separate

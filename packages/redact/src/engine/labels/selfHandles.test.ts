@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { detectSelfHandles } from "./contextFields";
+import { detectSelfHandles } from ".";
 
 /**
  * ⚠️ REGRESSION — « handles are only detected when introduced with a colon ».

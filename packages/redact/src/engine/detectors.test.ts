@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { detectPhones, isValidIntlPhone } from "./phones";
-import { detectLabeledFields } from "./contextFields";
+import { detectLabeledFields } from "./labels";
 import { detectAddresses } from "./addresses";
 import { pseudonymize } from "../model/pseudonymize";
 

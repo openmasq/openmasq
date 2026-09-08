@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectLabeledFields, detectAccountNumbers, detectFiscalNumbers } from "./contextFields";
+import { detectLabeledFields, detectAccountNumbers, detectFiscalNumbers } from ".";
 
 /** Helper: map of category → the values detected for it. */
 function byCategory(text: string): Record<string, string[]> {

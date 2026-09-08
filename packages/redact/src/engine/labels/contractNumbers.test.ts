@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { detectContractNumbers } from "./contextFields";
+import { detectContractNumbers } from ".";
 
 /* Measured on real administrative documents: RELATION identifiers (client,
    file, policy, order, PDL) were the biggest recall gap — no

@@ -9,16 +9,16 @@
 // adding label terms per language (FR/EN/DE/ES/IT/PT/NL seeded here). Only the
 // value is emitted; the label stays in clear (it carries no PII and helps the
 // chat model understand the structure).
-import type { Detection } from "../types";
-import { isStopword, isGenericTerm } from "../model/detect";
-import { LABEL_GROUPS, labelOf } from "./contextFields.labels";
-import { pushBarePhoneLabels } from "./contextFields.phoneLabel";
-import { acceptFieldValue, cleanValue } from "./contextFields.values";
+import type { Detection } from "../../types";
+import { isStopword, isGenericTerm } from "../../model/detect";
+import { LABEL_GROUPS, labelOf } from "./terms";
+import { pushBarePhoneLabels } from "./phoneLabel";
+import { acceptFieldValue, cleanValue } from "./values";
 
-export { detectSelfHandles } from "./contextFields.selfProse";
+export { detectSelfHandles } from "./selfProse";
 // Re-export: the value guard moved to `contextFields.values.ts` (300 LOC cap),
 // the public NAME doesn't move — `labelBlocks.ts` and the tests import it from here.
-export { acceptFieldValue, cleanValue } from "./contextFields.values";
+export { acceptFieldValue, cleanValue } from "./values";
 
 function escape(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -189,5 +189,5 @@ export {
   detectAccountNumbers,
   detectFiscalNumbers,
   detectContractNumbers,
-} from "./contextFields.numbers";
-export { detectLabeledCodes } from "./contextFields.codes";
+} from "./numbers";
+export { detectLabeledCodes } from "./codes";

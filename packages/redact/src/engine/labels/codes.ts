@@ -10,7 +10,7 @@
 // the value is ONE token, and each family says what shape that token must have. Measured on
 // 2026-09-07 (`bench/spans/`): customer/employee ids at 26 %, PINs at 8 %, routing numbers
 // at 11 %, court-case numbers at 0 % — every one written next to its label, in prose.
-import type { Detection } from "../types";
+import type { Detection } from "../../types";
 
 interface CodeFamily {
   category: string;

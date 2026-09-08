@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { detectAddresses } from ".";
-import { detectLabeledFields } from "../contextFields";
+import { detectLabeledFields } from "../labels";
 import { scoreCorpus, pct, type BenchCase } from "../../../bench/metric";
 import corpus from "../../../bench/corpora/addresses.json";
 

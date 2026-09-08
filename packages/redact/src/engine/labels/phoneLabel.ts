@@ -1,5 +1,5 @@
-import type { Detection } from "../types";
-import { acceptFieldValue, cleanValue } from "./contextFields";
+import type { Detection } from "../../types";
+import { acceptFieldValue, cleanValue } from ".";
 
 /**
  * The PHONE label **with no colon** — « Telefon 0734 82 57 190 »,

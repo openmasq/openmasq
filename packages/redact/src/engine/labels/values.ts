@@ -4,8 +4,8 @@
 // BLOCKS pass (`labelBlocks.ts`) go through these three functions — it's the single copy
 // of the gate (rule 9). Keeping them together, outside the PATTERNS file, keeps the surface
 // legible: here we decide what a value IS, there where it starts.
-import { isStopword, isGenericTerm, isGenericCompound, stripOrgAffixes } from "../model/detect";
-import { trimAddressTail } from "./addresses";
+import { isStopword, isGenericTerm, isGenericCompound, stripOrgAffixes } from "../../model/detect";
+import { trimAddressTail } from "../addresses";
 
 // A NAME field whose value is a CODE IDENTIFIER is tool/API metadata, not a person.
 // MCP tool descriptions are YAML — `name: read-data-schema`, `name: create_issue`,

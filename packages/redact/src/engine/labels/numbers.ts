@@ -1,4 +1,4 @@
-import type { Detection } from "../types";
+import type { Detection } from "../../types";
 
 // The labeled-NUMBER detectors: an identifier that has no shape of its own and is proven
 // only by the LABEL introducing it (account, fiscal, contract). Split out of

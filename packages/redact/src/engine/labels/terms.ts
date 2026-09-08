@@ -1,7 +1,7 @@
-import { isStopword, isGenericTerm } from "../model/genericTerms";
+import { isStopword, isGenericTerm } from "../../model/genericTerms";
 import {
   DOB_TERMS_WORLD, ID_TERMS_WORLD, PHONE_TERMS_WORLD, USERNAME_TERMS_WORLD, WORLD_GROUPS,
-} from "./contextFields.labels.world";
+} from "./terms.world";
 // The label VOCABULARY of the `label : value` detector — data only, split from
 // contextFields.ts (LOC cap): the matching/cleaning logic stays there; coverage
 // grows HERE, by adding label terms per language. Genuinely-identifying field

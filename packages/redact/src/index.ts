@@ -47,7 +47,7 @@ export {
   type UrlOccurrenceGuard,
 } from "./engine/urls";
 export { batchRedact } from "./engine/batch";
-export { detectLabeledFields } from "./engine/contextFields";
+export { detectLabeledFields } from "./engine/labels";
 export { detectHonorificNames } from "./engine/persons";
 export { detectOrgContext } from "./engine/orgContext";
 export { detectAddresses } from "./engine/addresses";

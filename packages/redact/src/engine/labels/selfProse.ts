@@ -1,7 +1,7 @@
 // The PROSE form of account and secret fields (« mon pseudo est arvio92 »,
 // « le mot de passe est corbeau83 ») — extracted from contextFields.ts for the 300-line
 // cap (rule 1). Same Detection contract, re-exported by contextFields.
-import type { Detection } from "../types";
+import type { Detection } from "../../types";
 
 /**
  * The PROSE form of an account field: « mon pseudo est arvio92 », « my login is

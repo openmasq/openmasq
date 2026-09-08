@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectLabelBlocks } from "./labelBlocks";
+import { detectLabelBlocks } from "./blocks";
 
 /** The "column drift" shape: a form whose labels and values
  *  arrive in TWO separate blocks (a two-column table, text layer read column by
