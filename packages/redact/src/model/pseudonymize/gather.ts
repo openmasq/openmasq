@@ -13,6 +13,8 @@ import { detectLabelBlocks } from "../../engine/labels/blocks";
 import { detectFrGeo } from "../../engine/geo/frGeo";
 import { detectUsGeo } from "../../engine/geo/usGeo";
 import { detectCjkGeo } from "../../engine/geo/cjkGeo";
+import { detectCsvBlocks } from "../../engine/labels/csv";
+import { dropLineNoise } from "./lineContext";
 import { detectWithModel, caseInsensitiveOccurrences } from "../detect";
 import { entityKey } from "../../util";
 import { redactionCategory } from "../../kinds";
@@ -89,6 +91,8 @@ export async function gatherCandidates(
   for (const p of detectPhones(input)) candidates.push({ value: p.value, category: "PHONE" });
   const labeled = detectLabeledFields(input);
   candidates.push(...labeled);
+  // A CSV pasted as text: each cell typed by its column header (`csvText.ts`).
+  candidates.push(...detectCsvBlocks(input));
   // The prose form of the same field (« mon pseudo est … ») — see `contextFields.ts`.
   candidates.push(...detectSelfHandles(input));
   candidates.push(...detectAccountNumbers(input));
