@@ -44,6 +44,16 @@ export const TOKEN_RULES: RedactionRule[] = [
       /(?<=\b(?:code(?:s)?\s+(?:de\s+)?(?:v[ée]rification|s[ée]curit[ée]|confirmation|validation|connexion|unique|secret|pin|otp|2fa)|verification code|security code|one[- ]time (?:password|code|pin)|otp|pin code|code pin)[\s:：=\-–—]{0,8})\d{4,8}\b/giu,
   },
 
+  // A UUID — the shape a session id, a tracking cookie, an API key and an object id all
+  // take when a system has no prefix to give them. It is `apikey`'s reason to exist: a
+  // key-shaped string whose MISS is a credential in clear (`consent_tracking=<uuid>`,
+  // `The API key 4d8e1c2e-…`). The RFC-4122 form is required — version nibble 1-8 AND
+  // variant nibble 8/9/a/b — so an arbitrary hex-and-dashes run (a git range, a
+  // hyphenated hash) does not match, and the nil UUID is excluded with it.
+  {
+    type: "api_key",
+    pattern: /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/gi,
+  },
   { type: "api_key", pattern: /\bglpat-[0-9A-Za-z_-]{20,}\b/g }, // GitLab PAT
   { type: "api_key", pattern: /\bshp(?:at|ca|pa|ss)_[0-9a-fA-F]{32}\b/g }, // Shopify
   { type: "api_key", pattern: /\bhf_[0-9A-Za-z]{34,}\b/g }, // Hugging Face

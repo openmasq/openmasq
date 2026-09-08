@@ -23,6 +23,11 @@ describe("new regex rules (on by default)", () => {
     ["npm", "npm_abcdefghijklmnopqrstuvwxyz0123456789"],
     ["Google OAuth", "GOCSPX-abcdefghij0123456789KLMNOP"],
     ["Mailgun", "key-0123456789abcdef0123456789abcdef"],
+    // A UUID is what a session id, a tracking cookie and an API key look like when the
+    // system that minted them had no prefix to give. Measured on Nemotron-PII: the value
+    // of `consent_tracking=…` and of « The API key 4d8e1c2e-… » left in clear.
+    ["UUID v4", "6f7a8b9c-1e2f-4a5b-8c9d-0e1f2a3b4c5d"],
+    ["UUID v1", "c232ab00-9414-11ec-b3c8-9f6bdeced846"],
     ["Ethereum", "0xAbC0123456789def0123456789ABCDEF01234567"],
     ["MAC", "3D:F2:C9:0A:1B:8E"],
     ["creds URL", "https://admin:s3cr3t@intranet.corp/login"],
