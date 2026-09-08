@@ -4,6 +4,7 @@ import { buildFakeWordIndex } from "./fakeWordIndex";
 import { recaseLike, entityKey } from "../../util";
 import { fakeFor } from "../fakes";
 import { buildFakePath } from "../paths";
+import { registerSidePairs } from "./sidePairs";
 import {
   buildFakeEmail,
   emailNameAliases,
@@ -281,20 +282,8 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
         fakeIndex.add(alias, real);
       }
     }
-    // Per-segment PATH aliases: each DISTINCTIVE segment (username / custom folder /
-    // filename) gets its OWN vault entry, so a recomposed or standalone segment
-    // reverses too AND the same real segment reuses the same fake conversation-wide
-    // (an agent navigating the tree keeps a coherent map). Generic folders
-    // (Desktop/Documents/…) are deliberately excluded — vaulting them would
-    // forward-apply to the same common word in ordinary prose (over-redaction).
-    if (isPath) {
-      for (const [alias, real] of pathPairs) {
-        if (alias === real || input.includes(alias)) continue;
-        if (taken.has(alias) || vault[alias] !== undefined) continue;
-        vault[alias] = real;
-        if (!reverse.has(real)) reverse.set(real, alias);
-        taken.add(alias);
-      }
-    }
+    // The pairs vaulted BESIDE the fake — a path's segments, an email's domain, an IPv4 /24 —
+    // under one set of guards (`sidePairs.ts`).
+    registerSidePairs({ vault, reverse, taken, input }, { cat, value, fake, pathPairs });
   }
 }
