@@ -35,8 +35,112 @@ different kind of bench and has no `truth`), 3 357 scored truths:
 | Presidio, default install | 46 % | 847 |
 | Perplexity PII-Tracer (`pplx-pii-masking`, MIT, 0.6B) | 92 % | 530 |
 
-Per category and per language: `pnpm bench:compare --corpus internal --markdown` prints the
-tables the root README carries; the away game on Presidio's own corpus is `external/`.
+`pnpm bench:compare --corpus internal --markdown` prints the two tables below; the away game
+on Presidio's own corpus (its own evaluation set, English, template + faker) is `external/`:
+
+| | truths | `patterns` | **`ner`** (the product) | Presidio (default) |
+|---|---:|---:|---:|---:|
+| **our corpus** | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 46 % · 847 FP |
+| **Presidio's corpus** | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | 58 % · 196 FP |
+
+⚠️ **This bench measures the ENGINE, at its `bare` policy — every category on.** It is the
+regression floor, comparable to every figure this package ever published, and it is NOT the
+app's default level: a shipped app leaves `date` and `url` off (opt-in) and cannot turn
+`health` on at all (retired). So `HEALTH` at 100 % below says the detector works, not that
+your medical data is redacted — it is not. What the PRODUCT does, level by level, is
+`spans/`, which measures the app's own policies.
+
+**Our corpus, by category** — 907 cases:
+
+| category | truths | `patterns` | **`ner`** (the product) | Presidio (default) |
+|---|---:|---:|---:|---:|
+| NAME | 663 | 78 % | 94 % | 58 % |
+| EMAIL | 247 | 99 % | 99 % | 98 % |
+| CITY | 243 | 53 % | 87 % | 23 % |
+| CARD | 233 | 100 % | 100 % | 65 % |
+| ADDRESS | 232 | 98 % | 100 % | 15 % |
+| ID | 215 | 93 % | 93 % | 45 % |
+| COMPANY_ID | 206 | 100 % | 100 % | 24 % |
+| HEALTH | 205 | 100 % | 100 % | 66 % |
+| USERNAME | 203 | 100 % | 100 % | 4 % |
+| TOKEN | 201 | 100 % | 100 % | 7 % |
+| PHONE | 156 | 95 % | 95 % | 94 % |
+| POSTAL | 101 | 88 % | 88 % | 17 % |
+| DOB | 90 | 89 % | 89 % | 77 % |
+| ORG | 71 | 61 % | 85 % | 30 % |
+| IBAN | 54 | 100 % | 100 % | 83 % |
+| AMOUNT | 30 | 3 % | 3 % | 17 % |
+| IP | 29 | 100 % | 100 % | 100 % |
+| PLACE | 28 | 93 % | 96 % | 4 % |
+| DATE | 28 | 100 % | 100 % | 79 % |
+| PATH | 28 | 93 % | 93 % | 0 % |
+| COMPANY | 25 | 92 % | 92 % | 8 % |
+| SECRET | 23 | 91 % | 91 % | 13 % |
+| URL | 23 | 91 % | 91 % | 96 % |
+| BIC | 23 | 74 % | 74 % | 4 % |
+| **GLOBAL** | 3357 | **89 %** · 91 FP | **95 %** · 258 FP | **46 %** · 847 FP |
+
+**Our corpus, by language** — the local model is what carries the languages a rule cannot
+segment:
+
+| language | cases | `patterns` | **`ner`** (the product) | Presidio (default) |
+|---|---:|---:|---:|---:|
+| fr | 468 | 87 % | 94 % | 50 % |
+| en | 215 | 92 % | 96 % | 41 % |
+| de | 47 | 98 % | 99 % | 46 % |
+| es | 32 | 97 % | 99 % | 52 % |
+| it | 29 | 97 % | 99 % | 59 % |
+| pt | 30 | 97 % | 98 % | 40 % |
+| nl | 24 | 99 % | 100 % | 38 % |
+| zh | 17 | 26 % | 66 % | 6 % |
+| pl | 10 | 100 % | 100 % | 75 % |
+| ja | 12 | 24 % | 76 % | 16 % |
+| ko | 11 | 24 % | 88 % | 16 % |
+| sv | 6 | 100 % | 100 % | 35 % |
+| da | 5 | 100 % | 100 % | 47 % |
+| ru | 1 | 0 % | 100 % | 0 % |
+
+**Presidio's corpus, by category** — 1 387 cases, the away game:
+
+| category | truths | `patterns` | **`ner`** (the product) | Presidio (default) |
+|---|---:|---:|---:|---:|
+| NAME | 857 | 32 % | 98 % | 87 % |
+| ADDRESS | 598 | 28 % | 40 % | 17 % |
+| CITY | 411 | 2 % | 68 % | 58 % |
+| ORG | 250 | 5 % | 73 % | 22 % |
+| CARD | 136 | 100 % | 100 % | 97 % |
+| PHONE | 92 | 57 % | 57 % | 63 % |
+| EMAIL | 49 | 100 % | 100 % | 100 % |
+| POSTAL | 37 | 0 % | 0 % | 5 % |
+| URL | 37 | 100 % | 100 % | 100 % |
+| ID | 21 | 100 % | 100 % | 100 % |
+| IBAN | 21 | 100 % | 100 % | 100 % |
+| IP | 14 | 100 % | 100 % | 100 % |
+| **GLOBAL** | 2523 | **31 %** · 6 FP | **74 %** · 115 FP | **58 %** · 196 FP |
+
+**Reading them.** A single percentage hides which of your data is protected, and the answer
+is not uniform:
+
+- **Structured values are solved** — cards, IBANs, e-mails, URLs, IPs sit at or near 100 %
+  with no model at all, because a checksum or a shape is a proof rather than a guess.
+- **Names are the strong case** (94 % at home, 98 % away), and they are what a chat leaks most.
+- **Addresses are the honest weakness.** 100 % on our documents, **40 %** on Presidio's
+  corpus, whose truths are multi-line US street addresses recovered in pieces — the city,
+  sometimes the number — rather than as one span. Presidio does worse there (17 %); that is a
+  reason to keep working, not a reason to be satisfied.
+- **The two corpora disagree about Presidio, and the disagreement is the finding.** 87 % on
+  names in its own template sentences, 58 % on names in real documents; 46 % overall at home,
+  and **41 % on our English cases** — so the gap is not the language. A default install is
+  tuned for the sentences it was evaluated on; ours was tuned for the documents people paste.
+- **CJK needs the model.** Rules alone reach 24–26 % on Chinese, Japanese and Korean; the
+  local NER lifts them to 66–88 %. A name with no word boundaries is not a shape.
+- **`AMOUNT` at 3 % is a decision, not a miss** — the category was retired (an amount is not
+  an identity), and the corpus keeps annotating it so the measure stays honest.
+- **Recall is paid for in false positives**, and the hierarchy is visible on both corpora:
+  91 · 258 · 847 at home, 6 · 115 · 196 away.
+- **Synthetic against synthetic.** Presidio's corpus is faker-built and structurally kind to
+  pattern engines; ours carries real layouts and OCR noise. Compare columns to each other,
+  not to field performance.
 
 - `compare.mts` is the ONE runner for both corpora and all three engines. It reuses
   `scoreCorpus` / `coversTruth` from `metric.ts` — no second scorer, no second table format.
@@ -116,8 +220,17 @@ banc d'une autre nature, sans `truth`), 3 357 vérités notées :
 | Perplexity PII-Tracer (`pplx-pii-masking`, MIT, 0,6 Md) | 92 % | 530 |
 
 Par catégorie et par langue : `pnpm bench:compare --corpus internal --markdown` imprime les
-tableaux que porte le README racine ; le match à l'extérieur, sur le corpus de Presidio, est
-dans `external/`.
+tableaux qui figurent **dans la moitié anglaise ci-dessus** — ils sortent de la commande, et
+une seconde copie traduite dériverait de la première au prochain relevé. Le match à
+l'extérieur, sur le corpus de Presidio, est dans `external/`.
+
+⚠️ **Ce banc mesure le MOTEUR, en politique `bare` — toutes catégories allumées.** C'est le
+plancher de non-régression, comparable à tous les chiffres jamais publiés par ce paquet, et
+ce n'est PAS le niveau par défaut de l'app : une app livrée laisse `date` et `url` éteintes
+(sur demande) et ne peut plus allumer `health` du tout (retirée). Le `HEALTH` à 100 % du
+tableau dit donc que le détecteur fonctionne, pas que vos données médicales sont masquées —
+elles ne le sont pas. Ce que fait le PRODUIT, niveau par niveau, c'est `spans/`, qui mesure
+les politiques de l'app elle-même.
 
 - `compare.mts` est LE harnais unique des deux corpus et des trois moteurs. Il réutilise
   `scoreCorpus` / `coversTruth` de `metric.ts` — pas de second scoreur, pas de second format.

@@ -17,13 +17,43 @@
  *
  * Categories are NOT required to match (Perplexity scores its external benchmarks the same
  * way): a name found as a company is found. Two VIEWS of the gold, both reported:
- *   all   — every upstream label except `ctx` (the comparable number);
- *   in    — only the labels the product claims (`adapt.py` says which, per dataset).
+ *   all   — every upstream label except `ctx`. Comparable to a PUBLISHED figure, and to
+ *           nothing else: each corpus annotates its own idea of personal data (Gretel calls
+ *           a company name PII, Nemotron annotates occupation and religion), so this number
+ *           mostly measures the distance between four taxonomies.
+ *   in    — the categories the APP actually exposes. THE number to compare an engine on:
+ *           every corpus is read through one vocabulary, the product's own.
+ * The mapping upstream label → app category is `adapt.py`'s (`cat` on every gold span); which
+ * categories are claimed is read HERE from the catalogue itself, so the product's scope has
+ * one home and a category retired there leaves this bench's scope in the same commit.
  * Precision is the same in both views and never charges an engine for marking an
  * annotated datum we chose not to score — the `CONTEXT` rule of `../metric.ts`.
  */
+// The bench must not depend on the catalog package (the dependency runs catalog → redact), so
+// the level arithmetic is read through a RELATIVE path, exactly as `../engines.ts` does.
+import { CATEGORY_DEFAULTS, REDACTION_CATEGORIES } from "../../../catalog/src/redaction";
 
-export interface GoldSpan { start: number; end: number; label: string; entity: string; scope: "in" | "out" | "ctx" }
+export interface GoldSpan {
+  start: number; end: number; label: string; entity: string;
+  /** The APP category this upstream label belongs to (`adapt.py` / `internal.mts`), or null
+   *  when the product has no category for it at all — no switch, no rule. */
+  cat: string | null;
+  /** Only ever `ctx`: the corpus's own "this mention identifies nobody" (TAB's `NO_MASK`, our
+   *  `CONTEXT`). Never scored, and never charged against precision. */
+  scope?: "ctx";
+}
+
+/** The categories the product EXPOSES — the catalogue is the one home of that claim. A
+ *  RETIRED category (`health`) is deliberately absent: the app forces it off at the send
+ *  merge, so counting it in the product's scope would credit us with a promise we dropped.
+ *  The gold still CARRIES it, so the per-category table shows the hole instead of hiding it. */
+const CLAIMED: ReadonlySet<string> = new Set(REDACTION_CATEGORIES.map((c) => String(c.key)));
+export const inScope = (s: GoldSpan): boolean => s.scope !== "ctx" && !!s.cat && CLAIMED.has(s.cat);
+/** The catalogue's own order — a per-category table reads like the app's rules screen. */
+export const CATEGORY_ORDER: readonly string[] = REDACTION_CATEGORIES.map((c) => String(c.key));
+/** Claimed, but OFF at the default level: the product finds these only in Strict. Marked in
+ *  the table, because a 4 % recall on `date` is a SETTING, not a miss. */
+export const OPT_IN: ReadonlySet<string> = new Set(CATEGORY_ORDER.filter((k) => !CATEGORY_DEFAULTS[k as keyof typeof CATEGORY_DEFAULTS]));
 export interface SpanCase { id: string; lang: string; text: string; spans: GoldSpan[]; meta?: Record<string, string> }
 export type PredSpan = [start: number, end: number];
 export type View = "all" | "in";
@@ -38,6 +68,9 @@ export interface Scores {
   byLength: Record<string, PRF>;
   byLang: Record<string, PRF>;
   byLabel: Record<string, { gold: number; charRecall: number; contained: number; spans: number }>;
+  /** The same, keyed on the APP's category — the view an engine is compared on. `—` collects
+   *  what no category covers (a time of day, an occupation, a religion). */
+  byCat: Record<string, { gold: number; charRecall: number; contained: number; spans: number }>;
 }
 
 function mark(len: number, spans: readonly { start: number; end: number }[]): Uint8Array {
@@ -63,17 +96,36 @@ const toPRF = (t: Triple): PRF => {
   return { p, r, f1: p + r ? (2 * p * r) / (p + r) : 0, tp: t.r, pred: t.pred, gold: t.gold };
 };
 
+/** Overlapping or touching predictions are ONE marked region, whatever the sidecar emitted.
+ *
+ * The character view never saw the difference (it works off the mark array), but the two
+ * span views divide by `predSpans.length`, so an engine that tags `Sen|lis` as two spans
+ * where another tags `Senlis` as one was paying twice for the same region. That was a
+ * property of the SIDECAR, not of the engine — `presidio.py` merged its output and
+ * `pplx.py` did not — so the normalisation belongs here, where every column gets it.
+ */
+export function normalize(spans: readonly PredSpan[]): { start: number; end: number }[] {
+  const out: { start: number; end: number }[] = [];
+  for (const [start, end] of [...spans].sort((a, b) => a[0] - b[0] || a[1] - b[1])) {
+    const last = out[out.length - 1];
+    if (last && start <= last.end) last.end = Math.max(last.end, end);
+    else out.push({ start, end });
+  }
+  return out;
+}
+
 export function scoreSpans(cases: readonly SpanCase[], preds: Readonly<Record<string, PredSpan[]>>, view: View): Scores {
   const total = acc();
   const byLength: Record<string, Acc> = {}, byLang: Record<string, Acc> = {};
-  const byLabel: Record<string, { gold: number; hit: number; contained: number; spans: number }> = {};
+  type Bucket = { gold: number; hit: number; contained: number; spans: number };
+  const byLabel: Record<string, Bucket> = {}, byCat: Record<string, Bucket> = {};
   const buckets: Record<string, [number, number]> = {};
   const recurring: [number, number] = [0, 0];
 
   for (const c of cases) {
-    const predSpans = (preds[c.id] ?? []).map(([start, end]) => ({ start, end }));
+    const predSpans = normalize(preds[c.id] ?? []);
     const pred = mark(c.text.length, predSpans);
-    const scored = c.spans.filter((s) => (view === "all" ? s.scope !== "ctx" : s.scope === "in"));
+    const scored = c.spans.filter((s) => (view === "all" ? s.scope !== "ctx" : inScope(s)));
     const gold = mark(c.text.length, scored);
     const any = mark(c.text.length, c.spans); // precision is never charged for a real datum
     const one: Acc = {
@@ -87,9 +139,13 @@ export function scoreSpans(cases: readonly SpanCase[], preds: Readonly<Record<st
       add(a.c, one.c); add(a.o, one.o); add(a.k, one.k);
     }
     for (const s of scored) {
-      const e = (byLabel[s.label] ??= { gold: 0, hit: 0, contained: 0, spans: 0 });
-      e.spans++; e.gold += s.end - s.start; if (covered(pred, s)) e.contained++;
-      for (let i = s.start; i < s.end; i++) e.hit += pred[i];
+      const contained = covered(pred, s);
+      let hit = 0;
+      for (let i = s.start; i < s.end; i++) hit += pred[i];
+      for (const e of [(byLabel[s.label] ??= { gold: 0, hit: 0, contained: 0, spans: 0 }),
+                       (byCat[s.cat ?? "—"] ??= { gold: 0, hit: 0, contained: 0, spans: 0 })]) {
+        e.spans++; e.gold += s.end - s.start; e.hit += hit; if (contained) e.contained++;
+      }
     }
     const ents = new Map<string, GoldSpan[]>();
     for (const s of scored) (ents.get(s.entity) ?? ents.set(s.entity, []).get(s.entity)!).push(s);
@@ -106,9 +162,13 @@ export function scoreSpans(cases: readonly SpanCase[], preds: Readonly<Record<st
     consistency: { buckets, recurring },
     byLength: Object.fromEntries(Object.entries(byLength).map(([k, a]) => [k, toPRF(a.c)])),
     byLang: Object.fromEntries(Object.entries(byLang).map(([k, a]) => [k, toPRF(a.c)])),
-    byLabel: Object.fromEntries(Object.entries(byLabel).map(([k, e]) => [k, { gold: e.gold, charRecall: e.gold ? e.hit / e.gold : 0, contained: e.contained, spans: e.spans }])),
+    byLabel: Object.fromEntries(Object.entries(byLabel).map(([k, e]) => [k, out(e)])),
+    byCat: Object.fromEntries(Object.entries(byCat).map(([k, e]) => [k, out(e)])),
   };
 }
+
+const out = (e: { gold: number; hit: number; contained: number; spans: number }) =>
+  ({ gold: e.gold, charRecall: e.gold ? e.hit / e.gold : 0, contained: e.contained, spans: e.spans });
 
 export const f3 = (x: number) => x.toFixed(3);
 export const pc = (a: number, b: number) => (b ? `${Math.round((100 * a) / b)} %` : "—");

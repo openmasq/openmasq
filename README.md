@@ -98,184 +98,78 @@ different one in the next conversation, so a table built over the pool reverses 
 
 ## Benchmarks
 
-Two corpora, three engines, **one scorer** — and one command that replays all of it.
+Two questions are measured, because they are not the same question:
 
-| corpus | truths | `patterns` (no model) | **the product** (`ner`) | Presidio (default) |
-|---|---:|---:|---:|---:|
-| **Ours** — 18 document families, 14 languages, real layouts, OCR damage | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 46 % · 847 FP |
-| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | 58 % · 196 FP |
+- **Did the value leave the machine?** A truth counts as found when most of its tokens were
+  replaced. That is what a redaction product owes you.
+- **Where exactly did the engine draw the line?** Every annotated character counts on its
+  own — a name found but cut short scores partly, and paint past the edge of a value is paid
+  for. That is how the literature judges a detector; the protocol is the one in Perplexity's
+  [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
+  paper, so these numbers can sit beside the ones it publishes.
+
+**Values — did it leave?** Our corpus: 18 document families, 14 languages, real layouts, OCR
+damage, 907 cases, 3 357 annotated truths.
+
+| corpus | truths | `patterns` (no model) | **the product** (`ner`) | PII-Tracer | Presidio (default) |
+|---|---:|---:|---:|---:|---:|
+| **ours** | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 92 % · 530 FP | 46 % · 847 FP |
+| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | — | 58 % · 196 FP |
 
 A truth counts as *found* when ≥ 60 % of its significant tokens were replaced; a *false
-positive* (FP) is a detection that overlaps no annotated value. Titles, ages, nationalities
-and dates are annotated but not scored — an engine is never charged for finding a real
-datum we chose not to count. Presidio is its default `AnalyzerEngine`, replayed from
-committed detections so the column needs no Python to verify.
+positive* (FP) is a detection overlapping no annotated value.
 
-<details>
-<summary><b>Our corpus, by category and by language</b> — 907 cases</summary>
+**Characters — where was the line?** Five corpora, six engines, one scorer. Scored on **the
+categories this app actually has a switch for**: each corpus annotates its own idea of
+personal data — Gretel counts a company name, Nemotron annotates occupation and religion, TAB
+marks every date — so every upstream label is mapped onto one of the app's categories, and
+what no category covers is shown but not counted. A single number pooled over "whatever this
+corpus happened to annotate" mostly measures the distance between four taxonomies.
 
-| category | truths | openmasq `patterns` | **openmasq `ner`** (the product) | Presidio (default) |
-|---|---:|---:|---:|---:|
-| NAME | 663 | 78 % | 94 % | 58 % |
-| EMAIL | 247 | 99 % | 99 % | 98 % |
-| CITY | 243 | 53 % | 87 % | 23 % |
-| CARD | 233 | 100 % | 100 % | 65 % |
-| ADDRESS | 232 | 98 % | 100 % | 15 % |
-| ID | 215 | 93 % | 93 % | 45 % |
-| COMPANY_ID | 206 | 100 % | 100 % | 24 % |
-| HEALTH | 205 | 100 % | 100 % | 66 % |
-| USERNAME | 203 | 100 % | 100 % | 4 % |
-| TOKEN | 201 | 100 % | 100 % | 7 % |
-| PHONE | 156 | 95 % | 95 % | 94 % |
-| POSTAL | 101 | 88 % | 88 % | 17 % |
-| DOB | 90 | 89 % | 89 % | 77 % |
-| ORG | 71 | 61 % | 85 % | 30 % |
-| IBAN | 54 | 100 % | 100 % | 83 % |
-| AMOUNT | 30 | 3 % | 3 % | 17 % |
-| IP | 29 | 100 % | 100 % | 100 % |
-| PLACE | 28 | 93 % | 96 % | 4 % |
-| DATE | 28 | 100 % | 100 % | 79 % |
-| PATH | 28 | 93 % | 93 % | 0 % |
-| COMPANY | 25 | 92 % | 92 % | 8 % |
-| SECRET | 23 | 91 % | 91 % | 13 % |
-| URL | 23 | 91 % | 91 % | 96 % |
-| BIC | 23 | 74 % | 74 % | 4 % |
-| **GLOBAL** | 3357 | **89 %** · 91 FP | **95 %** · 258 FP | **46 %** · 847 FP |
-
-| language | cases | openmasq `patterns` | **openmasq `ner`** (the product) | Presidio (default) |
-|---|---:|---:|---:|---:|
-| fr | 468 | 87 % | 94 % | 50 % |
-| en | 215 | 92 % | 96 % | 41 % |
-| de | 47 | 98 % | 99 % | 46 % |
-| es | 32 | 97 % | 99 % | 52 % |
-| it | 29 | 97 % | 99 % | 59 % |
-| pt | 30 | 97 % | 98 % | 40 % |
-| nl | 24 | 99 % | 100 % | 38 % |
-| zh | 17 | 26 % | 66 % | 6 % |
-| pl | 10 | 100 % | 100 % | 75 % |
-| ja | 12 | 24 % | 76 % | 16 % |
-| ko | 11 | 24 % | 88 % | 16 % |
-| sv | 6 | 100 % | 100 % | 35 % |
-| da | 5 | 100 % | 100 % | 47 % |
-| ru | 1 | 0 % | 100 % | 0 % |
-
-</details>
-
-<details>
-<summary><b>Presidio's corpus, by category</b> — 1 387 cases</summary>
-
-| category | truths | openmasq `patterns` | **openmasq `ner`** (the product) | Presidio (default) |
-|---|---:|---:|---:|---:|
-| NAME | 857 | 32 % | 98 % | 87 % |
-| ADDRESS | 598 | 28 % | 40 % | 17 % |
-| CITY | 411 | 2 % | 68 % | 58 % |
-| ORG | 250 | 5 % | 73 % | 22 % |
-| CARD | 136 | 100 % | 100 % | 97 % |
-| PHONE | 92 | 57 % | 57 % | 63 % |
-| EMAIL | 49 | 100 % | 100 % | 100 % |
-| POSTAL | 37 | 0 % | 0 % | 5 % |
-| URL | 37 | 100 % | 100 % | 100 % |
-| ID | 21 | 100 % | 100 % | 100 % |
-| IBAN | 21 | 100 % | 100 % | 100 % |
-| IP | 14 | 100 % | 100 % | 100 % |
-| **GLOBAL** | 2523 | **31 %** · 6 FP | **74 %** · 115 FP | **58 %** · 196 FP |
-
-</details>
-
-> [!WARNING]
-> **Read the categories, not the total.** A single percentage hides which of your data is
-> actually protected, and the answer is not uniform.
->
-> - **Structured values are solved** — cards, IBANs, e-mails, URLs, IPs sit at or near
->   100 % with no model at all, because a checksum or a shape is a proof rather than a
->   guess.
-> - **Names are the strong case** (94 % at home, 98 % away), and they are what a chat
->   leaks most.
-> - **Addresses are the honest weakness.** 100 % on our documents, **40 %** on Presidio's
->   corpus, whose truths are multi-line US street addresses recovered in pieces — the
->   city, sometimes the number — rather than as one span. Presidio does worse there
->   (17 %); that is a reason to keep working, not a reason to be satisfied.
-> - **The two corpora disagree about Presidio, and the disagreement is the finding.**
->   87 % on names in its own template sentences, 58 % on names in real documents; 46 %
->   overall at home, and **41 % on our English cases** — so the gap is not the language.
->   A default install is tuned for the sentences it was evaluated on. Ours was tuned
->   for the documents people actually paste.
-> - **Presidio's default install is English.** The `fr` line (50 %) is what a French
->   user gets out of the box; it is not Presidio's ceiling, which is a library built to
->   receive recognizers and models.
-> - **CJK needs the model.** Rules alone reach 24–26 % on Chinese, Japanese and Korean;
->   the local NER lifts them to 66–88 %. A name with no word boundaries is not a shape.
-> - **`AMOUNT` at 3 % is a decision, not a miss** — the category was retired (an amount
->   is not an identity), and the corpus keeps annotating it so the measure stays honest.
-> - **Recall is paid for in false positives**, and the hierarchy is visible on both
->   corpora: 91 · 258 · 847 at home, 6 · 115 · 196 away.
-> - **Synthetic against synthetic.** Presidio's corpus is faker-built and structurally
->   kind to pattern engines; ours carries real layouts and OCR noise. Compare columns
->   to each other, not to field performance.
->
-> **Whatever the numbers, detection is not a guarantee.** The Vault — terms you mark
-> yourself — is the only coverage promise the product makes for a given string.
-
-### At character level, on public benchmarks
-
-The tables above score **values**: a truth counts when most of its tokens were replaced. Below,
-every annotated **character** counts on its own, so a name found but cut short scores partly,
-and an engine that paints past the edge of a value pays for the overshoot. That is how the
-literature judges a detector. The protocol is the one in Perplexity's
-[PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
-paper, run here against **PII-Tracer**, the 0.6B detector Perplexity open-sourced, and against
-**Presidio**, on four public corpora plus ours.
+| corpus | cases | `patterns` | **`ner`** (the product) | `ner` (Strict) | PII-Tracer | OpenAI PF | Presidio |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OpenMasq | 907 | 0.931 | **0.931** | 0.923 | 0.888 | 0.833 | 0.547 |
+| TAB | 127 | 0.425 | **0.606** | 0.855 | 0.742 | 0.435 | 0.815 |
+| Gretel | 2000 | 0.575 | **0.646** | 0.646 | 0.611 | 0.565 | 0.422 |
+| ai4privacy | 2000 | 0.756 | **0.796** | 0.827 | 0.952 | 0.945 | 0.579 |
+| Nemotron | 2000 | 0.627 | **0.735** | 0.928 | 0.887 | 0.736 | 0.768 |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-en-dark.png">
   <img alt="Character-level F1 per corpus and per engine" src="packages/redact/bench/spans/figures/f1-by-corpus-en-light.png">
 </picture>
 
-| corpus | cases | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
-|---|---:|---:|---:|---:|---:|---:|
-| OpenMasq | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
-| TAB | 127 | 0.388 | 0.565 | 0.803 | 0.690 | 0.766 |
-| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | 0.421 |
-| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
-| Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
+**Why the numbers land where they do** — the four things that move them more than the engines do:
 
-Presidio is a **default `pip install`** — which means Presidio *and* spaCy: a bare
-`AnalyzerEngine()` loads `en_core_web_lg`, and every name, place and organisation in that
-column comes from it. Run on all five corpora rather than only on ours; on TAB it scores
-0.766, above this product's own default level.
+- **A shape is a proof, a name is a guess.** Cards, IBANs, e-mails, IPs sit at or near 100 %
+  with no model at all: a checksum decides. Names, addresses and companies are where an
+  engine is actually tested, and where the local model earns its cost — on Chinese, Japanese
+  and Korean the rules alone reach 24–26 %, the model 66–88 %.
+- **A card number we miss is one no bank could issue.** 89 % of Nemotron's card numbers and
+  52 % of Gretel's fail the Luhn check — drawn at random by a generator. Split the gold on
+  that: **every value whose key verifies is found**, 100 % on both corpora. The engine refuses
+  the rest on purpose; accepting any sixteen digits is how a redaction tool starts eating order
+  numbers.
+- **A corpus that under-annotates punishes recall AND precision.** Gretel leaves the account
+  numbers in its MT940/SWIFT/XBRL documents unlabelled: on those 320 documents every engine
+  marks numbers nobody annotated, and precision collapses — 0.24 for PII-Tracer, 0.43 for
+  ours. It is a property of the corpus, not of the detectors.
+- **Partial credit flatters everyone, and it flatters us most.** F1 rewards a value found
+  half-way; a redaction product has to find *every* mention. That stricter number is on the
+  bench page beside this one, and it is lower for all six columns.
+- **Presidio here is a default `pip install`** — Presidio *and* spaCy `en_core_web_lg`, run
+  with `language="en"` on all fourteen languages, which is what a user gets out of the box,
+  not Presidio's ceiling. Its 41 % on our **English** cases says the gap is real layouts, not
+  the language.
 
-**The bench reproduces the published figures on two of the four**: 0.952 against 0.950 on
-ai4privacy, 0.842 against 0.847 on Nemotron. Where it does not, on TAB and Gretel, it says so
-and says what differs.
+**Whatever the numbers, detection is not a guarantee.** The Vault — terms you mark yourself —
+is the only coverage promise the product makes for a given string.
 
-⚠️ F1 gives partial credit, which flatters everyone. A redaction product has to find *every*
-mention of a value, and that number is lower for all of us. It is on the bench page, beside
-this one.
-
-**[`packages/redact/bench/spans`](packages/redact/bench/spans)** carries the whole thing: six
-figures, the per-label and per-language tables, what each corpus contains, and the one command
-that rebuilds every figure from the committed results.
-
-**What it costs, per document.** An engine nobody waits for is an engine people turn off.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/latency-en-dark.png">
-  <img alt="Median response time per document, per corpus and per engine" src="packages/redact/bench/spans/figures/latency-en-light.png">
-</picture>
-
-| corpus | median chars | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> | Presidio<br><sub>CPU</sub> |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| OpenMasq | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms | 4 ms |
-| TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s | 124 ms |
-| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms | 49 ms |
-| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms | 18 ms |
-| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms | 35 ms |
-
-Bar = median, whisker = p90, hatched = GPU. One engine at a time, nothing else running, 40
-documents per corpus. ⚠️ Device, runtime and numeric type all differ between the product and
-PII-Tracer, so the latter is measured on **both** the GPU it ships for and the CPU ours runs on.
-
-### Replay it
+**The detail lives with the code it measures**, in
+**[`packages/redact/bench`](packages/redact/bench)**: what each corpus contains and where it
+comes from, the per-category and per-language tables, response time per document, the
+consistency score, where this bench reproduces a published figure and where it does not — and
+why.
 
 ```bash
 git clone https://github.com/openmasq/openmasq && cd openmasq && pnpm install
@@ -284,9 +178,7 @@ pnpm bench:compare --engines patterns,presidio    # ~1 min, no model: rules vs P
 pnpm build && pnpm bench:compare                  # adds the product column (bakes the local NER, sha256-pinned)
 ```
 
-Presidio's column is a committed artifact, so both benches replay without Python. Regenerating
-it, the corpora, the scorer and the exact provenance of each dataset are documented in
-[`packages/redact/bench`](packages/redact/bench).
+Presidio's column is a committed artifact, so both benches replay without Python.
 
 ## Links
 
@@ -522,123 +414,81 @@ L'inventaire exhaustif, écran par écran, est dans [`FEATURES.md`](FEATURES.md)
 
 ## Bancs de mesure
 
-Deux corpus, trois moteurs, **un seul scoreur** — et une commande qui rejoue le tout.
+Deux questions sont mesurées, parce que ce ne sont pas les mêmes :
 
-| corpus | vérités | `patterns` (sans modèle) | **le produit** (`ner`) | Presidio (par défaut) |
-|---|---:|---:|---:|---:|
-| **Le nôtre** — 18 familles de documents, 14 langues, vraies mises en page, dégât OCR | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 46 % · 847 FP |
-| **Celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | 58 % · 196 FP |
+- **La valeur est-elle sortie de la machine ?** Une vérité compte comme trouvée quand
+  l'essentiel de ses tokens a été remplacé. C'est ce qu'un produit de masquage vous doit.
+- **Où le moteur a-t-il posé la limite, exactement ?** Chaque caractère annoté compte pour
+  lui-même — un nom trouvé mais coupé ne marque qu'en partie, et déborder d'une valeur se
+  paie. C'est ainsi que la littérature juge un détecteur ; le protocole est celui de l'article
+  [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
+  de Perplexity, pour que ces chiffres puissent se poser à côté des siens.
 
-Une vérité compte comme *trouvée* quand ≥ 60 % de ses tokens significatifs ont été
-remplacés ; un *faux positif* (FP) est une détection qui ne chevauche aucune valeur
-annotée. Titres, âges, nationalités et dates sont annotés mais non notés — un moteur n'est
-jamais pénalisé pour avoir trouvé une donnée réelle qu'on a choisi de ne pas compter.
-Presidio est son `AnalyzerEngine` par défaut, rejoué depuis des détections commitées : la
-colonne se vérifie sans Python.
+**Les valeurs — est-ce sorti ?** Notre corpus : 18 familles de documents, 14 langues, vraies
+mises en page, dégât OCR, 907 cas, 3 357 vérités annotées.
 
-Les tableaux détaillés — par catégorie sur les deux corpus, et par langue sur le nôtre —
-sont **ceux de la section anglaise ci-dessus** : ils sont générés par la commande, et une
-seconde copie traduite dériverait de la première au prochain relevé.
+| corpus | vérités | `patterns` (sans modèle) | **le produit** (`ner`) | PII-Tracer | Presidio (par défaut) |
+|---|---:|---:|---:|---:|---:|
+| **le nôtre** | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 92 % · 530 FP | 46 % · 847 FP |
+| **celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | — | 58 % · 196 FP |
 
-> [!WARNING]
-> **Lisez les catégories, pas le total.** Un pourcentage unique cache lesquelles de vos
-> données sont réellement protégées, et la réponse n'est pas uniforme.
->
-> - **Les valeurs structurées sont réglées** — cartes, IBAN, e-mails, URL, IP sont à 100 %
->   ou presque sans aucun modèle, parce qu'une somme de contrôle ou une forme est une
->   preuve et non une supposition.
-> - **Les noms sont le point fort** (94 % chez nous, 98 % chez eux), et c'est ce qu'une
->   conversation laisse le plus échapper.
-> - **Les adresses sont la faiblesse honnête.** 100 % sur nos documents, **40 %** sur le
->   corpus de Presidio, dont les vérités sont des adresses américaines sur plusieurs
->   lignes, récupérées par morceaux — la ville, parfois le numéro — plutôt que comme un
->   seul span. Presidio y fait moins bien (17 %) : une raison d'y travailler, pas de s'en
->   contenter.
-> - **Les deux corpus ne sont pas d'accord sur Presidio, et ce désaccord est le
->   résultat.** 87 % sur les noms de ses propres phrases-gabarits, 58 % sur les noms de
->   vrais documents ; 46 % chez nous au global, et **41 % sur nos cas en anglais** — l'écart
->   n'est donc pas la langue. Une installation par défaut est réglée pour les phrases sur
->   lesquelles elle a été évaluée. La nôtre l'est pour les documents que les gens collent.
-> - **L'installation par défaut de Presidio est anglaise.** La ligne `fr` (50 %) est ce
->   qu'un utilisateur français obtient en sortie de boîte ; ce n'est pas le plafond de
->   Presidio, bibliothèque faite pour recevoir des reconnaisseurs et des modèles.
-> - **Le CJK a besoin du modèle.** Les règles seules atteignent 24–26 % en chinois,
->   japonais et coréen ; la NER locale les porte à 66–88 %. Un nom sans frontière de mot
->   n'est pas une forme.
-> - **`AMOUNT` à 3 % est une décision, pas un raté** — la catégorie a été retirée (un
->   montant n'est pas une identité), et le corpus continue de l'annoter pour que la mesure
->   reste honnête.
-> - **Le rappel se paie en faux positifs**, et la hiérarchie est lisible sur les deux
->   corpus : 91 · 258 · 847 chez nous, 6 · 115 · 196 chez eux.
-> - **Synthétique contre synthétique.** Le corpus de Presidio est bâti avec faker et
->   structurellement aimable avec les moteurs à motifs ; le nôtre porte de vraies mises en
->   page et du bruit OCR. Comparez les colonnes entre elles, pas à du terrain.
->
-> **Quels que soient les chiffres, une détection n'est pas une garantie.** Le Coffre — les
-> termes que vous marquez vous-même — est la seule promesse de couverture que le produit
-> fasse pour une chaîne donnée.
+Une vérité compte comme *trouvée* quand ≥ 60 % de ses tokens significatifs ont été remplacés ;
+un *faux positif* (FP) est une détection qui ne chevauche aucune valeur annotée.
 
-### Au caractère près, sur des bancs publics
+**Les caractères — où était la limite ?** Cinq corpus, six moteurs, un seul scoreur. Notés sur
+**les catégories que cette app a vraiment en réglage** : chaque corpus annote sa propre idée
+de la donnée personnelle — Gretel compte un nom d'entreprise, Nemotron annote le métier et la
+religion, TAB marque toutes les dates — alors chaque étiquette amont est ramenée à une
+catégorie de l'app, et ce qu'aucune catégorie ne couvre est montré sans être compté. Un chiffre
+unique agrégé sur « ce que ce corpus a annoté » mesure surtout l'écart entre quatre taxonomies.
 
-Les tableaux ci-dessus notent des **valeurs** : une vérité compte quand la plupart de ses
-tokens ont été remplacés. Ci-dessous, chaque **caractère** annoté compte pour lui-même : un nom
-trouvé mais coupé compte en partie, et un moteur qui déborde d'une valeur paie ce débordement.
-C'est ainsi que la littérature juge un détecteur. Le protocole est celui de l'article
-[PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
-de Perplexity, exécuté ici face à **PII-Tracer**, le détecteur de 0,6 Md que Perplexity a
-ouvert, et face à **Presidio**, sur quatre corpus publics plus le nôtre.
+| corpus | cas | `patterns` | **`ner`** (le produit) | `ner` (Strict) | PII-Tracer | OpenAI PF | Presidio |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| OpenMasq | 907 | 0.931 | **0.931** | 0.923 | 0.888 | 0.833 | 0.547 |
+| TAB | 127 | 0.425 | **0.606** | 0.855 | 0.742 | 0.435 | 0.815 |
+| Gretel | 2000 | 0.575 | **0.646** | 0.646 | 0.611 | 0.565 | 0.422 |
+| ai4privacy | 2000 | 0.756 | **0.796** | 0.827 | 0.952 | 0.945 | 0.579 |
+| Nemotron | 2000 | 0.627 | **0.735** | 0.928 | 0.887 | 0.736 | 0.768 |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-fr-dark.png">
   <img alt="F1 au niveau du caractère, par corpus et par moteur" src="packages/redact/bench/spans/figures/f1-by-corpus-fr-light.png">
 </picture>
 
-| corpus | cas | `patterns` | **`ner`** (Renforcé) | `ner` (Strict) | PII-Tracer | Presidio |
-|---|---:|---:|---:|---:|---:|---:|
-| OpenMasq | 907 | 0.906 | 0.911 | 0.923 | 0.883 | 0.549 |
-| TAB | 127 | 0.388 | 0.565 | 0.803 | 0.690 | 0.766 |
-| Gretel | 2 000 | 0.540 | 0.620 | 0.630 | 0.610 | 0.421 |
-| ai4privacy | 2 000 | 0.684 | 0.729 | 0.789 | 0.952 | 0.564 |
-| Nemotron | 2 000 | 0.497 | 0.612 | 0.811 | 0.842 | 0.709 |
+**Pourquoi les chiffres tombent là** — les quatre choses qui les déplacent plus que les moteurs :
 
-Presidio est une **installation `pip` par défaut** — donc Presidio *et* spaCy : un
-`AnalyzerEngine()` nu charge `en_core_web_lg`, d'où viennent tous les noms, lieux et
-organisations de cette colonne. Exécutée sur les cinq corpus et pas seulement sur le nôtre ;
-sur TAB elle note 0,766, au-dessus du niveau par défaut de ce produit.
+- **Une forme est une preuve, un nom est un pari.** Cartes, IBAN, e-mails, IP sont à 100 % ou
+  presque sans aucun modèle : une clé de contrôle tranche. Les noms, les adresses et les
+  entreprises sont là où un moteur est réellement mis à l'épreuve, et où le modèle local paie
+  son coût — en chinois, japonais et coréen les règles seules atteignent 24 à 26 %, le modèle
+  66 à 88 %.
+- **Un numéro de carte que nous ratons est un numéro qu'aucune banque n'émettrait.** 89 % des
+  numéros de carte de Nemotron et 52 % de ceux de Gretel échouent au Luhn — tirés au hasard par
+  un générateur. Séparez l'or là-dessus : **toute valeur dont la clé se vérifie est trouvée**,
+  100 % sur les deux corpus. Le moteur refuse les autres volontairement ; accepter n'importe
+  quels seize chiffres, c'est ainsi qu'un outil de masquage se met à manger des numéros de
+  commande.
+- **Un corpus qui sous-annote punit le rappel ET la précision.** Gretel laisse sans étiquette
+  les numéros de compte de ses documents MT940/SWIFT/XBRL : sur ces 320 documents, tous les
+  moteurs marquent des nombres que personne n'a annotés, et la précision s'effondre — 0,24
+  pour PII-Tracer, 0,43 pour nous. C'est une propriété du corpus, pas des détecteurs.
+- **Le crédit partiel flatte tout le monde, et nous en premier.** Le F1 récompense une valeur
+  trouvée à moitié ; un produit de masquage doit trouver *chaque* mention. Ce chiffre-là,
+  plus sévère, est sur la page du banc à côté de celui-ci, et il est plus bas pour les six
+  colonnes.
+- **Presidio est ici un `pip install` par défaut** — Presidio *et* spaCy `en_core_web_lg`,
+  lancé en `language="en"` sur les quatorze langues, c'est-à-dire ce qu'un utilisateur obtient
+  sans rien régler, pas le plafond de Presidio. Ses 41 % sur nos cas **anglais** disent que
+  l'écart tient aux vraies mises en page, pas à la langue.
 
-**Le banc reproduit les chiffres publiés sur deux des quatre** : 0,952 contre 0,950 sur
-ai4privacy, 0,842 contre 0,847 sur Nemotron. Là où il ne les reproduit pas, sur TAB et Gretel,
-il le dit et dit ce qui diffère.
+**Quels que soient les chiffres, la détection n'est pas une garantie.** Le Coffre — les termes
+que vous marquez vous-même — est la seule promesse de couverture que le produit fait sur une
+chaîne donnée.
 
-⚠️ Le F1 donne un crédit partiel, ce qui flatte tout le monde. Un produit de masquage doit
-trouver *chaque* mention d'une valeur, et ce chiffre-là est plus bas pour nous tous. Il est sur
-la page du banc, à côté de celui-ci.
-
-**[`packages/redact/bench/spans`](packages/redact/bench/spans)** porte l'ensemble : six
-figures, les tableaux par étiquette et par langue, ce que contient chaque corpus, et la
-commande unique qui reconstruit chaque figure depuis les résultats commités.
-
-**Ce que cela coûte, par document.** Un moteur qu'on n'attend pas est un moteur qu'on désactive.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/latency-fr-dark.png">
-  <img alt="Temps de réponse médian par document, par corpus et par moteur" src="packages/redact/bench/spans/figures/latency-fr-light.png">
-</picture>
-
-| corpus | car. médians | `patterns`<br><sub>CPU</sub> | `ner` (Renforcé)<br><sub>CPU · int8</sub> | `ner` (Strict)<br><sub>CPU · int8</sub> | PII-Tracer<br><sub>CPU · fp32</sub> | PII-Tracer<br><sub>**GPU** · bf16</sub> | Presidio<br><sub>CPU</sub> |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| OpenMasq | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms | 4 ms |
-| TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s | 124 ms |
-| Gretel | 1 283 | 10 ms | 543 ms | 480 ms | 988 ms | 923 ms | 49 ms |
-| ai4privacy | 426 | 4 ms | 106 ms | 117 ms | 389 ms | 334 ms | 18 ms |
-| Nemotron | 709 | 6 ms | 239 ms | 292 ms | 598 ms | 380 ms | 35 ms |
-
-Barre = médiane, moustache = p90, hachures = GPU. Un moteur à la fois, rien d'autre en marche,
-40 documents par corpus. ⚠️ L'appareil, le moteur d'exécution et le type numérique diffèrent
-tous entre le produit et PII-Tracer : ce dernier est donc mesuré sur **les deux**, le GPU pour
-lequel il est livré et le processeur sur lequel tourne le nôtre.
-
-### Le rejouer
+**Le détail vit avec le code qu'il mesure**, dans
+**[`packages/redact/bench`](packages/redact/bench)** : ce que contient chaque corpus et d'où il
+vient, les tableaux par catégorie et par langue, le temps de réponse par document, le score de
+constance, où ce banc retrouve un chiffre publié et où il ne le retrouve pas — et pourquoi.
 
 ```bash
 git clone https://github.com/openmasq/openmasq && cd openmasq && pnpm install
@@ -647,9 +497,7 @@ pnpm bench:compare --engines patterns,presidio    # ~1 min, sans modèle : les r
 pnpm build && pnpm bench:compare                  # ajoute la colonne du produit (cuit la NER locale, épinglée sha256)
 ```
 
-La colonne Presidio est un artefact commité, donc les deux bancs se rejouent sans Python. Sa
-régénération, les corpus, le scoreur et la provenance exacte de chaque jeu sont documentés dans
-[`packages/redact/bench`](packages/redact/bench).
+La colonne Presidio est un artefact commité : les deux bancs se rejouent sans Python.
 
 ## Liens
 

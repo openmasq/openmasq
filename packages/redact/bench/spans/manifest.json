@@ -14,10 +14,19 @@
 "cases": 6000,
 "spans": 39927,
 "dropped_bad_offsets": 0,
-"scope": {
-"in": 30955,
-"out": 8972,
-"ctx": 0
+"categories": {
+"national_id": 7879,
+"none": 7601,
+"location": 4526,
+"name": 4415,
+"address": 3502,
+"username": 2187,
+"email": 2002,
+"dob": 1890,
+"ip": 1715,
+"phone": 1621,
+"date": 1371,
+"secret": 1218
 },
 "ids": [
 "ai4-5-13918D",
@@ -6032,10 +6041,25 @@
 "cases": 6000,
 "spans": 50391,
 "dropped_bad_offsets": 0,
-"scope": {
-"in": 35735,
-"out": 14656,
-"ctx": 0
+"categories": {
+"none": 11057,
+"name": 8355,
+"date": 5155,
+"company": 3302,
+"email": 3205,
+"location": 2987,
+"url": 2287,
+"iban": 1966,
+"company_id": 1837,
+"phone": 1835,
+"health": 1578,
+"secret": 1459,
+"card": 1049,
+"dob": 1034,
+"username": 961,
+"address": 928,
+"national_id": 837,
+"ip": 559
 },
 "ids": [
 "nem-10",
@@ -12050,10 +12074,22 @@
 "cases": 5594,
 "spans": 36990,
 "dropped_bad_offsets": 27,
-"scope": {
-"in": 26686,
-"out": 10304,
-"ctx": 0
+"categories": {
+"name": 10792,
+"date": 8558,
+"company": 6341,
+"address": 4304,
+"none": 1843,
+"email": 1422,
+"phone": 946,
+"iban": 754,
+"national_id": 429,
+"company_id": 370,
+"secret": 334,
+"ip": 296,
+"card": 280,
+"dob": 250,
+"username": 71
 },
 "ids": [
 "gretel-43233",
@@ -17662,10 +17698,14 @@
 "cases": 127,
 "spans": 7565,
 "dropped_bad_offsets": 0,
-"scope": {
-"in": 2360,
-"out": 3064,
-"ctx": 2141
+"categories": {
+"date": 2468,
+"ctx": 2141,
+"name": 987,
+"company": 653,
+"none": 596,
+"location": 391,
+"national_id": 329
 },
 "ids": [
 "001-61807",
@@ -17800,8 +17840,8 @@
 "internal": {
 "upstream": "../corpora/*.json (this repository)",
 "cases": 907,
-"truths": 3357,
+"truths": 3364,
 "absent_verbatim": 104,
-"spans": 3394
+"spans": 3401
 }
 }

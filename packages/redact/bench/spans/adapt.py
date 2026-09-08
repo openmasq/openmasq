@@ -4,19 +4,14 @@
     python adapt.py                 # all four datasets, default sample sizes
     python adapt.py nemotron 20000  # one dataset, another sample size (0 = the whole split)
 
-Every case is `{ id, lang, text, spans: [{ start, end, label, entity, scope }] }` with
+Every case is `{ id, lang, text, spans: [{ start, end, label, cat, entity }] }` with
 character offsets straight from the upstream annotation — nothing re-annotated, nothing
-re-aligned. `scope` is OUR reading of each upstream label, and it is the whole honesty of
-the comparison, so it is spelled out per dataset below:
-
-  in   — an identity datum the product claims to redact (name, contact, address, identifier,
-         credential, health). Scored for recall in BOTH views.
-  out  — a real annotation the product does not claim (plain dates and times, country,
-         occupation, demographics, opinions…). Scored for recall in the ALL-LABELS view only —
-         the view comparable to the numbers Perplexity publishes — never charged as a
-         false positive in either.
-  ctx  — annotated upstream as NOT requiring masking (TAB `NO_MASK`). Never in recall,
-         never a false positive.
+re-aligned. `cat` is OUR reading of each upstream label — the APP category it belongs to, or
+`None` when the product has none — and it is the whole honesty of the comparison, so it is
+spelled out label by label below. `metric.ts` turns it into the two views: the app's
+categories (what compares two engines) and every upstream label (what compares to a published
+figure). A span the corpus itself marks as identifying nobody (TAB `NO_MASK`) carries
+`scope: "ctx"` and is never scored, in either view, nor charged as a false positive.
 
 `entity` groups the mentions of one identifier (TAB carries an entity id; the others get
 label + lowercased surface form), which is what the consistency score counts.
@@ -51,24 +46,101 @@ REVISIONS = {
     "tab": "mattmdjaga/text-anonymization-benchmark-val-test@cb31e803321d83ef623f27e5f35434b844725120 (test)",
 }
 
-# ---- scope per upstream label ---------------------------------------------------------
-# ai4privacy (300k): 28 labels. Out of the product's claim: plain dates and times, sex,
-# civility title, country (kept in clear outside Strict, by product decision), geographic
-# coordinates, and the card ISSUER's name (a brand, not an identity).
-AI4_OUT = {"DATE", "TIME", "SEX", "TITLE", "COUNTRY", "GEOCOORD", "CARDISSUER"}
-# Nemotron-PII: 55 labels. Out of the product's claim: bare dates/times, country, occupation,
-# demographics and opinions (the product redacts health data, not race, religion, politics or
-# sexuality), and geographic coordinates.
-NEMO_OUT = {
-    "date", "time", "date_time", "country", "occupation", "employment_status", "education_level",
-    "race_ethnicity", "language", "gender", "age", "political_view", "religious_belief",
-    "sexuality", "coordinate",
+# ---- what the PRODUCT calls each upstream label ----------------------------------------
+# The comparison that carries meaning is per APP CATEGORY, not per corpus label. Each corpus
+# annotates its own vocabulary — Gretel has `company`, Nemotron has `occupation`, TAB has
+# `MISC` — so one F1 pooled over "every label this corpus happens to carry" compares four
+# different definitions of what personal data is, and ranks engines on that difference.
+#
+# So every upstream label is mapped to the category the APP exposes (`@openmasq/catalog`
+# `REDACTION_CATEGORIES`, plus the engine's retired `health`, which the corpora annotate and
+# the product no longer switches on). `None` = the product has NO category for it: no switch,
+# no rule, nothing to claim. Which categories are IN the product's scope is NOT decided here —
+# `metric.ts` reads it from the catalog itself, so the claim has one home (rule 9) and a
+# category retired or added there moves this bench without a re-derivation.
+#
+# A mapping is a product statement, so it errs towards `None`: claiming a label the app does
+# not actually cover would flatter our own columns first. Every label of every corpus must
+# appear — `cat()` raises on an unknown one rather than letting it default to "not ours".
+
+AI4_CAT = {
+    "GIVENNAME1": "name", "GIVENNAME2": "name", "LASTNAME1": "name", "LASTNAME2": "name",
+    "LASTNAME3": "name", "BOD": "dob", "DATE": "date", "EMAIL": "email", "TEL": "phone",
+    "IP": "ip", "USERNAME": "username", "PASS": "secret",
+    "IDCARD": "national_id", "PASSPORT": "national_id", "DRIVERLICENSE": "national_id",
+    "SOCIALNUMBER": "national_id",
+    "STREET": "address", "BUILDING": "address", "SECADDRESS": "address",
+    "CITY": "location", "STATE": "location", "POSTCODE": "location",
+    # No category in the app: a time of day, a civility, a sex, a country (a product decision:
+    # it stays readable), a lat/long pair, and the card ISSUER (a brand, not an identity).
+    "TIME": None, "TITLE": None, "SEX": None, "COUNTRY": None, "GEOCOORD": None,
+    "CARDISSUER": None,
 }
-# Gretel: bare dates and times are out; everything else is an identifier or a credential.
-GRETEL_OUT = {"date", "time", "date_time"}
-# TAB: entity types. DATETIME, QUANTITY, DEM (demographic), MISC are out; PERSON, ORG, LOC,
-# CODE are in. `identifier_type` NO_MASK → ctx.
-TAB_OUT = {"DATETIME", "QUANTITY", "DEM", "MISC"}
+
+GRETEL_CAT = {
+    "name": "name", "first_name": "name", "last_name": "name",
+    "company": "company", "street_address": "address", "email": "email",
+    "phone_number": "phone", "date": "date", "date_time": "date", "date_of_birth": "dob",
+    # « IBAN / coordonnees bancaires » is the app's one switch for an account identifier.
+    "iban": "iban", "bban": "iban", "swift_bic_code": "iban", "bank_routing_number": "iban",
+    "credit_card_number": "card", "credit_card_security_code": "card",
+    "ssn": "national_id", "driver_license_number": "national_id",
+    "passport_number": "national_id",
+    "customer_id": "company_id", "employee_id": "company_id",
+    "password": "secret", "account_pin": "secret", "api_key": "secret",
+    "ipv4": "ip", "ipv6": "ip", "user_name": "username",
+    "time": None, "local_latlng": None,
+}
+
+NEMO_CAT = {
+    "first_name": "name", "last_name": "name", "company_name": "company", "email": "email",
+    "url": "url", "phone_number": "phone", "fax_number": "phone",
+    "date": "date", "date_time": "date", "date_of_birth": "dob",
+    "street_address": "address",
+    "city": "location", "state": "location", "county": "location", "postcode": "location",
+    "customer_id": "company_id", "employee_id": "company_id", "unique_id": "company_id",
+    "account_number": "iban", "bank_routing_number": "iban", "swift_bic": "iban",
+    "credit_debit_card": "card", "cvv": "card",
+    "ssn": "national_id", "national_id": "national_id", "tax_id": "national_id",
+    "certificate_license_number": "national_id",
+    "user_name": "username", "password": "secret", "pin": "secret", "api_key": "secret",
+    "http_cookie": "secret", "ipv4": "ip", "ipv6": "ip",
+    # Health data: annotated here, and the app's `health` category is RETIRED (forced off at
+    # the send merge). Mapped anyway, so the table SHOWS the gap instead of hiding it.
+    "medical_record_number": "health", "health_plan_beneficiary_number": "health",
+    "blood_type": "health",
+    # No category in the app: a time, a country, a coordinate, the identifiers of a THING
+    # (vehicle, device, MAC, biometric print), and the demographics the product does not
+    # redact (it protects health data, not race, religion, politics or sexuality).
+    "time": None, "country": None, "coordinate": None, "license_plate": None,
+    "vehicle_identifier": None, "device_identifier": None, "biometric_identifier": None,
+    "mac_address": None, "occupation": None, "employment_status": None,
+    "education_level": None, "race_ethnicity": None, "language": None, "gender": None,
+    "age": None, "political_view": None, "religious_belief": None, "sexuality": None,
+}
+
+# TAB annotates entity TYPES, not data kinds. `CODE` is a case/application number — the app's
+# nearest switch is the identifier one, and the fit is the loosest of the four corpora.
+TAB_CAT = {"PERSON": "name", "ORG": "company", "LOC": "location", "CODE": "national_id",
+           "DATETIME": "date", "QUANTITY": None, "DEM": None, "MISC": None}
+
+def count_by(f, cases):
+    """Spans per key, sorted — the manifest's own census of what a corpus annotates."""
+    n = {}
+    for c in cases:
+        for x in c["spans"]:
+            k = f(x)
+            n[k] = n.get(k, 0) + 1
+    return dict(sorted(n.items(), key=lambda kv: (-kv[1], kv[0])))
+
+def cat(mapping, label, dataset):
+    """The app category for an upstream label. Raises on an unknown one: a corpus that adds a
+    label must be READ, not silently filed under "the product doesn't claim it" — that
+    direction of default is the one that flatters our columns."""
+    if label not in mapping:
+        raise SystemExit(f"{dataset}: upstream label {label!r} has no app category in adapt.py — "
+                         "map it (or map it to None, deliberately) before deriving")
+    return mapping[label]
 
 def utf16(text):
     """Code-point offset -> UTF-16 offset map, or None when they coincide (no astral character).
@@ -114,7 +186,7 @@ def ai4privacy(n):
         # so every mention of one name groups under one entity, which is what consistency counts.
         spans = [{"start": m["start"], "end": m["end"], "label": m["label"],
                   "entity": key(m["label"].rstrip("123"), m["value"]),
-                  "scope": "out" if m["label"] in AI4_OUT else "in"}
+                  "cat": cat(AI4_CAT, m["label"], "ai4privacy")}
                  for m in (r.get("privacy_mask") or [])]
         out.append({"id": f"ai4-{i}-{r['id']}", "lang": LANG.get(r["language"], r["language"]),
                     "text": r["source_text"], "spans": spans})
@@ -128,7 +200,7 @@ def nemotron(n):
         for s in ast.literal_eval(r["spans"]):
             spans.append({"start": s["start"], "end": s["end"], "label": s["label"],
                           "entity": key(s["label"], r["text"][s["start"]:s["end"]]),
-                          "scope": "out" if s["label"] in NEMO_OUT else "in"})
+                          "cat": cat(NEMO_CAT, s["label"], "nemotron")})
         # ⚠️ the row index, not `uid` alone: `uid` repeats in this split (see `sample`).
         out.append({"id": f"nem-{i}", "lang": "en", "text": r["text"], "spans": spans,
                     "meta": {"uid": r["uid"], "locale": r["locale"], "format": r["document_format"]}})
@@ -146,7 +218,7 @@ def gretel(n):
         text = r["generated_text"]
         spans = [{"start": s["start"], "end": s["end"], "label": s["label"],
                   "entity": key(s["label"], text[s["start"]:s["end"]]),
-                  "scope": "out" if s["label"] in GRETEL_OUT else "in"} for s in json.loads(r["pii_spans"])]
+                  "cat": cat(GRETEL_CAT, s["label"], "gretel")} for s in json.loads(r["pii_spans"])]
         out.append({"id": f"gretel-{r['index']}", "lang": LANG.get(r["language"], r["language"]), "text": text, "spans": spans,
                     "meta": {"document_type": r["document_type"]}})
     return out
@@ -165,9 +237,12 @@ def tab(n):
         a = ann[names[0]]
         spans = []
         for m in a["entity_mentions"]:
-            scope = "ctx" if m["identifier_type"] == "NO_MASK" else ("out" if m["entity_type"] in TAB_OUT else "in")
+            # NO_MASK is the corpus's own "this mention identifies nobody": ctx, never scored,
+            # and never charged against precision either.
             spans.append({"start": m["start_offset"], "end": m["end_offset"], "label": m["entity_type"],
-                          "entity": m["entity_id"], "scope": scope, "identifier": m["identifier_type"]})
+                          "entity": m["entity_id"], "cat": cat(TAB_CAT, m["entity_type"], "tab"),
+                          **({"scope": "ctx"} if m["identifier_type"] == "NO_MASK" else {}),
+                          "identifier": m["identifier_type"]})
         out.append({"id": r["doc_id"], "lang": "en", "text": r["text"], "spans": spans, "meta": {"annotator": names[0]}})
     return out
 
@@ -203,10 +278,13 @@ def main():
             "upstream": REVISIONS[name], "files": {os.path.basename(p): sha(p) for p in files},
             "seed": SEED, "sample": n or "whole split", "cases": len(cases),
             "spans": sum(len(c["spans"]) for c in cases), "dropped_bad_offsets": bad,
-            "scope": {s: sum(1 for c in cases for x in c["spans"] if x["scope"] == s) for s in ("in", "out", "ctx")},
+            # Spans per APP CATEGORY — the manifest says, per corpus, what the product is
+            # being scored on. `null` is what no category of the app covers, `ctx` what the
+            # corpus itself marks as identifying nobody.
+            "categories": count_by(lambda x: "ctx" if x.get("scope") == "ctx" else (x["cat"] or "none"), cases),
             "ids": [c["id"] for c in cases],
         }
-        print(f"{name}: {len(cases)} cases, {manifest[name]['spans']} spans {manifest[name]['scope']}, {bad} bad offsets")
+        print(f"{name}: {len(cases)} cases, {manifest[name]['spans']} spans, {bad} bad offsets")
     with open(mpath, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=0)
 

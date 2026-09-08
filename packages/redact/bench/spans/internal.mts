@@ -15,8 +15,8 @@
  * token-coverage scorer forgives and an offset scorer cannot; `manifest.json` counts them
  * (`absent_verbatim`). Dropping them is KINDER to every engine, equally — a miss nobody can
  * be charged for; the value-level bench (`../compare.mts`) is where those cases still count. Scope:
- * `CONTEXT` → ctx, `AMOUNT` (a category retired by product decision, kept annotated) → out,
- * everything else → in.
+ * `CONTEXT` → ctx (never scored, never charged) ; every other annotation carries the APP
+ * category it belongs to, and `metric.ts` reads the product's claim from the catalogue.
  */
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -39,6 +39,19 @@ const occurrences = (text: string, value: string): PredSpan[] => {
   return out;
 };
 
+/** Our own annotation vocabulary -> the categories the APP exposes (`adapt.py` does the same
+ *  for the public corpora, and says why the mapping, not the upstream label, is what compares).
+ *  `null` = the product has no category for it: an AMOUNT is an ordinary number since `salary`
+ *  was retired. `HEALTH` maps to the engine's retired `health` on purpose — the row must SHOW
+ *  that the product no longer switches it on, not vanish from the table. */
+const APP_CAT: Record<string, string | null> = {
+  NAME: "name", DOB: "dob", DATE: "date", EMAIL: "email", PHONE: "phone", USERNAME: "username",
+  ADDRESS: "address", CITY: "location", PLACE: "location", POSTAL: "location",
+  COMPANY: "company", ORG: "company", COMPANY_ID: "company_id", ID: "national_id",
+  CARD: "card", IBAN: "iban", BIC: "iban", IP: "ip", URL: "url", PATH: "path",
+  SECRET: "secret", TOKEN: "apikey", HEALTH: "health", AMOUNT: null,
+};
+
 let absent = 0, truths = 0;
 const spanCases: SpanCase[] = cases.map((c) => {
   const spans: GoldSpan[] = [];
@@ -46,8 +59,9 @@ const spanCases: SpanCase[] = cases.map((c) => {
     if (cat !== "CONTEXT") truths++;
     const occ = occurrences(c.text, value);
     if (!occ.length) { if (cat !== "CONTEXT") absent++; continue; }
-    const scope = cat === "CONTEXT" ? "ctx" : cat === "AMOUNT" ? "out" : "in";
-    for (const [start, end] of occ) spans.push({ start, end, label: cat, entity: `${cat}:${value.toLowerCase()}`, scope });
+    if (cat !== "CONTEXT" && !(cat in APP_CAT)) throw new Error(`internal: no app category for the annotation ${cat} — map it in APP_CAT`);
+    const appCat = cat === "CONTEXT" ? null : APP_CAT[cat];
+    for (const [start, end] of occ) spans.push({ start, end, label: cat, cat: appCat, entity: `${cat}:${value.toLowerCase()}`, ...(cat === "CONTEXT" ? { scope: "ctx" as const } : {}) });
   }
   return { id: c.id, lang: c.lang, text: c.text, spans };
 });
