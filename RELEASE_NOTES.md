@@ -75,6 +75,22 @@ pas bloquée). Gardez la section la plus récente **en haut**.
 
 ---
 
+## 0.10.0 — 2026-09-08
+> Le masquage voit plus de choses : les dates, les tableaux collés, et les identifiants qui n'ont l'air de rien.
+
+### Nouveautés
+- **Les dates deviennent une catégorie à part** — un seul réglage masque toutes les dates, et plus seulement les dates de naissance.
+- **Un tableau collé dans la conversation** — chaque cellule est masquée d'après le titre de sa colonne, comme dans un fichier joint.
+- **Les identifiants sans préfixe** — une clé ou un jeton écrit comme un simple identifiant technique est masqué lui aussi.
+
+### Améliorations & corrections
+- Le masquage reconnaît davantage de formats de téléphone, dont les numéros nord-américains écrits à la locale.
+- Un champ étiqueté est reconnu même quand sa mise en forme varie : gras, « n° », « number ».
+- Les libellés de champs couvrent davantage de langues et de vocabulaire bancaire.
+- Les formules mathématiques s'affichent dans tous les messages, et plus seulement le premier.
+- Une mention masquée garde le même contraste dans la zone de saisie, en thème clair comme en thème sombre.
+- Un menu reste ouvert quand on y fait défiler.
+
 ## 0.9.0 — 2026-09-02
 > Moins de portes, moins de mots : l'app dit chaque chose une fois, au même endroit.
 
