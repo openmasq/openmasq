@@ -11,3 +11,6 @@ export {
   type NerPredict,
   type ChunkerOptions,
 } from "./chunker";
+// Fail-closed sha256 pin of on-device weights — pure (read + digest injected), shared by the
+// desktop workers (NER, embeddings), the bake and the local proxy.
+export { verifyWeights, type WeightEntry } from "./verify";

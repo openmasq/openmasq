@@ -1,8 +1,8 @@
 // Fail-closed sha256 integrity check for the bundled NER weight files. Pure: the file read
 // + digest are INJECTED, so it runs in the worker (node fs/crypto) AND in the bake, and is
 // unit-testable without the real 278 MB model. Any missing file or hash mismatch THROWS — the
-// worker's caller then rejects and the renderer fails closed (degrades to the regex rules),
-// so tampered/substituted weights never reach onnxruntime.
+// caller (a desktop worker, the local proxy) then fails closed, so tampered/substituted
+// weights never reach onnxruntime.
 
 export interface WeightEntry {
   /** Absolute path to the weight file to verify. */

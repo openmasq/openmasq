@@ -37,7 +37,7 @@ export const EMBED_UPSTREAM = Object.freeze({
 /**
  * sha256 (hex) of each bundled file, RELATIVE to the model dir. Verified TWICE, fail-
  * closed both times: by `scripts/bake-embed-models.ts` before writing into the app
- * resources, and by `worker.ts` (via `../ner/verify.ts` `verifyWeights`) before
+ * resources, and by `worker.ts` (via `verifyWeights` from `@openmasq/redact`) before
  * onnxruntime parses them.
  */
 export const EMBED_WEIGHTS_SHA256: Readonly<Record<string, string>> = {

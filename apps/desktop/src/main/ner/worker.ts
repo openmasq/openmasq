@@ -19,7 +19,7 @@ import { join } from "node:path";
 import { detectLocalNer, type Detection } from "@openmasq/redact";
 import { createNerPredict, type NerPredict } from "@openmasq/redact/ner";
 import { NER_MODEL_ID, NER_WEIGHTS_SHA256 } from "./model";
-import { verifyWeights, type WeightEntry } from "./verify";
+import { verifyWeights, type WeightEntry } from "@openmasq/redact";
 
 // `process.parentPort` is injected by Electron in a utilityProcess child; @types/node
 // doesn't know it, so type the minimal surface we use.

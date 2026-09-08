@@ -114,6 +114,8 @@ export {
   type LocalSpan,
   type NerPredict,
   type ChunkerOptions,
+  verifyWeights,
+  type WeightEntry,
 } from "./local";
 export { NUMBER_TOKEN_INSTRUCTION, computeTokenFormulas } from "./numbers/formulas";
 // The pre-parse upload SAFETY gate. Pure and dependency-free, so it belongs on the pure

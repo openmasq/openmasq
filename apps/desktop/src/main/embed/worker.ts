@@ -5,14 +5,14 @@
 // process. **Never logs the texts — a memory card is REAL, un-redacted PII.**
 //
 // The model is BUNDLED (`scripts/bake-embed-models.ts`) and loaded 100% OFFLINE after a
-// fail-closed sha256 re-verification (`../ner/verify.ts`, shared). NO download branch —
+// fail-closed sha256 re-verification (`verifyWeights` from `@openmasq/redact`, shared). NO download branch —
 // no bundle ⇒ throw ⇒ the client rejects ⇒ the memory index is simply unavailable (the
 // Mémoire view falls back to the category graph; nothing security-relevant degrades).
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { join } from "node:path";
-import { verifyWeights, type WeightEntry } from "../ner/verify";
+import { verifyWeights, type WeightEntry } from "@openmasq/redact";
 import { EMBED_WEIGHTS_SHA256, EMBED_MODEL_ID } from "./model";
 
 interface ParentPort {
