@@ -1,5 +1,5 @@
-import { RULES } from "./rules";
-import { redactionCategory } from "../kinds";
+import { RULES } from "../rules";
+import { redactionCategory } from "../../kinds";
 
 /**
  * Pure, deterministic "does this text look like it carries a CREDENTIAL?" scan,

@@ -6,7 +6,7 @@ import { FAKE_LAST, FAKE_EMAIL_DOMAINS, fakeToken, hashString, firstNamePool } f
 import { capitalize, foldAccents } from "../../util";
 // The shared "not a person" mailbox vocabulary + the notorious-domain predicate — one
 // home for both (`../notoriousDomains.ts`), shared with the notoriety filter.
-import { GENERIC_MAILBOX, isNotoriousDomain } from "../notoriousDomains";
+import { GENERIC_MAILBOX, isNotoriousDomain } from "../notorious/domains";
 // The detection-grade first-name lexicon (curated + INSEE tail), pure data.
 import { FIRST_NAMES } from "../../engine/names/firstNames.data";
 import { seedFrom } from "../fakes/primitives";

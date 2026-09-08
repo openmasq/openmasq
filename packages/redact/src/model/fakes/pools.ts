@@ -1,4 +1,4 @@
-import { nameGender } from "../gender";
+import { nameGender } from "./gender";
 
 // Small fake-data pools (locale-light, recognisably synthetic). First names are
 // GENDERED so a fake can keep the real name's gender (see `firstNamePool` + `gender.ts`)

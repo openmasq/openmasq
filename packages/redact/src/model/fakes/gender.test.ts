@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { nameGender, pseudonymize, type Vault } from "../index";
+import { nameGender, pseudonymize, type Vault } from "../../index";
 import { nameGender as ng } from "./gender";
-import { FAKE_FIRST_M, FAKE_FIRST_F } from "./fakes";
+import { FAKE_FIRST_M, FAKE_FIRST_F } from ".";
 
 describe("nameGender", () => {
   it("classifies common gendered names, tolerant to case/accents/compounds", () => {

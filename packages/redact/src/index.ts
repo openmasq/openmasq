@@ -54,7 +54,7 @@ export { detectAddresses } from "./engine/addresses";
 export { detectFrGeo, DEPARTMENTS, REGIONS, depToRegion } from "./engine/geo/frGeo";
 export { unredact, applyVault, applyVaultVariants, replayVault, disabledVaultTokens } from "./engine/vault";
 export { unredactArgs, unredactReply } from "./engine/vault/args";
-export { containsCredentialShaped } from "./engine/credScan";
+export { containsCredentialShaped } from "./engine/secrets";
 export {
   toSegments,
   compileVault,
@@ -102,7 +102,7 @@ export {
   NOTORIOUS_COMMERCIAL_ORGS,
   type NotorietyOpts,
 } from "./model/notorious";
-export { nameGender } from "./model/gender";
+export { nameGender } from "./model/fakes/gender";
 // Local, LLM-free NER detector (BERT / transformers.js). Pure orchestration only —
 // the heavy inference lives behind the separate `@openmasq/redact/ner` entry.
 export {

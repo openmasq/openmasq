@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COMMON_SURNAMES } from "./surnamesGuard.data";
+import { COMMON_SURNAMES } from "./testdata/surnames";
 import { FIRST_NAMES } from "../engine/names/firstNames.data";
 
 /**

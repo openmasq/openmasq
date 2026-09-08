@@ -3,7 +3,7 @@
  * ARIA roles, FR legal vocabulary…) — split out of `genericTerms.ts` to keep that file's
  * predicates under the 300-LOC cap. Pure data; the predicates live in `genericTerms.ts`.
  */
-import { VOCAB_TERMS, ARIA_ROLE_TERMS } from "./vocab";
+import { VOCAB_TERMS, ARIA_ROLE_TERMS } from "../vocab";
 // Generic document / design / file-TYPE words + common abbreviations (FR + EN)
 // that name a KIND of thing, not an identity. A small detector over-flags one as
 // a NAME/ORG (e.g. a Canva design literally titled "CV" → faked to "At"), which

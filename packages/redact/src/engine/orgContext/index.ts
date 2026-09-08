@@ -29,13 +29,13 @@
 // "Berlioz" share ONE `entityKey` (one company = one fake); the legal form ships
 // in clear. (The deterministic sources do NOT pass through the detector-level
 // strip, so skipping it here split the identity.)
-import type { Detection } from "../types";
-import { isStopword, isGenericTerm, isOrgAffix, stripOrgAffixes } from "../model/detect";
-import { isCountry } from "./geo/countries";
+import type { Detection } from "../../types";
+import { isStopword, isGenericTerm, isOrgAffix, stripOrgAffixes } from "../../model/detect";
+import { isCountry } from "../geo/countries";
 import {
   LEGAL_SUFFIXES, PREFIX_FORMS, PROF_GATES, PROF_SUFFIXES, CONJ_SUFFIXES, KINSHIP,
   PREFIX_PARTICLES,
-} from "./orgContext.vocab";
+} from "./vocab";
 
 const TOKEN = "\\p{L}[\\p{L}'’-]*\\p{L}";
 // 1-2 spaces, never a RUN: a run of 3+ is the COLUMN GUTTER of a two-column layout, and

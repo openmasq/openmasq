@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { detectHostedUrlSpans, detectUrlSpans, urlOccurrenceGuard } from "./urls";
-import { applyVault, replayVault } from "./vault";
-import { pseudonymize } from "../index";
+import { detectHostedUrlSpans, detectUrlSpans, urlOccurrenceGuard } from ".";
+import { applyVault, replayVault } from "../vault";
+import { pseudonymize } from "../../index";
 
 // The reported corruption, verbatim in shape: `app` is vaulted from ORDINARY PROSE
 // (`packages/app`, « in-app »), and the forward vault pass then rewrote the host of every

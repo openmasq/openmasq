@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { isGenericTerm, isGenericCompound, isStopword } from "./genericTerms";
-import { isNotoriousEntity } from "./notorious";
-import { filterCandidates } from "./pseudonymize/filter";
-import type { Detection } from "../types";
+import { isGenericTerm, isGenericCompound, isStopword } from ".";
+import { isNotoriousEntity } from "../notorious";
+import { filterCandidates } from "../pseudonymize/filter";
+import type { Detection } from "../../types";
 
 /* The over-redaction regression, taken FROM the report that produced it: an insurance /
    credit letter came back with 81 "redactions", of which the great majority were the

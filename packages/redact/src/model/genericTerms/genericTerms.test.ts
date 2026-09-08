@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isGenericTerm } from "./genericTerms";
+import { isGenericTerm } from ".";
 
 describe("jours et mois — jamais une entité à eux seuls", () => {
   /**

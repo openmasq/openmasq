@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { detectOrgContext } from "./orgContext";
-import { pseudonymize } from "../model/pseudonymize";
+import { detectOrgContext } from ".";
+import { pseudonymize } from "../../model/pseudonymize";
 
 const values = (text: string): string[] => detectOrgContext(text).map((d) => d.value);
 

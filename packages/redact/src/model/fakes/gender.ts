@@ -11,8 +11,8 @@
 // than today. Extend the sets; keep genuinely unisex names (Camille, Dominique, Claude,
 // Sacha, Alix, Charlie, Andrea) out of BOTH so they stay null.
 
-import { foldAccents } from "../util";
-import { INSEE_MALE, INSEE_FEMALE } from "../engine/names/firstNames.insee.data";
+import { foldAccents } from "../../util";
+import { INSEE_MALE, INSEE_FEMALE } from "../../engine/names/firstNames.insee.data";
 
 const strip = (s: string) => foldAccents(s.trim().toLowerCase());
 

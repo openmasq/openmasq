@@ -8,7 +8,7 @@ import {
   type FakePlace,
 } from "./pools";
 import { hashString, pick, rehash, fitLen, fakeToken, fakeDigits, luhnCheckDigit, mod97, seedFrom } from "./primitives";
-import { ribKey } from "./checksummed/index";
+import { ribKey } from "./checksummed";
 
 /** A real city name, preferring one of the SAME length as the original (no padding).
  *  Excludes the real value itself AND world-famous places (`isNotoriousPlace`) so the

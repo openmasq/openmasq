@@ -1,7 +1,7 @@
 import type { Detection, Vault } from "../../types";
 import { redactionCategory } from "../../kinds";
 import { variantOccurrences } from "../../util";
-import { buildFakeFragments, isFakeFragment } from "../orgFragments";
+import { buildFakeFragments, isFakeFragment } from "./orgFragments";
 import type { PseudonymizeOptions } from "./options";
 
 /**

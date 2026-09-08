@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { trimSpanEdges, stripCivilStatusPrefix, stripTrailingEmailParen, stripBankOpPrefix } from "./spanEdges";
-import { NOTORIOUS_COMMERCIAL_ORGS } from "../notoriousData";
+import { NOTORIOUS_COMMERCIAL_ORGS } from "../notorious/data";
 
 /**
  * A poorly bounded span doesn't just break display: the value stops being ITSELF

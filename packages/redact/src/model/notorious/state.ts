@@ -1,7 +1,7 @@
 // The STATE-INSTITUTION half of the notoriety gate + the shared `norm` folding —
 // split out of `notorious.ts` (rule 1: the file crossed the 300-LOC cap when this
 // machinery landed). Same allow-list discipline; `notorious.ts` is the sole consumer.
-import { isCountry } from "../engine/geo/countries";
+import { isCountry } from "../../engine/geo/countries";
 
 /** lowercase + accents stripped + delimiters removed — one entry covers "Napoléon",
  *  "napoleon", "NAPOLEON" and dotted/spaced forms ("J.F. Kennedy" ≠ though: entries are

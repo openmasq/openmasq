@@ -4,7 +4,7 @@
 // explicitly passed are such numbers replaced with `n1`/`n2`/… tokens. Identifying
 // numbers (phone/card/IBAN/postal/DOB/national_id/ip) always carry meaning and are
 // swapped same-kind regardless.
-import { redactionCategory } from "../kinds";
+import { redactionCategory } from "../../kinds";
 
 // A standalone number, keeping grouped thousands together: "850 000",
 // "1 234,56", "1,000,000", "320000" each match as ONE number (incl. the

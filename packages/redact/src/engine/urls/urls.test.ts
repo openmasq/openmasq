@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { detectUrlSpans, occursOutsideUrl } from "./urls";
-import { redact } from "./redact";
+import { detectUrlSpans, occursOutsideUrl } from ".";
+import { redact } from "../redact";
 
 describe("detectUrlSpans", () => {
   it("spans full URLs, rooted asset paths and bare cache-buster filenames", () => {

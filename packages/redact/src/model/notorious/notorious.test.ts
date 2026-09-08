@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { pseudonymize } from "./pseudonymize";
-import { filterCandidates } from "./pseudonymize/filter";
-import { isNotoriousEntity } from "./notorious";
-import type { Detection, Vault } from "../types";
+import { pseudonymize } from "../pseudonymize";
+import { filterCandidates } from "../pseudonymize/filter";
+import { isNotoriousEntity } from ".";
+import type { Detection, Vault } from "../../types";
 
 // Simulate the AI detector (same harness as aiKinds.test.ts): `complete` returns the
 // findings as the JSON array `detectWithModel` expects.

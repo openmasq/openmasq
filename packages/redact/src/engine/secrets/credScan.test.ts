@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { containsCredentialShaped } from "./credScan";
+import { containsCredentialShaped } from ".";
 
 /**
  * `containsCredentialShaped` is the fail-closed escalation trigger for the browser's

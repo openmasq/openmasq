@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildAvoidGuard } from "./guards";
-import { pseudonymize } from "./index";
+import { pseudonymize } from ".";
 
 describe("buildAvoidGuard — the CURRENT input is part of the collision word set", () => {
   it("rejects a fake reusing an input word in ANY casing", () => {

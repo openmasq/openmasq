@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { isGenericTerm } from "./genericTerms";
 import { VOCAB_TERMS, CLINICAL_TERMS } from "./vocab";
 import { FIRST_NAMES } from "../engine/names/firstNames.data";
-import { COMMON_SURNAMES } from "./surnamesGuard.data";
+import { COMMON_SURNAMES } from "./testdata/surnames";
 
 /**
  * The two invariants that bound the vocabulary volumes. Both are cheap; both close a

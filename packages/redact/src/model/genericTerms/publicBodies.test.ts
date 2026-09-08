@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { isPublicBodyCompound } from "./publicBodies";
-import { isNonPiiTerm } from "./genericTerms";
+import { isNonPiiTerm } from ".";
 
 describe("isPublicBodyCompound — l'administration AVEC son suffixe territorial", () => {
   /** ⚠️ Measured REGRESSION: the bare acronym was already spared, the compound went to the vault.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { isGenericTerm, isGenericCompound, isStopword } from "./genericTerms";
-import { isNotoriousEntity } from "./notorious";
+import { isGenericTerm, isGenericCompound, isStopword } from ".";
+import { isNotoriousEntity } from "../notorious";
 
 /**
  * The everyday-institution volume (`vocab/vie.ts`) — audit-driven: 123/193 of

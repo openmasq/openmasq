@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { isCurrency } from "./currencies";
-import { isGenericTerm } from "./detect";
-import { pseudonymize } from "./pseudonymize";
-import type { Vault } from "../types";
+import { isGenericTerm } from "../detect";
+import { pseudonymize } from "../pseudonymize";
+import type { Vault } from "../../types";
 
 // Simulate the AI detector returning the findings `detectWithModel` expects.
 const modelReturning = (f: { value: string; category: string }[]) => async () =>

@@ -12,8 +12,8 @@ import { isCurrency } from "./currencies";
 import { isStopword } from "./stopwords";
 export { isStopword };
 
-import { GENERIC_TERMS } from "./genericTermsData";
-import { CLINICAL_TERMS } from "./vocab";
+import { GENERIC_TERMS } from "./data";
+import { CLINICAL_TERMS } from "../vocab";
 import { isPublicBodyCompound } from "./publicBodies";
 
 /** Molecules, pathologies, anatomy — spared EXCEPT under the `health` category. */

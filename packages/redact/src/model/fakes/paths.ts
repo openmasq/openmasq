@@ -1,5 +1,5 @@
 import { hashString, fakeToken, seedFrom } from "./primitives";
-import { isStopword } from "../stopwords";
+import { isStopword } from "../genericTerms/stopwords";
 import { isCountry } from "../../engine/geo/countries";
 import { isNotoriousEntity } from "../notorious";
 

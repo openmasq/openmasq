@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { detectWithModel } from "./detect";
-import type { CompleteFn } from "../types";
+import { detectWithModel } from ".";
+import type { CompleteFn } from "../../types";
 
 /**
  * Reproduces the reported remote-engine symptom: a small cased model MISSES an

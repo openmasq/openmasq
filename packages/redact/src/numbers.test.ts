@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { pseudonymize } from "./index";
 import type { Vault } from "./index";
-import { isBareYear } from "./model/pseudonymizeNumbers";
+import { isBareYear } from "./model/pseudonymize/numbers";
 
 /**
  * `numbers: true` tokenises standalone quantities to `n1`/`n2` so the model computes

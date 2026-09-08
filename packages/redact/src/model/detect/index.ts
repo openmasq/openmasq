@@ -11,12 +11,12 @@ import type {
   Detection,
   RedactionMatch,
   Vault,
-} from "../types";
-import { redactionCategory } from "../kinds";
-import { keepSet, isKept, titleCase, hasAllCapsWord, caseInsensitiveOccurrences } from "../util";
-import { makeAllocator } from "../engine/allocator";
-import { isNonPiiTerm, stripOrgAffixes } from "./genericTerms";
-import { DISCOVER_SYSTEM } from "./detectPrompt";
+} from "../../types";
+import { redactionCategory } from "../../kinds";
+import { keepSet, isKept, titleCase, hasAllCapsWord, caseInsensitiveOccurrences } from "../../util";
+import { makeAllocator } from "../../engine/allocator";
+import { isNonPiiTerm, stripOrgAffixes } from "../genericTerms";
+import { DISCOVER_SYSTEM } from "./prompt";
 
 // Re-exported so existing importers (`local/detect.ts`) keep importing them from here.
 export {
@@ -25,7 +25,7 @@ export {
   isGenericCompound,
   isOrgAffix,
   stripOrgAffixes,
-} from "./genericTerms";
+} from "../genericTerms";
 
 export interface DiscoverOptions {
   /** One-shot completion used to run the extraction model. Optional when a
@@ -82,7 +82,7 @@ function parseFindings(reply: string): Array<{ value: unknown; category: unknown
 // `caseInsensitiveOccurrences` lives in `../util` (with `isWordGlued`/`isCjkText`, which
 // it depends on, and from where `variantOccurrences` can finally use it) — re-exported here
 // so existing importers don't have to move.
-export { caseInsensitiveOccurrences } from "../util";
+export { caseInsensitiveOccurrences } from "../../util";
 
 /** Turn a model category into a safe placeholder label, e.g. "Phone #" -> "PHONE". */
 function categoryLabel(category: unknown): string {

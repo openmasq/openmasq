@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BRAND } from "@openmasq/branding";
 import { isAiModelName } from "./modelNames";
-import { isNotoriousEntity } from "./notorious";
+import { isNotoriousEntity } from ".";
 
 describe("modelNames — la grammaire famille + version/variante", () => {
   it("reconnaît les étiquettes réelles du catalogue (l'audit du 13/08)", () => {

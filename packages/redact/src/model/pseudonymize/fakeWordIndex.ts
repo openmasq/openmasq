@@ -21,7 +21,7 @@
 // when the two reals are unrelated (neither contains the other), which is exactly the
 // corruption case.
 import type { Vault } from "../../types";
-import { GENERIC_ORG_WORD } from "../orgFragments";
+import { GENERIC_ORG_WORD } from "./orgFragments";
 
 /** Words that repeat across unrelated fakes BY DESIGN (street types, geo connectors,
  *  org suffixes) — indexing them would demand fully-disjoint word sets across a whole

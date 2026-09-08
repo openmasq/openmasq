@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { pseudonymize } from "./pseudonymize";
-import { isNotoriousEntity } from "./notorious";
+import { pseudonymize } from "../pseudonymize";
+import { isNotoriousEntity } from ".";
 import {
   GENERIC_MAILBOX,
   NOTORIOUS_DOMAINS,
   isNotoriousDomain,
   isNotoriousServiceEmail,
-} from "./notoriousDomains";
-import { buildFakeEmail } from "./identity";
-import { FAKE_EMAIL_DOMAINS } from "./fakes";
-import { FIRST_NAMES } from "../engine/names/firstNames.data";
-import type { Vault } from "../types";
+} from "./domains";
+import { buildFakeEmail } from "../identity";
+import { FAKE_EMAIL_DOMAINS } from "../fakes";
+import { FIRST_NAMES } from "../../engine/names/firstNames.data";
+import type { Vault } from "../../types";
 
 describe("isNotoriousDomain — la marque en graphie DNS, sous-domaines compris", () => {
   it("matche l'apex ET ses sous-domaines", () => {

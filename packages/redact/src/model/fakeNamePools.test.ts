@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FAKE_FIRST, FAKE_FIRST_M, FAKE_FIRST_F, FAKE_LAST, fakeFor } from "./fakes";
 import { isNonPiiTerm, isStopword } from "./genericTerms";
 import { isNotoriousEntity } from "./notorious";
-import { nameGender } from "./gender";
+import { nameGender } from "./fakes/gender";
 
 /* THE AUDIT OF THE FAKE-NAME POOLS.
  *

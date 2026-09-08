@@ -21,7 +21,7 @@ import {
   isSelfBoundEntity,
 } from "./textContext";
 import { isGluedProse } from "./gluedProse";
-import { isBareNumber, numberCarriesMeaning } from "../pseudonymizeNumbers";
+import { isBareNumber, numberCarriesMeaning } from "./numbers";
 
 type UrlSpans = Parameters<typeof occursOutsideUrl>[2];
 

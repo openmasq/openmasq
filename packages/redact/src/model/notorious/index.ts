@@ -21,16 +21,16 @@
  * Curated SEED, deliberately small and readable. The long tail (a vendored, sha256-pinned
  * Wikidata/tickers dataset) is a follow-up — extend the sets, keep the discipline.
  */
-import { isCountry } from "../engine/geo/countries";
-import { norm, isStateInstitution } from "./notoriousState";
-import { stripOrgAffixes } from "./genericTerms";
+import { isCountry } from "../../engine/geo/countries";
+import { norm, isStateInstitution } from "./state";
+import { stripOrgAffixes } from "../genericTerms";
 import { isAiModelName } from "./modelNames";
-import { isNotoriousDomain, isNotoriousServiceEmail } from "./notoriousDomains";
-import { PEOPLE, COMMERCIAL_ORGS, ORGS, TICKERS, ORG_PREFIXES } from "./notoriousData";
+import { isNotoriousDomain, isNotoriousServiceEmail } from "./domains";
+import { PEOPLE, COMMERCIAL_ORGS, ORGS, TICKERS, ORG_PREFIXES } from "./data";
 
 // The curated LISTS live in `./notoriousData.ts` (data/logic split, 300-LOC rule); the
 // app-facing exports stay HERE so every consumer keeps one import path.
-export { NOTORIOUS_PEOPLE, NOTORIOUS_COMMERCIAL_ORGS } from "./notoriousData";
+export { NOTORIOUS_PEOPLE, NOTORIOUS_COMMERCIAL_ORGS } from "./data";
 
 const PEOPLE_SET = new Set(PEOPLE.map(norm));
 const ORGS_SET = new Set([...ORGS, ...TICKERS].map(norm));

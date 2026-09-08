@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fakeValidId, matchScheme } from "./index";
+import { fakeValidId, matchScheme } from ".";
 import { compactId } from "./helpers";
 import { frVat, siret, sirenSiret, luhn, ibanValid } from "../../../engine/validators";
 import { ribValid, imeiValid, iccidValid, vinValid } from "../../../engine/validators/validators.identifiers";

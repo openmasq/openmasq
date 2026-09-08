@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { detectWithModel, discoverSecrets } from "./detect";
-import type { CompleteFn } from "../types";
+import { detectWithModel, discoverSecrets } from ".";
+import type { CompleteFn } from "../../types";
 
 /**
  * Audit H1 — the redaction model must FAIL CLOSED when it replies but produces no parseable

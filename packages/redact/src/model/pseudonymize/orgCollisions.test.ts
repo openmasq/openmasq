@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { pseudonymize, unredact } from "../index";
-import type { Vault } from "../types";
-import { fakeFor } from "./fakes";
-import { FAKE_ORG, ORG_ROOTS, ORG_SUFFIXES } from "./fakes/pools";
+import { pseudonymize, unredact } from "../../index";
+import type { Vault } from "../../types";
+import { fakeFor } from "../fakes";
+import { FAKE_ORG, ORG_ROOTS, ORG_SUFFIXES } from "../fakes/pools";
 import { GENERIC_ORG_WORD, buildFakeFragments } from "./orgFragments";
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { redact, pseudonymize, unredact } from "../index";
+import { redact, pseudonymize, unredact } from "../../index";
 
 /**
  * The « Web addresses (URL) » category has TWO behaviours, and that's deliberate: it's a
