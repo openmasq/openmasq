@@ -93,13 +93,16 @@ const BASE: {
     impact:
       "Masquées, les durées, délais et chronologies que le modèle calcule portent sur des dates d'emprunt : décalées de quelques années mais cohérentes entre elles, et toujours restituées vraies.",
   },
-  // Pseudo / handle / login. DETERMINISTIC (labeled fields + a leading-`@` handle
-  // rule — NOT `ai`), but a username is ambiguous so it defaults OFF (opt-in) via
-  // OFF_BY_DEFAULT below, not the `ai` flag.
+  // Pseudo / handle / login. DETERMINISTIC (labeled fields + a leading-`@` handle rule —
+  // NOT `ai`), and ON from Renforcé: a handle is the single most reliable way to re-find
+  // someone across services, so its miss is an identity leak, not the cosmetic noise the
+  // opt-in tier is for. The rule stays narrow (an explicit login field, or a leading `@`),
+  // which is what makes the default affordable.
   {
     key: "username",
     label: "Pseudo / identifiant",
-    detail: "Pseudos @handle et champs login / nom d'utilisateur / nickname.",
+    detail:
+      "Pseudos @handle et champs login / nom d'utilisateur / nickname. Active par défaut : un pseudo suit une personne d'un service à l'autre.",
   },
   {
     key: "email",
@@ -251,8 +254,11 @@ export const REDACTION_CATEGORIES: CatalogRedactionCategory[] = BASE.map((c) => 
  *    (`ALWAYS_ON`, `packages/ui/src/privacy/privacyLevel.ts`) rather than to the noise
  *    tier. The trade is accepted knowingly: the heuristic is broad and also catches
  *    harmless product references, which is exactly why it used to default OFF.
- *  - the remaining noise-tier heuristics (`url`, `username`) stay OFF — deliberately
- *    opt-in, and their absence is not a data risk the way a name or a key is.
+ *  - `username` is ON from Renforcé: a handle re-identifies its owner across services, so
+ *    leaving it in clear IS a data risk — unlike a URL, whose masking mostly breaks a link
+ *    the model needed to read.
+ *  - `url` stays OFF — deliberately opt-in, and its absence is not a data risk the way a
+ *    name, a handle or a key is.
  *  - every deterministic PII category (email/phone/card/iban/national_id/ip/path/
  *    secret) stays ON.
  *  - a RETIRED category is absent from `BASE`, hence OFF with no way back on.
@@ -260,10 +266,19 @@ export const REDACTION_CATEGORIES: CatalogRedactionCategory[] = BASE.map((c) => 
  * Keyed over the ENGINE's enum, not `BASE`, so the record stays total: consumers index it
  * by `RedactionCategory` and spread it as the seed for `Settings.redactCategories`.
  */
-const OFF_BY_DEFAULT = new Set<RedactionCategory>(["url", "username", "date"]);
+const OFF_BY_DEFAULT = new Set<RedactionCategory>(["url", "date"]);
 export const CATEGORY_DEFAULTS: Record<RedactionCategory, boolean> = Object.fromEntries(
   (Object.keys(CATEGORY_HUE) as RedactionCategory[]).map((key) => {
     const c = BASE.find((b) => b.key === key);
     return [key, !!c && !OFF_BY_DEFAULT.has(key)];
   }),
 ) as Record<RedactionCategory, boolean>;
+
+// The three protection levels as category sets — shared by the desktop settings and the local proxy.
+export {
+  ALWAYS_ON,
+  categoriesForLevel,
+  disabledKindsOf,
+  type RedactionLevel,
+  usesLocalModel,
+} from "./levels";

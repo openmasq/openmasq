@@ -1,15 +1,16 @@
 import { NOTORIOUS_COMMERCIAL_ORGS, NOTORIOUS_PEOPLE } from "@openmasq/redact";
 import { CATEGORY_DEFAULTS, REDACT_CATEGORIES } from "./redactCategories";
+import { ALWAYS_ON, categoriesForLevel as catalogCategoriesForLevel } from "@openmasq/catalog";
 import type { RedactCategoryKey, Settings } from "../types";
 import { BRAND } from "@openmasq/branding";
 import type { Messages, PrivacyLevelCopy } from "@openmasq/i18n";
 
 /**
- * The redaction rules, as ONE choice instead of seventeen.
+ * The redaction rules, as ONE choice instead of eighteen.
  *
  * The settings screen used to open on the full category matrix — nine collapsible groups,
  * « 14/17 actives ». That number answers a question nobody asks: what a user decides is
- * how much they want protected, not which of seventeen detectors runs. So the page offers
+ * how much they want protected, not which of eighteen detectors runs. So the page offers
  * three levels and keeps the matrix for the one who genuinely wants it.
  *
  * `custom` is not a preset — it is what we CALL any set that is neither of the other two,
@@ -83,43 +84,15 @@ export function privacyLevelMeta(t: Messages): {
  * « Sur mesure », like any other); what this floor guarantees is that no PRESET turns
  * it off behind their back.
  */
-export const ALWAYS_ON: readonly RedactCategoryKey[] = ["apikey", "secret"];
+export { ALWAYS_ON } from "@openmasq/catalog";
 
-/** The BETA categories — detected by the model alone. This is EXACTLY what the
- *  "Standard" level lets through. Derived from the catalogue (`ai`), never copied: a
- *  new BETA category joins the list the day it exists. */
-const BETA_KEYS: RedactCategoryKey[] = REDACT_CATEGORIES.filter((c) => c.ai).map(
-  (c) => c.key as RedactCategoryKey,
-);
-
-/** Every category key the UI can toggle. */
 const ALL_KEYS = REDACT_CATEGORIES.map((c) => c.key as RedactCategoryKey);
 
-/** The category map a level stands for. `custom` has none — it IS the absence of one. */
+/** The level's category map, in the settings' shape — the arithmetic lives in the catalogue. */
 export function categoriesForLevel(level: Exclude<PrivacyLevel, "custom">): Settings["redactCategories"] {
-  const out: Record<string, boolean> = {};
-  for (const key of ALL_KEYS) {
-    const on =
-      level === "strict"
-        ? true
-        : level === "standard"
-          ? CATEGORY_DEFAULTS[key] !== false && !BETA_KEYS.includes(key)
-          : CATEGORY_DEFAULTS[key] !== false;
-    // The floor is applied LAST: no level can turn it off, not even the reduced one.
-    out[key] = on || ALWAYS_ON.includes(key);
-  }
-  return out as Settings["redactCategories"];
+  return catalogCategoriesForLevel(level) as Settings["redactCategories"];
 }
 
-/**
- * Which level a saved category map amounts to. Compares the EFFECTIVE state (a missing
- * key means "default"), so a blob written before a category existed still reads as
- * Standard instead of jumping to « Sur mesure » on upgrade.
- *
- * Org-forced categories are excluded from the comparison: they are ON whatever the user
- * picked, so counting them would show « Sur mesure » to a member who never touched
- * anything — the screen would blame them for their admin's policy.
- */
 export function levelOf(
   categories: Settings["redactCategories"] | undefined,
   forcedCategories?: readonly string[],

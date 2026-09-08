@@ -91,12 +91,8 @@ export function effectiveRedactCategories(
   return { ...(settingsCats ?? {}), ...(convCats ?? {}), ...orgForcedOn, ...retiredOff };
 }
 
-/** The categories turned OFF (left in clear / not redacted nor highlighted). */
-export function disabledKindsOf(effectiveCategories: Record<string, boolean>): string[] {
-  return Object.entries(effectiveCategories)
-    .filter(([, on]) => !on)
-    .map(([kind]) => kind);
-}
+/** The categories turned OFF — the arithmetic lives in the catalogue, shared with the proxy. */
+export { disabledKindsOf } from "@openmasq/catalog";
 
 /** value → kind learned across the conversation (from each message's `redactedSpans`), so
  *  a disabled category stops substituting even a value already in the vault (fake tokens

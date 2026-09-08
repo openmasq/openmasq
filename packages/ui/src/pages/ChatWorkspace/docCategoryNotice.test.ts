@@ -3,9 +3,9 @@ import { inactiveCategoryLabels } from "./docCategoryNotice";
 
 describe("inactiveCategoryLabels", () => {
   it("shows NOTHING on a fresh install — the shipped defaults are the promised policy", () => {
-    // AI categories now default ON (catalog.test.ts pins it), and the noise-tier
-    // (url/apikey/username) is off by DESIGN — disclosing those on every document
-    // would cry wolf. No deviation ⇒ no banner.
+    // AI categories now default ON (catalog.test.ts pins it), and what remains opt-in
+    // (`url`, `date`) is off by DESIGN — disclosing those on every document would cry
+    // wolf. No deviation ⇒ no banner.
     expect(inactiveCategoryLabels(undefined, undefined, undefined)).toEqual([]);
   });
 
@@ -32,13 +32,18 @@ describe("inactiveCategoryLabels", () => {
     expect(labels).not.toContain("Noms & prénoms");
   });
 
-  it("never lists a noise-tier or retired category, even when explicitly off", () => {
-    const labels = inactiveCategoryLabels(
-      { url: false, username: false, health: false },
-      undefined,
-      undefined,
-    );
+  it("never lists an opt-in or retired category, even when explicitly off", () => {
+    const labels = inactiveCategoryLabels({ url: false, date: false, health: false }, undefined, undefined);
     expect(labels).toEqual([]);
+  });
+
+  // `username` left the opt-in tier: a handle re-identifies its owner across services, so
+  // it is ON from Renforcé — and turning it off is weaker protection than the product
+  // promises, which is precisely what this banner exists to say.
+  it("discloses a handle turned off — it is on by default now", () => {
+    expect(inactiveCategoryLabels({ username: false }, undefined, undefined)).toEqual([
+      "Pseudo / identifiant",
+    ]);
   });
 
   // `apikey` left the « bruit » tier: it is ON by default and part of the

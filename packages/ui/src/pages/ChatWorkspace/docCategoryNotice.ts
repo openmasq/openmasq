@@ -15,12 +15,12 @@ import { effectiveRedactCategories } from "../../send/redactionOptions";
  * silent, while the tab label ("Redacted") and the counter ("4 à redact") read as
  * exhaustive — so a user closes the preview reassured and ships the names in clear.
  *
- * Scoped to deviations FROM the default on purpose: the noise-tier heuristics
- * (`url`/`username`) are OFF by design on every install, and disclosing them on every
- * document would cry wolf — the banner must only appear when something is genuinely
- * weaker than what the product promises. A fresh install shows nothing. ⚠️ `apikey` left
- * that tier: it defaults ON and belongs to every level's floor, so turning it off IS a
- * deviation and IS disclosed.
+ * Scoped to deviations FROM the default on purpose: the opt-in categories (`url`, `date`)
+ * are OFF by design on every install, and disclosing them on every document would cry
+ * wolf — the banner must only appear when something is genuinely weaker than what the
+ * product promises. A fresh install shows nothing. ⚠️ `apikey` and `username` left that
+ * tier: both default ON (a key in clear is a credential, a handle re-identifies its owner
+ * across services), so turning either off IS a deviation and IS disclosed.
  *
  * Same precedence as the send (`effectiveRedactCategories`: global ⊕ conversation ⊕
  * org-forced), seeded with `CATEGORY_DEFAULTS`. Retired categories are excluded:

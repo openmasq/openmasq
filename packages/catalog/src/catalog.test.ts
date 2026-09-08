@@ -11,6 +11,7 @@ import {
   CATEGORY_DEFAULTS,
   type RedactionCategory,
 } from "./redaction";
+import { categoriesForLevel } from "./redaction/levels";
 
 describe("model catalog", () => {
   it("every model resolves in the llm registry", () => {
@@ -139,10 +140,15 @@ describe("redaction catalog", () => {
     }
   });
 
-  it("noise-tier heuristics stay OFF by default (deliberate opt-in, not a data risk)", () => {
-    for (const key of ["url", "username"] as const) {
-      expect(CATEGORY_DEFAULTS[key], `${key} must default OFF`).toBe(false);
-    }
+  it("a URL stays OFF by default (deliberate opt-in, not a data risk)", () => {
+    expect(CATEGORY_DEFAULTS.url, "url must default OFF").toBe(false);
+  });
+
+  // A handle follows its owner from one service to the next: leaving it readable is an
+  // identity leak, which is what separates it from the opt-in tier it used to sit in.
+  it("a username is ON by default", () => {
+    expect(CATEGORY_DEFAULTS.username, "username must default ON").toBe(true);
+    expect(categoriesForLevel("renforce").username, "and at the default level").toBe(true);
   });
 
   // `apikey` has left that tier. It remains the catalogue's broadest heuristic —
