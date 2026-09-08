@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { alignWords, glyphBoxToRaster, layerDivergence } from "./align";
 import { buildTextLayerPage, type OcrLayerPage } from "./geometry";
-import type { PdfTextItem } from "./pdfLayout";
-import type { OcrWord } from "../ocr/layout";
+import type { PdfTextItem } from "../serialize/pdfLayout";
+import type { OcrWord } from "../../ocr/layout";
 
 // Page: 595×842 pts, rasterised at scale 2 → 1190×1684 px. Items at y=700 pts sit at
 // y 264..284 px (top-left flip). All test numbers are exact under this mapping.

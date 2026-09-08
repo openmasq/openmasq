@@ -14,7 +14,7 @@
 // only the canvas painter.
 //
 // VIEWER-ONLY: input bytes are read once, never modified/persisted.
-import { reconstructLayout, type PdfTextItem } from "../documents/pdfLayout";
+import { reconstructLayout, type PdfTextItem } from "../documents/serialize/pdfLayout";
 import { layoutValueHits, ocrFallbackBoxes, type PdfReplacement, type RedactBox } from "./pdfMatch";
 import {
   collectPageWords, ocrPageWords, type Matrix, type PageWord,

@@ -9,8 +9,8 @@
 //     raster of the SAME page (plus the y-flip: y_px = (height − y_pt) · scale).
 //   • OCR layer — raster pixels, origin TOP-left (the canonical `OcrWord` space).
 // Pure (no pdf.js/DOM): callers hand in already-parsed items.
-import { reconstructLayout, type LayoutRun, type PdfTextItem } from "./pdfLayout";
-import type { OcrWord } from "../ocr/layout";
+import { reconstructLayout, type LayoutRun, type PdfTextItem } from "../serialize/pdfLayout";
+import type { OcrWord } from "../../ocr/layout";
 
 /** Axis-aligned box of one text-layer item (PDF points, bottom-left origin, baseline y).
  *  For a ROTATED item this is the baseline-anchored approximation (w along the reading

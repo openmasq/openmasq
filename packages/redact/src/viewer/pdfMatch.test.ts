@@ -7,7 +7,7 @@ import {
   type PdfReplacement,
 } from "./pdfMatch";
 import { vaultReplacements, pdfReplacements, type RedactFn } from "./pdfDerive";
-import { reconstructLayout, type PdfTextItem } from "../documents/pdfLayout";
+import { reconstructLayout, type PdfTextItem } from "../documents/serialize/pdfLayout";
 
 const rep = (real: string): PdfReplacement => ({ real, fake: "X".repeat(real.length), tone: "coral" });
 

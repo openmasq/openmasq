@@ -2,11 +2,11 @@
 // OCR layer. This is the home of the cross-layer logic: the value-union detection, and
 // the HYBRID third layer (exact text-layer characters re-serialized in the OCR reading
 // order) for pages whose text-layer reconstruction is untrustworthy.
-import { applyVault, redact, type RedactOptions, type RedactionResult, type Vault } from "../index";
+import { applyVault, redact, type RedactOptions, type RedactionResult, type Vault } from "../../index";
 import { alignWords, type PageAlignment } from "./align";
-import { ocrWordsToLayout } from "../ocr/layout";
+import { ocrWordsToLayout } from "../../ocr/layout";
 import { spatialFieldLines } from "./spatialFields";
-import { PAGE_BREAK, type ExtractedFile } from "./core";
+import { PAGE_BREAK, type ExtractedFile } from "../core";
 import type { OcrLayerPage } from "./geometry";
 
 /** Build the hybrid only where it can HELP: the page's two readings must genuinely

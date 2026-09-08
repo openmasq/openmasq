@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseDelimited, gridToAnnotatedText, sniffDelimiter, annotatedCutRow, delimitedGrid } from "./tabular";
-import { redact, unredact } from "../index";
+import { redact, unredact } from "../../index";
 
 describe("parseDelimited", () => {
   it("splits rows and cells", () => {

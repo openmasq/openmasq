@@ -16,8 +16,8 @@ import {
   type ExtractedFile,
   type RedactedDocument,
 } from "./core";
-import { MAX_PDF_PAGES, rasterScale } from "./guard";
-import { reconstructPageText } from "./pdfLayout";
+import { MAX_PDF_PAGES, rasterScale } from "./safety/guard";
+import { reconstructPageText } from "./serialize/pdfLayout";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines } from "./core";
 // Send-cut → grid-row mapping for the preview grid (same parser/serializer as extraction).

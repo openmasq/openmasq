@@ -16,9 +16,9 @@ import {
   type ExtractedFile,
   type RedactedDocument,
 } from "./core";
-import { MAX_PDF_PAGES } from "./guard";
-import { reconstructPageText } from "./pdfLayout";
-import { buildTextLayerPage, type TextLayerPage } from "./geometry";
+import { MAX_PDF_PAGES } from "./safety/guard";
+import { reconstructPageText } from "./serialize/pdfLayout";
+import { buildTextLayerPage, type TextLayerPage } from "./layers/geometry";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines } from "./core";
 export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry } from "./core";

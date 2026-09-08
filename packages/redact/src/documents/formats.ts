@@ -62,7 +62,7 @@ export function extOf(name: string): string {
  * `raw:false` gives the FORMATTED string a human sees (kept verbatim → reversible).
  */
 export async function sheetText(bytes: Uint8Array): Promise<string> {
-  const { gridToAnnotatedText } = await import("./tabular");
+  const { gridToAnnotatedText } = await import("./serialize/tabular");
   // SheetJS is isomorphic → shared here (dynamic import keeps it out of ../index).
   const XLSX: any = await import("xlsx");
   const wb = XLSX.read(bytes, { type: "array" });

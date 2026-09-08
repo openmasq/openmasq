@@ -134,4 +134,4 @@ export {
   MAX_PDF_PAGES,
   type Sniffed,
   type SniffFamily,
-} from "./documents/guard";
+} from "./documents/safety/guard";

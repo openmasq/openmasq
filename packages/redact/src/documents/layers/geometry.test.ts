@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { extractFromBytes, type ExtractDeps } from "./core";
+import { extractFromBytes, type ExtractDeps } from "../core";
 import { buildTextLayerPage, type OcrLayerPage, type TextLayerPage } from "./geometry";
-import { reconstructPageText, type PdfTextItem } from "./pdfLayout";
+import { reconstructPageText, type PdfTextItem } from "../serialize/pdfLayout";
 
 const item = (str: string, x: number, y: number, w = 20, h = 10): PdfTextItem => ({
   str,

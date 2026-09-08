@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { isUnreadableLayer, junkRatio } from "./readable";
-import { extractFromBytes, PDF_TEXT_MIN } from "./core";
+import { extractFromBytes, PDF_TEXT_MIN } from "../core";
 
 /**
  * The real case (15/08/2026): `read_document` on a supporting document returned 854 characters of

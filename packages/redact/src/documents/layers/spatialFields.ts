@@ -19,10 +19,10 @@
 // the label→category mapping, the generic-term deny-list, the numeric-kind gates and the
 // vault atomicity all come from the ONE existing home (`detectLabeledFields`) instead of
 // being re-implemented here (rule 9).
-import { LABEL_GROUPS } from "../engine/contextFields.labels";
+import { LABEL_GROUPS } from "../../engine/contextFields.labels";
 import type { LayerGeometry } from "./reconcile";
 import type { OcrLayerPage } from "./geometry";
-import type { OcrWord } from "../ocr/layout";
+import type { OcrWord } from "../../ocr/layout";
 
 /** One alternation over every label term (all groups) — compiled once. */
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

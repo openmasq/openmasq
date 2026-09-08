@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { spatialFieldLines } from "./spatialFields";
 import { redactExtracted } from "./reconcile";
 import type { OcrLayerPage } from "./geometry";
-import type { OcrWord } from "../ocr/layout";
+import type { OcrWord } from "../../ocr/layout";
 
 /* The 2D label→value pairing: the shape a form prints and that the
    flat-text detector deliberately REFUSES (the value on the next line). The

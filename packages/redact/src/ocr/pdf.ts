@@ -3,8 +3,8 @@
 // ocr.ts (LOC cap): this file owns the pdf→raster plumbing; the engines, the router
 // and the traineddata pin logic stay in ocr.ts.
 import { OCR_LANGS, PAGE_BREAK, type OcrMeta } from "../documents/core";
-import { rasterScale } from "../documents/guard";
-import type { OcrLayerPage } from "../documents/geometry";
+import { rasterScale } from "../documents/safety/guard";
+import type { OcrLayerPage } from "../documents/layers/geometry";
 import { ocrImageLayout } from "./ocr";
 
 const DEFAULT_LANG = OCR_LANGS.join("+");

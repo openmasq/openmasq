@@ -7,7 +7,7 @@
 // per-value coverage proof (`paintCoversReplacements`) gating every surface that
 // ships the painted pixels.
 import { isWordGlued, escapeRegExp } from "../util";
-import type { LayoutPage, LayoutRun } from "../documents/pdfLayout";
+import type { LayoutPage, LayoutRun } from "../documents/serialize/pdfLayout";
 import { ocrWordsToLayout, type OcrWord } from "../ocr/layout";
 
 /** A sensitive value, its believable fake, and the highlight tone for its kind. */

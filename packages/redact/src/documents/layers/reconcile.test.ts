@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { hybridLayerText, redactExtracted } from "./reconcile";
-import type { ExtractedFile, TextLayerPage, OcrLayerPage } from "./core";
+import type { ExtractedFile, TextLayerPage, OcrLayerPage } from "../core";
 
 /* The SACEM-relevé failure, miniaturised: the SAME phone number is invisible to BOTH
    existing layers — the text layer has the exact digits but its reconstruction scrambled

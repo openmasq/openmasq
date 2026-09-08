@@ -69,7 +69,7 @@ const LIGNES_SONDEES = 20;
 const ACCORD_MIN = 0.6;
 
 /** Counts occurrences of a separator OUTSIDE quotes (a quoted comma doesn't count). */
-function compterHorsGuillemets(ligne: string, sep: string): number {
+export function compterHorsGuillemets(ligne: string, sep: string): number {
   let n = 0;
   let cite = false;
   for (let i = 0; i < ligne.length; i++) {

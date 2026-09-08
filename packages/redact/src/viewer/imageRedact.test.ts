@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { matchValueToBoxes } from "./imageRedact";
 import type { PdfReplacement } from "./pdfRedact";
-import type { LayoutRun } from "../documents/pdfLayout";
+import type { LayoutRun } from "../documents/serialize/pdfLayout";
 
 // A scan whose OCR produced two words: "35136" then "Saint-Jacques-de-la-Lande".
 const text = "35136 Saint-Jacques-de-la-Lande Reste";

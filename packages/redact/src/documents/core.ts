@@ -6,12 +6,12 @@
 // so NOTHING is duplicated across platforms. Plain text (TextDecoder) and
 // spreadsheets (SheetJS is isomorphic) are handled here directly; CSV/TSV/XLSX go
 // through `./tabular` HEADER-ANNOTATED serialization (approach A) for detection.
-import { delimitedGrid, gridToAnnotatedText } from "./tabular";
+import { delimitedGrid, gridToAnnotatedText } from "./serialize/tabular";
 import { cleanErr, msg, OCR_FAILED, IMAGE_OCR_FAILED } from "./errors";
-import { guardUpload } from "./guard";
-import { isUnreadableLayer } from "./readable";
+import { guardUpload } from "./safety/guard";
+import { isUnreadableLayer } from "./layers/readable";
 import type { OcrWord } from "../ocr/layout";
-import type { TextLayerPage, OcrLayerPage } from "./geometry";
+import type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
 import {
   TEXT_EXT, SHEET_EXT, IMAGE_EXT, MIME_EXT,
   baseName, extOf, sheetText, pptxText,
@@ -20,11 +20,11 @@ import {
 // Split-out pieces re-exported so every existing import path keeps resolving.
 export { SUPPORTED_EXTENSIONS, MIME_EXT, baseName, extOf } from "./formats";
 export { OCR_LANGS, OCR_TRAINEDDATA_SHA256 } from "./ocrPins";
-export { redactExtracted, hybridLayerText, type RedactedDocument, type LayerGeometry } from "./reconcile";
-export { spatialFieldLines } from "./spatialFields";
+export { redactExtracted, hybridLayerText, type RedactedDocument, type LayerGeometry } from "./layers/reconcile";
+export { spatialFieldLines } from "./layers/spatialFields";
 // Send-cut → grid-row mapping (tabular.ts) — re-exported so the UI can't grow a drifting copy.
-export { delimitedGrid, annotatedCutRow } from "./tabular";
-export type { TextLayerPage, OcrLayerPage, GlyphBox } from "./geometry";
+export { delimitedGrid, annotatedCutRow } from "./serialize/tabular";
+export type { TextLayerPage, OcrLayerPage, GlyphBox } from "./layers/geometry";
 
 export interface ExtractedFile {
   name: string;

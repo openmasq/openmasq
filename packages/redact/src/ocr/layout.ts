@@ -1,4 +1,4 @@
-import { reconstructLayout, type LayoutBlock, type LayoutRun, type PdfTextItem } from "../documents/pdfLayout";
+import { reconstructLayout, type LayoutBlock, type LayoutRun, type PdfTextItem } from "../documents/serialize/pdfLayout";
 
 /**
  * Minimum per-word OCR confidence (0–100 scale; Tesseract native, docTR = CTC ×100) below
