@@ -469,6 +469,10 @@
   "text": "{\"userId\":\"usr_8812\",\"email\":\"torben.holelfeld@fastmail.com\",\"name\":\"Torben Holelfeld-Oda\",\"ssn\":\"AB123456C\",\"dob\":\"1974-11-12\"}\n{\"userId\":\"usr_8813\",\"email\":\"sigrid.stendorf@kenarstra.ac.uk\",\"name\":\"Sigrid Stendorf-Falinmann\",\"ssn\":\"CD654321D\",\"dob\":\"1999-06-06\"}",
   "truth": [
    [
+    "usr_8812",
+    "ID"
+   ],
+   [
     "torben.holelfeld@fastmail.com",
     "EMAIL"
    ],
@@ -483,6 +487,10 @@
    [
     "1974-11-12",
     "DOB"
+   ],
+   [
+    "usr_8813",
+    "ID"
    ],
    [
     "sigrid.stendorf@kenarstra.ac.uk",
@@ -3858,6 +3866,14 @@
   "text": "user_id,device_id,email,name,country,city,last_seen\nusr_8812,d7f2a,o.caspar@laposte.net,Megan Caspar,France,Louhans,2026-07-22\nusr_8813,c1e88,p.gaspard@wp.pl,Ulla Gaspard,Poland,Breda,2026-07-21",
   "truth": [
    [
+    "usr_8812",
+    "ID"
+   ],
+   [
+    "d7f2a",
+    "ID"
+   ],
+   [
     "o.caspar@laposte.net",
     "EMAIL"
    ],
@@ -3868,6 +3884,14 @@
    [
     "Louhans",
     "CITY"
+   ],
+   [
+    "usr_8813",
+    "ID"
+   ],
+   [
+    "c1e88",
+    "ID"
    ],
    [
     "p.gaspard@wp.pl",

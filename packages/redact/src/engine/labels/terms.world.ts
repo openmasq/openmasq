@@ -40,6 +40,20 @@ export const ID_TERMS_WORLD: string[] = [
   "dossiernummer", "kundnummer", "anställningsnummer", "försäkringsnummer",
   "körkortsnummer", "ärendenummer",
   "número de passaporte", "numero de passaporte", "número de apólice", "numero de apolice",
+  // The identifiers of HEALTH, LICENSING and DEVICES — measured 2026-09-07 on Nemotron-PII
+  // (`bench/spans/`): health-plan beneficiary numbers at 18 %, certificate/licence numbers
+  // at 4 %, device identifiers at 23 %, biometric identifiers at 42 %, medical record
+  // numbers at 58 % — every one written under its own label. A plate and a VIN identify
+  // the vehicle's owner the way a customer number does.
+  "health plan beneficiary number", "health plan beneficiary", "beneficiary number",
+  "beneficiary id", "medical record number", "medical record no", "mrn", "patient number",
+  "certificate license number", "certificate licence number", "certificate number",
+  "certificate no", "license number", "license no", "licence no",
+  "biometric identifier", "biometric id", "device identifier", "device id",
+  // (« VIN » alone is not listed: « Vin : Bordeaux » is a French menu.)
+  "vehicle identification number", "license plate", "licence plate", "plate number",
+  "unique identifier", "unique id",
+  "número de seguro social", "numero de seguro social", "seguro social",
 ];
 
 /** Merged INTO the `PHONE` group: the compound phone labels of DE/NL/SV/IT/ES/PT. */
@@ -47,6 +61,12 @@ export const PHONE_TERMS_WORLD: string[] = [
   "telefoonnummer", "telefonnummer", "telefonnr", "mobilnummer", "handynummer",
   "numero di telefono", "número de teléfono", "numero de telefono", "número de telefone",
   "numero de telefone", "telefonnummer:",
+  // « Fax Number », « Contact Number », « Cell Phone » — the compound sits before the colon,
+  // and the inline matcher reads the label whole: « Fax Number: 502-411-7227 » shipped in clear
+  // while « Fax: » did not (Nemotron-PII, 2026-09-07, fax numbers at 19 %).
+  "fax number", "fax no", "telephone number", "phone no", "tel no", "contact number",
+  "contact phone", "contact phone number", "cell phone", "cellphone", "cell number",
+  "mobile phone", "mobile phone number", "work phone", "home phone", "office phone",
 ];
 
 /** Merged INTO the `USERNAME` group. */

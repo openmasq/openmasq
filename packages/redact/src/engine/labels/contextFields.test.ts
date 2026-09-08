@@ -553,3 +553,22 @@ describe("l'idiome des JOURNAUX — `user_id=…` (persona support, 16/08/2026)"
     expect(vals("le user_id est expliqué dans la doc")).toEqual([]);
   });
 });
+
+describe("the XML element form", () => {
+  const found = (t: string) => detectLabeledFields(t).map((d) => `${d.category}:${d.value}`);
+
+  it("takes a value made of the punctuation one would like to exclude", () => {
+    // `>` is an ordinary password character; only `<` bounds the value. Excluding both
+    // shipped every symbol-heavy password in clear while `<Username>` was caught.
+    expect(found("<Password>2P~e>A</Password>")).toEqual(["SECRET:2P~e>A"]);
+    expect(found("<Username>manaka</Username>")).toEqual(["USERNAME:manaka"]);
+  });
+
+  it("still stops at the closing tag, never past it", () => {
+    expect(found("<Username>manaka</Username><Username>ella</Username>")).toEqual([
+      "USERNAME:manaka",
+      "USERNAME:ella",
+    ]);
+  });
+});
+

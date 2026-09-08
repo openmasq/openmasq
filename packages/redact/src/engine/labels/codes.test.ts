@@ -67,3 +67,58 @@ describe("labelled fields — serialised dialects", () => {
     expect((await pseudonymize(t, { disabledKinds: [] })).text).toBe(t);
   });
 });
+
+describe("detectLabeledCodes — health, licence, device, card and password, in prose", () => {
+  it("a prefixed code under its compound label", () => {
+    expect(found("a beneficiary under health plan beneficiary number H19385278-03, and")).toEqual(["ID:H19385278-03"]);
+    expect(found("Your health plan beneficiary number is CA-9876543210. Please keep it.")).toEqual(["ID:CA-9876543210"]);
+    expect(found("The certificate license number FL-78523416 was verified")).toEqual(["ID:FL-78523416"]);
+    expect(found("whose medical record number is MRN-3456218, has been referred")).toEqual(["ID:MRN-3456218"]);
+    expect(found("The patient's biometric identifier, BIO-4987253610, is noted")).toEqual(["ID:BIO-4987253610"]);
+    expect(found("the device identifier 7F2A1E8F-9B3D-4C7E-8A4B-6C5D9E2A1F3B is valid")).toEqual(["ID:7F2A1E8F-9B3D-4C7E-8A4B-6C5D9E2A1F3B"]);
+    expect(found("Número de Seguro Social: 608-32-0829")).toEqual(["ID:608-32-0829"]);
+  });
+  it("a label whose value is prose, a count or a year is not a code", () => {
+    expect(found("the medical record number was updated in 2023")).toEqual([]);
+    expect(found("a license number is required for 3 of the 4 vehicles")).toEqual([]);
+  });
+  it("a card named in prose, no checksum under the label", () => {
+    expect(found("Must have a credit debit card, such as 4738 2956 7821 4538 |")).toEqual(["CARD:4738 2956 7821 4538"]);
+    expect(found("payment on the credit/debit card number 4921 3785 1234 5678, with the CVV code 415")).toEqual(["SECRET:415", "CARD:4921 3785 1234 5678"]);
+    expect(found("I used my credit debit card 3472 765089 30184 for it")).toEqual(["CARD:3472 765089 30184"]);
+    expect(found("the card ending in 4916 7382 1456 9784")).toEqual([]);
+    expect(found("card number 4916738214569784")).toEqual(["CARD:4916738214569784"]);
+    expect(found("a card 4 of hearts, and card 2024 was the year")).toEqual([]);
+  });
+  it("a password after its copula, or in quotes", () => {
+    expect(found("Ihr neues Passwort ist m)%l8jQz0C. Bitte notieren")).toEqual(["SECRET:m)%l8jQz0C"]);
+    expect(found("simply use the password 'd5knsY6kFR*zn0HyZ@' when you book")).toEqual(["SECRET:d5knsY6kFR*zn0HyZ@"]);
+    expect(found('which had a password of "m(3KSxWyz". We recommend')).toEqual(["SECRET:m(3KSxWyz"]);
+    expect(found("use the following password when prompted: 4A!1D7fu#@@. This password is unique")).toEqual(["SECRET:4A!1D7fu#@@"]);
+    expect(found("log in using your password, bLx*51OzQ*&@N4. Once logged in")).toEqual(["SECRET:bLx*51OzQ*&@N4"]);
+    expect(found("please use the password N8$kR9mZpY5!.")).toEqual(["SECRET:N8$kR9mZpY5!"]);
+    expect(found("email (a@b.c), and password (Sunflower@2025). We also")).toEqual(["SECRET:Sunflower@2025"]);
+    expect(found("who will use the username syoung and password River99$ to access")).toEqual(["SECRET:River99$"]);
+  });
+  it("the SSN behind its parenthesised acronym, the BIC named in Swedish", () => {
+    expect(found("my Social Security Number (SSN) is 463-36-4052. I reside")).toEqual(["ID:463-36-4052"]);
+    expect(found("The **SSN** 415-84-6016 has been verified")).toEqual(["ID:415-84-6016"]);
+    expect(found("Swift-BIC-koden för mitt bankkonto är KLXDDEJU541.")).toEqual(["BIC:KLXDDEJU541"]);
+    expect(found("the BIC is BNPAFRPP and the swift code is required")).toEqual(["BIC:BNPAFRPP"]);
+    expect(found("cliente ID: V849-Q3067-Ve")).toEqual(["ID:V849-Q3067-Ve"]);
+  });
+  it("a PIN or a PUK named in prose, however long the number is", () => {
+    expect(found("Your PUK code is 482781. Please enter it.")).toEqual(["SECRET:482781"]);
+    // A PIN label followed by fourteen digits is a credential with a badly chosen name,
+    // not a different kind of thing — the LABEL is the gate, never the length.
+    expect(found("Please use the pin 10733285336267 for online access.")).toEqual([
+      "SECRET:10733285336267",
+    ]);
+  });
+  it("a password that is a word, a sentence, a link or a username is left alone", () => {
+    expect(found("the password is required and must contain 8 characters")).toEqual([]);
+    expect(found("password reset link https://example.com/reset?token=abc123 expires")).toEqual([]);
+    expect(found("the password for user john_doe1 was reset")).toEqual([]);
+    expect(found("Password: see the attached document")).toEqual([]);
+  });
+});

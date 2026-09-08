@@ -21,6 +21,30 @@ const CODE_IDENT = /_|^[a-z][a-z0-9]*[A-Z]|^[a-z0-9]+(?:[-.][a-z0-9]+){2,}$/;
 // Field kinds whose value is inherently numeric — a captured value with no digit
 // at all is a false positive (see the gate in detectLabeledFields).
 const NUMERIC_CATS = new Set(["PHONE", "IBAN", "CARD", "POSTAL_CODE", "DOB"]);
+// ⚠️ A BRACKETED value is a placeholder only when what it holds is a TEMPLATE token —
+// letters, spaces, `_`, `.`, `-`. `Email: <john@exemple.fr>` is the RFC form of a REAL
+// address, `Client: (SIRET 123…)` a real datum: an `@` or a digit means it is not a template,
+// and the value is kept (fail closed — a wrong drop ships it in clear).
+const PLACEHOLDER =
+  /^(?:n\/?a|néant|neant|none|null|undefined|non renseigné|non renseigne|-+|—+|_{2,}|\.{2,}|x{2,}|tbd|tba|tbc|unknown|pending|not (?:provided|applicable|available|specified|given|known|listed)|to be (?:filled|determined|confirmed|provided|advised|completed)\b.*|see (?:attached|above|below|attachment)|non applicable|inconnu|à compléter|a completer|à renseigner|a renseigner|à définir|a definir|en attente|voir (?:ci-joint|ci-dessus|ci-dessous|pièce jointe)|[[<{(][\p{L} _.\-]{0,40}[\]>})])$/iu;
+/**
+ * A SENTENCE under a NAME label — « Skin contact: Wash off with soap and water » is a safety
+ * sheet, not a person.
+ *
+ * ⚠️ The discriminant is the CASING of the substantive words, never the word count nor the
+ * function words: a French name is full of particles and can be long — « Marie-Claire de la
+ * Tour du Pin » is six words carrying three of them, and every rule written on those two
+ * counts dropped it, i.e. sent it in CLEAR. What a name never has is several LOWERCASE words
+ * that are not particles. Both bounds are needed: « van der Berg de Vries » has one
+ * (« van »), so the floor is two, and a short value is left alone entirely.
+ */
+function isProse(v: string): boolean {
+  const words = v.split(/\s+/u).filter(Boolean);
+  if (words.length < 5) return false;
+  return words.filter((w) => /^\p{Ll}/u.test(w) && !isStopword(w)).length >= 2;
+}
+/** The categories whose value may carry a « . » followed by a space (see the sentence cut). */
+const SENTENCE_KEEPS = new Set(["NAME", "ADDRESS", "ORG", "CITY", "PLACE"]);
 
 /** Cut a captured value at the start of the NEXT field on the same line, at a
  *  column gap (tab / fullwidth space / 2+ spaces), or at 80 chars — then trim.
@@ -124,6 +148,12 @@ export function acceptFieldValue(
   // inside it… as « 944.9.8.74 », an address that doesn't exist. An identifier never
   // carries a comma; what follows it is another field, and it has its own detector.
   if (groupCategory === "ID") value = value.split(/[,;]/)[0].trim();
+  // …and EVERY value but a name, an address, an organisation or a city stops at the end of
+  // the SENTENCE — a stop followed by a space, or closing the line. « Social Security
+  // Number: 017-69-1878. The taxpayer's… » vaulted the identifier WITH the clause after it,
+  // so the fake rewrote the sentence and the number itself was only half covered. A name
+  // has its own cut, an address its tail, and « St. Louis » is a city.
+  if (!SENTENCE_KEEPS.has(groupCategory)) value = value.split(/\.(?:\s|$)/u)[0].trim();
   if (value.length < 2) return null;
   if (!/[\p{L}\p{N}]/u.test(value)) return null; // must carry a letter or digit
   // A numeric-kind field (phone/IBAN/card/CP/date) whose "value" carries NO digit is
@@ -137,7 +167,11 @@ export function acceptFieldValue(
   if (numeric && value.split(/[\s,;]+/u).filter((w) => w && isStopword(w)).length >= 2) {
     return null;
   }
-  if (/^(n\/?a|néant|neant|none|null|undefined|non renseigné|-+|—+)$/iu.test(value)) return null;
+  // A PLACEHOLDER is not a value: the form's own « N/A », « TBD », « Not provided », « To be
+  // filled by the tenant », a template's « [Insert Coverage Limit] », a blank of underscores.
+  if (PLACEHOLDER.test(value)) return null;
+  // …and neither is a SENTENCE under a NAME label (see `isProse`).
+  if (groupCategory === "NAME" && isProse(value)) return null;
   if (isStopword(value) || isGenericTerm(value) || isGenericCompound(value)) return null;
   if (groupCategory === "NAME" && CODE_IDENT.test(value)) return null;
   // A CITY/Commune/Ville field whose value is a "CP + Ville" ("92110 CLICHY") is a PLACE,
