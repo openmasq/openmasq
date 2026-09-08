@@ -178,6 +178,8 @@ export async function gatherCandidates(
   for (const c of candidates) if (!c.uncertain) corroborated.add(entityKey(c.value));
   for (const d of gazetteer) corroborated.add(entityKey(d.value));
   for (const c of candidates) if (c.uncertain && corroborated.has(entityKey(c.value))) delete c.uncertain;
-  candidates.sort((a, b) => b.value.length - a.value.length);
-  return { candidates, modelError };
+  // A heading is not an organisation, a SWIFT field is not a key (`lineContext.ts`).
+  const kept = dropLineNoise(candidates, input);
+  kept.sort((a, b) => b.value.length - a.value.length);
+  return { candidates: kept, modelError };
 }
