@@ -1,5 +1,5 @@
-import type { Detection } from "../types";
-import { isStopword, isGenericTerm, isGenericCompound } from "../model/genericTerms";
+import type { Detection } from "../../types";
+import { isStopword, isGenericTerm, isGenericCompound } from "../../model/genericTerms";
 
 /**
  * TEAM-ROSTER lists — the "Prénom / rôle" alternation of an about-page or org chart:

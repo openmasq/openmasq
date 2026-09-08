@@ -1,8 +1,8 @@
 import { fixElisions } from "./elision";
 import { dateReformPairs } from "./dateForms";
-import { placeFragments } from "./geo/composite";
-import type { Vault } from "../types";
-import { redactionCategory } from "../kinds";
+import { placeFragments } from "../geo/composite";
+import type { Vault } from "../../types";
+import { redactionCategory } from "../../kinds";
 import {
   accentTolerantSource,
   escapeRegExp,
@@ -10,8 +10,8 @@ import {
   isWordGlued,
   replaceStandalone,
   variantOccurrences,
-} from "../util";
-import type { UrlOccurrenceGuard } from "./urls";
+} from "../../util";
+import type { UrlOccurrenceGuard } from "../urls";
 
 /**
  * Reverse a redaction: replace every known token (bracket placeholder, fake

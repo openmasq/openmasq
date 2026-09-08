@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { detectAddresses } from "./addresses";
-import { detectLabeledFields } from "./contextFields";
-import { scoreCorpus, pct, type BenchCase } from "../../bench/metric";
-import corpus from "../../bench/corpora/addresses.json";
+import { detectAddresses } from ".";
+import { detectLabeledFields } from "../contextFields";
+import { scoreCorpus, pct, type BenchCase } from "../../../bench/metric";
+import corpus from "../../../bench/corpora/addresses.json";
 
 // Recall bench for the DETERMINISTIC address stack (regex street patterns + labeled fields) —
 // what actually redacts addresses in production (the NER only tags the city). Runs in `pnpm test`

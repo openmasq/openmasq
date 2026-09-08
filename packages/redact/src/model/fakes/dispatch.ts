@@ -1,6 +1,6 @@
-import { fakeDepartment, fakeRegion } from "../../engine/frGeo";
-import { fakeGeo, type GeoAnchors } from "../../engine/geo/index";
-import { fakeAddressComplement } from "../../engine/addressComplement";
+import { fakeDepartment, fakeRegion } from "../../engine/geo/frGeo";
+import { fakeGeo, type GeoAnchors } from "../../engine/geo";
+import { fakeAddressComplement } from "../../engine/addresses/complement";
 import { fakeBitcoinLegacyAddress } from "../../engine/validators/base58check";
 import { FAKE_LAST, firstNamePool } from "./pools";
 import { hashString, pick, rehash, fakeToken, fakeDigits, fakeHandle, seedFrom } from "./primitives";
@@ -8,7 +8,7 @@ import { isMrzShaped } from "../../kinds";
 import { fakeMrz } from "./mrz";
 import { fakeCity, fakeOrg, fakePostal, fakeDate, fakeEmail, fakePhone, fakeCard, fakeIban} from "./entities";
 import { fakeIp } from "./ip";
-import { fakeValidId } from "./checksummed/index";
+import { fakeValidId } from "./checksummed";
 import { fakePath } from "./paths";
 import { fakeUrl } from "./urls";
 

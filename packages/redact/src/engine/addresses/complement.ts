@@ -14,8 +14,8 @@
 // precision bar. A chunk is only kept if it TOUCHES an already-detected address — same line,
 // separated from it only by `,`/spaces (or by other chained complements). So it
 // never creates a detection where there isn't already an address.
-import type { Detection } from "../types";
-import { fakeHandle } from "../model/fakes/primitives";
+import type { Detection } from "../../types";
+import { fakeHandle } from "../../model/fakes/primitives";
 
 /** The words that open a complement. Abbreviations included: that's how
  *  an address is written on an envelope. The trailing period is optional (« Bât. » / « Bat »). */

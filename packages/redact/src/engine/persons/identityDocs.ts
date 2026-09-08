@@ -12,8 +12,8 @@
 // surname — that is what the document format prescribes — and the residual FP risk is
 // bounded by three belts: the header gate, ALL-CAPS-only values (prose writes "Nom
 // Commun", a card prints "CHANDREL"), and the shared generic-term deny-list.
-import type { Detection } from "../types";
-import { isStopword, isGenericTerm } from "../model/detect";
+import type { Detection } from "../../types";
+import { isStopword, isGenericTerm } from "../../model/detect";
 
 /** Identity-document header, tolerant to OCR word-gluing ("CARTENATIONALE D'IDENTITÉ"). */
 const HEADER_RE =

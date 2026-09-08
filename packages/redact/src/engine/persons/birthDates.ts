@@ -5,7 +5,7 @@
 // the birth DATE shipped in clear, an identifying pair. OCR gluing is tolerated
 // ("Néà RENNES", "le5 juillet 1990"). Only the DATE is emitted (category DOB → a
 // valid same-format fake date); the birthplace is the geo detectors' span.
-import type { Detection } from "../types";
+import type { Detection } from "../../types";
 
 const MONTH =
   "janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre|decembre";

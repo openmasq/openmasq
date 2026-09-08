@@ -15,10 +15,10 @@
 //    beyond the stopword net — so the NAME must be Capitalized in the original.
 // Every candidate token also passes the shared stopword/generic/country guards,
 // so "madame la présidente" / "monsieur veut-il" never yield a candidate.
-import type { Detection } from "../types";
-import { isStopword, isGenericTerm } from "../model/genericTerms";
-import { isCountry } from "./geo/countries";
-import { FIRST_NAMES } from "./names/firstNames.data";
+import type { Detection } from "../../types";
+import { isStopword, isGenericTerm } from "../../model/genericTerms";
+import { isCountry } from "../geo/countries";
+import { FIRST_NAMES } from "../names/firstNames.data";
 
 const BARE_TITLES = [
   "monsieur", "madame", "mademoiselle", "mme", "mlle",

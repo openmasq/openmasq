@@ -15,9 +15,9 @@
 // faker, no fake place). Pattern-detected fields only (they carry a `start`); the NER's prose
 // geo has no block. The ADDRESS field keeps its own street faker.
 import type { Detection } from "../../types";
-import { PLACES_BY_COUNTRY } from "./index";
+import { PLACES_BY_COUNTRY } from ".";
 import type { GeoPlace, ISO2 } from "./types";
-import { departmentOfCp, matchCase } from "../frGeo";
+import { departmentOfCp, matchCase } from "./frGeo";
 import { extractCityLoose, type GeoAnchors } from "./cityAnchor";
 import { usStateName, isUsStateFullName } from "./usStates";
 

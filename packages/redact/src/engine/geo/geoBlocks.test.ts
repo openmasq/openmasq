@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Detection } from "../../types";
 import { resolveGeoBlocks } from "./geoBlocks";
-import { departmentOfCp } from "../frGeo";
+import { departmentOfCp } from "./frGeo";
 
 const cand = (value: string, category: string, start: number, country = "FR"): Detection => ({
   value,

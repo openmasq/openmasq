@@ -11,16 +11,18 @@
 // country comes from the street keyword (romance → FR/ES/IT/PT, germanic → DE/NL) or,
 // for EN, the trailing postal (US ZIP / CA / GB postcode). Emitted as `{value,
 // category, country}` for `pseudonymize`. Deterministic + language-agnostic-by-extension.
-import type { Detection } from "../types";
+import type { Detection } from "../../types";
 
-import { PRE, SUF, SUF_LONG, DE, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./addressShapes";
+import { PRE, SUF, SUF_LONG, DE, NORDIC, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./shapes";
 
-/** `SUF_LONG` with each word in its two casings (see shape D'). */
+/** `SUF_LONG` with each word in its two casings (see shape D'); `DE` lowercase or ALL-CAPS. */
 const SUF_LONG_CASED = SUF_LONG.split("|").map((w) => `[${w[0]!.toUpperCase()}${w[0]}]${w.slice(1)}`).join("|");
-import { trimAddressTail } from "./addressTail";
+// Each type word Capitalised-or-lowercase (« Vadim-Pohl-Ring », « Musterstraße ») or ALL-CAPS.
+const DE_CASED = `${DE.replace(/(^|\|)(\p{L})/gu, (_, p, c) => `${p}[${c.toUpperCase()}${c}]`)}|${DE.toUpperCase()}`;
+import { trimAddressTail } from "./tail";
 
 // Re-exported: `trimAddressTail` used to live here, and consumers import it from this path.
-export { trimAddressTail } from "./addressTail";
+export { trimAddressTail } from "./tail";
 
 /** A per-address country hint, or a resolver from the captured value. */
 type CountryHint = string | ((v: string) => string | undefined);
@@ -34,8 +36,10 @@ function romance(v: string): string {
   if (/(?:^|\W)(rua|travessa|pra[çc]a)(?:\W|$)/.test(lv)) return "PT";
   return "FR";
 }
-/** DE vs NL by the compound street type (straat/laan/plein = NL, else DE). */
-const dutchOrGerman = (v: string): string => (/straat|laan|plein/i.test(v) ? "NL" : "DE");
+/** DE vs NL by the compound street type (straat/laan/plein = NL, else DE); a Nordic type
+ *  has no fake table → undefined, the fake keeps the shape. */
+const dutchOrGerman = (v: string): string | undefined =>
+  NORDIC.test(v) ? undefined : /straat|laan|plein|kade|singel|dreef|gracht/i.test(v) ? "NL" : "DE";
 /** EN address country from its trailing postal: US "ST 10001" / CA "A1A 1A1" / else GB. */
 function anglo(v: string): string {
   if (/\b[A-Z]{2}\s+\d{5}(?:-\d{4})?\b/.test(v)) return "US";
@@ -133,12 +137,13 @@ export function detectAddresses(text: string): Detection[] {
     ),
     "ADDRESS", out, seen, 6, () => "FR",
   );
-  // DE/NL — name+type compound → number (+ optional "PLZ Stadt" / "NNNN AB Stad").
-  pushAll(
-    text,
-    new RegExp(`\\b\\p{Lu}[\\p{L}]{2,}(?:${DE})\\.?${W}\\d{1,4}\\b${TAIL_ZIPCITY}`, "giu"),
-    "ADDRESS", out, seen, 6, dutchOrGerman,
-  );
+  // DE/NL/Nordic — name+type compound → number (+ optional "PLZ Stadt"), hyphenated or not
+  // (« Vadim-Pohl-Ring 6 »), and the number FIRST (« 6 Vadim-Pohl-Ring », « 549 Furugränd »).
+  // Case-sensitive like D': the name starts CAPITALISED (« boring 12 » is prose), the type
+  // word is written either way (« Musterstraße », « MUSTERSTRASSE »).
+  const COMPOUND = `\\p{Lu}(?:[\\p{L}]|-(?=\\p{L})){1,40}?(?:${DE_CASED})`;
+  pushAll(text, new RegExp(`\\b${COMPOUND}\\.?${W}\\d{1,4}[a-z]?\\b${TAIL_ZIPCITY}`, "gu"), "ADDRESS", out, seen, 6, dutchOrGerman);
+  pushAll(text, new RegExp(`\\b\\d{1,4}${H}+${COMPOUND}\\b${TAIL_ZIPCITY}`, "gu"), "ADDRESS", out, seen, 6, dutchOrGerman);
 
   // CN/JP — contiguous Han/Kana(+digits) address anchored big-region → smaller unit.
   // No fake table yet → country undefined (the fake keeps the shape). `CJK` = Han/Kana + (fw)digits + hyphen.

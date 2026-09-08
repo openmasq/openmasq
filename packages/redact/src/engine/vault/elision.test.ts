@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { fixElisions, startsWithVowelSound } from "./elision";
-import { unredact } from "./vault";
+import { unredact } from ".";
 
 /**
  * Observed 2026-07-28, under the user's eyes: « C'est noté, je garde en mémoire que tu es

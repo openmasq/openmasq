@@ -25,7 +25,13 @@ export const SUF_LONG =
   "|field|fields|flat|flats|ford|forest|forge|fork|forks|fort|glen|glens|green|greens|inlet|key|keys|knoll" +
   "|knolls|lake|lakes|light|lights|loaf|lock|locks|lodge|mall|bypass|camp|canyon|cape|burg|burgs|bluff|bluffs" +
   "|bottom|branch|bridge|bend|beach|bayou|arcade|annex|viaduct|walks|ways";
-export const DE = "stra(?:ße|sse)|str|weg|platz|gasse|allee|ring|laan|straat|plein";
+// …the Germanic and NORDIC compounds. A compound may be hyphenated (« Vadim-Pohl-Ring »):
+// `addresses.ts` carries the hyphen in its name class, this list only the type words.
+export const DE =
+  "stra(?:ße|sse)|str|weg|platz|gasse|allee|ring|damm|ufer|steig|pfad|hof|markt|chaussee|promenade" +
+  "|laan|straat|plein|kade|singel|dreef|gracht" +
+  "|v[äa]gen|v[äa]g|gatan|gata|gr[äa]nd|stigen|torget|all[ée]n|veien|vei|gaten|vej|gade";
+export const NORDIC = /v[äa]gen|v[äa]g|gatan|gata|gr[äa]nd|stigen|torget|all[ée]n|veien|vei|gaten|vej|gade/iu;
 
 // `H` = horizontal space; `W` = a join that tolerates ONE line wrap. The distinction is
 // load-bearing. Plain `\s` eats a newline, and that is how the tail of the PREVIOUS line

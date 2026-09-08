@@ -6,7 +6,7 @@
 // display language (FR "Allemagne" → "Belgique", EN "Germany" → "Spain").
 //
 // Pure data + string ops; the swap is verbatim, reversible via the vault.
-import { matchCase } from "../frGeo";
+import { matchCase } from "./frGeo";
 
 const strip = (s: string): string =>
   s

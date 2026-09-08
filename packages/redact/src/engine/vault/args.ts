@@ -1,5 +1,5 @@
-import { unredact } from "./vault";
-import type { Vault } from "../types";
+import { unredact } from ".";
+import type { Vault } from "../../types";
 
 /**
  * Restore MUTATED multi-word fakes in an outward arg. A model sometimes "corrects" a

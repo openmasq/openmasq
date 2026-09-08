@@ -1,6 +1,6 @@
 import type { Detection } from "../../types";
 import { escapeRegExp } from "../../util";
-import { SUF, SUF_LONG } from "../../engine/addressShapes";
+import { SUF, SUF_LONG } from "../../engine/addresses/shapes";
 
 /**
  * A detected span, extended to the EDGE of the datum it sits in — the complement of

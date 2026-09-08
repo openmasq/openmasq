@@ -48,12 +48,12 @@ export {
 } from "./engine/urls";
 export { batchRedact } from "./engine/batch";
 export { detectLabeledFields } from "./engine/contextFields";
-export { detectHonorificNames } from "./engine/honorifics";
+export { detectHonorificNames } from "./engine/persons";
 export { detectOrgContext } from "./engine/orgContext";
 export { detectAddresses } from "./engine/addresses";
-export { detectFrGeo, DEPARTMENTS, REGIONS, depToRegion } from "./engine/frGeo";
+export { detectFrGeo, DEPARTMENTS, REGIONS, depToRegion } from "./engine/geo/frGeo";
 export { unredact, applyVault, applyVaultVariants, replayVault, disabledVaultTokens } from "./engine/vault";
-export { unredactArgs, unredactReply } from "./engine/vaultArgs";
+export { unredactArgs, unredactReply } from "./engine/vault/args";
 export { containsCredentialShaped } from "./engine/credScan";
 export {
   toSegments,

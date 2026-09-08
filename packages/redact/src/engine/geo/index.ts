@@ -6,7 +6,7 @@
 // no table for → the caller keeps the
 // value's shape and NEVER borrows a wrong-country place. Pure data + string ops;
 // every fake is a verbatim swap, reversible via the vault.
-import { regionOfCp, departmentOfCp, matchCase } from "../frGeo";
+import { regionOfCp, departmentOfCp, matchCase } from "./frGeo";
 import type { AddressFormatter, GeoPlace, ISO2 } from "./types";
 import { FR_PLACES } from "./places.fr";
 import { EU_PLACES } from "./places.eu";

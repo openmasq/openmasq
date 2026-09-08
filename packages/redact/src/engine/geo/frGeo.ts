@@ -4,7 +4,7 @@
 // department/region). Also exposes `depToRegion` so the CITY/POSTAL fakes can pick
 // a replacement place in the SAME region as the original (see model/fakes.ts).
 // Pure data + regex — no DOM/Electron. Verbatim matches → reversible via the vault.
-import type { Detection } from "../types";
+import type { Detection } from "../../types";
 
 // Region → its departments as [code, name]. `code` is the 2-char INSEE code
 // (Corsica 2A/2B; overseas 971-976). The code's first 2 chars key `DEP2_TO_REGION`

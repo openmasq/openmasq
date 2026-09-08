@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { fakeGeo, resolveCountry, PLACES_BY_COUNTRY } from "./index";
-import { regionOfCp, departmentOfCp, fakeDepartment, fakeRegion } from "../frGeo";
+import { fakeGeo, resolveCountry, PLACES_BY_COUNTRY } from ".";
+import { regionOfCp, departmentOfCp, fakeDepartment, fakeRegion } from "./frGeo";
 import { usStateName } from "./usStates";
 import { pseudonymize, unredact } from "../../index";
 

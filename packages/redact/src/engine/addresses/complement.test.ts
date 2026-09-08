@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { detectAddresses } from "./addresses";
-import { detectAddressComplements, fakeAddressComplement } from "./addressComplement";
+import { detectAddresses } from ".";
+import { detectAddressComplements, fakeAddressComplement } from "./complement";
 
 /**
  * The address complement — reported 11/08: « Résidence Les Chênes, appartement 12B,

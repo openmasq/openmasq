@@ -5,7 +5,7 @@
 import { FAKE_LAST, hashString, firstNamePool } from "../fakes";
 import { isStopword, isGenericTerm } from "../detect";
 import { isCountry } from "../../engine/geo/countries";
-import { isParticle } from "../../engine/honorifics";
+import { isParticle } from "../../engine/persons";
 import { capitalize } from "../../util";
 import { seedFrom } from "../fakes/primitives";
 

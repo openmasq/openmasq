@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { applyVault, applyVaultVariants, disabledVaultTokens, replayVault, unredact } from "./vault";
-import { unredactArgs, unredactReply } from "./vaultArgs";
+import { applyVault, applyVaultVariants, disabledVaultTokens, replayVault, unredact } from ".";
+import { unredactArgs, unredactReply } from "./args";
 
 /**
  * `disabledVaultTokens` decides which vault entries STOP being substituted — i.e.
