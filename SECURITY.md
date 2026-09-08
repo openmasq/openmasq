@@ -34,14 +34,15 @@ call, and restored only in the user's own copy. What is covered, exactly — the
 `packages/catalog/src/redaction/`, and `SECURITY.categories.test.ts` pins this paragraph to
 it, so a category added or retired in the code fails CI until this list follows:
 
-- **On by default (15).** Names, dates of birth, e-mail addresses, phone numbers,
+- **On by default (16).** Names, dates of birth, e-mail addresses, phone numbers,
   addresses, places, companies, cards, IBANs, national identifiers, company identifiers,
-  IPs, file paths, secrets, API keys.
-- **Off unless you turn them on (3).** Handles (`username`), URLs and plain dates (`date`
-  — every date that is not a date of birth). URLs and dates are raised by the Strict level;
-  all three are off at the default level because redacting every link, or every date a
-  timeline depends on, makes ordinary chat unusable — and that trade is the user's to make,
-  not ours to hide.
+  IPs, file paths, secrets, API keys, handles (`username` — an @handle or an explicit login
+  field: a handle follows its owner from one service to the next, so leaving it readable
+  identifies them).
+- **Off unless you turn them on (2).** URLs and plain dates (`date` — every date that is
+  not a date of birth). Both are raised by the Strict level, and both are off at the
+  default level because redacting every link, or every date a timeline depends on, makes
+  ordinary chat unusable — a trade that is the user's to make, not ours to hide.
 - **Retired — these cannot be enabled at all (3).** Health data, bare numbers, salaries.
   The detectors were withdrawn rather than left half-working, and the send path forces the
   three off even against a persisted setting or an org policy that still names them. **If
@@ -293,15 +294,16 @@ exactement — le catalogue est `packages/catalog/src/redaction/`, et
 `SECURITY.categories.test.ts` épingle ce paragraphe dessus : une catégorie ajoutée ou
 retirée dans le code fait échouer la CI tant que cette liste ne suit pas :
 
-- **Actives par défaut (15).** Noms, dates de naissance, adresses e-mail, numéros de
+- **Actives par défaut (16).** Noms, dates de naissance, adresses e-mail, numéros de
   téléphone, adresses, lieux, entreprises, cartes, IBAN, identifiants nationaux,
-  identifiants d'entreprise, IP, chemins de fichiers, secrets, clés d'API.
-- **Inactives sauf si vous les activez (3).** Les pseudonymes (`username`), les URL et les
-  dates ordinaires (`date` — toute date qui n'est pas une date de naissance). Le niveau
-  Strict lève les URL et les dates ; les trois sont inactives au niveau par défaut parce que
-  masquer chaque lien, ou chaque date dont dépend une chronologie, rend une conversation
-  ordinaire inutilisable — cet arbitrage appartient à l'utilisateur, il n'est pas à nous de
-  le dissimuler.
+  identifiants d'entreprise, IP, chemins de fichiers, secrets, clés d'API, pseudonymes
+  (`username` — un @pseudo ou un champ login explicite : un pseudo suit son porteur d'un
+  service à l'autre, le laisser lisible l'identifie).
+- **Inactives sauf si vous les activez (2).** Les URL et les dates ordinaires (`date` —
+  toute date qui n'est pas une date de naissance). Le niveau Strict lève les deux ; elles
+  sont inactives au niveau par défaut parce que masquer chaque lien, ou chaque date dont
+  dépend une chronologie, rend une conversation ordinaire inutilisable — cet arbitrage
+  appartient à l'utilisateur, il n'est pas à nous de le dissimuler.
 - **Retirées — celles-ci ne peuvent pas être activées du tout (3).** Données de santé,
   nombres bruts, salaires. Les détecteurs ont été retirés plutôt que laissés à moitié
   fonctionnels, et le chemin d'envoi force les trois à l'arrêt même contre un réglage
