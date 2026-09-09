@@ -3,12 +3,16 @@
 // listen on loopback. `standard`, the default, is deterministic pattern rules: nothing to
 // load, nothing to warm. On a terminal the keys of `lib/ui/keys.ts` turn the runtime dials;
 // after `--`, a tool runs through the proxy and stops it when it exits.
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { RedactionLevel } from "@openmasq/catalog";
 import { createApp } from "./app.js";
 import { LEVELS, parseArgs, USAGE } from "./config/config.js";
+import { createConsoleBus } from "./features/console/events.js";
+import { runMcpCommand } from "./features/mcp/cli.js";
+import { startIntegrations } from "./features/mcp/start.js";
 import { envLines } from "./lib/baseUrls.js";
 import {
   createMasker,
@@ -24,6 +28,12 @@ const NO_MODEL =
   "No model bundle: point --ner (or OPENMASQ_NER_DIR) at the desktop's `pnpm bake:ner` output.";
 
 async function main(): Promise<void> {
+  // `openmasq-proxy mcp …` is the credential half: it signs in, forgets, and reports. It
+  // runs no server, so it is handled before the flags are parsed.
+  if (process.argv[2] === "mcp") {
+    process.exit(await runMcpCommand(process.argv.slice(3), packageVersion()));
+  }
+
   let config: ReturnType<typeof parseArgs>;
   try {
     config = parseArgs(process.argv.slice(2));
@@ -50,6 +60,21 @@ async function main(): Promise<void> {
     ...(logFile ? { write: fileWriter(logFile), colors: false } : interactive ? { live } : {}),
   });
   const screen = logFile ? createReporter({ reveal }) : reporter;
+
+  // The live console, when asked for. It reads the SAME events the terminal prints, so a
+  // wrapped run — where the tool owns the screen — is watchable from a browser tab. The
+  // token is minted here because `server.ts` is what prints it.
+  const bus = config.console ? createConsoleBus(reveal.on) : undefined;
+  const consoleToken = bus ? randomBytes(16).toString("base64url") : "";
+  const feed: typeof reporter = bus
+    ? {
+        ...reporter,
+        request(e) {
+          reporter.request(e);
+          bus.publish(e);
+        },
+      }
+    : reporter;
 
   // The masker reads these at request time, so a key can re-point the level — and the model,
   // which `standard` never loads and a later level may need.
@@ -102,11 +127,35 @@ async function main(): Promise<void> {
     }
   }
 
+  // The integrations, if asked for.
+  const masker = createMasker(maskerOpts);
+  const integrations = await startIntegrations({
+    config,
+    masker,
+    wrapping,
+    note: (text, tone) => screen.note(text, tone),
+    spinner: (text) => screen.spinner(text),
+    version: packageVersion(),
+  });
+  const { upstream, bridge } = integrations;
+
   const app = createApp({
     config,
-    masker: createMasker(maskerOpts),
-    reporter,
+    masker,
+    reporter: feed,
     modelOn: () => !!detectLocal,
+    ...(bridge ? { mcp: { bridge, version: packageVersion() } } : {}),
+    ...(bus
+      ? {
+          console: {
+            bus,
+            token: consoleToken,
+            version: packageVersion(),
+            command: config.command[0] ?? "openmasq-proxy",
+            startedAt: Date.now(),
+          },
+        }
+      : {}),
   });
   const url = `http://${config.host}:${config.port}`;
   let detach = () => {};
@@ -117,7 +166,23 @@ async function main(): Promise<void> {
       keys: interactive ? KEY_HINTS : undefined,
       compact: wrapping,
       reveal: reveal.on,
+      ...(config.mcp
+        ? {
+            mcp: {
+              servers: integrations.servers,
+              writes: config.mcpWrites,
+              url: `${url}/mcp`,
+              ...(integrations.clientId ? { client: integrations.clientId } : {}),
+            },
+          }
+        : {}),
     });
+    if (bus)
+      screen.note(
+        `console: ${url}/console?t=${consoleToken}` +
+          (reveal.on ? "  — real values are shown on that page" : ""),
+        reveal.on ? "warn" : "info",
+      );
     if (config.json) console.error(`[openmasq-proxy] ${url}`);
     if (interactive) {
       detach = attachKeys(reporter, {
@@ -146,7 +211,7 @@ async function main(): Promise<void> {
     }
     if (wrapping) {
       screen.note(`masking for ${config.command[0]} — request lines in ${logFile}`);
-      const code = await runWrapped(config.command, url);
+      const code = await runWrapped(config.command, url, integrations.exclusiveArgs);
       screen.summary(reporter.stats());
       leave(code);
     }
@@ -162,6 +227,10 @@ async function main(): Promise<void> {
   function leave(code: number): void {
     detach();
     reporter.stop();
+    // The stdio children are ours: leaving them behind would keep a process holding an API
+    // key alive with nothing masking on top of it.
+    void upstream?.close();
+    integrations.cleanup();
     server.close(() => process.exit(code));
     setTimeout(() => process.exit(code), 500).unref();
   }

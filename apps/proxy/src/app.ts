@@ -5,6 +5,9 @@ import type { ProxyConfig } from "./config/config.js";
 import { createReporter, type Reporter } from "./lib/ui/index.js";
 import type { Masker } from "./lib/masker.js";
 import type { RelayDeps } from "./lib/relay.js";
+import type { McpBridge } from "./features/mcp/bridge.js";
+import consoleRouter, { type ConsoleRouteDeps } from "./features/console/routes.js";
+import mcpRouter, { mcpBody } from "./features/mcp/routes.js";
 import { healthRouter } from "./routes/health.js";
 import { apiRouter } from "./routes/index.js";
 import { parseJsonObject, rawBody } from "./routes/middlewares/jsonBody.js";
@@ -18,6 +21,11 @@ export interface AppDeps {
   reporter?: Reporter;
   /** Is the on-device model loaded right now (the level can change while it runs). */
   modelOn?: () => boolean;
+  /** Present ⇒ serve `/mcp`. Built by `server.ts` once the upstream servers are connected;
+   *  absent ⇒ the route does not exist at all (`routes/index.ts` says why). */
+  mcp?: { bridge: McpBridge; version: string };
+  /** Present ⇒ serve `/console`. Built by `server.ts`, which owns the token. */
+  console?: ConsoleRouteDeps;
 }
 
 export function createApp(deps: AppDeps): express.Application {
@@ -29,8 +37,29 @@ export function createApp(deps: AppDeps): express.Application {
   };
   const app = express();
   app.disable("x-powered-by");
+  // ONE instance, shared by both mounts: it owns the vault map, so building it twice would
+  // give the tool calls and the model calls two different vaults under the same session id
+  // — the exact thing `/mcp` exists to avoid.
+  const session = sessionMiddleware(deps.config);
   app.use("/healthz", healthRouter(deps.config, deps.modelOn ?? (() => !deps.config.rulesOnly)));
-  app.use(rawBody, parseJsonObject, sessionMiddleware(deps.config));
+  // Before the body chain and the family routers: these are plain GETs with no request body
+  // to mask, and `/` would otherwise fall through to the passthrough relay.
+  if (deps.console) app.use("/console", consoleRouter(deps.console));
+  // `/mcp` exists only when the upstream servers are connected: an endpoint answering with an
+  // empty tool list would read like "no integrations" rather than "not switched on".
+  if (deps.mcp)
+    app.use(
+      "/mcp",
+      rawBody,
+      mcpBody,
+      session,
+      mcpRouter({
+        bridge: deps.mcp.bridge,
+        reporter: relayDeps.reporter,
+        version: deps.mcp.version,
+      }),
+    );
+  app.use(rawBody, parseJsonObject, session);
   app.use(apiRouter(relayDeps));
 
   // JSON error handler: a failure between reading and forwarding (the NER threw, the upstream

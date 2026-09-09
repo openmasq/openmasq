@@ -28,10 +28,23 @@ export function wrappedEnv(url: string, env: NodeJS.ProcessEnv = process.env): N
   return out;
 }
 
-/** Run `command` on the terminal; resolves with its exit code. */
-export function runWrapped(command: string[], url: string): Promise<number> {
+/**
+ * Run `command` on the terminal; resolves with its exit code. `extraArgs` comes from the
+ * caller — with `--mcp` it is what makes the client speak to our endpoint and no other
+ * (`features/mcp/clients.ts`).
+ *
+ * They go FIRST, before the user's own arguments, because a client's global flags have to
+ * precede its subcommand: appended, `claude mcp list` receives them as arguments to `mcp`
+ * and dies with « unknown option ». Nothing the user wrote is removed or reordered.
+ */
+export function runWrapped(
+  command: string[],
+  url: string,
+  extraArgs: string[] = [],
+): Promise<number> {
   return new Promise((resolve) => {
-    const child = spawn(command[0], command.slice(1), { stdio: "inherit", env: wrappedEnv(url) });
+    const args = [...extraArgs, ...command.slice(1)];
+    const child = spawn(command[0], args, { stdio: "inherit", env: wrappedEnv(url) });
     child.on("error", (err) => {
       process.stderr.write(`cannot start ${command[0]}: ${err.message}\n`);
       resolve(127);

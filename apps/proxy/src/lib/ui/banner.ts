@@ -22,6 +22,8 @@ export interface BannerData {
   compact?: boolean;
   /** `--reveal`: say plainly that real data is about to appear on this screen. */
   reveal?: boolean;
+  /** `--mcp`: which integrations answered, and what happens to a write. Absent ⇒ no row. */
+  mcp?: { servers: string[]; writes: string; url: string; client?: string };
 }
 
 const MAX_WIDTH = 92;
@@ -86,6 +88,26 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
     config.disabledKinds.length ? `${config.disabledKinds.join(", ")} left in clear` : "",
   ].filter(Boolean);
   if (dials.length) rows.push(`${label("")}${tty.dim(dials.join(" · "))}`);
+  if (d.mcp) {
+    const writes =
+      d.mcp.writes === "confirm"
+        ? "a write asks here"
+        : d.mcp.writes === "deny"
+          ? tty.fg(HUE_HEX.mint, "writes refused")
+          : tty.fg(HUE_HEX.amber, "writes pass unasked");
+    rows.push(
+      `${label("integrations")}${
+        d.mcp.servers.length
+          ? `${tty.bold(d.mcp.servers.join(" · "))} ${tty.dim(`· ${writes}`)}`
+          : tty.dim("none connected")
+      }`,
+    );
+    rows.push(
+      d.mcp.client
+        ? `${label("")}${tty.dim(`${d.mcp.client} runs with this as its ONLY MCP  ${d.mcp.url}`)}`
+        : `${label("")}${tty.dim(`agent MCP endpoint  ${d.mcp.url}`)}`,
+    );
+  }
   if (d.reveal)
     rows.push(
       `${label("reveal")}${tty.fg(HUE_HEX.amber, "real values printed below — this screen only, never the log")}`,

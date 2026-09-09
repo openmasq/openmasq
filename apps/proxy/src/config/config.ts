@@ -4,8 +4,17 @@
 import { readFileSync } from "node:fs";
 
 import type { RedactionLevel } from "@openmasq/catalog";
+import { USAGE } from "./usage.js";
+
+export { USAGE };
 export type { RedactionLevel };
 export const LEVELS: readonly RedactionLevel[] = ["standard", "renforce", "strict"];
+
+/** What happens to a MUTATING MCP tool call. Hiding the credential stops the secret from
+ *  leaking; it does nothing about the authority the secret grants, so a write stops here.
+ *  `confirm` is the default, and the card always says which one is on. */
+export type WritePolicy = "confirm" | "deny" | "allow";
+export const WRITE_POLICIES: readonly WritePolicy[] = ["confirm", "deny", "allow"];
 
 /** `Groupe Delorme:company,FR76…:iban` → forced redactions. A missing type is `name`. */
 export function parseAlways(v: string): { value: string; category: string }[] {
@@ -58,6 +67,20 @@ export interface ProxyConfig {
   command: string[];
   /** Where the request lines go while a wrapped tool owns the terminal ("" ⇒ ~/.openmasq/proxy.log). */
   logFile: string;
+  /** Serve `/mcp`: the proxy connects to the declared MCP servers and re-exposes their tools
+   *  with the values masked. The credentials stay here; the agent never receives one. */
+  mcp: boolean;
+  /** The servers file ("" ⇒ ~/.openmasq/mcp.json). It holds the credentials, so it is read
+   *  once, at startup, and refused when other users can read it. */
+  mcpConfig: string;
+  /** What a mutating tool call gets: a confirmation on this terminal, a refusal, or a pass. */
+  mcpWrites: WritePolicy;
+  /** Wrapping a client with `--mcp`: take over the MCP servers IT declares, so making our
+   *  endpoint its only one does not cost it the integrations it already had. */
+  mcpAdopt: boolean;
+  /** Serve the live console at /console. A token is minted per run and printed on the card;
+   *  loopback alone is not an access control (`features/console/routes.ts` says why). */
+  console: boolean;
 }
 
 export const DEFAULTS: ProxyConfig = {
@@ -80,6 +103,11 @@ export const DEFAULTS: ProxyConfig = {
   reveal: false,
   command: [],
   logFile: "",
+  mcp: false,
+  mcpConfig: "",
+  mcpWrites: "confirm",
+  mcpAdopt: true,
+  console: false,
 };
 
 /** One secret per line; blank lines and `#` comments ignored. The file is never logged. */
@@ -116,6 +144,11 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
       : DEFAULTS.level,
     always: parseAlways(env.OPENMASQ_PROXY_ALWAYS ?? ""),
     secrets: [],
+    mcpConfig: env.OPENMASQ_PROXY_MCP_CONFIG ?? "",
+    mcp: !!env.OPENMASQ_PROXY_MCP_CONFIG,
+    mcpWrites: (WRITE_POLICIES as readonly string[]).includes(env.OPENMASQ_PROXY_MCP_WRITES ?? "")
+      ? (env.OPENMASQ_PROXY_MCP_WRITES as WritePolicy)
+      : DEFAULTS.mcpWrites,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -185,6 +218,26 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
       case "--log":
         c.logFile = next();
         break;
+      case "--mcp":
+        c.mcp = true;
+        break;
+      case "--mcp-no-adopt":
+        c.mcpAdopt = false;
+        break;
+      case "--console":
+        c.console = true;
+        break;
+      case "--mcp-config":
+        c.mcpConfig = next();
+        c.mcp = true;
+        break;
+      case "--mcp-writes": {
+        const w = next();
+        if (!(WRITE_POLICIES as readonly string[]).includes(w))
+          throw new Error(`--mcp-writes is confirm, deny or allow, not ${w}`);
+        c.mcpWrites = w as WritePolicy;
+        break;
+      }
       case "--help":
       case "-h":
         throw new Error(USAGE);
@@ -202,6 +255,11 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
   // (its lines would go to the log FILE, which is copied, backed up and grepped).
   if (c.reveal && c.json)
     throw new Error("--reveal cannot be used with --json: values must not enter a machine log.");
+  // A wrapped tool owns the terminal, so the request lines go to the log FILE — where a
+  // revealed value would be written down, copied and backed up. A same-terminal bar was tried
+  // and removed: a scroll region does not change what the child believes the screen is (a
+  // child under a 1..34 region of 40 rows still reports `40 100`), so a repainting tool paints
+  // straight through it. Read the log, or run the proxy in its own window.
   if (c.reveal && c.command.length)
     throw new Error(
       "--reveal cannot be used with `-- <tool>`: the tool owns the terminal, so the lines would\n" +
@@ -210,24 +268,3 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
     );
   return c;
 }
-
-export const USAGE = `openmasq-proxy — mask personal data before it leaves the machine
-
-  openmasq-proxy [--port 8787] [--ner <models dir>] [--mode fake|token]
-                 [--openai <origin>] [--anthropic <origin>] [--gemini <origin>]
-                 [--level standard|renforce|strict] [--disable email,phone] [--keep A,B]
-                 (standard is the default: deterministic pattern rules, no model loaded)
-                 [--always "Groupe Delorme:company,FR76 3000…:iban"] [--secrets-file <path>]
-                 [--rules-only] [--quiet] [--json] [--log <file>] [--reveal]
-  openmasq-proxy [flags] -- claude            run a tool through the proxy, stop with it
-
-Point any OpenAI- or Anthropic-compatible client at http://127.0.0.1:8787 and keep your
-own API key: the proxy forwards it untouched, masks the messages on the way out and
-restores the reply on the way back. Routes: /v1/chat/completions, /v1/responses,
-/v1/embeddings (OpenAI), /v1/messages (Anthropic), /v1beta/models/<m>:generateContent and
-:streamGenerateContent?alt=sse (Gemini); prefix with /openai, /anthropic or /gemini to force
-a family. Headers: x-openmasq-session (reuse one vault across turns),
-x-openmasq-mode (fake|token). Env: OPENMASQ_PROXY_PORT, OPENMASQ_UPSTREAM_OPENAI,
-OPENMASQ_UPSTREAM_ANTHROPIC, OPENMASQ_UPSTREAM_GEMINI, OPENMASQ_NER_DIR, OPENMASQ_PROXY_MODE, OPENMASQ_PROXY_LEVEL,
-OPENMASQ_PROXY_KEEP, OPENMASQ_PROXY_DISABLED_KINDS, OPENMASQ_PROXY_ALWAYS.
-Types for --always: name, username, email, phone, company, address, city, id, card, iban, ip, path, dob, secret.`;

@@ -53,8 +53,126 @@ subscription). Codex needs a `model_providers` block with `wire_api = "responses
 `OPENAI_BASE_URL` leaves it on its stored ChatGPT auth (verified against a fake upstream:
 the request arrives and is masked). Gemini CLI reads `GOOGLE_GEMINI_BASE_URL` in API-key mode
 but was not verifiable here (a personal account is refused before the base URL is read). For a
-coding agent, `--disable path` keeps file paths readable by the model (they are restored in its
-tool calls either way) and `--keep` the brand names its system prompt cites.
+coding agent, file paths are already readable (`path` is off by default — a path is faked
+segment by segment, which handed agents commands they could not run; Strict still hides them),
+and `--keep` takes the brand names its system prompt cites.
+
+**Integrations, without handing the agent your credentials** (`--mcp`). The proxy also
+serves an **MCP server** at `http://127.0.0.1:8787/mcp`. Point your agent's MCP client there
+instead of at Gmail, Notion or your CRM: the proxy holds the connections, and the agent gets
+the same tools with the values replaced.
+
+```bash
+openmasq-proxy --mcp --level renforce           # servers from ~/.openmasq/mcp.json
+```
+
+```jsonc
+// ~/.openmasq/mcp.json — chmod 600; Claude Desktop's shape, so an existing file works as is
+{ "mcpServers": {
+  "crm":    { "command": "npx", "args": ["-y", "crm-mcp"], "env": { "CRM_TOKEN": "sk-…" } },
+  "notion": { "url": "https://mcp.notion.com/mcp", "headers": { "Authorization": "Bearer …" } }
+} }
+```
+
+The API key in that file never reaches the agent, and neither does a real value: a tool
+result is masked on the way back, and the fake the agent then sends is restored on the way
+out — so a search queries the real name, not a substitute. **The vault is the same one the
+chat messages use**, so a value keeps one substitute across both channels.
+
+A tool that **writes** stops for a keystroke on your terminal (`y` runs it, anything else
+refuses), because hiding the credential removes the leak of the secret, not the authority it
+grants — an injected instruction in a tool result can still ask for `send_message`. With no
+terminal to ask, a write is refused. `--mcp-writes deny` refuses them outright and keeps the
+reads; `--mcp-writes allow` passes them, and the card says so in amber.
+
+**One MCP, and it is ours** — `openmasq-proxy --mcp -- claude`. Wrapping the client does not
+just point its base URL here: it starts Claude Code with our endpoint as its **only** MCP
+server (its own `--strict-mcp-config`), and takes over the servers it declared so the session
+loses nothing. One MCP exposing every service, all of it masked. Verified in a real session —
+the model's tool list came back as `mcp__openmasq__crm__*` and nothing else. (`claude mcp list`
+still prints every configured server: it inspects the config, not the session.) Nothing of
+yours is edited; quitting restores the client exactly. `--mcp-no-adopt` leaves its servers
+behind.
+
+A remote the client authorised itself **cannot** be taken over — the OAuth token lives in its
+store, not ours — so it is reported as needing its own login here, and stays reachable only by
+declaring it in `~/.openmasq/mcp.json` with a credential of its own. And a client we do not
+know how to switch off is said so on start: **its own MCP servers stay on, and those tool
+calls do not pass through the mask.** Claude Code is the one we can do this for today.
+
+**Where the credentials live, and how to connect a service.** In `~/.openmasq`, and nowhere
+else: a stdio server's API key stays in the servers file you wrote, and a remote server's
+OAuth tokens are obtained by the CLI and written to `mcp-auth.enc` — AES-256-GCM, beside a
+`key` file only you can read. The agent never receives either.
+
+```bash
+openmasq-proxy mcp add             # a form: declare a server, remote or local
+openmasq-proxy mcp remove notion   # drop it, tokens included
+```
+
+`add` asks the server what it needs rather than asking you. Most remote servers register a
+client on their own (RFC 7591), so declaring Notion or Sentry is one question — the URL.
+A provider that issues clients by hand is the exception, and the form says so before asking:
+Google's MCP endpoints point at `accounts.google.com`, which publishes no registration
+endpoint, so they need a client id from its console — and the form offers the scopes the
+endpoint itself advertises as the default. A local server is a command, its arguments, and
+any API key it wants in its environment, typed without echo. The file is written 0600.
+
+```bash
+openmasq-proxy mcp status          # what is declared, and what is signed in
+openmasq-proxy mcp login notion    # opens the consent page in your browser
+openmasq-proxy mcp logout notion   # forget the tokens on this machine
+```
+
+`login` runs the connector handshake — dynamic client registration and PKCE, so there is no
+OAuth app for you to create — catches the redirect on a 127.0.0.1 listener bound to that one
+attempt, and stores what comes back. Afterwards the proxy reconnects on its own, silently: a
+startup that opened a consent page nobody asked for would be worse than one that says `not
+signed in — run: openmasq-proxy mcp login notion`. `mcp status` also lists the servers Claude
+Code declares, so a service it already had can be signed in here in one command.
+
+**Portability of that store.** The cipher is the same everywhere — `node:crypto`, AES-256-GCM
+— but the file permissions are not. On **macOS and Linux** the key and the store are written
+0600 in a 0700 directory, and a servers file others can read is refused outright. On
+**Windows** those bits do not exist: Node maps `chmod` to the read-only attribute alone and
+never touches an NTFS ACL, so the mode check is skipped (it would refuse every file) and what
+protects the store is the ACL your profile directory already carries. That is a weaker
+guarantee, and the way to close it is `OPENMASQ_PROXY_KEY` — a 32-byte key from your own
+secret manager, after which no key file is written at all. The desktop app has a stronger
+answer on every platform (the OS keychain, via Electron); a pure-Node CLI cannot reach it.
+
+**Watching it live, in a browser** — `--console`. The proxy serves a page of its own on
+loopback: a log table of every call, each masked value swiped in its category's colour, a
+recap by category, a per-minute histogram, and a drawer with the JSON, the detected data and
+the context. It is how you watch a WRAPPED run, since the tool owns the terminal.
+
+```bash
+openmasq-proxy --console --mcp -- claude
+#   console: http://127.0.0.1:8787/console?t=J4JYXzkIDj2v-p7mRF5p9g
+```
+
+Substitutes and counts by default — what the model saw. `--reveal` adds the real value
+beside each substitute, and only then does the page's own "Valeurs réelles" toggle work —
+without it the button is disabled, because the server sent nothing to reveal. **The URL carries
+a token minted for the run**: loopback is not an access control, every process on the machine
+can reach 127.0.0.1, and without the token the route answers 404. Nothing is stored: no disk,
+no cache, and the page fetches nothing from anywhere — no CDN font, no remote asset.
+
+**Watching a wrapped run.** The tool's own interface owns the terminal, so the request lines
+go to a file instead: `~/.openmasq/proxy.log` by default, or `--log <file>`.
+
+```bash
+tail -f ~/.openmasq/proxy.log        # in a second window, while the tool runs
+```
+
+A live bar on the last lines of that same terminal was tried and removed. Reserving them
+shrinks the terminal's scrolling region, which confines scrolling — but does **not** change
+what the wrapped tool believes the screen is: measured, a child under a `1..34` region of 40
+rows still reports `40 100`. A tool that repaints a full-screen interface therefore keeps
+writing to the last row, and the two writers shred each other's lines. Reserving space a
+full-screen child respects needs a pty the proxy owns, which it has not. To watch a run with
+values shown, start the proxy in its own window with `--reveal` and point the tool at the
+printed base URLs.
 
 **Limits**: text only — an image, a PDF or a file sent as bytes (`inlineData`, `image_url`)
 passes as is; the desktop app does the document OCR and masking, not the proxy.
@@ -162,8 +280,140 @@ abonnement). Codex exige un bloc `model_providers` avec `wire_api = "responses"`
 `OPENAI_BASE_URL` seule le laisse sur son authentification ChatGPT (vérifié contre un faux
 amont : la requête arrive et est masquée). Gemini CLI lit `GOOGLE_GEMINI_BASE_URL` en mode clé
 API mais n'a pas pu être vérifié ici (un compte personnel est refusé avant la lecture de
-l'adresse). Pour un agent de code, `--disable path` laisse les chemins lisibles par le modèle
-(rétablis de toute façon dans ses appels d'outils) et `--keep` les marques que son prompt cite.
+l'adresse). Pour un agent de code, les chemins sont déjà lisibles (`path` est inactif par
+défaut — un chemin est remplacé segment par segment, ce qui rendait aux agents des commandes
+inexécutables ; Strict les masque toujours), et `--keep` prend les marques que son prompt cite.
+
+**Des intégrations, sans confier vos identifiants à l'agent** (`--mcp`). Le proxy sert aussi
+un **serveur MCP** sur `http://127.0.0.1:8787/mcp`. Pointez-y le client MCP de votre agent
+plutôt que vers Gmail, Notion ou votre CRM : le proxy garde les connexions, et l'agent reçoit
+les mêmes outils, valeurs remplacées.
+
+```bash
+openmasq-proxy --mcp --level renforce           # serveurs lus dans ~/.openmasq/mcp.json
+```
+
+```jsonc
+// ~/.openmasq/mcp.json — chmod 600 ; forme de Claude Desktop, un fichier existant convient
+{ "mcpServers": {
+  "crm":    { "command": "npx", "args": ["-y", "crm-mcp"], "env": { "CRM_TOKEN": "sk-…" } },
+  "notion": { "url": "https://mcp.notion.com/mcp", "headers": { "Authorization": "Bearer …" } }
+} }
+```
+
+La clé d'API de ce fichier n'atteint jamais l'agent, ni aucune valeur réelle : le résultat
+d'un outil est masqué au retour, et le substitut que l'agent renvoie ensuite est rétabli à
+l'aller — une recherche interroge donc le vrai nom, pas un faux. **Le coffre est celui des
+messages**, si bien qu'une valeur garde un seul substitut sur les deux canaux.
+
+Un outil qui **écrit** s'arrête sur une touche de votre terminal (`y` l'exécute, toute autre
+touche refuse) : cacher l'identifiant supprime la fuite du secret, pas l'autorité qu'il
+donne — une instruction injectée dans un résultat d'outil peut toujours demander un
+`send_message`. Sans terminal pour demander, une écriture est refusée. `--mcp-writes deny`
+les refuse et laisse passer les lectures ; `--mcp-writes allow` les laisse passer, et la
+carte le dit en ambre.
+
+**Un seul MCP, et c'est le nôtre** — `openmasq-proxy --mcp -- claude`. Envelopper le client
+ne se contente pas d'y pointer ses URL de base : Claude Code démarre avec notre point d'accès
+comme **unique** serveur MCP (son propre `--strict-mcp-config`), et les serveurs qu'il
+déclarait sont repris pour que la session n'y perde rien. Un seul MCP, exposant tous les
+services, le tout masqué. Vérifié en session réelle — la liste d'outils du modèle est revenue
+avec `mcp__openmasq__crm__*` et rien d'autre. (`claude mcp list` affiche toujours tous les
+serveurs configurés : il inspecte la configuration, pas la session.) Aucun de vos fichiers
+n'est modifié ; quitter restitue le client tel quel. `--mcp-no-adopt` laisse ses serveurs de
+côté.
+
+Un service distant que le client a autorisé lui-même **ne peut pas** être repris — le jeton
+OAuth vit dans son magasin, pas dans le nôtre : il est signalé comme demandant sa propre
+connexion ici, et reste joignable en le déclarant dans `~/.openmasq/mcp.json` avec un
+identifiant à lui. Et un client qu'on ne sait pas désactiver est annoncé au démarrage :
+**ses propres serveurs MCP restent actifs, et ces appels d'outils ne passent pas par le
+masque.** Claude Code est le seul pour lequel on sait le faire aujourd'hui.
+
+**Où vivent les identifiants, et comment connecter un service.** Dans `~/.openmasq`, et nulle
+part ailleurs : la clé d'API d'un serveur stdio reste dans le fichier de serveurs que vous
+avez écrit, et les jetons OAuth d'un service distant sont obtenus par le CLI puis écrits dans
+`mcp-auth.enc` — AES-256-GCM, à côté d'un fichier `key` que vous seul pouvez lire. L'agent ne
+reçoit ni l'un ni l'autre.
+
+```bash
+openmasq-proxy mcp add             # un formulaire : déclarer un serveur, distant ou local
+openmasq-proxy mcp remove notion   # le retirer, jetons compris
+```
+
+`add` demande au serveur ce dont il a besoin plutôt que de vous le demander. La plupart des
+serveurs distants enregistrent un client tout seuls (RFC 7591), si bien que déclarer Notion
+ou Sentry tient en une question — l'URL. Le fournisseur qui délivre ses clients à la main est
+l'exception, et le formulaire l'annonce avant de demander : les points d'accès MCP de Google
+renvoient vers `accounts.google.com`, qui ne publie aucun point d'enregistrement, donc il
+leur faut un identifiant client créé dans sa console — et le formulaire propose par défaut
+les portées que le point d'accès annonce lui-même. Un serveur local, c'est une commande, ses
+arguments, et la clé d'API qu'il veut dans son environnement, saisie sans écho. Le fichier
+est écrit en 0600.
+
+```bash
+openmasq-proxy mcp status          # ce qui est déclaré, et ce qui est connecté
+openmasq-proxy mcp login notion    # ouvre la page de consentement dans votre navigateur
+openmasq-proxy mcp logout notion   # oublier les jetons sur cette machine
+```
+
+`login` déroule la poignée de main des connecteurs — enregistrement dynamique du client et
+PKCE, donc aucune application OAuth à créer — attrape la redirection sur un écouteur
+127.0.0.1 lié à cette tentative-là, et range ce qui revient. Ensuite le proxy se reconnecte
+seul, en silence : un démarrage qui ouvrirait une page de consentement que personne n'a
+demandée serait pire qu'un démarrage qui dit `not signed in — run: openmasq-proxy mcp login
+notion`. `mcp status` liste aussi les serveurs déclarés par Claude Code, si bien qu'un service
+qu'il avait déjà se connecte ici en une commande.
+
+**Portabilité de ce magasin.** Le chiffrement est le même partout — `node:crypto`,
+AES-256-GCM — mais pas les permissions de fichier. Sur **macOS et Linux**, la clé et le
+magasin sont écrits en 0600 dans un dossier 0700, et un fichier de serveurs lisible par
+d'autres est refusé net. Sur **Windows**, ces bits n'existent pas : Node ne traduit `chmod`
+que par l'attribut lecture-seule et ne touche jamais une ACL NTFS, donc le contrôle de mode
+est écarté (il refuserait tout fichier) et ce qui protège le magasin est l'ACL que porte déjà
+votre dossier de profil. C'est une garantie plus faible ; on la referme avec
+`OPENMASQ_PROXY_KEY` — une clé de 32 octets venue de votre propre gestionnaire de secrets,
+après quoi aucun fichier de clé n'est écrit. L'app de bureau a une meilleure réponse sur
+toutes les plateformes (le trousseau du système, via Electron) ; un CLI Node pur n'y a pas
+accès.
+
+**Le regarder en direct, dans un navigateur** — `--console`. Le proxy sert sa propre page sur
+la boucle locale : une table de tous les appels, chaque valeur masquée surlignée dans la
+couleur de sa catégorie, un récapitulatif par catégorie, un histogramme par minute, et un
+tiroir avec le JSON, les données détectées et le contexte. Deux vues : **Appels**, une ligne
+par appel, et **Données**, une ligne par valeur avec son substitut, son type et le nombre de
+fois où elle est sortie. C'est ainsi qu'on suit une session **enveloppée**, puisque l'outil
+possède le terminal.
+
+```bash
+openmasq-proxy --console --mcp -- claude
+#   console: http://127.0.0.1:8787/console?t=J4JYXzkIDj2v-p7mRF5p9g
+```
+
+Par défaut, les substituts et les compteurs — ce que le modèle a vu. `--reveal` ajoute la
+valeur réelle à côté de chaque substitut, et c'est seulement alors que le basculeur « Valeurs
+réelles » de la page fonctionne — sans lui le bouton est désactivé, puisque le serveur n'a
+rien envoyé à révéler. **L'adresse porte un jeton tiré pour la session** : la boucle locale n'est pas un
+contrôle d'accès, tout processus de la machine peut joindre 127.0.0.1, et sans le jeton la
+route répond 404. Rien n'est conservé : ni disque, ni cache, et la page ne va rien chercher
+nulle part — aucune police de CDN, aucun actif distant.
+
+**Suivre une session enveloppée.** L'interface de l'outil possède le terminal, donc les
+lignes de requête partent dans un fichier : `~/.openmasq/proxy.log` par défaut, ou
+`--log <fichier>`.
+
+```bash
+tail -f ~/.openmasq/proxy.log        # dans une seconde fenêtre, pendant que l'outil tourne
+```
+
+Une barre vivante sur les dernières lignes de ce même terminal a été essayée, puis retirée.
+Les réserver rétrécit la région de défilement, ce qui contraint le défilement — mais **pas**
+l'idée que l'outil enveloppé se fait de l'écran : mesuré, un enfant sous une région `1..34`
+de 40 lignes déclare toujours `40 100`. Un outil qui repeint une interface plein écran
+continue donc d'écrire sur la dernière ligne, et les deux écrivains se déchirent. Réserver
+une place qu'un enfant plein écran respecte demande un pseudo-terminal que le proxy ne
+possède pas. Pour suivre une session avec les valeurs affichées, lancez le proxy dans sa
+propre fenêtre avec `--reveal` et pointez l'outil sur les URL de base imprimées.
 
 **Limites** : du texte seulement — une image, un PDF ou un fichier envoyé en octets
 (`inlineData`, `image_url`) passe tel quel ; l'app de bureau fait l'OCR et le masquage des

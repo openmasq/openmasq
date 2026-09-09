@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- No remote font, no CDN: a console that shows what never left the machine must not
+     itself call one. The families below fall back to the system stack. -->
+<link rel="stylesheet" href="./tokens.css">
+<link rel="icon" href="data:,"><!-- no favicon request: it would be relayed and logged -->
+<title>OpenMasq CLI — journal des données personnelles</title>
+<style>
+/* One page, served by `openmasq serve --inspect`. Not part of the desktop app: it is the
+   window onto what the MCP server actually forwarded, so the whole layout is a log table
+   with a recap above it. Tokens come from styles.css; the theme flips on [data-theme]. */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0 }
+body{background:var(--surface-page);color:var(--text-body);font-family:var(--font-body,"Space Grotesk",system-ui,sans-serif);font-size:14px;-webkit-font-smoothing:antialiased}
+:root{--mono:"Space Mono",ui-monospace,monospace}
+/* The log row gets a floor so it can never be squeezed to nothing; the strips above it
+   compress instead (see the max-height queries below). */
+/* The log row gets a floor so it can never be squeezed to nothing; the strips above it
+   compress instead (see the max-height queries below).
+   grid-template-columns is REQUIRED: without it the single implicit column floors at the
+   min-content of the widest item (.top's nowrap flex row, 982px), overflowing the
+   container — which overflow:hidden then swallows, taking the drawer's close button and
+   the export action off-screen with no way to scroll to them. */
+.app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto minmax(190px,1fr) auto;height:100vh;overflow:hidden}
+.app>*{min-width:0}
+a{color:var(--brand)}a:hover{color:var(--brand-hover)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ---------- top bar ---------- */
+.top{display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border-bottom:1px solid var(--border-subtle);background:var(--surface-card)}
+.mark{display:flex;align-items:center;gap:9px;padding-right:12px;margin-right:2px;border-right:1px solid var(--border-subtle);height:28px}
+.mark img{width:19px;height:19px}
+/* The mark ships as two assets with hard-coded fills (#141726 / #FFFFFF) — the dark one is
+   1.02:1 on the dark top bar. The THEME picks, at the source: no CSS filter, and the same
+   two files the landing pages already use. */
+.mark .m-dark{display:none}
+[data-theme="dark"] .mark .m-light{display:none}
+[data-theme="dark"] .mark .m-dark{display:block}
+.mark b{font-weight:700;letter-spacing:-.02em;color:var(--text-strong)}
+.mark span{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted)}
+.pill{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:8px;border:1px solid var(--border-default);font-size:12.5px;color:var(--text-body);white-space:nowrap}
+.pill:hover{border-color:var(--border-strong);color:var(--text-strong)}
+.pill svg{width:13px;height:13px;opacity:.7;flex-shrink:0}
+.pill .k{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.pill.on{border-color:var(--brand);color:var(--brand)}
+.seg{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--surface-sunken);border:1px solid var(--border-subtle)}
+.seg button{height:26px;padding:0 11px;border-radius:7px;font-size:12.5px;color:var(--text-muted);white-space:nowrap}
+.seg button:hover{color:var(--text-strong)}
+.seg button.on{background:var(--surface-card);color:var(--text-strong);font-weight:600;box-shadow:0 1px 2px rgba(10,12,30,.10)}
+.c-tok{width:190px}.c-type{width:150px}.c-cat{width:150px}
+.tok{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.cat-tag{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-body)}
+.cat-tag i{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+/* A revealed value: plain text with a dotted rule under it — no fill, because a mark
+   would say "protected" about a value that is showing in clear. */
+.clr{font-family:var(--mono);border-bottom:1px dashed var(--border-strong);color:var(--text-strong)}
+.hid{font-family:var(--mono);color:var(--text-muted);letter-spacing:.12em}
+.pair{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pair .v2{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#reveal.on{border-color:var(--brand);color:var(--ink-on-blue)}
+#reveal.on #eye-slash{display:none}
+
+/* ---------- the journey ----------
+   The reader has ONE question: did my real value leave this machine? So the BOUNDARY is
+   the structure, not the six steps. Two zones, one crossing each way; the steps inside a
+   zone are compact rows. This replaces a 6-hop rail where every step repeated its own
+   zone badge, its own note and its own transition chip — 18 blocks to answer one thing. */
+.flow{padding:0 15px 4px}
+.zn{border:1px solid var(--border-subtle);border-radius:10px;overflow:hidden}
+.zn+.zn{margin-top:0}
+.zn-h{display:flex;align-items:center;gap:8px;padding:8px 11px;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
+.zn-h i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.zn.loc{background:var(--brand-soft);border-color:transparent}
+.zn.loc .zn-h{color:var(--ink-on-blue)}
+.zn.loc .zn-h i{background:var(--brand)}
+.zn.tool{background:var(--surface-card);border-color:var(--border-default);border-style:dashed}
+.zn.tool .zn-h{color:var(--ink-on-blue)}
+.zn.tool .zn-h i{background:var(--hl-amber)}
+.zn.rem{background:var(--surface-sunken)}
+.zn.rem .zn-h{color:var(--text-muted)}
+.zn.rem .zn-h i{background:var(--text-muted)}
+.zn-b{padding:0 11px 10px;display:flex;flex-direction:column;gap:8px}
+.st{display:grid;grid-template-columns:7.5em 1fr;gap:3px 12px;align-items:baseline}
+.st .k{font-family:var(--mono);font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.st .p{font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--text-body);word-break:break-word;min-width:0}
+@media(max-width:1100px){.st{grid-template-columns:1fr}}
+/* The crossing: what the engine does AT the boundary, stated once per direction. */
+.cross{display:flex;align-items:center;gap:9px;padding:9px 2px;font-family:var(--mono);font-size:10.5px;color:var(--text-body)}
+.cross svg{width:13px;height:13px;flex-shrink:0;color:var(--brand)}
+.cross b{color:var(--text-strong)}
+.cross .ln{flex:1;height:1px;background:var(--border-default);min-width:8px}
+.zn-note{padding:0 11px 10px;font-size:11.5px;line-height:1.55;color:var(--text-muted)}
+.d-items{padding:0 15px}
+.d-item{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:11px 0;border-top:1px solid var(--border-subtle)}
+.d-item:first-child{border-top:0}
+.d-item .tk{grid-column:1;font-family:var(--mono);font-size:12.5px}
+.d-item .oc{grid-column:2;grid-row:1;font-family:var(--mono);font-size:11px;color:var(--text-muted);white-space:nowrap}
+.d-item .mt{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--text-muted)}
+.search{flex:1;min-width:120px;display:flex;align-items:center;gap:9px;height:30px;padding:0 11px;border-radius:8px;border:1px solid transparent;background:var(--surface-sunken)}
+.search:focus-within{border-color:var(--border-focus)}
+.search svg{width:14px;height:14px;color:var(--text-muted);flex-shrink:0}
+.search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text-strong);font-family:var(--mono);font-size:12.5px}
+.search input::placeholder{color:var(--text-muted);font-family:"Space Grotesk",system-ui,sans-serif}
+.iconbtn{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--border-default);color:var(--text-muted)}
+.iconbtn:hover{border-color:var(--border-strong);color:var(--text-strong)}
+.iconbtn svg{width:15px;height:15px}
+/* Two roles, two classes. `.tail` is permanent and owns the geometry and type, so the
+   button keeps its size and its place in the row when tailing is paused; `.live` adds
+   ONLY the brand fill and the blink. Toggling a class that carried both left an unstyled
+   28×17 text fragment with a 0px-wide dot. */
+.tail{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:8px;border:1px solid var(--border-default);background:none;color:var(--text-muted);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.tail:hover{border-color:var(--border-strong);color:var(--text-strong)}
+.tail i{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.tail.live{border-color:transparent;background:var(--brand);color:var(--brand-contrast)}
+.tail.live i{animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@media(max-width:1080px){.mark span{display:none}}
+/* .top still WANTS ~982px. Below that the two lowest-priority controls shed their
+   labels rather than pushing the row wider than the window. */
+@media(max-width:960px){#tail{font-size:10.5px}}
+
+/* ---------- recap ---------- */
+.recap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-bottom:1px solid var(--border-subtle);background:var(--surface-card)}
+.stat{padding:15px 18px;border-right:1px solid var(--border-subtle);min-width:0}
+.stat .lb{display:block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+.stat .v{display:flex;align-items:baseline;gap:8px;margin-top:7px}
+.stat .v b{font-family:var(--mono);font-size:25px;font-weight:700;letter-spacing:-.03em;color:var(--text-strong);line-height:1}
+.stat .v em{font-style:normal;font-size:12px;color:var(--text-muted)}
+.stat .v em.up{color:var(--brand)}
+.stat .sub{margin-top:6px;font-size:11.5px;color:var(--text-muted)}
+/* The category breakdown. It sits UNDER the histogram, not in the recap strip: that strip
+   scrolls horizontally below 1180px, and a 330px cell holding 823px of legend became a
+   scroller inside a scroller — 2 of 8 categories reachable, its overlay scrollbar drawn
+   across a 17px row. Here it has the full width and the legend simply wraps. */
+.cats{padding:12px 0 0;margin-top:11px;border-top:1px solid var(--border-subtle);min-width:0}
+.bar{display:flex;height:9px;border-radius:3px;overflow:hidden;background:var(--surface-sunken)}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-muted);white-space:nowrap}
+.legend i{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.legend b{font-family:var(--mono);font-size:11.5px;color:var(--text-strong);font-weight:700}
+/* Narrow: the four figures stay side by side (they are short) — no wrapping into a second
+   row, which doubled the strip's height and starved the log row. */
+@media(max-width:820px){.stat{padding:11px 13px}.stat .v b{font-size:20px}}
+
+
+/* ---------- histogram ---------- */
+.histo{padding:14px 18px 12px;border-bottom:1px solid var(--border-subtle);background:var(--surface-page)}
+.histo-h{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.histo-h .lb{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+.histo-h .rt{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.bars{display:flex;align-items:flex-end;gap:2px;height:66px;margin-top:11px}
+.bars>div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:1px;height:100%;border-radius:2px;overflow:hidden;cursor:pointer;opacity:.92}
+.bars>div:hover{opacity:1;outline:1px solid var(--border-strong);outline-offset:1px}
+.bars>div i{display:block;width:100%}
+.axis{display:flex;justify-content:space-between;margin-top:7px;font-family:var(--mono);font-size:10.5px;color:var(--text-muted)}
+
+/* ---------- body: table + drawer ---------- */
+.body{display:grid;grid-template-columns:1fr;min-height:0}
+.body.has-detail{grid-template-columns:minmax(0,1fr) 460px}
+.tablewrap{min-width:0;overflow:auto;background:var(--surface-page)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{position:sticky;top:0;z-index:2;text-align:left;padding:9px 14px;background:var(--surface-page);border-bottom:1px solid var(--border-default);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border-subtle);font-family:var(--mono);font-size:12px;color:var(--text-body);vertical-align:top}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--surface-sunken)}
+tbody tr.sel td{background:var(--brand-soft)}
+tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
+/* --text-faint is NOT used as ink anywhere on this page: it measures 4.19:1 on
+   --surface-card (dark) and 4.55:1 on card (light), under/at AA for the 10-12px this
+   page is built from. It survives only as a 6px graphic (.lvl.pass's dot). Promoting
+   three named sites at a time is how this took four passes — the rule is the sweep. */
+.c-time{width:132px;color:var(--text-muted);white-space:nowrap}
+.c-src{width:150px}
+.c-lvl{width:104px}
+.c-cnt{width:86px;text-align:right}
+.msg{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-body)}
+.src{display:inline-flex;align-items:center;gap:7px;color:var(--text-body);min-width:0}
+.src svg{width:12px;height:12px;opacity:.7;flex-shrink:0}
+.lvl{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.lvl i{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.lvl.pass{color:var(--text-muted)}.lvl.pass i{background:var(--text-faint)}
+/* Brand INK, not brand FILL: --brand is #3939FA in both themes, so it cannot follow its
+   ground (3.00:1 on the dark page). --ink-on-blue is the theme-re-pointed pair —
+   #1B2E7A on light, #A9BCFF on dark. */
+.lvl.mask{color:var(--ink-on-blue)}.lvl.mask i{background:var(--brand)}
+.lvl.block{color:var(--ink-on-red)}.lvl.block i{background:var(--red-500)}
+/* A masked value in the message: the marker swipe, in its category hue. */
+.rd{display:inline-block;padding:0 5px;border-radius:3px;font-weight:700}
+.cnt{font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+.cnt b{color:var(--text-strong)}
+
+/* ---------- drawer ---------- */
+/* min-height:0 on BOTH the row and the flex item: without it .detail takes its content
+   height (511px) and bursts the 1fr row, pushing the table off-screen. */
+.detail{display:flex;flex-direction:column;min-width:0;min-height:0;border-left:1px solid var(--border-default);background:var(--surface-card)}
+.d-top{display:flex;align-items:center;gap:10px;padding:13px 15px 0}
+.d-top .ts{flex:1;font-family:var(--mono);font-size:13px;color:var(--text-strong)}
+.d-chips{display:flex;flex-wrap:wrap;gap:7px;padding:11px 15px 13px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:23px;padding:0 9px;border-radius:6px;background:var(--surface-sunken);font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.chip svg{width:11px;height:11px;opacity:.75}
+.chip b{color:var(--text-strong);font-weight:700}
+.d-tabs{display:flex;gap:2px;padding:0 9px;border-bottom:1px solid var(--border-subtle)}
+.d-tabs button{padding:9px 11px;font-size:12.5px;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.d-tabs button:hover{color:var(--text-strong)}
+.d-tabs button.on{color:var(--text-strong);border-bottom-color:var(--brand);font-weight:600}
+.d-body{flex:1;min-height:0;overflow:auto;padding:13px 0 20px}
+.d-sec{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 15px 10px}
+.d-sec .lb{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+.d-sec .lb svg{width:12px;height:12px}
+.d-acts{display:flex;gap:6px}
+.d-acts button{display:inline-flex;align-items:center;gap:6px;height:25px;padding:0 9px;border-radius:6px;border:1px solid var(--border-default);font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.d-acts button:hover{border-color:var(--border-strong);color:var(--text-strong)}
+/* The JSON body: gutter numbers, one row per line, masked values swiped in place. */
+.json{font-family:var(--mono);font-size:12px;line-height:1.75}
+.json .ln{display:grid;grid-template-columns:38px 1fr;gap:0}
+.json .ln:hover{background:var(--surface-sunken)}
+.json .no{text-align:right;padding-right:11px;color:var(--text-muted);user-select:none}
+.json .co{padding-right:15px;white-space:pre-wrap;word-break:break-word;color:var(--text-body)}
+.json .key{color:var(--text-strong)}
+.json .str{color:var(--ink-on-blue)}
+.json .num{color:var(--cav-financier-on,#7A4B00)}
+.json .pun{color:var(--text-muted)}
+[data-theme="dark"] .json .num{color:var(--hl-amber,#FFB85C)}
+.d-fields{padding:0 15px}
+.d-fields .fr{display:grid;grid-template-columns:8.5em 1fr;gap:8px 12px;padding:9px 0;border-top:1px solid var(--border-subtle);align-items:baseline}
+.d-fields .fr:first-child{border-top:0}
+.d-fields .fk{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.d-fields .fv{font-family:var(--mono);font-size:12px;color:var(--text-strong);word-break:break-word}
+.empty{display:grid;place-content:center;gap:9px;padding:60px 24px;text-align:center;color:var(--text-muted)}
+.empty svg{width:26px;height:26px;margin:0 auto;opacity:.6}
+.empty b{display:block;font-family:var(--font-body,inherit);font-size:14px;font-weight:600;color:var(--text-muted)}
+.empty span{font-size:12.5px;max-width:30ch}
+/* Narrow: the drawer overlays the table instead of replacing it — hiding .tablewrap left
+   the page with no log at all, which is the one thing it exists to show. */
+@media(max-width:1100px){
+  .body.has-detail{grid-template-columns:1fr}
+  .body{position:relative}
+  .detail{position:absolute;inset:0 0 0 auto;width:min(460px,100%);z-index:5;box-shadow:-18px 0 40px rgba(10,12,30,.16)}
+}
+
+/* ---------- footer strip ---------- */
+/* On --surface-card, hence --text-muted like every other ink here. */
+.foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:8px 15px;border-top:1px solid var(--border-subtle);background:var(--surface-card);font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.foot b{color:var(--text-strong);font-weight:400}
+.foot .sp{flex:1}
+/* ---------- viewport-height compression (MUST stay last: equal specificity) ---------- */
+/* Short viewports: the log is the content, so the strips above it yield. */
+@media(max-height:760px){
+  .histo{padding:9px 18px 8px}
+  .bars{height:34px;margin-top:7px}
+  .histo .axis{display:none}
+  .stat,.cats{padding:11px 16px}
+  .stat .v{margin-top:4px}
+  .stat .v b{font-size:20px}
+  .stat .sub{display:none}
+}
+/* Rows are assigned EXPLICITLY: collapsing a strip with display:none removes it as a
+   grid item, and everything below shifts up a row — the status bar then inherits the
+   minmax(190px,1fr) log row and grows to 190px tall. */
+.top{grid-row:1}
+.recap{grid-row:2}
+.histo{grid-row:3}
+.body{grid-row:4}
+.foot{grid-row:5}
+@media(max-height:620px){
+  /* Keep the histogram, just at its smallest legible size — clipping it to 0 left a
+     27px sliver of cut-off bars, which reads as a rendering fault. */
+  .histo{padding:7px 18px 6px}
+  .histo-h .rt{display:none}
+  .bars{height:22px;margin-top:5px}
+  .cats{padding-top:9px;margin-top:8px}
+  .legend{margin-top:8px;gap:4px 13px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- TOP -->
+  <div class="top">
+    <span class="mark"><!--MARK--><!--MARK-DARK--><b>OpenMasq</b><span>CLI</span></span>
+    <div class="seg" role="tablist" aria-label="Vue">
+      <button id="m-calls" class="on" role="tab" aria-selected="true">Appels</button>
+      <button id="m-items" role="tab" aria-selected="false">Données</button>
+    </div>
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" placeholder="Rechercher dans les journaux et les traces" spellcheck="false"></label>
+    <button class="tail live" id="tail"><i></i>Tail</button>
+    <button class="pill" id="reveal" aria-pressed="false" title="Afficher les valeurs réelles (elles ne quittent pas cette machine)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M3 3l18 18" id="eye-slash"/></svg><span class="t">Valeurs réelles</span></button>
+    <button class="iconbtn" id="theme" title="Basculer le thème" aria-label="Basculer le thème"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/></svg></button>
+    <button class="iconbtn" title="Exporter le journal" aria-label="Exporter le journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></button>
+  </div>
+
+  <!-- RECAP -->
+  <div class="recap">
+    <div class="stat">
+      <span class="lb">Interceptées</span>
+      <span class="v"><b id="s-total">1 284</b></span>
+    </div>
+    <div class="stat">
+      <span class="lb">Masquées</span>
+      <span class="v"><b id="s-mask">1 271</b></span>
+    </div>
+    <div class="stat">
+      <span class="lb">Bloquées</span>
+      <span class="v"><b id="s-block">13</b></span>
+    </div>
+    <div class="stat">
+      <span class="lb">Vues par le modèle</span>
+      <span class="v"><b>0</b></span>
+    </div>
+  </div>
+
+  <!-- HISTOGRAM -->
+  <div class="histo">
+    <div class="histo-h"><span class="lb">Volume par minute</span><span class="rt" id="histo-rt">13:25 → 16:25 ET</span></div>
+    <div class="bars" id="bars"></div>
+    <div class="axis"><span>13:30</span><span>14:15</span><span>15:00</span><span>15:45</span><span>16:25</span></div>
+    <div class="cats">
+      <div class="bar" id="cat-bar"></div>
+      <div class="legend" id="cat-legend"></div>
+    </div>
+  </div>
+
+  <!-- TABLE + DRAWER -->
+  <div class="body has-detail" id="body">
+    <div class="tablewrap">
+      <table>
+        <thead><tr id="head"></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <aside class="detail" id="detail"></aside>
+  </div>
+
+  <div class="foot">
+    <span><b id="f-cmd">openmasq-proxy</b></span>
+    <span id="f-pid">pid —</span>
+    <span id="f-ver">v—</span>
+    <span class="sp"></span>
+    <span>Détection en local · le modèle ne reçoit jamais vos valeurs d'origine</span>
+  </div>
+</div>
+
+
+<script>
+/* ---------------------------------------------------------------------------
+   The nine redaction sections, straight from the token file so the log, the
+   recap bar and the JSON gutter all speak the same colour language.
+   --------------------------------------------------------------------------- */
+/* The nine redaction SECTIONS. Filled from the product's own list, which the server sends
+   on connect: the kit shipped eight of them plus a fallback, so `Système` had no label and
+   rendered as a bare id. A hard-coded copy of a product list is a copy that drifts. */
+var CATS = [];
+var PID = "—";
+/* Fallback categories: "date" is not one of the nine sections. */
+var EXTRA = { date:"identifiants" };
+function cavSafe(id){ return CATS.some(function(c){return c.id===id}) ? id : (EXTRA[id]||"systeme"); }
+function cav(id){ return "var(--cav-" + id + ")"; }
+function cavOn(id){ return "var(--cav-" + id + "-on)"; }
+
+/* recap bar + legend — callable, because the counts move. */
+function recap(){
+  var tot = CATS.reduce(function(a,c){return a+c.n},0) || 1, bar="", leg="";
+  CATS.forEach(function(c){
+    bar += '<i style="width:'+(c.n/tot*100).toFixed(2)+'%;background:'+cav(c.id)+'"></i>';
+    leg += '<span><i style="background:'+cav(c.id)+'"></i>'+c.label+' <b>'+c.n+'</b></span>';
+  });
+  document.getElementById("cat-bar").innerHTML = bar;
+  document.getElementById("cat-legend").innerHTML = leg;
+}
+
+/* The histogram is filled by `repaint()` from live per-minute buckets. */
+
+/* ---------------------------------------------------------------------------
+   Log rows. Each row is one MCP call; `items` are the sensitive values found in
+   it, and the message shows them already swiped.
+   --------------------------------------------------------------------------- */
+function rd(cat, text){
+  var c = cavSafe(cat);   /* "date" etc. are not sections — map before colouring */
+  return '<span class="rd" style="background:'+cav(c)+';color:'+cavOn(c)+'">'+text+'</span>';
+}
+var SRC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg>';
+var LOGS = [];
+var LVL = { mask:["mask","Masqué"], pass:["pass","Transmis"], block:["block","Bloqué"] };
+
+/* ---------------------------------------------------------------------------
+   The item model is DERIVED from each row's own markup: every .rd span already
+   carries its substitute token and its section hue, so there is one source for
+   "what was intercepted" instead of a parallel array that can drift from the
+   line the reader sees.
+   --------------------------------------------------------------------------- */
+/* The substitution table. This is the point of the inspector: the real values live on
+   THIS machine, the substitutes are what left it. Hidden until asked for. */
+var ORIG = {};
+function origOf(tok){ return ORIG[tok] || null; }
+var TYPES = { PERS:"Nom", MAIL:"E-mail", TEL:"Téléphone", ADR:"Adresse", ORG:"Entreprise",
+  IBAN:"IBAN", BIC:"BIC / SWIFT", MONT:"Montant", SIRET:"SIRET", SECRET:"Clé / jeton" };
+function itemsOf(l){
+  if (l._items) return l._items;
+  var out = [], re = /<span class="rd" style="background:var\(--cav-([a-z]+)\)[^"]*">([^<]+)<\/span>/g, m;
+  while ((m = re.exec(l.msg))) {
+    var tok = m[2], pre = (tok.match(/^[A-Z]+/) || [""])[0];
+    /* The token's SHAPE wins over its prefix: PERS_02@ex.fr is an address, not a name. */
+    var type = tok.indexOf("@") > -1 ? "E-mail"
+      : /^\d{4}-\d{2}-\d{2}$/.test(tok) ? "Date"
+      : (TYPES[pre] || "Valeur");
+    out.push({ cat:m[1], tok:tok, type:type });
+  }
+  /* A row can stand for many occurrences of one token (the 48-row CSV): fold the
+     declared per-category totals back in so the count is not understated. */
+  var declared = {};
+  (l.items || []).forEach(function(it){ declared[it[0]] = it[1]; });
+  var perCat = {};
+  out.forEach(function(it){ perCat[it.cat] = (perCat[it.cat] || 0) + 1; });
+  out.forEach(function(it){
+    var d = declared[it.cat] || 0, seen = perCat[it.cat] || 1;
+    it.n = d > seen ? Math.round(d / seen) : 1;
+  });
+  /* A line shows the tokens it has room for; the declared per-category totals can be
+     higher. The remainder is stated as such rather than dropped — otherwise the drawer
+     contradicts the row's own item count. Inventing tokens for it would be worse. */
+  Object.keys(declared).forEach(function(cat){
+    var shown = out.filter(function(it){ return it.cat === cat })
+                   .reduce(function(a,it){ return a + it.n }, 0);
+    var rest = declared[cat] - shown;
+    if (rest > 0) out.push({ cat:cat, tok:null, type:"Non affiché dans la ligne", n:rest });
+  });
+  l._items = out;
+  return out;
+}
+function catLabel(id){
+  var c = CATS.filter(function(x){ return x.id === id })[0];
+  return c ? c.label : id;
+}
+var rev = false;   /* real values hidden by default */
+function shown(tok){
+  var o = origOf(tok);
+  if (!o) return '<span class="hid">valeur locale</span>';
+  return rev ? '<span class="clr">'+o+'</span>' : '<span class="hid">••••••••</span>';
+}
+function swipe(cat, txt){
+  return '<span class="rd" style="background:'+cav(cat)+';color:'+cavOn(cat)+'">'+txt+'</span>';
+}
+/* The flat data log: every intercepted item, newest first, with its call. Rebuilt on each
+   arrival — the kit derived it once from a fixed array; here the array grows. */
+var DATA = [];
+function rebuildData(){
+  DATA = [];
+  LOGS.forEach(function(l, i){
+    itemsOf(l).forEach(function(it){
+      if (!it.tok) return;   /* nothing to identify it by in a per-value list */
+      DATA.push({ t:l.t, src:l.src, call:i, lvl:l.lvl, it:it });
+    });
+  });
+}
+
+var HEADS = {
+  calls: '<th class="c-time">Heure</th><th class="c-src">Serveur</th><th class="c-lvl">Action</th><th>Événement</th><th class="c-cnt">Items</th>',
+  items: '<th class="c-time">Heure</th><th class="c-tok">Substitut</th><th class="c-type">Type</th><th class="c-cat">Catégorie</th><th class="c-src">Serveur</th><th class="c-cnt">Occ.</th>'
+};
+var mode = "calls";
+var rowsEl = document.getElementById("rows"), headEl = document.getElementById("head"), sel = 0;
+function itemCount(l){ return l.items.reduce(function(a,i){return a+i[1]},0); }
+function renderRows(filter){
+  headEl.innerHTML = HEADS[mode];
+  var h = "";
+  if (mode === "calls") {
+    LOGS.forEach(function(l,i){
+      var plain = l.msg.replace(/<[^>]+>/g,"");
+      if (filter && (plain + " " + l.src).toLowerCase().indexOf(filter) < 0) return;
+      var n = itemCount(l);
+      h += '<tr data-i="'+i+'"'+(i===sel?' class="sel"':'')+'>'
+        + '<td class="c-time">'+l.t+'</td>'
+        + '<td class="c-src"><span class="src">'+SRC_ICON+l.src+'</span></td>'
+        + '<td class="c-lvl"><span class="lvl '+LVL[l.lvl][0]+'"><i></i>'+LVL[l.lvl][1]+'</span></td>'
+        + '<td><span class="msg">'+l.msg+'</span></td>'
+        + '<td class="c-cnt"><span class="cnt">'+(n?'<b>'+n+'</b>':'—')+'</span></td>'
+        + '</tr>';
+    });
+    rowsEl.innerHTML = h || '<tr><td colspan="5" style="padding:30px 14px;color:var(--text-muted)">Aucun appel pour cette recherche.</td></tr>';
+  } else {
+    DATA.forEach(function(d,i){
+      var hay = (d.it.tok + " " + d.it.type + " " + catLabel(d.it.cat) + " " + d.src).toLowerCase();
+      if (filter && hay.indexOf(filter) < 0) return;
+      h += '<tr data-i="'+d.call+'" data-item="'+i+'"'+(d.call===sel?' class="sel"':'')+'>'
+        + '<td class="c-time">'+d.t+'</td>'
+        + '<td class="c-tok"><span class="pair"><span>'+swipe(d.it.cat, d.it.tok)+'</span>'
+          + '<span class="v2">'+shown(d.it.tok)+'</span></span></td>'
+        + '<td class="c-type">'+d.it.type+'</td>'
+        + '<td class="c-cat"><span class="cat-tag"><i style="background:'+cav(d.it.cat)+'"></i>'+catLabel(d.it.cat)+'</span></td>'
+        + '<td class="c-src"><span class="src">'+SRC_ICON+d.src+'</span></td>'
+        + '<td class="c-cnt"><span class="cnt"><b>'+d.it.n+'</b></span></td>'
+        + '</tr>';
+    });
+    rowsEl.innerHTML = h || '<tr><td colspan="6" style="padding:30px 14px;color:var(--text-muted)">Aucune donnée pour cette recherche.</td></tr>';
+  }
+}
+/* Colour the mask-swipe spans by their category (they carry it inline already). */
+var detailEl = document.getElementById("detail"), dTab = "flow";
+function jsonLine(no, text, kind){
+  var cls = "co", body = text;
+  if (kind && kind.indexOf("mask:") === 0) {
+    var cat = cavSafe(kind.slice(5));
+    var swipe = function(v){
+      return '<span class="rd" style="background:'+cav(cat)+';color:'+cavOn(cat)+'">'+v+'</span>';
+    };
+    /* A substitute token, plus whatever follows it inside the same quoted string
+       (PERS_02@ex.fr swipes as ONE span). Single pass — never re-scan our own output. */
+    body = text.replace(/\b([A-Z]{3,}_\d+)((?:[@.\w-]|\+)*)/g, function(m, tok, tail){
+      return swipe(tok + tail);
+    });
+  } else if (kind === "kv") {
+    body = text.replace(/"([^"]+)":/g, '"<span class="key">$1</span>":')
+               .replace(/: "([^"]*)"/g, ': "<span class="str">$1</span>"')
+               .replace(/: (\d+)/g, ': <span class="num">$1</span>');
+  } else {
+    body = '<span class="pun">' + text + '</span>';
+  }
+  return '<div class="ln"><span class="no">'+no+'</span><span class="'+cls+'">'+body+'</span></div>';
+}
+/* The payload as it reads on ONE side of the boundary: masked (the swipes the row already
+   carries) or in clear (each swipe replaced by its real value). Same string, two states —
+   which is what makes the two sides comparable. */
+function payload(msg, clear){
+  if (!clear) return msg;
+  return msg.replace(/<span class="rd"[^>]*>([^<]+)<\/span>/g, function(m, tok){
+    var o = origOf(tok);
+    return o ? (rev ? '<span class="clr">'+o+'</span>' : '<span class="hid">••••••••</span>') : m;
+  });
+}
+var VERBS = {
+  "messages.send":"Envoie un e-mail à", "drafts.create":"Prépare un brouillon pour",
+  "messages.list":"Cherche les messages de", "messages.get":"Ouvre le message de",
+  "issues.create":"Crée un ticket pour", "issues.list":"Liste les tickets de",
+  "comments.create":"Commente le ticket de", "cycles.list":"Liste les cycles de l'équipe",
+  "read_file":"Lis le fichier", "write_file":"Écris le fichier",
+  "list_directory":"Liste le dossier", "pages.search":"Cherche dans mes notes",
+  "pages.create":"Crée une note pour", "blocks.append":"Ajoute une note sur",
+  "vault.lookup":"Retrouve le substitut de",
+  "vault.guard":"Envoie ceci au modèle :"
+};
+/* For a path-based tool the verb's object is the PATH, which lives in l.msg — the
+   redacted items are merely contained in it (a file NAME, or the file's contents). Using
+   them as the object produced "Lis le fichier 14 rue Bréguet, 75011 Paris". The path is
+   returned with its swipes intact, so payload() masks or reveals it like anything else. */
+var PATH_TOOLS = { read_file:1, write_file:1, list_directory:1 };
+function pathOf(l){
+  var m = /path="((?:[^"<]|<[^>]*>)*)"/.exec(l.msg);
+  return m ? m[1] : null;
+}
+function promptOf(l, tool){
+  var its = itemsOf(l).filter(function(it){ return it.tok });
+  var verb = VERBS[tool] || ("Utilise " + tool + " avec");
+  if (PATH_TOOLS[tool]) {
+    var p = pathOf(l);
+    return '« ' + verb + ' ' + (p || (tool === "list_directory" ? "ce dossier" : "ce fichier")) + ' »';
+  }
+  if (!its.length) return '« ' + (VERBS[tool] || ("Lance " + tool)) + ' »';
+  var vals = its.slice(0, 2).map(function(it){ return swipe(it.cat, it.tok) }).join(" et ");
+  return '« ' + verb + ' ' + vals
+    + (its.length > 2 ? ' (et ' + (its.length - 2) + ' autre' + (its.length > 3 ? 's' : '') + ')' : '') + ' »';
+}
+var DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v14M6 13l6 6 6-6"/></svg>';
+var UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V6M6 11l6-6 6 6"/></svg>';
+function step(k, p){ return '<div class="st"><span class="k">'+k+'</span><span class="p">'+p+'</span></div>'; }
+function zone(kind, label, steps, note){
+  return '<div class="zn '+kind+'"><div class="zn-h"><i></i>'+label+'</div>'
+    + '<div class="zn-b">'+steps.join("")+'</div>'
+    + (note ? '<div class="zn-note">'+note+'</div>' : '') + '</div>';
+}
+function cross(icon, text){
+  return '<div class="cross">'+icon+'<span>'+text+'</span><span class="ln"></span></div>';
+}
+/* Who sees WHAT is the whole point, and it is not a single boundary: the substitutes are
+   for the MODEL. Before an approved tool call is dispatched, OpenMasq puts the real values
+   back locally — an e-mail cannot be sent to PERS_02@ex.fr — and masks the result again on
+   the way back to the model. Hence four crossings, and three kinds of zone. */
+function renderFlow(l){
+  var its = itemsOf(l).filter(function(it){ return it.tok });
+  var n = itemCount(l), plain = l.msg, blocked = l.lvl === "block";
+  var toolName = l.tool || null;
+  if (!toolName) (l.json || []).some(function(p){
+    var m = /"tool":\s*"([^"]+)"/.exec(p[0]);
+    if (m) { toolName = m[1]; return true; }
+    return false;
+  });
+  if (!toolName) toolName = (plain.replace(/<[^>]+>/g, "").match(/^[a-z_]+\.[a-z_]+|^[a-z_]+/) || ["appel"])[0];
+
+  var ask = payload(promptOf(l, toolName), true);
+  if (blocked) {
+    var sec = its[0];
+    return '<div class="flow">'
+      + zone("loc", "Sur votre machine", [
+          step("Votre message", ask),
+          step("Refus", sec ? shown(sec.tok) : "—")
+        ], "Un secret ne peut pas être remplacé par un substitut sans perdre son sens : l'appel est bloqué, pas masqué.")
+      + cross(UP, "<b>rien</b> ne sort")
+      + zone("rem", "Modèle", [step("Appel", '<span class="hid">aucun</span>')],
+          "Ni la valeur, ni un substitut, ni l'appel d'outil.")
+      + '</div>';
+  }
+  var reply = its[0]
+    ? 'C\'est fait : ' + toolName + ' a été exécuté pour ' + swipe(its[0].cat, its[0].tok)
+      + (its.length > 1 ? ' et ' + (its.length - 1) + ' autre' + (its.length > 2 ? 's' : '') + ' valeur' + (its.length > 2 ? 's' : '') : '') + '.'
+    : 'C\'est fait : ' + toolName + ' a été exécuté.';
+  var many = n > 1 ? "s" : "";
+  return '<div class="flow">'
+    + zone("loc", "Sur votre machine", [step("Votre message", ask)],
+        PATH_TOOLS[toolName] && n
+          ? "Le fichier contient " + n + " valeur" + many + " sensible" + many + ", lue" + many + " ici et nulle part ailleurs."
+          : null)
+    + cross(DOWN, n ? '<b>'+n+'</b> valeur'+many+' → substitut'+many+' stable'+many : 'rien à masquer')
+    + zone("rem", "Modèle · ne voit que les substituts", [
+        step("Raisonne sur", payload(plain, false)),
+        step("Demande l'outil", toolName)
+      ], "Le modèle n'a jamais les valeurs d'origine, ni à l'aller ni au retour.")
+    + cross(UP, n ? 'réinsertion locale des <b>'+n+'</b> valeur'+many+' avant l\'appel' : 'aucune réinsertion nécessaire')
+    + zone("tool", "Outil · " + toolName + " · voit les valeurs réelles", [
+        step("Reçoit", payload(plain, true)),
+        step("Résultat", '{ "ok": true }')
+      ], "Un outil doit agir sur le monde réel : l'e-mail part à la vraie adresse, le fichier est lu au vrai chemin. La réinsertion a lieu sur votre machine, juste avant l'envoi.")
+    + cross(DOWN, n ? 'le résultat est masqué à nouveau avant de revenir au modèle' : 'rien à masquer')
+    + zone("rem", "Modèle", [step("Réponse", reply)],
+        "Rédigée sur les substituts : le modèle ne peut pas nommer ce qu'il n'a pas reçu.")
+    + cross(UP, n ? 'réinsertion des <b>'+n+'</b> valeur'+many+' d\'origine' : 'rien à réinsérer')
+    + zone("loc", "Sur votre machine", [step("Votre copie", payload(reply, true))],
+        "Vous lisez la réponse avec vos vraies valeurs.")
+    + '</div>';
+}
+function renderDetail(){
+  var l = LOGS[sel];
+  if (!l) {
+    detailEl.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h7"/></svg><b>Aucune ligne sélectionnée</b><span>Cliquez une ligne du journal pour suivre le parcours de la donnée, du prompt à votre copie.</span></div>';
+    return;
+  }
+  var chips = '<span class="chip">'+SRC_ICON+'<b>'+l.src+'</b></span>'
+    + '<span class="chip"><i class="lvl '+LVL[l.lvl][0]+'" style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></i>'+LVL[l.lvl][1]+'</span>'
+    + '<span class="chip">items <b>'+itemCount(l)+'</b></span>'
+    + '<span class="chip">pid <b>' + PID + '</b></span>';
+  var body;
+  if (dTab === "flow") {
+    body = '<div class="d-sec"><span class="lb">Parcours de la donnée</span>'
+      + '<span class="d-acts"><button id="rev-in">'+(rev ? "Masquer" : "Afficher")+' les valeurs</button></span></div>'
+      + renderFlow(l);
+  } else if (dTab === "json") {
+    var lines = l.json || [
+      ['{',"pun"],
+      ['  "server": "'+l.src+'",',"kv"],
+      ['  "action": "'+LVL[l.lvl][1].toLowerCase()+'",',"kv"],
+      ['  "event": "'+l.msg.replace(/<[^>]+>/g,"").replace(/"/g,'\\"')+'",',"kv"],
+      ['  "redacted": '+itemCount(l)+',',"kv"],
+      ['  "leaked": [],',"kv"],
+      ['  "ts": "2026-09-09T'+l.t+'+02:00"',"kv"],
+      ['}',"pun"]
+    ];
+    body = '<div class="d-sec"><span class="lb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4H6a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2"/></svg>JSON</span>'
+      + '<span class="d-acts"><button>Tout déplier</button><button>Copier</button></span></div>'
+      + '<div class="json">' + lines.map(function(p,i){ return jsonLine(i+1, p[0], p[1]); }).join("") + '</div>';
+  } else if (dTab === "items") {
+    var its = itemsOf(l);
+    body = '<div class="d-sec"><span class="lb">Données interceptées</span>'
+      + '<span class="d-acts"><button>Exporter</button></span></div>'
+      + '<div class="d-items">'
+      + (its.length
+        ? its.map(function(it){
+            return '<div class="d-item">'
+              + '<span class="tk">'+(it.tok ? swipe(it.cat, it.tok)
+                  : '<span style="color:var(--text-muted)">'+it.n+' valeur'+(it.n>1?'s':'')+' de plus</span>')+'</span>'
+              + '<span class="oc">'+(it.tok ? (it.n > 1 ? it.n + ' occurrences' : '1 occurrence') : '')+'</span>'
+              + (it.tok ? '<span class="mt" style="margin-top:2px">→ '+shown(it.tok)+'</span>' : '')
+              + '<span class="mt"><span class="cat-tag"><i style="background:'+cav(it.cat)+'"></i>'+catLabel(it.cat)+'</span>'
+              + '<span>'+it.type+'</span>'
+              + (it.tok ? '<span>substitut stable</span><span>valeur d\'origine conservée en local</span>'
+                        : '<span>ouvrir le JSON pour les voir</span>')+'</span>'
+              + '</div>';
+          }).join("")
+        : '<div class="d-item"><span class="tk" style="color:var(--text-muted)">—</span><span class="mt">Aucune donnée sensible dans cet appel.</span></div>')
+      + '</div>';
+  } else {
+    body = '<div class="d-sec"><span class="lb">Contexte</span></div><div class="d-fields">'
+      + (l.fields || [["server",l.src],["action",LVL[l.lvl][1]],["transport","stdio"],["items",itemCount(l)]])
+        .map(function(f){ return '<div class="fr"><span class="fk">'+f[0]+'</span><span class="fv">'+f[1]+'</span></div>'; }).join("")
+      + '</div>';
+  }
+  detailEl.innerHTML =
+      '<div class="d-top"><span class="ts">'+l.t+' ET</span>'
+    + '<button class="iconbtn" aria-label="Options"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>'
+    + '<button class="iconbtn" id="close-d" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'
+    + '<div class="d-chips">'+chips+'</div>'
+    + '<div class="d-tabs">'
+      + '<button data-t="flow"'+(dTab==="flow"?' class="on"':'')+'>Parcours</button>'
+      + '<button data-t="json"'+(dTab==="json"?' class="on"':'')+'>JSON</button>'
+      + '<button data-t="items"'+(dTab==="items"?' class="on"':'')+'>Données ('+itemsOf(l).length+')</button>'
+      + '<button data-t="ctx"'+(dTab==="ctx"?' class="on"':'')+'>Contexte</button>'
+    + '</div><div class="d-body">'+body+'</div>';
+}
+renderRows("");
+renderDetail();
+
+function setMode(next){
+  mode = next;
+  document.getElementById("m-calls").className = next === "calls" ? "on" : "";
+  document.getElementById("m-items").className = next === "items" ? "on" : "";
+  document.getElementById("m-calls").setAttribute("aria-selected", next === "calls");
+  document.getElementById("m-items").setAttribute("aria-selected", next === "items");
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+}
+function setRev(next){
+  rev = next;
+  var b = document.getElementById("reveal");
+  b.className = "pill" + (rev ? " on" : "");
+  b.setAttribute("aria-pressed", String(rev));
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+  renderDetail();
+}
+document.getElementById("reveal").addEventListener("click", function(){ setRev(!rev); });
+document.getElementById("m-calls").addEventListener("click", function(){ setMode("calls"); });
+document.getElementById("m-items").addEventListener("click", function(){ setMode("items"); dTab = "items"; renderDetail(); });
+
+rowsEl.addEventListener("click", function(e){
+  var tr = e.target.closest("tr[data-i]"); if(!tr) return;
+  sel = +tr.getAttribute("data-i");
+  dTab = tr.hasAttribute("data-item") ? "items" : "flow";
+  document.getElementById("body").classList.add("has-detail");
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+  renderDetail();
+});
+detailEl.addEventListener("click", function(e){
+  if (e.target.closest("#rev-in")) { setRev(!rev); return; }
+  var t = e.target.closest("[data-t]");
+  if (t) { dTab = t.getAttribute("data-t"); renderDetail(); return; }
+  if (e.target.closest("#close-d")) {
+    sel = -1; document.getElementById("body").classList.remove("has-detail");
+    renderRows(document.getElementById("q").value.trim().toLowerCase()); renderDetail();
+  }
+});
+document.getElementById("q").addEventListener("input", function(e){
+  renderRows(e.target.value.trim().toLowerCase());
+});
+document.getElementById("tail").addEventListener("click", function(){
+  this.classList.toggle("live");
+});
+/* Theme: light by default, remembered. Never touch keys this page did not write. */
+(function(){
+  var K="openmasq-cli-theme", btn=document.getElementById("theme");
+  var saved=null; try{saved=localStorage.getItem(K)}catch(e){}
+  if(saved) document.documentElement.setAttribute("data-theme", saved);
+  btn.addEventListener("click", function(){
+    var next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try{localStorage.setItem(K,next)}catch(e){}
+  });
+})();
+/* ---------------------------------------------------------------------------
+   LIVE. The arrays above start empty; everything below fills them from the
+   proxy's own event stream. One EventSource, no polling, no storage: this page
+   is a window onto a running process and keeps nothing when you close it.
+
+   The kit's seams are used rather than worked around: `l._items` is the cache
+   `itemsOf()` reads first, so the structured items the server sends are handed
+   over directly instead of being parsed back out of HTML; and `ORIG` is the
+   vault `origOf()` looks in, which stays EMPTY unless the run was started with
+   --reveal. That is what makes the page's own "Valeurs réelles" toggle honest:
+   with nothing to reveal, the server never sent it, and the button says so.
+   --------------------------------------------------------------------------- */
+var MAX_ROWS = 500;
+var started = Date.now(), servers = {}, buckets = {}, canReveal = false;
+
+function esc(t){ return String(t).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+
+/* The event line: the route, then each substitution swiped in its section's colour. */
+function lineOf(e){
+  var parts = (e.items || []).map(function(it){ return rd(it.cat, esc(it.fake)); });
+  return esc(e.method) + " " + esc(e.path) + (parts.length ? "  " + parts.join(" · ") : "")
+       + (e.stream ? ' <span class="pun">⇢ stream</span>' : "");
+}
+
+function levelOf(e){ return e.status === 403 ? "block" : (e.items && e.items.length) ? "mask" : "pass"; }
+
+function push(e){
+  servers[e.family] = 1;
+  buckets[e.t.slice(0, 5)] = (buckets[e.t.slice(0, 5)] || 0) + (e.items ? e.items.length : 0);
+  var tally = {};
+  (e.items || []).forEach(function(it){ tally[it.cat] = (tally[it.cat] || 0) + it.n; });
+  var log = {
+    t: e.t, src: e.family, lvl: levelOf(e), msg: lineOf(e),
+    items: Object.keys(tally).map(function(k){ return [k, tally[k]]; }),
+    fields: [["route", e.path], ["status", String(e.status)], ["latence", e.ms + " ms"],
+             ["transport", e.stream ? "sse" : "json"], ["session", e.session || "—"]],
+    /* The cache `itemsOf()` checks first — no HTML to re-parse. */
+    _items: (e.items || []).map(function(it){
+      /* `n`, not `count`: it is the field the kit's own rows and drawer read. */
+      return { cat: it.cat, tok: it.fake, type: it.type, n: it.n };
+    })
+  };
+  LOGS.unshift(log);
+  if (LOGS.length > MAX_ROWS) LOGS.length = MAX_ROWS;
+  (e.items || []).forEach(function(it){
+    if (it.real) ORIG[it.fake] = it.real;
+    var c = CATS.filter(function(x){ return x.id === cavSafe(it.cat); })[0];
+    if (c) c.n += it.n;
+  });
+}
+
+function pad(n){ return n < 10 ? "0" + n : String(n); }
+function uptime(){
+  var s = Math.round((Date.now() - started) / 1000);
+  return s < 60 ? s + "s" : Math.floor(s / 60) + "m " + pad(s % 60) + "s";
+}
+function set(id, v){ var el = document.getElementById(id); if (el) el.textContent = v; }
+
+function repaint(){
+  var values = LOGS.reduce(function(a, l){ return a + itemCount(l); }, 0);
+  set("s-total", values);
+  set("s-mask", LOGS.filter(function(l){ return l.lvl === "mask"; }).length);
+  set("s-block", LOGS.filter(function(l){ return l.lvl === "block"; }).length);
+
+  var mins = Object.keys(buckets).sort();
+  set("histo-rt", mins.length ? mins[0] + " → " + mins[mins.length - 1] : "—");
+  var max = Math.max.apply(null, mins.map(function(m){ return buckets[m]; }).concat([1]));
+  var shownMins = mins.slice(-60);
+  document.getElementById("bars").innerHTML = shownMins.map(function(m){
+    var h = Math.max(3, Math.round((buckets[m] / max) * 100));
+    return '<div title="' + m + ' · ' + buckets[m] + ' valeurs"><i style="height:' + h + '%;background:' + cav("contact") + '"></i></div>';
+  }).join("");
+  var axis = document.querySelector(".axis");
+  if (axis) axis.innerHTML = shownMins.length
+    ? [shownMins[0], shownMins[Math.floor(shownMins.length / 2)], shownMins[shownMins.length - 1]]
+        .map(function(m){ return "<span>" + m + "</span>"; }).join("")
+    : "<span>—</span>";
+
+  recap();
+  rebuildData();
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+  if (sel >= 0) renderDetail();
+}
+
+/* The toggle promises real values. When the run did not reveal, the server has sent none —
+   so the button is disabled and says why, instead of flipping to a row of dots. */
+function armReveal(on){
+  canReveal = on;
+  var b = document.getElementById("reveal");
+  if (on) return;
+  b.disabled = true;
+  b.title = "Relancez avec --reveal pour afficher les valeurs réelles";
+  b.querySelector(".t").textContent = "Valeurs réelles (--reveal)";
+}
+
+var stream = new EventSource("./events" + location.search);
+stream.addEventListener("hello", function(m){
+  var d = JSON.parse(m.data);
+  CATS = (d.sections || []).map(function(x){ return { id: x.id, label: x.label, n: 0 }; });
+  PID = String(d.pid);
+  armReveal(!!d.reveal);
+  started = Date.now() - (d.upMs || 0);
+  set("f-cmd", d.command || "openmasq-proxy");
+  set("f-pid", "pid " + d.pid);
+  set("f-ver", "v" + d.version);
+  if (d.reveal) document.title = "OpenMasq — journal (valeurs réelles disponibles)";
+});
+stream.addEventListener("request", function(m){ push(JSON.parse(m.data)); repaint(); });
+stream.onerror = function(){ document.getElementById("tail").classList.remove("live"); };
+repaint();
+
+</script>
+</body>
+</html>
