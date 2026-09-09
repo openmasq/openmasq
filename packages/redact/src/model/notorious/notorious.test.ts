@@ -19,6 +19,17 @@ describe("isNotoriousEntity — category-scoped allow-list", () => {
     expect(isNotoriousEntity("Jean Vialet", "name")).toBe(false);
   });
 
+  /** A coding agent's system prompt writes its model as an ID — `claude-opus`, no digit,
+   *  no space — and a NER reads that as a first name. The hyphenated form is the product's
+   *  shape; a hyphenated FIRST name never has the family at its head. */
+  it("spares a hyphenated model id read as a person, never a hyphenated first name", () => {
+    expect(isNotoriousEntity("claude-opus", "name")).toBe(true);
+    expect(isNotoriousEntity("gpt-oss", "name")).toBe(true);
+    expect(isNotoriousEntity("Claude", "name")).toBe(false);
+    expect(isNotoriousEntity("Jean-Claude", "name")).toBe(false);
+    expect(isNotoriousEntity("Claude-Marie", "name")).toBe(false);
+  });
+
   it("tickers, indices, émetteurs et organismes publics matchent la catégorie COMPANY", () => {
     for (const v of ["CAC 40", "S&P 500", "PSI", "SPY", "USO", "Yahoo Finance", "IAU",
       "Pôle emploi", "Assurance Maladie", "Sacem", "Pacifica", "Datadog", "AWS"]) {

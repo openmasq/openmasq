@@ -134,13 +134,15 @@ export function isNotoriousEntity(value: string, coarseCategory: string, opts?: 
   if (coarseCategory === "name") {
     // `people: false` = the Strict level — public figures become redacted again.
     if (opts?.people !== false && PEOPLE_SET.has(norm(v))) return true;
-    // A MODEL NAME tagged as a person (« Claude Sonnet 4.6 », « GPT-4o ») is the
-    // product mis-read — same logic as the mis-read org below, and like it, NEVER
-    // for a bare word with no digit: « Claude »/« Gemini » alone stay protected
-    // first names (audit 13/08 — the dispensation is of shape, the protection of person).
+    // A MODEL NAME tagged as a person (« Claude Sonnet 4.6 », « GPT-4o », `claude-opus`)
+    // is the product mis-read — same logic as the mis-read org below, and like it, NEVER
+    // for a bare word with no digit: « Claude »/« Gemini » alone stay protected first
+    // names (audit 13/08 — the dispensation is of shape, the protection of person). The
+    // hyphenated form is a model ID as a coding agent's system prompt writes it; a
+    // hyphenated FIRST name (« Jean-Claude ») never has the family at its head.
     if (
       opts?.shape !== false &&
-      (/\s/.test(v) || /\d/.test(v)) &&
+      (/\s/.test(v) || /\d/.test(v) || /-/.test(v)) &&
       isAiModelName(v, { allowBare: false })
     )
       return true;
