@@ -11,7 +11,8 @@ import { keyFromHex } from "../fakes/prf";
 // loop lives in ./allocate over an explicit context.
 import type { RedactionMatch, RedactionResult, RedactionType } from "../../types";
 import { keepSet, isKept, capitalize, entityKey } from "../../util";
-import { applyVault, applyVaultVariants, disabledVaultTokens } from "../../engine/vault";
+import { applyVault, applyVaultVariants } from "../../engine/vault";
+import { forwardExclusions } from "./exclusions";
 import { extendEdges } from "./extendEdges";
 import { detectHostedUrlSpans, detectUrlSpans, detectEmailSpans, urlOccurrenceGuard } from "../../engine/urls";
 import { resolveGeoBlocks } from "../../engine/geo/geoBlocks";
@@ -217,18 +218,15 @@ export async function pseudonymize(
     }
   }
 
-  // Apply every mapping in one safe pass — skip vault entries whose category the user
-  // turned off (or numbers, when disabled), and never re-apply an allow-listed original.
-  const exclude = disabledVaultTokens(vault, {
+  // Apply every mapping in one safe pass — minus what must not take part in it
+  // (`exclusions.ts` says which, and why a path SEGMENT is among them).
+  const exclude = forwardExclusions(vault, {
     numbers: tokenizeNumbers,
     disabledKinds: options.disabledKinds,
     kinds: options.kinds,
+    keep,
+    isKept,
   });
-  if (keep.size) {
-    for (const [token, value] of Object.entries(vault)) {
-      if (isKept(value, keep)) exclude.add(token);
-    }
-  }
   // A vaulted value must not rewrite the INSIDE of a URL — see `urlOccurrenceGuard`. The
   // kind comes from the caller's map ⊕ THIS pass's own matches (a value vaulted a moment
   // ago is in neither `options.kinds` nor the conversation's, and it is precisely the one
