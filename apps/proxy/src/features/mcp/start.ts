@@ -12,8 +12,9 @@ import type { ProxyConfig } from "../../config/config.js";
 import type { Masker } from "../../lib/masker.js";
 import { createStore, providerFor } from "./auth.js";
 import { createBridge, type McpBridge } from "./bridge.js";
-import { CLIENT_IDS, detectClient, soleServerConfig } from "./clients.js";
+import { CLIENT_IDS, detectClient, soleServerConfig, type OwnServer } from "./clients.js";
 import { createConfirmer } from "./confirm.js";
+import { notOurs, ownServers } from "./own.js";
 import { resolveSpecs } from "./resolve.js";
 import type { ServerSpec } from "./servers.js";
 import { connectUpstream, type Upstream } from "./upstream.js";
@@ -49,18 +50,55 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
   const client = deps.wrapping ? detectClient(config.command[0]) : undefined;
   if (!config.mcp) return NONE;
 
+  const url = `http://${config.host}:${config.port}`;
+  // Our own config file, holding nothing but the loopback endpoint, for the length of the
+  // run. The client's own files are never written to, so quitting restores it exactly.
+  let tempDir = "";
+  const cleanup = () => {
+    if (tempDir) rmSync(tempDir, { recursive: true, force: true });
+  };
+
+  // Exclusivity is decided BEFORE anything connects, because it decides adoption too: taking
+  // a client's servers over while it still reaches them itself buys nobody anything.
+  let exclusiveArgs: string[] = [];
+  let own: OwnServer[] | undefined;
+  if (client) {
+    tempDir = mkdtempSync(join(tmpdir(), "openmasq-mcp-"));
+    const file = join(tempDir, "mcp.json");
+    writeFileSync(file, soleServerConfig(url), { mode: 0o600 });
+    const learned = ownServers(client, {
+      command: config.command[0],
+      cwd: process.cwd(),
+      home: homedir(),
+    });
+    const endpoint = `${url}/mcp`;
+    const outcome =
+      "failed" in learned
+        ? { blocked: `its own servers could not be listed (${learned.failed})` }
+        : client.exclusive({ configPath: file, url: endpoint, own: learned.own });
+    if ("blocked" in outcome)
+      deps.note(
+        `${client.id}: ${outcome.blocked}. Until then its OWN MCP servers stay on, and those ` +
+          "tool calls do NOT pass through the mask.",
+        "warn",
+      );
+    else {
+      exclusiveArgs = outcome.args;
+      own = notOurs("own" in learned ? learned.own : [], endpoint);
+    }
+  }
+
   let specs: ServerSpec[] = [];
   try {
     specs = resolveSpecs({
       configPath: config.mcpConfig,
-      ...(client ? { client } : {}),
+      ...(own ? { own } : {}),
       adopt: config.mcpAdopt,
-      cwd: process.cwd(),
-      home: homedir(),
       onAdopt: (id, scope) => deps.note(`taking ${id} over from ${client?.id} (${scope})`),
       onSkip: (id, why) => deps.note(`${id} not taken over: ${why}`, "warn"),
     });
   } catch (err) {
+    cleanup();
     console.error(
       `${err instanceof Error ? err.message : String(err)}\n` +
         `Declare your MCP servers there (Claude Desktop's "mcpServers" shape), or drop --mcp.`,
@@ -107,25 +145,13 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     confirm: createConfirmer({ note: deps.note }),
   });
 
-  let tempDir = "";
-  let exclusiveArgs: string[] = [];
-  if (client) {
-    // Our own config file, holding nothing but the loopback endpoint, for the length of the
-    // run. The client's own files are never written to, so quitting restores it exactly.
-    tempDir = mkdtempSync(join(tmpdir(), "openmasq-mcp-"));
-    const file = join(tempDir, "mcp.json");
-    writeFileSync(file, soleServerConfig(`http://${config.host}:${config.port}`), { mode: 0o600 });
-    exclusiveArgs = client.exclusiveArgs(file);
-  }
-
   return {
     upstream,
     bridge,
     servers,
     exclusiveArgs,
-    ...(client ? { clientId: client.id } : {}),
-    cleanup: () => {
-      if (tempDir) rmSync(tempDir, { recursive: true, force: true });
-    },
+    // The card claims the client speaks to us and nobody else — only when it is true.
+    ...(exclusiveArgs.length && client ? { clientId: client.id } : {}),
+    cleanup,
   };
 }

@@ -10,6 +10,7 @@ export const USAGE = `openmasq-proxy — mask personal data before it leaves the
                  [--rules-only] [--quiet] [--json] [--log <file>] [--reveal] [--console]
                  [--mcp] [--mcp-config <file>] [--mcp-writes confirm|deny|allow] [--mcp-no-adopt]
   openmasq-proxy [flags] -- claude            run a tool through the proxy, stop with it
+                 (-- codex, -- gemini: same, and --mcp makes us their only MCP)
 
 Point any OpenAI- or Anthropic-compatible client at http://127.0.0.1:8787 and keep your
 own API key: the proxy forwards it untouched, masks the messages on the way out and
@@ -36,8 +37,9 @@ A tool that WRITES stops for a "y" on this terminal (--mcp-writes deny refuses t
 passes them); with no terminal to ask, a write is refused. Env: OPENMASQ_PROXY_MCP_CONFIG,
 OPENMASQ_PROXY_MCP_WRITES.
 
-With -- claude, --mcp goes further: the client is started with OUR endpoint as its ONLY
-MCP server (its own --strict-mcp-config flag), and the servers it declared are taken over so it
-loses nothing — one MCP, exposing every service, all of it masked. --mcp-no-adopt leaves
-them behind. A client whose own MCP servers cannot be switched off is SAID SO on start:
-its tool calls do not pass through here.`;
+With -- claude, -- codex or -- gemini, --mcp goes further: the client is started with OUR
+endpoint as its ONLY MCP server, and the servers it declared are taken over so it loses
+nothing — one MCP, exposing every service, all of it masked. --mcp-no-adopt leaves them
+behind. Gemini needs the endpoint declared once (gemini mcp add -s user -t http openmasq
+<url>/mcp), and the run then allows that one alone. A client whose own MCP servers cannot be
+switched off is SAID SO on start: its tool calls do not pass through here.`;

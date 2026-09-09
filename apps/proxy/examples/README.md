@@ -29,6 +29,7 @@ GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8787
 | **Continue** | in `~/.continue/config.yaml`, `provider: openai` + `apiBase: http://127.0.0.1:8787/v1` | 📄 config keys per docs, not tested here |
 | **Open WebUI** | set `OPENAI_API_BASE_URL=http://127.0.0.1:8787/v1` | 📄 config keys per docs, not tested here |
 | **LibreChat** | a custom endpoint in `librechat.yaml` with `baseURL: http://127.0.0.1:8787/v1` | 📄 config keys per docs, not tested here |
+| **Antigravity** | — | ✖ the desktop IDE has no bring-your-own-key or custom-provider hook: its agent model cannot be pointed anywhere. Only its MCP half can use the proxy (below) |
 
 **Codex** needs a provider block, because a bare `OPENAI_BASE_URL` leaves it on its stored
 ChatGPT login. Point it with command-line overrides (or the equivalent `config.toml`):
@@ -54,6 +55,30 @@ masked). The 📄 rows rest on the tools' documented config keys, not a run here
 not installed. The ⚠️ Gemini row could not be reached at all on a personal account. Whatever the
 tool, confirm with `--reveal` on your own terminal: if a `POST` line appears, the base URL took;
 if none does, the tool never used it (the Codex trap above).
+
+## The other half: `--mcp`
+
+`/v1/*` masks what the model reads; `/mcp` masks what its TOOLS read. The endpoint is standard
+streamable HTTP, so **any** MCP client can point at `http://127.0.0.1:8787/mcp`. What differs
+per client is whether the proxy can make itself its ONLY MCP for the run — an agent that keeps
+its own connections reaches Gmail directly, with its own credential, and nothing on that path
+is masked.
+
+| Client | Exclusivity | How, and what it costs you |
+|---|---|---|
+| **Claude Code** | ✅ automatic | `--mcp-config <temp> --strict-mcp-config`, its own switch. Verified live: the tool list came back as `mcp__openmasq__crm__*` and nothing else |
+| **Codex** | ✅ automatic | one `-c mcp_servers.<id>.enabled=false` per server it declares (from `codex mcp list --json`) plus ours. Verified against a live proxy: its two servers came back `disabled`, `openmasq` `enabled` |
+| **Gemini CLI** | ✅ after one command | `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp` once, then the run passes `--allowed-mcp-server-names openmasq`. Verified live (connected, tools served). ⚠️ wrap a session, not a subcommand: `gemini mcp list` refuses the flag |
+| **Cursor CLI** | ✖ | no MCP flag at all |
+| **Copilot CLI** | ✖ | `--additional-mcp-config` merges; there is no replacing one |
+| **opencode** | ✖ | `OPENCODE_CONFIG` is read *between* the global and project files, so the global servers stay |
+| **goose** | ✖ | `--with-extension` / `--with-builtin` only ADD |
+| **Antigravity** | ✖ | no MCP flag on its CLI, and the IDE has no BYOK hook for the model half either. Point it at `/mcp` by hand in `~/.gemini/config/mcp_config.json` (or Settings ▸ Customizations ▸ Open MCP Config) — ⚠️ it spells the endpoint `serverUrl`, not `url` |
+
+A relocating home variable (`CODEX_HOME`, `GEMINI_CLI_HOME`, `COPILOT_HOME`) is never the
+answer: it moves the client's credentials along with its settings. For a ✖ client, point it at
+`/mcp` yourself and switch its own servers off — the proxy says so at startup rather than
+implying a mask it cannot apply.
 
 ⚠️ Two notes that decide whether it helps:
 - The proxy defaults to `standard` (pattern rules, no model). Names, companies and places are
@@ -84,6 +109,30 @@ LiteLLM), mais la valeur est toujours le `…/v1` du proxy.
 Vérifiés ainsi : Claude Code sur abonnement, Codex, Gemini CLI. Les autres suivent le même
 contrat d'adresse de base ; regardez le journal du proxy (ou `--reveal` sur votre propre
 terminal) pour confirmer que les requêtes arrivent et sont masquées.
+
+## L'autre moitié : `--mcp`
+
+`/v1/*` masque ce que lit le modèle ; `/mcp` masque ce que lisent ses OUTILS. Le point d'accès
+est un streamable HTTP standard : **n'importe quel** client MCP sait viser
+`http://127.0.0.1:8787/mcp`. Ce qui change d'un client à l'autre, c'est la capacité du proxy à
+devenir son SEUL MCP le temps du run — un agent qui garde ses propres connexions atteint Gmail
+directement, avec son propre identifiant, et rien de ce chemin n'est masqué.
+
+| Client | Exclusivité | Comment, et ce que ça vous coûte |
+|---|---|---|
+| **Claude Code** | ✅ automatique | `--mcp-config <temp> --strict-mcp-config`, son propre interrupteur. Vérifié en session réelle : la liste d'outils est revenue avec `mcp__openmasq__crm__*` et rien d'autre |
+| **Codex** | ✅ automatique | un `-c mcp_servers.<id>.enabled=false` par serveur déclaré (lus dans `codex mcp list --json`) plus le nôtre. Vérifié contre un proxy en vol : ses deux serveurs sont revenus `disabled`, `openmasq` `enabled` |
+| **Gemini CLI** | ✅ après une commande | `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp` une fois, puis le run passe `--allowed-mcp-server-names openmasq`. Vérifié en vol (connecté, outils servis). ⚠️ enveloppez une session, pas une sous-commande : `gemini mcp list` refuse le drapeau |
+| **Cursor CLI** | ✖ | aucun drapeau MCP |
+| **Copilot CLI** | ✖ | `--additional-mcp-config` fusionne ; aucun ne remplace |
+| **opencode** | ✖ | `OPENCODE_CONFIG` se lit *entre* le fichier global et celui du projet : les serveurs globaux restent |
+| **goose** | ✖ | `--with-extension` / `--with-builtin` ne font qu'AJOUTER |
+| **Antigravity** | ✖ | aucun drapeau MCP sur sa CLI, et l'IDE n'a pas non plus de crochet BYOK pour la moitié modèle. Pointez-le à la main sur `/mcp` dans `~/.gemini/config/mcp_config.json` (ou Réglages ▸ Customizations ▸ Open MCP Config) — ⚠️ il écrit `serverUrl`, pas `url` |
+
+Déplacer le dossier personnel (`CODEX_HOME`, `GEMINI_CLI_HOME`, `COPILOT_HOME`) n'est jamais la
+réponse : les identifiants suivent les réglages. Pour un client ✖, pointez-le vous-même sur
+`/mcp` et désactivez ses propres serveurs — le proxy le dit au démarrage plutôt que de laisser
+croire à un masquage qu'il ne peut pas appliquer.
 
 ⚠️ Deux points décident de l'utilité : le proxy est en `standard` par défaut (règles
 déterministes, pas de modèle) — les noms, entreprises et lieux ne sont masqués qu'en

@@ -1,107 +1,129 @@
 import { describe, expect, it } from "vitest";
-import { adoptFrom } from "./adopt";
-import { CLIENT_IDS, detectClient, pick, soleServerConfig } from "./clients";
+import {
+  CLIENT_IDS,
+  detectClient,
+  parseCodexList,
+  pick,
+  soleServerConfig,
+  type OwnServer,
+} from "./clients";
 
-const HOME = "/home/me";
+const URL = "http://127.0.0.1:8787/mcp";
 const CWD = "/work/repo";
 
-/** What `~/.claude.json` actually looks like: servers at the top for the user scope, and one
- *  entry per project keyed by its absolute path. */
-const claudeJson = JSON.stringify({
-  mcpServers: { notion: { type: "http", url: "https://mcp.notion.com/mcp" } },
-  projects: {
-    [CWD]: { mcpServers: { crm: { command: "npx", args: ["crm-mcp"], env: { T: "sk-1" } } } },
-    "/elsewhere": { mcpServers: { other: { command: "nope" } } },
-  },
+const ctx = (own: OwnServer[] = []) => ({ configPath: "/tmp/x/mcp.json", url: URL, own });
+const stdio = (id: string, scope = "user"): OwnServer => ({
+  id,
+  scope,
+  raw: { command: "npx", args: [`${id}-mcp`] },
 });
 
 describe("the wrapped client", () => {
   it("is recognised by its command name, path and extension included", () => {
     expect(detectClient("claude")?.id).toBe("claude");
-    expect(detectClient("/opt/homebrew/bin/claude")?.id).toBe("claude");
-    expect(detectClient("claude.cmd")?.id).toBe("claude");
+    expect(detectClient("/opt/homebrew/bin/codex")?.id).toBe("codex");
+    expect(detectClient("gemini.cmd")?.id).toBe("gemini");
   });
 
   it("is undefined for a client we cannot switch off — the caller must say so", () => {
-    expect(detectClient("codex")).toBeUndefined();
-    expect(CLIENT_IDS).toContain("claude");
-  });
-
-  it("asks the client itself for exclusivity, rather than editing its files", () => {
-    expect(detectClient("claude")?.exclusiveArgs("/tmp/x/mcp.json")).toEqual([
-      "--mcp-config",
-      "/tmp/x/mcp.json",
-      "--strict-mcp-config",
-    ]);
+    // Cursor's CLI has no flag for "only this MCP config" and no allow-list; being absent
+    // here is what makes `start.ts` warn instead of promising a mask it cannot apply.
+    expect(detectClient("cursor-agent")).toBeUndefined();
+    expect(CLIENT_IDS).toEqual(["claude", "codex", "gemini"]);
   });
 
   it("hands it one server: ours", () => {
     const doc = JSON.parse(soleServerConfig("http://127.0.0.1:8787"));
-    expect(doc).toEqual({
-      mcpServers: { openmasq: { type: "http", url: "http://127.0.0.1:8787/mcp" } },
-    });
+    expect(doc).toEqual({ mcpServers: { openmasq: { type: "http", url: URL } } });
   });
 
   it("walks to a nested map, and gives up rather than guessing", () => {
-    expect(pick(JSON.parse(claudeJson), ["projects", CWD, "mcpServers"])).toHaveProperty("crm");
-    expect(pick(JSON.parse(claudeJson), ["projects", "/nowhere", "mcpServers"])).toBeUndefined();
+    const claudeJson = { projects: { [CWD]: { mcpServers: { crm: { command: "npx" } } } } };
+    expect(pick(claudeJson, ["projects", CWD, "mcpServers"])).toHaveProperty("crm");
+    expect(pick(claudeJson, ["projects", "/nowhere", "mcpServers"])).toBeUndefined();
   });
 });
 
-describe("taking the client's servers over", () => {
-  const read = (path: string): string => {
-    if (path === `${HOME}/.claude.json`) return claudeJson;
-    throw new Error("ENOENT");
-  };
-  const client = detectClient("claude")!;
-
-  it("takes the user scope AND this project's, and leaves another project's alone", () => {
-    const scopes: string[] = [];
-    const specs = adoptFrom(client, CWD, HOME, [], {
-      read,
-      onAdopt: (id, s) => scopes.push(`${id}:${s}`),
+describe("Claude Code — one switch of its own", () => {
+  it("asks the client itself for exclusivity, rather than editing its files", () => {
+    expect(detectClient("claude")?.exclusive(ctx())).toEqual({
+      args: ["--mcp-config", "/tmp/x/mcp.json", "--strict-mcp-config"],
     });
-    expect(specs.map((s) => s.id).sort()).toEqual(["crm", "notion"]);
-    expect(scopes.sort()).toEqual(["crm:local", "notion:user"]);
+  });
+});
+
+describe("Codex — no switch, so every server is named", () => {
+  const codex = detectClient("codex")!;
+
+  it("disables each server it has and adds ours, all on the command line", () => {
+    expect(codex.exclusive(ctx([stdio("notion", "codex"), stdio("crm", "codex")]))).toEqual({
+      args: [
+        "-c",
+        "mcp_servers.notion.enabled=false",
+        "-c",
+        "mcp_servers.crm.enabled=false",
+        "-c",
+        `mcp_servers.openmasq={url="${URL}"}`,
+      ],
+    });
   });
 
-  it("carries the credential across — that is the point of taking it over", () => {
-    const [crm] = adoptFrom(client, CWD, HOME, [], { read }).filter((s) => s.id === "crm");
-    expect(crm).toMatchObject({ transport: "stdio", env: { T: "sk-1" } });
+  /** ⚠️ A whole-table override MERGES (measured on codex-cli 0.149.1): `-c mcp_servers={…}`
+   *  leaves the user's servers in place and adds ours beside them. The per-server disabling
+   *  is not a stylistic choice, and this is the test that says so. */
+  it("never relies on replacing the table", () => {
+    const { args } = codex.exclusive(ctx([stdio("notion", "codex")])) as { args: string[] };
+    expect(args).not.toContain("mcp_servers={}");
+    expect(args.filter((a) => a.endsWith("enabled=false"))).toHaveLength(1);
   });
 
-  it("lets the user's own declaration win on the same id", () => {
-    const skipped: string[] = [];
-    const mine = [
-      { id: "notion", transport: "stdio" as const, command: "mine", args: [], env: {} },
-    ];
-    const specs = adoptFrom(client, CWD, HOME, mine, { read, onSkip: (id) => skipped.push(id) });
-    expect(specs.map((s) => s.id)).toEqual(["crm"]);
-    expect(skipped).toEqual(["notion"]);
+  it("leaves an entry that already is us alone — it is re-declared, not disabled", () => {
+    const own = [stdio("crm", "codex"), { id: "openmasq", scope: "codex", url: URL, raw: {} }];
+    const { args } = codex.exclusive(ctx(own)) as { args: string[] };
+    expect(args).not.toContain("mcp_servers.openmasq.enabled=false");
+    expect(args).toContain(`mcp_servers.openmasq={url="${URL}"}`);
   });
 
-  it("reports one unusable entry instead of losing every other", () => {
-    const broken = JSON.stringify({
-      mcpServers: { bad: { nothing: true }, good: { command: "g" } },
-    });
-    const skipped: string[] = [];
-    const specs = adoptFrom(client, CWD, HOME, [], {
-      read: () => broken,
-      onSkip: (id, why) => skipped.push(`${id}: ${why}`),
-    });
-    expect(specs.map((s) => s.id)).toContain("good");
-    expect(skipped[0]).toMatch(/^bad: /);
+  it("blocks rather than half-applying, for an id a `-c` path cannot address", () => {
+    const out = codex.exclusive(ctx([{ id: "my.crm", scope: "codex", raw: {} }]));
+    expect(out).toHaveProperty("blocked");
+    expect((out as { blocked: string }).blocked).toContain("my.crm");
   });
 
-  it("says nothing about a file that simply is not there", () => {
-    const skipped: string[] = [];
-    const specs = adoptFrom(client, CWD, HOME, [], {
-      read: () => {
-        throw new Error("ENOENT");
-      },
-      onSkip: (id) => skipped.push(id),
+  it("reads the servers Codex itself reports, and leaves a disabled one out", () => {
+    // Verbatim shape of `codex mcp list --json` (codex-cli 0.149.1).
+    const own = parseCodexList(
+      JSON.stringify([
+        { name: "crm", enabled: true, transport: { type: "stdio", command: "npx", args: ["crm"] } },
+        { name: "off", enabled: false, transport: { type: "stdio", command: "npx" } },
+        {
+          name: "notion",
+          enabled: true,
+          transport: { type: "streamable_http", url: "https://mcp.notion.com/mcp" },
+        },
+      ]),
+    );
+    expect(own.map((s) => s.id)).toEqual(["crm", "notion"]);
+    expect(own[0].raw).toEqual({ command: "npx", args: ["crm"], env: {} });
+    expect(own[1]).toMatchObject({ url: "https://mcp.notion.com/mcp" });
+  });
+});
+
+describe("Gemini CLI — an allow-list over what the user declared", () => {
+  const gemini = detectClient("gemini")!;
+
+  it("finds OUR entry by URL, whatever the user called it", () => {
+    const own = [stdio("crm"), { id: "masq", scope: "user", url: URL, raw: { url: URL } }];
+    expect(gemini.exclusive(ctx(own))).toEqual({
+      args: ["--allowed-mcp-server-names", "masq"],
     });
-    expect(specs).toEqual([]);
-    expect(skipped).toEqual([]);
+  });
+
+  /** An allow-list naming a server that is not declared leaves the session with NO tools at
+   *  all. Saying what to run once is the honest answer; a silent empty list is not. */
+  it("blocks with the one command to run when the proxy is not declared", () => {
+    const out = gemini.exclusive(ctx([stdio("crm")]));
+    expect((out as { blocked: string }).blocked).toContain(`gemini mcp add -s user -t http`);
+    expect((out as { blocked: string }).blocked).toContain(URL);
   });
 });

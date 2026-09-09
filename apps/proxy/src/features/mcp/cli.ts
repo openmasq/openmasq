@@ -4,7 +4,8 @@
 import { homedir } from "node:os";
 import { removeEntry, runAdd } from "./add.js";
 import { createStore, loginTo, openmasqDir, type AuthDeps } from "./auth.js";
-import { detectClient } from "./clients.js";
+import { DECLARING_CLIENTS } from "./clients.js";
+import { ownServers } from "./own.js";
 import { createPrompt } from "./prompt.js";
 import { resolveSpecs } from "./resolve.js";
 import { DEFAULT_MCP_CONFIG, type ServerSpec } from "./servers.js";
@@ -92,12 +93,20 @@ export async function runMcpCommand(
   const store = createStore();
   let specs: ServerSpec[];
   try {
+    // Every client whose servers can be read from a FILE. `status` must not run anybody's
+    // binary, so a probe-only client (Codex) is not asked here — the running proxy asks it,
+    // and only when that client is the one being wrapped.
     specs = resolveSpecs({
       configPath: parsed.configPath,
-      client: detectClient("claude"),
+      own: DECLARING_CLIENTS.flatMap((client) => {
+        const learned = ownServers(client, {
+          command: client.id,
+          cwd: process.cwd(),
+          home: homedir(),
+        });
+        return "own" in learned ? learned.own : [];
+      }),
       adopt: parsed.adopt,
-      cwd: process.cwd(),
-      home: homedir(),
     });
   } catch (err) {
     console.error(err instanceof Error ? err.message : String(err));
