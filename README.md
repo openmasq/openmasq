@@ -56,9 +56,11 @@ gateway; that service is not part of this build — see *Running it* below.)
 ## What's in the box
 
 - **Redaction engine** — deterministic rules, checksums and shape detectors, then a local
-  NER model. Runs on-device. Names, dates of birth, e-mails, phones, addresses, places,
-  companies, cards, IBANs, national identifiers, IPs, file paths, health data, handles,
-  URLs, keys and secrets.
+  NER model. Runs on-device. On by default: names, dates of birth, e-mails, phones,
+  addresses, places, companies, cards, IBANs, national and company identifiers, IPs,
+  handles, keys and secrets. One switch away, off by default: file paths, URLs and plain
+  dates — [`SECURITY.md`](SECURITY.md) says what each costs to turn on, and the Strict level
+  raises all three.
 - **Documents** — PDF, Office and image attachments are extracted (pdf.js, OCR via a
   vendored, hardened Tesseract + docTR) and redacted before they are sent.
 - **MCP connectors** — Gmail, Google Drive, Docs, Sheets, Calendar, Outlook, OneDrive,
@@ -390,10 +392,12 @@ ce service ne fait pas partie de ce build — voir *Le faire tourner* plus bas.)
 ## Ce qu'il y a dedans
 
 - **Le moteur de masquage** — des règles déterministes, des sommes de contrôle et des
-  détecteurs de forme, puis un modèle NER local. Tout s'exécute sur la machine. Noms, dates
-  de naissance, e-mails, téléphones, adresses, lieux, entreprises, cartes, IBAN,
-  identifiants nationaux, IP, chemins de fichiers, données de santé, pseudos, URL, clés et
-  secrets.
+  détecteurs de forme, puis un modèle NER local. Tout s'exécute sur la machine. Actifs par
+  défaut : noms, dates de naissance, e-mails, téléphones, adresses, lieux, entreprises,
+  cartes, IBAN, identifiants nationaux et d'entreprise, IP, pseudos, clés et secrets. À un
+  interrupteur, inactifs par défaut : chemins de fichiers, URL et dates ordinaires —
+  [`SECURITY.md`](SECURITY.md) dit ce que chacun coûte à activer, et le niveau Strict lève
+  les trois.
 - **Les documents** — les pièces jointes PDF, Office et images sont extraites (pdf.js, OCR
   par un Tesseract durci et vendorisé + docTR) puis masquées avant l'envoi.
 - **Les connecteurs MCP** — Gmail, Google Drive, Docs, Sheets, Agenda, Outlook, OneDrive,

@@ -259,14 +259,22 @@ export const REDACTION_CATEGORIES: CatalogRedactionCategory[] = BASE.map((c) => 
  *    the model needed to read.
  *  - `url` stays OFF — deliberately opt-in, and its absence is not a data risk the way a
  *    name, a handle or a key is.
- *  - every deterministic PII category (email/phone/card/iban/national_id/ip/path/
- *    secret) stays ON.
+ *  - every deterministic PII category (email/phone/card/iban/national_id/ip/secret)
+ *    stays ON.
+ *  - `path` is OFF by default, and that is a REVERSAL. It was on, and it cost more than it
+ *    protected: the engine fakes a path SEGMENT BY SEGMENT, so `apps`, `proxy`, `server.ts`
+ *    each became a vault entry, and a coding agent got back commands it could not run —
+ *    `echo` masked to `JVeoNe`, "command not found". What a path actually identifies is the
+ *    USERNAME in it, which `name` still covers; the rest is machine layout, which the model
+ *    needs to work and which says nothing about a person. Strict still turns it on, because
+ *    hiding the layout is exactly what Strict is for; anyone who wants it back has one
+ *    switch in Réglages ▸ Confidentialité, and a value already persisted as on stays on.
  *  - a RETIRED category is absent from `BASE`, hence OFF with no way back on.
  *
  * Keyed over the ENGINE's enum, not `BASE`, so the record stays total: consumers index it
  * by `RedactionCategory` and spread it as the seed for `Settings.redactCategories`.
  */
-const OFF_BY_DEFAULT = new Set<RedactionCategory>(["url", "date"]);
+const OFF_BY_DEFAULT = new Set<RedactionCategory>(["url", "date", "path"]);
 export const CATEGORY_DEFAULTS: Record<RedactionCategory, boolean> = Object.fromEntries(
   (Object.keys(CATEGORY_HUE) as RedactionCategory[]).map((key) => {
     const c = BASE.find((b) => b.key === key);
