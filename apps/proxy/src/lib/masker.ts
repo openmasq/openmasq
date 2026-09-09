@@ -35,9 +35,31 @@ export interface Masker {
   restoreArgs(text: string, vault: Vault): string;
 }
 
+/**
+ * The vendors' own vocabulary, kept in clear whatever the level. A coding agent's system
+ * prompt names its maker and its model on every call (« You are Claude Code », « Anthropic »,
+ * `claude-opus-…`); the on-device model reads « Claude » as a first name and « Anthropic » as
+ * a company, and the model was being told it is « Célestin » from « Corvanics » — measured on
+ * a real session, thirteen substitutions for a two-word prompt, four of them the user's.
+ * None of these is anybody's data. `keep` matches the WHOLE value, so « Claude Dupont » is
+ * still a person; only the bare word passes, which is the residual this accepts.
+ */
+export const VENDOR_TERMS: readonly string[] = [
+  "Anthropic", "Claude", "Claude Code", "OpenAI", "ChatGPT", "Codex", "GPT",
+  "Google", "Gemini", "Gemini CLI", "GitHub", "Copilot", "GitHub Copilot",
+  // …and their handle forms, which the username detector reads as somebody's (`@anthropic`
+  // in a package name or a trailer).
+  "@anthropic", "@anthropic-ai", "@openai", "@google", "@github",
+];
+
 export interface MaskerOptions {
   /** The on-device NER; absent ⇒ pattern rules only (the explicit `--rules-only`). */
   detectLocal?: DetectLocal;
+  /** The level in force — read per request, so the `l` key re-points it. It decides the
+   *  NOTORIETY dispensation: `renforce` spares famous brands and public figures (world
+   *  knowledge, never the user's data), `strict` spares nothing. Absent ⇒ the engine's own
+   *  defaults (brands redacted, people spared). */
+  level?: RedactionLevel;
   keep: string[];
   /** Kinds left in clear: what the level leaves off, plus `--disable`. */
   disabledKinds: string[];
@@ -72,7 +94,10 @@ export function createMasker(opts: MaskerOptions): Masker {
         mode,
         key,
         detectLocal: opts.detectLocal,
-        keep: opts.keep,
+        keep: [...opts.keep, ...VENDOR_TERMS],
+        ...(opts.level
+          ? { commercialNotoriety: opts.level !== "strict", peopleNotoriety: opts.level !== "strict" }
+          : {}),
         disabledKinds: opts.disabledKinds,
         forced: opts.forced,
         secrets: opts.secrets,

@@ -1,7 +1,7 @@
 // Which MCP servers this run has, from the two places they can come from: the user's own
-// declaration, and the client we are wrapping. One home, because the CLI's `mcp status` and
-// the running proxy must agree on the list — a `login` for a server the proxy would not have
-// connected is a login that helps nobody.
+// declaration, and the client we are wrapping. ONE function for both callers — the CLI's
+// `mcp status` and the running proxy read the same list — so a `login` never targets a server
+// the proxy would not have connected.
 import { existsSync } from "node:fs";
 import { adoptFrom, type AdoptEvents } from "./adopt.js";
 import type { OwnServer } from "./clients/index.js";

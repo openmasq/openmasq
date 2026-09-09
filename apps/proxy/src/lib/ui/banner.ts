@@ -88,6 +88,12 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
     config.disabledKinds.length ? `${config.disabledKinds.join(", ")} left in clear` : "",
   ].filter(Boolean);
   if (dials.length) rows.push(`${label("")}${tty.dim(dials.join(" · "))}`);
+  // What a level above `standard` costs, said where the level is chosen: the model reasons
+  // on substitutes, so an answer ABOUT a person or an organisation can come out different.
+  if (config.level !== "standard")
+    rows.push(
+      `${label("")}${tty.fg(HUE_HEX.amber, "names, companies, places replaced")} ${tty.dim("→ answers about them may differ")}`,
+    );
   if (d.mcp) {
     const writes =
       d.mcp.writes === "confirm"

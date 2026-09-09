@@ -51,6 +51,20 @@ describe("reporter", () => {
       matches: [],
       stream: false,
     });
+    // A relayed GET carried no text: ONE line, and no "nothing to mask" under it — a
+    // client's health probe must not read like a request that had nothing sensitive in it.
+    expect(c.lines.join("\n")).toContain("GET /v1/models");
+    expect(c.lines.join("\n")).not.toContain("nothing to mask");
+    // A POST that carried text and had nothing to mask still says so.
+    r.request({
+      method: "POST",
+      path: "/v1/messages",
+      family: "anthropic",
+      status: 200,
+      ms: 40,
+      matches: [],
+      stream: false,
+    });
     expect(c.lines.join("\n")).toContain("nothing to mask");
     const q = capture();
     const quiet = createReporter({ write: q.write, colors: false, quiet: true });

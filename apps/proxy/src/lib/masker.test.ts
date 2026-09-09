@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createMasker, disabledKindsFor, levelNeedsModel, tally } from "./masker";
+import { createMasker, disabledKindsFor, levelNeedsModel, tally, VENDOR_TERMS } from "./masker";
 
 // The engine on its pattern rules alone (no NER): what is pinned is the BINDING — a forced
 // term is masked whatever the detectors say, a secret is erased, a level leaves kinds in clear.
@@ -22,7 +22,10 @@ describe("masker", () => {
 
   it("derives the kinds a level leaves in clear from the catalogue, plus explicit disables", () => {
     const standard = disabledKindsFor("standard", []);
-    expect(standard).toContain("name"); // free-form identity readable at the reduced level
+    // `standard` is pattern rules alone: a name or a company is NEVER masked there, in any
+    // case — the level does not load the model that would find one.
+    expect(standard).toContain("name");
+    expect(standard).toContain("company");
     expect(standard).not.toContain("email");
     expect(disabledKindsFor("strict", [])).toEqual([]);
     expect(disabledKindsFor("renforce", ["email"])).toContain("email");
@@ -50,5 +53,38 @@ describe("masker", () => {
     const m = (category: string) =>
       ({ type: "x", value: "v", placeholder: "p", category }) as never;
     expect(tally([m("ORG"), m("COMPANY"), m("EMAIL")])).toEqual({ COMPANY: 2, EMAIL: 1 });
+  });
+
+  /** A stub detector standing in for the on-device model: it tags what it is told to. */
+  const tagging = (spans: { value: string; category: string }[]) => async () => spans;
+
+  it("keeps the vendors' own names in clear at every level — they are nobody's data", async () => {
+    expect(VENDOR_TERMS).toContain("Anthropic");
+    const m = createMasker({
+      ...base,
+      level: "strict",
+      detectLocal: tagging([
+        { value: "Claude", category: "NAME" },
+        { value: "Anthropic", category: "ORG" },
+      ]),
+    });
+    const r = await m.mask("You are Claude, made by Anthropic.", {}, "fake");
+    expect(r.text).toBe("You are Claude, made by Anthropic.");
+  });
+
+  it("spares a famous brand at renforce and masks it at strict — the level's own promise", async () => {
+    const tagger = tagging([{ value: "Airbus", category: "ORG" }]);
+    const renforce = await createMasker({ ...base, level: "renforce", detectLocal: tagger }).mask(
+      "Le dossier Airbus est prêt.",
+      {},
+      "fake",
+    );
+    expect(renforce.text).toContain("Airbus");
+    const strict = await createMasker({ ...base, level: "strict", detectLocal: tagger }).mask(
+      "Le dossier Airbus est prêt.",
+      {},
+      "fake",
+    );
+    expect(strict.text).not.toContain("Airbus");
   });
 });

@@ -21,6 +21,7 @@ import {
   isSelfBoundEntity,
 } from "./textContext";
 import { isGluedProse } from "./gluedProse";
+import { isMalformedEntity } from "./shapeGates";
 import { isBareNumber, numberCarriesMeaning } from "./numbers";
 
 type UrlSpans = Parameters<typeof occursOutsideUrl>[2];
@@ -156,6 +157,9 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
     // scanned documents. See `isGluedProse` for why the gate is narrow: a credential and
     // glued prose share a shape, and only the leading function word tells them apart.
     if (isGluedProse(c.value)) return false;
+    // A free-form entity whose SHAPE no name or company takes — a backtick, a sentence
+    // boundary, a kebab-case identifier: a NER reading Markdown as prose (`shapeGates.ts`).
+    if ((cat === "name" || cat === "company") && isMalformedEntity(c.value)) return false;
     // Notorious PUBLIC entity — world knowledge (a famous figure, a major company/fund/
     // ticker, a COUNTRY), never the user's own data: faking it makes the model answer
     // about nobody. Category-SCOPED (a person named "Jordan" is not the country — see

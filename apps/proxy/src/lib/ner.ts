@@ -40,7 +40,7 @@ export async function loadNer(dir: string): Promise<DetectLocal> {
   const modelDir = join(dir, ...NER_MODEL_ID.split("/"));
   if (!existsSync(modelDir)) {
     throw new Error(
-      `NER model not found at ${modelDir}. Bake it with \`pnpm bake:ner\` in apps/desktop, or point --ner at a bundle. The proxy never downloads.`,
+      `No NER model under ${dir}: expected ${NER_MODEL_ID.split("/").join("/")}/ inside it (the desktop's \`pnpm bake:ner\` output — point --ner at that bake's ROOT, not at a subfolder). The proxy never downloads.`,
     );
   }
   const entries: WeightEntry[] = Object.entries(NER_WEIGHTS_SHA256.multilingual).map(

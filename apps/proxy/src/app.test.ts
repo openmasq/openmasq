@@ -195,4 +195,14 @@ describe("proxy app", () => {
     expect((await call("/v1/models")).status).toBe(200);
     expect(await (await call("/healthz")).json()).toMatchObject({ ok: true, ner: false });
   });
+
+  /** Claude Code asks `HEAD /api/hello` of its base URL before the first call — a question
+   *  about THIS endpoint. Relayed, it reached a vendor with no such path, came back 404, and
+   *  sat in the journal under a family it never belonged to. */
+  it("answers a client's liveness probe itself, and files it as a probe", async () => {
+    const before = seen.length;
+    expect((await call("/api/hello", { method: "HEAD" })).status).toBe(200);
+    expect(seen.length).toBe(before); // never relayed
+    expect(reported[reported.length - 1]).toMatchObject({ path: "/api/hello", family: "probe" });
+  });
 });

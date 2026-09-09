@@ -146,6 +146,9 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
         ),
       );
       const total = e.matches.length;
+      // A relayed GET/HEAD carried no text: one line, not two — a client's health probe
+      // must not read like a request that had nothing sensitive in it.
+      if (!total && e.method !== "POST" && e.method !== "TOOL") return;
       write(
         `            ${total ? `${categoryPills(tty, counts)}  ${tty.dim(`${total} masked`)}` : tty.dim("nothing to mask")}`,
       );

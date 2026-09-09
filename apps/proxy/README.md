@@ -40,8 +40,14 @@ model sees. The reply carries `x-openmasq-masked: <count>`.
 **What is masked — the app's own dials**: `--level standard|renforce|strict` (the app's
 three levels, same category sets). **`standard` is the default here**: deterministic pattern
 rules (email, phone, card, IBAN, national id, IP, path, secrets), no model to load, ready in a
-fraction of a second. Names, companies, addresses and places come from the on-device model, so
-they are only masked at `renforce` and `strict` — which load it, and refuse to start without it, `--disable email,phone` (kinds
+fraction of a second — **a name or a company is never masked at `standard`**. Names, companies,
+addresses and places come from the on-device model, so they are only masked at `renforce` and
+`strict` — which load it, and refuse to start without it. ⚠️ Above `standard` the model reasons
+on substitutes, so **an answer about a person or an organisation can come out different**;
+the card and the console both say so. `renforce` still spares famous brands and public figures
+(world knowledge, never your data), and the vendors' own names (Anthropic, Claude, OpenAI,
+Gemini, Copilot…) stay in clear at every level — a coding agent's system prompt names them on
+every call, and a model told it is « Célestin » from « Corvanics » answers differently, `--disable email,phone` (kinds
 left in clear on top of the level), `--keep Stripe,Canva` (never masked), `--always
 "Groupe Delorme:company,FR76 3000…:iban"` (always masked whatever the detectors find — the
 app's Vault; types: name, username, email, phone, company, address, city, id, card, iban, ip,
