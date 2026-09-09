@@ -72,8 +72,18 @@ describe("Codex — no switch, so every server is named", () => {
         "mcp_servers.crm.enabled=false",
         "-c",
         `mcp_servers.openmasq={url="${URL}"}`,
+        "-c",
+        "features.apps=false",
       ],
     });
+  });
+
+  /** ⚠️ REGRESSION, from a real session: `codex mcp list --json` said « no servers » and the
+   *  model still had a dozen `mcp__codex_apps__*` tools — the built-in apps server, a feature
+   *  flag rather than a config entry. Disabling it is part of exclusivity, not an option. */
+  it("switches the built-in apps server off, which no listing reports", () => {
+    const { args } = codex.exclusive(ctx([])) as { args: string[] };
+    expect(args.join(" ")).toContain("-c features.apps=false");
   });
 
   /** ⚠️ A whole-table override MERGES (measured on codex-cli 0.149.1): `-c mcp_servers={…}`

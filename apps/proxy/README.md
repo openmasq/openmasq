@@ -97,7 +97,7 @@ rewriting anyone's configuration:
 | Client | How exclusivity is asked for | Setup |
 |---|---|---|
 | **Claude Code** | `--mcp-config <temp> --strict-mcp-config` | none — verified in a real session, the model's tool list came back as `mcp__openmasq__crm__*` and nothing else |
-| **Codex** | one `-c mcp_servers.<id>.enabled=false` per server it has, plus ours | none — the list comes from `codex mcp list --json`; a whole-table override would MERGE, so each server is named |
+| **Codex** | one `-c mcp_servers.<id>.enabled=false` per server it has, ours, and `features.apps=false` for the built-in apps server no listing reports | none — verified in a real session: the model's tool list was ours alone and the contact it printed was the vault's fake. `codex exec` needs `-c 'mcp_servers.openmasq.default_tools_approval_mode="approve"'` to call a tool non-interactively |
 | **Gemini CLI** | `--allowed-mcp-server-names <ours>` | once: `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp`. Wrap a session (`-- gemini`), not a subcommand — `gemini mcp list` refuses the flag |
 | **opencode** | a config file of ours in `OPENCODE_CONFIG`: our server added, each of its own disabled | none — but a project `opencode.json` outranks that file, so the proxy re-asks under its own configuration and refuses exclusivity if anything survived |
 | **Copilot CLI** | one `--disable-mcp-server <id>` per server, `--disable-builtin-mcps`, and ours through `--additional-mcp-config` | none — the list comes from `copilot mcp list --json`. Its own flags, read in the binary; a live run needs a GitHub login, so that half is not claimed here |
@@ -341,7 +341,7 @@ réécrit la configuration de personne :
 | Client | Comment l'exclusivité est demandée | Mise en place |
 |---|---|---|
 | **Claude Code** | `--mcp-config <temp> --strict-mcp-config` | rien — vérifié en session réelle, la liste d'outils du modèle est revenue avec `mcp__openmasq__crm__*` et rien d'autre |
-| **Codex** | un `-c mcp_servers.<id>.enabled=false` par serveur qu'il a, plus le nôtre | rien — la liste vient de `codex mcp list --json` ; un remplacement de table entière FUSIONNE, donc chaque serveur est nommé |
+| **Codex** | un `-c mcp_servers.<id>.enabled=false` par serveur qu'il a, le nôtre, et `features.apps=false` pour le serveur builtin qu'aucune liste ne montre | rien — vérifié en session réelle : la liste d'outils du modèle était le nôtre seul, et le contact imprimé était le faux du coffre. `codex exec` a besoin de `-c 'mcp_servers.openmasq.default_tools_approval_mode="approve"'` pour appeler un outil sans interaction |
 | **Gemini CLI** | `--allowed-mcp-server-names <le nôtre>` | une fois : `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp`. Enveloppez une session (`-- gemini`), pas une sous-commande — `gemini mcp list` refuse le drapeau |
 | **opencode** | un fichier de config à nous dans `OPENCODE_CONFIG` : notre serveur ajouté, chacun des siens désactivé | rien — mais un `opencode.json` de projet l'emporte sur ce fichier, alors le proxy repose la question sous sa propre configuration et refuse l'exclusivité si quelque chose a survécu |
 | **Copilot CLI** | un `--disable-mcp-server <id>` par serveur, `--disable-builtin-mcps`, et le nôtre via `--additional-mcp-config` | rien — la liste vient de `copilot mcp list --json`. Ses propres drapeaux, lus dans le binaire ; un run réel demande une connexion GitHub, donc cette moitié n'est pas revendiquée ici |

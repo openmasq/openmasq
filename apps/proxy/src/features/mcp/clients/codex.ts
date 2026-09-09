@@ -39,8 +39,20 @@ export function parseCodexList(stdout: string): OwnServer[] {
  * `mcp_servers.<id>.enabled=false` per server it has, plus ours as an inline table. Measured
  * on 0.149.1: a whole-table override MERGES (ours is added, theirs stay), which is why the
  * disabling is per server and why an id we cannot address blocks rather than half-applies.
- * Verified against a live proxy: `codex mcp list` came back with its two servers `disabled`
- * and `openmasq` `enabled`.
+ *
+ * ⚠️ One server is in NO list: `codex_apps`, the built-in that carries ChatGPT's apps (document
+ * control, plugin management, safety settings — `get_trusted_contact` among them) to the
+ * model with the user's ChatGPT account. `codex mcp list --json` answers « no servers » while
+ * a real session lists a dozen `mcp__codex_apps__*` tools. It is a feature flag, `apps`,
+ * stable and on by default; `features.apps=false` removes it — measured in a session:
+ * the tool list came back as `mcp__openmasq__crm__lookup_contact` and nothing else.
+ *
+ * Verified end to end on a real account: the model called our tool and printed a contact
+ * whose name, e-mail and phone were the vault's fakes, not the upstream's.
+ * `codex exec` refuses an MCP call under its default `approval_policy = never`; the setting
+ * that lets OUR tools through without the sandbox bypass is
+ * `-c 'mcp_servers.openmasq.default_tools_approval_mode="approve"'` — the user's call, so it
+ * is documented, not passed: the proxy's own write gate is the one that stays.
  */
 export const CODEX: AgentClient = {
   id: "codex",
@@ -64,6 +76,9 @@ export const CODEX: AgentClient = {
           .flatMap((s) => ["-c", `mcp_servers.${s.id}.enabled=false`]),
         "-c",
         `mcp_servers.openmasq={url=${JSON.stringify(url)}}`,
+        // The built-in apps server, which no listing shows (see above).
+        "-c",
+        "features.apps=false",
       ],
     };
   },
