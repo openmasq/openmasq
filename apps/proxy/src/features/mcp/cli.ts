@@ -4,7 +4,7 @@
 import { homedir } from "node:os";
 import { removeEntry, runAdd } from "./add.js";
 import { createStore, loginTo, openmasqDir, type AuthDeps } from "./auth.js";
-import { DECLARING_CLIENTS } from "./clients.js";
+import { DECLARING_CLIENTS } from "./clients/index.js";
 import { ownServers } from "./own.js";
 import { createPrompt } from "./prompt.js";
 import { resolveSpecs } from "./resolve.js";

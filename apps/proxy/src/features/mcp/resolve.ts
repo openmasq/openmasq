@@ -4,7 +4,7 @@
 // connected is a login that helps nobody.
 import { existsSync } from "node:fs";
 import { adoptFrom, type AdoptEvents } from "./adopt.js";
-import type { OwnServer } from "./clients.js";
+import type { OwnServer } from "./clients/index.js";
 import { DEFAULT_MCP_CONFIG, readServers, type ServerSpec } from "./servers.js";
 
 export interface ResolveOptions extends AdoptEvents {

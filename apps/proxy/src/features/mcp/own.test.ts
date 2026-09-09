@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { adoptFrom } from "./adopt";
-import { detectClient } from "./clients";
+import { detectClient } from "./clients/index";
 import { notOurs, ownServers, type Own } from "./own";
 
 const HOME = "/home/me";

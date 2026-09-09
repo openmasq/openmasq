@@ -13,7 +13,7 @@
 // subcommand.
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
-import { pick, type AgentClient, type OwnServer } from "./clients.js";
+import { pick, type AgentClient, type OwnServer } from "./clients/index.js";
 
 export type Own = { own: OwnServer[] } | { failed: string };
 
@@ -24,8 +24,9 @@ export interface OwnDeps {
   cwd: string;
   home: string;
   read?: (path: string) => string;
-  /** Run the client's own read-only subcommand and return its stdout. */
-  run?: (command: string, args: string[]) => string;
+  /** Run the client's own read-only subcommand and return its stdout. `env` carries what the
+   *  run would add — `recheck` asks the SAME question under the flags we computed. */
+  run?: (command: string, args: string[], env?: Record<string, string>) => string;
 }
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
@@ -45,8 +46,12 @@ function urlOf(raw: unknown): string | undefined {
   return undefined;
 }
 
-function probeRun(command: string, args: string[]): string {
-  const out = spawnSync(command, args, { encoding: "utf8", timeout: 15_000 });
+export function probeRun(command: string, args: string[], env?: Record<string, string>): string {
+  const out = spawnSync(command, args, {
+    encoding: "utf8",
+    timeout: 15_000,
+    ...(env ? { env: { ...process.env, ...env } } : {}),
+  });
   if (out.error) throw out.error;
   if (out.status !== 0) throw new Error(`exited ${out.status ?? "on a signal"}`);
   return out.stdout;

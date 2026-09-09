@@ -99,13 +99,15 @@ rewriting anyone's configuration:
 | **Claude Code** | `--mcp-config <temp> --strict-mcp-config` | none — verified in a real session, the model's tool list came back as `mcp__openmasq__crm__*` and nothing else |
 | **Codex** | one `-c mcp_servers.<id>.enabled=false` per server it has, plus ours | none — the list comes from `codex mcp list --json`; a whole-table override would MERGE, so each server is named |
 | **Gemini CLI** | `--allowed-mcp-server-names <ours>` | once: `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp`. Wrap a session (`-- gemini`), not a subcommand — `gemini mcp list` refuses the flag |
+| **opencode** | a config file of ours in `OPENCODE_CONFIG`: our server added, each of its own disabled | none — but a project `opencode.json` outranks that file, so the proxy re-asks under its own configuration and refuses exclusivity if anything survived |
+| **Copilot CLI** | one `--disable-mcp-server <id>` per server, `--disable-builtin-mcps`, and ours through `--additional-mcp-config` | none — the list comes from `copilot mcp list --json`. Its own flags, read in the binary; a live run needs a GitHub login, so that half is not claimed here |
 
 A client's own `mcp list` prints every CONFIGURED server: it inspects the config, not the
-session. **Any other client** — Cursor CLI, Copilot CLI (`--additional-mcp-config` merges),
-opencode (`OPENCODE_CONFIG` is read between the global and project files), goose
-(`--with-extension` only adds), Antigravity (no MCP flag at all) — offers no way to ask, so the proxy says so at startup rather
-than implying a mask it cannot apply: point it at `/mcp` yourself and switch its others off.
-Its MCP endpoint is standard streamable HTTP, so any MCP client can use it.
+session. **Any other client** — Cursor CLI, goose (`--with-extension` only adds), Antigravity
+(no MCP flag on its CLI, and its IDE has no bring-your-own-key hook either) — offers no way to
+ask, so the proxy says so at startup rather than implying a mask it cannot apply: point it at
+`/mcp` yourself and switch its others off. Its MCP endpoint is standard streamable HTTP, so
+any MCP client can use it.
 
 A remote the client authorised itself **cannot** be taken over — the OAuth token lives in its
 store, not ours — so it is reported as needing its own login here, and stays reachable only by
@@ -341,12 +343,13 @@ réécrit la configuration de personne :
 | **Claude Code** | `--mcp-config <temp> --strict-mcp-config` | rien — vérifié en session réelle, la liste d'outils du modèle est revenue avec `mcp__openmasq__crm__*` et rien d'autre |
 | **Codex** | un `-c mcp_servers.<id>.enabled=false` par serveur qu'il a, plus le nôtre | rien — la liste vient de `codex mcp list --json` ; un remplacement de table entière FUSIONNE, donc chaque serveur est nommé |
 | **Gemini CLI** | `--allowed-mcp-server-names <le nôtre>` | une fois : `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp`. Enveloppez une session (`-- gemini`), pas une sous-commande — `gemini mcp list` refuse le drapeau |
+| **opencode** | un fichier de config à nous dans `OPENCODE_CONFIG` : notre serveur ajouté, chacun des siens désactivé | rien — mais un `opencode.json` de projet l'emporte sur ce fichier, alors le proxy repose la question sous sa propre configuration et refuse l'exclusivité si quelque chose a survécu |
+| **Copilot CLI** | un `--disable-mcp-server <id>` par serveur, `--disable-builtin-mcps`, et le nôtre via `--additional-mcp-config` | rien — la liste vient de `copilot mcp list --json`. Ses propres drapeaux, lus dans le binaire ; un run réel demande une connexion GitHub, donc cette moitié n'est pas revendiquée ici |
 
 Le `mcp list` d'un client affiche les serveurs CONFIGURÉS : il inspecte la configuration, pas
-la session. **Tout autre client** — Cursor CLI, Copilot CLI (`--additional-mcp-config`
-fusionne), opencode (`OPENCODE_CONFIG` se lit entre le fichier global et celui du projet),
-goose (`--with-extension` ne fait qu'ajouter), Antigravity (aucun drapeau MCP) — n'offre
-aucun moyen de le demander : le proxy
+la session. **Tout autre client** — Cursor CLI, goose (`--with-extension` ne fait qu'ajouter),
+Antigravity (aucun drapeau MCP sur sa CLI, et son IDE n'a pas de crochet BYOK non plus) —
+n'offre aucun moyen de le demander : le proxy
 le dit au démarrage plutôt que de laisser croire à un masquage qu'il ne peut pas appliquer —
 pointez-le vous-même sur `/mcp` et désactivez ses autres serveurs. Son point d'accès MCP est
 un streamable HTTP standard : n'importe quel client MCP sait s'y brancher.

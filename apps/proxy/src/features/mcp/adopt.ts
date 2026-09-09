@@ -6,7 +6,7 @@
 // It works on what `own.ts` learned (a declaration read, or the client's own answer) and
 // never writes anything back. An entry that cannot be used is REPORTED, one by one: a single
 // malformed server must not cost the user every other.
-import type { OwnServer } from "./clients.js";
+import type { OwnServer } from "./clients/index.js";
 import { parseServerMap, type ServerSpec } from "./servers.js";
 
 export interface AdoptEvents {

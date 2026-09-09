@@ -12,9 +12,16 @@ import type { ProxyConfig } from "../../config/config.js";
 import type { Masker } from "../../lib/masker.js";
 import { createStore, providerFor } from "./auth.js";
 import { createBridge, type McpBridge } from "./bridge.js";
-import { CLIENT_IDS, detectClient, soleServerConfig, type OwnServer } from "./clients.js";
+import {
+  CLIENT_IDS,
+  detectClient,
+  OUR_ID,
+  soleServerConfig,
+  type AgentClient,
+  type OwnServer,
+} from "./clients/index.js";
 import { createConfirmer } from "./confirm.js";
-import { notOurs, ownServers } from "./own.js";
+import { notOurs, ownServers, probeRun } from "./own.js";
 import { resolveSpecs } from "./resolve.js";
 import type { ServerSpec } from "./servers.js";
 import { connectUpstream, type Upstream } from "./upstream.js";
@@ -42,6 +49,20 @@ export interface Integrations {
 
 const NONE: Integrations = { servers: [], exclusiveArgs: [], cleanup: () => {} };
 
+/**
+ * Ask the client the SAME question a second time, under the configuration we just handed it,
+ * and return what is still standing besides us. It fails CLOSED in both directions: a probe
+ * that errors counts as "everything survived", because an unverifiable exclusivity is not one.
+ */
+function recheck(client: AgentClient, command: string, env?: Record<string, string>): string[] {
+  if (!client.probe || !client.recheck) return [];
+  try {
+    return client.recheck(probeRun(command, client.probe.args, env), OUR_ID);
+  } catch (err) {
+    return [`the check could not be run (${err instanceof Error ? err.message : String(err)})`];
+  }
+}
+
 export async function startIntegrations(deps: StartDeps): Promise<Integrations> {
   const { config } = deps;
   // With `-- <client>`, the point is that OUR endpoint becomes its ONLY MCP: an agent that
@@ -61,6 +82,9 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
   // Exclusivity is decided BEFORE anything connects, because it decides adoption too: taking
   // a client's servers over while it still reaches them itself buys nobody anything.
   let exclusiveArgs: string[] = [];
+  /** Set only once the client HAS been made exclusive — the flags can legitimately be empty
+   *  (opencode's whole lever is an environment variable), so their count proves nothing. */
+  let exclusive = false;
   let own: OwnServer[] | undefined;
   if (client) {
     tempDir = mkdtempSync(join(tmpdir(), "openmasq-mcp-"));
@@ -75,15 +99,44 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     const outcome =
       "failed" in learned
         ? { blocked: `its own servers could not be listed (${learned.failed})` }
-        : client.exclusive({ configPath: file, url: endpoint, own: learned.own });
-    if ("blocked" in outcome)
+        : client.exclusive({
+            configPath: file,
+            dir: tempDir,
+            url: endpoint,
+            own: learned.own,
+            env: process.env,
+          });
+    // A client that needs a file in its OWN shape asked for one; it lives beside ours, in the
+    // directory that goes away with the run.
+    if (!("blocked" in outcome) && outcome.write)
+      writeFileSync(outcome.write.path, outcome.write.content, { mode: 0o600 });
+    // …and one whose only lever is an environment variable gets it here: `lib/wrap.ts` builds
+    // the child's environment from ours, so this is where a variable reaches the client
+    // without `runWrapped` having to know which client needs one.
+    if (!("blocked" in outcome) && outcome.env)
+      for (const [key, value] of Object.entries(outcome.env)) process.env[key] = value;
+    const survivors =
+      "blocked" in outcome || !client.recheck || !client.probe
+        ? []
+        : recheck(client, config.command[0], outcome.env);
+    const verdict =
+      survivors.length > 0
+        ? {
+            blocked:
+              `${survivors.join(", ")} survived the configuration we hand it — something ` +
+              "with more precedence declares it (a project file), so exclusivity would be " +
+              "partial. Disable it there for this run",
+          }
+        : outcome;
+    if ("blocked" in verdict)
       deps.note(
-        `${client.id}: ${outcome.blocked}. Until then its OWN MCP servers stay on, and those ` +
+        `${client.id}: ${verdict.blocked}. Until then its OWN MCP servers stay on, and those ` +
           "tool calls do NOT pass through the mask.",
         "warn",
       );
     else {
-      exclusiveArgs = outcome.args;
+      exclusiveArgs = verdict.args;
+      exclusive = true;
       own = notOurs("own" in learned ? learned.own : [], endpoint);
     }
   }
@@ -151,7 +204,7 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     servers,
     exclusiveArgs,
     // The card claims the client speaks to us and nobody else — only when it is true.
-    ...(exclusiveArgs.length && client ? { clientId: client.id } : {}),
+    ...(exclusive && client ? { clientId: client.id } : {}),
     cleanup,
   };
 }

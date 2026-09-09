@@ -69,14 +69,16 @@ is masked.
 | **Claude Code** | ✅ automatic | `--mcp-config <temp> --strict-mcp-config`, its own switch. Verified live: the tool list came back as `mcp__openmasq__crm__*` and nothing else |
 | **Codex** | ✅ automatic | one `-c mcp_servers.<id>.enabled=false` per server it declares (from `codex mcp list --json`) plus ours. Verified against a live proxy: its two servers came back `disabled`, `openmasq` `enabled` |
 | **Gemini CLI** | ✅ after one command | `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp` once, then the run passes `--allowed-mcp-server-names openmasq`. Verified live (connected, tools served). ⚠️ wrap a session, not a subcommand: `gemini mcp list` refuses the flag |
+| **opencode** | ✅ automatic | a config file of ours in `OPENCODE_CONFIG`: ours added, each of its own `enabled: false`. Verified live: its decoy came back `disabled`, `openmasq` `connected`. ⚠️ a project `opencode.json` outranks that file — the proxy re-asks under its own config and refuses exclusivity if anything survived (verified too) |
+| **Copilot CLI** | ✅ automatic | `--disable-mcp-server <id>` per server (list from `copilot mcp list --json`), `--disable-builtin-mcps`, ours via `--additional-mcp-config @file`. Flags read in the binary; a live session needs a GitHub login, so that half is unclaimed |
 | **Cursor CLI** | ✖ | no MCP flag at all |
-| **Copilot CLI** | ✖ | `--additional-mcp-config` merges; there is no replacing one |
-| **opencode** | ✖ | `OPENCODE_CONFIG` is read *between* the global and project files, so the global servers stay |
 | **goose** | ✖ | `--with-extension` / `--with-builtin` only ADD |
 | **Antigravity** | ✖ | no MCP flag on its CLI, and the IDE has no BYOK hook for the model half either. Point it at `/mcp` by hand in `~/.gemini/config/mcp_config.json` (or Settings ▸ Customizations ▸ Open MCP Config) — ⚠️ it spells the endpoint `serverUrl`, not `url` |
 
 A relocating home variable (`CODEX_HOME`, `GEMINI_CLI_HOME`, `COPILOT_HOME`) is never the
-answer: it moves the client's credentials along with its settings. For a ✖ client, point it at
+answer: it moves the client's credentials along with its settings. And opencode's
+`disabled_mcps: ["*", "!x"]` allow-list, which the forums describe, is not in the binary —
+grepped, absent in 1.18.30. For a ✖ client, point it at
 `/mcp` yourself and switch its own servers off — the proxy says so at startup rather than
 implying a mask it cannot apply.
 
@@ -123,14 +125,16 @@ directement, avec son propre identifiant, et rien de ce chemin n'est masqué.
 | **Claude Code** | ✅ automatique | `--mcp-config <temp> --strict-mcp-config`, son propre interrupteur. Vérifié en session réelle : la liste d'outils est revenue avec `mcp__openmasq__crm__*` et rien d'autre |
 | **Codex** | ✅ automatique | un `-c mcp_servers.<id>.enabled=false` par serveur déclaré (lus dans `codex mcp list --json`) plus le nôtre. Vérifié contre un proxy en vol : ses deux serveurs sont revenus `disabled`, `openmasq` `enabled` |
 | **Gemini CLI** | ✅ après une commande | `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp` une fois, puis le run passe `--allowed-mcp-server-names openmasq`. Vérifié en vol (connecté, outils servis). ⚠️ enveloppez une session, pas une sous-commande : `gemini mcp list` refuse le drapeau |
+| **opencode** | ✅ automatique | un fichier de config à nous dans `OPENCODE_CONFIG` : le nôtre ajouté, chacun des siens en `enabled: false`. Vérifié en vol : son leurre est revenu `disabled`, `openmasq` `connected`. ⚠️ un `opencode.json` de projet l'emporte sur ce fichier — le proxy repose la question sous sa propre config et refuse l'exclusivité si quelque chose a survécu (vérifié aussi) |
+| **Copilot CLI** | ✅ automatique | un `--disable-mcp-server <id>` par serveur (liste via `copilot mcp list --json`), `--disable-builtin-mcps`, le nôtre via `--additional-mcp-config @fichier`. Drapeaux lus dans le binaire ; une session réelle demande une connexion GitHub, donc cette moitié n'est pas revendiquée |
 | **Cursor CLI** | ✖ | aucun drapeau MCP |
-| **Copilot CLI** | ✖ | `--additional-mcp-config` fusionne ; aucun ne remplace |
-| **opencode** | ✖ | `OPENCODE_CONFIG` se lit *entre* le fichier global et celui du projet : les serveurs globaux restent |
 | **goose** | ✖ | `--with-extension` / `--with-builtin` ne font qu'AJOUTER |
 | **Antigravity** | ✖ | aucun drapeau MCP sur sa CLI, et l'IDE n'a pas non plus de crochet BYOK pour la moitié modèle. Pointez-le à la main sur `/mcp` dans `~/.gemini/config/mcp_config.json` (ou Réglages ▸ Customizations ▸ Open MCP Config) — ⚠️ il écrit `serverUrl`, pas `url` |
 
 Déplacer le dossier personnel (`CODEX_HOME`, `GEMINI_CLI_HOME`, `COPILOT_HOME`) n'est jamais la
-réponse : les identifiants suivent les réglages. Pour un client ✖, pointez-le vous-même sur
+réponse : les identifiants suivent les réglages. Et la liste blanche
+`disabled_mcps: ["*", "!x"]` d'opencode, décrite sur les forums, n'existe pas dans le binaire
+— cherchée, absente en 1.18.30. Pour un client ✖, pointez-le vous-même sur
 `/mcp` et désactivez ses propres serveurs — le proxy le dit au démarrage plutôt que de laisser
 croire à un masquage qu'il ne peut pas appliquer.
 
