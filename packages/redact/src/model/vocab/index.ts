@@ -52,8 +52,19 @@ import { PRO_TERMS } from "./pro";
 import { CLINICAL_TERMS } from "./clinical";
 import { FORM_TERMS } from "./form";
 import { EVERYDAY_TERMS } from "./everyday";
+import { SHELL_TERMS } from "./shell";
 
 export { ARIA_ROLE_TERMS };
+
+/**
+ * ⚠️ **`SHELL_CONTEXT_TERMS` is NOT folded into `VOCAB_TERMS` either**, and for rules 2
+ * and 3 above: `ls`/`cp` are somebody's initials and `ping`/`black`/`wall` are somebody's
+ * name. They are commands all the same, so they are spared where the TEXT proves a
+ * command line — `../genericTerms/shell.ts` `isShellCommandOccurrence`, reached through
+ * `isNonPiiTerm`. Same stance as `CLINICAL_TERMS`: scope the sparing, never widen the
+ * flat set.
+ */
+export { SHELL_CONTEXT_TERMS } from "./shell";
 
 /**
  * ⚠️ **`CLINIQUE_TERMS` is NOT folded into `VOCAB_TERMS`, and that is the whole design.**
@@ -81,4 +92,5 @@ export const VOCAB_TERMS: string[] = [
   ...PRO_TERMS, // meetings, sales & marketing, customer service, mobility
   ...FORM_TERMS, // form/letter furniture: labels, civil-status connectives, postal words
   ...EVERYDAY_TERMS, // the everyday: cooking, DIY, garden, sport, the car, the weather
+  ...SHELL_TERMS, // the terminal: builtins, coreutils, the classic tools, the dev CLIs
 ];

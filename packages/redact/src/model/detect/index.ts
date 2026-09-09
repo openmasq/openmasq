@@ -169,7 +169,7 @@ export async function detectWithModel(
       // marker path AND the `pseudonymize` fake path go through here): an ultra-common
       // function word ("tes"), a generic document/type word ("CV", "Facture") OR a bare
       // company legal form/role ("SASU", "Associé Unique") the detector over-flagged.
-      if (isNonPiiTerm(value)) continue;
+      if (isNonPiiTerm(value, undefined, input)) continue;
       // Case-insensitive reconciliation: redact each REAL-cased occurrence, so an
       // UPPERCASE name/city the model reported in normal case is still caught.
       for (const actual of caseInsensitiveOccurrences(input, value)) {
@@ -260,7 +260,7 @@ export async function discoverSecrets(
     if (isKept(value, keep)) continue; // allow-listed → never redact
     // Never PII on its own — the SAME test the fake path uses. This path used to check a
     // strict SUBSET, so a value spared as a fake was still redacted as a marker.
-    if (isNonPiiTerm(value)) continue;
+    if (isNonPiiTerm(value, undefined, input)) continue;
     if (disabled.has(redactionCategory(category))) continue;
     const placeholder = alloc.ensure(category, value);
     if (!seen.has(placeholder)) {

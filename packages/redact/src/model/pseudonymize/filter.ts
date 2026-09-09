@@ -150,7 +150,7 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
     // three call sites had drifted apart (see `isNonPiiTerm`). This is the choke point,
     // so dropping here protects the DETERMINISTIC detectors too.
     const cat = redactionCategory(c.category);
-    if (isNonPiiTerm(c.value, cat)) return false;
+    if (isNonPiiTerm(c.value, cat, input)) return false;
     // GLUED OCR PROSE. A scan whose words run together ("le20juin2024", "du20juin2024a")
     // is read as an opaque TOKEN by the credential rules — measured on a corpus of real
     // scanned documents. See `isGluedProse` for why the gate is narrow: a credential and

@@ -15,6 +15,8 @@ export { isStopword };
 import { GENERIC_TERMS } from "./data";
 import { CLINICAL_TERMS } from "../vocab";
 import { isPublicBodyCompound } from "./publicBodies";
+import { isShellCommandOccurrence } from "./shell";
+export { isShellCommandOccurrence };
 
 /** Molecules, pathologies, anatomy — spared EXCEPT under the `health` category. */
 const CLINICAL_TERM_SET = new Set(CLINICAL_TERMS.map((t) => t.toLowerCase()));
@@ -131,9 +133,12 @@ export function isGenericWithArticle(value: string): boolean {
 // « RCS MediaGroup » would be spared too — acceptable, it's a notorious brand.
 const REGISTRY_MENTION_RE = /^(rcs|greffe)\s+\S/i;
 
-export function isNonPiiTerm(value: string, category?: string): boolean {
+export function isNonPiiTerm(value: string, category?: string, input?: string): boolean {
   return (
     isStopword(value) ||
+    // A command name spared only where the text proves a command line (`shell.ts`): the
+    // agent next door WRITES shell, and a fake for `ls` rewrites the line it runs.
+    isShellCommandOccurrence(value, input) ||
     isGenericTerm(value) ||
     REGISTRY_MENTION_RE.test(value.trim()) ||
     isGenericCompound(value) ||
