@@ -148,9 +148,12 @@ describe("new detectors — extra vendor tokens & SSH", () => {
 
 describe("existing rules — IPv6 compression + SSN validation", () => {
   it("redacts compressed IPv6 that the old rule missed", () => {
-    expect(redacted("host fe80::1 up", "fe80::1")).toBe(true);
-    expect(redacted("gw 2001:db8::1 ok", "2001:db8::1")).toBe(true);
-    expect(redacted("addr 2001:db8::8a2e:370:7334 x", "2001:db8::8a2e:370:7334")).toBe(true);
+    // Compressed forms the old shape missed — on ULA/public addresses, i.e. real hosts.
+    // Reserved IPv6 (`::1`, fe80::/10 link-local, 2001:db8::/32 doc) is left in clear now
+    // (`reservedIp.test.ts`), so a masking test must use an address that names a host.
+    expect(redacted("host fd00::1 up", "fd00::1")).toBe(true);
+    expect(redacted("gw fd00::abcd:1 ok", "fd00::abcd:1")).toBe(true);
+    expect(redacted("addr fd12::8a2e:370:7334 x", "fd12::8a2e:370:7334")).toBe(true);
   });
   it("does NOT redact C++ scope / clock times as IPv6", () => {
     expect(kept("std::vector<int> v", "std::vector")).toBe(true);

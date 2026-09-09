@@ -212,31 +212,6 @@ export function isWordNumberGlue(s: string): boolean {
 // separates it from a key: we prefer a false positive over a leaked secret". The glued-prose
 // mechanism lives over there (`gluedProse.ts`), not here.
 
-/**
- * True when an `ip`-rule match is a genuine IP. IPv4 (no colon) is already octet-
- * validated by the rule's regex, so it always passes. The rule's "compact IPv6"
- * alternative, however, is loose enough to also grab colon-separated DECIMAL runs
- * that are really CLOCK TIMES (`21:21:09`, `10:50:28`) or short ids — a real IPv6 has
- * 8 hextets (or a `::` compression) and virtually always contains a hex letter or a
- * >2-char hextet. So a SHORT, all-simple-decimal colon match is rejected (it was
- * flooding the audit as "Adresses IP" false positives on timestamp columns).
- */
-/**
- * ⚠️ ACCEPTED RESIDUAL (audit R3): a 4-component VERSION string and a private IPv4 are the
- * same string — `10.2.4.1` is both "on passe en 10.2.4.1" and a valid RFC1918 address. No
- * signal inside the value separates them, and the only discriminator is context ("version",
- * "v"), which is locale-dependent prose. A context guard would therefore trade a certain
- * cost (a real internal IP, mentioned right after the word « version », left in CLEAR) for
- * a cosmetic gain. The engine's asymmetry decides it: over-redacting a version string is
- * noise, under-redacting an address is a privacy failure. So this is deliberately NOT
- * guarded — do not "fix" it without a discriminator that lives in the value.
- */
-export function isRealIp(match: string): boolean {
-  if (!match.includes(":")) return true; // IPv4 — octets already validated by the regex
-  const groups = match.split(":");
-  const structured = groups.some((g) => /[A-Fa-f]/.test(g) || g.length > 2);
-  return groups.length >= 8 || structured;
-}
 
 /**
  * A config VALUE that can never be a credential — so the UPPER_SNAKE env rule

@@ -1,5 +1,5 @@
 import type { RedactionRule, RedactionType } from "../../types";
-import { luhn, ibanValid, siret, latLong, isStructuredId, isRealIp, isIsin, isBenignConfigValue, deconfuseOcrDigits, isEpochMs, isDateTimeRun, luhnDigits } from "../validators";
+import { luhn, ibanValid, siret, latLong, isStructuredId, isRealIp, isReservedIp, isIsin, isBenignConfigValue, deconfuseOcrDigits, isEpochMs, isDateTimeRun, luhnDigits } from "../validators";
 import { ssnValid } from "../validators/validators.identifiers";
 import { isValidIntlPhone } from "../phones";
 import { ADDRESSED_URL } from "../urls";
@@ -371,12 +371,12 @@ export const RULES: RedactionRule[] = [
   // The three EMAIL arms (plain unicode, obfuscated [at], OCR-split space) —
   // ONE family: rules.email.ts. Order preserved: they ran exactly here.
   ...EMAIL_RULES,
-  // IPv4 (validated octets) + IPv6 incl. `::` compression (see IP_RE above).
-  // `isRealIp` rejects colon look-alikes (clock `21:21:09`, short decimal ids).
+  // IPv4 (validated octets) + IPv6 `::` compression. `isRealIp` rejects colon look-alikes;
+  // `isReservedIp` drops a special-use constant that names no host (`validators.network`).
   {
     type: "ip",
     pattern: IP_RE,
-    validate: isRealIp,
+    validate: (m) => isRealIp(m) && !isReservedIp(m),
   },
   // Generic API-key-ish token: ≥8 chars of [A-Za-z0-9_-] that mix at least one
   // digit AND at least one NON-HEX letter (g–z / G–Z). Requiring a non-hex letter

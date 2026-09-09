@@ -50,7 +50,9 @@ describe("clock times are NOT flagged as IPv6", () => {
   });
 
   it("still redacts a genuine IPv6", async () => {
-    const ipv6 = "2001:db8:85a3:8d3:1319:8a2e:370:7348";
+    // A ULA (fd00::/8) — a real host on a private network, so still masked. NOT 2001:db8::
+    // (documentation) nor fe80:: (link-local): those name no host and are left in clear.
+    const ipv6 = "fd12:3456:789a:1:1319:8a2e:370:7348";
     const vault: Vault = {};
     const { text } = await pseudonymize(`server ${ipv6} online`, { vault, numbers: false });
     expect(text).not.toContain(ipv6);
