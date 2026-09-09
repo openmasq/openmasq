@@ -116,7 +116,7 @@ so its column replays without Python.
 **On the app's categories** — the number that compares engines, every corpus read through one
 vocabulary:
 
-| corpus | cases | rules | **the product** | the product · Strict | PII-Tracer | OpenAI PF | Presidio |
+| corpus | cases | rules | the product · Renforcé | **the product** | PII-Tracer | OpenAI PF | Presidio |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | OpenMasq | 907 | 0.931 | 0.931 | 0.923 | 0.888 | 0.833 | 0.547 |
 | TAB | 127 | 0.425 | 0.606 | 0.855 | 0.742 | 0.435 | 0.815 |
@@ -128,7 +128,7 @@ vocabulary:
 nothing else. The two differ most where a corpus annotates a lot the product has no category
 for: Nemotron (occupation, religion, political view) and TAB (every date, every quantity).
 
-| corpus | cases | rules | **the product** | the product · Strict | PII-Tracer | OpenAI PF | Presidio |
+| corpus | cases | rules | the product · Renforcé | **the product** | PII-Tracer | OpenAI PF | Presidio |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | OpenMasq | 907 | 0.918 | 0.918 | 0.911 | 0.884 | 0.828 | 0.549 |
 | TAB | 127 | 0.388 | 0.566 | 0.804 | 0.690 | 0.397 | 0.766 |
@@ -141,37 +141,37 @@ for: Nemotron (occupation, religion, political view) and TAB (every date, every 
 | corpus | engine | F1 | contained | every mention |
 |---|---|---:|---:|---:|
 | OpenMasq | rules | 0.931 | 0.858 | 87 % |
-| OpenMasq | the product | 0.931 | 0.856 | 92 % |
-| OpenMasq | the product · Strict | 0.923 | 0.845 | 95 % |
+| OpenMasq | the product · Renforcé | 0.931 | 0.856 | 92 % |
+| OpenMasq | **the product** | 0.923 | 0.845 | 95 % |
 | OpenMasq | PII-Tracer | 0.888 | 0.783 | 92 % |
 | OpenMasq | OpenAI PF | 0.833 | 0.732 | 64 % |
 | OpenMasq | Presidio | 0.547 | 0.469 | 30 % |
 | TAB | rules | 0.425 | 0.252 | 6 % |
-| TAB | the product | 0.606 | 0.418 | 32 % |
-| TAB | the product · Strict | 0.855 | 0.687 | 49 % |
+| TAB | the product · Renforcé | 0.606 | 0.418 | 32 % |
+| TAB | **the product** | 0.855 | 0.687 | 49 % |
 | TAB | PII-Tracer | 0.742 | 0.695 | 35 % |
 | TAB | OpenAI PF | 0.435 | 0.339 | 15 % |
 | TAB | Presidio | 0.815 | 0.699 | 43 % |
 | Gretel | rules | 0.575 | 0.435 | 38 % |
-| Gretel | the product | 0.646 | 0.488 | 51 % |
-| Gretel | the product · Strict | 0.646 | 0.549 | 59 % |
+| Gretel | the product · Renforcé | 0.646 | 0.488 | 51 % |
+| Gretel | **the product** | 0.646 | 0.549 | 59 % |
 | Gretel | PII-Tracer | 0.611 | 0.535 | 55 % |
 | Gretel | OpenAI PF | 0.565 | 0.489 | 35 % |
 | Gretel | Presidio | 0.422 | 0.407 | 44 % |
 | ai4privacy | rules | 0.756 | 0.614 | 21 % |
-| ai4privacy | the product | 0.796 | 0.668 | 28 % |
-| ai4privacy | the product · Strict | 0.827 | 0.725 | 41 % |
+| ai4privacy | the product · Renforcé | 0.796 | 0.668 | 28 % |
+| ai4privacy | **the product** | 0.827 | 0.725 | 41 % |
 | ai4privacy | PII-Tracer | 0.952 | 0.920 | 99 % |
 | ai4privacy | OpenAI PF | 0.945 | 0.840 | 47 % |
 | ai4privacy | Presidio | 0.579 | 0.466 | 30 % |
 | Nemotron | rules | 0.627 | 0.596 | 47 % |
-| Nemotron | the product | 0.735 | 0.684 | 66 % |
-| Nemotron | the product · Strict | 0.928 | 0.794 | 78 % |
+| Nemotron | the product · Renforcé | 0.735 | 0.684 | 66 % |
+| Nemotron | **the product** | 0.928 | 0.794 | 78 % |
 | Nemotron | PII-Tracer | 0.887 | 0.801 | 68 % |
 | Nemotron | OpenAI PF | 0.736 | 0.676 | 50 % |
 | Nemotron | Presidio | 0.768 | 0.651 | 56 % |
 
-**Partial credit flatters everyone, and it flatters us most.** On TAB our Strict level scores
+**Partial credit flatters everyone, and it flatters us most.** On TAB the product scores
 0.855 on F1 and 49 % once every mention of an identifier has to be found. Read the last column if you want to
 know whether a document is safe; read the first if you want to compare detectors.
 
@@ -283,7 +283,7 @@ what ai4privacy is. On TAB, the only real text here, the same model drops to 0.5
   <img alt="Median response time per document, per corpus and per engine" src="figures/latency-en-light.png">
 </picture>
 
-| corpus | median chars | rules<br><sub>CPU</sub> | product<br><sub>CPU int8</sub> | product Strict<br><sub>CPU int8</sub> | PII-Tracer<br><sub>CPU</sub> | PII-Tracer<br><sub>GPU</sub> | Presidio<br><sub>CPU</sub> |
+| corpus | median chars | rules<br><sub>CPU</sub> | product · Renforcé<br><sub>CPU int8</sub> | product<br><sub>CPU int8</sub> | PII-Tracer<br><sub>CPU</sub> | PII-Tracer<br><sub>GPU</sub> | Presidio<br><sub>CPU</sub> |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | OpenMasq | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms | 4 ms |
 | TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s | 124 ms |
@@ -509,7 +509,7 @@ sa colonne se rejoue sans Python.
 **Sur les catégories de l'app** — le chiffre qui compare des moteurs, chaque corpus lu dans un
 vocabulaire unique :
 
-| corpus | cas | règles | **le produit** | le produit · Strict | PII-Tracer | OpenAI PF | Presidio |
+| corpus | cas | règles | le produit · Renforcé | **le produit** | PII-Tracer | OpenAI PF | Presidio |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | OpenMasq | 907 | 0.931 | 0.931 | 0.923 | 0.888 | 0.833 | 0.547 |
 | TAB | 127 | 0.425 | 0.606 | 0.855 | 0.742 | 0.435 | 0.815 |
@@ -522,7 +522,7 @@ rien d'autre. Les deux s'écartent le plus là où un corpus annote beaucoup de 
 produit n'a aucune catégorie : Nemotron (métier, religion, opinion politique) et TAB (toutes
 les dates, toutes les quantités).
 
-| corpus | cas | règles | **le produit** | le produit · Strict | PII-Tracer | OpenAI PF | Presidio |
+| corpus | cas | règles | le produit · Renforcé | **le produit** | PII-Tracer | OpenAI PF | Presidio |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | OpenMasq | 907 | 0.918 | 0.918 | 0.911 | 0.884 | 0.828 | 0.549 |
 | TAB | 127 | 0.388 | 0.566 | 0.804 | 0.690 | 0.397 | 0.766 |
@@ -535,37 +535,37 @@ les dates, toutes les quantités).
 | corpus | moteur | F1 | contenu | chaque mention |
 |---|---|---:|---:|---:|
 | OpenMasq | règles | 0.931 | 0.858 | 87 % |
-| OpenMasq | le produit | 0.931 | 0.856 | 92 % |
-| OpenMasq | le produit · Strict | 0.923 | 0.845 | 95 % |
+| OpenMasq | le produit · Renforcé | 0.931 | 0.856 | 92 % |
+| OpenMasq | **le produit** | 0.923 | 0.845 | 95 % |
 | OpenMasq | PII-Tracer | 0.888 | 0.783 | 92 % |
 | OpenMasq | OpenAI PF | 0.833 | 0.732 | 64 % |
 | OpenMasq | Presidio | 0.547 | 0.469 | 30 % |
 | TAB | règles | 0.425 | 0.252 | 6 % |
-| TAB | le produit | 0.606 | 0.418 | 32 % |
-| TAB | le produit · Strict | 0.855 | 0.687 | 49 % |
+| TAB | le produit · Renforcé | 0.606 | 0.418 | 32 % |
+| TAB | **le produit** | 0.855 | 0.687 | 49 % |
 | TAB | PII-Tracer | 0.742 | 0.695 | 35 % |
 | TAB | OpenAI PF | 0.435 | 0.339 | 15 % |
 | TAB | Presidio | 0.815 | 0.699 | 43 % |
 | Gretel | règles | 0.575 | 0.435 | 38 % |
-| Gretel | le produit | 0.646 | 0.488 | 51 % |
-| Gretel | le produit · Strict | 0.646 | 0.549 | 59 % |
+| Gretel | le produit · Renforcé | 0.646 | 0.488 | 51 % |
+| Gretel | **le produit** | 0.646 | 0.549 | 59 % |
 | Gretel | PII-Tracer | 0.611 | 0.535 | 55 % |
 | Gretel | OpenAI PF | 0.565 | 0.489 | 35 % |
 | Gretel | Presidio | 0.422 | 0.407 | 44 % |
 | ai4privacy | règles | 0.756 | 0.614 | 21 % |
-| ai4privacy | le produit | 0.796 | 0.668 | 28 % |
-| ai4privacy | le produit · Strict | 0.827 | 0.725 | 41 % |
+| ai4privacy | le produit · Renforcé | 0.796 | 0.668 | 28 % |
+| ai4privacy | **le produit** | 0.827 | 0.725 | 41 % |
 | ai4privacy | PII-Tracer | 0.952 | 0.920 | 99 % |
 | ai4privacy | OpenAI PF | 0.945 | 0.840 | 47 % |
 | ai4privacy | Presidio | 0.579 | 0.466 | 30 % |
 | Nemotron | règles | 0.627 | 0.596 | 47 % |
-| Nemotron | le produit | 0.735 | 0.684 | 66 % |
-| Nemotron | le produit · Strict | 0.928 | 0.794 | 78 % |
+| Nemotron | le produit · Renforcé | 0.735 | 0.684 | 66 % |
+| Nemotron | **le produit** | 0.928 | 0.794 | 78 % |
 | Nemotron | PII-Tracer | 0.887 | 0.801 | 68 % |
 | Nemotron | OpenAI PF | 0.736 | 0.676 | 50 % |
 | Nemotron | Presidio | 0.768 | 0.651 | 56 % |
 
-**Le crédit partiel flatte tout le monde, et nous le plus.** Sur TAB notre niveau Strict note
+**Le crédit partiel flatte tout le monde, et nous le plus.** Sur TAB le produit note
 0,855 en F1 et 49 % dès qu'il faut trouver chaque mention d'un identifiant. Lisez la dernière colonne si vous
 voulez savoir si un document est sûr ; la première si vous voulez comparer des détecteurs.
 
@@ -684,7 +684,7 @@ modèle tombe à 0,529 de rappel.
   <img alt="Temps de réponse médian par document, par corpus et par moteur" src="figures/latency-fr-light.png">
 </picture>
 
-| corpus | car. médians | rules<br><sub>CPU</sub> | product<br><sub>CPU int8</sub> | product Strict<br><sub>CPU int8</sub> | PII-Tracer<br><sub>CPU</sub> | PII-Tracer<br><sub>GPU</sub> | Presidio<br><sub>CPU</sub> |
+| corpus | car. médians | rules<br><sub>CPU</sub> | product · Renforcé<br><sub>CPU int8</sub> | product<br><sub>CPU int8</sub> | PII-Tracer<br><sub>CPU</sub> | PII-Tracer<br><sub>GPU</sub> | Presidio<br><sub>CPU</sub> |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | OpenMasq | 57 | 4 ms | 28 ms | 34 ms | 171 ms | 77 ms | 4 ms |
 | TAB | 3 740 | 47 ms | 1.1 s | 1.4 s | 3.3 s | 2.3 s | 124 ms |
@@ -771,7 +771,7 @@ length and mention count. Regenerate with `pnpm bench:spans --replay --markdown`
 ```
 ### ai4privacy — 2000 cases · 135871 annotated characters (121614 in the app's categories)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| metric | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | character-level precision | 0.892 | 0.865 | 0.867 | 0.920 | 0.935 | 0.568 |
 | character-level recall · the app's categories | 0.656 | 0.738 | 0.790 | 0.987 | 0.955 | 0.590 |
@@ -785,7 +785,7 @@ length and mention count. Regenerate with `pnpm bench:spans --replay --markdown`
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| mentions | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1 (12354) | 50 % | 58 % | 66 % | 99 % | 81 % | 41 % |
 | 2 (196) | 24 % | 32 % | 44 % | 99 % | 51 % | 31 % |
@@ -794,14 +794,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 
 Character-level F1 by language (all labels):
 
-| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| language | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | de (1031) | 0.716 | 0.765 | 0.806 | 0.950 | 0.905 | 0.472 |
 | en (969) | 0.705 | 0.737 | 0.787 | 0.955 | 0.913 | 0.703 |
 
 Character-level recall by APP CATEGORY (annotated characters · spans), all engines:
 
-| category | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| category | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | name (9950 · 1387) | 43 % | 80 % | 80 % | 98 % | 96 % | 40 % |
 | dob (8019 · 607) | 64 % | 64 % | 92 % | 100 % | 100 % | 77 % |
@@ -818,7 +818,7 @@ Character-level recall by APP CATEGORY (annotated characters · spans), all engi
 
 ### gretel — 2000 cases · 212640 annotated characters (206846 in the app's categories)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| metric | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | character-level precision | 0.718 | 0.664 | 0.587 | 0.606 | 0.696 | 0.350 |
 | character-level recall · the app's categories | 0.480 | 0.628 | 0.718 | 0.615 | 0.475 | 0.531 |
@@ -832,7 +832,7 @@ Character-level recall by APP CATEGORY (annotated characters · spans), all engi
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| mentions | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1 (7977) | 31 % | 37 % | 53 % | 60 % | 43 % | 45 % |
 | 2 (1236) | 42 % | 53 % | 62 % | 61 % | 38 % | 49 % |
@@ -842,14 +842,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 
 Character-level P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| length | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1k–10k (1427) | 0.772 / 0.447 / 0.566 | 0.687 / 0.596 / 0.638 | 0.601 / 0.693 / 0.644 | 0.795 / 0.561 / 0.658 | 0.831 / 0.430 / 0.567 | 0.344 / 0.526 / 0.416 |
 | <1k (573) | 0.600 / 0.539 / 0.567 | 0.604 / 0.667 / 0.634 | 0.550 / 0.794 / 0.649 | 0.385 / 0.793 / 0.519 | 0.501 / 0.613 / 0.551 | 0.372 / 0.541 / 0.441 |
 
 Character-level F1 by language (all labels):
 
-| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| language | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | en (1033) | 0.565 | 0.629 | 0.649 | 0.632 | 0.564 | 0.543 |
 | de (187) | 0.589 | 0.655 | 0.675 | 0.631 | 0.587 | 0.315 |
@@ -861,7 +861,7 @@ Character-level F1 by language (all labels):
 
 Character-level recall by APP CATEGORY (annotated characters · spans), all engines:
 
-| category | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| category | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | name (53583 · 3738) | 62 % | 76 % | 76 % | 76 % | 68 % | 67 % |
 | dob (946 · 86) | 82 % | 82 % | 89 % | 87 % | 86 % | 80 % |
@@ -881,7 +881,7 @@ Character-level recall by APP CATEGORY (annotated characters · spans), all engi
 
 ### internal — 907 cases · 49640 annotated characters (48081 in the app's categories)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| metric | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | character-level precision | 0.946 | 0.913 | 0.879 | 0.827 | 0.837 | 0.648 |
 | character-level recall · the app's categories | 0.917 | 0.950 | 0.973 | 0.958 | 0.829 | 0.473 |
@@ -895,7 +895,7 @@ Character-level recall by APP CATEGORY (annotated characters · spans), all engi
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| mentions | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1 (3166) | 82 % | 86 % | 88 % | 91 % | 75 % | 40 % |
 | 2 (67) | 87 % | 90 % | 94 % | 91 % | 63 % | 30 % |
@@ -903,14 +903,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 
 Character-level P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| length | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1k–10k (27) | 0.989 / 0.983 / 0.986 | 0.916 / 0.990 / 0.952 | 0.864 / 0.996 / 0.925 | 0.757 / 0.964 / 0.848 | 0.864 / 0.859 / 0.862 | 0.414 / 0.717 / 0.525 |
 | <1k (880) | 0.944 / 0.886 / 0.914 | 0.913 / 0.920 / 0.916 | 0.880 / 0.942 / 0.910 | 0.831 / 0.948 / 0.886 | 0.836 / 0.816 / 0.826 | 0.681 / 0.463 / 0.552 |
 
 Character-level F1 by language (all labels):
 
-| language | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| language | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | fr (468) | 0.907 | 0.917 | 0.911 | 0.861 | 0.796 | 0.572 |
 | en (215) | 0.941 | 0.943 | 0.931 | 0.918 | 0.873 | 0.527 |
@@ -929,7 +929,7 @@ Character-level F1 by language (all labels):
 
 Character-level recall by APP CATEGORY (annotated characters · spans), all engines:
 
-| category | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| category | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | name (8937 · 674) | 87 % | 97 % | 97 % | 98 % | 74 % | 51 % |
 | dob (986 · 88) | 95 % | 95 % | 100 % | 100 % | 98 % | 72 % |
@@ -954,7 +954,7 @@ Character-level recall by APP CATEGORY (annotated characters · spans), all engi
 
 ### nemotron — 2000 cases · 242739 annotated characters (193788 in the app's categories)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| metric | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | character-level precision | 0.929 | 0.909 | 0.933 | 0.965 | 0.970 | 0.871 |
 | character-level recall · the app's categories | 0.473 | 0.617 | 0.923 | 0.821 | 0.593 | 0.687 |
@@ -968,7 +968,7 @@ Character-level recall by APP CATEGORY (annotated characters · spans), all engi
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| mentions | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1 (10821) | 47 % | 55 % | 74 % | 82 % | 59 % | 60 % |
 | 2 (1498) | 50 % | 65 % | 79 % | 74 % | 55 % | 60 % |
@@ -978,14 +978,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 
 Character-level P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| length | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1k–10k (675) | 0.907 / 0.374 / 0.530 | 0.880 / 0.516 / 0.651 | 0.913 / 0.780 / 0.841 | 0.975 / 0.661 / 0.788 | 0.975 / 0.434 / 0.600 | 0.833 / 0.551 / 0.663 |
 | <1k (1325) | 0.946 / 0.470 / 0.628 | 0.935 / 0.566 / 0.706 | 0.952 / 0.816 / 0.879 | 0.957 / 0.828 / 0.888 | 0.967 / 0.620 / 0.755 | 0.904 / 0.642 / 0.751 |
 
 Character-level recall by APP CATEGORY (annotated characters · spans), all engines:
 
-| category | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| category | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | name (16514 · 2747) | 83 % | 99 % | 99 % | 99 % | 92 % | 89 % |
 | dob (2690 · 269) | 96 % | 96 % | 100 % | 100 % | 99 % | 100 % |
@@ -1008,7 +1008,7 @@ Character-level recall by APP CATEGORY (annotated characters · spans), all engi
 
 ### tab — 127 cases · 72746 annotated characters (64202 in the app's categories)
 
-| metric | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| metric | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | character-level precision | 0.767 | 0.844 | 0.901 | 0.989 | 0.947 | 0.930 |
 | character-level recall · the app's categories | 0.294 | 0.473 | 0.813 | 0.594 | 0.283 | 0.726 |
@@ -1022,7 +1022,7 @@ Character-level recall by APP CATEGORY (annotated characters · spans), all engi
 
 Identifiers whose every mention is fully covered, by number of mentions (all labels):
 
-| mentions | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| mentions | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1 (3925) | 17 % | 23 % | 58 % | 61 % | 27 % | 64 % |
 | 2 (319) | 8 % | 29 % | 53 % | 39 % | 18 % | 53 % |
@@ -1032,14 +1032,14 @@ Identifiers whose every mention is fully covered, by number of mentions (all lab
 
 Character-level P / R / F1 by text length (all labels):
 
-| length | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| length | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | 1k–10k (117) | 0.772 / 0.260 / 0.389 | 0.851 / 0.425 / 0.567 | 0.904 / 0.724 / 0.804 | 0.989 / 0.535 / 0.695 | 0.947 / 0.241 / 0.384 | 0.930 / 0.646 / 0.762 |
 | ≥10k (10) | 0.735 / 0.261 / 0.385 | 0.802 / 0.424 / 0.555 | 0.876 / 0.734 / 0.799 | 0.996 / 0.489 / 0.656 | 0.947 / 0.317 / 0.475 | 0.933 / 0.691 / 0.794 |
 
 Character-level recall by APP CATEGORY (annotated characters · spans), all engines:
 
-| category | openmasq `patterns` | **openmasq `ner`** (the product, Renforcé) | openmasq `ner` (Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
+| category | openmasq `patterns` | openmasq `ner` (Renforcé) | **openmasq `ner`** (the product, Strict) | PII-Tracer | OpenAI Privacy Filter | Presidio (default) |
 |---|---:|---:|---:|---:|---:|---:|
 | name (12931 · 987) | 71 % | 77 % | 77 % | 76 % | 71 % | 80 % |
 | date (31792 · 2468 · opt-in, off by default) | 18 % | 18 % | 87 % | 82 % | 28 % | 99 % |

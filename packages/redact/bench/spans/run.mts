@@ -114,7 +114,7 @@ async function measure(name: EngineName, dataset: string, cases: SpanCase[]): Pr
     ms: { median: +q(ms, 0.5).toFixed(1), p90: +q(ms, 0.9).toFixed(1), total: +ms.reduce((a, b) => a + b, 0).toFixed(0) }, preds };
 }
 
-const LABEL: Record<string, string> = { patterns: "openmasq `patterns`", ner: "**openmasq `ner`** (the product, Renforcé)", "ner-strict": "openmasq `ner` (Strict)", pplx: "PII-Tracer", opf: "OpenAI Privacy Filter", presidio: "Presidio (default)" };
+const LABEL: Record<string, string> = { patterns: "openmasq `patterns`", ner: "openmasq `ner` (Renforcé)", "ner-strict": "**openmasq `ner`** (the product, Strict)", pplx: "PII-Tracer", opf: "OpenAI Privacy Filter", presidio: "Presidio (default)" };
 const name = (e: string) => LABEL[e] ?? e;
 
 function render(dataset: string, cases: SpanCase[], cols: { engine: string; res: ResultFile; all: Scores; inn: Scores }[]) {

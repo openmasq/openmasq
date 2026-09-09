@@ -3,22 +3,23 @@
  * `spans/run.mts` (offsets) measure exactly the same pipeline.
  *
  *   patterns   — the deterministic pipeline alone (`pseudonymize` with no model).
- *   ner        — the product: deterministic + the bundled local NER, q8 on CPU through
+ *   ner        — deterministic + the bundled local NER, q8 on CPU through
  *                @huggingface/transformers, the same weights the desktop app ships
- *                (needs `pnpm build`, which bakes and sha256-pins them). Its INFERENCE is
- *                cached per chunk of text (`nerCache.ts`) — the two policies below share one
- *                model pass, and a rules-only change replays at the rules' speed.
- *                `OPENMASQ_BENCH_NER_CACHE=0` re-measures the model itself.
- *   ner-strict — the same, at the STRICT level.
+ *                (needs `pnpm build`, which bakes and sha256-pins them), at the RENFORCÉ
+ *                level. Its INFERENCE is cached per chunk of text (`nerCache.ts`) — the two
+ *                policies below share one model pass, and a rules-only change replays at the
+ *                rules' speed. `OPENMASQ_BENCH_NER_CACHE=0` re-measures the model itself.
+ *   ner-strict — THE PRODUCT: the same, at the STRICT level.
  *
  * Three POLICIES, and which bench uses which is the whole meaning of its numbers:
  *   bare      — `pseudonymize` with no options: every category on except the opt-in `date`,
  *               brands and public figures redacted. The value bench (`compare.mts`) — the
  *               engine's regression floor, comparable to every figure it ever published.
- *   renforce  — the product's DEFAULT level: the opt-in categories off (`url`, `username`,
- *               `date`), notorious brands and public figures spared. The span bench's
- *               product column: what a user gets out of the box.
- *   strict    — every category on, nothing spared. The span bench's second product column.
+ *   renforce  — the opt-in categories off (`url`, `username`, `date`), notorious brands and
+ *               public figures spared. The span bench's SECOND product column — and the
+ *               level a fresh install still starts on (`CATEGORY_DEFAULTS`).
+ *   strict    — every category on, nothing spared: THE PRODUCT, and the span bench's
+ *               product column — the level the product is measured and published as.
  * The two levels are the app's own rules (`@openmasq/catalog` `categoriesForLevel`,
  * `@openmasq/ui` `notorietyForLevel`), read from the catalog rather than restated here —
  * through a RELATIVE path, because this package must not depend on the catalog (the

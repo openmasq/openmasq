@@ -128,13 +128,13 @@ marks every date — so every upstream label is mapped onto one of the app's cat
 what no category covers is shown but not counted. A single number pooled over "whatever this
 corpus happened to annotate" mostly measures the distance between four taxonomies.
 
-| corpus | cases | `patterns` | **`ner`** (the product) | `ner` (Strict) | PII-Tracer | OpenAI PF | Presidio |
+| corpus | cases | `patterns` | **`ner`** (the product, Strict) | `ner` (Renforcé) | PII-Tracer | OpenAI PF | Presidio |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| OpenMasq | 907 | 0.931 | **0.931** | 0.923 | 0.888 | 0.833 | 0.547 |
-| TAB | 127 | 0.425 | **0.606** | 0.855 | 0.742 | 0.435 | 0.815 |
+| OpenMasq | 907 | 0.931 | **0.923** | 0.931 | 0.888 | 0.833 | 0.547 |
+| TAB | 127 | 0.425 | **0.855** | 0.606 | 0.742 | 0.435 | 0.815 |
 | Gretel | 2000 | 0.575 | **0.646** | 0.646 | 0.611 | 0.565 | 0.422 |
-| ai4privacy | 2000 | 0.756 | **0.796** | 0.827 | 0.952 | 0.945 | 0.579 |
-| Nemotron | 2000 | 0.627 | **0.735** | 0.928 | 0.887 | 0.736 | 0.768 |
+| ai4privacy | 2000 | 0.756 | **0.827** | 0.796 | 0.952 | 0.945 | 0.579 |
+| Nemotron | 2000 | 0.627 | **0.928** | 0.735 | 0.887 | 0.736 | 0.768 |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-en-dark.png">
@@ -446,13 +446,13 @@ religion, TAB marque toutes les dates — alors chaque étiquette amont est rame
 catégorie de l'app, et ce qu'aucune catégorie ne couvre est montré sans être compté. Un chiffre
 unique agrégé sur « ce que ce corpus a annoté » mesure surtout l'écart entre quatre taxonomies.
 
-| corpus | cas | `patterns` | **`ner`** (le produit) | `ner` (Strict) | PII-Tracer | OpenAI PF | Presidio |
+| corpus | cas | `patterns` | **`ner`** (le produit, Strict) | `ner` (Renforcé) | PII-Tracer | OpenAI PF | Presidio |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| OpenMasq | 907 | 0.931 | **0.931** | 0.923 | 0.888 | 0.833 | 0.547 |
-| TAB | 127 | 0.425 | **0.606** | 0.855 | 0.742 | 0.435 | 0.815 |
+| OpenMasq | 907 | 0.931 | **0.923** | 0.931 | 0.888 | 0.833 | 0.547 |
+| TAB | 127 | 0.425 | **0.855** | 0.606 | 0.742 | 0.435 | 0.815 |
 | Gretel | 2000 | 0.575 | **0.646** | 0.646 | 0.611 | 0.565 | 0.422 |
-| ai4privacy | 2000 | 0.756 | **0.796** | 0.827 | 0.952 | 0.945 | 0.579 |
-| Nemotron | 2000 | 0.627 | **0.735** | 0.928 | 0.887 | 0.736 | 0.768 |
+| ai4privacy | 2000 | 0.756 | **0.827** | 0.796 | 0.952 | 0.945 | 0.579 |
+| Nemotron | 2000 | 0.627 | **0.928** | 0.735 | 0.887 | 0.736 | 0.768 |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-fr-dark.png">
