@@ -82,3 +82,8 @@ scripts/checks/.pii-banned.json
 # Python virtualenv for the benchmark sidecars (`python3.12 -m venv v`, see packages/redact/bench)
 v/
 __pycache__/
+
+# Distillation corpora and their tokenised checkpoints (`packages/redact/bench/distil/`):
+# ~1 GB of downloaded datasets and .pt tensors, rebuilt from the bench scripts. Local R&D
+# output — a history is forever, and these would be in it forever too.
+packages/redact/bench/distil/
