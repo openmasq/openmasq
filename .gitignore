@@ -88,3 +88,7 @@ __pycache__/
 # belong. The path stays ignored so a stray local checkout of that work can never be
 # committed into this history by accident — a history is forever.
 packages/redact/bench/distil/
+
+# Latency baselines are MACHINE-LOCAL: a millisecond on an M1 is not one on a runner,
+# so a committed absolute would be wrong for everyone but its author.
+packages/redact/bench/spans/results/.latency.baseline.json
