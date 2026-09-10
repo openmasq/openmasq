@@ -2,7 +2,14 @@
 // own the terminal, and stop the proxy when it exits. The proxy's own lines go to a log
 // file meanwhile — a TUI (Claude Code, Codex) would otherwise paint over them.
 import { spawn } from "node:child_process";
-import { createWriteStream, mkdirSync } from "node:fs";
+import {
+  chmodSync,
+  createWriteStream,
+  mkdirSync,
+  renameSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { envLines } from "./baseUrls.js";
@@ -11,11 +18,45 @@ export function defaultLogFile(): string {
   return join(homedir(), ".openmasq", "proxy.log");
 }
 
-/** A line writer to `file` (created with its folder), appending. */
+/** Past this, the log is rotated to `<file>.1` and a fresh one started. Bounded on purpose:
+ *  an append-only file that a wrapper writes to on every run grows for the life of the
+ *  install, and nobody ever notices until it is large. */
+export const LOG_MAX_BYTES = 4 * 1024 * 1024;
+
+/**
+ * A line writer to `file` (created with its folder), appending.
+ *
+ * ⚠️ **0600, and it matters where the file is.** The log carries no VALUE — counts,
+ * categories, routes and timings only, and `--reveal` cannot be combined with `-- <tool>`,
+ * which is the only mode that opens this writer at all. But it does describe a person's
+ * activity minute by minute, and `--log` can point anywhere: the default lives in a 0700
+ * `~/.openmasq`, while `--log /tmp/x.log` would land in a directory everyone can read.
+ * The mode is set here so the destination cannot make it worse.
+ */
 export function fileWriter(file: string): (line: string) => void {
   mkdirSync(dirname(file), { recursive: true });
-  const out = createWriteStream(file, { flags: "a" });
+  rotate(file);
+  // Create it NOW, before the stream: `createWriteStream` opens lazily, so a mode set on a
+  // file that does not exist yet is a mode set on nothing.
+  writeFileSync(file, "", { flag: "a", mode: 0o600 });
+  const out = createWriteStream(file, { flags: "a", mode: 0o600 });
+  try {
+    chmodSync(file, 0o600); // an existing file keeps its old mode without this
+  } catch {
+    // A filesystem with no permission model (exFAT, a network share): the write still
+    // works, and failing the run over the mode would help nobody.
+  }
   return (line) => out.write(`${line}\n`);
+}
+
+/** Move an oversized log aside, keeping exactly one generation. */
+function rotate(file: string): void {
+  try {
+    if (statSync(file).size < LOG_MAX_BYTES) return;
+    renameSync(file, `${file}.1`);
+  } catch {
+    // Absent (the normal first run) or unrenameable: either way, appending is correct.
+  }
 }
 
 /** The child's environment: the caller's, plus the three base URLs. */
