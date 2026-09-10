@@ -419,6 +419,7 @@ export const LABELS: Record<RedactionType, string> = {
   github_token: "GITHUB_TOKEN",
   slack_token: "SLACK_TOKEN",
   bearer: "BEARER_TOKEN",
+  cookie: "COOKIE",
   ip: "IP",
   api_token: "TOKEN",
   card: "CARD",
@@ -433,6 +434,7 @@ export const LABELS: Record<RedactionType, string> = {
   crypto: "CRYPTO",
   mac: "MAC",
   geo: "GEO",
+  zipcode: "ZIP",
   phone: "PHONE",
   email: "EMAIL",
 };

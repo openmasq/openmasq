@@ -81,6 +81,25 @@ export const TOKEN_RULES: RedactionRule[] = [
     type: "api_key",
     pattern: /(?:ssh-(?:rsa|ed25519|dss)|ecdsa-sha2-nistp\d+) AAAA[0-9A-Za-z+/]{20,}={0,3}/g,
   },
+  // COOKIES. There was no cookie rule at all, and the gap was measured twice over: on the
+  // Nemotron corpus 313 of the 402 secrets the rules missed were a cookie declaration; on
+  // the product's own audit `Cookie: sessionid=…` matched nothing. The cookie NAME is an
+  // open set (`_gh_sess`, `__Secure-1PSID`, `my_app_sess`) and the value is opaque — but
+  // what follows is not: `; Path=`, `; Max-Age=`, `; HttpOnly`, `; SameSite=` and the
+  // `Set-Cookie:` / `Cookie:` header are literals no prose ever produces. That is the
+  // second clause of the precision bar, the same one that carries a vendor prefix.
+  // Two forms. The HEADER takes its whole line — every pair on it is a credential. The
+  // bare DECLARATION takes `name=value` only when a cookie attribute follows, and runs
+  // through the attributes so the fake replaces one coherent declaration.
+  {
+    type: "cookie",
+    pattern: /(?<=\b(?:set-cookie|cookie)[ \t]*:[ \t]*)(?!\[REDACTED_)[^\r\n]{8,}/gi,
+  },
+  {
+    type: "cookie",
+    pattern:
+      /(?<![\w.=-])(?!\[REDACTED_)[\w.-]{2,}=[^\s;]{4,}(?:[ \t]*;[ \t]*(?:path|max-age|expires|httponly|secure|samesite|domain|priority)(?:=[^\s;]*)?)+/gi,
+  },
   // The rest of the vendor prefixes, grouped by tail shape — `rules.vendors.ts`. Same
   // family, so they enter through the same door; they live in their own file only
   // because there are sixty of them and this one has a size to keep.

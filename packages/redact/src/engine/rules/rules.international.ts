@@ -3,6 +3,7 @@ import { isMrzShaped } from "../../kinds";
 import { APAC_RULES } from "./rules.international.apac";
 import { EUROPE_RULES } from "./rules.international.europe";
 import { US_RULES } from "./rules.international.us";
+import { COURT_RULES } from "./rules.court";
 import { LATAM_RULES } from "./rules.latam";
 
 // A DATE is only sensitive when it is a DATE OF BIRTH — a blanket date rule would
@@ -179,6 +180,7 @@ export const INTERNATIONAL_RULES: RedactionRule[] = [
   DATE_RULE,
   MRZ_RULE,
   ...US_RULES,
+  ...COURT_RULES,
   ...EUROPE_RULES,
   ...APAC_RULES,
   ...LATAM_RULES,
