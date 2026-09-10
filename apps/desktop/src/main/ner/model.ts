@@ -23,6 +23,15 @@ export const NER_MODEL_ID = `${BRAND.hfOrg}/bert-base-multilingual-cased-ner-hrl
  * substitute bytes — it can only fail the build. The rule's preferred end state is a
  * first-party re-export from Davlan's weights, vendored + pinned the same way; that is a
  * tracked follow-up, not a blocker, because the sha256 pin already carries the integrity.
+ *
+ * ⚠️ **LICENCE, verified at the source (2026-09-09).** Davlan's model card declares
+ * **AFL-3.0** — not Apache-2.0, which `NOTICE` claimed until it was corrected. The base
+ * `google-bert/bert-base-multilingual-cased` is Apache-2.0, but the FINE-TUNE carries its
+ * own author's terms. The Xenova re-export declares NO licence at all, which is one more
+ * reason the first-party re-export is the end state: it would take the terms from the
+ * author rather than from a repo that states none. Whether AFL-3.0 sits comfortably beside
+ * this project's Apache-2.0 for redistribution is a question for someone qualified to
+ * answer it — it is recorded here, not decided here.
  */
 export const NER_UPSTREAM = Object.freeze({
   repo: "Xenova/bert-base-multilingual-cased-ner-hrl",
