@@ -1,0 +1,46 @@
+import { describe, expect, it } from "vitest";
+import { REDACTION_CATEGORIES } from "@openmasq/catalog";
+import { redactionCategory } from "../kinds";
+import { nerLabelToCategory, TRAINED_LABELS } from "./labels";
+
+/**
+ * The seam between this product and the private `openmasq-model` repository. They cannot
+ * import each other, so the contract is: the trainer's `MODEL_LABELS` is a subset of
+ * `TRAINED_LABELS`, and every one of those resolves to a category the product actually has.
+ *
+ * Why this test exists: the mapper knew only CoNLL (PER/ORG/LOC), which is all the SHIPPED
+ * model emits. A model retrained on the product's own vocabulary would have had seven of
+ * its nine labels dropped here — no error, no warning, the spans simply gone.
+ */
+describe("the labels a retrained model may emit", () => {
+  const real = new Set(REDACTION_CATEGORIES.map((c) => c.key));
+
+  it("each resolve to a category this product has a switch for", () => {
+    for (const label of TRAINED_LABELS) {
+      const mapped = nerLabelToCategory(label);
+      expect(mapped, `${label} is dropped by the mapper`).not.toBe("");
+      expect(real, `${label} -> ${mapped}, which is not a product category`).toContain(
+        redactionCategory(mapped),
+      );
+    }
+  });
+
+  it("survive the BIO prefixes a token classifier emits", () => {
+    for (const label of TRAINED_LABELS) {
+      expect(nerLabelToCategory(`B-${label}`)).toBe(nerLabelToCategory(label));
+      expect(nerLabelToCategory(`I-${label.toLowerCase()}`)).toBe(nerLabelToCategory(label));
+    }
+  });
+
+  it("still map CoNLL, which is what the model in the box emits today", () => {
+    expect(nerLabelToCategory("PER")).toBe("NAME");
+    expect(nerLabelToCategory("B-ORG")).toBe("ORG");
+    expect(nerLabelToCategory("LOC")).toBe("CITY");
+  });
+
+  it("drop what is deliberately unmapped, rather than guessing", () => {
+    for (const label of ["MISC", "DATE", "TIME", "O", "NATIONALITY"]) {
+      expect(nerLabelToCategory(label)).toBe("");
+    }
+  });
+});
