@@ -46,6 +46,24 @@ categories forced off in a shipped build. `health` is one of them — the corpor
 medical record numbers and blood types, the product no longer redacts them, and the
 per-category table shows that hole rather than hiding it.
 
+### Read the TAB `name` column with a key
+
+TAB annotates the **title** inside the person span — "Mr C. Whomersley" is sixteen
+characters. The product leaves "Mr" in clear on purpose: it identifies nobody. Measured on
+the `ner` column, 76 % of the name characters still uncovered on TAB are that title —
+**14 points of recall**, offered to any engine that includes it and withheld from any that
+does not. Recomputed without titles (2026-09-10):
+
+| engine | `name` recall | without titles | titles covered |
+|---|---:|---:|---:|
+| `ner` (Davlan + rules) | 79 % | **94 %** | 9 % |
+| GLiNER multi-v2.1 | 95 % | 95 % | 94 % |
+| Presidio | 79 % | 90 % | 30 % |
+| PII-Tracer | 73 % | 76 % | 61 % |
+
+GLiNER's 18-point lead on names is the word "Mr". Of TAB's 987 person spans, the `ner`
+column leaves 101 entirely absent — that is the real remainder.
+
 ## The corpora
 
 Five. One we wrote, four public, and only one made of real text.
@@ -434,6 +452,24 @@ Le produit est mesuré **tel qu'il est livré** : l'arithmétique de niveaux de 
 les catégories forcées à l'arrêt dans un build livré. `health` en fait partie — les corpus
 annotent des numéros de dossier médical et des groupes sanguins, le produit ne les masque
 plus, et le tableau par catégorie montre ce trou plutôt que de le cacher.
+
+### La colonne `name` de TAB se lit avec une clé
+
+TAB annote le **titre** dans le span de la personne — « Mr C. Whomersley », seize
+caractères. Le produit laisse « Mr » en clair par choix : il n'identifie personne. Mesuré
+sur la colonne `ner`, 76 % des caractères de nom encore non couverts sur TAB sont ce
+titre — **14 points de rappel**, offerts à tout moteur qui l'inclut et retirés à tout moteur
+qui ne l'inclut pas. Recalculé hors titres (10/09/2026) :
+
+| moteur | rappel `name` | hors titres | titres couverts |
+|---|---:|---:|---:|
+| `ner` (Davlan + règles) | 79 % | **94 %** | 9 % |
+| GLiNER multi-v2.1 | 95 % | 95 % | 94 % |
+| Presidio | 79 % | 90 % | 30 % |
+| PII-Tracer | 73 % | 76 % | 61 % |
+
+L'avance de 18 points de GLiNER sur les noms est le mot « Mr ». Des 987 spans de personne
+de TAB, la colonne `ner` n'en laisse que 101 entièrement absents — c'est le vrai reste.
 
 ## Les corpus
 
