@@ -149,9 +149,23 @@ export function buildFakeName(
     // slug ("Julien_Sabourdin") or a handle ("julien.sabourdin"). Getting this wrong
     // faked "Pierre" from the SURNAME pool.
     if (i > 0 && /[\s._]/.test(parts[i - 1])) elementIdx++;
-    // Verbatim ONLY for what is not the user's data: initials, digits, punctuation,
-    // a particle, a trailing civility. Everything word-shaped gets a fake — see
-    // `isFakeableToken` for why this is not `isNamePart`.
+    // An INITIAL is the user's data too. In an anonymised court ruling « C. » is all that
+    // is left of the person, and a fake « C. Aubertin » hands the docket its first letter
+    // back — measured on TAB, 818 of the 969 person spans the engine missed were a title
+    // plus an initial. It gets another letter, seeded like a name token. This is SAFE for
+    // the vault: `nameAliases` refuses a single letter (`isNamePart` needs a word), so no
+    // « C » anywhere else in the conversation is ever rewritten; only the whole-name entry
+    // carries it, and reverses it, verbatim.
+    if (/^\p{Lu}$/u.test(part)) {
+      const seed = h + attempt + i * 7;
+      for (let k = 0; k < 26; k++) {
+        const cand = String.fromCharCode(65 + ((seed + k) % 26));
+        if (cand !== part) return cand;
+      }
+    }
+    // Verbatim ONLY for what is not the user's data: digits, punctuation, a particle, a
+    // trailing civility. Everything word-shaped gets a fake — see `isFakeableToken` for
+    // why this is not `isNamePart`.
     if (!isFakeableToken(part)) return part;
     const canon = resolveFake(part); // reuse the person's canonical fake for this word…
     if (canon) {
