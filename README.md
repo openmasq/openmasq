@@ -111,15 +111,17 @@ Two questions are measured, because they are not the same question:
   paper, so these numbers can sit beside the ones it publishes.
 
 **Values — did it leave?** Our corpus: 18 document families, 14 languages, real layouts, OCR
-damage, 907 cases, 3 357 annotated truths.
+damage, 907 cases, 3 364 annotated truths.
 
 | corpus | truths | `patterns` (no model) | **the product** (`ner`) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| **ours** | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 92 % · 530 FP | 46 % · 847 FP |
-| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | — | 58 % · 196 FP |
+| **ours** | 3 364 | 89 % · 89 FP | **95 %** · 251 FP | 92 % · 530 FP † | 46 % · 845 FP |
+| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 32 % · 6 FP | **75 %** · 111 FP | — | 58 % · 196 FP |
 
 A truth counts as *found* when ≥ 60 % of its significant tokens were replaced; a *false
-positive* (FP) is a detection overlapping no annotated value.
+positive* (FP) is a detection overlapping no annotated value. † PII-Tracer was measured on
+the corpus at 3 357 truths and has not been re-run since; the other columns come from the
+same run of `pnpm bench:compare`.
 
 **Characters — where was the line?** Five corpora, six engines, one scorer. Scored on **the
 categories this app actually has a switch for**: each corpus annotates its own idea of
@@ -429,15 +431,17 @@ Deux questions sont mesurées, parce que ce ne sont pas les mêmes :
   de Perplexity, pour que ces chiffres puissent se poser à côté des siens.
 
 **Les valeurs — est-ce sorti ?** Notre corpus : 18 familles de documents, 14 langues, vraies
-mises en page, dégât OCR, 907 cas, 3 357 vérités annotées.
+mises en page, dégât OCR, 907 cas, 3 364 vérités annotées.
 
 | corpus | vérités | `patterns` (sans modèle) | **le produit** (`ner`) | PII-Tracer | Presidio (par défaut) |
 |---|---:|---:|---:|---:|---:|
-| **le nôtre** | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 92 % · 530 FP | 46 % · 847 FP |
-| **celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | — | 58 % · 196 FP |
+| **le nôtre** | 3 364 | 89 % · 89 FP | **95 %** · 251 FP | 92 % · 530 FP † | 46 % · 845 FP |
+| **celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 32 % · 6 FP | **75 %** · 111 FP | — | 58 % · 196 FP |
 
 Une vérité compte comme *trouvée* quand ≥ 60 % de ses tokens significatifs ont été remplacés ;
-un *faux positif* (FP) est une détection qui ne chevauche aucune valeur annotée.
+un *faux positif* (FP) est une détection qui ne chevauche aucune valeur annotée. † PII-Tracer a
+été mesuré sur le corpus à 3 357 vérités et n'a pas été rejoué depuis ; les autres colonnes
+viennent d'une même exécution de `pnpm bench:compare`.
 
 **Les caractères — où était la limite ?** Cinq corpus, six moteurs, un seul scoreur. Notés sur
 **les catégories que cette app a vraiment en réglage** : chaque corpus annote sa propre idée
