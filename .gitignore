@@ -83,7 +83,8 @@ scripts/checks/.pii-banned.json
 v/
 __pycache__/
 
-# Distillation corpora and their tokenised checkpoints (`packages/redact/bench/distil/`):
-# ~1 GB of downloaded datasets and .pt tensors, rebuilt from the bench scripts. Local R&D
-# output — a history is forever, and these would be in it forever too.
+# Model TRAINING lives in the private `openmasq-model` repository, not here: the corpora,
+# the checkpoints and the cloud setup are R&D, and a public product repo is not where they
+# belong. The path stays ignored so a stray local checkout of that work can never be
+# committed into this history by accident — a history is forever.
 packages/redact/bench/distil/
