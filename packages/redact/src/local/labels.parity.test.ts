@@ -38,6 +38,19 @@ describe("the labels a retrained model may emit", () => {
     expect(nerLabelToCategory("LOC")).toBe("CITY");
   });
 
+  it("send every credential family to the real secret category, not the loose heuristic", () => {
+    // `apikey` is the catalogue's own broad guess ("toute chaîne qui RESSEMBLE à une clé").
+    // Switching it off must not stop a session cookie or a private key from being masked.
+    for (const label of ["SECRET", "COOKIE", "APIKEY", "JWT", "PRIVKEY", "CONNSTR"]) {
+      // ⚠️ Assert the MAPPING first. `redactionCategory("")` is itself "secret" — its
+      // fall-through — so checking only the category passes just as happily when the label
+      // was dropped entirely. That is the exact silent failure this file exists to catch,
+      // and it caught this test being written the lazy way.
+      expect(nerLabelToCategory(label), `${label} is dropped by the mapper`).not.toBe("");
+      expect(redactionCategory(nerLabelToCategory(label)), label).toBe("secret");
+    }
+  });
+
   it("drop what is deliberately unmapped, rather than guessing", () => {
     for (const label of ["MISC", "DATE", "TIME", "O", "NATIONALITY"]) {
       expect(nerLabelToCategory(label)).toBe("");
