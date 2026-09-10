@@ -22,6 +22,14 @@ describe("config", () => {
     expect(() => parseArgs(["--nope"])).toThrow(/Unknown flag/);
   });
 
+  it("takes the terminal's ground from the flag, the env, or leaves it to auto", () => {
+    expect(parseArgs([]).theme).toBe("auto");
+    expect(parseArgs(["--theme", "light"]).theme).toBe("light");
+    expect(parseArgs([], { OPENMASQ_PROXY_THEME: "dark" }).theme).toBe("dark");
+    expect(parseArgs(["--theme", "dark"], { OPENMASQ_PROXY_THEME: "light" }).theme).toBe("dark");
+    expect(() => parseArgs(["--theme", "sepia"])).toThrow(/auto, light or dark/);
+  });
+
   it("takes a tool to wrap after --, and a log file for its request lines", () => {
     const c = parseArgs(["--level", "strict", "--log", "/tmp/p.log", "--", "claude", "--resume"]);
     expect(c).toMatchObject({
@@ -37,6 +45,10 @@ describe("config", () => {
     expect(parseArgs(["--reveal"]).reveal).toBe(true);
     expect(() => parseArgs(["--reveal", "--json"])).toThrow(/machine log/);
     expect(() => parseArgs(["--reveal", "--", "claude"])).toThrow(/owns the terminal/);
+    // …unless the console page is there to show them: that page is the operator's screen
+    // for a wrapped run, and the log file stays counts-only (`reporter.test.ts`, `revealFor`).
+    const c = parseArgs(["--reveal", "--console", "--", "claude"]);
+    expect(c.reveal && c.console && c.command).toEqual(["claude"]);
   });
 
   it("binds loopback only — the host is not a flag", () => {

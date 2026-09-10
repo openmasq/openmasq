@@ -4,6 +4,7 @@
 import { readFileSync } from "node:fs";
 
 import type { RedactionLevel } from "@openmasq/catalog";
+import type { ThemeChoice } from "../lib/ui/theme.js";
 import { USAGE } from "./usage.js";
 
 export { USAGE };
@@ -78,6 +79,10 @@ export interface ProxyConfig {
   /** Wrapping a client with `--mcp`: take over the MCP servers IT declares, so making our
    *  endpoint its only one does not cost it the integrations it already had. */
   mcpAdopt: boolean;
+  /** Which ground the terminal paints on: it decides the brand block and the footer bar, the
+   *  two places that carry a background of their own (`lib/ui/palette.ts`). `auto` asks the
+   *  terminal (`COLORFGBG`) and falls back to dark. */
+  theme: ThemeChoice;
   /** Serve the live console at /console. A token is minted per run and printed on the card;
    *  loopback alone is not an access control (`features/console/routes.ts` says why). */
   console: boolean;
@@ -108,6 +113,7 @@ export const DEFAULTS: ProxyConfig = {
   mcpWrites: "confirm",
   mcpAdopt: true,
   console: false,
+  theme: "auto",
 };
 
 /** One secret per line; blank lines and `#` comments ignored. The file is never logged. */
@@ -120,6 +126,9 @@ export function readSecretsFile(
     .map((l) => l.trim())
     .filter((l) => l && !l.startsWith("#"));
 }
+
+const themeChoice = (v: string | undefined): ThemeChoice | undefined =>
+  v === "auto" || v === "light" || v === "dark" ? v : undefined;
 
 const list = (v: string | undefined): string[] =>
   (v ?? "")
@@ -144,6 +153,7 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
       : DEFAULTS.level,
     always: parseAlways(env.OPENMASQ_PROXY_ALWAYS ?? ""),
     secrets: [],
+    theme: themeChoice(env.OPENMASQ_PROXY_THEME) ?? DEFAULTS.theme,
     mcpConfig: env.OPENMASQ_PROXY_MCP_CONFIG ?? "",
     mcp: !!env.OPENMASQ_PROXY_MCP_CONFIG,
     mcpWrites: (WRITE_POLICIES as readonly string[]).includes(env.OPENMASQ_PROXY_MCP_WRITES ?? "")
@@ -227,6 +237,12 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
       case "--console":
         c.console = true;
         break;
+      case "--theme": {
+        const t = themeChoice(next());
+        if (!t) throw new Error("--theme is auto, light or dark");
+        c.theme = t;
+        break;
+      }
       case "--mcp-config":
         c.mcpConfig = next();
         c.mcp = true;
@@ -259,12 +275,16 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
   // revealed value would be written down, copied and backed up. A same-terminal bar was tried
   // and removed: a scroll region does not change what the child believes the screen is (a
   // child under a 1..34 region of 40 rows still reports `40 100`), so a repainting tool paints
-  // straight through it. Read the log, or run the proxy in its own window.
-  if (c.reveal && c.command.length)
+  // straight through it. The one screen that CAN show a value during a wrapped run is the
+  // console page — loopback, a token per run — so `--console` lifts the refusal, and the
+  // value then goes to that page ONLY: the file reporter is built without reveal
+  // (`server.ts`, `revealFor`), whatever the flag says.
+  if (c.reveal && c.command.length && !c.console)
     throw new Error(
-      "--reveal cannot be used with `-- <tool>`: the tool owns the terminal, so the lines would\n" +
-        "go to the log file. Run the proxy in its own window with --reveal, and start the tool in\n" +
-        "another with the printed base URLs (press c to copy them).",
+      "--reveal cannot be used with `-- <tool>` alone: the tool owns the terminal, so the lines\n" +
+        "would go to the log file. Add --console to see the values on the console page (the log\n" +
+        "keeps counts only), or run the proxy in its own window with --reveal and start the tool\n" +
+        "in another with the printed base URLs (press c to copy them).",
     );
   return c;
 }

@@ -16,7 +16,8 @@
     "bench": "tsx bench/run.ts",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist .turbo",
-    "tokens": "node scripts/gen-console-tokens.mjs"
+    "tokens": "node scripts/gen-console-tokens.mjs",
+    "preview:ui": "tsx scripts/preview-ui.mts"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

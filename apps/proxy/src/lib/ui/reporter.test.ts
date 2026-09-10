@@ -2,7 +2,7 @@ import type { RedactionMatch } from "@openmasq/redact";
 import { describe, expect, it } from "vitest";
 import { DEFAULTS } from "../../config/config";
 import { categoryPill } from "./pills";
-import { createReporter } from "./reporter";
+import { createReporter, revealFor } from "./reporter";
 import { createTty } from "./tty";
 
 const m = (category: string): RedactionMatch =>
@@ -154,6 +154,31 @@ describe("reporter", () => {
     expect(s.lines.join("\n")).toContain("pattern rules only");
   });
 
+  /** The card is where the upstreams are stated, so the reporter reads them there rather than
+   *  having every call site carry a host: a reporter that printed no card names the family. */
+  it("learns from the card which host each family goes to", () => {
+    const c = capture();
+    const r = createReporter({ write: c.write, colors: false, now: () => 0 });
+    const e = {
+      method: "POST",
+      path: "/v1/messages",
+      family: "anthropic",
+      status: 200,
+      ms: 1,
+      matches: [],
+      stream: false,
+    };
+    r.request(e);
+    expect(c.lines.join("\n")).toContain("anthropic");
+    expect(c.lines.join("\n")).not.toContain("api.anthropic.com");
+    r.banner(DEFAULTS, { model: "rules", version: "0.1.0" });
+    const after = capture();
+    const r2 = createReporter({ write: after.write, colors: false, now: () => 0 });
+    r2.banner(DEFAULTS, { model: "rules", version: "0.1.0" });
+    r2.request(e);
+    expect(after.lines.join("\n")).toContain("api.anthropic.com");
+  });
+
   it("colours a pill with the category's own hue, and prints plain brackets without colours", () => {
     const colored = categoryPill(createTty(true), "EMAIL", 1);
     expect(colored).toMatch(/\[48;2;\d+;\d+;\d+m/); // a 24-bit background
@@ -212,5 +237,31 @@ describe("reporter", () => {
       stream: false,
     });
     expect(j.lines.join("\n")).not.toContain("Camille Roussel");
+  });
+
+  /** ⚠️ The property behind `--reveal --console -- <tool>`: the console page shows the
+   *  values, the log FILE never does. The file reporter's toggle is off whatever the flag
+   *  says — and stays off, since it is a separate object the `f` key never reaches. */
+  it("never carries the reveal toggle into a file", () => {
+    const reveal = { on: true };
+    const file = revealFor(reveal, { toFile: true });
+    expect(file.on).toBe(false);
+    reveal.on = true;
+    expect(file.on).toBe(false);
+    expect(revealFor(reveal, { toFile: false })).toBe(reveal);
+    const c = capture();
+    const r = createReporter({ write: c.write, colors: false, reveal: file });
+    r.request({
+      method: "POST",
+      path: "/v1/messages",
+      family: "anthropic",
+      status: 200,
+      ms: 5,
+      matches: [
+        { type: "name", value: "REAL-VALUE", placeholder: "FAKE", category: "name" } as never,
+      ],
+      stream: false,
+    });
+    expect(c.lines.join("\n")).not.toContain("REAL-VALUE");
   });
 });

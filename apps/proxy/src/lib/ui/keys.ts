@@ -19,9 +19,9 @@ export interface KeyActions {
 
 export const KEY_HINTS: KeyHint[] = [
   { key: "l", label: "level" },
-  { key: "m", label: "fakes/tokens" },
-  { key: "f", label: "show values" },
-  { key: "c", label: "copy env" },
+  { key: "m", label: "tokens" },
+  { key: "f", label: "values" },
+  { key: "c", label: "copy" },
   { key: "s", label: "summary" },
   { key: "x", label: "clear" },
   { key: "?", label: "keys" },

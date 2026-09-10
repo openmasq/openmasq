@@ -54,7 +54,12 @@ describe("what the client says it has", () => {
         b: { url: "https://mcp.notion.com/mcp", type: "http" },
       },
     });
-    const out = ownServers(gemini, { command: "gemini", cwd: CWD, home: HOME, read: () => settings });
+    const out = ownServers(gemini, {
+      command: "gemini",
+      cwd: CWD,
+      home: HOME,
+      read: () => settings,
+    });
     if ("failed" in out) throw new Error(out.failed);
     expect(out.own.map((s) => s.url)).toEqual([
       "http://127.0.0.1:8787/mcp",
@@ -100,7 +105,9 @@ describe("what the client says it has", () => {
         ]);
       },
     });
-    expect(out).toEqual({ own: [{ id: "crm", scope: "codex", raw: { command: "npx", args: [], env: {} } }] });
+    expect(out).toEqual({
+      own: [{ id: "crm", scope: "codex", raw: { command: "npx", args: [], env: {} } }],
+    });
   });
 });
 
@@ -113,7 +120,12 @@ describe("taking the client's servers over", () => {
     const endpoint = "http://127.0.0.1:8787/mcp";
     const all = [
       { id: "openmasq", scope: "user", url: endpoint, raw: { url: endpoint } },
-      { id: "crm", scope: "user", url: "https://crm.example/mcp", raw: { url: "https://crm.example/mcp" } },
+      {
+        id: "crm",
+        scope: "user",
+        url: "https://crm.example/mcp",
+        raw: { url: "https://crm.example/mcp" },
+      },
     ];
     expect(notOurs(all, endpoint).map((s) => s.id)).toEqual(["crm"]);
   });
@@ -125,16 +137,24 @@ describe("taking the client's servers over", () => {
 
   it("lets the user's own declaration win on the same id", () => {
     const skipped: string[] = [];
-    const mine = [{ id: "notion", transport: "stdio" as const, command: "mine", args: [], env: {} }];
+    const mine = [
+      { id: "notion", transport: "stdio" as const, command: "mine", args: [], env: {} },
+    ];
     const specs = adoptFrom(own(readClaude), mine, { onSkip: (id) => skipped.push(id) });
     expect(specs.map((s) => s.id)).toEqual(["crm"]);
     expect(skipped).toEqual(["notion"]);
   });
 
   it("reports one unusable entry instead of losing every other", () => {
-    const broken = JSON.stringify({ mcpServers: { bad: { nothing: true }, good: { command: "g" } } });
+    const broken = JSON.stringify({
+      mcpServers: { bad: { nothing: true }, good: { command: "g" } },
+    });
     const skipped: string[] = [];
-    const specs = adoptFrom(own(() => broken), [], { onSkip: (id, why) => skipped.push(`${id}: ${why}`) });
+    const specs = adoptFrom(
+      own(() => broken),
+      [],
+      { onSkip: (id, why) => skipped.push(`${id}: ${why}`) },
+    );
     expect(specs.map((s) => s.id)).toContain("good");
     expect(skipped[0]).toMatch(/^bad: /);
   });

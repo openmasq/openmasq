@@ -34,7 +34,7 @@ same value; evicted after an hour of silence); `x-openmasq-mode: fake|token` pic
 model sees. The reply carries `x-openmasq-masked: <count>`.
 
 **Flags / env**: `--port` (`OPENMASQ_PROXY_PORT`), `--openai`/`--anthropic`
-(`OPENMASQ_UPSTREAM_*`), `--ner <dir>` (`OPENMASQ_NER_DIR`), `--mode`, `--quiet`, `--json`, `--log <file>`,
+(`OPENMASQ_UPSTREAM_*`), `--ner <dir>` (`OPENMASQ_NER_DIR`), `--mode`, `--quiet`, `--json`, `--log <file>`, `--theme`,
 `--rules-only`; `-- <command…>` runs a tool through the proxy (below).
 
 **What is masked — the app's own dials**: `--level standard|renforce|strict` (the app's
@@ -191,9 +191,11 @@ shrinks the terminal's scrolling region, which confines scrolling — but does *
 what the wrapped tool believes the screen is: measured, a child under a `1..34` region of 40
 rows still reports `40 100`. A tool that repaints a full-screen interface therefore keeps
 writing to the last row, and the two writers shred each other's lines. Reserving space a
-full-screen child respects needs a pty the proxy owns, which it has not. To watch a run with
-values shown, start the proxy in its own window with `--reveal` and point the tool at the
-printed base URLs.
+full-screen child respects needs a pty the proxy owns, which it has not. To watch a wrapped
+run with the values shown, add `--reveal` to `--console`: `openmasq-proxy --console --reveal
+-- claude`. The values go to the console page and nowhere else — the log file keeps counts.
+(Without `--console`, `--reveal` beside `--` is refused: the only screen left would be the
+file.)
 
 **Limits**: text only — an image, a PDF or a file sent as bytes (`inlineData`, `image_url`)
 passes as is; the desktop app does the document OCR and masking, not the proxy.
@@ -221,10 +223,18 @@ query string. Ctrl-C prints the session's totals. Colours follow the terminal (`
 `FORCE_COLOR`, a pipe); `--quiet` keeps errors only; `--json` writes one JSON object per
 request for a log collector.
 
-**What you see**: a framed card at start (endpoint, upstreams, level, NER state, the three
-`export` lines), then one line per request — status, time to the upstream's answer, route, and
-a pill per category in the app's own redaction hues. A footer stays pinned at the bottom with
-the live dials, the running counts and the keys.
+**What you see**: the brand mark and a framed card at start (endpoint, upstreams, level, NER
+state, the three `export` lines), then two lines per request — a coloured gutter that says the
+outcome before the line is read, the status, the time to the upstream's answer, the route and
+the host it went to, then a bar per category and a pill per category in the app's own
+redaction hues. A filled footer stays pinned at the bottom with the live dials, the running
+counts, the last requests as a strip and the keys.
+
+**Colours** follow the terminal: 24-bit when it announces truecolor (`COLORTERM`), the
+256-colour cube otherwise, and none at all under `NO_COLOR`, `TERM=dumb` or through a pipe.
+Two blocks carry a background of their own — the mark and the footer bar — so they follow the
+terminal's ground: `COLORFGBG` decides, `--theme auto|light|dark` (or `OPENMASQ_PROXY_THEME`)
+overrides it, and a terminal that publishes nothing is assumed dark.
 
 **Seeing what was substituted**: `--reveal` (or the `f` key) prints, under each request, one
 line per value — `NAME  Camille Roussel → Armelle Aubertin` — coloured by category. It is the
@@ -280,7 +290,7 @@ pour la même valeur ; oublié après une heure de silence) ; `x-openmasq-mode: 
 choisit ce que voit le modèle. La réponse porte `x-openmasq-masked: <nombre>`.
 
 **Options / env** : `--port` (`OPENMASQ_PROXY_PORT`), `--openai`/`--anthropic`
-(`OPENMASQ_UPSTREAM_*`), `--ner <dossier>` (`OPENMASQ_NER_DIR`), `--mode`, `--quiet`, `--json`, `--log <fichier>`,
+(`OPENMASQ_UPSTREAM_*`), `--ner <dossier>` (`OPENMASQ_NER_DIR`), `--mode`, `--quiet`, `--json`, `--log <fichier>`, `--theme`,
 `--rules-only` ; `-- <commande…>` lance un outil à travers le proxy (ci-dessous).
 
 **Ce qui est masqué — les réglages de l'app** : `--level standard|renforce|strict` (les
@@ -449,8 +459,11 @@ l'idée que l'outil enveloppé se fait de l'écran : mesuré, un enfant sous une
 de 40 lignes déclare toujours `40 100`. Un outil qui repeint une interface plein écran
 continue donc d'écrire sur la dernière ligne, et les deux écrivains se déchirent. Réserver
 une place qu'un enfant plein écran respecte demande un pseudo-terminal que le proxy ne
-possède pas. Pour suivre une session avec les valeurs affichées, lancez le proxy dans sa
-propre fenêtre avec `--reveal` et pointez l'outil sur les URL de base imprimées.
+possède pas. Pour suivre une session enveloppée avec les valeurs affichées, ajoutez
+`--reveal` à `--console` : `openmasq-proxy --console --reveal -- claude`. Les valeurs vont
+sur la page de la console et nulle part ailleurs — le fichier journal garde les comptes.
+(Sans `--console`, `--reveal` à côté de `--` reste refusé : le seul écran restant serait le
+fichier.)
 
 **Limites** : du texte seulement — une image, un PDF ou un fichier envoyé en octets
 (`inlineData`, `image_url`) passe tel quel ; l'app de bureau fait l'OCR et le masquage des
@@ -481,10 +494,18 @@ valeur, jamais la query string. Ctrl-C imprime les totaux de la session. Les cou
 le terminal (`NO_COLOR`, `FORCE_COLOR`, un tube) ; `--quiet` ne garde que les erreurs ;
 `--json` écrit un objet JSON par requête pour un collecteur de logs.
 
-**Ce que l'on voit** : une carte encadrée au démarrage (adresse, amonts, niveau, état du NER,
-les trois lignes `export`), puis une ligne par requête — statut, délai de réponse de l'amont,
-route, et une pastille par catégorie aux couleurs de masquage de l'app. Un pied de page reste
-fixé en bas avec les réglages en cours, les compteurs et les touches.
+**Ce que l'on voit** : la marque et une carte encadrée au démarrage (adresse, amonts, niveau,
+état du NER, les trois lignes `export`), puis deux lignes par requête — une gouttière colorée
+qui dit l'issue avant qu'on ait lu la ligne, le statut, le délai de réponse de l'amont, la
+route et l'hôte où elle est partie, puis une barre et une pastille par catégorie aux couleurs
+de masquage de l'app. Un pied de page plein reste fixé en bas avec les réglages en cours, les
+compteurs, les dernières requêtes en bandeau et les touches.
+
+**Les couleurs** suivent le terminal : 24 bits quand il annonce le truecolor (`COLORTERM`), le
+cube 256 sinon, et aucune sous `NO_COLOR`, `TERM=dumb` ou dans un tube. Deux blocs portent leur
+propre fond — la marque et la barre du pied de page — et suivent donc le fond du terminal :
+`COLORFGBG` décide, `--theme auto|light|dark` (ou `OPENMASQ_PROXY_THEME`) tranche, et un
+terminal qui ne publie rien est supposé sombre.
 
 **Voir ce qui a été substitué** : `--reveal` (ou la touche `f`) imprime, sous chaque requête,
 une ligne par valeur — `NAME  Camille Roussel → Armelle Aubertin` — colorée par catégorie.

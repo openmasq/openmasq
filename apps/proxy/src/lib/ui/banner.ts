@@ -1,9 +1,10 @@
-// The start-up card: a hairline frame, the mark, where to point a tool. Drawn by hand rather
-// than by a box library because every row already carries colour escapes — the widths come
-// from `tty.width`, which counts columns, not code units.
+// The start-up card: the lockup, then a hairline frame carrying the dials and where to point
+// a tool. Drawn by hand rather than by a box library because every row already carries colour
+// escapes — the widths come from `tty.width`, which counts columns, not code units.
 import type { ProxyConfig } from "../../config/config.js";
 import { envLines } from "../baseUrls.js";
-import { HUE_HEX, LIME_HEX } from "./palette.js";
+import { renderLockup } from "./mark.js";
+import { HUE_HEX } from "./palette.js";
 import type { Tty } from "./tty.js";
 
 export interface KeyHint {
@@ -34,7 +35,8 @@ export function blockWidth(tty: Tty): number {
 }
 
 // The frame is drawn in dimmed slate: the app's border tokens are alpha over a known paper,
-// which a terminal of unknown background cannot reproduce. Slate is the palette's neutral.
+// which a terminal of unknown background cannot reproduce. Slate is the palette's neutral,
+// and it is one of the nine hues that do NOT flip with the theme.
 const stroke = (tty: Tty, s: string) => tty.dim(tty.fg(HUE_HEX.slate, s));
 
 /** A framed block: `title` sits in the top rule, `right` at its end. */
@@ -44,7 +46,7 @@ export function frame(tty: Tty, title: string, right: string, rows: string[]): s
   const line = (s: string) =>
     `  ${stroke(tty, "│")} ${tty.pad(tty.fit(s, inner), inner)} ${stroke(tty, "│")}`;
   const dashes = (n: number) => stroke(tty, "─".repeat(Math.max(0, n)));
-  const head = `  ${stroke(tty, "╭─")} ${title} `;
+  const head = title ? `  ${stroke(tty, "╭─")} ${title} ` : `  ${stroke(tty, "╭─")}`;
   const tail = right ? ` ${right} ${stroke(tty, "─")}` : stroke(tty, "─");
   const fill = width - tty.width(tty.strip(head).slice(2)) - tty.width(tty.strip(tail)) - 1;
   return [
@@ -54,8 +56,12 @@ export function frame(tty: Tty, title: string, right: string, rows: string[]): s
   ];
 }
 
+/** A key, in the brand pair — the same chip the app puts a shortcut in. Eight of them have
+ *  to fit an 80-column terminal, so the labels are one word and the gap is one space: a
+ *  truncated key line is a key nobody knows about. */
 export function keyHintLine(tty: Tty, hints: KeyHint[]): string {
-  return `  ${hints.map((h) => `${tty.pill(HUE_HEX.slate, "#0f1c06", h.key)} ${tty.dim(h.label)}`).join("  ")}`;
+  const { brand, inkOnBrand } = tty.theme;
+  return `  ${hints.map((h) => `${tty.pill(brand, inkOnBrand, h.key)} ${tty.dim(h.label)}`).join(" ")}`;
 }
 
 const host = (origin: string): string => {
@@ -73,13 +79,16 @@ export function modelLabel(tty: Tty, state: ModelState, long: boolean): string {
   return tty.dim(long ? "pattern rules only — no model needed" : "rules");
 }
 
+// A row's label is an EYEBROW: uppercase, dim, one column width for all of them. The brand
+// letterspaces these; a terminal cannot, and faking it with inserted spaces would cost four
+// columns of a line that carries an URL.
+const LABEL_W = 13;
+
 export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): string[] {
   const url = `http://${config.host}:${config.port}`;
-  const label = (s: string) => tty.dim(tty.pad(s, 13));
+  const label = (s: string) => tty.dim(tty.pad(s.toUpperCase(), LABEL_W));
   const rows = [
-    `${label("listening")}${tty.bold(url)}`,
     `${label("upstreams")}${tty.dim("openai")} ${host(config.openai)} ${tty.dim("· anthropic")} ${host(config.anthropic)} ${tty.dim("· gemini")} ${host(config.gemini)}`,
-    `${label("masking")}${tty.bold(config.level)} ${tty.dim("· the model sees")} ${tty.bold(config.mode === "token" ? "tokens" : "fakes")}`,
     `${label("detection")}${modelLabel(tty, d.model, true)}`,
   ];
   const dials = [
@@ -122,10 +131,16 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
     rows.push("", `${label("point a tool")}${tty.dim("in its shell — or press c to copy")}`);
     for (const l of envLines(url)) rows.push(`${label("")}${l}`);
   }
-  return frame(
-    tty,
-    `${tty.fg(LIME_HEX, "◍")} ${tty.bold("OpenMasq proxy")}`,
-    tty.dim(`v${d.version}`),
-    rows,
-  );
+  // The level and what the model sees are the two dials the keys turn: they ride the rule
+  // itself, where the eye lands first, rather than becoming one row among the others.
+  return [
+    ...renderLockup(tty, { version: d.version, url }),
+    "",
+    ...frame(
+      tty,
+      tty.pill(tty.theme.brand, tty.theme.inkOnBrand, config.level.toUpperCase()),
+      tty.dim(`the model sees ${config.mode === "token" ? "tokens" : "fakes"}`),
+      rows,
+    ),
+  ];
 }

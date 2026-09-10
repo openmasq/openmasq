@@ -1,48 +1,18 @@
-// What the operator sees: the card at start, one line per relayed request with a pastel pill
-// per category, and a sticky footer carrying the live dials and the keys. Counts per
-// category, the route, the status, the time to the upstream's answer — never a value, never a
-// header, never a query string. `--json` swaps all of it for one JSON object per line.
-import type { RedactionMatch } from "@openmasq/redact";
+// What the operator sees: the lockup and the card at start, two lines per relayed request,
+// and a sticky footer carrying the live dials, the running counts and the keys. The lines
+// themselves are drawn by `rows.ts`, the footer by `footer.ts`; this file owns the STATE they
+// read — the totals, the recent outcomes, and the upstreams the card taught it.
+// `--json` swaps all of it for one JSON object per line.
 import type { ProxyConfig } from "../../config/config.js";
 import { tally } from "../masker.js";
-import {
-  type BannerData,
-  blockWidth,
-  keyHintLine,
-  type KeyHint,
-  modelLabel,
-  type ModelState,
-  renderBanner,
-} from "./banner.js";
+import { type BannerData, type KeyHint, keyHintLine, renderBanner } from "./banner.js";
+import { ACTIVITY_MAX, type Dials, footerLines, type Stats } from "./footer.js";
 import { HUE_HEX, INK_HEX } from "./palette.js";
-import { categoryPills, categoryTag, statusHex } from "./pills.js";
+import { categoryPills } from "./pills.js";
+import { outcomeHex, type RequestEvent, requestLines, revealLines } from "./rows.js";
+import { histogram } from "./spark.js";
 import { createStatusBar } from "./status.js";
-import { colorsWanted, createTty, formatDuration, formatMs, type Tty } from "./tty.js";
-
-export interface RequestEvent {
-  method: string;
-  path: string;
-  family: string;
-  status: number;
-  /** Time to the upstream's answer (headers), in ms. */
-  ms: number;
-  matches: RedactionMatch[];
-  stream: boolean;
-  session?: string;
-}
-
-export interface Stats {
-  requests: number;
-  totals: Record<string, number>;
-  startedAt: number;
-}
-
-/** What the footer shows of a config that the keys can change while it runs. */
-export interface Dials {
-  level: string;
-  mode: "fake" | "token";
-  model: ModelState;
-}
+import { colorsWanted, createTty, formatDuration, type TtyOptions } from "./tty.js";
 
 export interface Reporter {
   note(text: string, tone?: "info" | "warn" | "ok"): void;
@@ -61,7 +31,7 @@ export interface Reporter {
   stop(): void;
 }
 
-export interface ReporterOptions {
+export interface ReporterOptions extends TtyOptions {
   write?: (line: string) => void;
   colors?: boolean;
   json?: boolean;
@@ -75,15 +45,30 @@ export interface ReporterOptions {
   live?: { dials: () => Dials; hints: KeyHint[] };
 }
 
+/** How long the masked total stays accented after it moves. One repaint, then it settles. */
+const FLASH_MS = 900;
+
 export function createReporter(o: ReporterOptions = {}): Reporter {
   const colors = o.colors ?? colorsWanted();
-  const tty = createTty(colors);
+  const tty = createTty(colors, undefined, o);
   const now = o.now ?? Date.now;
   const state: Stats = { requests: 0, totals: {}, startedAt: now() };
+  // The strip and the flash are the footer's memory; they live here because the footer is
+  // rebuilt from scratch on every repaint.
+  const recent: string[] = [];
+  let maskedAt = 0;
+  // Which host each family goes to. Learned from the card the reporter printed rather than
+  // threaded through every call site: the config that answers it is the same one, and a
+  // reporter that never printed a card (a log file) simply names the family instead.
+  let upstreams: Record<string, string> = {};
   const live = o.live && !o.json && !o.write;
   const bar = createStatusBar(
     process.stderr,
-    () => footer(tty, state, o.live?.dials(), o.live?.hints ?? [], now() - state.startedAt),
+    () =>
+      footerLines(tty, state, o.live?.dials(), o.live?.hints ?? [], now() - state.startedAt, {
+        recent,
+        flash: now() - maskedAt < FLASH_MS,
+      }),
     !!live && colors,
   );
   const write = o.write ?? ((l: string) => bar.log(l));
@@ -104,6 +89,7 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
 
     banner(config, data) {
       if (o.json) return;
+      upstreams = hostsOf(config);
       write("");
       for (const l of renderBanner(tty, config, data)) write(l);
       write("");
@@ -119,6 +105,9 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
       state.requests++;
       const counts = tally(e.matches);
       for (const [k, n] of Object.entries(counts)) state.totals[k] = (state.totals[k] ?? 0) + n;
+      if (e.matches.length) maskedAt = now();
+      recent.push(outcomeHex(e));
+      if (recent.length > ACTIVITY_MAX) recent.shift();
       if (o.json) {
         write(
           JSON.stringify({
@@ -137,21 +126,12 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
         return;
       }
       if (o.quiet) return;
-      write(
-        tty.fit(
-          `  ${tty.dim(clock())}  ${tty.pill(statusHex(e.status), INK_HEX, String(e.status))} ${tty.pad(tty.dim(formatMs(e.ms)), 6)} ` +
-            `${tty.bold(e.method)} ${e.path}  ${tty.dim(e.family)}${e.stream ? tty.dim("  ⇢ stream") : ""}${e.session ? tty.dim(`  session ${e.session}`) : ""}`,
-          undefined,
-          "middle",
-        ),
-      );
-      const total = e.matches.length;
-      // A relayed GET/HEAD carried no text: one line, not two — a client's health probe
-      // must not read like a request that had nothing sensitive in it.
-      if (!total && e.method !== "POST" && e.method !== "TOOL") return;
-      write(
-        `            ${total ? `${categoryPills(tty, counts)}  ${tty.dim(`${total} masked`)}` : tty.dim("nothing to mask")}`,
-      );
+      for (const l of requestLines(tty, e, {
+        clock: clock(),
+        counts,
+        upstream: upstreams[e.family],
+      }))
+        write(l);
       if (o.reveal?.on) for (const l of revealLines(tty, e.matches)) write(l);
     },
 
@@ -174,7 +154,7 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
       }
       write(
         tty.fit(
-          `  ${tty.dim(clock())}  ${tty.pill(HUE_HEX.red, INK_HEX, String(status))} ${message}${cause ? tty.dim(` — ${cause}`) : ""}`,
+          `  ${tty.fg(HUE_HEX.red, "▌")} ${tty.dim(clock())}  ${tty.pill(HUE_HEX.red, INK_HEX, String(status))} ${message}${cause ? tty.dim(` — ${cause}`) : ""}`,
         ),
       );
     },
@@ -183,10 +163,11 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
       if (o.json) return;
       bar.stop();
       const masked = Object.values(s.totals).reduce((a, b) => a + b, 0);
+      const h = histogram(tty, s.totals, 6);
       const p = categoryPills(tty, s.totals);
       const line =
         `  ${tty.bold(String(s.requests))} request${s.requests === 1 ? "" : "s"} ${tty.dim("·")} ${tty.bold(String(masked))} value${masked === 1 ? "" : "s"} masked` +
-        `${p ? `  ${p}` : ""} ${tty.dim("·")} ${tty.dim(formatDuration(now() - s.startedAt))}`;
+        `${h ? `  ${h}` : ""}${p ? `  ${p}` : ""} ${tty.dim("·")} ${tty.dim(formatDuration(now() - s.startedAt))}`;
       process.stderr.write(`\n${line}\n\n`);
       bar.render();
     },
@@ -195,7 +176,7 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
     spinner: (text) => bar.spinner(text),
 
     clear() {
-      if (!o.json && colors) process.stderr.write("[2J[3J[H");
+      if (!o.json && colors) process.stderr.write("[2J[3J[H");
       bar.render();
     },
 
@@ -203,56 +184,30 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
   };
 }
 
-/** How many spans a single request prints before it is summarised. */
-const REVEAL_MAX = 10;
-
-/**
- * What was substituted, one line per distinct value: the category, the real value, and what
- * the model received instead. This is the only place the proxy prints a real value, and only
- * on an operator's own terminal (`--reveal`, or the `f` key).
- */
-export function revealLines(tty: Tty, matches: RedactionMatch[]): string[] {
-  const seen = new Map<string, RedactionMatch>();
-  for (const m of matches) if (!seen.has(m.value)) seen.set(m.value, m);
-  const rows = [...seen.values()];
-  const out = rows.slice(0, REVEAL_MAX).map((m) => {
-    const tag = tty.pad(categoryTag(tty, m.category ?? m.type), 12);
-    const note = m.uncertain ? tty.dim("  · to check") : "";
-    return tty.fit(
-      `            ${tag} ${m.value} ${tty.dim("→")} ${tty.dim(m.placeholder)}${note}`,
-    );
-  });
-  if (rows.length > out.length)
-    out.push(`            ${tty.dim(`+${rows.length - out.length} more`)}`);
-  return out;
+/** The card names an upstream per family; the request lines then say where each one went. */
+function hostsOf(config: ProxyConfig): Record<string, string> {
+  const host = (origin: string) => {
+    try {
+      return new URL(origin).host;
+    } catch {
+      return origin;
+    }
+  };
+  return {
+    openai: host(config.openai),
+    anthropic: host(config.anthropic),
+    gemini: host(config.gemini),
+  };
 }
 
-/** The footer's three lines: a rule, the live dials and counts, the keys. */
-function footer(
-  tty: Tty,
-  s: Stats,
-  dials: Dials | undefined,
-  hints: KeyHint[],
-  uptime: number,
-): string[] {
-  const masked = Object.values(s.totals).reduce((a, b) => a + b, 0);
-  const sep = tty.dim(" · ");
-  const left = dials
-    ? [
-        tty.bold(dials.level),
-        dials.mode === "token" ? "tokens" : "fakes",
-        modelLabel(tty, dials.model, false),
-      ].join(sep)
-    : "";
-  const counts = `${tty.bold(String(s.requests))} req${sep}${tty.bold(String(masked))} masked`;
-  const pills = categoryPills(tty, s.totals, 3);
-  return [
-    `  ${tty.dim("─".repeat(blockWidth(tty)))}`,
-    tty.fit(
-      `  ${left}${sep}${counts}${pills ? `  ${pills}` : ""}${sep}${tty.dim(formatDuration(uptime))}`,
-    ),
-    tty.fit(keyHintLine(tty, hints)),
-  ];
+/**
+ * The reveal toggle a reporter may be given. A reporter whose output is a FILE gets a toggle
+ * that is off and stays off — a log is copied, backed up and grepped, and `--reveal` with a
+ * wrapped tool is allowed only because the console page is the screen then, never the file.
+ * One decision, here, rather than a condition at each construction site.
+ */
+export function revealFor(reveal: { on: boolean }, out: { toFile: boolean }): { on: boolean } {
+  return out.toFile ? { on: false } : reveal;
 }
 
 export const silentReporter: Reporter = {

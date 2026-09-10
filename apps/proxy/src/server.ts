@@ -65,12 +65,13 @@ async function main(): Promise<void> {
   const reporter = createReporter({
     json: config.json,
     quiet: !config.verbose,
+    theme: config.theme,
     // A FILE never gets the toggle: with `--console --reveal -- <tool>` the values go to the
     // console page, and the log keeps counts (`revealFor`, pinned in `reporter.test.ts`).
     reveal: revealFor(reveal, { toFile: !!logFile }),
     ...(logFile ? { write: fileWriter(logFile), colors: false } : interactive ? { live } : {}),
   });
-  const screen = logFile ? createReporter({ reveal }) : reporter;
+  const screen = logFile ? createReporter({ reveal, theme: config.theme }) : reporter;
 
   // The live console, when asked for. It reads the SAME events the terminal prints, so a
   // wrapped run — where the tool owns the screen — is watchable from a browser tab. The

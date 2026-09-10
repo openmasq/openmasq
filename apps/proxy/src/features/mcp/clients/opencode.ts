@@ -20,7 +20,9 @@ export function parseOpencodeConfig(stdout: string): OwnServer[] {
       continue;
     }
     // opencode writes a local server as one array: the command and its arguments together.
-    const cmd = Array.isArray(entry.command) ? entry.command.filter((a) => typeof a === "string") : [];
+    const cmd = Array.isArray(entry.command)
+      ? entry.command.filter((a) => typeof a === "string")
+      : [];
     if (cmd.length)
       own.push({
         id,

@@ -50,6 +50,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .seg button{height:26px;padding:0 11px;border-radius:7px;font-size:12.5px;color:var(--text-muted);white-space:nowrap}
 .seg button:hover{color:var(--text-strong)}
 .seg button.on{background:var(--surface-card);color:var(--text-strong);font-weight:600;box-shadow:0 1px 2px rgba(10,12,30,.10)}
+.c-ses{width:150px}
+.ses{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+.ses i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ses.none{color:var(--text-faint)}
 .c-tok{width:190px}.c-type{width:150px}.c-cat{width:150px}
 .tok{display:inline-flex;align-items:center;gap:8px;min-width:0}
 .cat-tag{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-body)}
@@ -87,6 +91,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .st .k{font-family:var(--mono);font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
 .st .p{font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--text-body);word-break:break-word;min-width:0}
 @media(max-width:1100px){.st{grid-template-columns:1fr}}
+.rd{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom}
+.stat.warn .v b{color:var(--hl-amber-ink,inherit)}
+.stat.warn{box-shadow:inset 3px 0 0 var(--cav-financier)}
+#pass{font-size:11.5px}
+@media(max-width:1000px){.body.has-detail{display:block}.body.has-detail .detail{position:relative;width:auto;max-width:none;max-height:52vh;overflow:auto;border-left:0;border-top:1px solid var(--border)}.body.has-detail .tablewrap{max-height:40vh;overflow:auto}}
 /* The crossing: what the engine does AT the boundary, stated once per direction. */
 .cross{display:flex;align-items:center;gap:9px;padding:9px 2px;font-family:var(--mono);font-size:10.5px;color:var(--text-body)}
 .cross svg{width:13px;height:13px;flex-shrink:0;color:var(--brand)}
@@ -287,38 +296,40 @@ tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
       <button id="m-calls" class="on" role="tab" aria-selected="true">Appels</button>
       <button id="m-items" role="tab" aria-selected="false">Données</button>
     </div>
-    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" placeholder="Rechercher dans les journaux et les traces" spellcheck="false"></label>
-    <button class="tail live" id="tail"><i></i>Tail</button>
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" placeholder="Rechercher un appel, un substitut, une catégorie" spellcheck="false"></label>
+    <button class="tail live" id="tail" title="Suit les nouveaux appels"><i></i>Direct</button>
+    <button class="pill" id="pass" aria-pressed="false" title="Requêtes relayées sans texte à masquer (sondes, listes de modèles)"><span class="t">Transmis <b id="pass-n">0</b></span></button>
     <button class="pill" id="reveal" aria-pressed="false" title="Afficher les valeurs réelles (elles ne quittent pas cette machine)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M3 3l18 18" id="eye-slash"/></svg><span class="t">Valeurs réelles</span></button>
     <button class="iconbtn" id="theme" title="Basculer le thème" aria-label="Basculer le thème"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/></svg></button>
-    <button class="iconbtn" title="Exporter le journal" aria-label="Exporter le journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></button>
+    <button class="iconbtn" id="export" title="Exporter le journal (JSON, substituts seulement sauf --reveal)" aria-label="Exporter le journal (JSON)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></button>
   </div>
 
   <!-- RECAP -->
   <div class="recap">
     <div class="stat">
-      <span class="lb">Interceptées</span>
-      <span class="v"><b id="s-total">1 284</b></span>
+      <span class="lb">Appels</span>
+      <span class="v"><b id="s-calls">0</b></span>
     </div>
     <div class="stat">
-      <span class="lb">Masquées</span>
-      <span class="v"><b id="s-mask">1 271</b></span>
+      <span class="lb">Valeurs masquées</span>
+      <span class="v"><b id="s-total">0</b></span>
     </div>
     <div class="stat">
-      <span class="lb">Bloquées</span>
-      <span class="v"><b id="s-block">13</b></span>
+      <span class="lb">Appels bloqués</span>
+      <span class="v"><b id="s-block">0</b></span>
     </div>
-    <div class="stat">
-      <span class="lb">Vues par le modèle</span>
-      <span class="v"><b>0</b></span>
+    <div class="stat" id="s-level-tile">
+      <span class="lb">Niveau</span>
+      <span class="v"><b id="s-level">—</b></span>
+      <span class="lb" id="s-level-note" style="text-transform:none;letter-spacing:0;margin-top:4px"></span>
     </div>
   </div>
 
   <!-- HISTOGRAM -->
-  <div class="histo">
-    <div class="histo-h"><span class="lb">Volume par minute</span><span class="rt" id="histo-rt">13:25 → 16:25 ET</span></div>
+  <div class="histo" id="histo" hidden>
+    <div class="histo-h"><span class="lb">Volume par minute</span><span class="rt" id="histo-rt">—</span></div>
     <div class="bars" id="bars"></div>
-    <div class="axis"><span>13:30</span><span>14:15</span><span>15:00</span><span>15:45</span><span>16:25</span></div>
+    <div class="axis"><span>—</span></div>
     <div class="cats">
       <div class="bar" id="cat-bar"></div>
       <div class="legend" id="cat-legend"></div>
@@ -437,10 +448,17 @@ function catLabel(id){
   var c = CATS.filter(function(x){ return x.id === id })[0];
   return c ? c.label : id;
 }
-var rev = false;   /* real values hidden by default */
+var rev = false;        /* real values hidden by default */
+/* Did the RUN send any? Declared here, beside `rev`, because the render functions above the
+   live block read it: without --reveal the server sends no original, so every reveal control
+   is inert and must say so rather than flip to a row of dots. */
+var canReveal = false;
 function shown(tok){
   var o = origOf(tok);
-  if (!o) return '<span class="hid">valeur locale</span>';
+  /* No original means the SERVER sent none — the run was started without --reveal. Saying
+     "valeur locale" left the reader to guess; the flag is the whole answer. */
+  /* Nothing to say per value: the top button already names the flag, once. */
+  if (!o) return "";
   return rev ? '<span class="clr">'+o+'</span>' : '<span class="hid">••••••••</span>';
 }
 function swipe(cat, txt){
@@ -454,16 +472,27 @@ function rebuildData(){
   LOGS.forEach(function(l, i){
     itemsOf(l).forEach(function(it){
       if (!it.tok) return;   /* nothing to identify it by in a per-value list */
-      DATA.push({ t:l.t, src:l.src, call:i, lvl:l.lvl, it:it });
+      DATA.push({ t:l.t, src:l.src, ses:l.ses, call:i, lvl:l.lvl, it:it });
     });
   });
 }
 
 var HEADS = {
-  calls: '<th class="c-time">Heure</th><th class="c-src">Serveur</th><th class="c-lvl">Action</th><th>Événement</th><th class="c-cnt">Items</th>',
-  items: '<th class="c-time">Heure</th><th class="c-tok">Substitut</th><th class="c-type">Type</th><th class="c-cat">Catégorie</th><th class="c-src">Serveur</th><th class="c-cnt">Occ.</th>'
+  calls: '<th class="c-time">Heure</th><th class="c-ses">Session</th><th class="c-src">Serveur</th><th class="c-lvl">Action</th><th>Événement</th><th class="c-cnt">Valeurs</th>',
+  items: '<th class="c-time">Heure</th><th class="c-ses">Session</th><th class="c-tok">Substitut</th><th class="c-type">Type</th><th class="c-cat">Catégorie</th><th class="c-cnt">Occ.</th>'
 };
-var mode = "calls";
+/* One stable colour per session, drawn from the section hues: several clients share this
+   console, and telling them apart at a glance is the whole point of the column. */
+var SES_HUES = ["identite","contact","organisation","financier","identifiants","localisation","reseau","secrets"];
+var sesSeen = [];
+function sesTag(id){
+  if (!id) return '<span class="ses none">—</span>';
+  var i = sesSeen.indexOf(id);
+  if (i < 0) { sesSeen.push(id); i = sesSeen.length - 1; }
+  var h = SES_HUES[i % SES_HUES.length];
+  return '<span class="ses"><i style="background:'+cav(h)+'"></i>'+id+'</span>';
+}
+var mode = "calls", showPass = false;
 var rowsEl = document.getElementById("rows"), headEl = document.getElementById("head"), sel = 0;
 function itemCount(l){ return l.items.reduce(function(a,i){return a+i[1]},0); }
 function renderRows(filter){
@@ -472,10 +501,12 @@ function renderRows(filter){
   if (mode === "calls") {
     LOGS.forEach(function(l,i){
       var plain = l.msg.replace(/<[^>]+>/g,"");
-      if (filter && (plain + " " + l.src).toLowerCase().indexOf(filter) < 0) return;
+      if (l.lvl === "pass" && !showPass) return;
+      if (filter && (plain + " " + l.src + " " + (l.ses || "")).toLowerCase().indexOf(filter) < 0) return;
       var n = itemCount(l);
       h += '<tr data-i="'+i+'"'+(i===sel?' class="sel"':'')+'>'
         + '<td class="c-time">'+l.t+'</td>'
+        + '<td class="c-ses">'+sesTag(l.ses)+'</td>'
         + '<td class="c-src"><span class="src">'+SRC_ICON+l.src+'</span></td>'
         + '<td class="c-lvl"><span class="lvl '+LVL[l.lvl][0]+'"><i></i>'+LVL[l.lvl][1]+'</span></td>'
         + '<td><span class="msg">'+l.msg+'</span></td>'
@@ -485,15 +516,15 @@ function renderRows(filter){
     rowsEl.innerHTML = h || '<tr><td colspan="5" style="padding:30px 14px;color:var(--text-muted)">Aucun appel pour cette recherche.</td></tr>';
   } else {
     DATA.forEach(function(d,i){
-      var hay = (d.it.tok + " " + d.it.type + " " + catLabel(d.it.cat) + " " + d.src).toLowerCase();
+      var hay = (d.it.tok + " " + d.it.type + " " + catLabel(d.it.cat) + " " + d.src + " " + (d.ses || "")).toLowerCase();
       if (filter && hay.indexOf(filter) < 0) return;
       h += '<tr data-i="'+d.call+'" data-item="'+i+'"'+(d.call===sel?' class="sel"':'')+'>'
         + '<td class="c-time">'+d.t+'</td>'
+        + '<td class="c-ses">'+sesTag(d.ses)+'</td>'
         + '<td class="c-tok"><span class="pair"><span>'+swipe(d.it.cat, d.it.tok)+'</span>'
           + '<span class="v2">'+shown(d.it.tok)+'</span></span></td>'
         + '<td class="c-type">'+d.it.type+'</td>'
         + '<td class="c-cat"><span class="cat-tag"><i style="background:'+cav(d.it.cat)+'"></i>'+catLabel(d.it.cat)+'</span></td>'
-        + '<td class="c-src"><span class="src">'+SRC_ICON+d.src+'</span></td>'
         + '<td class="c-cnt"><span class="cnt"><b>'+d.it.n+'</b></span></td>'
         + '</tr>';
     });
@@ -548,23 +579,6 @@ var VERBS = {
    redacted items are merely contained in it (a file NAME, or the file's contents). Using
    them as the object produced "Lis le fichier 14 rue Bréguet, 75011 Paris". The path is
    returned with its swipes intact, so payload() masks or reveals it like anything else. */
-var PATH_TOOLS = { read_file:1, write_file:1, list_directory:1 };
-function pathOf(l){
-  var m = /path="((?:[^"<]|<[^>]*>)*)"/.exec(l.msg);
-  return m ? m[1] : null;
-}
-function promptOf(l, tool){
-  var its = itemsOf(l).filter(function(it){ return it.tok });
-  var verb = VERBS[tool] || ("Utilise " + tool + " avec");
-  if (PATH_TOOLS[tool]) {
-    var p = pathOf(l);
-    return '« ' + verb + ' ' + (p || (tool === "list_directory" ? "ce dossier" : "ce fichier")) + ' »';
-  }
-  if (!its.length) return '« ' + (VERBS[tool] || ("Lance " + tool)) + ' »';
-  var vals = its.slice(0, 2).map(function(it){ return swipe(it.cat, it.tok) }).join(" et ");
-  return '« ' + verb + ' ' + vals
-    + (its.length > 2 ? ' (et ' + (its.length - 2) + ' autre' + (its.length > 3 ? 's' : '') + ')' : '') + ' »';
-}
 var DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v14M6 13l6 6 6-6"/></svg>';
 var UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V6M6 11l6-6 6 6"/></svg>';
 function step(k, p){ return '<div class="st"><span class="k">'+k+'</span><span class="p">'+p+'</span></div>'; }
@@ -581,55 +595,48 @@ function cross(icon, text){
    back locally — an e-mail cannot be sent to PERS_02@ex.fr — and masks the result again on
    the way back to the model. Hence four crossings, and three kinds of zone. */
 function renderFlow(l){
+  /* Every word below is DERIVED from the event the proxy sent: the route, the tool's name,
+     the substitutes and their count. Nothing is quoted that was not received — no prompt
+     (the page never gets one), no tool result (it gets its masked values, not its text). */
   var its = itemsOf(l).filter(function(it){ return it.tok });
-  var n = itemCount(l), plain = l.msg, blocked = l.lvl === "block";
-  var toolName = l.tool || null;
-  if (!toolName) (l.json || []).some(function(p){
-    var m = /"tool":\s*"([^"]+)"/.exec(p[0]);
-    if (m) { toolName = m[1]; return true; }
-    return false;
-  });
-  if (!toolName) toolName = (plain.replace(/<[^>]+>/g, "").match(/^[a-z_]+\.[a-z_]+|^[a-z_]+/) || ["appel"])[0];
-
-  var ask = payload(promptOf(l, toolName), true);
-  if (blocked) {
+  var n = itemCount(l), raw = l._raw || {}, many = n > 1 ? "s" : "";
+  var route = esc(raw.method || "") + " " + esc(raw.path || "");
+  var toks = its.length
+    ? its.map(function(it){ return (rev && shown(it.tok)) ? shown(it.tok) : swipe(it.cat, esc(it.tok)); }).join(" · ")
+    : '<span class="hid">aucune valeur sensible</span>';
+  if (l.lvl === "block") {
     var sec = its[0];
     return '<div class="flow">'
       + zone("loc", "Sur votre machine", [
-          step("Votre message", ask),
-          step("Refus", sec ? shown(sec.tok) : "—")
+          step("Votre appel", route),
+          step("Refus", sec ? swipe(sec.cat, esc(sec.tok)) : "—")
         ], "Un secret ne peut pas être remplacé par un substitut sans perdre son sens : l'appel est bloqué, pas masqué.")
       + cross(UP, "<b>rien</b> ne sort")
-      + zone("rem", "Modèle", [step("Appel", '<span class="hid">aucun</span>')],
-          "Ni la valeur, ni un substitut, ni l'appel d'outil.")
+      + zone("rem", "Modèle", [step("Reçoit", '<span class="hid">rien</span>')],
+          "Ni la valeur, ni un substitut, ni l'appel.")
       + '</div>';
   }
-  var reply = its[0]
-    ? 'C\'est fait : ' + toolName + ' a été exécuté pour ' + swipe(its[0].cat, its[0].tok)
-      + (its.length > 1 ? ' et ' + (its.length - 1) + ' autre' + (its.length > 2 ? 's' : '') + ' valeur' + (its.length > 2 ? 's' : '') : '') + '.'
-    : 'C\'est fait : ' + toolName + ' a été exécuté.';
-  var many = n > 1 ? "s" : "";
+  if (raw.method === "TOOL") {
+    return '<div class="flow">'
+      + zone("rem", "Modèle · ne connaît que les substituts", [step("Demande", esc(raw.path || "l'outil") + " <span class=\"hid\">· arguments avec substituts</span>")],
+          "Le modèle met dans ses arguments les substituts qu'il connaît — jamais une valeur d'origine.")
+      + cross(DOWN, "réinsertion locale des valeurs d'origine dans les arguments")
+      + zone("tool", "Outil · " + esc(raw.path || "") + " · voit les valeurs réelles", [step("Exécute", "sur le vrai service, avec les vraies valeurs")],
+          "Un outil agit sur le monde réel : l'e-mail part à la vraie adresse, la fiche est lue au vrai identifiant. La réinsertion a lieu sur votre machine, juste avant l'appel.")
+      + cross(UP, n ? '<b>'+n+'</b> valeur'+many+' du résultat → substitut'+many : 'rien à masquer dans le résultat')
+      + zone("rem", "Modèle · ne voit que les substituts", [step("Reçoit", toks)],
+          "Le résultat est masqué à nouveau avant de revenir au modèle.")
+      + '</div>';
+  }
   return '<div class="flow">'
-    + zone("loc", "Sur votre machine", [step("Votre message", ask)],
-        PATH_TOOLS[toolName] && n
-          ? "Le fichier contient " + n + " valeur" + many + " sensible" + many + ", lue" + many + " ici et nulle part ailleurs."
-          : null)
+    + zone("loc", "Sur votre machine", [step("Votre appel", route + (n ? ' <span class="hid">· '+n+' valeur'+many+' sensible'+many+'</span>' : ' <span class="hid">· rien de sensible</span>'))],
+        "Les valeurs d'origine restent ici : le coffre vit en mémoire, dans ce processus, et disparaît quand il s'arrête.")
     + cross(DOWN, n ? '<b>'+n+'</b> valeur'+many+' → substitut'+many+' stable'+many : 'rien à masquer')
-    + zone("rem", "Modèle · ne voit que les substituts", [
-        step("Raisonne sur", payload(plain, false)),
-        step("Demande l'outil", toolName)
-      ], "Le modèle n'a jamais les valeurs d'origine, ni à l'aller ni au retour.")
-    + cross(UP, n ? 'réinsertion locale des <b>'+n+'</b> valeur'+many+' avant l\'appel' : 'aucune réinsertion nécessaire')
-    + zone("tool", "Outil · " + toolName + " · voit les valeurs réelles", [
-        step("Reçoit", payload(plain, true)),
-        step("Résultat", '{ "ok": true }')
-      ], "Un outil doit agir sur le monde réel : l'e-mail part à la vraie adresse, le fichier est lu au vrai chemin. La réinsertion a lieu sur votre machine, juste avant l'envoi.")
-    + cross(DOWN, n ? 'le résultat est masqué à nouveau avant de revenir au modèle' : 'rien à masquer')
-    + zone("rem", "Modèle", [step("Réponse", reply)],
-        "Rédigée sur les substituts : le modèle ne peut pas nommer ce qu'il n'a pas reçu.")
-    + cross(UP, n ? 'réinsertion des <b>'+n+'</b> valeur'+many+' d\'origine' : 'rien à réinsérer')
-    + zone("loc", "Sur votre machine", [step("Votre copie", payload(reply, true))],
-        "Vous lisez la réponse avec vos vraies valeurs.")
+    + zone("rem", "Modèle · ne voit que les substituts", [step("Reçoit", toks)],
+        n ? "Le modèle raisonne sur ces substituts. Une réponse sur une personne ou une organisation peut en être affectée." : "Le texte est parti tel quel : rien à remplacer.")
+    + cross(UP, n ? 'réponse rétablie : chaque substitut redevient la valeur d\'origine' : 'réponse transmise telle quelle')
+    + zone("loc", "Votre copie", [step("Vous lisez", n ? "la réponse avec vos vraies valeurs" : "la réponse du modèle")],
+        null)
     + '</div>';
 }
 function renderDetail(){
@@ -640,31 +647,25 @@ function renderDetail(){
   }
   var chips = '<span class="chip">'+SRC_ICON+'<b>'+l.src+'</b></span>'
     + '<span class="chip"><i class="lvl '+LVL[l.lvl][0]+'" style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></i>'+LVL[l.lvl][1]+'</span>'
-    + '<span class="chip">items <b>'+itemCount(l)+'</b></span>'
+    + '<span class="chip">valeurs <b>'+itemCount(l)+'</b></span>'
     + '<span class="chip">pid <b>' + PID + '</b></span>';
   var body;
   if (dTab === "flow") {
     body = '<div class="d-sec"><span class="lb">Parcours de la donnée</span>'
-      + '<span class="d-acts"><button id="rev-in">'+(rev ? "Masquer" : "Afficher")+' les valeurs</button></span></div>'
+      + '</div>'
       + renderFlow(l);
   } else if (dTab === "json") {
-    var lines = l.json || [
-      ['{',"pun"],
-      ['  "server": "'+l.src+'",',"kv"],
-      ['  "action": "'+LVL[l.lvl][1].toLowerCase()+'",',"kv"],
-      ['  "event": "'+l.msg.replace(/<[^>]+>/g,"").replace(/"/g,'\\"')+'",',"kv"],
-      ['  "redacted": '+itemCount(l)+',',"kv"],
-      ['  "leaked": [],',"kv"],
-      ['  "ts": "2026-09-09T'+l.t+'+02:00"',"kv"],
-      ['}',"pun"]
-    ];
+    /* The event itself, as the proxy sent it. A real value is in it only under --reveal,
+       and then only shown once the toggle is on — the JSON is in the DOM, not behind it. */
+    var lines = JSON.stringify(exportable(l._raw), null, 2).split("\n").map(function(t){
+      return [t, /^\s*"[^"]+":/.test(t) ? "kv" : "pun"];
+    });
     body = '<div class="d-sec"><span class="lb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4H6a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2"/></svg>JSON</span>'
-      + '<span class="d-acts"><button>Tout déplier</button><button>Copier</button></span></div>'
+      + '<span class="d-acts"><button id="copy-json">Copier</button></span></div>'
       + '<div class="json">' + lines.map(function(p,i){ return jsonLine(i+1, p[0], p[1]); }).join("") + '</div>';
   } else if (dTab === "items") {
     var its = itemsOf(l);
-    body = '<div class="d-sec"><span class="lb">Données interceptées</span>'
-      + '<span class="d-acts"><button>Exporter</button></span></div>'
+    body = '<div class="d-sec"><span class="lb">Données interceptées</span></div>'
       + '<div class="d-items">'
       + (its.length
         ? its.map(function(it){
@@ -672,7 +673,7 @@ function renderDetail(){
               + '<span class="tk">'+(it.tok ? swipe(it.cat, it.tok)
                   : '<span style="color:var(--text-muted)">'+it.n+' valeur'+(it.n>1?'s':'')+' de plus</span>')+'</span>'
               + '<span class="oc">'+(it.tok ? (it.n > 1 ? it.n + ' occurrences' : '1 occurrence') : '')+'</span>'
-              + (it.tok ? '<span class="mt" style="margin-top:2px">→ '+shown(it.tok)+'</span>' : '')
+              + (it.tok && shown(it.tok) ? '<span class="mt" style="margin-top:2px">→ '+shown(it.tok)+'</span>' : '')
               + '<span class="mt"><span class="cat-tag"><i style="background:'+cav(it.cat)+'"></i>'+catLabel(it.cat)+'</span>'
               + '<span>'+it.type+'</span>'
               + (it.tok ? '<span>substitut stable</span><span>valeur d\'origine conservée en local</span>'
@@ -688,8 +689,8 @@ function renderDetail(){
       + '</div>';
   }
   detailEl.innerHTML =
-      '<div class="d-top"><span class="ts">'+l.t+' ET</span>'
-    + '<button class="iconbtn" aria-label="Options"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>'
+      '<div class="d-top"><span class="ts">'+l.t+'</span>'
+
     + '<button class="iconbtn" id="close-d" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'
     + '<div class="d-chips">'+chips+'</div>'
     + '<div class="d-tabs">'
@@ -731,7 +732,10 @@ rowsEl.addEventListener("click", function(e){
   renderDetail();
 });
 detailEl.addEventListener("click", function(e){
-  if (e.target.closest("#rev-in")) { setRev(!rev); return; }
+  if (e.target.closest("#copy-json")) {
+    var l = LOGS[sel]; if (l) navigator.clipboard.writeText(JSON.stringify(exportable(l._raw), null, 2)).catch(function(){});
+    return;
+  }
   var t = e.target.closest("[data-t]");
   if (t) { dTab = t.getAttribute("data-t"); renderDetail(); return; }
   if (e.target.closest("#close-d")) {
@@ -745,6 +749,44 @@ document.getElementById("q").addEventListener("input", function(e){
 document.getElementById("tail").addEventListener("click", function(){
   this.classList.toggle("live");
 });
+document.getElementById("pass").addEventListener("click", function(){
+  showPass = !showPass;
+  this.className = "pill" + (showPass ? " on" : "");
+  this.setAttribute("aria-pressed", String(showPass));
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+});
+/* What leaves this page as a file: the events as the proxy sent them, real values stripped
+   unless the run revealed them AND the toggle is on. Same rule as the JSON tab. */
+function exportable(raw){
+  if (!raw) return {};
+  var out = JSON.parse(JSON.stringify(raw));
+  (out.items || []).forEach(function(it){ if (!(canReveal && rev)) delete it.real; });
+  return out;
+}
+document.getElementById("export").addEventListener("click", function(){
+  var doc = { app: "openmasq-proxy", exported: new Date().toISOString(), reveal: !!(canReveal && rev),
+              events: LOGS.slice().reverse().map(function(l){ return exportable(l._raw); }) };
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
+  a.download = "openmasq-journal-" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".json";
+  a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+});
+/* The level in force, read from the proxy itself every few seconds: the `l` key changes it
+   while it runs, and this is the one fact a reader needs before trusting a row — at
+   `standard` no name or company is ever looked for. */
+function levelTile(h){
+  var lvl = h.level || "—", note;
+  if (lvl === "standard") note = "Motifs seulement : e-mails, téléphones, IBAN, clés. Noms, entreprises et lieux passent en clair.";
+  else if (h.ner === false) note = "Modèle local absent — les noms ne sont pas trouvés.";
+  else note = "Noms, entreprises et lieux remplacés par des substituts : les réponses sur des personnes ou des organisations peuvent en être affectées.";
+  set("s-level", lvl + (h.mode ? " · " + (h.mode === "token" ? "jetons" : "substituts") : ""));
+  set("s-level-note", note);
+  document.getElementById("s-level-tile").className = "stat" + (lvl !== "standard" ? " warn" : "");
+}
+function pollLevel(){
+  fetch("/healthz", { cache: "no-store" }).then(function(r){ return r.json(); }).then(levelTile).catch(function(){});
+}
+pollLevel(); setInterval(pollLevel, 5000);
 /* Theme: light by default, remembered. Never touch keys this page did not write. */
 (function(){
   var K="openmasq-cli-theme", btn=document.getElementById("theme");
@@ -769,14 +811,19 @@ document.getElementById("tail").addEventListener("click", function(){
    with nothing to reveal, the server never sent it, and the button says so.
    --------------------------------------------------------------------------- */
 var MAX_ROWS = 500;
-var started = Date.now(), servers = {}, buckets = {}, canReveal = false;
+var started = Date.now(), servers = {}, buckets = {};
 
 function esc(t){ return String(t).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
 
 /* The event line: the route, then each substitution swiped in its section's colour. */
+/* The row carries the CATEGORIES and their counts, like the terminal's own line; the
+   substitutes wait in the drawer. Inline, a coding agent's context put the same two chips at
+   the head of every row and the rows stopped telling anything apart. */
 function lineOf(e){
-  var parts = (e.items || []).map(function(it){ return rd(it.cat, esc(it.fake)); });
-  return esc(e.method) + " " + esc(e.path) + (parts.length ? "  " + parts.join(" · ") : "")
+  var tally = {};
+  (e.items || []).forEach(function(it){ tally[it.cat] = (tally[it.cat] || 0) + it.n; });
+  var parts = Object.keys(tally).map(function(k){ return rd(k, esc(catLabel(k)) + " " + tally[k]); });
+  return esc(e.method) + " " + esc(e.path) + (parts.length ? "  " + parts.join(" ") : "")
        + (e.stream ? ' <span class="pun">⇢ stream</span>' : "");
 }
 
@@ -784,11 +831,11 @@ function levelOf(e){ return e.status === 403 ? "block" : (e.items && e.items.len
 
 function push(e){
   servers[e.family] = 1;
-  buckets[e.t.slice(0, 5)] = (buckets[e.t.slice(0, 5)] || 0) + (e.items ? e.items.length : 0);
+  if (levelOf(e) !== "pass") buckets[e.t.slice(0, 5)] = (buckets[e.t.slice(0, 5)] || 0) + 1;
   var tally = {};
   (e.items || []).forEach(function(it){ tally[it.cat] = (tally[it.cat] || 0) + it.n; });
   var log = {
-    t: e.t, src: e.family, lvl: levelOf(e), msg: lineOf(e),
+    t: e.t, src: e.family, ses: e.session || "", lvl: levelOf(e), msg: lineOf(e),
     items: Object.keys(tally).map(function(k){ return [k, tally[k]]; }),
     fields: [["route", e.path], ["status", String(e.status)], ["latence", e.ms + " ms"],
              ["transport", e.stream ? "sse" : "json"], ["session", e.session || "—"]],
@@ -796,7 +843,9 @@ function push(e){
     _items: (e.items || []).map(function(it){
       /* `n`, not `count`: it is the field the kit's own rows and drawer read. */
       return { cat: it.cat, tok: it.fake, type: it.type, n: it.n };
-    })
+    }),
+    /* The event as the proxy sent it: what the JSON tab shows and the export writes. */
+    _raw: e
   };
   LOGS.unshift(log);
   if (LOGS.length > MAX_ROWS) LOGS.length = MAX_ROWS;
@@ -816,17 +865,21 @@ function set(id, v){ var el = document.getElementById(id); if (el) el.textConten
 
 function repaint(){
   var values = LOGS.reduce(function(a, l){ return a + itemCount(l); }, 0);
+  var passed = LOGS.filter(function(l){ return l.lvl === "pass"; }).length;
+  set("s-calls", LOGS.length - passed);
   set("s-total", values);
-  set("s-mask", LOGS.filter(function(l){ return l.lvl === "mask"; }).length);
   set("s-block", LOGS.filter(function(l){ return l.lvl === "block"; }).length);
+  set("pass-n", passed);
 
   var mins = Object.keys(buckets).sort();
+  /* Two minutes of data is one block filling the screen: the chart earns its place at five. */
+  document.getElementById("histo").hidden = mins.length < 5;
   set("histo-rt", mins.length ? mins[0] + " → " + mins[mins.length - 1] : "—");
   var max = Math.max.apply(null, mins.map(function(m){ return buckets[m]; }).concat([1]));
   var shownMins = mins.slice(-60);
   document.getElementById("bars").innerHTML = shownMins.map(function(m){
     var h = Math.max(3, Math.round((buckets[m] / max) * 100));
-    return '<div title="' + m + ' · ' + buckets[m] + ' valeurs"><i style="height:' + h + '%;background:' + cav("contact") + '"></i></div>';
+    return '<div title="' + m + ' · ' + buckets[m] + ' appel' + (buckets[m] > 1 ? 's' : '') + '"><i style="height:' + h + '%;background:' + cav("contact") + '"></i></div>';
   }).join("");
   var axis = document.querySelector(".axis");
   if (axis) axis.innerHTML = shownMins.length

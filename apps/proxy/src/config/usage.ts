@@ -8,6 +8,7 @@ export const USAGE = `openmasq-proxy — mask personal data before it leaves the
                  (standard is the default: deterministic pattern rules, no model loaded)
                  [--always "Groupe Delorme:company,FR76 3000…:iban"] [--secrets-file <path>]
                  [--rules-only] [--quiet] [--json] [--log <file>] [--reveal] [--console]
+                 [--theme auto|light|dark]
                  [--mcp] [--mcp-config <file>] [--mcp-writes confirm|deny|allow] [--mcp-no-adopt]
   openmasq-proxy [flags] -- claude            run a tool through the proxy, stop with it
                  (codex, gemini, opencode, copilot too — --mcp makes us their only MCP)
@@ -20,13 +21,14 @@ restores the reply on the way back. Routes: /v1/chat/completions, /v1/responses,
 a family. Headers: x-openmasq-session (reuse one vault across turns),
 x-openmasq-mode (fake|token). Env: OPENMASQ_PROXY_PORT, OPENMASQ_UPSTREAM_OPENAI,
 OPENMASQ_UPSTREAM_ANTHROPIC, OPENMASQ_UPSTREAM_GEMINI, OPENMASQ_NER_DIR, OPENMASQ_PROXY_MODE, OPENMASQ_PROXY_LEVEL,
-OPENMASQ_PROXY_KEEP, OPENMASQ_PROXY_DISABLED_KINDS, OPENMASQ_PROXY_ALWAYS.
+OPENMASQ_PROXY_KEEP, OPENMASQ_PROXY_DISABLED_KINDS, OPENMASQ_PROXY_ALWAYS, OPENMASQ_PROXY_THEME.
 Types for --always: name, username, email, phone, company, address, city, id, card, iban, ip, path, dob, secret.
 
 --console serves a live view of what is being masked, at a URL printed on start-up. It is
 the way to watch a WRAPPED run: the tool owns the terminal, the console is a browser tab.
 Substitutes and counts by default; --reveal adds the real value beside each one, on that
-page only. The URL carries a per-run token — without it the route is a 404.
+page only — including for a wrapped run (--console --reveal -- <tool>): the page shows
+them, the log file keeps counts. The URL carries a per-run token — without it the route is a 404.
 
 --mcp also serves an MCP server at /mcp. The proxy connects to the servers declared in
 ~/.openmasq/mcp.json (or --mcp-config, Claude Desktop's "mcpServers" shape) and re-exposes
