@@ -68,7 +68,7 @@ export const LABEL_GROUPS: LabelGroup[] = [
       "nom", "prénom", "prenom", "nom et prénom", "nom complet", "nom de famille",
       // CNI / passeport vocabulary ("Nom d'usage : MORVAN", "Nom de naissance : …").
       "nom de naissance", "nom d'usage", "nom d usage",
-      "titulaire", "gérant",
+      "titulaire", "bénéficiaire", "beneficiaire", "gérant",
       "gerant", "représentant", "representant", "name", "full name", "fullname",
       "first name", "firstname", "given name",
       "last name", "lastname", "family name", "surname", "contact", "nombre",
@@ -156,6 +156,32 @@ export const LABEL_GROUPS: LabelGroup[] = [
       // CJK: date of birth
       "生年月日", "出生日期", "生日", "생년월일",
       ...DOB_TERMS_WORLD,
+    ],
+  },
+  {
+    // BANK CODES. Their own category, not ID: `bic` and `iban` are separate switches in the
+    // product, and a label group is what tells a COLUMN what it holds.
+    //
+    // Why it was missing and what it cost: the `bic` RULE is keyword-gated (eight upper-case
+    // alphanumerics is also the shape of an ordinary shouted word), and the gate looks a few
+    // words back. That works for « BIC : AGRIFRPP882 » and fails for a CSV, where the keyword
+    // is written ONCE in the header and the values sit in the rows below it. Measured: 6 of
+    // the corpus's 23 BIC truths are exactly that case — one pasted payment table — and they
+    // were the whole of the category's 74 %. `labels/csv.ts` already re-emits such a block as
+    // `header: value`; it simply had no banking label to read. 74 % -> 100 %, false positives
+    // unchanged (`pnpm bench:compare --corpus internal`, both sides measured).
+    category: "BIC",
+    terms: [
+      "bic", "code bic", "swift", "code swift", "swift bic", "bic swift", "swift code",
+      "bic code", "bankleitzahl", "codice bic", "código bic", "codigo bic",
+    ],
+  },
+  {
+    category: "IBAN",
+    terms: [
+      "iban", "code iban", "numéro iban", "numero iban", "rib",
+      "relevé d'identité bancaire", "releve d identite bancaire",
+      "codice iban", "código iban", "codigo iban",
     ],
   },
   {
