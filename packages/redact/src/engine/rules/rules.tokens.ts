@@ -1,4 +1,5 @@
 import type { RedactionRule } from "../../types";
+import { VENDOR_RULES } from "./rules.vendors";
 
 // Additional vendor API tokens / secrets with DISTINCTIVE fixed prefixes (category
 // "secret", via type "api_key"). Same philosophy as the built-in vendor-token rules
@@ -12,9 +13,14 @@ export const TOKEN_RULES: RedactionRule[] = [
   { type: "google_key", pattern: /\bAIza[0-9A-Za-z_-]{35}\b/g },
   // AKIA = long-lived access key; ASIA = STS TEMPORARY credentials — same 16-char
   // tail, equally distinctive, equally secret (a leaked ASIA key is live for hours).
-  { type: "aws_key", pattern: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/g },
+  // ABIA (bearer token) and ACCA (context credential) are AWS key ids exactly like AKIA and
+  // ASIA, and A3T<x> is the fifth. Verified against gitleaks' `aws-access-token`: leaving
+  // three of the five out meant three live key shapes walked past a rule written for them.
+  { type: "aws_key", pattern: /\b(?:A3T[A-Z0-9]|AKIA|ASIA|ABIA|ACCA)[0-9A-Z]{16}\b/g },
   { type: "github_token", pattern: /\bgh[pousr]_[A-Za-z0-9]{36,}\b/g },
-  { type: "slack_token", pattern: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/g },
+  // `o` = legacy workspace token, `e` = the config access/refresh pair (which also comes
+  // as `xoxe.xoxb-` / `xoxe.xoxp-`). Both are live credentials and neither was in the class.
+  { type: "slack_token", pattern: /\bxox[baeoprs](?:\.xox[bp])?-[A-Za-z0-9-]{10,}\b/g },
   { type: "bearer", pattern: /\bBearer\s+[A-Za-z0-9._-]{8,}/gi },
   // Vendor API keys / tokens with distinctive prefixes → category "secret" (ON by
   // default). The generic api_token rule is OFF by default, so these dedicated
@@ -64,7 +70,10 @@ export const TOKEN_RULES: RedactionRule[] = [
   { type: "api_key", pattern: /\bsecret_[0-9A-Za-z]{43}\b/g }, // Notion internal integration
   { type: "api_key", pattern: /\bntn_[0-9A-Za-z]{36,}\b/g }, // Notion
   { type: "api_key", pattern: /\b\d{8,10}:AA[0-9A-Za-z_-]{32,}\b/g }, // Telegram bot token
-  { type: "api_key", pattern: /\bxapp-\d-[A-Z0-9]+-\d+-[0-9a-f]+\b/g }, // Slack app-level token
+  // ⚠️ Slack app-level token. The tail was `[0-9a-f]+` — HEX — and a real one is
+  // `[a-z0-9]{64}`, base36. Every token carrying a letter past 'f' therefore failed the
+  // rule that exists for it; the audit sample was masked only by the generic heuristic.
+  { type: "api_key", pattern: /\bxapp-\d-[A-Z0-9]+-\d+-[a-z0-9]{32,}\b/g },
   { type: "api_key", pattern: /\bdp\.pt\.[0-9A-Za-z]{40,}\b/g }, // Doppler
   // SSH PUBLIC key line (ssh-rsa / ssh-ed25519 / ecdsa-…): the key material after
   // the algorithm name is a long base64 run starting `AAAA`.
@@ -72,4 +81,8 @@ export const TOKEN_RULES: RedactionRule[] = [
     type: "api_key",
     pattern: /(?:ssh-(?:rsa|ed25519|dss)|ecdsa-sha2-nistp\d+) AAAA[0-9A-Za-z+/]{20,}={0,3}/g,
   },
+  // The rest of the vendor prefixes, grouped by tail shape — `rules.vendors.ts`. Same
+  // family, so they enter through the same door; they live in their own file only
+  // because there are sixty of them and this one has a size to keep.
+  ...VENDOR_RULES,
 ];

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { REDACTION_CATEGORIES } from "@openmasq/catalog";
+import { CATEGORY_SECTION } from "../highlight/sections";
 import { redactionCategory } from "../kinds";
 import { nerLabelToCategory, TRAINED_LABELS } from "./labels";
 
@@ -13,14 +13,18 @@ import { nerLabelToCategory, TRAINED_LABELS } from "./labels";
  * its nine labels dropped here — no error, no warning, the spans simply gone.
  */
 describe("the labels a retrained model may emit", () => {
-  const real = new Set(REDACTION_CATEGORIES.map((c) => c.key));
+  // ⚠️ `CATEGORY_SECTION` and NOT `@openmasq/catalog`: the dependency runs catalog -> redact,
+  // so importing the catalogue from here is backwards and breaks this package's typecheck.
+  // It is also the stronger check — the record is `Record<RedactionCategory, …>`, so
+  // TypeScript itself keeps it exhaustive over every category that exists.
+  const real = new Set(Object.keys(CATEGORY_SECTION));
 
   it("each resolve to a category this product has a switch for", () => {
     for (const label of TRAINED_LABELS) {
       const mapped = nerLabelToCategory(label);
       expect(mapped, `${label} is dropped by the mapper`).not.toBe("");
       expect(real, `${label} -> ${mapped}, which is not a product category`).toContain(
-        redactionCategory(mapped),
+        redactionCategory(mapped) as string,
       );
     }
   });
