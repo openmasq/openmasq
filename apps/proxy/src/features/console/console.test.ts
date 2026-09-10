@@ -71,6 +71,26 @@ describe("the console endpoint", () => {
     expect(html).not.toContain("<!--MARK-->");
   });
 
+  it("carries a Session column, because one console now shows several clients", async () => {
+    const html = await (await fetch(`${url}?t=${TOKEN}`)).text();
+    // Several wrapped clients share one proxy (`lib/attach.ts`), each on its own `/s/<id>`
+    // prefix and its own vault — telling them apart is what the column is for.
+    expect(html).toContain('<th class="c-ses">Session</th>');
+    expect(html).toContain("function sesTag(");
+  });
+
+  it("names the flag on every reveal control, instead of offering a dead toggle", async () => {
+    const html = await (await fetch(`${url}?t=${TOKEN}`)).text();
+    // This console was started WITHOUT --reveal, so the server sends no original. The kit's
+    // own toggle would otherwise flip to a row of dots and leave the reader guessing why.
+    expect(html).toContain("Valeurs réelles (--reveal)");
+    expect(html).toContain("armReveal(!!d.reveal)");
+    expect(html).toContain("Relancez avec --reveal pour afficher les valeurs réelles");
+    // ONE control, at the top. The drawer used to carry a second one — two buttons for one
+    // fact, and a "→ --reveal" under every single value on top of that.
+    expect(html).not.toContain('id="rev-in"');
+  });
+
   it("serves the generated token sheet, and no colour of its own", async () => {
     const css = await (await fetch(`${url}/tokens.css?t=${TOKEN}`)).text();
     expect(css).toContain("--cav-identite");

@@ -21,6 +21,8 @@ export interface AppDeps {
   reporter?: Reporter;
   /** Is the on-device model loaded right now (the level can change while it runs). */
   modelOn?: () => boolean;
+  /** Reported by `/healthz`, which is how a second wrapper recognises us before joining. */
+  version?: string;
   /** Present ⇒ serve `/mcp`. Built by `server.ts` once the upstream servers are connected;
    *  absent ⇒ the route does not exist at all (`routes/index.ts` says why). */
   mcp?: { bridge: McpBridge; version: string };
@@ -41,7 +43,10 @@ export function createApp(deps: AppDeps): express.Application {
   // give the tool calls and the model calls two different vaults under the same session id
   // — the exact thing `/mcp` exists to avoid.
   const session = sessionMiddleware(deps.config);
-  app.use("/healthz", healthRouter(deps.config, deps.modelOn ?? (() => !deps.config.rulesOnly)));
+  app.use(
+    "/healthz",
+    healthRouter(deps.config, deps.modelOn ?? (() => !deps.config.rulesOnly), deps.version),
+  );
   // Before the body chain and the family routers: these are plain GETs with no request body
   // to mask, and `/` would otherwise fall through to the passthrough relay.
   if (deps.console) app.use("/console", consoleRouter(deps.console));
@@ -59,6 +64,10 @@ export function createApp(deps: AppDeps): express.Application {
         version: deps.mcp.version,
       }),
     );
+  // `/s/:sid/...` — the SAME routes, under a per-client prefix. Several wrapped clients can
+  // then share one proxy while keeping one vault each: a tool gives us its base URL and
+  // nothing else, so the session has to travel there.
+  app.use("/s/:sid", rawBody, parseJsonObject, session, apiRouter(relayDeps));
   app.use(rawBody, parseJsonObject, session);
   app.use(apiRouter(relayDeps));
 

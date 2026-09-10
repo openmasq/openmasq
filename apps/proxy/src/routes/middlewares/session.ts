@@ -21,9 +21,12 @@ export function sessionMiddleware(config: ProxyConfig) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const header = req.headers["x-openmasq-mode"];
     const mode = header === "token" ? "token" : header === "fake" ? "fake" : config.mode;
-    const named = sessionIdFrom(req.headers["x-openmasq-session"]);
+    // Three ways to name a session, most explicit first. The PATH is what makes several
+    // wrapped clients work at once: a tool lets us set its base URL and nothing else — no
+    // header — so the session travels in the URL the wrapper hands it.
+    const named = sessionIdFrom(req.params.sid) ?? sessionIdFrom(req.headers["x-openmasq-session"]);
     const { vault, key } = sessions.get(named ?? (config.mcp ? SHARED_SESSION : undefined));
-    const locals: Locals = { vault, key, mode, matches: [] };
+    const locals: Locals = { vault, key, mode, matches: [], ...(named ? { session: named } : {}) };
     Object.assign(res.locals, locals);
     next();
   };

@@ -187,6 +187,30 @@ describe("proxy app", () => {
     ).toBe(`Hi ${REAL}`);
   });
 
+  /**
+   * ⚠️ REGRESSION. A wrapped client is pointed at `/s/<session>` (`lib/attach.ts`), so it
+   * POSTs to `/s/claude-x/v1/messages`. That prefix addresses THIS proxy, never the vendor —
+   * forwarded verbatim it is a 404 at the upstream, which a coding agent reads as "the model
+   * does not exist". The upstream must receive the bare `/v1/messages`, and the reply must
+   * still restore under that session's vault.
+   */
+  it("strips the /s/<session> prefix before forwarding, and still masks and restores", async () => {
+    const before = seen.length;
+    const res = await post("/s/claude-7ad2/v1/messages", {
+      model: "claude-3-5-haiku-20241022",
+      max_tokens: 8,
+      messages: [{ role: "user", content: `Bonjour ${REAL}` }],
+    });
+    expect(res.status).toBe(200); // not the upstream 404 of a path that carries the prefix
+    const sent = seen[before];
+    expect(sent.path).toBe("/v1/messages"); // the vendor never sees /s/<session>
+    expect(sent.body).not.toContain(REAL); // the model saw the fake
+    expect(sent.body).toContain(FAKE);
+    // …and the reply came back with the real value, under this session's vault.
+    const reply = (await res.json()) as { content: Array<{ text: string }> };
+    expect(reply.content[0].text).toContain(REAL);
+  });
+
   it("refuses a POST it cannot mask, passes a GET through, and reports health", async () => {
     expect((await post("/v1/files", {})).status).toBe(501);
     expect((await call("/v1/chat/completions", { method: "POST", body: "not json" })).status).toBe(

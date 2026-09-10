@@ -8,7 +8,6 @@ import type { ProxyConfig } from "../config/config.js";
 import type { Masker, Vault } from "./masker.js";
 import { SseTransform, type FrameRewriter, type SseFrame } from "./sse.js";
 import type { Reporter } from "./ui/index.js";
-import { sessionIdFrom } from "./sessions.js";
 import type { RestoreFns } from "../features/openai/wire.js";
 
 /** Hop-by-hop, framing and our own headers: ours to set, not the caller's or the upstream's. */
@@ -26,6 +25,9 @@ const DROP_RES = new Set(["content-length", "content-encoding", "transfer-encodi
 export type Family = "openai" | "anthropic" | "gemini";
 
 export interface Locals {
+  /** Which wrapped client this request belongs to, when it named one — the `/s/:sid`
+   *  prefix, or the `x-openmasq-session` header. Absent for an anonymous caller. */
+  session?: string;
   vault: Vault;
   /** The vault's key (hex): the fakes are HMACs under it, never a public hash. */
   key: string;
@@ -58,9 +60,16 @@ export interface RelayOptions {
   strip?: string[];
 }
 
-/** The upstream path: what the client asked for, minus a `/openai` or `/anthropic` prefix. */
+/** The upstream path: what the client asked for, minus the prefixes that address US and not
+ *  the vendor — the per-client `/s/<session>` (a wrapped tool's whole base URL) and a
+ *  `/openai`|`/anthropic`|`/gemini` family selector. Both are how the caller reaches THIS
+ *  proxy; neither exists upstream, so forwarding either verbatim is a 404 at the vendor. */
 export function upstreamPath(req: Request): string {
-  return req.originalUrl.replace(/^\/(openai|anthropic|gemini)(?=\/|$)/, "") || "/";
+  return (
+    req.originalUrl
+      .replace(/^\/s\/[^/]+/, "")
+      .replace(/^\/(openai|anthropic|gemini)(?=\/|$)/, "") || "/"
+  );
 }
 
 export async function relay(
@@ -100,13 +109,17 @@ export async function relay(
   });
   deps.reporter.request({
     method: req.method,
-    path: path.split("?")[0],
+    // Without the `/s/<session>` prefix: the session has its own column, and repeating it
+    // in every route makes the log harder to read, not more precise.
+    path: path.split("?")[0].replace(/^\/s\/[^/]+/, ""),
     family: o.family,
     status: up.status,
     ms: Date.now() - t0,
     matches: locals.matches,
     stream: streaming,
-    session: sessionIdFrom(req.headers["x-openmasq-session"]),
+    // From `res.locals`, not re-read from the header: the session may have come from the
+    // `/s/:sid` prefix, and the middleware is the one place that decides.
+    session: locals.session,
   });
 
   const resHeaders: Record<string, string> = {};

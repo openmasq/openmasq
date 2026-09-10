@@ -11,6 +11,7 @@ import type { RedactionLevel } from "@openmasq/catalog";
 import { createApp } from "./app.js";
 import { LEVELS, parseArgs, USAGE } from "./config/config.js";
 import { createConsoleBus } from "./features/console/events.js";
+import { joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
 import { runMcpCommand } from "./features/mcp/cli.js";
 import { startIntegrations } from "./features/mcp/start.js";
 import { envLines } from "./lib/baseUrls.js";
@@ -21,7 +22,7 @@ import {
   type MaskerOptions,
 } from "./lib/masker.js";
 import { type DetectLocal, loadNer, resolveNerDir } from "./lib/ner.js";
-import { attachKeys, createReporter, KEY_HINTS, type ModelState } from "./lib/ui/index.js";
+import { attachKeys, createReporter, KEY_HINTS, type ModelState, revealFor } from "./lib/ui/index.js";
 import { defaultLogFile, fileWriter, runWrapped } from "./lib/wrap.js";
 
 const NO_MODEL =
@@ -44,6 +45,14 @@ async function main(): Promise<void> {
   }
 
   const wrapping = config.command.length > 0;
+  const url0 = `http://${config.host}:${config.port}`;
+
+  // Already one running? Join it rather than dying on EADDRINUSE (`lib/attach.ts`).
+  if (wrapping) {
+    const code = await joinRunning(url0, config.command);
+    if (code !== undefined) process.exit(code);
+  }
+
   const reveal = { on: config.reveal };
   const interactive = !wrapping && !config.json && !!process.stdin.isTTY && !!process.stderr.isTTY;
   // Wrapping a tool: its own interface owns the terminal, so the request lines go to a file
@@ -56,7 +65,9 @@ async function main(): Promise<void> {
   const reporter = createReporter({
     json: config.json,
     quiet: !config.verbose,
-    reveal,
+    // A FILE never gets the toggle: with `--console --reveal -- <tool>` the values go to the
+    // console page, and the log keeps counts (`revealFor`, pinned in `reporter.test.ts`).
+    reveal: revealFor(reveal, { toFile: !!logFile }),
     ...(logFile ? { write: fileWriter(logFile), colors: false } : interactive ? { live } : {}),
   });
   const screen = logFile ? createReporter({ reveal }) : reporter;
@@ -79,6 +90,7 @@ async function main(): Promise<void> {
   // The masker reads these at request time, so a key can re-point the level — and the model,
   // which `standard` never loads and a later level may need.
   const maskerOpts: MaskerOptions = {
+    level: config.level,
     detectLocal: undefined,
     keep: config.keep,
     disabledKinds: disabledKindsFor(config.level, config.disabledKinds),
@@ -143,6 +155,7 @@ async function main(): Promise<void> {
     config,
     masker,
     reporter: feed,
+    version: packageVersion(),
     modelOn: () => !!detectLocal,
     ...(bridge ? { mcp: { bridge, version: packageVersion() } } : {}),
     ...(bus
@@ -157,7 +170,8 @@ async function main(): Promise<void> {
         }
       : {}),
   });
-  const url = `http://${config.host}:${config.port}`;
+  const url = url0;
+  const ownSession = wrapping ? sessionName(config.command[0]) : "";
   let detach = () => {};
   const server = app.listen(config.port, config.host, async () => {
     screen.banner(config, {
@@ -165,7 +179,7 @@ async function main(): Promise<void> {
       version: packageVersion(),
       keys: interactive ? KEY_HINTS : undefined,
       compact: wrapping,
-      reveal: reveal.on,
+      reveal: reveal.on && !wrapping,
       ...(config.mcp
         ? {
             mcp: {
@@ -180,7 +194,9 @@ async function main(): Promise<void> {
     if (bus)
       screen.note(
         `console: ${url}/console?t=${consoleToken}` +
-          (reveal.on ? "  — real values are shown on that page" : ""),
+          (reveal.on
+            ? "  — real values are shown on that page"
+            : "  — substitutes only; add --reveal to see the values behind them"),
         reveal.on ? "warn" : "info",
       );
     if (config.json) console.error(`[openmasq-proxy] ${url}`);
@@ -194,6 +210,7 @@ async function main(): Promise<void> {
               return { level: config.level, refused: `${next} needs the on-device model: ${why}` };
           }
           config.level = next;
+          maskerOpts.level = next;
           maskerOpts.disabledKinds = disabledKindsFor(next, config.disabledKinds);
           return { level: next };
         },
@@ -210,8 +227,16 @@ async function main(): Promise<void> {
       });
     }
     if (wrapping) {
-      screen.note(`masking for ${config.command[0]} — request lines in ${logFile}`);
-      const code = await runWrapped(config.command, url, integrations.exclusiveArgs);
+      screen.note(
+        `masking for ${config.command[0]} (session ${ownSession}) — request lines in ${logFile}`,
+      );
+      // Even the first client gets its own session: the console must tell it apart from the
+      // ones that join later, and a vault per client is the isolation that makes that true.
+      const code = await runWrapped(
+        config.command,
+        sessionUrl(url, ownSession),
+        integrations.exclusiveArgs,
+      );
       screen.summary(reporter.stats());
       leave(code);
     }
