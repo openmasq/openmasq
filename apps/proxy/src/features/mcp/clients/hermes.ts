@@ -1,65 +1,57 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { parse, stringify } from "yaml";
 import type { AgentClient } from "./types.js";
 
 /**
  * Hermes Agent (Nous Research). Its model base URL and its MCP servers BOTH live in one place
  * only — `$HERMES_HOME/config.yaml` (`model.base_url`, `mcp_servers`); no env var redirects
- * either (verified in `hermes_cli/config.py`: the base URL is read from config, not
- * `OPENAI_BASE_URL`). Its single per-run lever is `HERMES_HOME`, which relocates config AND
- * the memory/skills/credentials with it — the very thing `clients/index.ts` warns a home var
- * does.
+ * either (verified in `hermes_cli/config.py`). Its single per-run lever is `HERMES_HOME`,
+ * which relocates config AND the memory/skills/credentials with it.
  *
- * So exclusivity here is a MIRRORED home: config.yaml is OURS (the model routed through the
- * proxy, our endpoint as the only `mcp_servers` entry — exclusive by construction), and
- * everything that must survive — `.env` with the model key, `memories/`, `skills/`,
- * `sessions/` — is SYMLINKED back from the real home (`Exclusivity.links`). No secret is read,
- * the real `~/.hermes` is never written, and the run keeps its memory. On quit the temp home
- * (our config + the links) is removed; unlinking a symlink never touches its target.
+ * So exclusivity is a MIRRORED home: config.yaml is derived from the USER'S OWN (every setting
+ * kept — provider, model, key, headers), with ONLY two changes — `model.base_url` redirected
+ * to the proxy, and `mcp_servers` replaced by our endpoint alone (exclusive by construction).
+ * Everything else in the home — `.env`, `memories/`, `skills/`, the code — is SYMLINKED back
+ * from the real one. No secret is read out, the real `~/.hermes` is never written, the run
+ * keeps its memory AND its own credentials. On quit the temp home is removed; unlinking a
+ * symlink never touches its target.
  *
- * The model's API key rides via the symlinked `.env` (Hermes's own convention — « secrets go
- * in .env »): our config.yaml references it as `${OPENAI_API_KEY}` rather than copying it. A
- * user whose key is inline in `config.yaml` instead must move it to `.env` for this run — the
- * one thing this cannot carry without reading a secret.
- *
- * ⚠️ NOT verified live (Hermes not installed here). The mechanism is derived from the docs and
- * the source; the shape below is what a smoke test on a real account confirms.
+ * ⚠️ Works with WHATEVER provider is connected, because it keeps the user's provider and only
+ * redirects the base URL to the WIRE that provider speaks: Anthropic (`/v1/messages`) and
+ * Gemini reach the proxy at its root, an OpenAI-compatible provider at `/v1`. The proxy relays
+ * each wire to its own upstream with the caller's own auth — the key is never touched.
+ * Verified live end to end (OpenAI wire, fake upstream); the Anthropic wire is the same relay.
  */
 
-/** The config.yaml handed to Hermes: the model pointed at the proxy, and OUR endpoint as the
- *  only MCP server. Pure — tested without a filesystem. `root` is `http://host:port` (no path). */
-export function hermesConfig(root: string, model?: string): string {
-  return (
-    [
-      "model:",
-      ...(model ? [`  default: ${JSON.stringify(model)}`] : []),
-      "  provider: custom",
-      `  base_url: ${JSON.stringify(`${root}/v1`)}`,
-      "  api_key: ${OPENAI_API_KEY}",
-      "mcp_servers:",
-      "  openmasq:",
-      `    url: ${JSON.stringify(`${root}/mcp`)}`,
-    ].join("\n") + "\n"
-  );
+/** Which base URL the proxy exposes for the wire this provider/model speaks. Anthropic posts
+ *  to `<base>/v1/messages` and Gemini to `<base>/v1beta/…`, so they take the ROOT; an
+ *  OpenAI-compatible client posts to `<base>/chat/completions`, so its base ends in `/v1`. */
+export function wireBaseUrl(root: string, provider: unknown, model: unknown): string {
+  const p = String(provider ?? "").toLowerCase();
+  const m = String(model ?? "").toLowerCase();
+  if (p === "anthropic" || p === "gemini" || /claude|gemini/.test(m)) return root;
+  return `${root}/v1`;
 }
 
-/** The user's default model, read from their `config.yaml` without a YAML dependency: the
- *  `default:` line inside the top-level `model:` block. Best-effort — absent ⇒ we omit it and
- *  Hermes falls back to its own default (or the user's `--model`, which outranks config). */
-export function readDefaultModel(configYaml: string): string | undefined {
-  let inModel = false;
-  for (const line of configYaml.split(/\r?\n/)) {
-    if (/^model:\s*(#.*)?$/.test(line)) {
-      inModel = true;
-      continue;
-    }
-    if (!inModel) continue;
-    if (/^\S/.test(line)) break; // dedented — left the model block
-    const m = /^\s+default:\s*(?:"([^"]+)"|'([^']+)'|([^"'#\s][^#]*?))\s*(?:#.*)?$/.exec(line);
-    if (m) return (m[1] ?? m[2] ?? m[3])?.trim();
-  }
-  return undefined;
+/**
+ * The config.yaml handed to Hermes: the user's own, with the model's base URL redirected to
+ * the proxy and OUR endpoint as the only MCP server. Everything else the user set is kept
+ * (provider, default model, api_key/auth, headers, custom_providers…). Pure — tested without a
+ * filesystem. `root` is `http://host:port` (no path). Comments are dropped (the temp config is
+ * ephemeral; the real one keeps them).
+ */
+export function hermesConfigFrom(userYaml: string, root: string): string {
+  const doc = (parse(userYaml) ?? {}) as Record<string, unknown>;
+  const model = (typeof doc.model === "object" && doc.model !== null ? doc.model : {}) as Record<
+    string,
+    unknown
+  >;
+  model.base_url = wireBaseUrl(root, model.provider, model.default ?? model.model);
+  doc.model = model;
+  doc.mcp_servers = { openmasq: { url: `${root}/mcp` } };
+  return stringify(doc);
 }
 
 export const HERMES: AgentClient = {
@@ -75,23 +67,22 @@ export const HERMES: AgentClient = {
       };
     // `ctx.url` is our /mcp endpoint; the model needs the ROOT, so strip the path.
     const root = url.replace(/\/mcp$/, "");
-    let model: string | undefined;
+    let content: string;
     try {
-      model = readDefaultModel(readFileSync(configPath, "utf8"));
+      content = hermesConfigFrom(readFileSync(configPath, "utf8"), root);
     } catch {
-      /* unreadable config → let Hermes use its own default */
+      return { blocked: "~/.hermes/config.yaml could not be read as YAML" };
     }
     // Mirror EVERY entry of the real home except config.yaml — its memory, skills, sessions,
-    // its `.env` with the model key, and its own code/bin — so the run is the user's Hermes in
-    // every way but the one file we own. Verified live: `hermes` runs from such a home and its
-    // MCP list is `openmasq` alone.
+    // its `.env` and auth store, its own code/bin — so the run is the user's Hermes in every
+    // way but the one file we own. Verified live: `hermes` runs from such a home.
     const links = readdirSync(home)
       .filter((name) => name !== "config.yaml")
       .map((name) => ({ path: join(dir, name), target: join(home, name) }));
     return {
       args: [],
       env: { HERMES_HOME: dir },
-      write: { path: join(dir, "config.yaml"), content: hermesConfig(root, model) },
+      write: { path: join(dir, "config.yaml"), content },
       links,
     };
   },

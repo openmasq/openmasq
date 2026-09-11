@@ -1,48 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { hermesConfig, readDefaultModel, HERMES } from "./hermes";
+import { parse } from "yaml";
+import { hermesConfigFrom, wireBaseUrl, HERMES } from "./hermes";
 
-describe("hermes — the config we hand it", () => {
-  it("routes the model through the proxy and declares OUR endpoint as the only MCP server", () => {
-    const yaml = hermesConfig("http://127.0.0.1:8787", "anthropic/claude-opus-4.6");
-    expect(yaml).toContain('base_url: "http://127.0.0.1:8787/v1"');
-    expect(yaml).toContain("openmasq:");
-    expect(yaml).toContain('url: "http://127.0.0.1:8787/mcp"');
-    expect(yaml).toContain('default: "anthropic/claude-opus-4.6"');
-    // The key is referenced, never copied.
-    expect(yaml).toContain("api_key: ${OPENAI_API_KEY}");
-    // The mcp_servers block is EXACTLY our one endpoint — exclusivity by construction.
-    expect(yaml.slice(yaml.indexOf("mcp_servers:"))).toBe(
-      'mcp_servers:\n  openmasq:\n    url: "http://127.0.0.1:8787/mcp"\n',
-    );
+const R = "http://127.0.0.1:8787";
+
+describe("hermes — the wire matches whatever provider is connected", () => {
+  it("Anthropic (and any claude model) reaches the proxy ROOT — /v1/messages is appended", () => {
+    expect(wireBaseUrl(R, "anthropic", "claude-opus-5")).toBe(R);
+    expect(wireBaseUrl(R, "auto", "anthropic/claude-opus-4.6")).toBe(R);
   });
-
-  it("omits the model default when the user's config has none", () => {
-    expect(hermesConfig("http://x:1", undefined)).not.toContain("default:");
+  it("Gemini takes the root; an OpenAI-compatible provider takes /v1", () => {
+    expect(wireBaseUrl(R, "gemini", "gemini-2.5")).toBe(R);
+    expect(wireBaseUrl(R, "custom", "gpt-5")).toBe(`${R}/v1`);
+    expect(wireBaseUrl(R, "openrouter", "x")).toBe(`${R}/v1`);
   });
 });
 
-describe("hermes — reading the user's default model without a YAML dep", () => {
-  it("reads default: from inside the model: block, quoted or bare", () => {
-    expect(readDefaultModel('model:\n  default: "openai/gpt-5"\n  provider: auto\n')).toBe(
-      "openai/gpt-5",
-    );
-    expect(readDefaultModel("model:\n  provider: auto\n  default: anthropic/claude\n")).toBe(
-      "anthropic/claude",
-    );
+describe("hermes — config is the user's own, only base_url and mcp_servers change", () => {
+  const userYaml = [
+    "database:",
+    "  journal_mode: wal",
+    "model:",
+    '  default: "claude-opus-5"',
+    "  provider: anthropic",
+    "  headers:",
+    '    X-Trace: "1"',
+    "mcp_servers:",
+    "  gmail:",
+    '    url: "https://gmail.example/mcp"',
+    "  legacy:",
+    "    command: npx",
+  ].join("\n");
+
+  it("keeps provider/model/headers, redirects base_url to the Anthropic wire, no key added", () => {
+    const doc = parse(hermesConfigFrom(userYaml, R));
+    expect(doc.model.provider).toBe("anthropic"); // preserved
+    expect(doc.model.default).toBe("claude-opus-5"); // preserved
+    expect(doc.model.headers).toEqual({ "X-Trace": "1" }); // preserved
+    expect(doc.model.base_url).toBe(R); // redirected, Anthropic wire → root
+    expect(doc.model.api_key).toBeUndefined(); // the user's auth is never touched
+    expect(doc.database).toEqual({ journal_mode: "wal" }); // every other setting kept
   });
-  it("does not read a default: from another block", () => {
-    expect(readDefaultModel("auxiliary:\n  default: glm-4.7\nmodel:\n  provider: auto\n")).toBe(
-      undefined,
-    );
-  });
-  it("returns undefined when there is no model block or no default", () => {
-    expect(readDefaultModel("mcp_servers:\n  x:\n    url: y\n")).toBe(undefined);
-    expect(readDefaultModel("model:\n  provider: custom\n")).toBe(undefined);
+
+  it("replaces the user's MCP servers with OUR endpoint alone (exclusive by construction)", () => {
+    const doc = parse(hermesConfigFrom(userYaml, R));
+    expect(doc.mcp_servers).toEqual({ openmasq: { url: `${R}/mcp` } });
   });
 });
 
-describe("hermes — exclusivity", () => {
-  it("blocks when Hermes is not set up (no config.yaml under the home)", () => {
+describe("hermes — exclusivity blocks when not set up", () => {
+  it("blocks when there is no config.yaml under the home", () => {
     const out = HERMES.exclusive({
       configPath: "/tmp/x/mcp.json",
       dir: "/tmp/x",
