@@ -592,14 +592,14 @@ function rebuildData(){
   LOGS.forEach(function(l, i){
     itemsOf(l).forEach(function(it){
       if (!it.tok) return;   /* nothing to identify it by in a per-value list */
-      DATA.push({ t:l.t, src:l.src, ses:l.ses, call:i, lvl:l.lvl, it:it });
+      DATA.push({ t:l.t, src:l.src, ses:l.ses, call:l.id, lvl:l.lvl, it:it });
     });
   });
 }
 
 var HEADS = {
-  calls: '<th class="c-time">Heure</th><th class="c-ses">Session</th><th class="c-src">Serveur</th><th class="c-lvl">Action</th><th>Événement</th><th class="c-cnt">Valeurs</th>',
-  items: '<th class="c-time">Heure</th><th class="c-ses">Session</th><th class="c-tok">Substitut</th><th class="c-type">Type</th><th class="c-cat">Catégorie</th><th class="c-cnt">Occ.</th>'
+  calls: '<th class="c-time">Time</th><th class="c-ses">Session</th><th class="c-src">Server</th><th class="c-lvl">Action</th><th>Event</th><th class="c-cnt">Values</th>',
+  items: '<th class="c-time">Time</th><th class="c-ses">Session</th><th class="c-tok">Substitute</th><th class="c-type">Type</th><th class="c-cat">Category</th><th class="c-cnt">Count</th>'
 };
 /* One stable colour per session, drawn from the section hues: several clients share this
    console, and telling them apart at a glance is the whole point of the column. */
@@ -616,6 +616,7 @@ var mode = "calls", showPass = false;
 var rowsEl = document.getElementById("rows"), headEl = document.getElementById("head"), sel = 0;
 function itemCount(l){ return l.items.reduce(function(a,i){return a+i[1]},0); }
 function renderRows(filter){
+  var selId = (logOf(sel) || {}).id;
   headEl.innerHTML = HEADS[mode];
   var h = "";
   if (mode === "calls") {
@@ -625,7 +626,7 @@ function renderRows(filter){
       if (!inBucket(l.t)) return;
       if (filter && (plain + " " + l.src + " " + (l.ses || "")).toLowerCase().indexOf(filter) < 0) return;
       var n = itemCount(l);
-      h += '<tr data-i="'+i+'"'+(i===sel?' class="sel"':'')+'>'
+      h += '<tr data-i="'+l.id+'"'+(l.id===selId?' class="sel"':'')+'>'
         + '<td class="c-time">'+l.t+'</td>'
         + '<td class="c-ses">'+sesTag(l.ses)+'</td>'
         + '<td class="c-src"><span class="src">'+SRC_ICON+l.src+'</span></td>'
@@ -639,7 +640,7 @@ function renderRows(filter){
     DATA.forEach(function(d,i){
       var hay = (d.it.tok + " " + d.it.type + " " + catLabel(d.it.cat) + " " + d.src + " " + (d.ses || "")).toLowerCase();
       if (filter && hay.indexOf(filter) < 0) return;
-      h += '<tr data-i="'+d.call+'" data-item="'+i+'"'+(d.call===sel?' class="sel"':'')+'>'
+      h += '<tr data-i="'+d.call+'" data-item="'+i+'"'+(d.call===selId?' class="sel"':'')+'>'
         + '<td class="c-time">'+d.t+'</td>'
         + '<td class="c-ses">'+sesTag(d.ses)+'</td>'
         + '<td class="c-tok"><span class="pair"><span>'+swipe(d.it.cat, d.it.tok)+'</span>'
@@ -754,7 +755,7 @@ function renderFlow(l){
     + '</div>';
 }
 function renderDetail(){
-  var l = LOGS[sel];
+  var l = logOf(sel);
   if (!l) {
     detailEl.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h7"/></svg><b>No row selected</b><span>Click a row of the log to follow the data\'s journey, from the call to your copy.</span></div>';
     return;
@@ -847,7 +848,7 @@ rowsEl.addEventListener("click", function(e){
 });
 detailEl.addEventListener("click", function(e){
   if (e.target.closest("#copy-json")) {
-    var l = LOGS[sel]; if (l) navigator.clipboard.writeText(JSON.stringify(exportable(l._raw), null, 2)).catch(function(){});
+    var l = logOf(sel); if (l) navigator.clipboard.writeText(JSON.stringify(exportable(l._raw), null, 2)).catch(function(){});
     return;
   }
   var t = e.target.closest("[data-t]");
@@ -931,6 +932,12 @@ pollLevel(); setInterval(pollLevel, 5000);
    with nothing to reveal, the server never sent it, and the button says so.
    --------------------------------------------------------------------------- */
 var MAX_ROWS = 500;
+/* A row is selected by IDENTITY, never by position: the journal is newest-first, so every
+   arrival shifts every index by one and a selected index slid to the neighbouring row — the
+   drawer with it — each time the log moved. `sel` is 0 to follow the newest row (the state at
+   load), -1 for none, or the id `push()` gave the row. */
+var SEQ = 0;
+function logOf(id){ return id === 0 ? LOGS[0] : LOGS.filter(function(l){ return l.id === id; })[0]; }
 var started = Date.now(), servers = {};
 
 function esc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -964,7 +971,8 @@ function push(e){
       return { cat: it.cat, tok: it.fake, type: it.type, n: it.n };
     }),
     /* The event as the proxy sent it: what the JSON tab shows and the export writes. */
-    _raw: e
+    _raw: e,
+    id: ++SEQ
   };
   LOGS.unshift(log);
   if (LOGS.length > MAX_ROWS) LOGS.length = MAX_ROWS;
@@ -1000,7 +1008,7 @@ function repaint(){
   recap();
   rebuildData();
   renderRows(document.getElementById("q").value.trim().toLowerCase());
-  if (sel >= 0) renderDetail();
+  if (sel !== -1) renderDetail();
 }
 
 /* The toggle promises real values. When the run did not reveal, the server has sent none —
