@@ -66,12 +66,13 @@ column leaves 101 entirely absent — that is the real remainder.
 
 ## The corpora
 
-Five. One we wrote, four public, and only one made of real text.
+Six. One we wrote, five public, and two made of real text.
 
 | | what it is | cases | median length |
 |---|---|---:|---:|
 | **OpenMasq** | our own: French forms, payslips, deeds, lab results, tool output, OCR damage. Synthetic. | 907 | 125 |
-| **TAB** | European Court of Human Rights judgments, annotated by people. **The only real text here.** | 127 | 3 886 |
+| **TAB** | European Court of Human Rights judgments, annotated by people. **Real text.** | 127 | 3 886 |
+| **UNER** | the English Web Treebank — e-mails, newsgroups, customer reviews, weblogs, Yahoo! Answers — hand-annotated PER/ORG/LOC (Universal NER). **Real text, and the only one people typed**: informal, lower-cased, mis-spelt, with signatures and quoted threads. | 634 | 198 |
 | **Gretel** | synthetic finance: invoices, statements, and machine formats (MT940, SWIFT, EDI). 7 languages. | 5 594 | 1 306 |
 | **ai4privacy** | dense synthetic records, 6 languages. Every value sits beside a label. | 6 000 | 426 |
 | **Nemotron** | English documents across 50 industries, 55 label types. | 6 000 | 752 |
@@ -473,12 +474,13 @@ de TAB, la colonne `ner` n'en laisse que 101 entièrement absents — c'est le v
 
 ## Les corpus
 
-Cinq. Un que nous avons écrit, quatre publics, et un seul fait de texte réel.
+Six. Un que nous avons écrit, cinq publics, et deux faits de texte réel.
 
 | | ce que c'est | cas | longueur médiane |
 |---|---|---:|---:|
 | **OpenMasq** | le nôtre : imprimés français, bulletins de paie, actes, résultats de labo, sorties d'outils, dégâts OCR. Synthétique. | 907 | 125 |
-| **TAB** | des arrêts de la Cour européenne des droits de l'homme, annotés par des personnes. **Le seul texte réel ici.** | 127 | 3 886 |
+| **TAB** | des arrêts de la Cour européenne des droits de l'homme, annotés par des personnes. **Texte réel.** | 127 | 3 886 |
+| **UNER** | l'English Web Treebank — e-mails, forums, avis clients, blogs, Yahoo! Answers — annoté à la main en PER/ORG/LOC (Universal NER). **Texte réel, et le seul que des gens ont tapé** : informel, en minuscules, avec fautes, signatures et fils cités. | 634 | 198 |
 | **Gretel** | finance synthétique : factures, relevés, et formats machine (MT940, SWIFT, EDI). 7 langues. | 5 594 | 1 306 |
 | **ai4privacy** | enregistrements synthétiques denses, 6 langues. Chaque valeur est collée à une étiquette. | 6 000 | 426 |
 | **Nemotron** | documents anglais, 50 secteurs, 55 types d'étiquettes. | 6 000 | 752 |

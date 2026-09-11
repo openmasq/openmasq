@@ -14611,6 +14611,581 @@
     "p90": 301.2,
     "total": 21982
    }
+  },
+  {
+   "dataset": "uner",
+   "engine": "patterns",
+   "cases": 634,
+   "measured": "2026-09-11",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.593607997576492,
+    "r": 0.2128156394243823,
+    "f1": 0.31330695127313424,
+    "goldChars": 18415,
+    "predChars": 6602
+   },
+   "in": {
+    "p": 0.593607997576492,
+    "r": 0.2128156394243823,
+    "f1": 0.31330695127313424,
+    "goldChars": 18415
+   },
+   "spanOverlapF1": 0.2815898175697376,
+   "spanContainmentF1": 0.24903730268379434,
+   "consistency": {
+    "recurring": {
+     "ok": 7,
+     "n": 226
+    },
+    "buckets": {
+     "1": {
+      "ok": 15,
+      "n": 125
+     },
+     "2": {
+      "ok": 6,
+      "n": 73
+     },
+     "3–5": {
+      "ok": 0,
+      "n": 68
+     },
+     "6–10": {
+      "ok": 1,
+      "n": 31
+     },
+     "11+": {
+      "ok": 0,
+      "n": 54
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.4076923076923077,
+     "r": 0.09173517957594116,
+     "f1": 0.14977039915224302,
+     "goldChars": 6933
+    },
+    "1k–10k": {
+     "p": 0.6511305037683459,
+     "r": 0.2859257968994949,
+     "f1": 0.39736141370128303,
+     "goldChars": 11482
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.31330695127313424,
+     "goldChars": 18415
+    }
+   },
+   "byLabel": {
+    "LOC": {
+     "charRecall": 0.012841381805028034,
+     "spans": 716,
+     "contained": 7,
+     "goldChars": 5529
+    },
+    "ORG": {
+     "charRecall": 0.025707833941288866,
+     "spans": 546,
+     "contained": 8,
+     "goldChars": 5757
+    },
+    "PER": {
+     "charRecall": 0.5190068733342684,
+     "spans": 792,
+     "contained": 297,
+     "goldChars": 7129
+    }
+   },
+   "byCat": {
+    "location": {
+     "charRecall": 0.012841381805028034,
+     "spans": 716,
+     "contained": 7,
+     "goldChars": 5529
+    },
+    "company": {
+     "charRecall": 0.025707833941288866,
+     "spans": 546,
+     "contained": 8,
+     "goldChars": 5757
+    },
+    "name": {
+     "charRecall": 0.5190068733342684,
+     "spans": 792,
+     "contained": 297,
+     "goldChars": 7129
+    }
+   },
+   "ms": {
+    "median": 1.2,
+    "p90": 7.9,
+    "total": 3029
+   }
+  },
+  {
+   "dataset": "uner",
+   "engine": "ner",
+   "cases": 634,
+   "measured": "2026-09-11",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.7174215860512032,
+    "r": 0.8110779256041271,
+    "f1": 0.7613804353366979,
+    "goldChars": 18415,
+    "predChars": 20819
+   },
+   "in": {
+    "p": 0.7174215860512032,
+    "r": 0.8110779256041271,
+    "f1": 0.7613804353366979,
+    "goldChars": 18415
+   },
+   "spanOverlapF1": 0.7909142689892992,
+   "spanContainmentF1": 0.750821161298827,
+   "consistency": {
+    "recurring": {
+     "ok": 75,
+     "n": 226
+    },
+    "buckets": {
+     "1": {
+      "ok": 86,
+      "n": 125
+     },
+     "2": {
+      "ok": 41,
+      "n": 73
+     },
+     "3–5": {
+      "ok": 26,
+      "n": 68
+     },
+     "6–10": {
+      "ok": 6,
+      "n": 31
+     },
+     "11+": {
+      "ok": 2,
+      "n": 54
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.6919589278570476,
+     "r": 0.7484494446848406,
+     "f1": 0.7190964523281598,
+     "goldChars": 6933
+    },
+    "1k–10k": {
+     "p": 0.7317567567567568,
+     "r": 0.8488939209197004,
+     "f1": 0.7859850012095799,
+     "goldChars": 11482
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.7613804353366979,
+     "goldChars": 18415
+    }
+   },
+   "byLabel": {
+    "LOC": {
+     "charRecall": 0.8091879182492313,
+     "spans": 716,
+     "contained": 533,
+     "goldChars": 5529
+    },
+    "ORG": {
+     "charRecall": 0.6765676567656765,
+     "spans": 546,
+     "contained": 326,
+     "goldChars": 5757
+    },
+    "PER": {
+     "charRecall": 0.9211670641043624,
+     "spans": 792,
+     "contained": 676,
+     "goldChars": 7129
+    }
+   },
+   "byCat": {
+    "location": {
+     "charRecall": 0.8091879182492313,
+     "spans": 716,
+     "contained": 533,
+     "goldChars": 5529
+    },
+    "company": {
+     "charRecall": 0.6765676567656765,
+     "spans": 546,
+     "contained": 326,
+     "goldChars": 5757
+    },
+    "name": {
+     "charRecall": 0.9211670641043624,
+     "spans": 792,
+     "contained": 676,
+     "goldChars": 7129
+    }
+   },
+   "ms": {
+    "median": 35.2,
+    "p90": 171.2,
+    "total": 44090
+   }
+  },
+  {
+   "dataset": "uner",
+   "engine": "ner-strict",
+   "cases": 634,
+   "measured": "2026-09-11",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.5629327308505211,
+    "r": 0.8388813467282107,
+    "f1": 0.6737466471858168,
+    "goldChars": 18415,
+    "predChars": 27442
+   },
+   "in": {
+    "p": 0.5629327308505211,
+    "r": 0.8388813467282107,
+    "f1": 0.6737466471858168,
+    "goldChars": 18415
+   },
+   "spanOverlapF1": 0.773171830694201,
+   "spanContainmentF1": 0.7359221686895556,
+   "consistency": {
+    "recurring": {
+     "ok": 85,
+     "n": 226
+    },
+    "buckets": {
+     "1": {
+      "ok": 88,
+      "n": 125
+     },
+     "2": {
+      "ok": 45,
+      "n": 73
+     },
+     "3–5": {
+      "ok": 30,
+      "n": 68
+     },
+     "6–10": {
+      "ok": 6,
+      "n": 31
+     },
+     "11+": {
+      "ok": 4,
+      "n": 54
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.4811700509884605,
+     "r": 0.7758546083946344,
+     "f1": 0.5939708480565371,
+     "goldChars": 6933
+    },
+    "1k–10k": {
+     "p": 0.6191354608620796,
+     "r": 0.8769378157115485,
+     "f1": 0.7258244728779961,
+     "goldChars": 11482
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.6737466471858168,
+     "goldChars": 18415
+    }
+   },
+   "byLabel": {
+    "LOC": {
+     "charRecall": 0.812805208898535,
+     "spans": 716,
+     "contained": 535,
+     "goldChars": 5529
+    },
+    "ORG": {
+     "charRecall": 0.7406635400382143,
+     "spans": 546,
+     "contained": 378,
+     "goldChars": 5757
+    },
+    "PER": {
+     "charRecall": 0.9384205358395287,
+     "spans": 792,
+     "contained": 688,
+     "goldChars": 7129
+    }
+   },
+   "byCat": {
+    "location": {
+     "charRecall": 0.812805208898535,
+     "spans": 716,
+     "contained": 535,
+     "goldChars": 5529
+    },
+    "company": {
+     "charRecall": 0.7406635400382143,
+     "spans": 546,
+     "contained": 378,
+     "goldChars": 5757
+    },
+    "name": {
+     "charRecall": 0.9384205358395287,
+     "spans": 792,
+     "contained": 688,
+     "goldChars": 7129
+    }
+   },
+   "ms": {
+    "median": 3.1,
+    "p90": 15,
+    "total": 4502
+   }
+  },
+  {
+   "dataset": "uner",
+   "engine": "ner-strict@student-6l",
+   "cases": 634,
+   "measured": "2026-09-11",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.5645737045804682,
+    "r": 0.8159109421667119,
+    "f1": 0.6673625299813449,
+    "goldChars": 18415,
+    "predChars": 26613
+   },
+   "in": {
+    "p": 0.5645737045804682,
+    "r": 0.8159109421667119,
+    "f1": 0.6673625299813449,
+    "goldChars": 18415
+   },
+   "spanOverlapF1": 0.7637877034438326,
+   "spanContainmentF1": 0.7255507285851455,
+   "consistency": {
+    "recurring": {
+     "ok": 75,
+     "n": 226
+    },
+    "buckets": {
+     "1": {
+      "ok": 85,
+      "n": 125
+     },
+     "2": {
+      "ok": 43,
+      "n": 73
+     },
+     "3–5": {
+      "ok": 24,
+      "n": 68
+     },
+     "6–10": {
+      "ok": 3,
+      "n": 31
+     },
+     "11+": {
+      "ok": 5,
+      "n": 54
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.4742190440346255,
+     "r": 0.7269580268282129,
+     "f1": 0.573999202778885,
+     "goldChars": 6933
+    },
+    "1k–10k": {
+     "p": 0.6246481076008759,
+     "r": 0.8696220170701968,
+     "f1": 0.7270542833218043,
+     "goldChars": 11482
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.6673625299813449,
+     "goldChars": 18415
+    }
+   },
+   "byLabel": {
+    "LOC": {
+     "charRecall": 0.7986977753662506,
+     "spans": 716,
+     "contained": 525,
+     "goldChars": 5529
+    },
+    "ORG": {
+     "charRecall": 0.68264721208963,
+     "spans": 546,
+     "contained": 335,
+     "goldChars": 5757
+    },
+    "PER": {
+     "charRecall": 0.9368775424323187,
+     "spans": 792,
+     "contained": 685,
+     "goldChars": 7129
+    }
+   },
+   "byCat": {
+    "location": {
+     "charRecall": 0.7986977753662506,
+     "spans": 716,
+     "contained": 525,
+     "goldChars": 5529
+    },
+    "company": {
+     "charRecall": 0.68264721208963,
+     "spans": 546,
+     "contained": 335,
+     "goldChars": 5757
+    },
+    "name": {
+     "charRecall": 0.9368775424323187,
+     "spans": 792,
+     "contained": 685,
+     "goldChars": 7129
+    }
+   },
+   "ms": {
+    "median": 2.9,
+    "p90": 14.6,
+    "total": 4419
+   }
+  },
+  {
+   "dataset": "uner",
+   "engine": "ner@student-6l",
+   "cases": 634,
+   "measured": "2026-09-11",
+   "host": "darwin arm64 · Apple M1 · 16 GB · node v26.8.1",
+   "all": {
+    "p": 0.728282168517309,
+    "r": 0.7871300570187347,
+    "f1": 0.7565634949632026,
+    "goldChars": 18415,
+    "predChars": 19903
+   },
+   "in": {
+    "p": 0.728282168517309,
+    "r": 0.7871300570187347,
+    "f1": 0.7565634949632026,
+    "goldChars": 18415
+   },
+   "spanOverlapF1": 0.7831468138600453,
+   "spanContainmentF1": 0.7415746546651758,
+   "consistency": {
+    "recurring": {
+     "ok": 64,
+     "n": 226
+    },
+    "buckets": {
+     "1": {
+      "ok": 82,
+      "n": 125
+     },
+     "2": {
+      "ok": 39,
+      "n": 73
+     },
+     "3–5": {
+      "ok": 20,
+      "n": 68
+     },
+     "6–10": {
+      "ok": 3,
+      "n": 31
+     },
+     "11+": {
+      "ok": 2,
+      "n": 54
+     }
+    }
+   },
+   "byLength": {
+    "<1k": {
+     "p": 0.7030390738060781,
+     "r": 0.7007067647483052,
+     "f1": 0.7018709817236147,
+     "goldChars": 6933
+    },
+    "1k–10k": {
+     "p": 0.7417070730393289,
+     "r": 0.8393137084131684,
+     "f1": 0.7874974463738509,
+     "goldChars": 11482
+    }
+   },
+   "byLang": {
+    "en": {
+     "f1": 0.7565634949632026,
+     "goldChars": 18415
+    }
+   },
+   "byLabel": {
+    "LOC": {
+     "charRecall": 0.7954422137818774,
+     "spans": 716,
+     "contained": 524,
+     "goldChars": 5529
+    },
+    "ORG": {
+     "charRecall": 0.6150772972034045,
+     "spans": 546,
+     "contained": 283,
+     "goldChars": 5757
+    },
+    "PER": {
+     "charRecall": 0.9196240706971525,
+     "spans": 792,
+     "contained": 673,
+     "goldChars": 7129
+    }
+   },
+   "byCat": {
+    "location": {
+     "charRecall": 0.7954422137818774,
+     "spans": 716,
+     "contained": 524,
+     "goldChars": 5529
+    },
+    "company": {
+     "charRecall": 0.6150772972034045,
+     "spans": 546,
+     "contained": 283,
+     "goldChars": 5757
+    },
+    "name": {
+     "charRecall": 0.9196240706971525,
+     "spans": 792,
+     "contained": 673,
+     "goldChars": 7129
+    }
+   },
+   "ms": {
+    "median": 23.8,
+    "p90": 116.5,
+    "total": 30887
+   }
   }
  ]
 }

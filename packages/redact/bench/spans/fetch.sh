@@ -31,3 +31,10 @@ fetch gretelai/synthetic_pii_finance_multilingual 7b844d16738527a04264f50214cb42
 # Text Anonymization Benchmark (Pilán et al. 2022, ECHR court cases) — test split, 127 documents,
 # Hub mirror mattmdjaga/text-anonymization-benchmark-val-test @ 2024-03-20
 fetch mattmdjaga/text-anonymization-benchmark-val-test cb31e803321d83ef623f27e5f35434b844725120 data/test-00000-of-00001.parquet tab-test.parquet 62eacd89cbfdf58a08566866c726455167bfb84ba7fae1ab3909b9605cddcef4
+# Universal NER, English-EWT (Mayhew et al. 2024, CC-BY-SA 4.0): the English Web Treebank —
+# e-mails, newsgroups, reviews, weblogs, Yahoo! Answers — hand-annotated PER/ORG/LOC. Both
+# scoring splits: test 2 077 sentences / 316 documents, validation 2 001 / 318. The upstream
+# repo is a loading script (needs `conllu`); this is its parquet mirror, pinned.
+U=BramVanroy/universal_ner; UR=0dc5199b095f864c619c13190b32341eee0c2ce2
+fetch $U $UR en_ewt/test-00000-of-00001.parquet       uner-en_ewt-test.parquet       d814cb115ab01dbe62716619b922cb980342e0d394f301c52abc761edd24d168
+fetch $U $UR en_ewt/validation-00000-of-00001.parquet uner-en_ewt-validation.parquet 0ae3a895bc6b0bce6a147788d118b7dcde531eb36aca1396421485127f1274df
