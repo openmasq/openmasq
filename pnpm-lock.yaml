@@ -267,6 +267,9 @@ importers:
       string-width:
         specifier: ^8.2.2
         version: 8.2.2
+      yaml:
+        specifier: ^2.9.0
+        version: 2.9.0
     devDependencies:
       '@types/express':
         specifier: ^5.0.0

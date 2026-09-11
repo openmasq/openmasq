@@ -32,7 +32,8 @@
     "express": "^5.2.1",
     "log-update": "^8.0.0",
     "onnxruntime-node": "^1.24.3",
-    "string-width": "^8.2.2"
+    "string-width": "^8.2.2",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
