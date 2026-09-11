@@ -15,13 +15,13 @@ export const privacyLevels = {
     desc: "Pour la recherche web et les outils connectés — protège moins que le défaut.",
     short: () =>
       "Le strict minimum : e-mails, téléphones, cartes bancaires, IBAN, identifiants et clés.",
-    tradeoff: "Noms, dates, adresses, lieux et entreprises restent lisibles par le modèle.",
+    tradeoff: "Noms, pseudos, dates, adresses, lieux et entreprises restent lisibles par le modèle.",
   },
   renforce: {
     label: "Renforcé",
     desc: "Pour la rédaction, les e-mails et les échanges courants — le niveau par défaut.",
     short: () =>
-      "Ajoute les noms de personnes et d'entreprises, les dates de naissance, adresses et lieux que vous citez.",
+      "Ajoute les noms de personnes et d'entreprises, les pseudos, les dates de naissance, adresses et lieux que vous citez.",
     tradeoff:
       "Un âge ou une distance calculés sur une valeur masquée peuvent être décalés — le composeur le signale.",
   },

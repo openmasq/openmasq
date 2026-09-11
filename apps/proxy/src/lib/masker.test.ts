@@ -26,6 +26,11 @@ describe("masker", () => {
     // case — the level does not load the model that would find one.
     expect(standard).toContain("name");
     expect(standard).toContain("company");
+    // …and no handle rule either: on source code and docs a leading `@` is `@file`, `@handle`,
+    // a bot mention — measured at 28 of 42 substitutions on a run that read three CLAUDE.md.
+    // The catalogue puts `username` on from `renforce` (`FROM_RENFORCE`, `levels.test.ts`).
+    expect(standard).toContain("username");
+    expect(disabledKindsFor("renforce", [])).not.toContain("username");
     expect(standard).not.toContain("email");
     expect(disabledKindsFor("strict", [])).toEqual([]);
     expect(disabledKindsFor("renforce", ["email"])).toContain("email");

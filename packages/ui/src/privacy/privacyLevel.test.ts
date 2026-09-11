@@ -1,3 +1,4 @@
+import { FROM_RENFORCE } from "@openmasq/catalog";
 import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import { CATEGORY_DEFAULTS, REDACT_CATEGORIES } from "./redactCategories";
@@ -80,11 +81,12 @@ describe("privacyLevel — one choice instead of eighteen", () => {
     expect(levelOf(cats())).toBe("renforce");
   });
 
-  it("« Standard » laisse passer EXACTEMENT les catégories BETA, et rien d'autre", () => {
+  it("« Standard » laisse passer EXACTEMENT les catégories BETA et les pseudos, et rien d'autre", () => {
     const standard = categoriesForLevel("standard");
     const renforce = categoriesForLevel("renforce");
     const differ = KEYS.filter((k) => standard[k] !== renforce[k]);
-    expect(differ.sort()).toEqual(REDACT_CATEGORIES.filter((c) => c.ai).map((c) => c.key).sort());
+    const beta = REDACT_CATEGORIES.filter((c) => c.ai).map((c) => c.key);
+    expect(differ.sort()).toEqual([...beta, ...FROM_RENFORCE].sort());
   });
 
   it("le PLANCHER tient dans les trois niveaux, y compris le réduit", () => {
@@ -98,10 +100,13 @@ describe("privacyLevel — one choice instead of eighteen", () => {
     }
   });
 
-  it("un ancien réglage « Navigation » persisté lit « Standard » — c'est le même jeu", () => {
-    // Some accounts saved the ex-preset (the five BETA categories turned off). This is
-    // EXACTLY what "Standard" amounts to now: it regains a name instead of
-    // staying "Sur mesure". The choices are not touched — only their reading changes.
+  it("un ancien réglage « Navigation » persisté lit « Sur mesure », pas « Standard »", () => {
+    // Some accounts saved the ex-preset: the five BETA categories off, the handles still ON.
+    // That is MORE than Standard masks now (`FROM_RENFORCE` moved `username` to Renforcé), so
+    // it must not read as Standard — a card that said « Standard » over a setting that masks
+    // handles would state less protection than the setting gives (rule 8, both ways). The
+    // choices are not touched, only their reading; the same map with the handles off IS
+    // Standard and regains the name.
     const exNavigation = cats({
       name: false,
       dob: false,
@@ -109,7 +114,8 @@ describe("privacyLevel — one choice instead of eighteen", () => {
       location: false,
       company: false,
     });
-    expect(levelOf(exNavigation)).toBe("standard");
+    expect(levelOf(exNavigation)).toBe("custom");
+    expect(levelOf({ ...exNavigation, username: false })).toBe("standard");
     expect(exNavigation.name).toBe(false); // reading never mutates
   });
 

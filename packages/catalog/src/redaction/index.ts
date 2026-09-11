@@ -254,9 +254,11 @@ export const REDACTION_CATEGORIES: CatalogRedactionCategory[] = BASE.map((c) => 
  *    (`ALWAYS_ON`, `packages/ui/src/privacy/privacyLevel.ts`) rather than to the noise
  *    tier. The trade is accepted knowingly: the heuristic is broad and also catches
  *    harmless product references, which is exactly why it used to default OFF.
- *  - `username` is ON from Renforcé: a handle re-identifies its owner across services, so
- *    leaving it in clear IS a data risk — unlike a URL, whose masking mostly breaks a link
- *    the model needed to read.
+ *  - `username` is ON from Renforcé (`FROM_RENFORCE` in `levels.ts`, where the arithmetic
+ *    lives): a handle re-identifies its owner across services, so leaving it in clear IS a
+ *    data risk — unlike a URL, whose masking mostly breaks a link the model needed to read.
+ *    Not at Standard, though: its only signal is a leading `@`, which on source code is a
+ *    scope, a flag argument or a bot mention far more often than a person.
  *  - `url` stays OFF — deliberately opt-in, and its absence is not a data risk the way a
  *    name, a handle or a key is.
  *  - every deterministic PII category (email/phone/card/iban/national_id/ip/secret)
@@ -286,6 +288,7 @@ export const CATEGORY_DEFAULTS: Record<RedactionCategory, boolean> = Object.from
 export {
   ALWAYS_ON,
   categoriesForLevel,
+  FROM_RENFORCE,
   disabledKindsOf,
   type RedactionLevel,
   usesLocalModel,

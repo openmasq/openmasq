@@ -9,6 +9,18 @@ export type RedactionLevel = "standard" | "renforce" | "strict";
 /** The floor every level shares: a credential in clear is never an acceptable miss. */
 export const ALWAYS_ON: readonly RedactionCategory[] = ["apikey", "secret"];
 
+/**
+ * ON from `renforce`, not before — a data risk whose detector is a SHAPE with no anchor, so
+ * it pays for itself in false positives on ordinary text. `username` is the case: a handle
+ * re-identifies its owner across services, but the only deterministic signal is a leading
+ * `@`, and on source code and docs that is `@file`, `@handle`, a bot mention, a scope —
+ * measured at 28 of 42 substitutions on one run that read three `CLAUDE.md`. `standard` is
+ * the pattern-rules tier a coding agent lives in; a handle belongs to the tier that already
+ * accepts the model's own false positives. `levels.test.ts` pins the two levels apart, and
+ * the desktop's `privacyLevel.test.ts` reads this list rather than restating it.
+ */
+export const FROM_RENFORCE: readonly RedactionCategory[] = ["username"];
+
 // Read at CALL time, not at module load: `./index` re-exports this file, so the list is
 // still undefined while the two modules evaluate each other.
 const aiKeys = () => new Set(REDACTION_CATEGORIES.filter((c) => c.ai).map((c) => c.key));
@@ -16,8 +28,9 @@ const allKeys = () => REDACTION_CATEGORIES.map((c) => c.key);
 
 /**
  * Which categories a level turns on. `standard` = the rule-based defaults (free-form
- * identity data left readable), `renforce` = the defaults including the on-device model's
- * categories, `strict` = everything. The floor is applied LAST: no level turns it off.
+ * identity data left readable, and no shape-only detector — `FROM_RENFORCE`), `renforce` =
+ * the defaults including the on-device model's categories and the handle rule, `strict` =
+ * everything. The floor is applied LAST: no level turns it off.
  */
 export function categoriesForLevel(level: RedactionLevel): Record<RedactionCategory, boolean> {
   const out = {} as Record<RedactionCategory, boolean>;
@@ -27,7 +40,7 @@ export function categoriesForLevel(level: RedactionLevel): Record<RedactionCateg
       level === "strict"
         ? true
         : level === "standard"
-          ? CATEGORY_DEFAULTS[key] !== false && !ai.has(key)
+          ? CATEGORY_DEFAULTS[key] !== false && !ai.has(key) && !FROM_RENFORCE.includes(key)
           : CATEGORY_DEFAULTS[key] !== false;
     out[key] = on || ALWAYS_ON.includes(key);
   }

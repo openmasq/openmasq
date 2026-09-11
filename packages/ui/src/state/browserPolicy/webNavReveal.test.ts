@@ -65,8 +65,9 @@ describe("l'offre EST le niveau Standard", () => {
     const standard = (categoriesForLevel("standard") ?? {}) as Record<string, boolean>;
     const renforce = (categoriesForLevel("renforce") ?? {}) as Record<string, boolean>;
     // The DIFFERENCE between the two levels, not « everything Standard lets through » :
-    // `url` and `username` are off at ALL levels (opt-in), so counting them
-    // would make the test claim Standard reveals what nobody masks.
+    // `url`, `date` and `path` are off at BOTH (opt-in), so counting them would make the test
+    // claim Standard reveals what nobody masks. `username` sits in the difference on purpose
+    // (`FROM_RENFORCE`): off at Standard, on from Renforcé, hence offered.
     const cedeParStandard = Object.keys(renforce).filter(
       (k) => renforce[k] === true && standard[k] === false,
     );

@@ -130,8 +130,10 @@ on a logistics question, without changing a global setting or an account.
 
 **What it is worth.** Protection stays credible because the ONE preset that lowers it says
 so, and only that one: « Allégé » leaves names, dates of birth, addresses, places and
-companies readable — the five categories only the model detects — because a web search or
-a connector call that queries a masked name answers about nobody. It is named as the lighter
+companies readable — the five categories only the model detects — and handles, whose only
+signal is a leading `@` (a scope, a flag, a bot mention on code as often as a person;
+`FROM_RENFORCE` in `packages/catalog/src/redaction/levels.ts`), because a web search or a
+connector call that queries a masked name answers about nobody. It is named as the lighter
 level, wears the eye instead of the shield, states what it leaves readable on its card, is
 never the install default (Renforcé is), and cannot switch off the floor (keys and secrets).
 No preset lowers the protection quietly. And inside an organization, a category

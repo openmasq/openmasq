@@ -1,4 +1,4 @@
-import { REDACTION_CATEGORIES } from "@openmasq/catalog";
+import { categoriesForLevel, REDACTION_CATEGORIES } from "@openmasq/catalog";
 import type { Conversation, RedactCategoryKey, Settings } from "../../types";
 
 /**
@@ -7,26 +7,20 @@ import type { Conversation, RedactCategoryKey, Settings } from "../../types";
  * card and out of `store.ts` so both sides are testable without a render.
  */
 
-// The categories a web-navigation tool can offer to STOP redacting for the
-// conversation (name/dob/address/location/company — the model-detected "BETA" set
-// whose place/org/person names ARE public web content's substance). Order = display order.
-// ⚠️ DERIVED from the catalog, never recopied (rule 9). The `ai` flag is what displays
-// the "BETA" badge in settings AND in the rules modal; it's therefore the same
-// list that describes the category to the user and decides what a search may
-// release. Recopied by hand, it drifted silently: adding a BETA category
-// tomorrow would make it appear badged without being releasable — or the reverse, which is worse.
+// The categories a web-navigation tool can offer to STOP redacting for the conversation:
+// exactly what « Standard » leaves readable and « Renforcé » masks — the model-detected
+// "BETA" set (names, dates of birth, addresses, places, companies) plus the handle rule,
+// whose substance IS what a web search is about. Order = the catalogue's display order.
+// ⚠️ DERIVED from the level arithmetic, never recopied (rule 9): the card offers a LEVEL
+// ("switch to Standard for this message") instead of enumerating types, and the two
+// phrasings can only stay one set if this list is computed from `categoriesForLevel` — the
+// same function the settings cards read. Recopied by hand (it once mirrored the `ai` flag),
+// it drifted the day a non-model category joined Renforcé. Pinned by `webNavReveal.test.ts`.
+const STANDARD = categoriesForLevel("standard");
+const RENFORCE = categoriesForLevel("renforce");
 export const WEBNAV_OFFER_KEYS: RedactCategoryKey[] = REDACTION_CATEGORIES.filter(
-  (c) => c.ai,
+  (c) => RENFORCE[c.key] && !STANDARD[c.key],
 ).map((c) => c.key as RedactCategoryKey);
-
-/**
- * ⚠️ This list IS what the « Standard » level leaves readable — not by coincidence
- * but by construction: `privacy/privacyLevel.ts` derives its `BETA_KEYS` from the SAME
- * `ai` flag of the same catalog. That's what lets the card offer a LEVEL ("switch to
- * Standard for this message") instead of enumerating five types: the two phrasings describe
- * the same set, and neither can drift from the other. Pinned by
- * `webNavReveal.test.ts` — a comment can't fail in CI (rule 9).
- */
 
 /**
  * The subset of `WEBNAV_OFFER_KEYS` currently REDACTED in this conversation and NOT
