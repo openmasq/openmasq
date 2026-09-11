@@ -3,6 +3,7 @@ import { fakeGeo, type GeoAnchors } from "../../engine/geo";
 import { fakeAddressComplement } from "../../engine/addresses/complement";
 import { fakeBitcoinLegacyAddress } from "../../engine/validators/base58check";
 import { FAKE_LAST, firstNamePool } from "./pools";
+import { fakeCredential } from "./credentials";
 import { hashString, pick, rehash, fakeToken, fakeDigits, fakeHandle, seedFrom } from "./primitives";
 import { isMrzShaped } from "../../kinds";
 import { fakeMrz } from "./mrz";
@@ -65,8 +66,13 @@ export function fakeFor(
     case "GITHUB_TOKEN":
     case "SLACK_TOKEN":
     case "BEARER_TOKEN":
-    case "PRIVATE_KEY":
     case "JWT":
+    case "COOKIE":
+      // Format-preserving (fakes/credentials.ts): the vendor prefix, a JWT's header and a
+      // cookie's names are FORMAT and stay; every character of the secret is redrawn in its
+      // own class. What a coding agent derives from a key — its vendor, its kind — survives.
+      return fakeCredential(value, h, category);
+    case "PRIVATE_KEY":
     case "BIC":
     case "MAC":
       // Fully scramble — never leak a key's letters (the default only swaps
