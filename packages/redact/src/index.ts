@@ -86,6 +86,20 @@ export {
   type Hue,
   type RedactionSection,
 } from "./highlight/sections";
+// The loader WALK over that palette — one home for the chat's thinking grid and the proxy
+// CLI's opening sequence, which run the same path in a browser and in a terminal.
+export {
+  CAV_SWATCHES,
+  cavHue,
+  type CavSwatch,
+  walkAdvance,
+  walkCellAt,
+  walkInitial,
+  walkPosOf,
+  walkSettled,
+  type WalkGrid,
+  type WalkState,
+} from "./highlight/walk";
 export { discoverSecrets, type DiscoverOptions } from "./model/detect";
 // The curated deny-lists + CJK test, for consumers whose matching must agree with the
 // engine's notion of "generic word" / "CJK morpheme" (rule 9: import, never re-declare).
