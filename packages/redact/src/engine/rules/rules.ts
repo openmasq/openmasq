@@ -139,8 +139,8 @@ export const RULES: RedactionRule[] = [
   { type: "crypto", pattern: /\b0x[a-fA-F0-9]{40}\b/g }, // Ethereum
   // Bitcoin + the other chains — ONE family, ONE home: `rules.crypto.ts`.
   ...CRYPTO_RULES,
-  // MAC address (network device id → category "ip").
-  { type: "mac", pattern: /\b(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}\b/g },
+  // MAC (→ "ip"). Adjacency guards reject a 6-pair run inside a LONGER hex sequence — a byte DUMP, not an address (`rules.mac.test.ts`).
+  { type: "mac", pattern: /(?<![0-9A-Fa-f]{2}[:-])(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}(?![:-][0-9A-Fa-f]{2})/g },
   // Credentials embedded in ANY URL — generalises connection_string to
   // `scheme://user:pass@host…`. Runs before `email` so `pass@host` isn't eaten.
   {
