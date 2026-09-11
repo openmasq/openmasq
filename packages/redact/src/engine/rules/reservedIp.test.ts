@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isReservedIp } from "../validators";
+import { isReservedIp, isReservedHostUrl } from "../validators";
 import { pseudonymize } from "../../index";
 
 /**
@@ -40,5 +40,27 @@ describe("the ip rule leaves a reserved address in clear", () => {
     expect(text).not.toContain("144.48.82.1");
     expect(text).not.toContain("192.168.1.10");
     expect(matches.map((m) => m.value).sort()).toEqual(["144.48.82.1", "192.168.1.10"]);
+  });
+});
+
+describe("isReservedHostUrl — a loopback config URL is not a secret", () => {
+  it("spares a loopback / special-use URL value", () => {
+    for (const u of [
+      "http://127.0.0.1:8787",
+      "http://127.0.0.1:8787/v1",
+      "http://localhost:3000",
+      "http://[::1]:9000/v1",
+      "http://169.254.169.254/latest",
+    ])
+      expect(isReservedHostUrl(u)).toBe(true);
+  });
+  it("does NOT spare a public host, a userinfo URL, or a query that can carry a key", () => {
+    for (const u of [
+      "https://api.openai.com/v1",
+      "http://user:pass@127.0.0.1:8787",
+      "http://127.0.0.1:8787/cb?token=sk-live-abc",
+      "not-a-url",
+    ])
+      expect(isReservedHostUrl(u)).toBe(false);
   });
 });

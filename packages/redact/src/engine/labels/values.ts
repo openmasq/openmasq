@@ -172,6 +172,14 @@ export function acceptFieldValue(
   if (PLACEHOLDER.test(value)) return null;
   // …and neither is a SENTENCE under a NAME label (see `isProse`).
   if (groupCategory === "NAME" && isProse(value)) return null;
+  // …nor is a running PROSE clause under a SECRET label — « API key: the proxy forwards it
+  // untouched, masks the messages on the way out and… » made the whole sentence a « secret »,
+  // corrupting the very text the model reasons on. A real key or password carries a digit (or
+  // the prose-password pass, gated on its symbol, catches it); a digit-free clause of function
+  // words behind a « key »/« token »/« secret » label never does. Same discriminant as the
+  // numeric-field prose guard above, and the NAME one on the line before — one home for « is
+  // this a sentence » (`isProse`).
+  if (groupCategory === "SECRET" && !/\d/u.test(value) && isProse(value)) return null;
   if (isStopword(value) || isGenericTerm(value) || isGenericCompound(value)) return null;
   if (groupCategory === "NAME" && CODE_IDENT.test(value)) return null;
   // A CITY/Commune/Ville field whose value is a "CP + Ville" ("92110 CLICHY") is a PLACE,

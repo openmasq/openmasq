@@ -572,3 +572,25 @@ describe("the XML element form", () => {
   });
 });
 
+
+describe("a SECRET label does not swallow a running-prose clause", () => {
+  it("drops « key: <sentence> » but keeps a real key, a password and a passphrase", () => {
+    // « API key: the proxy forwards it untouched… » once made the whole sentence a SECRET
+    // (measured on the proxy's own README/usage prose) — a digit-free clause of function
+    // words behind a credential label is documentation, not a secret.
+    const prose = byCategory(
+      "keep your own API key: the proxy forwards it untouched, masks the messages and returns",
+    );
+    expect(prose.SECRET ?? []).toHaveLength(0);
+    // A real key still fires (it carries digits).
+    expect(byCategory("API key: sk-live-4eC39HqLyjWDarjtT1zdp7dc").SECRET).toContain(
+      "sk-live-4eC39HqLyjWDarjtT1zdp7dc",
+    );
+    // A password with a symbol still fires; a short word-only passphrase is untouched by the
+    // prose guard (isProse needs ≥5 words), so it survives too.
+    expect(byCategory("password: Sm7p!Tanc2026").SECRET).toContain("Sm7p!Tanc2026");
+    expect(byCategory("password: correct horse battery staple").SECRET).toContain(
+      "correct horse battery staple",
+    );
+  });
+});

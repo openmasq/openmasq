@@ -1,6 +1,7 @@
 // Post-match validators for shape-based rules: a regex hit is only redacted when
 // the validator confirms it (checksum / range), so we never redact any long
 // number or decimal pair. Pure, unit-testable.
+import { isReservedHostUrl } from "./validators.network";
 
 /**
  * Recover the longest VALID prefix of a greedy match. A checksum-gated rule whose
@@ -234,7 +235,15 @@ const BENIGN_CONFIG_VALUES = new Set([
 ]);
 
 export function isBenignConfigValue(value: string): boolean {
-  return BENIGN_CONFIG_VALUES.has(value.trim().toLowerCase().replace(/^["']|["']$/g, ""));
+  const v = value.trim().replace(/^["']|["']$/g, "");
+  if (BENIGN_CONFIG_VALUES.has(v.toLowerCase())) return true;
+  // A loopback / special-use URL (`OPENAI_BASE_URL=http://127.0.0.1:8787/v1`) names no host
+  // and holds no secret — the reserved-IP line, drawn for the URL-shaped config value.
+  if (isReservedHostUrl(v)) return true;
+  // A value that IS a template interpolation (`${url}/v1`, `${API_HOST}`) is a variable
+  // REFERENCE, never a literal secret: masking it corrupts the code and protects nothing.
+  if (/^\$\{[\w.]+\}/.test(v)) return true;
+  return false;
 }
 
 /**

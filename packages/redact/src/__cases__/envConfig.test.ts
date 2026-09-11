@@ -37,3 +37,29 @@ describe("env / config assignment values", () => {
     expect(text).toContain("qitkqmtfoeriysbmqebn");
   });
 });
+
+describe("a config value that is a loopback URL or a template interpolation is not a secret", () => {
+  // At the product's non-Strict levels the `url` category is OFF, so what caught these was
+  // the `_URL=` SECRET rule — reproduce that here by disabling `url`, then assert the SECRET
+  // rule spares a loopback URL and a `${…}` reference (the Strict `url` rule is a separate,
+  // deliberate choice and still masks every URL).
+  it("leaves a loopback base-URL and a ${…} reference in clear (code, not a credential)", () => {
+    const t = [
+      "OPENAI_BASE_URL=http://127.0.0.1:8787/v1",
+      "ANTHROPIC_BASE_URL=http://127.0.0.1:8787",
+      "GEMINI_BASE_URL=${url}/v1",
+    ].join("\n");
+    const { text } = redact(t, { disabledKinds: ["url"] });
+    expect(text).toBe(t); // nothing masked
+  });
+  it("still masks a real remote base-URL value and a userinfo/query URL", () => {
+    expect(
+      redact("OPENAI_BASE_URL=https://api.openai.com/v1", { disabledKinds: ["url"] }).text,
+    ).not.toContain("api.openai.com");
+    expect(
+      redact("HOOK_URL=http://127.0.0.1:8787/cb?token=sk-live-abcdef123456", {
+        disabledKinds: ["url"],
+      }).text,
+    ).not.toContain("sk-live-abcdef123456");
+  });
+});

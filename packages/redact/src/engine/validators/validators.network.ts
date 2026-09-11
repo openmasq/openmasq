@@ -64,3 +64,24 @@ export function isReservedIp(match: string): boolean {
   if (o.every((n) => n === 255)) return true; // broadcast
   return false;
 }
+
+/**
+ * A config-assignment VALUE that is only a URL pointing at a LOOPBACK / special-use host —
+ * `http://127.0.0.1:8787/v1`, `http://localhost:3000`, `http://[::1]:9000`. The
+ * `_URL=`/`_BASE_URL=` secret rule fires on the KEY's suffix, so it grabs the whole URL; but a
+ * loopback URL names no host on anybody's network and holds no credential — the same line the
+ * reserved-IP guard draws for a bare address, drawn again for the URL-shaped config value.
+ *
+ * A URL with USERINFO (`http://user:pass@…`) or a QUERY (a `?token=`/`?key=` can carry a real
+ * key) is NOT spared: those can hold a secret, and their own rules still see them.
+ */
+export function isReservedHostUrl(value: string): boolean {
+  const v = value.trim().replace(/[`'"]+$/, ""); // a markdown/JS backtick or quote tail
+  if (v.includes("?")) return false; // a query string can carry a credential
+  const m = /^[a-z][a-z0-9+.-]*:\/\/([^/#]+)/i.exec(v);
+  if (!m || m[1].includes("@")) return false; // not a URL, or carries userinfo
+  const host = m[1]
+    .replace(/:\d+$/, "") // strip :port
+    .replace(/^\[|\]$/g, ""); // strip IPv6 brackets
+  return host.toLowerCase() === "localhost" || isReservedIp(host);
+}
