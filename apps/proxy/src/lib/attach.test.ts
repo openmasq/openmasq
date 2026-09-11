@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findRunning, sessionName, sessionUrl } from "./attach";
+import { findRunning, joinRunning, sessionName, sessionUrl } from "./attach";
 
 describe("joining a proxy that is already running", () => {
   it("names a session after the tool, so the console column reads like something", () => {
@@ -27,6 +27,51 @@ describe("joining a proxy that is already running", () => {
     expect(
       await findRunning("http://x", answer({ app: "openmasq-proxy", version: "1" }, false)),
     ).toBeUndefined();
+  });
+
+  /** A joined session masks under the RUNNING proxy's rules, so that is what the opening
+   *  sequence is allowed to state. A build that does not report them gets no opening at all
+   *  rather than one drawn from the joiner's own flags. */
+  it("carries the joined proxy's level, and opens only when it reports it", async () => {
+    const answer = (body: unknown) =>
+      (async () => ({ ok: true, json: async () => body })) as unknown as typeof fetch;
+    const full = { app: "openmasq-proxy", version: "1", ner: true, level: "strict", disabled: [] };
+    expect(await findRunning("http://x", answer(full))).toEqual({
+      version: "1",
+      model: true,
+      level: "strict",
+      disabled: [],
+    });
+
+    const opened: string[] = [];
+    const deps = (body: unknown) => ({
+      find: () => findRunning("http://x", answer(body)),
+      run: async () => 0,
+      note: () => {},
+      open: async (r: { level?: string }) => void opened.push(r.level ?? "?"),
+    });
+    await joinRunning("http://x", ["claude"], deps(full));
+    expect(opened).toEqual(["strict"]);
+    // An older proxy says neither: nothing is claimed on its behalf.
+    await joinRunning("http://x", ["claude"], deps({ app: "openmasq-proxy", version: "0", ner: false }));
+    expect(opened).toEqual(["strict"]);
+  });
+
+  it("warns that --console/--reveal are ignored when it joins instead of starting", async () => {
+    const answer = (body: unknown): typeof fetch =>
+      (async () => new Response(JSON.stringify(body), { status: 200 })) as unknown as typeof fetch;
+    const notes: string[] = [];
+    const base = {
+      find: () => findRunning("http://x", answer({ app: "openmasq-proxy", version: "1", ner: false })),
+      run: async () => 0,
+      note: (t: string) => void notes.push(t),
+    };
+    await joinRunning("http://x", ["codex"], { ...base, startOnly: ["--console", "--reveal"] });
+    expect(notes.some((n) => /--console and --reveal ignored/.test(n))).toBe(true);
+    // Nothing passed → no warning line.
+    notes.length = 0;
+    await joinRunning("http://x", ["codex"], { ...base, startOnly: [] });
+    expect(notes.some((n) => /ignored/.test(n))).toBe(false);
   });
 
   it("treats an unreachable port as nothing running", async () => {

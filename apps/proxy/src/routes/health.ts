@@ -1,5 +1,7 @@
 import { Router } from "express";
 import type { ProxyConfig } from "../config/config.js";
+import { activeCategories } from "../features/console/events.js";
+import { disabledKindsFor } from "../lib/masker.js";
 
 /**
  * Liveness, and the facts a caller wants before trusting the endpoint: the level, whether
@@ -17,6 +19,12 @@ export function healthRouter(config: ProxyConfig, modelOn: () => boolean, versio
       app: "openmasq-proxy",
       version,
       level: config.level,
+      // The EFFECTIVE list, level arithmetic and `--disable` together: a second wrapper that
+      // joins this proxy states what this proxy masks, never what its own flags say.
+      disabled: disabledKindsFor(config.level, config.disabledKinds),
+      // The categories actually masked right now — the console's rules panel re-reads this
+      // rather than replaying the level arithmetic in a browser.
+      masking: activeCategories(config.level, config.disabledKinds),
       ner: modelOn(),
       mode: config.mode,
     });

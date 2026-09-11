@@ -2,7 +2,17 @@ import { describe, expect, it } from "vitest";
 import type { RedactionMatch } from "@openmasq/redact";
 import type { RequestEvent } from "../../lib/ui/index";
 import { REDACTION_SECTIONS } from "@openmasq/redact";
-import { createConsoleBus, sectionOf, sections, sectionSlug } from "./events";
+import { REDACTION_CATEGORIES } from "@openmasq/catalog";
+import { getMessages } from "@openmasq/i18n";
+import { disabledKindsFor } from "../../lib/masker";
+import {
+  activeCategories,
+  createConsoleBus,
+  rules,
+  sectionOf,
+  sections,
+  sectionSlug,
+} from "./events";
 
 const match = (value: string, placeholder: string, category: string): RedactionMatch =>
   ({ type: category, value, placeholder, category }) as RedactionMatch;
@@ -19,6 +29,8 @@ const request = (over: Partial<RequestEvent> = {}): RequestEvent => ({
 });
 
 const at = () => new Date("2026-09-09T16:04:08").getTime();
+
+const EN = getMessages("en").redactionCatalog;
 
 describe("what the console is allowed to know", () => {
   it("sends the substitute and NOT the real value by default", () => {
@@ -39,7 +51,7 @@ describe("what the console is allowed to know", () => {
       cat: "contact",
       fake: "marc@brevanet.fr",
       real: "camille@vidal.fr",
-      type: "E-mail",
+      type: EN.categories.email.label,
       n: 1,
     });
   });
@@ -57,9 +69,9 @@ describe("what the console is allowed to know", () => {
     const seen: { items: { type: string }[] }[] = [];
     bus.subscribe((e) => seen.push(e));
     bus.publish(request({ matches: [match("FR76…", "FR14…", "iban")] }));
-    // The catalogue's own wording, verbatim — this test would fail if the console started
-    // inventing a shorter one.
-    expect(seen[0].items[0].type).toBe("IBAN / coordonnées bancaires");
+    // The catalogue's own wording, verbatim and in the console's language (the English
+    // i18n catalogue) — this test would fail if the console started inventing a shorter one.
+    expect(seen[0].items[0].type).toBe(EN.categories.iban.label);
   });
 
   it("folds a repeated value into ONE row that COUNTS its occurrences", () => {
@@ -128,8 +140,47 @@ describe("the colour a value is painted in", () => {
     // The kit shipped eight of the nine plus a fallback, which left `Système` rendering as a
     // bare lowercase id the first time a file path was masked. The page now holds none.
     expect(sections()).toHaveLength(REDACTION_SECTIONS.length);
-    expect(sections()).toContainEqual({ id: "systeme", label: "Système" });
+    // The console is in English: the label is the i18n catalogue's, the id the token slug.
+    expect(sections()).toContainEqual({ id: "systeme", label: EN.sections["Système"] });
     for (const label of REDACTION_SECTIONS)
       expect(sections().map((x) => x.id)).toContain(sectionSlug(label));
+  });
+});
+
+describe("the rules panel's data", () => {
+  /** The page paints the catalogue's own tree — a category added upstream has to reach the
+   *  panel without an edit in the page or a label re-typed in it. */
+  it("is the product's sections, with the product's labels", () => {
+    const tree = rules();
+    expect(tree.map((s) => s.label)).toEqual(REDACTION_SECTIONS.map((fr) => EN.sections[fr]));
+    const items = tree.flatMap((s) => s.items);
+    expect(items.length).toBe(REDACTION_CATEGORIES.length);
+    for (const it of items) {
+      // English, from the i18n catalogue — the source label only when no translation exists.
+      const en = (EN.categories as Record<string, { label: string } | undefined>)[it.key];
+      expect(it.label).toBe(en?.label ?? REDACTION_CATEGORIES.find((c) => c.key === it.key)?.label);
+      expect(typeof it.ai).toBe("boolean");
+    }
+  });
+
+  /**
+   * ⚠️ The invariant: what the panel shows as ON and what the masker actually masks are ONE
+   * reading of the rules. A panel computing its own would be read against the log beside it —
+   * and would be believed.
+   */
+  it("agrees with the masker, level by level and with --disable", () => {
+    for (const level of ["standard", "renforce", "strict"] as const) {
+      for (const extra of [[], ["email"], ["name", "iban"]]) {
+        const on = activeCategories(level, extra);
+        const off = disabledKindsFor(level, extra);
+        expect(on.filter((k) => off.includes(k)), `${level} ${extra.join()}`).toEqual([]);
+        for (const k of extra) expect(on).not.toContain(k);
+      }
+    }
+    // The levels differ the way the catalogue says: the model's categories are what `renforce`
+    // adds, and `strict` leaves nothing off.
+    expect(activeCategories("standard", [])).not.toContain("name");
+    expect(activeCategories("renforce", [])).toContain("name");
+    expect(activeCategories("strict", []).length).toBe(REDACTION_CATEGORIES.length);
   });
 });

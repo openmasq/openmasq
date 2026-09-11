@@ -24,6 +24,7 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@openmasq/branding": "workspace:*",
     "@openmasq/catalog": "workspace:*",
+    "@openmasq/i18n": "workspace:*",
     "@openmasq/mcp": "workspace:*",
     "@openmasq/redact": "workspace:*",
     "cli-spinners": "^3.4.0",

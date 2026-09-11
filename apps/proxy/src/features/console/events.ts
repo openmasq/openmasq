@@ -8,7 +8,8 @@
 // put on the wire when the run was started with `--reveal`; otherwise a subscriber gets the
 // substitute — what the model saw — and the counts. A page cannot ask for more than the run
 // granted, because the server never sends it.
-import { REDACTION_CATEGORIES } from "@openmasq/catalog";
+import { categoriesForLevel, REDACTION_CATEGORIES, type RedactionLevel } from "@openmasq/catalog";
+import { getMessages } from "@openmasq/i18n";
 import {
   CATEGORY_SECTION,
   REDACTION_SECTIONS,
@@ -80,8 +81,17 @@ export function sectionOf(match: RedactionMatch): string {
 const fineOf = (match: RedactionMatch): ReturnType<typeof redactionCategory> =>
   redactionCategory(match.category ?? match.type ?? "");
 
+/** The console is in English — the CLI's language — so its labels come from the product's
+ *  English catalogue (`@openmasq/i18n`), the same words the app's rules screen shows in that
+ *  language. Never a table of its own: a category added upstream arrives translated or,
+ *  failing that, under the catalogue's source label, but never invented here. */
+const EN = getMessages("en").redactionCatalog;
+const enCategory = (key: string) =>
+  (EN.categories as Record<string, { label: string; detail?: string } | undefined>)[key];
+const enSection = (fr: string) => (EN.sections as Record<string, string | undefined>)[fr] ?? fr;
+
 /** `email` → `E-mail`. The catalogue owns these labels; the console only reads them. */
-const LABELS = new Map(REDACTION_CATEGORIES.map((c) => [c.key, c.label]));
+const LABELS = new Map(REDACTION_CATEGORIES.map((c) => [c.key, enCategory(c.key)?.label ?? c.label]));
 export const typeOf = (match: RedactionMatch): string => {
   const fine = fineOf(match);
   return LABELS.get(fine) ?? fine;
@@ -156,4 +166,41 @@ export function createConsoleBus(reveal: boolean, now: () => number = Date.now):
  *  Sent on connect so the page carries no list of its own — the kit's hard-coded eight left
  *  `Système` unlabelled the moment a file path was masked. */
 export const sections = (): { id: string; label: string }[] =>
-  REDACTION_SECTIONS.map((label) => ({ id: sectionSlug(label), label }));
+  REDACTION_SECTIONS.map((fr) => ({ id: sectionSlug(fr), label: enSection(fr) }));
+
+/**
+ * The masking RULES the page may show: the product's own sections, each with the categories
+ * the catalogue puts in it, their labels and the sentence the app shows beside them. The
+ * STRUCTURE only — what is on right now is `activeCategories`, small enough to re-read while
+ * the run's level changes under the `l` key.
+ *
+ * Sent rather than known: the page has no list of its own (`sections` says why), and a
+ * catalogue entry added upstream must reach this panel without an edit here.
+ */
+export const rules = (): {
+  id: string;
+  label: string;
+  items: { key: string; label: string; detail?: string; ai: boolean }[];
+}[] =>
+  REDACTION_SECTIONS.map((fr) => ({
+    id: sectionSlug(fr),
+    label: enSection(fr),
+    items: REDACTION_CATEGORIES.filter((c) => c.group === fr).map((c) => {
+      const en = enCategory(c.key);
+      const detail = en?.detail ?? c.detail;
+      return { key: c.key, label: en?.label ?? c.label, ...(detail ? { detail } : {}), ai: !!c.ai };
+    }),
+  }));
+
+/**
+ * Which categories this run actually masks: the level's own arithmetic
+ * (`categoriesForLevel`), minus what `--disable` turned off. The SAME two inputs the masker
+ * reads — never a second reading of the rules, which is how a panel ends up claiming a
+ * category the engine is not looking for.
+ */
+export const activeCategories = (level: RedactionLevel, disabled: readonly string[]): string[] => {
+  const on = categoriesForLevel(level);
+  return REDACTION_CATEGORIES.filter((c) => on[c.key] && !disabled.includes(c.key)).map(
+    (c) => c.key,
+  );
+};

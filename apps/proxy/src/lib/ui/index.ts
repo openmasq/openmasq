@@ -13,5 +13,6 @@ export {
   silentReporter,
 } from "./reporter.js";
 export { type RequestEvent, revealLines } from "./rows.js";
+export { openIfWanted } from "./splash.js";
 export { createStatusBar, type StatusBar } from "./status.js";
 export { colorsWanted, createTty, formatDuration, formatMs, type Tty } from "./tty.js";

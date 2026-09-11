@@ -12,11 +12,13 @@ import { categoryPills } from "./pills.js";
 import { outcomeHex, type RequestEvent, requestLines, revealLines } from "./rows.js";
 import { histogram } from "./spark.js";
 import { createStatusBar } from "./status.js";
-import { colorsWanted, createTty, formatDuration, type TtyOptions } from "./tty.js";
+import { colorsWanted, createTty, formatDuration, SCREEN, type TtyOptions } from "./tty.js";
 
 export interface Reporter {
   note(text: string, tone?: "info" | "warn" | "ok"): void;
-  banner(config: ProxyConfig, data: BannerData): void;
+  /** Resolves once the card is fully on screen. It is written line by line on a terminal
+   *  (`pace`), so a caller with something to print AFTER it has to wait for it. */
+  banner(config: ProxyConfig, data: BannerData): Promise<void>;
   keys(hints: KeyHint[]): void;
   request(e: RequestEvent): void;
   /** The vault's KEYS — what the model saw. A diagnostic, never a real value. */
@@ -41,12 +43,20 @@ export interface ReporterOptions extends TtyOptions {
    *  each substitute is opt-in, terminal-only, and `config.ts` refuses it anywhere kept. */
   reveal?: { on: boolean };
   now?: () => number;
+  /** Milliseconds between two lines of the card. Defaults to a budget spread over however
+   *  many lines the card has; 0 writes it in one go (a file, a machine, a test). */
+  pace?: number;
   /** The sticky footer, on an interactive terminal only. */
   live?: { dials: () => Dials; hints: KeyHint[] };
 }
 
 /** How long the masked total stays accented after it moves. One repaint, then it settles. */
 const FLASH_MS = 900;
+
+/** The card is REVEALED, not dropped: it lands line by line, within the budget below whatever
+ *  its length — a card carrying the integrations rows would otherwise crawl. It follows an
+ *  opening sequence that took its time, and a block appearing whole after it reads as a glitch. */
+const REVEAL_MS = 520;
 
 export function createReporter(o: ReporterOptions = {}): Reporter {
   const colors = o.colors ?? colorsWanted();
@@ -72,6 +82,9 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
     !!live && colors,
   );
   const write = o.write ?? ((l: string) => bar.log(l));
+  // Only an operator's own terminal gets the reveal: a log file, a pipe and a machine stream
+  // are read after the fact, where a delay buys nothing and an interleaved write costs.
+  const paced = !o.json && !o.write && colors && !!process.stderr.isTTY;
   const clock = () => {
     const d = new Date(now());
     return [d.getHours(), d.getMinutes(), d.getSeconds()]
@@ -87,13 +100,16 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
       else write(`  ${tty.dim(text)}`);
     },
 
-    banner(config, data) {
+    async banner(config, data) {
       if (o.json) return;
       upstreams = hostsOf(config);
-      write("");
-      for (const l of renderBanner(tty, config, data)) write(l);
-      write("");
-      if (data.keys?.length && !bar.live) write(keyHintLine(tty, data.keys));
+      const lines = ["", ...renderBanner(tty, config, data), ""];
+      if (data.keys?.length && !bar.live) lines.push(keyHintLine(tty, data.keys));
+      const step = o.pace ?? (paced ? Math.max(12, Math.round(REVEAL_MS / lines.length)) : 0);
+      for (const l of lines) {
+        write(l);
+        if (step) await wait(step);
+      }
       bar.render();
     },
 
@@ -176,7 +192,7 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
     spinner: (text) => bar.spinner(text),
 
     clear() {
-      if (!o.json && colors) process.stderr.write("[2J[3J[H");
+      if (!o.json && colors) process.stderr.write(SCREEN.clear);
       bar.render();
     },
 
@@ -210,9 +226,11 @@ export function revealFor(reveal: { on: boolean }, out: { toFile: boolean }): { 
   return out.toFile ? { on: false } : reveal;
 }
 
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export const silentReporter: Reporter = {
   note() {},
-  banner() {},
+  banner: async () => {},
   keys() {},
   request() {},
   fakes() {},

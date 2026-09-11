@@ -240,6 +240,9 @@ importers:
       '@openmasq/catalog':
         specifier: workspace:*
         version: link:../../packages/catalog
+      '@openmasq/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@openmasq/mcp':
         specifier: workspace:*
         version: link:../../packages/mcp

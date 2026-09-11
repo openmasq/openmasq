@@ -19,6 +19,10 @@ export interface Running {
   version: string;
   /** Does it hold the on-device model? Worth saying: the joiner cannot change that. */
   model: boolean;
+  /** ITS level and ITS effective list of kinds left in clear — what the joined session will
+   *  actually do. Absent from an older build, and then nothing is claimed on its behalf. */
+  level?: string;
+  disabled?: string[];
 }
 
 /** A short, readable name for one client: `claude-a3f9`. Readable because it is what the
@@ -47,7 +51,12 @@ export async function findRunning(
     const body = (await res.json()) as Record<string, unknown>;
     // It has to NAME itself; a bare 200 from an unrelated service is not an invitation.
     if (body.app !== "openmasq-proxy" || typeof body.version !== "string") return undefined;
-    return { version: body.version, model: body.ner === true };
+    return {
+      version: body.version,
+      model: body.ner === true,
+      ...(typeof body.level === "string" ? { level: body.level } : {}),
+      ...(Array.isArray(body.disabled) ? { disabled: body.disabled.map(String) } : {}),
+    };
   } catch {
     return undefined;
   }
@@ -68,16 +77,37 @@ export async function joinRunning(
     find?: typeof findRunning;
     run?: (command: string[], url: string, extra: string[]) => Promise<number>;
     note?: (text: string) => void;
+    /** The opening sequence, played for THIS proxy's masking rather than our own flags.
+     *  Skipped when the running build does not report them: an opening that guessed would
+     *  claim something nobody checked. */
+    open?: (running: Running) => Promise<void>;
+    /** Start-only flags the user passed that a JOIN cannot honour (`--console`, `--reveal`):
+     *  they configure a NEW server, and this invocation started none. Warned, not swallowed —
+     *  a `--console` that silently does nothing is why "rien n'arrive" in the console. */
+    startOnly?: string[];
   } = {},
 ): Promise<number | undefined> {
   const running = await (deps.find ?? findRunning)(url);
   if (!running) return undefined;
+  if (deps.open && running.level && running.disabled) await deps.open(running);
   const session = sessionName(command[0]);
-  const say =
-    deps.note ?? ((text: string) => createReporter({ reveal: { on: false } }).note(text, "ok"));
+  const reporter = createReporter({ reveal: { on: false } });
+  const say = deps.note ?? ((text: string) => reporter.note(text, "ok"));
+  const warn = (text: string) => (deps.note ? deps.note(text) : reporter.note(text, "warn"));
   say(
     `joining the proxy already on ${url} (v${running.version}, ` +
       `${running.model ? "model on" : "pattern rules"}) — this session is ${session}`,
   );
+  // The joiner holds no console token by construction: the live view, if that proxy serves
+  // one, is on ITS terminal, and its card is where the URL was printed.
+  say(`the live view, if any, belongs to that proxy's terminal — its URL was printed there`);
+  // The console (and its token) belong to whichever proxy actually STARTED the server; a join
+  // holds none, so these flags never took effect. Say so, and where to look instead.
+  if (deps.startOnly?.length)
+    warn(
+      `${deps.startOnly.join(" and ")} ignored: they configure a new server, and this run joined ` +
+        `the proxy already on ${url}. Its console, if it has one, was printed when THAT proxy ` +
+        `started — or stop it and re-run to start your own.`,
+    );
   return await (deps.run ?? runWrapped)(command, sessionUrl(url, session), []);
 }

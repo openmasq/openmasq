@@ -30,6 +30,18 @@ describe("config", () => {
     expect(() => parseArgs(["--theme", "sepia"])).toThrow(/auto, light or dark/);
   });
 
+  it("opens the console in the browser on request, and turns the console on to do it", () => {
+    expect(parseArgs([]).open).toBe(false);
+    expect(parseArgs(["--open"])).toMatchObject({ open: true, console: true });
+    expect(parseArgs([], { OPENMASQ_PROXY_OPEN: "1" })).toMatchObject({ open: true, console: true });
+  });
+
+  it("lets the opening sequence be turned off, by flag or by env", () => {
+    expect(parseArgs([]).splash).toBe(true);
+    expect(parseArgs(["--no-splash"]).splash).toBe(false);
+    expect(parseArgs([], { OPENMASQ_PROXY_SPLASH: "0" }).splash).toBe(false);
+  });
+
   it("takes a tool to wrap after --, and a log file for its request lines", () => {
     const c = parseArgs(["--level", "strict", "--log", "/tmp/p.log", "--", "claude", "--resume"]);
     expect(c).toMatchObject({

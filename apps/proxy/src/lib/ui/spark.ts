@@ -2,15 +2,11 @@
 // request in the footer. Both are the same idea — a shape whose colours are the redaction
 // hues, so a glance says what kind of data this session is protecting without reading a
 // number.
-import { CATEGORY_HUE, redactionCategory } from "@openmasq/redact";
-import { HUE_HEX } from "./palette.js";
+import { hueHexOf } from "./pills.js";
 import type { Tty } from "./tty.js";
 
 /** Eight heights: a bar is a PROPORTION, never a count — the count is written beside it. */
 const BLOCKS = "▁▂▃▄▅▆▇█";
-
-const hexOf = (category: string): string =>
-  HUE_HEX[CATEGORY_HUE[redactionCategory(category)] ?? "slate"];
 
 /**
  * One bar per category, tallest first, each in its own hue. `paint` lets the caller draw
@@ -31,7 +27,7 @@ export function histogram(
     .slice(0, max);
   if (!sorted.length) return "";
   const top = sorted[0][1];
-  return sorted.map(([k, n]) => paint(hexOf(k), BLOCKS[height(n, top)] as string)).join("");
+  return sorted.map(([k, n]) => paint(hueHexOf(k), BLOCKS[height(n, top)] as string)).join("");
 }
 
 function height(n: number, top: number): number {

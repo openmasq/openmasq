@@ -179,6 +179,50 @@ describe("reporter", () => {
     expect(after.lines.join("\n")).toContain("api.anthropic.com");
   });
 
+  /** The card follows an opening sequence that took its time; dropping it whole after that
+   *  reads as a glitch. On a terminal it lands line by line — and a caller with something to
+   *  print under it (the console URL, the wrapped tool's line) has to await it, or its line
+   *  arrives in the middle of the frame. */
+  it("reveals the card line by line when paced, and in one go anywhere else", async () => {
+    const c = capture();
+    const r = createReporter({ write: c.write, colors: false, pace: 1 });
+    const done = r.banner(DEFAULTS, { model: "rules", version: "1" });
+    const midway = c.lines.length;
+    await done;
+    expect(midway).toBe(1); // the first line only, the rest still to come
+    expect(c.lines.length).toBeGreaterThan(midway);
+
+    // A file, a pipe, a test: the whole card is written before the promise resolves.
+    const d = capture();
+    void createReporter({ write: d.write, colors: false }).banner(DEFAULTS, {
+      model: "rules",
+      version: "1",
+    });
+    expect(d.lines.length).toBeGreaterThan(5);
+  });
+
+  /** The card opens on what the proxy DOES — a round trip, not a settings list — and it carries
+   *  the console URL: printed as a note underneath, the one address the operator has to open
+   *  read as an aside. */
+  it("shows the round trip, what is left in clear, and the console URL", () => {
+    const c = capture();
+    void createReporter({ write: c.write, colors: false }).banner(
+      { ...DEFAULTS, port: 8787 },
+      {
+        model: "rules",
+        version: "1",
+        inClear: ["date", "company", "name"],
+        console: { url: "http://127.0.0.1:8787/console?t=abc", reveal: true },
+      },
+    );
+    const out = c.lines.join("\n");
+    expect(out).toContain("ROUND TRIP");
+    expect(out).toContain("the model");
+    expect(out).toContain("left in clear: names, companies, dates");
+    expect(out).toContain("http://127.0.0.1:8787/console?t=abc");
+    expect(out).toContain("[real values]");
+  });
+
   it("colours a pill with the category's own hue, and prints plain brackets without colours", () => {
     const colored = categoryPill(createTty(true), "EMAIL", 1);
     expect(colored).toMatch(/\[48;2;\d+;\d+;\d+m/); // a 24-bit background

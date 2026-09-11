@@ -8,10 +8,24 @@ import { renderBanner } from "../src/lib/ui/banner.js";
 import { footerLines } from "../src/lib/ui/footer.js";
 import { KEY_HINTS } from "../src/lib/ui/keys.js";
 import { outcomeHex, requestLines, revealLines } from "../src/lib/ui/rows.js";
+import { disabledKindsFor } from "../src/lib/masker.js";
+import { splashFrame } from "../src/lib/ui/splash.js";
 import { createTty } from "../src/lib/ui/tty.js";
 
-const theme = process.argv[2] === "light" ? "light" : "dark";
+const theme = process.argv.includes("light") ? "light" : "dark";
 const tty = createTty(true, () => 92, { theme, depth: 24 });
+
+// `pnpm preview:ui splash` prints the opening sequence as still frames — the timing is the
+// player's, the composition is what a still shows.
+if (process.argv.includes("splash")) {
+  // The level decides what the marker covers, so the preview shows the run's own view.
+  const level = ["renforce", "strict"].find((l) => process.argv.includes(l)) ?? "standard";
+  const view = { level, disabled: disabledKindsFor(level as never, []) };
+  for (const t of [0.15, 0.4, 0.7, 1]) {
+    process.stdout.write(`${splashFrame(tty, t, 18, view).join("\n")}\n${"─".repeat(92)}\n`);
+  }
+  process.exit(0);
+}
 const m = (category: string, value: string, placeholder: string): RedactionMatch =>
   ({ type: category, value, placeholder, category }) as RedactionMatch;
 

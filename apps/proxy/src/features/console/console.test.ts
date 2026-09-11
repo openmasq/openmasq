@@ -83,9 +83,9 @@ describe("the console endpoint", () => {
     const html = await (await fetch(`${url}?t=${TOKEN}`)).text();
     // This console was started WITHOUT --reveal, so the server sends no original. The kit's
     // own toggle would otherwise flip to a row of dots and leave the reader guessing why.
-    expect(html).toContain("Valeurs réelles (--reveal)");
+    expect(html).toContain("Real values (--reveal)");
     expect(html).toContain("armReveal(!!d.reveal)");
-    expect(html).toContain("Relancez avec --reveal pour afficher les valeurs réelles");
+    expect(html).toContain("Run again with --reveal to show the real values");
     // ONE control, at the top. The drawer used to carry a second one — two buttons for one
     // fact, and a "→ --reveal" under every single value on top of that.
     expect(html).not.toContain('id="rev-in"');

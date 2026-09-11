@@ -34,14 +34,15 @@ same value; evicted after an hour of silence); `x-openmasq-mode: fake|token` pic
 model sees. The reply carries `x-openmasq-masked: <count>`.
 
 **Flags / env**: `--port` (`OPENMASQ_PROXY_PORT`), `--openai`/`--anthropic`
-(`OPENMASQ_UPSTREAM_*`), `--ner <dir>` (`OPENMASQ_NER_DIR`), `--mode`, `--quiet`, `--json`, `--log <file>`, `--theme`,
+(`OPENMASQ_UPSTREAM_*`), `--ner <dir>` (`OPENMASQ_NER_DIR`), `--mode`, `--quiet`, `--json`, `--log <file>`, `--theme`, `--no-splash`,
 `--rules-only`; `-- <command…>` runs a tool through the proxy (below).
 
 **What is masked — the app's own dials**: `--level standard|renforce|strict` (the app's
 three levels, same category sets). **`standard` is the default here**: deterministic pattern
 rules (email, phone, card, IBAN, national id, IP, path, secrets), no model to load, ready in a
-fraction of a second — **a name or a company is never masked at `standard`**. Names, companies,
-addresses and places come from the on-device model, so they are only masked at `renforce` and
+fraction of a second — **a name, a company or a handle is never masked at `standard`**. Names,
+companies, addresses and places come from the on-device model, and a handle from a rule whose
+only signal is a leading `@` (a scope, a flag or a bot mention on code), so they are only masked at `renforce` and
 `strict` — which load it, and refuse to start without it. ⚠️ Above `standard` the model reasons
 on substitutes, so **an answer about a person or an organisation can come out different**;
 the card and the console both say so. `renforce` still spares famous brands and public figures
@@ -162,13 +163,15 @@ guarantee, and the way to close it is `OPENMASQ_PROXY_KEY` — a 32-byte key fro
 secret manager, after which no key file is written at all. The desktop app has a stronger
 answer on every platform (the OS keychain, via Electron); a pure-Node CLI cannot reach it.
 
-**Watching it live, in a browser** — `--console`. The proxy serves a page of its own on
+**Watching it live, in a browser** — `--console`. The proxy serves a page of its own (in
+English, like the CLI — its labels are the product's English catalogue) on
 loopback: a log table of every call, each masked value swiped in its category's colour, a
 recap by category, a per-minute histogram, and a drawer with the JSON, the detected data and
 the context. It is how you watch a WRAPPED run, since the tool owns the terminal.
 
 ```bash
 openmasq-proxy --console --mcp -- claude
+openmasq-proxy --open --mcp -- hermes      # opens the tab for you: hermes clears the screen as it starts
 #   console: http://127.0.0.1:8787/console?t=J4JYXzkIDj2v-p7mRF5p9g
 ```
 
@@ -223,12 +226,22 @@ query string. Ctrl-C prints the session's totals. Colours follow the terminal (`
 `FORCE_COLOR`, a pipe); `--quiet` keeps errors only; `--json` writes one JSON object per
 request for a log collector.
 
-**What you see**: the brand mark and a framed card at start (endpoint, upstreams, level, NER
-state, the three `export` lines), then two lines per request — a coloured gutter that says the
+**What you see**: the brand mark and a framed card at start — the round trip first (what leaves
+masked, what comes back restored), then the level and what it leaves in clear, the upstreams,
+the live view's URL when `--console` is on, and the three `export` lines — then two lines per
+request — a coloured gutter that says the
 outcome before the line is read, the status, the time to the upstream's answer, the route and
 the host it went to, then a bar per category and a pill per category in the app's own
 redaction hues. A filled footer stays pinned at the bottom with the live dials, the running
 counts, the last requests as a strip and the keys.
+
+**At start-up**, a second and a half on the alternate screen: the loader the desktop chat runs
+while it thinks — the redaction mark travelling in the palette's own hues — laid around the
+name, which writes itself inside it letter by letter. The ring then closes, two lines say what
+this run masks and what it leaves in clear, and the card below writes itself in line by line
+rather than landing whole. Any key skips it,
+`--no-splash` (or `OPENMASQ_PROXY_SPLASH=0`) turns it off, and it never plays for a machine
+(`--json`, `--quiet`, a pipe, CI).
 
 **Colours** follow the terminal: 24-bit when it announces truecolor (`COLORTERM`), the
 256-colour cube otherwise, and none at all under `NO_COLOR`, `TERM=dumb` or through a pipe.
@@ -290,14 +303,16 @@ pour la même valeur ; oublié après une heure de silence) ; `x-openmasq-mode: 
 choisit ce que voit le modèle. La réponse porte `x-openmasq-masked: <nombre>`.
 
 **Options / env** : `--port` (`OPENMASQ_PROXY_PORT`), `--openai`/`--anthropic`
-(`OPENMASQ_UPSTREAM_*`), `--ner <dossier>` (`OPENMASQ_NER_DIR`), `--mode`, `--quiet`, `--json`, `--log <fichier>`, `--theme`,
+(`OPENMASQ_UPSTREAM_*`), `--ner <dossier>` (`OPENMASQ_NER_DIR`), `--mode`, `--quiet`, `--json`, `--log <fichier>`, `--theme`, `--no-splash`,
 `--rules-only` ; `-- <commande…>` lance un outil à travers le proxy (ci-dessous).
 
 **Ce qui est masqué — les réglages de l'app** : `--level standard|renforce|strict` (les
 trois niveaux de l'app, mêmes catégories). **`standard` est le défaut ici** : des règles
 déterministes (e-mail, téléphone, carte, IBAN, identifiant national, IP, chemin, secrets),
-aucun modèle à charger, prêt en une fraction de seconde. Les noms, entreprises, adresses et
-lieux viennent du modèle local : ils ne sont masqués qu'en `renforce` et `strict`, qui le
+aucun modèle à charger, prêt en une fraction de seconde — **ni nom, ni entreprise, ni pseudo
+masqués en `standard`**. Les noms, entreprises, adresses et lieux viennent du modèle local, et
+un pseudo d'une règle dont le seul signal est un `@` en tête (un scope, un drapeau, une mention
+de bot dans du code) : ils ne sont masqués qu'en `renforce` et `strict`, qui le
 chargent et refusent de démarrer sans lui, `--disable email,phone`
 (catégories laissées en clair en plus du niveau), `--keep Stripe,Canva` (jamais masqués),
 `--always "Groupe Delorme:company,FR76 3000…:iban"` (toujours masqués quoi que trouvent les
@@ -424,7 +439,8 @@ après quoi aucun fichier de clé n'est écrit. L'app de bureau a une meilleure 
 toutes les plateformes (le trousseau du système, via Electron) ; un CLI Node pur n'y a pas
 accès.
 
-**Le regarder en direct, dans un navigateur** — `--console`. Le proxy sert sa propre page sur
+**Le regarder en direct, dans un navigateur** — `--console`. Le proxy sert sa propre page (en
+anglais, comme le CLI — ses libellés sont le catalogue anglais du produit) sur
 la boucle locale : une table de tous les appels, chaque valeur masquée surlignée dans la
 couleur de sa catégorie, un récapitulatif par catégorie, un histogramme par minute, et un
 tiroir avec le JSON, les données détectées et le contexte. Deux vues : **Appels**, une ligne
@@ -434,6 +450,7 @@ possède le terminal.
 
 ```bash
 openmasq-proxy --console --mcp -- claude
+openmasq-proxy --open --mcp -- hermes      # ouvre l'onglet à ta place : hermes efface l'écran en démarrant
 #   console: http://127.0.0.1:8787/console?t=J4JYXzkIDj2v-p7mRF5p9g
 ```
 
@@ -494,12 +511,22 @@ valeur, jamais la query string. Ctrl-C imprime les totaux de la session. Les cou
 le terminal (`NO_COLOR`, `FORCE_COLOR`, un tube) ; `--quiet` ne garde que les erreurs ;
 `--json` écrit un objet JSON par requête pour un collecteur de logs.
 
-**Ce que l'on voit** : la marque et une carte encadrée au démarrage (adresse, amonts, niveau,
-état du NER, les trois lignes `export`), puis deux lignes par requête — une gouttière colorée
+**Ce que l'on voit** : la marque et une carte encadrée au démarrage — l'aller-retour d'abord
+(ce qui part masqué, ce qui revient restauré), puis le niveau et ce qu'il laisse en clair, les
+amonts, l'URL de la vue en direct quand `--console` est actif, et les trois lignes `export` —
+puis deux lignes par requête — une gouttière colorée
 qui dit l'issue avant qu'on ait lu la ligne, le statut, le délai de réponse de l'amont, la
 route et l'hôte où elle est partie, puis une barre et une pastille par catégorie aux couleurs
 de masquage de l'app. Un pied de page plein reste fixé en bas avec les réglages en cours, les
 compteurs, les dernières requêtes en bandeau et les touches.
+
+**Au démarrage**, une seconde et demie sur l'écran alterné : le loader que l'app de bureau
+fait tourner pendant qu'elle réfléchit — la marque de masquage qui se déplace, aux teintes de
+la palette — posé autour du nom, qui s'écrit lettre à lettre à l'intérieur. L'anneau se ferme,
+deux lignes disent ce que ce run masque et ce qu'il laisse en clair, puis la carte s'écrit
+ligne à ligne au lieu de tomber d'un bloc.
+N'importe quelle touche passe, `--no-splash` (ou `OPENMASQ_PROXY_SPLASH=0`) la désactive, et
+elle ne joue jamais pour une machine (`--json`, `--quiet`, un tube, CI).
 
 **Les couleurs** suivent le terminal : 24 bits quand il annonce le truecolor (`COLORTERM`), le
 cube 256 sinon, et aucune sous `NO_COLOR`, `TERM=dumb` ou dans un tube. Deux blocs portent leur

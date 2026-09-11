@@ -23,6 +23,9 @@ export interface Tty {
   readonly theme: ThemeHex & { name: ThemeName };
   bold(s: string): string;
   dim(s: string): string;
+  /** What the console page draws as a dashed rule under a value showing in clear: a FILL
+   *  would say "protected" about something that is not. */
+  underline(s: string): string;
   fg(hex: string, s: string): string;
   /** A pastel pill: `hex` behind, the ink on top — the terminal twin of the app's marks. */
   pill(hex: string, ink: string, s: string): string;
@@ -47,6 +50,17 @@ export interface TtyOptions {
 
 const ESC = "[";
 const ANSI = /\[[0-9;]*m/g;
+
+/** The screen-control sequences, in the same home as the colour ones. The alternate screen
+ *  is what lets the opening sequence take the whole terminal and give it back untouched. */
+export const SCREEN = {
+  altOn: `${ESC}?1049h`,
+  altOff: `${ESC}?1049l`,
+  hideCursor: `${ESC}?25l`,
+  showCursor: `${ESC}?25h`,
+  home: `${ESC}H`,
+  clear: `${ESC}2J${ESC}3J${ESC}H`,
+} as const;
 
 export function colorsWanted(
   env: NodeJS.ProcessEnv = process.env,
@@ -100,6 +114,7 @@ export function createTty(
     },
     bold: (s) => wrap("1", s),
     dim: (s) => wrap("2", s),
+    underline: (s) => wrap("4", s),
     fg: (hex, s) => wrap(sgr(hex, 38), s),
     pill: (hex, ink, s) =>
       colors ? `${ESC}${sgr(hex, 48)}m${ESC}${sgr(ink, 38)}m ${s} ${ESC}0m` : `[${s}]`,

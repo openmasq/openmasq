@@ -4,9 +4,6 @@
 // load, nothing to warm. On a terminal the keys of `lib/ui/keys.ts` turn the runtime dials;
 // after `--`, a tool runs through the proxy and stops it when it exits.
 import { randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import type { RedactionLevel } from "@openmasq/catalog";
 import { createApp } from "./app.js";
 import { LEVELS, parseArgs, USAGE } from "./config/config.js";
@@ -22,7 +19,9 @@ import {
   type MaskerOptions,
 } from "./lib/masker.js";
 import { type DetectLocal, loadNer, resolveNerDir } from "./lib/ner.js";
-import { attachKeys, createReporter, KEY_HINTS, type ModelState, revealFor } from "./lib/ui/index.js";
+import { attachKeys, createReporter, KEY_HINTS, type ModelState, openIfWanted, revealFor } from "./lib/ui/index.js";
+import { openInBrowser } from "./lib/openUrl.js";
+import { packageVersion } from "./lib/version.js";
 import { defaultLogFile, fileWriter, runWrapped } from "./lib/wrap.js";
 
 const NO_MODEL =
@@ -49,9 +48,28 @@ async function main(): Promise<void> {
 
   // Already one running? Join it rather than dying on EADDRINUSE (`lib/attach.ts`).
   if (wrapping) {
-    const code = await joinRunning(url0, config.command);
+    const code = await joinRunning(url0, config.command, {
+      // Flags that start a NEW server cannot cross into a joined one — warn instead of
+      // letting `--console`/`--reveal` quietly do nothing (the "rien n'arrive" report).
+      startOnly: [config.console && "--console", config.reveal && "--reveal"].filter(
+        Boolean,
+      ) as string[],
+      // Joining is the run with the LEAST feedback — no card, no footer — so the opening
+      // matters most here. It states the proxy we are joining, not our own flags.
+      open: (running) =>
+        openIfWanted({
+          ...config,
+          level: (running.level ?? config.level) as typeof config.level,
+          disabledKinds: running.disabled ?? config.disabledKinds,
+        }),
+    });
     if (code !== undefined) process.exit(code);
   }
+
+  // The opening sequence, before anything is loaded: when a tool is being wrapped this is the
+  // only moment the screen is ours, and it states what the proxy does rather than that it
+  // started (`lib/ui/splash.ts`). It gives the terminal back exactly as it found it.
+  await openIfWanted(config);
 
   const reveal = { on: config.reveal };
   const interactive = !wrapping && !config.json && !!process.stdin.isTTY && !!process.stderr.isTTY;
@@ -167,6 +185,10 @@ async function main(): Promise<void> {
             version: packageVersion(),
             command: config.command[0] ?? "openmasq-proxy",
             startedAt: Date.now(),
+            config,
+            ...(config.mcp
+              ? { mcp: { servers: integrations.servers, writes: config.mcpWrites } }
+              : {}),
           },
         }
       : {}),
@@ -175,12 +197,16 @@ async function main(): Promise<void> {
   const ownSession = wrapping ? sessionName(config.command[0]) : "";
   let detach = () => {};
   const server = app.listen(config.port, config.host, async () => {
-    screen.banner(config, {
+    // Awaited: the card is revealed line by line, and the notes below it must not land in the
+    // middle of it.
+    await screen.banner(config, {
       model: modelState(),
       version: packageVersion(),
       keys: interactive ? KEY_HINTS : undefined,
       compact: wrapping,
       reveal: reveal.on && !wrapping,
+      inClear: disabledKindsFor(config.level, config.disabledKinds),
+      ...(bus ? { console: { url: `${url}/console?t=${consoleToken}`, reveal: reveal.on } } : {}),
       ...(config.mcp
         ? {
             mcp: {
@@ -192,14 +218,10 @@ async function main(): Promise<void> {
           }
         : {}),
     });
-    if (bus)
-      screen.note(
-        `console: ${url}/console?t=${consoleToken}` +
-          (reveal.on
-            ? "  — real values are shown on that page"
-            : "  — substitutes only; add --reveal to see the values behind them"),
-        reveal.on ? "warn" : "info",
-      );
+    // Before the tool takes the screen: the one moment the console URL is both known and
+    // readable. Best-effort — no opener is a note, and the URL is still on the card.
+    if (bus && config.open && !(await openInBrowser(`${url}/console?t=${consoleToken}`)))
+      screen.note("could not open a browser here — open the live view URL above by hand", "warn");
     if (config.json) console.error(`[openmasq-proxy] ${url}`);
     if (interactive) {
       detach = attachKeys(reporter, {
@@ -269,18 +291,6 @@ async function main(): Promise<void> {
   else {
     process.on("SIGINT", stop);
     process.on("SIGTERM", stop);
-  }
-}
-
-function packageVersion(): string {
-  try {
-    const pkg = readFileSync(
-      resolve(fileURLToPath(import.meta.url), "..", "..", "package.json"),
-      "utf8",
-    );
-    return (JSON.parse(pkg) as { version: string }).version;
-  } catch {
-    return "dev";
   }
 }
 

@@ -4,6 +4,11 @@ import { CATEGORY_HUE, redactionCategory } from "@openmasq/redact";
 import { HUE_HEX, INK_HEX } from "./palette.js";
 import type { Tty } from "./tty.js";
 
+/** The hue a category is painted in — the app's own mapping, and the one home for it. */
+export function hueHexOf(category: string): string {
+  return HUE_HEX[CATEGORY_HUE[redactionCategory(category)] ?? "slate"];
+}
+
 export function categoryPill(tty: Tty, category: string, n: number): string {
   return categoryTag(tty, category, ` ${n}`);
 }
@@ -11,7 +16,7 @@ export function categoryPill(tty: Tty, category: string, n: number): string {
 /** The same pill without a count — one per revealed span. */
 export function categoryTag(tty: Tty, category: string, suffix = ""): string {
   const key = redactionCategory(category);
-  return tty.pill(HUE_HEX[CATEGORY_HUE[key] ?? "slate"], INK_HEX, `${key.toUpperCase()}${suffix}`);
+  return tty.pill(hueHexOf(key), INK_HEX, `${key.toUpperCase()}${suffix}`);
 }
 
 /** The pills for a tally, biggest count first; `max` keeps a status bar from overflowing. */

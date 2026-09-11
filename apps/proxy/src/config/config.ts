@@ -5,18 +5,12 @@ import { readFileSync } from "node:fs";
 
 import type { RedactionLevel } from "@openmasq/catalog";
 import type { ThemeChoice } from "../lib/ui/theme.js";
+import { DEFAULTS, LEVELS, type ProxyConfig, WRITE_POLICIES, type WritePolicy } from "./schema.js";
 import { USAGE } from "./usage.js";
 
 export { USAGE };
 export type { RedactionLevel };
-export const LEVELS: readonly RedactionLevel[] = ["standard", "renforce", "strict"];
-
-/** What happens to a MUTATING MCP tool call. Hiding the credential stops the secret from
- *  leaking; it does nothing about the authority the secret grants, so a write stops here.
- *  `confirm` is the default, and the card always says which one is on. */
-export type WritePolicy = "confirm" | "deny" | "allow";
-export const WRITE_POLICIES: readonly WritePolicy[] = ["confirm", "deny", "allow"];
-
+export { DEFAULTS, LEVELS, type ProxyConfig, WRITE_POLICIES, type WritePolicy } from "./schema.js";
 /** `Groupe Delorme:company,FR76…:iban` → forced redactions. A missing type is `name`. */
 export function parseAlways(v: string): { value: string; category: string }[] {
   return list(v).map((entry) => {
@@ -27,94 +21,6 @@ export function parseAlways(v: string): { value: string; category: string }[] {
     return { value, category };
   });
 }
-
-export interface ProxyConfig {
-  /** Bind address — loopback ONLY. The proxy holds the vault and forwards the caller's
-   *  key: exposing it on a network interface would hand both to the network. */
-  host: string;
-  port: number;
-  /** Upstream origins, by wire family. */
-  openai: string;
-  anthropic: string;
-  gemini: string;
-  /** Bundled NER models dir (the desktop's `build/ner-models` layout). "" ⇒ none. */
-  nerDir: string;
-  /** Run on the pattern rules alone — an EXPLICIT opt-out of the fail-closed default: names,
-   *  organisations and places are then NOT detected in free text (the desktop never allows it). */
-  rulesOnly: boolean;
-  /** What the model sees in place of a value: a believable fake, or an opaque token. */
-  mode: "fake" | "token";
-  /** Exact values never masked (a product name the model must route on). */
-  keep: string[];
-  /** Highlight kinds left in clear (e.g. `email`) — added to what `level` leaves in clear. */
-  disabledKinds: string[];
-  /** Which categories are on. `standard` is pattern rules only: fast, and no model to load.
-   *  `renforce` (the desktop app's default) and `strict` add the on-device model's categories. */
-  level: RedactionLevel;
-  /** Terms ALWAYS masked, whatever the detectors find — the app's Vault. `value:type`. */
-  always: { value: string; category: string }[];
-  /** Exact strings always erased (keys, tokens), read from a file, one per line. */
-  secrets: string[];
-  /** How long a `x-openmasq-session` vault outlives its last request, in ms. */
-  sessionTtlMs: number;
-  /** Print one line per request (counts per category, never a value). */
-  verbose: boolean;
-  /** One JSON object per request on stdout instead of the pretty lines. */
-  json: boolean;
-  /** Print, on THIS terminal only, the real value behind each substitute. Opt-in: it puts
-   *  personal data on screen, so it is refused wherever the output is kept or machine-read. */
-  reveal: boolean;
-  /** Everything after `--`: a tool to run with its base URLs pointed at the proxy. */
-  command: string[];
-  /** Where the request lines go while a wrapped tool owns the terminal ("" ⇒ ~/.openmasq/proxy.log). */
-  logFile: string;
-  /** Serve `/mcp`: the proxy connects to the declared MCP servers and re-exposes their tools
-   *  with the values masked. The credentials stay here; the agent never receives one. */
-  mcp: boolean;
-  /** The servers file ("" ⇒ ~/.openmasq/mcp.json). It holds the credentials, so it is read
-   *  once, at startup, and refused when other users can read it. */
-  mcpConfig: string;
-  /** What a mutating tool call gets: a confirmation on this terminal, a refusal, or a pass. */
-  mcpWrites: WritePolicy;
-  /** Wrapping a client with `--mcp`: take over the MCP servers IT declares, so making our
-   *  endpoint its only one does not cost it the integrations it already had. */
-  mcpAdopt: boolean;
-  /** Which ground the terminal paints on: it decides the brand block and the footer bar, the
-   *  two places that carry a background of their own (`lib/ui/palette.ts`). `auto` asks the
-   *  terminal (`COLORFGBG`) and falls back to dark. */
-  theme: ThemeChoice;
-  /** Serve the live console at /console. A token is minted per run and printed on the card;
-   *  loopback alone is not an access control (`features/console/routes.ts` says why). */
-  console: boolean;
-}
-
-export const DEFAULTS: ProxyConfig = {
-  host: "127.0.0.1",
-  port: 8787,
-  openai: "https://api.openai.com",
-  anthropic: "https://api.anthropic.com",
-  gemini: "https://generativelanguage.googleapis.com",
-  nerDir: "",
-  rulesOnly: false,
-  mode: "fake",
-  keep: [],
-  disabledKinds: [],
-  level: "standard",
-  always: [],
-  secrets: [],
-  sessionTtlMs: 60 * 60 * 1000,
-  verbose: true,
-  json: false,
-  reveal: false,
-  command: [],
-  logFile: "",
-  mcp: false,
-  mcpConfig: "",
-  mcpWrites: "confirm",
-  mcpAdopt: true,
-  console: false,
-  theme: "auto",
-};
 
 /** One secret per line; blank lines and `#` comments ignored. The file is never logged. */
 export function readSecretsFile(
@@ -154,6 +60,8 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
     always: parseAlways(env.OPENMASQ_PROXY_ALWAYS ?? ""),
     secrets: [],
     theme: themeChoice(env.OPENMASQ_PROXY_THEME) ?? DEFAULTS.theme,
+    splash: env.OPENMASQ_PROXY_SPLASH !== "0",
+    open: env.OPENMASQ_PROXY_OPEN === "1",
     mcpConfig: env.OPENMASQ_PROXY_MCP_CONFIG ?? "",
     mcp: !!env.OPENMASQ_PROXY_MCP_CONFIG,
     mcpWrites: (WRITE_POLICIES as readonly string[]).includes(env.OPENMASQ_PROXY_MCP_WRITES ?? "")
@@ -237,6 +145,12 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
       case "--console":
         c.console = true;
         break;
+      case "--open":
+        c.open = true;
+        break;
+      case "--no-splash":
+        c.splash = false;
+        break;
       case "--theme": {
         const t = themeChoice(next());
         if (!t) throw new Error("--theme is auto, light or dark");
@@ -261,6 +175,8 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
         throw new Error(`Unknown flag ${a}\n\n${USAGE}`);
     }
   }
+  // `--open` opens the console page, so it asks for the console to exist.
+  if (c.open) c.console = true;
   if (!Number.isInteger(c.port) || c.port < 1 || c.port > 65535)
     throw new Error(`Bad port ${c.port}`);
   for (const u of [c.openai, c.anthropic, c.gemini]) {

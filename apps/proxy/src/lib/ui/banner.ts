@@ -1,10 +1,11 @@
 // The start-up card: the lockup, then a hairline frame carrying the dials and where to point
 // a tool. Drawn by hand rather than by a box library because every row already carries colour
 // escapes — the widths come from `tty.width`, which counts columns, not code units.
-import type { ProxyConfig } from "../../config/config.js";
+import { DEFAULTS, type ProxyConfig } from "../../config/config.js";
 import { envLines } from "../baseUrls.js";
 import { renderLockup } from "./mark.js";
-import { HUE_HEX } from "./palette.js";
+import { inClearPhrase } from "./kinds.js";
+import { HUE_HEX, INK_HEX } from "./palette.js";
 import type { Tty } from "./tty.js";
 
 export interface KeyHint {
@@ -25,6 +26,12 @@ export interface BannerData {
   reveal?: boolean;
   /** `--mcp`: which integrations answered, and what happens to a write. Absent ⇒ no row. */
   mcp?: { servers: string[]; writes: string; url: string; client?: string };
+  /** `--console`: the live view's URL, token included. It belongs IN the card — printed as a
+   *  note underneath, the one address the operator has to open read as an aside. */
+  console?: { url: string; reveal: boolean };
+  /** What this level leaves in clear (`disabledKindsFor`) — the card says it in words, the
+   *  same way the opening sequence does (`kinds.ts`). */
+  inClear?: readonly string[];
 }
 
 const MAX_WIDTH = 92;
@@ -64,6 +71,29 @@ export function keyHintLine(tty: Tty, hints: KeyHint[]): string {
   return `  ${hints.map((h) => `${tty.pill(brand, inkOnBrand, h.key)} ${tty.dim(h.label)}`).join(" ")}`;
 }
 
+/** The round trip, in one line: what leaves is masked, what comes back is restored. The two
+ *  chips are the app's own marks — a redaction hue on the way out, mint on the way in. */
+function flow(tty: Tty, long: boolean): string {
+  const out = tty.pill(HUE_HEX.violet, INK_HEX, "masked");
+  const back = tty.pill(HUE_HEX.mint, INK_HEX, "restored");
+  const arrow = tty.dim(" ▸ ");
+  const middle = tty.bold(long ? "the model" : "model");
+  return `${tty.bold("you")}${arrow}${out}${arrow}${middle}${arrow}${back}${arrow}${tty.bold("you")}`;
+}
+
+/** The three upstreams. A DEFAULT origin is noise — its host says nothing the family does not
+ *  — so the compact form names it only when it was pointed somewhere else. */
+function upstreams(tty: Tty, config: ProxyConfig, room: number): string {
+  const full = `${tty.dim("openai")} ${host(config.openai)} ${tty.dim("· anthropic")} ${host(config.anthropic)} ${tty.dim("· gemini")} ${host(config.gemini)}`;
+  const overridden = (["openai", "anthropic", "gemini"] as const).filter(
+    (k) => config[k] !== DEFAULTS[k],
+  );
+  const short = (["openai", "anthropic", "gemini"] as const)
+    .map((k) => (config[k] === DEFAULTS[k] ? tty.dim(k) : `${tty.dim(k)} ${host(config[k])}`))
+    .join(tty.dim(" · "));
+  return pick(tty, room, full, overridden.length ? short : `${short} ${tty.dim("(vendor defaults)")}`, short);
+}
+
 const host = (origin: string): string => {
   try {
     return new URL(origin).host;
@@ -84,13 +114,39 @@ export function modelLabel(tty: Tty, state: ModelState, long: boolean): string {
 // columns of a line that carries an URL.
 const LABEL_W = 13;
 
+/**
+ * The longest variant that FITS, never a cut one. A row saying less still says something true;
+ * « the model only sees substit… » says less than nothing, and the terminals people actually
+ * run a proxy in are 62 columns wide as often as 120.
+ */
+function pick(tty: Tty, width: number, ...variants: string[]): string {
+  return variants.find((v) => tty.width(tty.strip(v)) <= width) ?? (variants.at(-1) as string);
+}
+
 export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): string[] {
   const url = `http://${config.host}:${config.port}`;
   const label = (s: string) => tty.dim(tty.pad(s.toUpperCase(), LABEL_W));
+  // What a row's text actually has: the block, minus the frame and the label column.
+  const room = blockWidth(tty) - 4 - LABEL_W;
   const rows = [
-    `${label("upstreams")}${tty.dim("openai")} ${host(config.openai)} ${tty.dim("· anthropic")} ${host(config.anthropic)} ${tty.dim("· gemini")} ${host(config.gemini)}`,
-    `${label("detection")}${modelLabel(tty, d.model, true)}`,
+    // The mechanism first: a card that opens on settings never says what the thing DOES.
+    `${label("round trip")}${pick(tty, room, flow(tty, true), flow(tty, false), `${tty.pill(HUE_HEX.violet, INK_HEX, "masked")} ${tty.dim("▸")} ${tty.pill(HUE_HEX.mint, INK_HEX, "restored")}`)}`,
+    `${label("")}${tty.dim(pick(tty, room, "the model only sees substitutes — the reply comes back real", "the model only sees substitutes", "substitutes only"))}`,
+    `${label("masking")}${tty.bold(config.level)} ${tty.dim("·")} ${pick(
+      tty,
+      room - config.level.length - 3,
+      modelLabel(tty, d.model, true),
+      d.model === "rules" ? tty.dim("pattern rules only") : modelLabel(tty, d.model, false),
+      modelLabel(tty, d.model, false),
+    )}`,
   ];
+  // ⚠️ An URL or an `export` line is USED, not read: cut, it stops working. Each gets the
+  // label's room when it fits, the frame's when it does not, and the space UNDER the card when
+  // even that is too narrow — where nothing clips it and the terminal is free to wrap.
+  const tail: string[] = [];
+  const left = inClearPhrase(d.inClear ?? [], room - "left in clear: ".length);
+  if (left) rows.push(`${label("")}${tty.fg(HUE_HEX.amber, `left in clear: ${left}`)}`);
+  rows.push(`${label("upstreams")}${upstreams(tty, config, room)}`);
   const dials = [
     config.always.length ? `${config.always.length} always-masked` : "",
     config.keep.length ? `${config.keep.length} kept in clear` : "",
@@ -101,7 +157,12 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
   // on substitutes, so an answer ABOUT a person or an organisation can come out different.
   if (config.level !== "standard")
     rows.push(
-      `${label("")}${tty.fg(HUE_HEX.amber, "names, companies, places replaced")} ${tty.dim("→ answers about them may differ")}`,
+      `${label("")}${pick(
+        tty,
+        room,
+        `${tty.fg(HUE_HEX.amber, "names, companies, places replaced")} ${tty.dim("→ answers about them may differ")}`,
+        tty.fg(HUE_HEX.amber, "names and companies replaced — answers may differ"),
+      )}`,
     );
   if (d.mcp) {
     const writes =
@@ -118,18 +179,68 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
       }`,
     );
     rows.push(
-      d.mcp.client
-        ? `${label("")}${tty.dim(`${d.mcp.client} runs with this as its ONLY MCP  ${d.mcp.url}`)}`
-        : `${label("")}${tty.dim(`agent MCP endpoint  ${d.mcp.url}`)}`,
+      `${label("")}${
+        d.mcp.client
+          ? tty.dim(
+              pick(
+                tty,
+                room,
+                `${d.mcp.client} runs with this as its ONLY MCP  ${d.mcp.url}`,
+                `${d.mcp.client}'s only MCP  ${d.mcp.url}`,
+                d.mcp.url,
+              ),
+            )
+          : tty.dim(pick(tty, room, `agent MCP endpoint  ${d.mcp.url}`, d.mcp.url))
+      }`,
     );
+  }
+  if (d.console) {
+    const caption = d.console.reveal
+      ? `${tty.pill(HUE_HEX.amber, INK_HEX, "real values")}${
+          tty.width(d.console.url) <= room ? tty.dim(" on that page only") : ""
+        }`
+      : tty.dim(
+          pick(
+            tty,
+            room,
+            "substitutes and counts · --reveal adds the real values",
+            "substitutes and counts",
+          ),
+        );
+    if (tty.width(d.console.url) <= room) {
+      rows.push(`${label("live view")}${tty.bold(d.console.url)}`);
+      rows.push(`${label("")}${caption}`);
+    } else {
+      rows.push(`${label("live view")}${caption}`);
+      tail.push("", `  ${tty.dim("live view")}`, `  ${tty.bold(d.console.url)}`);
+    }
   }
   if (d.reveal)
     rows.push(
-      `${label("reveal")}${tty.fg(HUE_HEX.amber, "real values printed below — this screen only, never the log")}`,
+      `${label("reveal")}${tty.fg(
+        HUE_HEX.amber,
+        pick(
+          tty,
+          room,
+          "real values printed below — this screen only, never the log",
+          "real values below — this screen only",
+          "real values below",
+        ),
+      )}`,
     );
   if (!d.compact) {
-    rows.push("", `${label("point a tool")}${tty.dim("in its shell — or press c to copy")}`);
-    for (const l of envLines(url)) rows.push(`${label("")}${l}`);
+    rows.push(
+      "",
+      `${label("point a tool")}${tty.dim(pick(tty, room, "in its shell — or press c to copy", "press c to copy"))}`,
+    );
+    // Same rule as the URL above: these lines are pasted into a shell. When the label column
+    // costs them their tail the column goes; when the FRAME would cost them their tail, they
+    // go under it, where nothing clips them.
+    const envs = envLines(url);
+    const inner = blockWidth(tty) - 4;
+    if (envs.every((l) => tty.width(l) <= room)) for (const l of envs) rows.push(`${label("")}${l}`);
+    else if (envs.every((l) => tty.width(l) + 2 <= inner)) for (const l of envs) rows.push(`  ${l}`);
+    else tail.push("", ...envs.map((l) => `  ${l}`));
   }
   // The level and what the model sees are the two dials the keys turn: they ride the rule
   // itself, where the eye lands first, rather than becoming one row among the others.
@@ -142,5 +253,7 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
       tty.dim(`the model sees ${config.mode === "token" ? "tokens" : "fakes"}`),
       rows,
     ),
+    ...tail,
   ];
 }
+
