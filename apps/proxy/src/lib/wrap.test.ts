@@ -1,9 +1,9 @@
 import { chmodSync, mkdtempSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULTS, parseArgs } from "../config/config";
-import { fileWriter, LOG_MAX_BYTES, wrappedEnv } from "./wrap";
+import { fileWriter, LOG_MAX_BYTES, onPath, wrappedEnv } from "./wrap";
 
 const dir = (): string => mkdtempSync(join(tmpdir(), "openmasq-log-"));
 
@@ -65,5 +65,20 @@ describe("a real value can never reach that file", () => {
     expect(parseArgs(["--reveal"]).command).toEqual([]);
     expect(() => parseArgs(["--reveal", "--", "claude"])).toThrow(/owns the terminal/);
     expect(DEFAULTS.reveal).toBe(false);
+  });
+});
+
+describe("onPath — is there anything to wrap", () => {
+  it("finds a bare name on PATH and rejects one that is absent", () => {
+    const env = { PATH: dirname(process.execPath) } as NodeJS.ProcessEnv;
+    expect(onPath(basename(process.execPath), env)).toBe(true);
+    expect(onPath("openmasq-definitely-not-installed", env)).toBe(false);
+  });
+  it("takes an explicit path at its word, existing or not", () => {
+    expect(onPath(process.execPath, {} as NodeJS.ProcessEnv)).toBe(true);
+    expect(onPath("/nope/openmasq/not-here", {} as NodeJS.ProcessEnv)).toBe(false);
+  });
+  it("an empty command is nothing to wrap", () => {
+    expect(onPath("", process.env)).toBe(false);
   });
 });

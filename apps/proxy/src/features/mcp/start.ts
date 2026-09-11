@@ -25,6 +25,7 @@ import { notOurs, ownServers, probeRun } from "./own.js";
 import { resolveSpecs } from "./resolve.js";
 import type { ServerSpec } from "./servers.js";
 import { connectUpstream, type Upstream } from "./upstream.js";
+import { onPath } from "../../lib/wrap.js";
 
 export interface StartDeps {
   config: ProxyConfig;
@@ -65,6 +66,18 @@ function recheck(client: AgentClient, command: string, env?: Record<string, stri
 
 export async function startIntegrations(deps: StartDeps): Promise<Integrations> {
   const { config } = deps;
+  // Is there anything to wrap? Asked BEFORE the probe, because a tool that is not installed
+  // otherwise surfaces as whatever fails first below — « its own servers could not be listed
+  // (spawnSync ENOENT) », then a servers file that was never the problem. Two errors, neither
+  // saying the program is not there. (Without `--mcp` nothing runs here, and `runWrapped`'s
+  // own « cannot start <tool> » is already the right message.)
+  if (deps.wrapping && !onPath(config.command[0])) {
+    console.error(
+      `${config.command[0]}: not found on your PATH — there is nothing to wrap.\n` +
+        `Install it, or give the full path to its binary.`,
+    );
+    process.exit(2);
+  }
   // With `-- <client>`, the point is that OUR endpoint becomes its ONLY MCP: an agent that
   // keeps its own connections reaches the service directly, with its own credential, and
   // nothing on that path is masked. `clients.ts` knows how to ask each client for that.

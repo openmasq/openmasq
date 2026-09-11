@@ -5,17 +5,39 @@ import { spawn } from "node:child_process";
 import {
   chmodSync,
   createWriteStream,
+  existsSync,
   mkdirSync,
   renameSync,
   statSync,
   writeFileSync,
 } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join } from "node:path";
+import { delimiter, dirname, join } from "node:path";
 import { envLines } from "./baseUrls.js";
 
 export function defaultLogFile(): string {
   return join(homedir(), ".openmasq", "proxy.log");
+}
+
+/**
+ * Is `command` runnable — a path that exists, or a bare name found on PATH?
+ *
+ * Asked BEFORE the run starts, because a tool that is not installed otherwise surfaces as
+ * whatever happens to fail FIRST downstream: an MCP probe reporting « its own servers could
+ * not be listed (spawnSync ENOENT) », then a servers file that was never the problem. The
+ * operator reads two errors, neither of which is « that program is not on your machine ».
+ * Cheap (a PATH walk, nothing spawned) and side-effect free.
+ */
+export function onPath(command: string, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!command) return false;
+  if (command.includes("/") || command.includes("\\")) return existsSync(command);
+  // On Windows the executable carries an extension the user does not type.
+  const exts = process.platform === "win32" ? (env.PATHEXT ?? ".EXE;.CMD;.BAT").split(";") : [""];
+  for (const dir of (env.PATH ?? "").split(delimiter)) {
+    if (!dir) continue;
+    for (const ext of exts) if (existsSync(join(dir, command + ext))) return true;
+  }
+  return false;
 }
 
 /** Past this, the log is rotated to `<file>.1` and a fresh one started. Bounded on purpose:
