@@ -30,6 +30,14 @@ export type Exclusivity =
       env?: Record<string, string>;
       /** A config file in the CLIENT's own shape, written under `ctx.dir` before it starts. */
       write?: { path: string; content: string };
+      /** Symlinks to create under `ctx.dir` before the client starts. For a client whose only
+       *  lever is a HOME variable that isolates config AND data AND credentials together
+       *  (Hermes): config is OURS (the `write` above), and what must survive — the memory, the
+       *  skills, the `.env` holding the model key — is LINKED back from the real home rather
+       *  than copied, so no secret is read and the real home is never touched. A dangling link
+       *  (the source does not exist) is harmless. Removed with `ctx.dir` on quit; unlinking a
+       *  symlink never touches its target. */
+      links?: { path: string; target: string }[];
     }
   /** Possible for this client, but not in the state its configuration is in. `why` is
    *  addressed to the user and names the ONE thing to do once; the run goes on without

@@ -20,6 +20,7 @@ import { CLAUDE } from "./claude.js";
 import { CODEX } from "./codex.js";
 import { COPILOT } from "./copilot.js";
 import { GEMINI } from "./gemini.js";
+import { HERMES } from "./hermes.js";
 import { OPENCODE } from "./opencode.js";
 import type { AgentClient } from "./types.js";
 
@@ -34,7 +35,7 @@ export { parseCodexList } from "./codex.js";
 export { parseCopilotList } from "./copilot.js";
 export { parseOpencodeConfig } from "./opencode.js";
 
-const CLIENTS: AgentClient[] = [CLAUDE, CODEX, GEMINI, OPENCODE, COPILOT];
+const CLIENTS: AgentClient[] = [CLAUDE, CODEX, GEMINI, OPENCODE, COPILOT, HERMES];
 
 /** The id our server is declared under, everywhere a client is handed one. */
 export const OUR_ID = "openmasq";

@@ -5,7 +5,7 @@
 // It is startup work on purpose: an agent that lists tools on its first call must not wait
 // on a login, and a servers file that cannot be read is an error the operator sees rather
 // than a silent absence of tools.
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ProxyConfig } from "../../config/config.js";
@@ -110,6 +110,15 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     // directory that goes away with the run.
     if (!("blocked" in outcome) && outcome.write)
       writeFileSync(outcome.write.path, outcome.write.content, { mode: 0o600 });
+    // …and the data it must keep (memory, skills, the credentials file) is linked in beside
+    // that config, never copied — the real home stays untouched (see `Exclusivity.links`).
+    if (!("blocked" in outcome) && outcome.links)
+      for (const link of outcome.links)
+        try {
+          symlinkSync(link.target, link.path);
+        } catch {
+          /* a source that isn't there yet is not an error: Hermes creates it on demand */
+        }
     // …and one whose only lever is an environment variable gets it here: `lib/wrap.ts` builds
     // the child's environment from ours, so this is where a variable reaches the client
     // without `runWrapped` having to know which client needs one.
