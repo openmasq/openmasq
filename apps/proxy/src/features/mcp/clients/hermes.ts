@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { AgentClient } from "./types.js";
@@ -26,21 +26,6 @@ import type { AgentClient } from "./types.js";
  * ⚠️ NOT verified live (Hermes not installed here). The mechanism is derived from the docs and
  * the source; the shape below is what a smoke test on a real account confirms.
  */
-
-/** The data the temp home must keep — Hermes's `_HERMES_HOME_SUBDIRS` plus the `.env` that
- *  holds the model key. Linked, not copied. A missing source makes a dangling link, harmless. */
-export const HERMES_CARRY = [
-  ".env",
-  "cron",
-  "sessions",
-  "logs",
-  "memories",
-  "pairing",
-  "hooks",
-  "image_cache",
-  "audio_cache",
-  "skills",
-];
 
 /** The config.yaml handed to Hermes: the model pointed at the proxy, and OUR endpoint as the
  *  only MCP server. Pure — tested without a filesystem. `root` is `http://host:port` (no path). */
@@ -96,11 +81,18 @@ export const HERMES: AgentClient = {
     } catch {
       /* unreadable config → let Hermes use its own default */
     }
+    // Mirror EVERY entry of the real home except config.yaml — its memory, skills, sessions,
+    // its `.env` with the model key, and its own code/bin — so the run is the user's Hermes in
+    // every way but the one file we own. Verified live: `hermes` runs from such a home and its
+    // MCP list is `openmasq` alone.
+    const links = readdirSync(home)
+      .filter((name) => name !== "config.yaml")
+      .map((name) => ({ path: join(dir, name), target: join(home, name) }));
     return {
       args: [],
       env: { HERMES_HOME: dir },
       write: { path: join(dir, "config.yaml"), content: hermesConfig(root, model) },
-      links: HERMES_CARRY.map((name) => ({ path: join(dir, name), target: join(home, name) })),
+      links,
     };
   },
 };
