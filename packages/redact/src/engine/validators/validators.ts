@@ -2,7 +2,6 @@
 // the validator confirms it (checksum / range), so we never redact any long
 // number or decimal pair. Pure, unit-testable.
 import { isCodeIdentifier } from "../rules/codeTerms";
-import { isReservedHostUrl } from "./validators.network";
 
 /**
  * Recover the longest VALID prefix of a greedy match. A checksum-gated rule whose
@@ -217,38 +216,6 @@ export function isWordNumberGlue(s: string): boolean {
 // separates it from a key: we prefer a false positive over a leaked secret". The glued-prose
 // mechanism lives over there (`gluedProse.ts`), not here.
 
-
-/**
- * A config VALUE that can never be a credential — so the UPPER_SNAKE env rule
- * (`…_HOST=`, `…_ENDPOINT=`, `…_PROJECT=`) must not redact it.
- *
- * The rule fires on the KEY's suffix, which is the right signal for a secret but says
- * nothing about the value: `DATABASE_HOST=localhost` redacted « localhost », and the
- * model then reasons on a fake hostname in config it was asked to debug. Same rationale
- * as the `REGION` suffix already carved out of that rule — a closed list of values, never
- * a shape heuristic, so a real secret can never fall in by accident. Audit R2.
- */
-const BENIGN_CONFIG_VALUES = new Set([
-  // Loopback / any-interface hosts
-  "localhost", "127.0.0.1", "0.0.0.0", "::1", "host.docker.internal",
-  // Booleans + the empty-ish markers
-  "true", "false", "1", "0", "null", "none", "undefined", "auto", "default",
-  // Environments + log levels
-  "production", "prod", "development", "dev", "staging", "test", "local", "ci",
-  "debug", "info", "warn", "warning", "error", "trace", "silent", "verbose",
-]);
-
-export function isBenignConfigValue(value: string): boolean {
-  const v = value.trim().replace(/^["']|["']$/g, "");
-  if (BENIGN_CONFIG_VALUES.has(v.toLowerCase())) return true;
-  // A loopback / special-use URL (`OPENAI_BASE_URL=http://127.0.0.1:8787/v1`) names no host
-  // and holds no secret — the reserved-IP line, drawn for the URL-shaped config value.
-  if (isReservedHostUrl(v)) return true;
-  // A value that IS a template interpolation (`${url}/v1`, `${API_HOST}`) is a variable
-  // REFERENCE, never a literal secret: masking it corrupts the code and protects nothing.
-  if (/^\$\{[\w.]+\}/.test(v)) return true;
-  return false;
-}
 
 /**
  * A bare CONTIGUOUS 13-digit run inside the plausible epoch-MILLISECONDS window

@@ -373,8 +373,13 @@ export const RULES: RedactionRule[] = [
     // `%` and the hex, so the rule captured the encoded tail (`2Fmakemefamily`) as a
     // "key". A model browsing a site returns such URLs constantly → FP flood. A real
     // token is never glued to a leading `%`.
+    // `(?<!sha…-[base64])` — never start INSIDE a subresource-integrity hash. `+` and `/`
+    // are base64 but not in the class above, so `sha512-Yb9…+XgL0n3…==` is seen as TWO
+    // matches: the first carries the `sha512-` prefix and `isIntegrityHash` spares it, the
+    // second is a bare run and was renamed — half an SRI hash, which fails the browser's
+    // check and breaks the page. A `package-lock.json` is made of these.
     pattern:
-      /\b(?<!%)(?!REDACTED_)(?=[A-Za-z0-9_-]*[G-Zg-z])(?=[A-Za-z0-9_-]*\d)[A-Za-z0-9_-]{8,}\b/g,
+      /\b(?<!%)(?<!sha(?:1|224|256|384|512)-[A-Za-z0-9+/_=-]{0,128})(?!REDACTED_)(?=[A-Za-z0-9_-]*[G-Zg-z])(?=[A-Za-z0-9_-]*\d)[A-Za-z0-9_-]{8,}\b/g,
     // Spare structured public IDs (slugs / tracking codes / ASIN refs / timestamps:
     // `SanDisk-Cards-Extreme-128GB-Memory`, `hul_cgw_atf_d_fr_cc_0726_b2g25bj_cta`) —
     // short/word/number `-`_-separated segments, no long high-entropy run. A real key

@@ -1,5 +1,5 @@
 import type { RedactionRule } from "../../types";
-import { isBenignConfigValue } from "../validators";
+import { isBenignConfigValue, isTemplatePlaceholder } from "../validators";
 
 // The ENV / config SECRET-VALUE family — split out of rules.ts (300-LOC ratchet). Four rules,
 // in the ORDER and at the POSITION they held: they redact the VALUE of a secret-named
@@ -14,6 +14,12 @@ import { isBenignConfigValue } from "../validators";
  *  (`__cases__/codeSecrets.test.ts`). */
 const notProse = (m: string): boolean => !/,\s|\.\s*\p{L}|;\s|\\[nrt]/u.test(m);
 
+/** A documentation PLACEHOLDER (`<your-ref>`, `{{GITHUB_TOKEN}}`) is what a reader is told to
+ *  REPLACE — masking it corrupts the instructions and protects nothing. Applied to all four
+ *  rules, since a `.env` example and a real `.env` are the same shape apart from this.
+ *  `isTemplatePlaceholder` spares only what reduces to nothing secret-like. */
+const notTemplate = (m: string): boolean => !isTemplatePlaceholder(m);
+
 export const ENV_SECRET_RULES: RedactionRule[] = [
   {
     // QUOTED value FIRST — its quotes are the bounds, so the value may legitimately contain
@@ -25,7 +31,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     type: "secret",
     pattern:
       /(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te|(?:^|[\s{,])(?:pass|mdp|passe))[ \t]*[:=][ \t]*["'`])(?!\[REDACTED_)[^"'`\n\r]{6,}(?=["'`])/gim,
-    validate: notProse,
+    validate: (m) => notProse(m) && notTemplate(m),
   },
   {
     // The bare `pass` / `mdp` KEY — ubiquitous in a YAML/compose/ini dump and absent from the
@@ -35,6 +41,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     type: "secret",
     pattern:
       /(?<=(?:^|[\s{,])(?:pass|mdp|passe)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'`#,;]{6,}/gim,
+    validate: notTemplate,
   },
   {
     type: "secret",
@@ -43,6 +50,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     // stops it re-redacting a value a structured rule already replaced.
     pattern:
       /(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te)["']?\s*[:=]\s*["']?)(?!\[REDACTED_)[^\s"'#,;]{6,}/giu,
+    validate: notTemplate,
   },
   {
     // The VALUE of an ENV assignment whose UPPER_SNAKE key ENDS in an identifier/credential/URL

@@ -63,3 +63,51 @@ describe("a config value that is a loopback URL or a template interpolation is n
     ).not.toContain("sk-live-abcdef123456");
   });
 });
+
+/* The same file, written as DOCUMENTATION. A README or a `.env.example` is the shape above
+   with the values replaced by what the reader must substitute — and masking THAT corrupts
+   the instructions while protecting nothing. The bracket is not the guard on its own: a
+   placeholder is spared only when removing it leaves nothing a secret could hide in, so a
+   real key sitting beside one is still masked. `validators.ts` `isTemplatePlaceholder`. */
+describe("a documentation placeholder is not a secret", () => {
+  const CLEAN = [
+    "export SUPABASE_URL=https://<your-ref>.supabase.co",
+    "DATABASE_URL=postgres://<user>:<password>@<host>:5432/<db>",
+    "API_KEY=<your-api-key-here>",
+    "export TOKEN={{GITHUB_TOKEN}}",
+    'password: "<votre mot de passe>"',
+    "AWS_SECRET_ACCESS_KEY={{ vault.aws.secret }}",
+  ];
+
+  it("leaves the placeholder exactly as written", async () => {
+    for (const line of CLEAN) {
+      expect(redact(line).text, line).toBe(line);
+      expect((await pseudonymize(line, { vault: {} })).text, line).toBe(line);
+    }
+  });
+
+  it("still masks a real value, and one standing BESIDE a placeholder", async () => {
+    const real = "export SUPABASE_URL=https://qitkqmtfoeriysbmqebn.supabase.co";
+    expect(redact(real).text).not.toContain("qitkqmtfoeriysbmqebn");
+    // The `<region>` is a placeholder; the key next to it is not.
+    const mixed = "AWS_ENDPOINT=https://<region>.amazonaws.com/AKIAIOSFODNN7EXAMPLE";
+    expect(redact(mixed).text).not.toContain("AKIAIOSFODNN7EXAMPLE");
+  });
+});
+
+/* A subresource-integrity hash is a PUBLIC checksum, and a `package-lock.json` is made of
+   them. `+` and `/` are base64 but not token characters, so an SRI reads as several matches:
+   the first carries the `sha512-` prefix and was spared, the rest were renamed — half a
+   hash, which fails the browser's check and breaks the build. */
+describe("an integrity hash survives whole", () => {
+  const LOCK = `    "integrity": "sha512-c7jFQRklXua0mTzneGW9QVyxFjUgwcihC4bXEtujIo2ouWCe1Ajt/amn2PCxYnhYfd5k09JX3SB7OYWFKYqj8Q==",
+    "integrity": "sha256-Ab3+xY/zQ1mNHl0w5N+XgL0n3I9PlFUP0THsR8U=",
+    "token": "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5"`;
+
+  it("keeps every hash verbatim while the real token beside them is masked", async () => {
+    const { text } = await pseudonymize(LOCK, { vault: {} });
+    expect(text).toContain("sha512-c7jFQRklXua0mTzneGW9QVyxFjUgwcihC4bXEtujIo2ouWCe1Ajt/amn2PCxYnhYfd5k09JX3SB7OYWFKYqj8Q==");
+    expect(text).toContain("sha256-Ab3+xY/zQ1mNHl0w5N+XgL0n3I9PlFUP0THsR8U=");
+    expect(text).not.toContain("ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5");
+  });
+});
