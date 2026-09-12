@@ -67,7 +67,9 @@ export function cleanValue(raw: string): string {
   // 184…" — without it the whole rest of the line became the NAME value, the NIR
   // rode inside a composite that never re-applied, and "sécu" got a NAME alias
   // that then redacted every «sécu» in the conversation).
-  const nextField = v.search(/\s+\p{Lu}[\p{L}]{2,}\s*[:：]|\s+[Nn][°º][^:：\n]{0,20}[:：]|[\p{sc=Han}\p{sc=Hiragana}\p{sc=Katakana}\p{sc=Hangul}]{1,6}[:：]/u);
+  const nextField = v.search(
+    /\s+\p{Lu}[\p{L}]{2,}\s*[:：]|\s+[Nn][°º][^:：\n]{0,20}[:：]|[\p{sc=Han}\p{sc=Hiragana}\p{sc=Katakana}\p{sc=Hangul}]{1,6}[:：]/u,
+  );
   if (nextField > 0) v = v.slice(0, nextField);
   v = v.replace(/^[\s:：=.–—-]+/u, "").trim();
   // A serialised value keeps its QUOTES ("name: \"Inès FONSEQUA\"" in YAML, a JSON
@@ -84,7 +86,8 @@ export function cleanValue(raw: string): string {
  *  honorific is a role word. Untrimmed, the whole line became ONE composite NAME whose
  *  per-word aliases included « Madame » — and every future « Madame » in the
  *  conversation was redacted. */
-const LEAD_HONORIFIC = /^(?:m\.|mme\.?|mlle\.?|mr\.?|mrs\.?|ms\.?|dr\.?|monsieur|madame|mademoiselle|docteur|ma[îi]tre|me)[^\S\r\n]+/iu;
+const LEAD_HONORIFIC =
+  /^(?:m\.|mme\.?|mlle\.?|mr\.?|mrs\.?|ms\.?|dr\.?|monsieur|madame|mademoiselle|docteur|ma[îi]tre|me)[^\S\r\n]+/iu;
 
 /**
  * ⚠️ LEAK — the comma wasn't the only boundary, and the others let the
@@ -120,7 +123,10 @@ function trimNameValue(v: string): string {
   const cut = head.search(NAME_FIELD_END);
   const kept = cut > 0 ? head.slice(0, cut) : head;
   // The cut leaves a dangling separator (« REBOUR (» → « REBOUR »).
-  return kept.replace(LEAD_HONORIFIC, "").replace(/[\s(（[\-–—]+$/u, "").trim();
+  return kept
+    .replace(LEAD_HONORIFIC, "")
+    .replace(/[\s(（[\-–—]+$/u, "")
+    .trim();
 }
 
 /** The shared per-value gate every labeled-field pass applies, and the ONLY copy of it.
@@ -173,13 +179,17 @@ export function acceptFieldValue(
   // …and neither is a SENTENCE under a NAME label (see `isProse`).
   if (groupCategory === "NAME" && isProse(value)) return null;
   // …nor is a running PROSE clause under a SECRET label — « API key: the proxy forwards it
-  // untouched, masks the messages on the way out and… » made the whole sentence a « secret »,
-  // corrupting the very text the model reasons on. A real key or password carries a digit (or
-  // the prose-password pass, gated on its symbol, catches it); a digit-free clause of function
-  // words behind a « key »/« token »/« secret » label never does. Same discriminant as the
-  // numeric-field prose guard above, and the NAME one on the line before — one home for « is
-  // this a sentence » (`isProse`).
-  if (groupCategory === "SECRET" && !/\d/u.test(value) && isProse(value)) return null;
+  // untouched, masks the messages on the way out and… », and a compaction summary that says
+  // « …connection strings with embedded credentials, or unusual/custom token formats » made
+  // the whole sentence a « secret », scrambled into letter-soup, corrupting the very text the
+  // model reasons on. `isProse` (5+ words, 2+ lowercase non-stopwords) is the sentence signal
+  // a real credential never meets — a key has no spaces, a passphrase is short. The earlier
+  // `!/\d/` escape was too weak (a clause carries a stray digit — « …formats. 4. »); the
+  // right escape is a SECRET SYMBOL (`_ / ! @ # …`), which real keys and passphrases carry
+  // and a plain-word clause does not. The prose-password pass (`codes.ts`) still catches a
+  // symbol-bearing passphrase behind a copula. One home for « is this a sentence » (`isProse`).
+  if (groupCategory === "SECRET" && isProse(value) && !/[^\s\p{L}\p{N},.'’-]/u.test(value))
+    return null;
   if (isStopword(value) || isGenericTerm(value) || isGenericCompound(value)) return null;
   if (groupCategory === "NAME" && CODE_IDENT.test(value)) return null;
   // A CITY/Commune/Ville field whose value is a "CP + Ville" ("92110 CLICHY") is a PLACE,

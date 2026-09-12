@@ -8,7 +8,6 @@ import {
   isRealIp,
   isReservedIp,
   isIsin,
-  isBenignConfigValue,
   deconfuseOcrDigits,
   isEpochMs,
   isDateTimeRun,
@@ -24,6 +23,7 @@ import { GLOBAL_RULES } from "./rules.global";
 import { FULLWIDTH_RULES } from "./rules.fullwidth";
 import { DB_URI_RULE, URL_CREDS_RULE } from "./rules.connection";
 import { EMAIL_RULES } from "./rules.email";
+import { ENV_SECRET_RULES } from "./rules.envSecrets";
 import { CRYPTO_RULES } from "./rules.crypto";
 import { TOKEN_RULES } from "./rules.tokens";
 import { IDENTIFIER_RULES } from "./rules.identifiers";
@@ -158,59 +158,10 @@ export const RULES: RedactionRule[] = [
   },
   // Credentials embedded in ANY URL — `scheme://user:pass@host…`, before `email`.
   URL_CREDS_RULE,
-  // The VALUE of a secret-named assignment (.env / config / JSON): redact only the
-  // value, not the key name, via a look-behind on the key. Covers `KEY=val`,
-  // `KEY: val`, `"key": "val"`; the key may be a suffix of a longer name
-  // (DATABASE_PASSWORD=…). Runs before email/token so the whole value is grabbed.
-  {
-    // QUOTED value FIRST — its quotes are the bounds, so the value may legitimately
-    // contain the characters the unquoted form must stop at. The unquoted rule below
-    // ends at `#` (the env/YAML COMMENT marker, `KEY=val # note`), which inside quotes
-    // is an ordinary password character: `pass: "Sm7p!Tanc2026#x"` was vaulted as
-    // `Sm7p!Tanc2026` and the tail shipped in CLEAR. A truncated secret is a leaked
-    // secret. Lookbehind takes the opening quote, lookahead the closing one, so the
-    // match stays the VALUE alone.
-    type: "secret",
-    pattern:
-      /(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te|(?:^|[\s{,])(?:pass|mdp|passe))[ \t]*[:=][ \t]*["'`])(?!\[REDACTED_)[^"'`\n\r]{6,}(?=["'`])/gim,
-  },
-  {
-    // The bare `pass` / `mdp` KEY — ubiquitous in a YAML/compose/ini dump and absent
-    // from the list below, so the value shipped in clear. Bounded by a key POSITION
-    // (line start, or after whitespace/brace/comma) so an ordinary word ending in
-    // "pass" ("surpass: …", "compass") can never open a secret.
-    type: "secret",
-    pattern:
-      /(?<=(?:^|[\s{,])(?:pass|mdp|passe)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'`#,;]{6,}/gim,
-  },
-  {
-    type: "secret",
-    // The `(?!\[REDACTED_)` guard stops it from re-redacting a value a structured
-    // rule already replaced (e.g. `STRIPE_SECRET=[REDACTED_API_KEY_1]`).
-    pattern:
-      // French key names included (FR-first app): « mot de passe : hunter2 » was only
-      // caught by the OFF-by-default generic token rule — an EN/FR coverage asymmetry.
-      /(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te)["']?\s*[:=]\s*["']?)(?!\[REDACTED_)[^\s"'#,;]{6,}/giu,
-  },
-  // The VALUE of an ENV / config assignment whose UPPER_SNAKE key ENDS in an
-  // identifier/credential/URL component — `VITE_SUPABASE_PROJECT_ID=…`,
-  // `..._URL=…`, `..._KEY=…`, `DATABASE_URL=…`. A `.env` read via a filesystem
-  // tool leaks these: a bare project id / slug or a URL escapes the structured
-  // (jwt/api-key) rules. Case-SENSITIVE UPPER_SNAKE with a sensitive suffix, so it
-  // fires on config dumps but NOT on lowercase prose ("id: …") or benign config
-  // (`LOG_LEVEL=debug`, `NODE_ENV=production` — their suffix isn't in the list).
-  // Only the value is taken (key kept); `(?!\[REDACTED_)` avoids double-redacting.
-  {
-    type: "secret",
-    pattern:
-      // `REGION` is deliberately NOT in the suffix list: `AWS_DEFAULT_REGION=eu-west-3`
-      // is never sensitive, and redacting it corrupted config the model reasons on.
-      /(?<=\b[A-Z][A-Z0-9_]*_(?:ID|URL|URI|KEY|SECRET|TOKEN|PASSWORD|PASS|PWD|DSN|HOST|HOSTNAME|ENDPOINT|ACCOUNT|PROJECT|BUCKET|CREDENTIALS?|CERT|SALT|SEED|SIGNATURE|OAUTH|WEBHOOK|CONNECTION)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'#,;]{3,}/g,
-    // The KEY suffix is the signal for a secret; the VALUE can still be plainly benign
-    // (`DATABASE_HOST=localhost`, `NODE_ENV=production`). A closed value list, never a
-    // shape guess — same discipline as the `REGION` suffix carve-out above. Audit R2.
-    validate: (m) => !isBenignConfigValue(m),
-  },
+  // The VALUE of a secret-named assignment (.env / config / JSON) — the key stays, the value
+  // goes. Four rules (quoted first, bare `pass`, generic FR/EN, UPPER_SNAKE), before email/token
+  // so the whole value is grabbed; a value that reads as PROSE is dropped. `rules.envSecrets.ts`.
+  ...ENV_SECRET_RULES,
   // Extra structured identifiers (IMEI/ICCID/VIN/MRZ + LATAM ids + RIB/sort-code/
   // VAT). All checksum-validated, distinctive, or context-gated. BEFORE `card` so a
   // checksummed IMEI/ICCID wins its `national_id` category instead of being grabbed
