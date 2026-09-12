@@ -23,7 +23,7 @@ import { GLOBAL_RULES } from "./rules.global";
 import { FULLWIDTH_RULES } from "./rules.fullwidth";
 import { DB_URI_RULE, URL_CREDS_RULE } from "./rules.connection";
 import { EMAIL_RULES } from "./rules.email";
-import { isCodeTerm, isNumericLiteral } from "./codeTerms";
+import { isCodeTerm, isIntegrityHash, isNumericLiteral } from "./codeTerms";
 import { ENV_SECRET_RULES } from "./rules.envSecrets";
 import { CRYPTO_RULES } from "./rules.crypto";
 import { TOKEN_RULES } from "./rules.tokens";
@@ -381,7 +381,8 @@ export const RULES: RedactionRule[] = [
     // (a ≥12 mixed-alnum segment) still matches. Kills the FP flood on shopping/search
     // pages the model browses. Also spare a checksum-valid ISIN (`FR0011871110`) — a
     // public security identifier the model needs verbatim (financial data), not a secret.
-    validate: (m) => !isStructuredId(m) && !isIsin(m) && !isCodeTerm(m) && !isNumericLiteral(m),
+    validate: (m) =>
+      !isStructuredId(m) && !isIsin(m) && !isCodeTerm(m) && !isNumericLiteral(m) && !isIntegrityHash(m),
   },
 ];
 

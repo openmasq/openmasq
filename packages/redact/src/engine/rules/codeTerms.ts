@@ -34,6 +34,17 @@ const CODE_TERMS = new Set<string>([
 export const isCodeTerm = (value: string): boolean => CODE_TERMS.has(value.toLowerCase());
 
 /**
+ * A Subresource-Integrity / npm-lockfile INTEGRITY HASH — `sha512-<base64>`, `sha384-<base64>`,
+ * `sha256-<base64>`. It is a PUBLIC content checksum of a published asset (the SRI spec, the
+ * lockfile `integrity` field, an HTML `integrity=` attribute), never a secret — the algorithm
+ * name is literally its prefix, which no key carries. The generic token rule reads the base64
+ * body as a key and RENAMES it, corrupting the lockfile/manifest the agent reads. Prefix-gated,
+ * so it can never spare an actual key.
+ */
+export const isIntegrityHash = (value: string): boolean =>
+  /^sha(?:1|224|256|384|512)-[A-Za-z0-9+/_-]{16,}={0,2}$/i.test(value);
+
+/**
  * A C/JS/Rust/Go NUMERIC LITERAL — hex `0xFF00AA`, octal `0o755`, binary `0b1010` — which the
  * generic token rule reads as a key (the `x`/`o`/`b` is its only "non-hex letter") and RENAMES,
  * breaking a bitmask, a colour or a flag constant. A literal is a NUMBER, never a secret. Hex is

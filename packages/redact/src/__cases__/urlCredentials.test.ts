@@ -151,3 +151,22 @@ describe("the connection-string rule skips a placeholder and masks a real DSN", 
       expect(text).not.toContain(dsn);
     });
 });
+
+// An SRI / npm-lockfile integrity hash is a PUBLIC content checksum, never a secret — the
+// algorithm name is its prefix. The token rule renamed it and corrupted the lockfile the agent
+// reads (`codeTerms.ts` `isIntegrityHash`). A real key of the same base64 shape still masks.
+describe("an integrity hash is not a secret", () => {
+  const hashes = [
+    "sha512-9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1908f7e6d5c4b3a2910ffeeddcc",
+    "sha384-oqVuAfXRKap7fdgcXWz3iyb2K7uMxO1a9pQ",
+    "sha256-abcDEF123456ghijklMNOP789",
+  ];
+  for (const h of hashes)
+    it(`keeps ${h.slice(0, 12)}`, () => {
+      expect(redact(`"integrity":"${h}"`).text).toContain(h);
+    });
+  it("still masks a bare base64 token with no algorithm prefix", () => {
+    const clean = "AbcDEfGh123456789jklMNOpqRStuVWxyz0";
+    expect(redact(`token ${clean}`).text).not.toContain(clean);
+  });
+});
