@@ -42,7 +42,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // A CANDIDATE bundle (an export of openmasq-model's `train.py`, dropped under the same
 // `ner-models` root) is measured by naming it here — the cache key carries the name, so its
 // raw output never collides with the shipped model's. The shipped id stays the default.
-const MODEL = process.env.OPENMASQ_BENCH_NER_MODEL || "openmasq/bert-base-multilingual-cased-ner-hrl";
+const MODEL = process.env.OPENMASQ_BENCH_NER_MODEL || "openmasq/ner-multilingual";
 const DTYPE = "q8";
 export type EngineName = "patterns" | "ner" | "ner-strict";
 export type Policy = "bare" | "renforce" | "strict";

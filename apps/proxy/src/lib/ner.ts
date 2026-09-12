@@ -1,5 +1,5 @@
-// The on-device NER, loaded the way the desktop loads it: the BUNDLED multilingual mBERT
-// (`<dir>/<hfOrg>/bert-base-multilingual-cased-ner-hrl`), sha256-verified BEFORE onnxruntime
+// The on-device NER, loaded the way the desktop loads it: our BUNDLED multilingual student
+// (`<dir>/<hfOrg>/ner-multilingual`), sha256-verified BEFORE onnxruntime
 // touches a byte, never downloaded. No bundle ⇒ throw: the caller decides (fail closed by
 // default, `--rules-only` is the user's explicit opt-out). Never logs the text — it is REAL PII.
 import { existsSync } from "node:fs";
@@ -12,7 +12,7 @@ import { detectLocalNer, verifyWeights, type Detection, type WeightEntry } from 
 import { createNerPredict, NER_WEIGHTS_SHA256, type NerPredict } from "@openmasq/redact/ner";
 
 /** Bundle folder name under the models dir — the same as the desktop's `NER_MODEL_ID`. */
-export const NER_MODEL_ID = `${BRAND.hfOrg}/bert-base-multilingual-cased-ner-hrl`;
+export const NER_MODEL_ID = `${BRAND.hfOrg}/ner-multilingual`;
 
 export type DetectLocal = (text: string) => Promise<Detection[]>;
 

@@ -45,7 +45,7 @@ REVISIONS = {
     "nemotron": "nvidia/Nemotron-PII@b70ffaf5ff39e079776134c5bf4381f00a9fd1ed (test)",
     "gretel": "gretelai/synthetic_pii_finance_multilingual@7b844d16738527a04264f50214cb426a4cea0897 (test)",
     "tab": "mattmdjaga/text-anonymization-benchmark-val-test@cb31e803321d83ef623f27e5f35434b844725120 (test)",
-    "uner": "BramVanroy/universal_ner@0dc5199b095f864c619c13190b32341eee0c2ce2 (en_ewt, test + validation — parquet mirror of universalner/universal_ner)",
+    "uner": "BramVanroy/universal_ner@0dc5199b095f864c619c13190b32341eee0c2ce2 (en_ewt, test + validation — the same corpus as universalner/universal_ner, served as parquet: the upstream repo ships a conllu loading script)",
 }
 
 # ---- what the PRODUCT calls each upstream label ----------------------------------------

@@ -65,8 +65,8 @@ browser extension) live outside this repo.
      tool's own GitHub releases, the official tessdata repo) — **NEVER a third-party wrapper,
      mirror, re-upload, or public CDN** (jsdelivr/unpkg). If only a community re-export exists,
      **re-export it OURSELVES and vendor it sha256-pinned**. State the origin in the change.
-     (Residual: the NER weights are a `Xenova/*` community re-upload of mBERT on a pinned commit —
-     the desktop bundles them sha256-pinned + offline, dev builds only commit-pin; a first-party re-export is the tracked follow-up.)
+     (Done for the NER weights: `openmasq/ner-multilingual` is ours, Apache-2.0, distilled
+     from Davlan's outputs; bundled sha256-pinned + offline on desktop, commit-pinned on dev/mobile.)
    - **The process/isolation boundary is preserved.** The agent browser, MCP broker, fs worker,
      NER worker and Python jail run OUT of main ON PURPOSE (CDP is process-global; de-redacted
      code is untrusted). Never collapse one back, weaken a sandbox rule, or hand a child a

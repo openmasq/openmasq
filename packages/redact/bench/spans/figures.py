@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Draws `figures/` from `results/scores.json` — and from nothing else.
 
-    python spans/figures.py            # six figures × en/fr × light/dark + figures/manifest.json
+    python spans/figures.py            # seven figures × en/fr × light/dark + figures/manifest.json
 
 The scored summary is the ONLY input (plus `results/latency.*.json` for the response-time
 figure, which is a different measurement and says so). No figure re-implements the metric:
@@ -40,7 +40,7 @@ LIGHT = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#4a3aa7"]
 DARK = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#9085e9"]
 MARKERS = ["o", "s", "D", "^", "v", "P"]  # scatter: identity is never colour alone
 CORPORA = ["internal", "tab", "gretel", "ai4privacy", "nemotron"]
-CORPUS_LABEL = {"internal": "OpenMasq", "tab": "TAB", "gretel": "Gretel",
+CORPUS_LABEL = {"internal": "OpenMasq", "tab": "TAB", "uner": "UNER", "gretel": "Gretel",
                 "ai4privacy": "ai4privacy", "nemotron": "Nemotron"}
 # PII-Tracer's own published F1, from the PII-TRACE paper — the only numbers on this page
 # that were not measured here, kept beside the ones that were.
@@ -63,6 +63,8 @@ T = {
         "repro": "PII-Tracer: F1 measured here / F1 published",
         "measured": "measured", "published": "published",
         "optin": "off by default", "retired": "retired", "none": "no app category",
+        "model": "The model swap — same product, same rules, only the weights change",
+        "models": ["mBERT · 12 layers · 178 MB", "openmasq/ner-multilingual · 6 layers · 94 MB"],
     },
     "fr": {
         "engines": ["Règles", "Produit · Renforcé", "Produit · Strict", "PII-Tracer",
@@ -80,6 +82,8 @@ T = {
         "repro": "PII-Tracer : F1 mesuré ici / F1 publié",
         "measured": "mesuré", "published": "publié",
         "optin": "éteinte par défaut", "retired": "retirée", "none": "hors catégories",
+        "model": "Le changement de modèle — même produit, mêmes règles, seuls les poids changent",
+        "models": ["mBERT · 12 couches · 178 Mo", "openmasq/ner-multilingual · 6 couches · 94 Mo"],
     },
 }
 
@@ -348,6 +352,25 @@ def fig_repro(lang, dark):
             Patch(facecolor=th["grid"], label=t["published"])], 2)
 
 
+# ---- 7. the shipped model against the one it replaced ----------------------------------
+# Its own corpus list: `uner` joined the bench after the competitor columns were measured,
+# so it exists for the product and not for `pplx`/`opf`/`presidio`. Reading it here rather
+# than widening CORPORA keeps the other six figures comparing columns that all exist.
+MODEL_CORPORA = ["internal", "tab", "uner", "gretel", "ai4privacy", "nemotron"]
+MODEL_ENGINES = ["ner-strict@mbert-12l", "ner-strict"]
+
+
+def fig_model(lang, dark):
+    th, t = theme(dark), T[lang]
+    fig, ax = frame(th, 16, 8, t["model"])
+    vals = [[ROWS[(c, e)]["in"]["f1"] for c in MODEL_CORPORA] for e in MODEL_ENGINES]
+    grouped(ax, th, [CORPUS_LABEL[c] for c in MODEL_CORPORA], MODEL_ENGINES, vals)
+    ax.set_ylim(0, 1.08)
+    ax.set_ylabel(t["f1y"], color=th["ink2"], fontsize=12)
+    fig.subplots_adjust(left=0.055, right=0.99, top=0.86, bottom=0.17)
+    finish(fig, ax, th, "model-swap", lang, dark, handles(th, t["models"]), ncol=2)
+
+
 def main():
     global STAMP
     version = json.load(open(os.path.join(HERE, "../../package.json"), encoding="utf-8"))["version"]
@@ -367,7 +390,8 @@ def main():
     drawn = []
     for lang in ("en", "fr"):
         for dark in (False, True):
-            for f in (fig_f1, fig_category, fig_pr, fig_consistency, fig_latency, fig_repro):
+            for f in (fig_f1, fig_category, fig_pr, fig_consistency, fig_latency, fig_repro,
+                      fig_model):
                 f(lang, dark)
     for f in sorted(os.listdir(OUT)):
         if f.endswith(".png"):

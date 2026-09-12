@@ -17845,7 +17845,7 @@
 "spans": 3401
 },
 "uner": {
-"upstream": "BramVanroy/universal_ner@0dc5199b095f864c619c13190b32341eee0c2ce2 (en_ewt, test + validation — parquet mirror of universalner/universal_ner)",
+"upstream": "BramVanroy/universal_ner@0dc5199b095f864c619c13190b32341eee0c2ce2 (en_ewt, test + validation — the same corpus as universalner/universal_ner, served as parquet: the upstream repo ships a conllu loading script)",
 "files": {
 "uner-en_ewt-test.parquet": "d814cb115ab01dbe62716619b922cb980342e0d394f301c52abc761edd24d168",
 "uner-en_ewt-validation.parquet": "0ae3a895bc6b0bce6a147788d118b7dcde531eb36aca1396421485127f1274df"
