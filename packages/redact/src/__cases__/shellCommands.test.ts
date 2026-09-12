@@ -66,7 +66,7 @@ describe("a shell command line survives an over-flagging detector", () => {
 // enclaved digit) as a key and RENAMED the type — the file no longer compiled. A camelCase /
 // PascalCase identifier is code, not a credential (`validators.ts` `isCodeIdentifier`).
 describe("code identifiers are not secrets", () => {
-  const idents = ["Uint8Array", "Int32Array", "Float64Array", "utf8Decoder", "SHA256Digest"];
+  const idents = ["Uint8Array", "Int32Array", "Float64Array", "utf8Decoder", "SHA256Digest", "H2Database", "Float32x4", "OAuth2Client", "Log4j2"];
   for (const id of idents)
     it(`keeps ${id}`, () => {
       const { text } = redact(`const x = new ${id}(32); return ${id}.from(x);`);
@@ -84,7 +84,7 @@ describe("code identifiers are not secrets", () => {
 // closed allow-list can spare them (`codeTerms.ts`) — an agent reading crypto code had them
 // renamed. They are never a secret value.
 describe("algorithm names are not secrets", () => {
-  for (const name of ["argon2id", "secp256k1", "aes256gcm", "b64encode", "SHA1PRNG"])
+  for (const name of ["argon2id", "secp256k1", "aes256gcm", "b64encode", "SHA1PRNG", "int8range", "base64url", "translate3d", "matrix3d"])
     it(`keeps ${name}`, () => {
       expect(redact(`algorithm: "${name}"`).text).toContain(name);
     });

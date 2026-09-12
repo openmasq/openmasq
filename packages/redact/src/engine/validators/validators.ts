@@ -1,6 +1,7 @@
 // Post-match validators for shape-based rules: a regex hit is only redacted when
 // the validator confirms it (checksum / range), so we never redact any long
 // number or decimal pair. Pure, unit-testable.
+import { isCodeIdentifier } from "../rules/codeTerms";
 import { isReservedHostUrl } from "./validators.network";
 
 /**
@@ -207,20 +208,6 @@ export function isWordNumberGlue(s: string): boolean {
   if (!/^[A-Za-z]+\d+$/.test(s) && !/^\d+[A-Za-z]+$/.test(s)) return false;
   const letters = /[A-Za-z]+/.exec(s)?.[0] ?? "";
   return letters.length >= 3 && /[aeiouyàâäéèêëïîôöùûü]/i.test(letters);
-}
-
-/**
- * A camelCase / PascalCase CODE IDENTIFIER with a digit enclaved between letter runs —
- * `Uint8Array`, `utf8Decoder`, `SHA256Digest` — which the token rule otherwise RENAMES,
- * breaking the code. Two signals a real key lacks: a camelCase HUMP (a lower/digit → UPPER
- * transition, which all-lowercase glued prose « feront…5du… » lacks — it stays masked, the
- * trade pinned in `gluedProse.test.ts`), and every digit-split run a WORD (≥3 letters, a
- * vowel — a key's runs are short and vowel-poor, so `xK9mPq2Lw` is not spared).
- */
-export function isCodeIdentifier(s: string): boolean {
-  if (!/^[A-Za-z]+(?:\d+[A-Za-z]+)+$/.test(s)) return false;
-  if (!/[a-z0-9][A-Z]/.test(s)) return false;
-  return s.split(/\d+/).every((seg) => seg.length >= 3 && /[aeiouy]/i.test(seg));
 }
 
 // ⚠️ DO NOT widen this guard to glued prose whose digit is ENCLAVED

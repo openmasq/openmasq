@@ -20,8 +20,14 @@ const CODE_TERMS = new Set<string>([
   // Hashes / digests
   "sha1prng", "sha224", "sha384", "sha512224", "sha512256", "keccak256", "keccak512",
   "ripemd160", "blake2b512", "blake2s256", "whirlpool512",
-  // Encoding helpers
+  // Encoding helpers + names an all-lowercase code token shares with a lowercase key's shape
+  // (no camelCase hump for `isCodeIdentifier` to read), so only a name spares them.
   "b64encode", "b64decode", "b32encode", "b32decode", "b16encode", "urlsafeb64encode",
+  "base64url", "base32hex", "base16", "base58btc", "base36",
+  // CSS 3-D transforms
+  "translate3d", "matrix3d", "rotate3d", "scale3d",
+  // Postgres range / numeric types
+  "int4range", "int8range", "numrange", "tsrange", "tstzrange", "daterange", "int8multirange",
 ]);
 
 /** Is `value` a published algorithm/encoding name (never a secret)? Whole-value, case-blind. */
@@ -36,3 +42,28 @@ export const isCodeTerm = (value: string): boolean => CODE_TERMS.has(value.toLow
  */
 export const isNumericLiteral = (value: string): boolean =>
   /^0[xX][0-9a-fA-F]{1,16}$/.test(value) || /^0[oO][0-7]+$/.test(value) || /^0[bB][01]+$/.test(value);
+
+const VOWEL = /[aeiouyàâäéèêëïîôöùûü]/i;
+
+/**
+ * A camelCase / PascalCase CODE IDENTIFIER with a digit among its letters — `Uint8Array`,
+ * `H2Database`, `Float32x4` — which the token rule otherwise RENAMES, breaking the code. Three
+ * signals split it from a key AND from glued prose: MIXED CASE (an uppercase — all-lowercase
+ * glued prose « earticle3du » has none, so it stays masked, the trade pinned in
+ * `gluedProse.test.ts`; an all-lowercase code name like `int8range` rides `codeTerms.ts`);
+ * SHORT (≤16, each run ≤12); and WORD STRUCTURE — every letter run is a single-letter marker or
+ * a pronounceable run (a vowel), at least one a real word (≥3 + vowel), so a key's consonant
+ * clusters (`Kj4Xr9Bv`) are never spared.
+ */
+export function isCodeIdentifier(s: string): boolean {
+  if (s.length > 16 || !/^[A-Za-z][A-Za-z0-9]*$/.test(s)) return false;
+  if (!/[A-Z]/.test(s) || !/\d/.test(s)) return false;
+  const segs = s.split(/\d+/).filter(Boolean);
+  let hasWord = false;
+  for (const seg of segs) {
+    if (seg.length === 1) continue;
+    if (seg.length > 12 || !VOWEL.test(seg)) return false;
+    if (seg.length >= 3) hasWord = true;
+  }
+  return hasWord;
+}
