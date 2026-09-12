@@ -59,6 +59,11 @@ describe("config edit", () => {
       "--wait",
     ]);
     expect(editorCommand({ EDITOR: "nano" }, "darwin", all)).toEqual(["nano"]);
+    // npm exports its own default editor as EDITOR=vi into `npx …`; that is not the user's word.
+    const npx = { EDITOR: "vi", npm_execpath: "/x/npm-cli.js" };
+    expect(editorCommand(npx, "darwin", (c) => c === "code")).toEqual(["code", "--wait"]);
+    expect(editorCommand({ EDITOR: "vi" }, "darwin", (c) => c === "code")).toEqual(["vi"]); // typed by the user: kept
+    expect(editorCommand({ EDITOR: "nano", npm_execpath: "/x" }, "darwin", all)).toEqual(["nano"]);
   });
 
   it("with none named, takes the first real editor installed — a desktop one with --wait — and vi as the last resort", () => {

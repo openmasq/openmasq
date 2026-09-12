@@ -110,13 +110,22 @@ export function editorCommand(
   platform = process.platform,
   has: (command: string) => boolean = (c) => onPath(c, env),
 ): string[] {
-  const named = (env.VISUAL || env.EDITOR || "").trim();
+  const named = (env.VISUAL || userEditor(env) || "").trim();
   if (named) return named.split(/\s+/);
   for (const e of EDITORS) {
     if (has(e.cmd)) return [e.cmd, ...e.args];
     if (platform === "darwin" && e.mac && has(e.mac)) return [e.mac, ...e.args];
   }
   return [platform === "win32" ? "notepad" : "vi"];
+}
+
+/** `$EDITOR` as the USER set it. npm exports its own `editor` default (`vi`, `notepad`) as
+ *  `EDITOR` into everything it runs — `npx …`, `npm run …` — so under those, a bare `vi`
+ *  nobody typed would beat every editor installed. Under npm, that one value is not a choice. */
+function userEditor(env: NodeJS.ProcessEnv): string | undefined {
+  const underNpm = !!env.npm_execpath || !!env.npm_lifecycle_event;
+  const npmDefault = env.EDITOR === "vi" || env.EDITOR === "notepad";
+  return underNpm && npmDefault ? undefined : env.EDITOR;
 }
 
 export function editConfig(
