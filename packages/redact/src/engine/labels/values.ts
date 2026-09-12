@@ -62,6 +62,11 @@ export function cleanValue(raw: string): string {
   // …and the MIDDLE DOT / BULLET the same way (« Customer ID: Xe-97453 · SSN: … »): a
   // one-line record separates its fields with it, and the SSN value kept « · » glued.
   let v = raw.split(/\t|　|\s{2,}|\s\|\s|\s[—–·•]\s/u)[0] ?? raw;
+  // A GUILLEMET closes a quoted value: « mot de passe : hunter2 » wraps label AND value, so
+  // the capture ran on past `»` into the prose after it (« hunter2 » was only caught by… »
+  // vaulted the whole sentence). Cut at the first `«`/`»`: they bound a quoted value, never
+  // sit inside a name/id/secret, so a value opened by `«` starts after it and ends at `»`.
+  v = v.split(/[«»]/)[0] ?? v;
   // Next field: a short token (Latin word OR CJK run) immediately before a colon —
   // INCLUDING the "N° xxx :" label form ("Nom et prénom : REBOUR Jean N° sécu :
   // 184…" — without it the whole rest of the line became the NAME value, the NIR

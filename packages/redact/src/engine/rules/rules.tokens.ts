@@ -6,6 +6,28 @@ import { VENDOR_RULES } from "./rules.vendors";
 // in rules.ts: a real secret carries an unmistakable prefix, so these never fire on
 // ordinary text. The SSH PRIVATE key block is already covered by rules.ts's
 // `-----BEGIN … PRIVATE KEY-----` rule — here we add the SSH PUBLIC key line.
+/** A documentation PLACEHOLDER cookie, not a credential: the RFC's own `name=value`, a
+ *  `key=value`/`cookie-name=cookie-value` sample. A real cookie value is opaque and
+ *  high-entropy — never the literal word « value » — so this only ever drops an example. */
+const COOKIE_PLACEHOLDER = new Set([
+  "value",
+  "cookievalue",
+  "cookie-value",
+  "cookie_value",
+  "yourvalue",
+  "your-value",
+  "xxx",
+  "xxxx",
+  "placeholder",
+  "example",
+  "abc123",
+  "somevalue",
+]);
+function notPlaceholderCookie(m: string): boolean {
+  const val = /^\s*[\w.-]+=([^\s;]+)/.exec(m)?.[1] ?? "";
+  return !COOKIE_PLACEHOLDER.has(val.toLowerCase().replace(/^[<{[]+|[>}\]]+$/g, ""));
+}
+
 export const TOKEN_RULES: RedactionRule[] = [
   // The FOUNDING vendor prefixes (formerly inline in rules.ts — same family, one
   // home). Order preserved: they ran immediately before this table's own entries.
@@ -94,11 +116,13 @@ export const TOKEN_RULES: RedactionRule[] = [
   {
     type: "cookie",
     pattern: /(?<=\b(?:set-cookie|cookie)[ \t]*:[ \t]*)(?!\[REDACTED_)[^\r\n]{8,}/gi,
+    validate: notPlaceholderCookie,
   },
   {
     type: "cookie",
     pattern:
       /(?<![\w.=-])(?!\[REDACTED_)[\w.-]{2,}=[^\s;]{4,}(?:[ \t]*;[ \t]*(?:path|max-age|expires|httponly|secure|samesite|domain|priority)(?:=[^\s;]*)?)+/gi,
+    validate: notPlaceholderCookie,
   },
   // The rest of the vendor prefixes, grouped by tail shape — `rules.vendors.ts`. Same
   // family, so they enter through the same door; they live in their own file only

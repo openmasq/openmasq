@@ -12,12 +12,30 @@ describe("cookies", () => {
     expect(out).toContain("User-Agent: x");
   });
   it("takes a bare declaration when a cookie attribute follows it", () => {
-    const out = wire("user_sid=j9k2l8m5n7p6o3q4r1s2; Path=/; Max-Age=3600; HttpOnly and then prose");
+    const out = wire(
+      "user_sid=j9k2l8m5n7p6o3q4r1s2; Path=/; Max-Age=3600; HttpOnly and then prose",
+    );
     expect(out).not.toContain("j9k2l8m5n7p6o3q4r1s2");
     expect(out).toContain("and then prose");
   });
+  it("leaves a documentation PLACEHOLDER cookie in clear — the literal name=value sample", () => {
+    // A README/RFC example: renaming its `value` corrupted the doc the agent reads.
+    for (const s of [
+      "Set-Cookie: name=value; Path=/; HttpOnly",
+      "Cookie: key=your-value; Secure",
+    ]) {
+      expect(wire(s)).toBe(s);
+    }
+    // …a real cookie of the same shape is still masked.
+    expect(wire("Set-Cookie: sid=9f8e7d6c5b4a; Path=/; HttpOnly")).not.toContain("9f8e7d6c5b4a");
+  });
+
   it("leaves an ordinary assignment or query string alone — no attribute, no cookie", () => {
-    for (const s of ["timezone=UTC+07:00 is the setting", "?page=2&sort=name", "LOG_LEVEL=debug; NODE_ENV=production"]) {
+    for (const s of [
+      "timezone=UTC+07:00 is the setting",
+      "?page=2&sort=name",
+      "LOG_LEVEL=debug; NODE_ENV=production",
+    ]) {
       expect(wire(s)).toBe(s);
     }
   });
