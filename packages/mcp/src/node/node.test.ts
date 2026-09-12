@@ -1,10 +1,10 @@
-import { existsSync, mkdtempSync, readFileSync, statSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { startLoopback } from "./loopback";
 import { McpOAuthStore } from "./oauthStore";
-import { decrypt, encrypt, loadKey, SecretJsonFile } from "./secretFile";
+import { assertOwnerOnly, decrypt, encrypt, loadKey, SecretJsonFile } from "./secretFile";
 
 const dir = (): string => mkdtempSync(join(tmpdir(), "openmasq-node-test-"));
 
@@ -128,5 +128,53 @@ describe("the loopback redirect catcher", () => {
     expect(a.state).not.toBe(b.state);
     a.close();
     b.close();
+  });
+});
+
+/* The store is WRITTEN owner-only, so a widened mode is something that happened to it
+   afterwards -- a `chmod -R`, an archive restored without modes, a folder synced through a
+   service that flattens them. The key lies beside the ciphertext it opens, so a readable key
+   is a readable token store: both are refused, and refused BEFORE anything is decrypted. */
+describe("a credential store others can read is refused, not shrugged at", () => {
+  const store = () => {
+    const dir = mkdtempSync(join(tmpdir(), "om-owner-"));
+    const file = new SecretJsonFile<{ tok: string }>(join(dir, "auth.enc"), dir, "");
+    file.write({ tok: "a-refresh-token" });
+    return { dir, file };
+  };
+
+  it("writes both the key and the store owner-only, in a 0700 directory", () => {
+    const { dir } = store();
+    for (const n of ["key", "auth.enc"]) expect(statSync(join(dir, n)).mode & 0o777).toBe(0o600);
+    expect(statSync(dir).mode & 0o777).toBe(0o700);
+  });
+
+  it.each(["key", "auth.enc"])("refuses to read once %s is group/world-readable", (name) => {
+    const { dir } = store();
+    chmodSync(join(dir, name), 0o644);
+    expect(() => new SecretJsonFile<{ tok: string }>(join(dir, "auth.enc"), dir, "").read())
+      .toThrow(/readable by other users \(mode 644\)/);
+  });
+
+  it("still reads what it wrote while the modes are right", () => {
+    const { dir } = store();
+    expect(new SecretJsonFile<{ tok: string }>(join(dir, "auth.enc"), dir, "").read())
+      .toEqual({ tok: "a-refresh-token" });
+  });
+
+  /** `OPENMASQ_PROXY_KEY` means no key file exists at all -- the documented escape for
+   *  Windows and for a mount with no permission model. */
+  it("has nothing to check when the key comes from the environment", () => {
+    const dir = mkdtempSync(join(tmpdir(), "om-owner-"));
+    const envKey = Buffer.alloc(32, 7).toString("base64");
+    const file = new SecretJsonFile<{ tok: string }>(join(dir, "auth.enc"), dir, envKey);
+    file.write({ tok: "x" });
+    expect(existsSync(join(dir, "key"))).toBe(false);
+    expect(file.read()).toEqual({ tok: "x" });
+  });
+
+  it("reads no bits on Windows, where stat cannot answer the question", () => {
+    expect(() => assertOwnerOnly("/nope", () => ({ mode: 0o666 }), "win32")).not.toThrow();
+    expect(() => assertOwnerOnly("/nope", () => ({ mode: 0o666 }), "linux")).toThrow();
   });
 });

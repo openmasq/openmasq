@@ -18,7 +18,7 @@
  * the same problem, and were the same forty lines twice.
  */
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ALG = "aes-256-gcm";
@@ -47,6 +47,34 @@ function privateDir(dir: string): void {
   }
 }
 
+/**
+ * Refuse a key or a store that others can read. We WRITE both owner-only, so a widened mode
+ * is something that happened afterwards — a `chmod -R`, a restore from an archive that
+ * carries no modes, a folder synced through a service that flattens them. The key sits
+ * beside the ciphertext it opens, so a readable key IS a readable token store: the two are
+ * guarded identically, and the refusal is the point (`restrict` is best-effort, this is not).
+ *
+ * ⚠️ **Windows has no such bits to read.** Node derives `stat.mode` there from the single
+ * read-only attribute (a writable file reports 0o666), so this would refuse every file and
+ * the feature would not run at all; NTFS access is governed by ACLs that `stat` does not
+ * expose. Skipped there, where the guard is the profile directory's inherited ACL — and
+ * `OPENMASQ_PROXY_KEY` (no key file at all) is the way to close that gap. The same escape
+ * answers a mount with no permission model, where the mode could never be set.
+ */
+export function assertOwnerOnly(
+  path: string,
+  stat: (p: string) => { mode: number } = statSync,
+  platform: string = process.platform,
+): void {
+  if (platform === "win32") return;
+  const { mode } = stat(path);
+  if ((mode & 0o077) !== 0)
+    throw new Error(
+      `${path} is readable by other users (mode ${(mode & 0o777).toString(8)}). ` +
+        `It holds your integration credentials: chmod 600 ${path}`,
+    );
+}
+
 /** A 32-byte key from `envKey` (hex or base64), or a generated 0600 key file in `dir`. */
 export function loadKey(dir: string, envKey = ""): Buffer {
   if (envKey) {
@@ -58,7 +86,10 @@ export function loadKey(dir: string, envKey = ""): Buffer {
   }
   privateDir(dir);
   const keyPath = join(dir, "key");
-  if (existsSync(keyPath)) return Buffer.from(readFileSync(keyPath, "utf8"), "base64");
+  if (existsSync(keyPath)) {
+    assertOwnerOnly(keyPath);
+    return Buffer.from(readFileSync(keyPath, "utf8"), "base64");
+  }
   const key = randomBytes(32);
   writeFileSync(keyPath, key.toString("base64"), { mode: 0o600 });
   restrict(keyPath);
@@ -100,6 +131,7 @@ export class SecretJsonFile<T extends object> {
 
   read(): T | undefined {
     if (!existsSync(this.path)) return undefined;
+    assertOwnerOnly(this.path);
     return JSON.parse(decrypt(readFileSync(this.path, "utf8"), this.key)) as T;
   }
 

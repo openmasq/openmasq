@@ -7,6 +7,7 @@
 export { startLoopback, type Loopback, type LoopbackOptions } from "./loopback";
 export {
   SecretJsonFile,
+  assertOwnerOnly,
   loadKey,
   encrypt,
   decrypt,

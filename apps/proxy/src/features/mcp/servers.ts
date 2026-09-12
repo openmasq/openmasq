@@ -5,6 +5,7 @@
 // as-is (`--mcp-config ~/Library/.../claude_desktop_config.json`).
 import { readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { assertOwnerOnly } from "@openmasq/mcp/node";
 import { openmasqDir } from "../../lib/stateDir.js";
 
 export interface StdioSpec {
@@ -63,32 +64,13 @@ function strings(v: unknown, where: string): Record<string, string> {
 }
 
 /**
- * Refuse a credentials file that others can read. The whole point of this feature is that
- * the secret has ONE home, and a home the group can read is not one. Fails CLOSED on a POSIX
- * system — a widened mode is a refusal, not a shrug.
- *
- * ⚠️ **Windows has no such bits to read.** Node derives `stat.mode` there from the single
- * read-only attribute (a writable file reports 0o666), so this test would refuse EVERY file
- * and the feature would simply not run. NTFS access is governed by ACLs, which `stat` does
- * not expose and `chmod` does not set. The check is therefore skipped there, and what
- * protects the file instead is the ACL the user's profile directory already carries —
- * inherited, not set by us. Said out loud rather than implied: on Windows this is a weaker
- * guarantee than on macOS/Linux, and `OPENMASQ_PROXY_KEY` (a key from a secret manager, so
- * no key file exists at all) is the way to close it.
+ * Refuse a credentials file that others can read. ONE home for that test: the servers file
+ * the user typed an API key into and the OAuth store beside it are the same promise, so they
+ * get the same guard (`@openmasq/mcp/node`, where the at-rest family lives). Its header
+ * carries the Windows reasoning and the `OPENMASQ_PROXY_KEY` escape in full.
  */
-export function assertPrivate(
-  path: string,
-  stat: (p: string) => { mode: number } = statSync,
-  platform: string = process.platform,
-): void {
-  if (platform === "win32") return;
-  const { mode } = stat(path);
-  if ((mode & 0o077) !== 0)
-    throw new Error(
-      `${path} is readable by other users (mode ${(mode & 0o777).toString(8)}). ` +
-        `It holds your integration credentials: chmod 600 ${path}`,
-    );
-}
+export const assertPrivate = assertOwnerOnly;
+
 
 /** Parse the `mcpServers` map. Unknown shapes are refused rather than skipped: a server the
  *  user believes is connected but that we silently dropped is a hole in their expectations. */
