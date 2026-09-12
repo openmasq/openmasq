@@ -5,7 +5,8 @@
 // after `--`, a tool runs through the proxy and stops it when it exits.
 import { randomBytes } from "node:crypto";
 import { createApp } from "./app.js";
-import { parseArgs, USAGE } from "./config/config.js";
+import { parseConfig, USAGE } from "./config/config.js";
+import { runConfigCommand } from "./config/show.js";
 import { createConsoleBus } from "./features/console/events.js";
 import { publishConsoleLink } from "./features/console/link.js";
 import { runConsoleCommand } from "./features/console/open.js";
@@ -44,10 +45,12 @@ async function main(): Promise<void> {
   // `openmasq-proxy console` opens the live view of the proxy already running — from any
   // terminal, whatever tool owns the screen (`features/console/open.ts`).
   if (process.argv[2] === "console") process.exit(await runConsoleCommand(process.argv.slice(3)));
+  // `openmasq-proxy config show` prints the run that WOULD start, and where each value came from.
+  if (process.argv[2] === "config") process.exit(await runConfigCommand(process.argv.slice(3)));
 
-  let config: ReturnType<typeof parseArgs>;
+  let config: ReturnType<typeof parseConfig>["config"];
   try {
-    config = parseArgs(process.argv.slice(2));
+    config = parseConfig(process.argv.slice(2)).config;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(msg);

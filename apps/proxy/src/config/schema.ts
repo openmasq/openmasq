@@ -38,7 +38,9 @@ export interface ProxyConfig {
   level: RedactionLevel;
   /** Terms ALWAYS masked, whatever the detectors find — the app's Vault. `value:type`. */
   always: { value: string; category: string }[];
-  /** Exact strings always erased (keys, tokens), read from a file, one per line. */
+  /** The file the `secrets` are read from ("" ⇒ none), one per line. */
+  secretsFile: string;
+  /** Exact strings always erased (keys, tokens) — DERIVED from `secretsFile`, never set. */
   secrets: string[];
   /** How long a `x-openmasq-session` vault outlives its last request, in ms. */
   sessionTtlMs: number;
@@ -94,6 +96,7 @@ export const DEFAULTS: ProxyConfig = {
   disabledKinds: [],
   level: "standard",
   always: [],
+  secretsFile: "",
   secrets: [],
   sessionTtlMs: 60 * 60 * 1000,
   verbose: true,

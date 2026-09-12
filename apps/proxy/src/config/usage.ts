@@ -8,11 +8,12 @@ export const USAGE = `openmasq-proxy — mask personal data before it leaves the
                  (standard is the default: deterministic pattern rules, no model loaded)
                  [--always "Groupe Delorme:company,FR76 3000…:iban"] [--secrets-file <path>]
                  [--rules-only] [--quiet] [--json] [--log <file>] [--reveal] [--console]
-                 [--theme auto|light|dark] [--no-splash] [--open]
+                 [--theme auto|light|dark] [--no-splash] [--open] [--config <file>]
                  [--mcp] [--mcp-config <file>] [--mcp-writes confirm|deny|allow] [--mcp-no-adopt]
   openmasq-proxy [flags] -- claude            run a tool through the proxy, stop with it
                  (codex, gemini, opencode, copilot too — --mcp makes us their only MCP)
   openmasq-proxy console [--url]              open the live view of the running proxy
+  openmasq-proxy config show|path|schema      the effective settings and where each came from
 
 Point any OpenAI- or Anthropic-compatible client at http://127.0.0.1:8787 and keep your
 own API key: the proxy forwards it untouched, masks the messages on the way out and
@@ -24,6 +25,14 @@ x-openmasq-mode (fake|token). Env: OPENMASQ_PROXY_PORT, OPENMASQ_UPSTREAM_OPENAI
 OPENMASQ_UPSTREAM_ANTHROPIC, OPENMASQ_UPSTREAM_GEMINI, OPENMASQ_NER_DIR, OPENMASQ_PROXY_MODE, OPENMASQ_PROXY_LEVEL,
 OPENMASQ_PROXY_KEEP, OPENMASQ_PROXY_DISABLED_KINDS, OPENMASQ_PROXY_ALWAYS, OPENMASQ_PROXY_THEME, OPENMASQ_PROXY_SPLASH, OPENMASQ_PROXY_OPEN.
 Types for --always: name, username, email, phone, company, address, city, id, card, iban, ip, path, dob, secret.
+
+Every flag above can be written once in ~/.openmasq/proxy.json (or --config <file>,
+OPENMASQ_PROXY_CONFIG) under "run", with the same name minus the dashes — "level",
+"mcpWrites", "disable", "console" — and overridden per wrapped tool under "clients"
+("hermes": { "open": true }). Precedence: flag > env > clients.<tool> > run > default.
+A malformed file, an unknown key or a bad value refuses the start rather than running with
+a default. "reveal" and "json" are per-run flags and stay out of the file. The "mcp"
+section holds the per-server policy (see --mcp below). No secret lives in this file.
 
 --console serves a live view of what is being masked, at a URL printed on start-up. It is
 the way to watch a WRAPPED run: the tool owns the terminal, the console is a browser tab.

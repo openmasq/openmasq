@@ -1,26 +1,23 @@
-// The proxy's configuration: flags first, then `OPENMASQ_*` env, then the defaults. No I/O
-// except `--secrets-file` (a read, injected in tests), so `server.ts` can print a usage and
-// the tests can build a config by hand.
+// The proxy's configuration, from its four sources in order of precedence:
+//
+//   flags  >  env  >  proxy.json (`clients.<tool>` over `run`)  >  the defaults
+//
+// Every source reads the SAME table (`options.ts`); this file only merges, remembers where
+// each value came from (`config show` prints it), and checks what no single option can —
+// the port, the origins, and the two `--reveal` refusals. No I/O except the two files
+// (`proxy.json`, `--secrets-file`), both injected, so the tests build a config by hand.
 import { readFileSync } from "node:fs";
-
+import { basename } from "node:path";
 import type { RedactionLevel } from "@openmasq/catalog";
-import type { ThemeChoice } from "../lib/ui/theme.js";
-import { DEFAULTS, LEVELS, type ProxyConfig, WRITE_POLICIES, type WritePolicy } from "./schema.js";
+import { type ConfigFile, readConfigFile, type Settings } from "./file.js";
+import { byFlag, byName, fromString, OPTIONS, type Source } from "./options.js";
+import { DEFAULTS, type ProxyConfig } from "./schema.js";
 import { USAGE } from "./usage.js";
 
 export { USAGE };
-export type { RedactionLevel };
+export type { RedactionLevel, Source };
 export { DEFAULTS, LEVELS, type ProxyConfig, WRITE_POLICIES, type WritePolicy } from "./schema.js";
-/** `Groupe Delorme:company,FR76…:iban` → forced redactions. A missing type is `name`. */
-export function parseAlways(v: string): { value: string; category: string }[] {
-  return list(v).map((entry) => {
-    const at = entry.lastIndexOf(":");
-    const value = at > 0 ? entry.slice(0, at).trim() : entry;
-    const category = at > 0 ? entry.slice(at + 1).trim() : "name";
-    if (!value) throw new Error(`--always: empty term in "${entry}"`);
-    return { value, category };
-  });
-}
+export { parseAlways } from "./options.js";
 
 /** One secret per line; blank lines and `#` comments ignored. The file is never logged. */
 export function readSecretsFile(
@@ -33,159 +30,106 @@ export function readSecretsFile(
     .filter((l) => l && !l.startsWith("#"));
 }
 
-const themeChoice = (v: string | undefined): ThemeChoice | undefined =>
-  v === "auto" || v === "light" || v === "dark" ? v : undefined;
+export interface Io {
+  /** The config file's text, or `undefined` when there is none at that path. */
+  readConfig?: (path: string) => string | undefined;
+  readSecrets?: (path: string) => string;
+}
 
-const list = (v: string | undefined): string[] =>
-  (v ?? "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+/** No file unless the caller hands one: the tests' default, so a developer's own
+ *  `~/.openmasq/proxy.json` never leaks into an assertion. */
+const NO_FILE: Io = { readConfig: () => undefined };
 
-/** `--port 8787 --openai https://… --ner <dir> --rules-only --mode token --keep A,B --quiet`. */
-export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env): ProxyConfig {
-  const c: ProxyConfig = {
-    ...DEFAULTS,
-    port: Number(env.OPENMASQ_PROXY_PORT ?? DEFAULTS.port),
-    openai: env.OPENMASQ_UPSTREAM_OPENAI ?? DEFAULTS.openai,
-    anthropic: env.OPENMASQ_UPSTREAM_ANTHROPIC ?? DEFAULTS.anthropic,
-    gemini: env.OPENMASQ_UPSTREAM_GEMINI ?? DEFAULTS.gemini,
-    nerDir: env.OPENMASQ_NER_DIR ?? "",
-    mode: env.OPENMASQ_PROXY_MODE === "token" ? "token" : "fake",
-    keep: list(env.OPENMASQ_PROXY_KEEP),
-    disabledKinds: list(env.OPENMASQ_PROXY_DISABLED_KINDS),
-    level: (LEVELS as readonly string[]).includes(env.OPENMASQ_PROXY_LEVEL ?? "")
-      ? (env.OPENMASQ_PROXY_LEVEL as RedactionLevel)
-      : DEFAULTS.level,
-    always: parseAlways(env.OPENMASQ_PROXY_ALWAYS ?? ""),
-    secrets: [],
-    theme: themeChoice(env.OPENMASQ_PROXY_THEME) ?? DEFAULTS.theme,
-    splash: env.OPENMASQ_PROXY_SPLASH !== "0",
-    open: env.OPENMASQ_PROXY_OPEN === "1",
-    mcpConfig: env.OPENMASQ_PROXY_MCP_CONFIG ?? "",
-    mcp: !!env.OPENMASQ_PROXY_MCP_CONFIG,
-    mcpWrites: (WRITE_POLICIES as readonly string[]).includes(env.OPENMASQ_PROXY_MCP_WRITES ?? "")
-      ? (env.OPENMASQ_PROXY_MCP_WRITES as WritePolicy)
-      : DEFAULTS.mcpWrites,
-  };
+export interface Parsed {
+  config: ProxyConfig;
+  /** Where each option's value came from, by option NAME. */
+  sources: Record<string, Source>;
+  file?: ConfigFile;
+}
+
+/** The wrapped tool's name as `clients` keys it: `/opt/bin/claude.cmd` → `claude`. */
+export const toolName = (command: string[]): string =>
+  basename(command[0] ?? "")
+    .replace(/\.(cmd|exe|bat)$/i, "")
+    .toLowerCase();
+
+/** `--port 8787 --level strict --mcp -- claude`, plus env and the file. */
+export function parseConfig(
+  argv: string[],
+  env: NodeJS.ProcessEnv = process.env,
+  io: Io = {},
+): Parsed {
+  const flags: Settings = {};
+  let command: string[] = [];
+  let configPath = env.OPENMASQ_PROXY_CONFIG ?? "";
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--") {
-      c.command = argv.slice(i + 1);
-      if (!c.command.length) throw new Error("-- needs a command to run");
+      command = argv.slice(i + 1);
+      if (!command.length) throw new Error("-- needs a command to run");
       break;
     }
+    if (a === "--help" || a === "-h") throw new Error(USAGE);
     const next = () => {
       const v = argv[++i];
       if (v === undefined) throw new Error(`${a} needs a value`);
       return v;
     };
-    switch (a) {
-      case "--port":
-        c.port = Number(next());
-        break;
-      case "--openai":
-        c.openai = next();
-        break;
-      case "--anthropic":
-        c.anthropic = next();
-        break;
-      case "--gemini":
-        c.gemini = next();
-        break;
-      case "--ner":
-        c.nerDir = next();
-        break;
-      case "--rules-only":
-        c.rulesOnly = true;
-        break;
-      case "--mode": {
-        const m = next();
-        if (m !== "fake" && m !== "token") throw new Error(`--mode is fake or token, not ${m}`);
-        c.mode = m;
-        break;
-      }
-      case "--keep":
-        c.keep = list(next());
-        break;
-      case "--disable":
-        c.disabledKinds = list(next());
-        break;
-      case "--level": {
-        const l = next();
-        if (!(LEVELS as readonly string[]).includes(l))
-          throw new Error(`--level is standard, renforce or strict, not ${l}`);
-        c.level = l as RedactionLevel;
-        break;
-      }
-      case "--always":
-        c.always = c.always.concat(parseAlways(next()));
-        break;
-      case "--secrets-file":
-        c.secrets = c.secrets.concat(readSecretsFile(next()));
-        break;
-      case "--quiet":
-        c.verbose = false;
-        break;
-      case "--json":
-        c.json = true;
-        break;
-      case "--reveal":
-        c.reveal = true;
-        break;
-      case "--log":
-        c.logFile = next();
-        break;
-      case "--mcp":
-        c.mcp = true;
-        break;
-      case "--mcp-no-adopt":
-        c.mcpAdopt = false;
-        break;
-      case "--console":
-        c.console = true;
-        break;
-      case "--open":
-        c.open = true;
-        break;
-      case "--no-splash":
-        c.splash = false;
-        break;
-      case "--theme": {
-        const t = themeChoice(next());
-        if (!t) throw new Error("--theme is auto, light or dark");
-        c.theme = t;
-        break;
-      }
-      case "--mcp-config":
-        c.mcpConfig = next();
-        c.mcp = true;
-        break;
-      case "--mcp-writes": {
-        const w = next();
-        if (!(WRITE_POLICIES as readonly string[]).includes(w))
-          throw new Error(`--mcp-writes is confirm, deny or allow, not ${w}`);
-        c.mcpWrites = w as WritePolicy;
-        break;
-      }
-      case "--help":
-      case "-h":
-        throw new Error(USAGE);
-      default:
-        throw new Error(`Unknown flag ${a}\n\n${USAGE}`);
+    if (a === "--config") {
+      configPath = next();
+      continue;
+    }
+    const o = byFlag(a);
+    if (!o) throw new Error(`Unknown flag ${a}\n\n${USAGE}`);
+    if (o.kind === "boolean") flags[o.name] = o.flagSets;
+    else {
+      const v = fromString(o, next(), "flag");
+      // `--always` accumulates: a second flag adds terms, it does not replace the first.
+      flags[o.name] =
+        o.kind === "always" && Array.isArray(flags[o.name])
+          ? [...(flags[o.name] as unknown[]), ...(v as unknown[])]
+          : v;
     }
   }
-  // `--open` opens the console page, so it asks for the console to exist.
-  if (c.open) c.console = true;
-  if (!Number.isInteger(c.port) || c.port < 1 || c.port > 65535)
-    throw new Error(`Bad port ${c.port}`);
-  for (const u of [c.openai, c.anthropic, c.gemini]) {
-    if (!/^https?:\/\//.test(u)) throw new Error(`Upstream must be an http(s) origin: ${u}`);
+
+  const fromEnv: Settings = {};
+  for (const o of OPTIONS)
+    if (o.env && env[o.env] !== undefined)
+      fromEnv[o.name] = fromString(o, env[o.env] as string, "env");
+
+  const file = readConfigFile(configPath, io.readConfig);
+  const config: ProxyConfig = { ...DEFAULTS, command };
+  const sources: Record<string, Source> = Object.fromEntries(
+    OPTIONS.map((o) => [o.name, "default"]),
+  );
+  const apply = (layer: Settings, source: Source) => {
+    for (const [name, value] of Object.entries(layer)) {
+      const o = byName(name);
+      if (!o) continue;
+      (config as unknown as Record<string, unknown>)[o.key] = value;
+      sources[name] = source;
+    }
+  };
+  if (file) {
+    apply(file.run, "file");
+    apply(file.clients[toolName(command)] ?? {}, "client");
   }
+  apply(fromEnv, "env");
+  apply(flags, "flag");
+
+  // What one option implies for another.
+  if (config.open) config.console = true; // `--open` opens the console page, so it asks for one
+  if (config.mcpConfig) config.mcp = true;
+  config.secrets = config.secretsFile ? readSecretsFile(config.secretsFile, io.readSecrets) : [];
+
+  if (!Number.isInteger(config.port) || config.port < 1 || config.port > 65535)
+    throw new Error(`Bad port ${config.port}`);
+  for (const u of [config.openai, config.anthropic, config.gemini])
+    if (!/^https?:\/\//.test(u)) throw new Error(`Upstream must be an http(s) origin: ${u}`);
   // --reveal puts real personal data on screen. It is allowed on an operator's terminal and
   // nowhere else: not in a machine-read stream, and not behind a tool that takes the terminal
   // (its lines would go to the log FILE, which is copied, backed up and grepped).
-  if (c.reveal && c.json)
+  if (config.reveal && config.json)
     throw new Error("--reveal cannot be used with --json: values must not enter a machine log.");
   // A wrapped tool owns the terminal, so the request lines go to the log FILE — where a
   // revealed value would be written down, copied and backed up. A same-terminal bar was tried
@@ -195,12 +139,21 @@ export function parseArgs(argv: string[], env: NodeJS.ProcessEnv = process.env):
   // console page — loopback, a token per run — so `--console` lifts the refusal, and the
   // value then goes to that page ONLY: the file reporter is built without reveal
   // (`server.ts`, `revealFor`), whatever the flag says.
-  if (c.reveal && c.command.length && !c.console)
+  if (config.reveal && config.command.length && !config.console)
     throw new Error(
       "--reveal cannot be used with `-- <tool>` alone: the tool owns the terminal, so the lines\n" +
         "would go to the log file. Add --console to see the values on the console page (the log\n" +
         "keeps counts only), or run the proxy in its own window with --reveal and start the tool\n" +
         "in another with the printed base URLs (press c to copy them).",
     );
-  return c;
+  return { config, sources, ...(file ? { file } : {}) };
+}
+
+/** The config alone — and, unless `io` says otherwise, NO file read (see `NO_FILE`). */
+export function parseArgs(
+  argv: string[],
+  env: NodeJS.ProcessEnv = process.env,
+  io: Io = NO_FILE,
+): ProxyConfig {
+  return parseConfig(argv, env, io).config;
 }

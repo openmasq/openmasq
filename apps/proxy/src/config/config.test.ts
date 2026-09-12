@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseArgs } from "./config";
+import { parseArgs, parseConfig, toolName } from "./config";
 
 describe("config", () => {
   it("reads flags over env over defaults, and validates", () => {
@@ -33,7 +33,10 @@ describe("config", () => {
   it("opens the console in the browser on request, and turns the console on to do it", () => {
     expect(parseArgs([]).open).toBe(false);
     expect(parseArgs(["--open"])).toMatchObject({ open: true, console: true });
-    expect(parseArgs([], { OPENMASQ_PROXY_OPEN: "1" })).toMatchObject({ open: true, console: true });
+    expect(parseArgs([], { OPENMASQ_PROXY_OPEN: "1" })).toMatchObject({
+      open: true,
+      console: true,
+    });
   });
 
   it("lets the opening sequence be turned off, by flag or by env", () => {
@@ -67,5 +70,67 @@ describe("config", () => {
     expect(parseArgs([]).host).toBe("127.0.0.1");
     expect(parseArgs([]).level).toBe("standard"); // deterministic rules by default
     expect(() => parseArgs(["--host", "0.0.0.0"])).toThrow(/Unknown flag/);
+  });
+
+  it("reads the file under env under flags, and the tool's own block over run", () => {
+    const readConfig = () =>
+      JSON.stringify({
+        run: { level: "renforce", port: 9100, console: true, secretsFile: "/s.txt" },
+        clients: { hermes: { open: true, level: "strict" } },
+      });
+    const readSecrets = () => "sk-one\n# a comment\n\nsk-two\n";
+    const plain = parseConfig([], {}, { readConfig, readSecrets });
+    expect(plain.config).toMatchObject({
+      level: "renforce",
+      port: 9100,
+      console: true,
+      open: false,
+      secrets: ["sk-one", "sk-two"],
+    });
+    expect(plain.sources).toMatchObject({
+      level: "file",
+      port: "file",
+      open: "default",
+      theme: "default",
+    });
+    // The wrapped tool's block outranks `run`; a flag outranks everything; env sits between.
+    const hermes = parseConfig(
+      ["--port", "9200", "--", "hermes"],
+      { OPENMASQ_PROXY_LEVEL: "standard" },
+      { readConfig, readSecrets },
+    );
+    expect(hermes.config).toMatchObject({
+      level: "standard",
+      port: 9200,
+      open: true,
+      console: true,
+    });
+    expect(hermes.sources).toMatchObject({ level: "env", port: "flag", open: "client" });
+    expect(toolName(["/opt/homebrew/bin/Hermes.cmd"])).toBe("hermes");
+  });
+
+  it("refuses a malformed file or env the way it refuses a bad flag — never a silent default", () => {
+    expect(() => parseConfig([], {}, { readConfig: () => '{"run":{"level":"strcit"}}' })).toThrow(
+      /standard, renforce or strict/,
+    );
+    expect(() => parseConfig([], { OPENMASQ_PROXY_LEVEL: "strcit" })).toThrow(
+      /OPENMASQ_PROXY_LEVEL/,
+    );
+    expect(() =>
+      parseConfig(["--config", "/nowhere/p.json"], {}, { readConfig: () => undefined }),
+    ).toThrow(/no such file/);
+    // The default file may be absent; a `--config` one may not.
+    expect(parseConfig([], {}, { readConfig: () => undefined }).file).toBeUndefined();
+  });
+
+  it("derives what one option implies — a servers file turns mcp on, from the file too", () => {
+    expect(parseArgs(["--mcp-config", "/x.json"]).mcp).toBe(true);
+    expect(
+      parseArgs([], {}, { readConfig: () => '{"run":{"mcpConfig":"/x.json"}}' }),
+    ).toMatchObject({ mcp: true, mcpConfig: "/x.json" });
+    expect(parseArgs([], {}, { readConfig: () => '{"run":{"open":true}}' })).toMatchObject({
+      open: true,
+      console: true,
+    });
   });
 });
